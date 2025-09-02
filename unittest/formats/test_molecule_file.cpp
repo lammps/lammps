@@ -14,14 +14,15 @@
 #include "../testing/core.h"
 #include "atom.h"
 #include "info.h"
-#include "input.h"
 #include "lammps.h"
 #include "molecule.h"
 #include "platform.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cmath>
 #include <cstdio>
+#include <cstring>
 #include <mpi.h>
 #include <string>
 
@@ -474,20 +475,20 @@ TEST_F(MoleculeFileTest, minimal)
     run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*1 molecules.*\n"
-                                      ".*0 fragments.*\n.*1 atoms.*\n.*0 bonds.*"));
+                                      ".*0 fragments.*\n.*0 bodies.*\n.*1 atoms.*\n.*0 bonds.*"));
 }
 
 TEST_F(MoleculeFileTest, minjson)
 {
     BEGIN_CAPTURE_OUTPUT();
-    run_mol_cmd(
+    run_json_cmd(
         test_name, "",
         "{\"application\":\"LAMMPS\",\"format\":\"molecule\",\"revision\": 1,"
         "\"types\":{\"format\": [\"atom-id\",\"type\"],\"data\": [[1,1]]},"
         "\"coords\":{\"format\":[\"atom-id\",\"x\",\"y\",\"z\"],\"data\": [[1,0.0,0.0,0.0]]}}");
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Read molecule template minjson:\n.no title.*\n.*1 molecules.*\n"
-                                      ".*0 fragments.*\n.*1 atoms.*\n.*0 bonds.*"));
+                                      ".*0 fragments.*\n.*0 bodies.*\n.*1 atoms.*\n.*0 bonds.*"));
 }
 
 TEST_F(MoleculeFileTest, notype)
@@ -499,7 +500,7 @@ TEST_F(MoleculeFileTest, notype)
     run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*1 molecules.*\n"
-                                      ".*0 fragments.*\n.*1 atoms.*\n.*0 bonds.*"));
+                                      ".*0 fragments.*\n.*0 bodies.*\n.*1 atoms.*\n.*0 bonds.*"));
     TEST_FAILURE(".*ERROR: Create_atoms molecule must have atom types.*",
                  command("create_atoms 0 single 0.0 0.0 0.0 mol notype 542465"););
 }
@@ -528,7 +529,7 @@ TEST_F(MoleculeFileTest, twomols)
                 " Molecules\n\n 1 1\n 2 2\n\n Types\n\n 1 1\n 2 2\n\n");
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*2 molecules.*\n"
-                                      ".*0 fragments.*\n.*2 atoms with max type 2.*\n.*0 bonds.*"));
+                                      ".*0 fragments.*\n.*0 bodies.*\n.*2 atoms with max type 2.*\n.*0 bonds.*"));
     ASSERT_EQ(lmp->atom->nmolecule, 1);
     auto mols = lmp->atom->get_molecule_by_id(test_name);
     ASSERT_EQ(mols.size(), 1);
@@ -575,7 +576,7 @@ TEST_F(MoleculeFileTest, tenmols)
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output,
                 ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*10 molecules.*\n"
-                              ".*0 fragments.*\n.*10 atoms with max type 2.*\n.*0 bonds.*"));
+                              ".*0 fragments.*\n.*0 bodies.*\n.*10 atoms with max type 2.*\n.*0 bonds.*"));
     ASSERT_EQ(lmp->atom->nmolecule, 1);
     auto mols = lmp->atom->get_molecule_by_id(test_name);
     ASSERT_EQ(mols.size(), 1);
@@ -595,10 +596,10 @@ TEST_F(MoleculeFileTest, twofiles)
     ASSERT_THAT(
         output,
         ContainsRegex(".*Read molecule template twomols:.*\n.*Water.*\n.*1 molecules.*\n"
-                      ".*0 fragments.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
+                      ".*0 fragments.*\n.*0 bodies.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
                       ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*\n"
                       ".*Read molecule template twomols:.*\n.*CO2.*\n.*1 molecules.*\n"
-                      ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
+                      ".*0 fragments.*\n.*0 bodies.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
                       ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
     BEGIN_CAPTURE_OUTPUT();
     command("molecule h2o moltest.h2o.mol");
@@ -628,7 +629,7 @@ TEST_F(MoleculeFileTest, labelmap)
     ASSERT_THAT(
         output,
         ContainsRegex(".*Read molecule template h2olabel:.*\n.*Water.*\n.*1 molecules.*\n"
-                      ".*0 fragments.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
+                      ".*0 fragments.*\n.*0 bodies.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
                       ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*"));
     BEGIN_CAPTURE_OUTPUT();
     command("molecule co2label labelmap.co2.mol");
@@ -636,7 +637,7 @@ TEST_F(MoleculeFileTest, labelmap)
     ASSERT_THAT(
         output,
         ContainsRegex(".*Read molecule template co2label:.*\n.*CO2.*\n.*1 molecules.*\n"
-                      ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
+                      ".*0 fragments.*\n.*0 bodies.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
                       ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
     BEGIN_CAPTURE_OUTPUT();
     command("molecule h2onum moltest.h2o.mol");
@@ -650,12 +651,12 @@ TEST_F(MoleculeFileTest, labelmap)
     ASSERT_THAT(
         first,
         ContainsRegex(".*Read molecule template h2onum:.*\n.*Water.*\n.*1 molecules.*\n"
-                      ".*0 fragments.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
+                      ".*0 fragments.*\n.*0 bodies.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
                       ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*\n"));
     ASSERT_THAT(
         second,
         ContainsRegex(".*Read molecule template co2num:.*\n.*CO2.*\n.*1 molecules.*\n"
-                      ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
+                      ".*0 fragments.*\n.*0 bodies.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
                       ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
     ASSERT_EQ(lmp->atom->nmolecule, 4);
     auto mols = lmp->atom->get_molecule_by_id("h2onum");
@@ -676,7 +677,7 @@ TEST_F(MoleculeFileTest, labelmap)
 
 TEST_F(MoleculeFileTest, bonds)
 {
-    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
     BEGIN_CAPTURE_OUTPUT();
     command("atom_style bond");
     command("region box block 0 1 0 1 0 1");
@@ -701,7 +702,7 @@ TEST_F(MoleculeFileTest, bonds)
                 " 2 2 1 3\n\n");
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*1 molecules.*\n"
-                                      ".*0 fragments.*\n.*4 atoms.*type.*2.*\n"
+                                      ".*0 fragments.*\n.*0 bodies.*\n.*4 atoms.*type.*2.*\n"
                                       ".*2 bonds.*type.*2.*\n.*0 angles.*"));
 
     BEGIN_CAPTURE_OUTPUT();
@@ -727,7 +728,7 @@ TEST_F(MoleculeFileTest, bonds)
 
 TEST_F(MoleculeFileTest, dipoles)
 {
-    if (!LAMMPS::is_installed_pkg("DIPOLE")) GTEST_SKIP();
+    if (!Info::has_package("DIPOLE")) GTEST_SKIP();
     BEGIN_CAPTURE_OUTPUT();
     command("atom_style dipole");
     command("region box block 0 1 0 1 0 1");
@@ -740,7 +741,7 @@ TEST_F(MoleculeFileTest, dipoles)
                 "Dipoles\n\n1 1.0 0.0 0.0\n2 1.0 1.0 0.0\n\n");
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Dumbbell.*\n.*1 molecules.*\n"
-                                      ".*0 fragments.*\n.*2 atoms.*type.*2.*\n"));
+                                      ".*0 fragments.*\n.*0 bodies.*\n.*2 atoms.*type.*2.*\n"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("mass * 1.0");

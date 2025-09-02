@@ -137,7 +137,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
   // find each ghost's binID (AIR number)
   {
     for (int i = 0; i < 8; i++) k_gbincount.h_view(i) = 0;
-    k_gbincount.modify<LMPHostType>();
+    k_gbincount.modify_host();
     k_gbincount.sync<DeviceType>();
     ghosts_per_gbin = 0;
     NPairSSAKokkosBinIDGhostsFunctor<DeviceType> f(*this);
@@ -151,7 +151,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
       gbins = k_gbins.view<DeviceType>();
     }
     for (int i = 0; i < 8; i++) k_gbincount.h_view(i) = 0;
-    k_gbincount.modify<LMPHostType>();
+    k_gbincount.modify_host();
     k_gbincount.sync<DeviceType>();
 
     auto binID_ = binID;

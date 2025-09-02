@@ -23,7 +23,7 @@ DumpStyle(image,DumpImage);
 #include "dump_custom.h"
 
 namespace LAMMPS_NS {
-
+class Region;
 class DumpImage : public DumpCustom {
  public:
   int multifile_override;    // used by write_dump command
@@ -54,9 +54,10 @@ class DumpImage : public DumpCustom {
   int fixcolor;                   // what determines color of fix objects
   double fixflag1, fixflag2;      // user-specified params for fix objects
 
-  int bondflag;         // 0/1 for draw bonds
+  int bondflag;         // NO/YES/AUTO for drawing bonds
   int bcolor, bdiam;    // what determines color/diam of bonds
   double bdiamvalue;    // bond diameter value
+  double bondcutoff;    // autobond cutoff
 
   int extraflag;                        // 0/1 for any of line/tri/body flag set
   char *thetastr, *phistr;              // variables for view theta,phi
@@ -99,6 +100,25 @@ class DumpImage : public DumpCustom {
   class Fix *fixptr;    // ptr to Fix that provides image data
 
   class Image *image;    // class that renders each image
+
+  class RegionInfo {
+   public:
+    RegionInfo() = delete;
+    RegionInfo(const std::string &_id, Region *_ptr, double *_color, int _style,
+               double _diameter = 0.5, int _npoints = 0) :
+        ptr(_ptr), id(_id), style(_style), color(_color), diameter(_diameter), npoints(_npoints)
+    {
+    }
+
+    Region *ptr;
+    std::string id;
+    int style;
+    double *color;
+    double diameter;
+    int npoints;
+  };
+
+  std::vector<RegionInfo> regions;
 
   int *chooseghost;    // extended choose array for comm
   double **bufcopy;    // buffer for communicating bond/atom info

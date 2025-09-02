@@ -6,6 +6,12 @@
 // SPDX-FileCopyrightText: 2013 - 2025 Niels Lohmann <https://nlohmann.me>
 // SPDX-License-Identifier: MIT
 
+// LAMMPS CUSTOMIZATION: to keep users from including this file directly
+
+#if !defined(LMP_JSON_FWD_H)
+#error Please include "json_fwd.h" instead of "nlohmann/json_fwd.hpp"
+#endif
+
 #ifndef LMP_NLOHMANN_JSON_FWD_HPP_
 #define LMP_NLOHMANN_JSON_FWD_HPP_
 

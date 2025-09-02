@@ -24,7 +24,6 @@
 #include "error.h"
 #include "memory.h"
 #include "modify.h"
-#include "neigh_list.h"
 #include "potential_file_reader.h"
 #include "update.h"
 
@@ -357,7 +356,7 @@ void ComputeSLCSAAtom::compute_peratom()
           classification[i][j] = sqrt(prodleft);
         }
         // 6th step : Sanity check
-        int locclass = classification[i][nclasses];
+        int locclass = classification[i][nclasses]; // NOLINT
 
         if (classification[i][locclass] > maha_thresholds[locclass]) {
           classification[i][nclasses] = -1.0;

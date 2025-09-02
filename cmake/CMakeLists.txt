@@ -3,9 +3,6 @@
 # CMake build system
 # This file is part of LAMMPS
 cmake_minimum_required(VERSION 3.16)
-if(CMAKE_VERSION VERSION_LESS 3.20)
-  message(WARNING "LAMMPS is planning to require at least CMake version 3.20 by Summer 2025. Please upgrade!")
-endif()
 ########################################
 # initialize version variables with project command
 if(POLICY CMP0048)
@@ -137,11 +134,10 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Minform=severe")
 endif()
 
-# silence nvcc warnings
-if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND NOT
-    ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
-    OR (CMAKE_CXX_COMPILER_ID STREQUAL "XLClang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang")))
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xcudafe --diag_suppress=unrecognized_pragma,--diag_suppress=128")
+# silence nvcc warnings when using nvcc_wrapper
+get_filename_component(LAMMPS_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}" NAME CACHE)
+if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND (LAMMPS_CXX_COMPILER_NAME STREQUAL "nvcc_wrapper"))
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xcudafe --diag_suppress=unrecognized_pragma,--diag_suppress=128,--diag_suppress=186")
 endif()
 
 # we *require* C++11 without extensions but prefer C++17.
@@ -155,9 +151,6 @@ if(NOT CMAKE_CXX_STANDARD)
 endif()
 if(CMAKE_CXX_STANDARD LESS 11)
   message(FATAL_ERROR "C++ standard must be set to at least 11")
-endif()
-if(CMAKE_CXX_STANDARD LESS 17)
-  message(WARNING "Selecting C++17 standard is preferred over C++${CMAKE_CXX_STANDARD}")
 endif()
 if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 17))
   set(CMAKE_CXX_STANDARD 17)
@@ -243,15 +236,6 @@ option(BUILD_SHARED_LIBS "Build shared library" OFF)
 option(CMAKE_POSITION_INDEPENDENT_CODE "Create object compatible with shared libraries" ON)
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
 option(BUILD_LAMMPS_GUI "Build and install the LAMMPS GUI" OFF)
-
-# Support using clang-tidy for C++ files with selected options
-set(ENABLE_CLANG_TIDY OFF CACHE BOOL "Include clang-tidy processing when compiling")
-if(ENABLE_CLANG_TIDY)
-  set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=-*,performance-trivially-destructible,performance-unnecessary-copy-initialization,performance-unnecessary-value-param,readability-redundant-control-flow,readability-redundant-declaration,readability-redundant-function-ptr-dereference,readability-redundant-member-init,readability-redundant-string-cstr,readability-redundant-string-init,readability-simplify-boolean-expr,readability-static-accessed-through-instance,readability-static-definition-in-anonymous-namespace,readability-qualified-auto,misc-unused-parameters,modernize-deprecated-ios-base-aliases,modernize-loop-convert,modernize-shrink-to-fit,modernize-use-auto,modernize-use-using,modernize-use-override,modernize-use-bool-literals,modernize-use-emplace,modernize-return-braced-init-list,modernize-use-equals-default,modernize-use-equals-delete,modernize-replace-random-shuffle,modernize-deprecated-headers,modernize-use-nullptr,modernize-use-noexcept,modernize-redundant-void-arg;-fix;-header-filter=.*,header-filter=library.h,header-filter=fmt/*.h" CACHE STRING "clang-tidy settings")
-else()
-  unset(CMAKE_CXX_CLANG_TIDY CACHE)
-endif()
-
 
 file(GLOB ALL_SOURCES CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
 file(GLOB MAIN_SOURCES CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/main.cpp)
@@ -368,17 +352,6 @@ set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT INTEL OPENMP)
 
 foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
-endforeach()
-
-set(DEPRECATED_PACKAGES AWPMD ATC POEMS)
-foreach(PKG ${DEPRECATED_PACKAGES})
-  if(PKG_${PKG})
-    message(WARNING
-          "The ${PKG} package will be removed from LAMMPS in Summer 2025 due to lack of "
-          "maintenance and use of code constructs that conflict with modern C++ compilers "
-          "and standards.  Please contact developers@lammps.org if you have any concerns "
-          "about this step.")
-  endif()
 endforeach()
 
 ######################################################
@@ -641,15 +614,6 @@ if(WITH_SWIG)
 endif()
 
 ########################################################################
-# Basic system tests (standard libraries, headers, functions, types)   #
-########################################################################
-if (NOT ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")))
-  check_include_file_cxx(cmath FOUND_CMATH)
-  if(NOT FOUND_CMATH)
-    message(FATAL_ERROR "Could not find the required 'cmath' header")
-  endif(NOT FOUND_CMATH)
-endif()
-
 # make the standard math library overrideable and autodetected (for systems that don't have it)
 find_library(STANDARD_MATH_LIB m DOC "Standard Math library")
 mark_as_advanced(STANDARD_MATH_LIB)

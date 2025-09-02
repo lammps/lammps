@@ -649,4 +649,4 @@ checked, *maxtry* = 10, and *units* = lattice.
 
 .. _Roberts2019:
 
-**(Roberts)** R. Roberts (2019) "Evenly Distributing Points in a Triangle." Extreme Learning.  `<http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/>`_
+**(Roberts)** R. Roberts (2019) "Evenly Distributing Points in a Triangle." Extreme Learning.  `<https://extremelearning.com.au/evenly-distributing-points-in-a-triangle/>`_

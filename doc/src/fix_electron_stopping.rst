@@ -1,8 +1,11 @@
 .. index:: fix electron/stopping
+.. index:: fix electron/stopping/kk
 .. index:: fix electron/stopping/fit
 
 fix electron/stopping command
 =============================
+
+Accelerator Variants: *electron/stopping/kk*
 
 fix electron/stopping/fit command
 =================================
@@ -137,12 +140,11 @@ kinetic energy higher than the largest energy given in *file*, LAMMPS
 will exit with an error message.
 
 The stopping power depends on the energy of the ion and the target
-material. The electronic stopping table can be obtained from
-scientific publications, experimental databases or by using
-:ref:`SRIM <SRIM>` software. Other programs such as :ref:`CasP <CasP>` or
-:ref:`PASS <PASS>` can calculate the energy deposited as a function
-of the impact parameter of the ion; these results can be used
-to derive the stopping power.
+material. The electronic stopping table can be obtained from scientific
+publications, experimental databases or by using :ref:`SRIM <SRIM>`
+software. Other programs such as :ref:`CasP <CasP>` can calculate the
+energy deposited as a function of the impact parameter of the ion; these
+results can be used to derive the stopping power.
 
 ----------
 
@@ -156,6 +158,18 @@ electronic stopping data predicted by, for example, SRIM or TD-DFT. Multiple
 of the atom types. There is an examples/PACKAGES/electron_stopping/ directory,
 which illustrates uses of this command. Details of this implementation are
 further described in :ref:`Stewart2018 <Stewart2018>` and :ref:`Lee2020 <Lee2020>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+.. note::
+
+  The region keyword is supported by Kokkos, but a Kokkos-enabled
+  region must be used. See the region :doc:`region <region>` command for
+  more information.
+
+----------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -205,10 +219,6 @@ The default is no limitation by region, and minneigh = 1.
 .. _CasP:
 
 **(CasP)** CasP webpage: http://www.casp-program.org/
-
-.. _PASS:
-
-**(PASS)** PASS webpage: https://www.sdu.dk/en/DPASS
 
 .. _Stewart2018:
 

@@ -122,7 +122,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"LP") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal Compute XRD Command");
-      LP = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      LP = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
 
       if (LP != 1 && LP != 0)
          error->all(FLERR,"Compute XRD: LP must have value of 0 or 1");
@@ -201,7 +201,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   // Find reciprocal spacing and integer dimensions
   for (int i=0; i<3; i++) {
     dK[i] = prd_inv[i]*c[i];
-    Knmax[i] = ceil(Kmax / dK[i]);
+    Knmax[i] = (int) ceil(Kmax / dK[i]);
   }
 
   // Finding the intersection of the reciprocal space and Ewald sphere
@@ -300,7 +300,7 @@ void ComputeXRD::compute_array()
 
   double t0 = platform::walltime();
 
-  auto Fvec = new double[2*size_array_rows]; // Strct factor (real & imaginary)
+  auto *Fvec = new double[2*size_array_rows]; // Strct factor (real & imaginary)
   // -- Note: array rows correspond to different RELP
 
   ntypes = atom->ntypes;
@@ -316,8 +316,8 @@ void ComputeXRD::compute_array()
     }
   }
 
-  auto xlocal = new double [3*nlocalgroup];
-  int *typelocal = new int [nlocalgroup];
+  auto *xlocal = new double[3*nlocalgroup];
+  auto *typelocal = new int[nlocalgroup];
 
   nlocalgroup = 0;
   for (int ii = 0; ii < nlocal; ii++) {
@@ -349,7 +349,7 @@ void ComputeXRD::compute_array()
 #pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(typelocal,xlocal,Fvec,m,frac,ASFXRD)
 #endif
   {
-    auto f = new double[ntypes];    // atomic structure factor by type
+    auto *f = new double[ntypes];    // atomic structure factor by type
     int n,typei = 0;
 
     double Fatom1 = 0.0;               // structure factor per atom (real)
@@ -485,7 +485,7 @@ void ComputeXRD::compute_array()
     delete[] f;
   } // End of pragma omp parallel region
 
-  auto scratch = new double[2*size_array_rows];
+  auto *scratch = new double[2*size_array_rows];
 
   // Sum intensity for each ang-hkl combination across processors
   MPI_Allreduce(Fvec,scratch,2*size_array_rows,MPI_DOUBLE,MPI_SUM,world);

@@ -1962,7 +1962,7 @@ void FixMDIQMMM::unit_conversions()
 
 int compare_IDs(const int i, const int j, void *ptr)
 {
-  tagint *ids = (tagint *) ptr;
+  auto *ids = (tagint *) ptr;
   if (ids[i] < ids[j]) return -1;
   if (ids[i] > ids[j]) return 1;
   return 0;

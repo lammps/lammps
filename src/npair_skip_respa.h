@@ -13,14 +13,14 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-typedef NPairSkipRespaTemp<0> NPairSkipRespa;
+using NPairSkipRespa = NPairSkipRespaTemp<0>;
 NPairStyle(skip/half/respa,
            NPairSkipRespa,
            NP_SKIP | NP_RESPA | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairSkipRespaTemp<1> NPairSkipTrimRespa;
+using NPairSkipTrimRespa = NPairSkipRespaTemp<1>;
 NPairStyle(skip/trim/half/respa,
            NPairSkipTrimRespa,
            NP_SKIP | NP_RESPA | NP_HALF | NP_FULL |

@@ -31,6 +31,7 @@
 #include "variable.h"
 
 #include <cstring>
+#include <map>
 
 using namespace LAMMPS_NS;
 
@@ -778,7 +779,7 @@ int DumpCustom::count()
   // un-choose if not in region
 
   if (idregion) {
-    auto region = domain->get_region_by_id(idregion);
+    auto *region = domain->get_region_by_id(idregion);
     region->prematch();
     double **x = atom->x;
     for (i = 0; i < nlocal; i++)
@@ -1646,7 +1647,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
       ArgInfo argi(arg[iarg], ArgInfo::COMPUTE | ArgInfo::FIX | ArgInfo::VARIABLE |
                    ArgInfo::DNAME | ArgInfo::INAME);
       argindex[iarg] = argi.get_index1();
-      auto name = argi.get_name();
+      const auto *name = argi.get_name();
       Compute *icompute = nullptr;
       Fix *ifix = nullptr;
 
@@ -2110,7 +2111,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       ArgInfo argi(arg[1], ArgInfo::COMPUTE | ArgInfo::FIX | ArgInfo::VARIABLE |
                    ArgInfo::DNAME | ArgInfo::INAME);
       argindex[nfield+nthresh] = argi.get_index1();
-      auto name = argi.get_name();
+      const auto *name = argi.get_name();
       Compute *icompute = nullptr;
       Fix *ifix = nullptr;
 

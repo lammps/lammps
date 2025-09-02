@@ -7,19 +7,6 @@ mode=$1
 LC_ALL=C
 export LC_ALL
 
-cat <<EOF
-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
-
-  Support for building the KOKKOS package with the legacy build system using GNU
-  make will be removed in Summer 2025.  Please switch to using CMake to build
-  LAMMPS as soon as possible and report any problems to developers@lammps.org
-  or post a bug report issue at https://github.com/lammps/lammps/issues
-
-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
-EOF
-
 # arg1 = file, arg2 = file it depends on
 
 action () {
@@ -139,6 +126,8 @@ action dihedral_class2_kokkos.cpp dihedral_class2.cpp
 action dihedral_class2_kokkos.h dihedral_class2.h
 action dihedral_harmonic_kokkos.cpp dihedral_harmonic.cpp
 action dihedral_harmonic_kokkos.h dihedral_harmonic.h
+action dihedral_multi_harmonic_kokkos.cpp dihedral_multi_harmonic.cpp
+action dihedral_multi_harmonic_kokkos.h dihedral_multi_harmonic.h
 action dihedral_opls_kokkos.cpp dihedral_opls.cpp
 action dihedral_opls_kokkos.h dihedral_opls.h
 action dihedral_hybrid_kokkos.cpp dihedral_hybrid.cpp
@@ -162,6 +151,8 @@ action fix_dpd_energy_kokkos.cpp fix_dpd_energy.cpp
 action fix_dpd_energy_kokkos.h fix_dpd_energy.h
 action fix_dt_reset_kokkos.cpp
 action fix_dt_reset_kokkos.h
+action fix_electron_stopping_kokkos.cpp fix_electron_stopping.cpp
+action fix_electron_stopping_kokkos.h fix_electron_stopping.h
 action fix_enforce2d_kokkos.cpp
 action fix_enforce2d_kokkos.h
 action fix_efield_kokkos.cpp

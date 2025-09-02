@@ -72,46 +72,21 @@ CommTiledKokkos::~CommTiledKokkos()
 void CommTiledKokkos::init()
 {
   atomKK = (AtomKokkos *) atom;
-  exchange_comm_classic = lmp->kokkos->exchange_comm_classic;
-  forward_comm_classic = lmp->kokkos->forward_comm_classic;
-  forward_pair_comm_classic = lmp->kokkos->forward_pair_comm_classic;
-  reverse_pair_comm_classic = lmp->kokkos->reverse_pair_comm_classic;
-  forward_fix_comm_classic = lmp->kokkos->forward_fix_comm_classic;
-  reverse_comm_classic = lmp->kokkos->reverse_comm_classic;
+  exchange_comm_legacy = lmp->kokkos->exchange_comm_legacy;
+  forward_comm_legacy = lmp->kokkos->forward_comm_legacy;
+  forward_pair_comm_legacy = lmp->kokkos->forward_pair_comm_legacy;
+  reverse_pair_comm_legacy = lmp->kokkos->reverse_pair_comm_legacy;
+  forward_fix_comm_legacy = lmp->kokkos->forward_fix_comm_legacy;
+  reverse_comm_legacy = lmp->kokkos->reverse_comm_legacy;
   exchange_comm_on_host = lmp->kokkos->exchange_comm_on_host;
   forward_comm_on_host = lmp->kokkos->forward_comm_on_host;
   reverse_comm_on_host = lmp->kokkos->reverse_comm_on_host;
 
   CommTiled::init();
 
-  int check_forward = 0;
-  int check_reverse = 0;
-  if (force->pair && (force->pair->execution_space == Host))
-    check_forward += force->pair->comm_forward;
-  if (force->pair && (force->pair->execution_space == Host))
-    check_reverse += force->pair->comm_reverse;
-
-  for (const auto &fix : modify->get_fix_list()) {
-    check_forward += fix->comm_forward;
-    check_reverse += fix->comm_reverse;
-  }
-
-  for (const auto &compute : modify->get_compute_list()) {
-    check_forward += compute->comm_forward;
-    check_reverse += compute->comm_reverse;
-  }
-
-  for (const auto &dump : output->get_dump_list()) {
-    check_forward += dump->comm_forward;
-    check_reverse += dump->comm_reverse;
-  }
-
-  if (force->newton == 0) check_reverse = 0;
-  if (force->pair) check_reverse += force->pair->comm_reverse_off;
-
   if (!comm_f_only) { // not all Kokkos atom_vec styles have reverse pack/unpack routines yet
-    reverse_comm_classic = true;
-    lmp->kokkos->reverse_comm_classic = 1;
+    reverse_comm_legacy = true;
+    lmp->kokkos->reverse_comm_legacy = 1;
   }
 }
 
@@ -122,13 +97,13 @@ void CommTiledKokkos::init()
 
 void CommTiledKokkos::forward_comm(int dummy)
 {
-  if (!forward_comm_classic) {
+  if (!forward_comm_legacy) {
     if (forward_comm_on_host) forward_comm_device<LMPHostType>();
     else forward_comm_device<LMPDeviceType>();
     return;
   }
 
-  k_sendlist.sync<LMPHostType>();
+  k_sendlist.sync_host();
 
   if (comm_x_only) {
     atomKK->sync(Host,X_MASK);
@@ -165,10 +140,10 @@ void CommTiledKokkos::forward_comm_device()
     nsend = nsendproc[iswap] - sendself[iswap];
     nrecv = nrecvproc[iswap] - sendself[iswap];
 
-    if (comm_x_only) {
+    if (comm_x_only && !atomKK->k_x.NEED_TRANSFORM) {
       if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {
-          buf = atomKK->k_x.view<DeviceType>().data() +
+          buf = (double*)atomKK->k_x.view<DeviceType>().data() +
             firstrecv[iswap][i]*atomKK->k_x.view<DeviceType>().extent(1);
           MPI_Irecv(buf,size_forward_recv[iswap][i],
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
@@ -272,13 +247,13 @@ void CommTiledKokkos::forward_comm_device()
 
 void CommTiledKokkos::reverse_comm()
 {
-  if (!reverse_comm_classic) {
+  if (!reverse_comm_legacy) {
     if (reverse_comm_on_host) reverse_comm_device<LMPHostType>();
     else reverse_comm_device<LMPDeviceType>();
     return;
   }
 
-  k_sendlist.sync<LMPHostType>();
+  k_sendlist.sync_host();
 
   if (comm_f_only)
     atomKK->sync(Host,F_MASK);
@@ -314,7 +289,7 @@ void CommTiledKokkos::reverse_comm_device()
     nsend = nsendproc[iswap] - sendself[iswap];
     nrecv = nrecvproc[iswap] - sendself[iswap];
 
-    if (comm_f_only) {
+    if (comm_f_only  && !atomKK->k_f.NEED_TRANSFORM) {
       if (sendother[iswap]) {
         for (i = 0; i < nsend; i++) {
           buf = k_buf_recv.view<DeviceType>().data() +
@@ -325,7 +300,7 @@ void CommTiledKokkos::reverse_comm_device()
       }
       if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {
-          buf = atomKK->k_f.view<DeviceType>().data() +
+          buf = (double*)atomKK->k_f.view<DeviceType>().data() +
             firstrecv[iswap][i]*atomKK->k_f.view<DeviceType>().extent(1);
           MPI_Send(buf,size_reverse_send[iswap][i],
                    MPI_DOUBLE,recvproc[iswap][i],0,world);
@@ -615,16 +590,16 @@ void CommTiledKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
   int maxsend_border = (maxsend+BUFEXTRA)/atomKK->avecKK->size_border;
   if (flag) {
     if (space == Device)
-      k_buf_send.modify<LMPDeviceType>();
+      k_buf_send.modify_device();
     else
-      k_buf_send.modify<LMPHostType>();
+      k_buf_send.modify_host();
 
     if (ghost_velocity)
       k_buf_send.resize(maxsend_border,
                         atomKK->avecKK->size_border + atomKK->avecKK->size_velocity);
     else
       k_buf_send.resize(maxsend_border,atomKK->avecKK->size_border);
-    buf_send = k_buf_send.view<LMPHostType>().data();
+    buf_send = k_buf_send.h_view.data();
   } else {
     if (ghost_velocity)
       MemoryKokkos::realloc_kokkos(k_buf_send,"comm:k_buf_send",maxsend_border,
@@ -632,7 +607,7 @@ void CommTiledKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
     else
       MemoryKokkos::realloc_kokkos(k_buf_send,"comm:k_buf_send",maxsend_border,
                         atomKK->avecKK->size_border);
-    buf_send = k_buf_send.view<LMPHostType>().data();
+    buf_send = k_buf_send.h_view.data();
   }
 }
 
@@ -649,7 +624,7 @@ void CommTiledKokkos::grow_recv_kokkos(int n, int flag, ExecutionSpace /*space*/
 
   MemoryKokkos::realloc_kokkos(k_buf_recv,"comm:k_buf_recv",maxrecv_border,
     atomKK->avecKK->size_border);
-  buf_recv = k_buf_recv.view<LMPHostType>().data();
+  buf_recv = k_buf_recv.h_view.data();
 }
 
 /* ----------------------------------------------------------------------
@@ -660,8 +635,8 @@ void CommTiledKokkos::grow_list(int iswap, int iwhich, int n)
 {
   int size = static_cast<int> (BUFFACTOR * n);
 
-  k_sendlist.sync<LMPHostType>();
-  k_sendlist.modify<LMPHostType>();
+  k_sendlist.sync_host();
+  k_sendlist.modify_host();
 
   memoryKK->grow_kokkos(k_sendlist,sendlist,maxswap,nprocmaxtot,size,"comm:sendlist");
 

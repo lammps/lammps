@@ -24,8 +24,6 @@ FixStyle(lambda/apip,FixLambdaAPIP);
 #define LMP_FIX_LAMBDA_APIP_H
 
 #include "fix.h"
-#include "pair_lambda_input_apip.h"
-#include "pair_lambda_zone_apip.h"
 
 namespace LAMMPS_NS {
 

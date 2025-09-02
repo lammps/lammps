@@ -25,7 +25,7 @@ ConstantsOxdna::ConstantsOxdna(class LAMMPS *lmp) : Pointers(lmp)
 {
   // set oxDNA units
   units = update->unit_style;
-  real_flag = utils::strmatch(units.c_str(), "^real");
+  real_flag = utils::strmatch(units, "^real");
   if (real_flag) set_real_units();
 }
 

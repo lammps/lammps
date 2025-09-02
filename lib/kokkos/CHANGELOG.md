@@ -1,5 +1,28 @@
 # CHANGELOG
 
+## 4.6.02
+
+[Full Changelog](https://github.com/kokkos/kokkos/compare/4.6.01...4.6.02)
+
+### Bug Fixes
+
+#### SYCL
+* Workaround issues with `sycl::select_from_group` for pointers in oneAPI 2025.0.4 [\#8051](https://github.com/kokkos/kokkos/pull/8051)
+
+## 4.6.01
+
+[Full Changelog](https://github.com/kokkos/kokkos/compare/4.6.00...4.6.01)
+
+### Backend and Architecture Enhancements:
+
+#### CUDA:
+* Add support for NVIDIA's Blackwell GPU architecture [\#7888](https://github.com/kokkos/kokkos/pull/7888)
+
+### Bug Fixes
+* Fix symbol visibility: make sure that `AUTO` has external linkage [\#7898](https://github.com/kokkos/kokkos/pull/7898)
+* Building with generated makefiles: add missing HIP XNACK source file [\#8030](https://github.com/kokkos/kokkos/pull/8030)
+* Fix building benchmarks when Kokkos exists as a subproject/subdirectory [\#8045](https://github.com/kokkos/kokkos/pull/8045)
+
 ## 4.6.00
 
 [Full Changelog](https://github.com/kokkos/kokkos/compare/4.5.01...4.6.00)

@@ -134,12 +134,17 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) :
         numflag = 1;
         numdelta = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
         if (numdelta <= 0.0) error->all(FLERR, "Illegal compute born/matrix command");
+        delete[] id_virial;
         id_virial = utils::strdup(arg[iarg + 2]);
-        int icompute = modify->find_compute(id_virial);
-        if (icompute < 0) error->all(FLERR, "Could not find compute born/matrix pressure ID");
-        compute_virial = modify->compute[icompute];
+        compute_virial = modify->get_compute_by_id(id_virial);
+        if (!compute_virial)
+          error->all(FLERR, iarg + 2, "Could not find compute born/matrix pressure ID {}",
+                     id_virial);
         if (compute_virial->pressflag == 0)
-          error->all(FLERR, "Compute born/matrix pressure ID does not compute pressure");
+          error->all(FLERR, iarg + 2,
+                     "Compute born/matrix pressure ID {} does not compute "
+                     "pressure",
+                     id_virial);
         iarg += 3;
       } else if (strcmp(arg[iarg], "pair") == 0) {
         pairflag = 1;
@@ -292,11 +297,12 @@ void ComputeBornMatrix::init()
 
   } else {
 
-    // check for virial compute
+    // re-check for virial compute
 
-    int icompute = modify->find_compute(id_virial);
-    if (icompute < 0) error->all(FLERR, "Virial compute ID for compute born/matrix does not exist");
-    compute_virial = modify->compute[icompute];
+    compute_virial = modify->get_compute_by_id(id_virial);
+    if (!compute_virial)
+      error->all(FLERR, Error::NOLASTLINE, "Could not find compute born/matrix pressure ID {}",
+                 id_virial);
 
     // set up reverse index lookup
     // This table is used for consistency between numdiff and analytical

@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixPIMDBLangevin : public FixPIMDLangevin {
  public:
   FixPIMDBLangevin(class LAMMPS *, int, char **);
-  ~FixPIMDBLangevin();
+  ~FixPIMDBLangevin() override;
 
   double compute_vector(int) override;
   void compute_spring_energy() override;

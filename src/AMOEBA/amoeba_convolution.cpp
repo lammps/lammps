@@ -137,11 +137,8 @@ void AmoebaConvolution::allocate_grid()
   int me = comm->me;
   int nprocs = comm->nprocs;
 
-  int npey_fft,npez_fft;
-  if (nz >= nprocs) {
-    npey_fft = 1;
-    npez_fft = nprocs;
-  } else procs2grid2d(nprocs,ny,nz,npey_fft,npez_fft);
+  int npey_fft = 1, npez_fft = nprocs;
+  procs2grid2d(nprocs,ny,nz,npey_fft,npez_fft);
 
   int me_y = me % npey_fft;
   int me_z = me / npey_fft;
@@ -547,8 +544,7 @@ void AmoebaConvolution::procs2grid2d(int nprocs, int nx, int ny, int &px, int &p
       boxy = ny/ipy;
       if (ny % ipy) boxy++;
       surf = boxx + boxy;
-      if (surf < bestsurf ||
-          (surf == bestsurf && boxx*boxy > bestboxx*bestboxy)) {
+      if ((surf < bestsurf) || ((surf == bestsurf) && (boxx*boxy > bestboxx*bestboxy))) {
         bestsurf = surf;
         bestboxx = boxx;
         bestboxy = boxy;

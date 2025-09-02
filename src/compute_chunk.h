@@ -18,7 +18,6 @@
 
 namespace LAMMPS_NS {
 class ComputeChunkAtom;
-class Fix;
 
 class ComputeChunk : public Compute {
  public:

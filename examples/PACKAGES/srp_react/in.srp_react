@@ -80,13 +80,13 @@ fix            1  all  nve
 # print bonds breaking stats
 # ***********************************************
 variable TotBreak equal 100 # total breakable bonds in current system
-fix print_bonds_broken all print 100 "${TIME} ${Nbreak} $((v_TotBreak-v_Nbreak)/v_TotBreak)" file bonds_broken.txt screen no title "time bonds_broken fraction_bonds_intact"
+#fix print_bonds_broken all print 100 "${TIME} ${Nbreak} $((v_TotBreak-v_Nbreak)/v_TotBreak)" file bonds_broken.txt screen no title "time bonds_broken fraction_bonds_intact"
 
 # thermo output
 #***********************************************
 thermo         100
 thermo_style   custom step temp pe ke etotal epair
-thermo_modify  flush  yes  norm  no
+thermo_modify  norm  no
 
 reset_timestep 0
 #dump          1 Npoly   custom 5000 traj.lammpstrj id type x y z

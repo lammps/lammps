@@ -28,7 +28,10 @@
 #include "domain.h"
 #include "error.h"
 #include "memory.h"
-#include "universe.h"
+
+#include <algorithm>
+#include <cmath>
+#include <limits>
 
 using namespace LAMMPS_NS;
 

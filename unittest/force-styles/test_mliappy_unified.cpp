@@ -15,7 +15,6 @@
 
 #include "info.h"
 
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 const char pickle[] = "python create_pickle here \"\"\"\n"
@@ -114,10 +113,14 @@ TEST(MliapUnified, VersusLJMeltGhost)
     lammps_close(ljmelt);
     lammps_close(mliap);
 }
+
 TEST(MliapUnified, VersusLJMeltKokkos)
 {
-    if (!LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
-    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) GTEST_SKIP();
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    // test either OpenMP or Serial
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+        GTEST_SKIP();
     // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
     if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
         Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
@@ -127,7 +130,9 @@ TEST(MliapUnified, VersusLJMeltKokkos)
 
     const char *lmpargv[] = {"melt", "-log", "none", "-echo", "screen", "-nocite",
                              "-k",   "on",   "t",    "4",     "-sf",    "kk"};
-    int lmpargc           = sizeof(lmpargv) / sizeof(const char *);
+    // fall back to serial if openmp is not available
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) lmpargv[9] = "1";
+    int lmpargc = sizeof(lmpargv) / sizeof(const char *);
 
     void *ljmelt = lammps_open_no_mpi(lmpargc, (char **)lmpargv, nullptr);
     void *mliap  = lammps_open_no_mpi(lmpargc, (char **)lmpargv, nullptr);
@@ -159,10 +164,14 @@ TEST(MliapUnified, VersusLJMeltKokkos)
     lammps_close(ljmelt);
     lammps_close(mliap);
 }
+
 TEST(MliapUnified, VersusLJMeltGhostKokkos)
 {
-    if (!LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
-    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) GTEST_SKIP();
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    // test either OpenMP or Serial
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "serial"))
+        GTEST_SKIP();
     // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
     if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
         Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
@@ -172,7 +181,10 @@ TEST(MliapUnified, VersusLJMeltGhostKokkos)
 
     const char *lmpargv[] = {"melt", "-log", "none", "-echo", "screen", "-nocite",
                              "-k",   "on",   "t",    "4",     "-sf",    "kk"};
-    int lmpargc           = sizeof(lmpargv) / sizeof(const char *);
+    // fall back to serial if openmp is not available
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) lmpargv[9] = "1";
+
+    int lmpargc = sizeof(lmpargv) / sizeof(const char *);
 
     void *ljmelt = lammps_open_no_mpi(lmpargc, (char **)lmpargv, nullptr);
     void *mliap  = lammps_open_no_mpi(lmpargc, (char **)lmpargv, nullptr);

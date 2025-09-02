@@ -29,7 +29,7 @@ class LabelMap : protected Pointers {
 
  public:
   LabelMap(LAMMPS *lmp, int, int, int, int, int);
-  ~LabelMap();
+  ~LabelMap() override;
 
   void modify_lmap(int, char **);              // labelmap command in the input script
   void merge_lmap(LabelMap *, int);            // copy another lmap into this one

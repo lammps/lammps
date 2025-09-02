@@ -34,6 +34,7 @@
 #include "respa.h"
 #include "update.h"
 
+#include <algorithm>
 #include <cstring>
 #include <cmath>
 
@@ -671,7 +672,7 @@ void FixTGNHDrude::init()
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
 
   rfix.clear();
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
@@ -721,7 +722,7 @@ void FixTGNHDrude::setup_mol_mass_dof() {
   memory->create(v_mol_tmp, n_mol + 1, 3, "fix_tgnh_drude::v_mol_tmp");
   memory->create(mass_mol, n_mol + 1, "fix_tgnh_drude::mass_mol");
 
-  auto mass_tmp = new double[n_mol + 1];
+  auto *mass_tmp = new double[n_mol + 1];
   memset(mass_tmp, 0, sizeof(double) * (n_mol + 1));
   for (int i = 0; i < atom->nlocal; i++) {
     id_mol = molecule[i];
@@ -1348,7 +1349,7 @@ int FixTGNHDrude::pack_restart_data(double *list)
 void FixTGNHDrude::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
   if (flag) {
     int m = static_cast<int> (list[n++]);
@@ -2036,7 +2037,7 @@ void FixTGNHDrude::compute_sigma()
   // every nreset_h0 timesteps
 
   if (nreset_h0 > 0) {
-    int delta = update->ntimestep - update->beginstep;
+    bigint delta = update->ntimestep - update->beginstep;
     if (delta % nreset_h0 == 0) {
       if (dimension == 3) vol0 = domain->xprd * domain->yprd * domain->zprd;
       else vol0 = domain->xprd * domain->yprd;

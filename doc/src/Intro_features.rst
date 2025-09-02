@@ -211,7 +211,7 @@ Pre- and post-processing
   plotting, and visualization for LAMMPS simulations.  Pizza.py is
   written in `Python <python_>`_ and is available for download from `the Pizza.py WWW site <pizza_>`_.
 
-.. _pizza: https://lammps.github.io/pizza
+.. _pizza: https://lammps.github.io/pizza/
 
 .. _python: https://www.python.org
 

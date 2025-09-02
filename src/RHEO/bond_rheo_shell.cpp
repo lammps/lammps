@@ -21,12 +21,10 @@
 #include "atom.h"
 #include "comm.h"
 #include "compute_rheo_surface.h"
-#include "domain.h"
 #include "error.h"
 #include "fix_bond_history.h"
 #include "fix_rheo.h"
 #include "fix_rheo_oxidation.h"
-#include "fix_store_local.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
@@ -97,40 +95,7 @@ BondRHEOShell::~BondRHEOShell()
 }
 
 /* ----------------------------------------------------------------------
-  Store data for a single bond - if bond added after LAMMPS init (e.g. pour)
-------------------------------------------------------------------------- */
-
-double BondRHEOShell::store_bond(int n, int i, int j)
-{
-  double **bondstore = fix_bond_history->bondstore;
-  tagint *tag = atom->tag;
-
-  bondstore[n][0] = 0.0;
-  bondstore[n][1] = 0.0;
-
-  if (i < atom->nlocal) {
-    for (int m = 0; m < atom->num_bond[i]; m++) {
-      if (atom->bond_atom[i][m] == tag[j]) {
-        fix_bond_history->update_atom_value(i, m, 0, 0.0);
-        fix_bond_history->update_atom_value(i, m, 1, 0.0);
-      }
-    }
-  }
-
-  if (j < atom->nlocal) {
-    for (int m = 0; m < atom->num_bond[j]; m++) {
-      if (atom->bond_atom[j][m] == tag[i]) {
-        fix_bond_history->update_atom_value(j, m, 0, 0.0);
-        fix_bond_history->update_atom_value(j, m, 1, 0.0);
-      }
-    }
-  }
-
-  return 0.0;
-}
-
-/* ----------------------------------------------------------------------
-  Store data for all bonds called once
+  Store data for all bonds, called once
 ------------------------------------------------------------------------- */
 
 void BondRHEOShell::store_data()
@@ -147,7 +112,8 @@ void BondRHEOShell::store_data()
 
       // map to find index n
       j = atom->map(atom->bond_atom[i][m]);
-      if (j == -1) error->one(FLERR, "Atom missing in BPM bond");
+      if (j == -1) error->one(FLERR, Error::NOLASTLINE,
+                              "Atom {} missing in BPM bond", atom->bond_atom[i][m]);
 
       fix_bond_history->update_atom_value(i, m, 0, 0.0);
       fix_bond_history->update_atom_value(i, m, 1, 0.0);
@@ -161,12 +127,7 @@ void BondRHEOShell::store_data()
 
 void BondRHEOShell::compute(int eflag, int vflag)
 {
-  if (!fix_bond_history->stored_flag) {
-    fix_bond_history->stored_flag = true;
-    store_data();
-  }
-
-  if (hybrid_flag) fix_bond_history->compress_history();
+  pre_compute();
 
   int i1, i2, itmp, n, type;
   double delx, dely, delz, delvx, delvy, delvz;
@@ -205,8 +166,6 @@ void BondRHEOShell::compute(int eflag, int vflag)
     i1 = bondlist[n][0];
     i2 = bondlist[n][1];
     type = bondlist[n][2];
-    r0 = bondstore[n][0];
-    t = bondstore[n][1];
 
     // Ensure pair is always ordered to ensure numerical operations
     // are identical to minimize the possibility that a bond straddling
@@ -217,14 +176,16 @@ void BondRHEOShell::compute(int eflag, int vflag)
       i2 = itmp;
     }
 
-    delx = x[i1][0] - x[i2][0];
-    dely = x[i1][1] - x[i2][1];
-    delz = x[i1][2] - x[i2][2];
-    rsq = delx * delx + dely * dely + delz * delz;
-    r = sqrt(rsq);
+    // If bond hasn't been set (should be initialized to zero)
+    //   t will grow, so won't stay at zero
+    t = bondstore[n][1];
+    if (t < EPSILON || std::isnan(t)) {
+      t = bondstore[n][1] = 0.0;
+      bondstore[n][0] = 0.0;
+      process_new(n, i1, i2);
+    }
 
-    // If bond hasn't been set - zero data
-    if (t < EPSILON || std::isnan(t)) t = store_bond(n, i1, i2);
+    r0 = bondstore[n][0];
 
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
@@ -301,7 +262,7 @@ void BondRHEOShell::compute(int eflag, int vflag)
     if (nbond[i] != 0) status[i] |= STATUS_NO_SHIFT;
   }
 
-  if (hybrid_flag) fix_bond_history->uncompress_history();
+  post_compute();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -358,20 +319,21 @@ void BondRHEOShell::init_style()
   BondBPM::init_style();
 
   if (comm->ghost_velocity == 0)
-    error->all(FLERR, "Bond rheo/shell requires ghost atoms store velocity");
+    error->all(FLERR, Error::NOLASTLINE, "Bond rheo/shell requires ghost atoms store velocity");
 
   auto fixes = modify->get_fix_by_style("^rheo$");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use bond rheo/shell");
-  class FixRHEO *fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
+  if (fixes.size() == 0)
+    error->all(FLERR, Error::NOLASTLINE, "Need to define fix rheo to use bond rheo/shell");
+  auto *fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
   if (!fix_rheo->surface_flag)
-    error->all(FLERR, "Bond rheo/shell requires surface calculation in fix rheo");
+    error->all(FLERR, Error::NOLASTLINE, "Bond rheo/shell requires surface calculation in fix rheo");
   compute_surface = fix_rheo->compute_surface;
 
   fixes = modify->get_fix_by_style("^rheo/oxidation$");
   if (fixes.size() == 0)
-    error->all(FLERR, "Need to define fix rheo/oxidation to use bond rheo/shell");
-  class FixRHEOOxidation *fix_rheo_oxidation = dynamic_cast<FixRHEOOxidation *>(fixes[0]);
+    error->all(FLERR, Error::NOLASTLINE, "Need to define fix rheo/oxidation to use bond rheo/shell");
+  auto *fix_rheo_oxidation = dynamic_cast<FixRHEOOxidation *>(fixes[0]);
 
   rsurf = fix_rheo_oxidation->rsurf;
   rmax = fix_rheo_oxidation->cut;
@@ -389,14 +351,13 @@ void BondRHEOShell::settings(int narg, char **arg)
     if (strcmp(arg[iarg], "t/form") == 0) {
       if (iarg + 1 > narg) utils::missing_cmd_args(FLERR, "bond rheo/shell t/form", error);
       tform = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (tform < 0.0)
+        error->all(FLERR, iarg + 1, "Illegal bond rheo/shell command, must specify positive formation time");
       i += 1;
     } else {
-      error->all(FLERR, "Illegal bond rheo/shell command, invalid argument {}", arg[iarg]);
+      error->all(FLERR, iarg, "Illegal bond rheo/shell command, invalid argument {}", arg[iarg]);
     }
   }
-
-  if (tform < 0.0)
-    error->all(FLERR, "Illegal bond rheo/shell command, must specify positive formation time");
 }
 
 /* ----------------------------------------------------------------------
@@ -472,7 +433,7 @@ int BondRHEOShell::pack_reverse_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
 
-  for (i = first; i < last; i++) { buf[m++] = dbond[i]; }
+  for (i = first; i < last; i++) { buf[m++] = ubuf(dbond[i]).d; }
   return m;
 }
 
@@ -485,7 +446,7 @@ void BondRHEOShell::unpack_reverse_comm(int n, int *list, double *buf)
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    dbond[j] += buf[m++];
+    dbond[j] += (int) ubuf(buf[m++]).i;
   }
 }
 
@@ -495,13 +456,19 @@ double BondRHEOShell::single(int type, double rsq, int i, int j, double &fforce)
 {
   if (type <= 0) return 0.0;
 
-  double r0, t;
+  double r0 = -1;
+  double t = -1;
+  const auto *tag = atom->tag;
   for (int n = 0; n < atom->num_bond[i]; n++) {
-    if (atom->bond_atom[i][n] == atom->tag[j]) {
+    if (atom->bond_atom[i][n] == tag[j]) {
       r0 = fix_bond_history->get_atom_value(i, n, 0);
       t = fix_bond_history->get_atom_value(i, n, 1);
     }
   }
+
+  if (r0 == -1)
+    error->one(FLERR, Error::NOLASTLINE,
+               "Could not find bond between atoms {} and {}", tag[i], tag[j]);
 
   svector[1] = t;
   if (t < tform) return 0.0;
@@ -553,7 +520,7 @@ void BondRHEOShell::process_ineligibility(int i, int j)
         bond_type[i][m] = bond_type[i][n - 1];
         bond_atom[i][m] = bond_atom[i][n - 1];
         for (auto &ihistory : histories) {
-          auto fix_bond_history2 = dynamic_cast<FixBondHistory *>(ihistory);
+          auto *fix_bond_history2 = dynamic_cast<FixBondHistory *>(ihistory);
           fix_bond_history2->shift_history(i, m, n - 1);
           fix_bond_history2->delete_history(i, n - 1);
         }
@@ -571,7 +538,7 @@ void BondRHEOShell::process_ineligibility(int i, int j)
         bond_type[j][m] = bond_type[j][n - 1];
         bond_atom[j][m] = bond_atom[j][n - 1];
         for (auto &ihistory : histories) {
-          auto fix_bond_history2 = dynamic_cast<FixBondHistory *>(ihistory);
+          auto *fix_bond_history2 = dynamic_cast<FixBondHistory *>(ihistory);
           fix_bond_history2->shift_history(j, m, n - 1);
           fix_bond_history2->delete_history(j, n - 1);
         }

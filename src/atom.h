@@ -314,8 +314,8 @@ class Atom : protected Pointers {
 
   // AtomVec factory types and map
 
-  typedef AtomVec *(*AtomVecCreator)(LAMMPS *);
-  typedef std::map<std::string, AtomVecCreator> AtomVecCreatorMap;
+  using AtomVecCreator = AtomVec *(*)(LAMMPS *);
+  using AtomVecCreatorMap = std::map<std::string, AtomVecCreator>;
   AtomVecCreatorMap *avec_map;
 
   // --------------------------------------------------------------------

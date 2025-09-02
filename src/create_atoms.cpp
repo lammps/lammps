@@ -390,14 +390,13 @@ void CreateAtoms::command(int narg, char **arg)
     if (!input->variable->equalstyle(vvar))
       error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms is invalid style", vstr);
 
-#define SETUP_XYZ_VAR(str, var)                                         \
-    if (str) {                                                          \
-      var = input->variable->find(str);                                 \
-      if (var < 0) var = input->variable->internal_create(str, 0.0);    \
-      if (!input->variable->internalstyle(var))                         \
-        error->all(FLERR, Error::NOLASTLINE,                            \
-                   "Variable {} for create_atoms is invalid style", str); \
-    }
+#define SETUP_XYZ_VAR(str, var)                                                                   \
+  if (str) {                                                                                      \
+    var = input->variable->find(str);                                                             \
+    if (var < 0) var = input->variable->internal_create(str, 0.0);                                \
+    if (!input->variable->internalstyle(var))                                                     \
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms is invalid style", str); \
+  }
 
     SETUP_XYZ_VAR(xstr, xvar);
     SETUP_XYZ_VAR(ystr, yvar);
@@ -580,6 +579,10 @@ void CreateAtoms::command(int narg, char **arg)
     atom->ndihedrals += nmoltotal * onemol->ndihedrals;
     atom->nimpropers += nmoltotal * onemol->nimpropers;
 
+    // molecule files for bodies may only contain a single body
+
+    if (onemol->bodyflag) atom->nbodies += 1;
+
     // if atom style template
     // maxmol = max molecule ID across all procs, for previous atoms
     // moloffset = max molecule ID for all molecules owned by previous procs
@@ -682,7 +685,7 @@ void CreateAtoms::command(int narg, char **arg)
 
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->reset_box();
-    auto irregular = new Irregular(lmp);
+    auto *irregular = new Irregular(lmp);
     irregular->migrate_atoms(1);
     delete irregular;
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -783,7 +786,7 @@ void CreateAtoms::add_random()
   // warm up the generator 30x to avoid correlations in first-particle
   // positions if runs are repeated with consecutive seeds
 
-  auto random = new RanPark(lmp, seed);
+  auto *random = new RanPark(lmp, seed);
   for (int ii = 0; ii < 30; ii++) random->uniform();
 
   // bounding box for atom creation
@@ -1057,7 +1060,7 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
   // Estimate number of particles from area
   MathExtra::cross3(ab, ac, temp);
   area = 0.5 * MathExtra::len3(temp);
-  int nparticles = ceil(mesh_density * area);
+  int nparticles = (int)ceil(mesh_density * area);
   // estimate radius from number of particles and area
   double rad = sqrt(area / MY_PI / nparticles);
 
@@ -1215,7 +1218,7 @@ void CreateAtoms::add_mesh(const char *filename)
         count = fread(&attr, sizeof(attr), 1, fp);
 
         for (int j = 0; j < 3; ++j)
-          for (int k = 0; k < 3; ++k) vert[j][k] = triangle[3 * j + 3 + k];
+          for (int k = 0; k < 3; ++k) vert[j][k] = (double)triangle[3 * j + 3 + k];
 
         ++ntriangle;
         if (mesh_style == BISECTION) {

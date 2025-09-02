@@ -310,7 +310,7 @@ void FixHyperLocal::init()
   // NOTE: what if pair style list cutoff > Dcut
   //   or what if neigh skin is huge?
 
-  auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+  auto *req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
   req->set_id(1);
   req->set_cutoff(dcut);
 

@@ -42,7 +42,7 @@ class ComputePropertyAtom : public Compute {
   class AtomVecTri *avec_tri;
   class AtomVecBody *avec_body;
 
-  typedef void (ComputePropertyAtom::*FnPtrPack)(int);
+  using FnPtrPack = void (ComputePropertyAtom::*)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_id(int);

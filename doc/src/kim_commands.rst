@@ -87,7 +87,7 @@ The URL for the Model Page is constructed from the
 
 .. parsed-literal::
 
-   https://openkim.org/id/extended_KIM_ID
+   `<https://openkim.org/doc/schema/kim-ids/#extended-kim-ids>`_
 
 For example, for the Stillinger-Weber potential listed above the Model Page is
 located at:
@@ -481,7 +481,7 @@ the format *keyword=value*, where *value* is always an array of one or more
 comma-separated items in brackets.  The list of supported keywords and the type
 and format of their values depend on the query function used.  The current list
 of query functions is available on the OpenKIM webpage at
-`https://openkim.org/doc/usage/kim-query <https://openkim.org/doc/usage/kim-query>`_.
+`https://openkim.org/doc/usage/kim-query <https://openkim.org/doc/usage/kim-query/>`_.
 
 .. note::
 
@@ -949,13 +949,13 @@ Syntax
 * instance_id = a positive integer identifying the KIM property instance;
   (note that the results file can contain multiple property instances)
 * property_id = identifier of a
-  `KIM Property Definition <https://openkim.org/properties>`_, which can be (1)
+  `KIM Property Definition <https://openkim.org/properties/>`_, which can be (1)
   a property short name, (2) the full unique ID of the property (including the
   contributor and date), (3) a file name corresponding to a local property
   definition file
 * key_name = one of the keys belonging to the specified KIM property definition
 * key_name_key = a key belonging to a key-value pair (standardized in the
-  `KIM Properties Framework <https://openkim.org/doc/schema/properties-framework>`__)
+  `KIM Properties Framework <https://openkim.org/doc/schema/properties-framework/>`__)
 * key_name_value = value to be associated with a key_name_key in a key-value
   pair
 * file = name of a file to write the currently defined set of KIM property
@@ -989,7 +989,7 @@ the *key_name* argument, that are defined as part of the relevant KIM Property
 Definition and include only lowercase alphanumeric characters and dashes.  The
 value paired with each property key is itself a map whose possible keys are
 defined as part of the `KIM Properties Framework
-<https://openkim.org/doc/schema/properties-framework>`__; these keys are
+<https://openkim.org/doc/schema/properties-framework/>`__; these keys are
 referred to by the *key_name_key* argument and their associated values by the
 *key_name_value* argument.  These values may either be scalars or arrays,
 as stipulated in the property definition.
@@ -1379,5 +1379,5 @@ doi: `https://doi.org/10.1007/s11837-011-0102-6 <https://doi.org/10.1007/s11837-
 
 .. _kim-api:
 
-**(Elliott)** Elliott, Tadmor and Bernstein, `https://openkim.org/kim-api <https://openkim.org/kim-api>`_ (2011)
+**(Elliott)** Elliott, Tadmor and Bernstein, `https://openkim.org/kim-api/ <https://openkim.org/kim-api/>`_ (2011)
 doi: `https://doi.org/10.25950/FF8F563A <https://doi.org/10.25950/FF8F563A>`_

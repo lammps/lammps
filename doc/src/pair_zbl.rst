@@ -30,12 +30,12 @@ Examples
 Description
 """""""""""
 
-Style *zbl* computes the Ziegler-Biersack-Littmark (ZBL) screened nuclear
-repulsion for describing high-energy collisions between atoms.
+Style *zbl* computes the Ziegler-Biersack-Littmark (ZBL) screened
+nuclear repulsion for describing high-energy collisions between atoms.
 :ref:`(Ziegler) <Ziegler>`. It includes an additional switching function
-that ramps the energy, force, and curvature smoothly to zero
-between an inner and outer cutoff. The potential
-energy due to a pair of atoms at a distance r_ij is given by:
+that ramps the energy, force, and curvature smoothly to zero between an
+inner and outer cutoff. The potential energy due to a pair of atoms at a
+distance r_ij is given by:
 
 .. math::
 
@@ -45,10 +45,10 @@ energy due to a pair of atoms at a distance r_ij is given by:
 
 where *e* is the electron charge, :math:`\epsilon_0` is the electrical
 permittivity of vacuum, and :math:`Z_i` and :math:`Z_j` are the nuclear
-charges of the
-two atoms.  The switching function :math:`S(r)` is identical to that used by
-:doc:`pair_style lj/gromacs <pair_gromacs>`.  Here, the inner and outer
-cutoff are the same for all pairs of atom types.
+charges of the two atoms.  The switching function :math:`S(r)` is
+identical to that used by :doc:`pair_style lj/gromacs <pair_gromacs>`.
+Here, the inner and outer cutoff are the same for all pairs of atom
+types.
 
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
@@ -58,16 +58,15 @@ or in the LAMMPS data file.
 
 * :math:`Z_j` (ditto for second atom type)
 
-The values of :math:`Z_i` and :math:`Z_j` are normally equal to the atomic
-numbers of the two atom types. Thus, the user may optionally
-specify only the coefficients for each :math:`i==i` pair, and rely
-on the obvious mixing rule for cross interactions (see below).
-Note that when :math:`i==i` it is required that :math:`Z_i == Z_j`.
-When used with :doc:`hybrid/overlay <pair_hybrid>` and pairs are
-assigned
-to more than one sub-style, the mixing rule is not used and
-each pair of types interacting with the ZBL sub-style must
-be included in a pair_coeff command.
+The values of :math:`Z_i` and :math:`Z_j` are normally equal to the
+atomic numbers of the two atom types. Thus, the user may optionally
+specify only the coefficients for each :math:`i==j` pair, and rely on
+the obvious mixing rule for cross interactions (see below).  Note that
+when :math:`i==j` it is required that :math:`Z_i == Z_j`.  When used
+with :doc:`hybrid/overlay <pair_hybrid>` and pairs are assigned to more
+than one sub-style, the mixing rule is not used and each pair of types
+interacting with the ZBL sub-style must be included in a pair_coeff
+command.
 
 .. note::
 
@@ -75,9 +74,9 @@ be included in a pair_coeff command.
    screening function depend on the unit of distance. In the above
    equation they are given for units of Angstroms. LAMMPS will
    automatically convert these values to the distance unit of the
-   specified LAMMPS :doc:`units <units>` setting.  The values of Z should
-   always be given as multiples of a proton's charge, e.g. 29.0 for
-   copper.
+   specified LAMMPS :doc:`units <units>` setting.  The values of Z
+   should always be given as multiples of a proton's charge, e.g. 29.0
+   for copper.
 
 ----------
 
@@ -88,17 +87,15 @@ be included in a pair_coeff command.
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-For atom type pairs *i,j* and :math:`i \neq i`, the :math:`Z_i` and
-:math:`Z_j` coefficients
-can be mixed by taking :math:`Z_i` and :math:`Z_j` from the values
-specified for
-:math:`i == i` and :math:`j == j` cases. When used
-with :doc:`hybrid/overlay <pair_hybrid>` and pairs are assigned
-to more than one sub-style, the mixing rule is not used and
-each pair of types interacting with the ZBL sub-style
-must be included in a pair_coeff command.
-The :doc:`pair_modify <pair_modify>` mix option has no effect on
-the mixing behavior
+For atom type pairs *i,j* and :math:`i \neq j`, the :math:`Z_i` and
+:math:`Z_j` coefficients can be mixed by taking :math:`Z_a` and
+:math:`Z_b` from the values specified for the two cases where :math:`i
+== j` and thus :math:`Z_a = Z_i == Z_j` and :math:`Z_b = Z_i == Z_j` for
+different elements.  When used with :doc:`hybrid/overlay <pair_hybrid>`
+and pairs are assigned to more than one sub-style, the mixing rule is
+not used and each pair of types interacting with the ZBL sub-style must
+be included in a pair_coeff command.  The :doc:`pair_modify
+<pair_modify>` mix option has no effect on the mixing behavior
 
 The ZBL pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option, since the ZBL interaction is already smoothed to 0.0 at
@@ -112,8 +109,9 @@ tail option for adding long-range tail corrections to energy and
 pressure, since there are no corrections for a potential that goes to
 0.0 at the cutoff.
 
-This pair style does not write information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands must be
-specified in an input script that reads a restart file.
+This pair style does not write information to :doc:`binary restart files
+<restart>`, so pair_style and pair_coeff commands must be specified in
+an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the

@@ -30,6 +30,7 @@
 #include "memory.h"
 #include "special.h"
 
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;

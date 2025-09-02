@@ -527,7 +527,7 @@ void ReaderNative::read_buf(void * ptr, size_t size, size_t count)
 std::string ReaderNative::read_binary_str(size_t size)
 {
   std::string str(size, '\0');
-  read_buf(&str[0], sizeof(char), size);
+  read_buf((char *)str.data(), sizeof(char), size);
   return str;
 }
 

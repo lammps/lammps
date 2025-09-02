@@ -198,7 +198,7 @@ void PairLJCutTIP4PLongGPU::init_style()
       atom->get_map_size(), atom->get_max_same());
   GPU_EXTRA::check_flag(success, error, world);
   if (gpu_mode == GPU_FORCE) {
-    auto req = neighbor->add_request(this, NeighConst::REQ_FULL);
+    auto *req = neighbor->add_request(this, NeighConst::REQ_FULL);
     req->set_cutoff(cut_coulplus + neighbor->skin);
   }
 }

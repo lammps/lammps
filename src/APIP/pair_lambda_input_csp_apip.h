@@ -31,7 +31,7 @@ class PairLambdaInputCSPAPIP : virtual public PairLambdaInputAPIP {
 
  public:
   PairLambdaInputCSPAPIP(class LAMMPS *);
-  ~PairLambdaInputCSPAPIP();
+  ~PairLambdaInputCSPAPIP() override;
   void settings(int, char **) override;
 
  protected:

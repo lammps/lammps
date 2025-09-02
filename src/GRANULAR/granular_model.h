@@ -107,7 +107,7 @@ class GranularModel : protected Pointers {
 
   int nclass;
 
-  typedef class GranSubMod *(*GranSubModCreator)(class GranularModel *, class LAMMPS *);
+  using GranSubModCreator = GranSubMod *(*)(GranularModel *, LAMMPS *);
   GranSubModCreator *gran_sub_mod_class;
   char **gran_sub_mod_names;
   int *gran_sub_mod_types;

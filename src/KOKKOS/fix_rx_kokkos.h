@@ -65,6 +65,7 @@ typedef struct s_CounterType CounterType;
 template <class DeviceType>
 class FixRxKokkos : public FixRX {
  public:
+  typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
 
   FixRxKokkos(class LAMMPS *, int, char **);
@@ -125,8 +126,8 @@ class FixRxKokkos : public FixRX {
   template <int stride = 1>
   struct UserRHSDataKokkos
   {
-    StridedArrayType<double,1> kFor;
-    StridedArrayType<double,1> rxnRateLaw;
+    StridedArrayType<KK_FLOAT,1> kFor;
+    StridedArrayType<KK_FLOAT,1> rxnRateLaw;
   };
 
   void solve_reactions(const int vflag, const bool isPreForce);
@@ -193,8 +194,8 @@ class FixRxKokkos : public FixRX {
   int *diagnosticCounterPerODEnFuncs;
   DAT::tdual_int_1d k_diagnosticCounterPerODEnSteps;
   DAT::tdual_int_1d k_diagnosticCounterPerODEnFuncs;
-  //typename ArrayTypes<DeviceType>::t_int_1d d_diagnosticCounterPerODEnSteps;
-  //typename ArrayTypes<DeviceType>::t_int_1d d_diagnosticCounterPerODEnFuncs;
+  //typename AT::t_int_1d d_diagnosticCounterPerODEnSteps;
+  //typename AT::t_int_1d d_diagnosticCounterPerODEnFuncs;
   typename AT::t_int_1d d_diagnosticCounterPerODEnSteps;
   typename AT::t_int_1d d_diagnosticCounterPerODEnFuncs;
   HAT::t_int_1d h_diagnosticCounterPerODEnSteps;
@@ -204,14 +205,14 @@ class FixRxKokkos : public FixRX {
   struct KineticsType
   {
     // Arrhenius rate coefficients.
-    typename ArrayTypes<KokkosDeviceType>::t_float_1d Arr, nArr, Ea;
+    typename ArrayTypes<KokkosDeviceType>::t_kkfloat_1d Arr, nArr, Ea;
 
     // Dense versions.
-    typename ArrayTypes<KokkosDeviceType>::t_float_2d stoich, stoichReactants, stoichProducts;
+    typename ArrayTypes<KokkosDeviceType>::t_kkfloat_2d stoich, stoichReactants, stoichProducts;
 
     // Sparse versions.
     typename ArrayTypes<KokkosDeviceType>::t_int_2d   nuk, inu;
-    typename ArrayTypes<KokkosDeviceType>::t_float_2d nu;
+    typename ArrayTypes<KokkosDeviceType>::t_kkfloat_2d nu;
     typename ArrayTypes<KokkosDeviceType>::t_int_1d   isIntegral;
   };
 
@@ -224,27 +225,27 @@ class FixRxKokkos : public FixRX {
   void create_kinetics_data();
 
   // Need a dual-view and device-view for dpdThetaLocal and sumWeights since they're used in several callbacks.
-  DAT::tdual_efloat_1d k_dpdThetaLocal, k_sumWeights;
-  //typename ArrayTypes<DeviceType>::t_efloat_1d d_dpdThetaLocal, d_sumWeights;
-  typename AT::t_efloat_1d d_dpdThetaLocal, d_sumWeights;
-  HAT::t_efloat_1d h_dpdThetaLocal, h_sumWeights;
+  DAT::ttransform_kkfloat_1d k_dpdThetaLocal, k_sumWeights;
+  //typename AT::t_kkfloat_1d d_dpdThetaLocal, d_sumWeights;
+  typename AT::t_kkfloat_1d d_dpdThetaLocal, d_sumWeights;
+  HAT::t_double_1d h_dpdThetaLocal, h_sumWeights;
 
-  typename AT::t_x_array_randomread d_x;
+  typename AT::t_kkfloat_1d_3_lr_randomread d_x;
   typename AT::t_int_1d_randomread  d_type;
-  typename AT::t_efloat_1d          d_dpdTheta;
+  typename AT::t_kkfloat_1d          d_dpdTheta;
 
-  typename AT::tdual_ffloat_2d k_cutsq;
-  typename AT::t_ffloat_2d     d_cutsq;
+  DAT::ttransform_kkfloat_2d k_cutsq;
+  typename AT::t_kkfloat_2d     d_cutsq;
   //double **h_cutsq;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d       d_ilist;
   typename AT::t_int_1d       d_numneigh;
 
-  typename AT::t_float_2d  d_dvector;
+  typename AT::t_kkfloat_2d  d_dvector;
   typename AT::t_int_1d    d_mask;
 
-  typename AT::t_double_1d d_scratchSpace;
+  typename AT::t_kkfloat_1d d_scratchSpace;
   size_t scratchSpaceSize;
 
   // Error flag for any failures.

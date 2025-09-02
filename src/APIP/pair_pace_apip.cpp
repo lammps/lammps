@@ -46,6 +46,7 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include "update.h"
 
 #include <exception>
+#include <cstring>
 
 #include "ace-evaluator/ace_c_basis.h"
 #include "ace-evaluator/ace_evaluator.h"

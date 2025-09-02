@@ -35,6 +35,7 @@
 #include "region.h"
 #include "variable.h"
 
+#include <algorithm>
 #include <cstring>
 #include <map>
 #include <utility>
@@ -42,19 +43,32 @@
 using namespace LAMMPS_NS;
 
 enum { UNKNOWN, FRACTION, COUNT };
+enum { TAGADD = 100, TAGSET };
+
+// compare two tags but consider tag == 0 very large so zeroes move to the end
+static bool tagcomp(tagint a, tagint b)
+{
+  if (a == 0) return false;
+  if (b == 0) return true;
+  return (a < b);
+}
 
 /* ---------------------------------------------------------------------- */
 
-DeleteAtoms::DeleteAtoms(LAMMPS *lmp) : Command(lmp) {}
+DeleteAtoms::DeleteAtoms(LAMMPS *lmp) :
+    Command(lmp), dlist(nullptr), tagproc(nullptr), newtags(nullptr)
+{
+}
 
 /* ---------------------------------------------------------------------- */
 
 void DeleteAtoms::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, "Delete_atoms command before simulation box is defined" + utils::errorurl(33));
+    error->all(FLERR, Error::NOLASTLINE,
+               "Delete_atoms command before simulation box is defined" + utils::errorurl(33));
   if (narg < 1) utils::missing_cmd_args(FLERR, "delete_atoms", error);
-  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use delete_atoms unless atoms have IDs");
+  if (atom->tag_enable == 0) error->all(FLERR, -1, "Cannot use delete_atoms unless atoms have IDs");
 
   // store state before delete
 
@@ -78,13 +92,13 @@ void DeleteAtoms::command(int narg, char **arg)
     delete_random(narg, arg);
   // deprecated porosity option, now included in new partial option
   else if (strcmp(arg[0], "porosity") == 0) {
-    error->all(FLERR,
+    error->all(FLERR, Error::ARGZERO,
                "The delete_atoms 'porosity' keyword has been removed.\n"
                "Please use: delete_atoms random fraction frac exact group-ID region-ID seed\n");
   } else if (strcmp(arg[0], "variable") == 0)
     delete_variable(narg, arg);
   else
-    error->all(FLERR, "Unknown delete_atoms sub-command: {}", arg[0]);
+    error->all(FLERR, Error::ARGZERO, "Unknown delete_atoms sub-command: {}", arg[0]);
 
   if (allflag) {
     int igroupbit = group->get_bitmask_by_id(FLERR, "all", "delete_atoms");
@@ -92,7 +106,7 @@ void DeleteAtoms::command(int narg, char **arg)
       error->warning(FLERR, "Attempting to delete atoms in rigid bodies");
   } else {
     if (modify->check_rigid_list_overlap(dlist))
-      error->warning(FLERR, "Attempting to delete atoms in rigid bodies");
+      if (comm->me == 0) error->warning(FLERR, "Attempting to delete atoms in rigid bodies");
   }
 
   // if allflag = 1, just reset atom->nlocal
@@ -130,15 +144,106 @@ void DeleteAtoms::command(int narg, char **arg)
   // if non-molecular system and compress flag set:
   // reset atom tags to be contiguous
   // set all atom IDs to 0, call tag_extend()
+  // for molecular system call reset_atoms id, unless there is a fix that stores atom IDs.
+
+  // if condense flag set, collect atom IDs for all atoms in array distributed across all ranks
+  // sort complete array according to tag value, tags that are zero and determine new tag.
+  // build new array with tags for all local atoms and then apply.
 
   if (compress_flag) {
+
     if (atom->molecular == Atom::ATOMIC) {
       tagint *tag = atom->tag;
       int nlocal = atom->nlocal;
       for (int i = 0; i < nlocal; i++) tag[i] = 0;
       atom->tag_extend();
+    } else {
+      bool can_compress = true;
+      for (const auto &ifix : modify->get_fix_list())
+        if (ifix->stores_ids) can_compress = false;
+
+      if (can_compress) {
+        input->one("reset_atoms id");
+      } else {
+        if (comm->me == 0)
+          error->warning(FLERR, "Ignoring 'compress yes' because of a fix storing atom IDs");
+      }
+    }
+  } else if (condense_flag) {
+
+    if (atom->molecular == Atom::ATOMIC) {
+      if (atom->map_style == Atom::MAP_NONE)
+        error->all(FLERR, Error::NOLASTLINE, "Using 'condense yes' option requires an atom map");
+
+      const int me = comm->me;
+      const int nprocs = comm->nprocs;
+      tagint *tag = atom->tag;
+      int nlocal = atom->nlocal;
+
+      // have buffer for tags from 1 to map_tag_max distributed across MPI ranks
+      tagint maxtag = atom->map_tag_max + 1;
+      tagint chunksize = maxtag / nprocs + 1;
+      auto mytags = std::vector<tagint>(chunksize, 0);
+
+      // use ring communication to add tags to buffers
+      // first buffer to process will be from previous proc
+      ringrank = (me - 1 + nprocs) % nprocs;
+      comm->ring(chunksize, sizeof(tagint), mytags.data(), TAGADD, addtags, mytags.data(), this, 1);
+
+      // sort and count tags in local buffer
+      std::sort(mytags.begin(), mytags.end(), tagcomp);
+      int numtags = 0;
+      for (auto &t : mytags) {
+        if (t == 0) break;
+        ++numtags;
+      }
+
+      // update atom map since we deleted atoms
+      atom->map_tag_max = -1;
+      atom->map_style_set();
+      atom->map_init(0);
+      atom->nghost = 0;
+      atom->map_set();
+
+      // compute and communicate tagoffset on each processor
+      tagproc = new tagint[nprocs];
+      if (me == 0) {
+        tagproc[0] = numtags;
+        for (int i = 1; i < nprocs; ++i)
+          MPI_Recv(tagproc + i, 1, MPI_LMP_TAGINT, i, 0, world, MPI_STATUS_IGNORE);
+      } else {
+        MPI_Send(&numtags, 1, MPI_LMP_TAGINT, 0, 0, world);
+      }
+      MPI_Bcast(tagproc, nprocs, MPI_LMP_TAGINT, 0, world);
+
+      // determine where each tag has to start
+      tagint tmp, tagval = 0;
+      for (int i = 0; i < nprocs; ++i) {
+        int tmp = tagproc[i];
+        tagproc[i] = tagval;
+        tagval += tmp;
+      }
+
+      // use ring communication to set new tags from old tags in order
+      auto mynewtags = std::vector<tagint>(nlocal, 0);
+      newtags = mynewtags.data();
+
+      // first buffer to process will be from previous proc
+      ringrank = (me - 1 + nprocs) % nprocs;
+      comm->ring(chunksize, sizeof(tagint), mytags.data(), TAGSET, settags, mytags.data(), this, 1);
+
+      // overwrite tags with condensed values
+      for (int i = 0; i < nlocal; ++i) tag[i] = newtags[i];
+
+      // update atom map since we changed the tags
+      atom->map_tag_max = -1;
+      atom->map_style_set();
+      atom->map_init(0);
+      atom->nghost = 0;
+      atom->map_set();
+
     } else if (comm->me == 0)
-      error->warning(FLERR, "Ignoring 'compress yes' for molecular system");
+      error->warning(FLERR, "Ignoring 'condense yes' for molecular system");
   }
 
   // reset atom->natoms and also topology counts
@@ -148,10 +253,10 @@ void DeleteAtoms::command(int narg, char **arg)
 
   // reset bonus data counts
 
-  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
-  auto avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
-  auto avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
-  auto avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
+  auto *avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  auto *avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  auto *avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  auto *avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
   bigint nlocal_bonus;
 
   if (atom->nellipsoids > 0) {
@@ -245,7 +350,7 @@ void DeleteAtoms::delete_region(int narg, char **arg)
 {
   if (narg < 2) utils::missing_cmd_args(FLERR, "delete_atoms region", error);
 
-  auto iregion = domain->get_region_by_id(arg[1]);
+  auto *iregion = domain->get_region_by_id(arg[1]);
   if (!iregion) error->all(FLERR, "Could not find delete_atoms region ID {}", arg[1]);
   iregion->prematch();
 
@@ -299,7 +404,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   if (force->pair == nullptr) error->all(FLERR, "Delete_atoms requires a pair style be defined");
   if (cut > neighbor->cutneighmax) error->all(FLERR, "Delete_atoms cutoff > max neighbor cutoff");
-  if (cut > neighbor->cutneighmin && comm->me == 0)
+  if ((cut > neighbor->cutneighmin) && comm->me == 0)
     error->warning(FLERR, "Delete_atoms cutoff > minimum neighbor cutoff");
 
   // setup domain, communication and neighboring
@@ -317,7 +422,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   // build neighbor list this command needs based on the earlier request
 
-  auto list = neighbor->find_list(this);
+  auto *list = neighbor->find_list(this);
   neighbor->build_one(list);
 
   // allocate and initialize deletion list
@@ -445,14 +550,14 @@ void DeleteAtoms::delete_random(int narg, char **arg)
   }
 
   int groupbit = group->get_bitmask_by_id(FLERR, arg[4], "delete_atoms");
-  auto region = domain->get_region_by_id(arg[5]);
+  auto *region = domain->get_region_by_id(arg[5]);
   if (!region && (strcmp(arg[5], "NULL") != 0))
     error->all(FLERR, "Could not find delete_atoms random region ID {}", arg[5]);
 
   int seed = utils::inumeric(FLERR, arg[6], false, lmp);
   options(narg - 7, &arg[7]);
 
-  auto ranmars = new RanMars(lmp, seed + comm->me);
+  auto *ranmars = new RanMars(lmp, seed + comm->me);
 
   // allocate and initialize deletion list
 
@@ -711,8 +816,8 @@ void DeleteAtoms::recount_topology()
 
 void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
 {
-  auto daptr = (DeleteAtoms *) ptr;
-  auto list = (tagint *) cbuf;
+  auto *daptr = (DeleteAtoms *) ptr;
+  auto *list = (tagint *) cbuf;
   std::map<tagint, int> *hash = daptr->hash;
 
   int *num_bond = daptr->atom->num_bond;
@@ -841,8 +946,8 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
 
 void DeleteAtoms::molring(int n, char *cbuf, void *ptr)
 {
-  auto daptr = (DeleteAtoms *) ptr;
-  auto list = (tagint *) cbuf;
+  auto *daptr = (DeleteAtoms *) ptr;
+  auto *list = (tagint *) cbuf;
   int *dlist = daptr->dlist;
   std::map<tagint, int> *hash = daptr->hash;
   int nlocal = daptr->atom->nlocal;
@@ -860,35 +965,103 @@ void DeleteAtoms::molring(int n, char *cbuf, void *ptr)
 }
 
 /* ----------------------------------------------------------------------
+   callback from comm->ring() for adding tags from remaining atoms to buffer
+------------------------------------------------------------------------- */
+
+void DeleteAtoms::addtags(int nbuf, char *cbuf, void *ptr)
+{
+  auto daptr = (DeleteAtoms *) ptr;
+  auto taglist = (tagint *) cbuf;
+
+  int nlocal = daptr->atom->nlocal;
+  tagint *tag = daptr->atom->tag;
+  int buf_rank = (daptr->ringrank + daptr->comm->nprocs) % daptr->comm->nprocs;
+  int idx = 0;
+  tagint mytagmin = (tagint) buf_rank * nbuf;
+  tagint mytagmax = mytagmin + nbuf;
+
+  // skip over list entries that are already set
+  while ((taglist[idx] != 0) && (idx < nbuf)) ++idx;
+
+  // add remaining tags that fit the range into buffer
+  for (int i = 0; i < nlocal; ++i) {
+    if ((tag[i] > mytagmin) && (tag[i] <= mytagmax)) taglist[idx++] = tag[i];
+  }
+
+  daptr->ringrank--;    // next buffer will be from previous rank.
+}
+
+/* ----------------------------------------------------------------------
+   callback from comm->ring() for setting new tags
+------------------------------------------------------------------------- */
+
+void DeleteAtoms::settags(int nbuf, char *cbuf, void *ptr)
+{
+  auto daptr = (DeleteAtoms *) ptr;
+  auto taglist = (tagint *) cbuf;
+
+  int nlocal = daptr->atom->nlocal;
+  tagint *tag = daptr->atom->tag;
+  int buf_rank = (daptr->ringrank + daptr->comm->nprocs) % daptr->comm->nprocs;
+  tagint *newtags = daptr->newtags;
+
+  // loop over tags in this buffer and determine their new tag
+  // if the atom with the old tag exists as a local atom, assign it in list
+  int idx = 0;
+  tagint tagval = daptr->tagproc[buf_rank];
+  for (int i = 0; i < nbuf; ++i) {
+    if (taglist[i] == 0) break;    // end of tags; only zeros beyond this.
+    ++tagval;
+    idx = daptr->atom->map(taglist[i]);
+    if ((idx < 0) || (idx >= nlocal)) continue;
+    newtags[idx] = tagval;
+  }
+
+  daptr->ringrank--;    // next buffer will be from previous rank
+}
+
+/* ----------------------------------------------------------------------
    process command options
 ------------------------------------------------------------------------- */
 
 void DeleteAtoms::options(int narg, char **arg)
 {
-  compress_flag = 1;
+  // default to "compress yes" for atomic systems and "compress no" for molecular systems
+  if (atom->molecular == Atom::ATOMIC)
+    compress_flag = 1;
+  else
+    compress_flag = 0;
+
   bond_flag = mol_flag = 0;
+  condense_flag = 0;
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "compress") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "delete_atoms compress", error);
       compress_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      if (condense_flag && compress_flag) condense_flag = 0;
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "condense") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "delete_atoms condense", error);
+      condense_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      if (compress_flag && condense_flag) compress_flag = 0;
       iarg += 2;
     } else if (strcmp(arg[iarg], "bond") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "delete_atoms bond", error);
-      if (atom->molecular == Atom::ATOMIC)
-        error->all(FLERR, "Cannot use delete_atoms bond yes for non-molecular systems");
-      if (atom->molecular == Atom::TEMPLATE)
-        error->all(FLERR, "Cannot use delete_atoms bond yes with atom_style template");
       bond_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      if (bond_flag && (atom->molecular == Atom::ATOMIC))
+        error->all(FLERR, iarg, "Cannot use delete_atoms bond yes for non-molecular systems");
+      if (bond_flag && (atom->molecular == Atom::TEMPLATE))
+        error->all(FLERR, iarg, "Cannot use delete_atoms bond yes with atom_style template");
       iarg += 2;
     } else if (strcmp(arg[iarg], "mol") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "delete_atoms mol", error);
-      if (atom->molecule_flag == 0)
-        error->all(FLERR, "Delete_atoms mol yes requires atom attribute molecule");
       mol_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      if (mol_flag && (atom->molecule_flag == 0))
+        error->all(FLERR, iarg, "Delete_atoms mol yes requires atom attribute molecule");
       iarg += 2;
     } else
-      error->all(FLERR, "Unknown delete_atoms option: {}", arg[iarg]);
+      error->all(FLERR, iarg, "Unknown delete_atoms option: {}", arg[iarg]);
   }
 }

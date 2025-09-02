@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 #endif
 
   try {
-    auto lammps = new LAMMPS(argc, argv, lammps_comm);
+    auto *lammps = new LAMMPS(argc, argv, lammps_comm);
     lammps->input->file();
     delete lammps;
   } catch (LAMMPSAbortException &ae) {

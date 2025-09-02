@@ -41,6 +41,7 @@
 #include "reaxff_defs.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <exception>
 #include <random>
@@ -96,9 +97,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
 
   comm_forward = 4;
 
-  if (nevery <= 0) error->all(FLERR, "Invalid fix reaxff/species nevery value {}", nevery);
-  if (nrepeat <= 0) error->all(FLERR, "Invalid fix reaxff/species nrepeat value {}", nrepeat);
-  if (nfreq <= 0) error->all(FLERR, "Invalid fix reaxff/species nfreq value {}", nfreq);
+  if (nevery <= 0) error->all(FLERR, 3, "Invalid fix reaxff/species nevery value {}", nevery);
+  if (nrepeat <= 0) error->all(FLERR, 4, "Invalid fix reaxff/species nrepeat value {}", nrepeat);
+  if (nfreq <= 0) error->all(FLERR, 5, "Invalid fix reaxff/species nfreq value {}", nfreq);
   if ((nfreq % nevery) || (nrepeat * nevery > nfreq))
     error->all(FLERR, "Incompatible fix reaxff/species nevery/nrepeat/nfreq settings");
 
@@ -133,12 +134,13 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     if (platform::has_compress_extension(arg[6])) {
       fp = platform::compressed_write(arg[6]);
       compressed = 1;
-      if (!fp) error->one(FLERR, "Cannot open compressed file");
+      if (!fp) error->one(FLERR, 6, "Cannot open compressed file");
     } else
       fp = fopen(arg[6], "w");
 
     if (!fp)
-      error->one(FLERR, "Cannot open fix reaxff/species file {}: {}", arg[6], utils::getsyserror());
+      error->one(FLERR, 6, "Cannot open fix reaxff/species file {}: {}", arg[6],
+                 utils::getsyserror());
   }
 
   x0 = nullptr;
@@ -173,7 +175,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
       utils::bounds(FLERR, arg[iarg + 2], 1, atom->ntypes, jlo, jhi, error);
       bo_cut = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       if ((bo_cut > 1.0) || (bo_cut < 0.0))
-        error->all(FLERR, "Fix reaxff/species invalid cutoff value: {}", bo_cut);
+        error->all(FLERR, iarg + 3, "Fix reaxff/species invalid cutoff value: {}", bo_cut);
 
       for (int i = ilo; i <= ihi; ++i) {
         for (int j = MAX(jlo, i); j <= jhi; ++j) {
@@ -201,7 +203,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
         if (fdel) fclose(fdel);
         fdel = fopen(filedel, "w");
         if (!fdel)
-          error->one(FLERR, "Cannot open fix reaxff/species delete file {}: {}", filedel,
+          error->one(FLERR, iarg + 1, "Cannot open fix reaxff/species delete file {}: {}", filedel,
                      utils::getsyserror());
       }
       del_opened = 1;
@@ -231,7 +233,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
         iarg += ndelspec + 4;
 
       } else
-        error->all(FLERR, "Unknown fix reaxff/species delete option: {}", arg[iarg]);
+        error->all(FLERR, iarg, "Unknown fix reaxff/species delete option: {}", arg[iarg]);
       // rate limit when deleting molecules
     } else if (strcmp(arg[iarg], "delete_rate_limit") == 0) {
       if (iarg + 3 > narg)
@@ -241,14 +243,14 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
         delete_Nlimit_varname = &arg[iarg + 1][2];
         delete_Nlimit_varid = input->variable->find(delete_Nlimit_varname.c_str());
         if (delete_Nlimit_varid < 0)
-          error->all(FLERR, "Fix reaxff/species: Variable name {} does not exist",
+          error->all(FLERR, iarg + 1, "Fix reaxff/species: Variable name {} does not exist",
                      delete_Nlimit_varname);
         if (!input->variable->equalstyle(delete_Nlimit_varid))
-          error->all(FLERR, "Fix reaxff/species: Variable {} is not equal-style",
+          error->all(FLERR, iarg + 1, "Fix reaxff/species: Variable {} is not equal-style",
                      delete_Nlimit_varname);
       } else
-        delete_Nlimit = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      delete_Nsteps = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+        delete_Nlimit = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      delete_Nsteps = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
       // position of molecules
     } else if (strcmp(arg[iarg], "position") == 0) {
@@ -256,7 +258,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
       posflag = 1;
       posfreq = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       if (posfreq < nfreq || (posfreq % nfreq != 0))
-        error->all(FLERR, "Incompatible fix reaxff/species position frequency {}",
+        error->all(FLERR, iarg + 1, "Incompatible fix reaxff/species position frequency {}",
                    posfreq);
 
       filepos = new char[255];
@@ -267,7 +269,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
         if (comm->me == 0) {
           pos = fopen(filepos, "w");
           if (pos == nullptr)
-            error->one(FLERR, "Cannot open fix reaxff/species position file: {}",
+            error->one(FLERR, iarg + 2, "Cannot open fix reaxff/species position file: {}",
                        utils::getsyserror());
         }
         singlepos_opened = 1;
@@ -275,7 +277,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 3;
     } else
-      error->all(FLERR, "Unknown fix reaxff/species keyword: {}", arg[iarg]);
+      error->all(FLERR, iarg, "Unknown fix reaxff/species keyword: {}", arg[iarg]);
   }
 
   if (delflag && specieslistflag && masslimitflag)
@@ -341,6 +343,9 @@ int FixReaxFFSpecies::setmask()
 
 void FixReaxFFSpecies::setup(int /*vflag*/)
 {
+  if (atom->natoms > MAXSMALLINT)
+    error->all(FLERR, Error::NOLASTLINE, "Too many atoms for fix {}", style);
+
   ntotal = static_cast<int>(atom->natoms);
 
   if (!eleflag) {
@@ -358,11 +363,12 @@ void FixReaxFFSpecies::setup(int /*vflag*/)
 void FixReaxFFSpecies::init()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR, "Cannot use fix reaxff/species unless atoms have IDs");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix reaxff/species unless atoms have IDs");
 
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reax..", 0));
   if (reaxff == nullptr)
-    error->all(FLERR, "Cannot use fix reaxff/species without a reaxff pair_style");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Cannot use fix reaxff/species without a reaxff pair_style");
 
   reaxff->fixspecies_flag = 1;
 
@@ -399,10 +405,10 @@ void FixReaxFFSpecies::init()
   if (delete_Nsteps > 0 && delete_Nlimit_varid > -1) {
     delete_Nlimit_varid = input->variable->find(delete_Nlimit_varname.c_str());
     if (delete_Nlimit_varid < 0)
-      error->all(FLERR, "Fix reaxff/species: Variable name {} does not exist",
+      error->all(FLERR, Error::NOLASTLINE, "Fix reaxff/species: Variable name {} does not exist",
                  delete_Nlimit_varname);
     if (!input->variable->equalstyle(delete_Nlimit_varid))
-      error->all(FLERR, "Fix reaxff/species: Variable {} is not equal-style",
+      error->all(FLERR, Error::NOLASTLINE, "Fix reaxff/species: Variable {} is not equal-style",
                  delete_Nlimit_varname);
   }
 }
@@ -584,8 +590,8 @@ void FixReaxFFSpecies::SortMolecule(int &Nmole)
   for (n = 0; n < nlocal; n++) {
     if (!(mask[n] & groupbit)) continue;
     if (clusterID[n] == 0.0) flag = 1;
-    lo = MIN(lo, nint(clusterID[n]));
-    hi = MAX(hi, nint(clusterID[n]));
+    lo = MIN(lo, std::lround(clusterID[n]));
+    hi = MAX(hi, std::lround(clusterID[n]));
   }
   int flagall;
   MPI_Allreduce(&lo, &idlo, 1, MPI_INT, MPI_MIN, world);
@@ -610,7 +616,7 @@ void FixReaxFFSpecies::SortMolecule(int &Nmole)
 
   for (n = 0; n < nlocal; n++) {
     if (!(mask[n] & groupbit)) continue;
-    molmap[nint(clusterID[n]) - idlo] = 1;
+    molmap[std::lround(clusterID[n]) - idlo] = 1;
   }
 
   int *molmapall;
@@ -629,8 +635,8 @@ void FixReaxFFSpecies::SortMolecule(int &Nmole)
   flag = 0;
   for (n = 0; n < nlocal; n++) {
     if (mask[n] & groupbit) continue;
-    if (nint(clusterID[n]) < idlo || nint(clusterID[n]) > idhi) continue;
-    if (molmap[nint(clusterID[n]) - idlo] >= 0) flag = 1;
+    if (std::lround(clusterID[n]) < idlo || std::lround(clusterID[n]) > idhi) continue;
+    if (molmap[std::lround(clusterID[n]) - idlo] >= 0) flag = 1;
   }
 
   MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
@@ -638,7 +644,7 @@ void FixReaxFFSpecies::SortMolecule(int &Nmole)
 
   for (n = 0; n < nlocal; n++) {
     if (!(mask[n] & groupbit)) continue;
-    clusterID[n] = molmap[nint(clusterID[n]) - idlo] + 1;
+    clusterID[n] = molmap[std::lround(clusterID[n]) - idlo] + 1;
   }
 
   memory->destroy(molmap);
@@ -676,7 +682,7 @@ void FixReaxFFSpecies::FindSpecies(int Nmole, int &Nspec)
     for (n = 0; n < nutypes; n++) Name[n] = 0;
     for (n = 0, flag_mol = 0; n < nlocal; n++) {
       if (!(mask[n] & groupbit)) continue;
-      cid = nint(clusterID[n]);
+      cid = std::lround(clusterID[n]);
       if (cid == m) {
         itype = ele2uele[atom->type[n] - 1];
         Name[itype]++;
@@ -823,8 +829,8 @@ void FixReaxFFSpecies::OpenPos()
     auto filecurrent = utils::star_subst(filepos, update->ntimestep, padflag);
     pos = fopen(filecurrent.c_str(), "w");
     if (pos == nullptr)
-      error->one(FLERR, "Cannot open fix reaxff/species position file {}: {}", filecurrent,
-                 utils::getsyserror());
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open fix reaxff/species position file {}: {}",
+                 filecurrent, utils::getsyserror());
   } else
     pos = nullptr;
   multipos_opened = 1;
@@ -873,7 +879,7 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
 
     for (i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
-      cid = nint(clusterID[i]);
+      cid = std::lround(clusterID[i]);
       if (cid == m) {
         itype = ele2uele[atom->type[i] - 1];
         Name[itype]++;
@@ -951,7 +957,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
     }
     ndeletions = delete_Tcount[0] - delete_Tcount[delete_Nsteps - 1];
     if (delete_Nlimit_varid > -1)
-      delete_Nlimit = input->variable->compute_equal(delete_Nlimit_varid);
+      delete_Nlimit = (int) input->variable->compute_equal(delete_Nlimit_varid);
     headroom = MAX(0, delete_Nlimit - ndeletions);
     if (headroom == 0) {
       for (i = delete_Nsteps - 1; i > 0; i--) delete_Tcount[i] = delete_Tcount[i - 1];
@@ -1012,7 +1018,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
 
     for (i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
-      cid = nint(clusterID[i]);
+      cid = std::lround(clusterID[i]);
       if (cid == m) {
         itype = ele2uele[type[i] - 1];
         Name[itype]++;
@@ -1112,11 +1118,11 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
     } else {
       int writeflag = 0;
       for (i = 0; i < ndelspec; i++)
-        if (deletecount[i]) writeflag = 1;
+        if (deletecount[i] != 0.0) writeflag = 1;
 
       if (writeflag) {
         utils::print(fdel, "{}", update->ntimestep);
-        for (i = 0; i < ndelspec; i++) { fprintf(fdel, "\t%g", deletecount[i]); }
+        for (i = 0; i < ndelspec; i++) fprintf(fdel, "\t%g", deletecount[i]);
         fprintf(fdel, "\n");
         fflush(fdel);
       }
@@ -1151,18 +1157,6 @@ double FixReaxFFSpecies::compute_vector(int n)
   if (n == 0) return vector_nmole;
   if (n == 1) return vector_nspec;
   return 0.0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixReaxFFSpecies::nint(const double &r)
-{
-  int i = 0;
-  if (r > 0.0)
-    i = static_cast<int>(r + 0.5);
-  else if (r < 0.0)
-    i = static_cast<int>(r - 0.5);
-  return i;
 }
 
 /* ---------------------------------------------------------------------- */

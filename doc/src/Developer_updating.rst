@@ -30,6 +30,7 @@ Available topics in mostly chronological order are:
 - `Use Output::get_dump_by_id() instead of Output::find_dump()`_
 - `Refactored grid communication using Grid3d/Grid2d classes instead of GridComm`_
 - `FLERR as first argument to minimum image functions in Domain class`_
+- `Use utils::logmesg() instead of error->warning()`_
 
 ----
 
@@ -163,7 +164,7 @@ New:
 .. seealso::
 
    :cpp:func:`utils::count_words() <LAMMPS_NS::utils::count_words>`,
-   :cpp:func:`utils::trim_comments() <LAMMPS_NS::utils::trim_comments>`
+   :cpp:func:`utils::trim_comment() <LAMMPS_NS::utils::trim_comment>`
 
 
 Use utils::numeric() functions instead of force->numeric()
@@ -653,5 +654,30 @@ New:
    double delz2 = x[i3][2] - x[i2][2];
    domain->minimum_image_big(FLERR, delx2, dely2, delz2);
    double r2 = sqrt(delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
+
+This change is **required** or else the code will not compile.
+
+Use utils::logmesg() instead of error->warning()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: 22Jul2025
+
+The ``Error::message()`` method has been removed since its functionality
+has been superseded by the :cpp:func:`utils::logmesg()
+<LAMMPS_NS::utils::logmesg>` function.
+
+Old:
+
+.. code-block:: c++
+
+   if (comm->me == 0) {
+     error->message(FLERR, "INFO: About to read data file: {}", filename);
+  }
+
+New:
+
+.. code-block:: c++
+
+   if (comm->me == 0) utils::logmesg(lmp, "INFO: About to read data file: {}\n", filename);
 
 This change is **required** or else the code will not compile.

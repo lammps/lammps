@@ -84,7 +84,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   bool first = true;
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {
-      auto icompute = modify->get_compute_by_id(val.id);
+      auto *icompute = modify->get_compute_by_id(val.id);
       if (!icompute) error->all(FLERR, "Compute ID {} for fix vector does not exist", val.id);
       if (val.argindex == 0 && icompute->scalar_flag == 0)
         error->all(FLERR, "Fix vector compute {} does not calculate a scalar", val.id);
@@ -103,7 +103,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
       val.val.c = icompute;
 
     } else if (val.which == ArgInfo::FIX) {
-      auto ifix = modify->get_fix_by_id(val.id);
+      auto *ifix = modify->get_fix_by_id(val.id);
       if (!ifix) error->all(FLERR, "Fix ID {} for fix vector does not exist", val.id);
       if (val.argindex == 0 && ifix->scalar_flag == 0)
         error->all(FLERR, "Fix vector fix {} does not calculate a scalar", val.id);

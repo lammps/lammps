@@ -19,6 +19,8 @@
 #include "atom.h"
 #include "atom_vec_apip.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 PairPACEPreciseAPIP::PairPACEPreciseAPIP(LAMMPS *lmp) : PairPACEAPIP(lmp) {}

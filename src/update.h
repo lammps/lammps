@@ -60,11 +60,11 @@ class Update : protected Pointers {
   class Min *minimize;
   char *minimize_style;
 
-  typedef Integrate *(*IntegrateCreator)(LAMMPS *, int, char **);
-  typedef Min *(*MinimizeCreator)(LAMMPS *);
+  using IntegrateCreator = Integrate *(*) (LAMMPS *, int, char **);
+  using MinimizeCreator = Min *(*) (LAMMPS *);
 
-  typedef std::map<std::string, IntegrateCreator> IntegrateCreatorMap;
-  typedef std::map<std::string, MinimizeCreator> MinimizeCreatorMap;
+  using IntegrateCreatorMap = std::map<std::string, IntegrateCreator>;
+  using MinimizeCreatorMap = std::map<std::string, MinimizeCreator>;
 
   IntegrateCreatorMap *integrate_map;
   MinimizeCreatorMap *minimize_map;

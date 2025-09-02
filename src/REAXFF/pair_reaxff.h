@@ -56,7 +56,7 @@ class PairReaxFF : public Pair {
   std::vector<std::string> eletype;
 
   ReaxFF::API *api;
-  typedef double rvec[3];
+  using rvec = double[3];
 
  protected:
   char *fix_id;

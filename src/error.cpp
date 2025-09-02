@@ -15,7 +15,6 @@
 #include "error.h"
 
 #include "accelerator_kokkos.h"
-#include "input.h"
 #include "output.h"
 #include "universe.h"
 #include "update.h"
@@ -233,33 +232,6 @@ void Error::_warning(const std::string &file, int line, fmt::string_view format,
     warning(file,line,fmt::vformat(format, args));
   } catch (fmt::format_error &e) {
     warning(file,line,e.what());
-  }
-}
-
-/* ----------------------------------------------------------------------
-   called by one proc in world, typically proc 0
-   write message to screen and logfile (if logflag is set)
-------------------------------------------------------------------------- */
-
-void Error::message(const std::string &file, int line, const std::string &str)
-{
-  std::string mesg = fmt::format("{} ({}:{})\n",str,truncpath(file),line);
-
-  if (screen) fputs(mesg.c_str(),screen);
-  if (logfile) fputs(mesg.c_str(),logfile);
-}
-
-/* ----------------------------------------------------------------------
-   forward vararg version to single string version
-------------------------------------------------------------------------- */
-
-void Error::_message(const std::string &file, int line, fmt::string_view format,
-                     fmt::format_args args)
-{
-  try {
-    message(file,line,fmt::vformat(format, args));
-  } catch (fmt::format_error &e) {
-    message(file,line,e.what());
   }
 }
 

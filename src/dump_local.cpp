@@ -25,6 +25,7 @@
 #include "update.h"
 
 #include <cstring>
+#include <map>
 
 using namespace LAMMPS_NS;
 
@@ -471,7 +472,7 @@ void DumpLocal::parse_fields(int narg, char **arg)
       computefixflag = 1;
       vtype[iarg] = Dump::DOUBLE;
       argindex[iarg] = argi.get_index1();
-      auto name = argi.get_name();
+      const auto *name = argi.get_name();
       Compute *icompute = nullptr;
       Fix *ifix = nullptr;
 

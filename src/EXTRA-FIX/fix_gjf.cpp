@@ -28,7 +28,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "random_mars.h"
-#include "respa.h"
 #include "update.h"
 #include "variable.h"
 
@@ -42,80 +41,83 @@ enum { NOBIAS, BIAS };
 enum { CONSTANT, EQUAL, ATOM };
 
 static const char cite_gjf[] =
-  "GJ methods: doi:10.1080/00268976.2019.1662506\n\n"
-  "@Article{gronbech-jensen_complete_2020,\n"
-        "title = {Complete set of stochastic Verlet-type thermostats for correct Langevin simulations},\n"
-        "volume = {118},\n"
-  "number = {8},\n"
-        "url = {https://www.tandfonline.com/doi/full/10.1080/00268976.2019.1662506},\n"
-        "doi = {10.1080/00268976.2019.1662506},\n"
-        "journal = {Molecular Physics},\n"
-        "author = {Grønbech-Jensen, Niels},\n"
-        "year = {2020}\n"
-  "}\n\n";
+    "GJ methods: doi:10.1080/00268976.2019.1662506\n\n"
+    "@Article{gronbech-jensen_complete_2020,\n"
+    "title = {Complete set of stochastic Verlet-type thermostats for correct Langevin "
+    "simulations},\n"
+    "volume = {118},\n"
+    "number = {8},\n"
+    "url = {https://www.tandfonline.com/doi/full/10.1080/00268976.2019.1662506},\n"
+    "doi = {10.1080/00268976.2019.1662506},\n"
+    "journal = {Molecular Physics},\n"
+    "author = {Grønbech-Jensen, Niels},\n"
+    "year = {2020}\n"
+    "}\n\n";
 
-static const char cite_gjf_7[] =
-  "GJ-VII method: doi:10.1063/5.0066008\n\n"
-  "@Article{finkelstein_2021,\n"
-  "title = {Bringing discrete-time Langevin splitting methods into agreement with thermodynamics},\n"
-  "volume = {155},\n"
-  "number = {18},\n"
-  "url = {https://doi.org/10.1063/5.0066008},\n"
-  "doi = {10.1063/5.0066008},\n"
-  "journal = {J. Chem. Phys.},\n"
-  "author = {Finkelstein, Joshua and Cheng, Chungho and Fiorin, Giacomo and Seibold, Benjamin and Grønbech-Jensen, Niels},\n"
-  "year = {2021},\n"
-  "pages = {184104}\n"
-  "}\n\n";
+static const char cite_gjf_7[] = "GJ-VII method: doi:10.1063/5.0066008\n\n"
+                                 "@Article{finkelstein_2021,\n"
+                                 "title = {Bringing discrete-time Langevin splitting methods into "
+                                 "agreement with thermodynamics},\n"
+                                 "volume = {155},\n"
+                                 "number = {18},\n"
+                                 "url = {https://doi.org/10.1063/5.0066008},\n"
+                                 "doi = {10.1063/5.0066008},\n"
+                                 "journal = {J. Chem. Phys.},\n"
+                                 "author = {Finkelstein, Joshua and Cheng, Chungho and Fiorin, "
+                                 "Giacomo and Seibold, Benjamin and Grønbech-Jensen, Niels},\n"
+                                 "year = {2021},\n"
+                                 "pages = {184104}\n"
+                                 "}\n\n";
 
 static const char cite_gjf_8[] =
-  "GJ-VIII method: doi:10.1007/s10955-024-03345-1\n\n"
-  "@Article{gronbech_jensen_2024,\n"
-  "title = {On the Definition of Velocity in Discrete-Time, Stochastic Langevin Simulations},\n"
-  "volume = {191},\n"
-  "number = {10},\n"
-  "url = {https://doi.org/10.1007/s10955-024-03345-1},\n"
-  "doi = {10.1007/s10955-024-03345-1},\n"
-  "journal = {J. Stat. Phys.},\n"
-  "author = {Gronbech-Jensen, Niels},\n"
-  "year = {2024},\n"
-  "pages = {137}\n"
-  "}\n\n";
+    "GJ-VIII method: doi:10.1007/s10955-024-03345-1\n\n"
+    "@Article{gronbech_jensen_2024,\n"
+    "title = {On the Definition of Velocity in Discrete-Time, Stochastic Langevin Simulations},\n"
+    "volume = {191},\n"
+    "number = {10},\n"
+    "url = {https://doi.org/10.1007/s10955-024-03345-1},\n"
+    "doi = {10.1007/s10955-024-03345-1},\n"
+    "journal = {J. Stat. Phys.},\n"
+    "author = {Gronbech-Jensen, Niels},\n"
+    "year = {2024},\n"
+    "pages = {137}\n"
+    "}\n\n";
 
 static const char cite_gjf_vhalf[] =
-  "GJ-I vhalf method: doi:10.1080/00268976.2019.1570369\n\n"
-  "@Article{jensen_accurate_2019,\n"
-        "title = {Accurate configurational and kinetic statistics in discrete-time Langevin systems},\n"
-        "volume = {117},\n"
-        "url = {https://www.tandfonline.com/doi/full/10.1080/00268976.2019.1570369},\n"
-        "doi = {10.1080/00268976.2019.1570369},\n"
-        "number = {18},\n"
-        "journal = {Molecular Physics},\n"
-        "author = {Jensen, Lucas Frese Grønbech and Grønbech-Jensen, Niels},\n"
-        "year = {2019}\n"
-  "}\n\n";
+    "GJ-I vhalf method: doi:10.1080/00268976.2019.1570369\n\n"
+    "@Article{jensen_accurate_2019,\n"
+    "title = {Accurate configurational and kinetic statistics in discrete-time Langevin systems},\n"
+    "volume = {117},\n"
+    "url = {https://www.tandfonline.com/doi/full/10.1080/00268976.2019.1570369},\n"
+    "doi = {10.1080/00268976.2019.1570369},\n"
+    "number = {18},\n"
+    "journal = {Molecular Physics},\n"
+    "author = {Jensen, Lucas Frese Grønbech and Grønbech-Jensen, Niels},\n"
+    "year = {2019}\n"
+    "}\n\n";
 
 static const char cite_gjf_vfull[] =
-  "GJ-I vfull method: doi:10.1080/00268976.2012.760055\n\n"
-  "@Article{gronbech-jensen_simple_2013,\n"
-  "title = {A simple and effective Verlet-type algorithm for simulating Langevin dynamics},\n"
-  "volume = {111},\n"
-  "url = {http://www.tandfonline.com/doi/abs/10.1080/00268976.2012.760055},\n"
-  "doi = {10.1080/00268976.2012.760055},\n"
-  "pages = {983-991},\n"
-  "number = {8},\n"
-  "journal = {Molecular Physics},\n"
-  "author = {Grønbech-Jensen, Niels and Farago, Oded},\n"
-  "year = {2013}\n"
-  "}\n\n";
+    "GJ-I vfull method: doi:10.1080/00268976.2012.760055\n\n"
+    "@Article{gronbech-jensen_simple_2013,\n"
+    "title = {A simple and effective Verlet-type algorithm for simulating Langevin dynamics},\n"
+    "volume = {111},\n"
+    "url = {http://www.tandfonline.com/doi/abs/10.1080/00268976.2012.760055},\n"
+    "doi = {10.1080/00268976.2012.760055},\n"
+    "pages = {983-991},\n"
+    "number = {8},\n"
+    "journal = {Molecular Physics},\n"
+    "author = {Grønbech-Jensen, Niels and Farago, Oded},\n"
+    "year = {2013}\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
 FixGJF::FixGJF(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), tstr(nullptr), tforce(nullptr), lv(nullptr), id_temp(nullptr), random(nullptr)
+    Fix(lmp, narg, arg), tstr(nullptr), tforce(nullptr), lv(nullptr), id_temp(nullptr),
+    random(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_gjf);
-  if (narg < 7) error->all(FLERR, "Illegal fix gjf command");
+  if (narg < 7) utils::missing_cmd_args(FLERR, "fix gjf", error);
 
   time_integrate = 1;
   global_freq = 1;
@@ -133,13 +135,13 @@ FixGJF::FixGJF(LAMMPS *lmp, int narg, char **arg) :
   t_period = utils::numeric(FLERR, arg[5], false, lmp);
   seed = utils::inumeric(FLERR, arg[6], false, lmp);
 
-  if (t_period <= 0.0) error->all(FLERR, "Fix gjf period must be > 0.0");
-  if (seed <= 0) error->all(FLERR, "Illegal fix gjf command");
+  if (t_period <= 0.0) error->all(FLERR, 5, "Fix gjf period must be > 0.0");
+  if (seed <= 0) error->all(FLERR, 6, "Illegal fix gjf command");
 
   // initialize Marsaglia RNG with processor-unique seed
   random = new RanMars(lmp, seed + comm->me);
 
-  int GJmethods = 8; // number of currently implemented GJ methods
+  int GJmethods = 8;    // number of currently implemented GJ methods
   maxatom = 0;
 
   // optional args
@@ -152,13 +154,13 @@ FixGJF::FixGJF(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "vel") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix gjf command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gjf vel", error);
       if (strcmp(arg[iarg + 1], "vfull") == 0) {
         osflag = 1;
       } else if (strcmp(arg[iarg + 1], "vhalf") == 0) {
         osflag = 0;
       } else
-        error->all(FLERR, "Illegal fix gjf command");
+        error->all(FLERR, iarg + 1, "Unknown fix gjf vel keyword {}", arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "method") == 0) {
       GJmethod = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
@@ -168,18 +170,21 @@ FixGJF::FixGJF(LAMMPS *lmp, int narg, char **arg) :
         if (gjfc2 < 0 || gjfc2 > 1) error->all(FLERR, "Choice of c2 in GJ-VII must be 0≤c2≤1");
         iarg += 3;
         if (lmp->citeme) lmp->citeme->add(cite_gjf_7);
-      }
-      else {
+      } else {
         if (iarg + 2 > narg) error->all(FLERR, "Illegal fix gjf command");
-        if (GJmethod < 0 || GJmethod > GJmethods) error->all(FLERR, "Invalid GJ method choice in gjf command");
-        if (GJmethod == 8) if (lmp->citeme) lmp->citeme->add(cite_gjf_8);
+        if (GJmethod < 0 || GJmethod > GJmethods)
+          error->all(FLERR, "Invalid GJ method choice in gjf command");
+        if (GJmethod == 8)
+          if (lmp->citeme) lmp->citeme->add(cite_gjf_8);
         iarg += 2;
       }
     } else
       error->all(FLERR, "Illegal fix gjf command");
   }
-  if (GJmethod == 1 && osflag == 0) if (lmp->citeme) lmp->citeme->add(cite_gjf_vhalf);
-  if (GJmethod == 1 && osflag == 1) if (lmp->citeme) lmp->citeme->add(cite_gjf_vfull);
+  if (GJmethod == 1 && osflag == 0)
+    if (lmp->citeme) lmp->citeme->add(cite_gjf_vhalf);
+  if (GJmethod == 1 && osflag == 1)
+    if (lmp->citeme) lmp->citeme->add(cite_gjf_vfull);
 
   // set temperature = nullptr, user can override via fix_modify if wants bias
   id_temp = nullptr;
@@ -191,7 +196,6 @@ FixGJF::FixGJF(LAMMPS *lmp, int narg, char **arg) :
   // setup atom-based array for lv
   // register with Atom class
   // no need to set peratom_flag, b/c data is for internal use only
-
 
   FixGJF::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
@@ -238,27 +242,30 @@ void FixGJF::init()
   if (id_temp) {
     temperature = modify->get_compute_by_id(id_temp);
     if (!temperature) {
-      error->all(FLERR, "Temperature compute ID {} for fix {} does not exist", id_temp, style);
+      error->all(FLERR, Error::NOLASTLINE, "Temperature compute ID {} for fix {} does not exist",
+                 id_temp, style);
     } else {
       if (temperature->tempflag == 0)
-        error->all(FLERR, "Compute ID {} for fix {} does not compute temperature", id_temp, style);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Compute ID {} for fix {} does not compute temperature", id_temp, style);
     }
   }
   // check variable
 
   if (tstr) {
     tvar = input->variable->find(tstr);
-    if (tvar < 0) error->all(FLERR, "Variable name {} for fix gjf does not exist", tstr);
+    if (tvar < 0)
+      error->all(FLERR, Error::NOLASTLINE, "Variable name {} for fix gjf does not exist", tstr);
     if (input->variable->equalstyle(tvar))
       tstyle = EQUAL;
     else if (input->variable->atomstyle(tvar))
       tstyle = ATOM;
     else
-      error->all(FLERR, "Variable {} for fix gjf is invalid style", tstr);
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for fix gjf is invalid style", tstr);
   }
 
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    error->all(FLERR, "Fix gjf and run style respa are not compatible");
+    error->all(FLERR, Error::NOLASTLINE, "Fix gjf and run style respa are not compatible");
   }
 
   if (temperature && temperature->tempbias)
@@ -278,19 +285,20 @@ void FixGJF::init()
       gjfc2 = 1.0 - update->dt / t_period;
       break;
     case 4:
-      gjfc2 = ( sqrt(1.0 + 4.0 * (update->dt / t_period) ) - 1.0 ) / ( 2.0 * update->dt / t_period );
+      gjfc2 = (sqrt(1.0 + 4.0 * (update->dt / t_period)) - 1.0) / (2.0 * update->dt / t_period);
       break;
     case 5:
       gjfc2 = 1.0 / (1.0 + update->dt / t_period);
       break;
     case 6:
-      gjfc2 = (1.0 / (1.0 + update->dt / 2.0 / t_period)) * (1.0 / (1.0 + update->dt / 2.0 / t_period));
+      gjfc2 =
+          (1.0 / (1.0 + update->dt / 2.0 / t_period)) * (1.0 / (1.0 + update->dt / 2.0 / t_period));
       break;
-    case 7: // provided in Finkelstein (2021)
+    case 7:    // provided in Finkelstein (2021)
       update->dt = (1.0 + gjfc2) / (1.0 - gjfc2) * log(gjfc2) * log(gjfc2) * 0.5 * t_period;
       break;
-    case 8: // provided in Gronbech-Jensen (2024)
-      gjfc2 = sqrt( (update->dt / t_period) * (update->dt / t_period) + 1.0 ) - update->dt / t_period;
+    case 8:    // provided in Gronbech-Jensen (2024)
+      gjfc2 = sqrt((update->dt / t_period) * (update->dt / t_period) + 1.0) - update->dt / t_period;
       break;
     case 0:
       gjfc2 = 0.0;
@@ -357,11 +365,11 @@ void FixGJF::initial_integrate(int /* vflag */)
       if (mask[i] & groupbit) {
         if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
         m = rmass[i];
-        beta = tsqrt * sqrt(2.0*dt*m*boltz/t_period/mvv2e) / ftm2v;
+        beta = tsqrt * sqrt(2.0 * dt * m * boltz / t_period / mvv2e) / ftm2v;
 
-        fran[0] = beta*random->gaussian();
-        fran[1] = beta*random->gaussian();
-        fran[2] = beta*random->gaussian();
+        fran[0] = beta * random->gaussian();
+        fran[1] = beta * random->gaussian();
+        fran[2] = beta * random->gaussian();
 
         // First integration delivers Eq. 24a and 24b:
         dtfm = dtf / m;
@@ -375,9 +383,9 @@ void FixGJF::initial_integrate(int /* vflag */)
         if (tbiasflag) temperature->remove_bias(i, v[i]);
 
         // Calculate Eq. 24c:
-        lv[i][0] = c1sqrt*v[i][0] + ftm2v * (c3sqrt / (2.0 * m)) * fran[0];
-        lv[i][1] = c1sqrt*v[i][1] + ftm2v * (c3sqrt / (2.0 * m)) * fran[1];
-        lv[i][2] = c1sqrt*v[i][2] + ftm2v * (c3sqrt / (2.0 * m)) * fran[2];
+        lv[i][0] = c1sqrt * v[i][0] + ftm2v * (c3sqrt / (2.0 * m)) * fran[0];
+        lv[i][1] = c1sqrt * v[i][1] + ftm2v * (c3sqrt / (2.0 * m)) * fran[1];
+        lv[i][2] = c1sqrt * v[i][2] + ftm2v * (c3sqrt / (2.0 * m)) * fran[2];
 
         // Calculate Eq. 24d
         v[i][0] = (gjfc2 / c1sqrt) * lv[i][0] + ftm2v * csq * (0.5 / m) * fran[0];
@@ -398,11 +406,11 @@ void FixGJF::initial_integrate(int /* vflag */)
       if (mask[i] & groupbit) {
         if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
         m = mass[type[i]];
-        beta = tsqrt * sqrt(2.0*dt*m*boltz/t_period/mvv2e) / ftm2v;
+        beta = tsqrt * sqrt(2.0 * dt * m * boltz / t_period / mvv2e) / ftm2v;
 
-        fran[0] = beta*random->gaussian();
-        fran[1] = beta*random->gaussian();
-        fran[2] = beta*random->gaussian();
+        fran[0] = beta * random->gaussian();
+        fran[1] = beta * random->gaussian();
+        fran[2] = beta * random->gaussian();
 
         // First integration delivers Eq. 24a and 24b:
         dtfm = dtf / m;
@@ -416,9 +424,9 @@ void FixGJF::initial_integrate(int /* vflag */)
         if (tbiasflag) temperature->remove_bias(i, v[i]);
 
         // Calculate Eq. 24c:
-        lv[i][0] = c1sqrt*v[i][0] + ftm2v * (c3sqrt / (2.0 * m)) * fran[0];
-        lv[i][1] = c1sqrt*v[i][1] + ftm2v * (c3sqrt / (2.0 * m)) * fran[1];
-        lv[i][2] = c1sqrt*v[i][2] + ftm2v * (c3sqrt / (2.0 * m)) * fran[2];
+        lv[i][0] = c1sqrt * v[i][0] + ftm2v * (c3sqrt / (2.0 * m)) * fran[0];
+        lv[i][1] = c1sqrt * v[i][1] + ftm2v * (c3sqrt / (2.0 * m)) * fran[1];
+        lv[i][2] = c1sqrt * v[i][2] + ftm2v * (c3sqrt / (2.0 * m)) * fran[2];
 
         // Calculate Eq. 24d
         v[i][0] = (gjfc2 / c1sqrt) * lv[i][0] + ftm2v * csq * (0.5 / m) * fran[0];
@@ -491,26 +499,24 @@ void FixGJF::compute_target()
   // reallocate tforce array if necessary
 
   if (tstyle == CONSTANT) {
-    t_target = t_start + delta * (t_stop-t_start);
+    t_target = t_start + delta * (t_stop - t_start);
     tsqrt = sqrt(t_target);
   } else {
     modify->clearstep_compute();
     if (tstyle == EQUAL) {
       t_target = input->variable->compute_equal(tvar);
-      if (t_target < 0.0)
-        error->one(FLERR, "Fix gjf variable returned negative temperature");
+      if (t_target < 0.0) error->one(FLERR, "Fix gjf variable returned negative temperature");
       tsqrt = sqrt(t_target);
     } else {
       if (atom->nmax > maxatom) {
         maxatom = atom->nmax;
         memory->destroy(tforce);
-        memory->create(tforce,maxatom,"gjf:tforce");
+        memory->create(tforce, maxatom, "gjf:tforce");
       }
-      input->variable->compute_atom(tvar,igroup,tforce,1,0);
+      input->variable->compute_atom(tvar, igroup, tforce, 1, 0);
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit)
-            if (tforce[i] < 0.0)
-              error->one(FLERR, "Fix gjf variable returned negative temperature");
+          if (tforce[i] < 0.0) error->one(FLERR, "Fix gjf variable returned negative temperature");
     }
     modify->addstep_compute(update->ntimestep + 1);
   }
@@ -570,19 +576,20 @@ void FixGJF::reset_dt()
       gjfc2 = 1.0 - update->dt / t_period;
       break;
     case 4:
-      gjfc2 = ( sqrt(1.0 + 4.0 * (update->dt / t_period) ) - 1.0 ) / ( 2.0 * update->dt / t_period );
+      gjfc2 = (sqrt(1.0 + 4.0 * (update->dt / t_period)) - 1.0) / (2.0 * update->dt / t_period);
       break;
     case 5:
       gjfc2 = 1.0 / (1.0 + update->dt / t_period);
       break;
     case 6:
-      gjfc2 = (1.0 / (1.0 + update->dt / 2.0 / t_period)) * (1.0 / (1.0 + update->dt / 2.0 / t_period));
+      gjfc2 =
+          (1.0 / (1.0 + update->dt / 2.0 / t_period)) * (1.0 / (1.0 + update->dt / 2.0 / t_period));
       break;
-    case 7: // provided in Finkelstein (2021)
+    case 7:    // provided in Finkelstein (2021)
       update->dt = (1.0 + gjfc2) / (1.0 - gjfc2) * log(gjfc2) * log(gjfc2) * 0.5 * t_period;
       break;
-    case 8: // provided in Gronbech-Jensen (2024)
-      gjfc2 = sqrt( (update->dt / t_period)*(update->dt / t_period) + 1.0 ) - update->dt / t_period;
+    case 8:    // provided in Gronbech-Jensen (2024)
+      gjfc2 = sqrt((update->dt / t_period) * (update->dt / t_period) + 1.0) - update->dt / t_period;
       break;
     case 0:
       gjfc2 = 0.0;

@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class ComputeRHEORhoSum : public Compute {
  public:
   ComputeRHEORhoSum(class LAMMPS *, int, char **);
-  ~ComputeRHEORhoSum() override;
+
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_peratom() override;

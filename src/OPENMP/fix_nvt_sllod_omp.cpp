@@ -35,7 +35,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-typedef struct { double x,y,z; } dbl3_t;
+using dbl3_t = struct { double x,y,z; };
 
 /* ---------------------------------------------------------------------- */
 
@@ -91,7 +91,7 @@ void FixNVTSllodOMP::init()
   if (deform.size() < 1) error->all(FLERR,"Using fix nvt/sllod/omp with no fix deform defined");
 
   for (auto &ifix : deform) {
-    auto f = dynamic_cast<FixDeform *>(ifix);
+    auto *f = dynamic_cast<FixDeform *>(ifix);
     if (f && (f->remapflag != Domain::V_REMAP))
       error->all(FLERR,"Using fix nvt/sllod/omp with inconsistent fix deform remap option");
   }

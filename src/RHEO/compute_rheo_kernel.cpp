@@ -24,17 +24,11 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
-#include "force.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
-#include "pair.h"
-#include "update.h"
-#include "utils.h"
 
 #include <cmath>
 
@@ -251,13 +245,14 @@ double ComputeRHEOKernel::calc_w_quintic(double r)
   double w, tmp1, tmp2, tmp3, tmp1sq, tmp2sq, tmp3sq, s;
   s = r * 3.0 * cutinv;
 
-  if (s > 3.0) { w = 0.0; }
-
   if (s <= 3.0) {
     tmp3 = 3.0 - s;
     tmp3sq = tmp3 * tmp3;
     w = tmp3sq * tmp3sq * tmp3;
+  } else {
+    w = 0.0;
   }
+
   if (s <= 2.0) {
     tmp2 = 2.0 - s;
     tmp2sq = tmp2 * tmp2;
@@ -285,12 +280,14 @@ double ComputeRHEOKernel::calc_dw_scalar_quintic(double r)
 
   s = r * 3.0 * cutinv;
 
-  if (s > 3.0) { wp = 0.0; }
   if (s <= 3.0) {
     tmp3 = 3.0 - s;
     tmp3sq = tmp3 * tmp3;
     wp = -5.0 * tmp3sq * tmp3sq;
+  } else {
+    wp = 0.0;
   }
+
   if (s <= 2.0) {
     tmp2 = 2.0 - s;
     tmp2sq = tmp2 * tmp2;
@@ -855,7 +852,7 @@ int ComputeRHEOKernel::pack_forward_comm(int n, int *list, double *buf, int /*pb
   for (int i = 0; i < n; i++) {
     int j = list[i];
     if (comm_stage == 0) {
-      buf[m++] = coordination[j];
+      buf[m++] = ubuf(coordination[j]).d;
     } else {
       if (kernel_style == RK0) {
         buf[m++] = C0[j];
@@ -878,7 +875,7 @@ void ComputeRHEOKernel::unpack_forward_comm(int n, int first, double *buf)
 
   for (int i = first; i < last; i++) {
     if (comm_stage == 0) {
-      coordination[i] = buf[m++];
+      coordination[i] = (int) ubuf(buf[m++]).i;
     } else {
       if (kernel_style == RK0) {
         C0[i] = buf[m++];

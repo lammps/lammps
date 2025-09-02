@@ -3,10 +3,8 @@
 
 #include "lammps.h"
 
-#include "info.h"
 #include "input.h"
 #include "update.h"
-#include "variable.h"
 
 #include "../../src/LEPTON/lepton_utils.h"
 #include "Lepton.h"
@@ -18,6 +16,7 @@
 
 #include "../testing/core.h"
 
+#include <cstring>
 #include <exception>
 #include <iostream>
 #include <limits>

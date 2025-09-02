@@ -134,7 +134,7 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   atom->add_callback(Atom::GROW);       // Call LAMMPS to allocate memory for per-atom array
   atom->add_callback(Atom::RESTART);    // Call LAMMPS to re-assign restart-data for per-atom array
 
-  grow_arrays(atom->nmax);
+  FixPIMDNVT::grow_arrays(atom->nmax);
 
   // some initilizations
 

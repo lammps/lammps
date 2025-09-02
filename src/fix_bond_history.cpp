@@ -300,7 +300,7 @@ void FixBondHistory::write_restart(FILE *fp)
 void FixBondHistory::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto *list = (double *) buf;
   stored_flag = static_cast<int>(list[n++]);
 }
 

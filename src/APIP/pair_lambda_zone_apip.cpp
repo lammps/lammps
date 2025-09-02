@@ -24,12 +24,14 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLambdaZoneAPIP::PairLambdaZoneAPIP(LAMMPS *lmp) :
-    Pair(lmp), lambda_ta(nullptr), cut(nullptr)
+PairLambdaZoneAPIP::PairLambdaZoneAPIP(LAMMPS *lmp) : Pair(lmp), cut(nullptr), lambda_ta(nullptr)
 {
   // set defaults
 
@@ -140,7 +142,7 @@ void PairLambdaZoneAPIP::init_style()
     error->all(FLERR, "pair_lambda_zone requires an atom style with lambda_input_ta");
 
   // find fix lambda/apip
-  class Fix * fix_lambda = nullptr;
+  class Fix *fix_lambda = nullptr;
   int count = 0;
   for (int i = 0; i < modify->nfix; i++) {
     if (strcmp(modify->fix[i]->style, "lambda/apip") == 0) {
@@ -186,7 +188,7 @@ void PairLambdaZoneAPIP::calculate_lambda()
 
   double xtmp, ytmp, ztmp, delx, dely, delz, lambda_tmp, rsq, lambda_new;
   double **x, *lambda_input_ta;
-  int allnum, ii, i, nlocal, nall, jnum, j, jj, loop_iterations;
+  int allnum, ii, i, nlocal, jnum, j, jj, loop_iterations;
   int *ilist, *mask, *jlist, *numneigh, **firstneigh;
 
   mask = atom->mask;
@@ -194,7 +196,6 @@ void PairLambdaZoneAPIP::calculate_lambda()
   lambda_input_ta = atom->apip_lambda_input_ta;
 
   nlocal = atom->nlocal;
-  nall = nlocal + atom->nghost;
 
   if (nlocal > nmax_ta) {
     memory->destroy(lambda_ta);

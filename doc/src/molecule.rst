@@ -76,7 +76,9 @@ contains multiple molecules.  The :doc:`atom_style template
 system with more than one templated molecule.
 
 The molecule file can be either in a *native* format or in `JSON format
-<https://www.json.org/>`_.  The details of the two formats are described
+<https://www.json.org/>`_.  JSON formal filenames **must** have the
+extension ".json".  Files with any other name will be assumed to be in
+the "native" format.  The details of the two formats are described
 below.  When referencing multiple molecule files in a single *molecule*
 command, each of those files may be either format.
 
@@ -207,7 +209,7 @@ defining a *body* particle, which requires setting the number of
 
 .. list-table::
       :header-rows: 1
-      :widths: 20 13 42 15
+      :widths: 21 12 47 20
 
       * - Number(s)
         - Keyword
@@ -216,7 +218,7 @@ defining a *body* particle, which requires setting the number of
       * - N
         - atoms
         - # of atoms N in molecule
-        - 0
+        - keyword is *required*
       * - Nb
         - bonds
         - # of bonds Nb in molecule
@@ -239,8 +241,8 @@ defining a *body* particle, which requires setting the number of
         - 0
       * - Ninteger Ndouble
         - body
-        - # of integer and floating-point values in body particle
-        - 0
+        - # of integer and floating-point values in :doc:`body particle <Howto_body>`
+        - 0 0
       * - Mtotal
         - mass
         - total mass of molecule
@@ -693,12 +695,15 @@ and thus the data in the file must follow suitable conventions to be
 correctly processed.  LAMMPS provides a `JSON schema file
 <https://json-schema.org/>`_ for JSON format molecule files in the
 :ref:`tools/json folder <json>` to represent those conventions.  Using
-the schema file any JSON format molecule files can be validated.
+the schema file any JSON format molecule files can be validated.  Please
+note that the format requirement for JSON are very strict and the JSON
+reader in LAMMPS does not accept files with extensions like comments.
 Validating a particular JSON format molecule file against this schema
 ensures that both, the JSON syntax requirement *and* the LAMMPS
-conventions for molecule templates are followed.  This is a formal check
-only and thus it **cannot** check whether the file contents are
-physically meaningful.
+conventions for molecule template files are followed.  LAMMPS should be
+able to read and parse any JSON file that passes the schema check.  This
+is a formal check only and thus it **cannot** check whether the file
+contents are consistent or physically meaningful.
 
 Here is a simple example for the same TIP3P water molecule from above in
 JSON format and also using :doc:`type labels <labelmap>` instead of
@@ -862,6 +867,155 @@ for the "native" molecule file format.
      - a data block
      - no
      - defines impropers in the molecule template with the format "improper-type", "atom1", "atom2", "atom3", "atom4" (same as Impropers without improper-ID)
+   * - shake
+     - 3 JSON objects
+     - no
+     - contains the sub-sections "flags", "atoms", "bonds" described below
+   * - special
+     - 2 JSON objects
+     - no
+     - contains the sub-sections "counts" and "bonds" described below
+   * - body
+     - 2 JSON objects
+     - no
+     - contains the "integers" and "doubles" sub-sections with arrays with the same data as Body Integers and Body Doubles, respectively
+
+The following table describes the sub-sections for the "special" entry from above:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Subsection
+     - Argument(s)
+     - Required
+     - Description
+   * - counts
+     - a data block
+     - yes
+     - contains the counts of 1-2, 1-3, and 1-4 special neighbors with the format "atom-id", "n12", "n13", "n14" (same as Special Bond Counts)
+   * - bonds
+     - a data block
+     - yes
+     - contains the lists of special neighbors to atoms with the format "atom-id", "atom-id-list" (same as Special Bonds)
+
+The following table describes the sub-sections for the "shake" entry from above:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Subsection
+     - Argument(s)
+     - Required
+     - Description
+   * - flags
+     - a data block
+     - yes
+     - contains the counts shake flags for atoms with the format "atom-id", "flag" (same as Shake Flags)
+   * - atoms
+     - a data block
+     - yes
+     - contains the lists of shake cluster atom-ids for atoms with the format "atom-id", "atom-id-list" (same as Shake Atoms)
+   * - bonds
+     - a data block
+     - yes
+     - contains the lists of shake bond or angle types for atoms with the format "atom-id", "type-list" (same as Shake Bonds)
+
+The "special" and "shake" sections are usually not needed, since the
+data can be auto-generated as soon as the simulation box is defined.
+Below is an example for what would have to be *added* to the example
+JSON file above in case the molecule command needs to be issued earlier.
+
+.. code-block:: json
+
+   "special": {
+       "counts": {
+           "format": ["atom-id", "n12", "n13", "n14"],
+           "data": [
+               [1, 2, 0, 0],
+               [2, 1, 1, 0],
+               [3, 1, 1, 0]
+           ]
+       },
+       "bonds": {
+           "format": ["atom-id", "atom-id-list"],
+           "data": [
+               [1,  [2, 3]],
+               [2,  [1, 3]],
+               [3,  [1, 2]]
+           ]
+       }
+   },
+   "shake": {
+       "flags": {
+           "format": ["atom-id", "flag"],
+           "data": [
+               [1, 1],
+               [2, 1],
+               [3, 1]
+           ]
+       },
+       "atoms": {
+           "format": ["atom-id", "atom-id-list"],
+           "data": [
+               [1,  [1, 2, 3]],
+               [2,  [1, 2, 3]],
+               [3,  [1, 2, 3]]
+           ]
+       },
+       "types": {
+           "format": ["atom-id", "type-list"],
+           "data": [
+               [1,  ["OW-HO1",  "OW-HO1", "HO1-OW-HO1"]],
+               [2,  ["OW-HO1",  "OW-HO1", "HO1-OW-HO1"]],
+               [3,  ["OW-HO1",  "OW-HO1", "HO1-OW-HO1"]]
+           ]
+       }
+   }
+
+
+Below is a minimal example of a JSON format molecule template for a body
+particle for :doc:`pair style body/nparticle
+<pair_body_nparticle>`. Molecule templates for body particles must
+contain only one atom:
+
+.. code-block:: json
+
+   {
+       "application": "LAMMPS",
+       "format": "molecule",
+       "revision": 1,
+       "title": "Square body for body/nparticles",
+       "schema": "https://download.lammps.org/json/molecule-schema.json",
+       "units": "real",
+       "coords": {
+           "format": ["atom-id", "x", "y", "z"],
+           "data": [
+               [1,  0.00000,  0.00000,  0.00000]
+           ]
+       },
+       "types": {
+           "format": ["atom-id", "type"],
+           "data": [
+               [1,  1]
+           ]
+       },
+       "masses": {
+           "format": ["atom-id", "mass"],
+           "data": [
+               [1,  1.0]
+           ]
+       },
+       "body": {
+           "integers": [4],
+           "doubles": [
+               1.0, 1.0, 4.0, 0.0, 0.0, 0.0,
+               -0.70710678118654752440, -0.70710678118654752440, 0.0,
+               -0.70710678118654752440,  0.70710678118654752440, 0.0,
+               0.70710678118654752440,  0.70710678118654752440, 0.0,
+               0.70710678118654752440, -0.70710678118654752440, 0.0
+           ]
+       }
+   }
 
 ----------
 

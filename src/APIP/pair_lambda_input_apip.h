@@ -23,7 +23,6 @@ PairStyle(lambda/input/apip,PairLambdaInputAPIP);
 #ifndef LMP_PAIR_LAMBDA_INPUT_APIP_H
 #define LMP_PAIR_LAMBDA_INPUT_APIP_H
 
-#include "fix_lambda_apip.h"
 #include "pair.h"
 
 namespace LAMMPS_NS {
@@ -35,7 +34,7 @@ class PairLambdaInputAPIP : public Pair {
   PairLambdaInputAPIP(class LAMMPS *);
   ~PairLambdaInputAPIP() override;
   void compute(int, int) override;
-  virtual void settings(int, char **) override;
+  void settings(int, char **) override;
   void coeff(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;

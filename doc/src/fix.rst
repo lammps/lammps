@@ -266,6 +266,7 @@ accelerated styles exist.
 * :doc:`halt <fix_halt>` - terminate a dynamics run or minimization
 * :doc:`heat <fix_heat>` - add/subtract momentum-conserving heat
 * :doc:`heat/flow <fix_heat_flow>` - plain time integration of heat flow with per-atom temperature updates
+* :doc:`hmc <fix_hmc>` -  Hybrid/Hamiltonian Monte Carlo (HMC) particle propagation
 * :doc:`hyper/global <fix_hyper_global>` - global hyperdynamics
 * :doc:`hyper/local <fix_hyper_local>` - local hyperdynamics
 * :doc:`imd <fix_imd>` - implements the "Interactive MD" (IMD) protocol
@@ -295,6 +296,7 @@ accelerated styles exist.
 * :doc:`mvv/tdpd <fix_mvv_dpd>` - constant temperature DPD using the modified velocity-Verlet algorithm
 * :doc:`neb <fix_neb>` - nudged elastic band (NEB) spring forces
 * :doc:`neb/spin <fix_neb_spin>` - nudged elastic band (NEB) spring forces for spins
+* :doc:`neighbor/swap <fix_neighbor_swap>` - kinetic Monte Carlo (kMC) atom swapping
 * :doc:`nonaffine/displacement <fix_nonaffine_displacement>` - calculate nonaffine displacement of atoms
 * :doc:`nph <fix_nh>` - constant NPH time integration via Nose/Hoover
 * :doc:`nph/asphere <fix_nph_asphere>` - NPH for aspherical particles

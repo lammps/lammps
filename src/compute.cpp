@@ -165,7 +165,7 @@ void Compute::modify_params(int narg, char **arg)
 void Compute::adjust_dof_fix()
 {
   fix_dof = 0;
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->dof_flag)
       fix_dof += ifix->dof(igroup);
 }

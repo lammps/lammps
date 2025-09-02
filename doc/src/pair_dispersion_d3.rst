@@ -85,7 +85,7 @@ and depend on the selected damping function.
 | | bj             | | o-lyp, pbesol, bpbe, opbe, ssb, revssb, otpss, b3pw91, bh-lyp, revpbe0,      |
 | |                | | tpssh, mpw1b95, pwb6k, b1b95, bmk, cam-b3lyp, lc-wpbe, b2gp-plyp, ptpss,     |
 | |                | | pwpb95, hf/mixed, hf/sv, hf/minis, b3lyp/6-31gd, hcth120, pw1pw, pwgga,      |
-| |                | | hsesol, hf3c, hf3cv, pbeh3c, pbeh-3c                                         |
+| |                | | hsesol, hf3c, hf3cv, pbeh3c, pbeh-3c, mn15                                   |
 +------------------+--------------------------------------------------------------------------------+
 | bjm              |  b2-plyp, b3-lyp, b97-d, b-lyp, b-p, pbe, pbe0, lc-wpbe                        |
 +------------------+--------------------------------------------------------------------------------+

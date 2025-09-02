@@ -145,29 +145,29 @@ class FixLbFluid : public Fix {
 
   int fixviscouslb;
 
-  void rescale(void);
-  void SetupBuffers(void);
-  void InitializeFirstRun(void);
-  void initializeLB(void);
-  void initialize_feq(void);
+  void rescale();
+  void SetupBuffers();
+  void InitializeFirstRun();
+  void initializeLB();
+  void initialize_feq();
   void (FixLbFluid::*equilibriumdist)(int, int, int, int, int, int);
   void equilibriumdist15(int, int, int, int, int, int);
   void equilibriumdist19(int, int, int, int, int, int);
   void parametercalc_part(int, int, int, int, int, int);
   void correctu_part(int, int, int, int, int, int);
-  void parametercalc_full(void);
+  void parametercalc_full();
   void update_periodic(int, int, int, int, int, int);
-  void correctu_full(void);
+  void correctu_full();
 
   void calc_mass_momentum(double &totalmass, double totalmomentum[3]);
   void calc_MPT(double &totalmass, double totalmomentum[3], double &Tave);
 
-  void (FixLbFluid::*update_full)(void);
-  void update_full15(void);
-  void update_full19(void);
+  void (FixLbFluid::*update_full)();
+  void update_full15();
+  void update_full19();
 
-  void read_restartfile(void);
-  void write_restartfile(void);
+  void read_restartfile();
+  void write_restartfile();
 
   void (FixLbFluid::*interpolate)(int, int);
   void (FixLbFluid::*interpolationweight)(int);
@@ -178,9 +178,9 @@ class FixLbFluid : public Fix {
   void IBM3_interpolation(int, int);
   void IBM3_interpolationweight(int);
 
-  void calc_fluidforceI(void);
-  void calc_fluidforceII(void);
-  void calc_fluidforceweight(void);
+  void calc_fluidforceI();
+  void calc_fluidforceII();
+  void calc_fluidforceweight();
 
   bigint adjust_dof_fix();
   double dof_compute();
@@ -201,8 +201,8 @@ class FixLbFluid : public Fix {
   /* nanopit routines */
   void addslit(int &, int, int, int, int);
   void addpit(int &, int, int, int, int, int);
-  void initializeGeometry(void);
-  void initializeGlobalGeometry(void);
+  void initializeGeometry();
+  void initializeGlobalGeometry();
 };
 }    // namespace LAMMPS_NS
 #endif

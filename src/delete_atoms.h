@@ -32,8 +32,10 @@ class DeleteAtoms : public Command {
 
  protected:
   int *dlist;
-  int allflag, compress_flag, bond_flag, mol_flag;
+  int allflag, compress_flag, condense_flag, bond_flag, mol_flag;
   std::map<tagint, int> *hash;
+  int ringrank;
+  tagint *tagproc, *newtags;
 
   void delete_group(int, char **);
   void delete_region(int, char **);
@@ -52,6 +54,8 @@ class DeleteAtoms : public Command {
 
   static void bondring(int, char *, void *);
   static void molring(int, char *, void *);
+  static void addtags(int, char *, void *);
+  static void settags(int, char *, void *);
 };
 
 }    // namespace LAMMPS_NS

@@ -52,10 +52,13 @@ static constexpr int CHUNK = 1024;
 static constexpr int DELTA = 4;       // must be 2 or larger
 static constexpr int MAXBODY = 32;    // max # of lines in one body
 
+enum { NONE, APPEND, VALUE, MERGE };
+
 // customize for new sections
 
+namespace {
 // clang-format off
-static std::unordered_set<std::string> section_keywords = {
+const std::unordered_set<std::string> section_keywords = {
   "Atoms", "Velocities", "Ellipsoids", "Lines", "Triangles", "Bodies",
   "Bonds", "Angles", "Dihedrals", "Impropers",
   "Masses", "Pair Coeffs", "PairIJ Coeffs", "Bond Coeffs", "Angle Coeffs",
@@ -66,6 +69,17 @@ static std::unordered_set<std::string> section_keywords = {
   "Atom Type Labels", "Bond Type Labels", "Angle Type Labels",
   "Dihedral Type Labels", "Improper Type Labels"
 };
+// clang-format on
+
+// pair style suffixes to ignore
+// when matching Pair Coeffs comment to currently-defined pair style
+
+const std::vector<const char *> suffixes = {"/cuda",     "/gpu",        "/opt",        "/omp",
+                                            "/kk",       "/coul/cut",   "/coul/long",  "/coul/msm",
+                                            "/coul/dsf", "/coul/debye", "/coul/charmm"};
+
+const char *const labeltypes[] = {"Atom", "Bond", "Angle", "Dihedral", "Improper"};
+}    // namespace
 
 // function to check whether a string is a known data section name
 // made a static class member, so it can be called from other classes
@@ -75,17 +89,6 @@ bool ReadData::is_data_section(const std::string &keyword)
   return section_keywords.count(keyword) > 0;
 }
 
-enum{NONE, APPEND, VALUE, MERGE};
-
-// pair style suffixes to ignore
-// when matching Pair Coeffs comment to currently-defined pair style
-
-static const char *suffixes[] = {"/cuda", "/gpu", "/opt", "/omp", "/kk", "/coul/cut", "/coul/long",
-                                 "/coul/msm", "/coul/dsf", "/coul/debye", "/coul/charmm", nullptr};
-
-static const char *labeltypes[] = {"Atom", "Bond", "Angle", "Dihedral", "Improper" };
-
-// clang-format on
 /* ---------------------------------------------------------------------- */
 ReadData::ReadData(LAMMPS *_lmp) : Command(_lmp), fp(nullptr), coeffarg(nullptr), lmap(nullptr)
 {
@@ -1178,7 +1181,7 @@ void ReadData::command(int narg, char **arg)
 
   if (addflag != NONE) {
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
-    auto irregular = new Irregular(lmp);
+    auto *irregular = new Irregular(lmp);
     irregular->migrate_atoms(1);
     delete irregular;
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -1194,7 +1197,7 @@ void ReadData::command(int narg, char **arg)
   if (domain->nonperiodic == 2) {
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->reset_box();
-    auto irregular = new Irregular(lmp);
+    auto *irregular = new Irregular(lmp);
     irregular->migrate_atoms(1);
     delete irregular;
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -2056,7 +2059,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
           auto values = ValueTokenizer(utils::trim_comment(buf));
           tagint tagdata = values.next_tagint() + id_offset;
           ninteger = values.next_int();
-          ndouble = values.next_double();
+          ndouble = values.next_int();
           if (tagdata <= 0 || tagdata > atom->map_tag_max)
             throw TokenizerException("Invalid atom ID in body header", utils::trim(buf));
           if (ninteger < 0)
@@ -2131,7 +2134,7 @@ void ReadData::mass()
 {
   settypeflag = 1;
   char *next;
-  auto buf = new char[ntypes * MAXLINE];
+  auto *buf = new char[ntypes * MAXLINE];
 
   int eof = utils::read_lines_from_file(fp, ntypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
@@ -2153,7 +2156,7 @@ void ReadData::mass()
 void ReadData::paircoeffs()
 {
   char *next;
-  auto buf = new char[ntypes * MAXLINE];
+  auto *buf = new char[ntypes * MAXLINE];
 
   int eof = utils::read_lines_from_file(fp, ntypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
@@ -2182,7 +2185,7 @@ void ReadData::pairIJcoeffs()
   char *next;
 
   int nsq = ntypes * (ntypes + 1) / 2;
-  auto buf = new char[nsq * MAXLINE];
+  auto *buf = new char[nsq * MAXLINE];
 
   int eof = utils::read_lines_from_file(fp, nsq, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
@@ -2211,7 +2214,7 @@ void ReadData::bondcoeffs()
   if (!nbondtypes) return;
 
   char *next;
-  auto buf = new char[nbondtypes * MAXLINE];
+  auto *buf = new char[nbondtypes * MAXLINE];
 
   int eof = utils::read_lines_from_file(fp, nbondtypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
@@ -2240,7 +2243,7 @@ void ReadData::anglecoeffs(int which)
   if (!nangletypes) return;
 
   char *next;
-  auto buf = new char[nangletypes * MAXLINE];
+  auto *buf = new char[nangletypes * MAXLINE];
 
   int eof = utils::read_lines_from_file(fp, nangletypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
@@ -2274,7 +2277,7 @@ void ReadData::dihedralcoeffs(int which)
   if (!ndihedraltypes) return;
 
   char *next;
-  auto buf = new char[ndihedraltypes * MAXLINE];
+  auto *buf = new char[ndihedraltypes * MAXLINE];
 
   int eof = utils::read_lines_from_file(fp, ndihedraltypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
@@ -2312,7 +2315,7 @@ void ReadData::impropercoeffs(int which)
   if (!nimpropertypes) return;
 
   char *next;
-  auto buf = new char[nimpropertypes * MAXLINE];
+  auto *buf = new char[nimpropertypes * MAXLINE];
 
   int eof = utils::read_lines_from_file(fp, nimpropertypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
@@ -2633,19 +2636,19 @@ void ReadData::parse_coeffs(char *line, const char *addstr, int dupflag, int nof
 
 int ReadData::style_match(const char *one, const char *two)
 {
-  int i, delta, len, len1, len2;
+  int delta, len, len1, len2;
 
   if ((one == nullptr) || (two == nullptr)) return 1;
 
   len1 = strlen(one);
   len2 = strlen(two);
 
-  for (i = 0; suffixes[i] != nullptr; i++) {
-    len = strlen(suffixes[i]);
+  for (const auto &suffix : suffixes) {
+    len = strlen(suffix);
     if ((delta = len1 - len) > 0)
-      if (strcmp(one + delta, suffixes[i]) == 0) len1 = delta;
+      if (strcmp(one + delta, suffix) == 0) len1 = delta;
     if ((delta = len2 - len) > 0)
-      if (strcmp(two + delta, suffixes[i]) == 0) len2 = delta;
+      if (strcmp(two + delta, suffix) == 0) len2 = delta;
   }
 
   if ((len1 == 0) || (len1 == len2) || (strncmp(one, two, len1) == 0)) return 1;

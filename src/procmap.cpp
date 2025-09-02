@@ -159,7 +159,7 @@ void ProcMap::numa_grid(int numa_nodes, int nprocs, int *user_procgrid,
   char node_name[MPI_MAX_PROCESSOR_NAME];
   MPI_Get_processor_name(node_name,&name_length);
   node_name[name_length] = '\0';
-  auto node_names = new char[MPI_MAX_PROCESSOR_NAME*nprocs];
+  auto *node_names = new char[MPI_MAX_PROCESSOR_NAME*nprocs];
   MPI_Allgather(node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,node_names,
                 MPI_MAX_PROCESSOR_NAME,MPI_CHAR,world);
   std::string node_string = std::string(node_name);
@@ -865,7 +865,7 @@ int ProcMap::best_factors(int npossible, int **factors, int *best,
     area[2] = sqrt(c[0]*c[0] + c[1]*c[1] + c[2]*c[2]) / (sy*sz);
   }
 
-  int index;
+  int index = 0;
   double surf;
   double bestsurf = 2.0 * (area[0]+area[1]+area[2]);
 

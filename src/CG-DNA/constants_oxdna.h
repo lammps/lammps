@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class ConstantsOxdna : protected Pointers {
  public:
   ConstantsOxdna(class LAMMPS *lmp);
-  virtual ~ConstantsOxdna(){};
+  ~ConstantsOxdna() override = default;
 
   // oxDNA 1 getters
   static double get_d_cs() { return d_cs; }

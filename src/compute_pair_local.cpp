@@ -143,7 +143,7 @@ void ComputePairLocal::init()
   // this should enable it to always be a copy list (e.g. for granular pstyle)
 
   int neighflags = NeighConst::REQ_OCCASIONAL;
-  auto pairrequest = neighbor->find_request(force->pair);
+  auto *pairrequest = neighbor->find_request(force->pair);
   if (pairrequest && pairrequest->get_size()) neighflags |= NeighConst::REQ_SIZE;
   neighbor->add_request(this, neighflags);
 }

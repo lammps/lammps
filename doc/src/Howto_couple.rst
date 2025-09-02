@@ -18,7 +18,7 @@ the context of your application.
    make library calls to the other code, which has been linked to LAMMPS
    as a library.  This is the way the :ref:`VORONOI <PKG-VORONOI>`
    package, which computes Voronoi tesselations using the `Voro++
-   library <http://math.lbl.gov/voro++>`_, is interfaced to LAMMPS.  See
+   library <https://math.lbl.gov/voro++/>`_, is interfaced to LAMMPS.  See
    the :doc:`compute voronoi <compute_voronoi_atom>` command for more
    details.  Also see the :doc:`Modify <Modify>` pages for information
    on how to add a new fix or compute to LAMMPS.

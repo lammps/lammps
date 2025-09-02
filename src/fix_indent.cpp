@@ -700,9 +700,7 @@ bool FixIndent::PointInsideCone(int dir, double *center, double lo, double hi, d
   double dist = sqrt(del[0] * del[0] + del[1] * del[1] + del[2] * del[2]);
   double currentradius = rlo + (x[dir] - lo) * (rhi - rlo) / (hi - lo);
 
-  if (dist > currentradius) return false;
-
-  return true;
+  return dist <= currentradius;
 }
 
 /* ----------------------------------------------------------------------
@@ -757,8 +755,6 @@ void FixIndent::DistanceExteriorPoint(int dir, double *center, double lo, double
   x -= nearest[0];
   y -= nearest[1];
   z -= nearest[2];
-
-  return;
 }
 
 /* ----------------------------------------------------------------------
@@ -812,8 +808,6 @@ void FixIndent::DistanceInteriorPoint(int dir, double *center, double lo, double
     y = point[1];
     z = point[2];
   }
-
-  return;
 }
 
 /* ----------------------------------------------------------------------

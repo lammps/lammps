@@ -67,6 +67,7 @@ void PairEAMOpt::compute(int eflag, int vflag)
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairEAMOpt::eval()
 {
+// NOLINTBEGIN
   typedef struct {
     double x, y, z;
   } vec3_t;
@@ -82,6 +83,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairEAMOpt::eval()
     double z2r0, z2r1, z2r2, z2r3, z2r4, z2r5, z2r6;
     double _pad[3];
   } fast_gamma_t;
+// NOLINTEND
 
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double evdwl = 0.0;

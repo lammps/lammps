@@ -20,7 +20,7 @@ endif
 
 KOKKOS_VERSION_MAJOR = 4
 KOKKOS_VERSION_MINOR = 6
-KOKKOS_VERSION_PATCH = 0
+KOKKOS_VERSION_PATCH = 2
 KOKKOS_VERSION = $(shell echo $(KOKKOS_VERSION_MAJOR)*10000+$(KOKKOS_VERSION_MINOR)*100+$(KOKKOS_VERSION_PATCH) | bc)
 
 # Options: Cuda,HIP,SYCL,OpenMPTarget,OpenMP,Threads,Serial
@@ -28,12 +28,12 @@ KOKKOS_DEVICES ?= "OpenMP"
 #KOKKOS_DEVICES ?= "Threads"
 # Options:
 # Intel:    KNC,KNL,SNB,HSW,BDW,SKL,SKX,ICL,ICX,SPR
-# NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,Volta70,Volta72,Turing75,Ampere80,Ampere86,Ada89,Hopper90
+# NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,Volta70,Volta72,Turing75,Ampere80,Ampere86,Ada89,Hopper90,Blackwell100,Blackwell120
 # ARM:      ARMv80,ARMv81,ARMv8-ThunderX,ARMv8-TX2,A64FX,ARMv9-Grace
 # IBM:      Power8,Power9
 # AMD-GPUS: AMD_GFX906,AMD_GFX908,AMD_GFX90A,AMD_GFX940,AMD_GFX942,AMD_GFX942_APU,AMD_GFX1030,AMD_GFX1100,AMD_GFX1103
-# AMD-CPUS: AMDAVX,Zen,Zen2,Zen3,Zen4
-# Intel-GPUs: Intel_Gen,Intel_Gen9,Intel_Gen11,Intel_Gen12LP,Intel_DG1,Intel_XeHP,Intel_PVC
+# AMD-CPUS: AMDAVX,Zen,Zen2,Zen3,Zen4,Zen5
+# Intel-GPUs: Intel_Gen,Intel_Gen9,Intel_Gen11,Intel_Gen12LP,Intel_DG1,Intel_DG2,Intel_XeHP,Intel_PVC
 KOKKOS_ARCH ?= ""
 # Options: yes,no
 KOKKOS_DEBUG ?= "no"
@@ -374,6 +374,10 @@ KOKKOS_INTERNAL_USE_ARCH_INTEL_DG1 := $(call kokkos_has_string,$(KOKKOS_ARCH),In
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_DG1), 0)
   KOKKOS_INTERNAL_USE_ARCH_INTEL_DG1 := $(call kokkos_has_string,$(KOKKOS_ARCH),Intel_DG1)
 endif
+KOKKOS_INTERNAL_USE_ARCH_INTEL_DG2 := $(call kokkos_has_string,$(KOKKOS_ARCH),IntelDG2)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_DG2), 0)
+  KOKKOS_INTERNAL_USE_ARCH_INTEL_DG2 := $(call kokkos_has_string,$(KOKKOS_ARCH),Intel_DG2)
+endif
 KOKKOS_INTERNAL_USE_ARCH_INTEL_XEHP := $(call kokkos_has_string,$(KOKKOS_ARCH),IntelXeHP)
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_XEHP), 0)
   KOKKOS_INTERNAL_USE_ARCH_INTEL_XEHP := $(call kokkos_has_string,$(KOKKOS_ARCH),Intel_XeHP)
@@ -400,22 +404,26 @@ KOKKOS_INTERNAL_USE_ARCH_AMPERE80 := $(call kokkos_has_string,$(KOKKOS_ARCH),Amp
 KOKKOS_INTERNAL_USE_ARCH_AMPERE86 := $(call kokkos_has_string,$(KOKKOS_ARCH),Ampere86)
 KOKKOS_INTERNAL_USE_ARCH_ADA89 := $(call kokkos_has_string,$(KOKKOS_ARCH),Ada89)
 KOKKOS_INTERNAL_USE_ARCH_HOPPER90 := $(call kokkos_has_string,$(KOKKOS_ARCH),Hopper90)
-KOKKOS_INTERNAL_USE_ARCH_NVIDIA := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_KEPLER30)  \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER32)  \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER35)  \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER37)  \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL50) \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL52) \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL53) \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL61)  \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL60)  \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA70)   \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA72)   \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_TURING75)  \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_AMPERE80)  \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_AMPERE86)  \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_ADA89)     \
-                                              + $(KOKKOS_INTERNAL_USE_ARCH_HOPPER90))
+KOKKOS_INTERNAL_USE_ARCH_BLACKWELL100 := $(call kokkos_has_string,$(KOKKOS_ARCH),Blackwell100)
+KOKKOS_INTERNAL_USE_ARCH_BLACKWELL120 := $(call kokkos_has_string,$(KOKKOS_ARCH),Blackwell120)
+KOKKOS_INTERNAL_USE_ARCH_NVIDIA := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_KEPLER30)     \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER32)     \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER35)     \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER37)     \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL50)    \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL52)    \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_MAXWELL53)    \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL61)     \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_PASCAL60)     \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA70)      \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_VOLTA72)      \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_TURING75)     \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_AMPERE80)     \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_AMPERE86)     \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_ADA89)        \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_HOPPER90)     \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_BLACKWELL100) \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_BLACKWELL120))
 
 #SEK: This seems like a bug to me
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_NVIDIA), 0)
@@ -450,13 +458,16 @@ KOKKOS_INTERNAL_USE_ARCH_IBM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_
 
 # AMD based.
 KOKKOS_INTERNAL_USE_ARCH_AMDAVX := $(call kokkos_has_string,$(KOKKOS_ARCH),AMDAVX)
+KOKKOS_INTERNAL_USE_ARCH_ZEN5 := $(call kokkos_has_string,$(KOKKOS_ARCH),Zen5)
 KOKKOS_INTERNAL_USE_ARCH_ZEN4 := $(call kokkos_has_string,$(KOKKOS_ARCH),Zen4)
 KOKKOS_INTERNAL_USE_ARCH_ZEN3 := $(call kokkos_has_string,$(KOKKOS_ARCH),Zen3)
 KOKKOS_INTERNAL_USE_ARCH_ZEN2 := $(call kokkos_has_string,$(KOKKOS_ARCH),Zen2)
-ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN4), 0)
-  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN3), 0)
-    ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN2), 0)
-      KOKKOS_INTERNAL_USE_ARCH_ZEN := $(call kokkos_has_string,$(KOKKOS_ARCH),Zen)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN5), 0)
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN4), 0)
+    ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN3), 0)
+      ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN2), 0)
+        KOKKOS_INTERNAL_USE_ARCH_ZEN := $(call kokkos_has_string,$(KOKKOS_ARCH),Zen)
+      endif
     endif
   endif
 endif
@@ -883,6 +894,19 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN4), 1)
   endif
 endif
 
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN5), 1)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_ZEN5")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AVX512XEON")
+
+  ifeq ($(KOKKOS_INTERNAL_COMPILER_INTEL), 1)
+    KOKKOS_CXXFLAGS += -xCORE-AVX512
+    KOKKOS_LDFLAGS += -xCORE-AVX512
+  else
+    KOKKOS_CXXFLAGS += -march=znver5 -mtune=znver5
+    KOKKOS_LDFLAGS += -march=znver5 -mtune=znver5
+  endif
+endif
+
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARMV80")
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ARMV8_THUNDERX")
@@ -1189,6 +1213,20 @@ ifeq ($(KOKKOS_INTERNAL_COMPILER_CRAY_CLANG), 0)
       KOKKOS_INTERNAL_CUDA_ARCH_FLAG := $(KOKKOS_INTERNAL_CUDA_ARCH_FLAG)=sm_90
     endif
   endif
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_BLACKWELL100), 1)
+    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_BLACKWELL")
+    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_BLACKWELL100")
+    ifeq ($(KOKKOS_INTERNAL_COMPILER_NVHPC), 0)
+      KOKKOS_INTERNAL_CUDA_ARCH_FLAG := $(KOKKOS_INTERNAL_CUDA_ARCH_FLAG)=sm_100
+    endif
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_BLACKWELL120), 1)
+    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_BLACKWELL")
+    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_BLACKWELL120")
+    ifeq ($(KOKKOS_INTERNAL_COMPILER_NVHPC), 0)
+      KOKKOS_INTERNAL_CUDA_ARCH_FLAG := $(KOKKOS_INTERNAL_CUDA_ARCH_FLAG)=sm_120
+    endif
+  endif
 endif
 
 ifneq ($(KOKKOS_INTERNAL_USE_ARCH_NVIDIA), 0)
@@ -1221,7 +1259,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX908), 1)
 endif
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX90A), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GFX90A")
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GPU \"gfx90A\"")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GPU \"gfx90a\"")
   KOKKOS_INTERNAL_AMD_ARCH_FLAG := --offload-arch=gfx90a
 endif
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX940), 1)
@@ -1320,6 +1358,11 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_DG1), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_INTEL_GPU")
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_INTEL_DG1")
   KOKKOS_INTERNAL_INTEL_ARCH_FLAG := -f${KOKKOS_INTERNAL_LC_BACKEND}-targets=spir64_gen -X${KOKKOS_INTERNAL_LC_BACKEND}-target-backend "-device dg1"
+endif
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_DG2), 1)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_INTEL_GPU")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_INTEL_DG2")
+  KOKKOS_INTERNAL_INTEL_ARCH_FLAG := -f${KOKKOS_INTERNAL_LC_BACKEND}-targets=spir64_gen -X${KOKKOS_INTERNAL_LC_BACKEND}-target-backend "-device dg2"
 endif
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_INTEL_XEHP), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_INTEL_GPU")

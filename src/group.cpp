@@ -172,7 +172,7 @@ void Group::assign(int narg, char **arg)
 
       if (narg != 3) error->all(FLERR, "Illegal group region command");
 
-      auto region = domain->get_region_by_id(arg[2]);
+      auto *region = domain->get_region_by_id(arg[2]);
       if (!region) error->all(FLERR, "Region {} for group region does not exist", arg[2]);
       region->init();
       region->prematch();
@@ -710,8 +710,8 @@ void Group::add_molecules(int /*igroup*/, int bit)
 
 void Group::molring(int n, char *cbuf, void *ptr)
 {
-  auto gptr = (Group *) ptr;
-  auto list = (tagint *) cbuf;
+  auto *gptr = (Group *) ptr;
+  auto *list = (tagint *) cbuf;
   std::map<tagint, int> *hash = gptr->hash;
   int nlocal = gptr->atom->nlocal;
   tagint *molecule = gptr->atom->molecule;

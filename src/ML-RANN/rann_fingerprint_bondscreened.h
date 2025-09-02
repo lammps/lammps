@@ -76,4 +76,4 @@ namespace RANN {
 
 }    // namespace LAMMPS_NS
 
-#endif /* FINGERPRINT_BOND_H_ */
+#endif /* FINGERPRINT_BOND_H */

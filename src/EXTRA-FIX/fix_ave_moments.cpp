@@ -28,7 +28,8 @@
 #include "update.h"
 #include "variable.h"
 
-#include <algorithm>
+#include <cmath>
+#include <cstring>
 #include <utility>
 
 using namespace LAMMPS_NS;
@@ -444,7 +445,7 @@ void FixAveMoments::options(int iarg, int narg, char **arg)
    multiple of freq
 ------------------------------------------------------------------------- */
 
-bigint next_after(const bigint ts, const bigint after, const int freq)
+static bigint next_after(const bigint ts, const bigint after, const int freq)
 {
   if (ts >= after) return ts;
   return ts + ((after - ts) / freq + 1) * freq;

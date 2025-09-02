@@ -64,7 +64,7 @@ PairPACEKokkos<DeviceType>::PairPACEKokkos(LAMMPS *lmp) : PairPACE(lmp)
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
-  host_flag = (execution_space == Host);
+  host_flag = (execution_space == HostKK);
 }
 
 /* ----------------------------------------------------------------------
@@ -460,10 +460,10 @@ double PairPACEKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairPACE::init_one(i,j);
 
   k_scale.h_view(i,j) = k_scale.h_view(j,i) = scale[i][j];
-  k_scale.template modify<LMPHostType>();
+  k_scale.modify_host();
 
   k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
+  k_cutsq.modify_host();
 
   return cutone;
 }
@@ -509,6 +509,7 @@ void PairPACEKokkos<DeviceType>::allocate()
 template<class DeviceType>
 struct FindMaxNumNeighs {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   NeighListKokkos<DeviceType> k_list;
 
   FindMaxNumNeighs(NeighListKokkos<DeviceType>* nl): k_list(*nl) {}
@@ -732,14 +733,14 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     if (need_dup)
       Kokkos::Experimental::contribute(d_vatom, dup_vatom);
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   atomKK->modified(execution_space,F_MASK);
@@ -762,9 +763,9 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeNeigh,const typen
   const int ii = team.league_rank();
   const int i = d_ilist[ii + chunk_offset];
   const int itype = type[i];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
+  const KK_FLOAT xtmp = x(i,0);
+  const KK_FLOAT ytmp = x(i,1);
+  const KK_FLOAT ztmp = x(i,2);
   const int jnum = d_numneigh[i];
   const int mu_i = d_map(type(i));
 
@@ -788,10 +789,10 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeNeigh,const typen
 
     const int jtype = type(j);
 
-    const F_FLOAT delx = xtmp - x(j,0);
-    const F_FLOAT dely = ytmp - x(j,1);
-    const F_FLOAT delz = ztmp - x(j,2);
-    const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+    const KK_FLOAT delx = xtmp - x(j,0);
+    const KK_FLOAT dely = ytmp - x(j,1);
+    const KK_FLOAT delz = ztmp - x(j,2);
+    const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     inside[jj] = -1;
     if (rsq < d_cutsq(itype,jtype)) {
@@ -810,12 +811,12 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeNeigh,const typen
     if (final) {
       int j = d_neighbors(i,jj);
       j &= NEIGHMASK;
-      const F_FLOAT delx = xtmp - x(j,0);
-      const F_FLOAT dely = ytmp - x(j,1);
-      const F_FLOAT delz = ztmp - x(j,2);
-      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-      const F_FLOAT r = sqrt(rsq);
-      const F_FLOAT rinv = 1.0/r;
+      const KK_FLOAT delx = xtmp - x(j,0);
+      const KK_FLOAT dely = ytmp - x(j,1);
+      const KK_FLOAT delz = ztmp - x(j,2);
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      const KK_FLOAT r = sqrt(rsq);
+      const KK_FLOAT rinv = 1.0/r;
       const int mu_j = d_map(type(j));
       d_mu(ii,offset) = mu_j;
       d_rnorms(ii,offset) = r;
@@ -830,11 +831,11 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeNeigh,const typen
   if (is_zbl) {
     //adapted from https://www.osti.gov/servlets/purl/1429450
     if (ncount > 0) {
-      using minloc_value_type=Kokkos::MinLoc<F_FLOAT,int>::value_type;
+      using minloc_value_type=Kokkos::MinLoc<KK_FLOAT,int>::value_type;
       minloc_value_type djjmin;
       djjmin.val=1e20;
       djjmin.loc=-1;
-      Kokkos::MinLoc<F_FLOAT,int> reducer_scalar(djjmin);
+      Kokkos::MinLoc<KK_FLOAT,int> reducer_scalar(djjmin);
       // loop over ncount (actual neighbours withing cutoff) rather than jnum (total number of neigh in cutoff+skin)
       Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, ncount),
                [&](const int offset, minloc_value_type &min_d_dist) {
@@ -842,7 +843,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeNeigh,const typen
                  j &= NEIGHMASK;
                  auto r = d_rnorms(ii,offset);
                  const int mu_j = d_map(type(j));
-                 const F_FLOAT d = r - (d_cut_in(mu_i, mu_j) - d_dcut_in(mu_i, mu_j));
+                 const KK_FLOAT d = r - (d_cut_in(mu_i, mu_j) - d_dcut_in(mu_i, mu_j));
                  if (d < min_d_dist.val) {
                    min_d_dist.val = d;
                    min_d_dist.loc = offset;
@@ -874,7 +875,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeRadial, const typ
   const int ncount = d_ncount(ii);
   if (jj >= ncount) return;
 
-  const double r_norm = d_rnorms(ii, jj);
+  const KK_FLOAT r_norm = d_rnorms(ii, jj);
   const int mu_i = d_map(type(i));
   const int mu_j = d_mu(ii, jj);
 
@@ -916,14 +917,14 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeAi, const typenam
   complex dyx, dyy, dyz;
   complex rdy;
 
-  const double rx = d_rhats(ii, jj, 0);
-  const double ry = d_rhats(ii, jj, 1);
-  const double rz = d_rhats(ii, jj, 2);
+  const KK_FLOAT rx = d_rhats(ii, jj, 0);
+  const KK_FLOAT ry = d_rhats(ii, jj, 1);
+  const KK_FLOAT rz = d_rhats(ii, jj, 2);
 
   phase.re = rx;
   phase.im = ry;
 
-  double plm_idx,plm_idx1,plm_idx2;
+  KK_FLOAT plm_idx,plm_idx1,plm_idx2;
 
   plm_idx = plm_idx1 = plm_idx2 = 0.0;
 
@@ -969,7 +970,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeAi, const typenam
       // l=1, m=1
       plm_idx = -sq3o2 * Y00;
     } else if (l == 2) {
-      const double t = dl(l) * plm_idx1;
+      const KK_FLOAT t = dl(l) * plm_idx1;
       plm_idx = t * rz;
     } else {
       plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
@@ -990,14 +991,14 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeAi, const typenam
 
   plm_idx = plm_idx1 = plm_idx2 = 0.0;
 
-  double plm_mm1_mm1 = -sq3o2 * Y00; // (1, 1)
+  KK_FLOAT plm_mm1_mm1 = -sq3o2 * Y00; // (1, 1)
 
   // m > 1
   phasem = phase;
   for (int m = 2; m <= lmax; m++) {
 
-    mphasem1.re = phasem.re * double(m);
-    mphasem1.im = phasem.im * double(m);
+    mphasem1.re = phasem.re * KK_FLOAT(m);
+    mphasem1.im = phasem.im * KK_FLOAT(m);
     phasem = phasem * phase;
 
     for (int l = m; l <= lmax; l++) {
@@ -1007,7 +1008,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeAi, const typenam
         plm_idx = cl(l) * plm_mm1_mm1; // (m+1, m)
         plm_mm1_mm1 = plm_idx;
       } else if (l == (m + 1)) {
-        const double t = dl(l) * plm_mm1_mm1; // (m - 1, m - 1)
+        const KK_FLOAT t = dl(l) * plm_mm1_mm1; // (m - 1, m - 1)
         plm_idx = t * rz; // (m, m)
       } else {
         plm_idx = alm(idx_sph) * (rz * plm_idx1 + blm(idx_sph) * plm_idx2);
@@ -1066,7 +1067,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEConjugateAi, const int& 
         const int idx_sph = d_idx_sph(idx);
         const int factor = m % 2 == 0 ? 1 : -1;
         for (int n = 0; n < nradmax; n++) {
-          A(ii, mu_j, idxm, n) = A_sph(ii, mu_j, idx_sph, n).conj() * (double)factor;
+          A(ii, mu_j, idxm, n) = A_sph(ii, mu_j, idx_sph, n).conj() * (KK_FLOAT)factor;
         }
       }
     }
@@ -1097,7 +1098,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeRho, const int& i
   if (rank == 1) {
     const int mu = d_mus(mu_i, idx_func, 0);
     const int n = d_ns(mu_i, idx_func, 0);
-    double A_cur = A_rank1(ii, mu, n - 1);
+    KK_FLOAT A_cur = A_rank1(ii, mu, n - 1);
     for (int p = 0; p < ndensity; ++p) {
       //for rank=1 (r=0) only 1 ms-combination exists (ms_ind=0), so index of func.ctildes is 0..ndensity-1
       Kokkos::atomic_add(&rhos(ii, p), d_ctildes(mu_i, idx_ms_combs, p) * A_cur);
@@ -1149,12 +1150,12 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeFS, const int& ii
   const int i = d_ilist[ii + chunk_offset];
   const int mu_i = d_map(type(i));
 
-  const double rho_cut = d_rho_core_cutoff(mu_i);
-  const double drho_cut = d_drho_core_cutoff(mu_i);
+  const KK_FLOAT rho_cut = d_rho_core_cutoff(mu_i);
+  const KK_FLOAT drho_cut = d_drho_core_cutoff(mu_i);
   const int ndensity = d_ndensity(mu_i);
 
-  double evdwl, fcut, dfcut;
-  double evdwl_cut;
+  KK_FLOAT evdwl, fcut, dfcut;
+  KK_FLOAT evdwl_cut;
   evdwl = fcut = dfcut = 0.0;
 
   FS_values_and_derivatives(ii, evdwl, mu_i);
@@ -1162,8 +1163,8 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeFS, const int& ii
   if (is_zbl) {
     if (d_jj_min(ii) != -1) {
       const int mu_jmin = d_mu(ii,d_jj_min(ii));
-      F_FLOAT dcutin = d_dcut_in(mu_i, mu_jmin);
-      F_FLOAT transition_coordinate =  dcutin  - d_d_min(ii); // == cutin - r_min
+      KK_FLOAT dcutin = d_dcut_in(mu_i, mu_jmin);
+      KK_FLOAT transition_coordinate =  dcutin  - d_d_min(ii); // == cutin - r_min
       cutoff_func_poly(transition_coordinate, dcutin, dcutin, fcut, dfcut);
       dfcut = -dfcut; // invert, because rho_core = cutin - r_min
     } else {
@@ -1217,18 +1218,18 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeWeights, const in
   if (rank == 1) {
     const int mu = d_mus(mu_i, idx_func, 0);
     const int n = d_ns(mu_i, idx_func, 0);
-    double theta = 0.0;
+    KK_FLOAT theta = 0.0;
     for (int p = 0; p < ndensity; ++p) {
       // for rank=1 (r=0) only 1 ms-combination exists (ms_ind=0), so index of func.ctildes is 0..ndensity-1
       theta += dF_drho(ii, p) * d_ctildes(mu_i, idx_ms_combs, p);
     }
     Kokkos::atomic_add(&weights_rank1(ii, mu, n - 1), theta);
   } else { // rank > 1
-    double theta = 0.0;
+    KK_FLOAT theta = 0.0;
     for (int p = 0; p < ndensity; ++p)
       theta += dF_drho(ii, p) * d_ctildes(mu_i, idx_ms_combs, p);
 
-    theta *= 0.5; // 0.5 factor due to possible double counting ???
+    theta *= 0.5; // 0.5 factor due to possible KK_FLOAT counting ???
     for (int t = 0; t < rank; ++t) {
       const int m_t = d_ms_combs(mu_i, idx_ms_combs, t);
       const int factor = (m_t % 2 == 0 ? 1 : -1);
@@ -1247,7 +1248,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeWeights, const in
       const int idxm = l_t * (l_t + 1) - m_t; // (l, -m)
       const int idxm_sph = d_idx_sph(idxm);
       if (idxm_sph >= 0) {
-        const complex valuem = theta * dB.conj() * (double)factor;
+        const complex valuem = theta * dB.conj() * (KK_FLOAT)factor;
         Kokkos::atomic_add(&(weights(ii, mu_t, idxm_sph, n_t - 1).re), valuem.re);
         Kokkos::atomic_add(&(weights(ii, mu_t, idxm_sph, n_t - 1).im), valuem.im);
       }
@@ -1272,24 +1273,24 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeDerivative, const
   if (jj >= ncount) return;
 
   const int itype = type(i);
-  const double scale = d_scale(itype,itype);
+  const KK_FLOAT scale = d_scale(itype,itype);
 
   const int mu_j = d_mu(ii, jj);
-  double r_hat[3];
+  KK_FLOAT r_hat[3];
   r_hat[0] = d_rhats(ii, jj, 0);
   r_hat[1] = d_rhats(ii, jj, 1);
   r_hat[2] = d_rhats(ii, jj, 2);
-  const double r = d_rnorms(ii, jj);
-  const double rinv = 1.0/r;
+  const KK_FLOAT r = d_rnorms(ii, jj);
+  const KK_FLOAT rinv = 1.0/r;
 
-  double f_ji[3];
+  KK_ACC_FLOAT f_ji[3];
   f_ji[0] = f_ji[1] = f_ji[2] = 0;
 
   // for rank = 1
   for (int n = 0; n < nradbase; ++n) {
     if (weights_rank1(ii, mu_j, n) == 0) continue;
-    double &DG = dgr(ii, jj, n);
-    double DGR = DG * Y00;
+    KK_FLOAT &DG = dgr(ii, jj, n);
+    KK_FLOAT DGR = DG * Y00;
     DGR *= weights_rank1(ii, mu_j, n);
     f_ji[0] += DGR * r_hat[0];
     f_ji[1] += DGR * r_hat[1];
@@ -1309,15 +1310,15 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeDerivative, const
   complex dyx, dyy, dyz;
   complex rdy;
 
-  const double rx = d_rhats(ii, jj, 0);
-  const double ry = d_rhats(ii, jj, 1);
-  const double rz = d_rhats(ii, jj, 2);
+  const KK_FLOAT rx = d_rhats(ii, jj, 0);
+  const KK_FLOAT ry = d_rhats(ii, jj, 1);
+  const KK_FLOAT rz = d_rhats(ii, jj, 2);
 
   phase.re = rx;
   phase.im = ry;
 
-  double plm_idx,plm_idx1,plm_idx2;
-  double dplm_idx,dplm_idx1,dplm_idx2;
+  KK_FLOAT plm_idx,plm_idx1,plm_idx2;
+  KK_FLOAT dplm_idx,dplm_idx1,dplm_idx2;
 
   plm_idx = plm_idx1 = plm_idx2 = 0.0;
   dplm_idx = dplm_idx1 = dplm_idx2 = 0.0;
@@ -1358,8 +1359,8 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeDerivative, const
 
     for (int n = 0; n < nradmax; n++) {
 
-      const double R_over_r = fr(ii, jj, l, n) * rinv;
-      const double DR = dfr(ii, jj, l, n);
+      const KK_FLOAT R_over_r = fr(ii, jj, l, n) * rinv;
+      const KK_FLOAT DR = dfr(ii, jj, l, n);
       const complex Y_DR = ylm * DR;
 
       complex w = weights(ii, mu_j, idx_sph, n);
@@ -1396,7 +1397,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeDerivative, const
       plm_idx = -sq3o2 * Y00;
       dplm_idx = 0.0;
     } else if (l == 2) {
-      const double t = dl(l) * plm_idx1;
+      const KK_FLOAT t = dl(l) * plm_idx1;
       plm_idx = t * rz;
       dplm_idx = t;
     } else {
@@ -1425,8 +1426,8 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeDerivative, const
 
     for (int n = 0; n < nradmax; n++) {
 
-      const double R_over_r = fr(ii, jj, l, n) * rinv;
-      const double DR = dfr(ii, jj, l, n);
+      const KK_FLOAT R_over_r = fr(ii, jj, l, n) * rinv;
+      const KK_FLOAT DR = dfr(ii, jj, l, n);
       const complex Y_DR = ylm * DR;
 
       complex w = weights(ii, mu_j, idx_sph, n);
@@ -1457,14 +1458,14 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeDerivative, const
   plm_idx = plm_idx1 = plm_idx2 = 0.0;
   dplm_idx = dplm_idx1 = dplm_idx2 = 0.0;
 
-  double plm_mm1_mm1 = -sq3o2 * Y00; // (1, 1)
+  KK_FLOAT plm_mm1_mm1 = -sq3o2 * Y00; // (1, 1)
 
   // m > 1
   phasem = phase;
   for (int m = 2; m <= lmax; m++) {
 
-    mphasem1.re = phasem.re * double(m);
-    mphasem1.im = phasem.im * double(m);
+    mphasem1.re = phasem.re * KK_FLOAT(m);
+    mphasem1.im = phasem.im * KK_FLOAT(m);
     phasem = phasem * phase;
 
     for (int l = m; l <= lmax; l++) {
@@ -1475,7 +1476,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeDerivative, const
         dplm_idx = 0.0;
         plm_mm1_mm1 = plm_idx;
       } else if (l == (m + 1)) {
-        const double t = dl(l) * plm_mm1_mm1; // (m - 1, m - 1)
+        const KK_FLOAT t = dl(l) * plm_mm1_mm1; // (m - 1, m - 1)
         plm_idx = t * rz; // (m, m)
         dplm_idx = t;
       } else {
@@ -1503,8 +1504,8 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeDerivative, const
 
       for (int n = 0; n < nradmax; n++) {
 
-        const double R_over_r = fr(ii, jj, l, n) * rinv;
-        const double DR = dfr(ii, jj, l, n);
+        const KK_FLOAT R_over_r = fr(ii, jj, l, n) * rinv;
+        const KK_FLOAT DR = dfr(ii, jj, l, n);
         const complex Y_DR = ylm * DR;
 
         complex w = weights(ii, mu_j, idx_sph, n);
@@ -1534,7 +1535,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeDerivative, const
   }
 
   // hard-core repulsion
-  const double fpair = dF_drho_core(ii) * dcr(ii,jj);
+  const KK_FLOAT fpair = dF_drho_core(ii) * dcr(ii,jj);
   f_ij(ii, jj, 0) = scale * f_ji[0] + fpair * r_hat[0];
   f_ij(ii, jj, 1) = scale * f_ji[1] + fpair * r_hat[1];
   f_ij(ii, jj, 2) = scale * f_ji[2] + fpair * r_hat[2];
@@ -1562,26 +1563,26 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeForce<NEIGHFLAG,E
 
   const int i = d_ilist[ii + chunk_offset];
   const int itype = type(i);
-  const double scale = d_scale(itype,itype);
+  const KK_FLOAT scale = d_scale(itype,itype);
 
   const int ncount = d_ncount(ii);
 
-  F_FLOAT fitmp[3] = {0.0,0.0,0.0};
+  KK_ACC_FLOAT fitmp[3] = {0.0,0.0,0.0};
   for (int jj = 0; jj < ncount; jj++) {
     int j = d_nearest(ii,jj);
 
-    double r_hat[3];
+    KK_FLOAT r_hat[3];
     r_hat[0] = d_rhats(ii, jj, 0);
     r_hat[1] = d_rhats(ii, jj, 1);
     r_hat[2] = d_rhats(ii, jj, 2);
-    const double r = d_rnorms(ii, jj);
-    const double delx = -r_hat[0]*r;
-    const double dely = -r_hat[1]*r;
-    const double delz = -r_hat[2]*r;
+    const KK_FLOAT r = d_rnorms(ii, jj);
+    const KK_FLOAT delx = -r_hat[0]*r;
+    const KK_FLOAT dely = -r_hat[1]*r;
+    const KK_FLOAT delz = -r_hat[2]*r;
 
-    const double fpairx = f_ij(ii, jj, 0);
-    const double fpairy = f_ij(ii, jj, 1);
-    const double fpairz = f_ij(ii, jj, 2);
+    const KK_FLOAT fpairx = f_ij(ii, jj, 0);
+    const KK_FLOAT fpairy = f_ij(ii, jj, 1);
+    const KK_FLOAT fpairz = f_ij(ii, jj, 2);
 
     fitmp[0] += fpairx;
     fitmp[1] += fpairy;
@@ -1601,7 +1602,7 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeForce<NEIGHFLAG,E
 
   // tally energy contribution
   if (EVFLAG && eflag_either) {
-    const double evdwl = scale*e_atom(ii);
+    const KK_FLOAT evdwl = scale*e_atom(ii);
     //ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
     if (eflag_global) ev.evdwl += evdwl;
     if (eflag_atom) d_eatom[i] += evdwl;
@@ -1622,20 +1623,20 @@ template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairPACEKokkos<DeviceType>::v_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &fx, const F_FLOAT &fy, const F_FLOAT &fz,
-      const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const
+      const KK_FLOAT &fx, const KK_FLOAT &fy, const KK_FLOAT &fz,
+      const KK_FLOAT &delx, const KK_FLOAT &dely, const KK_FLOAT &delz) const
 {
   // The vatom array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  const E_FLOAT v0 = delx*fx;
-  const E_FLOAT v1 = dely*fy;
-  const E_FLOAT v2 = delz*fz;
-  const E_FLOAT v3 = delx*fy;
-  const E_FLOAT v4 = delx*fz;
-  const E_FLOAT v5 = dely*fz;
+  const KK_FLOAT v0 = delx*fx;
+  const KK_FLOAT v1 = dely*fy;
+  const KK_FLOAT v2 = delz*fz;
+  const KK_FLOAT v3 = delx*fy;
+  const KK_FLOAT v4 = delx*fz;
+  const KK_FLOAT v5 = dely*fz;
 
   if (vflag_global) {
     ev.v[0] += v0;
@@ -1717,7 +1718,7 @@ void PairPACEKokkos<DeviceType>::pre_compute_harmonics(int lmax)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairPACEKokkos<DeviceType>::cutoff_func_poly(const double r, const double r_in, const double delta_in, double &fc, double &dfc) const
+void PairPACEKokkos<DeviceType>::cutoff_func_poly(const KK_FLOAT r, const KK_FLOAT r_in, const KK_FLOAT delta_in, KK_FLOAT &fc, KK_FLOAT &dfc) const
 {
   if (r <= r_in-delta_in) {
     fc = 1;
@@ -1726,7 +1727,7 @@ void PairPACEKokkos<DeviceType>::cutoff_func_poly(const double r, const double r
     fc = 0;
     dfc = 0;
   } else {
-    double x = 1 - 2 * (1 + (r - r_in) / delta_in);
+    KK_FLOAT x = 1 - 2 * (1 + (r - r_in) / delta_in);
     fc = 0.5 + 7.5 / 2. * (x / 4. - pow(x, 3) / 6. + pow(x, 5) / 20.);
     dfc = -7.5 / delta_in * (0.25 - x * x / 2.0 + pow(x, 4) / 4.);
   }
@@ -1736,26 +1737,26 @@ void PairPACEKokkos<DeviceType>::cutoff_func_poly(const double r, const double r
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairPACEKokkos<DeviceType>::Fexp(const double x, const double m, double &F, double &DF) const
+void PairPACEKokkos<DeviceType>::Fexp(const KK_FLOAT x, const KK_FLOAT m, KK_FLOAT &F, KK_FLOAT &DF) const
 {
-  const double w = 1.e6;
-  const double eps = 1e-10;
+  const KK_FLOAT w = 1.e6;
+  const KK_FLOAT eps = 1e-10;
 
-  const double lambda = pow(1.0 / w, m - 1.0);
+  const KK_FLOAT lambda = pow(1.0 / w, m - 1.0);
   if (abs(x) > eps) {
-    double g;
-    const double a = abs(x);
-    const double am = pow(a, m);
-    const double w3x3 = pow(w * a, 3); //// use cube
-    const double sign_factor = (signbit(x) ? -1 : 1);
+    KK_FLOAT g;
+    const KK_FLOAT a = abs(x);
+    const KK_FLOAT am = pow(a, m);
+    const KK_FLOAT w3x3 = pow(w * a, 3); //// use cube
+    const KK_FLOAT sign_factor = (signbit(x) ? -1 : 1);
     if (w3x3 > 30.0)
         g = 0.0;
     else
         g = exp(-w3x3);
 
-    const double omg = 1.0 - g;
+    const KK_FLOAT omg = 1.0 - g;
     F = sign_factor * (omg * am + lambda * g * a);
-    const double dg = -3.0 * w * w * w * a * a * g;
+    const KK_FLOAT dg = -3.0 * w * w * w * a * a * g;
     DF = m * pow(a, m - 1.0) * omg - am * dg + lambda * dg * a + lambda * g;
   } else {
     F = lambda * x;
@@ -1767,20 +1768,20 @@ void PairPACEKokkos<DeviceType>::Fexp(const double x, const double m, double &F,
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairPACEKokkos<DeviceType>::FexpShiftedScaled(const double rho, const double mexp, double &F, double &DF) const
+void PairPACEKokkos<DeviceType>::FexpShiftedScaled(const KK_FLOAT rho, const KK_FLOAT mexp, KK_FLOAT &F, KK_FLOAT &DF) const
 {
-  const double eps = 1e-10;
+  const KK_FLOAT eps = 1e-10;
 
   if (abs(mexp - 1.0) < eps) {
     F = rho;
     DF = 1;
   } else {
-    const double a = abs(rho);
-    const double exprho = exp(-a);
-    const double nx = 1. / mexp;
-    const double xoff = pow(nx, (nx / (1.0 - nx))) * exprho;
-    const double yoff = pow(nx, (1 / (1.0 - nx))) * exprho;
-    const double sign_factor = (signbit(rho) ? -1 : 1);
+    const KK_FLOAT a = abs(rho);
+    const KK_FLOAT exprho = exp(-a);
+    const KK_FLOAT nx = 1. / mexp;
+    const KK_FLOAT xoff = pow(nx, (nx / (1.0 - nx))) * exprho;
+    const KK_FLOAT yoff = pow(nx, (1 / (1.0 - nx))) * exprho;
+    const KK_FLOAT sign_factor = (signbit(rho) ? -1 : 1);
     F = sign_factor * (pow(xoff + a, mexp) - yoff);
     DF = yoff + mexp * (-xoff + 1.0) * pow(xoff + a, mexp - 1.);
   }
@@ -1790,10 +1791,10 @@ void PairPACEKokkos<DeviceType>::FexpShiftedScaled(const double rho, const doubl
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairPACEKokkos<DeviceType>::inner_cutoff(const double rho_core, const double rho_cut, const double drho_cut,
-                                     double &fcut, double &dfcut) const
+void PairPACEKokkos<DeviceType>::inner_cutoff(const KK_FLOAT rho_core, const KK_FLOAT rho_cut, const KK_FLOAT drho_cut,
+                                     KK_FLOAT &fcut, KK_FLOAT &dfcut) const
 {
-  double rho_low = rho_cut - drho_cut;
+  KK_FLOAT rho_low = rho_cut - drho_cut;
   if (rho_core >= rho_cut) {
     fcut = 0;
     dfcut = 0;
@@ -1809,14 +1810,14 @@ void PairPACEKokkos<DeviceType>::inner_cutoff(const double rho_core, const doubl
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairPACEKokkos<DeviceType>::FS_values_and_derivatives(const int ii, double &evdwl, const int mu_i) const
+void PairPACEKokkos<DeviceType>::FS_values_and_derivatives(const int ii, KK_FLOAT &evdwl, const int mu_i) const
 {
-  double F, DF = 0;
+  KK_FLOAT F, DF = 0;
   int npoti = d_npoti(mu_i);
   int ndensity = d_ndensity(mu_i);
   for (int p = 0; p < ndensity; p++) {
-    const double wpre = d_wpre(mu_i, p);
-    const double mexp = d_mexp(mu_i, p);
+    const KK_FLOAT wpre = d_wpre(mu_i, p);
+    const KK_FLOAT mexp = d_mexp(mu_i, p);
 
     if (npoti == FS)
       Fexp(rhos(ii, p), mexp, F, DF);
@@ -1832,7 +1833,7 @@ void PairPACEKokkos<DeviceType>::FS_values_and_derivatives(const int ii, double 
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairPACEKokkos<DeviceType>::evaluate_splines(const int ii, const int jj, double r,
+void PairPACEKokkos<DeviceType>::evaluate_splines(const int ii, const int jj, KK_FLOAT r,
                                                   int /*nradbase_c*/, int /*nradial_c*/,
                                                   int mu_i, int mu_j) const
 {
@@ -1878,18 +1879,18 @@ void PairPACEKokkos<DeviceType>::SplineInterpolatorKokkos::operator=(const Splin
 /* ---------------------------------------------------------------------- */
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairPACEKokkos<DeviceType>::SplineInterpolatorKokkos::calcSplines(const int ii, const int jj, const double r, const t_ace_3d &d_values, const t_ace_3d &d_derivatives) const
+void PairPACEKokkos<DeviceType>::SplineInterpolatorKokkos::calcSplines(const int ii, const int jj, const KK_FLOAT r, const t_ace_3d &d_values, const t_ace_3d &d_derivatives) const
 {
-  double wl, wl2, wl3, w2l1, w3l2;
-  double c[4];
-  double x = r * rscalelookup;
+  KK_FLOAT wl, wl2, wl3, w2l1, w3l2;
+  KK_FLOAT c[4];
+  KK_FLOAT x = r * rscalelookup;
   int nl = static_cast<int>(floor(x));
 
   if (nl <= 0)
     Kokkos::abort("Encountered very small distance. Stopping.");
 
   if (nl < nlut) {
-    wl = x - double(nl);
+    wl = x - KK_FLOAT(nl);
     wl2 = wl * wl;
     wl3 = wl2 * wl;
     w2l1 = 2.0 * wl;

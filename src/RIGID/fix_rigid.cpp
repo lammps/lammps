@@ -38,6 +38,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -151,7 +152,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         if (input->variable->atomstyle(ivariable) == 0)
           error->all(FLERR, "Fix {} custom variable {} is not atom-style variable", style,
                      arg[4] + 2);
-        auto value = new double[nlocal];
+        auto *value = new double[nlocal];
         input->variable->compute_atom(ivariable, 0, value, 1, 0);
         int minval = INT_MAX;
         for (i = 0; i < nlocal; i++)
@@ -705,14 +706,14 @@ void FixRigid::init()
   // if earlyflag, warn if any post-force fixes come after a rigid fix
 
   int count = 0;
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) count++;
   if (count > 1 && comm->me == 0)
     error->warning(FLERR,"More than one fix rigid");
 
   if (earlyflag) {
     bool rflag = false;
-    for (auto &ifix : modify->get_fix_list()) {
+    for (const auto &ifix : modify->get_fix_list()) {
       if (ifix->rigid_flag) rflag = true;
       if ((comm->me == 0) && rflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
         error->warning(FLERR, "Fix {} with ID {} alters forces after fix rigid",
@@ -735,7 +736,7 @@ void FixRigid::init()
   //  error if a fix changing the box comes before rigid fix
 
   bool boxflag = false;
-  for (auto &ifix : modify->get_fix_list()) {
+  for (const auto &ifix : modify->get_fix_list()) {
     if (boxflag && utils::strmatch(ifix->style,"^rigid"))
         error->all(FLERR,"Rigid fixes must come before any box changing fix");
     if (ifix->box_change) boxflag = true;
@@ -744,7 +745,7 @@ void FixRigid::init()
   // add gravity forces based on gravity vector from fix
 
   if (id_gravity) {
-    auto ifix = modify->get_fix_by_id(id_gravity);
+    auto *ifix = modify->get_fix_by_id(id_gravity);
     if (!ifix) error->all(FLERR,"Fix rigid cannot find fix gravity ID {}", id_gravity);
     if (!utils::strmatch(ifix->style,"^gravity"))
       error->all(FLERR,"Fix rigid gravity fix ID {} is not a gravity fix style", id_gravity);
@@ -2352,7 +2353,7 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
   if (nlines == 0) return;
   else if (nlines < 0) error->all(FLERR,"Fix rigid infile has incorrect format");
 
-  auto buffer = new char[CHUNK*MAXLINE];
+  auto *buffer = new char[CHUNK*MAXLINE];
   int nread = 0;
   int me = comm->me;
   while (nread < nlines) {

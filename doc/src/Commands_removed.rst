@@ -15,12 +15,11 @@ with the direct alternative (if available) and print a warning.
 GJF formulation in fix langevin
 -------------------------------
 
-.. deprecated:: 12Jun2025
+.. deprecated:: 22Jul2025
 
-The *gjf* keyword in fix langevin is deprecated and will be removed
-soon.  The GJF functionality has been moved to its own fix style
-:doc:`fix gjf <fix_gjf>` and it is strongly recommended to use that
-fix instead.
+The *gjf* keyword in fix langevin has been removed.  The GJF
+functionality has been moved to its own fix style :doc:`fix gjf
+<fix_gjf>`.
 
 
 LAMMPS shell

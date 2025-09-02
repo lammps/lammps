@@ -21,7 +21,6 @@ CommandStyle(info,Info);
 #define LMP_INFO_H
 
 #include "command.h"
-#include "json_fwd.h"
 
 #include <vector>
 

@@ -6,6 +6,12 @@
 // SPDX-FileCopyrightText: 2013 - 2025 Niels Lohmann <https://nlohmann.me>
 // SPDX-License-Identifier: MIT
 
+// LAMMPS CUSTOMIZATION: to keep users from including this file directly
+
+#if !defined(LMP_JSON_H)
+#error Please include "json.h" instead of "nlohmann/json.hpp"
+#endif
+
 /****************************************************************************\
  * Note on documentation: The source files contain links to the online      *
  * documentation of the public API at https://json.nlohmann.me. This URL    *

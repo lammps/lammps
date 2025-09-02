@@ -33,7 +33,6 @@
 #include "pair_ilp_tmd_opt.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "interlayer_taper.h"
 #include "memory.h"
 

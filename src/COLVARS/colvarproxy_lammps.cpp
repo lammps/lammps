@@ -13,13 +13,13 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "lammps.h"             // includes <cstdio>, <mpi.h>, <string>, <vector>
+#include "random_park.h"
 #include "update.h"
-#include "utils.h"
 
 #include "colvarmodule.h"
 #include "colvarproxy.h"
 #include "colvarscript.h"
+#include "colvartypes.h"
 
 #define HASH_FAIL  -1
 
@@ -78,6 +78,11 @@ void colvarproxy_lammps::set_random_seed(int seed)
   if (_random) delete _random;
 
   _random = new LAMMPS_NS::RanPark(_lmp, seed);
+}
+
+cvm::real colvarproxy_lammps::rand_gaussian()
+{
+  return _random->gaussian();
 }
 
 /* ----------------------------------------------------------------------

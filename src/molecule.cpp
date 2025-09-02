@@ -30,7 +30,9 @@
 #include "update.h"
 
 #include <cmath>
+#include <cstdint>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using MathSpecial::powint;
@@ -152,42 +154,58 @@ void Molecule::command(int narg, char **arg, int &index)
   else
     last = 0;
 
-  json moldata;
-  std::vector<std::uint8_t> jsondata;
-  int jsondata_size = 0;
+  // JSON files must have the extension .json
 
-  if (comm->me == 0) {
-    fp = fopen(arg[fileiarg], "r");
-    if (fp == nullptr)
-      error->one(FLERR, fileiarg, "Cannot open molecule file {}: {}", arg[fileiarg],
-                 utils::getsyserror());
-    try {
-      // try to parse as a JSON file
-      // if successful serialize to bytearray for communication
-      moldata = json::parse(fp);
-      jsondata = json::to_ubjson(moldata);
-      jsondata_size = jsondata.size();
-      fclose(fp);
-    } catch (std::exception &) {
-      // rewind so we can try reading the file as a native molecule file
-      rewind(fp);
+  std::string filename = arg[fileiarg];
+  if (utils::strmatch(filename, "\\.json$")) {
+
+    json moldata;
+    std::vector<std::uint8_t> jsondata;
+    int jsondata_size = 0;
+
+    if (comm->me == 0) {
+      fp = fopen(filename.c_str(), "r");
+      if (fp == nullptr)
+        error->one(FLERR, fileiarg, "Cannot open molecule file {}: {}", filename, utils::getsyserror());
+      try {
+        // try to parse as a JSON file. parser throws an exception on errors
+        // if successful, temporarily serialize to bytearray for communication
+        moldata = json::parse(fp);
+        jsondata = json::to_ubjson(moldata);
+        jsondata_size = jsondata.size();
+        fclose(fp);
+      } catch (std::exception &e) {
+        fclose(fp);
+        error->one(FLERR, fileiarg, "Error parsing JSON file {}: {}", filename, e.what());
+      }
     }
-  }
-  MPI_Bcast(&jsondata_size, 1, MPI_INT, 0, world);
+    MPI_Bcast(&jsondata_size, 1, MPI_INT, 0, world);
 
-  if (jsondata_size > 0) {
-    // broadcast binary JSON data to all processes and deserialize again
-    if (comm->me != 0) jsondata.resize(jsondata_size);
-    MPI_Bcast(jsondata.data(), jsondata_size, MPI_CHAR, 0, world);
-    // convert back to json class on all processors
-    moldata.clear();
-    moldata = json::from_ubjson(jsondata);
-    jsondata.clear();    // free binary data
+    if (jsondata_size > 0) {
 
-    // process JSON data
-    Molecule::from_json(id, moldata);
+      // broadcast binary JSON data to all processes and deserialize again
+
+      if (comm->me != 0) jsondata.resize(jsondata_size);
+      MPI_Bcast(jsondata.data(), jsondata_size, MPI_CHAR, 0, world);
+
+      // convert back to json class on all processors and free temporary storage
+      moldata.clear();
+      moldata = json::from_ubjson(jsondata);
+      jsondata.clear();    // free binary data
+
+      // process JSON data
+      Molecule::from_json(id, moldata);
+    } else {
+      error->all(FLERR, "Molecule file {} does not contain JSON data", filename);
+    }
 
   } else {    // process native molecule file
+
+    if (comm->me == 0) {
+      fp = fopen(filename.c_str(), "r");
+      if (fp == nullptr)
+        error->one(FLERR, fileiarg, "Cannot open molecule file {}: {}", filename, utils::getsyserror());
+    }
 
     // scan file for sizes of all fields and allocate storage for them
 
@@ -227,7 +245,8 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                  std::string(moldata["application"]));
   } else {
     error->all(FLERR, Error::NOLASTLINE,
-               "Molecule template {}: JSON data does not contain required 'application' field", id);
+               "Molecule template {}: JSON data does not contain required \"application\" field",
+               id);
   }
   if (moldata.contains("format")) {
     if (moldata["format"] != "molecule")
@@ -236,7 +255,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                  std::string(moldata["format"]));
   } else {
     error->all(FLERR, Error::NOLASTLINE,
-               "Molecule template {}: JSON data does not contain required 'format' field", id);
+               "Molecule template {}: JSON data does not contain required \"format\" field", id);
   }
   if (moldata.contains("revision")) {
     int rev = moldata["revision"];
@@ -245,13 +264,13 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                  "Molecule template {}: JSON molecule data with unsupported revision {}", id, rev);
   } else {
     error->all(FLERR, Error::NOLASTLINE,
-               "Molecule template {}: JSON data does not contain required 'revision' field", id);
+               "Molecule template {}: JSON data does not contain required \"revision\" field", id);
   }
 
   // length of types data list determines the number of atoms in the template and is thus required
   if (!moldata.contains("types"))
     error->all(FLERR, Error::NOLASTLINE,
-               "Molecule template {}: JSON data does not contain required 'types' field", id);
+               "Molecule template {}: JSON data does not contain required \"types\" field", id);
 
   // optional fields
 
@@ -285,7 +304,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   if (moldata.contains(#field)) {                                                                  \
     if (!moldata[#field].contains("format"))                                                       \
       error->all(FLERR, Error::NOLASTLINE,                                                         \
-                 "Molecule template {}: JSON molecule data does not contain required 'format' "    \
+                 "Molecule template {}: JSON molecule data does not contain required \"format\" "  \
                  "field for '{}'",                                                                 \
                  id, #field);                                                                      \
     if (moldata[#field].contains("data")) {                                                        \
@@ -293,7 +312,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
       sizevar = moldata[#field]["data"].size();                                                    \
     } else {                                                                                       \
       error->all(FLERR, Error::NOLASTLINE,                                                         \
-                 "Molecule template {}: JSON molecule data does not contain required 'data' "      \
+                 "Molecule template {}: JSON molecule data does not contain required \"data\" "    \
                  "field for '{}'",                                                                 \
                  id, #field);                                                                      \
     }                                                                                              \
@@ -326,6 +345,174 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   JSON_INIT_FIELD(impropers, nimpropers, improperflag, false, 0);
 
 #undef JSON_INIT_FIELD
+  // special is nested
+
+  if (moldata.contains("special")) {
+    if (moldata["special"].contains("counts")) {
+      nspecialflag = 1;
+      maxspecial = 0;
+      const auto &specialcounts = moldata["special"]["counts"];
+      if (!specialcounts.contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for 'special:counts'",
+                   id);
+      if (specialcounts.contains("data")) {
+        if ((int) specialcounts["data"].size() != natoms)
+          error->all(
+              FLERR, Error::NOLASTLINE,
+              "Molecule template {}: Found {} instead of {} data entries for 'special:counts'", id,
+              specialcounts["data"].size(), natoms);
+        for (const auto &item : specialcounts["data"]) {
+          if (item.size() != 4)
+            error->all(
+                FLERR, Error::NOLASTLINE,
+                "Molecule template {}: Found {} instead of 4 data entries for 'special:counts'", id,
+                item.size());
+
+          const auto &vals = item.get<std::vector<int>>();
+          int sumspecial = vals[1] + vals[2] + vals[3];
+          maxspecial = MAX(maxspecial, sumspecial);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for 'special:counts'",
+                   id);
+      }
+    } else {
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Molecule template {}: JSON molecule data does not contain required 'counts' "
+                 "field for \"special\"",
+                 id);
+    }
+
+    if (moldata["special"].contains("bonds")) {
+      specialflag = tag_require = 1;
+      const auto &specialbonds = moldata["special"]["bonds"];
+      if (!specialbonds.contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"special:bonds\"",
+                   id);
+      if (specialbonds.contains("data")) {
+        if ((int) specialbonds["data"].size() != natoms)
+          error->all(
+              FLERR, Error::NOLASTLINE,
+              "Molecule template {}: Found {} instead of {} data entries for \"special:bonds\"", id,
+              specialbonds["data"].size(), natoms);
+        if (specialbonds["data"][0].size() != 2)
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: \"special:bonds\" is incorrectly formatted: {}", id,
+                     to_string(specialbonds["data"][0]));
+        for (int i = 0; i < natoms; ++i) {
+          if ((int) specialbonds["data"][i][1].size() > maxspecial)
+            error->all(FLERR, Error::NOLASTLINE,
+                       "Molecule template {}: Number of data entries in \"special:bonds\" for atom "
+                       "{} exceeds limit: {} vs {}",
+                       id, specialbonds["data"][i][1].size(), maxspecial);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"special:bonds\"",
+                   id);
+      }
+    } else {
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Molecule template {}: JSON molecule data does not contain required \"bonds\" "
+                 "field for \"special\"",
+                 id);
+    }
+  }
+
+  // shake is nested
+
+  if (moldata.contains("shake")) {
+    shakeflag = shakeflagflag = shaketypeflag = shakeatomflag = 0;
+    const auto &shakedata = moldata["shake"];
+
+    if (shakedata.contains("flags")) {
+      if (!shakedata["flags"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"shake:flags\"",
+                   id);
+      if (shakedata["flags"].contains("data")) {
+        shakeflagflag = 1;
+        if ((int) shakedata["flags"]["data"].size() != natoms)
+          error->all(
+              FLERR, Error::NOLASTLINE,
+              "Molecule template {}: Found {} instead of {} data entries for \"shake:flags\"", id,
+              shakedata["flags"]["data"].size(), natoms);
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"shake:flags\"",
+                   id);
+      }
+    } else {
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Molecule template {}: JSON molecule data does not contain required 'flags' "
+                 "field for \"shake\"",
+                 id);
+    }
+
+    if (shakedata.contains("atoms")) {
+      if (!shakedata["atoms"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"shake:atoms\"",
+                   id);
+      if (shakedata["atoms"].contains("data")) {
+        shakeatomflag = 1;
+        tag_require = 1;
+        if ((int) shakedata["atoms"]["data"].size() != natoms)
+          error->all(
+              FLERR, Error::NOLASTLINE,
+              "Molecule template {}: Found {} instead of {} data entries for \"shake:atoms\"", id,
+              shakedata["atoms"]["data"].size(), natoms);
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"shake:atoms\"",
+                   id);
+      }
+    } else {
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Molecule template {}: JSON molecule data does not contain required \"atoms\" "
+                 "field for \"shake\"",
+                 id);
+    }
+
+    if (shakedata.contains("types")) {
+      if (!shakedata["types"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"shake:types\"",
+                   id);
+      if (shakedata["types"].contains("data")) {
+        shaketypeflag = 1;
+        tag_require = 1;
+        if ((int) shakedata["types"]["data"].size() != natoms)
+          error->all(
+              FLERR, Error::NOLASTLINE,
+              "Molecule template {}: Found {} instead of {} data entries for \"shake:types\"", id,
+              shakedata["types"]["data"].size(), natoms);
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"shake:types\"",
+                   id);
+      }
+    } else {
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Molecule template {}: JSON molecule data does not contain required \"types\" "
+                 "field for \"shake\"",
+                 id);
+    }
+    if (shakeflagflag && shakeatomflag && shaketypeflag) shakeflag = 1;
+  }
 
   if ((nbonds > 0) || (nangles > 0) || (ndihedrals > 0) || (nimpropers > 0)) tag_require = 1;
 
@@ -354,14 +541,22 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     itensor[5] = double(moldata["inertia"][5]) * scale5;
   }
 
-  if (moldata.contains("body") && (moldata["body"].size() == 2)) {
-    bodyflag = 1;
+  if (moldata.contains("body")) {
     avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
     if (!avec_body)
       error->all(FLERR, Error::NOLASTLINE,
                  "Molecule template {}: JSON molecule data requires atom style body", id);
-    nibody = moldata["body"][0];
-    ndbody = moldata["body"][1];
+
+    if (moldata["body"].contains("integers") && moldata["body"].contains("doubles")) {
+      bodyflag = radiusflag = dbodyflag = ibodyflag = 1;
+      nibody = moldata["body"]["integers"].size();
+      ndbody = moldata["body"]["doubles"].size();
+    } else {
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Molecule template {}: JSON molecule \"body\" data requires \"integers\" and "
+                 "\"doubles\" sections",
+                 id);
+    }
   }
 
   // checks. No checks for < 0 needed since size() is at least 0
@@ -384,7 +579,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
 
   // coords
   if (xflag) {
-    for (int i = 0; i < 4; ++i) secfmt.push_back(moldata["coords"]["format"][i]);
+    for (int i = 0; i < 4; ++i) secfmt.emplace_back(moldata["coords"]["format"][i]);
     if ((secfmt[0] == "atom-id") && (secfmt[1] == "x") && (secfmt[2] == "y") &&
         (secfmt[3] == "z")) {
 
@@ -444,7 +639,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   // types (is a required section and we tested for it above)
 
   secfmt.clear();
-  for (int i = 0; i < 2; ++i) secfmt.push_back(moldata["types"]["format"][i]);
+  for (int i = 0; i < 2; ++i) secfmt.emplace_back(moldata["types"]["format"][i]);
   if ((secfmt[0] == "atom-id") && (secfmt[1] == "type")) {
 
     memset(count, 0, natoms * sizeof(int));
@@ -507,7 +702,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   if (moleculeflag) {
 
     secfmt.clear();
-    for (int i = 0; i < 2; ++i) secfmt.push_back(moldata["molecules"]["format"][i]);
+    for (int i = 0; i < 2; ++i) secfmt.emplace_back(moldata["molecules"]["format"][i]);
     if ((secfmt[0] == "atom-id") && (secfmt[1] == "molecule-id")) {
 
       memset(count, 0, natoms * sizeof(int));
@@ -562,7 +757,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
 
   if (fragmentflag) {
     secfmt.clear();
-    for (int i = 0; i < 2; ++i) secfmt.push_back(moldata["fragments"]["format"][i]);
+    for (int i = 0; i < 2; ++i) secfmt.emplace_back(moldata["fragments"]["format"][i]);
     if ((secfmt[0] == "fragment-id") && (secfmt[1] == "atom-id-list")) {
 
       for (int i = 0; i < nfragments; ++i) {
@@ -595,7 +790,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   if (qflag) {
 
     secfmt.clear();
-    for (int i = 0; i < 2; ++i) secfmt.push_back(moldata["charges"]["format"][i]);
+    for (int i = 0; i < 2; ++i) secfmt.emplace_back(moldata["charges"]["format"][i]);
     if ((secfmt[0] == "atom-id") && (secfmt[1] == "charge")) {
 
       memset(count, 0, natoms * sizeof(int));
@@ -641,10 +836,10 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
 
   // diameters
 
-  if (radiusflag) {
+  if (radiusflag && !bodyflag) {
     maxradius = 0.0;
     secfmt.clear();
-    for (int i = 0; i < 2; ++i) secfmt.push_back(moldata["diameters"]["format"][i]);
+    for (int i = 0; i < 2; ++i) secfmt.emplace_back(moldata["diameters"]["format"][i]);
     if ((secfmt[0] == "atom-id") && (secfmt[1] == "diameter")) {
 
       memset(count, 0, natoms * sizeof(int));
@@ -706,7 +901,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   if (muflag) {
 
     secfmt.clear();
-    for (int i = 0; i < 4; ++i) secfmt.push_back(moldata["dipoles"]["format"][i]);
+    for (int i = 0; i < 4; ++i) secfmt.emplace_back(moldata["dipoles"]["format"][i]);
     if ((secfmt[0] == "atom-id") && (secfmt[1] == "mux") && (secfmt[2] == "muy") &&
         (secfmt[3] == "muz")) {
 
@@ -768,7 +963,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
 
   if (rmassflag) {
     secfmt.clear();
-    for (int i = 0; i < 2; ++i) secfmt.push_back(moldata["masses"]["format"][i]);
+    for (int i = 0; i < 2; ++i) secfmt.emplace_back(moldata["masses"]["format"][i]);
     if ((secfmt[0] == "atom-id") && (secfmt[1] == "mass")) {
 
       memset(count, 0, natoms * sizeof(int));
@@ -787,7 +982,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         const int iatom = int(c[0]) - 1;
         if ((iatom < 0) || (iatom >= natoms))
           error->all(FLERR, Error::NOLASTLINE,
-                     "Invalid atom-id {} in \"masses\" section of molecule JSON data", iatom + 1);
+                     "Molecule template {}: invalid atom-id {} in \"masses\" section of molecule "
+                     "JSON data",
+                     iatom + 1);
         if (!c[1].is_number())
           error->all(FLERR, Error::NOLASTLINE,
                      "Molecule template {}: invalid mass in \"masses\" section of "
@@ -826,7 +1023,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
 
     for (int flag = 0; flag < 2; ++flag) {
       secfmt.clear();
-      for (int i = 0; i < 3; ++i) secfmt.push_back(moldata["bonds"]["format"][i]);
+      for (int i = 0; i < 3; ++i) secfmt.emplace_back(moldata["bonds"]["format"][i]);
       if ((secfmt[0] == "bond-type") && (secfmt[1] == "atom1") && (secfmt[2] == "atom2")) {
 
         if (flag == 0) {
@@ -913,7 +1110,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
 
     for (int flag = 0; flag < 2; ++flag) {
       secfmt.clear();
-      for (int i = 0; i < 4; ++i) secfmt.push_back(moldata["angles"]["format"][i]);
+      for (int i = 0; i < 4; ++i) secfmt.emplace_back(moldata["angles"]["format"][i]);
       if ((secfmt[0] == "angle-type") && (secfmt[1] == "atom1") && (secfmt[2] == "atom2") &&
           (secfmt[3] == "atom3")) {
 
@@ -1021,7 +1218,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
 
     for (int flag = 0; flag < 2; ++flag) {
       secfmt.clear();
-      for (int i = 0; i < 5; ++i) secfmt.push_back(moldata["dihedrals"]["format"][i]);
+      for (int i = 0; i < 5; ++i) secfmt.emplace_back(moldata["dihedrals"]["format"][i]);
       if ((secfmt[0] == "dihedral-type") && (secfmt[1] == "atom1") && (secfmt[2] == "atom2") &&
           (secfmt[3] == "atom3") && (secfmt[4] == "atom4")) {
 
@@ -1146,7 +1343,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
 
     for (int flag = 0; flag < 2; ++flag) {
       secfmt.clear();
-      for (int i = 0; i < 5; ++i) secfmt.push_back(moldata["impropers"]["format"][i]);
+      for (int i = 0; i < 5; ++i) secfmt.emplace_back(moldata["impropers"]["format"][i]);
       if ((secfmt[0] == "improper-type") && (secfmt[1] == "atom1") && (secfmt[2] == "atom2") &&
           (secfmt[3] == "atom3") && (secfmt[4] == "atom4")) {
 
@@ -1260,30 +1457,353 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     }
   }
 
-  // special_bond_counts
-  // special_bonds
+  if (specialflag) {
 
-  // shake_flags
+    // process counts
+
+    const auto &specialcounts = moldata["special"]["counts"];
+    secfmt.clear();
+    for (int i = 0; i < 4; ++i) secfmt.emplace_back(specialcounts["format"][i]);
+    if ((secfmt[0] == "atom-id") && (secfmt[1] == "n12") && (secfmt[2] == "n13") &&
+        (secfmt[3] == "n14")) {
+
+      memset(count, 0, natoms * sizeof(int));
+      for (const auto &item : specialcounts["data"]) {
+        if (!item[0].is_number_integer() || !item[1].is_number_integer() ||
+            !item[2].is_number_integer() || !item[3].is_number_integer())
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: invalid data in \"special:counts\" section of molecule "
+                     "JSON data: {}",
+                     id, to_string(item));
+        const auto &vals = item.get<std::vector<int>>();
+        const int iatom = vals[0] - 1;
+        if ((iatom < 0) || (iatom >= natoms))
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: invalid atom-id {} in \"special:counts\" section of "
+                     "molecule JSON data",
+                     id, iatom + 1);
+
+        nspecial[iatom][0] = vals[1];
+        nspecial[iatom][1] = vals[1] + vals[2];
+        nspecial[iatom][2] = vals[1] + vals[2] + vals[3];
+        count[iatom]++;
+      }
+      // check
+      for (int i = 0; i < natoms; i++) {
+        if (count[i] == 0) {
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: atom {} missing in \"special:counts\" JSON section", id,
+                     i + 1);
+        }
+      }
+    } else {
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Molecule template {}: Expected \"special:counts\" format "
+                 "[\"atom-id\",\"n12\",\"n13\",\"n14\"] but found [\"{}\",\"{}\",\"{}\",\"{}\"]",
+                 id, secfmt[0], secfmt[1], secfmt[2], secfmt[3]);
+    }
+
+    // process bonds
+
+    const auto &specialbonds = moldata["special"]["bonds"];
+    secfmt.clear();
+    for (int i = 0; i < 2; ++i) secfmt.emplace_back(specialbonds["format"][i]);
+    if ((secfmt[0] == "atom-id") && (secfmt[1] == "atom-id-list")) {
+      memset(count, 0, natoms * sizeof(int));
+      for (int i = 0; i < natoms; ++i) {
+        if (!specialbonds["data"][i][0].is_number_integer())
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: invalid atom-id {} for entry {} in \"special:bonds\" "
+                     "section of molecule JSON data",
+                     id, to_string(specialbonds["data"][i][0]), i + 1);
+        const int iatom = int(specialbonds["data"][i][0]) - 1;
+        if ((iatom < 0) || (iatom >= natoms))
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: invalid atom-id {} in \"special:bondss\" section of "
+                     "molecule JSON data",
+                     id, iatom + 1);
+
+        int m = 0;
+        for (const auto &item : specialbonds["data"][i][1]) {
+          if (!item.is_number_integer())
+            error->all(
+                FLERR, Error::NOLASTLINE,
+                "Molecule template {}: invalid data in \"special:bonds\" section of molecule "
+                "JSON data: {}",
+                id, to_string(specialbonds["data"][i][1]));
+
+          auto ival = tagint(item);
+          if ((ival <= 0) || (ival > natoms) || (ival == iatom + 1))
+            error->all(FLERR, Error::NOLASTLINE,
+                       "Molecule template {}: invalid atom index {} in \"special:bonds\" section "
+                       "of JSON data",
+                       id, ival);
+          special[iatom][m++] = tagint(item);
+        }
+        count[iatom]++;
+      }
+      // check
+      for (int i = 0; i < natoms; i++) {
+        if (count[i] == 0) {
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: atom {} missing in \"special:bonds\" JSON section", id,
+                     i + 1);
+        }
+      }
+    } else {
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Molecule template {}: Expected \"special:bonds\" format "
+                 "[\"atom-id\",\"atom-id-list\"] but found [\"{}\",\"{}\"]",
+                 id, secfmt[0], secfmt[1]);
+    }
+  }
+
+  // shake settings
+
+  if (shakeflagflag) {
+    const auto &shakedata = moldata["shake"]["flags"];
+    secfmt.clear();
+    for (int i = 0; i < 2; ++i) secfmt.emplace_back(shakedata["format"][i]);
+    if ((secfmt[0] == "atom-id") && (secfmt[1] == "flag")) {
+
+      for (int i = 0; i < natoms; i++) shake_flag[i] = -1;
+      memset(count, 0, natoms * sizeof(int));
+      for (const auto &c : shakedata["data"]) {
+        if (c.size() < 2)
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: missing data in \"shake:flags\" section of molecule "
+                     "JSON data: {}",
+                     id, to_string(c));
+        if (!c[0].is_number_integer())
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: invalid atom-id in \"shake:flags\" section of molecule "
+                     "JSON data: {}",
+                     id, to_string(c[0]));
+
+        const int iatom = int(c[0]) - 1;
+        if ((iatom < 0) || (iatom >= natoms))
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: invalid atom-id {} in \"shake:flags\" section of "
+                     "molecule JSON data",
+                     id, iatom + 1);
+        if (!c[1].is_number_integer())
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: invalid flag in \"shake:flags\" section of "
+                     "molecule JSON data: {}",
+                     id, to_string(c[1]));
+        shake_flag[iatom] = int(c[1]);
+        count[iatom]++;
+      }
+      // checks
+      for (int i = 0; i < natoms; i++) {
+        if (count[i] == 0) {
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: atom {} missing in \"shake:flags\" JSON section", id,
+                     i + 1);
+        }
+        if ((shake_flag[i] < 0) || (shake_flag[i] > 4))
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: invalid flag value {} in \"shake:flags\" section of "
+                     "molecule JSON data",
+                     id, shake_flag[i]);
+      }
+    } else {
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Molecule template {}: Expected \"shake:flags\" format [\"atom-id\",\"mass\"] but "
+                 "found [\"{}\",\"{}\"]",
+                 id, secfmt[0], secfmt[1]);
+    }
+  }
+
   // shake_atoms
+
+#define APPLY_SHAKE_ATOMS(ncols)                                                          \
+  if (c[1].size() != ncols)                                                               \
+    error->all(FLERR, Error::NOLASTLINE,                                                  \
+               "Molecule template {}: invalid number of items for atom-id {} in \"shake:" \
+               "atoms\" section of molecue JSON data ({} vs {})",                         \
+               id, iatom + 1, c[1].size(), ncols);                                        \
+  for (int i = 0; i < ncols; ++i) {                                                       \
+    if (!c[1][i].is_number_integer())                                                     \
+      error->all(FLERR, Error::NOLASTLINE,                                                \
+                 "Molecule template {}: invalid atom-id {} in atom-id-list for atom {} "  \
+                 "in \"shake:atoms\" section of molecule JSON data",                      \
+                 id, to_string(c[1][i]), iatom + 1);                                      \
+    shake_atom[iatom][i] = int(c[1][i]);                                                  \
+  }
+
+  if (shakeatomflag) {
+    const auto &shakedata = moldata["shake"]["atoms"];
+    secfmt.clear();
+    for (int i = 0; i < 2; ++i) secfmt.emplace_back(shakedata["format"][i]);
+    if ((secfmt[0] == "atom-id") && (secfmt[1] == "atom-id-list")) {
+
+      memset(count, 0, natoms * sizeof(int));
+      for (const auto &c : shakedata["data"]) {
+        if (c.size() < 2)
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: missing data in \"shake:atoms\" section of molecule "
+                     "JSON data: {}",
+                     id, to_string(c));
+        if (!c[0].is_number_integer())
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: invalid atom-id in \"shake:atoms\" section of molecule "
+                     "JSON data: {}",
+                     id, to_string(c[0]));
+
+        const int iatom = int(c[0]) - 1;
+        if ((iatom < 0) || (iatom >= natoms))
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: invalid atom-id {} in \"shake:atoms\" section of "
+                     "molecule JSON data",
+                     id, iatom + 1);
+
+        switch (shake_flag[iatom]) {
+          case 1:
+            APPLY_SHAKE_ATOMS(3);
+            break;
+          case 2:
+            APPLY_SHAKE_ATOMS(2);
+            break;
+          case 3:
+            APPLY_SHAKE_ATOMS(3);
+            break;
+          case 4:
+            APPLY_SHAKE_ATOMS(4);
+            break;
+          case 0:
+            APPLY_SHAKE_ATOMS(0);
+            break;
+          default:
+            error->all(FLERR, Error::NOLASTLINE,
+                       "Molecule template {}: Unsupported Shake flag {} for "
+                       " atom {} in \"shake:atoms\" section of molecule JSON data",
+                       id, shake_flag[iatom], iatom + 1);
+        }
+        count[iatom]++;
+      }
+      // checks
+      for (int i = 0; i < natoms; i++) {
+        if (count[i] == 0)
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: atom {} missing in \"shake:atoms\" JSON section", id,
+                     i + 1);
+      }
+    } else {
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Molecule template {}: Expected \"shake:atoms\" format "
+                 "[\"atom-id\",\"atom-id-list\"] but found [\"{}\",\"{}\"]",
+                 id, secfmt[0], secfmt[1]);
+    }
+  }
+#undef APPLY_SHAKE_ATOMS
+
   // shake_bond_types
 
-  // body_integers
-  // body_doubles
+#define SET_SHAKE_TYPE(type, idx, ncols, offset)                                          \
+  if (c[1].size() < ncols)                                                                \
+    error->all(FLERR, Error::NOLASTLINE,                                                  \
+               "Molecule template {}: invalid number of items for atom-id {} in \"shake:" \
+               "types\" section of molecue JSON data ({} vs {})",                         \
+               id, iatom + 1, c[1].size(), ncols);                                        \
+  if (c[1][idx].is_number_integer()) {                                                    \
+    shake_type[iatom][idx] = int(c[1][idx]) + offset;                                     \
+  } else {                                                                                \
+    char *subst = utils::expand_type(FLERR, c[1][idx], type, lmp);                        \
+    if (subst) {                                                                          \
+      shake_type[iatom][idx] = utils::inumeric(FLERR, subst, false, lmp);                 \
+      delete[] subst;                                                                     \
+    }                                                                                     \
+  }
+
+  if (shaketypeflag) {
+    const auto &shakedata = moldata["shake"]["types"];
+    secfmt.clear();
+    for (int i = 0; i < 2; ++i) secfmt.emplace_back(shakedata["format"][i]);
+    if ((secfmt[0] == "atom-id") && (secfmt[1] == "type-list")) {
+
+      memset(count, 0, natoms * sizeof(int));
+      for (const auto &c : shakedata["data"]) {
+        if (c.size() < 2)
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: missing data in \"shake:types\" section of molecule "
+                     "JSON data: {}",
+                     id, to_string(c));
+        if (!c[0].is_number_integer())
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: invalid atom-id in \"shake:types\" section of molecule "
+                     "JSON data: {}",
+                     id, to_string(c[0]));
+
+        const int iatom = int(c[0]) - 1;
+        if ((iatom < 0) || (iatom >= natoms))
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: invalid atom-id {} in \"shake:types\" section of "
+                     "molecule JSON data",
+                     id, iatom + 1);
+
+        switch (shake_flag[iatom]) {
+          case 1:
+            SET_SHAKE_TYPE(Atom::BOND, 0, 3, boffset);
+            SET_SHAKE_TYPE(Atom::BOND, 1, 3, boffset);
+            SET_SHAKE_TYPE(Atom::ANGLE, 2, 3, aoffset);
+            break;
+          case 2:
+            SET_SHAKE_TYPE(Atom::BOND, 0, 1, boffset);
+            break;
+          case 3:
+            SET_SHAKE_TYPE(Atom::BOND, 0, 2, boffset);
+            SET_SHAKE_TYPE(Atom::BOND, 1, 2, boffset);
+            break;
+          case 4:
+            SET_SHAKE_TYPE(Atom::BOND, 0, 3, boffset);
+            SET_SHAKE_TYPE(Atom::BOND, 1, 3, boffset);
+            SET_SHAKE_TYPE(Atom::BOND, 2, 3, boffset);
+            break;
+          case 0:
+            break;
+          default:
+            error->all(FLERR, Error::NOLASTLINE,
+                       "Molecule template {}: Unsupported Shake flag {} for "
+                       " atom {} in \"shake:types\" section of molecule JSON data",
+                       id, shake_flag[iatom], iatom + 1);
+        }
+        count[iatom]++;
+      }
+      // checks
+      for (int i = 0; i < natoms; i++) {
+        if (count[i] == 0)
+          error->all(FLERR, Error::NOLASTLINE,
+                     "Molecule template {}: atom {} missing in \"shake:types\" JSON section", id,
+                     i + 1);
+      }
+    } else {
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Molecule template {}: Expected \"shake:types\" format "
+                 "[\"atom-id\",\"type-list\"] but found [\"{}\",\"{}\"]",
+                 id, secfmt[0], secfmt[1]);
+    }
+  }
+#undef SET_SHAKE_TYPE
+
+  // body integers and doubles
+
+  if (bodyflag) {
+    for (int i = 0; i < nibody; ++i) ibodyparams[i] = moldata["body"]["integers"][i];
+    for (int i = 0; i < ndbody; ++i) dbodyparams[i] = moldata["body"]["doubles"][i];
+  }
 
   // error checks
 
-  if ((nspecialflag && !specialflag) || (!nspecialflag && specialflag))
-    error->all(FLERR, fileiarg, "Molecule file needs both Special Bond sections");
   if (specialflag && !bondflag)
     error->all(FLERR, fileiarg, "Molecule file has special flags but no bonds");
   if ((shakeflagflag || shakeatomflag || shaketypeflag) && !shakeflag)
-    error->all(FLERR, fileiarg, "Molecule file shake info is incomplete");
-  if (bodyflag && nibody && ibodyflag == 0)
-    error->all(FLERR, fileiarg, "Molecule file has no Body Integers section");
-  if (bodyflag && ndbody && dbodyflag == 0)
-    error->all(FLERR, fileiarg, "Molecule file has no Body Doubles section");
-  if (nfragments > 0 && !fragmentflag)
-    error->all(FLERR, fileiarg, "Molecule file has no Fragments section");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Molecule template {}: \"shake\" info is incomplete in JSON data");
+  if (bodyflag && !rmassflag)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Molecule template {}: \"body\" JSON section requires \"masses\" section", id);
+
   // auto-generate special bonds if needed and not in file
 
   if (bondflag && specialflag == 0) {
@@ -1484,7 +2004,7 @@ void Molecule::compute_inertia()
       itensor[5] -= onemass * dx * dy;
     }
 
-    if (radiusflag) {
+    if (radiusflag && !bodyflag) {
       for (int i = 0; i < natoms; i++) {
         if (rmassflag)
           onemass = rmass[i];
@@ -1593,10 +2113,11 @@ void Molecule::read(int flag)
 
     readline(line);
 
-    // trim comments. if line is blank, continue
+    // trim comments. if line is blank or comment, continue
 
     auto text = utils::trim(utils::trim_comment(line));
     if (text.empty()) continue;
+    if (utils::strmatch(text, "^\\s*#")) continue;
 
     // search line for header keywords and set corresponding variable
     try {
@@ -1604,31 +2125,31 @@ void Molecule::read(int flag)
 
       int nmatch = values.count();
       int nwant = 0;
-      if (values.matches("^\\s*\\d+\\s+atoms")) {
+      if (values.matches("^\\s*\\d+\\s+atoms\\s*$")) {
         natoms = values.next_int();
         nwant = 2;
         has_atoms = true;
-      } else if (values.matches("^\\s*\\d+\\s+bonds")) {
+      } else if (values.matches("^\\s*\\d+\\s+bonds\\s*$")) {
         nbonds = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\d+\\s+angles")) {
+      } else if (values.matches("^\\s*\\d+\\s+angles\\s*$")) {
         nangles = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\d+\\s+dihedrals")) {
+      } else if (values.matches("^\\s*\\d+\\s+dihedrals\\s*$")) {
         ndihedrals = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\d+\\s+impropers")) {
+      } else if (values.matches("^\\s*\\d+\\s+impropers\\s*$")) {
         nimpropers = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\d+\\s+fragments")) {
+      } else if (values.matches("^\\s*\\d+\\s+fragments\\s*$")) {
         nfragments = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\f+\\s+mass")) {
+      } else if (values.matches("^\\s*\\f+\\s+mass\\s*$")) {
         massflag = 1;
         masstotal = values.next_double();
         nwant = 2;
         masstotal *= sizescale * sizescale * sizescale;
-      } else if (values.matches("^\\s*\\f+\\s+\\f+\\s+\\f+\\s+com")) {
+      } else if (values.matches("^\\s*\\f+\\s+\\f+\\s+\\f+\\s+com\\s*$")) {
         comflag = 1;
         com[0] = values.next_double();
         com[1] = values.next_double();
@@ -1639,7 +2160,7 @@ void Molecule::read(int flag)
         com[2] *= sizescale;
         if ((domain->dimension == 2) && (com[2] != 0.0))
           error->all(FLERR, fileiarg, "Molecule file z center-of-mass must be 0.0 for 2d systems");
-      } else if (values.matches("^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+inertia")) {
+      } else if (values.matches("^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+inertia\\s*$")) {
         inertiaflag = 1;
         itensor[0] = values.next_double();
         itensor[1] = values.next_double();
@@ -1655,25 +2176,29 @@ void Molecule::read(int flag)
         itensor[3] *= scale5;
         itensor[4] *= scale5;
         itensor[5] *= scale5;
-      } else if (values.matches("^\\s*\\d+\\s+\\d+\\s+body")) {
+      } else if (values.matches("^\\s*\\d+\\s+\\d+\\s+body\\s*$")) {
         bodyflag = 1;
         avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
         if (!avec_body) error->all(FLERR, fileiarg, "Molecule file requires atom style body");
         nibody = values.next_int();
         ndbody = values.next_int();
         nwant = 3;
+      } else if (values.matches("^\\s*\\d+\\s+\\S+\\s+types\\s*$")) {
+        error->all(FLERR, fileiarg, "Found data file header keyword '{}' in molecule file", text);
+      } else if (values.matches("^\\s*\\f+\\s+\\f+\\s+[xyz]lo\\s+[xyz]hi\\s*$")) {
+        error->all(FLERR, fileiarg, "Found data file header keyword '{}' in molecule file", text);
       } else {
         // unknown header keyword
         if (values.matches("^\\s*\\f+\\s+\\S+")) {
-          error->one(FLERR, fileiarg, "Unknown keyword or incorrectly formatted header line: {}",
+          error->all(FLERR, fileiarg, "Unknown keyword or incorrectly formatted header line: {}",
                      line);
         } else
           break;
       }
       if (nmatch != nwant)
-        error->one(FLERR, fileiarg, "Invalid header line format in molecule file");
+        error->all(FLERR, fileiarg, "Invalid header line format in molecule file: {}", line);
     } catch (TokenizerException &e) {
-      error->one(FLERR, fileiarg, "Invalid header in molecule file: {}", e.what());
+      error->all(FLERR, fileiarg, "Invalid header in molecule file: {}", e.what());
     }
   }
 
@@ -1816,6 +2341,10 @@ void Molecule::read(int flag)
         error->all(FLERR, fileiarg, "Found Body Doubles section but no setting in header");
       dbodyflag = 1;
       body(flag, 1, line);
+    } else if ((keyword == "Atoms") || (keyword == "Velocities") || (keyword == "Pair Coeffs") ||
+               (keyword == "Bond Coeffs") || (keyword == "Angle Coeffs") ||
+               (keyword == "Dihedral Coeffs") || (keyword == "Improper Coeffs")) {
+      error->all(FLERR, fileiarg, "Found data file section '{}' in molecule file\n", keyword);
     } else {
 
       // Error: Either a too long/short section or a typo in the keyword
@@ -1839,6 +2368,8 @@ void Molecule::read(int flag)
       error->all(FLERR, fileiarg, "Molecule file has special flags but no bonds");
     if ((shakeflagflag || shakeatomflag || shaketypeflag) && !shakeflag)
       error->all(FLERR, fileiarg, "Molecule file shake info is incomplete");
+    if (bodyflag && !rmassflag)
+      error->all(FLERR, fileiarg, "Molecule file must have Masses section for body particle");
     if (bodyflag && nibody && ibodyflag == 0)
       error->all(FLERR, fileiarg, "Molecule file has no Body Integers section");
     if (bodyflag && ndbody && dbodyflag == 0)
@@ -2629,32 +3160,47 @@ void Molecule::nspecial_read(int flag, char *line)
 {
   if (flag == 0) maxspecial = 0;
 
-  for (int i = 0; i < natoms; i++) {
+  for (int i = 0; i < natoms; ++i) count[i] = 0;
+  for (int i = 0; i < natoms; ++i) {
     readline(line);
 
-    int c1, c2, c3;
+    int c0, c1, c2, c3;
 
     try {
       ValueTokenizer values(utils::trim_comment(line));
       if (values.count() != 4)
         error->all(FLERR, fileiarg, "Invalid line in Special Bond Counts section of molecule file: {}", line);
-      values.next_int();
-      c1 = values.next_tagint();
-      c2 = values.next_tagint();
-      c3 = values.next_tagint();
+      c0 = values.next_int();
+      c1 = values.next_int();
+      c2 = values.next_int();
+      c3 = values.next_int();
     } catch (TokenizerException &e) {
       error->all(FLERR, fileiarg, "Invalid line in Special Bond Counts section of molecule file: {}\n{}",
                  e.what(), line);
     }
 
     if (flag) {
-      nspecial[i][0] = c1;
-      nspecial[i][1] = c1 + c2;
-      nspecial[i][2] = c1 + c2 + c3;
-    } else
+      int iatom = c0 - 1;
+      if (iatom < 0 || iatom >= natoms)
+        error->all(FLERR, fileiarg, "Invalid atom index in Special Bond Counts section of molecule file");
+      count[iatom]++;
+      nspecial[iatom][0] = c1;
+      nspecial[iatom][1] = c1 + c2;
+      nspecial[iatom][2] = c1 + c2 + c3;
+    } else {
       maxspecial = MAX(maxspecial, c1 + c2 + c3);
+    }
+  }
+
+  // check
+  if (flag) {
+    for (int i = 0; i < natoms; i++) {
+      if (count[i] == 0)
+        error->all(FLERR, fileiarg, "Atom {} missing in Special Bond Counts section of molecule file", i + 1);
+    }
   }
 }
+
 
 /* ----------------------------------------------------------------------
    read special bond indices from file
@@ -2662,6 +3208,7 @@ void Molecule::nspecial_read(int flag, char *line)
 
 void Molecule::special_read(char *line)
 {
+  for (int i = 0; i < natoms; ++i) count[i] = 0;
   try {
     for (int i = 0; i < natoms; i++) {
       readline(line);
@@ -2672,17 +3219,27 @@ void Molecule::special_read(char *line)
       if (nwords != nspecial[i][2] + 1)
         error->all(FLERR, fileiarg, "Molecule file special list does not match special count");
 
-      values.next_int();    // ignore
+      int iatom = values.next_int() - 1;
+      if (iatom < 0 || iatom >= natoms)
+        error->all(FLERR, fileiarg, "Invalid atom index in Special Bonds section of molecule file");
 
       for (int m = 1; m < nwords; m++) {
-        special[i][m - 1] = values.next_tagint();
-        if (special[i][m - 1] <= 0 || special[i][m - 1] > natoms || special[i][m - 1] == i + 1)
-          error->all(FLERR, fileiarg, "Invalid atom index in Special Bonds section of molecule file");
+        tagint ival = values.next_tagint();
+        if ((ival <= 0) || (ival > natoms) || (ival == iatom + 1))
+          error->all(FLERR, fileiarg, "Invalid atom index {} in Special Bonds section of "
+                     "molecule file", ival);
+        special[iatom][m - 1] = ival;
       }
+      count[iatom]++;
     }
   } catch (TokenizerException &e) {
-    error->all(FLERR, fileiarg, "Invalid line in Special Bonds section of molecule file: {}\n{}", e.what(),
-               line);
+    error->all(FLERR, fileiarg, "Invalid line in Special Bonds section of molecule file: {}\n{}",
+               e.what(), line);
+  }
+  for (int i = 0; i < natoms; i++) {
+    if (count[i] == 0)
+      error->all(FLERR, fileiarg, "Atom {} missing in Special Bonds section of molecule file",
+                 i + 1);
   }
 }
 
@@ -2795,6 +3352,7 @@ void Molecule::special_generate()
 
 void Molecule::shakeflag_read(char *line)
 {
+  for (int i = 0; i < natoms; i++) count[i] = 0;
   try {
     for (int i = 0; i < natoms; i++) {
       readline(line);
@@ -2803,16 +3361,22 @@ void Molecule::shakeflag_read(char *line)
 
       if (values.count() != 2) error->all(FLERR, fileiarg, "Invalid Shake Flags section in molecule file");
 
-      values.next_int();
-      shake_flag[i] = values.next_int();
+      int iatom = values.next_int() - 1;
+      if (iatom < 0 || iatom >= natoms)
+        error->all(FLERR, fileiarg, "Invalid atom index in Shake Flags section of molecule file");
+      count[iatom]++;
+      shake_flag[iatom] = values.next_int();
     }
   } catch (TokenizerException &e) {
     error->all(FLERR, fileiarg, "Invalid Shake Flags section in molecule file: {}", e.what());
   }
 
-  for (int i = 0; i < natoms; i++)
+  for (int i = 0; i < natoms; i++) {
     if (shake_flag[i] < 0 || shake_flag[i] > 4)
       error->all(FLERR, fileiarg, "Invalid shake flag in molecule file");
+    if (count[i] == 0)
+      error->all(FLERR, fileiarg, "Atom {} missing in Shake Flags section of molecule file", i + 1);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -2822,60 +3386,65 @@ void Molecule::shakeflag_read(char *line)
 void Molecule::shakeatom_read(char *line)
 {
   int nmatch = 0, nwant = 0;
+  for (int i = 0; i < natoms; i++) count[i] = 0;
   try {
     for (int i = 0; i < natoms; i++) {
       readline(line);
 
       ValueTokenizer values(utils::trim_comment(line));
       nmatch = values.count();
+      int iatom = values.next_int() - 1;
+      if ((iatom < 0) || (iatom >= natoms))
+        throw TokenizerException(fmt::format("Invalid atom-id {} in Shake Atoms section of "
+                                             "molecule file", iatom + 1), "");
 
-      switch (shake_flag[i]) {
+      switch (shake_flag[iatom]) {
         case 1:
-          values.next_int();
-          shake_atom[i][0] = values.next_tagint();
-          shake_atom[i][1] = values.next_tagint();
-          shake_atom[i][2] = values.next_tagint();
+          shake_atom[iatom][0] = values.next_tagint();
+          shake_atom[iatom][1] = values.next_tagint();
+          shake_atom[iatom][2] = values.next_tagint();
           nwant = 4;
           break;
 
         case 2:
-          values.next_int();
-          shake_atom[i][0] = values.next_tagint();
-          shake_atom[i][1] = values.next_tagint();
+          shake_atom[iatom][0] = values.next_tagint();
+          shake_atom[iatom][1] = values.next_tagint();
           nwant = 3;
           break;
 
         case 3:
-          values.next_int();
-          shake_atom[i][0] = values.next_tagint();
-          shake_atom[i][1] = values.next_tagint();
-          shake_atom[i][2] = values.next_tagint();
+          shake_atom[iatom][0] = values.next_tagint();
+          shake_atom[iatom][1] = values.next_tagint();
+          shake_atom[iatom][2] = values.next_tagint();
           nwant = 4;
           break;
 
         case 4:
-          values.next_int();
-          shake_atom[i][0] = values.next_tagint();
-          shake_atom[i][1] = values.next_tagint();
-          shake_atom[i][2] = values.next_tagint();
-          shake_atom[i][3] = values.next_tagint();
+          shake_atom[iatom][0] = values.next_tagint();
+          shake_atom[iatom][1] = values.next_tagint();
+          shake_atom[iatom][2] = values.next_tagint();
+          shake_atom[iatom][3] = values.next_tagint();
           nwant = 5;
           break;
 
         case 0:
-          values.next_int();
           nwant = 1;
           break;
 
         default:
-          error->all(FLERR, fileiarg, "Invalid shake atom in molecule file");
+        throw TokenizerException(
+          fmt::format("Unexpected Shake flag {} for atom {} in Shake flags "
+                      "section of molecule file", shake_flag[iatom], iatom + 1), "");
       }
 
-      if (nmatch != nwant) error->all(FLERR, fileiarg, "Invalid shake atom in molecule file");
+      if (nmatch != nwant)
+        throw TokenizerException(
+          fmt::format("Unexpected number of atom-ids ({} vs {}) for atom {} in Shake Atoms "
+                      "section of molecule file", nmatch, nwant, iatom + 1), "");
+      count[iatom]++;
     }
-
   } catch (TokenizerException &e) {
-    error->all(FLERR, fileiarg, "Invalid shake atom in molecule file: {}", e.what());
+    error->all(FLERR, fileiarg, "Invalid Shake Atoms section in molecule file: {}", e.what());
   }
 
   for (int i = 0; i < natoms; i++) {
@@ -2884,6 +3453,8 @@ void Molecule::shakeatom_read(char *line)
     for (int j = 0; j < m; j++)
       if (shake_atom[i][j] <= 0 || shake_atom[i][j] > natoms)
         error->all(FLERR, fileiarg, "Invalid shake atom in molecule file");
+    if (count[i] == 0)
+      error->all(FLERR, fileiarg, "Atom {} missing in Shake Atoms section of molecule file", i + 1);
   }
 }
 
@@ -2894,6 +3465,7 @@ void Molecule::shakeatom_read(char *line)
 void Molecule::shaketype_read(char *line)
 {
   int nmatch = 0, nwant = 0;
+  for (int i = 0; i < natoms; i++) count[i] = 0;
   for (int i = 0; i < natoms; i++) {
     readline(line);
     auto values = Tokenizer(utils::trim(line)).as_vector();
@@ -2904,22 +3476,26 @@ void Molecule::shaketype_read(char *line)
         break;
       }
     }
+    int iatom = utils::inumeric(FLERR, values[0], false, lmp) - 1;
+    if ((iatom < 0) || (iatom >= natoms))
+      error->all(FLERR, fileiarg, "Invalid atom-id {} in Skake Bond Types section of molecule file",
+                 iatom + 1);
     char *subst;
-    switch (shake_flag[i]) {
+    switch (shake_flag[iatom]) {
       case 1:
         subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
         if (subst) values[1] = subst;
-        shake_type[i][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
+        shake_type[iatom][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
         delete[] subst;
 
         subst = utils::expand_type(FLERR, values[2], Atom::BOND, lmp);
         if (subst) values[2] = subst;
-        shake_type[i][1] = utils::inumeric(FLERR, values[2], false, lmp) + ((subst) ? 0 : boffset);
+        shake_type[iatom][1] = utils::inumeric(FLERR, values[2], false, lmp) + ((subst) ? 0 : boffset);
         delete[] subst;
 
         subst = utils::expand_type(FLERR, values[3], Atom::ANGLE, lmp);
         if (subst) values[3] = subst;
-        shake_type[i][2] = utils::inumeric(FLERR, values[3], false, lmp) + ((subst) ? 0 : aoffset);
+        shake_type[iatom][2] = utils::inumeric(FLERR, values[3], false, lmp) + ((subst) ? 0 : aoffset);
         delete[] subst;
 
         nwant = 4;
@@ -2928,7 +3504,7 @@ void Molecule::shaketype_read(char *line)
       case 2:
         subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
         if (subst) values[1] = subst;
-        shake_type[i][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
+        shake_type[iatom][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
         delete[] subst;
 
         nwant = 2;
@@ -2937,12 +3513,12 @@ void Molecule::shaketype_read(char *line)
       case 3:
         subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
         if (subst) values[1] = subst;
-        shake_type[i][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
+        shake_type[iatom][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
         delete[] subst;
 
-        subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
-        if (subst) values[1] = subst;
-        shake_type[i][1] = utils::inumeric(FLERR, values[2], false, lmp) + ((subst) ? 0 : boffset);
+        subst = utils::expand_type(FLERR, values[2], Atom::BOND, lmp);
+        if (subst) values[2] = subst;
+        shake_type[iatom][1] = utils::inumeric(FLERR, values[2], false, lmp) + ((subst) ? 0 : boffset);
         delete[] subst;
 
         nwant = 3;
@@ -2951,17 +3527,17 @@ void Molecule::shaketype_read(char *line)
       case 4:
         subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
         if (subst) values[1] = subst;
-        shake_type[i][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
+        shake_type[iatom][0] = utils::inumeric(FLERR, values[1], false, lmp) + ((subst) ? 0 : boffset);
         delete[] subst;
 
-        subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
-        if (subst) values[1] = subst;
-        shake_type[i][1] = utils::inumeric(FLERR, values[2], false, lmp) + ((subst) ? 0 : boffset);
+        subst = utils::expand_type(FLERR, values[2], Atom::BOND, lmp);
+        if (subst) values[2] = subst;
+        shake_type[iatom][1] = utils::inumeric(FLERR, values[2], false, lmp) + ((subst) ? 0 : boffset);
         delete[] subst;
 
-        subst = utils::expand_type(FLERR, values[1], Atom::BOND, lmp);
-        if (subst) values[1] = subst;
-        shake_type[i][2] = utils::inumeric(FLERR, values[3], false, lmp) + ((subst) ? 0 : boffset);
+        subst = utils::expand_type(FLERR, values[3], Atom::BOND, lmp);
+        if (subst) values[3] = subst;
+        shake_type[iatom][2] = utils::inumeric(FLERR, values[3], false, lmp) + ((subst) ? 0 : boffset);
         delete[] subst;
 
         nwant = 4;
@@ -2975,6 +3551,7 @@ void Molecule::shaketype_read(char *line)
         error->all(FLERR, fileiarg, "Invalid shake type values in molecule file");
     }
     if (nmatch != nwant) error->all(FLERR, fileiarg, "Invalid shake type data in molecule file");
+    count[iatom]++;
   }
 
   for (int i = 0; i < natoms; i++) {
@@ -2984,6 +3561,8 @@ void Molecule::shaketype_read(char *line)
       if (shake_type[i][j] <= 0) error->all(FLERR, fileiarg, "Invalid shake bond type in molecule file");
     if (shake_flag[i] == 1)
       if (shake_type[i][2] <= 0) error->all(FLERR, fileiarg, "Invalid shake angle type in molecule file");
+    if (count[i] == 0)
+      error->all(FLERR, fileiarg, "Atom {} missing in Shake Bond Types section of molecule file", i + 1);
   }
 }
 
@@ -2998,7 +3577,6 @@ void Molecule::body(int flag, int pflag, char *line)
   if (pflag) nparam = ndbody;
 
   int nword = 0;
-
   try {
     while (nword < nparam) {
       readline(line);
@@ -3006,15 +3584,16 @@ void Molecule::body(int flag, int pflag, char *line)
       ValueTokenizer values(utils::trim_comment(line));
       int ncount = values.count();
 
-      if (ncount == 0) error->all(FLERR, fileiarg, "Too few values in body section of molecule file");
+      if (ncount == 0)
+        error->all(FLERR, fileiarg, "Too few values in body section of molecule file");
       if (nword + ncount > nparam)
         error->all(FLERR, fileiarg, "Too many values in body section of molecule file");
 
       if (flag) {
         if (pflag == 0) {
-          while (values.has_next()) { ibodyparams[nword++] = values.next_int(); }
+          while (values.has_next()) ibodyparams[nword++] = values.next_int();
         } else {
-          while (values.has_next()) { dbodyparams[nword++] = values.next_double(); }
+          while (values.has_next()) dbodyparams[nword++] = values.next_double();
         }
       } else
         nword += ncount;
@@ -3049,6 +3628,7 @@ void Molecule::check_attributes()
   if (muflag && !atom->mu_flag) mismatch = 1;
   if (radiusflag && !atom->radius_flag) mismatch = 1;
   if (rmassflag && !atom->rmass_flag) mismatch = 1;
+  if (bodyflag && !atom->body_flag) mismatch = 1;
 
   if (mismatch && (comm->me == 0))
     error->warning(FLERR, "Molecule attributes do not match system attributes"
@@ -3376,13 +3956,14 @@ void Molecule::stats()
                    "Read molecule template {}:\n{}\n"
                    "  {} molecules\n"
                    "  {} fragments\n"
+                   "  {} bodies\n"
                    "  {} atoms with max type {}\n"
                    "  {} bonds with max type {}\n"
                    "  {} angles with max type {}\n"
                    "  {} dihedrals with max type {}\n"
                    "  {} impropers with max type {}\n",
-                   id, title, nmolecules, nfragments, natoms, ntypes, nbonds, nbondtypes, nangles,
-                   nangletypes, ndihedrals, ndihedraltypes, nimpropers, nimpropertypes);
+                   id, title, nmolecules, nfragments, bodyflag, natoms, ntypes, nbonds, nbondtypes,
+                   nangles, nangletypes, ndihedrals, ndihedraltypes, nimpropers, nimpropertypes);
 }
 
 /* ----------------------------------------------------------------------

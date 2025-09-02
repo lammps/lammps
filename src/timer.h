@@ -41,7 +41,7 @@ class Timer : protected Pointers {
     REPOUT,
     NUM_TIMER
   };
-  enum tlevel { OFF = 0, LOOP, NORMAL, FULL };
+  enum tlevel { OFF = 0, LOOP, NORMAL, FULL, NUMLVL };
 
   Timer(class LAMMPS *);
 

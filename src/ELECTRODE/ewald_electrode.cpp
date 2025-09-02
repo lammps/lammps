@@ -118,7 +118,7 @@ void EwaldElectrode::init()
   pair_check();
 
   int itmp;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul", itmp);
+  auto *p_cutoff = (double *) force->pair->extract("cut_coul", itmp);
   if (p_cutoff == nullptr) error->all(FLERR, "KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
 
@@ -892,16 +892,16 @@ void EwaldElectrode::compute_vector(double *vec, int sensor_grpbit, int source_g
 {
   update_eikr(false);
 
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   double *q = atom->q;
   int *mask = atom->mask;
   std::vector<double> q_cos(kcount);
   std::vector<double> q_sin(kcount);
 
   for (int k = 0; k < kcount; k++) {
-    int const kx = kxvecs[k];
-    int const ky = kyvecs[k];
-    int const kz = kzvecs[k];
+    const int kx = kxvecs[k];
+    const int ky = kyvecs[k];
+    const int kz = kzvecs[k];
     double q_cos_k = 0;
     double q_sin_k = 0;
     for (int i = 0; i < nlocal; i++) {
@@ -926,9 +926,9 @@ void EwaldElectrode::compute_vector(double *vec, int sensor_grpbit, int source_g
     if (!(mask[i] & sensor_grpbit)) continue;
     double bi = 0;
     for (int k = 0; k < kcount; k++) {
-      int const kx = kxvecs[k];
-      int const ky = kyvecs[k];
-      int const kz = kzvecs[k];
+      const int kx = kxvecs[k];
+      const int ky = kyvecs[k];
+      const int kz = kzvecs[k];
       double const cos_kxky = cs[kx][0][i] * cs[ky][1][i] - sn[kx][0][i] * sn[ky][1][i];
       double const sin_kxky = sn[kx][0][i] * cs[ky][1][i] + cs[kx][0][i] * sn[ky][1][i];
       double const cos_kr = cos_kxky * cs[kz][2][i] - sin_kxky * sn[kz][2][i];
@@ -1074,11 +1074,11 @@ void EwaldElectrode::compute_matrix(bigint *imat, double **matrix, bool /* timer
 
         // anyway, use local sn and cs for simplicity
 
-        int const kx = kxvecs[k];
-        int const ky = kyvecs[k];
-        int const kz = kzvecs[k];
-        int const sign_ky = (ky > 0) - (ky < 0);
-        int const sign_kz = (kz > 0) - (kz < 0);
+        const int kx = kxvecs[k];
+        const int ky = kyvecs[k];
+        const int kz = kzvecs[k];
+        const int sign_ky = (ky > 0) - (ky < 0);
+        const int sign_kz = (kz > 0) - (kz < 0);
 
         double cos_kxky = cs[kx][0][i] * cs[ky][1][i] - sn[kx][0][i] * sn[ky][1][i];
         double sin_kxky = sn[kx][0][i] * cs[ky][1][i] + cs[kx][0][i] * sn[ky][1][i];
@@ -1088,9 +1088,9 @@ void EwaldElectrode::compute_matrix(bigint *imat, double **matrix, bool /* timer
 
         // global indexing  csx_all[kx+j*(kxmax+1)]  <>  csx_all[kx][j]
 
-        int const kxj = kx + j * (kxmax + 1);
-        int const kyj = abs(ky) + j * (kymax + 1);
-        int const kzj = abs(kz) + j * (kzmax + 1);
+        const int kxj = kx + j * (kxmax + 1);
+        const int kyj = abs(ky) + j * (kymax + 1);
+        const int kzj = abs(kz) + j * (kzmax + 1);
 
         cos_kxky = csx_all[kxj] * csy_all[kyj] - snx_all[kxj] * sny_all[kyj] * sign_ky;
         sin_kxky = snx_all[kxj] * csy_all[kyj] + csx_all[kxj] * sny_all[kyj] * sign_ky;

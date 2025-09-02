@@ -318,7 +318,7 @@ pressure simulation with MSM will cause the code to run slower.
 ----------
 
 The *scafacos* style is a wrapper on the `ScaFaCoS Coulomb solver
-library <http://www.scafacos.de>`_ which provides a variety of solver
+library <http://www.scafacos.de/>`_ which provides a variety of solver
 methods which can be used with LAMMPS.  The paper by :ref:`(Sutman)
 <Sutmann2014>` gives an overview of ScaFaCoS.
 
@@ -328,9 +328,9 @@ in 2009-2012. Participants of the consortium were the Universities of
 Bonn, Chemnitz, Stuttgart, and Wuppertal as well as the
 Forschungszentrum Juelich.
 
-The library is available for download at "http://scafacos.de" or can
+The library is available for download at "http://www.scafacos.de/" or can
 be cloned from the git-repository
-"https://github.com/scafacos/scafacos.git".
+"https://github.com/scafacos/scafacos".
 
 In order to use this KSpace style, you must download and build the
 ScaFaCoS library, then build LAMMPS with the SCAFACOS package

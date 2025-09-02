@@ -2158,7 +2158,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Add molecule template from string with JSON data
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Jul2025
 
    :p character(len=\*) id: desired molecule-ID
    :p character(len=\*) jsonstr: string with JSON data defining the molecule template

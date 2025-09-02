@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 
 class RegCone : public Region {
   friend class Region2VMD;
+  friend class DumpImage;
 
  public:
   RegCone(class LAMMPS *, int, char **);

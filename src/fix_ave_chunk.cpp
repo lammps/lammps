@@ -29,6 +29,7 @@
 #include "variable.h"
 
 #include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -132,7 +133,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       val.argindex = argi.get_index1();
       val.id = argi.get_name();
     }
-    values.push_back(val);
+    values.push_back(std::move(val));
     iarg++;
   }
 

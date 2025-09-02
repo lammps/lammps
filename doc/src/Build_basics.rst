@@ -527,7 +527,7 @@ using CMake or Make.
 
       .. note::
 
-         Building the LAMMPS-GUI *requires* building LAMMPS with CMake.
+         Building LAMMPS-GUI *requires* building LAMMPS with CMake.
 
 ----------
 

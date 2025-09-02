@@ -104,19 +104,19 @@ set_target_properties(morse2plugin nve2plugin helloplugin zero2plugin kspaceplug
 
 # MacOS seems to need this
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-  set_target_properties(morse2plugin nve2plugin helloplugin zero2plugin
+  set_target_properties(morse2plugin nve2plugin helloplugin zero2plugin kspaceplugin runminplugin
     PROPERTIES LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 # tell CMake to export all symbols to a .dll on Windows with special case for MinGW cross-compilers
-  set_target_properties(morse2plugin nve2plugin helloplugin zero2plugin
+  set_target_properties(morse2plugin nve2plugin helloplugin zero2plugin kspaceplugin runminplugin
     PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
   if(CMAKE_CROSSCOMPILING)
     set_target_properties(morse2plugin nve2plugin helloplugin zero2plugin kspaceplugin runminplugin
       PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
   endif()
 else()
-  set_target_properties(morse2plugin nve2plugin helloplugin zero2plugin kspaceplugin runminplugin PROPERTIES
-    LINK_FLAGS "-rdynamic")
+  set_target_properties(morse2plugin nve2plugin helloplugin zero2plugin kspaceplugin runminplugin
+    PROPERTIES LINK_FLAGS "-rdynamic")
 endif()
 
 add_custom_target(plugins ALL ${CMAKE_COMMAND} -E echo "Building Plugins"

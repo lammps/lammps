@@ -78,11 +78,11 @@ static int solve_cyc_tridiag( const double diag[], size_t d_stride,
                               size_t N, Error *error)
 {
   int status = GSL_SUCCESS;
-  auto  delta = (double *) malloc (N * sizeof (double));
-  auto  gamma = (double *) malloc (N * sizeof (double));
-  auto  alpha = (double *) malloc (N * sizeof (double));
-  auto  c = (double *) malloc (N * sizeof (double));
-  auto  z = (double *) malloc (N * sizeof (double));
+  auto *  delta = (double *) malloc (N * sizeof (double));
+  auto *  gamma = (double *) malloc (N * sizeof (double));
+  auto *  alpha = (double *) malloc (N * sizeof (double));
+  auto *  c = (double *) malloc (N * sizeof (double));
+  auto *  z = (double *) malloc (N * sizeof (double));
 
   if (delta == nullptr || gamma == nullptr || alpha == nullptr || c == nullptr || z == nullptr) {
     error->one(FLERR, "Internal Cyclic Spline Error: failed to allocate work space");
@@ -188,9 +188,9 @@ static int cyc_spline(double const *xa, double const *ya, int n,
                       double period, double *y2a, Error *error)
 {
 
-  auto diag    = new double[n];
-  auto offdiag = new double[n];
-  auto rhs     = new double[n];
+  auto *diag    = new double[n];
+  auto *offdiag = new double[n];
+  auto *rhs     = new double[n];
   double xa_im1, xa_ip1;
 
   // In the cyclic case, there are n equations with n unknows.
@@ -787,9 +787,9 @@ void DihedralTable::coeff(int narg, char **arg)
   // We also want the angles to be sorted in increasing order.
   // This messy code fixes these problems with the user's data:
   {
-    auto phifile_tmp = new double[tb->ninput];  //temporary arrays
-    auto ffile_tmp = new double[tb->ninput];  //used for sorting
-    auto efile_tmp = new double[tb->ninput];
+    auto *phifile_tmp = new double[tb->ninput];  //temporary arrays
+    auto *ffile_tmp = new double[tb->ninput];  //used for sorting
+    auto *efile_tmp = new double[tb->ninput];
 
     // After re-imaging, does the range of angles cross the 0 or 2*PI boundary?
     // If so, find the discontinuity:

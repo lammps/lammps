@@ -782,7 +782,6 @@ algorithm.
 * :doc:`pair_style tdpd <pair_mesodpd>`
 * :doc:`fix mvv/dpd <fix_mvv_dpd>`
 * ``examples/PACKAGES/mesodpd``
-* https://www.lammps.org/movies.html#mesodpd
 
 ----------
 
@@ -1167,7 +1166,7 @@ H5MD is a format for molecular simulations, built on top of HDF5.
 This package implements a :doc:`dump h5md <dump_h5md>` command to output
 LAMMPS snapshots in this format.
 
-.. _HDF5: https://www.hdfgroup.org/solutions/hdf5
+.. _HDF5: https://www.hdfgroup.org/solutions/hdf5/
 
 To use this package you must have the HDF5 library available on your
 system.
@@ -1512,7 +1511,6 @@ This package has :ref:`specific installation instructions <machdyn>` on the :doc
 * ``src/MACHDYN/README``
 * `doc/PDF/MACHDYN_LAMMPS_userguide.pdf <PDF/MACHDYN_LAMMPS_userguide.pdf>`_
 * ``examples/PACKAGES/machdyn``
-* https://www.lammps.org/movies.html#smd
 
 ----------
 
@@ -2125,7 +2123,7 @@ support for new file formats can be added to LAMMPS (or VMD or other
 programs that use them) without having to re-compile the application
 itself.  More information about the VMD molfile plugins can be found
 at
-`https://www.ks.uiuc.edu/Research/vmd/plugins/molfile <https://www.ks.uiuc.edu/Research/vmd/plugins/molfile>`_.
+`https://www.ks.uiuc.edu/Research/vmd/plugins/molfile <https://www.ks.uiuc.edu/Research/vmd/plugins/molfile/>`_.
 
 **Author:** Axel Kohlmeyer (Temple U).
 
@@ -2316,7 +2314,7 @@ Foster (UTSA).
 * :doc:`compute damage/atom <compute_damage_atom>`
 * :doc:`compute plasticity/atom <compute_plasticity_atom>`
 * ``examples/peri``
-* https://www.lammps.org/movies.html#peri
+* https://www.lammps.org/movies.html#impact
 
 ----------
 
@@ -2757,7 +2755,7 @@ SCAFACOS package
 
 **Contents:**
 
-A KSpace style which wraps the `ScaFaCoS Coulomb solver library <http://www.scafacos.de>`_ to compute long-range Coulombic
+A KSpace style which wraps the `ScaFaCoS Coulomb solver library <http://www.scafacos.de/>`_ to compute long-range Coulombic
 interactions.
 
 To use this package you must have the ScaFaCoS library available on
@@ -3027,7 +3025,7 @@ A :doc:`dump vtk <dump_vtk>` command which outputs snapshot info in the
 `VTK format <vtk_>`_, enabling visualization by `Paraview <paraview_>`_ or
 other visualization packages.
 
-.. _vtk: https://www.vtk.org
+.. _vtk: https://vtk.org
 
 .. _paraview: https://www.paraview.org
 
@@ -3066,7 +3064,7 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 
 .. _vanduyfhuys2015: https://doi.org/10.1002/jcc.23877
 .. _vanduyfhuys2018: https://doi.org/10.1002/jcc.25173
-.. _quickff: https://molmod.github.io/QuickFF
+.. _quickff: https://molmod.github.io/QuickFF/
 .. _yaff: https://github.com/molmod/yaff
 
 **Author:** Steven Vandenbrande.

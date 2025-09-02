@@ -22,6 +22,7 @@
 #include "dump_cfg.h"
 #include "dump_image.h"
 #include "error.h"
+#include "exceptions.h"
 #include "output.h"
 #include "update.h"
 
@@ -51,7 +52,7 @@ void WriteDump::command(int narg, char **arg)
   dumpfreq += update->ntimestep % dumpfreq;
 
   std::string dump_id = "WRITE_DUMP";
-  auto dumpargs = new char *[modindex + 2];
+  auto *dumpargs = new char *[modindex + 2];
   dumpargs[0] = (char *) dump_id.c_str();                   // dump id
   dumpargs[1] = arg[0];                                     // group
   dumpargs[2] = arg[1];                                     // dump style

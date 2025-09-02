@@ -89,7 +89,7 @@ ComputeRigidLocal::ComputeRigidLocal(LAMMPS *lmp, int narg, char **arg) :
   if (nvalues == 1) size_local_cols = 0;
   else size_local_cols = nvalues;
 
-ncount = nmax = 0;
+  ncount = nmax = 0;
   vlocal = nullptr;
   alocal = nullptr;
 }
@@ -110,7 +110,7 @@ void ComputeRigidLocal::init()
 {
   // set fixrigid
 
-  auto ifix = modify->get_fix_by_id(idrigid);
+  auto *ifix = modify->get_fix_by_id(idrigid);
   if (!ifix) error->all(FLERR,"FixRigidSmall ID {} for compute rigid/local does not exist", idrigid);
   fixrigid = dynamic_cast<FixRigidSmall *>(ifix);
   if (!fixrigid)

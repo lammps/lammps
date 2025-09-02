@@ -35,12 +35,15 @@ class Set : public Command {
   void selection(int);
   void invoke_actions();
 
+  enum { SETCOMMAND, FIXSET };
+
  private:
   int caller;    // SETCOMMAND or FIXSET
 
   // params for atom selection
 
   int style;
+  int argoff;
   char *id;
   int nlo, nhi;
   bigint nlobig, nhibig;
@@ -65,7 +68,7 @@ class Set : public Command {
   int naction, maxaction;
   Action *actions;
 
-  typedef void (Set::*FnPtrPack)(Action *);
+  using FnPtrPack = void (Set::*)(Action *);
   FnPtrPack *invoke_choice;    // list of ptrs to invoke functions
 
   double *vec1, *vec2, *vec3, *vec4;             // storage for evaluated peratom variables
@@ -110,7 +113,8 @@ class Set : public Command {
   void process_omega(int &, int, char **, Action *);
   void process_quat(int &, int, char **, Action *);
   void process_quat_random(int &, int, char **, Action *);
-  void process_radius_election(int &, int, char **, Action *);
+  void process_radius_electron(int &, int, char **, Action *);
+  void process_rheo_status(int &, int, char **, Action *);
   void process_shape(int &, int, char **, Action *);
   void process_smd_contact_radius(int &, int, char **, Action *);
   void process_smd_mass_density(int &, int, char **, Action *);
@@ -163,7 +167,8 @@ class Set : public Command {
   void invoke_omega(Action *);
   void invoke_quat(Action *);
   void invoke_quat_random(Action *);
-  void invoke_radius_election(Action *);
+  void invoke_radius_electron(Action *);
+  void invoke_rheo_status(Action *);
   void invoke_shape(Action *);
   void invoke_smd_contact_radius(Action *);
   void invoke_smd_mass_density(Action *);

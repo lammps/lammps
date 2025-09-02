@@ -89,6 +89,9 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "conf") == 0) {
+      bondflag = 1;
+      angleflag = 1;
+      dihedralflag = 1;
       for (i = 0; i < 3; i++) {
         which[nvalues] = CONF;
         nvalues++;
@@ -99,6 +102,9 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
         nvalues++;
       }
     } else if (strcmp(arg[iarg], "total") == 0) {
+      bondflag = 1;
+      angleflag = 1;
+      dihedralflag = 1;
       for (i = 0; i < 3; i++) {
         which[nvalues] = TOTAL;
         nvalues++;
@@ -109,16 +115,19 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
         nvalues++;
       }
     } else if (strcmp(arg[iarg], "bond") == 0) {
+      bondflag = 1;
       for (i = 0; i < 3; i++) {
         which[nvalues] = BOND;
         nvalues++;
       }
     } else if (strcmp(arg[iarg], "angle") == 0) {
+      angleflag = 1;
       for (i = 0; i < 3; i++) {
         which[nvalues] = ANGLE;
         nvalues++;
       }
     } else if (strcmp(arg[iarg], "dihedral") == 0) {
+      dihedralflag = 1;
       for (i = 0; i < 3; i++) {
         which[nvalues] = DIHEDRAL;
         nvalues++;
@@ -227,49 +236,46 @@ void ComputeStressMopProfile::init()
     error->all(FLERR, "Pair style {} does not support compute stress/mop/profile",
                force->pair_style);
 
+  // issue an error for unimplemented bond/angle/dihedral potentials
+
+  if (bondflag == 1 && !(force->bond)) {
+    bondflag = 0;
+  }
+
+  if (angleflag == 1 && !(force->angle)) {
+    angleflag = 0;
+  }
+
+  if (dihedralflag == 1 && !(force->dihedral)) {
+    dihedralflag = 0;
+  }
+
+  if (angleflag == 1 && force->angle) {
+    if (force->angle->born_matrix_enable == 0) {
+        if ((strcmp(force->angle_style, "zero") != 0) && (strcmp(force->angle_style, "none") != 0))
+          error->all(FLERR, "compute stress/mop/profile does not account for the selected angle potential");
+    }
+  }
+
+  if (dihedralflag == 1 && force->dihedral) {
+    if (force->dihedral->born_matrix_enable == 0) {
+      if ((strcmp(force->dihedral_style, "zero") != 0) &&
+          (strcmp(force->dihedral_style, "none") != 0))
+          error->all(FLERR, "compute stress/mop/profile does not account for the selected dihedral potentials");
+    }
+  }
+
   // Errors
 
   if (comm->me == 0) {
 
-    // issue an error for unimplemented intramolecular potentials or Kspace.
+    // issue an error for unimplemented improper potentials and Kspace.
 
-    if (force->bond) {
-      bondflag = 1;
-      if (comm->nprocs > 1)
-        error->one(
-            FLERR,
-            "compute stress/mop/profile with bonds does not (yet) support MPI parallel runs");
-    }
 
-    if (force->angle) {
-      if (force->angle->born_matrix_enable == 0) {
-        if ((strcmp(force->angle_style, "zero") != 0) && (strcmp(force->angle_style, "none") != 0))
-          error->one(FLERR, "compute stress/mop/profile does not account for angle potentials");
-      } else {
-        angleflag = 1;
-        if (comm->nprocs > 1)
-          error->one(
-              FLERR,
-              "compute stress/mop/profile with angles does not (yet) support MPI parallel runs");
-      }
-    }
-    if (force->dihedral) {
-      if (force->dihedral->born_matrix_enable == 0) {
-        if ((strcmp(force->dihedral_style, "zero") != 0) &&
-            (strcmp(force->dihedral_style, "none") != 0))
-          error->one(FLERR, "compute stress/mop/profile does not account for dihedral potentials");
-      } else {
-        dihedralflag = 1;
-        if (comm->nprocs > 1)
-          error->one(
-              FLERR,
-              "compute stress/mop/profile with dihedrals does not (yet) support MPI parallel runs");
-      }
-    }
     if (force->improper) {
       if ((strcmp(force->improper_style, "zero") != 0) &&
           (strcmp(force->improper_style, "none") != 0))
-        error->one(FLERR, "compute stress/mop/profile does not account for improper potentials");
+        error->warning(FLERR, "compute stress/mop/profile does not account for improper potentials");
     }
     if (force->kspace)
       error->warning(FLERR, "compute stress/mop/profile does not account for kspace contributions");

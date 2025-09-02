@@ -24,7 +24,6 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "modify.h"
 #include "pair.h"
 #include "respa.h"
@@ -70,10 +69,10 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   int api_version = 0;
   p->cmd("getApiVersion", &api_version);
-  if ((api_version < 5) || (api_version > 10))
+  if ((api_version < 5) || (api_version > 11))
     error->all(FLERR,
                "Incompatible API version for PLUMED in fix plumed. "
-               "Only Plumed 2.4.x, 2.5.x, 2.6.x, 2.7.x, 2.8.x, 2.9.x are tested and supported.");
+               "Only Plumed 2.4.x, 2.5.x, 2.6.x, 2.7.x, 2.8.x, 2.9.x, 2.10.x are tested and supported.");
 
 #if !defined(MPI_STUBS)
   // If the -partition option is activated then enable

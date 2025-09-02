@@ -13,11 +13,9 @@
 
 #include "../testing/core.h"
 #include "atom.h"
-#include "input.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include <cmath>
 #include <cstring>
 #include <vector>
 

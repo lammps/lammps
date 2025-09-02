@@ -61,8 +61,8 @@ template<class DeviceType>
 class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
  public:
   typedef DeviceType device_type;
-  typedef double value_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef double value_type;
   FixACKS2ReaxFFKokkos(class LAMMPS *, int, char **);
   ~FixACKS2ReaxFFKokkos() override;
 
@@ -72,7 +72,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   void pre_force(int) override;
   void cleanup_copy();
 
-  DAT::tdual_ffloat_1d get_s() {return k_s;}
+  DAT::ttransform_kkfloat_1d get_s() {return k_s;}
 
   KOKKOS_INLINE_FUNCTION
   void num_neigh_item(int, bigint&) const;
@@ -156,17 +156,17 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   void operator()(TagACKS2CalculateQ, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  double calculate_H_k(const F_FLOAT &r, const F_FLOAT &shld) const;
+  KK_FLOAT calculate_H_k(const KK_FLOAT &r, const KK_FLOAT &shld) const;
 
   KOKKOS_INLINE_FUNCTION
-  double calculate_X_k(const F_FLOAT &r, const F_FLOAT &bcut) const;
+  KK_FLOAT calculate_X_k(const KK_FLOAT &r, const KK_FLOAT &bcut) const;
 
-  struct params_acks2{
+  struct params_acks2 {
     KOKKOS_INLINE_FUNCTION
     params_acks2(){chi=0;eta=0;gamma=0;bcut_acks2=0;};
     KOKKOS_INLINE_FUNCTION
     params_acks2(int){chi=0;eta=0;gamma=0;bcut_acks2=0;};
-    F_FLOAT chi, eta, gamma, bcut_acks2;
+    KK_FLOAT chi, eta, gamma, bcut_acks2;
   };
 
  private:
@@ -178,48 +178,48 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
 
   typename AT::t_bigint_scalar d_mfill_offset;
 
-  typedef Kokkos::DualView<int***,DeviceType> tdual_int_1d;
   Kokkos::DualView<params_acks2*,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_acks2*, Kokkos::LayoutRight,DeviceType>::t_dev_const params;
 
-  typename AT::t_x_array x;
-  typename AT::t_v_array v;
-  typename AT::t_f_array_const f;
-  typename AT::t_ffloat_1d_randomread mass;
-  typename AT::t_ffloat_1d q;
+  typename AT::t_kkfloat_1d_3_lr x;
+  typename AT::t_kkfloat_1d_3 v;
+  typename AT::t_kkacc_1d_3_const f;
+  typename AT::t_kkfloat_1d_randomread mass;
+  typename AT::t_kkfloat_1d q;
   typename AT::t_int_1d type, mask;
   typename AT::t_tagint_1d tag;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist, d_numneigh;
 
-  DAT::tdual_ffloat_1d k_tap;
-  typename AT::t_ffloat_1d d_tap;
+  DAT::tdual_kkfloat_1d k_tap;
+  typename AT::t_kkfloat_1d d_tap;
 
-  DAT::tdual_ffloat_2d k_bcut;
-  typename AT::t_ffloat_2d d_bcut;
+  DAT::tdual_kkfloat_2d k_bcut;
+  typename AT::t_kkfloat_2d d_bcut;
 
   typename AT::t_bigint_1d d_firstnbr;
   typename AT::t_int_1d d_numnbrs;
   typename AT::t_int_1d d_jlist;
-  typename AT::t_ffloat_1d d_val;
+  typename AT::t_kkfloat_1d d_val;
 
   typename AT::t_bigint_1d d_firstnbr_X;
   typename AT::t_int_1d d_numnbrs_X;
   typename AT::t_int_1d d_jlist_X;
-  typename AT::t_ffloat_1d d_val_X;
+  typename AT::t_kkfloat_1d d_val_X;
 
-  DAT::tdual_ffloat_1d k_s, k_X_diag, k_chi_field;
-  typename AT::t_ffloat_1d d_Hdia_inv,d_Xdia_inv, d_X_diag, d_chi_field, d_b_s,  d_s;
-  typename AT::t_ffloat_1d_randomread r_b_s, r_s;
+  DAT::ttransform_kkfloat_1d k_s, k_X_diag, k_chi_field;
+  typename AT::t_kkfloat_1d d_Hdia_inv,d_Xdia_inv, d_X_diag, d_chi_field, d_b_s,  d_s;
+  typename AT::t_kkfloat_1d_randomread r_b_s, r_s;
 
-  DAT::tdual_ffloat_1d k_d, k_q_hat, k_z, k_y;
-  typename AT::t_ffloat_1d d_p, d_q, d_r, d_d, d_g, d_q_hat, d_r_hat, d_y, d_z, d_bb, d_xx;
-  typename AT::t_ffloat_1d_randomread r_p, r_r, r_d;
+  DAT::ttransform_kkfloat_1d k_d, k_q_hat, k_z, k_y;
+  typename AT::t_kkfloat_1d d_p, d_q, d_r, d_d, d_g, d_q_hat, d_r_hat, d_y, d_z, d_bb, d_xx;
+  typename AT::t_kkfloat_1d_randomread r_p, r_r, r_d;
 
-  DAT::tdual_ffloat_2d k_shield, k_s_hist, k_s_hist_X, k_s_hist_last;
-  typename AT::t_ffloat_2d d_shield, d_s_hist, d_s_hist_X, d_s_hist_last;
-  typename AT::t_ffloat_2d_randomread r_s_hist, r_s_hist_X, r_s_hist_last;
+  DAT::ttransform_kkfloat_2d k_s_hist, k_s_hist_X, k_s_hist_last;
+  DAT::tdual_kkfloat_2d k_shield;
+  typename AT::t_kkfloat_2d d_shield, d_s_hist, d_s_hist_X, d_s_hist_last;
+  typename AT::t_kkfloat_2d_randomread r_s_hist, r_s_hist_X, r_s_hist_last;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
@@ -229,11 +229,11 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   template<typename DataType, typename Layout>
   using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
 
-  DupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> dup_X_diag;
-  NonDupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> ndup_X_diag;
+  DupScatterView<KK_FLOAT*, DAT::t_kkfloat_1d::array_layout> dup_X_diag;
+  NonDupScatterView<KK_FLOAT*, DAT::t_kkfloat_1d::array_layout> ndup_X_diag;
 
-  DupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> dup_bb;
-  NonDupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> ndup_bb;
+  DupScatterView<KK_FLOAT*, DAT::t_kkfloat_1d::array_layout> dup_bb;
+  NonDupScatterView<KK_FLOAT*, DAT::t_kkfloat_1d::array_layout> ndup_bb;
 
   void init_shielding_k();
   void init_hist();
@@ -250,7 +250,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
 
   int first;
   typename AT::t_int_1d d_sendlist;
-  typename AT::t_xfloat_1d_um v_buf;
+  typename AT::t_double_1d_um v_buf;
 
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
@@ -260,12 +260,13 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   void get_chi_field() override;
   double memory_usage() override;
 
-  void sparse_matvec_acks2(typename AT::t_ffloat_1d &, typename AT::t_ffloat_1d &);
+  void sparse_matvec_acks2(typename AT::t_kkfloat_1d &, typename AT::t_kkfloat_1d &);
 };
 
 template <class DeviceType>
 struct FixACKS2ReaxFFKokkosNumNeighFunctor  {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef bigint value_type;
   FixACKS2ReaxFFKokkos<DeviceType> c;
   FixACKS2ReaxFFKokkosNumNeighFunctor(FixACKS2ReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
@@ -317,7 +318,7 @@ struct FixACKS2ReaxFFKokkosComputeHFunctor {
             shmem_size(atoms_per_team, vector_length) + // s_jtype
         Kokkos::View<int **, scratch_space, Kokkos::MemoryUnmanaged>::
             shmem_size(atoms_per_team, vector_length) + // s_j
-        Kokkos::View<F_FLOAT **, scratch_space,
+        Kokkos::View<KK_FLOAT **, scratch_space,
                      Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team,
                                                           vector_length); // s_r
     return shmem_size;
@@ -364,7 +365,7 @@ struct FixACKS2ReaxFFKokkosComputeXFunctor {
             shmem_size(atoms_per_team, vector_length) + // s_jtype
         Kokkos::View<int **, scratch_space, Kokkos::MemoryUnmanaged>::
             shmem_size(atoms_per_team, vector_length) + // s_j
-        Kokkos::View<F_FLOAT **, scratch_space,
+        Kokkos::View<KK_FLOAT **, scratch_space,
                      Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team,
                                                           vector_length); // s_r
     return shmem_size;

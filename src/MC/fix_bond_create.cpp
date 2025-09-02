@@ -37,6 +37,9 @@ using namespace MathConst;
 static constexpr double BIG = 1.0e20;
 static constexpr int DELTA = 16;
 
+// values for molecule_keyword, matching fix_bond_react.cpp
+enum { OFF, INTER, INTRA };
+
 /* ---------------------------------------------------------------------- */
 
 FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
@@ -44,12 +47,11 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   bondcount(nullptr), partner(nullptr), finalpartner(nullptr), distsq(nullptr),
   probability(nullptr), created(nullptr), copy(nullptr), random(nullptr), list(nullptr)
 {
-  if (narg < 8) error->all(FLERR,"Illegal fix bond/create command");
-
-  MPI_Comm_rank(world,&me);
+  std::string fixname = fmt::format("fix {}", style);
+  if (narg < 8) utils::missing_cmd_args(FLERR, fixname, error);
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal fix bond/create command");
+  if (nevery <= 0) error->all(FLERR, 3, "Illegal fix {} nevery value {}", style, nevery);
 
   dynamic_group_allow = 1;
   force_reneighbor = 1;
@@ -66,10 +68,10 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 
   if (iatomtype < 1 || iatomtype > atom->ntypes ||
       jatomtype < 1 || jatomtype > atom->ntypes)
-    error->all(FLERR,"Invalid atom type in fix bond/create command");
-  if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/create command");
+    error->all(FLERR,"Invalid atom type in fix {} command", style);
+  if (cutoff < 0.0) error->all(FLERR, 6, "Illegal fix {} cutoff value {}", style, cutoff);
   if (btype < 1 || btype > atom->nbondtypes)
-    error->all(FLERR,"Invalid bond type in fix bond/create command");
+    error->all(FLERR, 7, "Invalid bond type {} in fix {} command", style, btype);
 
   cutsq = cutoff*cutoff;
 
@@ -82,7 +84,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   fraction = 1.0;
   int seed = 12345;
   atype = dtype = itype = 0;
-
+  molecule_keyword = OFF;
   constrainflag = 0;
   constrainpass = 0;
   amin = 0;
@@ -91,75 +93,80 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"iparam") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR,fixname + " iparam", error);
       imaxbond = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
       inewtype = utils::expand_type_int(FLERR, arg[iarg+2], Atom::ATOM, lmp);
-      if (imaxbond < 0) error->all(FLERR,"Illegal fix bond/create command");
-      if (inewtype < 1 || inewtype > atom->ntypes)
-        error->all(FLERR,"Invalid atom type in fix bond/create command");
+      if (imaxbond < 0)
+        error->all(FLERR, iarg + 1, "Invalid fix {} iparam imaxbond value {}", style, imaxbond);
+      if ((inewtype < 1) || (inewtype > atom->ntypes))
+        error->all(FLERR, iarg + 2, "Invalid atom type {} in fix {} iparam command", inewtype, style);
       iarg += 3;
     } else if (strcmp(arg[iarg],"jparam") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR,fixname + " jparam", error);
       jmaxbond = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
       jnewtype = utils::expand_type_int(FLERR, arg[iarg+2], Atom::ATOM, lmp);
-      if (jmaxbond < 0) error->all(FLERR,"Illegal fix bond/create command");
-      if (jnewtype < 1 || jnewtype > atom->ntypes)
-        error->all(FLERR,"Invalid atom type in fix bond/create command");
+      if (jmaxbond < 0)
+        error->all(FLERR, iarg + 1, "Invalid fix {} jparam jmaxbond value {}", style, jmaxbond);
+      if ((jnewtype < 1) || (jnewtype > atom->ntypes))
+        error->all(FLERR, iarg + 2, "Invalid atom type {} in fix {} jparam command", jnewtype, style);
       iarg += 3;
     } else if (strcmp(arg[iarg],"prob") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR,fixname + " prob", error);
       fraction = utils::numeric(FLERR, arg[iarg+1], false, lmp);
       seed = utils::inumeric(FLERR, arg[iarg+2], false, lmp);
-      if (fraction < 0.0 || fraction > 1.0)
-        error->all(FLERR,"Illegal fix bond/create command");
-      if (seed <= 0) error->all(FLERR,"Illegal fix bond/create command");
+      if ((fraction < 0.0) || (fraction > 1.0))
+        error->all(FLERR, iarg + 1, "Invalid fix {} prob fraction value {}", style, fraction);
+      if (seed <= 0) error->all(FLERR,"Invalid fix {} prob seed value {}", style, seed);
       iarg += 3;
     } else if (strcmp(arg[iarg],"atype") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fixname + " atype", error);
       atype = utils::expand_type_int(FLERR, arg[iarg+1], Atom::ANGLE, lmp);
-      if (atype < 0) error->all(FLERR,"Illegal fix bond/create command");
+      if (atype < 0) error->all(FLERR, iarg + 1, "Invalid fix {} atype value {}", style, atype);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dtype") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fixname + " dtype", error);
       dtype = utils::expand_type_int(FLERR, arg[iarg+1], Atom::DIHEDRAL, lmp);
-      if (dtype < 0) error->all(FLERR,"Illegal fix bond/create command");
+      if (dtype < 0) error->all(FLERR, iarg + 1, "Invalid fix {} dtype value {}", style, dtype);
       iarg += 2;
     } else if (strcmp(arg[iarg],"itype") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fixname + " itype", error);
       itype = utils::expand_type_int(FLERR, arg[iarg+1], Atom::IMPROPER, lmp);
-      if (itype < 0) error->all(FLERR,"Illegal fix bond/create command");
+      if (itype < 0) error->all(FLERR, iarg + 1, "Invalid fix {} itype value {}", style, itype);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"molecule") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fixname + " molecule", error);
+      if (strcmp(arg[iarg+1],"off") == 0) molecule_keyword = OFF; //default
+      else if (strcmp(arg[iarg+1],"inter") == 0) molecule_keyword = INTER;
+      else if (strcmp(arg[iarg+1],"intra") == 0) molecule_keyword = INTRA;
+      else error->all(FLERR, iarg + 1, "Unknown option {} for fix {} molecule", arg[iarg+1], style);
       iarg += 2;
     } else if (strcmp(arg[iarg],"aconstrain") == 0 &&
         strcmp(style,"bond/create/angle") == 0) {
-      if (iarg+3 > narg)
-          error->all(FLERR,"Illegal fix bond/create/angle command");
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"fix bond/create/angle aconstrain", error);
       amin = utils::numeric(FLERR, arg[iarg+1], false, lmp);
       amax = utils::inumeric(FLERR, arg[iarg+2], false, lmp);
-      if (amin  >= amax)
-        error->all(FLERR,"Illegal fix bond/create/angle command");
-      if (amin < 0 || amin > 180)
-        error->all(FLERR,"Illegal fix bond/create/angle command");
-      if (amax < 0 || amax > 180)
-        error->all(FLERR,"Illegal fix bond/create/angle command");
+      if (amin >= amax) error->all(FLERR,"Illegal fix bond/create/angle aconstrain command");
+      if ((amin < 0) || (amin > 180))
+        error->all(FLERR,"Invalid fix bond/create/angle aconstrain amin value {}", amin);
+      if ((amax < 0) || (amax > 180))
+        error->all(FLERR,"Invalid fix bond/create/angle aconstrain amax value {}", amax);
       amin = (MY_PI/180.0) * amin;
       amax = (MY_PI/180.0) * amax;
       constrainflag = 1;
       iarg += 3;
-    } else error->all(FLERR,"Illegal fix bond/create command");
+    } else error->all(FLERR, iarg, "Unknown fix {} keyword {}", style, arg[iarg]);
   }
 
   // error check
 
   if (atom->molecular != Atom::MOLECULAR)
-    error->all(FLERR,"Cannot use fix bond/create with non-molecular systems");
-  if (iatomtype == jatomtype &&
-      ((imaxbond != jmaxbond) || (inewtype != jnewtype)))
-    error->all(FLERR,
-               "Inconsistent iparam/jparam values in fix bond/create command");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix {} with non-molecular systems", style);
+  if ((iatomtype == jatomtype) && ((imaxbond != jmaxbond) || (inewtype != jnewtype)))
+    error->all(FLERR, Error::NOLASTLINE, "Inconsistent iparam/jparam values in fix {} command", style);
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  random = new RanMars(lmp,seed + me);
+  random = new RanMars(lmp, seed + comm->me);
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
@@ -239,21 +246,21 @@ void FixBondCreate::init()
 
   // check cutoff for iatomtype,jatomtype
 
-  if (force->pair == nullptr || cutsq > force->pair->cutsq[iatomtype][jatomtype])
-    error->all(FLERR,"Fix bond/create cutoff is longer than pairwise cutoff");
+  if ((force->pair == nullptr) || (cutsq > force->pair->cutsq[iatomtype][jatomtype]))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} cutoff is longer than pairwise cutoff", style);
 
-  // warn if more than one fix bond/create or also a fix bond/break
+  // warn if more than one fix {} or also a fix bond/break
   // because this fix stores per-atom state in bondcount
   //   if other fixes create/break bonds, this fix will not know about it
 
   int count = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"bond/create") == 0) count++;
-    if (strcmp(modify->fix[i]->style,"bond/break") == 0) count++;
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (utils::strmatch(ifix->style, "^bond/create")) count++;
+    if (utils::strmatch(ifix->style, "^bond/break")) count++;
   }
-  if (count > 1 && me == 0)
-    error->warning(FLERR,"Fix bond/create is used multiple times "
-                   " or with fix bond/break - may not work as expected");
+  if ((count > 1) && (comm->me == 0))
+    error->warning(FLERR, "Using fix {} multiple times or with fix bond/break "
+                   "may not work as expected", style);
 
   // enable angle/dihedral/improper creation if atype/dtype/itype
   //   option was used and a force field has been specified
@@ -261,25 +268,25 @@ void FixBondCreate::init()
   if (atype && force->angle) {
     angleflag = 1;
     if (atype > atom->nangletypes)
-      error->all(FLERR,"Fix bond/create angle type is invalid");
+      error->all(FLERR, Error::NOLASTLINE, "Fix {} angle type is invalid", style);
   } else angleflag = 0;
 
   if (dtype && force->dihedral) {
     dihedralflag = 1;
     if (dtype > atom->ndihedraltypes)
-      error->all(FLERR,"Fix bond/create dihedral type is invalid");
+      error->all(FLERR, Error::NOLASTLINE, "Fix {} dihedral type is invalid", style);
   } else dihedralflag = 0;
 
   if (itype && force->improper) {
     improperflag = 1;
     if (itype > atom->nimpropertypes)
-      error->all(FLERR,"Fix bond/create improper type is invalid");
+      error->all(FLERR, Error::NOLASTLINE, "Fix {} improper type is invalid", style);
   } else improperflag = 0;
 
   if (force->improper) {
     if (force->improper_match("class2") || force->improper_match("ring"))
-      error->all(FLERR,"Cannot yet use fix bond/create with this "
-                 "improper style");
+      error->all(FLERR,"Cannot yet use fix {} with improper style {} ",
+                 style, force->improper_style);
   }
 
   // need a half neighbor list, built every Nevery steps
@@ -329,8 +336,8 @@ void FixBondCreate::setup(int /*vflag*/)
         if (newton_bond) {
           m = atom->map(bond_atom[i][j]);
           if (m < 0)
-            error->one(FLERR,"Fix bond/create needs ghost atoms "
-                       "from further away");
+            error->one(FLERR, Error::NOLASTLINE,
+                       "Fix {} needs ghost atoms from further away", style);
           bondcount[m]++;
         }
       }
@@ -436,6 +443,13 @@ void FixBondCreate::post_integrate()
       j = jlist[jj];
       j &= NEIGHMASK;
       if (!(mask[j] & groupbit)) continue;
+      // Copied from lines 1169 - 1173 of REACTION/fix_bond_react.cpp
+      if (molecule_keyword == INTER) {
+        if (atom->molecule[i] == atom->molecule[j]) continue;
+      } else if (molecule_keyword == INTRA) {
+        if (atom->molecule[i] != atom->molecule[j]) continue;
+      }
+
       jtype = type[j];
 
       possible = 0;
@@ -528,7 +542,7 @@ void FixBondCreate::post_integrate()
 
     if (!newton_bond || tag[i] < tag[j]) {
       if (num_bond[i] == atom->bond_per_atom)
-        error->one(FLERR,"New bond exceeded bonds per atom in fix bond/create");
+        error->one(FLERR, Error::NOLASTLINE, "New bond from fix {} exceeded bonds per atom limit", style);
       bond_type[i][num_bond[i]] = btype;
       bond_atom[i][num_bond[i]] = tag[j];
       num_bond[i]++;
@@ -551,8 +565,7 @@ void FixBondCreate::post_integrate()
       if (m < n2) n2--;
     }
     if (n3 == atom->maxspecial)
-      error->one(FLERR,
-                 "New bond exceeded special list size in fix bond/create");
+      error->one(FLERR, Error::NOLASTLINE, "New bond from fix {} exceeds special list size limit", style);
     for (m = n3; m > n1; m--) slist[m] = slist[m-1];
     slist[n1] = tag[j];
     nspecial[i][0] = n1+1;
@@ -651,7 +664,7 @@ void FixBondCreate::check_ghosts()
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall)
-    error->all(FLERR,"Fix bond/create needs ghost atoms from further away");
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} needs ghost atoms from further away", style);
   lastcheck = update->ntimestep;
 }
 
@@ -716,8 +729,9 @@ void FixBondCreate::update_topology()
 
   int overflowall;
   MPI_Allreduce(&overflow,&overflowall,1,MPI_INT,MPI_SUM,world);
-  if (overflowall) error->all(FLERR,"Fix bond/create induced too many "
-                              "angles/dihedrals/impropers per atom");
+  if (overflowall)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix {} induced too many angles/dihedrals/impropers per atom", style);
 
   int newton_bond = force->newton_bond;
 
@@ -770,7 +784,7 @@ void FixBondCreate::rebuild_special_one(int m)
   for (i = 0; i < cn1; i++) {
     n = atom->map(copy[i]);
     if (n < 0)
-      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      error->one(FLERR, Error::NOLASTLINE, "Fix {} needs ghost atoms from further away", style);
     slist = special[n];
     n1 = nspecial[n][0];
     for (j = 0; j < n1; j++)
@@ -779,7 +793,7 @@ void FixBondCreate::rebuild_special_one(int m)
 
   cn2 = dedup(cn1,cn2,copy);
   if (cn2 > atom->maxspecial)
-    error->one(FLERR,"Special list size exceeded in fix bond/create");
+    error->one(FLERR, Error::NOLASTLINE, "Special list size exceeded in fix {}", style);
 
   // new 1-4 neighs of atom M, based on 1-2 neighs of 1-3 neighs
   // exclude self
@@ -789,7 +803,7 @@ void FixBondCreate::rebuild_special_one(int m)
   for (i = cn1; i < cn2; i++) {
     n = atom->map(copy[i]);
     if (n < 0)
-      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      error->one(FLERR, Error::NOLASTLINE, "Fix {} needs ghost atoms from further away", style);
     slist = special[n];
     n1 = nspecial[n][0];
     for (j = 0; j < n1; j++)
@@ -798,7 +812,7 @@ void FixBondCreate::rebuild_special_one(int m)
 
   cn3 = dedup(cn2,cn3,copy);
   if (cn3 > atom->maxspecial)
-    error->one(FLERR,"Special list size exceeded in fix bond/create");
+    error->one(FLERR, Error::NOLASTLINE, "Special list size exceeded in fix {}", style);
 
   // store new special list with atom M
 
@@ -883,7 +897,7 @@ void FixBondCreate::create_angles(int m)
     i2 = s1list[i];
     i2local = atom->map(i2);
     if (i2local < 0)
-      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      error->one(FLERR, Error::NOLASTLINE, "Fix {} needs ghost atoms from further away", style);
     s2list = special[i2local];
     n2 = nspecial[i2local][0];
 
@@ -964,7 +978,7 @@ void FixBondCreate::create_dihedrals(int m)
       if (force->newton_bond && i2 > i3) continue;
       i3local = atom->map(i3);
       if (i3local < 0)
-        error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+        error->one(FLERR, Error::NOLASTLINE, "Fix {} needs ghost atoms from further away", style);
       s3list = special[i3local];
       n3 = nspecial[i3local][0];
 
@@ -1003,7 +1017,7 @@ void FixBondCreate::create_dihedrals(int m)
     if (force->newton_bond && i2 > i1) continue;
     i1local = atom->map(i1);
     if (i1local < 0)
-      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      error->one(FLERR, Error::NOLASTLINE, "Fix {} needs ghost atoms from further away", style);
     s3list = special[i1local];
     n3 = nspecial[i1local][0];
 
@@ -1053,7 +1067,7 @@ void FixBondCreate::create_dihedrals(int m)
     i2 = s1list[i];
     i2local = atom->map(i2);
     if (i2local < 0)
-      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      error->one(FLERR, Error::NOLASTLINE, "Fix {} needs ghost atoms from further away", style);
     s2list = special[i2local];
     n2 = nspecial[i2local][0];
 
@@ -1062,7 +1076,7 @@ void FixBondCreate::create_dihedrals(int m)
       if (i3 == i1) continue;
       i3local = atom->map(i3);
       if (i3local < 0)
-        error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+        error->one(FLERR, Error::NOLASTLINE, "Fix {} needs ghost atoms from further away", style);
       s3list = special[i3local];
       n3 = nspecial[i3local][0];
 
@@ -1179,7 +1193,7 @@ void FixBondCreate::create_impropers(int m)
     i1 = s2list[i];
     i1local = atom->map(i1);
     if (i1local < 0)
-      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      error->one(FLERR, Error::NOLASTLINE, "Fix {} needs ghost atoms from further away", style);
     s1list = special[i1local];
     n1 = nspecial[i1local][0];
 

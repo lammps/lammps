@@ -68,7 +68,8 @@ Syntax
                            bound(group,dir,region), gyration(group,region), ke(group,reigon),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
-         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), rsort(x), \                                  gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name),
+         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), rsort(x),
+                             gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name),
                              extract_setting(name), label2type(kind,label),
                              is_typelabel(kind,label), is_timeout()
          feature functions = is_available(category,feature), is_active(category,feature),
@@ -758,10 +759,23 @@ is the nearest integer to its argument.
 
 .. versionadded:: 7Feb2024
 
-The ternary(x,y,z) function is the equivalent of the ternary operator
-(? and :) in C or C++.  It takes 3 arguments.  The first argument is a
+.. versionchanged:: 22Jul2025
+
+   Evaluate only selected argument
+
+The ternary(x,y,z) function is the equivalent of the ternary operator (?
+and :) in C or C++.  It takes 3 arguments.  The first argument is a
 conditional.  The result of the function is y if x evaluates to true
-(non-zero).  The result is z if x evaluates to false (zero).
+(non-zero).  The result is z if x evaluates to false (zero).  Same as in
+C or C++ only the selected argument y or z is evaluated, so this
+function can be used to protect against crashes from evaluating invalid
+arguments, e.g. in the following example where "qval" is a variable with
+an expression that may become (slightly) negative due to floating-point
+math limitations.:
+
+.. code-block:: LAMMPS
+
+   variable sqrtofqval equal "ternary(v_qval >= 0, sqrt(v_qval), 0.0)"
 
 The ramp(x,y) function uses the current timestep to generate a value
 linearly interpolated between the specified x,y values over the course

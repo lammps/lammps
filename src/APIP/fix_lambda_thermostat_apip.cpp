@@ -24,10 +24,11 @@
 #include "my_page.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include "random_park.h"
 #include "update.h"
 
 #include <algorithm>
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -405,14 +406,10 @@ void FixLambdaThermostatAPIP::calculate_energy_change()
 
 void FixLambdaThermostatAPIP::apply_thermostat()
 {
-  double xtmp, ytmp, ztmp, delx, dely, delz, delvx, delvy, delvz, r, dotvu, masstmp, massj, muij,
-      delv, delv_m, epsilon, epsilonsq, deltaK, rinv;
+  double xtmp, ytmp, ztmp, masstmp, massj;
   double m_cm, v_cm[3], beta_rescaling, k_rel, v_rel[3], radicand;
   int i, ii, inum, *ilist;
   int j, jj, jnum, *jlist;
-
-  int nlocal = atom->nlocal;
-  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -421,8 +418,6 @@ void FixLambdaThermostatAPIP::apply_thermostat()
   int *type = atom->type;
   int *mask = atom->mask;
 
-  double *e_simple = atom->apip_e_fast;
-  double *e_complex = atom->apip_e_precise;
   double *lambda_const = atom->apip_lambda_const;
   double *lambda = atom->apip_lambda;
 
@@ -465,7 +460,6 @@ void FixLambdaThermostatAPIP::apply_thermostat()
                  "particles in neighbour list particle: {} {} {} groupbit {}\n",
                  xtmp, ytmp, ztmp, mask[i] & groupbit);
 
-    int i_collisions = 0;
     double e_remain = energy_change_atom[i];
 
     // copy ngh list

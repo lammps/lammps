@@ -175,6 +175,10 @@ class Neighbor : protected Pointers {
 
   bigint get_nneigh_full();    // return number of neighbors in a regular full neighbor list
   bigint get_nneigh_half();    // return number of neighbors in a regular half neighbor list
+
+  // return "best" non-skip pair neighbor list (used by dump image)
+  NeighList *get_best_pair_list();
+
   void add_temporary_bond(int, int, int);    // add temporary bond to bondlist array
   double memory_usage();
 
@@ -228,19 +232,19 @@ class Neighbor : protected Pointers {
   int nbclass, nsclass, npclass;
   int bondwhich, anglewhich, dihedralwhich, improperwhich;
 
-  typedef class NBin *(*BinCreator)(class LAMMPS *);
+  using BinCreator = class NBin *(*) (class LAMMPS *);
   BinCreator *binclass;
   char **binnames;
   int *binmasks;
   class NBin **neigh_bin;
 
-  typedef class NStencil *(*StencilCreator)(class LAMMPS *);
+  using StencilCreator = class NStencil *(*) (class LAMMPS *);
   StencilCreator *stencilclass;
   char **stencilnames;
   int *stencilmasks;
   class NStencil **neigh_stencil;
 
-  typedef class NPair *(*PairCreator)(class LAMMPS *);
+  using PairCreator = class NPair *(*) (class LAMMPS *);
   PairCreator *pairclass;
   char **pairnames;
   int *pairmasks;

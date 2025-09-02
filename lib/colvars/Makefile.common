@@ -24,6 +24,7 @@ COLVARS_INCFLAGS = -DCOLVARS_LAMMPS $(COLVARS_DEBUG_INCFLAGS) $(COLVARS_PYTHON_I
 
 COLVARS_SRCS = \
         colvaratoms.cpp \
+        colvaratoms_soa.cpp \
         colvarbias_abf.cpp \
         colvarbias_abmd.cpp \
         colvarbias_alb.cpp \
@@ -49,6 +50,7 @@ COLVARS_SRCS = \
         colvar.cpp \
         colvardeps.cpp \
         colvargrid.cpp \
+        colvargrid_integrate.cpp \
         colvarmodule.cpp \
         colvarparams.cpp \
         colvarparse.cpp \

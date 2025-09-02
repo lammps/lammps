@@ -254,7 +254,7 @@ dump file(s) and in what format.
 
 Note that *atom*, *custom*, *dcd*, *extxyz*, *xtc*, *xyz*, and *yaml*
 style dump files can be read directly by `VMD
-<https://www.ks.uiuc.edu/Research/vmd>`_, a popular tool for visualizing
+<https://www.ks.uiuc.edu/Research/vmd/>`_, a popular tool for visualizing
 and analyzing trajectories from atomic and molecular systems.  For
 reading *netcdf* style dump files, the netcdf plugin needs to be
 recompiled from source using a NetCDF version compatible with the one
@@ -284,7 +284,7 @@ when viewing a dump file.  Many post-processing tools either included
 with LAMMPS or third-party tools can read this format, as does the
 :doc:`rerun <rerun>` command.  See tools described on the :doc:`Tools
 <Tools>` doc page for examples, including `Pizza.py
-<https://lammps.github.io/pizza>`_.
+<https://lammps.github.io/pizza/>`_.
 
 For all these styles, the dimensions of the simulation box are
 included in each snapshot.  The simulation box in LAMMPS can be

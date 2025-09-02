@@ -91,7 +91,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   if (region->dynamic_check()) error->all(FLERR, "Fix pour region {} cannot be dynamic", idregion);
 
   if (strcmp(region->style, "block") == 0) {
-    auto block = dynamic_cast<RegBlock *>(region);
+    auto *block = dynamic_cast<RegBlock *>(region);
     region_style = 1;
     xlo = block->xlo;
     xhi = block->xhi;
@@ -103,7 +103,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
         yhi > domain->boxhi[1] || zlo < domain->boxlo[2] || zhi > domain->boxhi[2])
       error->all(FLERR, "Insertion region extends outside simulation box");
   } else if (strcmp(region->style, "cylinder") == 0) {
-    auto cylinder = dynamic_cast<RegCylinder *>(region);
+    auto *cylinder = dynamic_cast<RegCylinder *>(region);
     region_style = 2;
     char axis = cylinder->axis;
     xc = cylinder->c1;
@@ -213,7 +213,7 @@ void FixPour::init()
   auto fixlist = modify->get_fix_by_style("^gravity");
   if (fixlist.size() != 1)
     error->all(FLERR, "There must be exactly one fix gravity defined for fix pour");
-  auto fixgrav = dynamic_cast<FixGravity *>(fixlist.front());
+  auto *fixgrav = dynamic_cast<FixGravity *>(fixlist.front());
   if (fixgrav->varflag != FixGravity::CONSTANT)
     error->all(FLERR, "Fix gravity for fix pour must be constant");
 
@@ -250,7 +250,7 @@ void FixPour::init()
       delta = yhi - ylo;
     }
     double t = (-v_relative - sqrt(v_relative * v_relative - 2.0 * grav * delta)) /   grav;
-    nfreq = static_cast<int>(t / update->dt + 0.5);
+    nfreq = std::lround(t / update->dt);
 
     // 1st insertion on next timestep
 
@@ -501,6 +501,8 @@ void FixPour::pre_exchange()
         imol = 0;
         while (rng > molfrac[imol]) imol++;
         natom = onemols[imol]->natoms;
+        if (natom <= 0)
+          error->all(FLERR, "Invalid number of atoms ({}) in molecule {}", natom, onemols[imol]->id);
         if (dimension == 3) {
           r[0] = random->uniform() - 0.5;
           r[1] = random->uniform() - 0.5;
@@ -702,6 +704,8 @@ void FixPour::pre_exchange()
       atom->nangles += (bigint) onemols[imol]->nangles * ninserted_mols;
       atom->ndihedrals += (bigint) onemols[imol]->ndihedrals * ninserted_mols;
       atom->nimpropers += (bigint) onemols[imol]->nimpropers * ninserted_mols;
+      // body particle molecule template must contain only one atom
+      atom->nbodies += (bigint) onemols[imol]->bodyflag * ninserted_mols;
     }
     if (maxtag_all >= MAXTAGINT) error->all(FLERR, "New atom IDs exceed maximum allowed ID");
   }

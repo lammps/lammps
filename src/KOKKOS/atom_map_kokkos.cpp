@@ -52,7 +52,7 @@ void AtomKokkos::map_init(int check)
   // for hash, set all buckets to empty, put all entries in free list
 
   if (!recreate) {
-    if (lmp->kokkos->atom_map_classic) {
+    if (lmp->kokkos->atom_map_legacy) {
       if (map_style == MAP_ARRAY) {
         for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
       } else {
@@ -88,7 +88,7 @@ void AtomKokkos::map_init(int check)
       map_nhash *= 2;
       map_nhash = MAX(map_nhash,1000);
 
-      if (lmp->kokkos->atom_map_classic) {
+      if (lmp->kokkos->atom_map_legacy) {
         // map_nbucket = prime just larger than map_nhash
         // next_prime() should be fast enough,
         //   about 10% of odd integers are prime above 1M
@@ -113,7 +113,7 @@ void AtomKokkos::map_init(int check)
     }
   }
 
-  if (lmp->kokkos->atom_map_classic)
+  if (lmp->kokkos->atom_map_legacy)
     if (map_style == MAP_ARRAY) k_map_array.modify_host();
 }
 
@@ -126,7 +126,7 @@ void AtomKokkos::map_init(int check)
 void AtomKokkos::map_clear()
 {
   if (map_style == MAP_ARRAY) {
-    if (lmp->kokkos->atom_map_classic) {
+    if (lmp->kokkos->atom_map_legacy) {
       Kokkos::deep_copy(k_map_array.h_view,-1);
       k_map_array.modify_host();
     } else {
@@ -134,7 +134,7 @@ void AtomKokkos::map_clear()
       k_map_array.modify_device();
     }
   } else {
-    if (lmp->kokkos->atom_map_classic) {
+    if (lmp->kokkos->atom_map_legacy) {
       Atom::map_clear();
       k_map_hash.h_view.clear();
       k_map_hash.modify_host();
@@ -157,7 +157,7 @@ void AtomKokkos::map_clear()
 
 void AtomKokkos::map_set()
 {
-  if (lmp->kokkos->atom_map_classic)
+  if (lmp->kokkos->atom_map_legacy)
     map_set_host();
   else
     map_set_device();
@@ -433,6 +433,6 @@ void AtomKokkos::map_delete()
   } else
     k_map_hash = dual_hash_type();
 
-  if (lmp->kokkos->atom_map_classic)
+  if (lmp->kokkos->atom_map_legacy)
     Atom::map_delete();
 }

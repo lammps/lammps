@@ -17,14 +17,14 @@
 #include "pair_lambda_input_apip.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "error.h"
-#include "force.h"
+#include "fix_lambda_apip.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

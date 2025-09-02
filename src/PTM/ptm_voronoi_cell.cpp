@@ -60,7 +60,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 namespace ptm_voro {
 
-inline void voro_fatal_error(const char *p,int status) {
+static inline void voro_fatal_error(const char *p,int status) {
         fprintf(stderr,"voro++: %s\n",p);
         exit(status);
         //return -1;//status;

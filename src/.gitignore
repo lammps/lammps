@@ -911,6 +911,8 @@
 /fix_gpu.h
 /fix_grem.cpp
 /fix_grem.h
+/fix_hmc.cpp
+/fix_hmc.h
 /fix_hyper.cpp
 /fix_hyper.h
 /fix_hyper_global.cpp
@@ -1685,6 +1687,8 @@
 /fix_atom_swap.h
 /fix_ave_spatial_sphere.cpp
 /fix_ave_spatial_sphere.h
+/fix_ave_moments.cpp
+/fix_ave_moments.h
 /fix_ave_momentum.cpp
 /fix_ave_momentum.h
 /fix_drude.cpp

@@ -95,7 +95,7 @@ void Group2Ndx::write_group(FILE *fp, int gid)
     } else {
       utils::print(fp, "[ {} ]\n", group->names[gid]);
     }
-    width = log10((double) atom->natoms) + 2;
+    width = (int) log10((double) atom->natoms) + 2;
     cols = 80 / width;
   }
 

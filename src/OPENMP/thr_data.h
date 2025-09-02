@@ -130,7 +130,7 @@ class ThrData {
   void *_rho1d_6;
   void *_drho1d_6;
   // my thread id
-  const int _tid;
+  int _tid;
   // timer info
   int _timer_active;
   class Timer *_timer;

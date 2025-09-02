@@ -25,8 +25,13 @@
 #include "group.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair.h"
+#include "pair_lambda_input_apip.h"
+#include "pair_lambda_zone_apip.h"
 #include "update.h"
+
+#include <algorithm>
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -46,9 +51,9 @@ static const char cite_fix_lambda_c[] =
 /* ---------------------------------------------------------------------- */
 
 FixLambdaAPIP::FixLambdaAPIP(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), peratom_stats(nullptr), group_name_simple(nullptr),
-    group_name_complex(nullptr), group_name_ignore_lambda_input(nullptr), fixstore(nullptr),
-    fixstore2(nullptr), pair_lambda_input(nullptr), pair_lambda_zone(nullptr)
+    Fix(lmp, narg, arg), pair_lambda_input(nullptr), pair_lambda_zone(nullptr), fixstore(nullptr),
+    fixstore2(nullptr), group_name_simple(nullptr), group_name_complex(nullptr),
+    group_name_ignore_lambda_input(nullptr), peratom_stats(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_lambda_c);
 
@@ -190,12 +195,14 @@ FixLambdaAPIP::FixLambdaAPIP(LAMMPS *lmp, int narg, char **arg) :
 
 int FixLambdaAPIP::modify_param(int narg, char **arg)
 {
+  if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify lambda/apip", error);
+
   cut_lo = utils::numeric(FLERR, arg[0], false, lmp);
   cut_hi = utils::numeric(FLERR, arg[1], false, lmp);
   cut_hi_sq = cut_hi * cut_hi;
   cut_width = cut_hi - cut_lo;
 
-  if (cut_lo < 0 || cut_hi < cut_lo) error->all(FLERR, "fix lambda: Illegal cutoff values");
+  if (cut_lo < 0 || cut_hi < cut_lo) error->all(FLERR, "fix lambda/apip: Illegal cutoff values");
 
   if (force->pair->cutforce < cut_hi)
     error->all(FLERR, "fix lambda: cutoff of potential smaller than cutoff of switching region");
@@ -538,21 +545,20 @@ void FixLambdaAPIP::update_lambda_history()
   if (invoked_history2_update == update->ntimestep) return;
   invoked_history2_update = update->ntimestep;
 
-  double *lambda_input_ta, **lambda_history, **lambda_input_history;
+  double *lambda_input_ta, **lambda_history;
   int *mask;
   int nlocal;
 
   lambda_input_ta = atom->apip_lambda_input_ta;
   mask = atom->mask;
   lambda_history = fixstore2->astore;
-  lambda_input_history = fixstore->astore;
   nlocal = atom->nlocal;
 
   // update stats about written values
+
   history2_last = (history2_last + 1) % history2_length;
   history2_used = std::min(history2_used + 1, history2_length);
 
-  int tmp = 0;
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
 
@@ -617,15 +623,13 @@ void FixLambdaAPIP::get_lambda_average()
 void FixLambdaAPIP::calculate_lambda_input_ta()
 {
   int i, nlocal;
-  int *mask;
   double *lambda_input_ta = atom->apip_lambda_input_ta;
 
   nlocal = atom->nlocal;
-  mask = atom->mask;
 
   // store time averaged lambda_input for own atoms
   double **lambda_input_history = fixstore->astore;
-  for (i = 0; i < nlocal; i++) { lambda_input_ta[i] = lambda_input_history[i][history_length + 1]; }
+  for (i = 0; i < nlocal; i++) lambda_input_ta[i] = lambda_input_history[i][history_length + 1];
 }
 
 /* ----------------------------------------------------------------------
@@ -713,8 +717,8 @@ void FixLambdaAPIP::unpack_forward_comm(int n, int first, double *buf)
 
 void FixLambdaAPIP::write_restart(FILE *fp)
 {
-  int timesteps_since_invoked_history_update = update->ntimestep - invoked_history_update;
-  int timesteps_since_invoked_history2_update = update->ntimestep - invoked_history2_update;
+  bigint timesteps_since_invoked_history_update = update->ntimestep - invoked_history_update;
+  bigint timesteps_since_invoked_history2_update = update->ntimestep - invoked_history2_update;
 
   int n = 0;
   double list[8];
@@ -740,12 +744,10 @@ void FixLambdaAPIP::write_restart(FILE *fp)
 
 void FixLambdaAPIP::restart(char *buf)
 {
-  int timesteps_since_invoked_history_update, history_length_br,
-      timesteps_since_invoked_history2_update, history2_length_br;
-  bigint next_file_write_calculated;
+  int history_length_br, history2_length_br;
 
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   history_length_br = static_cast<int>(list[n++]);
   history_used = static_cast<int>(list[n++]);

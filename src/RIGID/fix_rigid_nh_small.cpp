@@ -235,8 +235,8 @@ void FixRigidNHSmall::init()
 
     // ensure no conflict with fix deform
 
-    for (auto &ifix : modify->get_fix_by_style("^deform")) {
-      auto deform = dynamic_cast<FixDeform *>(ifix);
+    for (const auto &ifix : modify->get_fix_by_style("^deform")) {
+      auto *deform = dynamic_cast<FixDeform *>(ifix);
       if (deform) {
         int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
@@ -275,7 +275,7 @@ void FixRigidNHSmall::init()
     // this will include self
 
     rfix.clear();
-    for (auto &ifix : modify->get_fix_list())
+    for (const auto &ifix : modify->get_fix_list())
       if (ifix->rigid_flag) rfix.push_back(ifix);
   }
 }
@@ -1161,8 +1161,8 @@ void FixRigidNHSmall::compute_dof()
   nf[0] = nf_t;
   nf[1] = nf_r;
   MPI_Allreduce(nf,nfall,2,MPI_DOUBLE,MPI_SUM,world);
-  nf_t = nfall[0];
-  nf_r = nfall[1];
+  nf_t = (int)nfall[0];
+  nf_r = (int)nfall[1];
 
   g_f = nf_t + nf_r;
 }
@@ -1235,7 +1235,7 @@ void FixRigidNHSmall::write_restart(FILE *fp)
 void FixRigidNHSmall::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
 
   if (flag) {

@@ -268,7 +268,7 @@ void PairTlsph::PreCompute() {
       } else {
         status = PolDec(Fincr[i], R[i], U, false); // polar decomposition of the deformation gradient, F = R * U
         if (!status) {
-          error->message(FLERR, "Polar decomposition of deformation gradient failed.\n");
+          utils::logmesg(lmp, "Polar decomposition of deformation gradient failed.\n");
           mol[i] = -1;
         } else {
           Fincr[i] = R[i] * U;
@@ -1606,7 +1606,7 @@ void PairTlsph::init_style() {
     error->all(FLERR, "Pair style tlsph requires its particles to be part of a group named tlsph. This group does not exist.");
 
   if (fix_tlsph_reference_configuration == nullptr) {
-    auto fixarg = new char*[3];
+    auto *fixarg = new char*[3];
     fixarg[0] = (char *) "SMD_TLSPH_NEIGHBORS";
     fixarg[1] = (char *) "tlsph";
     fixarg[2] = (char *) "SMD_TLSPH_NEIGHBORS";

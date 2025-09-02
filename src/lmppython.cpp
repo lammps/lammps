@@ -14,8 +14,10 @@
 #include "lmppython.h"
 #if defined(LMP_PYTHON)
 #include "python_impl.h"
-#endif
+#else
 #include "error.h"
+#endif
+
 
 using namespace LAMMPS_NS;
 

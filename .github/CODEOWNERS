@@ -73,8 +73,8 @@ src/EXTRA-COMPUTE/compute_stress_mop*.* @RomainVermorel
 src/EXTRA-COMPUTE/compute_born_matrix.* @Bibobu @athomps
 src/EXTRA-DUMP/dump_extxyz.*          @fxcoudert
 src/EXTRA-FIX/fix_deform_pressure.* @jtclemm
-src/EXTRA-PAIR/pair_dispersion_d3.* @soniasolomoni @arthurfl
-src/EXTRA-PAIR/d3_parameters.h      @soniasolomoni @arthurfl
+src/EXTRA-PAIR/pair_dispersion_d3.* @soniasalomoni @arthurfl
+src/EXTRA-PAIR/d3_parameters.h      @soniasalomoni @arthurfl
 src/MISC/*_tracker.*                @jtclemm
 src/MC/fix_gcmc.*                   @athomps
 src/MC/fix_sgcmc.*                  @athomps

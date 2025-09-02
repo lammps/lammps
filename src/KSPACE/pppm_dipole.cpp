@@ -95,7 +95,7 @@ void PPPMDipole::init()
   dipoleflag = atom->mu?1:0;
   qsum_qsq(0); // q[i] might not be declared ?
 
-  if (dipoleflag && q2)
+  if (dipoleflag && (q2 != 0.0))
     error->all(FLERR,"Cannot (yet) use charges with Kspace style PPPMDipole");
 
   triclinic_check();
@@ -141,7 +141,7 @@ void PPPMDipole::init()
   pair_check();
 
   int itmp = 0;
-  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -839,11 +839,8 @@ void PPPMDipole::set_grid_global()
 
       // set local grid dimension
 
-      int npey_fft,npez_fft;
-      if (nz_pppm >= nprocs) {
-        npey_fft = 1;
-        npez_fft = nprocs;
-      } else procs2grid2d(nprocs,ny_pppm,nz_pppm,&npey_fft,&npez_fft);
+      int npey_fft = 1, npez_fft = nprocs;
+      procs2grid2d(nprocs,ny_pppm,nz_pppm,npey_fft,npez_fft);
 
       int me_y = me % npey_fft;
       int me_z = me / npey_fft;
@@ -2233,7 +2230,7 @@ void PPPMDipole::fieldforce_peratom_dipole()
 
 void PPPMDipole::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -2306,7 +2303,7 @@ void PPPMDipole::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDipole::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -2379,7 +2376,7 @@ void PPPMDipole::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDipole::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
   if (flag == REVERSE_MU) {
@@ -2400,7 +2397,7 @@ void PPPMDipole::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDipole::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
   if (flag == REVERSE_MU) {

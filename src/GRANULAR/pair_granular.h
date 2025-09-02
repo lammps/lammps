@@ -44,8 +44,6 @@ class PairGranular : public Pair {
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   double memory_usage() override;
-  double atom2cut(int) override;
-  double radii2cut(double, double) override;
   int get_size_history() const { return size_history; }
 
   // granular models

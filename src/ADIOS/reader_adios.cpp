@@ -152,7 +152,7 @@ void ReaderADIOS::open_file(const std::string &file)
 void ReaderADIOS::close_file()
 {
   // close open file, if needed.
-  if (internal->fh) { internal->fh.Close(); }
+  if (internal->fh) internal->fh.Close();
 }
 
 /* ----------------------------------------------------------------------

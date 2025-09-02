@@ -81,12 +81,6 @@ class Error : protected Pointers {
     _warning(file, line, format, fmt::make_format_args(args...));
   }
 
-  void message(const std::string &, int, const std::string &);
-  template <typename... Args>
-  void message(const std::string &file, int line, const std::string &format, Args &&...args)
-  {
-    _message(file, line, format, fmt::make_format_args(args...));
-  }
   [[noreturn]] void done(int = 0);    // 1 would be fully backwards compatible
 
   int get_numwarn() const { return numwarn; }

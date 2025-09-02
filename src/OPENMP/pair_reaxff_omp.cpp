@@ -439,7 +439,7 @@ int PairReaxFFOMP::write_reax_lists()
 #endif
   for (int itr_i = 0; itr_i < numall; ++itr_i) {
     int i = ilist[itr_i];
-    auto jlist = firstneigh[i];
+    auto *jlist = firstneigh[i];
     Set_Start_Index(i, num_nbrs_offset[i], far_nbrs);
 
     if (i < inum)

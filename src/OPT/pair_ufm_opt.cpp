@@ -56,12 +56,14 @@ void PairUFMOpt::compute(int eflag, int vflag)
 template < int EVFLAG, int EFLAG, int NEWTON_PAIR >
 void PairUFMOpt::eval()
 {
+// NOLINTBEGIN
   typedef struct { double x,y,z; } vec3_t;
 
   typedef struct {
     double cutsq,uf1,uf2,uf3,scale,offset;
     double _pad[2];
   } fast_alpha_t;
+// NOLINTEND
 
   int i,j,ii,jj,inum,jnum,itype,jtype,sbindex;
   double factor_lj;

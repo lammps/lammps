@@ -380,7 +380,7 @@ Bibliography
    Eike and Maginn, Journal of Chemical Physics, 124, 164503 (2006).
 
 **(Elliott)**
-   Elliott, Tadmor and Bernstein, `https://openkim.org/kim-api <https://openkim.org/kim-api>`_ (2011) doi: `https://doi.org/10.25950/FF8F563A <https://doi.org/10.25950/FF8F563A>`_
+   Elliott, Tadmor and Bernstein, `https://openkim.org/kim-api/ <https://openkim.org/kim-api/>`_ (2011) doi: `https://doi.org/10.25950/FF8F563A <https://doi.org/10.25950/FF8F563A>`_
 
 **(Ellis)**
    Ellis, Fiedler, Popoola, Modine, Stephens, Thompson, Cangi, Rajamanickam,  Phys Rev B, 104, 035120, (2021)
@@ -1098,9 +1098,6 @@ Bibliography
 **(Parrinello)**
    Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).
 
-**(PASS)**
-   PASS webpage: https://www.sdu.dk/en/DPASS
-
 **(Paula Leite2016)**
    Paula Leite , Freitas, Azevedo, and de Koning, J Chem Phys, 126, 044509 (2016).
 
@@ -1213,7 +1210,7 @@ Bibliography
    S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
 
 **(Roberts)**
-   R. Roberts (2019) "Evenly Distributing Points in a Triangle." Extreme Learning.  `<http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/>`_
+   R. Roberts (2019) "Evenly Distributing Points in a Triangle." Extreme Learning.  `<https://extremelearning.com.au/evenly-distributing-points-in-a-triangle/>`_
 
 **(Rohart)**
    Rohart and Thiaville, Physical Review B, 88(18), 184422. (2013).

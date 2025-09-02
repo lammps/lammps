@@ -66,7 +66,7 @@ OPT.
    * :doc:`electrode/conp (i) <fix_electrode>`
    * :doc:`electrode/conq (i) <fix_electrode>`
    * :doc:`electrode/thermo (i) <fix_electrode>`
-   * :doc:`electron/stopping <fix_electron_stopping>`
+   * :doc:`electron/stopping (k) <fix_electron_stopping>`
    * :doc:`electron/stopping/fit <fix_electron_stopping>`
    * :doc:`enforce2d (k) <fix_enforce2d>`
    * :doc:`eos/cv <fix_eos_cv>`
@@ -87,6 +87,7 @@ OPT.
    * :doc:`halt <fix_halt>`
    * :doc:`heat <fix_heat>`
    * :doc:`heat/flow <fix_heat_flow>`
+   * :doc:`hmc <fix_hmc>`
    * :doc:`hyper/global <fix_hyper_global>`
    * :doc:`hyper/local <fix_hyper_local>`
    * :doc:`imd <fix_imd>`
@@ -116,6 +117,7 @@ OPT.
    * :doc:`mvv/tdpd <fix_mvv_dpd>`
    * :doc:`neb <fix_neb>`
    * :doc:`neb/spin <fix_neb_spin>`
+   * :doc:`neighbor/swap <fix_neighbor_swap>`
    * :doc:`nonaffine/displacement <fix_nonaffine_displacement>`
    * :doc:`nph (ko) <fix_nh>`
    * :doc:`nph/asphere (o) <fix_nph_asphere>`

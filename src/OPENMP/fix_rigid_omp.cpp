@@ -42,9 +42,9 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
 
-typedef struct {
+using dbl3_t = struct {
   double x, y, z;
-} dbl3_t;
+};
 
 /* ---------------------------------------------------------------------- */
 

@@ -79,7 +79,7 @@ void TemperGrem::command(int narg, char **arg)
 
   // Get and check if gREM fix exists and is correct style
 
-  auto ifix = modify->get_fix_by_id(arg[3]);
+  auto *ifix = modify->get_fix_by_id(arg[3]);
   if (!ifix) error->universe_all(FLERR,fmt::format("Tempering fix ID {} is not defined", arg[3]));
 
   fix_grem = dynamic_cast<FixGrem*>(ifix);
@@ -107,7 +107,7 @@ void TemperGrem::command(int narg, char **arg)
 
   if (pressflag) {
     int dummy;
-    auto p_start = (double *) nh->extract("p_start",dummy);
+    auto *p_start = (double *) nh->extract("p_start",dummy);
     pressref = p_start[0];
   }
 

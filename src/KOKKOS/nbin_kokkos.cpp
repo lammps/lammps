@@ -17,6 +17,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
+#include "kokkos.h"
 #include "memory_kokkos.h"
 #include "update.h"
 
@@ -31,6 +32,9 @@ NBinKokkos<DeviceType>::NBinKokkos(LAMMPS *lmp) : NBinStandard(lmp) {
   d_resize = typename AT::t_int_scalar("NeighborKokkosFunctor::resize");
   h_resize = Kokkos::create_mirror_view(d_resize);
   h_resize() = 1;
+
+  if (lmp->kokkos->nbin_atoms_per_bin_set)
+    atoms_per_bin = lmp->kokkos->nbin_atoms_per_bin;
 
   kokkos = 1;
 }

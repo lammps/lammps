@@ -174,7 +174,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   memory->create(net_energy_transfer_all,nzgrid,nygrid,nxgrid,"ttm/mod:net_energy_transfer_all");
 
   flangevin = nullptr;
-  grow_arrays(atom->nmax);
+  FixTTMMod::grow_arrays(atom->nmax);
 
   // grid OFFSET to perform
   // SHIFT to map atom to nearest or lower-left grid point
@@ -942,7 +942,7 @@ void FixTTMMod::write_restart(FILE *fp)
 void FixTTMMod::restart(char *buf)
 {
   int n = 0;
-  auto rlist = (double *) buf;
+  auto *rlist = (double *) buf;
 
   // check that restart grid size is same as current grid size
 

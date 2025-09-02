@@ -56,7 +56,7 @@ template <typename T> static Dump *dump_creator(LAMMPS *lmp, int narg, char ** a
    initialize all output
 ------------------------------------------------------------------------- */
 
-Output::Output(LAMMPS *lmp) : Pointers(lmp)
+Output::Output(LAMMPS *lmp) : Pointers(lmp), thermo(nullptr)
 {
   // create default computes for temp,pressure,pe
 
@@ -66,7 +66,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 
   // create default Thermo class
 
-  auto newarg = new char*[1];
+  auto *newarg = new char*[1];
   newarg[0] = (char *) "one";
   thermo = new Thermo(lmp,1,newarg);
   delete[] newarg;
@@ -132,7 +132,7 @@ Output::~Output()
 
   delete dump_map;
 
-  if (thermo) delete thermo;
+  delete thermo;
   delete[] var_thermo;
 
 }
@@ -747,17 +747,18 @@ void Output::reset_dt()
 
 Dump *Output::add_dump(int narg, char **arg)
 {
-  if (narg < 5) error->all(FLERR,"Illegal dump command");
+  if (narg < 5) utils::missing_cmd_args(FLERR,"dump", error);
 
   // error checks
 
   for (int idump = 0; idump < ndump; idump++)
-    if (strcmp(arg[0],dump[idump]->id) == 0) error->all(FLERR,"Reuse of dump ID: {}", arg[0]);
+    if (strcmp(arg[0],dump[idump]->id) == 0)
+      error->all(FLERR, Error::ARGZERO, "Reuse of dump ID: {}", arg[0]);
 
   int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all(FLERR,"Could not find dump group ID: {}", arg[1]);
+  if (igroup == -1) error->all(FLERR, 1, "Could not find dump group ID: {}", arg[1]);
   if (utils::inumeric(FLERR,arg[3],false,lmp) <= 0)
-    error->all(FLERR,"Invalid dump frequency {}", arg[3]);
+    error->all(FLERR, 3, "Invalid dump frequency {}", arg[3]);
 
   // extend Dump list if necessary
 
@@ -785,8 +786,7 @@ Dump *Output::add_dump(int narg, char **arg)
   // initialize per-dump data to suitable default values
 
   mode_dump[idump] = 0;
-  every_dump[idump] = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (every_dump[idump] <= 0) error->all(FLERR,"Illegal dump command");
+  every_dump[idump] = utils::inumeric(FLERR,arg[3],false,lmp); // check for validity is above
   every_time_dump[idump] = 0.0;
   next_time_dump[idump] = -1.0;
   last_dump[idump] = -1;
@@ -809,8 +809,8 @@ void Output::modify_dump(int narg, char **arg)
 
   // find which dump it is
 
-  auto idump = get_dump_by_id(arg[0]);
-  if (!idump) error->all(FLERR,"Could not find dump_modify ID: {}", arg[0]);
+  auto *idump = get_dump_by_id(arg[0]);
+  if (!idump) error->all(FLERR, Error::ARGZERO, "Could not find dump_modify ID: {}", arg[0]);
   idump->modify_params(narg-1,&arg[1]);
 }
 
@@ -888,7 +888,8 @@ void Output::set_thermo(int narg, char **arg)
     var_thermo = utils::strdup(arg[0]+2);
   } else {
     thermo_every = utils::inumeric(FLERR,arg[0],false,lmp);
-    if (thermo_every < 0) error->all(FLERR,"Illegal thermo output frequency {}", thermo_every);
+    if (thermo_every < 0)
+      error->all(FLERR, Error::ARGZERO, "Illegal thermo output frequency {}", thermo_every);
   }
 }
 

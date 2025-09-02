@@ -1157,8 +1157,8 @@ void ComputeChunkAtom::compress_chunk_ids()
 
 void ComputeChunkAtom::idring(int n, char *cbuf, void *ptr)
 {
-  auto cptr = (ComputeChunkAtom *) ptr;
-  auto list = (tagint *) cbuf;
+  auto *cptr = (ComputeChunkAtom *) ptr;
+  auto *list = (tagint *) cbuf;
   std::map<tagint, int> *hash = cptr->hash;
   for (int i = 0; i < n; i++) (*hash)[list[i]] = 0;
 }
@@ -1268,7 +1268,7 @@ int ComputeChunkAtom::setup_xyz_bins()
     if (lo > hi) error->all(FLERR, Error::NOLASTLINE, "Invalid bin bounds in compute chunk/atom");
 
     offset[m] = lo;
-    nlayers[m] = static_cast<int>((hi - lo) * invdelta[m] + 0.5);
+    nlayers[m] = std::lround((hi - lo) * invdelta[m]);
     nbins *= nlayers[m];
   }
 

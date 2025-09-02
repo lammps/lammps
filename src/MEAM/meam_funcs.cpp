@@ -193,7 +193,7 @@ double MEAM::erose(const double r, const double re, const double alpha, const do
 //-----------------------------------------------------------------------------
 // Shape factors for various configurations
 //
-void MEAM::get_shpfcn(const lattice_t latt, const double sthe, const double cthe, double (&s)[3])
+void MEAM::get_shpfcn(const MEAM::lattice_t latt, const double sthe, const double cthe, double (&s)[3])
 {
   switch (latt) {
     case FCC:
@@ -244,7 +244,7 @@ void MEAM::get_shpfcn(const lattice_t latt, const double sthe, const double cthe
 //-----------------------------------------------------------------------------
 // Number of first neighbors for reference structure
 //
-int MEAM::get_Zij(const lattice_t latt)
+int MEAM::get_Zij(const MEAM::lattice_t latt)
 {
   switch (latt) {
     case FCC:
@@ -284,7 +284,7 @@ int MEAM::get_Zij(const lattice_t latt)
 //   numscr = number of atoms that screen the 2NN bond
 //   S = second neighbor screening function (xfac, a part of b2nn in dynamo)
 //
-int MEAM::get_Zij2(const lattice_t latt, const double cmin, const double cmax, const double stheta,
+int MEAM::get_Zij2(const MEAM::lattice_t latt, const double cmin, const double cmax, const double stheta,
                    double &a, double &S)
 {
 
@@ -389,7 +389,7 @@ int MEAM::get_Zij2(const lattice_t latt, const double cmin, const double cmax, c
   return Zij2;
 }
 
-int MEAM::get_Zij2_b2nn(const lattice_t latt, const double cmin, const double cmax, double &S)
+int MEAM::get_Zij2_b2nn(const MEAM::lattice_t latt, const double cmin, const double cmax, double &S)
 {
 
   double x, sijk, C;

@@ -42,6 +42,8 @@ static constexpr int UTAG = 999;
 FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), idvar(nullptr), dlimit_path(nullptr)
 {
+  triggered = false;
+
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix halt", error);
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
   if (nevery <= 0) error->all(FLERR, 3, "Illegal fix halt command: nevery must be > 0");
@@ -231,12 +233,14 @@ void FixHalt::end_of_step()
       // soft/continue halt -> trigger timer to break from run loop
       // print message with ID of fix halt in case multiple instances
 
-      auto message = fmt::format("Received universe halt request from partition {} for fix-id {} on step {}",
-                                 partition, id, update->ntimestep);
+      auto message =
+          fmt::format("Received universe halt request from partition {} for fix-id {} on step {}\n",
+                      partition, id, update->ntimestep);
       if (eflag == HARD) {
         error->all(FLERR, message);
       } else if ((eflag == SOFT) || (eflag == CONTINUE)) {
-        if ((comm->me == 0) && (msgflag == YESMSG)) error->message(FLERR, message);
+        if ((comm->me == 0) && (msgflag == YESMSG)) utils::logmesg(lmp, message);
+        triggered = true;
         timer->force_timeout();
       }
     }
@@ -284,7 +288,7 @@ void FixHalt::end_of_step()
   // send message to all other root processes to trigger exit across universe, if requested
 
   if (uflag && (comm->me == 0)) {
-    MPI_Request *req = new MPI_Request[universe->nworlds];
+    auto *req = new MPI_Request[universe->nworlds];
     for (int i = 0; i < universe->nworlds; ++i) {
       if (universe->me == universe->root_proc[i]) continue;
       MPI_Isend(&eflag, 1, MPI_INT, universe->root_proc[i], UTAG, universe->uworld, req + i);
@@ -302,12 +306,14 @@ void FixHalt::end_of_step()
   // soft/continue halt -> trigger timer to break from run loop
   // print message with ID of fix halt in case multiple instances
 
-  std::string message = fmt::format("Fix halt condition for fix-id {} met on step {} with value {}",
-                                    id, update->ntimestep, attvalue);
+  std::string message =
+      fmt::format("Fix halt condition for fix-id {} met on step {} with value {}\n", id,
+                  update->ntimestep, attvalue);
   if (eflag == HARD) {
     error->all(FLERR, message);
   } else if ((eflag == SOFT) || (eflag == CONTINUE)) {
-    if ((comm->me == 0) && (msgflag == YESMSG)) error->message(FLERR, message);
+    if ((comm->me == 0) && (msgflag == YESMSG)) utils::logmesg(lmp, message);
+    triggered = true;
     timer->force_timeout();
   }
 }
@@ -319,8 +325,9 @@ void FixHalt::end_of_step()
 void FixHalt::post_run()
 {
   // continue halt -> subsequent runs are allowed
+  // but only reset the timer timeout, if *we* forced the timeout
 
-  if (eflag == CONTINUE) timer->reset_timeout();
+  if (triggered && (eflag == CONTINUE)) timer->reset_timeout();
 }
 
 /* ----------------------------------------------------------------------

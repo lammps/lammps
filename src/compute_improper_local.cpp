@@ -220,7 +220,7 @@ int ComputeImproperLocal::compute_impropers(int flag)
 
           if (c > 1.0) c = 1.0;
           if (c < -1.0) c = -1.0;
-          cbuf[n] = 180.0 * acos(c) / MY_PI;
+          if (cbuf) cbuf[n] = 180.0 * acos(c) / MY_PI;
         }
         n += nvalues;
       }

@@ -203,7 +203,7 @@ void AngleHybridKokkos::init_style()
     if (!styles[m]->kokkosable)
       error->all(FLERR,"Must use only Kokkos-enabled angle styles with angle_style hybrid/kk");
 
-    if (styles[m]->execution_space == Host)
+    if (styles[m]->execution_space == HostKK)
       lmp->kokkos->allow_overlap = 0;
   }
 }

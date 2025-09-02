@@ -1162,6 +1162,9 @@ CONTAINS
         CALL lammps_mpi_finalize()
         CALL lammps_python_finalize()
         CALL lammps_plugin_finalize()
+        IF (ALLOCATED(ext_data)) THEN
+            DEALLOCATE(ext_data)
+        END IF
       END IF
     END IF
   END SUBROUTINE lmp_close
@@ -3440,6 +3443,7 @@ CONTAINS
     TYPE(c_ptr) :: c_id, c_caller
     TYPE(c_funptr) :: c_callback
     INTEGER :: i, this_fix
+    TYPE(fix_external_data), DIMENSION(:), ALLOCATABLE :: tmp_ext_data
 
     c_id = f2c_string(id)
     IF (ALLOCATED(ext_data)) THEN
@@ -3451,9 +3455,13 @@ CONTAINS
         END IF
       END DO
       IF (this_fix > SIZE(ext_data)) THEN
-        ! reallocates ext_data; this requires us to re-bind "caller" on the C
+        ! reallocate ext_data in a pre-fortran 2008 compatible way.
+        ALLOCATE(tmp_ext_data(this_fix))
+        tmp_ext_data(1:this_fix-1) = ext_data(1:this_fix-1)
+        tmp_ext_data(this_fix) = fix_external_data()
+        CALL move_alloc(tmp_ext_data, ext_data)
+        ! this requires us to re-bind "caller" on the C
         ! side to the new data structure, which likely moved to a new address
-        ext_data = [ext_data, fix_external_data()] ! extends ext_data by 1
         CALL rebind_external_callback_data()
       END IF
     ELSE

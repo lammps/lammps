@@ -31,7 +31,7 @@ class AmoebaConvolution : protected Pointers {
   FFT_SCALAR *grid_brick_start;    // lower left corner of (c)grid_brick data
 
   AmoebaConvolution(class LAMMPS *, class Pair *, int, int, int, int, int);
-  ~AmoebaConvolution();
+  ~AmoebaConvolution() override;
   void reset_grid();
   void *zero();
   FFT_SCALAR *pre_convolution();

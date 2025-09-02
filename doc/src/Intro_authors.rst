@@ -76,7 +76,7 @@ lammps.org".  General questions about LAMMPS should be posted in the
 .. _jg:  https://www.nanocipher.org/
 .. _ak:  https://sites.google.com/site/akohlmey/
 .. _tn:  https://sites.google.com/site/ndtrung8/
-.. _at:  https://www2.sandia.gov/~athomps/
+.. _at:  https://www.sandia.gov/-athomps/staff/aidan-thompson/
 .. _sjp: https://sjplimp.github.io
 .. _lws: https://www.lammps.org
 

@@ -66,8 +66,8 @@ class Output : protected Pointers {
   char *restart2a, *restart2b;    // names of double restart files
   class WriteRestart *restart;    // class for writing restart files
 
-  typedef Dump *(*DumpCreator)(LAMMPS *, int, char **);
-  typedef std::map<std::string, DumpCreator> DumpCreatorMap;
+  using DumpCreator = Dump *(*) (LAMMPS *, int, char **);
+  using DumpCreatorMap = std::map<std::string, DumpCreator>;
   DumpCreatorMap *dump_map;
 
   Output(class LAMMPS *);

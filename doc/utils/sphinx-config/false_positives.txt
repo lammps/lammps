@@ -33,6 +33,7 @@ activationfunctions
 acylindricity
 addforce
 Addington
+addstep
 addtorque
 adf
 Adhikari
@@ -83,6 +84,7 @@ Alexey
 ali
 aliceblue
 aliphatic
+alkyl
 Allera
 Allinger
 allocatable
@@ -95,6 +97,7 @@ Alonso
 Alperen
 alphak
 alphashrink
+Alvares
 amap
 Amatrix
 AMD
@@ -532,6 +535,7 @@ civ
 CKD
 ckk
 Clang
+clearstep
 clearstore
 Cleary
 Clebsch
@@ -689,6 +693,7 @@ cuthi
 cutinner
 cutlo
 cutmax
+cutmin
 cutoffA
 cutoffC
 cutsq
@@ -1493,6 +1498,7 @@ Hebbeker
 Hebenstreit
 Hecht
 Heenen
+Heermann
 heFFTe
 Hendrik
 Henin
@@ -1530,6 +1536,7 @@ histogrammed
 histogramming
 hma
 hmaktulga
+hmc
 hoc
 Hochbruck
 Hofling
@@ -2092,6 +2099,7 @@ Loewen
 logfile
 logfreq
 logicals
+logmesg
 loID
 Lomdahl
 Lond
@@ -2264,6 +2272,7 @@ mediumturquoise
 mediumvioletred
 Mees
 Mehl
+Mehlig
 Mei
 Meissner
 Melchor
@@ -3201,6 +3210,7 @@ queryargs
 Queteschiner
 quickmin
 quintic
+qval
 qw
 qx
 qy

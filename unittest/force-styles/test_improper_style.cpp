@@ -15,9 +15,7 @@
 
 #include "error_stats.h"
 #include "test_config.h"
-#include "test_config_reader.h"
 #include "test_main.h"
-#include "yaml_reader.h"
 #include "yaml_writer.h"
 
 #include "gmock/gmock.h"
@@ -25,28 +23,17 @@
 
 #include "atom.h"
 #include "compute.h"
-#include "exceptions.h"
 #include "fix.h"
-#include "fmt/format.h"
 #include "force.h"
 #include "improper.h"
 #include "info.h"
 #include "input.h"
-#include "lammps.h"
 #include "modify.h"
-#include "platform.h"
-#include "universe.h"
 
-#include <cctype>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <mpi.h>
-
-#include <map>
-#include <string>
+#include <exception>
+#include <iostream>
+#include <set>
 #include <utility>
-#include <vector>
 
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
@@ -431,7 +418,7 @@ TEST(ImproperStyle, plain)
 
 TEST(ImproperStyle, omp)
 {
-    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
+    if (!Info::has_package("OPENMP")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite",
@@ -545,8 +532,12 @@ TEST(ImproperStyle, omp)
 
 TEST(ImproperStyle, kokkos_omp)
 {
-    if (!LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // test either OpenMP or Serial
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+        GTEST_SKIP();
     // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
     if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
         Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
@@ -556,6 +547,8 @@ TEST(ImproperStyle, kokkos_omp)
     LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen",
                          "-nocite",       "-k",   "on",   "t",     "4",
                          "-sf",           "kk"};
+    // fall back to serial if openmp is not available
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[9] = "1";
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;
@@ -664,7 +657,7 @@ TEST(ImproperStyle, kokkos_omp)
 
 TEST(ImproperStyle, numdiff)
 {
-    if (!LAMMPS::is_installed_pkg("EXTRA-FIX")) GTEST_SKIP();
+    if (!Info::has_package("EXTRA-FIX")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite"};
@@ -747,8 +740,8 @@ TEST(ImproperStyle, extract)
     }
 
     auto *improper = lmp->force->improper;
-    void *ptr   = nullptr;
-    int dim     = 0;
+    void *ptr      = nullptr;
+    int dim        = 0;
     for (auto extract : test_config.extract) {
         ptr = improper->extract(extract.first.c_str(), dim);
         EXPECT_NE(ptr, nullptr);

@@ -28,28 +28,6 @@ variable VERBOSE set to 1:
 
 ----------
 
-.. _clang-tidy:
-
-Enable static code analysis with clang-tidy (CMake only)
---------------------------------------------------------
-
-The `clang-tidy tool <https://clang.llvm.org/extra/clang-tidy/>`_ is a
-static code analysis tool to diagnose (and potentially fix) typical
-programming errors or coding style violations.  It has a modular framework
-of tests that can be adjusted to help identifying problems before they
-become bugs and also assist in modernizing large code bases (like LAMMPS).
-It can be enabled for all C++ code with the following CMake flag
-
-.. code-block:: bash
-
-   -D ENABLE_CLANG_TIDY=value    # value = no (default) or yes
-
-With this flag enabled all source files will be processed twice, first to
-be compiled and then to be analyzed. Please note that the analysis can be
-significantly more time-consuming than the compilation itself.
-
-----------
-
 .. _iwyu_processing:
 
 Report missing and unneeded '#include' statements (CMake only)
@@ -523,7 +501,7 @@ to do this to install it via pip:
 
 .. code-block:: bash
 
-   pip install git+https://github.com/gcovr/gcovr.git
+   python3 -m pip install gcovr
 
 After post-processing with ``gen_coverage_html`` the results are in
 a folder ``coverage_html`` and can be viewed with a web browser.

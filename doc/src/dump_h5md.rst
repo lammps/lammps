@@ -64,7 +64,7 @@ stored within the same file by defining several dumps.  A dump that
 refers (via *file_from*) to an already open dump ID and that concerns
 another particle group must specify *create_group yes*.
 
-.. _h5md: https://nongnu.org/h5md/
+.. _h5md: https://www.nongnu.org/h5md/
 
 Each data element is written every N\*N_element steps. For *image*, no
 sub-interval is needed as it must be present at the same interval as

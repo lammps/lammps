@@ -532,7 +532,7 @@ void PairRANN::read_fingerprint_constants(std::vector<std::string> line,std::vec
     if (found) {break;}
   }
   if (!found) {error->one(filename,linenum-1,"cannot define constants for unknown fingerprint");}
-  fingerprints[i][i1]->fullydefined=fingerprints[i][i1]->parse_values(line[nwords-1],line1);
+  fingerprints[i][i1]->fullydefined=fingerprints[i][i1]->parse_values(line[nwords-1],line1); // NOLINT
   delete[] atomtypes;
 }
 
@@ -1271,7 +1271,7 @@ void PairRANN::errorf(const char *file, int line, const char * message) {
 }
 
 int PairRANN::factorial(int n) {
-  return round(MathSpecial::factorial(n));
+  return round(MathSpecial::factorial(n)); // NOLINT
 }
 
 RANN::Fingerprint *PairRANN::create_fingerprint(const char *style)

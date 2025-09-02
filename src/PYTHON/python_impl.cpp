@@ -315,7 +315,7 @@ void PythonImpl::command(int narg, char **arg)
 
   // pFunc = function object for requested function
 
-  auto pModule = (PyObject *) pyMain;
+  auto *pModule = (PyObject *) pyMain;
   PyObject *pFunc = PyObject_GetAttrString(pModule, pfuncs[ifunc].name);
 
   if (!pFunc) {
@@ -345,7 +345,7 @@ void PythonImpl::invoke_function(int ifunc, char *result, double *dvalue)
   PyObject *pValue;
   char *str;
 
-  auto pFunc = (PyObject *) pfuncs[ifunc].pFunc;
+  auto *pFunc = (PyObject *) pfuncs[ifunc].pFunc;
 
   // create Python tuple of input arguments
 

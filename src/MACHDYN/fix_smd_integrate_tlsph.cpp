@@ -145,7 +145,7 @@ void FixSMDIntegrateTlsph::initial_integrate(int /*vflag*/) {
         if (igroup == atom->firstgroup)
                 nlocal = atom->nfirst;
 
-        auto smoothVelDifference = (Vector3d *) force->pair->extract("smd/tlsph/smoothVel_ptr", itmp);
+        auto *smoothVelDifference = (Vector3d *) force->pair->extract("smd/tlsph/smoothVel_ptr", itmp);
 
         if (xsphFlag) {
                 if (smoothVelDifference == nullptr) {

@@ -810,7 +810,7 @@ std::string Atom::get_style()
 {
   std::string retval = atom_style;
   if (retval == "hybrid") {
-    auto avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
+    auto *avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
     if (avec_hybrid) {
       for (int i = 0; i < avec_hybrid->nstyles; i++) {
         retval += ' ';
@@ -830,7 +830,7 @@ AtomVec *Atom::style_match(const char *style)
 {
   if (strcmp(atom_style,style) == 0) return avec;
   else if (strcmp(atom_style,"hybrid") == 0) {
-    auto avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
+    auto *avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
     for (int i = 0; i < avec_hybrid->nstyles; i++)
       if (strcmp(avec_hybrid->keywords[i],style) == 0)
         return avec_hybrid->styles[i];
@@ -1092,7 +1092,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   double *coord;
   char *next;
   std::string typestr;
-  auto location = "Atoms section of data file";
+  const auto *location = "Atoms section of data file";
 
   // use the first line to detect and validate the number of words/tokens per line
 
@@ -1348,7 +1348,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
   char *next;
   std::string typestr;
   int newton_bond = force->newton_bond;
-  auto location = "Bonds section of data file";
+  const auto *location = "Bonds section of data file";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
@@ -1441,7 +1441,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
   char *next;
   std::string typestr;
   int newton_bond = force->newton_bond;
-  auto location = "Angles section of data file";
+  const auto *location = "Angles section of data file";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
@@ -1550,7 +1550,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
   char *next;
   std::string typestr;
   int newton_bond = force->newton_bond;
-  auto location = "Dihedrals section of data file";
+  const auto *location = "Dihedrals section of data file";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
@@ -1678,7 +1678,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
   char *next;
   std::string typestr;
   int newton_bond = force->newton_bond;
-  auto location = "Impropers section of data file";
+  const auto *location = "Impropers section of data file";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
@@ -1956,7 +1956,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
 
   int itype;
   double mass_one;
-  auto location = "Masses section of data file";
+  const auto *location = "Masses section of data file";
   auto values = Tokenizer(str).as_vector();
   int nwords = values.size();
   for (std::size_t i = 0; i < values.size(); ++i) {
@@ -2008,13 +2008,12 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
 
 /* ----------------------------------------------------------------------
    set a mass and flag it as set
-   called from EAM pair routine
+   called from EAM, MEAM, BOP, MGPT, RANN pair routines
 ------------------------------------------------------------------------- */
 
 void Atom::set_mass(const char *file, int line, int itype, double value)
 {
-  if (mass == nullptr)
-    error->all(file,line, "Cannot set per-type mass for atom style {}", atom_style);
+  // sanity checks
   if (itype < 1 || itype > ntypes)
     error->all(file,line,"Invalid type {} for atom mass {}", itype, value);
   if (value <= 0.0) {
@@ -2022,9 +2021,23 @@ void Atom::set_mass(const char *file, int line, int itype, double value)
       error->warning(file,line,"Ignoring invalid mass value {} for atom type {}", value, itype);
     return;
   }
-  mass[itype] = value;
-  mass_setflag[itype] = 1;
+
+  // set per-type mass
+  if (mass != nullptr) {
+    mass[itype] = value;
+    mass_setflag[itype] = 1;
+  }
+
+  // set per-atom mass
+  if (rmass != nullptr) {
+    for (int i = 0; i < atom->nlocal; ++i) {
+      if (atom->type[i] == itype) {
+        atom->rmass[i] = value;
+      }
+    }
+  }
 }
+
 
 /* ----------------------------------------------------------------------
    set one or more masses and flag them as set
@@ -2113,8 +2126,8 @@ int Atom::shape_consistency(int itype, double &shapex, double &shapey, double &s
   double one[3] = {-1.0, -1.0, -1.0};
   double *shape;
 
-  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(style_match("ellipsoid"));
-  auto bonus = avec_ellipsoid->bonus;
+  auto *avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(style_match("ellipsoid"));
+  auto *bonus = avec_ellipsoid->bonus;
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++) {
@@ -2489,7 +2502,7 @@ void Atom::setup_sort_bins()
 
 #ifdef LMP_GPU
   if (userbinsize == 0.0) {
-    auto ifix = dynamic_cast<FixGPU *>(modify->get_fix_by_id("package_gpu"));
+    auto *ifix = dynamic_cast<FixGPU *>(modify->get_fix_by_id("package_gpu"));
     if (ifix) {
       const double subx = domain->subhi[0] - domain->sublo[0];
       const double suby = domain->subhi[1] - domain->sublo[1];

@@ -38,7 +38,7 @@ namespace Granular_NS {
   class GranSubModTwistingNone : public GranSubModTwisting {
    public:
     GranSubModTwistingNone(class GranularModel *, class LAMMPS *);
-    void calculate_forces() override{};
+    void calculate_forces() override {};
   };
 
   /* ---------------------------------------------------------------------- */

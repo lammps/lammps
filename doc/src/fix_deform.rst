@@ -298,7 +298,8 @@ Note that it should return the "change" in box length, not the
 absolute box length.  This means it should evaluate to 0.0 when
 invoked on the initial timestep of the run following the definition of
 fix deform.  It should evaluate to a value > 0.0 to dilate the box at
-future times, or a value < 0.0 to compress the box.
+future times, or a value < 0.0 to compress the box. The exception
+would be if the run command uses the *pre no* option.
 
 The variable *name2* must also be an :doc:`equal-style variable
 <variable>` and should calculate the rate of box length change, in

@@ -54,7 +54,7 @@ class FixExternal : public Fix {
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
 
-  typedef void (*FnPtr)(void *, bigint, int, tagint *, double **, double **);
+  using FnPtr = void (*)(void *, bigint, int, tagint *, double **, double **);
   void set_callback(FnPtr, void *);
 
   void *extract(const char *, int &) override;

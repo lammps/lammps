@@ -24,7 +24,6 @@ FixStyle(atom_weight/apip,FixAtomWeightAPIP);
 #define LMP_FIX_ATOM_WEIGHT_APIP_H
 
 #include "fix.h"
-#include "pointers.h"
 
 namespace LAMMPS_NS {
 

@@ -691,6 +691,15 @@ int FixRMCPartial::setmask()
   return mask;
 }
 
+void FixRMCPartial::init()
+{
+  // require an atom style with molecule IDs
+
+  if (atom->molecule == nullptr)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Must use an atom style with molecule IDs with fix rmc/partial");
+}
+
 void FixRMCPartial::initial_integrate(int /*vflag*/)
 {
   if (perform_step == 0 || perform_step == update->ntimestep) {

@@ -35,6 +35,7 @@ class FixRMCPartial : public Fix {
   FixRMCPartial(class LAMMPS *, int, char **);
   ~FixRMCPartial();
   int setmask() override;
+  void init() override;
   int determine_molecule(int);
   int determine_dopant_or_semiconductor(int);
   double energy_full();

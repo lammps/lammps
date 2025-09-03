@@ -326,7 +326,7 @@ FixRMCPartial::FixRMCPartial(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < num_angles; i++) {
       angle_list[i] = new int[4];
       for (int j = 0; j < 3; j++) angle_list[i][j] = rmcdata["angle_list"][i][j];
-      angle_list[i][4] = determine_molecule(angle_list[i][0]);
+      angle_list[i][3] = determine_molecule(angle_list[i][0]);
     }
   }
 

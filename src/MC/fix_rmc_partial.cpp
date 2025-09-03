@@ -440,13 +440,13 @@ FixRMCPartial::FixRMCPartial(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < num_charge_states; i++) {
       mesg += fmt::format("{} ", beta * delta_g_list[i]);
     }
-    mesg += fmt::format("\nDihedral modification?: {}", do_dihedral ? "yes" : "no");
+    mesg += fmt::format("\nDihedral modification?: {}\n", do_dihedral ? "yes" : "no");
     if (do_dihedral == 1) {
       mesg += "Dihedral types: ";
       for (int i = 0; i < num_charge_states; i++) mesg += fmt::format("{} ", dihedral_types[i]);
       mesg += fmt::format("\nNumber of dihedrals: {}\n", num_dihedrals);
     }
-    mesg += fmt::format("Angle modification?: {}", do_angle ? "yes" : "no");
+    mesg += fmt::format("Angle modification?: {}\n", do_angle ? "yes" : "no");
     if (do_angle == 1) {
       mesg += "Angle types: ";
       for (int i = 0; i < num_charge_states; i++) mesg += fmt::format("{} ", angle_types[i]);

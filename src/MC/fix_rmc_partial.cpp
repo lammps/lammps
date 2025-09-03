@@ -419,72 +419,71 @@ rng_type_source(device_type_source()), rng_type_destination(device_type_destinat
       }
     }
 
+  if (comm->me == 0) {
+    std::string mesg =
+      "###############################################\n"
+      "        RMC PARTIAL CHARGE INITIALIZATION      \n"
+      "###############################################\n";
 
-  if (comm->me == 0) {   
-      utils::logmesg(lmp, "###############################################\n");
-      utils::logmesg(lmp, "        RMC PARTIAL CHARGE INITIALIZATION      \n");
-      utils::logmesg(lmp, "###############################################\n");
-      if (restart == 1) {
-         utils::logmesg(lmp, "Continuing Run\n");
-      } else {
-         utils::logmesg(lmp, "New Run\n");
+    mesg += (restart == 1) ? "Continuing Run\n" : "New Run\n";
+
+    mesg += fmt::format("RMC frequency: {}\n", periodicity);
+    mesg += fmt::format("Number of RMC moves per turn: {}\n",nmoves);
+    mesg += fmt::format("Size of dopant molecule: {}\n",dopant_size);
+    mesg += fmt::format("Size of semiconductor molecule: {}\n",semiconductor_size);
+    mesg += fmt::format("Number of dopant molecules: {}\n",n_dopant);
+    mesg += fmt::format("Number of semiconductor molecules: {}\n",n_semiconductor);
+    mesg += fmt::format("Temperature: {}\n",temperature);
+    mesg += fmt::format("Number of charge states: {}\n", num_charge_states);
+    mesg += "Charges: ";
+    for (int i=0;i<num_charge_states;i++) {
+      mesg += fmt::format("{} ",charges[i]);
+    }
+    mesg += "\nSemiconductor numbers for each charge type: ";
+    for (int i=0;i<num_charge_states;i++) {
+      mesg += fmt::format("{} ", num_semiconductor_charge[i]);
+    }
+    mesg += "\nDopant numbers for each charge type: ";
+    for (int i=0;i<num_charge_states;i++) {
+      mesg += fmt::format("{} ", num_dopant_charge[i]);
+    }
+    mesg += "\nReaction Energies: ";
+    for (int i=0; i<num_charge_states;i++) {
+      mesg += fmt::format("{} ",delta_g_list[i]);
+    }
+    mesg += "\nbetaDelta_G: ";
+    for (int i=0;i<num_charge_states;i++) {
+      mesg += fmt::format("{} ", beta*delta_g_list[i]);
+    }
+    mesg += fmt::format("\nDihedral modification?: {}", do_dihedral ? "yes" : "no");
+    if (do_dihedral == 1){
+      mesg += "Dihedral types: ";
+      for (int i=0; i < num_charge_states;i++) {
+        mesg += fmt::format("{} ", dihedral_types[i]);
       }
-      utils::logmesg(lmp,"{} {}\n","RMC frequency: ", periodicity);
-      utils::logmesg(lmp,"{} {}\n","Number of RMC moves per turn: ",nmoves);
-      utils::logmesg(lmp,"{} {}\n","Size of dopant molecule: ",dopant_size);
-      utils::logmesg(lmp,"{} {}\n","Size of semiconductor molecule: ",semiconductor_size);
-      utils::logmesg(lmp,"{} {}\n","Number of dopant molecules: ",n_dopant);
-      utils::logmesg(lmp,"{} {}\n","Number of semiconductor molecules: ",n_semiconductor);
-      utils::logmesg(lmp,"{} {}\n","Temperature: ",temperature);
-      utils::logmesg(lmp,"{} {}\n","Number of charge states: ", num_charge_states);
-      utils::logmesg(lmp, "Charges: ");
-      for (int i=0;i<num_charge_states;i++) {
-         utils::logmesg(lmp,"{} ",charges[i]);
+      mesg += fmt::format("\nNumber of dihedrals: {}\n", num_dihedrals);
+    }
+    mesg += fmt::format("Angle modification?: {}", do_angle ? "yes" : "no");
+    if (do_angle == 1){
+      mesg += "Angle types: ";
+      for (int i=0;i<num_charge_states;i++){
+        mesg += fmt::format("{} ", angle_types[i]);
       }
-      utils::logmesg(lmp, "\nSemiconductor numbers for each charge type: ");
-      for (int i=0;i<num_charge_states;i++) {
-         utils::logmesg(lmp, "{} ", num_semiconductor_charge[i]);
+      mesg += fmt::format("\nNumber of angles: {}\n", num_angles);
+    }
+    mesg += fmt::format("Bond modification?: {}\n", do_bond ? "yes" : "no");
+    if (do_bond == 1){
+      mesg += "Bond types: ";
+      for (int i=0;i<num_charge_states;i++){
+        mesg += fmt::format("{} ", bond_types[i]);
       }
-      utils::logmesg(lmp, "\nDopant numbers for each charge type: ");
-      for (int i=0;i<num_charge_states;i++) {
-         utils::logmesg(lmp, "{} ", num_dopant_charge[i]);
-      }
-      utils::logmesg(lmp, "\nReaction Energies: ");
-      for (int i=0; i<num_charge_states;i++) {
-         utils::logmesg(lmp,"{} ",delta_g_list[i]);
-      }
-      utils::logmesg(lmp, "\nbetaDelta_G: ");
-      for (int i=0;i<num_charge_states;i++) {
-         utils::logmesg(lmp,"{} ", beta*delta_g_list[i]);
-      }
-      utils::logmesg(lmp, "\n{} {}\n", "Dihedral modification?: ", do_dihedral);
-      if (do_dihedral == 1){
-        utils::logmesg(lmp, "Dihedral types: ");
-        for (int i=0;i<num_charge_states;i++) {
-           utils::logmesg(lmp,"{} ", dihedral_types[i]);
-        }
-        utils::logmesg(lmp, "\n{} {}\n", "Number of dihedrals: ", num_dihedrals);
-      }
-      utils::logmesg(lmp, "{} {}\n", "Angle modification?: ", do_angle);
-      if (do_angle == 1){
-         utils::logmesg(lmp, "Angle types: ");
-         for (int i=0;i<num_charge_states;i++){
-             utils::logmesg(lmp, "{} ", angle_types[i]);
-         }
-         utils::logmesg(lmp, "\n{} {}\n", "Number of angles: ", num_angles);
-      }
-      utils::logmesg(lmp, "{} {}\n", "Bond modification?: ", do_bond);
-      if (do_bond == 1){
-         utils::logmesg(lmp, "Bond types: ");
-         for (int i=0;i<num_charge_states;i++){
-            utils::logmesg(lmp, "{} ", bond_types[i]);
-         }
-         utils::logmesg(lmp, "\n{} {}\n", "Number of bonds: ", num_bonds);
-      }
-      utils::logmesg(lmp,"{} {}\n","Type threshold: ",type_threshold);
-      utils::logmesg(lmp, "###############################################\n");
+      mesg += fmt::format("\nNumber of bonds: {}\n", num_bonds);
+    }
+    mesg += fmt::format("Type threshold: {}\n",type_threshold);
+    mesg += "###############################################\n";
+    utils::logmesg(lmp, mesg);
   }
-     
+
 }
 
 int FixRMCPartial::determine_molecule(int global_id)
@@ -721,12 +720,10 @@ int FixRMCPartial::setmask()
 }
 
 void FixRMCPartial::initial_integrate(int /*vflag*/)
-{ 
-  if (perform_step == 0 || perform_step == update->ntimestep) {  
-     for (int move=1;move<=nmoves;move++) {  
-        if (comm->me == 0) {  
-           utils::logmesg(lmp, "{} {} {} {}\n", "Move ", move, " out of ", nmoves);
-        }
+{
+  if (perform_step == 0 || perform_step == update->ntimestep) {
+     for (int move=1;move<=nmoves;move++) {
+        if (comm->me == 0) utils::logmesg(lmp, "Move {} out of {}\n", move, nmoves);
         make_move();
      }
      nmcsteps = nmcsteps + nmoves;
@@ -1079,17 +1076,15 @@ void FixRMCPartial::make_move()
 
 
     // Calculate the energy before we do any mischief
-    double starting_energy = energy_full(); 
-    
-    if (comm->me == 0){
-       utils::logmesg(lmp, "{}, {}\n", "The starting energy is ", starting_energy);
-    }
-    
+    double starting_energy = energy_full();
+
+    if (comm->me == 0) utils::logmesg(lmp, "The starting energy is {}\n", starting_energy);
+
     int rand_semi, rand_dope, rand_charge;
     int indicator=-1;
     int c_indicator=-1;
-    
-    
+
+
     // Find a semiconductor - this is not good of course - you're not sampling properly
     // What you need to do is pick a random CHARGE, and then choose a molecule with that charge
     if (comm->me == 0) {
@@ -1099,7 +1094,7 @@ void FixRMCPartial::make_move()
             c_indicator = 0;
          }
       }
-      utils::logmesg(lmp, "{}, {}\n", "We have chosen charge state", charges[rand_charge]);
+      utils::logmesg(lmp, "We have chosen charge state {}\n", charges[rand_charge]);
       int tries=0;
       while (indicator != 0) {
          rand_semi = atom_dist(rng_atom);
@@ -1129,8 +1124,10 @@ void FixRMCPartial::make_move()
           rand_dope = atom_dist(rng_atom);
           if (molecule_type[rand_dope-1] == 1) {
              if (fabs(molecule_charge_states[rand_dope-1] + molecule_charge_states[rand_semi-1]) < 0.001){
-               utils::logmesg(lmp, "FOUND EQUALITY\n");
-               utils::logmesg(lmp, "{} {} {} {}\n", "Semiconductor charge, ", molecule_charge_states[rand_semi-1], " = Dopant charge ", molecule_charge_states[rand_dope-1]);
+               utils::logmesg(lmp, "FOUND EQUALITY\n"
+                              "Semiconductor charge, {} = Dopant charge {}\n",
+                              molecule_charge_states[rand_semi-1],
+                              molecule_charge_states[rand_dope-1]);
                indicator = 1;
              }
           }
@@ -1150,8 +1147,9 @@ void FixRMCPartial::make_move()
   
     // Verify charge states are the same
     if (dopant.charge_state != semiconductor.charge_state){
-       utils::logmesg(lmp, "{} {} {} {}\n", "Dopant charge state is ", dopant.charge_state, " and semiconductor charge state is ", semiconductor.charge_state); 
-       error->all(FLERR, "Charge states don't match!");
+       utils::logmesg(lmp, "Dopant charge state is {} and semiconductor charge state is {}\n",
+                      dopant.charge_state, semiconductor.charge_state);
+       error->all(FLERR, Error::NOLASTLINE, "Charge states don't match!");
     }
 
     // Identify a destination charge state, picked randomly
@@ -1166,9 +1164,11 @@ void FixRMCPartial::make_move()
 
     MPI_Bcast(&destination_charge_state, 1, MPI_INT, 0, world);
     
-    if (comm->me == 0){
-      utils::logmesg(lmp, "{} {} {} {}\n", "Going from charge state", charges[semiconductor.charge_state], "to ", charges[destination_charge_state]);
-    }
+    MPI_Bcast(&destination_charge_state, 1, MPI_INT, 0, world);
+
+    if (comm->me == 0)
+      utils::logmesg(lmp, "Going from charge state {} to {}\n",
+                     charges[semiconductor.charge_state], charges[destination_charge_state]);
 
     // Calculate centre of mass
     calculateMoleculeCOM(osc_com, &semiconductor);
@@ -1207,19 +1207,21 @@ void FixRMCPartial::make_move()
 
 
     if (comm->me == 0){
+      std::string mesg;
       if (do_dihedral == 1){
-         utils::logmesg(lmp, "{} {}\n", "The dihedral energy change is ", edihedral);
+        mesg += fmt::format("The dihedral energy change is {}\n", edihedral);
       }
       if (do_angle == 1){
-         utils::logmesg(lmp, "{} {}\n", "The angle energy change is", eangle);
+        mesg+= fmt::format("The angle energy change is {}\n", eangle);
       }
       if (do_bond == 1){
-         utils::logmesg(lmp, "{} {}\n", "The bond energy change is", ebond);
+        mesg += fmt::format("The bond energy change is {}\n", ebond);
       }
-      utils::logmesg(lmp, "{} {}\n", "The semiconductor self energy difference is ", e_osc_diff);
-      utils::logmesg(lmp, "{} {}\n", "The dopant self-energy difference is ", e_dopant_diff);
-      utils::logmesg(lmp, "{} {} {}\n", "The cross-energy before and after doping are ", interaction_energy[0], interaction_energy[1]);
-      utils::logmesg(lmp, "{} {}\n", "The COM distance is ", com_diff);
+      mesg += fmt::format("The semiconductor self energy difference is {}\n", e_osc_diff);
+      mesg += fmt::format("The dopant self-energy difference is {}\n", e_dopant_diff);
+      mesg += fmt::format("The cross-energy before and after doping are {} {}\n", interaction_energy[0], interaction_energy[1]);
+      mesg += fmt::format("The COM distance is {}\n", com_diff);
+      utils::logmesg(lmp, mesg);
     }
 
 
@@ -1246,16 +1248,14 @@ void FixRMCPartial::make_move()
     }
     double total_electrostatic_diff = energy_diff - reaction_energy;
 
-    if (comm->me == 0){
-       utils::logmesg(lmp, "{} {}\n",  "Total Electrostatic Energy Difference: ", total_electrostatic_diff);
-    }
+    if (comm->me == 0)
+       utils::logmesg(lmp, "Total Electrostatic Energy Difference: {}\n", total_electrostatic_diff);
     // Calculate acceptance probability
     transition_probability = prefactor*exp(-beta*energy_diff);
 
-    if (comm->me == 0){
-       utils::logmesg(lmp, "{} {} {} {}\n", "The new energy is ", new_energy, " and the difference is ", energy_diff);
-
-    }
+    if (comm->me == 0)
+       utils::logmesg(lmp, "The new energy is {} and the difference is {}\n",  new_energy, energy_diff);
+    
 
     // Generate random number in one rank
     double rand_number=0;
@@ -1268,10 +1268,8 @@ void FixRMCPartial::make_move()
     if (transition_probability > rand_number){
        // Move accepted
        acceptances = acceptances+1;
-       if (comm->me == 0){
-          utils::logmesg(lmp, "MOVE ACCEPTED\n");
-       }
-     
+       if (comm->me == 0) utils::logmesg(lmp, "MOVE ACCEPTED\n");
+
        num_semiconductor_charge[destination_charge_state] = num_semiconductor_charge[destination_charge_state]+1;
        num_dopant_charge[destination_charge_state] = num_dopant_charge[destination_charge_state]+1;
        num_semiconductor_charge[semiconductor.charge_state] = num_semiconductor_charge[semiconductor.charge_state]-1;
@@ -1293,16 +1291,14 @@ void FixRMCPartial::make_move()
          ebond = change_bond_parameters(rand_semi, semiconductor.charge_state);
        }
 
-       if (comm->me == 0){ 
-          utils::logmesg(lmp, "MOVE REJECTED\n");
-       }
+       if (comm->me == 0) utils::logmesg(lmp, "MOVE REJECTED\n");
 
        // Restore the charges to what they were
        restore_charge(&semiconductor);
        restore_charge(&dopant);
        force->kspace->init();
     }
-   
+
     // The step is done, so we can delete the molecules
     delete_molecule(&semiconductor);
     delete_molecule(&dopant);
@@ -1313,11 +1309,12 @@ void FixRMCPartial::make_move()
     }
 
      if (comm->me == 0){
-        utils::logmesg(lmp, "Dynamic Doping Efficiency: ");
+       std::string mesg = "Dynamic Doping Efficiency: ";
         for (int i=0;i<num_charge_states;i++){
-            utils::logmesg(lmp, "{} ", dde[i]);
+          mesg += fmt::format("{} ", dde[i]);
         }
-        utils::logmesg(lmp, "\n");
+        mesg += "\n";
+        utils::logmesg(lmp, mesg);
      }
 
 }
@@ -1392,28 +1389,30 @@ void FixRMCPartial::post_mortem()
       }
       fclose(ftype);
 
-      utils::logmesg(lmp, "###############################################\n");
-      utils::logmesg(lmp, "              RMC OUTPUT SUMMARY               \n");
-      utils::logmesg(lmp, "###############################################\n");
-      utils::logmesg(lmp,"{} {}\n", "Number of RMC moves: ", nmcsteps);
-      utils::logmesg(lmp, "{}", "Final charged dopant number: ");
+      std::string mesg =
+        "###############################################\n"
+        "              RMC OUTPUT SUMMARY               \n"
+        "###############################################\n";
+      mesg += fmt::format("Number of RMC moves: {}\n", nmcsteps);
+      mesg += "Final charged dopant number: ";
       for (int i=0;i<num_charge_states;i++){
-         utils::logmesg(lmp, "{} ", num_dopant_charge[i]);
+        mesg += fmt::format("{} ", num_dopant_charge[i]);
       }
-      utils::logmesg(lmp, "\nFinal charged semiconductor number: ");
+      mesg += "\nFinal charged semiconductor number: ";
       for (int i=0;i<num_charge_states;i++){
-         utils::logmesg(lmp, "{} ", num_semiconductor_charge[i]);
+        mesg += fmt::format("{} ", num_semiconductor_charge[i]);
       }
-      utils::logmesg(lmp,"\n{} {}\n", "Final charged dopant number: ", total_charged_dopants);
-      utils::logmesg(lmp,"{} {}\n", "Final charged semiconductor number: ", total_charged_semiconductors);
-      utils::logmesg(lmp, "Doping efficiency: ");
+      mesg += fmt::format("\nFinal charged dopant number: {}\n", total_charged_dopants);
+      mesg += fmt::format("Final charged semiconductor number: {}\n", total_charged_semiconductors);
+      mesg += "Doping efficiency: ";
       for (int i=0;i<num_charge_states;i++){
-         utils::logmesg(lmp,"{} ", doping_efficiency[i]);
+        mesg += fmt::format("{} ", doping_efficiency[i]);
       }
-      utils::logmesg(lmp,"\n{} {}\n", "Final acceptances: ", acceptances);
-      utils::logmesg(lmp,"{} {}\n", "Final rejections: ", rejections);
-      utils::logmesg(lmp,"{} {}\n", "Acceptance rate: ",acceptance_rate);
-      utils::logmesg(lmp, "###############################################\n");
+      mesg += fmt::format("\nFinal acceptances: {}\n", acceptances);
+      mesg += fmt::format("Final rejections: {}\n", rejections);
+      mesg += fmt::format("Acceptance rate: {}\n",acceptance_rate);
+      mesg += "###############################################\n";
+      utils::logmesg(lmp, mesg);
    }
 }
 

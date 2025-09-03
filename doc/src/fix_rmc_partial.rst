@@ -1,7 +1,7 @@
 .. index:: fix rmc/partial
 
 fix rmc/partial command
-=========================
+=======================
 
 Syntax
 """""""
@@ -14,17 +14,47 @@ Syntax
 * filename.json = A JSON file containing the inputs for the RMC run
 
 Example
-"""""""""
+"""""""
 
 .. code-block:: LAMMPS
     
     fix 1 all nvt temp 800 800 100
     fix 2 all rmc/partial rmc_input.json
 
-An example rmc_input.json file, along with input file in.rmc and data file rmc_struct.data are provided in the examples/mc folder. 
+An example ``rmc_input.json`` file, along with input file ``in.rmc`` and data
+file rmc_struct.data are provided in the ``examples/mc`` folder.
+
+Description
+"""""""""""
+
+This fix performs Reactive Monte Carlo Molecular Dynamics (RMCMD)
+simulations for the simultaneous treatment of the doping reaction and
+morphology evolution in doped organic semiconductors, based on
+:ref:`Verma2024<Verma2024>` and
+:ref:`Raghuraman2025<Raghuraman2025>`. The method alternates between MD
+steps (for the morphology) and MC steps where a neutral semiconductor
+and dopant molecule is chosen randomly, and the atomic charges are
+replaced to ionize the molecule. The fix is capable of capturing Integer
+Charge Transfer (ICT), where a molecule goes from neutral to fully
+ionized, and Charge Transfer Complexes (CTC), where a molecule can
+partially ionize. In addition to switching out charges, the fix can also
+switch out dihedral types, angle types and bond types of the chosen
+molecules, enabling the study of intramolecular conformational effects
+as a function of doping. The fix should used be alongside an MD fix like
+nvt or npt.
+
+.. image:: JPG/rmcmd-workflow.png
+   :align: center
+   :scale: 10%
+
+The figure above shows a schematic of the RMCMD cycle, using NVT MD as
+the fix for morphology.
+
+A step-by-step guide on running RMCMD will be made available shortly at
+`thejacksonlab.github.io website <https://thejacksonlab.github.io>`_.
 
 Input file format
-"""""""""""""""""""""
+"""""""""""""""""
 
 The inputs for fix rmc/partial should be provided in a JSON file. Here we go through what this file looks like, with all the relevant fields.
 
@@ -233,29 +263,16 @@ The following table highlights the sub-sections for the "semiconductor_charges" 
      - A list of atomic charges for a semiconductor/dopant molecule with +1/-1 charge, specified in order of global atom ID. Note that global IDs within a molecule must be contiguous. 
 
 
-Description
-"""""""""""
-
-This fix performs Reactive Monte Carlo Molecular Dynamics (RMCMD) simulations for the simultaneous treatment of the doping reaction and morphology evolution
-in doped organic semiconductors, based on :ref:`Verma2024<Verma2024>` and :ref:`Raghuraman2025<Raghuraman2025>`. The method alternates between MD steps (for the morphology) and MC steps
-where a neutral semiconductor and dopant molecule is chosen randomly, and the atomic charges are replaced to ionize the molecule. The fix is capable of
-capturing Integer Charge Transfer (ICT), where a molecule goes from neutral to fully ionized, and Charge Transfer Complexes (CTC), where a molecule can
-partially ionize. In addition to switching out charges, the fix can also switch out dihedral types, angle types and bond types of the chosen molecules, enabling
-the study of intramolecular conformational effects as a function of doping. The fix should used be alongside an MD fix like nvt or npt.
-
-.. image:: JPG/rmcmd-workflow.png
-   :align: center
-   :scale: 10%
-
-The figure above shows a schematic of the RMCMD cycle, using NVT MD as the fix for morphology.
-
-A step-by-step guide on running RMCMD will be made available shortly at `thejacksonlab.github.io website <https://thejacksonlab.github.io>`_.
-
 Restrictions
-"""""""""""""
-This fix requires the LAMMPS package :ref:`MC <PKG-MC>` to be built.
+""""""""""""
 
-______________
+This fix is part of the MC package.  It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>`
+doc page for more info.
+
+This fix requires using an atom style with molecule IDs.
+
+--------------
 
 .. _Verma2024:
 

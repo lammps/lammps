@@ -142,7 +142,7 @@ FixRMCPartial::FixRMCPartial(LAMMPS *lmp, int narg, char **arg) :
 
   if (rmcdata.contains("cycle")) {
     if (rmcdata["cycle"].contains("mdsteps")) {
-      periodicity = rmcdata["cycle"]["mdsteps"];
+      nevery = rmcdata["cycle"]["mdsteps"];
     } else {
       error->all(FLERR, 3, "Periodicity missing in JSON input cycle field\n");
     }
@@ -416,7 +416,7 @@ FixRMCPartial::FixRMCPartial(LAMMPS *lmp, int narg, char **arg) :
 
     mesg += (restart == 1) ? "Continuing Run\n" : "New Run\n";
 
-    mesg += fmt::format("RMC frequency: {}\n", periodicity);
+    mesg += fmt::format("RMC frequency: {}\n", nevery);
     mesg += fmt::format("Number of RMC moves per turn: {}\n", nmoves);
     mesg += fmt::format("Size of dopant molecule: {}\n", dopant_size);
     mesg += fmt::format("Size of semiconductor molecule: {}\n", semiconductor_size);
@@ -702,15 +702,13 @@ void FixRMCPartial::init()
 
 void FixRMCPartial::initial_integrate(int /*vflag*/)
 {
-  if (perform_step == 0 || perform_step == update->ntimestep) {
-    for (int move = 1; move <= nmoves; move++) {
-      if (comm->me == 0) utils::logmesg(lmp, "Move {} out of {}\n", move, nmoves);
-      make_move();
-    }
-    nmcsteps = nmcsteps + nmoves;
-    // Update when next to perform ReactiveMC
-    perform_step = update->ntimestep + periodicity;
+  if (update->ntimestep % nevery) return;
+
+  for (int move = 1; move <= nmoves; move++) {
+    if (comm->me == 0) utils::logmesg(lmp, "Move {} out of {}\n", move, nmoves);
+    make_move();
   }
+  nmcsteps = nmcsteps + nmoves;
 }
 
 double FixRMCPartial::energy_full()
@@ -945,7 +943,11 @@ FixRMCPartial::Mol *FixRMCPartial::get_molecule(int mol_id, int num_atoms_max)
       molecule->charge[atom_counter] = atom->q[i];
       molecule->new_charge[atom_counter] = atom->q[i];
       molecule->type[atom_counter] = atom->type[i];
-      molecule->mass[atom_counter] = atom->mass[atom->type[i]];
+      if (atom->rmass) {
+        molecule->mass[atom_counter] = atom->rmass[i];
+      } else {
+        molecule->mass[atom_counter] = atom->mass[atom->type[i]];
+      }
       molecule->image[atom_counter] = atom->image[i];
       molecule->global_tag[atom_counter] = atom->tag[i];
       molecule->local_index[atom_counter] = i;

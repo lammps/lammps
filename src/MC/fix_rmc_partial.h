@@ -34,15 +34,17 @@ class FixRMCPartial : public Fix {
  public:
   FixRMCPartial(class LAMMPS *, int, char **);
   ~FixRMCPartial();
+
   int setmask() override;
   void init() override;
+  void initial_integrate(int) override;
+
   int determine_molecule(int);
   int determine_dopant_or_semiconductor(int);
   double energy_full();
   double change_dihedral_parameters(int, int);
   double change_angle_parameters(int, int);
   double change_bond_parameters(int, int);
-  void initial_integrate(int) override;
   void make_move();
   void post_mortem();
 
@@ -78,7 +80,7 @@ class FixRMCPartial : public Fix {
 
  private:
   int perform_step;
-  int periodicity;
+  int nevery;
   int nmoves;
   int dopant_size;
   int semiconductor_size;

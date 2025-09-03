@@ -2,12 +2,12 @@
  * LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  * https://www.lammps.org/, Sandia National Laboratories
  * LAMMPS development team: developers@lammps.org
- *          
+ *
  * Copyright (2003) Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
  * certain rights in this software.  This software is distributed under
  * the GNU General Public License.
- * 
+ *
  * See the README file in the top-level LAMMPS directory.
  * ------------------------------------------------------------------------- */
 
@@ -17,29 +17,31 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rmc_partial.h"
-#include "compute.h"
-#include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "comm.h"
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
+#include "compute.h"
 #include "dihedral.h"
-#include "improper.h"
-#include "kspace.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "improper.h"
+#include "json.h"
+#include "kspace.h"
 #include "modify.h"
 #include "neighbor.h"
-#include "json.h"
+#include "pair.h"
 #include "text_file_reader.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-FixRMCPartial::FixRMCPartial(LAMMPS *lmp, int narg, char **arg) : rng_acc(device_acc()), rng_atom(device_atom()), 
-rng_type_source(device_type_source()), rng_type_destination(device_type_destination()), Fix(lmp, narg, arg)
+FixRMCPartial::FixRMCPartial(LAMMPS *lmp, int narg, char **arg) :
+  rng_acc(device_acc()), rng_atom(device_atom()), rng_type_source(device_type_source()),
+  rng_type_destination(device_type_destination()), Fix(lmp, narg, arg)
 {
   perform_step = 0;
   nmcsteps=0;
@@ -50,14 +52,15 @@ rng_type_source(device_type_source()), rng_type_destination(device_type_destinat
   // Read the data from rank 0
   json rmcdata;
   std::vector <std::uint8_t> rmcdata_byte;
-  int rmcdatasize = 0; 
-  FILE *fp;
+  int rmcdatasize = 0;
+
+  if (!utils::strmatch(jsonfilename, "\\.json$"))
+    error->all(FLERR, 3, "Filename {} does not have .json extension", jsonfilename);
 
   if (comm->me == 0){
-    if (!utils::strmatch(jsonfilename, "\\.json$")){
-      error->all(FLERR, "Filename {} does not have .json extension", jsonfilename);    
-    }
-    fp = fopen(jsonfilename.c_str(), "r");
+    FILE *fp = fopen(jsonfilename.c_str(), "r");
+    if (!fp)
+      error->one(FLERR, 3, "Error opening file '{}' for reading: {}\n", jsonfilename, utils::getsyserror());
     rmcdata = json::parse(fp);
     rmcdata_byte = json::to_ubjson(rmcdata);
     rmcdatasize = rmcdata_byte.size();
@@ -84,16 +87,16 @@ rng_type_source(device_type_source()), rng_type_destination(device_type_destinat
 
   // Get the system name, important for restart files
   if (rmcdata.contains("sysname")){
-     sysname = std::string(rmcdata["sysname"]);
+    sysname = std::string(rmcdata["sysname"]);
   } else {
-   error->all(FLERR, "Sysname not defined in JSON input file\n");
+    error->all(FLERR, 3, "Sysname not defined in JSON input file");
   }
 
   // Let's get the temperature
   if (rmcdata.contains("temperature")){
     temperature = rmcdata["temperature"];
   }  else {
-    error->all(FLERR, "Temperature not defined in JSON input file\n");
+    error->all(FLERR, 3, "Temperature not defined in JSON input file");
   }
   beta = 1.0/(force->boltz * temperature);
 
@@ -104,158 +107,157 @@ rng_type_source(device_type_source()), rng_type_destination(device_type_destinat
     } else {
       restart = 0;
     }
- } else {
-   restart = 0;
- }
+  } else {
+    restart = 0;
+  }
 
   // Getting dopant/semiconductor size, number of molecules, type threshold and other parameters
   if (rmcdata.contains("system")){
-     if (rmcdata["system"].contains("dopant_num_atoms")){
-        dopant_size = rmcdata["system"]["dopant_num_atoms"];
-     } else {
-       error->all(FLERR, "Dopant_num_atoms missing in JSON input system field\n");
-     }
-     if (rmcdata["system"].contains("semiconductor_num_atoms")){
-        semiconductor_size = rmcdata["system"]["semiconductor_num_atoms"];
-     } else {
-       error->all(FLERR, "Semiconductor_num_atoms missing in JSON input system field\n");
-     }
-     size_limit = std::max(dopant_size, semiconductor_size);
-     if (rmcdata["system"].contains("num_dopants")){
-       n_dopant = rmcdata["system"]["num_dopants"];
-     } else {
-       error->all(FLERR, "num_dopants missing in JSON input system field");
-     }
-     if (rmcdata["system"].contains("num_semiconductors")){
-       n_semiconductor = rmcdata["system"]["num_semiconductors"];
-     } else {
-       error->all(FLERR, "num_semiconductors missing in JSON input system field\n");
-     }
-     n_molecules = n_dopant+n_semiconductor;
+    if (rmcdata["system"].contains("dopant_num_atoms")){
+      dopant_size = rmcdata["system"]["dopant_num_atoms"];
+    } else {
+      error->all(FLERR, "Dopant_num_atoms missing in JSON input system field\n");
+    }
+    if (rmcdata["system"].contains("semiconductor_num_atoms")){
+      semiconductor_size = rmcdata["system"]["semiconductor_num_atoms"];
+    } else {
+      error->all(FLERR, "Semiconductor_num_atoms missing in JSON input system field\n");
+    }
+    size_limit = std::max(dopant_size, semiconductor_size);
+    if (rmcdata["system"].contains("num_dopants")){
+      n_dopant = rmcdata["system"]["num_dopants"];
+    } else {
+      error->all(FLERR, "num_dopants missing in JSON input system field");
+    }
+    if (rmcdata["system"].contains("num_semiconductors")){
+      n_semiconductor = rmcdata["system"]["num_semiconductors"];
+    } else {
+      error->all(FLERR, "num_semiconductors missing in JSON input system field\n");
+    }
+    n_molecules = n_dopant+n_semiconductor;
   } else {
-    error->all(FLERR, "System field missing in JSON input file\n");
+    error->all(FLERR, 3, "System field missing in JSON input file\n");
   }
 
   if (rmcdata.contains("cycle")){
-     if (rmcdata["cycle"].contains("mdsteps")){
-        periodicity = rmcdata["cycle"]["mdsteps"];
-     } else {
-        error->all(FLERR, "Periodicity missing in JSON input cycle field\n");
-     }
-     if (rmcdata["cycle"].contains("mcsteps")){
-        nmoves = rmcdata["cycle"]["mcsteps"];
-     } else {
-        error->all(FLERR, "Mcsteps missing in JSON input cycle field\n");
-     }
+    if (rmcdata["cycle"].contains("mdsteps")){
+      periodicity = rmcdata["cycle"]["mdsteps"];
+    } else {
+      error->all(FLERR, 3, "Periodicity missing in JSON input cycle field\n");
+    }
+    if (rmcdata["cycle"].contains("mcsteps")){
+      nmoves = rmcdata["cycle"]["mcsteps"];
+    } else {
+      error->all(FLERR, 3, "Mcsteps missing in JSON input cycle field\n");
+    }
   } else {
-   error->all(FLERR, "Cycle field not defined in JSON input file\n");
+    error->all(FLERR, 3, "Cycle field not defined in JSON input file\n");
   }
 
   if (rmcdata.contains("type_threshold")){
-     type_threshold = rmcdata["type_threshold"];
+    type_threshold = rmcdata["type_threshold"];
   } else {
-    error->all(FLERR, "Type threshold missing in JSON input file");
+    error->all(FLERR, 3, "Type threshold missing in JSON input file");
   }
-  
+
   if (rmcdata.contains("num_charge_states")){
     num_charge_states = rmcdata["num_charge_states"];
   } else {
-    error->all(FLERR, "Num charge states missing in JSON input file");
+    error->all(FLERR, 3, "Num charge states missing in JSON input file");
   }
 
   delta_g_list = new double [num_charge_states];
   if (rmcdata.contains("barrier")) {
     // Create and populate the delta_g list for various charge states
-   if (rmcdata["barrier"].size() != num_charge_states){
-      error->all(FLERR, "Number of barriers provided inconsistent with number of charge states.");
-   }
+    if (rmcdata["barrier"].size() != num_charge_states){
+      error->all(FLERR, 3, "Number of barriers provided inconsistent with number of charge states.");
+    }
     for (int i=0;i<num_charge_states;i++){
-       delta_g_list[i] = rmcdata["barrier"][i];
+      delta_g_list[i] = rmcdata["barrier"][i];
     }
   } else {
-    error->all(FLERR, "Barrier missing in JSON input file");
+    error->all(FLERR, 3, "Barrier missing in JSON input file");
   }
 
-  
   // Data structure to store semiconductor and dopant charges
   semiconductor_charges = new double*[num_charge_states];
   dopant_charges = new double*[num_charge_states];
   for (int i=0;i<num_charge_states;i++) {
-     semiconductor_charges[i] = new double [semiconductor_size];
-     dopant_charges[i] = new double [dopant_size];
+    semiconductor_charges[i] = new double [semiconductor_size];
+    dopant_charges[i] = new double [dopant_size];
   }
   if (rmcdata.contains("semiconductor_charges")){
     // Populate the charge 0 and charge +-1 state
     if (rmcdata["semiconductor_charges"].contains("neutral") && rmcdata["semiconductor_charges"].contains("charged")) {
       for (int i=0;i<semiconductor_size;i++){
-         semiconductor_charges[0][i] = rmcdata["semiconductor_charges"]["neutral"][i];
-         semiconductor_charges[num_charge_states-1][i] = rmcdata["semiconductor_charges"]["charged"][i];
+        semiconductor_charges[0][i] = rmcdata["semiconductor_charges"]["neutral"][i];
+        semiconductor_charges[num_charge_states-1][i] = rmcdata["semiconductor_charges"]["charged"][i];
       }
     } else {
-      error->all(FLERR, "The neutral and/or charged values missing from JSON input semiconductor_charges field");
+      error->all(FLERR, 3, "The neutral and/or charged values missing from JSON input semiconductor_charges field");
     }
   } else {
-    error->all(FLERR, "Semiconductor charges field missing in JSON input file.");
+    error->all(FLERR, 3, "Semiconductor charges field missing in JSON input file.");
   }
 
   if (rmcdata.contains("dopant_charges")){
     if (rmcdata["dopant_charges"].contains("neutral") && rmcdata["dopant_charges"].contains("charged")){
       for (int i=0;i<dopant_size;i++){
-         dopant_charges[0][i] = rmcdata["dopant_charges"]["neutral"][i];
-         dopant_charges[num_charge_states-1][i] = rmcdata["dopant_charges"]["charged"][i];
+        dopant_charges[0][i] = rmcdata["dopant_charges"]["neutral"][i];
+        dopant_charges[num_charge_states-1][i] = rmcdata["dopant_charges"]["charged"][i];
       }
     } else {
-      error->all(FLERR, "The neutral and/or charged values missing from JSON input dopant_charges field");
-    } 
- } else {
-   error->all(FLERR, "Dopant charges field missing in JSON input file");
- }
+      error->all(FLERR, 3, "The neutral and/or charged values missing from JSON input dopant_charges field");
+    }
+  } else {
+    error->all(FLERR, 3, "Dopant charges field missing in JSON input file");
+  }
 
   // Populate the intermediate charge values for each semiconductor atom using linear interpolation
   double temp_delta_semiconductor, temp_delta_dopant;
-  
+
   for (int i=0;i<semiconductor_size;i++) {
-     temp_delta_semiconductor = (semiconductor_charges[num_charge_states-1][i] - semiconductor_charges[0][i])/(num_charge_states-1);
-     for (int j=0;j<num_charge_states-1;j++)
-     {
+    temp_delta_semiconductor = (semiconductor_charges[num_charge_states-1][i] - semiconductor_charges[0][i])/(num_charge_states-1);
+    for (int j=0;j<num_charge_states-1;j++)
+      {
         semiconductor_charges[j+1][i] = semiconductor_charges[j][i] + temp_delta_semiconductor;
-     }
+      }
   }
-  
+
   for (int i=0;i<dopant_size;i++) {
-     temp_delta_dopant = (dopant_charges[num_charge_states-1][i] - dopant_charges[0][i])/(num_charge_states-1);
-     for (int j=0;j<num_charge_states-1;j++)
-     {
+    temp_delta_dopant = (dopant_charges[num_charge_states-1][i] - dopant_charges[0][i])/(num_charge_states-1);
+    for (int j=0;j<num_charge_states-1;j++)
+      {
         dopant_charges[j+1][i] = dopant_charges[j][i] + temp_delta_dopant;
-     }
+      }
   }
 
   // Separation between charge states
   deltaQ = 1.0/(num_charge_states-1.0);
-  
+
   // List of charges
   charges = new double [num_charge_states];
   charges[0] = 0;
   for (int i=0;i<num_charge_states-1;i++) {
-     charges[i+1] = charges[i] + deltaQ;
+    charges[i+1] = charges[i] + deltaQ;
   }
 
   // Initializing random number generators
-  atom_dist = std::uniform_int_distribution<> (1, n_molecules);
-  type_dist = std::uniform_int_distribution<> (0,num_charge_states-1);
-  acc_dist = std::uniform_real_distribution<> (0,1);
-  
+  atom_dist = std::uniform_int_distribution<>(1, n_molecules);
+  type_dist = std::uniform_int_distribution<>(0,num_charge_states-1);
+  acc_dist = std::uniform_real_distribution<>(0,1);
+
 
   // Check if we are doing dihedral/angle/bond modifications
   if (rmcdata.contains("dihedral_modification")) {
     if (std::string(rmcdata["dihedral_modification"]) == "y"){
       do_dihedral = 1;
       if (!rmcdata.contains("dihedral_types") || !rmcdata.contains("dihedral_list")){
-         error->all(FLERR, "The dihedral_types and/or dihedral_list field are missing in the JSON input file");
+        error->all(FLERR, 3, "The dihedral_types and/or dihedral_list field are missing in the JSON input file");
       }
     } else {
       do_dihedral = 0;
-    } 
+    }
   } else {
     do_dihedral = 0;
   }
@@ -264,11 +266,11 @@ rng_type_source(device_type_source()), rng_type_destination(device_type_destinat
     if (std::string(rmcdata["angle_modification"]) == "y"){
       do_angle = 1;
       if (!rmcdata.contains("angle_types") || !rmcdata.contains("angle_list")){
-         error->all(FLERR, "The angle_types and/or angle_list field are missing in the JSON input file");
+        error->all(FLERR, 3, "The angle_types and/or angle_list field are missing in the JSON input file");
       }
     } else {
       do_angle = 0;
-    } 
+    }
   } else {
     do_angle = 0;
   }
@@ -277,147 +279,146 @@ rng_type_source(device_type_source()), rng_type_destination(device_type_destinat
     if (std::string(rmcdata["bond_modification"]) == "y"){
       do_bond = 1;
       if (!rmcdata.contains("bond_types") || !rmcdata.contains("bond_list")){
-         error->all(FLERR, "The bond_types and/or bond_list field are missing in the JSON input file");
+        error->all(FLERR, 3, "The bond_types and/or bond_list field are missing in the JSON input file");
       }
     } else {
       do_bond = 0;
-    } 
+    }
   } else {
     do_bond = 0;
   }
 
-  
+
   // Read in the dihedrals that need to be altered
   if (do_dihedral == 1){
-     num_dihedrals = rmcdata["dihedral_list"].size();
-     dihedral_types = new int [num_charge_states];
-     if (rmcdata["dihedral_types"].size() != num_charge_states){
-        error->all(FLERR, "Number of dihedral types doesn't match the number of charge states\n");
-     }
-     for (int i=0;i<num_charge_states;i++){
-        dihedral_types[i] = rmcdata["dihedral_types"][i];
-     }
-     dihedral_list = new int*[num_dihedrals];
-     for (int i=0;i<num_dihedrals;i++){
-        dihedral_list[i] = new int[5];
-        for (int j=0;j<4;j++){
-           dihedral_list[i][j] = rmcdata["dihedral_list"][i][j];
-        }
-        dihedral_list[i][4] = determine_molecule(dihedral_list[i][0]);
-     }
+    num_dihedrals = rmcdata["dihedral_list"].size();
+    dihedral_types = new int [num_charge_states];
+    if (rmcdata["dihedral_types"].size() != num_charge_states){
+      error->all(FLERR, 3, "Number of dihedral types doesn't match the number of charge states\n");
+    }
+    for (int i=0;i<num_charge_states;i++){
+      dihedral_types[i] = rmcdata["dihedral_types"][i];
+    }
+    dihedral_list = new int*[num_dihedrals];
+    for (int i=0;i<num_dihedrals;i++){
+      dihedral_list[i] = new int[5];
+      for (int j=0;j<4;j++){
+        dihedral_list[i][j] = rmcdata["dihedral_list"][i][j];
+      }
+      dihedral_list[i][4] = determine_molecule(dihedral_list[i][0]);
+    }
   }
 
   // Read in the angles that need to be altered
   if (do_angle == 1){
-     num_angles = rmcdata["angle_list"].size();
-     angle_types = new int [num_charge_states];
-     if (rmcdata["angle_types"].size() != num_charge_states){
-        error->all(FLERR, "Number of angle types doesn't match the number of charge states\n");
-     }
-     for (int i=0;i<num_charge_states;i++){
-        angle_types[i] = rmcdata["angle_types"][i];
-     }
-     angle_list = new int*[num_angles];
-     for (int i=0;i<num_angles;i++){
-        angle_list[i] = new int[4];
-        for (int j=0;j<3;j++){
-           angle_list[i][j] = rmcdata["angle_list"][i][j];
-        }
-        angle_list[i][4] = determine_molecule(angle_list[i][0]);
-     }
+    num_angles = rmcdata["angle_list"].size();
+    angle_types = new int [num_charge_states];
+    if (rmcdata["angle_types"].size() != num_charge_states){
+      error->all(FLERR, 3, "Number of angle types doesn't match the number of charge states\n");
+    }
+    for (int i=0;i<num_charge_states;i++){
+      angle_types[i] = rmcdata["angle_types"][i];
+    }
+    angle_list = new int*[num_angles];
+    for (int i=0;i<num_angles;i++){
+      angle_list[i] = new int[4];
+      for (int j=0;j<3;j++){
+        angle_list[i][j] = rmcdata["angle_list"][i][j];
+      }
+      angle_list[i][4] = determine_molecule(angle_list[i][0]);
+    }
   }
 
   // Read in the bonds that need to be altered
   if (do_bond == 1){
-     num_bonds = rmcdata["bond_list"].size();
-     bond_types = new int [num_charge_states];
-     if (rmcdata["bond_types"].size() != num_charge_states){
-        error->all(FLERR, "Number of bond types doesn't match the number of charge states\n");
-     }
-     for (int i=0;i<num_charge_states;i++){
-        bond_types[i] = rmcdata["bond_types"][i];
-     }
-     bond_list = new int*[num_bonds];
-     for (int i=0;i<num_bonds;i++){
-        bond_list[i] = new int[3];
-        for (int j=0;j<2;j++){
-           bond_list[i][j] = rmcdata["bond_list"][i][j];
-        }
-        bond_list[i][2] = determine_molecule(bond_list[i][0]);
-     }
+    num_bonds = rmcdata["bond_list"].size();
+    bond_types = new int [num_charge_states];
+    if (rmcdata["bond_types"].size() != num_charge_states){
+      error->all(FLERR, 3, "Number of bond types doesn't match the number of charge states\n");
+    }
+    for (int i=0;i<num_charge_states;i++){
+      bond_types[i] = rmcdata["bond_types"][i];
+    }
+    bond_list = new int*[num_bonds];
+    for (int i=0;i<num_bonds;i++){
+      bond_list[i] = new int[3];
+      for (int j=0;j<2;j++){
+        bond_list[i][j] = rmcdata["bond_list"][i][j];
+      }
+      bond_list[i][2] = determine_molecule(bond_list[i][0]);
+    }
   }
 
-   // Initialize the dynamic doping efficiency array
-   dde = new double [num_charge_states];
-   doping_efficiency = new double [num_charge_states];
-   for (int i=0;i<num_charge_states;i++)
-   {
+  // Initialize the dynamic doping efficiency array
+  dde = new double [num_charge_states];
+  doping_efficiency = new double [num_charge_states];
+  for (int i=0;i<num_charge_states;i++)
+    {
       dde[i] = 0;
       doping_efficiency[i] = 0;
-   }
-   
-   // Initialize acceptances/rejections
-   acceptances = 0;
-   rejections = 0;
-   
-   // get pointer for compute class, which will allow us to 
-   // retrieve the potential energy
-   c_pe = modify->get_compute_by_id("thermo_pe");
-   
+    }
 
-   // store the charge state for each molecule
-   // also store the type of molecule (i.e is it dopant or semiconductor)
+  // Initialize acceptances/rejections
+  acceptances = 0;
+  rejections = 0;
+
+  // get pointer for compute class, which will allow us to
+  // retrieve the potential energy
+  c_pe = modify->get_compute_by_id("thermo_pe");
+
+
+  // store the charge state for each molecule
+  // also store the type of molecule (i.e is it dopant or semiconductor)
 
   molecule_charge_states = new double[n_molecules];
   molecule_type = new double[n_molecules];
   num_dopant_charge = new int [num_charge_states];
   num_semiconductor_charge = new int[num_charge_states];
   for (int i=0;i<num_charge_states;i++) {
-      num_dopant_charge[i] = 0;
-      num_semiconductor_charge[i] = 0;
+    num_dopant_charge[i] = 0;
+    num_semiconductor_charge[i] = 0;
   }
 
-  
+
   if (restart == 0) {
-     for (int i=0;i<n_molecules;i++) {
-        molecule_charge_states[i] = 0.0;
-        molecule_type[i] = determine_dopant_or_semiconductor(i+1);
-     }
-     num_dopant_charge[0] = n_dopant;
-     num_semiconductor_charge[0] = n_semiconductor;
-  } else {
-     std::string moltype = sysname + "_type.dat";
-     std::string molcharge = sysname + "_charge.dat";
-     TextFileReader molecule_type_handle(moltype.c_str(), "MType");
-     TextFileReader molecule_charge_handle(molcharge.c_str(), "MCharge");
-     molecule_charge_handle.next_dvector(molecule_charge_states, n_molecules);
-     molecule_type_handle.next_dvector(molecule_type, n_molecules);
-     
-     for (int i=0;i<n_molecules;i++) {
-         Mol molecule = get_molecule(i+1, size_limit);
-         int cstate = determine_charge_state(&molecule, molecule_type[i]);
-
-         if (molecule_type[i] == 0)
-         {
-            num_semiconductor_charge[cstate] = num_semiconductor_charge[cstate] + 1;
-         }
-         else if (molecule_type[i] == 1)
-         {
-            num_dopant_charge[cstate] = num_dopant_charge[cstate] + 1;
-         }
-         delete_molecule(&molecule);
-     }
-  }
-  // Combined data structures for self-energy calculations
-    // Initialize them
-    osc_mol_c = new double* [semiconductor_size];
-    dopant_mol_c = new double* [dopant_size];
-    for (int i=0;i<semiconductor_size;i++) {
-      osc_mol_c[i] = new double [6];
-      if (i < dopant_size) {
-         dopant_mol_c[i] = new double [6];
-      }
+    for (int i=0;i<n_molecules;i++) {
+      molecule_charge_states[i] = 0.0;
+      molecule_type[i] = determine_dopant_or_semiconductor(i+1);
     }
+    num_dopant_charge[0] = n_dopant;
+    num_semiconductor_charge[0] = n_semiconductor;
+  } else {
+    TextFileReader molecule_type_handle(sysname + "_type.dat", "MType");
+    TextFileReader molecule_charge_handle(sysname + "_charge.dat", "MCharge");
+    molecule_charge_handle.next_dvector(molecule_charge_states, n_molecules);
+    molecule_type_handle.next_dvector(molecule_type, n_molecules);
+
+    for (int i=0;i<n_molecules;i++) {
+      Mol molecule = get_molecule(i+1, size_limit);
+      int cstate = determine_charge_state(&molecule, molecule_type[i]);
+
+      if (molecule_type[i] == 0)
+        {
+          num_semiconductor_charge[cstate] = num_semiconductor_charge[cstate] + 1;
+        }
+      else if (molecule_type[i] == 1)
+        {
+          num_dopant_charge[cstate] = num_dopant_charge[cstate] + 1;
+        }
+      delete_molecule(&molecule);
+    }
+  }
+
+  // Combined data structures for self-energy calculations
+  // Initialize them
+  osc_mol_c = new double* [semiconductor_size];
+  dopant_mol_c = new double* [dopant_size];
+  for (int i=0;i<semiconductor_size;i++) {
+    osc_mol_c[i] = new double [6];
+    if (i < dopant_size) {
+      dopant_mol_c[i] = new double [6];
+    }
+  }
 
   if (comm->me == 0) {
     std::string mesg =
@@ -487,11 +488,11 @@ rng_type_source(device_type_source()), rng_type_destination(device_type_destinat
 }
 
 int FixRMCPartial::determine_molecule(int global_id)
-{ 
+{
   int mol_id = 0;
   int global_mol_id = 0;
-  for (int i=0;i<atom->nlocal;i++) {  
-     if (atom->tag[i] == global_id) { 
+  for (int i=0;i<atom->nlocal;i++) {
+     if (atom->tag[i] == global_id) {
        mol_id = atom->molecule[i];
      }
   }
@@ -612,7 +613,7 @@ double FixRMCPartial::getSpecialBondCoefficient(int iglobal, int jglobal)
    }
 
    MPI_Allreduce(factor, global_factor, comm->nprocs, MPI_DOUBLE, MPI_SUM, world);
-   
+
    int count=0;
    for (int i=0;i<comm->nprocs;i++) {
       if (global_factor[i] != 0) {
@@ -630,7 +631,7 @@ double FixRMCPartial::getSpecialBondCoefficient(int iglobal, int jglobal)
       final_factor = final_factor+1;
    }
 
-   delete[] factor; 
+   delete[] factor;
    delete[] global_factor;
 
    return final_factor;
@@ -670,10 +671,9 @@ void FixRMCPartial::bringMoleculeTogether(struct Mol* molecule, double **combine
    int base=cumulative_molsize[comm->me];
    int index;
 
-   // Now copy the position and charge data 
+   // Now copy the position and charge data
    for (int i=0;i<molecule->local_atoms;i++) {
       index=base+i;
-      //utils::logmesg(lmp, "{}\n", index);
       for (int j=0;j<3;j++) {
          local_struct[index][j] = molecule->pos[i][j];
       }
@@ -694,10 +694,10 @@ void FixRMCPartial::bringMoleculeTogether(struct Mol* molecule, double **combine
 }
 
 FixRMCPartial::Mol FixRMCPartial::initialize_molecule(int num_atoms_max)
-{  
+{
    Mol molecule;
    molecule.pos = new double*[num_atoms_max];
-   for (int i=0;i<num_atoms_max;i++) { 
+   for (int i=0;i<num_atoms_max;i++) {
      molecule.pos[i] = new double[3];
    }
    molecule.charge = new double[num_atoms_max];
@@ -711,9 +711,9 @@ FixRMCPartial::Mol FixRMCPartial::initialize_molecule(int num_atoms_max)
    return molecule;
 }
 
- 
+
 int FixRMCPartial::setmask()
-{ 
+{
   int mask = 0;
   mask |= FixConst::INITIAL_INTEGRATE;
   return mask;
@@ -734,7 +734,7 @@ void FixRMCPartial::initial_integrate(int /*vflag*/)
 
 double FixRMCPartial::energy_full()
 {
-  
+
   int eflag = 1;
   int vflag = 0;
 
@@ -752,7 +752,7 @@ double FixRMCPartial::energy_full()
   if (force->kspace) force->kspace->compute(eflag, vflag);
 
   if (modify->n_post_force_any) modify->post_force(vflag);
-  
+
   double total_energy = c_pe->compute_scalar();
   update->eflag_global = update->ntimestep;
 
@@ -801,11 +801,11 @@ int FixRMCPartial::determine_charge_state(struct Mol* molecule, double d_or_s)
     if (molecule->local_atoms != 0) {
        double test_charge = molecule->charge[0];
        int local_tag = molecule->local_tag[0];
-       
+
        if (d_or_s == 0) {
           charge_indicator[comm->me] = -1;
           for (int j=0;j<num_charge_states;j++) {
-             
+
              if (fabs(test_charge - semiconductor_charges[j][local_tag-1]) < 1e-7) {
                 charge_indicator[comm->me] = j;
              }
@@ -842,9 +842,9 @@ int FixRMCPartial::determine_charge_state(struct Mol* molecule, double d_or_s)
 double FixRMCPartial::change_dihedral_parameters(int molecule_id, int ending_state)
 {
    // go to ending_state
-   
+
    double pre_energy = energy_full();
-   
+
    // Circle through the relevant dihedrals and see if any need to be modified.
    for (int d=0;d<num_dihedrals;d++) {
       if (dihedral_list[d][4] == molecule_id) { // this dihedral type needs to be modified
@@ -859,7 +859,7 @@ double FixRMCPartial::change_dihedral_parameters(int molecule_id, int ending_sta
                   // switch to new type
                   atom->dihedral_type[i][j] = dihedral_types[ending_state];
                 }
-             } 
+             }
            }
         }
       }
@@ -878,9 +878,9 @@ double FixRMCPartial::change_dihedral_parameters(int molecule_id, int ending_sta
 double FixRMCPartial::change_angle_parameters(int molecule_id, int ending_state)
 {
    // go to ending_state
-   
+
    double pre_energy = energy_full();
-   
+
    // Circle through the relevant dihedrals and see if any need to be modified.
    for (int a=0;a<num_angles;a++) {
       if (angle_list[a][3] == molecule_id) { // this dihedral type needs to be modified
@@ -894,7 +894,7 @@ double FixRMCPartial::change_angle_parameters(int molecule_id, int ending_state)
                   // switch to new type
                   atom->angle_type[i][j] = angle_types[ending_state];
                 }
-             } 
+             }
            }
         }
       }
@@ -914,9 +914,9 @@ double FixRMCPartial::change_angle_parameters(int molecule_id, int ending_state)
 double FixRMCPartial::change_bond_parameters(int molecule_id, int ending_state)
 {
    // go to ending_state
-   
+
    double pre_energy = energy_full();
-   
+
    // Circle through the relevant dihedrals and see if any need to be modified.
    for (int b=0;b<num_bonds;b++) {
       if (bond_list[b][2] == molecule_id) { // this dihedral type needs to be modified
@@ -925,10 +925,10 @@ double FixRMCPartial::change_bond_parameters(int molecule_id, int ending_state)
            if (atom->tag[i] == bond_list[b][0]){
              for (int j=0;j<atom->num_bond[i];j++){
                 if (atom->bond_atom[i][j] == bond_list[b][1]){
-                  // switch to new type 
+                  // switch to new type
                   atom->bond_type[i][j] = bond_types[ending_state];
                 }
-             } 
+             }
            }
         }
       }
@@ -944,7 +944,7 @@ double FixRMCPartial::change_bond_parameters(int molecule_id, int ending_state)
    return energy_diff;
 }
 
-FixRMCPartial::Mol FixRMCPartial::get_molecule(int mol_id, int num_atoms_max) 
+FixRMCPartial::Mol FixRMCPartial::get_molecule(int mol_id, int num_atoms_max)
 {
   // Initialize memory for the molecule
   Mol molecule = initialize_molecule(num_atoms_max);
@@ -952,7 +952,7 @@ FixRMCPartial::Mol FixRMCPartial::get_molecule(int mol_id, int num_atoms_max)
   // Get all the atoms that belong to that molecule
   // This structure will look different across MPI ranks,
   // if atoms of a single molecule are split across ranks.
-  int atom_counter=0; 
+  int atom_counter=0;
   int atom_counter_global=0;
   int *lcount_across_ranks,*lmin_tag, *gmin_tag, *gcount_across_ranks;
   lcount_across_ranks = new int[comm->nprocs];
@@ -963,7 +963,7 @@ FixRMCPartial::Mol FixRMCPartial::get_molecule(int mol_id, int num_atoms_max)
   memset(lcount_across_ranks, 0.0, comm->nprocs * sizeof(int));
   int mintag = INT_MAX;
   for (int i=0;i< atom->nlocal;i++){
-    if (atom->molecule[i] == (double) mol_id){ 
+    if (atom->molecule[i] == (double) mol_id){
       molecule.charge[atom_counter] = atom->q[i];
       molecule.new_charge[atom_counter] = atom->q[i];
       molecule.type[atom_counter] = atom->type[i];
@@ -972,7 +972,7 @@ FixRMCPartial::Mol FixRMCPartial::get_molecule(int mol_id, int num_atoms_max)
       molecule.global_tag[atom_counter] = atom->tag[i];
       molecule.local_index[atom_counter] = i;
       molecule.local_tag[atom_counter] = 0.0;
-    
+
       if (molecule.global_tag[atom_counter] < mintag){
          mintag = molecule.global_tag[atom_counter];
       }
@@ -1001,7 +1001,7 @@ FixRMCPartial::Mol FixRMCPartial::get_molecule(int mol_id, int num_atoms_max)
       }
     }
   }
-  // Subtract off the minimum global index so we get a 
+  // Subtract off the minimum global index so we get a
   // new "local" index. This is not local to processor, but local to a molecule
   // This will be very helpful for charge manipulation
   for (int i=0;i<atom_counter;i++){
@@ -1017,7 +1017,7 @@ FixRMCPartial::Mol FixRMCPartial::get_molecule(int mol_id, int num_atoms_max)
 
 void FixRMCPartial::modify_charge(struct Mol *molecule, double *charge_list)
 {
-  
+
   for (int i=0;i<molecule->local_atoms;i++){
      for (int j=0;j<atom->nlocal;j++){
         if (atom->tag[j] == molecule->global_tag[i]){
@@ -1103,22 +1103,22 @@ void FixRMCPartial::make_move()
          }
          tries=tries+1;
          if (tries > 10000){
-            error->all(FLERR, "Too many attemps at finding a semiconductor, something is going wrong!");
+           error->one(FLERR, Error::NOLASTLINE, "Too many attemps at finding a semiconductor, something is going wrong!");
          }
       }
    }
     MPI_Bcast(&rand_semi, 1, MPI_INT, 0, world);
-    
+
     // Retrieve information on the chosen molecule and populate it in this struct
     Mol semiconductor = get_molecule(rand_semi, size_limit);
 
     int charge_state = determine_charge_state(&semiconductor, 0);
     semiconductor.charge_state = charge_state;
 
-    
+
     indicator=-1;
     int tries=0;
-    
+
     if (comm->me == 0) {
       while (indicator != 1){
           rand_dope = atom_dist(rng_atom);
@@ -1133,18 +1133,18 @@ void FixRMCPartial::make_move()
           }
           tries=tries+1;
           if (tries > 10000){
-            error->all(FLERR, "Max tries reached to find dopant of same charge state");
+            error->one(FLERR, Error::NOLASTLINE, "Max tries reached to find dopant of same charge state");
           }
        }
     }
     MPI_Bcast(&rand_dope, 1, MPI_INT, 0, world);
 
-    
+
     //Retrieve information on the chosen dopant and populate it in this struct
     Mol dopant = get_molecule(rand_dope, size_limit);
     charge_state = determine_charge_state(&dopant, 1);
     dopant.charge_state = charge_state;
-  
+
     // Verify charge states are the same
     if (dopant.charge_state != semiconductor.charge_state){
        utils::logmesg(lmp, "Dopant charge state is {} and semiconductor charge state is {}\n",
@@ -1157,12 +1157,10 @@ void FixRMCPartial::make_move()
     int destination_charge_state = dopant.charge_state;
 
     if (comm->me == 0){
-      while (destination_charge_state == dopant.charge_state){
+      while (destination_charge_state == dopant.charge_state) {
          destination_charge_state = type_dist(rng_type_destination);
       }
     }
-
-    MPI_Bcast(&destination_charge_state, 1, MPI_INT, 0, world);
     
     MPI_Bcast(&destination_charge_state, 1, MPI_INT, 0, world);
 
@@ -1173,10 +1171,10 @@ void FixRMCPartial::make_move()
     // Calculate centre of mass
     calculateMoleculeCOM(osc_com, &semiconductor);
     calculateMoleculeCOM(dopant_com, &dopant);
-    
+
     com_diff = calDistance(osc_com, dopant_com);
 
-    // Change the dihedral/angle/bond parameters to destination type 
+    // Change the dihedral/angle/bond parameters to destination type
     // and capture the dihedral/angle/bond energy
     if (do_dihedral == 1){
       edihedral = change_dihedral_parameters(rand_semi, destination_charge_state);
@@ -1197,7 +1195,7 @@ void FixRMCPartial::make_move()
    // Capture the molecule self-energies difference
     bringMoleculeTogether(&semiconductor, osc_mol_c, semiconductor_size);
     bringMoleculeTogether(&dopant, dopant_mol_c, dopant_size);
-    
+
     e_osc_diff = calculateColoumbSelf(osc_mol_c, semiconductor_size);
     e_dopant_diff = calculateColoumbSelf(dopant_mol_c, dopant_size);
 
@@ -1236,7 +1234,7 @@ void FixRMCPartial::make_move()
     // subtract the dihedral energy, that has to be put back in with more thought later
     double new_energy = energy_full();
     double energy_diff = new_energy - starting_energy + reaction_energy - e_osc_diff - e_dopant_diff;
-    
+
     if (do_dihedral==1){
       energy_diff = energy_diff - edihedral;
     }
@@ -1329,7 +1327,7 @@ void FixRMCPartial::delete_molecule(struct Mol *molecule)
     delete[] molecule->image;
     for (int i=0;i<molecule->local_atoms;i++){
        delete[] molecule->pos[i];
-    } 
+    }
     delete[] molecule->pos;
     delete[] molecule->local_index;
     delete[] molecule->new_charge;
@@ -1369,9 +1367,9 @@ void FixRMCPartial::post_mortem()
          fprintf(fcom, "%d %f %f %f\n", i+1,com[0],com[1],com[2]);
          fclose(fcom);
       }
-      delete_molecule(&molecule);  
+      delete_molecule(&molecule);
    }
- 
+
    if (comm->me == 0){
       // Write the charge of each molecule to a file for morphology analysis
       std::string molcharge = sysname + "_charge.dat";
@@ -1423,7 +1421,7 @@ FixRMCPartial::~FixRMCPartial()
    delete[] dde;
    delete[] delta_g_list;
    delete[] charges;
-   delete[] doping_efficiency; 
+   delete[] doping_efficiency;
    delete[] num_dopant_charge;
    delete[] num_semiconductor_charge;
    delete[] molecule_charge_states;
@@ -1463,7 +1461,7 @@ FixRMCPartial::~FixRMCPartial()
       }
       delete[] bond_list;
     }
- 
+
     delete[] semiconductor_charges;
     delete[] dopant_charges;
     delete[] osc_mol_c;

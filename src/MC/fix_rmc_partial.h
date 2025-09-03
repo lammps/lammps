@@ -46,20 +46,23 @@ class FixRMCPartial: public Fix {
    void make_move();
    void post_mortem();
 
-   struct Mol {
-      double **pos;
-      double *charge;
-      double *new_charge;
-      double *mass;
-      int *type;
-      imageint *image;
-      int *global_tag;
-      int *local_tag;
-      int *local_index;
-      int local_atoms;
-      int charge_state;
-   };
+  struct Mol {
+    Mol(int num_atoms_max);
+    ~Mol();
 
+    double **pos;
+    double *charge;
+    double *new_charge;
+    double *mass;
+    int *type;
+    imageint *image;
+    int *global_tag;
+    int *local_tag;
+    int *local_index;
+    int local_atoms;
+    int max_atoms;
+    int charge_state;
+  };
    int determine_charge_state(struct Mol*, double);
    void calculateMoleculeCOM(double*, struct Mol*);
    double calculateColoumbSelf(double **, int);
@@ -70,9 +73,6 @@ class FixRMCPartial: public Fix {
    double getSpecialBondCoefficient(int, int);
    void modify_charge(struct Mol*, double*);
    void restore_charge(struct Mol*);
-   void delete_molecule(struct Mol*);
-   struct Mol initialize_molecule(int);
-   struct Mol get_molecule(int, int);
 
    private:
    int perform_step;
@@ -102,6 +102,7 @@ class FixRMCPartial: public Fix {
    int *num_semiconductor_charge;
    double *molecule_charge_states;
    double *molecule_type;
+  Mol *get_molecule(int, int);
 
    double acceptance_rate;
    double temperature;

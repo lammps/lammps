@@ -388,15 +388,15 @@ FixRMCPartial::FixRMCPartial(LAMMPS *lmp, int narg, char **arg) :
     molecule_type_handle.next_dvector(molecule_type, n_molecules);
 
     for (int i = 0; i < n_molecules; i++) {
-      Mol molecule = get_molecule(i + 1, size_limit);
-      int cstate = determine_charge_state(&molecule, molecule_type[i]);
+      Mol *molecule = get_molecule(i + 1, size_limit);
+      int cstate = determine_charge_state(molecule, molecule_type[i]);
 
       if (molecule_type[i] == 0) {
         num_semiconductor_charge[cstate] = num_semiconductor_charge[cstate] + 1;
       } else if (molecule_type[i] == 1) {
         num_dopant_charge[cstate] = num_dopant_charge[cstate] + 1;
       }
-      delete_molecule(&molecule);
+      delete molecule;
     }
   }
 
@@ -475,7 +475,7 @@ int FixRMCPartial::determine_molecule(int global_id)
   return global_mol_id;
 }
 
-void FixRMCPartial::calculateMoleculeCOM(double *com, struct Mol *molecule)
+void FixRMCPartial::calculateMoleculeCOM(double *com, Mol *molecule)
 {
   double local_com[3];
   double unwrap[3];
@@ -605,8 +605,7 @@ double FixRMCPartial::getSpecialBondCoefficient(int iglobal, int jglobal)
   return final_factor;
 }
 
-void FixRMCPartial::bringMoleculeTogether(struct Mol *molecule, double **combined_struct,
-                                          int molsize)
+void FixRMCPartial::bringMoleculeTogether(Mol *molecule, double **combined_struct, int molsize)
 {
   // Set combined_struct to zero
   double **local_struct;
@@ -655,20 +654,34 @@ void FixRMCPartial::bringMoleculeTogether(struct Mol *molecule, double **combine
   delete[] cumulative_molsize;
 }
 
-FixRMCPartial::Mol FixRMCPartial::initialize_molecule(int num_atoms_max)
+FixRMCPartial::Mol::Mol(int num_atoms_max)
 {
-  Mol molecule;
-  molecule.pos = new double *[num_atoms_max];
-  for (int i = 0; i < num_atoms_max; i++) molecule.pos[i] = new double[3];
-  molecule.charge = new double[num_atoms_max];
-  molecule.new_charge = new double[num_atoms_max];
-  molecule.type = new int[num_atoms_max];
-  molecule.mass = new double[num_atoms_max];
-  molecule.image = new imageint[num_atoms_max];
-  molecule.global_tag = new int[num_atoms_max];
-  molecule.local_tag = new int[num_atoms_max];
-  molecule.local_index = new int[num_atoms_max];
-  return molecule;
+  max_atoms = num_atoms_max;
+  pos = new double *[num_atoms_max];
+  for (int i = 0; i < num_atoms_max; i++) pos[i] = new double[3];
+  charge = new double[num_atoms_max];
+  new_charge = new double[num_atoms_max];
+  type = new int[num_atoms_max];
+  mass = new double[num_atoms_max];
+  image = new imageint[num_atoms_max];
+  global_tag = new int[num_atoms_max];
+  local_tag = new int[num_atoms_max];
+  local_index = new int[num_atoms_max];
+  local_atoms = 0;
+}
+
+FixRMCPartial::Mol::~Mol()
+{
+  for (int i = 0; i < max_atoms; i++) delete[] pos[i];
+  delete[] pos;
+  delete[] charge;
+  delete[] new_charge;
+  delete[] type;
+  delete[] mass;
+  delete[] image;
+  delete[] global_tag;
+  delete[] local_tag;
+  delete[] local_index;
 }
 
 int FixRMCPartial::setmask()
@@ -747,7 +760,7 @@ int FixRMCPartial::determine_dopant_or_semiconductor(int mol_id)
   return final_indicator;
 }
 
-int FixRMCPartial::determine_charge_state(struct Mol *molecule, double d_or_s)
+int FixRMCPartial::determine_charge_state(Mol *molecule, double d_or_s)
 {
   int final_charge_indicator = -1;
   int *charge_indicator, *global_charge_indicator;
@@ -900,10 +913,10 @@ double FixRMCPartial::change_bond_parameters(int molecule_id, int ending_state)
   return energy_diff;
 }
 
-FixRMCPartial::Mol FixRMCPartial::get_molecule(int mol_id, int num_atoms_max)
+FixRMCPartial::Mol *FixRMCPartial::get_molecule(int mol_id, int num_atoms_max)
 {
-  // Initialize memory for the molecule
-  Mol molecule = initialize_molecule(num_atoms_max);
+  // allocate struct for the molecule
+  Mol *molecule = new Mol(num_atoms_max);
 
   // Get all the atoms that belong to that molecule
   // This structure will look different across MPI ranks,
@@ -920,24 +933,24 @@ FixRMCPartial::Mol FixRMCPartial::get_molecule(int mol_id, int num_atoms_max)
   int mintag = INT_MAX;
   for (int i = 0; i < atom->nlocal; i++) {
     if (atom->molecule[i] == (double) mol_id) {
-      molecule.charge[atom_counter] = atom->q[i];
-      molecule.new_charge[atom_counter] = atom->q[i];
-      molecule.type[atom_counter] = atom->type[i];
-      molecule.mass[atom_counter] = atom->mass[atom->type[i]];
-      molecule.image[atom_counter] = atom->image[i];
-      molecule.global_tag[atom_counter] = atom->tag[i];
-      molecule.local_index[atom_counter] = i;
-      molecule.local_tag[atom_counter] = 0.0;
+      molecule->charge[atom_counter] = atom->q[i];
+      molecule->new_charge[atom_counter] = atom->q[i];
+      molecule->type[atom_counter] = atom->type[i];
+      molecule->mass[atom_counter] = atom->mass[atom->type[i]];
+      molecule->image[atom_counter] = atom->image[i];
+      molecule->global_tag[atom_counter] = atom->tag[i];
+      molecule->local_index[atom_counter] = i;
+      molecule->local_tag[atom_counter] = 0.0;
 
-      if (molecule.global_tag[atom_counter] < mintag) {
-        mintag = molecule.global_tag[atom_counter];
+      if (molecule->global_tag[atom_counter] < mintag) {
+        mintag = molecule->global_tag[atom_counter];
       }
-      for (int j = 0; j < 3; j++) molecule.pos[atom_counter][j] = atom->x[i][j];
+      for (int j = 0; j < 3; j++) molecule->pos[atom_counter][j] = atom->x[i][j];
       atom_counter = atom_counter + 1;
     }
   }
   // Add up all the atoms across the different MPI ranks
-  molecule.local_atoms = atom_counter;
+  molecule->local_atoms = atom_counter;
   lmin_tag[comm->me] = mintag;
   lcount_across_ranks[comm->me] = atom_counter;
   MPI_Allreduce(lcount_across_ranks, gcount_across_ranks, comm->nprocs, MPI_INT, MPI_SUM, world);
@@ -957,7 +970,7 @@ FixRMCPartial::Mol FixRMCPartial::get_molecule(int mol_id, int num_atoms_max)
   // new "local" index. This is not local to processor, but local to a molecule
   // This will be very helpful for charge manipulation
   for (int i = 0; i < atom_counter; i++) {
-    molecule.local_tag[i] = molecule.global_tag[i] - gmintagval + 1;
+    molecule->local_tag[i] = molecule->global_tag[i] - gmintagval + 1;
   }
 
   delete[] lcount_across_ranks;
@@ -967,7 +980,7 @@ FixRMCPartial::Mol FixRMCPartial::get_molecule(int mol_id, int num_atoms_max)
   return molecule;
 }
 
-void FixRMCPartial::modify_charge(struct Mol *molecule, double *charge_list)
+void FixRMCPartial::modify_charge(Mol *molecule, double *charge_list)
 {
 
   for (int i = 0; i < molecule->local_atoms; i++) {
@@ -980,7 +993,7 @@ void FixRMCPartial::modify_charge(struct Mol *molecule, double *charge_list)
   }
 }
 
-void FixRMCPartial::restore_charge(struct Mol *molecule)
+void FixRMCPartial::restore_charge(Mol *molecule)
 {
   for (int i = 0; i < molecule->local_atoms; i++) {
     for (int j = 0; j < atom->nlocal; j++) {
@@ -1056,10 +1069,10 @@ void FixRMCPartial::make_move()
   MPI_Bcast(&rand_semi, 1, MPI_INT, 0, world);
 
   // Retrieve information on the chosen molecule and populate it in this struct
-  Mol semiconductor = get_molecule(rand_semi, size_limit);
+  Mol *semiconductor = get_molecule(rand_semi, size_limit);
 
-  int charge_state = determine_charge_state(&semiconductor, 0);
-  semiconductor.charge_state = charge_state;
+  int charge_state = determine_charge_state(semiconductor, 0);
+  semiconductor->charge_state = charge_state;
 
   indicator = -1;
   int tries = 0;
@@ -1088,23 +1101,23 @@ void FixRMCPartial::make_move()
   MPI_Bcast(&rand_dope, 1, MPI_INT, 0, world);
 
   //Retrieve information on the chosen dopant and populate it in this struct
-  Mol dopant = get_molecule(rand_dope, size_limit);
-  charge_state = determine_charge_state(&dopant, 1);
-  dopant.charge_state = charge_state;
+  Mol *dopant = get_molecule(rand_dope, size_limit);
+  charge_state = determine_charge_state(dopant, 1);
+  dopant->charge_state = charge_state;
 
   // Verify charge states are the same
-  if (dopant.charge_state != semiconductor.charge_state) {
+  if (dopant->charge_state != semiconductor->charge_state) {
     utils::logmesg(lmp, "Dopant charge state is {} and semiconductor charge state is {}\n",
-                   dopant.charge_state, semiconductor.charge_state);
+                   dopant->charge_state, semiconductor->charge_state);
     error->all(FLERR, Error::NOLASTLINE, "Charge states don't match!");
   }
 
   // Identify a destination charge state, picked randomly
   // of course it has to be different from the starting state
-  int destination_charge_state = dopant.charge_state;
+  int destination_charge_state = dopant->charge_state;
 
   if (comm->me == 0) {
-    while (destination_charge_state == dopant.charge_state) {
+    while (destination_charge_state == dopant->charge_state) {
       destination_charge_state = type_dist(rng_type_destination);
     }
   }
@@ -1112,12 +1125,12 @@ void FixRMCPartial::make_move()
   MPI_Bcast(&destination_charge_state, 1, MPI_INT, 0, world);
 
   if (comm->me == 0)
-    utils::logmesg(lmp, "Going from charge state {} to {}\n", charges[semiconductor.charge_state],
+    utils::logmesg(lmp, "Going from charge state {} to {}\n", charges[semiconductor->charge_state],
                    charges[destination_charge_state]);
 
   // Calculate centre of mass
-  calculateMoleculeCOM(osc_com, &semiconductor);
-  calculateMoleculeCOM(dopant_com, &dopant);
+  calculateMoleculeCOM(osc_com, semiconductor);
+  calculateMoleculeCOM(dopant_com, dopant);
 
   com_diff = calDistance(osc_com, dopant_com);
 
@@ -1128,12 +1141,12 @@ void FixRMCPartial::make_move()
   if (do_bond == 1) ebond = change_bond_parameters(rand_semi, destination_charge_state);
 
   // Modify charge to new type
-  modify_charge(&semiconductor, semiconductor_charges[destination_charge_state]);
-  modify_charge(&dopant, dopant_charges[destination_charge_state]);
+  modify_charge(semiconductor, semiconductor_charges[destination_charge_state]);
+  modify_charge(dopant, dopant_charges[destination_charge_state]);
 
   // Capture the molecule self-energies difference
-  bringMoleculeTogether(&semiconductor, osc_mol_c, semiconductor_size);
-  bringMoleculeTogether(&dopant, dopant_mol_c, dopant_size);
+  bringMoleculeTogether(semiconductor, osc_mol_c, semiconductor_size);
+  bringMoleculeTogether(dopant, dopant_mol_c, dopant_size);
 
   e_osc_diff = calculateColoumbSelf(osc_mol_c, semiconductor_size);
   e_dopant_diff = calculateColoumbSelf(dopant_mol_c, dopant_size);
@@ -1159,9 +1172,9 @@ void FixRMCPartial::make_move()
   // Reinitialize Ewald
   force->kspace->init();
   reaction_energy =
-      delta_g_list[destination_charge_state] - delta_g_list[semiconductor.charge_state];
-  prefactor_num = (double) (num_semiconductor_charge[semiconductor.charge_state] *
-                            num_dopant_charge[dopant.charge_state]);
+      delta_g_list[destination_charge_state] - delta_g_list[semiconductor->charge_state];
+  prefactor_num = (double) (num_semiconductor_charge[semiconductor->charge_state] *
+                            num_dopant_charge[dopant->charge_state]);
   prefactor_den = (double) (num_semiconductor_charge[destination_charge_state] + 1.0) *
       (num_dopant_charge[destination_charge_state] + 1.0);
   prefactor = prefactor_num / prefactor_den;
@@ -1198,9 +1211,9 @@ void FixRMCPartial::make_move()
     num_semiconductor_charge[destination_charge_state] =
         num_semiconductor_charge[destination_charge_state] + 1;
     num_dopant_charge[destination_charge_state] = num_dopant_charge[destination_charge_state] + 1;
-    num_semiconductor_charge[semiconductor.charge_state] =
-        num_semiconductor_charge[semiconductor.charge_state] - 1;
-    num_dopant_charge[dopant.charge_state] = num_dopant_charge[dopant.charge_state] - 1;
+    num_semiconductor_charge[semiconductor->charge_state] =
+        num_semiconductor_charge[semiconductor->charge_state] - 1;
+    num_dopant_charge[dopant->charge_state] = num_dopant_charge[dopant->charge_state] - 1;
     molecule_charge_states[rand_semi - 1] = charges[destination_charge_state];
     molecule_charge_states[rand_dope - 1] = -charges[destination_charge_state];
   } else {
@@ -1209,22 +1222,22 @@ void FixRMCPartial::make_move()
 
     // Revert dihedral coefficients
     if (do_dihedral == 1) {
-      edihedral = change_dihedral_parameters(rand_semi, semiconductor.charge_state);
+      edihedral = change_dihedral_parameters(rand_semi, semiconductor->charge_state);
     }
-    if (do_angle == 1) eangle = change_angle_parameters(rand_semi, semiconductor.charge_state);
-    if (do_bond == 1) ebond = change_bond_parameters(rand_semi, semiconductor.charge_state);
+    if (do_angle == 1) eangle = change_angle_parameters(rand_semi, semiconductor->charge_state);
+    if (do_bond == 1) ebond = change_bond_parameters(rand_semi, semiconductor->charge_state);
 
     if (comm->me == 0) utils::logmesg(lmp, "MOVE REJECTED\n");
 
     // Restore the charges to what they were
-    restore_charge(&semiconductor);
-    restore_charge(&dopant);
+    restore_charge(semiconductor);
+    restore_charge(dopant);
     force->kspace->init();
   }
 
   // The step is done, so we can delete the molecules
-  delete_molecule(&semiconductor);
-  delete_molecule(&dopant);
+  delete semiconductor;
+  delete dopant;
 
   // Calculate dynamic doping efficiency
   for (int i = 0; i < num_charge_states; i++) {
@@ -1237,20 +1250,6 @@ void FixRMCPartial::make_move()
     mesg += "\n";
     utils::logmesg(lmp, mesg);
   }
-}
-
-void FixRMCPartial::delete_molecule(struct Mol *molecule)
-{
-  delete[] molecule->type;
-  delete[] molecule->charge;
-  delete[] molecule->mass;
-  delete[] molecule->global_tag;
-  delete[] molecule->local_tag;
-  delete[] molecule->image;
-  for (int i = 0; i < molecule->local_atoms; i++) delete[] molecule->pos[i];
-  delete[] molecule->pos;
-  delete[] molecule->local_index;
-  delete[] molecule->new_charge;
 }
 
 void FixRMCPartial::post_mortem()
@@ -1278,14 +1277,14 @@ void FixRMCPartial::post_mortem()
   double *com;
   com = new double[3];
   for (int i = 0; i < n_molecules; i++) {
-    Mol molecule = get_molecule(i + 1, size_limit);
-    calculateMoleculeCOM(com, &molecule);
+    Mol *molecule = get_molecule(i + 1, size_limit);
+    calculateMoleculeCOM(com, molecule);
     if (comm->me == 0) {
       FILE *fcom = fopen(comname.c_str(), "a");
       fprintf(fcom, "%d %f %f %f\n", i + 1, com[0], com[1], com[2]);
       fclose(fcom);
     }
-    delete_molecule(&molecule);
+    delete molecule;
   }
 
   if (comm->me == 0) {

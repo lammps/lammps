@@ -335,7 +335,7 @@ Use of "override" instead of "virtual"
 
 .. versionchanged:: 17Feb2022
 
-Since LAMMPS requires C++11, we switched to use the "override" keyword
+Since LAMMPS requires C++17, we switched to use the "override" keyword
 instead of "virtual" to indicate polymorphism in derived classes.  This
 allows the C++ compiler to better detect inconsistencies when an
 override is intended or not.  Please note that "override" has to be

@@ -11,9 +11,11 @@ or Python or MATLAB.
 Programming language standards
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. versionchanged:: TBD
+
 Most of the C++ code currently requires a compiler compatible with the
-C++11 standard, the KOKKOS package currently requires C++17.  Most of
-the Python code is written to be compatible with Python 3.6 or later.
+C++17 standard, the KOKKOS package currently also requires C++17.  Most
+of the Python code is written to be compatible with Python 3.6 or later.
 
 .. deprecated:: 2Apr2025
 
@@ -30,7 +32,7 @@ system based on shell scripts, a few shell utilities (grep, sed, cat,
 tr) and the GNU make program. This requires running within a Bourne
 shell (``/bin/sh`` or ``/bin/bash``).  Alternatively, a build system
 with different back ends can be created using CMake.  CMake must be
-at least version 3.16.
+at least version 3.20.
 
 Operating systems
 ^^^^^^^^^^^^^^^^^

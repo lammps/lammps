@@ -24,8 +24,8 @@ class NeighList;
 
 class Neighbor : protected Pointers {
  public:
-  enum { NSQ, BIN, MULTI_OLD, MULTI };
-  int style;           // 0,1,2,3 = nsq, bin, multi/old, multi
+  enum { NSQ, BIN, MULTI };
+  int style;           // 0,1,2 = nsq, bin, multi
   int every;           // build every this many steps
   int delay;           // delay build for this many steps
   int dist_check;      // 0 = always build, 1 = only if 1/2 dist
@@ -313,8 +313,7 @@ namespace NeighConst {
     NS_TRI = 1 << 7,
     NS_GHOST = 1 << 8,
     NS_INTEL = 1 << 9,
-    NS_SSA = 1 << 10,
-    NS_MULTI_OLD = 1 << 11
+    NS_SSA = 1 << 10
   };
 
   enum {
@@ -343,8 +342,7 @@ namespace NeighConst {
     NP_SKIP = 1 << 22,
     NP_HALF_FULL = 1 << 23,
     NP_OFF2ON = 1 << 24,
-    NP_MULTI_OLD = 1 << 25,
-    NP_TRIM = 1 << 26
+    NP_TRIM = 1 << 25
   };
 
   enum {

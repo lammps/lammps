@@ -166,20 +166,23 @@ out your new feature.
 Programming language standards (strict)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The core of LAMMPS is written in C++11 in a style that can be mostly
+The core of LAMMPS is written in C++17 in a style that can be mostly
 described as "C with classes".  Advanced C++ features like operator
 overloading or excessive use of templates are avoided with the intent to
 keep the code readable to programmers that have limited C++ programming
 experience.  C++ constructs are acceptable when they help improve the
 readability and reliability of the code, e.g. when using the
 `std::string` class instead of manipulating pointers and calling the
-string functions of the C library.  In addition, a collection of
+string functions of the C library or when using `auto` to avoid
+redundant data type specifications.  In addition, a collection of
 convenient :doc:`utility functions and classes <Developer_utils>` for
 recurring tasks and a collection of :doc:`platform neutral functions
-<Developer_platform>` for improved portability are provided.
-Contributions with code requiring more recent C++ standards are only
-accepted as packages with the post C++11 standard code confined to the
-package so that it is optional.
+<Developer_platform>` for improved portability are provided.  Containers
+from C++ standard library have to be used with caution, but
+`std::vector` can be useful and is compatible with efficient
+communication via MPI.  Contributions with code requiring more recent
+C++ standards are only accepted as packages with the post C++17 standard
+code confined to the package so that it is optional.
 
 Included Fortran code has to be compatible with the Fortran 2003
 standard.  Since not all platforms supported by LAMMPS provide good

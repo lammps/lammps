@@ -59,7 +59,7 @@ ComputeSNAGridKokkos<DeviceType, real_type, vector_length>::ComputeSNAGridKokkos
   auto d_cutsq = k_cutsq.template view<DeviceType>();
   rnd_cutsq = d_cutsq;
 
-  host_flag = (execution_space == Host);
+  host_flag = (execution_space == HostKK);
 
   // TODO: Extract cutsq in double loop below, no need for cutsq_tmp
 
@@ -68,7 +68,7 @@ ComputeSNAGridKokkos<DeviceType, real_type, vector_length>::ComputeSNAGridKokkos
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = 1; j <= atom->ntypes; j++){
       k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutsq_tmp;
-      k_cutsq.template modify<LMPHostType>();
+      k_cutsq.modify_host();
     }
   }
 
@@ -135,7 +135,6 @@ ComputeSNAGridKokkos<DeviceType, real_type, vector_length>::~ComputeSNAGridKokko
 {
   if (copymode) return;
 
-  memoryKK->destroy_kokkos(k_cutsq,cutsq);
   memoryKK->destroy_kokkos(k_grid, grid);
   memory->destroy(gridall);
   if (gridlocal_allocated) {
@@ -341,7 +340,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, vector_length>::compute_array()
   copymode = 0;
 
   k_grid.template modify<DeviceType>();
-  k_grid.template sync<LMPHostType>();
+  k_grid.sync_host();
 
   MPI_Allreduce(&grid[0][0], &gridall[0][0], size_array_rows * size_array_cols, MPI_DOUBLE, MPI_SUM,
                 world);
@@ -399,7 +398,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, vector_length>::operator() (Tag
   iy += nylo;
   ix += nxlo;
 
-  double xgrid[3];
+  KK_FLOAT xgrid[3];
 
   xgrid[0] = ix * delx;
   xgrid[1] = iy * dely;
@@ -419,9 +418,9 @@ void ComputeSNAGridKokkos<DeviceType, real_type, vector_length>::operator() (Tag
     xgrid[2] = h2*xgrid[2] + lo2;
   }
 
-  const F_FLOAT xtmp = xgrid[0];
-  const F_FLOAT ytmp = xgrid[1];
-  const F_FLOAT ztmp = xgrid[2];
+  const KK_FLOAT xtmp = xgrid[0];
+  const KK_FLOAT ytmp = xgrid[1];
+  const KK_FLOAT ztmp = xgrid[2];
 
   // currently, all grid points are type 1
   // not clear what a better choice would be
@@ -429,18 +428,18 @@ void ComputeSNAGridKokkos<DeviceType, real_type, vector_length>::operator() (Tag
   const int itype = 1;
   int ielem = 0;
   if (chemflag) ielem = d_map[itype];
-  //const double radi = d_radelem[ielem];
+  //const KK_FLOAT radi = d_radelem[ielem];
 
   // Compute the number of neighbors, store rsq
   int ninside = 0;
 
   // Looping over ntotal for now.
   for (int j = 0; j < ntotal; j++){
-    const F_FLOAT dx = x(j,0) - xtmp;
-    const F_FLOAT dy = x(j,1) - ytmp;
-    const F_FLOAT dz = x(j,2) - ztmp;
+    const KK_FLOAT dx = x(j,0) - xtmp;
+    const KK_FLOAT dy = x(j,1) - ytmp;
+    const KK_FLOAT dz = x(j,2) - ztmp;
     int jtype = type(j);
-    const F_FLOAT rsq = dx*dx + dy*dy + dz*dz;
+    const KK_FLOAT rsq = dx*dx + dy*dy + dz*dz;
 
     // don't include atoms that share location with grid point
     if (rsq >= rnd_cutsq(itype,jtype) || rsq < 1e-20) {
@@ -458,10 +457,10 @@ void ComputeSNAGridKokkos<DeviceType, real_type, vector_length>::operator() (Tag
   for (int j = 0; j < ntotal; j++){
     //const int jtype = type_cache[j];
     //if (jtype >= 0) {
-    const F_FLOAT dx = x(j,0) - xtmp;
-    const F_FLOAT dy = x(j,1) - ytmp;
-    const F_FLOAT dz = x(j,2) - ztmp;
-    const F_FLOAT rsq = dx*dx + dy*dy + dz*dz;
+    const KK_FLOAT dx = x(j,0) - xtmp;
+    const KK_FLOAT dy = x(j,1) - ytmp;
+    const KK_FLOAT dz = x(j,2) - ztmp;
+    const KK_FLOAT rsq = dx*dx + dy*dy + dz*dz;
     int jtype = type(j);
     if (rsq < rnd_cutsq(itype,jtype) && rsq > 1e-20) {
       int jelem = 0;
@@ -698,7 +697,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, vector_length>::operator() (Tag
   iy += nylo;
   ix += nxlo;
 
-  double xgrid[3];
+  KK_FLOAT xgrid[3];
 
   int igrid = iz * (nx * ny) + iy * nx + ix;
 
@@ -719,9 +718,9 @@ void ComputeSNAGridKokkos<DeviceType, real_type, vector_length>::operator() (Tag
     xgrid[2] = h2*xgrid[2] + lo2;
   }
 
-  const F_FLOAT xtmp = xgrid[0];
-  const F_FLOAT ytmp = xgrid[1];
-  const F_FLOAT ztmp = xgrid[2];
+  const KK_FLOAT xtmp = xgrid[0];
+  const KK_FLOAT ytmp = xgrid[1];
+  const KK_FLOAT ztmp = xgrid[2];
   d_grid(igrid,0) = xtmp;
   d_grid(igrid,1) = ytmp;
   d_grid(igrid,2) = ztmp;

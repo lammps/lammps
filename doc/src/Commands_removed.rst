@@ -12,15 +12,45 @@ stop LAMMPS and print a suitable error message in most cases, when a
 style/command is used that has been removed or will replace the command
 with the direct alternative (if available) and print a warning.
 
+ATC, AWPMD, and POEMS packages
+------------------------------
+
+.. deprecated:: TBD
+
+The ATC, AWPMD, and POEMS packages are removed.because there were
+unmaintained for a long time and their legacy C++ programming style
+started to create problems with modern C++ compilers.  LAMMPS version
+22 July 2025 is the last version that contains them.  You have to
+download and compile this version, if you want to use any of these
+packages.
+
+Neighbor style and comm mode multi/old
+--------------------------------------
+
+.. deprecated:: TBD
+
+The original implementation of neighbor style multi and comm mode multi,
+most recently available under "multi/old" has been removed.  The new
+implementation should be used instead.
+
+LAMMPS-GUI source code
+----------------------
+
+.. deprecated:: TBD
+
+The LAMMPS-GUI sources used to be included in LAMMPS but they are now
+hosted in their own git repository at
+https://github.com/akohlmey/lammps-gui/ and the corresponding online
+documentation is at https://lammps-gui.lammps.org/
+
 GJF formulation in fix langevin
 -------------------------------
 
-.. deprecated:: 12Jun2025
+.. deprecated:: 22Jul2025
 
-The *gjf* keyword in fix langevin is deprecated and will be removed
-soon.  The GJF functionality has been moved to its own fix style
-:doc:`fix gjf <fix_gjf>` and it is strongly recommended to use that
-fix instead.
+The *gjf* keyword in fix langevin has been removed.  The GJF
+functionality has been moved to its own fix style :doc:`fix gjf
+<fix_gjf>`.
 
 
 LAMMPS shell

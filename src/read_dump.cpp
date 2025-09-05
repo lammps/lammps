@@ -1183,7 +1183,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   // check for no fields
 
   if (fieldtype[nfield-1] == Reader::ID || fieldtype[nfield-1] == Reader::TYPE)
-    error->all(FLERR,"Read_dump must use at least either 'id' or 'type' field");
+    error->all(FLERR,"Read_dump command is empty or starts with an invalid field. Use at least 'id' or 'type'.");
 
   if (domain->dimension == 2) {
     for (int i = 0; i < nfield; i++)

@@ -417,7 +417,7 @@ void PairBOP::init_style()
   if (utils::strmatch(force->pair_style,"^hybrid"))
     error->all(FLERR,"Pair style BOP is not compatible with hybrid pair styles");
 
-  if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+  if (neighbor->style == Neighbor::MULTI)
     error->all(FLERR,"Pair style BOP is not compatible with multi-cutoff neighbor lists");
 
   if (comm->mode != Comm::SINGLE)

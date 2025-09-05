@@ -25,6 +25,14 @@
 #include "pair_mliap_kokkos.h"
 #include "pointers.h"
 
+#ifndef LMP_KOKKOS_DOUBLE_DOUBLE
+#error  Must use -DLMP_KOKKOS_DOUBLE_DOUBLE for ML-IAP Package
+#endif
+
+#ifndef LMP_KOKKOS_LAYOUT_LEGACY
+#error  Must use -DLMP_KOKKOS_LAYOUT_LEGACY for ML-IAP Package
+#endif
+
 namespace LAMMPS_NS {
 // clang-format off
 enum {
@@ -71,16 +79,16 @@ template <class DeviceType> class MLIAPDataKokkos : public MLIAPData {
   DAT::tdual_int_1d k_pair_i;           // index of each i atom for each ij pair
   DAT::tdual_int_1d k_jelems;           // element of each neighbor
   DAT::tdual_int_1d k_ij;               // Start location for each particle
-  DAT::tdual_float_2d k_betas;          // betas for all atoms in list
-  DAT::tdual_float_2d k_descriptors;    // descriptors for all atoms in list
-  DAT::tdual_float_1d k_eatoms;         // energies for all atoms in list
-  DAT::tdual_float_2d k_rij;            // distance vector of each neighbor
-  DAT::tdual_float_2d k_gradforce;
-  DAT::tdual_float_3d k_graddesc;         // descriptor gradient w.r.t. each neighbor
+  DAT::tdual_double_2d_lr k_betas;          // betas for all atoms in list
+  DAT::tdual_double_2d_lr k_descriptors;    // descriptors for all atoms in list
+  DAT::tdual_double_1d k_eatoms;         // energies for all atoms in list
+  DAT::tdual_double_2d_lr k_rij;            // distance vector of each neighbor
+  DAT::tdual_double_2d_lr k_gradforce;
+  DAT::tdual_double_3d_lr k_graddesc;         // descriptor gradient w.r.t. each neighbor
   DAT::tdual_int_1d k_numneighs;          // neighbors count for each atom
-  DAT::tdual_float_2d k_gamma;            // gamma element
-  DAT::tdual_int_2d k_gamma_row_index;    // row (parameter) index
-  DAT::tdual_int_2d k_gamma_col_index;    // column (descriptor) index
+  DAT::tdual_double_2d_lr k_gamma;            // gamma element
+  DAT::tdual_int_2d_lr k_gamma_row_index;    // row (parameter) index
+  DAT::tdual_int_2d_lr k_gamma_col_index;    // column (descriptor) index
 
   // Just cached for python interface
   double *f_device;

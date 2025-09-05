@@ -42,8 +42,6 @@ class colvarproxy_lammps : public colvarproxy {
   std::vector<int> atoms_types;
 
  public:
-  friend class cvm::atom;
-
   colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp);
   ~colvarproxy_lammps() override;
 

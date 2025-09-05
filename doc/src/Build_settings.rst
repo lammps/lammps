@@ -8,7 +8,7 @@ Optional build settings
 LAMMPS can be built with several optional settings.  Each subsection
 explains how to do this for building both with CMake and make.
 
-* `C++11 and C++17 standard compliance`_ when building all of LAMMPS
+* `C++17 standard compliance`_ when building all of LAMMPS
 * `FFT library`_ for use with the :doc:`kspace_style pppm <kspace_style>` command
 * `Size of LAMMPS integer types and size limits`_
 * `Read or write compressed files`_
@@ -21,36 +21,27 @@ explains how to do this for building both with CMake and make.
 
 ----------
 
-.. _cxx11:
+.. _cxx17:
 
-C++11 and C++17 standard compliance
------------------------------------
+C++17 standard compliance
+-------------------------
 
-A C++11 standard compatible compiler is currently the minimum
-requirement for compiling LAMMPS.  LAMMPS version 3 March 2020 is the
-last version compatible with the previous C++98 standard for the core
-code and most packages. Most currently used C++ compilers are compatible
-with C++11, but some older ones may need extra flags to enable C++11
-compliance.  Example for GNU c++ 4.8.x:
+.. versionchanged:: TBD
+
+A C++17 standard compatible compiler is currently the minimum
+requirement for compiling LAMMPS.  LAMMPS version 22 July 2025 is the
+last version compatible with the C++11 standard for the core code and
+most packages. Most currently used C++ compilers are compatible with
+C++17, but some older ones may need extra flags to enable C++17
+compliance.
 
 .. code-block:: make
 
-   CCFLAGS = -g -O3 -std=c++11
+   CCFLAGS = -g -O3 -std=c++17
 
 Individual packages may require compliance with a later C++ standard
-like C++14 or C++17.  These requirements will be documented with the
+like C++20.  These requirements will be documented with the
 :doc:`individual packages <Packages_details>`.
-
-.. versionchanged:: 4Feb2025
-
-Starting with LAMMPS version 4 February 2025 we are starting a
-transition to require the C++17 standard.  Most current compilers are
-compatible and if the C++17 standard is available by default, LAMMPS
-will enable C++17 and will compile normally.  If the chosen compiler is
-not compatible with C++17, but only supports C++11, then the define
--DLAMMPS_CXX11 is required to fall back to compiling with a C++11
-compiler.  After the next stable release of LAMMPS in summer 2025, the
-LAMMPS development branch and future releases will require C++17.
 
 ----------
 
@@ -358,12 +349,10 @@ The "bigbig" setting increases the size of image flags and atom IDs over
 the default "smallbig" setting.
 
 These are limits for the core of the LAMMPS code, specific features or
-some styles may impose additional limits.  The :ref:`ATC
-<PKG-ATC>` package cannot be compiled with the "bigbig" setting.
-Also, there are limitations when using the library interface where some
-functions with known issues have been replaced by dummy calls printing a
-corresponding error message rather than crashing randomly or corrupting
-data.
+some styles may impose additional limits.  Also, there are limitations
+when using the library interface where some functions with known issues
+have been replaced by dummy calls printing a corresponding error message
+rather than crashing randomly or corrupting data.
 
 Atom IDs are not required for atomic systems which do not store bond
 topology information, though IDs are enabled by default.  The
@@ -503,7 +492,7 @@ during a run.
    library and lead to simulations using compressed output or input to
    hang or crash. For selected operations, compressed file I/O is also
    available using a compression library instead, which is what the
-   :ref:`COMPRESS package <PKG-COMPRESS>` enables.
+   :ref:`COMPRESS package <PKG-COMPRESS>` provides.
 
 --------------------------------------------------
 

@@ -24,7 +24,7 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *subbox* or *shiny* or *fsaa* or *ssao*
+* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao*
 
   .. parsed-literal::
 
@@ -81,6 +81,14 @@ Syntax
          axes = *yes* or *no* = do or do not draw xyz axes lines next to simulation box
          length = length of axes lines as fraction of respective box lengths
          diam = diameter of axes lines as fraction of shortest box length
+       *region* values = region-ID color drawstyle [npoints (optional) diameter (optional)]
+         region-ID = ID of the region to render
+         color = color name for region graphics
+         drawstyle = *filled* or *frame* or *points*
+           *filled* = render region as a filled object, with optional open faces
+           *frame* = render region as a wireframe (like box or subbox)
+         npoints  = number of attempted points (only for drawstyle *points*)
+         diameter = diameter of wireframe or points (only for drawstyles *frame* and *points*)
        *subbox* values = lines diam = draw outline of processor subdomains
          lines = *yes* or *no* = do or do not draw subdomain lines
          diam = diameter of subdomain lines as fraction of shortest box length
@@ -517,6 +525,25 @@ the mapping of types to colors is as follows:
 
 and repeats itself for types > 6.  There is not yet an option to
 change this via the dump_modify command.
+
+----------
+
+.. versionadded:: TBD
+
+The *region* keyword can be used to create a graphical representation
+of a :doc:`region <region>`.  This can be helpful in debugging the
+location and extent of regions, especially when those have parameters
+controlled by variables.  Three styles of representing a region are
+available: *filled*, *frame*, and *points*. With style *filled* the
+surface of the region is drawn.  For region styles that support open
+faces, surfaces are not drawn for such open faces. Draw style *frame*
+represents the region with a mesh of "wires" the diameter of which can
+be set. Unlike with *filled*, you can look inside the region with this
+draw style. The third draw style *points* generates a random point
+cloud inside the simulation box and draws only those points that are
+within the region.  Draw styles *filled* and *frame* support only
+"primitive" region style (no unions or intersections), but the *points*
+draw style supports all region styles.
 
 ----------
 

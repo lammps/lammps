@@ -30,8 +30,6 @@ gives those details.
    * :ref:`AMOEBA <PKG-AMOEBA>`
    * :ref:`APIP <PKG-APIP>`
    * :ref:`ASPHERE <PKG-ASPHERE>`
-   * :ref:`ATC <PKG-ATC>`
-   * :ref:`AWPMD <PKG-AWPMD>`
    * :ref:`BOCS <PKG-BOCS>`
    * :ref:`BODY <PKG-BODY>`
    * :ref:`BPM <PKG-BPM>`
@@ -98,7 +96,6 @@ gives those details.
    * :ref:`PHONON <PKG-PHONON>`
    * :ref:`PLUGIN <PKG-PLUGIN>`
    * :ref:`PLUMED <PKG-PLUMED>`
-   * :ref:`POEMS <PKG-POEMS>`
    * :ref:`PTM <PKG-PTM>`
    * :ref:`PYTHON <PKG-PYTHON>`
    * :ref:`QEQ <PKG-QEQ>`
@@ -264,63 +261,6 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 * ``examples/ellipse``
 * https://www.lammps.org/movies.html#line
 * https://www.lammps.org/movies.html#tri
-
-----------
-
-.. _PKG-ATC:
-
-ATC package
-----------------
-
-**Contents:**
-
-ATC stands for atoms-to-continuum.  This package implements a
-:doc:`fix atc <fix_atc>` command to either couple molecular dynamics
-with continuum finite element equations or perform on-the-fly
-conversion of atomic information to continuum fields.
-
-**Authors:** Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia).
-
-**Install:**
-
-This package has :ref:`specific installation instructions <atc>` on the
-:doc:`Build extras <Build_extras>` page.  The ATC package requires that
-also the :ref:`MANYBODY <PKG-MANYBODY>` package is installed.
-
-**Supporting info:**
-
-* ``src/ATC``: filenames -> commands
-* ``src/ATC/README``
-* :doc:`fix atc <fix_atc>`
-* ``examples/PACKAGES/atc``
-* https://www.lammps.org/pictures.html#atc
-
-----------
-
-.. _PKG-AWPMD:
-
-AWPMD package
-------------------
-
-**Contents:**
-
-AWPMD stands for Antisymmetrized Wave Packet Molecular Dynamics.  This
-package implements an atom, pair, and fix style which allows electrons
-to be treated as explicit particles in a classical molecular dynamics
-model.
-
-**Author:** Ilya Valuev (JIHT, Russia).
-
-**Install:**
-
-This package has :ref:`specific installation instructions <awpmd>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* ``src/AWPMD``: filenames -> commands
-* ``src/AWPMD/README``
-* :doc:`pair_style awpmd/cut <pair_awpmd>`
-* ``examples/PACKAGES/awpmd``
 
 ----------
 
@@ -2409,35 +2349,6 @@ as a plugin to avoid licensing conflicts when distributing binaries.
 * ``lib/plumed/README``
 * :doc:`fix plumed <fix_plumed>`
 * ``examples/PACKAGES/plumed``
-
-----------
-
-.. _PKG-POEMS:
-
-POEMS package
--------------
-
-**Contents:**
-
-A fix that wraps the Parallelizable Open source Efficient Multibody
-Software (POEMS) library, which is able to simulate the dynamics of
-articulated body systems.  These are systems with multiple rigid
-bodies (collections of particles) whose motion is coupled by
-connections at hinge points.
-
-**Author:** Rudra Mukherjee (JPL) while at RPI.
-
-**Install:**
-
-This package has :ref:`specific installation instructions <poems>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* ``src/POEMS``: filenames -> commands
-* ``src/POEMS/README``
-* ``lib/poems/README``
-* :doc:`fix poems <fix_poems>`
-* ``examples/rigid``
 
 ----------
 

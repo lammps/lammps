@@ -47,8 +47,8 @@ int MinCGKokkos::iterate(int maxiter)
   int fail,ntimestep;
   double beta,gg,dot[2],dotall[2],fdotf;
 
-  fix_minimize_kk->k_vectors.sync<LMPDeviceType>();
-  fix_minimize_kk->k_vectors.modify<LMPDeviceType>();
+  fix_minimize_kk->k_vectors.sync_device();
+  fix_minimize_kk->k_vectors.modify_device();
 
   atomKK->sync(Device,F_MASK);
 
@@ -64,12 +64,26 @@ int MinCGKokkos::iterate(int maxiter)
 
     auto l_h = h;
     auto l_g = g;
-    auto l_fvec = fvec;
 
-    Kokkos::parallel_for(nvec, LAMMPS_LAMBDA(const int& i) {
-      l_h[i] = l_fvec[i];
-      l_g[i] = l_fvec[i];
-    });
+    if constexpr (F_LAYOUTRIGHT) {
+      auto l_fvec = fvec;
+      Kokkos::parallel_for(nvec, LAMMPS_LAMBDA(const int& i) {
+        l_h[i] = l_fvec[i];
+        l_g[i] = l_fvec[i];
+      });
+    } else {
+      auto l_f = atomKK->k_f.d_view;
+      Kokkos::parallel_for(atom->nlocal, LAMMPS_LAMBDA(const int& i) {
+        const int j = i*3;
+        l_h[j] = l_f(i,0);
+        l_h[j+1] = l_f(i,1);
+        l_h[j+2] = l_f(i,2);
+
+        l_g[j] = l_f(i,0);
+        l_g[j+1] = l_f(i,1);
+        l_g[j+2] = l_f(i,2);
+      });
+    }
   }
   if (nextra_global)
     for (int i = 0; i < nextra_global; i++) hextra[i] = gextra[i] = fextra[i];
@@ -102,17 +116,31 @@ int MinCGKokkos::iterate(int maxiter)
 
     // force tolerance criterion
 
-    s_double2 sdot;
+    s_KK_double2 sdot;
     {
       // local variables for lambda capture
 
       auto l_g = g;
-      auto l_fvec = fvec;
 
-      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_double2& sdot) {
-        sdot.d0 += l_fvec[i]*l_fvec[i];
-        sdot.d1 += l_fvec[i]*l_g[i];
-      },sdot);
+      if constexpr (F_LAYOUTRIGHT) {
+        auto l_fvec = fvec;
+        Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
+          sdot.d0 += l_fvec[i]*l_fvec[i];
+          sdot.d1 += l_fvec[i]*l_g[i];
+        },sdot);
+      } else {
+        auto l_f = atomKK->k_f.d_view;
+        Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
+          sdot.d0 += l_f(i,0)*l_f(i,0);
+          sdot.d0 += l_f(i,1)*l_f(i,1);
+          sdot.d0 += l_f(i,2)*l_f(i,2);
+
+          const int j = i*3;
+          sdot.d1 += l_f(i,0)*l_g[j];
+          sdot.d1 += l_f(i,1)*l_g[j+1];
+          sdot.d1 += l_f(i,2)*l_g[j+2];
+        },sdot);
+      }
     }
     dot[0] = sdot.d0;
     dot[1] = sdot.d1;
@@ -146,12 +174,26 @@ int MinCGKokkos::iterate(int maxiter)
 
       auto l_h = h;
       auto l_g = g;
-      auto l_fvec = fvec;
 
-      Kokkos::parallel_for(nvec, LAMMPS_LAMBDA(const int& i) {
-        l_g[i] = l_fvec[i];
-        l_h[i] = l_g[i] + beta*l_h[i];
-      });
+      if constexpr (F_LAYOUTRIGHT) {
+        auto l_fvec = fvec;
+        Kokkos::parallel_for(nvec, LAMMPS_LAMBDA(const int& i) {
+          l_g[i] = l_fvec[i];
+          l_h[i] = l_g[i] + beta*l_h[i];
+        });
+      } else {
+        auto l_f = atomKK->k_f.d_view;
+        Kokkos::parallel_for(atom->nlocal, LAMMPS_LAMBDA(const int& i) {
+          const int j = i*3;
+          l_g[j] = l_f(i,0);
+          l_g[j+1] = l_f(i,1);
+          l_g[j+2] = l_f(i,2);
+        });
+
+        Kokkos::parallel_for(nvec, LAMMPS_LAMBDA(const int& i) {
+          l_h[i] = l_g[i] + beta*l_h[i];
+        });
+      }
     }
     if (nextra_global)
       for (int i = 0; i < nextra_global; i++) {

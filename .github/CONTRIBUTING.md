@@ -31,19 +31,12 @@ __
 
 ## How Can I Contribute?
 
-There are several ways how you can actively contribute to the LAMMPS project: you can discuss compiling and using LAMMPS, and solving LAMMPS related problems with other LAMMPS users on the lammps-users mailing list or the forum, you can report bugs or suggest enhancements by creating issues on GitHub (or posting them to the lammps-users mailing list or posting in the LAMMPS Materials Science Discourse forum), and you can contribute by submitting pull requests on GitHub or e-mail your code
+There are several ways how you can actively contribute to the LAMMPS project: you can discuss compiling and using LAMMPS, and solving LAMMPS related problems with other LAMMPS users in the forum, you can report bugs or suggest enhancements by creating issues on GitHub (or posting in the LAMMPS Materials Science Discourse forum), and you can contribute by submitting pull requests on GitHub or e-mail your code
 to one of the [LAMMPS core developers](https://www.lammps.org/authors.html). As you may see from the aforementioned developer page, the LAMMPS software package includes the efforts of a very large number of contributors beyond the principal authors and maintainers.
 
 ### Discussing How To Use LAMMPS
 
-The LAMMPS mailing list is hosted at SourceForge. The mailing list began in 2005, and now includes tens of thousands of messages in thousands of threads. LAMMPS developers try to respond to posted questions in a timely manner, but there are no guarantees. Please consider that people live in different timezone and may not have time to answer e-mails outside of their work hours.
-You can post to list by sending your email to lammps-users at lists.sourceforge.net (no subscription required), but before posting, please read the [mailing list guidelines](https://www.lammps.org/guidelines.html) to maximize your chances to receive a helpful response.
-
-Anyone can browse/search previous questions/answers in the archives. You do not have to subscribe to the list to post questions, receive answers (to your questions), or browse/search the archives. You **do** need to subscribe to the list if you want emails for **all** the posts (as individual messages or in digest form), or to answer questions yourself. Feel free to sign up and help us out! Answering questions from fellow LAMMPS users is a great way to pay back the community for providing you a useful tool for free, and to pass on the advice you have received yourself to others. It improves your karma and helps you understand your own research better.
-
-If you post a message and you are a subscriber, your message will appear immediately. If you are not a subscriber, your message will be moderated, which typically takes one business day. Either way, when someone replies the reply will usually be sent to both, your personal email address and the mailing list. When replying to people, that responded to your post to the list, please always included the mailing list in your replies (i.e. use "Reply All" and **not** "Reply"). Responses will appear on the list in a few minutes, but it can take a few hours for postings and replies to show up in the SourceForge archive. Sending replies also to the mailing list is important, so that responses are archived and people with a similar issue can search for possible solutions in the mailing list archive.
-
-The LAMMPS Materials Science Discourse forum was created recently to facilitate discussion not just about LAMMPS and as part of a larger effort  towards building a materials science community. The forum contains a read-only sub-category with the continually updated mailing list archive, so you won't miss anything by joining only the forum and not the mailing list.
+The LAMMPS Materials Science Discourse forum was created to facilitate discussion not just about LAMMPS and as part of a larger effort towards building a materials science community. The forum contains a read-only sub-category with the LAMMPS mailing list archive.
 
 ### Reporting Bugs
 
@@ -52,14 +45,14 @@ While developers writing code for LAMMPS are careful to test their code, LAMMPS 
 When you click on the green "New Issue" button, you will be provided with a text field, where you can enter your message. That text field with contain a template with several headlines and some descriptions. Keep the headlines that are relevant to your reported potential bug and replace the descriptions with the information as suggested by the descriptions.
 You can also attach small text files (please add the file name extension `.txt` or it will be rejected), images, or small compressed text files (using gzip, do not use RAR or 7-ZIP or similar tools that are uncommon outside of Windows machines). In many cases, bugs are best illustrated by providing a small input deck (do **not** attach your entire production input, but remove everything that is not required to reproduce the issue, and scale down your system size, that the resulting calculation runs fast and can be run on small desktop quickly).
 
-To be able to submit an issue on GitHub, you have to register for an account (for GitHub in general). If you do not want to do that, or have other reservations against submitting an issue there, you can - as an alternative and in decreasing preference - either send an e-mail to the lammps-users mailing list, the original authors of the feature that you suspect to be affected, or one or more of the core LAMMPS developers.
+To be able to submit an issue on GitHub, you have to register for an account (for GitHub in general). If you do not want to do that, or have other reservations against submitting an issue there, you can - as an alternative and in decreasing preference - either send an e-mail to the original authors of the feature that you suspect to be affected, or to developers@lammps.org or directly to one or more of the core LAMMPS developers.
 
 ### Suggesting Enhancements
 
 The LAMMPS developers welcome suggestions for enhancements or new features. These should be submitted using the [GitHub Issue Tracker](https://github.com/lammps/lammps/issues) of the LAMMPS project. This is particularly recommended, when you plan to implement the feature or enhancement yourself, as this allows to coordinate in case there are other similar or conflicting ongoing developments.
 The LAMMPS developers will review your submission and consider implementing it. Whether this will actually happen depends on many factors: how difficult it would be, how much effort it would take, how many users would benefit from it, how well the individual developer would understand the underlying physics of the feature, and whether this is a feature that would fit into a software like LAMMPS, or would be better implemented as a separate tool. Because of these factors, it matters how well the suggested enhancement is formulated and the overall benefit is argued convincingly.
 
-To be able to submit an issue on GitHub, you have to register for an account (for GitHub in general). If you do not want to do that, or have other reservations against submitting an issue there, you can - as an alternative - send an e-mail to the lammps-users mailing list.
+To be able to submit an issue on GitHub, you have to register for an account (for GitHub in general).
 
 ### Contributing Code
 

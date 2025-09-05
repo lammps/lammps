@@ -74,7 +74,7 @@ void NPairCopyKokkos<DeviceType>::copy_to_cpu(NeighList *list)
   NeighList *listcopy = list->listcopy;
   NeighListKokkos<DeviceType>* listcopy_kk = (NeighListKokkos<DeviceType>*) listcopy;
 
-  listcopy_kk->k_ilist.template sync<LMPHostType>();
+  listcopy_kk->k_ilist.sync_host();
 
   int inum = listcopy->inum;
   int gnum = listcopy->gnum;

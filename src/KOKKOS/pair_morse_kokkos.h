@@ -35,6 +35,7 @@ class PairMorseKokkos : public PairMorse {
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   PairMorseKokkos(class LAMMPS *);
   ~PairMorseKokkos() override;
 
@@ -49,43 +50,43 @@ class PairMorseKokkos : public PairMorse {
     params_morse() {cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
     KOKKOS_INLINE_FUNCTION
     params_morse(int /*i*/) {cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
-    F_FLOAT cutsq,d0,alpha,r0,offset;
+    KK_FLOAT cutsq,d0,alpha,r0,offset;
   };
 
  protected:
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
+  KK_FLOAT compute_fpair(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
+  KK_FLOAT compute_evdwl(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+  KK_FLOAT compute_ecoul(const KK_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
                         const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
 
   Kokkos::DualView<params_morse**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_morse**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
   params_morse m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  typename ArrayTypes<DeviceType>::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_x_array c_x;
-  typename ArrayTypes<DeviceType>::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
+  KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkfloat_1d_3_lr c_x;
+  typename AT::t_kkacc_1d_3 f;
+  typename AT::t_int_1d_randomread type;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
   int newton_pair;
-  double special_lj[4];
+  KK_FLOAT special_lj[4];
 
-  typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
+  DAT::ttransform_kkfloat_2d k_cutsq;
+  typename AT::t_kkfloat_2d d_cutsq;
 
 
   int neighflag;

@@ -1180,42 +1180,6 @@ int PairHybrid::check_ijtype(int itype, int jtype, char *substyle)
 }
 
 /* ----------------------------------------------------------------------
-   check if substyles calculate self-interaction range of particle
-------------------------------------------------------------------------- */
-
-double PairHybrid::atom2cut(int i)
-{
-  double temp, cut;
-
-  cut = 0.0;
-  for (int m = 0; m < nstyles; m++) {
-    if (styles[m]->finitecutflag) {
-      temp = styles[m]->atom2cut(i);
-      if (temp > cut) cut = temp;
-    }
-  }
-  return cut;
-}
-
-/* ----------------------------------------------------------------------
-   check if substyles calculate maximum interaction range for two finite particles
-------------------------------------------------------------------------- */
-
-double PairHybrid::radii2cut(double r1, double r2)
-{
-  double temp, cut;
-
- cut = 0.0;
-  for (int m = 0; m < nstyles; m++) {
-    if (styles[m]->finitecutflag) {
-      temp = styles[m]->radii2cut(r1,r2);
-      if (temp > cut) cut = temp;
-    }
-  }
-  return cut;
-}
-
-/* ----------------------------------------------------------------------
    memory usage of each sub-style
 ------------------------------------------------------------------------- */
 

@@ -190,14 +190,14 @@ void PairDPDKokkos<DeviceType>::compute(int eflagin, int vflagin)
     if (need_dup)
       Kokkos::Experimental::contribute(d_eatom, dup_eatom);
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     if (need_dup)
       Kokkos::Experimental::contribute(d_vatom, dup_vatom);
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -234,11 +234,11 @@ void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,EVFLAG>, cons
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   int i,j,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,fpair;
-  double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
-  double rsq,r,rinv,dot,wd,randnum,factor_dpd,factor_sqrt;
-  double fx = 0,fy = 0,fz = 0;
-  double evdwl = 0;
+  KK_FLOAT xtmp,ytmp,ztmp,delx,dely,delz,fpair;
+  KK_FLOAT vxtmp,vytmp,vztmp,delvx,delvy,delvz;
+  KK_FLOAT rsq,r,rinv,dot,wd,randnum,factor_dpd,factor_sqrt;
+  KK_FLOAT fx = 0,fy = 0,fz = 0;
+  KK_FLOAT evdwl = 0;
   i = d_ilist[ii];
   xtmp = x(i,0);
   ytmp = x(i,1);
@@ -316,8 +316,8 @@ template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairDPDKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                const F_FLOAT &dely, const F_FLOAT &delz) const
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                const KK_FLOAT &dely, const KK_FLOAT &delz) const
 {
   // The eatom and vatom arrays are duplicated for OpenMP, atomic for GPU, and neither for Serial
 
@@ -328,18 +328,18 @@ void PairDPDKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   if (eflag_atom) {
-    const E_FLOAT epairhalf = 0.5 * epair;
+    const KK_FLOAT epairhalf = 0.5 * epair;
     a_eatom[i] += epairhalf;
     a_eatom[j] += epairhalf;
   }
 
   if (vflag_either) {
-    const E_FLOAT v0 = delx*delx*fpair;
-    const E_FLOAT v1 = dely*dely*fpair;
-    const E_FLOAT v2 = delz*delz*fpair;
-    const E_FLOAT v3 = delx*dely*fpair;
-    const E_FLOAT v4 = delx*delz*fpair;
-    const E_FLOAT v5 = dely*delz*fpair;
+    const KK_FLOAT v0 = delx*delx*fpair;
+    const KK_FLOAT v1 = dely*dely*fpair;
+    const KK_FLOAT v2 = delz*delz*fpair;
+    const KK_FLOAT v3 = delx*dely*fpair;
+    const KK_FLOAT v4 = delx*delz*fpair;
+    const KK_FLOAT v5 = dely*delz*fpair;
 
     if (vflag_global) {
       ev.v[0] += v0;
@@ -406,11 +406,11 @@ double PairDPDKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).sigma = sigma[i][j];
   k_params.h_view(j,i) = k_params.h_view(i,j);
 
-  k_params.template modify<LMPHostType>();
+  k_params.modify_host();
 
   k_cutsq.h_view(i,j) = cutone*cutone;
   k_cutsq.h_view(j,i) = k_cutsq.h_view(i,j);
-  k_cutsq.template modify<LMPHostType>();
+  k_cutsq.modify_host();
 
   return cutone;
 }

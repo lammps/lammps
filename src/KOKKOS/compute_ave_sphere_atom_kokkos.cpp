@@ -131,23 +131,23 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom, const int &ii) const
 {
-  double massone_i,massone_j;
+  KK_FLOAT massone_i,massone_j;
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     if (rmass.data()) massone_i = rmass[i];
     else massone_i = mass[type[i]];
 
-    const X_FLOAT xtmp = x(i,0);
-    const X_FLOAT ytmp = x(i,1);
-    const X_FLOAT ztmp = x(i,2);
+    const KK_FLOAT xtmp = x(i,0);
+    const KK_FLOAT ytmp = x(i,1);
+    const KK_FLOAT ztmp = x(i,2);
     const int jnum = d_numneigh[i];
 
     // i atom contribution
 
     int count = 1;
-    double totalmass = massone_i;
-    double p[3];
+    KK_ACC_FLOAT totalmass = massone_i;
+    KK_ACC_FLOAT p[3];
     p[0] = v(i,0)*massone_i;
     p[1] = v(i,1)*massone_i;
     p[2] = v(i,2)*massone_i;
@@ -158,10 +158,10 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
       if (rmass.data()) massone_j = rmass[j];
       else massone_j = mass[type[j]];
 
-      const F_FLOAT delx = x(j,0) - xtmp;
-      const F_FLOAT dely = x(j,1) - ytmp;
-      const F_FLOAT delz = x(j,2) - ztmp;
-      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      const KK_FLOAT delx = x(j,0) - xtmp;
+      const KK_FLOAT dely = x(j,1) - ytmp;
+      const KK_FLOAT delz = x(j,2) - ztmp;
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < cutsq) {
         count++;
         totalmass += massone_j;
@@ -171,18 +171,18 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
       }
     }
 
-    double vcom[3];
+    KK_FLOAT vcom[3];
     vcom[0] = p[0]/totalmass;
     vcom[1] = p[1]/totalmass;
     vcom[2] = p[2]/totalmass;
 
     // i atom contribution
 
-    double vnet[3];
+    KK_FLOAT vnet[3];
     vnet[0] = v(i,0) - vcom[0];
     vnet[1] = v(i,1) - vcom[1];
     vnet[2] = v(i,2) - vcom[2];
-    double ke_sum = massone_i * (vnet[0]*vnet[0] + vnet[1]*vnet[1] + vnet[2]*vnet[2]);
+    KK_ACC_FLOAT ke_sum = massone_i * (vnet[0]*vnet[0] + vnet[1]*vnet[1] + vnet[2]*vnet[2]);
 
     for (int jj = 0; jj < jnum; jj++) {
       int j = d_neighbors(i,jj);
@@ -190,10 +190,10 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
       if (rmass.data()) massone_j = rmass[j];
       else massone_j = mass[type[j]];
 
-      const F_FLOAT delx = x(j,0) - xtmp;
-      const F_FLOAT dely = x(j,1) - ytmp;
-      const F_FLOAT delz = x(j,2) - ztmp;
-      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      const KK_FLOAT delx = x(j,0) - xtmp;
+      const KK_FLOAT dely = x(j,1) - ytmp;
+      const KK_FLOAT delz = x(j,2) - ztmp;
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < cutsq) {
         vnet[0] = v(j,0) - vcom[0];
         vnet[1] = v(j,1) - vcom[1];
@@ -201,8 +201,8 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
         ke_sum += massone_j * (vnet[0]*vnet[0] + vnet[1]*vnet[1] + vnet[2]*vnet[2]);
       }
     }
-    double density = mv2d*totalmass/volume;
-    double temp = mvv2e*ke_sum/(adof*count*boltz);
+    KK_FLOAT density = mv2d*totalmass/volume;
+    KK_FLOAT temp = mvv2e*ke_sum/(adof*count*boltz);
     d_result(i,0) = density;
     d_result(i,1) = temp;
   }

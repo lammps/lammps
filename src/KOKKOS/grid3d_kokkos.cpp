@@ -477,7 +477,7 @@ void Grid3dKokkos<DeviceType>::setup_comm_tiled(int &nbuf1, int &nbuf2)
 
   send = (Send *) memory->smalloc(nrecv_request*sizeof(Send),"grid3d:send");
 
-  k_send_packlist = DAT::tdual_int_2d("grid3d:send_packlist",nrecv_request,k_send_packlist.extent(1));
+  k_send_packlist = DAT::tdual_int_2d_lr("grid3d:send_packlist",nrecv_request,k_send_packlist.extent(1));
 
   sresponse = (Response *) memory->smalloc(nrecv_request*sizeof(Response),"grid3d:sresponse");
   memory->destroy(proclist);
@@ -521,7 +521,7 @@ void Grid3dKokkos<DeviceType>::setup_comm_tiled(int &nbuf1, int &nbuf2)
 
   recv = (Recv *) memory->smalloc(nrecv_response*sizeof(Recv),"grid3d:recv");
 
-  k_recv_unpacklist = DAT::tdual_int_2d("grid3d:recv_unpacklist",nrecv_response,k_recv_unpacklist.extent(1));
+  k_recv_unpacklist = DAT::tdual_int_2d_lr("grid3d:recv_unpacklist",nrecv_response,k_recv_unpacklist.extent(1));
 
   adjacent = 1;
 
@@ -548,8 +548,8 @@ void Grid3dKokkos<DeviceType>::setup_comm_tiled(int &nbuf1, int &nbuf2)
 
   copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"grid3d:copy");
 
-  k_copy_packlist = DAT::tdual_int_2d("grid3d:copy_packlist",ncopy,k_copy_packlist.extent(1));
-  k_copy_unpacklist = DAT::tdual_int_2d("grid3d:copy_unpacklist",ncopy,k_copy_unpacklist.extent(1));
+  k_copy_packlist = DAT::tdual_int_2d_lr("grid3d:copy_packlist",ncopy,k_copy_packlist.extent(1));
+  k_copy_unpacklist = DAT::tdual_int_2d_lr("grid3d:copy_unpacklist",ncopy,k_copy_unpacklist.extent(1));
 
   ncopy = 0;
   for (m = 0; m < noverlap; m++) {
@@ -682,7 +682,7 @@ forward_comm_kspace_brick(KSpace *kspace, int which, int nper,
 
       if (!lmp->kokkos->gpu_aware_flag) {
         k_buf1.modify<DeviceType>();
-        k_buf1.sync<LMPHostType>();
+        k_buf1.sync_host();
       }
 
       if (swap[m].nunpack) MPI_Irecv(buf2,nper*swap[m].nunpack,datatype,
@@ -692,7 +692,7 @@ forward_comm_kspace_brick(KSpace *kspace, int which, int nper,
       if (swap[m].nunpack) MPI_Wait(&request,MPI_STATUS_IGNORE);
 
       if (!lmp->kokkos->gpu_aware_flag) {
-        k_buf2.modify<LMPHostType>();
+        k_buf2.modify_host();
         k_buf2.sync<DeviceType>();
       }
     }
@@ -740,7 +740,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int which, int nper,
 
     if (!lmp->kokkos->gpu_aware_flag) {
       k_buf1.modify<DeviceType>();
-      k_buf1.sync<LMPHostType>();
+      k_buf1.sync_host();
     }
 
     MPI_Send(buf1,nper*send[m].npack,datatype,send[m].proc,0,gridcomm);
@@ -759,7 +759,7 @@ forward_comm_kspace_tiled(KSpace *kspace, int which, int nper,
     MPI_Waitany(nrecv,requests,&m,MPI_STATUS_IGNORE);
 
     if (!lmp->kokkos->gpu_aware_flag) {
-      k_buf2.modify<LMPHostType>();
+      k_buf2.modify_host();
       k_buf2.sync<DeviceType>();
     }
 
@@ -822,7 +822,7 @@ reverse_comm_kspace_brick(KSpace *kspace, int which, int nper,
 
       if (!lmp->kokkos->gpu_aware_flag) {
         k_buf1.modify<DeviceType>();
-        k_buf1.sync<LMPHostType>();
+        k_buf1.sync_host();
       }
 
       if (swap[m].npack) MPI_Irecv(buf2,nper*swap[m].npack,datatype,
@@ -833,7 +833,7 @@ reverse_comm_kspace_brick(KSpace *kspace, int which, int nper,
 
 
       if (!lmp->kokkos->gpu_aware_flag) {
-        k_buf2.modify<LMPHostType>();
+        k_buf2.modify_host();
         k_buf2.sync<DeviceType>();
       }
     }
@@ -882,7 +882,7 @@ reverse_comm_kspace_tiled(KSpace *kspace, int which, int nper,
 
     if (!lmp->kokkos->gpu_aware_flag) {
       k_buf1.modify<DeviceType>();
-      k_buf1.sync<LMPHostType>();
+      k_buf1.sync_host();
     }
 
     MPI_Send(buf1,nper*recv[m].nunpack,datatype,recv[m].proc,0,gridcomm);
@@ -900,7 +900,7 @@ reverse_comm_kspace_tiled(KSpace *kspace, int which, int nper,
     MPI_Waitany(nsend,requests,&m,MPI_STATUS_IGNORE);
 
     if (!lmp->kokkos->gpu_aware_flag) {
-      k_buf2.modify<LMPHostType>();
+      k_buf2.modify_host();
       k_buf2.sync<DeviceType>();
     }
 
@@ -926,8 +926,8 @@ void Grid3dKokkos<DeviceType>::grow_swap()
   swap = (Swap *) memory->srealloc(swap,maxswap*sizeof(Swap),"grid3d:swap");
 
   if (!k_swap_packlist.d_view.data()) {
-    k_swap_packlist = DAT::tdual_int_2d("grid3d:swap_packlist",maxswap,k_swap_packlist.extent(1));
-    k_swap_unpacklist = DAT::tdual_int_2d("grid3d:swap_unpacklist",maxswap,k_swap_unpacklist.extent(1));
+    k_swap_packlist = DAT::tdual_int_2d_lr("grid3d:swap_packlist",maxswap,k_swap_packlist.extent(1));
+    k_swap_unpacklist = DAT::tdual_int_2d_lr("grid3d:swap_unpacklist",maxswap,k_swap_unpacklist.extent(1));
   } else {
     k_swap_packlist.resize(maxswap,k_swap_packlist.extent(1));
     k_swap_unpacklist.resize(maxswap,k_swap_unpacklist.extent(1));
@@ -941,7 +941,7 @@ void Grid3dKokkos<DeviceType>::grow_swap()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-int Grid3dKokkos<DeviceType>::indices(DAT::tdual_int_2d &k_list, int index,
+int Grid3dKokkos<DeviceType>::indices(DAT::tdual_int_2d_lr &k_list, int index,
                        int xlo, int xhi, int ylo, int yhi, int zlo, int zhi)
 {
   int nmax = (xhi-xlo+1) * (yhi-ylo+1) * (zhi-zlo+1);
@@ -953,7 +953,7 @@ int Grid3dKokkos<DeviceType>::indices(DAT::tdual_int_2d &k_list, int index,
   int nx = (fullxhi-fullxlo+1);
   int ny = (fullyhi-fullylo+1);
 
-  k_list.sync<LMPHostType>();
+  k_list.sync_host();
 
   int n = 0;
   int ix,iy,iz;
@@ -962,7 +962,7 @@ int Grid3dKokkos<DeviceType>::indices(DAT::tdual_int_2d &k_list, int index,
       for (ix = xlo; ix <= xhi; ix++)
         k_list.h_view(index,n++) = (iz-fullzlo)*ny*nx + (iy-fullylo)*nx + (ix-fullxlo);
 
-  k_list.modify<LMPHostType>();
+  k_list.modify_host();
   k_list.sync<DeviceType>();
 
   return nmax;

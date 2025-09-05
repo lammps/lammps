@@ -87,7 +87,7 @@ Syntax
 
   .. parsed-literal::
 
-           EFF and AWPMD package per-atom properties:
+           EFF package per-atom properties:
            espin = electron spin
            eradius = electron radius
            ervel = electron radial velocity

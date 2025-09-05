@@ -42,13 +42,13 @@ class FixWallReflectKokkos : public FixWallReflect {
   void operator()(TagFixWallReflectPostIntegrate, const int&) const;
 
  protected:
-  typename AT::t_x_array x;
-  typename AT::t_v_array v;
+  typename AT::t_kkfloat_1d_3_lr x;
+  typename AT::t_kkfloat_1d_3 v;
   typename AT::t_int_1d_randomread mask;
 
 
   int dim,side;
-  X_FLOAT coord;
+  KK_FLOAT coord;
 };
 
 }

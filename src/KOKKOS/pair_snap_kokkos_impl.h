@@ -89,6 +89,7 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
 template<class DeviceType>
 struct FindMaxNumNeighs {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   NeighListKokkos<DeviceType> k_list;
 
   FindMaxNumNeighs(NeighListKokkos<DeviceType>* nl): k_list(*nl) {}
@@ -405,14 +406,14 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::compute(int eflag_in,
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     if (need_dup)
       Kokkos::Experimental::contribute(d_vatom, dup_vatom);
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   atomKK->modified(execution_space,F_MASK);
@@ -451,7 +452,7 @@ double PairSNAPKokkos<DeviceType, real_type, vector_length>::init_one(int i, int
 {
   double cutone = PairSNAP::init_one(i,j);
   k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
+  k_cutsq.modify_host();
 
   return cutone;
 }
@@ -530,9 +531,9 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
 
   // Load various info about myself up front
   const int i = d_ilist[ii + chunk_offset];
-  const F_FLOAT xtmp = x(i,0);
-  const F_FLOAT ytmp = x(i,1);
-  const F_FLOAT ztmp = x(i,2);
+  const double xtmp = x(i,0);
+  const double ytmp = x(i,1);
+  const double ztmp = x(i,2);
   const int itype = type[i];
   const int ielem = d_map[itype];
   const double radi = d_radelem[ielem];
@@ -550,12 +551,12 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
   Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,num_neighs),
     [&] (const int jj, int& count) {
     T_INT j = d_neighbors(i,jj);
-    const F_FLOAT dx = x(j,0) - xtmp;
-    const F_FLOAT dy = x(j,1) - ytmp;
-    const F_FLOAT dz = x(j,2) - ztmp;
+    const double dx = x(j,0) - xtmp;
+    const double dy = x(j,1) - ytmp;
+    const double dz = x(j,2) - ztmp;
 
     int jtype = type(j);
-    const F_FLOAT rsq = dx*dx + dy*dy + dz*dz;
+    const double rsq = dx*dx + dy*dy + dz*dz;
 
     if (rsq >= rnd_cutsq(itype,jtype)) {
       jtype = -1; // use -1 to signal it's outside the radius
@@ -577,9 +578,9 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
     if (jtype >= 0) {
       if (final) {
         T_INT j = d_neighbors(i,jj);
-        const F_FLOAT dx = x(j,0) - xtmp;
-        const F_FLOAT dy = x(j,1) - ytmp;
-        const F_FLOAT dz = x(j,2) - ztmp;
+        const double dx = x(j,0) - xtmp;
+        const double dy = x(j,1) - ytmp;
+        const double dz = x(j,2) - ztmp;
         const int jelem = d_map[jtype];
         snaKK.rij(ii,offset,0) = static_cast<real_type>(dx);
         snaKK.rij(ii,offset,1) = static_cast<real_type>(dy);
@@ -629,12 +630,12 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
       [&] (const int jj, int& count) {
     Kokkos::single(Kokkos::PerThread(team), [&] () {
       T_INT j = d_neighbors(i,jj);
-      const F_FLOAT dx = x(j,0) - xtmp;
-      const F_FLOAT dy = x(j,1) - ytmp;
-      const F_FLOAT dz = x(j,2) - ztmp;
+      const double dx = x(j,0) - xtmp;
+      const double dy = x(j,1) - ytmp;
+      const double dz = x(j,2) - ztmp;
 
       const int jtype = type(j);
-      const F_FLOAT rsq = dx*dx + dy*dy + dz*dz;
+      const double rsq = dx*dx + dy*dy + dz*dz;
 
       if (rsq < rnd_cutsq(itype,jtype))
        count++;
@@ -648,12 +649,12 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
       [&] (const int jj, int& offset, bool final) {
   //for (int jj = 0; jj < num_neighs; jj++) {
     T_INT j = d_neighbors(i,jj);
-    const F_FLOAT dx = x(j,0) - xtmp;
-    const F_FLOAT dy = x(j,1) - ytmp;
-    const F_FLOAT dz = x(j,2) - ztmp;
+    const double dx = x(j,0) - xtmp;
+    const double dy = x(j,1) - ytmp;
+    const double dz = x(j,2) - ztmp;
 
     const int jtype = type(j);
-    const F_FLOAT rsq = dx*dx + dy*dy + dz*dz;
+    const double rsq = dx*dx + dy*dy + dz*dz;
     const int jelem = d_map[jtype];
 
     if (rsq < rnd_cutsq(itype,jtype)) {
@@ -1325,7 +1326,7 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
   for (int jj = 0; jj < ninside; jj++) {
     int j = snaKK.inside(ii,jj);
 
-    F_FLOAT fij[3];
+    double fij[3];
     fij[0] = snaKK.dedr(ii,jj,0);
     fij[1] = snaKK.dedr(ii,jj,1);
     fij[2] = snaKK.dedr(ii,jj,2);
@@ -1409,20 +1410,20 @@ template<class DeviceType, typename real_type, int vector_length>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType, real_type, vector_length>::v_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &fx, const F_FLOAT &fy, const F_FLOAT &fz,
-      const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const
+      const double &fx, const double &fy, const double &fz,
+      const double &delx, const double &dely, const double &delz) const
 {
   // The vatom array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  const E_FLOAT v0 = delx*fx;
-  const E_FLOAT v1 = dely*fy;
-  const E_FLOAT v2 = delz*fz;
-  const E_FLOAT v3 = delx*fy;
-  const E_FLOAT v4 = delx*fz;
-  const E_FLOAT v5 = dely*fz;
+  const double v0 = delx*fx;
+  const double v1 = dely*fy;
+  const double v2 = delz*fz;
+  const double v3 = delx*fy;
+  const double v4 = delx*fz;
+  const double v5 = dely*fz;
 
   if (vflag_global) {
     ev.v[0] += v0;

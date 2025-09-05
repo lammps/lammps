@@ -13,7 +13,7 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		CC -std=c++11
+CC =		CC -std=c++17
 OPTFLAGS =      -xMIC-AVX512 -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
 CCFLAGS =	-qopenmp -qno-offload -ansi-alias -restrict \
                 -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG -DLMP_INTEL_NO_TBB \

@@ -131,8 +131,8 @@ double PairYukawaKokkos<DeviceType>::init_one(int i, int j)
   }
 
   k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
-  k_params.template modify<LMPHostType>();
+  k_cutsq.modify_host();
+  k_params.modify_host();
 
   return cutone;
 }
@@ -200,12 +200,12 @@ void PairYukawaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 }
 
@@ -214,23 +214,23 @@ void PairYukawaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairYukawaKokkos<DeviceType>::
-compute_fpair(const F_FLOAT &rsq, const int &, const int &,
+KK_FLOAT PairYukawaKokkos<DeviceType>::
+compute_fpair(const KK_FLOAT &rsq, const int &, const int &,
               const int &itype, const int &jtype) const {
-  const F_FLOAT rr     = sqrt(rsq);
+  const KK_FLOAT rr     = sqrt(rsq);
   // Fetch the params either off the stack or from some mapped memory?
-  const F_FLOAT aa     = STACKPARAMS ? m_params[itype][jtype].a
+  const KK_FLOAT aa     = STACKPARAMS ? m_params[itype][jtype].a
                                      : params(itype,jtype).a;
 
   // U   = a * exp(-kappa*r) / r
   // f   = (kappa * a * exp(-kappa*r) / r + a*exp(-kappa*r)/r^2)*grad(r)
   //     = (kappa + 1/r) * (a * exp(-kappa*r) / r)
   // f/r = (kappa + 1/r) * (a * exp(-kappa*r) / r^2)
-  const F_FLOAT rinv = 1.0 / rr;
-  const F_FLOAT rinv2 = rinv*rinv;
-  const F_FLOAT screening = exp(-kappa*rr);
-  const F_FLOAT forceyukawa = aa * screening * (kappa + rinv);
-  const F_FLOAT fpair = forceyukawa * rinv2;
+  const KK_FLOAT rinv = 1.0 / rr;
+  const KK_FLOAT rinv2 = rinv*rinv;
+  const KK_FLOAT screening = exp(-kappa*rr);
+  const KK_FLOAT forceyukawa = aa * screening * (kappa + rinv);
+  const KK_FLOAT fpair = forceyukawa * rinv2;
 
   return fpair;
 }
@@ -238,21 +238,21 @@ compute_fpair(const F_FLOAT &rsq, const int &, const int &,
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairYukawaKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT &rsq, const int &, const int &,
+KK_FLOAT PairYukawaKokkos<DeviceType>::
+compute_evdwl(const KK_FLOAT &rsq, const int &, const int &,
               const int &itype, const int &jtype) const {
-  const F_FLOAT rr     = sqrt(rsq);
-  const F_FLOAT aa     = STACKPARAMS ? m_params[itype][jtype].a
+  const KK_FLOAT rr     = sqrt(rsq);
+  const KK_FLOAT aa     = STACKPARAMS ? m_params[itype][jtype].a
                                      : params(itype,jtype).a;
-  const F_FLOAT offset = STACKPARAMS ? m_params[itype][jtype].offset
+  const KK_FLOAT offset = STACKPARAMS ? m_params[itype][jtype].offset
                                      : params(itype,jtype).offset;
 
   // U   = a * exp(-kappa*r) / r
   // f   = (kappa * a * exp(-kappa*r) / r + a*exp(-kappa*r)/r^2)*grad(r)
   //     = (kappa + 1/r) * (a * exp(-kappa*r) / r)
   // f/r = (kappa + 1/r) * (a * exp(-kappa*r) / r^2)
-  const F_FLOAT rinv = 1.0 / rr;
-  const F_FLOAT screening = exp(-kappa*rr);
+  const KK_FLOAT rinv = 1.0 / rr;
+  const KK_FLOAT screening = exp(-kappa*rr);
 
   return aa * screening * rinv - offset;
 }

@@ -470,8 +470,10 @@ void PairGranular::init_style()
     }
   }
 
-  if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
-  else neighbor->add_request(this, NeighConst::REQ_SIZE);
+  int req_flags = NeighConst::REQ_DEFAULT;
+  if (!beyond_contact) req_flags |= NeighConst::REQ_SIZE;
+  if (use_history) req_flags |= NeighConst::REQ_HISTORY;
+  neighbor->add_request(this, req_flags);
 
   // if history is stored and first init, create Fix to store history
   // it replaces FixDummy, created in the constructor
@@ -616,7 +618,7 @@ double PairGranular::init_one(int i, int j)
         cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j] + pulloff);
 
         pulloff = model->pulloff_distance(maxrad_dynamic[i], maxrad_frozen[j]);
-        cutoff = MAX(cutoff,maxrad_dynamic[i] + maxrad_frozen[j] + pulloff);
+        cutoff = MAX(cutoff, maxrad_dynamic[i] + maxrad_frozen[j] + pulloff);
       }
     } else {
       // radius info about either i or j does not exist
@@ -876,56 +878,6 @@ void PairGranular::transfer_history(double* source, double* target, int itype, i
       target[i] = -source[i];
     }
   }
-}
-
-/* ----------------------------------------------------------------------
-   self-interaction range of particle
-------------------------------------------------------------------------- */
-
-double PairGranular::atom2cut(int i)
-{
-  double cut;
-
-  cut = atom->radius[i] * 2;
-  if (beyond_contact) {
-    int itype = atom->type[i];
-    class GranularModel* model = models_list[types_indices[itype][itype]];
-    if (model->beyond_contact) {
-      cut += model->pulloff_distance(cut, cut);
-    }
-  }
-
-  return cut;
-}
-
-/* ----------------------------------------------------------------------
-   maximum interaction range for two finite particles
-------------------------------------------------------------------------- */
-
-double PairGranular::radii2cut(double r1, double r2)
-{
-  double cut = 0.0;
-
-  if (beyond_contact) {
-    int n = atom->ntypes;
-    double temp;
-
-    // Check all combinations of i and j to find theoretical maximum pull off distance
-    class GranularModel* model;
-    for (int i = 1; i <= n; i++) {
-      for (int j = 1; j <= n; j++) {
-        model = models_list[types_indices[i][j]];
-        if (model->beyond_contact) {
-          temp = model->pulloff_distance(r1, r2);
-          if (temp > cut) cut = temp;
-        }
-      }
-    }
-  }
-
-  cut += r1 + r2;
-
-  return cut;
 }
 
 /* ----------------------------------------------------------------------

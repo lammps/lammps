@@ -35,6 +35,7 @@ template<class DeviceType>
 class AngleCharmmKokkos : public AngleCharmm {
  public:
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
 
   AngleCharmmKokkos(class LAMMPS *);
@@ -54,32 +55,31 @@ class AngleCharmmKokkos : public AngleCharmm {
   //template<int NEWTON_BOND>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int i, const int j, const int k,
-                     F_FLOAT &eangle, F_FLOAT *f1, F_FLOAT *f3,
-                     const F_FLOAT &delx1, const F_FLOAT &dely1, const F_FLOAT &delz1,
-                     const F_FLOAT &delx2, const F_FLOAT &dely2, const F_FLOAT &delz2) const;
+                     KK_FLOAT &eangle, KK_FLOAT *f1, KK_FLOAT *f3,
+                     const KK_FLOAT &delx1, const KK_FLOAT &dely1, const KK_FLOAT &delz1,
+                     const KK_FLOAT &delx2, const KK_FLOAT &dely2, const KK_FLOAT &delz2) const;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
-  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType> k_eatom;
-  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType> k_vatom;
+  TransformView<KK_ACC_FLOAT*,double*,Kokkos::LayoutRight,KKDeviceType> k_eatom;
+  TransformView<KK_ACC_FLOAT*[6],double*[6],LMPDeviceLayout,KKDeviceType> k_vatom;
 
  protected:
 
   class NeighborKokkos *neighborKK;
 
-  typedef ArrayTypes<DeviceType> AT;
-  typename AT::t_x_array_randomread x;
-  typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
-  typename AT::t_int_2d anglelist;
-  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic>> d_eatom;
-  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic>> d_vatom;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename Kokkos::View<KK_ACC_FLOAT*[3],DAT::t_kkacc_1d_3::array_layout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
+  typename AT::t_int_2d_lr anglelist;
+  Kokkos::View<KK_ACC_FLOAT*,Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic>> d_eatom;
+  Kokkos::View<KK_ACC_FLOAT*[6],LMPDeviceLayout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic>> d_vatom;
 
   int nlocal,newton_bond;
   int eflag,vflag;
 
-  typename AT::t_ffloat_1d d_k;
-  typename AT::t_ffloat_1d d_theta0;
-  typename AT::t_ffloat_1d d_k_ub;
-  typename AT::t_ffloat_1d d_r_ub;
+  typename AT::t_kkfloat_1d d_k;
+  typename AT::t_kkfloat_1d d_theta0;
+  typename AT::t_kkfloat_1d d_k_ub;
+  typename AT::t_kkfloat_1d d_r_ub;
 
   void allocate() override;
 };

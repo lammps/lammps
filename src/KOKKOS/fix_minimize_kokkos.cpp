@@ -54,14 +54,14 @@ void FixMinimizeKokkos::add_vector_kokkos()
 
   // d_vectors needs to be LayoutRight for subviews
 
-  k_vectors.sync<LMPDeviceType>();
+  k_vectors.sync_device();
 
   memoryKK->grow_kokkos(k_vectors,vectors,nvector+1,atom->nmax*n,
                       "minimize:vectors");
   d_vectors = k_vectors.d_view;
   h_vectors = k_vectors.h_view;
 
-  k_vectors.modify<LMPDeviceType>();
+  k_vectors.modify_device();
 
   nvector++;
 }
@@ -70,9 +70,9 @@ void FixMinimizeKokkos::add_vector_kokkos()
    return a pointer to the Mth vector
 ------------------------------------------------------------------------- */
 
-DAT::t_ffloat_1d FixMinimizeKokkos::request_vector_kokkos(int m)
+DAT::t_kkfloat_1d FixMinimizeKokkos::request_vector_kokkos(int m)
 {
-  k_vectors.sync<LMPDeviceType>();
+  k_vectors.sync_device();
 
   return Kokkos::subview(d_vectors,m,Kokkos::ALL);
 }
@@ -92,7 +92,7 @@ void FixMinimizeKokkos::reset_coords()
   int nlocal = atom->nlocal;
 
   atomKK->sync(Device,X_MASK);
-  k_vectors.sync<LMPDeviceType>();
+  k_vectors.sync_device();
 
   {
     // local variables for lambda capture
@@ -181,7 +181,7 @@ void FixMinimizeKokkos::reset_coords()
       if (dz != dz0) l_x0[n+2] = l_x(i,2) - dz;
     });
   }
-  k_vectors.modify<LMPDeviceType>();
+  k_vectors.modify_device();
 
   box_swap();
   domain->set_global_box();
@@ -193,11 +193,11 @@ void FixMinimizeKokkos::reset_coords()
 
 void FixMinimizeKokkos::grow_arrays(int nmax)
 {
-  k_vectors.sync<LMPDeviceType>();
+  k_vectors.sync_device();
   memoryKK->grow_kokkos(k_vectors,vectors,nvector,3*nmax,"minimize:vector");
   d_vectors = k_vectors.d_view;
   h_vectors = k_vectors.h_view;
-  k_vectors.modify<LMPDeviceType>();
+  k_vectors.modify_device();
 }
 
 /* ----------------------------------------------------------------------
@@ -208,7 +208,7 @@ void FixMinimizeKokkos::copy_arrays(int i, int j, int /*delflag*/)
 {
   int m,iper,nper,ni,nj;
 
-  k_vectors.sync<LMPHostType>();
+  k_vectors.sync_host();
 
   for (m = 0; m < nvector; m++) {
     nper = 3;
@@ -217,7 +217,7 @@ void FixMinimizeKokkos::copy_arrays(int i, int j, int /*delflag*/)
     for (iper = 0; iper < nper; iper++) h_vectors(m,nj++) = h_vectors(m,ni++);
   }
 
-  k_vectors.modify<LMPHostType>();
+  k_vectors.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -228,7 +228,7 @@ int FixMinimizeKokkos::pack_exchange(int i, double *buf)
 {
   int m,iper,nper,ni;
 
-  k_vectors.sync<LMPHostType>();
+  k_vectors.sync_host();
 
   int n = 0;
   for (m = 0; m < nvector; m++) {
@@ -247,7 +247,7 @@ int FixMinimizeKokkos::unpack_exchange(int nlocal, double *buf)
 {
   int m,iper,nper,ni;
 
-  k_vectors.sync<LMPHostType>();
+  k_vectors.sync_host();
 
   int n = 0;
   for (m = 0; m < nvector; m++) {
@@ -256,7 +256,7 @@ int FixMinimizeKokkos::unpack_exchange(int nlocal, double *buf)
     for (iper = 0; iper < nper; iper++) h_vectors(m,ni++) = buf[n++];
   }
 
-  k_vectors.modify<LMPHostType>();
+  k_vectors.modify_host();
 
   return n;
 }

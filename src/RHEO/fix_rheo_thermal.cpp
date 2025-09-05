@@ -569,6 +569,7 @@ void FixRHEOThermal::break_bonds()
   }
 
   // Update bond list and break solid-melted bonds
+  int deleted_bonds = 0;
   for (n = 0; n < nbondlist; n++) {
 
     // skip bond if not correct type
@@ -582,6 +583,7 @@ void FixRHEOThermal::break_bonds()
     if (!melti && !meltj) continue;
 
     bondlist[n][2] = 0;
+    deleted_bonds += 1;
 
     // Delete bonds for non-melted local atoms (shifting)
     if (i < nlocal && !melti) {
@@ -628,6 +630,10 @@ void FixRHEOThermal::break_bonds()
       if (((i >= nlocal) && melti) || ((j >= nlocal) && meltj))
         fix_update_special_bonds->add_broken_bond(i, j);
   }
+
+  int deleted_bonds_all;
+  MPI_Allreduce(&deleted_bonds, &deleted_bonds_all, 1, MPI_INT, MPI_SUM, world);
+  atom->nbonds -= deleted_bonds_all;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -648,12 +654,18 @@ void FixRHEOThermal::create_bonds()
   int *num_bond = atom->num_bond;
   double **x = atom->x;
 
+  // acquire updated ghost atom positions & build nlist
+  // necessary b/c are calling this after integrate, but before Verlet comm
+
+  comm->forward_comm();
   neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+
+  int added_bonds = 0;
 
   // loop over neighbors of my atoms
   // might be faster to do a full list and just act on the atom that freezes
@@ -686,6 +698,8 @@ void FixRHEOThermal::create_bonds()
       rsq = delx * delx + dely * dely + delz * delz;
       if (rsq > cutsq_bond) continue;
 
+      added_bonds += 1;
+
       // Add bonds to owned atoms
       // If newton bond off, add to both, otherwise add to whichever has a smaller tag
       if ((i < nlocal) && (!newton_bond || (tag[i] < tag[j]))) {
@@ -707,6 +721,10 @@ void FixRHEOThermal::create_bonds()
       if (fix_update_special_bonds) fix_update_special_bonds->add_created_bond(i, j);
     }
   }
+
+  int added_bonds_all;
+  MPI_Allreduce(&added_bonds, &added_bonds_all, 1, MPI_INT, MPI_SUM, world);
+  atom->nbonds += added_bonds_all;
 }
 
 /* ---------------------------------------------------------------------- */

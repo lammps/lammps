@@ -34,7 +34,7 @@ if(DOWNLOAD_VORO)
   ExternalProject_Add(voro_build
     URL     ${VORO_URL}
     URL_MD5 ${VORO_MD5}
-    PATCH_COMMAND patch -b -p0 < ${LAMMPS_LIB_SOURCE_DIR}/voronoi/voro-make.patch
+    PATCH_COMMAND patch -b -p0 < ${LAMMPS_DIR}/cmake/patches/voro-make.patch
     CONFIGURE_COMMAND ""
     BUILD_COMMAND make ${VORO_BUILD_OPTIONS}
     BUILD_IN_SOURCE 1

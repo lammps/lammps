@@ -6,7 +6,7 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpiicpc -std=c++11
+CC =		mpiicpc -std=c++17
 MIC_OPT =       -qoffload-option,mic,compiler,"-fp-model fast=2 -mGLOB_default_function_attrs=\"gather_scatter_loop_unroll=4\""
 OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits \
                 -qopt-zmm-usage=high $(MIC_OPT)
@@ -14,10 +14,10 @@ CCFLAGS =	-qopenmp -qoffload -ansi-alias -restrict \
                 -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG -DLMP_INTEL_OFFLOAD \
                 $(OPTFLAGS) -I$(MKLROOT)/include 
 SHFLAGS =	-fPIC
-FMTFLAGS = 	-std=c++11
+FMTFLAGS = 	-std=c++17
 DEPFLAGS =	-M
 
-LINK =		mpiicpc -std=c++11
+LINK =		mpiicpc -std=c++17
 LINKFLAGS =	-O2 -xHost -qopenmp -qoffload -L$(MKLROOT)/lib/intel64/
 LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 SIZE =		size

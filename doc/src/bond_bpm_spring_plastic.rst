@@ -152,19 +152,24 @@ This bond style is part of the BPM package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
-By default if pair interactions between bonded atoms are to be disabled,
-this bond style requires setting
+To handle breaking bonds, BPM bond styles have extra requirements for
+special bonds. If bonds cannot break (*break no*), then one can use any
+special bond weights. Otherwise, restrictions depend on whether pair
+forces are overlaid (*pair/overlay yes*). If so, then all weights must
+be one:
+
+.. code-block:: LAMMPS
+
+   special_bonds lj/coul 1 1 1
+
+If pair forces are disabled (*pair/overlay no*), the default, then the
+weights must be
 
 .. code-block:: LAMMPS
 
    special_bonds lj 0 1 1 coul 1 1 1
 
-and :doc:`newton <newton>` must be set to bond off.  If the *overlay/pair*
-keyword is set to *yes*, this bond style alternatively requires setting
-
-.. code-block:: LAMMPS
-
-   special_bonds lj/coul 1 1 1
+and :doc:`newton <newton>` must be set to bond off.
 
 Related commands
 """"""""""""""""

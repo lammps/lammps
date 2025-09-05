@@ -161,7 +161,7 @@ KOKKOS_INLINE_FUNCTION
 void AngleClass2Kokkos<DeviceType>::operator()(TagAngleClass2Compute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
   // The f array is atomic
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
+  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
 
   const int i1 = anglelist(n,0);
   const int i2 = anglelist(n,1);
@@ -170,49 +170,49 @@ void AngleClass2Kokkos<DeviceType>::operator()(TagAngleClass2Compute<NEWTON_BOND
 
   // 1st bond
 
-  const F_FLOAT delx1 = x(i1,0) - x(i2,0);
-  const F_FLOAT dely1 = x(i1,1) - x(i2,1);
-  const F_FLOAT delz1 = x(i1,2) - x(i2,2);
+  const KK_FLOAT delx1 = x(i1,0) - x(i2,0);
+  const KK_FLOAT dely1 = x(i1,1) - x(i2,1);
+  const KK_FLOAT delz1 = x(i1,2) - x(i2,2);
 
-  const F_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-  const F_FLOAT r1 = sqrt(rsq1);
+  const KK_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+  const KK_FLOAT r1 = sqrt(rsq1);
 
   // 2nd bond
 
-  const F_FLOAT delx2 = x(i3,0) - x(i2,0);
-  const F_FLOAT dely2 = x(i3,1) - x(i2,1);
-  const F_FLOAT delz2 = x(i3,2) - x(i2,2);
+  const KK_FLOAT delx2 = x(i3,0) - x(i2,0);
+  const KK_FLOAT dely2 = x(i3,1) - x(i2,1);
+  const KK_FLOAT delz2 = x(i3,2) - x(i2,2);
 
-  const F_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-  const F_FLOAT r2 = sqrt(rsq2);
+  const KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+  const KK_FLOAT r2 = sqrt(rsq2);
 
   // angle (cos and sin)
 
-  F_FLOAT c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+  KK_FLOAT c = delx1*delx2 + dely1*dely2 + delz1*delz2;
   c /= r1*r2;
 
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 
-  F_FLOAT s = sqrt(1.0 - c*c);
+  KK_FLOAT s = sqrt(1.0 - c*c);
   if (s < SMALL) s = SMALL;
   s = 1.0/s;
 
   // force & energy for angle term
 
-  const F_FLOAT dtheta = acos(c) - d_theta0[type];
-  const F_FLOAT dtheta2 = dtheta*dtheta;
-  const F_FLOAT dtheta3 = dtheta2*dtheta;
-  const F_FLOAT dtheta4 = dtheta3*dtheta;
+  const KK_FLOAT dtheta = acos(c) - d_theta0[type];
+  const KK_FLOAT dtheta2 = dtheta*dtheta;
+  const KK_FLOAT dtheta3 = dtheta2*dtheta;
+  const KK_FLOAT dtheta4 = dtheta3*dtheta;
 
-  const F_FLOAT de_angle = 2.0*d_k2[type]*dtheta + 3.0*d_k3[type]*dtheta2 + 4.0*d_k4[type]*dtheta3;
+  const KK_FLOAT de_angle = 2.0*d_k2[type]*dtheta + 3.0*d_k3[type]*dtheta2 + 4.0*d_k4[type]*dtheta3;
 
-  const F_FLOAT a = -de_angle*s;
-  const F_FLOAT a11 = a*c / rsq1;
-  const F_FLOAT a12 = -a / (r1*r2);
-  const F_FLOAT a22 = a*c / rsq2;
+  const KK_FLOAT a = -de_angle*s;
+  const KK_FLOAT a11 = a*c / rsq1;
+  const KK_FLOAT a12 = -a / (r1*r2);
+  const KK_FLOAT a22 = a*c / rsq2;
 
-  F_FLOAT f1[3],f3[3];
+  KK_FLOAT f1[3],f3[3];
   f1[0] = a11*delx1 + a12*delx2;
   f1[1] = a11*dely1 + a12*dely2;
   f1[2] = a11*delz1 + a12*delz2;
@@ -220,15 +220,15 @@ void AngleClass2Kokkos<DeviceType>::operator()(TagAngleClass2Compute<NEWTON_BOND
   f3[1] = a22*dely2 + a12*dely1;
   f3[2] = a22*delz2 + a12*delz1;
 
-  F_FLOAT eangle = 0.0;
+  KK_FLOAT eangle = 0.0;
   if (eflag) eangle = d_k2[type]*dtheta2 + d_k3[type]*dtheta3 + d_k4[type]*dtheta4;
 
   // force & energy for bond-bond term
 
-  F_FLOAT dr1 = r1 - d_bb_r1[type];
-  F_FLOAT dr2 = r2 - d_bb_r2[type];
-  const F_FLOAT tk1 = d_bb_k[type] * dr1;
-  const F_FLOAT tk2 = d_bb_k[type] * dr2;
+  KK_FLOAT dr1 = r1 - d_bb_r1[type];
+  KK_FLOAT dr2 = r2 - d_bb_r2[type];
+  const KK_FLOAT tk1 = d_bb_k[type] * dr1;
+  const KK_FLOAT tk2 = d_bb_k[type] * dr2;
 
   f1[0] -= delx1*tk2/r1;
   f1[1] -= dely1*tk2/r1;
@@ -244,33 +244,33 @@ void AngleClass2Kokkos<DeviceType>::operator()(TagAngleClass2Compute<NEWTON_BOND
 
   dr1 = r1 - d_ba_r1[type];
   dr2 = r2 - d_ba_r2[type];
-  const F_FLOAT aa1 = s * dr1 * d_ba_k1[type];
-  const F_FLOAT aa2 = s * dr2 * d_ba_k2[type];
+  const KK_FLOAT aa1 = s * dr1 * d_ba_k1[type];
+  const KK_FLOAT aa2 = s * dr2 * d_ba_k2[type];
 
-  F_FLOAT aa11 = aa1 * c / rsq1;
-  F_FLOAT aa12 = -aa1 / (r1 * r2);
-  F_FLOAT aa21 = aa2 * c / rsq1;
-  F_FLOAT aa22 = -aa2 / (r1 * r2);
+  KK_FLOAT aa11 = aa1 * c / rsq1;
+  KK_FLOAT aa12 = -aa1 / (r1 * r2);
+  KK_FLOAT aa21 = aa2 * c / rsq1;
+  KK_FLOAT aa22 = -aa2 / (r1 * r2);
 
-  const F_FLOAT vx11 = (aa11 * delx1) + (aa12 * delx2);
-  const F_FLOAT vx12 = (aa21 * delx1) + (aa22 * delx2);
-  const F_FLOAT vy11 = (aa11 * dely1) + (aa12 * dely2);
-  const F_FLOAT vy12 = (aa21 * dely1) + (aa22 * dely2);
-  const F_FLOAT vz11 = (aa11 * delz1) + (aa12 * delz2);
-  const F_FLOAT vz12 = (aa21 * delz1) + (aa22 * delz2);
+  const KK_FLOAT vx11 = (aa11 * delx1) + (aa12 * delx2);
+  const KK_FLOAT vx12 = (aa21 * delx1) + (aa22 * delx2);
+  const KK_FLOAT vy11 = (aa11 * dely1) + (aa12 * dely2);
+  const KK_FLOAT vy12 = (aa21 * dely1) + (aa22 * dely2);
+  const KK_FLOAT vz11 = (aa11 * delz1) + (aa12 * delz2);
+  const KK_FLOAT vz12 = (aa21 * delz1) + (aa22 * delz2);
 
   aa11 = aa1 * c / rsq2;
   aa21 = aa2 * c / rsq2;
 
-  const F_FLOAT vx21 = (aa11 * delx2) + (aa12 * delx1);
-  const F_FLOAT vx22 = (aa21 * delx2) + (aa22 * delx1);
-  const F_FLOAT vy21 = (aa11 * dely2) + (aa12 * dely1);
-  const F_FLOAT vy22 = (aa21 * dely2) + (aa22 * dely1);
-  const F_FLOAT vz21 = (aa11 * delz2) + (aa12 * delz1);
-  const F_FLOAT vz22 = (aa21 * delz2) + (aa22 * delz1);
+  const KK_FLOAT vx21 = (aa11 * delx2) + (aa12 * delx1);
+  const KK_FLOAT vx22 = (aa21 * delx2) + (aa22 * delx1);
+  const KK_FLOAT vy21 = (aa11 * dely2) + (aa12 * dely1);
+  const KK_FLOAT vy22 = (aa21 * dely2) + (aa22 * dely1);
+  const KK_FLOAT vz21 = (aa11 * delz2) + (aa12 * delz1);
+  const KK_FLOAT vz22 = (aa21 * delz2) + (aa22 * delz1);
 
-  const F_FLOAT b1 = d_ba_k1[type] * dtheta / r1;
-  const F_FLOAT b2 = d_ba_k2[type] * dtheta / r2;
+  const KK_FLOAT b1 = d_ba_k1[type] * dtheta / r1;
+  const KK_FLOAT b2 = d_ba_k2[type] * dtheta / r2;
 
   f1[0] -= vx11 + b1*delx1 + vx12;
   f1[1] -= vy11 + b1*dely1 + vy12;
@@ -335,21 +335,21 @@ void AngleClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   AngleClass2::coeff(narg, arg);
 
   int n = atom->nangletypes;
-  k_k2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::k2",n+1);
-  k_k3 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::k3",n+1);
-  k_k4 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::k4",n+1);
-  k_bb_k = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::bb_k",n+1);
-  k_bb_r1 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::bb_r1",n+1);
-  k_bb_r2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::bb_r2",n+1);
-  k_ba_k1 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::ba_k1",n+1);
-  k_ba_k2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::ba_k2",n+1);
-  k_ba_r1 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::ba_r1",n+1);
-  k_ba_r2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::ba_r2",n+1);
-  k_setflag = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::setflag",n+1);
-  k_setflag_a = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::setflag_a",n+1);
-  k_setflag_bb = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::setflag_bb",n+1);
-  k_setflag_ba = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::setflag_ba",n+1);
-  k_theta0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::theta0",n+1);
+  k_k2 = DAT::tdual_kkfloat_1d("AngleClass2::k2",n+1);
+  k_k3 = DAT::tdual_kkfloat_1d("AngleClass2::k3",n+1);
+  k_k4 = DAT::tdual_kkfloat_1d("AngleClass2::k4",n+1);
+  k_bb_k = DAT::tdual_kkfloat_1d("AngleClass2::bb_k",n+1);
+  k_bb_r1 = DAT::tdual_kkfloat_1d("AngleClass2::bb_r1",n+1);
+  k_bb_r2 = DAT::tdual_kkfloat_1d("AngleClass2::bb_r2",n+1);
+  k_ba_k1 = DAT::tdual_kkfloat_1d("AngleClass2::ba_k1",n+1);
+  k_ba_k2 = DAT::tdual_kkfloat_1d("AngleClass2::ba_k2",n+1);
+  k_ba_r1 = DAT::tdual_kkfloat_1d("AngleClass2::ba_r1",n+1);
+  k_ba_r2 = DAT::tdual_kkfloat_1d("AngleClass2::ba_r2",n+1);
+  k_setflag = DAT::tdual_kkfloat_1d("AngleClass2::setflag",n+1);
+  k_setflag_a = DAT::tdual_kkfloat_1d("AngleClass2::setflag_a",n+1);
+  k_setflag_bb = DAT::tdual_kkfloat_1d("AngleClass2::setflag_bb",n+1);
+  k_setflag_ba = DAT::tdual_kkfloat_1d("AngleClass2::setflag_ba",n+1);
+  k_theta0 = DAT::tdual_kkfloat_1d("AngleClass2::theta0",n+1);
 
   d_k2 = k_k2.template view<DeviceType>();
   d_k3 = k_k3.template view<DeviceType>();
@@ -414,21 +414,21 @@ void AngleClass2Kokkos<DeviceType>::read_restart(FILE *fp)
   AngleClass2::read_restart(fp);
 
   int n = atom->nangletypes;
-  k_k2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::k2",n+1);
-  k_k3 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::k3",n+1);
-  k_k4 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::k4",n+1);
-  k_bb_k = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::bb_k",n+1);
-  k_bb_r1 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::bb_r1",n+1);
-  k_bb_r2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::bb_r2",n+1);
-  k_ba_k1 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::ba_k1",n+1);
-  k_ba_k2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::ba_k2",n+1);
-  k_ba_r1 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::ba_r1",n+1);
-  k_ba_r2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::ba_r2",n+1);
-  k_setflag = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::setflag",n+1);
-  k_setflag_a = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::setflag_a",n+1);
-  k_setflag_bb = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::setflag_bb",n+1);
-  k_setflag_ba = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::setflag_ba",n+1);
-  k_theta0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::theta0",n+1);
+  k_k2 = DAT::tdual_kkfloat_1d("AngleClass2::k2",n+1);
+  k_k3 = DAT::tdual_kkfloat_1d("AngleClass2::k3",n+1);
+  k_k4 = DAT::tdual_kkfloat_1d("AngleClass2::k4",n+1);
+  k_bb_k = DAT::tdual_kkfloat_1d("AngleClass2::bb_k",n+1);
+  k_bb_r1 = DAT::tdual_kkfloat_1d("AngleClass2::bb_r1",n+1);
+  k_bb_r2 = DAT::tdual_kkfloat_1d("AngleClass2::bb_r2",n+1);
+  k_ba_k1 = DAT::tdual_kkfloat_1d("AngleClass2::ba_k1",n+1);
+  k_ba_k2 = DAT::tdual_kkfloat_1d("AngleClass2::ba_k2",n+1);
+  k_ba_r1 = DAT::tdual_kkfloat_1d("AngleClass2::ba_r1",n+1);
+  k_ba_r2 = DAT::tdual_kkfloat_1d("AngleClass2::ba_r2",n+1);
+  k_setflag = DAT::tdual_kkfloat_1d("AngleClass2::setflag",n+1);
+  k_setflag_a = DAT::tdual_kkfloat_1d("AngleClass2::setflag_a",n+1);
+  k_setflag_bb = DAT::tdual_kkfloat_1d("AngleClass2::setflag_bb",n+1);
+  k_setflag_ba = DAT::tdual_kkfloat_1d("AngleClass2::setflag_ba",n+1);
+  k_theta0 = DAT::tdual_kkfloat_1d("AngleClass2::theta0",n+1);
 
   d_k2 = k_k2.template view<DeviceType>();
   d_k3 = k_k3.template view<DeviceType>();
@@ -492,16 +492,16 @@ template<class DeviceType>
 //template<int NEWTON_BOND>
 KOKKOS_INLINE_FUNCTION
 void AngleClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const int j, const int k,
-                     F_FLOAT &eangle, F_FLOAT *f1, F_FLOAT *f3,
-                     const F_FLOAT &delx1, const F_FLOAT &dely1, const F_FLOAT &delz1,
-                     const F_FLOAT &delx2, const F_FLOAT &dely2, const F_FLOAT &delz2) const
+                     KK_FLOAT &eangle, KK_FLOAT *f1, KK_FLOAT *f3,
+                     const KK_FLOAT &delx1, const KK_FLOAT &dely1, const KK_FLOAT &delz1,
+                     const KK_FLOAT &delx2, const KK_FLOAT &dely2, const KK_FLOAT &delz2) const
 {
-  E_FLOAT eanglethird;
-  F_FLOAT v[6];
+  KK_FLOAT eanglethird;
+  KK_FLOAT v[6];
 
   // The eatom and vatom arrays are atomic
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.template view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.template view<DeviceType>();
+  Kokkos::View<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = d_eatom;
+  Kokkos::View<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = d_vatom;
 
   if (eflag_either) {
     if (eflag_global) {

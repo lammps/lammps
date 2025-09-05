@@ -171,6 +171,18 @@ initially will not experience force until they come into contact
 experience a tensile force up to :math:`3\pi\gamma R`, at which point they
 lose contact.
 
+.. note::
+
+   Typically, neighbor lists are constructed for pair granular by testing
+   whether finite sized particles overlap (using their radii). However,
+   this is not the case for normal normals which can interact beyond
+   contact, e.g. *jkr*. Instead, the maximum radius for each particle
+   type is first calculated then used to calculate a maximum per-type
+   cutoff distance. For polydisperse systems, this affects the performance
+   of the :doc:`multi neighbor <neigh_modify>` option where one should
+   assign atoms of similar radii the same type. See the
+   :doc:`pair lj/cut/sphere <pair_lj_cut_sphere>` page for a related discussion.
+
 The *mdr* model is a mechanically-derived contact model designed to capture the
 contact response between adhesive elastic-plastic particles into large deformation.
 The theoretical foundations of the *mdr* model are detailed in the

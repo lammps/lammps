@@ -75,21 +75,21 @@ void AngleCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //if(k_eatom.extent(0)<maxeatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
-      d_eatom = k_eatom.template view<KKDeviceType>();
+      d_eatom = k_eatom.template view<DeviceType>();
     //}
   }
   if (vflag_atom) {
     //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
       memoryKK->destroy_kokkos(k_vatom,vatom);
       memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
-      d_vatom = k_vatom.template view<KKDeviceType>();
+      d_vatom = k_vatom.template view<DeviceType>();
     //}
   }
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   neighborKK->k_anglelist.template sync<DeviceType>();
-  anglelist = neighborKK->k_anglelist.view<KKDeviceType>();
+  anglelist = neighborKK->k_anglelist.view<DeviceType>();
   int nanglelist = neighborKK->nanglelist;
   nlocal = atom->nlocal;
   newton_bond = force->newton_bond;
@@ -149,67 +149,67 @@ void AngleCharmmKokkos<DeviceType>::operator()(TagAngleCharmmCompute<NEWTON_BOND
 
   // 1st bond
 
-  const F_FLOAT delx1 = x(i1,0) - x(i2,0);
-  const F_FLOAT dely1 = x(i1,1) - x(i2,1);
-  const F_FLOAT delz1 = x(i1,2) - x(i2,2);
+  const KK_FLOAT delx1 = x(i1,0) - x(i2,0);
+  const KK_FLOAT dely1 = x(i1,1) - x(i2,1);
+  const KK_FLOAT delz1 = x(i1,2) - x(i2,2);
 
-  const F_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-  const F_FLOAT r1 = sqrt(rsq1);
+  const KK_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+  const KK_FLOAT r1 = sqrt(rsq1);
 
   // 2nd bond
 
-  const F_FLOAT delx2 = x(i3,0) - x(i2,0);
-  const F_FLOAT dely2 = x(i3,1) - x(i2,1);
-  const F_FLOAT delz2 = x(i3,2) - x(i2,2);
+  const KK_FLOAT delx2 = x(i3,0) - x(i2,0);
+  const KK_FLOAT dely2 = x(i3,1) - x(i2,1);
+  const KK_FLOAT delz2 = x(i3,2) - x(i2,2);
 
-  const F_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-  const F_FLOAT r2 = sqrt(rsq2);
+  const KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+  const KK_FLOAT r2 = sqrt(rsq2);
 
   // Urey-Bradley bond
 
-  const F_FLOAT delxUB = x(i3,0) - x(i1,0);
-  const F_FLOAT delyUB = x(i3,1) - x(i1,1);
-  const F_FLOAT delzUB = x(i3,2) - x(i1,2);
+  const KK_FLOAT delxUB = x(i3,0) - x(i1,0);
+  const KK_FLOAT delyUB = x(i3,1) - x(i1,1);
+  const KK_FLOAT delzUB = x(i3,2) - x(i1,2);
 
-  const F_FLOAT rsqUB = delxUB*delxUB + delyUB*delyUB + delzUB*delzUB;
-  const F_FLOAT rUB = sqrt(rsqUB);
+  const KK_FLOAT rsqUB = delxUB*delxUB + delyUB*delyUB + delzUB*delzUB;
+  const KK_FLOAT rUB = sqrt(rsqUB);
 
   // Urey-Bradley force & energy
 
-  const F_FLOAT dr = rUB - d_r_ub[type];
-  const F_FLOAT rk = d_k_ub[type] * dr;
+  const KK_FLOAT dr = rUB - d_r_ub[type];
+  const KK_FLOAT rk = d_k_ub[type] * dr;
 
-  F_FLOAT forceUB = 0.0;
+  KK_FLOAT forceUB = 0.0;
   if (rUB > 0.0) forceUB = -2.0*rk/rUB;
 
-  E_FLOAT eangle = 0.0;
+  KK_FLOAT eangle = 0.0;
   if (eflag) eangle = rk*dr;
 
   // angle (cos and sin)
 
-  F_FLOAT c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+  KK_FLOAT c = delx1*delx2 + dely1*dely2 + delz1*delz2;
   c /= r1*r2;
 
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 
-  F_FLOAT s = sqrt(1.0 - c*c);
+  KK_FLOAT s = sqrt(1.0 - c*c);
   if (s < SMALL) s = SMALL;
   s = 1.0/s;
 
   // harmonic force & energy
 
-  const F_FLOAT dtheta = acos(c) - d_theta0[type];
-  const F_FLOAT tk = d_k[type] * dtheta;
+  const KK_FLOAT dtheta = acos(c) - d_theta0[type];
+  const KK_FLOAT tk = d_k[type] * dtheta;
 
   if (eflag) eangle += tk*dtheta;
 
-  const F_FLOAT a = -2.0 * tk * s;
-  const F_FLOAT a11 = a*c / rsq1;
-  const F_FLOAT a12 = -a / (r1*r2);
-  const F_FLOAT a22 = a*c / rsq2;
+  const KK_FLOAT a = -2.0 * tk * s;
+  const KK_FLOAT a11 = a*c / rsq1;
+  const KK_FLOAT a12 = -a / (r1*r2);
+  const KK_FLOAT a22 = a*c / rsq2;
 
-  F_FLOAT f1[3],f3[3];
+  KK_FLOAT f1[3],f3[3];
   f1[0] = a11*delx1 + a12*delx2 - delxUB*forceUB;
   f1[1] = a11*dely1 + a12*dely2 - delyUB*forceUB;
   f1[2] = a11*delz1 + a12*delz2 - delzUB*forceUB;
@@ -268,10 +268,10 @@ void AngleCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
   AngleCharmm::coeff(narg, arg);
 
   int n = atom->nangletypes;
-  typename AT::tdual_ffloat_1d k_k("AngleCharmm::k",n+1);
-  typename AT::tdual_ffloat_1d k_theta0("AngleCharmm::theta0",n+1);
-  typename AT::tdual_ffloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
-  typename AT::tdual_ffloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
+  DAT::tdual_kkfloat_1d k_k("AngleCharmm::k",n+1);
+  DAT::tdual_kkfloat_1d k_theta0("AngleCharmm::theta0",n+1);
+  DAT::tdual_kkfloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
+  DAT::tdual_kkfloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();
@@ -306,10 +306,10 @@ void AngleCharmmKokkos<DeviceType>::read_restart(FILE *fp)
   AngleCharmm::read_restart(fp);
 
   int n = atom->nangletypes;
-  typename AT::tdual_ffloat_1d k_k("AngleCharmm::k",n+1);
-  typename AT::tdual_ffloat_1d k_theta0("AngleCharmm::theta0",n+1);
-  typename AT::tdual_ffloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
-  typename AT::tdual_ffloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
+  DAT::tdual_kkfloat_1d k_k("AngleCharmm::k",n+1);
+  DAT::tdual_kkfloat_1d k_theta0("AngleCharmm::theta0",n+1);
+  DAT::tdual_kkfloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
+  DAT::tdual_kkfloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();
@@ -343,12 +343,12 @@ template<class DeviceType>
 //template<int NEWTON_BOND>
 KOKKOS_INLINE_FUNCTION
 void AngleCharmmKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const int j, const int k,
-                     F_FLOAT &eangle, F_FLOAT *f1, F_FLOAT *f3,
-                     const F_FLOAT &delx1, const F_FLOAT &dely1, const F_FLOAT &delz1,
-                     const F_FLOAT &delx2, const F_FLOAT &dely2, const F_FLOAT &delz2) const
+                     KK_FLOAT &eangle, KK_FLOAT *f1, KK_FLOAT *f3,
+                     const KK_FLOAT &delx1, const KK_FLOAT &dely1, const KK_FLOAT &delz1,
+                     const KK_FLOAT &delx2, const KK_FLOAT &dely2, const KK_FLOAT &delz2) const
 {
-  E_FLOAT eanglethird;
-  F_FLOAT v[6];
+  KK_FLOAT eanglethird;
+  KK_FLOAT v[6];
 
   if (eflag_either) {
     if (eflag_global) {

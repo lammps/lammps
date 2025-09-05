@@ -662,8 +662,8 @@ void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAPSO3GetRipArrayTag&, int
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
-void MLIAP_SO3Kokkos<DeviceType>::spectrum(int nlocal, DAT::tdual_int_1d numneighs, DAT::tdual_int_1d jelems, DAT::tdual_float_1d wjelem,
-                               DAT::tdual_float_2d rij,  DAT::tdual_int_1d k_ij,
+void MLIAP_SO3Kokkos<DeviceType>::spectrum(int nlocal, DAT::tdual_int_1d numneighs, DAT::tdual_int_1d jelems, DAT::tdual_double_1d wjelem,
+                               DAT::tdual_double_2d_lr rij,  DAT::tdual_int_1d k_ij,
                                int nmax, int lmax, double rcut, double alpha, int totaln, int ncoefs)
 {
   init_arrays(nlocal, ncoefs);
@@ -780,8 +780,8 @@ void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAP_SO3Kokkos<DeviceType>:
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
-void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d numneighs, DAT::tdual_int_1d jelems, DAT::tdual_float_1d wjelem,
-                                    DAT::tdual_float_2d rij, DAT::tdual_int_1d k_ij,
+void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d numneighs, DAT::tdual_int_1d jelems, DAT::tdual_double_1d wjelem,
+                                    DAT::tdual_double_2d_lr rij, DAT::tdual_int_1d k_ij,
                                     int nmax, int lmax, double rcut, double alpha, bigint totaln,
                                     int ncoefs)
 {

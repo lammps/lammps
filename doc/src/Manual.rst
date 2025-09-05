@@ -142,7 +142,6 @@ Command Reference
    dihedrals
    impropers
    dumps
-   fix_modify_atc_commands
    Bibliography
 
 ******************

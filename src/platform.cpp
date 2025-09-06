@@ -756,7 +756,7 @@ bool platform::is_console(FILE *fp)
 
 std::string platform::current_directory()
 {
-  return std::filesystem::current_path();
+  return std::filesystem::current_path().string();
 }
 
 /* ----------------------------------------------------------------------
@@ -778,7 +778,7 @@ std::vector<std::string> platform::list_directory(const std::string &dir)
   if (!path_is_directory(dir)) return files;
 
   for (const auto & dir_entry : std::filesystem::directory_iterator{dir}) {
-    files.push_back(dir_entry.path().filename());
+    files.push_back(dir_entry.path().filename().string());
   }
 
   return files;
@@ -922,7 +922,7 @@ int platform::pclose(FILE *fp)
 
 std::string platform::path_basename(const std::string &path)
 {
-  return std::filesystem::path(path).filename();
+  return std::filesystem::path(path).filename().string();
 }
 
 /* ----------------------------------------------------------------------

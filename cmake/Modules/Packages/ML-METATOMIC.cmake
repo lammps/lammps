@@ -41,14 +41,14 @@ endif()
 
 ################ definition of metatensor and metatomic targets ################
 
-set(METATENSOR_CORE_VERSION "0.1.14")
-set(METATENSOR_CORE_SHA1 "9e21c48d9059d8a37618958d9d253220dedf7562")
+set(METATENSOR_CORE_VERSION "0.1.17")
+set(METATENSOR_CORE_SHA256 "42119e11908239915ccc187d7ca65449b461f1d4b5af4d6df1fb613d687da76a")
 
-set(METATENSOR_TORCH_VERSION "0.7.6")
-set(METATENSOR_TORCH_SHA1 "5668f5088a42507e9ca4a7b723b3baac0286035c")
+set(METATENSOR_TORCH_VERSION "0.8.0")
+set(METATENSOR_TORCH_SHA256 "61d383ce958deafe0e3916088185527680c9118588722b17ec5c39cfbaa6da55")
 
-set(METATOMIC_TORCH_VERSION "0.1.1")
-set(METATOMIC_TORCH_SHA1 "12b830c23674339fc185ce6e94e5a445416199ff")
+set(METATOMIC_TORCH_VERSION "0.1.4")
+set(METATOMIC_TORCH_SHA256 "385ec8b8515d674b6a9f093f724792b2469e7ea2365ca596f574b64e38494f94")
 
 set(DOWNLOAD_METATENSOR_DEFAULT ON)
 find_package(metatensor_torch QUIET ${METATENSOR_TORCH_VERSION})
@@ -72,7 +72,7 @@ if (DOWNLOAD_METATENSOR)
     set(URL_BASE "https://github.com/metatensor/metatensor/releases/download")
     FetchContent_Declare(metatensor
         URL ${URL_BASE}/metatensor-core-v${METATENSOR_CORE_VERSION}/metatensor-core-cxx-${METATENSOR_CORE_VERSION}.tar.gz
-        URL_HASH SHA1=${METATENSOR_CORE_SHA1}
+        URL_HASH SHA256=${METATENSOR_CORE_SHA256}
     )
 
     message(STATUS "Fetching metatensor v${METATENSOR_CORE_VERSION} from github")
@@ -80,7 +80,7 @@ if (DOWNLOAD_METATENSOR)
 
     FetchContent_Declare(metatensor-torch
         URL ${URL_BASE}/metatensor-torch-v${METATENSOR_TORCH_VERSION}/metatensor-torch-cxx-${METATENSOR_TORCH_VERSION}.tar.gz
-        URL_HASH SHA1=${METATENSOR_TORCH_SHA1}
+        URL_HASH SHA256=${METATENSOR_TORCH_SHA256}
     )
 
     message(STATUS "Fetching metatensor-torch v${METATENSOR_TORCH_VERSION} from github")
@@ -96,7 +96,7 @@ if (DOWNLOAD_METATOMIC)
     set(URL_BASE "https://github.com/metatensor/metatomic/releases/download")
     FetchContent_Declare(metatomic-torch
         URL ${URL_BASE}/metatomic-torch-v${METATOMIC_TORCH_VERSION}/metatomic-torch-cxx-${METATOMIC_TORCH_VERSION}.tar.gz
-        URL_HASH SHA1=${METATOMIC_TORCH_SHA1}
+        URL_HASH SHA256=${METATOMIC_TORCH_SHA256}
     )
 
     message(STATUS "Fetching metatomic-torch v${METATOMIC_TORCH_VERSION} from github")

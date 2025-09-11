@@ -277,7 +277,8 @@ void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_remap_kk(metatomi
             auto _ = MetatomicTimer("creating samples Labels (" +  std::to_string(n_pairs) + " pairs)");
             samples = torch::make_intrusive<metatensor_torch::LabelsHolder>(
                 std::vector<std::string>{"first_atom", "second_atom", "cell_shift_a", "cell_shift_b", "cell_shift_c"},
-                samples_values
+                samples_values,
+                metatensor::assume_unique{}
             );
         }
 
@@ -288,7 +289,7 @@ void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_remap_kk(metatomi
             neighbors = torch::make_intrusive<metatensor_torch::TensorBlockHolder>(
                 distances_filt_cur.index_select(0, samples_indices).unsqueeze(-1),
                 samples,
-                std::vector<metatensor_torch::TorchLabels>{
+                std::vector<metatensor_torch::Labels>{
                     metatensor_torch::LabelsHolder::create({"xyz"}, {{0}, {1}, {2}})->to(this->device_),
                 },
                 metatensor_torch::LabelsHolder::create({"distance"}, {{0}})->to(this->device_)

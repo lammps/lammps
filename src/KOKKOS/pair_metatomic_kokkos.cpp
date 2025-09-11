@@ -164,7 +164,9 @@ void PairMetatomicKokkos<DeviceType>::compute(int eflag, int vflag) {
     );
 
     auto selected_atoms = torch::make_intrusive<metatensor_torch::LabelsHolder>(
-        std::vector<std::string>{"system", "atom"}, mta_data->selected_atoms_values
+        std::vector<std::string>{"system", "atom"},
+        mta_data->selected_atoms_values,
+        metatensor::assume_unique{}
     );
     mta_data->evaluation_options->set_selected_atoms(selected_atoms);
 

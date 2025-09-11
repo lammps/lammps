@@ -31,7 +31,7 @@ struct PairMetatomicData {
    void load_model(LAMMPS* lmp, const char* path, const char* extensions_directory);
 
    // torch model in metatensor format
-   std::unique_ptr<torch::jit::Module> model;
+   std::unique_ptr<metatensor_torch::Module> model;
    // device to use for the calculations
    torch::Device device;
    // model capabilities, declared by the model

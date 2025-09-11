@@ -62,7 +62,7 @@ void PairMetatomicData::load_model(
    }
 
    try {
-       this->model = std::make_unique<torch::jit::Module>(
+       this->model = std::make_unique<metatensor_torch::Module>(
            metatomic_torch::load_atomistic_model(path, extensions)
        );
    } catch (const c10::Error& e) {

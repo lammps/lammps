@@ -19,7 +19,7 @@
 
 namespace LAMMPS_NS {
 
-/// Simple timer for profiling the LAMMPS/Metatensor integration. This starts
+/// Simple timer for profiling the LAMMPS/metatomic integration. This starts
 /// the timer when created, and print the elapsed time to stderr when going out
 /// of scope.
 class MetatomicTimer {

@@ -28,7 +28,7 @@
 namespace LAMMPS_NS {
 
 struct MetatomicSystemOptions {
-    // Mapping from LAMMPS types to metatensor types.
+    // Mapping from LAMMPS types to metatomic types.
     // If used with kokkos, this should be a device pointer
     int32_t* types_mapping;
     // interaction range of the model, in LAMMPS units
@@ -39,7 +39,7 @@ struct MetatomicSystemOptions {
     bool requires_grad;
 };
 
-// data for metatensor neighbors lists
+// data for metatomic neighbors lists
 struct MetatomicNeighborsData {
     // single neighbors sample containing [i, j, S_a, S_b, S_c]
     using sample_t = std::array<int32_t, 5>;
@@ -65,7 +65,7 @@ struct MetatomicNeighborsData {
     // options of the NL as requested by the model
     metatomic_torch::NeighborListOptions options;
 
-    // Below are cached allocations for the LAMMPS -> metatensor NL translation
+    // Below are cached allocations for the LAMMPS -> metatomic NL translation
     // TODO: report memory usage for these?
 
     // we keep the set of samples twice: once in `known_samples` to remove
@@ -86,7 +86,7 @@ public:
 
     void add_nl_request(double cutoff, metatomic_torch::NeighborListOptions request);
 
-    // Create a metatensor system matching the LAMMPS system data
+    // Create a metatomic system matching the LAMMPS system data
     virtual metatomic_torch::System system_from_lmp(
         NeighList* list,
         bool do_virial,
@@ -103,11 +103,11 @@ public:
     torch::Tensor positions;
 
  protected:
-    // setup the metatensor neighbors list from the internal LAMMPS one,
+    // setup the metatomic neighbors list from the internal LAMMPS one,
     // remapping periodic ghosts to the corresponding local atom
     void setup_neighbors_remap(metatomic_torch::System& system, NeighList* list);
 
-    // setup the metatensor neighbors list from the internal LAMMPS one,
+    // setup the metatomic neighbors list from the internal LAMMPS one,
     // WITHOUT remapping periodic ghosts to the corresponding local atom.
     //
     // This produces a larger NL but skips the cost of the remapping

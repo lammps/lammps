@@ -66,14 +66,14 @@ void PairMetatomicData::load_model(
            metatomic_torch::load_atomistic_model(path, extensions)
        );
    } catch (const c10::Error& e) {
-       lmp->error->all(FLERR, "failed to load metatensor model at '{}': {}", path, e.what());
+       lmp->error->all(FLERR, "failed to load metatomic model at '{}': {}", path, e.what());
    }
 
    auto capabilities_ivalue = this->model->run_method("capabilities");
    this->capabilities = capabilities_ivalue.toCustomClass<metatomic_torch::ModelCapabilitiesHolder>();
 
    if (!this->capabilities->outputs().contains("energy")) {
-       lmp->error->all(FLERR, "the model at '{}' does not have an \"energy\" output, we can not use it in pair_style metatensor", path);
+       lmp->error->all(FLERR, "the model at '{}' does not have an \"energy\" output, we can not use it in pair_style metatomic", path);
    }
 
    if (lmp->comm->me == 0) {

@@ -93,7 +93,7 @@ PairMetatomic::~PairMetatomic() {
     }
 }
 
-// called when finding `pair_style metatensor` in the input
+// called when finding `pair_style metatomic` in the input
 void PairMetatomic::settings(int argc, char ** argv) {
     if (argc == 0) {
         error->all(FLERR, "expected at least 1 argument to pair_style metatomic, got {}", argc);
@@ -129,7 +129,7 @@ void PairMetatomic::settings(int argc, char ** argv) {
             i += 1;
         } else if (strcmp(argv[i], "non_conservative") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected <on/off> after 'non_conservative' in pair_style metatensor, got nothing");
+                error->all(FLERR, "expected <on/off> after 'non_conservative' in pair_style metatomic, got nothing");
             } else if (strcmp(argv[i + 1], "on") == 0) {
                 mta_data->non_conservative = true;
                 // add the non-conservative forces and stress to the requested outputs
@@ -148,7 +148,7 @@ void PairMetatomic::settings(int argc, char ** argv) {
             } else if (strcmp(argv[i + 1], "off") == 0) {
                 mta_data->non_conservative = false;
             } else {
-                error->all(FLERR, "expected <on/off> after 'non_conservative' in pair_style metatensor, got '{}'", argv[i + 1]);
+                error->all(FLERR, "expected <on/off> after 'non_conservative' in pair_style metatomic, got '{}'", argv[i + 1]);
             }
 
             i += 1;

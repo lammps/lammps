@@ -359,7 +359,7 @@ void MetatomicSystemAdaptor::setup_neighbors_no_remap(metatomic_torch::System& s
             auto cutoff2 = cache.cutoff * cache.cutoff;
             auto full_list = cache.options->full_list();
 
-            // convert from LAMMPS neighbors list to metatensor format
+            // convert from LAMMPS neighbors list to metatomic format
             cache.known_samples.clear();
             cache.samples.clear();
             cache.distances_f32.clear();
@@ -523,11 +523,10 @@ metatomic_torch::System MetatomicSystemAdaptor::system_from_lmp(
     }
 
     // Periodic boundary conditions handling.
-    // While Metatensor atomistic models can support mixed PBC settings, we
-    // currently assume that the system is fully periodic and we throw an error
-    // otherwise
+    // While metatomic models can support mixed PBC settings, we currently
+    // assume that the system is fully periodic and we throw an error otherwise
     if (!domain->xperiodic || !domain->yperiodic || !domain->zperiodic) {
-        error->all(FLERR, "pair_metatensor requires a fully periodic system");
+        error->all(FLERR, "pair_style metatomic requires a fully periodic system");
     }
     auto pbc = torch::tensor(
         {domain->xperiodic, domain->yperiodic, domain->zperiodic},

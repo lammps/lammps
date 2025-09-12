@@ -5,6 +5,37 @@ if(CMAKE_CXX_STANDARD LESS 17)
 be set to at least C++17")
 endif()
 
+# Set Kokkos Precision
+set(KOKKOS_PREC "double" CACHE STRING "LAMMPS KOKKOS precision")
+set(KOKKOS_PREC_VALUES double mixed single)
+set_property(CACHE KOKKOS_PREC PROPERTY STRINGS ${KOKKOS_PREC_VALUES})
+validate_option(KOKKOS_PREC KOKKOS_PREC_VALUES)
+string(TOLOWER ${KOKKOS_PREC} KOKKOS_PREC_LOWER)
+string(TOUPPER ${KOKKOS_PREC} KOKKOS_PREC)
+
+if(KOKKOS_PREC STREQUAL "DOUBLE")
+  set(KOKKOS_PREC_SETTING "DOUBLE_DOUBLE")
+elseif(KOKKOS_PREC STREQUAL "MIXED")
+  set(KOKKOS_PREC_SETTING "SINGLE_DOUBLE")
+elseif(KOKKOS_PREC STREQUAL "SINGLE")
+  set(KOKKOS_PREC_SETTING "SINGLE_SINGLE")
+endif()
+
+target_compile_definitions(lammps PRIVATE -DLMP_KOKKOS_${KOKKOS_PREC_SETTING})
+
+# Set Kokkos View Layout
+set(KOKKOS_LAYOUT "legacy" CACHE STRING "LAMMPS KOKKOS view layout")
+set(KOKKOS_LAYOUT_VALUES legacy default)
+set_property(CACHE KOKKOS_LAYOUT PROPERTY STRINGS ${KOKKOS_LAYOUT_VALUES})
+validate_option(KOKKOS_LAYOUT KOKKOS_LAYOUT_VALUES)
+string(TOLOWER ${KOKKOS_LAYOUT} KOKKOS_LAYOUT_LOWER)
+string(TOUPPER ${KOKKOS_LAYOUT} KOKKOS_LAYOUT)
+
+target_compile_definitions(lammps PRIVATE -DLMP_KOKKOS_LAYOUT_${KOKKOS_LAYOUT})
+
+message(STATUS "Using " ${KOKKOS_PREC_LOWER} " precision for KOKKOS package")
+message(STATUS "Using " ${KOKKOS_LAYOUT_LOWER} " view layout for KOKKOS package")
+
 ########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
 if(Kokkos_ENABLE_HIP)
@@ -57,8 +88,8 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
-  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/4.6.00.tar.gz" CACHE STRING "URL for KOKKOS tarball")
-  set(KOKKOS_MD5 "61b2b69ae50d83eedcc7d47a3fa3d6cb" CACHE STRING "MD5 checksum of KOKKOS tarball")
+  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/4.6.02.tar.gz" CACHE STRING "URL for KOKKOS tarball")
+  set(KOKKOS_MD5 "14c02fac07bfcec48a1654f88ddee9c6" CACHE STRING "MD5 checksum of KOKKOS tarball")
   mark_as_advanced(KOKKOS_URL)
   mark_as_advanced(KOKKOS_MD5)
   GetFallbackURL(KOKKOS_URL KOKKOS_FALLBACK)
@@ -83,7 +114,7 @@ if(DOWNLOAD_KOKKOS)
   add_dependencies(LAMMPS::KOKKOSCORE kokkos_build)
   add_dependencies(LAMMPS::KOKKOSCONTAINERS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 4.6.00 REQUIRED CONFIG)
+  find_package(Kokkos 4.6.02 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
 else()
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
@@ -180,6 +211,14 @@ if(PKG_KSPACE)
 endif()
 
 if(PKG_ML-IAP)
+  if(NOT (KOKKOS_PREC STREQUAL "DOUBLE"))
+    message(FATAL_ERROR "Must use KOKKOS_PREC=double with package ML-IAP")
+  endif()
+
+  if(NOT (KOKKOS_LAYOUT STREQUAL "LEGACY"))
+    message(FATAL_ERROR "Must use KOKKOS_LAYOUT=legacy with package ML-IAP")
+  endif()
+
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/mliap_data_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_descriptor_so3_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_model_linear_kokkos.cpp

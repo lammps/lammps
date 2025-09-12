@@ -120,7 +120,7 @@ void FixPolarizeBEMICC::init()
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    auto random = new RanPark(lmp, seed_charge + comm->me);
+    auto *random = new RanPark(lmp, seed_charge + comm->me);
     for (i = 0; i < 100; i++) random->uniform();
     double sum, tmp = 0;
     for (i = 0; i < nlocal; i++) {
@@ -385,7 +385,7 @@ int FixPolarizeBEMICC::modify_param(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg], "itr_max") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
-      itr_max = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      itr_max = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "omega") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
@@ -416,7 +416,7 @@ int FixPolarizeBEMICC::modify_param(int narg, char **arg)
     } else if (strcmp(arg[iarg], "rand") == 0) {
       if (iarg + 3 > narg) error->all(FLERR, "Illegal fix_modify command");
       ave_charge = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      seed_charge = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      seed_charge = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       randomized = 1;
       iarg += 3;
     } else

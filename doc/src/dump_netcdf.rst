@@ -58,7 +58,7 @@ by :doc:`thermo_style <thermo_style>`.
 
 .. _netcdf-home: https://www.unidata.ucar.edu/software/netcdf/
 
-.. _pnetcdf-home: https://trac.mcs.anl.gov/projects/parallel-netcdf/
+.. _pnetcdf-home: https://parallel-netcdf.github.io/
 
 ----------
 

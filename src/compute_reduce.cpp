@@ -35,7 +35,7 @@ static constexpr double BIG = 1.0e20;
 
 //----------------------------------------------------------------
 
-void abs_max(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
+static void abs_max(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
 {
   // r is the already reduced value, n is the new value
 
@@ -50,7 +50,7 @@ void abs_max(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
   *(double *) inout = m;
 }
 
-void abs_min(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
+static void abs_min(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
 {
   // r is the already reduced value, n is the new value
 

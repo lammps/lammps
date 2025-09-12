@@ -21,12 +21,10 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "gpu_extra.h"
 #include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
 

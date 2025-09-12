@@ -39,7 +39,6 @@
 
 #include "improper_ring.h"
 
-#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -49,6 +48,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

@@ -74,7 +74,7 @@ if(GPU_API STREQUAL "CUDA")
   option(CUDA_BUILD_MULTIARCH "Enable building CUDA kernels for all supported GPU architectures" ON)
   mark_as_advanced(GPU_BUILD_MULTIARCH)
 
-  set(GPU_ARCH "sm_50" CACHE STRING "LAMMPS GPU CUDA SM primary architecture (e.g. sm_60)")
+  set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU CUDA SM primary architecture (e.g. sm_80)")
 
   # ensure that no *cubin.h files exist from a compile in the lib/gpu folder
   file(GLOB GPU_LIB_OLD_CUBIN_HEADERS CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/*_cubin.h)
@@ -150,10 +150,7 @@ if(GPU_API STREQUAL "CUDA")
       if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
         string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
       endif()
-      # Hopper (GPU Arch 9.0) is supported by CUDA 12.0 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
-      endif()
+      # newer GPU Arch versions require CUDA 12.0 or later which is handled above
     endif()
   endif()
 
@@ -287,7 +284,7 @@ elseif(GPU_API STREQUAL "HIP")
     set(HIP_ARCH "spirv" CACHE STRING "HIP target architecture")
   elseif(HIP_PLATFORM STREQUAL "nvcc")
     find_package(CUDA REQUIRED)
-    set(HIP_ARCH "sm_50" CACHE STRING "HIP primary CUDA architecture (e.g. sm_60)")
+    set(HIP_ARCH "sm_75" CACHE STRING "HIP primary CUDA architecture (e.g. sm_75)")
 
     if(CUDA_VERSION VERSION_LESS 8.0)
       message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
@@ -335,10 +332,7 @@ elseif(GPU_API STREQUAL "HIP")
       if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
       endif()
-      # Hopper (GPU Arch 9.0) is supported by CUDA 12.0 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
-      endif()
+      # newer GPU Arch versions require CUDA 12.0 or later which is handled above
     endif()
   endif()
 

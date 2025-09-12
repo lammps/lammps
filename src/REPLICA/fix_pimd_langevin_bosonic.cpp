@@ -27,16 +27,10 @@
 #include "bosonic_exchange.h"
 
 #include "atom.h"
-#include "comm.h"
-#include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "memory.h"
 #include "universe.h"
-#include "update.h"
 
-#include <cmath>
-#include <cstdlib>
 #include <cstring>
 
 using namespace LAMMPS_NS;

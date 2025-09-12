@@ -26,7 +26,6 @@
 
 using namespace LAMMPS_NS;
 using MathSpecial::powint;
-using MathSpecial::square;
 
 /* ---------------------------------------------------------------------- */
 

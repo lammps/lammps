@@ -45,7 +45,6 @@ class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
 
   void compute(int, int) override;
 
-  void settings(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;
 
@@ -58,9 +57,9 @@ class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
 
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
-  void ev_tally_xyz(EV_FLOAT &ev, int i, int j, const F_FLOAT &epair,
-                    F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-                    X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
+  void ev_tally_xyz(EV_FLOAT &ev, int i, int j, const KK_FLOAT &epair,
+                    KK_FLOAT fx, KK_FLOAT fy, KK_FLOAT fz,
+                    KK_FLOAT delx, KK_FLOAT dely, KK_FLOAT delz) const;
 
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
@@ -72,37 +71,37 @@ class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
   // hardwired to space for 12 atom types
   params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
-  F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  F_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  F_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  typename AT::t_x_array_randomread x;
-  typename AT::t_x_array c_x;
-  typename AT::t_f_array f;
-  typename AT::t_f_array torque;
+  KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  KK_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  KK_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkfloat_1d_3_lr c_x;
+  typename AT::t_kkacc_1d_3 f;
+  typename AT::t_kkfloat_1d_3 torque;
   typename AT::t_int_1d_randomread type;
-  typename AT::t_float_1d_randomread q;
-  typename AT::t_mu_array_randomread mu;
-  typename AT::t_mu_array c_mu;
+  typename AT::t_kkfloat_1d_randomread q;
+  typename AT::t_kkfloat_1d_4_randomread mu;
+  typename AT::t_kkfloat_1d_4 c_mu;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
-  typename AT::tdual_ffloat_2d k_cutsq;
-  typename AT::t_ffloat_2d d_cutsq;
-  typename AT::tdual_ffloat_2d k_cut_ljsq;
-  typename AT::t_ffloat_2d d_cut_ljsq;
-  typename AT::tdual_ffloat_2d k_cut_coulsq;
-  typename AT::t_ffloat_2d d_cut_coulsq;
+  DAT::ttransform_kkfloat_2d k_cutsq;
+  typename AT::t_kkfloat_2d d_cutsq;
+  DAT::ttransform_kkfloat_2d k_cut_ljsq;
+  typename AT::t_kkfloat_2d d_cut_ljsq;
+  DAT::ttransform_kkfloat_2d k_cut_coulsq;
+  typename AT::t_kkfloat_2d d_cut_coulsq;
 
 
   int neighflag,newton_pair;
   int nlocal,nall,eflag,vflag;
 
-  double special_coul[4];
-  double special_lj[4];
-  double qqrd2e;
+  KK_FLOAT special_coul[4];
+  KK_FLOAT special_lj[4];
+  KK_FLOAT qqrd2e;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;

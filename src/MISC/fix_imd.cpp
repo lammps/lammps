@@ -83,7 +83,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 /* re-usable integer hash table code with static linkage. */
-
+// NOLINTBEGIN
 /** hash table top level data structure */
 typedef struct taginthash_t {
   struct taginthash_node_t **bucket; /* array of hash nodes */
@@ -99,7 +99,7 @@ typedef struct taginthash_node_t {
   tagint key;                            /* key for hash lookup */
   struct taginthash_node_t *next;        /* next node in hash chain */
 } taginthash_node_t;
-
+// NOLINTEND
 #define HASH_FAIL  -1
 #define HASH_LIMIT  0.5
 
@@ -225,7 +225,7 @@ tagint *taginthash_keys(taginthash_t *tptr) {
   tagint *keys;
   taginthash_node_t *node;
 
-  keys = (tagint *)calloc(tptr->entries, sizeof(tagint));
+  keys = (tagint *)calloc(tptr->entries + 1, sizeof(tagint));
 
   for (tagint i=0; i < tptr->size; ++i) {
     for (node=tptr->bucket[i]; node != nullptr; node=node->next) {
@@ -348,6 +348,8 @@ static void id_sort(tagint *idmap, tagint left, tagint right)
 
 #include <climits>
 
+// NOLINTBEGIN
+
 #if (INT_MAX == 2147483647)
 typedef int     int32;
 #else
@@ -453,8 +455,9 @@ struct commdata {
   float x,y,z;
 };
 
-MPI_Datatype MPI_CommData;
+static MPI_Datatype MPI_CommData;
 
+// NOLINTEND
 /***************************************************************
  * create class and parse arguments in LAMMPS script.
  ***************************************************************/
@@ -652,7 +655,7 @@ FixIMD::~FixIMD()
     pthread_cond_destroy(&write_cond);
   }
 #endif
-  auto hashtable = (taginthash_t *)idmap;
+  auto *hashtable = (taginthash_t *)idmap;
   memory->destroy(coord_data);
   memory->destroy(vel_data);
   memory->destroy(force_data);
@@ -802,17 +805,17 @@ void FixIMD::setup_v2() {
     error->all(FLERR,"LAMMPS terminated on error in setting up IMD connection.");
 
   /* initialize and build hashtable. */
-  auto hashtable=new taginthash_t;
+  auto *hashtable=new taginthash_t;
   taginthash_init(hashtable, num_coords);
   idmap = (void *)hashtable;
 
   int tmp, ndata;
-  auto buf = static_cast<struct commdata *>(coord_data);
+  auto *buf = static_cast<struct commdata *>(coord_data);
 
   if (me == 0) {
     MPI_Status status;
     MPI_Request request;
-    auto taglist = new tagint[num_coords];
+    auto *taglist = new tagint[num_coords];
     int numtag=0; /* counter to map atom tags to a 0-based consecutive index list */
 
     for (i=0; i < nlocal; ++i) {
@@ -904,7 +907,7 @@ void FixIMD::setup_v3()
     error->all(FLERR,"LAMMPS terminated on error in setting up IMD connection.");
 
   /* initialize and build hashtable. */
-  auto hashtable=new taginthash_t;
+  auto *hashtable=new taginthash_t;
   taginthash_init(hashtable, num_coords);
   idmap = (void *)hashtable;
 
@@ -925,7 +928,7 @@ void FixIMD::setup_v3()
     }
     MPI_Status status;
     MPI_Request request;
-    auto taglist = new tagint[num_coords];
+    auto *taglist = new tagint[num_coords];
     int numtag=0; /* counter to map atom tags to a 0-based consecutive index list */
 
     for (i=0; i < nlocal; ++i) {
@@ -979,7 +982,7 @@ void FixIMD::setup_v3()
 /* c bindings wrapper */
 void *fix_imd_ioworker(void *t)
 {
-  FixIMD *imd=(FixIMD *)t;
+  auto *imd=(FixIMD *)t;
   imd->ioworker();
   return nullptr;
 }
@@ -1137,8 +1140,8 @@ void FixIMD::handle_step_v2() {
           break;
 
         case IMD_MDCOMM: {
-          auto imd_tags = new int32[length];
-          auto imd_fdat = new float[3*length];
+          auto *imd_tags = new int32[length];
+          auto *imd_fdat = new float[3*length];
           imd_recv_mdcomm(clientsock, length, imd_tags, imd_fdat);
 
           if (imd_forces < length) { /* grow holding space for forces, if needed. */
@@ -1243,7 +1246,7 @@ void FixIMD::handle_step_v2() {
      * us one extra copy of the data. */
     imd_fill_header((IMDheader *)msgdata, IMD_FCOORDS, num_coords);
     /* array pointer, to the offset where we receive the coordinates. */
-    auto recvcoord = (float *) (msgdata+IMDHEADERSIZE);
+    auto *recvcoord = (float *) (msgdata+IMDHEADERSIZE);
 
     /* add local data */
     if (imdsinfo->unwrap) {
@@ -1462,8 +1465,8 @@ void FixIMD::handle_client_input_v3() {
           break;
 
         case IMD_MDCOMM: {
-          auto imd_tags = new int32[length];
-          auto imd_fdat = new float[3*length];
+          auto *imd_tags = new int32[length];
+          auto *imd_fdat = new float[3*length];
           imd_recv_mdcomm(clientsock, length, imd_tags, imd_fdat);
 
           if (imd_forces < length) { /* grow holding space for forces, if needed. */
@@ -1590,7 +1593,7 @@ void FixIMD::handle_output_v3() {
     if (imdsinfo->box) {
       imd_fill_header((IMDheader *)(msgdata + offset), IMD_BOX, 1);
       // Get triclinic box vectors
-      float *box = (float *)(msgdata+offset+IMDHEADERSIZE);
+      auto *box = (float *)(msgdata+offset+IMDHEADERSIZE);
       box[0] = domain->h[0];
       box[1] = 0.0;
       box[2] = 0.0;
@@ -1799,6 +1802,8 @@ void FixIMD::handle_output_v3() {
 
 /* End of FixIMD class implementation. */
 
+// NOLINTBEGIN
+
 /***************************************************************************/
 
 /* NOTE: the following code is the based on the example implementation
@@ -1850,7 +1855,7 @@ void * imdsock_create() {
 /* ---------------------------------------------------------------------- */
 
 int imdsock_bind(void * v, int port) {
-  auto s = (imdsocket *) v;
+  auto *s = (imdsocket *) v;
   auto *addr = &(s->addr);
   s->addrlen = sizeof(s->addr);
   memset(addr, 0, s->addrlen);
@@ -1863,7 +1868,7 @@ int imdsock_bind(void * v, int port) {
 /* ---------------------------------------------------------------------- */
 
 int imdsock_listen(void * v) {
-  auto s = (imdsocket *) v;
+  auto *s = (imdsocket *) v;
   return listen(s->sd, 5);
 }
 
@@ -1901,7 +1906,7 @@ void *imdsock_accept(void * v) {
 /* ---------------------------------------------------------------------- */
 
 int  imdsock_write(void * v, const void *buf, int len) {
-  auto s = (imdsocket *) v;
+  auto *s = (imdsocket *) v;
 #if defined(_MSC_VER) || defined(__MINGW32__)
   return send(s->sd, (const char*) buf, len, 0);  /* windows lacks the write() call */
 #else
@@ -1912,7 +1917,7 @@ int  imdsock_write(void * v, const void *buf, int len) {
 /* ---------------------------------------------------------------------- */
 
 int  imdsock_read(void * v, void *buf, int len) {
-  auto s = (imdsocket *) v;
+  auto *s = (imdsocket *) v;
 #if defined(_MSC_VER) || defined(__MINGW32__)
   return recv(s->sd, (char*) buf, len, 0); /* windows lacks the read() call */
 #else
@@ -1924,7 +1929,7 @@ int  imdsock_read(void * v, void *buf, int len) {
 /* ---------------------------------------------------------------------- */
 
 void imdsock_shutdown(void *v) {
-  auto  s = (imdsocket *) v;
+  auto *  s = (imdsocket *) v;
   if (s == nullptr)
     return;
 
@@ -1938,7 +1943,7 @@ void imdsock_shutdown(void *v) {
 /* ---------------------------------------------------------------------- */
 
 void imdsock_destroy(void * v) {
-  auto  s = (imdsocket *) v;
+  auto *  s = (imdsocket *) v;
   if (s == nullptr)
     return;
 
@@ -1953,7 +1958,7 @@ void imdsock_destroy(void * v) {
 /* ---------------------------------------------------------------------- */
 
 int imdsock_selread(void *v, int sec) {
-  auto s = (imdsocket *)v;
+  auto *s = (imdsocket *)v;
   fd_set rfd;
   struct timeval tv;
   int rc;
@@ -1974,7 +1979,7 @@ int imdsock_selread(void *v, int sec) {
 /* ---------------------------------------------------------------------- */
 
 int imdsock_selwrite(void *v, int sec) {
-  auto s = (imdsocket *)v;
+  auto *s = (imdsocket *)v;
   fd_set wfd;
   struct timeval tv;
   int rc;
@@ -2148,6 +2153,7 @@ int imd_recv_energies(void *s, IMDEnergies *energies) {
 int imd_recv_fcoords(void *s, int32 n, float *coords) {
   return (imd_readn(s, (char *)coords, 12*n) != 12*n);
 }
+// NOLINTEND
 
 // Local Variables:
 // mode: c++

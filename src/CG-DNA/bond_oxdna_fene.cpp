@@ -30,6 +30,7 @@
 #include "pair.h"
 
 #include <cmath>
+#include <exception>
 
 using namespace LAMMPS_NS;
 

@@ -58,7 +58,7 @@ ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::ComputeSNAGridL
   auto d_cutsq = k_cutsq.template view<DeviceType>();
   rnd_cutsq = d_cutsq;
 
-  host_flag = (execution_space == Host);
+  host_flag = (execution_space == HostKK);
 
   // TODO: Extract cutsq in double loop below, no need for cutsq_tmp
 
@@ -67,7 +67,7 @@ ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::ComputeSNAGridL
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = 1; j <= atom->ntypes; j++){
       k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutsq_tmp;
-      k_cutsq.template modify<LMPHostType>();
+      k_cutsq.modify_host();
     }
   }
 
@@ -120,8 +120,11 @@ ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::ComputeSNAGridL
   Kokkos::deep_copy(d_test,h_test);
 
   snaKK = SNAKokkos<DeviceType, real_type, vector_length>(*this);
-  snaKK.grow_rij(0,0);
+  snaKK.grow_rij(0,0,padding_factor);
   snaKK.init();
+
+  if (quadraticflag)
+    error->all(FLERR, "Cannot (yet) use quadratic SNAP with compute sna/grid/local/kk");
 }
 
 // Destructor
@@ -131,7 +134,6 @@ ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::~ComputeSNAGrid
 {
   if (copymode) return;
 
-  memoryKK->destroy_kokkos(k_cutsq,cutsq);
   memoryKK->destroy_kokkos(k_alocal,alocal);
 }
 
@@ -186,7 +188,7 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::compute_lo
   chunk_size = MIN(chunksize, total_range);
   chunk_offset = 0;
   //snaKK.grow_rij(chunk_size, ntotal);
-  snaKK.grow_rij(chunk_size, max_neighs);
+  snaKK.grow_rij(chunk_size, max_neighs, padding_factor);
 
   //chunk_size = total_range;
 
@@ -250,10 +252,17 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::compute_lo
         const int n_teams = chunk_size_div * max_neighs * (twojmax + 1);
         const int n_teams_div = (n_teams + team_size_compute_ui - 1) / team_size_compute_ui;
 
-        SnapAoSoATeamPolicy<DeviceType, team_size_compute_ui, TagCSNAGridLocalComputeUiSmall>
-          policy_ui(n_teams_div, team_size_compute_ui, vector_length);
-        policy_ui = policy_ui.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
-        Kokkos::parallel_for("ComputeUiSmall", policy_ui, *this);
+        if (nelements > 1) {
+          SnapAoSoATeamPolicy<DeviceType, team_size_compute_ui, TagCSNAGridLocalComputeUiSmall<true>>
+            policy_ui(n_teams_div, team_size_compute_ui, vector_length);
+          policy_ui = policy_ui.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
+          Kokkos::parallel_for("ComputeUiSmallChemsnap", policy_ui, *this);
+        } else {
+          SnapAoSoATeamPolicy<DeviceType, team_size_compute_ui, TagCSNAGridLocalComputeUiSmall<false>>
+            policy_ui(n_teams_div, team_size_compute_ui, vector_length);
+          policy_ui = policy_ui.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
+          Kokkos::parallel_for("ComputeUiSmall", policy_ui, *this);
+        }
       } else {
         // Version w/out parallelism over j_bend
 
@@ -261,10 +270,17 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::compute_lo
         const int n_teams = chunk_size_div * max_neighs;
         const int n_teams_div = (n_teams + team_size_compute_ui - 1) / team_size_compute_ui;
 
-        SnapAoSoATeamPolicy<DeviceType, team_size_compute_ui, TagCSNAGridLocalComputeUiLarge>
-          policy_ui(n_teams_div, team_size_compute_ui, vector_length);
-        policy_ui = policy_ui.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
-        Kokkos::parallel_for("ComputeUiLarge", policy_ui, *this);
+        if (nelements > 1) {
+          SnapAoSoATeamPolicy<DeviceType, team_size_compute_ui, TagCSNAGridLocalComputeUiLarge<true>>
+            policy_ui(n_teams_div, team_size_compute_ui, vector_length);
+          policy_ui = policy_ui.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
+          Kokkos::parallel_for("ComputeUiLargeChemsnap", policy_ui, *this);
+        } else {
+          SnapAoSoATeamPolicy<DeviceType, team_size_compute_ui, TagCSNAGridLocalComputeUiLarge<false>>
+            policy_ui(n_teams_div, team_size_compute_ui, vector_length);
+          policy_ui = policy_ui.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
+          Kokkos::parallel_for("ComputeUiLarge", policy_ui, *this);
+        }
       }
     }
 
@@ -308,7 +324,7 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::compute_lo
   copymode = 0;
 
   k_alocal.template modify<DeviceType>();
-  k_alocal.template sync<LMPHostType>();
+  k_alocal.sync_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -389,9 +405,9 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
     xgrid[2] = h2*xgrid[2] + lo2;
   }
 
-  const F_FLOAT xtmp = xgrid[0];
-  const F_FLOAT ytmp = xgrid[1];
-  const F_FLOAT ztmp = xgrid[2];
+  const double xtmp = xgrid[0];
+  const double ytmp = xgrid[1];
+  const double ztmp = xgrid[2];
 
   // Zeroing out the components, which are filled as a sum.
   for (int icol = size_local_cols_base; icol < size_local_cols; icol++){
@@ -419,11 +435,11 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
 
   // Looping over ntotal for now.
   for (int j = 0; j < ntotal; j++){
-    const F_FLOAT dx = x(j,0) - xtmp;
-    const F_FLOAT dy = x(j,1) - ytmp;
-    const F_FLOAT dz = x(j,2) - ztmp;
+    const double dx = x(j,0) - xtmp;
+    const double dy = x(j,1) - ytmp;
+    const double dz = x(j,2) - ztmp;
     int jtype = type(j);
-    const F_FLOAT rsq = dx*dx + dy*dy + dz*dz;
+    const double rsq = dx*dx + dy*dy + dz*dz;
 
     // don't include atoms that share location with grid point
     if (rsq >= rnd_cutsq(itype,jtype) || rsq < 1e-20) {
@@ -441,10 +457,10 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
   for (int j = 0; j < ntotal; j++){
     //const int jtype = type_cache[j];
     //if (jtype >= 0) {
-    const F_FLOAT dx = x(j,0) - xtmp;
-    const F_FLOAT dy = x(j,1) - ytmp;
-    const F_FLOAT dz = x(j,2) - ztmp;
-    const F_FLOAT rsq = dx*dx + dy*dy + dz*dz;
+    const double dx = x(j,0) - xtmp;
+    const double dy = x(j,1) - ytmp;
+    const double dz = x(j,2) - ztmp;
+    const double rsq = dx*dx + dy*dy + dz*dz;
     int jtype = type(j);
     if (rsq < rnd_cutsq(itype,jtype) && rsq > 1e-20) {
       int jelem = 0;
@@ -528,8 +544,10 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
 }
 
 template<class DeviceType, typename real_type, int vector_length>
+template<bool chemsnap>
 KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeUiSmall,const typename Kokkos::TeamPolicy<DeviceType,TagCSNAGridLocalComputeUiSmall>::member_type& team) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeUiSmall<chemsnap>,
+  const typename Kokkos::TeamPolicy<DeviceType,TagCSNAGridLocalComputeUiSmall<chemsnap>>::member_type& team) const {
 
   // extract flattened atom_div / neighbor number / bend location
   int flattened_idx = team.team_rank() + team.league_rank() * team_size_compute_ui;
@@ -548,14 +566,16 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
     const int ninside = d_ninside(ii);
     if (jj >= ninside) return;
 
-    snaKK.compute_ui_small(team, iatom_mod, jbend, jj, iatom_div);
+    snaKK.template compute_ui_small<chemsnap>(team, iatom_mod, jbend, jj, ninside, iatom_div);
   });
 
 }
 
 template<class DeviceType, typename real_type, int vector_length>
+template<bool chemsnap>
 KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeUiLarge,const typename Kokkos::TeamPolicy<DeviceType,TagCSNAGridLocalComputeUiLarge>::member_type& team) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeUiLarge<chemsnap>,
+  const typename Kokkos::TeamPolicy<DeviceType,TagCSNAGridLocalComputeUiLarge<chemsnap>>::member_type& team) const {
 
   // extract flattened atom_div / neighbor number / bend location
   int flattened_idx = team.team_rank() + team.league_rank() * team_size_compute_ui;
@@ -572,7 +592,7 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
     const int ninside = d_ninside(ii);
     if (jj >= ninside) return;
 
-    snaKK.compute_ui_large(team,iatom_mod, jj, iatom_div);
+    snaKK.template compute_ui_large<chemsnap>(team,iatom_mod, jj, ninside, iatom_div);
   });
 }
 

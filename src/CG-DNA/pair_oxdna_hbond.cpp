@@ -30,6 +30,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace MFOxdna;
@@ -235,7 +236,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
             b_hb_lo[atype][btype], b_hb_hi[atype][btype], shift_hb[atype][btype]);
 
       // early rejection criterium
-      if (f1) {
+      if (f1 != 0.0) {
 
       cost1 = -1.0*MathExtra::dot3(ax,bx);
       if (cost1 >  1.0) cost1 =  1.0;
@@ -246,7 +247,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
             b_hb1[atype][btype], dtheta_hb1_c[atype][btype]);
 
       // early rejection criterium
-      if (f4t1) {
+      if (f4t1 != 0.0) {
 
       cost2 = -1.0*MathExtra::dot3(ax,delr_hb_norm);
       if (cost2 >  1.0) cost2 =  1.0;
@@ -257,7 +258,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
             b_hb2[atype][btype], dtheta_hb2_c[atype][btype]);
 
       // early rejection criterium
-      if (f4t2) {
+      if (f4t2 != 0.0) {
 
       cost3 = MathExtra::dot3(bx,delr_hb_norm);
       if (cost3 >  1.0) cost3 =  1.0;
@@ -268,7 +269,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
             b_hb3[atype][btype], dtheta_hb3_c[atype][btype]);
 
       // early rejection criterium
-      if (f4t3) {
+      if (f4t3 != 0.0) {
 
       az[0] = nz_xtrct[a][0];
       az[1] = nz_xtrct[a][1];
@@ -286,7 +287,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
             b_hb4[atype][btype], dtheta_hb4_c[atype][btype]);
 
       // early rejection criterium
-      if (f4t4) {
+      if (f4t4 != 0.0) {
 
       cost7 = -1.0*MathExtra::dot3(az,delr_hb_norm);
       if (cost7 >  1.0) cost7 =  1.0;
@@ -297,7 +298,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
             b_hb7[atype][btype], dtheta_hb7_c[atype][btype]);
 
       // early rejection criterium
-      if (f4t7) {
+      if (f4t7 != 0.0) {
 
       cost8 = MathExtra::dot3(bz,delr_hb_norm);
       if (cost8 >  1.0) cost8 =  1.0;
@@ -310,7 +311,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       evdwl = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8 * factor_lj;
 
       // early rejection criterium
-      if (evdwl) {
+      if (evdwl != 0.0) {
 
       df1 = DF1(r_hb, epsilon_hb[atype][btype], a_hb[atype][btype], cut_hb_0[atype][btype],
             cut_hb_lc[atype][btype], cut_hb_hc[atype][btype], cut_hb_lo[atype][btype], cut_hb_hi[atype][btype],
@@ -356,7 +357,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       delf[2] += delr_hb[2] * finc;
 
       // theta2 force
-      if (theta2) {
+      if (theta2 != 0.0) {
 
         finc  = -f1 * f4t1 * df4t2 * f4t3 * f4t4 * f4t7 * f4t8 * rinv_hb * factor_lj;
 
@@ -367,7 +368,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       }
 
       // theta3 force
-      if (theta3) {
+      if (theta3 != 0.0) {
 
         finc  = -f1 * f4t1 * f4t2 * df4t3 * f4t4 * f4t7 * f4t8 * rinv_hb * factor_lj;
 
@@ -378,7 +379,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       }
 
       // theta7 force
-      if (theta7) {
+      if (theta7 != 0.0) {
 
         finc  = -f1 * f4t1 * f4t2 * f4t3 * f4t4 * df4t7 * f4t8 * rinv_hb * factor_lj;
 
@@ -389,7 +390,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       }
 
       // theta8 force
-      if (theta8) {
+      if (theta8 != 0.0) {
 
         finc  = -f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * df4t8 * rinv_hb * factor_lj;
 
@@ -443,7 +444,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       deltb[2] = 0.0;
 
       // theta1 torque
-      if (theta1) {
+      if (theta1 != 0.0) {
 
         tpair = -f1 * df4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8 * factor_lj;
         MathExtra::cross3(ax,bx,t1dir);
@@ -459,7 +460,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       }
 
       // theta2 torque
-      if (theta2) {
+      if (theta2 != 0.0) {
 
         tpair = -f1 * f4t1 * df4t2 * f4t3 * f4t4 * f4t7 * f4t8 * factor_lj;
         MathExtra::cross3(ax,delr_hb_norm,t2dir);
@@ -471,7 +472,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       }
 
       // theta3 torque
-      if (theta3) {
+      if (theta3 != 0.0) {
 
         tpair = -f1 * f4t1 * f4t2 * df4t3 * f4t4 * f4t7 * f4t8 * factor_lj;
         MathExtra::cross3(bx,delr_hb_norm,t3dir);
@@ -483,7 +484,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       }
 
       // theta4 torque
-      if (theta4) {
+      if (theta4 != 0.0) {
 
         tpair = -f1 * f4t1 * f4t2 * f4t3 * df4t4 * f4t7 * f4t8 * factor_lj;
         MathExtra::cross3(bz,az,t4dir);
@@ -499,7 +500,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       }
 
       // theta7 torque
-      if (theta7) {
+      if (theta7 != 0.0) {
 
         tpair = -f1 * f4t1 * f4t2 * f4t3 * f4t4 * df4t7 * f4t8 * factor_lj;
         MathExtra::cross3(az,delr_hb_norm,t7dir);
@@ -511,7 +512,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       }
 
       // theta8 torque
-      if (theta8) {
+      if (theta8 != 0.0) {
 
         tpair = -f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * df4t8 * factor_lj;
         MathExtra::cross3(bz,delr_hb_norm,t8dir);

@@ -50,10 +50,10 @@ class Image : protected Pointers {
   void write_PPM(FILE *);
   void view_params(double, double, double, double, double, double);
 
-  void draw_sphere(double *, double *, double);
-  void draw_cube(double *, double *, double);
-  void draw_cylinder(double *, double *, double *, double, int);
-  void draw_triangle(double *, double *, double *, double *);
+  void draw_sphere(const double *, const double *, double);
+  void draw_cube(const double *, const double *, double);
+  void draw_cylinder(const double *, const double *, const double *, double, int);
+  void draw_triangle(const double *, const double *, const double *, const double *);
   void draw_box(double (*)[3], double);
   void draw_axes(double (*)[3], double);
 
@@ -127,7 +127,7 @@ class Image : protected Pointers {
 
   // internal methods
 
-  void draw_pixel(int, int, double, double *, double *);
+  void draw_pixel(int, int, double, const double *, const double *);
   void compute_SSAO();
 
   // inline functions

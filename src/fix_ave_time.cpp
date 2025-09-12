@@ -29,7 +29,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <stdexcept>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -83,7 +82,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   char **earg;
   int *amap = nullptr;
   nvalues = utils::expand_args(FLERR, nvalues, &arg[ioffset], mode, earg, lmp, &amap);
-  key2col.clear();
 
   if (earg != &arg[ioffset]) expand = 1;
   arg = earg;
@@ -97,7 +95,6 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     value_t val;
     val.keyword = arg[i];
     val.which = argi.get_type();
-    key2col[arg[i]] = i;
 
     val.argindex = argi.get_index1();
     if (expand) val.iarg = amap[i] + ioffset;
@@ -439,7 +436,7 @@ FixAveTime::~FixAveTime()
   if (any_variable_length && ((nrepeat > 1) || (ave == RUNNING) || (ave == WINDOW))) {
     for (auto &val : values) {
       if (val.varlen) {
-        auto icompute = modify->get_compute_by_id(val.id);
+        auto *icompute = modify->get_compute_by_id(val.id);
         if (icompute) {
           if ((ave == RUNNING) || (ave == WINDOW))
             icompute->unlock(this);
@@ -1006,34 +1003,6 @@ double FixAveTime::compute_array(int i, int j)
   if (i >= nrows) return 0.0;
   if (norm) return array_total[i][j]/norm;
   return 0.0;
-}
-
-/* ----------------------------------------------------------------------
-   modify settings
-------------------------------------------------------------------------- */
-
-int FixAveTime::modify_param(int narg, char **arg)
-{
-  if (strcmp(arg[0], "colname") == 0) {
-    if (narg < 3) utils::missing_cmd_args(FLERR, "fix_modify colname", error);
-    int icol = -1;
-    if (utils::is_integer(arg[1])) {
-      icol = utils::inumeric(FLERR, arg[1], false, lmp);
-      if (icol < 0) icol = values.size() + icol + 1;
-      icol--;
-    } else {
-      try {
-        icol = key2col.at(arg[1]);
-      } catch (std::out_of_range &) {
-        icol = -1;
-      }
-    }
-    if ((icol < 0) || (icol >= (int) values.size()))
-      error->all(FLERR, 1 + 1, "Thermo_modify colname column {} invalid", arg[1]);
-    values[icol].keyword = arg[2];
-    return 3;
-  }
-  return 0;
 }
 
 /* ----------------------------------------------------------------------

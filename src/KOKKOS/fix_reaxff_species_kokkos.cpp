@@ -38,13 +38,17 @@ using namespace FixConst;
 FixReaxFFSpeciesKokkos::FixReaxFFSpeciesKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixReaxFFSpecies(lmp, narg, arg)
 {
-  kokkosable = 1;
+  // not all functions in FixReaxFFSpecies are ported to KOKKOS
+  //  so set kokkosable flag to zero
+
+  kokkosable = 0;
+
   atomKK = (AtomKokkos *) atom;
 
   // NOTE: Could improve performance if a Kokkos version of ComputeSpecAtom is added
 
-  datamask_read = X_MASK | V_MASK | Q_MASK | MASK_MASK;
-  datamask_modify = EMPTY_MASK;
+  datamask_read = X_MASK | V_MASK | Q_MASK | MASK_MASK | DVECTOR_MASK | TYPE_MASK | RMASS_MASK | TAG_MASK;
+  datamask_modify = DVECTOR_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -53,7 +57,8 @@ void FixReaxFFSpeciesKokkos::init()
 {
   Pair* pair_kk = force->pair_match("^reax../kk",0);
   if (pair_kk == nullptr)
-    error->all(FLERR,"Cannot use fix reaxff/species/kk without pair_style reaxff/kk");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Cannot use fix reaxff/species/kk without pair_style reaxff/kk");
 
   FixReaxFFSpecies::init();
 }
@@ -69,14 +74,14 @@ void FixReaxFFSpeciesKokkos::FindMolecule()
   double **spec_atom = f_SPECBOND->array_atom;
 
   inum = reaxff->list->inum;
-  typename ArrayTypes<LMPHostType>::t_int_1d ilist;
-  if (reaxff->execution_space == Host) {
+  HAT::t_int_1d ilist;
+  if (reaxff->execution_space == HostKK) {
     NeighListKokkos<LMPHostType>* k_list = static_cast<NeighListKokkos<LMPHostType>*>(reaxff->list);
-    k_list->k_ilist.sync<LMPHostType>();
+    k_list->k_ilist.sync_host();
     ilist = k_list->k_ilist.h_view;
   } else {
     NeighListKokkos<LMPDeviceType>* k_list = static_cast<NeighListKokkos<LMPDeviceType>*>(reaxff->list);
-    k_list->k_ilist.sync<LMPHostType>();
+    k_list->k_ilist.sync_host();
     ilist = k_list->k_ilist.h_view;
   }
 

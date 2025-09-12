@@ -102,11 +102,11 @@ void FixSMDTlsphDtReset::end_of_step() {
          * extract minimum CFL timestep from TLSPH and ULSPH pair styles
          */
 
-        auto dtCFL_TLSPH = (double *) force->pair->extract("smd/tlsph/dtCFL_ptr", itmp);
-        auto dtCFL_ULSPH = (double *) force->pair->extract("smd/ulsph/dtCFL_ptr", itmp);
-        auto dt_TRI = (double *) force->pair->extract("smd/tri_surface/stable_time_increment_ptr", itmp);
-        auto dt_HERTZ = (double *) force->pair->extract("smd/hertz/stable_time_increment_ptr", itmp);
-        auto dt_PERI_IPMB = (double *) force->pair->extract("smd/peri_ipmb/stable_time_increment_ptr", itmp);
+        auto *dtCFL_TLSPH = (double *) force->pair->extract("smd/tlsph/dtCFL_ptr", itmp);
+        auto *dtCFL_ULSPH = (double *) force->pair->extract("smd/ulsph/dtCFL_ptr", itmp);
+        auto *dt_TRI = (double *) force->pair->extract("smd/tri_surface/stable_time_increment_ptr", itmp);
+        auto *dt_HERTZ = (double *) force->pair->extract("smd/hertz/stable_time_increment_ptr", itmp);
+        auto *dt_PERI_IPMB = (double *) force->pair->extract("smd/peri_ipmb/stable_time_increment_ptr", itmp);
 
         if ((dtCFL_TLSPH == nullptr) && (dtCFL_ULSPH == nullptr) && (dt_TRI == nullptr) && (dt_HERTZ == nullptr)
                         && (dt_PERI_IPMB == nullptr)) {
@@ -221,7 +221,7 @@ void FixSMDTlsphDtReset::write_restart(FILE *fp) {
 
 void FixSMDTlsphDtReset::restart(char *buf) {
         int n = 0;
-        auto list = (double *) buf;
+        auto *list = (double *) buf;
         t_elapsed = list[n++];
 }
 

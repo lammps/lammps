@@ -95,17 +95,6 @@ void PairUF3Kokkos<DeviceType>::destroy_4d(TYPE data, typename TYPE::value_type*
 }
 
 /* ----------------------------------------------------------------------
- *     global settings
- * ---------------------------------------------------------------------- */
-
-template <class DeviceType> void PairUF3Kokkos<DeviceType>::settings(int narg, char **arg)
-{
-  PairUF3::settings(narg, arg);
-  //1. Determines whether the simulation is 2-body or 2 and 3-body
-  //2. Set nbody_flag, num_of_elements, pot_3b
-}
-
-/* ----------------------------------------------------------------------
  *    set coeffs for one or more type pairs
  * ---------------------------------------------------------------------- */
 template <class DeviceType> void PairUF3Kokkos<DeviceType>::coeff(int narg, char **arg)
@@ -184,7 +173,7 @@ template <class DeviceType> double PairUF3Kokkos<DeviceType>::init_one(int i, in
 
   k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone; //Update the k_cutsq's
   //host memory
-  k_cutsq.template modify<LMPHostType>(); //Record that k_cutsq's host memory has
+  k_cutsq.modify_host(); //Record that k_cutsq's host memory has
   //been modified
 
   return cutone;
@@ -213,8 +202,8 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_coefficients(
         }
       }
     }
-    k_cut_3b.template modify<LMPHostType>();
-    k_min_cut_3b.template modify<LMPHostType>();
+    k_cut_3b.modify_host();
+    k_min_cut_3b.modify_host();
   }
 
   //No allocation on device for --> setflag, cut, knot_spacing_type_2b,
@@ -451,7 +440,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
         for (int i = 0; i < coeff_dim1; i++) {
           for (int j = 0; j < coeff_dim2; j++) {
             for (int k = 0; k < coeff_dim3; k++) {
-              F_FLOAT dntemp4 =
+              double dntemp4 =
                   3 / (n3b_knots_array[map_3b[n][m][o]][0][k + 4] - n3b_knots_array[map_3b[n][m][o]][0][k + 1]);
 
               d_dncoefficients_3b_view(map3b_view(n, m, o), 2, i, j, k) =
@@ -461,12 +450,12 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
         }
 
         for (int i = 0; i < coeff_dim1; i++) {
-          std::vector<std::vector<F_FLOAT>> dncoeff_vect2;
+          std::vector<std::vector<double>> dncoeff_vect2;
           for (int j = 0; j < coeff_dim2; j++) {
-            F_FLOAT dntemp4 =
+            double dntemp4 =
                 3 / (n3b_knots_array[map_3b[n][m][o]][1][j + 4] - n3b_knots_array[map_3b[n][m][o]][1][j + 1]);
 
-            std::vector<F_FLOAT> dncoeff_vect;
+            std::vector<double> dncoeff_vect;
             for (int k = 0; k < coeff_dim3; k++) {
               d_dncoefficients_3b_view(map3b_view(n, m, o), 1, i, j, k) =
                   (n3b_coeff_array[map_3b[n][m][o]][i][j + 1][k] - n3b_coeff_array[map_3b[n][m][o]][i][j][k]) * dntemp4;
@@ -475,7 +464,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
         }
 
         for (int i = 0; i < coeff_dim1; i++) {
-          F_FLOAT dntemp4 =
+          double dntemp4 =
               3 / (n3b_knots_array[map_3b[n][m][o]][2][i + 4] - n3b_knots_array[map_3b[n][m][o]][2][i + 1]);
           for (int j = 0; j < coeff_dim2; j++) {
             for (int k = 0; k < coeff_dim3; k++) {
@@ -558,8 +547,8 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
 template <class DeviceType>
 template <int EVFLAG>
 KOKKOS_INLINE_FUNCTION void PairUF3Kokkos<DeviceType>::twobody(const int itype, const int jtype,
-                                                               const F_FLOAT r, F_FLOAT &evdwl,
-                                                               F_FLOAT &fpair) const
+                                                               const KK_FLOAT r, KK_FLOAT &evdwl,
+                                                               KK_FLOAT &fpair) const
 {
 
   // Find knot starting position
@@ -568,7 +557,7 @@ KOKKOS_INLINE_FUNCTION void PairUF3Kokkos<DeviceType>::twobody(const int itype, 
   while (r > d_n2b_knot(interaction_id, start_index + 1)) start_index++;
   //int start_index = 3+(int)((r-d_n2b_knot(interaction_id,0))/d_n2b_knot_spacings(interaction_id));
 
-  F_FLOAT r_values[4];
+  KK_FLOAT r_values[4];
   r_values[0] = 1;
   r_values[1] = r;
   r_values[2] = r_values[1] * r_values[1];
@@ -609,18 +598,18 @@ KOKKOS_INLINE_FUNCTION void PairUF3Kokkos<DeviceType>::twobody(const int itype, 
 template <class DeviceType>
 template <int EVFLAG>
 KOKKOS_INLINE_FUNCTION void PairUF3Kokkos<DeviceType>::threebody(
-    const int itype, const int jtype, const int ktype, const F_FLOAT value_rij,
-    const F_FLOAT value_rik, const F_FLOAT value_rjk, F_FLOAT &evdwl, F_FLOAT (&fforce)[3]) const
+    const int itype, const int jtype, const int ktype, const KK_FLOAT value_rij,
+    const KK_FLOAT value_rik, const KK_FLOAT value_rjk, KK_FLOAT &evdwl, KK_FLOAT (&fforce)[3]) const
 {
   evdwl = 0;
   fforce[0] = 0;
   fforce[1] = 0;
   fforce[2] = 0;
 
-  F_FLOAT evals[3][4];
-  F_FLOAT dnevals[3][4];
+  KK_FLOAT evals[3][4];
+  KK_FLOAT dnevals[3][4];
   int start_indices[3];
-  F_FLOAT r[3] = {value_rij, value_rik, value_rjk};
+  KK_FLOAT r[3] = {value_rij, value_rik, value_rjk};
   int interaction_id = map3b(itype, jtype, ktype);
 
   auto coefficients =
@@ -641,7 +630,7 @@ KOKKOS_INLINE_FUNCTION void PairUF3Kokkos<DeviceType>::threebody(
     while (r[d] > d_n3b_knot_matrix(interaction_id, 2-d, start_indices[d] + 1)) start_indices[d]++;
     //start_indices[d] = 3+(int)((r[d]-d_n3b_knot_matrix(interaction_id, 2-d, 0))/d_n3b_knot_matrix_spacings(interaction_id, 2-d));
 
-    F_FLOAT r_values[4];
+    KK_FLOAT r_values[4];
     r_values[0] = 1;
     r_values[1] = r[d];
     r_values[2] = r_values[1] * r_values[1];
@@ -817,17 +806,17 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::compute(int eflag_in
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   if (cvflag_atom) {
     //k_cvatom.template modify<DeviceType>();
-    //k_cvatom.template sync<LMPHostType>();
+    //k_cvatom.sync_host();
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -842,9 +831,9 @@ KOKKOS_INLINE_FUNCTION void PairUF3Kokkos<DeviceType>::operator()(TagPairUF3Comp
                                                                   const int &ii) const
 {
   const int i = d_ilist[ii];
-  const X_FLOAT xtmp = x(i, 0);
-  const X_FLOAT ytmp = x(i, 1);
-  const X_FLOAT ztmp = x(i, 2);
+  const KK_FLOAT xtmp = x(i, 0);
+  const KK_FLOAT ytmp = x(i, 1);
+  const KK_FLOAT ztmp = x(i, 2);
 
   const int jnum = d_numneigh[i];
   int inside = 0;
@@ -852,10 +841,10 @@ KOKKOS_INLINE_FUNCTION void PairUF3Kokkos<DeviceType>::operator()(TagPairUF3Comp
     int j = d_neighbors(i, jj);
     j &= NEIGHMASK;
 
-    const X_FLOAT delx = xtmp - x(j, 0);
-    const X_FLOAT dely = ytmp - x(j, 1);
-    const X_FLOAT delz = ztmp - x(j, 2);
-    const F_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+    const KK_FLOAT delx = xtmp - x(j, 0);
+    const KK_FLOAT dely = ytmp - x(j, 1);
+    const KK_FLOAT delz = ztmp - x(j, 2);
+    const KK_FLOAT rsq = delx * delx + dely * dely + delz * delz;
 
     const int itype = type[i];
     const int jtype = type[j];
@@ -882,40 +871,40 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
   auto a_f = fscatter.access();
   auto a_cvatom = cvscatter.access();
 
-  F_FLOAT del_rji[3], del_rki[3], del_rkj[3], triangle_eval[3];
-  F_FLOAT fij[3], fik[3], fjk[3];
-  F_FLOAT fji[3], fki[3], fkj[3];
-  F_FLOAT Fj[3], Fk[3];
-  F_FLOAT evdwl = 0, evdwl3 = 0;
-  F_FLOAT fpair = 0;
+  KK_FLOAT del_rji[3], del_rki[3], del_rkj[3], triangle_eval[3];
+  KK_FLOAT fij[3], fik[3], fjk[3];
+  KK_FLOAT fji[3], fki[3], fkj[3];
+  KK_ACC_FLOAT Fj[3], Fk[3];
+  KK_FLOAT evdwl = 0, evdwl3 = 0;
+  KK_FLOAT fpair = 0;
 
   const int i = d_ilist[ii];
   const int itype = type[i];
-  const X_FLOAT xtmp = x(i, 0);
-  const X_FLOAT ytmp = x(i, 1);
-  const X_FLOAT ztmp = x(i, 2);
+  const KK_FLOAT xtmp = x(i, 0);
+  const KK_FLOAT ytmp = x(i, 1);
+  const KK_FLOAT ztmp = x(i, 2);
 
   // two-body interactions
 
   const int jnum = d_numneigh_short[i];
 
-  F_FLOAT fxtmpi = 0.0;
-  F_FLOAT fytmpi = 0.0;
-  F_FLOAT fztmpi = 0.0;
+  KK_ACC_FLOAT fxtmpi = 0.0;
+  KK_ACC_FLOAT fytmpi = 0.0;
+  KK_ACC_FLOAT fztmpi = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors_short(i, jj);
     j &= NEIGHMASK;
     const int jtype = type[j];
 
-    const X_FLOAT delx = xtmp - x(j, 0);
-    const X_FLOAT dely = ytmp - x(j, 1);
-    const X_FLOAT delz = ztmp - x(j, 2);
-    const F_FLOAT rsq = delx * delx + dely * dely + delz * delz;
+    const KK_FLOAT delx = xtmp - x(j, 0);
+    const KK_FLOAT dely = ytmp - x(j, 1);
+    const KK_FLOAT delz = ztmp - x(j, 2);
+    const KK_FLOAT rsq = delx * delx + dely * dely + delz * delz;
 
     if (rsq >= d_cutsq(itype, jtype)) continue;
 
-    const F_FLOAT rij = sqrt(rsq);
+    const KK_FLOAT rij = sqrt(rsq);
     this->template twobody<EVFLAG>(itype, jtype, rij, evdwl, fpair);
 
     fpair = -fpair / rij;
@@ -944,11 +933,11 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
     del_rji[0] = x(j, 0) - xtmp;
     del_rji[1] = x(j, 1) - ytmp;
     del_rji[2] = x(j, 2) - ztmp;
-    F_FLOAT rij = sqrt(del_rji[0] * del_rji[0] + del_rji[1] * del_rji[1] + del_rji[2] * del_rji[2]);
+    KK_FLOAT rij = sqrt(del_rji[0] * del_rji[0] + del_rji[1] * del_rji[1] + del_rji[2] * del_rji[2]);
 
-    F_FLOAT fxtmpj = 0.0;
-    F_FLOAT fytmpj = 0.0;
-    F_FLOAT fztmpj = 0.0;
+    KK_ACC_FLOAT fxtmpj = 0.0;
+    KK_ACC_FLOAT fytmpj = 0.0;
+    KK_ACC_FLOAT fztmpj = 0.0;
 
     for (int kk = jj + 1; kk < jnum; kk++) {
       int k = d_neighbors_short(i, kk);
@@ -967,7 +956,7 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
       del_rki[0] = x(k, 0) - xtmp;
       del_rki[1] = x(k, 1) - ytmp;
       del_rki[2] = x(k, 2) - ztmp;
-      F_FLOAT rik =
+      KK_FLOAT rik =
           sqrt(del_rki[0] * del_rki[0] + del_rki[1] * del_rki[1] + del_rki[2] * del_rki[2]);
 
       if (rik < d_min_cut_3b(itype, jtype, ktype, 1)) continue;
@@ -976,7 +965,7 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
       del_rkj[0] = x(k, 0) - x(j, 0);
       del_rkj[1] = x(k, 1) - x(j, 1);
       del_rkj[2] = x(k, 2) - x(j, 2);
-      F_FLOAT rjk =
+      KK_FLOAT rjk =
           sqrt(del_rkj[0] * del_rkj[0] + del_rkj[1] * del_rkj[1] + del_rkj[2] * del_rkj[2]);
       if (rjk < d_min_cut_3b(itype, jtype, ktype, 0)) continue;
       this->template threebody<EVFLAG>(itype, jtype, ktype, rij, rik, rjk, evdwl3, triangle_eval);
@@ -1026,7 +1015,7 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
           this->template ev_tally3<NEIGHFLAG>(ev, i, j, k, evdwl3, 0.0, Fj, Fk, del_rji, del_rki);
           if (cvflag_atom) {
 
-            F_FLOAT ric[3];
+            KK_FLOAT ric[3];
             ric[0] = THIRD * (-del_rji[0] - del_rki[0]);
             ric[1] = THIRD * (-del_rji[1] - del_rki[1]);
             ric[2] = THIRD * (-del_rji[2] - del_rki[2]);
@@ -1040,7 +1029,7 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
             a_cvatom(i, 7) += ric[2] * (-Fj[0] - Fk[0]);
             a_cvatom(i, 8) += ric[2] * (-Fj[1] - Fk[1]);
 
-            double rjc[3];
+            KK_FLOAT rjc[3];
             rjc[0] = THIRD * (del_rji[0] - del_rkj[0]);
             rjc[1] = THIRD * (del_rji[1] - del_rkj[1]);
             rjc[2] = THIRD * (del_rji[2] - del_rkj[2]);
@@ -1055,7 +1044,7 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
             a_cvatom(j, 7) += rjc[2] * Fj[0];
             a_cvatom(j, 8) += rjc[2] * Fj[1];
 
-            double rkc[3];
+            KK_FLOAT rkc[3];
             rkc[0] = THIRD * (del_rki[0] + del_rkj[0]);
             rkc[1] = THIRD * (del_rki[1] + del_rkj[1]);
             rkc[2] = THIRD * (del_rki[2] + del_rkj[2]);
@@ -1098,9 +1087,9 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
 template <class DeviceType>
 template <int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION void
-PairUF3Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j, const F_FLOAT &epair,
-                                    const F_FLOAT &fpair, const F_FLOAT &delx, const F_FLOAT &dely,
-                                    const F_FLOAT &delz) const
+PairUF3Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j, const KK_FLOAT &epair,
+                                    const KK_FLOAT &fpair, const KK_FLOAT &delx, const KK_FLOAT &dely,
+                                    const KK_FLOAT &delz) const
 {
 
   // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA,
@@ -1111,18 +1100,18 @@ PairUF3Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j, co
   auto a_cvatom = cvscatter.access();
 
   if (eflag_atom) {
-    const E_FLOAT epairhalf = 0.5 * epair;
+    const KK_FLOAT epairhalf = 0.5 * epair;
     a_eatom[i] += epairhalf;
     a_eatom[j] += epairhalf;
   }
 
   if (vflag_either) {
-    const E_FLOAT v0 = delx * delx * fpair;
-    const E_FLOAT v1 = dely * dely * fpair;
-    const E_FLOAT v2 = delz * delz * fpair;
-    const E_FLOAT v3 = delx * dely * fpair;
-    const E_FLOAT v4 = delx * delz * fpair;
-    const E_FLOAT v5 = dely * delz * fpair;
+    const KK_FLOAT v0 = delx * delx * fpair;
+    const KK_FLOAT v1 = dely * dely * fpair;
+    const KK_FLOAT v2 = delz * delz * fpair;
+    const KK_FLOAT v3 = delx * dely * fpair;
+    const KK_FLOAT v4 = delx * delz * fpair;
+    const KK_FLOAT v5 = dely * delz * fpair;
 
     if (vflag_global) {
       ev.v[0] += v0;
@@ -1182,10 +1171,10 @@ template <class DeviceType>
 template <int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION void
 PairUF3Kokkos<DeviceType>::ev_tally3(EV_FLOAT &ev, const int &i, const int &j, int &k,
-                                     const F_FLOAT &evdwl, const F_FLOAT &ecoul, F_FLOAT *fj,
-                                     F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drki) const
+                                     const KK_FLOAT &evdwl, const KK_FLOAT &ecoul, KK_ACC_FLOAT *fj,
+                                     KK_ACC_FLOAT *fk, KK_FLOAT *drji, KK_FLOAT *drki) const
 {
-  F_FLOAT epairthird, v[6];
+  KK_FLOAT epairthird, v[6];
 
   // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA,
   // and neither for Serial
@@ -1296,10 +1285,10 @@ void PairUF3Kokkos<DeviceType>::copy_3d(V &d, T ***h, int m, int n, int o)
 }
 
 template <class DeviceType>
-std::vector<F_FLOAT> PairUF3Kokkos<DeviceType>::get_constants(double *knots, double coefficient)
+std::vector<double> PairUF3Kokkos<DeviceType>::get_constants(double *knots, double coefficient)
 {
 
-  std::vector<F_FLOAT> constants(16);
+  std::vector<double> constants(16);
 
   constants[0] = coefficient *
       (-cube(knots[0]) /
@@ -1562,9 +1551,9 @@ std::vector<F_FLOAT> PairUF3Kokkos<DeviceType>::get_constants(double *knots, dou
 }
 
 template <class DeviceType>
-std::vector<F_FLOAT> PairUF3Kokkos<DeviceType>::get_dnconstants(double *knots, double coefficient)
+std::vector<double> PairUF3Kokkos<DeviceType>::get_dnconstants(double *knots, double coefficient)
 {
-  std::vector<F_FLOAT> constants(9);
+  std::vector<double> constants(9);
 
   constants[0] = coefficient *
       (square(knots[0]) /
@@ -1614,7 +1603,7 @@ double PairUF3Kokkos<DeviceType>::single(int /*i*/, int /*j*/, int itype, int jt
   while (r > d_n2b_knot(interaction_id, start_index + 1)) start_index++;
 
   if (r < d_cutsq(itype, jtype)) {
-    F_FLOAT r_values[4];
+    double r_values[4];
     r_values[0] = 1;
     r_values[1] = r;
     r_values[2] = r_values[1] * r_values[1];

@@ -26,6 +26,7 @@
 #include "update.h"
 
 #include <cstring>
+#include <map>
 
 using namespace LAMMPS_NS;
 
@@ -669,11 +670,11 @@ int DumpGrid::parse_fields(int narg, char **arg)
     // grid reference is to a compute or fix
 
     if (iflag == ArgInfo::COMPUTE) {
-      auto icompute = lmp->modify->get_compute_by_id(id);
+      auto *icompute = lmp->modify->get_compute_by_id(id);
       field2index[iarg] = add_compute(id,icompute);
       field2source[iarg] = COMPUTE;
     } else if (iflag == ArgInfo::FIX) {
-      auto ifix = modify->get_fix_by_id(id);
+      auto *ifix = modify->get_fix_by_id(id);
       field2index[iarg] = add_fix(id,ifix);
       field2source[iarg] = FIX;
     }

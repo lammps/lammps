@@ -39,7 +39,7 @@ class FixElectronStopping : public Fix {
   void init_list(int, class NeighList *) override;
   double compute_scalar() override;
 
- private:
+ protected:
   void read_table(const char *);
   void grow_table();
 

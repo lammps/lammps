@@ -20,7 +20,7 @@
 #endif
 #include "tokenizer.h"
 
-#include <cstring>
+#include <array>
 #include <ctime>
 
 using namespace LAMMPS_NS;
@@ -174,9 +174,9 @@ void Timer::print_timeout(FILE *fp)
     // time since init_timeout()
     const double d = platform::walltime() - timeout_start;
     // remaining timeout in seconds
-    int s = _timeout - d;
+    int s = (int) (_timeout - d);
     // remaining 1/100ths of seconds
-    const int hs = 100 * ((_timeout - d) - s);
+    const int hs = static_cast<int>(100.0 * ((_timeout - d) - s));
     // breaking s down into second/minutes/hours
     const int seconds = s % 60;
     s = (s - seconds) / 60;
@@ -216,46 +216,49 @@ double Timer::get_timeout_remain()
 /* ----------------------------------------------------------------------
    modify parameters of the Timer class
 ------------------------------------------------------------------------- */
-static const char *timer_style[] = {"off", "loop", "normal", "full"};
-static const char *timer_mode[] = {"nosync", "(dummy)", "sync"};
+namespace {
+const std::array<const std::string, Timer::NUMLVL> timer_style = {"off", "loop", "normal", "full"};
+const std::array<const std::string, 3> timer_mode = {"nosync", "(dummy)", "sync"};
+}
 
 void Timer::modify_params(int narg, char **arg)
 {
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg], timer_style[OFF]) == 0) {
+    const std::string argstr = arg[iarg];
+    if (timer_style[OFF] == argstr) {
       _level = OFF;
-    } else if (strcmp(arg[iarg], timer_style[LOOP]) == 0) {
+    } else if (timer_style[LOOP] == argstr) {
       _level = LOOP;
-    } else if (strcmp(arg[iarg], timer_style[NORMAL]) == 0) {
+    } else if (timer_style[NORMAL] == argstr) {
       _level = NORMAL;
-    } else if (strcmp(arg[iarg], timer_style[FULL]) == 0) {
+    } else if (timer_style[FULL] == argstr) {
       _level = FULL;
-    } else if (strcmp(arg[iarg], timer_mode[OFF]) == 0) {
+    } else if (timer_mode[OFF] == argstr) {
       _sync = OFF;
-    } else if (strcmp(arg[iarg], timer_mode[NORMAL]) == 0) {
+    } else if (timer_mode[NORMAL] == argstr) {
       _sync = NORMAL;
-    } else if (strcmp(arg[iarg], "timeout") == 0) {
+    } else if (argstr == "timeout") {
       ++iarg;
       if (iarg < narg) {
         try {
           _timeout = utils::timespec2seconds(arg[iarg]);
         } catch (TokenizerException &) {
-          error->all(FLERR, "Illegal timeout time: {}", arg[iarg]);
+          error->all(FLERR, iarg, "Illegal timeout time: {}", argstr);
         }
       } else {
         utils::missing_cmd_args(FLERR, "timer timeout", error);
       }
-    } else if (strcmp(arg[iarg], "every") == 0) {
+    } else if (argstr == "every") {
       ++iarg;
       if (iarg < narg) {
         _checkfreq = utils::inumeric(FLERR, arg[iarg], false, lmp);
-        if (_checkfreq <= 0) error->all(FLERR, "Illegal timer every frequency: {}", arg[iarg]);
+        if (_checkfreq <= 0) error->all(FLERR, iarg, "Illegal timer every frequency: {}", argstr);
       } else {
         utils::missing_cmd_args(FLERR, "timer every", error);
       }
     } else {
-      error->all(FLERR, "Unknown timer keyword {}", arg[iarg]);
+      error->all(FLERR, iarg, "Unknown timer keyword {}", argstr);
     }
     ++iarg;
   }

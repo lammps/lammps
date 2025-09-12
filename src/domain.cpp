@@ -100,7 +100,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boxhi_lamda[0] = boxhi_lamda[1] = boxhi_lamda[2] = 1.0;
 
   lattice = nullptr;
-  auto args = new char*[2];
+  auto *args = new char*[2];
   args[0] = (char *) "none";
   args[1] = (char *) "1.0";
   set_lattice(2,args);
@@ -125,7 +125,7 @@ Domain::~Domain()
 {
   if (copymode) return;
 
-  for (auto &reg : regions) delete reg;
+  for (const auto &reg : regions) delete reg;
   regions.clear();
   delete lattice;
   delete region_map;
@@ -190,7 +190,7 @@ void Domain::init()
 
   // region inits
 
-  for (auto &reg : regions) reg->init();
+  for (const auto &reg : regions) reg->init();
 }
 
 /* ----------------------------------------------------------------------
@@ -2039,7 +2039,7 @@ void Domain::delete_region(Region *reg)
 
 void Domain::delete_region(const std::string &id)
 {
-  auto reg = get_region_by_id(id);
+  auto *reg = get_region_by_id(id);
   if (!reg) error->all(FLERR,"Delete region {} does not exist", id);
   delete_region(reg);
 }
@@ -2051,7 +2051,7 @@ void Domain::delete_region(const std::string &id)
 
 Region *Domain::get_region_by_id(const std::string &name) const
 {
-  for (auto &reg : regions)
+  for (const auto &reg : regions)
     if (name == reg->id) return reg;
   return nullptr;
 }
@@ -2066,7 +2066,7 @@ const std::vector<Region *> Domain::get_region_by_style(const std::string &name)
   std::vector<Region *> matches;
   if (name.empty()) return matches;
 
-  for (auto &reg : regions)
+  for (const auto &reg : regions)
     if (name == reg->style)  matches.push_back(reg);
 
   return matches;

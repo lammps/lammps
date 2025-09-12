@@ -17,7 +17,10 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include <cstdint>
+#include <cfloat>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using ::testing::Eq;

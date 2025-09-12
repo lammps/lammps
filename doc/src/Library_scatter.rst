@@ -27,6 +27,7 @@ It documents the following functions:
 - :cpp:func:`lammps_scatter`
 - :cpp:func:`lammps_scatter_subset`
 - :cpp:func:`lammps_create_atoms`
+- :cpp:func:`lammps_create_molecule`
 
 -----------------------
 
@@ -103,4 +104,8 @@ It documents the following functions:
 .. doxygenfunction:: lammps_create_atoms(void *handle, int n, const int *id, const int *type, const double *x, const double *v, const int *image, int bexpand)
    :project: progguide
 
+-----------------------
+
+.. doxygenfunction:: lammps_create_molecule
+   :project: progguide
 

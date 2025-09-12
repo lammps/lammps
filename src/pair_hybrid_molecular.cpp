@@ -43,7 +43,7 @@ void PairHybridMolecular::init_style()
   // modify neighbor list requests
 
   bool first = true;
-  for (auto &request : neighbor->get_pair_requests()) {
+  for (const auto &request : neighbor->get_pair_requests()) {
     if (first) {
       request->set_molskip(NeighRequest::INTRA);
       first = false;
@@ -117,7 +117,7 @@ double PairHybridMolecular::init_one(int i, int j)
       if (cut > cutmax_style[istyle]) {
         cutmax_style[istyle] = cut;
 
-        for (auto &request : neighbor->get_pair_requests()) {
+        for (const auto &request : neighbor->get_pair_requests()) {
           if (styles[istyle] == request->get_requestor()) {
             request->set_cutoff(cutmax_style[istyle]);
             break;

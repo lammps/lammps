@@ -61,9 +61,9 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
   void compute_style(int, int);
 
   void init_style() override;
-  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_xfloat_1d&,
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d&,
                                int, int *) override;
-  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d&) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
@@ -97,8 +97,8 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                  const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
  private:
   int nlocal;
@@ -121,56 +121,56 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
   //};
 
   /*struct TableDeviceConst {
-    typename AT::t_int_2d_randomread tabindex;
-    typename AT::t_ffloat_1d_randomread innersq,invdelta;
-    typename AT::t_ffloat_2d_randomread rsq,e,de,f,df;
+    typename AT::t_int_2d_lr_randomread tabindex;
+    typename AT::t_double_1d_randomread innersq,invdelta;
+    typename AT::t_double_2d_lr_randomread rsq,e,de,f,df;
   };*/
  //Its faster not to use texture fetch if the number of tables is less than 32!
   struct TableDeviceConst {
-    typename AT::t_int_2d tabindex;
-    typename AT::t_ffloat_1d innersq,invdelta;
-    typename AT::t_ffloat_2d_randomread rsq,e,de,f,df;
+    typename AT::t_int_2d_lr tabindex;
+    typename AT::t_double_1d innersq,invdelta;
+    typename AT::t_double_2d_lr_randomread rsq,e,de,f,df;
   };
 
   struct TableDevice {
-    typename AT::t_int_2d tabindex;
-    typename AT::t_ffloat_1d innersq,invdelta;
-    typename AT::t_ffloat_2d rsq,e,de,f,df;
+    typename AT::t_int_2d_lr tabindex;
+    typename AT::t_double_1d innersq,invdelta;
+    typename AT::t_double_2d_lr rsq,e,de,f,df;
   };
 
   struct TableHost {
-    HAT::t_int_2d tabindex;
-    HAT::t_ffloat_1d innersq,invdelta;
-    HAT::t_ffloat_2d rsq,e,de,f,df;
+    HAT::t_int_2d_lr tabindex;
+    HAT::t_double_1d innersq,invdelta;
+    HAT::t_double_2d_lr rsq,e,de,f,df;
   };
 
   TableDeviceConst d_table_const;
   TableDevice* d_table;
   TableHost* h_table;
 
-  F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
   void allocate() override;
   int update_table;
   void create_kokkos_tables();
 
   KOKKOS_INLINE_FUNCTION
-  void getMixingWeights(int, double &, double &, double &, double &) const;
+  void getMixingWeights(int, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &) const;
 
-  typename AT::t_float_1d d_mixWtSite1old,d_mixWtSite2old,d_mixWtSite1,d_mixWtSite2;
+  typename AT::t_kkfloat_1d d_mixWtSite1old,d_mixWtSite2old,d_mixWtSite1,d_mixWtSite2;
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
-  typename AT::t_efloat_1d rho;
-  typename HAT::t_efloat_1d h_rho;
-  typename AT::t_efloat_1d uCG, uCGnew;
-  typename AT::t_float_2d dvector;
+  typename AT::t_kkfloat_1d rho;
+  typename HAT::t_double_1d h_rho;
+  typename AT::t_kkfloat_1d uCG, uCGnew;
+  typename AT::t_kkfloat_2d dvector;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
@@ -178,12 +178,12 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
 
   DAT::tdual_int_scalar k_error_flag;
 
-  typename AT::tdual_ffloat_2d k_cutsq;
-  typename AT::t_ffloat_2d d_cutsq;
+  DAT::ttransform_kkfloat_2d k_cutsq;
+  typename AT::t_kkfloat_2d d_cutsq;
 
   int first;
   typename AT::t_int_1d d_sendlist;
-  typename AT::t_xfloat_1d_um v_buf;
+  typename AT::t_double_1d_um v_buf;
 
   friend void pair_virial_fdotr_compute<PairMultiLucyRXKokkos>(PairMultiLucyRXKokkos*);
 };

@@ -86,7 +86,7 @@ void CreateBox::command(int narg, char **arg)
 
     } else {
       domain->triclinic = 1;
-      auto prism = dynamic_cast<RegPrism *>(region);
+      auto *prism = dynamic_cast<RegPrism *>(region);
       domain->boxlo[0] = prism->xlo;
       domain->boxhi[0] = prism->xhi;
       domain->boxlo[1] = prism->ylo;

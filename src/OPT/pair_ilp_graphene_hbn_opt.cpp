@@ -40,12 +40,10 @@
 #include "interlayer_taper.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
-#include "pointers.h"
 
 #include <cmath>
-#include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace InterLayer;
@@ -459,7 +457,7 @@ void PairILPGrapheneHBNOpt::eval()
 /* ----------------------------------------------------------------------
    Calculate the normals for one atom
 ------------------------------------------------------------------------- */
-inline void deriv_normal(double dndr[3][3], double *del, double *n, double rnnorm)
+static inline void deriv_normal(double dndr[3][3], double *del, double *n, double rnnorm)
 {
   dndr[0][0] = (del[2] * n[0] * n[1] - del[1] * n[0] * n[2]) * rnnorm;
   dndr[1][0] = (-del[2] * (n[0] * n[0] + n[2] * n[2]) - del[1] * n[1] * n[2]) * rnnorm;
@@ -471,7 +469,7 @@ inline void deriv_normal(double dndr[3][3], double *del, double *n, double rnnor
   dndr[1][2] = (del[1] * n[0] * n[1] + del[0] * (n[0] * n[0] + n[2] * n[2])) * rnnorm;
   dndr[2][2] = (del[1] * n[0] * n[2] - del[0] * n[1] * n[2]) * rnnorm;
 }
-inline void deriv_hat(double dnhatdn[3][3], double *n, double rnnorm, double factor){
+static inline void deriv_hat(double dnhatdn[3][3], double *n, double rnnorm, double factor){
   double cfactor = rnnorm * factor;
   dnhatdn[0][0] = (n[1]*n[1]+n[2]*n[2])*cfactor;
   dnhatdn[1][0] = -n[1]*n[0]*cfactor;
@@ -483,7 +481,7 @@ inline void deriv_hat(double dnhatdn[3][3], double *n, double rnnorm, double fac
   dnhatdn[1][2] = -n[1]*n[2]*cfactor;
   dnhatdn[2][2] = (n[0]*n[0]+n[1]*n[1])*cfactor;
 }
-inline double normalize_factor(double *n)
+static inline double normalize_factor(double *n)
 {
   double nnorm = sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
   double rnnorm = 1 / nnorm;
@@ -605,7 +603,7 @@ void PairILPGrapheneHBNOpt::calc_atom_normal(int i, int itype, int *ILP_neigh, i
 
 /* ------------------------------------------------------------------------ */
 
-bool check_vdw(tagint itag, tagint jtag, double *xi, double *xj)
+static bool check_vdw(tagint itag, tagint jtag, double *xi, double *xj)
 {
   if (itag > jtag) {
     if ((itag + jtag) % 2 == 0) return false;

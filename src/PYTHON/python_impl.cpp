@@ -315,7 +315,7 @@ void PythonImpl::command(int narg, char **arg)
 
   // pFunc = function object for requested function
 
-  auto pModule = (PyObject *) pyMain;
+  auto *pModule = (PyObject *) pyMain;
   PyObject *pFunc = PyObject_GetAttrString(pModule, pfuncs[ifunc].name);
 
   if (!pFunc) {
@@ -345,7 +345,7 @@ void PythonImpl::invoke_function(int ifunc, char *result, double *dvalue)
   PyObject *pValue;
   char *str;
 
-  auto pFunc = (PyObject *) pfuncs[ifunc].pFunc;
+  auto *pFunc = (PyObject *) pfuncs[ifunc].pFunc;
 
   // create Python tuple of input arguments
 
@@ -590,10 +590,8 @@ int PythonImpl::create_entry(char *name, int ninput, int noutput, int length_lon
         pfuncs[ifunc].svalue[i] = utils::strdup(istr[i] + 3);
         char *vname = pfuncs[ifunc].svalue[i];
         int ivar = input->variable->find(vname);
-        if (ivar < 0) {    // create internal variable if does not exist
-          input->variable->internal_create(vname, 0.0);
-          ivar = input->variable->find(vname);
-        }
+        // create internal variable if does not exist
+        if (ivar < 0) ivar = input->variable->internal_create(vname, 0.0);
         if (!input->variable->internalstyle(ivar))
           error->all(FLERR, Error::NOLASTLINE, "Variable {} for python command is invalid style",
                      vname);
@@ -611,10 +609,8 @@ int PythonImpl::create_entry(char *name, int ninput, int noutput, int length_lon
         pfuncs[ifunc].svalue[i] = utils::strdup(istr[i] + 3);
         char *vname = pfuncs[ifunc].svalue[i];
         int ivar = input->variable->find(vname);
-        if (ivar < 0) {    // create internal variable if does not exist
-          input->variable->internal_create(vname, 0.0);
-          ivar = input->variable->find(vname);
-        }
+        // create internal variable if does not exist
+        if (ivar < 0) ivar = input->variable->internal_create(vname, 0.0);
         if (!input->variable->internalstyle(ivar))
           error->all(FLERR, Error::NOLASTLINE, "Variable {} for python command is invalid style",
                      vname);

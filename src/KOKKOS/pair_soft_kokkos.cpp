@@ -118,12 +118,12 @@ void PairSoftKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -134,14 +134,14 @@ void PairSoftKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairSoftKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int &, const int &, const int& itype, const int& jtype) const {
-  const F_FLOAT r = sqrt(rsq);
-  const F_FLOAT cut_ij = STACKPARAMS?m_params[itype][jtype].cut:params(itype,jtype).cut;
-  const F_FLOAT prefactor_ij = STACKPARAMS?m_params[itype][jtype].prefactor:params(itype,jtype).prefactor;
-  const F_FLOAT arg = MY_PI*r/cut_ij;
+KK_FLOAT PairSoftKokkos<DeviceType>::
+compute_fpair(const KK_FLOAT& rsq, const int &, const int &, const int& itype, const int& jtype) const {
+  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT cut_ij = STACKPARAMS?m_params[itype][jtype].cut:params(itype,jtype).cut;
+  const KK_FLOAT prefactor_ij = STACKPARAMS?m_params[itype][jtype].prefactor:params(itype,jtype).prefactor;
+  const KK_FLOAT arg = MY_PI*r/cut_ij;
 
-  F_FLOAT fpair = 0.0;
+  KK_FLOAT fpair = 0.0;
   if (r > 0.0) fpair = prefactor_ij * sin(arg) * MY_PI/cut_ij/r;
 
   return fpair;
@@ -150,12 +150,12 @@ compute_fpair(const F_FLOAT& rsq, const int &, const int &, const int& itype, co
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairSoftKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int &, const int &, const int& itype, const int& jtype) const {
-  const F_FLOAT r = sqrt(rsq);
-  const F_FLOAT cut_ij = STACKPARAMS?m_params[itype][jtype].cut:params(itype,jtype).cut;
-  const F_FLOAT prefactor_ij = STACKPARAMS?m_params[itype][jtype].prefactor:params(itype,jtype).prefactor;
-  const F_FLOAT arg = MY_PI*r/cut_ij;
+KK_FLOAT PairSoftKokkos<DeviceType>::
+compute_evdwl(const KK_FLOAT& rsq, const int &, const int &, const int& itype, const int& jtype) const {
+  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT cut_ij = STACKPARAMS?m_params[itype][jtype].cut:params(itype,jtype).cut;
+  const KK_FLOAT prefactor_ij = STACKPARAMS?m_params[itype][jtype].prefactor:params(itype,jtype).prefactor;
+  const KK_FLOAT arg = MY_PI*r/cut_ij;
 
   return prefactor_ij*(1.0+cos(arg));
 }
@@ -175,18 +175,6 @@ void PairSoftKokkos<DeviceType>::allocate()
   d_cutsq = k_cutsq.template view<DeviceType>();
   k_params = Kokkos::DualView<params_soft**,Kokkos::LayoutRight,DeviceType>("PairSoft::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
-}
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairSoftKokkos<DeviceType>::settings(int narg, char **arg)
-{
-  if (narg > 2) error->all(FLERR,"Illegal pair_style command");
-
-  PairSoft::settings(1,arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -237,8 +225,8 @@ double PairSoftKokkos<DeviceType>::init_one(int i, int j)
   }
 
   k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
-  k_params.template modify<LMPHostType>();
+  k_cutsq.modify_host();
+  k_params.modify_host();
 
   return cutone;
 }

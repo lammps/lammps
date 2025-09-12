@@ -35,7 +35,6 @@
 #include "improper.h"
 #include "input.h"
 #include "json.h"
-#include "lmpfftsettings.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
@@ -113,22 +112,23 @@ static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
 
 using namespace LAMMPS_NS;
 
-static const char *mapstyles[] = { "none", "array", "hash", "yes" };
+namespace {
+const char * const mapstyles[] = { "none", "array", "hash", "yes" };
+const char * const commstyles[] = { "brick", "tiled" };
+const char * const commlayout[] = { "uniform", "nonuniform", "irregular" };
 
-static const char *commstyles[] = { "brick", "tiled" };
-static const char *commlayout[] = { "uniform", "nonuniform", "irregular" };
-
-static const char bstyles[] = "pfsm";
-
-template<typename ValueType>
-static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles);
+const char bstyles[] = "pfsm";
 
 template<typename ValueType>
-static bool find_style(const LAMMPS *lmp, std::map<std::string, ValueType> *styles,
+void print_columns(FILE *fp, std::map<std::string, ValueType> *styles);
+
+template<typename ValueType>
+bool find_style(const LAMMPS *lmp, std::map<std::string, ValueType> *styles,
                        const std::string &name, bool suffix_check);
 
 template<typename ValueType>
-static std::vector<std::string> get_style_names(std::map<std::string, ValueType> *styles);
+std::vector<std::string> get_style_names(std::map<std::string, ValueType> *styles);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -391,17 +391,7 @@ void Info::command(int narg, char **arg)
           }
 
           if (comm->cutusermulti) cut = MAX(cut,comm->cutusermulti[i]);
-          utils::print(out,"Communication cutoff for collection {} = {:.8}\n", i, cut);
-        }
-      }
-
-      if (comm->mode == 2) {
-        fputs("Communication mode = multi/old\n",out);
-        double cut;
-        for (int i=1; i <= atom->ntypes && neighbor->cuttype; ++i) {
-          cut = neighbor->cuttype[i];
-          if (comm->cutusermultiold) cut = MAX(cut,comm->cutusermultiold[i]);
-          utils::print(out,"Communication cutoff for type {} = {:.8}\n", i, cut);
+          utils::print(out,"Communication cutoff for collection {} = {:.8}\n", i + 1, cut);
         }
       }
     }
@@ -436,7 +426,7 @@ void Info::command(int narg, char **arg)
     if (atom->q) utils::print(out,"Atoms with per-atom charges\n");
 
     if (force->pair && utils::strmatch(force->pair_style,"^hybrid")) {
-      auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
+      auto *hybrid = dynamic_cast<PairHybrid *>(force->pair);
       utils::print(out,"Hybrid sub-styles:");
       for (int i=0; i < hybrid->nstyles; ++i)
         utils::print(out," {}", hybrid->keywords[i]);
@@ -492,6 +482,7 @@ void Info::command(int narg, char **arg)
     }
     utils::print(out,"\nCurrent timestep number = {}\n", update->ntimestep);
     utils::print(out,"Current timestep size = {}\n", update->dt);
+    utils::print(out,"Current simulation time = {}\n", update->atime);
   }
 
   if (domain->box_exist && (flags & COEFFS)) {
@@ -520,7 +511,7 @@ void Info::command(int narg, char **arg)
   if (flags & REGIONS) {
     fputs("\nRegion information:\n",out);
     int i=0;
-    for (auto &reg : domain->get_region_list()) {
+    for (const auto &reg : domain->get_region_list()) {
       utils::print(out,"Region[{:3d}]:  {:16}  style = {:16}  side = {}\n",
                  i, std::string(reg->id)+',', std::string(reg->style)+',',
                  reg->interior ? "in" : "out");
@@ -585,14 +576,14 @@ void Info::command(int narg, char **arg)
     double cpuclock = platform::cputime();
 
     int cpuh,cpum,cpus,wallh,wallm,walls;
-    cpus = fmod(cpuclock,60.0);
+    cpus = (int) fmod(cpuclock, 60.0);
     cpuclock = (cpuclock - cpus) / 60.0;
-    cpum = fmod(cpuclock,60.0);
-    cpuh = (cpuclock - cpum) / 60.0;
-    walls = fmod(wallclock,60.0);
+    cpum = (int) fmod(cpuclock, 60.0);
+    cpuh = (int) ((cpuclock - cpum) / 60.0);
+    walls = (int) fmod(wallclock, 60.0);
     wallclock = (wallclock - walls) / 60.0;
-    wallm = fmod(wallclock,60.0);
-    wallh = (wallclock - wallm) / 60.0;
+    wallm = (int) fmod(wallclock, 60.0);
+    wallh = (int) ((wallclock - wallm) / 60.0);
     utils::print(out,"\nTotal time information (MPI rank 0):\n"
                "  CPU time: {:4d}:{:02d}:{:02d}\n"
                " Wall time: {:4d}:{:02d}:{:02d}\n",
@@ -933,8 +924,9 @@ std::vector<std::string> Info::get_available_styles(const std::string &category)
   return {};
 }
 
+namespace {
 template<typename ValueType>
-static std::vector<std::string> get_style_names(std::map<std::string, ValueType> *styles)
+std::vector<std::string> get_style_names(std::map<std::string, ValueType> *styles)
 {
   std::vector<std::string> names;
 
@@ -949,7 +941,7 @@ static std::vector<std::string> get_style_names(std::map<std::string, ValueType>
 }
 
 template<typename ValueType>
-static bool find_style(const LAMMPS *lmp, std::map<std::string, ValueType> *styles,
+bool find_style(const LAMMPS *lmp, std::map<std::string, ValueType> *styles,
                        const std::string &name, bool suffix_check)
 {
   if (styles->find(name) != styles->end()) {
@@ -974,7 +966,7 @@ static bool find_style(const LAMMPS *lmp, std::map<std::string, ValueType> *styl
 }
 
 template<typename ValueType>
-static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
+void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
 {
   if (styles->empty()) {
     fprintf(fp, "\nNone");
@@ -1013,6 +1005,7 @@ static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
       pos += 80;
     }
   }
+}
 }
 
 bool Info::has_gzip_support() {
@@ -1067,6 +1060,12 @@ bool Info::has_exceptions() {
   return true;
 }
 
+
+/** Return true if a LAMMPS package is enabled in this binary
+ *
+ * \param pkg name of package
+ * \return true if yes, else false
+ */
 bool Info::has_package(const std::string &package_name) {
   for (int i = 0; LAMMPS::installed_packages[i] != nullptr; ++i) {
     if (package_name == LAMMPS::installed_packages[i]) {
@@ -1114,7 +1113,20 @@ bool Info::has_accelerator_feature(const std::string &package,
 #if defined(LMP_KOKKOS)
   if (package == "KOKKOS") {
     if (category == "precision") {
+#if defined(LMP_KOKKOS_SINGLE_SINGLE)
+      return setting == "single";
+#elif defined(LMP_KOKKOS_DOUBLE_DOUBLE)
       return setting == "double";
+#elif defined(LMP_KOKKOS_SINGLE_DOUBLE)
+      return setting == "mixed";
+#endif
+    }
+    if (category == "layout") {
+#if defined(LMP_KOKKOS_LAYOUT_LEGACY)
+      return setting == "legacy";
+#else
+      return setting == "default";
+#endif
     }
     if (category == "api") {
 #if defined(KOKKOS_ENABLE_OPENMP)
@@ -1211,6 +1223,9 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
     if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
+    mesg +=  "\nKOKKOS package view layout:";
+    if (has_accelerator_feature("KOKKOS","layout","legacy")) mesg += " legacy";
+    if (has_accelerator_feature("KOKKOS","layout","default"))  mesg += " default";
 #if LMP_KOKKOS
     mesg += fmt::format("\nKokkos library version: {}.{}.{}", KOKKOS_VERSION / 10000,
                        (KOKKOS_VERSION % 10000) / 100, KOKKOS_VERSION % 100);
@@ -1428,8 +1443,8 @@ std::string Info::get_pair_coeff_status(const LAMMPS *lmp) {
     return "Pair style not yet initialized\n";
 
   const auto ntypes = lmp->atom->ntypes;
-  const auto setflag = lmp->force->pair->setflag;
-  std::string output = "";
+  const auto *const setflag = lmp->force->pair->setflag;
+  std::string output;
   for (int i=1; i <= ntypes; ++i) {
     for (int j=i; j <= ntypes; ++j)
       output += fmt::format("{:6d} {:6d}: is{}set\n", i, j, setflag[i][j] ? " " : " not ");
@@ -1445,8 +1460,8 @@ std::string Info::get_bond_coeff_status(const LAMMPS *lmp) {
     return "Bond style not yet initialized\n";
 
   const auto ntypes = lmp->atom->nbondtypes;
-  const auto setflag = lmp->force->bond->setflag;
-  std::string output = "";
+  const auto *const setflag = lmp->force->bond->setflag;
+  std::string output;
   for (int i=1; i <= ntypes; ++i)
     output += fmt::format("{:6d}: is{}set\n", i, setflag[i] ? " " : " not ");
   return output;
@@ -1460,8 +1475,8 @@ std::string Info::get_angle_coeff_status(const LAMMPS *lmp) {
     return "Angle style not yet initialized\n";
 
   const auto ntypes = lmp->atom->nangletypes;
-  const auto setflag = lmp->force->angle->setflag;
-  std::string output = "";
+  const auto *const setflag = lmp->force->angle->setflag;
+  std::string output;
   for (int i=1; i <= ntypes; ++i)
     output += fmt::format("{:6d}: is{}set\n", i, setflag[i] ? " " : " not ");
   return output;
@@ -1475,8 +1490,8 @@ std::string Info::get_dihedral_coeff_status(const LAMMPS *lmp) {
     return "Dihedral style not yet initialized\n";
 
   const auto ntypes = lmp->atom->ndihedraltypes;
-  const auto setflag = lmp->force->dihedral->setflag;
-  std::string output = "";
+  const auto *const setflag = lmp->force->dihedral->setflag;
+  std::string output;
   for (int i=1; i <= ntypes; ++i)
     output += fmt::format("{:6d}: is{}set\n", i, setflag[i] ? " " : " not ");
   return output;
@@ -1490,8 +1505,8 @@ std::string Info::get_improper_coeff_status(const LAMMPS *lmp) {
     return "Improper style not yet initialized\n";
 
   const auto ntypes = lmp->atom->nimpropertypes;
-  const auto setflag = lmp->force->improper->setflag;
-  std::string output = "";
+  const auto *const setflag = lmp->force->improper->setflag;
+  std::string output;
   for (int i=1; i <= ntypes; ++i)
     output += fmt::format("{:6d}: is{}set\n", i, setflag[i] ? " " : " not ");
   return output;

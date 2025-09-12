@@ -682,6 +682,7 @@ double MathSpecial::erfcx_y100(const double y100)
  * the result becomes: exp2(x) = exp2(ipart) * exp2(fpart)
  */
 
+// NOLINTBEGIN
 /* IEEE 754 double precision floating point data manipulation */
 typedef union
 {
@@ -689,6 +690,7 @@ typedef union
     uint64_t u;
     struct {int32_t  i0,i1;} s;
 }  udi_t;
+// NOLINTEND
 
 static const double fm_exp2_q[] = {
 /*  1.00000000000000000000e0, */

@@ -31,6 +31,8 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class FixEnforce2DKokkos : public FixEnforce2D {
  public:
+  typedef ArrayTypes<DeviceType> AT;
+
   FixEnforce2DKokkos(class LAMMPS *, int, char **);
   // ~FixEnforce2DKokkos() {}
   void setup(int) override;
@@ -45,20 +47,21 @@ class FixEnforce2DKokkos : public FixEnforce2D {
   // void post_force_respa(int, int, int);  No RRESPA support yet.
 
  private:
-  typename ArrayTypes<DeviceType>::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_f_array f;
+  typename AT::t_kkfloat_1d_3 v;
+  typename AT::t_kkacc_1d_3 f;
 
-  typename ArrayTypes<DeviceType>::t_v_array omega;
-  typename ArrayTypes<DeviceType>::t_v_array angmom;
-  typename ArrayTypes<DeviceType>::t_f_array torque;
+  typename AT::t_kkfloat_1d_3 omega;
+  typename AT::t_kkfloat_1d_3 angmom;
+  typename AT::t_kkfloat_1d_3 torque;
 
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
+  typename AT::t_int_1d mask;
 };
 
 
 template <class DeviceType, int omega_flag, int angmom_flag, int torque_flag>
 struct FixEnforce2DKokkosPostForceFunctor {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   FixEnforce2DKokkos<DeviceType> c;
 
   FixEnforce2DKokkosPostForceFunctor(FixEnforce2DKokkos<DeviceType>* c_ptr):

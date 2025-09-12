@@ -153,11 +153,12 @@ Miscellaneous standards (varied)
   ``&&``, ``||``, and ``!``.  The alternative tokens are not available
   by default on all compilers.
 
-- Output to the screen and the logfile should use the corresponding
-  FILE pointers and only be done on MPI rank 0.  Use the
-  :cpp:func:`utils::logmesg` convenience function where possible.
+- Output to the screen and the logfile should use the corresponding FILE
+  pointers and only be done on MPI rank 0.  Use the
+  :cpp:func:`utils::logmesg() <LAMMPS_NS::utils::logmesg>` convenience
+  function where possible.
 
-- Usage of C++11 `virtual`, `override`, `final` keywords: Please
+- Usage of C++ `virtual`, `override`, `final` keywords: Please
   follow the `C++ Core Guideline C.128
   <https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rh-override>`_.
   That means, you should only use `virtual` to declare a new virtual

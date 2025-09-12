@@ -88,7 +88,7 @@ void NPairHalffullKokkos<DeviceType,NEWTON,TRI,TRIM>::operator()(TagNPairHalfful
   int n = 0;
 
   const int i = d_ilist_full(ii);
-  F_FLOAT xtmp,ytmp,ztmp;
+  double xtmp,ytmp,ztmp;
   if (NEWTON || TRIM) {
     xtmp = x(i,0);
     ytmp = x(i,1);

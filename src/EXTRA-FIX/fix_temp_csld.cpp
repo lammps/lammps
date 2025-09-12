@@ -320,7 +320,7 @@ void FixTempCSLD::write_restart(FILE *fp)
 
 void FixTempCSLD::restart(char *buf)
 {
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   energy = list[0];
   int nprocs = (int) list[1];

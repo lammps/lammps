@@ -51,7 +51,7 @@ version 23 November 2023 and Kokkos version 4.2.
    For example, the GNU compiler uses the ``-std=c++17`` flag. For a list of
    compilers that have been tested with the Kokkos library, see the
    `requirements document of the Kokkos Wiki
-   <https://kokkos.github.io/kokkos-core-wiki/requirements.html>`_.
+   <https://kokkos.org/kokkos-core-wiki/get-started/requirements.html>`_.
 
 .. admonition:: NVIDIA CUDA support
    :class: note

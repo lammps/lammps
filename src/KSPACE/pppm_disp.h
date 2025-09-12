@@ -320,7 +320,7 @@ class PPPMDisp : public KSpace {
   virtual void fieldforce_none_ik();
   virtual void fieldforce_none_ad();
   virtual void fieldforce_none_peratom();
-  void procs2grid2d(int, int, int, int *, int *);
+  void procs2grid2d(int, int, int, int &, int &);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &, int, FFT_SCALAR **,
                      FFT_SCALAR **);
   void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &, int,

@@ -105,7 +105,7 @@ class Modify : protected Pointers {
 
   Fix *add_fix(int, char **, int trysuffix = 1);
   Fix *add_fix(const std::string &, int trysuffix = 1);
-  Fix *replace_fix(const char *, int, char **, int trysuffix = 1);
+  Fix *replace_fix(const std::string &, int, char **, int trysuffix = 1);
   Fix *replace_fix(const std::string &, const std::string &, int trysuffix = 1);
   void modify_fix(int, char **);
   void delete_fix(const std::string &);
@@ -210,12 +210,12 @@ class Modify : protected Pointers {
   void list_init_compute();
 
  public:
-  typedef Compute *(*ComputeCreator)(LAMMPS *, int, char **);
-  typedef std::map<std::string, ComputeCreator> ComputeCreatorMap;
+  using ComputeCreator = Compute *(*) (LAMMPS *, int, char **);
+  using ComputeCreatorMap = std::map<std::string, ComputeCreator>;
   ComputeCreatorMap *compute_map;
 
-  typedef Fix *(*FixCreator)(LAMMPS *, int, char **);
-  typedef std::map<std::string, FixCreator> FixCreatorMap;
+  using FixCreator = Fix *(*) (LAMMPS *, int, char **);
+  using FixCreatorMap = std::map<std::string, FixCreator>;
   FixCreatorMap *fix_map;
 
  protected:

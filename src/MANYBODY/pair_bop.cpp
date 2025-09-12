@@ -417,7 +417,7 @@ void PairBOP::init_style()
   if (utils::strmatch(force->pair_style,"^hybrid"))
     error->all(FLERR,"Pair style BOP is not compatible with hybrid pair styles");
 
-  if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+  if (neighbor->style == Neighbor::MULTI)
     error->all(FLERR,"Pair style BOP is not compatible with multi-cutoff neighbor lists");
 
   if (comm->mode != Comm::SINGLE)
@@ -896,7 +896,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
     // k' is loop over neighbors all neighbors of j with k a neighbor
     // of i and j a neighbor of i and determine which k' is k
 
-    if (sigma_f[param_ij] == 0.5 || !sigma_k[param_ij] || !pass_jk) continue;
+    if ((sigma_f[param_ij] == 0.5) || (sigma_k[param_ij] == 0.0) || !pass_jk) continue;
     PairList1 & pl_jk = pairlist1[temp_jk];
     dis_jk[0] = pl_jk.dis[0];
     dis_jk[1] = pl_jk.dis[1];

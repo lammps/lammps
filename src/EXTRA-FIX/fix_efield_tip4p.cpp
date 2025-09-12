@@ -48,7 +48,7 @@ void FixEfieldTIP4P::init()
   if (pstr) error->all(FLERR, "Fix efield/tip4p does not support the potential keyword");
 
   int itmp;
-  double *p_qdist = (double *) force->pair->extract("qdist", itmp);
+  auto *p_qdist = (double *) force->pair->extract("qdist", itmp);
   int *p_typeO = (int *) force->pair->extract("typeO", itmp);
   int *p_typeH = (int *) force->pair->extract("typeH", itmp);
   int *p_typeA = (int *) force->pair->extract("typeA", itmp);

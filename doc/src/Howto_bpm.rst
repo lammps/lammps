@@ -85,43 +85,14 @@ files to render bond data.
 
 ----------
 
-As bonds can be broken between neighbor list builds, the
-:doc:`special_bonds <special_bonds>` command works differently for BPM
-bond styles. There are two possible settings which determine how pair
-interactions work between bonded particles.  First, one can overlay
-pair forces with bond forces such that all bonded particles also
-feel pair interactions. This can be accomplished by setting the *overlay/pair*
-keyword present in all bpm bond styles to *yes* and requires using the
-following special bond settings
+As bonds can potentially be broken between neighbor list builds, BPM bond
+styles may place restrictions on the :doc:`special_bonds <special_bonds>` command. There are three possible scenarios which determine how pair
+interactions between bonded particles and special bond weights work.
 
-   .. code-block:: LAMMPS
-
-      special_bonds lj/coul 1 1 1
-
-Alternatively, one can turn off all pair interactions between bonded
-particles. Unlike :doc:`bond quartic <bond_quartic>`, this is not done
-by subtracting pair forces during the bond computation, but rather by
-dynamically updating the special bond list. This is the default behavior
-of BPM bond styles and is done by updating the 1-2 special bond list as
-bonds break.  To do this, LAMMPS requires :doc:`newton <newton>` bond off
-such that all processors containing an atom know when a bond breaks.
-Additionally, one must use the following special bond settings
-
-   .. code-block:: LAMMPS
-
-      special_bonds lj 0 1 1 coul 1 1 1
-
-These settings accomplish two goals. First, they turn off 1-3 and 1-4
-special bond lists, which are not currently supported for BPMs. As
-BPMs often have dense bond networks, generating 1-3 and 1-4 special
-bond lists is expensive.  By setting the lj weight for 1-2 bonds to
-zero, this turns off pairwise interactions.  Even though there are no
-charges in BPM models, setting a nonzero coul weight for 1-2 bonds
-ensures all bonded neighbors are still included in the neighbor list
-in case bonds break between neighbor list builds. If bond breakage is
-disabled during a simulation run by setting the *break* keyword to *no*,
-a zero coul weight for 1-2 bonds can be used to exclude bonded atoms
-from the neighbor list builds
+The first option is the simplest. If bonds cannot break, then one can use any
+special bond settings to control pair forces. Namely, this is accomplished by
+setting the *break* keyword to *no*. Note that a zero coul weight for 1-2 bonds
+can be used to exclude bonded atoms from the neighbor list builds
 
    .. code-block:: LAMMPS
 
@@ -129,6 +100,41 @@ from the neighbor list builds
 
 This can be useful for post-processing, or to determine pair interaction
 properties between distinct bonded particles.
+
+If bonds can break, the second scenario is if pair forces are overlaid
+on top of bond forces such that atoms can simultaneously exchange both types
+of forces. This is accomplished by setting the *overlay/pair* keyword present
+in all bpm bond styles to *yes*. This case requires the following special
+bond settings
+
+   .. code-block:: LAMMPS
+
+      special_bonds lj/coul 1 1 1
+
+Note that this scenario does not update special bond lists when bonds break,
+hence why fractional weights are not allowed. Whether or not two particles
+are bonded has no bearing on pair forces.
+
+In the third scenario, bonds can break but pair forces are disabled between
+bonded particles. This is the default behavior of BPM bond styles. Unlike
+:doc:`bond quartic <bond_quartic>`, pair forces are not removed by subtracting
+pair forces during the bond computation, but rather by dynamically updating the
+1-2 special bond list. To do this, LAMMPS requires :doc:`newton <newton>` bond
+off such that all processors containing an atom know when a bond breaks.
+Additionally, one must use the following special bond settings
+
+   .. code-block:: LAMMPS
+
+      special_bonds lj 0 1 1 coul 1 1 1
+
+These settings accomplish two goals. First, they turn off 1-3 and 1-4
+special bond lists, which are not currently supported for breakable BPMs.
+As BPMs often have dense bond networks, generating/updating 1-3 and 1-4
+special bond lists can be expensive. By setting the lj weight for 1-2
+bonds to zero, this turns off pairwise interactions.  Even though there
+are no charges in BPM models, setting a nonzero coul weight for 1-2 bonds
+ensures all bonded neighbors are still included in the neighbor list
+in case bonds break between neighbor list builds.
 
 To monitor the fracture of bonds in the system, all BPM bond styles
 have the ability to record instances of bond breakage to output using

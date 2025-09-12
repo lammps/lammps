@@ -105,7 +105,7 @@ RegEllipsoid::RegEllipsoid(LAMMPS *lmp, int narg, char **arg) :
 
   if (varshape) {
     variable_check();
-    shape_update();
+    RegEllipsoid::shape_update();
   }
 
   // error check

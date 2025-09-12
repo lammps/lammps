@@ -35,11 +35,9 @@ FixStyle(colvars,FixColvars);
 #define LMP_FIX_COLVARS_H
 
 #include "fix.h"
+#include <unordered_map>
 
 // Forward declarations
-namespace IntHash_NS {
-struct inthash_t;
-}
 class colvarproxy_lammps;
 
 namespace LAMMPS_NS {
@@ -87,7 +85,7 @@ class FixColvars : public Fix {
   /// Arguments passed from fix_modify to the Colvars script interface
   unsigned char *script_args[100];
 
-  IntHash_NS::inthash_t *idmap;    // hash for mapping atom indices to consistent order.
+  std::unordered_map<int, int> idmap; // for mapping atom indices to consistent order.
 
   int nlevels_respa;       // flag to determine respa levels.
   int store_forces;        // flag to determine whether to store total forces

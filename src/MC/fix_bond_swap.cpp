@@ -136,7 +136,7 @@ void FixBondSwap::init()
   // require an atom style with molecule IDs
 
   if (atom->molecule == nullptr)
-    error->all(FLERR, "Must use atom style with molecule IDs with fix bond/swap");
+    error->all(FLERR, "Must use an atom style with molecule IDs with fix bond/swap");
 
   temperature = modify->get_compute_by_id(id_temp);
   if (!temperature) {

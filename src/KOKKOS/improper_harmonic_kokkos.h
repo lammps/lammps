@@ -35,8 +35,8 @@ template<class DeviceType>
 class ImproperHarmonicKokkos : public ImproperHarmonic {
  public:
   typedef DeviceType device_type;
-  typedef EV_FLOAT value_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef EV_FLOAT value_type;
 
   ImproperHarmonicKokkos(class LAMMPS *);
   ~ImproperHarmonicKokkos() override;
@@ -55,37 +55,37 @@ class ImproperHarmonicKokkos : public ImproperHarmonic {
   //template<int NEWTON_BOND>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int i1, const int i2, const int i3, const int i4,
-                          F_FLOAT &eimproper, F_FLOAT *f1, F_FLOAT *f3, F_FLOAT *f4,
-                          const F_FLOAT &vb1x, const F_FLOAT &vb1y, const F_FLOAT &vb1z,
-                          const F_FLOAT &vb2x, const F_FLOAT &vb2y, const F_FLOAT &vb2z,
-                          const F_FLOAT &vb3x, const F_FLOAT &vb3y, const F_FLOAT &vb3z) const;
+                          KK_FLOAT &eimproper, KK_FLOAT *f1, KK_FLOAT *f3, KK_FLOAT *f4,
+                          const KK_FLOAT &vb1x, const KK_FLOAT &vb1y, const KK_FLOAT &vb1z,
+                          const KK_FLOAT &vb2x, const KK_FLOAT &vb2y, const KK_FLOAT &vb2z,
+                          const KK_FLOAT &vb3x, const KK_FLOAT &vb3y, const KK_FLOAT &vb3z) const;
 
   typedef typename KKDevice<DeviceType>::value KKDeviceType;
-  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType> k_eatom;
-  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType> k_vatom;
+  TransformView<KK_ACC_FLOAT*,double*,Kokkos::LayoutRight,KKDeviceType> k_eatom;
+  TransformView<KK_ACC_FLOAT*[6],double*[6],LMPDeviceLayout,KKDeviceType> k_vatom;
 
  protected:
 
   class NeighborKokkos *neighborKK;
 
-  typename AT::t_x_array_randomread x;
-  typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
-  typename AT::t_int_2d improperlist;
-  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
-  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename Kokkos::View<KK_ACC_FLOAT*[3],DAT::t_kkacc_1d_3::array_layout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
+  typename AT::t_int_2d_lr improperlist;
+  Kokkos::View<KK_ACC_FLOAT*,Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic>> d_eatom;
+  Kokkos::View<KK_ACC_FLOAT*[6],LMPDeviceLayout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic>> d_vatom;
 
   int nlocal,newton_bond;
   int eflag,vflag;
 
-  Kokkos::DualView<int,DeviceType> k_warning_flag;
-  typename Kokkos::DualView<int,DeviceType>::t_dev d_warning_flag;
-  typename Kokkos::DualView<int,DeviceType>::t_host h_warning_flag;
+  DAT::tdual_int_scalar k_warning_flag;
+  typename AT::t_int_scalar d_warning_flag;
+  HAT::t_int_scalar h_warning_flag;
 
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_k;
-  Kokkos::DualView<F_FLOAT*,DeviceType> k_chi;
+  DAT::tdual_kkfloat_1d k_k;
+  DAT::tdual_kkfloat_1d k_chi;
 
-  typename Kokkos::DualView<F_FLOAT*,DeviceType>::t_dev d_k;
-  typename Kokkos::DualView<F_FLOAT*,DeviceType>::t_dev d_chi;
+  typename AT::t_kkfloat_1d d_k;
+  typename AT::t_kkfloat_1d d_chi;
 
   void allocate() override;
 };

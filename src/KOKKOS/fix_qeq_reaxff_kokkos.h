@@ -59,8 +59,8 @@ template<class DeviceType>
 class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
  public:
   typedef DeviceType device_type;
-  typedef F_FLOAT2 value_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef KK_double2 value_type;
   FixQEqReaxFFKokkos(class LAMMPS *, int, char **);
   ~FixQEqReaxFFKokkos() override;
 
@@ -101,28 +101,28 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void operator()(TagQEqSparseMatvec2_Full, const membertype_vec &team) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagQEqNorm1, const int&, F_FLOAT2&) const;
+  void operator()(TagQEqNorm1, const int&, KK_double2&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagQEqDot1, const int&, F_FLOAT2&) const;
+  void operator()(TagQEqDot1, const int&, KK_double2&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagQEqDot2, const int&, F_FLOAT2&) const;
+  void operator()(TagQEqDot2, const int&, KK_double2&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagQEqDot3, const int&, F_FLOAT2&) const;
+  void operator()(TagQEqDot3, const int&, KK_double2&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqSum1, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagQEqSum2, const int&, F_FLOAT2&) const;
+  void operator()(TagQEqSum2, const int&, KK_double2&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqCalculateQ, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  double calculate_H_k(const F_FLOAT &r, const F_FLOAT &shld) const;
+  KK_FLOAT calculate_H_k(const KK_FLOAT &r, const KK_FLOAT &shld) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqPackForwardComm, const int&) const;
@@ -136,12 +136,12 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqUnpackExchange, const int&) const;
 
-  int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
+  int pack_exchange_kokkos(const int &nsend,DAT::tdual_double_2d_lr &buf,
                            DAT::tdual_int_1d k_sendlist,
                            DAT::tdual_int_1d k_copylist,
                            ExecutionSpace space) override;
 
-  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+  void unpack_exchange_kokkos(DAT::tdual_double_2d_lr &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
                               int nrecv1,int nextrarecv1,
                               ExecutionSpace space) override;
@@ -151,18 +151,18 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
     params_qeq() {chi=0;eta=0;gamma=0;};
     KOKKOS_INLINE_FUNCTION
     params_qeq(int /*i*/) {chi=0;eta=0;gamma=0;};
-    F_FLOAT chi, eta, gamma;
+    KK_FLOAT chi, eta, gamma;
   };
 
-  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_xfloat_1d&,
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d&,
                        int, int *) override;
-  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d&) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   double memory_usage() override;
-  void sparse_matvec_kokkos(typename AT::t_ffloat2_1d &);
+  void sparse_matvec_kokkos(typename AT::t_kkfloat_1d_2 &);
 
   // There should be a better way to do this for other backends
 #if defined(KOKKOS_ENABLE_CUDA)
@@ -205,45 +205,47 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   typename AT::t_bigint_scalar d_mfill_offset;
 
-  typedef Kokkos::DualView<int***,DeviceType> tdual_int_1d;
   Kokkos::DualView<params_qeq*,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_qeq*, Kokkos::LayoutRight,DeviceType>::t_dev_const params;
 
-  typename AT::t_x_array x;
-  typename AT::t_v_array v;
-  typename AT::t_f_array_const f;
-  //typename AT::t_float_1d_randomread mass, q;
-  typename AT::t_float_1d_randomread mass;
-  typename AT::t_float_1d q;
+  typename AT::t_kkfloat_1d_3_lr x;
+  typename AT::t_kkfloat_1d_3 v;
+  typename AT::t_kkacc_1d_3_const f;
+  //typename AT::t_kkfloat_1d_randomread mass, q;
+  typename AT::t_kkfloat_1d_randomread mass;
+  typename AT::t_kkfloat_1d q;
   typename AT::t_int_1d type, mask;
   typename AT::t_tagint_1d tag;
 
-  DAT::tdual_float_1d k_q;
-  typename AT::t_float_1d d_q;
-  HAT::t_float_1d h_q;
+  DAT::tdual_kkfloat_1d k_q;
+  typename AT::t_kkfloat_1d d_q;
+  HAT::t_double_1d h_q;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist, d_numneigh;
 
-  DAT::tdual_ffloat_1d k_tap;
-  typename AT::t_ffloat_1d d_tap;
+  DAT::tdual_kkfloat_1d k_tap;
+  typename AT::t_kkfloat_1d d_tap;
 
   typename AT::t_bigint_1d d_firstnbr;
   typename AT::t_int_1d d_numnbrs;
   typename AT::t_int_1d d_jlist;
-  typename AT::t_ffloat_1d d_val;
+  typename AT::t_kkfloat_1d d_val;
 
-  DAT::tdual_ffloat_1d k_chi_field;
-  typename AT::t_ffloat_1d d_Hdia_inv, d_chi_field;
+  DAT::ttransform_kkfloat_1d k_chi_field;
+  typename AT::t_kkfloat_1d d_Hdia_inv, d_chi_field;
 
-  DAT::tdual_ffloat2_1d k_o, k_d, k_st;
-  typename AT::t_ffloat2_1d d_p, d_o, d_r, d_d, d_b_st, d_st, d_xx;
-  HAT::t_ffloat2_1d h_o, h_d, h_st;
+  DAT::tdual_kkfloat_1d_2 k_o, k_d, k_st;
+  typename AT::t_kkfloat_1d_2 d_p, d_o, d_r, d_d, d_b_st, d_st, d_xx;
+  HAT::t_kkfloat_1d_2 h_o, h_d, h_st;
 
-  DAT::tdual_ffloat_2d k_shield, k_s_hist, k_t_hist;
-  typename AT::t_ffloat_2d d_shield, d_s_hist, d_t_hist;
-  HAT::t_ffloat_2d h_s_hist, h_t_hist;
-  typename AT::t_ffloat_2d_randomread r_s_hist, r_t_hist;
+  DAT::ttransform_kkfloat_2d k_s_hist, k_t_hist;
+  typename AT::t_kkfloat_2d d_s_hist, d_t_hist;
+  HAT::t_double_2d_lr h_s_hist, h_t_hist;
+  typename AT::t_kkfloat_2d_randomread r_s_hist, r_t_hist;
+
+  DAT::tdual_kkfloat_2d k_shield;
+  typename AT::t_kkfloat_2d d_shield;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
@@ -253,13 +255,13 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   template<typename DataType, typename Layout>
   using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
 
-  DupScatterView<F_FLOAT**, typename AT::t_ffloat2_1d::array_layout> dup_o;
-  NonDupScatterView<F_FLOAT**, typename AT::t_ffloat2_1d::array_layout> ndup_o;
+  DupScatterView<KK_FLOAT**, DAT::t_kkfloat_1d_2::array_layout> dup_o;
+  NonDupScatterView<KK_FLOAT**, DAT::t_kkfloat_1d_2::array_layout> ndup_o;
 
   int nsend;
   int first;
   typename AT::t_int_1d d_sendlist;
-  typename AT::t_xfloat_1d d_buf;
+  typename AT::t_double_1d d_buf;
   typename AT::t_int_1d d_copylist;
   typename AT::t_int_1d d_indices;
   typename AT::t_int_1d d_exchange_sendlist;
@@ -275,8 +277,8 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   int neighflag, pack_flag;
   int nlocal,nlocal_last_allocate,nall,nmax,newton_pair;
   int count, isuccess;
-  F_FLOAT alpha[2];
-  F_FLOAT beta[2];
+  double alpha[2];
+  double beta[2];
 
   double delta, cutsq;
 
@@ -291,6 +293,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 template <class DeviceType>
 struct FixQEqReaxFFKokkosNumNeighFunctor {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef bigint value_type;
   FixQEqReaxFFKokkos<DeviceType> c;
   FixQEqReaxFFKokkosNumNeighFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
@@ -342,7 +345,7 @@ struct FixQEqReaxFFKokkosComputeHFunctor {
             shmem_size(atoms_per_team, vector_length) + // s_jtype
         Kokkos::View<int **, scratch_space, Kokkos::MemoryUnmanaged>::
             shmem_size(atoms_per_team, vector_length) + // s_j
-        Kokkos::View<F_FLOAT **, scratch_space,
+        Kokkos::View<KK_FLOAT **, scratch_space,
                      Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team,
                                                           vector_length); // s_r
     return shmem_size;
@@ -354,9 +357,9 @@ struct FixQEqReaxFFKokkosComputeHFunctor {
 namespace Kokkos {
   // reduction identity must be defined in Kokkos namespace
   template<>
-  struct reduction_identity<F_FLOAT2> {
-    KOKKOS_FORCEINLINE_FUNCTION static F_FLOAT2 sum() {
-      return F_FLOAT2();
+  struct reduction_identity<KK_double2> {
+    KOKKOS_FORCEINLINE_FUNCTION static KK_double2 sum() {
+      return KK_double2();
     }
   };
 }

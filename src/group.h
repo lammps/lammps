@@ -16,8 +16,6 @@
 
 #include "pointers.h"
 
-#include <map>
-
 namespace LAMMPS_NS {
 class Region;
 
@@ -70,7 +68,6 @@ class Group : protected Pointers {
 
  private:
   int me;
-  std::map<tagint, int> *hash;
 
   int find_unused();
   void add_molecules(int, int);

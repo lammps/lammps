@@ -18,18 +18,14 @@
 #include "math_eigen.h"
 #include "math_eigen_impl.h"
 
-#include <array>
 #include <utility>
-#include <vector>
 
-using std::array;
-using std::vector;
 using namespace MathEigen;
 
 // Special case: 3x3 matrices
 
-typedef Jacobi<double, double *, double (*)[3], double const (*)[3]> Jacobi_v1;
-typedef Jacobi<double, double *, double **, double const *const *> Jacobi_v2;
+using Jacobi_v1 = Jacobi<double, double *, double (*)[3], double const (*)[3]>;
+using Jacobi_v2 = Jacobi<double, double *, double **, double const *const *>;
 
 int MathEigen::jacobi3(double const mat[3][3], double *eval, double evec[3][3], int sort)
 {

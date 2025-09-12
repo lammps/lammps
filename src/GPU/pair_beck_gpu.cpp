@@ -18,7 +18,6 @@
 #include "pair_beck_gpu.h"
 
 #include "atom.h"
-#include "atom_vec.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"

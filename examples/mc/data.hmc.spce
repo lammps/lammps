@@ -1,0 +1,33 @@
+LAMMPS datafile
+
+3 atoms
+2 atom types
+2 bonds
+1 bond types
+1 angles
+1 angle types
+
+-1.2 1.2  xlo xhi
+-1.2 1.2  ylo yhi
+-1.2 1.2  zlo zhi
+
+Masses
+
+1 15.9994
+2 1.00784
+
+Atoms
+
+1 1 1 -0.8476 0.00000   0.00000   0.11779
+2 1 2 0.4238  0.00000   0.75545  -0.47116
+3 1 2 0.4238  0.00000  -0.75545  -0.47116
+
+Bonds
+
+1 1 1 2
+2 1 1 3
+
+Angles
+
+1 1 2 1 3
+

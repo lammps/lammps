@@ -268,82 +268,82 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, dou
   // phi
   // vb21 = r2 - r1
 
-  double vb21x = d_x(i2,0) - d_x(i1,0);
-  double vb21y = d_x(i2,1) - d_x(i1,1);
-  double vb21z = d_x(i2,2) - d_x(i1,2);
-  double vb12x = -1.0*vb21x;
-  double vb12y = -1.0*vb21y;
-  double vb12z = -1.0*vb21z;
-  double vb32x = d_x(i3,0) - d_x(i2,0);
-  double vb32y = d_x(i3,1) - d_x(i2,1);
-  double vb32z = d_x(i3,2) - d_x(i2,2);
-  double vb23x = -1.0*vb32x;
-  double vb23y = -1.0*vb32y;
-  double vb23z = -1.0*vb32z;
+  KK_FLOAT vb21x = d_x(i2,0) - d_x(i1,0);
+  KK_FLOAT vb21y = d_x(i2,1) - d_x(i1,1);
+  KK_FLOAT vb21z = d_x(i2,2) - d_x(i1,2);
+  KK_FLOAT vb12x = -1.0*vb21x;
+  KK_FLOAT vb12y = -1.0*vb21y;
+  KK_FLOAT vb12z = -1.0*vb21z;
+  KK_FLOAT vb32x = d_x(i3,0) - d_x(i2,0);
+  KK_FLOAT vb32y = d_x(i3,1) - d_x(i2,1);
+  KK_FLOAT vb32z = d_x(i3,2) - d_x(i2,2);
+  KK_FLOAT vb23x = -1.0*vb32x;
+  KK_FLOAT vb23y = -1.0*vb32y;
+  KK_FLOAT vb23z = -1.0*vb32z;
 
-  double vb34x = d_x(i3,0) - d_x(i4,0);
-  double vb34y = d_x(i3,1) - d_x(i4,1);
-  double vb34z = d_x(i3,2) - d_x(i4,2);
+  KK_FLOAT vb34x = d_x(i3,0) - d_x(i4,0);
+  KK_FLOAT vb34y = d_x(i3,1) - d_x(i4,1);
+  KK_FLOAT vb34z = d_x(i3,2) - d_x(i4,2);
 
   // psi
   // bond vectors same as for phi: vb32
 
-  double vb43x = -1.0*vb34x;
-  double vb43y = -1.0*vb34y;
-  double vb43z = -1.0*vb34z;
+  KK_FLOAT vb43x = -1.0*vb34x;
+  KK_FLOAT vb43y = -1.0*vb34y;
+  KK_FLOAT vb43z = -1.0*vb34z;
 
-  double vb45x = d_x(i4,0) - d_x(i5,0);
-  double vb45y = d_x(i4,1) - d_x(i5,1);
-  double vb45z = d_x(i4,2) - d_x(i5,2);
+  KK_FLOAT vb45x = d_x(i4,0) - d_x(i5,0);
+  KK_FLOAT vb45y = d_x(i4,1) - d_x(i5,1);
+  KK_FLOAT vb45z = d_x(i4,2) - d_x(i5,2);
 
   // calculate normal vectors for planes that define the dihedral angles
 
-  double a1x = vb12y*vb23z - vb12z*vb23y;
-  double a1y = vb12z*vb23x - vb12x*vb23z;
-  double a1z = vb12x*vb23y - vb12y*vb23x;
+  KK_FLOAT a1x = vb12y*vb23z - vb12z*vb23y;
+  KK_FLOAT a1y = vb12z*vb23x - vb12x*vb23z;
+  KK_FLOAT a1z = vb12x*vb23y - vb12y*vb23x;
 
-  double b1x = vb43y*vb23z - vb43z*vb23y;
-  double b1y = vb43z*vb23x - vb43x*vb23z;
-  double b1z = vb43x*vb23y - vb43y*vb23x;
+  KK_FLOAT b1x = vb43y*vb23z - vb43z*vb23y;
+  KK_FLOAT b1y = vb43z*vb23x - vb43x*vb23z;
+  KK_FLOAT b1z = vb43x*vb23y - vb43y*vb23x;
 
-  double a2x = vb23y*vb34z - vb23z*vb34y;
-  double a2y = vb23z*vb34x - vb23x*vb34z;
-  double a2z = vb23x*vb34y - vb23y*vb34x;
+  KK_FLOAT a2x = vb23y*vb34z - vb23z*vb34y;
+  KK_FLOAT a2y = vb23z*vb34x - vb23x*vb34z;
+  KK_FLOAT a2z = vb23x*vb34y - vb23y*vb34x;
 
-  double b2x = vb45y*vb43z - vb45z*vb43y;
-  double b2y = vb45z*vb43x - vb45x*vb43z;
-  double b2z = vb45x*vb43y - vb45y*vb43x;
+  KK_FLOAT b2x = vb45y*vb43z - vb45z*vb43y;
+  KK_FLOAT b2y = vb45z*vb43x - vb45x*vb43z;
+  KK_FLOAT b2z = vb45x*vb43y - vb45y*vb43x;
 
   // calculate terms used later in calculations
 
-  double r32 = sqrt(vb32x*vb32x + vb32y*vb32y + vb32z*vb32z);
-  double a1sq = a1x*a1x + a1y*a1y + a1z*a1z;
-  double b1sq = b1x*b1x + b1y*b1y + b1z*b1z;
+  KK_FLOAT r32 = sqrt(vb32x*vb32x + vb32y*vb32y + vb32z*vb32z);
+  KK_FLOAT a1sq = a1x*a1x + a1y*a1y + a1z*a1z;
+  KK_FLOAT b1sq = b1x*b1x + b1y*b1y + b1z*b1z;
 
-  double r43 = sqrt(vb43x*vb43x + vb43y*vb43y + vb43z*vb43z);
-  double a2sq = a2x*a2x + a2y*a2y + a2z*a2z;
-  double b2sq = b2x*b2x + b2y*b2y + b2z*b2z;
+  KK_FLOAT r43 = sqrt(vb43x*vb43x + vb43y*vb43y + vb43z*vb43z);
+  KK_FLOAT a2sq = a2x*a2x + a2y*a2y + a2z*a2z;
+  KK_FLOAT b2sq = b2x*b2x + b2y*b2y + b2z*b2z;
   if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001) return;
 
   // vectors needed to calculate the cross-term dihedral angles
 
-  double dpr21r32 = vb21x*vb32x + vb21y*vb32y + vb21z*vb32z;
-  double dpr34r32 = vb34x*vb32x + vb34y*vb32y + vb34z*vb32z;
-  double dpr32r43 = vb32x*vb43x + vb32y*vb43y + vb32z*vb43z;
-  double dpr45r43 = vb45x*vb43x + vb45y*vb43y + vb45z*vb43z;
+  KK_FLOAT dpr21r32 = vb21x*vb32x + vb21y*vb32y + vb21z*vb32z;
+  KK_FLOAT dpr34r32 = vb34x*vb32x + vb34y*vb32y + vb34z*vb32z;
+  KK_FLOAT dpr32r43 = vb32x*vb43x + vb32y*vb43y + vb32z*vb43z;
+  KK_FLOAT dpr45r43 = vb45x*vb43x + vb45y*vb43y + vb45z*vb43z;
 
   // cross-term dihedral angles
   // calculate the backbone dihedral angles as VMD and GROMACS
 
-  double phi = dihedral_angle_atan2(vb21x,vb21y,vb21z,a1x,a1y,a1z,b1x,b1y,b1z,r32);
-  double psi = dihedral_angle_atan2(vb32x,vb32y,vb32z,a2x,a2y,a2z,b2x,b2y,b2z,r43);
+  KK_FLOAT phi = dihedral_angle_atan2(vb21x,vb21y,vb21z,a1x,a1y,a1z,b1x,b1y,b1z,r32);
+  KK_FLOAT psi = dihedral_angle_atan2(vb32x,vb32y,vb32z,a2x,a2y,a2z,b2x,b2y,b2z,r43);
 
   if (phi == 180.0) phi= -180.0;
   if (psi == 180.0) psi= -180.0;
 
-  double phi1 = phi;
+  KK_FLOAT phi1 = phi;
   if (phi1 < 0.0) phi1 += 360.0;
-  double psi1 = psi;
+  KK_FLOAT psi1 = psi;
   if (psi1 < 0.0) psi1 += 360.0;
 
   // find the neighbor grid point index
@@ -365,7 +365,7 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, dou
 
   // determine the values and derivatives for the grid square points
 
-  double gs[4],d1gs[4],d2gs[4],d12gs[4];
+  KK_FLOAT gs[4],d1gs[4],d2gs[4],d12gs[4];
 
   gs[0] = d_cmapgrid(t1,mli3,mli4);
   gs[1] = d_cmapgrid(t1,mli31,mli4);
@@ -386,13 +386,13 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, dou
 
   // calculate the cmap energy and the gradient (dE/dphi,dE/dpsi)
 
-  double E, dEdPhi, dEdPsi;
+  KK_FLOAT E, dEdPhi, dEdPsi;
   bc_interpol(phi,psi,li3,li4,gs,d1gs,d2gs,d12gs,E,dEdPhi,dEdPsi);
 
   // sum up cmap energy contributions
   // needed for compute_scalar()
 
-  double engfraction = 0.2 * E;
+  KK_FLOAT engfraction = 0.2 * E;
   if (i1 < nlocal) ecmapKK += engfraction;
   if (i2 < nlocal) ecmapKK += engfraction;
   if (i3 < nlocal) ecmapKK += engfraction;
@@ -401,39 +401,39 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, dou
 
   // calculate the derivatives dphi/dr_i
 
-  double dphidr1x = 1.0*r32/a1sq*a1x;
-  double dphidr1y = 1.0*r32/a1sq*a1y;
-  double dphidr1z = 1.0*r32/a1sq*a1z;
+  KK_FLOAT dphidr1x = 1.0*r32/a1sq*a1x;
+  KK_FLOAT dphidr1y = 1.0*r32/a1sq*a1y;
+  KK_FLOAT dphidr1z = 1.0*r32/a1sq*a1z;
 
-  double dphidr2x = -1.0*r32/a1sq*a1x - dpr21r32/a1sq/r32*a1x + dpr34r32/b1sq/r32*b1x;
-  double dphidr2y = -1.0*r32/a1sq*a1y - dpr21r32/a1sq/r32*a1y + dpr34r32/b1sq/r32*b1y;
-  double dphidr2z = -1.0*r32/a1sq*a1z - dpr21r32/a1sq/r32*a1z + dpr34r32/b1sq/r32*b1z;
+  KK_FLOAT dphidr2x = -1.0*r32/a1sq*a1x - dpr21r32/a1sq/r32*a1x + dpr34r32/b1sq/r32*b1x;
+  KK_FLOAT dphidr2y = -1.0*r32/a1sq*a1y - dpr21r32/a1sq/r32*a1y + dpr34r32/b1sq/r32*b1y;
+  KK_FLOAT dphidr2z = -1.0*r32/a1sq*a1z - dpr21r32/a1sq/r32*a1z + dpr34r32/b1sq/r32*b1z;
 
-  double dphidr3x = dpr34r32/b1sq/r32*b1x - dpr21r32/a1sq/r32*a1x - r32/b1sq*b1x;
-  double dphidr3y = dpr34r32/b1sq/r32*b1y - dpr21r32/a1sq/r32*a1y - r32/b1sq*b1y;
-  double dphidr3z = dpr34r32/b1sq/r32*b1z - dpr21r32/a1sq/r32*a1z - r32/b1sq*b1z;
+  KK_FLOAT dphidr3x = dpr34r32/b1sq/r32*b1x - dpr21r32/a1sq/r32*a1x - r32/b1sq*b1x;
+  KK_FLOAT dphidr3y = dpr34r32/b1sq/r32*b1y - dpr21r32/a1sq/r32*a1y - r32/b1sq*b1y;
+  KK_FLOAT dphidr3z = dpr34r32/b1sq/r32*b1z - dpr21r32/a1sq/r32*a1z - r32/b1sq*b1z;
 
-  double dphidr4x = r32/b1sq*b1x;
-  double dphidr4y = r32/b1sq*b1y;
-  double dphidr4z = r32/b1sq*b1z;
+  KK_FLOAT dphidr4x = r32/b1sq*b1x;
+  KK_FLOAT dphidr4y = r32/b1sq*b1y;
+  KK_FLOAT dphidr4z = r32/b1sq*b1z;
 
   // calculate the derivatives dpsi/dr_i
 
-  double dpsidr1x = 1.0*r43/a2sq*a2x;
-  double dpsidr1y = 1.0*r43/a2sq*a2y;
-  double dpsidr1z = 1.0*r43/a2sq*a2z;
+  KK_FLOAT dpsidr1x = 1.0*r43/a2sq*a2x;
+  KK_FLOAT dpsidr1y = 1.0*r43/a2sq*a2y;
+  KK_FLOAT dpsidr1z = 1.0*r43/a2sq*a2z;
 
-  double dpsidr2x = r43/a2sq*a2x + dpr32r43/a2sq/r43*a2x - dpr45r43/b2sq/r43*b2x;
-  double dpsidr2y = r43/a2sq*a2y + dpr32r43/a2sq/r43*a2y - dpr45r43/b2sq/r43*b2y;
-  double dpsidr2z = r43/a2sq*a2z + dpr32r43/a2sq/r43*a2z - dpr45r43/b2sq/r43*b2z;
+  KK_FLOAT dpsidr2x = r43/a2sq*a2x + dpr32r43/a2sq/r43*a2x - dpr45r43/b2sq/r43*b2x;
+  KK_FLOAT dpsidr2y = r43/a2sq*a2y + dpr32r43/a2sq/r43*a2y - dpr45r43/b2sq/r43*b2y;
+  KK_FLOAT dpsidr2z = r43/a2sq*a2z + dpr32r43/a2sq/r43*a2z - dpr45r43/b2sq/r43*b2z;
 
-  double dpsidr3x = dpr45r43/b2sq/r43*b2x - dpr32r43/a2sq/r43*a2x - r43/b2sq*b2x;
-  double dpsidr3y = dpr45r43/b2sq/r43*b2y - dpr32r43/a2sq/r43*a2y - r43/b2sq*b2y;
-  double dpsidr3z = dpr45r43/b2sq/r43*b2z - dpr32r43/a2sq/r43*a2z - r43/b2sq*b2z;
+  KK_FLOAT dpsidr3x = dpr45r43/b2sq/r43*b2x - dpr32r43/a2sq/r43*a2x - r43/b2sq*b2x;
+  KK_FLOAT dpsidr3y = dpr45r43/b2sq/r43*b2y - dpr32r43/a2sq/r43*a2y - r43/b2sq*b2y;
+  KK_FLOAT dpsidr3z = dpr45r43/b2sq/r43*b2z - dpr32r43/a2sq/r43*a2z - r43/b2sq*b2z;
 
-  double dpsidr4x = r43/b2sq*b2x;
-  double dpsidr4y = r43/b2sq*b2y;
-  double dpsidr4z = r43/b2sq*b2z;
+  KK_FLOAT dpsidr4x = r43/b2sq*b2x;
+  KK_FLOAT dpsidr4y = r43/b2sq*b2y;
+  KK_FLOAT dpsidr4z = r43/b2sq*b2z;
 
   // calculate forces on cross-term atoms: F = -(dE/dPhi)*(dPhi/dr)
   // apply force to each of the 5 atoms
@@ -472,23 +472,23 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, dou
 template<class DeviceType>
 void FixCMAPKokkos<DeviceType>::grow_arrays(int nmax)
 {
-  k_num_crossterm.template sync<LMPHostType>();
-  k_crossterm_type.template sync<LMPHostType>();
-  k_crossterm_atom1.template sync<LMPHostType>();
-  k_crossterm_atom2.template sync<LMPHostType>();
-  k_crossterm_atom3.template sync<LMPHostType>();
-  k_crossterm_atom4.template sync<LMPHostType>();
-  k_crossterm_atom5.template sync<LMPHostType>();
+  k_num_crossterm.sync_host();
+  k_crossterm_type.sync_host();
+  k_crossterm_atom1.sync_host();
+  k_crossterm_atom2.sync_host();
+  k_crossterm_atom3.sync_host();
+  k_crossterm_atom4.sync_host();
+  k_crossterm_atom5.sync_host();
 
   // force reallocation on host
 
-  k_num_crossterm.template modify<LMPHostType>();
-  k_crossterm_type.template modify<LMPHostType>();
-  k_crossterm_atom1.template modify<LMPHostType>();
-  k_crossterm_atom2.template modify<LMPHostType>();
-  k_crossterm_atom3.template modify<LMPHostType>();
-  k_crossterm_atom4.template modify<LMPHostType>();
-  k_crossterm_atom5.template modify<LMPHostType>();
+  k_num_crossterm.modify_host();
+  k_crossterm_type.modify_host();
+  k_crossterm_atom1.modify_host();
+  k_crossterm_atom2.modify_host();
+  k_crossterm_atom3.modify_host();
+  k_crossterm_atom4.modify_host();
+  k_crossterm_atom5.modify_host();
 
   memoryKK->grow_kokkos(k_num_crossterm,num_crossterm,nmax,"cmap:num_crossterm");
   memoryKK->grow_kokkos(k_crossterm_type,crossterm_type,nmax,CMAPMAX,"cmap:crossterm_type");
@@ -511,14 +511,6 @@ void FixCMAPKokkos<DeviceType>::grow_arrays(int nmax)
 
   for (int i = nmax_previous; i < nmax; i++) k_num_crossterm.h_view(i) = 0;
   nmax_previous = nmax;
-
-  k_num_crossterm.template modify<LMPHostType>();
-  k_crossterm_type.template modify<LMPHostType>();
-  k_crossterm_atom1.template modify<LMPHostType>();
-  k_crossterm_atom2.template modify<LMPHostType>();
-  k_crossterm_atom3.template modify<LMPHostType>();
-  k_crossterm_atom4.template modify<LMPHostType>();
-  k_crossterm_atom5.template modify<LMPHostType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -528,23 +520,23 @@ void FixCMAPKokkos<DeviceType>::grow_arrays(int nmax)
 template<class DeviceType>
 void FixCMAPKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 {
-  k_num_crossterm.template sync<LMPHostType>();
-  k_crossterm_type.template sync<LMPHostType>();
-  k_crossterm_atom1.template sync<LMPHostType>();
-  k_crossterm_atom2.template sync<LMPHostType>();
-  k_crossterm_atom3.template sync<LMPHostType>();
-  k_crossterm_atom4.template sync<LMPHostType>();
-  k_crossterm_atom5.template sync<LMPHostType>();
+  k_num_crossterm.sync_host();
+  k_crossterm_type.sync_host();
+  k_crossterm_atom1.sync_host();
+  k_crossterm_atom2.sync_host();
+  k_crossterm_atom3.sync_host();
+  k_crossterm_atom4.sync_host();
+  k_crossterm_atom5.sync_host();
 
   FixCMAP::copy_arrays(i,j,delflag);
 
-  k_num_crossterm.template modify<LMPHostType>();
-  k_crossterm_type.template modify<LMPHostType>();
-  k_crossterm_atom1.template modify<LMPHostType>();
-  k_crossterm_atom2.template modify<LMPHostType>();
-  k_crossterm_atom3.template modify<LMPHostType>();
-  k_crossterm_atom4.template modify<LMPHostType>();
-  k_crossterm_atom5.template modify<LMPHostType>();
+  k_num_crossterm.modify_host();
+  k_crossterm_type.modify_host();
+  k_crossterm_atom1.modify_host();
+  k_crossterm_atom2.modify_host();
+  k_crossterm_atom3.modify_host();
+  k_crossterm_atom4.modify_host();
+  k_crossterm_atom5.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -655,7 +647,7 @@ int FixCMAPKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 
 template<class DeviceType>
 int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
-   const int &nsend, DAT::tdual_xfloat_2d &k_buf,
+   const int &nsend, DAT::tdual_double_2d_lr &k_buf,
    DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d k_copylist,
    ExecutionSpace space)
 {
@@ -671,7 +663,7 @@ int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
   k_crossterm_atom4.template sync<DeviceType>();
   k_crossterm_atom5.template sync<DeviceType>();
 
-  auto d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+  auto d_buf = typename AT::t_double_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
   auto d_copylist = k_copylist.template view<DeviceType>();
@@ -731,8 +723,8 @@ int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
   copymode = 0;
 
   k_buf.template modify<DeviceType>();
-  if (space == Host) k_buf.template sync<LMPHostType>();
-  else k_buf.template sync<LMPDeviceType>();
+  if (space == HostKK) k_buf.sync_host();
+  else k_buf.sync_device();
 
   k_num_crossterm.template modify<DeviceType>();
   k_crossterm_type.template modify<DeviceType>();
@@ -752,7 +744,7 @@ int FixCMAPKokkos<DeviceType>::pack_exchange_kokkos(
 
 template <class DeviceType>
 void FixCMAPKokkos<DeviceType>::unpack_exchange_kokkos(
-  DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  DAT::tdual_double_2d_lr &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
   int nrecv1, int nextrarecv1, ExecutionSpace /*space*/)
 {
   k_buf.template sync<DeviceType>();
@@ -766,7 +758,7 @@ void FixCMAPKokkos<DeviceType>::unpack_exchange_kokkos(
   k_crossterm_atom4.template sync<DeviceType>();
   k_crossterm_atom5.template sync<DeviceType>();
 
-  auto d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+  auto d_buf = typename AT::t_double_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
 
@@ -814,14 +806,14 @@ void FixCMAPKokkos<DeviceType>::unpack_exchange_kokkos(
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double FixCMAPKokkos<DeviceType>::dihedral_angle_atan2(double fx, double fy, double fz,
-                                      double ax, double ay, double az,
-                                      double bx, double by, double bz,
-                                      double absg) const
+KK_FLOAT FixCMAPKokkos<DeviceType>::dihedral_angle_atan2(KK_FLOAT fx, KK_FLOAT fy, KK_FLOAT fz,
+                                      KK_FLOAT ax, KK_FLOAT ay, KK_FLOAT az,
+                                      KK_FLOAT bx, KK_FLOAT by, KK_FLOAT bz,
+                                      KK_FLOAT absg) const
 {
   // calculate the dihedral angle
 
-  double angle = 0.0, arg1, arg2;
+  KK_FLOAT angle = 0.0, arg1, arg2;
 
   arg1 = absg*(fx*bx+fy*by+fz*bz);
   arg2 = ax*bx+ay*by+az*bz;
@@ -840,9 +832,9 @@ double FixCMAPKokkos<DeviceType>::dihedral_angle_atan2(double fx, double fy, dou
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixCMAPKokkos<DeviceType>::bc_interpol(double x1, double x2, int low1, int low2, double *gs,
-                           double *d1gs, double *d2gs, double *d12gs,
-                           double &E, double &dEdPhi, double &dEdPsi ) const
+void FixCMAPKokkos<DeviceType>::bc_interpol(KK_FLOAT x1, KK_FLOAT x2, int low1, int low2, KK_FLOAT *gs,
+                           KK_FLOAT *d1gs, KK_FLOAT *d2gs, KK_FLOAT *d12gs,
+                           KK_FLOAT &E, KK_FLOAT &dEdPhi, KK_FLOAT &dEdPsi ) const
 {
 
   // FUSE bc_coeff() and bc_interpol() inline functions for
@@ -870,7 +862,7 @@ void FixCMAPKokkos<DeviceType>::bc_interpol(double x1, double x2, int low1, int 
     };
 
   int i, j, k, in;
-  double xx, x[16], cij[4][4];
+  KK_FLOAT xx, x[16], cij[4][4];
 
   for (i = 0; i < 4; i++) {
     x[i] = gs[i];
@@ -893,7 +885,7 @@ void FixCMAPKokkos<DeviceType>::bc_interpol(double x1, double x2, int low1, int 
   //   gradients and cross-derivatives
   // calculate the interpolated value of the point of interest (POI)
 
-  double t, u, gs1l, gs2l;
+  KK_FLOAT t, u, gs1l, gs2l;
 
   // set the interpolation coefficients
   // bc_coeff(gs,d1gs,d2gs,d12gs,&cij[0]);
@@ -928,16 +920,16 @@ int FixCMAPKokkos<DeviceType>::closest_image(const int i, int j) const
 {
   if (j < 0) return j;
 
-  const X_FLOAT xi0 = d_x(i,0);
-  const X_FLOAT xi1 = d_x(i,1);
-  const X_FLOAT xi2 = d_x(i,2);
+  const KK_FLOAT xi0 = d_x(i,0);
+  const KK_FLOAT xi1 = d_x(i,1);
+  const KK_FLOAT xi2 = d_x(i,2);
 
   int closest = j;
-  X_FLOAT delx = xi0 - d_x(j,0);
-  X_FLOAT dely = xi1 - d_x(j,1);
-  X_FLOAT delz = xi2 - d_x(j,2);
-  X_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
-  X_FLOAT rsq;
+  KK_FLOAT delx = xi0 - d_x(j,0);
+  KK_FLOAT dely = xi1 - d_x(j,1);
+  KK_FLOAT delz = xi2 - d_x(j,2);
+  KK_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
+  KK_FLOAT rsq;
 
   while (d_sametag[j] >= 0) {
     j = d_sametag[j];

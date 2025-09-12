@@ -27,7 +27,6 @@ GranSubModStyle(mdr,GranSubModDampingMDR,DAMPING);
 #define GRAN_SUB_MOD_DAMPING_H
 
 #include "gran_sub_mod.h"
-#include "pointers.h"
 
 namespace LAMMPS_NS {
 namespace Granular_NS {

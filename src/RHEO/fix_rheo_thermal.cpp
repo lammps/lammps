@@ -30,14 +30,14 @@
 #include "fix_rheo.h"
 #include "fix_update_special_bonds.h"
 #include "force.h"
-#include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "pair.h"
 #include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace RHEO_NS;
@@ -189,7 +189,7 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "react") == 0) {
       if (iarg + 2 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/thermal react", error);
       cut_bond = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      btype = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      btype = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       comm_forward = 4;
       if (cut_bond <= 0.0) error->all(FLERR, "Illegal max bond length must be greater than zero");
       if ((btype < 1) || (btype > atom->nbondtypes))
@@ -293,7 +293,7 @@ void FixRHEOThermal::init()
     if (force->newton_pair) error->all(FLERR, "Need Newton off for reactive bond generation");
 
     // need a half neighbor list, built only when particles freeze
-    auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+    auto *req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
     req->set_cutoff(cut_kernel);
 
     // find instances of bond history to delete/shift data
@@ -547,7 +547,7 @@ void FixRHEOThermal::break_bonds()
         bond_atom[i][m] = bond_atom[i][nmax];
         if (n_histories > 0) {
           for (auto &ihistory : histories) {
-            auto fix_bond_history = dynamic_cast<FixBondHistory *>(ihistory);
+            auto *fix_bond_history = dynamic_cast<FixBondHistory *>(ihistory);
             fix_bond_history->shift_history(i, m, nmax);
             fix_bond_history->delete_history(i, nmax);
           }
@@ -569,6 +569,7 @@ void FixRHEOThermal::break_bonds()
   }
 
   // Update bond list and break solid-melted bonds
+  int deleted_bonds = 0;
   for (n = 0; n < nbondlist; n++) {
 
     // skip bond if not correct type
@@ -582,6 +583,7 @@ void FixRHEOThermal::break_bonds()
     if (!melti && !meltj) continue;
 
     bondlist[n][2] = 0;
+    deleted_bonds += 1;
 
     // Delete bonds for non-melted local atoms (shifting)
     if (i < nlocal && !melti) {
@@ -592,7 +594,7 @@ void FixRHEOThermal::break_bonds()
           bond_atom[i][m] = bond_atom[i][nmax];
           if (n_histories > 0)
             for (auto &ihistory : histories) {
-              auto fix_bond_history = dynamic_cast<FixBondHistory *>(ihistory);
+              auto *fix_bond_history = dynamic_cast<FixBondHistory *>(ihistory);
               fix_bond_history->shift_history(i, m, nmax);
               fix_bond_history->delete_history(i, nmax);
             }
@@ -611,7 +613,7 @@ void FixRHEOThermal::break_bonds()
           bond_atom[j][m] = bond_atom[j][nmax];
           if (n_histories > 0)
             for (auto &ihistory : histories) {
-              auto fix_bond_history = dynamic_cast<FixBondHistory *>(ihistory);
+              auto *fix_bond_history = dynamic_cast<FixBondHistory *>(ihistory);
               fix_bond_history->shift_history(j, m, nmax);
               fix_bond_history->delete_history(j, nmax);
             }
@@ -628,6 +630,10 @@ void FixRHEOThermal::break_bonds()
       if (((i >= nlocal) && melti) || ((j >= nlocal) && meltj))
         fix_update_special_bonds->add_broken_bond(i, j);
   }
+
+  int deleted_bonds_all;
+  MPI_Allreduce(&deleted_bonds, &deleted_bonds_all, 1, MPI_INT, MPI_SUM, world);
+  atom->nbonds -= deleted_bonds_all;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -648,12 +654,18 @@ void FixRHEOThermal::create_bonds()
   int *num_bond = atom->num_bond;
   double **x = atom->x;
 
+  // acquire updated ghost atom positions & build nlist
+  // necessary b/c are calling this after integrate, but before Verlet comm
+
+  comm->forward_comm();
   neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+
+  int added_bonds = 0;
 
   // loop over neighbors of my atoms
   // might be faster to do a full list and just act on the atom that freezes
@@ -686,6 +698,8 @@ void FixRHEOThermal::create_bonds()
       rsq = delx * delx + dely * dely + delz * delz;
       if (rsq > cutsq_bond) continue;
 
+      added_bonds += 1;
+
       // Add bonds to owned atoms
       // If newton bond off, add to both, otherwise add to whichever has a smaller tag
       if ((i < nlocal) && (!newton_bond || (tag[i] < tag[j]))) {
@@ -707,6 +721,10 @@ void FixRHEOThermal::create_bonds()
       if (fix_update_special_bonds) fix_update_special_bonds->add_created_bond(i, j);
     }
   }
+
+  int added_bonds_all;
+  MPI_Allreduce(&added_bonds, &added_bonds_all, 1, MPI_INT, MPI_SUM, world);
+  atom->nbonds += added_bonds_all;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -165,7 +165,7 @@ class PythonNumpy(unittest.TestCase):
         x = [ 1.0, 1.0, 1.0,  1.0, 1.0, 1.5,  1.5, 1.0, 1.0 ]
         types = [1, 2, 1]
         ids = [1, 2, 3]
-        self.assertEqual(self.lmp.create_atoms(3, id=ids, type=types, x=x), 3)
+        self.assertEqual(self.lmp.create_atoms(3, atomid=ids, atype=types, x=x), 3)
         self.lmp.command("mass * 2.0")
         self.lmp.command("pair_style zero 1.1")
         self.lmp.command("pair_coeff * *")
@@ -426,7 +426,7 @@ class PythonNumpy(unittest.TestCase):
         x = [ 1.0, 1.0, 1.0,  1.0, 1.0, 1.5 ]
         types = [1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
+        self.assertEqual(self.lmp.create_atoms(2, atomid=None, atype=types, x=x), 2)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 2)
 
@@ -471,7 +471,7 @@ class PythonNumpy(unittest.TestCase):
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -510,7 +510,7 @@ class PythonNumpy(unittest.TestCase):
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -544,7 +544,7 @@ class PythonNumpy(unittest.TestCase):
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 2, 2, 2]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -609,7 +609,7 @@ class PythonNumpy(unittest.TestCase):
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -647,7 +647,7 @@ class PythonNumpy(unittest.TestCase):
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -680,7 +680,7 @@ class PythonNumpy(unittest.TestCase):
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -733,7 +733,7 @@ class PythonNumpy(unittest.TestCase):
 
         types = [1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
+        self.assertEqual(self.lmp.create_atoms(2, atomid=None, atype=types, x=x), 2)
         self.lmp.command("variable a atom x*x+y*y+z*z")
         a = self.lmp.numpy.extract_variable("a", "all", LMP_VAR_ATOM)
         self.assertIs(type(a), numpy.ndarray)

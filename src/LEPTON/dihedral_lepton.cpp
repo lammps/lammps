@@ -35,9 +35,7 @@
 #include "lepton_utils.h"
 
 using namespace LAMMPS_NS;
-using MathConst::DEG2RAD;
 using MathConst::MY_2PI;
-using MathConst::RAD2DEG;
 using MathExtra::cross3;
 using MathExtra::dot3;
 using MathExtra::norm3;
@@ -398,7 +396,7 @@ void DihedralLepton::coeff(int narg, char **arg)
   }
 
   // if not found, add to list
-  if ((expressions.size() == 0) || (idx == expressions.size())) expressions.push_back(exp_one);
+  if ((expressions.size() == 0) || (idx == expressions.size())) expressions.push_back(std::move(exp_one));
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

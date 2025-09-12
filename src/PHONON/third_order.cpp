@@ -286,8 +286,8 @@ void ThirdOrder::calculateMatrix()
   bigint j;
   bigint *firstneigh;
 
-  auto dynmat = new double[dynlenb];
-  auto fdynmat = new double[dynlenb];
+  auto *dynmat = new double[dynlenb];
+  auto *fdynmat = new double[dynlenb];
   memset(&dynmat[0],0,dynlenb*sizeof(double));
   memset(&fdynmat[0],0,dynlenb*sizeof(double));
 
@@ -618,7 +618,7 @@ void ThirdOrder::create_groupmap()
   bigint natoms = atom->natoms;
   int *recv = new int[comm->nprocs];
   int *displs = new int[comm->nprocs];
-  auto temp_groupmap = new bigint[natoms];
+  auto *temp_groupmap = new bigint[natoms];
 
   //find number of local atoms in the group (final_gid)
   for (bigint i=1; i<=natoms; i++) {
@@ -627,7 +627,7 @@ void ThirdOrder::create_groupmap()
       gid += 1; // gid at the end of loop is final_Gid
   }
   //create an array of length final_gid
-  auto sub_groupmap = new bigint[gid];
+  auto *sub_groupmap = new bigint[gid];
 
   gid = 0;
   //create a map between global atom id and group atom id for each proc
@@ -715,8 +715,8 @@ void ThirdOrder::getNeighbortags() {
   }
 
   bigint nbytes = ((bigint) sizeof(bigint)) * sum;
-  auto data = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
-  auto datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:neighbortags");
+  auto *data = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
+  auto *datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:neighbortags");
   nbytes = ((bigint) sizeof(bigint *)) * natoms;
   firsttags = (bigint **) memory->smalloc(nbytes, "thirdorder:firsttags");
   neighbortags = (bigint **) memory->smalloc(nbytes, "thirdorder:neighbortags");

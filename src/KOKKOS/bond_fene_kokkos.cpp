@@ -23,6 +23,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "kokkos.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
 #include "neighbor_kokkos.h"
@@ -100,7 +101,11 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 1;
 
-  // loop over neighbors of my atoms
+  // loop over the bond list
+
+  int bond_blocksize = 0;
+  if (lmp->kokkos->bond_block_size_set)
+    bond_blocksize = lmp->kokkos->bond_block_size;
 
   EV_FLOAT ev;
 
@@ -112,9 +117,15 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   } else {
     if (newton_bond) {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<1,0> >(0,nbondlist),*this);
+      if (bond_blocksize)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<1,0> >(0,nbondlist,Kokkos::ChunkSize(bond_blocksize)),*this);
+      else
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<1,0> >(0,nbondlist),*this);
     } else {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<0,0> >(0,nbondlist),*this);
+      if (bond_blocksize)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<0,0> >(0,nbondlist,Kokkos::ChunkSize(bond_blocksize)),*this);
+      else
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<0,0> >(0,nbondlist),*this);
     }
   }
 
@@ -154,26 +165,26 @@ KOKKOS_INLINE_FUNCTION
 void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
   // The f array is atomic
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
+  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
 
   const int i1 = bondlist(n,0);
   const int i2 = bondlist(n,1);
   const int type = bondlist(n,2);
 
-  const F_FLOAT delx = x(i1,0) - x(i2,0);
-  const F_FLOAT dely = x(i1,1) - x(i2,1);
-  const F_FLOAT delz = x(i1,2) - x(i2,2);
+  const KK_FLOAT delx = x(i1,0) - x(i2,0);
+  const KK_FLOAT dely = x(i1,1) - x(i2,1);
+  const KK_FLOAT delz = x(i1,2) - x(i2,2);
 
-  const F_FLOAT r0 = d_r0[type];
-  const F_FLOAT k = d_k[type];
-  const F_FLOAT sigma = d_sigma[type];
-  const F_FLOAT epsilon = d_epsilon[type];
+  const KK_FLOAT r0 = d_r0[type];
+  const KK_FLOAT k = d_k[type];
+  const KK_FLOAT sigma = d_sigma[type];
+  const KK_FLOAT epsilon = d_epsilon[type];
 
   // force from log term
 
-  const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const F_FLOAT r0sq = r0 * r0;
-  F_FLOAT rlogarg = 1.0 - rsq/r0sq;
+  const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+  const KK_FLOAT r0sq = r0 * r0;
+  KK_FLOAT rlogarg = 1.0 - rsq/r0sq;
 
   // if r -> r0, then rlogarg < 0.0 which is an error
   // issue a warning and reset rlogarg = epsilon
@@ -187,21 +198,21 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
     rlogarg = 0.1;
   }
 
-  F_FLOAT fbond = -k/rlogarg;
+  KK_FLOAT fbond = -k/rlogarg;
 
   // force from LJ term
 
-  F_FLOAT sr6 = 0.0;
-  F_FLOAT sigma2 = sigma*sigma;
+  KK_FLOAT sr6 = 0.0;
+  KK_FLOAT sigma2 = sigma*sigma;
   if (rsq < MY_CUBEROOT2*sigma2) {
-    const F_FLOAT sr2 = sigma2/rsq;
+    const KK_FLOAT sr2 = sigma2/rsq;
     sr6 = sr2*sr2*sr2;
     fbond += 48.0*epsilon*sr6*(sr6-0.5)/rsq;
   }
 
   // energy
 
-  F_FLOAT ebond = 0.0;
+  KK_FLOAT ebond = 0.0;
   if (eflag) {
     ebond = -0.5 * k*r0sq*log(rlogarg);
     if (rsq < MY_CUBEROOT2*sigma2)
@@ -241,10 +252,10 @@ void BondFENEKokkos<DeviceType>::allocate()
   BondFENE::allocate();
 
   int n = atom->nbondtypes;
-  k_k = DAT::tdual_ffloat_1d("BondFene::k",n+1);
-  k_r0 = DAT::tdual_ffloat_1d("BondFene::r0",n+1);
-  k_epsilon = DAT::tdual_ffloat_1d("BondFene::epsilon",n+1);
-  k_sigma = DAT::tdual_ffloat_1d("BondFene::sigma",n+1);
+  k_k = DAT::tdual_kkfloat_1d("BondFene::k",n+1);
+  k_r0 = DAT::tdual_kkfloat_1d("BondFene::r0",n+1);
+  k_epsilon = DAT::tdual_kkfloat_1d("BondFene::epsilon",n+1);
+  k_sigma = DAT::tdual_kkfloat_1d("BondFene::sigma",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_r0 = k_r0.template view<DeviceType>();
@@ -307,15 +318,15 @@ template<class DeviceType>
 //template<int NEWTON_BOND>
 KOKKOS_INLINE_FUNCTION
 void BondFENEKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &ebond, const F_FLOAT &fbond, const F_FLOAT &delx,
-                const F_FLOAT &dely, const F_FLOAT &delz) const
+      const KK_FLOAT &ebond, const KK_FLOAT &fbond, const KK_FLOAT &delx,
+                const KK_FLOAT &dely, const KK_FLOAT &delz) const
 {
-  E_FLOAT ebondhalf;
-  F_FLOAT v[6];
+  KK_FLOAT ebondhalf;
+  KK_FLOAT v[6];
 
   // The eatom and vatom arrays are atomic
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = d_eatom;
+  Kokkos::View<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = d_vatom;
 
   if (eflag_either) {
     if (eflag_global) {

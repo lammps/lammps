@@ -67,7 +67,7 @@ void FixNHKokkos<DeviceType>::init()
 {
   FixNH::init();
 
-  atomKK->k_mass.modify<LMPHostType>();
+  atomKK->k_mass.modify_host();
   atomKK->k_mass.sync<DeviceType>();
 }
 
@@ -323,13 +323,15 @@ void FixNHKokkos<DeviceType>::remap()
 
   // convert pertinent atoms and rigid bodies to lamda coords
 
-  x = atomKK->k_x.template view<DeviceType>();
-
   if (allremap) domainKK->x2lamda(nlocal);
   else {
     for ( int i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
-        domainKK->x2lamda(&x(i,0), &x(i,0));
+      if (mask[i] & dilate_group_bit) {
+        auto h_x = atomKK->k_x.h_view;
+        atomKK->sync(Host,X_MASK);
+        domainKK->x2lamda(&h_x(i,0), &h_x(i,0));
+        atomKK->modified(Host,X_MASK);
+      }
   }
 
   if (rfix.size() > 0)
@@ -475,8 +477,12 @@ void FixNHKokkos<DeviceType>::remap()
   if (allremap) domainKK->lamda2x(nlocal);
   else {
     for ( int i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
-        domainKK->lamda2x(&x(i,0), &x(i,0));
+      if (mask[i] & dilate_group_bit) {
+        auto h_x = atomKK->k_x.h_view;
+        atomKK->sync(Host,X_MASK);
+        domainKK->lamda2x(&h_x(i,0), &h_x(i,0));
+        atomKK->modified(Host,X_MASK);
+      }
   }
 
   // for (auto &ifix : rfix) ifix->deform(1);
@@ -582,14 +588,14 @@ KOKKOS_INLINE_FUNCTION
 void FixNHKokkos<DeviceType>::operator()(TagFixNH_nve_v<RMASS>, const int &i) const {
   if (RMASS) {
     if (mask[i] & groupbit) {
-      const F_FLOAT dtfm = dtf / rmass[i];
+      const KK_FLOAT dtfm = dtf / rmass[i];
       v(i,0) += dtfm*f(i,0);
       v(i,1) += dtfm*f(i,1);
       v(i,2) += dtfm*f(i,2);
     }
   } else {
     if (mask[i] & groupbit) {
-      const F_FLOAT dtfm = dtf / mass[type[i]];
+      const KK_FLOAT dtfm = dtf / mass[type[i]];
       v(i,0) += dtfm*f(i,0);
       v(i,1) += dtfm*f(i,1);
       v(i,2) += dtfm*f(i,2);

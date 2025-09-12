@@ -129,12 +129,12 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -146,15 +146,15 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairCoulDebyeKokkos<DeviceType>::
-compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+KK_FLOAT PairCoulDebyeKokkos<DeviceType>::
+compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& itype, const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
 
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT rinv = sqrt(r2inv);
-  const F_FLOAT r = 1.0/rinv;
-  const F_FLOAT screening = exp(-kappa*r);
-  F_FLOAT forcecoul;
+  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT rinv = sqrt(r2inv);
+  const KK_FLOAT r = 1.0/rinv;
+  const KK_FLOAT screening = exp(-kappa*r);
+  KK_FLOAT forcecoul;
 
   forcecoul = qqrd2e * qtmp * q(j) * screening * (kappa + rinv) *
           (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
@@ -169,14 +169,14 @@ compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairCoulDebyeKokkos<DeviceType>::
-compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+KK_FLOAT PairCoulDebyeKokkos<DeviceType>::
+compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& itype, const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
 
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT rinv = sqrt(r2inv);
-  const F_FLOAT r = 1.0/rinv;
-  const F_FLOAT screening = exp(-kappa*r);
+  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT rinv = sqrt(r2inv);
+  const KK_FLOAT r = 1.0/rinv;
+  const KK_FLOAT screening = exp(-kappa*r);
 
   return factor_coul * qqrd2e * qtmp * q(j) * rinv * screening *
           (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
@@ -197,36 +197,13 @@ void PairCoulDebyeKokkos<DeviceType>::allocate()
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
 
-  k_cut_ljsq = typename ArrayTypes<DeviceType>::tdual_ffloat_2d("pair:cut_ljsq",n+1,n+1);
+  k_cut_ljsq = DAT::tdual_kkfloat_2d("pair:cut_ljsq",n+1,n+1);
   d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
-  k_cut_coulsq = typename ArrayTypes<DeviceType>::tdual_ffloat_2d("pair:cut_coulsq",n+1,n+1);
+  k_cut_coulsq = DAT::tdual_kkfloat_2d("pair:cut_coulsq",n+1,n+1);
   d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
 
   k_params = Kokkos::DualView<params_coul**,Kokkos::LayoutRight,DeviceType>("PairCoulDebye::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
-}
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairCoulDebyeKokkos<DeviceType>::settings(int narg, char **arg)
-{
-  if (narg > 2) error->all(FLERR,"Illegal pair_style command");
-
-  kappa = utils::numeric(FLERR,arg[0],false,lmp);
-  cut_global = utils::numeric(FLERR,arg[1],false,lmp);
-
-  // reset cutoffs that have been explicitly set
-
-  if (allocated) {
-    int i,j;
-    for (i = 1; i <= atom->ntypes; i++)
-      for (j = i; j <= atom->ntypes; j++)
-        if (setflag[i][j]) cut[i][j] = cut_global;
-  }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -268,12 +245,12 @@ double PairCoulDebyeKokkos<DeviceType>::init_one(int i, int j)
     m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cutone*cutone;
   }
   k_cutsq.h_view(i,j) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
+  k_cutsq.modify_host();
   k_cut_ljsq.h_view(i,j) = cutone*cutone;
-  k_cut_ljsq.template modify<LMPHostType>();
+  k_cut_ljsq.modify_host();
   k_cut_coulsq.h_view(i,j) = cutone*cutone;
-  k_cut_coulsq.template modify<LMPHostType>();
-  k_params.template modify<LMPHostType>();
+  k_cut_coulsq.modify_host();
+  k_params.modify_host();
 
   return cutone;
 }

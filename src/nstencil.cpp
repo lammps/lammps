@@ -49,11 +49,6 @@ using namespace LAMMPS_NS;
      in 2d is all bins in y-plane of self and above, but not below
      stencil includes self
      no versions that allow ghost on (no callers need it?)
-   for multi/old:
-     create one stencil for each atom type
-     stencil follows same rules for half/full, newton on/off, triclinic
-     cutoff is not cutneighmaxsq, but max cutoff for that atom type
-     no versions that allow ghost on (any need for it?)
    for multi:
      create one stencil for each icollection-jcollection pairing
      the full/half stencil label refers to the same-collection stencil
@@ -71,12 +66,9 @@ NStencil::NStencil(LAMMPS *lmp) : Pointers(lmp)
   last_stencil = -1;
 
   xyzflag = 0;
-  maxstencil = maxstencil_multi_old = 0;
+  maxstencil  = 0;
   stencil = nullptr;
   stencilxyz = nullptr;
-  nstencil_multi_old = nullptr;
-  stencil_multi_old = nullptr;
-  distsq_multi_old = nullptr;
 
   nstencil_multi = nullptr;
   stencil_multi = nullptr;
@@ -98,18 +90,6 @@ NStencil::~NStencil()
 {
   memory->destroy(stencil);
   memory->destroy(stencilxyz);
-
-  if (stencil_multi_old) {
-
-    int n = atom->ntypes;
-    for (int i = 1; i <= n; i++) {
-      memory->destroy(stencil_multi_old[i]);
-      memory->destroy(distsq_multi_old[i]);
-    }
-    delete [] nstencil_multi_old;
-    delete [] stencil_multi_old;
-    delete [] distsq_multi_old;
-  }
 
   if (maxstencil_multi) {
 
@@ -234,7 +214,7 @@ void NStencil::create_setup()
     int smax = (2 * sx + 1) * (2 * sy + 1) * (2 * sz + 1);
 
     // reallocate stencil structs if necessary
-    // for BIN and MULTI_OLD styles
+    // for BIN styles
 
     if (neighstyle == Neighbor::BIN) {
       if (smax > maxstencil) {
@@ -244,31 +224,6 @@ void NStencil::create_setup()
         if (xyzflag) {
           memory->destroy(stencilxyz);
           memory->create(stencilxyz, maxstencil, 3, "neighstencil:stencilxyz");
-        }
-      }
-
-    } else {
-      int i;
-      int n = atom->ntypes;
-      if (maxstencil_multi_old == 0) {
-        nstencil_multi_old = new int[n + 1];
-        stencil_multi_old = new int*[n + 1];
-        distsq_multi_old = new double*[n + 1];
-        for (i = 1; i <= n; i++) {
-          nstencil_multi_old[i] = 0;
-          stencil_multi_old[i] = nullptr;
-          distsq_multi_old[i] = nullptr;
-        }
-      }
-      if (smax > maxstencil_multi_old) {
-        maxstencil_multi_old = smax;
-        for (i = 1; i <= n; i++) {
-          memory->destroy(stencil_multi_old[i]);
-          memory->destroy(distsq_multi_old[i]);
-          memory->create(stencil_multi_old[i], maxstencil_multi_old,
-                         "neighstencil:stencil_multi_old");
-          memory->create(distsq_multi_old[i], maxstencil_multi_old,
-                         "neighstencil:distsq_multi_old");
         }
       }
     }
@@ -459,9 +414,6 @@ double NStencil::memory_usage()
   if (neighstyle == Neighbor::BIN) {
     bytes += memory->usage(stencil, maxstencil);
     bytes += memory->usage(stencilxyz, maxstencil, 3);
-  } else if (neighstyle == Neighbor::MULTI_OLD) {
-    bytes += (double)atom->ntypes * maxstencil_multi_old * sizeof(int);
-    bytes += (double)atom->ntypes * maxstencil_multi_old * sizeof(double);
   } else if (neighstyle == Neighbor::MULTI) {
     int n = ncollections;
 

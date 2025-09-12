@@ -20,6 +20,8 @@
 
 colvarbias::colvarbias(char const *key)
 {
+  time_step_factor = cvm::proxy->time_step_factor();
+
   bias_type = colvarparse::to_lower_cppstr(key);
   state_keyword = bias_type;
 
@@ -27,8 +29,6 @@ colvarbias::colvarbias(char const *key)
   description = "uninitialized " + bias_type + " bias";
 
   colvarbias::init_dependencies();
-
-  time_step_factor = 1;
 
   has_data = false;
   b_output_energy = false;
@@ -106,20 +106,23 @@ int colvarbias::init(std::string const &conf)
 
   get_keyval_feature(this, conf, "stepZeroData", f_cvb_step_zero_data, is_enabled(f_cvb_step_zero_data));
 
+  // Parse multiple time stepping options
+  error_code |= init_mts(conf);
+
   // Write energy to traj file?
   get_keyval(conf, "outputEnergy", b_output_energy, b_output_energy);
 
   // How often to write full output files?
   get_keyval(conf, "outputFreq", output_freq, output_freq);
+  if (output_freq % time_step_factor != 0) {
+    error_code |= cvm::error(
+        "Error: in bias " + name + ", outputFreq (currently " + cvm::to_str(output_freq) +
+            ") must be a multiple of timeStepFactor (" + cvm::to_str(time_step_factor) + ").\n",
+        COLVARS_INPUT_ERROR);
+  }
 
   // Disabled by default in base class; default value can be overridden by derived class constructor
   get_keyval_feature(this, conf, "bypassExtendedLagrangian", f_cvb_bypass_ext_lagrangian, is_enabled(f_cvb_bypass_ext_lagrangian), parse_echo);
-
-  get_keyval(conf, "timeStepFactor", time_step_factor, time_step_factor);
-  if (time_step_factor < 1) {
-    error_code |= cvm::error("Error: timeStepFactor must be 1 or greater.\n",
-                             COLVARS_INPUT_ERROR);
-  }
 
   // Use the scaling factors from a grid?
   get_keyval_feature(this, conf, "scaledBiasingForce",
@@ -138,6 +141,37 @@ int colvarbias::init(std::string const &conf)
   // Now that children are defined, we can solve dependencies
   enable(f_cvb_active);
   if (cvm::debug()) print_state();
+
+  return error_code;
+}
+
+
+int colvarbias::init_mts(std::string const &conf) {
+  int error_code = COLVARS_OK;
+
+  get_keyval(conf, "timeStepFactor", time_step_factor, time_step_factor);
+
+  if (time_step_factor < 1) {
+    error_code |= cvm::error("Error: timeStepFactor must be 1 or greater.\n", COLVARS_INPUT_ERROR);
+  }
+
+  if (time_step_factor % cvm::proxy->time_step_factor() != 0) {
+    error_code |=
+        cvm::error("timeStepFactor for this bias (currently " + cvm::to_str(time_step_factor) +
+                       ") must be a multiple of the global Colvars timestep multiplier (" +
+                       cvm::to_str(cvm::proxy->time_step_factor()) + ").\n",
+                   COLVARS_INPUT_ERROR);
+  }
+
+  for (auto *cv : colvars) {
+    if (time_step_factor % cv->get_time_step_factor()) {
+      error_code |= cvm::error(
+          "Error: timeStepFactor for " + description + " (" + cvm::to_str(time_step_factor) +
+            ") should be a multiple of that of " + cv->description + " (" +
+            cvm::to_str(cv->get_time_step_factor()) + ").\n",
+          COLVARS_INPUT_ERROR);
+    }
+  }
 
   return error_code;
 }

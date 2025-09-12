@@ -41,7 +41,6 @@
 //        https://github.com/jewettaij/jacobi_pd   (CC0-1.0 license)
 //        https://github.com/mrcdr/lambda-lanczos  (MIT license)
 
-//#include <cassert>
 #include <numeric>
 #include <complex>
 #include <limits>
@@ -86,6 +85,7 @@ namespace MathEigen {
   /// Implementation details: "real_t<T>" is defined using C++ template
   /// specializations.
 
+  // NOLINTBEGIN
   template <typename T>
   struct realTypeMap {
     typedef T type;
@@ -96,6 +96,7 @@ namespace MathEigen {
   };
   template <typename T>
   using real_t = typename realTypeMap<T>::type;
+  // NOLINTEND
 
 
   // --- Operations on vectors (of real and complex numbers) ---
@@ -152,13 +153,14 @@ namespace MathEigen {
     /// @brief  Specify the size of the matrices you want to diagonalize later.
     /// @param  n  the size (ie. number of rows) of the (square) matrix.
     Jacobi(int n);
+    Jacobi() = delete;
 
     ~Jacobi();
 
     /// @brief  Change the size of the matrices you want to diagonalize.
     /// @param  n  the size (ie. number of rows) of the (square) matrix.
     void SetSize(int n);
-
+    // NOLINTBEGIN
     // @typedef choose the criteria for sorting eigenvalues and eigenvectors
     typedef enum eSortCriteria {
       DO_NOT_SORT,
@@ -167,7 +169,7 @@ namespace MathEigen {
       SORT_DECREASING_ABS_EVALS,
       SORT_INCREASING_ABS_EVALS
     } SortCriteria;
-
+    // NOLINTEND
     /// @brief Calculate the eigenvalues and eigenvectors of a symmetric matrix
     ///        using the Jacobi eigenvalue algorithm.
     /// @returns 0 if the algorithm converged,
@@ -215,8 +217,8 @@ namespace MathEigen {
   public:
     // C++ boilerplate: copy and move constructor, swap, and assignment operator
     Jacobi(const Jacobi<Scalar, Vector, Matrix, ConstMatrix>& source);
-    Jacobi(Jacobi<Scalar, Vector, Matrix, ConstMatrix>&& other);
-    void swap(Jacobi<Scalar, Vector, Matrix, ConstMatrix> &other);
+    Jacobi(Jacobi<Scalar, Vector, Matrix, ConstMatrix>&& other) noexcept;
+    void swap(Jacobi<Scalar, Vector, Matrix, ConstMatrix> &other) noexcept;
     Jacobi<Scalar, Vector, Matrix, ConstMatrix>& operator = (Jacobi<Scalar, Vector, Matrix, ConstMatrix> source);
 
   }; // class Jacobi
@@ -397,7 +399,6 @@ void Alloc2D(size_t nrows,          // size of the array (number of rows)
              size_t ncols,          // size of the array (number of columns)
              Entry ***paaX)         // pointer to a 2D C-style array
 {
-  //assert(paaX);
   *paaX = new Entry* [nrows];  //conventional 2D C array (pointer-to-pointer)
   (*paaX)[0] = new Entry [nrows * ncols];  // 1D C array (contiguous memor)
   for (size_t iy=0; iy<nrows; iy++)
@@ -479,14 +480,14 @@ inline real_t<T> l1_norm(const std::vector<T>& vec) {
 
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
-Jacobi(int n) {
+  Jacobi(int n) : c(std::sqrt(2.0)), s(std::sqrt(2.0)) , t(1.0) {
   _Jacobi(n, nullptr, nullptr);
 }
 
 
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
-Jacobi(int n, Scalar **M, int *max_idx_row) {
+Jacobi(int n, Scalar **M, int *max_idx_row) : c(std::sqrt(2.0)), s(std::sqrt(2.0)) , t(1.0) {
   _Jacobi(n, M, max_idx_row);
 }
 
@@ -505,7 +506,6 @@ _Jacobi(int n, Scalar **M, int *max_idx_row) {
     this->n = n;
     this->M = M;
     this->max_idx_row = max_idx_row;
-    //assert(this->max_idx_row);
   } else {
     is_preallocated = false;
     SetSize(n); // allocate the "M" and "max_int_row" arrays
@@ -563,7 +563,7 @@ Diagonalize(ConstMatrix mat,    // the matrix you wish to diagonalize (size n)
     CalcRot(M, i, j);  // Calculate the parameters of the rotation matrix.
     ApplyRot(M, i, j); // Apply this rotation to the M matrix.
     if (calc_evec)     // Optional: If the caller wants the eigenvectors, then
-      ApplyRotLeft(evec,i,j); // apply the rotation to the eigenvector matrix
+      ApplyRotLeft(evec, i, j); // apply the rotation to the eigenvector matrix
 
   } //for (int n_iters=0; n_iters < max_num_iters; n_iters++)
 
@@ -606,9 +606,8 @@ CalcRot(Scalar const *const *M,    //!< matrix
         t = -t;
     }
   }
-  //assert(std::abs(t) <= 1.0);
   c = 1.0 / std::sqrt(1 + t*t);
-  s = c*t;
+  s = c * t;
 }
 
 
@@ -671,7 +670,6 @@ ApplyRot(Scalar **M,  // matrix
   M[j][j] += t * M[i][j];
 
   //Update the off-diagonal elements of M which will change (above the diagonal)
-  //assert(i < j);
   M[i][j] = 0.0;
 
   //compute M[w][i] and M[i][w] for all w!=i,considering above-diagonal elements
@@ -680,7 +678,6 @@ ApplyRot(Scalar **M,  // matrix
     M[w][i] = c*M[w][i] - s*M[w][j]; //M[w][i], M[w][j] from previous iteration
     if (i == max_idx_row[w]) max_idx_row[w] = MaxEntryRow(M, w);
     else if (std::abs(M[w][i])>std::abs(M[w][max_idx_row[w]])) max_idx_row[w]=i;
-    //assert(max_idx_row[w] == MaxEntryRow(M, w));
   }
   for (int w=i+1; w < j; w++) {      // 0 <= i <  w  <  j < n
     M[w][i] = M[i][w]; //backup the previous value. store below diagonal (w>i)
@@ -699,13 +696,11 @@ ApplyRot(Scalar **M,  // matrix
     M[w][j] = s*M[i][w] + c*M[w][j]; //M[i][w], M[w][j] from previous iteration
     if (j == max_idx_row[w]) max_idx_row[w] = MaxEntryRow(M, w);
     else if (std::abs(M[w][j])>std::abs(M[w][max_idx_row[w]])) max_idx_row[w]=j;
-    //assert(max_idx_row[w] == MaxEntryRow(M, w));
   }
   for (int w=i+1; w < j; w++) {      // 0 <= i+1 <= w <  j < n
     M[w][j] = s*M[w][i] + c*M[w][j]; //M[w][i], M[w][j] from previous iteration
     if (j == max_idx_row[w]) max_idx_row[w] = MaxEntryRow(M, w);
     else if (std::abs(M[w][j])>std::abs(M[w][max_idx_row[w]])) max_idx_row[w]=j;
-    //assert(max_idx_row[w] == MaxEntryRow(M, w));
   }
   for (int w=j+1; w < n; w++) {      // 0 <=  i  <  j <  w < n
     M[j][w] = s*M[w][i] + c*M[j][w]; //M[w][i], M[j][w] from previous iteration
@@ -836,7 +831,6 @@ SetSize(int n) {
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 void Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
 Alloc(int n) {
-  //assert(! is_preallocated);
   this->n = n;
   if (n > 0) {
     max_idx_row = new int[n];
@@ -847,7 +841,6 @@ Alloc(int n) {
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 void Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
 Dealloc() {
-  //assert(! is_preallocated);
   Dealloc2D(&M);
   delete[] max_idx_row;
   max_idx_row = nullptr;
@@ -863,7 +856,6 @@ Jacobi(const Jacobi<Scalar, Vector, Matrix, ConstMatrix>& source)
   Init();
   SetSize(source.n);
 
-  //assert(n == source.n);
   // The following lines aren't really necessary, because the contents
   // of source.M and source.max_idx_row are not needed (since they are
   // overwritten every time Jacobi::Diagonalize() is invoked).
@@ -878,7 +870,7 @@ Jacobi(const Jacobi<Scalar, Vector, Matrix, ConstMatrix>& source)
 
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 void Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
-swap(Jacobi<Scalar, Vector, Matrix, ConstMatrix> &other) {
+swap(Jacobi<Scalar, Vector, Matrix, ConstMatrix> &other) noexcept {
   std::swap(n, other.n);
   std::swap(is_preallocated, other.is_preallocated);
   std::swap(max_idx_row, other.max_idx_row);
@@ -888,7 +880,7 @@ swap(Jacobi<Scalar, Vector, Matrix, ConstMatrix> &other) {
 // Move constructor (C++11)
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
-Jacobi(Jacobi<Scalar, Vector, Matrix, ConstMatrix>&& other) {
+Jacobi(Jacobi<Scalar, Vector, Matrix, ConstMatrix>&& other) noexcept {
   Init();
   this->swap(other);
 }
@@ -932,9 +924,6 @@ template <typename T>
 inline int LambdaLanczos<T>::
 run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
 {
-  //assert(matrix_size > 0);
-  //assert(0 < this->tridiag_eps_ratio && this->tridiag_eps_ratio < 1);
-
   std::vector<std::vector<T>> u; // Lanczos vectors
   std::vector<real_t<T>> alpha; // Diagonal elements of an approximated tridiagonal matrix
   std::vector<real_t<T>> beta;  // Subdiagonal elements of an approximated tridiagonal matrix
@@ -1258,10 +1247,6 @@ inline void LambdaLanczos<T>::SetTriEpsRatio(T tri_eps_ratio)
   this->tridiag_eps_ratio = tri_eps_ratio;
 }
 
-
-
-
-
 template <typename T>
 inline void VectorRandomInitializer<T>::
 init(std::vector<T>& v)
@@ -1317,7 +1302,6 @@ PrincipalEigen(ConstMatrix matrix,
                Vector eigenvector,
                bool find_max)
 {
-  //assert(n > 0);
   auto matmul = [&](const std::vector<Scalar>& in, std::vector<Scalar>& out) {
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {

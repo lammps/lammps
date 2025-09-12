@@ -15,7 +15,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "ptm_initialize_data.h"
 
 namespace ptm {
-
+// NOLINTBEGIN
 typedef struct {
   double rmsd;
   double scale;
@@ -23,7 +23,7 @@ typedef struct {
   int8_t mapping[PTM_MAX_POINTS];
   const refdata_t *ref_struct;
 } result_t;
-
+// NOLINTEND
 int match_general(const refdata_t *s, double (*ch_points)[3], double (*points)[3], convexhull_t *ch,
                   result_t *res);
 int match_fcc_hcp_ico(double (*ch_points)[3], double (*points)[3], int32_t flags, convexhull_t *ch,

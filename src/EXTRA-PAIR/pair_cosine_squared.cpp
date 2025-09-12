@@ -133,7 +133,7 @@ void PairCosineSquared::coeff(int narg, char **arg)
   double sigma_one = utils::numeric(FLERR, arg[3],false,lmp);
 
   double cut_one = cut_global;
-  double wca_one = 0;
+  int wca_one = 0;
   if (narg == 6) {
     cut_one = utils::numeric(FLERR, arg[4],false,lmp);
     if (strcmp(arg[5], "wca") == 0) {

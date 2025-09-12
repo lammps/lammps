@@ -80,7 +80,7 @@ class Thermo : protected Pointers {
   int flushflag, lineflag;
 
   double last_tpcpu, last_spcpu;
-  double last_time;
+  double last_time, last_cpu1, last_cpu2;
   bigint last_step;
 
   bigint natoms;
@@ -137,7 +137,7 @@ class Thermo : protected Pointers {
   void check_press_scalar(const std::string &);
   void check_press_vector(const std::string &);
 
-  typedef void (Thermo::*FnPtr)();
+  using FnPtr = void (Thermo::*)();
   void addfield(const char *, FnPtr, int);
   FnPtr *vfunc;    // list of ptrs to functions
 
@@ -156,6 +156,7 @@ class Thermo : protected Pointers {
   void compute_cpu();
   void compute_tpcpu();
   void compute_spcpu();
+  void compute_cpuuse();
   void compute_cpuremain();
   void compute_part();
   void compute_timeremain();

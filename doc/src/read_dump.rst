@@ -16,12 +16,13 @@ Syntax
 
   .. parsed-literal::
 
-     field = *x* or *y* or *z* or *vx* or *vy* or *vz* or *q* or *ix* or *iy* or *iz* or *fx* or *fy* or *fz*
+     field = *x* or *y* or *z* or *vx* or *vy* or *vz* or *q* or *ix* or *iy* or *iz* or *fx* or *fy* or *fz* or *apip_lambda*
        *x*,\ *y*,\ *z* = atom coordinates
        *vx*,\ *vy*,\ *vz* = velocity components
        *q* = charge
        *ix*,\ *iy*,\ *iz* = image flags in each dimension
        *fx*,\ *fy*,\ *fz* = force components
+       *apip_lambda* = switching parameter of an :doc:`adaptive-precision interatomic potential <Howto_apip>`
 
 * zero or more keyword/value pairs may be appended
 * keyword = *nfile* or *box* or *timestep* or *replace* or *purge* or *trim* or *add* or *label* or *scaled* or *wrapped* or *format*
@@ -416,4 +417,4 @@ Default
 The option defaults are box = yes, timestep = yes, replace = yes, purge = no,
 trim = no, add = no, scaled = no, wrapped = yes, and format = native.
 
-.. _vmd: https://www.ks.uiuc.edu/Research/vmd
+.. _vmd: https://www.ks.uiuc.edu/Research/vmd/

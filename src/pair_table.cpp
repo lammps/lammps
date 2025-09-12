@@ -145,7 +145,7 @@ void PairTable::compute(int eflag, int vflag)
           rsq_lookup.f = rsq;
           itable = rsq_lookup.i & tb->nmask;
           itable >>= tb->nshiftbits;
-          fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
+          fraction = ((double) rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
           value = tb->f[itable] + fraction * tb->df[itable];
           fpair = factor_lj * value;
         }
@@ -424,11 +424,11 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
     } else if (tb->rflag == BMP) {
       rsq_lookup.i = i << nshiftbits;
       rsq_lookup.i |= masklo;
-      if (rsq_lookup.f < tb->rlo * tb->rlo) {
+      if ((double)rsq_lookup.f < tb->rlo * tb->rlo) {
         rsq_lookup.i = i << nshiftbits;
         rsq_lookup.i |= maskhi;
       }
-      rnew = sqrtf(rsq_lookup.f);
+      rnew = sqrt((double)rsq_lookup.f);
     }
 
     if (tb->rflag && fabs(rnew - rfile) / rfile > EPSILONR) rerror++;
@@ -759,11 +759,11 @@ void PairTable::compute_table(Table *tb)
     for (int i = 0; i < ntable; i++) {
       rsq_lookup.i = i << tb->nshiftbits;
       rsq_lookup.i |= masklo;
-      if (rsq_lookup.f < tb->innersq) {
+      if ((double)rsq_lookup.f < tb->innersq) {
         rsq_lookup.i = i << tb->nshiftbits;
         rsq_lookup.i |= maskhi;
       }
-      r = sqrtf(rsq_lookup.f);
+      r = sqrt((double)rsq_lookup.f);
       tb->rsq[i] = rsq_lookup.f;
       if (tb->match) {
         tb->e[i] = tb->efile[i];
@@ -809,19 +809,19 @@ void PairTable::compute_table(Table *tb)
     if (itablemax == 0) itablemaxm1 = ntablem1;
     rsq_lookup.i = itablemax << tb->nshiftbits;
     rsq_lookup.i |= maskhi;
-    if (rsq_lookup.f < tb->cut * tb->cut) {
+    if ((double)rsq_lookup.f < tb->cut * tb->cut) {
       if (tb->match) {
         tb->de[itablemax] = tb->de[itablemaxm1];
         tb->df[itablemax] = tb->df[itablemaxm1];
         tb->drsq[itablemax] = tb->drsq[itablemaxm1];
       } else {
         rsq_lookup.f = tb->cut * tb->cut;
-        r = sqrtf(rsq_lookup.f);
+        r = sqrt((double)rsq_lookup.f);
         e_tmp = splint(tb->rfile, tb->efile, tb->e2file, tb->ninput, r);
         f_tmp = splint(tb->rfile, tb->ffile, tb->f2file, tb->ninput, r) / r;
         tb->de[itablemax] = e_tmp - tb->e[itablemax];
         tb->df[itablemax] = f_tmp - tb->f[itablemax];
-        tb->drsq[itablemax] = 1.0 / (rsq_lookup.f - tb->rsq[itablemax]);
+        tb->drsq[itablemax] = 1.0 / ((double)rsq_lookup.f - tb->rsq[itablemax]);
       }
     }
   }
@@ -869,7 +869,7 @@ void PairTable::spline(double *x, double *y, int n, double yp1, double ypn, doub
 {
   int i, k;
   double p, qn, sig, un;
-  auto u = new double[n];
+  auto *u = new double[n];
 
   if (yp1 > 0.99e30)
     y2[0] = u[0] = 0.0;
@@ -1013,7 +1013,7 @@ double PairTable::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
     rsq_lookup.f = rsq;
     itable = rsq_lookup.i & tb->nmask;
     itable >>= tb->nshiftbits;
-    fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
+    fraction = ((double) rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
     value = tb->f[itable] + fraction * tb->df[itable];
     fforce = factor_lj * value;
   }

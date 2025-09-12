@@ -30,6 +30,7 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -256,7 +257,7 @@ void AngleCosineBuck6d::coeff(int narg, char **arg)
 
   double c_one = utils::numeric(FLERR,arg[1],false,lmp);
   int n_one = utils::inumeric(FLERR,arg[2],false,lmp);
-  int th0_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double th0_one = utils::numeric(FLERR,arg[3],false,lmp);
   if (n_one <= 0) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 
 

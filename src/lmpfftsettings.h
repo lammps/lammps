@@ -50,13 +50,13 @@
 #endif
 
 #ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
+using FFT_SCALAR = float;
 #define FFT_PRECISION 1
 #define LMP_FFT_PREC "single"
 #define MPI_FFT_SCALAR MPI_FLOAT
 #else
 
-typedef double FFT_SCALAR;
+using FFT_SCALAR = double;
 #define FFT_PRECISION 2
 #define LMP_FFT_PREC "double"
 #define MPI_FFT_SCALAR MPI_DOUBLE

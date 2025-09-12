@@ -45,6 +45,7 @@
 #include <cctype>
 #include <cmath>
 #include <cstring>
+#include <exception>
 #include <functional>
 #include <limits>
 #include <unordered_map>
@@ -327,8 +328,8 @@ void Variable::set(int narg, char **arg)
 
     int maxcopy = strlen(arg[2]) + 1;
     int maxwork = maxcopy;
-    auto scopy = (char *) memory->smalloc(maxcopy, "var:string/copy");
-    auto work = (char *) memory->smalloc(maxwork, "var:string/work");
+    auto *scopy = (char *) memory->smalloc(maxcopy, "var:string/copy");
+    auto *work = (char *) memory->smalloc(maxwork, "var:string/work");
     strcpy(scopy, arg[2]);
     input->substitute(scopy, work, maxcopy, maxwork, 1);
     memory->sfree(work);
@@ -612,7 +613,8 @@ void Variable::set(int narg, char **arg)
 
   } else if (strcmp(arg[1], "timer") == 0) {
     if (narg != 2)
-      error->all(FLERR, "Illegal variable command: expected 2 arguments but found {}", narg);
+      error->all(FLERR, "Illegal variable command: expected 2 arguments but found {}{}", narg,
+                 utils::errorurl(3));
     int ivar = find(arg[0]);
     if (ivar >= 0) {
       if (style[ivar] != TIMER)
@@ -679,7 +681,7 @@ void Variable::set(int narg, char **arg)
 void Variable::set(const std::string &setcmd)
 {
   std::vector<std::string> args = utils::split_words(setcmd);
-  auto newarg = new char*[args.size()];
+  auto *newarg = new char*[args.size()];
   int i=0;
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
@@ -695,7 +697,7 @@ void Variable::set(const std::string &setcmd)
 
 void Variable::set(char *name, int narg, char **arg)
 {
-  auto newarg = new char*[2+narg];
+  auto *newarg = new char*[2+narg];
   newarg[0] = name;
   newarg[1] = (char *) "index";
   for (int i = 0; i < narg; i++) newarg[2+i] = arg[i];
@@ -881,6 +883,7 @@ int Variable::next(int narg, char **arg)
 
     for (int iarg = 0; iarg < narg; iarg++) {
       ivar = find(arg[iarg]);
+      if (ivar < 0) continue;
       which[ivar] = nextindex;
       if (which[ivar] >= num[ivar]) {
         flag = 1;
@@ -1316,7 +1319,7 @@ void Variable::internal_set(int ivar, double value)
    create an INTERNAL style variable with name, set to value
 ------------------------------------------------------------------------- */
 
-void Variable::internal_create(char *name, double value)
+int Variable::internal_create(char *name, double value)
 {
   if (find(name) >= 0)
     error->all(FLERR,"Creation of internal-style variable {} which already exists", name);
@@ -1334,6 +1337,7 @@ void Variable::internal_create(char *name, double value)
     error->all(FLERR, "Variable name '{}' must have only letters, numbers, or underscores", name);
   names[nvar] = utils::strdup(name);
   nvar++;
+  return nvar - 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1512,12 +1516,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
       int istop = i - 1;
 
       int n = istop - istart + 1;
-      auto number = new char[n+1];
+      auto *number = new char[n+1];
       strncpy(number,&str[istart],n);
       number[n] = '\0';
 
       if (tree) {
-        auto newtree = new Tree();
+        auto *newtree = new Tree();
         newtree->type = VALUE;
         newtree->value = std::stod(number);
         treestack[ntreestack++] = newtree;
@@ -1545,7 +1549,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
       int istop = i-1;
 
       int n = istop - istart + 1;
-      auto word = new char[n+1];
+      auto *word = new char[n+1];
       strncpy(word,&str[istart],n);
       word[n] = '\0';
 
@@ -1734,7 +1738,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->size_vector == 0)
               print_var_error(FLERR,"Variable formula compute vector is zero length",ivar);
 
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             newtree->type = VECTORARRAY;
             newtree->array = compute->vector;
             newtree->nvector = compute->size_vector;
@@ -1764,7 +1768,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->size_array_rows == 0)
               print_var_error(FLERR,"Variable formula compute array has zero rows",ivar);
 
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             newtree->type = VECTORARRAY;
             newtree->array = &compute->array[0][index1-1];
             newtree->nvector = compute->size_array_rows;
@@ -1795,7 +1799,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               compute->invoked_flag |= Compute::INVOKED_PERATOM;
             }
 
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             newtree->type = ATOMARRAY;
             newtree->array = compute->vector_atom;
             newtree->nstride = 1;
@@ -1820,7 +1824,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               compute->invoked_flag |= Compute::INVOKED_PERATOM;
             }
 
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             newtree->type = ATOMARRAY;
             newtree->array = nullptr;
             if (compute->array_atom)
@@ -1998,7 +2002,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             for (int m = 0; m < nvec; m++)
               vec[m] = fix->compute_vector(m);
 
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             newtree->type = VECTORARRAY;
             newtree->array = vec;
             newtree->nvector = nvec;
@@ -2027,7 +2031,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             for (int m = 0; m < nvec; m++)
               vec[m] = fix->compute_array(m,index1-1);
 
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             newtree->type = VECTORARRAY;
             newtree->array = vec;
             newtree->nvector = nvec;
@@ -2055,7 +2059,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               print_var_error(FLERR,"Fix in variable not computed at compatible time"
                               + utils::errorurl(7), ivar);
 
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             newtree->type = ATOMARRAY;
             newtree->array = fix->vector_atom;
             newtree->nstride = 1;
@@ -2076,7 +2080,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               print_var_error(FLERR,"Fix in variable not computed at compatible time"
                               + utils::errorurl(7), ivar);
 
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             newtree->type = ATOMARRAY;
             newtree->array = nullptr;
             if (fix->array_atom)
@@ -2128,7 +2132,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             value1 = dvalue[jvar];
             if (tree) {
-              auto newtree = new Tree();
+              auto *newtree = new Tree();
               newtree->type = VALUE;
               newtree->value = value1;
               treestack[ntreestack++] = newtree;
@@ -2145,7 +2149,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (!utils::is_double(var))
               print_var_error(FLERR,"Non-numeric variable value in variable formula",jvar);
             if (tree) {
-              auto newtree = new Tree();
+              auto *newtree = new Tree();
               newtree->type = VALUE;
               newtree->value = std::stod(var);
               treestack[ntreestack++] = newtree;
@@ -2164,7 +2168,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             double *vec;
             int nvec = compute_vector(jvar,&vec);
 
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             newtree->type = VECTORARRAY;
             newtree->array = vec;
             newtree->nvector = nvec;
@@ -2195,7 +2199,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (treetype == VECTOR)
               print_var_error(FLERR,"Atomfile-style variable in vector-style variable formula",jvar);
 
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             newtree->type = ATOMARRAY;
             newtree->array = reader[jvar]->fixstore->vstore;
             newtree->nstride = 1;
@@ -2221,7 +2225,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             int m = index;   // convert from tagint to int
 
             if (tree) {
-              auto newtree = new Tree();
+              auto *newtree = new Tree();
               newtree->type = VALUE;
               newtree->value = vec[m-1];
               treestack[ntreestack++] = newtree;
@@ -2295,7 +2299,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         if (nbracket == 0) {
           if (cols_custom == 0) {
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             treestack[ntreestack++] = newtree;
             if (type_custom == 0) {
               newtree->type = INTARRAY;
@@ -2330,7 +2334,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (index1 <= 0 || index1 > cols_custom)
               print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
                               ivar);
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             treestack[ntreestack++] = newtree;
             if (type_custom == 0) {
               newtree->type = INTARRAY;
@@ -2421,7 +2425,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         } else if (constants.find(word) != constants.end()) {
           value1 = constants[word];
           if (tree) {
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             newtree->type = VALUE;
             newtree->value = value1;
             treestack[ntreestack++] = newtree;
@@ -2441,7 +2445,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,fmt::format("Invalid thermo keyword '{}' in variable formula",
                                               word),ivar);
           if (tree) {
-            auto newtree = new Tree();
+            auto *newtree = new Tree();
             newtree->type = VALUE;
             newtree->value = value1;
             treestack[ntreestack++] = newtree;
@@ -2518,7 +2522,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         opprevious = opstack[--nopstack];
 
         if (tree) {
-          auto newtree = new Tree();
+          auto *newtree = new Tree();
           newtree->type = opprevious;
           if ((opprevious == UNARY) || (opprevious == NOT)) {
             newtree->first = treestack[--ntreestack];
@@ -2971,12 +2975,12 @@ double Variable::collapse_tree(Tree *tree)
 
   if (tree->type == TERNARY) {
     arg1 = collapse_tree(tree->first);
-    arg2 = collapse_tree(tree->second);
-    arg3 = collapse_tree(tree->extra[0]);
     if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
-    if (arg1) tree->value = arg2;
-    else tree->value = arg3;
+    if (arg1 != 0.0)
+      tree->value = collapse_tree(tree->second);
+    else
+      tree->value = collapse_tree(tree->extra[0]);
     return tree->value;
   }
 
@@ -3096,8 +3100,8 @@ double Variable::collapse_tree(Tree *tree)
     else if (update->ntimestep < ivalue2) {
       bigint offset = update->ntimestep - ivalue1;
       tree->value = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-      if (tree->value > ivalue2) tree->value = (double) MAXBIGINT_DOUBLE;
-    } else tree->value = (double) MAXBIGINT_DOUBLE;
+      if (tree->value > ivalue2) tree->value = MAXBIGINT_DOUBLE;
+    } else tree->value = MAXBIGINT_DOUBLE;
     return tree->value;
   }
 
@@ -3133,10 +3137,10 @@ double Variable::collapse_tree(Tree *tree)
         if (istep > ivalue5) {
           offset = ivalue5 - ivalue1;
           istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-          if (istep > ivalue2) istep = MAXBIGINT_DOUBLE;
+          if (istep > ivalue2) istep = MAXBIGINT_DOUBLE; // NOLINT
         }
       }
-    } else istep = MAXBIGINT_DOUBLE;
+    } else istep = MAXBIGINT_DOUBLE; // NOLINT
     tree->value = (double)istep;
     return tree->value;
   }
@@ -3396,11 +3400,10 @@ double Variable::eval_tree(Tree *tree, int i)
     return MYROUND(eval_tree(tree->first,i));
 
   if (tree->type == TERNARY) {
-    double first = eval_tree(tree->first,i);
-    double second = eval_tree(tree->second,i);
-    double third = eval_tree(tree->extra[0],i);
-    if (first) return second;
-    else return third;
+    if (eval_tree(tree->first,i) != 0.0)
+      return eval_tree(tree->second,i);
+    else
+      return eval_tree(tree->extra[0],i);
   }
 
   if (tree->type == RAMP) {
@@ -3477,8 +3480,8 @@ double Variable::eval_tree(Tree *tree, int i)
     else if (update->ntimestep < ivalue2) {
       bigint offset = update->ntimestep - ivalue1;
       arg = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-      if (arg > ivalue2) arg = (double) MAXBIGINT_DOUBLE;
-    } else arg = (double) MAXBIGINT_DOUBLE;
+      if (arg > ivalue2) arg = MAXBIGINT_DOUBLE;
+    } else arg = MAXBIGINT_DOUBLE;
     return arg;
   }
 
@@ -3509,10 +3512,10 @@ double Variable::eval_tree(Tree *tree, int i)
         if (istep > ivalue5) {
           offset = ivalue5 - ivalue1;
           istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-          if (istep > ivalue2) istep = MAXBIGINT_DOUBLE;
+          if (istep > ivalue2) istep = MAXBIGINT_DOUBLE; // NOLINT
         }
       }
-    } else istep = MAXBIGINT_DOUBLE;
+    } else istep = MAXBIGINT_DOUBLE; // NOLINT
     arg = istep;
     return arg;
   }
@@ -3791,11 +3794,22 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 
   } else {
     value1 = evaluate(args[0],nullptr,ivar);
-    if (narg > 1) {
-      value2 = evaluate(args[1],nullptr,ivar);
-      if (narg > 2) {
-        for (int i = 2; i < narg; i++)
-          values[i-2] = evaluate(args[i],nullptr,ivar);
+
+    // special case for ternary() so that only the first and
+    // one more of the arguments are evaluated
+    if ((strcmp(word,"ternary") == 0) && (narg == 3)) {
+      if (value1 != 0.0) {
+        value2 = evaluate(args[1],nullptr,ivar);
+      } else {
+        values[0] = evaluate(args[2],nullptr,ivar);
+      }
+    } else {
+      if (narg > 1) {
+        value2 = evaluate(args[1],nullptr,ivar);
+        if (narg > 2) {
+          for (int i = 2; i < narg; i++)
+            values[i-2] = evaluate(args[i],nullptr,ivar);
+        }
       }
     }
   }
@@ -3939,7 +3953,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
       print_var_error(FLERR,"Invalid math function in variable formula",ivar);
     if (tree) newtree->type = TERNARY;
     else {
-      if (value1) argstack[nargstack++] = value2;
+      if (value1 != 0.0) argstack[nargstack++] = value2;
       else argstack[nargstack++] = values[0];
     }
 
@@ -4068,8 +4082,8 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
       else if (update->ntimestep < ivalue2) {
         bigint offset = update->ntimestep - ivalue1;
         value = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-        if (value > ivalue2) value = (double) MAXBIGINT_DOUBLE;
-      } else value = (double) MAXBIGINT_DOUBLE;
+        if (value > ivalue2) value = MAXBIGINT_DOUBLE;
+      } else value = MAXBIGINT_DOUBLE;
       argstack[nargstack++] = value;
     }
 
@@ -4103,10 +4117,10 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
           if (istep > ivalue5) {
             offset = ivalue5 - ivalue1;
             istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-            if (istep > ivalue2) istep = MAXBIGINT_DOUBLE;
+            if (istep > ivalue2) istep = MAXBIGINT_DOUBLE; // NOLINT
           }
         }
-      } else istep = MAXBIGINT_DOUBLE;
+      } else istep = MAXBIGINT_DOUBLE; // NOLINT
       double value = istep;
       argstack[nargstack++] = value;
     }
@@ -4276,7 +4290,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       double masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,xcm);
     } else if (narg == 3) {
-      auto region = region_function(args[2],ivar);
+      auto *region = region_function(args[2],ivar);
       double masstotal = group->mass(igroup,region);
       group->xcm(igroup,masstotal,xcm,region);
     } else print_var_error(FLERR,group_errmesg,ivar);
@@ -4292,7 +4306,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       double masstotal = group->mass(igroup);
       group->vcm(igroup,masstotal,vcm);
     } else if (narg == 3) {
-      auto region = region_function(args[2],ivar);
+      auto *region = region_function(args[2],ivar);
       double masstotal = group->mass(igroup,region);
       group->vcm(igroup,masstotal,vcm,region);
     } else print_var_error(FLERR,group_errmesg,ivar);
@@ -4333,7 +4347,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->xcm(igroup,masstotal,xcm);
       value = group->gyration(igroup,masstotal,xcm);
     } else if (narg == 2) {
-      auto region = region_function(args[1],ivar);
+      auto *region = region_function(args[1],ivar);
       double masstotal = group->mass(igroup,region);
       group->xcm(igroup,masstotal,xcm,region);
       value = group->gyration(igroup,masstotal,xcm,region);
@@ -4352,7 +4366,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->xcm(igroup,masstotal,xcm);
       group->angmom(igroup,xcm,lmom);
     } else if (narg == 3) {
-      auto region = region_function(args[2],ivar);
+      auto *region = region_function(args[2],ivar);
       double masstotal = group->mass(igroup,region);
       group->xcm(igroup,masstotal,xcm,region);
       group->angmom(igroup,xcm,lmom,region);
@@ -4370,7 +4384,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->xcm(igroup,masstotal,xcm);
       group->torque(igroup,xcm,tq);
     } else if (narg == 3) {
-      auto region = region_function(args[2],ivar);
+      auto *region = region_function(args[2],ivar);
       double masstotal = group->mass(igroup,region);
       group->xcm(igroup,masstotal,xcm,region);
       group->torque(igroup,xcm,tq,region);
@@ -4388,7 +4402,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->xcm(igroup,masstotal,xcm);
       group->inertia(igroup,xcm,inertia);
     } else if (narg == 3) {
-      auto region = region_function(args[2],ivar);
+      auto *region = region_function(args[2],ivar);
       double masstotal = group->mass(igroup,region);
       group->xcm(igroup,masstotal,xcm,region);
       group->inertia(igroup,xcm,inertia,region);
@@ -4411,7 +4425,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       group->inertia(igroup,xcm,inertia);
       group->omega(angmom,inertia,omega);
     } else if (narg == 3) {
-      auto region = region_function(args[2],ivar);
+      auto *region = region_function(args[2],ivar);
       double masstotal = group->mass(igroup,region);
       group->xcm(igroup,masstotal,xcm,region);
       group->angmom(igroup,xcm,angmom,region);
@@ -4431,7 +4445,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
   // save value in tree or on argstack
 
   if (tree) {
-    auto newtree = new Tree();
+    auto *newtree = new Tree();
     newtree->type = VALUE;
     newtree->value = value;
     treestack[ntreestack++] = newtree;
@@ -4444,7 +4458,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
 
 Region *Variable::region_function(char *id, int ivar)
 {
-  auto region = domain->get_region_by_id(id);
+  auto *region = domain->get_region_by_id(id);
   if (!region)
     print_var_error(FLERR, fmt::format("Region {} in variable formula does not exist", id), ivar);
 
@@ -4771,7 +4785,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
         for (int m = 0; m < nvec; m++)
           newvec[m] = unsorted[m];
 
-        auto newtree = new Tree();
+        auto *newtree = new Tree();
         newtree->type = VECTORARRAY;
         newtree->array = newvec;
         newtree->nvector = nvec;
@@ -4800,7 +4814,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       // save value in tree or on argstack
 
       if (tree) {
-        auto newtree = new Tree();
+        auto *newtree = new Tree();
         newtree->type = VALUE;
         newtree->value = value;
         treestack[ntreestack++] = newtree;
@@ -4819,7 +4833,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     if (igroup == -1)
       print_var_error(FLERR,"Group ID in variable formula does not exist",ivar);
 
-    auto newtree = new Tree();
+    auto *newtree = new Tree();
     newtree->type = GMASK;
     newtree->ivalue = group->bitmask[igroup];
     treestack[ntreestack++] = newtree;
@@ -4830,10 +4844,10 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     if (narg != 1)
       print_var_error(FLERR,"Invalid special function in variable formula",ivar);
 
-    auto region = region_function(args[0],ivar);
+    auto *region = region_function(args[0],ivar);
     region->prematch();
 
-    auto newtree = new Tree();
+    auto *newtree = new Tree();
     newtree->type = RMASK;
     newtree->region = region;
     treestack[ntreestack++] = newtree;
@@ -4847,10 +4861,10 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     int igroup = group->find(args[0]);
     if (igroup == -1)
       print_var_error(FLERR,"Group ID in variable formula does not exist",ivar);
-    auto region = region_function(args[1],ivar);
+    auto *region = region_function(args[1],ivar);
     region->prematch();
 
-    auto newtree = new Tree();
+    auto *newtree = new Tree();
     newtree->type = GRMASK;
     newtree->ivalue = group->bitmask[igroup];
     newtree->region = region;
@@ -4879,7 +4893,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       if (done) remove(ivar);
 
       if (tree) {
-        auto newtree = new Tree();
+        auto *newtree = new Tree();
         newtree->type = VALUE;
         newtree->value = value;
         treestack[ntreestack++] = newtree;
@@ -4900,7 +4914,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       int done = reader[ivar]->read_peratom();
       if (done) remove(ivar);
 
-      auto newtree = new Tree();
+      auto *newtree = new Tree();
       newtree->type = ATOMARRAY;
       newtree->array = result;
       newtree->nstride = 1;
@@ -4920,7 +4934,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     // save value in tree or on argstack
 
     if (tree) {
-      auto newtree = new Tree();
+      auto *newtree = new Tree();
       newtree->type = VALUE;
       newtree->value = value;
       treestack[ntreestack++] = newtree;
@@ -4933,7 +4947,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     // save value in tree or on argstack
 
     if (tree) {
-      auto newtree = new Tree();
+      auto *newtree = new Tree();
       newtree->type = VALUE;
       newtree->value = value;
       treestack[ntreestack++] = newtree;
@@ -4951,7 +4965,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     // save value in tree or on argstack
 
     if (tree) {
-      auto newtree = new Tree();
+      auto *newtree = new Tree();
       newtree->type = VALUE;
       newtree->value = value;
       treestack[ntreestack++] = newtree;
@@ -4965,7 +4979,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     // save value in tree or on argstack
 
     if (tree) {
-      auto newtree = new Tree();
+      auto *newtree = new Tree();
       newtree->type = VALUE;
       newtree->value = value;
       treestack[ntreestack++] = newtree;
@@ -5017,7 +5031,7 @@ int Variable::feature_function(char *word, char *contents, Tree **tree, Tree **t
     // save value in tree or on argstack
 
     if (tree) {
-      auto newtree = new Tree();
+      auto *newtree = new Tree();
       newtree->type = VALUE;
       newtree->value = value;
       treestack[ntreestack++] = newtree;
@@ -5033,7 +5047,7 @@ int Variable::feature_function(char *word, char *contents, Tree **tree, Tree **t
     // save value in tree or on argstack
 
     if (tree) {
-      auto newtree = new Tree();
+      auto *newtree = new Tree();
       newtree->type = VALUE;
       newtree->value = value;
       treestack[ntreestack++] = newtree;
@@ -5049,7 +5063,7 @@ int Variable::feature_function(char *word, char *contents, Tree **tree, Tree **t
     // save value in tree or on argstack
 
     if (tree) {
-      auto newtree = new Tree();
+      auto *newtree = new Tree();
       newtree->type = VALUE;
       newtree->value = value;
       treestack[ntreestack++] = newtree;
@@ -5134,7 +5148,7 @@ void Variable::peratom2global(int flag, char *word, double *vector, int nstride,
   MPI_Allreduce(&mine,&value,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (tree) {
-    auto newtree = new Tree();
+    auto *newtree = new Tree();
     newtree->type = VALUE;
     newtree->value = value;
     treestack[ntreestack++] = newtree;
@@ -5177,7 +5191,7 @@ void Variable::custom2global(int *ivector, double *dvector, int nstride, tagint 
   MPI_Allreduce(&mine,&value,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (tree) {
-    auto newtree = new Tree();
+    auto *newtree = new Tree();
     newtree->type = VALUE;
     newtree->value = value;
     treestack[ntreestack++] = newtree;
@@ -5224,7 +5238,7 @@ void Variable::atom_vector(char *word, Tree **tree, Tree **treestack, int &ntree
   if (tree == nullptr)
     error->all(FLERR,"Atom vector in equal-style variable formula");
 
-  auto newtree = new Tree();
+  auto *newtree = new Tree();
   newtree->type = ATOMARRAY;
   newtree->nstride = 3;
   treestack[ntreestack++] = newtree;

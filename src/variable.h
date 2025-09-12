@@ -49,7 +49,7 @@ class Variable : protected Pointers {
   void compute_atom(int, int, double *, int, int);
   int compute_vector(int, double **);
   void internal_set(int, double);
-  void internal_create(char *, double);
+  int internal_create(char *, double);
 
   tagint int_between_brackets(char *&, int);
   double evaluate_boolean(char *);

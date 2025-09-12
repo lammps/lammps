@@ -30,6 +30,7 @@
 #include "update.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -488,7 +489,7 @@ void PairLJ96Cut::init_style()
   int list_style = NeighConst::REQ_DEFAULT;
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>(update->integrate);
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
     if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }

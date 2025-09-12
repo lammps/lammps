@@ -159,7 +159,7 @@ void ProcMap::numa_grid(int numa_nodes, int nprocs, int *user_procgrid,
   char node_name[MPI_MAX_PROCESSOR_NAME];
   MPI_Get_processor_name(node_name,&name_length);
   node_name[name_length] = '\0';
-  auto node_names = new char[MPI_MAX_PROCESSOR_NAME*nprocs];
+  auto *node_names = new char[MPI_MAX_PROCESSOR_NAME*nprocs];
   MPI_Allgather(node_name,MPI_MAX_PROCESSOR_NAME,MPI_CHAR,node_names,
                 MPI_MAX_PROCESSOR_NAME,MPI_CHAR,world);
   std::string node_string = std::string(node_name);
@@ -168,10 +168,9 @@ void ProcMap::numa_grid(int numa_nodes, int nprocs, int *user_procgrid,
   // NOTE: could do this without STL map
 
   std::map<std::string,int> name_map;
-  std::map<std::string,int>::iterator np;
   for (int i = 0; i < nprocs; i++) {
     std::string i_string = std::string(&node_names[i*MPI_MAX_PROCESSOR_NAME]);
-    np = name_map.find(i_string);
+    auto np = name_map.find(i_string);
     if (np == name_map.end()) name_map[i_string] = 1;
     else np->second++;
   }
@@ -244,8 +243,8 @@ void ProcMap::numa_grid(int numa_nodes, int nprocs, int *user_procgrid,
 
   node_id = 0;
   int node_num = 0;
-  for (np = name_map.begin(); np != name_map.end(); ++np) {
-    if (np->first == node_string) node_id = node_num;
+  for (const auto &np : name_map) {
+    if (np.first == node_string) node_id = node_num;
     node_num++;
   }
 
@@ -865,7 +864,7 @@ int ProcMap::best_factors(int npossible, int **factors, int *best,
     area[2] = sqrt(c[0]*c[0] + c[1]*c[1] + c[2]*c[2]) / (sy*sz);
   }
 
-  int index;
+  int index = 0;
   double surf;
   double bestsurf = 2.0 * (area[0]+area[1]+area[2]);
 

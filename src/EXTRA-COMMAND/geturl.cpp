@@ -20,6 +20,8 @@
 #include "comm.h"
 #include "error.h"
 
+#include <cstring>
+
 #if defined(LAMMPS_CURL)
 #include <curl/curl.h>
 #endif
@@ -37,6 +39,7 @@ void GetURL::command(int narg, char **arg)
   int verify = 1;
   int overwrite = 1;
   int verbose = 0;
+  int timeout = 300;
 
   // process arguments
 
@@ -45,10 +48,10 @@ void GetURL::command(int narg, char **arg)
   // sanity check
 
   if ((url.find(':') == std::string::npos) || (url.find('/') == std::string::npos))
-    error->all(FLERR, "URL '{}' is not a supported URL", url);
+    error->all(FLERR, Error::ARGZERO, "URL '{}' is not a supported URL", url);
 
   std::string output = url.substr(url.find_last_of('/') + 1);
-  if (output.empty()) error->all(FLERR, "URL '{}' must end in a file string", url);
+  if (output.empty()) error->all(FLERR, Error::ARGZERO, "URL '{}' must end in a file string", url);
 
   int iarg = 1;
   while (iarg < narg) {
@@ -60,6 +63,11 @@ void GetURL::command(int narg, char **arg)
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "geturl overwrite", error);
       overwrite = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       ++iarg;
+    } else if (strcmp(arg[iarg], "timeout") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "geturl timeout", error);
+      timeout = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (timeout < 0) error->all(FLERR, iarg + 1, "Invalid timeout {} for geturl", timeout);
+      ++iarg;
     } else if (strcmp(arg[iarg], "verify") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "geturl verify", error);
       verify = utils::logical(FLERR, arg[iarg + 1], false, lmp);
@@ -69,7 +77,7 @@ void GetURL::command(int narg, char **arg)
       verbose = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       ++iarg;
     } else {
-      error->all(FLERR, "Unknown geturl keyword: {}", arg[iarg]);
+      error->all(FLERR, iarg, "Unknown geturl keyword: {}", arg[iarg]);
     }
     ++iarg;
   }
@@ -84,7 +92,7 @@ void GetURL::command(int narg, char **arg)
 
   FILE *out = fopen(output.c_str(), "wb");
   if (!out)
-    error->all(FLERR, "Cannot open output file {} for writing: {}", output, utils::getsyserror());
+    error->one(FLERR, "Cannot open output file {} for writing: {}", output, utils::getsyserror());
 
   // initialize curl and perform download
 
@@ -96,6 +104,9 @@ void GetURL::command(int narg, char **arg)
     (void) curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) out);
     (void) curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
     (void) curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+    (void) curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 30L);
+    (void) curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
+
     if (verbose && screen) {
       (void) curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
       (void) curl_easy_setopt(curl, CURLOPT_STDERR, (void *) screen);
@@ -108,8 +119,8 @@ void GetURL::command(int narg, char **arg)
     if (res != CURLE_OK) {
       long response = 0L;
       curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response);
-      error->one(FLERR, "Download of {} failed with: {} {}", output, curl_easy_strerror(res),
-                 response);
+      error->one(FLERR, Error::NOLASTLINE, "Download of {} failed with: {} {}", output,
+                 curl_easy_strerror(res), response);
     }
     curl_easy_cleanup(curl);
   }

@@ -32,6 +32,7 @@
 #include "pair.h"
 
 #include <cmath>
+#include <cstring>
 
 #include "lj_spica_common.h"
 

@@ -1,8 +1,7 @@
 // unit tests for getting thermodynamic output from a LAMMPS instance through the Fortran wrapper
 
-#include "lammps.h"
 #include "lmptype.h"
-#include <mpi.h>
+
 #include <string>
 
 #include "gtest/gtest.h"
@@ -32,6 +31,11 @@ int f_lammps_last_thermo_type(int);
 const char *f_lammps_last_thermo_string(int);
 int f_lammps_last_thermo_int(int);
 double f_lammps_last_thermo_double(int);
+}
+
+// forward decl
+namespace LAMMPS_NS {
+class LAMMPS;
 }
 
 using LAMMPS_NS::multitype;

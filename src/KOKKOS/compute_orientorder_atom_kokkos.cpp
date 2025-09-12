@@ -57,7 +57,7 @@ ComputeOrientOrderAtomKokkos<DeviceType>::ComputeOrientOrderAtomKokkos(LAMMPS *l
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
-  host_flag = (execution_space == Host);
+  host_flag = (execution_space == HostKK);
 
   d_qnormfac = t_sna_1d("orientorder/atom:qnormfac",nqlist);
   d_qnormfac2 = t_sna_1d("orientorder/atom:qnormfac2",nqlist);
@@ -110,6 +110,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::init()
 template<class DeviceType>
 struct FindMaxNumNeighs {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   NeighListKokkos<DeviceType> k_list;
 
   FindMaxNumNeighs(NeighListKokkos<DeviceType>* nl): k_list(*nl) {}
@@ -226,7 +227,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
   copymode = 0;
 
   k_qnarray.template modify<DeviceType>();
-  k_qnarray.template sync<LMPHostType>();
+  k_qnarray.sync_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -238,9 +239,9 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::operator() (TagComputeOrientOrder
   const int ii = team.league_rank();
   const int i = d_ilist[ii + chunk_offset];
   if (mask[i] & groupbit) {
-    const X_FLOAT xtmp = x(i,0);
-    const X_FLOAT ytmp = x(i,1);
-    const X_FLOAT ztmp = x(i,2);
+    const KK_FLOAT xtmp = x(i,0);
+    const KK_FLOAT ytmp = x(i,1);
+    const KK_FLOAT ztmp = x(i,2);
     const int jnum = d_numneigh[i];
 
     // loop over list of all neighbors within force cutoff
@@ -254,10 +255,10 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::operator() (TagComputeOrientOrder
       Kokkos::single(Kokkos::PerThread(team), [&] () {
         int j = d_neighbors(i,jj);
         j &= NEIGHMASK;
-        const F_FLOAT delx = x(j,0) - xtmp;
-        const F_FLOAT dely = x(j,1) - ytmp;
-        const F_FLOAT delz = x(j,2) - ztmp;
-        const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+        const KK_FLOAT delx = x(j,0) - xtmp;
+        const KK_FLOAT dely = x(j,1) - ytmp;
+        const KK_FLOAT delz = x(j,2) - ztmp;
+        const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
         if (rsq < cutsq)
          count++;
       });
@@ -270,10 +271,10 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::operator() (TagComputeOrientOrder
         [&] (const int jj, int& offset, bool final) {
       int j = d_neighbors(i,jj);
       j &= NEIGHMASK;
-      const F_FLOAT delx = x(j,0) - xtmp;
-      const F_FLOAT dely = x(j,1) - ytmp;
-      const F_FLOAT delz = x(j,2) - ztmp;
-      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      const KK_FLOAT delx = x(j,0) - xtmp;
+      const KK_FLOAT dely = x(j,1) - ytmp;
+      const KK_FLOAT delz = x(j,2) - ztmp;
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < cutsq) {
         if (final) {
           d_distsq(ii,offset) = rsq;
@@ -375,7 +376,7 @@ KOKKOS_INLINE_FUNCTION
 void ComputeOrientOrderAtomKokkos<DeviceType>::select3(int k, int n, int ii) const
 {
   int i,ir,j,l,mid,ia,itmp;
-  double a,tmp,a3[3];
+  KK_FLOAT a,tmp,a3[3];
 
   auto arr = Kokkos::subview(d_distsq_um, ii, Kokkos::ALL);
   auto iarr = Kokkos::subview(d_nearest_um, ii, Kokkos::ALL);
@@ -450,22 +451,22 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop1(int /*ncount*/, int ii, int ineigh) const
 {
-  const double r0 = d_rlist(ii,ineigh,0);
-  const double r1 = d_rlist(ii,ineigh,1);
-  const double r2 = d_rlist(ii,ineigh,2);
-  const double rmag = sqrt(r0*r0 + r1*r1 + r2*r2);
+  const KK_FLOAT r0 = d_rlist(ii,ineigh,0);
+  const KK_FLOAT r1 = d_rlist(ii,ineigh,1);
+  const KK_FLOAT r2 = d_rlist(ii,ineigh,2);
+  const KK_FLOAT rmag = sqrt(r0*r0 + r1*r1 + r2*r2);
   if (rmag <= MY_EPSILON) {
     return;
   }
 
-  const double costheta = r2 / rmag;
+  const KK_FLOAT costheta = r2 / rmag;
   SNAcomplex expphi = {r0,r1};
-  const double rxymag = sqrt(expphi.re*expphi.re+expphi.im*expphi.im);
+  const KK_FLOAT rxymag = sqrt(expphi.re*expphi.re+expphi.im*expphi.im);
   if (rxymag <= MY_EPSILON) {
     expphi.re = 1.0;
     expphi.im = 0.0;
   } else {
-    const double rxymaginv = 1.0/rxymag;
+    const KK_FLOAT rxymaginv = 1.0/rxymag;
     expphi.re *= rxymaginv;
     expphi.im *= rxymaginv;
   }
@@ -478,11 +479,11 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop1(int /*ncount*/, int ii
     // sign convention: sign(Yll(0,0)) = (-1)^l
 
     //d_qnm(ii,il,l).re += polar_prefactor(l, 0, costheta);
-    const double polar_pf = polar_prefactor(l, 0, costheta);
+    const KK_FLOAT polar_pf = polar_prefactor(l, 0, costheta);
     Kokkos::atomic_add(&(d_qnm(ii,il,0).re), polar_pf);
     SNAcomplex expphim = {expphi.re,expphi.im};
     for (int m = 1; m <= +l; m++) {
-      const double prefactor = polar_prefactor(l, m, costheta);
+      const KK_FLOAT prefactor = polar_prefactor(l, m, costheta);
       SNAcomplex ylm = {prefactor * expphim.re, prefactor * expphim.im};
       Kokkos::atomic_add(&(d_qnm(ii,il,m).re), ylm.re);
       Kokkos::atomic_add(&(d_qnm(ii,il,m).im), ylm.im);
@@ -508,7 +509,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
 
   // convert sums to averages
 
-  double facn = 1.0 / ncount;
+  KK_FLOAT facn = 1.0 / ncount;
   for (int il = 0; il < nqlist; il++) {
     int l = d_qlist[il];
     for (int m = 0; m < l+1; m++) {
@@ -523,7 +524,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
   int jj = 0;
   for (int il = 0; il < nqlist; il++) {
     int l = d_qlist[il];
-    double qm_sum = d_qnm(ii,il,0).re*d_qnm(ii,il,0).re;
+    KK_ACC_FLOAT qm_sum = d_qnm(ii,il,0).re*d_qnm(ii,il,0).re;
     for (int m = 1; m < l+1; m++)
       qm_sum += 2.0*(d_qnm(ii,il,m).re*d_qnm(ii,il,m).re + d_qnm(ii,il,m).im*d_qnm(ii,il,m).im);
     d_qnarray(i,jj++) = d_qnormfac(il) * sqrt(qm_sum);
@@ -536,7 +537,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
   if (wlflag || wlhatflag) {
     for (int il = 0; il < nqlist; il++) {
       int l = d_qlist[il];
-      double wlsum = 0.0;
+      KK_ACC_FLOAT wlsum = 0.0;
       for (int m1 = -l; m1 <= 0; m1++) {
         const int sgn = 1 - 2*(m1&1); // sgn = (-1)^m1
         for (int m2 = 0; m2 <= ((-m1)>>1); m2++) {
@@ -552,8 +553,8 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
           SNAcomplex Q1Q2;
           Q1Q2.re = (d_qnm(ii,il,-m1).re*d_qnm(ii,il,m2).re + d_qnm(ii,il,-m1).im*d_qnm(ii,il,m2).im)*sgn;
           Q1Q2.im = (d_qnm(ii,il,-m1).re*d_qnm(ii,il,m2).im - d_qnm(ii,il,-m1).im*d_qnm(ii,il,m2).re)*sgn;
-          const double Q1Q2Q3 = Q1Q2.re*d_qnm(ii,il,m3).re - Q1Q2.im*d_qnm(ii,il,m3).im;
-          const double c = d_w3jlist[widx_count++];
+          const KK_FLOAT Q1Q2Q3 = Q1Q2.re*d_qnm(ii,il,m3).re - Q1Q2.im*d_qnm(ii,il,m3).im;
+          const KK_FLOAT c = d_w3jlist[widx_count++];
           wlsum += Q1Q2Q3*c;
 
         }
@@ -572,7 +573,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
       if (d_qnarray(i,il) < QEPSILON)
         d_qnarray(i,jj++) = 0.0;
       else {
-        const double qnfac = d_qnormfac(il)/d_qnarray(i,il);
+        const KK_FLOAT qnfac = d_qnormfac(il)/d_qnarray(i,il);
         d_qnarray(i,jj++) = d_qnarray(i,jptr+il) * (qnfac*qnfac*qnfac) * d_qnormfac2(il);
       }
     }
@@ -589,7 +590,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
         d_qnarray(i,jj++) = 0.0;
       }
     else {
-      const double qnfac = d_qnormfac(il)/d_qnarray(i,il);
+      const KK_FLOAT qnfac = d_qnormfac(il)/d_qnarray(i,il);
       for (int m = -l; m < 0; m++) {
         // Computed only qnm for m>=0.
         // qnm[-m] = (-1)^m * conjg(qnm[m])
@@ -613,15 +614,15 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double ComputeOrientOrderAtomKokkos<DeviceType>::polar_prefactor(int l, int m, double costheta) const
+KK_FLOAT ComputeOrientOrderAtomKokkos<DeviceType>::polar_prefactor(int l, int m, KK_FLOAT costheta) const
 {
   const int mabs = abs(m);
 
-  double prefactor = 1.0;
+  KK_FLOAT prefactor = 1.0;
   for (int i=l-mabs+1; i < l+mabs+1; ++i)
-    prefactor *= static_cast<double>(i);
+    prefactor *= static_cast<KK_FLOAT>(i);
 
-  prefactor = sqrt(static_cast<double>(2*l+1)/(MY_4PI*prefactor))
+  prefactor = sqrt(static_cast<KK_FLOAT>(2*l+1)/(MY_4PI*prefactor))
     * associated_legendre(l,mabs,costheta);
 
   if ((m < 0) && (m % 2)) prefactor = -prefactor;
@@ -636,23 +637,23 @@ double ComputeOrientOrderAtomKokkos<DeviceType>::polar_prefactor(int l, int m, d
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double ComputeOrientOrderAtomKokkos<DeviceType>::associated_legendre(int l, int m, double x) const
+KK_FLOAT ComputeOrientOrderAtomKokkos<DeviceType>::associated_legendre(int l, int m, KK_FLOAT x) const
 {
   if (l < m) return 0.0;
 
-  double p(1.0), pm1(0.0), pm2(0.0);
+  KK_FLOAT p(1.0), pm1(0.0), pm2(0.0);
 
   if (m != 0) {
-    const double msqx = -sqrt(1.0-x*x);
+    const KK_FLOAT msqx = -sqrt(1.0-x*x);
     for (int i=1; i < m+1; ++i)
-      p *= static_cast<double>(2*i-1) * msqx;
+      p *= static_cast<KK_FLOAT>(2*i-1) * msqx;
   }
 
   for (int i=m+1; i < l+1; ++i) {
     pm2 = pm1;
     pm1 = p;
-    p = (static_cast<double>(2*i-1)*x*pm1
-         - static_cast<double>(i+m-1)*pm2) / static_cast<double>(i-m);
+    p = (static_cast<KK_FLOAT>(2*i-1)*x*pm1
+         - static_cast<KK_FLOAT>(i+m-1)*pm2) / static_cast<KK_FLOAT>(i-m);
   }
 
   return p;

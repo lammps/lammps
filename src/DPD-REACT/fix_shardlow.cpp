@@ -549,7 +549,7 @@ void FixShardlow::initial_integrate(int /*vflag*/)
                     "Either reduce the number of processors requested, or change the cutoff/skin: "
                     "rcut= {} bbx= {} bby= {} bbz= {}\n", rcut, bbx, bby, bbz);
 
-  auto np_ssa = dynamic_cast<NPairHalfBinNewtonSSA*>(list->np);
+  auto *np_ssa = dynamic_cast<NPairHalfBinNewtonSSA*>(list->np);
   if (!np_ssa) error->one(FLERR, "NPair wasn't a NPairHalfBinNewtonSSA object");
   int ssa_phaseCt = np_ssa->ssa_phaseCt;
   int *ssa_phaseLen = np_ssa->ssa_phaseLen;

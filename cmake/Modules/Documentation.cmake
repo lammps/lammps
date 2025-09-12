@@ -73,7 +73,7 @@ if(BUILD_DOC)
   # download mathjax distribution and unpack to folder "mathjax"
   if(NOT EXISTS ${DOC_BUILD_STATIC_DIR}/mathjax/es5)
     if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz)
-      file(MD5 ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz)
+      file(MD5 ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz DL_MD5)
     endif()
     if(NOT "${DL_MD5}" STREQUAL "${MATHJAX_MD5}")
       file(DOWNLOAD ${MATHJAX_URL} "${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz" STATUS DL_STATUS SHOW_PROGRESS)

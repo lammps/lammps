@@ -42,7 +42,7 @@ class MinLineSearch : public Min {
   double **gextra_atom;
   double **hextra_atom;
 
-  typedef int (MinLineSearch::*FnPtr)(double, double &);
+  using FnPtr = int (MinLineSearch::*)(double, double &);
   FnPtr linemin;
   int linemin_backtrack(double, double &);
   int linemin_quadratic(double, double &);

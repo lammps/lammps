@@ -91,6 +91,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, "Illegal fix ehex command: wrong number of parameters ");
       region = domain->get_region_by_id(arg[iarg + 1]);
       if (!region) error->all(FLERR, "Region {} for fix ehex does not exist", arg[iarg + 1]);
+      delete[] idregion;
       idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     }

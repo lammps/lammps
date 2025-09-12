@@ -130,36 +130,36 @@ template<int WallStyle>
 KOKKOS_INLINE_FUNCTION
 void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallStyle>, const int &i) const
 {
-  double vwall_[3];
+  KK_FLOAT vwall_[3];
   vwall_[0] = vwall[0];
   vwall_[1] = vwall[1];
   vwall_[2] = vwall[2];
 
   if (mask[i] & groupbit) {
-    X_FLOAT radius = d_radius(i);
+    KK_FLOAT radius = d_radius(i);
 
-    double dx = 0.0;
-    double dy = 0.0;
-    double dz = 0.0;
+    KK_FLOAT dx = 0.0;
+    KK_FLOAT dy = 0.0;
+    KK_FLOAT dz = 0.0;
 
     if (WallStyle == XPLANE) {
-      X_FLOAT del1 = x(i,0) - wlo;
-      double del2 = whi - x(i,0);
+      KK_FLOAT del1 = x(i,0) - wlo;
+      KK_FLOAT del2 = whi - x(i,0);
       if (del1 < del2) dx = del1;
       else dx = -del2;
     } else if (WallStyle == YPLANE) {
-      double del1 = x(i,1) - wlo;
-      double del2 = whi - x(i,1);
+      KK_FLOAT del1 = x(i,1) - wlo;
+      KK_FLOAT del2 = whi - x(i,1);
       if (del1 < del2) dy = del1;
       else dy = -del2;
     } else if (WallStyle == ZPLANE) {
-      double del1 = x(i,2) - wlo;
-      double del2 = whi - x(i,2);
+      KK_FLOAT del1 = x(i,2) - wlo;
+      KK_FLOAT del2 = whi - x(i,2);
       if (del1 < del2) dz = del1;
       else dz = -del2;
     } else if (WallStyle == ZCYLINDER) {
-      double delxy = sqrt(x(i,0)*x(i,0) + x(i,1)*x(i,1));
-      double delr = cylradius - delxy;
+      KK_FLOAT delxy = sqrt(x(i,0)*x(i,0) + x(i,1)*x(i,1));
+      KK_FLOAT delr = cylradius - delxy;
       if (delr > radius) {
         dz = cylradius;
       } else {
@@ -173,7 +173,7 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallSt
       }
     }
 
-    double rsq = dx*dx + dy*dy + dz*dz;
+    KK_FLOAT rsq = dx*dx + dy*dy + dz*dz;
 
     if (rsq > radius*radius) {
       if (use_history)
@@ -181,47 +181,47 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallSt
           d_history_one(i,j) = 0.0;
     } else {
       // meff = effective mass of sphere
-      double meff = rmass(i);
-      double r = sqrt(rsq);
-      double rinv = 1.0/r;
-      double rsqinv = 1.0/rsq;
+      KK_FLOAT meff = rmass(i);
+      KK_FLOAT r = sqrt(rsq);
+      KK_FLOAT rinv = 1.0/r;
+      KK_FLOAT rsqinv = 1.0/rsq;
 
       // relative translational velocity
 
-      double vr1 = v(i,0) - vwall_[0];
-      double vr2 = v(i,1) - vwall_[1];
-      double vr3 = v(i,2) - vwall_[2];
+      KK_FLOAT vr1 = v(i,0) - vwall_[0];
+      KK_FLOAT vr2 = v(i,1) - vwall_[1];
+      KK_FLOAT vr3 = v(i,2) - vwall_[2];
 
       // normal component
 
-      double vnnr = vr1*dx + vr2*dy + vr3*dz;
-      double vn1 = dx*vnnr * rsqinv;
-      double vn2 = dy*vnnr * rsqinv;
-      double vn3 = dz*vnnr * rsqinv;
+      KK_FLOAT vnnr = vr1*dx + vr2*dy + vr3*dz;
+      KK_FLOAT vn1 = dx*vnnr * rsqinv;
+      KK_FLOAT vn2 = dy*vnnr * rsqinv;
+      KK_FLOAT vn3 = dz*vnnr * rsqinv;
 
       // tangential component
 
-      double vt1 = vr1 - vn1;
-      double vt2 = vr2 - vn2;
-      double vt3 = vr3 - vn3;
+      KK_FLOAT vt1 = vr1 - vn1;
+      KK_FLOAT vt2 = vr2 - vn2;
+      KK_FLOAT vt3 = vr3 - vn3;
 
       // relative rotational velocity
 
-      double wr1 = radius*d_omega(i,0) * rinv;
-      double wr2 = radius*d_omega(i,1) * rinv;
-      double wr3 = radius*d_omega(i,2) * rinv;
+      KK_FLOAT wr1 = radius*d_omega(i,0) * rinv;
+      KK_FLOAT wr2 = radius*d_omega(i,1) * rinv;
+      KK_FLOAT wr3 = radius*d_omega(i,2) * rinv;
 
       // normal forces = Hookian contact + normal velocity damping
 
-      double damp = meff*gamman*vnnr*rsqinv;
-      double ccel = kn*(radius-r)*rinv - damp;
+      KK_FLOAT damp = meff*gamman*vnnr*rsqinv;
+      KK_FLOAT ccel = kn*(radius-r)*rinv - damp;
 
       // relative velocities
 
-      double vtr1 = vt1 - (dz*wr2-dy*wr3);
-      double vtr2 = vt2 - (dx*wr3-dz*wr1);
-      double vtr3 = vt3 - (dy*wr1-dx*wr2);
-      double vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
+      KK_FLOAT vtr1 = vt1 - (dz*wr2-dy*wr3);
+      KK_FLOAT vtr2 = vt2 - (dx*wr3-dz*wr1);
+      KK_FLOAT vtr3 = vt3 - (dy*wr1-dx*wr2);
+      KK_FLOAT vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
       vrel = sqrt(vrel);
 
       // shear history effects
@@ -231,11 +231,11 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallSt
         d_history_one(i,1) += vtr2*dt;
         d_history_one(i,2) += vtr3*dt;
       }
-      double shrmag = sqrt(d_history_one(i,0)*d_history_one(i,0) + d_history_one(i,1)*d_history_one(i,1) + d_history_one(i,2)*d_history_one(i,2));
+      KK_FLOAT shrmag = sqrt(d_history_one(i,0)*d_history_one(i,0) + d_history_one(i,1)*d_history_one(i,1) + d_history_one(i,2)*d_history_one(i,2));
 
       // rotate shear displacements
 
-      double rsht = d_history_one(i,0)*dx + d_history_one(i,1)*dy + d_history_one(i,2)*dz;
+      KK_FLOAT rsht = d_history_one(i,0)*dx + d_history_one(i,1)*dy + d_history_one(i,2)*dz;
       rsht = rsht*rsqinv;
       if (history_update) {
         d_history_one(i,0) -= rsht*dx;
@@ -245,14 +245,14 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallSt
 
       // tangential forces = shear + tangential velocity damping
 
-      double fs1 = - (kt*d_history_one(i,0) + meff*gammat*vtr1);
-      double fs2 = - (kt*d_history_one(i,1) + meff*gammat*vtr2);
-      double fs3 = - (kt*d_history_one(i,2) + meff*gammat*vtr3);
+      KK_FLOAT fs1 = - (kt*d_history_one(i,0) + meff*gammat*vtr1);
+      KK_FLOAT fs2 = - (kt*d_history_one(i,1) + meff*gammat*vtr2);
+      KK_FLOAT fs3 = - (kt*d_history_one(i,2) + meff*gammat*vtr3);
 
       // rescale frictional displacements and forces if needed
 
-      double fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
-      double fn = xmu * fabs(ccel*r);
+      KK_FLOAT fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
+      KK_FLOAT fn = xmu * fabs(ccel*r);
 
       if (fs > fn) {
         if (shrmag != 0.0) {
@@ -270,16 +270,16 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallSt
 
       // forces & torques
 
-      double fx = dx*ccel + fs1;
-      double fy = dy*ccel + fs2;
-      double fz = dz*ccel + fs3;
+      KK_FLOAT fx = dx*ccel + fs1;
+      KK_FLOAT fy = dy*ccel + fs2;
+      KK_FLOAT fz = dz*ccel + fs3;
       f(i,0) += fx;
       f(i,1) += fy;
       f(i,2) += fz;
 
-      double tor1 = rinv * (dy*fs3 - dz*fs2);
-      double tor2 = rinv * (dz*fs1 - dx*fs3);
-      double tor3 = rinv * (dx*fs2 - dy*fs1);
+      KK_FLOAT tor1 = rinv * (dy*fs3 - dz*fs2);
+      KK_FLOAT tor2 = rinv * (dz*fs1 - dx*fs3);
+      KK_FLOAT tor3 = rinv * (dx*fs2 - dy*fs1);
       torque(i,0) -= radius*tor1;
       torque(i,1) -= radius*tor2;
       torque(i,2) -= radius*tor3;
@@ -294,8 +294,8 @@ void FixWallGranKokkos<DeviceType>::grow_arrays(int nmax)
 {
   if (use_history) {
     k_history_one.sync_host(); // force reallocation on host
-    memoryKK->grow_kokkos(k_history_one,history_one,nmax,size_history,"wall/gran/kk:history_one");
     k_history_one.modify_host();
+    memoryKK->grow_kokkos(k_history_one,history_one,nmax,size_history,"wall/gran/kk:history_one");
     d_history_one = k_history_one.template view<DeviceType>();
   }
 }
@@ -373,7 +373,7 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranPackExchange, const
 
 template<class DeviceType>
 int FixWallGranKokkos<DeviceType>::pack_exchange_kokkos(
-   const int &nsend, DAT::tdual_xfloat_2d &k_buf,
+   const int &nsend, DAT::tdual_double_2d_lr &k_buf,
    DAT::tdual_int_1d k_sendlist, DAT::tdual_int_1d k_copylist,
    ExecutionSpace /*space*/)
 {
@@ -386,7 +386,7 @@ int FixWallGranKokkos<DeviceType>::pack_exchange_kokkos(
   d_sendlist = k_sendlist.view<DeviceType>();
   d_copylist = k_copylist.view<DeviceType>();
 
-  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+  d_buf = typename AT::t_double_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
 
@@ -417,11 +417,11 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranUnpackExchange, con
 
 template<class DeviceType>
 void FixWallGranKokkos<DeviceType>::unpack_exchange_kokkos(
-  DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  DAT::tdual_double_2d_lr &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
   int /*nrecv1*/, int /*nextrarecv1*/,
   ExecutionSpace /*space*/)
 {
-  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+  d_buf = typename AT::t_double_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();

@@ -108,10 +108,8 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
 
     if (tstr) {
       tvar = input->variable->find(tstr);
-      if (tvar < 0) {
-        input->variable->internal_create(tstr,0.0);
-        tvar = input->variable->find(tstr);
-      }
+      if (tvar < 0) tvar = input->variable->internal_create(tstr, 0.0);
+
       if (!input->variable->internalstyle(tvar))
         error->all(FLERR, "Variable for compute angle/local is invalid style");
     }

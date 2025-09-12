@@ -116,7 +116,10 @@ charge would not be conserved. As a consequence, no checks on atomic
 charges are performed, and successful switches update the atom type but
 not the atom charge. While it is possible to use *semi-grand* with
 groups of atoms that have different charges, these charges will not be
-changed when the atom types change.
+changed when the atom types change.  The same applies for systems
+with per-atom masses: non *semi-grand* will swap atom masses, but
+the masses have to be the same each for the atom types.  When using
+*semi-grand* no per-atom masses are changed.
 
 Since this fix computes total potential energies before and after
 proposed swaps, even complicated potential energy calculations are
@@ -184,11 +187,10 @@ When this fix is used with a :doc:`hybrid pair style <pair_hybrid>`
 system, only swaps between atom types of the same sub-style (or
 combination of sub-styles) are permitted.
 
-This fix cannot be used with systems that do not have per-type masses
-(e.g. atom style sphere) since the implemented algorithm pre-computes
-velocity rescaling factors from per-type masses and ignores any per-atom
-masses, if present.  In case both, per-type and per-atom masses are
-present, a warning is printed.
+This fix can be used with systems that have per-atom masses
+(e.g. atom style sphere) provided all atoms of the types handled
+by this fix have the same mass per type. The fix will check for that.
+In case both, per-type and per-atom masses are present, a warning is printed.
 
 Related commands
 """"""""""""""""

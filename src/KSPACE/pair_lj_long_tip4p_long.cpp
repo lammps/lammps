@@ -188,16 +188,14 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
                 (rn*=rn)*lj1i[jtype]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
               if (eflag)
                 evdwl = rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2;
-            }
-            else {                  // special case
+            } else {                  // special case
               double f = special_lj[ni], t = rn*(1.0-f);
               forcelj = f*(rn *= rn)*lj1i[jtype]-
                 g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[jtype];
               if (eflag)
                 evdwl = f*rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[jtype];
             }
-          }
-          else {                                        // table real space
+          } else {                                        // table real space
             union_int_float_t disp_t;
             disp_t.f = rsq;
             const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
@@ -206,21 +204,18 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
             if (ni == 0) {
               forcelj = (rn*=rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype];
               if (eflag) evdwl = rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype];
-            }
-            else {                  // special case
+            } else {                  // special case
               double f = special_lj[ni], t = rn*(1.0-f);
               forcelj = f*(rn *= rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype]+t*lj2i[jtype];
               if (eflag) evdwl = f*rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype]+t*lj4i[jtype];
             }
           }
-        }
-        else {                      // cut lj
+        } else {                      // cut lj
           double rn = r2inv*r2inv*r2inv;
           if (ni == 0) {
             forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
             if (eflag) evdwl = rn*(rn*lj3i[jtype]-lj4i[jtype])-offseti[jtype];
-          }
-          else {                    // special case
+          } else {                    // special case
             double f = special_lj[ni];
             forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype]);
             if (eflag)
@@ -297,7 +292,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;
             if (factor_coul < 1.0) {
@@ -1118,16 +1113,14 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
               forcelj =
                 (rn*=rn)*lj1i[jtype]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq-respa_lj;
               if (eflag) evdwl = rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2;
-            }
-            else {                                        // correct for special
+            } else {                                        // correct for special
               double f = special_lj[ni], t = rn*(1.0-f);
               forcelj = f*(rn *= rn)*lj1i[jtype]-
                 g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[jtype]-respa_lj;
               if (eflag)
                 evdwl = f*rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[jtype];
             }
-          }
-          else {                        // table real space
+          } else {                        // table real space
             union_int_float_t disp_t;
             disp_t.f = rsq;
             const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
@@ -1135,20 +1128,17 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
             if (ni == 0) {
               forcelj = (rn*=rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype]-respa_lj;
               if (eflag) evdwl = rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype];
-            }
-            else {                  // special case
+            } else {                  // special case
               double f = special_lj[ni], t = rn*(1.0-f);
               forcelj = f*(rn *= rn)*lj1i[jtype]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*lj4i[jtype]+t*lj2i[jtype]-respa_lj;
               if (eflag) evdwl = f*rn*lj3i[jtype]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*lj4i[jtype]+t*lj4i[jtype];
             }
           }
-        }
-        else {                                                // cut form
+        } else {                                                // cut form
           if (ni == 0) {
             forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype])-respa_lj;
             if (eflag) evdwl = rn*(rn*lj3i[jtype]-lj4i[jtype])-offseti[jtype];
-          }
-          else {                                        // correct for special
+          } else {                                        // correct for special
             double f = special_lj[ni];
             forcelj = f*rn*(rn*lj1i[jtype]-lj2i[jtype])-respa_lj;
             if (eflag)
@@ -1228,14 +1218,12 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
               s *= g_ewald*exp(-x*x);
               forcecoul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-respa_coul;
               if (eflag) ecoul = t;
-            }
-            else {                                        // correct for special
+            } else {                                        // correct for special
               r = s*(1.0-special_coul[ni])/r; s *= g_ewald*exp(-x*x);
               forcecoul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-r-respa_coul;
               if (eflag) ecoul = t-r;
             }
-          }                                                // table real space
-          else {
+          } else {                                             // table real space
             if (respa_flag) {
               double r = sqrt(rsq), s = qri*q[j];
               respa_coul = ni == 0 ? frespa*s/r : frespa*s/r*special_coul[ni];
@@ -1243,17 +1231,16 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
             union_int_float_t t;
             t.f = rsq;
             const int k = (t.i & ncoulmask) >> ncoulshiftbits;
-            double f = (t.f-rtable[k])*drtable[k], qiqj = qtmp*q[j];
+            double f = ((double)t.f-rtable[k])*drtable[k], qiqj = qtmp*q[j];
             if (ni == 0) {
               forcecoul = qiqj*(ftable[k]+f*dftable[k]);
               if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]);
-            }
-            else {                                        // correct for special
+            } else {                                        // correct for special
               t.f = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
-              forcecoul = qiqj*(ftable[k]+f*dftable[k]-t.f);
+              forcecoul = qiqj*(ftable[k]+f*dftable[k]-(double)t.f);
               if (eflag) {
                 t.f = (1.0-special_coul[ni])*(ptable[k]+f*dptable[k]);
-                ecoul = qiqj*(etable[k]+f*detable[k]-t.f);
+                ecoul = qiqj*(etable[k]+f*detable[k]-(double)t.f);
               }
             }
           }

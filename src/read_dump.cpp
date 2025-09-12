@@ -345,7 +345,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
 
 bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
 {
-  int ifile,eofflag;
+  int ifile = 0, eofflag = 0;
   bigint ntimestep;
 
   // proc 0 finds the timestep in its first reader
@@ -442,7 +442,8 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
 
 void ReadDump::header(int fieldinfo)
 {
-  int boxinfo, triclinic_snap;
+  int boxinfo = 0;
+  int triclinic_snap;
   int fieldflag,xflag,yflag,zflag;
 
   if (filereader) {
@@ -815,6 +816,7 @@ void ReadDump::process_atoms()
   double **x = atom->x;
   double **v = atom->v;
   double *q = atom->q;
+  double *apip_lambda = atom->apip_lambda;
   double **f = atom->f;
   tagint *tag = atom->tag;
   imageint *image = atom->image;
@@ -863,6 +865,9 @@ void ReadDump::process_atoms()
           break;
         case Reader::Q:
           q[m] = fields[i][ifield];
+          break;
+        case Reader::APIP_LAMBDA:
+          apip_lambda[m] = fields[i][ifield];
           break;
         case Reader::VY:
           v[m][1] = fields[i][ifield];
@@ -979,6 +984,7 @@ void ReadDump::process_atoms()
     tag = atom->tag;
     v = atom->v;
     q = atom->q;
+    apip_lambda = atom->apip_lambda;
     image = atom->image;
 
     // set atom attributes from other dump file fields
@@ -1002,6 +1008,9 @@ void ReadDump::process_atoms()
         break;
       case Reader::Q:
         q[m] = fields[i][ifield];
+        break;
+      case Reader::APIP_LAMBDA:
+        apip_lambda[m] = fields[i][ifield];
         break;
       case Reader::IX:
         xbox = static_cast<int> (fields[i][ifield]);
@@ -1063,7 +1072,7 @@ void ReadDump::migrate_old_atoms()
   for (int i = 0; i < nlocal; i++)
     procassign[i] = tag[i] % comm->nprocs;
 
-  auto irregular = new Irregular(lmp);
+  auto *irregular = new Irregular(lmp);
   irregular->migrate_atoms(1,1,procassign);
   delete irregular;
 
@@ -1086,7 +1095,7 @@ void ReadDump::migrate_new_atoms()
     procassign[i] = mtag % comm->nprocs;
   }
 
-  auto irregular = new Irregular(lmp);
+  auto *irregular = new Irregular(lmp);
   int nrecv = irregular->create_data(nnew,procassign,1);
   int newmaxnew = MAX(nrecv,maxnew);
   newmaxnew = MAX(newmaxnew,1);    // avoid null pointer
@@ -1123,7 +1132,7 @@ void ReadDump::migrate_atoms_by_coords()
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
-  auto irregular = new Irregular(lmp);
+  auto *irregular = new Irregular(lmp);
   irregular->migrate_atoms(1);
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -1165,6 +1174,8 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
     if (type < 0) break;
     if (type == Reader::Q && !atom->q_flag)
       error->all(FLERR,"Read dump of charge property that isn't supported by atom style");
+    if (type == Reader::APIP_LAMBDA && !atom->apip_lambda_flag)
+      error->all(FLERR,"Read dump of apip_lambda property that isn't supported by atom style");
     fieldtype[nfield++] = type;
     iarg++;
   }
@@ -1172,7 +1183,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   // check for no fields
 
   if (fieldtype[nfield-1] == Reader::ID || fieldtype[nfield-1] == Reader::TYPE)
-    error->all(FLERR,"Read_dump must use at least either 'id' or 'type' field");
+    error->all(FLERR,"Read_dump command is empty or starts with an invalid field. Use at least 'id' or 'type'.");
 
   if (domain->dimension == 2) {
     for (int i = 0; i < nfield; i++)
@@ -1290,6 +1301,7 @@ int ReadDump::whichtype(char *str)
   else if (strcmp(str,"vy") == 0) type = Reader::VY;
   else if (strcmp(str,"vz") == 0) type = Reader::VZ;
   else if (strcmp(str,"q") == 0) type = Reader::Q;
+  else if (strcmp(str,"apip_lambda") == 0) type = Reader::APIP_LAMBDA;
   else if (strcmp(str,"ix") == 0) type = Reader::IX;
   else if (strcmp(str,"iy") == 0) type = Reader::IY;
   else if (strcmp(str,"iz") == 0) type = Reader::IZ;

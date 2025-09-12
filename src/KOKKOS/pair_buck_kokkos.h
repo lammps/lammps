@@ -49,42 +49,42 @@ class PairBuckKokkos : public PairBuck {
     params_buck() {cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     KOKKOS_INLINE_FUNCTION
     params_buck(int /*i*/) {cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
-    F_FLOAT cutsq,a,c,rhoinv,buck1,buck2,offset;
+    KK_FLOAT cutsq,a,c,rhoinv,buck1,buck2,offset;
   };
 
  protected:
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
+  KK_FLOAT compute_fpair(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
+  KK_FLOAT compute_evdwl(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+  KK_FLOAT compute_ecoul(const KK_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
                         const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
   Kokkos::DualView<params_buck**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_buck**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
   params_buck m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];  // hardwired to space for 12 atom types
-  F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  typename AT::t_x_array_randomread x;
-  typename AT::t_x_array c_x;
-  typename AT::t_f_array f;
+  KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkfloat_1d_3_lr c_x;
+  typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
   int newton_pair;
-  double special_lj[4];
+  KK_FLOAT special_lj[4];
 
-  typename AT::tdual_ffloat_2d k_cutsq;
-  typename AT::t_ffloat_2d d_cutsq;
+  DAT::ttransform_kkfloat_2d k_cutsq;
+  typename AT::t_kkfloat_2d d_cutsq;
 
 
   int neighflag;

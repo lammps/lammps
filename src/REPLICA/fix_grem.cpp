@@ -172,13 +172,13 @@ void FixGrem::init()
   if (!ifix) {
     error->all(FLERR,"Fix id for nvt or npt fix does not exist");
   } else { // check for correct fix style
-    FixNH *nh = dynamic_cast<FixNH *>(ifix);
+    auto *nh = dynamic_cast<FixNH *>(ifix);
     if (!nh) {
       error->all(FLERR, "Fix ID {} is not a compatible Nose-Hoover fix for fix {}", id_nh, style);
     } else {
       int dummy;
-      auto t_start = (double *)nh->extract("t_start",dummy);
-      auto t_stop = (double *)nh->extract("t_stop",dummy);
+      auto *t_start = (double *)nh->extract("t_start",dummy);
+      auto *t_stop = (double *)nh->extract("t_stop",dummy);
       if ((t_start != nullptr) && (t_stop != nullptr)) {
         tbath = *t_start;
         if (*t_start != *t_stop)
@@ -189,8 +189,8 @@ void FixGrem::init()
       pressref = 0.0;
       if (pressflag) {
         int *p_flag = (int *)nh->extract("p_flag",dummy);
-        auto p_start = (double *) nh->extract("p_start",dummy);
-        auto p_stop = (double *) nh->extract("p_stop",dummy);
+        auto *p_start = (double *) nh->extract("p_start",dummy);
+        auto *p_stop = (double *) nh->extract("p_stop",dummy);
         if ((p_flag != nullptr) && (p_start != nullptr) && (p_stop != nullptr)) {
           int ifix = 0;
           pressref = p_start[0];

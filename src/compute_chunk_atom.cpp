@@ -54,7 +54,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), chunk_volume_vec(nullptr), coord(nullptr), ichunk(nullptr),
     chunkID(nullptr), cfvid(nullptr), idregion(nullptr), region(nullptr), cchunk(nullptr),
     fchunk(nullptr), varatom(nullptr), id_fix(nullptr), fixstore(nullptr), lockfix(nullptr),
-    chunk(nullptr), exclude(nullptr), hash(nullptr)
+    chunk(nullptr), exclude(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "compute chunk/atom", error);
 
@@ -475,11 +475,6 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   id_fix = nullptr;
   fixstore = nullptr;
 
-  if (compress)
-    hash = new std::map<tagint, int>();
-  else
-    hash = nullptr;
-
   maxvar = 0;
   varatom = nullptr;
 
@@ -510,7 +505,6 @@ ComputeChunkAtom::~ComputeChunkAtom()
 
   delete[] idregion;
   delete[] cfvid;
-  delete hash;
 
   memory->destroy(varatom);
 }
@@ -742,26 +736,26 @@ void ComputeChunkAtom::compute_ichunk()
     if (binflag) {
       for (i = 0; i < nlocal; i++) {
         if (exclude[i]) continue;
-        if (hash->find(ichunk[i]) == hash->end())
+        if (hash.find(ichunk[i]) == hash.end())
           exclude[i] = 1;
         else
-          ichunk[i] = hash->find(ichunk[i])->second;
+          ichunk[i] = hash.find(ichunk[i])->second;
       }
     } else if (discard == NODISCARD) {
       for (i = 0; i < nlocal; i++) {
         if (exclude[i]) continue;
-        if (hash->find(ichunk[i]) == hash->end())
+        if (hash.find(ichunk[i]) == hash.end())
           ichunk[i] = nchunk;
         else
-          ichunk[i] = hash->find(ichunk[i])->second;
+          ichunk[i] = hash.find(ichunk[i])->second;
       }
     } else {
       for (i = 0; i < nlocal; i++) {
         if (exclude[i]) continue;
-        if (hash->find(ichunk[i]) == hash->end())
+        if (hash.find(ichunk[i]) == hash.end())
           exclude[i] = 1;
         else
-          ichunk[i] = hash->find(ichunk[i])->second;
+          ichunk[i] = hash.find(ichunk[i])->second;
       }
     }
 
@@ -1059,20 +1053,20 @@ void ComputeChunkAtom::assign_chunk_ids()
 
 void ComputeChunkAtom::compress_chunk_ids()
 {
-  hash->clear();
+  hash.clear();
 
   // put my IDs into hash
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
     if (exclude[i]) continue;
-    if (hash->find(ichunk[i]) == hash->end()) (*hash)[ichunk[i]] = 0;
+    if (hash.find(ichunk[i]) == hash.end()) hash[ichunk[i]] = 0;
   }
 
   // n = # of my populated IDs
   // nall = n summed across all procs
 
-  int n = hash->size();
+  int n = hash.size();
   bigint nbone = n;
   bigint nball;
   MPI_Allreduce(&nbone, &nball, 1, MPI_LMP_BIGINT, MPI_SUM, world);
@@ -1083,8 +1077,7 @@ void ComputeChunkAtom::compress_chunk_ids()
   memory->create(list, n, "chunk/atom:list");
 
   n = 0;
-  std::map<tagint, int>::iterator pos;
-  for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
+  for (const auto &pos : hash) list[n++] = pos.first;
 
   // if nall < 1M, just allgather all ID lists on every proc
   // else perform ring comm
@@ -1114,7 +1107,7 @@ void ComputeChunkAtom::compress_chunk_ids()
     // add all unique IDs in listall to my hash
 
     for (int i = 0; i < nall; i++)
-      if (hash->find(listall[i]) == hash->end()) (*hash)[listall[i]] = 0;
+      if (hash.find(listall[i]) == hash.end()) hash[listall[i]] = 0;
 
     // clean up
 
@@ -1130,7 +1123,7 @@ void ComputeChunkAtom::compress_chunk_ids()
 
   // nchunk = length of hash containing populated IDs from all procs
 
-  nchunk = hash->size();
+  nchunk = hash.size();
 
   // reset hash value of each original chunk ID to ordered index
   //   ordered index = new compressed chunk ID (1 to Nchunk)
@@ -1142,9 +1135,9 @@ void ComputeChunkAtom::compress_chunk_ids()
   memory->create(chunkID, nchunk, "chunk/atom:chunkID");
 
   n = 0;
-  for (pos = hash->begin(); pos != hash->end(); ++pos) {
-    chunkID[n] = pos->first;
-    (*hash)[pos->first] = ++n;
+  for (const auto &pos : hash) {
+    chunkID[n] = pos.first;
+    hash[pos.first] = ++n;
   }
 }
 
@@ -1157,10 +1150,10 @@ void ComputeChunkAtom::compress_chunk_ids()
 
 void ComputeChunkAtom::idring(int n, char *cbuf, void *ptr)
 {
-  auto cptr = (ComputeChunkAtom *) ptr;
-  auto list = (tagint *) cbuf;
-  std::map<tagint, int> *hash = cptr->hash;
-  for (int i = 0; i < n; i++) (*hash)[list[i]] = 0;
+  auto *cptr = (ComputeChunkAtom *) ptr;
+  auto *list = (tagint *) cbuf;
+  auto &chunkhash = cptr->hash;
+  for (int i = 0; i < n; i++) chunkhash[list[i]] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1188,7 +1181,7 @@ void ComputeChunkAtom::check_molecules()
     int molid;
     for (int i = 0; i < nlocal; i++) {
       molid = static_cast<int>(molecule[i]);
-      if (hash->find(molid) != hash->end() && ichunk[i] == 0) flag = 1;
+      if (hash.find(molid) != hash.end() && ichunk[i] == 0) flag = 1;
     }
   }
 
@@ -1268,7 +1261,7 @@ int ComputeChunkAtom::setup_xyz_bins()
     if (lo > hi) error->all(FLERR, Error::NOLASTLINE, "Invalid bin bounds in compute chunk/atom");
 
     offset[m] = lo;
-    nlayers[m] = static_cast<int>((hi - lo) * invdelta[m] + 0.5);
+    nlayers[m] = std::lround((hi - lo) * invdelta[m]);
     nbins *= nlayers[m];
   }
 

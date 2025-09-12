@@ -809,7 +809,7 @@ void FixAveCorrelateLong::write_restart(FILE *fp) {
 void FixAveCorrelateLong::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   int npairin = static_cast<int>(list[n++]);
   int numcorrelatorsin = static_cast<int> (list[n++]);
   int pin = static_cast<int>(list[n++]);

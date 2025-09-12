@@ -4,6 +4,7 @@
 #include <cerrno>
 #include <cstdio>
 #include <string>
+#include <exception>
 
 using json = LAMMPS_NS::json;
 
@@ -28,20 +29,28 @@ int main(int argc, char **argv)
       return 2;
     }
 
-    auto jsondata = json::parse(fp, nullptr, true, true);
-    fclose(fp);
+    try {
+      auto jsondata = json::parse(fp, nullptr, true, true);
+      fclose(fp);
+      if (rename(file.c_str(), backup.c_str())) {
+        printf("Cannot create backup for file %s: %s\n", file.c_str(), strerror(errno));
+        return 3;
+      }
 
-    rename(file.c_str(), backup.c_str());
-
-    fp = fopen(file.c_str(), "w");
-    if (!fp) {
-      printf("Cannot open file %s for writing: %s\n", file.c_str(), strerror(errno));
-      return 3;
+      fp = fopen(file.c_str(), "w");
+      if (!fp) {
+        printf("Cannot open file %s for writing: %s\n", file.c_str(), strerror(errno));
+        return 4;
+      }
+      std::string data = jsondata.dump(indent);
+      data += '\n';
+      fputs(data.c_str(), fp);
+      fclose(fp);
+    } catch (std::exception &e) {
+      printf("%s: %s\nSkipping file...\n", argv[i], e.what());
+      fclose(fp);
     }
-    std::string data = jsondata.dump(indent);
-    data += '\n';
-    fputs(data.c_str(), fp);
-    fclose(fp);
+
   }
   return 0;
 }

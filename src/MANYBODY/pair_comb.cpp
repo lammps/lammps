@@ -1466,12 +1466,12 @@ void PairComb::tri_point(double rsq, int &mr1, int &mr2,
  rridr = (r-rin)/dr;
 
  mr1 = int(rridr)-1;
- dd = rridr - float(mr1);
+ dd = rridr - double(mr1);
  if (dd > 0.5) mr1 += 1;
  mr2 = mr1 + 1;
  mr3 = mr2 + 1;
 
- rr1 = float(mr1)*dr;
+ rr1 = double(mr1)*dr;
  rridr = (r - rin - rr1)/dr;
  rridr2 = rridr * rridr;
 

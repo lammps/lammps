@@ -192,7 +192,7 @@ void ComputeHMA::setup()
   if (!ifix)
     error->all(FLERR, Error::NOLASTLINE, "Could not find compute hma temperature fix ID {}",
                id_temp);
-  auto  temperat = (double *) ifix->extract("t_target",dummy);
+  auto *  temperat = (double *) ifix->extract("t_target",dummy);
   if (temperat == nullptr)
     error->all(FLERR, Error::NOLASTLINE, "Fix ID {} is not a thermostat {}", id_temp);
   finaltemp = *temperat;

@@ -1541,7 +1541,7 @@ void PairAmoeba::reset_grid()
 
 void PairAmoeba::pack_forward_grid(int which, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   if (which == MPOLE_GRID) {
     FFT_SCALAR *src = m_kspace->grid_brick_start;
@@ -1582,7 +1582,7 @@ void PairAmoeba::pack_forward_grid(int which, void *vbuf, int nlist, int *list)
 
 void PairAmoeba::unpack_forward_grid(int which, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   if (which == MPOLE_GRID) {
     FFT_SCALAR *dest = m_kspace->grid_brick_start;
@@ -1623,7 +1623,7 @@ void PairAmoeba::unpack_forward_grid(int which, void *vbuf, int nlist, int *list
 
 void PairAmoeba::pack_reverse_grid(int which, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   if (which == MPOLE_GRID) {
     FFT_SCALAR *src = m_kspace->grid_brick_start;
@@ -1664,7 +1664,7 @@ void PairAmoeba::pack_reverse_grid(int which, void *vbuf, int nlist, int *list)
 
 void PairAmoeba::unpack_reverse_grid(int which, void *vbuf, int nlist, int *list)
 {
-  FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   if (which == MPOLE_GRID) {
     FFT_SCALAR *dest = m_kspace->grid_brick_start;

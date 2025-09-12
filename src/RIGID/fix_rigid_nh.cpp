@@ -260,8 +260,8 @@ void FixRigidNH::init()
 
     // ensure no conflict with fix deform
 
-    for (auto &ifix : modify->get_fix_by_style("^deform")) {
-      auto deform = dynamic_cast<FixDeform *>(ifix);
+    for (const auto &ifix : modify->get_fix_by_style("^deform")) {
+      auto *deform = dynamic_cast<FixDeform *>(ifix);
       if (deform) {
         int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) || (p_flag[2] && dimflag[2]))
@@ -299,7 +299,7 @@ void FixRigidNH::init()
     // this will include self
 
     rfix.clear();
-    for (auto &ifix : modify->get_fix_list())
+    for (const auto &ifix : modify->get_fix_list())
       if (ifix->rigid_flag) rfix.push_back(ifix);
   }
 }
@@ -1146,7 +1146,7 @@ void FixRigidNH::write_restart(FILE *fp)
 void FixRigidNH::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
 
   if (flag) {
@@ -1176,7 +1176,7 @@ void FixRigidNH::restart(char *buf)
         eta_b[i] = list[n++];
         eta_dot_b[i] = list[n++];
       }
-    } else n += 2*m;
+    }
   }
 }
 

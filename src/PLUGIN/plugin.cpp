@@ -28,13 +28,15 @@
 #include <map>
 
 namespace LAMMPS_NS {
-// list of plugin information data for loaded styles
-static std::list<lammpsplugin_t> pluginlist;
+namespace {
+  // list of plugin information data for loaded styles
+  std::list<lammpsplugin_t> pluginlist;
 
-// map for counting references to dso handles
-static std::map<void *, int> dso_refcounter;
+  // map for counting references to dso handles
+  std::map<void *, int> dso_refcounter;
 
-static bool verbose = true;
+  bool verbose = true;
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -48,11 +50,11 @@ void Plugin::command(int narg, char **arg)
 
   std::string cmd = arg[0];
   if (cmd == "load") {
-    if (narg < 2) error->all(FLERR, "Illegal plugin load command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "plugin load", error);
     for (int i = 1; i < narg; ++i) plugin_load(arg[i], lmp);
 
   } else if (cmd == "unload") {
-    if (narg != 3) error->all(FLERR, "Illegal plugin unload command");
+    if (narg != 3) error->all(FLERR, Error::ARGZERO, "Plugin unload command requires exactly 2 arguments");
     plugin_unload(arg[1], arg[2], lmp);
 
   } else if (cmd == "clear") {
@@ -64,14 +66,14 @@ void Plugin::command(int narg, char **arg)
   } else if (cmd == "list") {
     if (comm->me == 0) {
       int num = plugin_get_num_plugins();
-      utils::logmesg(lmp, "Currently loaded plugins\n");
+      utils::logmesg(lmp, "Currently loaded plugins: {}\n", num);
       for (int i = 0; i < num; ++i) {
-        auto entry = plugin_get_info(i);
+        const auto *entry = plugin_get_info(i);
         utils::logmesg(lmp, "{:4}: {} style plugin {}\n", i + 1, entry->style, entry->name);
       }
     }
   } else
-    error->all(FLERR, "Unknown plugin command {}", cmd);
+    error->all(FLERR, Error::ARGZERO, "Unknown plugin command {}", cmd);
 }
 
 // auto-load DSOs from designated folder(s)
@@ -140,7 +142,7 @@ int plugin_load(const char *file, LAMMPS *lmp)
 void plugin_register(lammpsplugin_t *plugin, void *ptr)
 {
 #if defined(LMP_PLUGIN)
-  auto lmp = (LAMMPS *) ptr;
+  auto *lmp = (LAMMPS *) ptr;
   int me = lmp->comm->me;
 
   if (plugin == nullptr) return;
@@ -172,7 +174,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
 
   std::string pstyle = plugin->style;
   if (pstyle == "pair") {
-    auto pair_map = lmp->force->pair_map;
+    auto *pair_map = lmp->force->pair_map;
     if (pair_map->find(plugin->name) != pair_map->end()) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in pair style {} from plugin", plugin->name);
@@ -180,7 +182,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     (*pair_map)[plugin->name] = (Force::PairCreator) plugin->creator.v1;
 
   } else if (pstyle == "bond") {
-    auto bond_map = lmp->force->bond_map;
+    auto *bond_map = lmp->force->bond_map;
     if (bond_map->find(plugin->name) != bond_map->end()) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in bond style {} from plugin", plugin->name);
@@ -188,7 +190,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     (*bond_map)[plugin->name] = (Force::BondCreator) plugin->creator.v1;
 
   } else if (pstyle == "angle") {
-    auto angle_map = lmp->force->angle_map;
+    auto *angle_map = lmp->force->angle_map;
     if (angle_map->find(plugin->name) != angle_map->end()) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in angle style {} from plugin", plugin->name);
@@ -196,7 +198,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     (*angle_map)[plugin->name] = (Force::AngleCreator) plugin->creator.v1;
 
   } else if (pstyle == "dihedral") {
-    auto dihedral_map = lmp->force->dihedral_map;
+    auto *dihedral_map = lmp->force->dihedral_map;
     if (dihedral_map->find(plugin->name) != dihedral_map->end()) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in dihedral style {} from plugin",
@@ -205,7 +207,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     (*dihedral_map)[plugin->name] = (Force::DihedralCreator) plugin->creator.v1;
 
   } else if (pstyle == "improper") {
-    auto improper_map = lmp->force->improper_map;
+    auto *improper_map = lmp->force->improper_map;
     if (improper_map->find(plugin->name) != improper_map->end()) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in improper style {} from plugin",
@@ -214,7 +216,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     (*improper_map)[plugin->name] = (Force::ImproperCreator) plugin->creator.v1;
 
   } else if (pstyle == "kspace") {
-    auto kspace_map = lmp->force->kspace_map;
+    auto *kspace_map = lmp->force->kspace_map;
     if (kspace_map->find(plugin->name) != kspace_map->end()) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in kspace style {} from plugin", plugin->name);
@@ -222,7 +224,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     (*kspace_map)[plugin->name] = (Force::KSpaceCreator) plugin->creator.v1;
 
   } else if (pstyle == "compute") {
-    auto compute_map = lmp->modify->compute_map;
+    auto *compute_map = lmp->modify->compute_map;
     if (compute_map->find(plugin->name) != compute_map->end()) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in compute style {} from plugin",
@@ -231,7 +233,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     (*compute_map)[plugin->name] = (Modify::ComputeCreator) plugin->creator.v2;
 
   } else if (pstyle == "fix") {
-    auto fix_map = lmp->modify->fix_map;
+    auto *fix_map = lmp->modify->fix_map;
     if (fix_map->find(plugin->name) != fix_map->end()) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in fix style {} from plugin", plugin->name);
@@ -239,7 +241,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     (*fix_map)[plugin->name] = (Modify::FixCreator) plugin->creator.v2;
 
   } else if (pstyle == "region") {
-    auto region_map = lmp->domain->region_map;
+    auto *region_map = lmp->domain->region_map;
     if (region_map->find(plugin->name) != region_map->end()) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in region style {} from plugin", plugin->name);
@@ -247,7 +249,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     (*region_map)[plugin->name] = (Domain::RegionCreator) plugin->creator.v2;
 
   } else if (pstyle == "command") {
-    auto command_map = lmp->input->command_map;
+    auto *command_map = lmp->input->command_map;
     if (command_map->find(plugin->name) != command_map->end()) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in command style {} from plugin",
@@ -256,7 +258,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     (*command_map)[plugin->name] = (Input::CommandCreator) plugin->creator.v1;
 
   } else if (pstyle == "run") {
-    auto integrate_map = lmp->update->integrate_map;
+    auto *integrate_map = lmp->update->integrate_map;
     if (integrate_map->find(plugin->name) != integrate_map->end()) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in run style {} from plugin", plugin->name);
@@ -264,7 +266,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     (*integrate_map)[plugin->name] = (Update::IntegrateCreator) plugin->creator.v2;
 
   } else if (pstyle == "min") {
-    auto minimize_map = lmp->update->minimize_map;
+    auto *minimize_map = lmp->update->minimize_map;
     if (minimize_map->find(plugin->name) != minimize_map->end()) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in minimize style {} from plugin",
@@ -385,7 +387,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
     if ((lmp->force->kspace_style != nullptr) && (lmp->force->kspace_match(name, 1) != nullptr))
       lmp->force->create_kspace("none", 0);
 
-    auto kspace_map = lmp->force->kspace_map;
+    auto *kspace_map = lmp->force->kspace_map;
     auto found = kspace_map->find(name);
     if (found != kspace_map->end()) kspace_map->erase(name);
 
@@ -393,10 +395,10 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 
     // must delete all compute instances using this compute style
 
-    for (auto &icompute : lmp->modify->get_compute_by_style(name))
+    for (const auto &icompute : lmp->modify->get_compute_by_style(name))
       lmp->modify->delete_compute(icompute->id);
 
-    auto compute_map = lmp->modify->compute_map;
+    auto *compute_map = lmp->modify->compute_map;
     auto found = compute_map->find(name);
     if (found != compute_map->end()) compute_map->erase(name);
 
@@ -404,9 +406,9 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 
     // must delete all fix instances using this fix style
 
-    for (auto &ifix : lmp->modify->get_fix_by_style(name)) lmp->modify->delete_fix(ifix->id);
+    for (const auto &ifix : lmp->modify->get_fix_by_style(name)) lmp->modify->delete_fix(ifix->id);
 
-    auto fix_map = lmp->modify->fix_map;
+    auto *fix_map = lmp->modify->fix_map;
     auto found = fix_map->find(name);
     if (found != fix_map->end()) fix_map->erase(name);
 
@@ -414,16 +416,16 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 
     // must delete all region instances using this region style
 
-    for (auto &iregion : lmp->domain->get_region_by_style(name))
+    for (const auto &iregion : lmp->domain->get_region_by_style(name))
       lmp->domain->delete_region(iregion);
 
-    auto region_map = lmp->domain->region_map;
+    auto *region_map = lmp->domain->region_map;
     auto found = region_map->find(name);
     if (found != region_map->end()) region_map->erase(name);
 
   } else if (pstyle == "command") {
 
-    auto command_map = lmp->input->command_map;
+    auto *command_map = lmp->input->command_map;
     auto found = command_map->find(name);
     if (found != command_map->end()) command_map->erase(name);
 
@@ -435,7 +437,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
       char *str = (char *) "verlet";
       lmp->update->create_integrate(1, &str, 1);
     }
-    auto integrate_map = lmp->update->integrate_map;
+    auto *integrate_map = lmp->update->integrate_map;
     auto found = integrate_map->find(name);
     if (found != integrate_map->end()) integrate_map->erase(name);
 
@@ -447,7 +449,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
       char *str = (char *) "cg";
       lmp->update->create_minimize(1, &str, 1);
     }
-    auto minimize_map = lmp->update->minimize_map;
+    auto *minimize_map = lmp->update->minimize_map;
     auto found = minimize_map->find(name);
     if (found != minimize_map->end()) minimize_map->erase(name);
   }
@@ -471,7 +473,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
 
     std::string pstyle = plugin.style;
     if (pstyle == "pair") {
-      auto pair_map = lmp->force->pair_map;
+      auto *pair_map = lmp->force->pair_map;
       if (pair_map->find(plugin.name) != pair_map->end()) {
         if (warnflag && (lmp->comm->me == 0))
           lmp->error->warning(FLERR, "Overriding built-in pair style {} from plugin", plugin.name);
@@ -479,7 +481,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       (*pair_map)[plugin.name] = (Force::PairCreator) plugin.creator.v1;
 
     } else if (pstyle == "bond") {
-      auto bond_map = lmp->force->bond_map;
+      auto *bond_map = lmp->force->bond_map;
       if (bond_map->find(plugin.name) != bond_map->end()) {
         if (warnflag && (lmp->comm->me == 0))
           lmp->error->warning(FLERR, "Overriding built-in bond style {} from plugin", plugin.name);
@@ -487,7 +489,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       (*bond_map)[plugin.name] = (Force::BondCreator) plugin.creator.v1;
 
     } else if (pstyle == "angle") {
-      auto angle_map = lmp->force->angle_map;
+      auto *angle_map = lmp->force->angle_map;
       if (angle_map->find(plugin.name) != angle_map->end()) {
         if (warnflag && (lmp->comm->me == 0))
           lmp->error->warning(FLERR, "Overriding built-in angle style {} from plugin", plugin.name);
@@ -495,7 +497,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       (*angle_map)[plugin.name] = (Force::AngleCreator) plugin.creator.v1;
 
     } else if (pstyle == "dihedral") {
-      auto dihedral_map = lmp->force->dihedral_map;
+      auto *dihedral_map = lmp->force->dihedral_map;
       if (dihedral_map->find(plugin.name) != dihedral_map->end()) {
         if (warnflag && (lmp->comm->me == 0))
           lmp->error->warning(FLERR, "Overriding built-in dihedral style {} from plugin",
@@ -504,7 +506,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       (*dihedral_map)[plugin.name] = (Force::DihedralCreator) plugin.creator.v1;
 
     } else if (pstyle == "improper") {
-      auto improper_map = lmp->force->improper_map;
+      auto *improper_map = lmp->force->improper_map;
       if (improper_map->find(plugin.name) != improper_map->end()) {
         if (warnflag && (lmp->comm->me == 0))
           lmp->error->warning(FLERR, "Overriding built-in improper style {} from plugin",
@@ -513,7 +515,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       (*improper_map)[plugin.name] = (Force::ImproperCreator) plugin.creator.v1;
 
     } else if (pstyle == "kspace") {
-      auto kspace_map = lmp->force->kspace_map;
+      auto *kspace_map = lmp->force->kspace_map;
       if (kspace_map->find(plugin.name) != kspace_map->end()) {
         if (warnflag && (lmp->comm->me == 0))
           lmp->error->warning(FLERR, "Overriding built-in kspace style {} from plugin",
@@ -522,7 +524,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       (*kspace_map)[plugin.name] = (Force::KSpaceCreator) plugin.creator.v1;
 
     } else if (pstyle == "compute") {
-      auto compute_map = lmp->modify->compute_map;
+      auto *compute_map = lmp->modify->compute_map;
       if (compute_map->find(plugin.name) != compute_map->end()) {
         if (warnflag && (lmp->comm->me == 0))
           lmp->error->warning(FLERR, "Overriding built-in compute style {} from plugin",
@@ -531,7 +533,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       (*compute_map)[plugin.name] = (Modify::ComputeCreator) plugin.creator.v2;
 
     } else if (pstyle == "fix") {
-      auto fix_map = lmp->modify->fix_map;
+      auto *fix_map = lmp->modify->fix_map;
       if (fix_map->find(plugin.name) != fix_map->end()) {
         if (warnflag && (lmp->comm->me == 0))
           lmp->error->warning(FLERR, "Overriding built-in fix style {} from plugin", plugin.name);
@@ -539,7 +541,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       (*fix_map)[plugin.name] = (Modify::FixCreator) plugin.creator.v2;
 
     } else if (pstyle == "region") {
-      auto region_map = lmp->domain->region_map;
+      auto *region_map = lmp->domain->region_map;
       if (region_map->find(plugin.name) != region_map->end()) {
         if (warnflag && (lmp->comm->me == 0))
           lmp->error->warning(FLERR, "Overriding built-in region style {} from plugin",
@@ -548,7 +550,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       (*region_map)[plugin.name] = (Domain::RegionCreator) plugin.creator.v2;
 
     } else if (pstyle == "command") {
-      auto command_map = lmp->input->command_map;
+      auto *command_map = lmp->input->command_map;
       if (command_map->find(plugin.name) != command_map->end()) {
         if (warnflag && (lmp->comm->me == 0))
           lmp->error->warning(FLERR, "Overriding built-in command style {} from plugin",
@@ -557,7 +559,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       (*command_map)[plugin.name] = (Input::CommandCreator) plugin.creator.v1;
 
     } else if (pstyle == "run") {
-      auto integrate_map = lmp->update->integrate_map;
+      auto *integrate_map = lmp->update->integrate_map;
       if (integrate_map->find(plugin.name) != integrate_map->end()) {
         if (warnflag && (lmp->comm->me == 0))
           lmp->error->warning(FLERR, "Overriding built-in run style {} from plugin", plugin.name);
@@ -565,7 +567,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       (*integrate_map)[plugin.name] = (Update::IntegrateCreator) plugin.creator.v2;
 
     } else if (pstyle == "min") {
-      auto minimize_map = lmp->update->minimize_map;
+      auto *minimize_map = lmp->update->minimize_map;
       if (minimize_map->find(plugin.name) != minimize_map->end()) {
         if (warnflag && (lmp->comm->me == 0))
           lmp->error->warning(FLERR, "Overriding built-in minimize style {} from plugin",

@@ -29,7 +29,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 2
 
@@ -55,8 +55,8 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ${{ env.CCACHE_DIR }}
-        key: linux-cpp23-ccache-${{ github.sha }}
-        restore-keys: linux-cpp23-ccache-
+        key: linux-cpp23-ccache-${{ matrix.idx }}-${{ github.sha }}
+        restore-keys: linux-cpp23-ccache-${{ matrix.idx }}
 
     - name: Building LAMMPS via CMake
       shell: bash

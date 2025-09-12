@@ -27,13 +27,8 @@
                 "items": { "type": "number"},
                 "minItems": 3,
                 "maxItems": 3
-               },
+        },
         "masstotal": {"type": "number"},
-        "body": {"type": "array",
-                 "items": { "type": "integer"},
-                "minItems": 2,
-                "maxItems": 2
-               },
         "inertia": {"type": "array",
                     "items": { "type": "number"},
                     "minItems": 6,
@@ -300,6 +295,128 @@
                 }
             },
             "required": ["format", "data"]
+        },
+        "special": {
+            "type": "object",
+            "properties": {
+                "counts" : {
+                    "type": "object",
+                    "properties": {
+                        "format": {
+                            "type": "array",
+                            "const": ["atom-id", "n12", "n13", "n14"]
+                        },
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "minItems": 4,
+                                "maxItems": 4
+                            }
+                        }
+                    },
+                    "required": ["format", "data"]
+                },
+                "bonds" : {
+                    "type": "object",
+                    "properties": {
+                        "format": {
+                            "type": "array",
+                            "const": ["atom-id", "atom-id-list"]
+                        },
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "type": ["integer", "array"],
+                                "minItems": 1
+                            }
+                        }
+                    },
+                    "required": ["format", "data"]
+                }
+            },
+            "required": ["counts", "bonds"]
+        },
+
+        "shake": {
+            "type": "object",
+            "properties": {
+                "flags" : {
+                    "type": "object",
+                    "properties": {
+                        "format": {
+                            "type": "array",
+                            "const": ["atom-id", "flag"]
+                        },
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                },
+                                "minItems": 2,
+                                "maxItems": 2
+                            }
+                        }
+                    },
+                    "required": ["format", "data"]
+                },
+                "atoms" : {
+                    "type": "object",
+                    "properties": {
+                        "format": {
+                            "type": "array",
+                            "const": ["atom-id", "atom-id-list"]
+                        },
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "type": ["integer", "array"],
+                                "minItems": 1
+                            }
+                        }
+                    },
+                    "required": ["format", "data"]
+                },
+                "types" : {
+                    "type": "object",
+                    "properties": {
+                        "format": {
+                            "type": "array",
+                            "const": ["atom-id", "type-list"]
+                        },
+                        "data": {
+                            "type": "array",
+                            "items": {
+                                "type": ["integer", "array"],
+                                "minItems": 1
+                            }
+                        }
+                    },
+                    "required": ["format", "data"]
+                }
+            },
+            "required": ["flags", "atoms", "types"]
+        },
+        "body": {
+            "type": "object",
+            "properties": {
+                "integers": {
+                    "type": "array",
+                    "items": {"type": "integer"},
+                    "minItems" : 1
+                },
+                "doubles": {
+                    "type": "array",
+                    "items": {"type": "number"},
+                    "minItems" : 1
+                }
+            },
+            "required": ["integers", "doubles"]
         }
     },
     "required": ["application", "format", "revision", "types"]

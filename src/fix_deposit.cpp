@@ -614,6 +614,8 @@ void FixDeposit::pre_exchange()
       atom->nangles += onemols[imol]->nangles;
       atom->ndihedrals += onemols[imol]->ndihedrals;
       atom->nimpropers += onemols[imol]->nimpropers;
+      // body particle molecule template must contain only one atom
+      atom->nbodies += (bigint) onemols[imol]->bodyflag;
     }
     maxtag_all += natom;
     if (maxtag_all >= MAXTAGINT)
@@ -866,33 +868,18 @@ void FixDeposit::options(int narg, char **arg)
     if (!input->variable->equalstyle(vvar))
       error->all(FLERR, "Variable for fix deposit is invalid style");
 
-    if (xstr) {
-      xvar = input->variable->find(xstr);
-      if (xvar < 0) {
-        input->variable->internal_create(xstr,0.0);
-        xvar = input->variable->find(xstr);
-      }
-      if (!input->variable->internalstyle(xvar))
-        error->all(FLERR, "Variable for fix deposit is invalid style");
-    }
-    if (ystr) {
-      yvar = input->variable->find(ystr);
-      if (yvar < 0) {
-        input->variable->internal_create(ystr,0.0);
-        yvar = input->variable->find(ystr);
-      }
-      if (!input->variable->internalstyle(yvar))
-        error->all(FLERR, "Variable for fix deposit is invalid style");
-    }
-    if (zstr) {
-      zvar = input->variable->find(zstr);
-      if (zvar < 0) {
-        input->variable->internal_create(zstr,0.0);
-        zvar = input->variable->find(zstr);
-      }
-      if (!input->variable->internalstyle(zvar))
-        error->all(FLERR, "Variable for fix deposit is invalid style");
-    }
+#define SETUP_XYZ_VAR(str, var)                                         \
+    if (str) {                                                          \
+      var = input->variable->find(str);                                 \
+      if (var < 0) var = input->variable->internal_create(str, 0.0);    \
+      if (!input->variable->internalstyle(var))                         \
+        error->all(FLERR, "Variable {} for fix deposit is invalid style", str); \
+    }                                                                   \
+
+    SETUP_XYZ_VAR(xstr, xvar);
+    SETUP_XYZ_VAR(ystr, yvar);
+    SETUP_XYZ_VAR(zstr, zvar);
+#undef SETUP_XYZ_VAR
   }
 }
 
@@ -933,7 +920,7 @@ void FixDeposit::write_restart(FILE *fp)
 void FixDeposit::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   seed = static_cast<int>(list[n++]);
   ninserted = static_cast<int>(list[n++]);

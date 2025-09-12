@@ -53,7 +53,13 @@ else()
       add_library(yaml-cpp::yaml-cpp ALIAS yaml-cpp)
     endif()
 
-    add_subdirectory(${lib-pace} build-pace)
+    # fixup yaml-cpp/emitterutils.cpp for GCC 15+ until patch is applied
+    file(READ ${lib-pace}/yaml-cpp/src/emitterutils.cpp yaml_emitterutils)
+    string(REPLACE "#include <sstream>" "#include <sstream>\n#include <cinttypes>" yaml_tmp_emitterutils "${yaml_emitterutils}")
+    string(REPLACE "#include <cinttypes>\n#include <cinttypes>" "#include <cinttypes>" yaml_emitterutils "${yaml_tmp_emitterutils}")
+    file(WRITE ${lib-pace}/yaml-cpp/src/emitterutils.cpp "${yaml_emitterutils}")
+
+    add_subdirectory(${lib-pace} build-pace EXCLUDE_FROM_ALL)
     set_target_properties(pace PROPERTIES CXX_EXTENSIONS ON OUTPUT_NAME lammps_pace${LAMMPS_MACHINE})
 
     if(CMAKE_PROJECT_NAME STREQUAL "lammps")

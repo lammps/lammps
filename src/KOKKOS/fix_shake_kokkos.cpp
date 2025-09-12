@@ -76,8 +76,8 @@ FixShakeKokkos<DeviceType>::FixShakeKokkos(LAMMPS *lmp, int narg, char **arg) :
   k_shake_atom.modify_host();
   k_shake_type.modify_host();
 
-  k_bond_distance = DAT::tdual_float_1d("fix_shake:bond_distance",atom->nbondtypes+1);
-  k_angle_distance = DAT::tdual_float_1d("fix_shake:angle_distance",atom->nangletypes+1);
+  k_bond_distance = DAT::tdual_kkfloat_1d("fix_shake:bond_distance",atom->nbondtypes+1);
+  k_angle_distance = DAT::tdual_kkfloat_1d("fix_shake:angle_distance",atom->nangletypes+1);
 
   d_bond_distance = k_bond_distance.view<DeviceType>();
   d_angle_distance = k_angle_distance.view<DeviceType>();
@@ -376,7 +376,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
-    d_vatom = k_vatom.template view<KKDeviceType>();
+    d_vatom = k_vatom.template view<DeviceType>();
   }
 
   neighflag = lmp->kokkos->neighflag;
@@ -453,7 +453,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   // free duplicated memory
@@ -634,34 +634,34 @@ void FixShakeKokkos<DeviceType>::shake(int ilist, EV_FLOAT& ev) const
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   int atomlist[2];
-  double v[6];
-  double invmass0,invmass1;
+  KK_FLOAT v[6];
+  KK_FLOAT invmass0,invmass1;
 
   // local atom IDs and constraint distances
 
   int m = d_list[ilist];
   int i0 = d_closest_list(ilist,0);
   int i1 = d_closest_list(ilist,1);
-  double bond1 = d_bond_distance[d_shake_type(m,0)];
+  KK_FLOAT bond1 = d_bond_distance[d_shake_type(m,0)];
 
   // r01 = distance vec between atoms
 
-  double r01[3];
+  KK_FLOAT r01[3];
   r01[0] = d_x(i0,0) - d_x(i1,0);
   r01[1] = d_x(i0,1) - d_x(i1,1);
   r01[2] = d_x(i0,2) - d_x(i1,2);
 
   // s01 = distance vec after unconstrained update
 
-  double s01[3];
+  KK_FLOAT s01[3];
   s01[0] = d_xshake(i0,0) - d_xshake(i1,0);
   s01[1] = d_xshake(i0,1) - d_xshake(i1,1);
   s01[2] = d_xshake(i0,2) - d_xshake(i1,2);
 
   // scalar distances between atoms
 
-  double r01sq = r01[0]*r01[0] + r01[1]*r01[1] + r01[2]*r01[2];
-  double s01sq = s01[0]*s01[0] + s01[1]*s01[1] + s01[2]*s01[2];
+  KK_FLOAT r01sq = r01[0]*r01[0] + r01[1]*r01[1] + r01[2]*r01[2];
+  KK_FLOAT s01sq = s01[0]*s01[0] + s01[1]*s01[1] + s01[2]*s01[2];
 
   // a,b,c = coeffs in quadratic equation for lamda
 
@@ -673,14 +673,14 @@ void FixShakeKokkos<DeviceType>::shake(int ilist, EV_FLOAT& ev) const
     invmass1 = 1.0/d_mass[d_type[i1]];
   }
 
-  double a = (invmass0+invmass1)*(invmass0+invmass1) * r01sq;
-  double b = 2.0 * (invmass0+invmass1) *
+  KK_FLOAT a = (invmass0+invmass1)*(invmass0+invmass1) * r01sq;
+  KK_FLOAT b = 2.0 * (invmass0+invmass1) *
     (s01[0]*r01[0] + s01[1]*r01[1] + s01[2]*r01[2]);
-  double c = s01sq - bond1*bond1;
+  KK_FLOAT c = s01sq - bond1*bond1;
 
   // error check
 
-  double determ = b*b - 4.0*a*c;
+  KK_FLOAT determ = b*b - 4.0*a*c;
   if (determ < 0.0) {
     //error->warning(FLERR,"Shake determinant < 0.0",0);
     d_error_flag() = 2;
@@ -689,7 +689,7 @@ void FixShakeKokkos<DeviceType>::shake(int ilist, EV_FLOAT& ev) const
 
   // exact quadratic solution for lamda
 
-  double lamda,lamda1,lamda2;
+  KK_FLOAT lamda,lamda1,lamda2;
   lamda1 = (-b+sqrt(determ)) / (2.0*a);
   lamda2 = (-b-sqrt(determ)) / (2.0*a);
 
@@ -744,8 +744,8 @@ void FixShakeKokkos<DeviceType>::shake3(int ilist, EV_FLOAT& ev) const
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   int atomlist[3];
-  double v[6];
-  double invmass0,invmass1,invmass2;
+  KK_FLOAT v[6];
+  KK_FLOAT invmass0,invmass1,invmass2;
 
   // local atom IDs and constraint distances
 
@@ -753,39 +753,39 @@ void FixShakeKokkos<DeviceType>::shake3(int ilist, EV_FLOAT& ev) const
   int i0 = d_closest_list(ilist,0);
   int i1 = d_closest_list(ilist,1);
   int i2 = d_closest_list(ilist,2);
-  double bond1 = d_bond_distance[d_shake_type(m,0)];
-  double bond2 = d_bond_distance[d_shake_type(m,1)];
+  KK_FLOAT bond1 = d_bond_distance[d_shake_type(m,0)];
+  KK_FLOAT bond2 = d_bond_distance[d_shake_type(m,1)];
 
   // r01,r02 = distance vec between atoms
 
-  double r01[3];
+  KK_FLOAT r01[3];
   r01[0] = d_x(i0,0) - d_x(i1,0);
   r01[1] = d_x(i0,1) - d_x(i1,1);
   r01[2] = d_x(i0,2) - d_x(i1,2);
 
-  double r02[3];
+  KK_FLOAT r02[3];
   r02[0] = d_x(i0,0) - d_x(i2,0);
   r02[1] = d_x(i0,1) - d_x(i2,1);
   r02[2] = d_x(i0,2) - d_x(i2,2);
 
   // s01,s02 = distance vec after unconstrained update
 
-  double s01[3];
+  KK_FLOAT s01[3];
   s01[0] = d_xshake(i0,0) - d_xshake(i1,0);
   s01[1] = d_xshake(i0,1) - d_xshake(i1,1);
   s01[2] = d_xshake(i0,2) - d_xshake(i1,2);
 
-  double s02[3];
+  KK_FLOAT s02[3];
   s02[0] = d_xshake(i0,0) - d_xshake(i2,0);
   s02[1] = d_xshake(i0,1) - d_xshake(i2,1);
   s02[2] = d_xshake(i0,2) - d_xshake(i2,2);
 
   // scalar distances between atoms
 
-  double r01sq = r01[0]*r01[0] + r01[1]*r01[1] + r01[2]*r01[2];
-  double r02sq = r02[0]*r02[0] + r02[1]*r02[1] + r02[2]*r02[2];
-  double s01sq = s01[0]*s01[0] + s01[1]*s01[1] + s01[2]*s01[2];
-  double s02sq = s02[0]*s02[0] + s02[1]*s02[1] + s02[2]*s02[2];
+  KK_FLOAT r01sq = r01[0]*r01[0] + r01[1]*r01[1] + r01[2]*r01[2];
+  KK_FLOAT r02sq = r02[0]*r02[0] + r02[1]*r02[1] + r02[2]*r02[2];
+  KK_FLOAT s01sq = s01[0]*s01[0] + s01[1]*s01[1] + s01[2]*s01[2];
+  KK_FLOAT s02sq = s02[0]*s02[0] + s02[1]*s02[1] + s02[2]*s02[2];
 
   // matrix coeffs and rhs for lamda equations
 
@@ -799,47 +799,47 @@ void FixShakeKokkos<DeviceType>::shake3(int ilist, EV_FLOAT& ev) const
     invmass2 = 1.0/d_mass[d_type[i2]];
   }
 
-  double a11 = 2.0 * (invmass0+invmass1) *
+  KK_FLOAT a11 = 2.0 * (invmass0+invmass1) *
     (s01[0]*r01[0] + s01[1]*r01[1] + s01[2]*r01[2]);
-  double a12 = 2.0 * invmass0 *
+  KK_FLOAT a12 = 2.0 * invmass0 *
     (s01[0]*r02[0] + s01[1]*r02[1] + s01[2]*r02[2]);
-  double a21 = 2.0 * invmass0 *
+  KK_FLOAT a21 = 2.0 * invmass0 *
     (s02[0]*r01[0] + s02[1]*r01[1] + s02[2]*r01[2]);
-  double a22 = 2.0 * (invmass0+invmass2) *
+  KK_FLOAT a22 = 2.0 * (invmass0+invmass2) *
     (s02[0]*r02[0] + s02[1]*r02[1] + s02[2]*r02[2]);
 
   // inverse of matrix
 
-  double determ = a11*a22 - a12*a21;
+  KK_FLOAT determ = a11*a22 - a12*a21;
   if (determ == 0.0) d_error_flag() = 3;
   //error->one(FLERR,"Shake determinant = 0.0");
-  double determinv = 1.0/determ;
+  KK_FLOAT determinv = 1.0/determ;
 
-  double a11inv = a22*determinv;
-  double a12inv = -a12*determinv;
-  double a21inv = -a21*determinv;
-  double a22inv = a11*determinv;
+  KK_FLOAT a11inv = a22*determinv;
+  KK_FLOAT a12inv = -a12*determinv;
+  KK_FLOAT a21inv = -a21*determinv;
+  KK_FLOAT a22inv = a11*determinv;
 
   // quadratic correction coeffs
 
-  double r0102 = (r01[0]*r02[0] + r01[1]*r02[1] + r01[2]*r02[2]);
+  KK_FLOAT r0102 = (r01[0]*r02[0] + r01[1]*r02[1] + r01[2]*r02[2]);
 
-  double quad1_0101 = (invmass0+invmass1)*(invmass0+invmass1) * r01sq;
-  double quad1_0202 = invmass0*invmass0 * r02sq;
-  double quad1_0102 = 2.0 * (invmass0+invmass1)*invmass0 * r0102;
+  KK_FLOAT quad1_0101 = (invmass0+invmass1)*(invmass0+invmass1) * r01sq;
+  KK_FLOAT quad1_0202 = invmass0*invmass0 * r02sq;
+  KK_FLOAT quad1_0102 = 2.0 * (invmass0+invmass1)*invmass0 * r0102;
 
-  double quad2_0202 = (invmass0+invmass2)*(invmass0+invmass2) * r02sq;
-  double quad2_0101 = invmass0*invmass0 * r01sq;
-  double quad2_0102 = 2.0 * (invmass0+invmass2)*invmass0 * r0102;
+  KK_FLOAT quad2_0202 = (invmass0+invmass2)*(invmass0+invmass2) * r02sq;
+  KK_FLOAT quad2_0101 = invmass0*invmass0 * r01sq;
+  KK_FLOAT quad2_0102 = 2.0 * (invmass0+invmass2)*invmass0 * r0102;
 
   // iterate until converged
 
-  double lamda01 = 0.0;
-  double lamda02 = 0.0;
+  KK_FLOAT lamda01 = 0.0;
+  KK_FLOAT lamda02 = 0.0;
   int niter = 0;
   int done = 0;
 
-  double quad1,quad2,b1,b2,lamda01_new,lamda02_new;
+  KK_FLOAT quad1,quad2,b1,b2,lamda01_new,lamda02_new;
 
   while (!done && niter < max_iter) {
     quad1 = quad1_0101 * lamda01*lamda01 + quad1_0202 * lamda02*lamda02 +
@@ -861,7 +861,7 @@ void FixShakeKokkos<DeviceType>::shake3(int ilist, EV_FLOAT& ev) const
     lamda02 = lamda02_new;
 
     // stop iterations before we have a floating point overflow
-    // max double is < 1.0e308, so 1e150 is a reasonable cutoff
+    // max KK_FLOAT is < 1.0e308, so 1e150 is a reasonable cutoff
 
     if (fabs(lamda01) > 1e150 || fabs(lamda02) > 1e150) done = 1;
 
@@ -924,8 +924,8 @@ void FixShakeKokkos<DeviceType>::shake4(int ilist, EV_FLOAT& ev) const
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   int atomlist[4];
-  double v[6];
-  double invmass0,invmass1,invmass2,invmass3;
+  KK_FLOAT v[6];
+  KK_FLOAT invmass0,invmass1,invmass2,invmass3;
 
   // local atom IDs and constraint distances
 
@@ -934,52 +934,52 @@ void FixShakeKokkos<DeviceType>::shake4(int ilist, EV_FLOAT& ev) const
   int i1 = d_closest_list(ilist,1);
   int i2 = d_closest_list(ilist,2);
   int i3 = d_closest_list(ilist,3);
-  double bond1 = d_bond_distance[d_shake_type(m,0)];
-  double bond2 = d_bond_distance[d_shake_type(m,1)];
-  double bond3 = d_bond_distance[d_shake_type(m,2)];
+  KK_FLOAT bond1 = d_bond_distance[d_shake_type(m,0)];
+  KK_FLOAT bond2 = d_bond_distance[d_shake_type(m,1)];
+  KK_FLOAT bond3 = d_bond_distance[d_shake_type(m,2)];
 
   // r01,r02,r03 = distance vec between atoms
 
-  double r01[3];
+  KK_FLOAT r01[3];
   r01[0] = d_x(i0,0) - d_x(i1,0);
   r01[1] = d_x(i0,1) - d_x(i1,1);
   r01[2] = d_x(i0,2) - d_x(i1,2);
 
-  double r02[3];
+  KK_FLOAT r02[3];
   r02[0] = d_x(i0,0) - d_x(i2,0);
   r02[1] = d_x(i0,1) - d_x(i2,1);
   r02[2] = d_x(i0,2) - d_x(i2,2);
 
-  double r03[3];
+  KK_FLOAT r03[3];
   r03[0] = d_x(i0,0) - d_x(i3,0);
   r03[1] = d_x(i0,1) - d_x(i3,1);
   r03[2] = d_x(i0,2) - d_x(i3,2);
 
   // s01,s02,s03 = distance vec after unconstrained update
 
-  double s01[3];
+  KK_FLOAT s01[3];
   s01[0] = d_xshake(i0,0) - d_xshake(i1,0);
   s01[1] = d_xshake(i0,1) - d_xshake(i1,1);
   s01[2] = d_xshake(i0,2) - d_xshake(i1,2);
 
-  double s02[3];
+  KK_FLOAT s02[3];
   s02[0] = d_xshake(i0,0) - d_xshake(i2,0);
   s02[1] = d_xshake(i0,1) - d_xshake(i2,1);
   s02[2] = d_xshake(i0,2) - d_xshake(i2,2);
 
-  double s03[3];
+  KK_FLOAT s03[3];
   s03[0] = d_xshake(i0,0) - d_xshake(i3,0);
   s03[1] = d_xshake(i0,1) - d_xshake(i3,1);
   s03[2] = d_xshake(i0,2) - d_xshake(i3,2);
 
   // scalar distances between atoms
 
-  double r01sq = r01[0]*r01[0] + r01[1]*r01[1] + r01[2]*r01[2];
-  double r02sq = r02[0]*r02[0] + r02[1]*r02[1] + r02[2]*r02[2];
-  double r03sq = r03[0]*r03[0] + r03[1]*r03[1] + r03[2]*r03[2];
-  double s01sq = s01[0]*s01[0] + s01[1]*s01[1] + s01[2]*s01[2];
-  double s02sq = s02[0]*s02[0] + s02[1]*s02[1] + s02[2]*s02[2];
-  double s03sq = s03[0]*s03[0] + s03[1]*s03[1] + s03[2]*s03[2];
+  KK_FLOAT r01sq = r01[0]*r01[0] + r01[1]*r01[1] + r01[2]*r01[2];
+  KK_FLOAT r02sq = r02[0]*r02[0] + r02[1]*r02[1] + r02[2]*r02[2];
+  KK_FLOAT r03sq = r03[0]*r03[0] + r03[1]*r03[1] + r03[2]*r03[2];
+  KK_FLOAT s01sq = s01[0]*s01[0] + s01[1]*s01[1] + s01[2]*s01[2];
+  KK_FLOAT s02sq = s02[0]*s02[0] + s02[1]*s02[1] + s02[2]*s02[2];
+  KK_FLOAT s03sq = s03[0]*s03[0] + s03[1]*s03[1] + s03[2]*s03[2];
 
   // matrix coeffs and rhs for lamda equations
 
@@ -995,79 +995,79 @@ void FixShakeKokkos<DeviceType>::shake4(int ilist, EV_FLOAT& ev) const
     invmass3 = 1.0/d_mass[d_type[i3]];
   }
 
-  double a11 = 2.0 * (invmass0+invmass1) *
+  KK_FLOAT a11 = 2.0 * (invmass0+invmass1) *
     (s01[0]*r01[0] + s01[1]*r01[1] + s01[2]*r01[2]);
-  double a12 = 2.0 * invmass0 *
+  KK_FLOAT a12 = 2.0 * invmass0 *
     (s01[0]*r02[0] + s01[1]*r02[1] + s01[2]*r02[2]);
-  double a13 = 2.0 * invmass0 *
+  KK_FLOAT a13 = 2.0 * invmass0 *
     (s01[0]*r03[0] + s01[1]*r03[1] + s01[2]*r03[2]);
-  double a21 = 2.0 * invmass0 *
+  KK_FLOAT a21 = 2.0 * invmass0 *
     (s02[0]*r01[0] + s02[1]*r01[1] + s02[2]*r01[2]);
-  double a22 = 2.0 * (invmass0+invmass2) *
+  KK_FLOAT a22 = 2.0 * (invmass0+invmass2) *
     (s02[0]*r02[0] + s02[1]*r02[1] + s02[2]*r02[2]);
-  double a23 = 2.0 * invmass0 *
+  KK_FLOAT a23 = 2.0 * invmass0 *
     (s02[0]*r03[0] + s02[1]*r03[1] + s02[2]*r03[2]);
-  double a31 = 2.0 * invmass0 *
+  KK_FLOAT a31 = 2.0 * invmass0 *
     (s03[0]*r01[0] + s03[1]*r01[1] + s03[2]*r01[2]);
-  double a32 = 2.0 * invmass0 *
+  KK_FLOAT a32 = 2.0 * invmass0 *
     (s03[0]*r02[0] + s03[1]*r02[1] + s03[2]*r02[2]);
-  double a33 = 2.0 * (invmass0+invmass3) *
+  KK_FLOAT a33 = 2.0 * (invmass0+invmass3) *
     (s03[0]*r03[0] + s03[1]*r03[1] + s03[2]*r03[2]);
 
   // inverse of matrix;
 
-  double determ = a11*a22*a33 + a12*a23*a31 + a13*a21*a32 -
+  KK_FLOAT determ = a11*a22*a33 + a12*a23*a31 + a13*a21*a32 -
     a11*a23*a32 - a12*a21*a33 - a13*a22*a31;
   if (determ == 0.0) d_error_flag() = 3;
   //error->one(FLERR,"Shake determinant = 0.0");
-  double determinv = 1.0/determ;
+  KK_FLOAT determinv = 1.0/determ;
 
-  double a11inv = determinv * (a22*a33 - a23*a32);
-  double a12inv = -determinv * (a12*a33 - a13*a32);
-  double a13inv = determinv * (a12*a23 - a13*a22);
-  double a21inv = -determinv * (a21*a33 - a23*a31);
-  double a22inv = determinv * (a11*a33 - a13*a31);
-  double a23inv = -determinv * (a11*a23 - a13*a21);
-  double a31inv = determinv * (a21*a32 - a22*a31);
-  double a32inv = -determinv * (a11*a32 - a12*a31);
-  double a33inv = determinv * (a11*a22 - a12*a21);
+  KK_FLOAT a11inv = determinv * (a22*a33 - a23*a32);
+  KK_FLOAT a12inv = -determinv * (a12*a33 - a13*a32);
+  KK_FLOAT a13inv = determinv * (a12*a23 - a13*a22);
+  KK_FLOAT a21inv = -determinv * (a21*a33 - a23*a31);
+  KK_FLOAT a22inv = determinv * (a11*a33 - a13*a31);
+  KK_FLOAT a23inv = -determinv * (a11*a23 - a13*a21);
+  KK_FLOAT a31inv = determinv * (a21*a32 - a22*a31);
+  KK_FLOAT a32inv = -determinv * (a11*a32 - a12*a31);
+  KK_FLOAT a33inv = determinv * (a11*a22 - a12*a21);
 
   // quadratic correction coeffs
 
-  double r0102 = (r01[0]*r02[0] + r01[1]*r02[1] + r01[2]*r02[2]);
-  double r0103 = (r01[0]*r03[0] + r01[1]*r03[1] + r01[2]*r03[2]);
-  double r0203 = (r02[0]*r03[0] + r02[1]*r03[1] + r02[2]*r03[2]);
+  KK_FLOAT r0102 = (r01[0]*r02[0] + r01[1]*r02[1] + r01[2]*r02[2]);
+  KK_FLOAT r0103 = (r01[0]*r03[0] + r01[1]*r03[1] + r01[2]*r03[2]);
+  KK_FLOAT r0203 = (r02[0]*r03[0] + r02[1]*r03[1] + r02[2]*r03[2]);
 
-  double quad1_0101 = (invmass0+invmass1)*(invmass0+invmass1) * r01sq;
-  double quad1_0202 = invmass0*invmass0 * r02sq;
-  double quad1_0303 = invmass0*invmass0 * r03sq;
-  double quad1_0102 = 2.0 * (invmass0+invmass1)*invmass0 * r0102;
-  double quad1_0103 = 2.0 * (invmass0+invmass1)*invmass0 * r0103;
-  double quad1_0203 = 2.0 * invmass0*invmass0 * r0203;
+  KK_FLOAT quad1_0101 = (invmass0+invmass1)*(invmass0+invmass1) * r01sq;
+  KK_FLOAT quad1_0202 = invmass0*invmass0 * r02sq;
+  KK_FLOAT quad1_0303 = invmass0*invmass0 * r03sq;
+  KK_FLOAT quad1_0102 = 2.0 * (invmass0+invmass1)*invmass0 * r0102;
+  KK_FLOAT quad1_0103 = 2.0 * (invmass0+invmass1)*invmass0 * r0103;
+  KK_FLOAT quad1_0203 = 2.0 * invmass0*invmass0 * r0203;
 
-  double quad2_0101 = invmass0*invmass0 * r01sq;
-  double quad2_0202 = (invmass0+invmass2)*(invmass0+invmass2) * r02sq;
-  double quad2_0303 = invmass0*invmass0 * r03sq;
-  double quad2_0102 = 2.0 * (invmass0+invmass2)*invmass0 * r0102;
-  double quad2_0103 = 2.0 * invmass0*invmass0 * r0103;
-  double quad2_0203 = 2.0 * (invmass0+invmass2)*invmass0 * r0203;
+  KK_FLOAT quad2_0101 = invmass0*invmass0 * r01sq;
+  KK_FLOAT quad2_0202 = (invmass0+invmass2)*(invmass0+invmass2) * r02sq;
+  KK_FLOAT quad2_0303 = invmass0*invmass0 * r03sq;
+  KK_FLOAT quad2_0102 = 2.0 * (invmass0+invmass2)*invmass0 * r0102;
+  KK_FLOAT quad2_0103 = 2.0 * invmass0*invmass0 * r0103;
+  KK_FLOAT quad2_0203 = 2.0 * (invmass0+invmass2)*invmass0 * r0203;
 
-  double quad3_0101 = invmass0*invmass0 * r01sq;
-  double quad3_0202 = invmass0*invmass0 * r02sq;
-  double quad3_0303 = (invmass0+invmass3)*(invmass0+invmass3) * r03sq;
-  double quad3_0102 = 2.0 * invmass0*invmass0 * r0102;
-  double quad3_0103 = 2.0 * (invmass0+invmass3)*invmass0 * r0103;
-  double quad3_0203 = 2.0 * (invmass0+invmass3)*invmass0 * r0203;
+  KK_FLOAT quad3_0101 = invmass0*invmass0 * r01sq;
+  KK_FLOAT quad3_0202 = invmass0*invmass0 * r02sq;
+  KK_FLOAT quad3_0303 = (invmass0+invmass3)*(invmass0+invmass3) * r03sq;
+  KK_FLOAT quad3_0102 = 2.0 * invmass0*invmass0 * r0102;
+  KK_FLOAT quad3_0103 = 2.0 * (invmass0+invmass3)*invmass0 * r0103;
+  KK_FLOAT quad3_0203 = 2.0 * (invmass0+invmass3)*invmass0 * r0203;
 
   // iterate until converged
 
-  double lamda01 = 0.0;
-  double lamda02 = 0.0;
-  double lamda03 = 0.0;
+  KK_FLOAT lamda01 = 0.0;
+  KK_FLOAT lamda02 = 0.0;
+  KK_FLOAT lamda03 = 0.0;
   int niter = 0;
   int done = 0;
 
-  double quad1,quad2,quad3,b1,b2,b3,lamda01_new,lamda02_new,lamda03_new;
+  KK_FLOAT quad1,quad2,quad3,b1,b2,b3,lamda01_new,lamda02_new,lamda03_new;
 
   while (!done && niter < max_iter) {
     quad1 = quad1_0101 * lamda01*lamda01 +
@@ -1109,7 +1109,7 @@ void FixShakeKokkos<DeviceType>::shake4(int ilist, EV_FLOAT& ev) const
     lamda03 = lamda03_new;
 
     // stop iterations before we have a floating point overflow
-    // max double is < 1.0e308, so 1e150 is a reasonable cutoff
+    // max KK_FLOAT is < 1.0e308, so 1e150 is a reasonable cutoff
 
     if (fabs(lamda01) > 1e150 || fabs(lamda02) > 1e150
         || fabs(lamda03) > 1e150) done = 1;
@@ -1181,8 +1181,8 @@ void FixShakeKokkos<DeviceType>::shake3angle(int ilist, EV_FLOAT& ev) const
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   int atomlist[3];
-  double v[6];
-  double invmass0,invmass1,invmass2;
+  KK_FLOAT v[6];
+  KK_FLOAT invmass0,invmass1,invmass2;
 
   // local atom IDs and constraint distances
 
@@ -1190,52 +1190,52 @@ void FixShakeKokkos<DeviceType>::shake3angle(int ilist, EV_FLOAT& ev) const
   int i0 = d_closest_list(ilist,0);
   int i1 = d_closest_list(ilist,1);
   int i2 = d_closest_list(ilist,2);
-  double bond1 = d_bond_distance[d_shake_type(m,0)];
-  double bond2 = d_bond_distance[d_shake_type(m,1)];
-  double bond12 = d_angle_distance[d_shake_type(m,2)];
+  KK_FLOAT bond1 = d_bond_distance[d_shake_type(m,0)];
+  KK_FLOAT bond2 = d_bond_distance[d_shake_type(m,1)];
+  KK_FLOAT bond12 = d_angle_distance[d_shake_type(m,2)];
 
   // r01,r02,r12 = distance vec between atoms
 
-  double r01[3];
+  KK_FLOAT r01[3];
   r01[0] = d_x(i0,0) - d_x(i1,0);
   r01[1] = d_x(i0,1) - d_x(i1,1);
   r01[2] = d_x(i0,2) - d_x(i1,2);
 
-  double r02[3];
+  KK_FLOAT r02[3];
   r02[0] = d_x(i0,0) - d_x(i2,0);
   r02[1] = d_x(i0,1) - d_x(i2,1);
   r02[2] = d_x(i0,2) - d_x(i2,2);
 
-  double r12[3];
+  KK_FLOAT r12[3];
   r12[0] = d_x(i1,0) - d_x(i2,0);
   r12[1] = d_x(i1,1) - d_x(i2,1);
   r12[2] = d_x(i1,2) - d_x(i2,2);
 
   // s01,s02,s12 = distance vec after unconstrained update
 
-  double s01[3];
+  KK_FLOAT s01[3];
   s01[0] = d_xshake(i0,0) - d_xshake(i1,0);
   s01[1] = d_xshake(i0,1) - d_xshake(i1,1);
   s01[2] = d_xshake(i0,2) - d_xshake(i1,2);
 
-  double s02[3];
+  KK_FLOAT s02[3];
   s02[0] = d_xshake(i0,0) - d_xshake(i2,0);
   s02[1] = d_xshake(i0,1) - d_xshake(i2,1);
   s02[2] = d_xshake(i0,2) - d_xshake(i2,2);
 
-  double s12[3];
+  KK_FLOAT s12[3];
   s12[0] = d_xshake(i1,0) - d_xshake(i2,0);
   s12[1] = d_xshake(i1,1) - d_xshake(i2,1);
   s12[2] = d_xshake(i1,2) - d_xshake(i2,2);
 
   // scalar distances between atoms
 
-  double r01sq = r01[0]*r01[0] + r01[1]*r01[1] + r01[2]*r01[2];
-  double r02sq = r02[0]*r02[0] + r02[1]*r02[1] + r02[2]*r02[2];
-  double r12sq = r12[0]*r12[0] + r12[1]*r12[1] + r12[2]*r12[2];
-  double s01sq = s01[0]*s01[0] + s01[1]*s01[1] + s01[2]*s01[2];
-  double s02sq = s02[0]*s02[0] + s02[1]*s02[1] + s02[2]*s02[2];
-  double s12sq = s12[0]*s12[0] + s12[1]*s12[1] + s12[2]*s12[2];
+  KK_FLOAT r01sq = r01[0]*r01[0] + r01[1]*r01[1] + r01[2]*r01[2];
+  KK_FLOAT r02sq = r02[0]*r02[0] + r02[1]*r02[1] + r02[2]*r02[2];
+  KK_FLOAT r12sq = r12[0]*r12[0] + r12[1]*r12[1] + r12[2]*r12[2];
+  KK_FLOAT s01sq = s01[0]*s01[0] + s01[1]*s01[1] + s01[2]*s01[2];
+  KK_FLOAT s02sq = s02[0]*s02[0] + s02[1]*s02[1] + s02[2]*s02[2];
+  KK_FLOAT s12sq = s12[0]*s12[0] + s12[1]*s12[1] + s12[2]*s12[2];
 
   // matrix coeffs and rhs for lamda equations
 
@@ -1249,79 +1249,79 @@ void FixShakeKokkos<DeviceType>::shake3angle(int ilist, EV_FLOAT& ev) const
     invmass2 = 1.0/d_mass[d_type[i2]];
   }
 
-  double a11 = 2.0 * (invmass0+invmass1) *
+  KK_FLOAT a11 = 2.0 * (invmass0+invmass1) *
     (s01[0]*r01[0] + s01[1]*r01[1] + s01[2]*r01[2]);
-  double a12 = 2.0 * invmass0 *
+  KK_FLOAT a12 = 2.0 * invmass0 *
     (s01[0]*r02[0] + s01[1]*r02[1] + s01[2]*r02[2]);
-  double a13 = - 2.0 * invmass1 *
+  KK_FLOAT a13 = - 2.0 * invmass1 *
     (s01[0]*r12[0] + s01[1]*r12[1] + s01[2]*r12[2]);
-  double a21 = 2.0 * invmass0 *
+  KK_FLOAT a21 = 2.0 * invmass0 *
     (s02[0]*r01[0] + s02[1]*r01[1] + s02[2]*r01[2]);
-  double a22 = 2.0 * (invmass0+invmass2) *
+  KK_FLOAT a22 = 2.0 * (invmass0+invmass2) *
     (s02[0]*r02[0] + s02[1]*r02[1] + s02[2]*r02[2]);
-  double a23 = 2.0 * invmass2 *
+  KK_FLOAT a23 = 2.0 * invmass2 *
     (s02[0]*r12[0] + s02[1]*r12[1] + s02[2]*r12[2]);
-  double a31 = - 2.0 * invmass1 *
+  KK_FLOAT a31 = - 2.0 * invmass1 *
     (s12[0]*r01[0] + s12[1]*r01[1] + s12[2]*r01[2]);
-  double a32 = 2.0 * invmass2 *
+  KK_FLOAT a32 = 2.0 * invmass2 *
     (s12[0]*r02[0] + s12[1]*r02[1] + s12[2]*r02[2]);
-  double a33 = 2.0 * (invmass1+invmass2) *
+  KK_FLOAT a33 = 2.0 * (invmass1+invmass2) *
     (s12[0]*r12[0] + s12[1]*r12[1] + s12[2]*r12[2]);
 
   // inverse of matrix
 
-  double determ = a11*a22*a33 + a12*a23*a31 + a13*a21*a32 -
+  KK_FLOAT determ = a11*a22*a33 + a12*a23*a31 + a13*a21*a32 -
     a11*a23*a32 - a12*a21*a33 - a13*a22*a31;
   if (determ == 0.0) d_error_flag() = 3;
   //error->one(FLERR,"Shake determinant = 0.0");
-  double determinv = 1.0/determ;
+  KK_FLOAT determinv = 1.0/determ;
 
-  double a11inv = determinv * (a22*a33 - a23*a32);
-  double a12inv = -determinv * (a12*a33 - a13*a32);
-  double a13inv = determinv * (a12*a23 - a13*a22);
-  double a21inv = -determinv * (a21*a33 - a23*a31);
-  double a22inv = determinv * (a11*a33 - a13*a31);
-  double a23inv = -determinv * (a11*a23 - a13*a21);
-  double a31inv = determinv * (a21*a32 - a22*a31);
-  double a32inv = -determinv * (a11*a32 - a12*a31);
-  double a33inv = determinv * (a11*a22 - a12*a21);
+  KK_FLOAT a11inv = determinv * (a22*a33 - a23*a32);
+  KK_FLOAT a12inv = -determinv * (a12*a33 - a13*a32);
+  KK_FLOAT a13inv = determinv * (a12*a23 - a13*a22);
+  KK_FLOAT a21inv = -determinv * (a21*a33 - a23*a31);
+  KK_FLOAT a22inv = determinv * (a11*a33 - a13*a31);
+  KK_FLOAT a23inv = -determinv * (a11*a23 - a13*a21);
+  KK_FLOAT a31inv = determinv * (a21*a32 - a22*a31);
+  KK_FLOAT a32inv = -determinv * (a11*a32 - a12*a31);
+  KK_FLOAT a33inv = determinv * (a11*a22 - a12*a21);
 
   // quadratic correction coeffs
 
-  double r0102 = (r01[0]*r02[0] + r01[1]*r02[1] + r01[2]*r02[2]);
-  double r0112 = (r01[0]*r12[0] + r01[1]*r12[1] + r01[2]*r12[2]);
-  double r0212 = (r02[0]*r12[0] + r02[1]*r12[1] + r02[2]*r12[2]);
+  KK_FLOAT r0102 = (r01[0]*r02[0] + r01[1]*r02[1] + r01[2]*r02[2]);
+  KK_FLOAT r0112 = (r01[0]*r12[0] + r01[1]*r12[1] + r01[2]*r12[2]);
+  KK_FLOAT r0212 = (r02[0]*r12[0] + r02[1]*r12[1] + r02[2]*r12[2]);
 
-  double quad1_0101 = (invmass0+invmass1)*(invmass0+invmass1) * r01sq;
-  double quad1_0202 = invmass0*invmass0 * r02sq;
-  double quad1_1212 = invmass1*invmass1 * r12sq;
-  double quad1_0102 = 2.0 * (invmass0+invmass1)*invmass0 * r0102;
-  double quad1_0112 = - 2.0 * (invmass0+invmass1)*invmass1 * r0112;
-  double quad1_0212 = - 2.0 * invmass0*invmass1 * r0212;
+  KK_FLOAT quad1_0101 = (invmass0+invmass1)*(invmass0+invmass1) * r01sq;
+  KK_FLOAT quad1_0202 = invmass0*invmass0 * r02sq;
+  KK_FLOAT quad1_1212 = invmass1*invmass1 * r12sq;
+  KK_FLOAT quad1_0102 = 2.0 * (invmass0+invmass1)*invmass0 * r0102;
+  KK_FLOAT quad1_0112 = - 2.0 * (invmass0+invmass1)*invmass1 * r0112;
+  KK_FLOAT quad1_0212 = - 2.0 * invmass0*invmass1 * r0212;
 
-  double quad2_0101 = invmass0*invmass0 * r01sq;
-  double quad2_0202 = (invmass0+invmass2)*(invmass0+invmass2) * r02sq;
-  double quad2_1212 = invmass2*invmass2 * r12sq;
-  double quad2_0102 = 2.0 * (invmass0+invmass2)*invmass0 * r0102;
-  double quad2_0112 = 2.0 * invmass0*invmass2 * r0112;
-  double quad2_0212 = 2.0 * (invmass0+invmass2)*invmass2 * r0212;
+  KK_FLOAT quad2_0101 = invmass0*invmass0 * r01sq;
+  KK_FLOAT quad2_0202 = (invmass0+invmass2)*(invmass0+invmass2) * r02sq;
+  KK_FLOAT quad2_1212 = invmass2*invmass2 * r12sq;
+  KK_FLOAT quad2_0102 = 2.0 * (invmass0+invmass2)*invmass0 * r0102;
+  KK_FLOAT quad2_0112 = 2.0 * invmass0*invmass2 * r0112;
+  KK_FLOAT quad2_0212 = 2.0 * (invmass0+invmass2)*invmass2 * r0212;
 
-  double quad3_0101 = invmass1*invmass1 * r01sq;
-  double quad3_0202 = invmass2*invmass2 * r02sq;
-  double quad3_1212 = (invmass1+invmass2)*(invmass1+invmass2) * r12sq;
-  double quad3_0102 = - 2.0 * invmass1*invmass2 * r0102;
-  double quad3_0112 = - 2.0 * (invmass1+invmass2)*invmass1 * r0112;
-  double quad3_0212 = 2.0 * (invmass1+invmass2)*invmass2 * r0212;
+  KK_FLOAT quad3_0101 = invmass1*invmass1 * r01sq;
+  KK_FLOAT quad3_0202 = invmass2*invmass2 * r02sq;
+  KK_FLOAT quad3_1212 = (invmass1+invmass2)*(invmass1+invmass2) * r12sq;
+  KK_FLOAT quad3_0102 = - 2.0 * invmass1*invmass2 * r0102;
+  KK_FLOAT quad3_0112 = - 2.0 * (invmass1+invmass2)*invmass1 * r0112;
+  KK_FLOAT quad3_0212 = 2.0 * (invmass1+invmass2)*invmass2 * r0212;
 
   // iterate until converged
 
-  double lamda01 = 0.0;
-  double lamda02 = 0.0;
-  double lamda12 = 0.0;
+  KK_FLOAT lamda01 = 0.0;
+  KK_FLOAT lamda02 = 0.0;
+  KK_FLOAT lamda12 = 0.0;
   int niter = 0;
   int done = 0;
 
-  double quad1,quad2,quad3,b1,b2,b3,lamda01_new,lamda02_new,lamda12_new;
+  KK_FLOAT quad1,quad2,quad3,b1,b2,b3,lamda01_new,lamda02_new,lamda12_new;
 
   while (!done && niter < max_iter) {
 
@@ -1364,7 +1364,7 @@ void FixShakeKokkos<DeviceType>::shake3angle(int ilist, EV_FLOAT& ev) const
     lamda12 = lamda12_new;
 
     // stop iterations before we have a floating point overflow
-    // max double is < 1.0e308, so 1e150 is a reasonable cutoff
+    // max KK_FLOAT is < 1.0e308, so 1e150 is a reasonable cutoff
 
     if (fabs(lamda01) > 1e150 || fabs(lamda02) > 1e150
         || fabs(lamda12) > 1e150) done = 1;
@@ -1437,6 +1437,10 @@ void FixShakeKokkos<DeviceType>::stats()
 template<class DeviceType>
 void FixShakeKokkos<DeviceType>::grow_arrays(int nmax)
 {
+  k_shake_flag.sync_device();
+  k_shake_atom.sync_device();
+  k_shake_type.sync_device();
+
   memoryKK->grow_kokkos(k_shake_flag,shake_flag,nmax,"shake:shake_flag");
   memoryKK->grow_kokkos(k_shake_atom,shake_atom,nmax,4,"shake:shake_atom");
   memoryKK->grow_kokkos(k_shake_type,shake_type,nmax,3,"shake:shake_type");
@@ -1636,7 +1640,7 @@ void FixShakeKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offs
 
 template<class DeviceType>
 int FixShakeKokkos<DeviceType>::pack_exchange_kokkos(
-   const int &nsend, DAT::tdual_xfloat_2d &k_buf,
+   const int &nsend, DAT::tdual_double_2d_lr &k_buf,
    DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d k_copylist,
    ExecutionSpace space)
 {
@@ -1644,7 +1648,7 @@ int FixShakeKokkos<DeviceType>::pack_exchange_kokkos(
   k_copylist.sync<DeviceType>();
   k_exchange_sendlist.sync<DeviceType>();
 
-  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+  d_buf = typename AT::t_double_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
   d_copylist = k_copylist.view<DeviceType>();
@@ -1666,8 +1670,8 @@ int FixShakeKokkos<DeviceType>::pack_exchange_kokkos(
 
   k_buf.modify<DeviceType>();
 
-  if (space == Host) k_buf.sync<LMPHostType>();
-  else k_buf.sync<LMPDeviceType>();
+  if (space == HostKK) k_buf.sync_host();
+  else k_buf.sync_device();
 
   k_shake_flag.template modify<DeviceType>();
   k_shake_atom.template modify<DeviceType>();
@@ -1725,14 +1729,14 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeUnpackExchange, const int
 
 template <class DeviceType>
 void FixShakeKokkos<DeviceType>::unpack_exchange_kokkos(
-  DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  DAT::tdual_double_2d_lr &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
   int nrecv1, int nextrarecv1,
   ExecutionSpace /*space*/)
 {
   k_buf.sync<DeviceType>();
   k_indices.sync<DeviceType>();
 
-  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+  d_buf = typename AT::t_double_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();
@@ -1799,7 +1803,7 @@ int FixShakeKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 
 template<class DeviceType>
 int FixShakeKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
-                                                         DAT::tdual_xfloat_1d &k_buf,
+                                                         DAT::tdual_double_1d &k_buf,
                                                          int pbc_flag, int* pbc)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
@@ -1857,7 +1861,7 @@ int FixShakeKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixShakeKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
+void FixShakeKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_double_1d &buf)
 {
   first = first_in;
   d_buf = buf.view<DeviceType>();
@@ -2000,13 +2004,13 @@ void FixShakeKokkos<DeviceType>::correct_coordinates(int vflag) {
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int n, int *atomlist, double total,
-     double *v) const
+void FixShakeKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int n, int *atomlist, KK_FLOAT total,
+     KK_FLOAT *v) const
 {
   int m;
 
   if (vflag_global) {
-    double fraction = n/total;
+    KK_FLOAT fraction = n/total;
     ev.v[0] += fraction*v[0];
     ev.v[1] += fraction*v[1];
     ev.v[2] += fraction*v[2];
@@ -2016,7 +2020,7 @@ void FixShakeKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int n, int *atomlist, dou
   }
 
   if (vflag_atom) {
-    double fraction = 1.0/total;
+    KK_FLOAT fraction = 1.0/total;
     for (int i = 0; i < n; i++) {
       auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
       auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -2043,16 +2047,16 @@ int FixShakeKokkos<DeviceType>::closest_image(const int i, int j) const
 {
   if (j < 0) return j;
 
-  const X_FLOAT xi0 = d_x(i,0);
-  const X_FLOAT xi1 = d_x(i,1);
-  const X_FLOAT xi2 = d_x(i,2);
+  const KK_FLOAT xi0 = d_x(i,0);
+  const KK_FLOAT xi1 = d_x(i,1);
+  const KK_FLOAT xi2 = d_x(i,2);
 
   int closest = j;
-  X_FLOAT delx = xi0 - d_x(j,0);
-  X_FLOAT dely = xi1 - d_x(j,1);
-  X_FLOAT delz = xi2 - d_x(j,2);
-  X_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
-  X_FLOAT rsq;
+  KK_FLOAT delx = xi0 - d_x(j,0);
+  KK_FLOAT dely = xi1 - d_x(j,1);
+  KK_FLOAT delz = xi2 - d_x(j,2);
+  KK_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
+  KK_FLOAT rsq;
 
   while (d_sametag[j] >= 0) {
     j = d_sametag[j];

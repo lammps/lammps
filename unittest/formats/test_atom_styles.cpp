@@ -19,18 +19,13 @@
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
 #include "body.h"
-#include "input.h"
-#include "lammps.h"
+#include "info.h"
 #include "math_const.h"
-#include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include <cmath>
-#include <cstdio>
 #include <cstring>
-#include <mpi.h>
-#include <vector>
 
 #if !defined(_FORTIFY_SOURCE) || (_FORTIFY_SOURCE == 0)
 #if defined(__INTEL_COMPILER) || (__PGI)
@@ -162,7 +157,6 @@ struct AtomState {
     int body_flag                    = 0;
     int peri_flag                    = 0;
     int electron_flag                = 0;
-    int wavepacket_flag              = 0;
     int sph_flag                     = 0;
     int molecule_flag                = 0;
     int molindex_flag                = 0;
@@ -179,11 +173,6 @@ struct AtomState {
     int eradius_flag                 = 0;
     int ervel_flag                   = 0;
     int erforce_flag                 = 0;
-    int cs_flag                      = 0;
-    int csforce_flag                 = 0;
-    int vforce_flag                  = 0;
-    int ervelforce_flag              = 0;
-    int etag_flag                    = 0;
     int rho_flag                     = 0;
     int esph_flag                    = 0;
     int cv_flag                      = 0;
@@ -298,7 +287,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_EQ(atom->body_flag, expected.body_flag);
     ASSERT_EQ(atom->peri_flag, expected.peri_flag);
     ASSERT_EQ(atom->electron_flag, expected.electron_flag);
-    ASSERT_EQ(atom->wavepacket_flag, expected.wavepacket_flag);
     ASSERT_EQ(atom->sph_flag, expected.sph_flag);
     ASSERT_EQ(atom->molecule_flag, expected.molecule_flag);
     ASSERT_EQ(atom->molindex_flag, expected.molindex_flag);
@@ -315,11 +303,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_EQ(atom->eradius_flag, expected.eradius_flag);
     ASSERT_EQ(atom->ervel_flag, expected.ervel_flag);
     ASSERT_EQ(atom->erforce_flag, expected.erforce_flag);
-    ASSERT_EQ(atom->cs_flag, expected.cs_flag);
-    ASSERT_EQ(atom->csforce_flag, expected.csforce_flag);
-    ASSERT_EQ(atom->vforce_flag, expected.vforce_flag);
-    ASSERT_EQ(atom->ervelforce_flag, expected.ervelforce_flag);
-    ASSERT_EQ(atom->etag_flag, expected.etag_flag);
     ASSERT_EQ(atom->rho_flag, expected.rho_flag);
     ASSERT_EQ(atom->esph_flag, expected.esph_flag);
     ASSERT_EQ(atom->cv_flag, expected.cv_flag);
@@ -403,11 +386,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_ARRAY_ALLOCATED(atom->eradius, false);
     ASSERT_ARRAY_ALLOCATED(atom->ervel, false);
     ASSERT_ARRAY_ALLOCATED(atom->erforce, false);
-    ASSERT_ARRAY_ALLOCATED(atom->ervelforce, false);
-    ASSERT_ARRAY_ALLOCATED(atom->cs, false);
-    ASSERT_ARRAY_ALLOCATED(atom->csforce, false);
-    ASSERT_ARRAY_ALLOCATED(atom->vforce, false);
-    ASSERT_ARRAY_ALLOCATED(atom->etag, false);
     ASSERT_ARRAY_ALLOCATED(atom->uCond, false);
     ASSERT_ARRAY_ALLOCATED(atom->uMech, false);
     ASSERT_ARRAY_ALLOCATED(atom->uChem, false);
@@ -1146,7 +1124,7 @@ TEST_F(AtomStyleTest, sphere)
 
 TEST_F(AtomStyleTest, ellipsoid)
 {
-    if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
+    if (!Info::has_package("ASPHERE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style ellipsoid");
@@ -1483,7 +1461,7 @@ TEST_F(AtomStyleTest, ellipsoid)
 
 TEST_F(AtomStyleTest, line)
 {
-    if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
+    if (!Info::has_package("ASPHERE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("dimension 2");
@@ -1753,7 +1731,7 @@ TEST_F(AtomStyleTest, line)
 
 TEST_F(AtomStyleTest, tri)
 {
-    if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
+    if (!Info::has_package("ASPHERE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style tri");
@@ -2156,7 +2134,7 @@ TEST_F(AtomStyleTest, tri)
 
 TEST_F(AtomStyleTest, body_nparticle)
 {
-    if (!LAMMPS::is_installed_pkg("BODY")) GTEST_SKIP();
+    if (!Info::has_package("BODY")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style body nparticle 2 4");
@@ -2724,7 +2702,7 @@ TEST_F(AtomStyleTest, body_nparticle)
 
 TEST_F(AtomStyleTest, template)
 {
-    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
     BEGIN_HIDE_OUTPUT();
     command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
     command("atom_style template twomols");
@@ -3119,7 +3097,7 @@ TEST_F(AtomStyleTest, template)
 
 TEST_F(AtomStyleTest, template_charge)
 {
-    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
     BEGIN_HIDE_OUTPUT();
     command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
     command("atom_style hybrid template twomols charge");
@@ -3547,7 +3525,7 @@ TEST_F(AtomStyleTest, template_charge)
 
 TEST_F(AtomStyleTest, bond)
 {
-    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style bond");
@@ -3895,7 +3873,7 @@ TEST_F(AtomStyleTest, bond)
 
 TEST_F(AtomStyleTest, angle)
 {
-    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style angle");
@@ -4255,8 +4233,8 @@ TEST_F(AtomStyleTest, angle)
 
 TEST_F(AtomStyleTest, full_ellipsoid)
 {
-    if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
-    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
+    if (!Info::has_package("ASPHERE")) GTEST_SKIP();
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style hybrid full ellipsoid");
@@ -4909,9 +4887,9 @@ TEST_F(AtomStyleTest, property_atom)
 
 TEST_F(AtomStyleTest, oxdna)
 {
-    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
-    if (!LAMMPS::is_installed_pkg("ASPHERE")) GTEST_SKIP();
-    if (!LAMMPS::is_installed_pkg("CG-DNA")) GTEST_SKIP();
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
+    if (!Info::has_package("ASPHERE")) GTEST_SKIP();
+    if (!Info::has_package("CG-DNA")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style hybrid bond ellipsoid oxdna");

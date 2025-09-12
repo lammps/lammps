@@ -554,8 +554,13 @@ void Fingerprint_bond::do3bodyfeatureset_singleneighborloop(double * features,do
   }
 }
 
-//Called by do3bodyfeatureset. Algorithm for low neighbor numbers and large series of bond angle powers
-  int *ilist,*jlist,*numneigh,**firstneigh;
+// Called by do3bodyfeatureset. Algorithm for low neighbor numbers and large series of bond angle powers
+
+// FIXME: static variables like these are a bad idea in an object oriented code
+namespace {
+  int *ilist;
+}
+
 void Fingerprint_bond::do3bodyfeatureset_doubleneighborloop(double * features,double * dfeaturesx,double *dfeaturesy,double *dfeaturesz,int ii, int sid,double *xn,double *yn,double*zn,int *tn,int jnum,int * /*jl*/) {
   int i,jj,itype,jtype,ktype,kk,m,n;
   double delx,dely,delz,rsq;

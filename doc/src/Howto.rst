@@ -93,6 +93,7 @@ Packages howto
    Howto_manifold
    Howto_rheo
    Howto_spins
+   Howto_apip
 
 Tutorials howto
 ===============
@@ -106,6 +107,5 @@ Tutorials howto
    Howto_lammps_gui
    Howto_moltemplate
    Howto_python
-   Howto_pylammps
    Howto_wsl
 

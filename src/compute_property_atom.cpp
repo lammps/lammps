@@ -331,6 +331,25 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Compute property/atom {} requires atom style tri", arg[iarg]);
       pack_choice[i] = &ComputePropertyAtom::pack_corner3z;
 
+    // APIP package
+
+    } else if (strcmp(arg[iarg],"apip_lambda") == 0) {
+      if (!atom->apip_lambda_flag)
+        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+      pack_choice[i] = &ComputePropertyAtom::pack_apip_lambda;
+    } else if (strcmp(arg[iarg],"apip_lambda_input") == 0) {
+      if (!atom->apip_lambda_input_flag)
+        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+      pack_choice[i] = &ComputePropertyAtom::pack_apip_lambda_input;
+    } else if (strcmp(arg[iarg],"apip_e_fast") == 0) {
+      if (!atom->apip_e_fast_flag)
+        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+      pack_choice[i] = &ComputePropertyAtom::pack_apip_e_fast;
+    } else if (strcmp(arg[iarg],"apip_e_precise") == 0) {
+      if (!atom->apip_e_precise_flag)
+        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+      pack_choice[i] = &ComputePropertyAtom::pack_apip_e_precise;
+
     // custom per-atom vector or array
 
     } else if (utils::strmatch(arg[iarg],"^[id]2?_")) {
@@ -1557,6 +1576,66 @@ void ComputePropertyAtom::pack_tqz(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = torque[i][2];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_apip_lambda(int n)
+{
+  double *lambda = atom->apip_lambda;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = lambda[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_apip_lambda_input(int n)
+{
+  double *lambda_input = atom->apip_lambda_input;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = lambda_input[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_apip_e_fast(int n)
+{
+  double *e_simple = atom->apip_e_fast;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = e_simple[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_apip_e_precise(int n)
+{
+  double *e_complex = atom->apip_e_precise;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = e_complex[i];
     else buf[n] = 0.0;
     n += nvalues;
   }

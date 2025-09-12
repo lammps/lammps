@@ -182,7 +182,7 @@ void Fingerprint_radialspin::compute_fingerprint(double * features,double * dfea
   int nelements = pair->nelements;
   int res = pair->res;
   int i,j,jj,itype,jtype,l;
-  int *ilist,**firstneigh;
+  int *ilist;
   double delx,dely,delz,rsq;
   //
   PairRANN::Simulation *sim = &pair->sims[sid];
@@ -195,7 +195,7 @@ void Fingerprint_radialspin::compute_fingerprint(double * features,double * dfea
   int f = pair->net[itype].dimensions[0];
   double cutinv2 = 1/cutmax/cutmax;
   double *si = sim->s[i];
-  firstneigh = sim->firstneigh;
+
   //loop over neighbors
   for (jj = 0; jj < jnum; jj++) {
     j = jl[jj];

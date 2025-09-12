@@ -14,7 +14,7 @@
 #ifndef LMP_EXCEPTIONS_H
 #define LMP_EXCEPTIONS_H
 
-#include <exception>
+#include <exception>  // IWYU pragma: export
 #include <mpi.h>
 #include <string>
 

@@ -58,7 +58,6 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   bordergroup = 0;
   cutghostuser = 0.0;
   cutusermulti = nullptr;
-  cutusermultiold = nullptr;
   ncollections = 0;
   ncollections_cutoff = 0;
   ghost_velocity = 0;
@@ -96,8 +95,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   } else if (getenv("OMP_NUM_THREADS") == nullptr) {
     nthreads = 1;
     if (me == 0)
-      error->message(FLERR,"OMP_NUM_THREADS environment is not set. "
-                           "Defaulting to 1 thread.");
+      utils::logmesg(lmp,"OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.\n");
   } else {
     nthreads = omp_get_max_threads();
   }
@@ -122,7 +120,6 @@ Comm::~Comm()
   memory->destroy(ysplit);
   memory->destroy(zsplit);
   memory->destroy(cutusermulti);
-  memory->destroy(cutusermultiold);
   delete [] customfile;
   delete [] outfile;
 }
@@ -155,11 +152,6 @@ void Comm::copy_arrays(Comm *oldcomm)
   if (oldcomm->cutusermulti) {
     memory->create(cutusermulti,ncollections_cutoff,"comm:cutusermulti");
     memcpy(cutusermulti,oldcomm->cutusermulti,ncollections_cutoff);
-  }
-
-  if (oldcomm->cutusermultiold) {
-    memory->create(cutusermultiold,atom->ntypes+1,"comm:cutusermultiold");
-    memcpy(cutusermultiold,oldcomm->cutusermultiold,atom->ntypes+1);
   }
 
   if (customfile)
@@ -292,9 +284,7 @@ void Comm::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"single") == 0) {
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::MULTI) cutghostuser = 0.0;
-        if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
         memory->destroy(cutusermulti);
-        memory->destroy(cutusermultiold);
         mode = Comm::SINGLE;
       } else if (strcmp(arg[iarg+1],"multi") == 0) {
         if (neighbor->style != Neighbor::MULTI)
@@ -302,22 +292,11 @@ void Comm::modify_params(int narg, char **arg)
                      "Cannot use comm mode 'multi' without 'multi' style neighbor lists");
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::SINGLE) cutghostuser = 0.0;
-        if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
-        memory->destroy(cutusermultiold);
         mode = Comm::MULTI;
       } else if (strcmp(arg[iarg+1],"multi/old") == 0) {
-        if (me == 0)
-          error->warning(FLERR, "Comm mode 'multi/old' is deprecated and will be removed soon.\n"
-                         "Please contact the LAMMPS developers if you cannot use mode 'multi'."
-                         + utils::errorurl(35));
-        if (neighbor->style == Neighbor::MULTI)
-          error->all(FLERR, iarg+1,
-                     "Cannot use comm mode 'multi/old' with 'multi' style neighbor lists");
-        // need to reset cutghostuser when switching comm mode
-        if (mode == Comm::SINGLE) cutghostuser = 0.0;
-        if (mode == Comm::MULTI) cutghostuser = 0.0;
-        memory->destroy(cutusermulti);
-        mode = Comm::MULTIOLD;
+        error->all(FLERR, iarg+1,
+                   "Communication mode 'multi/old' has been removed. "
+                   "Please use mode 'multi' and see the documentation more information about it.");
       } else error->all(FLERR, iarg+1, "Unknown comm_modify mode argument: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"group") == 0) {
@@ -334,8 +313,6 @@ void Comm::modify_params(int narg, char **arg)
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "comm_modify cutoff", error);
       if (mode == Comm::MULTI)
         error->all(FLERR, iarg, "Use cutoff/multi keyword to set cutoff in multi mode");
-      if (mode == Comm::MULTIOLD)
-        error->all(FLERR, iarg, "Use cutoff/multi/old keyword to set cutoff in multi/old mode");
       cutghostuser = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutghostuser < 0.0)
         error->all(FLERR, iarg+1, "Invalid cutoff {} in comm_modify command", arg[iarg+1]);
@@ -345,8 +322,6 @@ void Comm::modify_params(int narg, char **arg)
       double cut;
       if (mode == Comm::SINGLE)
         error->all(FLERR, iarg, "Use cutoff keyword to set cutoff in single mode");
-      if (mode == Comm::MULTIOLD)
-        error->all(FLERR, iarg, "Use cutoff/multi/old keyword to set cutoff in multi/old mode");
       if (domain->box_exist == 0)
         error->all(FLERR, iarg, "Cannot set cutoff/multi before simulation box is defined");
 
@@ -367,35 +342,6 @@ void Comm::modify_params(int narg, char **arg)
       // collections use 1-based indexing externally and 0-based indexing internally
       for (i=nlo; i<=nhi; ++i)
         cutusermulti[i-1] = cut;
-      iarg += 3;
-    }  else if (strcmp(arg[iarg],"cutoff/multi/old") == 0) {
-      int i,nlo,nhi;
-      double cut;
-      if (me == 0)
-        error->warning(FLERR, "Comm mode 'multi/old' is deprecated and will be removed soon.\n"
-                       "Please contact the LAMMPS developers if you cannot use mode 'multi'."
-                       + utils::errorurl(35));
-      if (mode == Comm::SINGLE)
-        error->all(FLERR, iarg, "Use cutoff keyword to set cutoff in single mode");
-      if (mode == Comm::MULTI)
-        error->all(FLERR, iarg, "Use cutoff/multi keyword to set cutoff in multi mode");
-      if (domain->box_exist == 0)
-        error->all(FLERR, iarg, "Cannot set cutoff/multi/old before simulation box is defined");
-
-      const int ntypes = atom->ntypes;
-      if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "comm_modify cutoff/multi/old", error);
-      if (cutusermultiold == nullptr) {
-        memory->create(cutusermultiold,ntypes+1,"comm:cutusermultiold");
-        for (i=0; i < ntypes+1; ++i)
-          cutusermultiold[i] = -1.0;
-      }
-      utils::bounds(FLERR,arg[iarg+1],1,ntypes,nlo,nhi,error);
-      cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      cutghostuser = MAX(cutghostuser,cut);
-      if (cut < 0.0)
-        error->all(FLERR, iarg+1, "Invalid cutoff {} in comm_modify command", arg[iarg+2]);
-      for (i=nlo; i<=nhi; ++i)
-        cutusermultiold[i] = cut;
       iarg += 3;
     } else if (strcmp(arg[iarg],"reduce/multi") == 0) {
       if (mode == Comm::SINGLE)
@@ -571,7 +517,7 @@ void Comm::set_proc_grid(int outflag)
 
   // create ProcMap class to create 3d grid and map procs to it
 
-  auto pmap = new ProcMap(lmp);
+  auto *pmap = new ProcMap(lmp);
 
   // create 3d grid of processors
   // produces procgrid and coregrid (if relevant)
@@ -935,7 +881,7 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
 {
   // irregular comm of inbuf from caller decomp to rendezvous decomp
 
-  auto irregular = new Irregular(lmp);
+  auto *irregular = new Irregular(lmp);
 
   int nrvous;
   if (inorder) nrvous = irregular->create_data_grouped(n,procs);
@@ -943,10 +889,10 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
 
   // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
-  auto inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1, "rendezvous:inbuf");
+  auto *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1, "rendezvous:inbuf");
   irregular->exchange_data(inbuf,insize,inbuf_rvous);
 
-  bigint irregular1_bytes = irregular->memory_usage();
+  bigint irregular1_bytes = irregular->memory_usage(); // NOLINT
   irregular->destroy_data();
   delete irregular;
 
@@ -979,7 +925,7 @@ rendezvous_irregular(int n, char *inbuf, int insize, int inorder, int *procs,
   outbuf = (char *) memory->smalloc((bigint) nout*outsize+1, "rendezvous:outbuf");
   irregular->exchange_data(outbuf_rvous,outsize,outbuf);
 
-  bigint irregular2_bytes = irregular->memory_usage();
+  bigint irregular2_bytes = irregular->memory_usage(); // NOLINT
   irregular->destroy_data();
   delete irregular;
 
@@ -1083,7 +1029,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
   // all2all comm of inbuf from caller decomp to rendezvous decomp
   // add 1 item to the allocated buffer size, so the returned pointer is not a null pointer
 
-  auto inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1, "rendezvous:inbuf");
+  auto *inbuf_rvous = (char *) memory->smalloc((bigint) nrvous*insize+1, "rendezvous:inbuf");
   memset(inbuf_rvous,0,(bigint) nrvous*insize*sizeof(char));
 
   MPI_Alltoallv(inbuf_a2a,sendcount,sdispls,MPI_CHAR,

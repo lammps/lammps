@@ -46,7 +46,7 @@
 
 using namespace LAMMPS_NS;
 
-double EPSNEIGH = 1.0e-3;
+static constexpr double EPSNEIGH = 1.0e-3;
 
 enum { XYZ, SHIFT, BISECTION };
 enum { NONE, UNIFORM, USER };
@@ -353,7 +353,7 @@ void Balance::command(int narg, char **arg)
   // set disable = 0, so weights migrate with atoms for imbfinal calculation
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  auto irregular = new Irregular(lmp);
+  auto *irregular = new Irregular(lmp);
   if (wtflag) fixstore->disable = 0;
   if (style == BISECTION) irregular->migrate_atoms(sortflag,1,rcb->sendproc);
   else irregular->migrate_atoms(sortflag);

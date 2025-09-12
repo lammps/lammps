@@ -57,9 +57,9 @@ namespace ReaxFF {
                         control_params *control, MPI_Comm world)
   {
     char ****tor_flag;
-    auto error = control->error_ptr;
-    auto lmp = control->lmp_ptr;
-    auto memory = control->lmp_ptr->memory;
+    auto *error = control->error_ptr;
+    auto *lmp = control->lmp_ptr;
+    auto *memory = control->lmp_ptr->memory;
 
     // read and parse the force field only on rank 0
 
@@ -84,7 +84,7 @@ namespace ReaxFF {
 
         // check if header comment line is present
 
-        auto line = reader.next_line();
+        auto *line = reader.next_line();
         if (strmatch(line, "^\\s*[0-9]+\\s+!.*general parameters.*"))
           THROW_ERROR("First line of ReaxFF potential file must be a comment or empty");
         ++lineno;
@@ -556,7 +556,7 @@ namespace ReaxFF {
             for (k = 0; k < ntypes; ++k)
               hbp[i][j][k].r0_hb = -1.0;
 
-        auto thisline = reader.next_line();
+        auto *thisline = reader.next_line();
         if (!thisline) throw EOFException("ReaxFF parameter file has no hydrogen bond parameters");
 
         values = ValueTokenizer(thisline);

@@ -154,10 +154,8 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
 
     if (dstr) {
       dvar = input->variable->find(dstr);
-      if (dvar < 0) {
-        input->variable->internal_create(dstr,0.0);
-        dvar = input->variable->find(dstr);
-      }
+      if (dvar < 0) dvar = input->variable->internal_create(dstr, 0.0);
+
       if (!input->variable->internalstyle(dvar))
         error->all(FLERR, "Variable for compute bond/local is invalid style");
     }

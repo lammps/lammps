@@ -16,10 +16,12 @@
 // see RANMAR in F James, Comp Phys Comm, 60, 329 (1990)
 
 #include "random_mars.h"
-#include <cmath>
-#include <cstring>
+
 #include "error.h"
 #include "math_const.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -34,7 +36,7 @@ RanMars::RanMars(LAMMPS *lmp, int seed) : Pointers(lmp),
   double s,t;
 
   if (seed <= 0 || seed > 900000000)
-    error->one(FLERR,"Invalid seed for Marsaglia random # generator");
+    error->one(FLERR, Error::NOLASTLINE, "Invalid seed for Marsaglia random # generator");
 
   save = 0;
   u = new double[97+1];
@@ -140,7 +142,7 @@ double RanMars::rayleigh(double sigma)
 {
   double v1;
 
-  if (sigma <= 0.0) error->all(FLERR,"Invalid Rayleigh parameter");
+  if (sigma <= 0.0) error->all(FLERR, Error::NOLASTLINE, "Invalid Rayleigh parameter");
 
   v1 = uniform();
   // avoid a floating point exception due to log(0.0)
@@ -159,7 +161,7 @@ double RanMars::besselexp(double theta, double alpha, double cp)
   double first,v1,v2;
 
   if (theta < 0.0 || alpha < 0.0 || alpha > 1.0)
-    error->all(FLERR,"Invalid Bessel exponential distribution parameters");
+    error->all(FLERR, Error::NOLASTLINE, "Invalid Bessel exponential distribution parameters");
 
   v1 = uniform();
   v2 = uniform();
@@ -307,8 +309,8 @@ void RanMars::get_state(double *state)
 void RanMars::set_state(double *state)
 {
   for (int i=0; i < 98; ++i) u[i] = state[i];
-  i97 = state[98];
-  j97 = state[99];
+  i97 = state[98]; // NOLINT
+  j97 = state[99]; // NOLINT
   c   = state[100];
   cd  = state[101];
   cm  = state[102];

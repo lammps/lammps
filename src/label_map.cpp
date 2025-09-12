@@ -20,6 +20,7 @@
 #include "force.h"
 
 #include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 

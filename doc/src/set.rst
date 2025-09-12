@@ -23,8 +23,8 @@ Syntax
 
 * one or more keyword/value pairs may be appended
 
-* keyword = *angle* or *angmom* or *bond* or *cc* or *charge* or
-  *density* or *density/disc* or *diameter* or *dihedral* or *dipole*
+* keyword = *angle* or *angmom* or *apip/lambda* or *bond* or *cc* or *charge*
+  or *density* or *density/disc* or *diameter* or *dihedral* or *dipole*
   or *dipole/random* or *dpd/theta* or *edpd/cv* or *edpd/temp* or
   *epsilon* or *image* or *improper* or *length* or *mass* or *mol* or
   *omega* or *quat* or *quat/random* or *radius/electron* or *shape* or
@@ -41,6 +41,10 @@ Syntax
        *angmom* values = Lx Ly Lz
          Lx,Ly,Lz = components of angular momentum vector (distance-mass-velocity units)
          any of Lx,Ly,Lz can be an atom-style variable (see below)
+       *apip/lambda* value = fast or precise or float
+         fast = switching parameter of fast potential (1)
+         precise = switching parameter of fast potential (0)
+         float = constant float or atom-style variable (between 0 and 1)
        *bond* value = numeric bond type or bond type label, for all bonds between selected atoms
        *cc* values = index cc
          index = index of a chemical species (1 to Nspecies)
@@ -631,6 +635,13 @@ Keywords *vx*, *vy*, and *vz* set the velocities of all selected
 atoms.
 
 Keywords *x*, *y*, *z* set the coordinates of all selected atoms.
+
+Keyword *apip/lambda* sets the switching parameter of an
+adaptive-precision interatomic potential (:doc:`APIP <Howto_apip>`).
+The precise potential is used for an atom when its switching parameter
+:math:`\lambda` is 0. The fast potential is used for an atom when its
+switching parameter :math:`\lambda` is 1. Both potentials are partially
+used for :math:`\lambda\in(0,1)`.
 
 Keywords *i_name*, *d_name*, *i2_name*, *d2_name* refer to custom
 per-atom integer and floating-point vectors or arrays that have been

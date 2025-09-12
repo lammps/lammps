@@ -48,7 +48,7 @@ class DumpMolfile : public Dump {
 
   void init_style() override;
   int modify_param(int, char **) override;
-  void write_header(bigint) override{};
+  void write_header(bigint) override {};
   void pack(tagint *) override;
   void write_data(int, double *) override;
   double memory_usage() override;

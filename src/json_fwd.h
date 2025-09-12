@@ -17,7 +17,7 @@
 // Forward declarations for header-only JSON class
 // For use in headers
 
-#include "nlohmann/json_fwd.hpp"
+#include "nlohmann/json_fwd.hpp" // IWYU pragma: export
 
 namespace LAMMPS_NS {
 using json = ::nlohmann_lmp::basic_json<>;

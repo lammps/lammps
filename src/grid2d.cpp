@@ -28,8 +28,9 @@
 using namespace LAMMPS_NS;
 
 static constexpr int DELTA = 16;
-
 static constexpr int OFFSET = 16384;
+
+// NOLINTBEGIN (*-float-conversion)
 
 /* ----------------------------------------------------------------------
    NOTES:
@@ -898,9 +899,9 @@ void Grid2d::setup_comm_tiled(int &nbuf1, int &nbuf2)
     }
   }
 
-  auto irregular = new Irregular(lmp);
+  auto *irregular = new Irregular(lmp);
   int nrecv_request = irregular->create_data(nsend_request,proclist,1);
-  auto rrequest = (Request *) memory->smalloc(nrecv_request*sizeof(Request),"grid2d:rrequest");
+  auto *rrequest = (Request *) memory->smalloc(nrecv_request*sizeof(Request),"grid2d:rrequest");
   irregular->exchange_data((char *) srequest,sizeof(Request),(char *) rrequest);
   irregular->destroy_data();
 
@@ -935,7 +936,7 @@ void Grid2d::setup_comm_tiled(int &nbuf1, int &nbuf2)
 
   int nsend_response = nrecv_request;
   int nrecv_response = irregular->create_data(nsend_response,proclist,1);
-  auto rresponse = (Response *) memory->smalloc(nrecv_response*sizeof(Response),"grid2d:rresponse");
+  auto *rresponse = (Response *) memory->smalloc(nrecv_response*sizeof(Response),"grid2d:rresponse");
   irregular->exchange_data((char *) sresponse,sizeof(Response),(char *) rresponse);
   irregular->destroy_data();
   delete irregular;
@@ -1158,7 +1159,7 @@ forward_comm_tiled(T *ptr, int which, int nper, int nbyte,
 {
   int i,m,offset;
 
-  auto buf2 = (char *) vbuf2;
+  auto *buf2 = (char *) vbuf2;
 
   // post all receives
 
@@ -1263,7 +1264,7 @@ reverse_comm_tiled(T *ptr, int which, int nper, int nbyte,
 {
   int i,m,offset;
 
-  auto buf2 = (char *) vbuf2;
+  auto *buf2 = (char *) vbuf2;
 
   // post all receives
 
@@ -1462,7 +1463,7 @@ void Grid2d::remap_style(T *ptr, int which, int nper, int nbyte,
 {
   int i,m,offset;
 
-  auto buf2 = (char *) vbuf2;
+  auto *buf2 = (char *) vbuf2;
 
   // post all receives
 
@@ -1520,7 +1521,7 @@ void Grid2d::read_file(int caller, void *ptr, FILE *fp, int nchunk, int maxline)
 template < class T >
 void Grid2d::read_file_style(T *ptr, FILE *fp, int nchunk, int maxline)
 {
-  auto buffer = new char[nchunk * maxline];
+  auto *buffer = new char[nchunk * maxline];
   bigint ntotal = (bigint) nx * ny;
   bigint nread = 0;
 
@@ -1964,3 +1965,5 @@ void Grid2d::partition_tiled(int proc, int proclower, int procupper, int *box)
     partition_tiled(proc,procmid,procupper,box);
   }
 }
+
+// NOLINTEND (*-float-conversion)

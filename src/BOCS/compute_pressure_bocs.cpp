@@ -203,25 +203,20 @@ double ComputePressureBocs::get_cg_p_corr(int N_basis, double *phi_coeff,
    Find the relevant index position if using a spline basis set
 ------------------------------------------------------------------------- */
 
-double ComputePressureBocs::find_index(double * grid, double value)
+int ComputePressureBocs::find_index(double * grid, double value)
 {
   int i;
   double spacing = fabs(grid[1]-grid[0]);
   int gridsize = spline_length;
   for (i = 0; i < (gridsize-1); ++i)
   {
-    if (value >= grid[i] && value <= grid[i+1]) { return i; }
+    if (value >= grid[i] && value <= grid[i+1]) return i;
   }
 
-  if (value >= grid[i] && value <= (grid[i] + spacing)) { return i; }
+  if (value >= grid[i] && value <= (grid[i] + spacing)) return i;
 
   error->all(FLERR, Error::NOLASTLINE,
-             "find_index could not find value in grid for value: {}", value);
-  for (int i = 0; i < gridsize; ++i) {
-    fprintf(stderr, "grid %d: %f\n", i, grid[i]);
-  }
-
-  exit(1);
+             "find_index could not find index in grid for value: {}", value);
 }
 
 /* ----------------------------------------------------------------------

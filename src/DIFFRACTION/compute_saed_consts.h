@@ -27,10 +27,11 @@ elastic and absorptive electron atomic scattering factors
 Acta Crystallogr.A 52 25776
 */
 
-#define SAEDmaxType 98
+namespace {
+constexpr int SAEDmaxType = 98;
 
 // list of element types associated with atomic scattering factor constants
-static const char *SAEDtypeList[SAEDmaxType] = {
+const char *const SAEDtypeList[SAEDmaxType] = {
     "H",  "He", "Li", "Be", "B",  "C",  "N",  "O",  "F",  "Ne", "Na", "Mg", "Al", "Si",
     "P",  "S",  "Cl", "Ar", "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni",
     "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y",  "Zr", "Nb", "Mo",
@@ -40,7 +41,7 @@ static const char *SAEDtypeList[SAEDmaxType] = {
     "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf"};
 
 // list of atomic scattering factor constants for electron diffraction
-static const double ASFSAED[SAEDmaxType][20] = {
+const double ASFSAED[SAEDmaxType][20] = {
     /*  Each set of four rows in this file represents a single row in the matrix
       First two rows are constants for 0 < sin(theta)/lambda < 2
       Z-number     A1         A2         A3         A4         A5
@@ -245,5 +246,5 @@ static const double ASFSAED[SAEDmaxType][20] = {
     /* 98*/ {1.2089, 2.7391, 4.3482, 4.0047, 4.6497, 0.2421, 1.7487, 6.7262, 23.2153, 80.3108,
              0.8100, 3.0001, 5.4635, 4.1756, 3.5066, 0.1310, 1.4038, 7.6057, 34.0186, 90.5226},
 };
-
+}    // namespace
 #endif

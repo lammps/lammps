@@ -58,9 +58,9 @@ static double mypow(double x, int n)
   return yy;
 }
 
-typedef struct {
+using dbl3_t = struct {
   double x, y, z;
-} dbl3_t;
+};
 
 /* ---------------------------------------------------------------------- */
 

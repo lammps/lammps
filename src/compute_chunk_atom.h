@@ -104,9 +104,9 @@ class ComputeChunkAtom : public Compute {
   int nmax, nmaxint;
   double *chunk;
 
-  int molcheck;                   // one-time check if all molecule atoms in chunk
-  int *exclude;                   // 1 if atom is not assigned to any chunk
-  std::map<tagint, int> *hash;    // store original chunks IDs before compression
+  int molcheck;                  // one-time check if all molecule atoms in chunk
+  int *exclude;                  // 1 if atom is not assigned to any chunk
+  std::map<tagint, int> hash;    // store original chunks IDs before compression
 
   // callback function for ring communication
 

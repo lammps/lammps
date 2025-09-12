@@ -51,8 +51,11 @@ Parallel versus serial
 ^^^^^^^^^^^^^^^^^^^^^^
 
 Issues where something is "lost" or "missing" often exhibit that issue
-only when running in parallel.  That doesn't mean there is no problem,
-only the symptoms are not triggering an error quickly.  Correspondingly,
+*only* when running in parallel.  That doesn't mean there is no problem
+when running in serial, only the symptoms are not triggering an error.
+This may be because there is no domain decomposition with just one
+processor and thus all atoms are accessible, or it may be because the
+problem will manifest faster with smaller subdomains.  Correspondingly,
 errors may be triggered faster with more processors and thus smaller
 sub-domains.
 
@@ -244,6 +247,25 @@ equal style (or similar) variables can only be expanded before the box
 is defined if they do not reference anything that cannot be defined
 before the box (e.g. a compute or fix reference or a thermo keyword).
 
+.. _hint13:
+
+Illegal ... command
+^^^^^^^^^^^^^^^^^^^
+
+These are a catchall error messages that used to be used a lot in LAMMPS
+(also programmers are sometimes lazy).  They usually include the name of
+the source file and the line where the error happened.  This can be used
+to track down what caused the error (most often some form of syntax error)
+by looking at the source code.  However, this has two disadvantages: 1. one
+has to check the source file from the exact same LAMMPS version, or else
+the line number would be different or the core may have been rewritten and
+that specific error does not exist anymore.
+
+The LAMMPS developers are committed to replace these too generic error
+messages with more descriptive errors, e.g. listing *which* keyword was
+causing the error, so that it will be much simpler to look up the
+correct syntax in the manual (and without referring to the source code).
+
 ------
 
 .. _err0001:
@@ -299,9 +321,10 @@ completely different format.
 Illegal variable command: expected X arguments but found Y
 ----------------------------------------------------------
 
-This error indicates that a variable command has the wrong number of
-arguments.  A common reason for this is that the variable expression has
-whitespace, but is not enclosed in single or double quotes.
+This error indicates that a variable command has either incorrectly
+formatted arguments or the wrong number of arguments.  A common reason
+for this is that a variable expression contains whitespace, but is not
+enclosed in single or double quotes.
 
 To explain, the LAMMPS input parser reads and processes lines.  The
 resulting line is broken down into "words".  Those are usually
@@ -309,11 +332,12 @@ individual commands, labels, names, and values separated by whitespace
 (a space or tab character).  For "words" that may contain whitespace,
 they have to be enclosed in single (') or double (") quotes.  The parser
 will then remove the outermost pair of quotes and pass that string as
-"word" to the variable command.
+single argument to the variable command.
 
 Thus missing quotes or accidental extra whitespace will trigger this
 error because the unquoted whitespace will result in the text being
-broken into more "words", i.e. the variable expression being split.
+broken into more "words" than expected, i.e. the variable expression
+being split.
 
 .. _err0004:
 
@@ -980,7 +1004,7 @@ There are multiple ways to get into contact and report your issue. In
 order of preference there are:
 
 - Submit a bug report `issue in the LAMMPS GitHub
-  <https://github.com/lammps/lammps/issues>` repository
+  <https://github.com/lammps/lammps/issues>`_ repository
 - Post a message in the "LAMMPS Development" forum in the
   `MatSci Community Discourse <https://matsci.org/c/lammps/lammps-development/42>`_
 - Send an email to ``developers@lammps.org``
@@ -1029,13 +1053,15 @@ Even though the LAMMPS error message recommends to increase the "one"
 parameter, this may not always be the correct solution.  The neighbor
 list overflow can also be a symptom for some other error that cannot be
 easily detected.  For example, a frequent reason for an (unexpected)
-high density are incorrect box boundaries (since LAMMPS wraps atoms back
+high density are incorrect box dimensions (since LAMMPS wraps atoms back
 into the principal box with periodic boundaries) or coordinates provided
-as fractional coordinates.  In both cases, LAMMPS cannot easily know
-whether the input geometry has such a high density (and thus requiring
-more neighbor list storage per atom) by intention.  Rather than blindly
-increasing the "one" parameter, it is thus worth checking if this is
-justified by the combination of density and cutoff.
+as fractional coordinates (LAMMPS does not support this for data files).
+In both cases, LAMMPS cannot easily know whether the input geometry has
+such a high density (and thus requiring more neighbor list storage per
+atom) on purpose or by accident.  Rather than blindly increasing the
+"one" parameter, it is thus worth checking if this is justified by the
+combination of density and cutoff.  This is particularly recommended
+when using some tool(s) to convert input or data files.
 
 When boosting (= increasing) the "one" parameter, it is recommended to
 also increase the value for the "page" parameter to maintain the ratio

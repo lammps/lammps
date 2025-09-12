@@ -79,7 +79,6 @@ class LAMMPS {
 
   const char *match_style(const char *style, const char *name);
   static const char *installed_packages[];
-  static bool is_installed_pkg(const char *pkg);
 
   static bool has_git_info();
   static const char *git_commit();

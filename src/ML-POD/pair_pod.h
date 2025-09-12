@@ -87,8 +87,8 @@ class PairPOD : public Pair {
   void fourbody_forcecoeff(double *fb4, double *cb4, int Ni);
   void allbody_forces(double *fij, double *forcecoeff, int Nij);
 
-  void savematrix2binfile(std::string filename, double *A, int nrows, int ncols);
-  void saveintmatrix2binfile(std::string filename, int *A, int nrows, int ncols);
+  void savematrix2binfile(const std::string &filename, double *A, int nrows, int ncols);
+  void saveintmatrix2binfile(const std::string &filename, int *A, int nrows, int ncols);
   void savedatafordebugging();
 
  protected:

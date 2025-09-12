@@ -21,7 +21,6 @@
 #include "error.h"
 #include "input.h"
 #include "math_extra.h"
-#include "update.h"
 #include "variable.h"
 
 #include <cstring>

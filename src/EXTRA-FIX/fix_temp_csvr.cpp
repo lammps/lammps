@@ -308,7 +308,7 @@ double FixTempCSVR::resamplekin(double ekin_old, double ekin_new) {
   const double c1 = exp(-update->dt/t_period);
   const double c2 = (1.0-c1)*ekin_new/ekin_old/tdof;
   const double r1 = random->gaussian();
-  const double r2 = sumnoises(tdof - 1);
+  const double r2 = sumnoises(tdof - 1); // NOLINT
 
   const double scale = c1 + c2*(r1*r1+r2) + 2.0*r1*sqrt(c1*c2);
   return sqrt(scale);
@@ -359,7 +359,7 @@ void FixTempCSVR::write_restart(FILE *fp)
 
 void FixTempCSVR::restart(char *buf)
 {
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   energy = list[0];
   int nprocs = (int) list[1];

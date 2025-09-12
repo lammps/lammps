@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

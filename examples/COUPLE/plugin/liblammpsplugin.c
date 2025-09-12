@@ -141,6 +141,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(scatter_subset);
 
   ADDSYM(create_atoms);
+  ADDSYM(create_molecule);
 
   ADDSYM(find_pair_neighlist);
   ADDSYM(find_fix_neighlist);
@@ -153,6 +154,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(get_os_info);
 
   ADDSYM(config_has_mpi_support);
+  ADDSYM(config_has_omp_support);
   ADDSYM(config_has_gzip_support);
   ADDSYM(config_has_png_support);
   ADDSYM(config_has_jpeg_support);

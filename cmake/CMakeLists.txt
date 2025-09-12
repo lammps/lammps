@@ -153,9 +153,7 @@ endif()
 if(CMAKE_CXX_STANDARD LESS 17)
   message(FATAL_ERROR "C++ standard must be set to at least 17")
 endif()
-if((PKG_KOKKOS OR PKG_ML-METATOMIC) AND (CMAKE_CXX_STANDARD LESS 17))
-  set(CMAKE_CXX_STANDARD 17)
-endif()
+
 # turn off C++20 check in lmptype.h
 #if(LAMMPS_CXX17)
 #  add_compile_definitions(LAMMPS_CXX17)

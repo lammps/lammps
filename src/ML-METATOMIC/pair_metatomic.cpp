@@ -230,7 +230,7 @@ void PairMetatomic::settings(int argc, char ** argv) {
 
     // Select the device to use based on the model's preference, the user choice
     // and what's available.
-    this->pick_device(&mta_data->device, requested_device);
+    this->pick_device(mta_data->device, requested_device);
 
     // move all data to the correct device
     mta_data->model->to(mta_data->device);
@@ -280,7 +280,7 @@ std::vector<torch::DeviceType> PairMetatomic::available_devices() {
     return devices;
 }
 
-void PairMetatomic::pick_device(torch::Device* device, const char* requested) {
+void PairMetatomic::pick_device(torch::Device& device, const char* requested) {
     auto available_devices = this->available_devices();
 
     auto picked_device_type = torch::kCPU;
@@ -337,9 +337,9 @@ void PairMetatomic::pick_device(torch::Device* device, const char* requested) {
 
         // (3) split GPUs between node-local processes using round-robin allocation
         int gpu_to_use = local_rank % torch::cuda::device_count();
-        *device = torch::Device(picked_device_type, gpu_to_use);
+        device = torch::Device(picked_device_type, gpu_to_use);
     } else {
-        *device = torch::Device(picked_device_type);
+        device = torch::Device(picked_device_type);
     }
 }
 
@@ -626,68 +626,61 @@ void PairMetatomic::compute(int eflag, int vflag) {
     {
         auto _ = MetatomicTimer("storing model output in LAMMPS data structures");
 
-        // move results to cpu for storing
-        auto energy_detached = energy_tensor.detach().to(torch::kCPU).to(torch::kFloat64);
+        // store the energy if requested
+        if (eflag_either) {
+            // move results to cpu for storing
+            auto energy_detached = energy_tensor.detach().to(torch::kCPU).to(torch::kFloat64);
 
-        // store the energy returned by the model
-        torch::Tensor global_energy;
-        if (eflag_atom) {
-            assert(energy_samples->size() == 2);
-            assert(energy_samples->names()[0] == "system");
-            assert(energy_samples->names()[1] == "atom");
+            // store the energy returned by the model
+            if (eflag_atom) {
+                assert(mta_data->energy_output->per_atom);
+                assert(energy_samples->size() == 2);
+                assert(energy_samples->names()[0] == "system");
+                assert(energy_samples->names()[1] == "atom");
 
-            auto samples_values = energy_samples->values().to(torch::kCPU);
-            auto samples = samples_values.accessor<int32_t, 2>();
+                auto samples_values = energy_samples->values().to(torch::kCPU);
+                auto samples = samples_values.accessor<int32_t, 2>();
 
-            int64_t n_atoms = atom->nlocal + atom->nghost;
-            assert(samples_values.sizes() == mta_data->selected_atoms_values.sizes());
+                assert(samples_values.sizes() == mta_data->selected_atoms_values.sizes());
 
-            auto energies = energy_detached.accessor<double, 2>();
-            for (int64_t i=0; i<energy_samples->count(); i++) {
-                assert(samples[i][0] == 0);
-                // handle potentially out of order samples in
-                // the per-atom energy tensor
-                auto atom_i = samples[i][1];
-                assert(atom_i < n_atoms);
-                eatom[atom_i] += this->scale * energies[i][0];
+                auto energies = energy_detached.accessor<double, 2>();
+                for (int64_t i=0; i<energy_samples->count(); i++) {
+                    assert(samples[i][0] == 0);
+                    // handle potentially out of order samples in
+                    // the per-atom energy tensor
+                    auto atom_i = samples[i][1];
+                    assert(atom_i < atom->nlocal + atom->nghost);
+                    eatom[atom_i] += this->scale * energies[i][0];
+                }
             }
 
-            global_energy = energy_detached.sum(0);
-            assert(energy_detached.sizes() == std::vector<int64_t>({1}));
-        } else {
-            assert(energy_samples->size() == 1);
-            assert(energy_samples->names()[0] == "system");
+            if (eflag_global) {
+                torch::Tensor global_energy;
+                if (mta_data->energy_output->per_atom) {
+                    global_energy = energy_detached.sum(0);
+                    assert(energy_detached.sizes() == std::vector<int64_t>({1}));
+                } else {
+                    assert(energy_samples->size() == 1);
+                    assert(energy_samples->names()[0] == "system");
 
-            assert(energy_detached.sizes() == std::vector<int64_t>({1, 1}));
-            global_energy = energy_detached.reshape({1});
-        }
+                    assert(energy_detached.sizes() == std::vector<int64_t>({1, 1}));
+                    global_energy = energy_detached.reshape({1});
+                }
 
-        if (eflag_global) {
-            eng_vdwl += this->scale * global_energy.item<double>();
+                eng_vdwl += this->scale * global_energy.item<double>();
+            }
         }
 
         // store forces/virial
-        assert(forces_tensor.is_cpu() && forces_tensor.scalar_type() == torch::kFloat64);
-
-        int num_forces_to_update;
-        if (mta_data->non_conservative) {
-            num_forces_to_update = atom->nlocal;
-        } else {
-            num_forces_to_update = atom->nlocal + atom->nghost;
-        }
-
-        auto forces = forces_tensor.accessor<double, 2>();
-        for (int i=0; i<num_forces_to_update; i++) {
-            atom->f[i][0] += this->scale * forces[i][0];
-            atom->f[i][1] += this->scale * forces[i][1];
-            atom->f[i][2] += this->scale * forces[i][2];
-        }
+        this->store_forces(forces_tensor);
 
         assert(!vflag_fdotr);
 
         if (vflag_global) {
-            assert(virial_tensor.is_cpu() && virial_tensor.scalar_type() == torch::kFloat64);
-            auto predicted_virial = virial_tensor.accessor<double, 2>();
+            auto virial_cpu = virial_tensor.to(torch::kCPU);
+            assert(virial_cpu.is_cpu() && virial_cpu.scalar_type() == torch::kFloat64);
+
+            auto predicted_virial = virial_cpu.template accessor<double, 2>();
 
             virial[0] += this->scale * predicted_virial[0][0];
             virial[1] += this->scale * predicted_virial[1][1];
@@ -701,5 +694,25 @@ void PairMetatomic::compute(int eflag, int vflag) {
         if (vflag_atom) {
             error->all(FLERR, "per atom virial is not implemented");
         }
+    }
+}
+
+void PairMetatomic::pre_compute() {}
+
+void PairMetatomic::store_forces(const at::Tensor& forces_tensor) {
+    assert(forces_tensor.is_cpu() && forces_tensor.scalar_type() == torch::kFloat64);
+
+    int num_forces_to_update;
+    if (mta_data->non_conservative) {
+        num_forces_to_update = atom->nlocal;
+    } else {
+        num_forces_to_update = atom->nlocal + atom->nghost;
+    }
+
+    auto forces = forces_tensor.accessor<double, 2>();
+    for (int i=0; i<num_forces_to_update; i++) {
+        atom->f[i][0] += this->scale * forces[i][0];
+        atom->f[i][1] += this->scale * forces[i][1];
+        atom->f[i][2] += this->scale * forces[i][2];
     }
 }

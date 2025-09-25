@@ -35,11 +35,13 @@ PairStyle(metatomic_9, PairMetatomic);
 
 #include <vector>
 
-// this is the actual namespace where `torch::Device` is defined
 namespace c10 {
     class Device;
-
     enum class DeviceType: int8_t;
+}
+
+namespace at {
+    class Tensor;
 }
 
 namespace LAMMPS_NS {
@@ -60,6 +62,12 @@ public:
 
     void allocate();
 
+    // store the forces from the model in LAMMPS data structures
+    virtual void store_forces(const at::Tensor& forces_tensor);
+
+    // called one at the beginning of `compute`
+    virtual void pre_compute();
+
 protected:
     // get the set of devices both available on the current machine and supported
     // by the model
@@ -67,7 +75,7 @@ protected:
 
     // pick the correct device to use from the user request (or nullptr) in
     // `pair_style metatomic`
-    virtual void pick_device(c10::Device* device, const char* requested);
+    virtual void pick_device(c10::Device& device, const char* requested);
 
     PairMetatomicData* mta_data;
     NeighList *mta_list;

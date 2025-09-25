@@ -49,9 +49,12 @@ public:
     ~PairMetatomicKokkos();
 
     void init_style() override;
-    void compute(int eflag, int vflag) override;
+
+    void pre_compute() override;
+    void store_forces(const at::Tensor& forces_tensor) override;
+
 private:
-    void pick_device(c10::Device* device, const char* requested) override;
+    void pick_device(c10::Device& device, const char* requested) override;
 
     Kokkos::View<int32_t*, Kokkos::LayoutRight, DeviceType> type_mapping_kk;
 };

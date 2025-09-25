@@ -26,18 +26,29 @@
 namespace LAMMPS_NS {
 
 struct PairMetatomicData {
-   PairMetatomicData(std::string length_unit, std::string energy_unit);
+   PairMetatomicData(std::string length_unit);
 
    void load_model(LAMMPS* lmp, const char* path, const char* extensions_directory);
 
    // the metatomic model
    std::unique_ptr<metatensor_torch::Module> model;
+   // the path used to load the model
+   std::string model_path;
    // device to use for the calculations
    torch::Device device;
    // model capabilities, declared by the model
    metatomic_torch::ModelCapabilities capabilities;
    // run-time evaluation options, decided by this class
    metatomic_torch::ModelEvaluationOptions evaluation_options;
+
+   // energy output that we'll request from the model
+   metatomic_torch::ModelOutput energy_output;
+   // did the energy output in the model capabilities support per-atom energy?
+   bool is_energy_output_per_atom;
+   // non-conservative forces and stresses outputs that we'll request
+   metatomic_torch::ModelOutput nc_forces_output;
+   metatomic_torch::ModelOutput nc_stress_output;
+
    // should metatomic check the data LAMMPS send to the model
    // and the data the model returns?
    bool check_consistency;

@@ -24,6 +24,7 @@
 #include "neighbor.h"
 #include "update.h"
 #include "comm.h"
+#include "domain.h"
 
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -46,26 +47,33 @@
 
 using namespace LAMMPS_NS;
 
+static double compute_volume(Domain* domain) {
+    // from Thermo::compute_vol
+    if (domain->dimension == 3) {
+        return domain->xprd * domain->yprd * domain->zprd;
+    } else {
+        return domain->xprd * domain->yprd;
+    }
+}
+
 PairMetatomic::PairMetatomic(LAMMPS *lmp):
     Pair(lmp),
     type_mapping(nullptr),
     system_adaptor(nullptr),
     scale(1.0)
 {
-    std::string energy_unit;
-    std::string length_unit;
     if (strcmp(update->unit_style, "real") == 0) {
-        length_unit = "angstrom";
-        energy_unit = "kcal/mol";
+        this->length_unit = "angstrom";
+        this->energy_unit = "kcal/mol";
     } else if (strcmp(update->unit_style, "metal") == 0) {
-        length_unit = "angstrom";
-        energy_unit = "eV";
+        this->length_unit = "angstrom";
+        this->energy_unit = "eV";
     } else if (strcmp(update->unit_style, "si") == 0) {
-        length_unit = "meter";
-        energy_unit = "joule";
+        this->length_unit = "meter";
+        this->energy_unit = "joule";
     } else if (strcmp(update->unit_style, "electron") == 0) {
-        length_unit = "Bohr";
-        energy_unit = "Hartree";
+        this->length_unit = "Bohr";
+        this->energy_unit = "Hartree";
     } else {
         error->all(FLERR, "unsupported units '{}' for pair metatomic ", update->unit_style);
     }
@@ -74,7 +82,7 @@ PairMetatomic::PairMetatomic(LAMMPS *lmp):
     // so we can not compute virial as fdotr
     this->no_virial_fdotr_compute = 1;
 
-    this->mta_data = new PairMetatomicData(std::move(length_unit), std::move(energy_unit));
+    this->mta_data = new PairMetatomicData(this->length_unit);
 
     // settings for metatomic pair style
     this->single_enable = 0;
@@ -132,19 +140,6 @@ void PairMetatomic::settings(int argc, char ** argv) {
                 error->all(FLERR, "expected <on/off> after 'non_conservative' in pair_style metatomic, got nothing");
             } else if (strcmp(argv[i + 1], "on") == 0) {
                 mta_data->non_conservative = true;
-                // add the non-conservative forces and stress to the requested outputs
-                auto output_nc_forces = torch::make_intrusive<metatomic_torch::ModelOutputHolder>();
-                output_nc_forces->explicit_gradients = {};
-                output_nc_forces->set_quantity("force");
-                output_nc_forces->set_unit(mta_data->evaluation_options->outputs.at("energy")->unit() + "/" + mta_data->evaluation_options->length_unit());
-                output_nc_forces->per_atom = true;
-                mta_data->evaluation_options->outputs.insert("non_conservative_forces", output_nc_forces);
-                auto output_nc_stress = torch::make_intrusive<metatomic_torch::ModelOutputHolder>();
-                output_nc_stress->explicit_gradients = {};
-                output_nc_stress->set_quantity("pressure");
-                output_nc_stress->set_unit(mta_data->evaluation_options->outputs.at("energy")->unit() + "/" + mta_data->evaluation_options->length_unit() + "^3");
-                output_nc_stress->per_atom = false;
-                mta_data->evaluation_options->outputs.insert("non_conservative_stress", output_nc_stress);
             } else if (strcmp(argv[i + 1], "off") == 0) {
                 mta_data->non_conservative = false;
             } else {
@@ -177,6 +172,61 @@ void PairMetatomic::settings(int argc, char ** argv) {
 
     // load the model and get it's capabilities (including supported devices)
     mta_data->load_model(this->lmp, model_path, extensions_directory);
+
+    // Check that the model has the required outputs
+    const auto& outputs = mta_data->capabilities->outputs();
+    auto energy_output = outputs.find("energy");
+    // LAMMPS assume that an energy will be available
+    if (energy_output == outputs.end()) {
+        lmp->error->all(FLERR,
+            "the model at '{}' does not have an 'energy' output, "
+            "we can not use it with pair_style metatomic.",
+            model_path
+        );
+    }
+
+    mta_data->is_energy_output_per_atom = energy_output->value()->per_atom;
+    mta_data->energy_output = torch::make_intrusive<metatomic_torch::ModelOutputHolder>();
+    mta_data->energy_output->explicit_gradients = {};
+    mta_data->energy_output->set_quantity("energy");
+    mta_data->energy_output->set_unit(this->energy_unit);
+
+
+    if (mta_data->non_conservative) {
+        auto nc_forces = outputs.find("non_conservative_forces");
+        if (nc_forces == outputs.end()) {
+            error->all(FLERR,
+                "the model at '{}' does not have a 'non_conservative_forces' output, "
+                "we can not enable non_conservative simulations",
+                model_path
+            );
+        }
+
+        if (!nc_forces->value()->per_atom) {
+            error->all(FLERR,
+                "the 'non_conservative_forces' output of the model at '{}' "
+                "can not produce per-atom output, we can not enable non_conservative simulations",
+                model_path
+            );
+        }
+
+        mta_data->nc_forces_output = torch::make_intrusive<metatomic_torch::ModelOutputHolder>();
+        mta_data->nc_forces_output->explicit_gradients = {};
+        mta_data->nc_forces_output->set_quantity("force");
+        mta_data->nc_forces_output->set_unit(this->energy_unit + "/" + this->length_unit);
+        mta_data->nc_forces_output->per_atom = true;
+
+        auto nc_stress = outputs.find("non_conservative_stress");
+        if (nc_stress != outputs.end()) {
+            mta_data->nc_stress_output = torch::make_intrusive<metatomic_torch::ModelOutputHolder>();
+            mta_data->nc_stress_output->explicit_gradients = {};
+            mta_data->nc_stress_output->set_quantity("pressure");
+            mta_data->nc_stress_output->set_unit(this->energy_unit + "/" + this->length_unit + "^3");
+            mta_data->nc_stress_output->per_atom = false;
+        } else {
+            mta_data->nc_stress_output = nullptr;
+        }
+    }
 
     // Select the device to use based on the model's preference, the user choice
     // and what's available.
@@ -448,16 +498,41 @@ void PairMetatomic::compute(int eflag, int vflag) {
 
     auto _ = MetatomicTimer("PairMetatomic::compute");
 
-    if (eflag || vflag) {
-        ev_setup(eflag, vflag);
-    } else {
-        evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+    ev_init(eflag, vflag);
+
+    mta_data->evaluation_options->outputs.clear();
+    // we need an energy output if the energy was explicitly requested (through
+    // `eflag_either`), or when running in standard/conservative mode, because
+    // we'll get the forces as the gradient of the energy through autodiff.
+    if (eflag_either || !mta_data->non_conservative) {
+        if (eflag_atom) {
+            if (!mta_data->is_energy_output_per_atom) {
+                error->all(FLERR,
+                    "the model at '{}' does not support per-atom 'energy' output",
+                    mta_data->model_path
+                );
+            }
+            mta_data->energy_output->per_atom = true;
+        } else {
+            assert(eflag_global);
+            mta_data->energy_output->per_atom = false;
+        }
+
+        mta_data->evaluation_options->outputs.insert("energy", mta_data->energy_output);
     }
 
-    if (eflag_atom) {
-        mta_data->evaluation_options->outputs.at("energy")->per_atom = true;
-    } else {
-        mta_data->evaluation_options->outputs.at("energy")->per_atom = false;
+    if (mta_data->non_conservative) {
+        mta_data->evaluation_options->outputs.insert("non_conservative_forces", mta_data->nc_forces_output);
+        if (vflag_global) {
+            if (mta_data->nc_stress_output == nullptr) {
+                error->all(FLERR,
+                    "the model at '{}' does not have a 'non_conservative_stress' output, "
+                    "we can not run non_conservative simulations that require computing the stress/virial",
+                    mta_data->model_path
+                );
+            }
+            mta_data->evaluation_options->outputs.insert("non_conservative_stress", mta_data->nc_stress_output);
+        }
     }
 
     auto dtype = torch::kFloat64;
@@ -494,10 +569,10 @@ void PairMetatomic::compute(int eflag, int vflag) {
     );
     mta_data->evaluation_options->set_selected_atoms(selected_atoms);
 
-    torch::IValue result_ivalue;
+    torch::IValue results_ivalue;
     try {
         auto _ = MetatomicTimer("running Model::forward");
-        result_ivalue = mta_data->model->forward({
+        results_ivalue = mta_data->model->forward({
             std::vector<metatomic_torch::System>{system},
             mta_data->evaluation_options,
             mta_data->check_consistency
@@ -506,25 +581,37 @@ void PairMetatomic::compute(int eflag, int vflag) {
         error->all(FLERR, "error evaluating the torch model: {}", e.what());
     }
 
-    auto result = result_ivalue.toGenericDict();
-    auto energy = result.at("energy").toCustomClass<metatensor_torch::TensorMapHolder>();
-    auto energy_block = metatensor_torch::TensorMapHolder::block_by_id(energy, 0);
-    auto energy_tensor = energy_block->values();
+    auto results = results_ivalue.toGenericDict();
+    torch::Tensor energy_tensor;
+    metatensor_torch::Labels energy_samples;
+
+    // get the energy if we need to compute the energy, or if we are using it to
+    // get the forces/virial with autograd
+    if (eflag_either || !mta_data->non_conservative) {
+        auto energy = results.at("energy").toCustomClass<metatensor_torch::TensorMapHolder>();
+        auto energy_block = metatensor_torch::TensorMapHolder::block_by_id(energy, 0);
+        energy_tensor = energy_block->values();
+        energy_samples = energy_block->samples();
+    }
 
     torch::Tensor forces_tensor;
     torch::Tensor virial_tensor;
 
     if (mta_data->non_conservative) {
-        auto forces = result.at("non_conservative_forces").toCustomClass<metatensor_torch::TensorMapHolder>();;
+        auto forces = results.at("non_conservative_forces").toCustomClass<metatensor_torch::TensorMapHolder>();;
         auto forces_block = metatensor_torch::TensorMapHolder::block_by_id(forces, 0);
         forces_tensor = forces_block->values().squeeze(-1);
         forces_tensor = forces_tensor.to(torch::kCPU).to(torch::kFloat64);
-        auto stress = result.at("non_conservative_stress").toCustomClass<metatensor_torch::TensorMapHolder>();;
-        auto stress_block = metatensor_torch::TensorMapHolder::block_by_id(stress, 0);
-        auto stress_tensor = stress_block->values().squeeze(0).squeeze(-1);
-        virial_tensor = - stress_tensor * torch::abs(torch::det(system->cell()));
-        virial_tensor = virial_tensor.to(torch::kCPU).to(torch::kFloat64);
+
+        if (vflag_global) {
+            auto stress = results.at("non_conservative_stress").toCustomClass<metatensor_torch::TensorMapHolder>();;
+            auto stress_block = metatensor_torch::TensorMapHolder::block_by_id(stress, 0);
+            auto stress_tensor = stress_block->values().squeeze(0).squeeze(-1);
+            virial_tensor = - stress_tensor * compute_volume(domain);
+            virial_tensor = virial_tensor.to(torch::kCPU).to(torch::kFloat64);
+        }
     } else {
+        // compute forces/virial on device with backward propagation
         // reset gradients to zero before calling backward
         this->system_adaptor->positions.mutable_grad() = torch::Tensor();
         this->system_adaptor->strain.mutable_grad() = torch::Tensor();
@@ -541,7 +628,6 @@ void PairMetatomic::compute(int eflag, int vflag) {
 
         // move results to cpu for storing
         auto energy_detached = energy_tensor.detach().to(torch::kCPU).to(torch::kFloat64);
-        auto energy_samples = energy_block->samples();
 
         // store the energy returned by the model
         torch::Tensor global_energy;

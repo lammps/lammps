@@ -77,6 +77,9 @@ protected:
     // adaptor from LAMMPS system to metatomic's
     std::unique_ptr<MetatomicSystemAdaptor> system_adaptor;
 
+    std::string length_unit;
+    std::string energy_unit;
+
     double scale;
 };
 

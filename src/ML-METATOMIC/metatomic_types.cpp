@@ -22,7 +22,7 @@
 
 using namespace LAMMPS_NS;
 
-PairMetatomicData::PairMetatomicData(std::string length_unit, std::string energy_unit):
+PairMetatomicData::PairMetatomicData(std::string length_unit):
     device(torch::kCPU),
     check_consistency(false),
     remap_pairs(true),
@@ -35,14 +35,6 @@ PairMetatomicData::PairMetatomicData(std::string length_unit, std::string energy
     // Initialize evaluation_options
     this->evaluation_options = torch::make_intrusive<metatomic_torch::ModelEvaluationOptionsHolder>();
     this->evaluation_options->set_length_unit(std::move(length_unit));
-
-    auto output = torch::make_intrusive<metatomic_torch::ModelOutputHolder>();
-    output->explicit_gradients = {};
-    output->set_quantity("energy");
-    output->set_unit(std::move(energy_unit));
-    output->per_atom = false;
-
-    this->evaluation_options->outputs.insert("energy", output);
 }
 
 void PairMetatomicData::load_model(
@@ -52,6 +44,7 @@ void PairMetatomicData::load_model(
 ) {
    // TODO: seach for the model & extensions inside `$LAMMPS_POTENTIALS`?
 
+   this->model_path = path;
    if (this->model != nullptr) {
        lmp->error->all(FLERR, "torch model is already loaded");
    }
@@ -63,7 +56,7 @@ void PairMetatomicData::load_model(
 
    try {
        this->model = std::make_unique<metatensor_torch::Module>(
-           metatomic_torch::load_atomistic_model(path, extensions)
+           metatomic_torch::load_atomistic_model(this->model_path, extensions)
        );
    } catch (const c10::Error& e) {
        lmp->error->all(FLERR, "failed to load metatomic model at '{}': {}", path, e.what());
@@ -71,10 +64,6 @@ void PairMetatomicData::load_model(
 
    auto capabilities_ivalue = this->model->run_method("capabilities");
    this->capabilities = capabilities_ivalue.toCustomClass<metatomic_torch::ModelCapabilitiesHolder>();
-
-   if (!this->capabilities->outputs().contains("energy")) {
-       lmp->error->all(FLERR, "the model at '{}' does not have an \"energy\" output, we can not use it in pair_style metatomic", path);
-   }
 
    if (lmp->comm->me == 0) {
        auto metadata_ivalue = this->model->run_method("metadata");

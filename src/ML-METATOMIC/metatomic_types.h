@@ -41,11 +41,19 @@ struct PairMetatomicData {
    // run-time evaluation options, decided by this class
    metatomic_torch::ModelEvaluationOptions evaluation_options;
 
-   // energy output that we'll request from the model
+   // the energy output we'll request from a model
    metatomic_torch::ModelOutput energy_output;
-   // did the energy output in the model capabilities support per-atom energy?
+   // wether the model capabilities say that it can do per-atom energies
    bool is_energy_output_per_atom;
-   // non-conservative forces and stresses outputs that we'll request
+
+   // energy uncertainty output we'll request from a model, or nullptr if the
+   // model does not have such output
+   metatomic_torch::ModelOutput uncertainty_output;
+   // threshold for energy uncertainty warnings
+   double uncertainty_threshold;
+
+   // non-conservative forces/stress outputs we'll request from a model, or
+   // nullptr if the model does not have such outputs
    metatomic_torch::ModelOutput nc_forces_output;
    metatomic_torch::ModelOutput nc_stress_output;
 

@@ -83,6 +83,8 @@ PairMetatomic::PairMetatomic(LAMMPS *lmp):
     this->no_virial_fdotr_compute = 1;
 
     this->mta_data = new PairMetatomicData(this->length_unit);
+    // use a default uncertainty threshold of 100 meV/atom
+    this->mta_data->uncertainty_threshold = 0.1 * metatomic_torch::unit_conversion_factor("energy", "eV", energy_unit);
 
     // settings for metatomic pair style
     this->single_enable = 0;
@@ -110,6 +112,7 @@ void PairMetatomic::settings(int argc, char ** argv) {
     const char* model_path = argv[0];
     const char* extensions_directory = nullptr;
     const char* requested_device = nullptr;
+    bool do_uncertainty = true;
     for (int i=1; i<argc; i++) {
         if (strcmp(argv[i], "check_consistency") == 0) {
             if (i == argc - 1) {
@@ -165,6 +168,20 @@ void PairMetatomic::settings(int argc, char ** argv) {
             }
             this->scale = utils::numeric(FLERR, argv[i + 1], false, lmp);
             i += 1;
+        } else if (strcmp(argv[i], "uncertainty_threshold") == 0) {
+            if (i == argc - 1) {
+                error->all(FLERR, "expected a number or off after 'uncertainty_threshold' in pair_style metatomic, got nothing");
+            } else if (strcmp(argv[i + 1], "off") == 0) {
+                do_uncertainty = false;
+            } else {
+                mta_data->uncertainty_threshold = utils::numeric(FLERR, argv[i + 1], false, lmp);
+            }
+
+            if (mta_data->uncertainty_threshold <= 0) {
+                error->all(FLERR, "'uncertainty_threshold' in pair_style metatomic must be positive");
+            }
+
+            i += 1;
         } else {
             error->all(FLERR, "unexpected argument to pair_style metatomic: '{}'", argv[i]);
         }
@@ -187,10 +204,29 @@ void PairMetatomic::settings(int argc, char ** argv) {
 
     mta_data->is_energy_output_per_atom = energy_output->value()->per_atom;
     mta_data->energy_output = torch::make_intrusive<metatomic_torch::ModelOutputHolder>();
-    mta_data->energy_output->explicit_gradients = {};
     mta_data->energy_output->set_quantity("energy");
     mta_data->energy_output->set_unit(this->energy_unit);
 
+    auto uncertainty_output = outputs.find("energy_uncertainty");
+    if (uncertainty_output != outputs.end()) {
+        if (do_uncertainty && uncertainty_output->value()->per_atom) {
+            // TODO: maybe if there is a global uncertainty output we should use
+            // that as a fallback?
+
+            mta_data->uncertainty_output = torch::make_intrusive<metatomic_torch::ModelOutputHolder>();
+            mta_data->uncertainty_output->set_quantity("energy");
+            mta_data->uncertainty_output->set_unit(this->energy_unit);
+            mta_data->uncertainty_output->per_atom = true;
+
+            auto message = "Found an 'energy_uncertainty' output, we will check for atoms with high uncertainty on the energy predictions";
+            if (screen) {
+                fprintf(screen, "%s\n", message);
+            }
+            if (logfile) {
+                fprintf(logfile,"%s\n", message);
+            }
+        }
+    }
 
     if (mta_data->non_conservative) {
         auto nc_forces = outputs.find("non_conservative_forces");
@@ -211,7 +247,6 @@ void PairMetatomic::settings(int argc, char ** argv) {
         }
 
         mta_data->nc_forces_output = torch::make_intrusive<metatomic_torch::ModelOutputHolder>();
-        mta_data->nc_forces_output->explicit_gradients = {};
         mta_data->nc_forces_output->set_quantity("force");
         mta_data->nc_forces_output->set_unit(this->energy_unit + "/" + this->length_unit);
         mta_data->nc_forces_output->per_atom = true;
@@ -219,7 +254,6 @@ void PairMetatomic::settings(int argc, char ** argv) {
         auto nc_stress = outputs.find("non_conservative_stress");
         if (nc_stress != outputs.end()) {
             mta_data->nc_stress_output = torch::make_intrusive<metatomic_torch::ModelOutputHolder>();
-            mta_data->nc_stress_output->explicit_gradients = {};
             mta_data->nc_stress_output->set_quantity("pressure");
             mta_data->nc_stress_output->set_unit(this->energy_unit + "/" + this->length_unit + "^3");
             mta_data->nc_stress_output->per_atom = false;
@@ -519,6 +553,10 @@ void PairMetatomic::compute(int eflag, int vflag) {
         }
 
         mta_data->evaluation_options->outputs.insert("energy", mta_data->energy_output);
+
+        if (mta_data->uncertainty_output != nullptr) {
+            mta_data->evaluation_options->outputs.insert("energy_uncertainty", mta_data->uncertainty_output);
+        }
     }
 
     if (mta_data->non_conservative) {
@@ -582,6 +620,41 @@ void PairMetatomic::compute(int eflag, int vflag) {
     }
 
     auto results = results_ivalue.toGenericDict();
+
+    // check the max uncertainty
+    if (mta_data->uncertainty_output != nullptr) {
+        auto uncertainty = results.at("energy_uncertainty").toCustomClass<metatensor_torch::TensorMapHolder>();
+        auto uncertainty_block = metatensor_torch::TensorMapHolder::block_by_id(uncertainty, 0);
+        assert(uncertainty_block->values().sizes().size() == 2);
+        assert(uncertainty_block->values().size(1) == 1);
+
+        auto atoms_above_thresholds = uncertainty_block->values().reshape({-1}) > mta_data->uncertainty_threshold;
+        if (torch::any(atoms_above_thresholds).to(torch::kCPU).item<bool>()) {
+            auto atoms = uncertainty_block->samples()->column("atom").index({atoms_above_thresholds});
+            std::ostringstream atoms_message;
+            atoms_message << "atoms at index [";
+            for (size_t i=0; i<10; i++) {
+                if (i > 0) {
+                    atoms_message << ", ";
+                }
+                atoms_message << atoms[i].item<int32_t>();
+            }
+            atoms_message << "]";
+
+            if (atoms.size(0) > 10) {
+                atoms_message << " and " << (atoms.size(0) - 10) << " more";
+            }
+
+            error->warning(FLERR,
+                "The uncertainty on atomic energies for {} are larger than "
+                "the threshold of {}. Be careful when analyzing the results, "
+                "and consider retraining the model to better describe these "
+                "configurations.",
+                atoms_message.str(), mta_data->uncertainty_threshold
+            );
+        }
+    }
+
     torch::Tensor energy_tensor;
     metatensor_torch::Labels energy_samples;
 

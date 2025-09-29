@@ -15,6 +15,7 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace MEAM_NS;
 
 template <typename TYPE, int maxi, int maxj>
 static inline void setall2d(TYPE (&arr)[maxi][maxj], const TYPE v)
@@ -31,7 +32,7 @@ static inline void setall3d(TYPE (&arr)[maxi][maxj][maxk], const TYPE v)
       for (int k = 0; k < maxk; k++) arr[i][j][k] = v;
 }
 
-void MEAM::meam_setup_global(int nelt, MEAM::lattice_t *lat, int *ielement, double * /*atwt*/,
+void MEAM::meam_setup_global(int nelt, lattice_t *lat, int *ielement, double * /*atwt*/,
                              double *alpha, double *b0, double *b1, double *b2, double *b3,
                              double *alat, double *esub, double *asub, double *t0, double *t1,
                              double *t2, double *t3, double *rozero, int *ibar, double *b1m,

@@ -33,6 +33,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MEAM_NS;
 
 static constexpr int MAXLINE = 1024;
 
@@ -372,7 +373,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
 
   // allocate parameter arrays
 
-  std::vector<MEAM::lattice_t> lat(nlibelements);
+  std::vector<lattice_t> lat(nlibelements);
   std::vector<int> ielement(nlibelements);
   std::vector<int> ibar(nlibelements);
   std::vector<double> z(nlibelements);
@@ -603,7 +604,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile, int uidx)
     // map lattce_meam value to an integer
     if (which == 4) {
       std::string lattice_type = values.next_string();
-      MEAM::lattice_t latt;
+      lattice_t latt;
       if (!MEAM::str_to_lat(lattice_type, false, latt))
         error->all(FLERR, uidx, "Unrecognized lattice type {} in MEAM parameter file {}:{}",
                    lattice_type, userfile, lineno);

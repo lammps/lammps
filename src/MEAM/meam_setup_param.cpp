@@ -19,6 +19,7 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace MEAM_NS;
 using MathConst::MY_PI;
 
 //     do a sanity check on index parameters
@@ -83,7 +84,7 @@ void MEAM::meam_setup_param(int which, double value, int nindex, int *index /*in
 {
   //: index[0..2]
   int i1, i2;
-  MEAM::lattice_t vlat;
+  lattice_t vlat;
   *errorflag = 0;
 
   switch (which) {

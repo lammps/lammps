@@ -20,6 +20,7 @@
 #include <algorithm>
 
 using namespace LAMMPS_NS;
+using namespace MEAM_NS;
 
 void MEAM::meam_setup_done(double* cutmax)
 {
@@ -328,7 +329,7 @@ double MEAM::phi_meam(double r, int a, int b)
   double arat, scrn, scrn2;
   int Z12, errorflag;
   int Z1nn, Z2nn;
-  MEAM::lattice_t latta /*unused:,lattb*/;
+  lattice_t latta /*unused:,lattb*/;
   double rho_bkgd1, rho_bkgd2;
   double b11s, b22s;
   // msmeam
@@ -622,7 +623,7 @@ void MEAM::compute_reference_density()
 // Average weighting factors for the reference structure
 void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av, double* t22av, double* t32av,
                       double t11, double t21, double t31, double t12, double t22, double t32, double r, int a,
-                      int b, MEAM::lattice_t latt)
+                      int b, lattice_t latt)
 {
   double rhoa01, rhoa02, a1, a2;
 
@@ -699,7 +700,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
 {
   double a1, a2;
   double s[3];
-  MEAM::lattice_t lat;
+  lattice_t lat;
   int Zij,Zij2nn;
   double rhoa01nn, rhoa02nn;
   double rhoa01, rhoa11, rhoa21, rhoa31;

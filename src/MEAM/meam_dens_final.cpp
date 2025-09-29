@@ -14,6 +14,7 @@
 #include "meam.h"
 
 using namespace LAMMPS_NS;
+using namespace MEAM_NS;
 
 void MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom,
                            double *eng_vdwl, double *eatom, int /*ntype*/, int *type, int *fmap,

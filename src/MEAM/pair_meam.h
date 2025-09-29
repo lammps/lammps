@@ -24,6 +24,10 @@ PairStyle(meam,PairMEAM);
 
 namespace LAMMPS_NS {
 
+namespace MEAM_NS {
+  class MEAM;
+}
+
 class PairMEAM : public Pair {
  public:
   PairMEAM(class LAMMPS *);
@@ -43,7 +47,7 @@ class PairMEAM : public Pair {
   double memory_usage() override;
 
  protected:
-  class MEAM *meam_inst;
+  class MEAM_NS::MEAM *meam_inst;
   double cutmax;                           // max cutoff for all elements
   int nlibelements;                        // # of library elements
   int msmeamflag;                          // 0 (default) for normal MEAM, 1 for MS-MEAM

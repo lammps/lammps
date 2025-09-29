@@ -18,6 +18,7 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace MEAM_NS;
 
 void MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
 {

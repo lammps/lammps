@@ -25,6 +25,9 @@ constexpr bool STRICT_IJ_ORDER = false;
 namespace LAMMPS_NS {
 class Memory;
 
+namespace MEAM_NS {
+
+typedef enum { FCC, BCC, HCP, DIM, DIA, DIA3, B1, C11, L12, B2, CH4, LIN, ZIG, TRI, SC } lattice_t;
 
 class MEAM {
  public:
@@ -33,7 +36,6 @@ class MEAM {
 
   int copymode;
   int msmeamflag;
-  using lattice_t = enum { FCC, BCC, HCP, DIM, DIA, DIA3, B1, C11, L12, B2, CH4, LIN, ZIG, TRI, SC };
 
  protected:
   Memory *memory;
@@ -343,5 +345,6 @@ static inline double fdiv_zero(const double n, const double d)
   return n / d;
 }
 
+}    // namespace MEAM_NS
 }    // namespace LAMMPS_NS
 #endif

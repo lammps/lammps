@@ -283,72 +283,16 @@ void PairMetatomic::settings(int argc, char ** argv) {
     }
 }
 
-std::vector<torch::DeviceType> PairMetatomic::available_devices() {
-    auto devices = std::vector<torch::DeviceType>();
-    for (const auto& supported: this->mta_data->capabilities->supported_devices) {
-        if (supported == "cpu") {
-            devices.push_back(torch::kCPU);
-        } else if (supported == "cuda" && torch::cuda::is_available()) {
-            devices.push_back(torch::kCUDA);
-        } else if (supported == "mps") {
-            #if TORCH_VERSION_MAJOR >= 2
-            if (torch::mps::is_available()) {
-                devices.push_back(torch::kMPS);
-            }
-            #endif
-        } else {
-            error->warning(FLERR,
-                "the model declared support for unknown device '{}', it will be ignored", supported
-            );
-        }
-    }
-
-    if (devices.empty()) {
-        error->all(FLERR,
-            "failed to find a valid device for this model: "
-            "the model supports {}, none of these where available",
-            torch::str(this->mta_data->capabilities->supported_devices)
-        );
-    }
-
-    return devices;
-}
-
 void PairMetatomic::pick_device(torch::Device& device, const char* requested) {
-    auto available_devices = this->available_devices();
 
-    auto picked_device_type = torch::kCPU;
-    if (requested == nullptr) {
-        // no user request, pick the device the model prefers
-        picked_device_type = available_devices[0];
-    } else {
-        bool found_requested_device = false;
-        for (const auto& device_type: available_devices) {
-            if (device_type == torch::kCPU && strcmp(requested, "cpu") == 0) {
-                picked_device_type = device_type;
-                found_requested_device = true;
-                break;
-            } else if (device_type == torch::kCUDA && strcmp(requested, "cuda") == 0) {
-                picked_device_type = device_type;
-                found_requested_device = true;
-                break;
-            } else if (device_type == torch::kMPS && strcmp(requested, "mps") == 0) {
-                picked_device_type = device_type;
-                found_requested_device = true;
-                break;
-            }
-        }
-
-        if (!found_requested_device) {
-            error->all(FLERR,
-                "failed to find requested device ({}): it is either "
-                "not supported by this model or not available on this machine",
-                requested
-            );
-        }
+    std::string device_string;
+    try {
+        auto device_string = metatomic_torch::pick_device(this->mta_data->capabilities->supported_devices, requested);
+    } catch (const c10::Error& e) {
+        error->all(FLERR, "pair_style metatomic: {}", e.what());
     }
 
-    if (picked_device_type == torch::kCUDA) {
+    if (device_string == "cuda") {
         // distribute GPUs between multiple MPI processes on the same node
 
         // (1) get a MPI communicator for all processes on the current node
@@ -371,9 +315,9 @@ void PairMetatomic::pick_device(torch::Device& device, const char* requested) {
 
         // (3) split GPUs between node-local processes using round-robin allocation
         int gpu_to_use = local_rank % torch::cuda::device_count();
-        device = torch::Device(picked_device_type, gpu_to_use);
+        device = torch::Device("cuda:" + std::to_string(gpu_to_use));
     } else {
-        device = torch::Device(picked_device_type);
+        device = torch::Device(device_string);
     }
 }
 

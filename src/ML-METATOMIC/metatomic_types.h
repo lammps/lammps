@@ -70,6 +70,15 @@ struct PairMetatomicData {
 
    // allocation cache for the selected atoms
    torch::Tensor selected_atoms_values;
+
+   // energy key for the model
+   std::string energy_key;
+   // energy uncertainty key for the model
+   std::string energy_uq_key;
+   // non-conservative forces key for the model
+   std::string nc_forces_key;
+   // non-conservative stress key for the model
+   std::string nc_stress_key;
 };
 
 }    // namespace LAMMPS_NS

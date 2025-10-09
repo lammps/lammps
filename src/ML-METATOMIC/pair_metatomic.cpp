@@ -113,6 +113,11 @@ void PairMetatomic::settings(int argc, char ** argv) {
     const char* extensions_directory = nullptr;
     const char* requested_device = nullptr;
     bool do_uncertainty = true;
+    const char* variant = nullptr;
+    const char* variant_energy = nullptr;
+    const char* variant_energy_uq = nullptr;
+    const char* variant_nc_forces = nullptr;
+    const char* variant_nc_stress = nullptr;
     for (int i=1; i<argc; i++) {
         if (strcmp(argv[i], "check_consistency") == 0) {
             if (i == argc - 1) {
@@ -180,19 +185,125 @@ void PairMetatomic::settings(int argc, char ** argv) {
             if (mta_data->uncertainty_threshold <= 0) {
                 error->all(FLERR, "'uncertainty_threshold' in pair_style metatomic must be positive");
             }
-
+            i += 1;
+        } else if (strcmp(argv[i], "variant") == 0) {
+            if (i == argc - 1) {
+                error->all(FLERR, "expected a name after 'variant' in pair_style metatomic, got nothing");
+            }
+            variant = argv[i + 1];
+            i += 1;
+        } else if (strcmp(argv[i], "variant/energy") == 0) {
+            if (i == argc - 1) {
+                error->all(FLERR, "expected a name or 'off' after 'variant/energy' in pair_style metatomic, got nothing");
+            }
+            variant_energy = argv[i + 1];
+            i += 1;
+        } else if (strcmp(argv[i], "variant/energy_uncertainty") == 0) {
+            if (i == argc - 1) {
+                error->all(FLERR, "expected a name or 'off' after 'variant/energy_uncertainty' in pair_style metatomic, got nothing");
+            }
+            variant_energy_uq = argv[i + 1];
+            i += 1;
+        } else if (strcmp(argv[i], "variant/non_conservative_forces") == 0) {
+            if (i == argc - 1) {
+                error->all(FLERR, "expected a name or 'off' after 'variant/non_conservative_forces' in pair_style metatomic, got nothing");
+            }
+            variant_nc_forces = argv[i + 1];
+            i += 1;
+        } else if (strcmp(argv[i], "variant/non_conservative_stress") == 0) {
+            if (i == argc - 1) {
+                error->all(FLERR, "expected a name or 'off' after 'variant/non_conservative_stress' in pair_style metatomic, got nothing");
+            }
+            variant_nc_stress = argv[i + 1];
             i += 1;
         } else {
             error->all(FLERR, "unexpected argument to pair_style metatomic: '{}'", argv[i]);
         }
     }
 
-    // load the model and get it's capabilities (including supported devices)
+    // Load the model and get it's capabilities (including supported devices)
     mta_data->load_model(this->lmp, model_path, extensions_directory);
+
+    // Set and resolve the variants to use
+    mta_data->energy_key = "energy";
+    mta_data->energy_uq_key = "energy_uncertainty";
+    mta_data->nc_forces_key = "non_conservative_forces";
+    mta_data->nc_stress_key = "non_conservative_stress";
+
+    // Apply global variant (applies to all)
+    if (variant != nullptr) {
+        mta_data->energy_key += "/" + std::string(variant);
+        mta_data->energy_uq_key += "/" + std::string(variant);
+        mta_data->nc_forces_key += "/" + std::string(variant);
+        mta_data->nc_stress_key += "/" + std::string(variant);
+    }
+
+    // Apply variant/energy
+    if (variant_energy != nullptr) {
+        if (strcmp(variant_energy, "off") == 0) {
+            mta_data->energy_key = "energy";
+        } else {
+            mta_data->energy_key = "energy/" + std::string(variant_energy);
+        }
+    }
+
+    // Apply variant/energy_uncertainty
+    if (variant_energy_uq != nullptr) {
+        if (strcmp(variant_energy_uq, "off") == 0) {
+            mta_data->energy_uq_key = "energy_uncertainty";
+        } else {
+            mta_data->energy_uq_key = "energy_uncertainty/" + std::string(variant_energy_uq);
+        }
+    }
+
+    // Handle non-conservative variants
+    bool has_nc_forces = variant_nc_forces != nullptr;
+    bool has_nc_stress = variant_nc_stress != nullptr;
+
+    if (has_nc_forces && has_nc_stress) {
+        bool forces_none = strcmp(variant_nc_forces, "off") == 0;
+        bool stress_none = strcmp(variant_nc_stress, "off") == 0;
+        if (forces_none != stress_none) {
+            error->all(FLERR,
+                "if both 'variant/non_conservative_stress' and "
+                "'variant/non_conservative_forces' are set, they must either "
+                "both be 'off' or both not be 'off'");
+        }
+    } else if (has_nc_forces && !has_nc_stress) {
+        if (strcmp(variant_nc_forces, "off") != 0) {
+            error->all(FLERR,
+                "'variant/non_conservative_forces' is set but "
+                "'variant/non_conservative_stress' is not; "
+                "both must be set together or both be 'off'");
+        }
+    } else if (!has_nc_forces && has_nc_stress) {
+        if (strcmp(variant_nc_stress, "off") != 0) {
+            error->all(FLERR,
+                "'variant/non_conservative_stress' is set but "
+                "'variant/non_conservative_forces' is not; "
+                "both must be set together or both be 'off'");
+        }
+    }
+
+    if (has_nc_forces) {
+        if (strcmp(variant_nc_forces, "off") == 0) {
+            mta_data->nc_forces_key = "non_conservative_forces";
+        } else {
+            mta_data->nc_forces_key = "non_conservative_forces/" + std::string(variant_nc_forces);
+        }
+    }
+
+    if (has_nc_stress) {
+        if (strcmp(variant_nc_stress, "off") == 0) {
+            mta_data->nc_stress_key = "non_conservative_stress";
+        } else {
+            mta_data->nc_stress_key = "non_conservative_stress/" + std::string(variant_nc_stress);
+        }
+    }
 
     // Check that the model has the required outputs
     const auto& outputs = mta_data->capabilities->outputs();
-    auto energy_output = outputs.find("energy");
+    auto energy_output = outputs.find(mta_data->energy_key);
     // LAMMPS assume that an energy will be available
     if (energy_output == outputs.end()) {
         lmp->error->all(FLERR,
@@ -207,7 +318,7 @@ void PairMetatomic::settings(int argc, char ** argv) {
     mta_data->energy_output->set_quantity("energy");
     mta_data->energy_output->set_unit(this->energy_unit);
 
-    auto uncertainty_output = outputs.find("energy_uncertainty");
+    auto uncertainty_output = outputs.find(mta_data->energy_uq_key);
     if (uncertainty_output != outputs.end()) {
         if (do_uncertainty && uncertainty_output->value()->per_atom) {
             // TODO: maybe if there is a global uncertainty output we should use
@@ -218,31 +329,31 @@ void PairMetatomic::settings(int argc, char ** argv) {
             mta_data->uncertainty_output->set_unit(this->energy_unit);
             mta_data->uncertainty_output->per_atom = true;
 
-            auto message = "Found an 'energy_uncertainty' output, we will check for atoms with high uncertainty on the energy predictions";
+            auto message = "Found '{}' output, we will check for atoms with high uncertainty on the energy predictions";
             if (screen) {
-                fprintf(screen, "%s\n", message);
+                fprintf(screen, "%s\n", fmt::format(message, mta_data->energy_uq_key).c_str());
             }
             if (logfile) {
-                fprintf(logfile,"%s\n", message);
+                fprintf(logfile,"%s\n", fmt::format(message, mta_data->energy_uq_key).c_str());
             }
         }
     }
 
     if (mta_data->non_conservative) {
-        auto nc_forces = outputs.find("non_conservative_forces");
+        auto nc_forces = outputs.find(mta_data->nc_forces_key);
         if (nc_forces == outputs.end()) {
             error->all(FLERR,
-                "the model at '{}' does not have a 'non_conservative_forces' output, "
+                "the model at '{}' does not have a '{}' output, "
                 "we can not enable non_conservative simulations",
-                model_path
+                model_path, mta_data->nc_forces_key
             );
         }
 
         if (!nc_forces->value()->per_atom) {
             error->all(FLERR,
-                "the 'non_conservative_forces' output of the model at '{}' "
+                "the '{}' output of the model at '{}' "
                 "can not produce per-atom output, we can not enable non_conservative simulations",
-                model_path
+                mta_data->nc_forces_key, model_path
             );
         }
 
@@ -251,7 +362,7 @@ void PairMetatomic::settings(int argc, char ** argv) {
         mta_data->nc_forces_output->set_unit(this->energy_unit + "/" + this->length_unit);
         mta_data->nc_forces_output->per_atom = true;
 
-        auto nc_stress = outputs.find("non_conservative_stress");
+        auto nc_stress = outputs.find(mta_data->nc_stress_key);
         if (nc_stress != outputs.end()) {
             mta_data->nc_stress_output = torch::make_intrusive<metatomic_torch::ModelOutputHolder>();
             mta_data->nc_stress_output->set_quantity("pressure");
@@ -285,9 +396,17 @@ void PairMetatomic::settings(int argc, char ** argv) {
 
 void PairMetatomic::pick_device(torch::Device& device, const char* requested) {
 
+    torch::optional<std::string> requested_string;
     std::string device_string;
+
+    if (requested != nullptr) {
+        requested_string = std::string(requested);
+    } else {
+        requested_string = torch::nullopt;
+    }
+
     try {
-        auto device_string = metatomic_torch::pick_device(this->mta_data->capabilities->supported_devices, requested);
+        device_string = metatomic_torch::pick_device(this->mta_data->capabilities->supported_devices, requested_string);
     } catch (const c10::Error& e) {
         error->all(FLERR, "pair_style metatomic: {}", e.what());
     }
@@ -496,24 +615,24 @@ void PairMetatomic::compute(int eflag, int vflag) {
             mta_data->energy_output->per_atom = false;
         }
 
-        mta_data->evaluation_options->outputs.insert("energy", mta_data->energy_output);
+        mta_data->evaluation_options->outputs.insert(mta_data->energy_key, mta_data->energy_output);
 
         if (mta_data->uncertainty_output != nullptr) {
-            mta_data->evaluation_options->outputs.insert("energy_uncertainty", mta_data->uncertainty_output);
+            mta_data->evaluation_options->outputs.insert(mta_data->energy_uq_key, mta_data->uncertainty_output);
         }
     }
 
     if (mta_data->non_conservative) {
-        mta_data->evaluation_options->outputs.insert("non_conservative_forces", mta_data->nc_forces_output);
+        mta_data->evaluation_options->outputs.insert(mta_data->nc_forces_key, mta_data->nc_forces_output);
         if (vflag_global) {
             if (mta_data->nc_stress_output == nullptr) {
                 error->all(FLERR,
-                    "the model at '{}' does not have a 'non_conservative_stress' output, "
+                    "the model at '{}' does not have a '{}' output, "
                     "we can not run non_conservative simulations that require computing the stress/virial",
-                    mta_data->model_path
+                    mta_data->model_path, mta_data->nc_stress_key
                 );
             }
-            mta_data->evaluation_options->outputs.insert("non_conservative_stress", mta_data->nc_stress_output);
+            mta_data->evaluation_options->outputs.insert(mta_data->nc_stress_key, mta_data->nc_stress_output);
         }
     }
 
@@ -567,7 +686,7 @@ void PairMetatomic::compute(int eflag, int vflag) {
 
     // check the max uncertainty
     if (mta_data->uncertainty_output != nullptr) {
-        auto uncertainty = results.at("energy_uncertainty").toCustomClass<metatensor_torch::TensorMapHolder>();
+        auto uncertainty = results.at(mta_data->energy_uq_key).toCustomClass<metatensor_torch::TensorMapHolder>();
         auto uncertainty_block = metatensor_torch::TensorMapHolder::block_by_id(uncertainty, 0);
         assert(uncertainty_block->values().sizes().size() == 2);
         assert(uncertainty_block->values().size(1) == 1);
@@ -605,7 +724,7 @@ void PairMetatomic::compute(int eflag, int vflag) {
     // get the energy if we need to compute the energy, or if we are using it to
     // get the forces/virial with autograd
     if (eflag_either || !mta_data->non_conservative) {
-        auto energy = results.at("energy").toCustomClass<metatensor_torch::TensorMapHolder>();
+        auto energy = results.at(mta_data->energy_key).toCustomClass<metatensor_torch::TensorMapHolder>();
         auto energy_block = metatensor_torch::TensorMapHolder::block_by_id(energy, 0);
         energy_tensor = energy_block->values();
         energy_samples = energy_block->samples();
@@ -615,13 +734,13 @@ void PairMetatomic::compute(int eflag, int vflag) {
     torch::Tensor virial_tensor;
 
     if (mta_data->non_conservative) {
-        auto forces = results.at("non_conservative_forces").toCustomClass<metatensor_torch::TensorMapHolder>();;
+        auto forces = results.at(mta_data->nc_forces_key).toCustomClass<metatensor_torch::TensorMapHolder>();
         auto forces_block = metatensor_torch::TensorMapHolder::block_by_id(forces, 0);
         forces_tensor = forces_block->values().squeeze(-1);
         forces_tensor = forces_tensor.to(torch::kCPU).to(torch::kFloat64);
 
         if (vflag_global) {
-            auto stress = results.at("non_conservative_stress").toCustomClass<metatensor_torch::TensorMapHolder>();;
+            auto stress = results.at(mta_data->nc_stress_key).toCustomClass<metatensor_torch::TensorMapHolder>();
             auto stress_block = metatensor_torch::TensorMapHolder::block_by_id(stress, 0);
             auto stress_tensor = stress_block->values().squeeze(0).squeeze(-1);
             virial_tensor = - stress_tensor * compute_volume(domain);

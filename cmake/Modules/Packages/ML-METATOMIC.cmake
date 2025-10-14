@@ -45,13 +45,13 @@ set(METATOMIC_TORCH_VERSION "0.1.5")
 set(METATOMIC_TORCH_SHA256 "8ecd1587797fe1cf6b2162ddc10cc84c558fdfd55ab225bc5de4fe15ace8fc3d")
 
 set(DOWNLOAD_METATENSOR_DEFAULT ON)
-find_package(metatensor_torch QUIET ${METATENSOR_TORCH_VERSION})
+find_package(metatensor_torch ${METATENSOR_TORCH_VERSION} QUIET)
 if (metatensor_torch_FOUND)
     set(DOWNLOAD_METATENSOR_DEFAULT OFF)
 endif()
 
 set(DOWNLOAD_METATOMIC_DEFAULT ON)
-find_package(metatomic_torch QUIET ${METATOMIC_TORCH_VERSION})
+find_package(metatomic_torch ${METATOMIC_TORCH_VERSION} QUIET)
 if (metatomic_torch_FOUND)
     set(DOWNLOAD_METATOMIC_DEFAULT OFF)
 endif()
@@ -81,7 +81,7 @@ if (DOWNLOAD_METATENSOR)
     FetchContent_MakeAvailable(metatensor-torch)
 else()
     # make sure to fail the configuration if cmake can not find metatensor-torch
-    find_package(metatensor_torch REQUIRED ${METATENSOR_TORCH_VERSION})
+    find_package(metatensor_torch ${METATENSOR_TORCH_VERSION} REQUIRED)
 endif()
 
 if (DOWNLOAD_METATOMIC)
@@ -97,7 +97,7 @@ if (DOWNLOAD_METATOMIC)
     FetchContent_MakeAvailable(metatomic-torch)
 else()
     # make sure to fail the configuration if cmake can not find metatomic-torch
-    find_package(metatomic_torch REQUIRED ${METATOMIC_TORCH_VERSION})
+    find_package(metatomic_torch ${METATOMIC_TORCH_VERSION} REQUIRED)
 endif()
 
 

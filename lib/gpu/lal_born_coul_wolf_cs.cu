@@ -112,7 +112,8 @@ __kernel void k_born_coul_wolf_cs(const __global numtyp4 *restrict x_,
         rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
         acctyp r2inv = ucl_recip(rsq);
 
-        numtyp forcecoul,forceborn,force,prefactor,rexp;
+        numtyp forcecoul,forceborn,force,prefactor;
+        numtyp rexp = (numtyp)0.0;
         acctyp v_sh,r6inv;
 
         if (rsq < cutsq_sigma[mtype].y) { // cut_ljsq
@@ -253,7 +254,8 @@ __kernel void k_born_coul_wolf_cs_fast(const __global numtyp4 *restrict x_,
         rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
         acctyp r2inv = ucl_recip(rsq);
 
-        numtyp forcecoul,forceborn,force,prefactor,rexp;
+        numtyp forcecoul,forceborn,force,prefactor;
+        numtyp rexp = (numtyp)0.0;
         acctyp v_sh,r6inv;
 
         if (rsq < cutsq_sigma[mtype].y) {

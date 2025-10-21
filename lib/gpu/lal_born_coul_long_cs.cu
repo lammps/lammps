@@ -114,7 +114,8 @@ __kernel void k_born_coul_long_cs(const __global numtyp4 *restrict x_,
 
       int mtype=itype*lj_types+jtype;
       if (rsq<cutsq_sigma[mtype].x) { // cutsq
-        numtyp forcecoul,forceborn,force,r6inv,prefactor,_erfc,rexp;
+        numtyp forcecoul,forceborn,force,r6inv,prefactor,_erfc;
+        numtyp rexp = (numtyp)0.0;
 
         rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
         numtyp r2inv = ucl_recip(rsq);
@@ -259,7 +260,8 @@ __kernel void k_born_coul_long_cs_fast(const __global numtyp4 *restrict x_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq<cutsq_sigma[mtype].x) { // cutsq
-        numtyp forcecoul,forceborn,force,r6inv,prefactor,_erfc,rexp;
+        numtyp forcecoul,forceborn,force,r6inv,prefactor,_erfc;
+        numtyp rexp = (numtyp)0.0;
 
         rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
         numtyp r2inv = ucl_recip(rsq);

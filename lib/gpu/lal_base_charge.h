@@ -127,7 +127,8 @@ class BaseCharge {
   void build_nbor_list(const int inum, const int host_inum,
                        const int nall, double **host_x, int *host_type,
                        double *sublo, double *subhi, tagint *tag, int **nspecial,
-                       tagint **special, bool &success);
+                       tagint **special, bool &success, double *boxlo, double *prd,
+                       int *periodicity);
 
   /// Pair loop with host neighboring
   void compute(const int f_ago, const int inum_full, const int nall,
@@ -135,7 +136,7 @@ class BaseCharge {
                int **firstneigh, const bool eflag, const bool vflag,
                const bool eatom, const bool vatom, int &host_start,
                const double cpu_time, bool &success, double *charge,
-               const int nlocal, double *boxlo, double *prd);
+               const int nlocal, double *boxlo, double *prd, int *periodicity);
 
   /// Pair loop with device neighboring
   int** compute(const int ago, const int inum_full, const int nall,
@@ -144,7 +145,7 @@ class BaseCharge {
                 tagint **special, const bool eflag, const bool vflag,
                 const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **numj, const double cpu_time, bool &success,
-                double *charge, double *boxlo, double *prd);
+                double *charge, double *boxlo, double *prd, int *periodicity);
 
   // -------------------------- DEVICE DATA -------------------------
 

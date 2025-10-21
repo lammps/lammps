@@ -167,7 +167,8 @@ inline void BaseChargeT::build_nbor_list(const int inum, const int host_inum,
                                          int *host_type, double *sublo,
                                          double *subhi, tagint *tag,
                                          int **nspecial, tagint **special,
-                                         bool &success) {
+                                         bool &success, double *boxlo, double *prd,
+                                         int *periodicity) {
   success=true;
   resize_atom(inum,nall,success);
   resize_local(inum,host_inum,nbor->max_nbors(),success);
@@ -177,7 +178,8 @@ inline void BaseChargeT::build_nbor_list(const int inum, const int host_inum,
 
   int mn;
   nbor->build_nbor_list(host_x, inum, host_inum, nall, *atom, sublo, subhi,
-                        tag, nspecial, special, success, mn, ans->error_flag);
+                        tag, nspecial, special, success, mn, boxlo, prd,
+                        periodicity, ans->error_flag);
 
   double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
   if (bytes>_max_an_bytes)
@@ -195,7 +197,7 @@ void BaseChargeT::compute(const int f_ago, const int inum_full,
                           const bool eatom, const bool vatom,
                           int &host_start, const double cpu_time,
                           bool &success, double *host_q,
-                          const int nlocal, double *boxlo, double *prd) {
+                          const int nlocal, double *boxlo, double *prd, int *periodicity) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -257,7 +259,7 @@ int** BaseChargeT::compute(const int ago, const int inum_full,
                            const bool eatom, const bool vatom, int &host_start,
                            int **ilist, int **jnum,
                            const double cpu_time, bool &success,
-                           double *host_q, double *boxlo, double *prd) {
+                           double *host_q, double *boxlo, double *prd, int *periodicity) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -289,7 +291,7 @@ int** BaseChargeT::compute(const int ago, const int inum_full,
   // Build neighbor list on GPU if necessary
   if (ago==0) {
     build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
-                    sublo, subhi, tag, nspecial, special, success);
+                    sublo, subhi, tag, nspecial, special, success, boxlo, prd, periodicity);
     if (!success)
       return nullptr;
     atom->cast_q_data(host_q);

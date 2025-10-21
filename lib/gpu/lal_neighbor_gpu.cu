@@ -490,9 +490,16 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
 __kernel void kernel_special(__global int *dev_nbor,
                              __global int *host_nbor_list,
                              const __global int *host_numj,
+                             const __global numtyp4 *restrict x_,
                              const __global tagint *restrict tag,
                              const __global int *restrict nspecial,
                              const __global tagint *restrict special,
+                             const numtyp xprd_half,
+                             const numtyp yprd_half,
+                             const numtyp zprd_half,
+                             const int xperiodic,
+                             const int yperiodic,
+                             const int zperiodic,
                              int inum, int nt, int max_nbors, int t_per_atom) {
   int tid=THREAD_ID_X;
   int ii=fast_mul((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
@@ -579,7 +586,24 @@ __kernel void kernel_special(__global int *dev_nbor,
           if (i + c < n3) {
             for (int l=0; l<UNROLL_FACTOR_LIST; l++) {
               if (l < lmax && special_data[c] == jtag[l]) {
-                nbor[l]=nbor[l] ^ which[c];
+                // Get atom j index (remove any existing mask)
+                int j_atom = nbor[l] & NEIGHMASK;
+                // Fetch positions
+                numtyp4 jx = x_[j_atom];
+                numtyp4 ix = x_[ii];
+                // Compute distances
+                numtyp delx = ix.x - jx.x;
+                numtyp dely = ix.y - jx.y;
+                numtyp delz = ix.z - jx.z;
+                // Check if distance > half box in any periodic dimension
+                int minimum_image = 0;
+                if (xperiodic && fabs(delx) > xprd_half) minimum_image = 1;
+                if (yperiodic && fabs(dely) > yprd_half) minimum_image = 1;
+                if (zperiodic && fabs(delz) > zprd_half) minimum_image = 1;
+                // Only apply special bond mask if NOT minimum_image
+                if (!minimum_image) {
+                  nbor[l]=nbor[l] ^ which[c];
+                }
               }
             }
           }

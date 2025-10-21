@@ -117,7 +117,7 @@ void PairBornCoulLongCSGPU::compute(int eflag, int vflag)
     firstneigh = bornclcs_gpu_compute_n(
         neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag, atom->nspecial,
         atom->special, eflag, vflag, eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
-        cpu_time, success, atom->q, domain->boxlo, domain->prd);
+        cpu_time, success, atom->q, domain->boxlo, domain->prd, domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -125,7 +125,7 @@ void PairBornCoulLongCSGPU::compute(int eflag, int vflag)
     firstneigh = list->firstneigh;
     bornclcs_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh,
                          firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-                         success, atom->q, atom->nlocal, domain->boxlo, domain->prd);
+                         success, atom->q, atom->nlocal, domain->boxlo, domain->prd, domain->periodicity);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 

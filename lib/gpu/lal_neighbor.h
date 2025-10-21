@@ -192,7 +192,8 @@ class Neighbor {
                        const int nall, Atom<numtyp,acctyp> &atom,
                        double *sublo, double *subhi, tagint *tag,
                        int **nspecial, tagint **special, bool &success,
-                       int &max_nbors, UCL_Vector<int,int> &error_flag);
+                       int &max_nbors, double *boxlo, double *prd,
+                       int *periodicity, UCL_Vector<int,int> &error_flag);
 
   /// Return the number of bytes used on device
   inline double gpu_bytes() {

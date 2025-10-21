@@ -501,7 +501,8 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
                                const int nall, Atom<numtyp,acctyp> &atom,
                                double *sublo, double *subhi, tagint *tag,
                                int **nspecial, tagint **special, bool &success,
-                               int &mn, UCL_Vector<int,int> &error_flag) {
+                               int &mn, double *boxlo, double *prd,
+                               int *periodicity, UCL_Vector<int,int> &error_flag) {
   _nbor_time_avail=true;
   const int nt=inum+host_inum;
 
@@ -842,8 +843,14 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
     const int GX2=static_cast<int>(ceil(static_cast<double>
                                           (nt*_threads_per_atom)/cell_block));
     _shared->k_special.set_size(GX2,cell_block);
+    // Compute half box dimensions
+    const numtyp xprd_half = static_cast<numtyp>(prd[0] * 0.5);
+    const numtyp yprd_half = static_cast<numtyp>(prd[1] * 0.5);
+    const numtyp zprd_half = static_cast<numtyp>(prd[2] * 0.5);
     _shared->k_special.run(&dev_nbor, &nbor_host, &dev_numj_host,
-                           &atom.dev_tag, &dev_nspecial, &dev_special,
+                           &atom.x, &atom.dev_tag, &dev_nspecial, &dev_special,
+                           &xprd_half, &yprd_half, &zprd_half,
+                           &periodicity[0], &periodicity[1], &periodicity[2],
                            &inum, &nt, &_max_nbors, &_threads_per_atom);
   }
   time_kernel.stop();

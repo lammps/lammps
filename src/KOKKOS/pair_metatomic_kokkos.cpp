@@ -99,7 +99,7 @@ void PairMetatomicKokkos<DeviceType>::pick_device(torch::Device& device, const c
         auto requested_str = std::string(requested);
         std::transform(requested_str.begin(), requested_str.end(), requested_str.begin(), ::tolower);
         if (c10::DeviceTypeName(device.type(), /*lower_case=*/true) != requested_str) {
-            error->all(FLERR,
+            error->one(FLERR,
                 "requested device '{}' does not match the device being used by kokkos '{}', "
                 "use the non-kokkos version of this pair style to use a different "
                 "device for the model and LAMMPS",

@@ -45,13 +45,13 @@ MetatomicSystemAdaptor::~MetatomicSystemAdaptor() {}
 
 void MetatomicSystemAdaptor::add_nl_request(double cutoff, metatomic_torch::NeighborListOptions request) {
     if (cutoff > options_.interaction_range) {
-        error->all(FLERR,
+        error->one(FLERR,
             "Invalid metatomic model: one of the requested neighbor lists "
             "has a cutoff ({}) larger than the model interaction range ({})",
             cutoff, options_.interaction_range
         );
     } else if (cutoff < 0 || !std::isfinite(cutoff)) {
-        error->all(FLERR,
+        error->one(FLERR,
             "model requested an invalid cutoff for neighbors list: {} "
             "(cutoff in model units is {})",
             cutoff, request->cutoff()
@@ -278,7 +278,7 @@ void MetatomicSystemAdaptor::setup_neighbors_remap(metatomic_torch::System& syst
                             });
                         } else {
                             // should be unreachable
-                            error->all(FLERR, "invalid dtype, this is a bug");
+                            error->one(FLERR, "invalid dtype, this is a bug");
                         }
                     }
                 }
@@ -317,7 +317,7 @@ void MetatomicSystemAdaptor::setup_neighbors_remap(metatomic_torch::System& syst
             );
         } else {
             // should be unreachable
-            error->all(FLERR, "invalid dtype, this is a bug");
+            error->one(FLERR, "invalid dtype, this is a bug");
         }
 
         {
@@ -408,7 +408,7 @@ void MetatomicSystemAdaptor::setup_neighbors_no_remap(metatomic_torch::System& s
                         });
                     } else {
                         // should be unreachable
-                        error->all(FLERR, "invalid dtype, this is a bug");
+                        error->one(FLERR, "invalid dtype, this is a bug");
                     }
                 }
             }
@@ -446,7 +446,7 @@ void MetatomicSystemAdaptor::setup_neighbors_no_remap(metatomic_torch::System& s
             );
         } else {
             // should be unreachable
-            error->all(FLERR, "invalid dtype, this is a bug");
+            error->one(FLERR, "invalid dtype, this is a bug");
         }
 
         {
@@ -526,7 +526,7 @@ metatomic_torch::System MetatomicSystemAdaptor::system_from_lmp(
     // While metatomic models can support mixed PBC settings, we currently
     // assume that the system is fully periodic and we throw an error otherwise
     if (!domain->xperiodic || !domain->yperiodic || !domain->zperiodic) {
-        error->all(FLERR, "pair_style metatomic requires a fully periodic system");
+        error->one(FLERR, "pair_style metatomic requires a fully periodic system");
     }
     auto pbc = torch::tensor(
         {domain->xperiodic, domain->yperiodic, domain->zperiodic},

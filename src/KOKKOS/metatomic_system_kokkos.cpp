@@ -47,12 +47,17 @@ MetatomicSystemAdaptorKokkos<DeviceType>::MetatomicSystemAdaptorKokkos(LAMMPS *l
     this->strain = torch::eye(3, tensor_options);
 }
 
+#include <iostream>
+#include "comm.h"
+
 template<class DeviceType>
 void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_remap_kk(metatomic_torch::System& system, NeighListKokkos<DeviceType>* list) {
     auto _ = MetatomicTimer("converting kokkos neighbors with ghosts remapping");
     auto dtype = system->positions().scalar_type();
 
     auto total_n_atoms = atomKK->nlocal + atomKK->nghost;
+
+    std::cout << "rank = " << comm->me << " nlocal = " << atomKK->nlocal << " nghost = " << atomKK->nghost << std::endl;
 
     {
         auto _ = MetatomicTimer("identifying ghosts and real atoms");
@@ -360,7 +365,7 @@ metatomic_torch::System MetatomicSystemAdaptorKokkos<DeviceType>::system_from_lm
     // While Metatomic models can support mixed PBC settings, we currently
     // assume that the system is fully periodic and we throw an error otherwise
     if (!domain->xperiodic || !domain->yperiodic || !domain->zperiodic) {
-        error->all(FLERR, "metatomic/kk currently requires a fully periodic system");
+        error->one(FLERR, "metatomic/kk currently requires a fully periodic system");
     }
     auto pbc = torch::tensor(
         {domain->xperiodic, domain->yperiodic, domain->zperiodic},
@@ -379,7 +384,7 @@ metatomic_torch::System MetatomicSystemAdaptorKokkos<DeviceType>::system_from_lm
         assert(kk_list != nullptr);
         this->setup_neighbors_remap_kk(system, kk_list);
     } else {
-        error->all(FLERR, "the kokkos version of metatomic requires remap_pairs to be true");
+        error->one(FLERR, "the kokkos version of metatomic requires remap_pairs to be true");
     }
 
     return system;

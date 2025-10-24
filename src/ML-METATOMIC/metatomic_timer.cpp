@@ -1,3 +1,4 @@
+#include <mpi.h>
 #include <mutex>
 #include <iostream>
 
@@ -57,7 +58,10 @@ MetatomicTimer::~MetatomicTimer() {
             std::cerr << "\n" << indent << this->name_;
         }
 
-        std::cerr << " took " << elapsed / 1e6 << "ms" << std::flush;
+        int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+        std::cerr << " took " << elapsed / 1e6 << "ms (rank " << rank << ")" << std::flush;
         METATOMIC_TIMER_DEPTH -= 1;
     }
 }

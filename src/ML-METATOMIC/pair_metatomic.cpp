@@ -75,7 +75,7 @@ PairMetatomic::PairMetatomic(LAMMPS *lmp):
         this->length_unit = "Bohr";
         this->energy_unit = "Hartree";
     } else {
-        error->all(FLERR, "unsupported units '{}' for pair metatomic ", update->unit_style);
+        error->one(FLERR, "unsupported units '{}' for pair metatomic ", update->unit_style);
     }
 
     // we might not be running a pure pair potential,
@@ -106,7 +106,7 @@ PairMetatomic::~PairMetatomic() {
 // called when finding `pair_style metatomic` in the input
 void PairMetatomic::settings(int argc, char ** argv) {
     if (argc == 0) {
-        error->all(FLERR, "expected at least 1 argument to pair_style metatomic, got {}", argc);
+        error->one(FLERR, "expected at least 1 argument to pair_style metatomic, got {}", argc);
     }
 
     const char* model_path = argv[0];
@@ -121,61 +121,61 @@ void PairMetatomic::settings(int argc, char ** argv) {
     for (int i=1; i<argc; i++) {
         if (strcmp(argv[i], "check_consistency") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected <on/off> after 'check_consistency' in pair_style metatomic, got nothing");
+                error->one(FLERR, "expected <on/off> after 'check_consistency' in pair_style metatomic, got nothing");
             } else if (strcmp(argv[i + 1], "on") == 0) {
                 mta_data->check_consistency = true;
             } else if (strcmp(argv[i + 1], "off") == 0) {
                 mta_data->check_consistency = false;
             } else {
-                error->all(FLERR, "expected <on/off> after 'check_consistency' in pair_style metatomic, got '{}'", argv[i + 1]);
+                error->one(FLERR, "expected <on/off> after 'check_consistency' in pair_style metatomic, got '{}'", argv[i + 1]);
             }
 
             i += 1;
         } else if (strcmp(argv[i], "remap_pairs") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected <on/off> after 'remap_pairs' in pair_style metatomic, got nothing");
+                error->one(FLERR, "expected <on/off> after 'remap_pairs' in pair_style metatomic, got nothing");
             } else if (strcmp(argv[i + 1], "on") == 0) {
                 mta_data->remap_pairs = true;
             } else if (strcmp(argv[i + 1], "off") == 0) {
                 mta_data->remap_pairs = false;
             } else {
-                error->all(FLERR, "expected <on/off> after 'remap_pairs' in pair_style metatomic, got '{}'", argv[i + 1]);
+                error->one(FLERR, "expected <on/off> after 'remap_pairs' in pair_style metatomic, got '{}'", argv[i + 1]);
             }
 
             i += 1;
         } else if (strcmp(argv[i], "non_conservative") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected <on/off> after 'non_conservative' in pair_style metatomic, got nothing");
+                error->one(FLERR, "expected <on/off> after 'non_conservative' in pair_style metatomic, got nothing");
             } else if (strcmp(argv[i + 1], "on") == 0) {
                 mta_data->non_conservative = true;
             } else if (strcmp(argv[i + 1], "off") == 0) {
                 mta_data->non_conservative = false;
             } else {
-                error->all(FLERR, "expected <on/off> after 'non_conservative' in pair_style metatomic, got '{}'", argv[i + 1]);
+                error->one(FLERR, "expected <on/off> after 'non_conservative' in pair_style metatomic, got '{}'", argv[i + 1]);
             }
 
             i += 1;
         } else if (strcmp(argv[i], "extensions") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected <path> after 'extensions' in pair_style metatomic, got nothing");
+                error->one(FLERR, "expected <path> after 'extensions' in pair_style metatomic, got nothing");
             }
             extensions_directory = argv[i + 1];
             i += 1;
         } else if (strcmp(argv[i], "device") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected string after 'device' in pair_style metatomic, got nothing");
+                error->one(FLERR, "expected string after 'device' in pair_style metatomic, got nothing");
             }
             requested_device = argv[i + 1];
             i += 1;
         } else if (strcmp(argv[i], "scale") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected a number after 'scale' in pair_style metatomic, got nothing");
+                error->one(FLERR, "expected a number after 'scale' in pair_style metatomic, got nothing");
             }
             this->scale = utils::numeric(FLERR, argv[i + 1], false, lmp);
             i += 1;
         } else if (strcmp(argv[i], "uncertainty_threshold") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected a number or off after 'uncertainty_threshold' in pair_style metatomic, got nothing");
+                error->one(FLERR, "expected a number or off after 'uncertainty_threshold' in pair_style metatomic, got nothing");
             } else if (strcmp(argv[i + 1], "off") == 0) {
                 do_uncertainty = false;
             } else {
@@ -183,41 +183,41 @@ void PairMetatomic::settings(int argc, char ** argv) {
             }
 
             if (mta_data->uncertainty_threshold <= 0) {
-                error->all(FLERR, "'uncertainty_threshold' in pair_style metatomic must be positive");
+                error->one(FLERR, "'uncertainty_threshold' in pair_style metatomic must be positive");
             }
             i += 1;
         } else if (strcmp(argv[i], "variant") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected a name after 'variant' in pair_style metatomic, got nothing");
+                error->one(FLERR, "expected a name after 'variant' in pair_style metatomic, got nothing");
             }
             variant = argv[i + 1];
             i += 1;
         } else if (strcmp(argv[i], "variant/energy") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected a name or 'off' after 'variant/energy' in pair_style metatomic, got nothing");
+                error->one(FLERR, "expected a name or 'off' after 'variant/energy' in pair_style metatomic, got nothing");
             }
             variant_energy = argv[i + 1];
             i += 1;
         } else if (strcmp(argv[i], "variant/energy_uncertainty") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected a name or 'off' after 'variant/energy_uncertainty' in pair_style metatomic, got nothing");
+                error->one(FLERR, "expected a name or 'off' after 'variant/energy_uncertainty' in pair_style metatomic, got nothing");
             }
             variant_energy_uq = argv[i + 1];
             i += 1;
         } else if (strcmp(argv[i], "variant/non_conservative_forces") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected a name or 'off' after 'variant/non_conservative_forces' in pair_style metatomic, got nothing");
+                error->one(FLERR, "expected a name or 'off' after 'variant/non_conservative_forces' in pair_style metatomic, got nothing");
             }
             variant_nc_forces = argv[i + 1];
             i += 1;
         } else if (strcmp(argv[i], "variant/non_conservative_stress") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected a name or 'off' after 'variant/non_conservative_stress' in pair_style metatomic, got nothing");
+                error->one(FLERR, "expected a name or 'off' after 'variant/non_conservative_stress' in pair_style metatomic, got nothing");
             }
             variant_nc_stress = argv[i + 1];
             i += 1;
         } else {
-            error->all(FLERR, "unexpected argument to pair_style metatomic: '{}'", argv[i]);
+            error->one(FLERR, "unexpected argument to pair_style metatomic: '{}'", argv[i]);
         }
     }
 
@@ -264,21 +264,21 @@ void PairMetatomic::settings(int argc, char ** argv) {
         bool forces_none = strcmp(variant_nc_forces, "off") == 0;
         bool stress_none = strcmp(variant_nc_stress, "off") == 0;
         if (forces_none != stress_none) {
-            error->all(FLERR,
+            error->one(FLERR,
                 "if both 'variant/non_conservative_stress' and "
                 "'variant/non_conservative_forces' are set, they must either "
                 "both be 'off' or both not be 'off'");
         }
     } else if (has_nc_forces && !has_nc_stress) {
         if (strcmp(variant_nc_forces, "off") != 0) {
-            error->all(FLERR,
+            error->one(FLERR,
                 "'variant/non_conservative_forces' is set but "
                 "'variant/non_conservative_stress' is not; "
                 "both must be set together or both be 'off'");
         }
     } else if (!has_nc_forces && has_nc_stress) {
         if (strcmp(variant_nc_stress, "off") != 0) {
-            error->all(FLERR,
+            error->one(FLERR,
                 "'variant/non_conservative_stress' is set but "
                 "'variant/non_conservative_forces' is not; "
                 "both must be set together or both be 'off'");
@@ -306,7 +306,7 @@ void PairMetatomic::settings(int argc, char ** argv) {
     auto energy_output = outputs.find(mta_data->energy_key);
     // LAMMPS assume that an energy will be available
     if (energy_output == outputs.end()) {
-        lmp->error->all(FLERR,
+        lmp->error->one(FLERR,
             "the model at '{}' does not have an 'energy' output, "
             "we can not use it with pair_style metatomic.",
             model_path
@@ -344,7 +344,7 @@ void PairMetatomic::settings(int argc, char ** argv) {
     if (mta_data->non_conservative) {
         auto nc_forces = outputs.find(mta_data->nc_forces_key);
         if (nc_forces == outputs.end()) {
-            error->all(FLERR,
+            error->one(FLERR,
                 "the model at '{}' does not have a '{}' output, "
                 "we can not enable non_conservative simulations",
                 model_path, mta_data->nc_forces_key
@@ -352,7 +352,7 @@ void PairMetatomic::settings(int argc, char ** argv) {
         }
 
         if (!nc_forces->value()->per_atom) {
-            error->all(FLERR,
+            error->one(FLERR,
                 "the '{}' output of the model at '{}' "
                 "can not produce per-atom output, we can not enable non_conservative simulations",
                 mta_data->nc_forces_key, model_path
@@ -413,7 +413,7 @@ void PairMetatomic::pick_device(torch::Device& device, const char* requested) {
             requested_string
         );
     } catch (const c10::Error& e) {
-        error->all(FLERR, "pair_style metatomic: {}", e.what());
+        error->one(FLERR, "pair_style metatomic: {}", e.what());
     }
 
     if (device_string == "cuda") {
@@ -492,11 +492,11 @@ double PairMetatomic::init_one(int, int) {
 // called on pair_coeff
 void PairMetatomic::coeff(int argc, char ** argv) {
     if (argc < 3 || strcmp(argv[0], "*") != 0 || strcmp(argv[1], "*") != 0) {
-        error->all(FLERR, "invalid pair_coeff, expected `pair_coeff * * <list of types>`");
+        error->one(FLERR, "invalid pair_coeff, expected `pair_coeff * * <list of types>`");
     }
 
     if (atom->ntypes != argc - 2) {
-        error->all(FLERR,
+        error->one(FLERR,
             "invalid pair_coeff, expected `pair_coeff * * <list of types>` with {} types",
             atom->ntypes
         );
@@ -524,16 +524,16 @@ void PairMetatomic::init_style() {
     // gradient of a local descriptor w.r.t. domain ghosts (periodic images
     // ghosts are handled separately).
     if (force->newton_pair != 1) {
-        error->all(FLERR, "Pair style metatomic requires newton pair on");
+        error->one(FLERR, "Pair style metatomic requires newton pair on");
     }
 
     // get the model's interaction range
     auto range = mta_data->capabilities->engine_interaction_range(mta_data->evaluation_options->length_unit());
     if (range < 0) {
-        error->all(FLERR, "interaction_range is negative for this model");
+        error->one(FLERR, "interaction_range is negative for this model");
     } else if (!std::isfinite(range)) {
         if (comm->nprocs > 1) {
-            error->all(FLERR,
+            error->one(FLERR,
                 "interaction_range is infinite for this model, "
                 "using multiple MPI domains is not supported"
             );
@@ -552,7 +552,7 @@ void PairMetatomic::init_style() {
     }
 
     if (!std::isfinite(mta_data->max_cutoff)) {
-        error->all(FLERR,
+        error->one(FLERR,
             "the largest cutoff of this model is infinite, "
             "we can't compute the corresponding neighbor list"
         );
@@ -609,7 +609,7 @@ void PairMetatomic::compute(int eflag, int vflag) {
     if (eflag_either || !mta_data->non_conservative) {
         if (eflag_atom) {
             if (!mta_data->is_energy_output_per_atom) {
-                error->all(FLERR,
+                error->one(FLERR,
                     "the model at '{}' does not support per-atom 'energy' output",
                     mta_data->model_path
                 );
@@ -631,7 +631,7 @@ void PairMetatomic::compute(int eflag, int vflag) {
         mta_data->evaluation_options->outputs.insert(mta_data->nc_forces_key, mta_data->nc_forces_output);
         if (vflag_global) {
             if (mta_data->nc_stress_output == nullptr) {
-                error->all(FLERR,
+                error->one(FLERR,
                     "the model at '{}' does not have a '{}' output, "
                     "we can not run non_conservative simulations that require computing the stress/virial",
                     mta_data->model_path, mta_data->nc_stress_key
@@ -647,7 +647,7 @@ void PairMetatomic::compute(int eflag, int vflag) {
     } else if (mta_data->capabilities->dtype() == "float32") {
         dtype = torch::kFloat32;
     } else {
-        error->all(FLERR, "the model requested an unsupported dtype '{}'", mta_data->capabilities->dtype());
+        error->one(FLERR, "the model requested an unsupported dtype '{}'", mta_data->capabilities->dtype());
     }
 
     // transform from LAMMPS to metatomic System
@@ -684,7 +684,7 @@ void PairMetatomic::compute(int eflag, int vflag) {
             mta_data->check_consistency
         });
     } catch (const std::exception& e) {
-        error->all(FLERR, "error evaluating the torch model: {}", e.what());
+        error->one(FLERR, "error evaluating the torch model: {}", e.what());
     }
 
     auto results = results_ivalue.toGenericDict();
@@ -836,7 +836,7 @@ void PairMetatomic::compute(int eflag, int vflag) {
         }
 
         if (vflag_atom) {
-            error->all(FLERR, "per atom virial is not implemented");
+            error->one(FLERR, "per atom virial is not implemented");
         }
     }
 }

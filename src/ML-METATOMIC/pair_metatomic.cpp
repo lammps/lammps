@@ -696,7 +696,10 @@ void PairMetatomic::compute(int eflag, int vflag) {
             auto atoms = uncertainty_block->samples()->column("atom").index({atoms_above_thresholds});
             std::ostringstream atoms_message;
             atoms_message << "atoms at index [";
-            for (size_t i=0; i<10; i++) {
+
+            // only print the first 10 atoms above the threshold to avoid
+            // flooding the output
+            for (size_t i=0; i<std::min(static_cast<int64_t>(10), atoms.size(0)); i++) {
                 if (i > 0) {
                     atoms_message << ", ";
                 }

@@ -329,12 +329,14 @@ void PairMetatomic::settings(int argc, char ** argv) {
             mta_data->uncertainty_output->set_unit(this->energy_unit);
             mta_data->uncertainty_output->per_atom = true;
 
-            auto message = "Found '{}' output, we will check for atoms with high uncertainty on the energy predictions";
-            if (screen) {
-                fprintf(screen, "%s\n", fmt::format(message, mta_data->energy_uq_key).c_str());
-            }
-            if (logfile) {
-                fprintf(logfile,"%s\n", fmt::format(message, mta_data->energy_uq_key).c_str());
+            if (comm->me == 0) {
+                auto message = "Found '{}' output, we will check for atoms with high uncertainty on the energy predictions";
+                if (screen) {
+                    fprintf(screen, "%s\n", fmt::format(message, mta_data->energy_uq_key).c_str());
+                }
+                if (logfile) {
+                    fprintf(logfile,"%s\n", fmt::format(message, mta_data->energy_uq_key).c_str());
+                }
             }
         }
     }
@@ -406,7 +408,10 @@ void PairMetatomic::pick_device(torch::Device& device, const char* requested) {
     }
 
     try {
-        device_string = metatomic_torch::pick_device(this->mta_data->capabilities->supported_devices, requested_string);
+        device_string = metatomic_torch::pick_device(
+            this->mta_data->capabilities->supported_devices,
+            requested_string
+        );
     } catch (const c10::Error& e) {
         error->all(FLERR, "pair_style metatomic: {}", e.what());
     }

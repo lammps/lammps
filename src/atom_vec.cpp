@@ -2537,7 +2537,7 @@ void AtomVec::setup_fields()
   }
 
   // calculate maxexchange for buffer allocation during atom exchange
-  // 10 = base fields: x, v, tag, type, mask, image (in pack_exchange)
+  // 10 = base fields in pack_exchange: x[3], v[3], tag, type, mask, image
   // add to existing maxexchange which may have been set by derived classes for bonus data
   int size = 10;
   for (n = 0; n < nexchange; n++) {

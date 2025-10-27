@@ -191,7 +191,7 @@ std::enable_if_t<use_shuffle_based_algorithm<ReducerType>> workgroup_reduction(
   if (id_in_sg == 0 && sg_group_id <= n_active_subgroups)
     local_mem[sg_group_id] = local_value;
 
-  item.barrier(sycl::access::fence_space::local_space);
+  sycl::group_barrier(item.get_group());
 
   // Do the final reduction only using the first subgroup.
   if (sg.get_group_id()[0] == 0) {
@@ -206,7 +206,7 @@ std::enable_if_t<use_shuffle_based_algorithm<ReducerType>> workgroup_reduction(
         if (id_in_sg + offset < n_active_subgroups) {
           final_reducer.join(&sg_value, &local_mem[(id_in_sg + offset)]);
         }
-      sg.barrier();
+      sycl::group_barrier(sg);
     }
 
     // Then, we proceed as before.

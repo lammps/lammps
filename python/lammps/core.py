@@ -2206,6 +2206,20 @@ class lammps:
     """
     return self.lib.lammps_config_has_mpi_support() != 0
 
+   # -------------------------------------------------------------------------
+
+  @property
+  def has_omp_support(self):
+    """ Report whether the LAMMPS shared library was compiled with OpenMP enabled.
+
+    This is a wrapper around the :cpp:func:`lammps_config_has_omp_support`
+    function of the library interface.
+
+    :return: True when compiled with OpenMP enabled, otherwise False
+    :rtype: bool
+    """
+    return self.lib.lammps_config_has_omp_support() != 0
+
   # -------------------------------------------------------------------------
 
   @property

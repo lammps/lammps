@@ -22,7 +22,7 @@
 
 template <typename Abi, typename DataType>
 inline void host_check_condition() {
-  if constexpr (is_type_v<Kokkos::Experimental::basic_simd<DataType, Abi>>) {
+  if constexpr (is_simd_avail_v<DataType, Abi>) {
     using simd_type = typename Kokkos::Experimental::basic_simd<DataType, Abi>;
     using mask_type = typename simd_type::mask_type;
 

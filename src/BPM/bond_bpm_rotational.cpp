@@ -88,61 +88,7 @@ BondBPMRotational::~BondBPMRotational()
 }
 
 /* ----------------------------------------------------------------------
-  Store data for a single bond - if bond added after LAMMPS init (e.g. pour)
-------------------------------------------------------------------------- */
-
-double BondBPMRotational::store_bond(int n, int i, int j)
-{
-  double delx, dely, delz, r, rinv;
-  double **x = atom->x;
-  tagint *tag = atom->tag;
-  double **bondstore = fix_bond_history->bondstore;
-
-  if (tag[i] < tag[j]) {
-    delx = x[i][0] - x[j][0];
-    dely = x[i][1] - x[j][1];
-    delz = x[i][2] - x[j][2];
-  } else {
-    delx = x[j][0] - x[i][0];
-    dely = x[j][1] - x[i][1];
-    delz = x[j][2] - x[i][2];
-  }
-
-  r = sqrt(delx * delx + dely * dely + delz * delz);
-  rinv = 1.0 / r;
-
-  bondstore[n][0] = r;
-  bondstore[n][1] = delx * rinv;
-  bondstore[n][2] = dely * rinv;
-  bondstore[n][3] = delz * rinv;
-
-  if (i < atom->nlocal) {
-    for (int m = 0; m < atom->num_bond[i]; m++) {
-      if (atom->bond_atom[i][m] == tag[j]) {
-        fix_bond_history->update_atom_value(i, m, 0, r);
-        fix_bond_history->update_atom_value(i, m, 1, delx * rinv);
-        fix_bond_history->update_atom_value(i, m, 2, dely * rinv);
-        fix_bond_history->update_atom_value(i, m, 3, delz * rinv);
-      }
-    }
-  }
-
-  if (j < atom->nlocal) {
-    for (int m = 0; m < atom->num_bond[j]; m++) {
-      if (atom->bond_atom[j][m] == tag[i]) {
-        fix_bond_history->update_atom_value(j, m, 0, r);
-        fix_bond_history->update_atom_value(j, m, 1, delx * rinv);
-        fix_bond_history->update_atom_value(j, m, 2, dely * rinv);
-        fix_bond_history->update_atom_value(j, m, 3, delz * rinv);
-      }
-    }
-  }
-
-  return r;
-}
-
-/* ----------------------------------------------------------------------
-  Store data for all bonds called once
+  Store data for all bonds, called once
 ------------------------------------------------------------------------- */
 
 void BondBPMRotational::store_data()
@@ -186,8 +132,6 @@ void BondBPMRotational::store_data()
       fix_bond_history->update_atom_value(i, m, 3, delz * rinv);
     }
   }
-
-  fix_bond_history->post_neighbor();
 }
 
 /* ----------------------------------------------------------------------
@@ -458,12 +402,7 @@ void BondBPMRotational::damping_forces(int i1, int i2, int type, double *rhat, d
 
 void BondBPMRotational::compute(int eflag, int vflag)
 {
-  if (!fix_bond_history->stored_flag) {
-    fix_bond_history->stored_flag = true;
-    store_data();
-  }
-
-  if (hybrid_flag) fix_bond_history->compress_history();
+  pre_compute();
 
   int i1, i2, itmp, n, type;
   double r[3], r0[3], rhat[3];
@@ -493,7 +432,6 @@ void BondBPMRotational::compute(int eflag, int vflag)
     i1 = bondlist[n][0];
     i2 = bondlist[n][1];
     type = bondlist[n][2];
-    r0_mag = bondstore[n][0];
 
     // Ensure pair is always ordered such that r0 points in
     // a consistent direction and to ensure numerical operations
@@ -505,14 +443,6 @@ void BondBPMRotational::compute(int eflag, int vflag)
       i2 = itmp;
     }
 
-    // If bond hasn't been set - should be initialized to zero
-    if (r0_mag < EPSILON || std::isnan(r0_mag)) r0_mag = store_bond(n, i1, i2);
-
-    r0[0] = bondstore[n][1];
-    r0[1] = bondstore[n][2];
-    r0[2] = bondstore[n][3];
-    MathExtra::scale3(r0_mag, r0);
-
     // Note this is the reverse of Mora & Wang
     MathExtra::sub3(x[i1], x[i2], r);
 
@@ -520,6 +450,21 @@ void BondBPMRotational::compute(int eflag, int vflag)
     r_mag = sqrt(rsq);
     r_mag_inv = 1.0 / r_mag;
     MathExtra::scale3(r_mag_inv, r, rhat);
+
+    // If bond hasn't been set (should be initialized to zero)
+    r0_mag = bondstore[n][0];
+    if (r0_mag < EPSILON || std::isnan(r0_mag)) {
+      r0_mag = bondstore[n][0] = r_mag;
+      bondstore[n][1] = rhat[0];
+      bondstore[n][2] = rhat[1];
+      bondstore[n][3] = rhat[2];
+      process_new(n, i1, i2);
+    }
+    r0[0] = bondstore[n][1];
+    r0[1] = bondstore[n][2];
+    r0[2] = bondstore[n][3];
+
+    MathExtra::scale3(r0_mag, r0);
 
     // ------------------------------------------------------//
     //  Calculate forces, check if bond breaks
@@ -576,7 +521,7 @@ void BondBPMRotational::compute(int eflag, int vflag)
                    -force1on2[2], r[0], r[1], r[2]);
   }
 
-  if (hybrid_flag) fix_bond_history->uncompress_history();
+  post_compute();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -28,10 +28,10 @@
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H
 
-// C++11 check
+// C++17 check
 
-#if __cplusplus < 201103L
-#error LAMMPS requires a C++11 (or later) compliant compiler. Enable C++11 compatibility or upgrade the compiler.
+#if __cplusplus < 201703L
+#error LAMMPS requires a C++17 (or later) compliant compiler. Enable C++17 compatibility or upgrade the compiler.
 #endif
 
 #ifndef __STDC_LIMIT_MACROS

@@ -414,7 +414,7 @@ __device__ void cuda_intra_block_reduce_scan(
 
   const unsigned value_count = functor.length();
   const unsigned not_less_power_of_two =
-      (1 << (Impl::int_log2(blockDim.y - 1) + 1));
+      Kokkos::Experimental::bit_ceil_builtin(blockDim.y);
   const unsigned BlockSizeMask = not_less_power_of_two - 1;
   // There is at most one warp that is neither completely full or empty.
   // For that warp, we shift all indices logically to the end and ignore join

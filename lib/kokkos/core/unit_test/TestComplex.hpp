@@ -727,6 +727,23 @@ constexpr bool can_appear_in_constant_expressions() {
 
 static_assert(can_appear_in_constant_expressions());
 
+constexpr bool comparison_in_constant_expression() {
+  static_assert(Kokkos::complex<double>{42., 43.} ==
+                Kokkos::complex<double>{42., 43.});
+  static_assert(Kokkos::complex<double>{42., 43.} !=
+                Kokkos::complex<double>{42., 42.});
+
+  static_assert(Kokkos::complex<double>{42., 0.} == double{42.});
+  static_assert(Kokkos::complex<double>{42., 43.} != double{42.});
+
+  static_assert(double{42.} == Kokkos::complex<double>{42., 0.});
+  static_assert(double{43.} != Kokkos::complex<double>{42., 0.});
+
+  return true;
+}
+
+static_assert(comparison_in_constant_expression());
+
 }  // namespace Test
 
 #ifdef KOKKOS_COMPILER_NVCC

@@ -73,8 +73,8 @@ src/EXTRA-COMPUTE/compute_stress_mop*.* @RomainVermorel
 src/EXTRA-COMPUTE/compute_born_matrix.* @Bibobu @athomps
 src/EXTRA-DUMP/dump_extxyz.*          @fxcoudert
 src/EXTRA-FIX/fix_deform_pressure.* @jtclemm
-src/EXTRA-PAIR/pair_dispersion_d3.* @soniasolomoni @arthurfl
-src/EXTRA-PAIR/d3_parameters.h      @soniasolomoni @arthurfl
+src/EXTRA-PAIR/pair_dispersion_d3.* @soniasalomoni @arthurfl
+src/EXTRA-PAIR/d3_parameters.h      @soniasalomoni @arthurfl
 src/MISC/*_tracker.*                @jtclemm
 src/MC/fix_gcmc.*                   @athomps
 src/MC/fix_sgcmc.*                  @athomps
@@ -111,7 +111,7 @@ src/main.cpp              @sjplimp
 src/min_*.*               @sjplimp
 src/memory.*              @sjplimp
 src/modify.*              @sjplimp @stanmoore1
-src/molecule.*            @sjplimp
+src/molecule.*            @sjplimp @akohlmey
 src/my_page.h             @sjplimp
 src/my_pool_chunk.h       @sjplimp
 src/npair*.*              @sjplimp @jtclemm
@@ -140,6 +140,7 @@ src/variable.*            @sjplimp
 src/velocity.*            @sjplimp
 src/write_data.*          @sjplimp
 src/write_restart.*       @sjplimp
+src/write_molecule.*      @akohlmey
 
 # overrides for specific files
 src/dump_movie.*          @akohlmey

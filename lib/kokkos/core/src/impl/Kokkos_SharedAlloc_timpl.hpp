@@ -31,6 +31,7 @@
 namespace Kokkos {
 namespace Impl {
 
+// NOLINTBEGIN(bugprone-exception-escape)
 template <class MemorySpace>
 SharedAllocationRecordCommon<MemorySpace>::~SharedAllocationRecordCommon() {
   auto alloc_ptr  = SharedAllocationRecord<void, void>::m_alloc_ptr;
@@ -48,6 +49,7 @@ HostInaccessibleSharedAllocationRecordCommon<
   m_space.deallocate(label.c_str(), alloc_ptr, alloc_size,
                      alloc_size - sizeof(SharedAllocationHeader));
 }
+// NOLINTEND(bugprone-exception-escape)
 
 template <class MemorySpace>
 SharedAllocationRecordCommon<MemorySpace>::SharedAllocationRecordCommon(

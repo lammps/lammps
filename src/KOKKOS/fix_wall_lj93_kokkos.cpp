@@ -77,20 +77,20 @@ void FixWallLJ93Kokkos<DeviceType>::precompute(int m)
   FixWallLJ93::precompute(m);
 
   for( int i=0 ; i<6 ; i++ ) {
-    k_cutoff.h_view(i) = cutoff[i];
-    k_coeff1.h_view(i) = coeff1[i];
-    k_coeff2.h_view(i) = coeff2[i];
-    k_coeff3.h_view(i) = coeff3[i];
-    k_coeff4.h_view(i) = coeff4[i];
-    k_offset.h_view(i) = offset[i];
+    k_cutoff.view_host()(i) = cutoff[i];
+    k_coeff1.view_host()(i) = coeff1[i];
+    k_coeff2.view_host()(i) = coeff2[i];
+    k_coeff3.view_host()(i) = coeff3[i];
+    k_coeff4.view_host()(i) = coeff4[i];
+    k_offset.view_host()(i) = offset[i];
   }
 
-  k_cutoff.template modify<LMPHostType>();
-  k_coeff1.template modify<LMPHostType>();
-  k_coeff2.template modify<LMPHostType>();
-  k_coeff3.template modify<LMPHostType>();
-  k_coeff4.template modify<LMPHostType>();
-  k_offset.template modify<LMPHostType>();
+  k_cutoff.modify_host();
+  k_coeff1.modify_host();
+  k_coeff2.modify_host();
+  k_coeff3.modify_host();
+  k_coeff4.modify_host();
+  k_offset.modify_host();
 
   k_cutoff.template sync<DeviceType>();
   k_coeff1.template sync<DeviceType>();
@@ -120,7 +120,7 @@ void FixWallLJ93Kokkos<DeviceType>::post_force(int vflag)
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 }
 
@@ -171,23 +171,23 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixWallLJ93Kokkos<DeviceType>::operator()(const int &i, value_type result) const {
   if (d_mask(i) & groupbit) {
-    double delta;
+    KK_FLOAT delta;
     if (side < 0) delta = d_x(i,dim) - coord;
     else delta = coord - d_x(i,dim);
     if (delta >= d_cutoff(m)) return;
     if (delta <= 0.0)
       Kokkos::abort("Particle on or inside fix wall surface");
-    double rinv = 1.0/delta;
-    double r2inv = rinv*rinv;
-    double r4inv = r2inv*r2inv;
-    double r10inv = r4inv*r4inv*r2inv;
-    double fwall = side * (d_coeff1(m)*r10inv - d_coeff2(m)*r4inv);
+    KK_FLOAT rinv = 1.0/delta;
+    KK_FLOAT r2inv = rinv*rinv;
+    KK_FLOAT r4inv = r2inv*r2inv;
+    KK_FLOAT r10inv = r4inv*r4inv*r2inv;
+    KK_FLOAT fwall = side * (d_coeff1(m)*r10inv - d_coeff2(m)*r4inv);
     d_f(i,dim) -= fwall;
     result[0] += d_coeff3(m)*r4inv*r4inv*rinv - d_coeff4(m)*r2inv*rinv - d_offset(m);
     result[m+1] += fwall;
 
     if (evflag) {
-      double vn;
+      KK_FLOAT vn;
       if (side < 0)
         vn = -fwall * delta;
       else
@@ -211,7 +211,7 @@ void FixWallLJ93Kokkos<DeviceType>::operator()(const int &i, value_type result) 
 
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixWallLJ93Kokkos<DeviceType>::v_tally(value_type result, int n, int i, double vn) const
+void FixWallLJ93Kokkos<DeviceType>::v_tally(value_type result, int n, int i, KK_FLOAT vn) const
 {
   if (vflag_global)
     result[n+7] += vn;

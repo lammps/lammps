@@ -21,6 +21,7 @@
 #if defined(KOKKOS_ENABLE_OPENMP)
 
 #include <OpenMP/Kokkos_OpenMP_Instance.hpp>
+#include <Kokkos_BitManipulation.hpp>
 
 namespace Kokkos {
 namespace Impl {
@@ -307,9 +308,9 @@ class TeamPolicyInternal<Kokkos::OpenMP, Properties...>
     int concurrency = m_space.impl_thread_pool_size(0) / m_team_alloc;
     if (concurrency == 0) concurrency = 1;
 
-    if (m_chunk_size > 0) {
-      if (!Impl::is_integral_power_of_two(m_chunk_size))
-        Kokkos::abort("TeamPolicy blocking granularity must be power of two");
+    if (m_chunk_size > 0 &&
+        !Kokkos::has_single_bit(static_cast<unsigned>(m_chunk_size))) {
+      Kokkos::abort("TeamPolicy blocking granularity must be power of two");
     }
 
     int new_chunk_size = 1;

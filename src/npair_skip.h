@@ -17,42 +17,42 @@ using NPairSkip = NPairSkipTemp<0>;
 NPairStyle(skip,
            NPairSkip,
            NP_SKIP | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
 using NPairSkip = NPairSkipTemp<0>;
 NPairStyle(skip/ghost,
            NPairSkip,
            NP_SKIP | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_GHOST);
 
 using NPairSkipSize = NPairSkipTemp<0>;
 NPairStyle(skip/half/size,
            NPairSkipSize,
            NP_SKIP | NP_SIZE | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
 using NPairSkipTrim = NPairSkipTemp<1>;
 NPairStyle(skip/trim,
            NPairSkipTrim,
            NP_SKIP | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM);
 
 using NPairSkipTrim = NPairSkipTemp<1>;
 NPairStyle(skip/ghost/trim,
            NPairSkipTrim,
            NP_SKIP | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_GHOST | NP_TRIM);
 
 using NPairSkipTrimSize = NPairSkipTemp<1>;
 NPairStyle(skip/trim/half/size,
            NPairSkipTrimSize,
            NP_SKIP | NP_SIZE | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM);
 
 // clang-format on

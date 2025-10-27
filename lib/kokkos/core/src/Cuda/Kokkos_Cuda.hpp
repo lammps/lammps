@@ -54,7 +54,6 @@ class CudaInternal;
 namespace Kokkos {
 
 namespace Impl {
-namespace Experimental {
 enum class CudaLaunchMechanism : unsigned {
   Default        = 0,
   ConstantMemory = 1,
@@ -72,12 +71,6 @@ constexpr inline CudaLaunchMechanism operator&(CudaLaunchMechanism p1,
   return static_cast<CudaLaunchMechanism>(static_cast<unsigned>(p1) &
                                           static_cast<unsigned>(p2));
 }
-
-template <CudaLaunchMechanism l>
-struct CudaDispatchProperties {
-  CudaLaunchMechanism launch_mechanism = l;
-};
-}  // namespace Experimental
 
 enum class ManageStream : bool { no, yes };
 

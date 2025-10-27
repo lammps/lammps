@@ -974,6 +974,19 @@ void ReadDump::process_atoms()
       }
     }
 
+    // check if atom type is valid
+
+    if ((itype < 1) || (itype > atom->ntypes)) {
+      tagint newtag = i + 1;
+      if ((atom->tag_enable) && (atom->map_tag_max > 0)) {
+        newtag += atom->map_tag_max;
+      } else {
+        newtag += atom->natoms;
+      }
+      error->all(FLERR, Error::NOLASTLINE, "Atom type {} for new atom-ID {} is out of range",
+                 itype, newtag);
+    }
+
     // create the atom on proc that owns it
     // reset v,image ptrs in case they are reallocated
 
@@ -1183,7 +1196,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
   // check for no fields
 
   if (fieldtype[nfield-1] == Reader::ID || fieldtype[nfield-1] == Reader::TYPE)
-    error->all(FLERR,"Read_dump must use at least either 'id' or 'type' field");
+    error->all(FLERR,"Read_dump command is empty or starts with an invalid field. Use at least 'id' or 'type'.");
 
   if (domain->dimension == 2) {
     for (int i = 0; i < nfield; i++)

@@ -558,7 +558,9 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_ui_large(const typ
 
   // we need to "choose" when to bend
   #ifdef LMP_KK_DEVICE_COMPILE
+  #ifndef KOKKOS_ENABLE_SYCL
   #pragma unroll
+  #endif
   #endif
   for (int j_bend = 0; j_bend <= twojmax; j_bend++) {
     // Initialize u00 to 1.0 for all legal neighbors
@@ -939,7 +941,9 @@ auto SNAKokkos<DeviceType, real_type, vector_length>::evaluate_zi(const int& j1,
   int jju2 = idxu_block[j2] + (j2+1)*mb2max;
   int icgb = mb1min*(j2+1) + mb2max;
   #ifdef LMP_KK_DEVICE_COMPILE
+  #ifndef KOKKOS_ENABLE_SYCL
   #pragma unroll
+  #endif
   #endif
   for (int ib = 0; ib < nb; ib++) {
 
@@ -948,7 +952,9 @@ auto SNAKokkos<DeviceType, real_type, vector_length>::evaluate_zi(const int& j1,
     int icga = ma1min*(j2+1) + ma2max;
 
     #ifdef LMP_KK_DEVICE_COMPILE
+    #ifndef KOKKOS_ENABLE_SYCL
     #pragma unroll
+    #endif
     #endif
     for (int ia = 0; ia < na; ia++) {
       const real_type cgcoeff_a = cgblock[icga];

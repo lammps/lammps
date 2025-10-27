@@ -23,6 +23,7 @@ static_assert(false,
 #define KOKKOS_MEMORYTRAITS_HPP
 
 #include <impl/Kokkos_Traits.hpp>
+#include <Kokkos_BitManipulation.hpp>
 
 //----------------------------------------------------------------------------
 
@@ -44,7 +45,7 @@ enum MemoryTraitsFlags {
   Aligned      = 0x10
 };
 
-template <unsigned T>
+template <unsigned T = 0>
 struct MemoryTraits {
   //! Tag this class as a kokkos memory traits:
   using memory_traits = MemoryTraits<T>;
@@ -69,7 +70,9 @@ struct MemoryTraits {
 
 namespace Kokkos {
 
-using MemoryManaged   = Kokkos::MemoryTraits<0>;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+using MemoryManaged KOKKOS_DEPRECATED = Kokkos::MemoryTraits<>;
+#endif
 using MemoryUnmanaged = Kokkos::MemoryTraits<Kokkos::Unmanaged>;
 using MemoryRandomAccess =
     Kokkos::MemoryTraits<Kokkos::Unmanaged | Kokkos::RandomAccess>;
@@ -81,21 +84,22 @@ using MemoryRandomAccess =
 namespace Kokkos {
 namespace Impl {
 
-static_assert((0 < int(KOKKOS_MEMORY_ALIGNMENT)) &&
-                  (0 == (int(KOKKOS_MEMORY_ALIGNMENT) &
-                         (int(KOKKOS_MEMORY_ALIGNMENT) - 1))),
-              "KOKKOS_MEMORY_ALIGNMENT must be a power of two");
-
 /** \brief Memory alignment settings
  *
  *  Sets global value for memory alignment.  Must be a power of two!
  *  Enable compatibility of views from different devices with static stride.
  *  Use compiler flag to enable overwrites.
  */
-enum : unsigned {
-  MEMORY_ALIGNMENT           = KOKKOS_MEMORY_ALIGNMENT,
-  MEMORY_ALIGNMENT_THRESHOLD = KOKKOS_MEMORY_ALIGNMENT_THRESHOLD
-};
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+static constexpr unsigned MEMORY_ALIGNMENT = KOKKOS_IMPL_MEMORY_ALIGNMENT;
+static constexpr unsigned MEMORY_ALIGNMENT_THRESHOLD =
+    KOKKOS_IMPL_MEMORY_ALIGNMENT_THRESHOLD;
+#else
+static constexpr unsigned MEMORY_ALIGNMENT           = 64;
+static constexpr unsigned MEMORY_ALIGNMENT_THRESHOLD = 1;
+#endif
+static_assert(has_single_bit(MEMORY_ALIGNMENT),
+              "MEMORY_ALIGNMENT must be a power of 2");
 
 // ------------------------------------------------------------------ //
 //  this identifies the default memory trait
@@ -104,7 +108,7 @@ template <typename Tp>
 struct is_default_memory_trait : std::false_type {};
 
 template <>
-struct is_default_memory_trait<Kokkos::MemoryTraits<0>> : std::true_type {};
+struct is_default_memory_trait<Kokkos::MemoryTraits<>> : std::true_type {};
 
 }  // namespace Impl
 }  // namespace Kokkos

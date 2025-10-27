@@ -1704,65 +1704,29 @@ inline std::enable_if_t<Kokkos::is_execution_policy<PolicyType>::value &&
                           std::is_pointer_v<ReturnType>)>
 parallel_reduce(const PolicyType& policy, const FunctorType& functor,
                 ReturnType& return_value) {
-  static_assert(
-      !std::is_const_v<ReturnType>,
-      "A const reduction result type is only allowed for a View, pointer or "
-      "reducer return type!");
-
-  Impl::ParallelReduceAdaptor<PolicyType, FunctorType, ReturnType>::execute(
-      "", policy, functor, return_value);
-  Impl::ParallelReduceFence<typename PolicyType::execution_space, ReturnType>::
-      fence(
-          policy.space(),
-          "Kokkos::parallel_reduce: fence due to result being value, not view",
-          return_value);
+  parallel_reduce("", policy, functor, return_value);
 }
 
 template <class FunctorType, class ReturnType>
 inline std::enable_if_t<!(Kokkos::is_view<ReturnType>::value ||
                           Kokkos::is_reducer<ReturnType>::value ||
                           std::is_pointer_v<ReturnType>)>
-parallel_reduce(const size_t& policy, const FunctorType& functor,
-                ReturnType& return_value) {
-  static_assert(
-      !std::is_const_v<ReturnType>,
-      "A const reduction result type is only allowed for a View, pointer or "
-      "reducer return type!");
-
-  using policy_type =
-      typename Impl::ParallelReducePolicyType<void, size_t,
-                                              FunctorType>::policy_type;
-
-  Impl::ParallelReduceAdaptor<policy_type, FunctorType, ReturnType>::execute(
-      "", policy_type(0, policy), functor, return_value);
-  Impl::ParallelReduceFence<typename policy_type::execution_space, ReturnType>::
-      fence(
-          typename policy_type::execution_space(),
-          "Kokkos::parallel_reduce: fence due to result being value, not view",
-          return_value);
-}
-
-template <class FunctorType, class ReturnType>
-inline std::enable_if_t<!(Kokkos::is_view<ReturnType>::value ||
-                          Kokkos::is_reducer<ReturnType>::value ||
-                          std::is_pointer_v<ReturnType>)>
-parallel_reduce(const std::string& label, const size_t& policy,
+parallel_reduce(const std::string& label, const size_t& work_count,
                 const FunctorType& functor, ReturnType& return_value) {
-  static_assert(
-      !std::is_const_v<ReturnType>,
-      "A const reduction result type is only allowed for a View, pointer or "
-      "reducer return type!");
-
   using policy_type =
       typename Impl::ParallelReducePolicyType<void, size_t,
                                               FunctorType>::policy_type;
-  Impl::ParallelReduceAdaptor<policy_type, FunctorType, ReturnType>::execute(
-      label, policy_type(0, policy), functor, return_value);
-  Impl::ParallelReduceFence<typename policy_type::execution_space, ReturnType>::
-      fence(
-          typename policy_type::execution_space(),
-          "Kokkos::parallel_reduce: fence due to result being value, not view",
-          return_value);
+
+  parallel_reduce(label, policy_type(0, work_count), functor, return_value);
+}
+
+template <class FunctorType, class ReturnType>
+inline std::enable_if_t<!(Kokkos::is_view<ReturnType>::value ||
+                          Kokkos::is_reducer<ReturnType>::value ||
+                          std::is_pointer_v<ReturnType>)>
+parallel_reduce(const size_t& work_count, const FunctorType& functor,
+                ReturnType& return_value) {
+  parallel_reduce("", work_count, functor, return_value);
 }
 
 // ReturnValue as View or Reducer: take by copy to allow for inline construction
@@ -1791,52 +1755,29 @@ inline std::enable_if_t<Kokkos::is_execution_policy<PolicyType>::value &&
                          std::is_pointer_v<ReturnType>)>
 parallel_reduce(const PolicyType& policy, const FunctorType& functor,
                 const ReturnType& return_value) {
-  ReturnType return_value_impl = return_value;
-  Impl::ParallelReduceAdaptor<PolicyType, FunctorType, ReturnType>::execute(
-      "", policy, functor, return_value_impl);
-  Impl::ParallelReduceFence<typename PolicyType::execution_space, ReturnType>::
-      fence(
-          policy.space(),
-          "Kokkos::parallel_reduce: fence due to result being value, not view",
-          return_value);
+  parallel_reduce("", policy, functor, return_value);
 }
 
 template <class FunctorType, class ReturnType>
 inline std::enable_if_t<Kokkos::is_view<ReturnType>::value ||
                         Kokkos::is_reducer<ReturnType>::value ||
                         std::is_pointer_v<ReturnType>>
-parallel_reduce(const size_t& policy, const FunctorType& functor,
-                const ReturnType& return_value) {
-  using policy_type =
-      typename Impl::ParallelReducePolicyType<void, size_t,
-                                              FunctorType>::policy_type;
-  ReturnType return_value_impl = return_value;
-  Impl::ParallelReduceAdaptor<policy_type, FunctorType, ReturnType>::execute(
-      "", policy_type(0, policy), functor, return_value_impl);
-  Impl::ParallelReduceFence<typename policy_type::execution_space, ReturnType>::
-      fence(
-          typename policy_type::execution_space(),
-          "Kokkos::parallel_reduce: fence due to result being value, not view",
-          return_value);
-}
-
-template <class FunctorType, class ReturnType>
-inline std::enable_if_t<Kokkos::is_view<ReturnType>::value ||
-                        Kokkos::is_reducer<ReturnType>::value ||
-                        std::is_pointer_v<ReturnType>>
-parallel_reduce(const std::string& label, const size_t& policy,
+parallel_reduce(const std::string& label, const size_t& work_count,
                 const FunctorType& functor, const ReturnType& return_value) {
   using policy_type =
       typename Impl::ParallelReducePolicyType<void, size_t,
                                               FunctorType>::policy_type;
-  ReturnType return_value_impl = return_value;
-  Impl::ParallelReduceAdaptor<policy_type, FunctorType, ReturnType>::execute(
-      label, policy_type(0, policy), functor, return_value_impl);
-  Impl::ParallelReduceFence<typename policy_type::execution_space, ReturnType>::
-      fence(
-          typename policy_type::execution_space(),
-          "Kokkos::parallel_reduce: fence due to result being value, not view",
-          return_value);
+
+  parallel_reduce(label, policy_type(0, work_count), functor, return_value);
+}
+
+template <class FunctorType, class ReturnType>
+inline std::enable_if_t<Kokkos::is_view<ReturnType>::value ||
+                        Kokkos::is_reducer<ReturnType>::value ||
+                        std::is_pointer_v<ReturnType>>
+parallel_reduce(const size_t& work_count, const FunctorType& functor,
+                const ReturnType& return_value) {
+  parallel_reduce("", work_count, functor, return_value);
 }
 
 // No Return Argument
@@ -1872,77 +1813,23 @@ inline void parallel_reduce(
     const PolicyType& policy, const FunctorType& functor,
     std::enable_if_t<Kokkos::is_execution_policy<PolicyType>::value>* =
         nullptr) {
-  using FunctorAnalysis =
-      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, PolicyType,
-                            FunctorType, void>;
-  using value_type = std::conditional_t<(FunctorAnalysis::StaticValueSize != 0),
-                                        typename FunctorAnalysis::value_type,
-                                        typename FunctorAnalysis::pointer_type>;
-
-  static_assert(
-      FunctorAnalysis::has_final_member_function,
-      "Calling parallel_reduce without either return value or final function.");
-
-  using result_view_type =
-      Kokkos::View<value_type, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
-  result_view_type result_view;
-
-  Impl::ParallelReduceAdaptor<PolicyType, FunctorType,
-                              result_view_type>::execute("", policy, functor,
-                                                         result_view);
+  parallel_reduce("", policy, functor);
 }
 
 template <class FunctorType>
-inline void parallel_reduce(const size_t& policy, const FunctorType& functor) {
-  using policy_type =
-      typename Impl::ParallelReducePolicyType<void, size_t,
-                                              FunctorType>::policy_type;
-  using FunctorAnalysis =
-      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, policy_type,
-                            FunctorType, void>;
-  using value_type = std::conditional_t<(FunctorAnalysis::StaticValueSize != 0),
-                                        typename FunctorAnalysis::value_type,
-                                        typename FunctorAnalysis::pointer_type>;
-
-  static_assert(
-      FunctorAnalysis::has_final_member_function,
-      "Calling parallel_reduce without either return value or final function.");
-
-  using result_view_type =
-      Kokkos::View<value_type, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
-  result_view_type result_view;
-
-  Impl::ParallelReduceAdaptor<policy_type, FunctorType,
-                              result_view_type>::execute("",
-                                                         policy_type(0, policy),
-                                                         functor, result_view);
-}
-
-template <class FunctorType>
-inline void parallel_reduce(const std::string& label, const size_t& policy,
+inline void parallel_reduce(const std::string& label, const size_t& work_count,
                             const FunctorType& functor) {
   using policy_type =
       typename Impl::ParallelReducePolicyType<void, size_t,
                                               FunctorType>::policy_type;
-  using FunctorAnalysis =
-      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE, policy_type,
-                            FunctorType, void>;
-  using value_type = std::conditional_t<(FunctorAnalysis::StaticValueSize != 0),
-                                        typename FunctorAnalysis::value_type,
-                                        typename FunctorAnalysis::pointer_type>;
 
-  static_assert(
-      FunctorAnalysis::has_final_member_function,
-      "Calling parallel_reduce without either return value or final function.");
+  parallel_reduce(label, policy_type(0, work_count), functor);
+}
 
-  using result_view_type =
-      Kokkos::View<value_type, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
-  result_view_type result_view;
-
-  Impl::ParallelReduceAdaptor<policy_type, FunctorType,
-                              result_view_type>::execute(label,
-                                                         policy_type(0, policy),
-                                                         functor, result_view);
+template <class FunctorType>
+inline void parallel_reduce(const size_t& work_count,
+                            const FunctorType& functor) {
+  parallel_reduce("", work_count, functor);
 }
 
 }  // namespace Kokkos

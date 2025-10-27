@@ -35,6 +35,7 @@ KOKKOS_DEPRECATED inline const char* atomic_query_version() {
 }
 #endif
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
 #if defined(KOKKOS_COMPILER_GNU) && !defined(__PGIC__) && \
     !defined(__CUDA_ARCH__)
 
@@ -46,6 +47,7 @@ KOKKOS_DEPRECATED inline const char* atomic_query_version() {
 #define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) ((void)0)
 #define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) ((void)0)
 
+#endif
 #endif
 // ============================================================
 

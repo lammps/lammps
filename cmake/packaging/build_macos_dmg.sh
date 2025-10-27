@@ -2,12 +2,15 @@
 
 APP_NAME=lammps-gui
 VERSION="$1"
+LAMMPS_GUI_APP="$2"
+rm -rv ${APP_NAME}.app
+mv -v ${LAMMPS_GUI_APP} .
 
 echo "Delete old files, if they exist"
-rm -f ${APP_NAME}.dmg ${APP_NAME}-rw.dmg LAMMPS_GUI-macOS-multiarch*.dmg
+rm -f ${APP_NAME}.dmg ${APP_NAME}-rw.dmg LAMMPS-macOS-multiarch-GUI-*.dmg
 
 echo "Create initial dmg file with macdeployqt"
-macdeployqt  lammps-gui.app -dmg
+macdeployqt ${APP_NAME}.app -dmg
 echo "Create writable dmg file"
 hdiutil convert ${APP_NAME}.dmg -format UDRW -o ${APP_NAME}-rw.dmg
 
@@ -26,10 +29,17 @@ mv ${APP_NAME}.app/Contents/Resources/LAMMPS_DMG_Background.png .background/back
 mv ${APP_NAME}.app LAMMPS_GUI.app
 cd LAMMPS_GUI.app/Contents
 
+echo "Update rpath for LAMMPS and LAMMPS-GUI to link to liblammps.0.dylib"
+LIB_DIR=/Applications/LAMMPS_GUI.app/Contents/Frameworks
+LIB_NAME=liblammps.0.dylib
+install_name_tool -change @rpath/${LIB_NAME} ${LIB_DIR}/${LIB_NAME} bin/lmp
+install_name_tool -change @rpath/${LIB_NAME} ${LIB_DIR}/${LIB_NAME} MacOS/lammps-gui
+
 echo "Attach icons to LAMMPS console and GUI executables"
 echo "read 'icns' (-16455) \"Resources/lammps.icns\";" > icon.rsrc
 Rez -a icon.rsrc -o bin/lmp
 SetFile -a C bin/lmp
+echo "read 'icns' (-16455) \"Resources/lammps-gui.icns\";" > icon.rsrc
 Rez -a icon.rsrc -o MacOS/lammps-gui
 SetFile -a C MacOS/lammps-gui
 rm icon.rsrc
@@ -97,12 +107,12 @@ sync
 
 echo "Unmount modified disk image and convert to compressed read-only image"
 hdiutil detach "${DEVICE}"
-hdiutil convert "${APP_NAME}-rw.dmg" -format UDZO -o "LAMMPS_GUI-macOS-multiarch-${VERSION}.dmg"
+hdiutil convert "${APP_NAME}-rw.dmg" -format UDZO -o "LAMMPS-macOS-multiarch-GUI-${VERSION}.dmg"
 
 echo "Attach icon to .dmg file"
-echo "read 'icns' (-16455) \"lammps-gui.app/Contents/Resources/lammps.icns\";" > icon.rsrc
-Rez -a icon.rsrc -o LAMMPS_GUI-macOS-multiarch-${VERSION}.dmg
-SetFile -a C LAMMPS_GUI-macOS-multiarch-${VERSION}.dmg
+echo "read 'icns' (-16455) \"${APP_NAME}.app/Contents/Resources/lammps.icns\";" > icon.rsrc
+Rez -a icon.rsrc -o LAMMPS-macOS-multiarch-GUI-${VERSION}.dmg
+SetFile -a C LAMMPS-macOS-multiarch-GUI-${VERSION}.dmg
 rm icon.rsrc
 
 echo "Delete temporary disk images"

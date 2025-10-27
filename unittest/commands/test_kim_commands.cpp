@@ -645,7 +645,7 @@ TEST_F(KimCommandsTest, kim_query)
     END_HIDE_OUTPUT();
 
     std::string model_list = variable->retrieve("model_list");
-    auto n = model_list.find("EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005");
+    auto n = model_list.find("EAM_Dynamo_LiuErcolessiAdams_2004_Al__MO_051157671505_000");
     ASSERT_TRUE(n != std::string::npos);
 
     BEGIN_HIDE_OUTPUT();

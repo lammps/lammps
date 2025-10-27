@@ -21,6 +21,7 @@
 #include <Kokkos_Macros.hpp>
 
 #include <Kokkos_Atomic.hpp>
+#include <Kokkos_BitManipulation.hpp>
 #include <Kokkos_HostSpace.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Tools.hpp>
@@ -62,9 +63,8 @@ void *HostSpace::impl_allocate(
   static_assert(sizeof(void *) == sizeof(uintptr_t),
                 "Error sizeof(void*) != sizeof(uintptr_t)");
 
-  static_assert(
-      Kokkos::Impl::is_integral_power_of_two(Kokkos::Impl::MEMORY_ALIGNMENT),
-      "Memory alignment must be power of two");
+  static_assert(Kokkos::has_single_bit(Kokkos::Impl::MEMORY_ALIGNMENT),
+                "Memory alignment must be power of two");
 
   constexpr uintptr_t alignment      = Kokkos::Impl::MEMORY_ALIGNMENT;
   constexpr uintptr_t alignment_mask = alignment - 1;

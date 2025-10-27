@@ -65,7 +65,7 @@ template <typename Abi, typename DataType>
 inline void host_test_simd_alias() {
   using basic_simd_type = Kokkos::Experimental::basic_simd<DataType, Abi>;
   using native_fixed_abi =
-      Kokkos::Experimental::simd_abi::Impl::native_fixed_abi<>;
+      Kokkos::Experimental::simd_abi::Impl::native_fixed_abi<DataType>;
   using native_abi =
       Kokkos::Experimental::simd_abi::Impl::native_abi<basic_simd_type::size()>;
 
@@ -89,7 +89,7 @@ inline void host_test_simd_alias() {
 
 template <typename Abi, typename DataType>
 inline void host_check_construction() {
-  if constexpr (is_type_v<Kokkos::Experimental::basic_simd<DataType, Abi>>) {
+  if constexpr (is_simd_avail_v<DataType, Abi>) {
     host_test_simd_traits<Abi, DataType>();
     host_test_mask_traits<Abi, DataType>();
     host_test_simd_alias<Abi, DataType>();

@@ -54,6 +54,13 @@ else()
 endif()
 list(APPEND TEST_CONFIG_DEFS LAMMPS_HAS_MPI=${HAS_MPI})
 
+if(BUILD_OMP)
+  set(HAS_OMP 1)
+else()
+  set(HAS_OMP 0)
+endif()
+list(APPEND TEST_CONFIG_DEFS LAMMPS_HAS_OMP=${HAS_OMP})
+
 foreach(WITH "JPEG" "PNG" "GZIP" "FFMPEG")
   if(WITH_${WITH})
     set(HAS_${WITH} 1)

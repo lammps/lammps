@@ -43,7 +43,7 @@ struct MultipliesFunctor {
 template <class ValueType>
 struct PlusOneFunctor {
   KOKKOS_INLINE_FUNCTION
-  ValueType operator()(const ValueType& val) const { return val + 1; };
+  ValueType operator()(const ValueType& val) const { return val + 1; }
 };
 
 template <class FirstDataViewType, class SecondDataViewType,

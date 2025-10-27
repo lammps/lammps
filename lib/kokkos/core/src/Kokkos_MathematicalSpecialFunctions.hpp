@@ -502,8 +502,8 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_j0(const CmplxType& z,
       CmplxType cf, cs0;
       for (int k = bw_start; k >= 0; k--) {  // Backward recurrence (default:
                                              // 70)
-        cf                    = 2.0 * (k + 1.0) / z * cf1 - cf2;
-        RealType tmp_exponent = static_cast<RealType>(k / 2);
+        cf               = 2.0 * (k + 1.0) / z * cf1 - cf2;
+        int tmp_exponent = k / 2;
         if (k == 0) cbj0 = cf;
         if ((k == 2 * (k / 2)) && (k != 0)) {
           if (y0 <= 1.0)
@@ -597,8 +597,8 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_y0(const CmplxType& z,
       CmplxType cf, cs0, ce;
       for (int k = bw_start; k >= 0; k--) {  // Backward recurrence (default:
                                              // 70)
-        cf                    = 2.0 * (k + 1.0) / z * cf1 - cf2;
-        RealType tmp_exponent = static_cast<RealType>(k / 2);
+        cf               = 2.0 * (k + 1.0) / z * cf1 - cf2;
+        int tmp_exponent = k / 2;
         if (k == 0) cbj0 = cf;
         if ((k == 2 * (k / 2)) && (k != 0)) {
           if (y0 <= 1.0)
@@ -694,8 +694,8 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_j1(const CmplxType& z,
       CmplxType cf, cs0;
       for (int k = bw_start; k >= 0; k--) {  // Backward recurrence (default:
                                              // 70)
-        cf                    = 2.0 * (k + 1.0) / z * cf1 - cf2;
-        RealType tmp_exponent = static_cast<RealType>(k / 2);
+        cf               = 2.0 * (k + 1.0) / z * cf1 - cf2;
+        int tmp_exponent = k / 2;
         if (k == 1) cbj1 = cf;
         if ((k == 2 * (k / 2)) && (k != 0)) {
           if (y0 <= 1.0)
@@ -793,8 +793,8 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_y1(const CmplxType& z,
       CmplxType cf, cs0, ce;
       for (int k = bw_start; k >= 0; k--) {  // Backward recurrence (default:
                                              // 70)
-        cf                    = 2.0 * (k + 1.0) / z * cf1 - cf2;
-        RealType tmp_exponent = static_cast<RealType>(k / 2);
+        cf               = 2.0 * (k + 1.0) / z * cf1 - cf2;
+        int tmp_exponent = k / 2;
         if (k == 1) cbj1 = cf;
         if (k == 0) cbj0 = cf;
         if ((k == 2 * (k / 2)) && (k != 0)) {

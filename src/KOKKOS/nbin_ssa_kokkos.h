@@ -62,8 +62,8 @@ class NBinSSAKokkos : public NBinStandard {
   typename AT::t_int_2d_const c_gbins;
 
   typename AT::t_int_scalar d_resize;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_resize;
-  typename AT::t_x_array_randomread x;
+  HAT::t_int_scalar h_resize;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
 
   // Bounds of the local atoms in the bins array
   typename AT::t_int_scalar d_lbinxlo;  // lowest local bin x-dim coordinate
@@ -72,12 +72,12 @@ class NBinSSAKokkos : public NBinStandard {
   typename AT::t_int_scalar d_lbinxhi;  // highest local bin x-dim coordinate
   typename AT::t_int_scalar d_lbinyhi;  // highest local bin y-dim coordinate
   typename AT::t_int_scalar d_lbinzhi;  // highest local bin z-dim coordinate
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinxlo;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinylo;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinzlo;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinxhi;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinyhi;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_lbinzhi;
+  HAT::t_int_scalar h_lbinxlo;
+  HAT::t_int_scalar h_lbinylo;
+  HAT::t_int_scalar h_lbinzlo;
+  HAT::t_int_scalar h_lbinxhi;
+  HAT::t_int_scalar h_lbinyhi;
+  HAT::t_int_scalar h_lbinzhi;
 
 
   KOKKOS_INLINE_FUNCTION
@@ -99,7 +99,7 @@ class NBinSSAKokkos : public NBinStandard {
    convert atom coords into the ssa active interaction region number
 ------------------------------------------------------------------------- */
   KOKKOS_INLINE_FUNCTION
-  int coord2ssaAIR(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z) const
+  int coord2ssaAIR(const double & x,const double & y,const double & z) const
   {
     int ix, iy, iz;
     ix = iy = iz = 0;
@@ -128,7 +128,7 @@ class NBinSSAKokkos : public NBinStandard {
   }
 
   KOKKOS_INLINE_FUNCTION
-  int coord2bin(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z, int* i) const
+  int coord2bin(const double & x,const double & y,const double & z, int* i) const
   {
     int ix,iy,iz;
 

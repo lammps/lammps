@@ -347,14 +347,13 @@ short range to have a soft core. The functional form differs from that of the
 .. math::
 
    \begin{split}
-   s(\lambda) =& (1 - \lambda) / (1 - \lambda_f), \qquad B = -2D e^{-2 \alpha
-   r_0} (e^{\alpha r_0} - 1) / 3 \\
-   E =& D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right] +
-   s(\lambda) B e^{-3\alpha(r-r_0)}, \qquad \hspace{2.85em}\lambda \geq
-   \lambda_f,\quad r < r_c \\
-   E =& \left( D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)}
-   \right] + B e^{-3\alpha(r-r_0)} \right)(\lambda/\lambda_f)^n, \qquad \lambda
-   < \lambda_f,\quad r < r_c
+   s(\lambda) & = (1 - \lambda) / (1 - \lambda_f) \\
+   B          & = -2D e^{-2 \alpha r_0} (e^{\alpha r_0} - 1) / 3 \\
+   E          & = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right] +
+                  s(\lambda) B e^{-3\alpha(r-r_0)}, \qquad \lambda \geq \lambda_f,\quad r < r_c \\
+   E          & = \left( D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)}
+                  \right] + B e^{-3\alpha(r-r_0)} \right)(\lambda/\lambda_f)^n, \qquad \lambda
+                  < \lambda_f,\quad r < r_c
    \end{split}
 
 The *morse/soft* style requires the following pair coefficients:

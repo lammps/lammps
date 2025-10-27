@@ -147,6 +147,31 @@ void print_configuration(std::ostream& os, bool verbose = false);
 
 namespace Kokkos {
 
+namespace Impl {
+
+static inline void check_init_final([[maybe_unused]] char const* func_name) {
+// FIXME_THREADS: Checking for calls to kokkos_malloc, kokkos_realloc,
+// kokkos_free before initialize or after finalize is currently disabled
+// for the Threads backend. Refer issue #7944.
+#if !defined(KOKKOS_ENABLE_THREADS)
+  if (is_finalized()) {
+    std::stringstream ss;
+    ss << "Kokkos ERROR: attempting to perform C-style memory management "
+          "via ";
+    ss << func_name << "() **after** Kokkos::finalize() was called\n";
+    Kokkos::abort(ss.str().c_str());
+  } else if (!is_initialized()) {
+    std::stringstream ss;
+    ss << "Kokkos ERROR: attempting to perform C-style memory management "
+          "via ";
+    ss << func_name << "() **before** Kokkos::initialize() was called\n";
+    Kokkos::abort(ss.str().c_str());
+  }
+#endif
+}
+
+}  // namespace Impl
+
 /* Allocate memory from a memory space.
  * The allocation is tracked in Kokkos memory tracking system, so
  * leaked memory can be identified.
@@ -154,6 +179,7 @@ namespace Kokkos {
 template <class Space = Kokkos::DefaultExecutionSpace::memory_space>
 inline void* kokkos_malloc(const std::string& arg_alloc_label,
                            const size_t arg_alloc_size) {
+  Impl::check_init_final("kokkos_malloc");
   using MemorySpace = typename Space::memory_space;
   return Impl::SharedAllocationRecord<MemorySpace>::allocate_tracked(
       MemorySpace(), arg_alloc_label, arg_alloc_size);
@@ -161,6 +187,7 @@ inline void* kokkos_malloc(const std::string& arg_alloc_label,
 
 template <class Space = Kokkos::DefaultExecutionSpace::memory_space>
 inline void* kokkos_malloc(const size_t arg_alloc_size) {
+  Impl::check_init_final("kokkos_malloc");
   using MemorySpace = typename Space::memory_space;
   return Impl::SharedAllocationRecord<MemorySpace>::allocate_tracked(
       MemorySpace(), "no-label", arg_alloc_size);
@@ -168,6 +195,7 @@ inline void* kokkos_malloc(const size_t arg_alloc_size) {
 
 template <class Space = Kokkos::DefaultExecutionSpace::memory_space>
 inline void kokkos_free(void* arg_alloc) {
+  Impl::check_init_final("kokkos_free");
   using MemorySpace = typename Space::memory_space;
   return Impl::SharedAllocationRecord<MemorySpace>::deallocate_tracked(
       arg_alloc);
@@ -175,6 +203,7 @@ inline void kokkos_free(void* arg_alloc) {
 
 template <class Space = Kokkos::DefaultExecutionSpace::memory_space>
 inline void* kokkos_realloc(void* arg_alloc, const size_t arg_alloc_size) {
+  Impl::check_init_final("kokkos_realloc");
   using MemorySpace = typename Space::memory_space;
   return Impl::SharedAllocationRecord<MemorySpace>::reallocate_tracked(
       arg_alloc, arg_alloc_size);
@@ -259,25 +288,50 @@ class KOKKOS_ATTRIBUTE_NODISCARD ScopeGuard {
 
 namespace Kokkos {
 namespace Experimental {
-// Partitioning an Execution Space: expects space and integer arguments for
-// relative weight
-//   Customization point for backends
-//   Default behavior is to return the passed in instance
+namespace Impl {
+// Customization point for backends. Default behavior is to return the passed in
+// instance, ignoring weights
+template <class ExecSpace, class T>
+std::vector<ExecSpace> impl_partition_space(const ExecSpace& base_instance,
+                                            const std::vector<T>& weights) {
+  std::vector<ExecSpace> instances;
+  instances.reserve(weights.size());
+  std::generate_n(std::back_inserter(instances), weights.size(),
+                  [&base_instance]() { return base_instance; });
+
+  return instances;
+}
+}  // namespace Impl
+
+// Partitioning an Execution Space
+// Input:
+//   - Base execution space
+//   - integer arguments for relative weight, either input per weight or vector
+//   of weights
+// Ouput:
+//   - Array (or vector) of execution spaces partitioned based on weights
 template <class ExecSpace, class... Args>
-std::vector<ExecSpace> partition_space(ExecSpace const& space, Args...) {
+std::array<ExecSpace, sizeof...(Args)> partition_space(
+    ExecSpace const& base_instance, Args... args) {
   static_assert(is_execution_space<ExecSpace>::value,
                 "Kokkos Error: partition_space expects an Execution Space as "
                 "first argument");
   static_assert(
       (... && std::is_arithmetic_v<Args>),
       "Kokkos Error: partitioning arguments must be integers or floats");
-  std::vector<ExecSpace> instances(sizeof...(Args));
-  for (int s = 0; s < int(sizeof...(Args)); s++) instances[s] = space;
+
+  // Get vector of instances from backend specific impl
+  std::vector<std::common_type_t<Args...>> weights = {args...};
+  auto instances_vec = Impl::impl_partition_space(base_instance, weights);
+
+  // Convert to std::array and return
+  std::array<ExecSpace, sizeof...(Args)> instances;
+  std::copy(instances_vec.begin(), instances_vec.end(), instances.begin());
   return instances;
 }
 
 template <class ExecSpace, class T>
-std::vector<ExecSpace> partition_space(ExecSpace const& space,
+std::vector<ExecSpace> partition_space(ExecSpace const& base_instance,
                                        std::vector<T> const& weights) {
   static_assert(is_execution_space<ExecSpace>::value,
                 "Kokkos Error: partition_space expects an Execution Space as "
@@ -286,9 +340,8 @@ std::vector<ExecSpace> partition_space(ExecSpace const& space,
       std::is_arithmetic_v<T>,
       "Kokkos Error: partitioning arguments must be integers or floats");
 
-  std::vector<ExecSpace> instances(weights.size());
-  for (int s = 0; s < int(weights.size()); s++) instances[s] = space;
-  return instances;
+  // Return vector of instances from backend specific impl
+  return Impl::impl_partition_space(base_instance, weights);
 }
 }  // namespace Experimental
 }  // namespace Kokkos

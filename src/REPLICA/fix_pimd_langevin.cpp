@@ -34,6 +34,7 @@
 #include "error.h"
 #include "force.h"
 #include "group.h"
+#include "kspace.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -895,6 +896,7 @@ void FixPIMDLangevin::qc_step()
     MPI_Bcast(&domain->boxhi[0], 3, MPI_DOUBLE, 0, universe->uworld);
     domain->set_global_box();
     domain->set_local_box();
+    if (force->kspace) force->kspace->setup();
   }
 }
 

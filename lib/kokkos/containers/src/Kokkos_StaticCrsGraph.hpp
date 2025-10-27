@@ -303,39 +303,19 @@ class StaticCrsGraph {
   row_map_type row_map;
   row_block_type row_block_offsets;
 
-  //! Construct an empty view.
-  KOKKOS_INLINE_FUNCTION
-  StaticCrsGraph() : entries(), row_map(), row_block_offsets() {}
-
-  //! Copy constructor (shallow copy).
-  KOKKOS_INLINE_FUNCTION
-  StaticCrsGraph(const StaticCrsGraph& rhs)
-      : entries(rhs.entries),
-        row_map(rhs.row_map),
-        row_block_offsets(rhs.row_block_offsets) {}
+  KOKKOS_DEFAULTED_FUNCTION
+  StaticCrsGraph() = default;
 
   template <class EntriesType, class RowMapType>
   KOKKOS_INLINE_FUNCTION StaticCrsGraph(const EntriesType& entries_,
                                         const RowMapType& row_map_)
-      : entries(entries_), row_map(row_map_), row_block_offsets() {}
+      : entries(entries_), row_map(row_map_) {}
 
-  /** \brief  Assign to a view of the rhs array.
-   *          If the old view is the last view
-   *          then allocated memory is deallocated.
-   */
-  KOKKOS_INLINE_FUNCTION
-  StaticCrsGraph& operator=(const StaticCrsGraph& rhs) {
-    entries           = rhs.entries;
-    row_map           = rhs.row_map;
-    row_block_offsets = rhs.row_block_offsets;
-    return *this;
-  }
-
-  /**  \brief  Destroy this view of the array.
-   *           If the last view then allocated memory is deallocated.
-   */
-  KOKKOS_DEFAULTED_FUNCTION
-  ~StaticCrsGraph() = default;
+  template <typename... Args>
+  KOKKOS_INLINE_FUNCTION StaticCrsGraph(const StaticCrsGraph<Args...>& other)
+      : entries(other.entries),
+        row_map(other.row_map),
+        row_block_offsets(other.row_block_offsets) {}
 
   /**  \brief  Return number of rows in the graph
    */

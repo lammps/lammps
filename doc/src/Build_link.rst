@@ -93,47 +93,10 @@ executable, that are also required to link the LAMMPS executable.
 
    .. tab:: Traditional make
 
-      After you have compiled a static LAMMPS library using the
-      conventional build system for example with "make mode=static
-      serial". And you also have installed the ``POEMS`` package after
-      building its bundled library in ``lib/poems``. Then the commands
-      to build and link the coupled executable change to:
+      .. versionchanged:: 10Sep2025
 
-      .. code-block:: bash
-
-         gcc -c -O -I${HOME}/lammps/src -caller.c
-         g++ -o caller caller.o -L${HOME}/lammps/lib/poems \
-                      -L${HOME}/lammps/src/STUBS -L${HOME}/lammps/src \
-                      -llammps_serial -lpoems -lmpi_stubs
-
-      Note, that you need to link with ``g++`` instead of ``gcc`` even
-      if you have written your code in C, since LAMMPS itself is C++
-      code.  You can display the currently applied settings for building
-      LAMMPS for the "serial" machine target by using the command:
-
-      .. code-block:: bash
-
-         make mode=print serial
-
-      Which should output something like:
-
-      .. code-block:: bash
-
-         # Compiler:
-         CXX=g++
-         # Linker:
-         LD=g++
-         # Compilation:
-         CXXFLAGS=-g -O3 -DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64 -I${HOME}/compile/lammps/lib/poems -I${HOME}/compile/lammps/src/STUBS
-         # Linking:
-         LDFLAGS=-g -O
-         # Libraries:
-         LDLIBS=-L${HOME}/compile/lammps/src -llammps_serial -L${HOME}/compile/lammps/lib/poems -L${HOME}/compile/lammps/src/STUBS -lpoems -lmpi_stubs
-
-      From this you can gather the necessary paths and flags.  With
-      makefiles for other *machine* configurations you need to do the
-      equivalent and replace "serial" with the corresponding "machine"
-      name of the makefile.
+      The traditional make build process no longer supports building
+      packages that require extra build steps in the ``lib`` folder.
 
 Link with LAMMPS as a shared library
 ------------------------------------

@@ -168,10 +168,9 @@ void ProcMap::numa_grid(int numa_nodes, int nprocs, int *user_procgrid,
   // NOTE: could do this without STL map
 
   std::map<std::string,int> name_map;
-  std::map<std::string,int>::iterator np;
   for (int i = 0; i < nprocs; i++) {
     std::string i_string = std::string(&node_names[i*MPI_MAX_PROCESSOR_NAME]);
-    np = name_map.find(i_string);
+    auto np = name_map.find(i_string);
     if (np == name_map.end()) name_map[i_string] = 1;
     else np->second++;
   }
@@ -244,8 +243,8 @@ void ProcMap::numa_grid(int numa_nodes, int nprocs, int *user_procgrid,
 
   node_id = 0;
   int node_num = 0;
-  for (np = name_map.begin(); np != name_map.end(); ++np) {
-    if (np->first == node_string) node_id = node_num;
+  for (const auto &np : name_map) {
+    if (np.first == node_string) node_id = node_num;
     node_num++;
   }
 

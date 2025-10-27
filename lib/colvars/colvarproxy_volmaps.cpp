@@ -108,11 +108,9 @@ int colvarproxy_volmaps::get_volmap_id_from_name(char const *volmap_name)
   return -1;
 }
 
-
 int colvarproxy_volmaps::compute_volmap(int /* flags */,
                                         int /* volmap_id */,
-                                        cvm::atom_iter /* atom_begin */,
-                                        cvm::atom_iter /* atom_end */,
+                                        cvm::atom_group* ag,
                                         cvm::real * /* value */,
                                         cvm::real * /* atom_field */)
 {
@@ -123,12 +121,12 @@ int colvarproxy_volmaps::compute_volmap(int /* flags */,
 void colvarproxy_volmaps::compute_rms_volmaps_applied_force()
 {
   volmaps_rms_applied_force_ =
-    compute_norm2_stats<cvm::real, 0, false>(volmaps_new_colvar_forces);
+    compute_norm2_stats<decltype(volmaps_new_colvar_forces), 0, false>(volmaps_new_colvar_forces);
 }
 
 
 void colvarproxy_volmaps::compute_max_volmaps_applied_force()
 {
   volmaps_max_applied_force_ =
-    compute_norm2_stats<cvm::real, 1, false>(volmaps_new_colvar_forces);
+    compute_norm2_stats<decltype(volmaps_new_colvar_forces), 1, false>(volmaps_new_colvar_forces);
 }

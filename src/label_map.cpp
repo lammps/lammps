@@ -37,6 +37,8 @@ static const char cite_type_label_framework[] =
     " pages =   {3282--3297}\n"
     "}\n\n";
 
+static const std::string empty;
+
 /* ---------------------------------------------------------------------- */
 
 LabelMap::LabelMap(LAMMPS *_lmp, int _natomtypes, int _nbondtypes, int _nangletypes,
@@ -288,6 +290,50 @@ int LabelMap::find(const std::string &mylabel, int mode) const
     default:
       return -1;
   }
+}
+
+/* ----------------------------------------------------------------------
+   return type label given a numeric type
+   return "" if type label does not exist
+------------------------------------------------------------------------- */
+
+const std::string &LabelMap::find(int i, int mode) const
+{
+  switch (mode) {
+  case Atom::ATOM:
+    if ((i > 0) && (i <= atom->ntypes)) {
+      if (is_complete(mode))
+        return typelabel[i-1];
+    }
+    break;
+  case Atom::BOND:
+    if ((i > 0) && (i <= atom->nbondtypes)) {
+      if (is_complete(mode))
+        return btypelabel[i-1];
+    }
+    break;
+  case Atom::ANGLE:
+    if ((i > 0) && (i <= atom->nangletypes)) {
+      if (is_complete(mode))
+        return atypelabel[i-1];
+    }
+    break;
+  case Atom::DIHEDRAL:
+    if ((i > 0) && (i <= atom->ndihedraltypes)) {
+      if (is_complete(mode))
+        return dtypelabel[i-1];
+    }
+    break;
+  case Atom::IMPROPER:
+    if ((i > 0) && (i <= atom->nimpropertypes)) {
+      if (is_complete(mode))
+        return itypelabel[i-1];
+    }
+    break;
+  default:
+    return empty;
+  }
+  return empty;
 }
 
 /* ----------------------------------------------------------------------

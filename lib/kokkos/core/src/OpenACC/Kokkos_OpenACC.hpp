@@ -33,6 +33,9 @@ static_assert(false,
 #include <impl/Kokkos_HostSharedPtr.hpp>
 
 #include <openacc.h>
+#ifdef KOKKOS_COMPILER_CLANG
+#include <omp.h>
+#endif
 
 #include <iosfwd>
 #include <string>

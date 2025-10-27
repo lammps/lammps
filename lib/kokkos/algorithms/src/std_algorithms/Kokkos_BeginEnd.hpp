@@ -17,7 +17,6 @@
 #ifndef KOKKOS_BEGIN_END_HPP
 #define KOKKOS_BEGIN_END_HPP
 
-#include <Kokkos_View.hpp>
 #include "impl/Kokkos_RandomAccessIterator.hpp"
 #include "impl/Kokkos_Constraints.hpp"
 

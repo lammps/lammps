@@ -158,7 +158,7 @@ void VerletLRTIntel::setup(int flag)
   #if defined(_LMP_INTEL_LRT_PTHREAD)
   pthread_create(&_kspace_thread, &_kspace_attr,
                  &VerletLRTIntel::k_launch_loop, this);
-  #elif defined(_LMP_INTEL_LRT_11)
+  #elif defined(_LMP_INTEL_LRT_17)
   std::thread _kspace_thread;
   if (kspace_compute_flag)
     _kspace_thread=std::thread([=]{ _intel_kspace->compute_first(eflag,
@@ -184,7 +184,7 @@ void VerletLRTIntel::setup(int flag)
     pthread_cond_wait(&_kcond, &_kmutex);
   _kspace_done = 0;
   pthread_mutex_unlock(&_kmutex);
-  #elif defined(_LMP_INTEL_LRT_11)
+  #elif defined(_LMP_INTEL_LRT_17)
   _kspace_thread.join();
   #endif
 
@@ -302,7 +302,7 @@ void VerletLRTIntel::run(int n)
     _kspace_done = 0;
     pthread_cond_signal(&_kcond);
     pthread_mutex_unlock(&_kmutex);
-    #elif defined(_LMP_INTEL_LRT_11)
+    #elif defined(_LMP_INTEL_LRT_17)
     std::thread _kspace_thread;
     if (kspace_compute_flag)
       _kspace_thread=std::thread([=] {
@@ -335,7 +335,7 @@ void VerletLRTIntel::run(int n)
       pthread_cond_wait(&_kcond, &_kmutex);
     _kspace_done = 0;
     pthread_mutex_unlock(&_kmutex);
-    #elif defined(_LMP_INTEL_LRT_11)
+    #elif defined(_LMP_INTEL_LRT_17)
     if (kspace_compute_flag)
       _kspace_thread.join();
     #endif

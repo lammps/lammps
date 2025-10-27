@@ -153,7 +153,7 @@ communicated among processors), or *late* at the final-integrate stage
 of each timestep (after any other fixes have finished their post-force
 tasks).  Only the rigid-body integration fixes use this option, which
 includes :doc:`fix rigid <fix_rigid>` and :doc:`fix rigid/small
-<fix_rigid>`, and their variants, and also :doc:`fix poems <fix_poems>`.
+<fix_rigid>`, and their variants.
 
 The default is *late*\ .  If there are other fixes that add forces to
 individual atoms, then the rigid-body constraints will include these

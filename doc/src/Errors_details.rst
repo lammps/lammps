@@ -145,7 +145,7 @@ propagate.  So-called :doc:`"soft-core" potentials <pair_fep_soft>` or
 the :doc:`"soft" repulsive-only pair style <pair_soft>` are less prone
 for this behavior (depending on the settings in use) and can be used at
 the beginning of a simulation.  Also, single precision numbers can
-overflow much faster, so for the GPU or INTEL package it may be
+overflow much faster, so for the GPU, KOKKOS, or INTEL package it may be
 beneficial to run with double precision initially before switching to
 mixed or single precision for faster execution when the system has
 relaxed.
@@ -321,9 +321,10 @@ completely different format.
 Illegal variable command: expected X arguments but found Y
 ----------------------------------------------------------
 
-This error indicates that a variable command has the wrong number of
-arguments.  A common reason for this is that the variable expression has
-whitespace, but is not enclosed in single or double quotes.
+This error indicates that a variable command has either incorrectly
+formatted arguments or the wrong number of arguments.  A common reason
+for this is that a variable expression contains whitespace, but is not
+enclosed in single or double quotes.
 
 To explain, the LAMMPS input parser reads and processes lines.  The
 resulting line is broken down into "words".  Those are usually
@@ -331,11 +332,12 @@ individual commands, labels, names, and values separated by whitespace
 (a space or tab character).  For "words" that may contain whitespace,
 they have to be enclosed in single (') or double (") quotes.  The parser
 will then remove the outermost pair of quotes and pass that string as
-"word" to the variable command.
+single argument to the variable command.
 
 Thus missing quotes or accidental extra whitespace will trigger this
 error because the unquoted whitespace will result in the text being
-broken into more "words", i.e. the variable expression being split.
+broken into more "words" than expected, i.e. the variable expression
+being split.
 
 .. _err0004:
 
@@ -1002,7 +1004,7 @@ There are multiple ways to get into contact and report your issue. In
 order of preference there are:
 
 - Submit a bug report `issue in the LAMMPS GitHub
-  <https://github.com/lammps/lammps/issues>` repository
+  <https://github.com/lammps/lammps/issues>`_ repository
 - Post a message in the "LAMMPS Development" forum in the
   `MatSci Community Discourse <https://matsci.org/c/lammps/lammps-development/42>`_
 - Send an email to ``developers@lammps.org``
@@ -1066,3 +1068,22 @@ also increase the value for the "page" parameter to maintain the ratio
 between "one" and "page" to reduce waste of memory.  For some more
 details, please check out the documentation for the :doc:`neigh_modify
 command <neigh_modify>`.
+
+.. _err0037:
+
+Variable ...: Compute/Fix ... does not compute requested property
+-----------------------------------------------------------------
+
+Compute and fix styles can compute different kinds of properties: for
+example, global scalars, vectors, or arrays, or per-atom vectors or
+arrays.  In equal-style or similar variable, only scalar properties can
+be used, so to access a particular element in a vector one has to use
+square brackets with a suitable index to select it.  However, not all
+fixes and computes provide all types of properties.  So this error
+message will be shown if there is a mismatch, of if there are not
+enough or too many square brackets.  To differentiate between
+accessing an element of a global array or a per-atom array element of
+a specific atom, one has to use a reference with a lower case 'c'
+(e.g. 'c_name') for the former and upper case 'C' (e.g. 'C_name') for
+the latter. The same applies to fix styles.  The full details are
+in the documentation for the :doc:`variable command <variable>`.

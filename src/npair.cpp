@@ -169,9 +169,6 @@ void NPair::copy_stencil_info()
   nstencil = ns->nstencil;
   stencil = ns->stencil;
   stencilxyz = ns->stencilxyz;
-  nstencil_multi_old = ns->nstencil_multi_old;
-  stencil_multi_old = ns->stencil_multi_old;
-  distsq_multi_old = ns->distsq_multi_old;
 
   nstencil_multi = ns->nstencil_multi;
   stencil_multi = ns->stencil_multi;

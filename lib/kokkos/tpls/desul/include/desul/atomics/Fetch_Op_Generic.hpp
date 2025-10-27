@@ -28,8 +28,8 @@ namespace Impl {
   template <class T, class MemoryOrder, class MemoryScope>                         \
   ANNOTATION T HOST_OR_DEVICE##_atomic_##OP_FETCH(                                 \
       T* const dest, const T val, MemoryOrder order, MemoryScope scope) {          \
-    return HOST_OR_DEVICE##_atomic_oper_fetch(                                     \
-        OP_FETCH##_operator<T, const T>(), dest, val, order, scope);               \
+    return OP_FETCH##_operator<T, const T>::apply(                                 \
+        HOST_OR_DEVICE##_atomic_##FETCH_OP(dest, val, order, scope), val);         \
   }
 
 #define DESUL_IMPL_ATOMIC_FETCH_OP_HOST_AND_DEVICE(FETCH_OP, OP_FETCH)           \
@@ -64,8 +64,8 @@ DESUL_IMPL_ATOMIC_FETCH_OP_HOST_AND_DEVICE(fetch_dec_mod, dec_mod_fetch)
   template <class T, class MemoryOrder, class MemoryScope>                           \
   ANNOTATION T HOST_OR_DEVICE##_atomic_##OP##_fetch(                                 \
       T* const dest, const unsigned int val, MemoryOrder order, MemoryScope scope) { \
-    return HOST_OR_DEVICE##_atomic_oper_fetch(                                       \
-        OP##_fetch_operator<T, const unsigned int>(), dest, val, order, scope);      \
+    return OP##_fetch_operator<T, const unsigned int>::apply(                        \
+        HOST_OR_DEVICE##_atomic_fetch_##OP(dest, val, order, scope), val);           \
   }
 
 #define DESUL_IMPL_ATOMIC_FETCH_OP_SHIFT_HOST_AND_DEVICE(OP)           \
@@ -91,8 +91,10 @@ DESUL_IMPL_ATOMIC_FETCH_OP_SHIFT_HOST_AND_DEVICE(rshift)
   template <class T, class MemoryOrder, class MemoryScope>                           \
   ANNOTATION void HOST_OR_DEVICE##_atomic_store(                                     \
       T* const dest, const T val, MemoryOrder order, MemoryScope scope) {            \
-    (void)HOST_OR_DEVICE##_atomic_oper_fetch(                                        \
-        store_fetch_operator<T, const T>(), dest, val, order, scope);                \
+    store_fetch_operator<T, const T>::apply(                                         \
+        HOST_OR_DEVICE##_atomic_fetch_oper(                                          \
+            store_fetch_operator<T, const T>(), dest, val, order, scope),            \
+        val);                                                                        \
   }
 
 DESUL_IMPL_ATOMIC_LOAD_AND_STORE(DESUL_IMPL_HOST_FUNCTION, host)

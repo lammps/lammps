@@ -163,7 +163,7 @@ KOKKOS_FUNCTION constexpr to_chars_result to_chars_i(char *first, char *last,
                                                      Integral value) {
   using Unsigned = std::conditional_t<sizeof(Integral) <= sizeof(unsigned int),
                                       unsigned int, unsigned long long>;
-  Unsigned unsigned_val = value;
+  Unsigned unsigned_val = value;  // NOLINT(bugprone-signed-char-misuse)
   if (value == 0) {
     *first = '0';
     return {first + 1, {}};

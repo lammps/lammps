@@ -53,8 +53,8 @@ static constexpr int IDMAX = (1024 * 1024);
 ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), chunk_volume_vec(nullptr), coord(nullptr), ichunk(nullptr),
     chunkID(nullptr), cfvid(nullptr), idregion(nullptr), region(nullptr), cchunk(nullptr),
-    fchunk(nullptr), varatom(nullptr), id_fix(nullptr), fixstore(nullptr), lockfix(nullptr),
-    chunk(nullptr), exclude(nullptr), hash(nullptr)
+    fchunk(nullptr), varatom(nullptr), fixstore(nullptr), lockfix(nullptr), chunk(nullptr),
+    exclude(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "compute chunk/atom", error);
 
@@ -448,16 +448,10 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   // initialize chunk vector and per-chunk info
 
   nmax = 0;
-  chunk = nullptr;
   nmaxint = -1;
-  ichunk = nullptr;
-  exclude = nullptr;
 
   nchunk = 0;
   chunk_volume_scalar = 1.0;
-  chunk_volume_vec = nullptr;
-  coord = nullptr;
-  chunkID = nullptr;
 
   // computeflag = 1 if this compute might invoke another compute
   // during assign_chunk_ids()
@@ -472,19 +466,9 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   invoked_setup = -1;
   invoked_ichunk = -1;
 
-  id_fix = nullptr;
-  fixstore = nullptr;
-
-  if (compress)
-    hash = new std::map<tagint, int>();
-  else
-    hash = nullptr;
-
   maxvar = 0;
-  varatom = nullptr;
 
   lockcount = 0;
-  lockfix = nullptr;
 
   if (which == ArgInfo::MOLECULE)
     molcheck = 1;
@@ -498,8 +482,7 @@ ComputeChunkAtom::~ComputeChunkAtom()
 {
   // check nfix in case all fixes have already been deleted
 
-  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
-  delete[] id_fix;
+  if (id_fix.size() && modify->nfix) modify->delete_fix(id_fix);
 
   memory->destroy(chunk);
   memory->destroy(ichunk);
@@ -510,7 +493,6 @@ ComputeChunkAtom::~ComputeChunkAtom()
 
   delete[] idregion;
   delete[] cfvid;
-  delete hash;
 
   memory->destroy(varatom);
 }
@@ -585,16 +567,15 @@ void ComputeChunkAtom::init()
   // need to do this if idsflag = ONCE or locks will be used by other commands
   // need to wait until init() so that fix command(s) are in place
   //   they increment lockcount if they lock this compute
-  // fixstore ID = compute-ID + COMPUTE_STORE, fix group = compute group
+  // fixstore ID = compute-ID + COMPUTE_STORE, fix group = all
   // fixstore initializes all values to 0.0
 
-  if ((idsflag == ONCE || lockcount) && !fixstore) {
-    id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
-    fixstore = dynamic_cast<FixStoreAtom *>(
-        modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1", id_fix, group->names[igroup])));
+  if (((idsflag == ONCE) || ((idsflag == NFREQ) && lockcount)) && !fixstore) {
+    id_fix = std::string(id) + "_COMPUTE_STORE";
+    fixstore = dynamic_cast<FixStoreAtom *>(modify->add_fix(id_fix + " all STORE/ATOM 1 0 0 1"));
   }
 
-  if ((idsflag != ONCE && !lockcount) && fixstore) {
+  if (((idsflag != ONCE) && !((idsflag == NFREQ) && lockcount)) && fixstore) {
     modify->delete_fix(id_fix);
     fixstore = nullptr;
   }
@@ -716,8 +697,8 @@ void ComputeChunkAtom::compute_ichunk()
 
   const int nlocal = atom->nlocal;
   int restore = 0;
-  if (idsflag == ONCE && invoked_ichunk >= 0) restore = 1;
-  if (idsflag == NFREQ && lockfix && update->ntimestep > lockstart) restore = 1;
+  if ((idsflag == ONCE) && (invoked_ichunk >= 0)) restore = 1;
+  if ((idsflag == NFREQ) && lockfix && (update->ntimestep > lockstart)) restore = 1;
 
   if (restore) {
     if (idsflag == NFREQ) invoked_ichunk = update->ntimestep;
@@ -742,26 +723,26 @@ void ComputeChunkAtom::compute_ichunk()
     if (binflag) {
       for (i = 0; i < nlocal; i++) {
         if (exclude[i]) continue;
-        if (hash->find(ichunk[i]) == hash->end())
+        if (hash.find(ichunk[i]) == hash.end())
           exclude[i] = 1;
         else
-          ichunk[i] = hash->find(ichunk[i])->second;
+          ichunk[i] = hash.find(ichunk[i])->second;
       }
     } else if (discard == NODISCARD) {
       for (i = 0; i < nlocal; i++) {
         if (exclude[i]) continue;
-        if (hash->find(ichunk[i]) == hash->end())
+        if (hash.find(ichunk[i]) == hash.end())
           ichunk[i] = nchunk;
         else
-          ichunk[i] = hash->find(ichunk[i])->second;
+          ichunk[i] = hash.find(ichunk[i])->second;
       }
     } else {
       for (i = 0; i < nlocal; i++) {
         if (exclude[i]) continue;
-        if (hash->find(ichunk[i]) == hash->end())
+        if (hash.find(ichunk[i]) == hash.end())
           exclude[i] = 1;
         else
-          ichunk[i] = hash->find(ichunk[i])->second;
+          ichunk[i] = hash.find(ichunk[i])->second;
       }
     }
 
@@ -791,7 +772,7 @@ void ComputeChunkAtom::compute_ichunk()
   // if newly calculated IDs need to persist, store them in fixstore
   // yes if idsflag = ONCE or idsflag = NFREQ and lock is in place
 
-  if (idsflag == ONCE || (idsflag == NFREQ && lockfix)) {
+  if ((idsflag == ONCE) || ((idsflag == NFREQ) && lockfix)) {
     double *vstore = fixstore->vstore;
     for (i = 0; i < nlocal; i++) vstore[i] = ichunk[i];
   }
@@ -1010,8 +991,8 @@ void ComputeChunkAtom::assign_chunk_ids()
   } else if (which == ArgInfo::FIX) {
     if (update->ntimestep % fchunk->peratom_freq)
       error->all(FLERR, Error::NOLASTLINE,
-                 "Fix {} used in compute chunk/atom not computed at compatible time{}",
-                 fchunk->id, utils::errorurl(7));
+                 "Fix {} used in compute chunk/atom not computed at compatible time{}", fchunk->id,
+                 utils::errorurl(7));
 
     if (argindex == 0) {
       double *vec = fchunk->vector_atom;
@@ -1059,20 +1040,20 @@ void ComputeChunkAtom::assign_chunk_ids()
 
 void ComputeChunkAtom::compress_chunk_ids()
 {
-  hash->clear();
+  hash.clear();
 
   // put my IDs into hash
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
     if (exclude[i]) continue;
-    if (hash->find(ichunk[i]) == hash->end()) (*hash)[ichunk[i]] = 0;
+    if (hash.find(ichunk[i]) == hash.end()) hash[ichunk[i]] = 0;
   }
 
   // n = # of my populated IDs
   // nall = n summed across all procs
 
-  int n = hash->size();
+  int n = hash.size();
   bigint nbone = n;
   bigint nball;
   MPI_Allreduce(&nbone, &nball, 1, MPI_LMP_BIGINT, MPI_SUM, world);
@@ -1083,8 +1064,7 @@ void ComputeChunkAtom::compress_chunk_ids()
   memory->create(list, n, "chunk/atom:list");
 
   n = 0;
-  std::map<tagint, int>::iterator pos;
-  for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
+  for (const auto &pos : hash) list[n++] = pos.first;
 
   // if nall < 1M, just allgather all ID lists on every proc
   // else perform ring comm
@@ -1114,7 +1094,7 @@ void ComputeChunkAtom::compress_chunk_ids()
     // add all unique IDs in listall to my hash
 
     for (int i = 0; i < nall; i++)
-      if (hash->find(listall[i]) == hash->end()) (*hash)[listall[i]] = 0;
+      if (hash.find(listall[i]) == hash.end()) hash[listall[i]] = 0;
 
     // clean up
 
@@ -1130,7 +1110,7 @@ void ComputeChunkAtom::compress_chunk_ids()
 
   // nchunk = length of hash containing populated IDs from all procs
 
-  nchunk = hash->size();
+  nchunk = hash.size();
 
   // reset hash value of each original chunk ID to ordered index
   //   ordered index = new compressed chunk ID (1 to Nchunk)
@@ -1142,9 +1122,9 @@ void ComputeChunkAtom::compress_chunk_ids()
   memory->create(chunkID, nchunk, "chunk/atom:chunkID");
 
   n = 0;
-  for (pos = hash->begin(); pos != hash->end(); ++pos) {
-    chunkID[n] = pos->first;
-    (*hash)[pos->first] = ++n;
+  for (const auto &pos : hash) {
+    chunkID[n] = pos.first;
+    hash[pos.first] = ++n;
   }
 }
 
@@ -1159,8 +1139,8 @@ void ComputeChunkAtom::idring(int n, char *cbuf, void *ptr)
 {
   auto *cptr = (ComputeChunkAtom *) ptr;
   auto *list = (tagint *) cbuf;
-  std::map<tagint, int> *hash = cptr->hash;
-  for (int i = 0; i < n; i++) (*hash)[list[i]] = 0;
+  auto &chunkhash = cptr->hash;
+  for (int i = 0; i < n; i++) chunkhash[list[i]] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1188,7 +1168,7 @@ void ComputeChunkAtom::check_molecules()
     int molid;
     for (int i = 0; i < nlocal; i++) {
       molid = static_cast<int>(molecule[i]);
-      if (hash->find(molid) != hash->end() && ichunk[i] == 0) flag = 1;
+      if (hash.find(molid) != hash.end() && ichunk[i] == 0) flag = 1;
     }
   }
 

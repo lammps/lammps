@@ -92,7 +92,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
     } else if (strcmp(arg[iarg + 1], "custom") == 0) {
       if (iarg + 2 > narg)
         utils::missing_cmd_args(FLERR,"fix nonaffine/displacement custom", error);
-      if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+      if (neighbor->style == Neighbor::MULTI)
         error->all(FLERR, "Fix nonaffine/displacement with custom cutoff requires neighbor style 'bin' or 'nsq'");
       cut_style = CUSTOM;
       cutoff_custom = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
@@ -219,7 +219,7 @@ void FixNonaffineDisplacement::init()
     } else {
       auto *req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
       if (cut_style == CUSTOM) {
-        if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+        if (neighbor->style == Neighbor::MULTI)
           error->all(FLERR, "Fix nonaffine/displacement with custom cutoff requires neighbor style 'bin' or 'nsq'");
 
         double skin = neighbor->skin;

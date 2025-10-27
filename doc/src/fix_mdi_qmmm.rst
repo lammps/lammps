@@ -48,8 +48,8 @@ or MM) for the (typically larger) MM portion of the system.  A quantum
 mechanics code will calculate quantum energy and forces for the QM
 portion of the system.  The two codes work together to calculate the
 energy and forces due to the cross interactions between QM and MM atoms.
-The QM server code must support use of the `MDI Library
-<https://molssi-mdi.github.io/MDI_Library/html/index.html>`_ as
+The QM server code must support use of the `MDI library
+<https://molssi-mdi.github.io/MDI_Library/>`_ as
 explained below.
 
 The partitioning of the system between QM and MM atoms is as follows.
@@ -59,7 +59,7 @@ See additional information below about other requirements for an input
 script to use this fix and perform a QM/MM simulation.
 
 The code coupling performed by this command is done via the `MDI
-Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
+Library <https://molssi-mdi.github.io/MDI_Library/>`_.
 LAMMPS runs as an MDI driver (client), and sends MDI commands to an
 external MDI engine code (server), in this case a QM code which has
 support for MDI.  See the :doc:`Howto mdi <Howto_mdi>` page for more

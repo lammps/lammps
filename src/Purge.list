@@ -53,6 +53,17 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# removed in July 2025
+fix_atc.h
+fix_atc.cpp
+atom_vec_wavepacket.cpp
+atom_vec_wavepacket.h
+fix_nve_awpmd.cpp
+fix_nve_awpmd.h
+pair_awpmd_cut.cpp
+pair_awpmd_cut.h
+fix_poems.cpp
+fix_poems.h
 # removed in Dec 2024
 group_kokkos.cpp
 # renamed in September 2024

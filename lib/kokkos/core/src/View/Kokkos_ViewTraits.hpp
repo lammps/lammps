@@ -55,17 +55,7 @@ using ALL_t KOKKOS_DEPRECATED_WITH_COMMENT("Use Kokkos::ALL_t instead!") =
 }  // namespace Impl
 #endif
 
-// FIXME_OPENMPTARGET - The `declare target` is needed for the Intel GPUs with
-// the OpenMPTarget backend
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_COMPILER_INTEL_LLVM)
-#pragma omp declare target
-#endif
-
 inline constexpr Kokkos::ALL_t ALL{};
-
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_COMPILER_INTEL_LLVM)
-#pragma omp end declare target
-#endif
 
 namespace Impl {
 
@@ -168,33 +158,154 @@ struct ViewUniformType;
 }
 }  // namespace Kokkos
 
+// =========================================================
+// View template argument parsing
+// =========================================================
 namespace Kokkos {
+
+// =========================================================
+// Customization points for View for projects such as Sacado
+// =========================================================
+
+namespace Impl {
+// Type list for View Arguments
+template <class ValueType, class ArrayLayout, class DeviceType,
+          class MemoryTraits>
+struct ViewArguments {
+  using value_type    = ValueType;
+  using array_layout  = ArrayLayout;
+  using device_type   = DeviceType;
+  using memory_traits = MemoryTraits;
+  static_assert(!std::is_pointer_v<ValueType>);
+  static_assert(is_array_layout_v<ArrayLayout>);
+  static_assert(is_device_v<DeviceType>);
+  static_assert(is_memory_traits_v<MemoryTraits>);
+};
+
+// Customized mdspan/BasicView arguments
+template <class IndexType, class AccessorType>
+struct ViewCustomArguments {
+  using index_type    = IndexType;
+  using accessor_type = AccessorType;
+  static_assert(std::is_integral_v<IndexType>);
+};
+
+// Customization point to control mdspan arguments from view arguments
+// Default implementation returns void to indicate no customization
+template <class ValueType, class ArrayLayout, class DeviceType,
+          class MemoryTraits>
+constexpr void customize_view_arguments(
+    ViewArguments<ValueType, ArrayLayout, DeviceType, MemoryTraits>) {}
+
+// Customization points located in Kokkos_BasicView.hpp
+//  - accessor_from_mapping_and_accessor_arg(AccessorTypeTag<AccessorType>,
+//  MappingType, AccessorArg_t)
+//  - allocation_size_from_mapping_and_accessor(MappingType, AccessorType)
+
+}  // namespace Impl
 
 #ifdef KOKKOS_ENABLE_IMPL_MDSPAN
 namespace Impl {
 struct UnsupportedKokkosArrayLayout;
 
 template <class Traits, class Enabled = void>
+struct AccessorFromViewTraits {
+  using type =
+      SpaceAwareAccessor<typename Traits::memory_space,
+                         default_accessor<typename Traits::value_type>>;
+};
+
+#ifdef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
+template <class Traits>
+struct AccessorFromViewTraits<
+    Traits,
+    std::enable_if_t<Traits::is_managed && !Traits::memory_traits::is_atomic>> {
+  using type =
+      SpaceAwareAccessor<typename Traits::memory_space,
+                         default_accessor<typename Traits::value_type>>;
+};
+
+template <class Traits>
+struct AccessorFromViewTraits<
+    Traits,
+    std::enable_if_t<Traits::is_managed && Traits::memory_traits::is_atomic>> {
+  using type = CheckedRelaxedAtomicAccessor<typename Traits::value_type,
+                                            typename Traits::memory_space>;
+};
+#else
+template <class Traits>
+struct AccessorFromViewTraits<
+    Traits,
+    std::enable_if_t<Traits::is_managed && !Traits::memory_traits::is_atomic>> {
+  using type = CheckedReferenceCountedAccessor<typename Traits::value_type,
+                                               typename Traits::memory_space>;
+};
+
+template <class Traits>
+struct AccessorFromViewTraits<
+    Traits,
+    std::enable_if_t<Traits::is_managed && Traits::memory_traits::is_atomic>> {
+  using type = CheckedReferenceCountedRelaxedAtomicAccessor<
+      typename Traits::value_type, typename Traits::memory_space>;
+};
+#endif
+
+template <class Traits>
+struct AccessorFromViewTraits<
+    Traits,
+    std::enable_if_t<!Traits::is_managed && Traits::memory_traits::is_atomic>> {
+  using type = CheckedRelaxedAtomicAccessor<typename Traits::value_type,
+                                            typename Traits::memory_space>;
+};
+
+template <class Traits>
+using accessor_from_view_traits_t =
+    typename AccessorFromViewTraits<Traits>::type;
+
+// "Natural" mdspan for a view if the View's ArrayLayout is supported.
+template <
+    class Traits,
+    class CustomizedArgs = decltype(customize_view_arguments(
+        ViewArguments<
+            typename Traits::value_type, typename Traits::array_layout,
+            typename Traits::device_type, typename Traits::memory_traits>())),
+    class Layout =
+        typename LayoutFromArrayLayout<typename Traits::array_layout>::type>
 struct MDSpanViewTraits {
+  using index_type = std::size_t;
+  using extents_type =
+      typename ExtentsFromDataType<index_type,
+                                   typename Traits::data_type>::type;
+  using mdspan_layout_type = Layout;
+  static_assert(
+      std::is_same_v<Layout, typename LayoutFromArrayLayout<
+                                 typename Traits::array_layout>::type>);
+  using accessor_type = accessor_from_view_traits_t<Traits>;
+  using mdspan_type   = mdspan<typename Traits::value_type, extents_type,
+                             mdspan_layout_type, accessor_type>;
+};
+
+// Unsupported View Layout
+template <class Traits>
+struct MDSpanViewTraits<Traits, void, void> {
   using mdspan_type = UnsupportedKokkosArrayLayout;
 };
 
-// "Natural" mdspan for a view if the View's ArrayLayout is supported.
-template <class Traits>
-struct MDSpanViewTraits<Traits, std::void_t<typename LayoutFromArrayLayout<
-                                    typename Traits::array_layout>::type>> {
-  using index_type = std::size_t;
+// Customized View arguments
+template <class Traits, class IndexType, class AccessorType, class LayoutType>
+struct MDSpanViewTraits<Traits, ViewCustomArguments<IndexType, AccessorType>,
+                        LayoutType> {
+  using index_type = IndexType;
   using extents_type =
-      typename Impl::ExtentsFromDataType<index_type,
-                                         typename Traits::data_type>::type;
-  using mdspan_layout_type =
-      typename LayoutFromArrayLayout<typename Traits::array_layout>::type;
-  using accessor_type =
-      SpaceAwareAccessor<typename Traits::memory_space,
-                         Kokkos::default_accessor<typename Traits::value_type>>;
+      typename ExtentsFromDataType<index_type,
+                                   typename Traits::data_type>::type;
+  using mdspan_layout_type = LayoutType;
+  using accessor_type      = AccessorType;
+  // This will static assert that accessor_type is legal
   using mdspan_type = mdspan<typename Traits::value_type, extents_type,
                              mdspan_layout_type, accessor_type>;
 };
+
 }  // namespace Impl
 #endif  // KOKKOS_ENABLE_IMPL_MDSPAN
 
@@ -351,7 +462,7 @@ struct ViewTraits {
   using MemoryTraits =
       std::conditional_t<!std::is_void_v<typename prop::memory_traits>,
                          typename prop::memory_traits,
-                         typename Kokkos::MemoryManaged>;
+                         typename Kokkos::MemoryTraits<>>;
 
   using HooksPolicy =
       std::conditional_t<!std::is_void_v<typename prop::hooks_policy>,
@@ -411,6 +522,12 @@ struct ViewTraits {
   using hooks_policy      = HooksPolicy;
 
   using size_type = typename MemorySpace::size_type;
+
+  static constexpr bool impl_is_customized =
+      !std::is_same_v<void,
+                      decltype(customize_view_arguments(
+                          Impl::ViewArguments<value_type, array_layout,
+                                              device_type, memory_traits>()))>;
 
   enum { is_hostspace = std::is_same_v<MemorySpace, HostSpace> };
   enum { is_managed = MemoryTraits::is_unmanaged == 0 };

@@ -23,6 +23,7 @@ include:
     - doc/src/**
     - python/**
     - src/**
+    - tools/lammps-gui/**
 exclude:
     - src/Make.sh
 patterns:

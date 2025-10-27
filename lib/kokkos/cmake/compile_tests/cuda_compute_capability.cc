@@ -46,6 +46,7 @@ int main() {
     case 75:  std::cout << "Set -DKokkos_ARCH_TURING75=ON ." << std::endl; break;
     case 80:  std::cout << "Set -DKokkos_ARCH_AMPERE80=ON ." << std::endl; break;
     case 86:  std::cout << "Set -DKokkos_ARCH_AMPERE86=ON ." << std::endl; break;
+    case 87:  std::cout << "Set -DKokkos_ARCH_AMPERE87=ON ." << std::endl; break;
     case 89:  std::cout << "Set -DKokkos_ARCH_ADA89=ON ." << std::endl; break;
     case 90:  std::cout << "Set -DKokkos_ARCH_HOPPER90=ON ." << std::endl; break;
     case 100: std::cout << "Set -DKokkos_ARCH_BLACKWELL100=ON ." << std::endl; break;

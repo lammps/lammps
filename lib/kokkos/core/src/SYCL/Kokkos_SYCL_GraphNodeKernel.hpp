@@ -30,6 +30,57 @@
 namespace Kokkos {
 namespace Impl {
 
+template <typename Functor>
+struct GraphNodeThenHostImpl<Kokkos::SYCL, Functor> {
+ private:
+  using native_graph_t = sycl::ext::oneapi::experimental::command_graph<
+      sycl::ext::oneapi::experimental::graph_state::modifiable>;
+
+  std::optional<Functor> m_functor = std::nullopt;
+
+ public:
+  std::optional<sycl::ext::oneapi::experimental::node> m_node = std::nullopt;
+
+ public:
+  explicit GraphNodeThenHostImpl(Functor functor)
+      : m_functor{std::move(functor)} {}
+
+  void add_to_graph(native_graph_t& graph) {
+    KOKKOS_ENSURES(!m_node);
+    KOKKOS_ENSURES(m_functor.has_value());
+    m_node = graph.add([&](sycl::handler& cgh) {
+      // The functor is passed through as universal reference and can thus be
+      // moved. See also
+      // https://github.com/intel/llvm/blob/d33426f92e885dce30700b7327a44e039d656962/sycl/include/sycl/handler.hpp#L1942-L1949.
+      cgh.host_task(*std::exchange(m_functor, std::nullopt));
+    });
+  }
+};
+
+template <typename Functor>
+struct GraphNodeCaptureImpl<Kokkos::SYCL, Functor> {
+  using native_graph_t = sycl::ext::oneapi::experimental::command_graph<
+      sycl::ext::oneapi::experimental::graph_state::modifiable>;
+
+  Functor m_functor;
+  std::optional<sycl::ext::oneapi::experimental::node> m_node = std::nullopt;
+
+  void capture(const Kokkos::SYCL& exec, native_graph_t& graph) {
+    auto& sycl_queue = exec.sycl_queue();
+
+    native_graph_t recorded_graph(sycl_queue.get_context(),
+                                  sycl_queue.get_device());
+
+    recorded_graph.begin_recording(sycl_queue);
+    m_functor(exec);
+    recorded_graph.end_recording(sycl_queue);
+
+    m_node = graph.add([&](sycl::handler& cgh) {
+      cgh.ext_oneapi_graph(recorded_graph.finalize());
+    });
+  }
+};
+
 template <typename PolicyType, typename Functor, typename PatternTag,
           typename... Args>
 class GraphNodeKernelImpl<Kokkos::SYCL, PolicyType, Functor, PatternTag,

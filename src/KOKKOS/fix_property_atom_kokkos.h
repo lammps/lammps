@@ -35,7 +35,7 @@ class FixPropertyAtomKokkos : public FixPropertyAtom {
 
   void sync(ExecutionSpace space, unsigned int mask);
   void modified(ExecutionSpace space, unsigned int mask);
-  void sync_overlapping_device(ExecutionSpace space, unsigned int mask);
+  void sync_pinned(ExecutionSpace space, unsigned int mask, int async_flag = 0);
 
  private:
   int dvector_flag;

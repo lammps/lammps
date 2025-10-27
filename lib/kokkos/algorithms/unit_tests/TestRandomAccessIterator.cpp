@@ -15,6 +15,9 @@
 //@HEADER
 
 #include <TestStdAlgorithmsCommon.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+#include <std_algorithms/impl/Kokkos_RandomAccessIterator.hpp>
+#endif
 
 namespace KE = Kokkos::Experimental;
 

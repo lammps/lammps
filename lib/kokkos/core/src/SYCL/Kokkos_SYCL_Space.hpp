@@ -64,7 +64,7 @@ class SYCLDeviceUSMSpace {
                   const size_t arg_alloc_size,
                   const size_t arg_logical_size = 0) const;
 
-  static constexpr const char* name() { return "SYCLDeviceUSM"; };
+  static constexpr const char* name() { return "SYCLDeviceUSM"; }
 
  private:
   sycl::queue m_queue;
@@ -105,7 +105,7 @@ class SYCLSharedUSMSpace {
                   const size_t arg_alloc_size,
                   const size_t arg_logical_size = 0) const;
 
-  static constexpr const char* name() { return "SYCLSharedUSM"; };
+  static constexpr const char* name() { return "SYCLSharedUSM"; }
 
  private:
   sycl::queue m_queue;
@@ -146,7 +146,7 @@ class SYCLHostUSMSpace {
                   const size_t arg_alloc_size,
                   const size_t arg_logical_size = 0) const;
 
-  static constexpr const char* name() { return "SYCLHostUSM"; };
+  static constexpr const char* name() { return "SYCLHostUSM"; }
 
  private:
   sycl::queue m_queue;

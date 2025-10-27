@@ -22,13 +22,6 @@
 #include <Kokkos_Parallel.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Parallel.hpp>
 
-// FIXME_OPENMPTARGET - Using this macro to implement a workaround for
-// hierarchical scan. It avoids hitting the code path which we wanted to
-// write but doesn't work. undef'ed at the end.
-#ifndef KOKKOS_ARCH_INTEL_GPU
-#define KOKKOS_IMPL_TEAM_SCAN_WORKAROUND
-#endif
-
 namespace Kokkos {
 
 // This is largely the same code as in HIP and CUDA except for the member name
@@ -44,26 +37,11 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
   static_assert(std::is_same_v<analysis_value_type, ValueType>,
                 "Non-matching value types of functor and return type");
 
-  const auto start = loop_bounds.start;
-  const auto end   = loop_bounds.end;
-  //   Note this thing is called .member in the CUDA specialization of
-  //   TeamThreadRangeBoundariesStruct
-  auto& member         = loop_bounds.team;
+  const auto start     = loop_bounds.start;
+  const auto end       = loop_bounds.end;
+  auto& member         = loop_bounds.member;
   const auto team_rank = member.team_rank();
 
-#if defined(KOKKOS_IMPL_TEAM_SCAN_WORKAROUND)
-  ValueType scan_val = {};
-
-  if (team_rank == 0) {
-    for (iType i = start; i < end; ++i) {
-      lambda(i, scan_val, true);
-    }
-  }
-  member.team_broadcast(scan_val, 0);
-  return_val = scan_val;
-
-#pragma omp barrier
-#else
   const auto team_size = member.team_size();
   const auto nchunk    = (end - start + team_size - 1) / team_size;
   ValueType accum      = {};
@@ -87,8 +65,6 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
     member.team_broadcast(accum, team_size - 1);
   }
   return_val = accum;
-
-#endif
 }
 
 template <typename iType, class FunctorType>
@@ -158,9 +134,5 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
 }
 
 }  // namespace Kokkos
-
-#ifdef KOKKOS_IMPL_TEAM_SCAN_WORKAROUND
-#undef KOKKOS_IMPL_TEAM_SCAN_WORKAROUND
-#endif
 
 #endif

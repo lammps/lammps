@@ -2423,7 +2423,6 @@ double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& 
     double perbondval;
     std::set<tagint> aset;
     std::string computeid = varid;
-    std::map<std::set<tagint>,int>::iterator it;
 
     if (computeid.substr(0,2) != "c_") error->one(FLERR,"Bond/react: Reaction special function compute "
                                          "name should begin with 'c_'");
@@ -2457,7 +2456,7 @@ double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& 
     if (cperbond->invoked_local != lmp->update->ntimestep)
       cperbond->compute_local();
 
-    it = atoms2bond.find(aset);
+    auto it = atoms2bond.find(aset);
     if (it == atoms2bond.end()) error->one(FLERR,"Bond/react: Unable to locate bond referenced by "
                                             "reaction special function 'rxnbond'");
     ibond = it->second;

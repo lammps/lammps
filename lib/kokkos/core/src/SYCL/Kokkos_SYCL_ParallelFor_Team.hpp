@@ -71,8 +71,9 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
       auto lambda = [=](sycl::nd_item<2> item) {
         const member_type team_member(
-            KOKKOS_IMPL_SYCL_GET_MULTI_PTR(team_scratch_memory_L0), shmem_begin,
-            scratch_size[0],
+            team_scratch_memory_L0
+                .get_multi_ptr<sycl::access::decorated::yes>(),
+            shmem_begin, scratch_size[0],
             global_scratch_ptr + item.get_group(1) * scratch_size[1],
             scratch_size[1], item, item.get_group_linear_id(),
             item.get_group_range(1));
@@ -112,7 +113,7 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
           lambda);
     };
 
-#ifdef SYCL_EXT_ONEAPI_GRAPH
+#ifdef KOKKOS_IMPL_SYCL_GRAPH_SUPPORT
     if constexpr (Policy::is_graph_kernel::value) {
       sycl_attach_kernel_to_node(*this, cgh_lambda);
       return {};

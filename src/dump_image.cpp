@@ -36,17 +36,220 @@
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
-#include "neighbor.h"
 #include "neigh_list.h"
+#include "neighbor.h"
 #include "output.h"
+#include "platform.h"
+#include "random_mars.h"
+#include "region.h"
+#include "region_block.h"
+#include "region_cone.h"
+#include "region_cylinder.h"
+#include "region_ellipsoid.h"
+#include "region_prism.h"
+#include "region_sphere.h"
 #include "thermo.h"
 #include "tokenizer.h"
 #include "update.h"
 #include "variable.h"
 
+#include <array>
 #include <cctype>
 #include <cmath>
 #include <cstring>
+
+// helper functions for generating triangle meshes
+
+namespace {
+
+using LAMMPS_NS::MathConst::MY_2PI;
+constexpr int RESOLUTION = 50;
+constexpr double RADINC = MY_2PI / RESOLUTION;
+
+using vec3 = std::array<double, 3>;
+using triangle = std::array<vec3, 3>;
+
+vec3 vecadd(const vec3 &a, const vec3 &b)
+{
+  vec3 sum(a);
+  sum[0] += b[0];
+  sum[1] += b[1];
+  sum[2] += b[2];
+  return sum;
+}
+
+vec3 vecnorm(const vec3 &a)
+{
+  vec3 norm(a);
+  const double val = a[0] * a[0] + a[1] * a[1] + a[2] * a[2];
+  double scale = 1.0;
+  if (val > 0.0) scale = 1.0 / sqrt(val);
+  norm[0] *= scale;
+  norm[1] *= scale;
+  norm[2] *= scale;
+  return norm;
+}
+
+double radscale(const double *radius, const vec3 &pos)
+{
+  return sqrt(1.0 /
+              (pos[0] / radius[0] * pos[0] / radius[0] + pos[1] / radius[1] * pos[1] / radius[1] +
+               pos[2] / radius[2] * pos[2] / radius[2]));
+}
+
+// refine the list of triangles.
+// each triangle is replaced by 4 triangles with positions on the surface of a unit sphere
+std::vector<triangle> refine_triangle_list(const std::vector<triangle> &inlist)
+{
+  std::vector<triangle> outlist;
+  for (const auto &tri : inlist) {
+    vec3 posa = vecnorm(vecadd(tri[0], tri[2]));
+    vec3 posb = vecnorm(vecadd(tri[0], tri[1]));
+    vec3 posc = vecnorm(vecadd(tri[1], tri[2]));
+    outlist.push_back({tri[0], posb, posa});
+    outlist.push_back({posb, tri[1], posc});
+    outlist.push_back({posa, posb, posc});
+    outlist.push_back({posa, posc, tri[2]});
+  }
+  return outlist;
+}
+
+void scale_and_displace_triangle(triangle &tri, const double *radius, const vec3 &offs)
+{
+  // scale and displace
+  for (int i = 0; i < 3; ++i) {
+    auto &t = tri[i];
+    const auto scale = radscale(radius, t);
+    t[0] = t[0] * scale + offs[0];
+    t[1] = t[1] * scale + offs[1];
+    t[2] = t[2] * scale + offs[2];
+  }
+}
+
+void ellipsoid2wireframe(LAMMPS_NS::Image *img, int level, const double *color, double diameter,
+                         const double *center, const double *radius)
+{
+  vec3 offset = {center[0], center[1], center[2]};
+
+  // define edges of an octahedron
+  vec3 pos1 = {-1.0, 0.0, 0.0};
+  vec3 pos2 = {1.0, 0.0, 0.0};
+  vec3 pos3 = {0.0, -1.0, 0.0};
+  vec3 pos4 = {0.0, 1.0, 0.0};
+  vec3 pos5 = {0.0, 0.0, -1.0};
+  vec3 pos6 = {0.0, 0.0, 1.0};
+
+  // define level 1 octahedron triangle mesh
+  std::vector<triangle> trilist = {{pos1, pos4, pos5}, {pos5, pos4, pos2}, {pos2, pos4, pos6},
+                                   {pos6, pos4, pos1}, {pos5, pos3, pos1}, {pos2, pos3, pos5},
+                                   {pos6, pos3, pos2}, {pos1, pos3, pos6}};
+
+  // draw level 1 triangle mesh
+  if (level <= 1) {
+    for (auto &tri : trilist) {
+      scale_and_displace_triangle(tri, radius, offset);
+      img->draw_cylinder(tri[0].data(), tri[1].data(), color, diameter, 3);
+      img->draw_cylinder(tri[0].data(), tri[2].data(), color, diameter, 3);
+      img->draw_cylinder(tri[1].data(), tri[2].data(), color, diameter, 3);
+    }
+  }
+
+  if (level >= 2) {
+    trilist = refine_triangle_list(trilist);
+
+    if (level == 2) {
+      for (auto &tri : trilist) {
+        scale_and_displace_triangle(tri, radius, offset);
+        img->draw_cylinder(tri[0].data(), tri[1].data(), color, diameter, 3);
+        img->draw_cylinder(tri[0].data(), tri[2].data(), color, diameter, 3);
+        img->draw_cylinder(tri[1].data(), tri[2].data(), color, diameter, 3);
+      }
+    }
+  }
+
+  if (level >= 3) {
+    trilist = refine_triangle_list(trilist);
+
+    if (level == 3) {
+      for (auto &tri : trilist) {
+        scale_and_displace_triangle(tri, radius, offset);
+        img->draw_cylinder(tri[0].data(), tri[1].data(), color, diameter, 3);
+        img->draw_cylinder(tri[0].data(), tri[2].data(), color, diameter, 3);
+        img->draw_cylinder(tri[1].data(), tri[2].data(), color, diameter, 3);
+      }
+    }
+  }
+
+  if (level == 4) {
+    trilist = refine_triangle_list(trilist);
+
+    for (auto &tri : trilist) {
+      scale_and_displace_triangle(tri, radius, offset);
+      img->draw_cylinder(tri[0].data(), tri[1].data(), color, diameter, 3);
+      img->draw_cylinder(tri[0].data(), tri[2].data(), color, diameter, 3);
+      img->draw_cylinder(tri[1].data(), tri[2].data(), color, diameter, 3);
+    }
+  }
+}
+
+void ellipsoid2filled(LAMMPS_NS::Image *img, int level, const double *color,
+                      const double *center, const double *radius)
+{
+  vec3 offset = {center[0], center[1], center[2]};
+
+  // define edges of an octahedron
+  vec3 pos1 = {-1.0, 0.0, 0.0};
+  vec3 pos2 = {1.0, 0.0, 0.0};
+  vec3 pos3 = {0.0, -1.0, 0.0};
+  vec3 pos4 = {0.0, 1.0, 0.0};
+  vec3 pos5 = {0.0, 0.0, -1.0};
+  vec3 pos6 = {0.0, 0.0, 1.0};
+
+  // define level 1 octahedron triangle mesh
+  std::vector<triangle> trilist = {{pos1, pos4, pos5}, {pos5, pos4, pos2}, {pos2, pos4, pos6},
+                                   {pos6, pos4, pos1}, {pos5, pos3, pos1}, {pos2, pos3, pos5},
+                                   {pos6, pos3, pos2}, {pos1, pos3, pos6}};
+
+  if (level <= 1) {
+    for (auto &tri : trilist) {
+      scale_and_displace_triangle(tri, radius, offset);
+      img->draw_triangle(tri[0].data(), tri[1].data(), tri[2].data(), color);
+    }
+  }
+
+  // refine the list of triangles
+  if (level >= 2) {
+    trilist = refine_triangle_list(trilist);
+
+    if (level == 2) {
+      for (auto &tri : trilist) {
+        scale_and_displace_triangle(tri, radius, offset);
+        img->draw_triangle(tri[0].data(), tri[1].data(), tri[2].data(), color);
+      }
+    }
+  }
+
+  if (level >= 3) {
+    trilist = refine_triangle_list(trilist);
+
+    if (level == 3) {
+      for (auto &tri : trilist) {
+        scale_and_displace_triangle(tri, radius, offset);
+        img->draw_triangle(tri[0].data(), tri[1].data(), tri[2].data(), color);
+      }
+    }
+  }
+
+  if (level == 4) {
+    trilist = refine_triangle_list(trilist);
+
+    for (auto &tri : trilist) {
+      scale_and_displace_triangle(tri, radius, offset);
+      img->draw_triangle(tri[0].data(), tri[1].data(), tri[2].data(), color);
+    }
+  }
+}
+}    // namespace
 
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
@@ -57,6 +260,7 @@ enum { NUMERIC, ATOM, TYPE, ELEMENT, ATTRIBUTE };
 enum { SPHERE, LINE, TRI };    // also in some Body and Fix child classes
 enum { STATIC, DYNAMIC };
 enum { NO = 0, YES = 1, AUTO = 2 };
+enum { FILLED, FRAME, POINTS };
 
 /* ---------------------------------------------------------------------- */
 
@@ -69,8 +273,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     gbuf(nullptr), avec_line(nullptr), avec_tri(nullptr), avec_body(nullptr), fixptr(nullptr),
     image(nullptr), chooseghost(nullptr), bufcopy(nullptr)
 {
-  if (binary || multiproc)
-    error->all(FLERR, 4, "Invalid dump image filename {}", filename);
+  if (binary || multiproc) error->all(FLERR, 4, "Invalid dump image filename {}", filename);
 
   // force binary flag on to avoid corrupted output on Windows
 
@@ -225,7 +428,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"dump image line", error);
       lineflag = YES;
       if (strcmp(arg[iarg+1],"type") == 0) lcolor = TYPE;
-      else error->all(FLERR,"Illegal dump image command");
+      else error->all(FLERR, iarg+1, "Dump image line only supports color by type");
       ldiam = NUMERIC;
       ldiamvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
@@ -234,7 +437,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"dump image tri", error);
       triflag = YES;
       if (strcmp(arg[iarg+1],"type") == 0) tcolor = TYPE;
-      else error->all(FLERR,"Illegal dump image command");
+      else error->all(FLERR, iarg+1, "Dump image tri only supports color by type");
       tstyle = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       tdiamvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
@@ -243,7 +446,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"dump image body", error);
       bodyflag = YES;
       if (strcmp(arg[iarg+1],"type") == 0) bodycolor = TYPE;
-      else error->all(FLERR,"Illegal dump image command");
+      else error->all(FLERR, iarg+1, "Dump image body only support color by type");
       bodyflag1 = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       bodyflag2 = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
@@ -253,16 +456,51 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       fixflag = YES;
       fixID = arg[iarg+1];
       if (strcmp(arg[iarg+2],"type") == 0) fixcolor = TYPE;
-      else error->all(FLERR,"Illegal dump image command");
+      else error->all(FLERR, iarg+2, "Dump image fix only supports color by type");
       fixflag1 = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       fixflag2 = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       iarg += 5;
+
+    } else if (strcmp(arg[iarg],"region") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"dump image region", error);
+      auto *regptr = domain->get_region_by_id(arg[iarg+1]);
+      if (!regptr)
+        error->all(FLERR, iarg+1, "Unknown region {} for dump image", arg[iarg+1]);
+      auto *regcolor = image->color2rgb(arg[iarg+2]);
+      if (!regcolor)
+        error->all(FLERR, iarg+2, "Unknown color {} for dump image", arg[iarg+2]);
+      int drawstyle = FILLED;
+      if (strcmp(arg[iarg+3],"filled") == 0) drawstyle = FILLED;
+      else if (strcmp(arg[iarg+3],"frame") == 0) drawstyle = FRAME;
+      else if (strcmp(arg[iarg+3],"points") == 0) drawstyle = POINTS;
+      else error->all(FLERR, iarg+3, "Unknown region draw style {}", arg[iarg+3]);
+      double framediam = 0.5;
+      int npoints = 0;
+      if (drawstyle == FRAME) {
+        if (iarg+5 > narg) utils::missing_cmd_args(FLERR,"dump image region", error);
+        framediam = utils::numeric(FLERR, arg[iarg+4], false, lmp);
+        if (framediam <= 0.0)
+          error->all(FLERR, iarg+4, "Dump image region frame diameter must be > 0.0");
+        ++iarg;
+      } else if (drawstyle == POINTS) {
+        if (iarg+6 > narg) utils::missing_cmd_args(FLERR,"dump image region", error);
+        npoints = utils::inumeric(FLERR, arg[iarg+4], false, lmp);
+        if (npoints < 1)
+          error->all(FLERR, iarg+4, "Dump image region number of points must be > 0");
+        framediam = utils::numeric(FLERR, arg[iarg+5], false, lmp);
+        if (framediam <= 0.0)
+          error->all(FLERR, iarg+5, "Dump image region point diameter must be > 0.0");
+        iarg += 2;
+      }
+      iarg += 4;
+      regions.emplace_back(regptr->id, regptr, regcolor, drawstyle, framediam, npoints);
 
     } else if (strcmp(arg[iarg],"size") == 0) {
       if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"dump image size", error);
       int width = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       int height = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-      if (width <= 0 || height <= 0) error->all(FLERR,"Illegal dump image command");
+      if (width <= 0 || height <= 0)
+        error->all(FLERR, Error::NOPOINTER, "Illegal dump image dimensions");
       if (image->fsaa) {
         image->width = width*2;
         image->height = height*2;
@@ -280,7 +518,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       } else {
         const double theta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (theta < 0.0 || theta > 180.0)
-          error->all(FLERR,"Invalid dump image theta value");
+          error->all(FLERR, iarg+1, "Invalid dump image theta value");
         image->theta = DEG2RAD * theta;
       }
       if (utils::strmatch(arg[iarg+2],"^v_")) {
@@ -1453,6 +1691,460 @@ void DumpImage::create_image()
           image->draw_cylinder(p2,p3,color,fixflag2,3);
           image->draw_cylinder(p3,p1,color,fixflag2,3);
         }
+      }
+    }
+  }
+
+  // render regions, if supported
+
+  for (auto &reg : regions) {
+
+    // check if region has changed or went away
+    auto *ptr = domain->get_region_by_id(reg.id);
+    if (!ptr) error->all(FLERR, "Dump image region {} does not exist", reg.id);
+    reg.ptr = ptr;
+
+    if (reg.ptr->rotateflag) {
+      utils::logmesg(lmp, "Cannot (yet) handle rotating region {}. Skipping... ", reg.ptr->id);
+      continue;
+    }
+
+    // update internal variables
+    reg.ptr->prematch();
+
+    // compute position offset for moving regions
+
+    double dx = 0.0;
+    double dy = 0.0;
+    double dz = 0.0;
+    if (reg.ptr->moveflag) {
+      dx = reg.ptr->dx;
+      dy = reg.ptr->dy;
+      dz = reg.ptr->dz;
+    }
+
+    if (reg.style == POINTS) {
+      int seed = (int)(platform::walltime()*1000000) % 1000000;
+      RanMars rand(lmp, seed);
+      double pos[3];
+
+      double xoff = domain->boxlo[0];
+      double yoff = domain->boxlo[1];
+      double zoff = domain->boxlo[2];
+      double xlen = domain->xprd;
+      double ylen = domain->yprd;
+      double zlen = domain->zprd;
+      if (domain->triclinic) {
+        xoff = domain->boxlo_bound[0];
+        yoff = domain->boxlo_bound[1];
+        zoff = domain->boxlo_bound[2];
+        xlen = domain->boxhi_bound[0] - domain->boxlo_bound[0];
+        ylen = domain->boxhi_bound[1] - domain->boxlo_bound[1];
+        zlen = domain->boxhi_bound[2] - domain->boxlo_bound[2];
+      }
+
+      for (int i = 0; i < reg.npoints; ++i) {
+        pos[0] = rand.uniform() * xlen + xoff;
+        pos[1] = rand.uniform() * ylen + yoff;
+        pos[2] = rand.uniform() * zlen + zoff;
+        if (reg.ptr->inside(pos[0], pos[1], pos[2])) {
+          pos[0] += dx;
+          pos[1] += dy;
+          pos[2] += dz;
+          image->draw_sphere(pos, reg.color, reg.diameter);
+        }
+      }
+    } else {
+
+      std::string regstyle = reg.ptr->style;
+      if (regstyle == "block") {
+        auto *myreg = dynamic_cast<RegBlock *>(reg.ptr);
+        // inconsistent style. should not happen.
+        if (!myreg) continue;
+
+        double block[8][3];
+        block[0][0] = myreg->xlo + dx; block[0][1] = myreg->ylo + dy; block[0][2] = myreg->zlo + dz;
+        block[1][0] = myreg->xlo + dx; block[1][1] = myreg->ylo + dy; block[1][2] = myreg->zhi + dz;
+        block[2][0] = myreg->xlo + dx; block[2][1] = myreg->yhi + dy; block[2][2] = myreg->zhi + dz;
+        block[3][0] = myreg->xlo + dx; block[3][1] = myreg->yhi + dy; block[3][2] = myreg->zlo + dz;
+        block[4][0] = myreg->xhi + dx; block[4][1] = myreg->ylo + dy; block[4][2] = myreg->zlo + dz;
+        block[5][0] = myreg->xhi + dx; block[5][1] = myreg->ylo + dy; block[5][2] = myreg->zhi + dz;
+        block[6][0] = myreg->xhi + dx; block[6][1] = myreg->yhi + dy; block[6][2] = myreg->zhi + dz;
+        block[7][0] = myreg->xhi + dx; block[7][1] = myreg->yhi + dy; block[7][2] = myreg->zlo + dz;
+
+        if (reg.style == FRAME) {
+          image->draw_cylinder(block[0],block[1],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[1],block[2],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[0],block[3],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[2],block[3],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[0],block[4],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[1],block[5],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[2],block[6],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[3],block[7],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[4],block[5],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[5],block[6],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[4],block[7],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[6],block[7],reg.color,reg.diameter,3);
+        } else if (reg.style == FILLED) {
+          if (!myreg->open_faces[0]) {
+            image->draw_triangle(block[0], block[1], block[2], reg.color);
+            image->draw_triangle(block[2], block[3], block[0], reg.color);
+          }
+          if (!myreg->open_faces[1]) {
+            image->draw_triangle(block[4], block[5], block[6], reg.color);
+            image->draw_triangle(block[6], block[7], block[4], reg.color);
+          }
+          if (!myreg->open_faces[2]) {
+            image->draw_triangle(block[0], block[4], block[7], reg.color);
+            image->draw_triangle(block[7], block[3], block[0], reg.color);
+          }
+          if (!myreg->open_faces[3]) {
+            image->draw_triangle(block[1], block[2], block[6], reg.color);
+            image->draw_triangle(block[6], block[5], block[1], reg.color);
+          }
+          if (!myreg->open_faces[4]) {
+            image->draw_triangle(block[0], block[1], block[5], reg.color);
+            image->draw_triangle(block[5], block[4], block[0], reg.color);
+          }
+          if (!myreg->open_faces[5]) {
+            image->draw_triangle(block[3], block[2], block[6], reg.color);
+            image->draw_triangle(block[6], block[7], block[3], reg.color);
+          }
+        }
+      } else if (regstyle == "cone") {
+        auto *myreg = dynamic_cast<RegCone *>(reg.ptr);
+        // inconsistent style. should not happen.
+        if (!myreg) continue;
+
+        double lo[3], hi[3];
+        if (myreg->axis == 'x') {
+          lo[0] = myreg->lo + dx;
+          lo[1] = myreg->c1 + dy;
+          lo[2] = myreg->c2 + dz;
+          hi[0] = myreg->hi + dx;
+          hi[1] = myreg->c1 + dy;
+          hi[2] = myreg->c2 + dz;
+        } else if (myreg->axis == 'y') {
+          lo[0] = myreg->c1 + dx;
+          lo[1] = myreg->lo + dy;
+          lo[2] = myreg->c2 + dz;
+          hi[0] = myreg->c1 + dx;
+          hi[1] = myreg->hi + dy;
+          hi[2] = myreg->c2 + dz;
+        } else { // myreg->axis == 'z'
+          lo[0] = myreg->c1 + dx;
+          lo[1] = myreg->c2 + dy;
+          lo[2] = myreg->lo + dz;
+          hi[0] = myreg->c1 + dx;
+          hi[1] = myreg->c2 + dy;
+          hi[2] = myreg->hi + dz;
+        }
+
+        double p1[3], p2[3], p3[3], p4[3];
+        if (reg.style == FRAME) {
+          for (int i = 0; i < RESOLUTION; ++i) {
+            if (myreg->axis == 'x') {
+              p1[0] = p2[0] = myreg->lo + dx;
+              p3[0] = p4[0] = myreg->hi + dx;
+              p1[1] = myreg->radiuslo * sin(RADINC * i) + myreg->c1 + dy;
+              p1[2] = myreg->radiuslo * cos(RADINC * i) + myreg->c2 + dz;
+              p2[1] = myreg->radiuslo * sin(RADINC * (i+1)) + myreg->c1 + dy;
+              p2[2] = myreg->radiuslo * cos(RADINC * (i+1)) + myreg->c2 + dz;
+              p3[1] = myreg->radiushi * sin(RADINC * i) + myreg->c1 + dy;
+              p3[2] = myreg->radiushi * cos(RADINC * i) + myreg->c2 + dz;
+              p4[1] = myreg->radiushi * sin(RADINC * (i+1)) + myreg->c1 + dy;
+              p4[2] = myreg->radiushi * cos(RADINC * (i+1)) + myreg->c2 + dz;
+              image->draw_cylinder(p1, p2, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p3, p4, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p1, p3, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p2, p4, reg.color, reg.diameter, 3);
+            } else if (myreg->axis == 'y') {
+              p1[1] = p2[1] = myreg->lo + dy;
+              p3[1] = p4[1] = myreg->hi + dy;
+              p1[0] = myreg->radiuslo * sin(RADINC * i) + myreg->c1 + dx;
+              p1[2] = myreg->radiuslo * cos(RADINC * i) + myreg->c2 + dz;
+              p2[0] = myreg->radiuslo * sin(RADINC * (i+1)) + myreg->c1 + dx;
+              p2[2] = myreg->radiuslo * cos(RADINC * (i+1)) + myreg->c2 + dz;
+              p3[0] = myreg->radiushi * sin(RADINC * i) + myreg->c1 + dx;
+              p3[2] = myreg->radiushi * cos(RADINC * i) + myreg->c2 + dz;
+              p4[0] = myreg->radiushi * sin(RADINC * (i+1)) + myreg->c1 + dx;
+              p4[2] = myreg->radiushi * cos(RADINC * (i+1)) + myreg->c2 + dz;
+              image->draw_cylinder(p1, p2, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p3, p4, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p1, p3, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p2, p4, reg.color, reg.diameter, 3);
+            } else {  // if (myreg->axis == 'z')
+              p1[2] = p2[2] = myreg->lo + dz;
+              p3[2] = p4[2] = myreg->hi + dz;
+              p1[0] = myreg->radiuslo * sin(RADINC * i) + myreg->c1 + dx;
+              p1[1] = myreg->radiuslo * cos(RADINC * i) + myreg->c2 + dy;
+              p2[0] = myreg->radiuslo * sin(RADINC * (i+1)) + myreg->c1 + dx;
+              p2[1] = myreg->radiuslo * cos(RADINC * (i+1)) + myreg->c2 + dy;
+              p3[0] = myreg->radiushi * sin(RADINC * i) + myreg->c1 + dx;
+              p3[1] = myreg->radiushi * cos(RADINC * i) + myreg->c2 + dy;
+              p4[0] = myreg->radiushi * sin(RADINC * (i+1)) + myreg->c1 + dx;
+              p4[1] = myreg->radiushi * cos(RADINC * (i+1)) + myreg->c2 + dy;
+              image->draw_cylinder(p1, p2, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p3, p4, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p1, p3, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p2, p4, reg.color, reg.diameter, 3);
+            }
+          }
+        } else if (reg.style == FILLED) {
+          for (int i = 0; i < RESOLUTION; ++i) {
+            if (myreg->axis == 'x') {
+              p1[0] = p2[0] = myreg->lo + dx;
+              p3[0] = p4[0] = myreg->hi + dx;
+              p1[1] = myreg->radiuslo * sin(RADINC * i) + myreg->c1 + dy;
+              p1[2] = myreg->radiuslo * cos(RADINC * i) + myreg->c2 + dz;
+              p2[1] = myreg->radiuslo * sin(RADINC * (i+1)) + myreg->c1 + dy;
+              p2[2] = myreg->radiuslo * cos(RADINC * (i+1)) + myreg->c2 + dz;
+              p3[1] = myreg->radiushi * sin(RADINC * i) + myreg->c1 + dy;
+              p3[2] = myreg->radiushi * cos(RADINC * i) + myreg->c2 + dz;
+              p4[1] = myreg->radiushi * sin(RADINC * (i+1)) + myreg->c1 + dy;
+              p4[2] = myreg->radiushi * cos(RADINC * (i+1)) + myreg->c2 + dz;
+              if (!myreg->open_faces[0]) image->draw_triangle(p1, p2, lo, reg.color);
+              if (!myreg->open_faces[1]) image->draw_triangle(p3, p4, hi, reg.color);
+              if (!myreg->open_faces[2]) {
+                image->draw_triangle(p1, p2, p3, reg.color);
+                image->draw_triangle(p2, p4, p3, reg.color);
+              }
+
+            } else if (myreg->axis == 'y') {
+              p1[1] = p2[1] = myreg->lo + dy;
+              p3[1] = p4[1] = myreg->hi + dy;
+              p1[0] = myreg->radiuslo * sin(RADINC * i) + myreg->c1 + dx;
+              p1[2] = myreg->radiuslo * cos(RADINC * i) + myreg->c2 + dz;
+              p2[0] = myreg->radiuslo * sin(RADINC * (i+1)) + myreg->c1 + dx;
+              p2[2] = myreg->radiuslo * cos(RADINC * (i+1)) + myreg->c2 + dz;
+              p3[0] = myreg->radiushi * sin(RADINC * i) + myreg->c1 + dx;
+              p3[2] = myreg->radiushi * cos(RADINC * i) + myreg->c2 + dz;
+              p4[0] = myreg->radiushi * sin(RADINC * (i+1)) + myreg->c1 + dx;
+              p4[2] = myreg->radiushi * cos(RADINC * (i+1)) + myreg->c2 + dz;
+              if (!myreg->open_faces[0]) image->draw_triangle(p1, p2, lo, reg.color);
+              if (!myreg->open_faces[1]) image->draw_triangle(p3, p4, hi, reg.color);
+              if (!myreg->open_faces[2]) {
+                image->draw_triangle(p1, p2, p3, reg.color);
+                image->draw_triangle(p2, p4, p3, reg.color);
+              }
+            } else {  // if (myreg->axis == 'z')
+              p1[2] = p2[2] = myreg->lo + dz;
+              p3[2] = p4[2] = myreg->hi + dz;
+              p1[0] = myreg->radiuslo * sin(RADINC * i) + myreg->c1 + dx;
+              p1[1] = myreg->radiuslo * cos(RADINC * i) + myreg->c2 + dy;
+              p2[0] = myreg->radiuslo * sin(RADINC * (i+1)) + myreg->c1 + dx;
+              p2[1] = myreg->radiuslo * cos(RADINC * (i+1)) + myreg->c2 + dy;
+              p3[0] = myreg->radiushi * sin(RADINC * i) + myreg->c1 + dx;
+              p3[1] = myreg->radiushi * cos(RADINC * i) + myreg->c2 + dy;
+              p4[0] = myreg->radiushi * sin(RADINC * (i+1)) + myreg->c1 + dx;
+              p4[1] = myreg->radiushi * cos(RADINC * (i+1)) + myreg->c2 + dy;
+              if (!myreg->open_faces[0]) image->draw_triangle(p1, p2, lo, reg.color);
+              if (!myreg->open_faces[1]) image->draw_triangle(p3, p4, hi, reg.color);
+              if (!myreg->open_faces[2]) {
+                image->draw_triangle(p1, p2, p3, reg.color);
+                image->draw_triangle(p2, p4, p3, reg.color);
+              }
+            }
+          }
+        }
+      } else if (regstyle == "cylinder") {
+        auto *myreg = dynamic_cast<RegCylinder *>(reg.ptr);
+        // inconsistent style. should not happen.
+        if (!myreg) continue;
+
+        double lo[3], hi[3];
+        if (myreg->axis == 'x') {
+          lo[0] = myreg->lo + dx;
+          lo[1] = myreg->c1 + dy;
+          lo[2] = myreg->c2 + dz;
+          hi[0] = myreg->hi + dx;
+          hi[1] = myreg->c1 + dy;
+          hi[2] = myreg->c2 + dz;
+        } else if (myreg->axis == 'y') {
+          lo[0] = myreg->c1 + dx;
+          lo[1] = myreg->lo + dy;
+          lo[2] = myreg->c2 + dz;
+          hi[0] = myreg->c1 + dx;
+          hi[1] = myreg->hi + dy;
+          hi[2] = myreg->c2 + dz;
+        } else { // myreg->axis == 'z'
+          lo[0] = myreg->c1 + dx;
+          lo[1] = myreg->c2 + dy;
+          lo[2] = myreg->lo + dz;
+          hi[0] = myreg->c1 + dx;
+          hi[1] = myreg->c2 + dy;
+          hi[2] = myreg->hi + dz;
+        }
+
+        double p1[3], p2[3], p3[3], p4[3];
+        if (reg.style == FRAME) {
+          for (int i = 0; i < RESOLUTION; ++i) {
+            if (myreg->axis == 'x') {
+              p1[0] = p2[0] = myreg->lo + dx;
+              p3[0] = p4[0] = myreg->hi + dx;
+              p1[1] = p3[1] = myreg->radius * sin(RADINC * i) + myreg->c1 + dy;
+              p1[2] = p3[2] = myreg->radius * cos(RADINC * i) + myreg->c2 + dz;
+              p2[1] = p4[1] = myreg->radius * sin(RADINC * (i+1)) + myreg->c1 + dy;
+              p2[2] = p4[2] = myreg->radius * cos(RADINC * (i+1)) + myreg->c2 + dz;
+              image->draw_cylinder(p1, p2, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p3, p4, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p1, p3, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p2, p4, reg.color, reg.diameter, 3);
+            } else if (myreg->axis == 'y') {
+              p1[1] = p2[1] = myreg->lo + dy;
+              p3[1] = p4[1] = myreg->hi + dy;
+              p1[0] = p3[0] = myreg->radius * sin(RADINC * i) + myreg->c1 + dx;
+              p1[2] = p3[2] = myreg->radius * cos(RADINC * i) + myreg->c2 + dz;
+              p2[0] = p4[0] = myreg->radius * sin(RADINC * (i+1)) + myreg->c1 + dx;
+              p2[2] = p4[2] = myreg->radius * cos(RADINC * (i+1)) + myreg->c2 + dz;
+              image->draw_cylinder(p1, p2, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p3, p4, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p1, p3, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p2, p4, reg.color, reg.diameter, 3);
+            } else { // if (myreg->axis == 'z')
+              p1[2] = p2[2] = myreg->lo + dz;
+              p3[2] = p4[2] = myreg->hi + dz;
+              p1[0] = p3[0] = myreg->radius * sin(RADINC * i) + myreg->c1 + dx;
+              p1[1] = p3[1] = myreg->radius * cos(RADINC * i) + myreg->c2 + dy;
+              p2[0] = p4[0] = myreg->radius * sin(RADINC * (i+1)) + myreg->c1 + dx;
+              p2[1] = p4[1] = myreg->radius * cos(RADINC * (i+1)) + myreg->c2 + dy;
+              image->draw_cylinder(p1, p2, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p3, p4, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p1, p3, reg.color, reg.diameter, 3);
+              image->draw_cylinder(p2, p4, reg.color, reg.diameter, 3);
+            }
+          }
+        } else if (reg.style == FILLED) {
+          for (int i = 0; i < RESOLUTION; ++i) {
+            if (myreg->axis == 'x') {
+              p1[0] = p2[0] = myreg->lo + dx;
+              p3[0] = p4[0] = myreg->hi + dx;
+              p1[1] = p3[1] = myreg->radius * sin(RADINC * i) + myreg->c1 + dy;
+              p1[2] = p3[2] = myreg->radius * cos(RADINC * i) + myreg->c2 + dz;
+              p2[1] = p4[1] = myreg->radius * sin(RADINC * (i+1)) + myreg->c1 + dy;
+              p2[2] = p4[2] = myreg->radius * cos(RADINC * (i+1)) + myreg->c2 + dz;
+              if (!myreg->open_faces[0]) image->draw_triangle(p1, p2, lo, reg.color);
+              if (!myreg->open_faces[1]) image->draw_triangle(p3, p4, hi, reg.color);
+              if (!myreg->open_faces[2]) {
+                image->draw_triangle(p1, p2, p3, reg.color);
+                image->draw_triangle(p3, p4, p2, reg.color);
+              }
+            } else if (myreg->axis == 'y') {
+              p1[1] = p2[1] = myreg->lo + dy;
+              p3[1] = p4[1] = myreg->hi + dy;
+              p1[0] = p3[0] = myreg->radius * sin(RADINC * i) + myreg->c1 + dx;
+              p1[2] = p3[2] = myreg->radius * cos(RADINC * i) + myreg->c2 + dz;
+              p2[0] = p4[0] = myreg->radius * sin(RADINC * (i+1)) + myreg->c1 + dx;
+              p2[2] = p4[2] = myreg->radius * cos(RADINC * (i+1)) + myreg->c2 + dz;
+              if (!myreg->open_faces[0]) image->draw_triangle(p1, p2, lo, reg.color);
+              if (!myreg->open_faces[1]) image->draw_triangle(p3, p4, hi, reg.color);
+              if (!myreg->open_faces[2]) {
+                image->draw_triangle(p1, p2, p3, reg.color);
+                image->draw_triangle(p3, p4, p2, reg.color);
+              }
+            } else { // if (myreg->axis == 'z')
+              p1[2] = p2[2] = myreg->lo + dz;
+              p3[2] = p4[2] = myreg->hi + dz;
+              p1[0] = p3[0] = myreg->radius * sin(RADINC * i) + myreg->c1 + dx;
+              p1[1] = p3[1] = myreg->radius * cos(RADINC * i) + myreg->c2 + dy;
+              p2[0] = p4[0] = myreg->radius * sin(RADINC * (i+1)) + myreg->c1 + dx;
+              p2[1] = p4[1] = myreg->radius * cos(RADINC * (i+1)) + myreg->c2 + dy;
+              if (!myreg->open_faces[0]) image->draw_triangle(p1, p2, lo, reg.color);
+              if (!myreg->open_faces[1]) image->draw_triangle(p3, p4, hi, reg.color);
+              if (!myreg->open_faces[2]) {
+                image->draw_triangle(p1, p2, p3, reg.color);
+                image->draw_triangle(p2, p4, p3, reg.color);
+              }
+            }
+          }
+        }
+      } else if (regstyle == "ellipsoid") {
+        auto *myreg = dynamic_cast<RegEllipsoid *>(reg.ptr);
+        // inconsistent style. should not happen.
+        if (!myreg) continue;
+
+        double center[3];
+        center[0] = myreg->xc + dx;
+        center[1] = myreg->yc + dy;
+        center[2] = myreg->zc + dz;
+        double radius[3] = {myreg->a, myreg->b, myreg->c};
+        if (reg.style == FRAME) {
+          ellipsoid2wireframe(image, 4, reg.color, reg.diameter, center, radius);
+        } else if (reg.style == FILLED) {
+          ellipsoid2filled(image, 4, reg.color, center, radius);
+        }
+      } else if (regstyle == "prism") {
+        auto *myreg = dynamic_cast<RegPrism *>(reg.ptr);
+        // inconsistent style. should not happen.
+        if (!myreg) continue;
+
+        double block[8][3];
+        block[0][0] = myreg->xlo + dx; block[0][1] = myreg->ylo + dy; block[0][2] = myreg->zlo + dz;
+        block[1][0] = myreg->xlo + myreg->xz + dx; block[1][1] = myreg->ylo + myreg->yz + dy; block[1][2] = myreg->zhi + dz;
+        block[2][0] = myreg->xlo + myreg->xy + myreg->xz + dx; block[2][1] = myreg->yhi + myreg->yz + dy; block[2][2] = myreg->zhi + dz;
+        block[3][0] = myreg->xlo + myreg->xy + dx; block[3][1] = myreg->yhi + dy; block[3][2] = myreg->zlo + dz;
+        block[4][0] = myreg->xhi + dx; block[4][1] = myreg->ylo + dy; block[4][2] = myreg->zlo + dz;
+        block[5][0] = myreg->xhi + myreg->xz + dx; block[5][1] = myreg->ylo + myreg->yz + dy; block[5][2] = myreg->zhi + dz;
+        block[6][0] = myreg->xhi + myreg->xy + myreg->xz + dx; block[6][1] = myreg->yhi + myreg->yz + dy; block[6][2] = myreg->zhi + dz;
+        block[7][0] = myreg->xhi + myreg->xy + dx; block[7][1] = myreg->yhi + dy; block[7][2] = myreg->zlo + dz;
+
+        if (reg.style == FRAME) {
+          image->draw_cylinder(block[0],block[1],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[1],block[2],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[0],block[3],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[2],block[3],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[0],block[4],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[1],block[5],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[2],block[6],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[3],block[7],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[4],block[5],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[5],block[6],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[4],block[7],reg.color,reg.diameter,3);
+          image->draw_cylinder(block[6],block[7],reg.color,reg.diameter,3);
+        } else if (reg.style == FILLED) {
+          if (!myreg->open_faces[0]) {
+            image->draw_triangle(block[0], block[1], block[2], reg.color);
+            image->draw_triangle(block[2], block[3], block[0], reg.color);
+          }
+          if (!myreg->open_faces[1]) {
+            image->draw_triangle(block[4], block[5], block[6], reg.color);
+            image->draw_triangle(block[6], block[7], block[4], reg.color);
+          }
+          if (!myreg->open_faces[2]) {
+            image->draw_triangle(block[0], block[4], block[7], reg.color);
+            image->draw_triangle(block[7], block[3], block[0], reg.color);
+          }
+          if (!myreg->open_faces[3]) {
+            image->draw_triangle(block[1], block[2], block[6], reg.color);
+            image->draw_triangle(block[6], block[5], block[1], reg.color);
+          }
+          if (!myreg->open_faces[4]) {
+            image->draw_triangle(block[0], block[1], block[5], reg.color);
+            image->draw_triangle(block[5], block[4], block[0], reg.color);
+          }
+          if (!myreg->open_faces[5]) {
+            image->draw_triangle(block[3], block[2], block[6], reg.color);
+            image->draw_triangle(block[6], block[7], block[3], reg.color);
+          }
+        }
+      } else if (regstyle == "sphere") {
+        auto *myreg = dynamic_cast<RegSphere *>(reg.ptr);
+        // inconsistent style. should not happen.
+        if (!myreg) continue;
+
+        double center[3];
+        center[0] = myreg->xc + dx;
+        center[1] = myreg->yc + dy;
+        center[2] = myreg->zc + dz;
+        if (reg.style == FRAME) {
+          double radius[3] = {myreg->radius,myreg->radius,myreg->radius};
+          ellipsoid2wireframe(image, 4, reg.color, reg.diameter, center, radius);
+        } else if (reg.style == FILLED) {
+          image->draw_sphere(center, reg.color, 2.0 * myreg->radius);
+        }
+      } else {
+        if (comm->me == 0)
+          error->warning(FLERR, "Region style {} is not yet supported by dump image", regstyle);
       }
     }
   }

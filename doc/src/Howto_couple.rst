@@ -59,7 +59,7 @@ the context of your application.
 .. spacer
 
 4. Couple LAMMPS with another code in a client/server fashion, using the
-   `MDI Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_
+   `MDI Library <https://molssi-mdi.github.io/MDI_Library/>`_
    developed by the `Molecular Sciences Software Institute (MolSSI)
    <https://molssi.org>`_ to run LAMMPS as either an MDI driver (client)
    or an MDI engine (server).  The MDI driver issues commands to the MDI

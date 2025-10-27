@@ -55,9 +55,6 @@ Bibliography
 **(Andersen)**
    H.\  Andersen, J of Comp Phys, 52, 24-34 (1983).
 
-**(Anderson)**
-   Anderson, Mukherjee, Critchley, Ziegler, and Lipton "POEMS: Parallelizable Open-source Efficient Multibody Software ", Engineering With Computers (2006).
-
 **(Appshaw)**
    Appshaw, Seddon, Hanna, Soft. Matter,18, 1747(2022).
 

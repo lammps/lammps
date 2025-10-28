@@ -147,7 +147,7 @@ void FixLangevinSpin::add_tdamping(double spi[3], double fmi[3])
   fmi[0] -= alpha_t*cpx;
   fmi[1] -= alpha_t*cpy;
   fmi[2] -= alpha_t*cpz;
-  
+
   energyD -= hbar*(alpha_t*cpx*cpx + alpha_t*cpy*cpy + alpha_t*cpz*cpz);
 }
 
@@ -175,7 +175,7 @@ void FixLangevinSpin::add_temperature(double spi[3], double fmi[3])
   fmi[0] *= gil_factor;
   fmi[1] *= gil_factor;
   fmi[2] *= gil_factor;
-  
+
 }
 
 /* ---------------------------------------------------------------------- */

@@ -33,6 +33,8 @@
 #include "random_mars.h"
 #include "respa.h"
 #include "update.h"
+#include "memory.h"
+#include "output.h"
 
 #include <cmath>
 #include <cstring>
@@ -51,6 +53,11 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
   temp = utils::numeric(FLERR,arg[3],false,lmp);
   alpha_t = utils::numeric(FLERR,arg[4],false,lmp);
   seed = utils::inumeric(FLERR,arg[5],false,lmp);
+
+  nevery = 1;
+  vector_flag = 1;
+  size_vector = 2;
+  extvector = 0;
 
   if (alpha_t < 0.0) {
     error->all(FLERR,"Illegal langevin/spin command");
@@ -72,6 +79,7 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
 
   // random = new RanPark(lmp,seed + comm->me);
   random = new RanMars(lmp,seed + comm->me);
+  allocate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,6 +87,7 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
 FixLangevinSpin::~FixLangevinSpin()
 {
   delete random;
+  memory->destroy(energy_vec);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,21 +141,28 @@ void FixLangevinSpin::add_tdamping(double spi[3], double fmi[3])
   double cpx = fmi[1]*spi[2] - fmi[2]*spi[1];
   double cpy = fmi[2]*spi[0] - fmi[0]*spi[2];
   double cpz = fmi[0]*spi[1] - fmi[1]*spi[0];
-
+  double hbar = force->hplanck/MY_2PI;
   // adding the transverse damping
 
   fmi[0] -= alpha_t*cpx;
   fmi[1] -= alpha_t*cpy;
   fmi[2] -= alpha_t*cpz;
+  
+  energyD -= hbar*(alpha_t*cpx*cpx + alpha_t*cpy*cpy + alpha_t*cpz*cpz);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevinSpin::add_temperature(double fmi[3])
+void FixLangevinSpin::add_temperature(double spi[3], double fmi[3])
 {
   double rx = sigma*random->gaussian();
   double ry = sigma*random->gaussian();
   double rz = sigma*random->gaussian();
+
+  double hbar = force->hplanck/MY_2PI;
+  double kb = force->boltz;             // eV/K
+
+  energyS += 2*alpha_t*kb*temp*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
 
   // adding the random field
 
@@ -159,6 +175,7 @@ void FixLangevinSpin::add_temperature(double fmi[3])
   fmi[0] *= gil_factor;
   fmi[1] *= gil_factor;
   fmi[2] *= gil_factor;
+  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -168,6 +185,29 @@ void FixLangevinSpin::compute_single_langevin(int i, double spi[3], double fmi[3
   int *mask = atom->mask;
   if (mask[i] & groupbit) {
     if (tdamp_flag) add_tdamping(spi,fmi);
-    if (temp_flag) add_temperature(fmi);
+    if (temp_flag) add_temperature(spi,fmi);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixLangevinSpin::compute_vector(int n)
+{
+  double energy_allS;
+  MPI_Allreduce(&energyS,&energy_allS,1,MPI_DOUBLE,MPI_SUM,world);
+  double energy_allD;
+  MPI_Allreduce(&energyD,&energy_allD,1,MPI_DOUBLE,MPI_SUM,world);
+  energy_vec[0] = energy_allS / output->thermo_every;
+  energy_vec[1] = energy_allD / output->thermo_every;
+  if (n==0) energyS = 0;
+  if (n==1) energyD = 0;
+  if (n == 0) return energy_vec[0];
+  if (n == 1) return energy_vec[1];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixLangevinSpin::allocate()
+{
+  memory->create(energy_vec,size_vector,"fix/langevin/spin:vector");
 }

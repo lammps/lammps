@@ -34,15 +34,20 @@ class FixLangevinSpin : public Fix {
   void init() override;
   void setup(int) override;
   void add_tdamping(double *, double *);    // add transverse damping
-  void add_temperature(double[3]);
+  void add_temperature(double *, double *);
   void compute_single_langevin(int, double *, double *);
+  void allocate();
+  double compute_vector(int);
 
  protected:
   double alpha_t;       // transverse mag. damping
   double dts;           // magnetic timestep
   double temp;          // spin bath temperature
-  double D, sigma;      // bath intensity var.
+  double D,sigma;      // bath intensity var.
   double gil_factor;    // gilbert's prefactor
+  double *energy_vec;
+  double energyS;
+  double energyD;
 
   int nlevels_respa;
   class RanMars *random;

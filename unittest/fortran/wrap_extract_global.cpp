@@ -1,11 +1,10 @@
 // unit tests for extracting global data from a LAMMPS instance through the
 // Fortran wrapper
 
-#include "lammps.h"
+
 #include "library.h"
+
 #include <cstdint>
-#include <cstdlib>
-#include <mpi.h>
 #include <string>
 
 #include "gtest/gtest.h"
@@ -51,6 +50,11 @@ double f_lammps_extract_global_boltz();
 double f_lammps_extract_global_hplanck();
 double f_lammps_extract_global_angstrom();
 double f_lammps_extract_global_femtosecond();
+}
+
+// forward decl
+namespace LAMMPS_NS {
+class LAMMPS;
 }
 
 class LAMMPS_extract_global : public ::testing::Test {

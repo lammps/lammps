@@ -1,11 +1,13 @@
 # -*- CMake -*- file for testing LAMMPS commands
 
 add_executable(test_simple_commands test_simple_commands.cpp)
+add_library(noplugin MODULE noplugin.cpp)
+set_target_properties(noplugin PROPERTIES PREFIX "" SUFFIX ".so")
 
 # tests for the plugin command require the PLUGIN package
 if(PKG_PLUGIN)
   add_subdirectory(${LAMMPS_DIR}/examples/plugins ${CMAKE_BINARY_DIR}/build-plugins)
-  add_dependencies(test_simple_commands plugins)
+  add_dependencies(test_simple_commands plugins noplugin)
   target_compile_definitions(test_simple_commands PRIVATE -DLMP_PLUGIN)
 endif()
 

@@ -121,7 +121,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
     }
   }
 
-  reset_dt();
+  FixNVTManifoldRattle::reset_dt();
 
   if (!got_temp ) error->all(FLERR,"Fix nvt/manifold/rattle needs 'temp'!");
 

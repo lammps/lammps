@@ -20,6 +20,8 @@
 
 colvarbias::colvarbias(char const *key)
 {
+  time_step_factor = cvm::proxy->time_step_factor();
+
   bias_type = colvarparse::to_lower_cppstr(key);
   state_keyword = bias_type;
 
@@ -27,8 +29,6 @@ colvarbias::colvarbias(char const *key)
   description = "uninitialized " + bias_type + " bias";
 
   colvarbias::init_dependencies();
-
-  time_step_factor = 1;
 
   has_data = false;
   b_output_energy = false;
@@ -93,6 +93,8 @@ int colvarbias::init(std::string const &conf)
     cvm::log("Reinitializing bias \""+name+"\".\n");
   }
 
+  feature_states[f_cvb_step_zero_data].available = true;
+
   colvar_values.resize(num_variables());
   for (i = 0; i < num_variables(); i++) {
     colvar_values[i].type(colvars[i]->value().type());
@@ -104,20 +106,23 @@ int colvarbias::init(std::string const &conf)
 
   get_keyval_feature(this, conf, "stepZeroData", f_cvb_step_zero_data, is_enabled(f_cvb_step_zero_data));
 
+  // Parse multiple time stepping options
+  error_code |= init_mts(conf);
+
   // Write energy to traj file?
   get_keyval(conf, "outputEnergy", b_output_energy, b_output_energy);
 
   // How often to write full output files?
   get_keyval(conf, "outputFreq", output_freq, output_freq);
+  if (output_freq % time_step_factor != 0) {
+    error_code |= cvm::error(
+        "Error: in bias " + name + ", outputFreq (currently " + cvm::to_str(output_freq) +
+            ") must be a multiple of timeStepFactor (" + cvm::to_str(time_step_factor) + ").\n",
+        COLVARS_INPUT_ERROR);
+  }
 
   // Disabled by default in base class; default value can be overridden by derived class constructor
   get_keyval_feature(this, conf, "bypassExtendedLagrangian", f_cvb_bypass_ext_lagrangian, is_enabled(f_cvb_bypass_ext_lagrangian), parse_echo);
-
-  get_keyval(conf, "timeStepFactor", time_step_factor, time_step_factor);
-  if (time_step_factor < 1) {
-    error_code |= cvm::error("Error: timeStepFactor must be 1 or greater.\n",
-                             COLVARS_INPUT_ERROR);
-  }
 
   // Use the scaling factors from a grid?
   get_keyval_feature(this, conf, "scaledBiasingForce",
@@ -141,6 +146,37 @@ int colvarbias::init(std::string const &conf)
 }
 
 
+int colvarbias::init_mts(std::string const &conf) {
+  int error_code = COLVARS_OK;
+
+  get_keyval(conf, "timeStepFactor", time_step_factor, time_step_factor);
+
+  if (time_step_factor < 1) {
+    error_code |= cvm::error("Error: timeStepFactor must be 1 or greater.\n", COLVARS_INPUT_ERROR);
+  }
+
+  if (time_step_factor % cvm::proxy->time_step_factor() != 0) {
+    error_code |=
+        cvm::error("timeStepFactor for this bias (currently " + cvm::to_str(time_step_factor) +
+                       ") must be a multiple of the global Colvars timestep multiplier (" +
+                       cvm::to_str(cvm::proxy->time_step_factor()) + ").\n",
+                   COLVARS_INPUT_ERROR);
+  }
+
+  for (auto *cv : colvars) {
+    if (time_step_factor % cv->get_time_step_factor()) {
+      error_code |= cvm::error(
+          "Error: timeStepFactor for " + description + " (" + cvm::to_str(time_step_factor) +
+            ") should be a multiple of that of " + cv->description + " (" +
+            cvm::to_str(cv->get_time_step_factor()) + ").\n",
+          COLVARS_INPUT_ERROR);
+    }
+  }
+
+  return error_code;
+}
+
+
 int colvarbias::init_dependencies() {
   int i;
   if (features().size() == 0) {
@@ -157,7 +193,7 @@ int colvarbias::init_dependencies() {
     init_feature(f_cvb_step_zero_data, "step_zero_data", f_type_user);
 
     init_feature(f_cvb_apply_force, "apply_force", f_type_user);
-    require_feature_children(f_cvb_apply_force, f_cv_gradient);
+    require_feature_children(f_cvb_apply_force, f_cv_apply_force);
 
     init_feature(f_cvb_bypass_ext_lagrangian, "bypass_extended_Lagrangian_coordinates", f_type_user);
 
@@ -199,6 +235,8 @@ int colvarbias::init_dependencies() {
 
     init_feature(f_cvb_extended, "Bias on extended-Lagrangian variables", f_type_static);
 
+    init_feature(f_cvb_smp, "smp_computation", f_type_user);
+
     // check that everything is initialized
     for (i = 0; i < colvardeps::f_cvb_ntot; i++) {
       if (is_not_set(i)) {
@@ -221,8 +259,9 @@ int colvarbias::init_dependencies() {
   // The feature f_cvb_bypass_ext_lagrangian is only implemented by some derived classes
   // (initially, harmonicWalls)
   feature_states[f_cvb_bypass_ext_lagrangian].available = false;
-  // disabled by default; can be changed by derived classes that implement it
-  feature_states[f_cvb_bypass_ext_lagrangian].enabled = false;
+
+  // Most biases cannot currently be processed in parallel over threads
+  feature_states[f_cvb_smp].available = false;
 
   return COLVARS_OK;
 }
@@ -704,7 +743,7 @@ int colvarbias::read_state_string(char const *buffer)
 
 
 std::ostream &colvarbias::write_state_data_key(std::ostream &os, std::string const &key,
-                                               bool header)
+                                               bool header) const
 {
   os << (header ? "\n" : "") << key << (header ? "\n" : " ");
   return os;
@@ -712,7 +751,7 @@ std::ostream &colvarbias::write_state_data_key(std::ostream &os, std::string con
 
 
 cvm::memory_stream &colvarbias::write_state_data_key(cvm::memory_stream &os, std::string const &key,
-                                                     bool /* header */)
+                                                     bool /* header */) const
 {
   os << std::string(key);
   return os;
@@ -792,6 +831,8 @@ int colvarbias_ti::init(std::string const &conf)
 {
   int error_code = COLVARS_OK;
 
+  key_lookup(conf, "grid", &grid_conf);
+
   get_keyval_feature(this, conf, "writeTISamples",
                      f_cvb_write_ti_samples,
                      is_enabled(f_cvb_write_ti_samples));
@@ -800,18 +841,16 @@ int colvarbias_ti::init(std::string const &conf)
                      f_cvb_write_ti_pmf,
                      is_enabled(f_cvb_write_ti_pmf));
 
+  if (is_enabled(f_cvb_write_ti_pmf)) {
+    enable(f_cvb_write_ti_samples);
+  }
+
   if ((num_variables() > 1) && is_enabled(f_cvb_write_ti_pmf)) {
     return cvm::error("Error: only 1-dimensional PMFs can be written "
                       "on the fly.\n"
                       "Consider using writeTISamples instead and "
                       "post-processing the sampled free-energy gradients.\n",
                       COLVARS_NOT_IMPLEMENTED);
-  } else {
-    error_code |= init_grids();
-  }
-
-  if (is_enabled(f_cvb_write_ti_pmf)) {
-    enable(f_cvb_write_ti_samples);
   }
 
   if (is_enabled(f_cvb_calc_ti_samples)) {
@@ -831,6 +870,8 @@ int colvarbias_ti::init(std::string const &conf)
     }
   }
 
+  error_code |= colvarbias_ti::init_grids();
+
   if (is_enabled(f_cvb_write_ti_pmf) || is_enabled(f_cvb_write_ti_samples)) {
     cvm::main()->cite_feature("Internal-forces free energy estimator");
   }
@@ -844,16 +885,15 @@ int colvarbias_ti::init_grids()
   if (is_enabled(f_cvb_calc_ti_samples)) {
     if (!ti_avg_forces) {
       ti_bin.resize(num_variables());
+      ti_bin.assign(ti_bin.size(), -1);
       ti_system_forces.resize(num_variables());
       for (size_t icv = 0; icv < num_variables(); icv++) {
         ti_system_forces[icv].type(variables(icv)->value());
         ti_system_forces[icv].is_derivative();
         ti_system_forces[icv].reset();
       }
-      ti_avg_forces.reset(new colvar_grid_gradient(colvars));
-      ti_count.reset(new colvar_grid_count(colvars));
-      ti_avg_forces->samples = ti_count;
-      ti_count->has_parent_data = true;
+      ti_count.reset(new colvar_grid_count(colvars, grid_conf));
+      ti_avg_forces.reset(new colvar_grid_gradient(colvars, ti_count));
     }
   }
 
@@ -884,8 +924,12 @@ int colvarbias_ti::update_system_forces(std::vector<colvarvalue> const
 
   size_t i;
 
-  if (proxy->total_forces_same_step()) {
-    for (i = 0; i < num_variables(); i++) {
+  if (cvm::debug()) {
+    cvm::log("TI bin for bias \"" + name + "\" = " + cvm::to_str(ti_bin) + ".\n");
+  }
+
+  for (i = 0; i < num_variables(); i++) {
+    if (variables(i)->is_enabled(f_cv_total_force_current_step)) {
       ti_bin[i] = ti_avg_forces->current_bin_scalar(i);
     }
   }
@@ -894,8 +938,10 @@ int colvarbias_ti::update_system_forces(std::vector<colvarvalue> const
   if ((cvm::step_relative() > 0) || proxy->total_forces_same_step()) {
     if (ti_avg_forces->index_ok(ti_bin)) {
       for (i = 0; i < num_variables(); i++) {
-        if (variables(i)->is_enabled(f_cv_subtract_applied_force)) {
+        if (variables(i)->is_enabled(f_cv_subtract_applied_force) ||
+          (cvm::proxy->total_forces_same_step() && !variables(i)->is_enabled(f_cv_external))) {
           // this colvar is already subtracting all applied forces
+          // or the "total force" is really a system force at current step
           ti_system_forces[i] = variables(i)->total_force();
         } else {
           ti_system_forces[i] = variables(i)->total_force() -
@@ -904,14 +950,17 @@ int colvarbias_ti::update_system_forces(std::vector<colvarvalue> const
         }
       }
       if (cvm::step_relative() > 0 || is_enabled(f_cvb_step_zero_data)) {
+        if (cvm::debug()) {
+          cvm::log("Accumulating TI forces for bias \"" + name + "\".\n");
+        }
         ti_avg_forces->acc_value(ti_bin, ti_system_forces);
       }
     }
   }
 
-  if (!proxy->total_forces_same_step()) {
-    // Set the index for use in the next iteration, when total forces come in
-    for (i = 0; i < num_variables(); i++) {
+  for (i = 0; i < num_variables(); i++) {
+    if (!variables(i)->is_enabled(f_cv_total_force_current_step)) {
+      // Set the index for use in the next iteration, when total forces come in
       ti_bin[i] = ti_avg_forces->current_bin_scalar(i);
     }
   }

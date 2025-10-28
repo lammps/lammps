@@ -48,7 +48,6 @@ class FixReaxFFBonds : public Fix {
   int FindBond();
   void PassBuffer(double *, int &);
   void RecvBuffer(double *, int, int, int, int);
-  int nint(const double &);
   int modify_param(int, char **) override;
   double memory_usage() override;
 

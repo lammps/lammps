@@ -20,17 +20,10 @@
 
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "math_const.h"
-#include "math_special.h"
 #include "memory.h"
-#include "molecule.h"
-#include "neigh_list.h"
-#include "neighbor.h"
 
-#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;

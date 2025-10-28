@@ -25,6 +25,7 @@
 #include "neigh_list.h"
 
 #include <cmath>
+#include <cstring>
 
 #include "pair_lj_cubic_const.h"
 

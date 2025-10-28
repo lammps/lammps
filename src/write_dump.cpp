@@ -22,6 +22,7 @@
 #include "dump_cfg.h"
 #include "dump_image.h"
 #include "error.h"
+#include "exceptions.h"
 #include "output.h"
 #include "update.h"
 
@@ -51,8 +52,8 @@ void WriteDump::command(int narg, char **arg)
   dumpfreq += update->ntimestep % dumpfreq;
 
   std::string dump_id = "WRITE_DUMP";
-  auto dumpargs = new char *[modindex + 2];
-  dumpargs[0] = (char *) dump_id.c_str();                   // dump id
+  auto *dumpargs = new char *[modindex + 2];
+  dumpargs[0] = utils::strdup(dump_id);                     // dump id
   dumpargs[1] = arg[0];                                     // group
   dumpargs[2] = arg[1];                                     // dump style
   dumpargs[3] = utils::strdup(std::to_string(dumpfreq));    // dump frequency
@@ -85,7 +86,7 @@ void WriteDump::command(int narg, char **arg)
   if (strcmp(arg[1], "image") == 0) (dynamic_cast<DumpImage *>(dump))->multifile_override = 1;
   if (strcmp(arg[1], "cfg") == 0) (dynamic_cast<DumpCFG *>(dump))->multifile_override = 1;
   if ((update->first_update == 0) && (comm->me == 0) && (noinitwarn == 0))
-    error->warning(FLERR, "Calling write_dump before a full system init.");
+    error->warning(FLERR, "Calling write_dump before a full system init");
 
   dump->init();
   dump->write();
@@ -94,5 +95,6 @@ void WriteDump::command(int narg, char **arg)
 
   output->delete_dump(dump_id);
   delete[] dumpargs[3];
+  delete[] dumpargs[0];
   delete[] dumpargs;
 }

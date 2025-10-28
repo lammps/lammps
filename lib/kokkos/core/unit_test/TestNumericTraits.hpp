@@ -42,24 +42,24 @@ struct extrema {
   KOKKOS_FUNCTION static T min(T) { return m; } \
   KOKKOS_FUNCTION static T max(T) { return M; }
 
-  DEFINE_EXTREMA(char, CHAR_MIN, CHAR_MAX);
-  DEFINE_EXTREMA(signed char, SCHAR_MIN, SCHAR_MAX);
-  DEFINE_EXTREMA(unsigned char, 0, UCHAR_MAX);
-  DEFINE_EXTREMA(short, SHRT_MIN, SHRT_MAX);
-  DEFINE_EXTREMA(unsigned short, 0, USHRT_MAX);
-  DEFINE_EXTREMA(int, INT_MIN, INT_MAX);
-  DEFINE_EXTREMA(unsigned, 0U, UINT_MAX);
-  DEFINE_EXTREMA(long, LONG_MIN, LONG_MAX);
-  DEFINE_EXTREMA(unsigned long, 0UL, ULONG_MAX);
-  DEFINE_EXTREMA(long long, LLONG_MIN, LLONG_MAX);
-  DEFINE_EXTREMA(unsigned long long, 0ULL, ULLONG_MAX);
+  DEFINE_EXTREMA(char, CHAR_MIN, CHAR_MAX)
+  DEFINE_EXTREMA(signed char, SCHAR_MIN, SCHAR_MAX)
+  DEFINE_EXTREMA(unsigned char, 0, UCHAR_MAX)
+  DEFINE_EXTREMA(short, SHRT_MIN, SHRT_MAX)
+  DEFINE_EXTREMA(unsigned short, 0, USHRT_MAX)
+  DEFINE_EXTREMA(int, INT_MIN, INT_MAX)
+  DEFINE_EXTREMA(unsigned, 0U, UINT_MAX)
+  DEFINE_EXTREMA(long, LONG_MIN, LONG_MAX)
+  DEFINE_EXTREMA(unsigned long, 0UL, ULONG_MAX)
+  DEFINE_EXTREMA(long long, LLONG_MIN, LLONG_MAX)
+  DEFINE_EXTREMA(unsigned long long, 0ULL, ULLONG_MAX)
 
-  DEFINE_EXTREMA(float, -FLT_MAX, FLT_MAX);
-  DEFINE_EXTREMA(double, -DBL_MAX, DBL_MAX);
+  DEFINE_EXTREMA(float, -FLT_MAX, FLT_MAX)
+  DEFINE_EXTREMA(double, -DBL_MAX, DBL_MAX)
 
 #if !defined(KOKKOS_ENABLE_CUDA) || \
     !defined(KOKKOS_COMPILER_NVHPC)  // 23.7 long double
-  DEFINE_EXTREMA(long double, -LDBL_MAX, LDBL_MAX);
+  DEFINE_EXTREMA(long double, -LDBL_MAX, LDBL_MAX)
 #else
   static long double min(long double) { return -LDBL_MAX; }
   static long double max(long double) { return LDBL_MAX; }
@@ -217,10 +217,7 @@ TEST(TEST_CATEGORY, numeric_traits_infinity) {
   TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, Infinity>();
   TestNumericTraits<TEST_EXECSPACE, float, Infinity>();
   TestNumericTraits<TEST_EXECSPACE, double, Infinity>();
-  // FIXME_OPENMPTARGET long double on Intel GPUs
-#if (!defined(KOKKOS_ENABLE_OPENMPTARGET) || !defined(KOKKOS_ARCH_INTEL_GPU))
   TestNumericTraits<TEST_EXECSPACE, long double, Infinity>();
-#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_epsilon) {
@@ -228,10 +225,7 @@ TEST(TEST_CATEGORY, numeric_traits_epsilon) {
   TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, Epsilon>();
   TestNumericTraits<TEST_EXECSPACE, float, Epsilon>();
   TestNumericTraits<TEST_EXECSPACE, double, Epsilon>();
-  // FIXME_OPENMPTARGET long double on Intel GPUs
-#if (!defined(KOKKOS_ENABLE_OPENMPTARGET) || !defined(KOKKOS_ARCH_INTEL_GPU))
   TestNumericTraits<TEST_EXECSPACE, long double, Epsilon>();
-#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_round_error) {
@@ -240,10 +234,7 @@ TEST(TEST_CATEGORY, numeric_traits_round_error) {
                     RoundError>();
   TestNumericTraits<TEST_EXECSPACE, float, RoundError>();
   TestNumericTraits<TEST_EXECSPACE, double, RoundError>();
-  // FIXME_OPENMPTARGET long double on Intel GPUs
-#if (!defined(KOKKOS_ENABLE_OPENMPTARGET) || !defined(KOKKOS_ARCH_INTEL_GPU))
   TestNumericTraits<TEST_EXECSPACE, long double, RoundError>();
-#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_norm_min) {
@@ -251,19 +242,13 @@ TEST(TEST_CATEGORY, numeric_traits_norm_min) {
   TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, NormMin>();
   TestNumericTraits<TEST_EXECSPACE, float, NormMin>();
   TestNumericTraits<TEST_EXECSPACE, double, NormMin>();
-  // FIXME_OPENMPTARGET long double on Intel GPUs
-#if (!defined(KOKKOS_ENABLE_OPENMPTARGET) || !defined(KOKKOS_ARCH_INTEL_GPU))
   TestNumericTraits<TEST_EXECSPACE, long double, NormMin>();
-#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_denorm_min) {
   TestNumericTraits<TEST_EXECSPACE, float, DenormMin>();
   TestNumericTraits<TEST_EXECSPACE, double, DenormMin>();
-  // FIXME_OPENMPTARGET long double on Intel GPUs
-#if (!defined(KOKKOS_ENABLE_OPENMPTARGET) || !defined(KOKKOS_ARCH_INTEL_GPU))
   TestNumericTraits<TEST_EXECSPACE, long double, DenormMin>();
-#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_finite_min_max) {
@@ -298,11 +283,8 @@ TEST(TEST_CATEGORY, numeric_traits_finite_min_max) {
   TestNumericTraits<TEST_EXECSPACE, float, FiniteMax>();
   TestNumericTraits<TEST_EXECSPACE, double, FiniteMin>();
   TestNumericTraits<TEST_EXECSPACE, double, FiniteMax>();
-  // FIXME_OPENMPTARGET long double on Intel GPUs
-#if (!defined(KOKKOS_ENABLE_OPENMPTARGET) || !defined(KOKKOS_ARCH_INTEL_GPU))
   TestNumericTraits<TEST_EXECSPACE, long double, FiniteMin>();
   TestNumericTraits<TEST_EXECSPACE, long double, FiniteMax>();
-#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_digits) {
@@ -322,10 +304,7 @@ TEST(TEST_CATEGORY, numeric_traits_digits) {
   TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, Digits>();
   TestNumericTraits<TEST_EXECSPACE, float, Digits>();
   TestNumericTraits<TEST_EXECSPACE, double, Digits>();
-  // FIXME_OPENMPTARGET long double on Intel GPUs
-#if (!defined(KOKKOS_ENABLE_OPENMPTARGET) || !defined(KOKKOS_ARCH_INTEL_GPU))
   TestNumericTraits<TEST_EXECSPACE, long double, Digits>();
-#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_digits10) {
@@ -345,19 +324,13 @@ TEST(TEST_CATEGORY, numeric_traits_digits10) {
   TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, Digits10>();
   TestNumericTraits<TEST_EXECSPACE, float, Digits10>();
   TestNumericTraits<TEST_EXECSPACE, double, Digits10>();
-  // FIXME_OPENMPTARGET long double on Intel GPUs
-#if (!defined(KOKKOS_ENABLE_OPENMPTARGET) || !defined(KOKKOS_ARCH_INTEL_GPU))
   TestNumericTraits<TEST_EXECSPACE, long double, Digits10>();
-#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_max_digits10) {
   TestNumericTraits<TEST_EXECSPACE, float, MaxDigits10>();
   TestNumericTraits<TEST_EXECSPACE, double, MaxDigits10>();
-  // FIXME_OPENMPTARGET long double on Intel GPUs
-#if (!defined(KOKKOS_ENABLE_OPENMPTARGET) || !defined(KOKKOS_ARCH_INTEL_GPU))
   TestNumericTraits<TEST_EXECSPACE, long double, MaxDigits10>();
-#endif
 }
 TEST(TEST_CATEGORY, numeric_traits_radix) {
   TestNumericTraits<TEST_EXECSPACE, bool, Radix>();
@@ -376,10 +349,7 @@ TEST(TEST_CATEGORY, numeric_traits_radix) {
   TestNumericTraits<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t, Radix>();
   TestNumericTraits<TEST_EXECSPACE, float, Radix>();
   TestNumericTraits<TEST_EXECSPACE, double, Radix>();
-  // FIXME_OPENMPTARGET long double on Intel GPUs
-#if (!defined(KOKKOS_ENABLE_OPENMPTARGET) || !defined(KOKKOS_ARCH_INTEL_GPU))
   TestNumericTraits<TEST_EXECSPACE, long double, Radix>();
-#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_min_max_exponent) {
@@ -391,11 +361,8 @@ TEST(TEST_CATEGORY, numeric_traits_min_max_exponent) {
   TestNumericTraits<TEST_EXECSPACE, float, MaxExponent>();
   TestNumericTraits<TEST_EXECSPACE, double, MinExponent>();
   TestNumericTraits<TEST_EXECSPACE, double, MaxExponent>();
-  // FIXME_OPENMPTARGET long double on Intel GPUs
-#if (!defined(KOKKOS_ENABLE_OPENMPTARGET) || !defined(KOKKOS_ARCH_INTEL_GPU))
   TestNumericTraits<TEST_EXECSPACE, long double, MinExponent>();
   TestNumericTraits<TEST_EXECSPACE, long double, MaxExponent>();
-#endif
 }
 
 TEST(TEST_CATEGORY, numeric_traits_min_max_exponent10) {
@@ -403,11 +370,8 @@ TEST(TEST_CATEGORY, numeric_traits_min_max_exponent10) {
   TestNumericTraits<TEST_EXECSPACE, float, MaxExponent10>();
   TestNumericTraits<TEST_EXECSPACE, double, MinExponent10>();
   TestNumericTraits<TEST_EXECSPACE, double, MaxExponent10>();
-  // FIXME_OPENMPTARGET long double on Intel GPUs
-#if (!defined(KOKKOS_ENABLE_OPENMPTARGET) || !defined(KOKKOS_ARCH_INTEL_GPU))
   TestNumericTraits<TEST_EXECSPACE, long double, MinExponent10>();
   TestNumericTraits<TEST_EXECSPACE, long double, MaxExponent10>();
-#endif
 }
 
 KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_PUSH()
@@ -426,11 +390,8 @@ TEST(TEST_CATEGORY, numeric_traits_quiet_and_signaling_nan) {
   TestNumericTraits<TEST_EXECSPACE, float, SignalingNaN>();
   TestNumericTraits<TEST_EXECSPACE, double, QuietNaN>();
   TestNumericTraits<TEST_EXECSPACE, double, SignalingNaN>();
-  // FIXME_OPENMPTARGET long double on Intel GPUs
-#if (!defined(KOKKOS_ENABLE_OPENMPTARGET) || !defined(KOKKOS_ARCH_INTEL_GPU))
   TestNumericTraits<TEST_EXECSPACE, long double, QuietNaN>();
   TestNumericTraits<TEST_EXECSPACE, long double, SignalingNaN>();
-#endif
 }
 // NOLINTEND(bugprone-unused-raii)
 KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_POP()
@@ -517,13 +478,7 @@ CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, round_error);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, round_error);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(float, denorm_min);
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(double, denorm_min);
-
-// FIXME_OPENMPTARGET - The static_assert causes issues on Intel GPUs with the
-// OpenMPTarget backend.
-#if !(defined(KOKKOS_ENABLE_OPENMPTARGET) && \
-      defined(KOKKOS_COMPILER_INTEL_LLVM))
 CHECK_SAME_AS_NUMERIC_LIMITS_MEMBER_FUNCTION(long double, denorm_min);
-#endif
 
 // clang-format off
 static_assert(Kokkos::Experimental::norm_min<float      >::value == std::numeric_limits<      float>::min());

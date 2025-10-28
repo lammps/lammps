@@ -31,7 +31,7 @@ Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
 // avoid resource leak
 Reader::~Reader()
 {
-  if (fp != nullptr) close_file();
+  if (fp != nullptr) Reader::close_file();
 }
 
 /* ----------------------------------------------------------------------

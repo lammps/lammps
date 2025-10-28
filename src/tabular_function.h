@@ -14,6 +14,8 @@
 #ifndef LMP_TABULAR_FUNCTION_H
 #define LMP_TABULAR_FUNCTION_H
 
+#include <cmath>
+
 namespace LAMMPS_NS {
 class TabularFunction {
  public:
@@ -35,7 +37,7 @@ class TabularFunction {
   void value(double x, double &y, int ny, double &y1, int ny1)
   {
     double ps = (x - xmin) * rdx;
-    int ks = ps + 0.5;
+    int ks = std::lround(ps);
     if (ks > size - 1) ks = size - 1;
     if (ks < 0) ks = 0;
     ps = ps - ks;

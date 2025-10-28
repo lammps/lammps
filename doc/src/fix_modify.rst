@@ -12,16 +12,12 @@ Syntax
 
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
-* keyword = *bodyforces* or *colname* or *dynamic/dof* or *energy* or *pad* or *press* or *respa* or *temp* or *virial*
+* keyword = *bodyforces* or *dynamic/dof* or *energy* or *pad* or *press* or *respa* or *temp* or *virial*
 
   .. parsed-literal::
 
        *bodyforces* value = *early* or *late*
          early/late = compute rigid-body forces/torques early or late in the timestep
-       *colname* values =  ID string
-         string = new column header name
-         ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
-              *or* a fix output property keyword or reference to compute, fix, property or variable.
        *dynamic/dof* value = *yes* or *no*
          yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
        *energy* value = *yes* or *no*
@@ -39,7 +35,6 @@ Examples
    fix_modify 3 temp myTemp press myPress
    fix_modify 1 energy yes
    fix_modify tether respa 2
-   fix_modify ave colname c_thermo_press Pressure colname 1 Temperature
 
 Description
 """""""""""
@@ -158,7 +153,7 @@ communicated among processors), or *late* at the final-integrate stage
 of each timestep (after any other fixes have finished their post-force
 tasks).  Only the rigid-body integration fixes use this option, which
 includes :doc:`fix rigid <fix_rigid>` and :doc:`fix rigid/small
-<fix_rigid>`, and their variants, and also :doc:`fix poems <fix_poems>`.
+<fix_rigid>`, and their variants.
 
 The default is *late*\ .  If there are other fixes that add forces to
 individual atoms, then the rigid-body constraints will include these
@@ -171,19 +166,6 @@ occurs.  Note however this has the side effect, that fixes such as
 will have no effect on the motion of the rigid bodies if they are
 specified in the input script after the fix rigid command.  LAMMPS
 will give a warning if that is the case.
-
-
-The *colname* keyword can be used to change the default header keywords
-in output files of fix styles that support it: currently only :doc:`fix
-ave/time <fix_ave_time>` is supported.  The setting for *ID string*
-replaces the default text with the provided string.  *ID* can be a
-positive integer when it represents the column number counting from the
-left, a negative integer when it represents the column number from the
-right (i.e. -1 is the last column/keyword), or a custom fix output
-keyword (or compute, fix, property, or variable reference) and then it
-replaces the string for that specific keyword. The *colname* keyword can
-be used multiple times. If multiple *colname* settings refer to the same
-keyword, the last setting has precedence.
 
 .. versionadded:: 2Apr2025
 

@@ -309,7 +309,7 @@ void PairCoulCTIP::init_style()
     for (int elt2 = 0; elt2 < nelements; elt2++) {
       shield[elt1][elt2] = sqrt(params[elt1].gamma * params[elt2].gamma);
       shieldcu[elt1][elt2] = shield[elt1][elt2] * shield[elt1][elt2] * shield[elt1][elt2];
-      reffc[elt1][elt2] = std::cbrt(cut_coulcu + 1.0 / shieldcu[elt1][elt2]);
+      reffc[elt1][elt2] = cbrt(cut_coulcu + 1.0 / shieldcu[elt1][elt2]);
       reffcsq[elt1][elt2] = reffc[elt1][elt2] * reffc[elt1][elt2];
       reffc4[elt1][elt2] = reffcsq[elt1][elt2] * reffcsq[elt1][elt2];
       reffc7[elt1][elt2] = reffc4[elt1][elt2] * reffcsq[elt1][elt2] * reffc[elt1][elt2];

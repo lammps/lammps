@@ -28,17 +28,10 @@
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H
 
-// C++11 check
-
-#if __cplusplus < 201103L
-#error LAMMPS requires a C++11 (or later) compliant compiler. Enable C++11 compatibility or upgrade the compiler.
-#endif
-
 // C++17 check
-#ifndef LAMMPS_CXX11
+
 #if __cplusplus < 201703L
-#error LAMMPS is planning to transition to requiring C++17. To disable this error please use a C++17 compliant compiler, enable C++17 support, or define -DLAMMPS_CXX11 in your makefile or when running cmake
-#endif
+#error LAMMPS requires a C++17 (or later) compliant compiler. Enable C++17 compatibility or upgrade the compiler.
 #endif
 
 #ifndef __STDC_LIMIT_MACROS
@@ -104,10 +97,10 @@ static constexpr uint32_t MEMCPYMASK = (static_cast<uint32_t>(1) << 31) - 1U;
 
 #ifdef LAMMPS_SMALLBIG
 
-typedef int smallint;
-typedef int imageint;
-typedef int tagint;
-typedef int64_t bigint;
+using smallint = int;
+using imageint = int;
+using tagint = int;
+using bigint = int64_t;
 
 #define MAXSMALLINT INT_MAX
 #define MAXTAGINT INT_MAX
@@ -139,10 +132,10 @@ typedef int64_t bigint;
 
 #ifdef LAMMPS_BIGBIG
 
-typedef int smallint;
-typedef int64_t imageint;
-typedef int64_t tagint;
-typedef int64_t bigint;
+using smallint = int;
+using imageint = int64_t;
+using tagint = int64_t;
+using bigint = int64_t;
 
 #define MAXSMALLINT INT_MAX
 #define MAXTAGINT INT64_MAX

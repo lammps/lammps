@@ -120,6 +120,7 @@ struct std_algorithms_min_max_element_test : std_algorithms_test {
     // returns {indexOfMinElem, minValue}
     if (caseNumber == 1) {
       return {0, 0};
+      // NOLINTBEGIN(bugprone-branch-clone)
     } else if (caseNumber == 2) {
       return {0, 1};
     } else if (caseNumber == 3) {
@@ -128,6 +129,7 @@ struct std_algorithms_min_max_element_test : std_algorithms_test {
       return {0, 2};
     } else if (caseNumber == 5) {
       return {0, 1};
+      // NOLINTEND(bugprone-branch-clone)
     } else {
       return {};
     }

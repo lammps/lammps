@@ -145,7 +145,7 @@ void PairPACE::compute(int eflag, int vflag)
   // ilist: list of "i" atoms for which neighbor lists exist
   ilist = list->ilist;
 
-  //numneigh: the length of each these neigbor list
+  //numneigh: the length of each these neighbor list
   numneigh = list->numneigh;
 
   // the pointer to the list of neighbors of "i"

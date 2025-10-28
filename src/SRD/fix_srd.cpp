@@ -395,7 +395,7 @@ void FixSRD::init()
     if (fixes[i]->box_change & BOX_CHANGE_SHAPE) change_shape = 1;
     if (strcmp(fixes[i]->style, "deform") == 0) {
       deformflag = 1;
-      auto deform = dynamic_cast<FixDeform *>(modify->fix[i]);
+      auto *deform = dynamic_cast<FixDeform *>(modify->fix[i]);
       if ((deform->box_change & BOX_CHANGE_SHAPE) && deform->remapflag != Domain::V_REMAP)
         error->all(FLERR, "Using fix srd with inconsistent fix deform remap option");
     }
@@ -3113,9 +3113,9 @@ void FixSRD::setup_velocity_bins()
 {
   // require integer # of bins across global domain
 
-  nbin1x = static_cast<int>(domain->xprd / gridsrd + 0.5);
-  nbin1y = static_cast<int>(domain->yprd / gridsrd + 0.5);
-  nbin1z = static_cast<int>(domain->zprd / gridsrd + 0.5);
+  nbin1x = std::lround(domain->xprd / gridsrd);
+  nbin1y = std::lround(domain->yprd / gridsrd);
+  nbin1z = std::lround(domain->zprd / gridsrd);
   if (dimension == 2) nbin1z = 1;
 
   if (nbin1x == 0) nbin1x = 1;

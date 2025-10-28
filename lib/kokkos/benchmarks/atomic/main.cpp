@@ -60,7 +60,7 @@ double test_no_atomic(int L, int N, int M, int K, int R,
   return time;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {  // NOLINT(bugprone-exception-escape)
   Kokkos::initialize(argc, argv);
   {
     if (argc < 8) {

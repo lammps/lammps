@@ -50,3 +50,23 @@ and then merged to `stable` and published as "updates".  For a new
 stable release the `stable` branch is updated to the corresponding state
 of the `release` branch and a new stable tag is applied in addition to
 the release tag.
+
+# Integrity of Downloaded Archives
+
+For *all* files that can be downloaded from the "lammps.org" web server
+we provide SHA-256 checksum data in files named SHA256SUM.  These
+checksums can be used to validate the integrity of the downloaded
+archives.  Please note that we also use symbolic links to point to
+the latest or stable releases and the checksums for those files
+ *will* change (and so their checksums) because the symbolic links
+will be updated for new releases.
+
+# Immutable GitHub Releases
+
+Starting with LAMMPS version 10 Sep 2025 the LAMMPS releases published
+on GitHub are configured as `immutable`.  This means that after the
+release is published the release tag cannot be changed or any of the
+uploaded assets, i.e. the source tarball, the static Linux executable
+tarball and the pre-compiled packages of LAMMPS with LAMMPS-GUI included.
+GitHub will generate a release attestation JSON file which can be
+used to verify the integrity of the files provided with the release.

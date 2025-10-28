@@ -44,7 +44,7 @@ Examples
    pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 heat area 0.1
 
    pair_style granular
-   pair_coeff * * mdr 5e6 0.4 1.9e5 2.0 0.5 0.5 tangential linear_history 940.0 0.0 0.7 rolling sds 2.7e5 0.0 0.6 damping none
+   pair_coeff * * mdr 5e6 0.4 1.9e5 2.0 0.5 0.5 tangential linear_history 940.0 1.0 0.7 rolling sds 2.7e5 0.0 0.6 damping mdr 1
 
 Description
 """""""""""
@@ -88,7 +88,8 @@ and their required arguments are:
 3. *hertz/material* : E, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`
 4. *dmt* : E, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`, :math:`\gamma`
 5. *jkr* : E, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`, :math:`\gamma`
-6. *mdr* : :math:`E`, :math:`\nu`, :math:`Y`, :math:`\Delta\gamma`, :math:`\psi_b`, :math:`e`
+6. *mdr* : :math:`E`, :math:`\nu`, :math:`Y`, :math:`\Delta\gamma`,
+   :math:`\psi_b`, :math:`\eta_{n0}`
 
 Here, :math:`k_n` is spring stiffness (with units that depend on model
 choice, see below); :math:`\eta_{n0}` is a damping prefactor (or, in its
@@ -170,6 +171,18 @@ initially will not experience force until they come into contact
 experience a tensile force up to :math:`3\pi\gamma R`, at which point they
 lose contact.
 
+.. note::
+
+   Typically, neighbor lists are constructed for pair granular by testing
+   whether finite sized particles overlap (using their radii). However,
+   this is not the case for normal normals which can interact beyond
+   contact, e.g. *jkr*. Instead, the maximum radius for each particle
+   type is first calculated then used to calculate a maximum per-type
+   cutoff distance. For polydisperse systems, this affects the performance
+   of the :doc:`multi neighbor <neigh_modify>` option where one should
+   assign atoms of similar radii the same type. See the
+   :doc:`pair lj/cut/sphere <pair_lj_cut_sphere>` page for a related discussion.
+
 The *mdr* model is a mechanically-derived contact model designed to capture the
 contact response between adhesive elastic-plastic particles into large deformation.
 The theoretical foundations of the *mdr* model are detailed in the
@@ -177,6 +190,8 @@ two-part series :ref:`Zunker and Kamrin Part I <Zunker2024I>` and
 :ref:`Zunker and Kamrin Part II <Zunker2024II>`. Further development
 and demonstrations of its application to industrially relevant powder
 compaction processes are presented in :ref:`Zunker et al. <Zunker2025>`.
+If you use the *mdr* normal model the only supported damping option is
+the *mdr* damping class described below.
 
 The model requires the following inputs:
 
@@ -200,8 +215,8 @@ The model requires the following inputs:
    triggered. Lower values of :math:`\psi_b` delay the onset of the bulk elastic
    response.
 
-   6. *Coefficient of restitution* :math:`0 \le e \le 1` : The coefficient of
-   restitution is a tunable parameter that controls damping in the normal direction.
+   6. *Damping coefficent* :math:`\eta_{n0} \ge 0` : The damping coefficient
+   is a tunable parameter that controls damping in the normal direction.
 
 .. note::
 
@@ -213,17 +228,11 @@ The *mdr* model produces a nonlinear force-displacement response, therefore the
 critical timestep :math:`\Delta t` depends on the inputs and level of
 deformation. As a conservative starting point the timestep can be assumed to be
 dictated by the bulk elastic response such that
-:math:`\Delta t = 0.35\sqrt{m/k_\textrm{bulk}}`, where :math:`m` is the mass of
+:math:`\Delta t = 0.08\sqrt{m/k_\textrm{bulk}}`, where :math:`m` is the mass of
 the smallest particle and :math:`k_\textrm{bulk} = \kappa R_\textrm{min}` is an
 effective stiffness related to the bulk elastic response.
 Here, :math:`\kappa = E/(3(1-2\nu))` is the bulk modulus and
 :math:`R_\textrm{min}` is the radius of the smallest particle.
-
-.. note::
-
-   The *mdr* model requires some specific settings to function properly,
-   please read the following text carefully to ensure all requirements are
-   followed.
 
 The *atom_style* must be set to *sphere 1* to enable dynamic particle
 radii. The *mdr* model is designed to respect the incompressibility of
@@ -253,13 +262,6 @@ algorithm see :ref:`Zunker et al. <Zunker2025>`.
 
    newton off
 
-The damping model must be set to *none*. The *mdr* model already has a built
-in damping model.
-
-.. code-block:: LAMMPS
-
-   pair_coeff * * mdr 5e6 0.4 1.9e5 2 0.5 0.5 damping none
-
 The definition of multiple *mdr* models in the *pair_style* is currently not
 supported. Similarly, the *mdr* model cannot be combined with a different normal
 model in the *pair_style*. Physically this means that only one homogeneous
@@ -270,7 +272,7 @@ The *mdr* model currently only supports *fix wall/gran/region*, not
 any *fix wall/gran/region* commands must also use the *mdr* model.
 Additionally, the following *mdr* inputs must match between the
 *pair_style* and *fix wall/gran/region* definitions: :math:`E`,
-:math:`\nu`, :math:`Y`, :math:`\psi_b`, and :math:`e`. The exception
+:math:`\nu`, :math:`Y`, :math:`\psi_b`, and :math:`\eta_{n0}`. The exception
 is :math:`\Delta\gamma`, which may vary, permitting different
 adhesive behaviors between particle-particle and particle-wall interactions.
 
@@ -336,6 +338,7 @@ for the damping model currently supported are:
 3. *viscoelastic*
 4. *tsuji*
 5. *coeff_restitution*
+6. *mdr* (class) : :math:`d_{type}`
 
 If the *damping* keyword is not specified, the *viscoelastic* model is
 used by default.
@@ -424,6 +427,37 @@ and pairwise overlaps (except when used with the *hooke* normal model) when calc
 the damping coefficient, it accurately reproduces the specified coefficient of
 restitution for both monodisperse and polydisperse particle pairs.  This damping
 model is not compatible with cohesive normal models such as *JKR* or *DMT*.
+
+The *mdr* damping class contains multiple damping models that can be toggled between
+by specifying different integer values for the :math:`d_{type}` input parameter. This
+damping option is only compatible with the normal *mdr* contact model.
+
+Setting :math:`d_{type} = 1` is the suggested damping option. This specifies a damping
+model that takes into account the contact stiffness :math:`k_{mdr}` calculated
+by the normal *mdr* contact model to determine the damping coefficient:
+
+.. math::
+
+   \eta_n = \eta_{n0} (m_{eff}k_{mdr})^{1/2},
+
+where :math:`k_{mdr}` is proportional to contact radius :math:`a_{mdr}` tracked by the
+normal *mdr* contact model:
+
+.. math::
+
+   k_{mdr} = 2 E_{eff} a_{mdr}.
+
+In this case, :math:`\eta_{n0}` is simply a dimensionless coefficient that scales the
+the overall damping coefficient.
+
+The other supported option is :math:`d_{type} = 2`, which defines a simple damping model
+similar to the *velocity* option
+
+.. math::
+
+   \eta_n = \eta_{n0},
+
+but has additional checks to avoid non-physical damping after plastic deformation.
 
 The total normal force is computed as the sum of the elastic and
 damping components:
@@ -1068,8 +1102,8 @@ a bulk elastic response. Journal of the Mechanics and Physics of Solids,
 
 **(Zunker et al, 2025)** Zunker, W., Dunatunga, S., Thakur, S.,
 Tang, P., & Kamrin, K. (2025). Experimentally validated DEM for large
-deformation powder compaction: mechanically-derived contact model and
-screening of non-physical contacts.
+deformation powder compaction: Mechanically-derived contact model and
+screening of non-physical contacts. Powder Technology, 120972.
 
 .. _Luding2008:
 

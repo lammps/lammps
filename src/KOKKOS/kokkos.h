@@ -27,14 +27,14 @@ class KokkosLMP : protected Pointers {
   int neighflag;
   int neighflag_qeq;
   int neighflag_qeq_set;
-  int exchange_comm_classic;
-  int forward_comm_classic;
-  int forward_pair_comm_classic;
-  int reverse_pair_comm_classic;
-  int forward_fix_comm_classic;
-  int reverse_comm_classic;
-  int sort_classic;
-  int atom_map_classic;
+  int exchange_comm_legacy;
+  int forward_comm_legacy;
+  int forward_pair_comm_legacy;
+  int reverse_pair_comm_legacy;
+  int forward_fix_comm_legacy;
+  int reverse_comm_legacy;
+  int sort_legacy;
+  int atom_map_legacy;
   int exchange_comm_on_host;
   int forward_comm_on_host;
   int reverse_comm_on_host;
@@ -47,6 +47,7 @@ class KokkosLMP : protected Pointers {
   int sort_changed;
   int atom_map_changed;
   int nthreads,ngpus;
+  int kk_fp32;
   int auto_sync;
   int gpu_aware_flag;
   int neigh_thread;
@@ -55,6 +56,16 @@ class KokkosLMP : protected Pointers {
   int newtonflag;
   int allow_overlap;
   double binsize;
+  int threads_per_atom;
+  int threads_per_atom_set;
+  int pair_team_size;
+  int pair_team_size_set;
+  int nbin_atoms_per_bin;
+  int nbin_atoms_per_bin_set;
+  int nbor_block_size;
+  int nbor_block_size_set;
+  int bond_block_size;
+  int bond_block_size_set;
 
   static int is_finalized;
   static int init_ngpus;

@@ -53,8 +53,21 @@ struct FunctorReduce {
 using policy_type = Kokkos::TeamPolicy<TEST_EXECSPACE>;
 using policy_type_128_8 =
     Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<128, 8> >;
+
+// We need to special case for NVIDIA architectures which don't have space for
+// 2048 threads ptxas warns and with errors as warning errors out: "ptxas error
+// : Value of threads per SM for entry _ZN6... is out of range. .minnctapersm
+// will be ignored" And yes I understand I am lying now with the name of the
+// policy
+#if defined(KOKKOS_ARCH_TURING75) || defined(KOKKOS_ARCH_AMPERE86) || \
+    defined(KOKKOS_ARCH_AMPERE87) || defined(KOKKOS_ARCH_ADA89) ||    \
+    defined(KOKKOS_ARCH_BLACKWELL120)
+using policy_type_1024_2 =
+    Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<1024, 1> >;
+#else
 using policy_type_1024_2 =
     Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<1024, 2> >;
+#endif
 
 template <class T, int N, class PolicyType, int S>
 void test_team_policy_max_recommended_static_size(int scratch_size) {

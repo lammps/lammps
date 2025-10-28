@@ -206,7 +206,7 @@ void PPPMStagger::compute(int eflag, int vflag)
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
 
-    energy *= 0.5*volume/float(nstagger);
+    energy *= 0.5*volume/double(nstagger);
     energy -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qscale;
@@ -218,7 +218,7 @@ void PPPMStagger::compute(int eflag, int vflag)
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
     for (i = 0; i < 6; i++)
-      virial[i] = 0.5*qscale*volume*virial_all[i]/float(nstagger);
+      virial[i] = 0.5*qscale*volume*virial_all[i]/double(nstagger);
   }
 
   // per-atom energy/virial
@@ -806,7 +806,7 @@ void PPPMStagger::fieldforce_ik()
 
     // convert E-field to force
 
-    const double qfactor = qqrd2e * scale * q[i] / float(nstagger);
+    const double qfactor = qqrd2e * scale * q[i] / double(nstagger);
     f[i][0] += qfactor*ekx;
     f[i][1] += qfactor*eky;
     if (slabflag != 2) f[i][2] += qfactor*ekz;
@@ -877,7 +877,7 @@ void PPPMStagger::fieldforce_ad()
 
     // convert E-field to force and subtract self forces
 
-    const double qfactor = qqrd2e * scale / float(nstagger);
+    const double qfactor = qqrd2e * scale / double(nstagger);
 
     s1 = x[i][0]*hx_inv + stagger;
     s2 = x[i][1]*hy_inv + stagger;
@@ -952,14 +952,14 @@ void PPPMStagger::fieldforce_peratom()
       }
     }
 
-    if (eflag_atom) eatom[i] += q[i]*u/float(nstagger);
+    if (eflag_atom) eatom[i] += q[i]*u/double(nstagger);
     if (vflag_atom) {
-      vatom[i][0] += q[i]*v0/float(nstagger);
-      vatom[i][1] += q[i]*v1/float(nstagger);
-      vatom[i][2] += q[i]*v2/float(nstagger);
-      vatom[i][3] += q[i]*v3/float(nstagger);
-      vatom[i][4] += q[i]*v4/float(nstagger);
-      vatom[i][5] += q[i]*v5/float(nstagger);
+      vatom[i][0] += q[i]*v0/double(nstagger);
+      vatom[i][1] += q[i]*v1/double(nstagger);
+      vatom[i][2] += q[i]*v2/double(nstagger);
+      vatom[i][3] += q[i]*v3/double(nstagger);
+      vatom[i][4] += q[i]*v4/double(nstagger);
+      vatom[i][5] += q[i]*v5/double(nstagger);
     }
   }
 }

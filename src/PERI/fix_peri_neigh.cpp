@@ -69,7 +69,7 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   vinter = nullptr;
   wvolume = nullptr;
 
-  grow_arrays(atom->nmax);
+  FixPeriNeigh::grow_arrays(atom->nmax);
   memset(wvolume,0,atom->nmax*sizeof(double));
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
@@ -279,7 +279,7 @@ void FixPeriNeigh::setup(int /*vflag*/)
     }
   }
 
-  // sanity check: does any atom appear twice in any neigborlist?
+  // sanity check: does any atom appear twice in any neighborlist?
   // should only be possible if using pbc and domain < 2*delta
 
   if (domain->xperiodic || domain->yperiodic || domain->zperiodic) {
@@ -397,7 +397,7 @@ void FixPeriNeigh::setup(int /*vflag*/)
 double FixPeriNeigh::memory_usage()
 {
   int nmax = atom->nmax;
-  int bytes = nmax * sizeof(int);
+  double bytes = nmax * sizeof(int);
   bytes += (double)nmax*maxpartner * sizeof(tagint);
   bytes += (double)nmax*maxpartner * sizeof(double);
   if (isVES) {
@@ -561,7 +561,7 @@ void FixPeriNeigh::write_restart(FILE *fp)
 void FixPeriNeigh::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   first = static_cast<int> (list[n++]);
   maxpartner = static_cast<int> (list[n++]);

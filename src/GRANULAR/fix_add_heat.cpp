@@ -20,11 +20,15 @@
 #include "atom.h"
 #include "error.h"
 #include "input.h"
+#include "math_special.h"
 #include "memory.h"
 #include "variable.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using MathSpecial::powint;
 
 enum { CONSTANT, EQUAL, ATOM };
 enum { ADD, LINEAR, QUARTIC };
@@ -152,7 +156,7 @@ void FixAddHeat::post_force(int /*vflag*/)
       } else if (style == LINEAR) {
         heatflow[i] += prefactor * (vtmp - temperature[i]);
       } else if (style == QUARTIC) {
-        heatflow[i] += prefactor * (pow(vtmp, 4.0) - pow(temperature[i], 4.0));
+        heatflow[i] += prefactor * (powint(vtmp, 4) - powint(temperature[i], 4));
       }
     }
   }

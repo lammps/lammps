@@ -7,35 +7,9 @@ mode=$1
 LC_ALL=C
 export LC_ALL
 
-cat <<EOF
-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
-
-  Support for building the GPU package with the legacy build system using GNU
-  make will be removed in Summer 2025.  Please switch to using CMake to build
-  LAMMPS as soon as possible and report any problems to developers@lammps.org
-  or post a bug report issue at https://github.com/lammps/lammps/issues
-
-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING
-EOF
-
-# arg1 = file, arg2 = file it depends on
-
 action () {
   if (test $mode = 0) then
     rm -f ../$1
-  elif (! cmp -s $1 ../$1) then
-    if (test -z "$2" || test -e ../$2) then
-      cp $1 ..
-      if (test $mode = 2) then
-        echo "  updating src/$1"
-      fi
-    fi
-  elif (test -n "$2") then
-    if (test ! -e ../$2) then
-      rm -f ../$1
-    fi
   fi
 }
 
@@ -181,26 +155,9 @@ action pair_ufm_gpu.h pair_ufm.h
 
 # edit 2 Makefile.package files to include/exclude package info
 
-if (test $1 = 1) then
-
-  if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*gpu[^ \t]* //' ../Makefile.package
-    sed -i -e 's/[^ \t]*GPU[^ \t]* //' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_GPU |' ../Makefile.package
-    sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/gpu |' ../Makefile.package
-    sed -i -e 's|^PKG_LIB =[ \t]*|&-lgpu |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(gpu_SYSINC) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(gpu_SYSLIB) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(gpu_SYSPATH) |' ../Makefile.package
-  fi
-
-  if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^[ \t]*include.*gpu.*$/d' ../Makefile.package.settings
-    # multiline form needed for BSD sed on Macs
-    sed -i -e '4 i \
-include ..\/..\/lib\/gpu\/Makefile.lammps
-' ../Makefile.package.settings
-  fi
+if (test $1 = 1 || test $1 = 2) then
+  echo "The GPU package no longer supports the legacy build system. Please build LAMMPS with CMake instead."
+  exit 1
 
 elif (test $1 = 0) then
 

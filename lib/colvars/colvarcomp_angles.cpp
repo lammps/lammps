@@ -36,12 +36,21 @@ int colvar::angle::init(std::string const &conf)
   return error_code;
 }
 
-
-colvar::angle::angle(cvm::atom const &a1, cvm::atom const &a2, cvm::atom const &a3) : angle()
+colvar::angle::angle(cvm::atom_group::simple_atom const &a1,
+                     cvm::atom_group::simple_atom const &a2,
+                     cvm::atom_group::simple_atom const &a3) : angle()
 {
-  group1 = new cvm::atom_group(std::vector<cvm::atom>(1, a1));
-  group2 = new cvm::atom_group(std::vector<cvm::atom>(1, a2));
-  group3 = new cvm::atom_group(std::vector<cvm::atom>(1, a3));
+  group1 = new cvm::atom_group();
+  group2 = new cvm::atom_group();
+  group3 = new cvm::atom_group();
+  {
+    auto modify_group1 = group1->get_atom_modifier();
+    auto modify_group2 = group2->get_atom_modifier();
+    auto modify_group3 = group3->get_atom_modifier();
+    modify_group1.add_atom(a1);
+    modify_group2.add_atom(a2);
+    modify_group3.add_atom(a3);
+  }
   register_atom_group(group1);
   register_atom_group(group2);
   register_atom_group(group3);
@@ -148,6 +157,7 @@ void colvar::dipole_angle::calc_value()
   group1->calc_dipole(g1_pos);
 
   r21 = group1->dipole();
+  cvm::log("r21 = " + cvm::to_str(r21) + " ; g1_pos = " + cvm::to_str(g1_pos) + "\n");
   r21l = r21.norm();
   r23  = is_enabled(f_cvc_pbc_minimum_image) ?
     cvm::position_distance(g2_pos, g3_pos) :
@@ -178,18 +188,23 @@ void colvar::dipole_angle::calc_gradients()
   double aux1 = group1->total_charge/group1->total_mass;
   // double aux2 = group2->total_charge/group2->total_mass;
   // double aux3 = group3->total_charge/group3->total_mass;
-
-  size_t i;
-  for (i = 0; i < group1->size(); i++) {
-    (*group1)[i].grad =((*group1)[i].charge + (-1)* (*group1)[i].mass * aux1) * (dxdr1);
+  for (size_t i = 0; i < group1->size(); i++) {
+    const cvm::rvector grad = (group1->charge(i) + (-1) * group1->mass(i) * aux1) * dxdr1;
+    group1->grad_x(i) = grad.x;
+    group1->grad_y(i) = grad.y;
+    group1->grad_z(i) = grad.z;
   }
-
-  for (i = 0; i < group2->size(); i++) {
-    (*group2)[i].grad = ((*group2)[i].mass/group2->total_mass)* dxdr3 * (-1.0);
+  for (size_t i = 0; i < group2->size(); i++) {
+    const cvm::rvector grad = group2->weight(i) * dxdr3 * (-1.0);
+    group2->grad_x(i) = grad.x;
+    group2->grad_y(i) = grad.y;
+    group2->grad_z(i) = grad.z;
   }
-
-  for (i = 0; i < group3->size(); i++) {
-    (*group3)[i].grad =((*group3)[i].mass/group3->total_mass) * (dxdr3);
+  for (size_t i = 0; i < group3->size(); i++) {
+    const cvm::rvector grad = group3->weight(i) * dxdr3;
+    group3->grad_x(i) = grad.x;
+    group3->grad_y(i) = grad.y;
+    group3->grad_z(i) = grad.z;
   }
 }
 
@@ -218,23 +233,33 @@ int colvar::dihedral::init(std::string const &conf)
   return error_code;
 }
 
-
-colvar::dihedral::dihedral(cvm::atom const &a1, cvm::atom const &a2, cvm::atom const &a3,
-                           cvm::atom const &a4)
+colvar::dihedral::dihedral(cvm::atom_group::simple_atom const &a1,
+                           cvm::atom_group::simple_atom const &a2,
+                           cvm::atom_group::simple_atom const &a3,
+                           cvm::atom_group::simple_atom const &a4)
   : dihedral()
 {
   b_1site_force = false;
 
-  group1 = new cvm::atom_group(std::vector<cvm::atom>(1, a1));
-  group2 = new cvm::atom_group(std::vector<cvm::atom>(1, a2));
-  group3 = new cvm::atom_group(std::vector<cvm::atom>(1, a3));
-  group4 = new cvm::atom_group(std::vector<cvm::atom>(1, a4));
+  group1 = new cvm::atom_group();
+  group2 = new cvm::atom_group();
+  group3 = new cvm::atom_group();
+  group4 = new cvm::atom_group();
+  {
+    auto modify_group1 = group1->get_atom_modifier();
+    auto modify_group2 = group2->get_atom_modifier();
+    auto modify_group3 = group3->get_atom_modifier();
+    auto modify_group4 = group4->get_atom_modifier();
+    modify_group1.add_atom(a1);
+    modify_group2.add_atom(a2);
+    modify_group3.add_atom(a3);
+    modify_group4.add_atom(a4);
+  }
   register_atom_group(group1);
   register_atom_group(group2);
   register_atom_group(group3);
   register_atom_group(group4);
 }
-
 
 void colvar::dihedral::calc_value()
 {
@@ -267,74 +292,22 @@ void colvar::dihedral::calc_value()
 
 void colvar::dihedral::calc_gradients()
 {
-  cvm::rvector A = cvm::rvector::outer(r12, r23);
-  cvm::real   rA = A.norm();
-  cvm::rvector B = cvm::rvector::outer(r23, r34);
-  cvm::real   rB = B.norm();
-  cvm::rvector C = cvm::rvector::outer(r23, A);
-  cvm::real   rC = C.norm();
+  // Eqs. (27i) ~ (27l) from https://doi.org/10.1002/(SICI)1096-987X(19960715)17:9<1132::AID-JCC5>3.0.CO;2-T.
 
-  cvm::real const cos_phi = (A*B)/(rA*rB);
-  cvm::real const sin_phi = (C*B)/(rC*rB);
+  const cvm::rvector A = cvm::rvector::outer(r12, r23);
+  const cvm::rvector B = cvm::rvector::outer(r23, r34);
+  const cvm::real   nG = r23.norm();
+  const cvm::real   A2 = A.norm2();
+  const cvm::real   B2 = B.norm2();
 
-  cvm::rvector f1, f2, f3;
-
-  rB = 1.0/rB;
-  B *= rB;
-
-  if (cvm::fabs(sin_phi) > 0.1) {
-    rA = 1.0/rA;
-    A *= rA;
-    cvm::rvector const dcosdA = rA*(cos_phi*A-B);
-    cvm::rvector const dcosdB = rB*(cos_phi*B-A);
-    // rA = 1.0;
-
-    cvm::real const K = (1.0/sin_phi) * (180.0/PI);
-
-        f1 = K * cvm::rvector::outer(r23, dcosdA);
-        f3 = K * cvm::rvector::outer(dcosdB, r23);
-        f2 = K * (cvm::rvector::outer(dcosdA, r12)
-                   +  cvm::rvector::outer(r34, dcosdB));
-  }
-  else {
-    rC = 1.0/rC;
-    C *= rC;
-    cvm::rvector const dsindC = rC*(sin_phi*C-B);
-    cvm::rvector const dsindB = rB*(sin_phi*B-C);
-    // rC = 1.0;
-
-    cvm::real    const K = (-1.0/cos_phi) * (180.0/PI);
-
-    f1.x = K*((r23.y*r23.y + r23.z*r23.z)*dsindC.x
-              - r23.x*r23.y*dsindC.y
-              - r23.x*r23.z*dsindC.z);
-    f1.y = K*((r23.z*r23.z + r23.x*r23.x)*dsindC.y
-              - r23.y*r23.z*dsindC.z
-              - r23.y*r23.x*dsindC.x);
-    f1.z = K*((r23.x*r23.x + r23.y*r23.y)*dsindC.z
-              - r23.z*r23.x*dsindC.x
-              - r23.z*r23.y*dsindC.y);
-
-    f3 = cvm::rvector::outer(dsindB, r23);
-    f3 *= K;
-
-    f2.x = K*(-(r23.y*r12.y + r23.z*r12.z)*dsindC.x
-              +(2.0*r23.x*r12.y - r12.x*r23.y)*dsindC.y
-              +(2.0*r23.x*r12.z - r12.x*r23.z)*dsindC.z
-              +dsindB.z*r34.y - dsindB.y*r34.z);
-    f2.y = K*(-(r23.z*r12.z + r23.x*r12.x)*dsindC.y
-              +(2.0*r23.y*r12.z - r12.y*r23.z)*dsindC.z
-              +(2.0*r23.y*r12.x - r12.y*r23.x)*dsindC.x
-              +dsindB.x*r34.z - dsindB.z*r34.x);
-    f2.z = K*(-(r23.x*r12.x + r23.y*r12.y)*dsindC.z
-              +(2.0*r23.z*r12.x - r12.z*r23.x)*dsindC.x
-              +(2.0*r23.z*r12.y - r12.z*r23.y)*dsindC.y
-              +dsindB.y*r34.x - dsindB.x*r34.y);
-  }
+  const cvm::real     K = 180.0/PI;
+  const cvm::rvector f1 = K * nG / A2 * A;
+  const cvm::rvector f2 = K * ((r12 * r23 / (A2 * nG)) * A + (r34 * r23 / (B2 * nG)) * B);
+  const cvm::rvector f3 = K * nG / B2 * B;
 
   group1->set_weighted_gradient(-f1);
-  group2->set_weighted_gradient(-f2 + f1);
-  group3->set_weighted_gradient(-f3 + f2);
+  group2->set_weighted_gradient( f2 + f1);
+  group3->set_weighted_gradient(-f3 - f2);
   group4->set_weighted_gradient(f3);
 }
 

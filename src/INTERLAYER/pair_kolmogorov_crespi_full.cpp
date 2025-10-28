@@ -145,7 +145,7 @@ void PairKolmogorovCrespiFull::settings(int narg, char **arg)
                "Pair style kolmogorov/crespi/full must be used as sub-style with hybrid/overlay");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
-  if (narg == 2) tap_flag = utils::numeric(FLERR, arg[1], false, lmp);
+  if (narg == 2) tap_flag = utils::inumeric(FLERR, arg[1], false, lmp);
 }
 
 /* ----------------------------------------------------------------------

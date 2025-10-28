@@ -33,21 +33,24 @@ macro(KOKKOS_INTERNAL_ADD_LIBRARY_INSTALL LIBRARY_NAME)
   kokkos_lib_type(${LIBRARY_NAME} INCTYPE)
   target_include_directories(${LIBRARY_NAME} ${INCTYPE} $<INSTALL_INTERFACE:${KOKKOS_HEADER_DIR}>)
 
-  install(
-    TARGETS ${LIBRARY_NAME}
-    EXPORT ${PROJECT_NAME}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT ${PACKAGE_NAME}
-  )
-
-  install(
-    TARGETS ${LIBRARY_NAME}
-    EXPORT KokkosTargets
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
+  if(Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES)
+    install(
+      TARGETS ${LIBRARY_NAME}
+      EXPORT KokkosTargets
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} FILE_SET ${LIBRARY_NAME}_file_set
+              DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}/src
+    )
+  else()
+    install(
+      TARGETS ${LIBRARY_NAME}
+      EXPORT KokkosTargets
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+  endif()
 
   verify_empty(KOKKOS_ADD_LIBRARY ${PARSE_UNPARSED_ARGUMENTS})
 endmacro()
@@ -103,6 +106,7 @@ function(KOKKOS_ADD_EXECUTABLE_AND_TEST ROOT_NAME)
   endif()
   if(NOT
      (Kokkos_INSTALL_TESTING
+      OR Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES
       OR Kokkos_ENABLE_SYCL
       OR Kokkos_ENABLE_HPX
       OR Kokkos_ENABLE_IMPL_SKIP_NO_RTTI_FLAG
@@ -241,6 +245,20 @@ function(KOKKOS_SET_LIBRARY_PROPERTIES LIBRARY_NAME)
     target_link_options(${LIBRARY_NAME} PUBLIC ${KOKKOS_LINK_OPTIONS})
   endif()
 
+  #required for check_linker_flag
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.18)
+    #exclude case of compiler_launcher. The launcher forwards to nvcc_wrapper and shadow the CXX compiler that CMake sees (compiler_launcher changes the compiler).
+    #The CXX compiler CMake will invoke for the check is not able to consume the cuda flags if it is not nvcc_wrapper or clang+cuda.
+    #FIXME_NVHPC nvc++ is failing the check spuriously with various version numbers.
+    if(NOT (KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
+       AND (NOT (KOKKOS_ENABLE_CUDA) OR ("${CMAKE_CXX_COMPILER}" MATCHES "nvcc_wrapper") OR (${KOKKOS_CXX_COMPILER_ID}
+                                                                                             STREQUAL Clang))
+    )
+      kokkos_check_flags(LINKER LANGUAGE ${KOKKOS_COMPILE_LANGUAGE} FLAGS ${KOKKOS_LINK_OPTIONS})
+    endif()
+  endif()
+
+  list(APPEND ALL_KOKKOS_COMPILER_FLAGS ${KOKKOS_COMPILE_OPTIONS})
   target_compile_options(
     ${LIBRARY_NAME} PUBLIC $<$<COMPILE_LANGUAGE:${KOKKOS_COMPILE_LANGUAGE}>:${KOKKOS_COMPILE_OPTIONS}>
   )
@@ -262,12 +280,16 @@ function(KOKKOS_SET_LIBRARY_PROPERTIES LIBRARY_NAME)
     target_compile_options(
       ${LIBRARY_NAME} PUBLIC $<$<COMPILE_LANGUAGE:${KOKKOS_COMPILE_LANGUAGE}>:${NODEDUP_CUDAFE_OPTIONS}>
     )
+
+    list(APPEND ALL_KOKKOS_COMPILER_FLAGS ${KOKKOS_CUDA_OPTIONS})
+    list(APPEND ALL_KOKKOS_COMPILER_FLAGS ${NODEDUP_CUDAFE_OPTIONS})
   endif()
 
   if(KOKKOS_ENABLE_HIP)
     target_compile_options(
       ${LIBRARY_NAME} PUBLIC $<$<COMPILE_LANGUAGE:${KOKKOS_COMPILE_LANGUAGE}>:${KOKKOS_AMDGPU_OPTIONS}>
     )
+    list(APPEND ALL_KOKKOS_COMPILER_FLAGS ${KOKKOS_AMDGPU_OPTIONS})
   endif()
 
   list(LENGTH KOKKOS_XCOMPILER_OPTIONS XOPT_LENGTH)
@@ -288,6 +310,28 @@ function(KOKKOS_SET_LIBRARY_PROPERTIES LIBRARY_NAME)
     target_compile_options(
       ${LIBRARY_NAME} PUBLIC $<$<COMPILE_LANGUAGE:${KOKKOS_COMPILE_LANGUAGE}>:${NODEDUP_XCOMPILER_OPTIONS}>
     )
+    list(APPEND ALL_KOKKOS_COMPILER_FLAGS ${NODEDUP_XCOMPILER_OPTIONS})
+  endif()
+
+  #required for check_compiler_flag
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.19)
+    #exclude case of compiler_launcher. The launcher forwards to nvcc_wrapper and shadow the CXX compiler that CMake sees (compiler_launcher changes the compiler).
+    #The CXX compiler CMake will invoke for the check is not able to consume the cuda flags if it is not nvcc_wrapper or clang+cuda.
+    #FIXME_NVHPC nvc++ is failing the check spuriously with various version numbers.
+    if(NOT (KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
+       AND (NOT (KOKKOS_ENABLE_CUDA) OR ("${CMAKE_CXX_COMPILER}" MATCHES "nvcc_wrapper") OR (${KOKKOS_CXX_COMPILER_ID}
+                                                                                             STREQUAL Clang))
+    )
+      kokkos_check_flags(
+        COMPILER
+        LANGUAGE
+        ${KOKKOS_COMPILE_LANGUAGE}
+        FLAGS
+        ${ALL_KOKKOS_COMPILER_FLAGS}
+        LINKER_FLAGS
+        ${KOKKOS_LINK_OPTIONS}
+      )
+    endif()
   endif()
 
   if(KOKKOS_CXX_STANDARD_FEATURE)
@@ -302,14 +346,17 @@ function(KOKKOS_SET_LIBRARY_PROPERTIES LIBRARY_NAME)
   endif()
 endfunction()
 
-function(KOKKOS_INTERNAL_ADD_LIBRARY LIBRARY_NAME)
-  cmake_parse_arguments(PARSE "STATIC;SHARED" "" "HEADERS;SOURCES" ${ARGN})
+function(KOKKOS_ADD_LIBRARY LIBRARY_NAME)
+  cmake_parse_arguments(PARSE "ADD_BUILD_OPTIONS;STATIC;SHARED" "" "HEADERS;SOURCES;MODULE_INTERFACE" ${ARGN})
 
   if(PARSE_HEADERS)
     list(REMOVE_DUPLICATES PARSE_HEADERS)
   endif()
   if(PARSE_SOURCES)
     list(REMOVE_DUPLICATES PARSE_SOURCES)
+  endif()
+  if(PARSE_MODULE_INTERFACE)
+    list(REMOVE_DUPLICATES PARSE_MODULE_INTERFACE)
   endif()
   foreach(source ${PARSE_SOURCES})
     set_source_files_properties(${source} PROPERTIES LANGUAGE ${KOKKOS_COMPILE_LANGUAGE})
@@ -323,10 +370,16 @@ function(KOKKOS_INTERNAL_ADD_LIBRARY LIBRARY_NAME)
     set(LINK_TYPE SHARED)
   endif()
 
-  # MSVC and other platforms want to have
-  # the headers included as source files
-  # for better dependency detection
+  # MSVC and other platforms want to have the headers included as source files for better dependency detection
   add_library(${LIBRARY_NAME} ${LINK_TYPE} ${PARSE_HEADERS} ${PARSE_SOURCES})
+
+  if(Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES)
+    if(PARSE_MODULE_INTERFACE)
+      target_sources(
+        ${LIBRARY_NAME} PUBLIC FILE_SET ${LIBRARY_NAME}_file_set TYPE CXX_MODULES FILES ${PARSE_MODULE_INTERFACE}
+      )
+    endif()
+  endif()
 
   if(PARSE_SHARED OR BUILD_SHARED_LIBS)
     set_target_properties(
@@ -339,21 +392,10 @@ function(KOKKOS_INTERNAL_ADD_LIBRARY LIBRARY_NAME)
   #In case we are building in-tree, add an alias name
   #that matches the install Kokkos:: name
   add_library(Kokkos::${LIBRARY_NAME} ALIAS ${LIBRARY_NAME})
-endfunction()
 
-function(KOKKOS_ADD_LIBRARY LIBRARY_NAME)
-  cmake_parse_arguments(PARSE "ADD_BUILD_OPTIONS" "" "HEADERS" ${ARGN})
-  # Forward the headers, we want to know about all headers
-  # to make sure they appear correctly in IDEs
-  kokkos_internal_add_library(${LIBRARY_NAME} ${PARSE_UNPARSED_ARGUMENTS} HEADERS ${PARSE_HEADERS})
   if(PARSE_ADD_BUILD_OPTIONS)
     kokkos_set_library_properties(${LIBRARY_NAME})
   endif()
-endfunction()
-
-function(KOKKOS_ADD_INTERFACE_LIBRARY NAME)
-  add_library(${NAME} INTERFACE)
-  kokkos_internal_add_library_install(${NAME})
 endfunction()
 
 function(KOKKOS_LIB_INCLUDE_DIRECTORIES TARGET)

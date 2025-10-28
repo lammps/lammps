@@ -21,7 +21,7 @@
 #include <Kokkos_Macros.hpp>
 
 #include <impl/Kokkos_HostBarrier.hpp>
-#include <impl/Kokkos_BitOps.hpp>
+#include <Kokkos_BitManipulation.hpp>  // bit_width
 
 #include <impl/Kokkos_HostBarrier.hpp>
 
@@ -40,7 +40,7 @@ void HostBarrier::impl_backoff_wait_until_equal(
   unsigned count = 0u;
 
   while (!test_equal(ptr, v)) {
-    const int c = int_log2(++count);
+    const int c = bit_width(++count) - 1;
     if (!active_wait || c > log2_iterations_till_sleep) {
       std::this_thread::sleep_for(
           std::chrono::nanoseconds(c < 16 ? 256 * c : 4096));

@@ -54,6 +54,8 @@ class Pair : protected Pointers {
   int single_enable;              // 1 if single() routine exists
   int born_matrix_enable;         // 1 if born_matrix() routine exists
   int single_hessian_enable;      // 1 if single_hessian() routine exists
+  int atomic_energy_enable;       // 1 if compute_atomic_energy() routine exists
+
   int restartinfo;                // 1 if pair style writes restart info
   int respa_enable;               // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                  // 1 if allows only one coeff * * call
@@ -156,6 +158,7 @@ class Pair : protected Pointers {
   virtual void compute_inner() {}
   virtual void compute_middle() {}
   virtual void compute_outer(int, int) {}
+  virtual double compute_atomic_energy(int, NeighList *) { return 0.0; }
 
   virtual double single(int, int, int, int, double, double, double, double &fforce)
   {
@@ -225,8 +228,6 @@ class Pair : protected Pointers {
   virtual void min_xf_get(int) {}
   virtual void min_x_set(int) {}
   virtual void transfer_history(double *, double *, int, int) {}
-  virtual double atom2cut(int) { return 0.0; }
-  virtual double radii2cut(double, double) { return 0.0; }
 
   // management of callbacks to be run from ev_tally()
 
@@ -264,11 +265,12 @@ class Pair : protected Pointers {
 
  public:
   // custom data type for accessing Coulomb tables
-
+  // NOLINTBEGIN
   typedef union {
     int i;
     float f;
   } union_int_float_t;
+  // NOLINTEND
 
   // Accessor for the INTEL package to determine virial calc for hybrid
 

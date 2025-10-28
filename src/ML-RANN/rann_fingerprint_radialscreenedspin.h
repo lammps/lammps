@@ -61,4 +61,4 @@ namespace RANN {
 
 }    // namespace LAMMPS_NS
 
-#endif /* FINGERPRINT_RADIALSCREENED_H_ */
+#endif /* FINGERPRINT_RADIALSCREENED_H */

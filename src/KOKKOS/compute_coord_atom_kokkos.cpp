@@ -117,16 +117,16 @@ void ComputeCoordAtomKokkos<DeviceType>::compute_peratom()
     if (!c_orientorder->kokkosable)
       error->all(FLERR,"Must use compute orientorder/atom/kk with compute coord/atom/kk");
 
-    if (c_orientorder->execution_space == Host) {
+    if (c_orientorder->execution_space == HostKK) {
       ComputeOrientOrderAtomKokkos<LMPHostType>* c_orientorder_kk;
       c_orientorder_kk = (ComputeOrientOrderAtomKokkos<LMPHostType>*) c_orientorder;
-      c_orientorder_kk->k_qnarray.modify<LMPHostType>();
+      c_orientorder_kk->k_qnarray.modify_host();
       c_orientorder_kk->k_qnarray.sync<DeviceType>();
       d_normv = c_orientorder_kk->k_qnarray.view<DeviceType>();
     } else {
       ComputeOrientOrderAtomKokkos<LMPDeviceType>* c_orientorder_kk;
       c_orientorder_kk = (ComputeOrientOrderAtomKokkos<LMPDeviceType>*) c_orientorder;
-      c_orientorder_kk->k_qnarray.modify<LMPHostType>();
+      c_orientorder_kk->k_qnarray.modify_host();
       c_orientorder_kk->k_qnarray.sync<DeviceType>();
       d_normv = c_orientorder_kk->k_qnarray.view<DeviceType>();
     }
@@ -167,10 +167,10 @@ void ComputeCoordAtomKokkos<DeviceType>::compute_peratom()
 
   if (ncol == 1 || cstyle == ORIENT) {
     k_cvec.modify<DeviceType>();
-    k_cvec.sync<LMPHostType>();
+    k_cvec.sync_host();
   } else {
     k_carray.modify<DeviceType>();
-    k_carray.sync<LMPHostType>();
+    k_carray.sync_host();
   }
 
 }
@@ -186,9 +186,9 @@ void ComputeCoordAtomKokkos<DeviceType>::operator()(TagComputeCoordAtom<CSTYLE,N
   else
     for (int m = 0; m < ncol; m++) d_carray(i,m) = 0.0;
   if (mask[i] & groupbit) {
-    const X_FLOAT xtmp = x(i,0);
-    const X_FLOAT ytmp = x(i,1);
-    const X_FLOAT ztmp = x(i,2);
+    const KK_FLOAT xtmp = x(i,0);
+    const KK_FLOAT ytmp = x(i,1);
+    const KK_FLOAT ztmp = x(i,2);
     const int jnum = d_numneigh[i];
 
     int n = 0;
@@ -200,10 +200,10 @@ void ComputeCoordAtomKokkos<DeviceType>::operator()(TagComputeCoordAtom<CSTYLE,N
         if (!(mask[j] & jgroupbit)) continue;
 
       const int jtype = type[j];
-      const F_FLOAT delx = x(j,0) - xtmp;
-      const F_FLOAT dely = x(j,1) - ytmp;
-      const F_FLOAT delz = x(j,2) - ztmp;
-      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      const KK_FLOAT delx = x(j,0) - xtmp;
+      const KK_FLOAT dely = x(j,1) - ytmp;
+      const KK_FLOAT delz = x(j,2) - ztmp;
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       if (rsq < cutsq) {
         if (CSTYLE == CUTOFF) {
           if (NCOL == 1) {
@@ -215,7 +215,7 @@ void ComputeCoordAtomKokkos<DeviceType>::operator()(TagComputeCoordAtom<CSTYLE,N
                   d_carray(i,m) += 1.0;
           }
         } else if (CSTYLE == ORIENT) {
-            double dot_product = 0.0;
+            KK_FLOAT dot_product = 0.0;
             for (int m=0; m < 2*(2*l+1); m++) {
               dot_product += d_normv(i,nqlist+m)*d_normv(j,nqlist+m);
             }

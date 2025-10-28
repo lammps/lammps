@@ -76,7 +76,7 @@ class ViewDataHandle<
         (std::is_same_v<typename Traits::memory_space, Kokkos::CudaSpace> ||
          std::is_same_v<typename Traits::memory_space, Kokkos::CudaUVMSpace>)&&
         // Is a trivial const value of 4, 8, or 16 bytes
-        std::is_trivial_v<typename Traits::const_value_type> &&
+        std::is_trivially_copyable_v<typename Traits::const_value_type> &&
         std::is_same_v<typename Traits::const_value_type,
                        typename Traits::value_type> &&
         (sizeof(typename Traits::const_value_type) == 4 ||

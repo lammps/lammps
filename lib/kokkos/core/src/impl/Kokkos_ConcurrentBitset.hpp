@@ -19,7 +19,7 @@
 
 #include <stdint.h>
 #include <Kokkos_Atomic.hpp>
-#include <impl/Kokkos_BitOps.hpp>
+#include <Kokkos_BitManipulation.hpp>
 #include <impl/Kokkos_ClockTic.hpp>
 
 namespace Kokkos {
@@ -144,7 +144,8 @@ struct concurrent_bitset {
       // Failed race to set the selected bit
       // Find a new bit to try.
 
-      const int j = Kokkos::Impl::bit_first_zero(prev);
+      const int j =
+          (prev == static_cast<uint32_t>(-1) ? -1 : Kokkos::countr_one(prev));
 
       if (0 <= j) {
         bit = (word << bits_per_int_lg2) | uint32_t(j);
@@ -233,7 +234,8 @@ struct concurrent_bitset {
       // Failed race to set the selected bit
       // Find a new bit to try.
 
-      const int j = Kokkos::Impl::bit_first_zero(prev);
+      const int j =
+          (prev == static_cast<uint32_t>(-1) ? -1 : Kokkos::countr_one(prev));
 
       if (0 <= j) {
         bit = (word << bits_per_int_lg2) | uint32_t(j);

@@ -184,7 +184,6 @@ void Dihedral::ev_setup(int eflag, int vflag, int alloc)
       cvatom[i][6] = 0.0;
       cvatom[i][7] = 0.0;
       cvatom[i][8] = 0.0;
-      cvatom[i][9] = 0.0;
     }
   }
 }
@@ -406,7 +405,7 @@ void Dihedral::ev_tally(int i1, int i2, int i3, int i4, int nlocal, int newton_b
 
 void Dihedral::problem(const char *filename, int lineno, int i1, int i2, int i3, int i4)
 {
-  const auto x = atom->x;
+  auto *const x = atom->x;
   auto warn = fmt::format("Dihedral problem: {} {} {} {} {} {}\n", comm->me, update->ntimestep,
                           atom->tag[i1], atom->tag[i2], atom->tag[i3], atom->tag[i4]);
   warn += fmt::format("WARNING:   1st atom: {} {:.8} {:.8} {:.8}\n", comm->me, x[i1][0], x[i1][1],

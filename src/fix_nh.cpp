@@ -635,8 +635,8 @@ void FixNH::init()
   // ensure no conflict with fix deform
 
   if (pstat_flag)
-    for (auto &ifix : modify->get_fix_by_style("^deform")) {
-      auto deform = dynamic_cast<FixDeform *>(ifix);
+    for (const auto &ifix : modify->get_fix_by_style("^deform")) {
+      auto *deform = dynamic_cast<FixDeform *>(ifix);
       if (deform) {
         int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
@@ -715,7 +715,7 @@ void FixNH::init()
   else kspace_flag = 0;
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    auto respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    auto *respa_ptr = dynamic_cast<Respa *>(update->integrate);
     if (!respa_ptr) error->all(FLERR, "Failure to access Respa style {}", update->integrate_style);
     nlevels_respa = respa_ptr->nlevels;
     step_respa = respa_ptr->step;
@@ -725,7 +725,7 @@ void FixNH::init()
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
 
   rfix.clear();
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
@@ -1333,7 +1333,7 @@ int FixNH::pack_restart_data(double *list)
 void FixNH::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
   if (flag) {
     int m = static_cast<int> (list[n++]);
@@ -1404,7 +1404,7 @@ int FixNH::modify_param(int narg, char **arg)
     // reset id_temp of pressure to new temperature ID
 
     if (pstat_flag) {
-      auto icompute = modify->get_compute_by_id(id_press);
+      auto *icompute = modify->get_compute_by_id(id_press);
       if (!icompute)
         error->all(FLERR,"Pressure ID {} for fix modify does not exist", id_press);
       icompute->reset_extra_compute_fix(id_temp);
@@ -1698,7 +1698,7 @@ void FixNH::reset_dt()
   // If using respa, then remap is performed in innermost level
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    auto respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    auto *respa_ptr = dynamic_cast<Respa *>(update->integrate);
     if (!respa_ptr) error->all(FLERR, "Failure to access Respa style {}", update->integrate_style);
     nlevels_respa = respa_ptr->nlevels;
     step_respa = respa_ptr->step;
@@ -2085,7 +2085,7 @@ void FixNH::compute_sigma()
   // every nreset_h0 timesteps
 
   if (nreset_h0 > 0) {
-    int delta = update->ntimestep - update->beginstep;
+    bigint delta = update->ntimestep - update->beginstep;
     if (delta % nreset_h0 == 0) {
       if (dimension == 3) vol0 = domain->xprd * domain->yprd * domain->zprd;
       else vol0 = domain->xprd * domain->yprd;

@@ -20,17 +20,17 @@
 */
 
 #include "Kokkos_Core.hpp"
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
-#include <chrono>
-#include <numeric>
 #include <algorithm>
+#include <cstdio>
+#include <chrono>
+#include <cmath>
+#include <cstdlib>
+#include <numeric>
 #include <random>
 
 #define HLINE "-------------------------------------------------------------\n"
 
-using Index = int;
+using Index = int64_t;
 using Datum = int64_t;
 
 using IndexView = Kokkos::View<Index*>;
@@ -122,8 +122,9 @@ int run_benchmark(const Index indicesCount, const Index dataCount,
   DataView data("data", dataCount);
   Kokkos::parallel_for(
       "init-data",
-      Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>(0, dataCount),
-      KOKKOS_LAMBDA(const int i) { data[i] = 10101010101; });
+      Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace,
+                          Kokkos::IndexType<Index>>(0, dataCount),
+      KOKKOS_LAMBDA(const Index i) { data[i] = 10101010101; });
 
   printf("Starting benchmarking...\n");
   double gupsTime       = 0.0;

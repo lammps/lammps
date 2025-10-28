@@ -74,7 +74,7 @@ void BondHarmonicRestrain::compute(int eflag, int vflag)
     delx = x0[i1][0] - x0[i2][0];
     dely = x0[i1][1] - x0[i2][1];
     delz = x0[i1][2] - x0[i2][2];
-    domain->minimum_image(delx, dely, delz);
+    domain->minimum_image(FLERR, delx, dely, delz);
     rsq = delx * delx + dely * dely + delz * delz;
     r0 = sqrt(rsq);
 
@@ -235,7 +235,7 @@ double BondHarmonicRestrain::single(int type, double rsq, int i, int j, double &
   double delx = x0[i][0] - x0[j][0];
   double dely = x0[i][1] - x0[j][1];
   double delz = x0[i][2] - x0[j][2];
-  domain->minimum_image(delx, dely, delz);
+  domain->minimum_image(FLERR, delx, dely, delz);
   double r0 = sqrt(delx * delx + dely * dely + delz * delz);
 
   double r = sqrt(rsq);

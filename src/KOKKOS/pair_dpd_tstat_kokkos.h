@@ -59,7 +59,7 @@ class PairDPDTstatKokkos : public PairDPDTstat {
     params_dpd() {cut=gamma=sigma=0;}
     KOKKOS_INLINE_FUNCTION
     params_dpd(int /*i*/) {cut=gamma=sigma=0;}
-    F_FLOAT cut,gamma,sigma;
+    KK_FLOAT cut,gamma,sigma;
   };
 
   template<int NEIGHFLAG, int VFLAG>
@@ -76,13 +76,13 @@ class PairDPDTstatKokkos : public PairDPDTstat {
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void v_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &fpair, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                  const KK_FLOAT &dely, const KK_FLOAT &delz) const;
  private:
-  double special_lj[4], special_rf[4];
+  KK_FLOAT special_lj[4], special_rf[4];
   int eflag,vflag;
   int neighflag,nlocal;
-  double dtinvsqrt;
+  KK_FLOAT dtinvsqrt;
 
   int need_dup;
 
@@ -94,10 +94,10 @@ class PairDPDTstatKokkos : public PairDPDTstat {
   template<typename DataType, typename Layout>
   using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
 
-  DupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> dup_f;
-  DupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> dup_vatom;
-  NonDupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> ndup_f;
-  NonDupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> ndup_vatom;
+  DupScatterView<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout> dup_f;
+  DupScatterView<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout> dup_vatom;
+  NonDupScatterView<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout> ndup_f;
+  NonDupScatterView<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout> ndup_vatom;
 
 #ifdef DPD_USE_RAN_MARS
   RandPoolWrap rand_pool;
@@ -109,24 +109,24 @@ class PairDPDTstatKokkos : public PairDPDTstat {
   Kokkos::Random_XorShift1024_Pool<DeviceType> rand_pool;
   typedef typename Kokkos::Random_XorShift1024_Pool<DeviceType>::generator_type rand_type;
 #endif
-  typename AT::t_x_array_randomread x;
-  typename AT::t_x_array_randomread v;
-  typename AT::t_f_array f;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkfloat_1d_3_randomread v;
+  typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
-  typename AT::tdual_ffloat_2d k_cutsq;
-  typename AT::t_ffloat_2d d_cutsq;
+  DAT::ttransform_kkfloat_2d k_cutsq;
+  typename AT::t_kkfloat_2d d_cutsq;
 
   Kokkos::DualView<params_dpd**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_dpd**,
     Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
 
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;

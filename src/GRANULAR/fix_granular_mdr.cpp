@@ -27,25 +27,26 @@
 #include "force.h"
 #include "gran_sub_mod_normal.h"
 #include "granular_model.h"
-#include "input.h"
 #include "math_const.h"
-#include "memory.h"
+#include "math_special.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "pair.h"
 #include "pair_granular.h"
 #include "region.h"
 #include "update.h"
-#include "variable.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
 using namespace Granular_MDR_NS;
 using namespace FixConst;
 using MathConst::MY_PI;
+using MathSpecial::cube;
 
 static constexpr double EPSILON = 1e-16;
-static constexpr double OVERLAP_LIMIT = 0.75;
+static constexpr double OVERLAP_LIMIT = 0.95;
 
 enum { COMM_1, COMM_2 };
 
@@ -85,7 +86,7 @@ void FixGranularMDR::post_constructor()
   modify->add_fix(
       fmt::format("{} all property/atom d_Ro d_Vcaps d_Vgeo d_Velas d_eps_bar d_dRnumerator "
                   "d_dRdenominator d_Acon0 d_Acon1 d_Atot d_Atot_sum d_ddelta_bar d_psi "
-                  "d_history_setup_flag d_sigmaxx d_sigmayy d_sigmazz ghost yes",
+                  "d_history_setup_flag d_sigmaxx d_sigmayy d_sigmazz d_dRavg ghost yes",
                   id_fix));
 
   index_Ro = atom->find_custom("Ro", tmp1, tmp2);
@@ -105,6 +106,7 @@ void FixGranularMDR::post_constructor()
   index_sigmaxx = atom->find_custom("sigmaxx", tmp1, tmp2);
   index_sigmayy = atom->find_custom("sigmayy", tmp1, tmp2);
   index_sigmazz = atom->find_custom("sigmazz", tmp1, tmp2);
+  index_dRavg = atom->find_custom("dRavg", tmp1, tmp2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -153,31 +155,31 @@ void FixGranularMDR::setup_pre_force(int /*vflag*/)
 
     norm_model2 = dynamic_cast<GranSubModNormalMDR *>(fix->model->normal_model);
 
-    if (norm_model && norm_model2 && (norm_model->E != norm_model2->E))
+    if (norm_model && norm_model2 && fabs(norm_model->get_emod() - norm_model2->get_emod()) > EPSILON)
       error->all(
           FLERR, Error::NOLASTLINE,
           "Young's modulus in pair style, {}, does not agree with value {} in fix gran/wall/region",
-          norm_model->E, norm_model2->E);
-    if (norm_model->nu != norm_model2->nu)
+          norm_model->get_emod(), norm_model2->get_emod());
+    if (fabs(norm_model->get_poiss() - norm_model2->get_poiss()) > EPSILON)
       error->all(
           FLERR, Error::NOLASTLINE,
           "Poisson's ratio in pair style, {}, does not agree with value {} in fix gran/wall/region",
-          norm_model->nu, norm_model2->nu);
-    if (norm_model->Y != norm_model2->Y)
+          norm_model->get_poiss(), norm_model2->get_poiss());
+    if (fabs(norm_model->Y - norm_model2->Y) > EPSILON)
       error->all(
           FLERR, Error::NOLASTLINE,
           "Yield stress in pair style, {}, does not agree with value {} in fix gran/wall/region",
           norm_model->Y, norm_model2->Y);
-    if (norm_model->psi_b != norm_model2->psi_b)
+    if (fabs(norm_model->psi_b - norm_model2->psi_b) > EPSILON)
       error->all(FLERR, Error::NOLASTLINE,
                  "Bulk response trigger in pair style, {}, does not agree with value {} in fix "
                  "gran/wall/region",
                  norm_model->psi_b, norm_model2->psi_b);
-    if (norm_model->CoR != norm_model2->CoR)
+    if (fabs(norm_model->get_damp() - norm_model2->get_damp()) > EPSILON)
       error->all(FLERR, Error::NOLASTLINE,
-                 "Coefficient of restitution in pair style, {}, does not agree with value {} in "
+                 "Damping in pair style, {}, does not agree with value {} in "
                  "fix gran/wall/region",
-                 norm_model->CoR, norm_model2->CoR);
+                 norm_model->get_damp(), norm_model2->get_damp());
   }
 
   fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id("NEIGH_HISTORY_GRANULAR"));
@@ -208,6 +210,7 @@ void FixGranularMDR::pre_force(int)
   double *sigmayy = atom->dvector[index_sigmayy];
   double *sigmazz = atom->dvector[index_sigmazz];
   double *history_setup_flag = atom->dvector[index_history_setup_flag];
+  double *dRavg = atom->dvector[index_dRavg];
 
   int new_atom;
   int nlocal = atom->nlocal;
@@ -241,17 +244,24 @@ void FixGranularMDR::pre_force(int)
     if (update->setupflag && (!new_atom)) continue;
 
     const double R = radius[i];
-    const double Vo = 4.0 / 3.0 * MY_PI * pow(Ro[i], 3.0);
-    const double Vgeoi = 4.0 / 3.0 * MY_PI * pow(R, 3.0) - Vcaps[i];
+    const double Rsq = R * R;
+    const double Vo = 4.0 / 3.0 * MY_PI * cube(Ro[i]);
+    const double Vgeoi = 4.0 / 3.0 * MY_PI * Rsq * R - Vcaps[i];
 
     Vgeo[i] = MIN(Vgeoi, Vo);
     Velas[i] = Vo * (1.0 + eps_bar[i]);
-    Atot[i] = 4.0 * MY_PI * pow(R, 2.0) + Atot_sum[i];
+    Atot[i] = 4.0 * MY_PI * Rsq + Atot_sum[i];
     psi[i] = (Atot[i] - Acon1[i]) / Atot[i];
 
     if (psi_b_coeff < psi[i]) {
-      const double dR = MAX(dRnumerator[i] / (dRdenominator[i] - 4.0 * MY_PI * pow(R, 2.0)), 0.0);
-      if ((radius[i] + dR) < (1.5 * Ro[i])) radius[i] += dR;
+      double w_confinement;
+      ( psi[i] > 0.1 ) ? w_confinement = 1.0 / (1.0 + exp(-75.0 * (psi[i] - 0.2))) : w_confinement = 0.0;
+      const double dR = MAX(dRnumerator[i] / (dRdenominator[i] - 4.0 * MY_PI * Rsq) * w_confinement, 0.0);
+
+      const double N_window = 10.0;
+      if (dR > 0.0) dRavg[i] += (dR - dRavg[i]) / N_window;
+
+      if (((radius[i] + dR) < (1.5 * Ro[i])) && (dR > 0.0)) radius[i] += dRavg[i];
     }
     Acon0[i] = Acon1[i];
   }
@@ -667,7 +677,7 @@ void FixGranularMDR::update_fix_gran_wall()
   double *ddelta_bar = atom->dvector[index_ddelta_bar];
 
   for (auto &ifix : fix_wall_list) {
-    FixWallGranRegion *fix = dynamic_cast<FixWallGranRegion *>(ifix);
+    auto *fix = dynamic_cast<FixWallGranRegion *>(ifix);
     if (fix) {
       GranularModel *model = fix->model;
       const int size_history = model->size_history;

@@ -45,10 +45,16 @@
 #define KOKKOS_IMPL_ARCH_NVIDIA_GPU 80
 #elif defined(KOKKOS_ARCH_AMPERE86)
 #define KOKKOS_IMPL_ARCH_NVIDIA_GPU 86
+#elif defined(KOKKOS_ARCH_AMPERE87)
+#define KOKKOS_IMPL_ARCH_NVIDIA_GPU 87
 #elif defined(KOKKOS_ARCH_ADA89)
 #define KOKKOS_IMPL_ARCH_NVIDIA_GPU 89
 #elif defined(KOKKOS_ARCH_HOPPER90)
 #define KOKKOS_IMPL_ARCH_NVIDIA_GPU 90
+#elif defined(KOKKOS_ARCH_BLACKWELL100)
+#define KOKKOS_IMPL_ARCH_NVIDIA_GPU 100
+#elif defined(KOKKOS_ARCH_BLACKWELL120)
+#define KOKKOS_IMPL_ARCH_NVIDIA_GPU 120
 #elif defined(KOKKOS_ENABLE_CUDA)
 // do not raise an error on other backends that may run on NVIDIA GPUs such as
 // OpenACC, OpenMPTarget, or SYCL

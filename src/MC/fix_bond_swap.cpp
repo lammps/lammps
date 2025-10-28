@@ -136,7 +136,7 @@ void FixBondSwap::init()
   // require an atom style with molecule IDs
 
   if (atom->molecule == nullptr)
-    error->all(FLERR, "Must use atom style with molecule IDs with fix bond/swap");
+    error->all(FLERR, "Must use an atom style with molecule IDs with fix bond/swap");
 
   temperature = modify->get_compute_by_id(id_temp);
   if (!temperature) {
@@ -723,7 +723,7 @@ double FixBondSwap::dist_rsq(int i, int j)
   double delx = x[i][0] - x[j][0];
   double dely = x[i][1] - x[j][1];
   double delz = x[i][2] - x[j][2];
-  domain->minimum_image(delx,dely,delz);
+  domain->minimum_image(FLERR, delx,dely,delz);
   return (delx*delx + dely*dely + delz*delz);
 }
 

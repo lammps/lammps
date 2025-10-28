@@ -92,12 +92,12 @@ void ComputeEfieldWolfAtom::init()
   if (atom->mu_flag && (comm->me == 0))
     error->warning(FLERR, "Compute efield/wolf/atom does not support per-atom dipoles");
 
-  if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+  if (neighbor->style == Neighbor::MULTI)
     error->all(FLERR, "Compute efield/wolf/atom requires neighbor style 'bin' or 'nsq'");
 
   // request an occasional full neighbor list
 
-  auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+  auto *req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
   if (cutoff_flag) req->set_cutoff(cutoff);
 
   jgroup = group->find(group2);
@@ -134,9 +134,9 @@ void ComputeEfieldWolfAtom::compute_peratom()
   neighbor->build_one(list);
 
   const auto inum = list->inum;
-  const auto ilist = list->ilist;
-  const auto numneigh = list->numneigh;
-  const auto firstneigh = list->firstneigh;
+  auto *const ilist = list->ilist;
+  auto *const numneigh = list->numneigh;
+  auto *const firstneigh = list->firstneigh;
 
   // compute coulomb force according to Wolf sum approximation
   const double * const * const x = atom->x;
@@ -160,7 +160,7 @@ void ComputeEfieldWolfAtom::compute_peratom()
       const double xtmp = x[i][0];
       const double ytmp = x[i][1];
       const double ztmp = x[i][2];
-      const auto jlist = firstneigh[i];
+      auto *const jlist = firstneigh[i];
       const auto jnum = numneigh[i];
 
       for (int jj = 0; jj < jnum; jj++) {

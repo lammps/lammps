@@ -35,6 +35,7 @@ static void finalize()
 {
   lammps_kokkos_finalize();
   lammps_python_finalize();
+  lammps_plugin_finalize();
 }
 
 /* ----------------------------------------------------------------------
@@ -61,7 +62,7 @@ int main(int argc, char **argv)
 #endif
 
   try {
-    auto lammps = new LAMMPS(argc, argv, lammps_comm);
+    auto *lammps = new LAMMPS(argc, argv, lammps_comm);
     lammps->input->file();
     delete lammps;
   } catch (LAMMPSAbortException &ae) {

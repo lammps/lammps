@@ -73,27 +73,27 @@ class PairMEAMKokkos : public PairMEAM, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMEAMOffsets,  const int, int&) const;
 
-  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_xfloat_1d&,
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d&,
                                int, int *) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d&) override;
   void unpack_forward_comm(int, int, double *) override;
-  int pack_reverse_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  int pack_reverse_comm_kokkos(int, int, DAT::tdual_double_1d&) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d,
-                                  DAT::tdual_xfloat_1d&) override;
+                                  DAT::tdual_double_1d&) override;
   void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
   class MEAMKokkos<DeviceType> *meam_inst_kk;
-  typename AT::t_x_array x;
-  typename AT::t_f_array f;
+  typename AT::t_kkfloat_1d_3_lr x;
+  typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d type;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
   typename AT::t_int_1d d_offset;
 
@@ -106,17 +106,17 @@ class PairMEAMKokkos : public PairMEAM, public KokkosBase {
   typename AT::t_int_1d d_numneigh_full;
   typename AT::t_neighbors_2d d_neighbors_full;
   typename AT::t_int_1d d_sendlist;
-  typename AT::t_xfloat_1d_um v_buf;
+  typename AT::t_double_1d_um v_buf;
 
   int first;
   int neighflag,nlocal,nall,eflag,vflag;
 
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_rho, d_rho0, d_rho1, d_rho2, d_rho3, d_frhop;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_gamma, d_dgamma1, d_dgamma2, d_dgamma3, d_arho2b;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_arho1, d_arho2, d_arho3, d_arho3b, d_t_ave, d_tsq_ave;
+  typename AT::t_kkfloat_1d d_rho, d_rho0, d_rho1, d_rho2, d_rho3, d_frhop;
+  typename AT::t_kkfloat_1d d_gamma, d_dgamma1, d_dgamma2, d_dgamma3, d_arho2b;
+  typename AT::t_kkfloat_2d d_arho1, d_arho2, d_arho3, d_arho3b, d_t_ave, d_tsq_ave;
   // msmeam params
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_arho2mb;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_arho1m, d_arho2m, d_arho3m, d_arho3mb;
+  typename AT::t_kkfloat_1d d_arho2mb;
+  typename AT::t_kkfloat_2d d_arho1m, d_arho2m, d_arho3m, d_arho3mb;
 
   void update_meam_views();
 

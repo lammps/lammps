@@ -251,7 +251,7 @@ struct fft_plan_3d *fft_3d_create_plan(
        int scaled, int permute, int *nbuf, int usecollective)
 {
   struct fft_plan_3d *plan;
-  int me,nprocs,nthreads;
+  int me,nprocs;
   int flag,remapflag;
   int first_ilo,first_ihi,first_jlo,first_jhi,first_klo,first_khi;
   int second_ilo,second_ihi,second_jlo,second_jhi,second_klo,second_khi;
@@ -264,12 +264,14 @@ struct fft_plan_3d *fft_3d_create_plan(
   MPI_Comm_rank(comm,&me);
   MPI_Comm_size(comm,&nprocs);
 
+#if defined(FFT_MKL_THREADS) || defined(FFT_FFTW_THREADS)
 #if defined(_OPENMP)
   // query OpenMP info.
   // should have been initialized systemwide in Comm class constructor
-  nthreads = omp_get_max_threads();
+  int nthreads = omp_get_max_threads();
 #else
-  nthreads = 1;
+  int nthreads = 1;
+#endif
 #endif
 
   // compute division of procs in 2 dimensions not on-processor
@@ -312,7 +314,10 @@ struct fft_plan_3d *fft_3d_create_plan(
     plan->pre_plan = remap_3d_create_plan(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                                           first_ilo,first_ihi,first_jlo,first_jhi,
                                           first_klo,first_khi,2,0,0,FFT_PRECISION,0);
-    if (plan->pre_plan == nullptr) return nullptr;
+    if (plan->pre_plan == nullptr) {
+      free(plan);
+      return nullptr;
+    }
   }
 
   // 1d FFTs along fast axis

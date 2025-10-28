@@ -108,10 +108,12 @@ class PairEAMCD : public PairEAMAlloy {
 
   // This structure specifies an entry in one of the EAM spline tables
   // and the corresponding floating point part.
+  // NOLINTBEGIN
   typedef struct {
     int m;
     double p;
   } EAMTableIndex;
+  // NOLINTEND
 
   // Converts a radius value to an index value to be used in a spline table lookup.
   inline EAMTableIndex radiusToTableIndex(double r) const

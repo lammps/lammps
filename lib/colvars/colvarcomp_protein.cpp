@@ -28,34 +28,65 @@ colvar::alpha_angles::alpha_angles()
 int colvar::alpha_angles::init(std::string const &conf)
 {
   int error_code = cvc::init(conf);
+  if (error_code != COLVARS_OK) return error_code;
 
   std::string segment_id;
-  get_keyval(conf, "psfSegID", segment_id, std::string("MAIN"));
-
   std::vector<int> residues;
-  {
-    std::string residues_conf = "";
-    key_lookup(conf, "residueRange", &residues_conf);
+
+  bool b_use_index_groups = false;
+  cvm::atom_group group_CA, group_N, group_O;
+
+  std::string residues_conf = "";
+  std::string prefix;
+
+  // residueRange is mandatory for the topology-based case
+  if (key_lookup(conf, "residueRange", &residues_conf)) {
     if (residues_conf.size()) {
       std::istringstream is(residues_conf);
       int initial, final;
       char dash;
       if ( (is >> initial) && (initial > 0) &&
-           (is >> dash) && (dash == '-') &&
-           (is >> final) && (final > 0) ) {
+          (is >> dash) && (dash == '-') &&
+          (is >> final) && (final > 0) ) {
         for (int rnum = initial; rnum <= final; rnum++) {
           residues.push_back(rnum);
         }
       }
     } else {
-      error_code |=
-          cvm::error("Error: no residues defined in \"residueRange\".\n", COLVARS_INPUT_ERROR);
+      return cvm::error("Error: no residues defined in \"residueRange\".\n", COLVARS_INPUT_ERROR);
     }
-  }
 
-  if (residues.size() < 5) {
-    error_code |= cvm::error("Error: not enough residues defined in \"residueRange\".\n",
-                             COLVARS_INPUT_ERROR);
+    if (residues.size() < 5) {
+      return cvm::error("Error: not enough residues defined in \"residueRange\".\n", COLVARS_INPUT_ERROR);
+    }
+    get_keyval(conf, "psfSegID", segment_id, std::string("MAIN"));
+
+  } else {
+    b_use_index_groups = true;
+    get_keyval(conf, "prefix", prefix, "alpha_");
+
+    // Not all groups are mandatory, parse silently
+    {
+      // These lines must be in its own scope to ensure RAII
+      auto modify_group_CA = group_CA.get_atom_modifier();
+      auto modify_group_N = group_N.get_atom_modifier();
+      auto modify_group_O = group_O.get_atom_modifier();
+      modify_group_CA.add_index_group(prefix + "CA", true);
+      modify_group_N.add_index_group(prefix + "N", true);
+      modify_group_O.add_index_group(prefix + "O", true);
+    }
+
+    int na = group_CA.size();
+    int nn = group_N.size();
+    int no = group_O.size();
+    if ((nn != 0 || no != 0) && (nn != no)) {
+      return cvm::error("Error: If either is provided, atom groups " + prefix + "N and " + prefix + "O must have the same number of atoms.",
+                        COLVARS_INPUT_ERROR);
+    }
+    if (nn != 0 && na != 0 && nn != na) {
+      return cvm::error("Error: If both are provided, atom groups " + prefix + "N and " + prefix + "CA must have the same number of atoms.",
+                        COLVARS_INPUT_ERROR);
+    }
   }
 
   std::string const &sid    = segment_id;
@@ -64,8 +95,7 @@ int colvar::alpha_angles::init(std::string const &conf)
 
   get_keyval(conf, "hBondCoeff", hb_coeff, hb_coeff);
   if ((hb_coeff < 0.0) || (hb_coeff > 1.0)) {
-    error_code |=
-        cvm::error("Error: hBondCoeff must be defined between 0 and 1.\n", COLVARS_INPUT_ERROR);
+    return cvm::error("Error: hBondCoeff must be defined between 0 and 1.\n", COLVARS_INPUT_ERROR);
   }
 
 
@@ -73,14 +103,32 @@ int colvar::alpha_angles::init(std::string const &conf)
   get_keyval(conf, "angleTol", theta_tol, theta_tol);
 
   if (hb_coeff < 1.0) {
-
-    for (size_t i = 0; i < residues.size()-2; i++) {
-      theta.push_back(new colvar::angle(cvm::atom(r[i  ], "CA", sid),
-                                        cvm::atom(r[i+1], "CA", sid),
-                                        cvm::atom(r[i+2], "CA", sid)));
-      register_atom_group(theta.back()->atom_groups[0]);
-      register_atom_group(theta.back()->atom_groups[1]);
-      register_atom_group(theta.back()->atom_groups[2]);
+    if (b_use_index_groups) {
+      if (group_CA.size() < 5) {
+        return cvm::error("Not enough atoms (" + cvm::to_str(group_CA.size()) + ") in index group \"" + prefix + "CA\"",
+                          COLVARS_INPUT_ERROR);
+      }
+      for (size_t i = 0; i < group_CA.size()-2; i++) {
+        // Note: the angle constructor constructs copies of the atom objects
+        theta.push_back(new colvar::angle(group_CA[i],
+                                          group_CA[i+1],
+                                          group_CA[i+2]));
+        register_atom_group(theta.back()->atom_groups[0]);
+        register_atom_group(theta.back()->atom_groups[1]);
+        register_atom_group(theta.back()->atom_groups[2]);
+      }
+    } else {
+      colvarproxy* const p = cvm::main()->proxy;
+      for (size_t i = 0; i < residues.size()-2; i++) {
+        theta.push_back(
+          new colvar::angle(
+            cvm::atom_group::init_atom_from_proxy(p, r[i  ], "CA", sid),
+            cvm::atom_group::init_atom_from_proxy(p, r[i+1], "CA", sid),
+            cvm::atom_group::init_atom_from_proxy(p, r[i+2], "CA", sid)));
+        register_atom_group(theta.back()->atom_groups[0]);
+        register_atom_group(theta.back()->atom_groups[1]);
+        register_atom_group(theta.back()->atom_groups[2]);
+      }
     }
 
   } else {
@@ -93,14 +141,30 @@ int colvar::alpha_angles::init(std::string const &conf)
     get_keyval(conf, "hBondExpDenom", ed, ed);
 
     if (hb_coeff > 0.0) {
-
-      for (size_t i = 0; i < residues.size()-4; i++) {
-        hb.push_back(new colvar::h_bond(cvm::atom(r[i  ], "O",  sid),
-                                        cvm::atom(r[i+4], "N",  sid),
-                                        r0, en, ed));
-        register_atom_group(hb.back()->atom_groups[0]);
+      colvarproxy* const p = cvm::main()->proxy;
+      if (b_use_index_groups) {
+        if (group_N.size() < 5) {
+          return cvm::error("Not enough atoms (" + cvm::to_str(group_N.size()) + ") in index group \"" + prefix + "N\"",
+                            COLVARS_INPUT_ERROR);
+        }
+        for (size_t i = 0; i < group_N.size()-4; i++) {
+          // Note: we need to call the atom copy constructor here because
+          // the h_bond constructor does not make copies of the provided atoms
+          hb.push_back(
+            new colvar::h_bond(cvm::atom_group::init_atom_from_proxy(p,group_O[i]),
+                               cvm::atom_group::init_atom_from_proxy(p,group_N[i+4]),
+                               r0, en, ed));
+          register_atom_group(hb.back()->atom_groups[0]);
+        }
+      } else {
+        for (size_t i = 0; i < residues.size()-4; i++) {
+          hb.push_back(
+            new colvar::h_bond(cvm::atom_group::init_atom_from_proxy(p,r[i  ], "O",  sid),
+                               cvm::atom_group::init_atom_from_proxy(p,r[i+4], "N",  sid),
+                               r0, en, ed));
+          register_atom_group(hb.back()->atom_groups[0]);
+        }
       }
-
     } else {
       cvm::log("The hBondCoeff specified will disable the hydrogen bond terms.\n");
     }
@@ -200,11 +264,11 @@ void colvar::alpha_angles::collect_gradients(std::vector<int> const &atom_ids, s
       cvm::real const coeff = cvc_coeff * theta_norm * dfdt * (1.0/theta_tol);
 
       for (size_t j = 0; j < theta[i]->atom_groups.size(); j++) {
-        cvm::atom_group &ag = *(theta[i]->atom_groups[j]);
+        auto &ag = *(theta[i]->atom_groups[j]);
         for (size_t k = 0; k < ag.size(); k++) {
           size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
-                                      ag[k].id) - atom_ids.begin();
-          atomic_gradients[a] += coeff * ag[k].grad;
+                                      ag.id(k)) - atom_ids.begin();
+          atomic_gradients[a] += coeff * cvm::rvector(ag.grad_x(k), ag.grad_y(k), ag.grad_z(k));
         }
       }
     }
@@ -220,11 +284,11 @@ void colvar::alpha_angles::collect_gradients(std::vector<int> const &atom_ids, s
       cvm::real const coeff = cvc_coeff * 0.5 * hb_norm;
 
       for (size_t j = 0; j < hb[i]->atom_groups.size(); j++) {
-        cvm::atom_group &ag = *(hb[i]->atom_groups[j]);
+        auto &ag = *(hb[i]->atom_groups[j]);
         for (size_t k = 0; k < ag.size(); k++) {
           size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
-                                      ag[k].id) - atom_ids.begin();
-          atomic_gradients[a] += coeff * ag[k].grad;
+                                      ag.id(k)) - atom_ids.begin();
+          atomic_gradients[a] += coeff * cvm::rvector(ag.grad_x(k), ag.grad_y(k), ag.grad_z(k));
         }
       }
     }
@@ -290,41 +354,67 @@ int colvar::dihedPC::init(std::string const &conf)
   if (cvm::debug())
     cvm::log("Initializing dihedral PC object.\n");
 
+  bool b_use_index_groups = false;
   std::string segment_id;
-  get_keyval(conf, "psfSegID", segment_id, std::string("MAIN"));
-
   std::vector<int> residues;
-  {
-    std::string residues_conf = "";
-    key_lookup(conf, "residueRange", &residues_conf);
+  size_t n_residues;
+  std::string residues_conf = "";
+  std::string prefix;
+  cvm::atom_group group_CA, group_N, group_C;
+
+  // residueRange is mandatory for the topology-based case
+  if (key_lookup(conf, "residueRange", &residues_conf)) {
     if (residues_conf.size()) {
       std::istringstream is(residues_conf);
       int initial, final;
       char dash;
       if ( (is >> initial) && (initial > 0) &&
-           (is >> dash) && (dash == '-') &&
-           (is >> final) && (final > 0) ) {
+          (is >> dash) && (dash == '-') &&
+          (is >> final) && (final > 0) ) {
         for (int rnum = initial; rnum <= final; rnum++) {
           residues.push_back(rnum);
         }
       }
     } else {
-      error_code |=
-          cvm::error("Error: no residues defined in \"residueRange\".\n", COLVARS_INPUT_ERROR);
+      return cvm::error("Error: no residues defined in \"residueRange\".\n", COLVARS_INPUT_ERROR);
     }
-  }
+    n_residues = residues.size();
+    get_keyval(conf, "psfSegID", segment_id, std::string("MAIN"));
 
-  if (residues.size() < 2) {
+  } else {
+
+    b_use_index_groups = true;
+    get_keyval(conf, "prefix", prefix, "dihed_");
+
+    // All three groups are required
+    {
+      auto modify_group_CA = group_CA.get_atom_modifier();
+      auto modify_group_N = group_N.get_atom_modifier();
+      auto modify_group_C = group_C.get_atom_modifier();
+      modify_group_CA.add_index_group(prefix + "CA");
+      modify_group_N.add_index_group(prefix + "N");
+      modify_group_C.add_index_group(prefix + "C");
+    }
+    int na = group_CA.size();
+    int nn = group_N.size();
+    int nc = group_C.size();
+    if ((nn != na || na != nc)) {
+      return cvm::error("Error: atom groups " + prefix + "N, " + prefix + "CA, and " + prefix +
+                        "C must have the same number of atoms.", COLVARS_INPUT_ERROR);
+    }
+    n_residues = nn;
+  }
+  if (n_residues < 2) {
     error_code |=
-        cvm::error("Error: dihedralPC requires at least two residues.\n", COLVARS_INPUT_ERROR);
+      cvm::error("Error: dihedralPC requires at least two residues.\n", COLVARS_INPUT_ERROR);
   }
 
   std::string const &sid    = segment_id;
   std::vector<int> const &r = residues;
 
   std::string vecFileName;
-  int         vecNumber;
   if (get_keyval(conf, "vectorFile", vecFileName, vecFileName)) {
+    int vecNumber;
     get_keyval(conf, "vectorNumber", vecNumber, 0);
     if (vecNumber < 1) {
       error_code |=
@@ -339,9 +429,8 @@ int colvar::dihedPC::init(std::string const &conf)
     }
 
     // TODO: adapt to different formats by setting this flag
-    bool eigenvectors_as_columns = true;
-
-    if (eigenvectors_as_columns) {
+    // bool eigenvectors_as_columns = true;
+    // if (eigenvectors_as_columns) {
       // Carma-style dPCA file
       std::string line;
       cvm::real c;
@@ -352,9 +441,7 @@ int colvar::dihedPC::init(std::string const &conf)
         for (int i=0; i<vecNumber; i++) ls >> c;
         coeffs.push_back(c);
       }
-    }
-/*  TODO Uncomment this when different formats are recognized
-    else {
+    /* } else { // Uncomment this when different formats are recognized
       // Eigenvectors as lines
       // Skip to the right line
       for (int i = 1; i<vecNumber; i++)
@@ -380,28 +467,51 @@ int colvar::dihedPC::init(std::string const &conf)
     get_keyval(conf, "vector", coeffs, coeffs);
   }
 
-  if ( coeffs.size() != 4 * (residues.size() - 1)) {
+  if ( coeffs.size() != 4 * (n_residues - 1)) {
     error_code |= cvm::error("Error: wrong number of coefficients: " + cvm::to_str(coeffs.size()) +
-                             ". Expected " + cvm::to_str(4 * (residues.size() - 1)) +
+                             ". Expected " + cvm::to_str(4 * (n_residues - 1)) +
                              " (4 coeffs per residue, minus one residue).\n",
                              COLVARS_INPUT_ERROR);
   }
-
-  for (size_t i = 0; i < residues.size()-1; i++) {
+  colvarproxy* const p = cvm::main()->proxy;
+  for (size_t i = 0; i < n_residues-1; i++) {
     // Psi
-    theta.push_back(new colvar::dihedral(cvm::atom(r[i  ], "N", sid),
-                                         cvm::atom(r[i  ], "CA", sid),
-                                         cvm::atom(r[i  ], "C", sid),
-                                         cvm::atom(r[i+1], "N", sid)));
+    if (b_use_index_groups) {
+      theta.push_back(new colvar::dihedral( group_N[i],
+                                            group_CA[i],
+                                            group_C[i],
+                                            group_N[i+1]));
+    } else {
+      theta.push_back(
+        new colvar::dihedral(
+          cvm::atom_group::init_atom_from_proxy(p,r[i  ], "N", sid),
+          cvm::atom_group::init_atom_from_proxy(p,r[i  ], "CA", sid),
+          cvm::atom_group::init_atom_from_proxy(p,r[i  ], "C", sid),
+          cvm::atom_group::init_atom_from_proxy(p,r[i+1], "N", sid)));
+    }
+    if (cvm::get_error()) {
+      return cvm::get_error();
+    }
     register_atom_group(theta.back()->atom_groups[0]);
     register_atom_group(theta.back()->atom_groups[1]);
     register_atom_group(theta.back()->atom_groups[2]);
     register_atom_group(theta.back()->atom_groups[3]);
     // Phi (next res)
-    theta.push_back(new colvar::dihedral(cvm::atom(r[i  ], "C", sid),
-                                         cvm::atom(r[i+1], "N", sid),
-                                         cvm::atom(r[i+1], "CA", sid),
-                                         cvm::atom(r[i+1], "C", sid)));
+    if (b_use_index_groups) {
+      theta.push_back(new colvar::dihedral(group_C[i],
+                                           group_N[i+1],
+                                           group_CA[i+1],
+                                           group_C[i+1]));
+    } else {
+      theta.push_back(
+        new colvar::dihedral(cvm::atom_group::init_atom_from_proxy(p,r[i  ], "C", sid),
+                             cvm::atom_group::init_atom_from_proxy(p,r[i+1], "N", sid),
+                             cvm::atom_group::init_atom_from_proxy(p,r[i+1], "CA", sid),
+                             cvm::atom_group::init_atom_from_proxy(p,r[i+1], "C", sid)));
+    }
+    if (cvm::get_error()) {
+      return cvm::get_error();
+    }
     register_atom_group(theta.back()->atom_groups[0]);
     register_atom_group(theta.back()->atom_groups[1]);
     register_atom_group(theta.back()->atom_groups[2]);
@@ -458,11 +568,11 @@ void colvar::dihedPC::collect_gradients(std::vector<int> const &atom_ids, std::v
     cvm::real const coeff = cvc_coeff * (coeffs[2*i] * dcosdt + coeffs[2*i+1] * dsindt);
 
     for (size_t j = 0; j < theta[i]->atom_groups.size(); j++) {
-      cvm::atom_group &ag = *(theta[i]->atom_groups[j]);
+      auto &ag = *(theta[i]->atom_groups[j]);
       for (size_t k = 0; k < ag.size(); k++) {
         size_t a = std::lower_bound(atom_ids.begin(), atom_ids.end(),
-                                    ag[k].id) - atom_ids.begin();
-        atomic_gradients[a] += coeff * ag[k].grad;
+                                    ag.id(k)) - atom_ids.begin();
+        atomic_gradients[a] += coeff * cvm::rvector(ag.grad_x(k), ag.grad_y(k), ag.grad_z(k));
       }
     }
   }

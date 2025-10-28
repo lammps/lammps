@@ -86,19 +86,19 @@ class Force : protected Pointers {
   KSpace *kspace;
   char *kspace_style;
 
-  typedef Pair *(*PairCreator)(LAMMPS *);
-  typedef Bond *(*BondCreator)(LAMMPS *);
-  typedef Angle *(*AngleCreator)(LAMMPS *);
-  typedef Dihedral *(*DihedralCreator)(LAMMPS *);
-  typedef Improper *(*ImproperCreator)(LAMMPS *);
-  typedef KSpace *(*KSpaceCreator)(LAMMPS *);
+  using PairCreator = Pair *(*)(LAMMPS *);
+  using BondCreator = Bond *(*)(LAMMPS *);
+  using AngleCreator = Angle *(*)(LAMMPS *);
+  using DihedralCreator = Dihedral *(*)(LAMMPS *);
+  using ImproperCreator = Improper *(*)(LAMMPS *);
+  using KSpaceCreator = KSpace *(*)(LAMMPS *);
 
-  typedef std::map<std::string, PairCreator> PairCreatorMap;
-  typedef std::map<std::string, BondCreator> BondCreatorMap;
-  typedef std::map<std::string, AngleCreator> AngleCreatorMap;
-  typedef std::map<std::string, DihedralCreator> DihedralCreatorMap;
-  typedef std::map<std::string, ImproperCreator> ImproperCreatorMap;
-  typedef std::map<std::string, KSpaceCreator> KSpaceCreatorMap;
+  using PairCreatorMap = std::map<std::string, PairCreator>;
+  using BondCreatorMap = std::map<std::string, BondCreator>;
+  using AngleCreatorMap = std::map<std::string, AngleCreator>;
+  using DihedralCreatorMap = std::map<std::string, DihedralCreator>;
+  using ImproperCreatorMap = std::map<std::string, ImproperCreator>;
+  using KSpaceCreatorMap = std::map<std::string, KSpaceCreator>;
 
   PairCreatorMap *pair_map;
   BondCreatorMap *bond_map;

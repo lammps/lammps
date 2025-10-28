@@ -22,14 +22,12 @@ FixStyle(rheo/oxidation,FixRHEOOxidation)
 
 #include "fix.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class FixRHEOOxidation : public Fix {
  public:
   FixRHEOOxidation(class LAMMPS *, int, char **);
-  ~FixRHEOOxidation() override;
+
   int setmask() override;
   void init() override;
   void init_list(int, class NeighList *) override;

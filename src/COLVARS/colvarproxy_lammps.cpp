@@ -13,13 +13,13 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "lammps.h"             // includes <cstdio>, <mpi.h>, <string>, <vector>
+#include "random_park.h"
 #include "update.h"
-#include "utils.h"
 
 #include "colvarmodule.h"
 #include "colvarproxy.h"
 #include "colvarscript.h"
+#include "colvartypes.h"
 
 #define HASH_FAIL  -1
 
@@ -33,12 +33,9 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp)  : _lmp(lmp), _ra
   previous_step = -1;
   do_exit = false;
 
-  inter_me = 0;
-  inter_num = 1;
   bias_energy = 0.0;
 
   engine_ready_ = false;
-  inter_comm = MPI_COMM_NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -83,17 +80,9 @@ void colvarproxy_lammps::set_random_seed(int seed)
   _random = new LAMMPS_NS::RanPark(_lmp, seed);
 }
 
-/* ---------------------------------------------------------------------- */
-
-void colvarproxy_lammps::set_replicas_communicator(MPI_Comm root2root)
+cvm::real colvarproxy_lammps::rand_gaussian()
 {
-  inter_comm = root2root;
-
-  // initialize multi-replica support, if available
-  if (replica_enabled() == COLVARS_OK) {
-    MPI_Comm_rank(inter_comm, &inter_me);
-    MPI_Comm_size(inter_comm, &inter_num);
-  }
+  return _random->gaussian();
 }
 
 /* ----------------------------------------------------------------------
@@ -204,7 +193,7 @@ cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
   double xtmp = pos2.x - pos1.x;
   double ytmp = pos2.y - pos1.y;
   double ztmp = pos2.z - pos1.z;
-  _lmp->domain->minimum_image_big(xtmp,ytmp,ztmp);
+  _lmp->domain->minimum_image_big(FLERR, xtmp,ytmp,ztmp);
   return {xtmp, ytmp, ztmp};
 }
 
@@ -255,63 +244,7 @@ int colvarproxy_lammps::set_unit_system(std::string const &units_in, bool /*chec
   return COLVARS_OK;
 }
 
-/* ----------------------------------------------------------------------
-   multi-replica support
-------------------------------------------------------------------------- */
 
-int colvarproxy_lammps::replica_enabled()
-{
-  return (inter_comm != MPI_COMM_NULL) ? COLVARS_OK : COLVARS_NOT_IMPLEMENTED;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int colvarproxy_lammps::replica_index()
-{
-  return inter_me;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int colvarproxy_lammps::num_replicas()
-{
-  return inter_num;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void colvarproxy_lammps::replica_comm_barrier()
-{
-  MPI_Barrier(inter_comm);
-}
-
-/* ---------------------------------------------------------------------- */
-
-int colvarproxy_lammps::replica_comm_recv(char* msg_data, int buf_len, int src_rep)
-{
-  MPI_Status status;
-  int retval;
-
-  retval = MPI_Recv(msg_data,buf_len,MPI_CHAR,src_rep,0,inter_comm,&status);
-  if (retval == MPI_SUCCESS) {
-    MPI_Get_count(&status, MPI_CHAR, &retval);
-  } else retval = 0;
-  return retval;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int colvarproxy_lammps::replica_comm_send(char* msg_data, int msg_len, int dest_rep)
-{
-  int retval;
-  retval = MPI_Send(msg_data,msg_len,MPI_CHAR,dest_rep,0,inter_comm);
-  if (retval == MPI_SUCCESS) {
-    retval = msg_len;
-  } else retval = 0;
-  return retval;
-}
-
-/* ---------------------------------------------------------------------- */
 
 int colvarproxy_lammps::check_atom_id(int atom_number)
 {

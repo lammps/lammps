@@ -25,7 +25,7 @@ class Grid3d : protected Pointers {
   Grid3d(class LAMMPS *, MPI_Comm, int, int, int);
   Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int, int,
          int, int);
-  ~Grid3d();
+  ~Grid3d() override;
 
   void set_distance(double);
   void set_stencil_grid(int, int);

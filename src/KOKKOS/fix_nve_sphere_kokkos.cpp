@@ -92,10 +92,10 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNVESphereKokkos<DeviceType>::initial_integrate_item(const int i) const
 {
-  const double dtfrotate = dtf / inertia;
+  const KK_FLOAT dtfrotate = dtf / inertia;
 
   if (mask(i) & groupbit) {
-    const double dtfm = dtf / rmass(i);
+    const KK_FLOAT dtfm = dtf / rmass(i);
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
     v(i,2) += dtfm * f(i,2);
@@ -103,17 +103,17 @@ void FixNVESphereKokkos<DeviceType>::initial_integrate_item(const int i) const
     x(i,1) += dtv * v(i,1);
     x(i,2) += dtv * v(i,2);
 
-    const double dtirotate = dtfrotate / (radius(i)*radius(i)*rmass(i));
+    const KK_FLOAT dtirotate = dtfrotate / (radius(i)*radius(i)*rmass(i));
     omega(i,0) += dtirotate * torque(i,0);
     omega(i,1) += dtirotate * torque(i,1);
     omega(i,2) += dtirotate * torque(i,2);
 
     if (extra == DIPOLE) {
-      const double g0 = mu(i,0) + dtv * (omega(i,1) * mu(i,2) - omega(i,2) * mu(i,1));
-      const double g1 = mu(i,1) + dtv * (omega(i,2) * mu(i,0) - omega(i,0) * mu(i,2));
-      const double g2 = mu(i,2) + dtv * (omega(i,0) * mu(i,1) - omega(i,1) * mu(i,0));
-      const double msq = g0*g0 + g1*g1 + g2*g2;
-      const double scale = mu(i,3)/sqrt(msq);
+      const KK_FLOAT g0 = mu(i,0) + dtv * (omega(i,1) * mu(i,2) - omega(i,2) * mu(i,1));
+      const KK_FLOAT g1 = mu(i,1) + dtv * (omega(i,2) * mu(i,0) - omega(i,0) * mu(i,2));
+      const KK_FLOAT g2 = mu(i,2) + dtv * (omega(i,0) * mu(i,1) - omega(i,1) * mu(i,0));
+      const KK_FLOAT msq = g0*g0 + g1*g1 + g2*g2;
+      const KK_FLOAT scale = mu(i,3)/sqrt(msq);
       mu(i,0) = g0*scale;
       mu(i,1) = g1*scale;
       mu(i,2) = g2*scale;
@@ -151,15 +151,15 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNVESphereKokkos<DeviceType>::final_integrate_item(const int i) const
 {
-  const double dtfrotate = dtf / inertia;
+  const KK_FLOAT dtfrotate = dtf / inertia;
 
   if (mask(i) & groupbit) {
-    const double dtfm = dtf / rmass(i);
+    const KK_FLOAT dtfm = dtf / rmass(i);
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
     v(i,2) += dtfm * f(i,2);
 
-    const double dtirotate = dtfrotate / (radius(i)*radius(i)*rmass(i));
+    const KK_FLOAT dtirotate = dtfrotate / (radius(i)*radius(i)*rmass(i));
     omega(i,0) += dtirotate * torque(i,0);
     omega(i,1) += dtirotate * torque(i,1);
     omega(i,2) += dtirotate * torque(i,2);
@@ -204,10 +204,10 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNVESphereKokkos<DeviceType>::fused_integrate_item(const int i) const
 {
-  const double dtfrotate = dtf / inertia;
+  const KK_FLOAT dtfrotate = dtf / inertia;
 
   if (mask(i) & groupbit) {
-    const double dtfm = 2.0 * dtf / rmass(i);
+    const KK_FLOAT dtfm = 2.0 * dtf / rmass(i);
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);
     v(i,2) += dtfm * f(i,2);
@@ -215,17 +215,17 @@ void FixNVESphereKokkos<DeviceType>::fused_integrate_item(const int i) const
     x(i,1) += dtv * v(i,1);
     x(i,2) += dtv * v(i,2);
 
-    const double dtirotate = 2.0 * dtfrotate / (radius(i)*radius(i)*rmass(i));
+    const KK_FLOAT dtirotate = 2.0 * dtfrotate / (radius(i)*radius(i)*rmass(i));
     omega(i,0) += dtirotate * torque(i,0);
     omega(i,1) += dtirotate * torque(i,1);
     omega(i,2) += dtirotate * torque(i,2);
 
     if (extra == DIPOLE) {
-      const double g0 = mu(i,0) + dtv * (omega(i,1) * mu(i,2) - omega(i,2) * mu(i,1));
-      const double g1 = mu(i,1) + dtv * (omega(i,2) * mu(i,0) - omega(i,0) * mu(i,2));
-      const double g2 = mu(i,2) + dtv * (omega(i,0) * mu(i,1) - omega(i,1) * mu(i,0));
-      const double msq = g0*g0 + g1*g1 + g2*g2;
-      const double scale = mu(i,3)/sqrt(msq);
+      const KK_FLOAT g0 = mu(i,0) + dtv * (omega(i,1) * mu(i,2) - omega(i,2) * mu(i,1));
+      const KK_FLOAT g1 = mu(i,1) + dtv * (omega(i,2) * mu(i,0) - omega(i,0) * mu(i,2));
+      const KK_FLOAT g2 = mu(i,2) + dtv * (omega(i,0) * mu(i,1) - omega(i,1) * mu(i,0));
+      const KK_FLOAT msq = g0*g0 + g1*g1 + g2*g2;
+      const KK_FLOAT scale = mu(i,3)/sqrt(msq);
       mu(i,0) = g0*scale;
       mu(i,1) = g1*scale;
       mu(i,2) = g2*scale;

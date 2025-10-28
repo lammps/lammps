@@ -37,7 +37,7 @@ namespace Granular_NS {
   class GranSubModRollingNone : public GranSubModRolling {
    public:
     GranSubModRollingNone(class GranularModel *, class LAMMPS *);
-    void calculate_forces() override{};
+    void calculate_forces() override {};
   };
 
   /* ---------------------------------------------------------------------- */

@@ -78,7 +78,7 @@ void MEAM::meam_setup_param(int which, double value, int nindex, int *index /*in
 {
   //: index[0..2]
   int i1, i2;
-  lattice_t vlat;
+  MEAM::lattice_t vlat;
   *errorflag = 0;
 
   switch (which) {

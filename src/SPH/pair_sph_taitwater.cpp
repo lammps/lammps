@@ -15,7 +15,6 @@
 #include "pair_sph_taitwater.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"

@@ -77,7 +77,7 @@ template <class To, class From>
 constexpr To checked_narrow_cast(From arg, std::size_t idx) {
   constexpr const bool is_different_signedness =
       (std::is_signed_v<To> != std::is_signed_v<From>);
-  auto const ret = static_cast<To>(arg);
+  auto const ret = static_cast<To>(arg);  // NOLINT(bugprone-signed-char-misuse)
   if (static_cast<From>(ret) != arg ||
       (is_different_signedness &&
        is_less_than_value_initialized_variable(arg) !=

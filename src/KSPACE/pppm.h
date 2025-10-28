@@ -134,7 +134,7 @@ class PPPM : public KSpace {
 
   virtual void poisson_peratom();
   virtual void fieldforce_peratom();
-  void procs2grid2d(int, int, int, int *, int *);
+  void procs2grid2d(int, int, int, int &, int &);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &);
   void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &);
   void compute_rho_coeff();

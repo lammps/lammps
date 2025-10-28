@@ -1,4 +1,3 @@
-
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -38,6 +37,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -56,7 +56,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     dorient(nullptr), id_dilate(nullptr), id_gravity(nullptr), random(nullptr),
     avec_ellipsoid(nullptr), avec_line(nullptr), avec_tri(nullptr)
 {
-  int i, ibody;
+  int i, j, ibody;
 
   scalar_flag = 1;
   extscalar = 0;
@@ -151,7 +151,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         if (input->variable->atomstyle(ivariable) == 0)
           error->all(FLERR, "Fix {} custom variable {} is not atom-style variable", style,
                      arg[4] + 2);
-        auto value = new double[nlocal];
+        auto *value = new double[nlocal];
         input->variable->compute_atom(ivariable, 0, value, 1, 0);
         int minval = INT_MAX;
         for (i = 0; i < nlocal; i++)
@@ -224,8 +224,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     rstyle = GROUP;
     nbody = utils::inumeric(FLERR, arg[4], false, lmp);
     if (nbody <= 0) error->all(FLERR, "Illegal fix {} number of groups {}", style, nbody);
-    if (narg < 5 + nbody)
-      utils::missing_cmd_args(FLERR, fmt::format("fix {} group", style), error);
+    if (narg < 5 + nbody) utils::missing_cmd_args(FLERR, fmt::format("fix {} group", style), error);
     iarg = 5 + nbody;
 
     int *igroups = new int[nbody];
@@ -280,7 +279,6 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   memory->create(imagebody, nbody, "rigid:imagebody");
   memory->create(fflag, nbody, 3, "rigid:fflag");
   memory->create(tflag, nbody, 3, "rigid:tflag");
-  memory->create(langextra, nbody, 6, "rigid:langextra");
 
   memory->create(sum, nbody, 6, "rigid:sum");
   memory->create(all, nbody, 6, "rigid:all");
@@ -578,9 +576,15 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   else pstyle = ANISO;
 
   // initialize Marsaglia RNG with processor-unique seed
+  // and allocate and initialize langextra array for langevin thermostat
 
-  if (langflag) random = new RanMars(lmp, seed + comm->me);
-  else random = nullptr;
+  if (langflag) {
+    random = new RanMars(lmp, seed + comm->me);
+    memory->create(langextra, nbody, 6, "rigid:langextra");
+    for (i = 0; i < nbody; i++) {
+      for (j = 0; j < 6; j++) langextra[i][j] = 0.0;
+    }
+  }
 
   // initialize vector output quantities in case accessed before run
 
@@ -705,14 +709,14 @@ void FixRigid::init()
   // if earlyflag, warn if any post-force fixes come after a rigid fix
 
   int count = 0;
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) count++;
   if (count > 1 && comm->me == 0)
     error->warning(FLERR,"More than one fix rigid");
 
   if (earlyflag) {
     bool rflag = false;
-    for (auto &ifix : modify->get_fix_list()) {
+    for (const auto &ifix : modify->get_fix_list()) {
       if (ifix->rigid_flag) rflag = true;
       if ((comm->me == 0) && rflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
         error->warning(FLERR, "Fix {} with ID {} alters forces after fix rigid",
@@ -735,7 +739,7 @@ void FixRigid::init()
   //  error if a fix changing the box comes before rigid fix
 
   bool boxflag = false;
-  for (auto &ifix : modify->get_fix_list()) {
+  for (const auto &ifix : modify->get_fix_list()) {
     if (boxflag && utils::strmatch(ifix->style,"^rigid"))
         error->all(FLERR,"Rigid fixes must come before any box changing fix");
     if (ifix->box_change) boxflag = true;
@@ -744,7 +748,7 @@ void FixRigid::init()
   // add gravity forces based on gravity vector from fix
 
   if (id_gravity) {
-    auto ifix = modify->get_fix_by_id(id_gravity);
+    auto *ifix = modify->get_fix_by_id(id_gravity);
     if (!ifix) error->all(FLERR,"Fix rigid cannot find fix gravity ID {}", id_gravity);
     if (!utils::strmatch(ifix->style,"^gravity"))
       error->all(FLERR,"Fix rigid gravity fix ID {} is not a gravity fix style", id_gravity);
@@ -804,90 +808,14 @@ void FixRigid::setup_pre_neighbor()
 
 void FixRigid::setup(int vflag)
 {
-  int i,n,ibody;
+  int i, ibody, n;
+  const int nlocal = atom->nlocal;
 
-  // fcm = force on center-of-mass of each rigid body
-
-  double **f = atom->f;
-  int nlocal = atom->nlocal;
-
-  for (ibody = 0; ibody < nbody; ibody++)
-    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
-
-  for (i = 0; i < nlocal; i++) {
-    if (body[i] < 0) continue;
-    ibody = body[i];
-    sum[ibody][0] += f[i][0];
-    sum[ibody][1] += f[i][1];
-    sum[ibody][2] += f[i][2];
-  }
-
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
-
-  for (ibody = 0; ibody < nbody; ibody++) {
-    fcm[ibody][0] = all[ibody][0];
-    fcm[ibody][1] = all[ibody][1];
-    fcm[ibody][2] = all[ibody][2];
-  }
-
-  // torque = torque on each rigid body
-
-  double **x = atom->x;
-
-  double dx,dy,dz;
-  double unwrap[3];
-
-  for (ibody = 0; ibody < nbody; ibody++)
-    for (i = 0; i < 6; i++) sum[ibody][i] = 0.0;
-
-  for (i = 0; i < nlocal; i++) {
-    if (body[i] < 0) continue;
-    ibody = body[i];
-
-    domain->unmap(x[i],xcmimage[i],unwrap);
-    dx = unwrap[0] - xcm[ibody][0];
-    dy = unwrap[1] - xcm[ibody][1];
-    dz = unwrap[2] - xcm[ibody][2];
-
-    sum[ibody][0] += dy * f[i][2] - dz * f[i][1];
-    sum[ibody][1] += dz * f[i][0] - dx * f[i][2];
-    sum[ibody][2] += dx * f[i][1] - dy * f[i][0];
-  }
-
-  // extended particles add their torque to torque of body
-
-  if (extended) {
-    double **torque_one = atom->torque;
-
-    for (i = 0; i < nlocal; i++) {
-      if (body[i] < 0) continue;
-      ibody = body[i];
-      if (eflags[i] & TORQUE) {
-        sum[ibody][0] += torque_one[i][0];
-        sum[ibody][1] += torque_one[i][1];
-        sum[ibody][2] += torque_one[i][2];
-      }
-    }
-  }
-
-  MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
-
-  for (ibody = 0; ibody < nbody; ibody++) {
-    torque[ibody][0] = all[ibody][0];
-    torque[ibody][1] = all[ibody][1];
-    torque[ibody][2] = all[ibody][2];
-  }
+  compute_forces_and_torques();
 
   // enforce 2d body forces and torques
 
   if (domain->dimension == 2) enforce2d();
-
-  // zero langextra in case Langevin thermostat not used
-  // no point to calling post_force() here since langextra
-  // is only added to fcm/torque in final_integrate()
-
-  for (ibody = 0; ibody < nbody; ibody++)
-    for (i = 0; i < 6; i++) langextra[ibody][i] = 0.0;
 
   // virial setup before call to set_v
 
@@ -1200,12 +1128,25 @@ void FixRigid::compute_forces_and_torques()
   // include Langevin thermostat forces
 
   for (ibody = 0; ibody < nbody; ibody++) {
-    fcm[ibody][0] = all[ibody][0] + fflag[ibody][0]*langextra[ibody][0];
-    fcm[ibody][1] = all[ibody][1] + fflag[ibody][1]*langextra[ibody][1];
-    fcm[ibody][2] = all[ibody][2] + fflag[ibody][2]*langextra[ibody][2];
-    torque[ibody][0] = all[ibody][3] + tflag[ibody][0]*langextra[ibody][3];
-    torque[ibody][1] = all[ibody][4] + tflag[ibody][1]*langextra[ibody][4];
-    torque[ibody][2] = all[ibody][5] + tflag[ibody][2]*langextra[ibody][5];
+    fcm[ibody][0] = all[ibody][0];
+    fcm[ibody][1] = all[ibody][1];
+    fcm[ibody][2] = all[ibody][2];
+    torque[ibody][0] = all[ibody][3];
+    torque[ibody][1] = all[ibody][4];
+    torque[ibody][2] = all[ibody][5];
+  }
+
+  // add langevin friction to force and torque of each body
+
+  if (langflag) {
+    for (int ibody = 0; ibody < nbody; ibody++) {
+      fcm[ibody][0] += fflag[ibody][0]*langextra[ibody][0];
+      fcm[ibody][1] += fflag[ibody][1]*langextra[ibody][1];
+      fcm[ibody][2] += fflag[ibody][2]*langextra[ibody][2];
+      torque[ibody][0] += tflag[ibody][0]*langextra[ibody][3];
+      torque[ibody][1] += tflag[ibody][1]*langextra[ibody][4];
+      torque[ibody][2] += tflag[ibody][2]*langextra[ibody][5];
+    }
   }
 
   // add gravity force to COM of each body
@@ -1516,6 +1457,11 @@ void FixRigid::set_xv()
         MathExtra::omega_to_angmom(omega[ibody],exone,eyone,ezone,
                                    inertiaatom,angmom_one[i]);
       }
+      if (atom->quat_flag) {
+        quatatom = atom->quat[i];
+        MathExtra::quatquat(quat[ibody],orient[i],quatatom);
+        MathExtra::qnormalize(quatatom);
+      }
       if (eflags[i] & DIPOLE) {
         MathExtra::quat_to_mat(quat[ibody],p);
         MathExtra::matvec(p,dorient[i],mu[i]);
@@ -1713,7 +1659,7 @@ void FixRigid::setup_bodies_static()
   }
 
   // grow extended arrays and set extended flags for each particle
-  // orientflag = 4 if any particle stores ellipsoid or tri orientation
+  // orientflag = 4 if any particle stores ellipsoid or tri orientation or quat
   // orientflag = 1 if any particle stores line orientation
   // dorientflag = 1 if any particle stores dipole orientation
 
@@ -1721,6 +1667,7 @@ void FixRigid::setup_bodies_static()
     if (atom->ellipsoid_flag) orientflag = 4;
     if (atom->line_flag) orientflag = 1;
     if (atom->tri_flag) orientflag = 4;
+    if (atom->quat_flag) orientflag = 4;
     if (atom->mu_flag) dorientflag = 1;
     grow_arrays(atom->nmax);
 
@@ -2061,7 +2008,12 @@ void FixRigid::setup_bodies_static()
                                 ez_space[ibody],delta,displace[i]);
 
     if (extended) {
-      if (eflags[i] & ELLIPSOID) {
+      if (atom->quat_flag) {
+        quatatom = atom->quat[i];
+        MathExtra::qconjugate(quat[ibody],qc);
+        MathExtra::quatquat(qc,quatatom,orient[i]);
+        MathExtra::qnormalize(orient[i]);
+      } else if (eflags[i] & ELLIPSOID) {
         quatatom = ebonus[ellipsoid[i]].quat;
         MathExtra::qconjugate(quat[ibody],qc);
         MathExtra::quatquat(qc,quatatom,orient[i]);
@@ -2341,7 +2293,7 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
   if (nlines == 0) return;
   else if (nlines < 0) error->all(FLERR,"Fix rigid infile has incorrect format");
 
-  auto buffer = new char[CHUNK*MAXLINE];
+  auto *buffer = new char[CHUNK*MAXLINE];
   int nread = 0;
   int me = comm->me;
   while (nread < nlines) {

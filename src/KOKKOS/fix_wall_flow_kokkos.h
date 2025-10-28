@@ -67,34 +67,34 @@ class FixWallFlowKokkos : public FixWallFlow, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixWallFlowUnpackExchange, const int&) const;
 
-  int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
+  int pack_exchange_kokkos(const int &nsend,DAT::tdual_double_2d_lr &buf,
                            DAT::tdual_int_1d k_sendlist,
                            DAT::tdual_int_1d k_copylist,
                            ExecutionSpace space) override;
 
-  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+  void unpack_exchange_kokkos(DAT::tdual_double_2d_lr &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
                               int /*nrecv1*/, int /*nextrarecv1*/,
                               ExecutionSpace space) override;
  protected:
-  typename AT::t_x_array d_x;
-  typename AT::t_v_array d_v;
+  typename AT::t_kkfloat_1d_3_lr d_x;
+  typename AT::t_kkfloat_1d_3 d_v;
   typename AT::t_int_1d d_type;
   typename AT::t_int_1d d_mask;
 
-  typename AT::t_float_1d d_mass;
-  typename AT::t_float_1d d_rmass;
+  typename AT::t_kkfloat_1d d_mass;
+  typename AT::t_kkfloat_1d d_rmass;
 
-  typedef typename AT::t_xfloat_1d d_walls_t;
+  typedef typename AT::t_kkfloat_1d d_walls_t;
   typedef Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool_t;
   typedef typename rand_pool_t::generator_type rand_type_t;
 
-  typename AT::tdual_int_1d k_current_segment;
+  DAT::tdual_int_1d k_current_segment;
   typename AT::t_int_1d d_current_segment;
   typename HAT::t_int_1d h_current_segment;
 
   typename AT::t_int_1d d_sendlist;
-  typename AT::t_xfloat_1d d_buf;
+  typename AT::t_double_1d d_buf;
   typename AT::t_int_1d d_copylist;
   typename AT::t_int_1d d_indices;
 
@@ -107,16 +107,16 @@ class FixWallFlowKokkos : public FixWallFlow, public KokkosBase {
   void generate_velocity_kk(int atom_i) const;
 
   KOKKOS_INLINE_FUNCTION
-  int compute_current_segment_kk(double pos) const;
+  int compute_current_segment_kk(KK_FLOAT pos) const;
 
   KOKKOS_INLINE_FUNCTION
-  double get_mass(MassTag, int atom_i) const
+  KK_FLOAT get_mass(MassTag, int atom_i) const
   {
     return d_mass(d_type(atom_i));
   }
 
   KOKKOS_INLINE_FUNCTION
-  double get_mass(RMassTag, int atom_i) const
+  KK_FLOAT get_mass(RMassTag, int atom_i) const
   {
     return d_rmass(atom_i);
   }

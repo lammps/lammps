@@ -2,11 +2,6 @@
 
 #include "comm.h"
 #include "info.h"
-#include "lammps.h"
-#include <cstdio>  // for stdin, stdout
-#include <cstdlib> // for setenv
-#include <mpi.h>
-#include <string>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -131,8 +126,6 @@ TEST_F(LAMMPS_plain, TestStyles)
     EXPECT_STREQ(found, "PERI");
     found = lmp->match_style("atom", "spin");
     EXPECT_STREQ(found, "SPIN");
-    found = lmp->match_style("atom", "wavepacket");
-    EXPECT_STREQ(found, "AWPMD");
     found = lmp->match_style("atom", "dpd");
     EXPECT_STREQ(found, "DPD-REACT");
     found = lmp->match_style("atom", "edpd");
@@ -175,7 +168,7 @@ protected:
 
         // only run this test fixture with omp suffix if OPENMP package is installed
 
-        if (LAMMPS::is_installed_pkg("OPENMP"))
+        if (Info::has_package("OPENMP"))
             lmp = new LAMMPS(args, MPI_COMM_WORLD);
         else
             GTEST_SKIP();
@@ -264,7 +257,7 @@ protected:
 
         if (Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[10] = "2";
 
-        if (LAMMPS::is_installed_pkg("KOKKOS")) {
+        if (Info::has_package("KOKKOS")) {
             ::testing::internal::CaptureStdout();
             lmp = new LAMMPS(args, MPI_COMM_WORLD);
             ::testing::internal::GetCapturedStdout();
@@ -329,7 +322,7 @@ TEST_F(LAMMPS_kokkos, InitMembers)
 
 TEST(LAMMPS_init, OpenMP)
 {
-    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
+    if (!Info::has_package("OPENMP")) GTEST_SKIP();
     if (platform::openmp_standard() == "OpenMP not enabled") GTEST_SKIP();
 
     FILE *fp = fopen("in.lammps_empty", "w");

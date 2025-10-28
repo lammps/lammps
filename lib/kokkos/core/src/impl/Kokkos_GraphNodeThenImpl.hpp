@@ -26,31 +26,30 @@ namespace Kokkos::Impl {
 // takes no argument.
 template <typename Functor>
 struct ThenWrapper {
-  Functor functor;
+  Functor m_functor;
   template <typename T>
   KOKKOS_FUNCTION void operator()(const T) const {
-    functor();
+    m_functor();
   }
 };
 
 template <typename ExecutionSpace, typename Functor>
 struct GraphNodeThenImpl
     : public GraphNodeKernelImpl<
-          ExecutionSpace, Kokkos::RangePolicy<ExecutionSpace, IsGraphKernelTag>,
+          ExecutionSpace,
+          Kokkos::RangePolicy<ExecutionSpace, IsGraphKernelTag,
+                              Kokkos::LaunchBounds<1>>,
           ThenWrapper<Functor>, ParallelForTag> {
-  using base_t =
-      GraphNodeKernelImpl<ExecutionSpace,
-                          Kokkos::RangePolicy<ExecutionSpace, IsGraphKernelTag>,
-                          ThenWrapper<Functor>, ParallelForTag>;
+  using policy_t  = Kokkos::RangePolicy<ExecutionSpace, IsGraphKernelTag,
+                                       Kokkos::LaunchBounds<1>>;
+  using base_t    = GraphNodeKernelImpl<ExecutionSpace, policy_t,
+                                     ThenWrapper<Functor>, ParallelForTag>;
   using wrapper_t = ThenWrapper<Functor>;
 
   template <typename Label, typename T>
   GraphNodeThenImpl(Label&& label_, const ExecutionSpace& exec, T&& functor)
-      : base_t(
-            std::forward<Label>(label_), exec,
-            wrapper_t{std::forward<T>(functor)},
-            Kokkos::RangePolicy<ExecutionSpace, IsGraphKernelTag>(exec, 0, 1)) {
-  }
+      : base_t(std::forward<Label>(label_), exec,
+               wrapper_t{std::forward<T>(functor)}, policy_t(exec, 0, 1)) {}
 };
 
 }  // namespace Kokkos::Impl

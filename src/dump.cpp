@@ -869,7 +869,7 @@ int Dump::idcompare(const int i, const int j, void *ptr)
 
 int Dump::bufcompare(const int i, const int j, void *ptr)
 {
-  auto dptr = (Dump *) ptr;
+  auto *dptr = (Dump *) ptr;
   double *bufsort     = dptr->bufsort;
   const int size_one  = dptr->size_one;
   const int sortcolm1 = dptr->sortcolm1;
@@ -890,7 +890,7 @@ int Dump::bufcompare(const int i, const int j, void *ptr)
 
 int Dump::bufcompare_reverse(const int i, const int j, void *ptr)
 {
-  auto dptr = (Dump *) ptr;
+  auto *dptr = (Dump *) ptr;
   double *bufsort     = dptr->bufsort;
   const int size_one  = dptr->size_one;
   const int sortcolm1 = dptr->sortcolm1;
@@ -966,7 +966,7 @@ void Dump::balance()
   // post recvs first
 
   int nswap = 0;
-  auto request = new MPI_Request[nprocs];
+  auto *request = new MPI_Request[nprocs];
 
   // find which proc starting atom belongs to
 

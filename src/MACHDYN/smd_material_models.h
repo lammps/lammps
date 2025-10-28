@@ -69,4 +69,4 @@ double JohnsonCookFailureStrain(const double p, const Eigen::Matrix3d &Sdev, con
                                 const double d2, const double d3, const double d4,
                                 const double epdot0, const double epdot);
 
-#endif /* SMD_MATERIAL_MODELS_H_ */
+#endif /* SMD_MATERIAL_MODELS_H */

@@ -1,0 +1,75 @@
+##################################################
+# parameters of the adaptive-precision potential #
+##################################################
+# We couple an EAM potential with an ACE potential.
+variable	eamfs_file string "Cu_300K_Immel_2023.eam.fs"
+variable	ace_file1 string "Cu-1.yace"
+variable	ace_file2 string "../../../potentials/Cu-PBE-core-rep.ace"
+# The csp is used as detection mechanism for atoms of interest.
+variable	csp_lattice string "fcc"
+variable	csp_cutoff equal 6.0
+# The range [r_sw_lo, r_sw_hi] determines where the switching parameter changes from 0 to 1.
+variable	r_sw_lo equal 4.0
+variable	r_sw_hi equal 12.0
+# Thresholds between which the switching parameter changes from 1 to 0 based on the csp.
+variable	lambda_input_thr_lo equal 7.5
+variable	lambda_input_thr_hi equal 8.0
+# Number of averaged steps.
+variable	lambda_input_histlen equal 110
+variable	lambda_histlen equal 110
+# Minimum required change of the switching parameter
+variable	min_delta_lambda equal 1/${lambda_histlen}
+# number of atoms rescaled by the lambda_thermostat
+variable	N_rescaling equal 600
+
+
+
+# basic stuff
+units		metal
+dimension	3
+boundary	p p s
+atom_style	apip # own atom style required for APIP
+timestep	0.001
+
+read_data	data.surface.balance
+
+fix		nve all nve
+comm_style	tiled
+
+
+# Only the upper surface should be treated precisely.
+# Thus, we create group, for whose atoms the csp is ignored, as the corresponding
+# argument of fix lambda is used.
+region		bottom block INF INF INF INF INF 0 units box
+group		group_ignore_csp region bottom
+
+
+# use adaptive-precision eam-ace potential with lambda_thermostat
+pair_style	hybrid/overlay eam/fs/apip pace/apip lambda/input/csp/apip ${csp_lattice} cutoff ${csp_cutoff} lambda/zone/apip ${r_sw_hi}
+pair_coeff	* * eam/fs/apip ${eamfs_file} Cu
+pair_coeff	* * pace/apip ${ace_file2} Cu
+pair_coeff	* * lambda/input/csp/apip
+pair_coeff	* * lambda/zone/apip
+fix		lambda all lambda/apip ${lambda_input_thr_lo} ${lambda_input_thr_hi} time_averaged_zone ${r_sw_lo} ${r_sw_hi} ${lambda_input_histlen} ${lambda_histlen} min_delta_lambda ${min_delta_lambda} group_ignore_lambda_input group_ignore_csp
+fix		lambda_thermostat all lambda_thermostat/apip N_rescaling ${N_rescaling}
+fix		weight_atom all atom_weight/apip 10 eam ace lambda/input lambda/zone all
+
+# store weight in variable
+fix		property_atom all property/atom d_usedweight
+variable	myweight atom f_weight_atom
+#compute		lambda all property/atom apip_lambda
+#compute		lambda_input all property/atom apip_lambda_input
+#dump		1 all custom 10 dump/surface_ap_balance.dump.* id type x y z c_lambda c_lambda_input f_weight_atom proc d_usedweight
+
+
+## apply load balancing
+## no load-balancing
+#fix		balance all balance 10 0.9 report weight time 1.0 weight store usedweight
+## load balancing with times per atom per processor
+#fix		balance all balance 10 0.9 rcb weight time 1.0 weight store usedweight
+## load balancing with an approximated load per atom by fix apip_atom_weight
+fix		balance all balance 10 0.9 rcb weight var myweight weight store usedweight
+
+thermo_style	custom step f_balance spcpu f_weight_atom[*]
+thermo		10
+run		100

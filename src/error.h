@@ -81,12 +81,6 @@ class Error : protected Pointers {
     _warning(file, line, format, fmt::make_format_args(args...));
   }
 
-  void message(const std::string &, int, const std::string &);
-  template <typename... Args>
-  void message(const std::string &file, int line, const std::string &format, Args &&...args)
-  {
-    _message(file, line, format, fmt::make_format_args(args...));
-  }
   [[noreturn]] void done(int = 0);    // 1 would be fully backwards compatible
 
   int get_numwarn() const { return numwarn; }
@@ -97,7 +91,7 @@ class Error : protected Pointers {
 
   std::string get_last_error() const;
   ErrorType get_last_error_type() const;
-  void set_last_error(const char *msg, ErrorType type = ERROR_NORMAL);
+  void set_last_error(const std::string &msg, ErrorType type = ERROR_NORMAL);
   int set_show_error(const int flag);
 
  private:

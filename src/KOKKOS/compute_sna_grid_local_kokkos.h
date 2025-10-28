@@ -39,8 +39,8 @@ namespace LAMMPS_NS {
 struct TagCSNAGridLocalComputeNeigh{};
 struct TagCSNAGridLocalComputeCayleyKlein{};
 struct TagCSNAGridLocalPreUi{};
-struct TagCSNAGridLocalComputeUiSmall{}; // more parallelism, more divergence
-struct TagCSNAGridLocalComputeUiLarge{}; // less parallelism, no divergence
+template <bool chemsnap> struct TagCSNAGridLocalComputeUiSmall{}; // more parallelism, more divergence
+template <bool chemsnap> struct TagCSNAGridLocalComputeUiLarge{}; // less parallelism, no divergence
 struct TagCSNAGridLocalTransformUi{}; // re-order ulisttot from SoA to AoSoA, zero ylist
 template <bool chemsnap> struct TagCSNAGridLocalComputeZi{};
 template <bool chemsnap> struct TagCSNAGridLocalComputeBi{};
@@ -62,6 +62,12 @@ class ComputeSNAGridLocalKokkos : public ComputeSNAGridLocal {
   static constexpr int vector_length = vector_length_;
   using real_type = real_type_;
   using complex = SNAComplex<real_type>;
+
+  static constexpr bool legacy_on_gpu = false; // run the CPU path on the GPU
+  static_assert(legacy_on_gpu == false, "legacy_on_gpu must be false");
+
+  // extra padding factor, see pair_snap_kokkos.h for more context
+  static constexpr int padding_factor = 1;
 
   // Static team/tile sizes for device offload
 
@@ -161,11 +167,13 @@ class ComputeSNAGridLocalKokkos : public ComputeSNAGridLocal {
   KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalPreUi, const int& iatom) const;
 
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagCSNAGridLocalComputeUiSmall,const typename Kokkos::TeamPolicy<DeviceType, TagCSNAGridLocalComputeUiSmall>::member_type& team) const;
+  template <bool chemsnap> KOKKOS_INLINE_FUNCTION
+  void operator() (TagCSNAGridLocalComputeUiSmall<chemsnap>,
+    const typename Kokkos::TeamPolicy<DeviceType, TagCSNAGridLocalComputeUiSmall<chemsnap>>::member_type& team) const;
 
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagCSNAGridLocalComputeUiLarge,const typename Kokkos::TeamPolicy<DeviceType, TagCSNAGridLocalComputeUiLarge>::member_type& team) const;
+  template <bool chemsnap> KOKKOS_INLINE_FUNCTION
+  void operator() (TagCSNAGridLocalComputeUiLarge<chemsnap>,
+    const typename Kokkos::TeamPolicy<DeviceType, TagCSNAGridLocalComputeUiLarge<chemsnap>>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalTransformUi, const int& iatom_mod, const int& idxu, const int& iatom_div) const;
@@ -220,17 +228,17 @@ class ComputeSNAGridLocalKokkos : public ComputeSNAGridLocal {
   Kokkos::View<T_INT*, DeviceType> d_map;                    // mapping from atom types to elements
   Kokkos::View<real_type*, DeviceType> d_test;              // test view
 
-  typedef Kokkos::DualView<F_FLOAT**, DeviceType> tdual_fparams;
+  typedef Kokkos::DualView<double**, DeviceType> tdual_fparams;
   tdual_fparams k_cutsq;
-  typedef Kokkos::View<const F_FLOAT**, DeviceType,
+  typedef Kokkos::View<const double**, DeviceType,
       Kokkos::MemoryTraits<Kokkos::RandomAccess> > t_fparams_rnd;
   t_fparams_rnd rnd_cutsq;
 
-  typename AT::t_x_array_randomread x;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_int_1d_randomread type;
 
-  DAT::tdual_float_2d k_alocal;
-  typename AT::t_float_2d d_alocal;
+  DAT::tdual_double_2d_lr k_alocal;
+  typename AT::t_double_2d_lr d_alocal;
 
 
   // Utility routine which wraps computing per-team scratch size requirements for

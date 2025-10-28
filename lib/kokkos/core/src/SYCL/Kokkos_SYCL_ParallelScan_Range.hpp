@@ -220,7 +220,7 @@ class ParallelScanSYCLBase {
               scratch_flags_ref(*scratch_flags);
           num_teams_done[0] = ++scratch_flags_ref;
         }
-        item.barrier(sycl::access::fence_space::global_space);
+        sycl::group_barrier(item.get_group());
         if (num_teams_done[0] == n_wgroups) {
           if (local_id == 0) *scratch_flags = 0;
           value_type total;
@@ -244,7 +244,7 @@ class ParallelScanSYCLBase {
                 &total,
                 &local_mem[item.get_sub_group().get_group_range()[0] - 1]);
             if (offset + wgroup_size < n_wgroups)
-              item.barrier(sycl::access::fence_space::global_space);
+              sycl::group_barrier(item.get_group());
           }
         }
       };

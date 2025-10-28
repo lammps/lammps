@@ -7,13 +7,19 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpicxx
-CCFLAGS =	-g -O3 -DNDEBUG -w
+CCFLAGS =	-O3 -DNDEBUG -w
 CCFLAGS +=      -fsycl-device-code-split=per_kernel
+
+# The following include directory has patched file resolving issue in oneapi/2025.2.0
+# /opt/aurora/25.190.0/oneapi/compiler/2025.2/bin/compiler/../../include/sycl/detail/cg_types.hpp:178:3: error: exception specification of overriding function is more lax than base version
+#  178 |   ~HostKernel() = default;
+CCFLAGS +=      -I/home/knight/public/lammps/sycl_mod
+
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpicxx
-LINKFLAGS =	-g -O3
+LINKFLAGS =	-O3
 LINKFLAGS +=    -flink-huge-device-code -fsycl-max-parallel-link-jobs=64
 LIB = 
 SIZE =		size

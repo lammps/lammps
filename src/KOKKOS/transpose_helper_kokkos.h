@@ -39,7 +39,6 @@ struct TransposeHelperKokkos {
   using dst_layout = typename t_view_dst::traits::array_layout;
   using src_layout = typename t_view_src::traits::array_layout;
 
-  typedef ArrayTypes<DeviceType> AT;
 
   using t_view_value = typename t_view_dst::value_type;
 

@@ -209,7 +209,7 @@ class LeagueQueueCollection {
   void initialize_team_queues(int arg_count,
                               memory_pool const& arg_memory_pool) noexcept {
     arg_count = std::min((int)max_num_queues, arg_count);
-    // assert(arg_count <= max_num_queues);
+    // KOKKOS_ASSERT(arg_count <= max_num_queues);
     if (arg_count > m_size) {
       for (int i = m_size; i < arg_count; ++i) {
         new (&m_queues[i - 1].initialized)
@@ -231,9 +231,9 @@ class LeagueQueueCollection {
   team_queue_type& get_team_queue(int iteam) {
     iteam %= max_num_queues;
 #if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-    assert(initialized());
-    assert(iteam < m_size);
-    assert(iteam >= 0);
+    KOKKOS_ASSERT(initialized());
+    KOKKOS_ASSERT(iteam < m_size);
+    KOKKOS_ASSERT(iteam >= 0);
 #endif
     if (iteam == 0)
       return *m_rank_zero_queue;

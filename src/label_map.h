@@ -29,12 +29,13 @@ class LabelMap : protected Pointers {
 
  public:
   LabelMap(LAMMPS *lmp, int, int, int, int, int);
-  ~LabelMap();
+  ~LabelMap() override;
 
   void modify_lmap(int, char **);              // labelmap command in the input script
   void merge_lmap(LabelMap *, int);            // copy another lmap into this one
   void create_lmap2lmap(LabelMap *, int);      // index mapping between two lmaps
   int find(const std::string &, int) const;    // find numeric type of type label
+  const std::string &find(int, int) const;     // find type label for numeric type
   bool is_complete(int) const;                 // check if all types are assigned
 
   // segment/residue/name for read_psf and write_psf

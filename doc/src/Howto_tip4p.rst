@@ -1,5 +1,5 @@
-TIP4P water model
-=================
+TIP4P and OPC water models
+==========================
 
 The four-point TIP4P rigid water model extends the traditional
 :doc:`three-point TIP3P <Howto_tip3p>` model by adding an additional
@@ -9,9 +9,11 @@ the oxygen along the bisector of the HOH bond angle.  A bond style of
 :doc:`harmonic <bond_harmonic>` and an angle style of :doc:`harmonic
 <angle_harmonic>` or :doc:`charmm <angle_charmm>` should also be used.
 In case of rigid bonds also bond style :doc:`zero <bond_zero>` and angle
-style :doc:`zero <angle_zero>` can be used.
+style :doc:`zero <angle_zero>` can be used.  Very similar to the TIP4P
+model is the OPC water model.  It can be realized the same way as TIP4P
+but has different geometry and force field parameters.
 
-There are two ways to implement TIP4P water in LAMMPS:
+There are two ways to implement TIP4P-like water in LAMMPS:
 
 #. Use a specially written pair style that uses the :ref:`TIP3P geometry
    <tip3p_molecule>` without the point M. The point M location is then
@@ -21,7 +23,10 @@ There are two ways to implement TIP4P water in LAMMPS:
    computationally very efficient, but the charge distribution in space
    is only correct within the tip4p labeled styles.  So all other
    computations using charges will "see" the negative charge incorrectly
-   on the oxygen atom.
+   located on the oxygen atom unless they are specially written for using
+   the TIP4P geometry internally as well, e.g. :doc:`compute dipole/tip4p
+   <compute_dipole>`, :doc:`fix efield/tip4p <fix_efield>`, or
+   :doc:`kspace_style pppm/tip4p <kspace_style>`.
 
    This can be done with the following pair styles for Coulomb with a cutoff:
 
@@ -68,18 +73,21 @@ TIP4P/2005 model :ref:`(Abascal2) <Abascal2>` and a version of TIP4P
 parameters adjusted for use with a long-range Coulombic solver
 (e.g. Ewald or PPPM in LAMMPS).  Note that for implicit TIP4P models the
 OM distance is specified in the :doc:`pair_style <pair_style>` command,
-not as part of the pair coefficients.
+not as part of the pair coefficients. Also parameters for the OPC
+model (:ref:`Izadi <Izadi>`) are provided.
 
 .. list-table::
       :header-rows: 1
-      :widths: 36 19 13 15 17
+      :widths: 40 12 12 14 11 11
 
       * - Parameter
         - TIP4P (original)
         - TIP4P/Ice
         - TIP4P/2005
         - TIP4P (Ewald)
+        - OPC
       * - O mass (amu)
+        - 15.9994
         - 15.9994
         - 15.9994
         - 15.9994
@@ -89,27 +97,33 @@ not as part of the pair coefficients.
         - 1.008
         - 1.008
         - 1.008
+        - 1.008
       * - O or M charge (:math:`e`)
         - -1.040
         - -1.1794
         - -1.1128
         - -1.04844
+        - -1.3582
       * - H charge (:math:`e`)
         - 0.520
         - 0.5897
         - 0.5564
         - 0.52422
+        - 0.6791
       * - LJ :math:`\epsilon` of OO (kcal/mole)
         - 0.1550
         - 0.21084
         - 0.1852
         - 0.16275
+        - 0.21280
       * - LJ :math:`\sigma` of OO (:math:`\AA`)
         - 3.1536
         - 3.1668
         - 3.1589
         - 3.16435
+        - 3.1660
       * - LJ :math:`\epsilon` of HH, MM, OH, OM, HM (kcal/mole)
+        - 0.0
         - 0.0
         - 0.0
         - 0.0
@@ -119,26 +133,30 @@ not as part of the pair coefficients.
         - 1.0
         - 1.0
         - 1.0
+        - 1.0
       * - :math:`r_0` of OH bond (:math:`\AA`)
         - 0.9572
         - 0.9572
         - 0.9572
         - 0.9572
+        - 0.8724
       * - :math:`\theta_0` of HOH angle
         - 104.52\ :math:`^{\circ}`
         - 104.52\ :math:`^{\circ}`
         - 104.52\ :math:`^{\circ}`
         - 104.52\ :math:`^{\circ}`
+        - 103.60\ :math:`^{\circ}`
       * - OM distance (:math:`\AA`)
         - 0.15
         - 0.1577
         - 0.1546
         - 0.1250
+        - 0.1594
 
-Note that the when using the TIP4P pair style, the neighbor list cutoff
+Note that the when using a TIP4P pair style, the neighbor list cutoff
 for Coulomb interactions is effectively extended by a distance 2 \* (OM
 distance), to account for the offset distance of the fictitious charges
-on O atoms in water molecules.  Thus it is typically best in an
+on O atoms in water molecules.  Thus, it is typically best in an
 efficiency sense to use a LJ cutoff >= Coulomb cutoff + 2\*(OM
 distance), to shrink the size of the neighbor list.  This leads to
 slightly larger cost for the long-range calculation, so you can test the
@@ -149,7 +167,9 @@ cutoffs are set in the :doc:`pair_style lj/cut/tip4p/long
 Below is the code for a LAMMPS input file using the implicit method and
 the :ref:`TIP3P molecule file <tip3p_molecule>`.  Because the TIP4P
 charges are different from TIP3P they need to be reset (or the molecule
-file changed):
+file changed).  For simplicity and speed the example uses a cutoff
+Coulomb.  Most production simulations require long-range Coulomb
+instead.
 
 .. code-block:: LAMMPS
 
@@ -191,6 +211,94 @@ file changed):
     thermo 1000
     run 20000
     write_data tip4p-implicit.data nocoeff
+
+When constructing an OPC model, we cannot use the ``tip3p.mol`` file due
+to the different geometry.  Below is a molecule file providing the 3
+sites of an implicit OPC geometry for use with TIP4P styles.  Note, that
+the "Shake" and "Special" sections are missing here.  Those will be
+auto-generated by LAMMPS when the molecule file is loaded *after* the
+simulation box has been created.  These sections are required only when
+the molecule file is loaded *before*.
+
+.. _opc3p_molecule:
+.. code-block::
+
+   # Water molecule. 3 point geometry for OPC model
+
+   3 atoms
+   2 bonds
+   1 angles
+
+   Coords
+
+   1    0.00000  -0.06037   0.00000
+   2    0.68558   0.50250   0.00000
+   3   -0.68558   0.50250   0.00000
+
+   Types
+
+   1        1   # O
+   2        2   # H
+   3        2   # H
+
+   Charges
+
+   1       -1.3582
+   2        0.6791
+   3        0.6791
+
+   Bonds
+
+   1   1      1      2
+   2   1      1      3
+
+   Angles
+
+   1   1      2      1      3
+
+Below is a LAMMPS input file using the implicit method to implement
+the OPC model using the molecule file from above and including the
+PPPM long-range Coulomb solver.
+
+.. code-block:: LAMMPS
+
+    units real
+    atom_style full
+    region box block -5 5 -5 5 -5 5
+    create_box 2 box bond/types 1 angle/types 1 &
+                extra/bond/per/atom 2 extra/angle/per/atom 1 extra/special/per/atom 2
+
+    mass 1 15.9994
+    mass 2 1.008
+
+    pair_style lj/cut/tip4p/long 1 2 1 1 0.1594 12.0
+    pair_coeff 1 1 0.2128 3.166
+    pair_coeff 2 2 0.0    1.0
+
+    bond_style zero
+    bond_coeff 1 0.8724
+
+    angle_style zero
+    angle_coeff 1 103.6
+
+    kspace_style pppm/tip4p 1.0e-5
+
+    molecule water opc3p.mol  # this file has the OPC geometry but is without M
+    create_atoms 0 random 33 34564 NULL mol water 25367 overlap 1.33
+
+    fix rigid all shake 0.001 10 10000 b 1 a 1
+    minimize 0.0 0.0 1000 10000
+
+    reset_timestep 0
+    timestep 1.0
+    velocity all create 300.0 5463576
+    fix integrate all nvt temp 300 300 100.0
+
+    thermo_style custom step temp press etotal pe
+
+    thermo 1000
+    run 20000
+    write_data opc-implicit.data nocoeff
 
 Below is the code for a LAMMPS input file using the explicit method and
 a TIP4P molecule file.  Because of using :doc:`fix rigid/small
@@ -279,3 +387,8 @@ Phys, 79, 926 (1983).
 
 **(Abascal2)** Abascal, J Chem Phys, 123, 234505 (2005)
    https://doi.org/10.1063/1.2121687
+
+.. _Izadi:
+
+**(Izadi)** Izadi, Anandakrishnan, Onufriev, J. Phys. Chem. Lett., 5, 21, 3863 (2014)
+   https://doi.org/10.1021/jz501780a

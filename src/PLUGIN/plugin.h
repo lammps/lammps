@@ -34,10 +34,12 @@ class Plugin : public Command {
 void plugin_auto_load(LAMMPS *);
 int plugin_load(const char *, LAMMPS *);
 void plugin_register(lammpsplugin_t *, void *);
+void plugin_restore(LAMMPS *, bool);
 
 void plugin_unload(const char *, const char *, LAMMPS *);
 void plugin_erase(const char *, const char *);
 void plugin_clear(LAMMPS *);
+void plugin_finalize();
 
 int plugin_get_num_plugins();
 int plugin_find(const char *, const char *);

@@ -47,7 +47,6 @@ class PairBrownianKokkos : public PairBrownian, public KokkosBase {
   ~PairBrownianKokkos() override;
   void compute(int, int) override;
   void coeff(int, char **) override;
-  void settings(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;
 
@@ -61,43 +60,43 @@ class PairBrownianKokkos : public PairBrownian, public KokkosBase {
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally_xyz(EV_FLOAT &ev, int i, int j,
-                    F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-                    X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
+                    KK_FLOAT fx, KK_FLOAT fy, KK_FLOAT fz,
+                    KK_FLOAT delx, KK_FLOAT dely, KK_FLOAT delz) const;
 
  protected:
-  typename AT::t_x_array_randomread x;
-  typename AT::t_x_array c_x;
-  typename AT::t_f_array f;
-  typename AT::t_f_array torque;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkfloat_1d_3_lr c_x;
+  typename AT::t_kkacc_1d_3 f;
+  typename AT::t_kkfloat_1d_3 torque;
   typename AT::t_int_1d_randomread type;
-  typename AT::t_float_1d_randomread radius;
+  typename AT::t_kkfloat_1d_randomread radius;
 
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
   int newton_pair;
-  double special_lj[4];
+  KK_FLOAT special_lj[4];
 
-  typename AT::tdual_ffloat_2d k_cutsq;
-  typename AT::t_ffloat_2d d_cutsq;
-  typename AT::tdual_ffloat_2d k_cut_inner;
-  typename AT::t_ffloat_2d d_cut_inner;
+  DAT::ttransform_kkfloat_2d k_cutsq;
+  typename AT::t_kkfloat_2d d_cutsq;
+  DAT::ttransform_kkfloat_2d k_cut_inner;
+  typename AT::t_kkfloat_2d d_cut_inner;
 
   int neighflag;
   int nlocal,nall,eflag,vflag;
-  LMP_FLOAT vxmu2f;
+  KK_FLOAT vxmu2f;
 
-  LMP_FLOAT prethermostat;
+  KK_FLOAT prethermostat;
 
   void allocate() override;
 
   KOKKOS_INLINE_FUNCTION
-  void set_3_orthogonal_vectors(const double p1[3], double * const p2, double * const p3) const {
-    double norm;
+  void set_3_orthogonal_vectors(const KK_FLOAT p1[3], KK_FLOAT * const p2, KK_FLOAT * const p3) const {
+    KK_FLOAT norm;
     int ix, iy, iz;
 
     // find the index of maximum magnitude and store it in iz

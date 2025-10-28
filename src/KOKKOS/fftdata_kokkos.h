@@ -222,7 +222,7 @@ typedef tdual_FFT_DATA_1d::t_dev t_FFT_DATA_1d;
 typedef tdual_FFT_DATA_1d::t_dev_um t_FFT_DATA_1d_um;
 
 typedef Kokkos::
-  DualView<int*, LMPDeviceType::array_layout, LMPDeviceType> tdual_int_64;
+  DualView<int*, LMPDeviceLayout, LMPDeviceType> tdual_int_64;
 typedef tdual_int_64::t_dev t_int_64;
 typedef tdual_int_64::t_dev_um t_int_64_um;
 
@@ -254,7 +254,7 @@ typedef tdual_FFT_DATA_1d::t_host t_FFT_DATA_1d;
 typedef tdual_FFT_DATA_1d::t_host_um t_FFT_DATA_1d_um;
 
 typedef Kokkos::
-  DualView<int*, LMPDeviceType::array_layout, LMPDeviceType> tdual_int_64;
+  DualView<int*, LMPDeviceLayout, LMPDeviceType> tdual_int_64;
 typedef tdual_int_64::t_host t_int_64;
 typedef tdual_int_64::t_host_um t_int_64_um;
 

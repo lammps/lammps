@@ -606,8 +606,19 @@ union SharedAllocationTracker {
   KOKKOS_FORCEINLINE_FUNCTION
   ~SharedAllocationTracker(){KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT}
 
-  KOKKOS_FORCEINLINE_FUNCTION constexpr SharedAllocationTracker()
-      : m_record_bits(DO_NOT_DEREF_FLAG) {}
+  KOKKOS_FORCEINLINE_FUNCTION
+#if defined(KOKKOS_COMPILER_NVCC) || !defined(KOKKOS_COMPILER_GNU) || \
+    (KOKKOS_COMPILER_GNU < 1220) || (KOKKOS_COMPILER_GNU > 1240)
+      // FIXME_GCC: The ViewSupport test fails with gcc 12.2, 12.3 and 12.4
+      // because this constructor is optimized out, which leads to a nullptr
+      // dereference. Removing the constexpr fixes the issue but nvcc complains,
+      // so we keep the constexpr but only when using anything other than those
+      // three faulty gcc versions.
+      constexpr
+#endif
+      SharedAllocationTracker()
+      : m_record_bits(DO_NOT_DEREF_FLAG) {
+  }
 
   // Move:
 

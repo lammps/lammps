@@ -15,16 +15,14 @@
 #include "test_config.h"
 #include "utils.h"
 #include "yaml.h"
-#include "yaml_reader.h"
 
 #include <cstdlib>
-#include <cstring>
 
-#include <iostream>
+#include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <utility>
-#include <vector>
 
 using LAMMPS_NS::utils::split_words;
 using LAMMPS_NS::utils::trim;

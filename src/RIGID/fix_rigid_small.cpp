@@ -23,7 +23,6 @@
 #include "error.h"
 #include "force.h"
 #include "group.h"
-#include "hashlittle.h"
 #include "input.h"
 #include "math_const.h"
 #include "math_eigen.h"
@@ -33,6 +32,7 @@
 #include "molecule.h"
 #include "neighbor.h"
 #include "random_mars.h"
+#include "random_park.h"
 #include "respa.h"
 #include "rigid_const.h"
 #include "tokenizer.h"
@@ -41,7 +41,7 @@
 
 #include <cmath>
 #include <cstring>
-#include <map>
+#include <unordered_map>
 #include <utility>
 
 using namespace LAMMPS_NS;
@@ -62,6 +62,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   id_dilate(nullptr), id_gravity(nullptr), onemols(nullptr)
 {
   int i;
+
+  if (comm->me == 0) utils::logmesg(lmp,"Fix {} setup ...\n", style);
 
   scalar_flag = 1;
   extscalar = 0;
@@ -134,7 +136,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR,"Variable {} for fix {} custom does not exist", arg[4]+2, style);
         if (input->variable->atomstyle(ivariable) == 0)
           error->all(FLERR,"Fix {} custom variable {} is not atom-style variable", style, arg[4]+2);
-        auto value = new double[nlocal];
+        auto *value = new double[nlocal];
         input->variable->compute_atom(ivariable,0,value,1,0);
         int minval = INT_MAX;
         for (i = 0; i < nlocal; i++)
@@ -455,8 +457,6 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // initialize Marsaglia RNG with processor-unique seed
 
   maxlang = 0;
-  langextra = nullptr;
-  random = nullptr;
   if (langflag) random = new RanMars(lmp,seed + comm->me);
 
   // mass vector for granular pair styles
@@ -523,14 +523,14 @@ void FixRigidSmall::init()
   // if earlyflag, warn if any post-force fixes come after a rigid fix
 
   int count = 0;
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) count++;
   if (count > 1 && comm->me == 0)
     error->warning(FLERR, "More than one fix rigid command");
 
   if (earlyflag) {
     bool rflag = false;
-    for (auto &ifix : modify->get_fix_list()) {
+    for (const auto &ifix : modify->get_fix_list()) {
       if (ifix->rigid_flag) rflag = true;
       if ((comm->me == 0) && rflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
         error->warning(FLERR,"Fix {} with ID {} alters forces after fix {}",
@@ -553,7 +553,7 @@ void FixRigidSmall::init()
   // error if a fix changing the box comes before rigid fix
 
   bool boxflag = false;
-  for (auto &ifix : modify->get_fix_list()) {
+  for (const auto &ifix : modify->get_fix_list()) {
     if (boxflag && utils::strmatch(ifix->style,"^rigid"))
         error->all(FLERR,"Rigid fixes must come before any box changing fix");
     if (ifix->box_change) boxflag = true;
@@ -562,7 +562,7 @@ void FixRigidSmall::init()
   // add gravity forces based on gravity vector from fix
 
   if (id_gravity) {
-    auto ifix = modify->get_fix_by_id(id_gravity);
+    auto *ifix = modify->get_fix_by_id(id_gravity);
     if (!ifix) error->all(FLERR,"Fix {} cannot find fix gravity ID {}", style, id_gravity);
     if (!utils::strmatch(ifix->style,"^gravity"))
       error->all(FLERR,"Fix {} gravity fix ID {} is not a gravity fix style", style, id_gravity);
@@ -615,6 +615,7 @@ void FixRigidSmall::setup_pre_neighbor()
 void FixRigidSmall::setup(int vflag)
 {
   int i,n,ibody;
+  const int nlocal = atom->nlocal;
 
   // error if maxextent > comm->cutghost
   // NOTE: could just warn if an override flag set
@@ -626,73 +627,11 @@ void FixRigidSmall::setup(int vflag)
   if (maxextent > cutghost)
     error->all(FLERR,"Rigid body extent {} > ghost atom cutoff - use comm_modify cutoff", maxextent);
 
-  //check(1);
-
-  // sum fcm, torque across all rigid bodies
-  // fcm = force on COM
-  // torque = torque around COM
-
-  double **x = atom->x;
-  double **f = atom->f;
-  int nlocal = atom->nlocal;
-
-  double *xcm,*fcm,*tcm;
-  double dx,dy,dz;
-  double unwrap[3];
-
-  for (ibody = 0; ibody < nlocal_body+nghost_body; ibody++) {
-    fcm = body[ibody].fcm;
-    fcm[0] = fcm[1] = fcm[2] = 0.0;
-    tcm = body[ibody].torque;
-    tcm[0] = tcm[1] = tcm[2] = 0.0;
-  }
-
-  for (i = 0; i < nlocal; i++) {
-    if (atom2body[i] < 0) continue;
-    Body *b = &body[atom2body[i]];
-
-    fcm = b->fcm;
-    fcm[0] += f[i][0];
-    fcm[1] += f[i][1];
-    fcm[2] += f[i][2];
-
-    domain->unmap(x[i],xcmimage[i],unwrap);
-    xcm = b->xcm;
-    dx = unwrap[0] - xcm[0];
-    dy = unwrap[1] - xcm[1];
-    dz = unwrap[2] - xcm[2];
-
-    tcm = b->torque;
-    tcm[0] += dy * f[i][2] - dz * f[i][1];
-    tcm[1] += dz * f[i][0] - dx * f[i][2];
-    tcm[2] += dx * f[i][1] - dy * f[i][0];
-  }
-
-  // extended particles add their rotation/torque to angmom/torque of body
-
-  if (extended) {
-    double **torque = atom->torque;
-
-    for (i = 0; i < nlocal; i++) {
-      if (atom2body[i] < 0) continue;
-      Body *b = &body[atom2body[i]];
-      if (eflags[i] & TORQUE) {
-        tcm = b->torque;
-        tcm[0] += torque[i][0];
-        tcm[1] += torque[i][1];
-        tcm[2] += torque[i][2];
-      }
-    }
-  }
+  compute_forces_and_torques();
 
   // enforce 2d body forces and torques
 
   if (domain->dimension == 2) enforce2d();
-
-  // reverse communicate fcm, torque of all bodies
-
-  commflag = FORCE_TORQUE;
-  comm->reverse_comm(this,6);
 
   // virial setup before call to set_v
 
@@ -729,8 +668,6 @@ void FixRigidSmall::setup(int vflag)
 void FixRigidSmall::initial_integrate(int vflag)
 {
   double dtfm;
-
-  //check(2);
 
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
     Body *b = &body[ibody];
@@ -813,7 +750,6 @@ void FixRigidSmall::pre_neighbor()
   commflag = FULL_BODY;
   comm->forward_comm(this);
   reset_atom2body();
-  //check(4);
 
   image_shift();
 }
@@ -831,8 +767,6 @@ void FixRigidSmall::post_force(int /*vflag*/)
 void FixRigidSmall::final_integrate()
 {
   double dtfm;
-
-  //check(3);
 
   // compute forces and torques (after all post_force contributions)
   // if 2d model, enforce2d() on body forces/torques
@@ -997,8 +931,6 @@ void FixRigidSmall::apply_langevin_thermostat()
 void FixRigidSmall::compute_forces_and_torques()
 {
   int i,ibody;
-
-  //check(3);
 
   // sum over atoms to get force and torque on rigid body
 
@@ -1409,6 +1341,11 @@ void FixRigidSmall::set_xv()
         MathExtra::omega_to_angmom(b->omega,exone,eyone,ezone,
                                    inertiaatom,angmom[i]);
       }
+      if (atom->quat_flag) {
+        quatatom = atom->quat[i];
+        MathExtra::quatquat(b->quat,orient[i],quatatom);
+        MathExtra::qnormalize(quatatom);
+      }
       if (eflags[i] & DIPOLE) {
         MathExtra::quat_to_mat(b->quat,p);
         MathExtra::matvec(p,dorient[i],mu[i]);
@@ -1577,7 +1514,7 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
 
   int *proclist;
   memory->create(proclist,ncount,"rigid/small:proclist");
-  auto inbuf = (InRvous *) memory->smalloc(ncount*sizeof(InRvous),"rigid/small:inbuf");
+  auto *inbuf = (InRvous *) memory->smalloc(ncount*sizeof(InRvous),"rigid/small:inbuf");
 
   // setup buf to pass to rendezvous comm
   // one BodyMsg datum for each constituent atom
@@ -1593,7 +1530,7 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
   m = 0;
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    proclist[m] = hashlittle(&bodyID[i],sizeof(tagint),0) % nprocs;
+    proclist[m] = std::hash<tagint>{}(bodyID[i]) % nprocs;
     inbuf[m].me = me;
     inbuf[m].ilocal = i;
     inbuf[m].atomID = tag[i];
@@ -1612,7 +1549,7 @@ void FixRigidSmall::create_bodies(tagint *bodyID)
                                  0,proclist,
                                  rendezvous_body,0,buf,sizeof(OutRvous),
                                  (void *) this);
-  auto outbuf = (OutRvous *) buf;
+  auto *outbuf = (OutRvous *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -1654,20 +1591,20 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   double *x,*xown,*rsqclose;
   double **bbox,**ctr;
 
-  auto frsptr = (FixRigidSmall *) ptr;
+  auto *frsptr = (FixRigidSmall *) ptr;
   Memory *memory = frsptr->memory;
   Error *error = frsptr->error;
   MPI_Comm world = frsptr->world;
 
   // setup hash
-  // use STL map instead of atom->map
+  // use STL unordered_map instead of atom->map
   //   b/c know nothing about body ID values specified by user
   // ncount = number of bodies assigned to me
   // key = body ID
   // value = index into Ncount-length data structure
 
-  auto in = (InRvous *) inbuf;
-  std::map<tagint,int> hash;
+  auto *in = (InRvous *) inbuf;
+  std::unordered_map<tagint,int> hash;
   tagint id;
 
   int ncount = 0;
@@ -1761,7 +1698,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
 
   int nout = n;
   memory->create(proclist,nout,"rigid/small:proclist");
-  auto out = (OutRvous *) memory->smalloc(nout*sizeof(OutRvous),"rigid/small:out");
+  auto *out = (OutRvous *) memory->smalloc(nout*sizeof(OutRvous),"rigid/small:out");
 
   for (i = 0; i < nout; i++) {
     proclist[i] = in[i].me;
@@ -1849,7 +1786,7 @@ void FixRigidSmall::setup_bodies_static()
   }
 
   // grow extended arrays and set extended flags for each particle
-  // orientflag = 4 if any particle stores ellipsoid or tri orientation
+  // orientflag = 4 if any particle stores ellipsoid or tri orientation or quat
   // orientflag = 1 if any particle stores line orientation
   // dorientflag = 1 if any particle stores dipole orientation
 
@@ -1857,6 +1794,7 @@ void FixRigidSmall::setup_bodies_static()
     if (atom->ellipsoid_flag) orientflag = 4;
     if (atom->line_flag) orientflag = 1;
     if (atom->tri_flag) orientflag = 4;
+    if (atom->quat_flag) orientflag = 4;
     if (atom->mu_flag) dorientflag = 1;
     grow_arrays(atom->nmax);
 
@@ -2174,7 +2112,7 @@ void FixRigidSmall::setup_bodies_static()
     xgc = body[ibody].xgc;
     double delta[3];
     MathExtra::sub3(xgc,xcm,delta);
-    domain->minimum_image_big(delta);
+    domain->minimum_image_big(FLERR, delta);
     MathExtra::transpose_matvec(ex,ey,ez,delta,body[ibody].xgc_body);
     MathExtra::add3(xcm,delta,xgc);
   }
@@ -2209,7 +2147,12 @@ void FixRigidSmall::setup_bodies_static()
                                 delta,displace[i]);
 
     if (extended) {
-      if (eflags[i] & ELLIPSOID) {
+      if (atom->quat_flag) {
+        quatatom = atom->quat[i];
+        MathExtra::qconjugate(b->quat,qc);
+        MathExtra::quatquat(qc,quatatom,orient[i]);
+        MathExtra::qnormalize(orient[i]);
+      } else if (eflags[i] & ELLIPSOID) {
         quatatom = ebonus[ellipsoid[i]].quat;
         MathExtra::qconjugate(b->quat,qc);
         MathExtra::quatquat(qc,quatatom,orient[i]);
@@ -2492,7 +2435,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
 
   int nlocal = atom->nlocal;
 
-  std::map<tagint,int> hash;
+  std::unordered_map<tagint,int> hash;
   for (int i = 0; i < nlocal; i++)
     if (bodyown[i] >= 0) hash[atom->molecule[i]] = bodyown[i];
 
@@ -2521,7 +2464,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
   if (nlines == 0) return;
   else if (nlines < 0) error->all(FLERR,"Fix {} infile has incorrect format", style);
 
-  auto buffer = new char[CHUNK*MAXLINE];
+  auto *buffer = new char[CHUNK*MAXLINE];
   int nread = 0;
   int me = comm->me;
 
@@ -2719,6 +2662,77 @@ void FixRigidSmall::write_restart_file(const char *file)
 
   memory->destroy(buf);
   if (comm->me == 0) fclose(fp);
+}
+
+
+/* ----------------------------------------------------------------------
+   randomize rigid body VCMs with respect to a given temperature KT
+     and adjust velocities of individual particles accordingly
+   mom_flag enforces zeroing of linear momentum for overall system
+   called by fix hmc command
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::resample_momenta(int groupbit, int mom_flag, class RanPark *random, double KT)
+{
+  int nlocal = nlocal_body;
+  int ntotal = nghost_body;
+  int *mask = atom->mask;
+
+  double stdev, bmass, wbody[3], mbody[3];
+  double total_mass = 0;
+  Body *b;
+  double vcm[] = {0.0, 0.0, 0.0};
+
+  for (int ibody = 0; ibody < nlocal; ibody++) {
+    b = &body[ibody];
+    if (mask[b->ilocal] & groupbit) {
+      bmass = b->mass;
+      stdev = sqrt(KT / bmass);
+      total_mass += bmass;
+      for (int j = 0; j < 3; j++) {
+        b->vcm[j] = stdev * random->gaussian();
+        vcm[j] += b->vcm[j] * bmass;
+        if (b->inertia[j] > 0.0)
+          wbody[j] = sqrt(KT / b->inertia[j]) * random->gaussian();
+        else
+          wbody[j] = 0.0;
+      }
+    }
+    MathExtra::matvec(b->ex_space, b->ey_space, b->ez_space, wbody, b->omega);
+  }
+
+  if (mom_flag && (total_mass > 0.0)) {
+    for (int j = 0; j < 3; j++) vcm[j] /= total_mass;
+    for (int ibody = 0; ibody < nlocal; ibody++) {
+      if (mask[b->ilocal] & groupbit) {
+        b = &body[ibody];
+        for (int j = 0; j < 3; j++) b->vcm[j] -= vcm[j];
+      }
+    }
+  }
+
+  // forward communicate vcm and omega to ghost bodies
+
+  commflag = FINAL;
+  comm->forward_comm(this, 10);
+
+  // compute angular momenta of rigid bodies
+
+  for (int ibody = 0; ibody < ntotal; ibody++) {
+    b = &body[ibody];
+    MathExtra::omega_to_angmom(b->omega, b->ex_space, b->ey_space, b->ez_space, b->inertia,
+                               b->angmom);
+    MathExtra::transpose_matvec(b->ex_space, b->ey_space, b->ez_space, b->angmom, mbody);
+    MathExtra::quatvec(b->quat, mbody, b->conjqm);
+    b->conjqm[0] *= 2.0;
+    b->conjqm[1] *= 2.0;
+    b->conjqm[2] *= 2.0;
+    b->conjqm[3] *= 2.0;
+  }
+
+  // reset velocities of individual atoms
+
+  set_v();
 }
 
 /* ----------------------------------------------------------------------
@@ -3648,85 +3662,3 @@ double FixRigidSmall::memory_usage()
   return bytes;
 }
 
-/* ----------------------------------------------------------------------
-   debug method for sanity checking of atom/body data pointers
-------------------------------------------------------------------------- */
-
-/*
-void FixRigidSmall::check(int flag)
-{
-  for (int i = 0; i < atom->nlocal; i++) {
-    if (bodyown[i] >= 0) {
-      if (bodytag[i] != atom->tag[i]) {
-        printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        errorx->one(FLERR,"BAD AAA");
-      }
-      if (bodyown[i] < 0 || bodyown[i] >= nlocal_body) {
-        printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        errorx->one(FLERR,"BAD BBB");
-      }
-      if (atom2body[i] != bodyown[i]) {
-        printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        errorx->one(FLERR,"BAD CCC");
-      }
-      if (body[bodyown[i]].ilocal != i) {
-        printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        errorx->one(FLERR,"BAD DDD");
-      }
-    }
-  }
-
-  for (int i = 0; i < atom->nlocal; i++) {
-    if (bodyown[i] < 0 && bodytag[i] > 0) {
-      if (atom2body[i] < 0 || atom2body[i] >= nlocal_body+nghost_body) {
-        printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        errorx->one(FLERR,"BAD EEE");
-      }
-      if (bodytag[i] != atom->tag[body[atom2body[i]].ilocal]) {
-        printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        errorx->one(FLERR,"BAD FFF");
-      }
-    }
-  }
-
-  for (int i = atom->nlocal; i < atom->nlocal + atom->nghost; i++) {
-    if (bodyown[i] >= 0) {
-      if (bodyown[i] < nlocal_body ||
-          bodyown[i] >= nlocal_body+nghost_body) {
-        printf("Values %d %d: %d %d %d\n",
-               i,atom->tag[i],bodyown[i],nlocal_body,nghost_body);
-        printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        errorx->one(FLERR,"BAD GGG");
-      }
-      if (body[bodyown[i]].ilocal != i) {
-        printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-        errorx->one(FLERR,"BAD HHH");
-      }
-    }
-  }
-
-  for (int i = 0; i < nlocal_body; i++) {
-    if (body[i].ilocal < 0 || body[i].ilocal >= atom->nlocal) {
-      printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      errorx->one(FLERR,"BAD III");
-    }
-    if (bodytag[body[i].ilocal] != atom->tag[body[i].ilocal] ||
-        bodyown[body[i].ilocal] != i) {
-      printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      errorx->one(FLERR,"BAD JJJ");
-    }
-  }
-
-  for (int i = nlocal_body; i < nlocal_body + nghost_body; i++) {
-    if (body[i].ilocal < atom->nlocal ||
-        body[i].ilocal >= atom->nlocal + atom->nghost) {
-      printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      errorx->one(FLERR,"BAD KKK");
-    }
-    if (bodyown[body[i].ilocal] != i) {
-      printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
-      errorx->one(FLERR,"BAD LLL");
-    }
-  }
-}
-*/

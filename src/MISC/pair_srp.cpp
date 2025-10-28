@@ -63,13 +63,15 @@ static const char cite_srp[] =
   " pages =   {134903}\n"
   "}\n\n";
 
-static int srp_instance = 0;
+namespace {
+int srp_instance = 0;
+}
 
 /* ----------------------------------------------------------------------
  set size of pair comms in constructor
  ---------------------------------------------------------------------- */
 
-PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp), fix_id(nullptr)
+PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
   single_enable = 0;
@@ -84,8 +86,8 @@ PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp), fix_id(nullptr)
   //   this should be early enough that FixSRP::pre_exchange()
   //   will be invoked before other fixes that migrate atoms
   //   this is checked for in FixSRP
-
-  f_srp = dynamic_cast<FixSRP *>(modify->add_fix(fmt::format("{:02d}_FIX_SRP all SRP", srp_instance)));
+  fix_id = fmt::format("{:02d}_FIX_SRP", srp_instance);
+  f_srp = modify->add_fix(fix_id + "_FIX_SRP all SRP");
   ++srp_instance;
 }
 
@@ -483,7 +485,7 @@ void PairSRP::init_style()
   arg1[0] = (char *) "norm";
   arg1[1] = (char *) "no";
   output->thermo->modify_params(2, arg1);
-  if (comm->me == 0) error->message(FLERR,"Thermo normalization turned off by pair srp");
+  if (comm->me == 0) utils::logmesg(lmp, "Thermo normalization turned off by pair srp\n");
 
   neighbor->add_request(this);
 }

@@ -35,7 +35,7 @@ void ImproperDeprecated::settings(int, char **)
   // of the list of substyles
 
   if (utils::strmatch(my_style, "^hybrid")) {
-    auto hybrid = dynamic_cast<ImproperHybrid *>(force->improper);
+    auto *hybrid = dynamic_cast<ImproperHybrid *>(force->improper);
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 

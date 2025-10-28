@@ -38,6 +38,8 @@
 #include <stdint.h> /* for int64_t */
 #endif
 
+// NOLINTBEGIN
+
 /** Data type constants for extracting data from atoms, computes and fixes
  *
  * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
@@ -116,8 +118,8 @@ enum _LMP_VAR_CONST {
  * ``examples/COUPLE/plugin/liblammpsplugin.h`` */
 
 enum _LMP_NEIGH_CONST {
-  LMP_NEIGH_HALF = 0,  /*!< request (default) half neighbor list */
-  LMP_NEIGH_FULL = 1,  /*!< request full neighbor list */
+  LMP_NEIGH_HALF = 0, /*!< request (default) half neighbor list */
+  LMP_NEIGH_FULL = 1, /*!< request full neighbor list */
 };
 
 /* Ifdefs to allow this file to be included in C and C++ programs */
@@ -140,6 +142,7 @@ void lammps_close(void *handle);
 void lammps_mpi_init();
 void lammps_mpi_finalize();
 void lammps_kokkos_finalize();
+void lammps_plugin_finalize();
 void lammps_python_finalize();
 
 void lammps_error(void *handle, int error_type, const char *error_text);
@@ -203,8 +206,8 @@ int lammps_variable_info(void *handle, int idx, char *buf, int bufsize);
 double lammps_eval(void *handle, const char *expr);
 
 void lammps_clearstep_compute(void *handle);
-void lammps_addstep_compute_all(void *handle, void * nextstep);
-void lammps_addstep_compute(void *handle, void * nextstep);
+void lammps_addstep_compute_all(void *handle, void *nextstep);
+void lammps_addstep_compute(void *handle, void *nextstep);
 
 /* ----------------------------------------------------------------------
  * Library functions for scatter/gather operations of data
@@ -239,6 +242,8 @@ int lammps_create_atoms(void *handle, int n, const int64_t *id, const int *type,
                         const double *v, const int64_t *image, int bexpand);
 #endif
 
+void lammps_create_molecule(void *handle, const char *id, const char *json);
+
 /* ----------------------------------------------------------------------
  * Library functions for accessing neighbor lists
  * ---------------------------------------------------------------------- */
@@ -259,6 +264,7 @@ int lammps_version(void *handle);
 void lammps_get_os_info(char *buffer, int buf_size);
 
 int lammps_config_has_mpi_support();
+int lammps_config_has_omp_support();
 int lammps_config_has_gzip_support();
 int lammps_config_has_png_support();
 int lammps_config_has_jpeg_support();
@@ -325,6 +331,8 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
 int lammps_set_show_error(void *handle, const int flag);
 
 int lammps_python_api_version();
+
+// NOLINTEND
 
 #ifdef __cplusplus
 }

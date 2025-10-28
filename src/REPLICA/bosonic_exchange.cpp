@@ -28,7 +28,10 @@
 #include "domain.h"
 #include "error.h"
 #include "memory.h"
-#include "universe.h"
+
+#include <algorithm>
+#include <cmath>
+#include <limits>
 
 using namespace LAMMPS_NS;
 
@@ -87,7 +90,7 @@ void BosonicExchange::diff_two_beads(const double *x1, int l1, const double *x2,
   double delx2 = x2[3 * l2 + 0] - x1[3 * l1 + 0];
   double dely2 = x2[3 * l2 + 1] - x1[3 * l1 + 1];
   double delz2 = x2[3 * l2 + 2] - x1[3 * l1 + 2];
-  if (apply_minimum_image) { domain->minimum_image(delx2, dely2, delz2); }
+  if (apply_minimum_image) { domain->minimum_image(FLERR, delx2, dely2, delz2); }
 
   diff[0] = delx2;
   diff[1] = dely2;

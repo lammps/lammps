@@ -250,7 +250,7 @@ CVSCRIPT(cv_resetatomappliedforces,
          0, 0,
          "",
             size_t i;
-            std::vector<cvm::rvector> *f = script->proxy()->modify_atom_applied_forces();
+            auto *f = script->proxy()->modify_atom_applied_forces();
             for (i = 0; i < f->size(); i++) {
               (*f)[i].reset();
             }
@@ -541,6 +541,15 @@ CVSCRIPT(cv_printframe,
          return COLVARS_OK;
          )
 
+CVSCRIPT(cv_patchversion,
+         "Get the Colvars patch version number (used for bugfixes only)\n"
+         "version : string - Colvars version",
+         0, 0,
+         "",
+         script->set_result_int(cvm::main()->patch_version_number());
+         return COLVARS_OK;
+         )
+
 CVSCRIPT(cv_printframelabels,
          "Return the labels that would be written to colvars.traj\n"
          "Labels : string - The labels",
@@ -656,7 +665,7 @@ CVSCRIPT(cv_update,
          )
 
 CVSCRIPT(cv_version,
-         "Get the Colvars Module version string\n"
+         "Get the Colvars version string\n"
          "version : string - Colvars version",
          0, 0,
          "",
@@ -665,7 +674,7 @@ CVSCRIPT(cv_version,
          )
 
 // This guard allows compiling colvar and bias function bodies in their
-// respecitve files instead of colvarscript_commands.o
+// respective files instead of colvarscript_commands.o
 #ifndef COLVARSCRIPT_COMMANDS_GLOBAL
 #include "colvarscript_commands_colvar.h"
 #include "colvarscript_commands_bias.h"

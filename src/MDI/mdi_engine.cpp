@@ -38,6 +38,7 @@
 #include "timer.h"
 #include "update.h"
 
+#include <algorithm>
 #include <cstring>
 #include <limits>
 
@@ -315,7 +316,7 @@ void MDIEngine::engine_node(const char *node)
 
 int MDIEngine::execute_command_plugin_wrapper(const char *command, MDI_Comm comm, void *class_obj)
 {
-  auto mdi_engine = (MDIEngine *) class_obj;
+  auto *mdi_engine = (MDIEngine *) class_obj;
   return mdi_engine->execute_command(command, comm);
 }
 
@@ -1469,7 +1470,7 @@ void MDIEngine::send_total_energy()
 
 void MDIEngine::send_labels()
 {
-  auto labels = new char[sys_natoms * MDI_LABEL_LENGTH];
+  auto *labels = new char[sys_natoms * MDI_LABEL_LENGTH];
   memset(labels, ' ', sys_natoms * MDI_LABEL_LENGTH);
 
   memset(ibuf1, 0, sys_natoms * sizeof(int));
@@ -1721,7 +1722,7 @@ void MDIEngine::single_command()
 {
   if (nbytes < 0) error->all(FLERR, "MDI: COMMAND nbytes has not been set");
 
-  auto cmd = new char[nbytes + 1];
+  auto *cmd = new char[nbytes + 1];
   int ierr = MDI_Recv(cmd, nbytes + 1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: COMMAND data");
   MPI_Bcast(cmd, nbytes + 1, MPI_CHAR, 0, world);
@@ -1742,7 +1743,7 @@ void MDIEngine::many_commands()
 {
   if (nbytes < 0) error->all(FLERR, "MDI: COMMANDS nbytes has not been set");
 
-  auto cmds = new char[nbytes + 1];
+  auto *cmds = new char[nbytes + 1];
   int ierr = MDI_Recv(cmds, nbytes + 1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: COMMANDS data");
   MPI_Bcast(cmds, nbytes + 1, MPI_CHAR, 0, world);
@@ -1763,7 +1764,7 @@ void MDIEngine::infile()
 {
   if (nbytes < 0) error->all(FLERR, "MDI: INFILE nbytes has not been set");
 
-  auto infile = new char[nbytes + 1];
+  auto *infile = new char[nbytes + 1];
   int ierr = MDI_Recv(infile, nbytes + 1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR, "MDI: INFILE data for {}", infile);
   MPI_Bcast(infile, nbytes + 1, MPI_CHAR, 0, world);

@@ -40,7 +40,7 @@ struct InitViewFunctor {
   void operator()(const int i) const {
     for (unsigned j = 0; j < _inview.extent(1); ++j) {
       for (unsigned k = 0; k < _inview.extent(2); ++k) {
-        _inview(i, j, k) = i / 2 - j * j + k / 3;
+        _inview(i, j, k) = double(i) / 2 - j * j + double(k) / 3;
       }
     }
   }
@@ -78,7 +78,7 @@ struct InitStrideViewFunctor {
   void operator()(const int i) const {
     for (unsigned j = 0; j < _inview.extent(1); ++j) {
       for (unsigned k = 0; k < _inview.extent(2); ++k) {
-        _inview(i, j, k) = i / 2 - j * j + k / 3;
+        _inview(i, j, k) = double(i) / 2 - j * j + double(k) / 3;
       }
     }
   }
@@ -95,7 +95,7 @@ struct InitViewRank7Functor {
   void operator()(const int i) const {
     for (unsigned j = 0; j < _inview.extent(1); ++j) {
       for (unsigned k = 0; k < _inview.extent(2); ++k) {
-        _inview(i, j, k, 0, 0, 0, 0) = i / 2 - j * j + k / 3;
+        _inview(i, j, k, 0, 0, 0, 0) = double(i) / 2 - j * j + double(k) / 3;
       }
     }
   }
@@ -113,7 +113,7 @@ struct InitDynRankViewFunctor {
   void operator()(const int i) const {
     for (unsigned j = 0; j < _inview.extent(1); ++j) {
       for (unsigned k = 0; k < _inview.extent(2); ++k) {
-        _inview(i, j, k) = i / 2 - j * j + k / 3;
+        _inview(i, j, k) = double(i) / 2 - j * j + double(k) / 3;
       }
     }
   }

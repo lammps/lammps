@@ -115,4 +115,5 @@ Commands
    write_data
    write_dump
    write_psf
+   write_molecule
    write_restart

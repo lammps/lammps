@@ -498,8 +498,8 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
               const unsigned min_chunk_size,
               const unsigned max_extent)
       :  // The chunk size is guaranteed to be a power of two
-        m_chunk_shift(Kokkos::Impl::integral_power_of_two_that_contains(
-            min_chunk_size))  // div ceil(log2(min_chunk_size))
+        m_chunk_shift(min_chunk_size ? Kokkos::bit_width(min_chunk_size - 1)
+                                     : 0)  // div ceil(log2(min_chunk_size))
         ,
         m_chunk_mask((1 << m_chunk_shift) - 1)  // mod
         ,
@@ -789,9 +789,7 @@ inline void deep_copy(const Kokkos::Experimental::DynamicView<T, DP...>& dst,
       Kokkos::SpaceAccessibility<src_execution_space,
                                  dst_memory_space>::accessible;
 
-  if (DstExecCanAccessSrc)
-    Kokkos::Impl::ViewRemap<dst_type, src_type>(dst, src);
-  else if (SrcExecCanAccessDst)
+  if (DstExecCanAccessSrc || SrcExecCanAccessDst)
     Kokkos::Impl::ViewRemap<dst_type, src_type>(dst, src);
   else
     src.impl_get_chunks().deep_copy_to(dst_execution_space{},
@@ -819,9 +817,7 @@ inline void deep_copy(const ExecutionSpace& exec,
                                  dst_memory_space>::accessible;
 
   // FIXME use execution space
-  if (DstExecCanAccessSrc)
-    Kokkos::Impl::ViewRemap<dst_type, src_type>(dst, src);
-  else if (SrcExecCanAccessDst)
+  if (DstExecCanAccessSrc || SrcExecCanAccessDst)
     Kokkos::Impl::ViewRemap<dst_type, src_type>(dst, src);
   else
     src.impl_get_chunks().deep_copy_to(exec, dst.impl_get_chunks());
@@ -924,7 +920,7 @@ struct ViewCopy<Kokkos::Experimental::DynamicView<DP...>, ViewTypeB, Layout,
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const iType& i0) const { a(i0) = b(i0); };
+  void operator()(const iType& i0) const { a(i0) = b(i0); }
 };
 
 template <class... DP, class... SP, class Layout, class ExecSpace,
@@ -945,7 +941,7 @@ struct ViewCopy<Kokkos::Experimental::DynamicView<DP...>,
   }
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const iType& i0) const { a(i0) = b(i0); };
+  void operator()(const iType& i0) const { a(i0) = b(i0); }
 };
 
 }  // namespace Impl

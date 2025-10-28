@@ -34,6 +34,7 @@
 #include "error.h"
 #include "force.h"
 #include "group.h"
+#include "kspace.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -44,6 +45,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <map>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -53,12 +55,14 @@ using MathConst::MY_SQRT2;
 using MathConst::THIRD;
 using MathSpecial::powint;
 
-static std::map<int, std::string> Barostats{{FixPIMDLangevin::MTTK, "MTTK"},
-                                            {FixPIMDLangevin::BZP, "BZP"}};
-static std::map<int, std::string> Ensembles{{FixPIMDLangevin::NVE, "NVE"},
-                                            {FixPIMDLangevin::NVT, "NVT"},
-                                            {FixPIMDLangevin::NPH, "NPH"},
-                                            {FixPIMDLangevin::NPT, "NPT"}};
+namespace {
+std::map<int, std::string> Barostats{{FixPIMDLangevin::MTTK, "MTTK"},
+                                     {FixPIMDLangevin::BZP, "BZP"}};
+std::map<int, std::string> Ensembles{{FixPIMDLangevin::NVE, "NVE"},
+                                     {FixPIMDLangevin::NVT, "NVT"},
+                                     {FixPIMDLangevin::NPH, "NPH"},
+                                     {FixPIMDLangevin::NPT, "NPT"}};
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -875,6 +879,7 @@ void FixPIMDLangevin::qc_step()
     MPI_Bcast(&domain->boxhi[0], 3, MPI_DOUBLE, 0, universe->uworld);
     domain->set_global_box();
     domain->set_local_box();
+    if (force->kspace) force->kspace->setup();
   }
 }
 
@@ -1699,7 +1704,7 @@ int FixPIMDLangevin::pack_restart_data(double *list)
 void FixPIMDLangevin::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   for (int i = 0; i < 6; i++) vw[i] = list[n++];
 }
 

@@ -1,6 +1,6 @@
 # -*- CMake -*- file for simple examples using the LAMMPS library interface
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 
 # enforce out-of-source build
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -25,10 +25,10 @@ if(MSVC)
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
-find_package(MPI QUIET)
 # do not include the (obsolete) MPI C++ bindings which makes
 # for leaner object files and avoids namespace conflicts
 set(MPI_CXX_SKIP_MPICXX TRUE)
+find_package(MPI QUIET COMPONENTS C CXX)
 
 ##########################
 

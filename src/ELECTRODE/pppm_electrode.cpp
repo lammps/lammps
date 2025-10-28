@@ -86,7 +86,7 @@ PPPMElectrode::~PPPMElectrode()
 {
   if (copymode) return;
 
-  deallocate();
+  PPPMElectrode::deallocate();
   if (peratom_allocate_flag) deallocate_peratom();
   if (group_allocate_flag) deallocate_groups();
   memory->destroy(part2grid);
@@ -136,7 +136,7 @@ void PPPMElectrode::init()
   pair_check();
 
   int itmp = 0;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul", itmp);
+  auto *p_cutoff = (double *) force->pair->extract("cut_coul", itmp);
   if (p_cutoff == nullptr) error->all(FLERR, "KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
@@ -148,7 +148,7 @@ void PPPMElectrode::init()
   if (tip4pflag) {
     if (me == 0) utils::logmesg(lmp, "  extracting TIP4P info from pair style\n");
 
-    double *p_qdist = (double *) force->pair->extract("qdist", itmp);
+    auto *p_qdist = (double *) force->pair->extract("qdist", itmp);
     int *p_typeO = (int *) force->pair->extract("typeO", itmp);
     int *p_typeH = (int *) force->pair->extract("typeH", itmp);
     int *p_typeA = (int *) force->pair->extract("typeA", itmp);
@@ -683,7 +683,7 @@ void PPPMElectrode::compute_matrix(bigint *imat, double **matrix, bool timer_fla
         n += 2;
       }
   MPI_Allreduce(MPI_IN_PLACE, greens_real, nz_pppm * ny_pppm * nx_pppm, MPI_DOUBLE, MPI_SUM, world);
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   int nmat = std::count_if(&imat[0], &imat[nlocal], [](int x) {
     return x >= 0;
   });
@@ -712,13 +712,13 @@ void PPPMElectrode::compute_matrix(bigint *imat, double **matrix, bool timer_fla
 /* ----------------------------------------------------------------------*/
 
 void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real, double **x_ele,
-                                            double **matrix, int const nmat, bool timer_flag)
+                                            double **matrix, const int nmat, bool timer_flag)
 {
   // map green's function in real space from mesh to particle positions
   // with matrix multiplication 'W^T G W' in one steps. Uses less memory than
   // two_step_multiplication
   //
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   double **x = atom->x;
   MPI_Barrier(world);
   double step1_time = MPI_Wtime();
@@ -730,7 +730,7 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real, d
     if (jpos < 0) continue;
     j_list.push_back(j);
   }
-  int const nj_local = j_list.size();
+  const int nj_local = j_list.size();
 
   FFT_SCALAR ***rho1d_j;
   memory->create(rho1d_j, nj_local, 3, order, "pppm/electrode:rho1d_j");
@@ -753,8 +753,8 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real, d
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
-  int const order2 = order * order;
-  int const order6 = order2 * order2 * order2;
+  const int order2 = order * order;
+  const int order6 = order2 * order2 * order2;
   double *amesh;
   memory->create(amesh, order6, "pppm/electrode:amesh");
   for (int ipos = 0; ipos < nmat; ipos++) {
@@ -831,13 +831,13 @@ void PPPMElectrode::build_amesh(const int dx,    // = njx - nix
 
   for (int iz = 0; iz < order; iz++)
     for (int jz = 0; jz < order; jz++) {
-      int const mz = fmod(dz + jz - iz, nz_pppm) * nx_pppm * ny_pppm;
+      const int mz = fmod(dz + jz - iz, nz_pppm) * nx_pppm * ny_pppm;
       for (int iy = 0; iy < order; iy++)
         for (int jy = 0; jy < order; jy++) {
-          int const my = fmod(dy + jy - iy, ny_pppm) * nx_pppm;
+          const int my = fmod(dy + jy - iy, ny_pppm) * nx_pppm;
           for (int ix = 0; ix < order; ix++)
             for (int jx = 0; jx < order; jx++) {
-              int const mx = fmod(dx + jx - ix, nx_pppm);
+              const int mx = fmod(dx + jx - ix, nx_pppm);
               amesh[ind_amesh] = greens_real[mz + my + mx];
               ind_amesh++;
             }
@@ -848,12 +848,12 @@ void PPPMElectrode::build_amesh(const int dx,    // = njx - nix
 /* ----------------------------------------------------------------------*/
 
 void PPPMElectrode::two_step_multiplication(bigint *imat, double *greens_real, double **x_ele,
-                                            double **matrix, int const nmat, bool timer_flag)
+                                            double **matrix, const int nmat, bool timer_flag)
 {
   // map green's function in real space from mesh to particle positions
   // with matrix multiplication 'W^T G W' in two steps. gw is result of
   // first multiplication.
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   MPI_Barrier(world);
   double step1_time = MPI_Wtime();
   int nx_ele = nxhi_out - nxlo_out + 1;    // nx_pppm + order + 1;
@@ -892,15 +892,15 @@ void PPPMElectrode::two_step_multiplication(bigint *imat, double *greens_real, d
     for (int mjz = nzlo_out; mjz <= nzhi_out; mjz++) {
       for (int ni = nlower; ni <= nupper; ni++) {
         double const iz0 = rho1d[2][ni];
-        int const mz = fmod(mjz - ni - niz, nz_pppm);
+        const int mz = fmod(mjz - ni - niz, nz_pppm);
         for (int mjy = nylo_out; mjy <= nyhi_out; mjy++) {
           for (int mi = nlower; mi <= nupper; mi++) {
             double const iy0 = iz0 * rho1d[1][mi];
-            int const my = fmod(mjy - mi - niy, ny_pppm);
+            const int my = fmod(mjy - mi - niy, ny_pppm);
             for (int mjx = nxlo_out; mjx <= nxhi_out; mjx++) {
               for (int li = nlower; li <= nupper; li++) {
                 double const ix0 = iy0 * rho1d[0][li];
-                int const mx = fmod(mjx - li - nix, nx_pppm);
+                const int mx = fmod(mjx - li - nix, nx_pppm);
                 gw[ipos][nx_ele * ny_ele * (mjz - nzlo_out) + nx_ele * (mjy - nylo_out) +
                          (mjx - nxlo_out)] +=
                     ix0 * greens_real[mz * nx_pppm * ny_pppm + my * nx_pppm + mx];
@@ -1563,12 +1563,8 @@ void PPPMElectrode::set_grid_local()
   // nlo_fft,nhi_fft = lower/upper limit of the section
   //   of the global FFT mesh that I own in x-pencil decomposition
 
-  int npey_fft, npez_fft;
-  if (nz_pppm >= nprocs) {
-    npey_fft = 1;
-    npez_fft = nprocs;
-  } else
-    procs2grid2d(nprocs, ny_pppm, nz_pppm, &npey_fft, &npez_fft);
+  int npey_fft = 1, npez_fft = nprocs;
+  procs2grid2d(nprocs, ny_pppm, nz_pppm, npey_fft, npez_fft);
 
   int me_y = me % npey_fft;
   int me_z = me / npey_fft;

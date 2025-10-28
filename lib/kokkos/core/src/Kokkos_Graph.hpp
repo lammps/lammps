@@ -39,14 +39,17 @@ namespace Experimental {
 //==============================================================================
 // <editor-fold desc="Graph"> {{{1
 
-template <class ExecutionSpace>
+template <class ExecutionSpace = DefaultExecutionSpace>
 struct [[nodiscard]] Graph {
+  static_assert(Kokkos::is_execution_space_v<ExecutionSpace>);
+
  public:
   //----------------------------------------------------------------------------
   // <editor-fold desc="public member types"> {{{2
 
   using execution_space = ExecutionSpace;
   using graph           = Graph;
+  using root_t          = GraphNodeRef<ExecutionSpace>;
 
   // </editor-fold> end public member types }}}2
   //----------------------------------------------------------------------------
@@ -63,33 +66,48 @@ struct [[nodiscard]] Graph {
   //----------------------------------------------------------------------------
   // <editor-fold desc="private data members"> {{{2
 
-  using impl_t                       = Kokkos::Impl::GraphImpl<ExecutionSpace>;
-  std::shared_ptr<impl_t> m_impl_ptr = nullptr;
+  using impl_t      = Kokkos::Impl::GraphImpl<ExecutionSpace>;
+  using root_impl_t = typename impl_t::root_node_impl_t;
+
+  std::shared_ptr<impl_t> m_impl_ptr  = nullptr;
+  std::shared_ptr<root_impl_t> m_root = nullptr;
 
   // </editor-fold> end private data members }}}2
   //----------------------------------------------------------------------------
 
-  //----------------------------------------------------------------------------
-  // <editor-fold desc="private ctors"> {{{2
-
-  // Note: only create_graph() uses this constructor, but we can't just make
-  // that a friend instead of GraphAccess because of the way that friend
-  // function template injection works.
-  explicit Graph(std::shared_ptr<impl_t> arg_impl_ptr)
-      : m_impl_ptr(std::move(arg_impl_ptr)) {}
-
-  // </editor-fold> end private ctors }}}2
-  //----------------------------------------------------------------------------
-
  public:
+  // Construct an empty graph with a root node.
+  Graph(ExecutionSpace exec = ExecutionSpace{})
+      : m_impl_ptr{std::make_shared<impl_t>(std::move(exec))},
+        m_root{m_impl_ptr->create_root_node_ptr()} {}
+
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
+    defined(KOKKOS_ENABLE_SYCL)
+  // Construct a graph from a native graph, add a root node.
+  template <typename T>
+#if defined(KOKKOS_ENABLE_CXX20)
+    requires std::same_as<ExecutionSpace, Kokkos::DefaultExecutionSpace>
+#endif
+  Graph(ExecutionSpace exec, T&& native_graph)
+      : m_impl_ptr{std::make_shared<impl_t>(std::move(exec),
+                                            std::forward<T>(native_graph))},
+        m_root{m_impl_ptr->create_root_node_ptr()} {
+  }
+#endif
+
   ExecutionSpace const& get_execution_space() const {
     return m_impl_ptr->get_execution_space();
   }
 
+  // Once the graph is instantiated, it is undefined behavior to add nodes.
+  // TODO Add a locking mechanism to avoid users shooting themselves
+  //      in the foot.
   void instantiate() {
     KOKKOS_EXPECTS(bool(m_impl_ptr))
     (*m_impl_ptr).instantiate();
   }
+
+  auto root_node() const { return root_t{m_impl_ptr, m_root}; }
 
   void submit(const execution_space& exec) const {
     KOKKOS_EXPECTS(bool(m_impl_ptr))
@@ -144,19 +162,12 @@ Graph<ExecutionSpace> create_graph(ExecutionSpace ex, Closure&& arg_closure) {
   // create a Graph class without graph having public constructors. We can't
   // just make `create_graph` itself a friend because of the way that friend
   // function template injection works.
-  auto rv = Kokkos::Impl::GraphAccess::construct_graph(std::move(ex));
+  Graph<ExecutionSpace> rv{std::move(ex)};
   // Invoke the user's graph construction closure
-  ((Closure&&)arg_closure)(Kokkos::Impl::GraphAccess::create_root_ref(rv));
+  ((Closure&&)arg_closure)(rv.root_node());
   // and given them back the graph
   // KOKKOS_ENSURES(rv.m_impl_ptr.use_count() == 1)
   return rv;
-}
-
-template <class ExecutionSpace = DefaultExecutionSpace>
-std::enable_if_t<Kokkos::is_execution_space_v<ExecutionSpace>,
-                 Graph<ExecutionSpace>>
-create_graph(ExecutionSpace exec = ExecutionSpace{}) {
-  return Kokkos::Impl::GraphAccess::construct_graph(std::move(exec));
 }
 
 template <
@@ -168,16 +179,6 @@ std::enable_if_t<
 create_graph(Closure&& arg_closure) {
   return create_graph(ExecutionSpace{}, (Closure&&)arg_closure);
 }
-
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
-    defined(KOKKOS_ENABLE_SYCL)
-template <class Exec, typename T>
-std::enable_if_t<Kokkos::is_execution_space_v<Exec>, Graph<Exec>>
-create_graph_from_native(Exec exec, T&& native_graph) {
-  return Kokkos::Impl::GraphAccess::construct_graph_from_native(
-      std::move(exec), std::forward<T>(native_graph));
-}
-#endif
 
 // </editor-fold> end create_graph }}}1
 //==============================================================================
@@ -193,7 +194,7 @@ decltype(auto) Graph<ExecutionSpace>::native_graph() {
   if constexpr (std::is_same_v<ExecutionSpace, Kokkos::HIP>) {
     return m_impl_ptr->hip_graph();
   }
-#elif defined(KOKKOS_ENABLE_SYCL) && defined(SYCL_EXT_ONEAPI_GRAPH)
+#elif defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_SYCL_GRAPH_SUPPORT)
   if constexpr (std::is_same_v<ExecutionSpace, Kokkos::SYCL>) {
     return m_impl_ptr->sycl_graph();
   }
@@ -211,7 +212,7 @@ decltype(auto) Graph<ExecutionSpace>::native_graph_exec() {
   if constexpr (std::is_same_v<ExecutionSpace, Kokkos::HIP>) {
     return m_impl_ptr->hip_graph_exec();
   }
-#elif defined(KOKKOS_ENABLE_SYCL) && defined(SYCL_EXT_ONEAPI_GRAPH)
+#elif defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_SYCL_GRAPH_SUPPORT)
   if constexpr (std::is_same_v<ExecutionSpace, Kokkos::SYCL>) {
     return m_impl_ptr->sycl_graph_exec();
   }
@@ -235,7 +236,7 @@ decltype(auto) Graph<ExecutionSpace>::native_graph_exec() {
 #include <HIP/Kokkos_HIP_Graph_Impl.hpp>
 #endif
 #endif
-#ifdef SYCL_EXT_ONEAPI_GRAPH
+#ifdef KOKKOS_IMPL_SYCL_GRAPH_SUPPORT
 #include <SYCL/Kokkos_SYCL_Graph_Impl.hpp>
 #endif
 #ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_GRAPH

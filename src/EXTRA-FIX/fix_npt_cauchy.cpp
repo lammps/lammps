@@ -640,8 +640,8 @@ void FixNPTCauchy::init()
   // ensure no conflict with fix deform
 
   if (pstat_flag)
-    for (auto &ifix : modify->get_fix_by_style("^deform")) {
-      auto deform = dynamic_cast<FixDeform *>(ifix);
+    for (const auto &ifix : modify->get_fix_by_style("^deform")) {
+      auto *deform = dynamic_cast<FixDeform *>(ifix);
       if (deform) {
         int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
@@ -730,7 +730,7 @@ void FixNPTCauchy::init()
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
 
   rfix.clear();
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
@@ -1328,7 +1328,7 @@ int FixNPTCauchy::pack_restart_data(double *list)
 void FixNPTCauchy::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
   if (flag) {
     int m = static_cast<int> (list[n++]);

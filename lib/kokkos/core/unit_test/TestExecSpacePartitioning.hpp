@@ -50,16 +50,25 @@ void check_distinctive([[maybe_unused]] ExecSpace exec1,
 #ifdef KOKKOS_ENABLE_OPENMP
   if constexpr (std::is_same_v<ExecSpace, Kokkos::OpenMP>) {
     ASSERT_NE(exec1, exec2);
+    // FIXME_OPENMP exec.concurrency() does not return thread pool size outside
+    // of parallel regions
+    ASSERT_EQ(ExecSpace().impl_internal_space_instance()->thread_pool_size(),
+              exec1.impl_internal_space_instance()->thread_pool_size() +
+                  exec2.impl_internal_space_instance()->thread_pool_size());
   }
 #endif
 #ifdef KOKKOS_ENABLE_CUDA
   if constexpr (std::is_same_v<ExecSpace, Kokkos::Cuda>) {
     ASSERT_NE(exec1.cuda_stream(), exec2.cuda_stream());
+    ASSERT_EQ(exec1.cuda_device(), ExecSpace().cuda_device());
+    ASSERT_EQ(exec2.cuda_device(), ExecSpace().cuda_device());
   }
 #endif
 #ifdef KOKKOS_ENABLE_HIP
   if constexpr (std::is_same_v<ExecSpace, Kokkos::HIP>) {
     ASSERT_NE(exec1.hip_stream(), exec2.hip_stream());
+    ASSERT_EQ(exec1.hip_device(), ExecSpace().hip_device());
+    ASSERT_EQ(exec2.hip_device(), ExecSpace().hip_device());
   }
 #endif
 #ifdef KOKKOS_ENABLE_SYCL
@@ -105,23 +114,23 @@ void run_threaded_test(const Lambda1 l1, const Lambda2 l2) {
 }
 #endif
 
-void test_partitioning(std::vector<TEST_EXECSPACE>& instances) {
-  check_distinctive(instances[0], instances[1]);
-  check_space_member_for_policies(instances[0]);
-  check_space_member_for_policies(instances[1]);
+void test_partitioning(TEST_EXECSPACE& instance0, TEST_EXECSPACE& instance1) {
+  check_distinctive(instance0, instance1);
+  check_space_member_for_policies(instance0);
+  check_space_member_for_policies(instance1);
 
   int sum1, sum2;
   int N = 3910;
   run_threaded_test(
       [&]() {
         Kokkos::parallel_reduce(
-            Kokkos::RangePolicy<TEST_EXECSPACE>(instances[0], 0, N),
-            SumFunctor(), sum1);
+            Kokkos::RangePolicy<TEST_EXECSPACE>(instance0, 0, N), SumFunctor(),
+            sum1);
       },
       [&]() {
         Kokkos::parallel_reduce(
-            Kokkos::RangePolicy<TEST_EXECSPACE>(instances[1], 0, N),
-            SumFunctor(), sum2);
+            Kokkos::RangePolicy<TEST_EXECSPACE>(instance1, 0, N), SumFunctor(),
+            sum2);
       });
   ASSERT_EQ(sum1, sum2);
   ASSERT_EQ(sum1, N * (N - 1) / 2);
@@ -131,14 +140,24 @@ TEST(TEST_CATEGORY, partitioning_by_args) {
   auto instances =
       Kokkos::Experimental::partition_space(TEST_EXECSPACE(), 1, 1);
   ASSERT_EQ(int(instances.size()), 2);
-  test_partitioning(instances);
+  static_assert(
+      std::is_same_v<decltype(instances), std::array<TEST_EXECSPACE, 2>>);
+  test_partitioning(instances[0], instances[1]);
+}
+
+TEST(TEST_CATEGORY, partitioning_by_args_with_structured_bindings) {
+  auto [instance0, instance1] =
+      Kokkos::Experimental::partition_space(TEST_EXECSPACE(), 1, 1);
+  test_partitioning(instance0, instance1);
 }
 
 TEST(TEST_CATEGORY, partitioning_by_vector) {
   // Make sure we can use a temporary as argument for weights
   auto instances = Kokkos::Experimental::partition_space(
       TEST_EXECSPACE(), std::vector<int> /*weights*/ {1, 1});
+  static_assert(
+      std::is_same_v<decltype(instances), std::vector<TEST_EXECSPACE>>);
   ASSERT_EQ(int(instances.size()), 2);
-  test_partitioning(instances);
+  test_partitioning(instances[0], instances[1]);
 }
 }  // namespace Test

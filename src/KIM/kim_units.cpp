@@ -1404,7 +1404,7 @@ int kim_units::lammps_unit_conversion(const string &unit_type_str, const string 
   // convert input to enumeration
   unit_type unit_type_enum;
   {
-    map<string, unit_type>::const_iterator itr = unit_dic.find(unit_type_str);
+    auto itr = unit_dic.find(unit_type_str);
     if (itr != unit_dic.end())
       unit_type_enum = itr->second;
     else
@@ -1412,7 +1412,7 @@ int kim_units::lammps_unit_conversion(const string &unit_type_str, const string 
   }
   sys_type from_system_enum;
   {
-    map<string, sys_type>::const_iterator itr = system_dic.find(from_system_str);
+    auto itr = system_dic.find(from_system_str);
     if (itr != system_dic.end())
       from_system_enum = itr->second;
     else
@@ -1420,7 +1420,7 @@ int kim_units::lammps_unit_conversion(const string &unit_type_str, const string 
   }
   sys_type to_system_enum;
   {
-    map<string, sys_type>::const_iterator itr = system_dic.find(to_system_str);
+    auto itr = system_dic.find(to_system_str);
     if (itr != system_dic.end())
       to_system_enum = itr->second;
     else

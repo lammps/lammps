@@ -304,11 +304,20 @@ struct TestViewCudaTexture {
 
   static void run() {
     EXPECT_TRUE((std::is_same_v<typename V::reference_type, double &>));
+#ifdef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
     EXPECT_TRUE((std::is_same_v<typename T::reference_type, const double>));
+#else
+    EXPECT_TRUE((std::is_same_v<typename T::reference_type, const double &>));
+#endif
 
-    EXPECT_TRUE(V::reference_type_is_lvalue_reference);   // An ordinary view.
+    EXPECT_TRUE(V::reference_type_is_lvalue_reference);  // An ordinary view.
+#ifdef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
     EXPECT_FALSE(T::reference_type_is_lvalue_reference);  // Texture fetch
                                                           // returns by value.
+#else
+    EXPECT_TRUE(T::reference_type_is_lvalue_reference);  // FIXME: Returns by
+                                                         // value for now.
+#endif
 
     TestViewCudaTexture self;
     Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Cuda, TagInit>(0, N),

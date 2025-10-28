@@ -73,8 +73,7 @@ void DeepCopyAsyncCuda(const Cuda &instance, void *dst, const void *src,
 void DeepCopyAsyncCuda(void *dst, const void *src, size_t n) {
   cudaStream_t s = cuda_get_deep_copy_stream();
   KOKKOS_IMPL_CUDA_SAFE_CALL(
-      (CudaInternal::singleton().cuda_memcpy_async_wrapper(
-          dst, src, n, cudaMemcpyDefault, s)));
+      cudaMemcpyAsync(dst, src, n, cudaMemcpyDefault, s));
   Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Cuda>(
       "Kokkos::Impl::DeepCopyAsyncCuda: Deep Copy Stream Sync",
       Kokkos::Tools::Experimental::SpecialSynchronizationCases::

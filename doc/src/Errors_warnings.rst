@@ -375,9 +375,6 @@ Please also see the page with :doc:`Error messages <Errors_messages>`
 *More than one compute orientorder/atom*
    It is not efficient to use compute orientorder/atom more than once.
 
-*More than one fix poems*
-   It is not efficient to use fix poems more than once.
-
 *More than one fix rigid*
    It is not efficient to use fix rigid more than once.
 
@@ -407,11 +404,6 @@ Please also see the page with :doc:`Error messages <Errors_messages>`
 *No fixes defined, atoms won't move*
    If you are not using a fix like nve, nvt, npt then atom velocities and
    coordinates will not be updated during timestepping.
-
-*No joints between rigid bodies, use fix rigid instead*
-   The bodies defined by fix poems are not connected by joints.  POEMS
-   will integrate the body motion, but it would be more efficient to use
-   fix rigid.
 
 *Not using real units with pair reaxff*
    This is most likely an error, unless you have created your own ReaxFF

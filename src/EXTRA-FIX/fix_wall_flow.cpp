@@ -254,7 +254,7 @@ void FixWallFlow::generate_velocity(int atom_i)
   double delta = gamma * flowvel;
 
   const double edd = std::exp(-delta * delta) / MathConst::MY_PIS + delta * std::erf(delta);
-  const double probability_threshold = 0.5f * (1.f + delta / edd);
+  const double probability_threshold = 0.5 * (1.0 + delta / edd);
 
   double direction = 1.0;
 

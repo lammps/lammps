@@ -91,6 +91,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, "Illegal fix ehex command: wrong number of parameters ");
       region = domain->get_region_by_id(arg[iarg + 1]);
       if (!region) error->all(FLERR, "Region {} for fix ehex does not exist", arg[iarg + 1]);
+      delete[] idregion;
       idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     }
@@ -434,7 +435,7 @@ bool FixEHEX::check_cluster(tagint *shake_atom, int n, Region *region)
 
       // take into account pbc
 
-      domain->minimum_image_big(xtemp);
+      domain->minimum_image_big(FLERR, xtemp);
 
       for (int k = 0; k < 3; k++) xcom[k] += mi * (x[lid[0]][k] + xtemp[k]);
     }

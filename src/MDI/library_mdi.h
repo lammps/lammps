@@ -17,8 +17,6 @@
 /* C style library call to LAMMPS when a LAMMPS shared library is
  *  used as a plugin through MolSSI Driver Interface (MDI) */
 
-#include <mdi.h>
-
 extern "C" {
 int MDI_Plugin_init_lammps(void *plugin_state);
 }

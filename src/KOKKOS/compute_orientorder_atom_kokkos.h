@@ -37,21 +37,21 @@ template<class DeviceType>
 class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
  public:
   typedef Kokkos::View<int*, DeviceType> t_sna_1i;
-  typedef Kokkos::View<double*, DeviceType> t_sna_1d;
-  typedef Kokkos::View<double*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1d_atomic;
+  typedef Kokkos::View<KK_FLOAT*, DeviceType> t_sna_1d;
+  typedef Kokkos::View<KK_FLOAT*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1d_atomic;
   typedef Kokkos::View<int**, Kokkos::LayoutRight, DeviceType> t_sna_2i_lr;
   typedef Kokkos::View<int**, Kokkos::LayoutRight, DeviceType, Kokkos::MemoryTraits<Kokkos::Unmanaged> > t_sna_2i_lr_um;
   typedef Kokkos::View<int**, DeviceType> t_sna_2i;
-  typedef Kokkos::View<double**, DeviceType> t_sna_2d;
-  typedef Kokkos::View<double**, Kokkos::LayoutRight, DeviceType> t_sna_2d_lr;
-  typedef Kokkos::DualView<double**, Kokkos::LayoutRight, DeviceType> tdual_sna_2d_lr;
-  typedef Kokkos::View<double**, Kokkos::LayoutRight, DeviceType, Kokkos::MemoryTraits<Kokkos::Unmanaged> > t_sna_2d_lr_um;
-  typedef Kokkos::View<double***, DeviceType> t_sna_3d;
-  typedef Kokkos::View<double***, Kokkos::LayoutRight, DeviceType> t_sna_3d_lr;
-  typedef Kokkos::View<double***, Kokkos::LayoutRight, DeviceType, Kokkos::MemoryTraits<Kokkos::Unmanaged> > t_sna_3d_lr_um;
-  typedef Kokkos::View<double***[3], DeviceType> t_sna_4d;
-  typedef Kokkos::View<double**[3], DeviceType> t_sna_3d3;
-  typedef Kokkos::View<double*****, DeviceType> t_sna_5d;
+  typedef Kokkos::View<KK_FLOAT**, DeviceType> t_sna_2d;
+  typedef Kokkos::View<KK_FLOAT**, Kokkos::LayoutRight, DeviceType> t_sna_2d_lr;
+  typedef Kokkos::DualView<KK_FLOAT**, Kokkos::LayoutRight, DeviceType> tdual_sna_2d_lr;
+  typedef Kokkos::View<KK_FLOAT**, Kokkos::LayoutRight, DeviceType, Kokkos::MemoryTraits<Kokkos::Unmanaged> > t_sna_2d_lr_um;
+  typedef Kokkos::View<KK_FLOAT***, DeviceType> t_sna_3d;
+  typedef Kokkos::View<KK_FLOAT***, Kokkos::LayoutRight, DeviceType> t_sna_3d_lr;
+  typedef Kokkos::View<KK_FLOAT***, Kokkos::LayoutRight, DeviceType, Kokkos::MemoryTraits<Kokkos::Unmanaged> > t_sna_3d_lr_um;
+  typedef Kokkos::View<KK_FLOAT***[3], DeviceType> t_sna_4d;
+  typedef Kokkos::View<KK_FLOAT**[3], DeviceType> t_sna_3d3;
+  typedef Kokkos::View<KK_FLOAT*****, DeviceType> t_sna_5d;
 
   typedef Kokkos::View<SNAcomplex*, DeviceType> t_sna_1c;
   typedef Kokkos::View<SNAcomplex*, DeviceType, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1c_atomic;
@@ -88,15 +88,15 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   KOKKOS_INLINE_FUNCTION
   void operator() (TagComputeOrientOrderAtomBOOP2, const int& ii) const;
 
-  DAT::tdual_float_2d k_qnarray;
-  typename AT::t_float_2d d_qnarray;
+  DAT::ttransform_kkfloat_2d k_qnarray;
+  typename AT::t_kkfloat_2d d_qnarray;
 
  private:
   int inum,chunk_size,chunk_offset;
   int host_flag;
 
-  typename AT::t_x_array_randomread x;
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_int_1d mask;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
@@ -123,10 +123,10 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   void calc_boop2(int, int) const;
 
   KOKKOS_INLINE_FUNCTION
-  double polar_prefactor(int, int, double) const;
+  KK_FLOAT polar_prefactor(int, int, KK_FLOAT) const;
 
   KOKKOS_INLINE_FUNCTION
-  double associated_legendre(int, int, double) const;
+  KK_FLOAT associated_legendre(int, int, KK_FLOAT) const;
 
   void init_wigner3j() override;
   t_sna_1d d_w3jlist;                     // Wigner coeffs

@@ -112,6 +112,7 @@ bool is_partitioned_exespace_impl(const std::string& label,
       red_result.min_loc_false != red_id_min) {
     // this occurs when the reduction yields nontrivial values
     return red_result.max_loc_true < red_result.min_loc_false;
+    // NOLINTBEGIN(bugprone-branch-clone)
   } else if (red_result.max_loc_true == red_id_max &&
              red_result.min_loc_false == 0) {
     // this occurs when all values do NOT satisfy
@@ -121,6 +122,7 @@ bool is_partitioned_exespace_impl(const std::string& label,
     // this occurs when all values satisfy the predicate,
     // this corner case should also be true
     return true;
+    // NOLINTEND(bugprone-branch-clone)
   } else {
     return false;
   }
@@ -168,6 +170,7 @@ KOKKOS_FUNCTION bool is_partitioned_team_impl(const TeamHandleType& teamHandle,
       red_result.min_loc_false != red_id_min) {
     // this occurs when the reduction yields nontrivial values
     return red_result.max_loc_true < red_result.min_loc_false;
+    // NOLINTBEGIN(bugprone-branch-clone)
   } else if (red_result.max_loc_true == red_id_max &&
              red_result.min_loc_false == 0) {
     // this occurs when all values do NOT satisfy
@@ -177,6 +180,7 @@ KOKKOS_FUNCTION bool is_partitioned_team_impl(const TeamHandleType& teamHandle,
     // this occurs when all values satisfy the predicate,
     // this corner case should also be true
     return true;
+    // NOLINTEND(bugprone-branch-clone)
   } else {
     return false;
   }

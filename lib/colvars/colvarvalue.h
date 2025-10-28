@@ -109,9 +109,6 @@ public:
   /// User keywords for specifying value types in the configuration
   static std::string const type_keyword(Type t);
 
-  /// Number of degrees of freedom for each supported type
-  static size_t num_df(Type t);
-
   /// Number of dimensions for each supported type (used to allocate vector1d_value)
   static size_t num_dimensions(Type t);
 
@@ -668,89 +665,6 @@ inline cvm::vector1d<cvm::real> const colvarvalue::as_vector() const
   default:
     return cvm::vector1d<cvm::real>(0);
   }
-}
-
-
-inline cvm::real colvarvalue::norm2() const
-{
-  switch (value_type) {
-  case colvarvalue::type_scalar:
-    return (this->real_value)*(this->real_value);
-  case colvarvalue::type_3vector:
-  case colvarvalue::type_unit3vector:
-  case colvarvalue::type_unit3vectorderiv:
-    return (this->rvector_value).norm2();
-  case colvarvalue::type_quaternion:
-  case colvarvalue::type_quaternionderiv:
-    return (this->quaternion_value).norm2();
-  case colvarvalue::type_vector:
-    if (elem_types.size() > 0) {
-      // if we have information about non-scalar types, use it
-      cvm::real result = 0.0;
-      size_t i;
-      for (i = 0; i < elem_types.size(); i++) {
-        result += (this->get_elem(i)).norm2();
-      }
-      return result;
-    } else {
-      return vector1d_value.norm2();
-    }
-    break;
-  case colvarvalue::type_notset:
-  default:
-    return 0.0;
-  }
-}
-
-
-inline cvm::real colvarvalue::sum() const
-{
-  switch (value_type) {
-  case colvarvalue::type_scalar:
-    return (this->real_value);
-  case colvarvalue::type_3vector:
-  case colvarvalue::type_unit3vector:
-  case colvarvalue::type_unit3vectorderiv:
-    return (this->rvector_value).x + (this->rvector_value).y +
-      (this->rvector_value).z;
-  case colvarvalue::type_quaternion:
-  case colvarvalue::type_quaternionderiv:
-    return (this->quaternion_value).q0 + (this->quaternion_value).q1 +
-      (this->quaternion_value).q2 + (this->quaternion_value).q3;
-  case colvarvalue::type_vector:
-    return (this->vector1d_value).sum();
-  case colvarvalue::type_notset:
-  default:
-    return 0.0;
-  }
-}
-
-
-inline cvm::real colvarvalue::dist2(colvarvalue const &x2) const
-{
-  colvarvalue::check_types(*this, x2);
-
-  switch (this->type()) {
-  case colvarvalue::type_scalar:
-    return (this->real_value - x2.real_value)*(this->real_value - x2.real_value);
-  case colvarvalue::type_3vector:
-    return (this->rvector_value - x2.rvector_value).norm2();
-  case colvarvalue::type_unit3vector:
-  case colvarvalue::type_unit3vectorderiv:
-    // angle between (*this) and x2 is the distance
-    return cvm::acos(this->rvector_value * x2.rvector_value) * cvm::acos(this->rvector_value * x2.rvector_value);
-  case colvarvalue::type_quaternion:
-  case colvarvalue::type_quaternionderiv:
-    // angle between (*this) and x2 is the distance, the quaternion
-    // object has it implemented internally
-    return this->quaternion_value.dist2(x2.quaternion_value);
-  case colvarvalue::type_vector:
-    return (this->vector1d_value - x2.vector1d_value).norm2();
-  case colvarvalue::type_notset:
-  default:
-    this->undef_op();
-    return 0.0;
-  };
 }
 
 

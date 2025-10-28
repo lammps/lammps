@@ -592,7 +592,7 @@ int colvarparse::check_keywords(std::string &conf, char const *key)
 {
   if (cvm::debug())
     cvm::log("Configuration string for \""+std::string(key)+
-             "\": \"\n"+conf+"\".\n");
+             "\":\n\""+conf+"\".\n");
 
   strip_values(conf);
   // after stripping, the config string has either empty lines, or
@@ -833,7 +833,8 @@ bool colvarparse::key_lookup(std::string const &conf,
                                        data_end) + 1;
     }
 
-    if (data != NULL) {
+    // data_end < data_begin means that the data or block contains only whitespace
+    if (data != NULL && data_end > data_begin) {
       data->append(line, data_begin, (data_end-data_begin));
 
       if (cvm::debug()) {

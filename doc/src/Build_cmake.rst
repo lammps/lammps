@@ -217,6 +217,5 @@ Most Linux distributions offer pre-compiled cmake packages through their
 package management system. If you do not have CMake or a recent enough
 version (Note: for CentOS 7.x you need to enable the EPEL repository),
 you can download the latest version from `https://cmake.org/download/
-<https://cmake.org/download/>`_.  Instructions on how to install it on
-various platforms can be found `on this page
-<https://cmake.org/install/>`_.
+<https://cmake.org/download/>`_.  Links to more details on CMake can
+be found `on this page <https://cmake.org/resources/>`_.

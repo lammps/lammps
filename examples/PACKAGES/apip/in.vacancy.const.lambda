@@ -1,0 +1,54 @@
+##################################################
+# parameters of the adaptive-precision potential #
+##################################################
+# We couple an EAM potential with an ACE potential.
+variable	eamfs_file string "Cu_300K_Immel_2023.eam.fs"
+variable	ace_file1 string "Cu-1.yace"
+variable	ace_file2 string "../../../potentials/Cu-PBE-core-rep.ace"
+
+
+## basic stuff
+units		metal
+atom_style	apip # own atom style required for APIP
+timestep	0.001
+
+# copper at room temperature with a vacancy
+read_data	data.vacancy
+
+
+# set lambda
+group		vacancy id 145 147 148 149 150 994 997 995 1024 1026 1028 1922
+group		transition id 77 79 81 84 88 151 152 153 154 155 158 1089 188 189 192 1033 1039 1964 1022 1021 999 998 996 948 950 952 992 993 139 1025 1027 1029 1034 1035 1038 1088 1920 1921 1923 1924 1925 1930
+group		bulk subtract all vacancy transition
+set		group vacancy apip/lambda precise
+set		group transition apip/lambda 0.5
+set		group bulk apip/lambda fast
+
+
+fix		nve all nve
+
+
+# Use adaptive-precision eam-ace potential with constant lambda.
+# Calculate atomic weight that could be used for load balancing.
+pair_style	hybrid/overlay eam/fs/apip pace/apip
+pair_coeff	* * eam/fs/apip ${eamfs_file} Cu
+pair_coeff	* * pace/apip ${ace_file2} Cu
+fix		weight_atom all atom_weight/apip 50 eam ace 0.5 0 all
+
+
+# get statistics about lambda
+compute		lambda all property/atom apip_lambda
+compute		lambda_input all property/atom apip_lambda_input
+variable	flag_simple atom c_lambda==1
+variable	flag_switch atom c_lambda<1&&c_lambda>0
+variable	flag_complex atom c_lambda==0
+compute		lambda_types all reduce sum v_flag_simple v_flag_switch v_flag_complex
+
+
+thermo_style	custom step etotal c_lambda_types[*]
+thermo		1
+
+run		100
+
+# dump atoms
+#write_dump	all custom dump.vacancy.* id type x y z fx fy fz c_lambda c_lambda_input f_weight_atom

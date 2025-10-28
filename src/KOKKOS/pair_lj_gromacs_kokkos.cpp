@@ -134,12 +134,12 @@ void PairLJGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -153,20 +153,20 @@ void PairLJGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJGromacsKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+KK_FLOAT PairLJGromacsKokkos<DeviceType>::
+compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
 
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT forcelj = r6inv *
+  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+  KK_FLOAT forcelj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
 
   if (rsq > (STACKPARAMS?m_params[itype][jtype].cut_inner_sq:params(itype,jtype).cut_inner_sq)) {
-    const F_FLOAT r = sqrt(rsq);
-    const F_FLOAT tlj = r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner);
-    const F_FLOAT fswitch = r*tlj*tlj*
+    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT tlj = r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner);
+    const KK_FLOAT fswitch = r*tlj*tlj*
             ((STACKPARAMS?m_params[itype][jtype].ljsw1:params(itype,jtype).ljsw1) +
              (STACKPARAMS?m_params[itype][jtype].ljsw2:params(itype,jtype).ljsw2)*tlj);
     forcelj += fswitch;
@@ -180,21 +180,21 @@ compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJGromacsKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+KK_FLOAT PairLJGromacsKokkos<DeviceType>::
+compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
 
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT englj = r6inv *
+  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+  KK_FLOAT englj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
   englj += (STACKPARAMS?m_params[itype][jtype].ljsw5:params(itype,jtype).ljsw5);
 
   if (rsq > (STACKPARAMS?m_params[itype][jtype].cut_inner_sq:params(itype,jtype).cut_inner_sq)) {
-    const F_FLOAT r = sqrt(rsq);
-    const F_FLOAT tlj = r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner);
-    const F_FLOAT eswitch = tlj*tlj*tlj *
+    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT tlj = r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner);
+    const KK_FLOAT eswitch = tlj*tlj*tlj *
             ((STACKPARAMS?m_params[itype][jtype].ljsw3:params(itype,jtype).ljsw3) +
              (STACKPARAMS?m_params[itype][jtype].ljsw4:params(itype,jtype).ljsw4)*tlj);
     englj += eswitch;
@@ -227,18 +227,6 @@ void PairLJGromacsKokkos<DeviceType>::allocate()
 
   k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJGromacs::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
-}
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairLJGromacsKokkos<DeviceType>::settings(int narg, char **arg)
-{
-  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
-
-  PairLJGromacs::settings(narg,arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -280,30 +268,30 @@ double PairLJGromacsKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairLJGromacs::init_one(i,j);
   double cut_inner_sqm = cut_inner_sq[i][j];
 
-  k_params.h_view(i,j).lj1 = lj1[i][j];
-  k_params.h_view(i,j).lj2 = lj2[i][j];
-  k_params.h_view(i,j).lj3 = lj3[i][j];
-  k_params.h_view(i,j).lj4 = lj4[i][j];
-  k_params.h_view(i,j).ljsw1 = ljsw1[i][j];
-  k_params.h_view(i,j).ljsw2 = ljsw2[i][j];
-  k_params.h_view(i,j).ljsw3 = ljsw3[i][j];
-  k_params.h_view(i,j).ljsw4 = ljsw4[i][j];
-  k_params.h_view(i,j).ljsw5 = ljsw5[i][j];
-  k_params.h_view(i,j).cut_inner_sq = cut_inner_sqm;
-  k_params.h_view(i,j).cut_inner = cut_inner[i][j];
+  k_params.view_host()(i,j).lj1 = lj1[i][j];
+  k_params.view_host()(i,j).lj2 = lj2[i][j];
+  k_params.view_host()(i,j).lj3 = lj3[i][j];
+  k_params.view_host()(i,j).lj4 = lj4[i][j];
+  k_params.view_host()(i,j).ljsw1 = ljsw1[i][j];
+  k_params.view_host()(i,j).ljsw2 = ljsw2[i][j];
+  k_params.view_host()(i,j).ljsw3 = ljsw3[i][j];
+  k_params.view_host()(i,j).ljsw4 = ljsw4[i][j];
+  k_params.view_host()(i,j).ljsw5 = ljsw5[i][j];
+  k_params.view_host()(i,j).cut_inner_sq = cut_inner_sqm;
+  k_params.view_host()(i,j).cut_inner = cut_inner[i][j];
 
-  k_params.h_view(j,i) = k_params.h_view(i,j);
+  k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
-    m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
+    m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
     m_cut_inner_sq[j][i] = m_cut_inner_sq[i][j] = cut_inner_sqm;
   }
 
-  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
-  k_cut_inner_sq.h_view(i,j) = k_cut_inner_sq.h_view(j,i) = cut_inner_sqm;
-  k_cut_inner_sq.template modify<LMPHostType>();
-  k_params.template modify<LMPHostType>();
+  k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
+  k_cutsq.modify_host();
+  k_cut_inner_sq.view_host()(i,j) = k_cut_inner_sq.view_host()(j,i) = cut_inner_sqm;
+  k_cut_inner_sq.modify_host();
+  k_params.modify_host();
 
   return cutone;
 }

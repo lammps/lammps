@@ -25,8 +25,6 @@
 #include "pair.h"
 #include "update.h"
 
-#include <cstring>
-
 #include "eapod.h"
 
 using namespace LAMMPS_NS;

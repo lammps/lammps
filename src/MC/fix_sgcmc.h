@@ -75,6 +75,10 @@ class FixSemiGrandCanonicalMC : public Fix {
   // This routine should only be used for debugging purposes.
   double computeEnergyChangeGeneric(int flipAtom, int oldSpecies, int newSpecies);
 
+  // Calculates the change in energy that swapping the given atom would produce.
+  // This uses the atomic energy method
+  double computeEnergyChangeEatom(int flipAtom, int oldSpecies, int newSpecies);
+
   // Lets LAMMPS calculate the total potential energy of the system.
   double computeTotalEnergy();
 
@@ -85,6 +89,10 @@ class FixSemiGrandCanonicalMC : public Fix {
   // Flips the type of one atom.
   // This routine is for the generic case.
   void flipAtomGeneric(int flipAtom, int oldSpecies, int newSpecies);
+
+  // Flips the type of one atom.
+  // This routine is for the atomic energy method
+  void flipAtomEatom(int flipAtom, int oldSpecies, int newSpecies);
 
   // Transfers the locally changed electron densities and atom types to the neighbors.
   void communicateRhoAndTypes();
@@ -181,6 +189,9 @@ class FixSemiGrandCanonicalMC : public Fix {
 
   // A compute used to compute the total potential energy of the system.
   class Compute *compute_pe;
+
+  // Indicate whether or not atomic energy method is used
+  int atomicenergyflag;
 };
 }    // namespace LAMMPS_NS
 

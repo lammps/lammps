@@ -46,8 +46,8 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 
  public:
   typedef DeviceType device_type;
-  typedef EV_FLOAT value_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef EV_FLOAT value_type;
 
   FixShakeKokkos(class LAMMPS *, int, char **);
   ~FixShakeKokkos() override;
@@ -66,9 +66,9 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
-  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_xfloat_1d&,
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d&,
                        int, int *) override;
-  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d&) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
 
@@ -103,12 +103,12 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixShakeUnpackExchange, const int&) const;
 
-  int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
+  int pack_exchange_kokkos(const int &nsend,DAT::tdual_double_2d_lr &buf,
                            DAT::tdual_int_1d k_sendlist,
                            DAT::tdual_int_1d k_copylist,
                            ExecutionSpace space) override;
 
-  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+  void unpack_exchange_kokkos(DAT::tdual_double_2d_lr &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
                               int nrecv1,int nrecv1extra,
                               ExecutionSpace space) override;
@@ -116,46 +116,46 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
  protected:
   int nrecv1,nextrarecv1;
 
-  typename AT::t_x_array d_x;
-  typename AT::t_v_array d_v;
-  typename AT::t_f_array d_f;
-  typename AT::t_float_1d d_rmass;
-  typename AT::t_float_1d d_mass;
+  typename AT::t_kkfloat_1d_3_lr d_x;
+  typename AT::t_kkfloat_1d_3 d_v;
+  typename AT::t_kkacc_1d_3 d_f;
+  typename AT::t_kkfloat_1d d_rmass;
+  typename AT::t_kkfloat_1d d_mass;
   typename AT::t_tagint_1d_randomread d_tag;
   typename AT::t_int_1d d_type;
   typename AT::t_int_1d d_mask;
 
-  DAT::tdual_efloat_1d k_eatom;
-  typename AT::t_efloat_1d d_eatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  typename AT::t_kkacc_1d d_eatom;
 
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
-  DAT::tdual_float_1d k_bond_distance; // constraint distances
-  typename AT::t_float_1d d_bond_distance;
-  DAT::tdual_float_1d k_angle_distance;
-  typename AT::t_float_1d d_angle_distance;
+  DAT::tdual_kkfloat_1d k_bond_distance; // constraint distances
+  typename AT::t_kkfloat_1d d_bond_distance;
+  DAT::tdual_kkfloat_1d k_angle_distance;
+  typename AT::t_kkfloat_1d d_angle_distance;
 
                                          // atom-based arrays
   DAT::tdual_int_1d k_shake_flag;
   typename AT::t_int_1d d_shake_flag; // 0 if atom not in SHAKE cluster
                                          // 1 = size 3 angle cluster
                                          // 2,3,4 = size of bond-only cluster
-  DAT::tdual_tagint_2d k_shake_atom;
+  DAT::ttransform_tagint_2d k_shake_atom;
   typename AT::t_tagint_2d d_shake_atom; // global IDs of atoms in cluster
                                          // central atom is 1st
                                          // lowest global ID is 1st for size 2
-  DAT::tdual_int_2d k_shake_type;
+  DAT::ttransform_int_2d k_shake_type;
   typename AT::t_int_2d d_shake_type; // bondtype of each bond in cluster
                                          // for angle cluster, 3rd value
                                          //   is angletype
-  DAT::tdual_x_array k_xshake;
-  typename AT::t_x_array d_xshake; // unconstrained atom coords
+  DAT::ttransform_kkfloat_1d_3_lr k_xshake;
+  typename AT::t_kkfloat_1d_3_lr d_xshake; // unconstrained atom coords
 
   DAT::tdual_int_1d k_list;
   typename AT::t_int_1d d_list; // list of clusters to SHAKE
 
-  DAT::tdual_int_2d k_closest_list;
+  DAT::ttransform_int_2d k_closest_list;
   typename AT::t_int_2d d_closest_list; // list of closest atom indices in SHAKE clusters
 
   DAT::tdual_int_scalar k_error_flag;
@@ -190,13 +190,13 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   template<typename DataType, typename Layout>
   using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
 
-  DupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> dup_f;
-  DupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> dup_eatom;
-  DupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> dup_vatom;
+  DupScatterView<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout> dup_f;
+  DupScatterView<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout> dup_eatom;
+  DupScatterView<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout> dup_vatom;
 
-  NonDupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> ndup_f;
-  NonDupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> ndup_eatom;
-  NonDupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> ndup_vatom;
+  NonDupScatterView<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout> ndup_f;
+  NonDupScatterView<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout> ndup_eatom;
+  NonDupScatterView<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout> ndup_vatom;
 
   int neighflag,need_dup;
 
@@ -209,18 +209,18 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void v_tally(EV_FLOAT&, int, int *, double, double *) const;
+  void v_tally(EV_FLOAT&, int, int *, KK_FLOAT, KK_FLOAT *) const;
 
   int first,nsend;
 
   typename AT::t_int_1d d_sendlist;
-  typename AT::t_xfloat_1d_um d_buf;
+  typename AT::t_double_1d_um d_buf;
 
   typename AT::t_int_1d d_exchange_sendlist;
   typename AT::t_int_1d d_copylist;
   typename AT::t_int_1d d_indices;
 
-  X_FLOAT dx,dy,dz;
+  KK_FLOAT dx,dy,dz;
 
   int *shake_flag_tmp;
   tagint **shake_atom_tmp;
@@ -239,14 +239,15 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 
   int triclinic;
   int xperiodic,yperiodic,zperiodic;
-  X_FLOAT xprd_half,yprd_half,zprd_half;
-  X_FLOAT xprd,yprd,zprd;
-  X_FLOAT xy,xz,yz;
+  KK_FLOAT xprd_half,yprd_half,zprd_half;
+  KK_FLOAT xprd,yprd,zprd;
+  KK_FLOAT xy,xz,yz;
 };
 
 template <class DeviceType>
 struct FixShakeKokkosPackExchangeFunctor {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef int value_type;
   FixShakeKokkos<DeviceType> c;
   FixShakeKokkosPackExchangeFunctor(FixShakeKokkos<DeviceType>* c_ptr):c(*c_ptr) {};

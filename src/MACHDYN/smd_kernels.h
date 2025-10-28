@@ -9,8 +9,8 @@
  *
  * ----------------------------------------------------------------------- */
 
-#ifndef SMD_KERNEL_FUNCTIONS_H_
-#define SMD_KERNEL_FUNCTIONS_H_
+#ifndef SMD_KERNEL_FUNCTIONS_H
+#define SMD_KERNEL_FUNCTIONS_H
 
 namespace SMD_Kernels {
 static inline double Kernel_Wendland_Quintic_NotNormalized(const double r, const double h)
@@ -151,4 +151,4 @@ static inline void M4PrimeKernel(const double s, double &wf)
 
 }    // namespace SMD_Kernels
 
-#endif /* SMD_KERNEL_FUNCTIONS_H_ */
+#endif /* SMD_KERNEL_FUNCTIONS_H */

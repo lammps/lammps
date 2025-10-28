@@ -112,6 +112,9 @@ public:
   /// \brief Parse config string and (re)initialize
   virtual int init(std::string const &conf);
 
+  /// Initialize multiple-time-stepping options
+  virtual int init_mts(std::string const &conf);
+
   /// \brief Initialize dependency tree
   virtual int init_dependencies();
 
@@ -174,14 +177,14 @@ public:
   /// \param[in,out] os Output stream
   /// \param[in] key  Keyword labeling the header block
   /// \param[in] header  Whether this is the header of a multi-line segment vs a single line
-  std::ostream &write_state_data_key(std::ostream &os, std::string const &key, bool header = true);
+  std::ostream &write_state_data_key(std::ostream &os, std::string const &key, bool header = true) const;
 
   /// Write a keyword header for a data sequence to an unformatted stream
   /// \param[in,out] os Output stream
   /// \param[in] key  Keyword labeling the header block
   /// \param[in] header  Ignored
   cvm::memory_stream &write_state_data_key(cvm::memory_stream &os, std::string const &key,
-                                           bool header = true);
+                                           bool header = true) const;
 
 private:
 
@@ -357,6 +360,9 @@ protected:
 
   /// \brief Forces exerted from the system to the associated variables
   std::vector<colvarvalue> ti_system_forces;
+
+  /// Grid configuration parameters (also used by grids in derived classes)
+  std::string grid_conf;
 
   /// Averaged system forces
   std::shared_ptr<colvar_grid_gradient> ti_avg_forces;

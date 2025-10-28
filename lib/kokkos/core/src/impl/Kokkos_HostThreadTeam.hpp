@@ -829,7 +829,7 @@ KOKKOS_INLINE_FUNCTION
     closure(i, value);
   }
 
-  loop_boundaries.thread.impl_team_reduce(wrapped_reducer, value);
+  loop_boundaries.member.impl_team_reduce(wrapped_reducer, value);
 
   wrapped_reducer.final(&value);
   reducer.reference() = value;
@@ -857,7 +857,7 @@ KOKKOS_INLINE_FUNCTION
     closure(i, value);
   }
 
-  loop_boundaries.thread.impl_team_reduce(wrapped_reducer, value);
+  loop_boundaries.member.impl_team_reduce(wrapped_reducer, value);
   wrapped_reducer.final(&value);
   result = value;
 }
@@ -884,7 +884,7 @@ Impl::TeamThreadRangeBoundariesStruct<iType,Impl::HostThreadTeamMember<Space> >
     closure( i , reducer.reference() );
   }
 
-  loop_boundaries.thread.team_reduce( reducer );
+  loop_boundaries.member.team_reduce( reducer );
 }*/
 
 //----------------------------------------------------------------------------
@@ -972,7 +972,7 @@ KOKKOS_INLINE_FUNCTION
     closure(i, accum, false);
   }
 
-  auto& team_member = loop_boundaries.thread;
+  auto& team_member = loop_boundaries.member;
 
   // 'accum' output is the exclusive prefix sum
   accum = team_member.team_scan(accum);

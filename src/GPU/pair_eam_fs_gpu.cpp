@@ -21,14 +21,12 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "gpu_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "suffix.h"
-#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -237,13 +235,13 @@ int PairEAMFSGPU::pack_forward_comm(int n, int *list, double *buf, int /* pbc_fl
   m = 0;
 
   if (fp_single) {
-    auto fp_ptr = (float *) fp_pinned;
+    auto *fp_ptr = (float *) fp_pinned;
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = static_cast<double>(fp_ptr[j]);
     }
   } else {
-    auto fp_ptr = (double *) fp_pinned;
+    auto *fp_ptr = (double *) fp_pinned;
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = fp_ptr[j];
@@ -262,10 +260,10 @@ void PairEAMFSGPU::unpack_forward_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   if (fp_single) {
-    auto fp_ptr = (float *) fp_pinned;
+    auto *fp_ptr = (float *) fp_pinned;
     for (i = first; i < last; i++) fp_ptr[i] = buf[m++];
   } else {
-    auto fp_ptr = (double *) fp_pinned;
+    auto *fp_ptr = (double *) fp_pinned;
     for (i = first; i < last; i++) fp_ptr[i] = buf[m++];
   }
 }

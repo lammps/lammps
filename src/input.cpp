@@ -51,6 +51,7 @@
 #include <cstring>
 #include <cerrno>
 #include <cctype>
+#include <filesystem>
 
 using namespace LAMMPS_NS;
 
@@ -585,7 +586,6 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
   int i,n,paren_count,nchars;
   char immediate[256];
   char *var,*value,*beyond;
-  int quoteflag = 0;
   char *ptrmatch;
 
   char *ptr = str;
@@ -599,7 +599,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 
     // variable substitution
 
-    if (*ptr == '$' && !quoteflag) {
+    if (*ptr == '$') {
 
       // value = ptr to expanded variable
       // variable name between curly braces, e.g. ${a}
@@ -950,7 +950,7 @@ void Input::ifthenelse()
     int ncommands = last-first + 1;
     if (ncommands <= 0) utils::missing_cmd_args(FLERR, "if then", error);
 
-    auto commands = new char*[ncommands];
+    auto *commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       n = strlen(arg[i]) + 1;
@@ -1003,7 +1003,7 @@ void Input::ifthenelse()
     int ncommands = last-first + 1;
     if (ncommands <= 0) utils::missing_cmd_args(FLERR, "if elif/else", error);
 
-    auto commands = new char*[ncommands];
+    auto *commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
       n = strlen(arg[i]) + 1;
@@ -1263,7 +1263,7 @@ void Input::shell()
   } else if (strcmp(arg[0],"mv") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal shell command: expected 3 argument but found {}", narg);
     if (me == 0) {
-      if (platform::path_is_directory(arg[2])) {
+      if (std::filesystem::is_directory(arg[2])) {
         if (system(fmt::format("mv {} {}", arg[1], arg[2]).c_str()))
           error->warning(FLERR,"Shell command 'mv {} {}' returned with non-zero status", arg[1], arg[2]);
       } else {
@@ -1523,7 +1523,7 @@ void Input::dimension()
   // must reset default extra_dof of all computes
   // since some were created before dimension command is encountered
 
-  for (auto &c : modify->get_compute_list()) c->reset_extra_dof();
+  for (const auto &c : modify->get_compute_list()) c->reset_extra_dof();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1970,7 +1970,7 @@ void Input::timestep()
   if (respaflag) update->integrate->reset_dt();
 
   if (force->pair) force->pair->reset_dt();
-  for (auto &ifix : modify->get_fix_list()) ifix->reset_dt();
+  for (const auto &ifix : modify->get_fix_list()) ifix->reset_dt();
   output->reset_dt();
 }
 

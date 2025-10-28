@@ -23,17 +23,17 @@
 
 #if defined(FFT_MKL)
 #include "mkl_dfti.h"
-typedef MKL_Complex8 FFT_DATA;
+using FFT_DATA = MKL_Complex8;
 #define FFT_MKL_PREC DFTI_SINGLE
 
 #elif defined(FFT_FFTW3)
 #include "fftw3.h"
-typedef fftwf_complex FFT_DATA;
+using FFT_DATA = fftwf_complex;
 #define FFTW_API(function) fftwf_##function
 
 #elif defined(FFT_NVPL)
 #include "nvpl_fftw.h"
-typedef fftwf_complex FFT_DATA;
+using FFT_DATA = fftwf_complex;
 #define FFTW_API(function) fftwf_##function
 #else
 
@@ -42,7 +42,8 @@ typedef fftwf_complex FFT_DATA;
 #ifndef FFT_KISS
 #define FFT_KISS
 #endif
-#define kiss_fft_scalar float
+using kiss_fft_scalar = float;
+// NOLINTBEGIN
 typedef struct {
   kiss_fft_scalar re;
   kiss_fft_scalar im;
@@ -50,6 +51,7 @@ typedef struct {
 
 struct kiss_fft_state;
 typedef struct kiss_fft_state *kiss_fft_cfg;
+// NOLINTEND
 #endif
 
 // -------------------------------------------------------------------------
@@ -60,17 +62,17 @@ typedef struct kiss_fft_state *kiss_fft_cfg;
 
 #if defined(FFT_MKL)
 #include "mkl_dfti.h"
-typedef MKL_Complex16 FFT_DATA;
+using FFT_DATA = MKL_Complex16;
 #define FFT_MKL_PREC DFTI_DOUBLE
 
 #elif defined(FFT_FFTW3)
 #include "fftw3.h"
-typedef fftw_complex FFT_DATA;
+using FFT_DATA = fftw_complex;
 #define FFTW_API(function) fftw_##function
 
 #elif defined(FFT_NVPL)
 #include "nvpl_fftw.h"
-typedef fftw_complex FFT_DATA;
+using FFT_DATA = fftw_complex;
 #define FFTW_API(function) fftw_##function
 
 #else
@@ -79,7 +81,8 @@ typedef fftw_complex FFT_DATA;
 #ifndef FFT_KISS
 #define FFT_KISS
 #endif
-#define kiss_fft_scalar double
+using kiss_fft_scalar = double;
+// NOLINTBEGIN
 typedef struct {
   kiss_fft_scalar re;
   kiss_fft_scalar im;
@@ -87,6 +90,7 @@ typedef struct {
 
 struct kiss_fft_state;
 typedef struct kiss_fft_state *kiss_fft_cfg;
+// NOLINTEND
 #endif
 
 #else

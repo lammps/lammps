@@ -354,7 +354,7 @@ void PPPMDisp::init()
 
   if (tip4pflag) {
     int itmp;
-    auto p_qdist = (double *) force->pair->extract("qdist",itmp);
+    auto *p_qdist = (double *) force->pair->extract("qdist",itmp);
     int *p_typeO = (int *) force->pair->extract("typeO",itmp);
     int *p_typeH = (int *) force->pair->extract("typeH",itmp);
     int *p_typeA = (int *) force->pair->extract("typeA",itmp);
@@ -1278,7 +1278,7 @@ void PPPMDisp::init_coeffs()
     double **Q=nullptr;
     if (n > 1) {
       // get dispersion coefficients
-      auto b = (double **) force->pair->extract("B",tmp);
+      auto *b = (double **) force->pair->extract("B",tmp);
       memory->create(A,n,n,"pppm/disp:A");
       memory->create(Q,n,n,"pppm/disp:Q");
       // fill coefficients to matrix a
@@ -1393,15 +1393,15 @@ void PPPMDisp::init_coeffs()
   }
 
   if (function[1]) {                                    // geometric 1/r^6
-    auto b = (double **) force->pair->extract("B",tmp);
+    auto *b = (double **) force->pair->extract("B",tmp);
     B = new double[n+1];
     B[0] = 0.0;
     for (int i=1; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
   }
 
   if (function[2]) {                                    // arithmetic 1/r^6
-    auto epsilon = (double **) force->pair->extract("epsilon",tmp);
-    auto sigma = (double **) force->pair->extract("sigma",tmp);
+    auto *epsilon = (double **) force->pair->extract("epsilon",tmp);
+    auto *sigma = (double **) force->pair->extract("sigma",tmp);
     if (!(epsilon&&sigma))
       error->all(FLERR,"Epsilon or sigma reference not set by pair style for PPPMDisp");
     double eps_i,sigma_i,sigma_n;
@@ -2758,11 +2758,8 @@ void PPPMDisp::set_grid_local(int order_either,
   // nlo_fft,nhi_fft = lower/upper limit of the section
   //   of the global FFT mesh that I own in x-pencil decomposition
 
-  int npey_fft,npez_fft;
-  if (nz_either >= nprocs) {
-    npey_fft = 1;
-    npez_fft = nprocs;
-  } else procs2grid2d(nprocs,ny_either,nz_either,&npey_fft,&npez_fft);
+  int npey_fft = 1, npez_fft = nprocs;
+  procs2grid2d(nprocs, ny_either, nz_either, npey_fft, npez_fft);
 
   int me_y = me % npey_fft;
   int me_z = me / npey_fft;
@@ -3616,11 +3613,8 @@ void PPPMDisp::set_n_pppm_6()
     if (nz_pppm_6 <= 1) nz_pppm_6 = 2;
 
     //set local grid dimension
-    int npey_fft,npez_fft;
-    if (nz_pppm_6 >= nprocs) {
-      npey_fft = 1;
-      npez_fft = nprocs;
-    } else procs2grid2d(nprocs,ny_pppm_6,nz_pppm_6,&npey_fft,&npez_fft);
+    int npey_fft = 1, npez_fft = nprocs;
+    procs2grid2d(nprocs, ny_pppm_6, nz_pppm_6, npey_fft, npez_fft);
 
     int me_y = me % npey_fft;
     int me_z = me / npey_fft;
@@ -6767,7 +6761,7 @@ void PPPMDisp::fieldforce_none_peratom()
 
 void PPPMDisp::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -7280,7 +7274,7 @@ void PPPMDisp::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDisp::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -7793,7 +7787,7 @@ void PPPMDisp::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDisp::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -7848,7 +7842,7 @@ void PPPMDisp::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMDisp::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -7901,7 +7895,7 @@ void PPPMDisp::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
    map nprocs to NX by NY grid as PX by PY procs - return optimal px,py
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
+void PPPMDisp::procs2grid2d(int nprocs, int nx, int ny, int &px, int &py)
 {
   // loop thru all possible factorizations of nprocs
   // surf = surface area of largest proc sub-domain
@@ -7922,13 +7916,12 @@ void PPPMDisp::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
       boxy = ny/ipy;
       if (ny % ipy) boxy++;
       surf = boxx + boxy;
-      if (surf < bestsurf ||
-          (surf == bestsurf && boxx*boxy > bestboxx*bestboxy)) {
+      if ((surf < bestsurf) || ((surf == bestsurf) && (boxx*boxy > bestboxx*bestboxy))) {
         bestsurf = surf;
         bestboxx = boxx;
         bestboxy = boxy;
-        *px = ipx;
-        *py = ipy;
+        px = ipx;
+        py = ipy;
       }
     }
     ipx++;

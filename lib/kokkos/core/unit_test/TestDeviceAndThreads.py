@@ -81,8 +81,8 @@ class KokkosInitializationTestCase(unittest.TestCase):
         if num_devices == -1:
             self.assertEqual(-1, GetFlag("device_id"))
             self.skipTest("no device backend enabled")
-        # by default use the first GPU available for execution
-        self.assertEqual(0, GetFlag("device_id"))
+        self.assertGreaterEqual(GetFlag("device_id"), 0)
+        self.assertLessEqual(GetFlag("device_id"), num_devices)
         for device_id in range(num_devices):
             self.assertEqual(
                 device_id,

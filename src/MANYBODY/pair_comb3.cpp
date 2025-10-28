@@ -1913,18 +1913,16 @@ void PairComb3::coord(Param *param, double r, int i,
     if (xcntritot > maxxcn[tri_flag-1]) {
       pcorn  = vmaxxcn[tri_flag-1]+(xcntot-maxxcn[tri_flag-1])*dvmaxxcn[tri_flag-1];
       dxccij = dxchij = dxcoij = dvmaxxcn[tri_flag-1];
-    }
-    else {
+    } else {
       ixmin=int(xcccn+1.0e-12);
       iymin=int(xchcn+1.0e-12);
       izmin=int(xcocn+1.0e-12);
-      if (fabs(float(ixmin)-xcccn)>1.0e-8 ||
-          fabs(float(iymin)-xchcn)>1.0e-8 ||
-          fabs(float(izmin)-xcocn)>1.0e-8) {
+      if (fabs(double(ixmin)-xcccn)>1.0e-8 ||
+          fabs(double(iymin)-xchcn)>1.0e-8 ||
+          fabs(double(izmin)-xcocn)>1.0e-8) {
             cntri_int(tri_flag,xcccn,xchcn,xcocn,ixmin,iymin,izmin,
             pcorn,dxccij,dxchij,dxcoij,param);
-      }
-      else  {
+      } else  {
         pcorn  = pcn_grid[tri_flag-1][ixmin][iymin][izmin];
         dxccij = pcn_gridx[tri_flag-1][ixmin][iymin][izmin];
         dxchij = pcn_gridy[tri_flag-1][ixmin][iymin][izmin];
@@ -2544,10 +2542,10 @@ void PairComb3::tri_point(double rsq, int &mr1, int &mr2,
   rridr = (r-rin)/dr;
 
   mr1 = int(rridr) ;
-  dd = rridr - float(mr1);
+  dd = rridr - double(mr1);
   if (dd > 0.5) mr1 += 1;
 
-  rr1 = float(mr1)*dr;
+  rr1 = double(mr1)*dr;
   rridr = (r - rin - rr1)/dr;
   rridr2 = rridr * rridr;
 
@@ -2755,9 +2753,9 @@ void PairComb3::rad_calc(double r, Param *parami, Param *paramj,
   iymin = int(yrad+1.0e-12);
   izmin = int(zcon+1.0e-12);
   radindx=parami->rad_flag-1;
-  if (fabs(float(ixmin)-xrad)>1.0e-8 ||
-      fabs(float(iymin)-yrad)>1.0e-8 ||
-      fabs(float(izmin)-zcon)>1.0e-8) {
+  if (fabs(double(ixmin)-xrad)>1.0e-8 ||
+      fabs(double(iymin)-yrad)>1.0e-8 ||
+      fabs(double(izmin)-zcon)>1.0e-8) {
     rad_int(radindx,xrad,yrad,zcon,ixmin,iymin,izmin,
               vrad,pradx,prady,pradz);
   } else {
@@ -2945,9 +2943,9 @@ void PairComb3::tor_calc(double r, Param *parami, Param *paramj,
 
     torindx=torindx-1;
 
-    if (fabs(float(ixmin)-xtor)>1.0e-8 ||
-      fabs(float(iymin)-ytor)>1.0e-8 ||
-      fabs(float(izmin)-zcon)>1.0e-8) {
+    if (fabs(double(ixmin)-xtor)>1.0e-8 ||
+        fabs(double(iymin)-ytor)>1.0e-8 ||
+        fabs(double(izmin)-zcon)>1.0e-8) {
       tor_int(torindx,xtor,ytor,zcon,ixmin,iymin,izmin,
               vtor,dtorx,dtory,dtorz);
     } else {

@@ -24,8 +24,8 @@ class NeighList;
 
 class Neighbor : protected Pointers {
  public:
-  enum { NSQ, BIN, MULTI_OLD, MULTI };
-  int style;           // 0,1,2,3 = nsq, bin, multi/old, multi
+  enum { NSQ, BIN, MULTI };
+  int style;           // 0,1,2 = nsq, bin, multi
   int every;           // build every this many steps
   int delay;           // delay build for this many steps
   int dist_check;      // 0 = always build, 1 = only if 1/2 dist
@@ -175,6 +175,10 @@ class Neighbor : protected Pointers {
 
   bigint get_nneigh_full();    // return number of neighbors in a regular full neighbor list
   bigint get_nneigh_half();    // return number of neighbors in a regular half neighbor list
+
+  // return "best" non-skip pair neighbor list (used by dump image)
+  NeighList *get_best_pair_list();
+
   void add_temporary_bond(int, int, int);    // add temporary bond to bondlist array
   double memory_usage();
 
@@ -228,19 +232,19 @@ class Neighbor : protected Pointers {
   int nbclass, nsclass, npclass;
   int bondwhich, anglewhich, dihedralwhich, improperwhich;
 
-  typedef class NBin *(*BinCreator)(class LAMMPS *);
+  using BinCreator = class NBin *(*) (class LAMMPS *);
   BinCreator *binclass;
   char **binnames;
   int *binmasks;
   class NBin **neigh_bin;
 
-  typedef class NStencil *(*StencilCreator)(class LAMMPS *);
+  using StencilCreator = class NStencil *(*) (class LAMMPS *);
   StencilCreator *stencilclass;
   char **stencilnames;
   int *stencilmasks;
   class NStencil **neigh_stencil;
 
-  typedef class NPair *(*PairCreator)(class LAMMPS *);
+  using PairCreator = class NPair *(*) (class LAMMPS *);
   PairCreator *pairclass;
   char **pairnames;
   int *pairmasks;
@@ -309,8 +313,7 @@ namespace NeighConst {
     NS_TRI = 1 << 7,
     NS_GHOST = 1 << 8,
     NS_INTEL = 1 << 9,
-    NS_SSA = 1 << 10,
-    NS_MULTI_OLD = 1 << 11
+    NS_SSA = 1 << 10
   };
 
   enum {
@@ -339,8 +342,7 @@ namespace NeighConst {
     NP_SKIP = 1 << 22,
     NP_HALF_FULL = 1 << 23,
     NP_OFF2ON = 1 << 24,
-    NP_MULTI_OLD = 1 << 25,
-    NP_TRIM = 1 << 26
+    NP_TRIM = 1 << 25
   };
 
   enum {

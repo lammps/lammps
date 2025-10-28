@@ -58,14 +58,14 @@ FixQEqCTIP::FixQEqCTIP(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "maxrepeat") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix qeq/ctip maxrepeat", error);
-      maxrepeat = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      maxrepeat = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "warn") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix qeq/ctip warn", error);
       maxwarn = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
-      error->all(FLERR, "Unknown fix qeq/ctip keyword: {}", arg[iarg]);
+      error->all(FLERR, iarg, "Unknown fix qeq/ctip keyword: {}", arg[iarg]);
   }
 
   extract_ctip();
@@ -122,7 +122,7 @@ void FixQEqCTIP::init()
       (t_cut * (A1 + t_cut * (A2 + t_cut * (A3 + t_cut * (A4 + t_cut * A5)))) * erfcd_cut) / r;
 
   for (int elt1 = 0; elt1 < ntypes; elt1++) {
-    reff[elt1] = std::cbrt(rsq * r + 1.0 / (gamma[elt1 + 1] * gamma[elt1 + 1] * gamma[elt1 + 1]));
+    reff[elt1] = cbrt(rsq * r + 1.0 / (gamma[elt1 + 1] * gamma[elt1 + 1] * gamma[elt1 + 1]));
     reffsq[elt1] = reff[elt1] * reff[elt1];
     reff4[elt1] = reffsq[elt1] * reffsq[elt1];
     reff7[elt1] = reff4[elt1] * reffsq[elt1] * reff[elt1];
@@ -180,7 +180,8 @@ void FixQEqCTIP::init()
 void FixQEqCTIP::extract_ctip()
 {
   Pair *pair = force->pair_match("^coul/ctip",0);
-  if (pair == nullptr) error->all(FLERR,"No pair style coul/ctip for fix qeq/ctip");
+  if (pair == nullptr)
+    error->all(FLERR, Error::NOLASTLINE, "No pair style coul/ctip for fix qeq/ctip");
   int tmp;
   chi = (double *) pair->extract("chi",tmp);
   eta = (double *) pair->extract("eta",tmp);
@@ -192,7 +193,8 @@ void FixQEqCTIP::extract_ctip()
   omega = (double *) pair->extract("omega",tmp);
   if (chi == nullptr || eta == nullptr || gamma == nullptr || zeta == nullptr ||
       zcore == nullptr || qmin == nullptr || qmax == nullptr || omega == nullptr)
-    error->all(FLERR,  "Fix qeq/ctip could not extract all params from pair style coul/ctip");
+    error->all(FLERR,  Error::NOLASTLINE,
+               "Fix qeq/ctip could not extract all params from pair style coul/ctip");
 
 }
 
@@ -223,7 +225,7 @@ void FixQEqCTIP::pre_force(int /*vflag*/)
   }
 
   if (i > maxrepeat && comm->me == 0)
-    error->all(FLERR,"Fix qeq some charges not bound within the domain");
+    error->all(FLERR, Error::NOLASTLINE, "Fix qeq some charges not bound within the domain");
 
   if (force->kspace) force->kspace->qsum_qsq();
 }
@@ -322,7 +324,8 @@ void FixQEqCTIP::compute_H()
   }
 
   if (m_fill >= H.m)
-    error->all(FLERR,"Fix qeq/ctip has insufficient H matrix size: m_fill={} H.m={}\n",m_fill, H.m);
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix qeq/ctip has insufficient H matrix size: m_fill={} H.m={}\n",m_fill, H.m);
 }
 
 /* ---------------------------------------------------------------------- */

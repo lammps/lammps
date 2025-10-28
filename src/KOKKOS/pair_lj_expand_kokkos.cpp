@@ -124,12 +124,12 @@ void PairLJExpandKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -140,17 +140,17 @@ void PairLJExpandKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJExpandKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+KK_FLOAT PairLJExpandKokkos<DeviceType>::
+compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
 
-  const F_FLOAT r = sqrt(rsq);
-  const F_FLOAT rshift = r - (STACKPARAMS?m_params[itype][jtype].shift:params(itype,jtype).shift);
-  const F_FLOAT rshiftsq = rshift*rshift;
-  const F_FLOAT r2inv = 1.0/rshiftsq;
-  const F_FLOAT r6inv = r2inv*r2inv*r2inv;
+  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT rshift = r - (STACKPARAMS?m_params[itype][jtype].shift:params(itype,jtype).shift);
+  const KK_FLOAT rshiftsq = rshift*rshift;
+  const KK_FLOAT r2inv = 1.0/rshiftsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
 
-  const F_FLOAT forcelj = r6inv *
+  const KK_FLOAT forcelj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
 
@@ -161,15 +161,15 @@ compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJExpandKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+KK_FLOAT PairLJExpandKokkos<DeviceType>::
+compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
 
-  const F_FLOAT r = sqrt(rsq);
-  const F_FLOAT rshift = r - (STACKPARAMS?m_params[itype][jtype].shift:params(itype,jtype).shift);
-  const F_FLOAT rshiftsq = rshift*rshift;
-  const F_FLOAT r2inv = 1.0/rshiftsq;
-  const F_FLOAT r6inv = r2inv*r2inv*r2inv;
+  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT rshift = r - (STACKPARAMS?m_params[itype][jtype].shift:params(itype,jtype).shift);
+  const KK_FLOAT rshiftsq = rshift*rshift;
+  const KK_FLOAT r2inv = 1.0/rshiftsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
 
   return r6inv*((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
                 (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)) -
@@ -191,18 +191,6 @@ void PairLJExpandKokkos<DeviceType>::allocate()
   d_cutsq = k_cutsq.template view<DeviceType>();
   k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJExpand::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
-}
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairLJExpandKokkos<DeviceType>::settings(int narg, char **arg)
-{
-  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
-
-  PairLJExpand::settings(1,arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -243,22 +231,22 @@ double PairLJExpandKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairLJExpand::init_one(i,j);
 
-  k_params.h_view(i,j).lj1 = lj1[i][j];
-  k_params.h_view(i,j).lj2 = lj2[i][j];
-  k_params.h_view(i,j).lj3 = lj3[i][j];
-  k_params.h_view(i,j).lj4 = lj4[i][j];
-  k_params.h_view(i,j).offset = offset[i][j];
-  k_params.h_view(i,j).shift = shift[i][j];
-  k_params.h_view(i,j).cutsq = cutone*cutone;
-  k_params.h_view(j,i) = k_params.h_view(i,j);
+  k_params.view_host()(i,j).lj1 = lj1[i][j];
+  k_params.view_host()(i,j).lj2 = lj2[i][j];
+  k_params.view_host()(i,j).lj3 = lj3[i][j];
+  k_params.view_host()(i,j).lj4 = lj4[i][j];
+  k_params.view_host()(i,j).offset = offset[i][j];
+  k_params.view_host()(i,j).shift = shift[i][j];
+  k_params.view_host()(i,j).cutsq = cutone*cutone;
+  k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
-    m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
+    m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
   }
 
-  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
-  k_params.template modify<LMPHostType>();
+  k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
+  k_cutsq.modify_host();
+  k_params.modify_host();
 
   return cutone;
 }

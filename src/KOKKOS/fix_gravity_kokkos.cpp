@@ -91,7 +91,7 @@ KOKKOS_INLINE_FUNCTION
 void FixGravityKokkos<DeviceType>::operator()(TagFixGravityRMass, const int i, double &eg) const
 {
   if (mask[i] & groupbit) {
-    double massone = rmass[i];
+    KK_FLOAT massone = rmass[i];
     f(i,0) += massone*xacc;
     f(i,1) += massone*yacc;
     f(i,2) += massone*zacc;
@@ -104,7 +104,7 @@ KOKKOS_INLINE_FUNCTION
 void FixGravityKokkos<DeviceType>::operator()(TagFixGravityMass, const int i, double &eg) const
 {
   if (mask[i] & groupbit) {
-    double massone = mass[type[i]];
+    KK_FLOAT massone = mass[type[i]];
     f(i,0) += massone*xacc;
     f(i,1) += massone*yacc;
     f(i,2) += massone*zacc;

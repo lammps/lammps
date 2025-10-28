@@ -35,9 +35,7 @@
 #include "lepton_utils.h"
 
 using namespace LAMMPS_NS;
-using MathConst::DEG2RAD;
 using MathConst::MY_2PI;
-using MathConst::RAD2DEG;
 using MathExtra::cross3;
 using MathExtra::dot3;
 using MathExtra::norm3;
@@ -398,7 +396,7 @@ void DihedralLepton::coeff(int narg, char **arg)
   }
 
   // if not found, add to list
-  if ((expressions.size() == 0) || (idx == expressions.size())) expressions.push_back(exp_one);
+  if ((expressions.size() == 0) || (idx == expressions.size())) expressions.push_back(std::move(exp_one));
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -508,9 +506,9 @@ double DihedralLepton::get_phi(double const *x1,    //array holding x,y,z coords
   }
 
   //Consider periodic boundary conditions:
-  domain->minimum_image(vb12[0], vb12[1], vb12[2]);
-  domain->minimum_image(vb23[0], vb23[1], vb23[2]);
-  domain->minimum_image(vb34[0], vb34[1], vb34[2]);
+  domain->minimum_image(FLERR, vb12[0], vb12[1], vb12[2]);
+  domain->minimum_image(FLERR, vb23[0], vb23[1], vb23[2]);
+  domain->minimum_image(FLERR, vb34[0], vb34[1], vb34[2]);
 
   //--- Compute the normal to the planes formed by atoms 1,2,3 and 2,3,4 ---
 

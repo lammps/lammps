@@ -140,11 +140,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    Sum of atoms across processors does not equal initial total count.
    This is probably because you have lost some atoms.
 
-*Atom in too many rigid bodies - boost MAXBODY*
-   Fix poems has a parameter MAXBODY (in fix_poems.cpp) which determines
-   the maximum number of rigid bodies a single atom can belong to (i.e. a
-   multibody joint).  The bodies you have defined exceed this limit.
-
 *Atom sort did not operate correctly*
    This is an internal LAMMPS error.  Please report it to the
    developers.
@@ -632,10 +627,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    correct.
 
 *Cannot open fix ave/time file %s*
-   The specified file cannot be opened.  Check that the path and name are
-   correct.
-
-*Cannot open fix poems file %s*
    The specified file cannot be opened.  Check that the path and name are
    correct.
 
@@ -1435,9 +1426,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Could not find fix group ID*
    A group ID used in the fix command does not exist.
 
-*Could not find fix poems group ID*
-   A group ID used in the fix poems command does not exist.
-
 *Could not find fix recenter group ID*
    A group ID used in the fix recenter command does not exist.
 
@@ -1569,10 +1557,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Custom integer vector for fix store/state does not exist*
    The command is accessing a vector added by the fix property/atom
    command, that does not exist.
-
-*Cyclic loop in joint connections*
-   Fix poems cannot (yet) work with coupled bodies whose joints connect
-   the bodies in a ring (or cycle).
 
 *Degenerate lattice primitive vectors*
    Invalid set of 3 lattice vectors for lattice command.
@@ -2623,9 +2607,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Input line quote not followed by white-space*
    An end quote must be followed by white-space.
 
-*Insufficient Jacobi rotations for POEMS body*
-   Eigensolve for rigid body was not sufficiently accurate.
-
 *Insufficient Jacobi rotations for body nparticle*
    Eigensolve for rigid body was not sufficiently accurate.
 
@@ -3641,10 +3622,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Overlapping small/large in pair colloid*
    This potential is infinite when there is an overlap.
 
-*POEMS fix must come before NPT/NPH fix*
-   NPT/NPH fix must be defined in input script after all poems fixes,
-   else the fix contribution to the pressure virial is incorrect.
-
 *PPPM can only currently be used with comm_style brick*
    This is a current restriction in LAMMPS.
 
@@ -4382,11 +4359,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    to encompass the max distance printed when the fix rigid/small command
    was invoked.
 
-*Rigid body has degenerate moment of inertia*
-   Fix poems will only work with bodies (collections of atoms) that have
-   non-zero principal moments of inertia.  This means they must be 3 or
-   more non-collinear atoms, even with joint atoms removed.
-
 *Rigid fix must come before NPT/NPH fix*
    NPT/NPH fix must be defined in input script after all rigid fixes,
    else the rigid fix contribution to the pressure virial is
@@ -4712,9 +4684,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    The fix shake command cannot list more masses than there are atom
    types.
 
-*Too many molecules for fix poems*
-   The limit is 2\^31 = ~2 billion molecules.
-
 *Too many molecules for fix rigid*
    The limit is 2\^31 = ~2 billion molecules.
 
@@ -4743,10 +4712,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Topology type exceeds system topology type*
    The number of bond, angle, etc types exceeds the system setting. See
    the create_box or read_data command for how to specify these values.
-
-*Tree structure in joint connections*
-   Fix poems cannot (yet) work with coupled bodies whose joints connect
-   the bodies in a tree structure.
 
 *Trying to build an occasional neighbor list before initialization completed*
    This is not allowed.  Source code caller needs to be modified.

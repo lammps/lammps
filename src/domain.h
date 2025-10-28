@@ -111,8 +111,8 @@ class Domain : protected Pointers {
   int copymode;
   enum { NO_REMAP, X_REMAP, V_REMAP };
 
-  typedef Region *(*RegionCreator)(LAMMPS *, int, char **);
-  typedef std::map<std::string, RegionCreator> RegionCreatorMap;
+  using RegionCreator = Region *(*) (LAMMPS *, int, char **);
+  using RegionCreatorMap = std::map<std::string, RegionCreator>;
   RegionCreatorMap *region_map;
 
   Domain(class LAMMPS *);
@@ -127,10 +127,16 @@ class Domain : protected Pointers {
   void image_check();
   void box_too_small_check();
   void subbox_too_small_check(double);
-  void minimum_image(double &, double &, double &) const;
-  void minimum_image(double *delta) const { minimum_image(delta[0], delta[1], delta[2]); }
-  void minimum_image_big(double &, double &, double &) const;
-  void minimum_image_big(double *delta) const { minimum_image_big(delta[0], delta[1], delta[2]); }
+  void minimum_image(const std::string &, int, double &, double &, double &) const;
+  void minimum_image(const std::string &file, int line, double *delta) const
+  {
+    minimum_image(file, line, delta[0], delta[1], delta[2]);
+  }
+  void minimum_image_big(const std::string &, int, double &, double &, double &) const;
+  void minimum_image_big(const std::string &file, int line, double *delta) const
+  {
+    minimum_image_big(file, line, delta[0], delta[1], delta[2]);
+  }
   int closest_image(int, int);
   int closest_image(const double *const, int);
   void closest_image(const double *const, const double *const, double *const);
@@ -185,7 +191,7 @@ class Domain : protected Pointers {
   //   but is a far-away image that should be treated as an unbonded neighbor
   // inline since called from neighbor build inner loop
 
-  inline int minimum_image_check(double dx, double dy, double dz)
+  inline int minimum_image_check(double dx, double dy, double dz) const
   {
     if (xperiodic && fabs(dx) > xprd_half) return 1;
     if (yperiodic && fabs(dy) > yprd_half) return 1;

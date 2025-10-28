@@ -39,7 +39,7 @@ void Run::command(int narg, char **arg)
   if (narg < 1) utils::missing_cmd_args(FLERR, "run", error);
 
   if (domain->box_exist == 0)
-    error->all(FLERR,"Run command before simulation box is defined" + utils::errorurl(33));
+    error->all(FLERR, -1, "Run command before simulation box is defined" + utils::errorurl(33));
 
   // ignore run command, if walltime limit was already reached
 
@@ -62,7 +62,6 @@ void Run::command(int narg, char **arg)
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"upto") == 0) {
-      if (iarg+1 > narg) utils::missing_cmd_args(FLERR, "run upto", error);
       uptoflag = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"start") == 0) {
@@ -91,13 +90,13 @@ void Run::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "run every", error);
       nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (nevery <= 0) error->all(FLERR, "Invalid run every argument: {}", nevery);
+      if (nevery <= 0) error->all(FLERR, iarg + 1, "Invalid run every argument: {}", nevery);
       first = iarg+2;
       last = narg-1;
       ncommands = last-first + 1;
       if (ncommands == 1 && strcmp(arg[first],"NULL") == 0) ncommands = 0;
       iarg = narg;
-    } else error->all(FLERR,"Unknown run keyword: {}", arg[iarg]);
+    } else error->all(FLERR, iarg, "Unknown run keyword: {}", arg[iarg]);
   }
 
   // set nsteps as integer, using upto value if specified
@@ -105,12 +104,12 @@ void Run::command(int narg, char **arg)
   int nsteps;
   if (!uptoflag) {
     if (nsteps_input < 0 || nsteps_input > MAXSMALLINT)
-      error->all(FLERR,"Invalid run command N value: {}", nsteps_input);
+      error->all(FLERR, Error::ARGZERO, "Invalid run command N value: {}", nsteps_input);
     nsteps = static_cast<int> (nsteps_input);
   } else {
     bigint delta = nsteps_input - update->ntimestep;
     if (delta < 0 || delta > MAXSMALLINT)
-      error->all(FLERR,"Invalid run command upto value: {}", delta);
+      error->all(FLERR, Error::ARGZERO, "Invalid run command upto value: {}. Must be >= {}", nsteps_input, update->ntimestep);
     nsteps = static_cast<int> (delta);
   }
 
@@ -118,15 +117,15 @@ void Run::command(int narg, char **arg)
 
   if (startflag) {
     if (start < 0)
-      error->all(FLERR,"Invalid run command start value: {}", start);
+      error->all(FLERR, "Invalid run command start value: {}", start);
     if (start > update->ntimestep)
-      error->all(FLERR,"Run command start value is after start of run");
+      error->all(FLERR, "Run command start value {} is after start of run at step {}", start, update->ntimestep);
   }
   if (stopflag) {
     if (stop < 0)
       error->all(FLERR,"Invalid run command stop value: {}", stop);
     if (stop < update->ntimestep + nsteps)
-      error->all(FLERR,"Run command stop value is before end of run");
+      error->all(FLERR,"Run command stop value {} is before end of run at step {}", stop, update->ntimestep + nsteps);
   }
 
   if (!preflag && utils::strmatch(update->integrate_style,"^respa"))

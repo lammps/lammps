@@ -53,6 +53,7 @@ void iter_swap_impl(IteratorType1 a, IteratorType2 b) {
 
 // iter_swap
 template <class IteratorType1, class IteratorType2>
+// NOLINTNEXTLINE(bugprone-exception-escape)
 void iter_swap(IteratorType1 a, IteratorType2 b) {
   Impl::iter_swap_impl(a, b);
 }

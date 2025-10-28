@@ -19,15 +19,40 @@
 
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.random;
+import kokkos.sort;
+#else
 #include <Kokkos_Random.hpp>
 #include <Kokkos_Sort.hpp>
+#endif
 
 #include <utility>  // pair
+
+#if defined(KOKKOS_ENABLE_ONEDPL)
+#define KOKKOS_IMPL_ONEDPL_VERSION                            \
+  ONEDPL_VERSION_MAJOR * 10000 + ONEDPL_VERSION_MINOR * 100 + \
+      ONEDPL_VERSION_PATCH
+#define KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(MAJOR, MINOR, PATCH) \
+  (KOKKOS_IMPL_ONEDPL_VERSION >= ((MAJOR)*10000 + (MINOR)*100 + (PATCH)))
+#endif
+
+#ifndef KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL
+#define KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(MAJOR, MINOR, PATH) 0
+#endif
 
 namespace Test {
 namespace SortImpl {
 
 struct Less {
+#if !defined(KOKKOS_ENABLE_ONEDPL) || \
+    KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(2022, 8, 0)
+  // Test with a comparator that isn't trivially copyable if oneDPL is not
+  // enabled or if oneDPL version >= 2022.8.0
+  Kokkos::View<int *> dummy;
+#endif
+
   template <class ValueType>
   KOKKOS_INLINE_FUNCTION bool operator()(const ValueType &lhs,
                                          const ValueType &rhs) const {
@@ -36,6 +61,13 @@ struct Less {
 };
 
 struct Greater {
+#if !defined(KOKKOS_ENABLE_ONEDPL) || \
+    KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(2022, 8, 0)
+  // Test with a comparator that isn't trivially copyable if oneDPL is not
+  // enabled or if oneDPL version >= 2022.8.0
+  Kokkos::View<int *> dummy;
+#endif
+
   template <class ValueType>
   KOKKOS_INLINE_FUNCTION bool operator()(const ValueType &lhs,
                                          const ValueType &rhs) const {
@@ -252,4 +284,8 @@ TEST(TEST_CATEGORY_DEATH, SortByKeyKeysLargerThanValues) {
 }
 
 }  // namespace Test
+
+#undef KOKKOS_IMPL_ONEDPL_VERSION
+#undef KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL
+
 #endif

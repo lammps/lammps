@@ -61,13 +61,14 @@ void PairLJCharmmCoulLongOpt::compute(int eflag, int vflag)
 template < int EVFLAG, int EFLAG, int NEWTON_PAIR >
 void PairLJCharmmCoulLongOpt::eval()
 {
+// NOLINTBEGIN
   typedef struct { double x,y,z; } vec3_t;
 
   typedef struct {
     double cutsq,lj1,lj2,lj3,lj4,offset;
     double _pad[2];
   } fast_alpha_t;
-
+// NOLINTEND
   int i,j,ii,jj,inum,jnum,itype,jtype,itable,sbindex;
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
@@ -161,7 +162,7 @@ void PairLJCharmmCoulLongOpt::eval()
               rsq_lookup.f = rsq;
               itable = rsq_lookup.i & ncoulmask;
               itable >>= ncoulshiftbits;
-              fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+              fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
               table = ftable[itable] + fraction*dftable[itable];
               forcecoul = tmp_coef3 * table;
             }
@@ -251,7 +252,7 @@ void PairLJCharmmCoulLongOpt::eval()
               rsq_lookup.f = rsq;
               itable = rsq_lookup.i & ncoulmask;
               itable >>= ncoulshiftbits;
-              fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+              fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
               table = ftable[itable] + fraction*dftable[itable];
               forcecoul = tmp_coef3 * table;
               if (factor_coul < 1.0) {

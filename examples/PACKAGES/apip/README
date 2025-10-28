@@ -1,0 +1,11 @@
+The APIP package is based on the paper:
+
+David Immel, Ralf Drautz, Godehard Sutmann; Adaptive-precision potentials for large-scale atomistic simulations. J. Chem. Phys. 14 March 2025; 162 (11): 114119. https://doi.org/10.1063/5.0245877
+
+The pair_style pace/apip requires the installation of lib/pace of the ML-PACE package.
+The installation of lib/pace is described in src/ML-PACE/README .
+
+Examples of how to use an adaptive-precision potential are provided in examples/PACKAGES/apip .
+
+in.vacancy contains a small example that can be used to visualize the transition region and get a visual impression of the selected parameters.
+in.surface.balance in a more realistic example, in which a surface is simulated and the benefit of fix apip_atom_weight and fix balance for adaptive-precision interatomic potentials is demonstrated.

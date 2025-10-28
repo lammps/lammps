@@ -28,17 +28,15 @@ class Comm : protected Pointers {
   int layout;    // LAYOUT_UNIFORM = equal-sized bricks
                  // LAYOUT_NONUNIFORM = logical bricks, but diff sizes via LB
                  // LAYOUT_TILED = general tiling, due to RCB LB
-  enum { SINGLE, MULTI, MULTIOLD };
+  enum { SINGLE, MULTI };
   int mode;    // SINGLE = single cutoff
                // MULTI = multi-collection cutoff
-               // MULTIOLD = multiold-type cutoff
 
   int me, nprocs;               // proc info
   int ghost_velocity;           // 1 if ghost atoms have velocity, 0 if not
   double cutghost[3];           // cutoffs used for acquiring ghost atoms
   double cutghostuser;          // user-specified ghost cutoff (mode == SINGLE)
   double *cutusermulti;         // per collection user ghost cutoff (mode == MULTI)
-  double *cutusermultiold;      // per type user ghost cutoff (mode == MULTIOLD)
   int ncollections;             // # of collections known by comm, used to test if # has changed
   int ncollections_cutoff;      // # of collections stored b cutoff/multi
   int recv_from_partition;      // recv proc layout from this partition

@@ -11,74 +11,44 @@
 #include "colvarproxy.h"
 #include "colvars_memstream.h"
 
-colvarbias_reweightaMD::colvarbias_reweightaMD(char const *key)
-  : colvarbias_histogram(key), grid_count(NULL), grid_dV(NULL),
-    grid_dV_square(NULL), pmf_grid_exp_avg(NULL), pmf_grid_cumulant(NULL),
-    grad_grid_exp_avg(NULL), grad_grid_cumulant(NULL)
-{
-}
+colvarbias_reweightaMD::colvarbias_reweightaMD(char const *key) : colvarbias_histogram(key) {}
 
-colvarbias_reweightaMD::~colvarbias_reweightaMD() {
-  if (grid_dV) {
-    delete grid_dV;
-    grid_dV = NULL;
-  }
-  if (grid_dV_square) {
-    delete grid_dV_square;
-    grid_dV_square = NULL;
-  }
-  if (grid_count) {
-    delete grid_count;
-    grid_count = NULL;
-  }
-  if (pmf_grid_exp_avg) {
-    delete pmf_grid_exp_avg;
-    pmf_grid_exp_avg = NULL;
-  }
-  if (pmf_grid_cumulant) {
-    delete pmf_grid_cumulant;
-    pmf_grid_cumulant = NULL;
-  }
-  if (grad_grid_exp_avg) {
-    delete grad_grid_exp_avg;
-    grad_grid_exp_avg = NULL;
-  }
-  if (grad_grid_cumulant) {
-    delete grad_grid_cumulant;
-    grad_grid_cumulant = NULL;
-  }
-}
+colvarbias_reweightaMD::~colvarbias_reweightaMD() {}
 
 int colvarbias_reweightaMD::init(std::string const &conf) {
   if (cvm::proxy->accelMD_enabled() == false) {
     cvm::error("Error: accelerated MD in your MD engine is not enabled.\n", COLVARS_INPUT_ERROR);
   }
   cvm::main()->cite_feature("reweightaMD colvar bias implementation (NAMD)");
-  int baseclass_init_code = colvarbias_histogram::init(conf);
+  int error_code = colvarbias_histogram::init(conf);
   get_keyval(conf, "CollectAfterSteps", start_after_steps, 0);
   get_keyval(conf, "CumulantExpansion", b_use_cumulant_expansion, true);
   get_keyval(conf, "WritePMFGradients", b_write_gradients, true);
   get_keyval(conf, "historyFreq", history_freq, 0);
+  if ((history_freq % output_freq) != 0) {
+    error_code |=
+        cvm::error("Error: historyFreq must be a multiple of outputFreq.\n", COLVARS_INPUT_ERROR);
+  }
   b_history_files = (history_freq > 0);
-  grid_count = new colvar_grid_scalar(colvars);
+  grid_count.reset(new colvar_grid_scalar(colvars, nullptr, false, grid_conf));
   grid_count->request_actual_value();
   grid->request_actual_value();
-  pmf_grid_exp_avg = new colvar_grid_scalar(colvars);
+  pmf_grid_exp_avg.reset(new colvar_grid_scalar(colvars, grid_count));
   if (b_write_gradients) {
-    grad_grid_exp_avg = new colvar_grid_gradient(colvars);
+    grad_grid_exp_avg.reset(new colvar_grid_gradient(colvars, nullptr, grid_count));
   }
   if (b_use_cumulant_expansion) {
-    grid_dV = new colvar_grid_scalar(colvars);
-    grid_dV_square = new colvar_grid_scalar(colvars);
-    pmf_grid_cumulant = new colvar_grid_scalar(colvars);
+    grid_dV.reset(new colvar_grid_scalar(colvars, grid_count));
+    grid_dV_square.reset(new colvar_grid_scalar(colvars, grid_count));
+    pmf_grid_cumulant.reset(new colvar_grid_scalar(colvars, grid_count));
     grid_dV->request_actual_value();
     grid_dV_square->request_actual_value();
     if (b_write_gradients) {
-      grad_grid_cumulant = new colvar_grid_gradient(colvars);
+      grad_grid_cumulant.reset(new colvar_grid_gradient(colvars, nullptr, grid_count));
     }
   }
   previous_bin.assign(num_variables(), -1);
-  return baseclass_init_code;
+  return error_code;
 }
 
 int colvarbias_reweightaMD::update() {
@@ -193,7 +163,7 @@ int colvarbias_reweightaMD::write_exponential_reweighted_pmf(
       pmf_grid_exp_avg->set_value(i, tmp / count);
     }
   }
-  hist_to_pmf(pmf_grid_exp_avg, grid_count);
+  hist_to_pmf(pmf_grid_exp_avg.get(), grid_count.get());
   pmf_grid_exp_avg->write_multicol(pmf_grid_os);
   if (!keep_open) {
     cvm::proxy->close_output_stream(output_pmf);
@@ -231,9 +201,9 @@ int colvarbias_reweightaMD::write_cumulant_expansion_pmf(
   if (!pmf_grid_cumulant_os) {
     return COLVARS_FILE_ERROR;
   }
-  compute_cumulant_expansion_factor(grid_dV, grid_dV_square,
-                                    grid_count, pmf_grid_cumulant);
-  hist_to_pmf(pmf_grid_cumulant, grid_count);
+  compute_cumulant_expansion_factor(grid_dV.get(), grid_dV_square.get(),
+                                    grid_count.get(), pmf_grid_cumulant.get());
+  hist_to_pmf(pmf_grid_cumulant.get(), grid_count.get());
   pmf_grid_cumulant->write_multicol(pmf_grid_cumulant_os);
   if (!keep_open) {
     cvm::proxy->close_output_stream(output_pmf);

@@ -236,7 +236,7 @@ void BondLepton::coeff(int narg, char **arg)
   }
 
   // if not found, add to list
-  if ((expressions.size() == 0) || (idx == expressions.size())) expressions.push_back(exp_one);
+  if ((expressions.size() == 0) || (idx == expressions.size())) expressions.push_back(std::move(exp_one));
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

@@ -159,7 +159,7 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("five1"), StrEq("001"));
     ASSERT_THAT(variable->retrieve("five2"), StrEq("010"));
     ASSERT_THAT(variable->retrieve("seven"), StrEq(" 2.00"));
-    ASSERT_THAT(variable->retrieve("ten"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("ten"), StrEq("10"));
     ASSERT_THAT(variable->retrieve("eight"), StrEq(""));
     variable->internal_set(variable->find("ten"), 2.5);
     ASSERT_THAT(variable->retrieve("ten"), StrEq("2.5"));
@@ -303,7 +303,7 @@ TEST_F(VariableTest, AtomicSystem)
                  variable->compute_equal("v_self"););
     TEST_FAILURE(".*ERROR: Variable sum2: Inconsistent lengths in vector-style variable.*",
                  variable->compute_equal("max(v_sum2)"););
-    TEST_FAILURE(".*ERROR: Mismatched fix in variable formula.*",
+    TEST_FAILURE(".*ERROR: Fix 'press' in variable formula does not compute.*",
                  variable->compute_equal("f_press"););
     TEST_FAILURE(".*ERROR .*Variable formula compute vector is accessed out-of-range.*",
                  variable->compute_equal("c_press[10]"););
@@ -431,6 +431,8 @@ TEST_F(VariableTest, Functions)
     command("variable ten4   equal     extract_setting(world_size)");
     command("variable ten5   equal     ternary(v_one,1.1,-2.2)");
     command("variable ten6   equal     ternary(${one}==2.0,v_nine,v_ten)");
+    command("variable ten7   equal     ternary(v_one,sqrt(-1.1),2.2)");
+    command("variable ten8   equal     ternary(v_one,1.1,sqrt(-2.2))");
     END_HIDE_OUTPUT();
 
     ASSERT_GT(variable->compute_equal(variable->find("two")), 0.99);
@@ -447,6 +449,7 @@ TEST_F(VariableTest, Functions)
     ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten4")), 1);
     ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten5")), 1.1);
     ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten6")), 3);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten8")), 1.1);
 
     TEST_FAILURE(".*ERROR: Variable four: Invalid syntax in variable formula.*",
                  command("print \"${four}\""););
@@ -459,6 +462,8 @@ TEST_F(VariableTest, Functions)
     TEST_FAILURE(
         ".*ERROR: Unknown setting nprocs for extract_setting.. function in variable formula.*",
         command("print \"$(extract_setting(nprocs))\""););
+    TEST_FAILURE(".*ERROR on proc 0: Variable ten7: Sqrt of negative value in variable formula.*",
+                 command("print \"${ten7}\""););
 }
 
 TEST_F(VariableTest, IfCommand)

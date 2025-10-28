@@ -74,7 +74,7 @@ protected:
   /// (f_cvb_awake and f_cv_awake); a
   /// Biases use this to apply "impulse" biasing forces at the outer timestep
   /// Unused by lower-level objects (cvcs and atom groups)
-  int   time_step_factor;
+  int time_step_factor = 1;
 
   /// List of the states of all features
   std::vector<feature_state> feature_states;
@@ -198,7 +198,9 @@ public:
   /// \param toplevel False if this is called as part of a chain of dependency resolution.
   /// This is used to diagnose failed dependencies by displaying the full stack:
   /// only the toplevel dependency will throw a fatal error.
-  int enable(int f, bool dry_run = false, bool toplevel = true);
+  /// \param error Recursively enable, printing error messages along the way
+  /// Necessary when propagating errors across alternate dependencies
+  int enable(int f, bool dry_run = false, bool toplevel = true, bool error = false);
 
   /// Disable a feature, decrease the reference count of its dependencies
   /// and recursively disable them as applicable
@@ -255,6 +257,8 @@ public:
     f_cvb_scale_biasing_force,
     /// \brief whether this bias is applied to one or more ext-Lagrangian colvars
     f_cvb_extended,
+    /// Process this bias's data in parallel over multiple CPU threads
+    f_cvb_smp,
     f_cvb_ntot
   };
 
@@ -263,8 +267,11 @@ public:
     f_cv_active,
     /// \brief Colvar is awake (active on its own accord) this timestep
     f_cv_awake,
-    /// \brief Gradients are calculated and temporarily stored, so
-    /// that external forces can be applied
+    /// \brief External force can be applied, either to atoms or to an
+    /// extended DOF
+    f_cv_apply_force,
+    /// \brief Gradients are calculated and temporarily stored,
+    /// so that external forces can be propagated to atoms
     f_cv_gradient,
     /// \brief Collect atomic gradient data from all cvcs into vector
     /// atomic_gradient
@@ -277,7 +284,10 @@ public:
     /// forces on the inverse gradient
     f_cv_total_force,
     /// \brief Calculate total force from atomic forces
+    /// or get it from the back-end for an external parameter
     f_cv_total_force_calc,
+    /// \brief Total force is that of current time step
+    f_cv_total_force_current_step,
     /// \brief Subtract the applied force from the total force
     f_cv_subtract_applied_force,
     /// \brief Estimate Jacobian derivative
@@ -289,8 +299,10 @@ public:
     /// center with fictitious mass; bias forces will be applied to
     /// the center
     f_cv_extended_Lagrangian,
-    /// \brief An extended variable that sets an external variable in the
-    /// back-end (eg. an alchemical coupling parameter for lambda-dynamics)
+    /// \brief A variable that constrains or follows an external parameter
+    /// in the back-end (eg. an alchemical coupling parameter for lambda-dynamics)
+    /// If extended Lagrangian, then we drive the external parameter
+    /// Otherwise we follow it
     /// Can have a single component
     f_cv_external,
     /// \brief The extended system coordinate undergoes Langevin dynamics

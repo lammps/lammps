@@ -108,7 +108,7 @@ void KimParam::command(int narg, char **arg)
     error->all(FLERR, "Incorrect arguments in 'kim param' command.\n"
                "'kim param get/set' is mandatory");
 
-  auto fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
+  auto *fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
   if (fix_store) {
     auto *simulatorModel = reinterpret_cast<KIM_SimulatorModel *>(
       fix_store->getptr("simulator_model"));
@@ -127,7 +127,7 @@ void KimParam::command(int narg, char **arg)
   if (force->pair) {
     Pair *pair = force->pair_match("kim", 1, 0);
     if (pair) {
-      auto pairKIM = reinterpret_cast<PairKIM *>(pair);
+      auto *pairKIM = reinterpret_cast<PairKIM *>(pair);
 
       pkim = pairKIM->get_kim_model();
       if (!pkim) error->all(FLERR, "Unable to get the KIM Portable Model");

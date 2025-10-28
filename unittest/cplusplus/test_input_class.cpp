@@ -8,7 +8,6 @@
 #include <mpi.h>
 #include <string>
 
-#include "../testing/utils.h"
 #include "gtest/gtest.h"
 
 const char *demo_input[] = {"region       box block 0 $x 0 2 0 2", "create_box 1 box",

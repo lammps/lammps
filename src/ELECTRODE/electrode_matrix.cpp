@@ -90,7 +90,7 @@ void ElectrodeMatrix::compute_array(double **array, bool timer_flag)
   MPI_Barrier(world);
   double kspace_time = MPI_Wtime();
   update_mpos();
-  electrode_kspace->compute_matrix(&mpos[0], array, timer_flag);
+  electrode_kspace->compute_matrix(mpos.data(), array, timer_flag);
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
     utils::logmesg(lmp, "KSpace time: {:.4g} s\n", MPI_Wtime() - kspace_time);
@@ -98,7 +98,7 @@ void ElectrodeMatrix::compute_array(double **array, bool timer_flag)
   pair_contribution(array);
   //cout << array[0][0] << ", " << array[0][1] << endl;
   self_contribution(array);
-  electrode_kspace->compute_matrix_corr(&mpos[0], array);
+  electrode_kspace->compute_matrix_corr(mpos.data(), array);
   if (tfflag) tf_contribution(array);
 
   // reduce coulomb matrix with contributions from all procs
@@ -138,7 +138,7 @@ void ElectrodeMatrix::pair_contribution(double **array)
     // skip if atom I is not in either group
     if (!(mask[i] & groupbit)) continue;
 
-    bigint const ipos = mpos[i];
+    const bigint ipos = mpos[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -210,7 +210,7 @@ void ElectrodeMatrix::tf_contribution(double **array)
 
 void ElectrodeMatrix::update_mpos()
 {
-  int const nall = atom->nlocal + atom->nghost;
+  const int nall = atom->nlocal + atom->nghost;
   tagint *tag = atom->tag;
   int *mask = atom->mask;
   mpos = std::vector<bigint>(nall, -1);

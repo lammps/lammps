@@ -357,7 +357,7 @@ SYCLInternal::IndirectKernelMem& SYCLInternal::get_indirect_kernel_mem() {
 
 template <sycl::usm::alloc Kind>
 size_t SYCLInternal::USMObjectMem<Kind>::reserve(size_t n) {
-  assert(m_q);
+  KOKKOS_ASSERT(m_q);
 
   if (m_capacity < n) {
     AllocationSpace alloc_space(*m_q);

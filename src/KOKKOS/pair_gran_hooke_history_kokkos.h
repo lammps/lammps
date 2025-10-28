@@ -57,32 +57,32 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally_xyz(EV_FLOAT &ev, int i, int j,
-                    F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-                    X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
+                    KK_FLOAT fx, KK_FLOAT fy, KK_FLOAT fz,
+                    KK_FLOAT delx, KK_FLOAT dely, KK_FLOAT delz) const;
 
  protected:
-  typename AT::t_x_array_randomread x;
-  typename AT::t_x_array c_x;
-  typename AT::t_v_array_randomread v;
-  typename AT::t_v_array_randomread omega;
-  typename AT::t_f_array f;
-  typename AT::t_f_array torque;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkfloat_1d_3_lr c_x;
+  typename AT::t_kkfloat_1d_3_randomread v;
+  typename AT::t_kkfloat_1d_3_randomread omega;
+  typename AT::t_kkacc_1d_3 f;
+  typename AT::t_kkfloat_1d_3 torque;
   typename AT::t_int_1d_randomread type;
   typename AT::t_int_1d_randomread mask;
-  typename AT::t_float_1d_randomread rmass;
-  typename AT::t_float_1d_randomread radius;
+  typename AT::t_kkfloat_1d_randomread rmass;
+  typename AT::t_kkfloat_1d_randomread radius;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
   typename AT::t_int_2d d_firsttouch;
-  typename AT::t_float_2d d_firstshear;
+  typename AT::t_kkfloat_2d d_firstshear;
 
   typename AT::t_neighbors_2d d_neighbors_touch;
   typename AT::t_int_1d d_numneigh_touch;

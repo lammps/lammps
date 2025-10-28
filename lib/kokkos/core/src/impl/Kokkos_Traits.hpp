@@ -20,7 +20,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <Kokkos_Macros.hpp>
-#include <impl/Kokkos_BitOps.hpp>
 #include <string>
 #include <type_traits>
 
@@ -116,16 +115,6 @@ struct are_integral<T, Args...> {
 
 namespace Kokkos {
 namespace Impl {
-
-//----------------------------------------------------------------------------
-// These 'constexpr'functions can be used as
-// both regular functions and meta-function.
-
-/**\brief  There exists integral 'k' such that N = 2^k */
-KOKKOS_INLINE_FUNCTION
-constexpr bool is_integral_power_of_two(const size_t N) {
-  return (0 < N) && (0 == (N & (N - 1)));
-}
 
 //----------------------------------------------------------------------------
 

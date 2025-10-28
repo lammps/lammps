@@ -139,7 +139,7 @@ void FixMolSwap::init()
 {
   // c_pe = compute used to calculate before/after potential energy
 
-  auto id_pe = (char *) "thermo_pe";
+  auto *id_pe = (char *) "thermo_pe";
   int ipe = modify->find_compute(id_pe);
   c_pe = modify->compute[ipe];
 
@@ -488,7 +488,7 @@ void FixMolSwap::write_restart(FILE *fp)
 void FixMolSwap::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   seed = static_cast<int> (list[n++]);
   random->reset(seed);

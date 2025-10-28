@@ -56,3 +56,88 @@ add_test(NAME JSON COMMAND test_json)
 add_executable(test_math_eigen_impl test_math_eigen_impl.cpp)
 target_include_directories(test_math_eigen_impl PRIVATE ${LAMMPS_SOURCE_DIR})
 add_test(NAME MathEigen COMMAND test_math_eigen_impl 10 5)
+
+# =============================================================================
+# FFT Testing Infrastructure
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# FFT3D Tests (Standard KSPACE FFT)
+# -----------------------------------------------------------------------------
+if(PKG_KSPACE)
+  # Build test_fft3d executable
+  add_executable(test_fft3d test_fft3d.cpp ../force-styles/error_stats.cpp)
+  target_link_libraries(test_fft3d PRIVATE lammps GTest::GMockMain)
+  target_include_directories(test_fft3d PRIVATE ${LAMMPS_SOURCE_DIR})
+
+  # Add Kokkos if enabled
+  if(PKG_KOKKOS)
+    target_link_libraries(test_fft3d PRIVATE Kokkos::kokkos)
+  endif()
+
+  # Propagate FFT_SINGLE preprocessor definition
+  if(FFT_SINGLE)
+    target_compile_definitions(test_fft3d PRIVATE -DFFT_SINGLE)
+  endif()
+
+  # Register serial test
+  add_test(NAME FFT3D COMMAND test_fft3d)
+  set_tests_properties(FFT3D PROPERTIES
+    LABELS "fft;kspace;utils"
+    ENVIRONMENT "OMP_PROC_BIND=false")
+
+  # Register MPI parallel tests (if MPI is enabled)
+  if(BUILD_MPI)
+    # Test with 2 processes
+    add_mpi_test(NAME FFT3D_MPI_2proc NUM_PROCS 2 COMMAND $<TARGET_FILE:test_fft3d>)
+    set_tests_properties(FFT3D_MPI_2proc PROPERTIES
+      LABELS "fft;kspace;mpi;utils"
+      ENVIRONMENT "OMP_PROC_BIND=false")
+
+    # Test with 4 processes
+    add_mpi_test(NAME FFT3D_MPI_4proc NUM_PROCS 4 COMMAND $<TARGET_FILE:test_fft3d>)
+    set_tests_properties(FFT3D_MPI_4proc PROPERTIES
+      LABELS "fft;kspace;mpi;utils"
+      ENVIRONMENT "OMP_PROC_BIND=false")
+  endif()
+endif()
+
+# -----------------------------------------------------------------------------
+# FFT3D KOKKOS Tests (KOKKOS FFT - CPU and GPU)
+# -----------------------------------------------------------------------------
+if(PKG_KSPACE AND PKG_KOKKOS)
+  # Build test_fft3d_kokkos executable
+  add_executable(test_fft3d_kokkos test_fft3d_kokkos.cpp ../force-styles/error_stats.cpp)
+  target_link_libraries(test_fft3d_kokkos PRIVATE lammps GTest::GMockMain Kokkos::kokkos)
+  target_include_directories(test_fft3d_kokkos PRIVATE ${LAMMPS_SOURCE_DIR} ${LAMMPS_SOURCE_DIR}/KSPACE)
+
+  # Propagate FFT_SINGLE preprocessor definition
+  if(FFT_SINGLE)
+    target_compile_definitions(test_fft3d_kokkos PRIVATE -DFFT_SINGLE)
+  endif()
+
+  # Register serial test
+  add_test(NAME FFT3DKokkos COMMAND test_fft3d_kokkos)
+  set_tests_properties(FFT3DKokkos PROPERTIES
+    LABELS "fft;kokkos;kspace;utils"
+    ENVIRONMENT "OMP_PROC_BIND=false")
+
+  # Register MPI parallel tests (if MPI is enabled)
+  if(BUILD_MPI)
+    # Test with 2 processes
+    add_mpi_test(NAME FFT3DKokkos_MPI_2proc NUM_PROCS 2 COMMAND $<TARGET_FILE:test_fft3d_kokkos>)
+    set_tests_properties(FFT3DKokkos_MPI_2proc PROPERTIES
+      LABELS "fft;kokkos;kspace;mpi;utils"
+      ENVIRONMENT "OMP_PROC_BIND=false")
+
+    # Test with 4 processes
+    add_mpi_test(NAME FFT3DKokkos_MPI_4proc NUM_PROCS 4 COMMAND $<TARGET_FILE:test_fft3d_kokkos>)
+    set_tests_properties(FFT3DKokkos_MPI_4proc PROPERTIES
+      LABELS "fft;kokkos;kspace;mpi;utils"
+      ENVIRONMENT "OMP_PROC_BIND=false")
+  endif()
+endif()
+
+# =============================================================================
+# End of FFT Testing Infrastructure
+# =============================================================================

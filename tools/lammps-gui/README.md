@@ -1,14 +1,14 @@
 LAMMPS-GUI
 
-LAMMPS-GUI is essentially a small graphical text editor that is linked
-to the LAMMPS library and thus can run LAMMPS using the contents of the
-text buffer as input directly without requiring an additional LAMMPS
-executable. It can also capture and show the screen output, a line graph
-of thermodynamic data and snapshot images in separate windows.
+LAMMPS-GUI is a graphical text editor customized for editing LAMMPS
+input files that is linked to the LAMMPS C-library interface.
+It used to be included with LAMMPS in this folder, but it is now
+hosted in its own git repository at https://github.com/akohlmey/lammps-gui/
+and the online documentation is at https://lammps-gui.lammps.org/
 
-Detailed documentation about installing and using LAMMPS-GUI is in
-the LAMMPS manual.
+It is still possible to compile LAMMPS-GUI together with LAMMPS
+and link to it directly.
 
 --------
 
-updated by Axel Kohlmeyer, 2024-07-17
+updated by Axel Kohlmeyer, 2025-08-30

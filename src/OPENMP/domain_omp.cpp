@@ -24,9 +24,9 @@
 
 using namespace LAMMPS_NS;
 
-typedef struct {
+using dbl3_t = struct {
   double x, y, z;
-} dbl3_t;
+};
 
 /* ----------------------------------------------------------------------
    enforce PBC and modify box image flags for each atom
@@ -175,6 +175,31 @@ void DomainOMP::lamda2x(int n)
 }
 
 /* ----------------------------------------------------------------------
+   convert triclinic 0-1 lamda coords to box coords for all N atoms
+   x = H lamda + x0;
+------------------------------------------------------------------------- */
+
+void DomainOMP::lamda2x(int n, int _groupbit)
+{
+  const int num = n;
+  const int groupbit = _groupbit;
+  if (!n) return;
+  auto *_noalias const x = (dbl3_t *) atom->x[0];
+  const int *_noalias const mask = atom->mask;
+
+#if defined(_OPENMP)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
+#endif
+  for (int i = 0; i < num; i++) {
+    if (mask[i] & groupbit) {
+      x[i].x = h[0] * x[i].x + h[5] * x[i].y + h[4] * x[i].z + boxlo[0];
+      x[i].y = h[1] * x[i].y + h[3] * x[i].z + boxlo[1];
+      x[i].z = h[2] * x[i].z + boxlo[2];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    convert box coords to triclinic 0-1 lamda coords for all N atoms
    lamda = H^-1 (x - x0)
 ------------------------------------------------------------------------- */
@@ -196,5 +221,33 @@ void DomainOMP::x2lamda(int n)
     x[i].x = h_inv[0] * delta0 + h_inv[5] * delta1 + h_inv[4] * delta2;
     x[i].y = h_inv[1] * delta1 + h_inv[3] * delta2;
     x[i].z = h_inv[2] * delta2;
+  }
+}
+/* ----------------------------------------------------------------------
+   convert box coords to triclinic 0-1 lamda coords for all N atoms
+   lamda = H^-1 (x - x0)
+------------------------------------------------------------------------- */
+
+void DomainOMP::x2lamda(int n, int _groupbit)
+{
+  const int num = n;
+  const int groupbit = _groupbit;
+  if (!n) return;
+  auto *_noalias const x = (dbl3_t *) atom->x[0];
+  const int *_noalias const mask = atom->mask;
+
+#if defined(_OPENMP)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
+#endif
+  for (int i = 0; i < num; i++) {
+    if (mask[i] & groupbit) {
+      double delta0 = x[i].x - boxlo[0];
+      double delta1 = x[i].y - boxlo[1];
+      double delta2 = x[i].z - boxlo[2];
+
+      x[i].x = h_inv[0] * delta0 + h_inv[5] * delta1 + h_inv[4] * delta2;
+      x[i].y = h_inv[1] * delta1 + h_inv[3] * delta2;
+      x[i].z = h_inv[2] * delta2;
+    }
   }
 }

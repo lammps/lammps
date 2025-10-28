@@ -41,12 +41,12 @@
 #endif
 
 #if defined(LAMMPS_SMALLBIG)
-typedef int tagint;
-typedef int64_t bigint;
+using tagint = int;
+using bigint = int64_t;
 #define BIGINT_FORMAT "%" PRId64
 #else /* LAMMPS_BIGBIG */
-typedef int64_t tagint;
-typedef int64_t bigint;
+using tagint = int64_t;
+using bigint = int64_t;
 #define BIGINT_FORMAT "%" PRId64
 #endif
 
@@ -80,7 +80,7 @@ int main(int narg, char **arg)
     }
 
     n = strlen(arg[iarg]) + 1 + 4;
-    auto filetxt = new char[n];
+    auto *filetxt = new char[n];
     strcpy(filetxt, arg[iarg]);
     strcat(filetxt, ".txt");
     FILE *fptxt = fopen(filetxt, "w");

@@ -15,6 +15,7 @@
 #include "style_compute.h"    // IWYU pragma: keep
 #include "style_fix.h"        // IWYU pragma: keep
 
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"    // IWYU pragma: keep
@@ -130,8 +131,9 @@ Modify::~Modify()
   memory->destroy(fmask);
 
   // delete all computes
+  // do it via delete_compute() for clean deletion of computes that have created other computes
 
-  for (int i = 0; i < ncompute; i++) delete compute[i];
+  while (ncompute) delete_compute(0);
   memory->sfree(compute);
 
   delete[] list_initial_integrate;
@@ -934,6 +936,9 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
     fix_list = std::vector<Fix *>(fix, fix + nfix);
   }
 
+  if (fix[ifix]->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
+
   // post_constructor() can call virtual methods in parent or child
   //   which would otherwise not yet be visible in child class
   // post_constructor() allows new fix to create other fixes
@@ -1003,9 +1008,9 @@ Fix *Modify::add_fix(const std::string &fixcmd, int trysuffix)
         replace it later with the desired Fix instance
 ------------------------------------------------------------------------- */
 
-Fix *Modify::replace_fix(const char *replaceID, int narg, char **arg, int trysuffix)
+Fix *Modify::replace_fix(const std::string &replaceID, int narg, char **arg, int trysuffix)
 {
-  auto oldfix = get_fix_by_id(replaceID);
+  auto *oldfix = get_fix_by_id(replaceID);
   if (!oldfix) error->all(FLERR, Error::NOLASTLINE,
                           "Modify replace_fix ID {} could not be found", replaceID);
 
@@ -1043,7 +1048,7 @@ Fix *Modify::replace_fix(const std::string &oldfix, const std::string &fixcmd, i
   std::vector<char *> newarg(args.size());
   int i = 0;
   for (const auto &arg : args) { newarg[i++] = (char *) arg.c_str(); }
-  return replace_fix(oldfix.c_str(), args.size(), newarg.data(), trysuffix);
+  return replace_fix(oldfix, args.size(), newarg.data(), trysuffix);
 }
 
 /* ----------------------------------------------------------------------
@@ -1054,7 +1059,7 @@ void Modify::modify_fix(int narg, char **arg)
 {
   if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify", error);
 
-  auto ifix = get_fix_by_id(arg[0]);
+  auto *ifix = get_fix_by_id(arg[0]);
   if (!ifix) error->all(FLERR, Error::NOLASTLINE, "Could not find fix_modify ID {}", arg[0]);
   ifix->modify_params(narg - 1, &arg[1]);
 }
@@ -1298,6 +1303,9 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
 
   compute_list = std::vector<Compute *>(compute, compute + ncompute + 1);
 
+  if (compute[ncompute]->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
+
   // post_constructor() can call virtual methods in parent or child
   //   which would otherwise not yet be visible in child class
   // post_constructor() allows new compute to create other computes
@@ -1334,7 +1342,7 @@ void Modify::modify_compute(int narg, char **arg)
 
   // lookup Compute ID
 
-  auto icompute = get_compute_by_id(arg[0]);
+  auto *icompute = get_compute_by_id(arg[0]);
   if (!icompute)
     error->all(FLERR, Error::NOLASTLINE, "Could not find compute_modify ID {}", arg[0]);
   icompute->modify_params(narg - 1, &arg[1]);
@@ -1533,7 +1541,7 @@ int Modify::read_restart(FILE *fp)
 
   // allocate space for each entry
 
-  if (nfix_restart_global) {
+  if (nfix_restart_global > 0) {
     id_restart_global = new char *[nfix_restart_global];
     style_restart_global = new char *[nfix_restart_global];
     state_restart_global = new char *[nfix_restart_global];

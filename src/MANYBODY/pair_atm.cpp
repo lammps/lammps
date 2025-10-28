@@ -33,7 +33,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_atm_package[] =
-  "ATM package: doi:10.1063/1.4704930\n\n"
+  "pair_style atm command: doi:10.1063/1.4704930\n\n"
   "@Article{Lishchuk:2012:164501,\n"
   " author = {S. V. Lishchuk},\n"
   " title = {Role of Three-Body Interactions in Formation of Bulk Viscosity in Liquid Argon},\n"

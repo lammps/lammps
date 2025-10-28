@@ -52,7 +52,7 @@ namespace LAMMPS_NS {
 namespace user_manifold {
 
   template <typename m_type>
-  void make_manifold_if(manifold **man_ptr, const char *name, LAMMPS *lmp, int narg, char **arg)
+  static void make_manifold_if(manifold **man_ptr, const char *name, LAMMPS *lmp, int narg, char **arg)
   {
     if (strcmp(m_type::type(), name) == 0) {
       if (*man_ptr == nullptr) { *man_ptr = new m_type(lmp, narg, arg); }

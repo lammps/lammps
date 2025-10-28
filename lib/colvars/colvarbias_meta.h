@@ -10,12 +10,16 @@
 #ifndef COLVARBIAS_META_H
 #define COLVARBIAS_META_H
 
-#include <vector>
-#include <list>
 #include <iosfwd>
+#include <list>
+#include <memory>
+#include <vector>
 
 #include "colvarbias.h"
-#include "colvargrid.h"
+
+class colvar_grid_scalar;
+class colvar_grid_gradient;
+
 
 
 /// Metadynamics bias (implementation of \link colvarbias \endlink)
@@ -38,32 +42,33 @@ public:
   Communication comm;
 
   colvarbias_meta(char const *key);
-  virtual ~colvarbias_meta();
+  ~colvarbias_meta();
 
-  virtual int init(std::string const &conf);
-  virtual int init_replicas_params(std::string const &conf);
-  virtual int init_well_tempered_params(std::string const &conf);
-  virtual int init_ebmeta_params(std::string const &conf);
+  int init(std::string const &conf) override;
+  int init_replicas_params(std::string const &conf);
+  int init_well_tempered_params(std::string const &conf);
+  int init_ebmeta_params(std::string const &conf);
 
-  virtual int clear_state_data();
+  int clear_state_data() override;
 
-  virtual int update();
-  virtual int update_grid_params();
-  virtual int update_bias();
-  virtual int update_grid_data();
-  virtual int replica_share();
-  virtual size_t replica_share_freq() const;
+  int update() override;
+  int update_grid_params();
+  int update_bias();
+  int update_grid_data();
 
-  virtual int calc_energy(std::vector<colvarvalue> const *values);
-  virtual int calc_forces(std::vector<colvarvalue> const *values);
+  int replica_share() override;
+  size_t replica_share_freq() const override;
 
-  virtual std::string const get_state_params() const;
-  virtual int set_state_params(std::string const &state_conf);
+  int calc_energy(std::vector<colvarvalue> const *values) override;
+  int calc_forces(std::vector<colvarvalue> const *values) override;
 
-  virtual std::ostream &write_state_data(std::ostream &os);
-  virtual cvm::memory_stream &write_state_data(cvm::memory_stream &os);
-  virtual std::istream &read_state_data(std::istream &is);
-  virtual cvm::memory_stream &read_state_data(cvm::memory_stream &is);
+  std::string const get_state_params() const override;
+  int set_state_params(std::string const &state_conf) override;
+
+  std::ostream &write_state_data(std::ostream &os) override;
+  cvm::memory_stream &write_state_data(cvm::memory_stream &os) override;
+  std::istream &read_state_data(std::istream &is) override;
+  cvm::memory_stream &read_state_data(cvm::memory_stream &is) override;
 
 private:
 
@@ -79,10 +84,10 @@ public:
   /// Function called by read_state_data() to execute rebinning (if requested)
   void rebin_grids_after_restart();
 
-  virtual int setup_output();
-  virtual int write_output_files();
-  virtual void write_pmf();
-  virtual int write_state_to_replicas();
+  int setup_output() override;
+  int write_output_files() override;
+  int write_state_to_replicas() override;
+  void write_pmf();
 
   class hill;
   typedef std::list<hill>::iterator hill_iter;
@@ -99,7 +104,7 @@ protected:
   std::vector<cvm::real> colvar_sigmas;
 
   /// \brief Number of simulation steps between two hills
-  size_t     new_hill_freq;
+  size_t     new_hill_freq = 0;
 
   /// Write the hill logfile
   bool b_hills_traj;
@@ -123,8 +128,7 @@ protected:
   hill_iter new_hills_off_grid_begin;
 
   /// Regenerate the hills_off_grid list
-  void recount_hills_off_grid(hill_iter h_first, hill_iter h_last,
-                              colvar_grid_scalar *ge);
+  void recount_hills_off_grid(hill_iter h_first, hill_iter h_last);
 
   template <typename OST> OST &write_hill_template_(OST &os, colvarbias_meta::hill const &h);
 
@@ -182,7 +186,7 @@ protected:
   bool       expand_grids;
 
   /// \brief How often the hills should be projected onto the grids
-  size_t     grids_freq;
+  size_t     grids_freq = 0;
 
   /// Keep hills in the restart file (e.g. to accurately rebin later)
   bool       keep_hills;
@@ -211,7 +215,7 @@ protected:
   bool       ebmeta;
 
   /// Target distribution for EBmeta
-  colvar_grid_scalar* target_dist;
+  std::unique_ptr<colvar_grid_scalar> target_dist;
 
   /// Number of equilibration steps for EBmeta
   cvm::step_number ebmeta_equil_steps;
@@ -223,15 +227,14 @@ protected:
   bool       safely_read_restart;
 
   /// Hill energy, cached on a grid
-  colvar_grid_scalar    *hills_energy;
+  std::shared_ptr<colvar_grid_scalar> hills_energy;
 
   /// Hill forces, cached on a grid
-  colvar_grid_gradient  *hills_energy_gradients;
+  std::shared_ptr<colvar_grid_gradient> hills_energy_gradients;
 
-  /// \brief Project the selected hills onto grids
-  void project_hills(hill_iter h_first, hill_iter h_last,
-                      colvar_grid_scalar *ge, colvar_grid_gradient *gf,
-                      bool print_progress = false);
+  /// Project the selected hills onto grids
+  void project_hills(hill_iter h_first, hill_iter h_last, colvar_grid_scalar *ge,
+                     colvar_grid_gradient *gf, bool print_progress = false);
 
 
   // Multiple Replicas variables and functions

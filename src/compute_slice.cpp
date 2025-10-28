@@ -22,6 +22,8 @@
 #include "update.h"
 #include "variable.h"
 
+#include <utility>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -55,7 +57,7 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, nar
     if ((val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE) || (argi.get_dim() > 1))
       error->all(FLERR, iarg, "Illegal compute slice argument: {}", arg[iarg]);
 
-    values.push_back(val);
+    values.push_back(std::move(val));
   }
 
   // setup and error check

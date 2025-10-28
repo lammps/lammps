@@ -248,7 +248,7 @@ caught by the LAMMPS ``main()`` program and then handled accordingly.
 The reason for this approach is to support applications, especially
 graphical applications like :ref:`LAMMPS-GUI <lammps_gui>`, that are
 linked to the LAMMPS library and have a mechanism to avoid that an error
-in LAMMPS terminates the application. By catching the exceptions, the
+in LAMMPS terminates the application.  By catching the exceptions, the
 application can delete the failing LAMMPS class instance and create a
 new one to try again.  In a similar fashion, the :doc:`LAMMPS Python
 module <Python_module>` checks for this and then re-throws corresponding
@@ -292,16 +292,21 @@ processing similar to the "format()" functionality in Python.
 
 .. note::
 
-   For commands like :doc:`fix ave/time <fix_ave_time>` that accept
-   wildcard arguments, the :cpp:func:`utils::expand_args` function
-   may be passed as an optional argument where the function will provide
-   a map to the original arguments from the expanded argument indices.
+   Commands that accept wildcard arguments, for example
+   :doc:`fix ave/time <fix_ave_time>`, use
+   :cpp:func:`utils::expand_args() <LAMMPS_NS::utils::expand_args>`
+   to convert the wildcards into a list of explicit arguments.
+   This function accepts a pointer address as an optional argument,
+   which will be set to a map to the original arguments from the
+   expanded argument indices.  Please see the corresponding source
+   code for details on how to apply this map in error messages.
 
 For complex errors, that can have multiple causes and which cannot be
 explained in a single line, you can append to the error message, the
-string created by :cpp:func:`utils::errorurl`, which then provides a
-URL pointing to a paragraph of the :doc:`Errors_details` that
-corresponds to the number provided. Example:
+string created by :cpp:func:`utils::errorurl()
+<LAMMPS_NS::utils::errorurl>`, which then provides a URL pointing to a
+paragraph of the :doc:`Errors_details` that corresponds to the number
+provided. Example:
 
 .. code-block:: c++
 

@@ -270,10 +270,10 @@ class Bitset {
     offset = !(scan_direction & BIT_SCAN_REVERSE)
                  ? offset
                  : (offset + block_mask) & block_mask;
-    block  = Impl::rotate_right(block, offset);
+    block  = Experimental::rotr_builtin(block, offset);
     return (((!(scan_direction & BIT_SCAN_REVERSE)
-                  ? Impl::bit_scan_forward(block)
-                  : Impl::int_log2(block)) +
+                  ? Experimental::countr_zero_builtin(block)
+                  : Experimental::bit_width_builtin(block) - 1) +
              offset) &
             block_mask) +
            block_start;

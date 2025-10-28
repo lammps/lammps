@@ -34,7 +34,7 @@ void BondDeprecated::settings(int, char **)
   // called, our style was just added at the end of the list of substyles
 
   if (utils::strmatch(my_style, "^hybrid")) {
-    auto hybrid = dynamic_cast<BondHybrid *>(force->bond);
+    auto *hybrid = dynamic_cast<BondHybrid *>(force->bond);
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 

@@ -113,11 +113,69 @@ TEST_F(LibraryProperties, thermo)
     lammps_command(lmp, "run 2 post no");
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    EXPECT_EQ(lammps_get_thermo(lmp, "step"), 2);
-    EXPECT_EQ(lammps_get_thermo(lmp, "atoms"), 29);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "step"), 2.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "atoms"), 29.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "bonds"), 24.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "angles"), 30.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "dihedrals"), 31.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "impropers"), 2.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "fmax"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "fnorm"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "nbuild"), 1.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "ndanger"), 0);
     EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "vol"), 3375.0);
     EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "density"), 0.12211250945013695);
     EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "cellalpha"), 90.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "cellbeta"), 90.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "cellgamma"), 90.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "xlo"), -6.024572);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "xhi"), 8.975428);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "ylo"), -7.692866);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "yhi"), 7.307134);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "zlo"), -8.086924);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "zhi"), 6.913076);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "xy"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "xz"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "yz"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "avecx"), 15.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "avecy"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "avecz"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "bvecx"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "bvecy"), 15.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "bvecz"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "cvecx"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "cvecy"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "cvecz"), 15.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "xlat"), 1.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "ylat"), 1.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "zlat"), 1.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "cella"), 15.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "cellb"), 15.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "cellc"), 15.0);
+    EXPECT_GT(lammps_get_thermo(lmp, "time"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "part"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "timeremain"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "evdwl"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "coul"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "epair"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "ebond"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "eangle"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "edihed"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "eimp"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "emol"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "elong"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "etail"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "enthalpy"), 3.9008760748576936);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "ecouple"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "econserve"), 2.3405256449146163);
+
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "unknown"), 0.0);
+    EXPECT_DOUBLE_EQ(lammps_get_thermo(nullptr, "unknown"), 0.0);
+    if (lammps_has_error(lmp)) {
+        char buf[512];
+        lammps_get_last_error_message(lmp, buf, 512);
+        EXPECT_THAT(buf, HasSubstr("Invalid LAMMPS handle"));
+    }
 
     bval = *(bigint *)lammps_last_thermo(lmp, "step", 0);
     EXPECT_EQ(bval, 2);
@@ -303,6 +361,15 @@ TEST_F(LibraryProperties, setting)
     EXPECT_EQ(lammps_extract_setting(lmp, "ndihedraltypes"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "nimpropertypes"), 0);
 
+    EXPECT_EQ(lammps_extract_setting(lmp, "neigh_every"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "neigh_delay"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "neigh_dist_check"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "neigh_ago"), -1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "nbondlist"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "nanglelist"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "ndihedrallist"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "nimproperlist"), 0);
+
     EXPECT_EQ(lammps_extract_setting(lmp, "molecule_flag"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "q_flag"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "mu_flag"), 0);
@@ -313,7 +380,7 @@ TEST_F(LibraryProperties, setting)
         std::string input = path_join(INPUT_DIR, "in.fourmol");
         if (!verbose) ::testing::internal::CaptureStdout();
         lammps_file(lmp, input.c_str());
-        lammps_command(lmp, "run 2 post no");
+        lammps_command(lmp, "run 3 post no");
         if (!verbose) ::testing::internal::GetCapturedStdout();
         EXPECT_EQ(lammps_extract_setting(lmp, "triclinic"), 0);
         EXPECT_EQ(lammps_extract_setting(lmp, "box_exist"), 1);
@@ -327,6 +394,15 @@ TEST_F(LibraryProperties, setting)
         EXPECT_EQ(lammps_extract_setting(lmp, "nangletypes"), 4);
         EXPECT_EQ(lammps_extract_setting(lmp, "ndihedraltypes"), 5);
         EXPECT_EQ(lammps_extract_setting(lmp, "nimpropertypes"), 2);
+
+        EXPECT_EQ(lammps_extract_setting(lmp, "neigh_every"), 2);
+        EXPECT_EQ(lammps_extract_setting(lmp, "neigh_delay"), 2);
+        EXPECT_EQ(lammps_extract_setting(lmp, "neigh_dist_check"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "neigh_ago"), 1);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nbondlist"), 24);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nanglelist"), 30);
+        EXPECT_EQ(lammps_extract_setting(lmp, "ndihedrallist"), 31);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nimproperlist"), 2);
 
         EXPECT_EQ(lammps_extract_setting(lmp, "molecule_flag"), 1);
         EXPECT_EQ(lammps_extract_setting(lmp, "q_flag"), 1);
@@ -365,9 +441,47 @@ TEST_F(LibraryProperties, global)
     char *c_ptr = (char *)lammps_extract_global(lmp, "units");
     EXPECT_THAT(c_ptr, StrEq("real"));
 
-    EXPECT_EQ(lammps_extract_global_datatype(lmp, "ntimestep"), LAMMPS_INT64);
-    auto *b_ptr = (int64_t *)lammps_extract_global(lmp, "ntimestep");
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "ntimestep"), LAMMPS_BIGINT);
+    auto *b_ptr = (bigint *)lammps_extract_global(lmp, "ntimestep");
     EXPECT_EQ((*b_ptr), 2);
+
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "natoms"), LAMMPS_BIGINT);
+    b_ptr = (bigint *)lammps_extract_global(lmp, "natoms");
+    EXPECT_EQ((*b_ptr), 29);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "nbonds"), LAMMPS_BIGINT);
+    b_ptr = (bigint *)lammps_extract_global(lmp, "nbonds");
+    EXPECT_EQ((*b_ptr), 24);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "nangles"), LAMMPS_BIGINT);
+    b_ptr = (bigint *)lammps_extract_global(lmp, "nangles");
+    EXPECT_EQ((*b_ptr), 30);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "ndihedrals"), LAMMPS_BIGINT);
+    b_ptr = (bigint *)lammps_extract_global(lmp, "ndihedrals");
+    EXPECT_EQ((*b_ptr), 31);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "nimpropers"), LAMMPS_BIGINT);
+    b_ptr = (bigint *)lammps_extract_global(lmp, "nimpropers");
+    EXPECT_EQ((*b_ptr), 2);
+
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "neigh_bondlist"), LAMMPS_INT_2D);
+    EXPECT_NE(lammps_extract_global(lmp, "neigh_bondlist"), nullptr);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "neigh_anglelist"), LAMMPS_INT_2D);
+    EXPECT_NE(lammps_extract_global(lmp, "neigh_anglelist"), nullptr);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "neigh_dihedrallist"), LAMMPS_INT_2D);
+    EXPECT_NE(lammps_extract_global(lmp, "neigh_dihedrallist"), nullptr);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "neigh_improperlist"), LAMMPS_INT_2D);
+    EXPECT_NE(lammps_extract_global(lmp, "neigh_improperlist"), nullptr);
+
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "eflag_global"), LAMMPS_BIGINT);
+    b_ptr = (bigint *)lammps_extract_global(lmp, "eflag_global");
+    EXPECT_EQ((*b_ptr), 2);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "eflag_atom"), LAMMPS_BIGINT);
+    b_ptr = (bigint *)lammps_extract_global(lmp, "eflag_atom");
+    EXPECT_EQ((*b_ptr), 0);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "vflag_global"), LAMMPS_BIGINT);
+    b_ptr = (bigint *)lammps_extract_global(lmp, "vflag_global");
+    EXPECT_EQ((*b_ptr), 2);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "vflag_atom"), LAMMPS_BIGINT);
+    b_ptr = (bigint *)lammps_extract_global(lmp, "vflag_atom");
+    EXPECT_EQ((*b_ptr), 0);
 
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "dt"), LAMMPS_DOUBLE);
     auto *d_ptr = (double *)lammps_extract_global(lmp, "dt");
@@ -584,17 +698,36 @@ TEST_F(LibraryProperties, neighlist)
     EXPECT_DOUBLE_EQ(minval, 1.0);
     EXPECT_DOUBLE_EQ(maxval, 2.1);
 
+    char errbuf[128];
+    lammps_set_show_error(lmp, 0);
     const int nlocal = lammps_extract_setting(lmp, "nlocal");
     EXPECT_EQ(nlocal, numatoms);
     EXPECT_NE(lammps_find_pair_neighlist(lmp, "sw", 1, 0, 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_NE(lammps_find_pair_neighlist(lmp, "morse", 1, 0, 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_NE(lammps_find_pair_neighlist(lmp, "lj/cut", 1, 1, 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_NE(lammps_find_pair_neighlist(lmp, "lj/cut", 1, 2, 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_EQ(lammps_find_pair_neighlist(lmp, "lj/cut", 1, 0, 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 1);
+    EXPECT_EQ(lammps_get_last_error_message(lmp, errbuf, 128), 1);
+    errbuf[69] = '\0';
+    EXPECT_THAT(std::string(errbuf),
+                StrEq("ERROR: lammps_find_pair_neighlist(): Pair style lj/cut does not exist"));
     EXPECT_EQ(lammps_find_pair_neighlist(lmp, "hybrid/overlay", 1, 0, 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_NE(lammps_find_compute_neighlist(lmp, "dist", 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_EQ(lammps_find_fix_neighlist(lmp, "dist", 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_EQ(lammps_find_compute_neighlist(lmp, "xxx", 0), -1);
+    EXPECT_EQ(lammps_has_error(lmp), 1);
+    EXPECT_EQ(lammps_get_last_error_message(lmp, errbuf, 128), 1);
+    errbuf[66] = '\0';
+    EXPECT_THAT(std::string(errbuf),
+                StrEq("ERROR: lammps_find_compute_neighlist(): Compute xxx does not exist"));
 
     // full neighbor list for 4 type 1 atoms
     // all have 3 type 1 atom neighbors

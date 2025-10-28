@@ -82,7 +82,7 @@ struct GraphImpl : private ExecutionSpaceInstanceStorage<ExecutionSpace> {
   // <editor-fold desc="required customizations"> {{{2
 
   template <class NodeImpl>
-  void add_node(std::shared_ptr<NodeImpl> const& arg_node_ptr) {
+  void add_node(std::shared_ptr<NodeImpl> arg_node_ptr) {
     static_assert(
         Kokkos::Impl::is_specialization_of_v<NodeImpl, GraphNodeImpl>);
     // Since this is always called before any calls to add_predecessor involving

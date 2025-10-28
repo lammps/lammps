@@ -7,10 +7,28 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+
 // Using access() to check if a file exists (until we can assume C++14/17)
-#if !defined(_WIN32) || defined(__CYGWIN__)
-#include <unistd.h>
+#include <direct.h>
+
+#if defined(__has_include)
+# if __has_include(<filesystem>)
+#  include <filesystem> // MSVC only defines __cpp_lib_filesystem after include
+# endif
 #endif
+
+#else
+
+#include <unistd.h>
+
+#ifdef __cpp_lib_filesystem
+#include <filesystem>
+#endif
+
+#endif
+
 #if defined(_WIN32)
 #include <io.h>
 #endif
@@ -61,6 +79,53 @@ int colvarproxy_io::get_frame(long int&)
 int colvarproxy_io::set_frame(long int)
 {
   return COLVARS_NOT_IMPLEMENTED;
+}
+
+
+std::string colvarproxy_io::get_current_work_dir() const
+{
+#ifdef __cpp_lib_filesystem
+
+  return std::filesystem::current_path().string();
+
+#else
+
+  // Legacy code
+  size_t constexpr buf_size = 3001;
+  char buf[buf_size];
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  char *getcwd_result = ::_getcwd(buf, buf_size);
+#else
+  char *getcwd_result = ::getcwd(buf, buf_size);
+#endif
+
+  if (getcwd_result == nullptr) {
+    cvm::error("Error: cannot read the current working directory.\n", COLVARS_INPUT_ERROR);
+    return std::string("");
+  }
+
+  return std::string(getcwd_result);
+#endif
+}
+
+
+std::string colvarproxy_io::join_paths(std::string const &path1, std::string const &path2) const
+{
+#ifdef __cpp_lib_filesystem
+
+  return (std::filesystem::path(path1) / std::filesystem::path(path2)).string();
+
+#else
+
+  // Legacy code
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  return (path1 + "\\" + path2);
+#else
+  return (path1 + "/" + path2);
+#endif
+
+#endif
 }
 
 

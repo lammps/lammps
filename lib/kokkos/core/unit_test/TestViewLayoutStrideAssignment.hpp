@@ -888,4 +888,7 @@ TEST(TEST_CATEGORY_DEATH, view_layoutstride_left_to_layoutright_assignment) {
 
 }  // namespace Test
 
+#ifdef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
+// FIXME: We need a new mdspan test for custom layouts
 #include <TestIrregularLayout.hpp>
+#endif

@@ -93,7 +93,7 @@ void SlabDipole::compute_corr(double qsum, int eflag_atom, int eflag_global, dou
 void SlabDipole::vector_corr(double *vec, int sensor_grpbit, int source_grpbit, bool invert_source)
 {
   double const volume = get_volume();
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   double **x = atom->x;
   double *q = atom->q;
   int *mask = atom->mask;

@@ -18,7 +18,12 @@
 #include <benchmark/benchmark.h>
 #include "Benchmark_Context.hpp"
 #include "PerfTest_Category.hpp"
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.random;
+#else
 #include <Kokkos_Random.hpp>
+#endif
 #include <utility>
 
 namespace Test {

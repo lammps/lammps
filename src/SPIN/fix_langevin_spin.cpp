@@ -193,12 +193,11 @@ void FixLangevinSpin::compute_single_langevin(int i, double spi[3], double fmi[3
 
 double FixLangevinSpin::compute_vector(int n)
 {
-  double energy_allS;
-  MPI_Allreduce(&energyS,&energy_allS,1,MPI_DOUBLE,MPI_SUM,world);
-  double energy_allD;
-  MPI_Allreduce(&energyD,&energy_allD,1,MPI_DOUBLE,MPI_SUM,world);
-  energy_vec[0] = energy_allS / output->thermo_every;
-  energy_vec[1] = energy_allD / output->thermo_every;
+  double energy_one[2] = {energyS, energyD}, energy_all[2];
+  MPI_Allreduce(energy_one, energy_all, 2, MPI_DOUBLE, MPI_SUM, world);
+  energy_vec[0] = energy_all[0] / output->thermo_every;
+  energy_vec[1] = energy_all[1] / output->thermo_every;
+
   if (n==0) energyS = 0;
   if (n==1) energyD = 0;
   if (n == 0) return energy_vec[0];

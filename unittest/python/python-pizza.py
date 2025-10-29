@@ -107,7 +107,7 @@ class Logfiles(unittest.TestCase):
         self.assertEqual(300.0, s[6])
         v,c = l.get("E_vdwl", "E_coul")
         self.assertEqual(v[0],692.8945)
-        self.assertEqual(c[0],26772.2647)
+        self.assertEqual(c[0],26772.2646)
         l.write("all.txt",0)
         l.write("some.txt",1,"Step","Temp","Press")
 

@@ -63,8 +63,8 @@ void WritePDB::write_pdb(const std::string &filename) {
   utils::print(fp, "REMARK with write_pdb command (https://docs.lammps.org/write_pdb.html)\n");
   utils::print(fp, "REMARK   ID NAME RES C MOL           X       Y       Z                      ELEMENT\n");
 
-  int *tag = atom->tag;
-  int *molecule = atom->molecule;
+  tagint *tag = atom->tag;
+  tagint *molecule = atom->molecule;
   double **x = atom->x;
   int *type = atom->type;
   std::string *segment = atom->segment;

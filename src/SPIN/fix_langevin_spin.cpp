@@ -46,7 +46,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), random(nullptr)
+  Fix(lmp, narg, arg), random(nullptr), energy_vec{0.0, 0.0}
 {
   if (narg != 6) error->all(FLERR,"Illegal langevin/spin command");
 
@@ -58,6 +58,7 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 2;
   extvector = 0;
+
 
   if (alpha_t < 0.0) {
     error->all(FLERR,"Illegal langevin/spin command");
@@ -79,7 +80,6 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
 
   // random = new RanPark(lmp,seed + comm->me);
   random = new RanMars(lmp,seed + comm->me);
-  allocate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,7 +87,6 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
 FixLangevinSpin::~FixLangevinSpin()
 {
   delete random;
-  memory->destroy(energy_vec);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,7 +147,7 @@ void FixLangevinSpin::add_tdamping(double spi[3], double fmi[3])
   fmi[1] -= alpha_t*cpy;
   fmi[2] -= alpha_t*cpz;
 
-  energyD -= hbar*(alpha_t*cpx*cpx + alpha_t*cpy*cpy + alpha_t*cpz*cpz);
+  energy_vec[0] -= hbar*(alpha_t*cpx*cpx + alpha_t*cpy*cpy + alpha_t*cpz*cpz);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -162,7 +161,7 @@ void FixLangevinSpin::add_temperature(double spi[3], double fmi[3])
   double hbar = force->hplanck/MY_2PI;
   double kb = force->boltz;             // eV/K
 
-  energyS += 2*alpha_t*kb*temp*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+  energy_vec[1] += 2*alpha_t*kb*temp*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
 
   // adding the random field
 
@@ -193,20 +192,12 @@ void FixLangevinSpin::compute_single_langevin(int i, double spi[3], double fmi[3
 
 double FixLangevinSpin::compute_vector(int n)
 {
-  double energy_one[2] = {energyS, energyD}, energy_all[2];
-  MPI_Allreduce(energy_one, energy_all, 2, MPI_DOUBLE, MPI_SUM, world);
-  energy_vec[0] = energy_all[0] / output->thermo_every;
-  energy_vec[1] = energy_all[1] / output->thermo_every;
+  double energy_all[2];
+  MPI_Allreduce(energy_vec, energy_all, 2, MPI_DOUBLE, MPI_SUM, world);
+  energy_all[0] /= output->thermo_every;
+  energy_all[1] /= output->thermo_every;
 
-  if (n==0) energyS = 0;
-  if (n==1) energyD = 0;
-  if (n == 0) return energy_vec[0];
-  if (n == 1) return energy_vec[1];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixLangevinSpin::allocate()
-{
-  memory->create(energy_vec,size_vector,"fix/langevin/spin:vector");
+  if (n > 2) return 0.0;
+  energy_vec[n] = 0;
+  return energy_all[n];
 }

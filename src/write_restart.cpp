@@ -473,6 +473,11 @@ void WriteRestart::header()
   write_int(EXTRA_IMPROPER_PER_ATOM,atom->extra_improper_per_atom);
   write_int(ATOM_MAXSPECIAL,atom->maxspecial);
 
+  // write out AtomVec::maxexchange (extra storage for communicating
+  // per-atom bond, angle, dihedral, and improper data). added 25 Oct 2025
+
+  write_int(ATOM_MAXEXCHANGE,atom->avec->maxexchange);
+
   write_bigint(NELLIPSOIDS,atom->nellipsoids);
   write_bigint(NLINES,atom->nlines);
   write_bigint(NTRIS,atom->ntris);

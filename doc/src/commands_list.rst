@@ -114,6 +114,6 @@ Commands
    write_coeff
    write_data
    write_dump
-   write_psf
    write_molecule
+   write_pdb
    write_restart

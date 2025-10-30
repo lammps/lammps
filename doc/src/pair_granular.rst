@@ -175,7 +175,7 @@ lose contact.
 
    Typically, neighbor lists are constructed for pair granular by testing
    whether finite sized particles overlap (using their radii). However,
-   this is not the case for normal normals which can interact beyond
+   this is not the case for normal models which can interact beyond
    contact, e.g. *jkr*. Instead, the maximum radius for each particle
    type is first calculated then used to calculate a maximum per-type
    cutoff distance. For polydisperse systems, this affects the performance

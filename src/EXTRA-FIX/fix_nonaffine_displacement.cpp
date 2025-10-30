@@ -273,6 +273,11 @@ void FixNonaffineDisplacement::post_force(int /*vflag*/)
     } else {
       if ((update->ntimestep % nevery) == 0) calculate_D2Min();
     }
+  } else {
+    // Otherwise, ensure peratom variables are zeroed
+    for (int i = 0; i < atom->nlocal; i++)
+      for (int a = 0; a < size_peratom_cols; a++)
+        array_atom[i][a] = 0.0;
   }
 
   if (reference_style == FIXED)
@@ -773,7 +778,7 @@ void FixNonaffineDisplacement::grow_arrays(int nmax_new)
 {
   nmax = nmax_new;
   memory->destroy(array_atom);
-  memory->create(array_atom, nmax, 3, "fix_nonaffine_displacement:array_atom");
+  memory->create(array_atom, nmax, size_peratom_cols, "fix_nonaffine_displacement:array_atom");
   if (nad_style == D2MIN) {
     memory->destroy(X);
     memory->destroy(Y);

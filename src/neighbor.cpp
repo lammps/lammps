@@ -13,8 +13,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author (triclinic and multi-neigh) : Pieter in 't Veld (SNL)
-   Contributing author (improved multi-neigh) : Joel Clemmer (SNL)
+   Contributing author (triclinic and original multi-neigh) : Pieter in 't Veld (SNL)
+   Contributing author (improved multi-neigh) : Joel Clemmer (SNL), Kevin Hanley (Edinburgh),
+                                                Kevin Stratford (Edinburgh), Tom Shire (Edinburgh)
 ------------------------------------------------------------------------- */
 
 #include "neighbor.h"

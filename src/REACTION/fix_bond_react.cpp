@@ -348,7 +348,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                                 "used without stabilization keyword");
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'stabilize_steps' has too few arguments");
-        rxn.limit_duration = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        rxn.limit_duration = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         rxn.stabilize_steps_flag = 1;
         iarg += 2;
       } else if (strcmp(arg[iarg],"custom_charges") == 0) {
@@ -1445,7 +1445,6 @@ void FixBondReact::make_a_guess(Superimpose &super, Reaction &rxn)
 {
   Superimpose::StatePoint &sp = super.sp;
   int &avail_guesses = super.avail_guesses;
-  std::vector<int> &guess_branch = super.guess_branch;
 
   int *type = atom->type;
   int nfirst_neighs = rxn.reactant->nspecial[sp.pion][0];
@@ -1550,8 +1549,6 @@ void FixBondReact::make_a_guess(Superimpose &super, Reaction &rxn)
 void FixBondReact::neighbor_loop(Superimpose &super, Reaction &rxn)
 {
   Superimpose::StatePoint &sp = super.sp;
-  int &avail_guesses = super.avail_guesses;
-  std::vector<int> &guess_branch = super.guess_branch;
 
   int nfirst_neighs = rxn.reactant->nspecial[sp.pion][0];
 
@@ -1576,8 +1573,6 @@ void FixBondReact::neighbor_loop(Superimpose &super, Reaction &rxn)
 void FixBondReact::check_a_neighbor(Superimpose &super, Reaction &rxn)
 {
   Superimpose::StatePoint &sp = super.sp;
-  int &avail_guesses = super.avail_guesses;
-  std::vector<int> &guess_branch = super.guess_branch;
 
   int *type = atom->type;
   int nfirst_neighs = rxn.reactant->nspecial[sp.pion][0];
@@ -1687,7 +1682,6 @@ void FixBondReact::crosscheck_the_neighbor(Superimpose &super, Reaction &rxn)
 {
   Superimpose::StatePoint &sp = super.sp;
   int &avail_guesses = super.avail_guesses;
-  std::vector<int> &guess_branch = super.guess_branch;
 
   int nfirst_neighs = rxn.reactant->nspecial[sp.pion][0];
 

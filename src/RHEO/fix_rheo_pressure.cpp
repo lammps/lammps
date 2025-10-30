@@ -120,7 +120,7 @@ FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
         pbackground[i] = pbackground_one;
       background_flag = 1;
     } else {
-      error->all(FLERR, "Illegal fix command, {}", arg[iarg]);
+      error->all(FLERR, "Illegal fix command, {}", arg[iarg + 1]);
     }
     iarg += 2;
   }

@@ -107,6 +107,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) :
     Pointers(lmp), variable(nullptr), labelstr(nullptr), infiles(nullptr), inlines(nullptr),
     command_map(nullptr)
 {
+  int me;
   MPI_Comm_rank(world, &me);
 
   maxline = maxcopy = maxwork = 0;
@@ -199,13 +200,12 @@ void Input::file()
   int nline = *output->thermo->get_line();
 
   while (true) {
-
     // read a line from input script
     // when done, n = length of line including str terminator, 0 if end of file
     // if line ends in continuation char '&', concatenate next line
     // if triple quotes are used, read until closing triple quotes
 
-    if (me == 0) {
+    if (comm->me == 0) {
       ntriple = 0;
       endfile = 0;
       m = 0;
@@ -295,7 +295,7 @@ void Input::file()
 
     // echo the command unless scanning for label
 
-    if (me == 0 && label_active == 0) {
+    if (comm->me == 0 && label_active == 0) {
       if (echo_screen && screen) fprintf(screen,"%s\n",line);
       if (echo_log && logfile) fprintf(logfile,"%s\n",line);
     }
@@ -340,7 +340,7 @@ void Input::file(const char *filename)
   // open new filename and set infile, infiles[0], nfile
   // call to file() will close filename and decrement nfile
 
-  if (me == 0) {
+  if (comm->me == 0) {
     if (nfile == LMP_MAXFILE)
       error->one(FLERR, Error::NOLASTLINE, "Too many nested levels ({}) of input scripts", nfile);
 
@@ -359,7 +359,7 @@ void Input::file(const char *filename)
 
   file();
 
-  if (me == 0) {
+  if (comm->me == 0) {
     if (filename) {
       fclose(infile);
       nfile--;
@@ -391,7 +391,7 @@ char *Input::one(const std::string &single)
 
   // echo the command unless scanning for label
 
-  if (me == 0 && label_active == 0) {
+  if (comm->me == 0 && label_active == 0) {
     if (echo_screen && screen) fprintf(screen,"%s\n",line);
     if (echo_log && logfile) fprintf(logfile,"%s\n",line);
   }
@@ -420,7 +420,7 @@ char *Input::one(const std::string &single)
 
 void Input::write_echo(const std::string &txt)
 {
-  if (me == 0) {
+  if (comm->me == 0) {
     if (echo_screen && screen) fputs(txt.c_str(),screen);
     if (echo_log && logfile) fputs(txt.c_str(),logfile);
   }
@@ -685,7 +685,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 
       // output substitution progress if requested
 
-      if (flag && me == 0 && label_active == 0) {
+      if (flag && comm->me == 0 && label_active == 0) {
         if (echo_screen && screen) fprintf(screen,"%s%s\n",str2,beyond);
         if (echo_log && logfile) fprintf(logfile,"%s%s\n",str2,beyond);
       }
@@ -1045,7 +1045,7 @@ void Input::include()
   if (narg != 1)
     error->all(FLERR, Error::COMMAND, "Illegal include command. Must name one file to include.");
 
-  if (me == 0) {
+  if (comm->me == 0) {
     if (nfile == LMP_MAXFILE)
       error->one(FLERR, Error::COMMAND, "Too many nested levels ({}) of input scripts", nfile);
 
@@ -1066,7 +1066,7 @@ void Input::include()
 
   file();
 
-  if (me == 0) {
+  if (comm->me == 0) {
     fclose(infile);
     nfile--;
     infile = infiles[nfile-1];
@@ -1086,7 +1086,7 @@ void Input::jump()
     return;
   }
 
-  if (me == 0) {
+  if (comm->me == 0) {
     output->thermo->set_line(-1);
     if (strcmp(arg[0],"SELF") == 0) {
       rewind(infile);
@@ -1130,7 +1130,7 @@ void Input::log()
     else error->all(FLERR, 1, "Unknown log keyword: {}", arg[1]);
   }
 
-  if (me == 0) {
+  if (comm->me == 0) {
     if (logfile) fclose(logfile);
     if (strcmp(arg[0],"none") == 0) logfile = nullptr;
     else {
@@ -1205,7 +1205,7 @@ void Input::print()
     if (strcmp(arg[iarg],"file") == 0 || strcmp(arg[iarg],"append") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR, iarg, "Illegal print {} command: missing argument(s)", arg[iarg]);
-      if (me == 0) {
+      if (comm->me == 0) {
         if (fp != nullptr) fclose(fp);
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
@@ -1225,7 +1225,7 @@ void Input::print()
     } else error->all(FLERR, iarg, "Unknown print keyword: {}", arg[iarg]);
   }
 
-  if (me == 0) {
+  if (comm->me == 0) {
     if (screenflag && screen) fprintf(screen,"%s\n",line);
     if (screenflag && logfile) fprintf(logfile,"%s\n",line);
     if (fp) {
@@ -1269,12 +1269,12 @@ void Input::shell()
     rv = (platform::chdir(arg[1]) < 0) ? errno : 0;
     MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
     errno = err;
-    if (me == 0 && err != 0) {
+    if (comm->me == 0 && err != 0) {
       error->warning(FLERR, "Shell command 'cd {}' failed with error '{}'", arg[1], utils::getsyserror());
     }
   } else if (strcmp(arg[0],"mkdir") == 0) {
     if (narg < 2) utils::missing_cmd_args(FLERR, "shell mkdir", error);
-    if (me == 0) {
+    if (comm->me == 0) {
       for (int i = 1; i < narg; i++) {
         rv = (platform::mkdir(arg[i]) < 0) ? errno : 0;
         if (rv != 0)
@@ -1284,7 +1284,7 @@ void Input::shell()
     }
   } else if (strcmp(arg[0],"mv") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal shell command: expected 3 argument but found {}", narg);
-    if (me == 0) {
+    if (comm->me == 0) {
       if (std::filesystem::is_directory(arg[2])) {
         if (system(fmt::format("mv {} {}", arg[1], arg[2]).c_str()))
           error->warning(FLERR,"Shell command 'mv {} {}' returned with non-zero status", arg[1], arg[2]);
@@ -1297,7 +1297,7 @@ void Input::shell()
     }
   } else if (strcmp(arg[0],"rm") == 0) {
     if (narg < 2) utils::missing_cmd_args(FLERR, "shell rm", error);
-    if (me == 0) {
+    if (comm->me == 0) {
       int i = 1;
       bool warn = true;
       if (strcmp(arg[i], "-f") == 0) {
@@ -1313,7 +1313,7 @@ void Input::shell()
     }
   } else if (strcmp(arg[0],"rmdir") == 0) {
     if (narg < 2) utils::missing_cmd_args(FLERR, "shell rmdir", error);
-    if (me == 0) {
+    if (comm->me == 0) {
       for (int i = 1; i < narg; i++) {
         if (platform::rmdir(arg[i]) < 0)
           error->warning(FLERR, "Shell command 'rmdir {}' failed with error '{}'",
@@ -1328,7 +1328,7 @@ void Input::shell()
       rv = (rv < 0) ? errno : 0;
       MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
       errno = err;
-      if (me == 0 && err != 0)
+      if (comm->me == 0 && err != 0)
         error->warning(FLERR, "Shell command 'putenv {}' failed with error '{}'",
                        arg[i], utils::getsyserror());
     }
@@ -1336,7 +1336,7 @@ void Input::shell()
   // concat arguments and invoke string in shell via system()
 
   } else {
-    if (me == 0) {
+    if (comm->me == 0) {
       std::string cmd = arg[0];
       for (int i = 1; i < narg; i++) {
         cmd += " ";

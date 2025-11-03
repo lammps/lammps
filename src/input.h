@@ -49,7 +49,6 @@ class Input : protected Pointers {
   int echo_log;       // 0 = no, 1 = yes
 
  protected:
-  int me;                           // proc ID
   int maxarg;                       // max # of args in arg
   char *line, *copy, *work;         // input line & copy and work string
   int maxline, maxcopy, maxwork;    // max lengths of char strings

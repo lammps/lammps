@@ -135,7 +135,7 @@ void FenixCheckpoint::safe_storev(int member, int length){
 
 void FenixCheckpoint::safe_restore(int member, void* ptr, int length){
   int ret = member_restore(
-    group_id, member, ptr, length-1, FENIX_TIME_STAMP_MAX, SUBSET_IGNORE
+    group_id, member, ptr, length-1, FENIX_DATA_SNAPSHOT_LATEST, SUBSET_IGNORE
   );
   if(ret != FENIX_SUCCESS) error->one(
     FLERR, "Failed to restore data member {}, err={}", member, ret
@@ -148,7 +148,7 @@ void FenixCheckpoint::safe_restore(int member, void* ptr, int length){
 int FenixCheckpoint::safe_restore(int member, char*& out_ptr){
   DataSubset subset;
   int ret = member_restore(
-    group_id, member, nullptr, 0, FENIX_TIME_STAMP_MAX, subset
+    group_id, member, nullptr, 0, FENIX_DATA_SNAPSHOT_LATEST, subset
   );
   if(ret != FENIX_SUCCESS) error->one(
     FLERR, "Failed to restore resizeable data member {}, err={}", member, ret
@@ -163,7 +163,7 @@ int FenixCheckpoint::safe_restore(int member, char*& out_ptr){
   out_ptr = new char[length];
 
   ret = member_lrestore(
-    group_id, member, out_ptr, length, FENIX_TIME_STAMP_MAX, subset
+    group_id, member, out_ptr, length, FENIX_DATA_SNAPSHOT_LATEST, subset
   );
   if(ret != FENIX_SUCCESS) error->one(
     FLERR, "Failed to lrestore resizeable data member {}, err={}", member, ret

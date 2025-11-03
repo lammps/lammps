@@ -13,6 +13,7 @@
 
 #include "FENIX/fenix.h"
 #include "comm.h"
+#include "universe.h"
 #include "error.h"
 #include "utils.h"
 #include "input.h"
@@ -143,6 +144,7 @@ void Fenix::parse_args(int narg, char** arg){
 void Fenix::fault_handler(){
   world = resilient_world;
   MPI_Comm_rank(world, &comm->me);
+  int me = comm->me;
 
   if(comm->me == 0){
     utils::logmesg(lmp,
@@ -171,6 +173,38 @@ void Fenix::fault_handler(){
 
   if(input != orig_input){
     delete input;
+  }
+
+  if(me == 0 && !infile){
+    // New rank 0 needs to reconfigure I/O args
+    std::string lg = "", scrn = "", ulg = "", uscrn = "";
+    for(int i = 0; i < lmp->num_in_arg; i++){
+      if(!strcmp("-in",lmp->in_args[i])) infile = fopen(lmp->in_args[++i], "r");
+      else if(!strcmp("-plog",lmp->in_args[i]))    lg = lmp->in_args[++i];
+      else if(!strcmp("-pscreen",lmp->in_args[i])) scrn = lmp->in_args[++i];
+      else if(!strcmp("-log",lmp->in_args[i]))     ulg = lmp->in_args[++i];
+      else if(!strcmp("-screen",lmp->in_args[i]))  uscrn = lmp->in_args[++i];
+    }
+    if(ulg.empty()) ulg = "log.lammps";
+    if(lg.empty()) lg = ulg;
+    if(scrn.empty()) scrn = uscrn.empty() ? "screen" : uscrn;
+
+    int ume = universe->existflag ? universe->me : me;
+    if(ume == 0 && uscrn.empty()) universe->uscreen = stdout;
+    else if(ume == 0 && uscrn == "none") universe->uscreen = nullptr;
+    else if(ume == 0) universe->uscreen = fopen(uscrn.c_str(), "a");
+    if(ume == 0 && ulg == "none") universe->ulogfile = nullptr;
+    else universe->ulogfile = fopen(ulg.c_str(), "a");
+    if(!universe->existflag){
+      screen = universe->uscreen;
+      logfile = universe->ulogfile;
+    } else {
+      int uid = universe->iworld;
+      if(scrn == "none") screen = nullptr;
+      else screen = fopen(fmt::format("{}.{}", scrn, uid).c_str(), "a");
+      if(lg == "none") logfile = nullptr;
+      else logfile = fopen(fmt::format("{}.{}", lg, uid).c_str(), "a");
+    }
   }
 
   input = new Input(lmp, lmp->num_in_arg, lmp->in_args);

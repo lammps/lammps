@@ -79,6 +79,25 @@ FixFail::FixFail(LAMMPS* lmp, int narg, char** arg) :
       fail_var_val = utils::numeric(FLERR, arg[++i], false, lmp);
     } else if(strcmp(arg[i], "wait_only") == 0){
       wait_only = true;
+    } else if(strcmp(arg[i], "node") == 0){
+      if(i+1 >= narg) utils::missing_cmd_args(FLERR, "fix fail node", error);
+      int fail_node = utils::inumeric(FLERR, arg[++i], false, lmp);
+
+      MPI_Comm local_world;
+      MPI_Comm_split_type(
+        world, MPI_COMM_TYPE_SHARED, comm->me, MPI_INFO_NULL, &local_world
+      );
+      int local_rank;
+      MPI_Comm_rank(local_world, &local_rank);
+      MPI_Comm_free(&local_world);
+
+      int is_node_start = local_rank == 0 ? 1 : 0;
+      int my_node_index = 0;
+      MPI_Scan(&is_node_start, &my_node_index, 1, MPI_INT, MPI_SUM, world);
+      my_node_index--;
+
+      if(my_node_index == fail_node) fail_rank = comm->me;
+      else fail_rank = -2;
     } else {
       error->all(FLERR, "Invalid argument fix fail {}", arg[i]);
     }

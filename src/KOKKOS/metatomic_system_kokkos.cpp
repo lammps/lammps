@@ -47,7 +47,6 @@ MetatomicSystemAdaptorKokkos<DeviceType>::MetatomicSystemAdaptorKokkos(LAMMPS *l
     this->strain = torch::eye(3, tensor_options);
 }
 
-#include <iostream>
 #include "comm.h"
 
 template<class DeviceType>
@@ -56,8 +55,6 @@ void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_remap_kk(metatomi
     auto dtype = system->positions().scalar_type();
 
     auto total_n_atoms = atomKK->nlocal + atomKK->nghost;
-
-    std::cout << "rank = " << comm->me << " nlocal = " << atomKK->nlocal << " nghost = " << atomKK->nghost << std::endl;
 
     {
         auto _ = MetatomicTimer("identifying ghosts and real atoms");

@@ -62,7 +62,6 @@ ElectrodeInv::~ElectrodeInv() noexcept
   delete[] displs;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 double ElectrodeInv::memory_use()
@@ -116,7 +115,7 @@ void ElectrodeInv::set_capacitance(int nele_world, double **capacitance)
 /* ---------------------------------------------------------------------- */
 
 void ElectrodeInv::setup_solver(int groupbit, std::unordered_map<tagint, int> tag_to_iele,
-                                std::vector<int> group_bits,  bool ffield)
+                                std::vector<int> group_bits, bool ffield)
 {
   assert(cap_set);
   setup = true;
@@ -256,9 +255,12 @@ std::vector<double> ElectrodeInv::compute_potentials()
   assert(update->ntimestep == elyt_step);    // assert sb_charges up to date
   // sum charges for each group
   int *tag = atom->tag;
+  int *mask = atom->mask;
   double *q = atom->q;
   auto group_q = std::vector<double>(ngroups, 0.);
-  for (int i = 0; i < atom->nlocal; i++) group_q[iele_to_group[tag_to_iele[tag[i]]]] += q[i];
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (mask[i] & groupbit) group_q[iele_to_group[tag_to_iele[tag[i]]]] += q[i];
+  }
   MPI_Allreduce(MPI_IN_PLACE, group_q.data(), ngroups, MPI_DOUBLE, MPI_SUM, world);
 
   // compute potentials

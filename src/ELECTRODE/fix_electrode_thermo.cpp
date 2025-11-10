@@ -29,10 +29,8 @@
 
 #include <cassert>
 #include <cmath>
-#include <iostream>
 
 using namespace LAMMPS_NS;
-using namespace std;
 
 static constexpr double SMALL = 1e-16;
 static constexpr int NUM_GROUPS = 2;
@@ -83,7 +81,7 @@ void FixElectrodeThermo::update_psi_set_constraint()
   int const nlocal = atom->nlocal;
   int *mask = atom->mask;
   double *q = atom->q;
-  auto group_q_old = vector<double>(NUM_GROUPS, 0.);
+  auto group_q_old = std::vector<double>(NUM_GROUPS, 0.);
   for (int g = 0; g < NUM_GROUPS; g++) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & group_bits[g]) { group_q_old[g] += q[i]; }
@@ -94,11 +92,18 @@ void FixElectrodeThermo::update_psi_set_constraint()
   // thermo-potentio-stat algorithm by Deissenbeck
   double const delta_v = v_old[1] - v_old[0];
   double const vac_cap = charge_solver->vacuum_capacitance();
-  double delta_charge = 0.5 * (group_q_old[1] - group_q_old[0]) -
-      vac_cap * (delta_v - delta_v_0) * (1. - exp(-dt / thermo_time));
-  delta_charge += sqrt((thermo_temp * vac_cap) * (1. - exp(-2. * dt / thermo_time))) *
-      thermo_random->gaussian();
+  double delta_charge = 0.5 * (group_q_old[1] - group_q_old[0]);
+  if (update->ntimestep != update->beginstep) {
+    delta_charge -= vac_cap * (delta_v - delta_v_0) * (1. - exp(-dt / thermo_time));
+    delta_charge += sqrt((thermo_temp * vac_cap) * (1. - exp(-2. * dt / thermo_time))) *
+        thermo_random->gaussian();
+  }
 
   // configure solver with new group charges
-  charge_solver->set_constraint({-delta_charge, delta_charge});
+  if (qtotal_var_style != VarStyle::UNSET) {
+    if (qtotal_var_style == VarStyle::EQUAL) qtotal = input->variable->compute_equal(qtotal_var_id);
+    charge_solver->set_constraint({-delta_charge + 0.5 * qtotal, delta_charge + 0.5 * qtotal});
+  } else {
+    charge_solver->set_constraint({-delta_charge, delta_charge});
+  }
 }

@@ -27,6 +27,9 @@
 #include "pair.h"
 #include "update.h"
 
+#include <cstdio>
+
+
 namespace LAMMPS_NS {
 struct ACECimpl {
   ACECimpl() : basis_set(nullptr), ace(nullptr) {}
@@ -251,7 +254,12 @@ void ComputePACE::compute_array()
       acecimpl->ace->resize_neighbours_cache(max_jnum);
       acecimpl->ace->compute_atom(i, atom->x, atom->type, list->numneigh[i], list->firstneigh[i]);
       Array1D<DOUBLE_TYPE> Bs = acecimpl->ace->projections;
-
+      Array1D<int> get_func_ind_shift = acecimpl->ace->get_func_ind_shift();
+      Array1D<int> get_number_of_functions = acecimpl->ace->get_number_of_functions();
+      
+      for( int i=0 ; i<ntypes ; i++ )
+        fprintf(stderr, "*** i %i get_func_ind_shift %i get_number_of_functions %i \n", i, get_func_ind_shift(i), get_number_of_functions(i) );
+        
       for (int jj = 0; jj < jnum; jj++) {
         const int j = jlist[jj];
         //replace mapping of jj to j
@@ -381,6 +389,17 @@ void ComputePACE::compute_array()
     paceall[irow++][lastcol] = c_virial->vector[4];
     paceall[irow++][lastcol] = c_virial->vector[3];
   }
+  
+  /*
+  fprintf(stderr, "********\n");
+  for( int i=0 ; i<size_array_rows ; i++ ) {
+    for( int j=0 ; j<size_array_cols ; j++ )
+        fprintf(stderr, "%.3f ", paceall[i][j]);
+    fprintf(stderr, "\n");
+  }
+  fprintf(stderr, "********\n");
+  */
+  
 }
 
 /* ----------------------------------------------------------------------
@@ -412,6 +431,8 @@ void ComputePACE::dbdotr_compute()
       pace[irow++][icoeff] += dbdz*x[i][0];
       pace[irow++][icoeff] += dbdy*x[i][0];
     }
+    */
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -301,14 +301,15 @@ void FixGPU::setup(int vflag)
       if (force->pair_match("gpu",0)) overlap_topo = 1;
     }
   }
-  if (overlap_topo) neighbor->set_overlap_topo(1);
 
   if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
     if (neighbor->exclude_setting() != 0)
       error->all(FLERR, "Cannot use neigh_modify exclude with GPU neighbor builds");
 
-  if (utils::strmatch(update->integrate_style,"^verlet")) post_force(vflag);
-  else {
+  if (utils::strmatch(update->integrate_style,"^verlet")) {
+    if (overlap_topo) neighbor->set_overlap_topo(1);
+    post_force(vflag);
+  } else {
     // In setup only, all forces calculated on GPU are put in the outer level
     (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(_nlevels_respa-1);
     post_force(vflag);

@@ -192,7 +192,7 @@ void ellipsoid2wireframe(LAMMPS_NS::Image *img, int level, const double *color, 
   }
 }
 
-void ellipsoid2filled(LAMMPS_NS::Image *img, int level, const double *color, double diameter,
+void ellipsoid2filled(LAMMPS_NS::Image *img, int level, const double *color,
                       const double *center, const double *radius)
 {
   vec3 offset = {center[0], center[1], center[2]};
@@ -493,7 +493,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
         iarg += 2;
       }
       iarg += 4;
-      regions.emplace_back(RegionInfo(regptr->id, regptr, regcolor, drawstyle, framediam, npoints));
+      regions.emplace_back(regptr->id, regptr, regcolor, drawstyle, framediam, npoints);
 
     } else if (strcmp(arg[iarg],"size") == 0) {
       if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"dump image size", error);
@@ -1705,7 +1705,7 @@ void DumpImage::create_image()
     reg.ptr = ptr;
 
     if (reg.ptr->rotateflag) {
-      utils::logmesg(lmp, "Cannot (yet) handle rotating region {}. Skipping... ", reg.ptr->id);
+      utils::logmesg(lmp, "Cannot (yet) handle rotating region {}. Skipping...\n", reg.ptr->id);
       continue;
     }
 
@@ -2071,7 +2071,7 @@ void DumpImage::create_image()
         if (reg.style == FRAME) {
           ellipsoid2wireframe(image, 4, reg.color, reg.diameter, center, radius);
         } else if (reg.style == FILLED) {
-          ellipsoid2filled(image, 4, reg.color, reg.diameter, center, radius);
+          ellipsoid2filled(image, 4, reg.color, center, radius);
         }
       } else if (regstyle == "prism") {
         auto *myreg = dynamic_cast<RegPrism *>(reg.ptr);

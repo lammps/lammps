@@ -220,6 +220,7 @@ struct _liblammpsplugin {
   void (*get_os_info)(char *, int);
 
   int (*config_has_mpi_support)();
+  int (*config_has_omp_support)();
   int (*config_has_gzip_support)();
   int (*config_has_png_support)();
   int (*config_has_jpeg_support)();

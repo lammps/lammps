@@ -27,7 +27,6 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_colvars.h"
-#include "inthash.h"
 
 #include "atom.h"
 #include "citeme.h"
@@ -61,7 +60,6 @@ struct LAMMPS_NS::commdata {
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace IntHash_NS;
 
 // initialize static class members
 int FixColvars::instances = 0;
@@ -122,7 +120,6 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   comm_buf = nullptr;
   taglist = nullptr;
   force_buf = nullptr;
-  idmap = nullptr;
 
   script_args[0] = reinterpret_cast<unsigned char *>(utils::strdup("fix_modify"));
 
@@ -226,11 +223,6 @@ FixColvars::~FixColvars()
   memory->sfree(comm_buf);
 
   if (proxy) delete proxy;
-
-  if (idmap) {
-    inthash_destroy(idmap);
-    delete idmap;
-  }
 
   if (root2root != MPI_COMM_NULL)
     MPI_Comm_free(&root2root);
@@ -349,16 +341,11 @@ void FixColvars::init_taglist()
 
     std::vector<int> const &tl = *(proxy->get_atom_ids());
 
-    if (idmap) {
-      delete idmap;
-      idmap = nullptr;
-    }
-
-    idmap = new inthash_t;
-    inthash_init(idmap, num_coords);
+    idmap.clear();
+    idmap.reserve(num_coords);
     for (int i = 0; i < num_coords; ++i) {
       taglist[i] = tl[i];
-      inthash_insert(idmap, tl[i], i);
+      idmap[tl[i]] = i;
     }
   }
 
@@ -545,10 +532,9 @@ void FixColvars::setup(int vflag)
       ndata /= size_one;
 
       for (int k=0; k<ndata; ++k) {
-
-        const int j = inthash_lookup(idmap, comm_buf[k].tag);
-
-        if (j != HASH_FAIL) {
+        auto search = idmap.find(comm_buf[k].tag);
+        if (search != idmap.end()) {
+          const int j = search->second;
 
           tp[j] = comm_buf[k].type;
 
@@ -701,8 +687,10 @@ void FixColvars::post_force(int /*vflag*/)
       ndata /= size_one;
 
       for (int k=0; k<ndata; ++k) {
-        const int j = inthash_lookup(idmap, comm_buf[k].tag);
-        if (j != HASH_FAIL) {
+        auto search = idmap.find(comm_buf[k].tag);
+        if (search != idmap.end()) {
+          const int j = search->second;
+
           cd[j].x = comm_buf[k].x;
           cd[j].y = comm_buf[k].y;
           cd[j].z = comm_buf[k].z;
@@ -826,8 +814,10 @@ void FixColvars::end_of_step()
         const tagint k = atom->map(taglist[i]);
         if ((k >= 0) && (k < nlocal)) {
 
-          const int j = inthash_lookup(idmap, tag[k]);
-          if (j != HASH_FAIL) {
+          auto search = idmap.find(tag[k]);
+          if (search != idmap.end()) {
+            const int j = search->second;
+
             of[j].x = f[k][0];
             of[j].y = f[k][1];
             of[j].z = f[k][2];
@@ -845,8 +835,10 @@ void FixColvars::end_of_step()
         ndata /= size_one;
 
         for (int k=0; k<ndata; ++k) {
-          const int j = inthash_lookup(idmap, comm_buf[k].tag);
-          if (j != HASH_FAIL) {
+          auto search = idmap.find(comm_buf[k].tag);
+          if (search != idmap.end()) {
+            const int j = search->second;
+
             of[j].x = comm_buf[k].x;
             of[j].y = comm_buf[k].y;
             of[j].z = comm_buf[k].z;

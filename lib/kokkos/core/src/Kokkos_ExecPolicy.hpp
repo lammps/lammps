@@ -26,6 +26,7 @@ static_assert(false,
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_AnalyzePolicy.hpp>
+#include <Kokkos_BitManipulation.hpp>
 #include <Kokkos_Concepts.hpp>
 #include <Kokkos_TypeInfo.hpp>
 #ifndef KOKKOS_ENABLE_IMPL_TYPEINFO
@@ -211,9 +212,9 @@ class RangePolicy : public Impl::PolicyTraits<Properties...> {
     auto concurrency = static_cast<int64_t>(m_space.concurrency());
     if (concurrency == 0) concurrency = 1;
 
-    if (m_granularity > 0) {
-      if (!Impl::is_integral_power_of_two(m_granularity))
-        Kokkos::abort("RangePolicy blocking granularity must be power of two");
+    if (m_granularity > 0 &&
+        !Kokkos::has_single_bit(static_cast<unsigned>(m_granularity))) {
+      Kokkos::abort("RangePolicy blocking granularity must be power of two");
     }
 
     int64_t new_chunk_size = 1;
@@ -803,15 +804,15 @@ struct TeamThreadRangeBoundariesStruct {
   const iType start;
   const iType end;
   enum { increment = 1 };
-  const TeamMemberType& thread;
+  const TeamMemberType& member;
 
   KOKKOS_INLINE_FUNCTION
   TeamThreadRangeBoundariesStruct(const TeamMemberType& arg_thread,
-                                  const iType& arg_end)
-      : start(
-            ibegin(0, arg_end, arg_thread.team_rank(), arg_thread.team_size())),
-        end(iend(0, arg_end, arg_thread.team_rank(), arg_thread.team_size())),
-        thread(arg_thread) {}
+                                  const iType& arg_count)
+      : start(ibegin(0, arg_count, arg_thread.team_rank(),
+                     arg_thread.team_size())),
+        end(iend(0, arg_count, arg_thread.team_rank(), arg_thread.team_size())),
+        member(arg_thread) {}
 
   KOKKOS_INLINE_FUNCTION
   TeamThreadRangeBoundariesStruct(const TeamMemberType& arg_thread,
@@ -820,7 +821,7 @@ struct TeamThreadRangeBoundariesStruct {
                      arg_thread.team_size())),
         end(iend(arg_begin, arg_end, arg_thread.team_rank(),
                  arg_thread.team_size())),
-        thread(arg_thread) {}
+        member(arg_thread) {}
 };
 
 template <typename iType, class TeamMemberType>
@@ -849,15 +850,15 @@ struct TeamVectorRangeBoundariesStruct {
   const iType start;
   const iType end;
   enum { increment = 1 };
-  const TeamMemberType& thread;
+  const TeamMemberType& member;
 
   KOKKOS_INLINE_FUNCTION
   TeamVectorRangeBoundariesStruct(const TeamMemberType& arg_thread,
-                                  const iType& arg_end)
-      : start(
-            ibegin(0, arg_end, arg_thread.team_rank(), arg_thread.team_size())),
-        end(iend(0, arg_end, arg_thread.team_rank(), arg_thread.team_size())),
-        thread(arg_thread) {}
+                                  const iType& arg_count)
+      : start(ibegin(0, arg_count, arg_thread.team_rank(),
+                     arg_thread.team_size())),
+        end(iend(0, arg_count, arg_thread.team_rank(), arg_thread.team_size())),
+        member(arg_thread) {}
 
   KOKKOS_INLINE_FUNCTION
   TeamVectorRangeBoundariesStruct(const TeamMemberType& arg_thread,
@@ -866,7 +867,7 @@ struct TeamVectorRangeBoundariesStruct {
                      arg_thread.team_size())),
         end(iend(arg_begin, arg_end, arg_thread.team_rank(),
                  arg_thread.team_size())),
-        thread(arg_thread) {}
+        member(arg_thread) {}
 };
 
 template <typename iType, class TeamMemberType>
@@ -877,9 +878,9 @@ struct ThreadVectorRangeBoundariesStruct {
   enum { increment = 1 };
 
   KOKKOS_INLINE_FUNCTION
-  constexpr ThreadVectorRangeBoundariesStruct(const TeamMemberType,
-                                              const index_type& count) noexcept
-      : start(static_cast<index_type>(0)), end(count) {}
+  constexpr ThreadVectorRangeBoundariesStruct(
+      const TeamMemberType, const index_type& arg_count) noexcept
+      : start(static_cast<index_type>(0)), end(arg_count) {}
 
   KOKKOS_INLINE_FUNCTION
   constexpr ThreadVectorRangeBoundariesStruct(

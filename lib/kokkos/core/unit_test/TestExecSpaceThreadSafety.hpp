@@ -96,6 +96,10 @@ TEST(TEST_CATEGORY, exec_space_thread_safety_range) {
   if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>)
     GTEST_SKIP() << "skipping since test is known to fail for OpenMPTarget";
 #endif
+#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
+  GTEST_SKIP()
+      << "skipping since tests are known to fail with out-of-order queues";
+#endif
   run_exec_space_thread_safety_range();
 }
 
@@ -138,6 +142,10 @@ TEST(TEST_CATEGORY, exec_space_thread_safety_mdrange) {
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
   if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>)
     GTEST_SKIP() << "skipping since test is known to fail for OpenMPTarget";
+#endif
+#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
+  GTEST_SKIP()
+      << "skipping since tests are known to fail with out-of-order queues";
 #endif
   run_exec_space_thread_safety_mdrange();
 }
@@ -186,6 +194,10 @@ TEST(TEST_CATEGORY, exec_space_thread_safety_team_policy) {
     GTEST_SKIP() << "skipping for OpenMPTarget since the test is designed to "
                     "run with vector_length=1";
 #endif
+#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
+  GTEST_SKIP()
+      << "skipping since tests are known to fail with out-of-order queues";
+#endif
   run_exec_space_thread_safety_team_policy();
 }
 
@@ -224,6 +236,10 @@ TEST(TEST_CATEGORY, exec_space_thread_safety_range_reduce) {
       << "skipping OpenACC test since unsupported host-side atomics cause "
          "race conditions during shared allocation reference counting";
   THREAD_SAFETY_TEST_UNREACHABLE();
+#endif
+#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
+  GTEST_SKIP()
+      << "skipping since tests are known to fail with out-of-order queues";
 #endif
   run_exec_space_thread_safety_range_reduce();
 }
@@ -264,6 +280,10 @@ TEST(TEST_CATEGORY, exec_space_thread_safety_mdrange_reduce) {
       << "skipping OpenACC test since unsupported host-side atomics cause "
          "race conditions during shared allocation reference counting";
   THREAD_SAFETY_TEST_UNREACHABLE();
+#endif
+#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
+  GTEST_SKIP()
+      << "skipping since tests are known to fail with out-of-order queues";
 #endif
   run_exec_space_thread_safety_mdrange_reduce();
 }
@@ -317,6 +337,10 @@ TEST(TEST_CATEGORY, exec_space_thread_safety_team_policy_reduce) {
   if (std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>)
     GTEST_SKIP() << "skipping since test is know to fail with SYCL+Cuda";
 #endif
+#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
+  GTEST_SKIP()
+      << "skipping since tests are known to fail with out-of-order queues";
+#endif
   run_exec_space_thread_safety_team_policy_reduce();
 }
 
@@ -357,6 +381,10 @@ TEST(TEST_CATEGORY, exec_space_thread_safety_range_scan) {
       << "skipping OpenACC test since unsupported host-side atomics cause "
          "race conditions during shared allocation reference counting";
   THREAD_SAFETY_TEST_UNREACHABLE();
+#endif
+#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
+  GTEST_SKIP()
+      << "skipping since tests are known to fail with out-of-order queues";
 #endif
   run_exec_space_thread_safety_range_scan();
 }

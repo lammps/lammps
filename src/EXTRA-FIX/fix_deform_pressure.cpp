@@ -306,12 +306,12 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // set strain_flag
+  // set strain_flag, note that this flag is also set for NONE as
+  //   apply_strain() handles its behavior in parent fix deform
 
   strain_flag = 0;
   for (int i = 0; i < 6; i++)
-    if (set[i].style != NONE && set[i].style != VOLUME &&
-        set[i].style != PRESSURE && set[i].style != PMEAN)
+    if (set[i].style != VOLUME && set[i].style != PRESSURE && set[i].style != PMEAN)
       strain_flag = 1;
 
   // set pressure_flag

@@ -625,7 +625,7 @@ of SHAKE clusters.
 
 * one line
 * line syntax: N E F
-* N = number of sub-particles or number or vertices
+* N = number of sub-particles or number of vertices
 * E,F = number of edges and faces
 
 This section is only needed when the molecule is a body particle. the other
@@ -1027,8 +1027,9 @@ None
 Related commands
 """"""""""""""""
 
-:doc:`fix deposit <fix_deposit>`, :doc:`fix pour <fix_pour>`,
-:doc:`fix gcmc <fix_gcmc>`
+:doc:`write_molecule <write_molecule>`, :doc:`fix deposit <fix_deposit>`,
+:doc:`fix pour <fix_pour>`, :doc:`fix gcmc <fix_gcmc>`,
+:doc:`fix bond/react <fix_bond_react>`, :doc:`create_atoms <create_atoms>`
 
 Default
 """""""

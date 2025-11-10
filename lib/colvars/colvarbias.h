@@ -112,6 +112,9 @@ public:
   /// \brief Parse config string and (re)initialize
   virtual int init(std::string const &conf);
 
+  /// Initialize multiple-time-stepping options
+  virtual int init_mts(std::string const &conf);
+
   /// \brief Initialize dependency tree
   virtual int init_dependencies();
 

@@ -51,6 +51,7 @@
 #include <cstring>
 #include <cerrno>
 #include <cctype>
+#include <filesystem>
 
 using namespace LAMMPS_NS;
 
@@ -1262,7 +1263,7 @@ void Input::shell()
   } else if (strcmp(arg[0],"mv") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal shell command: expected 3 argument but found {}", narg);
     if (me == 0) {
-      if (platform::path_is_directory(arg[2])) {
+      if (std::filesystem::is_directory(arg[2])) {
         if (system(fmt::format("mv {} {}", arg[1], arg[2]).c_str()))
           error->warning(FLERR,"Shell command 'mv {} {}' returned with non-zero status", arg[1], arg[2]);
       } else {

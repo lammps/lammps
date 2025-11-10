@@ -281,7 +281,7 @@ struct TestTaskTeam {
                          parscan_check, begin - 1));
 
 #if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-        assert(!future.is_null());
+        KOKKOS_ASSERT(!future.is_null());
 #endif
 
         Kokkos::respawn(this, future);
@@ -485,7 +485,7 @@ struct TestTaskTeamValue {
                                   Kokkos::TaskTeam);
 
 #if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
-        assert(!future.is_null());
+        KOKKOS_ASSERT(!future.is_null());
 #endif
 
         sched.respawn(this, future);

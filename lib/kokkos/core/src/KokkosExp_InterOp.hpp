@@ -75,23 +75,6 @@ using python_view_type_impl_t = typename python_view_type_impl<T...>::type;
 }  // namespace Kokkos
 
 namespace Kokkos {
-
-template <typename DataType, class... Properties>
-class DynRankView;
-
-namespace Impl {
-
-// Duplicate from the header file for DynRankView to avoid core depending on
-// containers.
-template <class>
-struct is_dyn_rank_view_dup : public std::false_type {};
-
-template <class D, class... P>
-struct is_dyn_rank_view_dup<Kokkos::DynRankView<D, P...>>
-    : public std::true_type {};
-
-}  // namespace Impl
-
 namespace Experimental {
 
 // ------------------------------------------------------------------ //
@@ -99,11 +82,7 @@ namespace Experimental {
 //
 template <typename ViewT>
 struct python_view_type {
-  static_assert(
-      Kokkos::is_view<std::decay_t<ViewT>>::value ||
-          Kokkos::Impl::is_dyn_rank_view_dup<std::decay_t<ViewT>>::value,
-      "Error! python_view_type only supports Kokkos::View and "
-      "Kokkos::DynRankView");
+  static_assert(Kokkos::is_view<std::decay_t<ViewT>>::value);
 
   using type =
       Kokkos::Impl::python_view_type_impl_t<typename ViewT::array_type>;

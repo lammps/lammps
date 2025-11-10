@@ -236,6 +236,7 @@ void FixRHEOOxidation::post_integrate()
 
   int added_bonds_all;
   MPI_Allreduce(&added_bonds, &added_bonds_all, 1, MPI_INT, MPI_SUM, world);
+  atom->nbonds += added_bonds_all;
 
   if (added_bonds_all > 0) next_reneighbor = update->ntimestep;
 }

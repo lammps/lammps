@@ -10,7 +10,7 @@ CC =		mpicxx
 CCFLAGS =	-g -O3 -DNDEBUG
 SHFLAGS =	-fPIC
 # uncomment when compiling with Intel 21.5 or older
-FMTFLAGS = 	# -std=c++11
+FMTFLAGS = 	# -std=c++17
 DEPFLAGS =	-M
 
 LINK =		mpicxx

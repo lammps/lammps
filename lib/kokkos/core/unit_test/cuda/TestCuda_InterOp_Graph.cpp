@@ -155,14 +155,11 @@ TEST_F(TEST_CATEGORY_FIXTURE(GraphInterOp), construct_from_native) {
   cudaGraph_t native_graph = nullptr;
   KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGraphCreate(&native_graph, 0));
 
-  auto graph_from_native =
-      Kokkos::Experimental::create_graph_from_native(this->exec, native_graph);
+  Kokkos::Experimental::Graph graph_from_native(this->exec, native_graph);
 
   ASSERT_EQ(native_graph, graph_from_native.native_graph());
 
-  auto root = Kokkos::Impl::GraphAccess::create_root_ref(graph_from_native);
-
-  root.then_parallel_for(1, Increment<view_t>{data});
+  graph_from_native.root_node().then_parallel_for(1, Increment<view_t>{data});
 
   graph_from_native.submit(this->exec);
 

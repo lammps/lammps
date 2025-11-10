@@ -361,7 +361,7 @@ the input script defines, e.g. Angstroms.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 10Sep2025
 
 The *autobond* keyword enables drawing bonds for systems where bonds are
 implicit, e.g. for potentials like :doc:`AIREBO <pair_airebo>` or
@@ -528,7 +528,7 @@ change this via the dump_modify command.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 10Sep2025
 
 The *region* keyword can be used to create a graphical representation
 of a :doc:`region <region>`.  This can be helpful in debugging the

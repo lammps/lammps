@@ -89,4 +89,23 @@ TEST(sycl, raw_sycl_interop_context_2) {
   ASSERT_EQ(sum, sum_expect);
 }
 
+TEST(sycl_DeathTest, explicit_out_of_order_queue) {
+  Kokkos::SYCL default_space;
+  sycl::context default_context = default_space.sycl_queue().get_context();
+  sycl::queue queue(default_context, sycl::default_selector_v);
+#ifdef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+  ASSERT_DEATH(Kokkos::SYCL{queue},
+               "User provided sycl::queues must be in-order!");
+#else
+  Kokkos::SYCL space{queue};
+  const int N = 1000;
+  int result;
+  Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<Kokkos::SYCL>(space, 0, N),
+      KOKKOS_LAMBDA(const int i, int& sum) { sum += i; }, result);
+  ASSERT_EQ(result, N * (N - 1) / 2);
+#endif
+}
+
 }  // namespace Test

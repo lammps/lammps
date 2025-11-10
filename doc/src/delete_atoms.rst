@@ -35,11 +35,12 @@ Syntax
        *variable* args = variable-name
 
 * zero or more keyword/value pairs may be appended
-* keyword = *compress* or *bond* or *mol*
+* keyword = *compress* or *condense* or *bond* or *mol*
 
   .. parsed-literal::
 
        *compress* value = *no* or *yes*
+       *condense* value = *no* or *yes*
        *bond* value = *no* or *yes*
        *mol* value = *no* or *yes*
 
@@ -50,6 +51,7 @@ Examples
 
    delete_atoms group edge
    delete_atoms region sphere compress no
+   delete_atoms region sphere condense yes
    delete_atoms overlap 0.3 all all
    delete_atoms overlap 0.5 solvent colloid
    delete_atoms random fraction 0.1 yes all cube 482793 bond yes
@@ -137,19 +139,33 @@ a compression, where gaps in atom IDs are removed by decrementing atom
 IDs that are larger.  Instead the IDs for all atoms are erased, and new
 IDs are assigned so that the atoms owned by individual processors have
 consecutive IDs, as the :doc:`create_atoms <create_atoms>` command
-explains.
+explains.  This is efficient, but incompatible with molecular systems.
 
-.. versionchanged:: TBD
+.. versionchanged:: 10Sep2025
 
 For molecular systems (see the :doc:`atom_style <atom_style>` command),
 the atom ID re-assignment now calls the :doc:`reset_atoms id
 <reset_atoms>` command internally.  For backward compatibility, the
-default setting is *no* in this case.  A molecular system with fixed
-bonds, angles, dihedrals, or improper interactions, is one where the
-topology of the interactions is typically defined in the data file read
-by the :doc:`read_data <read_data>` command, and where the interactions
-themselves are defined with the :doc:`bond_style <bond_style>`,
-:doc:`angle_style <angle_style>`, etc. commands.
+default setting is *no* in this case.  This process does *not* preserve
+the order of atoms with respect to their atom IDs.  See the *condense*
+keyword below.
+
+.. versionadded:: 10Sep2025
+
+If the *condense* keyword set to *yes*, then after atoms are deleted,
+the atom IDs are re-assigned in such a way that the order of atom-IDs is
+preserved.  This process is not efficient and cannot be used for very
+large systems and requires local storage that scales with the number of
+total atoms in the system.  Also, the *compress* and the *condense*
+keywords cannot be used at the same time.  Whichever of the two is used
+last will be applied.
+
+A molecular system with fixed bonds, angles, dihedrals, or improper
+interactions, is one where the topology of the interactions is
+typically defined in the data file read by the :doc:`read_data
+<read_data>` command, and where the interactions themselves are
+defined with the :doc:`bond_style <bond_style>`, :doc:`angle_style
+<angle_style>`, etc. commands.
 
 .. warning::
 

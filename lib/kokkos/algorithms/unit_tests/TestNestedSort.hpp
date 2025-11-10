@@ -20,7 +20,12 @@
 #include <gtest/gtest.h>
 #include <unordered_set>
 #include <random>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.random;
+#else
 #include <Kokkos_Random.hpp>
+#endif
 #include <Kokkos_NestedSort.hpp>
 
 namespace Test {

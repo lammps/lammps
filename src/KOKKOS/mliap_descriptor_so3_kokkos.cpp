@@ -57,7 +57,7 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_descriptors(class MLIAPData *
                           nmax, lmax, rcutfac, alpha, data->npairs, data->ndescriptors);
 
   Kokkos::deep_copy(data->k_descriptors.template view<DeviceType>(), so3ptr_kokkos->m_plist_r);
-  Kokkos::deep_copy(data->k_descriptors.h_view, so3ptr_kokkos->m_plist_r);
+  Kokkos::deep_copy(data->k_descriptors.view_host(), so3ptr_kokkos->m_plist_r);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,7 +87,7 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_forces(class MLIAPData *data_
   int vflag_atom = data->pairmliap->vflag_atom;
   auto d_vatom = data->k_pairmliap->k_vatom.template view<DeviceType>();
   Kokkos::View<double[6], DeviceType> virial("virial");
-  data->k_pairmliap->k_vatom.template modify<LMPHostType>();
+  data->k_pairmliap->k_vatom.modify_host();
   data->k_pairmliap->k_vatom.template sync<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,data->nlistatoms), KOKKOS_LAMBDA(int ii) {
     double fij[3];
@@ -131,7 +131,7 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_forces(class MLIAPData *data_
     }
     if (vflag_atom) {
       data->k_pairmliap->k_vatom.template modify<DeviceType>();
-      data->k_pairmliap->k_vatom.template sync<LMPHostType>();
+      data->k_pairmliap->k_vatom.sync_host();
     }
   }
 }
@@ -244,7 +244,7 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_descriptor_gradients(class ML
                                nmax, lmax, rcutfac, alpha, npairs, data->ndescriptors);
   auto graddesc = data->k_graddesc.template view<DeviceType>();
   Kokkos::deep_copy(graddesc, so3ptr_kokkos->k_dplist_r);
-  Kokkos::deep_copy(data->k_graddesc.h_view, graddesc);
+  Kokkos::deep_copy(data->k_graddesc.view_host(), graddesc);
 }
 
 /* ---------------------------------------------------------------------- */

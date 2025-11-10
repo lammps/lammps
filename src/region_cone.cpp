@@ -266,7 +266,7 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
   // extent of cone
   maxradius = ((radiuslo > radiushi) ? radiuslo : radiushi);
 
-  if (interior) {
+  if (interior && !dynamic && !varshape) {
     bboxflag = 1;
     if (axis == 'x') {
       extent_xlo = lo;

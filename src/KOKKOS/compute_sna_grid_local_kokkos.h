@@ -53,7 +53,7 @@ struct TagComputeSNAGridLocal3D{};
 struct TagComputeSNAGridLocalLoopCPU{};
 
 //template<class DeviceType>
-template<class DeviceType, typename real_type_, int vector_length_>
+template<class DeviceType, typename real_type_, typename accum_type_, int vector_length_>
 class ComputeSNAGridLocalKokkos : public ComputeSNAGridLocal {
  public:
   typedef DeviceType device_type;
@@ -61,6 +61,7 @@ class ComputeSNAGridLocalKokkos : public ComputeSNAGridLocal {
 
   static constexpr int vector_length = vector_length_;
   using real_type = real_type_;
+  using accum_type = accum_type_;
   using complex = SNAComplex<real_type>;
 
   static constexpr bool legacy_on_gpu = false; // run the CPU path on the GPU
@@ -207,7 +208,7 @@ class ComputeSNAGridLocalKokkos : public ComputeSNAGridLocal {
 
  protected:
 
-  SNAKokkos<DeviceType, real_type, vector_length> snaKK;
+  SNAKokkos<DeviceType, real_type, accum_type, vector_length> snaKK;
 
   int max_neighs, chunk_size, chunk_offset;
   int host_flag;
@@ -228,17 +229,17 @@ class ComputeSNAGridLocalKokkos : public ComputeSNAGridLocal {
   Kokkos::View<T_INT*, DeviceType> d_map;                    // mapping from atom types to elements
   Kokkos::View<real_type*, DeviceType> d_test;              // test view
 
-  typedef Kokkos::DualView<F_FLOAT**, DeviceType> tdual_fparams;
+  typedef Kokkos::DualView<double**, DeviceType> tdual_fparams;
   tdual_fparams k_cutsq;
-  typedef Kokkos::View<const F_FLOAT**, DeviceType,
+  typedef Kokkos::View<const double**, DeviceType,
       Kokkos::MemoryTraits<Kokkos::RandomAccess> > t_fparams_rnd;
   t_fparams_rnd rnd_cutsq;
 
-  typename AT::t_x_array_randomread x;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_int_1d_randomread type;
 
-  DAT::tdual_float_2d k_alocal;
-  typename AT::t_float_2d d_alocal;
+  DAT::tdual_double_2d_lr k_alocal;
+  typename AT::t_double_2d_lr d_alocal;
 
 
   // Utility routine which wraps computing per-team scratch size requirements for
@@ -249,11 +250,11 @@ class ComputeSNAGridLocalKokkos : public ComputeSNAGridLocal {
   class DomainKokkos *domainKK;
 
   // triclinic vars
-  double h0, h1, h2, h3, h4, h5;
-  double lo0, lo1, lo2;
+  KK_FLOAT h0, h1, h2, h3, h4, h5;
+  KK_FLOAT lo0, lo1, lo2;
 
   // Make SNAKokkos a friend
-  friend class SNAKokkos<DeviceType, real_type, vector_length>;
+  friend class SNAKokkos<DeviceType, real_type, accum_type, vector_length>;
 };
 
 // These wrapper classes exist to make the compute style factory happy/avoid having
@@ -261,10 +262,10 @@ class ComputeSNAGridLocalKokkos : public ComputeSNAGridLocal {
 // of extra template parameters
 
 template <class DeviceType>
-class ComputeSNAGridLocalKokkosDevice : public ComputeSNAGridLocalKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_DEVICE_VECLEN> {
+class ComputeSNAGridLocalKokkosDevice : public ComputeSNAGridLocalKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_DEVICE_VECLEN> {
 
  private:
-  using Base = ComputeSNAGridLocalKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_DEVICE_VECLEN>;
+  using Base = ComputeSNAGridLocalKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_DEVICE_VECLEN>;
 
  public:
 
@@ -276,10 +277,10 @@ class ComputeSNAGridLocalKokkosDevice : public ComputeSNAGridLocalKokkos<DeviceT
 
 #ifdef LMP_KOKKOS_GPU
 template <class DeviceType>
-class ComputeSNAGridLocalKokkosHost : public ComputeSNAGridLocalKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_HOST_VECLEN> {
+class ComputeSNAGridLocalKokkosHost : public ComputeSNAGridLocalKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_HOST_VECLEN> {
 
  private:
-  using Base = ComputeSNAGridLocalKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_HOST_VECLEN>;
+  using Base = ComputeSNAGridLocalKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_HOST_VECLEN>;
 
  public:
 

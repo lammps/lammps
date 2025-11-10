@@ -81,7 +81,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
   // extent of sphere
   // for variable radius, uses initial radius and origin for variable center
 
-  if (interior) {
+  if (interior && !dynamic && !varshape) {
     bboxflag = 1;
     extent_xlo = xc - radius;
     extent_xhi = xc + radius;

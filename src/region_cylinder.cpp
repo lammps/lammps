@@ -195,7 +195,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
   // extent of cylinder
   // for variable radius, uses initial radius
 
-  if (interior) {
+  if (interior && !dynamic && !varshape) {
     bboxflag = 1;
     if (axis == 'x') {
       extent_xlo = lo;

@@ -24,12 +24,12 @@ class CommKokkos : public CommBrick {
  public:
 
 
-  bool exchange_comm_classic;
-  bool forward_comm_classic;
-  bool forward_pair_comm_classic;
-  bool reverse_pair_comm_classic;
-  bool forward_fix_comm_classic;
-  bool reverse_comm_classic;
+  bool exchange_comm_legacy;
+  bool forward_comm_legacy;
+  bool forward_pair_comm_legacy;
+  bool reverse_pair_comm_legacy;
+  bool forward_fix_comm_legacy;
+  bool reverse_comm_legacy;
   bool exchange_comm_on_host;
   bool forward_comm_on_host;
   bool reverse_comm_on_host;
@@ -68,14 +68,14 @@ class CommKokkos : public CommBrick {
   template<class DeviceType> void borders_device();
 
  protected:
-  DAT::tdual_int_2d k_sendlist;
+  DAT::tdual_int_2d_lr k_sendlist;
   DAT::tdual_int_scalar k_total_send;
-  DAT::tdual_xfloat_2d k_buf_send,k_buf_recv;
+  DAT::tdual_double_2d_lr k_buf_send,k_buf_recv;
   DAT::tdual_int_1d k_exchange_sendlist,k_exchange_copylist,k_indices;
   DAT::tdual_int_scalar k_count;
 
-  DAT::tdual_int_2d k_swap;
-  DAT::tdual_int_2d k_swap2;
+  DAT::tdual_int_2d_lr k_swap;
+  DAT::tdual_int_2d_lr k_swap2;
   DAT::tdual_int_2d k_pbc;
   DAT::tdual_int_1d k_pbc_flag;
   DAT::tdual_int_1d k_g2l;
@@ -84,8 +84,8 @@ class CommKokkos : public CommBrick {
   int totalsend;
 
   int max_buf_pair,max_buf_fix;
-  DAT::tdual_xfloat_1d k_buf_send_pair, k_buf_send_fix;
-  DAT::tdual_xfloat_1d k_buf_recv_pair, k_buf_recv_fix;
+  DAT::tdual_double_1d k_buf_send_pair, k_buf_send_fix;
+  DAT::tdual_double_1d k_buf_recv_pair, k_buf_recv_fix;
   void grow_buf_pair(int);
   void grow_buf_fix(int);
 

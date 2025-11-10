@@ -6,6 +6,7 @@
 #include "gtest/gtest.h"
 
 #include <cstdio>
+#include <filesystem>
 #include <string>
 
 using namespace LAMMPS_NS;
@@ -299,9 +300,9 @@ TEST(Platform, path_and_directory)
     fputs("some text\n", fp);
     fclose(fp);
 
-    ASSERT_TRUE(platform::path_is_directory("path_is_directory"));
-    ASSERT_FALSE(platform::path_is_directory("path_is_file"));
-    ASSERT_FALSE(platform::path_is_directory("path_does_not_exist"));
+    ASSERT_TRUE(std::filesystem::is_directory("path_is_directory"));
+    ASSERT_FALSE(std::filesystem::is_directory("path_is_file"));
+    ASSERT_FALSE(std::filesystem::is_directory("path_does_not_exist"));
     platform::unlink("path_is_file");
 
 #if defined(_WIN32)
@@ -323,14 +324,14 @@ TEST(Platform, path_and_directory)
     auto dirs = platform::list_directory("path_is_directory");
     ASSERT_EQ(dirs.size(), 3);
     platform::rmdir("path_is_directory");
-    ASSERT_FALSE(platform::path_is_directory("path_is_directory"));
+    ASSERT_FALSE(std::filesystem::is_directory("path_is_directory"));
 
 #if defined(_WIN32)
     ASSERT_EQ(platform::mkdir("path_is_directory\\path_is_directory"), 0);
-    ASSERT_TRUE(platform::path_is_directory("path_is_directory\\path_is_directory"));
+    ASSERT_TRUE(std::filesystem::is_directory("path_is_directory\\path_is_directory"));
 #else
     ASSERT_EQ(platform::mkdir("path_is_directory/path_is_directory"), 0);
-    ASSERT_TRUE(platform::path_is_directory("path_is_directory/path_is_directory"));
+    ASSERT_TRUE(std::filesystem::is_directory("path_is_directory/path_is_directory"));
 #endif
     platform::rmdir("path_is_directory");
 }
@@ -340,15 +341,15 @@ TEST(Platform, get_change_directory)
     platform::unlink("working_directory");
     platform::rmdir("working_directory");
 
-    auto cwd = platform::current_directory();
+    auto cwd = std::filesystem::current_path().string();
     ASSERT_GT(cwd.size(), 0);
 
     platform::mkdir("working_directory");
     ASSERT_EQ(platform::chdir("working_directory"), 0);
-    ASSERT_THAT(platform::current_directory(), EndsWith("working_directory"));
+    ASSERT_THAT(std::filesystem::current_path().string(), EndsWith("working_directory"));
 
     ASSERT_EQ(platform::chdir(".."), 0);
-    ASSERT_THAT(platform::current_directory(), StrEq(cwd));
+    ASSERT_THAT(std::filesystem::current_path().string(), StrEq(cwd));
     platform::rmdir("working_directory");
 }
 

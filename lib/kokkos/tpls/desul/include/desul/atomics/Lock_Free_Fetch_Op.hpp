@@ -51,37 +51,6 @@ namespace Impl {
     } while (assume != oldval);                                                      \
                                                                                      \
     return reinterpret_cast<T&>(oldval);                                             \
-  }                                                                                  \
-                                                                                     \
-  template <class Oper,                                                              \
-            class T,                                                                 \
-            class MemoryOrder,                                                       \
-            class MemoryScope,                                                       \
-            std::enable_if_t<atomic_always_lock_free(sizeof(T)), int> = 0>           \
-  ANNOTATION T HOST_OR_DEVICE##_atomic_oper_fetch(                                   \
-      const Oper& op,                                                                \
-      T* const dest,                                                                 \
-      dont_deduce_this_parameter_t<const T> val,                                     \
-      MemoryOrder order,                                                             \
-      MemoryScope scope) {                                                           \
-    using cas_t = atomic_compare_exchange_t<T>;                                      \
-    cas_t oldval = reinterpret_cast<cas_t&>(*dest);                                  \
-    T newval = val;                                                                  \
-    cas_t assume = oldval;                                                           \
-    do {                                                                             \
-      if (check_early_exit(op, reinterpret_cast<T&>(oldval), val))                   \
-        return reinterpret_cast<T&>(oldval);                                         \
-      assume = oldval;                                                               \
-      newval = op.apply(reinterpret_cast<T&>(assume), val);                          \
-      oldval =                                                                       \
-          HOST_OR_DEVICE##_atomic_compare_exchange(reinterpret_cast<cas_t*>(dest),   \
-                                                   assume,                           \
-                                                   reinterpret_cast<cas_t&>(newval), \
-                                                   order,                            \
-                                                   scope);                           \
-    } while (assume != oldval);                                                      \
-                                                                                     \
-    return newval;                                                                   \
   }
 
 DESUL_IMPL_ATOMIC_FETCH_OPER(DESUL_IMPL_HOST_FUNCTION, host)

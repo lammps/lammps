@@ -33,6 +33,7 @@ template <int NEIGHFLAG> struct TagMEAMForce {
 
 template <class DeviceType> class MEAMKokkos : public MEAM {
  public:
+  typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
   MEAMKokkos(Memory *mem);
@@ -58,91 +59,91 @@ template <class DeviceType> class MEAMKokkos : public MEAM {
   typename AT::t_int_1d d_offset;
   typename AT::t_int_1d d_map;
   typename AT::t_int_2d d_scale;
-  typename AT::t_x_array x;
+  typename AT::t_kkfloat_1d_3_lr x;
   typename AT::t_int_1d d_numneigh_half;
   typename AT::t_int_1d d_numneigh_full;
   typename AT::t_neighbors_2d d_neighbors_half;
   typename AT::t_neighbors_2d d_neighbors_full;
   typename AT::t_int_1d d_ilist_half;
-  typename AT::t_f_array f;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  typename AT::t_kkacc_1d_3 f;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
   // parameters to meam_dens_final
 
   typename AT::t_int_scalar d_errorflag;
   int eflag_either, eflag_global, eflag_atom, vflag_either, vflag_global, vflag_atom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
+  typename AT::t_kkacc_1d d_eatom;
 
  public:
   void meam_dens_setup(int, int, int) override;
   void meam_setup_done(double *) override;
   void meam_dens_init(int, int, typename AT::t_int_1d, typename AT::t_int_1d,
-                      typename AT::t_x_array, typename AT::t_int_1d, typename AT::t_int_1d,
+                      typename AT::t_kkfloat_1d_3_lr, typename AT::t_int_1d, typename AT::t_int_1d,
                       typename AT::t_int_1d, typename AT::t_neighbors_2d,
                       typename AT::t_neighbors_2d, typename AT::t_int_1d, int, int);
-  void meam_dens_final(int, int, int, int, typename ArrayTypes<DeviceType>::t_efloat_1d, int,
+  void meam_dens_final(int, int, int, int, typename AT::t_kkacc_1d, int,
                        typename AT::t_int_1d, typename AT::t_int_1d, typename AT::t_int_2d, int &,
                        EV_FLOAT &);
-  void meam_force(int, int, int, int, int, typename ArrayTypes<DeviceType>::t_efloat_1d, int,
-                  typename AT::t_int_1d, typename AT::t_int_1d, typename AT::t_x_array,
-                  typename AT::t_int_1d, typename AT::t_int_1d, typename AT::t_f_array,
-                  typename ArrayTypes<DeviceType>::t_virial_array, typename AT::t_int_1d,
+  void meam_force(int, int, int, int, int, typename AT::t_kkacc_1d, int,
+                  typename AT::t_int_1d, typename AT::t_int_1d, typename AT::t_kkfloat_1d_3_lr,
+                  typename AT::t_int_1d, typename AT::t_int_1d, typename AT::t_kkacc_1d_3,
+                  typename AT::t_kkacc_1d_6, typename AT::t_int_1d,
                   typename AT::t_int_1d, typename AT::t_neighbors_2d, typename AT::t_neighbors_2d,
                   int, int, EV_FLOAT &);
   template <int NEIGHFLAG>
-  KOKKOS_INLINE_FUNCTION void getscreen(int, int, typename AT::t_x_array, typename AT::t_int_1d,
+  KOKKOS_INLINE_FUNCTION void getscreen(int, int, typename AT::t_kkfloat_1d_3_lr, typename AT::t_int_1d,
                                         typename AT::t_int_1d, int, typename AT::t_int_1d,
                                         typename AT::t_int_1d) const;
   template <int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION void calc_rho1(int, int, typename AT::t_int_1d, typename AT::t_int_1d,
-                                        typename AT::t_x_array, typename AT::t_int_1d, int) const;
+                                        typename AT::t_kkfloat_1d_3_lr, typename AT::t_int_1d, int) const;
   KOKKOS_INLINE_FUNCTION
-  double fcut(const double xi) const;
+  KK_FLOAT fcut(const KK_FLOAT xi) const;
   KOKKOS_INLINE_FUNCTION
-  double dfcut(const double xi, double &dfc) const;
+  KK_FLOAT dfcut(const KK_FLOAT xi, KK_FLOAT &dfc) const;
   KOKKOS_INLINE_FUNCTION
-  double dCfunc(const double, const double, const double) const;
+  KK_FLOAT dCfunc(const KK_FLOAT, const KK_FLOAT, const KK_FLOAT) const;
   KOKKOS_INLINE_FUNCTION
-  void dCfunc2(const double, const double, const double, double &, double &) const;
+  void dCfunc2(const KK_FLOAT, const KK_FLOAT, const KK_FLOAT, KK_FLOAT &, KK_FLOAT &) const;
   KOKKOS_INLINE_FUNCTION
-  double G_gam(const double, const int, int &) const;
+  KK_FLOAT G_gam(const KK_FLOAT, const int, int &) const;
   KOKKOS_INLINE_FUNCTION
-  double dG_gam(const double, const int, double &) const;
+  KK_FLOAT dG_gam(const KK_FLOAT, const int, KK_FLOAT &) const;
   KOKKOS_INLINE_FUNCTION
-  double zbl(const double, const int, const int) const;
+  KK_FLOAT zbl(const KK_FLOAT, const int, const int) const;
   KOKKOS_INLINE_FUNCTION
-  double embedding(const double, const double, const double, double &) const;
+  KK_FLOAT embedding(const KK_FLOAT, const KK_FLOAT, const KK_FLOAT, KK_FLOAT &) const;
   KOKKOS_INLINE_FUNCTION
-  double erose(const double, const double, const double, const double, const double, const double,
+  KK_FLOAT erose(const KK_FLOAT, const KK_FLOAT, const KK_FLOAT, const KK_FLOAT, const KK_FLOAT, const KK_FLOAT,
                const int) const;
   KOKKOS_INLINE_FUNCTION
-  void get_shpfcn(const lattice_t latt, const double sthe, const double cthe, double (&s)[3]) const;
+  void get_shpfcn(const lattice_t latt, const KK_FLOAT sthe, const KK_FLOAT cthe, KK_FLOAT (&s)[3]) const;
   KOKKOS_INLINE_FUNCTION
   int get_Zij(const lattice_t) const;
 
  public:
-  DAT::tdual_ffloat_1d k_rho, k_rho0, k_rho1, k_rho2, k_rho3, k_frhop;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_rho, d_rho0, d_rho1, d_rho2, d_rho3, d_frhop;
-  HAT::t_ffloat_1d h_rho, h_rho0, h_rho1, h_rho2, h_rho3, h_frhop;
-  DAT::tdual_ffloat_1d k_gamma, k_dgamma1, k_dgamma2, k_dgamma3, k_arho2b;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_gamma, d_dgamma1, d_dgamma2, d_dgamma3, d_arho2b;
-  HAT::t_ffloat_1d h_gamma, h_dgamma1, h_dgamma2, h_dgamma3, h_arho2b;
-  DAT::tdual_ffloat_2d k_arho1, k_arho2, k_arho3, k_arho3b, k_t_ave, k_tsq_ave;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_arho1, d_arho2, d_arho3, d_arho3b, d_t_ave,
+  DAT::tdual_kkfloat_1d k_rho, k_rho0, k_rho1, k_rho2, k_rho3, k_frhop;
+  typename AT::t_kkfloat_1d d_rho, d_rho0, d_rho1, d_rho2, d_rho3, d_frhop;
+  HAT::t_kkfloat_1d h_rho, h_rho0, h_rho1, h_rho2, h_rho3, h_frhop;
+  DAT::tdual_kkfloat_1d k_gamma, k_dgamma1, k_dgamma2, k_dgamma3, k_arho2b;
+  typename AT::t_kkfloat_1d d_gamma, d_dgamma1, d_dgamma2, d_dgamma3, d_arho2b;
+  HAT::t_kkfloat_1d h_gamma, h_dgamma1, h_dgamma2, h_dgamma3, h_arho2b;
+  DAT::tdual_kkfloat_2d k_arho1, k_arho2, k_arho3, k_arho3b, k_t_ave, k_tsq_ave;
+  typename AT::t_kkfloat_2d d_arho1, d_arho2, d_arho3, d_arho3b, d_t_ave,
       d_tsq_ave;
-  HAT::t_ffloat_2d h_arho1, h_arho2, h_arho3, h_arho3b, h_t_ave, h_tsq_ave;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_phir, d_phirar, d_phirar1, d_phirar2, d_phirar3,
+  HAT::t_kkfloat_2d h_arho1, h_arho2, h_arho3, h_arho3b, h_t_ave, h_tsq_ave;
+  typename AT::t_kkfloat_2d d_phir, d_phirar, d_phirar1, d_phirar2, d_phirar3,
       d_phirar4, d_phirar5, d_phirar6;
-  DAT::tdual_ffloat_1d k_scrfcn, k_dscrfcn, k_fcpair;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_scrfcn, d_dscrfcn, d_fcpair;
-  HAT::t_ffloat_1d h_scrfcn, h_dscrfcn, h_fcpair;
+  DAT::tdual_kkfloat_1d k_scrfcn, k_dscrfcn, k_fcpair;
+  typename AT::t_kkfloat_1d d_scrfcn, d_dscrfcn, d_fcpair;
+  HAT::t_kkfloat_1d h_scrfcn, h_dscrfcn, h_fcpair;
   // msmeam
-  DAT::tdual_ffloat_2d k_arho1m, k_arho2m, k_arho3m, k_arho3mb;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_arho1m, d_arho2m, d_arho3m, d_arho3mb;
-  HAT::t_ffloat_2d h_arho1m, h_arho2m, h_arho3m, h_arho3mb;
-  DAT::tdual_ffloat_1d k_arho2mb;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_arho2mb;
-  HAT::t_ffloat_1d h_arho2mb;
+  DAT::tdual_kkfloat_2d k_arho1m, k_arho2m, k_arho3m, k_arho3mb;
+  typename AT::t_kkfloat_2d d_arho1m, d_arho2m, d_arho3m, d_arho3mb;
+  HAT::t_kkfloat_2d h_arho1m, h_arho2m, h_arho3m, h_arho3mb;
+  DAT::tdual_kkfloat_1d k_arho2mb;
+  typename AT::t_kkfloat_1d d_arho2mb;
+  HAT::t_kkfloat_1d h_arho2mb;
 
  protected:
   int need_dup;
@@ -230,19 +231,19 @@ template <class DeviceType> class MEAMKokkos : public MEAM {
 };
 
 KOKKOS_INLINE_FUNCTION
-static bool iszero_kk(const double f)
+static bool iszero_kk(const KK_FLOAT f)
 {
   return fabs(f) < 1e-20;
 }
 
 KOKKOS_INLINE_FUNCTION
-static bool isone_kk(const double f)
+static bool isone_kk(const KK_FLOAT f)
 {
   return fabs(f - 1.0) < 1e-20;
 }
 
 KOKKOS_INLINE_FUNCTION
-static double fdiv_zero_kk(const double n, const double d)
+static KK_FLOAT fdiv_zero_kk(const KK_FLOAT n, const KK_FLOAT d)
 {
   if (iszero_kk(d)) return 0.0;
   return n / d;

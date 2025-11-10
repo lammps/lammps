@@ -19,6 +19,7 @@
 #include "output.h"
 #include "style_dump.h"         // IWYU pragma: keep
 
+#include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "dump.h"
@@ -26,6 +27,7 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "label_map.h"
 #include "memory.h"
 #include "modify.h"
 #include "thermo.h"
@@ -627,6 +629,163 @@ void Output::write_restart(bigint ntimestep)
 
   last_restart = ntimestep;
 }
+
+/* ----------------------------------------------------------------------
+   write molecule JSON objects to file based on per-atom array
+   atoms with integer array value of 0 assumed to not belong to a molecule
+------------------------------------------------------------------------- */
+
+void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *ivec)
+{
+  std::string indent;
+  int tab = 4;
+  indent.resize(json_level*tab, ' ');
+  int json_init = 0;
+
+  // let's first condense all ivec values
+  std::unordered_set<int> unique_ivec(ivec, ivec + (size_t) atom->nlocal);
+  unique_ivec.erase(0);
+  std::vector<int> mivec(unique_ivec.begin(), unique_ivec.end());
+
+  std::vector<Particle> atoms_local;
+  atoms_local.reserve(atom->nmax);
+  std::vector<Particle> atoms_root;
+  atoms_root.reserve(atom->nmax);
+  #if !defined(MPI_STUBS)
+  MPI_Datatype ParticleStructType = createParticleStructType();
+  #endif
+
+  for (int sendr = 0; sendr < comm->nprocs; sendr++) {
+    int nvals;
+    if (comm->me == sendr) nvals = mivec.size();
+    MPI_Bcast(&nvals, 1, MPI_INT, sendr, MPI_COMM_WORLD);
+    if (nvals == 0) continue;
+    std::vector<int> loop_ivals(nvals);
+    if (comm->me == sendr) loop_ivals = mivec;
+    MPI_Bcast(loop_ivals.data(), nvals, MPI_INT, sendr, MPI_COMM_WORLD);
+
+    for (int ival = 0; ival < nvals; ival++) {
+      int thisval = loop_ivals[ival];
+
+      Particle myatom;
+      int n2send = 0, n2recv = 0;
+      for (int i = 0; i < atom->nlocal; i++) {
+        if (ivec[i] == thisval) {
+          myatom.type = atom->type[i];
+          myatom.tag = (int) atom->tag[i];
+          for (int k = 0; k < 3; k++)
+            myatom.x[k] = atom->x[i][k];
+          atoms_local.push_back(myatom);
+          n2send++;
+        }
+      }
+      #if !defined(MPI_STUBS)
+      if (comm->me != 0) {
+        MPI_Send(&n2send, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+        MPI_Send(atoms_local.data(), n2send, ParticleStructType, 0, 0, MPI_COMM_WORLD);
+      }
+      #endif
+
+      if (comm->me == 0) {
+        #if !defined(MPI_STUBS)
+        for (int i = 1; i < comm->nprocs; i++) {
+          MPI_Recv(&n2recv, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          std::vector<Particle> atoms_recv(n2recv);
+          MPI_Recv(atoms_recv.data(), n2recv, ParticleStructType, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          atoms_root.insert(atoms_root.end(), atoms_recv.begin(), atoms_recv.end());
+        }
+        #endif
+        atoms_root.insert(atoms_root.end(), atoms_local.begin(), atoms_local.end());
+
+        if (json_init > 0) {
+          indent.resize(--json_level*tab, ' ');
+          fprintf(fp, "%s},\n%s{\n", indent.c_str(), indent.c_str());
+        } else {
+          fprintf(fp, "%s{\n", indent.c_str());
+          json_init = 1;
+        }
+
+        indent.resize(++json_level*tab, ' ');
+        fprintf(fp, "%s\"types\": {\n", indent.c_str());
+        indent.resize(++json_level*tab, ' ');
+        if (printflag == 1 && json_init == 1)
+          fprintf(fp, "%s\"format\": [\"atom-id\", \"type\"],\n", indent.c_str());
+        fprintf(fp, "%s\"data\": [\n", indent.c_str());
+        indent.resize(++json_level*tab, ' ');
+        auto it = atoms_root.begin();
+        for (auto myatom : atoms_root) {
+          int mytype = myatom.type;
+          std::string typestr = std::to_string(mytype);
+          if (atom->labelmapflag) typestr = atom->lmap->getTypelabel()[mytype-1];
+          utils::print(fp, "{}[{}, \"{}\"]", indent, myatom.tag, typestr);
+          if (std::next(it) == atoms_root.end()) fprintf(fp, "\n");
+          else fprintf(fp, ",\n");
+          it++;
+        }
+
+        indent.resize(--json_level*tab, ' ');
+        fprintf(fp, "%s]\n", indent.c_str());
+        indent.resize(--json_level*tab, ' ');
+        fprintf(fp, "%s},\n", indent.c_str());
+        fprintf(fp, "%s\"coords\": {\n", indent.c_str());
+        indent.resize(++json_level*tab, ' ');
+        if (printflag == 1 && json_init == 1)
+          fprintf(fp, "%s\"format\": [\"atom-id\", \"x\", \"y\", \"z\"],\n", indent.c_str());
+        if (json_init == 1) json_init++;
+        fprintf(fp, "%s\"data\": [\n", indent.c_str());
+        indent.resize(++json_level*tab, ' ');
+        it = atoms_root.begin();
+        for (auto myatom : atoms_root) {
+          utils::print(fp, "{}[{}, {}, {}, {}]", indent, myatom.tag,
+                       myatom.x[0], myatom.x[1], myatom.x[2]);
+          if (std::next(it) == atoms_root.end()) fprintf(fp, "\n");
+          else fprintf(fp, ",\n");
+          it++;
+        }
+
+        indent.resize(--json_level*tab, ' ');
+        fprintf(fp, "%s]\n", indent.c_str());
+        indent.resize(--json_level*tab, ' ');
+        fprintf(fp, "%s}\n", indent.c_str());
+      }
+      unique_ivec.erase(thisval);
+      mivec.assign(unique_ivec.begin(), unique_ivec.end());
+      atoms_local.clear();
+      atoms_root.clear();
+    }
+  }
+  if (json_init && comm->me == 0) {
+    indent.resize(--json_level*tab, ' ');
+    fprintf(fp, "%s}\n", indent.c_str());
+  }
+  #if !defined(MPI_STUBS)
+  MPI_Type_free(&ParticleStructType);
+  #endif
+}
+
+/* ----------------------------------------------------------------------
+   create Particle struct type for MPI
+------------------------------------------------------------------------- */
+
+#if !defined(MPI_STUBS)
+MPI_Datatype Output::createParticleStructType() {
+
+  MPI_Datatype ParticleStructType;
+
+  const int nfields = 3;
+  int blocklengths[nfields] = {1, 1, 3};
+  MPI_Aint offsets[nfields];
+  offsets[0] = offsetof(Particle, tag);
+  offsets[1] = offsetof(Particle, type);
+  offsets[2] = offsetof(Particle, x);
+  MPI_Datatype types[nfields] = {MPI_INT, MPI_INT, MPI_DOUBLE};
+
+  MPI_Type_create_struct(nfields, blocklengths, offsets, types, &ParticleStructType);
+  MPI_Type_commit(&ParticleStructType);
+
+  return ParticleStructType;
+}
+#endif
 
 /* ----------------------------------------------------------------------
    timestep is being changed, called by update->reset_timestep()

@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <initializer_list>
 #include <type_traits>
-
+#include <cstdint>
 #include <cfloat>
 
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) ||          \
@@ -289,7 +289,7 @@ struct FloatingPointComparison {
   KOKKOS_FUNCTION bool compare_near_zero(FPT const& fpv, int ulp) const {
     auto abs_tol = eps(fpv) * ulp;
 
-    bool ar = absolute(fpv) < abs_tol;
+    bool ar = absolute(fpv) <= abs_tol;
     if (!ar) {
       Kokkos::printf("absolute value exceeds tolerance [|%e| > %e]\n",
                      (double)fpv, (double)abs_tol);
@@ -310,7 +310,7 @@ struct FloatingPointComparison {
       double min_denom = static_cast<double>(
           absolute(rhs) < absolute(lhs) ? absolute(rhs) : absolute(lhs));
       double rel_diff = abs_diff / min_denom;
-      bool ar         = abs_diff == 0 || rel_diff < rel_tol;
+      bool ar         = rel_diff <= rel_tol;
       if (!ar) {
         Kokkos::printf("relative difference exceeds tolerance [%e > %e]\n",
                        (double)rel_diff, (double)rel_tol);
@@ -484,6 +484,8 @@ DEFINE_BINARY_FUNCTION_EVAL(pow, 2);
 DEFINE_BINARY_FUNCTION_EVAL(hypot, 2);
 DEFINE_BINARY_FUNCTION_EVAL(nextafter, 1);
 DEFINE_BINARY_FUNCTION_EVAL(copysign, 1);
+DEFINE_BINARY_FUNCTION_EVAL(fmax, 0);
+DEFINE_BINARY_FUNCTION_EVAL(fmin, 0);
 #endif
 
 #undef DEFINE_BINARY_FUNCTION_EVAL
@@ -853,6 +855,27 @@ TEST(TEST_CATEGORY, mathematical_functions_fma) {
   do_test_math_ternary_function<TEST_EXECSPACE, kk3_fma>(2, 3.f, 4.);
 #ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
   do_test_math_ternary_function<TEST_EXECSPACE, kk3_fma>(2.l, 3.l, 4.l);
+#endif
+}
+
+TEST(TEST_CATEGORY, mathematical_functions_fmax_fmin) {
+  do_test_math_binary_function<TEST_EXECSPACE, kk_fmax>(
+      static_cast<KE::half_t>(2.f), static_cast<KE::half_t>(3.f));
+  do_test_math_binary_function<TEST_EXECSPACE, kk_fmin>(
+      static_cast<KE::half_t>(2.f), static_cast<KE::half_t>(3.f));
+  do_test_math_binary_function<TEST_EXECSPACE, kk_fmax>(
+      static_cast<KE::bhalf_t>(2.f), static_cast<KE::bhalf_t>(3.f));
+  do_test_math_binary_function<TEST_EXECSPACE, kk_fmin>(
+      static_cast<KE::bhalf_t>(2.f), static_cast<KE::bhalf_t>(3.f));
+  do_test_math_binary_function<TEST_EXECSPACE, kk_fmax>(2.f, 3.f);
+  do_test_math_binary_function<TEST_EXECSPACE, kk_fmin>(2.f, 3.f);
+  do_test_math_binary_function<TEST_EXECSPACE, kk_fmax>(2., 3.);
+  do_test_math_binary_function<TEST_EXECSPACE, kk_fmin>(2., 3.);
+  do_test_math_binary_function<TEST_EXECSPACE, kk_fmax>(2, 3.f);
+  do_test_math_binary_function<TEST_EXECSPACE, kk_fmin>(2, 3.f);
+#ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
+  do_test_math_binary_function<TEST_EXECSPACE, kk_fmax>(2.l, 3.l);
+  do_test_math_binary_function<TEST_EXECSPACE, kk_fmin>(2.l, 3.l);
 #endif
 }
 #endif
@@ -1232,14 +1255,18 @@ TEST(TEST_CATEGORY,
   TEST_MATH_FUNCTION(logb)({123.45l, 6789.0l});
 #endif
 
+#if defined(KOKKOS_HALF_T_IS_FLOAT) && KOKKOS_HALF_T_IS_FLOAT
   do_test_math_binary_function<TEST_EXECSPACE, kk_nextafter>(
       0, static_cast<KE::half_t>(1.f));
   do_test_math_binary_function<TEST_EXECSPACE, kk_nextafter>(
       1, static_cast<KE::half_t>(2.f));
+#endif
+#if defined(KOKKOS_BHALF_T_IS_FLOAT) && KOKKOS_BHALF_T_IS_FLOAT
   do_test_math_binary_function<TEST_EXECSPACE, kk_nextafter>(
       0, static_cast<KE::bhalf_t>(1.f));
   do_test_math_binary_function<TEST_EXECSPACE, kk_nextafter>(
       1, static_cast<KE::bhalf_t>(2.f));
+#endif
   do_test_math_binary_function<TEST_EXECSPACE, kk_nextafter>(0, 1.f);
   do_test_math_binary_function<TEST_EXECSPACE, kk_nextafter>(1, 2.f);
   do_test_math_binary_function<TEST_EXECSPACE, kk_nextafter>(0.1, 0);
@@ -1767,6 +1794,185 @@ struct TestIsNaN {
 
 TEST(TEST_CATEGORY, mathematical_functions_isnan) {
   TestIsNaN<TEST_EXECSPACE>();
+}
+
+KE::half_t ref_test_fallback_half(KE::half_t) {
+#if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_SYCL_HALF_TYPE_DEFINED)
+  // When SYCL is enabled, half_t is available on both the GPU and the CPU.
+  return KE::half_t(0.f);
+#elif defined(KOKKOS_ENABLE_CUDA)
+  if constexpr (std::is_same_v<TEST_EXECSPACE, Kokkos::Cuda>) {
+    return KE::half_t(0.f);
+  } else {
+    return KE::half_t(1.f);
+  }
+#else
+  return KE::half_t(1.f);
+#endif
+}
+
+KE::bhalf_t ref_test_fallback_bhalf(KE::bhalf_t) {
+#if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_SYCL_BHALF_TYPE_DEFINED)
+  // When SYCL is enabled, bhalf_t is available on both the GPU and the CPU.
+  return KE::bhalf_t(0.f);
+#elif defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU) && \
+    (KOKKOS_IMPL_ARCH_NVIDIA_GPU >= 80)
+  // bhalf_t support for CUDA is only available starting with Ampere (80)
+  if constexpr (std::is_same_v<TEST_EXECSPACE, Kokkos::Cuda>) {
+    return KE::bhalf_t(0.f);
+  } else {
+    return KE::bhalf_t(1.f);
+  }
+#else
+  return KE::bhalf_t(1.f);
+#endif
+}
+
+DEFINE_UNARY_FUNCTION_EVAL_CUSTOM(test_fallback_half, 0,
+                                  ref_test_fallback_half(x));
+DEFINE_UNARY_FUNCTION_EVAL_CUSTOM(test_fallback_bhalf, 0,
+                                  ref_test_fallback_bhalf(x));
+
+TEST(TEST_CATEGORY, mathematical_functions_impl_half_fallback) {
+  TestMathUnaryFunction<TEST_EXECSPACE, MathUnaryFunction_test_fallback_half,
+                        KE::half_t, 1>({KE::half_t(1.f)});
+  TestMathUnaryFunction<TEST_EXECSPACE, MathUnaryFunction_test_fallback_bhalf,
+                        KE::bhalf_t, 1>({KE::bhalf_t(1.f)});
+}
+
+template <class Space, class FP16Type>
+struct TestNextAfterHalf {
+  TestNextAfterHalf() { run(); }
+  void run() const {
+    int errors = 0;
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<Space>(0, 1), *this, errors);
+    ASSERT_EQ(errors, 0);
+  }
+  KOKKOS_FUNCTION void operator()(int, int& e) const {
+    using KE::infinity;
+    using KE::quiet_NaN;
+    using KE::signaling_NaN;
+    using Kokkos::isnan;
+    using Kokkos::nextafter;
+
+    // Define useful constants
+    const std::uint16_t FP16_POS_ZERO     = 0x0000;
+    const std::uint16_t FP16_NEG_ZERO     = 0x8000;
+    const std::uint16_t FP16_SMALLEST_POS = 0x0001;
+    const std::uint16_t FP16_SMALLEST_NEG = 0x8001;
+
+    const FP16Type pos_one{1.0f}, pos_two{2.0f};
+    const FP16Type neg_one{-1.0f}, neg_two{-2.0f};
+    const FP16Type pos_zero     = Kokkos::bit_cast<FP16Type>(FP16_POS_ZERO);
+    const FP16Type neg_zero     = Kokkos::bit_cast<FP16Type>(FP16_NEG_ZERO);
+    const FP16Type pos_smallest = Kokkos::bit_cast<FP16Type>(FP16_SMALLEST_POS);
+    const FP16Type neg_smallest = Kokkos::bit_cast<FP16Type>(FP16_SMALLEST_NEG);
+    const FP16Type pos_max = Kokkos::Experimental::finite_max<FP16Type>::value;
+    const FP16Type neg_max = Kokkos::Experimental::finite_min<FP16Type>::value;
+    const FP16Type pos_inf = Kokkos::Experimental::infinity<FP16Type>::value;
+    const FP16Type neg_inf =
+        -static_cast<FP16Type>(Kokkos::Experimental::infinity<FP16Type>::value);
+
+    // NaN Handling
+    if (!isnan(nextafter(quiet_NaN<FP16Type>::value, pos_one)) ||
+        !isnan(nextafter(signaling_NaN<FP16Type>::value, pos_one)) ||
+        !isnan(nextafter(pos_one, quiet_NaN<FP16Type>::value)) ||
+        !isnan(nextafter(pos_one, signaling_NaN<FP16Type>::value)) ||
+        !isnan(nextafter(quiet_NaN<FP16Type>::value,
+                         quiet_NaN<FP16Type>::value)) ||
+        !isnan(nextafter(quiet_NaN<FP16Type>::value,
+                         signaling_NaN<FP16Type>::value)) ||
+        !isnan(nextafter(signaling_NaN<FP16Type>::value,
+                         quiet_NaN<FP16Type>::value)) ||
+        !isnan(nextafter(signaling_NaN<FP16Type>::value,
+                         signaling_NaN<FP16Type>::value))) {
+      ++e;
+      Kokkos::printf("failed half precision nextafter(NaN)\n");
+    }
+
+    // Equality (from==toward) Handling
+    if (nextafter(pos_one, pos_one) != pos_one ||
+        nextafter(pos_zero, pos_zero) != pos_zero ||
+        nextafter(neg_zero, neg_zero) != neg_zero ||
+        nextafter(pos_inf, pos_inf) != pos_inf ||
+        nextafter(neg_inf, neg_inf) != neg_inf) {
+      ++e;
+      Kokkos::printf("failed half precision nextafter(equality)\n");
+    }
+
+    // Zero Handling
+    if (nextafter(pos_zero, pos_one) != pos_smallest ||
+        nextafter(pos_zero, neg_one) != neg_smallest ||
+        nextafter(pos_zero, neg_zero) != neg_zero ||
+        nextafter(neg_zero, pos_one) != pos_smallest ||
+        nextafter(neg_zero, neg_one) != neg_smallest ||
+        nextafter(neg_zero, pos_zero) != pos_zero) {
+      ++e;
+      Kokkos::printf("failed half precision nextafter(zero)\n");
+    }
+
+    // From Negative Non Zero Handling
+    const FP16Type after_neg_one = Kokkos::bit_cast<FP16Type>(
+        std::uint16_t(Kokkos::bit_cast<std::uint16_t>(neg_one) - 1));
+    const FP16Type before_neg_one = Kokkos::bit_cast<FP16Type>(
+        std::uint16_t(Kokkos::bit_cast<std::uint16_t>(neg_one) + 1));
+    if (nextafter(neg_smallest, pos_zero) != neg_zero ||
+        nextafter(neg_one, pos_one) != after_neg_one ||
+        nextafter(neg_one, neg_two) != before_neg_one ||
+        nextafter(neg_max, neg_inf) != neg_inf) {
+      ++e;
+      Kokkos::printf("failed half precision nextafter(negative)\n");
+    }
+
+    // From Positive Non Zero Handling
+    const FP16Type after_pos_one = Kokkos::bit_cast<FP16Type>(
+        std::uint16_t(Kokkos::bit_cast<std::uint16_t>(pos_one) + 1));
+    const FP16Type before_pos_one = Kokkos::bit_cast<FP16Type>(
+        std::uint16_t(Kokkos::bit_cast<std::uint16_t>(pos_one) - 1));
+    if (nextafter(pos_smallest, neg_zero) != pos_zero ||
+        nextafter(pos_one, neg_one) != before_pos_one ||
+        nextafter(pos_one, pos_two) != after_pos_one ||
+        nextafter(pos_max, pos_inf) != pos_inf) {
+      ++e;
+      Kokkos::printf("failed half precision nextafter(positive)\n");
+    }
+
+    // From Inf Handling
+    // Note: The behavior of nextafter with infinities is
+    // implementation-defined, but in Kokkos it returns the maximum
+    // finite value when moving towards a finite value.
+    if (nextafter(pos_inf, pos_one) != pos_max ||
+        nextafter(neg_inf, neg_one) != neg_max ||
+        nextafter(pos_inf, pos_inf) != pos_inf ||
+        nextafter(neg_inf, neg_inf) != neg_inf) {
+      ++e;
+      Kokkos::printf("failed half precision nextafter(inf)\n");
+    }
+  }
+};
+
+TEST(TEST_CATEGORY, mathematical_functions_nextafter_fp16) {
+#if defined(KOKKOS_ENABLE_CUDA) &&                         \
+    defined(KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE) && \
+    defined(KOKKOS_COMPILER_CLANG)
+  GTEST_SKIP() << "FIXME internal compiler error for Clang+Cuda and RDC";
+#else
+#if defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_COMPILER_MSVC)
+  GTEST_SKIP() << "FIXME MSVC nextafter for half precision "
+                  "not implemented yet";
+#else
+  bool skipped = true;
+#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+  skipped      = false;
+  TestNextAfterHalf<TEST_EXECSPACE, Kokkos::Experimental::half_t>();
+#endif
+#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+  skipped = false;
+  TestNextAfterHalf<TEST_EXECSPACE, Kokkos::Experimental::bhalf_t>();
+#endif
+  if (skipped) GTEST_SKIP() << "no 16-bit floating-point precision support";
+#endif
+#endif
 }
 #endif
 

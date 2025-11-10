@@ -78,7 +78,7 @@ void PairZBLKokkos<DeviceType>::init_style()
 {
   PairZBL::init_style();
 
-  Kokkos::deep_copy(d_cutsq,cut_globalsq);
+  Kokkos::deep_copy(d_cutsq,static_cast<KK_FLOAT>(cut_globalsq));
 
   // error if rRESPA with inner levels
 
@@ -133,10 +133,18 @@ void PairZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
+
+  c1_kk = static_cast<KK_FLOAT>(c1);
+  c2_kk = static_cast<KK_FLOAT>(c2);
+  c3_kk = static_cast<KK_FLOAT>(c3);
+  c4_kk = static_cast<KK_FLOAT>(c4);
+
+  cut_inner_kk = static_cast<KK_FLOAT>(cut_inner);
+  cut_innersq_kk = static_cast<KK_FLOAT>(cut_innersq);
 
   k_z.sync<DeviceType>();
   k_d1a.sync<DeviceType>();
@@ -154,24 +162,24 @@ void PairZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev = pair_compute<PairZBLKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -183,33 +191,33 @@ void PairZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairZBLKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int &, const int &, const int &itype, const int &jtype) const {
-  const F_FLOAT r = sqrt(rsq);
-  F_FLOAT fpair = dzbldr(r, itype, jtype);
+KK_FLOAT PairZBLKokkos<DeviceType>::
+compute_fpair(const KK_FLOAT& rsq, const int &, const int &, const int &itype, const int &jtype) const {
+  const KK_FLOAT r = sqrt(rsq);
+  KK_FLOAT fpair = dzbldr(r, itype, jtype);
 
-  if (rsq > cut_innersq) {
-    const F_FLOAT t = r - cut_inner;
-    const F_FLOAT fswitch = t*t *
+  if (rsq > cut_innersq_kk) {
+    const KK_FLOAT t = r - cut_inner_kk;
+    const KK_FLOAT fswitch = t*t *
            (d_sw1(itype,jtype) + d_sw2(itype,jtype)*t);
     fpair += fswitch;
   }
 
-  fpair *= -1.0/r;
+  fpair *= -static_cast<KK_FLOAT>(1.0) / r;
   return fpair;
 }
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairZBLKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
-  const F_FLOAT r = sqrt(rsq);
-  F_FLOAT evdwl = e_zbl(r, itype, jtype);
+KK_FLOAT PairZBLKokkos<DeviceType>::
+compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
+  const KK_FLOAT r = sqrt(rsq);
+  KK_FLOAT evdwl = e_zbl(r, itype, jtype);
   evdwl += d_sw5(itype,jtype);
-  if (rsq > cut_innersq) {
-    const F_FLOAT t = r - cut_inner;
-    const F_FLOAT eswitch = t*t*t *
+  if (rsq > cut_innersq_kk) {
+    const KK_FLOAT t = r - cut_inner_kk;
+    const KK_FLOAT eswitch = t*t*t *
       (d_sw3(itype,jtype) + d_sw4(itype,jtype)*t);
     evdwl += eswitch;
   }
@@ -227,17 +235,17 @@ void PairZBLKokkos<DeviceType>::allocate()
 
   int n = atom->ntypes;
 
-  k_z   = DAT::tdual_ffloat_1d("pair_zbl:z  ",n+1);
-  k_d1a = DAT::tdual_ffloat_2d_dl("pair_zbl:d1a",n+1,n+1);
-  k_d2a = DAT::tdual_ffloat_2d_dl("pair_zbl:d2a",n+1,n+1);
-  k_d3a = DAT::tdual_ffloat_2d_dl("pair_zbl:d3a",n+1,n+1);
-  k_d4a = DAT::tdual_ffloat_2d_dl("pair_zbl:d4a",n+1,n+1);
-  k_zze = DAT::tdual_ffloat_2d_dl("pair_zbl:zze",n+1,n+1);
-  k_sw1 = DAT::tdual_ffloat_2d_dl("pair_zbl:sw1",n+1,n+1);
-  k_sw2 = DAT::tdual_ffloat_2d_dl("pair_zbl:sw2",n+1,n+1);
-  k_sw3 = DAT::tdual_ffloat_2d_dl("pair_zbl:sw3",n+1,n+1);
-  k_sw4 = DAT::tdual_ffloat_2d_dl("pair_zbl:sw4",n+1,n+1);
-  k_sw5 = DAT::tdual_ffloat_2d_dl("pair_zbl:sw5",n+1,n+1);
+  k_z   = DAT::tdual_kkfloat_1d("pair_zbl:z  ",n+1);
+  k_d1a = DAT::tdual_kkfloat_2d_dl("pair_zbl:d1a",n+1,n+1);
+  k_d2a = DAT::tdual_kkfloat_2d_dl("pair_zbl:d2a",n+1,n+1);
+  k_d3a = DAT::tdual_kkfloat_2d_dl("pair_zbl:d3a",n+1,n+1);
+  k_d4a = DAT::tdual_kkfloat_2d_dl("pair_zbl:d4a",n+1,n+1);
+  k_zze = DAT::tdual_kkfloat_2d_dl("pair_zbl:zze",n+1,n+1);
+  k_sw1 = DAT::tdual_kkfloat_2d_dl("pair_zbl:sw1",n+1,n+1);
+  k_sw2 = DAT::tdual_kkfloat_2d_dl("pair_zbl:sw2",n+1,n+1);
+  k_sw3 = DAT::tdual_kkfloat_2d_dl("pair_zbl:sw3",n+1,n+1);
+  k_sw4 = DAT::tdual_kkfloat_2d_dl("pair_zbl:sw4",n+1,n+1);
+  k_sw5 = DAT::tdual_kkfloat_2d_dl("pair_zbl:sw5",n+1,n+1);
 
   d_z   = k_z.view<DeviceType>();
   d_d1a = k_d1a.view<DeviceType>();
@@ -251,7 +259,7 @@ void PairZBLKokkos<DeviceType>::allocate()
   d_sw4 = k_sw4.view<DeviceType>();
   d_sw5 = k_sw5.view<DeviceType>();
 
-  d_cutsq = typename AT::t_ffloat_2d_dl("pair_zbl:cutsq",n+1,n+1);
+  d_cutsq = typename AT::t_kkfloat_2d_dl("pair_zbl:cutsq",n+1,n+1);
 }
 
 /* ----------------------------------------------------------------------
@@ -263,33 +271,33 @@ double PairZBLKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairZBL::init_one(i,j);
 
-  k_z.h_view(i) = z[i];
-  k_z.h_view(j) = z[j];
-  k_d1a.h_view(i,j) = k_d1a.h_view(j,i) = d1a[i][j];
-  k_d2a.h_view(i,j) = k_d2a.h_view(j,i) = d2a[i][j];
-  k_d3a.h_view(i,j) = k_d3a.h_view(j,i) = d3a[i][j];
-  k_d4a.h_view(i,j) = k_d4a.h_view(j,i) = d4a[i][j];
-  k_zze.h_view(i,j) = k_zze.h_view(j,i) = zze[i][j];
-  k_sw1.h_view(i,j) = k_sw1.h_view(j,i) = sw1[i][j];
-  k_sw2.h_view(i,j) = k_sw2.h_view(j,i) = sw2[i][j];
-  k_sw3.h_view(i,j) = k_sw3.h_view(j,i) = sw3[i][j];
-  k_sw4.h_view(i,j) = k_sw4.h_view(j,i) = sw4[i][j];
-  k_sw5.h_view(i,j) = k_sw5.h_view(j,i) = sw5[i][j];
+  k_z.view_host()(i) = static_cast<KK_FLOAT>(z[i]);
+  k_z.view_host()(j) = static_cast<KK_FLOAT>(z[j]);
+  k_d1a.view_host()(i,j) = k_d1a.view_host()(j,i) = static_cast<KK_FLOAT>(d1a[i][j]);
+  k_d2a.view_host()(i,j) = k_d2a.view_host()(j,i) = static_cast<KK_FLOAT>(d2a[i][j]);
+  k_d3a.view_host()(i,j) = k_d3a.view_host()(j,i) = static_cast<KK_FLOAT>(d3a[i][j]);
+  k_d4a.view_host()(i,j) = k_d4a.view_host()(j,i) = static_cast<KK_FLOAT>(d4a[i][j]);
+  k_zze.view_host()(i,j) = k_zze.view_host()(j,i) = static_cast<KK_FLOAT>(zze[i][j]);
+  k_sw1.view_host()(i,j) = k_sw1.view_host()(j,i) = static_cast<KK_FLOAT>(sw1[i][j]);
+  k_sw2.view_host()(i,j) = k_sw2.view_host()(j,i) = static_cast<KK_FLOAT>(sw2[i][j]);
+  k_sw3.view_host()(i,j) = k_sw3.view_host()(j,i) = static_cast<KK_FLOAT>(sw3[i][j]);
+  k_sw4.view_host()(i,j) = k_sw4.view_host()(j,i) = static_cast<KK_FLOAT>(sw4[i][j]);
+  k_sw5.view_host()(i,j) = k_sw5.view_host()(j,i) = static_cast<KK_FLOAT>(sw5[i][j]);
 
-  k_z.modify<LMPHostType>();
-  k_d1a.modify<LMPHostType>();
-  k_d2a.modify<LMPHostType>();
-  k_d3a.modify<LMPHostType>();
-  k_d4a.modify<LMPHostType>();
-  k_zze.modify<LMPHostType>();
-  k_sw1.modify<LMPHostType>();
-  k_sw2.modify<LMPHostType>();
-  k_sw3.modify<LMPHostType>();
-  k_sw4.modify<LMPHostType>();
-  k_sw5.modify<LMPHostType>();
+  k_z.modify_host();
+  k_d1a.modify_host();
+  k_d2a.modify_host();
+  k_d3a.modify_host();
+  k_d4a.modify_host();
+  k_zze.modify_host();
+  k_sw1.modify_host();
+  k_sw2.modify_host();
+  k_sw3.modify_host();
+  k_sw4.modify_host();
+  k_sw5.modify_host();
 
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
-    m_cutsq[i][j] = m_cutsq[j][i] = cutone*cutone;
+    m_cutsq[i][j] = m_cutsq[j][i] = static_cast<KK_FLOAT>(cutone*cutone);
   }
 
   return cutone;
@@ -301,21 +309,21 @@ double PairZBLKokkos<DeviceType>::init_one(int i, int j)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairZBLKokkos<DeviceType>::e_zbl(F_FLOAT r, int i, int j) const {
+KK_FLOAT PairZBLKokkos<DeviceType>::e_zbl(KK_FLOAT r, int i, int j) const {
 
-  const F_FLOAT d1aij = d_d1a(i,j);
-  const F_FLOAT d2aij = d_d2a(i,j);
-  const F_FLOAT d3aij = d_d3a(i,j);
-  const F_FLOAT d4aij = d_d4a(i,j);
-  const F_FLOAT zzeij = d_zze(i,j);
-  const F_FLOAT rinv = 1.0/r;
+  const KK_FLOAT d1aij = d_d1a(i,j);
+  const KK_FLOAT d2aij = d_d2a(i,j);
+  const KK_FLOAT d3aij = d_d3a(i,j);
+  const KK_FLOAT d4aij = d_d4a(i,j);
+  const KK_FLOAT zzeij = d_zze(i,j);
+  const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
 
-  F_FLOAT sum = c1*exp(-d1aij*r);
-  sum += c2*exp(-d2aij*r);
-  sum += c3*exp(-d3aij*r);
-  sum += c4*exp(-d4aij*r);
+  KK_FLOAT sum = c1_kk*exp(-d1aij*r);
+  sum += c2_kk*exp(-d2aij*r);
+  sum += c3_kk*exp(-d3aij*r);
+  sum += c4_kk*exp(-d4aij*r);
 
-  F_FLOAT result = zzeij*sum*rinv;
+  KK_FLOAT result = zzeij*sum*rinv;
 
   return result;
 }
@@ -326,31 +334,31 @@ F_FLOAT PairZBLKokkos<DeviceType>::e_zbl(F_FLOAT r, int i, int j) const {
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairZBLKokkos<DeviceType>::dzbldr(F_FLOAT r, int i, int j) const {
+KK_FLOAT PairZBLKokkos<DeviceType>::dzbldr(KK_FLOAT r, int i, int j) const {
 
-  const F_FLOAT d1aij = d_d1a(i,j);
-  const F_FLOAT d2aij = d_d2a(i,j);
-  const F_FLOAT d3aij = d_d3a(i,j);
-  const F_FLOAT d4aij = d_d4a(i,j);
-  const F_FLOAT zzeij = d_zze(i,j);
-  const F_FLOAT rinv = 1.0/r;
+  const KK_FLOAT d1aij = d_d1a(i,j);
+  const KK_FLOAT d2aij = d_d2a(i,j);
+  const KK_FLOAT d3aij = d_d3a(i,j);
+  const KK_FLOAT d4aij = d_d4a(i,j);
+  const KK_FLOAT zzeij = d_zze(i,j);
+  const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
 
-  const F_FLOAT e1 = exp(-d1aij*r);
-  const F_FLOAT e2 = exp(-d2aij*r);
-  const F_FLOAT e3 = exp(-d3aij*r);
-  const F_FLOAT e4 = exp(-d4aij*r);
+  const KK_FLOAT e1 = exp(-d1aij*r);
+  const KK_FLOAT e2 = exp(-d2aij*r);
+  const KK_FLOAT e3 = exp(-d3aij*r);
+  const KK_FLOAT e4 = exp(-d4aij*r);
 
-  F_FLOAT sum = c1*e1;
-  sum += c2*e2;
-  sum += c3*e3;
-  sum += c4*e4;
+  KK_FLOAT sum = c1_kk*e1;
+  sum += c2_kk*e2;
+  sum += c3_kk*e3;
+  sum += c4_kk*e4;
 
-  F_FLOAT sum_p = -c1*d1aij*e1;
-  sum_p -= c2*d2aij*e2;
-  sum_p -= c3*d3aij*e3;
-  sum_p -= c4*d4aij*e4;
+  KK_FLOAT sum_p = -c1_kk*d1aij*e1;
+  sum_p -= c2_kk*d2aij*e2;
+  sum_p -= c3_kk*d3aij*e3;
+  sum_p -= c4_kk*d4aij*e4;
 
-  F_FLOAT result = zzeij*(sum_p - sum*rinv)*rinv;
+  KK_FLOAT result = zzeij*(sum_p - sum*rinv)*rinv;
 
   return result;
 }
@@ -361,37 +369,37 @@ F_FLOAT PairZBLKokkos<DeviceType>::dzbldr(F_FLOAT r, int i, int j) const {
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairZBLKokkos<DeviceType>::d2zbldr2(F_FLOAT r, int i, int j) const {
+KK_FLOAT PairZBLKokkos<DeviceType>::d2zbldr2(KK_FLOAT r, int i, int j) const {
 
-  const F_FLOAT d1aij = d_d1a(i,j);
-  const F_FLOAT d2aij = d_d2a(i,j);
-  const F_FLOAT d3aij = d_d3a(i,j);
-  const F_FLOAT d4aij = d_d4a(i,j);
-  const F_FLOAT zzeij = d_zze(i,j);
-  const F_FLOAT rinv = 1.0/r;
+  const KK_FLOAT d1aij = d_d1a(i,j);
+  const KK_FLOAT d2aij = d_d2a(i,j);
+  const KK_FLOAT d3aij = d_d3a(i,j);
+  const KK_FLOAT d4aij = d_d4a(i,j);
+  const KK_FLOAT zzeij = d_zze(i,j);
+  const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
 
-  const F_FLOAT e1 = exp(-d1aij*r);
-  const F_FLOAT e2 = exp(-d2aij*r);
-  const F_FLOAT e3 = exp(-d3aij*r);
-  const F_FLOAT e4 = exp(-d4aij*r);
+  const KK_FLOAT e1 = exp(-d1aij*r);
+  const KK_FLOAT e2 = exp(-d2aij*r);
+  const KK_FLOAT e3 = exp(-d3aij*r);
+  const KK_FLOAT e4 = exp(-d4aij*r);
 
-  F_FLOAT sum = c1*e1;
-  sum += c2*e2;
-  sum += c3*e3;
-  sum += c4*e4;
+  KK_FLOAT sum = c1_kk*e1;
+  sum += c2_kk*e2;
+  sum += c3_kk*e3;
+  sum += c4_kk*e4;
 
-  F_FLOAT sum_p = c1*e1*d1aij;
-  sum_p += c2*e2*d2aij;
-  sum_p += c3*e3*d3aij;
-  sum_p += c4*e4*d4aij;
+  KK_FLOAT sum_p = c1_kk*e1*d1aij;
+  sum_p += c2_kk*e2*d2aij;
+  sum_p += c3_kk*e3*d3aij;
+  sum_p += c4_kk*e4*d4aij;
 
-  F_FLOAT sum_pp = c1*e1*d1aij*d1aij;
-  sum_pp += c2*e2*d2aij*d2aij;
-  sum_pp += c3*e3*d3aij*d3aij;
-  sum_pp += c4*e4*d4aij*d4aij;
+  KK_FLOAT sum_pp = c1_kk*e1*d1aij*d1aij;
+  sum_pp += c2_kk*e2*d2aij*d2aij;
+  sum_pp += c3_kk*e3*d3aij*d3aij;
+  sum_pp += c4_kk*e4*d4aij*d4aij;
 
-  F_FLOAT result = zzeij*(sum_pp + 2.0*sum_p*rinv +
-                         2.0*sum*rinv*rinv)*rinv;
+  KK_FLOAT result = zzeij*(sum_pp + static_cast<KK_FLOAT>(2.0)*sum_p*rinv +
+                         static_cast<KK_FLOAT>(2.0)*sum*rinv*rinv)*rinv;
 
   return result;
 }

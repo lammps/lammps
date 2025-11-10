@@ -5,4 +5,4 @@ David Immel, Ralf Drautz, Godehard Sutmann; Adaptive-precision potentials for la
 Example of how to use an adaptive-precision potential is provided in examples/PACKAGES/APIP .
 
 The pair_style pace/apip requires the installation of lib/pace of the ML-PACE package.
-The installation of lib/pace is described in src/ML-PACE/README .
+The installation of lib/pace is described in the LAMMPS manual

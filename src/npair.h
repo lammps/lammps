@@ -93,9 +93,6 @@ class NPair : protected Pointers {
   int nstencil;
   int *stencil;
   int **stencilxyz;
-  int *nstencil_multi_old;
-  int **stencil_multi_old;
-  double **distsq_multi_old;
   bool **flag_half_multi;
   bool **flag_same_multi;
 

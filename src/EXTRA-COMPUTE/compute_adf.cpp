@@ -125,7 +125,7 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
     klo[0] = 1; khi[0] = ntypes;
   } else {
     cutflag = 1;
-    if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+    if (neighbor->style == Neighbor::MULTI)
       error->all(FLERR, "Compute adf with custom cutoffs requires neighbor style 'bin' or 'nsq'");
     iarg = 4;
     for (int m = 0; m < ntriples; m++) {
@@ -326,7 +326,7 @@ void ComputeADF::init()
 
   auto *req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
   if (mycutneigh > 0.0) {
-    if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+    if (neighbor->style == Neighbor::MULTI)
       error->all(FLERR, "Compute adf with custom cutoffs requires neighbor style 'bin' or 'nsq'");
 
     req->set_cutoff(mycutneigh);

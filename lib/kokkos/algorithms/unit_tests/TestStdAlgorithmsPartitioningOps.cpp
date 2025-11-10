@@ -122,6 +122,7 @@ struct std_algorithms_partitioning_test : public std_algorithms_test {
     copyInputViewToFixtureViews(tmpView);
   }
 
+  // NOLINTBEGIN(bugprone-branch-clone)
   bool goldSolutionIsPartitioned(FixtureViews caseNumber) const {
     switch (caseNumber) {
       case Mixed: return false;
@@ -145,6 +146,7 @@ struct std_algorithms_partitioning_test : public std_algorithms_test {
       default: return -1;
     }
   }
+  // NOLINTEND(bugprone-branch-clone)
 };
 
 TEST_F(std_algorithms_partitioning_test, is_partitioned_trivial) {

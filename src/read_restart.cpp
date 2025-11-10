@@ -36,6 +36,7 @@
 #include "update.h"
 
 #include <cstring>
+#include <filesystem>
 
 #include "lmprestart.h"
 
@@ -535,7 +536,7 @@ std::string ReadRestart::file_search(const std::string &inpfile)
     // convert pattern to equivalent regexp
     pattern.replace(loc,1,"\\d+");
 
-    if (!platform::path_is_directory(dirname))
+    if (!std::filesystem::is_directory(dirname))
       error->one(FLERR,"Cannot open directory {} to search for restart file: {}",dirname);
 
     for (const auto &candidate : platform::list_directory(dirname)) {
@@ -834,6 +835,8 @@ void ReadRestart::header()
       atom->extra_improper_per_atom = read_int();
     } else if (flag == ATOM_MAXSPECIAL) {
       atom->maxspecial = read_int();
+    } else if (flag == ATOM_MAXEXCHANGE) {
+      if (atom->avec) atom->avec->maxexchange = read_int();
     } else if (flag == NELLIPSOIDS) {
       atom->nellipsoids = read_bigint();
     } else if (flag == NLINES) {

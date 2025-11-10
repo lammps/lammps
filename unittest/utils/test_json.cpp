@@ -29,11 +29,11 @@ using ::testing::Eq;
 TEST(JSON, namespace)
 {
     std::string expected = "nlohmann_lmp::json_abi";
-    expected += "_v" STRINGIFY(NLOHMANN_JSON_VERSION_MAJOR);
-    expected += "_" STRINGIFY(NLOHMANN_JSON_VERSION_MINOR);
-    expected += "_" STRINGIFY(NLOHMANN_JSON_VERSION_PATCH);
+    expected += "_v" STRINGIFY(LMP_NLOHMANN_JSON_VERSION_MAJOR);
+    expected += "_" STRINGIFY(LMP_NLOHMANN_JSON_VERSION_MINOR);
+    expected += "_" STRINGIFY(LMP_NLOHMANN_JSON_VERSION_PATCH);
 
-    const std::string ns{STRINGIFY(NLOHMANN_JSON_NAMESPACE)};
+    const std::string ns{STRINGIFY(LMP_NLOHMANN_JSON_NAMESPACE)};
     ASSERT_THAT(expected, Eq(ns));
 }
 
@@ -45,11 +45,11 @@ TEST(JSON, serialize_deserialize)
     j1["name"]    = "Niels";
     j1["nothing"] = nullptr;
 
-    std::string expected = "{\"happy\":true,\"name\":\"Niels\",\"nothing\":null,\"pi\":3.141}";
+    std::string expected = "{\"pi\":3.141,\"happy\":true,\"name\":\"Niels\",\"nothing\":null}";
     std::string dumped   = j1.dump(-1);
     ASSERT_THAT(expected, Eq(dumped));
 
-    expected = "{\n  \"happy\": true,\n  \"name\": \"Niels\",\n  \"nothing\": null,\n  \"pi\": 3.141\n}";
+    expected = "{\n  \"pi\": 3.141,\n  \"happy\": true,\n  \"name\": \"Niels\",\n  \"nothing\": null\n}";
     dumped   = j1.dump(2, ' ');
     ASSERT_THAT(expected, Eq(dumped));
 

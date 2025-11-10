@@ -30,7 +30,7 @@ You can follow the LAMMPS development on 4 different git branches:
   every "stable release" version and also has selected bug fixes with
   every "update release" when the *maintenance* branch is merged into it
 
-To access the git repositories on your box, use the clone command to
+To access the git repository on your box, use the clone command to
 create a local copy of the LAMMPS repository with a command like:
 
 .. code-block:: bash
@@ -161,4 +161,11 @@ changed.  How to do this depends on the build system you are using.
    ``git@github.com:lammps/lammps.git``.
 
 The LAMMPS GitHub project is currently overseen by Axel Kohlmeyer
-(Temple U, akohlmey at gmail.com).
+(Temple U, akohlmey at gmail.com), contact him if you have any
+questions or concerns.
+
+----
+
+You can find additional LAMMPS features for dynamically loading
+with the :doc:`plugin command <plugin>` in the
+`LAMMPS plugins source code repository on GitHub <https://github.com/lammps/lammps-plugins>`_

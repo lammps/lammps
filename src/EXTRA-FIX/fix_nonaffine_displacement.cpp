@@ -92,7 +92,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
     } else if (strcmp(arg[iarg + 1], "custom") == 0) {
       if (iarg + 2 > narg)
         utils::missing_cmd_args(FLERR,"fix nonaffine/displacement custom", error);
-      if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+      if (neighbor->style == Neighbor::MULTI)
         error->all(FLERR, "Fix nonaffine/displacement with custom cutoff requires neighbor style 'bin' or 'nsq'");
       cut_style = CUSTOM;
       cutoff_custom = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
@@ -219,7 +219,7 @@ void FixNonaffineDisplacement::init()
     } else {
       auto *req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
       if (cut_style == CUSTOM) {
-        if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+        if (neighbor->style == Neighbor::MULTI)
           error->all(FLERR, "Fix nonaffine/displacement with custom cutoff requires neighbor style 'bin' or 'nsq'");
 
         double skin = neighbor->skin;
@@ -273,6 +273,11 @@ void FixNonaffineDisplacement::post_force(int /*vflag*/)
     } else {
       if ((update->ntimestep % nevery) == 0) calculate_D2Min();
     }
+  } else {
+    // Otherwise, ensure peratom variables are zeroed
+    for (int i = 0; i < atom->nlocal; i++)
+      for (int a = 0; a < size_peratom_cols; a++)
+        array_atom[i][a] = 0.0;
   }
 
   if (reference_style == FIXED)
@@ -773,7 +778,7 @@ void FixNonaffineDisplacement::grow_arrays(int nmax_new)
 {
   nmax = nmax_new;
   memory->destroy(array_atom);
-  memory->create(array_atom, nmax, 3, "fix_nonaffine_displacement:array_atom");
+  memory->create(array_atom, nmax, size_peratom_cols, "fix_nonaffine_displacement:array_atom");
   if (nad_style == D2MIN) {
     memory->destroy(X);
     memory->destroy(Y);

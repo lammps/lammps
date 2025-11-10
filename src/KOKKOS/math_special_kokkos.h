@@ -184,17 +184,17 @@ namespace MathSpecialKokkos {
    *
    *  \param   x argument
    *  \return  x*x */
-
+  template<typename T>
   KOKKOS_INLINE_FUNCTION
-  static double square(const double &x) { return x * x; }
+  static T square(const T &x) { return x * x; }
 
   /*! Fast inline version of pow(x, 3.0)
    *
    *  \param   x argument
    *  \return  x*x */
-
+  template<typename T>
   KOKKOS_INLINE_FUNCTION
-  static double cube(const double &x) { return x * x * x; }
+  static T cube(const T &x) { return x * x * x; }
 
   /* Fast inline version of pow(-1.0, n)
    *
@@ -202,7 +202,7 @@ namespace MathSpecialKokkos {
    *  \return  -1 if n is odd, 1.0 if n is even */
 
   KOKKOS_INLINE_FUNCTION
-  static double powsign(const int n) { return (n & 1) ? -1.0 : 1.0; }
+  static KK_FLOAT powsign(const int n) { return (n & 1) ? static_cast<KK_FLOAT>(-1.0) : static_cast<KK_FLOAT>(1.0); }
 
   /* Fast inline version of pow(x,n) for integer n
    *
@@ -212,19 +212,20 @@ namespace MathSpecialKokkos {
    *  \param   n argument (integer)
    *  \return  value of x^n */
 
+  template<typename T>
   KOKKOS_INLINE_FUNCTION
-  static double powint(const double &x, const int n)
+  static T powint(const T &x, const int n)
   {
-    double yy, ww;
+    T yy, ww;
 
-    if (x == 0.0) return 0.0;
+    if (x == static_cast<T>(0)) return static_cast<T>(0);
     int nn = (n > 0) ? n : -n;
     ww = x;
 
-    for (yy = 1.0; nn != 0; nn >>= 1, ww *= ww)
+    for (yy = static_cast<T>(1); nn != 0; nn >>= 1, ww *= ww)
       if (nn & 1) yy *= ww;
 
-    return (n > 0) ? yy : 1.0 / yy;
+    return (n > 0) ? yy : static_cast<T>(1) / yy;
   }
 
   /* Fast inline version of (sin(x)/x)^n as used by PPPM kspace styles
@@ -234,16 +235,17 @@ namespace MathSpecialKokkos {
    *  \param   n argument (integer). Expected to be positive.
    *  \return  value of (sin(x)/x)^n */
 
+  template<typename T>
   KOKKOS_INLINE_FUNCTION
-  static double powsinxx(const double &x, int n)
+  static T powsinxx(const T &x, int n)
   {
-    double yy, ww;
+    T yy, ww;
 
-    if (x == 0.0) return 1.0;
+    if (x == static_cast<T>(0)) return static_cast<T>(1);
 
     ww = sin(x) / x;
 
-    for (yy = 1.0; n != 0; n >>= 1, ww *= ww)
+    for (yy = static_cast<T>(1); n != 0; n >>= 1, ww *= ww)
       if (n & 1) yy *= ww;
 
     return yy;
@@ -253,8 +255,9 @@ namespace MathSpecialKokkos {
     ans = v1 - v2
   ------------------------------------------------------------------------- */
 
+  template<typename T>
   KOKKOS_INLINE_FUNCTION
-  static void sub3(const double *v1, const double *v2, double *ans)
+  static void sub3(const T *v1, const T *v2, T *ans)
   {
     ans[0] = v1[0] - v2[0];
     ans[1] = v1[1] - v2[1];
@@ -265,8 +268,9 @@ namespace MathSpecialKokkos {
     dot product of 2 vectors
   ------------------------------------------------------------------------- */
 
+  template<typename T>
   KOKKOS_INLINE_FUNCTION
-  static double dot3(const double *v1, const double *v2)
+  static T dot3(const T *v1, const T *v2)
   {
     return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
   }

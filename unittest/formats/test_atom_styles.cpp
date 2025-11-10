@@ -157,7 +157,6 @@ struct AtomState {
     int body_flag                    = 0;
     int peri_flag                    = 0;
     int electron_flag                = 0;
-    int wavepacket_flag              = 0;
     int sph_flag                     = 0;
     int molecule_flag                = 0;
     int molindex_flag                = 0;
@@ -174,11 +173,6 @@ struct AtomState {
     int eradius_flag                 = 0;
     int ervel_flag                   = 0;
     int erforce_flag                 = 0;
-    int cs_flag                      = 0;
-    int csforce_flag                 = 0;
-    int vforce_flag                  = 0;
-    int ervelforce_flag              = 0;
-    int etag_flag                    = 0;
     int rho_flag                     = 0;
     int esph_flag                    = 0;
     int cv_flag                      = 0;
@@ -293,7 +287,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_EQ(atom->body_flag, expected.body_flag);
     ASSERT_EQ(atom->peri_flag, expected.peri_flag);
     ASSERT_EQ(atom->electron_flag, expected.electron_flag);
-    ASSERT_EQ(atom->wavepacket_flag, expected.wavepacket_flag);
     ASSERT_EQ(atom->sph_flag, expected.sph_flag);
     ASSERT_EQ(atom->molecule_flag, expected.molecule_flag);
     ASSERT_EQ(atom->molindex_flag, expected.molindex_flag);
@@ -310,11 +303,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_EQ(atom->eradius_flag, expected.eradius_flag);
     ASSERT_EQ(atom->ervel_flag, expected.ervel_flag);
     ASSERT_EQ(atom->erforce_flag, expected.erforce_flag);
-    ASSERT_EQ(atom->cs_flag, expected.cs_flag);
-    ASSERT_EQ(atom->csforce_flag, expected.csforce_flag);
-    ASSERT_EQ(atom->vforce_flag, expected.vforce_flag);
-    ASSERT_EQ(atom->ervelforce_flag, expected.ervelforce_flag);
-    ASSERT_EQ(atom->etag_flag, expected.etag_flag);
     ASSERT_EQ(atom->rho_flag, expected.rho_flag);
     ASSERT_EQ(atom->esph_flag, expected.esph_flag);
     ASSERT_EQ(atom->cv_flag, expected.cv_flag);
@@ -398,11 +386,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_ARRAY_ALLOCATED(atom->eradius, false);
     ASSERT_ARRAY_ALLOCATED(atom->ervel, false);
     ASSERT_ARRAY_ALLOCATED(atom->erforce, false);
-    ASSERT_ARRAY_ALLOCATED(atom->ervelforce, false);
-    ASSERT_ARRAY_ALLOCATED(atom->cs, false);
-    ASSERT_ARRAY_ALLOCATED(atom->csforce, false);
-    ASSERT_ARRAY_ALLOCATED(atom->vforce, false);
-    ASSERT_ARRAY_ALLOCATED(atom->etag, false);
     ASSERT_ARRAY_ALLOCATED(atom->uCond, false);
     ASSERT_ARRAY_ALLOCATED(atom->uMech, false);
     ASSERT_ARRAY_ALLOCATED(atom->uChem, false);

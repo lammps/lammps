@@ -219,19 +219,6 @@ namespace platform {
 
   bool is_console(FILE *fp);
 
-  /*! Get string with path to the current directory
-   *
-   * \return path to the current directory or empty string */
-
-  std::string current_directory();
-
-  /*! Check if a path is a directory
-   *
-   * \param  path  directory path
-   * \return true if the directory exists */
-
-  bool path_is_directory(const std::string &path);
-
   /*! Get list of entries in a directory
    *
    * This provides a list of strings of the entries in the directory

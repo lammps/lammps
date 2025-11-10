@@ -27,165 +27,165 @@ namespace detail {
 
 // For no unique address emulation, this is the case taken when neither are empty.
 // For real `[[no_unique_address]]`, this case is always taken.
-template <class _T1, class _T2, class _Enable = void> struct __compressed_pair {
-  MDSPAN_IMPL_NO_UNIQUE_ADDRESS _T1 __t1_val{};
-  MDSPAN_IMPL_NO_UNIQUE_ADDRESS _T2 __t2_val{};
-  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 _T1 &__first() noexcept { return __t1_val; }
-  MDSPAN_FORCE_INLINE_FUNCTION constexpr _T1 const &__first() const noexcept {
-    return __t1_val;
+template <class T1, class T2, class Enable = void> struct impl_compressed_pair {
+  MDSPAN_IMPL_NO_UNIQUE_ADDRESS T1 m_t1_val{};
+  MDSPAN_IMPL_NO_UNIQUE_ADDRESS T2 m_t2_val{};
+  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 T1 &first() noexcept { return m_t1_val; }
+  MDSPAN_FORCE_INLINE_FUNCTION constexpr T1 const &first() const noexcept {
+    return m_t1_val;
   }
-  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 _T2 &__second() noexcept { return __t2_val; }
-  MDSPAN_FORCE_INLINE_FUNCTION constexpr _T2 const &__second() const noexcept {
-    return __t2_val;
+  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 T2 &second() noexcept { return m_t2_val; }
+  MDSPAN_FORCE_INLINE_FUNCTION constexpr T2 const &second() const noexcept {
+    return m_t2_val;
   }
 
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __compressed_pair() = default;
+  constexpr impl_compressed_pair() = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __compressed_pair(__compressed_pair const &) = default;
+  constexpr impl_compressed_pair(impl_compressed_pair const &) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __compressed_pair(__compressed_pair &&) = default;
+  constexpr impl_compressed_pair(impl_compressed_pair &&) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED __compressed_pair &
-  operator=(__compressed_pair const &) = default;
+  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED impl_compressed_pair &
+  operator=(impl_compressed_pair const &) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED __compressed_pair &
-  operator=(__compressed_pair &&) = default;
+  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED impl_compressed_pair &
+  operator=(impl_compressed_pair &&) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  ~__compressed_pair() = default;
-  template <class _T1Like, class _T2Like>
-  MDSPAN_INLINE_FUNCTION constexpr __compressed_pair(_T1Like &&__t1, _T2Like &&__t2)
-      : __t1_val((_T1Like &&) __t1), __t2_val((_T2Like &&) __t2) {}
+  ~impl_compressed_pair() = default;
+  template <class T1Like, class T2Like>
+  MDSPAN_INLINE_FUNCTION constexpr impl_compressed_pair(T1Like &&t1, T2Like &&t2)
+      : m_t1_val((T1Like &&) t1), m_t2_val((T2Like &&) t2) {}
 };
 
 #if !defined(MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
 
 // First empty.
-template <class _T1, class _T2>
-struct __compressed_pair<
-    _T1, _T2,
-    std::enable_if_t<MDSPAN_IMPL_TRAIT(std::is_empty, _T1) && !MDSPAN_IMPL_TRAIT(std::is_empty, _T2)>>
-    : private _T1 {
-  _T2 __t2_val{};
-  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 _T1 &__first() noexcept {
-    return *static_cast<_T1 *>(this);
+template <class T1, class T2>
+struct impl_compressed_pair<
+    T1, T2,
+    std::enable_if_t<MDSPAN_IMPL_TRAIT(std::is_empty, T1) && !MDSPAN_IMPL_TRAIT(std::is_empty, T2)>>
+    : private T1 {
+  T2 m_t2_val{};
+  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 T1 &first() noexcept {
+    return *static_cast<T1 *>(this);
   }
-  MDSPAN_FORCE_INLINE_FUNCTION constexpr _T1 const &__first() const noexcept {
-    return *static_cast<_T1 const *>(this);
+  MDSPAN_FORCE_INLINE_FUNCTION constexpr T1 const &first() const noexcept {
+    return *static_cast<T1 const *>(this);
   }
-  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 _T2 &__second() noexcept { return __t2_val; }
-  MDSPAN_FORCE_INLINE_FUNCTION constexpr _T2 const &__second() const noexcept {
-    return __t2_val;
+  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 T2 &second() noexcept { return m_t2_val; }
+  MDSPAN_FORCE_INLINE_FUNCTION constexpr T2 const &second() const noexcept {
+    return m_t2_val;
   }
 
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __compressed_pair() = default;
+  constexpr impl_compressed_pair() = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __compressed_pair(__compressed_pair const &) = default;
+  constexpr impl_compressed_pair(impl_compressed_pair const &) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __compressed_pair(__compressed_pair &&) = default;
+  constexpr impl_compressed_pair(impl_compressed_pair &&) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED __compressed_pair &
-  operator=(__compressed_pair const &) = default;
+  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED impl_compressed_pair &
+  operator=(impl_compressed_pair const &) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED __compressed_pair &
-  operator=(__compressed_pair &&) = default;
+  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED impl_compressed_pair &
+  operator=(impl_compressed_pair &&) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  ~__compressed_pair() = default;
-  template <class _T1Like, class _T2Like>
-  MDSPAN_INLINE_FUNCTION constexpr __compressed_pair(_T1Like &&__t1, _T2Like &&__t2)
-      : _T1((_T1Like &&) __t1), __t2_val((_T2Like &&) __t2) {}
+  ~impl_compressed_pair() = default;
+  template <class T1Like, class T2Like>
+  MDSPAN_INLINE_FUNCTION constexpr impl_compressed_pair(T1Like &&t1, T2Like &&t2)
+      : T1((T1Like &&) t1), m_t2_val((T2Like &&) t2) {}
 };
 
 // Second empty.
-template <class _T1, class _T2>
-struct __compressed_pair<
-    _T1, _T2,
-    std::enable_if_t<!MDSPAN_IMPL_TRAIT(std::is_empty, _T1) && MDSPAN_IMPL_TRAIT(std::is_empty, _T2)>>
-    : private _T2 {
-  _T1 __t1_val{};
-  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 _T1 &__first() noexcept { return __t1_val; }
-  MDSPAN_FORCE_INLINE_FUNCTION constexpr _T1 const &__first() const noexcept {
-    return __t1_val;
+template <class T1, class T2>
+struct impl_compressed_pair<
+    T1, T2,
+    std::enable_if_t<!MDSPAN_IMPL_TRAIT(std::is_empty, T1) && MDSPAN_IMPL_TRAIT(std::is_empty, T2)>>
+    : private T2 {
+  T1 m_t1_val{};
+  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 T1 &first() noexcept { return m_t1_val; }
+  MDSPAN_FORCE_INLINE_FUNCTION constexpr T1 const &first() const noexcept {
+    return m_t1_val;
   }
-  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 _T2 &__second() noexcept {
-    return *static_cast<_T2 *>(this);
+  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 T2 &second() noexcept {
+    return *static_cast<T2 *>(this);
   }
-  MDSPAN_FORCE_INLINE_FUNCTION constexpr _T2 const &__second() const noexcept {
-    return *static_cast<_T2 const *>(this);
+  MDSPAN_FORCE_INLINE_FUNCTION constexpr T2 const &second() const noexcept {
+    return *static_cast<T2 const *>(this);
   }
 
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __compressed_pair() = default;
+  constexpr impl_compressed_pair() = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __compressed_pair(__compressed_pair const &) = default;
+  constexpr impl_compressed_pair(impl_compressed_pair const &) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __compressed_pair(__compressed_pair &&) = default;
+  constexpr impl_compressed_pair(impl_compressed_pair &&) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED __compressed_pair &
-  operator=(__compressed_pair const &) = default;
+  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED impl_compressed_pair &
+  operator=(impl_compressed_pair const &) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED __compressed_pair &
-  operator=(__compressed_pair &&) = default;
+  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED impl_compressed_pair &
+  operator=(impl_compressed_pair &&) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  ~__compressed_pair() = default;
+  ~impl_compressed_pair() = default;
 
-  template <class _T1Like, class _T2Like>
-  MDSPAN_INLINE_FUNCTION constexpr __compressed_pair(_T1Like &&__t1, _T2Like &&__t2)
-      : _T2((_T2Like &&) __t2), __t1_val((_T1Like &&) __t1) {}
+  template <class T1Like, class T2Like>
+  MDSPAN_INLINE_FUNCTION constexpr impl_compressed_pair(T1Like &&t1, T2Like &&t2)
+      : T2((T2Like &&) t2), m_t1_val((T1Like &&) t1) {}
 };
 
 // Both empty.
-template <class _T1, class _T2>
-struct __compressed_pair<
-    _T1, _T2,
-    std::enable_if_t<MDSPAN_IMPL_TRAIT(std::is_empty, _T1) && MDSPAN_IMPL_TRAIT(std::is_empty, _T2)>>
-    // We need to use the __no_unique_address_emulation wrapper here to avoid
+template <class T1, class T2>
+struct impl_compressed_pair<
+    T1, T2,
+    std::enable_if_t<MDSPAN_IMPL_TRAIT(std::is_empty, T1) && MDSPAN_IMPL_TRAIT(std::is_empty, T2)>>
+    // We need to use the no_unique_address_emulation wrapper here to avoid
     // base class ambiguities.
 #ifdef MDSPAN_IMPL_COMPILER_MSVC
 // MSVC doesn't allow you to access public static member functions of a type
 // when you *happen* to privately inherit from that type.
-    : protected __no_unique_address_emulation<_T1, 0>,
-      protected __no_unique_address_emulation<_T2, 1>
+    : protected no_unique_address_emulation<T1, 0>,
+      protected no_unique_address_emulation<T2, 1>
 #else
-    : private __no_unique_address_emulation<_T1, 0>,
-      private __no_unique_address_emulation<_T2, 1>
+    : private no_unique_address_emulation<T1, 0>,
+      private no_unique_address_emulation<T2, 1>
 #endif
 {
-  using __first_base_t = __no_unique_address_emulation<_T1, 0>;
-  using __second_base_t = __no_unique_address_emulation<_T2, 1>;
+  using first_base_t = no_unique_address_emulation<T1, 0>;
+  using second_base_t = no_unique_address_emulation<T2, 1>;
 
-  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 _T1 &__first() noexcept {
-    return this->__first_base_t::__ref();
+  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 T1 &first() noexcept {
+    return this->first_base_t::ref();
   }
-  MDSPAN_FORCE_INLINE_FUNCTION constexpr _T1 const &__first() const noexcept {
-    return this->__first_base_t::__ref();
+  MDSPAN_FORCE_INLINE_FUNCTION constexpr T1 const &first() const noexcept {
+    return this->first_base_t::ref();
   }
-  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 _T2 &__second() noexcept {
-    return this->__second_base_t::__ref();
+  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 T2 &second() noexcept {
+    return this->second_base_t::ref();
   }
-  MDSPAN_FORCE_INLINE_FUNCTION constexpr _T2 const &__second() const noexcept {
-    return this->__second_base_t::__ref();
+  MDSPAN_FORCE_INLINE_FUNCTION constexpr T2 const &second() const noexcept {
+    return this->second_base_t::ref();
   }
 
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __compressed_pair() = default;
+  constexpr impl_compressed_pair() = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __compressed_pair(__compressed_pair const &) = default;
+  constexpr impl_compressed_pair(impl_compressed_pair const &) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __compressed_pair(__compressed_pair &&) = default;
+  constexpr impl_compressed_pair(impl_compressed_pair &&) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED __compressed_pair &
-  operator=(__compressed_pair const &) = default;
+  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED impl_compressed_pair &
+  operator=(impl_compressed_pair const &) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED __compressed_pair &
-  operator=(__compressed_pair &&) = default;
+  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED impl_compressed_pair &
+  operator=(impl_compressed_pair &&) = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  ~__compressed_pair() = default;
-  template <class _T1Like, class _T2Like>
-  MDSPAN_INLINE_FUNCTION constexpr __compressed_pair(_T1Like &&__t1, _T2Like &&__t2) noexcept
-    : __first_base_t(_T1((_T1Like &&) __t1)),
-      __second_base_t(_T2((_T2Like &&) __t2))
+  ~impl_compressed_pair() = default;
+  template <class T1Like, class T2Like>
+  MDSPAN_INLINE_FUNCTION constexpr impl_compressed_pair(T1Like &&t1, T2Like &&t2) noexcept
+    : first_base_t(T1((T1Like &&) t1)),
+      second_base_t(T2((T2Like &&) t2))
   { }
 };
 

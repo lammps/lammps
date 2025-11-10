@@ -20,7 +20,6 @@
 #include <iterator>
 #include <utility>  // declval
 #include <Kokkos_Macros.hpp>
-#include <Kokkos_View.hpp>
 #include "Kokkos_Constraints.hpp"
 
 namespace Kokkos {

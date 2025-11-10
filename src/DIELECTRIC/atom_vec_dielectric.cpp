@@ -218,8 +218,8 @@ void AtomVecDielectric::write_data_restricted_to_general()
 
   int nlocal = atom->nlocal;
   memory->create(mu_hold,nlocal,3,"atomvec:mu_hold");
-    for (int i = 0; i < nlocal; i++) {
-    memcpy(&mu_hold[i],&mu[i],3*sizeof(double));
+  for (int i = 0; i < nlocal; i++) {
+    memcpy(&mu_hold[i][0],&mu[i][0],3*sizeof(double));
     domain->restricted_to_general_vector(mu[i]);
   }
 }
@@ -239,7 +239,7 @@ void AtomVecDielectric::write_data_restore_restricted()
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++)
-    memcpy(&mu[i],&mu_hold[i],3*sizeof(double));
+    memcpy(&mu[i][0],&mu_hold[i][0],3*sizeof(double));
   memory->destroy(mu_hold);
   mu_hold = nullptr;
 }

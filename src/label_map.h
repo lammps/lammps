@@ -35,6 +35,7 @@ class LabelMap : protected Pointers {
   void merge_lmap(LabelMap *, int);            // copy another lmap into this one
   void create_lmap2lmap(LabelMap *, int);      // index mapping between two lmaps
   int find(const std::string &, int) const;    // find numeric type of type label
+  const std::string &find(int, int) const;     // find type label for numeric type
   bool is_complete(int) const;                 // check if all types are assigned
 
   // input/output for atom class label map
@@ -42,11 +43,13 @@ class LabelMap : protected Pointers {
   void write_data(FILE *);
   void read_restart(FILE *fp);
   void write_restart(FILE *);
+  inline auto getTypelabel() const { return typelabel; }
 
- protected:
+protected:
   int natomtypes, nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
   std::vector<std::string> typelabel, btypelabel, atypelabel;
   std::vector<std::string> dtypelabel, itypelabel;
+
   std::unordered_map<std::string, int> typelabel_map;
   std::unordered_map<std::string, int> btypelabel_map;
   std::unordered_map<std::string, int> atypelabel_map;

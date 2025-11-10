@@ -38,11 +38,13 @@ template<class DeviceType>
 class PackKokkos {
  public:
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
 
 struct pack_3d_functor {
 public:
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
   typename FFT_AT::t_FFT_SCALAR_1d_um d_buf,d_data;
   int buf_offset,data_offset;

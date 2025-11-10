@@ -511,8 +511,10 @@ void Image::draw_sphere(const double *x, const double *surfaceColor, double diam
 
 void Image::draw_cube(const double *x, const double *surfaceColor, double diameter)
 {
-  double xlocal[3],surface[3],normal[3];
-  double t,tdir[3];
+  double xlocal[3],surface[3];
+  double normal[3] = {0.0, 0.0, 1.0};
+  double t = 1.0;
+  double tdir[3] = {0.5, 0.5, 0.0};
   double depth;
 
   xlocal[0] = x[0] - xctr;

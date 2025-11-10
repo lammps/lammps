@@ -533,15 +533,10 @@ Generally speaking, the following rules of thumb apply:
   performance of a KOKKOS style is a bit slower than the OPENMP
   package.
 * When running large number of atoms per GPU, KOKKOS is typically faster
-  than the GPU package when compiled for double precision.  The benefit
-  of using single or mixed precision with the GPU package depends
-  significantly on the hardware in use and the simulated system and pair
-  style.
+  than the GPU package when both are compiled for double precision.
 * When running on Intel Phi hardware, KOKKOS is not as fast as
   the INTEL package, which is optimized for x86 hardware (not just
-  from Intel) and compilation with the Intel compilers.  The INTEL
-  package also can increase the vector length of vector instructions
-  by switching to single or mixed precision mode.
+  from Intel) and compilation with the Intel compilers.
 * The KOKKOS package by default assumes that you are using exactly one
   MPI rank per GPU. When trying to use multiple MPI ranks per GPU it is
   mandatory to enable `CUDA Multi-Process Service (MPS)
@@ -560,9 +555,3 @@ Advanced Kokkos options
 There are other allowed options when building with the KOKKOS package
 that can improve performance or assist in debugging or profiling.
 They are explained on the :ref:`KOKKOS section of the build extras <kokkos>` doc page,
-
-Restrictions
-""""""""""""
-
-Currently, there are no precision options with the KOKKOS package. All
-compilation and computation is performed in double precision.

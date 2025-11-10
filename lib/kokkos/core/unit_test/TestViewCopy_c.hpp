@@ -24,7 +24,7 @@ template <class ViewType, class ExecSpace>
 void reset_view(const ExecSpace& space, ViewType& a, int magic) {
   auto policy = Kokkos::RangePolicy<ExecSpace>(space, 0, a.span());
 
-  assert(a.span_is_contiguous());
+  KOKKOS_ASSERT(a.span_is_contiguous());
 
   Kokkos::parallel_for(
       "TestViewCopy::ResetView", policy,
@@ -35,7 +35,7 @@ template <class ViewType, class ExecSpace>
 size_t compute_overall_sum(const ExecSpace& space, ViewType& a) {
   auto policy = Kokkos::RangePolicy<ExecSpace>(space, 0, a.span());
 
-  assert(a.span_is_contiguous());
+  KOKKOS_ASSERT(a.span_is_contiguous());
 
   typename ViewType::value_type sum = 0;
   Kokkos::parallel_reduce(

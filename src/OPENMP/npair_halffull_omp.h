@@ -16,97 +16,97 @@
 using NPairHalffullNewtoffOmp = NPairHalffullOmp<0, 0, 0>;
 NPairStyle(halffull/newtoff/omp,
            NPairHalffullNewtoffOmp,
-           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
+           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
            NP_ORTHO | NP_TRI | NP_OMP);
 
 using NPairHalffullNewtoffOmp = NPairHalffullOmp<0, 0, 0>;
 NPairStyle(halffull/newtoff/skip/omp,
            NPairHalffullNewtoffOmp,
-           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
+           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_OMP);
 
 using NPairHalffullNewtoffOmp = NPairHalffullOmp<0, 0, 0>;
 NPairStyle(halffull/newtoff/ghost/omp,
            NPairHalffullNewtoffOmp,
-           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
+           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_OMP);
 
 using NPairHalffullNewtoffOmp = NPairHalffullOmp<0, 0, 0>;
 NPairStyle(halffull/newtoff/skip/ghost/omp,
            NPairHalffullNewtoffOmp,
-           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
+           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_GHOST | NP_OMP);
 
 using NPairHalffullNewtonOmp = NPairHalffullOmp<1, 0, 0>;
 NPairStyle(halffull/newton/omp,
            NPairHalffullNewtonOmp,
-           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_OMP);
 
 using NPairHalffullNewtonTriOmp = NPairHalffullOmp<1, 1, 0>;
 NPairStyle(halffull/newton/tri/omp,
            NPairHalffullNewtonTriOmp,
-           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_TRI | NP_OMP);
 
 using NPairHalffullNewtonOmp = NPairHalffullOmp<1, 0, 0>;
 NPairStyle(halffull/newton/skip/omp,
            NPairHalffullNewtonOmp,
-           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_SKIP | NP_OMP);
 
 using NPairHalffullNewtonTriOmp = NPairHalffullOmp<1, 1, 0>;
 NPairStyle(halffull/newton/tri/skip/omp,
            NPairHalffullNewtonTriOmp,
-           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_TRI | NP_SKIP | NP_OMP);
 
 using NPairHalffullTrimNewtoffOmp = NPairHalffullOmp<0, 0, 1>;
 NPairStyle(halffull/trim/newtoff/omp,
            NPairHalffullTrimNewtoffOmp,
-           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
+           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
            NP_ORTHO | NP_TRI | NP_TRIM | NP_OMP);
 
 using NPairHalffullTrimNewtoffOmp = NPairHalffullOmp<0, 0, 1>;
 NPairStyle(halffull/trim/newtoff/skip/omp,
            NPairHalffullTrimNewtoffOmp,
-           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
+           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_TRIM | NP_OMP);
 
 using NPairHalffullTrimNewtoffOmp = NPairHalffullOmp<0, 0, 1>;
 NPairStyle(halffull/trim/newtoff/ghost/omp,
            NPairHalffullTrimNewtoffOmp,
-           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
+           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
            NP_ORTHO | NP_TRI | NP_GHOST | NP_TRIM | NP_OMP);
 
 using NPairHalffullTrimNewtoffOmp = NPairHalffullOmp<0, 0, 1>;
 NPairStyle(halffull/trim/newtoff/skip/ghost/omp,
            NPairHalffullTrimNewtoffOmp,
-           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_HALF |
+           NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_GHOST | NP_TRIM | NP_OMP);
 
 using NPairHalffullTrimNewtonOmp = NPairHalffullOmp<1, 0, 1>;
 NPairStyle(halffull/trim/newton/omp,
            NPairHalffullTrimNewtonOmp,
-           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRIM | NP_OMP);
 
 using NPairHalffullTrimNewtonTriOmp = NPairHalffullOmp<1, 1, 1>;
 NPairStyle(halffull/trim/newton/tri/omp,
            NPairHalffullTrimNewtonTriOmp,
-           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_TRI | NP_TRIM | NP_OMP);
 
 using NPairHalffullTrimNewtonOmp = NPairHalffullOmp<1, 0, 1>;
 NPairStyle(halffull/trim/newton/skip/omp,
            NPairHalffullTrimNewtonOmp,
-           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_SKIP | NP_TRIM | NP_OMP);
 
 using NPairHalffullTrimNewtonTriOmp = NPairHalffullOmp<1, 1, 1>;
 NPairStyle(halffull/trim/newton/tri/skip/omp,
            NPairHalffullTrimNewtonTriOmp,
-           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_TRI | NP_SKIP | NP_TRIM | NP_OMP);
 // clang-format on
 #else

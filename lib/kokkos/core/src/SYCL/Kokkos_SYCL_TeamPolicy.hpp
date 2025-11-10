@@ -333,14 +333,15 @@ class Kokkos::Impl::TeamPolicyInternal<Kokkos::SYCL, Properties...>
   template <class FunctorType>
   int internal_team_size_recommended_for(const FunctorType& f) const {
     // FIXME_SYCL improve
-    return 1 << Kokkos::Impl::int_log2(internal_team_size_max_for(f));
+    return Kokkos::Experimental::bit_floor_builtin<unsigned>(
+        internal_team_size_max_for(f));
   }
 
   template <class ValueType, class FunctorType>
   int internal_team_size_recommended_reduce(const FunctorType& f) const {
     // FIXME_SYCL improve
-    return 1 << Kokkos::Impl::int_log2(
-               internal_team_size_max_reduce<ValueType>(f));
+    return Kokkos::Experimental::bit_floor_builtin<unsigned>(
+        internal_team_size_max_reduce<ValueType>(f));
   }
 };
 

@@ -20,7 +20,6 @@ OPT.
    * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
    * :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>`
    * :doc:`append/atoms <fix_append_atoms>`
-   * :doc:`atc <fix_atc>`
    * :doc:`atom/swap <fix_atom_swap>`
    * :doc:`atom_weight/apip <fix_atom_weight_apip>`
    * :doc:`ave/atom <fix_ave_atom>`
@@ -137,7 +136,6 @@ OPT.
    * :doc:`nve (giko) <fix_nve>`
    * :doc:`nve/asphere (gi) <fix_nve_asphere>`
    * :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>`
-   * :doc:`nve/awpmd <fix_nve_awpmd>`
    * :doc:`nve/body <fix_nve_body>`
    * :doc:`nve/dot <fix_nve_dot>`
    * :doc:`nve/dotc/langevin <fix_nve_dotc_langevin>`
@@ -173,7 +171,6 @@ OPT.
    * :doc:`pimd/nvt/bosonic <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
    * :doc:`plumed <fix_plumed>`
-   * :doc:`poems <fix_poems>`
    * :doc:`polarize/bem/gmres <fix_polarize>`
    * :doc:`polarize/bem/icc <fix_polarize>`
    * :doc:`polarize/functional <fix_polarize>`

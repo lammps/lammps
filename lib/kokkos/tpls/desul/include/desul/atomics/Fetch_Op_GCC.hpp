@@ -16,34 +16,47 @@ namespace desul {
 namespace Impl {
 
 // clang-format off
-#define DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL_ORDER_SCOPE(OP, MEMORY_ORDER, MEMORY_SCOPE)                                 \
-  template <class T>                                                                                                          \
-  std::enable_if_t<std::is_integral<T>::value, T> host_atomic_fetch_##OP  (T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) { \
-    return __atomic_fetch_##OP  (dest, value, GCCMemoryOrder<MEMORY_ORDER>::value);                                              \
-  }                                                                                                                              \
-  template <class T>                                                                                                          \
-  std::enable_if_t<std::is_integral<T>::value, T> host_atomic_##OP##_fetch(T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) { \
-    return __atomic_##OP##_fetch(dest, value, GCCMemoryOrder<MEMORY_ORDER>::value);                                              \
+#define DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_ORDER_SCOPE(_OP, CONSTRAINT, MEMORY_ORDER, MEMORY_SCOPE)                       \
+  template <class T>                                                                                                       \
+  std::enable_if_t<CONSTRAINT<T>::value, T> host_atomic_fetch##_OP  (T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) { \
+    return __atomic_fetch##_OP  (dest, value, GCCMemoryOrder<MEMORY_ORDER>::value);                                        \
+  }                                                                                                                        \
+  template <class T>                                                                                                       \
+  std::enable_if_t<CONSTRAINT<T>::value, T> host_atomic##_OP##_fetch(T* const dest, T value, MEMORY_ORDER, MEMORY_SCOPE) { \
+    return __atomic##_OP##_fetch(dest, value, GCCMemoryOrder<MEMORY_ORDER>::value);                                        \
   }
 
-#define DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL(OP) \
-   DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL_ORDER_SCOPE(OP, MemoryOrderRelaxed, MemoryScopeNode  ) \
-   DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL_ORDER_SCOPE(OP, MemoryOrderRelaxed, MemoryScopeDevice) \
-   DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL_ORDER_SCOPE(OP, MemoryOrderRelaxed, MemoryScopeCore  ) \
-   DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL_ORDER_SCOPE(OP, MemoryOrderSeqCst , MemoryScopeNode  ) \
-   DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL_ORDER_SCOPE(OP, MemoryOrderSeqCst , MemoryScopeDevice) \
-   DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL_ORDER_SCOPE(OP, MemoryOrderSeqCst , MemoryScopeCore  )
+#define DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP(_OP, CONSTRAINT)                                               \
+   DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_ORDER_SCOPE(_OP, CONSTRAINT, MemoryOrderRelaxed, MemoryScopeNode  ) \
+   DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_ORDER_SCOPE(_OP, CONSTRAINT, MemoryOrderRelaxed, MemoryScopeDevice) \
+   DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_ORDER_SCOPE(_OP, CONSTRAINT, MemoryOrderRelaxed, MemoryScopeCore  ) \
+   DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_ORDER_SCOPE(_OP, CONSTRAINT, MemoryOrderSeqCst , MemoryScopeNode  ) \
+   DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_ORDER_SCOPE(_OP, CONSTRAINT, MemoryOrderSeqCst , MemoryScopeDevice) \
+   DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_ORDER_SCOPE(_OP, CONSTRAINT, MemoryOrderSeqCst , MemoryScopeCore  )
 // clang-format on
 
-DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL(add)
-DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL(sub)
-DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL(and)
-DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL(xor)
-DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL(or)
-DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL(nand)
+#if defined(__clang__) && (__clang_major__ >= 13)
+template <class T>
+struct arithmetic_not_long_double
+    : std::integral_constant<bool,
+                             std::is_arithmetic<T>::value &&
+                                 !std::is_same<T, long double>::value> {};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Watomic-alignment"
+DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP(_add, arithmetic_not_long_double)
+DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP(_sub, arithmetic_not_long_double)
+#pragma GCC diagnostic pop
+#else
+DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP(_add, std::is_integral)
+DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP(_sub, std::is_integral)
+#endif
+DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP(_and, std::is_integral)
+DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP(_xor, std::is_integral)
+DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP(_or, std::is_integral)
+DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP(_nand, std::is_integral)
 
-#undef DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL
-#undef DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_INTEGRAL_ORDER_SCOPE
+#undef DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP
+#undef DESUL_IMPL_GCC_HOST_ATOMIC_FETCH_OP_ORDER_SCOPE
 
 }  // namespace Impl
 }  // namespace desul

@@ -113,7 +113,7 @@ class Kokkos::Impl::ParallelReduce<
         });
       };
 
-#ifdef SYCL_EXT_ONEAPI_GRAPH
+#ifdef KOKKOS_IMPL_SYCL_GRAPH_SUPPORT
       if constexpr (Policy::is_graph_kernel::value) {
         sycl_attach_kernel_to_node(*this, cgh_lambda);
       } else
@@ -167,7 +167,7 @@ class Kokkos::Impl::ParallelReduce<
                   else
                     functor(WorkTag(), id + begin, update);
                 }
-                item.barrier(sycl::access::fence_space::local_space);
+                sycl::group_barrier(item.get_group());
 
                 SYCLReduction::workgroup_reduction<>(
                     item, local_mem, results_ptr, device_accessible_result_ptr,
@@ -180,7 +180,7 @@ class Kokkos::Impl::ParallelReduce<
                       scratch_flags_ref(*scratch_flags);
                   num_teams_done[0] = ++scratch_flags_ref;
                 }
-                item.barrier(sycl::access::fence_space::local_space);
+                sycl::group_barrier(item.get_group());
                 if (num_teams_done[0] == n_wgroups) {
                   if (local_id == 0) *scratch_flags = 0;
                   if (local_id >= n_wgroups)
@@ -223,7 +223,7 @@ class Kokkos::Impl::ParallelReduce<
                       scratch_flags_ref(*scratch_flags);
                   num_teams_done[0] = ++scratch_flags_ref;
                 }
-                item.barrier(sycl::access::fence_space::local_space);
+                sycl::group_barrier(item.get_group());
                 if (num_teams_done[0] == n_wgroups) {
                   if (local_id == 0) *scratch_flags = 0;
                   if (local_id >= n_wgroups)
@@ -263,19 +263,10 @@ class Kokkos::Impl::ParallelReduce<
         auto multiple = kernel.get_info<sycl::info::kernel_device_specific::
                                             preferred_work_group_size_multiple>(
             q.get_device());
-        // FIXME_SYCL The code below queries the kernel for the maximum subgroup
-        // size but it turns out that this is not accurate and choosing a larger
-        // subgroup size gives better peformance (and is what the oneAPI
-        // reduction algorithm does).
-#ifndef KOKKOS_ARCH_INTEL_GPU
         auto max =
             kernel
                 .get_info<sycl::info::kernel_device_specific::work_group_size>(
                     q.get_device());
-#else
-        auto max =
-            q.get_device().get_info<sycl::info::device::max_work_group_size>();
-#endif
 
         auto max_local_memory =
             q.get_device().get_info<sycl::info::device::local_mem_size>();
@@ -327,7 +318,7 @@ class Kokkos::Impl::ParallelReduce<
             reduction_lambda);
       };
 
-#ifdef SYCL_EXT_ONEAPI_GRAPH
+#ifdef KOKKOS_IMPL_SYCL_GRAPH_SUPPORT
       if constexpr (Policy::is_graph_kernel::value) {
         sycl_attach_kernel_to_node(*this, cgh_lambda);
       } else

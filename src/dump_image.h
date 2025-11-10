@@ -106,7 +106,7 @@ class DumpImage : public DumpCustom {
     RegionInfo() = delete;
     RegionInfo(const std::string &_id, Region *_ptr, double *_color, int _style,
                double _diameter = 0.5, int _npoints = 0) :
-        id(_id), ptr(_ptr), style(_style), color(_color), diameter(_diameter), npoints(_npoints)
+        ptr(_ptr), id(_id), style(_style), color(_color), diameter(_diameter), npoints(_npoints)
     {
     }
 

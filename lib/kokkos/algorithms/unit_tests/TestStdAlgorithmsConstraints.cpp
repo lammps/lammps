@@ -16,7 +16,13 @@
 
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.std_algorithms;
+#include <std_algorithms/impl/Kokkos_Constraints.hpp>
+#else
 #include <Kokkos_StdAlgorithms.hpp>
+#endif
 
 namespace Test {
 namespace stdalgos {

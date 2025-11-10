@@ -198,10 +198,6 @@
 #endif
 #endif
 
-#if !defined(KOKKOS_MEMORY_ALIGNMENT)
-#define KOKKOS_MEMORY_ALIGNMENT 64
-#endif
-
 #if defined(_WIN32)
 #define KOKKOS_RESTRICT __restrict
 #else
@@ -397,12 +393,53 @@
 //----------------------------------------------------------------------------
 // Define Macro for alignment:
 
-#if !defined(KOKKOS_MEMORY_ALIGNMENT)
-#define KOKKOS_MEMORY_ALIGNMENT 64
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifndef KOKKOS_MEMORY_ALIGNMENT
+#define KOKKOS_IMPL_MEMORY_ALIGNMENT 64
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+#define KOKKOS_MEMORY_ALIGNMENT                                         \
+  [] {                                                                  \
+    int memory_alignment                                                \
+        [[deprecated("KOKKOS_MEMORY_ALIGNMENT macro is deprecated")]] = \
+            KOKKOS_IMPL_MEMORY_ALIGNMENT;                               \
+    return memory_alignment;                                            \
+  }();
+#else
+#define KOKKOS_MEMORY_ALIGNMENT KOKKOS_IMPL_MEMORY_ALIGNMENT
+#endif
+#else
+#define KOKKOS_IMPL_MEMORY_ALIGNMENT KOKKOS_MEMORY_ALIGNMENT
+#endif
+#else  // KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_MEMORY_ALIGNMENT
+static_assert(false,
+              "External definition of KOKKOS_MEMORY_ALIGNMENT is not allowed");
+#endif
 #endif
 
-#if !defined(KOKKOS_MEMORY_ALIGNMENT_THRESHOLD)
-#define KOKKOS_MEMORY_ALIGNMENT_THRESHOLD 1
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifndef KOKKOS_MEMORY_ALIGNMENT_THRESHOLD
+#define KOKKOS_IMPL_MEMORY_ALIGNMENT_THRESHOLD 1
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+#define KOKKOS_MEMORY_ALIGNMENT_THRESHOLD                            \
+  [] {                                                               \
+    int memory_alignment [[deprecated(                               \
+        "KOKKOS_MEMORY_ALIGNMENT_THRESHOLD macro is deprecated")]] = \
+        KOKKOS_IMPL_MEMORY_ALIGNMENT_THRESHOLD;                      \
+    return memory_alignment;                                         \
+  }();
+#else
+#define KOKKOS_MEMORY_ALIGNMENT_THRESHOLD KOKKOS_IMPL_MEMORY_ALIGNMENT_THRESHOLD
+#endif
+#else
+#define KOKKOS_IMPL_MEMORY_ALIGNMENT_THRESHOLD KOKKOS_MEMORY_ALIGNMENT_THRESHOLD
+#endif
+#else  // KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_MEMORY_ALIGNMENT_THRESHOLD
+static_assert(
+    false,
+    "External definition of KOKKOS_MEMORY_ALIGNMENT_THRESHOLD is not allowed");
+#endif
 #endif
 
 #if !defined(KOKKOS_IMPL_ALIGN_PTR)

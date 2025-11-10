@@ -1,6 +1,6 @@
 This folder contains files and tools for creating, modifying, and validating
 files in JSON format. This is work in progress while we are adding JSON
-support 
+support.
 
 # JSON file format validation.
 
@@ -10,7 +10,8 @@ We provide schema files for the file formats that LAMMPS supports following
 the specifications available on [JSON-Schema](https://json-schema.org) webpage.
 The following files are currently available.
 
-- `molecule-schema.json`  Schema file for the JSON format molecule files.
+- `molecule-schema.json`  Schema file for JSON-format molecule files.
+- `dump-molecules-schema.json`  Schema file for the 'dump' format in the 'molecules' style.
 
 These files provide a concise description of the hierarchy and supported fields
 in JSON file formats.  Thus they provide a detailed documentation and can also

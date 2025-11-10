@@ -59,7 +59,7 @@ template <
 >
 class mdarray {
 private:
-  static_assert(::MDSPAN_IMPL_STANDARD_NAMESPACE::detail::__is_extents_v<Extents>,
+  static_assert(::MDSPAN_IMPL_STANDARD_NAMESPACE::detail::impl_is_extents_v<Extents>,
                 MDSPAN_IMPL_PROPOSED_NAMESPACE_STRING "::mdspan's Extents template parameter must be a specialization of " MDSPAN_IMPL_STANDARD_NAMESPACE_STRING "::extents.");
 
 public:
@@ -290,7 +290,7 @@ public:
   MDSPAN_FORCE_INLINE_FUNCTION
   constexpr const_reference operator[](const std::array<SizeType, N>& indices) const noexcept
   {
-    return __impl::template __callop<reference>(*this, indices);
+    return impl::template callop<reference>(*this, indices);
   }
 
   MDSPAN_TEMPLATE_REQUIRES(
@@ -303,7 +303,7 @@ public:
   MDSPAN_FORCE_INLINE_FUNCTION
   constexpr reference operator[](const std::array<SizeType, N>& indices) noexcept
   {
-    return __impl::template __callop<reference>(*this, indices);
+    return impl::template callop<reference>(*this, indices);
   }
 #endif
 
@@ -345,7 +345,7 @@ public:
   MDSPAN_FORCE_INLINE_FUNCTION
   constexpr const_reference operator()(const std::array<SizeType, N>& indices) const noexcept
   {
-    return __impl::template __callop<reference>(*this, indices);
+    return impl::template callop<reference>(*this, indices);
   }
 
   MDSPAN_TEMPLATE_REQUIRES(
@@ -358,7 +358,7 @@ public:
   MDSPAN_FORCE_INLINE_FUNCTION
   constexpr reference operator()(const std::array<SizeType, N>& indices) noexcept
   {
-    return __impl::template __callop<reference>(*this, indices);
+    return impl::template callop<reference>(*this, indices);
   }
 #endif
   #endif
@@ -378,7 +378,7 @@ public:
   MDSPAN_INLINE_FUNCTION constexpr const extents_type& extents() const noexcept { return map_.extents(); };
   MDSPAN_INLINE_FUNCTION constexpr index_type extent(size_t r) const noexcept { return map_.extents().extent(r); };
   MDSPAN_INLINE_FUNCTION constexpr index_type size() const noexcept {
-//    return __impl::__size(*this);
+//    return impl::size(*this);
     return ctr_.size();
   };
 

@@ -70,15 +70,23 @@ class Output : protected Pointers {
   using DumpCreatorMap = std::map<std::string, DumpCreator>;
   DumpCreatorMap *dump_map;
 
+  typedef struct Particle {
+    int tag;
+    int type;
+    double x[3];
+  } Particle;
+  MPI_Datatype createParticleStructType();
+
   Output(class LAMMPS *);
   ~Output() override;
   void init();
-  void setup(int memflag = 1);    // initial output before run/min
-  void write(bigint);             // output for current timestep
-  void write_dump(bigint);        // force output of dump snapshots
-  void write_restart(bigint);     // force output of a restart file
-  void reset_timestep(bigint);    // reset output which depends on timestep
-  void reset_dt();                // reset output which depends on timestep size
+  void setup(int memflag = 1);                             // initial output before run/min
+  void write(bigint);                                      // output for current timestep
+  void write_dump(bigint);                                 // force output of dump snapshots
+  void write_restart(bigint);                              // force output of a restart file
+  void write_molecule_json(FILE *, int, int, int *);       // output molecule JSON objects to file
+  void reset_timestep(bigint);                             // reset output which depends on timestep
+  void reset_dt();                                         // reset output which depends on timestep size
 
   Dump *add_dump(int, char **);                       // add a Dump to Dump list
   void modify_dump(int, char **);                     // modify a Dump

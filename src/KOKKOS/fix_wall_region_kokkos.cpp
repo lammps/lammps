@@ -122,7 +122,7 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 }
 
@@ -141,7 +141,7 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, val
 
     if (!regionKK->match_kokkos(d_x(i,0), d_x(i,1), d_x(i,2))) Kokkos::abort("Particle outside surface of region used in fix wall/region");
 
-    double rinv, tooclose;
+    KK_FLOAT rinv, tooclose;
 
     if (style == COLLOID)
       tooclose = d_radius(i);
@@ -152,17 +152,17 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, val
 
     for ( int m = 0; m < n; m++) {
 
-      double r = regionKK->d_contact[m].r;
-      double delx = regionKK->d_contact[m].delx;
-      double dely = regionKK->d_contact[m].dely;
-      double delz = regionKK->d_contact[m].delz;
+      KK_FLOAT r = regionKK->d_contact[m].r;
+      KK_FLOAT delx = regionKK->d_contact[m].delx;
+      KK_FLOAT dely = regionKK->d_contact[m].dely;
+      KK_FLOAT delz = regionKK->d_contact[m].delz;
 
       if (r <= tooclose)
         Kokkos::abort("Particle outside surface of region used in fix wall/region");
       else
         rinv = 1.0 / r;
 
-      double fwallKK, engKK;
+      KK_FLOAT fwallKK, engKK;
 
       if (style == LJ93) engKK = lj93(r,fwallKK);
       else if (style == LJ126) engKK = lj126(r,fwallKK);
@@ -171,9 +171,9 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, val
       else if (style == COLLOID) engKK = colloid(r,d_radius(i),fwallKK);
       else engKK = harmonic(r,fwallKK);
 
-      double fx = fwallKK * delx * rinv;
-      double fy = fwallKK * dely * rinv;
-      double fz = fwallKK * delz * rinv;
+      KK_FLOAT fx = fwallKK * delx * rinv;
+      KK_FLOAT fy = fwallKK * dely * rinv;
+      KK_FLOAT fz = fwallKK * delz * rinv;
       d_f(i,0) += fx;
       d_f(i,1) += fy;
       d_f(i,2) += fz;
@@ -182,7 +182,7 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, val
       result[3] -= fz;
       result[0] += engKK;
       if (evflag) {
-        double v[6] = {
+        KK_FLOAT v[6] = {
           fx * delx,
           fy * dely,
           fz * delz,
@@ -203,12 +203,12 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, val
 
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double FixWallRegionKokkos<DeviceType>::lj93(double r, double& fwallKK) const
+KK_FLOAT FixWallRegionKokkos<DeviceType>::lj93(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
-  double rinv = 1.0 / r;
-  double r2inv = rinv * rinv;
-  double r4inv = r2inv * r2inv;
-  double r10inv = r4inv * r4inv * r2inv;
+  KK_FLOAT rinv = 1.0 / r;
+  KK_FLOAT r2inv = rinv * rinv;
+  KK_FLOAT r4inv = r2inv * r2inv;
+  KK_FLOAT r10inv = r4inv * r4inv * r2inv;
   fwallKK = coeff1 * r10inv - coeff2 * r4inv;
   return coeff3 * r4inv * r4inv * rinv - coeff4 * r2inv * rinv - offset;
 }
@@ -220,11 +220,11 @@ double FixWallRegionKokkos<DeviceType>::lj93(double r, double& fwallKK) const
 
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double FixWallRegionKokkos<DeviceType>::lj126(double r, double& fwallKK) const
+KK_FLOAT FixWallRegionKokkos<DeviceType>::lj126(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
-  double rinv = 1.0 / r;
-  double r2inv = rinv * rinv;
-  double r6inv = r2inv * r2inv * r2inv;
+  KK_FLOAT rinv = 1.0 / r;
+  KK_FLOAT r2inv = rinv * rinv;
+  KK_FLOAT r6inv = r2inv * r2inv * r2inv;
   fwallKK = r6inv * (coeff1 * r6inv - coeff2) * rinv;
   return r6inv * (coeff3 * r6inv - coeff4) - offset;
 }
@@ -236,12 +236,12 @@ double FixWallRegionKokkos<DeviceType>::lj126(double r, double& fwallKK) const
 
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double FixWallRegionKokkos<DeviceType>::lj1043(double r, double& fwallKK) const
+KK_FLOAT FixWallRegionKokkos<DeviceType>::lj1043(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
-  double rinv = 1.0 / r;
-  double r2inv = rinv * rinv;
-  double r4inv = r2inv * r2inv;
-  double r10inv = r4inv * r4inv * r2inv;
+  KK_FLOAT rinv = 1.0 / r;
+  KK_FLOAT r2inv = rinv * rinv;
+  KK_FLOAT r4inv = r2inv * r2inv;
+  KK_FLOAT r10inv = r4inv * r4inv * r2inv;
   fwallKK = coeff5 * r10inv * rinv - coeff6 * r4inv * rinv - coeff7 * powint(r + coeff4, -4);
   return coeff1 * r10inv - coeff2 * r4inv - coeff3 * powint(r + coeff4, -3) - offset;
 }
@@ -253,10 +253,10 @@ double FixWallRegionKokkos<DeviceType>::lj1043(double r, double& fwallKK) const
 
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double FixWallRegionKokkos<DeviceType>::morse(double r, double& fwallKK) const
+KK_FLOAT FixWallRegionKokkos<DeviceType>::morse(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
-  double dr = r - sigma;
-  double dexp = exp(-alpha * dr);
+  KK_FLOAT dr = r - sigma;
+  KK_FLOAT dexp = exp(-alpha * dr);
   fwallKK = coeff1 * (dexp * dexp - dexp);
   return epsilon * (dexp * dexp - 2.0 * dexp) - offset;
 }
@@ -268,33 +268,33 @@ double FixWallRegionKokkos<DeviceType>::morse(double r, double& fwallKK) const
 
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double FixWallRegionKokkos<DeviceType>::colloid(double r, double rad, double& fwallKK) const
+KK_FLOAT FixWallRegionKokkos<DeviceType>::colloid(KK_FLOAT r, KK_FLOAT rad, KK_FLOAT& fwallKK) const
 {
-  double new_coeff2 = coeff2 * rad * rad * rad;
-  double diam = 2.0 * rad;
+  KK_FLOAT new_coeff2 = coeff2 * rad * rad * rad;
+  KK_FLOAT diam = 2.0 * rad;
 
-  double rad2 = rad * rad;
-  double rad4 = rad2 * rad2;
-  double rad8 = rad4 * rad4;
-  double delta2 = rad2 - r * r;
-  double rinv = 1.0 / delta2;
-  double r2inv = rinv * rinv;
-  double r4inv = r2inv * r2inv;
-  double r8inv = r4inv * r4inv;
+  KK_FLOAT rad2 = rad * rad;
+  KK_FLOAT rad4 = rad2 * rad2;
+  KK_FLOAT rad8 = rad4 * rad4;
+  KK_FLOAT delta2 = rad2 - r * r;
+  KK_FLOAT rinv = 1.0 / delta2;
+  KK_FLOAT r2inv = rinv * rinv;
+  KK_FLOAT r4inv = r2inv * r2inv;
+  KK_FLOAT r8inv = r4inv * r4inv;
   fwallKK = coeff1 *
           (rad8 * rad + 27.0 * rad4 * rad2 * rad * r * r + 63.0 * rad4 * rad * powint(r, 4) +
            21.0 * rad2 * rad * powint(r, 6)) *
           r8inv -
       new_coeff2 * r2inv;
 
-  double r2 = 0.5 * diam - r;
-  double rinv2 = 1.0 / r2;
-  double r2inv2 = rinv2 * rinv2;
-  double r4inv2 = r2inv2 * r2inv2;
-  double r3 = r + 0.5 * diam;
-  double rinv3 = 1.0 / r3;
-  double r2inv3 = rinv3 * rinv3;
-  double r4inv3 = r2inv3 * r2inv3;
+  KK_FLOAT r2 = 0.5 * diam - r;
+  KK_FLOAT rinv2 = 1.0 / r2;
+  KK_FLOAT r2inv2 = rinv2 * rinv2;
+  KK_FLOAT r4inv2 = r2inv2 * r2inv2;
+  KK_FLOAT r3 = r + 0.5 * diam;
+  KK_FLOAT rinv3 = 1.0 / r3;
+  KK_FLOAT r2inv3 = rinv3 * rinv3;
+  KK_FLOAT r4inv3 = r2inv3 * r2inv3;
   return coeff3 *
           ((-3.5 * diam + r) * r4inv2 * r2inv2 * rinv2 +
            (3.5 * diam + r) * r4inv3 * r2inv3 * rinv3) -
@@ -308,9 +308,9 @@ double FixWallRegionKokkos<DeviceType>::colloid(double r, double rad, double& fw
 
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
-double FixWallRegionKokkos<DeviceType>::harmonic(double r, double& fwallKK) const
+KK_FLOAT FixWallRegionKokkos<DeviceType>::harmonic(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
-  double dr = cutoff - r;
+  KK_FLOAT dr = cutoff - r;
   fwallKK = 2.0 * epsilon * dr;
   return epsilon * dr * dr;
 }
@@ -328,7 +328,7 @@ double FixWallRegionKokkos<DeviceType>::harmonic(double r, double& fwallKK) cons
 
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixWallRegionKokkos<DeviceType>::v_tally(value_type result, int i, double *v) const
+void FixWallRegionKokkos<DeviceType>::v_tally(value_type result, int i, KK_FLOAT *v) const
 {
   if (vflag_global) {
     result[4] += v[0];

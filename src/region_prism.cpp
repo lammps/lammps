@@ -193,7 +193,7 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg),
 
   // extent of prism
 
-  if (interior) {
+  if (interior && !dynamic && !varshape) {
     bboxflag = 1;
     extent_xlo = MIN(xlo, xlo + xy);
     extent_xlo = MIN(extent_xlo, extent_xlo + xz);

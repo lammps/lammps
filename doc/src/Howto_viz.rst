@@ -15,12 +15,12 @@ choices among them.
 The :doc:`dump image <dump_image>` and :doc:`dump movie <dump_image>`
 styles can output internally rendered images or convert them to a movie
 during the MD run.  It is also possible to create visualizations from
-LAMMPS inputs or restart file with the :doc:`LAMMPS-GUI
-<Howto_lammps_gui>`, which uses the :doc:`dump image <dump_image>`
-command internally.  The ``Snapshot Image Viewer`` can be used to
-adjust the visualization of the system interactively and then export
-the corresponding LAMMPS commands to the clipboard to be inserted
-into input files.
+LAMMPS inputs or restart file with `LAMMPS-GUI
+<https://lammps-gui.lammps.org/>`_, which uses the :doc:`dump image
+<dump_image>` command internally.  The ``Snapshot Image Viewer`` in
+LAMMPS-GUI can be used to adjust the visualization settings of the
+current system interactively and then export the corresponding LAMMPS
+commands to the clipboard to be inserted into an input file.
 
 Programs included with LAMMPS as auxiliary tools can convert
 between LAMMPS format files and other formats.  See the :doc:`Tools

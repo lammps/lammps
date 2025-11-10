@@ -68,15 +68,19 @@ void test_memory_access_violations_from_device() {
   using memory_space_t = Kokkos::HostSpace;
   using exec_space_t   = ExecutionSpace;
   const exec_space_t exec_space{};
+  // The invalid access is detected directly and we can't capture the error
+  // message
+#ifdef KOKKOS_ENABLE_SYCL
+  std::string const message = ".*";
+#else
   std::string const message =
       "Kokkos::SpaceAwareAccessor ERROR: attempt to access inaccessible memory "
       "space";
+#endif
   test_memory_access_violation<memory_space_t, exec_space_t>(exec_space,
                                                              message);
 }
 
-// FIXME_SYCL
-#if !(defined(KOKKOS_COMPILER_INTEL_LLVM) && defined(KOKKOS_ENABLE_SYCL))
 TEST(TEST_CATEGORY_DEATH,
      mdspan_space_aware_accessor_invalid_access_from_host) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
@@ -91,7 +95,6 @@ TEST(TEST_CATEGORY_DEATH,
 
   test_memory_access_violations_from_host<ExecutionSpace>();
 }
-#endif
 
 TEST(TEST_CATEGORY_DEATH,
      mdspan_space_aware_accessor_invalid_access_from_device) {

@@ -300,13 +300,6 @@ that can be used include:
    that fix.  The doc pages for individual :doc:`fix <fix>` commands
    specify if this should be done.
 
-.. note::
-
-   The minimizers in LAMMPS do not allow for bonds (or angles, etc)
-   to be held fixed while atom coordinates are being relaxed, e.g. via
-   :doc:`fix shake <fix_shake>` or :doc:`fix rigid <fix_rigid>`.  See more
-   info in the Restrictions section below.
-
 ----------
 
 .. include:: accel_styles.rst
@@ -316,28 +309,32 @@ that can be used include:
 Restrictions
 """"""""""""
 
-Features that are not yet implemented are listed here, in case someone
-knows how they could be coded:
+.. versionchanged:: 15Sep2022
 
-It is an error to use :doc:`fix shake <fix_shake>` with minimization
-because it turns off bonds that should be included in the potential
-energy of the system.  The effect of a fix shake can be approximated
-during a minimization by using stiff spring constants for the bonds
-and/or angles that would normally be constrained by the SHAKE
-algorithm.
+It used to be an error to use :doc:`fix shake <fix_shake>` with
+minimization but this is no longer the case.  While the SHAKE constraint
+equations cannot be applied during minimization, fix shake (and fix
+rattle) will substitute the constraints with stiff harmonic bonds.  This
+allows some (small) changes in the geometry, but those are usually small
+enough so that when starting an MD run the constraints can be fulfilled
+during the first time step.  The same effect can be achieved without fix
+shake by replacing the force constants for the bonds and/or angles that
+would otherwise be constrained by the SHAKE algorithm.
 
-:doc:`Fix rigid <fix_rigid>` is also not supported by minimization.  It
-is not an error to have it defined, but the energy minimization will
-not keep the defined body(s) rigid during the minimization.  Note that
-if bonds, angles, etc internal to a rigid body have been turned off
-(e.g. via :doc:`neigh_modify exclude <neigh_modify>`), they will not
-contribute to the potential energy which is probably not what is
-desired.
+:doc:`Fix rigid <fix_rigid>` is not supported during minimization.  It
+does not trigger an error to have it defined, but the energy
+minimization will not keep the defined body(s) rigid during the
+minimization.  Note that if bonds, angles, etc internal to a rigid body
+have been turned off (e.g. via :doc:`neigh_modify exclude
+<neigh_modify>`), they will not contribute to the potential energy which
+is probably not what is desired.  One can approximate a minimization with
+rigid bodies by performing simulated annealing.
 
-Pair potentials that produce torque on a particle (e.g. :doc:`granular potentials <pair_gran>` or the :doc:`GayBerne potential <pair_gayberne>` for ellipsoidal particles) are not
-relaxed by a minimization.  More specifically, radial relaxations are
-induced, but no rotations are induced by a minimization, so such a
-system will not fully relax.
+Pair potentials that produce torque on a particle (e.g. :doc:`granular
+potentials <pair_gran>` or the :doc:`GayBerne potential <pair_gayberne>`
+for ellipsoidal particles) are not relaxed by a minimization.  More
+specifically, radial relaxations are induced, but no rotations are
+induced by a minimization, so such a system will not fully relax.
 
 Related commands
 """"""""""""""""

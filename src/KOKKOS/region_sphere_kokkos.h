@@ -99,7 +99,7 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
  private:
   int groupbit;
   typename AT::t_int_1d d_match;
-  typename AT::t_x_array_randomread d_x;
+  typename AT::t_kkfloat_1d_3_lr_randomread d_x;
   typename AT::t_int_1d_randomread d_mask;
 
   KOKKOS_INLINE_FUNCTION

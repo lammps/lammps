@@ -443,11 +443,16 @@ void DumpCustom::init_style()
   for (i = 0; i < ncompute; i++) {
     compute[i] = modify->get_compute_by_id(id_compute[i]);
     if (!compute[i]) error->all(FLERR,"Could not find dump {} compute ID {}",style,id_compute[i]);
+    if (!compute[i]->peratom_flag)
+      error->all(FLERR,"Compute ID {} for dump {} does not compute per-atom data",
+                 id_compute[i], style);
   }
 
   for (i = 0; i < nfix; i++) {
     fix[i] = modify->get_fix_by_id(id_fix[i]);
     if (!fix[i]) error->all(FLERR,"Could not find dump {} fix ID {}", style, id_fix[i]);
+    if (!fix[i]->peratom_flag)
+      error->all(FLERR,"Fix ID {} for dump {} does not compute per-atom data", id_fix[i],style);
     if (nevery % fix[i]->peratom_freq)
       error->all(FLERR,"Dump {} and fix not computed at compatible times{}", style,
                  utils::errorurl(7));

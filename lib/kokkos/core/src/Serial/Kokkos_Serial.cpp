@@ -82,11 +82,8 @@ void SerialInternal::finalize() {
 }
 
 SerialInternal& SerialInternal::singleton() {
-  static SerialInternal* self = nullptr;
-  if (!self) {
-    self = new SerialInternal();
-  }
-  return *self;
+  static SerialInternal self;
+  return self;
 }
 
 // Resize thread team data scratch memory

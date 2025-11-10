@@ -46,7 +46,7 @@ template <class ViewType>
 void report_results(benchmark::State& state, ViewType view, int data_ratio,
                     double time) {
   // data processed in megabytes
-  const double data_processed = data_ratio * view.size() *
+  const double data_processed = static_cast<double>(data_ratio) * view.size() *
                                 sizeof(typename ViewType::value_type) /
                                 1'000'000;
 

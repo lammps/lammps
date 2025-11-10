@@ -248,7 +248,7 @@ caught by the LAMMPS ``main()`` program and then handled accordingly.
 The reason for this approach is to support applications, especially
 graphical applications like :ref:`LAMMPS-GUI <lammps_gui>`, that are
 linked to the LAMMPS library and have a mechanism to avoid that an error
-in LAMMPS terminates the application. By catching the exceptions, the
+in LAMMPS terminates the application.  By catching the exceptions, the
 application can delete the failing LAMMPS class instance and create a
 new one to try again.  In a similar fashion, the :doc:`LAMMPS Python
 module <Python_module>` checks for this and then re-throws corresponding

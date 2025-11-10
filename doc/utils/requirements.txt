@@ -13,4 +13,4 @@ pyyaml
 linkchecker
 ipython
 numpy
-docutils > 0.18, <0.22
+docutils > 0.18, <0.23

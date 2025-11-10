@@ -91,7 +91,7 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::OpenMP, QueueType>> {
         0,                                    /* team shared buffer */
         0                                     /* thread local buffer */
     );
-    assert(pool_size % team_size == 0);
+    KOKKOS_ASSERT(pool_size % team_size == 0);
 
     auto& queue = scheduler.queue();
 
@@ -257,7 +257,7 @@ class TaskQueueSpecializationConstrained<
         ,
         0 /* thread local buffer */
     );
-    assert(pool_size % team_size == 0);
+    KOKKOS_ASSERT(pool_size % team_size == 0);
 
     auto& queue = scheduler.queue();
     queue.initialize_team_queues(pool_size / team_size);

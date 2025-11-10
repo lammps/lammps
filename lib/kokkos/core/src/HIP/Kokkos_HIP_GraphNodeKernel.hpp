@@ -30,6 +30,49 @@
 namespace Kokkos {
 namespace Impl {
 
+template <typename Functor>
+struct GraphNodeThenHostImpl<Kokkos::HIP, Functor> {
+  Functor m_functor;
+  hipGraphNode_t m_node = nullptr;
+
+  explicit GraphNodeThenHostImpl(Functor functor)
+      : m_functor(std::move(functor)) {}
+
+  static void callback(void* data) {
+    reinterpret_cast<Functor*>(data)->operator()();
+  }
+
+  void add_to_graph(hipGraph_t graph) {
+    hipHostNodeParams params = {};
+    params.fn                = callback;
+    params.userData          = &m_functor;
+
+    KOKKOS_IMPL_HIP_SAFE_CALL(
+        hipGraphAddHostNode(&m_node, graph, nullptr, 0, &params));
+  }
+};
+
+template <typename Functor>
+struct GraphNodeCaptureImpl<Kokkos::HIP, Functor> {
+  Functor m_functor;
+  hipGraphNode_t m_node = nullptr;
+
+  void capture(const Kokkos::HIP& exec, hipGraph_t graph) {
+    KOKKOS_IMPL_HIP_SAFE_CALL(
+        hipStreamBeginCapture(exec.hip_stream(), hipStreamCaptureModeGlobal));
+
+    m_functor(exec);
+
+    hipGraph_t captured_subgraph(nullptr);
+
+    KOKKOS_IMPL_HIP_SAFE_CALL(
+        hipStreamEndCapture(exec.hip_stream(), &captured_subgraph));
+
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipGraphAddChildGraphNode(&m_node, graph, nullptr,
+                                                        0, captured_subgraph));
+  }
+};
+
 template <typename PolicyType, typename Functor, typename PatternTag,
           typename... Args>
 class GraphNodeKernelImpl<Kokkos::HIP, PolicyType, Functor, PatternTag, Args...>

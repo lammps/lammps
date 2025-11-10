@@ -117,7 +117,7 @@ RegEllipsoid::RegEllipsoid(LAMMPS *lmp, int narg, char **arg) :
   // extent of ellipsoid
   // for variable axes, uses initial axes and origin for variable center
 
-  if (interior) {
+  if (interior && !dynamic && !varshape) {
     bboxflag = 1;
     extent_xlo = xc - a;
     extent_xhi = xc + a;

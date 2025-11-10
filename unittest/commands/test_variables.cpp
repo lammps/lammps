@@ -159,7 +159,7 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("five1"), StrEq("001"));
     ASSERT_THAT(variable->retrieve("five2"), StrEq("010"));
     ASSERT_THAT(variable->retrieve("seven"), StrEq(" 2.00"));
-    ASSERT_THAT(variable->retrieve("ten"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("ten"), StrEq("10"));
     ASSERT_THAT(variable->retrieve("eight"), StrEq(""));
     variable->internal_set(variable->find("ten"), 2.5);
     ASSERT_THAT(variable->retrieve("ten"), StrEq("2.5"));
@@ -303,7 +303,7 @@ TEST_F(VariableTest, AtomicSystem)
                  variable->compute_equal("v_self"););
     TEST_FAILURE(".*ERROR: Variable sum2: Inconsistent lengths in vector-style variable.*",
                  variable->compute_equal("max(v_sum2)"););
-    TEST_FAILURE(".*ERROR: Mismatched fix in variable formula.*",
+    TEST_FAILURE(".*ERROR: Fix 'press' in variable formula does not compute.*",
                  variable->compute_equal("f_press"););
     TEST_FAILURE(".*ERROR .*Variable formula compute vector is accessed out-of-range.*",
                  variable->compute_equal("c_press[10]"););

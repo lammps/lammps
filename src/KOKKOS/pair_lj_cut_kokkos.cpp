@@ -93,10 +93,10 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
 
   // loop over neighbors of my atoms
 
@@ -104,24 +104,24 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev = pair_compute<PairLJCutKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -132,12 +132,12 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCutKokkos<DeviceType>::
-compute_fpair(const F_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT r6inv = r2inv*r2inv*r2inv;
+KK_FLOAT PairLJCutKokkos<DeviceType>::
+compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
 
-  const F_FLOAT forcelj = r6inv *
+  const KK_FLOAT forcelj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
 
@@ -147,10 +147,10 @@ compute_fpair(const F_FLOAT &rsq, const int &, const int &, const int &itype, co
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCutKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT r6inv = r2inv*r2inv*r2inv;
+KK_FLOAT PairLJCutKokkos<DeviceType>::
+compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
 
   return r6inv*((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
                 (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)) -
@@ -172,18 +172,6 @@ void PairLJCutKokkos<DeviceType>::allocate()
   d_cutsq = k_cutsq.template view<DeviceType>();
   k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJCut::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
-}
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairLJCutKokkos<DeviceType>::settings(int narg, char **arg)
-{
-  if (narg > 2) error->all(FLERR,"Illegal pair_style command");
-
-  PairLJCut::settings(1,arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -224,26 +212,24 @@ double PairLJCutKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairLJCut::init_one(i,j);
 
-  k_params.h_view(i,j).lj1 = lj1[i][j];
-  k_params.h_view(i,j).lj2 = lj2[i][j];
-  k_params.h_view(i,j).lj3 = lj3[i][j];
-  k_params.h_view(i,j).lj4 = lj4[i][j];
-  k_params.h_view(i,j).offset = offset[i][j];
-  k_params.h_view(i,j).cutsq = cutone*cutone;
-  k_params.h_view(j,i) = k_params.h_view(i,j);
+  k_params.view_host()(i,j).lj1 = static_cast<KK_FLOAT>(lj1[i][j]);
+  k_params.view_host()(i,j).lj2 = static_cast<KK_FLOAT>(lj2[i][j]);
+  k_params.view_host()(i,j).lj3 = static_cast<KK_FLOAT>(lj3[i][j]);
+  k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(lj4[i][j]);
+  k_params.view_host()(i,j).offset = static_cast<KK_FLOAT>(offset[i][j]);
+  k_params.view_host()(i,j).cutsq = static_cast<KK_FLOAT>(cutone*cutone);
+  k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
-    m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
-    m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
+    m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
+    m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
   }
 
-  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
-  k_params.template modify<LMPHostType>();
+  k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
+  k_cutsq.modify_host();
+  k_params.modify_host();
 
   return cutone;
 }
-
-
 
 namespace LAMMPS_NS {
 template class PairLJCutKokkos<LMPDeviceType>;

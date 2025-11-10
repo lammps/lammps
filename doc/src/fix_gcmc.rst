@@ -68,82 +68,82 @@ Examples
 Description
 """""""""""
 
-This fix performs grand canonical Monte Carlo (GCMC) exchanges of atoms or
-molecules with an imaginary ideal gas reservoir at the specified T and
-chemical potential (mu) as discussed in :ref:`(Frenkel) <Frenkel2>`.  It
-also attempts Monte Carlo (MC) moves (translations and molecule rotations)
-within the simulation cell or region.  If used with the :doc:`fix nvt <fix_nh>`
-command, simulations in the grand canonical ensemble (muVT, constant
-chemical potential, constant volume, and constant temperature) can be
-performed.  Specific uses include computing isotherms in microporous
-materials, or computing vapor-liquid coexistence curves.
+This fix performs grand canonical Monte Carlo (GCMC) exchanges of atoms
+or molecules with an imaginary ideal gas reservoir at the specified *T*
+and chemical potential (:math:`\mu`) as discussed in :ref:`(Frenkel)
+<Frenkel2>`.  It also attempts Monte Carlo (MC) moves (translations and
+molecule rotations) within the simulation cell or region.  If used with
+the :doc:`fix nvt <fix_nh>` command, simulations in the grand canonical
+ensemble (muVT, constant chemical potential, constant volume, and
+constant temperature) can be performed.  Specific uses include computing
+isotherms in microporous materials, or computing vapor-liquid
+coexistence curves.
 
-Every N timesteps the fix attempts both GCMC exchanges (insertions or
-deletions) and MC moves of gas atoms or molecules.  On those timesteps, the
-average number of attempted GCMC exchanges is X, while the average number
-of attempted MC moves is M.  For GCMC exchanges of either molecular or
-atomic gasses, these exchanges can be either deletions or insertions, with
-equal probability.
+Every *N* timesteps the fix attempts both GCMC exchanges (insertions or
+deletions) and MC moves of gas atoms or molecules.  On those timesteps,
+the average number of attempted GCMC exchanges is *X*, while the average
+number of attempted MC moves is *M*.  For GCMC exchanges of either
+molecular or atomic gasses, these exchanges can be either deletions or
+insertions, with equal probability.
 
-The possible choices for MC moves are translation of an atom, translation
-of a molecule, and rotation of a molecule.  The relative amounts of each are
-determined by the optional *mcmoves* keyword (see below).  The default
-behavior is as follows. If the *mol* keyword is used, only molecule
-translations and molecule rotations are performed with equal probability.
-Conversely, if the *mol* keyword is not used, only atom translations are
-performed.  M should typically be chosen to be approximately equal to the
-expected number of gas atoms or molecules of the given type within the
-simulation cell or region, which will result in roughly one MC move per
-atom or molecule per MC cycle.
+The possible choices for MC moves are translation of an atom,
+translation of a molecule, and rotation of a molecule.  The relative
+amounts of each are determined by the optional *mcmoves* keyword (see
+below).  The default behavior is as follows.  If the *mol* keyword is
+used, only molecule translations and molecule rotations are performed
+with equal probability.  Conversely, if the *mol* keyword is not used,
+only atom translations are performed.  *M* should typically be chosen to
+be approximately equal to the expected number of gas atoms or molecules
+of the given type within the simulation cell or region, which will
+result in roughly one MC move per atom or molecule per MC cycle.
 
 All inserted particles are always added to two groups: the default group
 "all" and the fix group specified in the fix command.  In addition,
 particles are also added to any groups specified by the *group* and
-*grouptype* keywords.  If inserted particles are individual atoms, they are
-assigned the atom type given by the type argument.  If they are molecules,
-the type argument has no effect and must be set to zero. Instead, the type
-of each atom in the inserted molecule is specified in the file read by the
-:doc:`molecule <molecule>` command.
+*grouptype* keywords.  If inserted particles are individual atoms, they
+are assigned the atom type given by the type argument.  If they are
+molecules, the type argument has no effect and must be set to zero.
+Instead, the type of each atom in the inserted molecule is specified in
+the file read by the :doc:`molecule <molecule>` command.
 
 .. note::
 
-   Care should be taken to apply fix gcmc only to
-   a group that contains only those atoms and molecules
-   that you wish to manipulate using Monte Carlo.
-   Hence it is generally not a good idea to specify
-   the default group "all" in the fix command, although it is allowed.
+   Care should be taken to apply *fix gcmc* to a group that contains
+   *only* those atoms and molecules that you wish to manipulate using
+   Monte Carlo.  Hence it is generally not a good idea to specify the
+   default group "all" in the fix command, although it is allowed.
 
 This fix cannot be used to perform GCMC insertions of gas atoms or
-molecules other than the exchanged type, but GCMC deletions,
-and MC translations, and rotations can be performed on any atom/molecule in
-the fix group.  All atoms in the simulation cell can be moved using
-regular time integration translations, e.g. via :doc:`fix nvt <fix_nh>`,
-resulting in a hybrid GCMC+MD simulation. A smaller-than-usual
-timestep size may be needed when running such a hybrid simulation,
-especially if the inserted molecules are not well equilibrated.
+molecules other than the exchanged type, but GCMC deletions, and MC
+translations, and rotations can be performed on any atom/molecule in the
+fix group.  All atoms in the simulation cell can be moved using regular
+time integration translations, e.g. via :doc:`fix nvt <fix_nh>`,
+resulting in a hybrid GCMC+MD simulation.  A smaller-than-usual timestep
+size may be needed when running such a hybrid simulation, especially if
+the inserted molecules are not well equilibrated.
 
 This command may optionally use the *region* keyword to define an
 exchange and move volume.  The specified region must have been
 previously defined with a :doc:`region <region>` command.  It must be
 defined with side = *in*\ .  Insertion attempts occur only within the
-specified region. For non-rectangular regions, random trial points are
+specified region.  For non-rectangular regions, random trial points are
 generated within the rectangular bounding box until a point is found
-that lies inside the region. If no valid point is generated after 1000
+that lies inside the region.  If no valid point is generated after 1000
 trials, no insertion is performed, but it is counted as an attempted
 insertion.  Move and deletion attempt candidates are selected from gas
-atoms or molecules within the region. If there are no candidates, no
+atoms or molecules within the region.  If there are no candidates, no
 move or deletion is performed, but it is counted as an attempt move or
-deletion. If an attempted move places the atom or molecule
+deletion.  If an attempted move places the atom or molecule
 center-of-mass outside the specified region, a new attempted move is
-generated. This process is repeated until the atom or molecule
+generated.  This process is repeated until the atom or molecule
 center-of-mass is inside the specified region.
 
 If used with :doc:`fix nvt <fix_nh>`, the temperature of the imaginary
-reservoir, T, should be set to be equivalent to the target temperature
-used in fix nvt. Otherwise, the imaginary reservoir will not be in
-thermal equilibrium with the simulation cell. Also, it is important that
-the temperature used by *fix nvt* is dynamically updated, which can be
-achieved as follows:
+reservoir, *T*, should be set to be equivalent to the target temperature
+used in fix nvt.  Otherwise, the imaginary reservoir will not be in
+thermal equilibrium with the simulation cell.  Also, it is important
+that the temperature used by *fix nvt* is dynamically updated, which can
+be achieved as follows:
 
 .. code-block:: LAMMPS
 
@@ -153,37 +153,37 @@ achieved as follows:
    fix_modify mdnvt temp mdtemp
 
 Note that neighbor lists are re-built every timestep that this fix is
-invoked, so you should not set N to be too small.  However, periodic
+invoked, so you should not set *N* to be too small.  However, periodic
 rebuilds are necessary in order to avoid dangerous rebuilds and missed
-interactions. Specifically, avoid performing so many MC translations
-per timestep that atoms can move beyond the neighbor list skin
-distance. See the :doc:`neighbor <neighbor>` command for details.
+interactions.  Specifically, avoid performing so many MC translations
+per timestep that atoms can move beyond the neighbor list skin distance.
+See the :doc:`neighbor <neighbor>` command for details.
 
 When an atom or molecule is to be inserted, its coordinates are chosen
 at a random position within the current simulation cell or region, and
 new atom velocities are randomly chosen from the specified temperature
-distribution given by T. The effective temperature for new atom
+distribution given by *T*.  The effective temperature for new atom
 velocities can be increased or decreased using the optional keyword
-*tfac_insert* (see below). Relative coordinates for atoms in a
-molecule are taken from the template molecule provided by the
-user. The center of mass of the molecule is placed at the insertion
-point. The orientation of the molecule is chosen at random by rotating
-about this point.
+*tfac_insert* (see below).  Relative coordinates for atoms in a molecule
+are taken from the template molecule provided by the user.  The center
+of mass of the molecule is placed at the insertion point.  The
+orientation of the molecule is chosen at random by rotating about this
+point.
 
 Individual atoms are inserted, unless the *mol* keyword is used.  It
-specifies a *template-ID* previously defined using the
-:doc:`molecule <molecule>` command, which reads a file that defines the
-molecule.  The coordinates, atom types, charges, etc., as well as any
-bonding and special neighbor information for the molecule can
-be specified in the molecule file.  See the :doc:`molecule <molecule>`
-command for details.  The only settings required to be in this file
-are the coordinates and types of atoms in the molecule.
+specifies a *template-ID* previously defined using the :doc:`molecule
+<molecule>` command, which reads a file that defines the molecule.  The
+coordinates, atom types, charges, etc., as well as any bonding and
+special neighbor information for the molecule can be specified in the
+molecule file.  See the :doc:`molecule <molecule>` command for details.
+The only settings required to be in this file are the coordinates and
+types of atoms in the molecule.
 
 When not using the *mol* keyword, you should ensure you do not delete
 atoms that are bonded to other atoms, or LAMMPS will soon generate an
 error when it tries to find bonded neighbors.  LAMMPS will warn you if
-any of the atoms eligible for deletion have a non-zero molecule ID,
-but does not check for this at the time of deletion.
+any of the atoms eligible for deletion have a non-zero molecule ID, but
+does not check for this at the time of deletion.
 
 If you wish to insert molecules using the *mol* keyword that will be
 treated as rigid bodies, use the *rigid* keyword, specifying as its
@@ -204,26 +204,26 @@ their bonds or angles constrained via SHAKE, use the *shake* keyword,
 specifying as its value the ID of a separate :doc:`fix shake
 <fix_shake>` command which also appears in your input script.
 
-Optionally, users may specify the relative amounts of different MC
-moves using the *mcmoves* keyword. The values *Patomtrans*,
-*Pmoltrans*, *Pmolrotate* specify the average proportion of
-atom translations, molecule translations, and molecule rotations,
-respectively. The values must be non-negative integers or real
-numbers, with at least one non-zero value. For example, (10,30,0)
-would result in 25% of the MC moves being atomic translations, 75%
-molecular translations, and no molecular rotations.
+Optionally, users may specify the relative amounts of different MC moves
+using the *mcmoves* keyword. The values *Patomtrans*, *Pmoltrans*,
+*Pmolrotate* specify the average proportion of atom translations,
+molecule translations, and molecule rotations, respectively. The values
+must be non-negative integers or real numbers, with at least one
+non-zero value. For example, (10,30,0) would result in 25% of the MC
+moves being atomic translations, 75% molecular translations, and no
+molecular rotations.
 
 Optionally, users may specify the maximum rotation angle for molecular
 rotations using the *maxangle* keyword and specifying the angle in
 degrees. Rotations are performed by generating a random point on the
-unit sphere and a random rotation angle on the range
-[0,maxangle). The molecule is then rotated by that angle about an
-axis passing through the molecule center of mass. The axis is parallel
-to the unit vector defined by the point on the unit sphere.  The same
-procedure is used for randomly rotating molecules when they are
-inserted, except that the maximum angle is 360 degrees.
+unit sphere and a random rotation angle on the range [0,maxangle).  The
+molecule is then rotated by that angle about an axis passing through the
+molecule center of mass. The axis is parallel to the unit vector defined
+by the point on the unit sphere.  The same procedure is used for
+randomly rotating molecules when they are inserted, except that the
+maximum angle is 360 degrees.
 
-Note that fix gcmc does not use configurational bias MC or any other
+Note that *fix gcmc* does not use configurational bias MC or any other
 kind of sampling of intramolecular degrees of freedom.  Inserted
 molecules can have different orientations, but they will all have the
 same intramolecular configuration, which was specified in the molecule
@@ -231,38 +231,37 @@ command input.
 
 For atomic gasses, inserted atoms have the specified atom type, but
 deleted atoms are any atoms that have been inserted or that already
-belong to the fix group. For molecular gasses, exchanged
-molecules use the same atom types as in the template molecule supplied
-by the user.  In both cases, exchanged atoms/molecules are assigned to
-two groups: the default group "all" and the fix group
-(which can also be "all").
+belong to the fix group.  For molecular gasses, exchanged molecules use
+the same atom types as in the template molecule supplied by the user.
+In both cases, exchanged atoms/molecules are assigned to two groups: the
+default group "all" and the fix group (which can also be "all").
 
-The chemical potential is a user-specified input parameter defined
-as:
+The chemical potential is a user-specified input parameter defined as:
 
 .. math::
 
    \mu = \mu^{id} + \mu^{ex}
 
-The second term mu_ex is the excess chemical potential due to
+The second term :math:`\mu^{ex}` is the excess chemical potential due to
 energetic interactions and is formally zero for the fictitious gas
-reservoir but is non-zero for interacting systems. So, while the
+reservoir but is non-zero for interacting systems.  So, while the
 chemical potential of the reservoir and the simulation cell are equal,
-mu_ex is not, and as a result, the densities of the two are generally
-quite different.  The first term mu_id is the ideal gas contribution
-to the chemical potential.  mu_id can be related to the density or
-pressure of the fictitious gas reservoir by:
+:math:`\mu^{ex}` is not, and as a result, the densities of the two are
+generally quite different.  The first term :math:`\mu^{id}` is the ideal
+gas contribution to the chemical potential.  :math:`\mu^{id}` can be
+related to the density or pressure of the fictitious gas reservoir by:
 
 .. math::
 
    \mu^{id}  = & k T \ln{\rho \Lambda^3} \\
              = & k T \ln{\frac{\phi P \Lambda^3}{k_B T}}
 
-where :math:`k_B` is the Boltzmann constant, :math:`T` is the user-specified
-temperature, :math:`\rho` is the number density, *P* is the pressure,
-and :math:`\phi` is the fugacity coefficient.  The constant
-:math:`\Lambda` is required for dimensional consistency.  For all unit
-styles except *lj* it is defined as the thermal de Broglie wavelength
+where :math:`k_B` is the Boltzmann constant, *T* is the
+user-specified temperature, :math:`\rho` is the number density, *P* is
+the pressure, and :math:`\phi` is the fugacity coefficient.  The
+constant :math:`\Lambda` is required for dimensional consistency.  For
+all unit styles except *lj* it is defined as the thermal de Broglie
+wavelength
 
 .. math::
 
@@ -276,22 +275,20 @@ value of 0.18292026.  Chemical potential under the old definition can
 be converted to an equivalent value under the new definition by
 subtracting :math:`3 k T \ln(\Lambda_{old})`.
 
-As an alternative to specifying mu directly, the ideal gas reservoir
-can be defined by its pressure *P* using the *pressure* keyword, in
-which case the user-specified chemical potential is ignored. The user
-may also specify the fugacity coefficient :math:`\phi` using the
+As an alternative to specifying mu directly, the ideal gas reservoir can
+be defined by its pressure *P* using the *pressure* keyword, in which
+case the user-specified chemical potential is ignored.  The user may
+also specify the fugacity coefficient :math:`\phi` using the
 *fugacity_coeff* keyword, which defaults to unity.
 
 The *full_energy* option means that the fix calculates the total
-potential energy of the entire simulated system, instead of just
-the energy of the part that is changed. The total system
-energy before and after the proposed GCMC exchange or MC move
-is then used in the
-Metropolis criterion to determine whether or not to accept the
-proposed change. By default, this option is off,
-in which case only
-partial energies are computed to determine the energy difference
-due to the proposed change.
+potential energy of the entire simulated system, instead of just the
+energy of the part that is changed.  The total system energy before and
+after the proposed GCMC exchange or MC move is then used in the
+Metropolis criterion to determine whether or not to accept the proposed
+change.  By default, this option is off, in which case only partial
+energies are computed to determine the energy difference due to the
+proposed change.
 
 The *full_energy* option is needed for systems with complicated
 potential energy calculations, including the following:
@@ -308,23 +305,23 @@ keyword and issue a warning message.
 
 When the *mol* keyword is used, the *full_energy* option also includes
 the intramolecular energy of inserted and deleted molecules, whereas
-this energy is not included when *full_energy* is not used. If this
-is not desired, the *intra_energy* keyword can be used to define an
-amount of energy that is subtracted from the final energy when a
-molecule is inserted, and subtracted from the initial energy when a molecule
-is deleted. For molecules that have a non-zero intramolecular energy,
-this will ensure roughly the same behavior whether or not the
-*full_energy* option is used.
+this energy is not included when *full_energy* is not used.  If this is
+not desired, the *intra_energy* keyword can be used to define an amount
+of energy that is subtracted from the final energy when a molecule is
+inserted, and subtracted from the initial energy when a molecule is
+deleted.  For molecules that have a non-zero intramolecular energy, this
+will ensure roughly the same behavior whether or not the *full_energy*
+option is used.
 
-Inserted atoms and molecules are assigned random velocities based on
-the specified temperature :math:`T`. Because the relative velocity of all
-atoms in the molecule is zero, this may result in inserted molecules
-that are systematically too cold. In addition, the intramolecular
-potential energy of the inserted molecule may cause the kinetic energy
-of the molecule to quickly increase or decrease after insertion.  The
+Inserted atoms and molecules are assigned random velocities based on the
+specified temperature *T*.  Because the relative velocity of all atoms
+in the molecule is zero, this may result in inserted molecules that are
+systematically too cold.  In addition, the intramolecular potential
+energy of the inserted molecule may cause the kinetic energy of the
+molecule to quickly increase or decrease after insertion.  The
 *tfac_insert* keyword allows the user to counteract these effects by
-changing the temperature used to assign velocities to inserted atoms
-and molecules by a constant factor. For a particular application, some
+changing the temperature used to assign velocities to inserted atoms and
+molecules by a constant factor.  For a particular application, some
 experimentation may be required to find a value of *tfac_insert* that
 results in inserted molecules that equilibrate quickly to the correct
 temperature.
@@ -442,7 +439,7 @@ type masses.
 Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is **required**.
 
-Only usable for 3D simulations.
+This fix style is only usable for 3D simulations.
 
 This fix can be run in parallel, but aspects of the GCMC part will not
 scale well in parallel.  Currently, molecule translations and rotations
@@ -451,27 +448,27 @@ to do parallel molecule exchange without translation and rotation moves
 by setting MC moves to zero and/or by using the *mcmoves* keyword with
 *Pmoltrans* = *Pmolrotate* = 0 .
 
+When using *fix gcmc* in combination with :doc:`fix shake <fix_shake>`
+or :doc:`fix rigid <fix_rigid>`, only GCMC exchange moves are supported,
+so the argument *M* must be zero.
 
-When using fix gcmc in combination with fix shake or fix rigid, only
-GCMC exchange moves are supported, so the argument *M* must be zero.
-
-When using fix gcmc in combination with fix rigid, deletion of the last
-remaining molecule is not allowed for technical reasons, and so the
-molecule count will never drop below 1, regardless of the specified
-chemical potential.
+When using *fix gcmc* in combination with :doc:`fix rigid <fix_rigid>`,
+deletion of the last remaining molecule is not allowed for technical
+reasons, and so the molecule count will never drop below 1, regardless
+of the specified chemical potential.
 
 Note that very lengthy simulations involving insertions/deletions of
 billions of gas molecules may run out of atom or molecule IDs and
 trigger an error, so it is better to run multiple shorter-duration
-simulations. Likewise, very large molecules have not been tested and
+simulations.  Likewise, very large molecules have not been tested and
 may turn out to be problematic.
 
-Use of multiple fix gcmc commands in the same input script can be
-problematic if using a template molecule. The issue is that the
-user-referenced template molecule in the second fix gcmc command may
-no longer exist since it might have been deleted by the first fix gcmc
-command. An existing template molecule will need to be referenced by
-the user for each subsequent fix gcmc command.
+Use of multiple *fix gcmc* commands in the same input script can be
+problematic if using a template molecule.  The issue is that the
+user-referenced template molecule in the second *fix gcmc* command may
+no longer exist since it might have been deleted by the first *fix gcmc*
+command.  An existing template molecule will need to be referenced by
+the user for each subsequent *fix gcmc* command.
 
 Related commands
 """"""""""""""""
@@ -481,8 +478,8 @@ Related commands
 :doc:`fix deposit <fix_deposit>`, :doc:`fix evaporate <fix_evaporate>`,
 :doc:`delete_atoms <delete_atoms>`
 
-Default
-"""""""
+Defaults
+""""""""
 
 The option defaults are mol = no, maxangle = 10, overlap_cutoff = 0.0,
 fugacity_coeff = 1.0, intra_energy = 0.0, tfac_insert = 1.0.

@@ -11,6 +11,7 @@ foreach(Tag Threads;Serial;OpenMP;HPX;Cuda;HIP;SYCL)
     set(UnitTestSources UnitTestMain.cpp)
     set(dir ${CMAKE_CURRENT_BINARY_DIR}/${dir})
     file(MAKE_DIRECTORY ${dir})
+    set(DeprecatedTests Vector StaticCrsGraph)
     foreach(
       Name
       Bitset
@@ -19,7 +20,9 @@ foreach(Tag Threads;Serial;OpenMP;HPX;Cuda;HIP;SYCL)
       DynViewAPI_generic
       DynViewAPI_rank12345
       DynViewAPI_rank67
+      DynRankView_Ctors
       DynRankView_TeamScratch
+      DynRankView_ViewCustomization
       ErrorReporter
       OffsetView
       ScatterView
@@ -29,8 +32,8 @@ foreach(Tag Threads;Serial;OpenMP;HPX;Cuda;HIP;SYCL)
       Vector
       ViewCtorPropEmbeddedDim
     )
-      if(NOT Kokkos_ENABLE_DEPRECATED_CODE_4 AND NOT Name IN_LIST "Vector,StaticCrsGraph")
-        continue() # skip Kokkos::{vector,StaticCrsGraph} tests if deprecated code 4 is not enabled
+      if(NOT Kokkos_ENABLE_DEPRECATED_CODE_4 AND Name IN_LIST DeprecatedTests)
+        continue() # skip tests for deprecated features if deprecated code 4 is not enabled
       endif()
       # Write to a temporary intermediate file and call configure_file to avoid
       # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
@@ -49,6 +52,11 @@ foreach(Tag Threads;Serial;OpenMP;HPX;Cuda;HIP;SYCL)
       list(REMOVE_ITEM UnitTestSources ${dir}/TestCuda_WithoutInitializing.cpp)
     endif()
 
+    if(NOT Kokkos_ENABLE_IMPL_VIEW_LEGACY)
+      list(REMOVE_ITEM UnitTestSources ${dir}/Test${Tag}_ViewCtorPropEmbeddedDim.cpp)
+    else()
+      list(REMOVE_ITEM UnitTestSources ${dir}/Test${Tag}_DynRankView_ViewCustomization.cpp)
+    endif()
     kokkos_add_executable_and_test(ContainersUnitTest_${Tag} SOURCES ${UnitTestSources})
   endif()
 endforeach()

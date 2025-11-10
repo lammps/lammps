@@ -296,7 +296,7 @@ class SYCLTeamMember {
       intermediate += base_data[n_active_subgroups - 1];
     }
     // Make sure that the reduction array hasn't been modified in the meantime.
-    m_item.barrier(sycl::access::fence_space::local_space);
+    sycl::group_barrier(m_item.get_group());
 
     return intermediate;
   }
@@ -408,13 +408,14 @@ struct TeamThreadRangeBoundariesStruct<iType, SYCLTeamMember> {
   const iType end;
 
   KOKKOS_INLINE_FUNCTION
-  TeamThreadRangeBoundariesStruct(const SYCLTeamMember& thread_, iType count)
-      : member(thread_), start(0), end(count) {}
+  TeamThreadRangeBoundariesStruct(const SYCLTeamMember& arg_thread,
+                                  iType arg_count)
+      : member(arg_thread), start(0), end(arg_count) {}
 
   KOKKOS_INLINE_FUNCTION
-  TeamThreadRangeBoundariesStruct(const SYCLTeamMember& thread_, iType begin_,
-                                  iType end_)
-      : member(thread_), start(begin_), end(end_) {}
+  TeamThreadRangeBoundariesStruct(const SYCLTeamMember& arg_thread,
+                                  iType arg_begin, iType arg_end)
+      : member(arg_thread), start(arg_begin), end(arg_end) {}
 };
 
 template <typename iType>
@@ -425,14 +426,14 @@ struct TeamVectorRangeBoundariesStruct<iType, SYCLTeamMember> {
   const iType end;
 
   KOKKOS_INLINE_FUNCTION
-  TeamVectorRangeBoundariesStruct(const SYCLTeamMember& thread_,
-                                  const iType& count)
-      : member(thread_), start(0), end(count) {}
+  TeamVectorRangeBoundariesStruct(const SYCLTeamMember& arg_thread,
+                                  const iType& arg_count)
+      : member(arg_thread), start(0), end(arg_count) {}
 
   KOKKOS_INLINE_FUNCTION
-  TeamVectorRangeBoundariesStruct(const SYCLTeamMember& thread_,
-                                  const iType& begin_, const iType& end_)
-      : member(thread_), start(begin_), end(end_) {}
+  TeamVectorRangeBoundariesStruct(const SYCLTeamMember& arg_thread,
+                                  const iType& arg_begin, const iType& arg_end)
+      : member(arg_thread), start(arg_begin), end(arg_end) {}
 };
 
 template <typename iType>
@@ -443,14 +444,14 @@ struct ThreadVectorRangeBoundariesStruct<iType, SYCLTeamMember> {
   const index_type end;
 
   KOKKOS_INLINE_FUNCTION
-  ThreadVectorRangeBoundariesStruct(const SYCLTeamMember& thread,
-                                    index_type count)
-      : member(thread), start(static_cast<index_type>(0)), end(count) {}
+  ThreadVectorRangeBoundariesStruct(const SYCLTeamMember& arg_thread,
+                                    index_type arg_count)
+      : member(arg_thread), start(static_cast<index_type>(0)), end(arg_count) {}
 
   KOKKOS_INLINE_FUNCTION
-  ThreadVectorRangeBoundariesStruct(const SYCLTeamMember& thread,
+  ThreadVectorRangeBoundariesStruct(const SYCLTeamMember& arg_thread,
                                     index_type arg_begin, index_type arg_end)
-      : member(thread), start(arg_begin), end(arg_end) {}
+      : member(arg_thread), start(arg_begin), end(arg_end) {}
 };
 
 }  // namespace Impl

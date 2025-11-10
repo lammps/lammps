@@ -156,7 +156,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) :
 
   // extent of block
 
-  if (interior) {
+  if (interior && !dynamic && !varshape) {
     bboxflag = 1;
     extent_xlo = xlo;
     extent_xhi = xhi;

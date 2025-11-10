@@ -101,6 +101,7 @@ void fill_view(ViewType dest_view, const std::string& name) {
 }
 
 bool compute_gold(const std::string& name) {
+  // NOLINTBEGIN(bugprone-branch-clone)
   if (name == "empty") {
     return true;
   } else if (name == "one-element") {
@@ -121,6 +122,7 @@ bool compute_gold(const std::string& name) {
     return true;
   } else if (name == "large-b") {
     return false;
+    // NOLINTEND(bugprone-branch-clone)
   } else {
     Kokkos::abort("invalid choice");
     return false;  // unreachable

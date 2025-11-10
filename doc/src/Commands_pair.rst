@@ -28,7 +28,6 @@ OPT.
    * :doc:`airebo/morse (io) <pair_airebo>`
    * :doc:`amoeba (g) <pair_amoeba>`
    * :doc:`atm <pair_atm>`
-   * :doc:`awpmd/cut <pair_awpmd>`
    * :doc:`beck (go) <pair_beck>`
    * :doc:`body/nparticle <pair_body_nparticle>`
    * :doc:`body/rounded/polygon <pair_body_rounded_polygon>`

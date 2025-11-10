@@ -19,7 +19,8 @@
 
 #ifdef KOKKOS_IMPL_SYCL_HALF_TYPE_DEFINED
 
-#include <Kokkos_Half.hpp>
+#include <SYCL/Kokkos_SYCL_Half_Impl_Type.hpp>
+#include <impl/Kokkos_Half_FloatingPointWrapper.hpp>
 #include <Kokkos_ReductionIdentity.hpp>
 
 namespace Kokkos {

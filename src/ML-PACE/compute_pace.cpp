@@ -86,8 +86,8 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   zoffset = 2*ncoeff;
   natoms = atom->natoms;
   if (bikflag) bik_rows = natoms;
-    dgrad_rows = ndims_force*natoms;
-  size_array_rows = bik_rows+dgrad_rows + ndims_virial;
+  dgrad_rows = ndims_force*natoms;
+  size_array_rows = bik_rows + dgrad_rows + ndims_virial;
   if (dgradflag) {
     size_array_rows = bik_rows + 3*natoms*natoms + 1;
     size_array_cols = ncoeff + 3;
@@ -163,7 +163,6 @@ void ComputePACE::compute_array()
   invoked_array = update->ntimestep;
 
   // clear global array
-
   for (int irow = 0; irow < size_array_rows; irow++){
     for (int icoeff = 0; icoeff < size_array_cols; icoeff++) pace[irow][icoeff] = 0.0;
   }
@@ -186,9 +185,7 @@ void ComputePACE::compute_array()
     int itmp = ilist[iitmp];
     jtmp = numneigh[itmp];
     nei = nei + jtmp;
-    if (jtmp > max_jnum){
-      max_jnum = jtmp;
-    }
+    if (jtmp > max_jnum) max_jnum = jtmp;
   }
 
   // compute pace derivatives for each atom in group
@@ -345,14 +342,12 @@ void ComputePACE::compute_array()
       pace[irow][lastcol] = atom->f[i][2];
     }
   } else {
-
     // for dgradflag=1, put forces at first 3 columns of bik rows
-
     for (int i=0; i<atom->nlocal; i++) {
       int iglobal = atom->tag[i];
-      pace[iglobal-1][0+0] = atom->f[i][0];
-      pace[iglobal-1][0+1] = atom->f[i][1];
-      pace[iglobal-1][0+2] = atom->f[i][2];
+      pace[iglobal-1][0] = atom->f[i][0];
+      pace[iglobal-1][1] = atom->f[i][1];
+      pace[iglobal-1][2] = atom->f[i][2];
     }
   }
 
@@ -369,9 +364,7 @@ void ComputePACE::compute_array()
     double reference_energy = c_pe->compute_scalar();
     paceall[irow][lastcol] = reference_energy;
   } else {
-
     // assign reference energy right after the dgrad rows, first column
-
     int irow = bik_rows + 3*natoms*natoms;
     double reference_energy = c_pe->compute_scalar();
     paceall[irow][0] = reference_energy;
@@ -404,9 +397,7 @@ void ComputePACE::dbdotr_compute()
   double **x = atom->x;
   int irow0 = bik_rows+ndims_force*natoms;
 
-  // sum over ace contributions to forces
-  // on all particles including ghosts
-
+  // sum over ace contributions to forces on all particles including ghosts
   int nall = atom->nlocal + atom->nghost;
   for (int i = 0; i < nall; i++) {
     /*
@@ -431,11 +422,9 @@ void ComputePACE::dbdotr_compute()
 
 double ComputePACE::memory_usage()
 {
-
   double bytes = (double)size_array_rows*size_array_cols*sizeof(double); // pace
   bytes += (double)size_array_rows*size_array_cols*sizeof(double);       // paceall
   int n = atom->ntypes+1;
   bytes += (double)n*sizeof(int);        // map
-
   return bytes;
 }

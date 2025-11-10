@@ -73,33 +73,32 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   cutmax = acecimpl->basis_set->cutoffmax;
 
   //# of rank 1, rank > 1 functions
-
-  int n_r1, n_rp = 0;
-  n_r1 = acecimpl->basis_set->total_basis_size_rank1[0];
-  n_rp = acecimpl->basis_set->total_basis_size[0];
-
-  int ncoeff = n_r1 + n_rp;
-  nvalues = ncoeff;
+  ncoeff = 0;
+  for( int i=0 ; i<atom->ntypes ; i++ ) {
+      ncoeff += acecimpl->basis_set->total_basis_size_rank1[i];
+      ncoeff += acecimpl->basis_set->total_basis_size[i];
+  }
 
   ndims_force = 3;
   ndims_virial = 6;
   bik_rows = 1;
-  yoffset = nvalues;
-  zoffset = 2*nvalues;
+  yoffset = ncoeff;
+  zoffset = 2*ncoeff;
   natoms = atom->natoms;
   if (bikflag) bik_rows = natoms;
     dgrad_rows = ndims_force*natoms;
   size_array_rows = bik_rows+dgrad_rows + ndims_virial;
   if (dgradflag) {
     size_array_rows = bik_rows + 3*natoms*natoms + 1;
-    size_array_cols = nvalues + 3;
-    if (comm->me == 0)
-      error->warning(FLERR,"dgradflag=1 creates a N^2 array, beware of large systems.");
-  } else size_array_cols = nvalues*atom->ntypes + 1;
+    size_array_cols = ncoeff + 3;
+    if (comm->me == 0) error->warning(FLERR,"dgradflag=1 creates a N^2 array, beware of large systems.");
+  } else size_array_cols = ncoeff + 1;
   lastcol = size_array_cols-1;
 
-  ndims_peratom = ndims_force;
-  size_peratom = ndims_peratom*nvalues*atom->ntypes;
+  size_peratom = ndims_force*ncoeff;
+  
+  fprintf(stderr, "*** ncoeff %i size_peratom %i size_array_rows %i size_array_cols %i\n", ncoeff, size_peratom, size_array_rows, size_array_cols);
+
 
   nmax = 0;
 }
@@ -225,18 +224,12 @@ void ComputePACE::compute_array()
       const int itype = type[i];
       const int* const jlist = firstneigh[i];
       const int jnum = numneigh[i];
-      const int typeoffset_local = ndims_peratom*nvalues*(itype-1);
-      const int typeoffset_global = nvalues*(itype-1);
 
       delete acecimpl->ace;
       acecimpl->ace = new ACECTildeEvaluator(*acecimpl->basis_set);
       acecimpl->ace->compute_projections = true;
       acecimpl->ace->compute_b_grad = true;
-      int n_r1, n_rp = 0;
-      n_r1 = acecimpl->basis_set->total_basis_size_rank1[0];
-      n_rp = acecimpl->basis_set->total_basis_size[0];
 
-      int ncoeff = n_r1 + n_rp;
       acecimpl->ace->element_type_mapping.init(ntypes+1);
       for (int ik = 1; ik <= ntypes; ik++) {
         for(int mu = 0; mu < acecimpl->basis_set->nelements; mu++){
@@ -287,24 +280,39 @@ void ComputePACE::compute_array()
         const int j = jlist[jj];
         //replace mapping of jj to j
         if (!dgradflag) {
-          double *pacedi = pace_peratom[i]+typeoffset_local;
-          double *pacedj = pace_peratom[j]+typeoffset_local;
 
           //force array in (func_ind,neighbour_ind,xyz_ind) format
           // dimension: (n_descriptors,max_jnum,3)
           //example to access entries for neighbour jj after running compute_atom for atom i:
-          for (int func_ind =0; func_ind < n_r1 + n_rp; func_ind++){
-            DOUBLE_TYPE fx_dB = acecimpl->ace->neighbours_dB(func_ind,jj,0);
-            DOUBLE_TYPE fy_dB = acecimpl->ace->neighbours_dB(func_ind,jj,1);
-            DOUBLE_TYPE fz_dB = acecimpl->ace->neighbours_dB(func_ind,jj,2);
+          for (int icoeff=0; icoeff < ncoeff; icoeff++){
+            DOUBLE_TYPE fx_dB = acecimpl->ace->neighbours_dB(icoeff,jj,0);
+            DOUBLE_TYPE fy_dB = acecimpl->ace->neighbours_dB(icoeff,jj,1);
+            DOUBLE_TYPE fz_dB = acecimpl->ace->neighbours_dB(icoeff,jj,2);
+            
+            /*
             pacedi[func_ind] += fx_dB;
             pacedi[func_ind+yoffset] += fy_dB;
             pacedi[func_ind+zoffset] += fz_dB;
             pacedj[func_ind] -= fx_dB;
             pacedj[func_ind+yoffset] -= fy_dB;
             pacedj[func_ind+zoffset] -= fz_dB;
-            }
-         } else {
+
+            pace[irow++][icoeff] += pacedi[icoeff];
+            pace[irow++][icoeff] += pacedi[icoeff+yoffset];
+            pace[irow][icoeff] += pacedi[icoeff+zoffset];
+            */
+            
+            //fprintf(stderr, "*** i %i atom->tag[i] %i j %i atom->tag[j] %i\n", i, atom->tag[i], j, atom->tag[j]);
+              
+            pace[bik_rows + 3*(atom->tag[i]-1)    ][icoeff] += fx_dB;
+            pace[bik_rows + 3*(atom->tag[i]-1) + 1][icoeff] += fy_dB;
+            pace[bik_rows + 3*(atom->tag[i]-1) + 2][icoeff] += fz_dB;
+            //pace[bik_rows + 3*(atom->tag[j]-1)    ][icoeff] -= fx_dB;
+            //pace[bik_rows + 3*(atom->tag[j]-1) + 1][icoeff] -= fy_dB;
+            //pace[bik_rows + 3*(atom->tag[j]-1) + 2][icoeff] -= fz_dB;
+            
+          }
+        } else {
             for (int iicoeff = 0; iicoeff < ncoeff; iicoeff++) {
 
               // add to pace array for this proc
@@ -323,37 +331,27 @@ void ComputePACE::compute_array()
             }
           }
         } // loop over jj inside
-      if (!dgradflag) {
-
-        int k = typeoffset_global;
-
-        for (int icoeff = 0; icoeff < ncoeff; icoeff++){
-          pace[irow][k++] += Bs(icoeff);
-        }
-      } else {
-        int k = 3;
-        for (int icoeff = 0; icoeff < ncoeff; icoeff++){
-          pace[irow][k++] += Bs(icoeff);
-        }
+        
+      for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+        if (dgradflag) pace[irow][3+icoeff] += Bs(icoeff);
+        else pace[irow][icoeff] += Bs(icoeff);
       }
     } //group bit
   } // for ii loop
   // accumulate force contributions to global array
   if (!dgradflag){
-    for (int itype = 0; itype < atom->ntypes; itype++) {
-      const int typeoffset_local = ndims_peratom*nvalues*itype;
-      const int typeoffset_global = nvalues*itype;
-      for (int icoeff = 0; icoeff < nvalues; icoeff++) {
-        for (int i = 0; i < ntotal; i++) {
-          double *pacedi = pace_peratom[i]+typeoffset_local;
-          int iglobal = atom->tag[i];
-          int irow = 3*(iglobal-1)+1;
-          pace[irow++][icoeff+typeoffset_global] += pacedi[icoeff];
-          pace[irow++][icoeff+typeoffset_global] += pacedi[icoeff+yoffset];
-          pace[irow][icoeff+typeoffset_global] += pacedi[icoeff+zoffset];
-        }
+    /*
+    for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+      for (int i = 0; i < ntotal; i++) {
+        double *pacedi = pace_peratom[i];
+        int iglobal = atom->tag[i];
+        int irow = 3*(iglobal-1)+1;
+        pace[irow++][icoeff] += pacedi[icoeff];
+        pace[irow++][icoeff] += pacedi[icoeff+yoffset];
+        pace[irow][icoeff] += pacedi[icoeff+zoffset];
       }
     }
+    */
   }
 
   if (!dgradflag) {
@@ -429,23 +427,20 @@ void ComputePACE::dbdotr_compute()
   // on all particles including ghosts
 
   int nall = atom->nlocal + atom->nghost;
-  for (int i = 0; i < nall; i++)
-    for (int itype = 0; itype < atom->ntypes; itype++) {
-      const int typeoffset_local = ndims_peratom*nvalues*itype;
-      const int typeoffset_global = nvalues*itype;
-      double *pacedi = pace_peratom[i]+typeoffset_local;
-      for (int icoeff = 0; icoeff < nvalues; icoeff++) {
-        double dbdx = pacedi[icoeff];
-        double dbdy = pacedi[icoeff+yoffset];
-        double dbdz = pacedi[icoeff+zoffset];
-        int irow = irow0;
-        pace[irow++][icoeff+typeoffset_global] += dbdx*x[i][0];
-        pace[irow++][icoeff+typeoffset_global] += dbdy*x[i][1];
-        pace[irow++][icoeff+typeoffset_global] += dbdz*x[i][2];
-        pace[irow++][icoeff+typeoffset_global] += dbdz*x[i][1];
-        pace[irow++][icoeff+typeoffset_global] += dbdz*x[i][0];
-        pace[irow++][icoeff+typeoffset_global] += dbdy*x[i][0];
-      }
+  for (int i = 0; i < nall; i++) {
+    /*
+    double *pacedi = pace_peratom[i];
+    for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+      double dbdx = pacedi[icoeff];
+      double dbdy = pacedi[icoeff+yoffset];
+      double dbdz = pacedi[icoeff+zoffset];
+      int irow = irow0;
+      pace[irow++][icoeff] += dbdx*x[i][0];
+      pace[irow++][icoeff] += dbdy*x[i][1];
+      pace[irow++][icoeff] += dbdz*x[i][2];
+      pace[irow++][icoeff] += dbdz*x[i][1];
+      pace[irow++][icoeff] += dbdz*x[i][0];
+      pace[irow++][icoeff] += dbdy*x[i][0];
     }
 }
 

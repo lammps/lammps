@@ -45,7 +45,7 @@ using namespace LAMMPS_NS;
 enum { SCALAR, VECTOR, ARRAY };
 ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), pace(nullptr), paceall(nullptr),
-    pace_peratom(nullptr), map(nullptr), c_pe(nullptr), c_virial(nullptr), acecimpl(nullptr)
+    map(nullptr), c_pe(nullptr), c_virial(nullptr), acecimpl(nullptr)
 {
   array_flag = 1;
   extarray = 0;
@@ -113,7 +113,6 @@ ComputePACE::~ComputePACE()
   memory->destroy(pace);
   memory->destroy(paceall);
   memory->destroy(cutsq);
-  memory->destroy(pace_peratom);
   memory->destroy(map);
 }
 
@@ -163,28 +162,10 @@ void ComputePACE::compute_array()
   int ntotal = atom->nlocal + atom->nghost;
   invoked_array = update->ntimestep;
 
-  // grow pace_peratom array if necessary
-
-  if (atom->nmax > nmax) {
-    memory->destroy(pace_peratom);
-    nmax = atom->nmax;
-    memory->create(pace_peratom,nmax,size_peratom,"pace:pace_peratom");
-  }
-
   // clear global array
 
   for (int irow = 0; irow < size_array_rows; irow++){
-    for (int icoeff = 0; icoeff < size_array_cols; icoeff++){
-      pace[irow][icoeff] = 0.0;
-    }
-  }
-
-  // clear local peratom array
-
-  for (int i = 0; i < ntotal; i++){
-    for (int icoeff = 0; icoeff < size_peratom; icoeff++) {
-      pace_peratom[i][icoeff] = 0.0;
-    }
+    for (int icoeff = 0; icoeff < size_array_cols; icoeff++) pace[irow][icoeff] = 0.0;
   }
 
   // invoke full neighbor list (will copy or build if necessary)
@@ -453,7 +434,6 @@ double ComputePACE::memory_usage()
 
   double bytes = (double)size_array_rows*size_array_cols*sizeof(double); // pace
   bytes += (double)size_array_rows*size_array_cols*sizeof(double);       // paceall
-  bytes += (double)nmax*size_peratom * sizeof(double);                   // pace_peratom
   int n = atom->ntypes+1;
   bytes += (double)n*sizeof(int);        // map
 

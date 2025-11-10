@@ -211,11 +211,9 @@ void ComputePACE::compute_array()
       acecimpl->ace->element_type_mapping.init(ntypes+1);
       for (int ik = 1; ik <= ntypes; ik++) {
         for(int mu = 0; mu < acecimpl->basis_set->nelements; mu++){
-          if (mu != -1) {
-            if (mu == ik - 1) {
-              map[ik] = mu;
-              acecimpl->ace->element_type_mapping(ik) = mu;
-            }
+          if (mu == ik - 1) {
+            map[ik] = mu;
+            acecimpl->ace->element_type_mapping(ik) = mu;
           }
         }
       }

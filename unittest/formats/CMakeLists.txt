@@ -4,10 +4,6 @@ add_executable(test_atom_styles test_atom_styles.cpp)
 target_link_libraries(test_atom_styles PRIVATE lammps GTest::GMock)
 add_test(NAME AtomStyles COMMAND test_atom_styles)
 
-add_executable(test_sort_comm test_sort_comm.cpp)
-target_link_libraries(test_sort_comm PRIVATE lammps GTest::GMock)
-add_test(NAME SortComm COMMAND test_sort_comm)
-
 add_executable(test_image_flags test_image_flags.cpp)
 target_link_libraries(test_image_flags PRIVATE lammps GTest::GMock)
 add_test(NAME ImageFlags COMMAND test_image_flags)

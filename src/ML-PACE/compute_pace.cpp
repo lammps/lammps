@@ -71,12 +71,10 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   delete acecimpl->basis_set;
   acecimpl->basis_set = new ACECTildeBasisSet(potential_file_name);
   cutmax = acecimpl->basis_set->cutoffmax;
-
   delete acecimpl->ace;
   acecimpl->ace = new ACECTildeEvaluator(*acecimpl->basis_set);
   acecimpl->ace->compute_projections = true;
   acecimpl->ace->compute_b_grad = true;
-
   acecimpl->ace->element_type_mapping.init(ntypes+1);
   for (int ik = 1; ik <= ntypes; ik++) {
     for(int mu = 0; mu < acecimpl->basis_set->nelements; mu++){
@@ -111,8 +109,6 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
     if (comm->me == 0) error->warning(FLERR,"dgradflag=1 creates a N^2 array, beware of large systems.");
   } else size_array_cols = ncoeff + 1;
   lastcol = size_array_cols-1;
-  
-  //fprintf(stderr, "*** ncoeff %i size_peratom %i size_array_rows %i size_array_cols %i\n", ncoeff, size_peratom, size_array_rows, size_array_cols);
 
 }
 
@@ -188,6 +184,7 @@ void ComputePACE::compute_array()
   const int* const numneigh = list->numneigh;
   int** const firstneigh = list->firstneigh;
   int * const type = atom->type;
+  double **x = atom->x;
 
   //determine the maximum number of neighbours
   int max_jnum = -1;
@@ -263,6 +260,12 @@ void ComputePACE::compute_array()
             pace[row_offset_j    ][type_offset + func_ind] -= fx_dB;
             pace[row_offset_j + 1][type_offset + func_ind] -= fy_dB;
             pace[row_offset_j + 2][type_offset + func_ind] -= fz_dB;
+            pace[size_array_rows-6][type_offset + func_ind] += (fx_dB*x[i][0] - fx_dB*x[j][0]);
+            pace[size_array_rows-5][type_offset + func_ind] += (fy_dB*x[i][1] - fy_dB*x[j][1]);
+            pace[size_array_rows-4][type_offset + func_ind] += (fz_dB*x[i][2] - fz_dB*x[j][2]);
+            pace[size_array_rows-3][type_offset + func_ind] += (fz_dB*x[i][1] - fz_dB*x[j][1]);
+            pace[size_array_rows-2][type_offset + func_ind] += (fz_dB*x[i][0] - fz_dB*x[j][0]);
+            pace[size_array_rows-1][type_offset + func_ind] += (fy_dB*x[i][0] - fy_dB*x[j][0]);
           } else {
               const int column_offset = 3 + type_offset + func_ind;
               // dBi/dRj
@@ -276,14 +279,12 @@ void ComputePACE::compute_array()
           }
         }
       } // loop over jj inside
-      
       for (int func_ind=0; func_ind < number_of_functions.at(itype); func_ind++) {
         if (!dgradflag)
           pace[irow][type_offset+func_ind] += Bs(func_ind);
         else
           pace[irow][3+type_offset+func_ind] += Bs(func_ind);
       }
-      
     } //group bit
   } // for ii loop
 
@@ -306,8 +307,6 @@ void ComputePACE::compute_array()
     }
   }
 
-  dbdotr_compute();
-
   // sum up over all processes
   MPI_Allreduce(&pace[0][0],&paceall[0][0],size_array_rows*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
 
@@ -326,7 +325,6 @@ void ComputePACE::compute_array()
 
   // assign virial stress to last column
   // switch to Voigt notation
-
   if (!dgradflag) {
     c_virial->compute_vector();
     int irow = 3*natoms+bik_rows;
@@ -338,59 +336,6 @@ void ComputePACE::compute_array()
     paceall[irow++][lastcol] = c_virial->vector[3];
   }
   
-  /*
-  fprintf(stderr, "******** paceall \n");
-  for( int i=0 ; i<size_array_rows ; i++ ) {
-    for( int j=0 ; j<size_array_cols ; j++ )
-        fprintf(stderr, "%.6f ", paceall[i][j]);
-    fprintf(stderr, "\n");
-  }
-  fprintf(stderr, "********\n");
-  */
-  
-}
-
-/* ----------------------------------------------------------------------
-   compute global virial contributions via summing r_i.dB^j/dr_i over
-   own & ghost atoms
-------------------------------------------------------------------------- */
-void ComputePACE::dbdotr_compute()
-{
-
-  if (dgradflag) return;
-
-  double **x = atom->x;
-  int irow0 = bik_rows+ndims_force*natoms;
-
-  // sum over ace contributions to forces on all particles including ghosts
-  int nall = atom->nlocal + atom->nghost;
-  for (int i = 0; i < nall; i++) {
-    for (int itype = 1; itype <= atom->ntypes; itype++) {
-    
-      //double *pacedi = pace_peratom[i];
-    
-      const int row_offset = bik_rows + 3*(atom->tag[i]-1);
-      const int type_offset = type_offsets.at(itype);
-
-
-      for (int func_ind=0; func_ind < number_of_functions.at(itype); func_ind++){
-
-        double dbdx = pace[row_offset  ][type_offset + func_ind];
-        double dbdy = pace[row_offset+1][type_offset + func_ind];
-        double dbdz = pace[row_offset+2][type_offset + func_ind];
-        int irow = irow0;
-        pace[irow++][type_offset + func_ind] += dbdx*x[i][0];
-        pace[irow++][type_offset + func_ind] += dbdy*x[i][1];
-        pace[irow++][type_offset + func_ind] += dbdz*x[i][2];
-        pace[irow++][type_offset + func_ind] += dbdz*x[i][1];
-        pace[irow++][type_offset + func_ind] += dbdz*x[i][0];
-        pace[irow++][type_offset + func_ind] += dbdy*x[i][0];
-        
-        //if( i< 3 ) fprintf(stderr, "*** i %i row_offset %i dbdx %f dbdy %f dbdz %f\n", i, row_offset, dbdx, dbdy, dbdz);
-
-      }
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------

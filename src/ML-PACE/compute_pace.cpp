@@ -96,8 +96,7 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
     ncoeff += number_of_functions.at(i);
   }
   
-  for (int i = 1; i <= ntypes; i++)
-    fprintf(stderr, "*** i %i type_offset %i number_of_functions %i \n", i, type_offsets.at(i), number_of_functions.at(i) );
+  //for (int i = 1; i <= ntypes; i++) fprintf(stderr, "*** i %i type_offset %i number_of_functions %i \n", i, type_offsets.at(i), number_of_functions.at(i) );
 
   ndims_force = 3;
   ndims_virial = 6;

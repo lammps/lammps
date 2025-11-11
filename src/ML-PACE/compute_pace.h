@@ -35,7 +35,7 @@ class ComputePACE : public Compute {
 
  private:
   int natoms, nmax, size_peratom, lastcol;
-  int nvalues, yoffset, zoffset;
+  int ncoeff, nvalues, yoffset, zoffset;
   int ndims_peratom, ndims_force, ndims_virial;
   double **cutsq;
   class NeighList *list;
@@ -48,6 +48,8 @@ class ComputePACE : public Compute {
   Compute *c_pe;
   Compute *c_virial;
   std::string id_virial;
+  
+  std::vector<int> number_of_functions, type_offsets;
 
   void dbdotr_compute();
   struct ACECimpl *acecimpl;

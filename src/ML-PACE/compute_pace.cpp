@@ -48,6 +48,7 @@ using namespace LAMMPS_NS;
 enum { SCALAR, VECTOR, ARRAY };
 ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), pace(nullptr), paceall(nullptr),
+    c_pe(nullptr), c_virial(nullptr), acecimpl(nullptr)
 {
   array_flag = 1;
   extarray = 0;
@@ -186,12 +187,30 @@ void ComputePACE::compute_array()
     nei = nei + jtmp;
     if (jtmp > max_jnum) max_jnum = jtmp;
   }
+  
+  delete acecimpl->ace;
+  acecimpl->ace = new ACECTildeEvaluator(*acecimpl->basis_set);
+  acecimpl->ace->compute_projections = true;
+  acecimpl->ace->compute_b_grad = true;
+
+  // resize the neighbor cache after setting the basis
+  acecimpl->ace->resize_neighbours_cache(max_jnum);
 
   // compute pace derivatives for each atom in group
   // use full neighbor list to count atoms less than cutoff
 
   const int* const mask = atom->mask;
   const int ntypes = atom->ntypes;
+
+  // ACECTildeEvaluator::get_func_ind_shift() has a bug so instead lets do it manually here
+  std::vector<int> number_of_functions = acecimpl->ace->get_number_of_functions();
+  std::vector<int> typeoffsets(ntypes, 0);
+  for (int i = 1; i < ntypes; i++)
+    typeoffsets.at(i) = typeoffsets.at(i-1) + number_of_functions.at(i-1);
+
+  for (int i = 0; i < ntypes; i++)
+    fprintf(stderr, "*** i %i number_of_functions %i typeoffset %i \n", i, number_of_functions.at(i), typeoffsets.at(i) );
+  
 
   for (int ii = 0; ii < inum; ii++) {
     int irow = 0;
@@ -201,26 +220,11 @@ void ComputePACE::compute_array()
       const int itype = type[i];
       const int* const jlist = firstneigh[i];
       const int jnum = numneigh[i];
-
-      delete acecimpl->ace;
-      acecimpl->ace = new ACECTildeEvaluator(*acecimpl->basis_set);
-      acecimpl->ace->compute_projections = true;
-      acecimpl->ace->compute_b_grad = true;
-
-      acecimpl->ace->element_type_mapping.init(ntypes+1);
-      for (int ik = 1; ik <= ntypes; ik++) {
-        for(int mu = 0; mu < acecimpl->basis_set->nelements; mu++){
-          if (mu == ik - 1) {
-            map[ik] = mu;
-            acecimpl->ace->element_type_mapping(ik) = mu;
-          }
-        }
-      }
+      const int row_offset_i = bik_rows + 3*(atom->tag[i]-1);
+      const int typeoffset = typeoffsets.at(itype-1);
 
       if (dgradflag) {
-
         // dBi/dRi tags
-
         pace[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][0] = atom->tag[i]-1;
         pace[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][1] = atom->tag[i]-1;
         pace[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][2] = 0;
@@ -230,9 +234,7 @@ void ComputePACE::compute_array()
         pace[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][0] = atom->tag[i]-1;
         pace[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][1] = atom->tag[i]-1;
         pace[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][2] = 2;
-
         // dBi/dRj tags
-
         for (int j=0; j<natoms; j++) {
           pace[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 0][0] = atom->tag[i]-1;
           pace[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 0][1] = j;
@@ -246,28 +248,43 @@ void ComputePACE::compute_array()
         }
       }
 
+      delete acecimpl->ace;
+      acecimpl->ace = new ACECTildeEvaluator(*acecimpl->basis_set);
+      acecimpl->ace->compute_projections = true;
+      acecimpl->ace->compute_b_grad = true;
+
+      acecimpl->ace->element_type_mapping.init(ntypes+1);
+      for (int ik = 1; ik <= ntypes; ik++) {
+        for(int mu = 0; mu < acecimpl->basis_set->nelements; mu++){
+          if (mu != -1) {
+            if (mu == ik - 1) {
+              acecimpl->ace->element_type_mapping(ik) = mu;
+            }
+          }
+        }
+      }
+
       // resize the neighbor cache after setting the basis
       acecimpl->ace->resize_neighbours_cache(max_jnum);
       acecimpl->ace->compute_atom(i, atom->x, atom->type, list->numneigh[i], list->firstneigh[i]);
       Array1D<DOUBLE_TYPE> Bs = acecimpl->ace->projections;
-      Array1D<int> get_func_ind_shift = acecimpl->ace->get_func_ind_shift();
-      Array1D<int> get_number_of_functions = acecimpl->ace->get_number_of_functions();
-      
-      for( int i=0 ; i<ntypes ; i++ )
-        fprintf(stderr, "*** i %i get_func_ind_shift %i get_number_of_functions %i \n", i, get_func_ind_shift(i), get_number_of_functions(i) );
-        
+
       for (int jj = 0; jj < jnum; jj++) {
         const int j = jlist[jj];
+        const int row_offset_j = bik_rows + 3*(atom->tag[j]-1);
+        //fprintf(stderr, "*** j %i jj %i row_offset_j %i column_offset_j %i\n", j, jj, row_offset_j, column_offset_j);
         //replace mapping of jj to j
         if (!dgradflag) {
 
           //force array in (func_ind,neighbour_ind,xyz_ind) format
           // dimension: (n_descriptors,max_jnum,3)
           //example to access entries for neighbour jj after running compute_atom for atom i:
-          for (int icoeff=0; icoeff < ncoeff; icoeff++){
-            DOUBLE_TYPE fx_dB = acecimpl->ace->neighbours_dB(icoeff,jj,0);
-            DOUBLE_TYPE fy_dB = acecimpl->ace->neighbours_dB(icoeff,jj,1);
-            DOUBLE_TYPE fz_dB = acecimpl->ace->neighbours_dB(icoeff,jj,2);
+          for (int func_ind=0; func_ind < number_of_functions.at(itype-1); func_ind++){
+
+            DOUBLE_TYPE fx_dB = acecimpl->ace->neighbours_dB(func_ind,jj,0);
+            DOUBLE_TYPE fy_dB = acecimpl->ace->neighbours_dB(func_ind,jj,1);
+            DOUBLE_TYPE fz_dB = acecimpl->ace->neighbours_dB(func_ind,jj,2);
+            
             
             /*
             pacedi[func_ind] += fx_dB;
@@ -282,19 +299,16 @@ void ComputePACE::compute_array()
             pace[irow][icoeff] += pacedi[icoeff+zoffset];
             */
             
-            //fprintf(stderr, "*** i %i atom->tag[i] %i j %i atom->tag[j] %i\n", i, atom->tag[i], j, atom->tag[j]);
-              
-            pace[bik_rows + 3*(atom->tag[i]-1)    ][icoeff] += fx_dB;
-            pace[bik_rows + 3*(atom->tag[i]-1) + 1][icoeff] += fy_dB;
-            pace[bik_rows + 3*(atom->tag[i]-1) + 2][icoeff] += fz_dB;
-            //pace[bik_rows + 3*(atom->tag[j]-1)    ][icoeff] -= fx_dB;
-            //pace[bik_rows + 3*(atom->tag[j]-1) + 1][icoeff] -= fy_dB;
-            //pace[bik_rows + 3*(atom->tag[j]-1) + 2][icoeff] -= fz_dB;
+            pace[row_offset_i    ][typeoffset + func_ind] += fx_dB;
+            pace[row_offset_i + 1][typeoffset + func_ind] += fy_dB;
+            pace[row_offset_i + 2][typeoffset + func_ind] += fz_dB;
+            pace[row_offset_j    ][typeoffset + func_ind] -= fx_dB;
+            pace[row_offset_j + 1][typeoffset + func_ind] -= fy_dB;
+            pace[row_offset_j + 2][typeoffset + func_ind] -= fz_dB;
             
           }
         } else {
             for (int iicoeff = 0; iicoeff < ncoeff; iicoeff++) {
-
               // add to pace array for this proc
               // dBi/dRj
               DOUBLE_TYPE fx_dB = acecimpl->ace->neighbours_dB(iicoeff,jj,0);
@@ -303,7 +317,6 @@ void ComputePACE::compute_array()
               pace[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][iicoeff+3] -= fx_dB;
               pace[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][iicoeff+3] -= fy_dB;
               pace[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][iicoeff+3] -= fz_dB;
-
               // dBi/dRi
               pace[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][iicoeff+3] += fx_dB;
               pace[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][iicoeff+3] += fy_dB;
@@ -311,28 +324,17 @@ void ComputePACE::compute_array()
             }
           }
         } // loop over jj inside
-        
-      for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-        if (dgradflag) pace[irow][3+icoeff] += Bs(icoeff);
-        else pace[irow][icoeff] += Bs(icoeff);
+      if (!dgradflag) {
+        for (int func_ind=0; func_ind < number_of_functions.at(itype-1); func_ind++)
+          pace[irow][typeoffset+func_ind] += Bs(func_ind);
+      } else {
+        int k = 3;
+        for (int icoeff = 0; icoeff < ncoeff; icoeff++){
+          pace[irow][k++] += Bs(icoeff);
+        }
       }
     } //group bit
   } // for ii loop
-  // accumulate force contributions to global array
-  if (!dgradflag){
-    /*
-    for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-      for (int i = 0; i < ntotal; i++) {
-        double *pacedi = pace_peratom[i];
-        int iglobal = atom->tag[i];
-        int irow = 3*(iglobal-1)+1;
-        pace[irow++][icoeff] += pacedi[icoeff];
-        pace[irow++][icoeff] += pacedi[icoeff+yoffset];
-        pace[irow][icoeff] += pacedi[icoeff+zoffset];
-      }
-    }
-    */
-  }
 
   if (!dgradflag) {
     // accumulate forces to global array
@@ -359,7 +361,6 @@ void ComputePACE::compute_array()
   MPI_Allreduce(&pace[0][0],&paceall[0][0],size_array_rows*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
 
   // assign energy to last column
-
   if (!dgradflag) {
     for (int i = 0; i < bik_rows; i++) paceall[i][lastcol] = 0;
     int irow = 0;
@@ -387,10 +388,10 @@ void ComputePACE::compute_array()
   }
   
   /*
-  fprintf(stderr, "********\n");
+  fprintf(stderr, "******** paceall \n");
   for( int i=0 ; i<size_array_rows ; i++ ) {
     for( int j=0 ; j<size_array_cols ; j++ )
-        fprintf(stderr, "%.3f ", paceall[i][j]);
+        fprintf(stderr, "%.6f ", paceall[i][j]);
     fprintf(stderr, "\n");
   }
   fprintf(stderr, "********\n");
@@ -413,12 +414,15 @@ void ComputePACE::dbdotr_compute()
   // sum over ace contributions to forces on all particles including ghosts
   int nall = atom->nlocal + atom->nghost;
   for (int i = 0; i < nall; i++) {
-    /*
-    double *pacedi = pace_peratom[i];
+    
+    //double *pacedi = pace_peratom[i];
+    const int row_offset = bik_rows + 3*(atom->tag[i]-1);
+    //fprintf(stderr, "*** i %i atom->tag[i] %i row_offset %i\n", i, atom->tag[i], row_offset);
+
     for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-      double dbdx = pacedi[icoeff];
-      double dbdy = pacedi[icoeff+yoffset];
-      double dbdz = pacedi[icoeff+zoffset];
+      double dbdx = pace[row_offset  ][icoeff];
+      double dbdy = pace[row_offset+1][icoeff];
+      double dbdz = pace[row_offset+2][icoeff];
       int irow = irow0;
       pace[irow++][icoeff] += dbdx*x[i][0];
       pace[irow++][icoeff] += dbdy*x[i][1];
@@ -427,7 +431,7 @@ void ComputePACE::dbdotr_compute()
       pace[irow++][icoeff] += dbdz*x[i][0];
       pace[irow++][icoeff] += dbdy*x[i][0];
     }
-    */
+    
   }
 }
 

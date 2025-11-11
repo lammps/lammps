@@ -5,7 +5,7 @@ date_generated: Thu May 15 10:25:12 2025
 epsilon: 1e-12
 skip_tests:
 prerequisites: ! |
-  atom full
+  atom dipole
   fix property/atom
   compute property/atom
 pre_commands: ! ""

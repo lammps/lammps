@@ -160,7 +160,6 @@ int FenixCheckpoint::safe_restore(int member, char*& out_ptr){
     return 0;
   }
   memory->create(out_ptr, length, "fenix_checkpoint:safe_restore buf");
-  out_ptr = new char[length];
 
   ret = member_lrestore(
     group_id, member, out_ptr, length, FENIX_DATA_SNAPSHOT_LATEST, subset
@@ -880,7 +879,7 @@ void FenixCheckpoint::restore_peratom(){
   int m = 0;
   while(m < n) m += atom->avec->unpack_restart(&buf[m]);
 
-  delete[] buf_ptr;
+  memory->destroy(buf_ptr);
 }
 
 }

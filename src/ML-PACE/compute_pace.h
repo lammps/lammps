@@ -34,21 +34,14 @@ class ComputePACE : public Compute {
   double memory_usage() override;
 
  private:
-  int natoms, nmax, size_peratom, lastcol;
-  int ncoeff, nvalues, yoffset, zoffset;
-  int ndims_peratom, ndims_force, ndims_virial;
-  double **cutsq;
-  class NeighList *list;
-  double **pace, **paceall;
-  double **pace_peratom;
-  int *map;    // map types to [0,nelements)
+  int natoms, lastcol, ncoeff, ndims_force, ndims_virial;
   int bikflag, bik_rows, dgradflag, dgrad_rows;
-  double cutmax;
+  double cutmax, **pace, **paceall;
+  class NeighList *list;
 
-  Compute *c_pe;
-  Compute *c_virial;
+  Compute *c_pe, *c_virial;
   std::string id_virial;
-  
+
   struct ACECimpl *acecimpl;
   std::vector<int> number_of_functions, type_offsets;
 };

@@ -47,7 +47,7 @@ using namespace LAMMPS_NS;
 
 enum { SCALAR, VECTOR, ARRAY };
 ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), pace(nullptr), paceall(nullptr),
+    Compute(lmp, narg, arg), list(nullptr), pace(nullptr), paceall(nullptr),
     c_pe(nullptr), c_virial(nullptr), acecimpl(nullptr)
 {
   array_flag = 1;
@@ -93,8 +93,6 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
     number_of_functions.at(i) += acecimpl->basis_set->total_basis_size[mu];
     ncoeff += number_of_functions.at(i);
   }
-  
-  //for (int i = 1; i <= ntypes; i++) fprintf(stderr, "*** i %i type_offset %i number_of_functions %i \n", i, type_offsets.at(i), number_of_functions.at(i) );
 
   ndims_force = 3;
   ndims_virial = 6;
@@ -121,7 +119,6 @@ ComputePACE::~ComputePACE()
   delete acecimpl;
   memory->destroy(pace);
   memory->destroy(paceall);
-  memory->destroy(cutsq);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -196,7 +193,7 @@ void ComputePACE::compute_array()
     nei = nei + jtmp;
     if (jtmp > max_jnum) max_jnum = jtmp;
   }
-  
+
   // compute pace derivatives for each atom in group
   // use full neighbor list to count atoms less than cutoff
 
@@ -247,19 +244,19 @@ void ComputePACE::compute_array()
       for (int jj = 0; jj < jnum; jj++) {
         const int j = jlist[jj];
         const int row_offset_j = bik_rows + 3*(atom->tag[j]-1);
-        //fprintf(stderr, "*** j %i jj %i row_offset_j %i column_offset_j %i\n", j, jj, row_offset_j, column_offset_j);
-
         for (int func_ind=0; func_ind < number_of_functions.at(itype); func_ind++){
           DOUBLE_TYPE fx_dB = acecimpl->ace->neighbours_dB(func_ind,jj,0);
           DOUBLE_TYPE fy_dB = acecimpl->ace->neighbours_dB(func_ind,jj,1);
           DOUBLE_TYPE fz_dB = acecimpl->ace->neighbours_dB(func_ind,jj,2);
           if (!dgradflag) {
+            // forces
             pace[row_offset_i    ][type_offset + func_ind] += fx_dB;
             pace[row_offset_i + 1][type_offset + func_ind] += fy_dB;
             pace[row_offset_i + 2][type_offset + func_ind] += fz_dB;
             pace[row_offset_j    ][type_offset + func_ind] -= fx_dB;
             pace[row_offset_j + 1][type_offset + func_ind] -= fy_dB;
             pace[row_offset_j + 2][type_offset + func_ind] -= fz_dB;
+            // virial
             pace[size_array_rows-6][type_offset + func_ind] += (fx_dB*x[i][0] - fx_dB*x[j][0]);
             pace[size_array_rows-5][type_offset + func_ind] += (fy_dB*x[i][1] - fy_dB*x[j][1]);
             pace[size_array_rows-4][type_offset + func_ind] += (fz_dB*x[i][2] - fz_dB*x[j][2]);
@@ -335,7 +332,7 @@ void ComputePACE::compute_array()
     paceall[irow++][lastcol] = c_virial->vector[4];
     paceall[irow++][lastcol] = c_virial->vector[3];
   }
-  
+
 }
 
 /* ----------------------------------------------------------------------

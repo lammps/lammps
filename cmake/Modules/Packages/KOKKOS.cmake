@@ -49,7 +49,8 @@ endif()
 # BUILD_OMP can result in compile failures. Enforce consistency.
 if(Kokkos_ENABLE_OPENMP)
   if(NOT BUILD_OMP)
-    message(FATAL_ERROR "Must enable BUILD_OMP with Kokkos_ENABLE_OPENMP")
+    message(STATUS "Enabling BUILD_OMP with Kokkos_ENABLE_OPENMP")
+    set(BUILD_OMP ON CACHE BOOL "" FORCE)
   endif()
 endif()
 

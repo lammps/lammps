@@ -37,6 +37,47 @@ message(STATUS "Using " ${KOKKOS_PREC_LOWER} " precision for KOKKOS package")
 message(STATUS "Using " ${KOKKOS_LAYOUT_LOWER} " view layout for KOKKOS package")
 
 ########################################################################
+# automatically configure everything for macos (openmp, no cuda, clang, ...)
+# so that only -D PKG_KOKKOS=on is neeeded
+
+if(APPLE)
+  message(STATUS "Configuring KOKKOS OPENMP to work on macos")
+  set(Kokkos_ENABLE_OPENMP ON CACHE BOOL "Enable OPENMP in Kokkos on macos")
+  set(BUILD_OMP ON CACHE BOOL "" FORCE)
+  set(Kokkos_ENABLE_CUDA OFF CACHE BOOL "Disable CUDA in Kokkos on macos")
+
+  # ==================== Apple Clang + libomp ====================
+  find_program(CMAKE_C_COMPILER NAMES clang PATHS /opt/homebrew/bin /usr/bin)
+  find_program(CMAKE_CXX_COMPILER NAMES clang++ PATHS /opt/homebrew/bin /usr/bin)
+  if(NOT CMAKE_C_COMPILER OR NOT CMAKE_CXX_COMPILER)
+      message(FATAL_ERROR "Apple Clang not found.")
+  endif()
+
+  # Detect Homebrew libomp install prefix
+  execute_process(
+      COMMAND brew --prefix libomp
+      OUTPUT_VARIABLE LIBOMP_PREFIX
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  if(NOT EXISTS "${LIBOMP_PREFIX}/lib/libomp.dylib")
+      message(FATAL_ERROR "libomp not found. Install with: brew install libomp")
+  endif()
+
+  message(STATUS "Using Apple Clang with libomp from ${LIBOMP_PREFIX}")
+
+  set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp -I${LIBOMP_PREFIX}/include")
+  set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I${LIBOMP_PREFIX}/include")
+  set(OpenMP_C_LIB_NAMES "omp")
+  set(OpenMP_CXX_LIB_NAMES "omp")
+  set(OpenMP_omp_LIBRARY "${LIBOMP_PREFIX}/lib/libomp.dylib")
+
+  include_directories("${LIBOMP_PREFIX}/include")
+  link_directories("${LIBOMP_PREFIX}/lib")
+
+endif()
+
+########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
 if(Kokkos_ENABLE_HIP)
   option(Kokkos_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS "Enable multiple kernel instantiations with HIP" ON)

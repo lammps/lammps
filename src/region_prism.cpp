@@ -23,11 +23,12 @@
 #include "math_extra.h"
 #include "variable.h"
 
+#include <algorithm>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 
-static constexpr double BIG = 1.0e20;
+static constexpr double BIG = 1.0e200;
 
 /* ---------------------------------------------------------------------- */
 
@@ -193,19 +194,22 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg),
 
   // extent of prism
 
-  if (interior && !dynamic && !varshape) {
+  if (interior) {
     bboxflag = 1;
-    extent_xlo = MIN(xlo, xlo + xy);
-    extent_xlo = MIN(extent_xlo, extent_xlo + xz);
-    extent_ylo = MIN(ylo, ylo + yz);
-    extent_zlo = zlo;
+    if (dynamic || varshape) {
+      RegPrism::bbox_update();
+    } else {
+      extent_xlo = MIN(xlo, xlo + xy);
+      extent_xlo = MIN(extent_xlo, extent_xlo + xz);
+      extent_ylo = MIN(ylo, ylo + yz);
+      extent_zlo = zlo;
 
-    extent_xhi = MAX(xhi, xhi + xy);
-    extent_xhi = MAX(extent_xhi, extent_xhi + xz);
-    extent_yhi = MAX(yhi, yhi + yz);
-    extent_zhi = zhi;
-  } else
-    bboxflag = 0;
+      extent_xhi = MAX(xhi, xhi + xy);
+      extent_xhi = MAX(extent_xhi, extent_xhi + xz);
+      extent_yhi = MAX(yhi, yhi + yz);
+      extent_zhi = zhi;
+    }
+  }
 
   // particle could be close to all 6 planes
   // particle can only touch 3 planes
@@ -547,20 +551,6 @@ void RegPrism::shape_update()
   if (yz != 0.0 && zlo == -BIG && zhi == BIG)
     error->all(FLERR, "Illegal region prism non-zero yz tilt with infinite z size");
 
-  // extent of prism
-
-  if (interior) {
-    extent_xlo = MIN(xlo, xlo + xy);
-    extent_xlo = MIN(extent_xlo, extent_xlo + xz);
-    extent_ylo = MIN(ylo, ylo + yz);
-    extent_zlo = zlo;
-
-    extent_xhi = MAX(xhi, xhi + xy);
-    extent_xhi = MAX(extent_xhi, extent_xhi + xz);
-    extent_yhi = MAX(yhi, yhi + yz);
-    extent_zhi = zhi;
-  }
-
   // h = transformation matrix from tilt coords (0-1) to box coords (xyz)
 
   h[0][0] = xhi - xlo;
@@ -631,6 +621,45 @@ void RegPrism::shape_update()
   MathExtra::cross3(c, b, face[5]);
 
   for (int i = 0; i < 6; i++) MathExtra::norm3(face[i]);
+}
+
+
+/* update the boundary information based on the corners */
+
+void RegPrism::bbox_update()
+{
+  if (interior) {
+    if (varshape || dynamic) {
+      double pos[3];
+      double xmin = BIG;
+      double xmax = -BIG;
+      double ymin = BIG;
+      double ymax = -BIG;
+      double zmin = BIG;
+      double zmax = -BIG;
+
+      // the min/max of the 8 corners the prism cover the full extent of the region
+      // transform and get min/max in x-, y-, and z-direction for each corner
+
+      for (int i = 0; i < 8; ++i) {
+        MathExtra::copy3(corners[i], pos);
+        forward_transform(pos[0], pos[1], pos[2]);
+        xmin = std::min(xmin, pos[0]);
+        xmax = std::max(xmax, pos[0]);
+        ymin = std::min(ymin, pos[1]);
+        ymax = std::max(ymax, pos[1]);
+        zmin = std::min(zmin, pos[2]);
+        zmax = std::max(zmax, pos[2]);
+      }
+
+      extent_xlo = xmin;
+      extent_xhi = xmax;
+      extent_ylo = ymin;
+      extent_yhi = ymax;
+      extent_zlo = zmin;
+      extent_zhi = zmax;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

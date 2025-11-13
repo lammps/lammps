@@ -16,30 +16,33 @@
 #include "domain.h"
 #include "error.h"
 #include "input.h"
+#include "math_extra.h"
 #include "variable.h"
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
 
 using namespace LAMMPS_NS;
 
-static double GetRoot2D(double r0, double z0, double z1, double g);
-static double GetRoot3D(double r0, double r1, double z0, double z1, double z2, double g);
+namespace {
+double GetRoot2D(double r0, double z0, double z1, double g);
+double GetRoot3D(double r0, double r1, double z0, double z1, double z2, double g);
+double DistancePointEllipse(double e0, double e1, double y0, double y1, double &x0, double &x1);
+double DistancePointEllipsoid(double e0, double e1, double e2, double y0, double y1, double y2,
+                              double &x0, double &x1, double &x2);
 
-static double DistancePointEllipse(double e0, double e1, double y0, double y1, double &x0,
-                                   double &x1);
-static double DistancePointEllipsoid(double e0, double e1, double e2, double y0, double y1,
-                                     double y2, double &x0, double &x1, double &x2);
-
-static constexpr int maxIterations =
+constexpr int maxIterations =
     std::numeric_limits<double>::digits - std::numeric_limits<double>::min_exponent;
-static constexpr double EPSILON = std::numeric_limits<double>::epsilon() * 2.0;
+constexpr double EPSILON = std::numeric_limits<double>::epsilon() * 2.0;
+constexpr double BIG = 1.0e200;
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
 RegEllipsoid::RegEllipsoid(LAMMPS *lmp, int narg, char **arg) :
-  Region(lmp, narg, arg), xvar(-1), yvar(-1), zvar(-1), avar(-1), bvar(-1), cvar(-1),
-  xstr(nullptr), ystr(nullptr), zstr(nullptr), astr(nullptr), bstr(nullptr), cstr(nullptr)
+    Region(lmp, narg, arg), xvar(-1), yvar(-1), zvar(-1), avar(-1), bvar(-1), cvar(-1),
+    xstr(nullptr), ystr(nullptr), zstr(nullptr), astr(nullptr), bstr(nullptr), cstr(nullptr)
 {
   options(narg - 8, &arg[8]);
 
@@ -117,16 +120,19 @@ RegEllipsoid::RegEllipsoid(LAMMPS *lmp, int narg, char **arg) :
   // extent of ellipsoid
   // for variable axes, uses initial axes and origin for variable center
 
-  if (interior && !dynamic && !varshape) {
+  if (interior) {
     bboxflag = 1;
-    extent_xlo = xc - a;
-    extent_xhi = xc + a;
-    extent_ylo = yc - b;
-    extent_yhi = yc + b;
-    extent_zlo = zc - c;
-    extent_zhi = zc + c;
-  } else
-    bboxflag = 0;
+    if (dynamic || varshape) {
+      RegEllipsoid::bbox_update();
+    } else {
+      extent_xlo = xc - a;
+      extent_xhi = xc + a;
+      extent_ylo = yc - b;
+      extent_yhi = yc + b;
+      extent_zlo = zc - c;
+      extent_zhi = zc + c;
+    }
+  }
 
   cmax = 1;
   contact = new Contact[cmax];
@@ -386,6 +392,88 @@ void RegEllipsoid::shape_update()
   }
 }
 
+/* update the boundary information */
+
+void RegEllipsoid::bbox_update()
+{
+  if (varshape || dynamic) {
+    double corners[2][4][3], pos[3];
+    double xmin, xmax, ymin, ymax, zmin, zmax;
+
+    // define bounding box corners in region internal positions
+
+    xmin = xc - a;
+    xmax = xc + a;
+    ymin = yc - b;
+    ymax = yc + b;
+    zmin = zc - c;
+    zmax = zc + c;
+
+    // face[0]
+
+    corners[0][0][0] = xmin;
+    corners[0][0][1] = ymin;
+    corners[0][0][2] = zmin;
+    corners[0][1][0] = xmin;
+    corners[0][1][1] = ymin;
+    corners[0][1][2] = zmax;
+    corners[0][2][0] = xmin;
+    corners[0][2][1] = ymax;
+    corners[0][2][2] = zmax;
+    corners[0][3][0] = xmin;
+    corners[0][3][1] = ymax;
+    corners[0][3][2] = zmin;
+
+    // face[1]
+
+    corners[1][0][0] = xmax;
+    corners[1][0][1] = ymin;
+    corners[1][0][2] = zmin;
+    corners[1][1][0] = xmax;
+    corners[1][1][1] = ymin;
+    corners[1][1][2] = zmax;
+    corners[1][2][0] = xmax;
+    corners[1][2][1] = ymax;
+    corners[1][2][2] = zmax;
+    corners[1][3][0] = xmax;
+    corners[1][3][1] = ymax;
+    corners[1][3][2] = zmin;
+
+    // the corners of face[0] and face[1] cover the full extent of the region
+    // transform and get min/max in x-, y-, and z-direction for each corner
+
+    xmin = ymin = zmin = BIG;
+    xmax = ymax = zmax = -BIG;
+
+    for (int i = 0; i < 4; ++i) {
+      MathExtra::copy3(corners[0][i], pos);
+      forward_transform(pos[0], pos[1], pos[2]);
+      xmin = std::min(xmin, pos[0]);
+      xmax = std::max(xmax, pos[0]);
+      ymin = std::min(ymin, pos[1]);
+      ymax = std::max(ymax, pos[1]);
+      zmin = std::min(zmin, pos[2]);
+      zmax = std::max(zmax, pos[2]);
+
+      MathExtra::copy3(corners[1][i], pos);
+      forward_transform(pos[0], pos[1], pos[2]);
+      xmin = std::min(xmin, pos[0]);
+      xmax = std::max(xmax, pos[0]);
+      ymin = std::min(ymin, pos[1]);
+      ymax = std::max(ymax, pos[1]);
+      zmin = std::min(zmin, pos[2]);
+      zmax = std::max(zmax, pos[2]);
+    }
+
+    extent_xlo = xmin;
+    extent_xhi = xmax;
+    extent_ylo = ymin;
+    extent_yhi = ymax;
+    extent_zlo = zmin;
+    extent_zhi = zmax;
+  }
+}
+
 /* ----------------------------------------------------------------------
    error check on existence of variable
 ------------------------------------------------------------------------- */
@@ -435,6 +523,7 @@ void RegEllipsoid::variable_check()
   }
 }
 
+namespace {
 // ------------------------------------------------------------------
 // David Eberly, Geometric Tools, Redmond WA 98052
 // Copyright (c) 1998-2021
@@ -609,3 +698,4 @@ double DistancePointEllipsoid(double e0, double e1, double e2, double y0, double
   }
   return distance;
 }
+}    // namespace

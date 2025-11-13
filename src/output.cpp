@@ -40,10 +40,18 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr int DELTA = 1;
-static constexpr double EPSDT = 1.0e-6;
+namespace {
+constexpr int DELTA = 1;
+constexpr double EPSDT = 1.0e-6;
 
 enum {SETUP, WRITE, RESET_DT};
+
+struct Particle {
+  int tag;
+  int type;
+  double x[3];
+};
+}
 
 /* ----------------------------------------------------------------------
    one instance per dump style in style_dump.h
@@ -716,7 +724,7 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
         for (auto myatom : atoms_root) {
           int mytype = myatom.type;
           std::string typestr = std::to_string(mytype);
-          if (atom->labelmapflag) typestr = atom->lmap->getTypelabel()[mytype-1];
+          if (atom->labelmapflag) typestr = atom->lmap->find(mytype, Atom::ATOM);
           utils::print(fp, "{}[{}, \"{}\"]", indent, myatom.tag, typestr);
           if (std::next(it) == atoms_root.end()) fprintf(fp, "\n");
           else fprintf(fp, ",\n");

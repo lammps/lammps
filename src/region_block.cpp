@@ -19,11 +19,12 @@
 #include "math_extra.h"
 #include "variable.h"
 
+#include <algorithm>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 
-static constexpr double BIG = 1.0e20;
+static constexpr double BIG = 1.0e200;
 
 /* ---------------------------------------------------------------------- */
 
@@ -154,18 +155,21 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) :
   if (ylo > yhi) error->all(FLERR, "Illegal region block ylo: {} >= yhi: {}", ylo, yhi);
   if (zlo > zhi) error->all(FLERR, "Illegal region block zlo: {} >= zhi: {}", zlo, zhi);
 
-  // extent of block
+  // set extent of block
 
-  if (interior && !dynamic && !varshape) {
+  if (interior) {
     bboxflag = 1;
-    extent_xlo = xlo;
-    extent_xhi = xhi;
-    extent_ylo = ylo;
-    extent_yhi = yhi;
-    extent_zlo = zlo;
-    extent_zhi = zhi;
-  } else
-    bboxflag = 0;
+    if (dynamic || varshape) {
+      RegBlock::bbox_update();
+    } else {
+      extent_xlo = xlo;
+      extent_xhi = xhi;
+      extent_ylo = ylo;
+      extent_yhi = yhi;
+      extent_zlo = zlo;
+      extent_zhi = zhi;
+    }
+  }
 
   // particle could be close to all 6 planes
   // particle can only touch 3 planes
@@ -437,7 +441,7 @@ int RegBlock::surface_exterior(double *x, double cutoff)
     change region shape via variable evaluation
 ------------------------------------------------------------------------- */
 
-void RegBlock::shape_update()    // addition
+void RegBlock::shape_update()
 {
   if (xlostyle == VARIABLE) xlo = xscale * input->variable->compute_equal(xlovar);
   if (xhistyle == VARIABLE) xhi = xscale * input->variable->compute_equal(xhivar);
@@ -506,6 +510,52 @@ void RegBlock::shape_update()    // addition
   MathExtra::copy3(corners[1][1], corners[5][1]);
   MathExtra::copy3(corners[1][2], corners[5][2]);
   MathExtra::copy3(corners[0][2], corners[5][3]);
+}
+
+/* update the boundary information based on the corners */
+
+void RegBlock::bbox_update()
+{
+  if (interior) {
+    if (varshape || dynamic) {
+      double pos[3];
+      double xmin = BIG;
+      double xmax = -BIG;
+      double ymin = BIG;
+      double ymax = -BIG;
+      double zmin = BIG;
+      double zmax = -BIG;
+
+      // the corners of face[0] and face[1] cover the full extent of the region
+      // transform and get min/max in x-, y-, and z-direction for each corner
+
+      for (int i = 0; i < 4; ++i) {
+        MathExtra::copy3(corners[0][i], pos);
+        forward_transform(pos[0], pos[1], pos[2]);
+        xmin = std::min(xmin, pos[0]);
+        xmax = std::max(xmax, pos[0]);
+        ymin = std::min(ymin, pos[1]);
+        ymax = std::max(ymax, pos[1]);
+        zmin = std::min(zmin, pos[2]);
+        zmax = std::max(zmax, pos[2]);
+        MathExtra::copy3(corners[1][i], pos);
+        forward_transform(pos[0], pos[1], pos[2]);
+        xmin = std::min(xmin, pos[0]);
+        xmax = std::max(xmax, pos[0]);
+        ymin = std::min(ymin, pos[1]);
+        ymax = std::max(ymax, pos[1]);
+        zmin = std::min(zmin, pos[2]);
+        zmax = std::max(zmax, pos[2]);
+      }
+
+      extent_xlo = xmin;
+      extent_xhi = xmax;
+      extent_ylo = ymin;
+      extent_yhi = ymax;
+      extent_zlo = zmin;
+      extent_zhi = zmax;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -460,8 +460,9 @@ of the specified chemical potential.
 Note that very lengthy simulations involving insertions/deletions of
 billions of gas molecules may run out of atom or molecule IDs and
 trigger an error, so it is better to run multiple shorter-duration
-simulations.  Likewise, very large molecules have not been tested and
-may turn out to be problematic.
+simulations.  The :doc:`reset_atoms <reset_atoms>` command can be used
+to "compress" the atom and molecule IDs between runs.  Likewise, very
+large molecules have not been tested and may turn out to be problematic.
 
 Use of multiple *fix gcmc* commands in the same input script can be
 problematic if using a template molecule.  The issue is that the

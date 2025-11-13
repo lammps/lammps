@@ -1074,7 +1074,7 @@ void Image::compute_SSAO()
 void Image::write_JPG(FILE *fp)
 {
 #ifdef LAMMPS_JPEG
-  int aafactor = fsaa ? 2 : 1;
+  const int aafactor = fsaa ? 2 : 1;
   struct jpeg_compress_struct cinfo;
   struct jpeg_error_mgr jerr;
   JSAMPROW row_pointer;
@@ -1093,7 +1093,7 @@ void Image::write_JPG(FILE *fp)
 
   while (cinfo.next_scanline < cinfo.image_height) {
     row_pointer = (JSAMPROW)
-      &writeBuffer[(cinfo.image_height - 1 - cinfo.next_scanline) * 3 * (width/aafactor)];
+      &writeBuffer[(cinfo.image_height - 1 - cinfo.next_scanline) * 3 * cinfo.image_width];
     jpeg_write_scanlines(&cinfo,&row_pointer,1);
   }
 
@@ -1109,7 +1109,9 @@ void Image::write_JPG(FILE *fp)
 void Image::write_PNG(FILE *fp)
 {
 #ifdef LAMMPS_PNG
-  int aafactor = fsaa ? 2 : 1;
+  const int aafactor = fsaa ? 2 : 1;
+  const int pngwidth = width/aafactor;
+  const int pngheight = height/aafactor;
   png_structp png_ptr;
   png_infop info_ptr;
 
@@ -1130,7 +1132,7 @@ void Image::write_PNG(FILE *fp)
 
   png_init_io(png_ptr, fp);
   png_set_compression_level(png_ptr,Z_BEST_SPEED);
-  png_set_IHDR(png_ptr,info_ptr,width/aafactor,height/aafactor,8,PNG_COLOR_TYPE_RGB,
+  png_set_IHDR(png_ptr,info_ptr,pngwidth,pngheight,8,PNG_COLOR_TYPE_RGB,
     PNG_INTERLACE_NONE,PNG_COMPRESSION_TYPE_DEFAULT,PNG_FILTER_TYPE_DEFAULT);
 
   png_text text_ptr[2];
@@ -1150,9 +1152,9 @@ void Image::write_PNG(FILE *fp)
   png_set_text(png_ptr,info_ptr,text_ptr,1);
   png_write_info(png_ptr,info_ptr);
 
-  auto *row_pointers = new png_bytep[height/aafactor];
-  for (int i=0; i < height/aafactor; ++i)
-    row_pointers[i] = (png_bytep) &writeBuffer[((height/aafactor)-i-1)*3*(width/aafactor)];
+  auto *row_pointers = new png_bytep[pngheight];
+  for (int i=0; i < pngheight; ++i)
+    row_pointers[i] = (png_bytep) &writeBuffer[(pngheight-i-1)*3*pngwidth];
 
   png_write_image(png_ptr, row_pointers);
   png_write_end(png_ptr, info_ptr);
@@ -1168,12 +1170,15 @@ void Image::write_PNG(FILE *fp)
 
 void Image::write_PPM(FILE *fp)
 {
-  int aafactor = fsaa ? 2 : 1;
-  fprintf(fp,"P6\n%d %d\n255\n",width/aafactor,height/aafactor);
+  const int aafactor = fsaa ? 2 : 1;
+  const int ppmheight = height/aafactor;
+  const int ppmwidth = width/aafactor;
+
+  fprintf(fp,"P6\n%d %d\n255\n",ppmwidth,ppmheight);
 
   int y;
-  for (y = (height/aafactor)-1; y >= 0; y--)
-    fwrite(&writeBuffer[y*(width/aafactor)*3],3,width/aafactor,fp);
+  for (y = ppmheight-1; y >= 0; y--)
+    fwrite(&writeBuffer[y*ppmwidth*3],3,ppmwidth,fp);
 }
 
 /* ----------------------------------------------------------------------

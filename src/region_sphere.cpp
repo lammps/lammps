@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
-    Region(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), rstr(nullptr)
+  Region(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), rstr(nullptr)
 {
   options(narg - 6, &arg[6]);
 
@@ -81,16 +81,19 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
   // extent of sphere
   // for variable radius, uses initial radius and origin for variable center
 
-  if (interior && !dynamic && !varshape) {
+  if (interior) {
     bboxflag = 1;
-    extent_xlo = xc - radius;
-    extent_xhi = xc + radius;
-    extent_ylo = yc - radius;
-    extent_yhi = yc + radius;
-    extent_zlo = zc - radius;
-    extent_zhi = zc + radius;
-  } else
-    bboxflag = 0;
+    if (dynamic || varshape) {
+      RegSphere::bbox_update();
+    } else {
+      extent_xlo = xc - radius;
+      extent_xhi = xc + radius;
+      extent_ylo = yc - radius;
+      extent_yhi = yc + radius;
+      extent_zlo = zc - radius;
+      extent_zhi = zc + radius;
+    }
+  }
 
   cmax = 1;
   contact = new Contact[cmax];
@@ -206,6 +209,28 @@ void RegSphere::shape_update()
   if (rstyle == VARIABLE) {
     radius = xscale * input->variable->compute_equal(rvar);
     if (radius < 0.0) error->one(FLERR, "Variable evaluation in region gave bad value");
+  }
+}
+
+/* update the boundary information */
+
+void RegSphere::bbox_update()
+{
+  if (varshape || dynamic) {
+    extent_xlo = xc - radius;
+    extent_xhi = xc + radius;
+    extent_ylo = yc - radius;
+    extent_yhi = yc + radius;
+    extent_zlo = zc - radius;
+    extent_zhi = zc + radius;
+    if (moveflag) {
+      extent_xlo += dx;
+      extent_xhi += dx;
+      extent_ylo += dy;
+      extent_yhi += dy;
+      extent_zlo += dz;
+      extent_zhi += dz;
+    }
   }
 }
 

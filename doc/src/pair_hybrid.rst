@@ -384,7 +384,7 @@ This input achieves the same effect:
 
 .. code-block:: LAMMPS
 
-   special_bonds 0.0 0.0 0.1
+   special_bonds lj/coul 0.0 0.0 0.1
    pair_style hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
    pair_modify pair lj/cut/coul/long special lj 0.0 0.0 0.5
    pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.83333333

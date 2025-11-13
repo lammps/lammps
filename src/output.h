@@ -70,11 +70,6 @@ class Output : protected Pointers {
   using DumpCreatorMap = std::map<std::string, DumpCreator>;
   DumpCreatorMap *dump_map;
 
-  typedef struct Particle {
-    int tag;
-    int type;
-    double x[3];
-  } Particle;
   MPI_Datatype createParticleStructType();
 
   Output(class LAMMPS *);

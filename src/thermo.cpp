@@ -1375,15 +1375,21 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
     dvalue = bivalue;
 
   } else if (word == "elapsed") {
-    if (update->whichflag == 0)
-      error->all(FLERR, "The variable thermo keyword elapsed cannot be used between runs");
-    compute_elapsed();
+    // if this is before the first run return 0, otherwise the result from last step of last run
+    if ((update->whichflag == 0) && (update->first_update == 0)) {
+      bivalue = 0;
+    } else {
+      compute_elapsed();
+    }
     dvalue = bivalue;
 
   } else if (word == "elaplong") {
-    if (update->whichflag == 0)
-      error->all(FLERR, "The variable thermo keyword elaplong cannot be used between runs");
-    compute_elapsed_long();
+    // if this is before the first run return 0, otherwise the result from last step of last run
+    if ((update->whichflag == 0) && (update->first_update == 0)) {
+      bivalue = 0;
+    } else {
+      compute_elapsed_long();
+    }
     dvalue = bivalue;
 
   } else if (word == "dt") {
@@ -2122,6 +2128,7 @@ void Thermo::compute_enthalpy()
 void Thermo::compute_ecouple()
 {
   dvalue = modify->energy_couple();
+  if (normflag) dvalue /= natoms;
 }
 
 /* ---------------------------------------------------------------------- */

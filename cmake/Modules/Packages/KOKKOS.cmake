@@ -41,40 +41,85 @@ message(STATUS "Using " ${KOKKOS_LAYOUT_LOWER} " view layout for KOKKOS package"
 # so that only -D PKG_KOKKOS=on is neeeded
 
 if(APPLE)
-  message(STATUS "Configuring KOKKOS OPENMP to work on macos")
-  set(Kokkos_ENABLE_OPENMP ON CACHE BOOL "Enable OPENMP in Kokkos on macos")
-  set(BUILD_OMP ON CACHE BOOL "" FORCE)
-  set(Kokkos_ENABLE_CUDA OFF CACHE BOOL "Disable CUDA in Kokkos on macos")
+  message(STATUS "Configuring KOKKOS OpenMP for macOS automatically")
 
-  # ==================== Apple Clang + libomp ====================
-  find_program(CMAKE_C_COMPILER NAMES clang PATHS /opt/homebrew/bin /usr/bin)
-  find_program(CMAKE_CXX_COMPILER NAMES clang++ PATHS /opt/homebrew/bin /usr/bin)
-  if(NOT CMAKE_C_COMPILER OR NOT CMAKE_CXX_COMPILER)
-      message(FATAL_ERROR "Apple Clang not found.")
+  set(Kokkos_ENABLE_OPENMP ON CACHE BOOL "" FORCE)
+  set(BUILD_OMP ON CACHE BOOL "" FORCE)
+  set(Kokkos_ENABLE_CUDA OFF CACHE BOOL "" FORCE)
+
+  # --------- Compiler detection and auto-selection ----------
+  # If CMake already set CXX, use it; otherwise try Homebrew or system
+  if(NOT CMAKE_C_COMPILER)
+    find_program(CMAKE_C_COMPILER NAMES clang gcc PATHS /opt/homebrew/bin /usr/bin)
+  endif()
+  if(NOT CMAKE_CXX_COMPILER)
+    find_program(CMAKE_CXX_COMPILER NAMES clang++ g++ PATHS /opt/homebrew/bin /usr/bin)
   endif()
 
-  # Detect Homebrew libomp install prefix
+  if(NOT CMAKE_C_COMPILER OR NOT CMAKE_CXX_COMPILER)
+    message(FATAL_ERROR "No suitable C or C++ compiler found on macOS")
+  endif()
+
+  # Detect compiler type
   execute_process(
+    COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
+    OUTPUT_VARIABLE COMPILER_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  execute_process(
+    COMMAND ${CMAKE_CXX_COMPILER} -dM -E - < /dev/null
+    OUTPUT_VARIABLE COMPILER_MACRO_DEFS
+  )
+
+  if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+    set(COMPILER_IS_APPLECLANG TRUE)
+  elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(COMPILER_IS_GCC TRUE)
+  else()
+    message(FATAL_ERROR "Unsupported compiler for macOS OpenMP: ${CMAKE_CXX_COMPILER_ID}")
+  endif()
+
+  # --------- OpenMP flags ----------
+  if(COMPILER_IS_APPLECLANG)
+    # Homebrew libomp
+    execute_process(
       COMMAND brew --prefix libomp
       OUTPUT_VARIABLE LIBOMP_PREFIX
       OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
+    )
 
-  if(NOT EXISTS "${LIBOMP_PREFIX}/lib/libomp.dylib")
+    if(NOT EXISTS "${LIBOMP_PREFIX}/lib/libomp.dylib")
       message(FATAL_ERROR "libomp not found. Install with: brew install libomp")
+    endif()
+
+    message(STATUS "Using Apple Clang with libomp at ${LIBOMP_PREFIX}")
+
+    set(OpenMP_C_FLAGS       "-Xclang -fopenmp -I${LIBOMP_PREFIX}/include" CACHE STRING "" FORCE)
+    set(OpenMP_CXX_FLAGS     "-Xclang -fopenmp -I${LIBOMP_PREFIX}/include" CACHE STRING "" FORCE)
+    set(OpenMP_C_LIB_NAMES   "omp" CACHE STRING "" FORCE)
+    set(OpenMP_CXX_LIB_NAMES "omp" CACHE STRING "" FORCE)
+    set(OpenMP_omp_LIBRARY   "${LIBOMP_PREFIX}/lib/libomp.dylib" CACHE STRING "" FORCE)
+    set(OpenMP_CXX_LIBRARIES "${LIBOMP_PREFIX}/lib/libomp.dylib" CACHE STRING "" FORCE)
+
+    include_directories("${LIBOMP_PREFIX}/include")
+    link_directories("${LIBOMP_PREFIX}/lib")
+
+  elseif(COMPILER_IS_GCC)
+    message(STATUS "Using GCC with system OpenMP support")
+
+    # For GCC on macOS, usually -fopenmp works automatically
+    set(OpenMP_C_FLAGS       "-fopenmp" CACHE STRING "" FORCE)
+    set(OpenMP_CXX_FLAGS     "-fopenmp" CACHE STRING "" FORCE)
+    set(OpenMP_C_LIB_NAMES   "gomp" CACHE STRING "" FORCE)
+    set(OpenMP_CXX_LIB_NAMES "gomp" CACHE STRING "" FORCE)
+    find_library(OPENMP_LIB NAMES gomp)
+    if(NOT OPENMP_LIB)
+      message(FATAL_ERROR "Could not find libgomp for GCC OpenMP")
+    endif()
+    set(OpenMP_omp_LIBRARY   ${OPENMP_LIB} CACHE STRING "" FORCE)
+    set(OpenMP_CXX_LIBRARIES ${OPENMP_LIB} CACHE STRING "" FORCE)
   endif()
-
-  message(STATUS "Using Apple Clang with libomp from ${LIBOMP_PREFIX}")
-
-  set(OpenMP_C_FLAGS "-Xpreprocessor -fopenmp -I${LIBOMP_PREFIX}/include")
-  set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I${LIBOMP_PREFIX}/include")
-  set(OpenMP_C_LIB_NAMES "omp")
-  set(OpenMP_CXX_LIB_NAMES "omp")
-  set(OpenMP_omp_LIBRARY "${LIBOMP_PREFIX}/lib/libomp.dylib")
-
-  include_directories("${LIBOMP_PREFIX}/include")
-  link_directories("${LIBOMP_PREFIX}/lib")
-
 endif()
 
 ########################################################################

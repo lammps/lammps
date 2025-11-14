@@ -579,6 +579,7 @@ void Atom::peratom_create()
   add_peratom("segment",&segment,STRING,0);
   add_peratom("residue",&residue,STRING,0);
   add_peratom("name",&name,STRING,0);
+  
   // APIP package
 
   add_peratom("apip_lambda",&apip_lambda,DOUBLE,0);

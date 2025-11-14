@@ -43,7 +43,7 @@ void AngleDipoleOMP::compute(int eflag, int vflag)
   ev_init(eflag,vflag);
 
   if (!force->newton_bond)
-    error->all(FLERR,"'newton' flag for bonded interactions must be 'on'");
+    error->all(FLERR, Error::NOLASTLINE, "'newton' flag for bonded interactions must be 'on'");
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;

@@ -48,12 +48,12 @@ static constexpr double MASSDELTA = 0.1;
 
 FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr), type_flag(nullptr),
-    mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr), loop_respa(nullptr),
-    step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr), vtmp(nullptr),
-    mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr), shake_atom(nullptr),
-    shake_type(nullptr), xshake(nullptr), nshake(nullptr), list(nullptr), closest_list(nullptr),
-    b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr), b_min(nullptr),
-    b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
+    mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr), fstore(nullptr),
+    loop_respa(nullptr), step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr),
+    vtmp(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr),
+    shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr), list(nullptr),
+    closest_list(nullptr), b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr),
+    b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
     a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
     a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr)
 {
@@ -79,16 +79,13 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   if (molecular == Atom::ATOMIC)
     error->all(FLERR, "Cannot use fix {} with non-molecular system", style);
 
+  // do not store constraint forces by default
+
+  store_flag = peratom_flag = 0;
+  maxstore = -1;
+
   // perform initial allocation of atom-based arrays
   // register with Atom class
-
-  shake_flag = nullptr;
-  shake_atom = nullptr;
-  shake_type = nullptr;
-  xshake = nullptr;
-
-  ftmp = nullptr;
-  vtmp = nullptr;
 
   FixShake::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
@@ -150,7 +147,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
     // break if known optional keyword
 
-    } else if ((strcmp(arg[next], "mol") == 0) || (strcmp(arg[next], "kbond") == 0)) {
+    } else if ((strcmp(arg[next], "mol") == 0) || (strcmp(arg[next], "kbond") == 0) ||
+               (strcmp(arg[next], "store") == 0)) {
       break;
 
     // get numeric types for b, a, t, or m keywords.
@@ -211,6 +209,19 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,mystyle+" kbond",error);
       kbond = utils::numeric(FLERR, arg[iarg+1], false, lmp);
       if (kbond < 0) error->all(FLERR,"Illegal {} kbond value {}. Must be >= 0.0", mystyle, kbond);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"store") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,mystyle+" store",error);
+      store_flag = utils::logical(FLERR, arg[iarg+1], false, lmp);
+      if (store_flag) {
+        peratom_flag = 1;
+        size_peratom_cols = 3;
+        peratom_freq = 1;
+      } else {
+        peratom_flag = 0;
+        size_peratom_cols = 0;
+        peratom_freq = 0;
+      }
       iarg += 2;
     } else error->all(FLERR,"Unknown {} command option: {}", mystyle, arg[iarg]);
   }
@@ -315,6 +326,7 @@ FixShake::~FixShake()
   memory->destroy(ftmp);
   memory->destroy(vtmp);
 
+  memory->destroy(fstore);
 
   delete[] bond_flag;
   delete[] angle_flag;
@@ -777,9 +789,22 @@ void FixShake::min_post_force(int vflag)
     a_min[i] = BIG;
   }
 
+  // allocate storage for restraint forces if requested
+
+  if (store_flag) {
+    if (maxstore < atom->nmax) {
+      maxstore = MAX(atom->nmax, 1);
+      memory->destroy(fstore);
+      memory->create(fstore, maxstore, 3, "shake/fstore");
+      for (int i = 0; i < maxstore; ++i) fstore[i][0] = fstore[i][1] = fstore[i][2] = 0.0;
+    }
+    array_atom = fstore;
+  }
+
   // loop over local shake clusters to add restraint forces
 
   for (int i = 0; i < nlocal; i++) {
+    if (store_flag) fstore[i][0] = fstore[i][1] = fstore[i][2] = 0.0;
     if (shake_flag[i]) {
       if (shake_flag[i] == 2) {
         atom1 = atom->map(shake_atom[i][0]);
@@ -1455,8 +1480,9 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
           partner_massflag[i][j] = masscheck(massone);
         }
         n = bondtype_findset(i,tag[i],partner_tag[i][j],0);
-        if (n) partner_bondtype[i][j] = n;
-        else {
+        if (n) {
+          partner_bondtype[i][j] = n;
+        } else {
           n = bondtype_findset(m,tag[i],partner_tag[i][j],0);
           if (n) partner_bondtype[i][j] = n;
         }
@@ -2044,11 +2070,11 @@ void FixShake::shake(int ilist)
   // a,b,c = coeffs in quadratic equation for lamda
 
   if (rmass) {
-    invmass0 = 1.0/rmass[i0];
-    invmass1 = 1.0/rmass[i1];
+    invmass0 = 1.0 / rmass[i0];
+    invmass1 = 1.0 / rmass[i1];
   } else {
-    invmass0 = 1.0/mass[type[i0]];
-    invmass1 = 1.0/mass[type[i1]];
+    invmass0 = 1.0 / mass[type[i0]];
+    invmass1 = 1.0 / mass[type[i1]];
   }
 
   double a = (invmass0+invmass1)*(invmass0+invmass1) * r01sq;
@@ -2161,13 +2187,13 @@ void FixShake::shake3(int ilist)
   // matrix coeffs and rhs for lamda equations
 
   if (rmass) {
-    invmass0 = 1.0/rmass[i0];
-    invmass1 = 1.0/rmass[i1];
-    invmass2 = 1.0/rmass[i2];
+    invmass0 = 1.0 / rmass[i0];
+    invmass1 = 1.0 / rmass[i1];
+    invmass2 = 1.0 / rmass[i2];
   } else {
-    invmass0 = 1.0/mass[type[i0]];
-    invmass1 = 1.0/mass[type[i1]];
-    invmass2 = 1.0/mass[type[i2]];
+    invmass0 = 1.0 / mass[type[i0]];
+    invmass1 = 1.0 / mass[type[i1]];
+    invmass2 = 1.0 / mass[type[i2]];
   }
 
   double a11 = 2.0 * (invmass0+invmass1) *
@@ -2349,15 +2375,15 @@ void FixShake::shake4(int ilist)
   // matrix coeffs and rhs for lamda equations
 
   if (rmass) {
-    invmass0 = 1.0/rmass[i0];
-    invmass1 = 1.0/rmass[i1];
-    invmass2 = 1.0/rmass[i2];
-    invmass3 = 1.0/rmass[i3];
+    invmass0 = 1.0 / rmass[i0];
+    invmass1 = 1.0 / rmass[i1];
+    invmass2 = 1.0 / rmass[i2];
+    invmass3 = 1.0 / rmass[i3];
   } else {
-    invmass0 = 1.0/mass[type[i0]];
-    invmass1 = 1.0/mass[type[i1]];
-    invmass2 = 1.0/mass[type[i2]];
-    invmass3 = 1.0/mass[type[i3]];
+    invmass0 = 1.0 / mass[type[i0]];
+    invmass1 = 1.0 / mass[type[i1]];
+    invmass2 = 1.0 / mass[type[i2]];
+    invmass3 = 1.0 / mass[type[i3]];
   }
 
   double a11 = 2.0 * (invmass0+invmass1) *
@@ -2600,13 +2626,13 @@ void FixShake::shake3angle(int ilist)
   // matrix coeffs and rhs for lamda equations
 
   if (rmass) {
-    invmass0 = 1.0/rmass[i0];
-    invmass1 = 1.0/rmass[i1];
-    invmass2 = 1.0/rmass[i2];
+    invmass0 = 1.0 / rmass[i0];
+    invmass1 = 1.0 / rmass[i1];
+    invmass2 = 1.0 / rmass[i2];
   } else {
-    invmass0 = 1.0/mass[type[i0]];
-    invmass1 = 1.0/mass[type[i1]];
-    invmass2 = 1.0/mass[type[i2]];
+    invmass0 = 1.0 / mass[type[i0]];
+    invmass1 = 1.0 / mass[type[i1]];
+    invmass2 = 1.0 / mass[type[i2]];
   }
 
   double a11 = 2.0 * (invmass0+invmass1) *
@@ -2809,6 +2835,11 @@ double FixShake::bond_force(int i1, int i2, double length)
     f[i1][0] += delx * fbond;
     f[i1][1] += dely * fbond;
     f[i1][2] += delz * fbond;
+    if (store_flag) {
+      fstore[i1][0] += delx * fbond;
+      fstore[i1][1] += dely * fbond;
+      fstore[i1][2] += delz * fbond;
+    }
     atomlist[count++] = i1;
     ebond += 0.5*eb;
   }
@@ -2816,6 +2847,11 @@ double FixShake::bond_force(int i1, int i2, double length)
     f[i2][0] -= delx * fbond;
     f[i2][1] -= dely * fbond;
     f[i2][2] -= delz * fbond;
+    if (store_flag) {
+      fstore[i2][0] -= delx * fbond;
+      fstore[i2][1] -= dely * fbond;
+      fstore[i2][2] -= delz * fbond;
+    }
     atomlist[count++] = i2;
     ebond += 0.5*eb;
   }
@@ -3445,11 +3481,23 @@ void FixShake::correct_velocities() {}
 
 void FixShake::correct_coordinates(int vflag) {
 
+  // allocate storage for constraint forces if requested
+
+  if (store_flag) {
+    if (maxstore < atom->nmax) {
+      maxstore = MAX(atom->nmax,1);
+      memory->destroy(fstore);
+      memory->create(fstore, maxstore, 3, "shake/fstore");
+      for (int i = 0; i < maxstore; ++i) fstore[i][0] = fstore[i][1] = fstore[i][2] = 0.0;
+    }
+    array_atom = fstore;
+  }
+
   // save current forces and velocities so that you
   // initialize them to zero such that FixShake::unconstrained_coordinate_update has no effect
 
-  for (int j=0; j<nlocal; j++) {
-    for (int k=0; k<3; k++) {
+  for (int j = 0; j < nlocal; ++j) {
+    for (int k = 0; k < 3; ++k) {
 
       // store current value of forces and velocities
 
@@ -3458,8 +3506,8 @@ void FixShake::correct_coordinates(int vflag) {
 
       // set f and v to zero for SHAKE
 
-      v[j][k] = 0;
-      f[j][k] = 0;
+      v[j][k] = 0.0;
+      f[j][k] = 0.0;
     }
   }
 
@@ -3475,13 +3523,12 @@ void FixShake::correct_coordinates(int vflag) {
   double dtfmsq;
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
-      dtfmsq = dtfsq/ rmass[i];
+      dtfmsq = dtfsq / rmass[i];
       x[i][0] = x[i][0] + dtfmsq*f[i][0];
       x[i][1] = x[i][1] + dtfmsq*f[i][1];
       x[i][2] = x[i][2] + dtfmsq*f[i][2];
     }
-  }
-  else {
+  } else {
     for (int i = 0; i < nlocal; i++) {
       dtfmsq = dtfsq / mass[type[i]];
       x[i][0] = x[i][0] + dtfmsq*f[i][0];
@@ -3490,10 +3537,20 @@ void FixShake::correct_coordinates(int vflag) {
     }
   }
 
+  // store constraint forces if requested
+
+  if (store_flag) {
+    for (int j = 0; j < nlocal; ++j) {
+      for (int k = 0; k < 3; ++k) {
+        fstore[j][k] = f[j][k];
+      }
+    }
+  }
+
   // copy forces and velocities back
 
-  for (int j=0; j<nlocal; j++) {
-    for (int k=0; k<3; k++) {
+  for (int j = 0; j < nlocal; ++j) {
+    for (int k = 0; k < 3; ++k) {
       f[j][k] = ftmp[j][k];
       v[j][k] = vtmp[j][k];
     }

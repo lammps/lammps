@@ -103,6 +103,11 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
   KK_FLOAT special_coul[4];
   KK_FLOAT special_lj[4];
   KK_FLOAT qqrd2e;
+  KK_FLOAT g_ewald_kk;
+  KK_FLOAT denom_lj_inv_kk;
+  KK_FLOAT cut_lj_innersq_kk;
+  KK_FLOAT cut_ljsq_kk;
+  KK_FLOAT tabinnersq_kk;
 
   void allocate() override;
 

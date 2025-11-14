@@ -238,36 +238,36 @@ void PairReaxFFKokkos<DeviceType>::setup()
     if (map[i] == -1) continue;
 
     // general
-    k_params_sing.view_host()(i).mass = api->system->reax_param.sbp[map[i]].mass;
+    k_params_sing.view_host()(i).mass = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].mass);
 
     // polarization
-    k_params_sing.view_host()(i).chi = api->system->reax_param.sbp[map[i]].chi;
-    k_params_sing.view_host()(i).eta = api->system->reax_param.sbp[map[i]].eta;
+    k_params_sing.view_host()(i).chi = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].chi);
+    k_params_sing.view_host()(i).eta = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].eta);
 
     // bond order
-    k_params_sing.view_host()(i).r_s = api->system->reax_param.sbp[map[i]].r_s;
-    k_params_sing.view_host()(i).r_pi = api->system->reax_param.sbp[map[i]].r_pi;
-    k_params_sing.view_host()(i).r_pi2 = api->system->reax_param.sbp[map[i]].r_pi_pi;
-    k_params_sing.view_host()(i).valency = api->system->reax_param.sbp[map[i]].valency;
-    k_params_sing.view_host()(i).valency_val = api->system->reax_param.sbp[map[i]].valency_val;
-    k_params_sing.view_host()(i).valency_boc = api->system->reax_param.sbp[map[i]].valency_boc;
-    k_params_sing.view_host()(i).valency_e = api->system->reax_param.sbp[map[i]].valency_e;
-    k_params_sing.view_host()(i).nlp_opt = api->system->reax_param.sbp[map[i]].nlp_opt;
+    k_params_sing.view_host()(i).r_s = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].r_s);
+    k_params_sing.view_host()(i).r_pi = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].r_pi);
+    k_params_sing.view_host()(i).r_pi2 = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].r_pi_pi);
+    k_params_sing.view_host()(i).valency = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].valency);
+    k_params_sing.view_host()(i).valency_val = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].valency_val);
+    k_params_sing.view_host()(i).valency_boc = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].valency_boc);
+    k_params_sing.view_host()(i).valency_e = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].valency_e);
+    k_params_sing.view_host()(i).nlp_opt = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].nlp_opt);
 
     // multibody
-    k_params_sing.view_host()(i).p_lp2 = api->system->reax_param.sbp[map[i]].p_lp2;
-    k_params_sing.view_host()(i).p_ovun2 = api->system->reax_param.sbp[map[i]].p_ovun2;
-    k_params_sing.view_host()(i).p_ovun5 = api->system->reax_param.sbp[map[i]].p_ovun5;
+    k_params_sing.view_host()(i).p_lp2 = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].p_lp2);
+    k_params_sing.view_host()(i).p_ovun2 = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].p_ovun2);
+    k_params_sing.view_host()(i).p_ovun5 = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].p_ovun5);
 
     // angular
-    k_params_sing.view_host()(i).p_val3 = api->system->reax_param.sbp[map[i]].p_val3;
-    k_params_sing.view_host()(i).p_val5 = api->system->reax_param.sbp[map[i]].p_val5;
+    k_params_sing.view_host()(i).p_val3 = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].p_val3);
+    k_params_sing.view_host()(i).p_val5 = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].p_val5);
 
     // hydrogen bond
-    k_params_sing.view_host()(i).p_hbond = api->system->reax_param.sbp[map[i]].p_hbond;
+    k_params_sing.view_host()(i).p_hbond = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].p_hbond);
 
     // acks2
-    k_params_sing.view_host()(i).bcut_acks2 = api->system->reax_param.sbp[map[i]].bcut_acks2;
+    k_params_sing.view_host()(i).bcut_acks2 = static_cast<KK_FLOAT>(api->system->reax_param.sbp[map[i]].bcut_acks2);
 
     for (j = 1; j <= n; j++) {
       if (map[j] == -1) continue;
@@ -275,42 +275,42 @@ void PairReaxFFKokkos<DeviceType>::setup()
       twbp = &(api->system->reax_param.tbp[map[i]][map[j]]);
 
       // vdW
-      k_params_twbp.view_host()(i,j).gamma = twbp->gamma;
-      k_params_twbp.view_host()(i,j).gamma_w = twbp->gamma_w;
-      k_params_twbp.view_host()(i,j).alpha = twbp->alpha;
-      k_params_twbp.view_host()(i,j).r_vdw = twbp->r_vdW;
-      k_params_twbp.view_host()(i,j).epsilon = twbp->D;
-      k_params_twbp.view_host()(i,j).acore = twbp->acore;
-      k_params_twbp.view_host()(i,j).ecore = twbp->ecore;
-      k_params_twbp.view_host()(i,j).rcore = twbp->rcore;
-      k_params_twbp.view_host()(i,j).lgre = twbp->lgre;
-      k_params_twbp.view_host()(i,j).lgcij = twbp->lgcij;
+      k_params_twbp.view_host()(i,j).gamma = static_cast<KK_FLOAT>(twbp->gamma);
+      k_params_twbp.view_host()(i,j).gamma_w = static_cast<KK_FLOAT>(twbp->gamma_w);
+      k_params_twbp.view_host()(i,j).alpha = static_cast<KK_FLOAT>(twbp->alpha);
+      k_params_twbp.view_host()(i,j).r_vdw = static_cast<KK_FLOAT>(twbp->r_vdW);
+      k_params_twbp.view_host()(i,j).epsilon = static_cast<KK_FLOAT>(twbp->D);
+      k_params_twbp.view_host()(i,j).acore = static_cast<KK_FLOAT>(twbp->acore);
+      k_params_twbp.view_host()(i,j).ecore = static_cast<KK_FLOAT>(twbp->ecore);
+      k_params_twbp.view_host()(i,j).rcore = static_cast<KK_FLOAT>(twbp->rcore);
+      k_params_twbp.view_host()(i,j).lgre = static_cast<KK_FLOAT>(twbp->lgre);
+      k_params_twbp.view_host()(i,j).lgcij = static_cast<KK_FLOAT>(twbp->lgcij);
 
       // bond order
-      k_params_twbp.view_host()(i,j).r_s = twbp->r_s;
-      k_params_twbp.view_host()(i,j).r_pi = twbp->r_p;
-      k_params_twbp.view_host()(i,j).r_pi2 = twbp->r_pp;
-      k_params_twbp.view_host()(i,j).p_bo1 = twbp->p_bo1;
-      k_params_twbp.view_host()(i,j).p_bo2 = twbp->p_bo2;
-      k_params_twbp.view_host()(i,j).p_bo3 = twbp->p_bo3;
-      k_params_twbp.view_host()(i,j).p_bo4 = twbp->p_bo4;
-      k_params_twbp.view_host()(i,j).p_bo5 = twbp->p_bo5;
-      k_params_twbp.view_host()(i,j).p_bo6 = twbp->p_bo6;
-      k_params_twbp.view_host()(i,j).p_boc3 = twbp->p_boc3;
-      k_params_twbp.view_host()(i,j).p_boc4 = twbp->p_boc4;
-      k_params_twbp.view_host()(i,j).p_boc5 = twbp->p_boc5;
-      k_params_twbp.view_host()(i,j).ovc = twbp->ovc;
-      k_params_twbp.view_host()(i,j).v13cor = twbp->v13cor;
+      k_params_twbp.view_host()(i,j).r_s = static_cast<KK_FLOAT>(twbp->r_s);
+      k_params_twbp.view_host()(i,j).r_pi = static_cast<KK_FLOAT>(twbp->r_p);
+      k_params_twbp.view_host()(i,j).r_pi2 = static_cast<KK_FLOAT>(twbp->r_pp);
+      k_params_twbp.view_host()(i,j).p_bo1 = static_cast<KK_FLOAT>(twbp->p_bo1);
+      k_params_twbp.view_host()(i,j).p_bo2 = static_cast<KK_FLOAT>(twbp->p_bo2);
+      k_params_twbp.view_host()(i,j).p_bo3 = static_cast<KK_FLOAT>(twbp->p_bo3);
+      k_params_twbp.view_host()(i,j).p_bo4 = static_cast<KK_FLOAT>(twbp->p_bo4);
+      k_params_twbp.view_host()(i,j).p_bo5 = static_cast<KK_FLOAT>(twbp->p_bo5);
+      k_params_twbp.view_host()(i,j).p_bo6 = static_cast<KK_FLOAT>(twbp->p_bo6);
+      k_params_twbp.view_host()(i,j).p_boc3 = static_cast<KK_FLOAT>(twbp->p_boc3);
+      k_params_twbp.view_host()(i,j).p_boc4 = static_cast<KK_FLOAT>(twbp->p_boc4);
+      k_params_twbp.view_host()(i,j).p_boc5 = static_cast<KK_FLOAT>(twbp->p_boc5);
+      k_params_twbp.view_host()(i,j).ovc = static_cast<KK_FLOAT>(twbp->ovc);
+      k_params_twbp.view_host()(i,j).v13cor = static_cast<KK_FLOAT>(twbp->v13cor);
 
       // bond energy
-      k_params_twbp.view_host()(i,j).p_be1 = twbp->p_be1;
-      k_params_twbp.view_host()(i,j).p_be2 = twbp->p_be2;
-      k_params_twbp.view_host()(i,j).De_s = twbp->De_s;
-      k_params_twbp.view_host()(i,j).De_p = twbp->De_p;
-      k_params_twbp.view_host()(i,j).De_pp = twbp->De_pp;
+      k_params_twbp.view_host()(i,j).p_be1 = static_cast<KK_FLOAT>(twbp->p_be1);
+      k_params_twbp.view_host()(i,j).p_be2 = static_cast<KK_FLOAT>(twbp->p_be2);
+      k_params_twbp.view_host()(i,j).De_s = static_cast<KK_FLOAT>(twbp->De_s);
+      k_params_twbp.view_host()(i,j).De_p = static_cast<KK_FLOAT>(twbp->De_p);
+      k_params_twbp.view_host()(i,j).De_pp = static_cast<KK_FLOAT>(twbp->De_pp);
 
       // multibody
-      k_params_twbp.view_host()(i,j).p_ovun1 = twbp->p_ovun1;
+      k_params_twbp.view_host()(i,j).p_ovun1 = static_cast<KK_FLOAT>(twbp->p_ovun1);
 
       for (k = 1; k <= n; k++) {
         if (map[k] == -1) continue;
@@ -318,21 +318,21 @@ void PairReaxFFKokkos<DeviceType>::setup()
         // Angular
         thbh = &(api->system->reax_param.thbp[map[i]][map[j]][map[k]]);
         thbp = &(thbh->prm[0]);
-        k_params_thbp.view_host()(i,j,k).cnt = thbh->cnt;
-        k_params_thbp.view_host()(i,j,k).theta_00 = thbp->theta_00;
-        k_params_thbp.view_host()(i,j,k).p_val1 = thbp->p_val1;
-        k_params_thbp.view_host()(i,j,k).p_val2 = thbp->p_val2;
-        k_params_thbp.view_host()(i,j,k).p_val4 = thbp->p_val4;
-        k_params_thbp.view_host()(i,j,k).p_val7 = thbp->p_val7;
-        k_params_thbp.view_host()(i,j,k).p_pen1 = thbp->p_pen1;
-        k_params_thbp.view_host()(i,j,k).p_coa1 = thbp->p_coa1;
+        k_params_thbp.view_host()(i,j,k).cnt = static_cast<KK_FLOAT>(thbh->cnt);
+        k_params_thbp.view_host()(i,j,k).theta_00 = static_cast<KK_FLOAT>(thbp->theta_00);
+        k_params_thbp.view_host()(i,j,k).p_val1 = static_cast<KK_FLOAT>(thbp->p_val1);
+        k_params_thbp.view_host()(i,j,k).p_val2 = static_cast<KK_FLOAT>(thbp->p_val2);
+        k_params_thbp.view_host()(i,j,k).p_val4 = static_cast<KK_FLOAT>(thbp->p_val4);
+        k_params_thbp.view_host()(i,j,k).p_val7 = static_cast<KK_FLOAT>(thbp->p_val7);
+        k_params_thbp.view_host()(i,j,k).p_pen1 = static_cast<KK_FLOAT>(thbp->p_pen1);
+        k_params_thbp.view_host()(i,j,k).p_coa1 = static_cast<KK_FLOAT>(thbp->p_coa1);
 
         // Hydrogen Bond
         hbp = &(api->system->reax_param.hbp[map[i]][map[j]][map[k]]);
-        k_params_hbp.view_host()(i,j,k).p_hb1 = hbp->p_hb1;
-        k_params_hbp.view_host()(i,j,k).p_hb2 = hbp->p_hb2;
-        k_params_hbp.view_host()(i,j,k).p_hb3 = hbp->p_hb3;
-        k_params_hbp.view_host()(i,j,k).r0_hb = hbp->r0_hb;
+        k_params_hbp.view_host()(i,j,k).p_hb1 = static_cast<KK_FLOAT>(hbp->p_hb1);
+        k_params_hbp.view_host()(i,j,k).p_hb2 = static_cast<KK_FLOAT>(hbp->p_hb2);
+        k_params_hbp.view_host()(i,j,k).p_hb3 = static_cast<KK_FLOAT>(hbp->p_hb3);
+        k_params_hbp.view_host()(i,j,k).r0_hb = static_cast<KK_FLOAT>(hbp->r0_hb);
 
         for (m = 1; m <= n; m++) {
           if (map[m] == -1) continue;
@@ -340,11 +340,11 @@ void PairReaxFFKokkos<DeviceType>::setup()
           // Torsion
           fbh = &(api->system->reax_param.fbp[map[i]][map[j]][map[k]][map[m]]);
           fbp = &(fbh->prm[0]);
-          k_params_fbp.view_host()(i,j,k,m).p_tor1 = fbp->p_tor1;
-          k_params_fbp.view_host()(i,j,k,m).p_cot1 = fbp->p_cot1;
-          k_params_fbp.view_host()(i,j,k,m).V1 = fbp->V1;
-          k_params_fbp.view_host()(i,j,k,m).V2 = fbp->V2;
-          k_params_fbp.view_host()(i,j,k,m).V3 = fbp->V3;
+          k_params_fbp.view_host()(i,j,k,m).p_tor1 = static_cast<KK_FLOAT>(fbp->p_tor1);
+          k_params_fbp.view_host()(i,j,k,m).p_cot1 = static_cast<KK_FLOAT>(fbp->p_cot1);
+          k_params_fbp.view_host()(i,j,k,m).V1 = static_cast<KK_FLOAT>(fbp->V1);
+          k_params_fbp.view_host()(i,j,k,m).V2 = static_cast<KK_FLOAT>(fbp->V2);
+          k_params_fbp.view_host()(i,j,k,m).V3 = static_cast<KK_FLOAT>(fbp->V3);
         }
       }
     }
@@ -356,14 +356,17 @@ void PairReaxFFKokkos<DeviceType>::setup()
   k_params_hbp.modify_host();
 
   // cutoffs
-  cut_nbsq = api->control->nonb_cut * api->control->nonb_cut;
-  cut_hbsq = api->control->hbond_cut * api->control->hbond_cut;
-  cut_bosq = api->control->bond_cut * api->control->bond_cut;
+  cut_nbsq = static_cast<KK_FLOAT>(api->control->nonb_cut * api->control->nonb_cut);
+  cut_hbsq = static_cast<KK_FLOAT>(api->control->hbond_cut * api->control->hbond_cut);
+  cut_bosq = static_cast<KK_FLOAT>(api->control->bond_cut * api->control->bond_cut);
 
   // bond order cutoffs
-  bo_cut = 0.01 * gp[29];
-  thb_cut = api->control->thb_cut;
-  thb_cutsq = 0.000010; //thb_cut*thb_cut;
+  bo_cut = static_cast<KK_FLOAT>(0.01 * gp[29]);
+  thb_cut = static_cast<KK_FLOAT>(api->control->thb_cut);
+  thb_cutsq = static_cast<KK_FLOAT>(0.000010); //thb_cut*thb_cut;
+
+  // misc precision conversions
+  C_ele_reduced = static_cast<KK_FLOAT>(C_ele);
 
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
@@ -399,15 +402,15 @@ void PairReaxFFKokkos<DeviceType>::init_md()
   swb2 = swb * swb;
   swb3 = swb * swb2;
 
-  k_tap.view_host()(7) = 20.0/d7;
-  k_tap.view_host()(6) = -70.0 * (swa + swb) / d7;
-  k_tap.view_host()(5) =  84.0 * (swa2 + 3.0*swa*swb + swb2) / d7;
-  k_tap.view_host()(4) = -35.0 * (swa3 + 9.0*swa2*swb + 9.0*swa*swb2 + swb3) / d7;
-  k_tap.view_host()(3) = 140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3) / d7;
-  k_tap.view_host()(2) =-210.0 * (swa3*swb2 + swa2*swb3) / d7;
-  k_tap.view_host()(1) = 140.0 * swa3 * swb3 / d7;
-  k_tap.view_host()(0) = (-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 -
-                     7.0*swa*swb3*swb3 + swb3*swb3*swb) / d7;
+  k_tap.view_host()(7) = static_cast<KK_FLOAT>(20.0/d7);
+  k_tap.view_host()(6) = static_cast<KK_FLOAT>(-70.0 * (swa + swb) / d7);
+  k_tap.view_host()(5) = static_cast<KK_FLOAT>(84.0 * (swa2 + 3.0*swa*swb + swb2) / d7);
+  k_tap.view_host()(4) = static_cast<KK_FLOAT>(-35.0 * (swa3 + 9.0*swa2*swb + 9.0*swa*swb2 + swb3) / d7);
+  k_tap.view_host()(3) = static_cast<KK_FLOAT>(140.0 * (swa3*swb + 3.0*swa2*swb2 + swa*swb3) / d7);
+  k_tap.view_host()(2) = static_cast<KK_FLOAT>(-210.0 * (swa3*swb2 + swa2*swb3) / d7);
+  k_tap.view_host()(1) = static_cast<KK_FLOAT>(140.0 * swa3 * swb3 / d7);
+  k_tap.view_host()(0) = static_cast<KK_FLOAT>((-35.0*swa3*swb2*swb2 + 21.0*swa2*swb3*swb2 -
+                     7.0*swa*swb3*swb3 + swb3*swb3*swb) / d7);
 
   k_tap.modify_host();
   k_tap.template sync<DeviceType>();
@@ -762,7 +765,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_global) {
     for (int i = 0; i < 14; i++)
-      pvector[i] = 0.0;
+      pvector[i] = 0;
   }
 
   EV_FLOAT_REAX ev;
@@ -781,7 +784,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputePolar<HALFTHREAD>>(0,inum),*this);
   }
   ev_all += ev;
-  pvector[13] = ev.ecoul;
+  pvector[13] = static_cast<double>(ev.ecoul);
 
   // LJ + Coulomb
   if (api->control->tabulate) {
@@ -810,8 +813,8 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   }
   ev_all += ev;
-  pvector[10] = ev.evdwl;
-  pvector[11] = ev.ecoul;
+  pvector[10] = static_cast<double>(ev.evdwl);
+  pvector[11] = static_cast<double>(ev.ecoul);
 
 
   if (atom->nmax > nmax) {
@@ -940,9 +943,9 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeMulti2<HALFTHREAD,0>>(0,inum),*this);
     ev_all += ev;
   }
-  pvector[2] = ev.ereax[0];
-  pvector[1] = ev.ereax[1]+ev.ereax[2];
-  pvector[3] = 0.0;
+  pvector[2] = static_cast<double>(ev.ereax[0]);
+  pvector[1] = static_cast<double>(ev.ereax[1]+ev.ereax[2]);
+  pvector[3] = 0;
   ev_all.evdwl += ev.ereax[0] + ev.ereax[1] + ev.ereax[2];
 
   int count_angular = 0;
@@ -990,9 +993,9 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeAngularPreprocessed<HALFTHREAD,0>>(0,count_angular),*this);
     ev_all += ev;
   }
-  pvector[4] = ev.ereax[3];
-  pvector[5] = ev.ereax[4];
-  pvector[6] = ev.ereax[5];
+  pvector[4] = static_cast<double>(ev.ereax[3]);
+  pvector[5] = static_cast<double>(ev.ereax[4]);
+  pvector[6] = static_cast<double>(ev.ereax[5]);
   ev_all.evdwl += ev.ereax[3] + ev.ereax[4] + ev.ereax[5];
 
   // Torsion
@@ -1009,8 +1012,8 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionPreprocessed<HALFTHREAD,0>>(0,count_torsion),*this);
     ev_all += ev;
   }
-  pvector[8] = ev.ereax[6];
-  pvector[9] = ev.ereax[7];
+  pvector[8] = static_cast<double>(ev.ereax[6]);
+  pvector[9] = static_cast<double>(ev.ereax[7]);
   ev_all.evdwl += ev.ereax[6] + ev.ereax[7];
 
   // Hydrogen Bond
@@ -1029,7 +1032,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       ev_all += ev;
     }
   }
-  pvector[7] = ev.ereax[8];
+  pvector[7] = static_cast<double>(ev.ereax[8]);
   ev_all.evdwl += ev.ereax[8];
 
   // reduction over duplicated memory
@@ -1047,7 +1050,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond2<HALF,0>>(0,ignum),*this);
     ev_all += ev;
-    pvector[0] += ev.evdwl;
+    pvector[0] += static_cast<double>(ev.evdwl);
   } else { //if (neighflag == HALFTHREAD) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxUpdateBond<HALFTHREAD>>(0,ignum),*this);
 
@@ -1056,7 +1059,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond2<HALFTHREAD,0>>(0,ignum),*this);
     ev_all += ev;
-    pvector[0] += ev.evdwl;
+    pvector[0] += static_cast<double>(ev.evdwl);
   }
 
   // reduction over duplicated memory
@@ -1064,17 +1067,17 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::Experimental::contribute(f, dup_f);
 
   if (eflag_global) {
-    eng_vdwl += ev_all.evdwl;
-    eng_coul += ev_all.ecoul;
+    eng_vdwl += static_cast<double>(ev_all.evdwl);
+    eng_coul += static_cast<double>(ev_all.ecoul);
   }
 
   if (vflag_global) {
-    virial[0] += ev_all.v[0];
-    virial[1] += ev_all.v[1];
-    virial[2] += ev_all.v[2];
-    virial[3] += ev_all.v[3];
-    virial[4] += ev_all.v[4];
-    virial[5] += ev_all.v[5];
+    virial[0] += static_cast<double>(ev_all.v[0]);
+    virial[1] += static_cast<double>(ev_all.v[1]);
+    virial[2] += static_cast<double>(ev_all.v[2]);
+    virial[3] += static_cast<double>(ev_all.v[3]);
+    virial[4] += static_cast<double>(ev_all.v[4]);
+    virial[5] += static_cast<double>(ev_all.v[5]);
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -1131,13 +1134,13 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputePolar<NEIGHFLAG>
   const KK_FLOAT chi = paramssing(itype).chi;
   const KK_FLOAT eta = paramssing(itype).eta;
 
-  KK_FLOAT epol = KCALpMOL_to_EV*(chi*qi+(eta/2.0)*qi*qi);
+  KK_FLOAT epol = static_cast<KK_FLOAT>(KCALpMOL_to_EV)*(chi*qi+(static_cast<KK_FLOAT>(0.5)*eta)*qi*qi);
 
   /* energy due to coupling with kinetic energy potential */
   if (acks2_flag)
-    epol += KCALpMOL_to_EV*qi*d_s[NN + i];
+    epol += static_cast<KK_FLOAT>(KCALpMOL_to_EV)*qi*d_s[NN + i];
 
-  if (eflag_global) ev.ecoul += epol;
+  if (eflag_global) ev.ecoul += static_cast<KK_ACC_FLOAT>(epol);
   //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,i,epol,0.0,0.0,0.0,0.0);
   if (eflag_atom) this->template e_tally_single<NEIGHFLAG>(ev,i,epol);
 }
@@ -1176,7 +1179,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
   const int jnum = d_numneigh[i];
 
   KK_ACC_FLOAT fxtmp, fytmp, fztmp;
-  fxtmp = fytmp = fztmp = 0.0;
+  fxtmp = fytmp = fztmp = 0;
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
@@ -1230,22 +1233,22 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
     // shielding
     if (vdwflag == 1 || vdwflag == 3) {
       KK_FLOAT tmp_var;
-      tmp_var = pow(rij,gp[28]-2.0);
+      tmp_var = pow(rij,gp[28]-static_cast<KK_FLOAT>(2.0));
       powr_vdw = tmp_var*rij*rij;
-      powgi_vdw = pow(1.0/gamma_w,gp[28]);
-      dfn13 = pow(powr_vdw+powgi_vdw,1.0/gp[28]-1.0);
+      powgi_vdw = pow(static_cast<KK_FLOAT>(1.0)/gamma_w,gp[28]);
+      dfn13 = pow(powr_vdw+powgi_vdw,static_cast<KK_FLOAT>(1.0)/gp[28]-static_cast<KK_FLOAT>(1.0));
       fn13  = dfn13*(powr_vdw+powgi_vdw);
       dfn13 = dfn13*tmp_var;
 
-      exp2 = exp(0.5*alpha*(1.0-fn13/r_vdw));
+      exp2 = exp(static_cast<KK_FLOAT>(0.5)*alpha*(static_cast<KK_FLOAT>(1.0)-fn13/r_vdw));
       exp1 = exp2*exp2;
-      etmp = epsilon*(exp1-2.0*exp2);
+      etmp = epsilon*(exp1-static_cast<KK_FLOAT>(2.0)*exp2);
       evdwl = Tap*etmp;
       fvdwl = dTap*etmp-Tap*epsilon*(alpha/r_vdw)*(exp1-exp2)*dfn13;
     } else {
-      exp2 = exp(0.5*alpha*(1.0-rij/r_vdw));
+      exp2 = exp(static_cast<KK_FLOAT>(0.5)*alpha*(static_cast<KK_FLOAT>(1.0)-rij/r_vdw));
       exp1 = exp2*exp2;
-      etmp = epsilon*(exp1-2.0*exp2);
+      etmp = epsilon*(exp1-static_cast<KK_FLOAT>(2.0)*exp2);
       evdwl = Tap*etmp;
       fvdwl = dTap*etmp-Tap*epsilon*(alpha/r_vdw)*(exp1-exp2)*rij;
     }
@@ -1254,7 +1257,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
       const KK_FLOAT ecore = paramstwbp(itype,jtype).ecore;
       const KK_FLOAT acore = paramstwbp(itype,jtype).acore;
       const KK_FLOAT rcore = paramstwbp(itype,jtype).rcore;
-      const KK_FLOAT e_core = ecore*exp(acore*(1.0-(rij/rcore)));
+      const KK_FLOAT e_core = ecore*exp(acore*(static_cast<KK_FLOAT>(1.0)-(rij/rcore)));
       const KK_FLOAT de_core = -(acore/rcore)*e_core;
       evdwl += Tap*e_core;
       fvdwl += dTap*e_core+Tap*de_core/rij;
@@ -1266,7 +1269,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
         const KK_FLOAT rij6 = rij5*rij;
         const KK_FLOAT re6 = lgre*lgre*lgre*lgre*lgre*lgre;
         const KK_FLOAT elg = -lgcij/(rij6+re6);
-        const KK_FLOAT delg = -6.0*elg*rij5/(rij6+re6);
+        const KK_FLOAT delg = -static_cast<KK_FLOAT>(6.0)*elg*rij5/(rij6+re6);
         evdwl += Tap*elg;
         fvdwl += dTap*elg+Tap*delg/rij;
       }
@@ -1276,8 +1279,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
     const KK_FLOAT shld = paramstwbp(itype,jtype).gamma;
     const KK_FLOAT denom1 = rij * rij * rij + shld;
     const KK_FLOAT denom3 = cbrt(denom1);
-    KK_FLOAT ecoul = C_ele * qi*qj*Tap/denom3;
-    KK_FLOAT fcoul = C_ele * qi*qj*(dTap-Tap*rij/denom1)/denom3;
+    KK_FLOAT ecoul = C_ele_reduced * qi*qj*Tap/denom3;
+    KK_FLOAT fcoul = C_ele_reduced * qi*qj*(dTap-Tap*rij/denom1)/denom3;
 
     /* contribution to energy and gradients (atoms and cell)
      * due to geometry-dependent terms in the ACKS2
@@ -1285,19 +1288,19 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
     if (acks2_flag) {
 
       /* kinetic energy terms */
-      KK_FLOAT xcut = 0.5 * (paramssing(itype).bcut_acks2
+      KK_FLOAT xcut = static_cast<KK_FLOAT>(0.5) * (paramssing(itype).bcut_acks2
                           + paramssing(jtype).bcut_acks2);
 
       if (rij <= xcut) {
         const KK_FLOAT d = rij / xcut;
-        const KK_FLOAT bond_softness = gp[34] * pow( d, 3.0 )
-                                    * pow( 1.0 - d, 6.0 );
+        const KK_FLOAT bond_softness = gp[34] * pow( d, static_cast<KK_FLOAT>(3.0) )
+                                    * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(6.0) );
 
-        if (bond_softness > 0.0) {
+        if (bond_softness > static_cast<KK_FLOAT>(0.0)) {
           /* Coulombic energy contribution */
           const KK_FLOAT effpot_diff = d_s[NN + i]
                                     - d_s[NN + j];
-          const KK_FLOAT e_ele = -0.5 * KCALpMOL_to_EV * bond_softness
+          const KK_FLOAT e_ele = -static_cast<KK_FLOAT>(0.5) * static_cast<KK_FLOAT>(KCALpMOL_to_EV) * bond_softness
                                      * SQR( effpot_diff );
 
           ecoul += e_ele;
@@ -1305,11 +1308,11 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
           /* forces contribution */
           KK_FLOAT d_bond_softness;
           d_bond_softness = gp[34]
-                          * 3.0 / xcut * pow( d, 2.0 )
-                          * pow( 1.0 - d, 5.0 ) * (1.0 - 3.0 * d);
-          d_bond_softness = -0.5 * d_bond_softness
+                          * static_cast<KK_FLOAT>(3.0) / xcut * pow( d, static_cast<KK_FLOAT>(2.0) )
+                          * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(5.0) ) * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(3.0) * d);
+          d_bond_softness = -static_cast<KK_FLOAT>(0.5) * d_bond_softness
                           * SQR( effpot_diff );
-          d_bond_softness = KCALpMOL_to_EV * d_bond_softness
+          d_bond_softness = static_cast<KK_FLOAT>(KCALpMOL_to_EV) * d_bond_softness
                           / rij;
 
           fcoul += d_bond_softness;
@@ -1318,16 +1321,16 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
     }
 
     const KK_FLOAT ftotal = fvdwl + fcoul;
-    fxtmp += delx*ftotal;
-    a_f(j,0) -= delx*ftotal;
-    fytmp += dely*ftotal;
-    a_f(j,1) -= dely*ftotal;
-    fztmp += delz*ftotal;
-    a_f(j,2) -= delz*ftotal;
+    fxtmp += static_cast<KK_ACC_FLOAT>(delx*ftotal);
+    a_f(j,0) -= static_cast<KK_ACC_FLOAT>(delx*ftotal);
+    fytmp += static_cast<KK_ACC_FLOAT>(dely*ftotal);
+    a_f(j,1) -= static_cast<KK_ACC_FLOAT>(dely*ftotal);
+    fztmp += static_cast<KK_ACC_FLOAT>(delz*ftotal);
+    a_f(j,2) -= static_cast<KK_ACC_FLOAT>(delz*ftotal);
 
     if (EVFLAG) {
-      if (eflag_global) ev.evdwl += evdwl;
-      if (eflag_global) ev.ecoul += ecoul;
+      if (eflag_global) ev.evdwl += static_cast<KK_ACC_FLOAT>(evdwl);
+      if (eflag_global) ev.ecoul += static_cast<KK_ACC_FLOAT>(ecoul);
 
       if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl+ecoul,-ftotal,delx,dely,delz);
     }
@@ -1406,25 +1409,27 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
     /* Cubic Spline Interpolation */
     int r = (int)(rij * t.inv_dx);
     if (r == 0)  ++r;
-    const KK_FLOAT base = (KK_FLOAT)(r+1) * t.dx;
-    const KK_FLOAT dif = rij - base;
+    const KK_FLOAT base = static_cast<KK_FLOAT>(r+1) * t.dx;
+
+    // This is a double to match the types of cubic_spline_coef members
+    const double dif = static_cast<double>(rij - base);
 
     const cubic_spline_coef vdW = t.d_vdW[r];
     const cubic_spline_coef ele = t.d_ele[r];
     const cubic_spline_coef CEvd = t.d_CEvd[r];
     const cubic_spline_coef CEclmb = t.d_CEclmb[r];
 
-    const KK_FLOAT evdwl = ((vdW.d*dif + vdW.c)*dif + vdW.b)*dif +
-      vdW.a;
+    const KK_FLOAT evdwl = static_cast<KK_FLOAT>(((vdW.d*dif + vdW.c)*dif + vdW.b)*dif +
+      vdW.a);
 
-    KK_FLOAT ecoul = (((ele.d*dif + ele.c)*dif + ele.b)*dif +
-      ele.a)*qi*qj;
+    KK_FLOAT ecoul = static_cast<KK_FLOAT>((((ele.d*dif + ele.c)*dif + ele.b)*dif +
+      ele.a)*static_cast<double>(qi*qj));
 
-    const KK_FLOAT fvdwl = ((CEvd.d*dif + CEvd.c)*dif + CEvd.b)*dif +
-      CEvd.a;
+    const KK_FLOAT fvdwl = static_cast<KK_FLOAT>(((CEvd.d*dif + CEvd.c)*dif + CEvd.b)*dif +
+      CEvd.a);
 
-    KK_FLOAT fcoul = (((CEclmb.d*dif+CEclmb.c)*dif+CEclmb.b)*dif +
-      CEclmb.a)*qi*qj;
+    KK_FLOAT fcoul = static_cast<KK_FLOAT>((((CEclmb.d*dif+CEclmb.c)*dif+CEclmb.b)*dif +
+      CEclmb.a)*static_cast<double>(qi*qj));
 
     /* contribution to energy and gradients (atoms and cell)
      * due to geometry-dependent terms in the ACKS2
@@ -1432,19 +1437,19 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
     if (acks2_flag) {
 
       /* kinetic energy terms */
-      KK_FLOAT xcut = 0.5 * (paramssing(itype).bcut_acks2
+      KK_FLOAT xcut = static_cast<KK_FLOAT>(0.5) * (paramssing(itype).bcut_acks2
                           + paramssing(jtype).bcut_acks2);
 
       if (rij <= xcut) {
         const KK_FLOAT d = rij / xcut;
-        const KK_FLOAT bond_softness = gp[34] * pow( d, 3.0 )
-                                    * pow( 1.0 - d, 6.0 );
+        const KK_FLOAT bond_softness = gp[34] * pow( d, static_cast<KK_FLOAT>(3.0) )
+                                    * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(6.0) );
 
-        if (bond_softness > 0.0) {
+        if (bond_softness > 0) {
           /* Coulombic energy contribution */
           const KK_FLOAT effpot_diff = d_s[NN + i]
                                     - d_s[NN + j];
-          const KK_FLOAT e_ele = -0.5 * KCALpMOL_to_EV * bond_softness
+          const KK_FLOAT e_ele = -static_cast<KK_FLOAT>(0.5 * KCALpMOL_to_EV) * bond_softness
                                      * SQR( effpot_diff );
 
           ecoul += e_ele;
@@ -1452,11 +1457,11 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
           /* forces contribution */
           KK_FLOAT d_bond_softness;
           d_bond_softness = gp[34]
-                          * 3.0 / xcut * pow( d, 2.0 )
-                          * pow( 1.0 - d, 5.0 ) * (1.0 - 3.0 * d);
-          d_bond_softness = -0.5 * d_bond_softness
+                          * static_cast<KK_FLOAT>(3.0) / xcut * pow( d, static_cast<KK_FLOAT>(2.0) )
+                          * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(5.0) ) * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(3.0) * d);
+          d_bond_softness = -static_cast<KK_FLOAT>(0.5) * d_bond_softness
                           * SQR( effpot_diff );
-          d_bond_softness = KCALpMOL_to_EV * d_bond_softness
+          d_bond_softness = static_cast<KK_FLOAT>(KCALpMOL_to_EV) * d_bond_softness
                           / rij;
 
           fcoul += d_bond_softness;
@@ -1465,16 +1470,16 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
     }
 
     const KK_FLOAT ftotal = fvdwl + fcoul;
-    fxtmp += delx*ftotal;
-    fytmp += dely*ftotal;
-    fztmp += delz*ftotal;
-    a_f(j,0) -= delx*ftotal;
-    a_f(j,1) -= dely*ftotal;
-    a_f(j,2) -= delz*ftotal;
+    fxtmp += static_cast<KK_ACC_FLOAT>(delx*ftotal);
+    fytmp += static_cast<KK_ACC_FLOAT>(dely*ftotal);
+    fztmp += static_cast<KK_ACC_FLOAT>(delz*ftotal);
+    a_f(j,0) -= static_cast<KK_ACC_FLOAT>(delx*ftotal);
+    a_f(j,1) -= static_cast<KK_ACC_FLOAT>(dely*ftotal);
+    a_f(j,2) -= static_cast<KK_ACC_FLOAT>(delz*ftotal);
 
     if (EVFLAG) {
-      if (eflag_global) ev.evdwl += evdwl;
-      if (eflag_global) ev.ecoul += ecoul;
+      if (eflag_global) ev.evdwl += static_cast<KK_ACC_FLOAT>(evdwl);
+      if (eflag_global) ev.ecoul += static_cast<KK_ACC_FLOAT>(ecoul);
 
       if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl+ecoul,-ftotal,delx,dely,delz);
     }
@@ -1571,12 +1576,12 @@ void PairReaxFFKokkos<DeviceType>::allocate_array()
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxZero, const int &n) const {
-  d_total_bo(n) = 0.0;
-  d_CdDelta(n) = 0.0;
-  d_bo_num(n) = 0.0;
-  d_hb_num(n) = 0.0;
+  d_total_bo(n) = 0;
+  d_CdDelta(n) = 0;
+  d_bo_num(n) = 0;
+  d_hb_num(n) = 0;
   for (int j = 0; j < 3; j++)
-    d_dDeltap_self(n,j) = 0.0;
+    d_dDeltap_self(n,j) = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1601,12 +1606,12 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
   const int jnum = d_numneigh[i];
 
   KK_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3];
-  KK_FLOAT dDeltap_self_i[3] = {0.0,0.0,0.0};
-  KK_FLOAT total_bo_i = 0.0;
+  KK_FLOAT dDeltap_self_i[3] = {0, 0, 0};
+  KK_FLOAT total_bo_i = 0;
 
   int ihb = -1;
 
-  if (cut_hbsq > 0.0)
+  if (cut_hbsq > 0)
     ihb = paramssing(itype).p_hbond;
 
   int nnz;
@@ -1684,12 +1689,14 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
         d_BO_pi(i,j_index) = BO_pi;
         d_BO_pi2(i,j_index) = BO_pi2;
 
-        KK_FLOAT Cln_BOp_s = p_bo2 * C12 / rij / rij;
-        KK_FLOAT Cln_BOp_pi = p_bo4 * C34 / rij / rij;
-        KK_FLOAT Cln_BOp_pi2 = p_bo6 * C56 / rij / rij;
+        KK_FLOAT rsq_inv = static_cast<KK_FLOAT>(1.0) / rsq;
+
+        KK_FLOAT Cln_BOp_s = p_bo2 * C12 * rsq_inv;
+        KK_FLOAT Cln_BOp_pi = p_bo4 * C34 * rsq_inv;
+        KK_FLOAT Cln_BOp_pi2 = p_bo6 * C56 * rsq_inv;
 
         if (nlocal == 0)
-          Cln_BOp_s = Cln_BOp_pi = Cln_BOp_pi2 = 0.0;
+          Cln_BOp_s = Cln_BOp_pi = Cln_BOp_pi2 = 0;
 
         for (int d = 0; d < 3; d++) dBOp_i[d] = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2)*delij[d];
         for (int d = 0; d < 3; d++) dDeltap_self_i[d] += dBOp_i[d];
@@ -1738,7 +1745,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
 
   int ihb = -1;
 
-  if (cut_hbsq > 0.0)
+  if (cut_hbsq > 0)
     ihb = paramssing(itype).p_hbond;
 
   int nnz;
@@ -1824,7 +1831,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
 
   int ihb = -1;
 
-  if (cut_hbsq > 0.0)
+  if (cut_hbsq > 0)
     ihb = paramssing(itype).p_hbond;
 
   for (int jj = 0; jj < jnum; jj++) {
@@ -1947,8 +1954,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsFull, const i
   const int itype = type(i);
 
   KK_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3];
-  KK_FLOAT dDeltap_self_i[3] = {0.0,0.0,0.0};
-  KK_FLOAT total_bo_i = 0.0;
+  KK_FLOAT dDeltap_self_i[3] = {0, 0, 0};
+  KK_FLOAT total_bo_i = 0;
 
   const int jnum = d_bo_num[i];
   for (int j_index = 0; j_index < jnum; j_index++) {
@@ -1959,7 +1966,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsFull, const i
     delij[1] = x(j,1) - ytmp;
     delij[2] = x(j,2) - ztmp;
     const KK_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
-    const KK_FLOAT rsq_inv = 1.0 / rsq;
+    const KK_FLOAT rsq_inv = static_cast<KK_FLOAT>(1.0) / rsq;
 
     // bond_list
     const KK_FLOAT rij = sqrt(rsq);
@@ -1985,7 +1992,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsFull, const i
     KK_FLOAT Cln_BOp_pi2 = p_bo6 * C56 * rsq_inv;
 
     if (nlocal == 0)
-      Cln_BOp_s = Cln_BOp_pi = Cln_BOp_pi2 = 0.0;
+      Cln_BOp_s = Cln_BOp_pi = Cln_BOp_pi2 = 0;
 
     for (int d = 0; d < 3; d++) dBOp_i[d] = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2)*delij[d];
     for (int d = 0; d < 3; d++) dDeltap_self_i[d] += dBOp_i[d];
@@ -2020,20 +2027,20 @@ void PairReaxFFKokkos<DeviceType>::compute_bo(KK_FLOAT rij, int itype, int jtype
   const KK_FLOAT r_pi = paramstwbp(itype,jtype).r_pi;
   const KK_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
 
-  if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
-    C12 = p_bo1 * ((p_bo2 != 0) ? (pow(rij/r_s,p_bo2)) : 1.0);
-    BO_s = (1.0+bo_cut)*exp(C12);
-  } else BO_s = C12 = 0.0;
+  if (paramssing(itype).r_s > 0  && paramssing(jtype).r_s > 0) {
+    C12 = p_bo1 * ((p_bo2 != 0) ? (pow(rij/r_s,p_bo2)) : static_cast<KK_FLOAT>(1.0));
+    BO_s = (static_cast<KK_FLOAT>(1.0)+bo_cut)*exp(C12);
+  } else BO_s = C12 = 0;
 
-  if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
-    C34 = p_bo3 * ((p_bo4 != 0) ? (pow(rij/r_pi,p_bo4)) : 1.0);
+  if (paramssing(itype).r_pi > 0  && paramssing(jtype).r_pi > 0) {
+    C34 = p_bo3 * ((p_bo4 != 0) ? (pow(rij/r_pi,p_bo4)) : static_cast<KK_FLOAT>(1.0));
     BO_pi = exp(C34);
-  } else BO_pi = C34 = 0.0;
+  } else BO_pi = C34 = 0;
 
-  if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
-    C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pi2,p_bo6)) : 1.0);
+  if (paramssing(itype).r_pi2 > 0  && paramssing(jtype).r_pi2 > 0) {
+    C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pi2,p_bo6)) : static_cast<KK_FLOAT>(1.0));
     BO_pi2 = exp(C56);
-  } else BO_pi2 = C56 = 0.0;
+  } else BO_pi2 = C56 = 0;
 
 }
 
@@ -2086,20 +2093,20 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
     const KK_FLOAT p_boc4 = paramstwbp(itype,jtype).p_boc4;
     const KK_FLOAT p_boc5 = paramstwbp(itype,jtype).p_boc5;
 
-    if (ovc < 0.001 && v13cor < 0.001) {
-      d_C1dbo(i,j_index) = 1.0;
-      d_C2dbo(i,j_index) = 0.0;
-      d_C3dbo(i,j_index) = 0.0;
-      d_C1dbopi(i,j_index) = 1.0;
-      d_C2dbopi(i,j_index) = 0.0;
-      d_C3dbopi(i,j_index) = 0.0;
-      d_C4dbopi(i,j_index) = 0.0;
-      d_C1dbopi2(i,j_index) = 1.0;
-      d_C2dbopi2(i,j_index) = 0.0;
-      d_C3dbopi2(i,j_index) = 0.0;
-      d_C4dbopi2(i,j_index) = 0.0;
+    if (ovc < static_cast<KK_FLOAT>(0.001) && v13cor < static_cast<KK_FLOAT>(0.001)) {
+      d_C1dbo(i,j_index) = static_cast<KK_FLOAT>(1.0);
+      d_C2dbo(i,j_index) = 0;
+      d_C3dbo(i,j_index) = 0;
+      d_C1dbopi(i,j_index) = static_cast<KK_FLOAT>(1.0);
+      d_C2dbopi(i,j_index) = 0;
+      d_C3dbopi(i,j_index) = 0;
+      d_C4dbopi(i,j_index) = 0;
+      d_C1dbopi2(i,j_index) = static_cast<KK_FLOAT>(1.0);
+      d_C2dbopi2(i,j_index) = 0;
+      d_C3dbopi2(i,j_index) = 0;
+      d_C4dbopi2(i,j_index) = 0;
     } else {
-      if (ovc >= 0.001) {
+      if (ovc >= static_cast<KK_FLOAT>(0.001)) {
         exp_p1i = exp((double)(-p_boc1 * d_Deltap[i]));
         exp_p2i = exp((double)(-p_boc2 * d_Deltap[i]));
         exp_p1j = exp((double)(-p_boc1 * d_Deltap[j]));
@@ -2209,8 +2216,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder3, const int &
     d_Delta_lp_temp[i] = paramssing(itype).nlp_opt - nlp_temp;
   }
 
-  d_sum_ovun(i,1) = 0.0;
-  d_sum_ovun(i,2) = 0.0;
+  d_sum_ovun(i,1) = 0;
+  d_sum_ovun(i,2) = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3772,7 +3779,7 @@ void PairReaxFFKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, con
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   if (eflag_atom) {
-    const KK_FLOAT epairhalf = 0.5 * epair;
+    const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * epair);
     a_eatom[i] += epairhalf;
     a_eatom[j] += epairhalf;
   }
@@ -3786,27 +3793,27 @@ void PairReaxFFKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, con
     const KK_FLOAT v5 = dely*delz*fpair;
 
     if (vflag_global) {
-      ev.v[0] += v0;
-      ev.v[1] += v1;
-      ev.v[2] += v2;
-      ev.v[3] += v3;
-      ev.v[4] += v4;
-      ev.v[5] += v5;
+      ev.v[0] += static_cast<KK_ACC_FLOAT>(v0);
+      ev.v[1] += static_cast<KK_ACC_FLOAT>(v1);
+      ev.v[2] += static_cast<KK_ACC_FLOAT>(v2);
+      ev.v[3] += static_cast<KK_ACC_FLOAT>(v3);
+      ev.v[4] += static_cast<KK_ACC_FLOAT>(v4);
+      ev.v[5] += static_cast<KK_ACC_FLOAT>(v5);
     }
 
     if (vflag_atom) {
-      a_vatom(i,0) += 0.5*v0;
-      a_vatom(i,1) += 0.5*v1;
-      a_vatom(i,2) += 0.5*v2;
-      a_vatom(i,3) += 0.5*v3;
-      a_vatom(i,4) += 0.5*v4;
-      a_vatom(i,5) += 0.5*v5;
-      a_vatom(j,0) += 0.5*v0;
-      a_vatom(j,1) += 0.5*v1;
-      a_vatom(j,2) += 0.5*v2;
-      a_vatom(j,3) += 0.5*v3;
-      a_vatom(j,4) += 0.5*v4;
-      a_vatom(j,5) += 0.5*v5;
+      a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+      a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+      a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+      a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+      a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+      a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
+      a_vatom(j,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+      a_vatom(j,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+      a_vatom(j,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+      a_vatom(j,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+      a_vatom(j,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+      a_vatom(j,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
     }
   }
 }
@@ -3824,7 +3831,7 @@ void PairReaxFFKokkos<DeviceType>::e_tally(EV_FLOAT_REAX & /*ev*/, const int &i,
   auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
   auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  const KK_FLOAT epairhalf = 0.5 * epair;
+  const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * epair);
   a_eatom[i] += epairhalf;
   a_eatom[j] += epairhalf;
 }
@@ -3842,7 +3849,7 @@ void PairReaxFFKokkos<DeviceType>::e_tally_single(EV_FLOAT_REAX & /*ev*/, const 
   auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
   auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  a_eatom[i] += epair;
+  a_eatom[i] += static_cast<KK_ACC_FLOAT>(epair);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3853,14 +3860,16 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::v_tally(EV_FLOAT_REAX &ev, const int &i,
   KK_ACC_FLOAT *fi, KK_FLOAT *drij) const
 {
-  KK_FLOAT v[6];
+  KK_ACC_FLOAT v[6];
 
-  v[0] = 0.5*drij[0]*fi[0];
-  v[1] = 0.5*drij[1]*fi[1];
-  v[2] = 0.5*drij[2]*fi[2];
-  v[3] = 0.5*drij[0]*fi[1];
-  v[4] = 0.5*drij[0]*fi[2];
-  v[5] = 0.5*drij[1]*fi[2];
+  const KK_FLOAT half = static_cast<KK_FLOAT>(0.5);
+
+  v[0] = static_cast<KK_ACC_FLOAT>(half * drij[0])*fi[0];
+  v[1] = static_cast<KK_ACC_FLOAT>(half * drij[1])*fi[1];
+  v[2] = static_cast<KK_ACC_FLOAT>(half * drij[2])*fi[2];
+  v[3] = static_cast<KK_ACC_FLOAT>(half * drij[0])*fi[1];
+  v[4] = static_cast<KK_ACC_FLOAT>(half * drij[0])*fi[2];
+  v[5] = static_cast<KK_ACC_FLOAT>(half * drij[1])*fi[2];
 
   if (vflag_global) {
     ev.v[0] += v[0];
@@ -3892,14 +3901,14 @@ void PairReaxFFKokkos<DeviceType>::v_tally3(EV_FLOAT_REAX &ev, const int &i, con
   auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  KK_FLOAT v[6];
+  KK_ACC_FLOAT v[6];
 
-  v[0] = drij[0]*fj[0] + drik[0]*fk[0];
-  v[1] = drij[1]*fj[1] + drik[1]*fk[1];
-  v[2] = drij[2]*fj[2] + drik[2]*fk[2];
-  v[3] = drij[0]*fj[1] + drik[0]*fk[1];
-  v[4] = drij[0]*fj[2] + drik[0]*fk[2];
-  v[5] = drij[1]*fj[2] + drik[1]*fk[2];
+  v[0] = static_cast<KK_ACC_FLOAT>(drij[0])*fj[0] + static_cast<KK_ACC_FLOAT>(drik[0])*fk[0];
+  v[1] = static_cast<KK_ACC_FLOAT>(drij[1])*fj[1] + static_cast<KK_ACC_FLOAT>(drik[1])*fk[1];
+  v[2] = static_cast<KK_ACC_FLOAT>(drij[2])*fj[2] + static_cast<KK_ACC_FLOAT>(drik[2])*fk[2];
+  v[3] = static_cast<KK_ACC_FLOAT>(drij[0])*fj[1] + static_cast<KK_ACC_FLOAT>(drik[0])*fk[1];
+  v[4] = static_cast<KK_ACC_FLOAT>(drij[0])*fj[2] + static_cast<KK_ACC_FLOAT>(drik[0])*fk[2];
+  v[5] = static_cast<KK_ACC_FLOAT>(drij[1])*fj[2] + static_cast<KK_ACC_FLOAT>(drik[1])*fk[2];
 
   if (vflag_global) {
     ev.v[0] += v[0];
@@ -3911,12 +3920,12 @@ void PairReaxFFKokkos<DeviceType>::v_tally3(EV_FLOAT_REAX &ev, const int &i, con
   }
 
   if (vflag_atom) {
-    a_vatom(i,0) += THIRD * v[0]; a_vatom(i,1) += THIRD * v[1]; a_vatom(i,2) += THIRD * v[2];
-    a_vatom(i,3) += THIRD * v[3]; a_vatom(i,4) += THIRD * v[4]; a_vatom(i,5) += THIRD * v[5];
-    a_vatom(j,0) += THIRD * v[0]; a_vatom(j,1) += THIRD * v[1]; a_vatom(j,2) += THIRD * v[2];
-    a_vatom(j,3) += THIRD * v[3]; a_vatom(j,4) += THIRD * v[4]; a_vatom(j,5) += THIRD * v[5];
-    a_vatom(k,0) += THIRD * v[0]; a_vatom(k,1) += THIRD * v[1]; a_vatom(k,2) += THIRD * v[2];
-    a_vatom(k,3) += THIRD * v[3]; a_vatom(k,4) += THIRD * v[4]; a_vatom(k,5) += THIRD * v[5];
+    for (int n = 0; n < 6; n++)
+      v[n] *= static_cast<KK_ACC_FLOAT>(THIRD);
+
+    for (int n = 0; n < 6; n++) a_vatom(i,n) += v[n];
+    for (int n = 0; n < 6; n++) a_vatom(j,n) += v[n];
+    for (int n = 0; n < 6; n++) a_vatom(k,n) += v[n];
   }
 }
 
@@ -3930,14 +3939,14 @@ void PairReaxFFKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, con
 {
   // The vatom array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
-  KK_FLOAT v[6];
+  KK_ACC_FLOAT v[6];
 
-  v[0] = dril[0]*fi[0] + drjl[0]*fj[0] + drkl[0]*fk[0];
-  v[1] = dril[1]*fi[1] + drjl[1]*fj[1] + drkl[1]*fk[1];
-  v[2] = dril[2]*fi[2] + drjl[2]*fj[2] + drkl[2]*fk[2];
-  v[3] = dril[0]*fi[1] + drjl[0]*fj[1] + drkl[0]*fk[1];
-  v[4] = dril[0]*fi[2] + drjl[0]*fj[2] + drkl[0]*fk[2];
-  v[5] = dril[1]*fi[2] + drjl[1]*fj[2] + drkl[1]*fk[2];
+  v[0] = static_cast<KK_ACC_FLOAT>(dril[0])*fi[0] + static_cast<KK_ACC_FLOAT>(drjl[0])*fj[0] + static_cast<KK_ACC_FLOAT>(drkl[0])*fk[0];
+  v[1] = static_cast<KK_ACC_FLOAT>(dril[1])*fi[1] + static_cast<KK_ACC_FLOAT>(drjl[1])*fj[1] + static_cast<KK_ACC_FLOAT>(drkl[1])*fk[1];
+  v[2] = static_cast<KK_ACC_FLOAT>(dril[2])*fi[2] + static_cast<KK_ACC_FLOAT>(drjl[2])*fj[2] + static_cast<KK_ACC_FLOAT>(drkl[2])*fk[2];
+  v[3] = static_cast<KK_ACC_FLOAT>(dril[0])*fi[1] + static_cast<KK_ACC_FLOAT>(drjl[0])*fj[1] + static_cast<KK_ACC_FLOAT>(drkl[0])*fk[1];
+  v[4] = static_cast<KK_ACC_FLOAT>(dril[0])*fi[2] + static_cast<KK_ACC_FLOAT>(drjl[0])*fj[2] + static_cast<KK_ACC_FLOAT>(drkl[0])*fk[2];
+  v[5] = static_cast<KK_ACC_FLOAT>(dril[1])*fi[2] + static_cast<KK_ACC_FLOAT>(drjl[1])*fj[2] + static_cast<KK_ACC_FLOAT>(drkl[1])*fk[2];
 
   if (vflag_global) {
     ev.v[0] += v[0];
@@ -3952,14 +3961,11 @@ void PairReaxFFKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, con
     auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
     auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-    a_vatom(i,0) += 0.25 * v[0]; a_vatom(i,1) += 0.25 * v[1]; a_vatom(i,2) += 0.25 * v[2];
-    a_vatom(i,3) += 0.25 * v[3]; a_vatom(i,4) += 0.25 * v[4]; a_vatom(i,5) += 0.25 * v[5];
-    a_vatom(j,0) += 0.25 * v[0]; a_vatom(j,1) += 0.25 * v[1]; a_vatom(j,2) += 0.25 * v[2];
-    a_vatom(j,3) += 0.25 * v[3]; a_vatom(j,4) += 0.25 * v[4]; a_vatom(j,5) += 0.25 * v[5];
-    a_vatom(k,0) += 0.25 * v[0]; a_vatom(k,1) += 0.25 * v[1]; a_vatom(k,2) += 0.25 * v[2];
-    a_vatom(k,3) += 0.25 * v[3]; a_vatom(k,4) += 0.25 * v[4]; a_vatom(k,5) += 0.25 * v[5];
-    a_vatom(l,0) += 0.25 * v[0]; a_vatom(l,1) += 0.25 * v[1]; a_vatom(l,2) += 0.25 * v[2];
-    a_vatom(l,3) += 0.25 * v[3]; a_vatom(l,4) += 0.25 * v[4]; a_vatom(l,5) += 0.25 * v[5];
+    for (int n = 0; n < 6; n++) v[n] *= static_cast<KK_ACC_FLOAT>(0.25);
+    for (int n = 0; n < 6; n++) a_vatom(i,n) += v[n];
+    for (int n = 0; n < 6; n++) a_vatom(j,n) += v[n];
+    for (int n = 0; n < 6; n++) a_vatom(k,n) += v[n];
+    for (int n = 0; n < 6; n++) a_vatom(l,n) += v[n];
   }
 }
 
@@ -3971,27 +3977,22 @@ void PairReaxFFKokkos<DeviceType>::v_tally3_atom(EV_FLOAT_REAX &ev, const int &i
                                                 const int & /*k*/, KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk,
                                                 KK_FLOAT *drji, KK_FLOAT *drjk) const
 {
-  KK_FLOAT v[6];
+  KK_ACC_FLOAT v[6];
 
-  v[0] = THIRD * (drji[0]*fj[0] + drjk[0]*fk[0]);
-  v[1] = THIRD * (drji[1]*fj[1] + drjk[1]*fk[1]);
-  v[2] = THIRD * (drji[2]*fj[2] + drjk[2]*fk[2]);
-  v[3] = THIRD * (drji[0]*fj[1] + drjk[0]*fk[1]);
-  v[4] = THIRD * (drji[0]*fj[2] + drjk[0]*fk[2]);
-  v[5] = THIRD * (drji[1]*fj[2] + drjk[1]*fk[2]);
+  v[0] = static_cast<KK_ACC_FLOAT>(THIRD) * (static_cast<KK_ACC_FLOAT>(drji[0])*fj[0] + static_cast<KK_ACC_FLOAT>(drjk[0])*fk[0]);
+  v[1] = static_cast<KK_ACC_FLOAT>(THIRD) * (static_cast<KK_ACC_FLOAT>(drji[1])*fj[1] + static_cast<KK_ACC_FLOAT>(drjk[1])*fk[1]);
+  v[2] = static_cast<KK_ACC_FLOAT>(THIRD) * (static_cast<KK_ACC_FLOAT>(drji[2])*fj[2] + static_cast<KK_ACC_FLOAT>(drjk[2])*fk[2]);
+  v[3] = static_cast<KK_ACC_FLOAT>(THIRD) * (static_cast<KK_ACC_FLOAT>(drji[0])*fj[1] + static_cast<KK_ACC_FLOAT>(drjk[0])*fk[1]);
+  v[4] = static_cast<KK_ACC_FLOAT>(THIRD) * (static_cast<KK_ACC_FLOAT>(drji[0])*fj[2] + static_cast<KK_ACC_FLOAT>(drjk[0])*fk[2]);
+  v[5] = static_cast<KK_ACC_FLOAT>(THIRD) * (static_cast<KK_ACC_FLOAT>(drji[1])*fj[2] + static_cast<KK_ACC_FLOAT>(drjk[1])*fk[2]);
 
   if (vflag_global) {
-    ev.v[0] += v[0];
-    ev.v[1] += v[1];
-    ev.v[2] += v[2];
-    ev.v[3] += v[3];
-    ev.v[4] += v[4];
-    ev.v[5] += v[5];
+    for (int n = 0; n < 6; n++)
+      ev.v[n] += v[n];
   }
 
   if (vflag_atom) {
-    d_vatom(i,0) += v[0]; d_vatom(i,1) += v[1]; d_vatom(i,2) += v[2];
-    d_vatom(i,3) += v[3]; d_vatom(i,4) += v[4]; d_vatom(i,5) += v[5];
+    for (int n = 0; n < 6; n++) d_vatom(i,n) += v[n];
   }
 }
 
@@ -4090,7 +4091,7 @@ void PairReaxFFKokkos<DeviceType>::FindBond(int &numbonds, int groupbit)
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxFindBondZero>(0,nmax),*this);
 
-  bo_cut_bond = api->control->bg_cut;
+  bo_cut_bond = static_cast<KK_FLOAT>(api->control->bg_cut);
 
   atomKK->sync(execution_space,TAG_MASK|MASK_MASK);
   tag = atomKK->k_tag.view<DeviceType>();

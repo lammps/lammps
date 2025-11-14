@@ -72,18 +72,18 @@ namespace MathSpecialKokkos {
    *  \return  value of 2^x as double precision number */
 
   KOKKOS_INLINE_FUNCTION
-  static KK_FLOAT exp2_x86(KK_FLOAT x)
+  static double exp2_x86(double x)
   {
   #if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-      KK_FLOAT   ipart, fpart, px, qx;
+      double   ipart, fpart, px, qx;
       udi_t    epart;
 
-  const KK_FLOAT fm_exp2_q[2] = {
+  const double fm_exp2_q[2] = {
   /*  1.00000000000000000000e0, */
       2.33184211722314911771e2,
       4.36821166879210612817e3
   };
-  const KK_FLOAT fm_exp2_p[3] = {
+  const double fm_exp2_p[3] = {
       2.30933477057345225087e-2,
       2.02020656693165307700e1,
       1.51390680115615096133e3
@@ -124,7 +124,7 @@ namespace MathSpecialKokkos {
    *  \return  value of e^x as double precision number */
 
   KOKKOS_INLINE_FUNCTION
-  static KK_FLOAT fm_exp(KK_FLOAT x)
+  static double fm_exp(double x)
   {
   #if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
       if (x < -1022.0/FM_DOUBLE_LOG2OFE) return 0;
@@ -184,17 +184,17 @@ namespace MathSpecialKokkos {
    *
    *  \param   x argument
    *  \return  x*x */
-
+  template<typename T>
   KOKKOS_INLINE_FUNCTION
-  static KK_FLOAT square(const KK_FLOAT &x) { return x * x; }
+  static T square(const T &x) { return x * x; }
 
   /*! Fast inline version of pow(x, 3.0)
    *
    *  \param   x argument
    *  \return  x*x */
-
+  template<typename T>
   KOKKOS_INLINE_FUNCTION
-  static KK_FLOAT cube(const KK_FLOAT &x) { return x * x * x; }
+  static T cube(const T &x) { return x * x * x; }
 
   /* Fast inline version of pow(-1.0, n)
    *
@@ -202,7 +202,7 @@ namespace MathSpecialKokkos {
    *  \return  -1 if n is odd, 1.0 if n is even */
 
   KOKKOS_INLINE_FUNCTION
-  static KK_FLOAT powsign(const int n) { return (n & 1) ? -1.0 : 1.0; }
+  static KK_FLOAT powsign(const int n) { return (n & 1) ? static_cast<KK_FLOAT>(-1.0) : static_cast<KK_FLOAT>(1.0); }
 
   /* Fast inline version of pow(x,n) for integer n
    *
@@ -212,19 +212,20 @@ namespace MathSpecialKokkos {
    *  \param   n argument (integer)
    *  \return  value of x^n */
 
+  template<typename T>
   KOKKOS_INLINE_FUNCTION
-  static KK_FLOAT powint(const KK_FLOAT &x, const int n)
+  static T powint(const T &x, const int n)
   {
-    KK_FLOAT yy, ww;
+    T yy, ww;
 
-    if (x == 0.0) return 0.0;
+    if (x == static_cast<T>(0)) return static_cast<T>(0);
     int nn = (n > 0) ? n : -n;
     ww = x;
 
-    for (yy = 1.0; nn != 0; nn >>= 1, ww *= ww)
+    for (yy = static_cast<T>(1); nn != 0; nn >>= 1, ww *= ww)
       if (nn & 1) yy *= ww;
 
-    return (n > 0) ? yy : 1.0 / yy;
+    return (n > 0) ? yy : static_cast<T>(1) / yy;
   }
 
   /* Fast inline version of (sin(x)/x)^n as used by PPPM kspace styles
@@ -234,16 +235,17 @@ namespace MathSpecialKokkos {
    *  \param   n argument (integer). Expected to be positive.
    *  \return  value of (sin(x)/x)^n */
 
+  template<typename T>
   KOKKOS_INLINE_FUNCTION
-  static KK_FLOAT powsinxx(const KK_FLOAT &x, int n)
+  static T powsinxx(const T &x, int n)
   {
-    KK_FLOAT yy, ww;
+    T yy, ww;
 
-    if (x == 0.0) return 1.0;
+    if (x == static_cast<T>(0)) return static_cast<T>(1);
 
     ww = sin(x) / x;
 
-    for (yy = 1.0; n != 0; n >>= 1, ww *= ww)
+    for (yy = static_cast<T>(1); n != 0; n >>= 1, ww *= ww)
       if (n & 1) yy *= ww;
 
     return yy;
@@ -253,16 +255,9 @@ namespace MathSpecialKokkos {
     ans = v1 - v2
   ------------------------------------------------------------------------- */
 
+  template<typename T>
   KOKKOS_INLINE_FUNCTION
-  static void sub3(const float *v1, const float *v2, float *ans)
-  {
-    ans[0] = v1[0] - v2[0];
-    ans[1] = v1[1] - v2[1];
-    ans[2] = v1[2] - v2[2];
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  static void sub3(const double *v1, const double *v2, double *ans)
+  static void sub3(const T *v1, const T *v2, T *ans)
   {
     ans[0] = v1[0] - v2[0];
     ans[1] = v1[1] - v2[1];
@@ -273,14 +268,9 @@ namespace MathSpecialKokkos {
     dot product of 2 vectors
   ------------------------------------------------------------------------- */
 
+  template<typename T>
   KOKKOS_INLINE_FUNCTION
-  static KK_FLOAT dot3(const float *v1, const float *v2)
-  {
-    return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  static KK_FLOAT dot3(const double *v1, const double *v2)
+  static T dot3(const T *v1, const T *v2)
   {
     return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
   }

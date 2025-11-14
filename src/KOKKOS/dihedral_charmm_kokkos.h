@@ -29,11 +29,11 @@ DihedralStyle(charmm/kk/host,DihedralCharmmKokkos<LMPHostType>);
 namespace LAMMPS_NS {
 
 struct s_EVM_FLOAT {
-  double evdwl;
-  double ecoul;
-  double emol;
-  double v[6];
-  double vp[6];
+  KK_ACC_FLOAT evdwl;
+  KK_ACC_FLOAT ecoul;
+  KK_ACC_FLOAT emol;
+  KK_ACC_FLOAT v[6];
+  KK_ACC_FLOAT vp[6];
   KOKKOS_INLINE_FUNCTION
   s_EVM_FLOAT() {
           evdwl = 0;
@@ -140,8 +140,8 @@ class DihedralCharmmKokkos : public DihedralCharmm {
   typename AT::t_kkfloat_2d d_lj14_4;
 
   typename AT::t_kkfloat_1d d_k;
-  typename AT::t_kkfloat_1d d_multiplicity;
-  typename AT::t_kkfloat_1d d_shift;
+  typename AT::t_int_1d d_multiplicity;
+  typename AT::t_int_1d d_shift;
   typename AT::t_kkfloat_1d d_sin_shift;
   typename AT::t_kkfloat_1d d_cos_shift;
   typename AT::t_kkfloat_1d d_weight;

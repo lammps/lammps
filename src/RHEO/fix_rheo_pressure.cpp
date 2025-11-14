@@ -246,7 +246,12 @@ double FixRHEOPressure::calc_pressure(double rho, int i)
     rho_ratio = rho * rho0inv[type];
     p = csq[type] * rho0[type] * (pow(rho_ratio, tpower[type]) - 1.0) / tpower[type];
   } else if (pressure_style[type] == IDEAL) {
-    p = (gamma[type] - 1.0) * rho * atom->esph[i] / atom->mass[type];
+    double imass;
+    if (atom->rmass)
+      imass = atom->rmass[i];
+    else
+      imass = atom->mass[type];
+    p = (gamma[type] - 1.0) * rho * atom->esph[i] / imass;
   }
 
   if (background_flag)
@@ -281,7 +286,12 @@ double FixRHEOPressure::calc_rho(double p, int i)
     rho *= pow(rho0[type], 1.0 - 1.0 / tpower[type]);
     rho *= pow(csq[type], -1.0 / tpower[type]);
   } else if (pressure_style[type] == IDEAL) {
-    rho = p * atom->mass[type] / ((gamma[type] - 1.0) * atom->esph[i]);
+    double imass;
+    if (atom->rmass)
+      imass = atom->rmass[i];
+    else
+      imass = atom->mass[type];
+    rho = p * imass / ((gamma[type] - 1.0) * atom->esph[i]);
   }
   return rho;
 }

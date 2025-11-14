@@ -359,6 +359,10 @@ void FixRHEOThermal::post_integrate()
   double *heatflow = atom->heatflow;
   int *type = atom->type;
 
+  double imass;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+
   int n_melt = 0;
   int n_freeze = 0;
 
@@ -367,9 +371,12 @@ void FixRHEOThermal::post_integrate()
     if (status[i] & STATUS_NO_INTEGRATION) continue;
 
     itype = type[i];
+    if (rmass) imass = rmass[i];
+    else imass = mass[itype];
+
     cvi = calc_cv(itype);
     energy[i] += dth * heatflow[i];
-    temperature[i] = energy[i] / cvi;
+    temperature[i] = energy[i] / (imass * cvi);
 
     if (Tc_style[itype] != NONE) {
       Ti = temperature[i];
@@ -377,7 +384,7 @@ void FixRHEOThermal::post_integrate()
 
       if (L_style[itype] != NONE) {
         Li = calc_L(itype);
-        if (Ti > Tci) Ti = MAX(Tci, (energy[i] - Li) / cvi);
+        if (Ti > Tci) Ti = MAX(Tci, (energy[i] / imass - Li) / cvi);
         temperature[i] = Ti;
       }
 
@@ -461,18 +468,26 @@ void FixRHEOThermal::post_neighbor()
 
 void FixRHEOThermal::pre_force(int /*vflag*/)
 {
+  int i, itype;
   double cvi, Tci, Ti, Li;
 
   double *energy = atom->esph;
   double *temperature = atom->temperature;
   int *type = atom->type;
+
+  double imass;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+
   int nall = atom->nlocal + atom->nghost;
 
   // Calculate temperature
-  for (int i = 0; i < nall; i++) {
-    int itype = type[i];
+  for (i = 0; i < nall; i++) {
+    itype = type[i];
+    if (rmass) imass = rmass[i];
+    else imass = mass[itype];
     cvi = calc_cv(itype);
-    temperature[i] = energy[i] / cvi;
+    temperature[i] = energy[i] / (imass * cvi);
 
     if (Tc_style[itype] != NONE) {
       Ti = temperature[i];
@@ -480,7 +495,7 @@ void FixRHEOThermal::pre_force(int /*vflag*/)
 
       if (L_style[itype] != NONE) {
         Li = calc_L(itype);
-        if (Ti > Tci) Ti = MAX(Tci, (energy[i] - Li) / cvi);
+        if (Ti > Tci) Ti = MAX(Tci, (energy[i] / imass - Li) / cvi);
         temperature[i] = Ti;
       }
     }

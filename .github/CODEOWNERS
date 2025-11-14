@@ -3,191 +3,179 @@
 # Order matters, the last match has the highest precedence
 
 # library folders
-lib/colvars/*         @giacomofiorin
-lib/compress/*        @akohlmey
-lib/kokkos/*          @stanmoore1
-lib/molfile/*         @akohlmey
-lib/qmmm/*            @akohlmey
-lib/vtk/*             @rbberger
-lib/kim/*             @ellio167
-lib/mesont/*          @iafoss
+/lib/colvars/         @giacomofiorin
+/lib/gpu/             @ndtrung81
+/lib/kokkos/          @stanmoore1
+/lib/linalg/          @akohlmey
+/lib/molfile/         @akohlmey
+/lib/qmmm/            @akohlmey
 
 # whole packages
-src/ADIOS/*           @pnorbert
-src/AMOEBA/*          @sjplimp
-src/BPM/*             @jtclemm
-src/BROWNIAN/*        @samueljmcameron
-src/CG-DNA/*          @ohenrich
-src/CG-SPICA/*        @yskmiyazaki
-src/COLVARS/*         @giacomofiorin
-src/COMPRESS/*        @rbberger
-src/DIELECTRIC/*      @ndtrung81
-src/ELECTRODE/*       @ludwig-ahrens
-src/FEP/*             @agiliopadua
-src/GPU/*             @ndtrung81
-src/GRANULAR/*        @jtclemm @dsbolin
-src/INTEL/*           @wmbrownintel
-src/KIM/*             @ellio167
-src/KOKKOS/*          @stanmoore1
-src/LATTE/*           @cnegre
-src/MANIFOLD/*        @Pakketeretet2
-src/MDI/*             @taylor-a-barnes @sjplimp
-src/MEAM/*            @martok
-src/MESONT/*          @iafoss
-src/ML-HDNNP/*        @singraber
-src/ML-IAP/*          @athomps
-src/ML-PACE/*         @yury-lysogorskiy
-src/ML-POD/*          @exapde
-src/ML-UF3/*          @monk-04
-src/MOFFF/*           @hheenen
-src/MOLFILE/*         @akohlmey
-src/NETCDF/*          @pastewka
-src/OPENMP/*          @akohlmey
-src/PHONON/*          @lingtikong
-src/PLUGIN/*          @akohlmey
-src/PLUMED/*          @gtribello
-src/PTM/*             @pmla
-src/QMMM/*            @akohlmey
-src/REACTION/*        @jrgissing
-src/REAXFF/*          @hasanmetin @stanmoore1
-src/RHEO/*            @jtclemm
-src/SCAFACOS/*        @rhalver
-src/SNAP/*            @athomps
-src/SPIN/*            @julient31
-src/TALLY/*           @akohlmey
-src/UEF/*             @danicholson
-src/VTK/*             @rbberger
+/src/ADIOS/           @pnorbert
+/src/AMOEBA/          @sjplimp
+/src/BPM/             @jtclemm
+/src/BROWNIAN/        @samueljmcameron
+/src/CG-DNA/          @ohenrich
+/src/CG-SPICA/        @yskmiyazaki
+/src/COLVARS/         @giacomofiorin
+/src/DIELECTRIC/      @ndtrung81
+/src/ELECTRODE/       @ludwig-ahrens @srtee
+/src/FEP/             @agiliopadua
+/src/GPU/             @ndtrung81
+/src/GRANULAR/        @jtclemm @dsbolin
+/src/INTEL/           @wmbrownintel
+/src/KIM/             @ellio167
+/src/KOKKOS/          @stanmoore1
+/src/MANIFOLD/        @Pakketeretet2
+/src/MDI/             @taylor-a-barnes @sjplimp
+/src/MEAM/            @martok
+/src/MESONT/          @iafoss
+/src/ML-HDNNP/        @singraber
+/src/ML-IAP/          @athomps
+/src/ML-PACE/         @yury-lysogorskiy
+/src/ML-POD/          @exapde
+/src/ML-UF3/          @monk-04
+/src/MOFFF/           @hheenen
+/src/MOLFILE/         @akohlmey
+/src/NETCDF/          @pastewka
+/src/OPENMP/          @akohlmey
+/src/PHONON/          @lingtikong
+/src/PLUGIN/          @akohlmey
+/src/PLUMED/          @gtribello
+/src/PTM/             @pmla
+/src/QMMM/            @akohlmey
+/src/REACTION/        @jrgissing
+/src/REAXFF/          @hasanmetin @stanmoore1
+/src/RHEO/            @jtclemm
+/src/SCAFACOS/        @rhalver
+/src/SNAP/            @athomps
+/src/SPIN/            @julient31
+/src/TALLY/           @akohlmey
+/src/UEF/             @danicholson
 
 # individual files in packages
-src/GPU/pair_vashishta_gpu.*        @andeplane
-src/KOKKOS/pair_vashishta_kokkos.*  @andeplane @stanmoore1
-src/KOSSOS/pair_pod_kokkos.*        @exapde @stanmoore1
-src/MANYBODY/pair_vashishta_table.* @andeplane
-src/MANYBODY/pair_atm.*             @sergeylishchuk
-src/MANYBODY/pair_nb3b_screened.*   @flodesani
-src/REPLICA/*_grem.*                @dstelter92
-src/EXTRA-COMMAND/geturl.*          @akohlmey
-src/EXTRA-COMMAND/group_ndx.*       @akohlmey
-src/EXTRA-COMMAND/ndx_group.*       @akohlmey
-src/EXTRA-COMPUTE/compute_stress_mop*.* @RomainVermorel
-src/EXTRA-COMPUTE/compute_born_matrix.* @Bibobu @athomps
-src/EXTRA-DUMP/dump_extxyz.*          @fxcoudert
-src/EXTRA-FIX/fix_deform_pressure.* @jtclemm
-src/EXTRA-PAIR/pair_dispersion_d3.* @soniasalomoni @arthurfl
-src/EXTRA-PAIR/d3_parameters.h      @soniasalomoni @arthurfl
-src/MISC/*_tracker.*                @jtclemm
-src/MC/fix_gcmc.*                   @athomps
-src/MC/fix_sgcmc.*                  @athomps
-src/REAXFF/compute_reaxff_atom.*    @rbberger
-src/KOKKOS/compute_reaxff_atom_kokkos.*    @rbberger
-src/REPLICA/fix_pimd_langevin.*     @Yi-FanLi
-src/DPD-BASIC/pair_dpd_coul_slater_long.* @Eddy-Barraud
-src/GPU/pair_dpd_coul_slater_long.* @Eddy-Barraud
+/src/GPU/pair_vashishta_gpu.*        @andeplane
+/src/KOKKOS/pair_vashishta_kokkos.*  @andeplane @stanmoore1
+/src/KOSSOS/pair_pod_kokkos.*        @exapde @stanmoore1
+/src/MANYBODY/pair_vashishta_table.* @andeplane
+/src/MANYBODY/pair_atm.*             @sergeylishchuk
+/src/MANYBODY/pair_nb3b_screened.*   @flodesani
+/src/REPLICA/*_grem.*                @dstelter92
+/src/EXTRA-COMMAND/geturl.*          @akohlmey
+/src/EXTRA-COMMAND/group_ndx.*       @akohlmey
+/src/EXTRA-COMMAND/ndx_group.*       @akohlmey
+/src/EXTRA-COMPUTE/compute_stress_mop*.* @RomainVermorel
+/src/EXTRA-COMPUTE/compute_born_matrix.* @Bibobu @athomps
+/src/EXTRA-DUMP/dump_extxyz.*        @fxcoudert @akohlmey
+/src/EXTRA-FIX/fix_deform_pressure.* @jtclemm
+/src/EXTRA-PAIR/pair_dispersion_d3.* @soniasalomoni @arthurfl
+/src/EXTRA-PAIR/d3_parameters.h      @soniasalomoni @arthurfl
+/src/MISC/*_tracker.*                @jtclemm
+/src/MC/fix_gcmc.*                   @athomps
+/src/MC/fix_sgcmc.*                  @athomps
+/src/REAXFF/compute_reaxff_atom.*    @rbberger
+/src/KOKKOS/compute_reaxff_atom_kokkos.*    @rbberger
+/src/REPLICA/fix_pimd_langevin.*     @Yi-FanLi
+/src/DPD-BASIC/pair_dpd_coul_slater_long.* @Eddy-Barraud
+/src/GPU/pair_dpd_coul_slater_long.* @Eddy-Barraud
 
 # core LAMMPS classes
-src/lammps.*              @sjplimp
-src/pointers.h            @sjplimp
-src/atom.*                @sjplimp
-src/atom_vec.*            @sjplimp
-src/angle.*               @sjplimp
-src/bond.*                @sjplimp
-src/comm*.*               @sjplimp
-src/compute.*             @sjplimp
-src/dihedral.*            @sjplimp
-src/domain.*              @sjplimp @stanmoore1
-src/dump*.*               @sjplimp
-src/error.*               @sjplimp
-src/finish.*              @sjplimp
-src/fix.*                 @sjplimp
-src/force.*               @sjplimp
-src/group.*               @sjplimp
-src/improper.*            @sjplimp
-src/info.*                @akohlmey
-src/kspace.*              @sjplimp
-src/lmptype.h             @sjplimp
-src/label_map.*           @jrgissing @akohlmey
-src/library.*             @sjplimp @akohlmey
-src/main.cpp              @sjplimp
-src/min_*.*               @sjplimp
-src/memory.*              @sjplimp
-src/modify.*              @sjplimp @stanmoore1
-src/molecule.*            @sjplimp @akohlmey
-src/my_page.h             @sjplimp
-src/my_pool_chunk.h       @sjplimp
-src/npair*.*              @sjplimp @jtclemm
-src/ntopo*.*              @sjplimp @jtclemm
-src/nstencil*.*           @sjplimp @jtclemm
-src/neighbor.*            @sjplimp @jtclemm
-src/nbin*.*               @sjplimp @jtclemm
-src/neigh_*.*             @sjplimp @jtclemm
-src/output.*              @sjplimp
-src/pair.*                @sjplimp
-src/rcb.*                 @sjplimp
-src/random_*.*            @sjplimp
-src/region*.*             @sjplimp
-src/rcb.*                 @sjplimp
-src/read*.*               @sjplimp
-src/rerun.*               @sjplimp
-src/run.*                 @sjplimp
-src/respa.*               @sjplimp
-src/set.*                 @sjplimp
-src/special.*             @sjplimp
-src/suffix.h              @sjplimp
-src/thermo.*              @sjplimp
-src/universe.*            @sjplimp
-src/update.*              @sjplimp
-src/variable.*            @sjplimp
-src/velocity.*            @sjplimp
-src/write_data.*          @sjplimp
-src/write_restart.*       @sjplimp
-src/write_molecule.*      @akohlmey
+/src/lammps.*              @sjplimp
+/src/pointers.h            @sjplimp
+/src/atom.*                @sjplimp
+/src/atom_vec.*            @sjplimp
+/src/angle.*               @sjplimp
+/src/bond.*                @sjplimp
+/src/comm*.*               @sjplimp
+/src/compute.*             @sjplimp
+/src/dihedral.*            @sjplimp
+/src/domain.*              @sjplimp @stanmoore1
+/src/dump*.*               @sjplimp
+/src/error.*               @sjplimp
+/src/finish.*              @sjplimp
+/src/fix.*                 @sjplimp
+/src/force.*               @sjplimp
+/src/group.*               @sjplimp
+/src/improper.*            @sjplimp
+/src/info.*                @akohlmey
+/src/kspace.*              @sjplimp
+/src/lmptype.h             @sjplimp
+/src/label_map.*           @jrgissing @akohlmey
+/src/library.*             @sjplimp @akohlmey
+/src/main.cpp              @sjplimp
+/src/min_*.*               @sjplimp
+/src/memory.*              @sjplimp
+/src/modify.*              @sjplimp @stanmoore1
+/src/molecule.*            @sjplimp @akohlmey
+/src/my_page.h             @sjplimp
+/src/my_pool_chunk.h       @sjplimp
+/src/npair*.*              @sjplimp @jtclemm
+/src/ntopo*.*              @sjplimp @jtclemm
+/src/nstencil*.*           @sjplimp @jtclemm
+/src/neighbor.*            @sjplimp @jtclemm
+/src/nbin*.*               @sjplimp @jtclemm
+/src/neigh_*.*             @sjplimp @jtclemm
+/src/output.*              @sjplimp
+/src/pair.*                @sjplimp
+/src/rcb.*                 @sjplimp
+/src/random_*.*            @sjplimp
+/src/region*.*             @sjplimp
+/src/rcb.*                 @sjplimp
+/src/read*.*               @sjplimp
+/src/rerun.*               @sjplimp
+/src/run.*                 @sjplimp
+/src/respa.*               @sjplimp
+/src/set.*                 @sjplimp
+/src/special.*             @sjplimp
+/src/suffix.h              @sjplimp
+/src/thermo.*              @sjplimp
+/src/universe.*            @sjplimp
+/src/update.*              @sjplimp
+/src/variable.*            @sjplimp
+/src/velocity.*            @sjplimp
+/src/write_data.*          @sjplimp
+/src/write_restart.*       @sjplimp
+/src/write_molecule.*      @akohlmey
 
 # overrides for specific files
-src/dump_movie.*          @akohlmey
-src/exceptions.h          @rbberger
-src/fix_nh.*              @athomps
-src/info.*                @akohlmey @rbberger
-src/min*                  @sjplimp @stanmoore1
-src/platform.*            @akohlmey
-src/timer.*               @akohlmey
-src/utils.*               @akohlmey @rbberger
-src/verlet.*              @sjplimp @stanmoore1
-src/math_eigen_impl.h     @jewettaij
-src/fix_press_langevin.*  @Bibobu
+/src/dump_movie.*          @akohlmey
+/src/fix_nh.*              @athomps
+/src/info.*                @akohlmey
+/src/min*                  @sjplimp @stanmoore1
+/src/platform.*            @akohlmey
+/src/timer.*               @akohlmey
+/src/utils.*               @akohlmey
+/src/verlet.*              @sjplimp @stanmoore1
+/src/math_eigen_impl.h     @jewettaij
+/src/fix_press_langevin.*  @Bibobu
 
 # tools
-tools/coding_standard/* @akohlmey @rbberger
-tools/emacs/*         @HaoZeke
-tools/lammps-shell/*  @akohlmey
-tools/msi2lmp/*       @akohlmey
-tools/offline/*       @rbberger
-tools/singularity/*   @akohlmey @rbberger
-tools/swig/*          @akohlmey
-tools/valgrind/*      @akohlmey
-tools/vim/*           @hammondkd
+/tools/coding_standard/ @akohlmey
+/tools/emacs/           @HaoZeke
+/tools/singularity/     @akohlmey
+/tools/swig/            @akohlmey
+/tools/valgrind/        @akohlmey
+/tools/vim/             @hammondkd
 
 # tests
-unittest/*            @akohlmey
+/unittest/              @akohlmey
 
 # cmake
-cmake/*               @akohlmey
-cmake/Modules/LAMMPSInterfacePlugin.cmake @akohlmey
-cmake/Modules/MPI4WIN.cmake @akohlmey
-cmake/Modules/OpenCLLoader.cmake @akohlmey
-cmake/Modules/Packages/COLVARS.cmake @giacomofiorin
-cmake/Modules/Packages/KIM.cmake @ellio167
-cmake/presets/*.cmake @akohlmey
+/cmake/                 @akohlmey
+/cmake/Modules/Packages/COLVARS.cmake @giacomofiorin
+/cmake/Modules/Packages/KIM.cmake @ellio167
 
 # python
-python/*              @rbberger
+/python/                @akohlmey
+/python/ipython/        @rbberger
 
 # fortran
-fortran/*             @akohlmey @hammondkd
+/fortran/               @akohlmey @hammondkd
 
 # docs
-doc/*                 @akohlmey
-examples/plugin/*     @akohlmey
-examples/PACKAGES/pace/plugin/*     @akohlmey
+/doc/*                  @akohlmey
+/examples/plugin/       @akohlmey
+/examples/PACKAGES/pace/plugin/  @akohlmey
 
 # for releases
-src/version.h         @sjplimp
+/src/version.h         @sjplimp

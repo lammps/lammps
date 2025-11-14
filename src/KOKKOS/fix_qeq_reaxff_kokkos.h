@@ -280,7 +280,8 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   double alpha[2];
   double beta[2];
 
-  double delta, cutsq;
+  double delta;
+  KK_FLOAT cutsq;
 
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;

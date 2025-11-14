@@ -478,6 +478,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   int nlocal,nn,NN,eflag,vflag,acks2_flag;
   KK_FLOAT cut_nbsq, cut_hbsq, cut_bosq, bo_cut, thb_cut, thb_cutsq;
   KK_FLOAT bo_cut_bond;
+  KK_FLOAT C_ele_reduced;
 
   int vdwflag, lgflag;
   KK_FLOAT gp[39], p_boc1, p_boc2;

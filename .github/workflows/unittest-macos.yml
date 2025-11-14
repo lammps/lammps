@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - develop
+      - maintenance
   pull_request:
     branches:
       - develop
@@ -19,7 +20,7 @@ jobs:
   build:
     name: MacOS Unit Test
     if: ${{ github.repository == 'lammps/lammps' }}
-    runs-on: macos-13
+    runs-on: macos-15-intel
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
 

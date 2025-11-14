@@ -136,43 +136,34 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
               const KK_FLOAT &rik, const KK_FLOAT &dx2, const KK_FLOAT &dy2, const KK_FLOAT &dz2,
               KK_ACC_FLOAT *fk) const;
 
+
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT vec3_dot(const KK_FLOAT x[3], const KK_FLOAT y[3]) const {
-    return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
+    KK_FLOAT dot = 0;
+    for (int i = 0; i < 3; i++)
+      dot += x[i]*y[i];
+    return dot;
   }
 
   KOKKOS_INLINE_FUNCTION
   void vec3_add(const KK_FLOAT x[3], const KK_FLOAT y[3], KK_FLOAT * const z) const {
-    z[0] = x[0]+y[0]; z[1] = x[1]+y[1]; z[2] = x[2]+y[2];
+    for (int i = 0; i < 3; i++)
+      z[i] = x[i]+y[i];
   }
 
+  template<typename k_type, typename x_type, typename y_type>
   KOKKOS_INLINE_FUNCTION
-  void vec3_scale(const KK_FLOAT k, const KK_FLOAT x[3], KK_FLOAT y[3]) const {
-    y[0] = k*x[0]; y[1] = k*x[1]; y[2] = k*x[2];
+  void vec3_scale(const k_type k, const x_type x[3], y_type y[3]) const {
+    for (int i = 0; i < 3; i++)
+      y[i] = static_cast<y_type>(static_cast<x_type>(k)*x[i]);
   }
 
+  template<typename kx_type, typename yz_type>
   KOKKOS_INLINE_FUNCTION
-  void vec3_scaleadd(const KK_FLOAT k, const KK_FLOAT x[3], const KK_FLOAT y[3], KK_FLOAT * const z) const {
-    z[0] = k*x[0]+y[0]; z[1] = k*x[1]+y[1]; z[2] = k*x[2]+y[2];
+  void vec3_scaleadd(const kx_type k, const kx_type x[3], const yz_type y[3], yz_type z[3]) const {
+    for (int i = 0; i < 3; i++)
+      z[i] = static_cast<yz_type>(k*x[i])+y[i];
   }
-
-#ifdef LMP_KOKKOS_SINGLE_DOUBLE
-  KOKKOS_INLINE_FUNCTION
-  void vec3_scale(const KK_FLOAT k, const KK_FLOAT x[3], KK_ACC_FLOAT y[3]) const {
-    y[0] = (KK_ACC_FLOAT)k*x[0]; y[1] = (KK_ACC_FLOAT)k*x[1]; y[2] = (KK_ACC_FLOAT)k*x[2];
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void vec3_scale(const KK_FLOAT k, const KK_ACC_FLOAT x[3], KK_ACC_FLOAT y[3]) const {
-    y[0] = (KK_ACC_FLOAT)k*x[0]; y[1] = (KK_ACC_FLOAT)k*x[1]; y[2] = (KK_ACC_FLOAT)k*x[2];
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void vec3_scaleadd(const KK_FLOAT k, const KK_FLOAT x[3], const KK_ACC_FLOAT y[3], KK_ACC_FLOAT * const z) const {
-    z[0] = (KK_ACC_FLOAT)k*x[0]+y[0]; z[1] = (KK_ACC_FLOAT)k*x[1]+y[1]; z[2] = (KK_ACC_FLOAT)k*x[2]+y[2];
-  }
-#endif
-
 
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;

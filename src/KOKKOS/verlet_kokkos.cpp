@@ -557,7 +557,7 @@ void VerletKokkos::force_clear()
     atomKK->modified(Device,F_MASK);
 
     if (torqueflag) {
-      Kokkos::parallel_for(nall, Zero<DAT::t_kkfloat_1d_3>(atomKK->k_torque.view_device()));
+      Kokkos::parallel_for(nall, Zero<DAT::t_kkacc_1d_3>(atomKK->k_torque.view_device()));
       atomKK->modified(Device,TORQUE_MASK);
     }
 
@@ -579,7 +579,7 @@ void VerletKokkos::force_clear()
     atomKK->modified(Device,F_MASK);
 
     if (torqueflag) {
-      Kokkos::parallel_for(atomKK->nfirst, Zero<DAT::t_kkfloat_1d_3>(atomKK->k_torque.view_device()));
+      Kokkos::parallel_for(atomKK->nfirst, Zero<DAT::t_kkacc_1d_3>(atomKK->k_torque.view_device()));
       atomKK->modified(Device,TORQUE_MASK);
     }
 
@@ -598,7 +598,7 @@ void VerletKokkos::force_clear()
       atomKK->modified(Device,F_MASK);
 
       if (torqueflag) {
-        Kokkos::parallel_for(range, Zero<DAT::t_kkfloat_1d_3>(atomKK->k_torque.view_device()));
+        Kokkos::parallel_for(range, Zero<DAT::t_kkacc_1d_3>(atomKK->k_torque.view_device()));
         atomKK->modified(Device,TORQUE_MASK);
       }
 

@@ -52,7 +52,7 @@ class FixEnforce2DKokkos : public FixEnforce2D {
 
   typename AT::t_kkfloat_1d_3 omega;
   typename AT::t_kkfloat_1d_3 angmom;
-  typename AT::t_kkfloat_1d_3 torque;
+  typename AT::t_kkacc_1d_3 torque;
 
   typename AT::t_int_1d mask;
 };

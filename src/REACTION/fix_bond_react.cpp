@@ -211,7 +211,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+rlm.Nrxns+4 > narg) utils::missing_cmd_args(FLERR,"fix bond/react rate_limit", error);
       for (int i = 0; i < rlm.Nrxns; i++) {
         std::string tmpstr = arg[iarg+1+i];
-        rlm.rxn_names.push_back(tmpstr);
+        rlm.rxn_names.push_back(std::move(tmpstr));
       }
       char *myarg = arg[iarg+rlm.Nrxns+1]; // Nlimit
       if (strncmp(myarg,"v_",2) == 0) {
@@ -592,7 +592,7 @@ FixBondReact::~FixBondReact()
       if (constraint.type == Reaction::Constraint::Type::ARRHENIUS)
         delete constraint.arrhenius.rrhandom;
 
-  for (int i = 0; i < rxns.size(); i++) delete random[i];
+  for (std::size_t i = 0; i < rxns.size(); i++) delete random[i];
   delete[] random;
 
   delete reset_mol_ids;
@@ -2090,7 +2090,6 @@ compute local temperature: average over all atoms in reaction template
 
 double FixBondReact::get_temperature(std::vector<tagint> &glove)
 {
-  int i,ilocal;
   double adof = domain->dimension;
 
   double **v = atom->v;
@@ -2101,14 +2100,14 @@ double FixBondReact::get_temperature(std::vector<tagint> &glove)
   double t = 0.0;
 
   if (rmass) {
-    for (i = 0; i < glove.size(); i++) {
-      ilocal = atom->map(glove[i]);
+    for (const auto &g : glove) {
+      auto ilocal = atom->map(g);
       t += (v[ilocal][0]*v[ilocal][0] + v[ilocal][1]*v[ilocal][1] +
             v[ilocal][2]*v[ilocal][2]) * rmass[ilocal];
     }
   } else {
-    for (i = 0; i < glove.size(); i++) {
-      ilocal = atom->map(glove[i]);
+    for (const auto &g : glove) {
+      auto ilocal = atom->map(g);
       t += (v[ilocal][0]*v[ilocal][0] + v[ilocal][1]*v[ilocal][1] +
             v[ilocal][2]*v[ilocal][2]) * mass[type[ilocal]];
     }
@@ -2945,7 +2944,7 @@ void FixBondReact::update_everything()
   for (int pass = 0; pass < 2; pass++) {
     update_num_mega = 0;
     int *noccur = new int[rxns.size()];
-    for (int i = 0; i < rxns.size(); i++) noccur[i] = 0;
+    for (std::size_t i = 0; i < rxns.size(); i++) noccur[i] = 0;
     if (pass == 0) {
       for (int i = 0; i < local_num_mega; i++) {
         auto &rxn = rxns[(int) local_mega_glove[0][i]];
@@ -4177,7 +4176,7 @@ void FixBondReact::ReadConstraints(char *line, Reaction &rxn)
     } else if ((ptr = strstr(lptr,"||"))) {
       rxn.constraintstr += "||";
       *ptr = '\0';
-    } else if (constraint.ID+1 < rxn.constraints.size()) {
+    } else if (constraint.ID+1 < (int)rxn.constraints.size()) {
       rxn.constraintstr += "&&";
     }
     if ((ptr = strchr(lptr,')')))
@@ -4467,7 +4466,7 @@ void FixBondReact::write_restart(FILE *fp)
   set[0].nrxns = rxns.size();
   set[0].nratelimits = rate_limits.size();
 
-  for (int i = 0; i < rxns.size(); i++) {
+  for (std::size_t i = 0; i < rxns.size(); i++) {
     set[i].reaction_count_total = rxns[i].reaction_count_total;
 
     strncpy(set[i].rxn_name,rxns[i].name.c_str(),MAXNAME-1);
@@ -4477,7 +4476,7 @@ void FixBondReact::write_restart(FILE *fp)
   // to store, for each RateLimit: Nrxns rxn_IDs[Nrxns] NSteps store_rxn_counts[Nsteps]
   // NOTE: rxn_IDs only valid in reference to this restart file's reaction list
   int rbufcount = rate_limits.size()*2;
-  for (auto rlm : rate_limits)
+  for (const auto &rlm : rate_limits)
     rbufcount += rlm.Nsteps + rlm.Nrxns;
 
   int ii = 0;
@@ -4524,7 +4523,7 @@ void FixBondReact::restart(char *buf)
   iptr += sizeof(Set)*r_nrxns;
 
   for (int i = 0; i < r_nrxns; i++)
-    for (int j = 0; j < rxns.size(); j++)
+    for (std::size_t j = 0; j < rxns.size(); j++)
       if (strcmp(set_restart[i].rxn_name,rxns[j].name.c_str()) == 0)
         rxns[j].reaction_count_total = set_restart[i].reaction_count_total;
 
@@ -4544,11 +4543,11 @@ void FixBondReact::restart(char *buf)
       for (int i = 0; i < r_rlm.Nrxns; i++) {
         r_rlm.rxnIDs.push_back(ibuf[ii++]);
         std::string myrxn_name = set_restart[r_rlm.rxnIDs[i]].rxn_name;
-        r_rlm.rxn_names.push_back(myrxn_name);
+        r_rlm.rxn_names.push_back(std::move(myrxn_name));
       }
       r_rlm.Nsteps = ibuf[ii++];
       for (int i = 0; i < r_rlm.Nsteps; i++) r_rlm.store_rxn_counts.push_back(ibuf[ii++]);
-      restart_rate_limits.push_back(r_rlm);
+      restart_rate_limits.push_back(std::move(r_rlm));
     }
     // restore rate_limits store_rxn_counts if all rxn_names match
     // assumes there are no repeats - perhaps should error-check this?

@@ -1,0 +1,120 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://download.lammps.org/json/dump-molecules-schema.json",
+    "title": "JSON schema for LAMMPS 'dump' format in the 'molecules' style",
+    "description": "Version 0.1; last updated 2025-10-26",
+    "type": "object",
+    "required": ["application", "format", "style", "revision", "timesteps"],
+    "properties": {
+        "application": {
+            "type": "string",
+            "const": "LAMMPS"
+        },
+        "units": {
+            "enum": ["lj", "real", "metal", "si", "cgs", "electron", "micro", "nano" ]
+        },
+        "format": {
+            "type": "string",
+            "const": "dump"
+        },
+        "style": {
+            "enum": ["molecules"]
+        },
+        "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1
+        },
+        "title": {"type": "string"},
+        "schema": {"type": "string"},
+        "timesteps": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["timestep", "molecules"],
+                "properties": {
+                    "timestep": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "molecules": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["types", "coords"],
+                            "properties": {
+                                "types": {
+                                    "type": "object",
+                                    "required": ["data"],
+                                    "properties": {
+                                        "format": {
+                                            "type": "array",
+                                            "const": ["atom-id", "type"]
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "array",
+                                                "prefixItems": [
+                                                    {"type": "number"},
+                                                    {"type": ["number", "string"]}
+                                                ],
+                                                "items": false
+                                            }
+                                        }
+                                    }
+                                },
+                                "coords": {
+                                    "type": "object",
+                                    "required": ["data"],
+                                    "properties": {
+                                        "format": {
+                                            "type": "array",
+                                            "const": ["atom-id", "x", "y", "z"]
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "array",
+                                                "prefixItems": [
+                                                    {"type": "integer"},
+                                                    {"type": "number"},
+                                                    {"type": "number"},
+                                                    {"type": "number"}
+                                                ],
+                                                "items": false
+                                            }
+                                        }
+                                    }
+
+                                },
+                                "bonds": {
+                                    "type": "object",
+                                    "required": ["data"],
+                                    "properties": {
+                                        "format": {
+                                            "type": "array",
+                                            "const": ["bond-type", "atom1", "atom2"]
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "array",
+                                                "prefixItems": [
+                                                    {"type": ["integer", "string"]},
+                                                    {"type": "integer"},
+                                                    {"type": "integer"}
+                                                ],
+                                                "items": false
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

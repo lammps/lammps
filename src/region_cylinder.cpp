@@ -809,16 +809,14 @@ void RegCylinder::bbox_update()
       ymax = c1 + radius;
       zmin = c2 - radius;
       zmax = c2 + radius;
-    }
-    if (axis == 'y') {
+    } else if (axis == 'y') {
       xmin = c1 - radius;
       xmax = c1 + radius;
       ymin = lo;
       ymax = hi;
       zmin = c2 - radius;
       zmax = c2 + radius;
-    }
-    if (axis == 'z') {
+    } else { // (axis == 'z')
       xmin = c1 - radius;
       xmax = c1 + radius;
       ymin = c2 - radius;

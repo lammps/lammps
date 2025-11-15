@@ -15,7 +15,9 @@ OLDLDLIB="${LD_LIBRARY_PATH}"
 PATH="${BASEDIR}/bin:${PATH}"
 
 # append to LD_LIBRARY_PATH to prefer local (newer) libs
-LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${BASEDIR}/lib"
+# however the LAMMPS shared library must always come first
+# so that it does not get overridden by other installed versions
+LD_LIBRARY_PATH="${BASEDIR}/libexec/lammps:${LD_LIBRARY_PATH}:${BASEDIR}/lib"
 
 # set some environment variables for LAMMPS etc.
 LAMMPS_POTENTIALS="${BASEDIR}/share/lammps/potentials"

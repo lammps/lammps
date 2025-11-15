@@ -29,10 +29,10 @@
 //  13. KISS_NonPowerOf2 - KISS FFT with various non-power-of-2 sizes (conditional)
 //  14. HeFFTe_Distributed - HeFFTe distributed FFT (conditional)
 
-#include "lmpfftsettings.h"
 #include "KSPACE/fft3d_wrap.h"
 #include "info.h"
 #include "lammps.h"
+#include "lmpfftsettings.h"
 
 #include "../testing/core.h"
 #include "fft_test_helpers.h"
@@ -67,13 +67,13 @@ protected:
         LAMMPSTest::SetUp();
 
         // Initialize FFT-related members
-        fft = nullptr;
-        input_data = nullptr;
+        fft         = nullptr;
+        input_data  = nullptr;
         output_data = nullptr;
 
         // Default grid size (will be set by individual tests)
         nfast = 0;
-        nmid = 0;
+        nmid  = 0;
         nslow = 0;
     }
 
@@ -92,14 +92,14 @@ protected:
     void create_serial_fft(int nfast_in, int nmid_in, int nslow_in)
     {
         nfast = nfast_in;
-        nmid = nmid_in;
+        nmid  = nmid_in;
         nslow = nslow_in;
 
         // Total grid size
         int nsize = nfast * nmid * nslow;
 
         // Allocate data buffers (complex data: 2 * nsize)
-        input_data = new FFT_SCALAR[2 * nsize];
+        input_data  = new FFT_SCALAR[2 * nsize];
         output_data = new FFT_SCALAR[2 * nsize];
 
         // Zero buffers
@@ -116,10 +116,10 @@ protected:
         int out_klo = 0, out_khi = nslow - 1;
 
         // FFT parameters
-        int scaled = 0;      // No scaling
-        int permute = 0;     // No permutation
-        int nbuf = 0;        // Buffer size (output)
-        int usecollective = 0;  // Use point-to-point communication
+        int scaled        = 0; // No scaling
+        int permute       = 0; // No permutation
+        int nbuf          = 0; // Buffer size (output)
+        int usecollective = 0; // Use point-to-point communication
 
         // Create FFT3d object
         BEGIN_HIDE_OUTPUT();
@@ -149,7 +149,8 @@ TEST_F(FFT3DTest, BackendDetection)
     EXPECT_FALSE(fft_info.empty()) << "FFT info should not be empty";
 
     // Check FFT library macro is defined
-#if defined(FFT_KISS) || defined(FFT_FFTW3) || defined(FFT_MKL) || defined(FFT_NVPL) || defined(FFT_HEFFTE)
+#if defined(FFT_KISS) || defined(FFT_FFTW3) || defined(FFT_MKL) || defined(FFT_NVPL) || \
+    defined(FFT_HEFFTE)
     SUCCEED() << "FFT library: " << LMP_FFT_LIB;
 #else
     FAIL() << "No FFT library defined";
@@ -193,8 +194,8 @@ TEST_F(FFT3DTest, RoundTrip_Serial_32x32x32)
     }
 
     // Validate round-trip: input_data should match original_data
-    FFTValidation::RoundTripValidator validator(original_data.data(), input_data, nfast, nmid, nslow,
-                                                 ROUNDTRIP_TOLERANCE, verbose);
+    FFTValidation::RoundTripValidator validator(original_data.data(), input_data, nfast, nmid,
+                                                nslow, ROUNDTRIP_TOLERANCE, verbose);
     bool passed = validator.validate();
 
     // Report results
@@ -248,8 +249,8 @@ TEST_F(FFT3DTest, RoundTrip_Serial_64x64x64)
     }
 
     // Validate round-trip
-    FFTValidation::RoundTripValidator validator(original_data.data(), input_data, nfast, nmid, nslow,
-                                                 ROUNDTRIP_TOLERANCE, verbose);
+    FFTValidation::RoundTripValidator validator(original_data.data(), input_data, nfast, nmid,
+                                                nslow, ROUNDTRIP_TOLERANCE, verbose);
     bool passed = validator.validate();
 
     // Report results
@@ -303,8 +304,8 @@ TEST_F(FFT3DTest, RoundTrip_Serial_48x48x48)
     }
 
     // Validate round-trip
-    FFTValidation::RoundTripValidator validator(original_data.data(), input_data, nfast, nmid, nslow,
-                                                 ROUNDTRIP_TOLERANCE, verbose);
+    FFTValidation::RoundTripValidator validator(original_data.data(), input_data, nfast, nmid,
+                                                nslow, ROUNDTRIP_TOLERANCE, verbose);
     bool passed = validator.validate();
 
     if (verbose || !passed) {
@@ -351,7 +352,7 @@ TEST_F(FFT3DTest, KnownAnswer_DeltaFunction)
 
     // Validate against expected result
     FFTValidation::KnownAnswerValidator validator(output_data, expected_data.data(), nfast, nmid,
-                                                   nslow, 1e-10, verbose);
+                                                  nslow, KNOWN_ANSWER_TOLERANCE, verbose);
     bool passed = validator.validate();
 
     if (verbose || !passed) {
@@ -360,7 +361,7 @@ TEST_F(FFT3DTest, KnownAnswer_DeltaFunction)
         std::cout << "  Max error: " << validator.get_error_stats().max() << " (at index "
                   << validator.get_error_stats().idx() << ")" << std::endl;
         std::cout << "  Avg error: " << validator.get_error_stats().avg() << std::endl;
-        std::cout << "  Tolerance: 1e-10" << std::endl;
+        std::cout << "  Tolerance: " << KNOWN_ANSWER_TOLERANCE << std::endl;
         std::cout << "  Status: " << (passed ? "PASSED" : "FAILED") << std::endl;
 
         // Show sample values
@@ -372,7 +373,7 @@ TEST_F(FFT3DTest, KnownAnswer_DeltaFunction)
     }
 
     EXPECT_TRUE(passed) << "Delta function known answer validation failed";
-    EXPECT_LT(validator.get_error_stats().max(), 1e-10);
+    EXPECT_LT(validator.get_error_stats().max(), KNOWN_ANSWER_TOLERANCE);
 }
 
 // ============================================================================
@@ -404,13 +405,13 @@ TEST_F(FFT3DTest, KnownAnswer_Constant)
 
     // Create expected output
     std::vector<FFT_SCALAR> expected_data(2 * nsize, 0.0);
-    FFT_SCALAR dc_value = static_cast<FFT_SCALAR>(nsize);  // N³
+    FFT_SCALAR dc_value = static_cast<FFT_SCALAR>(nsize); // N³
     set_complex(expected_data.data(), 0, 0, 0, nfast, nmid,
                 std::complex<FFT_SCALAR>(dc_value, 0.0));
 
     // Validate against expected result
     FFTValidation::KnownAnswerValidator validator(output_data, expected_data.data(), nfast, nmid,
-                                                   nslow, 1e-10, verbose);
+                                                  nslow, KNOWN_ANSWER_TOLERANCE, verbose);
     bool passed = validator.validate();
 
     if (verbose || !passed) {
@@ -420,7 +421,7 @@ TEST_F(FFT3DTest, KnownAnswer_Constant)
         std::cout << "  Max error: " << validator.get_error_stats().max() << " (at index "
                   << validator.get_error_stats().idx() << ")" << std::endl;
         std::cout << "  Avg error: " << validator.get_error_stats().avg() << std::endl;
-        std::cout << "  Tolerance: 1e-10" << std::endl;
+        std::cout << "  Tolerance: " << KNOWN_ANSWER_TOLERANCE << std::endl;
         std::cout << "  Status: " << (passed ? "PASSED" : "FAILED") << std::endl;
 
         // Show DC component
@@ -439,7 +440,7 @@ TEST_F(FFT3DTest, KnownAnswer_Constant)
     }
 
     EXPECT_TRUE(passed) << "Constant field known answer validation failed";
-    EXPECT_LT(validator.get_error_stats().max(), 1e-10);
+    EXPECT_LT(validator.get_error_stats().max(), KNOWN_ANSWER_TOLERANCE);
 }
 
 // ============================================================================
@@ -487,8 +488,9 @@ TEST_F(FFT3DTest, KnownAnswer_SineWave)
                 std::complex<FFT_SCALAR>(0.0, spike_amplitude));
 
     // Validate against expected result
+
     FFTValidation::KnownAnswerValidator validator(output_data, expected_data.data(), nfast, nmid,
-                                                   nslow, 1e-10, verbose);
+                                                  nslow, KNOWN_ANSWER_TOLERANCE, verbose);
     bool passed = validator.validate();
 
     if (verbose || !passed) {
@@ -499,16 +501,16 @@ TEST_F(FFT3DTest, KnownAnswer_SineWave)
         std::cout << "  Max error: " << validator.get_error_stats().max() << " (at index "
                   << validator.get_error_stats().idx() << ")" << std::endl;
         std::cout << "  Avg error: " << validator.get_error_stats().avg() << std::endl;
-        std::cout << "  Tolerance: 1e-10" << std::endl;
+        std::cout << "  Tolerance: " << KNOWN_ANSWER_TOLERANCE << std::endl;
         std::cout << "  Status: " << (passed ? "PASSED" : "FAILED") << std::endl;
 
         // Show the spike values
         auto spike_pos = get_complex(output_data, 2, 0, 0, nfast, nmid);
         auto spike_neg = get_complex(output_data, nfast - 2, 0, 0, nfast, nmid);
-        std::cout << "  Spike at (2,0,0): " << spike_pos << " (expected: (0, "
-                  << -spike_amplitude << "))" << std::endl;
-        std::cout << "  Spike at (" << (nfast - 2) << ",0,0): " << spike_neg
-                  << " (expected: (0, " << spike_amplitude << "))" << std::endl;
+        std::cout << "  Spike at (2,0,0): " << spike_pos << " (expected: (0, " << -spike_amplitude
+                  << "))" << std::endl;
+        std::cout << "  Spike at (" << (nfast - 2) << ",0,0): " << spike_neg << " (expected: (0, "
+                  << spike_amplitude << "))" << std::endl;
 
         // Show sample of bins that should be zero
         std::cout << "  Sample zero bins:" << std::endl;
@@ -521,9 +523,8 @@ TEST_F(FFT3DTest, KnownAnswer_SineWave)
     }
 
     EXPECT_TRUE(passed) << "Sine wave known answer validation failed";
-    EXPECT_LT(validator.get_error_stats().max(), 1e-10);
+    EXPECT_LT(validator.get_error_stats().max(), KNOWN_ANSWER_TOLERANCE);
 }
-
 
 // ============================================================================
 // Test 8: Parseval's Theorem - Energy Conservation (32x32x32)
@@ -549,7 +550,7 @@ TEST_F(FFT3DTest, ParsevalsTheorem_EnergyConservation)
     double spatial_energy = 0.0;
     for (int i = 0; i < nsize; i++) {
         std::complex<FFT_SCALAR> val = FFTTestHelpers::get_complex_linear(spatial_data.data(), i);
-        spatial_energy += std::norm(val);  // |z|² = re² + im²
+        spatial_energy += std::norm(val); // |z|² = re² + im²
     }
 
     // Forward FFT
@@ -561,20 +562,20 @@ TEST_F(FFT3DTest, ParsevalsTheorem_EnergyConservation)
     double frequency_energy = 0.0;
     for (int i = 0; i < nsize; i++) {
         std::complex<FFT_SCALAR> val = FFTTestHelpers::get_complex_linear(output_data, i);
-        frequency_energy += std::norm(val);  // |Z|² = Re² + Im²
+        frequency_energy += std::norm(val); // |Z|² = Re² + Im²
     }
 
     // Apply Parseval's theorem normalization: E_spatial = (1/N³) × E_freq
-    double n_cubed = static_cast<double>(nsize);
+    double n_cubed                     = static_cast<double>(nsize);
     double frequency_energy_normalized = frequency_energy / n_cubed;
 
     // Calculate relative error
-    double abs_error = std::abs(spatial_energy - frequency_energy_normalized);
+    double abs_error      = std::abs(spatial_energy - frequency_energy_normalized);
     double relative_error = (spatial_energy > 1e-14) ? abs_error / spatial_energy : abs_error;
 
     // Validate using ParsevalValidator
     FFTValidation::ParsevalValidator validator(spatial_data.data(), output_data, nfast, nmid, nslow,
-                                                PARSEVAL_TOLERANCE, verbose);
+                                               PARSEVAL_TOLERANCE, verbose);
     bool passed = validator.validate();
 
     // Report results
@@ -583,7 +584,8 @@ TEST_F(FFT3DTest, ParsevalsTheorem_EnergyConservation)
         std::cout << "  Grid size (N³):                 " << nsize << std::endl;
         std::cout << "  Spatial energy (Σ|x|²):         " << spatial_energy << std::endl;
         std::cout << "  Frequency energy (Σ|X|²):       " << frequency_energy << std::endl;
-        std::cout << "  Normalized frequency (Σ|X|²/N³): " << frequency_energy_normalized << std::endl;
+        std::cout << "  Normalized frequency (Σ|X|²/N³): " << frequency_energy_normalized
+                  << std::endl;
         std::cout << "  Relative error:                 " << relative_error << std::endl;
         std::cout << "  Tolerance:                      " << PARSEVAL_TOLERANCE << std::endl;
         std::cout << "  Status: " << (passed ? "PASSED" : "FAILED") << std::endl;
@@ -610,7 +612,7 @@ TEST_F(FFT3DTest, RoundTrip_MPI_2proc_32x32x32)
 
     // Grid dimensions
     nfast = 32;
-    nmid = 32;
+    nmid  = 32;
     nslow = 32;
 
     // Domain decomposition: split along slow (z) dimension
@@ -623,10 +625,10 @@ TEST_F(FFT3DTest, RoundTrip_MPI_2proc_32x32x32)
 
     if (rank == 0) {
         in_klo = 0;
-        in_khi = nslow / 2 - 1;  // 0..15
+        in_khi = nslow / 2 - 1; // 0..15
     } else {
         in_klo = nslow / 2;
-        in_khi = nslow - 1;      // 16..31
+        in_khi = nslow - 1; // 16..31
     }
 
     // Output decomposition: same as input for simplicity
@@ -636,33 +638,32 @@ TEST_F(FFT3DTest, RoundTrip_MPI_2proc_32x32x32)
 
     // Calculate local size: each rank owns a slab
     int local_nfast = nfast;
-    int local_nmid = nmid;
+    int local_nmid  = nmid;
     int local_nslow = in_khi - in_klo + 1;
-    int local_size = local_nfast * local_nmid * local_nslow;
+    int local_size  = local_nfast * local_nmid * local_nslow;
 
     if (verbose) {
-        std::cout << "Rank " << rank << ": local grid = " << local_nfast << "x" << local_nmid
-                  << "x" << local_nslow << " (z-range: " << in_klo << ".." << in_khi << ")"
-                  << std::endl;
+        std::cout << "Rank " << rank << ": local grid = " << local_nfast << "x" << local_nmid << "x"
+                  << local_nslow << " (z-range: " << in_klo << ".." << in_khi << ")" << std::endl;
     }
 
     // Allocate local data buffers
-    input_data = new FFT_SCALAR[2 * local_size];
+    input_data  = new FFT_SCALAR[2 * local_size];
     output_data = new FFT_SCALAR[2 * local_size];
     std::memset(input_data, 0, 2 * local_size * sizeof(FFT_SCALAR));
     std::memset(output_data, 0, 2 * local_size * sizeof(FFT_SCALAR));
 
     // FFT parameters
-    int scaled = 0;      // No scaling
-    int permute = 0;     // No permutation
-    int nbuf = 0;        // Buffer size (output)
-    int usecollective = 0;  // Use point-to-point communication
+    int scaled        = 0; // No scaling
+    int permute       = 0; // No permutation
+    int nbuf          = 0; // Buffer size (output)
+    int usecollective = 0; // Use point-to-point communication
 
     // Create MPI-aware FFT3d object
     BEGIN_HIDE_OUTPUT();
-    fft = new FFT3d(lmp, MPI_COMM_WORLD, nfast, nmid, nslow, in_ilo, in_ihi, in_jlo, in_jhi,
-                    in_klo, in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi,
-                    scaled, permute, &nbuf, usecollective);
+    fft = new FFT3d(lmp, MPI_COMM_WORLD, nfast, nmid, nslow, in_ilo, in_ihi, in_jlo, in_jhi, in_klo,
+                    in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi, scaled, permute,
+                    &nbuf, usecollective);
     END_HIDE_OUTPUT();
 
     ASSERT_NE(fft, nullptr);
@@ -683,8 +684,8 @@ TEST_F(FFT3DTest, RoundTrip_MPI_2proc_32x32x32)
                 FFT_SCALAR re = dist(rng);
                 FFT_SCALAR im = dist(rng);
 
-                int local_idx = k * nmid * nfast + j * nfast + i;
-                input_data[2 * local_idx] = re;
+                int local_idx                 = k * nmid * nfast + j * nfast + i;
+                input_data[2 * local_idx]     = re;
                 input_data[2 * local_idx + 1] = im;
             }
         }
@@ -705,7 +706,7 @@ TEST_F(FFT3DTest, RoundTrip_MPI_2proc_32x32x32)
     END_HIDE_OUTPUT();
 
     // Apply normalization: LAMMPS backward FFT does not include 1/N³ scaling
-    int total_size = nfast * nmid * nslow;
+    int total_size  = nfast * nmid * nslow;
     FFT_SCALAR norm = 1.0 / static_cast<FFT_SCALAR>(total_size);
     for (int i = 0; i < 2 * local_size; i++) {
         input_data[i] *= norm;
@@ -713,8 +714,8 @@ TEST_F(FFT3DTest, RoundTrip_MPI_2proc_32x32x32)
 
     // Validate round-trip on local data
     FFTValidation::RoundTripValidator validator(original_data.data(), input_data, local_nfast,
-                                                 local_nmid, local_nslow, ROUNDTRIP_TOLERANCE,
-                                                 verbose);
+                                                local_nmid, local_nslow, ROUNDTRIP_TOLERANCE,
+                                                verbose);
     bool passed = validator.validate();
 
     // Gather validation results from all ranks
@@ -758,7 +759,7 @@ TEST_F(FFT3DTest, RoundTrip_MPI_4proc_64x64x64)
 
     // Grid dimensions (larger for better load balancing with 4 procs)
     nfast = 64;
-    nmid = 64;
+    nmid  = 64;
     nslow = 64;
 
     // Domain decomposition: split along slow (z) dimension
@@ -772,8 +773,8 @@ TEST_F(FFT3DTest, RoundTrip_MPI_4proc_64x64x64)
     int in_klo, in_khi;
 
     int slices_per_proc = nslow / nprocs;
-    in_klo = rank * slices_per_proc;
-    in_khi = (rank + 1) * slices_per_proc - 1;
+    in_klo              = rank * slices_per_proc;
+    in_khi              = (rank + 1) * slices_per_proc - 1;
 
     // Output decomposition: same as input
     int out_ilo = in_ilo, out_ihi = in_ihi;
@@ -782,33 +783,32 @@ TEST_F(FFT3DTest, RoundTrip_MPI_4proc_64x64x64)
 
     // Calculate local size
     int local_nfast = nfast;
-    int local_nmid = nmid;
+    int local_nmid  = nmid;
     int local_nslow = in_khi - in_klo + 1;
-    int local_size = local_nfast * local_nmid * local_nslow;
+    int local_size  = local_nfast * local_nmid * local_nslow;
 
     if (verbose) {
-        std::cout << "Rank " << rank << ": local grid = " << local_nfast << "x" << local_nmid
-                  << "x" << local_nslow << " (z-range: " << in_klo << ".." << in_khi << ")"
-                  << std::endl;
+        std::cout << "Rank " << rank << ": local grid = " << local_nfast << "x" << local_nmid << "x"
+                  << local_nslow << " (z-range: " << in_klo << ".." << in_khi << ")" << std::endl;
     }
 
     // Allocate local data buffers
-    input_data = new FFT_SCALAR[2 * local_size];
+    input_data  = new FFT_SCALAR[2 * local_size];
     output_data = new FFT_SCALAR[2 * local_size];
     std::memset(input_data, 0, 2 * local_size * sizeof(FFT_SCALAR));
     std::memset(output_data, 0, 2 * local_size * sizeof(FFT_SCALAR));
 
     // FFT parameters
-    int scaled = 0;      // No scaling
-    int permute = 0;     // No permutation
-    int nbuf = 0;        // Buffer size (output)
-    int usecollective = 0;  // Use point-to-point communication
+    int scaled        = 0; // No scaling
+    int permute       = 0; // No permutation
+    int nbuf          = 0; // Buffer size (output)
+    int usecollective = 0; // Use point-to-point communication
 
     // Create MPI-aware FFT3d object
     BEGIN_HIDE_OUTPUT();
-    fft = new FFT3d(lmp, MPI_COMM_WORLD, nfast, nmid, nslow, in_ilo, in_ihi, in_jlo, in_jhi,
-                    in_klo, in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi,
-                    scaled, permute, &nbuf, usecollective);
+    fft = new FFT3d(lmp, MPI_COMM_WORLD, nfast, nmid, nslow, in_ilo, in_ihi, in_jlo, in_jhi, in_klo,
+                    in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi, scaled, permute,
+                    &nbuf, usecollective);
     END_HIDE_OUTPUT();
 
     ASSERT_NE(fft, nullptr);
@@ -829,8 +829,8 @@ TEST_F(FFT3DTest, RoundTrip_MPI_4proc_64x64x64)
                 FFT_SCALAR re = dist(rng);
                 FFT_SCALAR im = dist(rng);
 
-                int local_idx = k * nmid * nfast + j * nfast + i;
-                input_data[2 * local_idx] = re;
+                int local_idx                 = k * nmid * nfast + j * nfast + i;
+                input_data[2 * local_idx]     = re;
                 input_data[2 * local_idx + 1] = im;
             }
         }
@@ -851,7 +851,7 @@ TEST_F(FFT3DTest, RoundTrip_MPI_4proc_64x64x64)
     END_HIDE_OUTPUT();
 
     // Apply normalization
-    int total_size = nfast * nmid * nslow;
+    int total_size  = nfast * nmid * nslow;
     FFT_SCALAR norm = 1.0 / static_cast<FFT_SCALAR>(total_size);
     for (int i = 0; i < 2 * local_size; i++) {
         input_data[i] *= norm;
@@ -859,8 +859,8 @@ TEST_F(FFT3DTest, RoundTrip_MPI_4proc_64x64x64)
 
     // Validate round-trip on local data
     FFTValidation::RoundTripValidator validator(original_data.data(), input_data, local_nfast,
-                                                 local_nmid, local_nslow, ROUNDTRIP_TOLERANCE,
-                                                 verbose);
+                                                local_nmid, local_nslow, ROUNDTRIP_TOLERANCE,
+                                                verbose);
     bool passed = validator.validate();
 
     // Gather validation results from all ranks
@@ -942,7 +942,7 @@ TEST_F(FFT3DTest, FFTW3_Threading)
 
     // Validate round-trip (threaded FFTW3 should give identical results)
     FFTValidation::RoundTripValidator validator(original_data.data(), input_data, nfast, nmid,
-                                                 nslow, ROUNDTRIP_TOLERANCE, verbose);
+                                                nslow, ROUNDTRIP_TOLERANCE, verbose);
     bool passed = validator.validate();
 
     EXPECT_TRUE(passed) << "FFTW3 threaded round-trip validation failed"
@@ -1001,14 +1001,14 @@ TEST_F(FFT3DTest, MKL_Optimized)
         set_complex_linear(expected_data.data(), i, std::complex<FFT_SCALAR>(1.0, 0.0));
     }
 
-    FFTValidation::KnownAnswerValidator validator(delta_output.data(), expected_data.data(),
-                                                   nfast, nmid, nslow, 1e-10, verbose);
+    FFTValidation::KnownAnswerValidator validator(delta_output.data(), expected_data.data(), nfast,
+                                                  nmid, nslow, KNOWN_ANSWER_TOLERANCE, verbose);
     bool passed = validator.validate();
 
     EXPECT_TRUE(passed) << "MKL delta function validation failed"
                         << "\n  Max error: " << validator.get_error_stats().max()
-                        << "\n  Tolerance: " << 1e-10;
-    EXPECT_LT(validator.get_error_stats().max(), 1e-10);
+                        << "\n  Tolerance: " << KNOWN_ANSWER_TOLERANCE;
+    EXPECT_LT(validator.get_error_stats().max(), KNOWN_ANSWER_TOLERANCE);
 }
 
 // ============================================================================
@@ -1047,8 +1047,8 @@ TEST_F(FFT3DTest, KISS_NonPowerOf2)
         int nsize = nfast * nmid * nslow;
 
         if (verbose) {
-            std::cout << "  Testing size: " << size << "x" << size << "x" << size << " (N³="
-                      << nsize << ")" << std::endl;
+            std::cout << "  Testing size: " << size << "x" << size << "x" << size
+                      << " (N³=" << nsize << ")" << std::endl;
         }
 
         // Generate random complex data
@@ -1077,11 +1077,12 @@ TEST_F(FFT3DTest, KISS_NonPowerOf2)
 
         // Validate round-trip
         FFTValidation::RoundTripValidator validator(original_data.data(), input_data, nfast, nmid,
-                                                     nslow, ROUNDTRIP_TOLERANCE, verbose);
+                                                    nslow, ROUNDTRIP_TOLERANCE, verbose);
         bool passed = validator.validate();
 
         if (verbose || !passed) {
-            std::cout << "    Size " << size << ": Max error = " << validator.get_error_stats().max()
+            std::cout << "    Size " << size
+                      << ": Max error = " << validator.get_error_stats().max()
                       << " (tolerance = " << ROUNDTRIP_TOLERANCE << ")" << std::endl;
             std::cout << "    Status: " << (passed ? "PASSED" : "FAILED") << std::endl;
         }
@@ -1138,7 +1139,7 @@ TEST_F(FFT3DTest, HeFFTe_Distributed)
 
     // Validate round-trip
     FFTValidation::RoundTripValidator validator(original_data.data(), input_data, nfast, nmid,
-                                                 nslow, ROUNDTRIP_TOLERANCE, verbose);
+                                                nslow, ROUNDTRIP_TOLERANCE, verbose);
     bool passed = validator.validate();
 
     EXPECT_TRUE(passed) << "HeFFTe round-trip validation failed"

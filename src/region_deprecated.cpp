@@ -28,5 +28,5 @@ RegionDeprecated::RegionDeprecated(LAMMPS *lmp, int narg, char **arg) : Region(l
     if (lmp->comm->me == 0) utils::logmesg(lmp, "\nRegion style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-  error->all(FLERR, "This region style is no longer available");
+  error->all(FLERR, 1, "Region style {} is no longer available", my_style);
 }

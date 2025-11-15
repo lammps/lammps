@@ -4083,15 +4083,18 @@ void FixBondReact::CreateAtoms(char *line, Reaction &rxn, int ncreate)
   for (int i = 0; i < ncreate; i++) {
     readline(line);
     rv = sscanf(line,"%d",&tmp);
-    if (rv != 1) error->one(FLERR, "CreateIDs section is incorrectly formatted");
+    if (rv != 1) error->one(FLERR, Error::NOLASTLINE, "CreateIDs section is incorrectly formatted");
     if (tmp > rxn.product->natoms)
-      error->one(FLERR,"Fix bond/react: Invalid atom ID in CreateIDs section of map file");
+      error->one(FLERR, Error::NOLASTLINE, "Fix bond/react: Invalid atom ID in CreateIDs section of map file");
     rxn.atoms[tmp-1].created = 1;
   }
   if (rxn.product->xflag == 0)
-    error->one(FLERR,"Fix bond/react: 'Coords' section required in post-reaction template when creating new atoms");
+    error->one(FLERR, Error::NOLASTLINE,
+               "Fix bond/react: 'Coords' section required in post-reaction template when creating new atoms");
   if (atom->rmass_flag && !rxn.product->rmassflag)
-    error->one(FLERR, "Fix bond/react: 'Masses' section required in post-reaction template when creating new atoms if per-atom masses are defined.");
+    error->one(FLERR, Error::NOLASTLINE,
+               "Fix bond/react: 'Masses' section required in post-reaction template when creating new atoms "
+               "and per-atom masses are defined.");
 }
 
 void FixBondReact::CustomCharges(int ifragment, Reaction &rxn)

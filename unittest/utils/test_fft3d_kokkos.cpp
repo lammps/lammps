@@ -39,7 +39,7 @@
 #include "lammps.h"
 
 #include "../testing/core.h"
-#include "../utils/fft_test_helpers.h"
+#include "fft_test_helpers.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -95,7 +95,7 @@ protected:
 
         // Initialize Kokkos if not already initialized
         if (!Kokkos::is_initialized()) {
-            int argc = 0;
+            int argc    = 0;
             char **argv = nullptr;
             Kokkos::initialize(argc, argv);
             kokkos_initialized_here = true;
@@ -104,9 +104,9 @@ protected:
         }
 
         // Initialize FFT-related members
-        fft = nullptr;
+        fft   = nullptr;
         nfast = 0;
-        nmid = 0;
+        nmid  = 0;
         nslow = 0;
     }
 
@@ -124,11 +124,10 @@ protected:
     }
 
     // Helper: Create serial KOKKOS FFT3d object (no MPI decomposition)
-    template<typename DeviceType>
-    void create_serial_fft(int nfast_in, int nmid_in, int nslow_in)
+    template <typename DeviceType> void create_serial_fft(int nfast_in, int nmid_in, int nslow_in)
     {
         nfast = nfast_in;
-        nmid = nmid_in;
+        nmid  = nmid_in;
         nslow = nslow_in;
 
         // Serial FFT: entire grid on one processor
@@ -141,26 +140,25 @@ protected:
         int out_klo = 0, out_khi = nslow - 1;
 
         // FFT parameters
-        int scaled = 0;         // No scaling
-        int permute = 0;        // No permutation
-        int nbuf = 0;           // Buffer size (output)
-        int usecollective = 0;  // Use point-to-point communication
-        int usegpu = 0;         // Let KOKKOS decide based on backend
+        int scaled        = 0; // No scaling
+        int permute       = 0; // No permutation
+        int nbuf          = 0; // Buffer size (output)
+        int usecollective = 0; // Use point-to-point communication
+        int usegpu        = 0; // Let KOKKOS decide based on backend
 
         // Create FFT3dKokkos object
         BEGIN_HIDE_OUTPUT();
-        fft = new FFT3dKokkos<DeviceType>(
-            lmp, MPI_COMM_WORLD, nfast, nmid, nslow, in_ilo, in_ihi, in_jlo, in_jhi, in_klo,
-            in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi, scaled, permute, &nbuf,
-            usecollective, usegpu);
+        fft = new FFT3dKokkos<DeviceType>(lmp, MPI_COMM_WORLD, nfast, nmid, nslow, in_ilo, in_ihi,
+                                          in_jlo, in_jhi, in_klo, in_khi, out_ilo, out_ihi, out_jlo,
+                                          out_jhi, out_klo, out_khi, scaled, permute, &nbuf,
+                                          usecollective, usegpu);
         END_HIDE_OUTPUT();
 
         ASSERT_NE(fft, nullptr);
     }
 
     // Helper: Perform round-trip test (forward + backward FFT)
-    template<typename DeviceType>
-    void run_roundtrip_test(int nfast_in, int nmid_in, int nslow_in)
+    template <typename DeviceType> void run_roundtrip_test(int nfast_in, int nmid_in, int nslow_in)
     {
         create_serial_fft<DeviceType>(nfast_in, nmid_in, nslow_in);
 
@@ -186,7 +184,7 @@ protected:
         Kokkos::deep_copy(d_input, h_input);
 
         // Perform forward FFT
-        auto fft_ptr = static_cast<FFT3dKokkos<DeviceType>*>(fft);
+        auto fft_ptr = static_cast<FFT3dKokkos<DeviceType> *>(fft);
         fft_ptr->compute(d_input, d_output, FFT3dKokkos<DeviceType>::FORWARD);
 
         // Perform backward FFT (in-place: output becomes input)
@@ -201,13 +199,13 @@ protected:
         std::vector<FFT_SCALAR> output_vec(2 * nsize);
 
         for (int i = 0; i < 2 * nsize; ++i) {
-            input_vec[i] = h_input(i);
-            output_vec[i] = h_output(i) / static_cast<FFT_SCALAR>(nsize);  // Apply normalization
+            input_vec[i]  = h_input(i);
+            output_vec[i] = h_output(i) / static_cast<FFT_SCALAR>(nsize); // Apply normalization
         }
 
         // Validate round-trip: output should equal input after normalization
         RoundTripValidator validator(input_vec.data(), output_vec.data(), nfast, nmid, nslow,
-                                      ROUNDTRIP_TOLERANCE, verbose);
+                                     ROUNDTRIP_TOLERANCE, verbose);
         bool valid = validator.validate();
 
         if (verbose || !valid) {
@@ -218,15 +216,14 @@ protected:
         }
 
         // Clean up FFT object with proper cast
-        delete static_cast<FFT3dKokkos<DeviceType>*>(fft);
+        delete static_cast<FFT3dKokkos<DeviceType> *>(fft);
         fft = nullptr;
 
         EXPECT_TRUE(valid) << "Round-trip test failed";
     }
 
     // Helper: Perform known-answer test (delta function)
-    template<typename DeviceType>
-    void run_delta_test(int nfast_in, int nmid_in, int nslow_in)
+    template <typename DeviceType> void run_delta_test(int nfast_in, int nmid_in, int nslow_in)
     {
         create_serial_fft<DeviceType>(nfast_in, nmid_in, nslow_in);
 
@@ -247,7 +244,7 @@ protected:
         Kokkos::deep_copy(d_input, h_input);
 
         // Perform forward FFT
-        auto fft_ptr = static_cast<FFT3dKokkos<DeviceType>*>(fft);
+        auto fft_ptr = static_cast<FFT3dKokkos<DeviceType> *>(fft);
         fft_ptr->compute(d_input, d_output, FFT3dKokkos<DeviceType>::FORWARD);
 
         // Copy result back to host
@@ -268,7 +265,7 @@ protected:
         }
 
         KnownAnswerValidator validator(output_vec.data(), expected_vec.data(), nfast, nmid, nslow,
-                                        1e-10, verbose);
+                                       KNOWN_ANSWER_TOLERANCE, verbose);
         bool valid = validator.validate();
 
         if (verbose || !valid) {
@@ -279,14 +276,14 @@ protected:
         }
 
         // Clean up FFT object with proper cast
-        delete static_cast<FFT3dKokkos<DeviceType>*>(fft);
+        delete static_cast<FFT3dKokkos<DeviceType> *>(fft);
         fft = nullptr;
 
         EXPECT_TRUE(valid) << "Delta function test failed";
     }
 
     // Member variables
-    void *fft;  // Type-erased pointer (actual type is FFT3dKokkos<DeviceType>*)
+    void *fft; // Type-erased pointer (actual type is FFT3dKokkos<DeviceType>*)
     int nfast, nmid, nslow;
     bool kokkos_initialized_here;
 };
@@ -324,7 +321,6 @@ TEST_F(FFT3DKokkosTest, BackendDetection)
 TEST_F(FFT3DKokkosTest, RoundTrip_cuFFT_32x32x32)
 {
 
-
     // Use LMPDeviceType which is Kokkos::Cuda when CUDA is enabled
     typedef Kokkos::Cuda DeviceType;
     run_roundtrip_test<DeviceType>(32, 32, 32);
@@ -333,7 +329,6 @@ TEST_F(FFT3DKokkosTest, RoundTrip_cuFFT_32x32x32)
 TEST_F(FFT3DKokkosTest, RoundTrip_cuFFT_64x64x64)
 {
 
-
     typedef Kokkos::Cuda DeviceType;
     run_roundtrip_test<DeviceType>(64, 64, 64);
 }
@@ -341,12 +336,11 @@ TEST_F(FFT3DKokkosTest, RoundTrip_cuFFT_64x64x64)
 TEST_F(FFT3DKokkosTest, KnownAnswer_cuFFT_DeltaFunction)
 {
 
-
     typedef Kokkos::Cuda DeviceType;
     run_delta_test<DeviceType>(32, 32, 32);
 }
 
-#endif  // KOKKOS_ENABLE_CUDA && FFT_KOKKOS_CUFFT
+#endif // KOKKOS_ENABLE_CUDA && FFT_KOKKOS_CUFFT
 
 // =============================================================================
 // hipFFT Tests (AMD HIP Backend)
@@ -357,14 +351,12 @@ TEST_F(FFT3DKokkosTest, KnownAnswer_cuFFT_DeltaFunction)
 TEST_F(FFT3DKokkosTest, RoundTrip_hipFFT_32x32x32)
 {
 
-
     typedef Kokkos::HIP DeviceType;
     run_roundtrip_test<DeviceType>(32, 32, 32);
 }
 
 TEST_F(FFT3DKokkosTest, RoundTrip_hipFFT_64x64x64)
 {
-
 
     typedef Kokkos::HIP DeviceType;
     run_roundtrip_test<DeviceType>(64, 64, 64);
@@ -373,12 +365,11 @@ TEST_F(FFT3DKokkosTest, RoundTrip_hipFFT_64x64x64)
 TEST_F(FFT3DKokkosTest, KnownAnswer_hipFFT_DeltaFunction)
 {
 
-
     typedef Kokkos::HIP DeviceType;
     run_delta_test<DeviceType>(32, 32, 32);
 }
 
-#endif  // KOKKOS_ENABLE_HIP && FFT_KOKKOS_HIPFFT
+#endif // KOKKOS_ENABLE_HIP && FFT_KOKKOS_HIPFFT
 
 // =============================================================================
 // MKL_GPU Tests (Intel SYCL Backend)
@@ -389,14 +380,12 @@ TEST_F(FFT3DKokkosTest, KnownAnswer_hipFFT_DeltaFunction)
 TEST_F(FFT3DKokkosTest, RoundTrip_MKL_GPU_32x32x32)
 {
 
-
     typedef Kokkos::Experimental::SYCL DeviceType;
     run_roundtrip_test<DeviceType>(32, 32, 32);
 }
 
 TEST_F(FFT3DKokkosTest, RoundTrip_MKL_GPU_64x64x64)
 {
-
 
     typedef Kokkos::Experimental::SYCL DeviceType;
     run_roundtrip_test<DeviceType>(64, 64, 64);
@@ -405,12 +394,11 @@ TEST_F(FFT3DKokkosTest, RoundTrip_MKL_GPU_64x64x64)
 TEST_F(FFT3DKokkosTest, KnownAnswer_MKL_GPU_DeltaFunction)
 {
 
-
     typedef Kokkos::Experimental::SYCL DeviceType;
     run_delta_test<DeviceType>(32, 32, 32);
 }
 
-#endif  // KOKKOS_ENABLE_SYCL && FFT_KOKKOS_MKL_GPU
+#endif // KOKKOS_ENABLE_SYCL && FFT_KOKKOS_MKL_GPU
 
 // =============================================================================
 // CPU Backend Tests (Task 4.3)
@@ -439,7 +427,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_OpenMP_32x32x32)
     // When OpenMP is enabled, LMPHostType == Kokkos::OpenMP
     run_roundtrip_test<LMPHostType>(32, 32, 32);
 }
-#endif  // KOKKOS_ENABLE_OPENMP
+#endif // KOKKOS_ENABLE_OPENMP
 
 #if defined(KOKKOS_ENABLE_THREADS)
 TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_Threads_32x32x32)
@@ -447,7 +435,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_Threads_32x32x32)
     // When Threads is enabled, LMPHostType == Kokkos::Threads
     run_roundtrip_test<LMPHostType>(32, 32, 32);
 }
-#endif  // KOKKOS_ENABLE_THREADS
+#endif // KOKKOS_ENABLE_THREADS
 
 TEST_F(FFT3DKokkosTest, KnownAnswer_Kokkos_DeltaFunction)
 {
@@ -484,7 +472,7 @@ TEST_F(FFT3DKokkosTest, KnownAnswer_Kokkos_Sine)
     Kokkos::deep_copy(d_input, h_input);
 
     // Perform forward FFT
-    auto fft_ptr = static_cast<FFT3dKokkos<DeviceType>*>(fft);
+    auto fft_ptr = static_cast<FFT3dKokkos<DeviceType> *>(fft);
     fft_ptr->compute(d_input, d_output, FFT3dKokkos<DeviceType>::FORWARD);
 
     // Copy result back to host
@@ -508,7 +496,7 @@ TEST_F(FFT3DKokkosTest, KnownAnswer_Kokkos_Sine)
                 std::complex<FFT_SCALAR>(0.0, spike_amplitude));
 
     KnownAnswerValidator validator(output_vec.data(), expected_data.data(), nfast, nmid, nslow,
-                                    1e-10, verbose);
+                                   KNOWN_ANSWER_TOLERANCE, verbose);
     bool valid = validator.validate();
 
     if (verbose || !valid) {
@@ -541,9 +529,8 @@ TEST_F(FFT3DKokkosTest, Threading_OpenMP_Concurrent)
 #else
     // Grid dimensions
     const int grid_size = 32;
-    const int nsize = grid_size * grid_size * grid_size;
-    const int num_ffts = 4;
-
+    const int nsize     = grid_size * grid_size * grid_size;
+    const int num_ffts  = 4;
 
     // Create multiple FFT instances
     std::vector<FFT3dKokkos<LMPDeviceType> *> ffts;
@@ -615,8 +602,8 @@ TEST_F(FFT3DKokkosTest, Threading_OpenMP_Concurrent)
         }
 
         // Validate round-trip
-        RoundTripValidator validator(original_buffers[n].data(), input_buffers[n].data(),
-                                      grid_size, grid_size, grid_size, ROUNDTRIP_TOLERANCE, verbose);
+        RoundTripValidator validator(original_buffers[n].data(), input_buffers[n].data(), grid_size,
+                                     grid_size, grid_size, ROUNDTRIP_TOLERANCE, verbose);
         if (!validator.validate()) {
             all_passed = false;
             std::cout << "  FFT instance " << n << " FAILED" << std::endl;
@@ -644,9 +631,8 @@ TEST_F(FFT3DKokkosTest, Threading_Threads_Concurrent)
 #else
     // Grid dimensions
     const int grid_size = 32;
-    const int nsize = grid_size * grid_size * grid_size;
-    const int num_ffts = 4;
-
+    const int nsize     = grid_size * grid_size * grid_size;
+    const int num_ffts  = 4;
 
     // Create multiple FFT instances
     std::vector<FFT3dKokkos<LMPDeviceType> *> ffts;
@@ -709,8 +695,8 @@ TEST_F(FFT3DKokkosTest, Threading_Threads_Concurrent)
             input_buffers[n][i] = h_in(i) * norm;
         }
 
-        RoundTripValidator validator(original_buffers[n].data(), input_buffers[n].data(),
-                                      grid_size, grid_size, grid_size, ROUNDTRIP_TOLERANCE, verbose);
+        RoundTripValidator validator(original_buffers[n].data(), input_buffers[n].data(), grid_size,
+                                     grid_size, grid_size, ROUNDTRIP_TOLERANCE, verbose);
         if (!validator.validate()) {
             all_passed = false;
         }
@@ -734,7 +720,7 @@ TEST_F(FFT3DKokkosTest, Threading_Safety)
     // Test runs with any CPU backend (OpenMP, Threads, Serial)
 
     const int grid_size = 32;
-    const int nsize = grid_size * grid_size * grid_size;
+    const int nsize     = grid_size * grid_size * grid_size;
 
     // Create FFT instance
     int in_ilo = 0, in_ihi = grid_size - 1;
@@ -777,7 +763,7 @@ TEST_F(FFT3DKokkosTest, Threading_Safety)
 
     // Run multiple FFT operations to check for data corruption
     const int num_iterations = 10;
-    bool all_passed = true;
+    bool all_passed          = true;
 
     for (int iter = 0; iter < num_iterations; iter++) {
         BEGIN_HIDE_OUTPUT();
@@ -792,8 +778,8 @@ TEST_F(FFT3DKokkosTest, Threading_Safety)
             input_data[i] = h_in(i) * norm;
         }
 
-        RoundTripValidator validator(original_data.data(), input_data.data(),
-                                      grid_size, grid_size, grid_size, ROUNDTRIP_TOLERANCE, verbose);
+        RoundTripValidator validator(original_data.data(), input_data.data(), grid_size, grid_size,
+                                     grid_size, ROUNDTRIP_TOLERANCE, verbose);
         if (!validator.validate()) {
             all_passed = false;
             std::cout << "  Iteration " << iter << " FAILED" << std::endl;
@@ -812,7 +798,7 @@ TEST_F(FFT3DKokkosTest, Threading_Safety)
     EXPECT_TRUE(all_passed) << "Thread safety validation failed";
 }
 
-#endif  // KOKKOS_ENABLE_OPENMP || KOKKOS_ENABLE_THREADS
+#endif // KOKKOS_ENABLE_OPENMP || KOKKOS_ENABLE_THREADS
 
 // =============================================================================
 // TASK 4.6: MPI Tests (2 procs, 4 procs, GPU+MPI)
@@ -839,7 +825,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_2proc_32x32x32)
     }
 
     // Grid dimensions
-    const int grid_size = 32;
+    const int grid_size    = 32;
     const int nsize_global = grid_size * grid_size * grid_size;
 
     // Domain decomposition: split along slow (z) dimension
@@ -851,10 +837,10 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_2proc_32x32x32)
 
     if (rank == 0) {
         in_klo = 0;
-        in_khi = grid_size / 2 - 1;  // 0..15
+        in_khi = grid_size / 2 - 1; // 0..15
     } else {
         in_klo = grid_size / 2;
-        in_khi = grid_size - 1;  // 16..31
+        in_khi = grid_size - 1; // 16..31
     }
 
     int out_ilo = in_ilo, out_ihi = in_ihi;
@@ -863,7 +849,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_2proc_32x32x32)
 
     // Calculate local size
     int local_nslow = in_khi - in_klo + 1;
-    int local_size = grid_size * grid_size * local_nslow;
+    int local_size  = grid_size * grid_size * local_nslow;
 
     // Allocate local data buffers
     std::vector<FFT_SCALAR> input_data(2 * local_size);
@@ -874,7 +860,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_2proc_32x32x32)
     for (int k = 0; k < local_nslow; k++) {
         for (int j = 0; j < grid_size; j++) {
             for (int i = 0; i < grid_size; i++) {
-                int global_k = in_klo + k;
+                int global_k   = in_klo + k;
                 int global_idx = global_k * grid_size * grid_size + j * grid_size + i;
 
                 // Generate deterministic random data for this grid point
@@ -883,10 +869,10 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_2proc_32x32x32)
                 FFT_SCALAR re = dist(rng);
                 FFT_SCALAR im = dist(rng);
 
-                int local_idx = k * grid_size * grid_size + j * grid_size + i;
-                input_data[2 * local_idx] = re;
-                input_data[2 * local_idx + 1] = im;
-                original_data[2 * local_idx] = re;
+                int local_idx                    = k * grid_size * grid_size + j * grid_size + i;
+                input_data[2 * local_idx]        = re;
+                input_data[2 * local_idx + 1]    = im;
+                original_data[2 * local_idx]     = re;
                 original_data[2 * local_idx + 1] = im;
             }
         }
@@ -938,8 +924,8 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_2proc_32x32x32)
     }
 
     // Validate round-trip on local data
-    RoundTripValidator validator(original_data.data(), input_data.data(),
-                                  grid_size, grid_size, local_nslow, ROUNDTRIP_TOLERANCE, verbose);
+    RoundTripValidator validator(original_data.data(), input_data.data(), grid_size, grid_size,
+                                 local_nslow, ROUNDTRIP_TOLERANCE, verbose);
     bool passed = validator.validate();
 
     // Gather validation results from all ranks
@@ -978,7 +964,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_4proc_64x64x64)
     }
 
     // Grid dimensions (larger for better load balancing)
-    const int grid_size = 64;
+    const int grid_size    = 64;
     const int nsize_global = grid_size * grid_size * grid_size;
 
     // Domain decomposition: split along slow (z) dimension
@@ -987,8 +973,8 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_4proc_64x64x64)
     int in_klo, in_khi;
 
     int slices_per_proc = grid_size / nprocs;
-    in_klo = rank * slices_per_proc;
-    in_khi = (rank + 1) * slices_per_proc - 1;
+    in_klo              = rank * slices_per_proc;
+    in_khi              = (rank + 1) * slices_per_proc - 1;
 
     int out_ilo = in_ilo, out_ihi = in_ihi;
     int out_jlo = in_jlo, out_jhi = in_jhi;
@@ -996,7 +982,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_4proc_64x64x64)
 
     // Calculate local size
     int local_nslow = in_khi - in_klo + 1;
-    int local_size = grid_size * grid_size * local_nslow;
+    int local_size  = grid_size * grid_size * local_nslow;
 
     // Allocate local data buffers
     std::vector<FFT_SCALAR> input_data(2 * local_size);
@@ -1006,7 +992,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_4proc_64x64x64)
     for (int k = 0; k < local_nslow; k++) {
         for (int j = 0; j < grid_size; j++) {
             for (int i = 0; i < grid_size; i++) {
-                int global_k = in_klo + k;
+                int global_k   = in_klo + k;
                 int global_idx = global_k * grid_size * grid_size + j * grid_size + i;
 
                 // Generate deterministic random data for this grid point
@@ -1015,10 +1001,10 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_4proc_64x64x64)
                 FFT_SCALAR re = dist(rng);
                 FFT_SCALAR im = dist(rng);
 
-                int local_idx = k * grid_size * grid_size + j * grid_size + i;
-                input_data[2 * local_idx] = re;
-                input_data[2 * local_idx + 1] = im;
-                original_data[2 * local_idx] = re;
+                int local_idx                    = k * grid_size * grid_size + j * grid_size + i;
+                input_data[2 * local_idx]        = re;
+                input_data[2 * local_idx + 1]    = im;
+                original_data[2 * local_idx]     = re;
                 original_data[2 * local_idx + 1] = im;
             }
         }
@@ -1070,8 +1056,8 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_4proc_64x64x64)
     }
 
     // Validate round-trip on local data
-    RoundTripValidator validator(original_data.data(), input_data.data(),
-                                  grid_size, grid_size, local_nslow, ROUNDTRIP_TOLERANCE, verbose);
+    RoundTripValidator validator(original_data.data(), input_data.data(), grid_size, grid_size,
+                                 local_nslow, ROUNDTRIP_TOLERANCE, verbose);
     bool passed = validator.validate();
 
     // Gather validation results from all ranks
@@ -1108,7 +1094,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_GPU_2proc)
     // Note: GPU tests are skipped in SetUp() - no safe GPU detection available
 
     // Grid dimensions
-    const int grid_size = 32;
+    const int grid_size    = 32;
     const int nsize_global = grid_size * grid_size * grid_size;
 
     // Domain decomposition
@@ -1129,7 +1115,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_GPU_2proc)
     int out_klo = in_klo, out_khi = in_khi;
 
     int local_nslow = in_khi - in_klo + 1;
-    int local_size = grid_size * grid_size * local_nslow;
+    int local_size  = grid_size * grid_size * local_nslow;
 
     // Allocate local data buffers
     std::vector<FFT_SCALAR> input_data(2 * local_size);
@@ -1139,7 +1125,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_GPU_2proc)
     for (int k = 0; k < local_nslow; k++) {
         for (int j = 0; j < grid_size; j++) {
             for (int i = 0; i < grid_size; i++) {
-                int global_k = in_klo + k;
+                int global_k   = in_klo + k;
                 int global_idx = global_k * grid_size * grid_size + j * grid_size + i;
 
                 // Generate deterministic random data for this grid point
@@ -1148,10 +1134,10 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_GPU_2proc)
                 FFT_SCALAR re = dist(rng);
                 FFT_SCALAR im = dist(rng);
 
-                int local_idx = k * grid_size * grid_size + j * grid_size + i;
-                input_data[2 * local_idx] = re;
-                input_data[2 * local_idx + 1] = im;
-                original_data[2 * local_idx] = re;
+                int local_idx                    = k * grid_size * grid_size + j * grid_size + i;
+                input_data[2 * local_idx]        = re;
+                input_data[2 * local_idx + 1]    = im;
+                original_data[2 * local_idx]     = re;
                 original_data[2 * local_idx + 1] = im;
             }
         }
@@ -1160,7 +1146,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_GPU_2proc)
     // FFT parameters (disable GPU-aware MPI for now)
     int scaled = 0, permute = 0, nbuf = 0;
     int usecollective = 0;
-    int usegpu_aware = 0;  // Would check lmp->kokkos->gpu_aware_flag if KokkosLMP was complete
+    int usegpu_aware  = 0; // Would check lmp->kokkos->gpu_aware_flag if KokkosLMP was complete
 
     // Create MPI+GPU FFT3dKokkos object
     BEGIN_HIDE_OUTPUT();
@@ -1204,8 +1190,8 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_GPU_2proc)
     }
 
     // Validate round-trip
-    RoundTripValidator validator(original_data.data(), input_data.data(),
-                                  grid_size, grid_size, local_nslow, ROUNDTRIP_TOLERANCE, verbose);
+    RoundTripValidator validator(original_data.data(), input_data.data(), grid_size, grid_size,
+                                 local_nslow, ROUNDTRIP_TOLERANCE, verbose);
     bool passed = validator.validate();
 
     // Gather results
@@ -1222,7 +1208,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_GPU_2proc)
     EXPECT_TRUE(all_passed) << "Round-trip validation failed on rank " << rank;
 }
 
-#endif  // LMP_KOKKOS
+#endif // LMP_KOKKOS
 
 // =============================================================================
 // Main

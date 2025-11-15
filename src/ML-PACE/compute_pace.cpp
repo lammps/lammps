@@ -114,7 +114,7 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
 
 ComputePACE::~ComputePACE()
 {
-  modify->delete_compute(id_virial);
+  if( modify->find_compute(id_virial) != -1 ) modify->delete_compute(id_virial);
 
   delete acecimpl;
   memory->destroy(pace);

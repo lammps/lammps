@@ -102,7 +102,9 @@ PairReaxFFOMP::~PairReaxFFOMP()
 
 void PairReaxFFOMP::init_style()
 {
-  if (!atom->q_flag) error->all(FLERR,"Pair style reaxff/omp requires atom attribute q");
+  if (!atom->q_flag)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair style reaxff/omp requires atom attribute q");
 
   auto acks2_fixes = modify->get_fix_by_style("^acks2/reax");
   int have_qeq = modify->get_fix_by_style("^qeq/reax").size()
@@ -112,22 +114,23 @@ void PairReaxFFOMP::init_style()
 
 
   if (qeqflag && (have_qeq != 1))
-    error->all(FLERR,"Pair style reaxff requires use of exactly one of the "
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair style reaxff requires use of exactly one of the "
                "fix qeq/reaxff or fix qeq/shielded or fix acks2/reaxff or "
                "fix qtpie/reaxff or fix qeq/rel/reaxff commands");
 
   api->system->acks2_flag = acks2_fixes.size();
   if (api->system->acks2_flag)
-    error->all(FLERR,"Cannot (yet) use ACKS2 with OPENMP ReaxFF");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot (yet) use ACKS2 with OPENMP ReaxFF");
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
   api->system->wsize = comm->nprocs;
 
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style reaxff/omp requires atom IDs");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style reaxff/omp requires atom IDs");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style reaxff/omp requires newton pair on");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style reaxff/omp requires newton pair on");
 
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
@@ -136,7 +139,7 @@ void PairReaxFFOMP::init_style()
 
   cutmax = MAX3(api->control->nonb_cut, api->control->hbond_cut, api->control->bond_cut);
   if ((cutmax < 2.0*api->control->bond_cut) && (comm->me == 0))
-    error->warning(FLERR,"Total cutoff < 2*bond cutoff. May need to use an "
+    error->warning(FLERR, "Total cutoff < 2*bond cutoff. May need to use an "
                    "increased neighbor list skin.");
 
   if (fix_reaxff == nullptr)
@@ -184,7 +187,7 @@ void PairReaxFFOMP::setup()
 
     int num_nbrs = estimate_reax_lists();
     if (num_nbrs < 0)
-      error->all(FLERR,"Too many neighbors for pair style reaxff");
+      error->all(FLERR, Error::NOLASTLINE, "Too many neighbors for pair style reaxff/omp");
 
     Make_List(api->system->total_cap,num_nbrs,TYP_FAR_NEIGHBOR,api->lists+FAR_NBRS);
     (api->lists+FAR_NBRS)->error_ptr=error;
@@ -355,7 +358,7 @@ void PairReaxFFOMP::write_reax_atoms()
   int *num_hbonds = fix_reaxff->num_hbonds;
 
   if (api->system->N > api->system->total_cap)
-    error->all(FLERR,"Too many ghost atoms");
+    error->all(FLERR, Error::NOLASTLINE, "Too many ghost atoms in pair style reaxff/omp");
 
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static) default(shared)

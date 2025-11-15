@@ -444,7 +444,7 @@ static std::enable_if_t<TYPE::rank_dynamic == sizeof...(Indices) || sizeof...(In
 template <typename TYPE>
 static double memory_usage(TYPE &data)
 {
-  return data.span() * sizeof(typename TYPE::value_type);
+  return static_cast<double>(data.span() * sizeof(typename TYPE::value_type));
 }
 
 /* ----------------------------------------------------------------------

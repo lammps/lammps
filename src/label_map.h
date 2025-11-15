@@ -51,10 +51,11 @@ class LabelMap : protected Pointers {
   void read_restart(FILE *fp);
   void write_restart(FILE *);
 
- protected:
+protected:
   int natomtypes, nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
   std::vector<std::string> typelabel, btypelabel, atypelabel;
   std::vector<std::string> dtypelabel, itypelabel;
+
   std::unordered_map<std::string, int> typelabel_map;
   std::unordered_map<std::string, int> btypelabel_map;
   std::unordered_map<std::string, int> atypelabel_map;

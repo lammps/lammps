@@ -24,6 +24,13 @@ started to create problems with modern C++ compilers.  LAMMPS version
 download and compile this version, if you want to use any of these
 packages.
 
+.. toctree::
+   :maxdepth: 0
+   :hidden:
+   :glob:
+
+   atc_*
+
 Neighbor style and comm mode multi/old
 --------------------------------------
 

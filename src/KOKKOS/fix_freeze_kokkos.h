@@ -60,7 +60,7 @@ class FixFreezeKokkos : public FixFreeze {
 
  private:
   typename AT::t_kkacc_1d_3 f;
-  typename AT::t_kkfloat_1d_3 torque;
+  typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_1d mask;
 };
 

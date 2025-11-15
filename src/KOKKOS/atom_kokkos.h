@@ -43,7 +43,7 @@ class AtomKokkos : public Atom {
   DAT::ttransform_kkfloat_1d_4 k_mu;
   DAT::ttransform_kkfloat_1d_3 k_omega;
   DAT::ttransform_kkfloat_1d_3 k_angmom;
-  DAT::ttransform_kkfloat_1d_3 k_torque;
+  DAT::ttransform_kkacc_1d_3 k_torque;
   DAT::tdual_tagint_1d k_molecule;
   DAT::ttransform_int_2d k_nspecial;
   DAT::ttransform_tagint_2d k_special;

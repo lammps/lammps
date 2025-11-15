@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - develop
+      - maintenance
   pull_request:
     branches:
       - develop

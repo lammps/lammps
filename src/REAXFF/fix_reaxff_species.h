@@ -57,12 +57,14 @@ class FixReaxFFSpecies : public Fix {
   FILE *fp, *pos, *fdel;
   int eleflag, posflag, multipos, padflag, setupflag;
   int delflag, specieslistflag, masslimitflag;
+  int deljson_init;
   int delete_Nlimit, delete_Nlimit_varid;
   std::string delete_Nlimit_varname;
   int delete_Nsteps, *delete_Tcount;
   double massmin, massmax;
   int singlepos_opened, multipos_opened, del_opened;
-  char *filepos, *filedel;
+  char *filepos;
+  std::string filedel;
   std::vector<int> ele2uele;            // for element eletype[i], ele2uele[i] stores index of unique element
   std::vector<std::string> eletype;     // list of ReaxFF elements of length ntypes
   std::vector<std::string> ueletype;    // list of unique elements, of quantity nutypes
@@ -88,6 +90,7 @@ class FixReaxFFSpecies : public Fix {
   class NeighList *list;
   class FixAveAtom *f_SPECBOND;
   class FixPropertyAtom *f_clusterID;
+  std::string clusterID_propname;
   class PairReaxFF *reaxff;
 };
 }    // namespace LAMMPS_NS

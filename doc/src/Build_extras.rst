@@ -243,7 +243,7 @@ necessary for ``hipcc`` and the linker to work correctly.
 When compiling for HIP ROCm, GPU sorting with ``-D
 HIP_USE_DEVICE_SORT=on`` requires installing the ``hipcub`` library
 (https://github.com/ROCmSoftwarePlatform/hipCUB).  The HIP CUDA-backend
-additionally requires cub (https://nvidia.github.io/cccl/cub/).  Setting
+additionally requires CUB (https://nvidia.github.io/cccl/cub/).  Setting
 ``-DDOWNLOAD_CUB=yes`` will download and compile CUB.
 
 The GPU library has some multi-thread support using OpenMP.  If LAMMPS

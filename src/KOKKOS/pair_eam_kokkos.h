@@ -186,6 +186,10 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   typename AT::t_int_1d d_ilist;
   typename AT::t_int_1d d_numneigh;
 
+  KK_FLOAT rhomax_kk;
+  KK_FLOAT rdr_kk;
+  KK_FLOAT rdrho_kk;
+  KK_FLOAT cutforcesq_kk;
   int first;
   typename AT::t_int_1d d_sendlist;
   typename AT::t_double_1d_um v_buf;

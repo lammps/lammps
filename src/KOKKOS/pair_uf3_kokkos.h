@@ -141,21 +141,23 @@ template <class DeviceType> class PairUF3Kokkos : public PairUF3 {
 
   DAT::ttransform_kkacc_1d k_eatom;
   DAT::ttransform_kkacc_1d_6 k_vatom;
+  DAT::ttransform_kkacc_1d_9 k_cvatom;
   typename AT::t_kkacc_1d d_eatom;
   typename AT::t_kkacc_1d_6 d_vatom;
+  typename AT::t_kkacc_1d_9 d_cvatom;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
   using ScatterFType = Kokkos::Experimental::ScatterView<KK_ACC_FLOAT *[3], DAT::t_kkacc_1d_3::array_layout,
                                                          KKDeviceType>;
   ScatterFType fscatter;
-  using ScatterVType = Kokkos::Experimental::ScatterView<KK_FLOAT *[6], LMPDeviceLayout,
+  using ScatterVType = Kokkos::Experimental::ScatterView<KK_ACC_FLOAT *[6], LMPDeviceLayout,
                                                          KKDeviceType>;
   ScatterVType vscatter;
-  using ScatterCVType = Kokkos::Experimental::ScatterView<KK_FLOAT *[9], LMPDeviceLayout,
+  using ScatterCVType = Kokkos::Experimental::ScatterView<KK_ACC_FLOAT *[9], LMPDeviceLayout,
                                                           KKDeviceType>;
   ScatterCVType cvscatter;
-  using ScatterEType = Kokkos::Experimental::ScatterView<KK_FLOAT *, Kokkos::LayoutRight,
+  using ScatterEType = Kokkos::Experimental::ScatterView<KK_ACC_FLOAT *, Kokkos::LayoutRight,
                                                          KKDeviceType>;
   ScatterEType escatter;
 

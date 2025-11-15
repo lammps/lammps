@@ -133,14 +133,14 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (h_warning_flag())
     error->warning(FLERR,"Dihedral problem");
 
-  if (eflag_global) energy += ev.evdwl;
+  if (eflag_global) energy += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -181,9 +181,9 @@ void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<N
   const KK_FLOAT vb3y = x(i4,1) - x(i3,1);
   const KK_FLOAT vb3z = x(i4,2) - x(i3,2);
 
-  const KK_FLOAT ss1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
-  const KK_FLOAT ss2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
-  const KK_FLOAT ss3 = 1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
+  const KK_FLOAT ss1 = static_cast<KK_FLOAT>(1.0) / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
+  const KK_FLOAT ss2 = static_cast<KK_FLOAT>(1.0) / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
+  const KK_FLOAT ss3 = static_cast<KK_FLOAT>(1.0) / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
 
   const KK_FLOAT r1 = sqrt(ss1);
   const KK_FLOAT r2 = sqrt(ss2);
@@ -195,41 +195,41 @@ void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<N
   const KK_FLOAT c1 = (vb1x * vb2x + vb1y * vb2y + vb1z * vb2z) * r1 * r2;
   const KK_FLOAT c2 = -(vb3x * vb2x + vb3y * vb2y + vb3z * vb2z) * r3 * r2;
 
-  KK_FLOAT s1 = 1.0 - c1*c1;
-  if (s1 < SMALL) s1 = SMALL;
-  s1 = 1.0 / s1;
+  KK_FLOAT s1 = static_cast<KK_FLOAT>(1.0) - c1*c1;
+  if (s1 < static_cast<KK_FLOAT>(SMALL)) s1 = static_cast<KK_FLOAT>(SMALL);
+  s1 = static_cast<KK_FLOAT>(1.0) / s1;
 
-  KK_FLOAT s2 = 1.0 - c2*c2;
-  if (s2 < SMALL) s2 = SMALL;
-  s2 = 1.0 / s2;
+  KK_FLOAT s2 = static_cast<KK_FLOAT>(1.0) - c2*c2;
+  if (s2 < static_cast<KK_FLOAT>(SMALL)) s2 = static_cast<KK_FLOAT>(SMALL);
+  s2 = static_cast<KK_FLOAT>(1.0) / s2;
 
   KK_FLOAT s12 = sqrt(s1*s2);
   KK_FLOAT c = (c1*c2 + c0) * s12;
 
   // error check
 
-  if ((c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) && !d_warning_flag())
+  if ((c > static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(TOLERANCE) || c < (-static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(TOLERANCE))) && !d_warning_flag())
     d_warning_flag() = 1;
 
-  if (c > 1.0) c = 1.0;
-  if (c < -1.0) c = -1.0;
+  if (c > static_cast<KK_FLOAT>(1.0)) c = static_cast<KK_FLOAT>(1.0);
+  if (c < -static_cast<KK_FLOAT>(1.0)) c = -static_cast<KK_FLOAT>(1.0);
 
-  KK_FLOAT s = sqrt(1.0 - c*c);
-  if (s < SMALL) s = SMALL;
+  KK_FLOAT s = sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
+  if (s < static_cast<KK_FLOAT>(SMALL)) s = static_cast<KK_FLOAT>(SMALL);
 
   // force & energy
 
   const KK_FLOAT domega = acos(c) - d_chi[type];
   KK_FLOAT a = d_k[type] * domega;
 
-  KK_FLOAT eimproper = 0.0;
+  KK_FLOAT eimproper = 0;
   if (eflag) eimproper = a*domega;
 
-  a = -a * 2.0/s;
+  a = -a * static_cast<KK_FLOAT>(2.0) / s;
   c = c * a;
   s12 = s12 * a;
   const KK_FLOAT a11 = c*ss1*s1;
-  const KK_FLOAT a22 = -ss2 * (2.0*c0*s12 - c*(s1+s2));
+  const KK_FLOAT a22 = -ss2 * (static_cast<KK_FLOAT>(2.0)*c0*s12 - c*(s1+s2));
   const KK_FLOAT a33 = c*ss3*s2;
   const KK_FLOAT a12 = -r1*r2*(c1*c*s1 + c2*s12);
   const KK_FLOAT a13 = -r1*r3*s12;
@@ -259,27 +259,27 @@ void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<N
   // apply force to each of 4 atoms
 
   if (NEWTON_BOND || i1 < nlocal) {
-    f(i1,0) += f1[0];
-    f(i1,1) += f1[1];
-    f(i1,2) += f1[2];
+    f(i1,0) += static_cast<KK_ACC_FLOAT>(f1[0]);
+    f(i1,1) += static_cast<KK_ACC_FLOAT>(f1[1]);
+    f(i1,2) += static_cast<KK_ACC_FLOAT>(f1[2]);
   }
 
   if (NEWTON_BOND || i2 < nlocal) {
-    f(i2,0) += f2[0];
-    f(i2,1) += f2[1];
-    f(i2,2) += f2[2];
+    f(i2,0) += static_cast<KK_ACC_FLOAT>(f2[0]);
+    f(i2,1) += static_cast<KK_ACC_FLOAT>(f2[1]);
+    f(i2,2) += static_cast<KK_ACC_FLOAT>(f2[2]);
   }
 
   if (NEWTON_BOND || i3 < nlocal) {
-    f(i3,0) += f3[0];
-    f(i3,1) += f3[1];
-    f(i3,2) += f3[2];
+    f(i3,0) += static_cast<KK_ACC_FLOAT>(f3[0]);
+    f(i3,1) += static_cast<KK_ACC_FLOAT>(f3[1]);
+    f(i3,2) += static_cast<KK_ACC_FLOAT>(f3[2]);
   }
 
   if (NEWTON_BOND || i4 < nlocal) {
-    f(i4,0) += f4[0];
-    f(i4,1) += f4[1];
-    f(i4,2) += f4[2];
+    f(i4,0) += static_cast<KK_ACC_FLOAT>(f4[0]);
+    f(i4,1) += static_cast<KK_ACC_FLOAT>(f4[1]);
+    f(i4,2) += static_cast<KK_ACC_FLOAT>(f4[2]);
   }
 
   if (EVFLAG)
@@ -321,8 +321,8 @@ void ImproperHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
 
   int n = atom->nimpropertypes;
   for (int i = 1; i <= n; i++) {
-    k_k.view_host()[i] = k[i];
-    k_chi.view_host()[i] = chi[i];
+    k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
+    k_chi.view_host()[i] = static_cast<KK_FLOAT>(chi[i]);
   }
 
   k_k.modify_host();
@@ -340,8 +340,8 @@ void ImproperHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
 
   int n = atom->nimpropertypes;
   for (int i = 1; i <= n; i++) {
-    k_k.view_host()[i] = k[i];
-    k_chi.view_host()[i] = chi[i];
+    k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
+    k_chi.view_host()[i] = static_cast<KK_FLOAT>(chi[i]);
   }
 
   k_k.modify_host();
@@ -364,15 +364,11 @@ void ImproperHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
                         const KK_FLOAT &vb2x, const KK_FLOAT &vb2y, const KK_FLOAT &vb2z,
                         const KK_FLOAT &vb3x, const KK_FLOAT &vb3y, const KK_FLOAT &vb3z) const
 {
-  KK_FLOAT eimproperquarter;
-  KK_FLOAT v[6];
-
-
   if (eflag_either) {
     if (eflag_global) {
-      if (newton_bond) ev.evdwl += eimproper;
+      if (newton_bond) ev.evdwl += static_cast<KK_ACC_FLOAT>(eimproper);
       else {
-        eimproperquarter = 0.25*eimproper;
+        KK_ACC_FLOAT eimproperquarter = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.25)*eimproper);
         if (i1 < nlocal) ev.evdwl += eimproperquarter;
         if (i2 < nlocal) ev.evdwl += eimproperquarter;
         if (i3 < nlocal) ev.evdwl += eimproperquarter;
@@ -380,7 +376,7 @@ void ImproperHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
       }
     }
     if (eflag_atom) {
-      eimproperquarter = 0.25*eimproper;
+      KK_ACC_FLOAT eimproperquarter = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.25)*eimproper);
       if (newton_bond || i1 < nlocal) d_eatom[i1] += eimproperquarter;
       if (newton_bond || i2 < nlocal) d_eatom[i2] += eimproperquarter;
       if (newton_bond || i3 < nlocal) d_eatom[i3] += eimproperquarter;
@@ -389,89 +385,54 @@ void ImproperHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, co
   }
 
   if (vflag_either) {
-    v[0] = vb1x*f1[0] + vb2x*f3[0] + (vb3x+vb2x)*f4[0];
-    v[1] = vb1y*f1[1] + vb2y*f3[1] + (vb3y+vb2y)*f4[1];
-    v[2] = vb1z*f1[2] + vb2z*f3[2] + (vb3z+vb2z)*f4[2];
-    v[3] = vb1x*f1[1] + vb2x*f3[1] + (vb3x+vb2x)*f4[1];
-    v[4] = vb1x*f1[2] + vb2x*f3[2] + (vb3x+vb2x)*f4[2];
-    v[5] = vb1y*f1[2] + vb2y*f3[2] + (vb3y+vb2y)*f4[2];
+    KK_ACC_FLOAT v_quarter_acc[6];
+    v_quarter_acc[0] = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.25)*(vb1x*f1[0] + vb2x*f3[0] + (vb3x+vb2x)*f4[0]));
+    v_quarter_acc[1] = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.25)*(vb1y*f1[1] + vb2y*f3[1] + (vb3y+vb2y)*f4[1]));
+    v_quarter_acc[2] = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.25)*(vb1z*f1[2] + vb2z*f3[2] + (vb3z+vb2z)*f4[2]));
+    v_quarter_acc[3] = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.25)*(vb1x*f1[1] + vb2x*f3[1] + (vb3x+vb2x)*f4[1]));
+    v_quarter_acc[4] = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.25)*(vb1x*f1[2] + vb2x*f3[2] + (vb3x+vb2x)*f4[2]));
+    v_quarter_acc[5] = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.25)*(vb1y*f1[2] + vb2y*f3[2] + (vb3y+vb2y)*f4[2]));
 
     if (vflag_global) {
       if (newton_bond) {
-        ev.v[0] += v[0];
-        ev.v[1] += v[1];
-        ev.v[2] += v[2];
-        ev.v[3] += v[3];
-        ev.v[4] += v[4];
-        ev.v[5] += v[5];
+        for (int n = 0; n < 6; n++)
+          ev.v[n] += static_cast<KK_ACC_FLOAT>(4.0)*v_quarter_acc[n];
       } else {
         if (i1 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += v_quarter_acc[n];
         }
         if (i2 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += v_quarter_acc[n];
         }
         if (i3 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += v_quarter_acc[n];
         }
         if (i4 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += v_quarter_acc[n];
         }
       }
     }
 
     if (vflag_atom) {
       if (newton_bond || i1 < nlocal) {
-        d_vatom(i1,0) += 0.25*v[0];
-        d_vatom(i1,1) += 0.25*v[1];
-        d_vatom(i1,2) += 0.25*v[2];
-        d_vatom(i1,3) += 0.25*v[3];
-        d_vatom(i1,4) += 0.25*v[4];
-        d_vatom(i1,5) += 0.25*v[5];
+        for (int n = 0; n < 6; n++)
+          d_vatom(i1,n) += v_quarter_acc[n];
       }
       if (newton_bond || i2 < nlocal) {
-        d_vatom(i2,0) += 0.25*v[0];
-        d_vatom(i2,1) += 0.25*v[1];
-        d_vatom(i2,2) += 0.25*v[2];
-        d_vatom(i2,3) += 0.25*v[3];
-        d_vatom(i2,4) += 0.25*v[4];
-        d_vatom(i2,5) += 0.25*v[5];
+        for (int n = 0; n < 6; n++)
+          d_vatom(i2,n) += v_quarter_acc[n];
       }
       if (newton_bond || i3 < nlocal) {
-        d_vatom(i3,0) += 0.25*v[0];
-        d_vatom(i3,1) += 0.25*v[1];
-        d_vatom(i3,2) += 0.25*v[2];
-        d_vatom(i3,3) += 0.25*v[3];
-        d_vatom(i3,4) += 0.25*v[4];
-        d_vatom(i3,5) += 0.25*v[5];
+        for (int n = 0; n < 6; n++)
+          d_vatom(i3,n) += v_quarter_acc[n];
       }
       if (newton_bond || i4 < nlocal) {
-        d_vatom(i4,0) += 0.25*v[0];
-        d_vatom(i4,1) += 0.25*v[1];
-        d_vatom(i4,2) += 0.25*v[2];
-        d_vatom(i4,3) += 0.25*v[3];
-        d_vatom(i4,4) += 0.25*v[4];
-        d_vatom(i4,5) += 0.25*v[5];
+        for (int n = 0; n < 6; n++)
+          d_vatom(i4,n) += v_quarter_acc[n];
       }
     }
   }

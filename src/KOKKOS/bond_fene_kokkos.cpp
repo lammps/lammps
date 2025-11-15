@@ -136,14 +136,14 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   else if (h_flag() == 2)
     error->one(FLERR,"Bad FENE bond");
 
-  if (eflag_global) energy += ev.evdwl;
+  if (eflag_global) energy += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -184,53 +184,53 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
 
   const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
   const KK_FLOAT r0sq = r0 * r0;
-  KK_FLOAT rlogarg = 1.0 - rsq/r0sq;
+  KK_FLOAT rlogarg = static_cast<KK_FLOAT>(1.0) - rsq/r0sq;
 
   // if r -> r0, then rlogarg < 0.0 which is an error
   // issue a warning and reset rlogarg = epsilon
   // if r > 2*r0 something serious is wrong, abort
 
-  if (rlogarg < 0.1) {
-    if (rlogarg <= -3.0)
+  if (rlogarg < static_cast<KK_FLOAT>(0.1)) {
+    if (rlogarg <= static_cast<KK_FLOAT>(-3.0))
       d_flag() = 2;
     else
       d_flag() = 1;
-    rlogarg = 0.1;
+    rlogarg = static_cast<KK_FLOAT>(0.1);
   }
 
   KK_FLOAT fbond = -k/rlogarg;
 
   // force from LJ term
 
-  KK_FLOAT sr6 = 0.0;
+  KK_FLOAT sr6 = 0;
   KK_FLOAT sigma2 = sigma*sigma;
-  if (rsq < MY_CUBEROOT2*sigma2) {
+  if (rsq < static_cast<KK_FLOAT>(MY_CUBEROOT2)*sigma2) {
     const KK_FLOAT sr2 = sigma2/rsq;
     sr6 = sr2*sr2*sr2;
-    fbond += 48.0*epsilon*sr6*(sr6-0.5)/rsq;
+    fbond += static_cast<KK_FLOAT>(48.0)*epsilon*sr6*(sr6 - static_cast<KK_FLOAT>(0.5))/rsq;
   }
 
   // energy
 
-  KK_FLOAT ebond = 0.0;
+  KK_FLOAT ebond = 0;
   if (eflag) {
-    ebond = -0.5 * k*r0sq*log(rlogarg);
-    if (rsq < MY_CUBEROOT2*sigma2)
-      ebond += 4.0*epsilon*sr6*(sr6-1.0) + epsilon;
+    ebond = -static_cast<KK_FLOAT>(0.5) * k*r0sq*log(rlogarg);
+    if (rsq < static_cast<KK_FLOAT>(MY_CUBEROOT2)*sigma2)
+      ebond += static_cast<KK_FLOAT>(4.0)*epsilon*sr6*(sr6-static_cast<KK_FLOAT>(1.0)) + epsilon;
   }
 
   // apply force to each of 2 atoms
 
   if (NEWTON_BOND || i1 < nlocal) {
-    a_f(i1,0) += delx*fbond;
-    a_f(i1,1) += dely*fbond;
-    a_f(i1,2) += delz*fbond;
+    a_f(i1,0) += static_cast<KK_ACC_FLOAT>(delx*fbond);
+    a_f(i1,1) += static_cast<KK_ACC_FLOAT>(dely*fbond);
+    a_f(i1,2) += static_cast<KK_ACC_FLOAT>(delz*fbond);
   }
 
   if (NEWTON_BOND || i2 < nlocal) {
-    a_f(i2,0) -= delx*fbond;
-    a_f(i2,1) -= dely*fbond;
-    a_f(i2,2) -= delz*fbond;
+    a_f(i2,0) -= static_cast<KK_ACC_FLOAT>(delx*fbond);
+    a_f(i2,1) -= static_cast<KK_ACC_FLOAT>(dely*fbond);
+    a_f(i2,2) -= static_cast<KK_ACC_FLOAT>(delz*fbond);
   }
 
   if (EVFLAG) ev_tally(ev,i1,i2,ebond,fbond,delx,dely,delz);
@@ -274,10 +274,10 @@ void BondFENEKokkos<DeviceType>::coeff(int narg, char **arg)
 
   int n = atom->nbondtypes;
   for (int i = 1; i <= n; i++) {
-    k_k.view_host()[i] = k[i];
-    k_r0.view_host()[i] = r0[i];
-    k_epsilon.view_host()[i] = epsilon[i];
-    k_sigma.view_host()[i] = sigma[i];
+    k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
+    k_r0.view_host()[i] = static_cast<KK_FLOAT>(r0[i]);
+    k_epsilon.view_host()[i] = static_cast<KK_FLOAT>(epsilon[i]);
+    k_sigma.view_host()[i] = static_cast<KK_FLOAT>(sigma[i]);
   }
 
   k_k.modify_host();
@@ -298,10 +298,10 @@ void BondFENEKokkos<DeviceType>::read_restart(FILE *fp)
 
   int n = atom->nbondtypes;
   for (int i = 1; i <= n; i++) {
-    k_k.view_host()[i] = k[i];
-    k_r0.view_host()[i] = r0[i];
-    k_epsilon.view_host()[i] = epsilon[i];
-    k_sigma.view_host()[i] = sigma[i];
+    k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
+    k_r0.view_host()[i] = static_cast<KK_FLOAT>(r0[i]);
+    k_epsilon.view_host()[i] = static_cast<KK_FLOAT>(epsilon[i]);
+    k_sigma.view_host()[i] = static_cast<KK_FLOAT>(sigma[i]);
   }
 
   k_k.modify_host();
@@ -321,81 +321,59 @@ void BondFENEKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int 
       const KK_FLOAT &ebond, const KK_FLOAT &fbond, const KK_FLOAT &delx,
                 const KK_FLOAT &dely, const KK_FLOAT &delz) const
 {
-  KK_FLOAT ebondhalf;
-  KK_FLOAT v[6];
-
   // The eatom and vatom arrays are atomic
   Kokkos::View<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = d_eatom;
   Kokkos::View<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = d_vatom;
 
   if (eflag_either) {
     if (eflag_global) {
-      if (newton_bond) ev.evdwl += ebond;
+      if (newton_bond) ev.evdwl += static_cast<KK_ACC_FLOAT>(ebond);
       else {
-        ebondhalf = 0.5*ebond;
+        KK_ACC_FLOAT ebondhalf = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*ebond);
         if (i < nlocal) ev.evdwl += ebondhalf;
         if (j < nlocal) ev.evdwl += ebondhalf;
       }
     }
     if (eflag_atom) {
-      ebondhalf = 0.5*ebond;
+      KK_ACC_FLOAT ebondhalf = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*ebond);
       if (newton_bond || i < nlocal) v_eatom[i] += ebondhalf;
       if (newton_bond || j < nlocal) v_eatom[j] += ebondhalf;
     }
   }
 
   if (vflag_either) {
-    v[0] = delx*delx*fbond;
-    v[1] = dely*dely*fbond;
-    v[2] = delz*delz*fbond;
-    v[3] = delx*dely*fbond;
-    v[4] = delx*delz*fbond;
-    v[5] = dely*delz*fbond;
+    const KK_ACC_FLOAT v_acc[6] =
+      { static_cast<KK_ACC_FLOAT>(delx*delx*fbond),
+        static_cast<KK_ACC_FLOAT>(dely*dely*fbond),
+        static_cast<KK_ACC_FLOAT>(delz*delz*fbond),
+        static_cast<KK_ACC_FLOAT>(delx*dely*fbond),
+        static_cast<KK_ACC_FLOAT>(delx*delz*fbond),
+        static_cast<KK_ACC_FLOAT>(dely*delz*fbond) };
 
     if (vflag_global) {
       if (newton_bond) {
-        ev.v[0] += v[0];
-        ev.v[1] += v[1];
-        ev.v[2] += v[2];
-        ev.v[3] += v[3];
-        ev.v[4] += v[4];
-        ev.v[5] += v[5];
+        for (int n = 0; n < 6; n++)
+          ev.v[n] += v_acc[n];
       } else {
         if (i < nlocal) {
-          ev.v[0] += 0.5*v[0];
-          ev.v[1] += 0.5*v[1];
-          ev.v[2] += 0.5*v[2];
-          ev.v[3] += 0.5*v[3];
-          ev.v[4] += 0.5*v[4];
-          ev.v[5] += 0.5*v[5];
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += static_cast<KK_ACC_FLOAT>(0.5)*v_acc[n];
         }
         if (j < nlocal) {
-          ev.v[0] += 0.5*v[0];
-          ev.v[1] += 0.5*v[1];
-          ev.v[2] += 0.5*v[2];
-          ev.v[3] += 0.5*v[3];
-          ev.v[4] += 0.5*v[4];
-          ev.v[5] += 0.5*v[5];
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += static_cast<KK_ACC_FLOAT>(0.5)*v_acc[n];
         }
       }
     }
 
     if (vflag_atom) {
       if (newton_bond || i < nlocal) {
-        v_vatom(i,0) += 0.5*v[0];
-        v_vatom(i,1) += 0.5*v[1];
-        v_vatom(i,2) += 0.5*v[2];
-        v_vatom(i,3) += 0.5*v[3];
-        v_vatom(i,4) += 0.5*v[4];
-        v_vatom(i,5) += 0.5*v[5];
+        for (int n = 0; n < 6; n++)
+          v_vatom(i,n) += static_cast<KK_ACC_FLOAT>(0.5)*v_acc[n];
       }
       if (newton_bond || j < nlocal) {
-        v_vatom(j,0) += 0.5*v[0];
-        v_vatom(j,1) += 0.5*v[1];
-        v_vatom(j,2) += 0.5*v[2];
-        v_vatom(j,3) += 0.5*v[3];
-        v_vatom(j,4) += 0.5*v[4];
-        v_vatom(j,5) += 0.5*v[5];
+        for (int n = 0; n < 6; n++)
+          v_vatom(j,n) += static_cast<KK_ACC_FLOAT>(0.5)*v_acc[n];
       }
     }
   }

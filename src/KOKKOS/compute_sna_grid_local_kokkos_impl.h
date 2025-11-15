@@ -44,8 +44,8 @@ namespace LAMMPS_NS {
 
 // Constructor
 
-template<class DeviceType, typename real_type, int vector_length>
-ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::ComputeSNAGridLocalKokkos(LAMMPS *lmp, int narg, char **arg) : ComputeSNAGridLocal(lmp, narg, arg)
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::ComputeSNAGridLocalKokkos(LAMMPS *lmp, int narg, char **arg) : ComputeSNAGridLocal(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -93,11 +93,11 @@ ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::ComputeSNAGridL
 
   // start from index 1 because of how compute sna/grid is
   for (int i = 1; i <= atom->ntypes; i++) {
-    h_radelem(i-1) = radelem[i];
-    h_wjelem(i-1) = wjelem[i];
+    h_radelem(i-1) = static_cast<real_type>(radelem[i]);
+    h_wjelem(i-1) = static_cast<real_type>(wjelem[i]);
     if (switchinnerflag){
-      h_sinnerelem(i) = sinnerelem[i];
-      h_dinnerelem(i) = dinnerelem[i];
+      h_sinnerelem(i) = static_cast<real_type>(sinnerelem[i]);
+      h_dinnerelem(i) = static_cast<real_type>(dinnerelem[i]);
     }
   }
 
@@ -119,7 +119,7 @@ ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::ComputeSNAGridL
   }
   Kokkos::deep_copy(d_test,h_test);
 
-  snaKK = SNAKokkos<DeviceType, real_type, vector_length>(*this);
+  snaKK = SNAKokkos<DeviceType, real_type, accum_type, vector_length>(*this);
   snaKK.grow_rij(0,0,padding_factor);
   snaKK.init();
 
@@ -129,8 +129,8 @@ ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::ComputeSNAGridL
 
 // Destructor
 
-template<class DeviceType, typename real_type, int vector_length>
-ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::~ComputeSNAGridLocalKokkos()
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::~ComputeSNAGridLocalKokkos()
 {
   if (copymode) return;
 
@@ -139,8 +139,8 @@ ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::~ComputeSNAGrid
 
 // Setup
 
-template<class DeviceType, typename real_type, int vector_length>
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::setup()
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::setup()
 {
 
   ComputeGridLocal::setup();
@@ -153,8 +153,8 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::setup()
 
 // Compute
 
-template<class DeviceType, typename real_type, int vector_length>
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::compute_local()
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::compute_local()
 {
   if (host_flag) {
     ComputeSNAGridLocal::compute_array();
@@ -196,15 +196,15 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::compute_lo
   const int chunk_size_div = (chunk_size + vector_length - 1) / vector_length;
 
   if (triclinic) {
-    h0 = domain->h[0];
-    h1 = domain->h[1];
-    h2 = domain->h[2];
-    h3 = domain->h[3];
-    h4 = domain->h[4];
-    h5 = domain->h[5];
-    lo0 = domain->boxlo[0];
-    lo1 = domain->boxlo[1];
-    lo2 = domain->boxlo[2];
+    h0 = static_cast<KK_FLOAT>(domain->h[0]);
+    h1 = static_cast<KK_FLOAT>(domain->h[1]);
+    h2 = static_cast<KK_FLOAT>(domain->h[2]);
+    h3 = static_cast<KK_FLOAT>(domain->h[3]);
+    h4 = static_cast<KK_FLOAT>(domain->h[4]);
+    h5 = static_cast<KK_FLOAT>(domain->h[5]);
+    lo0 = static_cast<KK_FLOAT>(domain->boxlo[0]);
+    lo1 = static_cast<KK_FLOAT>(domain->boxlo[1]);
+    lo2 = static_cast<KK_FLOAT>(domain->boxlo[2]);
   }
 
   while (chunk_offset < total_range) { // chunk up loop to prevent running out of memory
@@ -335,9 +335,9 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::compute_lo
 /*
  Simple team policy functor seeing how many layers deep we can go with the parallelism.
  */
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeNeigh,const typename Kokkos::TeamPolicy<DeviceType,TagCSNAGridLocalComputeNeigh>::member_type& team) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalComputeNeigh,const typename Kokkos::TeamPolicy<DeviceType,TagCSNAGridLocalComputeNeigh>::member_type& team) const {
 
   // This function follows similar procedure as ComputeNeigh of PairSNAPKokkos.
   // Main difference is that we don't use the neighbor class or neighbor variables here.
@@ -379,7 +379,7 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
   iy += nylo;
   ix += nxlo;
 
-  double xgrid[3];
+  KK_FLOAT xgrid[3];
 
   // index ii already captures the proper grid point
   //int igrid = iz * (nx * ny) + iy * nx + ix;
@@ -387,9 +387,9 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
   // grid2x converts igrid to ix,iy,iz like we've done before
   // multiply grid integers by grid spacing delx, dely, delz
   //grid2x(igrid, xgrid);
-  xgrid[0] = ix * delx;
-  xgrid[1] = iy * dely;
-  xgrid[2] = iz * delz;
+  xgrid[0] = static_cast<KK_FLOAT>(ix * delx);
+  xgrid[1] = static_cast<KK_FLOAT>(iy * dely);
+  xgrid[2] = static_cast<KK_FLOAT>(iz * delz);
 
   if (triclinic) {
 
@@ -405,13 +405,13 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
     xgrid[2] = h2*xgrid[2] + lo2;
   }
 
-  const double xtmp = xgrid[0];
-  const double ytmp = xgrid[1];
-  const double ztmp = xgrid[2];
+  const double xtmp = static_cast<double>(xgrid[0]);
+  const double ytmp = static_cast<double>(xgrid[1]);
+  const double ztmp = static_cast<double>(xgrid[2]);
 
   // Zeroing out the components, which are filled as a sum.
   for (int icol = size_local_cols_base; icol < size_local_cols; icol++){
-    d_alocal(igrid, icol) = 0.0;
+    d_alocal(igrid, icol) = 0;
   }
 
   // Fill grid info columns
@@ -435,9 +435,9 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
 
   // Looping over ntotal for now.
   for (int j = 0; j < ntotal; j++){
-    const double dx = x(j,0) - xtmp;
-    const double dy = x(j,1) - ytmp;
-    const double dz = x(j,2) - ztmp;
+    const double dx = static_cast<double>(x(j,0)) - xtmp;
+    const double dy = static_cast<double>(x(j,1)) - ytmp;
+    const double dz = static_cast<double>(x(j,2)) - ztmp;
     int jtype = type(j);
     const double rsq = dx*dx + dy*dy + dz*dz;
 
@@ -457,9 +457,9 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
   for (int j = 0; j < ntotal; j++){
     //const int jtype = type_cache[j];
     //if (jtype >= 0) {
-    const double dx = x(j,0) - xtmp;
-    const double dy = x(j,1) - ytmp;
-    const double dz = x(j,2) - ztmp;
+    const double dx = static_cast<double>(x(j,0)) - xtmp;
+    const double dy = static_cast<double>(x(j,1)) - ytmp;
+    const double dz = static_cast<double>(x(j,2)) - ztmp;
     const double rsq = dx*dx + dy*dy + dz*dz;
     int jtype = type(j);
     if (rsq < rnd_cutsq(itype,jtype) && rsq > 1e-20) {
@@ -471,11 +471,11 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
       // pair snap uses jelem here, but we use jtype, see compute_sna_grid.cpp
       // actually since the views here have values starting at 0, let's use jelem
       snaKK.wj(ii,offset) = static_cast<real_type>(d_wjelem[jelem]);
-      snaKK.rcutij(ii,offset) = static_cast<real_type>((2.0 * d_radelem[jelem])*rcutfac);
+      snaKK.rcutij(ii,offset) = static_cast<real_type>((2.0 * static_cast<double>(d_radelem[jelem]))*rcutfac);
       snaKK.inside(ii,offset) = j;
       if (switchinnerflag) {
-        snaKK.sinnerij(ii,offset) = 0.5*(d_sinnerelem[ielem] + d_sinnerelem[jelem]);
-        snaKK.dinnerij(ii,offset) = 0.5*(d_dinnerelem[ielem] + d_dinnerelem[jelem]);
+        snaKK.sinnerij(ii,offset) = static_cast<real_type>(0.5)*(d_sinnerelem[ielem] + d_sinnerelem[jelem]);
+        snaKK.dinnerij(ii,offset) = static_cast<real_type>(0.5)*(d_dinnerelem[ielem] + d_dinnerelem[jelem]);
       }
       if (chemflag)
         snaKK.element(ii,offset) = jelem;
@@ -490,9 +490,9 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
   Pre-compute the Cayley-Klein parameters for reuse in later routines
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeCayleyKlein,const int iatom_mod, const int jnbor, const int iatom_div) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalComputeCayleyKlein,const int iatom_mod, const int jnbor, const int iatom_div) const {
 
   const int iatom = iatom_mod + iatom_div * vector_length;
   if (iatom >= chunk_size) return;
@@ -508,9 +508,9 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
   and zero terms elsewhere
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalPreUi, const int& iatom_mod, const int& j, const int& iatom_div) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalPreUi, const int& iatom_mod, const int& j, const int& iatom_div) const {
   const int iatom = iatom_mod + iatom_div * vector_length;
   if (iatom >= chunk_size) return;
 
@@ -520,9 +520,9 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
   snaKK.pre_ui(iatom, j, ielem);
 }
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalPreUi, const int& iatom, const int& j) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalPreUi, const int& iatom, const int& j) const {
   if (iatom >= chunk_size) return;
 
   int itype = type(iatom);
@@ -531,9 +531,9 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
   snaKK.pre_ui(iatom, j, ielem);
 }
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalPreUi, const int& iatom) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalPreUi, const int& iatom) const {
   if (iatom >= chunk_size) return;
 
   const int itype = type(iatom);
@@ -543,10 +543,10 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
     snaKK.pre_ui(iatom, j, ielem);
 }
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template<bool chemsnap>
 KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeUiSmall<chemsnap>,
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalComputeUiSmall<chemsnap>,
   const typename Kokkos::TeamPolicy<DeviceType,TagCSNAGridLocalComputeUiSmall<chemsnap>>::member_type& team) const {
 
   // extract flattened atom_div / neighbor number / bend location
@@ -571,10 +571,10 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
 
 }
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template<bool chemsnap>
 KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeUiLarge<chemsnap>,
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalComputeUiLarge<chemsnap>,
   const typename Kokkos::TeamPolicy<DeviceType,TagCSNAGridLocalComputeUiLarge<chemsnap>>::member_type& team) const {
 
   // extract flattened atom_div / neighbor number / bend location
@@ -601,25 +601,25 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
   structure. Zero-initialize ylist. CPU and GPU.
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalTransformUi, const int& iatom_mod, const int& idxu, const int& iatom_div) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalTransformUi, const int& iatom_mod, const int& idxu, const int& iatom_div) const {
   const int iatom = iatom_mod + iatom_div * vector_length;
   if (iatom >= chunk_size) return;
   if (idxu >= snaKK.idxu_max) return;
   snaKK.transform_ui(iatom, idxu);
 }
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalTransformUi, const int& iatom, const int& idxu) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalTransformUi, const int& iatom, const int& idxu) const {
   if (iatom >= chunk_size) return;
   snaKK.transform_ui(iatom, idxu);
 }
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalTransformUi, const int& iatom) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalTransformUi, const int& iatom) const {
   if (iatom >= chunk_size) return;
   for (int idxu = 0; idxu < snaKK.idxu_max; idxu++)
     snaKK.transform_ui(iatom, idxu);
@@ -630,25 +630,25 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
    view
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeZi<chemsnap>, const int& iatom_mod, const int& jjz, const int& iatom_div) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalComputeZi<chemsnap>, const int& iatom_mod, const int& jjz, const int& iatom_div) const {
   const int iatom = iatom_mod + iatom_div * vector_length;
   if (iatom >= chunk_size) return;
   if (jjz >= snaKK.idxz_max) return;
   snaKK.template compute_zi<chemsnap>(iatom, jjz);
 }
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeZi<chemsnap>, const int& iatom, const int& jjz) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalComputeZi<chemsnap>, const int& iatom, const int& jjz) const {
   if (iatom >= chunk_size) return;
   snaKK.template compute_zi<chemsnap>(iatom, jjz);
 }
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeZi<chemsnap>, const int& iatom) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalComputeZi<chemsnap>, const int& iatom) const {
   if (iatom >= chunk_size) return;
   for (int jjz = 0; jjz < snaKK.idxz_max; jjz++)
     snaKK.template compute_zi<chemsnap>(iatom, jjz);
@@ -658,33 +658,33 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
   Compute the energy triple products and store in the "blist" view
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeBi<chemsnap>, const int& iatom_mod, const int& jjb, const int& iatom_div) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalComputeBi<chemsnap>, const int& iatom_mod, const int& jjb, const int& iatom_div) const {
   const int iatom = iatom_mod + iatom_div * vector_length;
   if (iatom >= chunk_size) return;
   if (jjb >= snaKK.idxb_max) return;
   snaKK.template compute_bi<chemsnap>(iatom, jjb);
 }
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeBi<chemsnap>, const int& iatom, const int& jjb) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalComputeBi<chemsnap>, const int& iatom, const int& jjb) const {
   if (iatom >= chunk_size) return;
   snaKK.template compute_bi<chemsnap>(iatom, jjb);
 }
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocalComputeBi<chemsnap>, const int& iatom) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalComputeBi<chemsnap>, const int& iatom) const {
   if (iatom >= chunk_size) return;
   for (int jjb = 0; jjb < snaKK.idxb_max; jjb++)
     snaKK.template compute_bi<chemsnap>(iatom, jjb);
 }
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 KOKKOS_INLINE_FUNCTION
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator() (TagCSNAGridLocal2Fill, const int& ii) const {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocal2Fill, const int& ii) const {
 
   // extract grid index
   int igrid = ii + chunk_offset;
@@ -699,7 +699,7 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
   iy += nylo;
   ix += nxlo;
 
-  double xgrid[3];
+  KK_FLOAT xgrid[3];
 
   // index ii already captures the proper grid point
   // int igrid = iz * (nx * ny) + iy * nx + ix;
@@ -707,9 +707,9 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
 
   // grid2x converts igrid to ix,iy,iz like we've done before
   //grid2x(igrid, xgrid);
-  xgrid[0] = ix * delx;
-  xgrid[1] = iy * dely;
-  xgrid[2] = iz * delz;
+  xgrid[0] = static_cast<KK_FLOAT>(ix * delx);
+  xgrid[1] = static_cast<KK_FLOAT>(iy * dely);
+  xgrid[2] = static_cast<KK_FLOAT>(iz * delz);
   if (triclinic) {
 
     // Do a conversion on `xgrid` here like we do in the CPU version.
@@ -732,7 +732,7 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
   for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
     const auto idxb = icoeff % idxb_max;
     const auto idx_chem = icoeff / idxb_max;
-    d_alocal(igrid,icoeff+6) = snaKK.blist(ii,idx_chem,idxb);
+    d_alocal(igrid,icoeff+6) = static_cast<double>(snaKK.blist(ii,idx_chem,idxb));
   }
 
 }
@@ -741,9 +741,9 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::operator()
    utility functions
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template<class TagStyle>
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::check_team_size_for(int inum, int &team_size) {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::check_team_size_for(int inum, int &team_size) {
   int team_size_max;
 
   team_size_max = Kokkos::TeamPolicy<DeviceType,TagStyle>(inum,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelForTag());
@@ -752,9 +752,9 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::check_team
     team_size = team_size_max/vector_length;
 }
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template<class TagStyle>
-void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::check_team_size_reduce(int inum, int &team_size) {
+void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::check_team_size_reduce(int inum, int &team_size) {
   int team_size_max;
 
   team_size_max = Kokkos::TeamPolicy<DeviceType,TagStyle>(inum,Kokkos::AUTO).team_size_max(*this,Kokkos::ParallelReduceTag());
@@ -763,9 +763,9 @@ void ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::check_team
     team_size = team_size_max/vector_length;
 }
 
-template<class DeviceType, typename real_type, int vector_length>
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template<typename scratch_type>
-int ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::scratch_size_helper(int values_per_team) {
+int ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::scratch_size_helper(int values_per_team) {
   typedef Kokkos::View<scratch_type*, Kokkos::DefaultExecutionSpace::scratch_memory_space, Kokkos::MemoryTraits<Kokkos::Unmanaged> > ScratchViewType;
 
   return ScratchViewType::shmem_size(values_per_team);
@@ -780,7 +780,7 @@ int ComputeSNAGridLocalKokkos<DeviceType, real_type, vector_length>::scratch_siz
 
 template<class DeviceType>
 ComputeSNAGridLocalKokkosDevice<DeviceType>::ComputeSNAGridLocalKokkosDevice(class LAMMPS *lmp, int narg, char **arg)
-   : ComputeSNAGridLocalKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_DEVICE_VECLEN>(lmp, narg, arg) { ; }
+   : ComputeSNAGridLocalKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_DEVICE_VECLEN>(lmp, narg, arg) { ; }
 
 template<class DeviceType>
 void ComputeSNAGridLocalKokkosDevice<DeviceType>::compute_local()
@@ -791,7 +791,7 @@ void ComputeSNAGridLocalKokkosDevice<DeviceType>::compute_local()
 #ifdef LMP_KOKKOS_GPU
 template<class DeviceType>
 ComputeSNAGridLocalKokkosHost<DeviceType>::ComputeSNAGridLocalKokkosHost(class LAMMPS *lmp, int narg, char **arg)
-   : ComputeSNAGridLocalKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_HOST_VECLEN>(lmp, narg, arg) { ; }
+   : ComputeSNAGridLocalKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_HOST_VECLEN>(lmp, narg, arg) { ; }
 
 template<class DeviceType>
 void ComputeSNAGridLocalKokkosHost<DeviceType>::compute_local()

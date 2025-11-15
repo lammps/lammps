@@ -93,8 +93,8 @@ class AtomVecSphereKokkos : public AtomVecKokkos, public AtomVecSphere {
   HAT::t_kkfloat_1d h_rmass;
   DAT::t_kkfloat_1d_3 d_omega;
   HAT::t_kkfloat_1d_3 h_omega;
-  DAT::t_kkfloat_1d_3 d_torque;
-  HAT::t_kkfloat_1d_3 h_torque;
+  DAT::t_kkacc_1d_3 d_torque;
+  HAT::t_kkacc_1d_3 h_torque;
 };
 
 }    // namespace LAMMPS_NS

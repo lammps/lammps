@@ -34,7 +34,7 @@ PairStyle(snap/kk/host,PairSNAPKokkosDevice<LMPHostType>);
 
 namespace LAMMPS_NS {
 // pre-declare so sna_kokkos.h can refer to it
-template<class DeviceType, typename real_type_, int vector_length_> class PairSNAPKokkos;
+template<class DeviceType, typename real_type_, typename accum_type_, int vector_length_> class PairSNAPKokkos;
 };
 
 #include "sna_kokkos.h"
@@ -69,7 +69,7 @@ struct TagPairSNAPComputeUiCPU{};
 struct TagPairSNAPComputeDuidrjCPU{};
 struct TagPairSNAPComputeDeidrjCPU{};
 
-template<class DeviceType, typename real_type_, int vector_length_>
+template<class DeviceType, typename real_type_, typename accum_type_, int vector_length_>
 class PairSNAPKokkos : public PairSNAP {
  public:
   enum {EnabledNeighFlags=FULL|HALF|HALFTHREAD};
@@ -82,6 +82,7 @@ class PairSNAPKokkos : public PairSNAP {
   static constexpr bool legacy_on_gpu = false; // run the CPU path on the GPU
   static constexpr int vector_length = vector_length_;
   using real_type = real_type_;
+  using accum_type = accum_type_;
   using complex = SNAComplex<real_type>;
 
   // Static team/tile sizes for device offload
@@ -422,8 +423,8 @@ class PairSNAPKokkos : public PairSNAP {
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void v_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
-      const double &fx, const double &fy, const double &fz,
-      const double &delx, const double &dely, const double &delz) const;
+      const accum_type &fx, const accum_type &fy, const accum_type &fz,
+      const real_type &delx, const real_type &dely, const real_type &delz) const;
 
  protected:
   typename AT::t_neighbors_2d d_neighbors;
@@ -435,7 +436,7 @@ class PairSNAPKokkos : public PairSNAP {
   typename AT::t_kkacc_1d d_eatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 
-  SNAKokkos<DeviceType, real_type, vector_length> snaKK;
+  SNAKokkos<DeviceType, real_type, accum_type, vector_length> snaKK;
 
   int inum, max_neighs, batched_max_neighs, chunk_size, chunk_offset;
   int neighflag;
@@ -446,12 +447,12 @@ class PairSNAPKokkos : public PairSNAP {
 
   Kokkos::View<real_type*, DeviceType> d_radelem;              // element radii
   Kokkos::View<real_type*, DeviceType> d_wjelem;               // elements weights
-  typename SNAKokkos<DeviceType, real_type, vector_length>::t_sna_2d_lr d_coeffelem; // element bispectrum coefficients
+  typename SNAKokkos<DeviceType, real_type, accum_type, vector_length>::t_sna_2d_lr d_coeffelem; // element bispectrum coefficients
   Kokkos::View<real_type*, DeviceType> d_sinnerelem;           // element inner cutoff midpoint
   Kokkos::View<real_type*, DeviceType> d_dinnerelem;           // element inner cutoff half-width
   Kokkos::View<T_INT*, DeviceType> d_map;                    // mapping from atom types to elements
   Kokkos::View<T_INT*, DeviceType> d_ninside;                // ninside for all atoms in list
-  typename SNAKokkos<DeviceType, real_type, vector_length>::t_sna_2d d_beta;                // betas for all atoms in list
+  typename SNAKokkos<DeviceType, real_type, accum_type, vector_length>::t_sna_2d d_beta;                // betas for all atoms in list
 
   typedef Kokkos::DualView<double**, DeviceType> tdual_fparams;
   tdual_fparams k_cutsq;
@@ -487,7 +488,7 @@ class PairSNAPKokkos : public PairSNAP {
   int scratch_size_helper(int values_per_team);
 
   // Make SNAKokkos a friend
-  friend class SNAKokkos<DeviceType, real_type, vector_length>;
+  friend class SNAKokkos<DeviceType, real_type, accum_type, vector_length>;
 };
 
 
@@ -496,10 +497,10 @@ class PairSNAPKokkos : public PairSNAP {
 // of extra template parameters
 
 template <class DeviceType>
-class PairSNAPKokkosDevice : public PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_DEVICE_VECLEN> {
+class PairSNAPKokkosDevice : public PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_DEVICE_VECLEN> {
 
  private:
-  using Base = PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_DEVICE_VECLEN>;
+  using Base = PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_DEVICE_VECLEN>;
 
  public:
 
@@ -515,10 +516,10 @@ class PairSNAPKokkosDevice : public PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL,
 
 #ifdef LMP_KOKKOS_GPU
 template <class DeviceType>
-class PairSNAPKokkosHost : public PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_HOST_VECLEN> {
+class PairSNAPKokkosHost : public PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_HOST_VECLEN> {
 
  private:
-  using Base = PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_HOST_VECLEN>;
+  using Base = PairSNAPKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_HOST_VECLEN>;
 
  public:
 

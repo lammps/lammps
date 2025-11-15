@@ -232,16 +232,16 @@ a time dependent position of the sphere or cylinder region.
 
    Whenever a region property, such as a coordinate or an upper/lower
    bound, is defined via an equal-style variable, the variable should
-   not cause any of the region boundaries to move
-   too far within a single timestep. Otherwise, bad dynamics will occur.
-   "Too far" means a small fraction of the approximate distance of
-   closest approach between two particles, which for the case of Lennard-Jones
-   particles is the distance of the energy minimum while for granular
-   particles it is their diameter. An example is a rapidly varying direction
-   vector in region plane since a small change in the normal to plane will
-   shift the region surface far away from the region point by a large displacement.
-   Similarly, bad dynamics can also occur for fast changing variables employed
-   in the move/rotate options.
+   not cause any of the region boundaries to move too far within a
+   single timestep. Otherwise, bad dynamics will occur.  "Too far" means
+   a small fraction of the approximate distance of closest approach
+   between two particles, which for the case of Lennard-Jones particles
+   is the distance of the energy minimum while for granular particles it
+   is their diameter. An example is a rapidly varying direction vector
+   in region plane since a small change in the normal to plane will
+   shift the region surface far away from the region point by a large
+   displacement.  Similarly, bad dynamics can also occur for fast
+   changing variables employed in the move/rotate options.
 
 See the :doc:`Howto tricilinc <Howto_triclinic>` page for a
 geometric description of triclinic boxes, as defined by LAMMPS, and
@@ -311,17 +311,18 @@ define the lattice spacings which are used as follows:
 
 If the *move* or *rotate* keywords are used, the region is "dynamic",
 meaning its location or orientation changes with time.  These keywords
-cannot be used with a *union* or *intersect* style region.  Instead,
-the keywords should be used to make the individual sub-regions of the
-*union* or *intersect* region dynamic.  Normally, each sub-region
-should be "dynamic" in the same manner (e.g. rotate around the same
-point), though this is not a requirement.
+cannot be used with a *union* or *intersect* style region.  Instead, the
+keywords should be used to make the individual sub-regions of the
+*union* or *intersect* region dynamic.  Normally, each sub-region should
+be "dynamic" in the same manner (e.g. rotate around the same point),
+though this is not a requirement.
 
-The *move* keyword allows one or more :doc:`equal-style variables <variable>` to be used to specify the x,y,z displacement
-of the region, typically as a function of time.  A variable is
-specified as v_name, where name is the variable name.  Any of the
-three variables can be specified as NULL, in which case no
-displacement is calculated in that dimension.
+The *move* keyword allows one or more :doc:`equal-style variables
+<variable>` to be used to specify the x,y,z displacement of the region,
+typically as a function of time.  A variable is specified as v_name,
+where name is the variable name.  Any of the three variables can be
+specified as NULL, in which case no displacement is calculated in that
+dimension.
 
 Note that equal-style variables can specify formulas with various
 mathematical functions, and include :doc:`thermo_style <thermo_style>`
@@ -329,7 +330,8 @@ command keywords for the simulation box parameters and timestep and
 elapsed time.  Thus it is easy to specify a region displacement that
 change as a function of time or spans consecutive runs in a continuous
 fashion.  For the latter, see the *start* and *stop* keywords of the
-:doc:`run <run>` command and the *elaplong* keyword of :doc:`thermo_style custom <thermo_style>` for details.
+:doc:`run <run>` command and the *elaplong* keyword of
+:doc:`thermo_style custom <thermo_style>` for details.
 
 For example, these commands would displace a region from its initial
 position, in the positive x direction, effectively at a constant
@@ -362,7 +364,8 @@ wrap around the axis in the direction of rotation.
 
 The *move* and *rotate* keywords can be used together.  In this case,
 the displacement specified by the *move* keyword is applied to the *P*
-point of the *rotate* keyword.
+point of the *rotate* keyword which is equivalent to applying the
+rotation *first* and then the translation.
 
 ----------
 

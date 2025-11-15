@@ -19,9 +19,9 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style = shake or rattle = style name of this fix command
-* tol = accuracy tolerance of SHAKE solution
-* iter = max # of iterations in each SHAKE solution
-* N = print SHAKE statistics every this many timesteps (0 = never)
+* tol = accuracy tolerance of SHAKE or RATTLE solution
+* iter = max # of iterations in each SHAKE or RATTLE solution
+* N = print SHAKE or RATTLE statistics every this many timesteps (0 = never)
 * one or more constraint/value pairs are appended
 * constraint = *b* or *a* or *t* or *m*
 
@@ -33,7 +33,7 @@ Syntax
        *m* value = one or more mass values
 
 * zero or more keyword/value pairs may be appended
-* keyword = *mol* or *kbond*
+* keyword = *mol* or *kbond* or *store*
 
   .. parsed-literal::
 
@@ -41,6 +41,7 @@ Syntax
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
        *kbond* value = force constant
          force constant = force constant used to apply a restraint force when used during minimization
+       *store* value = *yes* or *no*
 
 Examples
 """"""""
@@ -50,6 +51,7 @@ Examples
    fix 1 sub shake 0.0001 20 10 b 4 19 a 3 5 2
    fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31
    fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31 mol myMol
+   fix 1 sub shake 0.0001 20 10 t 5 6 m 1.0 a 31 store yes
    fix 1 sub rattle 0.0001 20 10 t 5 6 m 1.0 a 31
    fix 1 sub rattle 0.0001 20 10 t 5 6 m 1.0 a 31 mol myMol
 
@@ -117,6 +119,8 @@ Setting the N argument will print statistics to the screen and log
 file about regarding the lengths of bonds and angles that are being
 constrained.  Small delta values mean SHAKE is doing a good job.
 
+-----
+
 In LAMMPS, only small clusters of atoms can be constrained.  This is
 so the constraint calculation for a cluster can be performed by a
 single processor, to enable good parallel performance.  A cluster is
@@ -148,25 +152,27 @@ Thus, LAMMPS will print a warning and type label handling is disabled
 and numeric types must be used.
 
 For all constraints, a particular bond is only constrained if *both*
-atoms in the bond are in the group specified with the SHAKE fix.
+atoms in the bond are in the group specified with the SHAKE or RATTLE
+fix.
 
 The degrees-of-freedom removed by SHAKE bonds and angles are accounted
-for in temperature and pressure computations.  Similarly, the SHAKE
-contribution to the pressure of the system (virial) is also accounted
-for.
+for in temperature and pressure computations.  Similarly, the SHAKE or
+RATTLE contribution to the pressure of the system (virial) is also
+accounted for.
 
 .. note::
 
-   This command works by using the current forces on atoms to calculate
-   an additional constraint force which when added will leave the atoms
-   in positions that satisfy the SHAKE constraints (e.g. bond length)
-   after the next time integration step.  If you define fixes
-   (e.g. :doc:`fix efield <fix_efield>`) that add additional force to
-   the atoms after *fix shake* operates, then this fix will not take them
-   into account and the time integration will typically not satisfy the
-   SHAKE constraints.  The solution for this is to make sure that fix
-   shake is defined in your input script after any other fixes which add
-   or change forces (to atoms that *fix shake* operates on).
+   The *fix shake* command works by using the current forces on atoms to
+   calculate an additional constraint force which when added will leave
+   the atoms in positions that satisfy the SHAKE constraints (e.g. bond
+   length) after the next time integration step.  If you define fixes
+   (e.g. :doc:`fix efield <fix_efield>`) that add additional forces to
+   the atoms **after** *fix shake* operates, then those forces will not
+   be taken into account, and the time integration will typically not
+   fully satisfy the SHAKE constraints.  The solution for this is to make
+   sure that *fix shake* is defined in your input script **after** any
+   other fixes which add or change forces (to atoms that *fix shake*
+   operates on).
 
 ----------
 
@@ -197,6 +203,22 @@ during the MD, they are generally close enough so that the constraints
 will be fulfilled to the desired accuracy within a few MD steps
 following the minimization. The default value for *kbond* depends on the
 :doc:`units <units>` setting and is 1.0e9*k_B.
+
+.. versionadded:: TBD
+
+The *store* keyword controls whether the fix stores the constraint
+(or restraint) forces as a per-atom property.
+
+During an MD :doc:`run <run>`, the constraint forces are the forces on
+atoms due to the constraints after a constrained position update.
+Applying the SHAKE constraint *minimizes* those forces.  By using *store
+yes* the original constraint forces on all atoms can be accessed as a
+per-atom array of the fix.
+
+During a :doc:`minimization <minimize>`, restraint forces are added to
+the atoms to keep the constrained bonds and angles close to their
+initial values.  By using *store yes* those added forces can be accessed
+as a per-atom array of the fix.
 
 ----------
 
@@ -292,7 +314,7 @@ Related commands
 Default
 """""""
 
-kbond = 1.0e9*k_B
+kbond = 1.0e9*k_B, store = no
 
 ----------
 

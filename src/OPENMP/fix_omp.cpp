@@ -65,7 +65,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
      _nthr(-1), _neighbor(true), _mixed(false), _reduced(true),
      _pair_compute_flag(false), _kspace_compute_flag(false)
 {
-  if (narg < 4) error->all(FLERR,"Illegal package omp command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "package omp", error);
 
   int nthreads = 1;
   if (narg > 3) {
@@ -80,7 +80,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 
 #if defined(_OPENMP)
   if (nthreads < 1)
-    error->all(FLERR,"Illegal number of OpenMP threads requested");
+    error->all(FLERR, 3 - 2, "Illegal number of OpenMP threads requested");
 
   int reset_thr = 0;
 #endif
@@ -97,10 +97,10 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package omp command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "package omp neigh", error);
       _neighbor = utils::logical(FLERR,arg[iarg+1],false,lmp) != 0;
       iarg += 2;
-    } else error->all(FLERR,"Illegal package omp command");
+    } else error->all(FLERR, iarg - 2, "Unknown package omp keyword {}", arg[iarg]);
   }
 
   // print summary of settings
@@ -161,7 +161,8 @@ void FixOMP::init()
 {
   // OPENMP package cannot be used with atom_style template
   if (atom->molecular == Atom::TEMPLATE)
-    error->all(FLERR,"OPENMP package does not (yet) work with atom_style template");
+    error->all(FLERR, Error::NOLASTLINE,
+               "OPENMP package does not (yet) work with atom_style template");
 
   // adjust number of data objects when the number of OpenMP
   // threads has been changed somehow
@@ -198,7 +199,7 @@ void FixOMP::init()
 
   if (utils::strmatch(update->integrate_style,"^respa")
       && !utils::strmatch(update->integrate_style,"^respa/omp"))
-    error->all(FLERR,"Must use respa/omp for r-RESPA with /omp styles");
+    error->all(FLERR,  Error::NOLASTLINE, "Must use respa/omp for r-RESPA with /omp styles");
 
   _pair_compute_flag = force->pair && force->pair->compute_flag;
   _kspace_compute_flag = force->kspace && force->kspace->compute_flag;

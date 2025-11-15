@@ -140,28 +140,90 @@ be either a list of specific chemical formulae or a range of molecular
 weights.  Molecules are deleted every *Nfreq* timesteps, and bond
 connectivity is determined using the *Nevery* and *Nrepeat* keywords.  The
 *filedel* argument is the name of the output file that records the species
-that are removed from the system.  The *specieslist* keyword permits
-specific chemical species to be deleted.  The *Nspecies* argument specifies
-how many species are eligible for deletion and is followed by a list of
-chemical formulae, whose strings are compared to species identified by this
-fix.  For example, "specieslist 2 CO CO2" deletes molecules that are
-identified as "CO" and "CO2" in the species output file.  When using the
-*specieslist* keyword, the *filedel* file has the following format: the
-first line lists the chemical formulae eligible for deletion, and each
-additional line contains the timestep on which a molecule deletion occurs
-and the number of each species deleted on that timestep.  The *masslimit*
-keyword permits deletion of molecules with molecular weights between
-*massmin* and *massmax*.  When using the *masslimit* keyword, each line of
-the *filedel* file contains the timestep on which deletions occurs,
-followed by how many of each species are deleted (with quantities preceding
-chemical formulae).  The *specieslist* and *masslimit* keywords cannot both
-be used in the same *reaxff/species* fix.  The *delete_rate_limit* keyword
-can enforce an upper limit on the overall rate of molecule deletion.  The
-number of deletion occurrences is limited to Nlimit within an interval of
-Nsteps timesteps.  Nlimit can be specified with an equal-style
-:doc:`variable <variable>`.  When using the *delete_rate_limit* keyword, no
-deletions are permitted to occur within the first Nsteps timesteps of the
-first run (after reading a either a data or restart file).
+that are removed from the system (see below for output file format options).
+The *specieslist* keyword permits specific chemical species to be deleted.
+The *Nspecies* argument specifies how many species are eligible for deletion
+and is followed by a list of chemical formulae, whose strings are compared
+to species identified by this fix.  For example, "specieslist 2 CO CO2"
+deletes molecules that are identified as "CO" and "CO2" in the species
+output file.  The *masslimit* keyword permits deletion of molecules with
+molecular weights between *massmin* and *massmax*.  The *specieslist* and
+*masslimit* keywords cannot both be used in the same *reaxff/species* fix.
+The *delete_rate_limit* keyword can enforce an upper limit on the overall
+rate of molecule deletion. The number of deletion occurrences is limited to
+Nlimit within an interval of Nsteps timesteps. Nlimit can be specified with
+an equal-style :doc:`variable <variable>`. When using the
+*delete_rate_limit* keyword, no deletions are permitted to occur within the
+first Nsteps timesteps of the first run (after reading either a data or
+restart file).
+
+The *delete* keyword can output information about the deleted molecules in
+either legacy format or JSON format. The latter is activated when the
+*filedel* argument has a '.json' extension.  The legacy format lists how
+many of each species are deleted, while the JSON format provides the atom ID,
+atom type, and coordinates of deleted atoms within each molecule.  The
+format for legacy output changes depending on the keyword used.  When using
+the *specieslist* keyword and legacy format, the *filedel* file has the
+following format: the first line lists the chemical formulae eligible for
+deletion, and each additional line contains the timestep on which a molecule
+deletion occurs and the number of each species deleted on that timestep.
+When using the *masslimit* keyword and the legacy format, each line of the
+*filedel* file contains the timestep on which deletions occurs, followed by
+how many of each species are deleted (with quantities preceding chemical
+formulae).  The JSON format is the same regardless of the keyword, and lists
+deleted molecules in the style of the :doc:`JSON molecule file <molecule>`,
+where more discussion of JSON schema can be found. Here is an example of a
+JSON output file from a simulation during which one water molecule was
+deleted on the first timestep:
+
+.. code-block:: json
+
+   {
+       "application": "LAMMPS",
+       "units": "real",
+       "format": "dump",
+       "style": "molecules",
+       "revision": 1,
+       "title": "fix reaxff/species: delete keyword",
+       "timesteps": [
+           {
+               "timestep": 1,
+               "molecules": [
+                   {
+                       "types": {
+                           "format": ["atom-id", "type"],
+                           "data": [
+                               [1368, "H"],
+                               [1366, "O"],
+                               [1367, "H"]
+                           ]
+                       },
+                       "coords": {
+                           "format": ["atom-id", "x", "y", "z"],
+                           "data": [
+                               [1368, 26.787767440427466, 29.785528640296768, 25.85197353660144],
+                               [1366, 26.641801222582824, 29.868106247702887, 24.91285138212243],
+                               [1367, 25.69611192416744, 30.093425787807448, 24.914380215672846]
+                           ]
+                       }
+                   }
+               ]
+           }
+       ]
+   }
+
+The required first-level keys of the JSON format output are "application",
+"format", "style", "revision", and "timesteps", and optional keys are
+"units" and "title".  The value of the "timesteps" key is an array of
+objects that contain data for each timestep on which a molecule was
+deleted, and the other first-level keys identify this JSON schema.  The
+objects in "timesteps" contains two keys, "timestep" and "molecules".  The
+"molecules" key is an array of :doc:`LAMMPS molecule JSON <molecule>`
+objects, one for each deleted molecule.  The "format" keys within molecule
+JSON objects are only listed once per output file, for brevity.  The
+"atom-id" values are atom IDs from the simulation, and the "type" values
+are atom types.  In the above example, the types were reported as strings
+corresponding to elements using :doc:`type labels <labelmap>`.
 
 ----------
 

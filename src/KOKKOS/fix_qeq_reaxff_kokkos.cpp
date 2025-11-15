@@ -113,13 +113,13 @@ void FixQEqReaxFFKokkos<DeviceType>::init()
   params = k_params.template view<DeviceType>();
 
   for (int n = 1; n <= ntypes; n++) {
-    k_params.view_host()(n).chi = chi[n];
-    k_params.view_host()(n).eta = eta[n];
-    k_params.view_host()(n).gamma = gamma[n];
+    k_params.view_host()(n).chi = static_cast<KK_FLOAT>(chi[n]);
+    k_params.view_host()(n).eta = static_cast<KK_FLOAT>(eta[n]);
+    k_params.view_host()(n).gamma = static_cast<KK_FLOAT>(gamma[n]);
   }
   k_params.modify_host();
 
-  cutsq = swb * swb;
+  cutsq = static_cast<KK_FLOAT>(swb * swb);
 
   init_shielding_k();
   init_hist();
@@ -140,7 +140,7 @@ void FixQEqReaxFFKokkos<DeviceType>::init_shielding_k()
 
   for (i = 1; i <= ntypes; ++i)
     for (j = 1; j <= ntypes; ++j)
-      k_shield.view_host()(i,j) = pow(gamma[i] * gamma[j], -1.5);
+      k_shield.view_host()(i,j) = static_cast<KK_FLOAT>(pow(gamma[i] * gamma[j], -1.5));
 
   k_shield.modify_host();
   k_shield.template sync<DeviceType>();
@@ -149,7 +149,7 @@ void FixQEqReaxFFKokkos<DeviceType>::init_shielding_k()
   d_tap = k_tap.template view<DeviceType>();
 
   for (i = 0; i < 8; i ++)
-    k_tap.view_host()(i) = Tap[i];
+    k_tap.view_host()(i) = static_cast<KK_FLOAT>(Tap[i]);
 
   k_tap.modify_host();
   k_tap.template sync<DeviceType>();
@@ -385,7 +385,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqZero, const int &ii) const
   const int itype = type(i);
 
   if (mask[i] & groupbit) {
-    d_Hdia_inv[i] = 1.0 / params(itype).eta;
+    d_Hdia_inv[i] = static_cast<KK_FLOAT>(1.0) / params(itype).eta;
     d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
     d_b_st(i,1) = -1.0;
     d_st(i,0) = 0.0;
@@ -694,7 +694,7 @@ KK_FLOAT FixQEqReaxFFKokkos<DeviceType>::calculate_H_k(const KK_FLOAT &r, const 
   denom = r * r * r + shld;
   denom = cbrt(denom);
 
-  return taper * EV_TO_KCAL_PER_MOL / denom;
+  return taper * static_cast<KK_FLOAT>(EV_TO_KCAL_PER_MOL) / denom;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -707,7 +707,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqInitMatvec, const int &ii)
   const int itype = type(i);
 
   if (mask[i] & groupbit) {
-    d_Hdia_inv[i] = 1.0 / params(itype).eta;
+    d_Hdia_inv[i] = static_cast<KK_FLOAT>(1.0) / params(itype).eta;
     d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
     d_b_st(i,1) = -1.0;
     d_st(i,0) = 4*(d_s_hist(i,0)+d_s_hist(i,2))-(6*d_s_hist(i,1)+d_s_hist(i,3));
@@ -932,11 +932,11 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Half<NEIGHFL
 
     const int i = d_ilist[k];
     if (mask[i] & groupbit) {
-      KK_double2 doitmp;
+      KK_FLOAT2 doitmp;
       const KK_FLOAT d_xx_i0 = d_xx(i,0);
       const KK_FLOAT d_xx_i1 = d_xx(i,1);
 
-      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const bigint &jj, KK_double2& doi) {
+      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const bigint &jj, KK_FLOAT2& doi) {
         const int j = d_jlist(jj);
         const auto d_val_jj = d_val(jj);
         if (!(converged & 1)) {
@@ -968,8 +968,8 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Full, const 
   if (k < nn) {
     const int i = d_ilist[k];
     if (mask[i] & groupbit) {
-      KK_double2 doitmp;
-      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const bigint &jj, KK_double2& doi) {
+      KK_FLOAT2 doitmp;
+      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const bigint &jj, KK_FLOAT2& doi) {
         const int j = d_jlist(jj);
         const auto d_val_jj = d_val(jj);
         if (!(converged & 1))
@@ -997,15 +997,17 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqNorm1, const int &ii, KK_d
   if (mask[i] & groupbit) {
     const auto d_Hdia_inv_i = d_Hdia_inv[i];
     if (!(converged & 1)) {
-      d_r(i,0) = 1.0*d_b_st(i,0) + -1.0*d_o(i,0);
-      d_d(i,0) = d_r(i,0) * d_Hdia_inv_i;
-      out.v[0] += d_b_st(i,0) * d_b_st(i,0);
+      double r = static_cast<double>(d_b_st(i,0)) - static_cast<double>(d_o(i,0));
+      d_d(i,0) = static_cast<KK_FLOAT>(r * static_cast<double>(d_Hdia_inv_i));
+      d_r(i,0) = static_cast<KK_FLOAT>(r);
+      out.v[0] += static_cast<double>(d_b_st(i,0) * d_b_st(i,0));
     }
 
     if (!(converged & 2)) {
-      d_r(i,1) = 1.0*d_b_st(i,1) + -1.0*d_o(i,1);
-      d_d(i,1) = d_r(i,1) * d_Hdia_inv_i;
-      out.v[1] += d_b_st(i,1) * d_b_st(i,1);
+      double r = static_cast<double>(d_b_st(i,1)) - static_cast<double>(d_o(i,1));
+      d_d(i,1) = static_cast<KK_FLOAT>(r * static_cast<double>(d_Hdia_inv_i));
+      d_r(i,1) = static_cast<KK_FLOAT>(r);
+      out.v[1] += static_cast<double>(d_b_st(i,1) * d_b_st(i,1));
     }
   }
 }
@@ -1019,9 +1021,9 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot1, const int &ii, KK_do
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     if (!(converged & 1))
-      out.v[0] += d_r(i,0) * d_d(i,0);
+      out.v[0] += static_cast<double>(d_r(i,0) * d_d(i,0));
     if (!(converged & 2))
-      out.v[1] += d_r(i,1) * d_d(i,1);
+      out.v[1] += static_cast<double>(d_r(i,1) * d_d(i,1));
   }
 }
 
@@ -1034,9 +1036,9 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot2, const int &ii, KK_do
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     if (!(converged & 1))
-      out.v[0] += d_d(i,0) * d_o(i,0);
+      out.v[0] += static_cast<double>(d_d(i,0) * d_o(i,0));
     if (!(converged & 2))
-      out.v[1] += d_d(i,1) * d_o(i,1);
+      out.v[1] += static_cast<double>(d_d(i,1) * d_o(i,1));
   }
 }
 
@@ -1046,22 +1048,28 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot3, const int &ii, KK_double2& out) const
 {
+  // As much precision as possible needs to be preserved in this function (in practice),
+  // otherwise the CG solve tends to become unstable in reduced precision or outright fail to converge.
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
-    const auto d_Hdia_inv_i = d_Hdia_inv[i];
+    const double d_Hdia_inv_i = static_cast<double>(d_Hdia_inv[i]);
     if (!(converged & 1)) {
-      const auto alpha_0 = alpha[0];
-      d_st(i,0) += alpha_0 * d_d(i,0);
-      d_r(i,0) += -alpha_0 * d_o(i,0);
-      d_p(i,0) = d_r(i,0) * d_Hdia_inv_i;
-      out.v[0] += d_r(i,0) * d_p(i,0);
+      const double alpha_0 = alpha[0];
+      d_st(i,0) += static_cast<KK_FLOAT>(alpha_0 * static_cast<double>(d_d(i,0)));
+      double r = static_cast<double>(d_r(i, 0)) - alpha_0 * static_cast<double>(d_o(i,0));
+      double p = r * static_cast<double>(d_Hdia_inv_i);
+      out.v[0] += r * p;
+      d_p(i,0) = static_cast<KK_FLOAT>(p);
+      d_r(i,0) = static_cast<KK_FLOAT>(r);
     }
     if (!(converged & 2)) {
-      const auto alpha_1 = alpha[1];
-      d_st(i,1) += alpha_1 * d_d(i,1);
-      d_r(i,1) += -alpha_1 * d_o(i,1);
-      d_p(i,1) = d_r(i,1) * d_Hdia_inv_i;
-      out.v[1] += d_r(i,1) * d_p(i,1);
+      const double alpha_1 = alpha[1];
+      d_st(i,1) += static_cast<KK_FLOAT>(alpha_1 * static_cast<double>(d_d(i,1)));
+      double r = static_cast<double>(d_r(i, 1)) - alpha_1 * static_cast<double>(d_o(i,1));
+      double p = r * static_cast<double>(d_Hdia_inv_i);
+      out.v[1] += r * p;
+      d_p(i,1) = static_cast<KK_FLOAT>(p);
+      d_r(i,1) = static_cast<KK_FLOAT>(r);
     }
   }
 }
@@ -1075,9 +1083,9 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSum1, const int &ii) const
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     if (!(converged & 1))
-      d_d(i,0) = 1.0 * d_p(i,0) + beta[0] * d_d(i,0);
+      d_d(i,0) = static_cast<KK_FLOAT>(static_cast<double>(d_p(i,0)) + beta[0] * static_cast<double>(d_d(i,0)));
     if (!(converged & 2))
-      d_d(i,1) = 1.0 * d_p(i,1) + beta[1] * d_d(i,1);
+      d_d(i,1) = static_cast<KK_FLOAT>(static_cast<double>(d_p(i,1)) + beta[1] * static_cast<double>(d_d(i,1)));
   }
 }
 
@@ -1089,8 +1097,8 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSum2, const int &ii, KK_do
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
-    out.v[0] += d_st(i,0);
-    out.v[1] += d_st(i,1);
+    out.v[0] += static_cast<double>(d_st(i,0));
+    out.v[1] += static_cast<double>(d_st(i,1));
   }
 }
 
@@ -1102,7 +1110,8 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqCalculateQ, const int &ii)
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
-    q(i) = d_st(i,0) - delta * d_st(i,1);
+    // Preserve bits in the subtraction to avoid precision loss
+    q(i) = static_cast<KK_FLOAT>(static_cast<double>(d_st(i,0)) - delta * static_cast<double>(d_st(i,1)));
 
     for (int k = nprev-1; k > 0; --k) {
       d_s_hist(i,k) = d_s_hist(i,k-1);
@@ -1136,14 +1145,14 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackForwardComm, const int
 
   if (pack_flag == 1) {
     if (!(converged & 1))
-      d_buf[i*2] = d_d(j,0);
+      d_buf[i*2] = static_cast<double>(d_d(j,0));
     if (!(converged & 2))
-      d_buf[i*2+1] = d_d(j,1);
+      d_buf[i*2+1] = static_cast<double>(d_d(j,1));
   } else if (pack_flag == 2) {
-    d_buf[i*2] = d_st(j,0);
-    d_buf[i*2+1] = d_st(j,1);
+    d_buf[i*2] = static_cast<double>(d_st(j,0));
+    d_buf[i*2+1] = static_cast<double>(d_st(j,1));
   } else if (pack_flag == 3)
-    d_buf[i] = q[j];
+    d_buf[i] = static_cast<double>(q[j]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1164,14 +1173,14 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackForwardComm, const int &i) const {
   if (pack_flag == 1) {
     if (!(converged & 1))
-      d_d(i+first,0) = d_buf[i*2];
+      d_d(i+first,0) = static_cast<KK_FLOAT>(d_buf[i*2]);
     if (!(converged & 2))
-      d_d(i+first,1) = d_buf[i*2+1];
+      d_d(i+first,1) = static_cast<KK_FLOAT>(d_buf[i*2+1]);
   } else if (pack_flag == 2) {
-    d_st(i+first,0) = d_buf[i*2];
-    d_st(i+first,1) = d_buf[i*2+1];
+    d_st(i+first,0) = static_cast<KK_FLOAT>(d_buf[i*2]);
+    d_st(i+first,1) = static_cast<KK_FLOAT>(d_buf[i*2+1]);
   } else if (pack_flag == 3)
-    q[i + first] = d_buf[i];
+    q[i + first] = static_cast<KK_FLOAT>(d_buf[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1187,15 +1196,15 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *
     k_d.sync_host();
     for (m = 0; m < n; m++) {
       if (!(converged & 1))
-        buf[m*2] = h_d(list[m],0);
+        buf[m*2] = static_cast<double>(h_d(list[m],0));
       if (!(converged & 2))
-        buf[m*2+1] = h_d(list[m],1);
+        buf[m*2+1] = static_cast<double>(h_d(list[m],1));
     }
   } else if (pack_flag == 2) {
     k_st.sync_host();
     for (m = 0; m < n; m++) {
-      buf[m*2] = h_st(list[m],0);
-      buf[m*2+1] = h_st(list[m],1);
+      buf[m*2] = static_cast<double>(h_st(list[m],0));
+      buf[m*2+1] = static_cast<double>(h_st(list[m],1));
     }
   } else if (pack_flag == 3) {
     atomKK->sync(Host,Q_MASK);
@@ -1217,16 +1226,16 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm(int n, int first, doubl
     k_d.sync_host();
     for (m = 0, i = first; m < n; m++, i++) {
       if (!(converged & 1))
-        h_d(i,0) = buf[m*2];
+        h_d(i,0) = static_cast<KK_FLOAT>(buf[m*2]);
       if (!(converged & 2))
-        h_d(i,1) = buf[m*2+1];
+        h_d(i,1) = static_cast<KK_FLOAT>(buf[m*2+1]);
     }
     k_d.modify_host();
   } else if (pack_flag == 2) {
     k_st.sync_host();
     for (m = 0, i = first; m < n; m++, i++) {
-      h_st(i,0) = buf[m*2];
-      h_st(i,1) = buf[m*2+1];
+      h_st(i,0) = static_cast<KK_FLOAT>(buf[m*2]);
+      h_st(i,1) = static_cast<KK_FLOAT>(buf[m*2+1]);
     }
     k_st.modify_host();
   } else if (pack_flag == 3) {
@@ -1245,9 +1254,9 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *
   k_o.sync_host();
   for (m = 0, i = first; m < n; m++, i++) {
     if (!(converged & 1))
-      buf[m*2] = h_o(i,0);
+      buf[m*2] = static_cast<double>(h_o(i,0));
     if (!(converged & 2))
-      buf[m*2+1] = h_o(i,1);
+      buf[m*2+1] = static_cast<double>(h_o(i,1));
   }
   return n*2;
 }
@@ -1260,9 +1269,9 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, doubl
   k_o.sync_host();
   for (int m = 0; m < n; m++) {
     if (!(converged & 1))
-      h_o(list[m],0) += buf[m*2];
+      h_o(list[m],0) += static_cast<KK_FLOAT>(buf[m*2]);
     if (!(converged & 2))
-      h_o(list[m],1) += buf[m*2+1];
+      h_o(list[m],1) += static_cast<KK_FLOAT>(buf[m*2+1]);
   }
   k_o.modify_host();
 }
@@ -1284,11 +1293,11 @@ double FixQEqReaxFFKokkos<DeviceType>::memory_usage()
 {
   double bytes;
 
-  bytes = atom->nmax*nprev*2 * sizeof(double); // s_hist & t_hist
-  bytes += (double)atom->nmax*8 * sizeof(double); // storage
+  bytes = atom->nmax*nprev*2 * sizeof(KK_FLOAT); // s_hist & t_hist
+  bytes += (double)atom->nmax*8 * sizeof(KK_FLOAT); // storage
   bytes += (double)n_cap*2 * sizeof(int); // matrix...
   bytes += (double)m_cap_big * sizeof(int);
-  bytes += (double)m_cap_big * sizeof(double);
+  bytes += (double)m_cap_big * sizeof(KK_FLOAT);
 
   return bytes;
 }
@@ -1358,8 +1367,8 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackExchange, const int &mysend) const {
   const int i = d_exchange_sendlist(mysend);
 
-  for (int m = 0; m < nprev; m++) d_buf(mysend*nprev*2 + m) = d_s_hist(i,m);
-  for (int m = 0; m < nprev; m++) d_buf(mysend*nprev*2 + nprev+m) = d_t_hist(i,m);
+  for (int m = 0; m < nprev; m++) d_buf(mysend*nprev*2 + m) = static_cast<double>(d_s_hist(i,m));
+  for (int m = 0; m < nprev; m++) d_buf(mysend*nprev*2 + nprev+m) = static_cast<double>(d_t_hist(i,m));
 
   const int j = d_copylist(mysend);
 
@@ -1412,8 +1421,8 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackExchange, const int 
   int index = d_indices(i);
 
   if (index > -1) {
-    for (int m = 0; m < nprev; m++) d_s_hist(index,m) = d_buf(i*nprev*2 + m);
-    for (int m = 0; m < nprev; m++) d_t_hist(index,m) = d_buf(i*nprev*2 + nprev+m);
+    for (int m = 0; m < nprev; m++) d_s_hist(index,m) = static_cast<KK_FLOAT>(d_buf(i*nprev*2 + m));
+    for (int m = 0; m < nprev; m++) d_t_hist(index,m) = static_cast<KK_FLOAT>(d_buf(i*nprev*2 + nprev+m));
   }
 }
 

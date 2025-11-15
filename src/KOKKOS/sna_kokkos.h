@@ -31,7 +31,7 @@
 namespace LAMMPS_NS {
 // copied from pair_snap_kokkos.h
 // pre-declare so sna_kokkos.h can refer to it
-template<class DeviceType, typename real_type_, int vector_length_> class PairSNAPKokkos;
+template<class DeviceType, typename real_type_, typename accum_type_, int vector_length_> class PairSNAPKokkos;
 
 // This class acts as a shared memory backing to what otherwise looks like a
 // per-thread register array. It is specialized to complex numbers, and automatically
@@ -182,11 +182,12 @@ struct alignas(16) idxz_struct {
 };
 
 
-template<class DeviceType, typename real_type_, int vector_length_>
+template<class DeviceType, typename real_type_, typename accum_type_, int vector_length_>
 class SNAKokkos {
 
  public:
   using real_type = real_type_;
+  using accum_type = accum_type_;
   using complex = SNAComplex<real_type>;
   static constexpr int vector_length = vector_length_;
 
@@ -211,6 +212,8 @@ class SNAKokkos {
   typedef Kokkos::View<real_type**[3], DeviceType> t_sna_3d3;
   typedef Kokkos::View<real_type*****, DeviceType> t_sna_5d;
 
+  typedef Kokkos::View<accum_type***, DeviceType> t_sna_accum_3d;
+
   typedef Kokkos::View<complex*, DeviceType> t_sna_1c;
   typedef Kokkos::View<complex*, KKDeviceType, Kokkos::MemoryTraits<Kokkos::Atomic>> t_sna_1c_atomic;
   typedef Kokkos::View<complex**, DeviceType> t_sna_2c;
@@ -228,7 +231,7 @@ class SNAKokkos {
   SNAKokkos() {};
 
   KOKKOS_INLINE_FUNCTION
-  SNAKokkos(const SNAKokkos<DeviceType, real_type, vector_length>& sna, const typename Kokkos::TeamPolicy<DeviceType>::member_type& team);
+  SNAKokkos(const SNAKokkos<DeviceType, real_type, accum_type, vector_length>& sna, const typename Kokkos::TeamPolicy<DeviceType>::member_type& team);
 
   template<class CopyClass>
   inline
@@ -359,7 +362,7 @@ class SNAKokkos {
   t_sna_2d sinnerij;
   t_sna_2d dinnerij;
   t_sna_2i element;
-  t_sna_3d dedr;
+  t_sna_accum_3d dedr;
   int natom, natom_pad, nmax;
 
   void grow_rij(int newnatom, int newnmax, int padding_factor = 1);

@@ -140,14 +140,14 @@ struct PairComputeFunctor  {
     const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
     const int jnum = list.d_numneigh[i];
 
-    KK_ACC_FLOAT fxtmp = 0.0;
-    KK_ACC_FLOAT fytmp = 0.0;
-    KK_ACC_FLOAT fztmp = 0.0;
+    KK_ACC_FLOAT fxtmp = 0;
+    KK_ACC_FLOAT fytmp = 0;
+    KK_ACC_FLOAT fztmp = 0;
 
     if (NEIGHFLAG == FULL && ZEROFLAG) {
-      f(i,0) = 0.0;
-      f(i,1) = 0.0;
-      f(i,2) = 0.0;
+      f(i,0) = 0;
+      f(i,1) = 0;
+      f(i,2) = 0;
     }
 
     for (int jj = 0; jj < jnum; jj++) {
@@ -164,21 +164,22 @@ struct PairComputeFunctor  {
 
         const KK_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
 
-        fxtmp += delx*fpair;
-        fytmp += dely*fpair;
-        fztmp += delz*fpair;
+        fxtmp += static_cast<KK_ACC_FLOAT>(delx*fpair);
+        fytmp += static_cast<KK_ACC_FLOAT>(dely*fpair);
+        fztmp += static_cast<KK_ACC_FLOAT>(delz*fpair);
 
         if ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && (NEWTON_PAIR || j < c.nlocal)) {
-          a_f(j,0) -= delx*fpair;
-          a_f(j,1) -= dely*fpair;
-          a_f(j,2) -= delz*fpair;
+          a_f(j,0) -= static_cast<KK_ACC_FLOAT>(delx*fpair);
+          a_f(j,1) -= static_cast<KK_ACC_FLOAT>(dely*fpair);
+          a_f(j,2) -= static_cast<KK_ACC_FLOAT>(delz*fpair);
         }
 
         if (EVFLAG) {
           KK_FLOAT evdwl = 0.0;
           if (c.eflag_either) {
             evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-            ev.evdwl += (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?1.0:0.5)*evdwl;
+            const auto scale = (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5));
+            ev.evdwl += static_cast<KK_ACC_FLOAT>(scale *  evdwl);
           }
 
           if (c.vflag_either || c.eflag_atom) ev_tally(ev,i,j,evdwl,fpair,delx,dely,delz);
@@ -187,9 +188,9 @@ struct PairComputeFunctor  {
 
     }
 
-    a_f(i,0) += fxtmp;
-    a_f(i,1) += fytmp;
-    a_f(i,2) += fztmp;
+    a_f(i,0) += static_cast<KK_ACC_FLOAT>(fxtmp);
+    a_f(i,1) += static_cast<KK_ACC_FLOAT>(fytmp);
+    a_f(i,2) += static_cast<KK_ACC_FLOAT>(fztmp);
 
     return ev;
   }
@@ -215,14 +216,14 @@ struct PairComputeFunctor  {
     const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
     const int jnum = list.d_numneigh[i];
 
-    KK_ACC_FLOAT fxtmp = 0.0;
-    KK_ACC_FLOAT fytmp = 0.0;
-    KK_ACC_FLOAT fztmp = 0.0;
+    KK_ACC_FLOAT fxtmp = 0;
+    KK_ACC_FLOAT fytmp = 0;
+    KK_ACC_FLOAT fztmp = 0;
 
     if (NEIGHFLAG == FULL && ZEROFLAG) {
-      f(i,0) = 0.0;
-      f(i,1) = 0.0;
-      f(i,2) = 0.0;
+      f(i,0) = 0;
+      f(i,1) = 0;
+      f(i,2) = 0;
     }
 
     for (int jj = 0; jj < jnum; jj++) {
@@ -245,14 +246,14 @@ struct PairComputeFunctor  {
         if (rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype)))
           fpair+=c.template compute_fcoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
 
-        fxtmp += delx*fpair;
-        fytmp += dely*fpair;
-        fztmp += delz*fpair;
+        fxtmp += static_cast<KK_ACC_FLOAT>(delx*fpair);
+        fytmp += static_cast<KK_ACC_FLOAT>(dely*fpair);
+        fztmp += static_cast<KK_ACC_FLOAT>(delz*fpair);
 
         if ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && (NEWTON_PAIR || j < c.nlocal)) {
-          a_f(j,0) -= delx*fpair;
-          a_f(j,1) -= dely*fpair;
-          a_f(j,2) -= delz*fpair;
+          a_f(j,0) -= static_cast<KK_ACC_FLOAT>(delx*fpair);
+          a_f(j,1) -= static_cast<KK_ACC_FLOAT>(dely*fpair);
+          a_f(j,2) -= static_cast<KK_ACC_FLOAT>(delz*fpair);
         }
 
         if (EVFLAG) {
@@ -261,11 +262,13 @@ struct PairComputeFunctor  {
           if (c.eflag_either) {
             if (rsq < (STACKPARAMS?c.m_cut_ljsq[itype][jtype]:c.d_cut_ljsq(itype,jtype))) {
               evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-              ev.evdwl += (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && (NEWTON_PAIR || (j < c.nlocal)))?1.0:0.5)*evdwl;
+              const auto scale = (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5));
+              ev.evdwl += static_cast<KK_ACC_FLOAT>(scale * evdwl);
             }
             if (rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype))) {
               ecoul = c.template compute_ecoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
-              ev.ecoul += (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && (NEWTON_PAIR || (j < c.nlocal)))?1.0:0.5)*ecoul;
+              const auto scale = (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5));
+              ev.ecoul += static_cast<KK_ACC_FLOAT>(scale * ecoul);
             }
           }
 
@@ -274,9 +277,9 @@ struct PairComputeFunctor  {
       }
     }
 
-    a_f(i,0) += fxtmp;
-    a_f(i,1) += fytmp;
-    a_f(i,2) += fztmp;
+    a_f(i,0) += static_cast<KK_ACC_FLOAT>(fxtmp);
+    a_f(i,1) += static_cast<KK_ACC_FLOAT>(fytmp);
+    a_f(i,2) += static_cast<KK_ACC_FLOAT>(fztmp);
 
     return ev;
   }
@@ -340,18 +343,18 @@ struct PairComputeFunctor  {
           ftmp.z += fz;
 
           if ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal) {
-            a_f(j,0) -= fx;
-            a_f(j,1) -= fy;
-            a_f(j,2) -= fz;
+            a_f(j,0) -= static_cast<KK_ACC_FLOAT>(fx);
+            a_f(j,1) -= static_cast<KK_ACC_FLOAT>(fy);
+            a_f(j,2) -= static_cast<KK_ACC_FLOAT>(fz);
           }
         }
 
       },fsum);
 
       Kokkos::single(Kokkos::PerThread(team), [&] () {
-        a_f(i,0) += fsum.x;
-        a_f(i,1) += fsum.y;
-        a_f(i,2) += fsum.z;
+        a_f(i,0) += static_cast<KK_ACC_FLOAT>(fsum.x);
+        a_f(i,1) += static_cast<KK_ACC_FLOAT>(fsum.y);
+        a_f(i,2) += static_cast<KK_ACC_FLOAT>(fsum.z);
       });
 
     });
@@ -382,9 +385,9 @@ struct PairComputeFunctor  {
       if (NEIGHFLAG == FULL && ZEROFLAG) {
         Kokkos::single(Kokkos::PerThread(team), [&] ()
         {
-          f(i,0) = 0.0;
-          f(i,1) = 0.0;
-          f(i,2) = 0.0;
+          f(i,0) = 0;
+          f(i,1) = 0;
+          f(i,2) = 0;
         });
       }
 
@@ -423,18 +426,18 @@ struct PairComputeFunctor  {
           ftmp.z += fz;
 
           if ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal) {
-            a_f(j,0) -= fx;
-            a_f(j,1) -= fy;
-            a_f(j,2) -= fz;
+            a_f(j,0) -= static_cast<KK_ACC_FLOAT>(fx);
+            a_f(j,1) -= static_cast<KK_ACC_FLOAT>(fy);
+            a_f(j,2) -= static_cast<KK_ACC_FLOAT>(fz);
           }
         }
 
       },fsum);
 
       Kokkos::single(Kokkos::PerThread(team), [&] () {
-        a_f(i,0) += fsum.x;
-        a_f(i,1) += fsum.y;
-        a_f(i,2) += fsum.z;
+        a_f(i,0) += static_cast<KK_ACC_FLOAT>(fsum.x);
+        a_f(i,1) += static_cast<KK_ACC_FLOAT>(fsum.y);
+        a_f(i,2) += static_cast<KK_ACC_FLOAT>(fsum.z);
       });
     });
   }
@@ -467,9 +470,9 @@ struct PairComputeFunctor  {
       if (NEIGHFLAG == FULL && ZEROFLAG) {
         Kokkos::single(Kokkos::PerThread(team), [&] ()
         {
-          f(i,0) = 0.0;
-          f(i,1) = 0.0;
-          f(i,2) = 0.0;
+          f(i,0) = 0;
+          f(i,1) = 0;
+          f(i,2) = 0;
         });
       }
 
@@ -498,67 +501,57 @@ struct PairComputeFunctor  {
           const KK_FLOAT fy = dely*fpair;
           const KK_FLOAT fz = delz*fpair;
 
-          fev_tmp.f[0] += fx;
-          fev_tmp.f[1] += fy;
-          fev_tmp.f[2] += fz;
+          fev_tmp.f[0] += static_cast<KK_ACC_FLOAT>(fx);
+          fev_tmp.f[1] += static_cast<KK_ACC_FLOAT>(fy);
+          fev_tmp.f[2] += static_cast<KK_ACC_FLOAT>(fz);
 
           const int I_CONTRIB = (NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD);
           const int J_CONTRIB = ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal);
-          const KK_FLOAT factor = J_CONTRIB?1.0:0.5;
+          const KK_FLOAT factor = J_CONTRIB?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5);
 
           if (J_CONTRIB) {
-            a_f(j,0) -= fx;
-            a_f(j,1) -= fy;
-            a_f(j,2) -= fz;
+            a_f(j,0) -= static_cast<KK_ACC_FLOAT>(fx);
+            a_f(j,1) -= static_cast<KK_ACC_FLOAT>(fy);
+            a_f(j,2) -= static_cast<KK_ACC_FLOAT>(fz);
           }
 
           KK_FLOAT evdwl = 0.0;
           if (c.eflag_either) {
             evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-            fev_tmp.evdwl += factor * evdwl;
+            fev_tmp.evdwl += static_cast<KK_ACC_FLOAT>(factor * evdwl);
 
             if (c.eflag_atom) {
-              const KK_FLOAT epairhalf = 0.5 * evdwl;
+              const KK_FLOAT epairhalf = static_cast<KK_FLOAT>(0.5) * evdwl;
 
               if (I_CONTRIB)
-                a_eatom[i] += epairhalf;
+                a_eatom[i] += static_cast<KK_ACC_FLOAT>(epairhalf);
 
               if (J_CONTRIB)
-                a_eatom[j] += epairhalf;
+                a_eatom[j] += static_cast<KK_ACC_FLOAT>(epairhalf);
             }
           }
 
           if (c.vflag_either) {
-            const KK_FLOAT v0 = delx*delx*fpair;
-            const KK_FLOAT v1 = dely*dely*fpair;
-            const KK_FLOAT v2 = delz*delz*fpair;
-            const KK_FLOAT v3 = delx*dely*fpair;
-            const KK_FLOAT v4 = delx*delz*fpair;
-            const KK_FLOAT v5 = dely*delz*fpair;
+            const KK_FLOAT v_acc[6] = { delx*delx*fpair,
+              dely*dely*fpair,
+              delz*delz*fpair,
+              delx*dely*fpair,
+              delx*delz*fpair,
+              dely*delz*fpair };
 
-            fev_tmp.v[0] += factor*v0;
-            fev_tmp.v[1] += factor*v1;
-            fev_tmp.v[2] += factor*v2;
-            fev_tmp.v[3] += factor*v3;
-            fev_tmp.v[4] += factor*v4;
-            fev_tmp.v[5] += factor*v5;
+            const auto one_half = static_cast<KK_FLOAT>(0.5);
+
+            for (int n = 0; n < 6; n++)
+              fev_tmp.v[n] += static_cast<KK_ACC_FLOAT>(factor *v_acc[n]);
 
             if (c.vflag_atom) {
               if (I_CONTRIB) {
-                a_vatom(i,0) += 0.5*v0;
-                a_vatom(i,1) += 0.5*v1;
-                a_vatom(i,2) += 0.5*v2;
-                a_vatom(i,3) += 0.5*v3;
-                a_vatom(i,4) += 0.5*v4;
-                a_vatom(i,5) += 0.5*v5;
+                for (int n = 0; n < 6; n++)
+                  a_vatom(i, n) += static_cast<KK_ACC_FLOAT>(one_half * v_acc[n]);
               }
               if (J_CONTRIB) {
-                a_vatom(j,0) += 0.5*v0;
-                a_vatom(j,1) += 0.5*v1;
-                a_vatom(j,2) += 0.5*v2;
-                a_vatom(j,3) += 0.5*v3;
-                a_vatom(j,4) += 0.5*v4;
-                a_vatom(j,5) += 0.5*v5;
+                for (int n = 0; n < 6; n++)
+                  a_vatom(j, n) += static_cast<KK_ACC_FLOAT>(one_half * v_acc[n]);
               }
             }
           }
@@ -566,20 +559,15 @@ struct PairComputeFunctor  {
       },fev);
 
       Kokkos::single(Kokkos::PerThread(team), [&] () {
-        a_f(i,0) += fev.f[0];
-        a_f(i,1) += fev.f[1];
-        a_f(i,2) += fev.f[2];
+        for (int n = 0; n < 3; n++)
+          a_f(i,n) += static_cast<KK_ACC_FLOAT>(fev.f[n]);
 
         if (c.eflag_global)
           ev.evdwl += fev.evdwl;
 
         if (c.vflag_global) {
-          ev.v[0] += fev.v[0];
-          ev.v[1] += fev.v[1];
-          ev.v[2] += fev.v[2];
-          ev.v[3] += fev.v[3];
-          ev.v[4] += fev.v[4];
-          ev.v[5] += fev.v[5];
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += fev.v[n];
         }
 
         if (NEIGHFLAG == FULL) {
@@ -588,12 +576,8 @@ struct PairComputeFunctor  {
             a_eatom(i) += fev.evdwl;
 
           if (c.vflag_atom) {
-            a_vatom(i,0) += fev.v[0];
-            a_vatom(i,1) += fev.v[1];
-            a_vatom(i,2) += fev.v[2];
-            a_vatom(i,3) += fev.v[3];
-            a_vatom(i,4) += fev.v[4];
-            a_vatom(i,5) += fev.v[5];
+            for (int n = 0; n < 6; n++)
+              a_vatom(i,n) += fev.v[n];
           }
         }
       });
@@ -666,18 +650,18 @@ struct PairComputeFunctor  {
           const KK_FLOAT fy = dely*fpair;
           const KK_FLOAT fz = delz*fpair;
 
-          fev_tmp.f[0] += fx;
-          fev_tmp.f[1] += fy;
-          fev_tmp.f[2] += fz;
+          fev_tmp.f[0] += static_cast<KK_ACC_FLOAT>(fx);
+          fev_tmp.f[1] += static_cast<KK_ACC_FLOAT>(fy);
+          fev_tmp.f[2] += static_cast<KK_ACC_FLOAT>(fz);
 
           const int I_CONTRIB = (NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD);
           const int J_CONTRIB = ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal);
-          const KK_FLOAT factor = J_CONTRIB?1.0:0.5;
+          const KK_FLOAT factor = J_CONTRIB?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5);
 
           if (J_CONTRIB) {
-            a_f(j,0) -= fx;
-            a_f(j,1) -= fy;
-            a_f(j,2) -= fz;
+            a_f(j,0) -= static_cast<KK_ACC_FLOAT>(fx);
+            a_f(j,1) -= static_cast<KK_ACC_FLOAT>(fy);
+            a_f(j,2) -= static_cast<KK_ACC_FLOAT>(fz);
           }
 
           KK_FLOAT evdwl = 0.0;
@@ -685,16 +669,16 @@ struct PairComputeFunctor  {
           if (c.eflag_either) {
             if (rsq < (STACKPARAMS?c.m_cut_ljsq[itype][jtype]:c.d_cut_ljsq(itype,jtype))) {
               evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-              fev_tmp.evdwl += factor * evdwl;
+              fev_tmp.evdwl += static_cast<KK_ACC_FLOAT>(factor * evdwl);
             }
             if (rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype))) {
               ecoul = c.template compute_ecoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
-              fev_tmp.ecoul += factor * ecoul;
+              fev_tmp.ecoul += static_cast<KK_ACC_FLOAT>(factor * ecoul);
             }
 
 
             if (c.eflag_atom) {
-              const KK_FLOAT epairhalf = 0.5 * (evdwl + ecoul);
+              const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * (evdwl + ecoul));
 
               if (I_CONTRIB)
                 a_eatom[i] += epairhalf;
@@ -705,36 +689,25 @@ struct PairComputeFunctor  {
           }
 
           if (c.vflag_either) {
-            const KK_FLOAT v0 = delx*delx*fpair;
-            const KK_FLOAT v1 = dely*dely*fpair;
-            const KK_FLOAT v2 = delz*delz*fpair;
-            const KK_FLOAT v3 = delx*dely*fpair;
-            const KK_FLOAT v4 = delx*delz*fpair;
-            const KK_FLOAT v5 = dely*delz*fpair;
+            const KK_FLOAT v_acc[6] = { delx*delx*fpair,
+              dely*dely*fpair,
+              delz*delz*fpair,
+              delx*dely*fpair,
+              delx*delz*fpair,
+              dely*delz*fpair };
+            const auto one_half = static_cast<KK_FLOAT>(0.5);
 
-            fev_tmp.v[0] += factor*v0;
-            fev_tmp.v[1] += factor*v1;
-            fev_tmp.v[2] += factor*v2;
-            fev_tmp.v[3] += factor*v3;
-            fev_tmp.v[4] += factor*v4;
-            fev_tmp.v[5] += factor*v5;
+            for (int n = 0; n < 6; n++)
+              fev_tmp.v[n] += static_cast<KK_ACC_FLOAT>(factor * v_acc[n]);
 
             if (c.vflag_atom) {
               if (I_CONTRIB) {
-                a_vatom(i,0) += 0.5*v0;
-                a_vatom(i,1) += 0.5*v1;
-                a_vatom(i,2) += 0.5*v2;
-                a_vatom(i,3) += 0.5*v3;
-                a_vatom(i,4) += 0.5*v4;
-                a_vatom(i,5) += 0.5*v5;
+                for (int n = 0; n < 6; n++)
+                  a_vatom(i,n) += static_cast<KK_ACC_FLOAT>(one_half * v_acc[n]);
               }
               if (J_CONTRIB) {
-                a_vatom(j,0) += 0.5*v0;
-                a_vatom(j,1) += 0.5*v1;
-                a_vatom(j,2) += 0.5*v2;
-                a_vatom(j,3) += 0.5*v3;
-                a_vatom(j,4) += 0.5*v4;
-                a_vatom(j,5) += 0.5*v5;
+                for (int n = 0; n < 6; n++)
+                  a_vatom(j,n) += static_cast<KK_ACC_FLOAT>(one_half * v_acc[n]);
               }
             }
           }
@@ -742,9 +715,8 @@ struct PairComputeFunctor  {
       },fev);
 
       Kokkos::single(Kokkos::PerThread(team), [&] () {
-        a_f(i,0) += fev.f[0];
-        a_f(i,1) += fev.f[1];
-        a_f(i,2) += fev.f[2];
+        for (int n = 0; n < 3; n++)
+          a_f(i,n) += fev.f[n];
 
         if (c.eflag_global) {
           ev.evdwl += fev.evdwl;
@@ -752,12 +724,8 @@ struct PairComputeFunctor  {
         }
 
         if (c.vflag_global) {
-          ev.v[0] += fev.v[0];
-          ev.v[1] += fev.v[1];
-          ev.v[2] += fev.v[2];
-          ev.v[3] += fev.v[3];
-          ev.v[4] += fev.v[4];
-          ev.v[5] += fev.v[5];
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += fev.v[n];
         }
 
         if (NEIGHFLAG == FULL) {
@@ -766,12 +734,8 @@ struct PairComputeFunctor  {
             a_eatom(i) += fev.evdwl + fev.ecoul;
 
           if (c.vflag_atom) {
-            a_vatom(i,0) += fev.v[0];
-            a_vatom(i,1) += fev.v[1];
-            a_vatom(i,2) += fev.v[2];
-            a_vatom(i,3) += fev.v[3];
-            a_vatom(i,4) += fev.v[4];
-            a_vatom(i,5) += fev.v[5];
+            for (int n = 0; n < 6; n++)
+              a_vatom(i,n) += fev.v[n];
           }
         }
       });
@@ -793,7 +757,7 @@ struct PairComputeFunctor  {
 
     if (EFLAG) {
       if (c.eflag_atom) {
-        const KK_FLOAT epairhalf = 0.5 * epair;
+        const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * epair);
         if (NEWTON_PAIR || i < c.nlocal) a_eatom[i] += epairhalf;
         if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) a_eatom[j] += epairhalf;
       }
@@ -806,60 +770,44 @@ struct PairComputeFunctor  {
       const KK_FLOAT v3 = delx*dely*fpair;
       const KK_FLOAT v4 = delx*delz*fpair;
       const KK_FLOAT v5 = dely*delz*fpair;
+      const auto one_half = static_cast<KK_FLOAT>(0.5);
+
+      const KK_ACC_FLOAT v_acc[6] = { static_cast<KK_ACC_FLOAT>(one_half*v0),
+        static_cast<KK_ACC_FLOAT>(one_half*v1),
+        static_cast<KK_ACC_FLOAT>(one_half*v2),
+        static_cast<KK_ACC_FLOAT>(one_half*v3),
+        static_cast<KK_ACC_FLOAT>(one_half*v4),
+        static_cast<KK_ACC_FLOAT>(one_half*v5) };
 
       if (c.vflag_global) {
         if (NEIGHFLAG != FULL) {
           if (NEWTON_PAIR) {
-            ev.v[0] += v0;
-            ev.v[1] += v1;
-            ev.v[2] += v2;
-            ev.v[3] += v3;
-            ev.v[4] += v4;
-            ev.v[5] += v5;
+            for (int n = 0; n < 6; n++)
+              ev.v[n] += static_cast<KK_ACC_FLOAT>(2) * v_acc[n];
           } else {
             if (i < c.nlocal) {
-              ev.v[0] += 0.5*v0;
-              ev.v[1] += 0.5*v1;
-              ev.v[2] += 0.5*v2;
-              ev.v[3] += 0.5*v3;
-              ev.v[4] += 0.5*v4;
-              ev.v[5] += 0.5*v5;
+              for (int n = 0; n < 6; n++)
+                ev.v[n] += v_acc[n];
             }
             if (j < c.nlocal) {
-              ev.v[0] += 0.5*v0;
-              ev.v[1] += 0.5*v1;
-              ev.v[2] += 0.5*v2;
-              ev.v[3] += 0.5*v3;
-              ev.v[4] += 0.5*v4;
-              ev.v[5] += 0.5*v5;
+              for (int n = 0; n < 6; n++)
+                ev.v[n] += v_acc[n];
             }
           }
         } else {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += v_acc[n];
         }
       }
 
       if (c.vflag_atom) {
         if (NEWTON_PAIR || i < c.nlocal) {
-          a_vatom(i,0) += 0.5*v0;
-          a_vatom(i,1) += 0.5*v1;
-          a_vatom(i,2) += 0.5*v2;
-          a_vatom(i,3) += 0.5*v3;
-          a_vatom(i,4) += 0.5*v4;
-          a_vatom(i,5) += 0.5*v5;
+          for (int n = 0; n < 6; n++)
+            a_vatom(i,n) += v_acc[n];
         }
         if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) {
-          a_vatom(j,0) += 0.5*v0;
-          a_vatom(j,1) += 0.5*v1;
-          a_vatom(j,2) += 0.5*v2;
-          a_vatom(j,3) += 0.5*v3;
-          a_vatom(j,4) += 0.5*v4;
-          a_vatom(j,5) += 0.5*v5;
+          for (int n = 0; n < 6; n++)
+            a_vatom(j,n) += v_acc[n];
         }
       }
     }
@@ -961,7 +909,7 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
       lastcall = fpair->lmp->update->ntimestep;
       vectorsize = GetMaxNeighs(list);
       if (vectorsize == 0) vectorsize = 1;
-      vectorsize = MathSpecial::powint(2.0,(int(log2(double(vectorsize)) + 0.5))); // round to nearest power of 2
+      vectorsize = static_cast<int>(MathSpecial::powint(2.0,(int(log2(double(vectorsize)) + 0.5)))); // round to nearest power of 2
 
   #if defined(KOKKOS_ENABLE_HIP)
       int max_vectorsize = 64;
@@ -1062,12 +1010,12 @@ struct PairVirialFDotRCompute {
   KOKKOS_INLINE_FUNCTION
   void operator()(const int j, value_type &energy_virial) const {
     const int i = j + offset;
-    energy_virial.v[0] += f(i,0)*x(i,0);
-    energy_virial.v[1] += f(i,1)*x(i,1);
-    energy_virial.v[2] += f(i,2)*x(i,2);
-    energy_virial.v[3] += f(i,1)*x(i,0);
-    energy_virial.v[4] += f(i,2)*x(i,0);
-    energy_virial.v[5] += f(i,2)*x(i,1);
+    energy_virial.v[0] += f(i,0)*static_cast<KK_ACC_FLOAT>(x(i,0));
+    energy_virial.v[1] += f(i,1)*static_cast<KK_ACC_FLOAT>(x(i,1));
+    energy_virial.v[2] += f(i,2)*static_cast<KK_ACC_FLOAT>(x(i,2));
+    energy_virial.v[3] += f(i,1)*static_cast<KK_ACC_FLOAT>(x(i,0));
+    energy_virial.v[4] += f(i,2)*static_cast<KK_ACC_FLOAT>(x(i,0));
+    energy_virial.v[5] += f(i,2)*static_cast<KK_ACC_FLOAT>(x(i,1));
   }
 };
 
@@ -1084,12 +1032,8 @@ void pair_virial_fdotr_compute(PairStyle* fpair) {
     virial+=virial_ghost;
   }
   fpair->vflag_fdotr = 0;
-  fpair->virial[0] = virial.v[0];
-  fpair->virial[1] = virial.v[1];
-  fpair->virial[2] = virial.v[2];
-  fpair->virial[3] = virial.v[3];
-  fpair->virial[4] = virial.v[4];
-  fpair->virial[5] = virial.v[5];
+  for (int n = 0; n < 6; n++)
+    fpair->virial[n] = static_cast<double>(virial.v[n]);
 }
 
 }

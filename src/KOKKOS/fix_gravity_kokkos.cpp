@@ -77,6 +77,10 @@ void FixGravityKokkos<DeviceType>::post_force(int /*vflag*/)
   eflag = 0;
   egrav = 0.0;
 
+  xacc_kk = static_cast<KK_FLOAT>(xacc);
+  yacc_kk = static_cast<KK_FLOAT>(yacc);
+  zacc_kk = static_cast<KK_FLOAT>(zacc);
+
   if (atomKK->rmass) {
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixGravityRMass>(0,nlocal), *this, egrav);
   }
@@ -92,10 +96,10 @@ void FixGravityKokkos<DeviceType>::operator()(TagFixGravityRMass, const int i, d
 {
   if (mask[i] & groupbit) {
     KK_FLOAT massone = rmass[i];
-    f(i,0) += massone*xacc;
-    f(i,1) += massone*yacc;
-    f(i,2) += massone*zacc;
-    eg -= massone * (xacc*x(i,0) + yacc*x(i,1) + zacc*x(i,2));
+    f(i,0) += static_cast<KK_ACC_FLOAT>(massone*xacc_kk);
+    f(i,1) += static_cast<KK_ACC_FLOAT>(massone*yacc_kk);
+    f(i,2) += static_cast<KK_ACC_FLOAT>(massone*zacc_kk);
+    eg -= static_cast<double>(massone * (xacc_kk*x(i,0) + yacc_kk*x(i,1) + zacc_kk*x(i,2)));
   }
 }
 
@@ -105,10 +109,10 @@ void FixGravityKokkos<DeviceType>::operator()(TagFixGravityMass, const int i, do
 {
   if (mask[i] & groupbit) {
     KK_FLOAT massone = mass[type[i]];
-    f(i,0) += massone*xacc;
-    f(i,1) += massone*yacc;
-    f(i,2) += massone*zacc;
-    eg -= massone * (xacc*x(i,0) + yacc*x(i,1) + zacc*x(i,2));
+    f(i,0) += static_cast<KK_ACC_FLOAT>(massone*xacc_kk);
+    f(i,1) += static_cast<KK_ACC_FLOAT>(massone*yacc_kk);
+    f(i,2) += static_cast<KK_ACC_FLOAT>(massone*zacc_kk);
+    eg -= static_cast<double>(massone * (xacc_kk*x(i,0) + yacc_kk*x(i,1) + zacc_kk*x(i,2)));
   }
 }
 

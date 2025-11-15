@@ -197,8 +197,8 @@ void FixNHOMP::remap()
       domain->xz > TILTMAX*domain->xprd ||
       domain->xy < -TILTMAX*domain->xprd ||
       domain->xy > TILTMAX*domain->xprd)
-    error->all(FLERR,"Fix npt/nph has tilted box too far in one step - "
-               "periodic cell is too far from equilibrium state");
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} has tilted box too far in one step - "
+               "periodic cell is too far from equilibrium state", style);
 
   domain->set_global_box();
   domain->set_local_box();

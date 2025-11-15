@@ -221,6 +221,20 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   typename AT::t_int_1d d_indices;
 
   KK_FLOAT dx,dy,dz;
+  KK_FLOAT dtv_kk,dtfsq_kk;
+
+  // max double is < 1.0e308, so 1e150 is a reasonable cutoff
+  // max float is ~3.4e38, so 1e30 is a reasonable cutoff
+  template <typename real_t>
+  real_t get_overflow_max() {
+    if constexpr (std::is_same_v<real_t, double>) {
+      return 1e150;
+    } else {
+      return 1e30f;
+    }
+  }
+
+  KK_FLOAT tolerance_kk, overflow_kk;
 
   int *shake_flag_tmp;
   tagint **shake_atom_tmp;

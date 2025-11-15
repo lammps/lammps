@@ -114,14 +114,14 @@ void AngleCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   }
 
-  if (eflag_global) energy += ev.evdwl;
+  if (eflag_global) energy += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -179,10 +179,10 @@ void AngleCharmmKokkos<DeviceType>::operator()(TagAngleCharmmCompute<NEWTON_BOND
   const KK_FLOAT dr = rUB - d_r_ub[type];
   const KK_FLOAT rk = d_k_ub[type] * dr;
 
-  KK_FLOAT forceUB = 0.0;
-  if (rUB > 0.0) forceUB = -2.0*rk/rUB;
+  KK_FLOAT forceUB = 0;
+  if (rUB > 0) forceUB = -static_cast<KK_FLOAT>(2.0) * rk / rUB;
 
-  KK_FLOAT eangle = 0.0;
+  KK_FLOAT eangle = 0;
   if (eflag) eangle = rk*dr;
 
   // angle (cos and sin)
@@ -190,12 +190,12 @@ void AngleCharmmKokkos<DeviceType>::operator()(TagAngleCharmmCompute<NEWTON_BOND
   KK_FLOAT c = delx1*delx2 + dely1*dely2 + delz1*delz2;
   c /= r1*r2;
 
-  if (c > 1.0) c = 1.0;
-  if (c < -1.0) c = -1.0;
+  if (c > static_cast<KK_FLOAT>(1.0)) c = static_cast<KK_FLOAT>(1.0);
+  if (c < static_cast<KK_FLOAT>(-1.0)) c = static_cast<KK_FLOAT>(-1.0);
 
-  KK_FLOAT s = sqrt(1.0 - c*c);
-  if (s < SMALL) s = SMALL;
-  s = 1.0/s;
+  KK_FLOAT s = sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
+  if (s < static_cast<KK_FLOAT>(SMALL)) s = static_cast<KK_FLOAT>(SMALL);
+  s = static_cast<KK_FLOAT>(1.0) / s;
 
   // harmonic force & energy
 
@@ -204,7 +204,7 @@ void AngleCharmmKokkos<DeviceType>::operator()(TagAngleCharmmCompute<NEWTON_BOND
 
   if (eflag) eangle += tk*dtheta;
 
-  const KK_FLOAT a = -2.0 * tk * s;
+  const KK_FLOAT a = -static_cast<KK_FLOAT>(2.0) * tk * s;
   const KK_FLOAT a11 = a*c / rsq1;
   const KK_FLOAT a12 = -a / (r1*r2);
   const KK_FLOAT a22 = a*c / rsq2;
@@ -221,21 +221,21 @@ void AngleCharmmKokkos<DeviceType>::operator()(TagAngleCharmmCompute<NEWTON_BOND
   // apply force to each of 3 atoms
 
   if (NEWTON_BOND || i1 < nlocal) {
-    f(i1,0) += f1[0];
-    f(i1,1) += f1[1];
-    f(i1,2) += f1[2];
+    f(i1,0) += static_cast<KK_ACC_FLOAT>(f1[0]);
+    f(i1,1) += static_cast<KK_ACC_FLOAT>(f1[1]);
+    f(i1,2) += static_cast<KK_ACC_FLOAT>(f1[2]);
   }
 
   if (NEWTON_BOND || i2 < nlocal) {
-    f(i2,0) -= f1[0] + f3[0];
-    f(i2,1) -= f1[1] + f3[1];
-    f(i2,2) -= f1[2] + f3[2];
+    f(i2,0) -= static_cast<KK_ACC_FLOAT>(f1[0] + f3[0]);
+    f(i2,1) -= static_cast<KK_ACC_FLOAT>(f1[1] + f3[1]);
+    f(i2,2) -= static_cast<KK_ACC_FLOAT>(f1[2] + f3[2]);
   }
 
   if (NEWTON_BOND || i3 < nlocal) {
-    f(i3,0) += f3[0];
-    f(i3,1) += f3[1];
-    f(i3,2) += f3[2];
+    f(i3,0) += static_cast<KK_ACC_FLOAT>(f3[0]);
+    f(i3,1) += static_cast<KK_ACC_FLOAT>(f3[1]);
+    f(i3,2) += static_cast<KK_ACC_FLOAT>(f3[2]);
   }
 
   if (EVFLAG) ev_tally(ev,i1,i2,i3,eangle,f1,f3,
@@ -279,10 +279,10 @@ void AngleCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
   d_r_ub = k_r_ub.template view<DeviceType>();
 
   for (int i = 1; i <= n; i++) {
-    k_k.view_host()[i] = k[i];
-    k_theta0.view_host()[i] = theta0[i];
-    k_k_ub.view_host()[i] = k_ub[i];
-    k_r_ub.view_host()[i] = r_ub[i];
+    k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
+    k_theta0.view_host()[i] = static_cast<KK_FLOAT>(theta0[i]);
+    k_k_ub.view_host()[i] = static_cast<KK_FLOAT>(k_ub[i]);
+    k_r_ub.view_host()[i] = static_cast<KK_FLOAT>(r_ub[i]);
   }
 
   k_k.modify_host();
@@ -317,10 +317,10 @@ void AngleCharmmKokkos<DeviceType>::read_restart(FILE *fp)
   d_r_ub = k_r_ub.template view<DeviceType>();
 
   for (int i = 1; i <= n; i++) {
-    k_k.view_host()[i] = k[i];
-    k_theta0.view_host()[i] = theta0[i];
-    k_k_ub.view_host()[i] = k_ub[i];
-    k_r_ub.view_host()[i] = r_ub[i];
+    k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
+    k_theta0.view_host()[i] = static_cast<KK_FLOAT>(theta0[i]);
+    k_k_ub.view_host()[i] = static_cast<KK_FLOAT>(k_ub[i]);
+    k_r_ub.view_host()[i] = static_cast<KK_FLOAT>(r_ub[i]);
   }
 
   k_k.modify_host();
@@ -347,23 +347,18 @@ void AngleCharmmKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const in
                      const KK_FLOAT &delx1, const KK_FLOAT &dely1, const KK_FLOAT &delz1,
                      const KK_FLOAT &delx2, const KK_FLOAT &dely2, const KK_FLOAT &delz2) const
 {
-  KK_FLOAT eanglethird;
-  KK_FLOAT v[6];
 
   if (eflag_either) {
+    KK_ACC_FLOAT eanglethird = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*eangle);
     if (eflag_global) {
-      if (newton_bond) ev.evdwl += eangle;
+      if (newton_bond) ev.evdwl += static_cast<KK_ACC_FLOAT>(3.0)*eanglethird;
       else {
-        eanglethird = THIRD*eangle;
-
         if (i < nlocal) ev.evdwl += eanglethird;
         if (j < nlocal) ev.evdwl += eanglethird;
         if (k < nlocal) ev.evdwl += eanglethird;
       }
     }
     if (eflag_atom) {
-      eanglethird = THIRD*eangle;
-
       if (newton_bond || i < nlocal) d_eatom[i] += eanglethird;
       if (newton_bond || j < nlocal) d_eatom[j] += eanglethird;
       if (newton_bond || k < nlocal) d_eatom[k] += eanglethird;
@@ -371,75 +366,46 @@ void AngleCharmmKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const in
   }
 
   if (vflag_either) {
-    v[0] = delx1*f1[0] + delx2*f3[0];
-    v[1] = dely1*f1[1] + dely2*f3[1];
-    v[2] = delz1*f1[2] + delz2*f3[2];
-    v[3] = delx1*f1[1] + delx2*f3[1];
-    v[4] = delx1*f1[2] + delx2*f3[2];
-    v[5] = dely1*f1[2] + dely2*f3[2];
+    KK_ACC_FLOAT v_third_acc[6];
+    v_third_acc[0] = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*(delx1*f1[0] + delx2*f3[0]));
+    v_third_acc[1] = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*(dely1*f1[1] + dely2*f3[1]));
+    v_third_acc[2] = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*(delz1*f1[2] + delz2*f3[2]));
+    v_third_acc[3] = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*(delx1*f1[1] + delx2*f3[1]));
+    v_third_acc[4] = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*(delx1*f1[2] + delx2*f3[2]));
+    v_third_acc[5] = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*(dely1*f1[2] + dely2*f3[2]));
 
     if (vflag_global) {
       if (newton_bond) {
-        ev.v[0] += v[0];
-        ev.v[1] += v[1];
-        ev.v[2] += v[2];
-        ev.v[3] += v[3];
-        ev.v[4] += v[4];
-        ev.v[5] += v[5];
+        for (int n = 0; n < 6; n++)
+          ev.v[n] += static_cast<KK_ACC_FLOAT>(3.0)*v_third_acc[n];
       } else {
         if (i < nlocal) {
-          ev.v[0] += THIRD*v[0];
-          ev.v[1] += THIRD*v[1];
-          ev.v[2] += THIRD*v[2];
-          ev.v[3] += THIRD*v[3];
-          ev.v[4] += THIRD*v[4];
-          ev.v[5] += THIRD*v[5];
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += v_third_acc[n];
         }
         if (j < nlocal) {
-          ev.v[0] += THIRD*v[0];
-          ev.v[1] += THIRD*v[1];
-          ev.v[2] += THIRD*v[2];
-          ev.v[3] += THIRD*v[3];
-          ev.v[4] += THIRD*v[4];
-          ev.v[5] += THIRD*v[5];
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += v_third_acc[n];
         }
         if (k < nlocal) {
-          ev.v[0] += THIRD*v[0];
-
-          ev.v[1] += THIRD*v[1];
-          ev.v[2] += THIRD*v[2];
-          ev.v[3] += THIRD*v[3];
-          ev.v[4] += THIRD*v[4];
-          ev.v[5] += THIRD*v[5];
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += v_third_acc[n];
         }
       }
     }
 
     if (vflag_atom) {
       if (newton_bond || i < nlocal) {
-        d_vatom(i,0) += THIRD*v[0];
-        d_vatom(i,1) += THIRD*v[1];
-        d_vatom(i,2) += THIRD*v[2];
-        d_vatom(i,3) += THIRD*v[3];
-        d_vatom(i,4) += THIRD*v[4];
-        d_vatom(i,5) += THIRD*v[5];
+        for (int n = 0; n < 6; n++)
+          d_vatom(i,n) += v_third_acc[n];
       }
       if (newton_bond || j < nlocal) {
-        d_vatom(j,0) += THIRD*v[0];
-        d_vatom(j,1) += THIRD*v[1];
-        d_vatom(j,2) += THIRD*v[2];
-        d_vatom(j,3) += THIRD*v[3];
-        d_vatom(j,4) += THIRD*v[4];
-        d_vatom(j,5) += THIRD*v[5];
+        for (int n = 0; n < 6; n++)
+          d_vatom(j,n) += v_third_acc[n];
       }
       if (newton_bond || k < nlocal) {
-        d_vatom(k,0) += THIRD*v[0];
-        d_vatom(k,1) += THIRD*v[1];
-        d_vatom(k,2) += THIRD*v[2];
-        d_vatom(k,3) += THIRD*v[3];
-        d_vatom(k,4) += THIRD*v[4];
-        d_vatom(k,5) += THIRD*v[5];
-
+        for (int n = 0; n < 6; n++)
+          d_vatom(k,n) += v_third_acc[n];
       }
     }
   }

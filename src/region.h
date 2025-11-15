@@ -17,8 +17,15 @@
 #include "pointers.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
+class DumpImage;
+class RegIntersect;
+class RegUnion;
 
 class Region : protected Pointers {
+  friend DumpImage;
+  friend RegIntersect;
+  friend RegUnion;
+
  public:
   enum { CONSTANT, VARIABLE, NONE };
 
@@ -88,21 +95,26 @@ class Region : protected Pointers {
   virtual void length_restart_string(int &);
   virtual void reset_vel();
 
-  // implemented by each region, not called by other classes
+  // track translation and rotation
+  void forward_transform(double &, double &, double &);
+
+protected:
+
+  // implemented by each region, generally not called by other classes
 
   virtual int inside(double, double, double) = 0;
   virtual int surface_interior(double *, double) = 0;
   virtual int surface_exterior(double *, double) = 0;
   virtual void shape_update() {}
+  virtual void bbox_update() {}
+
   virtual void pretransform();
   virtual void set_velocity_shape() {}
   virtual void velocity_contact_shape(double *, double *) {}
 
- protected:
   void add_contact(int, double *, double, double, double);
   void options(int, char **);
   void point_on_line_segment(double *, double *, double *, double *);
-  void forward_transform(double &, double &, double &);
   double point[3], runit[3];
 
  private:

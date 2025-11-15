@@ -54,7 +54,7 @@ class FixNVESphereKokkos : public FixNVESphere {
     typename AT::t_kkfloat_1d_3 omega;
     typename AT::t_kkfloat_1d_4 mu;
     typename AT::t_kkacc_1d_3 f;
-    typename AT::t_kkfloat_1d_3 torque;
+    typename AT::t_kkacc_1d_3 torque;
     typename AT::t_kkfloat_1d rmass;
     typename AT::t_kkfloat_1d radius;
     typename AT::t_int_1d mask;

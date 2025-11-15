@@ -83,18 +83,20 @@ FixRattle::~FixRattle()
 
 #if RATTLE_DEBUG
 
-    // communicate maximum distance error
+  // communicate maximum distance error
 
-    double global_derr_max, global_verr_max;
-    int npid;
+  double global_derr_max, global_verr_max;
+  int npid;
 
-    MPI_Reduce(&derr_max, &global_derr_max, 1 , MPI_DOUBLE, MPI_MAX, 0, world);
-    MPI_Reduce(&verr_max, &global_verr_max, 1 , MPI_DOUBLE, MPI_MAX, 0, world);
+  MPI_Reduce(&derr_max, &global_derr_max, 1 , MPI_DOUBLE, MPI_MAX, 0, world);
+  MPI_Reduce(&verr_max, &global_verr_max, 1 , MPI_DOUBLE, MPI_MAX, 0, world);
 
-    if (comm->me == 0 && screen) {
-      fprintf(screen, "RATTLE: Maximum overall relative position error ( (r_ij-d_ij)/d_ij ): %.10g\n", global_derr_max);
-      fprintf(screen, "RATTLE: Maximum overall absolute velocity error (r_ij * v_ij): %.10g\n", global_verr_max);
-    }
+  if (comm->me == 0) {
+    utils::logmesg(lmp, "RATTLE: Maximum overall relative position error ( (r_ij-d_ij)/d_ij ): "
+                   "{:.10}\n", global_derr_max);
+    utils::logmesg(lmp, "RATTLE: Maximum overall absolute velocity error (r_ij * v_ij): {:.10}\n",
+                   global_verr_max);
+  }
 #endif
 }
 
@@ -135,8 +137,7 @@ void FixRattle::init() {
   }
 
   if (flag && comm->me == 0)
-    error->warning(FLERR,
-                   "Fix rattle should come after all other integration fixes ");
+    error->warning(FLERR, "Fix rattle should come after all other integration fixes ");
 }
 
 /* ----------------------------------------------------------------------
@@ -261,13 +262,13 @@ void FixRattle::vrattle3angle(int m)
   // matrix coeffs and rhs for lamda equations
 
   if (rmass) {
-    imass[0] = 1.0/rmass[i0];
-    imass[1] = 1.0/rmass[i1];
-    imass[2] = 1.0/rmass[i2];
+    imass[0] = 1.0 / rmass[i0];
+    imass[1] = 1.0 / rmass[i1];
+    imass[2] = 1.0 / rmass[i2];
   } else {
-    imass[0] = 1.0/mass[type[i0]];
-    imass[1] = 1.0/mass[type[i1]];
-    imass[2] = 1.0/mass[type[i2]];
+    imass[0] = 1.0 / mass[type[i0]];
+    imass[1] = 1.0 / mass[type[i1]];
+    imass[2] = 1.0 / mass[type[i2]];
   }
 
   // setup matrix
@@ -332,11 +333,11 @@ void FixRattle::vrattle2(int m)
   // matrix coeffs and rhs for lamda equations
 
   if (rmass) {
-    imass[0] = 1.0/rmass[i0];
-    imass[1] = 1.0/rmass[i1];
+    imass[0] = 1.0 / rmass[i0];
+    imass[1] = 1.0 / rmass[i1];
   } else {
-    imass[0] = 1.0/mass[type[i0]];
-    imass[1] = 1.0/mass[type[i1]];
+    imass[0] = 1.0 / mass[type[i0]];
+    imass[1] = 1.0 / mass[type[i1]];
   }
 
   // Lagrange multiplier: exact solution
@@ -384,13 +385,13 @@ void FixRattle::vrattle3(int m)
   MathExtra::sub3(vp[i2],vp[i0],vp02);
 
   if (rmass) {
-    imass[0] = 1.0/rmass[i0];
-    imass[1] = 1.0/rmass[i1];
-    imass[2] = 1.0/rmass[i2];
+    imass[0] = 1.0 / rmass[i0];
+    imass[1] = 1.0 / rmass[i1];
+    imass[2] = 1.0 / rmass[i2];
   } else {
-    imass[0] = 1.0/mass[type[i0]];
-    imass[1] = 1.0/mass[type[i1]];
-    imass[2] = 1.0/mass[type[i2]];
+    imass[0] = 1.0 / mass[type[i0]];
+    imass[1] = 1.0 / mass[type[i1]];
+    imass[2] = 1.0 / mass[type[i2]];
   }
 
   // setup matrix
@@ -459,15 +460,15 @@ void FixRattle::vrattle4(int m)
   // matrix coeffs and rhs for lamda equations
 
   if (rmass) {
-    imass[0] = 1.0/rmass[i0];
-    imass[1] = 1.0/rmass[i1];
-    imass[2] = 1.0/rmass[i2];
-    imass[3] = 1.0/rmass[i3];
+    imass[0] = 1.0 / rmass[i0];
+    imass[1] = 1.0 / rmass[i1];
+    imass[2] = 1.0 / rmass[i2];
+    imass[3] = 1.0 / rmass[i3];
   } else {
-    imass[0] = 1.0/mass[type[i0]];
-    imass[1] = 1.0/mass[type[i1]];
-    imass[2] = 1.0/mass[type[i2]];
-    imass[3] = 1.0/mass[type[i3]];
+    imass[0] = 1.0 / mass[type[i0]];
+    imass[1] = 1.0 / mass[type[i1]];
+    imass[2] = 1.0 / mass[type[i2]];
+    imass[3] = 1.0 / mass[type[i3]];
   }
 
   // setup matrix
@@ -603,7 +604,7 @@ void FixRattle::update_v_half_nocons()
   }
   else {
     for (int i = 0; i < nlocal; i++) {
-      dtfvinvm = dtfv/mass[type[i]];
+      dtfvinvm = dtfv / mass[type[i]];
       if (shake_flag[i]) {
         for (int k=0; k<3; k++)
           vp[i][k] = v[i][k] + dtfvinvm * f[i][k];

@@ -129,7 +129,7 @@ void ComputePACE::init()
     error->all(FLERR,"Compute pace requires a pair style be defined");
 
   if (cutmax > force->pair->cutforce)
-    error->all(FLERR,"Compute pace cutoff is longer than pairwise cutoff");
+    error->all(FLERR,"Compute pace cutoff {} is longer than pairwise cutoff {}", cutmax, force->pair->cutforce);
 
   // need an occasional full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);

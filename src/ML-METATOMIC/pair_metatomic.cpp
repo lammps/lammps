@@ -47,6 +47,16 @@
 
 using namespace LAMMPS_NS;
 
+static torch::optional<std::string> normalize_variant(const char* variant_string) {
+    if (variant_string == nullptr) {
+        return torch::nullopt;
+    } else if (strcmp(variant_string, "off") == 0) {
+        return torch::nullopt;
+    } else {
+        return std::string(variant_string);
+    }
+}
+
 static double compute_volume(Domain* domain) {
     // from Thermo::compute_vol
     if (domain->dimension == 3) {
@@ -223,86 +233,66 @@ void PairMetatomic::settings(int argc, char ** argv) {
 
     // Load the model and get it's capabilities (including supported devices)
     mta_data->load_model(this->lmp, model_path, extensions_directory);
+    const auto& outputs = mta_data->capabilities->outputs();
 
     // Set and resolve the variants to use
-    mta_data->energy_key = "energy";
-    mta_data->energy_uq_key = "energy_uncertainty";
-    mta_data->nc_forces_key = "non_conservative_forces";
-    mta_data->nc_stress_key = "non_conservative_stress";
+    auto v_energy =
+        variant_energy ? normalize_variant(variant_energy) : normalize_variant(variant);
 
-    // Apply global variant (applies to all)
-    if (variant != nullptr) {
-        mta_data->energy_key += "/" + std::string(variant);
-        mta_data->energy_uq_key += "/" + std::string(variant);
-        mta_data->nc_forces_key += "/" + std::string(variant);
-        mta_data->nc_stress_key += "/" + std::string(variant);
+    auto v_energy_uq =
+        variant_energy_uq ? normalize_variant(variant_energy_uq) : v_energy;
+
+    auto v_nc_forces =
+        variant_nc_forces ? normalize_variant(variant_nc_forces) : v_energy;
+
+    auto v_nc_stress =
+        variant_nc_stress ? normalize_variant(variant_nc_stress) : v_energy;
+
+
+    // Handle energy variant
+    try {
+        mta_data->energy_key = pick_output("energy", outputs, v_energy);
+    } catch (std::exception& e) {
+        error->one(FLERR, e.what());
     }
 
-    // Apply variant/energy
-    if (variant_energy != nullptr) {
-        if (strcmp(variant_energy, "off") == 0) {
-            mta_data->energy_key = "energy";
-        } else {
-            mta_data->energy_key = "energy/" + std::string(variant_energy);
-        }
-    }
-
-    // Apply variant/energy_uncertainty
-    if (variant_energy_uq != nullptr) {
-        if (strcmp(variant_energy_uq, "off") == 0) {
-            mta_data->energy_uq_key = "energy_uncertainty";
-        } else {
-            mta_data->energy_uq_key = "energy_uncertainty/" + std::string(variant_energy_uq);
+    // Handle energy_uncertainty variant
+    if (do_uncertainty) {
+        try {
+            mta_data->energy_uq_key = pick_output("energy_uncertainty", outputs, v_energy_uq);
+        } catch (std::exception& e) {
+            error->one(FLERR, e.what());
         }
     }
 
     // Handle non-conservative variants
-    bool has_nc_forces = variant_nc_forces != nullptr;
-    bool has_nc_stress = variant_nc_stress != nullptr;
+    if (mta_data->non_conservative) {
+        // Error if *both* nc-force and nc-stress were provided by user AND one is Null
+        bool user_set_forces = (variant_nc_forces != nullptr);
+        bool user_set_stress = (variant_nc_stress != nullptr);
 
-    if (has_nc_forces && has_nc_stress) {
-        bool forces_none = strcmp(variant_nc_forces, "off") == 0;
-        bool stress_none = strcmp(variant_nc_stress, "off") == 0;
-        if (forces_none != stress_none) {
-            error->one(FLERR,
-                "if both 'variant/non_conservative_stress' and "
-                "'variant/non_conservative_forces' are set, they must either "
-                "both be 'off' or both not be 'off'");
-        }
-    } else if (has_nc_forces && !has_nc_stress) {
-        if (strcmp(variant_nc_forces, "off") != 0) {
-            error->one(FLERR,
-                "'variant/non_conservative_forces' is set but "
-                "'variant/non_conservative_stress' is not; "
-                "both must be set together or both be 'off'");
-        }
-    } else if (!has_nc_forces && has_nc_stress) {
-        if (strcmp(variant_nc_stress, "off") != 0) {
-            error->one(FLERR,
-                "'variant/non_conservative_stress' is set but "
-                "'variant/non_conservative_forces' is not; "
-                "both must be set together or both be 'off'");
-        }
-    }
+        if (user_set_forces && user_set_stress) {
 
-    if (has_nc_forces) {
-        if (strcmp(variant_nc_forces, "off") == 0) {
-            mta_data->nc_forces_key = "non_conservative_forces";
-        } else {
-            mta_data->nc_forces_key = "non_conservative_forces/" + std::string(variant_nc_forces);
-        }
-    }
+            bool forces_none = !normalize_variant(variant_nc_forces).has_value();
+            bool stress_none = !normalize_variant(variant_nc_stress).has_value();
 
-    if (has_nc_stress) {
-        if (strcmp(variant_nc_stress, "off") == 0) {
-            mta_data->nc_stress_key = "non_conservative_stress";
-        } else {
-            mta_data->nc_stress_key = "non_conservative_stress/" + std::string(variant_nc_stress);
+            if (forces_none != stress_none) {
+                error->one(FLERR,
+                    "if both 'variant/non_conservative_stress' and "
+                    "'variant/non_conservative_forces' are present, they "
+                    "must either both be 'off' or both not 'off'");
+            }
+        }
+
+        try {
+            mta_data->nc_forces_key = pick_output("non_conservative_forces", outputs, v_nc_forces);
+            mta_data->nc_stress_key = pick_output("non_conservative_stress", outputs, v_nc_stress);
+        } catch (std::exception& e) {
+            error->one(FLERR, e.what());
         }
     }
 
     // Check that the model has the required outputs
-    const auto& outputs = mta_data->capabilities->outputs();
     auto energy_output = outputs.find(mta_data->energy_key);
     // LAMMPS assume that an energy will be available
     if (energy_output == outputs.end()) {
@@ -399,7 +389,7 @@ void PairMetatomic::settings(int argc, char ** argv) {
 void PairMetatomic::pick_device(torch::Device& device, const char* requested) {
 
     torch::optional<std::string> requested_string;
-    std::string device_string;
+    torch::DeviceType device_type;
 
     if (requested != nullptr) {
         requested_string = std::string(requested);
@@ -408,7 +398,7 @@ void PairMetatomic::pick_device(torch::Device& device, const char* requested) {
     }
 
     try {
-        device_string = metatomic_torch::pick_device(
+        device_type = metatomic_torch::pick_device(
             this->mta_data->capabilities->supported_devices,
             requested_string
         );
@@ -416,7 +406,7 @@ void PairMetatomic::pick_device(torch::Device& device, const char* requested) {
         error->one(FLERR, "pair_style metatomic: {}", e.what());
     }
 
-    if (device_string == "cuda") {
+    if (device_type == torch::DeviceType::CUDA) {
         // distribute GPUs between multiple MPI processes on the same node
 
         // (1) get a MPI communicator for all processes on the current node
@@ -438,13 +428,12 @@ void PairMetatomic::pick_device(torch::Device& device, const char* requested) {
         }
 
         // (3) split GPUs between node-local processes using round-robin allocation
-        int gpu_to_use = local_rank % torch::cuda::device_count();
-        device = torch::Device("cuda:" + std::to_string(gpu_to_use));
+        auto device_index = local_rank % torch::cuda::device_count();
+        device = torch::Device(device_type, static_cast<torch::DeviceIndex>(device_index));
     } else {
-        device = torch::Device(device_string);
+        device = torch::Device(device_type);
     }
 }
-
 
 void PairMetatomic::allocate() {
     allocated = 1;
@@ -488,7 +477,6 @@ double PairMetatomic::init_one(int, int) {
     return mta_data->max_cutoff;
 }
 
-
 // called on pair_coeff
 void PairMetatomic::coeff(int argc, char ** argv) {
     if (argc < 3 || strcmp(argv[0], "*") != 0 || strcmp(argv[1], "*") != 0) {
@@ -515,7 +503,6 @@ void PairMetatomic::coeff(int argc, char ** argv) {
         }
     }
 }
-
 
 // called when the run starts
 void PairMetatomic::init_style() {
@@ -585,11 +572,9 @@ void PairMetatomic::init_style() {
     }
 }
 
-
 void PairMetatomic::init_list(int id, NeighList *ptr) {
     this->mta_list = ptr;
 }
-
 
 void PairMetatomic::compute(int eflag, int vflag) {
     if (std::getenv("LAMMPS_METATOMIC_PROFILE") != nullptr) {

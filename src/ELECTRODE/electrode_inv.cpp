@@ -364,12 +364,9 @@ void ElectrodeInv::symmetrize()
 void ElectrodeInv::compute_sd_vectors()
 {
   sd_vectors = std::vector<std::vector<double>>(ngroups, std::vector<double>(nele_world, 0.));
-  for (int g = 0; g < ngroups; g++) {
-    for (int j = 0; j < nele_world; j++) {
-      if (iele_to_group[j] == g) {
-        for (int k = 0; k < nele_world; k++) { sd_vectors[g][k] += capacitance[k][j] * evscale; }
-      }
-    }
+  for (int j = 0; j < nele_world; j++) {
+    int g = iele_to_group[j];
+    for (int k = 0; k < nele_world; k++) sd_vectors[g][k] += capacitance[k][j] * evscale;
   }
 }
 /* ---------------------------------------------------------------------- */

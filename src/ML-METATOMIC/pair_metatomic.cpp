@@ -236,18 +236,10 @@ void PairMetatomic::settings(int argc, char ** argv) {
     const auto& outputs = mta_data->capabilities->outputs();
 
     // Set and resolve the variants to use
-    auto v_energy =
-        variant_energy ? normalize_variant(variant_energy) : normalize_variant(variant);
-
-    auto v_energy_uq =
-        variant_energy_uq ? normalize_variant(variant_energy_uq) : v_energy;
-
-    auto v_nc_forces =
-        variant_nc_forces ? normalize_variant(variant_nc_forces) : v_energy;
-
-    auto v_nc_stress =
-        variant_nc_stress ? normalize_variant(variant_nc_stress) : v_energy;
-
+    auto v_energy = variant_energy ? normalize_variant(variant_energy) : normalize_variant(variant);
+    auto v_energy_uq = variant_energy_uq ? normalize_variant(variant_energy_uq) : v_energy;
+    auto v_nc_forces = variant_nc_forces ? normalize_variant(variant_nc_forces) : v_energy;
+    auto v_nc_stress = variant_nc_stress ? normalize_variant(variant_nc_stress) : v_energy;
 
     // Handle energy variant
     try {
@@ -258,10 +250,22 @@ void PairMetatomic::settings(int argc, char ** argv) {
 
     // Handle energy_uncertainty variant
     if (do_uncertainty) {
-        try {
-            mta_data->energy_uq_key = pick_output("energy_uncertainty", outputs, v_energy_uq);
-        } catch (std::exception& e) {
-            error->one(FLERR, e.what());
+        // the user did not disable energy uncertainty, let's check if the model
+        // supports it
+        bool has_uncertainty = false;
+        for (const auto& output: outputs) {
+            if (output.key().find("energy_uncertainty") == 0) {
+                has_uncertainty = true;
+                break;
+            }
+        }
+
+        if (has_uncertainty) {
+            try {
+                mta_data->energy_uq_key = pick_output("energy_uncertainty", outputs, v_energy_uq);
+            } catch (std::exception& e) {
+                error->one(FLERR, e.what());
+            }
         }
     }
 

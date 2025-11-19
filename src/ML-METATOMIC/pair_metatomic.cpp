@@ -141,18 +141,6 @@ void PairMetatomic::settings(int argc, char ** argv) {
             }
 
             i += 1;
-        } else if (strcmp(argv[i], "remap_pairs") == 0) {
-            if (i == argc - 1) {
-                error->one(FLERR, "expected <on/off> after 'remap_pairs' in pair_style metatomic, got nothing");
-            } else if (strcmp(argv[i + 1], "on") == 0) {
-                mta_data->remap_pairs = true;
-            } else if (strcmp(argv[i + 1], "off") == 0) {
-                mta_data->remap_pairs = false;
-            } else {
-                error->one(FLERR, "expected <on/off> after 'remap_pairs' in pair_style metatomic, got '{}'", argv[i + 1]);
-            }
-
-            i += 1;
         } else if (strcmp(argv[i], "non_conservative") == 0) {
             if (i == argc - 1) {
                 error->one(FLERR, "expected <on/off> after 'non_conservative' in pair_style metatomic, got nothing");
@@ -643,7 +631,6 @@ void PairMetatomic::compute(int eflag, int vflag) {
     auto system = this->system_adaptor->system_from_lmp(
         mta_list,
         static_cast<bool>(vflag_global),
-        mta_data->remap_pairs,
         dtype,
         mta_data->device
     );

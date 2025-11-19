@@ -60,9 +60,6 @@ struct PairMetatomicData {
    // should metatomic check the data LAMMPS send to the model
    // and the data the model returns?
    bool check_consistency;
-   // whether pairs should be remapped, removing pairs between ghosts if there
-   // is an equivalent pair involving at least one local atom.
-   bool remap_pairs;
    // whether non-conservative forces and stresses should be used
    bool non_conservative;
    // how far away the model needs to know about neighbors

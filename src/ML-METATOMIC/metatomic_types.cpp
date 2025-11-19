@@ -25,7 +25,6 @@ using namespace LAMMPS_NS;
 PairMetatomicData::PairMetatomicData(std::string length_unit):
     device(torch::kCPU),
     check_consistency(false),
-    remap_pairs(true),
     non_conservative(false),
     max_cutoff(-1)
 {

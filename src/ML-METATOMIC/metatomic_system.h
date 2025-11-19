@@ -90,7 +90,6 @@ public:
     virtual metatomic_torch::System system_from_lmp(
         NeighList* list,
         bool do_virial,
-        bool remap_pairs,
         torch::ScalarType dtype,
         torch::Device device
     );
@@ -104,14 +103,7 @@ public:
 
  protected:
     // setup the metatomic neighbors list from the internal LAMMPS one,
-    // remapping periodic ghosts to the corresponding local atom
-    void setup_neighbors_remap(metatomic_torch::System& system, NeighList* list);
-
-    // setup the metatomic neighbors list from the internal LAMMPS one,
-    // WITHOUT remapping periodic ghosts to the corresponding local atom.
-    //
-    // This produces a larger NL but skips the cost of the remapping
-    void setup_neighbors_no_remap(metatomic_torch::System& system, NeighList* list);
+    void setup_neighbors(metatomic_torch::System& system, NeighList* list);
 
     // options for this system adaptor
     MetatomicSystemOptions options_;

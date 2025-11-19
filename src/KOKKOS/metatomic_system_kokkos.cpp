@@ -50,8 +50,8 @@ MetatomicSystemAdaptorKokkos<DeviceType>::MetatomicSystemAdaptorKokkos(LAMMPS *l
 #include "comm.h"
 
 template<class DeviceType>
-void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_remap_kk(metatomic_torch::System& system, NeighListKokkos<DeviceType>* list) {
-    auto _ = MetatomicTimer("converting kokkos neighbors with ghosts remapping");
+void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_kk(metatomic_torch::System& system, NeighListKokkos<DeviceType>* list) {
+    auto _ = MetatomicTimer("converting kokkos neighbors list");
     auto dtype = system->positions().scalar_type();
 
     auto total_n_atoms = atomKK->nlocal + atomKK->nghost;
@@ -308,7 +308,6 @@ template<class DeviceType>
 metatomic_torch::System MetatomicSystemAdaptorKokkos<DeviceType>::system_from_lmp(
     NeighList* list,
     bool do_virial,
-    bool remap_pairs,
     torch::ScalarType dtype,
     torch::Device device
 ) {
@@ -376,13 +375,9 @@ metatomic_torch::System MetatomicSystemAdaptorKokkos<DeviceType>::system_from_lm
         pbc
     );
 
-    if (remap_pairs) {
-        auto* kk_list = dynamic_cast<NeighListKokkos<DeviceType>*>(list);
-        assert(kk_list != nullptr);
-        this->setup_neighbors_remap_kk(system, kk_list);
-    } else {
-        error->one(FLERR, "the kokkos version of metatomic requires remap_pairs to be true");
-    }
+    auto* kk_list = dynamic_cast<NeighListKokkos<DeviceType>*>(list);
+    assert(kk_list != nullptr);
+    this->setup_neighbors_kk(system, kk_list);
 
     return system;
 }

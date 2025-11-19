@@ -82,12 +82,11 @@ public:
     metatomic_torch::System system_from_lmp(
         NeighList* list,
         bool do_virial,
-        bool remap_pairs,
         torch::ScalarType dtype,
         torch::Device device
     ) override;
 
-    void setup_neighbors_remap_kk(metatomic_torch::System& system, NeighListKokkos<DeviceType>* list);
+    void setup_neighbors_kk(metatomic_torch::System& system, NeighListKokkos<DeviceType>* list);
 
 private:
     /// Torch device corresponding to the kokkos `DeviceType`

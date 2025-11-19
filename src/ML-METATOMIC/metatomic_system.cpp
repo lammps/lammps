@@ -27,6 +27,122 @@
 
 using namespace LAMMPS_NS;
 
+using vector_t = std::array<double, 3>;
+using matrix_t = std::array<std::array<double, 3>, 3>;
+
+static vector_t cross(vector_t a, vector_t b) {
+    return {
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
+    };
+}
+
+static double dot(vector_t a, vector_t b) {
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+static vector_t normalize(vector_t a) {
+    double norm = std::sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]);
+    return {a[0] / norm, a[1] / norm, a[2] / norm};
+}
+
+static double determinant(matrix_t a) {
+    return a[0][0] * (a[1][1] * a[2][2] - a[2][1] * a[1][2])
+         - a[0][1] * (a[1][0] * a[2][2] - a[1][2] * a[2][0])
+         + a[0][2] * (a[1][0] * a[2][1] - a[1][1] * a[2][0]);
+}
+
+matrix_t inverse(matrix_t a) {
+    auto det = determinant(a);
+
+    if (std::abs(det) < 1e-10) {
+        throw std::runtime_error("this matrix is not invertible");
+    }
+
+    auto inverse = matrix_t();
+    inverse[0][0] = (a[1][1] * a[2][2] - a[2][1] * a[1][2]) / det;
+    inverse[0][1] = (a[0][2] * a[2][1] - a[0][1] * a[2][2]) / det;
+    inverse[0][2] = (a[0][1] * a[1][2] - a[0][2] * a[1][1]) / det;
+    inverse[1][0] = (a[1][2] * a[2][0] - a[1][0] * a[2][2]) / det;
+    inverse[1][1] = (a[0][0] * a[2][2] - a[0][2] * a[2][0]) / det;
+    inverse[1][2] = (a[1][0] * a[0][2] - a[0][0] * a[1][2]) / det;
+    inverse[2][0] = (a[1][0] * a[2][1] - a[2][0] * a[1][1]) / det;
+    inverse[2][1] = (a[2][0] * a[0][1] - a[0][0] * a[2][1]) / det;
+    inverse[2][2] = (a[0][0] * a[1][1] - a[1][0] * a[0][1]) / det;
+    return inverse;
+}
+
+/// Compute the inverse of the cell matrix of the system, accounting for
+/// non-periodic directions by setting the corresponding rows to an unit vector
+/// orthogonal to the periodic directions. This is used to compute the cell
+/// shifts of neighbor pairs.
+static std::array<std::array<double, 3>, 3> cell_inverse(Domain* domain) {
+    auto periodic = std::array<bool, 3>{
+        static_cast<bool>(domain->xperiodic),
+        static_cast<bool>(domain->yperiodic),
+        static_cast<bool>(domain->zperiodic),
+    };
+
+    auto cell = std::array<std::array<double, 3>, 3>{{0}};
+    cell[0][0] = domain->xprd;
+    cell[1][0] = domain->xy;
+    cell[1][1] = domain->yprd;
+    cell[2][0] = domain->xz;
+    cell[2][1] = domain->yz;
+    cell[2][2] = domain->zprd;
+
+    // find number of periodic directions and their indices
+    int n_periodic = 0;
+    int periodic_idx_1 = -1;
+    int periodic_idx_2 = -1;
+    for (int i = 0; i < 3; ++i) {
+        if (periodic[i]) {
+            n_periodic += 1;
+            if (periodic_idx_1 == -1) {
+                periodic_idx_1 = i;
+            } else if (periodic_idx_2 == -1) {
+                periodic_idx_2 = i;
+            }
+        }
+    }
+
+    // adjust the box matrix to have a simple orthogonal dimension along
+    // non-periodic directions
+    if (n_periodic == 0) {
+        return {
+            std::array<double, 3>{1, 0, 0},
+            std::array<double, 3>{0, 1, 0},
+            std::array<double, 3>{0, 0, 1},
+        };
+    } else if (n_periodic == 1) {
+        assert(periodic_idx_1 != -1);
+        // Make the two non-periodic directions orthogonal to the periodic one
+        auto a = cell[periodic_idx_1];
+        auto b = std::array<double, 3>{0, 1, 0};
+        if (std::abs(dot(normalize(a), b)) > 0.9) {
+            b = std::array<double, 3>{0, 0, 1};
+        }
+        auto c = normalize(cross(a, b));
+        b = normalize(cross(c, a));
+
+        // Assign back to the cell picking the "non-periodic" indices without ifs
+        cell[(periodic_idx_1 + 1) % 3] = b;
+        cell[(periodic_idx_1 + 2) % 3] = c;
+    } else if (n_periodic == 2) {
+        assert(periodic_idx_1 != -1 && periodic_idx_2 != -1);
+        // Make the one non-periodic direction orthogonal to the two periodic ones
+        auto a = cell[periodic_idx_1];
+        auto b = cell[periodic_idx_2];
+        auto c = normalize(cross(a, b));
+
+        // Assign back to the matrix picking the "non-periodic" index without ifs
+        cell[(3 - periodic_idx_1 - periodic_idx_2)] = c;
+    }
+
+    return inverse(cell);
+}
+
 MetatomicSystemAdaptor::MetatomicSystemAdaptor(LAMMPS *lmp, MetatomicSystemOptions options):
     Pointers(lmp),
     options_(std::move(options)),
@@ -100,14 +216,7 @@ void MetatomicSystemAdaptor::setup_neighbors(metatomic_torch::System& system, Ne
 
     double** x = atom->x;
     auto total_n_atoms = atom->nlocal + atom->nghost;
-
-    auto cell_inv_tensor = system->cell().inverse().t().to(torch::kCPU).to(torch::kFloat64);
-    auto cell_inv_accessor = cell_inv_tensor.accessor<double, 2>();
-    auto cell_inv = std::array<std::array<double, 3>, 3>{{
-        {{cell_inv_accessor[0][0], cell_inv_accessor[0][1], cell_inv_accessor[0][2]}},
-        {{cell_inv_accessor[1][0], cell_inv_accessor[1][1], cell_inv_accessor[1][2]}},
-        {{cell_inv_accessor[2][0], cell_inv_accessor[2][1], cell_inv_accessor[2][2]}},
-    }};
+    auto cell_inv = cell_inverse(domain);
 
     {
         auto _ = MetatomicTimer("identifying ghosts and real atoms");
@@ -368,6 +477,7 @@ metatomic_torch::System MetatomicSystemAdaptor::system_from_lmp(
         // requires_grad=true since we always need gradients w.r.t. positions
         tensor_options.requires_grad(options_.requires_grad)
     );
+    auto system_positions = this->positions.to(dtype).to(device);
 
     auto cell = torch::zeros({3, 3}, tensor_options);
     cell[0][0] = domain->xprd;
@@ -379,40 +489,27 @@ metatomic_torch::System MetatomicSystemAdaptor::system_from_lmp(
     cell[2][1] = domain->yz;
     cell[2][2] = domain->zprd;
 
-    auto system_positions = this->positions.to(dtype).to(device);
     cell = cell.to(dtype).to(device);
 
-    if (do_virial) {
-        auto model_strain = this->strain.to(dtype).to(device);
-
-        // pretend to scale positions/cell by the strain so that
-        // it enters the computational graph.
-        system_positions = system_positions.matmul(model_strain);
-        cell = cell.matmul(model_strain);
-    }
-
     // Periodic boundary conditions handling.
-    // While metatomic models can support mixed PBC settings, we currently
-    // assume that the system is fully periodic and we throw an error otherwise
-    if (!domain->xperiodic || !domain->yperiodic || !domain->zperiodic) {
-        error->one(FLERR, "pair_style metatomic requires a fully periodic system");
-    }
     auto pbc = torch::tensor(
         {domain->xperiodic, domain->yperiodic, domain->zperiodic},
         torch::TensorOptions().dtype(torch::kBool).device(device)
     );
 
-    // Note that something like this:
-    //     cell.index_put_(
-    //         {torch::logical_not(pbc)},
-    //         torch::tensor({0.0}, torch::TensorOptions().dtype(dtype).device(device))
-    //     );
-    //
-    // would allow creating System with non-periodic directions, but we're using
-    // the inverse of the cell matrix to filter the neighbor list, and the cell
-    // matrix becomes singular if any of its rows are zero. This requires some
-    // changes in the neighbor list filtering code to handle non-periodic
-    // directions.
+    cell.index_put_(
+        {torch::logical_not(pbc)},
+        torch::tensor({0.0}, torch::TensorOptions().dtype(dtype).device(device))
+    );
+
+    if (do_virial) {
+        auto model_strain = this->strain.to(dtype).to(device);
+
+        // scale positions/cell by the strain so that it enters the
+        // computational graph.
+        system_positions = system_positions.matmul(model_strain);
+        cell = cell.matmul(model_strain);
+    }
 
     auto system = torch::make_intrusive<metatomic_torch::SystemHolder>(
         atomic_types_.to(device),

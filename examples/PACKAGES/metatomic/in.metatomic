@@ -12,7 +12,7 @@ mass Ni 58.693
 
 velocity all create 123 42
 
-pair_style metatomic nickel-lj.pt
+pair_style metatomic nickel-lj.pt uncertainty_threshold off
 # pair_style metatomic nickel-lj-extensions.pt extensions collected-extensions/
 pair_coeff * * 28
 

@@ -11,6 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/** \file citeme.cpp
+ *  \brief Implementation of citation management for LAMMPS contributed features
+ *
+ * This file implements the CiteMe class which manages citation reminders
+ * for contributed LAMMPS features. It handles deduplication of citations,
+ * formatting for different output modes (verbose/terse), and writing to
+ * screen, log file, and optional BibTeX file.
+ */
+
 #include "citeme.h"
 #include "comm.h"
 #include "universe.h"
@@ -19,18 +28,33 @@
 
 using namespace LAMMPS_NS;
 
+/** Separator line for citation output blocks */
 static constexpr char cite_separator[] =
     "CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE\n\n";
 
+/** Header message for citation output */
 static constexpr char cite_nagline[] =
     "Your simulation uses code contributions which should be cited:\n";
 
+/** Format string for citation file reference */
 static constexpr char cite_file[] = "The {} {} lists these citations in BibTeX format.\n\n";
 
-// define hash function
+/** Hash function for deduplicating citations */
 static std::hash<std::string> get_hash;
 
 /* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Constructor initializes citation tracking and optionally opens citation file
+
+   Only MPI rank 0 in the universe opens and writes to the citation file.
+   All other ranks simply initialize the data structures but do not perform I/O.
+
+   \param lmp      Pointer to main LAMMPS object
+   \param _screen  Output mode for screen (VERBOSE or TERSE)
+   \param _logfile Output mode for log file (VERBOSE or TERSE)
+   \param _file    Optional filename for BibTeX output (NULL for no file)
+------------------------------------------------------------------------- */
 
 CiteMe::CiteMe(LAMMPS *lmp, int _screen, int _logfile, const char *_file) : Pointers(lmp)
 {
@@ -56,7 +80,9 @@ CiteMe::CiteMe(LAMMPS *lmp, int _screen, int _logfile, const char *_file) : Poin
 }
 
 /* ----------------------------------------------------------------------
-   write out remaining citations at end of the regular output and clean up
+   Destructor flushes any remaining citations and closes citation file
+
+   Ensures all pending citation output is written before cleanup.
 ------------------------------------------------------------------------- */
 
 CiteMe::~CiteMe()
@@ -68,7 +94,18 @@ CiteMe::~CiteMe()
 }
 
 /* ----------------------------------------------------------------------
-   process an added citation so it will be shown only once and as requested
+   Add a citation to the output queue
+
+   This method:
+   - Uses hash-based deduplication to show each citation only once
+   - Writes immediately to the BibTeX file (if enabled)
+   - Buffers citations for screen and log file output
+   - Handles both VERBOSE (full BibTeX) and TERSE (first line only) modes
+
+   Only MPI rank 0 in the communicator performs the actual work to avoid
+   duplicate output in parallel runs.
+
+   \param reference String containing citation in BibTeX format with DOI header
 ------------------------------------------------------------------------- */
 
 void CiteMe::add(const std::string &reference)
@@ -105,6 +142,15 @@ void CiteMe::add(const std::string &reference)
   if (logfile_flag == VERBOSE) logbuffer += "- " + reference;
   if (logfile_flag == TERSE) logbuffer += "- " + header;
 }
+
+/* ----------------------------------------------------------------------
+   Flush accumulated citation buffers to output streams
+
+   Writes the buffered citations to screen and log file with appropriate
+   formatting and separator lines. Clears buffers after output.
+
+   Only MPI rank 0 performs output to avoid duplication in parallel runs.
+------------------------------------------------------------------------- */
 
 void CiteMe::flush()
 {

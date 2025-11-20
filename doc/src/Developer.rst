@@ -17,6 +17,7 @@ of time and requests from the LAMMPS user community.
    Developer_comm_ops
    Developer_flow
    Developer_write
+   Developer_cite
    Developer_notes
    Developer_updating
    Developer_plugins

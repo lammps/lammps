@@ -1,0 +1,9 @@
+$lammpsDir = "C:\Users\s407439\OneDrive - Cranfield University\Documents\download\MolecularDynamics\lammps"; [Environment]::SetEnvironmentVariable("PATH", $env:PATH + ";$lammpsDir", "User"); $env:PATH += ";$lammpsDir"; Write-Host "LAMMPS path added successfully!"; Write-Host "You can now run: lammps < input_file"
+
+
+
+# PowerShell syntax (with piping)
+Get-Content in.minimal | lammps
+
+# Or from command prompt (cmd.exe) you can use:
+lammps < in.minimal

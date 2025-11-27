@@ -441,6 +441,26 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/platform.cpp              \
                          @LAMMPS_SOURCE_DIR@/math_special.h            \
                          @LAMMPS_SOURCE_DIR@/math_special.cpp          \
+                         @LAMMPS_SOURCE_DIR@/error.cpp                 \
+                         @LAMMPS_SOURCE_DIR@/error.h                   \
+                         @LAMMPS_SOURCE_DIR@/universe.cpp              \
+                         @LAMMPS_SOURCE_DIR@/universe.h                \
+                         @LAMMPS_SOURCE_DIR@/update.cpp                \
+                         @LAMMPS_SOURCE_DIR@/update.h                  \
+                         @LAMMPS_SOURCE_DIR@/modify.cpp                \
+                         @LAMMPS_SOURCE_DIR@/modify.h                  \
+                         @LAMMPS_SOURCE_DIR@/force.cpp                 \
+                         @LAMMPS_SOURCE_DIR@/force.h                   \
+                         @LAMMPS_SOURCE_DIR@/comm.cpp                  \
+                         @LAMMPS_SOURCE_DIR@/comm.h                    \
+                         @LAMMPS_SOURCE_DIR@/domain.cpp                \
+                         @LAMMPS_SOURCE_DIR@/domain.h                  \
+                         @LAMMPS_SOURCE_DIR@/group.cpp                 \
+                         @LAMMPS_SOURCE_DIR@/group.h                   \
+                         @LAMMPS_SOURCE_DIR@/output.cpp                \
+                         @LAMMPS_SOURCE_DIR@/output.h                  \
+                         @LAMMPS_SOURCE_DIR@/timer.cpp                 \
+                         @LAMMPS_SOURCE_DIR@/timer.h                   \
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

@@ -40,6 +40,23 @@ some selected examples for derived classes of specific models.
 -----------------------------------
 
 .. toctree::
+   :caption: Core Infrastructure Classes
+   :name: lammpscore
+
+   Classes_error
+   Classes_universe
+   Classes_update
+   Classes_modify
+   Classes_force
+   Classes_comm
+   Classes_domain
+   Classes_group
+   Classes_output
+   Classes_timer
+
+-----------------------------------
+
+.. toctree::
    :caption: Individual Utility Classes
    :name: lammpsutils
 

@@ -325,6 +325,102 @@ the new or modified commands and check if they need updating. Ensure that
 building the documentation with "make html", "make pdf", and "make spelling"
 can complete and does *NOT* produce any *NEW* warnings or errors.
 
+## Documentation Changes
+
+When modifying documentation files in `doc/src/`:
+
+**Build and validate documentation:**
+```bash
+cd doc
+make html          # Build HTML, check for warnings
+make pdf           # Build PDF (requires pdflatex)
+make spelling      # Check spelling
+make anchor_check  # Check for duplicate anchors
+make style_check   # Verify style lists are complete
+```
+
+**Documentation conventions:**
+- Use reStructuredText format (`.rst` files)
+- Use American English spelling
+- Use ASCII characters only
+- Wrap code examples in `.. code-block::` with appropriate language (LAMMPS, bash, c++, python)
+- Use `.. note::` for important remarks and `.. warning::` for critical warnings
+- New commands require `.. versionadded:: TBD`
+- Modified commands require `.. versionchanged:: TBD`
+
+## Debugging CI Failures
+
+When a CI check fails, diagnose using these steps:
+
+**1. Style check failures (`style-check.yml`):**
+```bash
+cd src
+make check-whitespace    # Most common - fix with: make fix-whitespace
+make check-permissions   # Fix with: make fix-permissions
+make check-homepage      # Verify https://www.lammps.org URLs
+make check-errordocs     # Check error documentation
+make check-fmtlib        # Verify fmtlib formatting
+```
+
+**2. Build failures:**
+- Check CMake output for missing dependencies
+- Ensure `-S cmake` (not `-S .`) is used
+- Verify package dependencies are met
+- Check for VLA (variable-length array) usage - not allowed
+
+**3. Unit test failures:**
+- Run specific failing test: `cd build && ctest -V -R <test_name>`
+- Check if test requires specific packages to be enabled
+- Verify the executable was built before running tests
+
+**4. Regression test failures:**
+- Ensure Python environment has numpy, pyyaml, junit_xml
+- Check if example inputs were modified correctly
+
+## Short-Circuit Instructions
+
+**STOP and check these common mistakes:**
+
+1. **Wrong CMake source directory:**
+   - WRONG: `cmake -S . -B build`
+   - CORRECT: `cmake -S cmake -B build`
+
+2. **Building in source tree:**
+   - NEVER run cmake or make in the repository root
+   - ALWAYS create a separate `build/` directory
+
+3. **Mixed build systems:**
+   - If switching from Make to CMake: run `make -C src purge` first
+   - If switching from CMake to Make: run `make -C src clean-all` first
+
+4. **Unicode in source files:**
+   - All source code must be ASCII only
+   - Unicode characters will cause CI to fail
+
+5. **Missing whitespace fixes:**
+   - Always run `cd src && make fix-whitespace` before committing
+
+6. **Incorrect file permissions:**
+   - `.cpp` and `.h` files must NOT be executable
+   - `.sh` and `.py` scripts SHOULD be executable
+
+## Sample Prompts
+
+**Adding a new pair style:**
+> "Create a new pair style called `pair_example` that implements [description]. Follow the pattern in `src/pair_lj_cut.cpp` and add documentation in `doc/src/pair_example.rst`."
+
+**Fixing a bug in a compute:**
+> "Fix bug in `compute_temp.cpp` where [description]. Add a unit test in `unittest/` to prevent regression."
+
+**Adding a new package:**
+> "Create a new package called MYPACKAGE with [features]. Include CMakeLists.txt entries, documentation, and example inputs."
+
+**Updating documentation:**
+> "Update the documentation for `fix_nve.rst` to include the new `keyword` option. Use `.. versionchanged:: TBD` directive."
+
+**Debugging build failure:**
+> "The CI build is failing with [error]. Diagnose and fix the issue."
+
 ## Trust These Instructions
 
 These instructions are tested and validated. Only search for additional information if:

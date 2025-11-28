@@ -146,7 +146,7 @@ static std::array<std::array<double, 3>, 3> cell_inverse(Domain* domain) {
 MetatomicSystemAdaptor::MetatomicSystemAdaptor(LAMMPS *lmp, MetatomicSystemOptions options):
     Pointers(lmp),
     options_(std::move(options)),
-    caches_(),
+    nl_requests_(),
     atomic_types_(torch::zeros({0}, torch::TensorOptions().dtype(torch::kInt32).device(torch::kCPU)))
 {
     auto tensor_options = torch::TensorOptions()
@@ -174,10 +174,9 @@ void MetatomicSystemAdaptor::add_nl_request(double cutoff, metatomic_torch::Neig
         );
     }
 
-    caches_.push_back({
+    nl_requests_.push_back({
         cutoff,
         request,
-        /*known_samples = */ {},
         /*samples = */ {},
         /*distances_f64 = */ {},
         /*distances_f32 = */ {},
@@ -277,31 +276,43 @@ void MetatomicSystemAdaptor::setup_neighbors(metatomic_torch::System& system, Ne
     auto total_n_atoms = atom->nlocal + atom->nghost;
     auto cell_inv = cell_inverse(domain);
 
-    for (auto& cache: caches_) {
+    for (auto& nl: nl_requests_) {
         {
             auto _ = MetatomicTimer("filtering LAMMPS neighbor list");
 
-            auto cutoff2 = cache.cutoff * cache.cutoff;
-            auto full_list = cache.options->full_list();
+            auto cutoff2 = nl.cutoff * nl.cutoff;
+            auto full_list = nl.options->full_list();
 
             // convert from LAMMPS neighbors list to metatomic format
-            cache.known_samples.clear();
-            cache.samples.clear();
-            cache.distances_f32.clear();
-            cache.distances_f64.clear();
+            nl.samples.clear();
+            nl.distances_f32.clear();
+            nl.distances_f64.clear();
             for (int ii=0; ii<(list->inum + list->gnum); ii++) {
                 auto atom_i = list->ilist[ii];
                 assert(atom_i < total_n_atoms);
                 auto original_atom_i = original_atom_id_[atom_i];
+                auto i_is_original = (atom_i == original_atom_i);
 
                 auto neighbors = list->firstneigh[ii];
                 for (int jj=0; jj<list->numneigh[ii]; jj++) {
                     auto atom_j = neighbors[jj] & NEIGHMASK;
                     assert(atom_j < total_n_atoms);
                     auto original_atom_j = original_atom_id_[atom_j];
+                    auto j_is_original = (atom_j == original_atom_j);
 
                     if (!full_list && original_atom_i > original_atom_j) {
                         // Remove extra pairs if the model requested half-lists
+                        continue;
+                    }
+
+                    if (!i_is_original && !j_is_original) {
+                        // both atoms are periodic ghosts, skip the pair
+                        continue;
+                    }
+
+                    if (!i_is_original && j_is_original) {
+                        // this pair will be accounted for when we will process
+                        // atom_j as the central atom
                         continue;
                     }
 
@@ -385,32 +396,26 @@ void MetatomicSystemAdaptor::setup_neighbors(metatomic_torch::System& system, Ne
                         shift[2],
                     };
 
-                    // only add the pair if it is not already known. The same pair
-                    // can occur multiple time between two periodic ghosts shifted
-                    // around by the same amount, but we only want one of these pairs.
-                    if (cache.known_samples.insert(sample).second) {
-                        cache.samples.push_back(sample);
-
-                        if (dtype == torch::kFloat64) {
-                            cache.distances_f64.push_back(distance);
-                        } else if (dtype == torch::kFloat32) {
-                            cache.distances_f32.push_back({
-                                static_cast<float>(distance[0]),
-                                static_cast<float>(distance[1]),
-                                static_cast<float>(distance[2])
-                            });
-                        } else {
-                            // should be unreachable
-                            error->one(FLERR, "invalid dtype, this is a bug");
-                        }
+                    nl.samples.push_back(sample);
+                    if (dtype == torch::kFloat64) {
+                        nl.distances_f64.push_back(distance);
+                    } else if (dtype == torch::kFloat32) {
+                        nl.distances_f32.push_back({
+                            static_cast<float>(distance[0]),
+                            static_cast<float>(distance[1]),
+                            static_cast<float>(distance[2])
+                        });
+                    } else {
+                        // should be unreachable
+                        error->one(FLERR, "invalid dtype, this is a bug");
                     }
                 }
             }
         }
 
-        int64_t n_pairs = cache.samples.size();
+        int64_t n_pairs = nl.samples.size();
         auto samples_values = torch::from_blob(
-            reinterpret_cast<int32_t*>(cache.samples.data()),
+            reinterpret_cast<int32_t*>(nl.samples.data()),
             {n_pairs, 5},
             torch::TensorOptions().dtype(torch::kInt32).device(torch::kCPU)
         );
@@ -418,23 +423,31 @@ void MetatomicSystemAdaptor::setup_neighbors(metatomic_torch::System& system, Ne
         torch::intrusive_ptr<metatensor_torch::LabelsHolder> samples;
         {
             auto _ = MetatomicTimer("creating samples Labels (" +  std::to_string(n_pairs) + " pairs)");
-            samples = torch::make_intrusive<metatensor_torch::LabelsHolder>(
-                std::vector<std::string>{"first_atom", "second_atom", "cell_shift_a", "cell_shift_b", "cell_shift_c"},
-                samples_values,
-                metatensor::assume_unique{}
-            );
+            if (options_.check_consistency) {
+                // pairs should be unique, but I'm not 100% sure yet
+                samples = torch::make_intrusive<metatensor_torch::LabelsHolder>(
+                    std::vector<std::string>{"first_atom", "second_atom", "cell_shift_a", "cell_shift_b", "cell_shift_c"},
+                    samples_values
+                );
+            } else {
+                samples = torch::make_intrusive<metatensor_torch::LabelsHolder>(
+                    std::vector<std::string>{"first_atom", "second_atom", "cell_shift_a", "cell_shift_b", "cell_shift_c"},
+                    samples_values,
+                    metatensor::assume_unique{}
+                );
+            }
         }
 
         auto distances_vectors = torch::Tensor();
         if (dtype == torch::kFloat64) {
             distances_vectors = torch::from_blob(
-                cache.distances_f64.data(),
+                nl.distances_f64.data(),
                 {n_pairs, 3, 1},
                 torch::TensorOptions().dtype(torch::kFloat64).device(torch::kCPU)
             );
         } else if (dtype == torch::kFloat32) {
             distances_vectors = torch::from_blob(
-                cache.distances_f32.data(),
+                nl.distances_f32.data(),
                 {n_pairs, 3, 1},
                 torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU)
             );
@@ -463,7 +476,7 @@ void MetatomicSystemAdaptor::setup_neighbors(metatomic_torch::System& system, Ne
         }
 
         metatomic_torch::register_autograd_neighbors(system, neighbors, options_.check_consistency);
-        system->add_neighbor_list(cache.options, neighbors);
+        system->add_neighbor_list(nl.options, neighbors);
     }
 }
 

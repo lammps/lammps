@@ -16,7 +16,6 @@
 
 #include <vector>
 #include <array>
-#include <unordered_set>
 
 #include "pointers.h"
 #include "pair.h"
@@ -44,22 +43,6 @@ struct MetatomicNeighborsData {
     // single neighbors sample containing [i, j, S_a, S_b, S_c]
     using sample_t = std::array<int32_t, 5>;
 
-    struct SampleHasher {
-        static void hash_combine(std::size_t& seed, const int32_t& v) {
-            seed ^= std::hash<int32_t>()(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-        }
-
-        size_t operator()(const sample_t& s) const {
-            size_t hash = 0;
-            hash_combine(hash, s[0]);
-            hash_combine(hash, s[1]);
-            hash_combine(hash, s[2]);
-            hash_combine(hash, s[3]);
-            hash_combine(hash, s[4]);
-            return hash;
-        }
-    };
-
     // cutoff for this NL in LAMMPS units
     double cutoff;
     // options of the NL as requested by the model
@@ -68,10 +51,6 @@ struct MetatomicNeighborsData {
     // Below are cached allocations for the LAMMPS -> metatomic NL translation
     // TODO: report memory usage for these?
 
-    // we keep the set of samples twice: once in `known_samples` to remove
-    // duplicated pairs, and once in `samples` in a format that can be
-    // used to create a torch::Tensor.
-    std::unordered_set<sample_t, SampleHasher> known_samples;
     std::vector<sample_t> samples;
     // pairs distances vectors
     std::vector<std::array<double, 3>> distances_f64;
@@ -116,7 +95,7 @@ public:
     MetatomicSystemOptions options_;
 
     // allocations caches for all the NL requested by the model
-    std::vector<MetatomicNeighborsData> caches_;
+    std::vector<MetatomicNeighborsData> nl_requests_;
     // allocation cache for the atomic types in the system
     torch::Tensor atomic_types_;
 

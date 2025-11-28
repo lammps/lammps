@@ -41,19 +41,19 @@ namespace LAMMPS_NS {
  * \sa LAMMPS_NS::CommBrick, LAMMPS_NS::CommTiled, LAMMPS_NS::Pointers */
 class Comm : protected Pointers {
  public:
-  /** Communication style: BRICK = regular grid, TILED = irregular domains */
+  /* Communication style: BRICK = regular grid, TILED = irregular domains */
   enum { BRICK, TILED };
   int style;    /**< Communication style: BRICK or TILED */
 
-  /** Domain layout types */
+  /* Domain layout types */
   enum { LAYOUT_UNIFORM, LAYOUT_NONUNIFORM, LAYOUT_TILED };
   int layout;    /**< Domain layout: UNIFORM, NONUNIFORM, or TILED */
 
-  /** Communication mode for neighbor cutoffs */
+  /* Communication mode for neighbor cutoffs */
   enum { SINGLE, MULTI };
   int mode;    /**< Cutoff mode: SINGLE or MULTI (per-collection) */
 
-  /** Standard buffer size for fixed-size per-atom data */
+  /* Standard buffer size for fixed-size per-atom data */
   enum { BUFEXTRA = 1024 };
 
   int me;                     /**< MPI rank of this processor in world communicator */

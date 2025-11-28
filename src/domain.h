@@ -125,7 +125,7 @@ class Domain : protected Pointers {
 
   int copymode;    /**< 1 if this is a copy, don't deallocate in destructor */
 
-  /** Velocity remapping modes */
+  /* Velocity remapping modes */
   enum { NO_REMAP, X_REMAP, V_REMAP };
 
   using RegionCreator = Region *(*) (LAMMPS *, int, char **);    /**< Function pointer type for region creation */

@@ -40,16 +40,16 @@ NULL character.
 
 ----------
 
-.. doxygenfunction:: sfgets
+.. doxygenfunction:: LAMMPS_NS::utils::sfgets
    :project: progguide
 
-.. doxygenfunction:: sfread
+.. doxygenfunction:: LAMMPS_NS::utils::sfread
    :project: progguide
 
-.. doxygenfunction:: fgets_trunc
+.. doxygenfunction:: LAMMPS_NS::utils::fgets_trunc
    :project: progguide
 
-.. doxygenfunction:: read_lines_from_file
+.. doxygenfunction:: LAMMPS_NS::utils::read_lines_from_file
    :project: progguide
 
 ----------
@@ -79,34 +79,34 @@ strings for compliance without conversion.
 
 ----------
 
-.. doxygenfunction:: numeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
+.. doxygenfunction:: LAMMPS_NS::utils::numeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: numeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+.. doxygenfunction:: LAMMPS_NS::utils::numeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: inumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
+.. doxygenfunction:: LAMMPS_NS::utils::inumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+.. doxygenfunction:: LAMMPS_NS::utils::inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: bnumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
+.. doxygenfunction:: LAMMPS_NS::utils::bnumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+.. doxygenfunction:: LAMMPS_NS::utils::bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: tnumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
+.. doxygenfunction:: LAMMPS_NS::utils::tnumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+.. doxygenfunction:: LAMMPS_NS::utils::tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: logical(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
+.. doxygenfunction:: LAMMPS_NS::utils::logical(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+.. doxygenfunction:: LAMMPS_NS::utils::logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
 
@@ -118,166 +118,166 @@ and parsing files or arguments.
 
 ----------
 
-.. doxygenfunction:: strdup
+.. doxygenfunction:: LAMMPS_NS::utils::strdup
    :project: progguide
 
-.. doxygenfunction:: lowercase
+.. doxygenfunction:: LAMMPS_NS::utils::lowercase
    :project: progguide
 
-.. doxygenfunction:: uppercase
+.. doxygenfunction:: LAMMPS_NS::utils::uppercase
    :project: progguide
 
-.. doxygenfunction:: trim
+.. doxygenfunction:: LAMMPS_NS::utils::trim
    :project: progguide
 
-.. doxygenfunction:: trim_comment
+.. doxygenfunction:: LAMMPS_NS::utils::trim_comment
    :project: progguide
 
-.. doxygenfunction:: strcompress
+.. doxygenfunction:: LAMMPS_NS::utils::strcompress
    :project: progguide
 
-.. doxygenfunction:: strip_style_suffix
+.. doxygenfunction:: LAMMPS_NS::utils::strip_style_suffix
    :project: progguide
 
-.. doxygenfunction:: star_subst
+.. doxygenfunction:: LAMMPS_NS::utils::star_subst
    :project: progguide
 
-.. doxygenfunction:: has_utf8
+.. doxygenfunction:: LAMMPS_NS::utils::has_utf8
    :project: progguide
 
-.. doxygenfunction:: utf8_subst
+.. doxygenfunction:: LAMMPS_NS::utils::utf8_subst
    :project: progguide
 
-.. doxygenfunction:: count_words(const char *text)
+.. doxygenfunction:: LAMMPS_NS::utils::count_words(const char *text)
    :project: progguide
 
-.. doxygenfunction:: count_words(const std::string &text)
+.. doxygenfunction:: LAMMPS_NS::utils::count_words(const std::string &text)
    :project: progguide
 
-.. doxygenfunction:: count_words(const std::string &text, const std::string &separators)
+.. doxygenfunction:: LAMMPS_NS::utils::count_words(const std::string &text, const std::string &separators)
    :project: progguide
 
-.. doxygenfunction:: trim_and_count_words
+.. doxygenfunction:: LAMMPS_NS::utils::trim_and_count_words
    :project: progguide
 
-.. doxygenfunction:: join_words
+.. doxygenfunction:: LAMMPS_NS::utils::join_words
    :project: progguide
 
-.. doxygenfunction:: split_words
+.. doxygenfunction:: LAMMPS_NS::utils::split_words
    :project: progguide
 
-.. doxygenfunction:: split_lines
+.. doxygenfunction:: LAMMPS_NS::utils::split_lines
    :project: progguide
 
-.. doxygenfunction:: strsame
+.. doxygenfunction:: LAMMPS_NS::utils::strsame
    :project: progguide
 
-.. doxygenfunction:: strmatch
+.. doxygenfunction:: LAMMPS_NS::utils::strmatch
    :project: progguide
 
-.. doxygenfunction:: strfind
+.. doxygenfunction:: LAMMPS_NS::utils::strfind
    :project: progguide
 
-.. doxygenfunction:: is_integer
+.. doxygenfunction:: LAMMPS_NS::utils::is_integer
    :project: progguide
 
-.. doxygenfunction:: is_double
+.. doxygenfunction:: LAMMPS_NS::utils::is_double
    :project: progguide
 
-.. doxygenfunction:: is_id
+.. doxygenfunction:: LAMMPS_NS::utils::is_id
    :project: progguide
 
-.. doxygenfunction:: is_type
+.. doxygenfunction:: LAMMPS_NS::utils::is_type
    :project: progguide
 
 Potential file functions
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenfunction:: get_potential_file_path
+.. doxygenfunction:: LAMMPS_NS::utils::get_potential_file_path
    :project: progguide
 
-.. doxygenfunction:: get_potential_date
+.. doxygenfunction:: LAMMPS_NS::utils::get_potential_date
    :project: progguide
 
-.. doxygenfunction:: get_potential_units
+.. doxygenfunction:: LAMMPS_NS::utils::get_potential_units
    :project: progguide
 
-.. doxygenfunction:: get_supported_conversions
+.. doxygenfunction:: LAMMPS_NS::utils::get_supported_conversions
    :project: progguide
 
-.. doxygenfunction:: get_conversion_factor
+.. doxygenfunction:: LAMMPS_NS::utils::get_conversion_factor
    :project: progguide
 
-.. doxygenfunction:: open_potential(const std::string &name, LAMMPS *lmp, int *auto_convert)
+.. doxygenfunction:: LAMMPS_NS::utils::open_potential(const std::string &name, LAMMPS *lmp, int *auto_convert)
    :project: progguide
 
 Argument processing
 ^^^^^^^^^^^^^^^^^^^
 
-.. doxygenfunction:: bounds
+.. doxygenfunction:: LAMMPS_NS::utils::bounds
    :project: progguide
 
-.. doxygenfunction:: bounds_typelabel
+.. doxygenfunction:: LAMMPS_NS::utils::bounds_typelabel
    :project: progguide
 
-.. doxygenfunction:: expand_args
+.. doxygenfunction:: LAMMPS_NS::utils::expand_args
    :project: progguide
 
-.. doxygenfunction:: parse_grid_id
+.. doxygenfunction:: LAMMPS_NS::utils::parse_grid_id
    :project: progguide
 
-.. doxygenfunction:: expand_type
+.. doxygenfunction:: LAMMPS_NS::utils::expand_type
    :project: progguide
 
 Convenience functions
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenfunction:: logmesg(LAMMPS *lmp, const std::string &format, Args&&... args)
+.. doxygenfunction:: LAMMPS_NS::utils::logmesg(LAMMPS *lmp, const std::string &format, Args&&... args)
    :project: progguide
 
-.. doxygenfunction:: logmesg(LAMMPS *lmp, const std::string &mesg)
+.. doxygenfunction:: LAMMPS_NS::utils::logmesg(LAMMPS *lmp, const std::string &mesg)
    :project: progguide
 
-.. doxygenfunction:: print(FILE *fp, const std::string &format, Args&&... args)
+.. doxygenfunction:: LAMMPS_NS::utils::print(FILE *fp, const std::string &format, Args&&... args)
    :project: progguide
 
-.. doxygenfunction:: print(FILE *fp, const std::string &mesg)
+.. doxygenfunction:: LAMMPS_NS::utils::print(FILE *fp, const std::string &mesg)
    :project: progguide
 
-.. doxygenfunction:: errorurl
+.. doxygenfunction:: LAMMPS_NS::utils::errorurl
    :project: progguide
 
-.. doxygenfunction:: missing_cmd_args
+.. doxygenfunction:: LAMMPS_NS::utils::missing_cmd_args
    :project: progguide
 
-.. doxygenfunction:: point_to_error
+.. doxygenfunction:: LAMMPS_NS::utils::point_to_error
    :project: progguide
 
-.. doxygenfunction:: flush_buffers(LAMMPS *lmp)
+.. doxygenfunction:: LAMMPS_NS::utils::flush_buffers(LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: getsyserror
+.. doxygenfunction:: LAMMPS_NS::utils::getsyserror
    :project: progguide
 
-.. doxygenfunction:: check_packages_for_style
+.. doxygenfunction:: LAMMPS_NS::utils::check_packages_for_style
    :project: progguide
 
-.. doxygenfunction:: timespec2seconds
+.. doxygenfunction:: LAMMPS_NS::utils::timespec2seconds
    :project: progguide
 
-.. doxygenfunction:: date2num
+.. doxygenfunction:: LAMMPS_NS::utils::date2num
    :project: progguide
 
-.. doxygenfunction:: current_date
+.. doxygenfunction:: LAMMPS_NS::utils::current_date
    :project: progguide
 
 Customized standard functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenfunction:: binary_search
+.. doxygenfunction:: LAMMPS_NS::utils::binary_search
    :project: progguide
 
-.. doxygenfunction:: merge_sort
+.. doxygenfunction:: LAMMPS_NS::utils::merge_sort
    :project: progguide
 
 ---------------------------
@@ -288,34 +288,34 @@ Special Math functions
 The ``MathSpecial`` namespace implements a selection of custom and optimized
 mathematical functions for a variety of applications.
 
-.. doxygenfunction:: factorial
+.. doxygenfunction:: LAMMPS_NS::MathSpecial::factorial
    :project: progguide
 
-.. doxygenfunction:: exp2_x86
+.. doxygenfunction:: LAMMPS_NS::MathSpecial::exp2_x86
    :project: progguide
 
-.. doxygenfunction:: fm_exp
+.. doxygenfunction:: LAMMPS_NS::MathSpecial::fm_exp
    :project: progguide
 
-.. doxygenfunction:: my_erfcx
+.. doxygenfunction:: LAMMPS_NS::MathSpecial::my_erfcx
    :project: progguide
 
-.. doxygenfunction:: expmsq
+.. doxygenfunction:: LAMMPS_NS::MathSpecial::expmsq
    :project: progguide
 
-.. doxygenfunction:: square
+.. doxygenfunction:: LAMMPS_NS::MathSpecial::square
    :project: progguide
 
-.. doxygenfunction:: cube
+.. doxygenfunction:: LAMMPS_NS::MathSpecial::cube
    :project: progguide
 
-.. doxygenfunction:: powsign
+.. doxygenfunction:: LAMMPS_NS::MathSpecial::powsign
    :project: progguide
 
-.. doxygenfunction:: powint
+.. doxygenfunction:: LAMMPS_NS::MathSpecial::powint
    :project: progguide
 
-.. doxygenfunction:: powsinxx
+.. doxygenfunction:: LAMMPS_NS::MathSpecial::powsinxx
    :project: progguide
 
 ---------------------------

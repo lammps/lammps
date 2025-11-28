@@ -110,57 +110,14 @@ void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_kk(metatomic_torc
 
     auto total_n_atoms = atomKK->nlocal + atomKK->nghost;
 
-    {
-        auto _ = MetatomicTimer("identifying ghosts and real atoms");
-        /*-------------- this will be done on CPU for now ------------------------*/
-        // The hashmap in the following code is not easy to implement in either Kokkos or torch
-        // The cost of this section seems to be very low anyway
-
-        // Collect the local atom id of all local & ghosts atoms, mapping ghosts
-        // atoms which are periodic images of local atoms back to the local atoms.
-        //
-        // Metatomic expects pairs corresponding to periodic atoms to be between
-        // the main atoms, but using the actual distance vector between the atom and
-        // the ghost.
-        original_atom_id_.clear();
-        original_atom_id_.reserve(total_n_atoms);
-
-        // identify all local atom by their LAMMPS atom tag.
-        local_atoms_tags_.clear();
-        for (int i=0; i<atom->nlocal; i++) {
-            original_atom_id_.emplace_back(i);
-            local_atoms_tags_.emplace(atom->tag[i], i);
-        }
-
-        // now loop over ghosts & map them back to the main cell if needed
-        ghost_atoms_tags_.clear();
-        for (int i=atom->nlocal; i<total_n_atoms; i++) {
-            auto tag = atom->tag[i];
-            auto it = local_atoms_tags_.find(tag);
-            if (it != local_atoms_tags_.end()) {
-                // this is the periodic image of an atom already owned by this domain
-                original_atom_id_.emplace_back(it->second);
-            } else {
-                // this can either be a periodic image of an atom owned by another
-                // domain, or directly an atom from another domain. Since we can not
-                // really distinguish between these, we take the first atom as the
-                // "main" one and remap all atoms with the same tag to the first one
-                auto it = ghost_atoms_tags_.find(tag);
-                if (it != ghost_atoms_tags_.end()) {
-                    // we already found this atom elsewhere in the system
-                    original_atom_id_.emplace_back(it->second);
-                } else {
-                    // this is the first time we are seeing this atom
-                    original_atom_id_.emplace_back(i);
-                    ghost_atoms_tags_.emplace(tag, i);
-                }
-            }
-        }
-    }
-    /*----------- end of "this will be done on CPU for now" --------------*/
-
     auto original_id = torch::from_blob(
         original_atom_id_.data(),
+        {total_n_atoms},
+        torch::TensorOptions().dtype(torch::kInt32).device(torch::kCPU)
+    ).to(this->device_);
+
+    auto lmp_to_mta = torch::from_blob(
+        lmp_to_mta_.data(),
         {total_n_atoms},
         torch::TensorOptions().dtype(torch::kInt32).device(torch::kCPU)
     ).to(this->device_);
@@ -197,7 +154,9 @@ void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_kk(metatomic_torc
         torch::TensorOptions().dtype(torch::kInt32).device(this->device_)
     );
 
-    auto x = system->positions().detach();
+    auto k_x = atomKK->k_x.view<DeviceType>();
+    auto tensor_options = torch::TensorOptions().dtype(torch::kFloat64).device(this->device_);
+    auto x = torch::from_blob(k_x.data(), {total_n_atoms, 3}, tensor_options);
     auto cell_inv = cell_inverse(system);
 
     // convert from LAMMPS NL format to metatomic NL format
@@ -306,8 +265,8 @@ void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_kk(metatomic_torc
 
             // make sure all the sample are unique
             samples_values = torch::concatenate({
-                centers_original_id_filt_cur.unsqueeze(-1),
-                neighbors_original_id_filt_cur.unsqueeze(-1),
+                lmp_to_mta.index_select(0, centers_original_id_filt_cur).unsqueeze(-1),
+                lmp_to_mta.index_select(0, neighbors_original_id_filt_cur).unsqueeze(-1),
                 cell_shifts_cur
             }, /*dim=*/1);
 
@@ -380,11 +339,7 @@ metatomic_torch::System MetatomicSystemAdaptorKokkos<DeviceType>::system_from_lm
     auto k_x = atomKK->k_x.view<DeviceType>();
     auto tensor_options = torch::TensorOptions().dtype(torch::kFloat64).device(this->device_);
 
-    this->positions = torch::from_blob(
-        k_x.data(), {total_n_atoms, 3},
-        // requires_grad=true since we always need gradients w.r.t. positions
-        tensor_options.requires_grad(options_.requires_grad)
-    );
+    this->positions = torch::from_blob(k_x.data(), {total_n_atoms, 3}, tensor_options);
 
     auto cell = torch::zeros({3, 3}, tensor_options);
     cell[0][0] = domain->xprd;
@@ -396,9 +351,6 @@ metatomic_torch::System MetatomicSystemAdaptorKokkos<DeviceType>::system_from_lm
     cell[2][1] = domain->yz;
     cell[2][2] = domain->zprd;
 
-    auto system_positions = this->positions.to(dtype);
-    cell = cell.to(dtype);
-
     // Periodic boundary conditions handling.
     auto pbc = torch::tensor(
         {domain->xperiodic, domain->yperiodic, domain->zperiodic},
@@ -407,8 +359,24 @@ metatomic_torch::System MetatomicSystemAdaptorKokkos<DeviceType>::system_from_lm
 
     cell.index_put_(
         {torch::logical_not(pbc)},
-        torch::tensor({0.0}, torch::TensorOptions().dtype(dtype).device(this->device_))
+        torch::tensor({0.0}, tensor_options)
     );
+
+    this->guess_periodic_ghosts();
+
+    // Only keep the atoms which are not periodic images of other atoms
+    auto mta_to_lmp_tensor = torch::from_blob(
+        mta_to_lmp.data(),
+        {static_cast<int64_t>(mta_to_lmp.size())},
+        torch::TensorOptions().dtype(torch::kInt).device(torch::kCPU)
+    ).to(this->device_);
+    this->atomic_types_ = this->atomic_types_.index_select(0, mta_to_lmp_tensor);
+    this->positions = this->positions.index_select(0, mta_to_lmp_tensor);
+
+    this->positions.set_requires_grad(options_.requires_grad);
+
+    auto system_positions = this->positions.to(dtype).to(device);
+    cell = cell.to(dtype);
 
     if (do_virial) {
         auto model_strain = this->strain.to(dtype);

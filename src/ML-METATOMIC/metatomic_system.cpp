@@ -208,6 +208,65 @@ static std::array<int32_t, 3> cell_shifts(
     return {shift_a, shift_b, shift_c};
 }
 
+void MetatomicSystemAdaptor::guess_periodic_ghosts() {
+    auto _ = MetatomicTimer("identifying periodic ghosts");
+    auto total_n_atoms = atom->nlocal + atom->nghost;
+
+    // Collect the local atom id of all local & ghosts atoms, mapping ghosts
+    // atoms which are periodic images of local atoms back to the local atoms.
+    //
+    // metatomic expects pairs corresponding to periodic atoms to be between
+    // the main atoms, but using the actual distance vector between the atom and
+    // the ghost.
+    original_atom_id_.clear();
+    original_atom_id_.reserve(total_n_atoms);
+
+    lmp_to_mta_.clear();
+    lmp_to_mta_.reserve(total_n_atoms);
+
+    mta_to_lmp.clear();
+    mta_to_lmp.reserve(total_n_atoms);
+
+    // identify all local atom by their LAMMPS atom tag.
+    local_atoms_tags_.clear();
+    for (int i=0; i<atom->nlocal; i++) {
+        original_atom_id_.emplace_back(i);
+        lmp_to_mta_.emplace_back(i);
+        mta_to_lmp.emplace_back(i);
+        local_atoms_tags_.emplace(atom->tag[i], i);
+    }
+
+    // now loop over ghosts & map them back to the main cell if needed
+    ghost_atoms_tags_.clear();
+    for (int i=atom->nlocal; i<total_n_atoms; i++) {
+        auto tag = atom->tag[i];
+        auto it = local_atoms_tags_.find(tag);
+        if (it != local_atoms_tags_.end()) {
+            // this is the periodic image of an atom already owned by this domain
+            original_atom_id_.emplace_back(it->second);
+            lmp_to_mta_.emplace_back(-1);
+        } else {
+            // this can either be a periodic image of an atom owned by another
+            // domain, or directly an atom from another domain. Since we can not
+            // really distinguish between these, we take the first atom as the
+            // "main" one and remap all atoms with the same tag to the first one
+            auto it = ghost_atoms_tags_.find(tag);
+            if (it != ghost_atoms_tags_.end()) {
+                // we already found this atom elsewhere in the system
+                original_atom_id_.emplace_back(it->second);
+                lmp_to_mta_.emplace_back(-1);
+            } else {
+                // this is the first time we are seeing this atom
+                original_atom_id_.emplace_back(i);
+                ghost_atoms_tags_.emplace(tag, i);
+
+                lmp_to_mta_.emplace_back(mta_to_lmp.size());
+                mta_to_lmp.emplace_back(i);
+            }
+        }
+    }
+}
+
 
 void MetatomicSystemAdaptor::setup_neighbors(metatomic_torch::System& system, NeighList *list) {
     auto _ = MetatomicTimer("converting neighbors list");
@@ -217,51 +276,6 @@ void MetatomicSystemAdaptor::setup_neighbors(metatomic_torch::System& system, Ne
     double** x = atom->x;
     auto total_n_atoms = atom->nlocal + atom->nghost;
     auto cell_inv = cell_inverse(domain);
-
-    {
-        auto _ = MetatomicTimer("identifying ghosts and real atoms");
-
-        // Collect the local atom id of all local & ghosts atoms, mapping ghosts
-        // atoms which are periodic images of local atoms back to the local atoms.
-        //
-        // metatomic expects pairs corresponding to periodic atoms to be between
-        // the main atoms, but using the actual distance vector between the atom and
-        // the ghost.
-        original_atom_id_.clear();
-        original_atom_id_.reserve(total_n_atoms);
-
-        // identify all local atom by their LAMMPS atom tag.
-        local_atoms_tags_.clear();
-        for (int i=0; i<atom->nlocal; i++) {
-            original_atom_id_.emplace_back(i);
-            local_atoms_tags_.emplace(atom->tag[i], i);
-        }
-
-        // now loop over ghosts & map them back to the main cell if needed
-        ghost_atoms_tags_.clear();
-        for (int i=atom->nlocal; i<total_n_atoms; i++) {
-            auto tag = atom->tag[i];
-            auto it = local_atoms_tags_.find(tag);
-            if (it != local_atoms_tags_.end()) {
-                // this is the periodic image of an atom already owned by this domain
-                original_atom_id_.emplace_back(it->second);
-            } else {
-                // this can either be a periodic image of an atom owned by another
-                // domain, or directly an atom from another domain. Since we can not
-                // really distinguish between these, we take the first atom as the
-                // "main" one and remap all atoms with the same tag to the first one
-                auto it = ghost_atoms_tags_.find(tag);
-                if (it != ghost_atoms_tags_.end()) {
-                    // we already found this atom elsewhere in the system
-                    original_atom_id_.emplace_back(it->second);
-                } else {
-                    // this is the first time we are seeing this atom
-                    original_atom_id_.emplace_back(i);
-                    ghost_atoms_tags_.emplace(tag, i);
-                }
-            }
-        }
-    }
 
     for (auto& cache: caches_) {
         {
@@ -364,8 +378,8 @@ void MetatomicSystemAdaptor::setup_neighbors(metatomic_torch::System& system, Ne
                     }
 
                     auto sample = std::array<int32_t, 5>{
-                        original_atom_i,
-                        original_atom_j,
+                        lmp_to_mta_[original_atom_i],
+                        lmp_to_mta_[original_atom_j],
                         shift[0],
                         shift[1],
                         shift[2],
@@ -472,12 +486,7 @@ metatomic_torch::System MetatomicSystemAdaptor::system_from_lmp(
     auto tensor_options = torch::TensorOptions().dtype(torch::kFloat64).device(torch::kCPU);
 
     // atom->x contains "real" and then ghost atoms, in that order
-    this->positions = torch::from_blob(
-        *x, {total_n_atoms, 3},
-        // requires_grad=true since we always need gradients w.r.t. positions
-        tensor_options.requires_grad(options_.requires_grad)
-    );
-    auto system_positions = this->positions.to(dtype).to(device);
+    this->positions = torch::from_blob(*x, {total_n_atoms, 3}, tensor_options);
 
     auto cell = torch::zeros({3, 3}, tensor_options);
     cell[0][0] = domain->xprd;
@@ -489,18 +498,29 @@ metatomic_torch::System MetatomicSystemAdaptor::system_from_lmp(
     cell[2][1] = domain->yz;
     cell[2][2] = domain->zprd;
 
-    cell = cell.to(dtype).to(device);
-
     // Periodic boundary conditions handling.
     auto pbc = torch::tensor(
         {domain->xperiodic, domain->yperiodic, domain->zperiodic},
-        torch::TensorOptions().dtype(torch::kBool).device(device)
+        torch::TensorOptions().dtype(torch::kBool).device(torch::kCPU)
     );
 
-    cell.index_put_(
-        {torch::logical_not(pbc)},
-        torch::tensor({0.0}, torch::TensorOptions().dtype(dtype).device(device))
+    cell.index_put_({torch::logical_not(pbc)}, torch::tensor({0.0}, tensor_options));
+
+    this->guess_periodic_ghosts();
+
+    // Only keep the atoms which are not periodic images of other atoms
+    auto mta_to_lmp_tensor = torch::from_blob(
+        mta_to_lmp.data(),
+        {static_cast<int64_t>(mta_to_lmp.size())},
+        torch::TensorOptions().dtype(torch::kInt).device(torch::kCPU)
     );
+    this->atomic_types_ = this->atomic_types_.index_select(0, mta_to_lmp_tensor);
+    this->positions = this->positions.index_select(0, mta_to_lmp_tensor);
+
+    this->positions.set_requires_grad(options_.requires_grad);
+
+    auto system_positions = this->positions.to(dtype).to(device);
+    cell = cell.to(dtype).to(device);
 
     if (do_virial) {
         auto model_strain = this->strain.to(dtype).to(device);
@@ -515,7 +535,7 @@ metatomic_torch::System MetatomicSystemAdaptor::system_from_lmp(
         atomic_types_.to(device),
         system_positions,
         cell,
-        pbc
+        pbc.to(device)
     );
 
     this->setup_neighbors(system, list);

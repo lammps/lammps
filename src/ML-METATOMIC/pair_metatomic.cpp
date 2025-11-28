@@ -593,7 +593,6 @@ void PairMetatomic::compute(int eflag, int vflag) {
             }
             mta_data->energy_output->per_atom = true;
         } else {
-            assert(eflag_global);
             mta_data->energy_output->per_atom = false;
         }
 
@@ -764,11 +763,12 @@ void PairMetatomic::compute(int eflag, int vflag) {
                 assert(samples_values.sizes() == mta_data->selected_atoms_values.sizes());
 
                 auto energies = energy_detached.accessor<double, 2>();
+                const auto& mta_to_lmp = this->system_adaptor->mta_to_lmp;
                 for (int64_t i=0; i<energy_samples->count(); i++) {
                     assert(samples[i][0] == 0);
                     // handle potentially out of order samples in
                     // the per-atom energy tensor
-                    auto atom_i = samples[i][1];
+                    auto atom_i = mta_to_lmp[samples[i][1]];
                     assert(atom_i < atom->nlocal + atom->nghost);
                     eatom[atom_i] += this->scale * energies[i][0];
                 }
@@ -822,17 +822,20 @@ void PairMetatomic::pre_compute() {}
 void PairMetatomic::store_forces(const at::Tensor& forces_tensor) {
     assert(forces_tensor.is_cpu() && forces_tensor.scalar_type() == torch::kFloat64);
 
-    int num_forces_to_update;
-    if (mta_data->non_conservative) {
-        num_forces_to_update = atom->nlocal;
-    } else {
-        num_forces_to_update = atom->nlocal + atom->nghost;
-    }
-
     auto forces = forces_tensor.accessor<double, 2>();
-    for (int i=0; i<num_forces_to_update; i++) {
+    for (int i=0; i<atom->nlocal; i++) {
         atom->f[i][0] += this->scale * forces[i][0];
         atom->f[i][1] += this->scale * forces[i][1];
         atom->f[i][2] += this->scale * forces[i][2];
+    }
+
+    // in non-conservative mode we do not need to update forces on ghost atoms
+    if (!mta_data->non_conservative) {
+        const auto& mta_to_lmp = this->system_adaptor->mta_to_lmp;
+        for (int i=atom->nlocal; i<forces.size(0); i++) {
+            atom->f[mta_to_lmp[i]][0] += this->scale * forces[i][0];
+            atom->f[mta_to_lmp[i]][1] += this->scale * forces[i][1];
+            atom->f[mta_to_lmp[i]][2] += this->scale * forces[i][2];
+        }
     }
 }

@@ -122,27 +122,53 @@ void PairMetatomicKokkos<DeviceType>::store_forces(const at::Tensor& forces_tens
     auto forces = forces_tensor.contiguous();
 
     auto forces_lammps_kk = this->atomKK->k_f.template view<DeviceType>();
-    auto forces_metatensor_kk = UnmanagedView<double**, DeviceType>(
+    auto forces_mta_kk = UnmanagedView<double**, DeviceType>(
         forces.template data_ptr<double>(),
         forces.size(0), 3
     );
 
-    int num_forces_to_update;
-    if (mta_data->non_conservative) {
-        num_forces_to_update = atomKK->nlocal;
-    } else {
-        num_forces_to_update = atomKK->nlocal + atomKK->nghost;
-    }
-
     double scale = this->scale;  // the GPU can't access the `this` pointer
     Kokkos::parallel_for(
-        num_forces_to_update,
+        atomKK->nlocal,
         KOKKOS_LAMBDA(size_t i) {
-            forces_lammps_kk(i, 0) += scale * forces_metatensor_kk(i, 0);
-            forces_lammps_kk(i, 1) += scale * forces_metatensor_kk(i, 1);
-            forces_lammps_kk(i, 2) += scale * forces_metatensor_kk(i, 2);
+            forces_lammps_kk(i, 0) += scale * forces_mta_kk(i, 0);
+            forces_lammps_kk(i, 1) += scale * forces_mta_kk(i, 1);
+            forces_lammps_kk(i, 2) += scale * forces_mta_kk(i, 2);
         }
     );
+
+    // in non-conservative mode we do not need to update forces on ghost atoms
+    if (!mta_data->non_conservative) {
+        using HostUnmanaged = UnmanagedView<int*, LMPHostType>;
+        using DeviceUnmanaged = UnmanagedView<int*, DeviceType>;
+        using DeviceView = Kokkos::View<int*, Kokkos::LayoutRight, DeviceType>;
+
+
+        auto& mta_to_lmp = this->system_adaptor->mta_to_lmp;
+        DeviceUnmanaged mta_to_lmp_kk;
+        DeviceView mta_to_lmp_device;
+        if constexpr (std::is_same_v<typename HostUnmanaged::memory_space, typename DeviceUnmanaged::memory_space>) {
+            mta_to_lmp_kk = DeviceUnmanaged(mta_to_lmp.data(), mta_to_lmp.size());
+        } else {
+            // make a copy of mta_to_lmp on device
+            mta_to_lmp_device = DeviceView("mta_to_lmp_kk", mta_to_lmp.size());
+            Kokkos::deep_copy(
+                mta_to_lmp_device,
+                HostUnmanaged(mta_to_lmp.data(), mta_to_lmp.size())
+            );
+            mta_to_lmp_kk = DeviceUnmanaged(mta_to_lmp_device.data(), mta_to_lmp.size());
+        }
+
+        Kokkos::parallel_for(
+            Kokkos::RangePolicy(atomKK->nlocal, forces.size(0)),
+            KOKKOS_LAMBDA(size_t i) {
+                auto lmp_index = mta_to_lmp_kk[i];
+                forces_lammps_kk(lmp_index, 0) += scale * forces_mta_kk(i, 0);
+                forces_lammps_kk(lmp_index, 1) += scale * forces_mta_kk(i, 1);
+                forces_lammps_kk(lmp_index, 2) += scale * forces_mta_kk(i, 2);
+            }
+        );
+    }
 }
 
 

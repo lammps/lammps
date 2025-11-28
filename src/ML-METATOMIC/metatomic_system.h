@@ -101,9 +101,16 @@ public:
     // conversion) to access its gradient
     torch::Tensor positions;
 
+    // LAMMPS atom id for all atoms in the metatomic system.
+    std::vector<int> mta_to_lmp;
+
  protected:
-    // setup the metatomic neighbors list from the internal LAMMPS one,
+    // setup the metatomic neighbors lists from the internal LAMMPS one,
     void setup_neighbors(metatomic_torch::System& system, NeighList* list);
+
+    // Some ghosts atoms correspond to periodic images of other atoms, we need
+    // to identify them to avoid duplicated pairs in the neighbor lists.
+    void guess_periodic_ghosts();
 
     // options for this system adaptor
     MetatomicSystemOptions options_;
@@ -112,13 +119,19 @@ public:
     std::vector<MetatomicNeighborsData> caches_;
     // allocation cache for the atomic types in the system
     torch::Tensor atomic_types_;
-    // allocation cache holding the "original atom" id for all atoms in the
-    // system. This is the same as the atom id for all local atoms. For ghost
-    // atoms, this is either the id of the corresponding local atom if the ghost
-    // is a periodic image of a local atom, the id of the first ghost we found
-    // with a given atom tag if the ghost is a periodic image of another ghost;
-    // or the id of the ghost in all other cases.
+
+    // Original atom id for all atoms in the LAMMPS system.
+    //
+    // This is the same as the atom id for all local atoms. For ghost atoms,
+    // this is either the id of the corresponding local atom if the ghost is a
+    // periodic image of a local atom, the id of the first ghost we found with a
+    // given atom tag if the ghost is a periodic image of another ghost; or the
+    // id of the ghost in all other cases.
     std::vector<int> original_atom_id_;
+    // Metatomic atom id for all atoms in the LAMMPS system.
+    // Contains `atoms->nlocal + atoms->nghost` elements
+    std::vector<int> lmp_to_mta_;
+
     // allocation cache holding the map from atom tag to atom id for local
     // atoms.
     std::unordered_map<tagint, int> local_atoms_tags_;

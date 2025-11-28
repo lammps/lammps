@@ -2243,6 +2243,7 @@ maxspecial
 maxSteps
 maxstrain
 maxtry
+maxwarn
 maxwell
 Maxwellian
 maxX
@@ -2626,6 +2627,7 @@ nghost
 Nghost
 Ngpu
 ngpus
+ngroup
 Ngyuen
 nh
 nharmonic
@@ -2792,6 +2794,7 @@ nvk
 nvt
 Nwait
 NWChem
+nworlds
 nx
 Nx
 nxlo
@@ -3278,6 +3281,7 @@ reax
 reaxff
 ReaxFF
 REAXFF
+rebalance
 rebo
 rebomos
 recurse
@@ -3566,6 +3570,7 @@ shlib
 shm
 SHM
 shockvel
+showerror
 shrinkexceed
 Shugaev
 si
@@ -3732,6 +3737,7 @@ strstr
 Stukowski
 Su
 subbox
+subboxes
 Subclassed
 subcutoff
 subcycle

@@ -35,24 +35,17 @@ some selected examples for derived classes of specific models.
 
    Classes_lammps
    Classes_atom
-   Classes_input
-
------------------------------------
-
-.. toctree::
-   :caption: Core Infrastructure Classes
-   :name: lammpscore
-
-   Classes_error
-   Classes_universe
-   Classes_update
-   Classes_modify
-   Classes_force
    Classes_comm
    Classes_domain
+   Classes_error
+   Classes_force
    Classes_group
+   Classes_input
+   Classes_modify
    Classes_output
    Classes_timer
+   Classes_universe
+   Classes_update
 
 -----------------------------------
 

@@ -38,9 +38,15 @@ some selected examples for derived classes of specific models.
 
 -----------------------------------
 
+The following classes provide the core infrastructure of LAMMPS and
+pointers to instances of them are managed by the :cpp:class:`LAMMPS
+class <LAMMPS_NS::LAMMPS>`.  Like most classes in LAMMPS they are
+derived from from the :cpp:class:`Pointers class <LAMMPS_NS::Pointers>`
+so they have convenient access to each other's data and methods.
+
 .. toctree::
    :caption: Infrastructure Classes
-   :name: lammpsinfrastructure
+   :name: lammpsinfra
    :maxdepth: 1
 
    Classes_atom
@@ -72,5 +78,4 @@ some selected examples for derived classes of specific models.
    :name: lammpsbase
    :maxdepth: 1
 
-   Classes_angle
 

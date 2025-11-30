@@ -64,20 +64,7 @@ template <typename T> static AtomVec *avec_creator(LAMMPS *_lmp)
 /* ---------------------------------------------------------------------- */
 
 /** \class LAMMPS_NS::Atom
- *  \brief Class to provide access to atom data
-
-\verbatim embed:rst
-The Atom class provides access to atom style related global settings and
-per-atom data that is stored with atoms and migrates with them from
-sub-domain to sub-domain as atoms move around.  This includes topology
-data, which is stored with either one specific atom or all atoms involved
-depending on the settings of the :doc:`newton command <newton>`.
-
-The actual per-atom data is allocated and managed by one of the various
-classes derived from the AtomVec class as determined by
-the :doc:`atom_style command <atom_style>`.  The pointers in the Atom class
-are updated by the AtomVec class as needed.
-\endverbatim
+ *  \brief Class to provide access to atom data and molecule templates
  */
 
 /** Atom class constructor
@@ -2733,6 +2720,7 @@ number of values per atom.
  * \param &flag Returns data type of property: 0 for int, 1 for double
  * \param &cols Returns number of values: 0 for a single value, 1 or more for a vector of values
  * \return index of property in the respective list of properties
+ * \sa find_custom_ghost, add_custom, remove_custom, extract
  */
 /* ----------------------------------------------------------------------
    find custom per-atom vector with name
@@ -2792,6 +2780,7 @@ for an example where checking ghost communication is necessary.
  * \param &cols   Returns number of values: 0 for a single value, 1 or more for a vector of values
  * \param &ghost  Returns whether property is communicated to ghost atoms: 0 for no, 1 for yes
  * \return index of property in the respective list of properties
+ * \sa find_custom, add_custom, remove_custom, extract
  */
 int Atom::find_custom_ghost(const char *name, int &flag, int &cols, int &ghost)
 {
@@ -2817,6 +2806,7 @@ This function is called, e.g. from :doc:`fix property/atom <fix_property_atom>`.
  * \param cols Number of values: 0 for a single value, 1 or more for a vector of values
  * \param ghost Whether property is communicated to ghost atoms: 0 for no, 1 for yes
  * \return index of property in the respective list of properties
+ * \sa find_custom, find_custom_ghost, remove_custom, extract
  */
 int Atom::add_custom(const char *name, int flag, int cols, int ghost)
 {
@@ -2885,6 +2875,7 @@ compacted or shrunk, so that indices to name mappings remain valid.
  * \param index Index of property in the respective list of properties
  * \param flag Data type of property: 0 for int, 1 for double
  * \param cols Number of values: 0 for a single value, 1 or more for a vector of values
+ * \sa find_custom, find_custom_ghost, add_custom, extract
  */
 void Atom::remove_custom(int index, int flag, int cols)
 {
@@ -3060,7 +3051,9 @@ length of the data area, and a short description.
  *
  * \param  name  string with the keyword of the desired property.
                  Typically the name of the pointer variable returned
- * \return       pointer to the requested data cast to ``void *`` or ``nullptr`` */
+ * \return       pointer to the requested data cast to ``void *`` or ``nullptr``
+  * \sa find_custom, find_custom_ghost, add_custom, remove_custom
+*/
 
 void *Atom::extract(const char *name)
 {

@@ -8,18 +8,18 @@ class and passes the command-line flags and tells it to process the
 provided input (a file or ``stdin``).  It shuts the class down when
 control is returned to it and then exits.  When using LAMMPS as a
 library from another code it is required to create an instance of this
-class, either directly from C++ with ``new LAMMPS()`` or through one
-of the library interface functions like :cpp:func:`lammps_open` of the
-C-library interface, or the :py:class:`lammps.lammps` class constructor
-of the Python module, or the :f:func:`lammps` constructor of the Fortran
-module.
+class, either directly from C++ with :doc:`new LAMMPS() <Cplusplus>` or
+through one of the library interface functions like
+:cpp:func:`lammps_open` of the C-library interface, or the
+:py:class:`lammps.lammps` class constructor of the Python module, or the
+:f:func:`lammps` constructor of the Fortran module.
 
-In order to avoid clashes of function names, all of the core code in
+In order to avoid clashes of function names, all of the core C++ code in
 LAMMPS is placed into the ``LAMMPS_NS`` namespace.  Functions or
-variables outside of that namespace must be defined only in the
-implementation files either as "static" functions or variables or in an
-anonymous namespace, i.e.  they must be visible *only* to the scope of
-the file they are defined in.
+variables outside of that namespace should be defined only in the
+implementation files and either as "static" functions and variables, or
+in an anonymous namespace, i.e.  they must be visible and usable *only*
+in the scope of the file they are defined in.
 
 Code in packages or the libraries in the ``lib`` folder may not adhere
 to this, as some of them are adapted from legacy code or consist of

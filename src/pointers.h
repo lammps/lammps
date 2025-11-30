@@ -56,19 +56,21 @@ template <class T> class MyPage;
 /** \class LAMMPS_NS::Pointers
  * \brief Base class for LAMMPS features
  *
- * The Pointers class contains references to many of the pointers
- * and members of the LAMMPS_NS::LAMMPS class. Derived classes thus
+ * The Pointers class contains references to most of the public
+ * pointers and members of the LAMMPS class.  Derived classes thus
  * gain access to the constituent class instances in the LAMMPS
  * composite class and thus to the core functionality of LAMMPS.
  *
  * This kind of construct is needed, since the LAMMPS constructor
- * should only be run once per LAMMPS instance and thus classes
- * cannot be derived from LAMMPS itself. The Pointers class
- * constructor instead only initializes C++ references to component
- * pointer in the LAMMPS class. */
+ * may *only* be run *once* per LAMMPS instance and thus classes
+ * cannot be derived from LAMMPS itself to access those instances
+ * as that would re-run the LAMMPS constructor.
+ * The Pointers class constructor instead only initializes C++
+ * references to component pointers in the LAMMPS class. */
 
 class Pointers {
  public:
+  /// Initialize pointer references from a pointer to a LAMMPS class instance
   Pointers(LAMMPS *ptr) :
     lmp(ptr),
     memory(ptr->memory),
@@ -98,41 +100,40 @@ class Pointers {
   // clang-format on
 
   // remove other default members where possible
-
   Pointers() = delete;
   Pointers(const Pointers &) = default;
   Pointers(Pointers &&) = delete;
-  Pointers & operator=(const Pointers&) = delete;
-  Pointers & operator=(Pointers&&) = delete;
+  Pointers &operator=(const Pointers &) = delete;
+  Pointers &operator=(Pointers &&) = delete;
 
  protected:
-  LAMMPS *lmp;
-  Memory *&memory;
-  Error *&error;
-  Universe *&universe;
-  Input *&input;
+  LAMMPS *lmp;            ///< LAMMPS instance
+  Memory *&memory;        ///< memory management functions, especially for multi-dimensional arrays
+  Error *&error;          ///< error handling
+  Universe *&universe;    ///< universe of processors
+  Input *&input;          ///< input script processing and variables
 
-  Atom *&atom;
-  Update *&update;
-  Neighbor *&neighbor;
-  Comm *&comm;
-  Domain *&domain;
-  Force *&force;
-  Modify *&modify;
-  Group *&group;
-  Output *&output;
-  Timer *&timer;
+  Atom *&atom;            ///< atom-based quantities and molecules
+  Update *&update;        ///< integrators and minimizers
+  Neighbor *&neighbor;    ///< neighbor lists, bond lists, angle lists, etc.
+  Comm *&comm;            ///< inter-processor communication
+  Domain *&domain;        ///< simulation box, lattices, and regions
+  Force *&force;          ///< inter-particle forces
+  Modify *&modify;        ///< fixes and computes
+  Group *&group;          ///< groups of atoms
+  Output *&output;        ///< thermo output, dumps, and restart
+  Timer *&timer;          ///< CPU timing info and timeout management
+                          //
+  MPI_Comm &world;        ///< MPI communicator for this partition
+  FILE *&infile;          ///< pointer to input file
+  FILE *&screen;          ///< pointer to screen output
+  FILE *&logfile;         ///< pointer log file
 
-  MPI_Comm &world;
-  FILE *&infile;
-  FILE *&screen;
-  FILE *&logfile;
-
-  class AtomKokkos *&atomKK;
-  class MemoryKokkos *&memoryKK;
-  class Python *&python;
+  class AtomKokkos *&atomKK;        ///< KOKKOS specific per-atom data
+  class MemoryKokkos *&memoryKK;    ///< KOKKOS specific memory management
+  class Python *&python;            ///< embedded Python processing
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif

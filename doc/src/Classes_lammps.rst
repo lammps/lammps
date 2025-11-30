@@ -15,12 +15,15 @@ of the Python module, or the :f:func:`lammps` constructor of the Fortran
 module.
 
 In order to avoid clashes of function names, all of the core code in
-LAMMPS is placed into the ``LAMMPS_NS`` namespace.  Functions or variables
-outside of that namespace must be "static", i.e.  visible only to the
-scope of the file/object they are defined in.  Code in packages or the
-libraries in the ``lib`` folder may not adhere to this as some of them
-are adapted from legacy code or consist of external libraries with their
-own requirements and policies.
+LAMMPS is placed into the ``LAMMPS_NS`` namespace.  Functions or
+variables outside of that namespace must be defined only in the
+implementation files either as "static" functions or variables or in an
+anonymous namespace, i.e.  they must be visible *only* to the scope of
+the file they are defined in.
+
+Code in packages or the libraries in the ``lib`` folder may not adhere
+to this, as some of them are adapted from legacy code or consist of
+external libraries with their own requirements and policies.
 
 --------------------
 
@@ -28,6 +31,16 @@ own requirements and policies.
    :project: progguide
    :members:
 
+--------------------
+
+Pointers Class
+**************
+
+The Pointers class is the top-level base class for most classes in
+LAMMPS and through it such classes get access to the status of the
+current LAMMPS instance and can query or manipulate it.
+
 .. doxygenclass:: LAMMPS_NS::Pointers
    :project: progguide
-
+   :members:
+   :protected-members:

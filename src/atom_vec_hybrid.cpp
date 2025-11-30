@@ -86,7 +86,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
 
     int jarg = iarg + 1;
     while ((jarg < narg) && !atom->avec_map->count(arg[jarg]) &&
-           !lmp->match_style("atom", arg[jarg]))
+           !lmp->get_style_pkg("atom", arg[jarg]))
       jarg++;
 
     styles[nstyles]->process_args(jarg - iarg - 1, &arg[iarg + 1]);

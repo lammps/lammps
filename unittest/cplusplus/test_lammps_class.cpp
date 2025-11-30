@@ -103,44 +103,44 @@ TEST_F(LAMMPS_plain, TestStyles)
     const char *atom_styles[] = {"atomic", "body",   "charge", "ellipsoid", "hybrid",
                                  "line",   "sphere", "tri",    nullptr};
     for (int i = 0; atom_styles[i] != nullptr; ++i) {
-        found = lmp->match_style("atom", atom_styles[i]);
+        found = lmp->get_style_pkg("atom", atom_styles[i]);
         EXPECT_STREQ(found, nullptr);
     }
 
     const char *molecule_atom_styles[] = {"angle",     "bond",     "full",
                                           "molecular", "template", nullptr};
     for (int i = 0; molecule_atom_styles[i] != nullptr; ++i) {
-        found = lmp->match_style("atom", molecule_atom_styles[i]);
+        found = lmp->get_style_pkg("atom", molecule_atom_styles[i]);
         EXPECT_STREQ(found, "MOLECULE");
     }
 
     const char *kokkos_atom_styles[] = {"angle/kk",     "bond/kk",   "full/kk",
                                         "molecular/kk", "hybrid/kk", nullptr};
     for (int i = 0; kokkos_atom_styles[i] != nullptr; ++i) {
-        found = lmp->match_style("atom", kokkos_atom_styles[i]);
+        found = lmp->get_style_pkg("atom", kokkos_atom_styles[i]);
         EXPECT_STREQ(found, "KOKKOS");
     }
-    found = lmp->match_style("atom", "dipole");
+    found = lmp->get_style_pkg("atom", "dipole");
     EXPECT_STREQ(found, "DIPOLE");
-    found = lmp->match_style("atom", "peri");
+    found = lmp->get_style_pkg("atom", "peri");
     EXPECT_STREQ(found, "PERI");
-    found = lmp->match_style("atom", "spin");
+    found = lmp->get_style_pkg("atom", "spin");
     EXPECT_STREQ(found, "SPIN");
-    found = lmp->match_style("atom", "dpd");
+    found = lmp->get_style_pkg("atom", "dpd");
     EXPECT_STREQ(found, "DPD-REACT");
-    found = lmp->match_style("atom", "edpd");
+    found = lmp->get_style_pkg("atom", "edpd");
     EXPECT_STREQ(found, "DPD-MESO");
-    found = lmp->match_style("atom", "mdpd");
+    found = lmp->get_style_pkg("atom", "mdpd");
     EXPECT_STREQ(found, "DPD-MESO");
-    found = lmp->match_style("atom", "tdpd");
+    found = lmp->get_style_pkg("atom", "tdpd");
     EXPECT_STREQ(found, "DPD-MESO");
-    found = lmp->match_style("atom", "spin");
+    found = lmp->get_style_pkg("atom", "spin");
     EXPECT_STREQ(found, "SPIN");
-    found = lmp->match_style("atom", "smd");
+    found = lmp->get_style_pkg("atom", "smd");
     EXPECT_STREQ(found, "MACHDYN");
-    found = lmp->match_style("atom", "sph");
+    found = lmp->get_style_pkg("atom", "sph");
     EXPECT_STREQ(found, "SPH");
-    found = lmp->match_style("atom", "i_don't_exist");
+    found = lmp->get_style_pkg("atom", "i_don't_exist");
     EXPECT_STREQ(found, nullptr);
 }
 

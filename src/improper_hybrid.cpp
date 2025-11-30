@@ -233,7 +233,7 @@ void ImproperHybrid::settings(int narg, char **arg)
 
     int jarg = i + 1;
     while ((jarg < narg) && !force->improper_map->count(arg[jarg]) &&
-           !lmp->match_style("improper", arg[jarg]))
+           !lmp->get_style_pkg("improper", arg[jarg]))
       jarg++;
 
     styles[nstyles]->settings(jarg - i - 1, &arg[i + 1]);

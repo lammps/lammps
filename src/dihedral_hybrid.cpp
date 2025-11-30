@@ -231,7 +231,7 @@ void DihedralHybrid::settings(int narg, char **arg)
 
     int jarg = i + 1;
     while ((jarg < narg) && !force->dihedral_map->count(arg[jarg]) &&
-           !lmp->match_style("dihedral", arg[jarg]))
+           !lmp->get_style_pkg("dihedral", arg[jarg]))
       jarg++;
 
     styles[nstyles]->settings(jarg - i - 1, &arg[i + 1]);

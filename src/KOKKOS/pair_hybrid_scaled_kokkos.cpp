@@ -390,7 +390,7 @@ void PairHybridScaledKokkos::settings(int narg, char **arg)
 
     jarg = iarg + 1;
     while ((jarg < narg) && !force->pair_map->count(arg[jarg]) &&
-           !lmp->match_style("pair", arg[jarg]))
+           !lmp->get_style_pkg("pair", arg[jarg]))
       jarg++;
 
     // decrement to account for scale factor except when last argument

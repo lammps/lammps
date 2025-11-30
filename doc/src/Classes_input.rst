@@ -1,5 +1,5 @@
-LAMMPS Input Base Class
-************************
+Input Base Class
+****************
 
 .. doxygenclass:: LAMMPS_NS::Input
       :project: progguide

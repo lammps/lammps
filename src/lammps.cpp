@@ -74,6 +74,7 @@
 #endif
 
 static void print_style(FILE *fp, const char *str, int &pos);
+static std::vector<char *> argv_pointers(LAMMPS_NS::LAMMPS::argv &args);
 
 struct LAMMPS_NS::package_styles_lists {
   std::map<std::string,std::string> angle_styles;
@@ -107,27 +108,46 @@ using namespace LAMMPS_NS;
  * deleting, and initializing instances of the classes it is composed of,
  * processing command-line flags, and providing access to some global properties.
  * The specifics of setting up and running a simulation are handled by the
- * individual component class instances. */
-
-/** Create a LAMMPS simulation instance
+ * individual component class instances.  It requires using a custom
+ * constructor which has the command line argument vector and the desired
+ * global MPI communicator as arguments.  Other auto-generated default
+ * members of the class are disabled to avoid unintended accidental use.
  *
- * \param args list of arguments
- * \param communicator MPI communicator used by this LAMMPS instance
+\verbatim embed:rst
+Most of the constituent class instances are created with the
+:cpp:func:`create <LAMMPS_NS::LAMMPS::create>` and
+:cpp:func:`post_create <LAMMPS_NS::LAMMPS::post_create>`
+methods. The destructor correspondingly calls the
+:cpp:func:`destroy <LAMMPS_NS::LAMMPS::destroy>` method.
+
+This allows to reset the LAMMPS instance with the
+:doc:`clear command<clear>` where some data like variables are not reset.
+\endverbatim
  */
-LAMMPS::LAMMPS(argv & args, MPI_Comm communicator) :
+
+/** Create a LAMMPS simulation instance with C++ style string argument list.
+ *
+ * \overload
+ *
+ * This function is a wrapper around the constructor using the C-language argument list.
+ *
+ * \param args           list of arguments as vector of C++ style strings
+ * \param communicator   MPI communicator used by this LAMMPS instance
+ */
+LAMMPS::LAMMPS(argv &args, MPI_Comm communicator) :
   LAMMPS(args.size(), argv_pointers(args).data(), communicator) {
 }
 
-/** Create a LAMMPS simulation instance
+/** Create a LAMMPS simulation instance with C-language style argument list
  *
  * The LAMMPS constructor starts up a simulation by allocating all
  * fundamental classes in the necessary order, parses input switches
  * and their arguments, initializes communicators, screen and logfile
  * output FILE pointers.
  *
- * \param narg number of arguments
- * \param arg list of arguments
- * \param communicator MPI communicator used by this LAMMPS instance
+ * \param narg           number of arguments
+ * \param arg            list of arguments as C-language strings
+ * \param communicator   MPI communicator used by this LAMMPS instance
  */
 LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   memory(nullptr), error(nullptr), universe(nullptr), input(nullptr), atom(nullptr),
@@ -767,7 +787,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
  * The LAMMPS destructor shuts down the simulation by deleting top-level class
  * instances, closing screen and log files for the global instance (aka "world")
  * and files and MPI communicators in sub-partitions ("universes"). Then it
- * deletes the fundamental class instances and copies of data inside the class.
+ * deletes the fundamental class instances and copies of data inside these classes
+ * by calling the destroy() method.
  */
 LAMMPS::~LAMMPS() noexcept(false)
 {
@@ -835,11 +856,12 @@ LAMMPS::~LAMMPS() noexcept(false)
   delete[] exename;
 }
 
-/* ----------------------------------------------------------------------
-   allocate single instance of top-level classes
-   fundamental classes are allocated in constructor
-   some classes have package variants
-------------------------------------------------------------------------- */
+/** Create instances of LAMMPS top level classes
+ *
+ * This function allocates a single instance of all top-level classes.
+ * A few fundamental classes like Universe or Input are instantiated in
+ * the constructor.  For some some classes, package variants are allocated
+ * depending on compile time or runtime settings. */
 
 void LAMMPS::create()
 {
@@ -891,14 +913,23 @@ void LAMMPS::create()
 #endif
 }
 
-/* ----------------------------------------------------------------------
-   check suffix consistency with installed packages
-   invoke package-specific default package commands
-     only invoke if suffix is set and enabled
-     also check if suffix2 is set
-   called from LAMMPS constructor and after clear() command
-     so that package-specific core classes have been instantiated
-------------------------------------------------------------------------- */
+/** Perform LAMMPS class tasks that require all base classes being set up
+ *
+\verbatim embed:rst
+
+This function performs the following tasks:
+
+  - check if suffix setting is consistent with the installed packages
+  - invoke package-specific default package commands; this happens only
+    if a suffix is set and enabled including a check for as hybrid suffix
+    with a second suffix.
+  - record which suffix settings were given on the command line, so they
+    can be repeated when the LAMMPS class is re-initialized.
+
+It is called from the :cpp:func:`LAMMPS constructor <LAMMPS_NS::LAMMPS::LAMMPS>`
+and after a :doc:`clear command <clear>` so that package-specific core classes
+have already been instantiated and can be used freely.
+\endverbatim */
 
 void LAMMPS::post_create()
 {
@@ -965,10 +996,13 @@ void LAMMPS::post_create()
   }
 }
 
-/* ----------------------------------------------------------------------
-   initialize top-level classes
-   do not initialize Timer class, other classes like Run() do that explicitly
-------------------------------------------------------------------------- */
+/** Initialize the LAMMPS top-level classes
+ *
+ * This is done by calling the respective init() methods of the class instance.
+ * That must be done in a specific order since some classes require access to
+ * others that must thus be initialized before them.
+ *
+ * Does not initialize the Timer class since other classes like Run will do that explicitly. */
 
 void LAMMPS::init()
 {
@@ -986,10 +1020,20 @@ void LAMMPS::init()
   output->init();        // output must come after domain, force, modify
 }
 
-/* ----------------------------------------------------------------------
-   delete single instance of top-level classes
-   fundamental classes are deleted in destructor
-------------------------------------------------------------------------- */
+/** Delete and nullify instances of the LAMMPS top level classes
+ *
+\verbatim embed:rst
+
+This is the companion to :cpp:func:`create() <LAMMPS_NS::LAMMPS::create>`
+and is called from the destructor or during the :doc:`clear command <clear>`
+command to reset LAMMPS.  We explicitly and immediately nullify the pointers
+to the class instances, so that any use of a deleted class instance generates
+a segmentation fault.  Otherwise, there may be silent memory corruption or
+otherwise difficult to debug crashes.
+
+\endverbatim
+
+Some fundamental classes are deleted in destructor instead. */
 
 void LAMMPS::destroy()
 {
@@ -1152,15 +1196,15 @@ void _noopt LAMMPS::init_pkg_lists()
 
 /** \brief Return name of package that a specific style belongs to
  *
- * This function checks the given name against all list of styles
- * for all types of styles and if the name and the style match, it
- * returns which package this style belongs to.
+ * This function checks the given style name against the list of all
+ * styles for all kinds of styles and if the name and the style match,
+ * it returns the name of the package this style belongs to.
  *
  * \param style Type of style (e.g. atom, pair, fix, etc.)
  * \param name Name of style
  * \return Name of the package this style is part of
  */
-const char *LAMMPS::match_style(const char *style, const char *name)
+const char *LAMMPS::get_style_pkg(const char *style, const char *name) const
 {
   check_for_match(angle,style,name);
   check_for_match(atom,style,name);
@@ -1207,7 +1251,7 @@ const char *LAMMPS::non_pair_suffix() const
    help message for command-line options and styles present in executable
 ------------------------------------------------------------------------- */
 
-void _noopt LAMMPS::help()
+void _noopt LAMMPS::help() const
 {
   FILE *fp = screen;
   const char *pager = nullptr;
@@ -1429,7 +1473,7 @@ void print_style(FILE *fp, const char *str, int &pos)
   }
 }
 
-void LAMMPS::print_config(FILE *fp)
+void LAMMPS::print_config(FILE *fp) const
 {
   const char *pkg;
   int ncword, ncline = 0;
@@ -1495,7 +1539,7 @@ void LAMMPS::print_config(FILE *fp)
  * \param args list of arguments
  * \return vector of argument pointers
  */
-std::vector<char*> LAMMPS::argv_pointers(argv &args){
+std::vector<char*> argv_pointers(LAMMPS::argv &args){
   std::vector<char*> r;
   r.reserve(args.size()+1);
   for(auto &a : args) {

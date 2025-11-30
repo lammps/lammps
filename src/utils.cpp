@@ -444,15 +444,20 @@ int utils::read_lines_from_file(FILE *fp, int nlines, int nmax, char *buffer, in
 std::string utils::check_packages_for_style(const std::string &style, const std::string &name,
                                             LAMMPS *lmp)
 {
+  // base error message
   std::string errmsg = "Unrecognized " + style + " style '" + name + "'";
-  const char *pkg = lmp->match_style(style.c_str(), name.c_str());
+
+  // check if missing style is part of a package
+  const char *pkg = lmp->get_style_pkg(style.c_str(), name.c_str());
 
   if (pkg) {
     errmsg += fmt::format(" is part of the {} package", pkg);
-    if (Info::has_package(pkg))
-      errmsg += ", but seems to be missing because of a dependency";
-    else
-      errmsg += " which is not enabled in this LAMMPS binary." + utils::errorurl(10);
+    if (Info::has_package(pkg)) {
+      errmsg += " but seems to be missing because of a dependency.";
+    } else {
+      errmsg += " which is not enabled in this LAMMPS binary.";
+    }
+    errmsg += utils::errorurl(10);
   }
   return errmsg;
 }

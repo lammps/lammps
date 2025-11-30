@@ -340,7 +340,7 @@ void PairHybrid::settings(int narg, char **arg)
     jarg = iarg + 1;
     while ((jarg < narg)
            && !force->pair_map->count(arg[jarg])
-           && !lmp->match_style("pair", arg[jarg])) jarg++;
+           && !lmp->get_style_pkg("pair", arg[jarg])) jarg++;
 
     styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
     iarg = jarg;

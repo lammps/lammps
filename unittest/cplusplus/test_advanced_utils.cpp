@@ -281,12 +281,14 @@ TEST_F(AdvancedUtils, check_packages_for_style)
     if (Info::has_package("MANYBODY")) {
         auto mesg = utils::check_packages_for_style("pair", "tersoff", lmp);
         EXPECT_THAT(mesg, StrEq("Unrecognized pair style 'tersoff' is part of the MANYBODY "
-                                "package, but seems to be missing because of a dependency"));
+                                "package but seems to be missing because of a dependency.\n"
+                                "For more information see https://docs.lammps.org/err0010"));
     }
     if (Info::has_package("MOLECULE")) {
         auto mesg = utils::check_packages_for_style("bond", "harmonic", lmp);
         EXPECT_THAT(mesg, StrEq("Unrecognized bond style 'harmonic' is part of the MOLECULE "
-                                "package, but seems to be missing because of a dependency"));
+                                "package but seems to be missing because of a dependency.\n"
+                                "For more information see https://docs.lammps.org/err0010"));
     }
 }
 

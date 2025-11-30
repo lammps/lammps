@@ -232,7 +232,7 @@ void AngleHybrid::settings(int narg, char **arg)
 
     int jarg = i + 1;
     while ((jarg < narg) && !force->angle_map->count(arg[jarg]) &&
-           !lmp->match_style("angle", arg[jarg]))
+           !lmp->get_style_pkg("angle", arg[jarg]))
       jarg++;
 
     styles[nstyles]->settings(jarg - i - 1, &arg[i + 1]);

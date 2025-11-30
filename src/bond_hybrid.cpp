@@ -258,7 +258,7 @@ void BondHybrid::settings(int narg, char **arg)
 
     int jarg = i + 1;
     while ((jarg < narg) && !force->bond_map->count(arg[jarg]) &&
-           !lmp->match_style("bond", arg[jarg]))
+           !lmp->get_style_pkg("bond", arg[jarg]))
       jarg++;
 
     styles[nstyles]->settings(jarg - i - 1, &arg[i + 1]);

@@ -1,5 +1,5 @@
-C++ base classes
-================
+C++ Class documentation
+=======================
 
 LAMMPS is designed to be used as a C++ class library where one can set
 up and drive a simulation through creating a class instance and then
@@ -30,10 +30,19 @@ some selected examples for derived classes of specific models.
 -----------------------------------
 
 .. toctree::
-   :caption: Individual Base Classes
-   :name: lammpsbase
+   :caption: Core LAMMPS Classes
+   :name: lammpscore
+   :maxdepth: 1
 
    Classes_lammps
+
+-----------------------------------
+
+.. toctree::
+   :caption: Infrastructure Classes
+   :name: lammpsinfrastructure
+   :maxdepth: 1
+
    Classes_atom
    Classes_comm
    Classes_domain
@@ -50,7 +59,18 @@ some selected examples for derived classes of specific models.
 -----------------------------------
 
 .. toctree::
-   :caption: Individual Utility Classes
+   :caption: Utility Classes
    :name: lammpsutils
+   :maxdepth: 1
 
    Classes_cite
+
+-----------------------------------
+
+.. toctree::
+   :caption: Style Base Classes
+   :name: lammpsbase
+   :maxdepth: 1
+
+   Classes_angle
+

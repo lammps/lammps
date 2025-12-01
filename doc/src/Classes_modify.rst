@@ -1,5 +1,5 @@
-LAMMPS Modify Class
-*******************
+Modify Class
+************
 
 The Modify class manages all :doc:`Fix <fix>` and :doc:`Compute <compute>`
 instances in a LAMMPS simulation.  Fixes modify the simulation state

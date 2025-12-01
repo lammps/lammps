@@ -1,5 +1,5 @@
-LAMMPS Comm Base Class
-**********************
+Comm Class
+**********
 
 The Comm class is the abstract base class for managing inter-processor
 communication in parallel LAMMPS simulations.  It handles the decomposition

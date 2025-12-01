@@ -1,5 +1,5 @@
-LAMMPS Universe Class
-*********************
+Universe Class
+**************
 
 The Universe class manages the parallel environment for multi-partition LAMMPS
 simulations.  When LAMMPS is run with the ``-partition`` command-line flag,

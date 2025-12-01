@@ -1,5 +1,5 @@
-LAMMPS Group Class
-******************
+Group Class
+***********
 
 The Group class manages named groups of atoms in LAMMPS.  Groups provide a way
 to select subsets of atoms for various operations such as applying fixes,

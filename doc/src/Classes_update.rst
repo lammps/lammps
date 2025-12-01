@@ -1,9 +1,13 @@
-LAMMPS Update Class
-*******************
+Update Class
+************
 
-The Update class manages time integration (molecular dynamics) and energy
-minimization in LAMMPS.  It holds the simulation timestep size (``dt``) and
-tracks the current timestep number (``ntimestep``).
+The Update class manages time integration (molecular dynamics) and
+energy minimization in LAMMPS.  It holds the simulation timestep size
+(``dt``, which can be (re-)set with the :doc:`timestep command
+<timestep>`) and tracks the current timestep number (``ntimestep``,
+which can be reset with the :doc:`reset_timestep command
+<reset_timestep>`).  That simulation set is recorded using the
+``whichflag`` member (1 for MD, 2 for minimization, and 0 for neither).
 
 Key responsibilities include:
 

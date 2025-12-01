@@ -1,5 +1,5 @@
-LAMMPS Timer Class
-******************
+Timer Class
+***********
 
 The Timer class provides performance timing for various stages of a LAMMPS
 simulation.  It tracks both CPU time and wall-clock time for different

@@ -1,5 +1,5 @@
-LAMMPS Force Class
-******************
+Force Class
+***********
 
 The Force class manages all force field components in a LAMMPS simulation,
 including pair potentials, bonded interactions (bond, angle, dihedral,

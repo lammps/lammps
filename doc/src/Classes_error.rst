@@ -1,5 +1,5 @@
-LAMMPS Error Class
-******************
+Error Class
+***********
 
 The Error class provides centralized error handling for LAMMPS.  It supports
 fatal errors that terminate execution on all or single MPI processes, as well

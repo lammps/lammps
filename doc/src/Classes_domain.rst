@@ -1,5 +1,5 @@
-LAMMPS Domain Class
-*******************
+Domain Class
+************
 
 The Domain class manages the simulation box geometry and properties in LAMMPS.
 It handles both orthogonal and triclinic (tilted) simulation boxes, and provides

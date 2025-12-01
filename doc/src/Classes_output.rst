@@ -1,5 +1,5 @@
-LAMMPS Output Class
-*******************
+Output Class
+************
 
 The Output class manages all forms of output from LAMMPS simulations, including
 thermodynamic data, dump files, and restart files.  It coordinates the timing

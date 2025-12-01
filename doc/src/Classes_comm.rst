@@ -17,20 +17,19 @@ Key responsibilities include:
 
 This is an abstract base class with two concrete implementations:
 
-- **CommBrick**: Traditional 6-way stencil communication for regular grids
-- **CommTiled**: Communication for irregular domain decompositions (from RCB)
+- :cpp:class:`LAMMPS_NS::CommBrick`: Traditional 6-way stencil communication for regular grids
+- :cpp:class:`LAMMPS_NS::CommTiled`: Communication for irregular domain decompositions (from RCB)
 
 The communication style and domain layout can be selected via the
 :doc:`comm_style <comm_style>` and :doc:`comm_modify <comm_modify>` commands.
 
 .. doxygenclass:: LAMMPS_NS::Comm
    :project: progguide
-   :members:
 
 ----------
 
 CommBrick Class
-***************
+^^^^^^^^^^^^^^^
 
 CommBrick implements the default communication style using a traditional
 6-way stencil pattern.  Each processor exchanges atoms and data only with
@@ -41,12 +40,11 @@ domain decompositions where processor subdomains form a regular grid.
 
 .. doxygenclass:: LAMMPS_NS::CommBrick
    :project: progguide
-   :members:
 
 ----------
 
 CommTiled Class
-***************
+^^^^^^^^^^^^^^^
 
 CommTiled implements communication for irregular (tiled) domain decompositions
 that result from recursive coordinate bisection (RCB) load balancing.  Unlike
@@ -58,4 +56,3 @@ communication overhead.
 
 .. doxygenclass:: LAMMPS_NS::CommTiled
    :project: progguide
-   :members:

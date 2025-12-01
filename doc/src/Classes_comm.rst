@@ -26,3 +26,36 @@ The communication style and domain layout can be selected via the
 .. doxygenclass:: LAMMPS_NS::Comm
    :project: progguide
    :members:
+
+----------
+
+CommBrick Class
+***************
+
+CommBrick implements the default communication style using a traditional
+6-way stencil pattern.  Each processor exchanges atoms and data only with
+its 6 nearest neighbors in the 3D processor grid (or fewer in lower dimensions).
+
+This style is optimal for uniform or non-uniform (but logically regular)
+domain decompositions where processor subdomains form a regular grid.
+
+.. doxygenclass:: LAMMPS_NS::CommBrick
+   :project: progguide
+   :members:
+
+----------
+
+CommTiled Class
+***************
+
+CommTiled implements communication for irregular (tiled) domain decompositions
+that result from recursive coordinate bisection (RCB) load balancing.  Unlike
+CommBrick, it can handle non-rectangular processor subdomains and must
+dynamically determine which processors own ghost atoms.
+
+This style allows for better load balancing at the cost of some additional
+communication overhead.
+
+.. doxygenclass:: LAMMPS_NS::CommTiled
+   :project: progguide
+   :members:

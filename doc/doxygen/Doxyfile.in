@@ -453,6 +453,10 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/force.h                   \
                          @LAMMPS_SOURCE_DIR@/comm.cpp                  \
                          @LAMMPS_SOURCE_DIR@/comm.h                    \
+                         @LAMMPS_SOURCE_DIR@/comm_brick.cpp            \
+                         @LAMMPS_SOURCE_DIR@/comm_brick.h              \
+                         @LAMMPS_SOURCE_DIR@/comm_tiled.cpp            \
+                         @LAMMPS_SOURCE_DIR@/comm_tiled.h              \
                          @LAMMPS_SOURCE_DIR@/domain.cpp                \
                          @LAMMPS_SOURCE_DIR@/domain.h                  \
                          @LAMMPS_SOURCE_DIR@/group.cpp                 \

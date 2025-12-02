@@ -21,12 +21,64 @@
 #include "ewald_const.h"
 #include "math_const.h"
 
+#include <cassert>
 #include <cmath>
+#include <vector>
 
 namespace LAMMPS_NS {
 using namespace EwaldConst;
 
 namespace ElectrodeMath {
+  inline std::vector<double> operator+(const std::vector<double> &a, const std::vector<double> &b)
+  {
+    assert(a.size() == b.size());
+    size_t n = a.size();
+    auto out = std::vector<double>(n);
+    for (size_t i = 0; i < n; i++) out[i] = a[i] + b[i];
+    return out;
+  }
+
+  /* ---------------------------------------------------------------------- */
+
+  inline std::vector<double> operator-(const std::vector<double> &a, const std::vector<double> &b)
+  {
+    assert(a.size() == b.size());
+    size_t n = a.size();
+    auto out = std::vector<double>(n);
+    for (size_t i = 0; i < n; i++) out[i] = a[i] - b[i];
+    return out;
+  }
+
+  /* ---------------------------------------------------------------------- */
+
+  inline void operator+=(std::vector<double> &a, const std::vector<double> &b)
+  {
+    assert(a.size() == b.size());
+    size_t n = a.size();
+    auto out = std::vector<double>(n);
+    for (size_t i = 0; i < n; i++) a[i] += b[i];
+  }
+
+  /* ---------------------------------------------------------------------- */
+
+  inline void operator-=(std::vector<double> &a, const std::vector<double> &b)
+  {
+    assert(a.size() == b.size());
+    size_t n = a.size();
+    auto out = std::vector<double>(n);
+    for (size_t i = 0; i < n; i++) a[i] -= b[i];
+  }
+
+  /* ---------------------------------------------------------------------- */
+
+  inline std::vector<double> operator*(double alpha, std::vector<double> a)
+  {
+    for (double &ai : a) ai *= alpha;
+    return a;
+  }
+
+  /* ---------------------------------------------------------------------- */
+
   static constexpr double ERFCMAX = 5.8;    // erfc(ERFCMAX) < machine epsilon(double)
 
   static double safe_erfc(double x)

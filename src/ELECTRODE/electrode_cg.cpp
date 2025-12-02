@@ -18,6 +18,7 @@
 #include "electrode_cg.h"
 #include "atom.h"
 #include "comm.h"
+#include "electrode_math.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
@@ -28,6 +29,7 @@
 #include <string>
 
 using namespace LAMMPS_NS;
+using namespace ElectrodeMath;
 
 ElectrodeCG::ElectrodeCG(LAMMPS *lmp) :
     Fix(lmp, 0,
@@ -150,28 +152,28 @@ std::vector<double> ElectrodeCG::solve(std::vector<double> v)
   a_cached_flag = false;
   ncall++;
   auto b = std::vector<double>(nele);
-  for (int i = 0; i < nele; i++) b[i] = bvec[i] - evscale * v[iele_to_group[i]];
+  for (int i = 0; i < nele; i++) b[i] = evscale * v[iele_to_group[i]] - bvec[i];
   predict_q();
   q_ele = constraint_projection(q_ele, true);
-  auto r = add(b, ele_ele_interaction(q_ele));
+  auto r = b - ele_ele_interaction(q_ele);
   auto d = constraint_projection(r, false);
   double dot_old = dot_product(r, d);
   double delta = dot_old;
   for (int k = 0; k < nele_world && delta > threshold; k++, nstep++) {
     auto y = ele_ele_interaction(d);
-    double alpha = dot_old / -dot_product(d, y);
-    q_ele = add(q_ele, scale_vector(alpha, d));
+    double alpha = dot_old / dot_product(d, y);
+    q_ele += alpha * d;
     // prepare next step
     if ((k + 1) % 20 == 0) {
       // avoid shifting residual. This rarely happens.
       q_ele = constraint_projection(q_ele, true);
-      r = add(b, ele_ele_interaction(q_ele));
+      r = b - ele_ele_interaction(q_ele);
     } else {
-      r = add(r, scale_vector(alpha, std::move(y)));
+      r -= alpha * std::move(y);
     }
     auto p = constraint_projection(r, false);
     double dot_new = dot_product(r, p);
-    d = add(std::move(p), scale_vector(dot_new / dot_old, d));
+    d = std::move(p) + (dot_new / dot_old) * d;
     delta = dot_product(r, d);
     dot_old = dot_new;
   }
@@ -282,23 +284,7 @@ void ElectrodeCG::set_charges(std::vector<double> q_vec)
 
 /* ---------------------------------------------------------------------- */
 
-std::vector<double> ElectrodeCG::scale_vector(double alpha, std::vector<double> x)
-{
-  for (double &xi : x) xi *= alpha;
-  return x;
-}
-/* ---------------------------------------------------------------------- */
-
-std::vector<double> ElectrodeCG::add(std::vector<double> a, std::vector<double> b)
-{
-  assert(((int) a.size() == nele) && ((int) b.size() == nele));
-  for (int i = 0; i < nele; i++) a[i] += b[i];
-  return a;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double ElectrodeCG::dot_product(std::vector<double> a, std::vector<double> b)
+double ElectrodeCG::dot_product(const std::vector<double> &a, const std::vector<double> &b)
 {
   assert(((int) a.size() == nele) && ((int) b.size() == nele));
   double out = 0.;

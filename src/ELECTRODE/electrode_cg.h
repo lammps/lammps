@@ -75,13 +75,8 @@ class ElectrodeCG : public Fix, public ChargeSolver {
   void predict_q();
   std::vector<double> pot_to_vector(double *);
   void set_charges(std::vector<double>);
-
-  // math operations with vectors
-  std::vector<double> scale_vector(double, std::vector<double>);
-  std::vector<double> add(std::vector<double>, std::vector<double>);
-  double dot_product(std::vector<double>, std::vector<double>);
-  //
   std::vector<double> constraint_projection(std::vector<double>, bool);
+  double dot_product(const std::vector<double> &, const std::vector<double> &);
 };
 
 }    // namespace LAMMPS_NS

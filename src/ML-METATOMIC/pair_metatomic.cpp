@@ -817,8 +817,6 @@ void PairMetatomic::compute(int eflag, int vflag) {
     }
 }
 
-void PairMetatomic::pre_compute() {}
-
 void PairMetatomic::store_forces(const at::Tensor& forces_tensor) {
     assert(forces_tensor.is_cpu() && forces_tensor.scalar_type() == torch::kFloat64);
 

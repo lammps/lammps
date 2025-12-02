@@ -65,9 +65,6 @@ public:
     // store the forces from the model in LAMMPS data structures
     virtual void store_forces(const at::Tensor& forces_tensor);
 
-    // called one at the beginning of `compute`
-    virtual void pre_compute();
-
 protected:
     // get the set of devices both available on the current machine and supported
     // by the model

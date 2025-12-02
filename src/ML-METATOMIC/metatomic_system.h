@@ -63,7 +63,9 @@ public:
 
     virtual ~MetatomicSystemAdaptor();
 
-    void add_nl_request(double cutoff, metatomic_torch::NeighborListOptions request);
+    virtual void add_nl_request(
+        double cutoff, metatomic_torch::NeighborListOptions request
+    );
 
     // Create a metatomic system matching the LAMMPS system data
     virtual metatomic_torch::System system_from_lmp(
@@ -90,6 +92,12 @@ public:
     // Some ghosts atoms correspond to periodic images of other atoms, we need
     // to identify them to avoid duplicated pairs in the neighbor lists.
     void guess_periodic_ghosts();
+
+    /// Compute the inverse of the cell matrix of the system, accounting for
+    /// non-periodic directions by setting the corresponding rows to an unit vector
+    /// orthogonal to the periodic directions. This is used to compute the cell
+    /// shifts of neighbor pairs.
+    std::array<std::array<double, 3>, 3> cell_inverse();
 
     // options for this system adaptor
     MetatomicSystemOptions options_;

@@ -50,7 +50,6 @@ public:
 
     void init_style() override;
 
-    void pre_compute() override;
     void store_forces(const at::Tensor& forces_tensor) override;
 
 private:

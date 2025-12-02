@@ -72,11 +72,34 @@ template<> struct KokkosDeviceToTorch<Kokkos::Threads> {
 
 /* ---------------------------------------------------------------------- */
 
+// data for metatomic neighbors lists
+struct MetatomicNeighborsDataKokkos {
+    // single neighbors sample containing [i, j, S_a, S_b, S_c]
+    using sample_t = std::array<int32_t, 5>;
+
+    // cutoff for this NL in LAMMPS units
+    double cutoff;
+    // options of the NL as requested by the model
+    metatomic_torch::NeighborListOptions options;
+
+    // Below are cached allocations for the LAMMPS -> metatomic NL translation
+    // TODO: report memory usage for these?
+
+    Kokkos::View<int32_t**, Kokkos::LayoutRight, LMPDeviceType> samples;
+    // pairs distances vectors
+    Kokkos::View<double**, Kokkos::LayoutRight, LMPDeviceType> distances_f64;
+    Kokkos::View<float**, Kokkos::LayoutRight, LMPDeviceType> distances_f32;
+};
+
 template<class DeviceType>
 class MetatomicSystemAdaptorKokkos : public MetatomicSystemAdaptor {
 public:
     MetatomicSystemAdaptorKokkos(LAMMPS *lmp, MetatomicSystemOptions options);
     ~MetatomicSystemAdaptorKokkos() override {}
+
+    void add_nl_request(
+        double cutoff, metatomic_torch::NeighborListOptions request
+    ) override;
 
     // Create a metatensor system matching the LAMMPS-Kokkos system data
     metatomic_torch::System system_from_lmp(
@@ -91,6 +114,9 @@ public:
 private:
     /// Torch device corresponding to the kokkos `DeviceType`
     torch::Device device_;
+
+    // allocations caches for all the NL requested by the model
+    std::vector<MetatomicNeighborsDataKokkos> nl_requests_kk_;
 };
 
 }    // namespace LAMMPS_NS

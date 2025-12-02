@@ -109,12 +109,6 @@ void PairMetatomicKokkos<DeviceType>::pick_device(torch::Device& device, const c
     }
 }
 
-template<class DeviceType>
-void PairMetatomicKokkos<DeviceType>::pre_compute() {
-    /// Declare what we need to read from the atomKK object and what we will modify
-    this->atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space, datamask_read);
-    this->atomKK->modified(ExecutionSpaceFromDevice<DeviceType>::space, datamask_modify);
-}
 
 template<class DeviceType>
 void PairMetatomicKokkos<DeviceType>::store_forces(const at::Tensor& forces_tensor) {
@@ -142,7 +136,6 @@ void PairMetatomicKokkos<DeviceType>::store_forces(const at::Tensor& forces_tens
         using HostUnmanaged = UnmanagedView<int*, LMPHostType>;
         using DeviceUnmanaged = UnmanagedView<int*, DeviceType>;
         using DeviceView = Kokkos::View<int*, Kokkos::LayoutRight, DeviceType>;
-
 
         auto& mta_to_lmp = this->system_adaptor->mta_to_lmp;
         DeviceUnmanaged mta_to_lmp_kk;

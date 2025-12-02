@@ -73,11 +73,7 @@ matrix_t inverse(matrix_t a) {
     return inverse;
 }
 
-/// Compute the inverse of the cell matrix of the system, accounting for
-/// non-periodic directions by setting the corresponding rows to an unit vector
-/// orthogonal to the periodic directions. This is used to compute the cell
-/// shifts of neighbor pairs.
-static std::array<std::array<double, 3>, 3> cell_inverse(Domain* domain) {
+std::array<std::array<double, 3>, 3> MetatomicSystemAdaptor::cell_inverse() {
     auto periodic = std::array<bool, 3>{
         static_cast<bool>(domain->xperiodic),
         static_cast<bool>(domain->yperiodic),
@@ -273,8 +269,7 @@ void MetatomicSystemAdaptor::setup_neighbors(metatomic_torch::System& system, Ne
     auto device = system->positions().device();
 
     double** x = atom->x;
-    auto total_n_atoms = atom->nlocal + atom->nghost;
-    auto cell_inv = cell_inverse(domain);
+    auto cell_inv = this->cell_inverse();
 
     for (auto& nl: nl_requests_) {
         {
@@ -289,14 +284,12 @@ void MetatomicSystemAdaptor::setup_neighbors(metatomic_torch::System& system, Ne
             nl.distances_f64.clear();
             for (int ii=0; ii<(list->inum + list->gnum); ii++) {
                 auto atom_i = list->ilist[ii];
-                assert(atom_i < total_n_atoms);
                 auto original_atom_i = original_atom_id_[atom_i];
                 auto i_is_original = (atom_i == original_atom_i);
 
                 auto neighbors = list->firstneigh[ii];
                 for (int jj=0; jj<list->numneigh[ii]; jj++) {
                     auto atom_j = neighbors[jj] & NEIGHMASK;
-                    assert(atom_j < total_n_atoms);
                     auto original_atom_j = original_atom_id_[atom_j];
                     auto j_is_original = (atom_j == original_atom_j);
 

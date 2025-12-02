@@ -1062,7 +1062,7 @@ void FixElectrodeConp::request_etypes_neighlists()
   }
   for (int etype : etypes) {
     iskip_mat[etype] = 0;
-    ijskip_mat[etype][etype] = 0;
+    for (int jtype : etypes) ijskip_mat[etype][jtype] = 0;
   }
   // now, iskip_mat[itype] == 0 iff etype
   // set ijskip_vec[itype][jtype] == 0 if (i is etype XOR j is etype)

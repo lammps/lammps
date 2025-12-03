@@ -37,10 +37,12 @@ Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drau
 #include <cstring>
 #include <exception>
 
-#include "ace-evaluator/ace_recursive.h"
-#include "ace-evaluator/ace_version.h"
 #include "ace/ace_b_basis.h"
 #include "ace/ace_b_evaluator.h"
+#include "ace-evaluator/ace_recursive.h"
+#include "ace-evaluator/ace_version.h"
+
+#include "utils_pace.h"
 
 namespace LAMMPS_NS {
 struct ACEALImpl {
@@ -103,6 +105,9 @@ PairPACEExtrapolation::PairPACEExtrapolation(LAMMPS *lmp) : Pair(lmp)
   corerep_factor = nullptr;
 
   chunksize = 4096;
+
+  centroidstressflag = CENTROID_AVAIL;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -196,6 +201,7 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
     aceimpl->ace->resize_neighbours_cache(max_jnum);
   else
     aceimpl->rec_ace->resize_neighbours_cache(max_jnum);
+  int* my_neigh_jlist = new int [max_jnum];
 
   //loop over atoms
   for (ii = 0; ii < inum; ii++) {
@@ -216,12 +222,16 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
     // i = 0 ,1
     // jnum(0) = 50
     // jlist(neigh ind of 0-atom) = [1,2,10,7,99,25, .. 50 element in total]
+    for (jj = 0; jj < jnum; ++jj) {
+      my_neigh_jlist[jj]= jlist[jj] & NEIGHMASK;
+    }
     try {
       if (flag_compute_extrapolation_grade) {
         aceimpl->ace->compute_projections = true;
-        aceimpl->ace->compute_atom(i, x, type, jnum, jlist);
-      } else
-        aceimpl->rec_ace->compute_atom(i, x, type, jnum, jlist);
+        aceimpl->ace->compute_atom(i, x, type, jnum, my_neigh_jlist);
+      }
+      else
+        aceimpl->rec_ace->compute_atom(i, x, type, jnum, my_neigh_jlist);
     } catch (std::exception &e) {
       error->one(FLERR, e.what());
     }
@@ -244,9 +254,9 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
       j = jlist[jj];
       const int jtype = type[j];
       j &= NEIGHMASK;
-      delx = x[j][0] - xtmp;
-      dely = x[j][1] - ytmp;
-      delz = x[j][2] - ztmp;
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
 
       fij[0] = scale[itype][jtype] * neighbours_forces(jj, 0);
       fij[1] = scale[itype][jtype] * neighbours_forces(jj, 1);
@@ -260,9 +270,36 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
       f[j][2] -= fij[2];
 
       // tally per-atom virial contribution
-      if (vflag)
-        ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, fij[0], fij[1], fij[2], -delx, -dely,
-                     -delz);
+      if (vflag_either) {
+        ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, fij[0], fij[1], fij[2], delx, dely,
+                     delz);
+
+        // Centroid Stress
+        if (cvflag_atom) {
+          double fx = fij[0], fy = fij[1], fz = fij[2];
+
+          cvatom[i][0] += 0.5 * delx * fx; // xx
+          cvatom[i][1] += 0.5 * dely * fy; // yy
+          cvatom[i][2] += 0.5 * delz * fz; // zz
+          cvatom[i][3] += 0.5 * delx * fy;  // xy
+          cvatom[i][4] += 0.5 * delx * fz; // xz
+          cvatom[i][5] += 0.5 * dely * fz; // yz
+          cvatom[i][6] += 0.5 * dely * fx; // yx
+          cvatom[i][7] += 0.5 * delz * fx; // zx
+          cvatom[i][8] += 0.5 * delz * fy; // zy
+
+
+          cvatom[j][0] += 0.5 * delx * fx; // xx
+          cvatom[j][1] += 0.5 * dely * fy; // yy
+          cvatom[j][2] += 0.5 * delz * fz; // zz
+          cvatom[j][3] += 0.5 * delx * fy;  // xy
+          cvatom[j][4] += 0.5 * delx * fz; // xz
+          cvatom[j][5] += 0.5 * dely * fz; // yz
+          cvatom[j][6] += 0.5 * dely * fx; // yx
+          cvatom[j][7] += 0.5 * delz * fx; // zx
+          cvatom[j][8] += 0.5 * delz * fy; // zy
+        }
+      }
     }
 
     // tally energy contribution
@@ -279,7 +316,7 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
-
+  delete[] my_neigh_jlist;
   // end modifications YL
 }
 
@@ -388,7 +425,7 @@ void PairPACEExtrapolation::coeff(int narg, char **arg)
       if (comm->me == 0) utils::logmesg(lmp, "Skipping LAMMPS atom type #{}(NULL)\n", i);
     } else {
       // dump species types for reconstruction of atomic configurations
-      int atomic_number = AtomicNumberByName_pace_al(elemname);
+      int atomic_number = PACE::AtomicNumberByName(elemname);
       if (atomic_number == -1) error->all(FLERR, "'{}' is not a valid element\n", elemname);
       SPECIES_TYPE mu = aceimpl->basis_set->get_species_index_by_name(elemname);
       if (mu != -1) {

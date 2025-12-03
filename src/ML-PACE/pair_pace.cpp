@@ -48,6 +48,8 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include "ace-evaluator/ace_version.h"
 #include "ace/ace_b_basis.h"
 
+#include "utils_pace.h"
+
 namespace LAMMPS_NS {
 struct ACEImpl {
   ACEImpl() : basis_set(nullptr), ace(nullptr) {}
@@ -64,22 +66,7 @@ struct ACEImpl {
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-static char const *const elements_pace[] = {
-    "X",  "H",  "He", "Li", "Be", "B",  "C",  "N",  "O",  "F",  "Ne", "Na", "Mg", "Al", "Si",
-    "P",  "S",  "Cl", "Ar", "K",  "Ca", "Sc", "Ti", "V",  "Cr", "Mn", "Fe", "Co", "Ni", "Cu",
-    "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y",  "Zr", "Nb", "Mo", "Tc", "Ru",
-    "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I",  "Xe", "Cs", "Ba", "La", "Ce", "Pr",
-    "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W",
-    "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac",
-    "Th", "Pa", "U",  "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr"};
-static constexpr int elements_num_pace = sizeof(elements_pace) / sizeof(const char *);
 
-static int AtomicNumberByName_pace(char *elname)
-{
-  for (int i = 1; i < elements_num_pace; i++)
-    if (strcmp(elname, elements_pace[i]) == 0) return i;
-  return -1;
-}
 
 /* ---------------------------------------------------------------------- */
 PairPACE::PairPACE(LAMMPS *lmp) : Pair(lmp)
@@ -99,6 +86,9 @@ PairPACE::PairPACE(LAMMPS *lmp) : Pair(lmp)
   scale = nullptr;
 
   chunksize = 4096;
+
+  centroidstressflag = CENTROID_AVAIL;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -170,6 +160,7 @@ void PairPACE::compute(int eflag, int vflag)
   }
 
   aceimpl->ace->resize_neighbours_cache(max_jnum);
+  int* my_neigh_jlist = new int [max_jnum];
 
   //loop over atoms
   for (ii = 0; ii < inum; ii++) {
@@ -191,8 +182,11 @@ void PairPACE::compute(int eflag, int vflag)
     // jnum(0) = 50
     // jlist(neigh ind of 0-atom) = [1,2,10,7,99,25, .. 50 element in total]
 
+    // apply NEIGHMASK
+    for (jj = 0; jj < jnum; ++jj)
+      my_neigh_jlist[jj]= jlist[jj] & NEIGHMASK;
     try {
-      aceimpl->ace->compute_atom(i, x, type, jnum, jlist);
+      aceimpl->ace->compute_atom(i, x, type, jnum, my_neigh_jlist);
     } catch (std::exception &e) {
       error->one(FLERR, e.what());
     }
@@ -205,9 +199,9 @@ void PairPACE::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      delx = x[j][0] - xtmp;
-      dely = x[j][1] - ytmp;
-      delz = x[j][2] - ztmp;
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
 
       fij[0] = scale[itype][itype] * aceimpl->ace->neighbours_forces(jj, 0);
       fij[1] = scale[itype][itype] * aceimpl->ace->neighbours_forces(jj, 1);
@@ -221,9 +215,36 @@ void PairPACE::compute(int eflag, int vflag)
       f[j][2] -= fij[2];
 
       // tally per-atom virial contribution
-      if (vflag_either)
-        ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, fij[0], fij[1], fij[2], -delx, -dely,
-                     -delz);
+      if (vflag_either) {
+        ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, fij[0], fij[1], fij[2], delx, dely,
+                     delz);
+
+        // Centroid Stress
+        if (cvflag_atom) {
+          double fx = fij[0], fy = fij[1], fz = fij[2];
+
+          cvatom[i][0] += 0.5 * delx * fx; // xx
+          cvatom[i][1] += 0.5 * dely * fy; // yy
+          cvatom[i][2] += 0.5 * delz * fz; // zz
+          cvatom[i][3] += 0.5 * delx * fy;  // xy
+          cvatom[i][4] += 0.5 * delx * fz; // xz
+          cvatom[i][5] += 0.5 * dely * fz; // yz
+          cvatom[i][6] += 0.5 * dely * fx; // yx
+          cvatom[i][7] += 0.5 * delz * fx; // zx
+          cvatom[i][8] += 0.5 * delz * fy; // zy
+
+
+          cvatom[j][0] += 0.5 * delx * fx; // xx
+          cvatom[j][1] += 0.5 * dely * fy; // yy
+          cvatom[j][2] += 0.5 * delz * fz; // zz
+          cvatom[j][3] += 0.5 * delx * fy;  // xy
+          cvatom[j][4] += 0.5 * delx * fz; // xz
+          cvatom[j][5] += 0.5 * dely * fz; // yz
+          cvatom[j][6] += 0.5 * dely * fx; // yx
+          cvatom[j][7] += 0.5 * delz * fx; // zx
+          cvatom[j][8] += 0.5 * delz * fy; // zy
+        }
+      }
     }
 
     // tally energy contribution
@@ -235,6 +256,7 @@ void PairPACE::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
+  delete[] my_neigh_jlist;
 
   // end modifications YL
 }
@@ -345,7 +367,7 @@ void PairPACE::coeff(int narg, char **arg)
       map[i] = -1;
       if (comm->me == 0) utils::logmesg(lmp, "Skipping LAMMPS atom type #{}(NULL)\n", i);
     } else {
-      int atomic_number = AtomicNumberByName_pace(elemname);
+      int atomic_number = PACE::AtomicNumberByName(elemname);
       if (atomic_number == -1) error->all(FLERR, "'{}' is not a valid element\n", elemname);
       SPECIES_TYPE mu = aceimpl->basis_set->get_species_index_by_name(elemname);
       if (mu != -1) {

@@ -1791,11 +1791,12 @@ ML-PACE package
 
 **Contents:**
 
-A pair style for the Atomic Cluster Expansion potential (ACE).
+A pair style for the Atomic Cluster Expansion potential (ACE) and its
+extension Graph Atomic Cluster Expansion (GRACE).
 ACE is a methodology for deriving a highly accurate classical potential
 fit to a large archive of quantum mechanical (DFT) data. The ML-PACE
 package provides an efficient implementation for running simulations
-with ACE potentials.
+with ACE and GRACE potentials.
 
 **Authors:**
 
@@ -1824,6 +1825,7 @@ as a plugin to avoid licensing conflicts when distributing binaries.
 
 * ``src/ML-PACE``: filenames -> commands
 * :doc:`pair_style pace <pair_pace>`
+* :doc:`pair_style grace <pair_grace>`
 * ``examples/PACKAGES/pace``
 
 ----------

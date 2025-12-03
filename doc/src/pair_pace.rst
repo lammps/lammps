@@ -191,6 +191,7 @@ LAMMPS was built with that package.  See the :doc:`Build package
 Related commands
 """"""""""""""""
 
+:doc:`pair_style grace  <pair_grace>`,
 :doc:`pair_style snap  <pair_snap>`,
 :doc:`fix pair  <fix_pair>`
 

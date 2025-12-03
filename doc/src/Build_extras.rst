@@ -1254,13 +1254,33 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
 
       By default the library will be downloaded from the git repository
       and built automatically when the ML-PACE package is enabled with
-      ``-D PKG_ML-PACE=yes``.  The location for the sources may be
-      customized by setting the variable ``PACELIB_URL`` when
-      configuring with CMake (e.g. to use a local archive on machines
-      without internet access).  Since CMake checks the validity of the
+      ``-D PKG_ML-PACE=yes``.
+
+      **PACE Library Configuration:**
+
+      The location for the PACE sources may be customized by setting the variable
+      ``PACELIB_URL`` when configuring with CMake (e.g. to use a local archive on
+      machines without internet access). Since CMake checks the validity of the
       archive with ``md5sum`` you may also need to set ``PACELIB_MD5``
       if you provide a different library version than what is downloaded
-      automatically.
+      automatically. Alternatively, you can use ``-D LOCAL_ML-PACE=/path/to/repo``
+      to specify a local directory containing the ``lammps-user-pace`` repository,
+      bypassing the download entirely.
+
+      **GRACE / TensorFlow Configuration:**
+
+      By default, the package compiles with support for GRACE potentials, which
+      relies on the TensorFlow C++ library. The build system attempts to locate
+      TensorFlow via the Python interpreter or downloads it automatically if missing.
+      The following flags control this behavior:
+
+      * ``-D NO_GRACE_TF=yes``: Disables compilation of GRACE/TensorFlow features.
+        Use this if you only need the PACE and GRACE/FS functionality or cannot install
+        TensorFlow.
+      * ``-D TF_LIB_FILE=/path/to/library``: Manually specify the path to the
+        TensorFlow library file (e.g., ``libtensorflow_cc.so``, ``.dylib``, or ``.dll``).
+        This overrides automatic discovery and downloading.
+
 
 
    .. tab:: Traditional make

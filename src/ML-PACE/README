@@ -1,19 +1,45 @@
-The ML-PACE package provides the pace pair style,
-an efficient implementation of the Atomic Cluster Expansion
-potential (ACE).
+The ML-PACE package provides pair styles for machine learning potentials
+based on the Atomic Cluster Expansion (ACE) and Graph Atomic Cluster Expansions (GRACE).
 
-ACE is a methodology for deriving a highly accurate classical
+It includes the following styles:
+
+1. pair_style pace: An efficient implementation of the standard ACE potential.
+
+2. pair_style grace: Implementation of GRACE models utilizing the TensorFlow
+C interface.
+
+3. pair_style grace/fs: A native C++ implementation of GRACE/FS models
+(product evaluator) that does not require TensorFlow.
+
+ACE/GRACE is a methodology for deriving a highly accurate classical
 potential fit to a large archive of quantum mechanical (DFT) data.
+
 This package was written by Yury Lysogorskiy and others
 at ICAMS, the Interdisciplinary Centre for Advanced Materials Simulation,
 Ruhr University Bochum, Germany (http://www.icams.de).
 
-This package requires a library that can be downloaded and built
-separately or while building LAMMPS with CMake. See the LAMMPS manual
-more information on building LAMMPS with external libraries
-using CMake.
+Dependencies and Building:
 
-More information about the ML-PACE implementation of ACE
-is available here:
+This package requires the external PACE library and, optionally, the
+TensorFlow C library (libtensorflow).
 
+When building LAMMPS with CMake, these dependencies are managed automatically:
+
+1. PACE Library: The source code is downloaded and built automatically (via PACELIB_URL or LOCAL_ML-PACE).
+
+2. TensorFlow (for pair_style grace):
+  - By default, CMake attempts to locate the TensorFlow C++ library via your Python installation or downloads it automatically.
+
+  - To disable TensorFlow support (and pair_style grace), add `-D NO_GRACE_TF=yes` to your cmake command.
+
+  - To manually specify a TensorFlow library, use -D TF_LIB_FILE=/path/to/libtensorflow_cc.so.
+
+See the LAMMPS manual for more information on building LAMMPS with
+external libraries using CMake.
+
+Further Reading:
+
+* ML-PACE implementation source code:
 https://github.com/ICAMS/lammps-user-pace
+* PACE documentation and model generation tools: https://pacemaker.readthedocs.io
+* GRACE documentation and model generation tools: https://gracemaker.readthedocs.io

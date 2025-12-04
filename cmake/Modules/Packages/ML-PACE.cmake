@@ -7,9 +7,9 @@ endif()
 
 set(PACELIB_URL "https://github.com/ICAMS/lammps-user-pace/archive/refs/tags/v.2025.12.3.tar.gz" CACHE STRING "URL for PACE evaluator library sources")
 
-set(PACELIB_MD5 "ae591ed6ff65436795f692f16cd93015" CACHE STRING "MD5 checksum of PACE evaluator library tarball")
+set(PACELIB_SHA256 "8f4f5439ab846a1add8888f123de3d6126be7ef1da79d5ee9952d0e96ac4ca51" CACHE STRING "SHA256 checksum of PACE evaluator library tarball")
 mark_as_advanced(PACELIB_URL)
-mark_as_advanced(PACELIB_MD5)
+mark_as_advanced(PACELIB_SHA256)
 GetFallbackURL(PACELIB_URL PACELIB_FALLBACK)
 
 # LOCAL_ML-PACE points to top-level dir with local lammps-user-pace repo,
@@ -20,15 +20,15 @@ if(LOCAL_ML-PACE)
 else()
   # download library sources to build folder
   if(EXISTS ${CMAKE_BINARY_DIR}/libpace.tar.gz)
-    file(MD5 ${CMAKE_BINARY_DIR}/libpace.tar.gz DL_MD5)
+    file(SHA256 ${CMAKE_BINARY_DIR}/libpace.tar.gz DL_MD5)
   endif()
-  if(NOT "${DL_MD5}" STREQUAL "${PACELIB_MD5}")
+  if(NOT "${DL_MD5}" STREQUAL "${PACELIB_SHA256}")
     message(STATUS "Downloading ${PACELIB_URL}")
     file(DOWNLOAD ${PACELIB_URL} ${CMAKE_BINARY_DIR}/libpace.tar.gz STATUS DL_STATUS SHOW_PROGRESS)
-    file(MD5 ${CMAKE_BINARY_DIR}/libpace.tar.gz DL_MD5)
-    if((NOT DL_STATUS EQUAL 0) OR (NOT "${DL_MD5}" STREQUAL "${PACELIB_MD5}"))
+    file(SHA256 ${CMAKE_BINARY_DIR}/libpace.tar.gz DL_MD5)
+    if((NOT DL_STATUS EQUAL 0) OR (NOT "${DL_MD5}" STREQUAL "${PACELIB_SHA256}"))
       message(WARNING "Download from primary URL ${PACELIB_URL} failed\nTrying fallback URL ${PACELIB_FALLBACK}")
-      file(DOWNLOAD ${PACELIB_FALLBACK} ${CMAKE_BINARY_DIR}/libpace.tar.gz EXPECTED_HASH MD5=${PACELIB_MD5} SHOW_PROGRESS)
+      file(DOWNLOAD ${PACELIB_FALLBACK} ${CMAKE_BINARY_DIR}/libpace.tar.gz EXPECTED_HASH SHA256=${PACELIB_SHA256} SHOW_PROGRESS)
     endif()
   else()
     message(STATUS "Using already downloaded archive ${CMAKE_BINARY_DIR}/libpace.tar.gz")
@@ -91,9 +91,9 @@ if(NOT DEFINED NO_GRACE_TF)
       set(TF_URL_MACOS   "https://storage.googleapis.com/tensorflow/versions/2.18.0/libtensorflow-cpu-darwin-arm64.tar.gz")
 
       # Define MD5 Checksums
-      set(TF_MD5_WINDOWS "e6eb4d82174d1f4282ce641d613773ad")
-      set(TF_MD5_LINUX   "02730cbba0c418f65630c604e3777b6f")
-      set(TF_MD5_MACOS   "5830db5c5a01ef9b02b8a4283c2d161b")
+      set(TF_MD5_WINDOWS "28acdcea6c6b34828cf0e95e67802b0f3577d51bc2e8915de811b7aa0b04452d")
+      set(TF_MD5_LINUX   "6ca25aae03548cf76f6f68f00bdf53ec39710f08cee23bf6419b9e6e27feca5c")
+      set(TF_MD5_MACOS   "462257d2792730dcb131fcf21bc826192ae5a2c418535f6347d051f10fc8be8a")
 
       set(TF_DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/tensorflow-library-download")
       
@@ -101,17 +101,17 @@ if(NOT DEFINED NO_GRACE_TF)
 
       if(WIN32)
         set(TF_URL ${TF_URL_WINDOWS})
-        set(TF_MD5 ${TF_MD5_WINDOWS})
+        set(TF_SHA256 ${TF_MD5_WINDOWS})
         set(TF_ARCHIVE "${CMAKE_BINARY_DIR}/libtensorflow.zip")
         set(EXTRACT_COMMAND ${CMAKE_COMMAND} -E tar xf)
       elseif(APPLE)
         set(TF_URL ${TF_URL_MACOS})
-        set(TF_MD5 ${TF_MD5_MACOS})
+        set(TF_SHA256 ${TF_MD5_MACOS})
         set(TF_ARCHIVE "${CMAKE_BINARY_DIR}/libtensorflow.tar.gz")
         set(EXTRACT_COMMAND ${CMAKE_COMMAND} -E tar xzf)
       else() # linux
         set(TF_URL ${TF_URL_LINUX})
-        set(TF_MD5 ${TF_MD5_LINUX})
+        set(TF_SHA256 ${TF_MD5_LINUX})
         set(TF_ARCHIVE "${CMAKE_BINARY_DIR}/libtensorflow.tar.gz")
         set(EXTRACT_COMMAND ${CMAKE_COMMAND} -E tar xzf)
       endif()
@@ -123,7 +123,7 @@ if(NOT DEFINED NO_GRACE_TF)
         # Added EXPECTED_HASH to automatically verify integrity upon download
         file(DOWNLOAD ${TF_URL} ${TF_ARCHIVE}
                 SHOW_PROGRESS
-                EXPECTED_HASH MD5=${TF_MD5}
+                EXPECTED_HASH SHA256=${TF_SHA256}
                 STATUS DL_STATUS
         )
 
@@ -185,16 +185,13 @@ if(NOT DEFINED NO_GRACE_TF)
     set(CPPFLOW_URL "https://github.com/serizba/cppflow/archive/refs/tags/v2.0.0.tar.gz" CACHE STRING "URL for cppflow")
     set(CPPFLOW_ARCHIVE "${CMAKE_BINARY_DIR}/libcppflow.tar.gz")
 
-    set(CPPFLOW_URL "https://github.com/serizba/cppflow/archive/refs/tags/v2.0.0.tar.gz" CACHE STRING "URL for cppflow")
-    set(CPPFLOW_ARCHIVE "${CMAKE_BINARY_DIR}/libcppflow.tar.gz")
-
-    set(CPPFLOW_MD5 "3d29ff93789657bd1e8d49e5ea1dc27c")
+    set(CPPFLOW_SHA256 "d1e1a1a5d01edc2e864a48ff3d04261cdb769e353e3f3db9bdec55ab75c485c8")
 
     # 1. Verify existing file integrity
     if(EXISTS ${CPPFLOW_ARCHIVE})
       file(MD5 ${CPPFLOW_ARCHIVE} CURRENT_CPPFLOW_MD5)
-      if(NOT CURRENT_CPPFLOW_MD5 STREQUAL CPPFLOW_MD5)
-        message(WARNING "Existing cppflow archive hash mismatch.\nExpected: ${CPPFLOW_MD5}\nActual:   ${CURRENT_CPPFLOW_MD5}\nDeleting and re-downloading...")
+      if(NOT CURRENT_CPPFLOW_MD5 STREQUAL CPPFLOW_SHA256)
+        message(WARNING "Existing cppflow archive hash mismatch.\nExpected: ${CPPFLOW_SHA256}\nActual:   ${CURRENT_CPPFLOW_MD5}\nDeleting and re-downloading...")
         file(REMOVE ${CPPFLOW_ARCHIVE})
       endif()
     endif()
@@ -204,7 +201,7 @@ if(NOT DEFINED NO_GRACE_TF)
       message(STATUS "Downloading ${CPPFLOW_URL}")
       file(DOWNLOAD ${CPPFLOW_URL} ${CPPFLOW_ARCHIVE}
               SHOW_PROGRESS
-              EXPECTED_HASH MD5=${CPPFLOW_MD5}
+              EXPECTED_HASH SHA256=${CPPFLOW_SHA256}
               STATUS DL_CPPFLOW_STATUS
       )
 

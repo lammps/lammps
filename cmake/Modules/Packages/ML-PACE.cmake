@@ -51,12 +51,12 @@ set_target_properties(pace PROPERTIES CXX_EXTENSIONS ON OUTPUT_NAME lammps_pace$
 if(NOT DEFINED NO_GRACE_TF)
   # We will compile with TF support
 
-  # Check, if TF_LIB_FILE is provided  
+  # Check, if TF_LIB_FILE is provided
   if(TF_LIB_FILE)
     message("User-defined TF_LIB_FILE is provided: ${TF_LIB_FILE}")
   else()
     # 1) try to find TensorFlow library  from Python installation (for older versions of TF)
-    
+
     # get default python
     if(NOT PACE_PYTHON_EXEC)
       find_package(Python COMPONENTS Interpreter QUIET)
@@ -81,9 +81,9 @@ if(NOT DEFINED NO_GRACE_TF)
     endif()
     # setup include path
     set(TF_INCLUDE_PATH "${TF_PATH}/include")
-  
 
-    # 2) If not found, download it 
+
+    # 2) If not found, download it
     if(NOT EXISTS ${TF_LIB_FILE})
       # Define URLs for TensorFlow C++ library for different platforms
       set(TF_URL_WINDOWS "https://storage.googleapis.com/tensorflow/versions/2.18.1/libtensorflow-cpu-windows-x86_64.zip")
@@ -96,7 +96,7 @@ if(NOT DEFINED NO_GRACE_TF)
       set(TF_MD5_MACOS   "462257d2792730dcb131fcf21bc826192ae5a2c418535f6347d051f10fc8be8a")
 
       set(TF_DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/tensorflow-library-download")
-      
+
       message(STATUS "TensorFlow library not found via Python discovery. Attempting to download.")
 
       if(WIN32)
@@ -152,7 +152,7 @@ if(NOT DEFINED NO_GRACE_TF)
       elseif(APPLE)
         set(TF_LIB_FILE "${TF_PATH}/lib/libtensorflow.2.dylib")
       else() # linux
-        set(TF_LIB_FILE "${TF_PATH}/lib/libtensorflow.so.2")      
+        set(TF_LIB_FILE "${TF_PATH}/lib/libtensorflow.so.2")
       endif()
 
       # setup include path
@@ -179,7 +179,7 @@ if(NOT DEFINED NO_GRACE_TF)
               IMPORTED_LOCATION ${TF_LIB_FILE}
               INTERFACE_INCLUDE_DIRECTORIES "${TF_INCLUDE_PATH}")
     endif()
-    
+
     ###############################
     # download cppflow
     set(CPPFLOW_URL "https://github.com/serizba/cppflow/archive/refs/tags/v2.0.0.tar.gz" CACHE STRING "URL for cppflow")

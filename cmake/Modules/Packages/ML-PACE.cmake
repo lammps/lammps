@@ -52,8 +52,7 @@ if(NOT DEFINED NO_GRACE_TF)
   # We will compile with TF support
 
   # Check, if TF_LIB_FILE is provided  
-  # TODO: add to doc TF_LIB_FILE and   
-  if(TF_LIB_FILE) 
+  if(TF_LIB_FILE)
     message("User-defined TF_LIB_FILE is provided: ${TF_LIB_FILE}")
   else()
     # 1) try to find TensorFlow library  from Python installation (for older versions of TF)
@@ -90,43 +89,60 @@ if(NOT DEFINED NO_GRACE_TF)
       set(TF_URL_WINDOWS "https://storage.googleapis.com/tensorflow/versions/2.18.1/libtensorflow-cpu-windows-x86_64.zip")
       set(TF_URL_LINUX   "https://storage.googleapis.com/tensorflow/versions/2.18.0/libtensorflow-gpu-linux-x86_64.tar.gz")
       set(TF_URL_MACOS   "https://storage.googleapis.com/tensorflow/versions/2.18.0/libtensorflow-cpu-darwin-arm64.tar.gz")
+
+      # Define MD5 Checksums
+      set(TF_MD5_WINDOWS "e6eb4d82174d1f4282ce641d613773ad")
+      set(TF_MD5_LINUX   "02730cbba0c418f65630c604e3777b6f")
+      set(TF_MD5_MACOS   "5830db5c5a01ef9b02b8a4283c2d161b")
+
       set(TF_DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/tensorflow-library-download")
       
       message(STATUS "TensorFlow library not found via Python discovery. Attempting to download.")
 
       if(WIN32)
         set(TF_URL ${TF_URL_WINDOWS})
+        set(TF_MD5 ${TF_MD5_WINDOWS})
         set(TF_ARCHIVE "${CMAKE_BINARY_DIR}/libtensorflow.zip")
         set(EXTRACT_COMMAND ${CMAKE_COMMAND} -E tar xf)
       elseif(APPLE)
         set(TF_URL ${TF_URL_MACOS})
+        set(TF_MD5 ${TF_MD5_MACOS})
         set(TF_ARCHIVE "${CMAKE_BINARY_DIR}/libtensorflow.tar.gz")
         set(EXTRACT_COMMAND ${CMAKE_COMMAND} -E tar xzf)
       else() # linux
         set(TF_URL ${TF_URL_LINUX})
+        set(TF_MD5 ${TF_MD5_LINUX})
         set(TF_ARCHIVE "${CMAKE_BINARY_DIR}/libtensorflow.tar.gz")
         set(EXTRACT_COMMAND ${CMAKE_COMMAND} -E tar xzf)
       endif()
 
+      # 2. Download if missing (or if just deleted above)
       if(NOT EXISTS ${TF_ARCHIVE})
         message(STATUS "Downloading TensorFlow C library from ${TF_URL}")
-        file(DOWNLOAD ${TF_URL} ${TF_ARCHIVE} SHOW_PROGRESS STATUS DL_STATUS)
-        if(NOT DL_STATUS EQUAL 0)
-          message(FATAL_ERROR "Failed to download TensorFlow from ${TF_URL}")
+
+        # Added EXPECTED_HASH to automatically verify integrity upon download
+        file(DOWNLOAD ${TF_URL} ${TF_ARCHIVE}
+                SHOW_PROGRESS
+                EXPECTED_HASH MD5=${TF_MD5}
+                STATUS DL_STATUS
+        )
+
+        list(GET DL_STATUS 0 DL_CODE)
+        list(GET DL_STATUS 1 DL_MSG)
+
+        if(NOT DL_CODE EQUAL 0)
+          message(FATAL_ERROR "Failed to download TensorFlow from ${TF_URL}. Error: ${DL_MSG}")
         endif()
       else()
-        message(STATUS "Using already downloaded archive ${TF_ARCHIVE}")
+        message(STATUS "Using already downloaded archive ${TF_ARCHIVE} (Hash verified)")
       endif()
 
       message(STATUS "Clean folder for archive ${TF_DOWNLOAD_DIR}...")
-      # file(REMOVE_RECURSE ${TF_DOWNLOAD_DIR})
       message(STATUS "Extracting TensorFlow library archive ${TF_ARCHIVE} to current working dir ${CMAKE_BINARY_DIR}...")
       execute_process(
         COMMAND ${EXTRACT_COMMAND} ${TF_ARCHIVE}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       )
-      # message("Rename ${TF_DOWNLOAD_DIR} to ${CMAKE_BINARY_DIR}/lib")
-      # file(RENAME ${TF_DOWNLOAD_DIR} ${CMAKE_BINARY_DIR}/lib)
       set(TF_PATH ${CMAKE_BINARY_DIR})
 
       # setup library path
@@ -166,23 +182,48 @@ if(NOT DEFINED NO_GRACE_TF)
     
     ###############################
     # download cppflow
-    if(NOT EXISTS ${CMAKE_BINARY_DIR}/cppflow-2.0.0)
-        if(NOT EXISTS ${CMAKE_BINARY_DIR}/libcppflow.tar.gz)
-            set(CPPFLOW_URL "https://github.com/serizba/cppflow/archive/refs/tags/v2.0.0.tar.gz" CACHE STRING "URL for cppflow")
-            message(STATUS "Downloading ${CPPFLOW_URL}")
-            file(DOWNLOAD ${CPPFLOW_URL} ${CMAKE_BINARY_DIR}/libcppflow.tar.gz STATUS DL_CPPFLOW_STATUS)
-            # uncompress downloaded sources
-            execute_process(
-                    COMMAND ${CMAKE_COMMAND} -E remove_directory cppflow-*
-                    COMMAND ${CMAKE_COMMAND} -E tar xzf libcppflow.tar.gz
-                    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-            )
-        else()
-          message(STATUS "Using already downloaded archive  ${CMAKE_BINARY_DIR}/libcppflow.tar.gz")
-        endif()
-    else()
-      message(STATUS "Using already existing CPPFLOW ${CMAKE_BINARY_DIR}/cppflow-2.0.0")
+    set(CPPFLOW_URL "https://github.com/serizba/cppflow/archive/refs/tags/v2.0.0.tar.gz" CACHE STRING "URL for cppflow")
+    set(CPPFLOW_ARCHIVE "${CMAKE_BINARY_DIR}/libcppflow.tar.gz")
+
+    set(CPPFLOW_URL "https://github.com/serizba/cppflow/archive/refs/tags/v2.0.0.tar.gz" CACHE STRING "URL for cppflow")
+    set(CPPFLOW_ARCHIVE "${CMAKE_BINARY_DIR}/libcppflow.tar.gz")
+
+    set(CPPFLOW_MD5 "3d29ff93789657bd1e8d49e5ea1dc27c")
+
+    # 1. Verify existing file integrity
+    if(EXISTS ${CPPFLOW_ARCHIVE})
+      file(MD5 ${CPPFLOW_ARCHIVE} CURRENT_CPPFLOW_MD5)
+      if(NOT CURRENT_CPPFLOW_MD5 STREQUAL CPPFLOW_MD5)
+        message(WARNING "Existing cppflow archive hash mismatch.\nExpected: ${CPPFLOW_MD5}\nActual:   ${CURRENT_CPPFLOW_MD5}\nDeleting and re-downloading...")
+        file(REMOVE ${CPPFLOW_ARCHIVE})
+      endif()
     endif()
+
+    # 2. Download with hash check
+    if(NOT EXISTS ${CPPFLOW_ARCHIVE})
+      message(STATUS "Downloading ${CPPFLOW_URL}")
+      file(DOWNLOAD ${CPPFLOW_URL} ${CPPFLOW_ARCHIVE}
+              SHOW_PROGRESS
+              EXPECTED_HASH MD5=${CPPFLOW_MD5}
+              STATUS DL_CPPFLOW_STATUS
+      )
+
+      list(GET DL_CPPFLOW_STATUS 0 DL_CPPFLOW_CODE)
+      list(GET DL_CPPFLOW_STATUS 1 DL_CPPFLOW_MSG)
+
+      if(NOT DL_CPPFLOW_CODE EQUAL 0)
+        message(FATAL_ERROR "Failed to download cppflow from ${CPPFLOW_URL}. Error: ${DL_CPPFLOW_MSG}")
+      endif()
+    else()
+      message(STATUS "Using already downloaded cppflow archive (Hash verified)")
+    endif()
+
+    # uncompress downloaded sources
+    execute_process(
+            COMMAND ${CMAKE_COMMAND} -E remove_directory cppflow-*
+            COMMAND ${CMAKE_COMMAND} -E tar xzf libcppflow.tar.gz
+            WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
 
     set(cppflow_path "${CMAKE_BINARY_DIR}/cppflow-2.0.0")
     add_library(cppflow INTERFACE)

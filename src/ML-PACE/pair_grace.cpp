@@ -764,28 +764,30 @@ void PairGRACE::compute(int eflag, int vflag) {
 
                         // Centroid Stress
                         if (cvflag_atom) {
-                            double fx=fij[0], fy=fij[1], fz=fij[2];
+                            const double fx = fij[0];
+                            const double fy = fij[1];
+                            const double fz = fij[2];
 
-                            cvatom[i][0] += 0.5*delx * fx; // xx
-                            cvatom[i][1] += 0.5*dely * fy; // yy
-                            cvatom[i][2] += 0.5*delz * fz; // zz
-                            cvatom[i][3] += 0.5*delx * fy;  // xy
-                            cvatom[i][4] += 0.5*delx * fz; // xz
-                            cvatom[i][5] += 0.5*dely * fz; // yz
-                            cvatom[i][6] += 0.5*dely * fx; // yx
-                            cvatom[i][7] += 0.5*delz * fx; // zx
-                            cvatom[i][8] += 0.5*delz * fy; // zy
+                            cvatom[i][0] += 0.5 * delx * fx; // xx
+                            cvatom[i][1] += 0.5 * dely * fy; // yy
+                            cvatom[i][2] += 0.5 * delz * fz; // zz
+                            cvatom[i][3] += 0.5 * delx * fy; // xy
+                            cvatom[i][4] += 0.5 * delx * fz; // xz
+                            cvatom[i][5] += 0.5 * dely * fz; // yz
+                            cvatom[i][6] += 0.5 * dely * fx; // yx
+                            cvatom[i][7] += 0.5 * delz * fx; // zx
+                            cvatom[i][8] += 0.5 * delz * fy; // zy
 
 
-                            cvatom[j][0] += 0.5*delx * fx; // xx
-                            cvatom[j][1] += 0.5*dely * fy; // yy
-                            cvatom[j][2] += 0.5*delz * fz; // zz
-                            cvatom[j][3] += 0.5*delx * fy;  // xy
-                            cvatom[j][4] += 0.5*delx * fz; // xz
-                            cvatom[j][5] += 0.5*dely * fz; // yz
-                            cvatom[j][6] += 0.5*dely * fx; // yx
-                            cvatom[j][7] += 0.5*delz * fx; // zx
-                            cvatom[j][8] += 0.5*delz * fy; // zy
+                            cvatom[j][0] += 0.5 * delx * fx; // xx
+                            cvatom[j][1] += 0.5 * dely * fy; // yy
+                            cvatom[j][2] += 0.5 * delz * fz; // zz
+                            cvatom[j][3] += 0.5 * delx * fy; // xy
+                            cvatom[j][4] += 0.5 * delx * fz; // xz
+                            cvatom[j][5] += 0.5 * dely * fz; // yz
+                            cvatom[j][6] += 0.5 * dely * fx; // yx
+                            cvatom[j][7] += 0.5 * delz * fx; // zx
+                            cvatom[j][8] += 0.5 * delz * fy; // zy
                         }
                     }
                 }

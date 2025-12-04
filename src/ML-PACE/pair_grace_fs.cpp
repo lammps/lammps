@@ -146,7 +146,7 @@ void PairGRACEFS::compute(int eflag, int vflag) {
     }
 
     aceimpl->ace->resize_neighbours_cache(max_jnum);
-    int *my_neigh_jlist = new int[max_jnum];
+    std::vector<int> my_neigh_jlist(max_jnum);
 
     //loop over atoms
     for (ii = 0; ii < inum; ii++) {
@@ -174,7 +174,7 @@ void PairGRACEFS::compute(int eflag, int vflag) {
         }
         try {
             aceimpl->ace->compute_projections = flag_compute_extrapolation_grade;
-            aceimpl->ace->compute_atom(i, x, type, jnum, my_neigh_jlist);
+            aceimpl->ace->compute_atom(i, x, type, jnum, my_neigh_jlist.data());
         } catch (std::exception &e) {
             error->one(FLERR, e.what());
         }
@@ -202,35 +202,38 @@ void PairGRACEFS::compute(int eflag, int vflag) {
             f[j][2] -= fij[2];
 
             // tally per-atom virial contribution
-            if (vflag_either)
+            if (vflag_either) {
                 ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, fij[0], fij[1], fij[2], delx, dely,
                              delz);
 
                 // Centroid Stress
                 if (cvflag_atom) {
-                    double fx=fij[0], fy=fij[1], fz=fij[2];
+                    const double fx=fij[0];
+                    const double fy=fij[1];
+                    const double fz=fij[2];
 
-                    cvatom[i][0] += 0.5*delx * fx; // xx
-                    cvatom[i][1] += 0.5*dely * fy; // yy
-                    cvatom[i][2] += 0.5*delz * fz; // zz
-                    cvatom[i][3] += 0.5*delx * fy;  // xy
-                    cvatom[i][4] += 0.5*delx * fz; // xz
-                    cvatom[i][5] += 0.5*dely * fz; // yz
-                    cvatom[i][6] += 0.5*dely * fx; // yx
-                    cvatom[i][7] += 0.5*delz * fx; // zx
-                    cvatom[i][8] += 0.5*delz * fy; // zy
+                    cvatom[i][0] += 0.5 * delx * fx; // xx
+                    cvatom[i][1] += 0.5 * dely * fy; // yy
+                    cvatom[i][2] += 0.5 * delz * fz; // zz
+                    cvatom[i][3] += 0.5 * delx * fy; // xy
+                    cvatom[i][4] += 0.5 * delx * fz; // xz
+                    cvatom[i][5] += 0.5 * dely * fz; // yz
+                    cvatom[i][6] += 0.5 * dely * fx; // yx
+                    cvatom[i][7] += 0.5 * delz * fx; // zx
+                    cvatom[i][8] += 0.5 * delz * fy; // zy
 
 
-                    cvatom[j][0] += 0.5*delx * fx; // xx
-                    cvatom[j][1] += 0.5*dely * fy; // yy
-                    cvatom[j][2] += 0.5*delz * fz; // zz
-                    cvatom[j][3] += 0.5*delx * fy;  // xy
-                    cvatom[j][4] += 0.5*delx * fz; // xz
-                    cvatom[j][5] += 0.5*dely * fz; // yz
-                    cvatom[j][6] += 0.5*dely * fx; // yx
-                    cvatom[j][7] += 0.5*delz * fx; // zx
-                    cvatom[j][8] += 0.5*delz * fy; // zy
+                    cvatom[j][0] += 0.5 * delx * fx; // xx
+                    cvatom[j][1] += 0.5 * dely * fy; // yy
+                    cvatom[j][2] += 0.5 * delz * fz; // zz
+                    cvatom[j][3] += 0.5 * delx * fy; // xy
+                    cvatom[j][4] += 0.5 * delx * fz; // xz
+                    cvatom[j][5] += 0.5 * dely * fz; // yz
+                    cvatom[j][6] += 0.5 * dely * fx; // yx
+                    cvatom[j][7] += 0.5 * delz * fx; // zx
+                    cvatom[j][8] += 0.5 * delz * fy; // zy
                 }
+            }
         }
 
         // tally energy contribution
@@ -242,7 +245,6 @@ void PairGRACEFS::compute(int eflag, int vflag) {
     }
 
     if (vflag_fdotr) virial_fdotr_compute();
-    delete[] my_neigh_jlist;
 
     // end modifications YL
 }

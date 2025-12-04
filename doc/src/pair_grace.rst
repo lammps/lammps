@@ -4,8 +4,12 @@
 pair_style grace command
 ========================
 
+.. versionadded:: 03Dec2025
+
 pair_style grace/fs command
 ===========================
+
+.. versionadded:: 03Dec2025
 
 Syntax
 """"""

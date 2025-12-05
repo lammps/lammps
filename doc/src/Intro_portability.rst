@@ -2,11 +2,10 @@ LAMMPS portability and compatibility
 ------------------------------------
 
 The primary form of distributing LAMMPS is through highly portable
-source code.  But also several ways of obtaining LAMMPS as :doc:`precompiled
-packages or through automated build mechanisms <Install>` exist.  Most
-of LAMMPS is written in C++, some support tools are written in Fortran
-or Python or MATLAB.
-
+source code.  But also several ways of obtaining LAMMPS as
+:doc:`precompiled packages or through automated build mechanisms
+<Install>` exist.  Most of LAMMPS is written in C++, some support tools
+are written in Fortran or Python or MATLAB.
 
 Programming language standards
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -14,10 +13,11 @@ Programming language standards
 .. versionchanged:: 10Sep2025
 
 The C++ code in LAMMPS currently requires a compiler that is compatible
-with the C++17 standard. The Kokkos library used for the KOKKOS
-package currently also requires at least C++17.  If your compilers are not
-compatible and you cannot upgrade, please use LAMMPS version 22 July 2025,
-which requires only C++11 as the minimum C++ standard.
+with the C++17 standard.  The Kokkos library used for the KOKKOS package
+currently also requires at least C++17.  If your compilers are not
+compatible *and* you cannot upgrade to a compatible version, please use
+LAMMPS version 22 July 2025, which requires only C++11 as the minimum
+C++ standard.
 
 Most of the Python code in LAMMPS is written to be compatible with Python
 3.6 and later.
@@ -27,7 +27,7 @@ Most of the Python code in LAMMPS is written to be compatible with Python
 Python 2.x is no longer supported and trying to use it, e.g. for the
 LAMMPS Python module should result in an error.  If you come across
 some part of the LAMMPS distribution that is not (yet) compatible with
-Python 3, please notify the LAMMPS developers.
+Python 3, please notify :doc:`the LAMMPS developers <Intro_authors>`.
 
 Build systems
 ^^^^^^^^^^^^^
@@ -92,14 +92,44 @@ by Linux distributions that bundle LAMMPS.
 Portability compliance
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Only a subset of the LAMMPS source code is *fully* compliant to *all*
-of the above mentioned standards.  This is rather typical for projects
-like LAMMPS that largely depend on contributions from the user community.
-Not all contributors are trained as programmers and not all of them have
-access to multiple platforms for testing.  As part of the continuous
-integration process, however, all contributions are automatically tested
-to compile, link, and pass some runtime tests on a selection of Linux
-flavors, macOS, and Windows, and on Linux with different compilers.
-Thus portability issues are often found before a pull request is merged.
-Other platforms may be checked occasionally or when portability bugs are
-reported.
+Only a subset of the LAMMPS source code is *fully* compliant to *all* of
+the above mentioned standards.  There is also the case that the source
+code bundled with LAMMPS *is* compliant and portable, but an external
+library it depends on is not.
+
+This is rather typical for projects like LAMMPS that largely depend on
+contributions from the user community.  Not all contributors are trained
+as programmers and not all of them have access to multiple platforms for
+testing or are familiar with requirement of different C++ standards.  As
+part of the continuous integration process, however, all contributions
+are automatically tested to compile, link, and pass *some* runtime tests
+on a selection of Linux flavors, macOS, and Windows, and on Linux with
+different compilers.  Thus portability issues are often found *before* a
+pull request is merged or a release is made.  Other platforms may be
+checked occasionally or when portability bugs are reported.
+
+Code review and static code analysis
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In addition to using automated tests, code contributed to LAMMPS is
+subject to a code review by core LAMMPS developers (that includes
+contributions by the core LAMMPS developers themselves).
+
+we also make use of a number static code analysis tools for maintaining
+and improving the quality of the LAMMPS source code through tools like
+`Coverity SCAN <https://scan.coverity.com/>`_, `CodeQL
+<https://codeql.github.com/>`_, `Clang Static Analyzer
+<https://clang-analyzer.llvm.org/>`_, `Clang-Tidy
+<https://clang.llvm.org/extra/clang-tidy/>`_ and simply looking at
+compiler warnings.
+
+CodeQL alerts for the ``develop`` branch of LAMMPS can be seen at
+https://github.com/lammps/lammps/security/code-scanning and static code
+analysis reports for the ``develop`` branch from the clang tools are
+available at https://download.lammps.org/analysis/
+
+A discussion of software engineering methods applied to LAMMPS over time
+can be found in the paper `LAMMPS: A Case Study For Applying Modern
+Software Engineering to an Established Research Software Package,
+<https://doi.org/10.5281/zenodo.17117558>` in USRSE'25 conference
+proceedings.

@@ -2900,6 +2900,8 @@ void AtomVecKokkos::set_size_exchange()
   for (int i = 0; i < default_exchange.size(); i++)
     size_exchange_default += field2size(default_exchange[i]);
 
+  size_exchange = size_exchange_default;
+
   for (int i = 0; i < nexchange; i++)
-    size_exchange = field2size(fields_exchange[i]) + size_exchange_default;
+    size_exchange += field2size(fields_exchange[i]);
 }

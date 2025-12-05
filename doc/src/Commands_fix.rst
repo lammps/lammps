@@ -257,6 +257,7 @@ OPT.
    * :doc:`ttm <fix_ttm>`
    * :doc:`ttm/grid <fix_ttm>`
    * :doc:`ttm/mod <fix_ttm>`
+   * :doc:`ttm/thermal <fix_ttm>`
    * :doc:`tune/kspace <fix_tune_kspace>`
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`

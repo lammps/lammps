@@ -62,9 +62,10 @@ class Error : protected Pointers {
    * \param str Warning message string */
   void universe_warn(const std::string &, int, const std::string &);
 
-  static constexpr int NOPOINTER = -2;    /**< Sentinel value: no pointer to faulty argument */
+  static constexpr int COMMAND = -1;      /**< Sentinel value: pointer to the command name */
+  static constexpr int NOPOINTER = -2;    /**< Sentinel value: no pointer to faulty argument (default) */
   static constexpr int NOLASTLINE = -3;   /**< Sentinel value: no last input line to display */
-  static constexpr int ARGZERO = -99;     /**< Sentinel value: error in argument zero (command) */
+  static constexpr int ARGZERO = -99;     /**< Sentinel value: error in first argument (to avoid type ambiguity of 0) */
 
   // regular error calls
 

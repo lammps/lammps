@@ -40,15 +40,15 @@
 using namespace LAMMPS_NS;
 using namespace InterLayer;
 
-PairSAIPMETALTMDOpt::PairSAIPMETALTMDOpt(LAMMPS *lmp) : PairSAIPMETALTMD(lmp),
-    PairILPTMDOpt(lmp), PairILPTMD(lmp), PairILPGrapheneHBN(lmp), PairILPGrapheneHBNOpt(lmp)
+PairSAIPMETALTMDOpt::PairSAIPMETALTMDOpt(LAMMPS *lmp) :
+    PairILPGrapheneHBN(lmp), PairILPTMD(lmp), PairSAIPMETALTMD(lmp), PairILPGrapheneHBNOpt(lmp),
+    PairILPTMDOpt(lmp)
 {
 }
 
 void PairSAIPMETALTMDOpt::coeff(int narg, char **args)
 {
   PairILPTMDOpt::coeff(narg, args);
-  puts("opt coeff");
   for (int i = 1; i <= atom->ntypes; i++) {
     int itype = map[i];
     if (strcmp(elements[itype], "Mo") == 0 || strcmp(elements[itype], "W") == 0 ||

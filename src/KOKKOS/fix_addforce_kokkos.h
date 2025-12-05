@@ -87,4 +87,3 @@ class FixAddForceKokkos : public FixAddForce {
 
 #endif
 #endif
-

@@ -1747,6 +1747,8 @@
 /fix_ttm_grid.h
 /fix_ttm_mod.cpp
 /fix_ttm_mod.h
+/fix_ttm_thermal.cpp
+/fix_ttm_thermal.h
 /granular_model.cpp
 /granular_model.h
 /gran_sub_mod_normal.cpp

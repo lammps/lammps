@@ -557,6 +557,8 @@ void FenixCheckpoint::header(Buffer& buf){
       read(atom->extra_improper_per_atom, buf, error);
     } else if (flag == ATOM_MAXSPECIAL) {
       read(atom->maxspecial, buf, error);
+    } else if (flag == ATOM_MAXEXCHANGE) {
+      if(atom->avec) read(atom->avec->maxexchange, buf, error);
 
     } else if (flag == NELLIPSOIDS) {
       read(atom->nellipsoids, buf, error);
@@ -572,7 +574,7 @@ void FenixCheckpoint::header(Buffer& buf){
     } else if (flag == ATIME) {
       read(update->atime, buf, error);
 
-    } else error->all(FLERR,"Invalid flag in header section of restart file");
+    } else error->all(FLERR,"Invalid flag {} in header section of restart file", flag);
   }
 }
 

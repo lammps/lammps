@@ -60,17 +60,23 @@ template <class T> class MyPage;
  * pointers and members of the LAMMPS class.  Derived classes thus
  * gain access to the constituent class instances in the LAMMPS
  * composite class and thus to the core functionality of LAMMPS.
- *
  * This kind of construct is needed, since the LAMMPS constructor
  * may *only* be run *once* per LAMMPS instance and thus classes
- * cannot be derived from LAMMPS itself to access those instances
- * as that would re-run the LAMMPS constructor.
+ * cannot be derived from the LAMMPS class directly to access
+ * those instances as that would re-run the LAMMPS constructor.
+ *
  * The Pointers class constructor instead only initializes C++
- * references to component pointers in the LAMMPS class. */
+ * references to select component pointers in the LAMMPS class.
+ * To enforce correct use and initialization at compile time,
+ * most automatically generated default member functions are removed.
+ *
+ * \sa LAMMPS_NS::LAMMPS
+ */
 
 class Pointers {
  public:
-  /// Initialize pointer references from a pointer to a LAMMPS class instance
+  /** Initialize pointer references from a pointer to a LAMMPS class instance
+   * \param ptr pointer to the LAMMPS instance */
   Pointers(LAMMPS *ptr) :
     lmp(ptr),
     memory(ptr->memory),

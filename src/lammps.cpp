@@ -123,6 +123,7 @@ methods. The destructor correspondingly calls the
 This allows to reset the LAMMPS instance with the
 :doc:`clear command<clear>` where some data like variables are not reset.
 \endverbatim
+ * \sa LAMMPS_NS::Pointers
  */
 
 /** Create a LAMMPS simulation instance with C++ style string argument list.

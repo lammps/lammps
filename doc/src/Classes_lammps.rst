@@ -37,8 +37,13 @@ Pointers Class
 **************
 
 The Pointers class is the top-level base class for most classes in
-LAMMPS and through it such classes get access to the status of the
-current LAMMPS instance and can query or manipulate it.
+LAMMPS.  It contains references to most of the fundamental LAMMPS
+class pointers stored in the :cpp:class:`LAMMPS class <LAMMPS_NS::LAMMPS>`.
+
+Every class in LAMMPS that is derived from :cpp:class:`Pointers
+<LAMMPS_NS::Pointers>` thus gets access to the pointers in the LAMMPS
+class and therefore access to the status of the current LAMMPS instance
+and can query or manipulate it.
 
 .. doxygenclass:: LAMMPS_NS::Pointers
    :project: progguide

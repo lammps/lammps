@@ -19,8 +19,11 @@ Behind the scenes this is implemented through inheritance and
 polymorphism where base classes define the abstract interface and
 derived classes provide the specialized implementation for specific
 models or optimizations or ports to accelerator platforms.  This
-document will provide an outline of the fundamental class hierarchy and
-some selected examples for derived classes of specific models.
+document will provide an outline of the fundamental classes and their
+purposes and important member functions.
+
+A more high-level overview and a graphical representation is on the
+:doc:`page discussing the LAMMPS class hierarchy <Developer_org>`.
 
 .. note::
 

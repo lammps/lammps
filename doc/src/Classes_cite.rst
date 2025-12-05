@@ -1,5 +1,5 @@
-Citation management for contributed features
---------------------------------------------
+CiteMe: Citation reminders
+--------------------------
 
 LAMMPS provides a built-in mechanism to remind users to cite publications
 that describe the implementation of contributed features. This is

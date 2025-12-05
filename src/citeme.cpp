@@ -36,17 +36,24 @@ std::hash<std::string> get_hash;
 }    // namespace
 /* ---------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Constructor initializes citation tracking and optionally opens citation file
+/** \class LAMMPS_NS::CiteMe
+ *
+ * The CiteMe class provides a mechanism for LAMMPS to remind users to cite
+ * relevant publications when they use specific contributed features. This
+ * ensures proper attribution for the scientific work underlying LAMMPS
+ * implementations. */
 
-   Only MPI rank 0 in the universe opens and writes to the citation file.
-   All other ranks simply initialize the data structures but do not perform I/O.
-
-   \param lmp      Pointer to main LAMMPS object
-   \param _screen  Output mode for screen (VERBOSE or TERSE)
-   \param _logfile Output mode for log file (VERBOSE or TERSE)
-   \param _file    Optional filename for BibTeX output (NULL for no file)
-------------------------------------------------------------------------- */
+/** Constructor for CiteMe class
+ * The constructor initializes citation tracking and optionally opens the
+ * citation file (called ``cite.log`` by default.
+ *
+ *  Only MPI rank 0 in the universe opens and writes to the citation file.
+ *  All other ranks simply initialize the data structures but do not perform I/O.
+ *
+ *  \param lmp      Pointer to main LAMMPS object
+ *  \param _screen  Output mode for screen (VERBOSE or TERSE)
+ *  \param _logfile Output mode for log file (VERBOSE or TERSE)
+ *  \param _file    Optional filename for BibTeX output (NULL for no file) */
 
 CiteMe::CiteMe(LAMMPS *lmp, int _screen, int _logfile, const char *_file) : Pointers(lmp)
 {
@@ -70,11 +77,11 @@ CiteMe::CiteMe(LAMMPS *lmp, int _screen, int _logfile, const char *_file) : Poin
   }
 }
 
-/* ----------------------------------------------------------------------
-   Destructor flushes any remaining citations and closes citation file
+/** CiteMe class destructor
 
-   Ensures all pending citation output is written before cleanup.
-------------------------------------------------------------------------- */
+ * The destructor flushes any remaining citations by calling the flush() method and
+ * closes the citation file. This ensures that all pending citation output is written
+ * before cleanup of LAMMPS class. */
 
 CiteMe::~CiteMe()
 {
@@ -82,10 +89,20 @@ CiteMe::~CiteMe()
   if (fp) fclose(fp);
 }
 
-/* ----------------------------------------------------------------------
-   Add a citation to the output queue
+/**
+\verbatim embed:rst
 
-   This method:
+Adds a citation to the set of publications to be cited.  Each citation
+should contain a BibTeX entry and is output only once, even if add()
+is called multiple times with the same citation.  The citation string
+should start with a brief description including a DOI,  followed by a
+complete BibTeX entry.
+
+This method should typically be called in the constructor of a style
+that implements a published method or algorithm.
+
+This method:
+
    - Uses hash-based deduplication to show each citation only once
    - Writes immediately to the BibTeX file (if enabled)
    - Buffers citations for screen and log file output
@@ -93,9 +110,9 @@ CiteMe::~CiteMe()
 
    Only MPI rank 0 in the communicator performs the actual work to avoid
    duplicate output in parallel runs.
+\endverbatim
 
-   \param reference String containing citation in BibTeX format with DOI header
-------------------------------------------------------------------------- */
+* \param reference  String containing the citation in BibTeX format with DOI URL header */
 
 void CiteMe::add(const std::string &reference)
 {
@@ -132,15 +149,19 @@ void CiteMe::add(const std::string &reference)
   if (logfile_flag == TERSE) logbuffer += "- " + header;
 }
 
-/* ----------------------------------------------------------------------
-   Flush accumulated citation buffers to output streams
+/**
+\verbatim embed:rst
 
-   Writes the buffered citations to screen and log file with appropriate
-   formatting and separator lines. Clears buffers after output.
+Outputs all pending citations to the screen and log file with appropriate
+formatting and separator lines.  Called automatically by
+:cpp:func:`the destructor <LAMMPS_NS::CiteMe::~CiteMe>` when LAMMPS terminates
+or is reset by the :doc:`clear <clear>` command.  Also it is called and at the
+end of a :doc:`run <run>` or :doc:`minimize <minimize>` command.
 
-   Only MPI rank 0 performs output to avoid duplication in parallel runs.
-------------------------------------------------------------------------- */
+Only MPI rank 0 performs output to avoid duplication in parallel runs.
 
+\endverbatim
+*/
 void CiteMe::flush()
 {
   if (comm->me == 0) {

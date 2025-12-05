@@ -7,6 +7,7 @@
 .. index:: pair_style hybrid/overlay/omp
 .. index:: pair_style hybrid/overlay/kk
 .. index:: pair_style hybrid/scaled
+.. index:: pair_style hybrid/scaled/kk
 .. index:: pair_style hybrid/scaled/omp
 
 pair_style hybrid command
@@ -27,7 +28,7 @@ Accelerator Variants: *hybrid/overlay/kk*, *hybrid/overlay/omp*
 pair_style hybrid/scaled command
 ==================================
 
-Accelerator Variant: *hybrid/scaled/omp*
+Accelerator Variant: *hybrid/overlay/kk*, *hybrid/scaled/omp*
 
 Syntax
 """"""
@@ -171,26 +172,29 @@ restrictions discussed below.
 If the *hybrid/scaled* style is used instead of *hybrid/overlay*,
 contributions from sub-styles are weighted by their scale factors, which
 may be fractional or even negative.  Furthermore the scale factor for
-each sub-style may be a constant, an *equal* style variable, or an
-*atom* style variable. Variable scale factors may change during the
-simulation.  Different sub-styles may use different scale factor styles.
-In the case of a sub-style scale factor that is an *atom* style
-variable, the force contribution to each atom from that sub-style is
-weighted by the value of the variable for that atom, while the
-contribution from that sub-style to the global potential energy is zero.
-All other contributions to the per-atom energy, per-atom virial, and
-global virial (if not obtained from forces) from that sub-style are
-zero.  This enables switching smoothly between two different pair styles
-or two different parameter sets during a run in a similar fashion as
-could be done with :doc:`fix adapt <fix_adapt>` or :doc:`fix alchemy
-<fix_alchemy>`.  All pair styles that will be used are listed as
-"sub-styles" following the *hybrid* or *hybrid/overlay* keyword, in any
-order.  In case of the *hybrid/scaled* pair style, each sub-style is
-prefixed with a scale factor.  The scale factor is either a floating
-point number or an *equal* or *atom* style (or equivalent) variable.
-Each sub-style's name is followed by its usual arguments, as illustrated
-in the examples above.  See the doc pages of the individual pair styles
-for a listing and explanation of the appropriate arguments for them.
+each sub-style may a constant, an *equal* style variable, or an *atom*
+style variable. Variable scale factors may change during the simulation.
+Different sub-styles may use different scale factor styles.
+In the case of a sub-style scale factor that is an *atom* style variable,
+the force contribution to each atom from that sub-style is weighted
+by the value of the variable for that atom, while the contribution
+from that sub-style to the global potential energy is zero.
+All other contributions to the per-atom energy, per-atom
+virial, and global virial (if not obtained from forces)
+from that sub-style are zero.
+This enables
+switching smoothly between two different pair styles or two different
+parameter sets during a run in a similar fashion as could be done
+with :doc:`fix adapt <fix_adapt>` or :doc:`fix alchemy <fix_alchemy>`.
+All pair styles that will be used are listed as "sub-styles" following
+the *hybrid* or *hybrid/overlay* keyword, in any order.  In case of the
+*hybrid/scaled* pair style, each sub-style is prefixed with a scale
+factor.  The scale factor is either a floating point number or an
+*equal* or *atom*
+style (or equivalent) variable.  Each sub-style's name is followed by
+its usual arguments, as illustrated in the examples above.  See the doc
+pages of the individual pair styles for a listing and explanation of the
+appropriate arguments for them.
 
 Note that an individual pair style can be used multiple times as a
 sub-style.  For efficiency reasons this should only be done if your
@@ -384,7 +388,7 @@ This input achieves the same effect:
 
 .. code-block:: LAMMPS
 
-   special_bonds 0.0 0.0 0.1
+   special_bonds lj/coul 0.0 0.0 0.1
    pair_style hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
    pair_modify pair lj/cut/coul/long special lj 0.0 0.0 0.5
    pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.83333333
@@ -561,9 +565,6 @@ one or more sub-styles will be of the "long" variety,
 e.g. *lj/cut/coul/long* or *buck/coul/long*\ .  You must ensure that the
 short-range Coulombic cutoff used by each of these long pair styles is
 the same or else LAMMPS will generate an error.
-
-Pair style *hybrid/scaled* currently only works for non-accelerated
-pair styles and pair styles from the OPT package.
 
 Pair style *hybrid/molecular* is not compatible with manybody potentials.
 

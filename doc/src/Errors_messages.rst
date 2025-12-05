@@ -1123,12 +1123,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Cannot yet use fix bond/create with this improper style*
    This is a current restriction in LAMMPS.
 
-*Cannot yet use minimize with Kokkos*
-   This feature is not yet supported.
-
-*Cannot yet use pair hybrid with Kokkos*
-   This feature is not yet supported.
-
 *Cannot zero Langevin force of 0 atoms*
    The group has zero atoms, so you cannot request its force
    be zeroed.
@@ -2092,9 +2086,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Fix langevin gjf cannot have period equal to dt/2*
    If the period is equal to dt/2 then division by zero will happen.
 
-*Fix langevin gjf with tbias is not yet implemented with kokkos*
-   This option is not yet available.
-
 *Fix langevin omega is not yet implemented with kokkos*
    This option is not yet available.
 
@@ -2223,10 +2214,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Fix rigid: Bad principal moments*
    The principal moments of inertia computed for a rigid body
    are not within the required tolerances.
-
-*Fix shake cannot be used with minimization*
-   Cannot use fix shake while doing an energy minimization since
-   it turns off bonds that should contribute to the energy.
 
 *Fix shake molecule template must have shake info*
    The defined molecule does not specify SHAKE information.

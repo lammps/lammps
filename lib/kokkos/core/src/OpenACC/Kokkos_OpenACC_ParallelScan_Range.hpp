@@ -21,6 +21,9 @@
 #include <OpenACC/Kokkos_OpenACC_FunctorAdapter.hpp>
 #include <OpenACC/Kokkos_OpenACC_Macros.hpp>
 #include <Kokkos_Parallel.hpp>
+#include <Kokkos_BitManipulation.hpp>
+
+#include <type_traits>
 
 // Clacc uses an alternative implementation to work around not-yet-implemented
 // OpenACC features: Clacc does not fully support private clauses for
@@ -74,7 +77,7 @@ class ParallelScanOpenACCBase {
                                       const IndexType end, IndexType chunk_size,
                                       const int async_arg) const {
     if (chunk_size > 1) {
-      if (!Impl::is_integral_power_of_two(chunk_size))
+      if (!Kokkos::has_single_bit<std::make_unsigned_t<IndexType>>(chunk_size))
         Kokkos::abort(
             "RangePolicy blocking granularity must be power of two to be used "
             "with OpenACC parallel_scan()");

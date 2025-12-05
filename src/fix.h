@@ -135,7 +135,7 @@ class Fix : protected Pointers {
   int fuse_integrate_flag;     // 1 if can fuse initial integrate with final integrate
   int sort_device;             // 1 if sort on Device
   ExecutionSpace execution_space;
-  unsigned int datamask_read, datamask_modify;
+  uint64_t datamask_read, datamask_modify;
 
   Fix(class LAMMPS *, int, char **);
   ~Fix() override;

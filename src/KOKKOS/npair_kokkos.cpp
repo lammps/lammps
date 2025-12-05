@@ -68,7 +68,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::copy_neighbor_info()
     auto k_mycutneighsq = DAT::ttransform_kkfloat_2d("neigh:cutneighsq,",n+1,n+1);
     for (int i = 1; i <= n; i++)
       for (int j = 1; j <= n; j++)
-        k_mycutneighsq.h_view(i,j) = cutoff_custom * cutoff_custom;
+        k_mycutneighsq.view_host()(i,j) = cutoff_custom * cutoff_custom;
     k_cutneighsq = k_mycutneighsq;
   }
 
@@ -123,16 +123,16 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::copy_stencil_info()
     if (maxstencil > (int)k_stencil.extent(0))
       k_stencil = DAT::tdual_int_1d("neighlist:stencil",maxstencil);
     for (int k = 0; k < maxstencil; k++)
-      k_stencil.h_view(k) = ns->stencil[k];
+      k_stencil.view_host()(k) = ns->stencil[k];
     k_stencil.modify_host();
     k_stencil.sync<DeviceType>();
     if (GHOST) {
       if (maxstencil > (int)k_stencilxyz.extent(0))
         k_stencilxyz = DAT::tdual_int_1d_3("neighlist:stencilxyz",maxstencil);
       for (int k = 0; k < maxstencil; k++) {
-        k_stencilxyz.h_view(k,0) = ns->stencilxyz[k][0];
-        k_stencilxyz.h_view(k,1) = ns->stencilxyz[k][1];
-        k_stencilxyz.h_view(k,2) = ns->stencilxyz[k][2];
+        k_stencilxyz.view_host()(k,0) = ns->stencilxyz[k][0];
+        k_stencilxyz.view_host()(k,1) = ns->stencilxyz[k][1];
+        k_stencilxyz.view_host()(k,2) = ns->stencilxyz[k][2];
       }
       k_stencilxyz.modify_host();
       k_stencilxyz.sync<DeviceType>();

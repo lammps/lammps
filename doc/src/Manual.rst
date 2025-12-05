@@ -95,12 +95,12 @@ User Guide
    Intro
    Install
    Build
-   Packages
-   Tools
    Run_head
    Errors
    Commands
    Speed
+   Packages
+   Tools
    Howto
    Examples
 

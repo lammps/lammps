@@ -39,7 +39,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_bond_swap[] =
-  "fix bond/swap command: doi:10.1063/1.1628670\n\n"
+  "fix bond/swap command: https://doi.org/10.1063/1.1628670\n\n"
   "@Article{Auhl03,\n"
   " author = {R. Auhl and R. Everaers and G. S. Grest and K. Kremer and S. J. Plimpton},\n"
   " title = {Equilibration of Long Chain Polymer Melts in Computer Simulations},\n"

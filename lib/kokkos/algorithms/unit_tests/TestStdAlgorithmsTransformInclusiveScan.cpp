@@ -15,6 +15,11 @@
 //@HEADER
 
 #include <TestStdAlgorithmsCommon.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+#include <std_algorithms/impl/Kokkos_ValueWrapperForNoNeutralElement.hpp>
+#include <std_algorithms/impl/Kokkos_IdentityReferenceUnaryFunctor.hpp>
+#include <std_algorithms/impl/Kokkos_TransformInclusiveScan.hpp>
+#endif
 #include <utility>
 #include <iomanip>
 
@@ -71,24 +76,24 @@ void fill_view(ViewType dest_view, const std::string& name) {
   }
 
   else if (name == "one-element") {
-    assert(v_h.extent(0) == 1);
+    KOKKOS_ASSERT(v_h.extent(0) == 1);
     v_h(0) = static_cast<value_type>(1);
   }
 
   else if (name == "two-elements-a") {
-    assert(v_h.extent(0) == 2);
+    KOKKOS_ASSERT(v_h.extent(0) == 2);
     v_h(0) = static_cast<value_type>(1);
     v_h(1) = static_cast<value_type>(2);
   }
 
   else if (name == "two-elements-b") {
-    assert(v_h.extent(0) == 2);
+    KOKKOS_ASSERT(v_h.extent(0) == 2);
     v_h(0) = static_cast<value_type>(2);
     v_h(1) = static_cast<value_type>(-1);
   }
 
   else if (name == "small-a") {
-    assert(v_h.extent(0) == 9);
+    KOKKOS_ASSERT(v_h.extent(0) == 9);
     v_h(0) = static_cast<value_type>(3);
     v_h(1) = static_cast<value_type>(1);
     v_h(2) = static_cast<value_type>(4);
@@ -101,7 +106,7 @@ void fill_view(ViewType dest_view, const std::string& name) {
   }
 
   else if (name == "small-b") {
-    assert(v_h.extent(0) >= 6);
+    KOKKOS_ASSERT(v_h.extent(0) >= 6);
     for (std::size_t i = 0; i < ext; ++i) {
       v_h(i) = randObj();
     }
@@ -335,14 +340,13 @@ void run_all_scenarios() {
   }
 }
 
-#if !defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
 TEST(std_algorithms_numeric_ops_test, transform_inclusive_scan) {
   run_all_scenarios<DynamicTag, double>();
   run_all_scenarios<StridedThreeTag, double>();
   run_all_scenarios<DynamicTag, int>();
   run_all_scenarios<StridedThreeTag, int>();
 }
-#endif
 
 template <class ValueType>
 struct MultiplyFunctor {
@@ -411,6 +415,7 @@ TEST(std_algorithms_numeric_ops_test, transform_inclusive_scan_functor) {
     test_lambda(functor);
   }
 }
+#endif
 
 }  // namespace TransformIncScan
 }  // namespace stdalgos

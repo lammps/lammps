@@ -219,11 +219,11 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
 
   k_error_flag.template modify<DeviceType>();
   k_error_flag.sync_host();
-  if (k_error_flag.h_view() == 1)
+  if (k_error_flag.view_host()() == 1)
     error->one(FLERR,"Density < table inner cutoff");
-  else if (k_error_flag.h_view() == 2)
+  else if (k_error_flag.view_host()() == 2)
     error->one(FLERR,"Density > table outer cutoff");
-  else if (k_error_flag.h_view() == 3)
+  else if (k_error_flag.view_host()() == 3)
     error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
 
   if (eflag_global) eng_vdwl += ev.evdwl;
@@ -435,7 +435,7 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
   x = atomKK->k_x.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   rho = atomKK->k_rho.view<DeviceType>();
-  h_rho = atomKK->k_rho.h_view;
+  h_rho = atomKK->k_rho.view_host();
   nlocal = atom->nlocal;
 
   atomKK->sync(execution_space,X_MASK | TYPE_MASK | DPDRHO_MASK);

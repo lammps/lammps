@@ -400,16 +400,16 @@ double PairDPDKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairDPD::init_one(i,j);
 
-  k_params.h_view(i,j).cut = cut[i][j];
-  k_params.h_view(i,j).a0 = a0[i][j];
-  k_params.h_view(i,j).gamma = gamma[i][j];
-  k_params.h_view(i,j).sigma = sigma[i][j];
-  k_params.h_view(j,i) = k_params.h_view(i,j);
+  k_params.view_host()(i,j).cut = cut[i][j];
+  k_params.view_host()(i,j).a0 = a0[i][j];
+  k_params.view_host()(i,j).gamma = gamma[i][j];
+  k_params.view_host()(i,j).sigma = sigma[i][j];
+  k_params.view_host()(j,i) = k_params.view_host()(i,j);
 
   k_params.modify_host();
 
-  k_cutsq.h_view(i,j) = cutone*cutone;
-  k_cutsq.h_view(j,i) = k_cutsq.h_view(i,j);
+  k_cutsq.view_host()(i,j) = cutone*cutone;
+  k_cutsq.view_host()(j,i) = k_cutsq.view_host()(i,j);
   k_cutsq.modify_host();
 
   return cutone;

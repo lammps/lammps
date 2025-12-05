@@ -22,7 +22,7 @@
 
 #include <Kokkos_Atomic.hpp>
 #include <Threads/Kokkos_Threads_Spinwait.hpp>
-#include <impl/Kokkos_BitOps.hpp>
+#include <Kokkos_BitManipulation.hpp>  // bit_width
 
 #include <thread>
 #if defined(_WIN32)
@@ -40,7 +40,7 @@ void host_thread_yield(const uint32_t i, const WaitMode mode) {
   static constexpr uint32_t sleep_limit = 1 << 13;
   static constexpr uint32_t yield_limit = 1 << 12;
 
-  const int c = int_log2(i);
+  const int c = bit_width(i) - 1;
 
   if (WaitMode::ROOT != mode) {
     if (sleep_limit < i) {

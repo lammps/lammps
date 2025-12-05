@@ -89,7 +89,7 @@ void PairTersoffMODKokkos<DeviceType>::coeff(int narg, char **arg)
   int n = atom->ntypes;
 
   DAT::tdual_int_1d k_map = DAT::tdual_int_1d("pair:map",n+1);
-  HAT::t_int_1d h_map = k_map.h_view;
+  HAT::t_int_1d h_map = k_map.view_host();
 
   for (int i = 1; i <= n; i++)
     h_map[i] = map[i];
@@ -131,10 +131,10 @@ void PairTersoffMODKokkos<DeviceType>::setup_params()
   // sync elem3param and params
 
   DAT::tdual_int_3d k_elem3param = DAT::tdual_int_3d("pair:elem3param",nelements,nelements,nelements);
-  HAT::t_int_3d h_elem3param = k_elem3param.h_view;
+  HAT::t_int_3d h_elem3param = k_elem3param.view_host();
 
   tdual_param_1d k_params = tdual_param_1d("pair:params",nparams);
-  t_host_param_1d h_params = k_params.h_view;
+  t_host_param_1d h_params = k_params.view_host();
 
   for (int i = 0; i < nelements; i++)
     for (int j = 0; j < nelements; j++)

@@ -609,6 +609,8 @@ double PairGranular::init_one(int i, int j)
         // radius info about both i and j exist
         ((maxrad_frozen[i] > 0.0)  && (maxrad_dynamic[j] > 0.0))) {
       cutoff = maxrad_dynamic[i] + maxrad_dynamic[j];
+      cutoff = MAX(cutoff, maxrad_dynamic[i] + maxrad_frozen[j]);
+      cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j]);
       pulloff = 0.0;
       if (model->beyond_contact) {
         pulloff = model->pulloff_distance(maxrad_dynamic[i], maxrad_dynamic[j]);

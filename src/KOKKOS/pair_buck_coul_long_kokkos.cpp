@@ -432,26 +432,26 @@ double PairBuckCoulLongKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairBuckCoulLong::init_one(i,j);
   double cut_ljsqm = cut_ljsq[i][j];
 
-  k_params.h_view(i,j).a = a[i][j];
-  k_params.h_view(i,j).c = c[i][j];
-  k_params.h_view(i,j).rhoinv = rhoinv[i][j];
-  k_params.h_view(i,j).buck1 = buck1[i][j];
-  k_params.h_view(i,j).buck2 = buck2[i][j];
-  k_params.h_view(i,j).offset = offset[i][j];
-  k_params.h_view(i,j).cut_ljsq = cut_ljsqm;
-  k_params.h_view(i,j).cut_coulsq = cut_coulsq;
+  k_params.view_host()(i,j).a = a[i][j];
+  k_params.view_host()(i,j).c = c[i][j];
+  k_params.view_host()(i,j).rhoinv = rhoinv[i][j];
+  k_params.view_host()(i,j).buck1 = buck1[i][j];
+  k_params.view_host()(i,j).buck2 = buck2[i][j];
+  k_params.view_host()(i,j).offset = offset[i][j];
+  k_params.view_host()(i,j).cut_ljsq = cut_ljsqm;
+  k_params.view_host()(i,j).cut_coulsq = cut_coulsq;
 
-  k_params.h_view(j,i) = k_params.h_view(i,j);
+  k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
-    m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
+    m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
     m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_ljsqm;
     m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsq;
   }
 
-  k_cutsq.h_view(i,j) = cutone*cutone;
+  k_cutsq.view_host()(i,j) = cutone*cutone;
   k_cutsq.modify_host();
-  k_cut_ljsq.h_view(i,j) = cut_ljsqm;
+  k_cut_ljsq.view_host()(i,j) = cut_ljsqm;
   k_cut_ljsq.modify_host();
   k_params.modify_host();
 

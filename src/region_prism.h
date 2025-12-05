@@ -37,6 +37,7 @@ class RegPrism : public Region {
   int surface_interior(double *, double) override;
   int surface_exterior(double *, double) override;
   void shape_update() override;
+  void bbox_update() override;
 
  private:
   double xlo, xhi, ylo, yhi, zlo, zhi;

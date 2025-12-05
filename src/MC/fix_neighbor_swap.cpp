@@ -52,7 +52,7 @@ using MathExtra::distsq3;
 using MathSpecial::square;
 
 static const char cite_fix_neighbor_swap[] =
-    "fix neighbor/swap command: doi:10.1016/j.commatsci.2022.111929\n\n"
+    "fix neighbor/swap command: https://doi.org/10.1016/j.commatsci.2022.111929\n\n"
     "@Article{Tavenner2023111929,\n"
     " author = {Jacob P. Tavenner and Mikhail I. Mendelev and John W. Lawson},\n"
     " title = {Molecular dynamics based kinetic Monte Carlo simulation for accelerated "

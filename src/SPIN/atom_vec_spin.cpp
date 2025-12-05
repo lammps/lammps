@@ -130,7 +130,7 @@ void AtomVecSpin::write_data_restricted_to_general()
   int nlocal = atom->nlocal;
   memory->create(sp_hold,nlocal,3,"atomvec:sp_hold");
   for (int i = 0; i < nlocal; i++) {
-    memcpy(&sp_hold[i],&sp[i],3*sizeof(double));
+    memcpy(&sp_hold[i][0],&sp[i][0],3*sizeof(double));
     domain->restricted_to_general_vector(sp[i]);
   }
 }
@@ -150,7 +150,7 @@ void AtomVecSpin::write_data_restore_restricted()
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++)
-    memcpy(&sp[i],&sp_hold[i],3*sizeof(double));
+    memcpy(&sp[i][0],&sp_hold[i][0],3*sizeof(double));
   memory->destroy(sp_hold);
   sp_hold = nullptr;
 }

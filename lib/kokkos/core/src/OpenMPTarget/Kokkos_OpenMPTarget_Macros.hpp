@@ -17,12 +17,6 @@
 #ifndef KOKKOS_OPENMPTARGET_MACROS_HPP
 #define KOKKOS_OPENMPTARGET_MACROS_HPP
 
-// Intel architectures prefer the classical hierarchical parallelism that relies
-// on OpenMP.
-#if defined(KOKKOS_ARCH_INTEL_GPU)
-#define KOKKOS_IMPL_OPENMPTARGET_HIERARCHICAL_INTEL_GPU
-#endif
-
 // Define a macro for llvm compiler greater than version 17 and on NVIDIA and
 // AMD GPUs. This would be useful in cases where non-OpenMP standard llvm
 // extensions can be used.

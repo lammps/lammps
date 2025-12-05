@@ -116,7 +116,7 @@ double PairPODKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairPOD::init_one(i,j);
 
-  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
+  k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
   k_cutsq.modify_host();
 
   return cutone;

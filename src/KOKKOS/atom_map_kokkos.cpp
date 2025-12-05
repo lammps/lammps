@@ -127,19 +127,19 @@ void AtomKokkos::map_clear()
 {
   if (map_style == MAP_ARRAY) {
     if (lmp->kokkos->atom_map_legacy) {
-      Kokkos::deep_copy(k_map_array.h_view,-1);
+      Kokkos::deep_copy(k_map_array.view_host(),-1);
       k_map_array.modify_host();
     } else {
-      Kokkos::deep_copy(k_map_array.d_view,-1);
+      Kokkos::deep_copy(k_map_array.view_device(),-1);
       k_map_array.modify_device();
     }
   } else {
     if (lmp->kokkos->atom_map_legacy) {
       Atom::map_clear();
-      k_map_hash.h_view.clear();
+      k_map_hash.view_host().clear();
       k_map_hash.modify_host();
     } else {
-      k_map_hash.d_view.clear();
+      k_map_hash.view_device().clear();
       k_map_hash.modify_device();
     }
   }
@@ -192,8 +192,8 @@ void AtomKokkos::map_set_device()
 
   int map_style_array = (map_style == MAP_ARRAY);
 
-  auto d_tag = atomKK->k_tag.d_view;
-  auto d_sametag = k_sametag.d_view;
+  auto d_tag = atomKK->k_tag.view_device();
+  auto d_sametag = k_sametag.view_device();
 
   int nmax = atom->nmax;
 
@@ -211,12 +211,12 @@ void AtomKokkos::map_set_device()
 
   Kokkos::sort(LMPDeviceType(),l_sorted,MyComp{});
 
-  auto d_map_array = k_map_array.d_view;
-  auto& d_map_hash = k_map_hash.d_view; // must be alias
+  auto d_map_array = k_map_array.view_device();
+  auto& d_map_hash = k_map_hash.view_device(); // must be alias
   if (!map_style_array)
     d_map_hash.clear();
 
-  auto d_error_flag = k_error_flag.d_view;
+  auto d_error_flag = k_error_flag.view_device();
   Kokkos::deep_copy(d_error_flag,0);
 
   //  atom with smallest local id for atom map
@@ -254,7 +254,7 @@ void AtomKokkos::map_set_device()
 
   });
 
-  auto h_error_flag = k_error_flag.h_view;
+  auto h_error_flag = k_error_flag.view_host();
   Kokkos::deep_copy(h_error_flag,d_error_flag);
 
   if (h_error_flag())
@@ -352,7 +352,7 @@ void AtomKokkos::map_set_host()
 
     // use "view" template method to avoid unnecessary deep_copy
 
-    auto& h_map_hash = k_map_hash.h_view; // must be alias
+    auto& h_map_hash = k_map_hash.view_host(); // must be alias
     h_map_hash.clear();
 
     for (int i = 0; i < nall; i++) {
@@ -387,10 +387,10 @@ void AtomKokkos::map_one(tagint global, int local)
 {
   if (map_style == MAP_ARRAY) {
     k_map_array.sync_host();
-    k_map_array.h_view[global] = local;
+    k_map_array.view_host()[global] = local;
   } else {
     k_map_hash.sync_host();
-    auto& h_map_hash = k_map_hash.h_view; // must be alias
+    auto& h_map_hash = k_map_hash.view_host(); // must be alias
 
     auto insert_result = h_map_hash.insert(global, local);
     if (insert_result.existing())
@@ -408,7 +408,7 @@ void AtomKokkos::map_one(tagint global, int local)
 int AtomKokkos::map_find_hash(tagint global)
 {
   k_map_hash.sync_host();
-  auto& h_map_hash = k_map_hash.h_view; // must be alias
+  auto& h_map_hash = k_map_hash.view_host(); // must be alias
 
   int local = -1;
   auto index = h_map_hash.find(global);

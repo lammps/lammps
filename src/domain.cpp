@@ -1985,9 +1985,9 @@ void Domain::add_region(int narg, char **arg)
   }
 
   if (strcmp(arg[1],"none") == 0)
-    error->all(FLERR,"Unrecognized region style 'none'");
+    error->all(FLERR, 1, "Unrecognized region style 'none'");
 
-  if (get_region_by_id(arg[0])) error->all(FLERR,"Reuse of region ID {}", arg[0]);
+  if (get_region_by_id(arg[0])) error->all(FLERR, Error::ARGZERO, "Reuse of region ID {}", arg[0]);
 
   // create the Region
   Region *newregion = nullptr;
@@ -2016,7 +2016,7 @@ void Domain::add_region(int narg, char **arg)
   }
 
   if (!newregion)
-    error->all(FLERR,utils::check_packages_for_style("region",arg[1],lmp));
+    error->all(FLERR, 1, utils::check_packages_for_style("region",arg[1],lmp));
 
   // initialize any region variables via init()
   // in case region is used between runs, e.g. to print a variable

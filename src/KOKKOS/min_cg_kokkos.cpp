@@ -72,7 +72,7 @@ int MinCGKokkos::iterate(int maxiter)
         l_g[i] = l_fvec[i];
       });
     } else {
-      auto l_f = atomKK->k_f.d_view;
+      auto l_f = atomKK->k_f.view_device();
       Kokkos::parallel_for(atom->nlocal, LAMMPS_LAMBDA(const int& i) {
         const int j = i*3;
         l_h[j] = l_f(i,0);
@@ -129,7 +129,7 @@ int MinCGKokkos::iterate(int maxiter)
           sdot.d1 += l_fvec[i]*l_g[i];
         },sdot);
       } else {
-        auto l_f = atomKK->k_f.d_view;
+        auto l_f = atomKK->k_f.view_device();
         Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
           sdot.d0 += l_f(i,0)*l_f(i,0);
           sdot.d0 += l_f(i,1)*l_f(i,1);
@@ -182,7 +182,7 @@ int MinCGKokkos::iterate(int maxiter)
           l_h[i] = l_g[i] + beta*l_h[i];
         });
       } else {
-        auto l_f = atomKK->k_f.d_view;
+        auto l_f = atomKK->k_f.view_device();
         Kokkos::parallel_for(atom->nlocal, LAMMPS_LAMBDA(const int& i) {
           const int j = i*3;
           l_g[j] = l_f(i,0);

@@ -165,7 +165,7 @@ void DynamicalMatrixKokkos::update_force()
   }
 
   bool execute_on_host = false;
-  unsigned int datamask_read_host = 0;
+  uint64_t datamask_read_host = 0;
 
   if (pair_compute_flag) {
     if (force->pair->execution_space==Host) {
@@ -219,7 +219,7 @@ void DynamicalMatrixKokkos::update_force()
       Kokkos::fence();
     atomKK->sync_pinned(Host,~(~datamask_read_host|(F_MASK | ENERGY_MASK | VIRIAL_MASK)),1);
     if (pair_compute_flag && force->pair->execution_space!=Host) {
-      Kokkos::deep_copy(LMPHostType(),atomKK->k_f.h_view,0.0);
+      Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_host(),0.0);
     }
   }
 
@@ -258,10 +258,10 @@ void DynamicalMatrixKokkos::update_force()
     if (f_merge_copy.extent(0)<atomKK->k_f.extent(0)) {
       f_merge_copy = DAT::t_kkacc_1d_3("DynamicalMatrixKokkos::f_merge_copy",atomKK->k_f.extent(0));
     }
-    f = atomKK->k_f.d_view;
-    Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.h_view);
+    f = atomKK->k_f.view_device();
+    Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.view_host());
     Kokkos::parallel_for(atomKK->k_f.extent(0),
-                         ForceAdder<DAT::t_kkacc_1d_3,DAT::t_kkacc_1d_3>(atomKK->k_f.d_view,f_merge_copy));
+                         ForceAdder<DAT::t_kkacc_1d_3,DAT::t_kkacc_1d_3>(atomKK->k_f.view_device(),f_merge_copy));
     atomKK->k_f.clear_sync_state(); // special case
     atomKK->k_f.modify_device();
   }
@@ -304,7 +304,7 @@ void DynamicalMatrixKokkos::force_clear()
   int nall = atomKK->nlocal;
   if (force->newton) nall += atomKK->nghost;
 
-  Kokkos::parallel_for(nall, Zero<DAT::t_kkacc_1d_3>(atomKK->k_f.d_view));
+  Kokkos::parallel_for(nall, Zero<DAT::t_kkacc_1d_3>(atomKK->k_f.view_device()));
   atomKK->modified(Device,F_MASK);
 
 }

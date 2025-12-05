@@ -38,6 +38,28 @@
 
 #include <cstdint>
 
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#if defined(KOKKOS_COMPILER_GNU) && !defined(__PGIC__) && \
+    !defined(__CUDA_ARCH__)
+
+#define KOKKOS_IMPL_NONTEMPORAL_PREFETCH_LOAD(addr) \
+  __builtin_prefetch(addr, 0, 0)
+#define KOKKOS_IMPL_NONTEMPORAL_PREFETCH_STORE(addr) \
+  __builtin_prefetch(addr, 1, 0)
+
+#else
+
+#define KOKKOS_IMPL_NONTEMPORAL_PREFETCH_LOAD(addr) ((void)0)
+#define KOKKOS_IMPL_NONTEMPORAL_PREFETCH_STORE(addr) ((void)0)
+
+#endif
+#else
+#define KOKKOS_IMPL_NONTEMPORAL_PREFETCH_LOAD(addr) \
+  KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr)
+#define KOKKOS_IMPL_NONTEMPORAL_PREFETCH_STORE(addr) \
+  KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr)
+#endif
+
 namespace Kokkos {
 
 enum : unsigned { UnorderedMapInvalidIndex = ~0u };
@@ -582,7 +604,7 @@ class UnorderedMap {
       size_type curr = volatile_load(curr_ptr);
 #endif
 
-      KOKKOS_NONTEMPORAL_PREFETCH_LOAD(
+      KOKKOS_IMPL_NONTEMPORAL_PREFETCH_LOAD(
           &m_keys[curr != invalid_index ? curr : 0]);
 #if defined(__MIC__)
 #pragma noprefetch
@@ -603,7 +625,7 @@ class UnorderedMap {
 #else
         curr = volatile_load(curr_ptr);
 #endif
-        KOKKOS_NONTEMPORAL_PREFETCH_LOAD(
+        KOKKOS_IMPL_NONTEMPORAL_PREFETCH_LOAD(
             &m_keys[curr != invalid_index ? curr : 0]);
       }
 
@@ -644,7 +666,7 @@ class UnorderedMap {
           } else if (m_available_indexes.set(index_hint)) {
             new_index = index_hint;
             // Set key and value
-            KOKKOS_NONTEMPORAL_PREFETCH_STORE(&m_keys[new_index]);
+            KOKKOS_IMPL_NONTEMPORAL_PREFETCH_STORE(&m_keys[new_index]);
 // FIXME_SYCL replacement for memory_fence
 #ifdef KOKKOS_ENABLE_SYCL
             Kokkos::atomic_store(&m_keys[new_index], k);
@@ -653,7 +675,7 @@ class UnorderedMap {
 #endif
 
             if (!is_set) {
-              KOKKOS_NONTEMPORAL_PREFETCH_STORE(&m_values[new_index]);
+              KOKKOS_IMPL_NONTEMPORAL_PREFETCH_STORE(&m_values[new_index]);
 #ifdef KOKKOS_ENABLE_SYCL
               Kokkos::atomic_store(&m_values[new_index], v);
 #else
@@ -719,9 +741,10 @@ class UnorderedMap {
                          ? m_hash_lists(m_hasher(k) % m_hash_lists.extent(0))
                          : invalid_index;
 
-    KOKKOS_NONTEMPORAL_PREFETCH_LOAD(&m_keys[curr != invalid_index ? curr : 0]);
+    KOKKOS_IMPL_NONTEMPORAL_PREFETCH_LOAD(
+        &m_keys[curr != invalid_index ? curr : 0]);
     while (curr != invalid_index && !m_equal_to(m_keys[curr], k)) {
-      KOKKOS_NONTEMPORAL_PREFETCH_LOAD(
+      KOKKOS_IMPL_NONTEMPORAL_PREFETCH_LOAD(
           &m_keys[curr != invalid_index ? curr : 0]);
       curr = m_next_index[curr];
     }

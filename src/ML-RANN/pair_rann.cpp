@@ -60,7 +60,7 @@ static constexpr int MAXLINE = 1024;
 using namespace LAMMPS_NS;
 
 static const char cite_ml_rann_package[] =
-  "ML-RANN package: doi:10.1016/j.commatsci.2020.110207\n\n"
+  "ML-RANN package: https://doi.org/10.1016/j.commatsci.2020.110207\n\n"
   "@Article{Nitol2021,\n"
   " author = {Nitol, Mashroor S and Dickel, Doyl E and Barrett, Christopher D},\n"
   " title = {Artificial Neural Network Potential for Pure Zinc},\n"

@@ -950,17 +950,8 @@ class View : public ViewTraits<DataType, Properties...> {
                               Args... args)
       : m_track(src_view), m_map() {
     using SrcType = View<RT, RP...>;
-
     using Mapping = Kokkos::Impl::ViewMapping<void, typename SrcType::traits,
                                               Arg0, Args...>;
-
-    using DstType = typename Mapping::type;
-
-    static_assert(
-        Kokkos::Impl::ViewMapping<traits, typename DstType::traits,
-                                  typename traits::specialize>::is_assignable,
-        "Subview construction requires compatible view and subview arguments");
-
     Mapping::assign(m_map, src_view.m_map, arg0, args...);
   }
 
@@ -1340,8 +1331,9 @@ class View : public ViewTraits<DataType, Properties...> {
                 std::is_assignable<mdspan<OtherElementType, OtherExtents,
                                           OtherLayoutPolicy, OtherAccessor>,
                                    ImplNaturalMDSpanType>>::value>>
-  KOKKOS_INLINE_FUNCTION constexpr operator mdspan<
-      OtherElementType, OtherExtents, OtherLayoutPolicy, OtherAccessor>() {
+  KOKKOS_INLINE_FUNCTION constexpr
+  operator mdspan<OtherElementType, OtherExtents, OtherLayoutPolicy,
+                  OtherAccessor>() const {
     using mdspan_type = typename Impl::MDSpanViewTraits<traits>::mdspan_type;
     return mdspan_type{data(),
                        Impl::mapping_from_view_mapping<mdspan_type>(m_map)};
@@ -1355,7 +1347,7 @@ class View : public ViewTraits<DataType, Properties...> {
                 typename OtherAccessorType::data_handle_type>>>
   KOKKOS_INLINE_FUNCTION constexpr auto to_mdspan(
       const OtherAccessorType& other_accessor =
-          typename Impl::MDSpanViewTraits<traits>::accessor_type()) {
+          typename Impl::MDSpanViewTraits<traits>::accessor_type()) const {
     using mdspan_type = typename Impl::MDSpanViewTraits<traits>::mdspan_type;
     using ret_mdspan_type =
         mdspan<typename mdspan_type::element_type,
@@ -1407,10 +1399,13 @@ as_view_of_rank_n(View<T, Args...>) {
   return {};
 }
 
-template <typename Function, typename... Args>
-void apply_to_view_of_static_rank(Function&& f, View<Args...> a) {
-  f(a);
-}
+template <typename ViewType>
+struct ApplyToViewOfStaticRank {
+  template <typename Function>
+  static void apply(Function&& f, ViewType a) {
+    f(a);
+  }
+};
 
 }  // namespace Impl
 

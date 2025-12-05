@@ -41,7 +41,7 @@ using namespace MathConst;
 static constexpr int BIG = 1000000000;
 
 static const char cite_fix_orient_bcc[] =
-  "fix orient/bcc command: doi:10.1016/j.commatsci.2016.02.016\n\n"
+  "fix orient/bcc command: https://doi.org/10.1016/j.commatsci.2016.02.016\n\n"
   "@Article{Wicaksono16,\n"
   "  author = {A. T. Wicaksono and C. W. Sinclair and M. Militzer},\n"
   "  title = {An Atomistic Study of the Correlation Between the Migration\n"

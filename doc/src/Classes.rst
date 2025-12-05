@@ -36,3 +36,11 @@ some selected examples for derived classes of specific models.
    Classes_lammps
    Classes_atom
    Classes_input
+
+-----------------------------------
+
+.. toctree::
+   :caption: Individual Utility Classes
+   :name: lammpsutils
+
+   Classes_cite

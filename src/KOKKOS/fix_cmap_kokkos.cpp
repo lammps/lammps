@@ -82,7 +82,7 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixCMAPKokkos::grow_arrays(atom->nmax);
 
   for( int i=0 ; i<CMAPDIM ; i++ )
-    k_g_axis.h_view(i) = g_axis[i];
+    k_g_axis.view_host()(i) = g_axis[i];
 
   for( int i=0 ; i<CMAPMAX ; i++ ) {
 
@@ -92,10 +92,10 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
 
     for( int j=0 ; j<CMAPDIM ; j++ ) {
       for( int k=0 ; k<CMAPDIM ; k++ ) {
-        k_cmapgrid.h_view(i,j,k) = cmapgrid[i][j][k];
-        k_d1cmapgrid.h_view(i,j,k) = d1cmapgrid[i][j][k];
-        k_d2cmapgrid.h_view(i,j,k) = d2cmapgrid[i][j][k];
-        k_d12cmapgrid.h_view(i,j,k) = d12cmapgrid[i][j][k];
+        k_cmapgrid.view_host()(i,j,k) = cmapgrid[i][j][k];
+        k_d1cmapgrid.view_host()(i,j,k) = d1cmapgrid[i][j][k];
+        k_d2cmapgrid.view_host()(i,j,k) = d2cmapgrid[i][j][k];
+        k_d12cmapgrid.view_host()(i,j,k) = d12cmapgrid[i][j][k];
       }
     }
   }
@@ -509,7 +509,7 @@ void FixCMAPKokkos<DeviceType>::grow_arrays(int nmax)
   // must initialize num_crossterm to 0 for added atoms
   // may never be set for some atoms when data file is read
 
-  for (int i = nmax_previous; i < nmax; i++) k_num_crossterm.h_view(i) = 0;
+  for (int i = nmax_previous; i < nmax; i++) k_num_crossterm.view_host()(i) = 0;
   nmax_previous = nmax;
 }
 
@@ -556,13 +556,13 @@ void FixCMAPKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> 
   k_crossterm_atom4.sync_device();
   k_crossterm_atom5.sync_device();
 
-  Sorter.sort(LMPDeviceType(), k_num_crossterm.d_view);
-  Sorter.sort(LMPDeviceType(), k_crossterm_type.d_view);
-  Sorter.sort(LMPDeviceType(), k_crossterm_atom1.d_view);
-  Sorter.sort(LMPDeviceType(), k_crossterm_atom2.d_view);
-  Sorter.sort(LMPDeviceType(), k_crossterm_atom3.d_view);
-  Sorter.sort(LMPDeviceType(), k_crossterm_atom4.d_view);
-  Sorter.sort(LMPDeviceType(), k_crossterm_atom5.d_view);
+  Sorter.sort(LMPDeviceType(), k_num_crossterm.view_device());
+  Sorter.sort(LMPDeviceType(), k_crossterm_type.view_device());
+  Sorter.sort(LMPDeviceType(), k_crossterm_atom1.view_device());
+  Sorter.sort(LMPDeviceType(), k_crossterm_atom2.view_device());
+  Sorter.sort(LMPDeviceType(), k_crossterm_atom3.view_device());
+  Sorter.sort(LMPDeviceType(), k_crossterm_atom4.view_device());
+  Sorter.sort(LMPDeviceType(), k_crossterm_atom5.view_device());
 
   k_num_crossterm.modify_device();
   k_crossterm_type.modify_device();

@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group nonaffine/displacement style args reference/style nstep keyword values
+   fix ID group nonaffine/displacement nevery style args reference/style nstep keyword values
 
 * ID, group are documented in :doc:`fix <fix>` command
 * nonaffine/displacement = style name of this fix command

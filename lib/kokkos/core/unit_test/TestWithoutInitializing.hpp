@@ -216,6 +216,10 @@ TEST(TEST_CATEGORY, deep_copy_zero_memset) {
     GTEST_SKIP() << "skipping since the OpenACC backend doesn't implement "
                     "ZeroMemset";
 #endif
+#ifdef KOKKOS_ENABLE_OPENMP
+  if (std::is_same_v<TEST_EXECSPACE, Kokkos::OpenMP>)
+    GTEST_SKIP() << "skipping since the OpenMP backend doesn't use ZeroMemset";
+#endif
 
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels());

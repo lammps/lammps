@@ -73,9 +73,9 @@ void NPairSkipKokkos<DeviceType,TRIM>::build(NeighList *list)
   d_ijskip = k_ijskip.view<DeviceType>();
 
   for (int itype = 1; itype <= ntypes; itype++) {
-    k_iskip.h_view(itype) = list->iskip[itype];
+    k_iskip.view_host()(itype) = list->iskip[itype];
     for (int jtype = 1; jtype <= ntypes; jtype++) {
-      k_ijskip.h_view(itype,jtype) = list->ijskip[itype][jtype];
+      k_ijskip.view_host()(itype,jtype) = list->ijskip[itype][jtype];
     }
   }
   k_iskip.modify_host();

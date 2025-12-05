@@ -120,17 +120,17 @@ double PairYukawaKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairYukawa::init_one(i,j);
 
-  k_params.h_view(i,j).a      = a[i][j];
-  k_params.h_view(i,j).offset = offset[i][j];
-  k_params.h_view(i,j).cutsq  = cutone*cutone;
-  k_params.h_view(j,i)        = k_params.h_view(i,j);
+  k_params.view_host()(i,j).a      = a[i][j];
+  k_params.view_host()(i,j).offset = offset[i][j];
+  k_params.view_host()(i,j).cutsq  = cutone*cutone;
+  k_params.view_host()(j,i)        = k_params.view_host()(i,j);
 
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
-    m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
+    m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
   }
 
-  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
+  k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
   k_cutsq.modify_host();
   k_params.modify_host();
 

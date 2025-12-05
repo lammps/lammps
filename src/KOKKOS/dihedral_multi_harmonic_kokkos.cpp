@@ -47,7 +47,7 @@ DihedralMultiHarmonicKokkos<DeviceType>::DihedralMultiHarmonicKokkos(LAMMPS *lmp
 
   k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
   d_warning_flag = k_warning_flag.view<DeviceType>();
-  h_warning_flag = k_warning_flag.h_view;
+  h_warning_flag = k_warning_flag.view_host();
 
   centroidstressflag = CENTROID_NOTAVAIL;
 }
@@ -359,11 +359,11 @@ void DihedralMultiHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
 
   int n = atom->ndihedraltypes;
   for (int i = 1; i <= n; i++) {
-    k_a1.h_view[i] = a1[i];
-    k_a2.h_view[i] = a2[i];
-    k_a3.h_view[i] = a3[i];
-    k_a4.h_view[i] = a4[i];
-    k_a5.h_view[i] = a5[i];
+    k_a1.view_host()[i] = a1[i];
+    k_a2.view_host()[i] = a2[i];
+    k_a3.view_host()[i] = a3[i];
+    k_a4.view_host()[i] = a4[i];
+    k_a5.view_host()[i] = a5[i];
   }
 
   k_a1.modify_host();
@@ -384,11 +384,11 @@ void DihedralMultiHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
 
   int n = atom->ndihedraltypes;
   for (int i = 1; i <= n; i++) {
-    k_a1.h_view[i] = a1[i];
-    k_a2.h_view[i] = a2[i];
-    k_a3.h_view[i] = a3[i];
-    k_a4.h_view[i] = a4[i];
-    k_a5.h_view[i] = a5[i];
+    k_a1.view_host()[i] = a1[i];
+    k_a2.view_host()[i] = a2[i];
+    k_a3.view_host()[i] = a3[i];
+    k_a4.view_host()[i] = a4[i];
+    k_a5.view_host()[i] = a5[i];
   }
 
   k_a1.modify_host();

@@ -40,10 +40,7 @@ TEST(TEST_CATEGORY, graph_promises_on_native_objects) {
 #if !defined(KOKKOS_IMPL_HIP_NATIVE_GRAPH)
   GTEST_SKIP() << "This test will not work without native graph support";
 #else
-  auto graph = Kokkos::Experimental::create_graph<Kokkos::HIP>();
-
-  auto root = Kokkos::Impl::GraphAccess::create_root_ref(graph);
-
+  Kokkos::Experimental::Graph<Kokkos::HIP> graph{};
   // Before instantiation, the HIP graph is valid, but the HIP executable
   // graph is still null.
   hipGraph_t hip_graph = graph.native_graph();
@@ -86,11 +83,9 @@ TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
 
   view_t data(Kokkos::view_alloc(exec, "witness"));
 
-  auto graph = Kokkos::Experimental::create_graph(exec);
+  Kokkos::Experimental::Graph graph{exec};
 
-  auto root = Kokkos::Impl::GraphAccess::create_root_ref(graph);
-
-  root.then_parallel_for(1, Increment<view_t>{data});
+  graph.root_node().then_parallel_for(1, Increment<view_t>{data});
 
   graph.instantiate();
 
@@ -140,16 +135,13 @@ TEST(TEST_CATEGORY, graph_construct_from_native) {
 
   const Kokkos::HIP exec{};
 
-  auto graph_from_native =
-      Kokkos::Experimental::create_graph_from_native(exec, native_graph);
+  Kokkos::Experimental::Graph graph_from_native(exec, native_graph);
 
   ASSERT_EQ(native_graph, graph_from_native.native_graph());
 
-  auto root = Kokkos::Impl::GraphAccess::create_root_ref(graph_from_native);
-
   const view_t data(Kokkos::view_alloc(exec, "witness"));
 
-  root.then_parallel_for(1, Increment<view_t>{data});
+  graph_from_native.root_node().then_parallel_for(1, Increment<view_t>{data});
 
   graph_from_native.submit(exec);
 

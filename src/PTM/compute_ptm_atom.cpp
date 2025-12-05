@@ -46,7 +46,7 @@ under
 using namespace LAMMPS_NS;
 
 static const char cite_user_ptm_package[] =
-    "PTM package: doi:10.1088/0965-0393/24/5/055007\n\n"
+    "PTM package: https://doi.org/10.1088/0965-0393/24/5/055007\n\n"
     "@Article{larsen2016ptm,\n"
     " author={Larsen, Peter Mahler and Schmidt, S{\\o}ren and\n"
     "    Schi{\\o}tz, Jakob},\n"

@@ -257,8 +257,8 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     memoryKK->create_kokkos(k_duMech,duMech,nlocal+nghost,"pair:duMech");
     d_duCond = k_duCond.view<DeviceType>();
     d_duMech = k_duMech.view<DeviceType>();
-    h_duCond = k_duCond.h_view;
-    h_duMech = k_duMech.h_view;
+    h_duCond = k_duCond.view_host();
+    h_duMech = k_duMech.view_host();
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyZero>(0,nlocal+nghost),*this);
 
     atomKK->sync(execution_space,V_MASK | DPDTHETA_MASK | RMASS_MASK);
@@ -630,8 +630,8 @@ void PairDPDfdtEnergyKokkos<DeviceType>::allocate()
     memoryKK->create_kokkos(k_duMech,duMech,nlocal+nghost+1,"pair:duMech");
     d_duCond = k_duCond.view<DeviceType>();
     d_duMech = k_duMech.view<DeviceType>();
-    h_duCond = k_duCond.h_view;
-    h_duMech = k_duMech.h_view;
+    h_duCond = k_duCond.view_host();
+    h_duMech = k_duMech.view_host();
   }
 }
 
@@ -644,19 +644,19 @@ double PairDPDfdtEnergyKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairDPDfdtEnergy::init_one(i,j);
 
-  k_params.h_view(i,j).cut = cut[i][j];
-  k_params.h_view(i,j).a0 = a0[i][j];
-  k_params.h_view(i,j).sigma = sigma[i][j];
-  k_params.h_view(i,j).kappa = kappa[i][j];
-  k_params.h_view(i,j).alpha = alpha[i][j];
-  k_params.h_view(j,i) = k_params.h_view(i,j);
+  k_params.view_host()(i,j).cut = cut[i][j];
+  k_params.view_host()(i,j).a0 = a0[i][j];
+  k_params.view_host()(i,j).sigma = sigma[i][j];
+  k_params.view_host()(i,j).kappa = kappa[i][j];
+  k_params.view_host()(i,j).alpha = alpha[i][j];
+  k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
-    m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
+    m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
   }
 
-  k_cutsq.h_view(i,j) = cutone*cutone;
-  k_cutsq.h_view(j,i) = k_cutsq.h_view(i,j);
+  k_cutsq.view_host()(i,j) = cutone*cutone;
+  k_cutsq.view_host()(j,i) = k_cutsq.view_host()(i,j);
   k_cutsq.modify_host();
   k_params.modify_host();
 

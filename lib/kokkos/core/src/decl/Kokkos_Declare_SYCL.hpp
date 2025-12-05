@@ -19,11 +19,12 @@
 
 #if defined(KOKKOS_ENABLE_SYCL)
 #include <SYCL/Kokkos_SYCL.hpp>
-#ifdef SYCL_EXT_ONEAPI_GRAPH
+#ifdef KOKKOS_IMPL_SYCL_GRAPH_SUPPORT
 #include <SYCL/Kokkos_SYCL_GraphNodeKernel.hpp>
 #endif
 #include <SYCL/Kokkos_SYCL_Half_Impl_Type.hpp>
 #include <SYCL/Kokkos_SYCL_Half_Conversion.hpp>
+#include <SYCL/Kokkos_SYCL_Half_MathematicalFunctions.hpp>
 #include <SYCL/Kokkos_SYCL_DeepCopy.hpp>
 #include <SYCL/Kokkos_SYCL_MDRangePolicy.hpp>
 #include <SYCL/Kokkos_SYCL_ParallelFor_Range.hpp>

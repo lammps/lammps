@@ -229,9 +229,9 @@ struct CombinedReducerImpl<std::integer_sequence<size_t, Idxs...>, Space,
   }
 
   template <class ExecutionSpace, int Idx, class View>
-  static void write_one_value_back(
-      const ExecutionSpace& exec_space, View const& view,
-      typename View::const_value_type& value) noexcept {
+  static void write_one_value_back(const ExecutionSpace& exec_space,
+                                   View const& view,
+                                   typename View::const_value_type& value) {
     if (Kokkos::SpaceAccessibility<typename View::memory_space,
                                    Space>::assignable)
       view() = value;
@@ -242,7 +242,7 @@ struct CombinedReducerImpl<std::integer_sequence<size_t, Idxs...>, Space,
   template <class ExecutionSpace>
   static void write_value_back_to_original_references(
       const ExecutionSpace& exec_space, value_type const& value,
-      Reducers const&... reducers_that_reference_original_values) noexcept {
+      Reducers const&... reducers_that_reference_original_values) {
     (write_one_value_back<ExecutionSpace, Idxs>(
          exec_space, reducers_that_reference_original_values.view(),
          value.template get<Idxs, typename Reducers::value_type>()),
@@ -534,8 +534,7 @@ template <class PolicyType, class Functor, class ReturnType1, class ReturnType2,
           class... ReturnTypes>
 auto parallel_reduce(std::string const& label, PolicyType const& policy,
                      Functor const& functor, ReturnType1&& returnType1,
-                     ReturnType2&& returnType2,
-                     ReturnTypes&&... returnTypes) noexcept
+                     ReturnType2&& returnType2, ReturnTypes&&... returnTypes)
     -> std::enable_if_t<Kokkos::is_execution_policy<PolicyType>::value> {
   //----------------------------------------
   // Since we don't support asynchronous combined reducers yet for various
@@ -585,7 +584,7 @@ template <class PolicyType, class Functor, class ReturnType1, class ReturnType2,
           class... ReturnTypes>
 auto parallel_reduce(PolicyType const& policy, Functor const& functor,
                      ReturnType1&& returnType1, ReturnType2&& returnType2,
-                     ReturnTypes&&... returnTypes) noexcept
+                     ReturnTypes&&... returnTypes)
     -> std::enable_if_t<Kokkos::is_execution_policy<PolicyType>::value> {
   //----------------------------------------
   Kokkos::parallel_reduce("", policy, functor,
@@ -599,7 +598,7 @@ template <class Functor, class ReturnType1, class ReturnType2,
           class... ReturnTypes>
 void parallel_reduce(std::string const& label, size_t n, Functor const& functor,
                      ReturnType1&& returnType1, ReturnType2&& returnType2,
-                     ReturnTypes&&... returnTypes) noexcept {
+                     ReturnTypes&&... returnTypes) {
   Kokkos::parallel_reduce(label,
                           RangePolicy<Kokkos::DefaultExecutionSpace>(0, n),
                           functor, std::forward<ReturnType1>(returnType1),
@@ -611,7 +610,7 @@ template <class Functor, class ReturnType1, class ReturnType2,
           class... ReturnTypes>
 void parallel_reduce(size_t n, Functor const& functor,
                      ReturnType1&& returnType1, ReturnType2&& returnType2,
-                     ReturnTypes&&... returnTypes) noexcept {
+                     ReturnTypes&&... returnTypes) {
   Kokkos::parallel_reduce("", n, functor,
                           std::forward<ReturnType1>(returnType1),
                           std::forward<ReturnType2>(returnType2),

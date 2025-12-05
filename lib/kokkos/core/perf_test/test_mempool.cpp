@@ -151,19 +151,16 @@ struct TestFunctor {
   }
 };
 
-int get_number_alloc(int chunk_span, int min_superblock_size,
+int get_number_alloc(int chunk_span, unsigned min_superblock_size,
                      long total_alloc_size, int fill_level) {
   int chunk_span_bytes = 0;
   for (int i = 0; i < chunk_span; ++i) {
     auto chunk_bytes = TestFunctor::chunk * (1 + i);
     if (chunk_bytes < 64) chunk_bytes = 64;
-    auto block_bytes_lg2 =
-        Kokkos::Impl::integral_power_of_two_that_contains(chunk_bytes);
-    auto block_bytes = (1 << block_bytes_lg2);
-    chunk_span_bytes += block_bytes;
+    chunk_span_bytes += Kokkos::bit_ceil(chunk_bytes);
   }
   auto actual_superblock_bytes_lg2 =
-      Kokkos::Impl::integral_power_of_two_that_contains(min_superblock_size);
+      min_superblock_size ? Kokkos::bit_width(min_superblock_size - 1) : 0;
   auto actual_superblock_bytes = (1 << actual_superblock_bytes_lg2);
   auto superblock_mask         = actual_superblock_bytes - 1;
   auto nsuperblocks =

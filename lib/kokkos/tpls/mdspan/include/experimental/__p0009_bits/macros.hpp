@@ -118,7 +118,13 @@ MDSPAN_FUNCTION inline void default_precondition_violation_handler(const char* c
 #elif defined(MDSPAN_IMPL_HAS_SYCL)
 MDSPAN_FUNCTION inline void default_precondition_violation_handler(const char* cond, const char* file, unsigned line)
 {
+#ifdef __INTEL_LLVM_COMPILER
   sycl::ext::oneapi::experimental::printf("%s:%u: precondition failure: `%s`\n", file, line, cond);
+#else
+  (void) cond;
+  (void) file;
+  (void) line;
+#endif
   assert(0);
 }
 #else
@@ -333,7 +339,7 @@ MDSPAN_FUNCTION constexpr void precondition(const char* cond, const char* file, 
 //==============================================================================
 // <editor-fold desc="fold expressions"> {{{1
 
-struct mdspan_enable_fold_comma { };
+struct enable_fold_comma { };
 
 #ifdef MDSPAN_IMPL_USE_FOLD_EXPRESSIONS
 #  define MDSPAN_IMPL_FOLD_AND(...) ((__VA_ARGS__) && ...)
@@ -642,7 +648,7 @@ fold_left_assign_impl(Args&&... args) {
 
 
 template <class... Args>
-constexpr mdspan_enable_fold_comma fold_comma_impl(Args&&...) noexcept { return { }; }
+constexpr enable_fold_comma fold_comma_impl(Args&&...) noexcept { return { }; }
 
 template <bool... Bs>
 struct fold_bools;

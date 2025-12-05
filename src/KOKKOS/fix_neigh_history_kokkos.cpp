@@ -337,9 +337,9 @@ void FixNeighHistoryKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType,
   k_partner.sync_device();
   k_valuepartner.sync_device();
 
-  Sorter.sort(LMPDeviceType(), k_npartner.d_view);
-  Sorter.sort(LMPDeviceType(), k_partner.d_view);
-  Sorter.sort(LMPDeviceType(), k_valuepartner.d_view);
+  Sorter.sort(LMPDeviceType(), k_npartner.view_device());
+  Sorter.sort(LMPDeviceType(), k_partner.view_device());
+  Sorter.sort(LMPDeviceType(), k_valuepartner.view_device());
 
   k_npartner.modify_device();
   k_partner.modify_device();

@@ -7,7 +7,7 @@ This document contains a build system overview for developers with information o
 * Optional features
 * Third-partly libraries
 * Compiler and linker flags
-For build system details for users, refer to the [build instructions](../BUILD.md).
+Users please refer to the documentation on https://kokkos.org
 
 ## Build System
 

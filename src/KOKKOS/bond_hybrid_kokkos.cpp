@@ -59,9 +59,9 @@ void BondHybridKokkos::compute(int eflag, int vflag)
   int nbondlist_orig = neighbor->nbondlist;
   neighborKK->k_bondlist.sync_device();
   auto k_bondlist_orig = neighborKK->k_bondlist;
-  auto d_bondlist_orig = k_bondlist_orig.d_view;
-  auto d_nbondlist = k_nbondlist.d_view;
-  auto h_nbondlist = k_nbondlist.h_view;
+  auto d_bondlist_orig = k_bondlist_orig.view_device();
+  auto d_nbondlist = k_nbondlist.view_device();
+  auto h_nbondlist = k_nbondlist.view_host();
 
   // if this is re-neighbor step, create sub-style bondlists
   // nbondlist[] = length of each sub-style list
@@ -72,7 +72,7 @@ void BondHybridKokkos::compute(int eflag, int vflag)
     Kokkos::deep_copy(d_nbondlist,0);
 
     k_map.sync_device();
-    auto d_map = k_map.d_view;
+    auto d_map = k_map.view_device();
 
     Kokkos::parallel_for(nbondlist_orig,LAMMPS_LAMBDA(int i) {
       const int m = d_map[d_bondlist_orig(i,2)];
@@ -87,9 +87,9 @@ void BondHybridKokkos::compute(int eflag, int vflag)
       if (h_nbondlist[m] > maxbond_all)
         maxbond_all = h_nbondlist[m] + EXTRA;
 
-    if ((int)k_bondlist.d_view.extent(1) < maxbond_all)
+    if ((int)k_bondlist.view_device().extent(1) < maxbond_all)
       MemKK::realloc_kokkos(k_bondlist, "bond_hybrid:bondlist", nstyles, maxbond_all, 3);
-    auto d_bondlist = k_bondlist.d_view;
+    auto d_bondlist = k_bondlist.view_device();
 
     Kokkos::deep_copy(d_nbondlist,0);
 

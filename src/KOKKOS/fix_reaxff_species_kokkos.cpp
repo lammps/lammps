@@ -78,11 +78,11 @@ void FixReaxFFSpeciesKokkos::FindMolecule()
   if (reaxff->execution_space == HostKK) {
     NeighListKokkos<LMPHostType>* k_list = static_cast<NeighListKokkos<LMPHostType>*>(reaxff->list);
     k_list->k_ilist.sync_host();
-    ilist = k_list->k_ilist.h_view;
+    ilist = k_list->k_ilist.view_host();
   } else {
     NeighListKokkos<LMPDeviceType>* k_list = static_cast<NeighListKokkos<LMPDeviceType>*>(reaxff->list);
     k_list->k_ilist.sync_host();
-    ilist = k_list->k_ilist.h_view;
+    ilist = k_list->k_ilist.view_host();
   }
 
   for (ii = 0; ii < inum; ii++) {

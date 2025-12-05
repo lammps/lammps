@@ -96,7 +96,7 @@ category:
 * :doc:`compute msd/chunk <compute_msd_chunk>`
 * :doc:`compute property/chunk <compute_property_chunk>`
 * :doc:`compute temp/chunk <compute_temp_chunk>`
-* :doc:`compute torque/chunk <compute_vcm_chunk>`
+* :doc:`compute torque/chunk <compute_torque_chunk>`
 * :doc:`compute vcm/chunk <compute_vcm_chunk>`
 
 They each take the ID of a :doc:`compute chunk/atom

@@ -30,8 +30,4 @@ void test_kokkos_printf() {
   ASSERT_EQ(captured, expected_string);
 }
 
-// FIXME_OPENMPTARGET non-string-literal argument used in printf is not
-// supported for spir64
-#if !(defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_ARCH_INTEL_GPU))
 TEST(TEST_CATEGORY, kokkos_printf) { test_kokkos_printf<TEST_EXECSPACE>(); }
-#endif

@@ -139,10 +139,13 @@ struct GraphNodeImpl<ExecutionSpace, Kernel,
   //----------------------------------------------------------------------------
   // <editor-fold desc="Ctors, destructors, and assignment"> {{{2
 
-  template <class KernelDeduced>
-  GraphNodeImpl(ExecutionSpace const& ex, _graph_node_kernel_ctor_tag,
-                KernelDeduced&& arg_kernel)
-      : base_t(ex), m_kernel((KernelDeduced&&)arg_kernel) {}
+  template <class KernelDeduced, class Tag,
+            typename = std::enable_if_t<
+                std::is_same_v<Tag, _graph_node_kernel_ctor_tag> ||
+                std::is_same_v<Tag, _graph_node_capture_ctor_tag> ||
+                std::is_same_v<Tag, _graph_node_host_ctor_tag>>>
+  GraphNodeImpl(ExecutionSpace const& ex, Tag, KernelDeduced&& arg_kernel)
+      : base_t(ex), m_kernel{(KernelDeduced&&)arg_kernel} {}
 
   template <class... Args>
   GraphNodeImpl(ExecutionSpace const& ex, _graph_node_is_root_ctor_tag,
@@ -233,12 +236,16 @@ struct GraphNodeImpl
   GraphNodeImpl& operator=(GraphNodeImpl&&)      = delete;
   ~GraphNodeImpl() override                      = default;
 
-  // Normal kernel-and-predecessor constructor
-  template <class KernelDeduced, class PredecessorPtrDeduced>
-  GraphNodeImpl(ExecutionSpace const& ex, _graph_node_kernel_ctor_tag,
-                KernelDeduced&& arg_kernel, _graph_node_predecessor_ctor_tag,
+  // Normal kernel-and-predecessor or capture-and-predecessor constructor.
+  template <class KernelDeduced, class PredecessorPtrDeduced, class Tag,
+            typename = std::enable_if_t<
+                std::is_same_v<Tag, _graph_node_kernel_ctor_tag> ||
+                std::is_same_v<Tag, _graph_node_capture_ctor_tag> ||
+                std::is_same_v<Tag, _graph_node_host_ctor_tag>>>
+  GraphNodeImpl(ExecutionSpace const& ex, Tag, KernelDeduced&& arg_kernel,
+                _graph_node_predecessor_ctor_tag,
                 PredecessorPtrDeduced&& arg_predecessor)
-      : base_t(ex, _graph_node_kernel_ctor_tag{}, (KernelDeduced&&)arg_kernel),
+      : base_t(ex, Tag{}, (KernelDeduced&&)arg_kernel),
         // The backend gets the ability to store (weak, non-owning) references
         // to the kernel in it's final resting place here if it wants. The
         // predecessor is already a pointer, so it doesn't matter that it isn't

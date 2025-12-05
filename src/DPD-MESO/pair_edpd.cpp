@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 static constexpr double EPSILON = 1.0e-10;
 
 static const char cite_pair_edpd[] =
-  "pair edpd command: doi:10.1016/j.jcp.2014.02.003\n\n"
+  "pair edpd command: https://doi.org/10.1016/j.jcp.2014.02.003\n\n"
   "@Article{ZLi2014_JCP,\n"
   " author = {Li, Z. and Tang, Y.-H. and Lei, H. and Caswell, B. and Karniadakis, G. E.},\n"
   " title = {Energy-Conserving Dissipative Particle Dynamics with Temperature-Dependent Properties},\n"

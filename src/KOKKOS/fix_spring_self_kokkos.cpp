@@ -48,9 +48,9 @@ FixSpringSelfKokkos<DeviceType>::FixSpringSelfKokkos(LAMMPS *lmp, int narg, char
   grow_arrays(nmax);
 
   for (int i = 0; i < atom->nlocal; i++) {
-    k_xoriginal.h_view(i,0) = xoriginal_tmp[i][0];
-    k_xoriginal.h_view(i,1) = xoriginal_tmp[i][1];
-    k_xoriginal.h_view(i,2) = xoriginal_tmp[i][2];
+    k_xoriginal.view_host()(i,0) = xoriginal_tmp[i][0];
+    k_xoriginal.view_host()(i,1) = xoriginal_tmp[i][1];
+    k_xoriginal.view_host()(i,2) = xoriginal_tmp[i][2];
   }
 
   k_xoriginal.modify_host();
@@ -80,10 +80,11 @@ void FixSpringSelfKokkos<DeviceType>::init()
   FixSpringSelf::init();
 
   if (kstyle != CONSTANT)
-    error->all(FLERR, "Fix spring/self/kk does not support variable spring constants (yet)");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix spring/self/kk does not support variable spring constants (yet)");
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    error->all(FLERR,"Cannot (yet) use respa with Kokkos");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot (yet) use respa with Kokkos");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -107,47 +108,45 @@ void FixSpringSelfKokkos<DeviceType>::post_force(int /*vflag*/)
   copymode = 1;
 
   {
-  // local variables for lambda capture
-  auto prd = Few<double,3>(domain->prd);
-  auto h = Few<double,6>(domain->h);
-  auto triclinic = domain->triclinic;
-  auto l_k = k;
-  auto l_xoriginal = d_xoriginal;
+    // local variables for lambda capture
+    auto prd = Few<double,3>(domain->prd);
+    auto h = Few<double,6>(domain->h);
+    auto triclinic = domain->triclinic;
+    auto l_k = k;
+    auto l_xoriginal = d_xoriginal;
 
-  auto l_x = x;
-  auto l_f = f;
-  auto l_mask = mask;
-  auto l_image = image;
-  auto l_groupbit = groupbit;
-  auto l_xflag = xflag;
-  auto l_yflag = yflag;
-  auto l_zflag = zflag;
+    auto l_x = x;
+    auto l_f = f;
+    auto l_mask = mask;
+    auto l_image = image;
+    auto l_groupbit = groupbit;
+    auto l_xflag = xflag;
+    auto l_yflag = yflag;
+    auto l_zflag = zflag;
 
-  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal), LAMMPS_LAMBDA(const int& i, double& espring_kk) {
-    if (l_mask[i] & l_groupbit) {
-      Few<double,3> x_i;
-      x_i[0] = l_x(i,0);
-      x_i[1] = l_x(i,1);
-      x_i[2] = l_x(i,2);
-      auto unwrap = DomainKokkos::unmap(prd,h,triclinic,x_i,l_image(i));
-      auto dx = unwrap[0] - l_xoriginal(i, 0);
-      auto dy = unwrap[1] - l_xoriginal(i, 1);
-      auto dz = unwrap[2] - l_xoriginal(i, 2);
-      if (!l_xflag) dx = 0.0;
-      if (!l_yflag) dy = 0.0;
-      if (!l_zflag) dz = 0.0;
-      l_f(i,0) -= l_k*dx;
-      l_f(i,1) -= l_k*dy;
-      l_f(i,2) -= l_k*dz;
-      espring_kk += l_k * (dx*dx + dy*dy + dz*dz);
-    }
-  },espring_kk);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal), LAMMPS_LAMBDA(const int& i, double& espring_kk) {
+        if (l_mask[i] & l_groupbit) {
+          Few<double,3> x_i;
+          x_i[0] = l_x(i,0);
+          x_i[1] = l_x(i,1);
+          x_i[2] = l_x(i,2);
+          auto unwrap = DomainKokkos::unmap(prd,h,triclinic,x_i,l_image(i));
+          auto dx = unwrap[0] - l_xoriginal(i, 0);
+          auto dy = unwrap[1] - l_xoriginal(i, 1);
+          auto dz = unwrap[2] - l_xoriginal(i, 2);
+          if (!l_xflag) dx = 0.0;
+          if (!l_yflag) dy = 0.0;
+          if (!l_zflag) dz = 0.0;
+          l_f(i,0) -= l_k*dx;
+          l_f(i,1) -= l_k*dy;
+          l_f(i,2) -= l_k*dz;
+          espring_kk += l_k * (dx*dx + dy*dy + dz*dz);
+        }
+      },espring_kk);
   }
 
   copymode = 0;
-
   atomKK->modified(execution_space, F_MASK);
-
   espring = 0.5*espring_kk;
 }
 

@@ -63,14 +63,14 @@ NBinKokkos<DeviceType>::NBinKokkos(LAMMPS *lmp) : NBinStandard(lmp) {
 template<class DeviceType>
 void NBinKokkos<DeviceType>::bin_atoms_setup(int nall)
 {
-  if (mbins > (int)k_bins.d_view.extent(0)) {
+  if (mbins > (int)k_bins.view_device().extent(0)) {
     MemoryKokkos::realloc_kokkos(k_bins,"Neighbor::d_bins",mbins,atoms_per_bin);
     bins = k_bins.view<DeviceType>();
 
     MemoryKokkos::realloc_kokkos(k_bincount,"Neighbor::d_bincount",mbins);
     bincount = k_bincount.view<DeviceType>();
   }
-  if (nall > (int)k_atom2bin.d_view.extent(0)) {
+  if (nall > (int)k_atom2bin.view_device().extent(0)) {
     MemoryKokkos::realloc_kokkos(k_atom2bin,"Neighbor::d_atom2bin",nall);
     atom2bin = k_atom2bin.view<DeviceType>();
   }

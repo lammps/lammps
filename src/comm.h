@@ -31,6 +31,7 @@ class Comm : protected Pointers {
   enum { SINGLE, MULTI };
   int mode;    // SINGLE = single cutoff
                // MULTI = multi-collection cutoff
+  enum { BUFEXTRA = 1024 };     // standard communication buffer size for fixed size per-atom-data
 
   int me, nprocs;               // proc info
   int ghost_velocity;           // 1 if ghost atoms have velocity, 0 if not

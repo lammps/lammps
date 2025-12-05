@@ -38,7 +38,7 @@ template <typename TYPE>
 TYPE create_kokkos(TYPE &data, typename TYPE::value_type *&array, int n1, const char *name)
 {
   data = TYPE(name,n1);
-  array = data.h_view.data();
+  array = data.view_host().data();
   return data;
 }
 
@@ -71,7 +71,7 @@ TYPE grow_kokkos(TYPE &data, typename TYPE::value_type *&array, int n1, const ch
   if (array == nullptr) return create_kokkos(data,array,n1,name);
 
   data.resize(n1);
-  array = data.h_view.data();
+  array = data.view_host().data();
   return data;
 }
 
@@ -116,7 +116,7 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array,
     if (n2 == 0)
       array[i] = nullptr;
     else
-      array[i] = &data.h_view(i,0);
+      array[i] = &data.view_host()(i,0);
   }
   return data;
 }
@@ -164,7 +164,7 @@ TYPE create4d_offset_kokkos(TYPE &data, typename TYPE::value_type ****&array,
             if (n4 == 0)
               array[i][j][k] = nullptr;
             else
-              array[i][j][k] = &data.h_view(i,j,k,0);
+              array[i][j][k] = &data.view_host()(i,j,k,0);
           }
         }
       }
@@ -208,10 +208,10 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type **&array,
   array = (typename TYPE::value_type **) smalloc(nbytes,name);
 
   for (int i = 0; i < n1; i++)
-    if (data.h_view.extent(1) == 0)
+    if (data.view_host().extent(1) == 0)
       array[i] = nullptr;
     else
-      array[i] = &data.h_view(i,0);
+      array[i] = &data.view_host()(i,0);
 
   return data;
 }
@@ -236,7 +236,7 @@ TYPE grow_kokkos(TYPE &data, typename TYPE::value_type **&array,
     if (n2 == 0)
       array[i] = nullptr;
     else
-      array[i] = &data.h_view(i,0);
+      array[i] = &data.view_host()(i,0);
 
   return data;
 }
@@ -256,10 +256,10 @@ TYPE grow_kokkos(TYPE &data, typename TYPE::value_type **&array,
   array = (typename TYPE::value_type **) srealloc(array,nbytes,name);
 
   for (int i = 0; i < n1; i++)
-    if (data.h_view.extent(1) == 0)
+    if (data.view_host().extent(1) == 0)
       array[i] = nullptr;
     else
-      array[i] = &data.h_view(i,0);
+      array[i] = &data.view_host()(i,0);
 
   return data;
 }
@@ -309,7 +309,7 @@ TYPE create_kokkos(TYPE &data, typename TYPE::value_type ***&array,
         if (n3 == 0)
            array[i][j] = nullptr;
          else
-           array[i][j] = &data.h_view(i,j,0);
+           array[i][j] = &data.view_host()(i,j,0);
       }
     }
   }
@@ -343,7 +343,7 @@ template <typename TYPE, typename HTYPE>
         if (n3 == 0)
            array[i][j] = nullptr;
          else
-           array[i][j] = &data.h_view(i,j,0);
+           array[i][j] = &data.view_host()(i,j,0);
       }
     }
   }
@@ -390,7 +390,7 @@ TYPE grow_kokkos(TYPE &data, typename TYPE::value_type ***&array,
         if (n3 == 0)
            array[i][j] = nullptr;
          else
-           array[i][j] = &data.h_view(i,j,0);
+           array[i][j] = &data.view_host()(i,j,0);
       }
     }
   }
@@ -426,7 +426,7 @@ template <typename TYPE, typename... Indices>
 static std::enable_if_t<TYPE::rank_dynamic == sizeof...(Indices),void> realloc_kokkos(TYPE &data, const char *name, Indices... ns)
 {
   data = TYPE();
-  data = TYPE(std::string(name), ns...);
+  data = TYPE(Kokkos::NoInit(std::string(name)), ns...);
 }
 
 template <typename TYPE, typename... Indices>
@@ -434,7 +434,7 @@ static std::enable_if_t<TYPE::rank_dynamic == sizeof...(Indices) || sizeof...(In
 {
   data = TYPE();
   if constexpr (sizeof...(Indices) != 0)
-    data = TYPE(std::string(name), ns...);
+    data = TYPE(Kokkos::NoInit(std::string(name)), ns...);
 }
 
 /* ----------------------------------------------------------------------
@@ -444,7 +444,7 @@ static std::enable_if_t<TYPE::rank_dynamic == sizeof...(Indices) || sizeof...(In
 template <typename TYPE>
 static double memory_usage(TYPE &data)
 {
-  return data.span() * sizeof(typename TYPE::value_type);
+  return static_cast<double>(data.span() * sizeof(typename TYPE::value_type));
 }
 
 /* ----------------------------------------------------------------------

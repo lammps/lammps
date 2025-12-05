@@ -71,9 +71,7 @@ template <typename ValueType, typename ContainedType>
 struct ValueHierarchyNode {
   std::vector<ValueType> root_values;
   std::vector<ContainedType> sub_values;
-  void add_root_value(const ValueType& in) noexcept {
-    root_values.push_back(in);
-  }
+  void add_root_value(const ValueType& in) { root_values.push_back(in); }
   void add_sub_container(const ContainedType& in) { sub_values.push_back(in); }
   const ValueType& get_root_value(const size_t index) const {
     return root_values[index];
@@ -88,9 +86,7 @@ struct ValueHierarchyNode<ValueType, void> {
   std::vector<ValueType> root_values;
   explicit ValueHierarchyNode(std::vector<ValueType> rv)
       : root_values(std::move(rv)) {}
-  void add_root_value(const ValueType& in) noexcept {
-    root_values.push_back(in);
-  }
+  void add_root_value(const ValueType& in) { root_values.push_back(in); }
   const ValueType& get_root_value(const size_t index) const {
     return root_values[index];
   }
@@ -338,7 +334,7 @@ class MultidimensionalSparseTuningProblem {
   MultidimensionalSparseTuningProblem(StoredProblemSpace space,
                                       const std::vector<std::string>& names)
       : m_space(std::move(space)), m_variable_names(names) {
-    assert(names.size() == space_dimensionality);
+    KOKKOS_ASSERT(names.size() == space_dimensionality);
     for (unsigned long x = 0; x < names.size(); ++x) {
       VariableInfo info;
       info.type = Kokkos::Tools::Experimental::ValueType::kokkos_value_double;

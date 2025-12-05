@@ -116,7 +116,7 @@ void PairDPDTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
     double boltz = force->boltz;
     for (int i = 1; i <= atom->ntypes; i++)
       for (int j = i; j <= atom->ntypes; j++) {
-        k_params.h_view(i,j).sigma = k_params.h_view(j,i).sigma =
+        k_params.view_host()(i,j).sigma = k_params.view_host()(j,i).sigma =
           sqrt(2.0*boltz*temperature*gamma[i][j]);
       }
   }
@@ -382,15 +382,15 @@ double PairDPDTstatKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairDPD::init_one(i,j);
 
-  k_params.h_view(i,j).cut = cut[i][j];
-  k_params.h_view(i,j).gamma = gamma[i][j];
-  k_params.h_view(i,j).sigma = sigma[i][j];
-  k_params.h_view(j,i) = k_params.h_view(i,j);
+  k_params.view_host()(i,j).cut = cut[i][j];
+  k_params.view_host()(i,j).gamma = gamma[i][j];
+  k_params.view_host()(i,j).sigma = sigma[i][j];
+  k_params.view_host()(j,i) = k_params.view_host()(i,j);
 
   k_params.modify_host();
 
-  k_cutsq.h_view(i,j) = cutone*cutone;
-  k_cutsq.h_view(j,i) = k_cutsq.h_view(i,j);
+  k_cutsq.view_host()(i,j) = cutone*cutone;
+  k_cutsq.view_host()(j,i) = k_cutsq.view_host()(i,j);
   k_cutsq.modify_host();
 
   return cutone;

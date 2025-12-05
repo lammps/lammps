@@ -83,7 +83,9 @@ struct TestDynamicView {
           },
           result_sum);
 
-      ASSERT_EQ(result_sum, (value_type)(da_size * (da_size - 1) / 2));
+      ASSERT_EQ(result_sum,
+                static_cast<value_type>(static_cast<value_type>(da_size) *
+                                        (da_size - 1) / 2));
 
       // add 3x more entries i.e. 4x larger than previous size
       // the first 1/4 should remain the same
@@ -104,7 +106,9 @@ struct TestDynamicView {
           new_result_sum);
 
       ASSERT_EQ(new_result_sum + result_sum,
-                (value_type)(da_resize * (da_resize - 1) / 2));
+                static_cast<value_type>(static_cast<value_type>(da_resize) *
+                                        (da_resize - 1)) /
+                    2);
     }  // end scope
 
     // Test: Create DynamicView, initialize size (via resize), run through
@@ -131,7 +135,9 @@ struct TestDynamicView {
           },
           result_sum);
 
-      ASSERT_EQ(result_sum, (value_type)(da_size * (da_size - 1) / 2));
+      ASSERT_EQ(result_sum,
+                static_cast<value_type>(static_cast<value_type>(da_size) *
+                                        (da_size - 1) / 2));
 
       // add 3x more entries i.e. 4x larger than previous size
       // the first 1/4 should remain the same
@@ -152,7 +158,9 @@ struct TestDynamicView {
           new_result_sum);
 
       ASSERT_EQ(new_result_sum + result_sum,
-                (value_type)(da_resize * (da_resize - 1) / 2));
+                static_cast<value_type>(static_cast<value_type>(da_resize) *
+                                        (da_resize - 1)) /
+                    2);
     }  // end scope
 
     // Test: Create DynamicView, initialize size (via resize), run through
@@ -179,7 +187,10 @@ struct TestDynamicView {
           },
           result_sum);
 
-      ASSERT_EQ(result_sum, (value_type)(da_size * (da_size - 1) / 2));
+      ASSERT_EQ(result_sum,
+                static_cast<value_type>(static_cast<value_type>(da_size) *
+                                        (da_size - 1)) /
+                    2);
 
       // remove the final 3/4 entries i.e. first 1/4 remain
       unsigned da_resize = arg_total_size / 8;
@@ -198,7 +209,10 @@ struct TestDynamicView {
           },
           new_result_sum);
 
-      ASSERT_EQ(new_result_sum, (value_type)(da_resize * (da_resize - 1) / 2));
+      ASSERT_EQ(new_result_sum,
+                static_cast<value_type>(static_cast<value_type>(da_resize) *
+                                        (da_resize - 1)) /
+                    2);
     }  // end scope
 
     // Test: Reproducer to demonstrate compile-time error of deep_copy
@@ -229,7 +243,10 @@ struct TestDynamicView {
           },
           result_sum);
 
-      ASSERT_EQ(result_sum, (value_type)(da_size * (da_size - 1) / 2));
+      ASSERT_EQ(result_sum,
+                static_cast<value_type>(static_cast<value_type>(da_size) *
+                                        (da_size - 1)) /
+                    2);
 
       // Use an on-device View as intermediate to deep_copy the
       // device_dynamic_view to host, zero out the device_dynamic_view,
@@ -250,7 +267,10 @@ struct TestDynamicView {
           },
           new_result_sum);
 
-      ASSERT_EQ(new_result_sum, (value_type)(da_size * (da_size - 1) / 2));
+      ASSERT_EQ(new_result_sum,
+                static_cast<value_type>(static_cast<value_type>(da_size) *
+                                        (da_size - 1)) /
+                    2);
     }
   }
 };

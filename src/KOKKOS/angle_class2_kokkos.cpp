@@ -370,21 +370,21 @@ void AngleClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
 
   //int n = atom->nangletypes;
   for (int i = 1; i <= n; i++) {
-    k_k2.h_view[i] = k2[i];
-    k_k3.h_view[i] = k3[i];
-    k_k4.h_view[i] = k4[i];
-    k_bb_k.h_view[i] = bb_k[i];
-    k_bb_r1.h_view[i] = bb_r1[i];
-    k_bb_r2.h_view[i] = bb_r2[i];
-    k_ba_k1.h_view[i] = ba_k1[i];
-    k_ba_k2.h_view[i] = ba_k2[i];
-    k_ba_r1.h_view[i] = ba_r1[i];
-    k_ba_r2.h_view[i] = ba_r2[i];
-    k_setflag.h_view[i] = setflag[i];
-    k_setflag_a.h_view[i] = setflag_a[i];
-    k_setflag_bb.h_view[i] = setflag_bb[i];
-    k_setflag_ba.h_view[i] = setflag_ba[i];
-    k_theta0.h_view[i] = theta0[i];
+    k_k2.view_host()[i] = k2[i];
+    k_k3.view_host()[i] = k3[i];
+    k_k4.view_host()[i] = k4[i];
+    k_bb_k.view_host()[i] = bb_k[i];
+    k_bb_r1.view_host()[i] = bb_r1[i];
+    k_bb_r2.view_host()[i] = bb_r2[i];
+    k_ba_k1.view_host()[i] = ba_k1[i];
+    k_ba_k2.view_host()[i] = ba_k2[i];
+    k_ba_r1.view_host()[i] = ba_r1[i];
+    k_ba_r2.view_host()[i] = ba_r2[i];
+    k_setflag.view_host()[i] = setflag[i];
+    k_setflag_a.view_host()[i] = setflag_a[i];
+    k_setflag_bb.view_host()[i] = setflag_bb[i];
+    k_setflag_ba.view_host()[i] = setflag_ba[i];
+    k_theta0.view_host()[i] = theta0[i];
   }
 
   k_k2.modify_host();
@@ -449,21 +449,21 @@ void AngleClass2Kokkos<DeviceType>::read_restart(FILE *fp)
 
   //int n = atom->nangletypes;
   for (int i = 1; i <= n; i++) {
-    k_k2.h_view[i] = k2[i];
-    k_k3.h_view[i] = k3[i];
-    k_k4.h_view[i] = k4[i];
-    k_bb_k.h_view[i] = bb_k[i];
-    k_bb_r1.h_view[i] = bb_r1[i];
-    k_bb_r2.h_view[i] = bb_r2[i];
-    k_ba_k1.h_view[i] = ba_k1[i];
-    k_ba_k2.h_view[i] = ba_k2[i];
-    k_ba_r1.h_view[i] = ba_r1[i];
-    k_ba_r2.h_view[i] = ba_r2[i];
-    k_setflag.h_view[i] = setflag[i];
-    k_setflag_a.h_view[i] = setflag_a[i];
-    k_setflag_bb.h_view[i] = setflag_bb[i];
-    k_setflag_ba.h_view[i] = setflag_ba[i];
-    k_theta0.h_view[i] = theta0[i];
+    k_k2.view_host()[i] = k2[i];
+    k_k3.view_host()[i] = k3[i];
+    k_k4.view_host()[i] = k4[i];
+    k_bb_k.view_host()[i] = bb_k[i];
+    k_bb_r1.view_host()[i] = bb_r1[i];
+    k_bb_r2.view_host()[i] = bb_r2[i];
+    k_ba_k1.view_host()[i] = ba_k1[i];
+    k_ba_k2.view_host()[i] = ba_k2[i];
+    k_ba_r1.view_host()[i] = ba_r1[i];
+    k_ba_r2.view_host()[i] = ba_r2[i];
+    k_setflag.view_host()[i] = setflag[i];
+    k_setflag_a.view_host()[i] = setflag_a[i];
+    k_setflag_bb.view_host()[i] = setflag_bb[i];
+    k_setflag_ba.view_host()[i] = setflag_ba[i];
+    k_theta0.view_host()[i] = theta0[i];
   }
 
   k_k2.modify_host();

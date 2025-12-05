@@ -145,7 +145,7 @@ propagate.  So-called :doc:`"soft-core" potentials <pair_fep_soft>` or
 the :doc:`"soft" repulsive-only pair style <pair_soft>` are less prone
 for this behavior (depending on the settings in use) and can be used at
 the beginning of a simulation.  Also, single precision numbers can
-overflow much faster, so for the GPU or INTEL package it may be
+overflow much faster, so for the GPU, KOKKOS, or INTEL package it may be
 beneficial to run with double precision initially before switching to
 mixed or single precision for faster execution when the system has
 relaxed.
@@ -471,24 +471,41 @@ suitably large value.
 
 .. _err0010:
 
-Unrecognized ... style ... is part of ... package which is not enabled in this LAMMPS binary
---------------------------------------------------------------------------------------------
+Unrecognized ... style ...
+--------------------------
 
-The LAMMPS executable (binary) being used was not compiled with a
-package containing the specified style.  This indicates that the
-executable needs to be re-built after enabling the correct package in
-the relevant Makefile or CMake build directory.  See
-:doc:`Section 3. Build LAMMPS <Build>` for more details.  One can check
-if the expected package and pair style is present in the executable by
-running it with the ``-help`` (or ``-h``) flag on the command line.  One
-common oversight, especially for beginner LAMMPS users, is enabling the
-package but forgetting to run commands to rebuild (e.g., to run the
-final ``make`` or ``cmake`` command).
+There are multiple variants of this error message.  The most common
+case is that there is a typo or syntax error in the input file and
+the style name of a command was not found in the LAMMPS executable.
+
+Another case is that the input is using the correct style command, but
+the LAMMPS executable in use was not compiled with the package
+containing that specific style.  LAMMPS executables include tables of
+all available packages and styles in the distribution, and thus will
+print in this case a message indicating which package is missing.  This
+indicates that the executable needs to be re-built after enabling the
+correct package.  See the :doc:`LAMMPS build instructions <Build>` for
+more details on including packages.  One can check if the expected
+package and style is present in the executable by running it with the
+``-help`` (or ``-h``) flag on the command line.  One common oversight,
+especially for LAMMPS users with limited experience in compiling
+software from source, is enabling the package but forgetting to rebuild
+or install the executable.  One can also check the documentation for the
+style in question for a "Restrictions" section, which should indicate
+which requirements apply to a given command.
+
+Finally, there is the case that the necessary package is included, but
+the missing style depends also on *another* style from a *different*
+package and *this* package is missing.  In that case, LAMMPS does not
+know which package is missing, and it is necessary to check the
+documentation for the missing style in the manual.
 
 If this error occurs with an executable that the user does not control
 (e.g., through a module on HPC clusters), the user will need to get in
 contact with the relevant person or people who can update the
-executable.
+executable.  In rare cases, there may be licensing or portability issues
+that prevent including a package in publicly accessible binaries or in a
+specific environment.
 
 .. _err011:
 
@@ -1068,3 +1085,34 @@ also increase the value for the "page" parameter to maintain the ratio
 between "one" and "page" to reduce waste of memory.  For some more
 details, please check out the documentation for the :doc:`neigh_modify
 command <neigh_modify>`.
+
+.. _err0037:
+
+Variable ...: Compute/Fix ... does not compute requested property
+-----------------------------------------------------------------
+
+Compute and fix styles can compute different kinds of properties: for
+example, global scalars, vectors, or arrays, or per-atom vectors or
+arrays.  In equal-style or similar variable, only scalar properties can
+be used, so to access a particular element in a vector one has to use
+square brackets with a suitable index to select it.  However, not all
+fixes and computes provide all types of properties.  So this error
+message will be shown if there is a mismatch, of if there are not
+enough or too many square brackets.  To differentiate between
+accessing an element of a global array or a per-atom array element of
+a specific atom, one has to use a reference with a lower case 'c'
+(e.g. 'c_name') for the former and upper case 'C' (e.g. 'C_name') for
+the latter. The same applies to fix styles.  The full details are
+in the documentation for the :doc:`variable command <variable>`.
+
+.. _err0038:
+
+The ... style ... is no longer available
+----------------------------------------
+
+While the LAMMPS developers try to keep the software backward compatible
+as far as input files and file formats are concerned, this is not always
+desired and changes are made and commands renamed or removed.  In that
+case an error message is printed describing why the command cannot be
+executed.  More details can be found on the manual page
+:doc:`Commands_removed`.

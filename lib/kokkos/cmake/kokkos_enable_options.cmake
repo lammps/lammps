@@ -54,17 +54,30 @@ endif()
 kokkos_enable_option(
   SYCL_RELOCATABLE_DEVICE_CODE ${SYCL_RDC_DEFAULT} "Whether to enable relocatable device code (RDC) for SYCL"
 )
+kokkos_enable_option(IMPL_SYCL_OUT_OF_ORDER_QUEUES OFF "Whether to make Kokkos use out-of-order queues internally")
 kokkos_enable_option(TESTS OFF "Whether to build the unit tests")
 kokkos_enable_option(BENCHMARKS OFF "Whether to build the benchmarks")
 kokkos_enable_option(EXAMPLES OFF "Whether to build the examples")
 string(TOUPPER "${CMAKE_BUILD_TYPE}" UPPERCASE_CMAKE_BUILD_TYPE)
 if(UPPERCASE_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
-  kokkos_enable_option(DEBUG ON "Whether to activate extra debug features - may increase compile times")
-  kokkos_enable_option(DEBUG_DUALVIEW_MODIFY_CHECK ON "Debug check on dual views")
+  set(DEBUG_DEFAULT ON)
 else()
-  kokkos_enable_option(DEBUG OFF "Whether to activate extra debug features - may increase compile times")
-  kokkos_enable_option(DEBUG_DUALVIEW_MODIFY_CHECK OFF "Debug check on dual views")
+  set(DEBUG_DEFAULT OFF)
 endif()
+kokkos_enable_option(DEBUG ${DEBUG_DEFAULT} "Whether to activate extra debug features - may increase compile times")
+kokkos_enable_option(DEBUG_DUALVIEW_MODIFY_CHECK ON "Debug check on dual views")
+if(NOT Kokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK)
+  if(KOKKOS_ENABLE_DEPRECATED_CODE_4)
+    message(
+      DEPRECATION
+        "Setting Kokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK is deprecated. DualView modify is always checked. Forcing -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON"
+    )
+    set(Kokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK ON CACHE BOOL "Kokkos turned debug dualview modify check ON!" FORCE)
+  else()
+    message(FATAL_ERROR "Kokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK has been removed and is always enabled")
+  endif()
+endif()
+
 unset(_UPPERCASE_CMAKE_BUILD_TYPE)
 kokkos_enable_option(LARGE_MEM_TESTS OFF "Whether to perform extra large memory tests")
 kokkos_enable_option(DEBUG_BOUNDS_CHECK OFF "Whether to use bounds checking - will increase runtime")
@@ -94,14 +107,34 @@ kokkos_enable_option(
 )
 mark_as_advanced(Kokkos_ENABLE_IMPL_VIEW_OF_VIEWS_DESTRUCTOR_PRECONDITION_VIOLATION_WORKAROUND)
 
+kokkos_enable_option(EXPERIMENTAL_CXX20_MODULES OFF "Whether to export C++20 modules for Kokkos")
+if(Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES)
+  if(CMAKE_VERSION VERSION_LESS 3.28.2)
+    message(FATAL_ERROR "Enabling Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES requires at least CMake 3.28.2")
+  endif()
+  if(Kokkos_ENABLE_DEPRECATED_CODE_4)
+    message(
+      FATAL_ERROR "Enabling Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES requires Kokkos_ENABLE_DEPRECATED_CODE_4=OFF"
+    )
+  endif()
+endif()
+
 kokkos_enable_option(IMPL_MDSPAN ON "Whether to enable experimental mdspan support")
-kokkos_enable_option(MDSPAN_EXTERNAL OFF BOOL "Whether to use an external version of mdspan")
+kokkos_enable_option(MDSPAN_EXTERNAL OFF "Whether to use an external version of mdspan")
 kokkos_enable_option(
-  IMPL_SKIP_COMPILER_MDSPAN ON BOOL "Whether to use an internal version of mdspan even if the compiler supports mdspan"
+  IMPL_CHECK_POSSIBLY_BREAKING_LAYOUTS
+  OFF
+  "Whether to check for uses of LayoutRight that have an explicit stride that may have changed in the new View implementation."
 )
 mark_as_advanced(Kokkos_ENABLE_IMPL_MDSPAN)
 mark_as_advanced(Kokkos_ENABLE_MDSPAN_EXTERNAL)
-mark_as_advanced(Kokkos_ENABLE_IMPL_SKIP_COMPILER_MDSPAN)
+mark_as_advanced(IMPL_CHECK_POSSIBLY_BREAKING_LAYOUTS)
+
+kokkos_enable_option(IMPL_VIEW_LEGACY ON "Whether to use the legacy implementation of View")
+mark_as_advanced(Kokkos_ENABLE_IMPL_VIEW_LEGACY)
+if(NOT Kokkos_ENABLE_IMPL_VIEW_LEGACY AND NOT Kokkos_ENABLE_IMPL_MDSPAN)
+  message(FATAL_ERROR "Kokkos_ENABLE_IMPL_MDSPAN must be set to use the new View implementation")
+endif()
 
 kokkos_enable_option(COMPLEX_ALIGN ON "Whether to align Kokkos::complex to 2*alignof(RealType)")
 
@@ -197,17 +230,20 @@ if(KOKKOS_COMPILE_LANGUAGE STREQUAL CUDA)
   endif()
 endif()
 
-# This is known to occur with Clang 9. We would need to use nvcc as the linker
+# This is known to occur with Clang 9 until Clang 15. We would need to use nvcc as the linker
 # http://lists.llvm.org/pipermail/cfe-dev/2018-June/058296.html
-# TODO: Through great effort we can use a different linker by hacking
-# CMAKE_CXX_LINK_EXECUTABLE in a future release
-if(KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE AND KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
+if(KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE AND KOKKOS_CXX_COMPILER_ID STREQUAL Clang AND KOKKOS_CXX_COMPILER_VERSION
+                                                                                            VERSION_LESS 17
+)
   message(
-    FATAL_ERROR "Relocatable device code is currently not supported with Clang - must use nvcc_wrapper or turn off RDC"
+    FATAL_ERROR
+      "Relocatable device code is currently not supported with Clang < 17 - must use nvcc_wrapper or turn off RDC"
   )
 endif()
 
-if(KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE AND BUILD_SHARED_LIBS)
+if((KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE OR KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
+    OR KOKKOS_ENABLE_SYCL_RELOCATABLE_DEVICE_CODE) AND BUILD_SHARED_LIBS
+)
   message(FATAL_ERROR "Relocatable device code requires static libraries.")
 endif()
 

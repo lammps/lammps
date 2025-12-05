@@ -27,6 +27,7 @@ static_assert(false,
 
 #include <Kokkos_Core_fwd.hpp>
 
+#include <Kokkos_BitManipulation.hpp>
 #include <Kokkos_HostSpace.hpp>
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_MemoryTraits.hpp>
@@ -81,7 +82,7 @@ class hpx_thread_buffer {
   hpx_thread_buffer &operator=(hpx_thread_buffer)         = delete;
 
   void resize(const std::size_t num_threads, const std::size_t size_per_thread,
-              const std::size_t extra_space = 0) noexcept;
+              const std::size_t extra_space = 0);
   void *get(std::size_t thread_num) const noexcept;
   void *get_extra_space() const noexcept;
 };
@@ -162,9 +163,17 @@ class HPX {
   using size_type            = memory_space::size_type;
   using scratch_memory_space = ScratchMemorySpace<HPX>;
 
+// FIXME_HPX spurious warnings like
+// error: 'SR.14123' may be used uninitialized [-Werror=uninitialized]
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
+
   HPX()
       : m_instance_data(Kokkos::Impl::HostSharedPtr<instance_data>(
             &m_default_instance_data, &default_instance_deleter)) {}
+
+#pragma GCC diagnostic pop
+
   ~HPX() = default;
   explicit HPX(instance_mode mode)
       : m_instance_data(
@@ -447,19 +456,20 @@ class HPX {
   }
 };
 
-template <typename... Args>
-std::vector<HPX> partition_space(HPX const &, Args... args) {
-  std::vector<HPX> instances(sizeof...(args));
-  for (auto &in : instances) in = HPX(HPX::instance_mode::independent);
-  return instances;
-}
+namespace Impl {
+// Create new, independent instance of HPX execution space for each partition,
+// ignoring weights
+template <class T>
+std::vector<HPX> impl_partition_space(const HPX &,
+                                      const std::vector<T> &weights) {
+  std::vector<HPX> instances;
+  instances.reserve(weights.size());
+  std::generate_n(std::back_inserter(instances), weights.size(),
+                  []() { return HPX(HPX::instance_mode::independent); });
 
-template <typename T>
-std::vector<HPX> partition_space(HPX const &, std::vector<T> const &weights) {
-  std::vector<HPX> instances(weights.size());
-  for (auto &in : instances) in = HPX(HPX::instance_mode::independent);
   return instances;
 }
+}  // namespace Impl
 
 extern template void HPX::impl_bulk_plain_erased<int>(
     bool, bool, std::function<void(int)> &&, int const,
@@ -790,9 +800,9 @@ class TeamPolicyInternal<Kokkos::Experimental::HPX, Properties...>
     m_team_size =
         team_size_request > max_team_size ? max_team_size : team_size_request;
 
-    if (m_chunk_size > 0) {
-      if (!Impl::is_integral_power_of_two(m_chunk_size))
-        Kokkos::abort("TeamPolicy blocking granularity must be power of two");
+    if (m_chunk_size > 0 &&
+        !Kokkos::has_single_bit(static_cast<unsigned>(m_chunk_size))) {
+      Kokkos::abort("TeamPolicy blocking granularity must be power of two");
     } else {
       int new_chunk_size = 1;
       while (new_chunk_size * 4 * m_space.concurrency() < m_league_size) {
@@ -1536,9 +1546,11 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
  public:
   void setup() const {
     const int num_worker_threads = m_policy.space().concurrency();
-
-    hpx_thread_buffer &buffer = m_policy.space().impl_get_buffer();
-    buffer.resize(num_worker_threads, m_shared);
+    hpx_thread_buffer &buffer    = m_policy.space().impl_get_buffer();
+    auto nchunks =
+        get_num_chunks(0, m_policy.chunk_size(), m_policy.league_size());
+    const auto buffer_size = std::min(nchunks, num_worker_threads);
+    buffer.resize(buffer_size, m_shared);
   }
 
   void execute_range(const int i) const {
@@ -1546,12 +1558,18 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     hpx_thread_buffer &buffer = m_policy.space().impl_get_buffer();
     const auto r =
         get_chunk_range(i, 0, m_policy.chunk_size(), m_policy.league_size());
+    const int num_chunks =
+        get_num_chunks(0, m_policy.chunk_size(), m_policy.league_size());
+    const int num_worker_threads = m_policy.space().concurrency();
+    // if num_chunks > num hw threads, use hw threadid t; else use chunkid i
+    const int buffer_t = num_chunks > num_worker_threads ? t : i;
     for (int league_rank = r.begin; league_rank < r.end; ++league_rank) {
       if constexpr (std::is_same_v<WorkTag, void>) {
-        m_functor(Member(m_policy, 0, league_rank, buffer.get(t), m_shared));
+        m_functor(
+            Member(m_policy, 0, league_rank, buffer.get(buffer_t), m_shared));
       } else {
-        m_functor(WorkTag{},
-                  Member(m_policy, 0, league_rank, buffer.get(t), m_shared));
+        m_functor(WorkTag{}, Member(m_policy, 0, league_rank,
+                                    buffer.get(buffer_t), m_shared));
       }
     }
   }
@@ -1605,7 +1623,10 @@ class ParallelReduce<CombinedFunctorReducerType,
     const int num_worker_threads = m_policy.space().concurrency();
 
     hpx_thread_buffer &buffer = m_policy.space().impl_get_buffer();
-    buffer.resize(num_worker_threads, value_size + m_shared);
+    auto nchunks =
+        get_num_chunks(0, m_policy.chunk_size(), m_policy.league_size());
+    const auto buffer_size = std::min(nchunks, num_worker_threads);
+    buffer.resize(buffer_size, value_size + m_shared);
 
     for (int t = 0; t < num_worker_threads; ++t) {
       reducer.init(reinterpret_cast<pointer_type>(buffer.get(t)));
@@ -1617,11 +1638,19 @@ class ParallelReduce<CombinedFunctorReducerType,
     const std::size_t value_size = reducer.value_size();
     std::size_t t = Kokkos::Experimental::HPX::impl_hardware_thread_id();
     hpx_thread_buffer &buffer = m_policy.space().impl_get_buffer();
-    reference_type update =
-        ReducerType::reference(reinterpret_cast<pointer_type>(buffer.get(t)));
+
+    const int num_chunks =
+        get_num_chunks(0, m_policy.chunk_size(), m_policy.league_size());
+    const int num_worker_threads = m_policy.space().concurrency();
+    // if num_chunks > num hw threads, use hw threadid t; else use chunkid i
+    const std::size_t buffer_t = num_chunks > num_worker_threads ? t : i;
+
+    reference_type update = ReducerType::reference(
+        reinterpret_cast<pointer_type>(buffer.get(buffer_t)));
     const auto r =
         get_chunk_range(i, 0, m_policy.chunk_size(), m_policy.league_size());
-    char *local_buffer = static_cast<char *>(buffer.get(t)) + value_size;
+
+    char *local_buffer = static_cast<char *>(buffer.get(buffer_t)) + value_size;
     for (int league_rank = r.begin; league_rank < r.end; ++league_rank) {
       if constexpr (std::is_same_v<WorkTag, void>) {
         m_functor_reducer.get_functor()(
@@ -1934,7 +1963,7 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
   }
 
   // 'scan_val' output is the exclusive prefix sum
-  scan_val = loop_boundaries.thread.team_scan(scan_val);
+  scan_val = loop_boundaries.member.team_scan(scan_val);
 
   for (iType i = loop_boundaries.start; i < loop_boundaries.end;
        i += loop_boundaries.increment) {

@@ -61,7 +61,7 @@ static constexpr double TOLERANCE = 0.00001;
 static constexpr int MAXITER = 20;
 
 static const char cite_fix_srd[] =
-    "fix srd command: doi:10.1063/1.3419070\n\n"
+    "fix srd command: https://doi.org/10.1063/1.3419070\n\n"
     "@Article{Petersen10,\n"
     " author = {M. K. Petersen and J. B. Lechman and S. J. Plimpton and\n"
     " G. S. Grest and in 't Veld, P. J. and P. R. Schunk},\n"

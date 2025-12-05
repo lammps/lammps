@@ -56,7 +56,7 @@ DihedralCharmmfswKokkos<DeviceType>::DihedralCharmmfswKokkos(LAMMPS *lmp) : Dihe
 
   k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
   d_warning_flag = k_warning_flag.template view<DeviceType>();
-  h_warning_flag = k_warning_flag.h_view;
+  h_warning_flag = k_warning_flag.view_host();
 
   centroidstressflag = CENTROID_NOTAVAIL;
 }
@@ -187,7 +187,7 @@ void DihedralCharmmfswKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_eatom_pair.template modify<DeviceType>();
     k_eatom_pair.sync_host();
     for (int i = 0; i < n; i++)
-      force->pair->eatom[i] += k_eatom_pair.h_view(i);
+      force->pair->eatom[i] += k_eatom_pair.view_host()(i);
   }
 
   if (vflag_atom) {
@@ -197,12 +197,12 @@ void DihedralCharmmfswKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_vatom_pair.template modify<DeviceType>();
     k_vatom_pair.sync_host();
     for (int i = 0; i < n; i++) {
-      force->pair->vatom[i][0] += k_vatom_pair.h_view(i,0);
-      force->pair->vatom[i][1] += k_vatom_pair.h_view(i,1);
-      force->pair->vatom[i][2] += k_vatom_pair.h_view(i,2);
-      force->pair->vatom[i][3] += k_vatom_pair.h_view(i,3);
-      force->pair->vatom[i][4] += k_vatom_pair.h_view(i,4);
-      force->pair->vatom[i][5] += k_vatom_pair.h_view(i,5);
+      force->pair->vatom[i][0] += k_vatom_pair.view_host()(i,0);
+      force->pair->vatom[i][1] += k_vatom_pair.view_host()(i,1);
+      force->pair->vatom[i][2] += k_vatom_pair.view_host()(i,2);
+      force->pair->vatom[i][3] += k_vatom_pair.view_host()(i,3);
+      force->pair->vatom[i][4] += k_vatom_pair.view_host()(i,4);
+      force->pair->vatom[i][5] += k_vatom_pair.view_host()(i,5);
     }
   }
 
@@ -465,12 +465,12 @@ void DihedralCharmmfswKokkos<DeviceType>::coeff(int narg, char **arg)
 
   int n = atom->ndihedraltypes;
   for (int i = 1; i <= n; i++) {
-    k_k.h_view[i] = k[i];
-    k_multiplicity.h_view[i] = multiplicity[i];
-    k_shift.h_view[i] = shift[i];
-    k_cos_shift.h_view[i] = cos_shift[i];
-    k_sin_shift.h_view[i] = sin_shift[i];
-    k_weight.h_view[i] = weight[i];
+    k_k.view_host()[i] = k[i];
+    k_multiplicity.view_host()[i] = multiplicity[i];
+    k_shift.view_host()[i] = shift[i];
+    k_cos_shift.view_host()[i] = cos_shift[i];
+    k_sin_shift.view_host()[i] = sin_shift[i];
+    k_weight.view_host()[i] = weight[i];
   }
 
   k_k.modify_host();
@@ -513,10 +513,10 @@ void DihedralCharmmfswKokkos<DeviceType>::init_style()
     int n = atom->ntypes;
     for (int i = 1; i <= n; i++) {
       for (int j = 1; j <= n; j++) {
-        k_lj14_1.h_view(i,j) = lj14_1[i][j];
-        k_lj14_2.h_view(i,j) = lj14_2[i][j];
-        k_lj14_3.h_view(i,j) = lj14_3[i][j];
-        k_lj14_4.h_view(i,j) = lj14_4[i][j];
+        k_lj14_1.view_host()(i,j) = lj14_1[i][j];
+        k_lj14_2.view_host()(i,j) = lj14_2[i][j];
+        k_lj14_3.view_host()(i,j) = lj14_3[i][j];
+        k_lj14_4.view_host()(i,j) = lj14_4[i][j];
       }
     }
   }
@@ -558,12 +558,12 @@ void DihedralCharmmfswKokkos<DeviceType>::read_restart(FILE *fp)
 
   int n = atom->ndihedraltypes;
   for (int i = 1; i <= n; i++) {
-    k_k.h_view[i] = k[i];
-    k_multiplicity.h_view[i] = multiplicity[i];
-    k_shift.h_view[i] = shift[i];
-    k_cos_shift.h_view[i] = cos_shift[i];
-    k_sin_shift.h_view[i] = sin_shift[i];
-    k_weight.h_view[i] = weight[i];
+    k_k.view_host()[i] = k[i];
+    k_multiplicity.view_host()[i] = multiplicity[i];
+    k_shift.view_host()[i] = shift[i];
+    k_cos_shift.view_host()[i] = cos_shift[i];
+    k_sin_shift.view_host()[i] = sin_shift[i];
+    k_weight.view_host()[i] = weight[i];
   }
 
   k_k.modify_host();

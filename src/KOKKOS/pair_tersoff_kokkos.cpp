@@ -99,7 +99,7 @@ void PairTersoffKokkos<DeviceType>::coeff(int narg, char **arg)
   int n = atom->ntypes;
 
   DAT::tdual_int_1d k_map = DAT::tdual_int_1d("pair:map",n+1);
-  HAT::t_int_1d h_map = k_map.h_view;
+  HAT::t_int_1d h_map = k_map.view_host();
 
   for (int i = 1; i <= n; i++)
     h_map[i] = map[i];
@@ -141,10 +141,10 @@ void PairTersoffKokkos<DeviceType>::setup_params()
   // sync elem3param and params
 
   DAT::tdual_int_3d k_elem3param = DAT::tdual_int_3d("pair:elem3param",nelements,nelements,nelements);
-  HAT::t_int_3d h_elem3param = k_elem3param.h_view;
+  HAT::t_int_3d h_elem3param = k_elem3param.view_host();
 
   tdual_param_1d k_params = tdual_param_1d("pair:params",nparams);
-  t_host_param_1d h_params = k_params.h_view;
+  t_host_param_1d h_params = k_params.view_host();
 
   for (int i = 0; i < nelements; i++)
     for (int j = 0; j < nelements; j++)
@@ -216,6 +216,8 @@ void PairTersoffKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ndup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
   }
 
+  cutmax_sq = static_cast<KK_FLOAT>(cutmax * cutmax);
+
   copymode = 1;
 
   EV_FLOAT ev;
@@ -263,14 +265,14 @@ void PairTersoffKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (need_dup)
     Kokkos::Experimental::contribute(f, dup_f);
 
-  if (eflag_global) eng_vdwl += ev_all.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev_all.evdwl);
   if (vflag_global) {
-    virial[0] += ev_all.v[0];
-    virial[1] += ev_all.v[1];
-    virial[2] += ev_all.v[2];
-    virial[3] += ev_all.v[3];
-    virial[4] += ev_all.v[4];
-    virial[5] += ev_all.v[5];
+    virial[0] += static_cast<double>(ev_all.v[0]);
+    virial[1] += static_cast<double>(ev_all.v[1]);
+    virial[2] += static_cast<double>(ev_all.v[2]);
+    virial[3] += static_cast<double>(ev_all.v[3]);
+    virial[4] += static_cast<double>(ev_all.v[4]);
+    virial[5] += static_cast<double>(ev_all.v[5]);
   }
 
   if (eflag_atom) {
@@ -308,7 +310,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeShortNeigh, 
     const KK_FLOAT xtmp = x(i,0);
     const KK_FLOAT ytmp = x(i,1);
     const KK_FLOAT ztmp = x(i,2);
-    const KK_FLOAT cutmax_sq = cutmax*cutmax;
+    //const KK_FLOAT cutmax_sq = cutmax*cutmax;
 
     const int jnum = d_numneigh[i];
     int inside = 0;
@@ -356,9 +358,9 @@ void PairTersoffKokkos<DeviceType>::tersoff_compute(const int &ii, EV_FLOAT& ev)
 
   // repulsive
 
-  KK_ACC_FLOAT f_x = 0.0;
-  KK_ACC_FLOAT f_y = 0.0;
-  KK_ACC_FLOAT f_z = 0.0;
+  KK_ACC_FLOAT f_x = 0;
+  KK_ACC_FLOAT f_y = 0;
+  KK_ACC_FLOAT f_z = 0;
 
   // attractive: bond order
 
@@ -373,7 +375,7 @@ void PairTersoffKokkos<DeviceType>::tersoff_compute(const int &ii, EV_FLOAT& ev)
     const int iparam_ij = d_elem3param(itype,jtype,jtype);
     const KK_FLOAT cutsq1 = d_params(iparam_ij).cutsq;
 
-    KK_FLOAT bo_ij = 0.0;
+    KK_FLOAT bo_ij = 0;
     if (rsq1 > cutsq1) continue;
     const KK_FLOAT rij = sqrt(rsq1);
 
@@ -399,19 +401,19 @@ void PairTersoffKokkos<DeviceType>::tersoff_compute(const int &ii, EV_FLOAT& ev)
     KK_FLOAT fa, dfa, bij, prefactor;
     ters_fa_k_and_ters_dfa(d_params(iparam_ij),rij,fa,dfa);
     ters_bij_k_and_ters_dbij(d_params(iparam_ij),bo_ij,bij,prefactor);
-    const KK_FLOAT fatt = -0.5*bij * dfa / rij;
-    prefactor = 0.5*fa * prefactor;
+    const KK_FLOAT fatt = -static_cast<KK_FLOAT>(0.5) * bij * dfa / rij;
+    prefactor = static_cast<KK_FLOAT>(0.5) * fa * prefactor;
 
-    f_x += delx1*fatt;
-    f_y += dely1*fatt;
-    f_z += delz1*fatt;
-    KK_ACC_FLOAT fj_x = -delx1*fatt;
-    KK_ACC_FLOAT fj_y = -dely1*fatt;
-    KK_ACC_FLOAT fj_z = -delz1*fatt;
+    f_x += static_cast<KK_ACC_FLOAT>(delx1*fatt);
+    f_y += static_cast<KK_ACC_FLOAT>(dely1*fatt);
+    f_z += static_cast<KK_ACC_FLOAT>(delz1*fatt);
+    KK_ACC_FLOAT fj_x = -static_cast<KK_ACC_FLOAT>(delx1*fatt);
+    KK_ACC_FLOAT fj_y = -static_cast<KK_ACC_FLOAT>(dely1*fatt);
+    KK_ACC_FLOAT fj_z = -static_cast<KK_ACC_FLOAT>(delz1*fatt);
 
     if (EVFLAG) {
-      const KK_FLOAT eng = 0.5*bij * fa;
-      if (eflag) ev.evdwl += eng;
+      const KK_FLOAT eng = static_cast<KK_FLOAT>(0.5) * bij * fa;
+      if (eflag) ev.evdwl += static_cast<KK_ACC_FLOAT>(eng);
       if (vflag_either || eflag_atom)
         this->template ev_tally<NEIGHFLAG>(ev,i,j,eng,fatt,delx1,dely1,delz1);
     }
@@ -476,17 +478,17 @@ void PairTersoffKokkos<DeviceType>::tersoff_compute(const int &ii, EV_FLOAT& ev)
                           (tmp_fcd - tmp_fce*d_params[iparam_ij].lam1) / rij;
        const KK_FLOAT eng = tmp_fce * d_params[iparam_ij].biga * tmp_exp;
 
-       f_x += delx1*frep;
-       fj_x -= delx1*frep;
+       f_x += static_cast<KK_ACC_FLOAT>(delx1*frep);
+       fj_x -= static_cast<KK_ACC_FLOAT>(delx1*frep);
 
-       f_y += dely1*frep;
-       fj_y -= dely1*frep;
+       f_y += static_cast<KK_ACC_FLOAT>(dely1*frep);
+       fj_y -= static_cast<KK_ACC_FLOAT>(dely1*frep);
 
-       f_z += delz1*frep;
-       fj_z -= delz1*frep;
+       f_z += static_cast<KK_ACC_FLOAT>(delz1*frep);
+       fj_z -= static_cast<KK_ACC_FLOAT>(delz1*frep);
 
        if (EVFLAG) {
-          if (eflag) ev.evdwl += eng;
+          if (eflag) ev.evdwl += static_cast<KK_ACC_FLOAT>(eng);
           if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,eng,frep,delx1,dely1,delz1);
        }
     }
@@ -559,63 +561,63 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffCompute<NEIGHFLAG,E
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT PairTersoffKokkos<DeviceType>::ters_fc_k(const Param& param, const KK_FLOAT &r) const
+KK_FLOAT PairTersoffKokkos<DeviceType>::ters_fc_k(const ParamKokkos& param, const KK_FLOAT &r) const
 {
   const KK_FLOAT ters_R = param.bigr;
   const KK_FLOAT ters_D = param.bigd;
 
-  if (r < ters_R-ters_D) return 1.0;
-  if (r > ters_R+ters_D) return 0.0;
-  return 0.5*(1.0 - sin(MY_PI2*(r - ters_R)/ters_D));
+  if (r < ters_R-ters_D) return static_cast<KK_FLOAT>(1.0);
+  if (r > ters_R+ters_D) return static_cast<KK_FLOAT>(0.0);
+  return static_cast<KK_FLOAT>(0.5)*(static_cast<KK_FLOAT>(1.0) - sin(static_cast<KK_FLOAT>(MY_PI2)*(r - ters_R)/ters_D));
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT PairTersoffKokkos<DeviceType>::ters_dfc(const Param& param, const KK_FLOAT &r) const
+KK_FLOAT PairTersoffKokkos<DeviceType>::ters_dfc(const ParamKokkos& param, const KK_FLOAT &r) const
 {
   const KK_FLOAT ters_R = param.bigr;
   const KK_FLOAT ters_D = param.bigd;
 
-  if (r < ters_R-ters_D) return 0.0;
-  if (r > ters_R+ters_D) return 0.0;
-  return -(MY_PI4/ters_D) * cos(MY_PI2*(r - ters_R)/ters_D);
+  if (r < ters_R-ters_D) return static_cast<KK_FLOAT>(0.0);
+  if (r > ters_R+ters_D) return static_cast<KK_FLOAT>(0.0);
+  return -(static_cast<KK_FLOAT>(MY_PI4)/ters_D) * cos(static_cast<KK_FLOAT>(MY_PI2)*(r - ters_R)/ters_D);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairTersoffKokkos<DeviceType>::ters_fc_k_and_ters_dfc(const Param& param, const KK_FLOAT &r, KK_FLOAT& fc, KK_FLOAT& dfc) const
+void PairTersoffKokkos<DeviceType>::ters_fc_k_and_ters_dfc(const ParamKokkos& param, const KK_FLOAT &r, KK_FLOAT& fc, KK_FLOAT& dfc) const
 {
   const KK_FLOAT ters_R = param.bigr;
   const KK_FLOAT ters_D = param.bigd;
 
   if (r < ters_R-ters_D) {
-     fc = 1.0;
-     dfc = 0.0;
+     fc = static_cast<KK_FLOAT>(1.0);
+     dfc = static_cast<KK_FLOAT>(0.0);
      return;
   }
   if (r > ters_R+ters_D) {
-     fc = 0.0;
-     dfc = 0.0;
+     fc = static_cast<KK_FLOAT>(0.0);
+     dfc = static_cast<KK_FLOAT>(0.0);
      return;
   }
-  const KK_FLOAT arg = MY_PI2*(r - ters_R)/ters_D;
+  const KK_FLOAT arg = static_cast<KK_FLOAT>(MY_PI2)*(r - ters_R)/ters_D;
 
   //KK_FLOAT sn, cn;
   //sincos(arg, &sn, &cn);
 
-  fc = 0.5*(1.0 - sin(arg));
-  dfc = -(MY_PI4/ters_D) * cos(arg);
+  fc = static_cast<KK_FLOAT>(0.5)*(static_cast<KK_FLOAT>(1.0) - sin(arg));
+  dfc = -(static_cast<KK_FLOAT>(MY_PI4)/ters_D) * cos(arg);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT PairTersoffKokkos<DeviceType>::bondorder(const Param& param,
+KK_FLOAT PairTersoffKokkos<DeviceType>::bondorder(const ParamKokkos& param,
         const KK_FLOAT &rij, const KK_FLOAT &dx1, const KK_FLOAT &dy1, const KK_FLOAT &dz1,
         const KK_FLOAT &rik, const KK_FLOAT &dx2, const KK_FLOAT &dy2, const KK_FLOAT &dz2) const
 {
@@ -627,8 +629,8 @@ KK_FLOAT PairTersoffKokkos<DeviceType>::bondorder(const Param& param,
   if (int(param.powerm) == 3) arg = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
   else arg = paramtmp;
 
-  if (arg > 69.0776) ex_delr = 1.e30;
-  else if (arg < -69.0776) ex_delr = 0.0;
+  if (arg > static_cast<KK_FLOAT>(69.0776)) ex_delr = static_cast<KK_FLOAT>(1.e30);
+  else if (arg < static_cast<KK_FLOAT>(-69.0776)) ex_delr = static_cast<KK_FLOAT>(0.0);
   else ex_delr = exp(arg);
 
   return ters_fc_k(param,rik) * ters_gijk(param,costheta) * ex_delr;
@@ -639,13 +641,13 @@ KK_FLOAT PairTersoffKokkos<DeviceType>::bondorder(const Param& param,
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairTersoffKokkos<DeviceType>::
-        ters_gijk(const Param& param, const KK_FLOAT &cos) const
+        ters_gijk(const ParamKokkos& param, const KK_FLOAT &cos) const
 {
   const KK_FLOAT ters_c = param.c * param.c;
   const KK_FLOAT ters_d = param.d * param.d;
   const KK_FLOAT hcth = param.h - cos;
 
-  return param.gamma*(1.0 + ters_c/ters_d - ters_c/(ters_d+hcth*hcth));
+  return param.gamma*(static_cast<KK_FLOAT>(1.0) + ters_c/ters_d - ters_c/(ters_d+hcth*hcth));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -653,13 +655,13 @@ KK_FLOAT PairTersoffKokkos<DeviceType>::
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairTersoffKokkos<DeviceType>::
-        ters_dgijk(const Param& param, const KK_FLOAT &cos) const
+        ters_dgijk(const ParamKokkos& param, const KK_FLOAT &cos) const
 {
   const KK_FLOAT ters_c = param.c * param.c;
   const KK_FLOAT ters_d = param.d * param.d;
   const KK_FLOAT hcth = param.h - cos;
-  const KK_FLOAT numerator = -2.0 * ters_c * hcth;
-  const KK_FLOAT denominator = 1.0/(ters_d + hcth*hcth);
+  const KK_FLOAT numerator = static_cast<KK_FLOAT>(-2.0) * ters_c * hcth;
+  const KK_FLOAT denominator = static_cast<KK_FLOAT>(1.0)/(ters_d + hcth*hcth);
   return param.gamma * numerator * denominator * denominator;
 }
 
@@ -668,16 +670,16 @@ KK_FLOAT PairTersoffKokkos<DeviceType>::
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::
-        ters_gijk_and_ters_dgijk(const Param& param, const KK_FLOAT &cos, KK_FLOAT &gijk, KK_FLOAT &dgijk) const
+        ters_gijk_and_ters_dgijk(const ParamKokkos& param, const KK_FLOAT &cos, KK_FLOAT &gijk, KK_FLOAT &dgijk) const
 {
   const KK_FLOAT ters_c = param.c * param.c;
   const KK_FLOAT ters_d = param.d * param.d;
   const KK_FLOAT hcth = param.h - cos;
 
-  const KK_FLOAT numerator = -2.0 * ters_c * hcth;
-  const KK_FLOAT denominator = 1.0/(ters_d + hcth*hcth);
+  const KK_FLOAT numerator = -static_cast<KK_FLOAT>(2.0) * ters_c * hcth;
+  const KK_FLOAT denominator = static_cast<KK_FLOAT>(1.0)/(ters_d + hcth*hcth);
 
-  gijk = param.gamma*(1.0 + ters_c/ters_d - ters_c*denominator);
+  gijk = param.gamma*(static_cast<KK_FLOAT>(1.0) + ters_c/ters_d - ters_c*denominator);
   dgijk = param.gamma * numerator * denominator * denominator;
 }
 
@@ -685,9 +687,9 @@ void PairTersoffKokkos<DeviceType>::
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT PairTersoffKokkos<DeviceType>::ters_fa_k(const Param& param, const KK_FLOAT &r) const
+KK_FLOAT PairTersoffKokkos<DeviceType>::ters_fa_k(const ParamKokkos& param, const KK_FLOAT &r) const
 {
-  if (r > param.bigr + param.bigd) return 0.0;
+  if (r > param.bigr + param.bigd) return static_cast<KK_FLOAT>(0.0);
   return -param.bigb * exp(-param.lam2 * r)
           * ters_fc_k(param,r);
 }
@@ -696,9 +698,9 @@ KK_FLOAT PairTersoffKokkos<DeviceType>::ters_fa_k(const Param& param, const KK_F
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT PairTersoffKokkos<DeviceType>::ters_dfa(const Param& param, const KK_FLOAT &r) const
+KK_FLOAT PairTersoffKokkos<DeviceType>::ters_dfa(const ParamKokkos& param, const KK_FLOAT &r) const
 {
-  if (r > param.bigr + param.bigd) return 0.0;
+  if (r > param.bigr + param.bigd) return static_cast<KK_FLOAT>(0.0);
   return param.bigb * exp(-param.lam2 * r) *
     (param.lam2 * ters_fc_k(param,r) - ters_dfc(param,r));
 }
@@ -707,11 +709,11 @@ KK_FLOAT PairTersoffKokkos<DeviceType>::ters_dfa(const Param& param, const KK_FL
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairTersoffKokkos<DeviceType>::ters_fa_k_and_ters_dfa(const Param& param, const KK_FLOAT &r, KK_FLOAT &fa, KK_FLOAT &dfa) const
+void PairTersoffKokkos<DeviceType>::ters_fa_k_and_ters_dfa(const ParamKokkos& param, const KK_FLOAT &r, KK_FLOAT &fa, KK_FLOAT &dfa) const
 {
   if (r > param.bigr + param.bigd) {
-     fa = 0.0;
-     dfa = 0.0;
+     fa = static_cast<KK_FLOAT>(0.0);
+     dfa = static_cast<KK_FLOAT>(0.0);
   } else {
     KK_FLOAT tmp1 = param.bigb * exp(-param.lam2 * r);
     KK_FLOAT fc_k, dfc;
@@ -725,51 +727,51 @@ void PairTersoffKokkos<DeviceType>::ters_fa_k_and_ters_dfa(const Param& param, c
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT PairTersoffKokkos<DeviceType>::ters_bij_k(const Param& param, const KK_FLOAT &bo) const
+KK_FLOAT PairTersoffKokkos<DeviceType>::ters_bij_k(const ParamKokkos& param, const KK_FLOAT &bo) const
 {
   const KK_FLOAT tmp = param.beta * bo;
-  if (tmp > param.c1) return 1.0/sqrt(tmp);
+  if (tmp > param.c1) return static_cast<KK_FLOAT>(1.0)/sqrt(tmp);
   if (tmp > param.c2)
-    return (1.0 - pow(tmp,-param.powern) / (2.0*param.powern))/sqrt(tmp);
-  if (tmp < param.c4) return 1.0;
+    return (static_cast<KK_FLOAT>(1.0) - pow(tmp,-param.powern) / (static_cast<KK_FLOAT>(2.0)*param.powern))/sqrt(tmp);
+  if (tmp < param.c4) return static_cast<KK_FLOAT>(1.0);
   if (tmp < param.c3)
-    return 1.0 - pow(tmp,param.powern)/(2.0*param.powern);
-  return pow(1.0 + pow(tmp,param.powern), -1.0/(2.0*param.powern));
+    return static_cast<KK_FLOAT>(1.0) - pow(tmp,param.powern)/(static_cast<KK_FLOAT>(2.0)*param.powern);
+  return pow(static_cast<KK_FLOAT>(1.0) + pow(tmp,param.powern), static_cast<KK_FLOAT>(-1.0)/(static_cast<KK_FLOAT>(2.0)*param.powern));
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT PairTersoffKokkos<DeviceType>::ters_dbij(const Param& param, const KK_FLOAT &bo) const
+KK_FLOAT PairTersoffKokkos<DeviceType>::ters_dbij(const ParamKokkos& param, const KK_FLOAT &bo) const
 {
   const KK_FLOAT tmp = param.beta * bo;
-  const KK_FLOAT factor = -0.5/sqrt(tmp*tmp*tmp); //pow(tmp,-1.5)
+  const KK_FLOAT factor = static_cast<KK_FLOAT>(-0.5)/sqrt(tmp*tmp*tmp); //pow(tmp,-1.5)
   if (tmp > param.c1) return param.beta * factor;
   if (tmp > param.c2)
     return param.beta * (factor *
            // error in negligible 2nd term fixed 2/21/2022
            // (1.0 - 0.5*(1.0 +  1.0/(2.0*param.powern)) *
-           (1.0 - (1.0 + 1.0/(2.0*param.powern)) *
+           (static_cast<KK_FLOAT>(1.0) - (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(0.5)/(param.powern)) *
            pow(tmp,-param.powern)));
-  if (tmp < param.c4) return 0.0;
+  if (tmp < param.c4) return static_cast<KK_FLOAT>(0.0);
   if (tmp < param.c3)
-    return -0.5*param.beta * pow(tmp,param.powern-1.0);
+    return -static_cast<KK_FLOAT>(0.5)*param.beta * pow(tmp,param.powern-static_cast<KK_FLOAT>(1.0));
 
   const KK_FLOAT tmp_n = pow(tmp,param.powern);
-  return -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*param.powern)))*tmp_n / bo;
+  return static_cast<KK_FLOAT>(-0.5) * pow(static_cast<KK_FLOAT>(1.0)+tmp_n, static_cast<KK_FLOAT>(-1.0)-(static_cast<KK_FLOAT>(0.5)/(param.powern)))*tmp_n / bo;
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const Param& param, const KK_FLOAT &bo, KK_FLOAT& bij, KK_FLOAT& prefactor) const
+void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const ParamKokkos& param, const KK_FLOAT &bo, KK_FLOAT& bij, KK_FLOAT& prefactor) const
 {
   const KK_FLOAT tmp = param.beta * bo;
-  const KK_FLOAT factor = -0.5/sqrt(tmp*tmp*tmp); //pow(tmp,-1.5)
+  const KK_FLOAT factor = static_cast<KK_FLOAT>(-0.5)/sqrt(tmp*tmp*tmp); //pow(tmp,-1.5)
   if (tmp > param.c1) {
-      bij =  1.0/sqrt(tmp);
+      bij =  static_cast<KK_FLOAT>(1.0)/sqrt(tmp);
       prefactor = param.beta * factor;
       return;
   }
@@ -778,28 +780,28 @@ void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const Param& param,
 
   if (tmp > param.c2) {
     auto tmp_pow_neg_prm_ijk_pn =  pow(tmp,-prm_ijk_pn);
-    bij =  (1.0 - tmp_pow_neg_prm_ijk_pn / (2.0*prm_ijk_pn))/sqrt(tmp);
+    bij =  (static_cast<KK_FLOAT>(1.0) - tmp_pow_neg_prm_ijk_pn / (static_cast<KK_FLOAT>(2.0)*prm_ijk_pn))/sqrt(tmp);
     prefactor =  param.beta * (factor *
-           (1.0 - 0.5*(1.0 +  1.0/(2.0*prm_ijk_pn)) *
+           (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(0.5)*(static_cast<KK_FLOAT>(1.0) +  static_cast<KK_FLOAT>(0.5)/(prm_ijk_pn)) *
            tmp_pow_neg_prm_ijk_pn));
     return;
   }
 
   if (tmp < param.c4) {
-    bij = 1.0;
-    prefactor = 0.0;
+    bij = static_cast<KK_FLOAT>(1.0);
+    prefactor = static_cast<KK_FLOAT>(0.0);
     return;
   }
   if (tmp < param.c3) {
-    auto tmp_pow_prm_ijk_pn_less_one =  pow(tmp,prm_ijk_pn-1.0);
-    bij =  1.0 - tmp_pow_prm_ijk_pn_less_one*tmp/(2.0*prm_ijk_pn);
-    prefactor = -0.5*param.beta * tmp_pow_prm_ijk_pn_less_one;
+    auto tmp_pow_prm_ijk_pn_less_one =  pow(tmp,prm_ijk_pn-static_cast<KK_FLOAT>(1.0));
+    bij =  static_cast<KK_FLOAT>(1.0) - tmp_pow_prm_ijk_pn_less_one*tmp/(static_cast<KK_FLOAT>(2.0)*prm_ijk_pn);
+    prefactor = static_cast<KK_FLOAT>(-0.5)*param.beta * tmp_pow_prm_ijk_pn_less_one;
     return;
   }
 
   const KK_FLOAT tmp_n = pow(tmp,param.powern);
-  bij = pow(1.0 + tmp_n, -1.0/(2.0*prm_ijk_pn));
-  prefactor =  -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*prm_ijk_pn)))*tmp_n / bo;
+  bij = pow(static_cast<KK_FLOAT>(1.0) + tmp_n, static_cast<KK_FLOAT>(-0.5)/(prm_ijk_pn));
+  prefactor =  static_cast<KK_FLOAT>(-0.5) * pow(static_cast<KK_FLOAT>(1.0)+tmp_n, static_cast<KK_FLOAT>(-1.0)-(static_cast<KK_FLOAT>(0.5)/(prm_ijk_pn)))*tmp_n / bo;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -807,7 +809,7 @@ void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const Param& param,
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::ters_dthb(
-        const Param& param, const KK_FLOAT &prefactor,
+        const ParamKokkos& param, const KK_FLOAT &prefactor,
         const KK_FLOAT &rij, const KK_FLOAT &dx1, const KK_FLOAT &dy1, const KK_FLOAT &dz1,
         const KK_FLOAT &rik, const KK_FLOAT &dx2, const KK_FLOAT &dy2, const KK_FLOAT &dz2,
         KK_ACC_FLOAT *fi, KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk) const
@@ -821,11 +823,11 @@ void PairTersoffKokkos<DeviceType>::ters_dthb(
   delrik[0] = dx2; delrik[1] = dy2; delrik[2] = dz2;
 
   //rij = sqrt(rsq1);
-  rijinv = 1.0/rij;
+  rijinv = static_cast<KK_FLOAT>(1.0)/rij;
   vec3_scale(rijinv,delrij,rij_hat);
 
   //rik = sqrt(rsq2);
-  rikinv = 1.0/rik;
+  rikinv = static_cast<KK_FLOAT>(1.0)/rik;
   vec3_scale(rikinv,delrik,rik_hat);
 
   // from PairTersoff::ters_zetaterm_d
@@ -838,12 +840,12 @@ void PairTersoffKokkos<DeviceType>::ters_dthb(
   if (int(param.powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
   else tmp = paramtmp;
 
-  if (tmp > 69.0776) ex_delr = 1.e30;
-  else if (tmp < -69.0776) ex_delr = 0.0;
+  if (tmp > static_cast<KK_FLOAT>(69.0776)) ex_delr = static_cast<KK_FLOAT>(1.e30);
+  else if (tmp < static_cast<KK_FLOAT>(-69.0776)) ex_delr = static_cast<KK_FLOAT>(0.0);
   else ex_delr = exp(tmp);
 
   if (int(param.powerm) == 3)
-    dex_delr = 3.0*paramtmp*paramtmp*param.lam3*ex_delr;//pow(rij-rik,2.0)*ex_delr;
+    dex_delr = static_cast<KK_FLOAT>(3.0)*paramtmp*paramtmp*param.lam3*ex_delr;//pow(rij-rik,2.0)*ex_delr;
   else dex_delr = param.lam3 * ex_delr;
 
   cos = vec3_dot(rij_hat,rik_hat);
@@ -856,7 +858,7 @@ void PairTersoffKokkos<DeviceType>::ters_dthb(
   vec3_scaleadd(-cos,rik_hat,rij_hat,dcosfk);
   vec3_scale(rikinv,dcosfk,dcosfk);
   vec3_add(dcosfj,dcosfk,dcosfi);
-  vec3_scale(-1.0,dcosfi,dcosfi);
+  vec3_scale(static_cast<KK_FLOAT>(-1.0),dcosfi,dcosfi);
 
   vec3_scale(-dfc*gijk*ex_delr,rik_hat,fi);
   vec3_scaleadd(fc*dgijk*ex_delr,dcosfi,fi,fi);
@@ -880,7 +882,7 @@ void PairTersoffKokkos<DeviceType>::ters_dthb(
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::ters_dthbj(
-        const Param& param, const KK_FLOAT &prefactor,
+        const ParamKokkos& param, const KK_FLOAT &prefactor,
         const KK_FLOAT &rij, const KK_FLOAT &dx1, const KK_FLOAT &dy1, const KK_FLOAT &dz1,
         const KK_FLOAT &rik, const KK_FLOAT &dx2, const KK_FLOAT &dy2, const KK_FLOAT &dz2,
         KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk) const
@@ -892,10 +894,10 @@ void PairTersoffKokkos<DeviceType>::ters_dthbj(
   delrij[0] = dx1; delrij[1] = dy1; delrij[2] = dz1;
   delrik[0] = dx2; delrik[1] = dy2; delrik[2] = dz2;
 
-  rijinv = 1.0/rij;
+  rijinv = static_cast<KK_FLOAT>(1.0)/rij;
   vec3_scale(rijinv,delrij,rij_hat);
 
-  rikinv = 1.0/rik;
+  rikinv = static_cast<KK_FLOAT>(1.0)/rik;
   vec3_scale(rikinv,delrik,rik_hat);
 
   KK_FLOAT gijk,dgijk,ex_delr,dex_delr,fc,dfc,cos,tmp;
@@ -907,12 +909,12 @@ void PairTersoffKokkos<DeviceType>::ters_dthbj(
   if (int(param.powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
   else tmp = paramtmp;
 
-  if (tmp > 69.0776) ex_delr = 1.e30;
-  else if (tmp < -69.0776) ex_delr = 0.0;
+  if (tmp > static_cast<KK_FLOAT>(69.0776)) ex_delr = static_cast<KK_FLOAT>(1.e30);
+  else if (tmp < static_cast<KK_FLOAT>(-69.0776)) ex_delr = static_cast<KK_FLOAT>(0.0);
   else ex_delr = exp(tmp);
 
   if (int(param.powerm) == 3)
-    dex_delr = 3.0*paramtmp*paramtmp*param.lam3*ex_delr;//pow(param.lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
+    dex_delr = static_cast<KK_FLOAT>(3.0)*paramtmp*paramtmp*param.lam3*ex_delr;//pow(param.lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
   else dex_delr = param.lam3 * ex_delr;
 
   cos = vec3_dot(rij_hat,rik_hat);
@@ -924,7 +926,7 @@ void PairTersoffKokkos<DeviceType>::ters_dthbj(
   vec3_scaleadd(-cos,rik_hat,rij_hat,dcosfk);
   vec3_scale(rikinv,dcosfk,dcosfk);
   vec3_add(dcosfj,dcosfk,dcosfi);
-  vec3_scale(-1.0,dcosfi,dcosfi);
+  vec3_scale(static_cast<KK_FLOAT>(-1.0),dcosfi,dcosfi);
 
   vec3_scale(fc*dgijk*ex_delr,dcosfj,fj);
   vec3_scaleadd(fc*gijk*dex_delr,rij_hat,fj,fj);
@@ -942,7 +944,7 @@ void PairTersoffKokkos<DeviceType>::ters_dthbj(
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::ters_dthbk(
-        const Param& param, const KK_FLOAT &prefactor,
+        const ParamKokkos& param, const KK_FLOAT &prefactor,
         const KK_FLOAT &rij, const KK_FLOAT &dx1, const KK_FLOAT &dy1, const KK_FLOAT &dz1,
         const KK_FLOAT &rik, const KK_FLOAT &dx2, const KK_FLOAT &dy2, const KK_FLOAT &dz2,
         KK_ACC_FLOAT *fk) const
@@ -954,10 +956,10 @@ void PairTersoffKokkos<DeviceType>::ters_dthbk(
   delrij[0] = dx1; delrij[1] = dy1; delrij[2] = dz1;
   delrik[0] = dx2; delrik[1] = dy2; delrik[2] = dz2;
 
-  rijinv = 1.0/rij;
+  rijinv = static_cast<KK_FLOAT>(1.0)/rij;
   vec3_scale(rijinv,delrij,rij_hat);
 
-  rikinv = 1.0/rik;
+  rikinv = static_cast<KK_FLOAT>(1.0)/rik;
   vec3_scale(rikinv,delrik,rik_hat);
 
   KK_FLOAT gijk,dgijk,ex_delr,dex_delr,fc,dfc,cos,tmp;
@@ -969,12 +971,12 @@ void PairTersoffKokkos<DeviceType>::ters_dthbk(
   if (int(param.powerm) == 3) tmp = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
   else tmp = paramtmp;
 
-  if (tmp > 69.0776) ex_delr = 1.e30;
-  else if (tmp < -69.0776) ex_delr = 0.0;
+  if (tmp > static_cast<KK_FLOAT>(69.0776)) ex_delr = static_cast<KK_FLOAT>(1.e30);
+  else if (tmp < static_cast<KK_FLOAT>(-69.0776)) ex_delr = static_cast<KK_FLOAT>(0.0);
   else ex_delr = exp(tmp);
 
   if (int(param.powerm) == 3)
-    dex_delr = 3.0*paramtmp*paramtmp*param.lam3*ex_delr;//pow(param.lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
+    dex_delr = static_cast<KK_FLOAT>(3.0)*paramtmp*paramtmp*param.lam3*ex_delr;//pow(param.lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
   else dex_delr = param.lam3 * ex_delr;
 
   cos = vec3_dot(rij_hat,rik_hat);
@@ -986,7 +988,7 @@ void PairTersoffKokkos<DeviceType>::ters_dthbk(
   vec3_scaleadd(-cos,rik_hat,rij_hat,dcosfk);
   vec3_scale(rikinv,dcosfk,dcosfk);
   vec3_add(dcosfj,dcosfk,dcosfi);
-  vec3_scale(-1.0,dcosfi,dcosfi);
+  vec3_scale(static_cast<KK_FLOAT>(-1.0),dcosfi,dcosfi);
 
   vec3_scale(dfc*gijk*ex_delr,rik_hat,fk);
   vec3_scaleadd(fc*dgijk*ex_delr,dcosfk,fk,fk);
@@ -1012,7 +1014,7 @@ void PairTersoffKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const i
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   if (eflag_atom) {
-    const KK_FLOAT epairhalf = 0.5 * epair;
+    const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * epair);
     a_eatom[i] += epairhalf;
     a_eatom[j] += epairhalf;
   }
@@ -1026,28 +1028,28 @@ void PairTersoffKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const i
     const KK_FLOAT v5 = dely*delz*fpair;
 
     if (vflag_global) {
-      ev.v[0] += v0;
-      ev.v[1] += v1;
-      ev.v[2] += v2;
-      ev.v[3] += v3;
-      ev.v[4] += v4;
-      ev.v[5] += v5;
+      ev.v[0] += static_cast<KK_ACC_FLOAT>(v0);
+      ev.v[1] += static_cast<KK_ACC_FLOAT>(v1);
+      ev.v[2] += static_cast<KK_ACC_FLOAT>(v2);
+      ev.v[3] += static_cast<KK_ACC_FLOAT>(v3);
+      ev.v[4] += static_cast<KK_ACC_FLOAT>(v4);
+      ev.v[5] += static_cast<KK_ACC_FLOAT>(v5);
     }
 
     if (vflag_atom) {
-      a_vatom(i,0) += 0.5*v0;
-      a_vatom(i,1) += 0.5*v1;
-      a_vatom(i,2) += 0.5*v2;
-      a_vatom(i,3) += 0.5*v3;
-      a_vatom(i,4) += 0.5*v4;
-      a_vatom(i,5) += 0.5*v5;
+      a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
+      a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
+      a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
+      a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
+      a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
+      a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
 
-      a_vatom(j,0) += 0.5*v0;
-      a_vatom(j,1) += 0.5*v1;
-      a_vatom(j,2) += 0.5*v2;
-      a_vatom(j,3) += 0.5*v3;
-      a_vatom(j,4) += 0.5*v4;
-      a_vatom(j,5) += 0.5*v5;
+      a_vatom(j,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
+      a_vatom(j,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
+      a_vatom(j,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
+      a_vatom(j,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
+      a_vatom(j,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
+      a_vatom(j,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
     }
   }
 }
@@ -1066,40 +1068,32 @@ void PairTersoffKokkos<DeviceType>::v_tally3(EV_FLOAT &ev,
   auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  KK_FLOAT v[6];
+  KK_ACC_FLOAT v[6];
 
-  v[0] = (drij[0]*fj[0] + drik[0]*fk[0]);
-  v[1] = (drij[1]*fj[1] + drik[1]*fk[1]);
-  v[2] = (drij[2]*fj[2] + drik[2]*fk[2]);
-  v[3] = (drij[0]*fj[1] + drik[0]*fk[1]);
-  v[4] = (drij[0]*fj[2] + drik[0]*fk[2]);
-  v[5] = (drij[1]*fj[2] + drik[1]*fk[2]);
+  v[0] = (static_cast<KK_ACC_FLOAT>(drij[0])*fj[0] + static_cast<KK_ACC_FLOAT>(drik[0])*fk[0]);
+  v[1] = (static_cast<KK_ACC_FLOAT>(drij[1])*fj[1] + static_cast<KK_ACC_FLOAT>(drik[1])*fk[1]);
+  v[2] = (static_cast<KK_ACC_FLOAT>(drij[2])*fj[2] + static_cast<KK_ACC_FLOAT>(drik[2])*fk[2]);
+  v[3] = (static_cast<KK_ACC_FLOAT>(drij[0])*fj[1] + static_cast<KK_ACC_FLOAT>(drik[0])*fk[1]);
+  v[4] = (static_cast<KK_ACC_FLOAT>(drij[0])*fj[2] + static_cast<KK_ACC_FLOAT>(drik[0])*fk[2]);
+  v[5] = (static_cast<KK_ACC_FLOAT>(drij[1])*fj[2] + static_cast<KK_ACC_FLOAT>(drik[1])*fk[2]);
 
   if (vflag_global) {
-    ev.v[0] += v[0];
-    ev.v[1] += v[1];
-    ev.v[2] += v[2];
-    ev.v[3] += v[3];
-    ev.v[4] += v[4];
-    ev.v[5] += v[5];
+    for (int n = 0; n < 6; n++)
+      ev.v[n] += v[n];
   }
 
   if (vflag_atom) {
-    v[0] *= THIRD;
-    v[1] *= THIRD;
-    v[2] *= THIRD;
-    v[3] *= THIRD;
-    v[4] *= THIRD;
-    v[5] *= THIRD;
+    for (int n = 0; n < 6; n++)
+      v[n] *= static_cast<KK_ACC_FLOAT>(THIRD);
 
-    a_vatom(i,0) += v[0]; a_vatom(i,1) += v[1]; a_vatom(i,2) += v[2];
-    a_vatom(i,3) += v[3]; a_vatom(i,4) += v[4]; a_vatom(i,5) += v[5];
+    for (int n = 0; n < 6; n++)
+      a_vatom(i,n) += v[n];
 
-    a_vatom(j,0) += v[0]; a_vatom(j,1) += v[1]; a_vatom(j,2) += v[2];
-    a_vatom(j,3) += v[3]; a_vatom(j,4) += v[4]; a_vatom(j,5) += v[5];
+    for (int n = 0; n < 6; n++)
+      a_vatom(j,n) += v[n];
 
-    a_vatom(k,0) += v[0]; a_vatom(k,1) += v[1]; a_vatom(k,2) += v[2];
-    a_vatom(k,3) += v[3]; a_vatom(k,4) += v[4]; a_vatom(k,5) += v[5];
+    for (int n = 0; n < 6; n++)
+      a_vatom(k,n) += v[n];
   }
 }
 
@@ -1111,27 +1105,23 @@ void PairTersoffKokkos<DeviceType>::v_tally3_atom(EV_FLOAT &ev, const int &i, co
                                                   const int & /*k*/, KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk,
                                                   KK_FLOAT *drji, KK_FLOAT *drjk) const
 {
-  KK_FLOAT v[6];
+  KK_ACC_FLOAT v[6];
 
-  v[0] = THIRD * (drji[0]*fj[0] + drjk[0]*fk[0]);
-  v[1] = THIRD * (drji[1]*fj[1] + drjk[1]*fk[1]);
-  v[2] = THIRD * (drji[2]*fj[2] + drjk[2]*fk[2]);
-  v[3] = THIRD * (drji[0]*fj[1] + drjk[0]*fk[1]);
-  v[4] = THIRD * (drji[0]*fj[2] + drjk[0]*fk[2]);
-  v[5] = THIRD * (drji[1]*fj[2] + drjk[1]*fk[2]);
+  v[0] = static_cast<KK_ACC_FLOAT>(THIRD) * (static_cast<KK_ACC_FLOAT>(drji[0])*fj[0] + static_cast<KK_ACC_FLOAT>(drjk[0])*fk[0]);
+  v[1] = static_cast<KK_ACC_FLOAT>(THIRD) * (static_cast<KK_ACC_FLOAT>(drji[1])*fj[1] + static_cast<KK_ACC_FLOAT>(drjk[1])*fk[1]);
+  v[2] = static_cast<KK_ACC_FLOAT>(THIRD) * (static_cast<KK_ACC_FLOAT>(drji[2])*fj[2] + static_cast<KK_ACC_FLOAT>(drjk[2])*fk[2]);
+  v[3] = static_cast<KK_ACC_FLOAT>(THIRD) * (static_cast<KK_ACC_FLOAT>(drji[0])*fj[1] + static_cast<KK_ACC_FLOAT>(drjk[0])*fk[1]);
+  v[4] = static_cast<KK_ACC_FLOAT>(THIRD) * (static_cast<KK_ACC_FLOAT>(drji[0])*fj[2] + static_cast<KK_ACC_FLOAT>(drjk[0])*fk[2]);
+  v[5] = static_cast<KK_ACC_FLOAT>(THIRD) * (static_cast<KK_ACC_FLOAT>(drji[1])*fj[2] + static_cast<KK_ACC_FLOAT>(drjk[1])*fk[2]);
 
   if (vflag_global) {
-    ev.v[0] += v[0];
-    ev.v[1] += v[1];
-    ev.v[2] += v[2];
-    ev.v[3] += v[3];
-    ev.v[4] += v[4];
-    ev.v[5] += v[5];
+    for (int n = 0; n < 6; n++)
+      ev.v[n] += v[n];
   }
 
   if (vflag_atom) {
-    d_vatom(i,0) += v[0]; d_vatom(i,1) += v[1]; d_vatom(i,2) += v[2];
-    d_vatom(i,3) += v[3]; d_vatom(i,4) += v[4]; d_vatom(i,5) += v[5];
+    for (int n = 0; n < 6; n++)
+      d_vatom(i,n) += v[n];
   }
 }
 

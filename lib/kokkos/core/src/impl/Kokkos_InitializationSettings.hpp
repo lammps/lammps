@@ -25,19 +25,19 @@
 namespace Kokkos {
 
 class InitializationSettings {
-#define KOKKOS_IMPL_DECLARE(TYPE, NAME)                                    \
- private:                                                                  \
-  std::optional<TYPE> m_##NAME;                                            \
-                                                                           \
- public:                                                                   \
-  InitializationSettings& set_##NAME(TYPE NAME) {                          \
-    m_##NAME = NAME;                                                       \
-    return *this;                                                          \
-  }                                                                        \
-  bool has_##NAME() const noexcept { return static_cast<bool>(m_##NAME); } \
-  TYPE get_##NAME() const noexcept {                                       \
-    return *m_##NAME; /* NOLINT(bugprone-unchecked-optional-access) */     \
-  }                                                                        \
+#define KOKKOS_IMPL_DECLARE(TYPE, NAME)                                      \
+ private:                                                                    \
+  std::optional<TYPE> m_##NAME;                                              \
+                                                                             \
+ public:                                                                     \
+  InitializationSettings& set_##NAME(TYPE NAME) {                            \
+    m_##NAME = NAME;                                                         \
+    return *this;                                                            \
+  }                                                                          \
+  bool has_##NAME() const noexcept { return static_cast<bool>(m_##NAME); }   \
+  TYPE get_##NAME() const noexcept /* NOLINT(bugprone-exception-escape) */ { \
+    return *m_##NAME; /* NOLINT(bugprone-unchecked-optional-access) */       \
+  }                                                                          \
   static_assert(true, "no-op to require trailing semicolon")
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4

@@ -18,7 +18,7 @@ Syntax
 * bond/react = style name of this fix command
 * the common keyword/values may be appended directly after 'bond/react'
 * common keywords apply to all reaction specifications
-* common_keyword = *stabilization* or *reset_mol_ids*
+* common_keyword = *stabilization* or *reset_mol_ids* or *rate_limit* or *max_rxn*
 
   .. parsed-literal::
 
@@ -32,6 +32,17 @@ Syntax
          *yes* = update molecule IDs based on new global topology (default)
          *no* = do not update molecule IDs
          *molmap* = customize how molecule IDs are updated
+       *rate_limit* values = react-ID_1 react-ID_2 ... react-ID_N Nlimit Nsteps
+         react-IDs = one or more names of the reactions to include in rate limit
+         Nlimit = maximum number of reactions allowed to occur within interval
+         Nsteps = the interval (number of timesteps) over which to count reactions
+       *max_rxn* values = react-ID_1 react-ID_2 ... react-ID_N Nlimit
+         react-IDs = one or more names of the reactions to include in rate limit
+         Nlimit = maximum total number of reactions allowed to occur
+       *shuffle_seed* value = seed
+         seed = random # seed (positive integer) for choosing between eligible reactions
+       *file* value = filename
+         filename = name of the JSON file that records reaction occurrences
 
 * react = mandatory argument indicating new reaction specification
 * react-ID = user-assigned name for the reaction
@@ -43,18 +54,13 @@ Syntax
 * template-ID(post-reacted) = ID of a molecule template containing post-reaction topology
 * map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates
 * zero or more individual keyword/value pairs may be appended to each react argument
-* individual_keyword = *prob* or *rate_limit* or *max_rxn* or *stabilize_steps* or *custom_charges* or *rescale_charges* or *molecule* or *modify_create*
+* individual_keyword = *prob* or *stabilize_steps* or *custom_charges* or *rescale_charges* or *molecule* or *modify_create*
 
   .. parsed-literal::
 
          *prob* values = fraction seed
            fraction = initiate reaction with this probability if otherwise eligible
            seed = random number seed (positive integer)
-         *rate_limit* = Nlimit Nsteps
-           Nlimit = maximum number of reactions allowed to occur within interval
-           Nsteps = the interval (number of timesteps) over which to count reactions
-         *max_rxn* value = N
-           N = maximum number of reactions allowed to occur
          *stabilize_steps* value = timesteps
            timesteps = number of time steps to apply the internally-created :doc:`nve/limit <fix_nve_limit>` fix to reacting atoms
          *custom_charges* value = *no* or fragment-ID
@@ -213,6 +219,78 @@ the simulation.  No check is performed to test for this consistency.
 For post-reaction atoms that have a template molecule ID that does not
 exist in pre-reaction template, they are assigned a new molecule ID that
 does not currently exist in the simulation.
+
+The *rate_limit* keyword can enforce an upper limit on the overall rate of
+one or more reactions. The number of reaction occurrences is limited to
+Nlimit within an interval of Nsteps timesteps. No reactions are permitted
+to occur within the first Nsteps timesteps of the first run after reading a
+data file. The reactions to sum over are listed by reaction name
+(react-ID). The number of reaction occurrences is calculated by summing
+over the listed reactions. This sum is limited to Nlimit, which can be
+specified with an equal-style :doc:`variable <variable>`. Reaction
+occurrences are chosen randomly from all eligible reaction sites of all
+listed reactions. By default, a hardware-based random number source is used
+if available; reactions are chosen deterministically if a positive integer
+is specified for the 'shuffle_seed' keyword. Multiple *rate_limit* keywords
+can be specified. This keyword is useful when multiple *react* arguments
+define similar types of reactions, and the relative rates between two or
+more types of reactions must be enforced.
+
+The *max_rxn* keyword can enforce an upper limit on the overall number of
+one or more reactions. The reactions to sum over are listed by reaction
+name (react-ID). The number of reaction occurrences is calculated by
+summing over the listed reactions. This sum is limited to Nlimit. Reaction
+occurrences are chosen randomly from all eligible reaction sites of all
+listed reactions. By default, a hardware-based random number source is used
+if available; reactions are chosen deterministically if a positive integer
+is specified for the 'shuffle_seed' keyword. Multiple *max_rxn* keywords
+can be specified.
+
+The *file* keyword can be used to dump information about each reaction that
+occurs during the simulation. The atom IDs, types, and coordinates of all
+atoms in the reaction site are printed out on the timestep that the
+reaction is initiated. The output file follows the :ref:`JSON dump
+molecules format <json-dump-files>`, with one extra key added to each
+molecule object to identify the reaction. The added key is "reaction" and
+its value is the reaction name (react-ID). Here is an example output for a
+hypothetical reaction involving one water molecule:
+
+.. code-block:: json
+
+   {
+       "application": "LAMMPS",
+       "units": "real",
+       "format": "dump",
+       "style": "molecules",
+       "revision": 1,
+       "title": "fix bond/react",
+       "timesteps": [
+           {
+               "timestep": 1,
+               "molecules": [
+                   {
+                       "reaction": "water_dissociation",
+                       "types": {
+                           "format": ["atom-id", "type"],
+                           "data": [
+                               [1368, "H"],
+                               [1366, "O"],
+                               [1367, "H"]
+                           ]
+                       },
+                       "coords": {
+                           "format": ["atom-id", "x", "y", "z"],
+                           "data": [
+                               [1368, 26.787767440427466, 29.785528640296768, 25.85197353660144],
+                               [1366, 26.641801222582824, 29.868106247702887, 24.91285138212243],
+                               [1367, 25.69611192416744, 30.093425787807448, 24.914380215672846]
+                           ]
+                       }
+                   }
+               ]
+           }
+       ]
+   }
 
 The following comments pertain to each *react* argument (in other
 words, they can be customized for each reaction, or reaction step):
@@ -668,17 +746,7 @@ actually occurs. The fraction setting must be a value between 0.0 and
 1.0, and can be specified with an equal-style :doc:`variable <variable>`.
 A uniform random number between 0.0 and 1.0 is generated and the
 eligible reaction only occurs if the random number is less than the
-fraction. Up to :math:`N` reactions are permitted to occur, as optionally
-specified by the *max_rxn* keyword.
-
-.. versionadded:: 22Dec2022
-
-The *rate_limit* keyword can enforce an upper limit on the overall
-rate of the reaction. The number of reaction occurrences is limited to
-Nlimit within an interval of Nsteps timesteps. No reactions are
-permitted to occur within the first Nsteps timesteps of the first run
-after reading a data file. Nlimit can be specified with an equal-style
-:doc:`variable <variable>`.
+fraction.
 
 The *stabilize_steps* keyword allows for the specification of how many
 time steps a reaction site is stabilized before being returned to the

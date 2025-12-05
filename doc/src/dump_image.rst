@@ -530,20 +530,20 @@ change this via the dump_modify command.
 
 .. versionadded:: 10Sep2025
 
-The *region* keyword can be used to create a graphical representation
-of a :doc:`region <region>`.  This can be helpful in debugging the
-location and extent of regions, especially when those have parameters
-controlled by variables.  Three styles of representing a region are
-available: *filled*, *frame*, and *points*. With style *filled* the
-surface of the region is drawn.  For region styles that support open
-faces, surfaces are not drawn for such open faces. Draw style *frame*
-represents the region with a mesh of "wires" the diameter of which can
-be set. Unlike with *filled*, you can look inside the region with this
-draw style. The third draw style *points* generates a random point
-cloud inside the simulation box and draws only those points that are
-within the region.  Draw styles *filled* and *frame* support only
-"primitive" region style (no unions or intersections), but the *points*
-draw style supports all region styles.
+The *region* keyword can be used to create a graphical representation of
+a :doc:`region <region>`.  This can be helpful in debugging the location
+and extent of regions, especially when those have parameters controlled
+by variables.  Three styles of representing a region are available:
+*filled*, *frame*, and *points*.  With style *filled* the surface of the
+region is drawn.  For region styles that support open faces, surfaces
+are not drawn for such open faces.  Draw style *frame* represents the
+region with a mesh of "wires".  The diameter of these "wires" can be
+set.  Unlike with the *filled* style, you can see what is *inside* the
+region with this draw style.  The third draw style *points* generates a
+random point cloud inside the simulation box and draws only those points
+that are within the region.  Draw styles *filled* and *frame* support
+only "primitive" region style (no unions or intersections), but the
+*points* draw style supports all region styles.
 
 ----------
 

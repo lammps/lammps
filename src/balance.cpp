@@ -113,7 +113,8 @@ Balance::~Balance()
 void Balance::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, -1, "Balance command before simulation box is defined" + utils::errorurl(33));
+    error->all(FLERR, Error::COMMAND, "Balance command before simulation box is defined"
+               + utils::errorurl(33));
 
   if (comm->me == 0) utils::logmesg(lmp,"Balancing ...\n");
 

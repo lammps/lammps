@@ -32,7 +32,7 @@ struct TestViewAPI<
   using layout_type = Layout;
   using space_type  = Kokkos::DefaultExecutionSpace;
   using traits_type =
-      Kokkos::MemoryTraits<0>;  // maybe we want to add that later to the matrix
+      Kokkos::MemoryTraits<>;  // maybe we want to add that later to the matrix
   using view_type =
       Kokkos::View<data_type, layout_type, space_type, traits_type>;
   using alloc_layout_type =

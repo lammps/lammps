@@ -40,10 +40,7 @@ section below for examples where this has been done.
 * The GPU package is often faster than the KOKKOS/CUDA package, when the
   number of atoms per GPU is on the smaller side.  The crossover point,
   in terms of atoms/GPU at which the KOKKOS/CUDA package becomes faster
-  depends strongly on the pair style.  For example, for a simple Lennard Jones
-  system the crossover (in single precision) is often about 50K-100K
-  atoms per GPU.  When performing double precision calculations the
-  crossover point can be significantly smaller.
+  depends strongly on the pair style.
 * When using LAMMPS with multiple MPI ranks assigned to the same GPU, its
   performance depends to some extent on the available bandwidth between
   the CPUs and the GPU. This can differ significantly based on the
@@ -95,14 +92,12 @@ section below for examples where this has been done.
 * OpenCL in the GPU package supports NVIDIA, AMD, and Intel GPUs at the
   *same time* and with the *same executable*.  KOKKOS currently does not
   support OpenCL.
-* The GPU package supports single precision floating point, mixed
-  precision floating point, and double precision floating point math on
-  the GPU.  This must be chosen at compile time.  KOKKOS currently only
-  supports double precision floating point math.  Using single or mixed
-  precision (recommended) results in significantly improved performance
-  on consumer GPUs for some loss in accuracy (which is rather small with
-  mixed precision).  Single and mixed precision support for KOKKOS is in
-  development (no ETA yet).
+* Both the GPU package and the KOKKOS package support single precision
+  floating point, mixed precision floating point, and double precision
+  floating point math.  This must be chosen at compile time.  Using
+  single or mixed precision (recommended) results in significantly
+  improved performance on consumer GPUs for some loss in accuracy (which
+  is rather small with mixed precision).
 * Some pair styles (for example :doc:`snap <pair_snap>`, :doc:`mliap
   <pair_mliap>` or :doc:`reaxff <pair_reaxff>` in the KOKKOS package have
   seen extensive optimizations and specializations for GPUs and CPUs.

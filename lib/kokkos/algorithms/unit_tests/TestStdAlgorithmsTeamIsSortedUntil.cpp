@@ -158,7 +158,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId,
        this allows us to exercise that the algorithm returns
        the larest sorted interval starting from 0
     */
-    assert(numCols > 10);
+    KOKKOS_ASSERT(numCols > 10);
     const std::size_t midPoint = numCols / 2;
 
     UnifDist<int> randPoolA(0, midPoint, 3432779);
@@ -255,6 +255,10 @@ TEST(std_algorithms_is_sorted_until_team_test, test_trivialB) {
 }
 
 TEST(std_algorithms_is_sorted_until_team_test, test_nontrivialA) {
+#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET Failing with clang 17
+  GTEST_SKIP() << "Known to fail with OpenMPTarget and clang 17";
+#endif
+
   const std::string name      = "nontrivialUntilLast";
   const std::vector<int> cols = {13, 101, 1444, 5153};
   run_all_scenarios<DynamicTag, double>(name, cols);
@@ -263,6 +267,10 @@ TEST(std_algorithms_is_sorted_until_team_test, test_nontrivialA) {
 }
 
 TEST(std_algorithms_is_sorted_until_team_test, test_nontrivialB) {
+#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET Failing with clang 17
+  GTEST_SKIP() << "Known to fail with OpenMPTarget and clang 17";
+#endif
+
   const std::string name      = "nontrivialRandom";
   const std::vector<int> cols = {13, 101, 1444, 5153};
   run_all_scenarios<DynamicTag, double>(name, cols);

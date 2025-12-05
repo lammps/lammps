@@ -128,7 +128,7 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
           utils::missing_cmd_args(FLERR, "fix rheo/thermal specific/heat constant", error);
 
         double cv_one = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-        if (cv_one < 0.0) error->all(FLERR, "The specific heat must be positive");
+        if (cv_one <= 0.0) error->all(FLERR, "The specific heat must be greater than zero");
         iarg += 2;
 
         for (i = nlo; i <= nhi; i++) {
@@ -249,7 +249,7 @@ int FixRHEOThermal::setmask()
 void FixRHEOThermal::init()
 {
   auto fixes = modify->get_fix_by_style("^rheo$");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/viscosity");
+  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/thermal");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
   cut_kernel = fix_rheo->cut;
 
@@ -359,6 +359,10 @@ void FixRHEOThermal::post_integrate()
   double *heatflow = atom->heatflow;
   int *type = atom->type;
 
+  double imass;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+
   int n_melt = 0;
   int n_freeze = 0;
 
@@ -367,9 +371,12 @@ void FixRHEOThermal::post_integrate()
     if (status[i] & STATUS_NO_INTEGRATION) continue;
 
     itype = type[i];
+    if (rmass) imass = rmass[i];
+    else imass = mass[itype];
+
     cvi = calc_cv(itype);
     energy[i] += dth * heatflow[i];
-    temperature[i] = energy[i] / cvi;
+    temperature[i] = energy[i] / (imass * cvi);
 
     if (Tc_style[itype] != NONE) {
       Ti = temperature[i];
@@ -377,7 +384,7 @@ void FixRHEOThermal::post_integrate()
 
       if (L_style[itype] != NONE) {
         Li = calc_L(itype);
-        if (Ti > Tci) Ti = MAX(Tci, (energy[i] - Li) / cvi);
+        if (Ti > Tci) Ti = MAX(Tci, (energy[i] / imass - Li) / cvi);
         temperature[i] = Ti;
       }
 
@@ -461,18 +468,26 @@ void FixRHEOThermal::post_neighbor()
 
 void FixRHEOThermal::pre_force(int /*vflag*/)
 {
+  int i, itype;
   double cvi, Tci, Ti, Li;
 
   double *energy = atom->esph;
   double *temperature = atom->temperature;
   int *type = atom->type;
+
+  double imass;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+
   int nall = atom->nlocal + atom->nghost;
 
   // Calculate temperature
-  for (int i = 0; i < nall; i++) {
-    int itype = type[i];
+  for (i = 0; i < nall; i++) {
+    itype = type[i];
+    if (rmass) imass = rmass[i];
+    else imass = mass[itype];
     cvi = calc_cv(itype);
-    temperature[i] = energy[i] / cvi;
+    temperature[i] = energy[i] / (imass * cvi);
 
     if (Tc_style[itype] != NONE) {
       Ti = temperature[i];
@@ -480,7 +495,7 @@ void FixRHEOThermal::pre_force(int /*vflag*/)
 
       if (L_style[itype] != NONE) {
         Li = calc_L(itype);
-        if (Ti > Tci) Ti = MAX(Tci, (energy[i] - Li) / cvi);
+        if (Ti > Tci) Ti = MAX(Tci, (energy[i] / imass - Li) / cvi);
         temperature[i] = Ti;
       }
     }

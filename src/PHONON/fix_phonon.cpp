@@ -50,7 +50,7 @@ static constexpr int MAXLINE = 512;
 enum{ FORWARD=-1, BACKWARD=1 };
 
 static const char cite_fix_phonon[] =
-  "fix phonon command: doi:10.1016/j.cpc.2011.04.019\n\n"
+  "fix phonon command: https://doi.org/10.1016/j.cpc.2011.04.019\n\n"
   "@Article{Kong11,\n"
   " author = {L. T. Kong},\n"
   " title = {Phonon Dispersion Measured Directly from Molecular Dynamics Simulations},\n"

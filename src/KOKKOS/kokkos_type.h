@@ -478,6 +478,22 @@ struct alignas(2*sizeof(double)) s_KK_double2 {
 };
 typedef struct s_KK_double2 KK_double2;
 
+struct alignas(2*sizeof(KK_FLOAT)) s_KK_FLOAT2 {
+  KK_FLOAT v[2];
+
+  KOKKOS_INLINE_FUNCTION
+  s_KK_FLOAT2() {
+    v[0] = v[1] = 0;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator+=(const s_KK_FLOAT2 &rhs) {
+    v[0] += rhs.v[0];
+    v[1] += rhs.v[1];
+  }
+};
+typedef struct s_KK_FLOAT2 KK_FLOAT2;
+
 template <class KeyViewType>
 struct BinOp3DLAMMPS {
   int max_bins_[3] = {};
@@ -546,9 +562,12 @@ typedef Kokkos::UnorderedMap<LAMMPS_NS::tagint,int,LMPDeviceType> hash_type;
 typedef hash_type::HostMirror host_hash_type;
 
 struct dual_hash_type {
+
+ private:
   hash_type d_view;
   host_hash_type h_view;
 
+ public:
   bool modified_device;
   bool modified_host;
 
@@ -614,6 +633,12 @@ struct dual_hash_type {
   template<class DeviceType>
   std::enable_if_t<!(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),void> sync() {sync_host();}
 
+  KOKKOS_INLINE_FUNCTION
+  host_hash_type& view_host() { return h_view; }
+
+  KOKKOS_INLINE_FUNCTION
+  hash_type& view_device() { return d_view; }
+
 };
 
 
@@ -627,16 +652,15 @@ struct TransformView {
 
  private:
   kk_view k_view;
+  typename kk_view::t_dev d_view;
+  typename kk_view::t_host h_viewkk;
+  legacy_view h_view;
 
+ public:
   // does the DualView have only one device
 
   static constexpr int SINGLE_DEVICE =
     std::is_same_v<typename kk_view::t_dev::device_type, typename kk_view::t_host::device_type>;
-
- public:
-  typename kk_view::t_dev d_view;
-  typename kk_view::t_host h_viewkk;
-  legacy_view h_view;
 
   typedef typename legacy_view::value_type value_type;
   typedef typename legacy_view::array_layout array_layout;
@@ -671,8 +695,8 @@ struct TransformView {
     modified_legacy_hostkk = 0;
     modified_legacy_device = 0;
     k_view = kk_view(name, ns...);
-    d_view = k_view.d_view;
-    h_viewkk = k_view.h_view;
+    d_view = k_view.view_device();
+    h_viewkk = k_view.view_host();
     if constexpr (NEED_TRANSFORM)
       h_view = legacy_view(name, ns...);
     else
@@ -687,8 +711,8 @@ struct TransformView {
     }
 
     k_view.resize(ns...);
-    d_view = k_view.d_view;
-    h_viewkk = k_view.h_view;
+    d_view = k_view.view_device();
+    h_viewkk = k_view.view_host();
     if constexpr (NEED_TRANSFORM) {
       Kokkos::resize(h_view,ns...);
       if (k_view.need_sync_host()) {
@@ -1000,7 +1024,7 @@ struct TransformView {
 
   // Warning: these templated calls (e.g. t_view.view<DeviceType>()
   //  and t_view.sync<DeviceType>()) specify Kokkos host "HostKK" views
-  //  (i.e. h_viewkk). Use non-templated calls (e.g. t_view.h_view and
+  //  (i.e. h_viewkk). Use non-templated calls (e.g. t_view.view_host() and
   //  t_view.sync_host()) to specify legacy "Host" views (h_view)
   //  instead
 
@@ -1071,6 +1095,15 @@ struct TransformView {
   {
     return k_view.need_sync_host();
   }
+
+  KOKKOS_INLINE_FUNCTION
+  const legacy_view& view_host() const { return h_view; }
+
+  KOKKOS_INLINE_FUNCTION
+  const typename kk_view::t_host& view_hostkk() const { return h_viewkk; }
+
+  KOKKOS_INLINE_FUNCTION
+  const typename kk_view::t_dev& view_device() const { return d_view; }
 
 };
 
@@ -1148,6 +1181,7 @@ KOKKOS_DEVICE_DUALVIEW(KK_ACC_FLOAT*[3], LMPDeviceLayout, kkacc_1d_3)
 KOKKOS_DEVICE_DUALVIEW(KK_FLOAT*[4], LMPDeviceLayout, kkfloat_1d_4)
 KOKKOS_DEVICE_DUALVIEW(KK_FLOAT*[6], LMPDeviceLayout, kkfloat_1d_6)
 KOKKOS_DEVICE_DUALVIEW(KK_ACC_FLOAT*[6], LMPDeviceLayout, kkacc_1d_6)
+KOKKOS_DEVICE_DUALVIEW(KK_ACC_FLOAT*[9], LMPDeviceLayout, kkacc_1d_9)
 
 typedef TransformView<KK_ACC_FLOAT*, double*, LMPDeviceLayout> ttransform_kkacc_1d;
 typedef TransformView<int**, int**, LMPDeviceLayout> ttransform_int_2d;
@@ -1161,6 +1195,7 @@ typedef TransformView<KK_ACC_FLOAT*[3], double*[3], LMPDeviceLayout> ttransform_
 typedef TransformView<KK_FLOAT*[4], double*[4], LMPDeviceLayout> ttransform_kkfloat_1d_4;
 typedef TransformView<KK_FLOAT*[6], double*[6], LMPDeviceLayout> ttransform_kkfloat_1d_6;
 typedef TransformView<KK_ACC_FLOAT*[6], double*[6], LMPDeviceLayout> ttransform_kkacc_1d_6;
+typedef TransformView<KK_ACC_FLOAT*[9], double*[9], LMPDeviceLayout> ttransform_kkacc_1d_9;
 
 // 3D view types
 
@@ -1242,6 +1277,7 @@ KOKKOS_HOST_DUALVIEW(KK_ACC_FLOAT*[3], LMPDeviceLayout, kkacc_1d_3)
 KOKKOS_HOST_DUALVIEW(KK_FLOAT*[4], LMPDeviceLayout, kkfloat_1d_4)
 KOKKOS_HOST_DUALVIEW(KK_FLOAT*[6], LMPDeviceLayout, kkfloat_1d_6)
 KOKKOS_HOST_DUALVIEW(KK_ACC_FLOAT*[6], LMPDeviceLayout, kkacc_1d_6)
+KOKKOS_HOST_DUALVIEW(KK_ACC_FLOAT*[9], LMPDeviceLayout, kkacc_1d_9)
 
 // 3D view types
 
@@ -1307,7 +1343,7 @@ struct params_lj_coul {
   params_lj_coul() {cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
   KOKKOS_INLINE_FUNCTION
   params_lj_coul(int /*i*/) {cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
-  double cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
+  KK_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
 };
 
 // ReaxFF
@@ -1318,7 +1354,8 @@ struct alignas(4 * sizeof(int)) reax_int4 {
 
 // Pair SNAP
 
-#define SNAP_KOKKOS_REAL double
+#define SNAP_KOKKOS_REAL KK_FLOAT
+#define SNAP_KOKKOS_ACCUM KK_ACC_FLOAT
 #define SNAP_KOKKOS_HOST_VECLEN 1
 
 #ifdef LMP_KOKKOS_GPU

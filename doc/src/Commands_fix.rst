@@ -13,7 +13,7 @@ OPT.
    * :doc:`acks2/reaxff (k) <fix_acks2_reaxff>`
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
-   * :doc:`addforce <fix_addforce>`
+   * :doc:`addforce (k) <fix_addforce>`
    * :doc:`add/heat <fix_add_heat>`
    * :doc:`addtorque <fix_addtorque>`
    * :doc:`alchemy <fix_alchemy>`
@@ -257,6 +257,7 @@ OPT.
    * :doc:`ttm <fix_ttm>`
    * :doc:`ttm/grid <fix_ttm>`
    * :doc:`ttm/mod <fix_ttm>`
+   * :doc:`ttm/thermal <fix_ttm>`
    * :doc:`tune/kspace <fix_tune_kspace>`
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`

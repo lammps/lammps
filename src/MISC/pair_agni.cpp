@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
 static const char cite_pair_agni[] =
-  "pair agni command: doi:10.1021/acs.jpcc.9b04207\n\n"
+  "pair agni command: https://doi.org/10.1021/acs.jpcc.9b04207\n\n"
   "@article{huan2019jpc,\n"
   " author    = {Huan, T. and Batra, R. and Chapman, J. and Kim, C. and Chandrasekaran, A. and Ramprasad, Rampi},\n"
   " journal   = {J.~Phys.\\ Chem.~C},\n"

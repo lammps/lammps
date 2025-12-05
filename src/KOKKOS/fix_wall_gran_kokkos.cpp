@@ -323,7 +323,7 @@ void FixWallGranKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, Bin
 
   k_history_one.sync_device();
 
-  Sorter.sort(LMPDeviceType(), k_history_one.d_view);
+  Sorter.sort(LMPDeviceType(), k_history_one.view_device());
 
   k_history_one.modify_device();
 }

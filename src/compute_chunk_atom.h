@@ -92,7 +92,7 @@ class ComputeChunkAtom : public Compute {
   int maxvar;
   double *varatom;
 
-  char *id_fix;
+  std::string id_fix;
   class FixStoreAtom *fixstore;
 
   class Fix *lockfix;            // ptr to FixAveChunk that is locking out setups

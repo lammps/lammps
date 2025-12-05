@@ -1,6 +1,7 @@
 .. index:: fix ttm
 .. index:: fix ttm/grid
 .. index:: fix ttm/mod
+.. index:: fix ttm/thermal
 
 fix ttm command
 ===============
@@ -11,6 +12,9 @@ fix ttm/grid command
 fix ttm/mod command
 ===================
 
+fix ttm/thermal command
+=======================
+
 Syntax
 """"""
 
@@ -18,9 +22,10 @@ Syntax
 
    fix ID group-ID ttm seed C_e rho_e kappa_e gamma_p gamma_s v_0 Nx Ny Nz keyword value ...
    fix ID group-ID ttm/mod seed init_file Nx Ny Nz keyword value ...
+   fix ID group-ID ttm/thermal seed properties_file Nx Ny Nz keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style = *ttm* or *ttm/grid* or *ttm/mod*
+* style = *ttm* or *ttm/grid* or *ttm/mod* or *ttm/thermal*
 * seed = random number seed to use for white noise (positive integer)
 * remaining arguments for fix ttm or fix ttm/grid
 
@@ -45,6 +50,15 @@ Syntax
        Ny = number of thermal solve grid points in the y-direction (positive integer)
        Nz = number of thermal solve grid points in the z-direction (positive integer)
 
+* remaining arguments for fix ttm/thermal:
+
+  .. parsed-literal::
+
+       properties_file = file with grid based TTM properties
+       Nx = number of thermal solve grid points in the x-direction (positive integer)
+       Ny = number of thermal solve grid points in the y-direction (positive integer)
+       Nz = number of thermal solve grid points in the z-direction (positive integer)
+
 * zero or more keyword/value(s) pairs may be appended
 * keyword = *set* or *infile* or *outfile*
 
@@ -57,6 +71,12 @@ Syntax
          Nout = dump grid temperatures every this many timesteps
          file.out = filename to write grid temperatures to
 
+* fix ttm/thermal supports an additional keyword: *source*
+
+  .. parsed-literal::
+       *source* value = source
+         source = volumetric heating term applied to electrons (energy/(time\*volume) units)
+
 Examples
 """"""""
 
@@ -65,6 +85,7 @@ Examples
    fix 2 all ttm 699489 1.0 1.0 10 0.1 0.0 2.0 1 12 1 infile initial outfile 1000 T.out
    fix 3 all ttm/grid 123456 1.0 1.0 1.0 1.0 1.0 5.0 5 5 5 infile Te.in
    fix 4 all ttm/mod 34277 parameters.txt 5 5 5 infile T_init outfile 10 T_out
+   fix 5 all ttm/thermal 11111 properties.in 10 10 10 source 0.1 infile temps.in outfile 10 temps.out
 
 Example input scripts using these commands can be found in examples/ttm.
 
@@ -86,8 +107,8 @@ Matter papers: :ref:`(Duffy) <Duffy>` and :ref:`(Rutherford)
 a primary knock-on atom (PKA) was initialized with a high velocity to
 simulate a radiation event.
 
-The description in this subsection applies to all 3 fix styles:
-*ttm*, *ttm/grid*, and *ttm/mod*.
+The description in this subsection applies to all 4 fix styles:
+*ttm*, *ttm/grid*, *ttm/mod*, and *ttm/thermal*.
 
 Fix *ttm/grid* distributes the regular grid across processors consistent
 with the subdomains of atoms owned by each processor, but is otherwise
@@ -100,6 +121,13 @@ a surface) and for specifying parameters that allow the electronic heat
 capacity to depend strongly on electronic temperature.  It is more
 expensive computationally than fix *ttm* because it treats the thermal
 diffusion equation as non-linear.  More details on fix *ttm/mod* are
+given below.
+
+.. versionadded:: TBD
+
+Fix *ttm/thermal* allows for electronic properties to be assigned
+independently to each TTM grid point and supports external heat sources
+to the electronic subsystem. More details on fix *ttm/thermal* are
 given below.
 
 Heat transfer between the electronic and atomic subsystems is carried
@@ -242,11 +270,11 @@ units setting in use, grid size and the current timestep.
   reads.  The file has the same format as the file the *infile* option
   reads.
 
-For the fix ttm and fix ttm/mod commands, the corresponding atomic
-temperature for atoms in each grid cell can be computed and output by
-the :doc:`fix ave/chunk <fix_ave_chunk>` command using the
-:doc:`compute chunk/atom <compute_chunk_atom>` command to create a 3d
-array of chunks consistent with the grid used by this fix.
+For the fix ttm, fix ttm/mod, and fix ttm/thermal commands, the
+corresponding atomic temperature for atoms in each grid cell can be
+computed and output by the :doc:`fix ave/chunk <fix_ave_chunk>` command
+using the :doc:`compute chunk/atom <compute_chunk_atom>` command to
+create a 3d array of chunks consistent with the grid used by this fix.
 
 For the fix ttm/grid command the same thing can be done using the
 :doc:`fix ave/grid <fix_ave_grid>` command and its per-grid values can
@@ -354,12 +382,59 @@ ignored. The lines with the even numbers are treated as follows:
 
 ----------
 
+**Additional details for fix ttm/thermal**
+
+Fix *ttm/thermal* uses the heat diffusion equation with possible external
+heat sources (e.g. inductive heating). The effects of electron stopping
+have been removed:
+
+.. math::
+
+  C_\mathrm{vol} \frac{\partial T_e}{\partial t} =
+  \bigtriangledown (\kappa_\mathrm{eff} \bigtriangledown T_e) -
+  g_p (T_e - T_a) + \eta s
+
+where :math:`s` is the applied heating power density and :math:`\eta` is
+the absorption efficiency (0-1) defined for each ttm grid cell in the
+*properties.in* file. Also note that compared to the original *fix ttm*,
+it uses use a volumetric specific heat, :math:`C_\mathrm{vol}` , which
+represents the product of :math:`C_e \rho_e`.
+
+:ref:`(Baer) <Baer>` defined :math:`\kappa_\mathrm{eff}` as an effective
+electronic thermal conductivity when two adjacent TTM cells (denoted by
+the subscripts *a* and *b*) have different conductivities as:
+
+.. math::
+
+  \kappa_\mathrm{eff} = \frac{2 \kappa_a \kappa_b}{\kappa_a + \kappa_b}
+
+The current fix *ttm/thermal* implementation allows TTM simulations with
+TTM cells that do not contain electrons (vacuum or insulators). Similar
+to *ttm/mod*, the absence of electrons is defined as the grid cells with
+zero electronic temperature.The numerical scheme does not allow energy
+exchange with such cells.
+
+
+The fix *ttm/thermal* parameter file *properties_file* uses a similar syntax
+as the keyword *infile*. The file is read in line by line and each ttm cell's
+properties are set. Comment lines are allowed and each line should have
+properties listed in the order:
+
+.. parsed-literal::
+
+   ix iy iz C_vol kappa_e gamma_p eta
+
+the grid must match the one declared in the fix and all grid points must have
+all properties set or *ttm/thermal* will exit with an error.
+
+----------
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-The fix ttm and fix ttm/mod commands write the state of the electronic
-subsystem and the energy exchange between the subsystems to
-:doc:`binary restart files <restart>`.  The fix ttm/grid command does
+The fix ttm, fix ttm/mod, and fix ttm/thermal commands write the state
+of the electronic subsystem and the energy exchange between the subsystems
+to :doc:`binary restart files <restart>`.  The fix ttm/grid command does
 not yet support writing of its distributed grid to a restart file.
 
 See the :doc:`read_restart <read_restart>` command for info on how to
@@ -462,3 +537,7 @@ Plasma Phys., 53, 129-139 (2013).
 
 **(Pisarev)** V V Pisarev and S V Starikov, J. Phys.: Condens. Matter, 26,
 475401 (2014).
+
+.. _Baer:
+
+**(Baer)** B Baer and D G Walker, J. Mol. Model, 31, 220 (2025)

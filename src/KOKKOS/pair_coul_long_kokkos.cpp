@@ -396,17 +396,17 @@ double PairCoulLongKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairCoulLong::init_one(i,j);
 
-  k_params.h_view(i,j).cut_coulsq = cut_coulsq;
+  k_params.view_host()(i,j).cut_coulsq = cut_coulsq;
 
-  k_params.h_view(j,i) = k_params.h_view(i,j);
+  k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
-    m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
+    m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
     m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsq;
     m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_coulsq;
   }
 
-  k_cutsq.h_view(i,j) = cutone*cutone;
+  k_cutsq.view_host()(i,j) = cutone*cutone;
   k_cutsq.modify_host();
   k_params.modify_host();
 

@@ -66,7 +66,7 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
   typename AT::t_kkfloat_1d_3_randomread v;
   typename AT::t_kkfloat_1d_3_randomread omega;
   typename AT::t_kkacc_1d_3 f;
-  typename AT::t_kkfloat_1d_3 torque;
+  typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_1d_randomread type;
   typename AT::t_int_1d_randomread mask;
   typename AT::t_kkfloat_1d_randomread rmass;
@@ -91,6 +91,8 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
 
   int neighflag;
   int nlocal,nall,eflag,vflag;
+
+  KK_FLOAT kt_kk, kn_kk, xmu_kk, gammat_kk, gamman_kk, dt_kk;
 
   FixNeighHistoryKokkos<DeviceType> *fix_historyKK;
 

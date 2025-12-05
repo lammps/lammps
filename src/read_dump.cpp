@@ -974,6 +974,19 @@ void ReadDump::process_atoms()
       }
     }
 
+    // check if atom type is valid
+
+    if ((itype < 1) || (itype > atom->ntypes)) {
+      tagint newtag = i + 1;
+      if ((atom->tag_enable) && (atom->map_tag_max > 0)) {
+        newtag += atom->map_tag_max;
+      } else {
+        newtag += atom->natoms;
+      }
+      error->all(FLERR, Error::NOLASTLINE, "Atom type {} for new atom-ID {} is out of range",
+                 itype, newtag);
+    }
+
     // create the atom on proc that owns it
     // reset v,image ptrs in case they are reallocated
 

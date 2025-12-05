@@ -45,7 +45,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_nve_spin[] =
-  "fix nve/spin command: doi:10.1016/j.jcp.2018.06.042\n\n"
+  "fix nve/spin command: https://doi.org/10.1016/j.jcp.2018.06.042\n\n"
   "@article{tranchida2018massively,\n"
   "title={Massively Parallel Symplectic Algorithm for Coupled Magnetic Spin "
   "   Dynamics and Molecular Dynamics},\n"

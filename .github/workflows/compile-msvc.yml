@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - develop
+      - maintenance
   pull_request:
     branches:
       - develop
@@ -25,7 +26,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         fetch-depth: 2
 
@@ -52,7 +53,7 @@ jobs:
 
     - name: Building LAMMPS via CMake
       run: |
-        ccache -z
+        ccache -z -M 3
         python3 -m pip install numpy
         python3 -m pip install pyyaml
         cmake -C cmake\presets\windows.cmake -D CMAKE_CXX_COMPILER=cl -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_C_COMPILER=cl -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_Fortran_COMPILER="" -D DOWNLOAD_POTENTIALS=off -D PKG_PYTHON=on -D WITH_PNG=off -D WITH_JPEG=off -S cmake -B build -D BUILD_SHARED_LIBS=on -D ENABLE_TESTING=on -D CMAKE_BUILD_TYPE=Release -G Ninja

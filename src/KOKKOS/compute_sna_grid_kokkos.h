@@ -53,7 +53,7 @@ struct TagComputeSNAGrid3D{};
 struct TagComputeSNAGridLoopCPU{};
 
 //template<class DeviceType>
-template<class DeviceType, typename real_type_, int vector_length_>
+template<class DeviceType, typename real_type_, typename accum_type_, int vector_length_>
 class ComputeSNAGridKokkos : public ComputeSNAGrid {
  public:
   typedef DeviceType device_type;
@@ -61,6 +61,7 @@ class ComputeSNAGridKokkos : public ComputeSNAGrid {
 
   static constexpr int vector_length = vector_length_;
   using real_type = real_type_;
+  using accum_type = accum_type_;
   using complex = SNAComplex<real_type>;
 
   static constexpr bool legacy_on_gpu = false; // run the CPU path on the GPU
@@ -210,7 +211,7 @@ class ComputeSNAGridKokkos : public ComputeSNAGrid {
 
  protected:
 
-  SNAKokkos<DeviceType, real_type, vector_length> snaKK;
+  SNAKokkos<DeviceType, real_type, accum_type, vector_length> snaKK;
 
   int max_neighs, chunk_size, chunk_offset;
   int host_flag;
@@ -251,11 +252,11 @@ class ComputeSNAGridKokkos : public ComputeSNAGrid {
   class DomainKokkos *domainKK;
 
   // triclinic vars
-  double h0, h1, h2, h3, h4, h5;
-  double lo0, lo1, lo2;
+  KK_FLOAT h0, h1, h2, h3, h4, h5;
+  KK_FLOAT lo0, lo1, lo2;
 
   // Make SNAKokkos a friend
-  friend class SNAKokkos<DeviceType, real_type, vector_length>;
+  friend class SNAKokkos<DeviceType, real_type, accum_type, vector_length>;
 };
 
 // These wrapper classes exist to make the compute style factory happy/avoid having
@@ -263,10 +264,10 @@ class ComputeSNAGridKokkos : public ComputeSNAGrid {
 // of extra template parameters
 
 template <class DeviceType>
-class ComputeSNAGridKokkosDevice : public ComputeSNAGridKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_DEVICE_VECLEN> {
+class ComputeSNAGridKokkosDevice : public ComputeSNAGridKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_DEVICE_VECLEN> {
 
  private:
-  using Base = ComputeSNAGridKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_DEVICE_VECLEN>;
+  using Base = ComputeSNAGridKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_DEVICE_VECLEN>;
 
  public:
 
@@ -278,10 +279,10 @@ class ComputeSNAGridKokkosDevice : public ComputeSNAGridKokkos<DeviceType, SNAP_
 
 #ifdef LMP_KOKKOS_GPU
 template <class DeviceType>
-class ComputeSNAGridKokkosHost : public ComputeSNAGridKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_HOST_VECLEN> {
+class ComputeSNAGridKokkosHost : public ComputeSNAGridKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_HOST_VECLEN> {
 
  private:
-  using Base = ComputeSNAGridKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_HOST_VECLEN>;
+  using Base = ComputeSNAGridKokkos<DeviceType, SNAP_KOKKOS_REAL, SNAP_KOKKOS_ACCUM, SNAP_KOKKOS_HOST_VECLEN>;
 
  public:
 

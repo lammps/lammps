@@ -27,6 +27,7 @@
 #include "force.h"
 #include "info.h"
 #include "input.h"
+#include "kspace.h"
 #include "modify.h"
 #include "pair.h"
 

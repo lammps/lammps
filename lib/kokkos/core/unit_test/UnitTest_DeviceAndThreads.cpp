@@ -34,7 +34,7 @@ int get_num_devices() {
 #else
   num_devices = -1;
 #endif
-  assert(num_devices == Kokkos::num_devices());
+  KOKKOS_ASSERT(num_devices == Kokkos::num_devices());
   return num_devices;
 }
 
@@ -57,7 +57,7 @@ int get_device_id() {
 #else
   device_id   = -1;
 #endif
-  assert(device_id == Kokkos::device_id());
+  KOKKOS_ASSERT(device_id == Kokkos::device_id());
   return device_id;
 }
 
@@ -81,7 +81,7 @@ int get_hwloc_enabled() {
 
 int get_num_threads() {
   int const num_threads = Kokkos::DefaultHostExecutionSpace().concurrency();
-  assert(num_threads == Kokkos::num_threads());
+  KOKKOS_ASSERT(num_threads == Kokkos::num_threads());
   return num_threads;
 }
 
@@ -116,7 +116,7 @@ int print_flag(std::string const& flag) {
   return EXIT_FAILURE;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {  // NOLINT(bugprone-exception-escape)
   Kokkos::ScopeGuard guard(argc, argv);
   if (argc != 2) {
     std::cerr << "Usage: <executable> NAME_OF_FLAG\n";

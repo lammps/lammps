@@ -44,7 +44,7 @@ enum { NONE, RLINEAR, RSQ };
 static constexpr int MAXLINE = 1024;
 
 static const char cite_pair_multi_lucy[] =
-  "pair_style multi/lucy command: doi:10.1063/1.4942520\n\n"
+  "pair_style multi/lucy command: https://doi.org/10.1063/1.4942520\n\n"
   "@Article{Moore16,\n"
   " author = {J. D. Moore and B. C. Barnes and S. Izvekov and M. Lisal and M. S. Sellers and D. E. Taylor and J. K. Brennan},\n"
   " title = {A Coarse-Grain Force Field for {RDX}:  Density Dependent and Energy Conserving},\n"

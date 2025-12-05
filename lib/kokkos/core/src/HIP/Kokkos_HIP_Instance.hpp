@@ -65,6 +65,96 @@ HIP::size_type *hip_internal_scratch_flags(const HIP &instance,
 
 //----------------------------------------------------------------------------
 
+// Helper to protect a shared resource from being used by multiple streams
+// simultaneously.
+// If used properly, only one stream at a time will be able to use the shared
+// resource.
+// This helper should be used in a thread-safe way.
+//
+// Typical usage:
+// @code
+// auto lock_for_acquisition = shared_resource.acquire();
+//
+// ... do stuff on the shared resource ...
+//
+// shared_resource.release(std::move(lock_for_acquisition), stream);
+//
+// ...
+//
+// auto lock_for_involvement = shared_resource.lock();
+// hipStreamSynchronize(stream);
+// shared_resource.check_if_involved_and_unlock(std::move(lock_for_involvement),
+//                                              stream);
+// hipStreamDestroy(stream);
+// @endcode
+struct SharedResourceLock {
+  bool m_need_sync = false;
+  std::mutex m_mutex{};
+  hipEvent_t m_event   = nullptr;
+  hipStream_t m_stream = nullptr;
+
+  // Acquire the right to interact in a thread-safe way.
+  [[nodiscard]] auto lock() { return std::unique_lock<std::mutex>{m_mutex}; }
+
+  // The event is created for the current device. The instance is locked first.
+  void initialize() {
+    auto lock = this->lock();
+    if (!m_event) {
+      KOKKOS_IMPL_HIP_SAFE_CALL(
+          hipEventCreateWithFlags(&m_event, hipEventDisableTiming));
+    }
+  }
+
+  // Destroying an event can be done even if it is not bound to the current
+  // device.
+  void finalize() {
+    auto lock = this->lock();
+    if (m_event) {
+      KOKKOS_IMPL_HIP_SAFE_CALL(hipEventDestroy(m_event));
+    }
+  }
+
+  SharedResourceLock() = default;
+
+  SharedResourceLock(SharedResourceLock const &other)            = delete;
+  SharedResourceLock(SharedResourceLock &&other)                 = delete;
+  SharedResourceLock &operator=(SharedResourceLock const &other) = delete;
+  SharedResourceLock &operator=(SharedResourceLock &&other)      = delete;
+
+  // Acquire the right to use the shared resource. The instance is locked first.
+  [[nodiscard]] auto acquire() {
+    auto lock = this->lock();
+    if (m_need_sync) KOKKOS_IMPL_HIP_SAFE_CALL(hipEventSynchronize(m_event));
+    return lock;
+  }
+
+  // Record an event in a stream to signal when it's done with the shared
+  // resource.
+  void release(std::unique_lock<std::mutex> lock, hipStream_t stream) {
+    KOKKOS_ENSURES(lock.owns_lock());
+    KOKKOS_ENSURES((lock.mutex() == std::addressof(m_mutex)));
+    m_stream = stream;
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipEventRecord(m_event, m_stream));
+    m_need_sync = true;
+    lock.unlock();
+  }
+
+  // Check if the stream is the one that was used for the event recording.
+  // We assume that this function is called once the stream has been
+  // synchronized, and we mark that the shared resource lock does not need to
+  // synchronize the next time it is acquired.
+  // Doing so allows the current stream to be properly destroyed, while ensuring
+  // that the next constant memory launch will work fine.
+  // See https://github.com/kokkos/kokkos/issues/8006 for more details.
+  void check_if_involved_and_unlock(std::unique_lock<std::mutex> lock,
+                                    hipStream_t stream) {
+    KOKKOS_ENSURES(lock.owns_lock());
+    KOKKOS_ENSURES((lock.mutex() == std::addressof(m_mutex)));
+    if (m_stream == stream) m_need_sync = false;
+    lock.unlock();
+  }
+};
+
 class HIPInternal {
  private:
   HIPInternal(const HIPInternal &);
@@ -108,8 +198,7 @@ class HIPInternal {
 
   static std::set<int> hip_devices;
   static std::map<int, unsigned long *> constantMemHostStaging;
-  static std::map<int, hipEvent_t> constantMemReusable;
-  static std::map<int, std::mutex> constantMemMutex;
+  static std::map<int, SharedResourceLock> constantMemReusable;
 
   static HIPInternal &singleton();
 
@@ -148,23 +237,6 @@ class HIPInternal {
   void set_hip_device() const {
     verify_is_initialized("set_hip_device");
     KOKKOS_IMPL_HIP_SAFE_CALL(hipSetDevice(m_hipDev));
-  }
-
-  // HIP API wrappers where we set the correct device id before calling the HIP
-  // API functions.
-  hipError_t hip_event_create_wrapper(hipEvent_t *event) const {
-    set_hip_device();
-    return hipEventCreate(event);
-  }
-
-  hipError_t hip_event_record_wrapper(hipEvent_t event) const {
-    set_hip_device();
-    return hipEventRecord(event, m_stream);
-  }
-
-  hipError_t hip_event_synchronize_wrapper(hipEvent_t event) const {
-    set_hip_device();
-    return hipEventSynchronize(event);
   }
 
   hipError_t hip_free_wrapper(void *ptr) const {
@@ -279,40 +351,27 @@ class HIPInternal {
                                   bool force_shrink = false);
   void release_team_scratch_space(int scratch_pool_id);
 };
-
-void create_HIP_instances(std::vector<HIP> &instances);
 }  // namespace Impl
 
-namespace Experimental {
-// Partitioning an Execution Space: expects space and integer arguments for
-// relative weight
-//   Customization point for backends
-//   Default behavior is to return the passed in instance
-
-template <class... Args>
-std::vector<HIP> partition_space(const HIP &, Args...) {
-  static_assert(
-      (... && std::is_arithmetic_v<Args>),
-      "Kokkos Error: partitioning arguments must be integers or floats");
-
-  std::vector<HIP> instances(sizeof...(Args));
-  Kokkos::Impl::create_HIP_instances(instances);
-  return instances;
-}
-
+namespace Experimental::Impl {
+// For each space in partition, create new hipStream_t on the same device as
+// base_instance, ignoring weights
 template <class T>
-std::vector<HIP> partition_space(const HIP &, std::vector<T> const &weights) {
-  static_assert(
-      std::is_arithmetic_v<T>,
-      "Kokkos Error: partitioning arguments must be integers or floats");
+std::vector<HIP> impl_partition_space(const HIP &base_instance,
+                                      const std::vector<T> &weights) {
+  std::vector<HIP> instances;
+  instances.reserve(weights.size());
+  std::generate_n(
+      std::back_inserter(instances), weights.size(), [&base_instance]() {
+        hipStream_t stream;
+        KOKKOS_IMPL_HIP_SAFE_CALL(base_instance.impl_internal_space_instance()
+                                      ->hip_stream_create_wrapper(&stream));
+        return HIP(stream, Kokkos::Impl::ManageStream::yes);
+      });
 
-  // We only care about the number of instances to create and ignore weights
-  // otherwise.
-  std::vector<HIP> instances(weights.size());
-  Kokkos::Impl::create_HIP_instances(instances);
   return instances;
 }
-}  // namespace Experimental
+}  // namespace Experimental::Impl
 }  // namespace Kokkos
 
 #endif

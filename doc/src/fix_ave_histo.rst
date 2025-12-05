@@ -281,7 +281,7 @@ assigned to the lower of the two bins.  If *beyond* is set to *ignore* then
 values :math:`<` *lo* and values :math:`>` *hi* are ignored (i.e., they are not
 binned). If *beyond* is set to *end*, then values :math:`<` *lo* are counted in
 the first bin and values :math:`>` *hi* are counted in the last bin.
-If *beyond* is set to *extend*, then two extra bins are created so that there
+If *beyond* is set to *extra*, then two extra bins are created so that there
 are :math:`N_\text{bins}+2` total bins.  Values :math:`<` *lo* are counted in
 the first bin and values :math:`>` *hi* are counted in the last bin
 :math:`(N_\text{bins}+2)`\ .  Values between

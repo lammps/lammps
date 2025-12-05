@@ -142,17 +142,17 @@ void FixShardlowKokkos<DeviceType>::init()
   for (int i = 1; i <= ntypes; i++) {
     for (int j = i; j <= ntypes; j++) {
       double cutone = k_pairDPDE->cut[i][j];
-      if (cutone > EPSILON) k_params.h_view(i,j).cutinv = 1.0/cutone;
-      else k_params.h_view(i,j).cutinv = FLT_MAX;
-      k_params.h_view(i,j).halfsigma = 0.5*k_pairDPDE->sigma[i][j];
-      k_params.h_view(i,j).kappa = k_pairDPDE->kappa[i][j];
-      k_params.h_view(i,j).alpha = k_pairDPDE->alpha[i][j];
+      if (cutone > EPSILON) k_params.view_host()(i,j).cutinv = 1.0/cutone;
+      else k_params.view_host()(i,j).cutinv = FLT_MAX;
+      k_params.view_host()(i,j).halfsigma = 0.5*k_pairDPDE->sigma[i][j];
+      k_params.view_host()(i,j).kappa = k_pairDPDE->kappa[i][j];
+      k_params.view_host()(i,j).alpha = k_pairDPDE->alpha[i][j];
 
-      k_params.h_view(j,i) = k_params.h_view(i,j);
+      k_params.view_host()(j,i) = k_params.view_host()(i,j);
 
       if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
-        m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
-        m_cutsq[j][i] = m_cutsq[i][j] = k_pairDPDE->k_cutsq.h_view(i,j);
+        m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
+        m_cutsq[j][i] = m_cutsq[i][j] = k_pairDPDE->k_cutsq.view_host()(i,j);
       }
     }
   }
@@ -202,17 +202,17 @@ void FixShardlowKokkos<DeviceType>::pre_neighbor()
     ghostmax = nghost;
     k_v_t0 = DAT::tdual_kkfloat_1d_3("FixShardlowKokkos:v_t0", ghostmax);
     // d_v_t0 = k_v_t0.template view<DeviceType>();
-    h_v_t0 = k_v_t0.h_view;
+    h_v_t0 = k_v_t0.view_host();
   }
 
   // Setup views of relevant data
   x = atomKK->k_x.template view<DeviceType>();
   v = atomKK->k_v.template view<DeviceType>();
-  h_v = atomKK->k_v.h_view;
+  h_v = atomKK->k_v.view_host();
   uCond = atomKK->k_uCond.template view<DeviceType>();
-  h_uCond = atomKK->k_uCond.h_view;
+  h_uCond = atomKK->k_uCond.view_host();
   uMech = atomKK->k_uMech.template view<DeviceType>();
-  h_uMech = atomKK->k_uMech.h_view;
+  h_uMech = atomKK->k_uMech.view_host();
   type = atomKK->k_type.view<DeviceType>();
   if (atomKK->rmass) {
     massPerI = true;
@@ -580,8 +580,8 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
   np_ssa->k_ssa_phaseLen.sync_host();
   np_ssa->k_ssa_gphaseLen.sync_host();
-  auto h_ssa_phaseLen = np_ssa->k_ssa_phaseLen.h_view;
-  auto h_ssa_gphaseLen = np_ssa->k_ssa_gphaseLen.h_view;
+  auto h_ssa_phaseLen = np_ssa->k_ssa_phaseLen.view_host();
+  auto h_ssa_gphaseLen = np_ssa->k_ssa_gphaseLen.view_host();
 
   int maxWorkItemCt = (int) ssa_itemLoc.extent(1);
   if (maxWorkItemCt < (int) ssa_gitemLoc.extent(1)) {

@@ -43,7 +43,7 @@ ImproperClass2Kokkos<DeviceType>::ImproperClass2Kokkos(LAMMPS *lmp) : ImproperCl
 
   k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
   d_warning_flag = k_warning_flag.view<DeviceType>();
-  h_warning_flag = k_warning_flag.h_view;
+  h_warning_flag = k_warning_flag.view_host();
 
   centroidstressflag = CENTROID_NOTAVAIL;
 }
@@ -888,17 +888,17 @@ void ImproperClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   d_setflag_aa = k_setflag_aa.template view<DeviceType>();
 
   for (int i = 1; i <= n; i++) {
-    k_k0.h_view[i] = k0[i];
-    k_chi0.h_view[i] = chi0[i];
-    k_aa_k1.h_view[i] = aa_k1[i];
-    k_aa_k2.h_view[i] = aa_k2[i];
-    k_aa_k3.h_view[i] = aa_k3[i];
-    k_aa_theta0_1.h_view[i] = aa_theta0_1[i];
-    k_aa_theta0_2.h_view[i] = aa_theta0_2[i];
-    k_aa_theta0_3.h_view[i] = aa_theta0_3[i];
-    k_setflag.h_view[i] = setflag[i];
-    k_setflag_i.h_view[i] = setflag_i[i];
-    k_setflag_aa.h_view[i] = setflag_aa[i];
+    k_k0.view_host()[i] = k0[i];
+    k_chi0.view_host()[i] = chi0[i];
+    k_aa_k1.view_host()[i] = aa_k1[i];
+    k_aa_k2.view_host()[i] = aa_k2[i];
+    k_aa_k3.view_host()[i] = aa_k3[i];
+    k_aa_theta0_1.view_host()[i] = aa_theta0_1[i];
+    k_aa_theta0_2.view_host()[i] = aa_theta0_2[i];
+    k_aa_theta0_3.view_host()[i] = aa_theta0_3[i];
+    k_setflag.view_host()[i] = setflag[i];
+    k_setflag_i.view_host()[i] = setflag_i[i];
+    k_setflag_aa.view_host()[i] = setflag_aa[i];
   }
 
   k_k0.modify_host();
@@ -949,17 +949,17 @@ void ImproperClass2Kokkos<DeviceType>::read_restart(FILE *fp)
   d_setflag_aa = k_setflag_aa.template view<DeviceType>();
 
   for (int i = 1; i <= n; i++) {
-    k_k0.h_view[i] = k0[i];
-    k_chi0.h_view[i] = chi0[i];
-    k_aa_k1.h_view[i] = aa_k1[i];
-    k_aa_k2.h_view[i] = aa_k2[i];
-    k_aa_k3.h_view[i] = aa_k3[i];
-    k_aa_theta0_1.h_view[i] = aa_theta0_1[i];
-    k_aa_theta0_2.h_view[i] = aa_theta0_2[i];
-    k_aa_theta0_3.h_view[i] = aa_theta0_3[i];
-    k_setflag.h_view[i] = setflag[i];
-    k_setflag_i.h_view[i] = setflag_i[i];
-    k_setflag_aa.h_view[i] = setflag_aa[i];
+    k_k0.view_host()[i] = k0[i];
+    k_chi0.view_host()[i] = chi0[i];
+    k_aa_k1.view_host()[i] = aa_k1[i];
+    k_aa_k2.view_host()[i] = aa_k2[i];
+    k_aa_k3.view_host()[i] = aa_k3[i];
+    k_aa_theta0_1.view_host()[i] = aa_theta0_1[i];
+    k_aa_theta0_2.view_host()[i] = aa_theta0_2[i];
+    k_aa_theta0_3.view_host()[i] = aa_theta0_3[i];
+    k_setflag.view_host()[i] = setflag[i];
+    k_setflag_i.view_host()[i] = setflag_i[i];
+    k_setflag_aa.view_host()[i] = setflag_aa[i];
   }
 
   k_k0.modify_host();

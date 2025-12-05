@@ -69,7 +69,14 @@ struct SpaceAwareAccessor {
   explicit operator NestedAccessor() const { return nested_acc; }
 
   KOKKOS_FUNCTION
-  constexpr reference access(data_handle_type p, size_t i) const noexcept {
+  constexpr reference access(
+#ifndef KOKKOS_ENABLE_OPENACC
+      const data_handle_type& p,
+#else
+      // FIXME OpenACC: illegal address when passing by reference
+      data_handle_type p,
+#endif
+      size_t i) const noexcept {
     Kokkos::Impl::runtime_check_memory_access_violation<memory_space>(
         "Kokkos::SpaceAwareAccessor ERROR: attempt to access inaccessible "
         "memory space");
@@ -78,7 +85,13 @@ struct SpaceAwareAccessor {
 
   KOKKOS_FUNCTION
   constexpr typename offset_policy::data_handle_type offset(
-      data_handle_type p, size_t i) const noexcept {
+#ifndef KOKKOS_ENABLE_OPENACC
+      const data_handle_type& p,
+#else
+      // FIXME OpenACC: illegal address when passing by reference
+      data_handle_type p,
+#endif
+      size_t i) const noexcept {
     return nested_acc.offset(p, i);
   }
 
@@ -137,13 +150,26 @@ struct SpaceAwareAccessor<AnonymousSpace, NestedAccessor> {
   explicit operator NestedAccessor() const { return nested_acc; }
 
   KOKKOS_FUNCTION
-  constexpr reference access(data_handle_type p, size_t i) const noexcept {
+  constexpr reference access(
+#ifndef KOKKOS_ENABLE_OPENACC
+      const data_handle_type& p,
+#else
+      // FIXME OpenACC: illegal address when passing by reference
+      data_handle_type p,
+#endif
+      size_t i) const noexcept {
     return nested_acc.access(p, i);
   }
 
   KOKKOS_FUNCTION
   constexpr typename offset_policy::data_handle_type offset(
-      data_handle_type p, size_t i) const noexcept {
+#ifndef KOKKOS_ENABLE_OPENACC
+      const data_handle_type& p,
+#else
+      // FIXME OpenACC: illegal address when passing by reference
+      data_handle_type p,
+#endif
+      size_t i) const noexcept {
     return nested_acc.offset(p, i);
   }
 
@@ -202,12 +228,26 @@ struct AtomicAccessorRelaxed {
   }
 
   KOKKOS_FUNCTION
-  reference access(data_handle_type p, size_t i) const noexcept {
+  reference access(
+#ifndef KOKKOS_ENABLE_OPENACC
+      const data_handle_type& p,
+#else
+      // FIXME OpenACC: illegal address when passing by reference
+      data_handle_type p,
+#endif
+      size_t i) const noexcept {
     return reference(p[i]);
   }
 
   KOKKOS_FUNCTION
-  data_handle_type offset(data_handle_type p, size_t i) const noexcept {
+  data_handle_type offset(
+#ifndef KOKKOS_ENABLE_OPENACC
+      const data_handle_type& p,
+#else
+      // FIXME OpenACC: illegal address when passing by reference
+      data_handle_type p,
+#endif
+      size_t i) const noexcept {
     return p + i;
   }
 };
@@ -265,8 +305,8 @@ class ReferenceCountedDataHandle {
       class OtherElementType, class OtherSpace,
       class = std::enable_if_t<
           std::is_convertible_v<OtherElementType (*)[], value_type (*)[]> &&
-          (std::is_same_v<OtherSpace, AnonymousSpace> ||
-           std::is_same_v<memory_space, AnonymousSpace>)>>
+          SpaceAccessibility<memory_space,
+                             typename OtherSpace::memory_space>::assignable>>
   KOKKOS_FUNCTION ReferenceCountedDataHandle(
       const ReferenceCountedDataHandle<OtherElementType, OtherSpace>& other)
       : m_tracker(other.m_tracker), m_handle(other.m_handle) {}
@@ -306,6 +346,13 @@ class ReferenceCountedDataHandle {
   SharedAllocationTracker m_tracker;
   pointer m_handle = nullptr;
 };
+
+// Helper function used by View to extract raw pointer from data_handle
+template <class ElementType, class MemorySpace>
+KOKKOS_INLINE_FUNCTION constexpr auto ptr_from_data_handle(
+    const ReferenceCountedDataHandle<ElementType, MemorySpace>& handle) {
+  return handle.get();
+}
 
 template <class T>
 struct IsReferenceCountedDataHandle : std::false_type {};
@@ -360,9 +407,9 @@ class ReferenceCountedAccessor {
       class OtherElementType, class OtherSpace, class OtherNestedAccessor,
       class = std::enable_if_t<
           std::is_convertible_v<OtherElementType (*)[], element_type (*)[]> &&
-          (std::is_same_v<OtherSpace, AnonymousSpace> ||
-           std::is_same_v<memory_space, AnonymousSpace>)&&std::
-              is_constructible_v<NestedAccessor, OtherNestedAccessor>>>
+          SpaceAccessibility<memory_space,
+                             typename OtherSpace::memory_space>::assignable &&
+          std::is_constructible_v<NestedAccessor, OtherNestedAccessor>>>
   KOKKOS_FUNCTION constexpr ReferenceCountedAccessor(
       const ReferenceCountedAccessor<OtherElementType, OtherSpace,
                                      OtherNestedAccessor>&) {}
@@ -382,13 +429,27 @@ class ReferenceCountedAccessor {
   }
 
   KOKKOS_FUNCTION
-  constexpr reference access(data_handle_type p, size_t i) const {
+  constexpr reference access(
+#ifndef KOKKOS_ENABLE_OPENACC
+      const data_handle_type& p,
+#else
+      // FIXME OpenACC: illegal address when passing by reference
+      data_handle_type p,
+#endif
+      size_t i) const {
     return m_nested_acc.access(p.get(), i);
   }
 
   KOKKOS_FUNCTION
-  constexpr data_handle_type offset(data_handle_type p, size_t i) const {
-    return data_handle_type(p, m_nested_acc.offset(p.get(), i));
+  constexpr data_handle_type offset(
+#ifndef KOKKOS_ENABLE_OPENACC
+      const data_handle_type& p,
+#else
+      // FIXME OpenACC: illegal address when passing by reference
+      data_handle_type p,
+#endif
+      size_t i) const {
+    return data_handle_type{p, m_nested_acc.offset(p.get(), i)};
   }
 
   KOKKOS_FUNCTION

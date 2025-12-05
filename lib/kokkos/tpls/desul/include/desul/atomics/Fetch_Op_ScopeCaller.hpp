@@ -26,19 +26,6 @@ namespace Impl {
     T oldval = *dest;                                            \
     *dest = op.apply(oldval, val);                               \
     return oldval;                                               \
-  }                                                              \
-                                                                 \
-  template <class Oper, class T, class MemoryOrder>              \
-  ANNOTATION T HOST_OR_DEVICE##_atomic_oper_fetch(               \
-      const Oper& op,                                            \
-      T* const dest,                                             \
-      dont_deduce_this_parameter_t<const T> val,                 \
-      MemoryOrder /*order*/,                                     \
-      MemoryScopeCaller /*scope*/) {                             \
-    T oldval = *dest;                                            \
-    T newval = op.apply(oldval, val);                            \
-    *dest = newval;                                              \
-    return newval;                                               \
   }
 
 DESUL_IMPL_ATOMIC_FETCH_OPER(DESUL_IMPL_HOST_FUNCTION, host)

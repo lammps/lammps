@@ -1350,9 +1350,9 @@ std::string Info::get_fmt_info()
 std::string Info::get_json_info()
 {
   return fmt::format("Embedded JSON class version: {}.{}.{}\n",
-                     NLOHMANN_JSON_VERSION_MAJOR,
-                     NLOHMANN_JSON_VERSION_MINOR,
-                     NLOHMANN_JSON_VERSION_PATCH);
+                     LMP_NLOHMANN_JSON_VERSION_MAJOR,
+                     LMP_NLOHMANN_JSON_VERSION_MINOR,
+                     LMP_NLOHMANN_JSON_VERSION_PATCH);
 }
 
 /* ---------------------------------------------------------------------- */

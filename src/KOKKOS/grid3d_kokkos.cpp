@@ -667,8 +667,8 @@ forward_comm_kspace_brick(KSpace *kspace, int which, int nper,
     buf1 = k_buf1.view<DeviceType>().data();
     buf2 = k_buf2.view<DeviceType>().data();
   } else {
-    buf1 = k_buf1.h_view.data();
-    buf2 = k_buf2.h_view.data();
+    buf1 = k_buf1.view_host().data();
+    buf2 = k_buf2.view_host().data();
   }
 
   for (m = 0; m < nswap; m++) {
@@ -720,8 +720,8 @@ forward_comm_kspace_tiled(KSpace *kspace, int which, int nper,
     buf1 = k_buf1.view<DeviceType>().data();
     buf2 = k_buf2.view<DeviceType>().data();
   } else {
-    buf1 = k_buf1.h_view.data();
-    buf2 = k_buf2.h_view.data();
+    buf1 = k_buf1.view_host().data();
+    buf2 = k_buf2.view_host().data();
   }
 
   // post all receives
@@ -807,8 +807,8 @@ reverse_comm_kspace_brick(KSpace *kspace, int which, int nper,
     buf1 = k_buf1.view<DeviceType>().data();
     buf2 = k_buf2.view<DeviceType>().data();
   } else {
-    buf1 = k_buf1.h_view.data();
-    buf2 = k_buf2.h_view.data();
+    buf1 = k_buf1.view_host().data();
+    buf2 = k_buf2.view_host().data();
   }
 
   for (m = nswap-1; m >= 0; m--) {
@@ -862,8 +862,8 @@ reverse_comm_kspace_tiled(KSpace *kspace, int which, int nper,
     buf1 = k_buf1.view<DeviceType>().data();
     buf2 = k_buf2.view<DeviceType>().data();
   } else {
-    buf1 = k_buf1.h_view.data();
-    buf2 = k_buf2.h_view.data();
+    buf1 = k_buf1.view_host().data();
+    buf2 = k_buf2.view_host().data();
   }
 
   // post all receives
@@ -925,7 +925,7 @@ void Grid3dKokkos<DeviceType>::grow_swap()
   maxswap += DELTA;
   swap = (Swap *) memory->srealloc(swap,maxswap*sizeof(Swap),"grid3d:swap");
 
-  if (!k_swap_packlist.d_view.data()) {
+  if (!k_swap_packlist.view_device().data()) {
     k_swap_packlist = DAT::tdual_int_2d_lr("grid3d:swap_packlist",maxswap,k_swap_packlist.extent(1));
     k_swap_unpacklist = DAT::tdual_int_2d_lr("grid3d:swap_unpacklist",maxswap,k_swap_unpacklist.extent(1));
   } else {
@@ -960,7 +960,7 @@ int Grid3dKokkos<DeviceType>::indices(DAT::tdual_int_2d_lr &k_list, int index,
   for (iz = zlo; iz <= zhi; iz++)
     for (iy = ylo; iy <= yhi; iy++)
       for (ix = xlo; ix <= xhi; ix++)
-        k_list.h_view(index,n++) = (iz-fullzlo)*ny*nx + (iy-fullylo)*nx + (ix-fullxlo);
+        k_list.view_host()(index,n++) = (iz-fullzlo)*ny*nx + (iy-fullylo)*nx + (ix-fullxlo);
 
   k_list.modify_host();
   k_list.sync<DeviceType>();

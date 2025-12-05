@@ -59,7 +59,7 @@ NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
 template<class DeviceType>
 void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int /*nall*/)
 {
-  if (mbins > (int) k_bins.h_view.extent(0)) {
+  if (mbins > (int) k_bins.view_host().extent(0)) {
     k_bins = DAT::tdual_int_2d("NBinSSAKokkos::bins",mbins,atoms_per_bin);
     bins = k_bins.view<DeviceType>();
 
@@ -69,7 +69,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int /*nall*/)
 
   ghosts_per_gbin = atom->nghost / 7; // estimate needed size
 
-  if (ghosts_per_gbin > (int) k_gbins.h_view.extent(1)) {
+  if (ghosts_per_gbin > (int) k_gbins.view_host().extent(1)) {
     k_gbins = DAT::tdual_int_2d("NBinSSAKokkos::gbins",8,ghosts_per_gbin);
     gbins = k_gbins.view<DeviceType>();
   }
@@ -136,7 +136,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
 
   // find each ghost's binID (AIR number)
   {
-    for (int i = 0; i < 8; i++) k_gbincount.h_view(i) = 0;
+    for (int i = 0; i < 8; i++) k_gbincount.view_host()(i) = 0;
     k_gbincount.modify_host();
     k_gbincount.sync<DeviceType>();
     ghosts_per_gbin = 0;
@@ -150,7 +150,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
       k_gbins = DAT::tdual_int_2d("gbins", 8, ghosts_per_gbin);
       gbins = k_gbins.view<DeviceType>();
     }
-    for (int i = 0; i < 8; i++) k_gbincount.h_view(i) = 0;
+    for (int i = 0; i < 8; i++) k_gbincount.view_host()(i) = 0;
     k_gbincount.modify_host();
     k_gbincount.sync<DeviceType>();
 

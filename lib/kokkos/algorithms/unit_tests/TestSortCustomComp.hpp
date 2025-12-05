@@ -19,9 +19,27 @@
 
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.random;
+import kokkos.sort;
+#else
 #include <Kokkos_Random.hpp>
 #include <Kokkos_Sort.hpp>
+#endif
 #include <TestStdAlgorithmsCommon.hpp>
+
+#if defined(KOKKOS_ENABLE_ONEDPL)
+#define KOKKOS_IMPL_ONEDPL_VERSION                            \
+  ONEDPL_VERSION_MAJOR * 10000 + ONEDPL_VERSION_MINOR * 100 + \
+      ONEDPL_VERSION_PATCH
+#define KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(MAJOR, MINOR, PATCH) \
+  (KOKKOS_IMPL_ONEDPL_VERSION >= ((MAJOR)*10000 + (MINOR)*100 + (PATCH)))
+#endif
+
+#ifndef KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL
+#define KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(MAJOR, MINOR, PATH) 0
+#endif
 
 namespace {
 namespace SortWithComp {
@@ -62,6 +80,13 @@ auto create_random_view_and_host_clone(
 
 template <class T>
 struct MyComp {
+#if !defined(KOKKOS_ENABLE_ONEDPL) || \
+    KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL(2022, 8, 0)
+  // Make sure that the comparator isn't device copyable, this caused problems
+  // with SYCL/oneDPL
+  Kokkos::View<T*> dummy;
+#endif
+
   KOKKOS_FUNCTION
   bool operator()(T a, T b) const {
     // we return a>b on purpose here, rather than doing a<b
@@ -130,4 +155,8 @@ TEST(TEST_CATEGORY, SortWithCustomComparator) {
 
 }  // namespace SortWithComp
 }  // namespace anonym
+ 
+#undef KOKKOS_IMPL_ONEDPL_VERSION
+#undef KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL
+
 #endif

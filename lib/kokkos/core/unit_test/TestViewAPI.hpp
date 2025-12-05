@@ -880,15 +880,15 @@ struct TestViewMirror {
   }
 
   void static testit() {
-    test_mirror<Kokkos::MemoryTraits<0> >();
+    test_mirror<Kokkos::MemoryTraits<> >();
     test_mirror<Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
-    test_mirror_view<Kokkos::MemoryTraits<0> >();
+    test_mirror_view<Kokkos::MemoryTraits<> >();
     test_mirror_view<Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
-    test_mirror_copy<Kokkos::MemoryTraits<0> >();
+    test_mirror_copy<Kokkos::MemoryTraits<> >();
     test_mirror_copy<Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
     test_mirror_copy_const_data_type();
     test_allocated();
-    test_mirror_no_initialize<Kokkos::MemoryTraits<0> >();
+    test_mirror_no_initialize<Kokkos::MemoryTraits<> >();
     test_mirror_no_initialize<Kokkos::MemoryTraits<Kokkos::Unmanaged> >();
   }
 };

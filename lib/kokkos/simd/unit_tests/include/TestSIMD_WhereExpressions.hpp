@@ -22,7 +22,7 @@
 
 template <typename Abi, typename DataType>
 inline void host_check_where_expr_scatter_to() {
-  if constexpr (is_type_v<Kokkos::Experimental::basic_simd<DataType, Abi>>) {
+  if constexpr (is_simd_avail_v<DataType, Abi>) {
     using simd_type  = Kokkos::Experimental::basic_simd<DataType, Abi>;
     using index_type = Kokkos::Experimental::basic_simd<std::int32_t, Abi>;
     using mask_type  = typename simd_type::mask_type;
@@ -75,7 +75,7 @@ inline void host_check_where_expr_scatter_to() {
 
 template <typename Abi, typename DataType>
 inline void host_check_where_expr_gather_from() {
-  if constexpr (is_type_v<Kokkos::Experimental::basic_simd<DataType, Abi>>) {
+  if constexpr (is_simd_avail_v<DataType, Abi>) {
     using simd_type  = Kokkos::Experimental::basic_simd<DataType, Abi>;
     using index_type = Kokkos::Experimental::basic_simd<std::int32_t, Abi>;
     using mask_type  = typename simd_type::mask_type;

@@ -53,7 +53,7 @@ void WriteDump::command(int narg, char **arg)
 
   std::string dump_id = "WRITE_DUMP";
   auto *dumpargs = new char *[modindex + 2];
-  dumpargs[0] = (char *) dump_id.c_str();                   // dump id
+  dumpargs[0] = utils::strdup(dump_id);                     // dump id
   dumpargs[1] = arg[0];                                     // group
   dumpargs[2] = arg[1];                                     // dump style
   dumpargs[3] = utils::strdup(std::to_string(dumpfreq));    // dump frequency
@@ -95,5 +95,6 @@ void WriteDump::command(int narg, char **arg)
 
   output->delete_dump(dump_id);
   delete[] dumpargs[3];
+  delete[] dumpargs[0];
   delete[] dumpargs;
 }

@@ -125,7 +125,7 @@ class KSpace : protected Pointers {
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;
-  unsigned int datamask_read, datamask_modify;
+  uint64_t datamask_read, datamask_modify;
   int copymode;
 
   int compute_flag;       // 0 if skip compute()

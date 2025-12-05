@@ -171,8 +171,8 @@ void PairHybridKokkos::compute(int eflag, int vflag)
   // perform virial_fdotr on device
 
   atomKK->sync(Device,X_MASK|F_MASK);
-  x = atomKK->k_x.d_view;
-  f = atomKK->k_f.d_view;
+  x = atomKK->k_x.view_device();
+  f = atomKK->k_f.view_device();
 
   if (vflag_fdotr)
     pair_virial_fdotr_compute(this);

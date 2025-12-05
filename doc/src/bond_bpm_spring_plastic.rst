@@ -141,7 +141,7 @@ will cause their reference states to be redefined.
 The potential energy and the single() function of this bond style
 returns zero.  The single() function also calculates two extra bond
 quantities, the initial distance :math:`r_0` and the current equilibrium
-length :math:`r_eq`. These extra quantities can be accessed by the
+length :math:`r_{eq}`. These extra quantities can be accessed by the
 :doc:`compute bond/local <compute_bond_local>` command as *b1* and *b2*,
 respectively.
 

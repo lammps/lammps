@@ -77,7 +77,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 11) utils::missing_cmd_args(FLERR, "fix gcmc", error);
 
   if (atom->molecular == Atom::TEMPLATE)
-    error->all(FLERR,"Fix gcmc does not (yet) work with atom_style template");
+    error->all(FLERR, Error::NOPOINTER, "Fix gcmc does not (yet) work with atom_style template");
 
   dynamic_group_allow = 1;
 
@@ -103,34 +103,36 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   chemical_potential = utils::numeric(FLERR, arg[9], false, lmp);
   displace = utils::numeric(FLERR, arg[10], false, lmp);
 
-  if (nevery <= 0) error->all(FLERR, "Illegal fix gcmc command");
-  if (nexchanges < 0) error->all(FLERR, "Illegal fix gcmc command");
-  if (nmcmoves < 0) error->all(FLERR, "Illegal fix gcmc command");
-  if (seed <= 0) error->all(FLERR, "Illegal fix gcmc command");
+  if (nevery <= 0) error->all(FLERR, 3, "Fix gcmc nevery value must be > 0");
+  if (nexchanges < 0) error->all(FLERR, 4, "Fix gcmc nexchanges value must be >= 0");
+  if (nmcmoves < 0) error->all(FLERR, 5, "Fix gcmc nmcmoves value must be >= 0");
+  if (seed <= 0) error->all(FLERR, 7, "Fix gcmc random seed must be > 0");
   if (reservoir_temperature < 0.0)
-    error->all(FLERR, "Illegal fix gcmc command");
-  if (displace < 0.0) error->all(FLERR, "Illegal fix gcmc command");
+    error->all(FLERR, 8, "Fix gcmc gas reservoir temperature must be >= 0");
+  if (displace < 0.0)
+    error->all(FLERR, 10, "Fix gcmc translation displacement distance must be >= 0");
 
   // read options from end of input line
 
-  options(narg-11,&arg[11]);
+  options(narg - 11, &arg[11]);
 
   // random number generator, same for all procs
 
-  random_equal = new RanPark(lmp,seed);
+  random_equal = new RanPark(lmp, seed);
 
   // random number generator, not the same for all procs
 
-  random_unequal = new RanPark(lmp,seed);
+  random_unequal = new RanPark(lmp, seed);
 
   // error checks on region and its extent being inside simulation box
 
   region_xlo = region_xhi = region_ylo = region_yhi = region_zlo = region_zhi = 0.0;
   if (region) {
     if (region->bboxflag == 0)
-      error->all(FLERR,"Fix gcmc region does not support a bounding box");
+      error->all(FLERR, Error::NOPOINTER, "Fix gcmc region {} does not support a bounding box",
+                 idregion);
     if (region->dynamic_check())
-      error->all(FLERR,"Fix gcmc region cannot be dynamic");
+      error->all(FLERR, Error::NOPOINTER, "Fix gcmc region {} cannot be dynamic", idregion);
 
     region_xlo = region->extent_xlo;
     region_xhi = region->extent_xhi;
@@ -230,8 +232,6 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
 
 void FixGCMC::options(int narg, char **arg)
 {
-  if (narg < 0) error->all(FLERR,"Illegal fix gcmc command");
-
   // defaults
 
   exchmode = EXCHATOM;
@@ -240,7 +240,7 @@ void FixGCMC::options(int narg, char **arg)
   pmoltrans = 0.0;
   pmolrotate = 0.0;
   pmctot = 0.0;
-  max_rotation_angle = 10*MY_PI/180;
+  max_rotation_angle = 10 * MY_PI / 180;
   region_volume = 0;
   max_region_attempts = 1000;
   molecule_group = 0;
@@ -273,119 +273,117 @@ void FixGCMC::options(int narg, char **arg)
 
   int iarg = 0;
   while (iarg < narg) {
-  if (strcmp(arg[iarg],"mol") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      imol = atom->find_molecule(arg[iarg+1]);
+    if (strcmp(arg[iarg], "mol") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc", error);
+      imol = atom->find_molecule(arg[iarg + 1]);
       if (imol == -1)
-        error->all(FLERR,"Molecule template ID for fix gcmc does not exist");
+        error->all(FLERR, iarg + 1, "Molecule template ID {} for fix gcmc does not exist",
+                   arg[iarg + 1]);
       if (atom->molecules[imol]->nset > 1 && comm->me == 0)
-        error->warning(FLERR,"Molecule template for "
-                       "fix gcmc has multiple molecules");
+        error->warning(FLERR, "Molecule template for fix gcmc has multiple molecules");
       exchmode = EXCHMOL;
       onemols = atom->molecules;
       nmol = onemols[imol]->nset;
       iarg += 2;
-  } else if (strcmp(arg[iarg],"mcmoves") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      patomtrans = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      pmoltrans = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      pmolrotate = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "mcmoves") == 0) {
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix gcmc mcmoves", error);
+      patomtrans = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      pmoltrans = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      pmolrotate = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       if (patomtrans < 0 || pmoltrans < 0 || pmolrotate < 0)
-        error->all(FLERR,"Illegal fix gcmc command");
+        error->all(FLERR, "Illegal fix gcmc mcmoves parameters");
       pmctot = patomtrans + pmoltrans + pmolrotate;
-      if (pmctot <= 0)
-        error->all(FLERR,"Illegal fix gcmc command");
+      if (pmctot <= 0) error->all(FLERR, "Illegal fix gcmc mcmoves parameters");
       iarg += 4;
-    } else if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      region = domain->get_region_by_id(arg[iarg+1]);
-      if (!region) error->all(FLERR,"Region {} for fix gcmc does not exist",arg[iarg+1]);
-      idregion = utils::strdup(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "region") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc region", error);
+      region = domain->get_region_by_id(arg[iarg + 1]);
+      if (!region)
+        error->all(FLERR, iarg + 1, "Region {} for fix gcmc does not exist", arg[iarg + 1]);
+      idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"maxangle") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      max_rotation_angle = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      max_rotation_angle *= MY_PI/180;
+    } else if (strcmp(arg[iarg], "maxangle") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc maxangle", error);
+      max_rotation_angle = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      max_rotation_angle *= MY_PI / 180;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"pressure") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      pressure = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "pressure") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc pressure", error);
+      pressure = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       pressure_flag = true;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"fugacity_coeff") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      fugacity_coeff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "fugacity_coeff") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc fugacity_coeff", error);
+      fugacity_coeff = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"charge") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      charge = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "charge") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc charge", error);
+      charge = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       charge_flag = true;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"rigid") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      delete [] idrigid;
-      idrigid = utils::strdup(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "rigid") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc rigid", error);
+      delete[] idrigid;
+      idrigid = utils::strdup(arg[iarg + 1]);
       rigidflag = 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"shake") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      delete [] idshake;
-      idshake = utils::strdup(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "shake") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc shake", error);
+      delete[] idshake;
+      idshake = utils::strdup(arg[iarg + 1]);
       shakeflag = 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"full_energy") == 0) {
+    } else if (strcmp(arg[iarg], "full_energy") == 0) {
       full_flag = true;
       iarg += 1;
-    } else if (strcmp(arg[iarg],"group") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+    } else if (strcmp(arg[iarg], "group") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc group", error);
       if (ngroups >= ngroupsmax) {
-        ngroupsmax = ngroups+1;
-        groupstrings = (char **)
-          memory->srealloc(groupstrings,
-                           ngroupsmax*sizeof(char *),
-                           "fix_gcmc:groupstrings");
+        ngroupsmax = ngroups + 1;
+        groupstrings = (char **) memory->srealloc(groupstrings, ngroupsmax * sizeof(char *),
+                                                  "fix_gcmc:groupstrings");
       }
-      groupstrings[ngroups] = utils::strdup(arg[iarg+1]);
+      groupstrings[ngroups] = utils::strdup(arg[iarg + 1]);
       ngroups++;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"grouptype") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix gcmc command");
+    } else if (strcmp(arg[iarg], "grouptype") == 0) {
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix gcmc grouptype", error);
       if (ngrouptypes >= ngrouptypesmax) {
-        ngrouptypesmax = ngrouptypes+1;
-        grouptypes = (int*) memory->srealloc(grouptypes,ngrouptypesmax*sizeof(int),
-                         "fix_gcmc:grouptypes");
-        grouptypestrings = (char**)
-          memory->srealloc(grouptypestrings,
-                           ngrouptypesmax*sizeof(char *),
-                           "fix_gcmc:grouptypestrings");
+        ngrouptypesmax = ngrouptypes + 1;
+        grouptypes = (int *) memory->srealloc(grouptypes, ngrouptypesmax * sizeof(int),
+                                              "fix_gcmc:grouptypes");
+        grouptypestrings = (char **) memory->srealloc(
+            grouptypestrings, ngrouptypesmax * sizeof(char *), "fix_gcmc:grouptypestrings");
       }
-      grouptypes[ngrouptypes] = utils::expand_type_int(FLERR, arg[iarg+1], Atom::ATOM, lmp);
-      grouptypestrings[ngrouptypes] = utils::strdup(arg[iarg+2]);
+      grouptypes[ngrouptypes] = utils::expand_type_int(FLERR, arg[iarg + 1], Atom::ATOM, lmp);
+      grouptypestrings[ngrouptypes] = utils::strdup(arg[iarg + 2]);
       ngrouptypes++;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"intra_energy") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      energy_intra = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "intra_energy") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc intra_energy", error);
+      energy_intra = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"tfac_insert") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      tfac_insert = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "tfac_insert") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc tfac_insert", error);
+      tfac_insert = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"overlap_cutoff") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      double rtmp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      overlap_cutoffsq = rtmp*rtmp;
+    } else if (strcmp(arg[iarg], "overlap_cutoff") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc overlap_cutoff", error);
+      double rtmp = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      overlap_cutoffsq = rtmp * rtmp;
       overlap_flag = 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"min") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      min_ngas = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "min") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc min", error);
+      min_ngas = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"max") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      max_ngas = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "max") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc max", error);
+      max_ngas = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix gcmc command");
+    } else {
+      error->all(FLERR, iarg, "Unknown fix gcmc keyword {}", arg[iarg]);
+    }
   }
 }
 
@@ -464,7 +462,7 @@ int FixGCMC::setmask()
 
 void FixGCMC::init()
 {
-  if (!atom->mass) error->all(FLERR, "Fix gcmc requires per atom type masses");
+  if (!atom->mass) error->all(FLERR, Error::NOLASTLINE, "Fix gcmc requires per atom type masses");
   if (atom->rmass_flag && (comm->me == 0))
     error->warning(FLERR, "Fix gcmc will use per atom type masses for velocity initialization");
 
@@ -478,10 +476,8 @@ void FixGCMC::init()
   }
 
   if (region) {
-    if (region->bboxflag == 0)
-      error->all(FLERR,"Fix gcmc region does not support a bounding box");
-    if (region->dynamic_check())
-      error->all(FLERR,"Fix gcmc region cannot be dynamic");
+    if (region->bboxflag == 0) error->all(FLERR, "Fix gcmc region does not support a bounding box");
+    if (region->dynamic_check()) error->all(FLERR, "Fix gcmc region cannot be dynamic");
 
     region_xlo = region->extent_xlo;
     region_xhi = region->extent_xhi;

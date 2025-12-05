@@ -23,8 +23,10 @@
 
 #include "atom.h"
 #include "fix.h"
+#include "force.h"
 #include "info.h"
 #include "input.h"
+#include "kspace.h"
 #include "modify.h"
 #include "update.h"
 #include "variable.h"

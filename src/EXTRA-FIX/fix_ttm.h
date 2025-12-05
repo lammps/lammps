@@ -57,7 +57,7 @@ class FixTTM : public Fix {
   int outflag, outevery;
   double shift, tinit;
   double e_energy, transfer_energy;
-  char *infile, *outfile;
+  std::string infile, outfile;
 
   class RanMars *random;
   double electronic_specific_heat, electronic_density;

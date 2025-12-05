@@ -60,11 +60,11 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
   memoryKK->create_kokkos(k_gfactor2,gfactor2,ntypes+1,"langevin:gfactor2");
   memoryKK->create_kokkos(k_ratio,ratio,ntypes+1,"langevin:ratio");
   d_gfactor1 = k_gfactor1.template view<DeviceType>();
-  h_gfactor1 = k_gfactor1.h_view;
+  h_gfactor1 = k_gfactor1.view_host();
   d_gfactor2 = k_gfactor2.template view<DeviceType>();
-  h_gfactor2 = k_gfactor2.h_view;
+  h_gfactor2 = k_gfactor2.view_host();
   d_ratio = k_ratio.template view<DeviceType>();
-  h_ratio = k_ratio.h_view;
+  h_ratio = k_ratio.view_host();
 
   // optional args
   for (int i = 1; i <= ntypes; i++) ratio[i] = 1.0;
@@ -72,7 +72,7 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
 
   if (zeroflag) {
     k_fsumall = tdual_kkfloat_1d_3n("langevin:fsumall");
-    h_fsumall = k_fsumall.h_view;
+    h_fsumall = k_fsumall.view_host();
     d_fsumall = k_fsumall.template view<DeviceType>();
   }
 
@@ -134,10 +134,10 @@ void FixLangevinKokkos<DeviceType>::grow_arrays(int nmax)
 {
   memoryKK->grow_kokkos(k_franprev,franprev,nmax,3,"langevin:franprev");
   d_franprev = k_franprev.template view<DeviceType>();
-  h_franprev = k_franprev.h_view;
+  h_franprev = k_franprev.view_host();
   memoryKK->grow_kokkos(k_lv,lv,nmax,3,"langevin:lv");
   d_lv = k_lv.template view<DeviceType>();
-  h_lv = k_lv.h_view;
+  h_lv = k_lv.view_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -185,7 +185,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
       maxatom1 = atomKK->nmax;
       memoryKK->create_kokkos(k_flangevin,flangevin,maxatom1,3,"langevin:flangevin");
       d_flangevin = k_flangevin.template view<DeviceType>();
-      h_flangevin = k_flangevin.h_view;
+      h_flangevin = k_flangevin.view_host();
     }
   }
 
@@ -348,6 +348,9 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
             Kokkos::parallel_for(nlocal,post_functor);
           }
 
+  // f is modified by post_force functor
+  atomKK->modified(execution_space,datamask_modify);
+
   if (tbiasflag == BIAS) {
     if (temperature->kokkosable) temperature->restore_bias_all();
     else {
@@ -374,7 +377,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
     FixLangevinKokkosZeroForceFunctor<DeviceType> zero_functor(this);
     Kokkos::parallel_for(nlocal,zero_functor);
   }
-  // f is modified by both post_force and zero_force functors
+  // f is modified by zero_force functor
   atomKK->modified(execution_space,datamask_modify);
 
   // thermostat omega and angmom
@@ -491,12 +494,12 @@ void FixLangevinKokkos<DeviceType>::compute_target()
         memoryKK->destroy_kokkos(k_tforce,tforce);
         memoryKK->create_kokkos(k_tforce,tforce,maxatom2,"langevin:tforce");
         d_tforce = k_tforce.template view<DeviceType>();
-        h_tforce = k_tforce.h_view;
+        h_tforce = k_tforce.view_host();
       }
       input->variable->compute_atom(tvar,igroup,tforce,1,0); // tforce is modified on host
       k_tforce.modify_host();
       atomKK->sync(Host, MASK_MASK);
-      auto h_mask = atomKK->k_mask.h_view;
+      auto h_mask = atomKK->k_mask.view_host();
       for (int i = 0; i < nlocal; i++)
         if (h_mask[i] & groupbit)
           if (h_tforce[i] < 0.0)
@@ -675,8 +678,8 @@ void FixLangevinKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, Bin
   k_franprev.sync_device();
   k_lv.sync_device();
 
-  Sorter.sort(LMPDeviceType(), k_franprev.d_view);
-  Sorter.sort(LMPDeviceType(), k_lv.d_view);
+  Sorter.sort(LMPDeviceType(), k_franprev.view_device());
+  Sorter.sort(LMPDeviceType(), k_lv.view_device());
 
   k_franprev.modify_device();
   k_lv.modify_device();

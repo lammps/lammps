@@ -42,6 +42,7 @@ struct TagComputeTempDeformRestoreBias{};
 template<class DeviceType>
 class ComputeTempDeformKokkos: public ComputeTempDeform {
  public:
+
   struct s_CTEMP {
     double t0, t1, t2, t3, t4, t5;
     KOKKOS_INLINE_FUNCTION
@@ -61,9 +62,9 @@ class ComputeTempDeformKokkos: public ComputeTempDeform {
   };
 
   typedef s_CTEMP CTEMP;
-  typedef CTEMP value_type;
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef CTEMP value_type;
 
   ComputeTempDeformKokkos(class LAMMPS *, int, char **);
   double compute_scalar() override;
@@ -99,10 +100,9 @@ class ComputeTempDeformKokkos: public ComputeTempDeform {
 
   Few<double, 6> h_rate, h_ratelo;
 
-  };
+};
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

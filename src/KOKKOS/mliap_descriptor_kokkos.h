@@ -35,7 +35,7 @@ template <class DeviceType> class MLIAPDescriptorKokkos : virtual protected Poin
   {
     int num_elems = descriptor->nelements;
     memoryKK->create_kokkos(k_wjelem, num_elems, "MLIAPDescriptorKokkos::k_wjelem");
-    for (int i = 0; i < num_elems; ++i) k_wjelem.h_view(i) = descriptor->wjelem[i];
+    for (int i = 0; i < num_elems; ++i) k_wjelem.view_host()(i) = descriptor->wjelem[i];
     k_wjelem.modify_host();
     k_wjelem.sync_device();
   }

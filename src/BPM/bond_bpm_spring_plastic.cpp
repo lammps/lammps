@@ -36,7 +36,7 @@ static constexpr double EPSILON = 1e-10;
 using namespace LAMMPS_NS;
 
 static const char cite_bpm_plastic[] =
-    "BPM/spring/plastic bond style: doi:10.1016/j.powtec.2024.120563\n\n"
+    "BPM/spring/plastic bond style: https://doi.org/10.1016/j.powtec.2024.120563\n\n"
     "@Article{Clemmer2025,\n"
     " author =  {Clemmer, Joel T. and Lechman, Jeremy B.},\n"
     " title =   {Onset and impact of plastic deformation in granular compaction},\n"

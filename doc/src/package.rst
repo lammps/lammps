@@ -3,6 +3,8 @@
 package command
 ===============
 
+.. contents::
+
 Syntax
 """"""
 
@@ -19,9 +21,10 @@ Syntax
       Ngpu = # of GPUs per node
       zero or more keyword/value pairs may be appended
       keywords = *neigh* or *newton* or *pair/only* or *binsize* or *split* or *gpuID* or *tpa* or *blocksize* or *omp* or *platform* or *device_type* or *ocl_args*
-        *neigh* value = *yes* or *no*
+        *neigh* value = *yes* or *no* or *hybrid*
           *yes* = neighbor list build on GPU (default)
           *no* = neighbor list build on CPU
+          *hybrid* = perform binning on the CPU but build neighbor list on the GPU
         *newton* = *off* or *on*
           *off* = set Newton pairwise flag off (default and required)
           *on* = set Newton pairwise flag on (currently not allowed)
@@ -195,10 +198,11 @@ See the :doc:`Accelerator packages <Speed_packages>` page for more details
 about using the various accelerator packages for speeding up LAMMPS
 simulations.
 
-----------
+GPU package settings
+^^^^^^^^^^^^^^^^^^^^
 
-The *gpu* style invokes settings associated with the use of the GPU
-package.
+The *gpu* style invokes settings associated with the use of the
+:ref:`GPU package <PKG-GPU>`.
 
 The *Ngpu* argument sets the number of GPUs per node. If *Ngpu* is 0
 and no other keywords are specified, GPU or accelerator devices are
@@ -216,15 +220,25 @@ tasks (per node) than GPUs, multiple MPI tasks will share each GPU.
 Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
 
+.. versionchanged:: TBD
+
+   Updated description to the current state of the GPU package
+
 The *neigh* keyword specifies where neighbor lists for pair style
 computation will be built.  If *neigh* is *yes*, which is the default,
 neighbor list building is performed on the GPU.  If *neigh* is *no*,
-neighbor list building is performed on the CPU.  GPU neighbor list
-building currently cannot be used with a triclinic box.  GPU neighbor
-lists are not compatible with commands that are not GPU-enabled.  When
-a non-GPU enabled command requires a neighbor list, it will also be
-built on the CPU.  In these cases, it will typically be more efficient
-to only use CPU neighbor list builds.
+neighbor list building is instead performed on the CPU.  If *neigh* is
+*hybrid* the binning step of the neighbor list build is performed on the
+CPU and the list themselves on the GPU.  GPU neighbor list building
+currently is not fully compatible with a triclinic box; if the behavior
+is significantly different from the CPU case, use the *neigh no*
+setting.  GPU neighbor lists are not accessible for commands that are
+not GPU-enabled.  When a non-GPU enabled command requires a neighbor
+list, it will be built on the CPU.  In these cases, it can be more
+efficient to only use CPU neighbor list builds, particularly if the CPU
+neighbor list is perpetual, i.e. used in every step.  If a GPU
+environment does not support building neighbor lists on the GPU, the
+default setting it will automatically change to *neigh no*.
 
 The *newton* keyword sets the Newton flags for pairwise (not bonded)
 interactions to *off* or *on*, the same as the :doc:`newton <newton>`
@@ -355,7 +369,8 @@ For OpenCL, the routines are compiled at runtime for the specified GPU
 or accelerator architecture. The *ocl\_args* keyword can be used to
 specify additional flags for the runtime build.
 
-----------
+INTEL package settings
+^^^^^^^^^^^^^^^^^^^^^^
 
 The *intel* style invokes settings associated with the use of the INTEL
 package.  The keywords *balance*, *ghost*, *tpc*, and *tptask* are
@@ -458,7 +473,8 @@ to prevent MPI tasks and OpenMP threads from being on separate NUMA
 domains and to prevent offload threads from interfering with other
 processes/threads used for LAMMPS.
 
-----------
+KOKKOS package settings
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The *kokkos* style invokes settings associated with the use of the
 KOKKOS package.
@@ -649,7 +665,8 @@ The *bond/block/size* keyword sets the number of GPU threads per block
 used for launching the bond force kernel on the GPU.  The default value
 of this parameter is determined based on the GPU architecture at runtime.
 
-----------
+OPENMP package settings
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The *omp* style invokes settings associated with the use of the
 OPENMP package.

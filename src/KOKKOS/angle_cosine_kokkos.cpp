@@ -253,7 +253,7 @@ void AngleCosineKokkos<DeviceType>::coeff(int narg, char **arg)
 
   int n = atom->nangletypes;
   for (int i = 1; i <= n; i++)
-    k_k.h_view[i] = k[i];
+    k_k.view_host()[i] = k[i];
 
   k_k.modify_host();
 }
@@ -269,7 +269,7 @@ void AngleCosineKokkos<DeviceType>::read_restart(FILE *fp)
 
   int n = atom->nangletypes;
   for (int i = 1; i <= n; i++)
-    k_k.h_view[i] = k[i];
+    k_k.view_host()[i] = k[i];
 
   k_k.modify_host();
 }

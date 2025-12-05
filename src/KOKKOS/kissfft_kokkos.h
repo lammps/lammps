@@ -507,10 +507,10 @@ class KissFFTKokkos {
 
           for (i=0;i<nfft;++i) {
               const double phase = (st.inverse ? 2.0*M_PI:-2.0*M_PI)*i / nfft;
-              kf_cexp(k_twiddles.h_view,i,phase );
+              kf_cexp(k_twiddles.view_host(),i,phase );
           }
 
-          int p_max = kf_factor(nfft,k_factors.h_view);
+          int p_max = kf_factor(nfft,k_factors.view_host());
           st.d_scratch = typename FFT_AT::t_FFT_DATA_1d("kissfft:scratch",p_max);
       }
 

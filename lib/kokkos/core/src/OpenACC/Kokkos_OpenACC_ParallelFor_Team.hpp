@@ -71,10 +71,10 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
     const Impl::TeamThreadRangeBoundariesStruct<iType, Impl::OpenACCTeamMember>&
         loop_boundaries,
     const Lambda& lambda) {
-  iType j_start =
-      loop_boundaries.team.team_rank() / loop_boundaries.team.vector_length();
+  iType j_start = loop_boundaries.member.team_rank() /
+                  loop_boundaries.member.vector_length();
   iType j_end  = loop_boundaries.end;
-  iType j_step = loop_boundaries.team.team_size();
+  iType j_step = loop_boundaries.member.team_size();
   if (j_start >= loop_boundaries.start) {
 #pragma acc loop seq
     for (iType j = j_start; j < j_end; j += j_step) {
@@ -90,10 +90,10 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
     const Impl::ThreadVectorRangeBoundariesStruct<
         iType, Impl::OpenACCTeamMember>& loop_boundaries,
     const Lambda& lambda) {
-  iType j_start =
-      loop_boundaries.team.team_rank() % loop_boundaries.team.vector_length();
+  iType j_start = loop_boundaries.member.team_rank() %
+                  loop_boundaries.member.vector_length();
   iType j_end  = loop_boundaries.end;
-  iType j_step = loop_boundaries.team.vector_length();
+  iType j_step = loop_boundaries.member.vector_length();
   if (j_start >= loop_boundaries.start) {
 #pragma acc loop seq
     for (iType j = j_start; j < j_end; j += j_step) {
@@ -109,10 +109,10 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
     const Impl::TeamVectorRangeBoundariesStruct<iType, Impl::OpenACCTeamMember>&
         loop_boundaries,
     const Lambda& lambda) {
-  iType j_start =
-      loop_boundaries.team.team_rank() % loop_boundaries.team.vector_length();
+  iType j_start = loop_boundaries.member.team_rank() %
+                  loop_boundaries.member.vector_length();
   iType j_end  = loop_boundaries.end;
-  iType j_step = loop_boundaries.team.vector_length();
+  iType j_step = loop_boundaries.member.vector_length();
   if (j_start >= loop_boundaries.start) {
 #pragma acc loop seq
     for (iType j = j_start; j < j_end; j += j_step) {

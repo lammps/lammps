@@ -212,6 +212,7 @@ command:
 
    neighbor->add_request(this, "delete_atoms", NeighConst::REQ_FULL);
 
+.. _error-messages:
 
 Errors, warnings, and informational messages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -251,9 +252,9 @@ linked to the LAMMPS library and have a mechanism to avoid that an error
 in LAMMPS terminates the application.  By catching the exceptions, the
 application can delete the failing LAMMPS class instance and create a
 new one to try again.  In a similar fashion, the :doc:`LAMMPS Python
-module <Python_module>` checks for this and then re-throws corresponding
-Python exception, which in turn can be caught by the calling Python
-code.
+module <Python_module>` checks for this and then re-throws a
+corresponding Python exception, which in turn can be caught by the
+calling Python code.
 
 There are multiple "signatures" that can be called:
 
@@ -264,21 +265,22 @@ There are multiple "signatures" that can be called:
 - ``Error::all(FLERR, Error::NOLASTLINE, "Error message")``: this is the
   same as before but without the last line of input.  This is preferred
   for errors that would happen *during* a :doc:`run <run>` or
-  :doc:`minimization <minimize>`, since showing the "run" or "minimize"
-  command would be the last line, but is unrelated to the error.
+  :doc:`minimization <minimize>`, since the last line would be showing
+  the "run" or "minimize" command yet those are unrelated to the command
+  *causing* the error.
 
 - ``Error::all(FLERR, idx, "Error message")``: this is for argument
   parsing where "idx" is the index (starting at 0) of the argument for a
-  LAMMPS command that is causing the failure (use -1 for the command
-  itself).  For index 0, you need to use the constant ``Error::ARGZERO``
-  to work around the inability of some compilers to disambiguate between
-  a NULL pointer and an integer constant 0, even with an added type cast.
-  The output may also include the last input line *before* and
-  *after*, if they differ due to substituting variables.  A textual
-  indicator is pointing to the specific word that failed.  Using the
-  constant ``Error::NOPOINTER`` in place of the *idx* argument will
-  suppress the marker and then the behavior is like the *idx* argument
-  is not provided.
+  LAMMPS command that is causing the failure (use ``Error::COMMAND`` for
+  the command itself).  For index 0, i.e. the first command argument,
+  you need to use the constant ``Error::ARGZERO`` to work around the
+  inability of some compilers to disambiguate between a NULL pointer and
+  an integer constant 0, even with an added type cast.  The output may
+  also include the last input line *before* and *after* substituting
+  variables, if they differ.  A textual indicator is pointing to the
+  specific word that failed.  Using the constant ``Error::NOPOINTER`` in
+  place of the *idx* argument will suppress the marker and then the
+  behavior is like the *idx* argument is not provided.
 
 FLERR is a macro containing the filename and line where the Error class
 is called and that information is appended to the error message.  This

@@ -75,7 +75,7 @@ class NeighBondKokkos : protected Pointers  {
 
   // KOKKOS host/device flag and data masks
   ExecutionSpace execution_space;
-  unsigned int datamask_read,datamask_modify;
+  uint64_t datamask_read,datamask_modify;
 
   int maxbond,maxangle,maxdihedral,maximproper;   // size of bond lists
   int me,nprocs;

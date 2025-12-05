@@ -1377,7 +1377,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
       memoryKK->destroy_kokkos (k_dpdThetaLocal, dpdThetaLocal);
       memoryKK->create_kokkos(k_dpdThetaLocal, dpdThetaLocal, count, "FixRxKokkos::dpdThetaLocal");
       this->d_dpdThetaLocal = k_dpdThetaLocal.template view<DeviceType>();
-      this->h_dpdThetaLocal = k_dpdThetaLocal.h_view;
+      this->h_dpdThetaLocal = k_dpdThetaLocal.view_host();
     }
 
     const int neighflag = lmp->kokkos->neighflag;
@@ -1451,7 +1451,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   //DAT::tdual_int_scalar k_error_flag("pair:error_flag");
 
   // Initialize and sync the device flag.
-  k_error_flag.h_view() = 0;
+  k_error_flag.view_host()() = 0;
   k_error_flag.modify_host();
   k_error_flag.template sync<DeviceType>();
 
@@ -1473,7 +1473,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   // Check the error flag for any failures.
   k_error_flag.template modify<DeviceType>();
   k_error_flag.sync_host();
-  if (k_error_flag.h_view() == 2)
+  if (k_error_flag.view_host()() == 2)
     error->one(FLERR,"Computed concentration in RK solver is < -1.0e-10");
 
   // Signal that dvector has been modified on this execution space.
@@ -1587,8 +1587,8 @@ void FixRxKokkos<DeviceType>::odeDiagnostics()
   // Process the per-ODE RMS of the # of steps/funcs
   if (diagnosticFrequency == 1)
   {
-    h_diagnosticCounterPerODEnSteps = k_diagnosticCounterPerODEnSteps.h_view;
-    h_diagnosticCounterPerODEnFuncs = k_diagnosticCounterPerODEnFuncs.h_view;
+    h_diagnosticCounterPerODEnSteps = k_diagnosticCounterPerODEnSteps.view_host();
+    h_diagnosticCounterPerODEnFuncs = k_diagnosticCounterPerODEnFuncs.view_host();
 
     Kokkos::deep_copy( h_diagnosticCounterPerODEnSteps, d_diagnosticCounterPerODEnSteps );
     Kokkos::deep_copy( h_diagnosticCounterPerODEnFuncs, d_diagnosticCounterPerODEnFuncs );
@@ -1596,7 +1596,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics()
     double my_max[numCounters], my_min[numCounters];
 
     nlocal = atom->nlocal;
-    HAT::t_int_1d h_mask = atomKK->k_mask.h_view;
+    HAT::t_int_1d h_mask = atomKK->k_mask.view_host();
 
     for (int i = 0; i < numCounters; ++i)
     {
@@ -1826,8 +1826,8 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
     for (int i = 1; i <= ntypes; ++i)
       for (int j = i; j <= ntypes; ++j)
       {
-        k_cutsq.h_view(i,j) = pairDPDE->cutsq[i][j];
-        k_cutsq.h_view(j,i) = k_cutsq.h_view(i,j);
+        k_cutsq.view_host()(i,j) = pairDPDE->cutsq[i][j];
+        k_cutsq.view_host()(j,i) = k_cutsq.view_host()(i,j);
       }
 
     k_cutsq.modify_host();
@@ -1841,7 +1841,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
     memoryKK->destroy_kokkos(k_sumWeights, sumWeights);
     memoryKK->create_kokkos(k_sumWeights, sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
     d_sumWeights = k_sumWeights.template view<DeviceType>();
-    h_sumWeights = k_sumWeights.h_view;
+    h_sumWeights = k_sumWeights.view_host();
   }
 
   Kokkos::parallel_for (Kokkos::RangePolicy<DeviceType, Tag_FixRxKokkos_zeroTemperatureViews>(0, sumWeightsCt), *this);
@@ -1970,7 +1970,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 template <typename DeviceType>
 int FixRxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
-  HAT::t_double_2d_lr h_dvector = atomKK->k_dvector.h_view;
+  HAT::t_double_2d_lr h_dvector = atomKK->k_dvector.view_host();
 
   int m = 0;
   for (int ii = 0; ii < n; ii++) {
@@ -1988,7 +1988,7 @@ int FixRxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, in
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
-  HAT::t_double_2d_lr h_dvector = atomKK->k_dvector.h_view;
+  HAT::t_double_2d_lr h_dvector = atomKK->k_dvector.view_host();
 
   const int last = first + n ;
   int m = 0;

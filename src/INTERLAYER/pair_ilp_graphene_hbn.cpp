@@ -44,7 +44,7 @@ static constexpr int DELTA = 4;
 static constexpr int PGDELTA = 1;
 
 static const char cite_ilp[] =
-    "ilp/graphene/hbn potential doi:10.1021/acs.nanolett.8b02848\n"
+    "ilp/graphene/hbn potential: https://doi.org/10.1021/acs.nanolett.8b02848\n\n"
     "@Article{Ouyang2018\n"
     " author = {W. Ouyang and D. Mandelli and M. Urbakh and O. Hod},\n"
     " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"
@@ -60,7 +60,8 @@ std::map<int, const std::string> variant_map = {
     {PairILPGrapheneHBN::ILP_GrhBN, "ilp/graphene/hbn"},
     {PairILPGrapheneHBN::ILP_TMD, "ilp/tmd"},
     {PairILPGrapheneHBN::AIP_WATER_2DM, "aip/water/2dm"},
-    {PairILPGrapheneHBN::SAIP_METAL, "saip/metal"}};
+    {PairILPGrapheneHBN::SAIP_METAL, "saip/metal"},
+    {PairILPGrapheneHBN::SAIP_METAL_TMD, "saip/metal/tmd"}};
 }
 /* ---------------------------------------------------------------------- */
 

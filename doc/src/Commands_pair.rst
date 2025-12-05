@@ -14,7 +14,7 @@ OPT.
    * :doc:`hybrid (ko) <pair_hybrid>`
    * :doc:`hybrid/molecular (o) <pair_hybrid>`
    * :doc:`hybrid/overlay (ko) <pair_hybrid>`
-   * :doc:`hybrid/scaled (o) <pair_hybrid>`
+   * :doc:`hybrid/scaled (ko) <pair_hybrid>`
    * :doc:`kim <pair_kim>`
    * :doc:`list <pair_list>`
    * :doc:`tracker <pair_tracker>`
@@ -192,7 +192,7 @@ OPT.
    * :doc:`lj/smooth (go) <pair_lj_smooth>`
    * :doc:`lj/smooth/linear (o) <pair_lj_smooth_linear>`
    * :doc:`lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
-   * :doc:`lj96/cut (go) <pair_lj96>`
+   * :doc:`lj96/cut (gko) <pair_lj96>`
    * :doc:`local/density <pair_local_density>`
    * :doc:`lubricate (o) <pair_lubricate>`
    * :doc:`lubricate/poly (o) <pair_lubricate>`
@@ -261,6 +261,7 @@ OPT.
    * :doc:`rheo <pair_rheo>`
    * :doc:`rheo/solid <pair_rheo_solid>`
    * :doc:`saip/metal (t) <pair_saip_metal>`
+   * :doc:`saip/metal/tmd (t) <pair_saip_metal>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
    * :doc:`smatb <pair_smatb>`
    * :doc:`smatb/single <pair_smatb>`

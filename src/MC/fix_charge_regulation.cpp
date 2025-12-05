@@ -55,7 +55,7 @@ using namespace MathConst;
 using namespace MathSpecial;
 
 static const char cite_fix_charge_regulation[] =
-  "fix charge/regulation: doi:10.1063/5.0066432\n\n"
+  "fix charge/regulation: https://doi.org/10.1063/5.0066432\n\n"
   "@Article{Curk22,\n"
   " author = {T. Curk and J. Yuan and E. Luijten},\n"
   " title = {Accelerated Simulation Method for Charge Regulation Effects},\n"

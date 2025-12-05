@@ -18,16 +18,18 @@
 
 #include <gtest/gtest.h>
 
+#include <tools/include/ToolTestingUtilities.hpp>
+
 namespace {
 
 template <class MemorySpace>
 void test_view_bad_alloc() {
-  bool did_throw    = false;
   auto too_large    = std::numeric_limits<size_t>::max() - 42;
   std::string label = "my_label";
   try {
     auto should_always_fail =
         Kokkos::View<double *, MemorySpace>(label, too_large);
+    FAIL() << "It should have thrown.";
   } catch (std::runtime_error const &error) {
     std::string msg = error.what();
     ASSERT_PRED_FORMAT2(
@@ -38,9 +40,7 @@ void test_view_bad_alloc() {
     ASSERT_PRED_FORMAT2(::testing::IsSubstring,
                         std::string("(label=\"") + label + "\")", msg)
         << "label is missing";
-    did_throw = true;
   }
-  ASSERT_TRUE(did_throw);
 }
 
 TEST(TEST_CATEGORY, view_bad_alloc) {
@@ -72,7 +72,14 @@ TEST(TEST_CATEGORY, view_bad_alloc) {
   }
 #endif
 
-  test_view_bad_alloc<MemorySpace>();
+  using namespace Kokkos::Test::Tools;
+  listen_tool_events(Config::DisableAll(), Config::EnableAllocs());
+
+  ASSERT_TRUE(validate_absence(
+      [] { test_view_bad_alloc<MemorySpace>(); },
+      [](AllocateDataEvent) { return MatchDiagnostic{true}; }));
+
+  listen_tool_events(Config::DisableAll());
 
   constexpr bool execution_space_is_device =
       std::is_same_v<ExecutionSpace, Kokkos::DefaultExecutionSpace> &&

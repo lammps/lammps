@@ -95,7 +95,9 @@ KOKKOS_FUNCTION bool within_range(
     return true;
   };
 
-  return ((indices < exts.extent(Enumerate)) && ...) &&
+  return ((static_cast<size_t>(indices) <
+           static_cast<size_t>(exts.extent(Enumerate))) &&
+          ...) &&
          (check_index_min(indices) && ...);
 }
 

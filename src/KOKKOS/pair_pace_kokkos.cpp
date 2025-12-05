@@ -89,12 +89,12 @@ void PairPACEKokkos<DeviceType>::deallocate_views_of_views()
 {
   // deallocate views of views in serial to prevent race conditions
 
-  if (k_splines_gk.h_view.data()) {
+  if (k_splines_gk.view_host().data()) {
     for (int i = 0; i < nelements; i++) {
       for (int j = 0; j < nelements; j++) {
-        k_splines_gk.h_view(i, j).deallocate();
-        k_splines_rnl.h_view(i, j).deallocate();
-        k_splines_hc.h_view(i, j).deallocate();
+        k_splines_gk.view_host()(i, j).deallocate();
+        k_splines_rnl.view_host()(i, j).deallocate();
+        k_splines_hc.view_host()(i, j).deallocate();
       }
     }
   }
@@ -256,9 +256,9 @@ void PairPACEKokkos<DeviceType>::copy_splines()
 
   for (int i = 0; i < nelements; i++) {
     for (int j = 0; j < nelements; j++) {
-      k_splines_gk.h_view(i, j) = radial_functions->splines_gk(i, j);
-      k_splines_rnl.h_view(i, j) = radial_functions->splines_rnl(i, j);
-      k_splines_hc.h_view(i, j) = radial_functions->splines_hc(i, j);
+      k_splines_gk.view_host()(i, j) = radial_functions->splines_gk(i, j);
+      k_splines_rnl.view_host()(i, j) = radial_functions->splines_rnl(i, j);
+      k_splines_hc.view_host()(i, j) = radial_functions->splines_hc(i, j);
     }
   }
 
@@ -459,10 +459,10 @@ double PairPACEKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairPACE::init_one(i,j);
 
-  k_scale.h_view(i,j) = k_scale.h_view(j,i) = scale[i][j];
+  k_scale.view_host()(i,j) = k_scale.view_host()(j,i) = scale[i][j];
   k_scale.modify_host();
 
-  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
+  k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
   k_cutsq.modify_host();
 
   return cutone;
@@ -2003,12 +2003,12 @@ double PairPACEKokkos<DeviceType>::memory_usage()
   bytes += MemKK::memory_usage(cl);
   bytes += MemKK::memory_usage(dl);
 
-  if (k_splines_gk.h_view.data()) {
+  if (k_splines_gk.view_host().data()) {
     for (int i = 0; i < nelements; i++) {
       for (int j = 0; j < nelements; j++) {
-        bytes += k_splines_gk.h_view(i, j).memory_usage();
-        bytes += k_splines_rnl.h_view(i, j).memory_usage();
-        bytes += k_splines_hc.h_view(i, j).memory_usage();
+        bytes += k_splines_gk.view_host()(i, j).memory_usage();
+        bytes += k_splines_rnl.view_host()(i, j).memory_usage();
+        bytes += k_splines_hc.view_host()(i, j).memory_usage();
       }
     }
   }

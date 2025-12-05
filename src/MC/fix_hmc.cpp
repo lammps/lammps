@@ -49,7 +49,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static constexpr double BUFFACTOR = 1.5;
-static constexpr int BUFEXTRA = 1024;
 static constexpr auto SIX = sizeof(double) * 6;
 
 /* ---------------------------------------------------------------------- */
@@ -408,9 +407,9 @@ void FixHMC::setup(int vflag)
 
     for (const auto &fix : modify->get_fix_list()) maxexchange_fix += fix->maxexchange;
     maxexchange = maxexchange_atom + maxexchange_fix;
-    bufextra = maxexchange + BUFEXTRA;
+    bufextra = maxexchange + Comm::BUFEXTRA;
 
-    maxstore = BUFEXTRA;
+    maxstore = Comm::BUFEXTRA;
     grow_store(maxstore, 2);
     save_current_state();
   }

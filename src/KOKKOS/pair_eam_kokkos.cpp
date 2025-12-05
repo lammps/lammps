@@ -100,8 +100,8 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_fp = DAT::tdual_kkfloat_1d("pair:fp",nmax);
     d_rho = k_rho.template view<DeviceType>();
     d_fp = k_fp.template view<DeviceType>();
-    h_rho = k_rho.h_view;
-    h_fp = k_fp.h_view;
+    h_rho = k_rho.view_host();
+    h_fp = k_fp.view_host();
   }
 
   x = atomKK->k_x.view<DeviceType>();
@@ -117,6 +117,9 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_ilist = k_list->d_ilist;
   inum = list->inum;
 
+  // make sure this is set appropriately
+  cutforcesq_kk = static_cast<KK_FLOAT>(cutforcesq);
+
   need_dup = lmp->kokkos->need_dup<DeviceType>();
   if (need_dup) {
     dup_rho   = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_rho);
@@ -130,6 +133,7 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ndup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
   }
 
+  rhomax_kk = static_cast<KK_FLOAT>(rhomax);
   copymode = 1;
 
   // zero out density
@@ -194,8 +198,8 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (eflag) {
-    eng_vdwl += ev.evdwl;
-    ev.evdwl = 0.0;
+    eng_vdwl += static_cast<double>(ev.evdwl);
+    ev.evdwl = 0;
   }
 
   // communicate derivative of embedding function
@@ -275,14 +279,14 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (need_dup)
     Kokkos::Experimental::contribute(f, dup_f);
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -350,9 +354,9 @@ void PairEAMKokkos<DeviceType>::file2array()
   auto k_type2rhor = DAT::tdual_int_2d_dl("pair:type2rhor",n+1,n+1);
   auto k_type2z2r = DAT::tdual_int_2d_dl("pair:type2z2r",n+1,n+1);
 
-  auto h_type2frho =  k_type2frho.h_view;
-  auto h_type2rhor = k_type2rhor.h_view;
-  auto h_type2z2r = k_type2z2r.h_view;
+  auto h_type2frho =  k_type2frho.view_host();
+  auto h_type2rhor = k_type2rhor.view_host();
+  auto h_type2z2r = k_type2z2r.view_host();
 
   for (i = 1; i <= n; i++) {
     h_type2frho[i] = type2frho[i];
@@ -381,13 +385,16 @@ void PairEAMKokkos<DeviceType>::array2spline()
   rdr = 1.0/dr;
   rdrho = 1.0/drho;
 
+  rdr_kk = static_cast<KK_FLOAT>(rdr);
+  rdrho_kk = static_cast<KK_FLOAT>(rdrho);
+
   tdual_kkfloat_2d_n7 k_frho_spline = tdual_kkfloat_2d_n7("pair:frho",nfrho,nrho+1);
   tdual_kkfloat_2d_n7 k_rhor_spline = tdual_kkfloat_2d_n7("pair:rhor",nrhor,nr+1);
   tdual_kkfloat_2d_n7 k_z2r_spline = tdual_kkfloat_2d_n7("pair:z2r",nz2r,nr+1);
 
-  t_hostkkfloat_2d_n7 h_frho_spline = k_frho_spline.h_view;
-  t_hostkkfloat_2d_n7 h_rhor_spline = k_rhor_spline.h_view;
-  t_hostkkfloat_2d_n7 h_z2r_spline = k_z2r_spline.h_view;
+  t_hostkkfloat_2d_n7 h_frho_spline = k_frho_spline.view_host();
+  t_hostkkfloat_2d_n7 h_rhor_spline = k_rhor_spline.view_host();
+  t_hostkkfloat_2d_n7 h_z2r_spline = k_z2r_spline.view_host();
 
   for (int i = 0; i < nfrho; i++)
     interpolate(nrho,drho,frho[i],h_frho_spline,i);
@@ -414,31 +421,32 @@ void PairEAMKokkos<DeviceType>::array2spline()
 template<class DeviceType>
 void PairEAMKokkos<DeviceType>::interpolate(int n, double delta, double *f, t_hostkkfloat_2d_n7 h_spline, int i)
 {
-  for (int m = 1; m <= n; m++) h_spline(i,m,6) = f[m];
+  for (int m = 1; m <= n; m++) h_spline(i,m,6) = static_cast<KK_FLOAT>(f[m]);
 
   h_spline(i,1,5) = h_spline(i,2,6) - h_spline(i,1,6);
-  h_spline(i,2,5) = 0.5 * (h_spline(i,3,6)-h_spline(i,1,6));
-  h_spline(i,n-1,5) = 0.5 * (h_spline(i,n,6)-h_spline(i,n-2,6));
+  h_spline(i,2,5) = static_cast<KK_FLOAT>(0.5) * (h_spline(i,3,6)-h_spline(i,1,6));
+  h_spline(i,n-1,5) = static_cast<KK_FLOAT>(0.5) * (h_spline(i,n,6)-h_spline(i,n-2,6));
   h_spline(i,n,5) = h_spline(i,n,6) - h_spline(i,n-1,6);
 
   for (int m = 3; m <= n-2; m++)
     h_spline(i,m,5) = ((h_spline(i,m-2,6)-h_spline(i,m+2,6)) +
-                    8.0*(h_spline(i,m+1,6)-h_spline(i,m-1,6))) / 12.0;
+                    static_cast<KK_FLOAT>(8.0)*(h_spline(i,m+1,6)-h_spline(i,m-1,6))) / static_cast<KK_FLOAT>(12.0);
 
   for (int m = 1; m <= n-1; m++) {
-    h_spline(i,m,4) = 3.0*(h_spline(i,m+1,6)-h_spline(i,m,6)) -
-      2.0*h_spline(i,m,5) - h_spline(i,m+1,5);
+    h_spline(i,m,4) = static_cast<KK_FLOAT>(3.0)*(h_spline(i,m+1,6)-h_spline(i,m,6)) -
+      static_cast<KK_FLOAT>(2.0)*h_spline(i,m,5) - h_spline(i,m+1,5);
     h_spline(i,m,3) = h_spline(i,m,5) + h_spline(i,m+1,5) -
-      2.0*(h_spline(i,m+1,6)-h_spline(i,m,6));
+      static_cast<KK_FLOAT>(2.0)*(h_spline(i,m+1,6)-h_spline(i,m,6));
   }
 
-  h_spline(i,n,4) = 0.0;
-  h_spline(i,n,3) = 0.0;
+  h_spline(i,n,4) = 0;
+  h_spline(i,n,3) = 0;
 
+  KK_FLOAT inv_delta_float = static_cast<KK_FLOAT>(1.0 / delta);
   for (int m = 1; m <= n; m++) {
-    h_spline(i,m,2) = h_spline(i,m,5)/delta;
-    h_spline(i,m,1) = 2.0*h_spline(i,m,4)/delta;
-    h_spline(i,m,0) = 3.0*h_spline(i,m,3)/delta;
+    h_spline(i,m,2) = h_spline(i,m,5)*inv_delta_float;
+    h_spline(i,m,1) = static_cast<KK_FLOAT>(2.0)*h_spline(i,m,4)*inv_delta_float;
+    h_spline(i,m,0) = static_cast<KK_FLOAT>(3.0)*h_spline(i,m,3)*inv_delta_float;
   }
 }
 
@@ -459,7 +467,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairEAMKokkos<DeviceType>::operator()(TagPairEAMPackForwardComm, const int &i) const {
   int j = d_sendlist(i);
-  v_buf[i] = d_fp[j];
+  v_buf[i] = static_cast<double>(d_fp[j]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -475,7 +483,7 @@ void PairEAMKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairEAMKokkos<DeviceType>::operator()(TagPairEAMUnpackForwardComm, const int &i) const {
-  d_fp[i + first] = v_buf[i];
+  d_fp[i + first] = static_cast<KK_FLOAT>(v_buf[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -490,7 +498,7 @@ int PairEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
 
   for (i = 0; i < n; i++) {
     j = list[i];
-    buf[i] = h_fp[j];
+    buf[i] = static_cast<double>(h_fp[j]);
   }
   return n;
 }
@@ -503,7 +511,7 @@ void PairEAMKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *bu
   k_fp.sync_host();
 
   for (int i = 0; i < n; i++) {
-    h_fp[i + first] = buf[i];
+    h_fp[i + first] = static_cast<KK_FLOAT>(buf[i]);
   }
 
   k_fp.modify_host();
@@ -520,7 +528,7 @@ int PairEAMKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) buf[m++] = h_rho[i];
+  for (i = first; i < last; i++) buf[m++] = static_cast<double>(h_rho[i]);
   return m;
 }
 
@@ -536,7 +544,7 @@ void PairEAMKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *bu
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    h_rho[j] += buf[m++];
+    h_rho[j] += static_cast<KK_FLOAT>(buf[m++]);
   }
 
   k_rho.modify_host();
@@ -547,7 +555,7 @@ void PairEAMKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *bu
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairEAMKokkos<DeviceType>::operator()(TagPairEAMInitialize, const int &i) const {
-  d_rho[i] = 0.0;
+  d_rho[i] = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -585,15 +593,15 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PA
     const int jtype = type(j);
     const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-    if (rsq < cutforcesq) {
-      KK_FLOAT p = sqrt(rsq)*rdr + 1.0;
+    if (rsq < cutforcesq_kk) {
+      KK_FLOAT p = sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
       int m = static_cast<int> (p);
       m = MIN(m,nr-1);
-      p -= m;
-      p = MIN(p,1.0);
+      p -= static_cast<KK_FLOAT>(m);
+      p = MIN(p,static_cast<KK_FLOAT>(1.0));
       const int d_type2rhor_ji = d_type2rhor(jtype,itype);
-      rhotmp += ((d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p +
-                  d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
+      rhotmp += static_cast<KK_ACC_FLOAT>(((d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p +
+                  d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6));
       if (NEWTON_PAIR || j < nlocal) {
         const int d_type2rhor_ij = d_type2rhor(itype,jtype);
         a_rho[j] += ((d_rhor_spline(d_type2rhor_ij,m,3)*p + d_rhor_spline(d_type2rhor_ij,m,4))*p +
@@ -602,7 +610,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PA
     }
 
   }
-  a_rho[i] += rhotmp;
+  a_rho[i] += static_cast<KK_FLOAT>(rhotmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -621,19 +629,19 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelB<EFLAG>, const int &
   const int i = d_ilist[ii];
   const int itype = type(i);
 
-  KK_FLOAT p = d_rho[i]*rdrho + 1.0;
+  KK_FLOAT p = d_rho[i]*rdrho_kk + static_cast<KK_FLOAT>(1.0);
   int m = static_cast<int> (p);
   m = MAX(1,MIN(m,nrho-1));
-  p -= m;
-  p = MIN(p,1.0);
+  p -= static_cast<KK_FLOAT>(m);
+  p = MIN(p,static_cast<KK_FLOAT>(1.0));
   const int d_type2frho_i = d_type2frho[itype];
   d_fp[i] = (d_frho_spline(d_type2frho_i,m,0)*p + d_frho_spline(d_type2frho_i,m,1))*p + d_frho_spline(d_type2frho_i,m,2);
   if (EFLAG) {
     KK_FLOAT phi = ((d_frho_spline(d_type2frho_i,m,3)*p + d_frho_spline(d_type2frho_i,m,4))*p +
                     d_frho_spline(d_type2frho_i,m,5))*p + d_frho_spline(d_type2frho_i,m,6);
-    if (d_rho[i] > rhomax) phi += d_fp[i] * (d_rho[i]-rhomax);
-    if (eflag_global) ev.evdwl += phi;
-    if (eflag_atom) d_eatom[i] += phi;
+    if (d_rho[i] > rhomax_kk) phi += d_fp[i] * (d_rho[i]-rhomax_kk);
+    if (eflag_global) ev.evdwl += static_cast<KK_ACC_FLOAT>(phi);
+    if (eflag_atom) d_eatom[i] += static_cast<KK_ACC_FLOAT>(phi);
   }
 }
 
@@ -664,7 +672,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
 
   const int jnum = d_numneigh[i];
 
-  KK_ACC_FLOAT rhotmp = 0.0;
+  KK_ACC_FLOAT rhotmp = 0;
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
@@ -676,38 +684,38 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
     const int jtype = type(j);
     const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-    if (rsq < cutforcesq) {
-      KK_FLOAT p = sqrt(rsq)*rdr + 1.0;
+    if (rsq < cutforcesq_kk) {
+      KK_FLOAT p = sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
       int m = static_cast<int> (p);
       m = MIN(m,nr-1);
-      p -= m;
-      p = MIN(p,1.0);
+      p -= static_cast<KK_FLOAT>(m);
+      p = MIN(p,static_cast<KK_FLOAT>(1.0));
       const int d_type2rhor_ji = d_type2rhor(jtype,itype);
-      rhotmp += ((d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p +
-                  d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
+      rhotmp += static_cast<KK_ACC_FLOAT>(((d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p +
+                  d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6));
     }
 
   }
-  d_rho[i] += rhotmp;
+  d_rho[i] += static_cast<KK_FLOAT>(rhotmp);
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
   // if rho > rhomax (e.g. due to close approach of two atoms),
   //   will exceed table, so add linear term to conserve energy
 
-  KK_FLOAT p = d_rho[i]*rdrho + 1.0;
+  KK_FLOAT p = d_rho[i]*rdrho_kk + static_cast<KK_FLOAT>(1.0);
   int m = static_cast<int> (p);
   m = MAX(1,MIN(m,nrho-1));
-  p -= m;
-  p = MIN(p,1.0);
+  p -= static_cast<KK_FLOAT>(m);
+  p = MIN(p,static_cast<KK_FLOAT>(1.0));
   const int d_type2frho_i = d_type2frho[itype];
   d_fp[i] = (d_frho_spline(d_type2frho_i,m,0)*p + d_frho_spline(d_type2frho_i,m,1))*p + d_frho_spline(d_type2frho_i,m,2);
   if (EFLAG) {
     KK_FLOAT phi = ((d_frho_spline(d_type2frho_i,m,3)*p + d_frho_spline(d_type2frho_i,m,4))*p +
                     d_frho_spline(d_type2frho_i,m,5))*p + d_frho_spline(d_type2frho_i,m,6);
-    if (d_rho[i] > rhomax) phi += d_fp[i] * (d_rho[i]-rhomax);
-    if (eflag_global) ev.evdwl += phi;
-    if (eflag_atom) d_eatom[i] += phi;
+    if (d_rho[i] > rhomax_kk) phi += d_fp[i] * (d_rho[i]-rhomax_kk);
+    if (eflag_global) ev.evdwl += static_cast<KK_ACC_FLOAT>(phi);
+    if (eflag_atom) d_eatom[i] += static_cast<KK_ACC_FLOAT>(phi);
   }
 
 }
@@ -741,9 +749,9 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
 
   const int jnum = d_numneigh[i];
 
-  KK_ACC_FLOAT fxtmp = 0.0;
-  KK_ACC_FLOAT fytmp = 0.0;
-  KK_ACC_FLOAT fztmp = 0.0;
+  KK_ACC_FLOAT fxtmp = 0;
+  KK_ACC_FLOAT fytmp = 0;
+  KK_ACC_FLOAT fztmp = 0;
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
@@ -754,13 +762,13 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
     const int jtype = type(j);
     const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-    if (rsq < cutforcesq) {
+    if (rsq < cutforcesq_kk) {
       const KK_FLOAT r = sqrt(rsq);
-      KK_FLOAT p = r*rdr + 1.0;
+      KK_FLOAT p = r*rdr_kk + static_cast<KK_FLOAT>(1.0);
       int m = static_cast<int> (p);
       m = MIN(m,nr-1);
-      p -= m;
-      p = MIN(p,1.0);
+      p -= static_cast<KK_FLOAT>(m);
+      p = MIN(p,static_cast<KK_FLOAT>(1.0));
 
       // rhoip = derivative of (density at atom j due to atom i)
       // rhojp = derivative of (density at atom i due to atom j)
@@ -785,30 +793,30 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
       const auto z2r_spline_5 = d_z2r_spline(d_type2z2r_ij,m,5);
       const auto z2r_spline_6 = d_z2r_spline(d_type2z2r_ij,m,6);
 
-      const KK_FLOAT z2p = (3.0*rdr*z2r_spline_3*p + 2.0*rdr*z2r_spline_4)*p +
-                           rdr*z2r_spline_5; // the rdr and the factors of 3.0 and 2.0 come out of the interpolate function
+      const KK_FLOAT z2p = (static_cast<KK_FLOAT>(3.0)*rdr_kk*z2r_spline_3*p + static_cast<KK_FLOAT>(2.0)*rdr_kk*z2r_spline_4)*p +
+                           rdr_kk*z2r_spline_5; // the rdr and the factors of 3.0 and 2.0 come out of the interpolate function
       const KK_FLOAT z2 = ((z2r_spline_3*p + z2r_spline_4)*p +
                            z2r_spline_5)*p + z2r_spline_6;
 
-      const KK_FLOAT recip = 1.0/r;
+      const KK_FLOAT recip = static_cast<KK_FLOAT>(1.0)/r;
       const KK_FLOAT phi = z2*recip;
       const KK_FLOAT phip = z2p*recip - phi*recip;
       const KK_FLOAT psip = d_fp[i]*rhojp + d_fp[j]*rhoip + phip;
       const KK_FLOAT fpair = -psip*recip;
 
-      fxtmp += delx*fpair;
-      fytmp += dely*fpair;
-      fztmp += delz*fpair;
+      fxtmp += static_cast<KK_ACC_FLOAT>(delx*fpair);
+      fytmp += static_cast<KK_ACC_FLOAT>(dely*fpair);
+      fztmp += static_cast<KK_ACC_FLOAT>(delz*fpair);
 
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-        a_f(j,0) -= delx*fpair;
-        a_f(j,1) -= dely*fpair;
-        a_f(j,2) -= delz*fpair;
+        a_f(j,0) -= static_cast<KK_ACC_FLOAT>(delx*fpair);
+        a_f(j,1) -= static_cast<KK_ACC_FLOAT>(dely*fpair);
+        a_f(j,2) -= static_cast<KK_ACC_FLOAT>(delz*fpair);
       }
 
       if (EVFLAG) {
         if (eflag) {
-          ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*phi;
+          ev.evdwl += static_cast<KK_ACC_FLOAT>((((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5))*phi);
         }
 
         if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,phi,fpair,delx,dely,delz);
@@ -865,7 +873,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>,
 
     const int jnum = d_numneigh[i];
 
-    KK_ACC_FLOAT rhotmp = 0.0;
+    KK_ACC_FLOAT rhotmp = 0;
 
     for (int jj = 0; jj < jnum; jj++) {
       int j = d_neighbors(i,jj);
@@ -877,42 +885,42 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>,
       const int jtype = type(j);
       const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq < cutforcesq) {
-        KK_FLOAT p = sqrt(rsq)*rdr + 1.0;
+      if (rsq < cutforcesq_kk) {
+        KK_FLOAT p = sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
         int m = static_cast<int> (p);
         m = MIN(m,nr-1);
         p -= m;
-        p = MIN(p,1.0);
+        p = MIN(p,static_cast<KK_FLOAT>(1.0));
         const int d_type2rhor_ji = d_type2rhor(jtype,itype);
         if (d_type2rhor_ji == 0 && d_rhor_spline_cached == 1) {
-          rhotmp += ((A(m,3)*p + A(m,4))*p +
-                       A(m,5))*p + A(m,6);
+          rhotmp += static_cast<KK_ACC_FLOAT>(((A(m,3)*p + A(m,4))*p +
+                       A(m,5))*p + A(m,6));
         } else
-          rhotmp += ((d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p +
-                      d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
+          rhotmp += static_cast<KK_ACC_FLOAT>(((d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p +
+                      d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6));
       }
 
     }
-    d_rho[i] += rhotmp;
+    d_rho[i] += static_cast<KK_FLOAT>(rhotmp);
 
     // fp = derivative of embedding energy at each atom
     // phi = embedding energy at each atom
     // if rho > rhomax (e.g. due to close approach of two atoms),
     //   will exceed table, so add linear term to conserve energy
 
-    KK_FLOAT p = d_rho[i]*rdrho + 1.0;
+    KK_FLOAT p = d_rho[i]*rdrho_kk + static_cast<KK_FLOAT>(1.0);
     int m = static_cast<int> (p);
     m = MAX(1,MIN(m,nrho-1));
-    p -= m;
-    p = MIN(p,1.0);
+    p -= static_cast<KK_FLOAT>(m);
+    p = MIN(p,static_cast<KK_FLOAT>(1.0));
     const int d_type2frho_i = d_type2frho[itype];
     d_fp[i] = (d_frho_spline(d_type2frho_i,m,0)*p + d_frho_spline(d_type2frho_i,m,1))*p + d_frho_spline(d_type2frho_i,m,2);
     if (EFLAG) {
       KK_FLOAT phi = ((d_frho_spline(d_type2frho_i,m,3)*p + d_frho_spline(d_type2frho_i,m,4))*p +
                       d_frho_spline(d_type2frho_i,m,5))*p + d_frho_spline(d_type2frho_i,m,6);
-      if (d_rho[i] > rhomax) phi += d_fp[i] * (d_rho[i]-rhomax);
-      if (eflag_global) ev.evdwl += phi;
-      if (eflag_atom) d_eatom[i] += phi;
+      if (d_rho[i] > rhomax_kk) phi += d_fp[i] * (d_rho[i]-rhomax_kk);
+      if (eflag_global) ev.evdwl += static_cast<KK_ACC_FLOAT>(phi);
+      if (eflag_atom) d_eatom[i] += static_cast<KK_ACC_FLOAT>(phi);
     }
   }
 }
@@ -966,9 +974,9 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
 
     const int jnum = d_numneigh[i];
 
-    KK_ACC_FLOAT fxtmp = 0.0;
-    KK_ACC_FLOAT fytmp = 0.0;
-    KK_ACC_FLOAT fztmp = 0.0;
+    KK_ACC_FLOAT fxtmp = 0;
+    KK_ACC_FLOAT fytmp = 0;
+    KK_ACC_FLOAT fztmp = 0;
 
     for (int jj = 0; jj < jnum; jj++) {
       int j = d_neighbors(i,jj);
@@ -979,13 +987,13 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
       const int jtype = type(j);
       const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq < cutforcesq) {
+      if (rsq < cutforcesq_kk) {
         const KK_FLOAT r = sqrt(rsq);
-        KK_FLOAT p = r*rdr + 1.0;
+        KK_FLOAT p = r*rdr_kk + static_cast<KK_FLOAT>(1.0);
         int m = static_cast<int> (p);
         m = MIN(m,nr-1);
-        p -= m;
-        p = MIN(p,1.0);
+        p -= static_cast<KK_FLOAT>(m);
+        p = MIN(p,static_cast<KK_FLOAT>(1.0));
 
         // rhoip = derivative of (density at atom j due to atom i)
         // rhojp = derivative of (density at atom i due to atom j)
@@ -1011,30 +1019,30 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
         const auto z2r_spline_5 = (have_cache) ? A(m,5) : d_z2r_spline(d_type2z2r_ij,m,5);
         const auto z2r_spline_6 = (have_cache) ? A(m,6) : d_z2r_spline(d_type2z2r_ij,m,6);
 
-        const KK_FLOAT z2p = (3.0*rdr*z2r_spline_3*p + 2.0*rdr*z2r_spline_4)*p +
-                             rdr*z2r_spline_5; // the rdr and the factors of 3.0 and 2.0 come out of the interpolate function
+        const KK_FLOAT z2p = (static_cast<KK_FLOAT>(3.0)*rdr_kk*z2r_spline_3*p + static_cast<KK_FLOAT>(2.0)*rdr_kk*z2r_spline_4)*p +
+                             rdr_kk*z2r_spline_5; // the rdr and the factors of 3.0 and 2.0 come out of the interpolate function
         const KK_FLOAT z2 = ((z2r_spline_3*p + z2r_spline_4)*p +
                              z2r_spline_5)*p + z2r_spline_6;
 
-        const KK_FLOAT recip = 1.0/r;
+        const KK_FLOAT recip = static_cast<KK_FLOAT>(1.0)/r;
         const KK_FLOAT phi = z2*recip;
         const KK_FLOAT phip = z2p*recip - phi*recip;
         const KK_FLOAT psip = d_fp[i]*rhojp + d_fp[j]*rhoip + phip;
         const KK_FLOAT fpair = -psip*recip;
 
-        fxtmp += delx*fpair;
-        fytmp += dely*fpair;
-        fztmp += delz*fpair;
+        fxtmp += static_cast<KK_ACC_FLOAT>(delx*fpair);
+        fytmp += static_cast<KK_ACC_FLOAT>(dely*fpair);
+        fztmp += static_cast<KK_ACC_FLOAT>(delz*fpair);
 
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-          a_f(j,0) -= delx*fpair;
-          a_f(j,1) -= dely*fpair;
-          a_f(j,2) -= delz*fpair;
+          a_f(j,0) -= static_cast<KK_ACC_FLOAT>(delx*fpair);
+          a_f(j,1) -= static_cast<KK_ACC_FLOAT>(dely*fpair);
+          a_f(j,2) -= static_cast<KK_ACC_FLOAT>(delz*fpair);
         }
 
         if (EVFLAG) {
           if (eflag) {
-            ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*phi;
+            ev.evdwl += static_cast<KK_ACC_FLOAT>((((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5))*phi);
           }
 
           if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,phi,fpair,delx,dely,delz);
@@ -1081,7 +1089,7 @@ void PairEAMKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &
 
   if (EFLAG) {
     if (eflag_atom) {
-      const KK_FLOAT epairhalf = 0.5 * epair;
+      const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * epair);
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) a_eatom[i] += epairhalf;
         if (NEWTON_PAIR || j < nlocal) a_eatom[j] += epairhalf;
@@ -1092,66 +1100,43 @@ void PairEAMKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &
   }
 
   if (VFLAG) {
-    const KK_FLOAT v0 = delx*delx*fpair;
-    const KK_FLOAT v1 = dely*dely*fpair;
-    const KK_FLOAT v2 = delz*delz*fpair;
-    const KK_FLOAT v3 = delx*dely*fpair;
-    const KK_FLOAT v4 = delx*delz*fpair;
-    const KK_FLOAT v5 = dely*delz*fpair;
+    const KK_ACC_FLOAT v_half_acc[6] =
+     { static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*delx*delx*fpair),
+       static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*dely*dely*fpair),
+       static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*delz*delz*fpair),
+       static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*delx*dely*fpair),
+       static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*delx*delz*fpair),
+       static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*dely*delz*fpair) };
 
     if (vflag_global) {
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += v_half_acc[n];
         }
         if (NEWTON_PAIR || j < nlocal) {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
+          for (int n = 0; n < 6; n++)
+            ev.v[n] += v_half_acc[n];
         }
       } else {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
+        for (int n = 0; n < 6; n++)
+          ev.v[n] += v_half_acc[n];
       }
     }
 
     if (vflag_atom) {
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) {
-          a_vatom(i,0) += 0.5*v0;
-          a_vatom(i,1) += 0.5*v1;
-          a_vatom(i,2) += 0.5*v2;
-          a_vatom(i,3) += 0.5*v3;
-          a_vatom(i,4) += 0.5*v4;
-          a_vatom(i,5) += 0.5*v5;
+          for (int n = 0; n < 6; n++)
+            a_vatom(i,n) += v_half_acc[n];
         }
         if (NEWTON_PAIR || j < nlocal) {
-        a_vatom(j,0) += 0.5*v0;
-        a_vatom(j,1) += 0.5*v1;
-        a_vatom(j,2) += 0.5*v2;
-        a_vatom(j,3) += 0.5*v3;
-        a_vatom(j,4) += 0.5*v4;
-        a_vatom(j,5) += 0.5*v5;
+          for (int n = 0; n < 6; n++)
+            a_vatom(j,n) += v_half_acc[n];
         }
       } else {
-        a_vatom(i,0) += 0.5*v0;
-        a_vatom(i,1) += 0.5*v1;
-        a_vatom(i,2) += 0.5*v2;
-        a_vatom(i,3) += 0.5*v3;
-        a_vatom(i,4) += 0.5*v4;
-        a_vatom(i,5) += 0.5*v5;
+        for (int n = 0; n < 6; n++)
+          a_vatom(i,n) += v_half_acc[n];
       }
     }
   }

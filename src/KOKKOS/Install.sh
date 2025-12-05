@@ -114,6 +114,8 @@ action compute_sna_grid_local_kokkos.h compute_sna_grid_local.h
 action compute_sna_grid_local_kokkos_impl.h compute_sna_grid_local.cpp
 action compute_gaussian_grid_local_kokkos.cpp compute_gaussian_grid_local.cpp
 action compute_gaussian_grid_local_kokkos.h compute_gaussian_grid_local.h
+action compute_temp_com_kokkos.cpp
+action compute_temp_com_kokkos.h
 action compute_temp_deform_kokkos.cpp
 action compute_temp_deform_kokkos.h
 action compute_temp_kokkos.cpp

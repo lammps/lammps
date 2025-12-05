@@ -295,6 +295,12 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   double scaleinv,s2;
   double qscale,efact,ffact,dipole_all,dipole_r2,zprd;
   double xprd,yprd,zprd_slab;
+  KK_FLOAT qscale_kk;
+  KK_FLOAT g_ewald_kk, g_ewald_inv_kk;
+  KK_FLOAT unitkx_kk,unitky_kk,unitkz_kk;
+  KK_FLOAT scaleinv_kk, s2_kk;
+  KK_FLOAT shift_kk, shiftone_kk;
+  KK_FLOAT delxinv_kk, delyinv_kk, delzinv_kk, delvolinv_kk;
   int nbx,nby,nbz,twoorder;
   int numx_fft,numy_fft,numz_fft;
   int numx_inout,numy_inout,numz_inout;
@@ -304,10 +310,11 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   // Local copies of the domain box tilt etc.
   Few<double,6> h, h_inv;
 
+  template<typename T>
   KOKKOS_INLINE_FUNCTION
-  void x2lamdaT_kokkos(KK_FLOAT* v, KK_FLOAT* lamda) const
+  void x2lamdaT_kokkos(T* v, T* lamda) const
   {
-    KK_FLOAT lamda_tmp[3];
+    T lamda_tmp[3];
 
     lamda_tmp[0] = h_inv[0]*v[0];
     lamda_tmp[1] = h_inv[5]*v[0] + h_inv[1]*v[1];
@@ -351,8 +358,8 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   typename FFT_AT::t_FFT_SCALAR_1d d_work1;
   typename FFT_AT::t_FFT_SCALAR_1d d_work2;
 
-  DAT::tdual_kkfloat_1d k_gf_b;
-  typename AT::t_kkfloat_1d d_gf_b;
+  DAT::tdual_double_1d k_gf_b;
+  typename AT::t_double_1d d_gf_b;
 
   //FFT_SCALAR **rho1d,**rho_coeff,**drho1d,**drho_coeff;
   typename FFT_AT::t_FFT_SCALAR_2d_3 d_rho1d;
@@ -360,7 +367,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   typename FFT_AT::t_FFT_SCALAR_2d d_rho_coeff;
   FFT_HAT::t_FFT_SCALAR_2d h_rho_coeff;
   //double **acons;
-  typename Kokkos::DualView<KK_FLOAT[8][7],LMPDeviceLayout,DeviceType>::t_host acons;
+  typename Kokkos::DualView<double[8][7],LMPDeviceLayout,DeviceType>::t_host acons;
 
   // FFTs and grid communication
 
@@ -375,6 +382,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   typename AT::t_int_1d_3 d_part2grid;
 
   double boxlo[3];
+  KK_FLOAT boxlo_kk[3];
 
   void set_grid_local() override;
 
@@ -430,16 +438,16 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 ------------------------------------------------------------------------- */
 
   KOKKOS_INLINE_FUNCTION
-  KK_FLOAT gf_denom(const KK_FLOAT &x, const KK_FLOAT &y,
-                         const KK_FLOAT &z) const {
-    KK_FLOAT sx,sy,sz;
-    sz = sy = sx = 0.0;
+  double gf_denom(const double &x, const double &y,
+                         const double &z) const {
+    double sx,sy,sz;
+    sz = sy = sx = 0;
     for (int l = order-1; l >= 0; l--) {
       sx = d_gf_b[l] + sx*x;
       sy = d_gf_b[l] + sy*y;
       sz = d_gf_b[l] + sz*z;
     }
-    KK_FLOAT s = sx*sy*sz;
+    double s = sx*sy*sz;
     return s*s;
   };
 };

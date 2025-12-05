@@ -55,13 +55,14 @@ void NPairRespaBinOmp<NEWTON, TRI>::build(NeighList *list)
   const int molecular = atom->molecular;
   const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
   const double delta = 0.01 * force->angstrom;
+  int overflow = 0;
 
   NPAIR_OMP_INIT;
 
   const int respamiddle = list->respamiddle;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list) reduction(+:overflow)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
@@ -244,23 +245,35 @@ void NPairRespaBinOmp<NEWTON, TRI>::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage.vgot(n);
-    if (ipage.status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
-
+    if (ipage.status()) {
+      overflow = 1;
+      break;
+    }
     ilist_inner[i] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
     ipage.vgot(n_inner);
-    if (ipage_inner.status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
-
+    if (ipage_inner.status()) {
+      overflow = 1;
+      break;
+    }
     if (respamiddle) {
       ilist_middle[i] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       ipage_middle->vgot(n_middle);
-      if (ipage_middle->status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
+      if (ipage_middle->status()) {
+        overflow = 1;
+        break;
+      }
     }
   }
   NPAIR_OMP_CLOSE;
+
+  if (overflow > 0)
+    error->one(FLERR, Error::NOLASTLINE,
+               "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
+
   list->inum = nlocal;
   list->inum_inner = nlocal;
   if (respamiddle) list->inum_middle = nlocal;

@@ -60,10 +60,10 @@ FixEOStableRXKokkos<DeviceType>::FixEOStableRXKokkos(LAMMPS *lmp, int narg, char
   k_tempCorrCoeff = DAT::tdual_kkfloat_1d("fix:tempCorrCoeff",nspecies);
   k_moleculeCorrCoeff = DAT::tdual_kkfloat_1d("fix:moleculeCorrCoeff",nspecies);
   for (int n = 0; n < nspecies; n++) {
-    k_dHf.h_view(n) = dHf[n];
-    k_energyCorr.h_view(n) = energyCorr[n];
-    k_tempCorrCoeff.h_view(n) = tempCorrCoeff[n];
-    k_moleculeCorrCoeff.h_view(n) = moleculeCorrCoeff[n];
+    k_dHf.view_host()(n) = dHf[n];
+    k_energyCorr.view_host()(n) = energyCorr[n];
+    k_tempCorrCoeff.view_host()(n) = tempCorrCoeff[n];
+    k_moleculeCorrCoeff.view_host()(n) = moleculeCorrCoeff[n];
   }
 
   k_dHf.modify_host();
@@ -413,9 +413,9 @@ template<class DeviceType>
 int FixEOStableRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int ii,jj,m;
-  HAT::t_double_1d h_uChem = atomKK->k_uChem.h_view;
-  HAT::t_double_1d h_uCG = atomKK->k_uCG.h_view;
-  HAT::t_double_1d h_uCGnew = atomKK->k_uCGnew.h_view;
+  HAT::t_double_1d h_uChem = atomKK->k_uChem.view_host();
+  HAT::t_double_1d h_uCG = atomKK->k_uCG.view_host();
+  HAT::t_double_1d h_uCGnew = atomKK->k_uCGnew.view_host();
 
   m = 0;
   for (ii = 0; ii < n; ii++) {
@@ -433,9 +433,9 @@ template<class DeviceType>
 void FixEOStableRXKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
   int ii,m,last;
-  HAT::t_double_1d h_uChem = atomKK->k_uChem.h_view;
-  HAT::t_double_1d h_uCG = atomKK->k_uCG.h_view;
-  HAT::t_double_1d h_uCGnew = atomKK->k_uCGnew.h_view;
+  HAT::t_double_1d h_uChem = atomKK->k_uChem.view_host();
+  HAT::t_double_1d h_uCG = atomKK->k_uCG.view_host();
+  HAT::t_double_1d h_uCGnew = atomKK->k_uCGnew.view_host();
 
   m = 0;
   last = first + n ;
@@ -452,8 +452,8 @@ template<class DeviceType>
 int FixEOStableRXKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,m,last;
-  HAT::t_double_1d h_uCG = atomKK->k_uCG.h_view;
-  HAT::t_double_1d h_uCGnew = atomKK->k_uCGnew.h_view;
+  HAT::t_double_1d h_uCG = atomKK->k_uCG.view_host();
+  HAT::t_double_1d h_uCGnew = atomKK->k_uCGnew.view_host();
 
   m = 0;
   last = first + n;
@@ -470,8 +470,8 @@ template<class DeviceType>
 void FixEOStableRXKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,m;
-  HAT::t_double_1d h_uCG = atomKK->k_uCG.h_view;
-  HAT::t_double_1d h_uCGnew = atomKK->k_uCGnew.h_view;
+  HAT::t_double_1d h_uCG = atomKK->k_uCG.view_host();
+  HAT::t_double_1d h_uCGnew = atomKK->k_uCGnew.view_host();
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -489,18 +489,18 @@ void FixEOStableRXKokkos<DeviceType>::error_check()
 {
   k_error_flag.template modify<DeviceType>();
   k_error_flag.sync_host();
-  if (k_error_flag.h_view() == 1)
+  if (k_error_flag.view_host()() == 1)
     error->one(FLERR,"Internal temperature <= zero");
-  else if (k_error_flag.h_view() == 2)
+  else if (k_error_flag.view_host()() == 2)
     error->one(FLERR,"NaN detected in secant solver.");
-  else if (k_error_flag.h_view() == 3)
+  else if (k_error_flag.view_host()() == 3)
     error->one(FLERR,"Maxit exceeded in secant solver.");
 
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.sync_host();
-  if (k_warning_flag.h_view()) {
+  if (k_warning_flag.view_host()()) {
     error->warning(FLERR,"Secant solver did not converge because table bounds were exceeded.");
-    k_warning_flag.h_view() = 0;
+    k_warning_flag.view_host()() = 0;
     k_warning_flag.modify_host();
     k_warning_flag.template sync<DeviceType>();
   }

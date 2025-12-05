@@ -87,8 +87,7 @@ FixMolSwap::FixMolSwap(LAMMPS *lmp, int narg, char **arg) :
   if (seed <= 0) error->all(FLERR,"Illegal fix mol/swap command");
   if (temperature <= 0.0) error->all(FLERR,"Illegal fix mol/swap command");
   if (ke_flag && atom->rmass)
-    error->all(FLERR,"Cannot conserve kinetic energy with fix mol/swap "
-               "unless per-type masses");
+    error->all(FLERR,"Cannot conserve kinetic energy with fix mol/swap unless per-type masses");
 
   beta = 1.0/(force->boltz*temperature);
 

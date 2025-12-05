@@ -47,6 +47,7 @@ class KokkosLMP : protected Pointers {
   int sort_changed;
   int atom_map_changed;
   int nthreads,ngpus;
+  int kk_fp32;
   int auto_sync;
   int gpu_aware_flag;
   int neigh_thread;

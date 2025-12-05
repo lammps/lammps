@@ -59,9 +59,9 @@ void AngleHybridKokkos::compute(int eflag, int vflag)
   int nanglelist_orig = neighbor->nanglelist;
   neighborKK->k_anglelist.sync_device();
   auto k_anglelist_orig = neighborKK->k_anglelist;
-  auto d_anglelist_orig = k_anglelist_orig.d_view;
-  auto d_nanglelist = k_nanglelist.d_view;
-  auto h_nanglelist = k_nanglelist.h_view;
+  auto d_anglelist_orig = k_anglelist_orig.view_device();
+  auto d_nanglelist = k_nanglelist.view_device();
+  auto h_nanglelist = k_nanglelist.view_host();
 
   // if this is re-neighbor step, create sub-style anglelists
   // nanglelist[] = length of each sub-style list
@@ -72,7 +72,7 @@ void AngleHybridKokkos::compute(int eflag, int vflag)
     Kokkos::deep_copy(d_nanglelist,0);
 
     k_map.sync_device();
-    auto d_map = k_map.d_view;
+    auto d_map = k_map.view_device();
 
     Kokkos::parallel_for(nanglelist_orig,LAMMPS_LAMBDA(int i) {
       const int m = d_map[d_anglelist_orig(i,3)];
@@ -87,9 +87,9 @@ void AngleHybridKokkos::compute(int eflag, int vflag)
       if (h_nanglelist[m] > maxangle_all)
         maxangle_all = h_nanglelist[m] + EXTRA;
 
-    if ((int)k_anglelist.d_view.extent(1) < maxangle_all)
+    if ((int)k_anglelist.view_device().extent(1) < maxangle_all)
       MemKK::realloc_kokkos(k_anglelist, "angle_hybrid:anglelist", nstyles, maxangle_all, 4);
-    auto d_anglelist = k_anglelist.d_view;
+    auto d_anglelist = k_anglelist.view_device();
 
     Kokkos::deep_copy(d_nanglelist,0);
 

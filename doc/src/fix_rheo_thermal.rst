@@ -20,7 +20,7 @@ Syntax
        *conductivity* args = types style args
          types = lists of types (see below)
          style = *constant*
-           *constant* arg = conductivity (power/temperature)
+           *constant* arg = conductivity (power/(length*temperature))
        *specific/heat* args = types style args
          types = lists of types (see below)
          style = *constant*

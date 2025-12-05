@@ -58,8 +58,8 @@ void FixMinimizeKokkos::add_vector_kokkos()
 
   memoryKK->grow_kokkos(k_vectors,vectors,nvector+1,atom->nmax*n,
                       "minimize:vectors");
-  d_vectors = k_vectors.d_view;
-  h_vectors = k_vectors.h_view;
+  d_vectors = k_vectors.view_device();
+  h_vectors = k_vectors.view_host();
 
   k_vectors.modify_device();
 
@@ -110,7 +110,7 @@ void FixMinimizeKokkos::reset_coords()
     auto xy = domain->xy;
     auto xz = domain->xz;
     auto yz = domain->yz;
-    auto l_x = atomKK->k_x.d_view;
+    auto l_x = atomKK->k_x.view_device();
     auto l_x0 = Kokkos::subview(d_vectors,0,Kokkos::ALL);
 
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
@@ -195,8 +195,8 @@ void FixMinimizeKokkos::grow_arrays(int nmax)
 {
   k_vectors.sync_device();
   memoryKK->grow_kokkos(k_vectors,vectors,nvector,3*nmax,"minimize:vector");
-  d_vectors = k_vectors.d_view;
-  h_vectors = k_vectors.h_view;
+  d_vectors = k_vectors.view_device();
+  h_vectors = k_vectors.view_host();
   k_vectors.modify_device();
 }
 

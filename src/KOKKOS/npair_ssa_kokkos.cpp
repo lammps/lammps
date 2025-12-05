@@ -115,15 +115,15 @@ void NPairSSAKokkos<DeviceType>::copy_stencil_info()
 
   k_stencil = DAT::tdual_int_1d("NPairSSAKokkos:stencil",maxstencil);
   for (int k = 0; k < maxstencil; k++) {
-    k_stencil.h_view(k) = ns->stencil[k];
+    k_stencil.view_host()(k) = ns->stencil[k];
   }
   k_stencil.modify_host();
   k_stencil.sync<DeviceType>();
   k_stencilxyz = DAT::tdual_int_1d_3("NPairSSAKokkos:stencilxyz",maxstencil);
   for (int k = 0; k < maxstencil; k++) {
-    k_stencilxyz.h_view(k,0) = ns->stencilxyz[k][0];
-    k_stencilxyz.h_view(k,1) = ns->stencilxyz[k][1];
-    k_stencilxyz.h_view(k,2) = ns->stencilxyz[k][2];
+    k_stencilxyz.view_host()(k,0) = ns->stencilxyz[k][0];
+    k_stencilxyz.view_host()(k,1) = ns->stencilxyz[k][1];
+    k_stencilxyz.view_host()(k,2) = ns->stencilxyz[k][2];
   }
   k_stencilxyz.modify_host();
   k_stencilxyz.sync<DeviceType>();
@@ -133,7 +133,7 @@ void NPairSSAKokkos<DeviceType>::copy_stencil_info()
 
   k_nstencil_ssa = DAT::tdual_int_1d("NPairSSAKokkos:nstencil_ssa",5);
   for (int k = 0; k < 5; ++k) {
-    k_nstencil_ssa.h_view(k) = ns_ssa->nstencil_ssa[k];
+    k_nstencil_ssa.view_host()(k) = ns_ssa->nstencil_ssa[k];
   }
   k_nstencil_ssa.modify_host();
   k_nstencil_ssa.sync<DeviceType>();
@@ -149,7 +149,7 @@ void NPairSSAKokkos<DeviceType>::copy_stencil_info()
     k_ssa_phaseOff = DAT::tdual_int_1d_3("NPairSSAKokkos:ssa_phaseOff",ssa_phaseCt);
     ssa_phaseOff = k_ssa_phaseOff.view<DeviceType>();
   }
-  auto h_ssa_phaseOff = k_ssa_phaseOff.h_view;
+  auto h_ssa_phaseOff = k_ssa_phaseOff.view_host();
   k_ssa_phaseOff.sync_host();
   int workPhase = 0;
   for (int zoff = sz1 - 1; zoff >= 0; --zoff) {
@@ -264,20 +264,20 @@ void NPairSSAKokkos<DeviceType>::build(NeighList *list_)
   k_ssa_gitemLen.sync_host();
   k_ssa_phaseOff.sync_host();
   k_ssa_phaseLen.sync_host();
-  auto h_ssa_itemLoc = k_ssa_itemLoc.h_view;
-  auto h_ssa_itemLen = k_ssa_itemLen.h_view;
-  auto h_ssa_gitemLoc = k_ssa_gitemLoc.h_view;
-  auto h_ssa_gitemLen = k_ssa_gitemLen.h_view;
-  auto h_ssa_phaseOff = k_ssa_phaseOff.h_view;
-  auto h_ssa_phaseLen = k_ssa_phaseLen.h_view;
+  auto h_ssa_itemLoc = k_ssa_itemLoc.view_host();
+  auto h_ssa_itemLen = k_ssa_itemLen.view_host();
+  auto h_ssa_gitemLoc = k_ssa_gitemLoc.view_host();
+  auto h_ssa_gitemLen = k_ssa_gitemLen.view_host();
+  auto h_ssa_phaseOff = k_ssa_phaseOff.view_host();
+  auto h_ssa_phaseLen = k_ssa_phaseLen.view_host();
 
 { // Preflight the neighbor list workplan
   k_bincount.sync_host();
-  auto h_bincount = k_bincount.h_view;
+  auto h_bincount = k_bincount.view_host();
   k_stencil.sync_host();
-  auto h_stencil = k_stencil.h_view;
+  auto h_stencil = k_stencil.view_host();
   k_nstencil_ssa.sync_host();
-  auto h_nstencil_ssa = k_nstencil_ssa.h_view;
+  auto h_nstencil_ssa = k_nstencil_ssa.view_host();
   int inum = 0;
 
   // loop over bins with local atoms, counting half of the neighbors
@@ -358,7 +358,7 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
   // count how many ghosts might have neighbors, and increase the work plan storage
   k_gbincount.sync_host();
   for (int workPhase = 0; workPhase < ssa_gphaseCt; workPhase++) {
-    int len = k_gbincount.h_view(workPhase + 1);
+    int len = k_gbincount.view_host()(workPhase + 1);
     h_ssa_gitemLoc(workPhase,0) = nl_size; // record where workItem starts in ilist
     h_ssa_gitemLen(workPhase,0) = len;
     nl_size += len;
@@ -479,7 +479,7 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
     k_ssa_gitemLoc.sync_host();
     k_ssa_gitemLen.sync_host();
     k_ssa_gphaseLen.sync_host();
-    auto h_ssa_gphaseLen = k_ssa_gphaseLen.h_view;
+    auto h_ssa_gphaseLen = k_ssa_gphaseLen.view_host();
     data.neigh_list.gnum = h_ssa_gitemLoc(ssa_gphaseCt-1,h_ssa_gphaseLen(ssa_gphaseCt-1)-1) +
       h_ssa_gitemLen(ssa_gphaseCt-1,h_ssa_gphaseLen(ssa_gphaseCt-1)-1) - data.neigh_list.inum;
     firstTry = false;

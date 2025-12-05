@@ -102,10 +102,10 @@ void PairADPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     d_fp = k_fp.template view<DeviceType>();
     d_mu = k_mu.template view<DeviceType>();
     d_lambda = k_lambda.template view<DeviceType>();
-    h_rho = k_rho.h_view;
-    h_fp = k_fp.h_view;
-    h_mu = k_mu.h_view;
-    h_lambda = k_lambda.h_view;
+    h_rho = k_rho.view_host();
+    h_fp = k_fp.view_host();
+    h_mu = k_mu.view_host();
+    h_lambda = k_lambda.view_host();
   }
 
   x = atomKK->k_x.view<DeviceType>();
@@ -346,11 +346,11 @@ void PairADPKokkos<DeviceType>::file2array()
   auto k_type2u2r = DAT::tdual_int_2d_dl("pair:type2u2r",n+1,n+1);
   auto k_type2w2r = DAT::tdual_int_2d_dl("pair:type2w2r",n+1,n+1);
 
-  auto h_type2frho =  k_type2frho.h_view;
-  auto h_type2rhor = k_type2rhor.h_view;
-  auto h_type2z2r = k_type2z2r.h_view;
-  auto h_type2u2r = k_type2u2r.h_view;
-  auto h_type2w2r = k_type2w2r.h_view;
+  auto h_type2frho =  k_type2frho.view_host();
+  auto h_type2rhor = k_type2rhor.view_host();
+  auto h_type2z2r = k_type2z2r.view_host();
+  auto h_type2u2r = k_type2u2r.view_host();
+  auto h_type2w2r = k_type2w2r.view_host();
 
   for (i = 1; i <= n; i++) {
     h_type2frho[i] = type2frho[i];
@@ -398,11 +398,11 @@ void PairADPKokkos<DeviceType>::array2spline()
   tdual_kkfloat_2d_n7 k_u2r_spline = tdual_kkfloat_2d_n7("pair:z2r",nu2r,nr+1);
   tdual_kkfloat_2d_n7 k_w2r_spline = tdual_kkfloat_2d_n7("pair:z2r",nw2r,nr+1);
 
-  t_hostkkfloat_2d_n7 h_frho_spline = k_frho_spline.h_view;
-  t_hostkkfloat_2d_n7 h_rhor_spline = k_rhor_spline.h_view;
-  t_hostkkfloat_2d_n7 h_z2r_spline = k_z2r_spline.h_view;
-  t_hostkkfloat_2d_n7 h_u2r_spline = k_u2r_spline.h_view;
-  t_hostkkfloat_2d_n7 h_w2r_spline = k_w2r_spline.h_view;
+  t_hostkkfloat_2d_n7 h_frho_spline = k_frho_spline.view_host();
+  t_hostkkfloat_2d_n7 h_rhor_spline = k_rhor_spline.view_host();
+  t_hostkkfloat_2d_n7 h_z2r_spline = k_z2r_spline.view_host();
+  t_hostkkfloat_2d_n7 h_u2r_spline = k_u2r_spline.view_host();
+  t_hostkkfloat_2d_n7 h_w2r_spline = k_w2r_spline.view_host();
 
   for (int i = 0; i < nfrho; i++)
     interpolate(nrho,drho,frho[i],h_frho_spline,i);

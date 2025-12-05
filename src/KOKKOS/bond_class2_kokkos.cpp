@@ -223,10 +223,10 @@ void BondClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   d_r0 = k_r0.template view<DeviceType>();
 
   for (int i = 1; i <= n; i++) {
-    k_k2.h_view[i] = k2[i];
-    k_k3.h_view[i] = k3[i];
-    k_k4.h_view[i] = k4[i];
-    k_r0.h_view[i] = r0[i];
+    k_k2.view_host()[i] = k2[i];
+    k_k3.view_host()[i] = k3[i];
+    k_k4.view_host()[i] = k4[i];
+    k_r0.view_host()[i] = r0[i];
   }
 
   k_k2.modify_host();
@@ -260,10 +260,10 @@ void BondClass2Kokkos<DeviceType>::read_restart(FILE *fp)
   d_r0 = k_r0.template view<DeviceType>();
 
   for (int i = 1; i <= n; i++) {
-    k_k2.h_view[i] = k2[i];
-    k_k3.h_view[i] = k3[i];
-    k_k4.h_view[i] = k4[i];
-    k_r0.h_view[i] = r0[i];
+    k_k2.view_host()[i] = k2[i];
+    k_k3.view_host()[i] = k3[i];
+    k_k4.view_host()[i] = k4[i];
+    k_r0.view_host()[i] = r0[i];
   }
 
   k_k2.modify_host();

@@ -84,6 +84,10 @@ class FixShake : public Fix {
   double kbond;                              // force constant for restraint
   double ebond;                              // energy of bond restraints
 
+  int store_flag;               // store per-atom constraint/restraint forces if true
+  int maxstore;                 // current size of fstore array
+  double **fstore;              // constraint/restraint force
+
   class FixRespa *fix_respa;    // rRESPA fix needed by SHAKE
   int nlevels_respa;            // copies of needed rRESPA variables
   int *loop_respa;

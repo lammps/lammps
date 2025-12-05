@@ -102,8 +102,8 @@ void MinLineSearchKokkos::reset_vectors()
 
   nvec = 3 * atom->nlocal;
   atomKK->sync(Device,F_MASK|X_MASK);
-  auto d_x = atomKK->k_x.d_view;
-  auto d_f = atomKK->k_f.d_view;
+  auto d_x = atomKK->k_x.view_device();
+  auto d_f = atomKK->k_f.view_device();
 
   if (nvec) xvec = DAT::t_kkfloat_1d(d_x.data(),nvec);
   if (nvec) fvec = DAT::t_kkacc_1d(d_f.data(),nvec);
@@ -194,7 +194,7 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
         fdothme += l_fvec[i]*l_h[i];
       },fdothme);
     } else {
-      auto l_f = atomKK->k_f.d_view;
+      auto l_f = atomKK->k_f.view_device();
       Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(const int& i, double& fdothme) {
         const int j = i*3;
         fdothme += l_f(i,0)*l_h[j];
@@ -290,7 +290,7 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
           sdot.d1 += l_fvec[i]*l_h[i];
         },sdot);
       } else {
-        auto l_f = atomKK->k_f.d_view;
+        auto l_f = atomKK->k_f.view_device();
         Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
           sdot.d0 += l_f(i,0)*l_f(i,0);
           sdot.d0 += l_f(i,1)*l_f(i,1);
@@ -446,7 +446,7 @@ double MinLineSearchKokkos::compute_dir_deriv(double &ff)
         sdot.d1 += l_fvec[i]*l_h[i];
       },sdot);
     } else {
-      auto l_f = atomKK->k_f.d_view;
+      auto l_f = atomKK->k_f.view_device();
       Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
         sdot.d0 += l_f(i,0)*l_f(i,0);
         sdot.d0 += l_f(i,1)*l_f(i,1);

@@ -174,7 +174,7 @@ template <class DeviceType> void FixWallFlowKokkos<DeviceType>::grow_arrays(int 
   k_current_segment.template modify<DeviceType>();
 
   d_current_segment = k_current_segment.template view<DeviceType>();
-  h_current_segment = k_current_segment.h_view;
+  h_current_segment = k_current_segment.view_host();
 }
 
 template <class DeviceType> void FixWallFlowKokkos<DeviceType>::copy_arrays(int i, int j, int)
@@ -195,7 +195,7 @@ void FixWallFlowKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, Bin
 
   k_current_segment.sync_device();
 
-  Sorter.sort(LMPDeviceType(), k_current_segment.d_view);
+  Sorter.sort(LMPDeviceType(), k_current_segment.view_device());
 
   k_current_segment.modify_device();
 }

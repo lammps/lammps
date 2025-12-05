@@ -24,11 +24,13 @@ using namespace FixConst;
 
 // INTERNAL fix for storing/communicating per-atom values
 // syntax: id group style n1 n2 gflag rflag
+//   group is ignored
 //   N1 = 1, N2 = 0 is per-atom vector, single value per atom
 //   N1 > 1, N2 = 0 is per-atom array, N1 values per atom
 //   N1 > 0, N2 > 0 is per-atom tensor, N1xN2 array per atom
 //   gflag = 0/1, no/yes communicate per-atom values with ghost atoms
 //   rflag = 0/1, no/yes store per-atom values in restart file
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -38,6 +40,7 @@ FixStoreAtom::FixStoreAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 7) error->all(FLERR, "Illegal fix STORE/ATOM command: number of args");
 
   disable = 0;
+  dynamic_group_allow = 1;
 
   n1 = utils::inumeric(FLERR, arg[3], false, lmp);
   n2 = utils::inumeric(FLERR, arg[4], false, lmp);

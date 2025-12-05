@@ -13,8 +13,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author (triclinic and multi-neigh) : Pieter in 't Veld (SNL)
-   Contributing author (improved multi-neigh) : Joel Clemmer (SNL)
+   Contributing author (triclinic and original multi-neigh) : Pieter in 't Veld (SNL)
+   Contributing author (improved multi-neigh) : Joel Clemmer (SNL), Kevin Hanley (Edinburgh),
+                                                Kevin Stratford (Edinburgh), Tom Shire (Edinburgh)
 ------------------------------------------------------------------------- */
 
 #include "neighbor.h"
@@ -66,7 +67,7 @@ static constexpr double BIG = 1.0e20;
 enum{NONE,ALL,PARTIAL,TEMPLATE};
 
 static const char cite_neigh_multi[] =
-  "neighbor multi command: doi:10.1016/j.cpc.2008.03.005, doi:10.1007/s40571-020-00361-2\n\n"
+  "neighbor multi command: https://doi.org/10.1016/j.cpc.2008.03.005, https://doi.org/10.1007/s40571-020-00361-2\n\n"
   "@Article{Intveld08,\n"
   " author =  {in 't Veld, P. J. and S. J.~Plimpton and G. S. Grest},\n"
   " title =   {Accurate and Efficient Methods for Modeling Colloidal\n"
@@ -2027,6 +2028,13 @@ int Neighbor::choose_stencil(NeighRequest *rq)
   if (rq->full) fullflag = 1;
   if (!newtflag) fullflag = 1;
 
+  int kk_fp32 = 0;
+  if (lmp->kokkos)
+    kk_fp32 = lmp->kokkos->kk_fp32;
+  if ((kk_fp32 && newtflag) && atom->tag_enable == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Cannot build Kokkos FP32 neighbor lists with newton on unless atoms have IDs");
+
   //printf("STENCIL RQ FLAGS: hff %d %d n %d g %d s %d newtflag %d fullflag %d\n",
   //       rq->half,rq->full,rq->newton,rq->ghost,rq->ssa,
   //       newtflag, fullflag);
@@ -2074,8 +2082,10 @@ int Neighbor::choose_stencil(NeighRequest *rq)
     }
 
     // domain triclinic flag is on or off and must match
+    // if Kokkos FP32 and newton on, also use triclinic due to
+    //  roundoff issue
 
-    if (triclinic) {
+    if (triclinic || (kk_fp32 && newtflag)) {
       if (!(mask & NS_TRI)) continue;
     } else if (!triclinic) {
       if (!(mask & NS_ORTHO)) continue;
@@ -2114,6 +2124,13 @@ int Neighbor::choose_pair(NeighRequest *rq)
   else if (rq->newton == 1) newtflag = true;
   else if (rq->newton == 2) newtflag = false;
   else error->all(FLERR, Error::NOLASTLINE, "Illegal 'newton' flag in neighbor list request");
+
+  int kk_fp32 = 0;
+  if (lmp->kokkos)
+    kk_fp32 = lmp->kokkos->kk_fp32;
+  if ((kk_fp32 && newtflag) && atom->tag_enable == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Cannot build Kokkos FP32 neighbor lists with newton on unless atoms have IDs");
 
   int molecular = atom->molecular;
 
@@ -2213,8 +2230,10 @@ int Neighbor::choose_pair(NeighRequest *rq)
     }
 
     // domain triclinic flag is on or off and must match
+    // if Kokkos FP32 and newton on, also use triclinic due to
+    //  roundoff issue
 
-    if (triclinic) {
+    if (triclinic || (kk_fp32 && newtflag)) {
       if (!(mask & NP_TRI)) continue;
     } else if (!triclinic) {
       if (!(mask & NP_ORTHO)) continue;

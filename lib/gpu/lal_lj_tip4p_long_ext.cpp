@@ -115,12 +115,12 @@ int ** ljtip4p_long_gpu_compute_n(const int ago, const int inum_full,
                         const bool eatom, const bool vatom, int &host_start,
                         int **ilist, int **jnum, const double cpu_time,
                         bool &success, double *host_q, double *boxlo,
-                        double *prd) {
+                        double *prd, int *periodicity) {
   return LJTIP4PLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, map_array, map_size, sametag, max_same,
                        nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success,
-                       host_q,boxlo, prd);
+                       host_q,boxlo, prd, periodicity);
 }
 
 void ljtip4p_long_gpu_compute(const int ago, const int inum_full, const int nall,

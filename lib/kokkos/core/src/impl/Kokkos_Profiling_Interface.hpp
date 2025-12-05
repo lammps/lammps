@@ -56,10 +56,10 @@ struct ExecutionSpaceIdentifier {
   uint32_t instance_id;
 };
 
-constexpr const uint32_t num_type_bits     = 8;
-constexpr const uint32_t num_device_bits   = 7;
-constexpr const uint32_t num_instance_bits = 17;
-constexpr const uint32_t num_avail_bits    = sizeof(uint32_t) * CHAR_BIT;
+inline constexpr const uint32_t num_type_bits     = 8;
+inline constexpr const uint32_t num_device_bits   = 7;
+inline constexpr const uint32_t num_instance_bits = 17;
+inline constexpr const uint32_t num_avail_bits    = sizeof(uint32_t) * CHAR_BIT;
 
 inline DeviceType devicetype_from_uint32t(const uint32_t in) {
   switch (in) {

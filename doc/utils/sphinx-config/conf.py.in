@@ -50,7 +50,6 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.imgmath',
     'sphinx.ext.autodoc',
-    'sphinx_toolbox.collapse',
     'lammps_theme',
     'sphinxcontrib.jquery',
     'sphinxfortran.fortran_domain',
@@ -83,14 +82,32 @@ master_doc = 'Manual'
 project = 'LAMMPS'
 copyright = '2003-{} Sandia Corporation'.format(date.today().year)
 
+def get_git_branch():
+    import subprocess
+    try:
+        branch = subprocess.run(['git','rev-parse','--abbrev-ref','HEAD'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        if branch.returncode == 0:
+            return branch.stdout.decode().strip()
+    except:
+        pass
+    return ''
+
+# use version date only for release and stable branches
+# use "Maintenance" for maintenance branch
+# otherwise use "Development"
 def get_lammps_version():
     import os
-    script_dir = os.path.dirname(os.path.realpath(__file__))
-    with open(os.path.join(LAMMPS_SOURCE_DIR, 'version.h'), 'r') as f:
-        line = f.readline()
-        start_pos = line.find('"')+1
-        end_pos = line.find('"', start_pos)
-        return line[start_pos:end_pos]
+    branch = get_git_branch()
+    if branch == 'release' or branch == 'stable':
+        script_dir = os.path.dirname(os.path.realpath(__file__))
+        with open(os.path.join(LAMMPS_SOURCE_DIR, 'version.h'), 'r') as f:
+            line = f.readline()
+            start_pos = line.find('"')+1
+            end_pos = line.find('"', start_pos)
+            return line[start_pos:end_pos]
+    elif branch == 'maintenance':
+        return 'Maintenance'
+    return 'Development'
 
 def get_lammps_update():
     import os
@@ -103,7 +120,7 @@ def get_lammps_update():
         return line[start_pos:end_pos]
 
 def get_git_info():
-    import subprocess,time
+    import subprocess
 
     git_n_date = ''
     try:

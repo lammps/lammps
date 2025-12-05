@@ -1,17 +1,40 @@
-Available optional packages
-***************************
+Optional packages
+*****************
 
-This section gives an overview of the optional packages that extend
-LAMMPS' functionality.  Packages are groups of files that enable a
-specific set of features.  For example, force fields for molecular
-systems or rigid-body constraints are in packages.  You can see the list
-of all packages and "make" commands to manage them by typing "make
-package" from within the src directory of the LAMMPS distribution.  The
-list of packages that are included in a specific LAMMPS executable can
-be displayed by :doc:`running LAMMPS with the "-h" flag. <Run_options>`
+This section gives an overview of the optional packages included in the
+LAMMPS distribution that extend LAMMPS' functionality.  Packages are
+groups of files that enable a specific set of features.  For example,
+force fields for molecular systems or rigid-body constraints are in
+packages.  You can see the list of all packages and "make" commands to
+manage them by typing "make package" from within the src directory of
+the LAMMPS distribution.  The list of packages that are included in a
+specific LAMMPS executable can be displayed by :doc:`running LAMMPS with
+the "-h" flag. <Run_options>`
 
 The :doc:`Build package <Build_package>` page gives general info on how
 to install and uninstall packages as part of the LAMMPS build process.
+
+.. admonition:: External packages
+   :class: note
+
+   In addition to packages included with LAMMPS there also are packages
+   that are distributed independently and separate from LAMMPS.  Some of
+   them are part of a modified fork of the LAMMPS repository, others are
+   add-on files that have to be integrated into the LAMMPS distribution
+   first.  The LAMMPS developers have in most cases no direct knowledge
+   of those packages and which new commands and modifications to LAMMPS
+   they contain.  Since LAMMPS is :doc:`open source under the GPL-v2
+   license <Intro_opensource>`, there is no requirement to tell us about
+   it or integrated them back into LAMMPS.  Thus you have to contact the
+   developers of those individual packages in case of questions or
+   problems.
+
+   As the LAMMPS internal code structure is sometimes changing, those
+   external packages may need to be updated to remain compatible with
+   the latest LAMMPS versions.  The LAMMPS Programmer's Guide part
+   contains a section with :doc:`notes for updating code written for
+   older LAMMPS versions <Developer_updating>` which explains
+   significant changes and how to update the corresponding code.
 
 Below is the list of packages that are included in the LAMMPS
 distribution.  The link for each package name gives more details.

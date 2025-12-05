@@ -77,12 +77,12 @@ void FixWallLJ93Kokkos<DeviceType>::precompute(int m)
   FixWallLJ93::precompute(m);
 
   for( int i=0 ; i<6 ; i++ ) {
-    k_cutoff.h_view(i) = cutoff[i];
-    k_coeff1.h_view(i) = coeff1[i];
-    k_coeff2.h_view(i) = coeff2[i];
-    k_coeff3.h_view(i) = coeff3[i];
-    k_coeff4.h_view(i) = coeff4[i];
-    k_offset.h_view(i) = offset[i];
+    k_cutoff.view_host()(i) = cutoff[i];
+    k_coeff1.view_host()(i) = coeff1[i];
+    k_coeff2.view_host()(i) = coeff2[i];
+    k_coeff3.view_host()(i) = coeff3[i];
+    k_coeff4.view_host()(i) = coeff4[i];
+    k_offset.view_host()(i) = offset[i];
   }
 
   k_cutoff.modify_host();

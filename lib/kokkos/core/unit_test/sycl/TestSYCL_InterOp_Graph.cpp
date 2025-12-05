@@ -49,9 +49,7 @@ TEST(TEST_CATEGORY, graph_get_native_return_types_are_references) {
 // This test checks the promises of Kokkos::Graph against its
 // underlying SYCL native objects.
 TEST(TEST_CATEGORY, graph_promises_on_native_objects) {
-  auto graph = Kokkos::Experimental::create_graph<Kokkos::SYCL>();
-
-  auto root = Kokkos::Impl::GraphAccess::create_root_ref(graph);
+  Kokkos::Experimental::Graph<Kokkos::SYCL> graph{};
 
   // Before instantiation, the SYCL graph is valid, but the SYCL executable
   // graph is still null. Since the SYCL command graph is a regular object,
@@ -74,11 +72,9 @@ TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
 
   view_t data(Kokkos::view_alloc(exec, "witness"));
 
-  auto graph = Kokkos::Experimental::create_graph(exec);
+  Kokkos::Experimental::Graph graph{exec};
 
-  auto root = Kokkos::Impl::GraphAccess::create_root_ref(graph);
-
-  root.then_parallel_for(1, Increment<view_t>{data});
+  graph.root_node().then_parallel_for(1, Increment<view_t>{data});
 
   graph.instantiate();
 
@@ -127,14 +123,11 @@ TEST(TEST_CATEGORY, graph_construct_from_native) {
   native_graph_t native_graph(exec.sycl_queue().get_context(),
                               exec.sycl_queue().get_device());
 
-  auto graph_from_native = Kokkos::Experimental::create_graph_from_native(
-      exec, std::move(native_graph));
-
-  auto root = Kokkos::Impl::GraphAccess::create_root_ref(graph_from_native);
+  Kokkos::Experimental::Graph graph_from_native(exec, std::move(native_graph));
 
   const view_t data(Kokkos::view_alloc(exec, "witness"));
 
-  root.then_parallel_for(1, Increment<view_t>{data});
+  graph_from_native.root_node().then_parallel_for(1, Increment<view_t>{data});
 
   graph_from_native.submit(exec);
 

@@ -223,7 +223,7 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
   auto x = atomKK->k_x.view<DeviceType>();
   auto type = atomKK->k_type.view<DeviceType>();
   auto d_cutsq=k_pairmliap->k_cutsq.template view<DeviceType>();
-  auto h_cutsq=k_pairmliap->k_cutsq.h_view;
+  auto h_cutsq=k_pairmliap->k_cutsq.view_host();
   auto d_numneighs = k_numneighs.template view<DeviceType>();
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,natomneigh), KOKKOS_LAMBDA (int ii, int &contrib) {
     const int i = d_ilist[ii];
@@ -270,7 +270,7 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void MLIAPDataKokkos<DeviceType>::modified(ExecutionSpace space, unsigned int mask, bool ignore_auto_sync) {
+void MLIAPDataKokkos<DeviceType>::modified(ExecutionSpace space, uint64_t mask, bool ignore_auto_sync) {
   if (space == Device) {
     if (mask & IATOMS_MASK      ) k_iatoms         .modify_device();
     if (mask & IELEMS_MASK      ) k_ielems         .modify_device();
@@ -316,7 +316,7 @@ void MLIAPDataKokkos<DeviceType>::modified(ExecutionSpace space, unsigned int ma
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void MLIAPDataKokkos<DeviceType>::sync(ExecutionSpace space, unsigned int mask, bool ignore_auto_sync) {
+void MLIAPDataKokkos<DeviceType>::sync(ExecutionSpace space, uint64_t mask, bool ignore_auto_sync) {
 
   if (space == Device) {
     if (lmp->kokkos->auto_sync && !ignore_auto_sync) modified(Host, mask, true);

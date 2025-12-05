@@ -232,9 +232,9 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   k_error_flag.template modify<DeviceType>();
   k_error_flag.sync_host();
-  if (k_error_flag.h_view() == 1)
+  if (k_error_flag.view_host()() == 1)
     error->all(FLERR,"The number of molecules in CG particle is less than 10*DBL_EPSILON.");
-  else if (k_error_flag.h_view() == 2)
+  else if (k_error_flag.view_host()() == 2)
     error->all(FLERR,"Computed fraction less than -10*DBL_EPSILON");
 
   int inum = list->inum;
@@ -319,7 +319,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   k_error_flag.template modify<DeviceType>();
   k_error_flag.sync_host();
-  if (k_error_flag.h_view())
+  if (k_error_flag.view_host()())
     error->all(FLERR,"alpha_ij is 6.0 in pair exp6");
 
   if (eflag_global) eng_vdwl += ev.evdwl;

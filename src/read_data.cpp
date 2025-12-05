@@ -1697,9 +1697,7 @@ void ReadData::bonds(int firstpass)
     eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of data file");
     if (blabelflag && !lmap->is_complete(Atom::BOND))
-      error->all(FLERR,
-                 "Label map is incomplete: "
-                 "all types must be assigned a unique type label");
+      error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
     atom->data_bonds(nchunk, buffer, count, id_offset, boffset, blabelflag, lmap->lmap2lmap.bond);
     nread += nchunk;
   }
@@ -1719,11 +1717,11 @@ void ReadData::bonds(int firstpass)
 
     if (addflag != NONE) {
       if (maxall > atom->bond_per_atom)
-        error->all(FLERR,
-                   "Subsequent read data induced "
-                   "too many bonds per atom");
-    } else
+        error->all(FLERR,"Subsequent read data induced too many bonds per atom");
+    } else {
       atom->bond_per_atom = maxall;
+      atom->avec->maxexchange += 2 * maxall;
+    }
 
     memory->destroy(count);
     return;
@@ -1776,9 +1774,7 @@ void ReadData::angles(int firstpass)
     eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of data file");
     if (alabelflag && !lmap->is_complete(Atom::ANGLE))
-      error->all(FLERR,
-                 "Label map is incomplete: "
-                 "all types must be assigned a unique type label");
+      error->all(FLERR,"Label map is incomplete: all types must be assigned a unique type label");
     atom->data_angles(nchunk, buffer, count, id_offset, aoffset, alabelflag, lmap->lmap2lmap.angle);
     nread += nchunk;
   }
@@ -1798,12 +1794,11 @@ void ReadData::angles(int firstpass)
 
     if (addflag != NONE) {
       if (maxall > atom->angle_per_atom)
-        error->all(FLERR,
-                   "Subsequent read data induced "
-                   "too many angles per atom");
-    } else
+        error->all(FLERR,"Subsequent read data induced too many angles per atom");
+    } else {
       atom->angle_per_atom = maxall;
-
+      atom->avec->maxexchange += 4 * maxall;
+    }
     memory->destroy(count);
     return;
   }
@@ -1855,9 +1850,7 @@ void ReadData::dihedrals(int firstpass)
     eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of data file");
     if (dlabelflag && !lmap->is_complete(Atom::DIHEDRAL))
-      error->all(FLERR,
-                 "Label map is incomplete: "
-                 "all types must be assigned a unique type label");
+      error->all(FLERR,"Label map is incomplete: all types must be assigned a unique type label");
     atom->data_dihedrals(nchunk, buffer, count, id_offset, doffset, dlabelflag,
                          lmap->lmap2lmap.dihedral);
     nread += nchunk;
@@ -1878,11 +1871,11 @@ void ReadData::dihedrals(int firstpass)
 
     if (addflag != NONE) {
       if (maxall > atom->dihedral_per_atom)
-        error->all(FLERR,
-                   "Subsequent read data induced "
-                   "too many dihedrals per atom");
-    } else
+        error->all(FLERR,"Subsequent read data induced too many dihedrals per atom");
+    } else {
       atom->dihedral_per_atom = maxall;
+      atom->avec->maxexchange += 5 * maxall;
+    }
 
     memory->destroy(count);
     return;
@@ -1935,9 +1928,7 @@ void ReadData::impropers(int firstpass)
     eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of data file");
     if (ilabelflag && !lmap->is_complete(Atom::IMPROPER))
-      error->all(FLERR,
-                 "Label map is incomplete: "
-                 "all types must be assigned a unique type label");
+      error->all(FLERR,"Label map is incomplete: all types must be assigned a unique type label");
     atom->data_impropers(nchunk, buffer, count, id_offset, ioffset, ilabelflag,
                          lmap->lmap2lmap.improper);
     nread += nchunk;
@@ -1959,8 +1950,10 @@ void ReadData::impropers(int firstpass)
     if (addflag != NONE) {
       if (maxall > atom->improper_per_atom)
         error->all(FLERR, "Subsequent read data induced too many impropers per atom");
-    } else
+    } else {
       atom->improper_per_atom = maxall;
+      atom->avec->maxexchange += 5 * maxall;
+    }
 
     memory->destroy(count);
     return;

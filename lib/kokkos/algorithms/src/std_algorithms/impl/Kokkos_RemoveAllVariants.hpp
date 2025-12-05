@@ -126,7 +126,7 @@ IteratorType remove_if_exespace_impl(const std::string& label,
         func1_type(first, begin(tmp_view), pred), scan_count);
 
     // scan_count should be equal to keep_count
-    assert(scan_count == keep_count);
+    KOKKOS_ASSERT(scan_count == keep_count);
     (void)scan_count;  // to avoid unused complaints
 
     // stage 2, we do parfor to move from tmp to original range

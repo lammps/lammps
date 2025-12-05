@@ -443,7 +443,7 @@ void UCL_Device::clear() {
 // List all devices along with all properties
 void UCL_Device::print_all(std::ostream &out) {
   int driver_version;
-  hipDriverGetVersion(&driver_version);
+  (void)hipDriverGetVersion(&driver_version);
   out << "Driver Version:                           "
       << driver_version/1000 << "." << driver_version%100
                   << std::endl;

@@ -48,7 +48,7 @@ DihedralOPLSKokkos<DeviceType>::DihedralOPLSKokkos(LAMMPS *lmp) : DihedralOPLS(l
 
   k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
   d_warning_flag = k_warning_flag.view<DeviceType>();
-  h_warning_flag = k_warning_flag.h_view;
+  h_warning_flag = k_warning_flag.view_host();
 
   centroidstressflag = CENTROID_NOTAVAIL;
 }
@@ -367,10 +367,10 @@ void DihedralOPLSKokkos<DeviceType>::coeff(int narg, char **arg)
 
   int n = atom->ndihedraltypes;
   for (int i = 1; i <= n; i++) {
-    k_k1.h_view[i] = k1[i];
-    k_k2.h_view[i] = k2[i];
-    k_k3.h_view[i] = k3[i];
-    k_k4.h_view[i] = k4[i];
+    k_k1.view_host()[i] = k1[i];
+    k_k2.view_host()[i] = k2[i];
+    k_k3.view_host()[i] = k3[i];
+    k_k4.view_host()[i] = k4[i];
   }
 
   k_k1.modify_host();
@@ -390,10 +390,10 @@ void DihedralOPLSKokkos<DeviceType>::read_restart(FILE *fp)
 
   int n = atom->ndihedraltypes;
   for (int i = 1; i <= n; i++) {
-    k_k1.h_view[i] = k1[i];
-    k_k2.h_view[i] = k2[i];
-    k_k3.h_view[i] = k3[i];
-    k_k4.h_view[i] = k4[i];
+    k_k1.view_host()[i] = k1[i];
+    k_k2.view_host()[i] = k2[i];
+    k_k3.view_host()[i] = k3[i];
+    k_k4.view_host()[i] = k4[i];
   }
 
   k_k1.modify_host();

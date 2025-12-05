@@ -86,7 +86,7 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
 
   ev_init(eflag, vflag, 0);
   if (eflag_atom) {
-    if ((int)k_eatom.h_view.extent(0) < maxeatom) {
+    if ((int)k_eatom.view_host().extent(0) < maxeatom) {
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
     } else {
@@ -97,7 +97,7 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
   }
 
   if (vflag_atom) {
-    if ((int)k_vatom.h_view.extent(0) < maxeatom) {
+    if ((int)k_vatom.view_host().extent(0) < maxeatom) {
       memoryKK->destroy_kokkos(k_vatom,vatom);
       memoryKK->create_kokkos(k_vatom,vatom,maxeatom,6,"pair:eatom");
     } else {
@@ -285,7 +285,7 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
   model->init();
   descriptor->init();
 
-  auto h_cutsq=k_cutsq.h_view;
+  auto h_cutsq=k_cutsq.view_host();
   for (int itype=1; itype <= atom->ntypes; ++itype)
     for (int jtype=1; jtype <= atom->ntypes; ++jtype)
       // do not set cuts for NULL atoms
@@ -425,12 +425,13 @@ int PairMLIAPKokkos<DeviceType>::pack_forward_comm_kokkos(
   auto val=fill.view<DeviceType>();
   int nf=vec_len;
   auto to=copy_to;
-  Kokkos::parallel_for(nv, KOKKOS_LAMBDA (int i) {
-    int gstart=idx(i)*nf;
-    int start=i*nf;
-    for (int j=0;j<nf;++j)
-      val(start++) = static_cast<double>(to[gstart++]);
-  });
+  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+      const int i = start/nf;
+      const int gstart=idx(i)*nf;
+      const int j = start%nf;
+      val(start+j) = static_cast<double>(to[gstart+j]);
+    }
+  );
   return nv*nf;
 }
 
@@ -494,14 +495,14 @@ void PairMLIAPKokkos<DeviceType>::unpack_forward_comm_kokkos(
     int nv, int first_up, DAT::tdual_double_1d &fill, CommType *copy_to) {
   auto val=fill.view<DeviceType>();
   int nf=vec_len;
-
-  Kokkos::parallel_for(nv, KOKKOS_LAMBDA (int i) {
-    int gstart=(first_up+i)*nf;
-    int start=i*nf;
-    for (int j=0;j<nf;++j) {
-      copy_to[gstart+j] = static_cast<CommType>(val(start+j));
+  auto to=copy_to;
+  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+      const int i=start/nf;
+      const int gstart=(first_up+i)*nf;
+      const int j=start%nf;
+      to[gstart+j] = static_cast<CommType>(val(start+j));
     }
-  });
+  );
 }
 
 /* ---------------------------------------------------------------------- */
@@ -557,13 +558,14 @@ int PairMLIAPKokkos<DeviceType>::pack_reverse_comm_kokkos(int nv, int first_up, 
 {
   int nf=vec_len;
   auto val=fill.view<DeviceType>();
-  Kokkos::parallel_for(nv, KOKKOS_LAMBDA (int i) {
-    int gstart=(first_up+i)*nf;
-    int start=i*nf;
-    for (int j=0;j<nf;++j) {
-      val(start++) = static_cast<double>(copy_to[gstart++]);
+  auto to=copy_to;
+  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+      const int i = start/nf;
+      const int gstart=(first_up+i)*nf;
+      const int j = start%nf;
+      val(start+j) = static_cast<double>(to[gstart+j]);
     }
-  });
+  );
   return nv*nf;
 }
 /* ---------------------------------------------------------------------- */
@@ -625,12 +627,13 @@ void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm_kokkos(int nv, DAT::tdual_
   auto val=fill.view<DeviceType>();
   auto idx=idx_v.view<DeviceType>();
   auto to=copy_to;
-  Kokkos::parallel_for(nv, KOKKOS_LAMBDA (int i) {
-    int gstart=idx(i)*nf;
-    int start=i*nf;
-    for (int j=0;j<nf;++j)
-      to[gstart++] += static_cast<CommType>(val(start++));
-  });
+  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+      const int i = start/nf;
+      const int gstart=idx(i)*nf;
+      const int j=i%nf;
+      to[gstart+j] += static_cast<CommType>(val(start+j));
+    }
+  );
 }
 
 /* ---------------------------------------------------------------------- */

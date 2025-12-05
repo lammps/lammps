@@ -1,7 +1,10 @@
 .. index:: fix addforce
+.. index:: fix addforce/kk
 
 fix addforce command
 ====================
+
+Accelerator Variants: *addforce/kk*
 
 Syntax
 """"""
@@ -112,6 +115,16 @@ variable formulas (i.e., that :math:`-\vec\nabla E = \vec F`).
 For example, if the force were a spring-like, :math:`\vec F = -k\vec x`, then
 the energy formula should be :math:`E = \frac12 kx^2`.  If you do not do this
 correctly, the minimization will not converge properly.
+
+----------
+
+.. include:: accel_styles.rst
+
+.. note::
+
+  The region keyword is supported by Kokkos, but a Kokkos-enabled
+  region must be used. See the region :doc:`region <region>` command for
+  more information.
 
 ----------
 

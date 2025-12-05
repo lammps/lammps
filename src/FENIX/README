@@ -1,0 +1,16 @@
+The FENIX package enables online checkpoint/restart with spare-rank replacement.
+
+The package provides the following features:
+* A kill command and fail fix, for injecting failures to test recovery
+* A fenix command for enabling online recovery (i.e. without relaunching a job) using spare MPI ranks
+* Optional in-memory checkpoints using Fenix's reliable memory-based checkpoint/restart functionality
+
+The different options for the commands and fix are explained in the documentation.
+
+This package currently requires building against the feature/cpp branch of Fenix (github.com/sandialabs/fenix).
+
+Once built, you can test this package using one of the input files from the examples/PACKAGES/fenix dir. Input files must be passed with the "-in" flag, they cannot be sent through shell standard input.
+
+== Credits and license ==
+
+This package was developed by Matthew Whitlock (Sandia)

@@ -1,18 +1,5 @@
 # -*- CMake -*- file for tests of classes computing or modifying forces
 
-find_package(YAML)
-if(NOT YAML_FOUND)
-  set(YAML_URL "https://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz" CACHE STRING "URL for libyaml tarball")
-  set(YAML_MD5 "bb15429d8fb787e7d3f1c83ae129a999" CACHE STRING "MD5 checksum of libyaml tarball")
-  mark_as_advanced(YAML_URL)
-  mark_as_advanced(YAML_MD5)
-
-  # download and build a local copy of libyaml
-  include(ExternalCMakeProject)
-  ExternalCMakeProject(libyaml ${YAML_URL} ${YAML_MD5} yaml . CMakeLists.libyaml)
-  add_library(Yaml::Yaml ALIAS yaml)
-endif()
-
 function(extract_tags out yaml_file)
   file(STRINGS ${yaml_file} TAGS_LINE REGEX "^tags:")
   string(REPLACE "tags:" "" TAGS_LINE "${TAGS_LINE}")

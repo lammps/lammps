@@ -33,6 +33,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+// threshold comparison operators
+enum {NONE, LT, LE, GT, GE, EQ, NEQ, OR, XOR};
 /* ---------------------------------------------------------------------- */
 
 FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
@@ -44,7 +46,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   peratom_freq = 1;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery < 0) error->all(FLERR,"Invalid fix store/state never value {}", nevery);
+  if (nevery < 0) error->all(FLERR,"Invalid fix store/state nevery value {}", nevery);
 
   // parse values
   // customize a new keyword by adding to if statement
@@ -240,13 +242,46 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   comflag = 0;
+  threshflag = 0;
+  thresh_name = "";
+  thresh_idx = -1;
+  thresh_op = NONE;
+  thresh_val = 0.0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"com") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix store/state com", error);
       comflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else error->all(FLERR,"Unknown fix store/state keyword: {}", arg[iarg]);
+    } else if (strcmp(arg[iarg],"thresh") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"fix store/state thresh", error);
+      if (threshflag)
+        error->all(FLERR, iarg, "The fix store/state thresh keyword may be used only once");
+      threshflag = 1;
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+        thresh_name = arg[iarg+1]+2;
+        thresh_idx = input->variable->find(thresh_name.c_str());
+        if (thresh_idx < 0)
+          error->all(FLERR, iarg+1,
+                     "Variable name {} for fix store/state thresh does not exist", thresh_name);
+        if (input->variable->equalstyle(thresh_idx) == 0)
+          error->all(FLERR, iarg+1,
+                     "Fix store/state thresh variable {} has incompatible style", thresh_name);
+      } else {
+        error->all(FLERR, iarg+1, "No variable reference as first argument to thresh keyword");
+      }
+      if (strcmp(arg[iarg+2],"<") == 0) thresh_op = LT;
+      else if (strcmp(arg[iarg+2],"<=") == 0) thresh_op = LE;
+      else if (strcmp(arg[iarg+2],">") == 0) thresh_op = GT;
+      else if (strcmp(arg[iarg+2],">=") == 0) thresh_op = GE;
+      else if (strcmp(arg[iarg+2],"==") == 0) thresh_op = EQ;
+      else if (strcmp(arg[iarg+2],"!=") == 0) thresh_op = NEQ;
+      else if (strcmp(arg[iarg+2],"|^") == 0) thresh_op = XOR;
+      else error->all(FLERR, iarg+2,
+                      "Unsupported fix store/state thresh comparison operator {}", arg[iarg+2]);
+      thresh_val = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      iarg += 4;
+    } else error->all(FLERR, iarg, "Unknown fix store/state keyword: {}", arg[iarg]);
   }
 
   // error check
@@ -412,6 +447,18 @@ void FixStoreState::init()
         error->all(FLERR,"Custom vector/array {} for fix store/state does not exist", val.id);
     }
   }
+
+  // re-check threshold variable as it may have been redefined or deleted
+
+  if (threshflag) {
+    thresh_idx = input->variable->find(thresh_name.c_str());
+    if (thresh_idx < 0)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Variable name {} for fix store/state thresh does not exist", thresh_name);
+    if (input->variable->equalstyle(thresh_idx) == 0)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Fix store/state thresh variable {} has incompatible style", thresh_name);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -433,6 +480,32 @@ void FixStoreState::setup(int /*vflag*/)
 
 void FixStoreState::end_of_step()
 {
+  // skip storing data is threshold condition is not met
+
+  if (threshflag) {
+    auto val = input->variable->compute_equal(thresh_idx);
+    bool expr = true;
+    switch (thresh_op) {
+    case LT: expr = val < thresh_val;
+      break;
+    case LE: expr = val <= thresh_val;
+      break;
+    case GT: expr = val > thresh_val;
+      break;
+    case GE: expr = val >= thresh_val;
+      break;
+    case EQ: expr = val == thresh_val;
+      break;
+    case NEQ: expr = val != thresh_val;
+      break;
+    case XOR: expr = (val == 0.0) != (thresh_val == 0.0);
+      break;
+    default:
+      expr = true;  // should not happen
+    }
+    if (!expr) return;
+  }
+
   // compute com if comflag set
 
   if (comflag) {

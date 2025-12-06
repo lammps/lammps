@@ -65,6 +65,12 @@ class FixStoreState : public Fix {
   int comflag;
   double cm[3];    // center of mass
 
+  int threshflag;
+  std::string thresh_name;
+  int thresh_idx;
+  int thresh_op;
+  double thresh_val;
+
   int kflag, cfv_flag, firstflag;
   int cfv_any;    // 1 if any compute/fix/variable specified
 

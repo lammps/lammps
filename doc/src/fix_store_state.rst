@@ -57,11 +57,16 @@ Syntax
            *d2_name[I]* = Ith column of custom floating-point array with name
 
 * zero or more keyword/value pairs may be appended
-* keyword = *com*
+* keyword = *com* or *thresh*
 
   .. parsed-literal::
 
        *com* value = *yes* or *no*
+       *thresh* args = variable operator value
+         variable = equal style or compatible variable reference
+         operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "!^"
+         value = numeric value to compare to
+
 
 Examples
 """"""""
@@ -71,6 +76,7 @@ Examples
    fix 1 all store/state 0 x y z
    fix 1 all store/state 0 xu yu zu com yes
    fix 2 all store/state 1000 vx vy vz
+   fix 1 all store/state 0 x y z thresh v_dist < 5.0
 
 Description
 """""""""""
@@ -97,13 +103,31 @@ steps.
 The list of possible attributes is the same as that used by the
 :doc:`dump custom <dump>` command, which describes their meaning.
 
+The requested values are stored in a per-atom vector or array as
+discussed below.  Zeroes are stored for atoms not in the specified
+group.
+
 If the *com* keyword is set to *yes* then the *xu*, *yu*, and *zu*
 inputs store the position of each atom relative to the center-of-mass
 of the group of atoms, instead of storing the absolute position.
 
-The requested values are stored in a per-atom vector or array as
-discussed below.  Zeroes are stored for atoms not in the specified
-group.
+.. versionadded:: TBD
+
+If the *thresh* keyword is used, data is only stored on steps where also
+the the threshold condition following the keyword is met.  The first
+argument *must* be a :doc:`variable <variable>` reference to an
+equal-style or compatible variable.  The second argument is a logical
+operator and the third argument is a number.  The choice of operators
+listed above are the usual comparison operators. The XOR operation
+(exclusive or) is also included as "\|\^".  In this context, XOR means
+that if either the variable or the value is 0.0 and the other is
+non-zero, then the result is "true" and the threshold criterion is met.
+Otherwise it is not met.
+
+The *thresh* keyword may be used *exactly once*.  If a more complex
+threshold condition on is needed or access to data from computes, fixes,
+or similar, this can be realized within the expression used when
+defining the referenced variable.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

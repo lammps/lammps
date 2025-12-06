@@ -101,13 +101,3 @@ add_subdirectory(cplusplus)
 add_subdirectory(fortran)
 add_subdirectory(python)
 add_subdirectory(force-styles)
-
-# clang-format support for test sources
-
-find_package(ClangFormat 8.0)
-
-if(ClangFormat_FOUND)
-  add_custom_target(format-tests
-    COMMAND ${ClangFormat_EXECUTABLE} --verbose -i -style=file */*.cpp */*.h
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-endif()

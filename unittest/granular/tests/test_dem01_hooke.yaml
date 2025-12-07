@@ -1,0 +1,23 @@
+---
+lammps_version: unknown
+date_generated: unknown
+epsilon: 1.0e-13
+skip_tests: none
+prerequisites: ! |
+  atom sphere
+  pair gran/hooke
+diameter: 2.0
+density: 1.0
+knorm: 1000.0
+ktang: NULL
+gnorm: 10.0
+gtang: NULL
+xmu: 0.1
+damp: 0
+pair_style: gran/hooke ${knorm} ${ktang} ${gnorm} ${gtang} ${xmu} ${damp}
+gravity: 1.0 vector 0.0 0.0 -1.0
+wall: wall/gran hooke ${knorm} ${ktang} ${gnorm} ${gtang} ${xmu} ${damp} zplane 0.0 NULL contacts
+input_file: in.dem01_lj
+steps1: 1100
+steps2: 200
+steps3: 500

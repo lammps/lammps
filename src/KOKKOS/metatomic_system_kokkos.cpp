@@ -192,21 +192,23 @@ void MetatomicSystemAdaptorKokkos<DeviceType>::setup_neighbors_kk(metatomic_torc
             processed_all_pairs.template modify<LMPHostType>();
             processed_all_pairs.template sync<LMPDeviceType>();
 
+            auto d_numneigh = list->d_numneigh;
+            auto d_ilist = list->d_ilist;
+            auto d_neighbors = list->d_neighbors;
+
             Kokkos::parallel_for(
                 Kokkos::MDRangePolicy<DeviceType, Kokkos::Rank<2>>(
                     {0, 0},
                     {list->inum + list->gnum, max_number_of_neighbors}
                 ),
                 KOKKOS_LAMBDA(size_t ii, size_t jj) {
-                    if (jj >= list->d_numneigh[ii]) {
+                    if (jj >= d_numneigh[ii]) {
                         return;
                     }
-
-                    auto atom_i = list->d_ilist[ii];
+                    auto atom_i = d_ilist[ii];
                     auto original_atom_i = d_original_id[atom_i];
                     auto i_is_original = (atom_i == original_atom_i);
-
-                    auto atom_j = list->d_neighbors(ii, jj) & NEIGHMASK;
+                    auto atom_j = d_neighbors(ii, jj) & NEIGHMASK;
                     auto original_atom_j = d_original_id[atom_j];
                     auto j_is_original = (atom_j == original_atom_j);
 

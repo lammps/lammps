@@ -41,6 +41,7 @@
 #include "neighbor.h"
 #include "pair.h"
 #include "random_park.h"
+#include "suffix.h"
 #include "update.h"
 #include "variable.h"
 
@@ -196,6 +197,9 @@ void FixChargeRegulation::init() {
   if (atom->rmass_flag && (comm->me == 0))
     error->warning(FLERR, "Fix charge/regulation will use per atom type masses for "
                    "velocity initialization");
+
+  if (force->pair && (force->pair->suffix_flag & Suffix::INTEL))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
 
   triclinic = domain->triclinic;
   int ipe = modify->find_compute("thermo_pe");

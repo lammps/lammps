@@ -71,6 +71,17 @@ NeighBondKokkos<DeviceType>::NeighBondKokkos(LAMMPS *lmp) : Pointers(lmp)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+NeighBondKokkos<DeviceType>::~NeighBondKokkos()
+{
+  memoryKK->destroy_kokkos(k_bondlist,neighbor->bondlist);
+  memoryKK->destroy_kokkos(k_anglelist,neighbor->anglelist);
+  memoryKK->destroy_kokkos(k_dihedrallist,neighbor->dihedrallist);
+  memoryKK->destroy_kokkos(k_improperlist,neighbor->improperlist);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
 void NeighBondKokkos<DeviceType>::init_topology_kk() {
 
   atomKK = (AtomKokkos *) atom;

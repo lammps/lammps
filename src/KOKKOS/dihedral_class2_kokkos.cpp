@@ -656,16 +656,6 @@ template<class DeviceType>
 void DihedralClass2Kokkos<DeviceType>::allocate()
 {
   DihedralClass2::allocate();
-}
-
-/* ----------------------------------------------------------------------
-   set coeffs for one type
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void DihedralClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
-{
-  DihedralClass2::coeff(narg, arg);
 
   int n = atom->ndihedraltypes;
   k_k1 = DAT::tdual_kkfloat_1d("DihedralClass2::k1",n+1);
@@ -745,8 +735,21 @@ void DihedralClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   d_setflag_at = k_setflag_at.template view<DeviceType>();
   d_setflag_aat = k_setflag_aat.template view<DeviceType>();
   d_setflag_bb13t = k_setflag_bb13t.template view<DeviceType>();
+}
 
-  for (int i = 1; i <= n; i++) {
+/* ----------------------------------------------------------------------
+   set coeffs for one type
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void DihedralClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
+{
+  DihedralClass2::coeff(narg, arg);
+
+  int ilo,ihi;
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
+
+  for (int i = ilo; i <= ihi; i++) {
     k_k1.view_host()[i] = k1[i];
     k_k2.view_host()[i] = k2[i];
     k_k3.view_host()[i] = k3[i];

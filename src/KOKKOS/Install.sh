@@ -126,6 +126,8 @@ action dihedral_charmmfsw_kokkos.cpp dihedral_charmmfsw.cpp
 action dihedral_charmmfsw_kokkos.h dihedral_charmmfsw.h
 action dihedral_class2_kokkos.cpp dihedral_class2.cpp
 action dihedral_class2_kokkos.h dihedral_class2.h
+action dihedral_fourier_kokkos.cpp dihedral_fourier.cpp
+action dihedral_fourier_kokkos.h dihedral_fourier.h
 action dihedral_harmonic_kokkos.cpp dihedral_harmonic.cpp
 action dihedral_harmonic_kokkos.h dihedral_harmonic.h
 action dihedral_multi_harmonic_kokkos.cpp dihedral_multi_harmonic.cpp
@@ -143,6 +145,8 @@ action fft3d_kokkos.h fft3d.h
 action fftdata_kokkos.h fft3d.h
 action fix_acks2_reaxff_kokkos.cpp fix_acks2_reaxff.cpp
 action fix_acks2_reaxff_kokkos.h fix_acks2_reaxff.h
+action fix_addforce_kokkos.cpp
+action fix_addforce_kokkos.h
 action fix_cmap_kokkos.cpp fix_cmap.cpp
 action fix_cmap_kokkos.h fix_cmap.h
 action fix_colvars_kokkos.cpp fix_colvars.cpp
@@ -161,6 +165,8 @@ action fix_efield_kokkos.cpp
 action fix_efield_kokkos.h
 action fix_eos_table_rx_kokkos.cpp fix_eos_table_rx.cpp
 action fix_eos_table_rx_kokkos.h fix_eos_table_rx.h
+action fix_external_kokkos.cpp
+action fix_external_kokkos.h
 action fix_freeze_kokkos.cpp fix_freeze.cpp
 action fix_freeze_kokkos.h fix_freeze.h
 action fix_gravity_kokkos.cpp
@@ -234,6 +240,8 @@ action grid3d_kokkos.h fft3d.h
 action group_kokkos.h
 action improper_class2_kokkos.cpp improper_class2.cpp
 action improper_class2_kokkos.h improper_class2.h
+action improper_cvff_kokkos.cpp improper_cvff.cpp
+action improper_cvff_kokkos.h improper_cvff.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp
 action improper_harmonic_kokkos.h improper_harmonic.h
 action improper_hybrid_kokkos.cpp improper_hybrid.cpp
@@ -344,6 +352,8 @@ action pair_hybrid_kokkos.cpp
 action pair_hybrid_kokkos.h
 action pair_hybrid_overlay_kokkos.cpp
 action pair_hybrid_overlay_kokkos.h
+action pair_hybrid_scaled_kokkos.cpp
+action pair_hybrid_scaled_kokkos.h
 action pair_kokkos.h
 action pair_lj_charmm_coul_charmm_implicit_kokkos.cpp pair_lj_charmm_coul_charmm_implicit.cpp
 action pair_lj_charmm_coul_charmm_implicit_kokkos.h pair_lj_charmm_coul_charmm_implicit.h

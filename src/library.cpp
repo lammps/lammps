@@ -7441,7 +7441,7 @@ void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalF
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal *>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !(utils::strmatch(fix->style, "^external")))
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} is not of style external", FNERR, id);
 
     fext->set_callback(callback, ptr);
@@ -7509,7 +7509,7 @@ double **lammps_fix_external_get_force(void *handle, const char *id)
     if (!fix)
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
-    if (strcmp("external",fix->style) != 0)
+    if (!utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} is not of style external", FNERR, id);
 
     int tmp;
@@ -7564,7 +7564,7 @@ void lammps_fix_external_set_energy_global(void *handle, const char *id, double 
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal*>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "Fix {} is not of style external", FNERR, id);
 
     fext->set_energy_global(eng);
@@ -7619,7 +7619,7 @@ void lammps_fix_external_set_virial_global(void *handle, const char *id, double 
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal*>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} is not of style external", FNERR, id);
 
     fext->set_virial_global(virial);
@@ -7674,7 +7674,7 @@ void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal*>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "Fix {} is not of style external", FNERR, id);
 
     fext->set_energy_peratom(eng);
@@ -7732,7 +7732,7 @@ void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal*>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} is not of style external", FNERR, id);
 
     fext->set_virial_peratom(virial);
@@ -7783,7 +7783,7 @@ void lammps_fix_external_set_vector_length(void *handle, const char *id, int len
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal*>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} is not of style external", FNERR, id);
 
     fext->set_vector_length(len);
@@ -7844,7 +7844,7 @@ void lammps_fix_external_set_vector(void *handle, const char *id, int idx, doubl
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} does not exist", FNERR, id);
 
     auto *fext = dynamic_cast<FixExternal*>(fix);
-    if (!fext || (strcmp("external",fix->style) != 0))
+    if (!fext || !utils::strmatch(fix->style,"^external"))
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Fix {} is not of style external", FNERR, id);
 
     fext->set_vector(idx, val);

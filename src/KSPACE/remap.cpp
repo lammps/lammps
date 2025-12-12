@@ -15,6 +15,8 @@
 #include "remap.h"
 
 #include <cstdlib>
+#include <cstring>
+#include <set>
 
 #define PACK_DATA FFT_SCALAR
 
@@ -63,31 +65,47 @@
 void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
               struct remap_plan_3d *plan)
 {
+  int me;
+  MPI_Comm_rank(plan->comm,&me);
+
+  FFT_SCALAR *scratch;
+  if (plan->memory == 0)
+    scratch = buf;
+  else
+    scratch = plan->scratch;
+
   // use point-to-point communication
 
   if (!plan->usecollective) {
     int i,isend,irecv;
-    FFT_SCALAR *scratch;
 
-    if (plan->memory == 0)
-      scratch = buf;
-    else
-      scratch = plan->scratch;
-
-    // post all recvs into scratch space
-
-    for (irecv = 0; irecv < plan->nrecv; irecv++)
+    for (irecv = 0; irecv < plan->nrecv; irecv++) {
       MPI_Irecv(&scratch[plan->recv_bufloc[irecv]],plan->recv_size[irecv],
                 MPI_FFT_SCALAR,plan->recv_proc[irecv],0,
                 plan->comm,&plan->request[irecv]);
+    }
 
     // send all messages to other procs
 
     for (isend = 0; isend < plan->nsend; isend++) {
-      plan->pack(&in[plan->send_offset[isend]],
-                 plan->sendbuf,&plan->packplan[isend]);
-      MPI_Send(plan->sendbuf,plan->send_size[isend],MPI_FFT_SCALAR,
-               plan->send_proc[isend],0,plan->comm);
+      int in_offset = plan->send_offset[isend];
+      if (plan->usenonblocking) {
+        plan->pack(&in[in_offset],
+                  &plan->sendbuf[plan->send_bufloc[isend]],
+                  &plan->packplan[isend]);
+      } else {
+        plan->pack(&in[in_offset],
+                  plan->sendbuf,
+                  &plan->packplan[isend]);
+      }
+
+      if (plan->usenonblocking) {
+        MPI_Isend(plan->sendbuf + plan->send_bufloc[isend],plan->send_size[isend],MPI_FFT_SCALAR,
+                plan->send_proc[isend],0,plan->comm,&plan->isend_reqs[isend]);
+      } else {
+        MPI_Send(plan->sendbuf,plan->send_size[isend],MPI_FFT_SCALAR,
+                plan->send_proc[isend],0,plan->comm);
+      }
     }
 
     // copy in -> scratch -> out for self data
@@ -95,109 +113,67 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
     if (plan->self) {
       isend = plan->nsend;
       irecv = plan->nrecv;
-      plan->pack(&in[plan->send_offset[isend]],
-                 &scratch[plan->recv_bufloc[irecv]],
+
+      int in_offset = plan->send_offset[isend];
+      int scratch_offset = plan->recv_bufloc[irecv];
+      int out_offset = plan->recv_offset[irecv];
+
+      plan->pack(&in[in_offset],
+                 &scratch[scratch_offset],
                  &plan->packplan[isend]);
-      plan->unpack(&scratch[plan->recv_bufloc[irecv]],
-                   &out[plan->recv_offset[irecv]],&plan->unpackplan[irecv]);
+      plan->unpack(&scratch[scratch_offset],
+                   &out[out_offset],&plan->unpackplan[irecv]);
     }
 
     // unpack all messages from scratch -> out
 
     for (i = 0; i < plan->nrecv; i++) {
       MPI_Waitany(plan->nrecv,plan->request,&irecv,MPI_STATUS_IGNORE);
-      plan->unpack(&scratch[plan->recv_bufloc[irecv]],
-                   &out[plan->recv_offset[irecv]],&plan->unpackplan[irecv]);
+
+      int scratch_offset = plan->recv_bufloc[irecv];
+      int out_offset = plan->recv_offset[irecv];
+
+      plan->unpack(&scratch[scratch_offset],
+                   &out[out_offset],&plan->unpackplan[irecv]);
     }
 
-  // use All2Allv collective for remap communication
-
+    if (plan->usenonblocking) {
+      // finally, wait for all Isends to be done
+      MPI_Waitall(plan->nsend,plan->isend_reqs,MPI_STATUS_IGNORE);
+    }
   } else {
     if (plan->commringlen > 0) {
       int isend,irecv;
 
-      // create send and recv buffers for alltoallv collective
+      // populate send data
+      // buffers are allocated and count/displacement buffers
+      // are populated in remap_3d_create_plan
 
-      int sendBufferSize = 0;
-      int recvBufferSize = 0;
-      for (int i=0;i<plan->nsend;i++)
-        sendBufferSize += plan->send_size[i];
-      for (int i=0;i<plan->nrecv;i++)
-        recvBufferSize += plan->recv_size[i];
-
-      auto *packedSendBuffer = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * sendBufferSize + 1);
-      auto *packedRecvBuffer = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * recvBufferSize + 1);
-
-      int *sendcnts = (int *) malloc(sizeof(int) * plan->commringlen);
-      int *rcvcnts = (int *) malloc(sizeof(int) * plan->commringlen);
-      int *sdispls = (int *) malloc(sizeof(int) * plan->commringlen);
-      int *rdispls = (int *) malloc(sizeof(int) * plan->commringlen);
-      int *nrecvmap = (int *) malloc(sizeof(int) * plan->commringlen);
-
-      // create and populate send data, count and displacement buffers
-
-      int currentSendBufferOffset = 0;
+      int numpacked = 0;
       for (isend = 0; isend < plan->commringlen; isend++) {
-        sendcnts[isend] = 0;
-        sdispls[isend] = 0;
-        int foundentry = 0;
-        for (int i=0;(i<plan->nsend && !foundentry); i++) {
-          if (plan->send_proc[i] == plan->commringlist[isend]) {
-            foundentry = 1;
-            sendcnts[isend] = plan->send_size[i];
-            sdispls[isend] = currentSendBufferOffset;
-            plan->pack(&in[plan->send_offset[i]],
-                       &packedSendBuffer[currentSendBufferOffset],
-                       &plan->packplan[i]);
-            currentSendBufferOffset += plan->send_size[i];
-          }
+        if (plan->sendcnts[isend]) {
+          plan->pack(&in[plan->send_offset[numpacked]],
+                      &plan->sendbuf[plan->sdispls[isend]],
+                      &plan->packplan[numpacked]);
+          numpacked++;
         }
       }
 
-      // create and populate recv count and displacement buffers
-
-      int currentRecvBufferOffset = 0;
-      for (irecv = 0; irecv < plan->commringlen; irecv++) {
-        rcvcnts[irecv] = 0;
-        rdispls[irecv] = 0;
-        nrecvmap[irecv] = -1;
-        int foundentry = 0;
-        for (int i=0;(i<plan->nrecv && !foundentry); i++) {
-          if (plan->recv_proc[i] == plan->commringlist[irecv]) {
-            foundentry = 1;
-            rcvcnts[irecv] = plan->recv_size[i];
-            rdispls[irecv] = currentRecvBufferOffset;
-            currentRecvBufferOffset += plan->recv_size[i];
-            nrecvmap[irecv] = i;
-          }
-        }
-      }
-
-      MPI_Alltoallv(packedSendBuffer, sendcnts, sdispls,
-                    MPI_FFT_SCALAR, packedRecvBuffer, rcvcnts,
-                    rdispls, MPI_FFT_SCALAR, plan->comm);
+      MPI_Alltoallv(plan->sendbuf, plan->sendcnts, plan->sdispls,
+                    MPI_FFT_SCALAR, scratch, plan->rcvcnts,
+                    plan->rdispls, MPI_FFT_SCALAR, plan->comm);
 
       // unpack the data from the recv buffer into out
 
-      currentRecvBufferOffset = 0;
+      numpacked = 0;
       for (irecv = 0; irecv < plan->commringlen; irecv++) {
-        if (nrecvmap[irecv] > -1) {
-          plan->unpack(&packedRecvBuffer[currentRecvBufferOffset],
-                       &out[plan->recv_offset[nrecvmap[irecv]]],
-                       &plan->unpackplan[nrecvmap[irecv]]);
-          currentRecvBufferOffset += plan->recv_size[nrecvmap[irecv]];
+        if (plan->rcvcnts[irecv]) {
+          plan->unpack(&scratch[plan->rdispls[irecv]],
+                       &out[plan->recv_offset[numpacked]],
+                       &plan->unpackplan[numpacked]);
+          numpacked++;
         }
       }
-
-      // free temporary data structures
-
-      free(sendcnts);
-      free(rcvcnts);
-      free(sdispls);
-      free(rdispls);
-      free(nrecvmap);
-      free(packedSendBuffer);
-      free(packedRecvBuffer);
     }
   }
 }
@@ -225,6 +201,7 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
                           1 = single precision (4 bytes per datum)
                           2 = double precision (8 bytes per datum)
    usecollective        whether to use collective MPI or point-to-point
+   usenonblocking       whether to use non-blocking or blocking MPI point-to-point
 ------------------------------------------------------------------------- */
 
 struct remap_plan_3d *remap_3d_create_plan(
@@ -232,8 +209,8 @@ struct remap_plan_3d *remap_3d_create_plan(
   int in_ilo, int in_ihi, int in_jlo, int in_jhi,
   int in_klo, int in_khi,
   int out_ilo, int out_ihi, int out_jlo, int out_jhi,
-  int out_klo, int out_khi,
-  int nqty, int permute, int memory, int /*precision*/, int usecollective)
+  int out_klo, int out_khi, int nqty, int permute,
+  int memory, int /*precision*/, int usecollective, int usenonblocking)
 
 {
 
@@ -251,7 +228,11 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   plan = (struct remap_plan_3d *) malloc(sizeof(struct remap_plan_3d));
   if (plan == nullptr) return nullptr;
+
+  // zero out entire plan data structure including all pointers and set flags
+  memset(plan, 0, sizeof(struct remap_plan_3d));
   plan->usecollective = usecollective;
+  plan->usenonblocking = usenonblocking;
 
   // store parameters in local data structs
 
@@ -293,342 +274,459 @@ struct remap_plan_3d *remap_3d_create_plan(
     return nullptr;
   }
 
-  MPI_Allgather(&out,sizeof(struct extent_3d),MPI_BYTE,
-                outarray,sizeof(struct extent_3d),MPI_BYTE,comm);
-
-  // count send collides, including self
-
-  nsend = 0;
-  iproc = me;
-  for (i = 0; i < nprocs; i++) {
-    iproc++;
-    if (iproc == nprocs) iproc = 0;
-    nsend += remap_3d_collide(&in,&outarray[iproc],&overlap);
-  }
-
-  // malloc space for send info
-
-  if (nsend) {
-    plan->pack = pack_3d;
-
-    plan->send_offset = (int *) malloc(nsend*sizeof(int));
-    plan->send_size = (int *) malloc(nsend*sizeof(int));
-    plan->send_proc = (int *) malloc(nsend*sizeof(int));
-    plan->packplan = (struct pack_plan_3d *)
-      malloc(nsend*sizeof(struct pack_plan_3d));
-
-    if (plan->send_offset == nullptr || plan->send_size == nullptr ||
-        plan->send_proc == nullptr || plan->packplan == nullptr) return nullptr;
-  }
-
-  // store send info, with self as last entry
-
-  nsend = 0;
-  iproc = me;
-  for (i = 0; i < nprocs; i++) {
-    iproc++;
-    if (iproc == nprocs) iproc = 0;
-    if (remap_3d_collide(&in,&outarray[iproc],&overlap)) {
-      plan->send_proc[nsend] = iproc;
-      plan->send_offset[nsend] = nqty *
-        ((overlap.klo-in.klo)*in.jsize*in.isize +
-         ((overlap.jlo-in.jlo)*in.isize + overlap.ilo-in.ilo));
-      plan->packplan[nsend].nfast = nqty*overlap.isize;
-      plan->packplan[nsend].nmid = overlap.jsize;
-      plan->packplan[nsend].nslow = overlap.ksize;
-      plan->packplan[nsend].nstride_line = nqty*in.isize;
-      plan->packplan[nsend].nstride_plane = nqty*in.jsize*in.isize;
-      plan->packplan[nsend].nqty = nqty;
-      plan->send_size[nsend] = nqty*overlap.isize*overlap.jsize*overlap.ksize;
-      nsend++;
-    }
-  }
-
-  // plan->nsend = # of sends not including self
-
-  if (nsend && plan->send_proc[nsend-1] == me) {
-    if (plan->usecollective) // for collectives include self in nsend list
-      plan->nsend = nsend;
-    else
-      plan->nsend = nsend - 1;
-  } else
-    plan->nsend = nsend;
-
-  // combine input extents across all procs
+  // combine input & output extents across all procs
 
   MPI_Allgather(&in,sizeof(struct extent_3d),MPI_BYTE,
                 inarray,sizeof(struct extent_3d),MPI_BYTE,comm);
+  MPI_Allgather(&out,sizeof(struct extent_3d),MPI_BYTE,
+                outarray,sizeof(struct extent_3d),MPI_BYTE,comm);
 
-  // count recv collides, including self
+  // for efficiency, handle collective & non-collective setup separately
 
-  nrecv = 0;
-  iproc = me;
-  for (i = 0; i < nprocs; i++) {
-    iproc++;
-    if (iproc == nprocs) iproc = 0;
-    nrecv += remap_3d_collide(&out,&inarray[iproc],&overlap);
-  }
+  if (!plan->usecollective) {
+    // count send & recv collides, including self
 
-  // malloc space for recv info
-
-  if (nrecv) {
-    if (permute == 0)
-      plan->unpack = unpack_3d;
-    else if (permute == 1) {
-      if (nqty == 1)
-        plan->unpack = unpack_3d_permute1_1;
-      else if (nqty == 2)
-        plan->unpack = unpack_3d_permute1_2;
-      else
-        plan->unpack = unpack_3d_permute1_n;
-    }
-    else if (permute == 2) {
-      if (nqty == 1)
-        plan->unpack = unpack_3d_permute2_1;
-      else if (nqty == 2)
-        plan->unpack = unpack_3d_permute2_2;
-      else
-        plan->unpack = unpack_3d_permute2_n;
+    nsend = 0;
+    nrecv = 0;
+    for (i = 0; i < nprocs; i++) {
+      nsend += remap_3d_collide(&in,&outarray[i],&overlap);
+      nrecv += remap_3d_collide(&out,&inarray[i],&overlap);
     }
 
-    plan->recv_offset = (int *) malloc(nrecv*sizeof(int));
-    plan->recv_size = (int *) malloc(nrecv*sizeof(int));
-    plan->recv_proc = (int *) malloc(nrecv*sizeof(int));
-    plan->recv_bufloc = (int *) malloc(nrecv*sizeof(int));
-    plan->request = (MPI_Request *) malloc(nrecv*sizeof(MPI_Request));
-    plan->unpackplan = (struct pack_plan_3d *)
-      malloc(nrecv*sizeof(struct pack_plan_3d));
+    // malloc space for send & recv info
 
-    if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
-        plan->recv_proc == nullptr || plan->recv_bufloc == nullptr ||
-        plan->request == nullptr || plan->unpackplan == nullptr) return nullptr;
-  }
+    if (nsend) {
+      plan->pack = pack_3d;
 
-  // store recv info, with self as last entry
+      plan->send_offset = (int *) malloc(nsend*sizeof(int));
+      plan->send_size = (int *) malloc(nsend*sizeof(int));
+      plan->send_proc = (int *) malloc(nsend*sizeof(int));
+      plan->packplan = (struct pack_plan_3d *)
+        malloc(nsend*sizeof(struct pack_plan_3d));
 
-  ibuf = 0;
-  nrecv = 0;
-  iproc = me;
+      if (plan->usenonblocking)
+        plan->isend_reqs = (MPI_Request *) malloc(nsend*sizeof(MPI_Request));
+      plan->send_bufloc = (int *) malloc(nsend*sizeof(int));
+      if (plan->send_bufloc == nullptr) return nullptr;
 
-  for (i = 0; i < nprocs; i++) {
-    iproc++;
-    if (iproc == nprocs) iproc = 0;
-    if (remap_3d_collide(&out,&inarray[iproc],&overlap)) {
-      plan->recv_proc[nrecv] = iproc;
-      plan->recv_bufloc[nrecv] = ibuf;
+      if (plan->send_offset == nullptr || plan->send_size == nullptr ||
+          plan->send_proc == nullptr || plan->packplan == nullptr) return nullptr;
+    }
 
-      if (permute == 0) {
-        plan->recv_offset[nrecv] = nqty *
-          ((overlap.klo-out.klo)*out.jsize*out.isize +
-           (overlap.jlo-out.jlo)*out.isize + (overlap.ilo-out.ilo));
-        plan->unpackplan[nrecv].nfast = nqty*overlap.isize;
-        plan->unpackplan[nrecv].nmid = overlap.jsize;
-        plan->unpackplan[nrecv].nslow = overlap.ksize;
-        plan->unpackplan[nrecv].nstride_line = nqty*out.isize;
-        plan->unpackplan[nrecv].nstride_plane = nqty*out.jsize*out.isize;
-        plan->unpackplan[nrecv].nqty = nqty;
-      }
+    if (nrecv) {
+      if (permute == 0)
+        plan->unpack = unpack_3d;
       else if (permute == 1) {
-        plan->recv_offset[nrecv] = nqty *
-          ((overlap.ilo-out.ilo)*out.ksize*out.jsize +
-           (overlap.klo-out.klo)*out.jsize + (overlap.jlo-out.jlo));
-        plan->unpackplan[nrecv].nfast = overlap.isize;
-        plan->unpackplan[nrecv].nmid = overlap.jsize;
-        plan->unpackplan[nrecv].nslow = overlap.ksize;
-        plan->unpackplan[nrecv].nstride_line = nqty*out.jsize;
-        plan->unpackplan[nrecv].nstride_plane = nqty*out.ksize*out.jsize;
-        plan->unpackplan[nrecv].nqty = nqty;
+        if (nqty == 1)
+          plan->unpack = unpack_3d_permute1_1;
+        else if (nqty == 2)
+          plan->unpack = unpack_3d_permute1_2;
+        else
+          plan->unpack = unpack_3d_permute1_n;
       }
-      else {
-        plan->recv_offset[nrecv] = nqty *
-          ((overlap.jlo-out.jlo)*out.isize*out.ksize +
-           (overlap.ilo-out.ilo)*out.ksize + (overlap.klo-out.klo));
-        plan->unpackplan[nrecv].nfast = overlap.isize;
-        plan->unpackplan[nrecv].nmid = overlap.jsize;
-        plan->unpackplan[nrecv].nslow = overlap.ksize;
-        plan->unpackplan[nrecv].nstride_line = nqty*out.ksize;
-        plan->unpackplan[nrecv].nstride_plane = nqty*out.isize*out.ksize;
-        plan->unpackplan[nrecv].nqty = nqty;
+      else if (permute == 2) {
+        if (nqty == 1)
+          plan->unpack = unpack_3d_permute2_1;
+        else if (nqty == 2)
+          plan->unpack = unpack_3d_permute2_2;
+        else
+          plan->unpack = unpack_3d_permute2_n;
       }
 
-      plan->recv_size[nrecv] = nqty*overlap.isize*overlap.jsize*overlap.ksize;
-      ibuf += plan->recv_size[nrecv];
-      nrecv++;
-    }
-  }
+      plan->recv_offset = (int *) malloc(nrecv*sizeof(int));
+      plan->recv_size = (int *) malloc(nrecv*sizeof(int));
+      plan->recv_proc = (int *) malloc(nrecv*sizeof(int));
+      plan->recv_bufloc = (int *) malloc(nrecv*sizeof(int));
+      plan->request = (MPI_Request *) malloc(nrecv*sizeof(MPI_Request));
+      plan->unpackplan = (struct pack_plan_3d *)
+        malloc(nrecv*sizeof(struct pack_plan_3d));
 
-  // create sub-comm rank list
-
-  if (plan->usecollective) {
-    plan->commringlist = nullptr;
-
-    // merge recv and send rank lists
-    // ask Steve Plimpton about method to more accurately determine
-    // maximum number of procs contributing to pencil
-
-    int maxcommsize = nprocs;
-    int *commringlist = (int *) malloc(maxcommsize*sizeof(int));
-    int commringlen = 0;
-
-    for (i = 0; i < nrecv; i++) {
-      commringlist[i] = plan->recv_proc[i];
-      commringlen++;
+      if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
+          plan->recv_proc == nullptr || plan->recv_bufloc == nullptr ||
+          plan->request == nullptr || plan->unpackplan == nullptr) return nullptr;
     }
 
-    for (i = 0; i < nsend; i++) {
-      int foundentry = 0;
-      for (j = 0; j < commringlen;j++)
-        if (commringlist[j] == plan->send_proc[i]) foundentry = 1;
-      if (!foundentry) {
-        commringlist[commringlen] = plan->send_proc[i];
-        commringlen++;
+    // store send info, with self as last entry
+
+    nsend = 0;
+    iproc = me;
+    ibuf = 0;
+    for (i = 0; i < nprocs; i++) {
+      iproc++;
+      if (iproc == nprocs) iproc = 0;
+      if (remap_3d_collide(&in,&outarray[iproc],&overlap)) {
+        plan->send_proc[nsend] = iproc;
+        plan->send_offset[nsend] = nqty *
+          ((overlap.klo-in.klo)*in.jsize*in.isize +
+          ((overlap.jlo-in.jlo)*in.isize + overlap.ilo-in.ilo));
+        plan->packplan[nsend].nfast = nqty*overlap.isize;
+        plan->packplan[nsend].nmid = overlap.jsize;
+        plan->packplan[nsend].nslow = overlap.ksize;
+        plan->packplan[nsend].nstride_line = nqty*in.isize;
+        plan->packplan[nsend].nstride_plane = nqty*in.jsize*in.isize;
+        plan->packplan[nsend].nqty = nqty;
+        plan->send_size[nsend] = nqty*overlap.isize*overlap.jsize*overlap.ksize;
+        plan->send_bufloc[nsend] = ibuf;
+        ibuf += plan->send_size[nsend];
+        nsend++;
       }
     }
 
-    // sort initial commringlist
+    // plan->nsend = # of sends not including self
 
-    int swap = 0;
-    for (i = 0 ; i < (commringlen - 1); i++) {
-      for (j = 0 ; j < commringlen - i - 1; j++) {
-        if (commringlist[j] > commringlist[j+1]) {
-          swap = commringlist[j];
-          commringlist[j]   = commringlist[j+1];
-          commringlist[j+1] = swap;
+    if (nsend && plan->send_proc[nsend-1] == me) plan->nsend = nsend - 1;
+    else plan->nsend = nsend;
+
+    // store recv info, with self as last entry
+
+    ibuf = 0;
+    nrecv = 0;
+    iproc = me;
+
+    for (i = 0; i < nprocs; i++) {
+      iproc++;
+      if (iproc == nprocs) iproc = 0;
+      if (remap_3d_collide(&out,&inarray[iproc],&overlap)) {
+        plan->recv_proc[nrecv] = iproc;
+        plan->recv_bufloc[nrecv] = ibuf;
+
+        if (permute == 0) {
+          plan->recv_offset[nrecv] = nqty *
+            ((overlap.klo-out.klo)*out.jsize*out.isize +
+            (overlap.jlo-out.jlo)*out.isize + (overlap.ilo-out.ilo));
+          plan->unpackplan[nrecv].nfast = nqty*overlap.isize;
+          plan->unpackplan[nrecv].nmid = overlap.jsize;
+          plan->unpackplan[nrecv].nslow = overlap.ksize;
+          plan->unpackplan[nrecv].nstride_line = nqty*out.isize;
+          plan->unpackplan[nrecv].nstride_plane = nqty*out.jsize*out.isize;
+          plan->unpackplan[nrecv].nqty = nqty;
         }
+        else if (permute == 1) {
+          plan->recv_offset[nrecv] = nqty *
+            ((overlap.ilo-out.ilo)*out.ksize*out.jsize +
+            (overlap.klo-out.klo)*out.jsize + (overlap.jlo-out.jlo));
+          plan->unpackplan[nrecv].nfast = overlap.isize;
+          plan->unpackplan[nrecv].nmid = overlap.jsize;
+          plan->unpackplan[nrecv].nslow = overlap.ksize;
+          plan->unpackplan[nrecv].nstride_line = nqty*out.jsize;
+          plan->unpackplan[nrecv].nstride_plane = nqty*out.ksize*out.jsize;
+          plan->unpackplan[nrecv].nqty = nqty;
+        }
+        else {
+          plan->recv_offset[nrecv] = nqty *
+            ((overlap.jlo-out.jlo)*out.isize*out.ksize +
+            (overlap.ilo-out.ilo)*out.ksize + (overlap.klo-out.klo));
+          plan->unpackplan[nrecv].nfast = overlap.isize;
+          plan->unpackplan[nrecv].nmid = overlap.jsize;
+          plan->unpackplan[nrecv].nslow = overlap.ksize;
+          plan->unpackplan[nrecv].nstride_line = nqty*out.ksize;
+          plan->unpackplan[nrecv].nstride_plane = nqty*out.isize*out.ksize;
+          plan->unpackplan[nrecv].nqty = nqty;
+        }
+
+        plan->recv_size[nrecv] = nqty*overlap.isize*overlap.jsize*overlap.ksize;
+        ibuf += plan->recv_size[nrecv];
+        nrecv++;
       }
     }
 
-    // collide all inarray extents for the comm ring with all output
-    // extents and all outarray extents for the comm ring with all input
-    // extents - if there is a collison add the rank to the comm ring,
-    // keep iterating until nothing is added to commring
+    // plan->nrecv = # of recvs not including self
+
+    if (nrecv && plan->recv_proc[nrecv-1] == me) plan->nrecv = nrecv - 1;
+    else plan->nrecv = nrecv;
+
+    // init remaining fields in remap plan
+
+    plan->memory = memory;
+
+    if (nrecv == plan->nrecv) plan->self = 0;
+    else plan->self = 1;
+
+    // plan->sendbuf is used by both the collective & non-collective implementations.
+    // For non-collective and blocking, the buffer size is MAX(send_size) for any one send
+
+    // find biggest send message (not including self) and malloc space for it
+
+    size = 0;
+    if (plan->usenonblocking) {
+      for (nsend = 0; nsend < plan->nsend; nsend++)
+        size += plan->send_size[nsend];
+    } else {
+      for (nsend = 0; nsend < plan->nsend; nsend++)
+        size = MAX(size,plan->send_size[nsend]);
+    }
+
+    if (size) {
+      plan->sendbuf = (FFT_SCALAR*) malloc(sizeof(FFT_SCALAR) * size);
+      if (plan->sendbuf == nullptr) return nullptr;
+    }
+
+    // if requested, allocate internal scratch space for recvs,
+    // only need it if I will receive any data (including self)
+
+    if (memory == 1) {
+      if (nrecv > 0) {
+        plan->scratch = (FFT_SCALAR*) malloc(sizeof(FFT_SCALAR) * nqty*out.isize*out.jsize*out.ksize);
+        if (plan->scratch == nullptr) return nullptr;
+      }
+    }
+
+    // Non-collectives do not use MPI Communicator Groups
+
+    MPI_Comm_dup(comm,&plan->comm);
+
+  } else {
+    int *commringlist;
+    int commringlen = 0;
+    // use a C++ set to organize the commringlist (C++17)
+    std::set<int> commringset;
+
+    nsend = 0;
+    nrecv = 0;
+    for (i = 0; i < nprocs; i++) {
+      if (remap_3d_collide(&in,&outarray[i],&overlap)) {
+        commringset.insert(i);
+        nsend++;
+      }
+      if (remap_3d_collide(&out,&inarray[i],&overlap)) {
+        commringset.insert(i);
+        nrecv++;
+      }
+    }
 
     int commringappend = 1;
     while (commringappend) {
-      int newcommringlen = commringlen;
       commringappend = 0;
-      for (i = 0; i < commringlen; i++) {
+      for (int setproci : commringset) {
         for (j = 0; j < nprocs; j++) {
-          if (remap_3d_collide(&inarray[commringlist[i]],
-                               &outarray[j],&overlap)) {
-            int alreadyinlist = 0;
-            for (int k = 0; k < newcommringlen; k++) {
-              if (commringlist[k] == j) {
-                alreadyinlist = 1;
-              }
-            }
-            if (!alreadyinlist) {
-              commringlist[newcommringlen++] = j;
-              commringappend = 1;
+          // short-circuit if already in commring
+          if (commringset.find(j) != commringset.end())
+            continue;
+          if (remap_3d_collide(&inarray[setproci],&outarray[j],&overlap)) {
+            auto set_insert_result = commringset.insert(j);
+            if (set_insert_result.second) {
+              commringappend++;
             }
           }
-          if (remap_3d_collide(&outarray[commringlist[i]],
-                               &inarray[j],&overlap)) {
-            int alreadyinlist = 0;
-            for (int k = 0 ; k < newcommringlen; k++) {
-              if (commringlist[k] == j) alreadyinlist = 1;
-            }
-            if (!alreadyinlist) {
-              commringlist[newcommringlen++] = j;
-              commringappend = 1;
+          if (remap_3d_collide(&outarray[setproci],&inarray[j],&overlap)) {
+            auto set_insert_result = commringset.insert(j);
+            if (set_insert_result.second) {
+              commringappend++;
             }
           }
         }
       }
-      commringlen = newcommringlen;
     }
 
-    // sort the final commringlist
+    // build already-sorted commringlist as an array
+    commringlist = (int*) malloc(commringset.size() * sizeof(int));
+    commringlen = 0;
 
-    for (i = 0 ; i < ( commringlen - 1 ); i++) {
-      for (j = 0 ; j < commringlen - i - 1; j++) {
-        if (commringlist[j] > commringlist[j+1]) {
-          swap = commringlist[j];
-          commringlist[j]   = commringlist[j+1];
-          commringlist[j+1] = swap;
-        }
-      }
+    for (int setproci : commringset) {
+      commringlist[commringlen] = setproci;
+      commringlen++;
     }
-
-    // resize commringlist to final size
-
-    commringlist = (int *) realloc(commringlist, commringlen*sizeof(int) + 1);
 
     // set the plan->commringlist
 
     plan->commringlen = commringlen;
     plan->commringlist = commringlist;
+
+    // malloc space for send & recv info
+    // if the current proc is involved in any way in the communication, allocate space
+    // because of the Alltoallv, both send and recv have to be initialized even if
+    // only one of those is performed
+
+    if (nsend || nrecv) {
+
+      // send space
+
+      plan->nsend = nsend;
+      plan->pack = pack_3d;
+
+      plan->send_offset = (int *) malloc(nsend*sizeof(int));
+      plan->send_size = (int *) malloc(plan->commringlen*sizeof(int) + 1);
+
+      plan->sendcnts = (int *) malloc(plan->commringlen*sizeof(int) + 1);
+      plan->sdispls = (int *) malloc(plan->commringlen*sizeof(int) + 1);
+
+      // only used when sendcnt > 0
+
+      plan->packplan = (struct pack_plan_3d *)
+        malloc(nsend*sizeof(struct pack_plan_3d));
+
+      if (plan->send_offset == nullptr || plan->send_size == nullptr ||
+          plan->sendcnts == nullptr || plan->sdispls == nullptr ||
+          plan->packplan == nullptr) return nullptr;
+
+      // recv space
+
+      plan->nrecv = nrecv;
+
+      if (permute == 0)
+        plan->unpack = unpack_3d;
+      else if (permute == 1) {
+        if (nqty == 1)
+          plan->unpack = unpack_3d_permute1_1;
+        else if (nqty == 2)
+          plan->unpack = unpack_3d_permute1_2;
+        else
+          plan->unpack = unpack_3d_permute1_n;
+      }
+      else if (permute == 2) {
+        if (nqty == 1)
+          plan->unpack = unpack_3d_permute2_1;
+        else if (nqty == 2)
+          plan->unpack = unpack_3d_permute2_2;
+        else
+          plan->unpack = unpack_3d_permute2_n;
+      }
+
+      plan->recv_offset = (int *) malloc(nrecv*sizeof(int));
+      plan->recv_size = (int *) malloc(plan->commringlen*sizeof(int));
+
+      plan->rcvcnts = (int *) malloc(plan->commringlen*sizeof(int));
+      plan->rdispls = (int *) malloc(plan->commringlen*sizeof(int));
+
+      // only used when recvcnt > 0
+
+      plan->unpackplan = (struct pack_plan_3d *)
+        malloc(nrecv*sizeof(struct pack_plan_3d));
+
+      if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
+          plan->rcvcnts == nullptr || plan->rdispls == nullptr ||
+          plan->unpackplan == nullptr) return nullptr;
+    }
+
+    // store send info, with self as last entry
+
+    nsend = 0;
+    ibuf = 0;
+    int total_send_size = 0;
+    for (i = 0; i < plan->commringlen; i++) {
+      iproc = plan->commringlist[i];
+      if (remap_3d_collide(&in,&outarray[iproc],&overlap)) {
+        // number of entries required for this pack's 3-d coords
+        plan->send_offset[nsend] = nqty *
+          ((overlap.klo-in.klo)*in.jsize*in.isize +
+            ((overlap.jlo-in.jlo)*in.isize + overlap.ilo-in.ilo));
+        plan->packplan[nsend].nfast = nqty*overlap.isize;
+        plan->packplan[nsend].nmid = overlap.jsize;
+        plan->packplan[nsend].nslow = overlap.ksize;
+        plan->packplan[nsend].nstride_line = nqty*in.isize;
+        plan->packplan[nsend].nstride_plane = nqty*in.jsize*in.isize;
+        plan->packplan[nsend].nqty = nqty;
+        // total amount of overlap
+        plan->send_size[i] = nqty*overlap.isize*overlap.jsize*overlap.ksize;
+        plan->sendcnts[i] = plan->send_size[i];
+        plan->sdispls[i] = ibuf;
+        ibuf += plan->send_size[i];
+        nsend++;
+      } else {
+        plan->send_size[i] = 0;
+        plan->sdispls[i] = ibuf;
+        plan->sendcnts[i] = 0;
+      }
+      total_send_size += plan->send_size[i];
+    }
+
+    if (total_send_size) {
+      plan->sendbuf = (FFT_SCALAR*) malloc(total_send_size * sizeof(FFT_SCALAR));
+      if (plan->sendbuf == nullptr) return nullptr;
+    }
+
+    // store recv info, with self as last entry
+
+    ibuf = 0;
+    nrecv = 0;
+
+    for (i = 0; i < plan->commringlen; i++) {
+      iproc = plan->commringlist[i];
+      if (remap_3d_collide(&out,&inarray[iproc],&overlap)) {
+        if (permute == 0) {
+          plan->recv_offset[nrecv] = nqty *
+            ((overlap.klo-out.klo)*out.jsize*out.isize +
+              (overlap.jlo-out.jlo)*out.isize + (overlap.ilo-out.ilo));
+          plan->unpackplan[nrecv].nfast = nqty*overlap.isize;
+          plan->unpackplan[nrecv].nmid = overlap.jsize;
+          plan->unpackplan[nrecv].nslow = overlap.ksize;
+          plan->unpackplan[nrecv].nstride_line = nqty*out.isize;
+          plan->unpackplan[nrecv].nstride_plane = nqty*out.jsize*out.isize;
+          plan->unpackplan[nrecv].nqty = nqty;
+        }
+        else if (permute == 1) {
+          plan->recv_offset[nrecv] = nqty *
+            ((overlap.ilo-out.ilo)*out.ksize*out.jsize +
+              (overlap.klo-out.klo)*out.jsize + (overlap.jlo-out.jlo));
+          plan->unpackplan[nrecv].nfast = overlap.isize;
+          plan->unpackplan[nrecv].nmid = overlap.jsize;
+          plan->unpackplan[nrecv].nslow = overlap.ksize;
+          plan->unpackplan[nrecv].nstride_line = nqty*out.jsize;
+          plan->unpackplan[nrecv].nstride_plane = nqty*out.ksize*out.jsize;
+          plan->unpackplan[nrecv].nqty = nqty;
+        }
+        else {
+          plan->recv_offset[nrecv] = nqty *
+            ((overlap.jlo-out.jlo)*out.isize*out.ksize +
+              (overlap.ilo-out.ilo)*out.ksize + (overlap.klo-out.klo));
+          plan->unpackplan[nrecv].nfast = overlap.isize;
+          plan->unpackplan[nrecv].nmid = overlap.jsize;
+          plan->unpackplan[nrecv].nslow = overlap.ksize;
+          plan->unpackplan[nrecv].nstride_line = nqty*out.ksize;
+          plan->unpackplan[nrecv].nstride_plane = nqty*out.isize*out.ksize;
+          plan->unpackplan[nrecv].nqty = nqty;
+        }
+
+        plan->recv_size[i] = nqty*overlap.isize*overlap.jsize*overlap.ksize;
+        plan->rcvcnts[i] = plan->recv_size[i];
+        plan->rdispls[i] = ibuf;
+        ibuf += plan->recv_size[i];
+        nrecv++;
+      } else {
+        plan->recv_size[i] = 0;
+        plan->rcvcnts[i] = 0;
+        plan->rdispls[i] = ibuf;
+      }
+    }
+
+    // init remaining fields in remap plan
+
+    plan->memory = memory;
+    plan->self = 0;
+
+    // if requested, allocate internal scratch space for recvs,
+    // only need it if I will receive any data (including self)
+
+    if (memory == 1) {
+      if (nrecv > 0) {
+        plan->scratch = (FFT_SCALAR*) malloc(nqty*out.isize*out.jsize*out.ksize * sizeof(FFT_SCALAR));
+        if (plan->scratch == nullptr) return nullptr;
+      }
+    }
+
+    // if using collective and the commringlist is NOT empty create a
+    // communicator for the plan based off an MPI_Group created with
+    // ranks from the commringlist
+
+    if (plan->commringlen > 0) {
+      MPI_Group orig_group, new_group;
+      MPI_Comm_group(comm, &orig_group);
+      MPI_Group_incl(orig_group, plan->commringlen,
+                      plan->commringlist, &new_group);
+      MPI_Comm_create(comm, new_group, &plan->comm);
+    }
+
+    // if using collective and the comm ring list is empty create
+    // a communicator for the plan with an empty group
+
+    else
+      MPI_Comm_create(comm, MPI_GROUP_EMPTY, &plan->comm);
   }
-
-  // plan->nrecv = # of recvs not including self
-  // for collectives include self in the nsend list
-
-  if (nrecv && plan->recv_proc[nrecv-1] == me) {
-    if (plan->usecollective) plan->nrecv = nrecv;
-    else plan->nrecv = nrecv - 1;
-  } else plan->nrecv = nrecv;
-
-  // init remaining fields in remap plan
-
-  plan->memory = memory;
-
-  if (nrecv == plan->nrecv) plan->self = 0;
-  else plan->self = 1;
 
   // free locally malloced space
 
   free(inarray);
   free(outarray);
-
-  // find biggest send message (not including self) and malloc space for it
-
-  plan->sendbuf = nullptr;
-
-  size = 0;
-  for (nsend = 0; nsend < plan->nsend; nsend++)
-    size = MAX(size,plan->send_size[nsend]);
-
-  if (size) {
-    plan->sendbuf = (FFT_SCALAR *) malloc(size*sizeof(FFT_SCALAR));
-    if (plan->sendbuf == nullptr) return nullptr;
-  }
-
-  // if requested, allocate internal scratch space for recvs,
-  // only need it if I will receive any data (including self)
-
-  plan->scratch = nullptr;
-
-  if (memory == 1) {
-    if (nrecv > 0) {
-      plan->scratch =
-        (FFT_SCALAR *) malloc((size_t)nqty*out.isize*out.jsize*out.ksize *
-                              sizeof(FFT_SCALAR));
-      if (plan->scratch == nullptr) return nullptr;
-    }
-  }
-
-  // if using collective and the commringlist is NOT empty create a
-  // communicator for the plan based off an MPI_Group created with
-  // ranks from the commringlist
-
-  if ((plan->usecollective && (plan->commringlen > 0))) {
-    MPI_Group orig_group, new_group;
-    MPI_Comm_group(comm, &orig_group);
-    MPI_Group_incl(orig_group, plan->commringlen,
-                   plan->commringlist, &new_group);
-    MPI_Comm_create(comm, new_group, &plan->comm);
-  }
-
-  // if using collective and the comm ring list is empty create
-  // a communicator for the plan with an empty group
-
-  else if ((plan->usecollective) && (plan->commringlen == 0)) {
-    MPI_Comm_create(comm, MPI_GROUP_EMPTY, &plan->comm);
-  }
-
-  // not using collective - dup comm
-
-  else MPI_Comm_dup(comm,&plan->comm);
 
   // return pointer to plan
 
@@ -641,37 +739,39 @@ struct remap_plan_3d *remap_3d_create_plan(
 
 void remap_3d_destroy_plan(struct remap_plan_3d *plan)
 {
+  if (plan == nullptr) return;
+
   // free MPI communicator
 
-  if (!(plan->usecollective) || (plan->commringlen != 0))
+  if (!((plan->usecollective) && (plan->commringlen == 0)))
     MPI_Comm_free(&plan->comm);
 
-  if (plan->usecollective) {
-    if (plan->commringlist != nullptr)
-      free(plan->commringlist);
-  }
+  // free allocated buffers
+#define SAFE_FREE(ptr) if (ptr) free(ptr)
 
-  // free internal arrays
+  SAFE_FREE(plan->commringlist);
+  SAFE_FREE(plan->isend_reqs);
+  SAFE_FREE(plan->packplan);
+  SAFE_FREE(plan->rcvcnts);
+  SAFE_FREE(plan->rdispls);
+  SAFE_FREE(plan->recv_bufloc);
+  SAFE_FREE(plan->recv_offset);
+  SAFE_FREE(plan->recv_proc);
+  SAFE_FREE(plan->recv_size);
+  SAFE_FREE(plan->request);
+  SAFE_FREE(plan->scratch);
+  SAFE_FREE(plan->sdispls);
+  SAFE_FREE(plan->send_bufloc);
+  SAFE_FREE(plan->send_offset);
+  SAFE_FREE(plan->send_proc);
+  SAFE_FREE(plan->send_size);
+  SAFE_FREE(plan->sendbuf);
+  SAFE_FREE(plan->sendcnts);
+  SAFE_FREE(plan->unpackplan);
 
-  if (plan->nsend || plan->self) {
-    free(plan->send_offset);
-    free(plan->send_size);
-    free(plan->send_proc);
-    free(plan->packplan);
-    if (plan->sendbuf) free(plan->sendbuf);
-  }
+#undef SAFE_FREE
 
-  if (plan->nrecv || plan->self) {
-    free(plan->recv_offset);
-    free(plan->recv_size);
-    free(plan->recv_proc);
-    free(plan->recv_bufloc);
-    free(plan->request);
-    free(plan->unpackplan);
-    if (plan->scratch) free(plan->scratch);
-  }
-
-  // free plan itself
+  // free the plan itself
 
   free(plan);
 }

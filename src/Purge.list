@@ -53,6 +53,9 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# renamed in Nov 2025
+fix_addtorque.h
+fix_addtorque.cpp
 # removed in July 2025
 fix_atc.h
 fix_atc.cpp

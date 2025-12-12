@@ -41,7 +41,7 @@ class NeighBondKokkos : protected Pointers  {
   typedef int value_type;
 
   NeighBondKokkos(class LAMMPS *);
-  ~NeighBondKokkos() override = default;
+  ~NeighBondKokkos() override;
   void init_topology_kk();
   void build_topology_kk();
 

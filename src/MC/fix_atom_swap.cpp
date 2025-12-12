@@ -38,6 +38,7 @@
 #include "pair_hybrid.h"
 #include "random_park.h"
 #include "region.h"
+#include "suffix.h"
 #include "update.h"
 
 #include <cctype>
@@ -212,17 +213,27 @@ void FixAtomSwap::init()
 
   int *type = atom->type;
 
-  if (nswaptypes < 2) error->all(FLERR, "Must specify at least 2 types in fix atom/swap command");
+  if (nswaptypes < 2)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Must specify at least 2 atom types in fix atom/swap command");
 
   if (semi_grand_flag) {
     if (nswaptypes != nmutypes)
-      error->all(FLERR, "Need nswaptypes mu values in fix atom/swap command");
+      error->all(FLERR, Error::NOLASTLINE, "Need nswaptypes mu values in fix atom/swap command");
   } else {
     if (nswaptypes != 2)
-      error->all(FLERR, "Only 2 types allowed when not using semi-grand in fix atom/swap command");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Exactly 2 atom types must be used without semi-grand keyword in fix atom/swap");
     if (nmutypes != 0)
-      error->all(FLERR, "Mu not allowed when not using semi-grand in fix atom/swap command");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Mu not allowed when not using semi-grand in fix atom/swap command");
   }
+
+  // must have a pair style and not use INTEL package
+
+  if (!force->pair) error->all(FLERR, Error::NOLASTLINE, "Fix atom/swap requires a pair style");
+  if (force->pair && (force->pair->suffix_flag & Suffix::INTEL))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
 
   // check if constraints for hybrid pair styles are fulfilled
 
@@ -234,11 +245,13 @@ void FixAtomSwap::init()
         for (int j = i + 1; j < nswaptypes; ++j) {
           int type2 = type_list[j];
           if (hybrid->nmap[type1][type1] != hybrid->nmap[type2][type2])
-            error->all(FLERR, "Pair {} substyles for atom types {} and {} are not compatible",
+            error->all(FLERR, Error::NOLASTLINE,
+                       "Pair {} substyles for atom types {} and {} are not compatible",
                        force->pair_style, type1, type2);
           for (int k = 0; k < hybrid->nmap[type1][type1]; ++k) {
             if (hybrid->map[type1][type1][k] != hybrid->map[type2][type2][k])
-              error->all(FLERR, "Pair {} substyles for atom types {} and {} are not compatible",
+              error->all(FLERR, Error::NOLASTLINE,
+                         "Pair {} substyles for atom types {} and {} are not compatible",
                          force->pair_style, type1, type2);
           }
         }
@@ -250,7 +263,8 @@ void FixAtomSwap::init()
 
   if (idregion) {
     region = domain->get_region_by_id(idregion);
-    if (!region) error->all(FLERR, "Region {} for fix setforce does not exist", idregion);
+    if (!region)
+      error->all(FLERR, Error::NOLASTLINE, "Region {} for fix atom/swap does not exist", idregion);
   }
 
   for (int iswaptype = 0; iswaptype < nswaptypes; iswaptype++)
@@ -621,9 +635,7 @@ double FixAtomSwap::energy_full()
   if (modify->n_post_force_any) modify->post_force(vflag);
 
   update->eflag_global = update->ntimestep;
-  double total_energy = c_pe->compute_scalar();
-
-  return total_energy;
+  return c_pe->compute_scalar();
 }
 
 /* ----------------------------------------------------------------------

@@ -60,6 +60,7 @@ KSpace::KSpace(LAMMPS *lmp) :
 #else
   collective_flag = 0;
 #endif
+  nonblocking_flag = 0;
 
   kewaldflag = 0;
 
@@ -527,8 +528,7 @@ void KSpace::modify_params(int narg, char **arg)
       }
       warn_nonneutral = 0; // can't use wire correction with non-neutral system
       iarg += 2;
-    }
-    else if (strcmp(arg[iarg], "amat") == 0) {
+    } else if (strcmp(arg[iarg], "amat") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal kspace_modify command");
       if (!pppmflag) error->all(FLERR, "Illegal kspace_modify command 'amat'"
                                       "available for pppm/conp, only");
@@ -551,6 +551,12 @@ void KSpace::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"collective") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       collective_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (collective_flag) nonblocking_flag = 0;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"nonblocking") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      nonblocking_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (nonblocking_flag) collective_flag = 0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"diff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");

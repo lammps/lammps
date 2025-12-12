@@ -89,7 +89,7 @@ For unabridged example scripts and files, see examples/PACKAGES/reaction.
 
    molecule mol1 pre_reacted_topology.txt
    molecule mol2 post_reacted_topology.txt
-   fix 5 all bond/react react myrxn1 all 1 0 3.25 mol1 mol2 map_file.txt
+   fix rxns all bond/react react diels_alder all 1 0 3.25 mol1 mol2 map_file.txt
 
    molecule mol1 pre_reacted_rxn1.txt
    molecule mol2 post_reacted_rxn1.txt
@@ -835,6 +835,15 @@ vector values calculated by this fix are "intensive".
 There is one quantity in the global vector for each *react* argument:
 
   (1) cumulative number of reactions that occurred
+
+.. versionadded:: 10Dec2025
+
+This fix supports automatically generated thermo column names when using
+:doc:`thermo_modify colname auto <thermo_modify>`.  The thermo column names
+are "f\_", followed by the fix ID, followed by a colon, followed by the
+react-ID.  E.g., the first example in the Examples section above would
+print a thermo column name of "f\_rxns:diels_alder", compared to the default column
+output name of "f\_rxns[1]".
 
 No parameter of this fix can be used with the *start/stop* keywords
 of the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.

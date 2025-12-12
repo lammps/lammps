@@ -475,8 +475,6 @@ double FixTTMThermal::compute_vector(int n)
     e_energy = 0.0;
     transfer_energy = 0.0;
 
-    int ix,iy,iz;
-
     double dx = domain->xprd/nxgrid;
     double dy = domain->yprd/nygrid;
     double dz = domain->zprd/nzgrid;

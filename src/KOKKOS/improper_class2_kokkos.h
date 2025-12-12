@@ -99,7 +99,7 @@ class ImproperClass2Kokkos : public ImproperClass2 {
   typename AT::t_kkfloat_1d d_aa_k1,d_aa_k2,d_aa_k3,d_aa_theta0_1,d_aa_theta0_2,d_aa_theta0_3;
   typename AT::t_kkfloat_1d d_setflag_i,d_setflag_aa,d_setflag;
 
-  void allocate();
+  void allocate() override;
 };
 
 }

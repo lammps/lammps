@@ -39,6 +39,7 @@
 #include "pair.h"
 #include "random_park.h"
 #include "region.h"
+#include "suffix.h"
 #include "update.h"
 
 #include <cfloat>
@@ -275,6 +276,9 @@ int FixNeighborSwap::setmask()
 
 void FixNeighborSwap::init()
 {
+  if (force->pair && (force->pair->suffix_flag & Suffix::INTEL))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
+
   c_pe = modify->get_compute_by_id("thermo_pe");
   if (!c_pe) error->all(FLERR, Error::NOLASTLINE, "Could not find 'thermo_pe' compute");
 

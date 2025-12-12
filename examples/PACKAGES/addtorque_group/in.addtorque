@@ -56,7 +56,7 @@ thermo 500
 run 1000 post no
 
 # start spinning the ball. rotation around z should increase and Erot_z should grow
-fix 4 ball addtorque 0.0 0.0 200.0
+fix 4 ball addtorque/group 0.0 0.0 200.0
 run 10000 upto  post no
 
 # continue without adding more torque. rotation continues at fixed speed

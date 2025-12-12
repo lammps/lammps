@@ -220,7 +220,7 @@ tasks (per node) than GPUs, multiple MPI tasks will share each GPU.
 Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
 
-.. versionchanged:: TBD
+.. versionchanged:: 10Dec2025
 
    Updated description to the current state of the GPU package
 

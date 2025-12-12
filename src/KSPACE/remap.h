@@ -27,6 +27,8 @@ struct remap_plan_3d {
   int *send_offset;                   // extraction loc for each send
   int *send_size;                     // size of each send message
   int *send_proc;                     // proc to send each message to
+  int *send_bufloc;                   // if usenonblocking, offset in send buf for each isend
+  MPI_Request *isend_reqs;            // MPI request for each posted isend
   struct pack_plan_3d *packplan;      // pack plan for each send message
   int *recv_offset;                   // insertion loc for each recv
   int *recv_size;                     // size of each recv message
@@ -40,8 +42,13 @@ struct remap_plan_3d {
   int memory;                         // user provides scratch space or not
   MPI_Comm comm;                      // group of procs performing remap
   int usecollective;                  // use collective or point-to-point MPI
+  int usenonblocking;                 // if using point-to-point MPI, use MPI_Isend
   int commringlen;                    // length of commringlist
   int *commringlist;                  // ranks on communication ring of this plan
+  int *sendcnts;                    // # of elements in send buffer for each rank
+  int *rcvcnts;                     // # of elements in recv buffer for each rank
+  int *sdispls;                     // extraction location in send buffer for each rank
+  int *rdispls;                     // extraction location in recv buffer for each rank
 };
 
 // collision between 2 regions
@@ -56,6 +63,6 @@ struct extent_3d {
 
 void remap_3d(FFT_SCALAR *, FFT_SCALAR *, FFT_SCALAR *, struct remap_plan_3d *);
 struct remap_plan_3d *remap_3d_create_plan(MPI_Comm, int, int, int, int, int, int, int, int, int,
-                                           int, int, int, int, int, int, int, int);
+                                           int, int, int, int, int, int, int, int, int);
 void remap_3d_destroy_plan(struct remap_plan_3d *);
 int remap_3d_collide(struct extent_3d *, struct extent_3d *, struct extent_3d *);

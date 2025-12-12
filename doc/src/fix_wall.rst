@@ -4,6 +4,7 @@
 .. index:: fix wall/lj1043
 .. index:: fix wall/colloid
 .. index:: fix wall/harmonic
+.. index:: fix wall/harmonic/outside
 .. index:: fix wall/lepton
 .. index:: fix wall/morse
 .. index:: fix wall/table
@@ -25,6 +26,9 @@ fix wall/colloid command
 fix wall/harmonic command
 =========================
 
+fix wall/harmonic/outside command
+=================================
+
 fix wall/lepton command
 =========================
 
@@ -42,7 +46,7 @@ Syntax
    fix ID group-ID style [tabstyle] [N] face args ... keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style = *wall/lj93* or *wall/lj126* or *wall/lj1043* or *wall/colloid* or *wall/harmonic* or *wall/lepton* or *wall/morse* or *wall/table*
+* style = *wall/lj93* or *wall/lj126* or *wall/lj1043* or *wall/colloid* or *wall/harmonic* or *wall/harmonic/outside* or *wall/lepton* or *wall/morse* or *wall/table*
 * tabstyle = *linear* or *spline* = method of table interpolation (only applies to *wall/table*)
 * N = use N values in *linear* or *spline* interpolation (only applies to *wall/table*)
 * one or more face/arg pairs may be appended
@@ -187,12 +191,30 @@ spring potential:
 
  E = \epsilon \quad (r - r_c)^2 \qquad r < r_c
 
+For style *wall/harmonic/outside*,
+the energy E is given by an attractive-only harmonic
+spring potential for selected atoms group passing outside
+the wall placed at :math:`w_0` up to a cutoff distance :math:`r_c`:
+.. math::
+
+ E = \epsilon \quad (r - w_0)^2 \qquad r < r_c
+
+
 For style *wall/morse*, the energy E is given by a Morse potential:
 
 .. math::
 
    E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
        \qquad r < r_c
+
+
+For style *wall/harmonic/outside*, the formulation avoids the presence
+of repulsive bands inside a controlled volume preventing the definition
+of a precise volumetric concentration (see example scripts for 2D visualization).
+Instead, the particles are allowed to go outside by a small amount,
+getting a finer definition of the concentration inside the controlled
+volume, as employed for the CMC determination in
+Barraud et al :ref:`(Barraud) <Barraud>`.
 
 .. versionadded:: 28Mar2023
 
@@ -211,7 +233,7 @@ Optionally, the expression may use "rc" to refer to the cutoff distance
 for the given wall.  Further constants in the expression can be defined
 in the same string as additional expressions separated by semicolons.
 The expression "k*(r-rc)^2;k=100.0" represents a repulsive-only harmonic
-spring as in fix *wall/harmonic* with a force constant *K* (same as
+spring as in fix *wall/harmonic* or *wall/harmonic/outside* with a force constant *K* (same as
 :math:`\epsilon` above) of 100 energy units.  More details on the Lepton
 expression strings are given below.
 
@@ -310,11 +332,12 @@ particle and a 3d half-lattice of Lennard-Jones 12/6 particles of size
 the density of particles in the wall and colloid can be different, as
 specified by the :math:`\epsilon` prefactor.
 
-For the *wall/harmonic* style, :math:`\epsilon` is effectively the spring
-constant K, and has units (energy/distance\^2).  The input parameter
-:math:`\sigma` is ignored.  The minimum energy position of the harmonic
-spring is at the *cutoff*\ .  This is a repulsive-only spring since the
-interaction is truncated at the *cutoff*
+For the *wall/harmonic* and *wall/harmonic/outside* style,
+:math:`\epsilon` is effectively the spring constant K, and has units
+(energy/distance\^2).  The input parameter :math:`\sigma` is ignored.
+The minimum energy position of the harmonic spring is at the *cutoff*\ .
+This is a repulsive-only spring since the interaction is truncated at
+the *cutoff*
 
 For the *wall/morse* style, the three parameters are in this order:
 :math:`D_0` the depth of the potential, :math:`\alpha` the width
@@ -335,7 +358,7 @@ easy to specify a time-dependent wall interaction.
 
 .. note::
 
-   For all of the styles, you must ensure that r is always > 0 for
+   For all of the styles (except wall/harmonic/outside), you must ensure that r is always > 0 for
    all particles in the group, or LAMMPS will generate an error.  This
    means you cannot start your simulation with particles at the wall
    position *coord* (r = 0) or with particles on the wrong side of the
@@ -557,3 +580,7 @@ The option defaults units = lattice, fld = no, and pbc = no.
 
 **(Magda)** Magda, Tirrell, Davis, J Chem Phys, 83, 1888-1901 (1985);
 erratum in JCP 84, 2901 (1986).
+
+.. _Barraud:
+
+**(Barraud)** Barraud, Dalmazzone, Moureta, De Bruin, Creton, Pasquier, Lachet and Nieto-Draghi, Langmuir, 41 (11), 7272-7282 (2025).

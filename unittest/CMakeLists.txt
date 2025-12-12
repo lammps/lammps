@@ -5,8 +5,8 @@
 
 # download and build googletest framework
 # cannot compile googletest anymore with the default GCC on RHEL 7.x
-if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0))
-  message(FATAL_ERROR "Need GNU C++ compiler version 6.x or later for unit testing")
+if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.3))
+  message(FATAL_ERROR "Need GNU C++ compiler version 9.3 or later for unit testing")
 endif()
 
 message(STATUS "Downloading and building googletest framework")

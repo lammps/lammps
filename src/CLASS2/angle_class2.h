@@ -43,7 +43,7 @@ class AngleClass2 : public Angle {
   double *ba_k1, *ba_k2, *ba_r1, *ba_r2;
   int *setflag_a, *setflag_bb, *setflag_ba;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

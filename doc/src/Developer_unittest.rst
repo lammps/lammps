@@ -147,7 +147,7 @@ additional tests.
 FFT Testing Infrastructure
 """"""""""""""""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 10Dec2025
 
 The FFT tests (``test_fft3d.cpp`` and ``test_fft3d_kokkos.cpp``)
 validate the LAMMPS FFT wrapper implementations for both standard (CPU)

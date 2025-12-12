@@ -25,14 +25,12 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{PF_CALLBACK,PF_ARRAY};
-
 /* ---------------------------------------------------------------------- */
 
 FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), fexternal(nullptr), caller_vector(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix external command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"fix external",error);
 
   scalar_flag = 1;
   global_freq = 1;
@@ -49,14 +47,15 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
     mode = PF_CALLBACK;
     ncall = utils::inumeric(FLERR,arg[4],false,lmp);
     napply = utils::inumeric(FLERR,arg[5],false,lmp);
-    if (ncall <= 0 || napply <= 0)
-      error->all(FLERR,"Illegal values for ncall or napply in fix external pf/callback");
+    if (ncall <= 0) error->all(FLERR, 4, "Illegal value for ncall in fix external pf/callback");
+    if (napply <= 0) error->all(FLERR, 5, "Illegal value for napply in fix external pf/callback");
   } else if (strcmp(arg[3],"pf/array") == 0) {
     if (narg != 5) error->all(FLERR,"Incorrect number of args for fix external pf/array");
     mode = PF_ARRAY;
     napply = utils::inumeric(FLERR,arg[4],false,lmp);
-    if (napply <= 0) error->all(FLERR,"Illegal value for napply for fix external pf/array");
-  } else error->all(FLERR,"Unknown fix external mode {}", arg[3]);
+    if (napply <= 0)
+      error->all(FLERR, 4, "Illegal value for napply ({}) in fix external pf/callback", napply);
+  } else error->all(FLERR, 3, "Unknown fix external mode {}", arg[3]);
 
   callback = nullptr;
 
@@ -79,6 +78,8 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
 
 FixExternal::~FixExternal()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,Atom::GROW);
@@ -105,7 +106,7 @@ int FixExternal::setmask()
 void FixExternal::init()
 {
   if (mode == PF_CALLBACK && callback == nullptr)
-    error->all(FLERR,"Fix external callback function not set");
+    error->all(FLERR, Error::NOLASTLINE, "Fix external callback function not set");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -150,7 +151,7 @@ void FixExternal::post_force(int vflag)
   // invoke the callback in driver program
   // it will fill fexternal with forces
 
-  if (mode == PF_CALLBACK && ntimestep % ncall == 0)
+  if ((mode == PF_CALLBACK) && (ntimestep % ncall == 0))
     (this->callback)(ptr_caller,update->ntimestep,
                      atom->nlocal,atom->tag,atom->x,fexternal);
 

@@ -43,7 +43,7 @@ ImproperHarmonicKokkos<DeviceType>::ImproperHarmonicKokkos(LAMMPS *lmp) : Improp
   datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
-  k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
+  k_warning_flag = DAT::tdual_int_scalar("Improper:warning_flag");
   d_warning_flag = k_warning_flag.template view<DeviceType>();
   h_warning_flag = k_warning_flag.view_host();
 
@@ -131,7 +131,7 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.sync_host();
   if (h_warning_flag())
-    error->warning(FLERR,"Dihedral problem");
+    error->warning(FLERR,"ImproperHarmonic problem");
 
   if (eflag_global) energy += static_cast<double>(ev.evdwl);
   if (vflag_global) {
@@ -319,8 +319,10 @@ void ImproperHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   ImproperHarmonic::coeff(narg, arg);
 
-  int n = atom->nimpropertypes;
-  for (int i = 1; i <= n; i++) {
+  int ilo,ihi;
+  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
+
+  for (int i = ilo; i <= ihi; i++) {
     k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
     k_chi.view_host()[i] = static_cast<KK_FLOAT>(chi[i]);
   }

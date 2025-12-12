@@ -53,6 +53,7 @@ class FixBondReact : public Fix {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   double compute_vector(int) override;
+  std::string get_thermo_colname(int) override;
   double memory_usage() override;
 
  private:

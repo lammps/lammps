@@ -165,6 +165,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   specieslistflag = masslimitflag = 0;
   deljson_init = 0;
   delete_Nlimit = delete_Nsteps = 0;
+  delete_subgroup = false;
 
   singlepos_opened = multipos_opened = del_opened = 0;
   multipos = 0;
@@ -255,6 +256,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
         }
       }
 
+      // delete_rate_limit keyword
     } else if (strcmp(arg[iarg], "delete_rate_limit") == 0) {
       if (iarg + 3 > narg)
         utils::missing_cmd_args(FLERR, "fix reaxff/species delete_rate_limit", error);
@@ -272,6 +274,17 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
         delete_Nlimit = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       delete_Nsteps = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
+
+      // delete_subgroup keyword
+    } else if (strcmp(arg[iarg], "delete_subgroup") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, "fix reaxff/species delete_subgroup", error);
+      delete_subgroup = true;
+      int deligroup = group->find(arg[iarg + 1]);
+      if (deligroup == -1) error->all(FLERR,"Could not find fix reaxff/species group ID {}", arg[iarg + 1]);
+      deligroupbit = group->get_bitmask_by_id(FLERR, arg[iarg + 1], "fix reaxff/species");
+      iarg += 2;
+
       // position of molecules
     } else if (strcmp(arg[iarg], "position") == 0) {
       if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/species position", error);
@@ -1066,27 +1079,58 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
       }
     }
 
-    if (masslimitflag) {
-
-      // find corresponding moltype
-
-      if (totalmass > massmin && totalmass < massmax) {
-        this_delete_Tcount++;
-        for (j = 0; j < nmarklist; j++) {
-          mark[marklist[j]] = m;
-          deletecount[Mol2Spec[m - 1]] += 1.0 / (double) count;
+    int found_one = 1;
+    if (delete_subgroup) {
+      int local_found_one = 0;
+      if (masslimitflag) {
+        if (totalmass > massmin && totalmass < massmax) {
+          for (j = 0; j < nmarklist; j++) {
+            if (mask[marklist[j]] & deligroupbit) {
+              local_found_one = 1;
+              break;
+            }
+          }
+        }
+      } else {
+        if (count > 0) {
+          for (i = 0; i < ndelspec; i++) {
+            if (del_species[i] == species_str) {
+              for (j = 0; j < nmarklist; j++) {
+                if (mask[marklist[j]] & deligroupbit) {
+                  local_found_one = 1;
+                  break;
+                }
+              }
+            }
+          }
         }
       }
-    } else {
-      if (count > 0) {
-        for (i = 0; i < ndelspec; i++) {
-          if (del_species[i] == species_str) {
-            this_delete_Tcount++;
-            for (j = 0; j < nmarklist; j++) {
-              mark[marklist[j]] = m;
-              deletecount[i] += 1.0 / (double) count;
+      MPI_Allreduce(&local_found_one, &found_one, 1, MPI_INT, MPI_SUM, world);
+    }
+
+    if (found_one > 0) {
+      if (masslimitflag) {
+
+        // find corresponding moltype
+
+        if (totalmass > massmin && totalmass < massmax) {
+          this_delete_Tcount++;
+          for (j = 0; j < nmarklist; j++) {
+            mark[marklist[j]] = m;
+            deletecount[Mol2Spec[m - 1]] += 1.0 / (double) count;
+          }
+        }
+      } else {
+        if (count > 0) {
+          for (i = 0; i < ndelspec; i++) {
+            if (del_species[i] == species_str) {
+              this_delete_Tcount++;
+              for (j = 0; j < nmarklist; j++) {
+                mark[marklist[j]] = m;
+                deletecount[i] += 1.0 / (double) count;
+              }
+              break;
             }
-            break;
           }
         }
       }

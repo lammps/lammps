@@ -107,6 +107,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   newton_bond = force->newton_bond;
 
+  thermo_modify_colname = 1;
   restart_global = 1;
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -4414,6 +4415,13 @@ double FixBondReact::compute_vector(int n)
   // now we print just the totals for each reaction instance
   return (double) rxns[n].reaction_count_total;
 
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string FixBondReact::get_thermo_colname(int n)
+{
+  return fmt::format("f_{}:{}", id, rxns[n].name);
 }
 
 /* ---------------------------------------------------------------------- */

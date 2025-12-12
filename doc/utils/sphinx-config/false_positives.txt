@@ -229,8 +229,10 @@ Azuri
 ba
 Babadi
 Babaei
+Baconnier
 backcolor
 Baczewski
+Baer
 Bagchi
 Bagi
 Bagnold
@@ -264,6 +266,7 @@ Bashford
 bashrc
 Baskes
 Batatia
+batoms
 Batra
 Bayly
 bb
@@ -335,6 +338,7 @@ Bkappa
 blabel
 Blaise
 blanchedalmond
+blength
 blo
 blocksize
 blueviolet
@@ -645,6 +649,7 @@ createAtoms
 CreateIDs
 crespi
 Crespi
+Creton
 Creuze
 Critchley
 crossterm
@@ -719,6 +724,7 @@ cyrstals
 cython
 cz
 Daivis
+Dalmazzone
 Dammak
 dampflag
 Darden
@@ -747,6 +753,7 @@ datafile
 datatype
 dataset
 datums
+Dauchot
 Davidchack
 Daw
 dcd
@@ -785,6 +792,7 @@ delr
 deltaHf
 deltamu
 dem
+Demery
 Dendrimer
 dendritic
 Denniston
@@ -833,6 +841,7 @@ dichalcogenide
 dichalcogenides
 Dickel
 diel
+diels
 Dietz
 differentiable
 diffusively
@@ -906,6 +915,7 @@ dpme
 dr
 dR
 dragforce
+Draghi
 Drautz
 dreiding
 Dreiding
@@ -927,6 +937,7 @@ du
 dU
 Ducastelle
 Dudarev
+Duering
 Dufils
 Duin
 Dullweber
@@ -1485,6 +1496,7 @@ Hasan
 Hashtable
 Haswell
 Haugk
+Hayakawa
 Hayoun
 Hayre
 hbar
@@ -1570,6 +1582,7 @@ hTST
 https
 hu
 Hueckel
+Huepe
 Huetter
 Hugonio
 hugoniostat
@@ -2364,6 +2377,7 @@ Mishra
 mistyped
 mistyrose
 Miyazaki
+Mizuguchi
 Mj
 mK
 mkdir
@@ -2423,6 +2437,7 @@ MoS
 Mosayebi
 Moseler
 Moskalev
+Moureta
 Moustafa
 mov
 mpi
@@ -2505,6 +2520,7 @@ myIndex
 mylammps
 myMultiply
 MyPool
+myPress
 mysocket
 mySpin
 myTemp
@@ -2636,6 +2652,7 @@ nhc
 nhi
 NiAlH
 Nicklas
+Nieto
 Niklasson
 Nikolskiy
 nimproperlist
@@ -2692,6 +2709,7 @@ noguess
 Noid
 nolib
 nonaffine
+nonblocking
 nonequilibrium
 nongauss
 nonGaussian
@@ -2927,6 +2945,7 @@ Parrinello
 Partay
 Particuology
 Pascuet
+Pasquier
 pastewka
 Pastewka
 pathangle
@@ -3451,6 +3470,7 @@ rx
 rxd
 rxnave
 rxnbond
+rxns
 rxnsum
 ry
 Ryckaert
@@ -3475,6 +3495,7 @@ sandia
 Sandia
 sandybrown
 sanitizer
+Sano
 Sanyal
 Sanz
 Sarath
@@ -3525,6 +3546,7 @@ segmental
 Seibold
 Seifert
 Seleson
+selfalign
 sellerio
 Sellerio
 Semaev
@@ -3543,6 +3565,7 @@ Sethna
 setmask
 Setmask
 setpoint
+settorque
 setvel
 sevenbody
 sfftw
@@ -3560,11 +3583,13 @@ shapshot
 shardlow
 Shardlow
 shawn
+Shee
 Shen
 Shenderova
 Sherrill
 Shi
 Shiga
+Shimoyama
 Shinoda
 Shiomi
 shlib
@@ -3754,6 +3779,7 @@ subscripted
 subscripting
 sudo
 Sugaku
+Sugawara
 Suhai
 Sukumaran
 Sulc
@@ -3997,7 +4023,9 @@ tweakable
 twobody
 twojmax
 Tx
+tx
 txt
+ty
 Tyagi
 typeargs
 typedefs
@@ -4008,6 +4036,7 @@ typeN
 typesafe
 typestr
 Tz
+tz
 Tzou
 ub
 Uberuaga

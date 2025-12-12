@@ -45,7 +45,7 @@ FixPropelSelf::FixPropelSelf(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg,
 
   virial_global_flag = virial_peratom_flag = 1;
 
-  if (narg != 5 && narg != 9) error->all(FLERR, "Illegal fix propel/self command");
+  if (narg != 5 && narg != 9) error->all(FLERR, "Incorrect number of fix propel/self arguments");
 
   if (strcmp(arg[3], "velocity") == 0) {
     mode = VELOCITY;
@@ -102,13 +102,13 @@ void FixPropelSelf::init()
 {
   if (mode == DIPOLE && !atom->mu_flag)
     error->all(FLERR, Error::NOLASTLINE,
-               "Fix propel/self requires atom attribute mu with option dipole");
+               "Fix propel/self with option dipole requires atom attribute mu");
 
   if (mode == QUAT) {
     avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
     if (!avec)
       error->all(FLERR, Error::NOLASTLINE,
-                 "Fix propel/self requires atom style ellipsoid with option quat");
+                 "Fix propel/self with option quat requires atom style ellipsoid");
 
     // check that all particles are finite-size ellipsoids
     // no point particles allowed, spherical is OK
@@ -121,7 +121,7 @@ void FixPropelSelf::init()
       if (mask[i] & groupbit)
         if (ellipsoid[i] < 0)
           error->one(FLERR, Error::NOLASTLINE,
-                     "Fix propel/self requires extended particles with option quat");
+                     "Fix propel/self with option quat requires extended particles");
   }
 }
 

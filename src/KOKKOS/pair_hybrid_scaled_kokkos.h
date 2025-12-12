@@ -55,6 +55,10 @@ protected:
   int nmaxfsum;
   int *atomvar;         // indices of atom-style variables
   double *atomscale;    // vector of atom-style variable values
+
+  DAT::t_kkfloat_1d_3_lr_randomread x;
+  DAT::t_kkacc_1d_3 f;
+  friend void pair_virial_fdotr_compute<PairHybridScaledKokkos>(PairHybridScaledKokkos*);
 };
 
 }    // namespace LAMMPS_NS

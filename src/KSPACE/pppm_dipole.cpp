@@ -622,17 +622,17 @@ void PPPMDipole::allocate()
   fft1 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                   0,0,&tmp,collective_flag);
+                   0,0,&tmp,collective_flag,nonblocking_flag);
 
   fft2 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                   0,0,&tmp,collective_flag);
+                   0,0,&tmp,collective_flag,nonblocking_flag);
 
   remap = new Remap(lmp,world,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                    1,0,0,FFT_PRECISION,collective_flag);
+                    1,0,0,FFT_PRECISION,collective_flag,nonblocking_flag);
 }
 
 /* ----------------------------------------------------------------------

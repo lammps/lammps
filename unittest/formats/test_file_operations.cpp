@@ -17,6 +17,7 @@
 #include "domain.h"
 #include "error.h"
 #include "update.h"
+#include "FENIX/local_serializer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -389,6 +390,57 @@ TEST_F(FileOperationsTest, write_restart)
     delete_file("multi3-base.restart");
     delete_file("multi3-0.restart");
     delete_file("triclinic.restart");
+}
+
+TEST_F(FileOperationsTest, local_serializer)
+{
+    LocalSerializer ser(lmp);
+
+    ASSERT_EQ(lmp->restart_ver, -1);
+    BEGIN_HIDE_OUTPUT();
+    command("region box block -2 2 -2 2 -2 2");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0");
+    command("mass 1 1.0");
+    command("reset_timestep 333");
+    command("comm_modify cutoff 0.2");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto buf = ser.serialize();
+
+    BEGIN_HIDE_OUTPUT();
+    command("clear");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->restart_ver, -1);
+    ASSERT_EQ(lmp->atom->natoms, 0);
+    ASSERT_EQ(lmp->update->ntimestep, 0);
+    ASSERT_EQ(lmp->domain->triclinic, 0);
+
+    ser.deserialize(buf);
+    BEGIN_HIDE_OUTPUT();
+    command("change_box all triclinic");
+    END_HIDE_OUTPUT();
+    auto triclinic_buf = ser.serialize();
+
+    ASSERT_EQ(lmp->restart_ver, lmp->num_ver);
+    ASSERT_EQ(lmp->atom->natoms, 1);
+    ASSERT_EQ(lmp->update->ntimestep, 333);
+    ASSERT_EQ(lmp->domain->triclinic, 1);
+    BEGIN_HIDE_OUTPUT();
+    command("clear");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->restart_ver, -1);
+    ASSERT_EQ(lmp->atom->natoms, 0);
+    ASSERT_EQ(lmp->update->ntimestep, 0);
+    ASSERT_EQ(lmp->domain->triclinic, 0);
+    BEGIN_HIDE_OUTPUT();
+    ser.deserialize(triclinic_buf);
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->restart_ver, lmp->num_ver);
+    ASSERT_EQ(lmp->atom->natoms, 1);
+    ASSERT_EQ(lmp->update->ntimestep, 333);
+    ASSERT_EQ(lmp->domain->triclinic, 1);
 }
 
 TEST_F(FileOperationsTest, write_data)

@@ -28,7 +28,7 @@ class Modify : protected Pointers {
   friend class FixSRP;
   friend class Respa;
   friend class RespaOMP;
-  friend class FenixCheckpoint;
+  friend class LocalSerializer;
 
  public:
   int n_initial_integrate, n_post_integrate, n_pre_exchange;

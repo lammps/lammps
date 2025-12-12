@@ -39,6 +39,9 @@ add_test(NAME TextFileReader COMMAND test_text_file_reader)
 set_tests_properties(TextFileReader PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
 add_executable(test_file_operations test_file_operations.cpp)
+if(NOT PKG_FENIX)
+    target_sources(test_file_operations PRIVATE ${LAMMPS_SOURCE_DIR}/FENIX/local_serializer.cpp)
+endif()
 target_link_libraries(test_file_operations PRIVATE lammps GTest::GMock)
 add_test(NAME FileOperations COMMAND test_file_operations)
 # try to mitigate possible OpenMPI bug

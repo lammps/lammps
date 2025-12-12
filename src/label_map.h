@@ -48,7 +48,7 @@ class LabelMap : protected Pointers {
   friend class DumpExtXYZ;
   friend class DumpXYZ;
   friend class ReadData;
-  friend class FenixCheckpoint;
+  friend class LocalSerializer;
 
  public:
   /*! Construct a LabelMap instance

@@ -215,7 +215,7 @@ void Fenix::fault_handler(){
   setup_checkpointing();
 
   if(chkpt_interval && restart_pos != 0){
-    chkpt.restore_meta();
+    chkpt.restore_metadata();
   }
 
   if(infile && infile != stdin){

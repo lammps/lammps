@@ -19,7 +19,7 @@
 namespace LAMMPS_NS {
 
 class Comm : protected Pointers {
-  friend class FenixCheckpoint;
+  friend class LocalSerializer;
 
  public:
   enum { BRICK, TILED };

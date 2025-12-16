@@ -59,6 +59,8 @@ class FixReaxFFSpecies : public Fix {
   int delflag, specieslistflag, masslimitflag;
   int deljson_init;
   int delete_Nlimit, delete_Nlimit_varid;
+  bool delete_subgroup;
+  int deligroupbit;
   std::string delete_Nlimit_varname;
   int delete_Nsteps, *delete_Tcount;
   double massmin, massmax;

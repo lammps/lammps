@@ -5,8 +5,8 @@
 
 # download and build googletest framework
 # cannot compile googletest anymore with the default GCC on RHEL 7.x
-if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0))
-  message(FATAL_ERROR "Need GNU C++ compiler version 6.x or later for unit testing")
+if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.3))
+  message(FATAL_ERROR "Need GNU C++ compiler version 9.3 or later for unit testing")
 endif()
 
 message(STATUS "Downloading and building googletest framework")
@@ -49,21 +49,21 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/in.empty "")
 add_test(NAME RunLammps
          COMMAND $<TARGET_FILE:lmp> -log none -echo none -in in.empty)
 set_tests_properties(RunLammps PROPERTIES
-        ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
-        PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?( - Development.*)?( - Maintenance.*)?\\)")
+         ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
+         PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?( - Development.*)?( - Maintenance.*)?\\)")
 
 # check if the compiled executable will print the help message
 add_test(NAME HelpMessage
          COMMAND $<TARGET_FILE:lmp> -h)
 set_tests_properties(HelpMessage PROPERTIES
-        ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
+         ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
          PASS_REGULAR_EXPRESSION ".*Large-scale Atomic/Molecular Massively Parallel Simulator -.*Usage example:.*")
 
 # check if the compiled executable will error out on an invalid command line flag
 add_test(NAME InvalidFlag
          COMMAND $<TARGET_FILE:lmp> -xxx)
 set_tests_properties(InvalidFlag PROPERTIES
-        ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
+         ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
          PASS_REGULAR_EXPRESSION "ERROR: Invalid command-line argument.*")
 
 # convenience function for adding tests requiring to be run in parallel with MPI

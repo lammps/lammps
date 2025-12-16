@@ -97,6 +97,14 @@ The algorithm implemented by this fix is as follows:
      using the energy change of the system and the specified temperature
      *T*.
 
+.. note::
+
+   To run an MC-only simulation (no MD), you should define no
+   time-integration fix, set the :doc:`thermo <thermo>` command to 1,
+   set *N* to 1, and set *X* small enough to see the MC evolution of
+   the system.  But if *X* is too small, the overhead at the start and
+   stop of MC moves each timestep will slow down the simulation.
+
 Here are a few comments on the computational cost of the swapping
 algorithm.
 

@@ -2254,7 +2254,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     else error->all(FLERR,"Invalid dump_modify thresh operator");
 
     // set threshold value as number or special LAST keyword
-    // create FixStore to hold LAST values, should work with restart
+    // create FixStoreAtom to hold LAST values, should work with restart
     // id = dump-ID + nthreshlast + DUMP_STORE, fix group = dump group
 
     if (strcmp(arg[3],"LAST") != 0) {

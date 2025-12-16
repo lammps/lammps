@@ -1,7 +1,10 @@
 .. index:: fix external
+.. index:: fix external/kk
 
 fix external command
 ====================
+
+Accelerator Variants: *external/kk*
 
 Syntax
 """"""
@@ -139,6 +142,10 @@ the caller code may want to communicate  to LAMMPS
 (e.g. for use in :doc:`fix ave/time <fix_ave_time>` or in
 :doc:`equal-style variables <variable>` or for
 :doc:`custom thermo output <thermo_style>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

@@ -14,7 +14,20 @@ cp lammps-gui_build-prefix/bin/lammps-gui ${DESTDIR}/bin/
 echo "Remove debug info"
 for s in ${DESTDIR}/bin/* ${DESTDIR}/lib/liblammps*
 do \
-        test -f $s && strip --strip-debug $s
+    test -f $s && strip --strip-debug $s
+done
+
+echo "Move LAMMPS shared library to its own folder"
+mkdir -p ${DESTDIR}/libexec/lammps
+mv -v  ${DESTDIR}/lib/liblammps* ${DESTDIR}/libexec/lammps/
+chmod +x ${DESTDIR}/libexec/lammps/liblammps.so.*
+
+# add certain LAMMPS library dependencies
+LIBDEPS=$(LD_LIBRARY_PATH=${DESTDIR}/lib ldd ${DESTDIR}/libexec/lammps/liblammps.so | grep -v ${DESTDIR} | grep -E '(libz\.so\.|libpng|libjpeg)' | sed -e 's/^.*=> *//' -e 's/\(lib.*.so.*\) .*$/\1/')
+for dep in ${LIBDEPS}
+do \
+    cp ${dep} ${DESTDIR}/lib
+    chmod +x ${DESTDIR}/lib/${dep}
 done
 
 echo "Remove libc, gcc, and X11 related shared libs"
@@ -24,29 +37,42 @@ rm -f ${DESTDIR}/lib/lib{c,dl,rt,m,pthread}-[0-9].[0-9]*.so
 rm -f ${DESTDIR}/lib/libX* ${DESTDIR}/lib/libxcb*
 rm -f ${DESTDIR}/lib/libgcc_s*
 rm -f ${DESTDIR}/lib/libstdc++*
+echo "Remove oversize potential files"
+rm -f ${DESTDIR}/share/lammps/potentials/C_10_10.mesocnt
 
-# get qt dir
+# get Qt dir
 QTDIR=$(ldd ${DESTDIR}/bin/lammps-gui | grep libQt.Core | sed -e 's/^.*=> *//' -e 's/libQt\(.\)Core.so.*$/qt\1/')
+
+# configure some settings files for Qt
 cat > ${DESTDIR}/bin/qt.conf <<EOF
 [Paths]
 Plugins = ../qtplugins
 EOF
 
+cat > ${DESTDIR}/bin/qtlogging.ini <<EOF
+[Rules]
+*.debug=false
+qt.qpa.xcb.xcberror.warning=false
+EOF
+
 # platform plugin
 mkdir -p ${DESTDIR}/qtplugins/platforms
 cp ${QTDIR}/plugins/platforms/libqxcb.so ${DESTDIR}/qtplugins/platforms
+chmod +x ${DESTDIR}/qtplugins/platforms/libqxcb.so
 
 # get platform plugin dependencies
 QTDEPS=$(LD_LIBRARY_PATH=${DESTDIR}/lib ldd ${QTDIR}/plugins/platforms/libqxcb.so | grep -v ${DESTDIR} | grep libQt[56] | sed -e 's/^.*=> *//' -e 's/\(libQt[56].*.so.*\) .*$/\1/')
 for dep in ${QTDEPS}
 do \
     cp ${dep} ${DESTDIR}/lib
+    chmod +x ${DESTDIR}/lib/${dep}
 done
 
 echo "Add additional plugins for Qt"
 for dir in styles imageformats
 do \
     cp -r  ${QTDIR}/plugins/${dir} ${DESTDIR}/qtplugins/
+    chmod +x ${DESTDIR}/qtplugins/*/*.so
 done
 
 # get imageplugin dependencies
@@ -56,6 +82,7 @@ do \
     for dep in ${QTDEPS}
     do \
         cp ${dep} ${DESTDIR}/lib
+        chmod +x ${DESTDIR}/lib/${dep}
     done
 done
 
@@ -63,11 +90,13 @@ echo "Set up wrapper script"
 MYDIR=$(dirname "$0")
 cp ${MYDIR}/xdg-open ${DESTDIR}/bin
 cp ${MYDIR}/linux_wrapper.sh ${DESTDIR}/bin
+chmod 0755 ${DESTDIR}/bin/linux_wrapper.sh
 for s in ${DESTDIR}/bin/*
 do \
         EXE=$(basename $s)
         test ${EXE} = linux_wrapper.sh && continue
         test ${EXE} = qt.conf && continue
+        test ${EXE} = qtlogging.ini && continue
         test ${EXE} = xdg-open && continue
         ln -s bin/linux_wrapper.sh ${DESTDIR}/${EXE}
 done

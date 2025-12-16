@@ -28,6 +28,7 @@ Contributing Author: Jacob Gissinger (jgissing@stevens.edu)
 #include "force.h"
 #include "group.h"
 #include "input.h"
+#include "json_metadata.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
@@ -35,6 +36,7 @@ Contributing Author: Jacob Gissinger (jgissing@stevens.edu)
 #include "molecule.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "output.h"
 #include "pair.h"
 #include "random_mars.h"
 #include "reset_atoms_mol.h"
@@ -57,8 +59,8 @@ using namespace FixConst;
 using namespace MathConst;
 
 static const char cite_fix_bond_react[] =
-    "fix bond/react: reacter.org doi:10.1016/j.polymer.2017.09.038, "
-    "doi:10.1021/acs.macromol.0c02012, doi:10.1016/j.cpc.2024.109287\n\n"
+    "fix bond/react: https://reacter.org, https://doi.org/10.1016/j.polymer.2017.09.038, "
+    "https://doi.org/10.1021/acs.macromol.0c02012, https://doi.org/10.1016/j.cpc.2024.109287\n\n"
     "@Article{Gissinger17,\n"
     " author = {J. R. Gissinger and B. D. Jensen and K. E. Wise},\n"
     " title = {Modeling Chemical Reactions in Classical Molecular Dynamics Simulations},\n"
@@ -97,11 +99,15 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   fix2 = nullptr;
   fix3 = nullptr;
   reset_mol_ids = nullptr;
+  fpout = nullptr;
+  json_init = 0;
+  outflag = false;
 
   if (narg < 8) utils::missing_cmd_args(FLERR,"fix bond/react", error);
 
   newton_bond = force->newton_bond;
 
+  thermo_modify_colname = 1;
   restart_global = 1;
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -228,6 +234,27 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"shuffle_seed") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix bond/react seed", error);
       shuffle_seed = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "file") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("Fix bond/react ") + arg[iarg], error);
+      outflag = true;
+      if (comm->me == 0) {
+        if (fpout) fclose(fpout);
+        fpout = fopen(arg[iarg + 1], "w");
+        if (fpout == nullptr)
+          error->one(FLERR, "Cannot open fix bond/react output file {}: {}", arg[iarg + 1],
+                     utils::getsyserror());
+        // header for 'delete' keyword JSON output
+        fprintf(fpout, "{\n");
+        fprintf(fpout, "    \"application\": \"LAMMPS\",\n");
+        fprintf(fpout, "    \"format\": \"dump\",\n");
+        fprintf(fpout, "    \"style\": \"molecules\",\n");
+        fprintf(fpout, "    \"title\": \"fix bond/react\",\n");
+        fprintf(fpout, "    \"revision\": 1,\n");
+        fprintf(fpout, "    \"timesteps\": [\n");
+        fflush(fpout);
+      }
       iarg += 2;
     } else if (strcmp(arg[iarg],"react") == 0) {
       break;
@@ -413,6 +440,17 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                          "Please use the 'max_rxn' common keyword instead, which can be applied to one or more reactions.");
       } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
     }
+  }
+
+  if (outflag) {
+    // add Metadata struct to print out react-ID to JSON molecules dump
+    // adds 'reaction' JSON key to each molecule
+    rxn_metadata = std::make_unique<json_metadata>();
+    rxn_metadata->key = "reaction";
+    std::vector<std::string> rxn_names;
+    rxn_names.reserve(rxns.size());
+    for (auto const& rxn : rxns) rxn_names.push_back(rxn.name);
+    rxn_metadata->values = std::move(rxn_names);
   }
 
   for (auto &rlm : rate_limits) {
@@ -612,6 +650,11 @@ FixBondReact::~FixBondReact()
 
   delete[] set;
 
+  if (fpout) {
+    fprintf(fpout, "        }\n    ]\n}");
+    fclose(fpout);
+  }
+
   if (group) {
     group->assign(master_group + " delete");
     if (stabilization_flag == 1) group->assign(exclude_group + " delete");
@@ -634,6 +677,9 @@ let's add an internal nve/limit fix for relaxation of reaction sites
 also let's add our per-atom property fix here!
 this per-atom property will state the timestep an atom was 'limited'
 it will have the name 'i_limit_tags' and will be intitialized to 0 (not in group)
+'i_react_tags' holds reaction ID for reacting atoms
+'i_rxn_instance' is unique tag for each ongoing reaction. use first initiator atom ID!
+'i_statted_tags' is 1 for non-reacting atoms
 ------------------------------------------------------------------------- */
 
 void FixBondReact::post_constructor()
@@ -641,7 +687,7 @@ void FixBondReact::post_constructor()
   // let's add the limit_tags per-atom property fix
   id_fix2 = "bond_react_props_internal";
   if (!modify->get_fix_by_id(id_fix2))
-    fix2 = modify->add_fix(id_fix2 + " all property/atom i_limit_tags i_react_tags ghost yes");
+    fix2 = modify->add_fix(id_fix2 + " all property/atom i_limit_tags i_react_tags i_rxn_instance ghost yes");
 
   // create master_group if not already existing
   // NOTE: limit_tags and react_tags automaticaly intitialized to zero (unless read from restart)
@@ -2723,6 +2769,9 @@ void FixBondReact::unlimit_bond()
   int index3 = atom->find_custom("react_tags",flag,cols);
   int *i_react_tags = atom->ivector[index3];
 
+  int index4 = atom->find_custom("rxn_instance",flag,cols);
+  int *i_rxn_instance = atom->ivector[index4];
+
   int unlimitflag = 0;
   for (int i = 0; i < atom->nlocal; i++) {
     // unlimit atoms for next step! this resolves # of procs disparity, mostly
@@ -2732,6 +2781,7 @@ void FixBondReact::unlimit_bond()
       i_limit_tags[i] = 0;
       if (stabilization_flag == 1) i_statted_tags[i] = 1;
       i_react_tags[i] = 0;
+      i_rxn_instance[i] = 0;
     }
   }
 
@@ -2925,6 +2975,9 @@ void FixBondReact::update_everything()
 
   int index3 = atom->find_custom("react_tags",flag,cols);
   int *i_react_tags = atom->ivector[index3];
+
+  int index4 = atom->find_custom("rxn_instance",flag,cols);
+  int *i_rxn_instance = atom->ivector[index4];
 
   // pass through twice
   // redefining 'update_num_mega' and 'update_mega_glove' each time
@@ -3137,6 +3190,7 @@ void FixBondReact::update_everything()
           i_limit_tags[ilocal] = update->ntimestep + 1;
           if (stabilization_flag == 1) i_statted_tags[ilocal] = 0;
           i_react_tags[ilocal] = rxn.ID;
+          i_rxn_instance[ilocal] = update_mega_glove[rxn.ibonding+1][i];
 
           if (rxn.atoms[j].landlocked == 1)
             type[ilocal] = rxn.product->type[j];
@@ -3558,6 +3612,34 @@ void FixBondReact::update_everything()
       }
     }
 
+  }
+
+  // currently dumping each reaction once, on step that reaction occurs
+  if (outflag) {
+    std::string indent;
+    int json_level = 2, tab = 4;
+    if (comm->me == 0) {
+      indent.resize(json_level*tab, ' ');
+      if (json_init > 0) {
+        fprintf(fpout, "%s},\n%s{\n", indent.c_str(), indent.c_str());
+      } else {
+        fprintf(fpout, "%s{\n", indent.c_str());
+        json_init = 1;
+      }
+      indent.resize(++json_level*tab, ' ');
+      utils::print(fpout, "{}\"timestep\": {},\n", indent, update->ntimestep);
+      utils::print(fpout, "{}\"molecules\": [\n", indent);
+      indent.resize(++json_level*tab, ' ');
+    }
+
+    rxn_metadata->ivec = i_react_tags;
+    output->write_molecule_json(fpout, json_level, json_init, i_rxn_instance, rxn_metadata.get());
+    if (json_init == 1) json_init++;
+    if (comm->me == 0) {
+      indent.resize(--json_level*tab, ' ');
+      fprintf(fpout, "%s]\n", indent.c_str());
+      fflush(fpout);
+    }
   }
 
   memory->destroy(update_mega_glove);
@@ -4083,15 +4165,18 @@ void FixBondReact::CreateAtoms(char *line, Reaction &rxn, int ncreate)
   for (int i = 0; i < ncreate; i++) {
     readline(line);
     rv = sscanf(line,"%d",&tmp);
-    if (rv != 1) error->one(FLERR, "CreateIDs section is incorrectly formatted");
+    if (rv != 1) error->one(FLERR, Error::NOLASTLINE, "CreateIDs section is incorrectly formatted");
     if (tmp > rxn.product->natoms)
-      error->one(FLERR,"Fix bond/react: Invalid atom ID in CreateIDs section of map file");
+      error->one(FLERR, Error::NOLASTLINE, "Fix bond/react: Invalid atom ID in CreateIDs section of map file");
     rxn.atoms[tmp-1].created = 1;
   }
   if (rxn.product->xflag == 0)
-    error->one(FLERR,"Fix bond/react: 'Coords' section required in post-reaction template when creating new atoms");
+    error->one(FLERR, Error::NOLASTLINE,
+               "Fix bond/react: 'Coords' section required in post-reaction template when creating new atoms");
   if (atom->rmass_flag && !rxn.product->rmassflag)
-    error->one(FLERR, "Fix bond/react: 'Masses' section required in post-reaction template when creating new atoms if per-atom masses are defined.");
+    error->one(FLERR, Error::NOLASTLINE,
+               "Fix bond/react: 'Masses' section required in post-reaction template when creating new atoms "
+               "and per-atom masses are defined.");
 }
 
 void FixBondReact::CustomCharges(int ifragment, Reaction &rxn)
@@ -4330,6 +4415,13 @@ double FixBondReact::compute_vector(int n)
   // now we print just the totals for each reaction instance
   return (double) rxns[n].reaction_count_total;
 
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string FixBondReact::get_thermo_colname(int n)
+{
+  return fmt::format("f_{}:{}", id, rxns[n].name);
 }
 
 /* ---------------------------------------------------------------------- */

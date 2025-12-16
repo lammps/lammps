@@ -61,7 +61,7 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
     URL     ${PLUMED_URL} ${PLUMED_FALLBACK}
     URL_MD5 ${PLUMED_MD5}
     BUILD_IN_SOURCE 1
-    CONFIGURE_COMMAND ${CROSS_CONFIGURE} --disable-shared --disable-bsymbolic
+    CONFIGURE_COMMAND ${CROSS_CONFIGURE} --disable-shared --disable-bsymbolic --disable-dlopen
                                          --disable-python --enable-cxx=${PLUMED_CXX_STANDARD}
                                          --enable-modules=-adjmat:+crystallization:-dimred:+drr:+eds:-fisst:+funnel:+logmfd:+manyrestraints:+maze:+opes:+multicolvar:-pamm:-piv:+s2cm:-sasa:-ves
                                          ${PLUMED_CONFIG_OMP}

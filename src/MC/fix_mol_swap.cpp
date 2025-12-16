@@ -30,6 +30,7 @@
 #include "neighbor.h"
 #include "pair.h"
 #include "random_park.h"
+#include "suffix.h"
 #include "update.h"
 
 #include <cmath>
@@ -87,8 +88,7 @@ FixMolSwap::FixMolSwap(LAMMPS *lmp, int narg, char **arg) :
   if (seed <= 0) error->all(FLERR,"Illegal fix mol/swap command");
   if (temperature <= 0.0) error->all(FLERR,"Illegal fix mol/swap command");
   if (ke_flag && atom->rmass)
-    error->all(FLERR,"Cannot conserve kinetic energy with fix mol/swap "
-               "unless per-type masses");
+    error->all(FLERR,"Cannot conserve kinetic energy with fix mol/swap unless per-type masses");
 
   beta = 1.0/(force->boltz*temperature);
 
@@ -137,6 +137,9 @@ int FixMolSwap::setmask()
 
 void FixMolSwap::init()
 {
+  if (force->pair && (force->pair->suffix_flag & Suffix::INTEL))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
+
   // c_pe = compute used to calculate before/after potential energy
 
   auto *id_pe = (char *) "thermo_pe";

@@ -136,7 +136,7 @@ void Error::all(const std::string &file, int line, int failed, const std::string
   if (showerror && (me == 0)) utils::logmesg(lmp,mesg);
   utils::flush_buffers(lmp);
 
-  // allow commands if an exception was caught in a run
+  // allow commands again if an exception was caught in a run
   // update may be a null pointer when catching command-line errors
 
   if (update) update->whichflag = 0;

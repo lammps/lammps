@@ -76,7 +76,6 @@ class FixWallRegionKokkos : public FixWallRegion {
 
   KOKKOS_INLINE_FUNCTION
   void v_tally(value_type, int, KK_FLOAT*) const;
-
 };
 
 template <class DeviceType, class T>

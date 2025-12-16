@@ -40,7 +40,7 @@ using namespace RHEO_NS;
 using namespace FixConst;
 
 static const char cite_rheo[] =
-    "RHEO package: doi:10.1063/5.0228823\n\n"
+    "RHEO package: https://doi.org/10.1063/5.0228823\n\n"
     "@article{Palermo2024,\n"
     " journal = {Physics of Fluids},\n"
     " title = {Reproducing hydrodynamics and elastic objects: A hybrid mesh-free model framework for dynamic multi-phase flows},\n"

@@ -555,3 +555,11 @@ Advanced Kokkos options
 There are other allowed options when building with the KOKKOS package
 that can improve performance or assist in debugging or profiling.
 They are explained on the :ref:`KOKKOS section of the build extras <kokkos>` doc page,
+
+References
+""""""""""
+
+**(Johansson)** A. Johansson, E. Weinberg, C. Trott, M. McCarthy, and S. Moore.
+LAMMPS-KOKKOS: Performance portable molecular dynamics across exascale architectures.
+In Proceedings of the SC '25 Workshops of the International Conference for High
+Performance Computing, Networking, Storage and Analysis, page 1217-1232, 2025.

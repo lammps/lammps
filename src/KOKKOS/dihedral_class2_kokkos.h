@@ -104,7 +104,7 @@ class DihedralClass2Kokkos : public DihedralClass2 {
   typename AT::t_kkfloat_1d d_setflag_d, d_setflag_mbt, d_setflag_ebt;
   typename AT::t_kkfloat_1d d_setflag_at, d_setflag_aat, d_setflag_bb13t;
 
-  void allocate();
+  void allocate() override;
 };
 
 }

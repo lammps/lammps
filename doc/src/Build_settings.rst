@@ -459,11 +459,21 @@ supports the "popen" function in the standard runtime library.
 Read or write compressed files
 -----------------------------------------
 
+.. versionchanged:: TBD
+
+   Added support for ``brotli`` and ``7-zip``
+
 If this option is enabled, large files can be read or written with
 compression by ``gzip`` or similar tools by several LAMMPS commands,
-including :doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and
-:doc:`dump <dump>`.  Supported compression tools and algorithms are currently
-``gzip``, ``bzip2``, ``zstd``, ``xz``, ``lz4``, and ``lzma`` (via xz).
+including :doc:`read_data <read_data>`, :doc:`write_data <write_data>`,
+:doc:`rerun <rerun>`, :doc:`dump <dump>`, and :doc:`write_dump
+<write_dump>`.  Supported compression tools and algorithms are currently
+``gzip``, ``bzip2``, ``zstd``, ``xz``, ``lz4``, ``lzma`` (via xz),
+``brotli``, and ``7-zip (via 7z)``.  LAMMPS checks at runtime, which
+compression commands are available and adjusts the check for supported
+suffixes accordingly.  The list of available compression formats and
+suffixes is shown when running LAMMPS with the :doc:`-help or -h
+command_line flag <Run_options>`.
 
 .. tabs::
 

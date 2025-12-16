@@ -358,8 +358,10 @@ void DihedralHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   DihedralHarmonic::coeff(narg, arg);
 
-  int n = atom->ndihedraltypes;
-  for (int i = 1; i <= n; i++) {
+  int ilo,ihi;
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
+
+  for (int i = ilo; i <= ihi; i++) {
     k_k.view_host()[i] = k[i];
     k_cos_shift.view_host()[i] = cos_shift[i];
     k_sin_shift.view_host()[i] = sin_shift[i];

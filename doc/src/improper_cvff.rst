@@ -1,5 +1,6 @@
 .. index:: improper_style cvff
 .. index:: improper_style cvff/intel
+.. index:: improper_style cvff/kk
 .. index:: improper_style cvff/omp
 
 improper_style cvff command

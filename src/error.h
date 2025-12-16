@@ -27,6 +27,7 @@ class Error : protected Pointers {
   [[noreturn]] void universe_one(const std::string &, int, const std::string &);
   void universe_warn(const std::string &, int, const std::string &);
 
+  static constexpr int COMMAND = -1;
   static constexpr int NOPOINTER = -2;
   static constexpr int NOLASTLINE = -3;
   static constexpr int ARGZERO = -99;

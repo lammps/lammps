@@ -152,7 +152,7 @@ void AtomKokkos::update_property_atom()
 
 /* ---------------------------------------------------------------------- */
 
-void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
+void AtomKokkos::sync(const ExecutionSpace space, uint64_t mask)
 {
   if ((space == Device || space == HostKK) && lmp->kokkos->auto_sync) {
 
@@ -171,7 +171,7 @@ void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
+void AtomKokkos::modified(const ExecutionSpace space, uint64_t mask)
 {
   avecKK->modified(space, mask);
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(space, mask);
@@ -184,7 +184,7 @@ void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
 
 /* ---------------------------------------------------------------------- */
 
-void AtomKokkos::sync_pinned(const ExecutionSpace space, unsigned int mask, int async_flag)
+void AtomKokkos::sync_pinned(const ExecutionSpace space, uint64_t mask, int async_flag)
 {
   avecKK->sync_pinned(space, mask, async_flag);
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync_pinned(space, mask, async_flag);

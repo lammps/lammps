@@ -826,16 +826,14 @@ void RegCone::bbox_update()
       ymax = c1 + maxradius;
       zmin = c2 - maxradius;
       zmax = c2 + maxradius;
-    }
-    if (axis == 'y') {
+    } else if (axis == 'y') {
       xmin = c1 - maxradius;
       xmax = c1 + maxradius;
       ymin = lo;
       ymax = hi;
       zmin = c2 - maxradius;
       zmax = c2 + maxradius;
-    }
-    if (axis == 'z') {
+    } else { // (axis == 'z') {
       xmin = c1 - maxradius;
       xmax = c1 + maxradius;
       ymin = c2 - maxradius;

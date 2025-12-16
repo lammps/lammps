@@ -263,8 +263,10 @@ void AngleHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   AngleHarmonic::coeff(narg, arg);
 
-  int n = atom->nangletypes;
-  for (int i = 1; i <= n; i++) {
+  int ilo,ihi;
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
+
+  for (int i = ilo; i <= ihi; i++) {
     k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
     k_theta0.view_host()[i] = static_cast<KK_FLOAT>(theta0[i]);
   }

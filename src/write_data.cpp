@@ -203,7 +203,11 @@ void WriteData::write(const std::string &file)
   // open data file
 
   if (comm->me == 0) {
-    fp = fopen(file.c_str(),"w");
+    if (platform::has_compress_extension(file)) {
+      fp = platform::compressed_write(file);
+    } else {
+      fp = fopen(file.c_str(), "w");
+    }
     if (fp == nullptr)
       error->one(FLERR,"Cannot open data file {}: {}", file, utils::getsyserror());
   }

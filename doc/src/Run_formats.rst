@@ -78,7 +78,7 @@ For floating point numbers in scientific notation, the Fortran double
 precision notation "1.1d3" is not accepted; you have to use "1100",
 "1100.0" or "1.1e3".
 
-Input file
+Input File
 ^^^^^^^^^^
 
 A LAMMPS input file is a text file with commands.  It is read
@@ -161,7 +161,7 @@ recommended to always have an empty line at the end of an input file.
 The specific details describing how LAMMPS input is processed and parsed
 are explained in :doc:`Commands_parse`.
 
-Data file
+Data File
 ^^^^^^^^^
 
 A LAMMPS data file contains a description of a system suitable for
@@ -302,7 +302,7 @@ Molecule-ID', one for each atom in the system.  For adding charges to
 atom style molecular with fix property/atom, the "Atoms" section is now
 formatted according to the atom style and a "Charges" section is added.
 
-Molecule file
+Molecule File
 ^^^^^^^^^^^^^
 
 Molecule files for use with the :doc:`molecule command <molecule>` look
@@ -376,7 +376,7 @@ if the molecule command is issued *before* the simulation box is
 defined.  Otherwise, the molecule command can derive the required
 settings internally.
 
-Restart file
+Restart File
 ^^^^^^^^^^^^
 
 LAMMPS restart files are binary files and not available in text format.
@@ -408,6 +408,69 @@ are in the ``lmprestart.h`` header file.
 
 LAMMPS restart files are not expected to be portable between platforms
 or LAMMPS versions, but changes to the file format are rare.
+
+.. _json-dump-files:
+
+JSON Dump Files
+^^^^^^^^^^^^^^^
+
+LAMMPS can print information about molecules and other sets of atoms during
+a run, in JSON format. Several fixes currently support dumping JSON files
+in the 'molecules' style, including :doc:`fix bond/react <fix_bond_react>`
+and the *delete* keyword of :doc:`fix reaxff/species <fix_reaxff_species>`.
+The JSON 'dump molecules' format lists sets of atoms in the style of the
+:doc:`JSON molecule file <molecule>`, where more discussion of JSON schema
+can be found. Here is an generic example of a JSON output file that dumped
+one water molecule on the first timestep:
+
+.. code-block:: json
+
+   {
+       "application": "LAMMPS",
+       "units": "real",
+       "format": "dump",
+       "style": "molecules",
+       "revision": 1,
+       "timesteps": [
+           {
+               "timestep": 1,
+               "molecules": [
+                   {
+                       "types": {
+                           "format": ["atom-id", "type"],
+                           "data": [
+                               [1368, "H"],
+                               [1366, "O"],
+                               [1367, "H"]
+                           ]
+                       },
+                       "coords": {
+                           "format": ["atom-id", "x", "y", "z"],
+                           "data": [
+                               [1368, 26.787767440427466, 29.785528640296768, 25.85197353660144],
+                               [1366, 26.641801222582824, 29.868106247702887, 24.91285138212243],
+                               [1367, 25.69611192416744, 30.093425787807448, 24.914380215672846]
+                           ]
+                       }
+                   }
+               ]
+           }
+       ]
+   }
+
+The required first-level keys of the JSON format output are "application",
+"format", "style", "revision", and "timesteps", and optional keys are
+"units" and "title".  The value of the "timesteps" key is an array of
+objects that contain data for each timestep on which a molecule was dumped,
+and the other first-level keys identify this JSON schema.  The objects in
+"timesteps" contains two mandatory keys, "timestep" and "molecules".  The
+"molecules" key is an array of :doc:`LAMMPS molecule JSON <molecule>`
+objects, and may contain other keys that contain metadata for each
+molecule.  The "format" keys within molecule JSON objects are only printed
+once per output file, for brevity.  The "atom-id" values are atom IDs from
+the simulation, and the "type" values are atom types.  In the above
+example, the types were reported as strings corresponding to elements using
+:doc:`type labels <labelmap>`.
 
 .. Native Dump file
 .. ^^^^^^^^^^^^^^^^

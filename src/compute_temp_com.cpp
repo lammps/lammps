@@ -44,7 +44,8 @@ ComputeTempCOM::ComputeTempCOM(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempCOM::~ComputeTempCOM()
 {
-  delete [] vector;
+  if (!copymode)
+    delete [] vector;
 }
 
 /* ---------------------------------------------------------------------- */

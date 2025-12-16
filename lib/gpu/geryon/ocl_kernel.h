@@ -67,9 +67,22 @@ class UCL_Program {
   /** \note Must call init() after each clear **/
   inline void clear() {
     if (_init_done) {
+      #ifdef CL_VERSION_2_0
+      cl_context ctx_from_queue = nullptr;
+      cl_int err = clGetCommandQueueInfo(_cq,
+                                  CL_QUEUE_CONTEXT,
+                                  sizeof(ctx_from_queue),
+                                  &ctx_from_queue,
+                                  nullptr);
+      if (err == CL_SUCCESS)
+        CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq));
+      CL_DESTRUCT_CALL(clReleaseProgram(_program));
+      CL_DESTRUCT_CALL(clReleaseContext(_context));
+      #else
       CL_DESTRUCT_CALL(clReleaseProgram(_program));
       CL_DESTRUCT_CALL(clReleaseContext(_context));
       CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq));
+      #endif
       _init_done=false;
     }
   }

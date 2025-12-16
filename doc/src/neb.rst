@@ -278,11 +278,12 @@ larger than you would normally use for dynamics simulations.
 Each file read by the neb command containing atomic coordinates used
 to initialize one or more replicas must be formatted as follows.
 
-The file can be ASCII text or a gzipped text file (detected by a .gz
-suffix).  The file can contain initial blank lines or comment lines
-starting with "#" which are ignored.  The first non-blank, non-comment
-line should list N = the number of lines to follow.  The N successive
-lines contain the following information:
+The file can be ASCII text or a compressed text file (detected by a
+:ref:`supported compression format suffix <gzip>`).  The file can
+contain initial blank lines or comment lines starting with "#" which are
+ignored.  The first non-blank, non-comment line should list N = the
+number of lines to follow.  The N successive lines contain the following
+information:
 
 .. parsed-literal::
 
@@ -439,6 +440,10 @@ Restrictions
 This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
+
+To read compressed files, you must compile LAMMPS with the
+``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings
+<Build_settings>` doc page for details.
 
 ----------
 

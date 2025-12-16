@@ -1,3 +1,4 @@
+
 .. index:: fix gcmc
 
 fix gcmc command
@@ -80,22 +81,30 @@ isotherms in microporous materials, or computing vapor-liquid
 coexistence curves.
 
 Every *N* timesteps the fix attempts both GCMC exchanges (insertions or
-deletions) and MC moves of gas atoms or molecules.  On those timesteps,
-the average number of attempted GCMC exchanges is *X*, while the average
-number of attempted MC moves is *M*.  For GCMC exchanges of either
-molecular or atomic gasses, these exchanges can be either deletions or
-insertions, with equal probability.
+deletions) and MC moves of gas atoms or molecules.  On those timesteps, the
+average number of attempted GCMC exchanges is *X*, while the average number
+of attempted MC moves is *M*.  For GCMC exchanges of either molecular or
+atomic gasses, these exchanges can be either deletions or insertions, with
+equal probability.
 
-The possible choices for MC moves are translation of an atom,
-translation of a molecule, and rotation of a molecule.  The relative
-amounts of each are determined by the optional *mcmoves* keyword (see
-below).  The default behavior is as follows.  If the *mol* keyword is
-used, only molecule translations and molecule rotations are performed
-with equal probability.  Conversely, if the *mol* keyword is not used,
-only atom translations are performed.  *M* should typically be chosen to
-be approximately equal to the expected number of gas atoms or molecules
-of the given type within the simulation cell or region, which will
-result in roughly one MC move per atom or molecule per MC cycle.
+.. note::
+
+   To run an MC-only simulation (no MD), you should define no
+   time-integration fix, set the :doc:`thermo <thermo>` command to 1,
+   set *N* to 1, and set *X+M* small enough to see the MC evolution of
+   the system.  But if *X+M* is too small, the overhead at the start
+   and stop of MC moves each timestep will slow down the simulation.
+
+The possible choices for MC moves are translation of an atom, translation
+of a molecule, and rotation of a molecule.  The relative amounts of each are
+determined by the optional *mcmoves* keyword (see below).  The default
+behavior is as follows. If the *mol* keyword is used, only molecule
+translations and molecule rotations are performed with equal probability.
+Conversely, if the *mol* keyword is not used, only atom translations are
+performed.  *M* should typically be chosen to be approximately equal to the
+expected number of gas atoms or molecules of the given type within the
+simulation cell or region, which will result in roughly one MC move per
+atom or molecule per MC cycle.
 
 All inserted particles are always added to two groups: the default group
 "all" and the fix group specified in the fix command.  In addition,

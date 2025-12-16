@@ -129,7 +129,7 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPropertyAtomKokkos::sync(ExecutionSpace space, unsigned int mask)
+void FixPropertyAtomKokkos::sync(ExecutionSpace space, uint64_t mask)
 {
   if (space == Device) {
     if (molecule_flag && (mask & MOLECULE_MASK)) atomKK->k_molecule.sync_device();
@@ -151,7 +151,7 @@ void FixPropertyAtomKokkos::sync(ExecutionSpace space, unsigned int mask)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPropertyAtomKokkos::sync_pinned(ExecutionSpace space, unsigned int mask, int async_flag)
+void FixPropertyAtomKokkos::sync_pinned(ExecutionSpace space, uint64_t mask, int async_flag)
 {
   if (space == Device) {
     if ((mask & MOLECULE_MASK) && atomKK->k_molecule.need_sync_device())
@@ -176,7 +176,7 @@ void FixPropertyAtomKokkos::sync_pinned(ExecutionSpace space, unsigned int mask,
 
 /* ---------------------------------------------------------------------- */
 
-void FixPropertyAtomKokkos::modified(ExecutionSpace space, unsigned int mask)
+void FixPropertyAtomKokkos::modified(ExecutionSpace space, uint64_t mask)
 {
   if (space == Device) {
     if (molecule_flag && (mask & MOLECULE_MASK)) atomKK->k_molecule.modify_device();

@@ -1,0 +1,66 @@
+# GitHub action to build LAMMPS on Linux with traditional build system
+name: "Check legacy GNU Make build"
+
+on:
+  push:
+    branches:
+      - develop
+      - maintenance
+  pull_request:
+    branches:
+      - develop
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build with GNU Make
+    if: ${{ github.repository == 'lammps/lammps' }}
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 2
+
+    - name: Install extra Linux packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ccache \
+                                libeigen3-dev \
+                                libcurl4-openssl-dev \
+                                mpi-default-bin \
+                                mpi-default-dev
+
+    - name: Set up ccache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: linux-gnu-ccache-${{ github.sha }}
+        restore-keys: linux-gnu-ccache-
+
+    - name: Install optional LAMMPS packages
+      shell: bash
+      working-directory: src
+      run: make yes-most
+
+    - name: Building LAMMPS with GNU Make
+      shell: bash
+      working-directory: src
+      run: |
+        ccache -z -M 3
+        make -j2 CC="ccache g++" serial
+        make -j2 CC="ccache mpicxx" mpi
+        ccache -s
+
+    - name: Running serial LAMMPS
+      shell: bash
+      run: ./src/lmp_serial -in bench/in.lj -log none -nocite
+
+    - name: Running parallel LAMMPS
+      shell: bash
+      run: mpirun -np 2 ./src/lmp_mpi -in bench/in.lj -log none -nocite
+

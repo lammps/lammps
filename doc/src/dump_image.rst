@@ -216,17 +216,17 @@ Here are two sample images, rendered as :math:`1024\times 1024` JPEG files.
 
 Only atoms in the specified group are rendered in the image.  The
 :doc:`dump_modify region and thresh <dump_modify>` commands can also
-alter what atoms are included in the image.
-The filename suffix determines whether a JPEG, PNG, or PPM file is
-created with the *image* dump style.  If the suffix is ".jpg" or
-".jpeg", then a `JPEG format <jpeg_format_>`_ file is created, if the
-suffix is ".png", then a `PNG format <png_format_>`_ is created, else
-a `PPM (aka NETPBM) format <ppm_format_>`_ file is created.
-The JPEG and PNG files are binary; PPM has a text mode header followed
-by binary data. JPEG images have lossy compression, PNG has lossless
-compression, and PPM files are uncompressed but can be compressed with
-gzip, if LAMMPS has been compiled with -DLAMMPS_GZIP and a ".gz" suffix
-is used.
+alter what atoms are included in the image.  The filename suffix
+determines whether a JPEG, PNG, or PPM file is created with the *image*
+dump style.  If the suffix is ".jpg" or ".jpeg", then a `JPEG format
+<jpeg_format_>`_ file is created, if the suffix is ".png", then a `PNG
+format <png_format_>`_ is created, else a `PPM (aka NETPBM) format
+<ppm_format_>`_ file is created.  The JPEG and PNG files are binary; PPM
+has a text mode header followed by binary data. JPEG images have lossy
+compression, PNG has lossless compression, and PPM files are
+uncompressed but can be compressed with a supported compression program,
+if LAMMPS has been compiled with :ref:`compression support <gzip>` and a
+supported suffix is used.
 
 .. _jpeg_format: https://jpeg.org/jpeg/
 .. _png_format: https://en.wikipedia.org/wiki/Portable_Network_Graphics

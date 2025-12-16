@@ -165,7 +165,7 @@ void DynamicalMatrixKokkos::update_force()
   }
 
   bool execute_on_host = false;
-  unsigned int datamask_read_host = 0;
+  uint64_t datamask_read_host = 0;
 
   if (pair_compute_flag) {
     if (force->pair->execution_space==Host) {

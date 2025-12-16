@@ -150,7 +150,7 @@ various dump styles, including the :doc:`dump image <dump_image>` and
 
 The *append* keyword applies to all dump styles except *cfg* and *xtc*
 and *dcd*\ .  It also applies only to text output files, not to binary
-or gzipped or image/movie files.  If specified as *yes*, then dump
+or compressed or image/movie files.  If specified as *yes*, then dump
 snapshots are appended to the end of an existing dump file.  If
 specified as *no*, then a new dump file will be created which will
 overwrite an existing file with the same name.
@@ -170,7 +170,7 @@ dump file has been opened, this keyword has no further effect.
 
 The *buffer* keyword applies only to dump styles *atom*, *cfg*,
 *custom*, *local*, and *xyz*\ .  It also applies only to text output
-files, not to binary or gzipped files.  If specified as *yes*, which
+files, not to binary or compressed files.  If specified as *yes*, which
 is the default, then each processor writes its output into an internal
 text buffer, which is then sent to the processor(s) which perform file
 writes, and written by those processors(s) as one large chunk of text.

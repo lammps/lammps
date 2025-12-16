@@ -41,6 +41,7 @@
 #include "neighbor.h"
 #include "pair.h"
 #include "random_park.h"
+#include "suffix.h"
 #include "update.h"
 #include "variable.h"
 
@@ -55,7 +56,7 @@ using namespace MathConst;
 using namespace MathSpecial;
 
 static const char cite_fix_charge_regulation[] =
-  "fix charge/regulation: doi:10.1063/5.0066432\n\n"
+  "fix charge/regulation: https://doi.org/10.1063/5.0066432\n\n"
   "@Article{Curk22,\n"
   " author = {T. Curk and J. Yuan and E. Luijten},\n"
   " title = {Accelerated Simulation Method for Charge Regulation Effects},\n"
@@ -196,6 +197,9 @@ void FixChargeRegulation::init() {
   if (atom->rmass_flag && (comm->me == 0))
     error->warning(FLERR, "Fix charge/regulation will use per atom type masses for "
                    "velocity initialization");
+
+  if (force->pair && (force->pair->suffix_flag & Suffix::INTEL))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
 
   triclinic = domain->triclinic;
   int ipe = modify->find_compute("thermo_pe");

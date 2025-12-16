@@ -52,9 +52,10 @@ The meaning of the column header abbreviations is as follows:
 * nlp = number of lone pairs
 * q = atomic charge
 
-If the filename ends with ".gz", the output file is written in gzipped
-format.  A gzipped dump file will be about 3x smaller than the text
-version, but will also take longer to write.
+If the filename ends with ".gz" or some :ref:`other supported
+compression format suffix <gzip>`, the output file is written in
+compressed format.  A compressed output file can be significantly
+smaller than the text version, but will also take longer to write.
 
 .. versionadded:: 2Apr2025
 
@@ -93,8 +94,9 @@ The fix reaxff/bonds command requires that the :doc:`pair_style reaxff
 is only enabled if LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` page for more info.
 
-To write gzipped bond files, you must compile LAMMPS with the
--DLAMMPS_GZIP option.
+To write compressed bond files, you must compile LAMMPS with the
+``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings <Build_settings>`
+doc page for details.
 
 Related commands
 """"""""""""""""

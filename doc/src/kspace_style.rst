@@ -122,7 +122,8 @@ Syntax
        *scafacos* values = method accuracy
          method = fmm or p2nfft or p3m or ewald or direct
          accuracy = desired relative error in forces
-       *zero* value = none
+       *zero* value = accuracy
+         accuracy = desired relative error in forces
 
 Examples
 """"""""
@@ -134,7 +135,7 @@ Examples
    kspace_style msm 1.0e-4
    kspace_style scafacos fmm 1.0e-4
    kspace_style none
-   kspace_style zero
+   kspace_style zero 1.0e-6
 
 Used in input scripts:
 
@@ -382,6 +383,9 @@ other ScaFaCoS options currently exposed to LAMMPS.
 
 The *zero* style does not do any calculations, but is compatible
 with all pair styles that require some version of a kspace style.
+The accuracy argument is required for some internal calculations
+but has no impact of forces or energy, since those will always
+be zero.
 
 ----------
 

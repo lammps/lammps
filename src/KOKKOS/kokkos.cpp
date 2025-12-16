@@ -14,6 +14,7 @@
 
 #include "kokkos.h"
 
+#include "citeme.h"
 #include "error.h"
 #include "force.h"
 #include "memory_kokkos.h"
@@ -40,6 +41,17 @@
 #endif
 
 using namespace LAMMPS_NS;
+
+static const char cite_kokkos_package[] =
+  "KOKKOS package: https://doi.org/10.1145/3731599.3767498\n\n"
+  "@inproceedings{Johansson25,\n"
+  " author = {A. Johansson and E. Weinberg and C. Trott and M. McCarthy and S. Moore},\n"
+  " title = {{LAMMPS-KOKKOS}: {P}erformance Portable Molecular Dynamics Across Exascale Architectures},\n"
+  " year = 2025,\n"
+  " booktitle = {Proceedings of the SC '25 Workshops of the International Conference for High Performance Computing,\n"
+  "  Networking, Storage and Analysis},\n"
+  " pages = {1217–1232},\n"
+  "}\n\n";
 
 int KokkosLMP::is_finalized = 0;
 int KokkosLMP::init_ngpus = 0;
@@ -438,6 +450,8 @@ void KokkosLMP::finalize()
 
 void KokkosLMP::accelerator(int narg, char **arg)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_kokkos_package);
+
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {

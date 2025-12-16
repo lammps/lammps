@@ -1,7 +1,10 @@
 .. index:: compute temp/com
+.. index:: compute temp/com/kk
 
 compute temp/com command
 ========================
+
+Accelerator Variants: *temp/com/kk*
 
 Syntax
 """"""
@@ -81,6 +84,12 @@ If needed, the subtracted degrees-of-freedom can be altered using the
 See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Output info
 """""""""""

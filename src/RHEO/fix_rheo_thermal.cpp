@@ -128,7 +128,7 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
           utils::missing_cmd_args(FLERR, "fix rheo/thermal specific/heat constant", error);
 
         double cv_one = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-        if (cv_one < 0.0) error->all(FLERR, "The specific heat must be positive");
+        if (cv_one <= 0.0) error->all(FLERR, "The specific heat must be greater than zero");
         iarg += 2;
 
         for (i = nlo; i <= nhi; i++) {

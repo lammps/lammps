@@ -382,7 +382,7 @@ namespace platform {
 
   /*! Check if a file name ends in a known extension for a compressed file format
    *
-   * Currently supported file extensions are: .gz, .bz2, .zst, .xz, .lzma, lz4
+   * Currently supported file extensions are: .gz, .bz2, .zst, .xz, .lzma, .lz4, .br, and .7z
    *
    *  \param  file  name of the file to check
    *  \return  true if the file has a known extension, otherwise false  */

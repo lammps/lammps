@@ -93,7 +93,8 @@ GranSubModNormal::GranSubModNormal(GranularModel *gm, LAMMPS *lmp) : GranSubMod(
 
 bool GranSubModNormal::touch()
 {
-  bool touchflag = (gm->rsq < gm->radsum * gm->radsum);
+  double radsum = gm->radsum;
+  bool touchflag = (gm->rsq < radsum * radsum);
   return touchflag;
 }
 
@@ -358,13 +359,16 @@ bool GranSubModNormalJKR::touch()
   double delta_pulloff, dist_pulloff;
   bool touchflag;
 
+  double rsq = gm->rsq;
+  double radsum = gm->radsum;
+
   if (gm->touch) {
     // delta_pulloff defined as positive so center-to-center separation is > radsum
     delta_pulloff = JKRPREFIX * cbrt(gm->Reff * cohesion * cohesion / (Emix * Emix));
-    dist_pulloff = gm->radsum + delta_pulloff;
-    touchflag = gm->rsq < (dist_pulloff * dist_pulloff);
+    dist_pulloff = radsum + delta_pulloff;
+    touchflag = rsq < (dist_pulloff * dist_pulloff);
   } else {
-    touchflag = gm->rsq < (gm->radsum * gm->radsum);
+    touchflag = rsq < (radsum * radsum);
   }
 
   return touchflag;
@@ -391,20 +395,23 @@ double GranSubModNormalJKR::calculate_contact_radius()
   double R2, dR2, t0, t1, t2, t3, t4, t5, t6;
   double sqrt1, sqrt2, sqrt3;
 
-  R2 = gm->Reff * gm->Reff;
-  dR2 = gm->dR * gm->dR;
+  double Reff = gm->Reff;
+  double dR = gm->dR;
+
+  R2 = Reff * Reff;
+  dR2 = dR * dR;
   t0 = cohesion * cohesion * R2 * R2 * Emix;
   t1 = PI27SQ * t0;
-  t2 = 8.0 * gm->dR * dR2 * Emix * Emix * Emix;
+  t2 = 8.0 * dR * dR2 * Emix * Emix * Emix;
   t3 = 4.0 * dR2 * Emix;
 
   // in case sqrt(0) < 0 due to precision issues
   sqrt1 = MAX(0, t0 * (t1 + 2.0 * t2));
   t4 = cbrt(t1 + t2 + THREEROOT3 * MY_PI * sqrt(sqrt1));
   t5 = t3 / t4 + t4 / Emix;
-  sqrt2 = MAX(0, 2.0 * gm->dR + t5);
+  sqrt2 = MAX(0, 2.0 * dR + t5);
   t6 = sqrt(sqrt2);
-  sqrt3 = MAX(0, 4.0 * gm->dR - t5 + SIXROOT6 * cohesion * MY_PI * R2 / (Emix * t6));
+  sqrt3 = MAX(0, 4.0 * dR - t5 + SIXROOT6 * cohesion * MY_PI * R2 / (Emix * t6));
 
   return INVROOT6 * (t6 + sqrt(sqrt3));
 }
@@ -414,10 +421,14 @@ double GranSubModNormalJKR::calculate_contact_radius()
 double GranSubModNormalJKR::calculate_forces()
 {
   double a2;
-  a2 = gm->contact_radius * gm->contact_radius;
-  Fne = k * gm->contact_radius * a2 / gm->Reff -
-      MY_2PI * a2 * sqrt(4.0 * cohesion * Emix / (MY_PI * gm->contact_radius));
-  F_pulloff = 3.0 * MY_PI * cohesion * gm->Reff;
+
+  double contact_radius = gm->contact_radius;
+  double Reff = gm->Reff;
+
+  a2 = contact_radius * contact_radius;
+  Fne = k * contact_radius * a2 / Reff -
+      MY_2PI * a2 * sqrt(4.0 * cohesion * Emix / (MY_PI * contact_radius));
+  F_pulloff = 3.0 * MY_PI * cohesion * Reff;
 
   return Fne;
 }

@@ -15,7 +15,10 @@
 #include "atom_vec_hybrid_kokkos.h"
 
 #include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "domain.h"
 #include "error.h"
+#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -24,8 +27,17 @@ using namespace LAMMPS_NS;
 AtomVecHybridKokkos::AtomVecHybridKokkos(LAMMPS *lmp) : AtomVec(lmp),
 AtomVecKokkos(lmp), AtomVecHybrid(lmp)
 {
-  no_comm_vel_flag = 1;
-  no_border_vel_flag = 1;
+}
+
+/* ----------------------------------------------------------------------
+   process field strings to initialize data structs for all other methods
+------------------------------------------------------------------------- */
+
+void AtomVecHybridKokkos::init()
+{
+  AtomVecHybrid::init();
+
+  set_atom_masks();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,82 +66,25 @@ void AtomVecHybridKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorte
     (dynamic_cast<AtomVecKokkos*>(styles[k]))->sort_kokkos(Sorter);
 }
 
-/* ---------------------------------------------------------------------- */
-
-int AtomVecHybridKokkos::pack_comm_kokkos(const int &/*n*/, const DAT::tdual_int_1d &/*k_sendlist*/,
-                                          const DAT::tdual_double_2d_lr &/*buf*/,
-                                          const int &/*pbc_flag*/, const int /*pbc*/[])
-{
-  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
-  return 0;
-}
-
-void AtomVecHybridKokkos::unpack_comm_kokkos(const int &/*n*/, const int &/*nfirst*/,
-                                             const DAT::tdual_double_2d_lr &/*buf*/)
-{
-  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
-}
-
-int AtomVecHybridKokkos::pack_comm_self(const int &/*n*/, const DAT::tdual_int_1d &/*list*/,
-                                        const int /*nfirst*/,
-                                        const int &/*pbc_flag*/, const int pbc[])
-{
-  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
-  return 0;
-}
-
-int AtomVecHybridKokkos::pack_border_kokkos(int /*n*/, DAT::tdual_int_1d /*k_sendlist*/,
-                                            DAT::tdual_double_2d_lr /*buf*/,
-                                            int /*pbc_flag*/, int * /*pbc*/, ExecutionSpace /*space*/)
-{
-  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
-  return 0;
-}
-
-void AtomVecHybridKokkos::unpack_border_kokkos(const int &/*n*/, const int &/*nfirst*/,
-                                               const DAT::tdual_double_2d_lr &/*buf*/,
-                                               ExecutionSpace /*space*/)
-{
-  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
-}
-
-int AtomVecHybridKokkos::pack_exchange_kokkos(const int &/*nsend*/,DAT::tdual_double_2d_lr &/*buf*/,
-                                              DAT::tdual_int_1d /*k_sendlist*/,
-                                              DAT::tdual_int_1d /*k_copylist*/,
-                                              ExecutionSpace /*space*/)
-{
-  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
-  return 0;
-}
-
-int AtomVecHybridKokkos::unpack_exchange_kokkos(DAT::tdual_double_2d_lr & /*k_buf*/, int /*nrecv*/,
-                                                int /*nlocal*/, int /*dim*/, double /*lo*/,
-                                                double /*hi*/, ExecutionSpace /*space*/,
-                                                DAT::tdual_int_1d &/*k_indices*/)
-{
-  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
-  return 0;
-}
-
 // TODO: move dynamic_cast into init
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::sync(ExecutionSpace space, unsigned int h_mask)
+void AtomVecHybridKokkos::sync(ExecutionSpace space, uint64_t h_mask)
 {
   for (int k = 0; k < nstyles; k++) (dynamic_cast<AtomVecKokkos*>(styles[k]))->sync(space,h_mask);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::sync_pinned(ExecutionSpace space, unsigned int h_mask, int async_flag)
+void AtomVecHybridKokkos::sync_pinned(ExecutionSpace space, uint64_t h_mask, int async_flag)
 {
   for (int k = 0; k < nstyles; k++) (dynamic_cast<AtomVecKokkos*>(styles[k]))->sync_pinned(space,h_mask,async_flag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::modified(ExecutionSpace space, unsigned int h_mask)
+void AtomVecHybridKokkos::modified(ExecutionSpace space, uint64_t h_mask)
 {
   for (int k = 0; k < nstyles; k++) (dynamic_cast<AtomVecKokkos*>(styles[k]))->modified(space,h_mask);
 }

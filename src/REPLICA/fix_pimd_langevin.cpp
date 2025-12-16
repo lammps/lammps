@@ -89,11 +89,6 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   integrator = OBABO;
   thermostat = PILE_L;
   barostat = BZP;
-  lj_epsilon = 1;
-  lj_sigma = 1;
-  lj_mass = 1;
-  other_planck = 1;
-  other_mvv2e = 1;
   fmass = 1.0;
   np = universe->nworlds;
   inverse_np = 1.0 / np;
@@ -195,13 +190,6 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
       temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (temp < 0.0)
         error->universe_all(FLERR, fmt::format("Invalid temp value for fix {}", style));
-    } else if (strcmp(arg[i], "lj") == 0) {
-      lj_epsilon = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      lj_sigma = utils::numeric(FLERR, arg[i + 2], false, lmp);
-      lj_mass = utils::numeric(FLERR, arg[i + 3], false, lmp);
-      other_planck = utils::numeric(FLERR, arg[i + 4], false, lmp);
-      other_mvv2e = utils::numeric(FLERR, arg[i + 5], false, lmp);
-      i += 4;
     } else if (strcmp(arg[i], "thermostat") == 0) {
       if (strcmp(arg[i + 1], "PILE_L") == 0) {
         thermostat = PILE_L;
@@ -442,14 +430,7 @@ void FixPIMDLangevin::init()
 
   masstotal = group->mass(igroup);
 
-  double planck;
-  if (strcmp(update->unit_style, "lj") == 0) {
-    double planck_star = sqrt(lj_epsilon) * sqrt(lj_mass) * lj_sigma * sqrt(other_mvv2e);
-    planck = other_planck / planck_star;
-  } else {
-    planck = force->hplanck;
-  }
-  planck *= sp;
+  double planck = sp * force->hplanck;
   hbar = planck / (MY_2PI);
   beta = 1.0 / (force->boltz * temp);
   double _fbond = 1.0 * np * np / (beta * beta * hbar * hbar);
@@ -1258,10 +1239,7 @@ void FixPIMDLangevin::spring_force()
   int nlocal = atom->nlocal;
   tagint *tagtmp = atom->tag;
 
-  // printf("iworld = %d, x_last = %d, x_next = %d\n", universe->iworld, x_last, x_next);
   int *mask = atom->mask;
-
-  // int idx_tmp = atom->map(1);
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {

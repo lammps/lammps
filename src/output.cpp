@@ -27,6 +27,7 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "json_metadata.h"
 #include "label_map.h"
 #include "memory.h"
 #include "modify.h"
@@ -643,7 +644,7 @@ void Output::write_restart(bigint ntimestep)
    atoms with integer array value of 0 assumed to not belong to a molecule
 ------------------------------------------------------------------------- */
 
-void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *ivec)
+void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *ivec, json_metadata *metadata)
 {
   std::string indent;
   int tab = 4;
@@ -674,6 +675,7 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
 
     for (int ival = 0; ival < nvals; ival++) {
       int thisval = loop_ivals[ival];
+      std::string metadata_val;
 
       Particle myatom;
       int n2send = 0, n2recv = 0;
@@ -681,6 +683,8 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
         if (ivec[i] == thisval) {
           myatom.type = atom->type[i];
           myatom.tag = (int) atom->tag[i];
+          if (metadata && metadata_val.empty() && comm->me == sendr)
+            metadata_val = metadata->values[metadata->ivec[atom->map(myatom.tag)]];
           for (int k = 0; k < 3; k++)
             myatom.x[k] = atom->x[i][k];
           atoms_local.push_back(myatom);
@@ -689,6 +693,11 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
       }
       #if !defined(MPI_STUBS)
       if (comm->me != 0) {
+        if (metadata && comm->me == sendr) {
+          int len = metadata_val.size();
+          MPI_Send(&len, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
+          MPI_Send(metadata_val.data(), len, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
+        }
         MPI_Send(&n2send, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
         MPI_Send(atoms_local.data(), n2send, ParticleStructType, 0, 0, MPI_COMM_WORLD);
       }
@@ -697,6 +706,12 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
       if (comm->me == 0) {
         #if !defined(MPI_STUBS)
         for (int i = 1; i < comm->nprocs; i++) {
+          if (metadata && i == sendr) {
+            int len;
+            MPI_Recv(&len, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            metadata_val.resize(len);
+            MPI_Recv(metadata_val.data(), len, MPI_CHAR, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          }
           MPI_Recv(&n2recv, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
           std::vector<Particle> atoms_recv(n2recv);
           MPI_Recv(atoms_recv.data(), n2recv, ParticleStructType, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -711,6 +726,12 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
         } else {
           fprintf(fp, "%s{\n", indent.c_str());
           json_init = 1;
+        }
+
+        if (metadata) {
+          indent.resize(++json_level*tab, ' ');
+          utils::print(fp, "{}\"{}\": \"{}\",\n", indent.c_str(), metadata->key, metadata_val);
+          indent.resize(--json_level*tab, ' ');
         }
 
         indent.resize(++json_level*tab, ' ');

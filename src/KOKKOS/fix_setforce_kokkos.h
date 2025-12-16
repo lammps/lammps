@@ -20,8 +20,8 @@ FixStyle(setforce/kk/host,FixSetForceKokkos<LMPHostType>);
 #else
 
 // clang-format off
-#ifndef LMP_FIX_SET_FORCE_KOKKOS_H
-#define LMP_FIX_SET_FORCE_KOKKOS_H
+#ifndef LMP_FIX_SETFORCE_KOKKOS_H
+#define LMP_FIX_SETFORCE_KOKKOS_H
 
 #include "fix_setforce.h"
 #include "kokkos_type.h"
@@ -71,7 +71,6 @@ class FixSetForceKokkos : public FixSetForce {
   typename AT::t_kkfloat_2d_randomread d_sforce;
   typename AT::t_int_1d d_match;
 
-  typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread mask;
 };

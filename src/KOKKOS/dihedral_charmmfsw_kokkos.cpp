@@ -437,6 +437,23 @@ template<class DeviceType>
 void DihedralCharmmfswKokkos<DeviceType>::allocate()
 {
   DihedralCharmmfsw::allocate();
+
+  int nd = atom->ndihedraltypes;
+  k_k = DAT::tdual_kkfloat_1d("DihedralCharmmfsw::k",nd+1);
+  k_multiplicity = DAT::tdual_kkfloat_1d("DihedralCharmmfsw::multiplicity",nd+1);
+  k_shift = DAT::tdual_kkfloat_1d("DihedralCharmmfsw::shift",nd+1);
+  k_cos_shift = DAT::tdual_kkfloat_1d("DihedralCharmmfsw::cos_shift",nd+1);
+  k_sin_shift = DAT::tdual_kkfloat_1d("DihedralCharmmfsw::sin_shift",nd+1);
+  k_weight = DAT::tdual_kkfloat_1d("DihedralCharmmfsw::weight",nd+1);
+
+  d_k = k_k.template view<DeviceType>();
+  d_multiplicity = k_multiplicity.template view<DeviceType>();
+  d_shift = k_shift.template view<DeviceType>();
+  d_cos_shift = k_cos_shift.template view<DeviceType>();
+  d_sin_shift = k_sin_shift.template view<DeviceType>();
+  d_weight = k_weight.template view<DeviceType>();
+
+
 }
 
 /* ----------------------------------------------------------------------
@@ -448,23 +465,10 @@ void DihedralCharmmfswKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   DihedralCharmmfsw::coeff(narg, arg);
 
-  int nd = atom->ndihedraltypes;
-  DAT::tdual_kkfloat_1d k_k("DihedralCharmmfsw::k",nd+1);
-  DAT::tdual_kkfloat_1d k_multiplicity("DihedralCharmmfsw::multiplicity",nd+1);
-  DAT::tdual_kkfloat_1d k_shift("DihedralCharmmfsw::shift",nd+1);
-  DAT::tdual_kkfloat_1d k_cos_shift("DihedralCharmmfsw::cos_shift",nd+1);
-  DAT::tdual_kkfloat_1d k_sin_shift("DihedralCharmmfsw::sin_shift",nd+1);
-  DAT::tdual_kkfloat_1d k_weight("DihedralCharmmfsw::weight",nd+1);
+  int ilo,ihi;
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  d_k = k_k.template view<DeviceType>();
-  d_multiplicity = k_multiplicity.template view<DeviceType>();
-  d_shift = k_shift.template view<DeviceType>();
-  d_cos_shift = k_cos_shift.template view<DeviceType>();
-  d_sin_shift = k_sin_shift.template view<DeviceType>();
-  d_weight = k_weight.template view<DeviceType>();
-
-  int n = atom->ndihedraltypes;
-  for (int i = 1; i <= n; i++) {
+  for (int i = ilo; i <= ihi; i++) {
     k_k.view_host()[i] = k[i];
     k_multiplicity.view_host()[i] = multiplicity[i];
     k_shift.view_host()[i] = shift[i];

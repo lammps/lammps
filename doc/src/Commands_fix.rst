@@ -13,10 +13,12 @@ OPT.
    * :doc:`acks2/reaxff (k) <fix_acks2_reaxff>`
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
-   * :doc:`addforce <fix_addforce>`
+   * :doc:`addforce (k) <fix_addforce>`
    * :doc:`add/heat <fix_add_heat>`
-   * :doc:`addtorque <fix_addtorque>`
+   * :doc:`addtorque/atom <fix_addtorque_atom>`
+   * :doc:`addtorque/group <fix_addtorque_group>`
    * :doc:`alchemy <fix_alchemy>`
+   * :doc:`align/self <fix_align_self>`
    * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
    * :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>`
    * :doc:`append/atoms <fix_append_atoms>`
@@ -72,7 +74,7 @@ OPT.
    * :doc:`eos/table <fix_eos_table>`
    * :doc:`eos/table/rx (k) <fix_eos_table_rx>`
    * :doc:`evaporate <fix_evaporate>`
-   * :doc:`external <fix_external>`
+   * :doc:`external (k) <fix_external>`
    * :doc:`ffl <fix_ffl>`
    * :doc:`filter/corotate <fix_filter_corotate>`
    * :doc:`flow/gauss <fix_flow_gauss>`
@@ -222,6 +224,7 @@ OPT.
    * :doc:`saed/vtk <fix_saed_vtk>`
    * :doc:`set <fix_set>`
    * :doc:`setforce (k) <fix_setforce>`
+   * :doc:`settorque/atom <fix_settorque_atom>`
    * :doc:`setforce/spin <fix_setforce>`
    * :doc:`sgcmc <fix_sgcmc>`
    * :doc:`shake (k) <fix_shake>`
@@ -257,6 +260,7 @@ OPT.
    * :doc:`ttm <fix_ttm>`
    * :doc:`ttm/grid <fix_ttm>`
    * :doc:`ttm/mod <fix_ttm>`
+   * :doc:`ttm/thermal <fix_ttm>`
    * :doc:`tune/kspace <fix_tune_kspace>`
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
@@ -270,6 +274,7 @@ OPT.
    * :doc:`wall/gran (k) <fix_wall_gran>`
    * :doc:`wall/gran/region <fix_wall_gran_region>`
    * :doc:`wall/harmonic <fix_wall>`
+   * :doc:`wall/harmonic/outside <fix_wall>`
    * :doc:`wall/lj1043 <fix_wall>`
    * :doc:`wall/lj126 <fix_wall>`
    * :doc:`wall/lj93 (k) <fix_wall>`

@@ -45,6 +45,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <mpi.h>
 
 #include <map>
@@ -165,7 +166,7 @@ double chop(double value) {
   //  data to zero, if numbers are small" [@akohlmey]
   // https://github.com/lammps/lammps/issues/4257
 
-  if( std::abs(value) < 1e-30 )
+  if( std::abs(value) < std::numeric_limits<double>::epsilon() )
       return 0.0;
   else
       return value;

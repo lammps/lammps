@@ -415,12 +415,12 @@ TEST(ComputeStyle, plain)
             const auto values = test_config.global_array[i];
                 ASSERT_EQ(values.size(), ncols);
                 for (int j = 0; j < ncols; ++j) {
-                
-                    fprintf(stderr, "*** values[%i] %f icompute->array[%i][%i] %f abs\n",
+
+                    fprintf(stderr, "*** values[%i] %.16g icompute->array[%i][%i] %.16g abs %.16g\n",
                             j, values[j], i, j, icompute->array[i][j], std::abs(values[j] - icompute->array[i][j]));
-                            
+
                     EXPECT_FP_LE_WITH_EPS(values[j], icompute->array[i][j], epsilon);
-                    
+
                 }
             }
         }

@@ -416,9 +416,8 @@ TEST(ComputeStyle, plain)
                 ASSERT_EQ(values.size(), ncols);
                 for (int j = 0; j < ncols; ++j) {
                 
-                    if( std::abs(values[j] - icompute->array[i][j]) > epsilon )
-                        fprintf(stderr, "*** values[%i] %f icompute->array[%i][%i] %f\n",
-                            j, values[j], i, j, icompute->array[i][j]);
+                    fprintf(stderr, "*** values[%i] %f icompute->array[%i][%i] %f abs\n",
+                            j, values[j], i, j, icompute->array[i][j], std::abs(values[j] - icompute->array[i][j]));
                             
                     EXPECT_FP_LE_WITH_EPS(values[j], icompute->array[i][j], epsilon);
                     

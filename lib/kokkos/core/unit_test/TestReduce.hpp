@@ -1,24 +1,19 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <sstream>
 #include <iostream>
 #include <limits>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
+#include <Kokkos_TypeInfo.hpp>
+
+#include <cmath>
 
 namespace Test {
 
@@ -271,7 +266,10 @@ class TestReduce {
   TestReduce(const size_type& nwork) {
     run_test(nwork);
     run_test_final(nwork);
+// FIXME_OPENACC: Not yet implemented.
+#ifndef KOKKOS_ENABLE_OPENACC
     run_test_final_tag(nwork);
+#endif
   }
 
   void run_test(const size_type& nwork) {
@@ -479,7 +477,7 @@ class TestReduceDynamicView {
         Test::RuntimeReduceFunctor<ScalarType, execution_space>;
 
     using result_type      = Kokkos::View<ScalarType*, DeviceType>;
-    using result_host_type = typename result_type::HostMirror;
+    using result_host_type = typename result_type::host_mirror_type;
 
     const unsigned CountLimit = 23;
 
@@ -512,11 +510,7 @@ class TestReduceDynamicView {
 }  // namespace
 
 // FIXME_SYCL
-// FIXME_OPENMPTARGET : The feature works with LLVM/13 on NVIDIA
-// architectures. The jenkins currently tests with LLVM/12.
-#if !defined(KOKKOS_ENABLE_SYCL) &&          \
-    (!defined(KOKKOS_ENABLE_OPENMPTARGET) || \
-     defined(KOKKOS_COMPILER_CLANG) && (KOKKOS_COMPILER_CLANG >= 1300))
+#if !defined(KOKKOS_ENABLE_SYCL)
 TEST(TEST_CATEGORY, int64_t_reduce) {
   TestReduce<int64_t, TEST_EXECSPACE>(0);
   TestReduce<int64_t, TEST_EXECSPACE>(1000000);
@@ -527,6 +521,8 @@ TEST(TEST_CATEGORY, double_reduce) {
   TestReduce<double, TEST_EXECSPACE>(1000000);
 }
 
+// FIXME_OPENACC: Not yet implemented.
+#ifndef KOKKOS_ENABLE_OPENACC
 TEST(TEST_CATEGORY, int64_t_reduce_dynamic) {
   TestReduceDynamic<int64_t, TEST_EXECSPACE>(0);
   TestReduceDynamic<int64_t, TEST_EXECSPACE>(1000000);
@@ -541,6 +537,7 @@ TEST(TEST_CATEGORY, int64_t_reduce_dynamic_view) {
   TestReduceDynamicView<int64_t, TEST_EXECSPACE>(0);
   TestReduceDynamicView<int64_t, TEST_EXECSPACE>(1000000);
 }
+#endif
 #endif
 
 // FIXME_OPENMPTARGET: Not yet implemented.
@@ -654,10 +651,6 @@ struct FunctorReductionWithLargeIterationCount {
 };
 
 TEST(TEST_CATEGORY, reduction_with_large_iteration_count) {
-  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
-#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
-  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
-#endif
   if constexpr (std::is_same_v<typename TEST_EXECSPACE::memory_space,
                                Kokkos::HostSpace>) {
     GTEST_SKIP() << "Disabling for host backends";
@@ -671,5 +664,77 @@ TEST(TEST_CATEGORY, reduction_with_large_iteration_count) {
   ASSERT_DOUBLE_EQ(nu, double(N));
 }
 #endif
+
+/* Test that searching the Max of a View containing only -inf returns -inf and
+   the Min of a View containing only +inf returns +inf. */
+template <typename ScalarType>
+class TestReductionOverInfiniteFloat {
+ public:
+  TestReductionOverInfiniteFloat() { runTest(); }
+
+  void runTest() {
+    const unsigned int N = 10;
+
+    ScalarType inf = Kokkos::Experimental::infinity_v<ScalarType>;
+    // Ensure that inf correctly correspond to infinity for type `ScalarType`
+    EXPECT_TRUE((inf == inf * inf) && (inf == inf + 1));
+
+    Kokkos::View<ScalarType*> view("view", N);
+
+    Kokkos::deep_copy(view, inf);
+    ScalarType min;
+    Kokkos::parallel_reduce(
+        N,
+        KOKKOS_LAMBDA(const int i, ScalarType& partial_min) {
+          if (view[i] < partial_min) {
+            partial_min = view[i];
+          }
+        },
+        Kokkos::Min<ScalarType>(min));
+    EXPECT_EQ(inf, min) << "For type "
+                        << Kokkos::Impl::TypeInfo<ScalarType>::name() << '\n';
+
+    Kokkos::deep_copy(view, -inf);
+    ScalarType max;
+    Kokkos::parallel_reduce(
+        N,
+        KOKKOS_LAMBDA(const int i, ScalarType& partial_max) {
+          if (view[i] > partial_max) {
+            partial_max = view[i];
+          }
+        },
+        Kokkos::Max<ScalarType>(max));
+    EXPECT_EQ(-inf, max) << "For type "
+                         << Kokkos::Impl::TypeInfo<ScalarType>::name() << '\n';
+  }
+};
+
+KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_PUSH()
+TEST(TEST_CATEGORY, reduction_identity_min_max_floating_point_types) {
+#if __FINITE_MATH_ONLY__
+  GTEST_SKIP() << "skipping when compiling with -ffinite-math-only";
+#endif
+// FIXME_OPENACC nvhpc on device doesn't use the correct neutral value for the
+// min and max reducers
+#if defined(KOKKOS_COMPILER_NVHPC) && defined(KOKKOS_ENABLE_OPENACC)
+  GTEST_SKIP() << "skipping for NVHPC and OPENACC due to wrong neutral value";
+#endif
+
+  // FIXME_CUDA cuda-clang 17 cannot compile the max parallel_reduce for half_t
+  // and bhalf_t. The min parallel_reduce works correctly.
+#if !defined(KOKKOS_ENABLE_CUDA) || !defined(KOKKOS_COMPILER_CLANG)
+  TestReductionOverInfiniteFloat<Kokkos::Experimental::half_t>();
+  TestReductionOverInfiniteFloat<Kokkos::Experimental::bhalf_t>();
+#endif
+  TestReductionOverInfiniteFloat<float>();
+  TestReductionOverInfiniteFloat<double>();
+
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) &&          \
+    !defined(KOKKOS_ENABLE_SYCL) && !defined(KOKKOS_ENABLE_OPENMPTARGET) && \
+    !defined(KOKKOS_ENABLE_OPENACC)
+  TestReductionOverInfiniteFloat<long double>();
+#endif
+}
+KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_POP()
 
 }  // namespace Test

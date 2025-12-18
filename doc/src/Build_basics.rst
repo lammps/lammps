@@ -330,9 +330,6 @@ LAMMPS.
             Makefile.intel_cpu             # INTEL package for CPUs
             Makefile.intel_coprocessor     # INTEL package for KNLs
             Makefile.gpu                   # GPU package
-            Makefile.kokkos_cuda_mpi       # KOKKOS package for GPUs
-            Makefile.kokkos_omp            # KOKKOS package for CPUs (OpenMP)
-            Makefile.kokkos_phi            # KOKKOS package for KNLs (OpenMP)
 
 ----------
 

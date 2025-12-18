@@ -31,6 +31,8 @@ FixStyle(shardlow/kk/host,FixShardlowKokkos<LMPHostType>);
 #endif
 #include "pair_dpd_fdt_energy_kokkos.h"
 
+#include <cfloat>
+
 namespace LAMMPS_NS {
 
 template<bool STACKPARAMS>

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 
@@ -71,25 +58,6 @@ struct TestFunctorA {
   }
 };
 
-// shift_right is only supported starting from C++20,
-// so put here a working version of the std algo copied from
-// https://github.com/llvm/llvm-project/blob/main/libcxx/include/__algorithm/shift_right.h
-template <class ForwardIterator>
-ForwardIterator my_std_shift_right(
-    ForwardIterator first, ForwardIterator last,
-    typename std::iterator_traits<ForwardIterator>::difference_type n) {
-  if (n == 0) {
-    return first;
-  }
-
-  decltype(n) d = last - first;
-  if (n >= d) {
-    return last;
-  }
-  ForwardIterator m = first + (d - n);
-  return std::move_backward(first, m, last);
-}
-
 template <class LayoutTag, class ValueType>
 void test_A(std::size_t numTeams, std::size_t numCols, std::size_t shift,
             int apiId) {
@@ -136,7 +104,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, std::size_t shift,
   auto intraTeamSentinelView_h = create_host_space_copy(intraTeamSentinelView);
   for (std::size_t i = 0; i < cloneOfDataViewBeforeOp_h.extent(0); ++i) {
     auto myRow = Kokkos::subview(cloneOfDataViewBeforeOp_h, i, Kokkos::ALL());
-    auto it    = my_std_shift_right(KE::begin(myRow), KE::end(myRow), shift);
+    auto it    = std::shift_right(KE::begin(myRow), KE::end(myRow), shift);
     const std::size_t stdDistance = KE::distance(KE::begin(myRow), it);
     ASSERT_EQ(stdDistance, distancesView_h(i));
     ASSERT_TRUE(intraTeamSentinelView_h(i));

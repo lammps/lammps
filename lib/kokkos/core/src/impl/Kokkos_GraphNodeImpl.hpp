@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_GRAPHNODEIMPL_HPP
 #define KOKKOS_IMPL_GRAPHNODEIMPL_HPP
@@ -41,7 +28,7 @@ template <class ExecutionSpace>
 struct GraphNodeImpl<ExecutionSpace, Kokkos::Experimental::TypeErasedTag,
                      Kokkos::Experimental::TypeErasedTag>
     : GraphNodeBackendSpecificDetails<ExecutionSpace>,
-      ExecutionSpaceInstanceStorage<ExecutionSpace> {
+      InstanceStorage<ExecutionSpace> {
  public:
   using node_ref_t =
       Kokkos::Experimental::GraphNodeRef<ExecutionSpace,
@@ -50,8 +37,7 @@ struct GraphNodeImpl<ExecutionSpace, Kokkos::Experimental::TypeErasedTag,
 
  protected:
   using implementation_base_t = GraphNodeBackendSpecificDetails<ExecutionSpace>;
-  using execution_space_storage_base_t =
-      ExecutionSpaceInstanceStorage<ExecutionSpace>;
+  using execution_space_storage_base_t = InstanceStorage<ExecutionSpace>;
 
  public:
   virtual ~GraphNodeImpl() = default;
@@ -92,7 +78,7 @@ struct GraphNodeImpl<ExecutionSpace, Kokkos::Experimental::TypeErasedTag,
   //----------------------------------------------------------------------------
 
   ExecutionSpace const& execution_space_instance() const {
-    return this->execution_space_storage_base_t::execution_space_instance();
+    return this->execution_space_storage_base_t::instance();
   }
 };
 

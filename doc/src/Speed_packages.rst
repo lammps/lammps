@@ -78,20 +78,15 @@ any accelerated variants available for that style.
 To use an accelerator package in LAMMPS, and one or more of the styles
 it provides, follow these general steps.  Details vary from package to
 package and are explained in the individual accelerator doc pages,
-listed above:
+listed above.
 
 +-----------------------------------------------------------+---------------------------------------------+
-| build the accelerator library                             | only for GPU package                        |
+| Configure LAMMPS to include the accelerator package       | :doc:`Build_cmake` or :doc:`Build_make`     |
 +-----------------------------------------------------------+---------------------------------------------+
-| install the accelerator package                           | ``make yes-opt``, ``make yes-intel``, etc   |
+| (Re-)Compile LAMMPS                                       | :doc:`Build`                                |
 +-----------------------------------------------------------+---------------------------------------------+
-| add compile/link flags to ``Makefile.machine``            | only for INTEL, KOKKOS, OPENMP,             |
-| in ``src/MAKE``                                           | OPT packages                                |
-+-----------------------------------------------------------+---------------------------------------------+
-| re-build LAMMPS                                           | ``make machine``                            |
-+-----------------------------------------------------------+---------------------------------------------+
-| prepare and test a regular LAMMPS simulation              | ``lmp_machine -in in.script;``              |
-|                                                           | ``mpirun -np 32 lmp_machine -in in.script`` |
+| prepare and test a regular LAMMPS simulation              | ``lmp -in in.script;``                      |
+|                                                           | ``mpirun -np 32 lmp -in in.script``         |
 +-----------------------------------------------------------+---------------------------------------------+
 | enable specific accelerator support via ``-k on``         | only needed for KOKKOS package              |
 | :doc:`command-line switch <Run_options>`                  |                                             |
@@ -105,38 +100,27 @@ listed above:
 | :doc:`suffix <suffix>` command                            |                                             |
 +-----------------------------------------------------------+---------------------------------------------+
 
-Note that the first 4 steps can be done as a single command with
-suitable make command invocations. This is discussed on the
-:doc:`Packages <Packages>` doc pages, and its use is illustrated in the
-individual accelerator sections.  Typically these steps only need to
-be done once, to create an executable that uses one or more
-accelerator packages.
-
-The last 4 steps can all be done from the command-line when LAMMPS is
-launched, without changing your input script, as illustrated in the
-individual accelerator sections.  Or you can add
-:doc:`package <package>` and :doc:`suffix <suffix>` commands to your input
-script.
+This is discussed on the :doc:`Packages <Packages>` and :doc:`extra
+Build info <Build_extra>` doc pages, and its use is illustrated in the
+individual accelerator sections.  Typically these steps only need to be
+done once, to create an executable that uses one or more accelerator
+packages.
 
 .. note::
 
-   With a few exceptions, you can build a single LAMMPS executable
-   with all its accelerator packages installed.  Note however that the
-   INTEL and KOKKOS packages require you to choose one of their
-   hardware options when building for a specific platform.  I.e. CPU or
-   Phi option for the INTEL package.  Or the OpenMP, CUDA, HIP, SYCL,
-   or Phi option for the KOKKOS package.  Or the OpenCL, HIP, or CUDA
-   option for the GPU package.
+   With a few exceptions, you can build a single LAMMPS executable with
+   all its accelerator packages installed.  Note however that the INTEL
+   and KOKKOS packages require you to choose one of their hardware
+   options when building for a specific platform.  I.e. CPU or Phi
+   option for the INTEL package.  Or the OpenMP, CUDA, HIP, SYCL, or Phi
+   option for the KOKKOS package.  Or the OpenCL, HIP, or CUDA option
+   for the GPU package.
 
-These are the exceptions.  You cannot build a single executable with:
-
-* both the INTEL Phi and KOKKOS Phi options
-* the INTEL Phi or Kokkos Phi option, and the GPU package
-
-As mentioned above, the `Benchmark page <https://www.lammps.org/bench.html>`_ of the LAMMPS website gives
-performance results for the various accelerator packages for several
-of the standard LAMMPS benchmark problems, as a function of problem
-size and number of compute nodes, on different hardware platforms.
+As mentioned above, the `Benchmark page
+<https://www.lammps.org/bench.html>`_ of the LAMMPS website gives
+performance results for the various accelerator packages for several of
+the standard LAMMPS benchmark problems, as a function of problem size
+and number of compute nodes, on different hardware platforms.
 
 Here is a brief summary of what the various packages provide.  Details
 are in the individual accelerator sections.

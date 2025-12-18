@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SYCL_PARALLEL_FOR_TEAM_HPP
 #define KOKKOS_SYCL_PARALLEL_FOR_TEAM_HPP
@@ -163,12 +150,11 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   ParallelFor(FunctorType const& arg_functor, Policy const& arg_policy)
       : m_functor(arg_functor),
         m_policy(arg_policy),
-        m_league_size(arg_policy.league_size()),
-        m_team_size(arg_policy.team_size()),
-        m_vector_size(arg_policy.impl_vector_length()) {
+        m_league_size(m_policy.league_size()),
+        m_team_size(m_policy.team_size()),
+        m_vector_size(m_policy.impl_vector_length()) {
     if (m_team_size < 0) {
-      m_team_size =
-          m_policy.team_size_recommended(arg_functor, ParallelForTag{});
+      m_team_size = m_policy.team_size_recommended(m_functor, ParallelForTag{});
       if (m_team_size <= 0)
         Kokkos::Impl::throw_runtime_exception(
             "Kokkos::Impl::ParallelFor<SYCL, TeamPolicy> could not find a "

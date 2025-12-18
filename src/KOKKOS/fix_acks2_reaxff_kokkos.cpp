@@ -708,7 +708,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
   // calculated by the current team will be stored in d_val
   bigint team_firstnbr_idx = 0;
   Kokkos::single(Kokkos::PerTeam(team),
-                 [=](bigint &val) {
+                 [&](bigint &val) {
                    int totalnbrs = s_firstnbr[lastatom - firstatom - 1] +
                                    s_numnbrs[lastatom - firstatom - 1];
                    val = Kokkos::atomic_fetch_add(&d_mfill_offset(), totalnbrs);
@@ -1016,7 +1016,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
   // calculated by the current team will be stored in d_val_X
   bigint team_firstnbr_idx = 0;
   Kokkos::single(Kokkos::PerTeam(team),
-                 [=](bigint &val) {
+                 [&](bigint &val) {
                    int totalnbrs = s_firstnbr[lastatom - firstatom - 1] +
                                    s_numnbrs[lastatom - firstatom - 1];
                    val = Kokkos::atomic_fetch_add(&d_mfill_offset(), totalnbrs);
@@ -1843,11 +1843,13 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2CalculateQ, const int
 
   // last two rows
   if (last_rows_flag && i == 0) {
-    for (int i = 0; i < 2; ++i) {
-      for (int k = nprev-1; k > 0; --k)
-        d_s_hist_last(i,k) = d_s_hist_last(i,k-1);
-      d_s_hist_last(i,0) = d_s[2*NN+i];
+    /* backup s_hist_last */
+    for (int k = nprev-1; k > 0; --k) {
+      d_s_hist_last(0,k) = d_s_hist_last(0,k-1);
+      d_s_hist_last(1,k) = d_s_hist_last(1,k-1);
     }
+    d_s_hist_last(0,0) = d_s[2*NN];
+    d_s_hist_last(1,0) = d_s[2*NN+1];
   }
 }
 

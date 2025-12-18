@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CUDA_HALF_MATHEMATICAL_FUNCTIONS_HPP_
 #define KOKKOS_CUDA_HALF_MATHEMATICAL_FUNCTIONS_HPP_
@@ -38,8 +25,6 @@ namespace Impl {
     return CUDA_NAME(HALF_TYPE::impl_type(x));                     \
   }
 
-#ifdef KOKKOS_IMPL_CUDA_HALF_TYPE_DEFINED
-
 #define KOKKOS_CUDA_HALF_UNARY_FUNCTION_IMPL(OP, CUDA_NAME) \
   KOKKOS_CUDA_HALF_UNARY_FUNCTION(OP, CUDA_NAME, Kokkos::Experimental::half_t)
 #define KOKKOS_CUDA_HALF_BINARY_FUNCTION_IMPL(OP, CUDA_NAME) \
@@ -51,12 +36,6 @@ KOKKOS_INLINE_FUNCTION Kokkos::Experimental::half_t impl_test_fallback_half(
     Kokkos::Experimental::half_t) {
   return Kokkos::Experimental::half_t(0.f);
 }
-
-#else
-#define KOKKOS_CUDA_HALF_UNARY_FUNCTION_IMPL(OP, CUDA_NAME)
-#define KOKKOS_CUDA_HALF_BINARY_FUNCTION_IMPL(OP, CUDA_NAME)
-#define KOKKOS_CUDA_HALF_UNARY_PREDICATE_IMPL(OP, CUDA_NAME)
-#endif
 
 // Function for bhalf are not available prior to Ampere
 #if defined(KOKKOS_IMPL_BHALF_TYPE_DEFINED) && \
@@ -147,9 +126,9 @@ KOKKOS_CUDA_HALF_AND_BHALF_UNARY_FUNCTION_IMPL(nearbyint, hrint)
 // nextafter
 // copysign
 // isfinite
-#if (KOKKOS_COMPILER_NVCC <= 1210 || KOKKOS_COMPILER_NVCC >= 1300) || \
-    defined(KOKKOS_ENABLE_CXX17)
+#if KOKKOS_COMPILER_NVCC >= 1230
 // __hisinf always returns false with nvcc 12.2 when compiling with cxx20
+// https://docs.nvidia.com/cuda/archive/12.3.2/cuda-toolkit-release-notes/index.html#cuda-math-release-12-3
 KOKKOS_CUDA_HALF_AND_BHALF_UNARY_PREDICATE_IMPL(isinf, __hisinf)
 #endif
 KOKKOS_CUDA_HALF_AND_BHALF_UNARY_PREDICATE_IMPL(isnan, __hisnan)

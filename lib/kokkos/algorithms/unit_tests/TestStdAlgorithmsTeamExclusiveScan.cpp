@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 
@@ -196,18 +183,11 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
 
     ASSERT_TRUE(intraTeamSentinelView_h(i));
 
-// libstdc++ as provided by GCC 8 does not have exclusive_scan and
-// for GCC 9.1, 9.2 fails to compile for missing overload not accepting policy
-#if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE <= 9)
-#define exclusive_scan testing_exclusive_scan
-#else
-#define exclusive_scan std::exclusive_scan
-#endif
     switch (apiId) {
       case 0:
       case 1: {
-        auto it = exclusive_scan(KE::cbegin(rowFrom), KE::cend(rowFrom),
-                                 KE::begin(rowDest), initValue);
+        auto it = std::exclusive_scan(KE::cbegin(rowFrom), KE::cend(rowFrom),
+                                      KE::begin(rowDest), initValue);
         const std::size_t stdDistance = KE::distance(KE::begin(rowDest), it);
         ASSERT_EQ(stdDistance, distancesView_h(i));
         break;
@@ -216,8 +196,8 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
 #ifndef KOKKOS_ENABLE_OPENMPTARGET
       case 2:
       case 3: {
-        auto it = exclusive_scan(KE::cbegin(rowFrom), KE::cend(rowFrom),
-                                 KE::begin(rowDest), initValue, binaryOp);
+        auto it = std::exclusive_scan(KE::cbegin(rowFrom), KE::cend(rowFrom),
+                                      KE::begin(rowDest), initValue, binaryOp);
         const std::size_t stdDistance = KE::distance(KE::begin(rowDest), it);
         ASSERT_EQ(stdDistance, distancesView_h(i));
 
@@ -226,8 +206,6 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
 #endif
       default: Kokkos::abort("unreachable");
     }
-
-#undef exclusive_scan
   }
 
   if constexpr (std::is_same_v<InPlaceOrVoid, InPlace>) {

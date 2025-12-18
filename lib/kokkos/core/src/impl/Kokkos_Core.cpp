@@ -1,30 +1,23 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
 #endif
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Command_Line_Parsing.hpp>
 #include <impl/Kokkos_ParseCommandLineArgumentsAndEnvironmentVariables.hpp>
 #include <impl/Kokkos_DeviceManagement.hpp>
 #include <impl/Kokkos_ExecSpaceManager.hpp>
 #include <impl/Kokkos_CPUDiscovery.hpp>
+#include <impl/Kokkos_Profiling.hpp>
 
 #include <algorithm>
 #include <cctype>
@@ -34,7 +27,6 @@
 #include <cstdlib>
 #include <stack>
 #include <functional>
-#include <list>
 #include <cerrno>
 #include <random>
 #include <regex>
@@ -51,17 +43,9 @@ bool g_is_initialized      = false;
 bool g_is_finalized        = false;
 bool g_show_warnings       = true;
 bool g_tune_internals      = false;
-// When compiling with clang/LLVM and using the GNU (GCC) C++ Standard Library
-// (any recent version between GCC 7.3 and GCC 9.2), std::deque SEGV's during
-// the unwinding of the atexit(3C) handlers at program termination.  However,
-// this bug is not observable when building with GCC.
-// As an added bonus, std::list<T> provides constant insertion and
-// deletion time complexity, which translates to better run-time performance. As
-// opposed to std::deque<T> which does not provide the same constant time
-// complexity for inserts/removals, since std::deque<T> is implemented as a
-// segmented array.
+
 using hook_function_type = std::function<void()>;
-std::stack<hook_function_type, std::list<hook_function_type>> finalize_hooks;
+std::stack<hook_function_type> finalize_hooks;
 
 /**
  * The category is only used in printing, tools
@@ -533,6 +517,15 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
   declare_configuration_metadata("tools_only", "compiler_family", "msvc");
 #endif
 
+  declare_configuration_metadata("atomics", "desul atomics version", KOKKOS_IMPL_DESUL_VERSION);
+
+#ifdef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
+  declare_configuration_metadata("view", "mdspan", "disabled");
+#else
+  declare_configuration_metadata("view", "mdspan", "enabled");
+#endif
+  declare_configuration_metadata("view", "mdspan version", KOKKOS_IMPL_MDSPAN_VERSION);
+
 #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
   declare_configuration_metadata("vectorization", "KOKKOS_ENABLE_PRAGMA_IVDEP", "yes");
 #else
@@ -558,11 +551,6 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
   declare_configuration_metadata("options", "KOKKOS_ENABLE_ASM", "yes");
 #else
   declare_configuration_metadata("options", "KOKKOS_ENABLE_ASM", "no");
-#endif
-#ifdef KOKKOS_ENABLE_CXX17
-  declare_configuration_metadata("options", "KOKKOS_ENABLE_CXX17", "yes");
-#else
-  declare_configuration_metadata("options", "KOKKOS_ENABLE_CXX17", "no");
 #endif
 #ifdef KOKKOS_ENABLE_CXX20
   declare_configuration_metadata("options", "KOKKOS_ENABLE_CXX20", "yes");
@@ -652,11 +640,11 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
 #elif defined(KOKKOS_ARCH_AMD_ZEN5)
   declare_configuration_metadata("architecture", "CPU architecture", "AMD_ZEN5");
 #elif defined(KOKKOS_ARCH_RISCV_SG2042)
-  declare_configuration_metadata("architecture", "CPU architecture", "SG2042 (RISC-V)")
+  declare_configuration_metadata("architecture", "CPU architecture", "SG2042 (RISC-V)");
 #elif defined(KOKKOS_ARCH_RISCV_RVA22V)
-  declare_configuration_metadata("architecture", "CPU architecture", "RVA22V (RISC-V)")
+  declare_configuration_metadata("architecture", "CPU architecture", "RVA22V (RISC-V)");
 #elif defined(KOKKOS_ARCH_RISCV_U74MC)
-  declare_configuration_metadata("architecture", "CPU architecture", "U74MC (RISC-V)")
+  declare_configuration_metadata("architecture", "CPU architecture", "U74MC (RISC-V)");
 #else
   declare_configuration_metadata("architecture", "CPU architecture", "none");
 #endif
@@ -678,14 +666,6 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
 #elif defined(KOKKOS_ARCH_INTEL_PVC)
   declare_configuration_metadata("architecture", "GPU architecture", "INTEL_PVC");
 
-#elif defined(KOKKOS_ARCH_KEPLER30)
-  declare_configuration_metadata("architecture", "GPU architecture", "KEPLER30");
-#elif defined(KOKKOS_ARCH_KEPLER32)
-  declare_configuration_metadata("architecture", "GPU architecture", "KEPLER32");
-#elif defined(KOKKOS_ARCH_KEPLER35)
-  declare_configuration_metadata("architecture", "GPU architecture", "KEPLER35");
-#elif defined(KOKKOS_ARCH_KEPLER37)
-  declare_configuration_metadata("architecture", "GPU architecture", "KELPER37");
 #elif defined(KOKKOS_ARCH_MAXWELL50)
   declare_configuration_metadata("architecture", "GPU architecture", "MAXWELL50");
 #elif defined(KOKKOS_ARCH_MAXWELL52)
@@ -728,6 +708,8 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
   declare_configuration_metadata("architecture", "GPU architecture", "AMD_GFX1100");
 #elif defined(KOKKOS_ARCH_AMD_GFX1103)
   declare_configuration_metadata("architecture", "GPU architecture", "AMD_GFX1103");
+#elif defined(KOKKOS_ARCH_AMD_GFX1201)
+  declare_configuration_metadata("architecture", "GPU architecture", "AMD_GFX1201");
 #else
   declare_configuration_metadata("architecture", "GPU architecture", "none");
 #endif
@@ -1104,6 +1086,9 @@ void Kokkos::print_configuration(std::ostream& os, bool verbose) {
 
   os << "Atomics:\n";
   print_helper(os, metadata_map["atomics"]);
+
+  os << "View:\n";
+  print_helper(os, metadata_map["view"]);
 
   os << "Vectorization:\n";
   print_helper(os, metadata_map["vectorization"]);

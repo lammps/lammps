@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
@@ -36,8 +23,8 @@ struct find_2_tuples {
   find_2_tuples(int chunk_size_, Kokkos::DualView<int*> data_,
                 Kokkos::DualView<int**> histogram_)
       : chunk_size(chunk_size_),
-        data(data_.d_view),
-        histogram(histogram_.d_view) {
+        data(data_.view_device()),
+        histogram(histogram_.view_device()) {
     data_.sync<Device>();
     histogram_.sync<Device>();
     histogram_.modify<Device>();
@@ -71,7 +58,7 @@ struct find_2_tuples {
       }
     dev.team_barrier();
   }
-  size_t team_shmem_size(int team_size) const {
+  size_t team_shmem_size(int /*team_size*/) const {
     return Kokkos::View<int**, Kokkos::MemoryUnmanaged>::shmem_size(TEAM_SIZE,
                                                                     TEAM_SIZE) +
            Kokkos::View<int*, Kokkos::MemoryUnmanaged>::shmem_size(chunk_size +
@@ -90,7 +77,7 @@ int main(int narg, char* args[]) {
     srand(1231093);
 
     for (int i = 0; i < (int)data.extent(0); i++) {
-      data.h_view(i) = rand() % TEAM_SIZE;
+      data.view_host()(i) = rand() % TEAM_SIZE;
     }
     data.modify<Host>();
     data.sync<Device>();
@@ -113,8 +100,8 @@ int main(int narg, char* args[]) {
     int sum = 0;
     for (int k = 0; k < TEAM_SIZE; k++) {
       for (int l = 0; l < TEAM_SIZE; l++) {
-        printf("%i ", histogram.h_view(k, l));
-        sum += histogram.h_view(k, l);
+        printf("%i ", histogram.view_host()(k, l));
+        sum += histogram.view_host()(k, l);
       }
       printf("\n");
     }

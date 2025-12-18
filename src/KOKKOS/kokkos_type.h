@@ -559,7 +559,7 @@ typedef int T_INT;
 // LAMMPS types
 
 typedef Kokkos::UnorderedMap<LAMMPS_NS::tagint,int,LMPDeviceType> hash_type;
-typedef hash_type::HostMirror host_hash_type;
+typedef hash_type::host_mirror_type host_hash_type;
 
 struct dual_hash_type {
 

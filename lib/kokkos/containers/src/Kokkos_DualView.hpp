@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 /// \file Kokkos_DualView.hpp
 /// \brief Declaration and definition of Kokkos::DualView.
@@ -27,8 +14,16 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_DUALVIEW
 #endif
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <impl/Kokkos_Error.hpp>
+
+#include <cstdint>
 
 namespace Kokkos {
 
@@ -140,7 +135,7 @@ class DualView : public ViewTraits<DataType, Properties...> {
 
   /// \typedef t_host
   /// \brief The type of a Kokkos::View host mirror of \c t_dev.
-  using t_host = typename t_dev::HostMirror;
+  using t_host = typename t_dev::host_mirror_type;
 
   //! The type of a const View on the device.
   //! The type of a Kokkos::View on the device.
@@ -153,7 +148,7 @@ class DualView : public ViewTraits<DataType, Properties...> {
 
   /// \typedef t_host_const
   /// \brief The type of a const View host mirror of \c t_dev_const.
-  using t_host_const = typename t_dev_const::HostMirror;
+  using t_host_const = typename t_dev_const::host_mirror_type;
 
   //! The type of a const, random-access View on the device.
   using t_dev_const_randomread =
@@ -164,7 +159,8 @@ class DualView : public ViewTraits<DataType, Properties...> {
   /// \typedef t_host_const_randomread
   /// \brief The type of a const, random-access View host mirror of
   ///   \c t_dev_const_randomread.
-  using t_host_const_randomread = typename t_dev_const_randomread::HostMirror;
+  using t_host_const_randomread =
+      typename t_dev_const_randomread::host_mirror_type;
 
   //! The type of an unmanaged View on the device.
   using t_dev_um =
@@ -196,7 +192,7 @@ class DualView : public ViewTraits<DataType, Properties...> {
   /// \brief The type of a const, random-access View host mirror of
   ///   \c t_dev_const_randomread.
   using t_host_const_randomread_um =
-      typename t_dev_const_randomread_um::HostMirror;
+      typename t_dev_const_randomread_um::host_mirror_type;
 
   //@}
   //! \name Counters to keep track of changes ("modified" flags)
@@ -332,7 +328,7 @@ class DualView : public ViewTraits<DataType, Properties...> {
   /// modify() methods to ensure synchronization of the View objects.
   ///
   /// \param d_view_ Device View
-  /// \param h_view_ Host View (must have type t_host = t_dev::HostMirror)
+  /// \param h_view_ Host View (must have type t_host = t_dev::host_mirror_type)
   DualView(const t_dev& d_view_, const t_host& h_view_)
       : modified_flags(t_modified_flags("DualView::modified_flags")),
         d_view(d_view_),
@@ -1009,8 +1005,7 @@ class DualView : public ViewTraits<DataType, Properties...> {
         resync_host(properties);
 
         /* Mark Device copy as modified */
-        if constexpr (!impl_dualview_is_single_device)
-          ++modified_flags(1);
+        if constexpr (!impl_dualview_is_single_device) ++modified_flags(1);
       }
     };
 
@@ -1024,8 +1019,7 @@ class DualView : public ViewTraits<DataType, Properties...> {
         resync_device(properties);
 
         /* Mark Host copy as modified */
-        if constexpr (!impl_dualview_is_single_device)
-          ++modified_flags(0);
+        if constexpr (!impl_dualview_is_single_device) ++modified_flags(0);
       }
     };
 

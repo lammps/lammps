@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_KOKKOS_LAUNCHBOUNDSTRAIT_HPP
 #define KOKKOS_KOKKOS_LAUNCHBOUNDSTRAIT_HPP
@@ -28,6 +15,19 @@ namespace Impl {
 //==============================================================================
 // <editor-fold desc="trait specification"> {{{1
 
+template <class LaunchBoundParam, class AnalyzeNextTrait>
+struct LaunchBoundsMixin : AnalyzeNextTrait {
+  using base_t = AnalyzeNextTrait;
+  using base_t::base_t;
+
+  static constexpr bool launch_bounds_is_defaulted = false;
+
+  static_assert(base_t::launch_bounds_is_defaulted,
+                "Kokkos Error: More than one launch_bounds given");
+
+  using launch_bounds = LaunchBoundParam;
+};
+
 struct LaunchBoundsTrait : TraitSpecificationBase<LaunchBoundsTrait> {
   struct base_traits {
     static constexpr bool launch_bounds_is_defaulted = true;
@@ -36,17 +36,8 @@ struct LaunchBoundsTrait : TraitSpecificationBase<LaunchBoundsTrait> {
     KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class LaunchBoundParam, class AnalyzeNextTrait>
-  struct mixin_matching_trait : AnalyzeNextTrait {
-    using base_t = AnalyzeNextTrait;
-    using base_t::base_t;
-
-    static constexpr bool launch_bounds_is_defaulted = false;
-
-    static_assert(base_t::launch_bounds_is_defaulted,
-                  "Kokkos Error: More than one launch_bounds given");
-
-    using launch_bounds = LaunchBoundParam;
-  };
+  using mixin_matching_trait =
+      LaunchBoundsMixin<LaunchBoundParam, AnalyzeNextTrait>;
 };
 
 // </editor-fold> end trait specification }}}1

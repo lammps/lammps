@@ -1,22 +1,14 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 namespace {
 
@@ -90,7 +82,7 @@ class TestUniqueToken {
       Kokkos::fence();
     }
 
-    typename view_type::HostMirror host_counts =
+    typename view_type::host_mirror_type host_counts =
         Kokkos::create_mirror_view(self.counts);
 
     Kokkos::deep_copy(host_counts, self.counts);
@@ -124,7 +116,7 @@ class TestUniqueToken {
     }
 #endif
 
-    typename view_type::HostMirror host_errors =
+    typename view_type::host_mirror_type host_errors =
         Kokkos::create_mirror_view(self.errors);
 
     Kokkos::deep_copy(host_errors, self.errors);
@@ -224,7 +216,7 @@ class TestAcquireTeamUniqueToken {
       Kokkos::fence();
     }
 
-    typename view_type::HostMirror host_counts =
+    typename view_type::host_mirror_type host_counts =
         Kokkos::create_mirror_view(self.counts);
 
     Kokkos::deep_copy(host_counts, self.counts);
@@ -238,7 +230,7 @@ class TestAcquireTeamUniqueToken {
       }
     }
 
-    typename view_type::HostMirror host_errors =
+    typename view_type::host_mirror_type host_errors =
         Kokkos::create_mirror_view(self.errors);
 
     Kokkos::deep_copy(host_errors, self.errors);

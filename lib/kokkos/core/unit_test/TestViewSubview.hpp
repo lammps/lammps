@@ -1,23 +1,16 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 #ifndef TESTVIEWSUBVIEW_HPP_
 #define TESTVIEWSUBVIEW_HPP_
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <sstream>
 #include <iostream>
 #include <type_traits>
@@ -150,7 +143,7 @@ void test_auto_1d() {
   const size_type numCols = 3;
 
   mv_type X = getView<Layout, Space>::get(numRows, numCols);
-  typename mv_type::HostMirror X_h = Kokkos::create_mirror_view(X);
+  typename mv_type::host_mirror_type X_h = Kokkos::create_mirror_view(X);
 
   fill_2D<mv_type, Space> f1(X, ONE);
 #if (HIP_VERSION_MAJOR == 5) && (HIP_VERSION_MINOR == 3)
@@ -2109,7 +2102,7 @@ void test_unmanaged_subview_reset() {
 
 template <std::underlying_type_t<Kokkos::MemoryTraitsFlags> MTF>
 struct TestSubviewMemoryTraitsConstruction {
-  void operator()() const noexcept {
+  void operator()() const {
     using memory_traits_type = Kokkos::MemoryTraits<MTF>;
     using view_type =
         Kokkos::View<double*, Kokkos::HostSpace, memory_traits_type>;
@@ -2319,6 +2312,56 @@ struct TestExtentsStaticTests {
       /* actual */
       typename Kokkos::Impl::ParseViewExtents<double>::type>::type;
 };
+
+template <class ExecutionSpace, class RankType, std::size_t... Is>
+void test_subview_extents_helper_index(std::index_sequence<Is...>) {
+  using view_type =
+      Kokkos::View<RankType, typename ExecutionSpace::memory_space>;
+  view_type v("v", ((Is * 0) + 1)...);
+
+  auto sv = Kokkos::subview(v, (Is * 0)...);
+  ASSERT_DEATH({ auto sv_fail = Kokkos::subview(v, ((Is * 0) + 1)...); },
+               "Kokkos::subview bounds error");
+}
+
+template <class ExecutionSpace, class RankType, std::size_t... Is>
+void test_subview_extents_helper_range(std::index_sequence<Is...>) {
+  using view_type =
+      Kokkos::View<RankType, typename ExecutionSpace::memory_space>;
+  view_type v("v", 1, ((Is * 0) + 1)...);
+
+  auto sv = Kokkos::subview(v, std::pair{0, 1}, (Is * 0)...);
+  ASSERT_DEATH(
+      {
+        auto sv_fail = Kokkos::subview(v, std::pair{0, 2}, (Is * 0)...);
+      },
+      "Kokkos::subview bounds error");
+  ASSERT_DEATH(
+      {
+        auto sv_fail = Kokkos::subview(v, Kokkos::pair{0, 2}, (Is * 0)...);
+      },
+      "Kokkos::subview bounds error");
+}
+
+template <int rank>
+struct DynamicRank {
+  using type = typename DynamicRank<rank - 1>::type*;
+};
+
+template <>
+struct DynamicRank<0> {
+  using type = int;
+};
+
+template <int rank, class ExecutionSpace>
+void test_subview_extents() {
+  test_subview_extents_helper_index<ExecutionSpace,
+                                    typename DynamicRank<rank>::type>(
+      std::make_index_sequence<rank>());
+  test_subview_extents_helper_range<ExecutionSpace,
+                                    typename DynamicRank<rank>::type>(
+      std::make_index_sequence<rank - 1>());
+}
 
 }  // namespace TestViewSubview
 

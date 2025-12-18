@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_OPENMP_INSTANCE_HPP
 #define KOKKOS_OPENMP_INSTANCE_HPP
@@ -57,6 +44,12 @@ class OpenMPInternal {
       : m_pool_size{arg_pool_size}, m_level{omp_get_level()}, m_pool() {
     // guard pushing to all_instances
     {
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
+      if (omp_get_level() != 0)
+        Kokkos::abort(
+            "Kokkos::OpenMP instances can only be created outside OpenMP "
+            "regions!");
+#endif
       std::scoped_lock lock(all_instances_mutex);
       all_instances.push_back(this);
     }
@@ -122,10 +115,20 @@ inline bool execute_in_serial(OpenMP const& space = OpenMP()) {
     _OPENMP >= 201511
   bool is_nested = omp_get_max_active_levels() > 1;
 #else
-  bool is_nested = static_cast<bool>(omp_get_nested());
+  bool is_nested  = static_cast<bool>(omp_get_nested());
 #endif
-  return (space.impl_internal_space_instance()->get_level() < omp_get_level() &&
-          !(is_nested && (omp_get_level() == 1)));
+  bool max_parallel_level_exceeded =
+      (space.impl_internal_space_instance()->get_level() < omp_get_level() &&
+       !(is_nested && (omp_get_level() == 1)));
+
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  if (max_parallel_level_exceeded)
+    Kokkos::abort(
+        "Kokkos::OpenMP: Nested parallelism requires the maximum active levels "
+        "to be larger than 1 and not more than two levels are supported!");
+#endif
+
+  return max_parallel_level_exceeded;
 }
 
 }  // namespace Impl
@@ -149,19 +152,10 @@ inline std::vector<int> calculate_omp_pool_sizes(
   int resources_left = main_pool_size;
   for (unsigned int i = 0; i < weights.size() - 1; ++i) {
     int instance_pool_size = (weights[i] / total_weight) * main_pool_size;
-    if (instance_pool_size == 0) {
-      Kokkos::abort("Kokkos::abort: Instance has no resource allocated to it");
-    }
-    pool_sizes[i] = instance_pool_size;
+    pool_sizes[i]          = std::max(instance_pool_size, 1);
     resources_left -= instance_pool_size;
   }
-  // Last instance get all resources left
-  if (resources_left <= 0) {
-    Kokkos::abort(
-        "Kokkos::abort: Partition not enough resources left to create the last "
-        "instance.");
-  }
-  pool_sizes[weights.size() - 1] = resources_left;
+  pool_sizes[weights.size() - 1] = std::max(resources_left, 1);
 
   return pool_sizes;
 }
@@ -170,16 +164,26 @@ inline std::vector<int> calculate_omp_pool_sizes(
 template <class T>
 std::vector<OpenMP> impl_partition_space(const OpenMP& base_instance,
                                          const std::vector<T>& weights) {
-  const auto pool_sizes =
-      Impl::calculate_omp_pool_sizes(base_instance, weights);
+#if (!defined(KOKKOS_COMPILER_GNU) || KOKKOS_COMPILER_GNU >= 1110) && \
+    _OPENMP >= 201511
+  bool has_nested = omp_get_max_active_levels() > 1;
+#else
+  bool has_nested = static_cast<bool>(omp_get_nested());
+#endif
+  if (!has_nested || omp_get_level() != 0) {
+    return std::vector<OpenMP>(weights.size());
+  } else {
+    const auto pool_sizes =
+        Impl::calculate_omp_pool_sizes(base_instance, weights);
 
-  std::vector<OpenMP> instances;
-  instances.reserve(pool_sizes.size());
-  for (size_t i = 0; i < pool_sizes.size(); ++i) {
-    instances.emplace_back(OpenMP(pool_sizes[i]));
+    std::vector<OpenMP> instances;
+    instances.reserve(pool_sizes.size());
+    for (size_t i = 0; i < pool_sizes.size(); ++i) {
+      instances.emplace_back(OpenMP(pool_sizes[i]));
+    }
+
+    return instances;
   }
-
-  return instances;
 }
 }  // namespace Experimental::Impl
 }  // namespace Kokkos

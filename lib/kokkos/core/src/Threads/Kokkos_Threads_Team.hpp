@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_THREADSTEAM_HPP
 #define KOKKOS_THREADSTEAM_HPP
@@ -572,7 +559,6 @@ class TeamPolicyInternal<Kokkos::Threads, Properties...>
 
  public:
   //! Tag this class as a kokkos execution policy
-  //! Tag this class as a kokkos execution policy
   using execution_policy = TeamPolicyInternal;
 
   using traits = PolicyTraits<Properties...>;
@@ -728,6 +714,11 @@ class TeamPolicyInternal<Kokkos::Threads, Properties...>
                      const Kokkos::AUTO_t& /* vector_length_request */)
       : TeamPolicyInternal(typename traits::execution_space(),
                            league_size_request, team_size_request, -1) {}
+
+  // FIXME_THREADS https://github.com/kokkos/kokkos/issues/8510
+  TeamPolicyInternal(const PolicyUpdate, const TeamPolicyInternal& other,
+                     const typename traits::execution_space&)
+      : TeamPolicyInternal(other) {}
 
   inline int chunk_size() const { return m_chunk_size; }
 

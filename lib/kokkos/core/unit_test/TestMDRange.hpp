@@ -1,25 +1,17 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <cstdio>
 #include <sstream>
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 namespace Test {
 
@@ -31,7 +23,7 @@ template <typename ExecSpace>
 struct TestMDRange_ReduceArray_2D {
   using DataType       = int;
   using ViewType_2     = typename Kokkos::View<DataType **, ExecSpace>;
-  using HostViewType_2 = typename ViewType_2::HostMirror;
+  using HostViewType_2 = typename ViewType_2::host_mirror_type;
 
   ViewType_2 input_view;
 
@@ -99,7 +91,7 @@ template <typename ExecSpace>
 struct TestMDRange_ReduceArray_3D {
   using DataType       = int;
   using ViewType_3     = typename Kokkos::View<DataType ***, ExecSpace>;
-  using HostViewType_3 = typename ViewType_3::HostMirror;
+  using HostViewType_3 = typename ViewType_3::host_mirror_type;
 
   ViewType_3 input_view;
 
@@ -182,7 +174,7 @@ template <typename ExecSpace>
 struct TestMDRange_2D {
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType **, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   using value_type = double;
@@ -808,7 +800,7 @@ template <typename ExecSpace>
 struct TestMDRange_3D {
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType ***, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   using value_type = double;
@@ -1426,7 +1418,7 @@ template <typename ExecSpace>
 struct TestMDRange_4D {
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType ****, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   using value_type = double;
@@ -2124,7 +2116,7 @@ template <typename ExecSpace>
 struct TestMDRange_5D {
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType *****, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   using value_type = double;
@@ -2768,7 +2760,7 @@ template <typename ExecSpace>
 struct TestMDRange_6D {
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType ******, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   using value_type = double;
@@ -3537,7 +3529,7 @@ struct TestMDRange_2D_NegIdx {
 
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType **, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   DataType lower_offset[2];
@@ -3594,7 +3586,7 @@ struct TestMDRange_3D_NegIdx {
 
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType ***, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   DataType lower_offset[3];
@@ -3658,7 +3650,7 @@ struct TestMDRange_4D_NegIdx {
 
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType ****, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   DataType lower_offset[4];
@@ -3725,7 +3717,7 @@ struct TestMDRange_5D_NegIdx {
 
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType *****, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   DataType lower_offset[5];
@@ -3799,7 +3791,7 @@ struct TestMDRange_6D_NegIdx {
 
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType ******, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   DataType lower_offset[6];

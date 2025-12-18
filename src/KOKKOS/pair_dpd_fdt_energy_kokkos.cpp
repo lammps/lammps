@@ -100,7 +100,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
   typedef Kokkos::Experimental::UniqueToken<
     DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
   unique_token_type unique_token;
-  rand_pool.init(seed + comm->me,unique_token.size());
+  rand_pool = decltype(rand_pool)(seed + comm->me,unique_token.size());
 #endif
 }
 
@@ -122,7 +122,7 @@ void PairDPDfdtEnergyKokkos<LMPDeviceSpace>::init_style()
 #ifdef DPD_USE_RAN_MARS
   rand_pool.init(random,seed);
 #else
-  rand_pool.init(seed + comm->me,4*32768 /*fake max_hardware_threads()*/);
+  rand_pool = decltype(rand_pool)(seed + comm->me,4*32768 /*fake max_hardware_threads()*/);
 #endif
 }
 #endif

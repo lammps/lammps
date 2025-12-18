@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
@@ -218,8 +205,8 @@ struct AccessorFromViewTraits {
 #ifdef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
 template <class Traits>
 struct AccessorFromViewTraits<
-    Traits,
-    std::enable_if_t<Traits::is_managed && !Traits::memory_traits::is_atomic>> {
+    Traits, std::enable_if_t<!Traits::memory_traits::is_unmanaged &&
+                             !Traits::memory_traits::is_atomic>> {
   using type =
       SpaceAwareAccessor<typename Traits::memory_space,
                          default_accessor<typename Traits::value_type>>;
@@ -227,24 +214,24 @@ struct AccessorFromViewTraits<
 
 template <class Traits>
 struct AccessorFromViewTraits<
-    Traits,
-    std::enable_if_t<Traits::is_managed && Traits::memory_traits::is_atomic>> {
+    Traits, std::enable_if_t<!Traits::memory_traits::is_unmanaged &&
+                             Traits::memory_traits::is_atomic>> {
   using type = CheckedRelaxedAtomicAccessor<typename Traits::value_type,
                                             typename Traits::memory_space>;
 };
 #else
 template <class Traits>
 struct AccessorFromViewTraits<
-    Traits,
-    std::enable_if_t<Traits::is_managed && !Traits::memory_traits::is_atomic>> {
+    Traits, std::enable_if_t<!Traits::memory_traits::is_unmanaged &&
+                             !Traits::memory_traits::is_atomic>> {
   using type = CheckedReferenceCountedAccessor<typename Traits::value_type,
                                                typename Traits::memory_space>;
 };
 
 template <class Traits>
 struct AccessorFromViewTraits<
-    Traits,
-    std::enable_if_t<Traits::is_managed && Traits::memory_traits::is_atomic>> {
+    Traits, std::enable_if_t<!Traits::memory_traits::is_unmanaged &&
+                             Traits::memory_traits::is_atomic>> {
   using type = CheckedReferenceCountedRelaxedAtomicAccessor<
       typename Traits::value_type, typename Traits::memory_space>;
 };
@@ -252,8 +239,8 @@ struct AccessorFromViewTraits<
 
 template <class Traits>
 struct AccessorFromViewTraits<
-    Traits,
-    std::enable_if_t<!Traits::is_managed && Traits::memory_traits::is_atomic>> {
+    Traits, std::enable_if_t<Traits::memory_traits::is_unmanaged &&
+                             Traits::memory_traits::is_atomic>> {
   using type = CheckedRelaxedAtomicAccessor<typename Traits::value_type,
                                             typename Traits::memory_space>;
 };
@@ -331,13 +318,17 @@ struct ViewTraits;
 
 template <>
 struct ViewTraits<void> {
-  using execution_space = void;
-  using memory_space    = void;
-  using HostMirrorSpace = void;
-  using array_layout    = void;
-  using memory_traits   = void;
-  using specialize      = void;
-  using hooks_policy    = void;
+  using execution_space   = void;
+  using memory_space      = void;
+  using host_mirror_space = void;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  using HostMirrorSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use host_mirror_space instead.") = host_mirror_space;
+#endif
+  using array_layout  = void;
+  using memory_traits = void;
+  using specialize    = void;
+  using hooks_policy  = void;
 };
 
 template <class... Prop>
@@ -345,11 +336,16 @@ struct ViewTraits<void, void, Prop...> {
   // Ignore an extraneous 'void'
   using execution_space = typename ViewTraits<void, Prop...>::execution_space;
   using memory_space    = typename ViewTraits<void, Prop...>::memory_space;
-  using HostMirrorSpace = typename ViewTraits<void, Prop...>::HostMirrorSpace;
-  using array_layout    = typename ViewTraits<void, Prop...>::array_layout;
-  using memory_traits   = typename ViewTraits<void, Prop...>::memory_traits;
-  using specialize      = typename ViewTraits<void, Prop...>::specialize;
-  using hooks_policy    = typename ViewTraits<void, Prop...>::hooks_policy;
+  using host_mirror_space =
+      typename ViewTraits<void, Prop...>::host_mirror_space;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  using HostMirrorSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use host_mirror_space instead.") = host_mirror_space;
+#endif
+  using array_layout  = typename ViewTraits<void, Prop...>::array_layout;
+  using memory_traits = typename ViewTraits<void, Prop...>::memory_traits;
+  using specialize    = typename ViewTraits<void, Prop...>::specialize;
+  using hooks_policy  = typename ViewTraits<void, Prop...>::hooks_policy;
 };
 
 template <class HooksPolicy, class... Prop>
@@ -358,11 +354,17 @@ struct ViewTraits<
     HooksPolicy, Prop...> {
   using execution_space = typename ViewTraits<void, Prop...>::execution_space;
   using memory_space    = typename ViewTraits<void, Prop...>::memory_space;
-  using HostMirrorSpace = typename ViewTraits<void, Prop...>::HostMirrorSpace;
-  using array_layout    = typename ViewTraits<void, Prop...>::array_layout;
-  using memory_traits   = typename ViewTraits<void, Prop...>::memory_traits;
-  using specialize      = typename ViewTraits<void, Prop...>::specialize;
-  using hooks_policy    = HooksPolicy;
+
+  using host_mirror_space =
+      typename ViewTraits<void, Prop...>::host_mirror_space;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  using HostMirrorSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use host_mirror_space instead.") = host_mirror_space;
+#endif
+  using array_layout  = typename ViewTraits<void, Prop...>::array_layout;
+  using memory_traits = typename ViewTraits<void, Prop...>::memory_traits;
+  using specialize    = typename ViewTraits<void, Prop...>::specialize;
+  using hooks_policy  = HooksPolicy;
 };
 
 template <class ArrayLayout, class... Prop>
@@ -372,11 +374,16 @@ struct ViewTraits<std::enable_if_t<Kokkos::is_array_layout<ArrayLayout>::value>,
 
   using execution_space = typename ViewTraits<void, Prop...>::execution_space;
   using memory_space    = typename ViewTraits<void, Prop...>::memory_space;
-  using HostMirrorSpace = typename ViewTraits<void, Prop...>::HostMirrorSpace;
-  using array_layout    = ArrayLayout;
-  using memory_traits   = typename ViewTraits<void, Prop...>::memory_traits;
-  using specialize      = typename ViewTraits<void, Prop...>::specialize;
-  using hooks_policy    = typename ViewTraits<void, Prop...>::hooks_policy;
+  using host_mirror_space =
+      typename ViewTraits<void, Prop...>::host_mirror_space;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  using HostMirrorSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use host_mirror_space instead.") = host_mirror_space;
+#endif
+  using array_layout  = ArrayLayout;
+  using memory_traits = typename ViewTraits<void, Prop...>::memory_traits;
+  using specialize    = typename ViewTraits<void, Prop...>::specialize;
+  using hooks_policy  = typename ViewTraits<void, Prop...>::hooks_policy;
 };
 
 template <class Space, class... Prop>
@@ -389,7 +396,7 @@ struct ViewTraits<std::enable_if_t<Kokkos::is_space<Space>::value>, Space,
                      void> &&
           std::is_same_v<typename ViewTraits<void, Prop...>::memory_space,
                          void> &&
-          std::is_same_v<typename ViewTraits<void, Prop...>::HostMirrorSpace,
+          std::is_same_v<typename ViewTraits<void, Prop...>::host_mirror_space,
                          void> &&
           std::is_same_v<typename ViewTraits<void, Prop...>::array_layout,
                          void>,
@@ -397,8 +404,12 @@ struct ViewTraits<std::enable_if_t<Kokkos::is_space<Space>::value>, Space,
 
   using execution_space = typename Space::execution_space;
   using memory_space    = typename Space::memory_space;
-  using HostMirrorSpace =
+  using host_mirror_space =
       typename Kokkos::Impl::HostMirror<Space>::Space::memory_space;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  using HostMirrorSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use host_mirror_space instead.") = host_mirror_space;
+#endif
   using array_layout  = typename execution_space::array_layout;
   using memory_traits = typename ViewTraits<void, Prop...>::memory_traits;
   using specialize    = typename ViewTraits<void, Prop...>::specialize;
@@ -424,13 +435,17 @@ struct ViewTraits<
                          void>,
       "MemoryTrait is the final optional template argument for a View");
 
-  using execution_space = void;
-  using memory_space    = void;
-  using HostMirrorSpace = void;
-  using array_layout    = void;
-  using memory_traits   = MemoryTraits;
-  using specialize      = void;
-  using hooks_policy    = void;
+  using execution_space   = void;
+  using memory_space      = void;
+  using host_mirror_space = void;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  using HostMirrorSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use host_mirror_space instead.") = host_mirror_space;
+#endif
+  using array_layout  = void;
+  using memory_traits = MemoryTraits;
+  using specialize    = void;
+  using hooks_policy  = void;
 };
 
 template <class DataType, class... Properties>
@@ -455,8 +470,8 @@ struct ViewTraits {
                          typename ExecutionSpace::array_layout>;
 
   using HostMirrorSpace = std::conditional_t<
-      !std::is_void_v<typename prop::HostMirrorSpace>,
-      typename prop::HostMirrorSpace,
+      !std::is_void_v<typename prop::host_mirror_space>,
+      typename prop::host_mirror_space,
       typename Kokkos::Impl::HostMirror<ExecutionSpace>::Space>;
 
   using MemoryTraits =
@@ -464,10 +479,7 @@ struct ViewTraits {
                          typename prop::memory_traits,
                          typename Kokkos::MemoryTraits<>>;
 
-  using HooksPolicy =
-      std::conditional_t<!std::is_void_v<typename prop::hooks_policy>,
-                         typename prop::hooks_policy,
-                         Kokkos::Experimental::DefaultViewHooks>;
+  using HooksPolicy = typename prop::hooks_policy;
 
   // Analyze data type's properties,
   // May be specialized based upon the layout and value type
@@ -476,20 +488,38 @@ struct ViewTraits {
  public:
   //------------------------------------
   // Data type traits:
-
+#ifdef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
   using data_type           = typename data_analysis::type;
   using const_data_type     = typename data_analysis::const_type;
   using non_const_data_type = typename data_analysis::non_const_type;
+#else
+  using data_type           = typename data_analysis::data_type;
+  using const_data_type     = typename data_analysis::const_data_type;
+  using non_const_data_type = typename data_analysis::non_const_data_type;
+#endif
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   //------------------------------------
   // Compatible array of trivial type traits:
-
-  using scalar_array_type = typename data_analysis::scalar_array_type;
-  using const_scalar_array_type =
-      typename data_analysis::const_scalar_array_type;
-  using non_const_scalar_array_type =
-      typename data_analysis::non_const_scalar_array_type;
-
+#ifdef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
+  using scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Only supported with KOKKOS_ENABLE_IMPL_VIEW_LEGACY, to be removed after "
+      "5.0 release") = typename data_analysis::scalar_array_type;
+  using const_scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Only supported with KOKKOS_ENABLE_IMPL_VIEW_LEGACY, to be removed after "
+      "5.0 release.") = typename data_analysis::const_scalar_array_type;
+  using non_const_scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Only supported with KOKKOS_ENABLE_IMPL_VIEW_LEGACY, to be removed after "
+      "5.0 release.") = typename data_analysis::non_const_scalar_array_type;
+#else
+  using scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use data_type instead.") = data_type;
+  using const_scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use const_data_type instead.") = const_data_type;
+  using non_const_scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use non_const_data_type instead.") = non_const_data_type;
+#endif
+#endif
   //------------------------------------
   // Value type traits:
 
@@ -528,11 +558,14 @@ struct ViewTraits {
                       decltype(customize_view_arguments(
                           Impl::ViewArguments<value_type, array_layout,
                                               device_type, memory_traits>()))>;
-
-  enum { is_hostspace = std::is_same_v<MemorySpace, HostSpace> };
-  enum { is_managed = MemoryTraits::is_unmanaged == 0 };
-  enum { is_random_access = MemoryTraits::is_random_access == 1 };
-
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  KOKKOS_DEPRECATED static constexpr bool is_hostspace =
+      std::is_same_v<MemorySpace, HostSpace>;
+  KOKKOS_DEPRECATED_WITH_COMMENT("Use !MemoryTraits::is_unmanaged instead.")
+  static constexpr bool is_managed = !MemoryTraits::is_unmanaged;
+  KOKKOS_DEPRECATED_WITH_COMMENT("Use MemoryTraits::is_random_access instead.")
+  static constexpr bool is_random_access = MemoryTraits::is_random_access;
+#endif
   //------------------------------------
 };
 
@@ -566,6 +599,22 @@ struct RemoveAlignedMemoryTrait {
 
  public:
   using type = typename TypeListToViewTraits<D, new_type_list>::type;
+};
+
+// Customization point for view hooks; default is to use the explicit template
+// parameter, but this can be customized to get the view hook from a special
+// memory space for example
+template <class DataType, class... Properties>
+constexpr auto customize_view_hooks() {
+  using traits_type = ViewTraits<DataType, Properties...>;
+  if constexpr (!std::is_void_v<typename traits_type::hooks_policy>) {
+    return typename traits_type::hooks_policy{};
+  }
+}
+
+template <class DataType, class... Properties>
+struct ViewHooksFromTraits {
+  using type = decltype(customize_view_hooks<DataType, Properties...>());
 };
 }  // namespace Impl
 

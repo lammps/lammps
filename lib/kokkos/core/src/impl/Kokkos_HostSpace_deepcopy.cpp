@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -137,9 +124,54 @@ void hostspace_parallel_deepcopy_async(const ExecutionSpace& exec, void* dst,
   }
 }
 
+template <typename ExecutionSpace>
+void hostspace_parallel_zeromemset(const ExecutionSpace& exec, void* dst,
+                                   size_t n) {
+  constexpr uint8_t z_u8 = 0x00;
+  using policy_t =
+      Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<size_t>>;
+
+#if !(defined(KOKKOS_ENABLE_HPX) && \
+      defined(KOKKOS_ENABLE_IMPL_HPX_ASYNC_DISPATCH))
+  constexpr uint64_t z_u64 = 0x0000000000000000;
+
+  // Align initial bytes to 8-byte boundary
+  uint8_t* dst_c = reinterpret_cast<uint8_t*>(dst);
+  size_t count   = 0;
+  while (reinterpret_cast<size_t>(dst_c) % 8 != 0) {
+    *dst_c = z_u8;
+    dst_c++;
+    count++;
+  }
+
+  // Zero-fill with 8-byte words in parallel
+  uint64_t* dst_p  = reinterpret_cast<uint64_t*>(dst_c);
+  const size_t cnt = (n - count) / 8;
+  Kokkos::parallel_for("Kokkos::Impl::hostspace_parallel_zeromemset",
+                       policy_t(exec, 0, cnt),
+                       [=](const size_t i) { dst_p[i] = z_u64; });
+
+  // Handle any remaining bytes that don't fit in 8-byte words
+  dst_c += cnt * 8;
+  uint8_t* dst_end = reinterpret_cast<uint8_t*>(dst) + n;
+  while (dst_c != dst_end) {
+    *dst_c = z_u8;
+    dst_c++;
+  }
+#else
+  uint8_t* dst_p = reinterpret_cast<uint8_t*>(dst);
+  Kokkos::parallel_for("Kokkos::Impl::hostspace_parallel_zeromemset",
+                       policy_t(exec, 0, n),
+                       [=](const size_t i) { dst_p[i] = z_u8; });
+#endif
+}
+
 // Explicit instantiation
 template void hostspace_parallel_deepcopy_async<DefaultHostExecutionSpace>(
     const DefaultHostExecutionSpace&, void*, const void*, ptrdiff_t);
+
+template void hostspace_parallel_zeromemset<DefaultHostExecutionSpace>(
+    const DefaultHostExecutionSpace&, void*, size_t);
 
 #if defined(KOKKOS_ENABLE_SERIAL) &&                                    \
     (defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS) || \

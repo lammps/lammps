@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 
@@ -185,18 +172,10 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
     auto initValue = initValuesView_h(i);
     ASSERT_TRUE(intraTeamSentinelView_h(i));
 
-// libstdc++ as provided by GCC 8 does not have transform_exclusive_scan and
-// for GCC 9.1, 9.2 fails to compile for missing overload not accepting policy
-#if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE <= 9)
-#define transform_exclusive_scan testing_transform_exclusive_scan
-#else
-#define transform_exclusive_scan std::transform_exclusive_scan
-#endif
-
     switch (apiId) {
       case 0:
       case 1: {
-        auto it = transform_exclusive_scan(
+        auto it = std::transform_exclusive_scan(
             KE::cbegin(rowFrom), KE::cend(rowFrom), KE::begin(rowDest),
             initValue, binaryOp, unaryOp);
         const std::size_t stdDistance = KE::distance(KE::begin(rowDest), it);
@@ -205,8 +184,6 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
       }
       default: Kokkos::abort("unreachable");
     }
-
-#undef transform_exclusive_scan
   }
 
   if constexpr (std::is_same_v<InPlaceOrVoid, InPlace>) {

@@ -180,7 +180,7 @@ class Atom : protected Pointers {
   // CHARMM package
 
   std::string *segment, *residue, *name;
-  
+
   // APIP package
 
   double *apip_lambda, *apip_lambda_input, *apip_lambda_input_ta, *apip_e_fast, *apip_e_precise, **apip_f_const_lambda, **apip_f_dyn_lambda, *apip_lambda_const;

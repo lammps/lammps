@@ -336,7 +336,7 @@ void Group::assign(int narg, char **arg)
           sattribute = atom->residue;
         else if (category == NAME)
           sattribute = atom->name;
-          
+
         for (i = 0; i < nlocal; i++)
           if (sattribute[i] == std::string_view(arg[2]))
             mask[i] |= bit;

@@ -38,13 +38,6 @@ class LabelMap : protected Pointers {
   const std::string &find(int, int) const;     // find type label for numeric type
   bool is_complete(int) const;                 // check if all types are assigned
 
-  // segment/residue/name for read_psf and write_psf
-  int find_or_add_psf(const std::string &, int);
-  std::string label(int type, int mode) const;
-  std::unordered_map<std::string, int> stypelabel_map;
-  std::unordered_map<std::string, int> rtypelabel_map;
-  std::unordered_map<std::string, int> ntypelabel_map;
-
   // input/output for atom class label map
 
   void write_data(FILE *);

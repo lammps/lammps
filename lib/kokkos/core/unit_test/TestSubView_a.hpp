@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_TEST_SUBVIEW_A_HPP
 #define KOKKOS_TEST_SUBVIEW_A_HPP
@@ -72,6 +59,26 @@ TEST(TEST_CATEGORY, view_static_tests) {
   TestViewSubview::TestSubviewStaticSizes<TEST_EXECSPACE,
                                           Kokkos::LayoutRight>()();
   TestViewSubview::TestExtentsStaticTests<TEST_EXECSPACE>();
+}
+
+TEST(TEST_CATEGORY_DEATH, view_subview_wrong_extents) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+
+#ifndef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
+  GTEST_SKIP() << "only enforced when debug bound checks is enabled";
+#ifdef KOKKOS_COMPILER_NVHPC
+  __builtin_unreachable();
+#endif
+#endif
+
+  TestViewSubview::test_subview_extents<1, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<2, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<3, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<4, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<5, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<6, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<7, TEST_EXECSPACE>();
+  TestViewSubview::test_subview_extents<8, TEST_EXECSPACE>();
 }
 
 }  // namespace Test

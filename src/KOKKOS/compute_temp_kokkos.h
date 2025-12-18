@@ -62,7 +62,6 @@ class ComputeTempKokkos : public ComputeTemp {
   typedef CTEMP value_type;
 
   ComputeTempKokkos(class LAMMPS *, int, char **);
-
   double compute_scalar() override;
   void compute_vector() override;
 
@@ -82,7 +81,7 @@ class ComputeTempKokkos : public ComputeTemp {
   typename AT::t_int_1d_randomread mask;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

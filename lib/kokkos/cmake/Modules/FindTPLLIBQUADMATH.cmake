@@ -13,6 +13,8 @@ check_cxx_source_compiles(
   }"
   KOKKOS_QUADMATH_COMPILER_SUPPORT
 )
+unset(CMAKE_REQUIRED_LIBRARIES)
+
 if(KOKKOS_QUADMATH_COMPILER_SUPPORT)
   kokkos_create_imported_tpl(LIBQUADMATH INTERFACE LINK_LIBRARIES quadmath)
 else()

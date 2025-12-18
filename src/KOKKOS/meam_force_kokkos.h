@@ -143,8 +143,8 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
                                    decltype(ndup_vatom)>::get(dup_vatom, ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG, DeviceType>>();
 
+  fnoffset = d_offset[ii];
   i = d_ilist_half[ii];
-  fnoffset = d_offset[i];
   third = 1.0 / 3.0;
   sixth = 1.0 / 6.0;
 

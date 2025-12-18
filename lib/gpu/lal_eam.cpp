@@ -389,7 +389,7 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
                     const bool vflag_in, const bool /*eatom*/,
                     const bool /*vatom*/, int &host_start, int **ilist, int **jnum,
                     const double cpu_time, bool &success, int &inum,
-                    void **fp_ptr) {
+                    void **fp_ptr, double *prd, int *periodicity) {
   this->acc_timers();
   int eflag, vflag;
   if (eflag_in) eflag=2;
@@ -438,7 +438,8 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
   // Build neighbor list on GPU if necessary
   if (ago==0) {
     this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
-                          sublo, subhi, tag, nspecial, special, success);
+                          sublo, subhi, tag, nspecial, special,
+                          prd, periodicity, success);
     if (!success)
       return nullptr;
   } else {

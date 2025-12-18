@@ -778,15 +778,17 @@ void FixShake::min_post_force(int vflag)
   int nb = atom->nbondtypes + 1;
   int na = atom->nangletypes + 1;
 
-  for (int i = 0; i < nb; i++) {
-    b_count[i] = 0;
-    b_ave[i] = b_max[i] = 0.0;
-    b_min[i] = BIG;
-  }
-  for (int i = 0; i < na; i++) {
-    a_count[i] = 0;
-    a_ave[i] = a_max[i] = 0.0;
-    a_min[i] = BIG;
+  if (output_every) {
+    for (int i = 0; i < nb; i++) {
+      b_count[i] = 0;
+      b_ave[i] = b_max[i] = 0.0;
+      b_min[i] = BIG;
+    }
+    for (int i = 0; i < na; i++) {
+      a_count[i] = 0;
+      a_ave[i] = a_max[i] = 0.0;
+      a_min[i] = BIG;
+    }
   }
 
   // allocate storage for restraint forces if requested
@@ -817,16 +819,18 @@ void FixShake::min_post_force(int vflag)
         if (i <= atom1 && i <= atom2) {
           int m = shake_type[i][0];
           double r = bond_force(atom1, atom2, bond_distance[m]);
-          if (atom1 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r;
+          if (output_every) {
+            if (atom1 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r;
+            }
+            if (atom2 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r;
+            }
+            b_max[m] = MAX(b_max[m], r);
+            b_min[m] = MIN(b_min[m], r);
           }
-          if (atom2 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r;
-          }
-          b_max[m] = MAX(b_max[m], r);
-          b_min[m] = MIN(b_min[m], r);
         }
       } else if (shake_flag[i] == 3) {
         atom1 = atom->map(shake_atom[i][0]);
@@ -842,28 +846,32 @@ void FixShake::min_post_force(int vflag)
         if (i <= atom1 && i <= atom2 && i <= atom3) {
           int m = shake_type[i][0];
           double r = bond_force(atom1, atom2, bond_distance[m]);
-          if (atom1 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r;
+          if (output_every) {
+            if (atom1 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r;
+            }
+            if (atom2 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r;
+            }
+            b_max[m] = MAX(b_max[m], r);
+            b_min[m] = MIN(b_min[m], r);
           }
-          if (atom2 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r;
-          }
-          b_max[m] = MAX(b_max[m], r);
-          b_min[m] = MIN(b_min[m], r);
           m = shake_type[i][1];
           r = bond_force(atom1, atom3, bond_distance[m]);
-          if (atom1 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r;
+          if (output_every) {
+            if (atom1 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r;
+            }
+            if (atom3 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r;
+            }
+            b_max[m] = MAX(b_max[m], r);
+            b_min[m] = MIN(b_min[m], r);
           }
-          if (atom3 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r;
-          }
-          b_max[m] = MAX(b_max[m], r);
-          b_min[m] = MIN(b_min[m], r);
         }
       } else if (shake_flag[i] == 4) {
         atom1 = atom->map(shake_atom[i][0]);
@@ -881,40 +889,46 @@ void FixShake::min_post_force(int vflag)
         if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4) {
           int m = shake_type[i][0];
           double r = bond_force(atom1, atom2, bond_distance[m]);
-          if (atom1 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r;
+          if (output_every) {
+            if (atom1 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r;
+            }
+            if (atom2 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r;
+            }
+            b_max[m] = MAX(b_max[m], r);
+            b_min[m] = MIN(b_min[m], r);
           }
-          if (atom2 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r;
-          }
-          b_max[m] = MAX(b_max[m], r);
-          b_min[m] = MIN(b_min[m], r);
           m = shake_type[i][1];
           r = bond_force(atom1, atom3, bond_distance[m]);
-          if (atom1 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r;
+          if (output_every) {
+            if (atom1 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r;
+            }
+            if (atom3 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r;
+            }
+            b_max[m] = MAX(b_max[m], r);
+            b_min[m] = MIN(b_min[m], r);
           }
-          if (atom3 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r;
-          }
-          b_max[m] = MAX(b_max[m], r);
-          b_min[m] = MIN(b_min[m], r);
           m = shake_type[i][2];
           r = bond_force(atom1, atom4, bond_distance[m]);
-          if (atom1 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r;
+          if (output_every) {
+            if (atom1 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r;
+            }
+            if (atom4 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r;
+            }
+            b_max[m] = MAX(b_max[m], r);
+            b_min[m] = MIN(b_min[m], r);
           }
-          if (atom4 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r;
-          }
-          b_max[m] = MAX(b_max[m], r);
-          b_min[m] = MIN(b_min[m], r);
         }
       } else { // shake_flag[i] == 1
         atom1 = atom->map(shake_atom[i][0]);
@@ -930,42 +944,48 @@ void FixShake::min_post_force(int vflag)
         if (i <= atom1 && i <= atom2 && i <= atom3) {
           int m = shake_type[i][0];
           double r1 = bond_force(atom1, atom2, bond_distance[m]);
-          if (atom1 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r1;
+          if (output_every) {
+            if (atom1 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r1;
+            }
+            if (atom2 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r1;
+            }
+            b_max[m] = MAX(b_max[m], r1);
+            b_min[m] = MIN(b_min[m], r1);
           }
-          if (atom2 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r1;
-          }
-          b_max[m] = MAX(b_max[m], r1);
-          b_min[m] = MIN(b_min[m], r1);
           m = shake_type[i][1];
           double r2 = bond_force(atom1, atom3, bond_distance[m]);
-          if (atom1 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r2;
+          if (output_every) {
+            if (atom1 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r2;
+            }
+            if (atom3 < nlocal) {
+              b_count[m]++;
+              b_ave[m] += r2;
+            }
+            b_max[m] = MAX(b_max[m], r2);
+            b_min[m] = MIN(b_min[m], r2);
           }
-          if (atom3 < nlocal) {
-            b_count[m]++;
-            b_ave[m] += r2;
-          }
-          b_max[m] = MAX(b_max[m], r2);
-          b_min[m] = MIN(b_min[m], r2);
           m = shake_type[i][2];
           double r3 = bond_force(atom2, atom3, angle_distance[m]);
           double angle = acos((r1*r1 + r2*r2 - r3*r3) / (2.0*r1*r2));
           angle *= 180.0/MY_PI;
-          if (atom2 < nlocal) {
-            a_count[m]++;
-            a_ave[m] += angle;
+          if (output_every) {
+            if (atom2 < nlocal) {
+              a_count[m]++;
+              a_ave[m] += angle;
+            }
+            if (atom3 < nlocal) {
+              a_count[m]++;
+              a_ave[m] += angle;
+            }
+            a_max[m] = MAX(a_max[m],angle);
+            a_min[m] = MIN(a_min[m],angle);
           }
-          if (atom3 < nlocal) {
-            a_count[m]++;
-            a_ave[m] += angle;
-          }
-          a_max[m] = MAX(a_max[m],angle);
-          a_min[m] = MIN(a_min[m],angle);
         }
       }
     }

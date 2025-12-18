@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 using namespace InterLayer;
 
 static const char cite_ilp_tmd[] =
-    "ilp/tmd potential doi:10.1021/acs.jctc.1c00782\n"
+    "ilp/tmd potential: https://doi.org/10.1021/acs.jctc.1c00782\n\n"
     "@Article{Ouyang2021\n"
     "  author = {W. Ouyang and R. Sofer and X. Gao and J. Hermann and\n"
     "    A. Tkatchenko and L. Kronik and M. Urbakh and O. Hod},\n"

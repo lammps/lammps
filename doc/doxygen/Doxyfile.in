@@ -2,7 +2,7 @@
 
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "LAMMPS Programmer's Guide"
-PROJECT_NUMBER         = "19 November 2024"
+PROJECT_NUMBER         = "10 December 2025"
 PROJECT_BRIEF          = "Documentation of the LAMMPS library interface and Python wrapper"
 PROJECT_LOGO           = lammps-logo.png
 CREATE_SUBDIRS         = NO
@@ -420,6 +420,8 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/lmptype.h                 \
                          @LAMMPS_SOURCE_DIR@/atom.cpp                  \
                          @LAMMPS_SOURCE_DIR@/atom.h                    \
+                         @LAMMPS_SOURCE_DIR@/citeme.cpp                \
+                         @LAMMPS_SOURCE_DIR@/citeme.h                  \
                          @LAMMPS_SOURCE_DIR@/input.cpp                 \
                          @LAMMPS_SOURCE_DIR@/input.h                   \
                          @LAMMPS_SOURCE_DIR@/tokenizer.cpp             \

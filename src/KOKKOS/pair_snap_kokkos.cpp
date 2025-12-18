@@ -12,6 +12,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Christian Trott (SNL), Stan Moore (SNL),
+                         Evan Weinberg (NVIDIA)
+------------------------------------------------------------------------- */
+
 #include "pair_snap_kokkos.h"
 #include "pair_snap_kokkos_impl.h"
 

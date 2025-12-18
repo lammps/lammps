@@ -51,10 +51,10 @@ class Pair : protected Pointers {
   int comm_reverse;        // size of reverse communication (0 if none)
   int comm_reverse_off;    // size of reverse comm even if newton off
 
-  int single_enable;              // 1 if single() routine exists
-  int born_matrix_enable;         // 1 if born_matrix() routine exists
-  int single_hessian_enable;      // 1 if single_hessian() routine exists
-  int atomic_energy_enable;       // 1 if compute_atomic_energy() routine exists
+  int single_enable;            // 1 if single() routine exists
+  int born_matrix_enable;       // 1 if born_matrix() routine exists
+  int single_hessian_enable;    // 1 if single_hessian() routine exists
+  int atomic_energy_enable;     // 1 if compute_atomic_energy() routine exists
 
   int restartinfo;                // 1 if pair style writes restart info
   int respa_enable;               // 1 if inner/middle/outer rRESPA routines
@@ -66,6 +66,7 @@ class Pair : protected Pointers {
   int finitecutflag;              // 1 if cut depends on finite atom size
   int ghostneigh;                 // 1 if pair style needs neighbors of ghosts
   double **cutghost;              // cutoff for each ghost pair
+  int suffix_flag;                // suffix compatibility flag
 
   int ewaldflag;         // 1 if compatible with Ewald solver
   int pppmflag;          // 1 if compatible with PPPM solver
@@ -124,7 +125,7 @@ class Pair : protected Pointers {
   // KOKKOS flags and variables
 
   ExecutionSpace execution_space;
-  unsigned int datamask_read, datamask_modify;
+  uint64_t datamask_read, datamask_modify;
   int kokkosable;               // 1 if Kokkos pair
   int reverse_comm_device;      // 1 if reverse comm on Device
   int fuse_force_clear_flag;    // 1 if can fuse force clear with force compute
@@ -243,7 +244,6 @@ class Pair : protected Pointers {
  protected:
   int instance_me;      // which Pair class instantiation I am
   int special_lj[4];    // copied from force->special_lj for Kokkos
-  int suffix_flag;      // suffix compatibility flag
 
   // pair_modify settings
   int offset_flag, mix_flag;    // flags for offset and mixing

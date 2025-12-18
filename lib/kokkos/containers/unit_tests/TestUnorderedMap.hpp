@@ -1,25 +1,22 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_TEST_UNORDERED_MAP_HPP
 #define KOKKOS_TEST_UNORDERED_MAP_HPP
 
 #include <gtest/gtest.h>
 #include <iostream>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.functional;
+import kokkos.unordered_map;
+import kokkos.unordered_map_impl;
+#else
+#include <Kokkos_Core.hpp>
+#include <Kokkos_Functional.hpp>
 #include <Kokkos_UnorderedMap.hpp>
+#endif
 
 namespace Test {
 
@@ -75,7 +72,7 @@ struct TestInsert {
     ASSERT_EQ(map_h.size(), map.size());
 
     if (!rehash_on_fail && CheckValues) {
-      typename expected_values_type::HostMirror expected_values_h =
+      typename expected_values_type::host_mirror_type expected_values_h =
           create_mirror_view(expected_values);
       Kokkos::deep_copy(expected_values_h, expected_values);
       for (unsigned i = 0; i < map_h.size(); i++) {
@@ -349,7 +346,7 @@ void test_deep_copy(uint32_t num_nodes) {
   using const_map_type =
       Kokkos::UnorderedMap<const uint32_t, const uint32_t, Device>;
 
-  using host_map_type = typename map_type::HostMirror;
+  using host_map_type = typename map_type::host_mirror_type;
 
   map_type map;
   map.rehash(num_nodes, false);
@@ -560,6 +557,48 @@ TEST(TEST_CATEGORY, UnorderedMap_constructor_view_alloc) {
   ASSERT_TRUE(map.is_allocated());
 }
 
+//////////////////////////Tests for UnorderedMap with View as value_type
+
+/**
+ * @test This test ensures that an @ref UnorderedMap with View as value_type can
+ * be built with SequentialHostInit instance (using @ref view_alloc).
+ */
+TEST(TEST_CATEGORY, UnorderedMap_View_as_value) {
+  using value_type = Kokkos::View<size_t *, TEST_EXECSPACE>;
+  using map_type   = Kokkos::UnorderedMap<int, value_type, Kokkos::HostSpace>;
+  map_type map(Kokkos::view_alloc(Kokkos::SequentialHostInit, "test view umap"),
+               150);
+  // creation
+  ASSERT_EQ(map.size(), 0u);
+  ASSERT_GE(map.capacity(), 150u);
+  ASSERT_TRUE(map.is_allocated());
+
+  // insert
+  ASSERT_TRUE(map.insert(1, Kokkos::View<size_t *, TEST_EXECSPACE>(
+                                "UnorderedMap inserted View one", 10))
+                  .success());
+  ASSERT_TRUE(map.insert(2, Kokkos::View<size_t *, TEST_EXECSPACE>(
+                                "UnorderedMap inserted View two", 20))
+                  .success());
+  ASSERT_EQ(map.size(), 2u);
+
+  // copy
+  map_type map_copy(map);
+  ASSERT_EQ(map_copy.size(), 2u);
+  ASSERT_GE(map_copy.capacity(), 150u);
+  ASSERT_TRUE(map_copy.is_allocated());
+
+  // rehash
+  ASSERT_TRUE(map.rehash(200u));
+  ASSERT_GE(map.capacity(), 200u);
+  ASSERT_TRUE(map.is_allocated());
+
+  // assign
+  map_copy = map;
+  ASSERT_EQ(map_copy.size(), 2u);
+  ASSERT_GE(map_copy.capacity(), 200u);
+  ASSERT_TRUE(map_copy.is_allocated());
+}
 }  // namespace Test
 
 #endif  // KOKKOS_TEST_UNORDERED_MAP_HPP

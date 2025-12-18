@@ -112,11 +112,11 @@ int ** eam_fs_gpu_compute_n(const int ago, const int inum_full,
                          tagint **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum,  const double cpu_time,
-                         bool &success, int &inum, void **fp_ptr) {
+                         bool &success, int &inum, void **fp_ptr, double *prd, int *periodicity) {
   return EAMFSMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success,
-                       inum, fp_ptr);
+                       inum, fp_ptr, prd, periodicity);
 }
 
 void eam_fs_gpu_compute(const int ago, const int inum_full, const int nlocal,

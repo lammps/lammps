@@ -25,7 +25,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 10Dec2025
 
 Write the data from a :doc:`molecule template<molecule>` to a molecule file.
 

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SYCL_MDRANGEPOLICY_HPP_
 #define KOKKOS_SYCL_MDRANGEPOLICY_HPP_
@@ -45,6 +32,13 @@ inline TileSizeProperties get_tile_size_properties<Kokkos::SYCL>(
   properties.default_largest_tile_size = 16;
   properties.default_tile_size         = 2;
   properties.max_total_tile_size       = properties.max_threads;
+
+  auto device = space.sycl_queue().get_device();
+  auto max_work_item_sizes =
+      device.get_info<sycl::info::device::max_work_item_sizes<3>>();
+  properties.max_threads_dimensions[0] = max_work_item_sizes[0];
+  properties.max_threads_dimensions[1] = max_work_item_sizes[1];
+  properties.max_threads_dimensions[2] = max_work_item_sizes[2];
   return properties;
 }
 

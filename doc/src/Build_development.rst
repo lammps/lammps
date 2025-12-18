@@ -102,11 +102,13 @@ compilation and linking stages.  This is done through setting the
 Code Coverage and Unit Testing (CMake only)
 -------------------------------------------
 
-The LAMMPS code is subject to multiple levels of automated testing
-during development:
+The LAMMPS code is subject to multiple levels of automated testing when
+pull requests are submitted to `the LAMMPS repository on GitHub
+<https://github.com/lammps/lammps/pulls>`_:
 
-- Integration testing (i.e. whether the code compiles
-  on various platforms and with a variety of compilers and settings),
+- Coding style compliance (see :ref:`Coding style utilities <coding-style>`)
+- Integration testing (i.e. whether the code compiles on multiple
+  platforms and with a variety of compilers and settings),
 - Unit testing (i.e. whether certain functions or classes of the code
   produce the expected results for given inputs),
 - Run testing (i.e. whether selected input decks can run to completion
@@ -115,30 +117,30 @@ during development:
   same results over a given number of steps and operations within a
   given error margin).
 
-The status of this automated testing can be viewed on `https://ci.lammps.org
-<https://ci.lammps.org>`_.
+The tests are currently run as GitHub Actions and their configuration
+files are in the ``.github/workflows/`` folder of the LAMMPS git tree.
+The test status of these tests is reported with the corresponding pull
+request and the pull request *cannot* be merged without all tests passing.
 
-The scripts and inputs for integration, run, and legacy regression
-testing are maintained in a `separate repository
-<https://github.com/lammps/lammps-testing>`_ of the LAMMPS project on
-GitHub.  A few tests are also run as GitHub Actions and their
-configuration files are in the ``.github/workflows/`` folder of the
-LAMMPS git tree.
+In addition, there is a nightly test run using the ``develop`` branch to
+generate code coverage data for the included tests (see below), provided
+there have been changes to that tree.  The results of this test run can
+be currently viewed at https://download.lammps.org/coverage/tests.html
 
 Regression tests can also be performed locally with the :ref:`regression
-tester tool <regression>`.  The tool checks if a given LAMMPS binary run
-with selected input examples produces thermo output that is consistent
-with the provided log files.  The script can be run in one pass over all
-available input files, but it can also first create multiple lists of
-inputs or folders that can then be run with multiple workers
-concurrently to speed things up.  Another mode allows to do a quick
-check of inputs that contain commands that have changes in the current
-checkout branch relative to a git branch.  This works similar to the two
-pass mode, but will select only shorter runs and no more than 100 inputs
-that are chosen randomly.  This ensures that this test runs
-significantly faster compared to the full test run.  These test runs can
-also be performed with instrumented LAMMPS binaries (see previous
-section).
+tester tool <regression>`.  The tool checks if a given LAMMPS binary,
+when run with selected input examples produces, thermo output that is
+consistent with the provided log files.  The script can be run in one
+pass over all available input files, but it can also first create
+multiple lists of inputs or folders that can then be run with multiple
+workers concurrently to speed things up.  Another mode allows to do a
+quick check of inputs that contain commands that have changes in the
+current checkout branch relative to a git branch.  This works similar to
+the two pass mode, but will select only shorter runs and no more than
+100 inputs that are chosen randomly.  This ensures that the quick test
+runs significantly faster compared to the full test run.  These test
+runs can also be performed with instrumented LAMMPS binaries (see
+previous section).
 
 The unit testing facility is integrated into the CMake build process of
 the LAMMPS source code distribution itself.  It can be enabled by
@@ -397,7 +399,7 @@ will destroy the original file, if the generation run does not complete,
 so using ``-g`` is recommended unless the YAML file is fully tested
 and working.  To have the new test file recognized by ``ctest``, you
 need to re-run cmake.  You can verify that the new test is available
-by checking the output of ``ctest -N`.
+by checking the output of ``ctest -N``.
 
 Some of the force style tests are rather slow to run and some are very
 sensitive to small differences like CPU architecture, compiler
@@ -483,19 +485,20 @@ Use custom linker for faster link times when ENABLE_TESTING is active
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When compiling LAMMPS with testing enabled, most test executables will
-need to be linked against the LAMMPS library.  Since this can be a very
-large library with many C++ objects when many packages are enabled, link
-times can become very long on machines that use the GNU BFD linker (e.g.
-Linux systems).  Alternatives like the ``mold`` linker, the ``lld``
-linker of the LLVM project, or the ``gold`` linker available with GNU
-binutils can speed up this step substantially (in this order).  CMake
-will by default test if any of the three can be enabled and use it when
-``ENABLE_TESTING`` is active.  It can also be selected manually through
-the ``CMAKE_CUSTOM_LINKER`` CMake variable.  Allowed values are
-``mold``, ``lld``, ``gold``, ``bfd``, or ``default``.  The ``default``
-option will use the system default linker otherwise, the linker is
-chosen explicitly.  This option is only available for the GNU or Clang
-C++ compilers.
+need to be linked against the LAMMPS library and re-linked whenever
+there is a change to LAMMPS.  Since this can be a very large library
+with many C++ objects when many packages are enabled, link times can
+become very long on machines that use the GNU BFD linker (e.g.  Linux
+systems).  Alternative linker programs like the ``mold`` linker, the
+``lld`` linker of the LLVM project, or the ``gold`` linker available
+with GNU binutils can speed up this step substantially (in this order).
+CMake will by default test if any of the three can be enabled and use it
+when ``ENABLE_TESTING`` is active.  The linker can also be selected
+manually through the ``LAMMPS_CUSTOM_LINKER`` CMake variable.  Allowed
+values are ``mold``, ``lld``, ``gold``, ``bfd``, or ``default``.  The
+``default`` option will use the system default linker otherwise, the
+linker is chosen explicitly.  This option is only available for the GNU
+or Clang C++ compilers.
 
 A small additional improvement can be obtained by building LAMMPS as a
 shared library with ``-D BUILD_SHARED_LIBS=on``.  But this is a small
@@ -601,6 +604,8 @@ and currently available at: https://download.lammps.org/coverage/
       :width: 60%
 
       Source page with branches
+
+.. _coding-style:
 
 Coding style utilities
 ----------------------

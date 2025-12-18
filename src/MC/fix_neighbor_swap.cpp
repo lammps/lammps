@@ -39,6 +39,7 @@
 #include "pair.h"
 #include "random_park.h"
 #include "region.h"
+#include "suffix.h"
 #include "update.h"
 
 #include <cfloat>
@@ -52,7 +53,7 @@ using MathExtra::distsq3;
 using MathSpecial::square;
 
 static const char cite_fix_neighbor_swap[] =
-    "fix neighbor/swap command: doi:10.1016/j.commatsci.2022.111929\n\n"
+    "fix neighbor/swap command: https://doi.org/10.1016/j.commatsci.2022.111929\n\n"
     "@Article{Tavenner2023111929,\n"
     " author = {Jacob P. Tavenner and Mikhail I. Mendelev and John W. Lawson},\n"
     " title = {Molecular dynamics based kinetic Monte Carlo simulation for accelerated "
@@ -275,6 +276,9 @@ int FixNeighborSwap::setmask()
 
 void FixNeighborSwap::init()
 {
+  if (force->pair && (force->pair->suffix_flag & Suffix::INTEL))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
+
   c_pe = modify->get_compute_by_id("thermo_pe");
   if (!c_pe) error->all(FLERR, Error::NOLASTLINE, "Could not find 'thermo_pe' compute");
 

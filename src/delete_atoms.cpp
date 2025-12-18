@@ -69,7 +69,8 @@ void DeleteAtoms::command(int narg, char **arg)
     error->all(FLERR, Error::NOLASTLINE,
                "Delete_atoms command before simulation box is defined" + utils::errorurl(33));
   if (narg < 1) utils::missing_cmd_args(FLERR, "delete_atoms", error);
-  if (atom->tag_enable == 0) error->all(FLERR, -1, "Cannot use delete_atoms unless atoms have IDs");
+  if (atom->tag_enable == 0)
+    error->all(FLERR, Error::COMMAND, "Cannot use delete_atoms unless atoms have IDs");
 
   // store state before delete
 

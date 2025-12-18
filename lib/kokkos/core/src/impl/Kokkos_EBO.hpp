@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_EBO_HPP
 #define KOKKOS_EBO_HPP
@@ -220,74 +207,35 @@ class NoUniqueAddressMemberEmulation
   using base_t::no_unique_address_data_member;
 };
 
-template <class ExecutionSpace>
-class ExecutionSpaceInstanceStorage
-    : private NoUniqueAddressMemberEmulation<ExecutionSpace,
+template <class InstanceType>
+class InstanceStorage
+    : private NoUniqueAddressMemberEmulation<InstanceType,
                                              DefaultCtorNotOnDevice> {
  private:
   using base_t =
-      NoUniqueAddressMemberEmulation<ExecutionSpace, DefaultCtorNotOnDevice>;
+      NoUniqueAddressMemberEmulation<InstanceType, DefaultCtorNotOnDevice>;
 
  protected:
-  constexpr explicit ExecutionSpaceInstanceStorage() : base_t() {}
+  constexpr explicit InstanceStorage() : base_t() {}
 
   KOKKOS_INLINE_FUNCTION
-  constexpr explicit ExecutionSpaceInstanceStorage(
-      ExecutionSpace const& arg_execution_space)
-      : base_t(arg_execution_space) {}
+  constexpr explicit InstanceStorage(InstanceType const& instance)
+      : base_t(instance) {}
 
   KOKKOS_INLINE_FUNCTION
-  constexpr explicit ExecutionSpaceInstanceStorage(
-      ExecutionSpace&& arg_execution_space)
-      : base_t(std::move(arg_execution_space)) {}
+  constexpr explicit InstanceStorage(InstanceType&& instance)
+      : base_t(std::move(instance)) {}
 
   KOKKOS_INLINE_FUNCTION
-  ExecutionSpace& execution_space_instance() & {
+  InstanceType& instance() & { return this->no_unique_address_data_member(); }
+
+  KOKKOS_INLINE_FUNCTION
+  InstanceType const& instance() const& {
     return this->no_unique_address_data_member();
   }
 
   KOKKOS_INLINE_FUNCTION
-  ExecutionSpace const& execution_space_instance() const& {
-    return this->no_unique_address_data_member();
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  ExecutionSpace&& execution_space_instance() && {
-    return std::move(*this).no_unique_address_data_member();
-  }
-};
-
-template <class MemorySpace>
-class MemorySpaceInstanceStorage
-    : private NoUniqueAddressMemberEmulation<MemorySpace,
-                                             DefaultCtorNotOnDevice> {
- private:
-  using base_t =
-      NoUniqueAddressMemberEmulation<MemorySpace, DefaultCtorNotOnDevice>;
-
- protected:
-  MemorySpaceInstanceStorage() : base_t() {}
-
-  KOKKOS_INLINE_FUNCTION
-  MemorySpaceInstanceStorage(MemorySpace const& arg_memory_space)
-      : base_t(arg_memory_space) {}
-
-  KOKKOS_INLINE_FUNCTION
-  constexpr explicit MemorySpaceInstanceStorage(MemorySpace&& arg_memory_space)
-      : base_t(arg_memory_space) {}
-
-  KOKKOS_INLINE_FUNCTION
-  MemorySpace& memory_space_instance() & {
-    return this->no_unique_address_data_member();
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  MemorySpace const& memory_space_instance() const& {
-    return this->no_unique_address_data_member();
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  MemorySpace&& memory_space_instance() && {
+  InstanceType&& instance() && {
     return std::move(*this).no_unique_address_data_member();
   }
 };

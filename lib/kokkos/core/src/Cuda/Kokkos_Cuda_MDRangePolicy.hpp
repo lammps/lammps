@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CUDA_MDRANGEPOLICY_HPP_
 #define KOKKOS_CUDA_MDRANGEPOLICY_HPP_
@@ -40,11 +27,14 @@ template <>
 inline TileSizeProperties get_tile_size_properties<Kokkos::Cuda>(
     const Kokkos::Cuda& space) {
   TileSizeProperties properties;
-  properties.max_threads = space.impl_internal_space_instance()
-                               ->m_deviceProp.maxThreadsPerMultiProcessor;
+  const auto& device_prop = space.cuda_device_prop();
+  properties.max_threads  = device_prop.maxThreadsPerMultiProcessor;
   properties.default_largest_tile_size = 16;
   properties.default_tile_size         = 2;
   properties.max_total_tile_size       = 512;
+  properties.max_threads_dimensions[0] = device_prop.maxThreadsDim[0];
+  properties.max_threads_dimensions[1] = device_prop.maxThreadsDim[1];
+  properties.max_threads_dimensions[2] = device_prop.maxThreadsDim[2];
   return properties;
 }
 

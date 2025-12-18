@@ -50,7 +50,7 @@ static constexpr int MAXLINE = 512;
 enum{ FORWARD=-1, BACKWARD=1 };
 
 static const char cite_fix_phonon[] =
-  "fix phonon command: doi:10.1016/j.cpc.2011.04.019\n\n"
+  "fix phonon command: https://doi.org/10.1016/j.cpc.2011.04.019\n\n"
   "@Article{Kong11,\n"
   " author = {L. T. Kong},\n"
   " title = {Phonon Dispersion Measured Directly from Molecular Dynamics Simulations},\n"
@@ -159,7 +159,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   for (int i = 1; i < nprocs; ++i) fft_disp[i] = fft_disp[i-1] + fft_cnts[i-1];
   delete []nx_loc;
 
-  fft = new FFT3d(lmp,world,nz,ny,nx,0,nz-1,0,ny-1,nxlo,nxhi,0,nz-1,0,ny-1,nxlo,nxhi,0,0,&mysize,0);
+  fft = new FFT3d(lmp,world,nz,ny,nx,0,nz-1,0,ny-1,nxlo,nxhi,0,nz-1,0,ny-1,nxlo,nxhi,0,0,&mysize,0,0);
   memory->create(fft_data, MAX(1,mynq)*2, "fix_phonon:fft_data");
 
   // allocate variables; MAX(1,... is used because a null buffer will result in error for MPI

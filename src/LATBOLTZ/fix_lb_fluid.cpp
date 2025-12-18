@@ -44,7 +44,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_lbfluid[] =
-    "fix lb/fluid command: doi:10.1016/j.cpc.2022.108318\n\n"
+    "fix lb/fluid command: https://doi.org/10.1016/j.cpc.2022.108318\n\n"
     "@Article{Denniston et al.,\n"
     "  author = {C. Denniston and N. Afrasiabian and M. G. Cole-Andre,"
     "    F. E. Mackay and S. T. T. Ollila and T. Whitehead},\n"

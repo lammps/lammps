@@ -30,7 +30,7 @@ namespace Granular_NS {
   class GranSubModTwisting : public GranSubMod {
    public:
     GranSubModTwisting(class GranularModel *, class LAMMPS *);
-    virtual void calculate_forces() = 0;
+    virtual double calculate_forces() = 0;
   };
 
   /* ---------------------------------------------------------------------- */
@@ -38,7 +38,7 @@ namespace Granular_NS {
   class GranSubModTwistingNone : public GranSubModTwisting {
    public:
     GranSubModTwistingNone(class GranularModel *, class LAMMPS *);
-    void calculate_forces() override {};
+    double calculate_forces() override {return 0.0;};
   };
 
   /* ---------------------------------------------------------------------- */
@@ -47,7 +47,7 @@ namespace Granular_NS {
    public:
     GranSubModTwistingMarshall(class GranularModel *, class LAMMPS *);
     void init() override;
-    void calculate_forces() override;
+    double calculate_forces() override;
 
    protected:
     double k_tang, mu_tang;
@@ -59,7 +59,7 @@ namespace Granular_NS {
    public:
     GranSubModTwistingSDS(class GranularModel *, class LAMMPS *);
     void coeffs_to_local() override;
-    void calculate_forces() override;
+    double calculate_forces() override;
 
    protected:
     double k, mu, damp;

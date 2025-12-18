@@ -83,7 +83,7 @@ namespace {
 /// Struct for listing on-the-fly compression/decompression commands
 struct compress_info {
   /// identifier for the different compression algorithms
-  enum styles { NONE, GZIP, BZIP2, ZSTD, XZ, LZMA, LZ4 };
+  enum styles { NONE, GZIP, BZIP2, ZSTD, XZ, LZMA, LZ4, BROTLI, SEVENZIP };
   const std::string extension;          ///< filename extension for the current algorithm
   const std::string command;            ///< command to perform compression or decompression
   const std::string compressflags;      ///< flags to append to compress from stdin to stdout
@@ -100,6 +100,8 @@ const std::vector<compress_info> compress_styles = {
     {"xz",   "xz",    " > ",    " -cdf ",  compress_info::XZ},
     {"lzma", "xz", " --format=lzma > ", " --format=lzma -cdf ", compress_info::LZMA},
     {"lz4",  "lz4",   " > ",    " -cdf ",  compress_info::LZ4},
+    {"br",   "brotli", " > ",   " -cdf ",  compress_info::BROTLI},
+    {"7z",   "7z", " a -bb0 -si ",   " x -so ",  compress_info::SEVENZIP},
 };
 // clang-format on
 
@@ -122,7 +124,7 @@ const compress_info &find_compress_type(const std::string &file)
 // set reference time stamp during executable/library init.
 // should provide better resolution than using epoch, if the system clock supports it.
 auto initial_time = std::chrono::steady_clock::now();
-}
+}    // namespace
 using namespace LAMMPS_NS;
 
 // get CPU time
@@ -1053,6 +1055,18 @@ FILE *platform::compressed_read(const std::string &file)
   const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
 
+  // make certain the file exists and is readable
+
+  std::error_code ec;
+  if (!std::filesystem::exists(file, ec)) {
+    errno = ENOENT;
+    return nullptr;
+  }
+  if (!file_is_readable(file)) {
+    errno = EPERM;
+    return nullptr;
+  }
+
   if (find_exe_path(compress.command).size())
     // put quotes around file name so that they may contain blanks
     fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "r");
@@ -1073,9 +1087,14 @@ FILE *platform::compressed_write(const std::string &file)
   if (compress.style == ::compress_info::NONE) return nullptr;
   if (!file_is_writable(file)) return nullptr;
 
-  if (find_exe_path(compress.command).size())
-    // put quotes around file name so that they may contain blanks
+  if (find_exe_path(compress.command).size()) {
+    // explicitly delete existing files for compatibility with commands that cannot write to stdout
+    // and thus we don't use redirection to a file, but provide the file name as argument directly.
+    // this can result in failure or inclusion of the same filename multiple times with out deleting
+    if (file_is_readable(file)) unlink(file);
+    // put quotes around file name for shell command so that they may contain blanks
     fp = popen((compress.command + compress.compressflags + "\"" + file + "\""), "w");
+  }
 #endif
   return fp;
 }

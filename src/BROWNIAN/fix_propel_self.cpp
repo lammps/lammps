@@ -35,7 +35,8 @@ using namespace FixConst;
 
 enum { DIPOLE, VELOCITY, QUAT };
 
-static constexpr double TOL = 1e-14;
+static constexpr double TOL = 1.0e-14;
+static constexpr double SMALL = 1.0e-14;
 
 /* ---------------------------------------------------------------------- */
 
@@ -44,7 +45,7 @@ FixPropelSelf::FixPropelSelf(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg,
 
   virial_global_flag = virial_peratom_flag = 1;
 
-  if (narg != 5 && narg != 9) error->all(FLERR, "Illegal fix propel/self command");
+  if (narg != 5 && narg != 9) error->all(FLERR, "Incorrect number of fix propel/self arguments");
 
   if (strcmp(arg[3], "velocity") == 0) {
     mode = VELOCITY;
@@ -56,25 +57,28 @@ FixPropelSelf::FixPropelSelf(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg,
     mode = QUAT;
     thermo_virial = 1;
   } else {
-    error->all(FLERR, "Illegal fix propel/self command");
+    error->all(FLERR, 3, "Unknown fix propel/self keyword", arg[3]);
   }
 
   magnitude = utils::numeric(FLERR, arg[4], false, lmp);
 
-  // check for keyword
+  // check for keyword required extra arguments
 
   if (narg == 9) {
-    if (mode != QUAT) { error->all(FLERR, "Illegal fix propel/self command"); }
+    if (mode != QUAT)
+      error->all(FLERR, 5, "Incorrect number of arguments for 'quat' mode of fix propel/self");
     if (strcmp(arg[5], "qvector") == 0) {
       sx = utils::numeric(FLERR, arg[6], false, lmp);
       sy = utils::numeric(FLERR, arg[7], false, lmp);
       sz = utils::numeric(FLERR, arg[8], false, lmp);
       double snorm = sqrt(sx * sx + sy * sy + sz * sz);
+      if (snorm < SMALL)
+        error->all(FLERR, 5, "Fix propel/self qvector magnitude {} is too small", snorm);
       sx = sx / snorm;
       sy = sy / snorm;
       sz = sz / snorm;
     } else {
-      error->all(FLERR, "Illegal fix propel/self command");
+      error->all(FLERR, 5, "Mismatched fix propel/self keyword {}", arg[5]);
     }
   } else {
     sx = 1.0;
@@ -97,11 +101,14 @@ int FixPropelSelf::setmask()
 void FixPropelSelf::init()
 {
   if (mode == DIPOLE && !atom->mu_flag)
-    error->all(FLERR, "Fix propel/self requires atom attribute mu with option dipole");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix propel/self with option dipole requires atom attribute mu");
 
   if (mode == QUAT) {
     avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
-    if (!avec) error->all(FLERR, "Fix propel/self requires atom style ellipsoid with option quat");
+    if (!avec)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Fix propel/self with option quat requires atom style ellipsoid");
 
     // check that all particles are finite-size ellipsoids
     // no point particles allowed, spherical is OK
@@ -113,7 +120,8 @@ void FixPropelSelf::init()
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
         if (ellipsoid[i] < 0)
-          error->one(FLERR, "Fix propel/self requires extended particles with option quat");
+          error->one(FLERR, Error::NOLASTLINE,
+                     "Fix propel/self with option quat requires extended particles");
   }
 }
 

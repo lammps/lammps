@@ -1,23 +1,16 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_TEST_SIMD_MATH_OPS_HPP
 #define KOKKOS_TEST_SIMD_MATH_OPS_HPP
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.simd;
+import kokkos.simd_impl;
+#else
 #include <Kokkos_SIMD.hpp>
+#endif
 #include <SIMDTesting_Utilities.hpp>
 
 template <class Abi, class Loader, class TernaryOp, class T>
@@ -47,9 +40,9 @@ void host_check_math_op_one_loader(TernaryOp ternary_op, std::size_t n,
           T(first_arg[lane]), T(second_arg[lane]), T(third_arg[lane]));
     }
 
-    simd_type expected_result;
-    expected_result.copy_from(expected_val,
-                              Kokkos::Experimental::simd_flag_default);
+    simd_type expected_result =
+        Kokkos::Experimental::simd_unchecked_load<simd_type>(
+            expected_val, Kokkos::Experimental::simd_flag_default);
 
     simd_type const computed_result =
         ternary_op.on_host(first_arg, second_arg, third_arg);
@@ -89,10 +82,9 @@ void host_check_math_op_one_loader(BinaryOp binary_op, std::size_t n,
           binary_op.on_host(T(first_arg[lane]), T(second_arg[lane]));
     }
 
-    simd_type expected_result;
-    expected_result.copy_from(expected_val,
-                              Kokkos::Experimental::simd_flag_default);
-
+    simd_type expected_result =
+        Kokkos::Experimental::simd_unchecked_load<simd_type>(
+            expected_val, Kokkos::Experimental::simd_flag_default);
     simd_type const computed_result = binary_op.on_host(first_arg, second_arg);
     host_check_equality(expected_result, computed_result, nlanes);
   }
@@ -102,7 +94,8 @@ template <class Abi, class Loader, class UnaryOp, class T>
 void host_check_math_op_one_loader(UnaryOp unary_op, std::size_t n,
                                    T const* args) {
   Loader loader;
-  using simd_type             = Kokkos::Experimental::basic_simd<T, Abi>;
+  using simd_type = Kokkos::Experimental::basic_simd<T, Abi>;
+
   constexpr std::size_t width = simd_type::size();
   for (std::size_t i = 0; i < n; i += width) {
     std::size_t const nremaining = n - i;
@@ -135,15 +128,17 @@ void host_check_math_op_one_loader(UnaryOp unary_op, std::size_t n,
       arg = Kokkos::abs(arg) + simd_type(1.0);
     }
 
-    typename decltype(unary_op.on_host(arg))::value_type expected_val[width];
+    auto unary_op_result   = unary_op.on_host(arg);
+    using result_simd_type = decltype(unary_op_result);
+
+    typename result_simd_type::value_type expected_val[width];
     for (std::size_t lane = 0; lane < width; ++lane) {
       expected_val[lane] = unary_op.on_host_serial(T(arg[lane]));
     }
 
-    decltype(unary_op.on_host(arg)) expected_result;
-    expected_result.copy_from(expected_val,
-                              Kokkos::Experimental::simd_flag_default);
-
+    result_simd_type expected_result =
+        Kokkos::Experimental::simd_unchecked_load<result_simd_type>(
+            expected_val, Kokkos::Experimental::simd_flag_default);
     auto computed_result = unary_op.on_host(arg);
     host_check_equality(expected_result, computed_result, nlanes);
   }

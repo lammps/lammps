@@ -1,22 +1,14 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <sstream>
 #include <iostream>
 
@@ -950,10 +942,18 @@ class TestViewAPI {
 
   static void run_test_mirror() {
     using view_type   = Kokkos::View<int, host>;
-    using mirror_type = typename view_type::HostMirror;
+    using mirror_type = typename view_type::host_mirror_type;
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+#endif
     static_assert(std::is_same_v<typename view_type::HostMirror,
                                  typename view_type::host_mirror_type>);
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
+#endif
 
     static_assert(std::is_same_v<typename view_type::memory_space,
                                  typename mirror_type::memory_space>);
@@ -968,7 +968,7 @@ class TestViewAPI {
   }
 
   static void run_test_scalar() {
-    using hView0 = typename dView0::HostMirror;
+    using hView0 = typename dView0::host_mirror_type;
 
     dView0 dx, dy;
     hView0 hx, hy;
@@ -990,17 +990,17 @@ class TestViewAPI {
   }
 
   static void run_test_contruction_from_layout() {
-    using hView0 = typename dView0::HostMirror;
-    using hView1 = typename dView1::HostMirror;
-    using hView2 = typename dView2::HostMirror;
-    using hView3 = typename dView3::HostMirror;
-    using hView4 = typename dView4::HostMirror;
+    using hView0 = typename dView0::host_mirror_type;
+    using hView1 = typename dView1::host_mirror_type;
+    using hView2 = typename dView2::host_mirror_type;
+    using hView3 = typename dView3::host_mirror_type;
+    using hView4 = typename dView4::host_mirror_type;
 
-    hView0 hv_0("dView0::HostMirror");
-    hView1 hv_1("dView1::HostMirror", N0);
-    hView2 hv_2("dView2::HostMirror", N0);
-    hView3 hv_3("dView3::HostMirror", N0);
-    hView4 hv_4("dView4::HostMirror", N0);
+    hView0 hv_0("dView0::host_mirror_type");
+    hView1 hv_1("dView1::host_mirror_type", N0);
+    hView2 hv_2("dView2::host_mirror_type", N0);
+    hView3 hv_3("dView3::host_mirror_type", N0);
+    hView4 hv_4("dView4::host_mirror_type", N0);
 
     dView0 dummy("dummy");
     dView0 dv_0_1(dummy.data());
@@ -1082,11 +1082,11 @@ class TestViewAPI {
     // usual "(void)" marker to avoid compiler warnings for unused
     // variables.
 
-    using hView0 = typename dView0::HostMirror;
-    using hView1 = typename dView1::HostMirror;
-    using hView2 = typename dView2::HostMirror;
-    using hView3 = typename dView3::HostMirror;
-    using hView4 = typename dView4::HostMirror;
+    using hView0 = typename dView0::host_mirror_type;
+    using hView1 = typename dView1::host_mirror_type;
+    using hView2 = typename dView2::host_mirror_type;
+    using hView3 = typename dView3::host_mirror_type;
+    using hView4 = typename dView4::host_mirror_type;
 
     {
       hView0 thing;

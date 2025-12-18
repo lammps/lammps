@@ -278,7 +278,7 @@ commands to see which ones are relevant.  Current examples of fixes
 that can be used include:
 
 * :doc:`fix addforce <fix_addforce>`
-* :doc:`fix addtorque <fix_addtorque>`
+* :doc:`fix addtorque/group <fix_addtorque_group>`
 * :doc:`fix efield <fix_efield>`
 * :doc:`fix enforce2d <fix_enforce2d>`
 * :doc:`fix indent <fix_indent>`

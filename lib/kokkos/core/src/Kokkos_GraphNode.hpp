@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
@@ -32,6 +19,7 @@ static_assert(false,
 #include <Kokkos_Parallel_Reduce.hpp>
 #include <impl/Kokkos_GraphImpl_Utilities.hpp>
 #include <impl/Kokkos_GraphImpl.hpp>  // GraphAccess
+#include <impl/Kokkos_GraphNodeThenPolicy.hpp>
 
 #include <memory>  // std::shared_ptr
 
@@ -133,14 +121,14 @@ class GraphNodeRef {
 
   template <class NextKernelDeduced>
   auto _then_kernel(NextKernelDeduced&& arg_kernel) const {
-    static_assert(Kokkos::Impl::is_graph_kernel_v<
-                      Kokkos::Impl::remove_cvref_t<NextKernelDeduced>>,
-                  "Kokkos internal error");
+    static_assert(
+        Kokkos::Impl::is_graph_kernel_v<std::remove_cvref_t<NextKernelDeduced>>,
+        "Kokkos internal error");
 
     auto graph_ptr = m_graph_impl.lock();
     KOKKOS_EXPECTS(bool(graph_ptr))
 
-    using next_kernel_t = Kokkos::Impl::remove_cvref_t<NextKernelDeduced>;
+    using next_kernel_t = std::remove_cvref_t<NextKernelDeduced>;
 
     using return_t = GraphNodeRef<ExecutionSpace, next_kernel_t, GraphNodeRef>;
 
@@ -229,30 +217,71 @@ class GraphNodeRef {
 
   // TODO We should do better than a p-for (that uses registers, heavier).
   //      This should "just" launch the function on device with our driver.
-  template <typename Label, typename Functor,
-            typename = std::enable_if_t<std::is_invocable_r_v<
-                void, const Kokkos::Impl::remove_cvref_t<Functor>>>>
-  auto then(Label&& label, const ExecutionSpace& exec,
+  template <
+      typename Label, typename Policy, typename Functor,
+      std::enable_if_t<
+          std::is_invocable_r_v<void, const std::remove_cvref_t<Functor>> &&
+              Kokkos::Impl::is_view_label_v<std::remove_cvref_t<Label>> &&
+              Kokkos::Impl::is_specialization_of_v<Policy, ThenPolicy>,
+          int> = 0>
+  auto then(Label&& label, const ExecutionSpace& exec, Policy&& policy,
             Functor&& functor) const {
     using next_kernel_t =
         Kokkos::Impl::GraphNodeThenImpl<ExecutionSpace,
-                                        Kokkos::Impl::remove_cvref_t<Functor>>;
-    return this->_then_kernel(next_kernel_t{std::forward<Label>(label), exec,
-                                            std::forward<Functor>(functor)});
+                                        std::remove_cvref_t<Policy>,
+                                        std::remove_cvref_t<Functor>>;
+    return this->_then_kernel(next_kernel_t(std::forward<Label>(label), exec,
+                                            std::forward<Policy>(policy),
+                                            std::forward<Functor>(functor)));
   }
 
-  template <typename Label, typename Functor,
-            typename = std::enable_if_t<std::is_invocable_r_v<
-                void, const Kokkos::Impl::remove_cvref_t<Functor>>>>
+  // Overload for a label.
+  template <
+      typename Label, typename Functor,
+      std::enable_if_t<
+          Kokkos::Impl::is_view_label_v<std::remove_cvref_t<Label>>, int> = 0>
   auto then(Label&& label, Functor&& functor) const {
     return this->then(std::forward<Label>(label), ExecutionSpace{},
+                      ThenPolicy{}, std::forward<Functor>(functor));
+  }
+
+  // Overload for a policy.
+  template <typename Policy, typename Functor,
+            std::enable_if_t<Kokkos::Impl::is_specialization_of_v<
+                                 std::remove_cvref_t<Policy>, ThenPolicy>,
+                             int> = 0>
+  auto then(Policy&& policy, Functor&& functor) const {
+    return this->then(std::string{}, ExecutionSpace{},
+                      std::forward<Policy>(policy),
+                      std::forward<Functor>(functor));
+  }
+
+  // Overload for a label and a policy.
+  template <typename Label, typename Policy, typename Functor,
+            std::enable_if_t<
+                Kokkos::Impl::is_specialization_of_v<
+                    std::remove_cvref_t<Policy>, ThenPolicy> &&
+                    Kokkos::Impl::is_view_label_v<std::remove_cvref_t<Label>>,
+                int> = 0>
+  auto then(Label&& label, Policy&& policy, Functor&& functor) const {
+    return this->then(std::forward<Label>(label), ExecutionSpace{},
+                      std::forward<Policy>(policy),
+                      std::forward<Functor>(functor));
+  }
+
+  // Overload without policy given.
+  template <typename Label, typename Functor>
+  auto then(Label&& label, const ExecutionSpace& exec,
+            Functor&& functor) const {
+    return this->then(std::forward<Label>(label), exec, ThenPolicy{},
                       std::forward<Functor>(functor));
   }
 
   template <typename Label, typename Functor>
   auto then_host(Label&&, Functor&& functor) const {
-    using host_t = Kokkos::Impl::GraphNodeThenHostImpl<
-        ExecutionSpace, Kokkos::Impl::remove_cvref_t<Functor>>;
+    using host_t =
+        Kokkos::Impl::GraphNodeThenHostImpl<ExecutionSpace,
+                                            std::remove_cvref_t<Functor>>;
     using return_t = GraphNodeRef<ExecutionSpace, host_t, GraphNodeRef>;
 
     auto graph_ptr = m_graph_impl.lock();
@@ -277,25 +306,25 @@ class GraphNodeRef {
     return rv;
   }
 
-#if defined(KOKKOS_ENABLE_CUDA) ||                                           \
-    (defined(KOKKOS_ENABLE_HIP) && defined(KOKKOS_IMPL_HIP_NATIVE_GRAPH)) || \
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
     (defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_SYCL_GRAPH_SUPPORT))
-  template <class Functor,
-            typename = std::enable_if_t<std::is_invocable_r_v<
-                void, const Kokkos::Impl::remove_cvref_t<Functor>,
-                const ExecutionSpace&>>>
+  template <
+      class Functor,
+      typename = std::enable_if_t<std::is_invocable_r_v<
+          void, const std::remove_cvref_t<Functor>, const ExecutionSpace&>>>
 #if defined(KOKKOS_ENABLE_CUDA)
   auto cuda_capture(const ExecutionSpace& exec, Functor&& functor) const {
     if constexpr (std::is_same_v<ExecutionSpace, Kokkos::Cuda>) {
-#elif defined(KOKKOS_ENABLE_HIP) && defined(KOKKOS_IMPL_HIP_NATIVE_GRAPH)
+#elif defined(KOKKOS_ENABLE_HIP)
   auto hip_capture(const ExecutionSpace& exec, Functor&& functor) const {
     if constexpr (std::is_same_v<ExecutionSpace, Kokkos::HIP>) {
 #elif defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_SYCL_GRAPH_SUPPORT)
   auto sycl_capture(const ExecutionSpace& exec, Functor&& functor) const {
     if constexpr (std::is_same_v<ExecutionSpace, Kokkos::SYCL>) {
 #endif
-      using capture_t = Kokkos::Impl::GraphNodeCaptureImpl<
-          ExecutionSpace, Kokkos::Impl::remove_cvref_t<Functor>>;
+      using capture_t =
+          Kokkos::Impl::GraphNodeCaptureImpl<ExecutionSpace,
+                                             std::remove_cvref_t<Functor>>;
       using return_t = GraphNodeRef<ExecutionSpace, capture_t, GraphNodeRef>;
 
       auto graph_ptr = m_graph_impl.lock();
@@ -322,14 +351,13 @@ class GraphNodeRef {
   }
 #endif
 
-  template <
-      class Policy, class Functor,
-      std::enable_if_t<
-          // equivalent to:
-          //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
-          is_execution_policy<Kokkos::Impl::remove_cvref_t<Policy>>::value,
-          // --------------------
-          int> = 0>
+  template <class Policy, class Functor,
+            std::enable_if_t<
+                // equivalent to:
+                //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
+                is_execution_policy<std::remove_cvref_t<Policy>>::value,
+                // --------------------
+                int> = 0>
   auto then_parallel_for(std::string arg_name, Policy&& arg_policy,
                          Functor&& functor) const {
     //----------------------------------------
@@ -342,7 +370,7 @@ class GraphNodeRef {
 
     // needs to static assert constraint: DataParallelFunctor<Functor>
 
-    using policy_t = Kokkos::Impl::remove_cvref_t<Policy>;
+    using policy_t = std::remove_cvref_t<Policy>;
     // constraint check: same execution space type (or defaulted, maybe?)
     static_assert(
         std::is_same_v<typename policy_t::execution_space, execution_space>,
@@ -363,14 +391,13 @@ class GraphNodeRef {
                                             (Policy&&)policy});
   }
 
-  template <
-      class Policy, class Functor,
-      std::enable_if_t<
-          // equivalent to:
-          //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
-          is_execution_policy<Kokkos::Impl::remove_cvref_t<Policy>>::value,
-          // --------------------
-          int> = 0>
+  template <class Policy, class Functor,
+            std::enable_if_t<
+                // equivalent to:
+                //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
+                is_execution_policy<std::remove_cvref_t<Policy>>::value,
+                // --------------------
+                int> = 0>
   auto then_parallel_for(Policy&& policy, Functor&& functor) const {
     // needs to static assert constraint: DataParallelFunctor<Functor>
     return this->then_parallel_for("", (Policy&&)policy, (Functor&&)functor);
@@ -407,14 +434,13 @@ class GraphNodeRef {
       return static_cast<T2&&>(v2);
   }
 
-  template <
-      class Policy, class Functor, class ReturnType,
-      std::enable_if_t<
-          // equivalent to:
-          //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
-          is_execution_policy<Kokkos::Impl::remove_cvref_t<Policy>>::value,
-          // --------------------
-          int> = 0>
+  template <class Policy, class Functor, class ReturnType,
+            std::enable_if_t<
+                // equivalent to:
+                //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
+                is_execution_policy<std::remove_cvref_t<Policy>>::value,
+                // --------------------
+                int> = 0>
   auto then_parallel_reduce(std::string arg_name, Policy&& arg_policy,
                             Functor&& functor,
                             ReturnType&& return_value) const {
@@ -482,7 +508,7 @@ class GraphNodeRef {
         std::conditional_t<Kokkos::is_reducer<return_type_remove_cvref>::value,
                            return_type_remove_cvref,
                            const return_type_remove_cvref>;
-    using functor_type = Kokkos::Impl::remove_cvref_t<Functor>;
+    using functor_type = std::remove_cvref_t<Functor>;
     // see Kokkos_Parallel_Reduce.hpp for how these details are used there;
     // we're just doing the same thing here
     using return_value_adapter =
@@ -524,14 +550,13 @@ class GraphNodeRef {
         return_value_adapter::return_value(return_value, functor)});
   }
 
-  template <
-      class Policy, class Functor, class ReturnType,
-      std::enable_if_t<
-          // equivalent to:
-          //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
-          is_execution_policy<Kokkos::Impl::remove_cvref_t<Policy>>::value,
-          // --------------------
-          int> = 0>
+  template <class Policy, class Functor, class ReturnType,
+            std::enable_if_t<
+                // equivalent to:
+                //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
+                is_execution_policy<std::remove_cvref_t<Policy>>::value,
+                // --------------------
+                int> = 0>
   auto then_parallel_reduce(Policy&& arg_policy, Functor&& functor,
                             ReturnType&& return_value) const {
     return this->then_parallel_reduce("", (Policy&&)arg_policy,

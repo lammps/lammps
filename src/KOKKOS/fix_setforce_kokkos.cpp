@@ -28,8 +28,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NONE,CONSTANT,EQUAL,ATOM};
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -186,4 +184,3 @@ template class FixSetForceKokkos<LMPDeviceType>;
 template class FixSetForceKokkos<LMPHostType>;
 #endif
 }
-

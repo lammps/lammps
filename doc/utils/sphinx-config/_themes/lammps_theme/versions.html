@@ -8,19 +8,19 @@
     </span>
     <div class="rst-other-versions">
       <dl>
-        <dt>{{ _('Versions') }}</dt>
+        <dt>LAMMPS Branch:</dt>
         {% for slug, url in versions %}
           <dd><a href="{{ url }}">{{ slug }}</a></dd>
         {% endfor %}
       </dl>
       <dl>
-        <dt>{{ _('Downloads') }}</dt>
+        <dt>Downloads:</dt>
         {% for type, url in downloads %}
           <dd><a href="{{ url }}">{{ type }}</a></dd>
         {% endfor %}
       </dl>
       <dl>
-        <dt>Git Info</dt>
+        <dt>Git Info:</dt>
         <dd><a href="https://github.com/lammps/lammps/tree/{{ git_commit }}" target="_blank">{{ release }}</a></dd>
       </dl>
     </div>

@@ -256,6 +256,17 @@ template<class DeviceType>
 void AngleCharmmKokkos<DeviceType>::allocate()
 {
   AngleCharmm::allocate();
+
+  int n = atom->nangletypes;
+  k_k = DAT::tdual_kkfloat_1d("AngleCharmm::k",n+1);
+  k_theta0 = DAT::tdual_kkfloat_1d("AngleCharmm::theta0",n+1);
+  k_k_ub = DAT::tdual_kkfloat_1d("AngleCharmm::k_ub",n+1);
+  k_r_ub = DAT::tdual_kkfloat_1d("AngleCharmm::r_ub",n+1);
+
+  d_k = k_k.template view<DeviceType>();
+  d_theta0 = k_theta0.template view<DeviceType>();
+  d_k_ub = k_k_ub.template view<DeviceType>();
+  d_r_ub = k_r_ub.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -267,18 +278,10 @@ void AngleCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   AngleCharmm::coeff(narg, arg);
 
-  int n = atom->nangletypes;
-  DAT::tdual_kkfloat_1d k_k("AngleCharmm::k",n+1);
-  DAT::tdual_kkfloat_1d k_theta0("AngleCharmm::theta0",n+1);
-  DAT::tdual_kkfloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
-  DAT::tdual_kkfloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
+  int ilo,ihi;
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  d_k = k_k.template view<DeviceType>();
-  d_theta0 = k_theta0.template view<DeviceType>();
-  d_k_ub = k_k_ub.template view<DeviceType>();
-  d_r_ub = k_r_ub.template view<DeviceType>();
-
-  for (int i = 1; i <= n; i++) {
+  for (int i = ilo; i <= ihi; i++) {
     k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
     k_theta0.view_host()[i] = static_cast<KK_FLOAT>(theta0[i]);
     k_k_ub.view_host()[i] = static_cast<KK_FLOAT>(k_ub[i]);

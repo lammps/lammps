@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 
@@ -239,21 +226,11 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
 
     ASSERT_TRUE(intraTeamSentinelView_h(i));
 
-// libstdc++ as provided by GCC 8 does not have reduce, transform_reduce,
-// exclusive_scan, inclusive_scan, transform_exclusive_scan,
-// transform_inclusive_scan and for GCC 9.1, 9.2 fails to compile them for
-// missing overload not accepting policy
-#if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE <= 9)
-#define transform_reduce testing_transform_reduce
-#else
-#define transform_reduce std::transform_reduce
-#endif
-
     switch (apiId) {
       case 0:
       case 1: {
-        const auto result = transform_reduce(firstDataRowBegin, firstDataRowEnd,
-                                             secondDataRowBegin, initVal);
+        const auto result = std::transform_reduce(
+            firstDataRowBegin, firstDataRowEnd, secondDataRowBegin, initVal);
 
         if constexpr (std::is_floating_point_v<ValueType>) {
           EXPECT_FLOAT_EQ(result, resultsView_h(i));
@@ -266,7 +243,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
 
       case 2:
       case 3: {
-        const ValueType result = transform_reduce(
+        const ValueType result = std::transform_reduce(
             firstDataRowBegin, firstDataRowEnd, secondDataRowBegin, initVal,
             binaryJoiner, binaryTransform);
 
@@ -282,8 +259,8 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
       case 4:
       case 5: {
         const ValueType result =
-            transform_reduce(firstDataRowBegin, firstDataRowEnd, initVal,
-                             binaryJoiner, unaryTransform);
+            std::transform_reduce(firstDataRowBegin, firstDataRowEnd, initVal,
+                                  binaryJoiner, unaryTransform);
 
         if constexpr (std::is_floating_point_v<ValueType>) {
           EXPECT_FLOAT_EQ(result, resultsView_h(i));
@@ -295,8 +272,6 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
       }
       default: Kokkos::abort("unreachable");
     }
-
-#undef transform_reduce
   }
 }
 

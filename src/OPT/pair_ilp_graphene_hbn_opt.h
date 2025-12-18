@@ -39,6 +39,7 @@ class PairILPGrapheneHBNOpt : virtual public PairILPGrapheneHBN {
                         double (*dnormdri)[3], double (*dnormdrk)[3][3]);
   template <int MAX_NNEIGH, int EFLAG, int VFLAG_EITHER, int TAP_FLAG, int VARIANT = ILP_GrhBN>
   void eval();
+  void coeff(int narg, char **args) override;
   int *layered_neigh;
   int **first_layered_neigh;
   int *special_type;
@@ -48,7 +49,7 @@ class PairILPGrapheneHBNOpt : virtual public PairILPGrapheneHBN {
   enum special_type_const {
     NOT_SPECIAL = 0,
     TMD_METAL,
-    SAIP_BNCH,
+    SAIP_METAL,
     WATER,
   };
 };

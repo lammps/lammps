@@ -30,6 +30,7 @@
 #include "neighbor.h"
 #include "pair.h"
 #include "random_park.h"
+#include "suffix.h"
 #include "update.h"
 
 #include <cmath>
@@ -136,6 +137,9 @@ int FixMolSwap::setmask()
 
 void FixMolSwap::init()
 {
+  if (force->pair && (force->pair->suffix_flag & Suffix::INTEL))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
+
   // c_pe = compute used to calculate before/after potential energy
 
   auto *id_pe = (char *) "thermo_pe";

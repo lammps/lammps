@@ -38,7 +38,7 @@ endif
 
 # Package variables
 
-# PACKAGE    = all packages
+# PACKAGE    = all supported packages
 # PACKBASIC  = a few core packages
 # PACKMOST   = most packages that do not require additional libs
 # PACKLIB    = all packages that require an additional lib
@@ -81,7 +81,6 @@ PACKAGE = \
 	granular \
 	intel \
 	interlayer \
-	kokkos \
 	latboltz \
 	manifold \
 	manybody \
@@ -183,11 +182,11 @@ PACKMOST = \
 # NOTE ^^^^^: the last three packages must remain at the end since
 # they depend on other packages to be installed first.
 
-PACKLIB = kokkos adios latboltz
+PACKLIB = adios latboltz
 
 PACKSYS = latboltz
 
-PACKINT = kokkos
+PACKINT =
 
 PACKEXT = adios
 

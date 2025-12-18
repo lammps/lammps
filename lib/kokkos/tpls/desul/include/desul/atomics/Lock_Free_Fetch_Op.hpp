@@ -26,7 +26,7 @@ namespace Impl {
             class T,                                                                 \
             class MemoryOrder,                                                       \
             class MemoryScope,                                                       \
-            std::enable_if_t<atomic_always_lock_free(sizeof(T)), int> = 0>           \
+            std::enable_if_t<HOST_OR_DEVICE##_atomic_always_lock_free<T>, int> = 0>  \
   ANNOTATION T HOST_OR_DEVICE##_atomic_fetch_oper(                                   \
       const Oper& op,                                                                \
       T* const dest,                                                                 \

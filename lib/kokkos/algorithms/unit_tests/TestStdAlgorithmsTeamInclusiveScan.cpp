@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include "std_algorithms/Kokkos_BeginEnd.hpp"
@@ -218,18 +205,10 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
 
     ASSERT_TRUE(intraTeamSentinelView_h(i));
 
-// libstdc++ as provided by GCC 8 does not have inclusive_scan and
-// for GCC 9.1, 9.2 fails to compile for missing overload not accepting policy
-#if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE <= 9)
-#define inclusive_scan testing_inclusive_scan
-#else
-#define inclusive_scan std::inclusive_scan
-#endif
-
     switch (apiId) {
       case 0:
       case 1: {
-        auto it                       = inclusive_scan(first, last, firstDest);
+        auto it = std::inclusive_scan(first, last, firstDest);
         const std::size_t stdDistance = KE::distance(firstDest, it);
         ASSERT_EQ(stdDistance, distancesView_h(i));
 
@@ -238,7 +217,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
 
       case 2:
       case 3: {
-        auto it = inclusive_scan(first, last, firstDest, binaryOp);
+        auto it = std::inclusive_scan(first, last, firstDest, binaryOp);
         const std::size_t stdDistance = KE::distance(firstDest, it);
         ASSERT_EQ(stdDistance, distancesView_h(i));
 
@@ -247,7 +226,8 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
 
       case 4:
       case 5: {
-        auto it = inclusive_scan(first, last, firstDest, binaryOp, initValue);
+        auto it =
+            std::inclusive_scan(first, last, firstDest, binaryOp, initValue);
         const std::size_t stdDistance = KE::distance(firstDest, it);
         ASSERT_EQ(stdDistance, distancesView_h(i));
 
@@ -255,8 +235,6 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
       }
       default: Kokkos::abort("unreachable");
     }
-
-#undef inclusive_scan
   }
 
   if constexpr (std::is_same_v<InPlaceOrVoid, InPlace>) {

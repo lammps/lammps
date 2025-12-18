@@ -84,25 +84,27 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     iarg = 4;
   }
 
-  if (strcmp(arg[iarg], "sum") == 0)
+  modestr = arg[iarg];
+
+  if (modestr == "sum")
     mode = SUM;
-  else if (strcmp(arg[iarg], "sumsq") == 0)
+  else if (modestr == "sumsq")
     mode = SUMSQ;
-  else if (strcmp(arg[iarg], "sumabs") == 0)
+  else if (modestr == "sumabs")
     mode = SUMABS;
-  else if (strcmp(arg[iarg], "min") == 0)
+  else if (modestr == "min")
     mode = MINN;
-  else if (strcmp(arg[iarg], "max") == 0)
+  else if (modestr == "max")
     mode = MAXX;
-  else if (strcmp(arg[iarg], "ave") == 0)
+  else if (modestr == "ave")
     mode = AVE;
-  else if (strcmp(arg[iarg], "avesq") == 0)
+  else if (modestr == "avesq")
     mode = AVESQ;
-  else if (strcmp(arg[iarg], "aveabs") == 0)
+  else if (modestr == "aveabs")
     mode = AVEABS;
-  else if (strcmp(arg[iarg], "maxabs") == 0)
+  else if (modestr == "maxabs")
     mode = MAXABS;
-  else if (strcmp(arg[iarg], "minabs") == 0)
+  else if (modestr == "minabs")
     mode = MINABS;
   else
     error->all(FLERR, iarg, "Unknown compute {} mode: {}", style, arg[iarg]);
@@ -372,6 +374,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   }
 
   maxatom = 0;
+  thermo_modify_colname = 1;
   varatom = nullptr;
 }
 
@@ -686,6 +689,26 @@ double ComputeReduce::compute_one(int m, int flag)
   }
 
   return one;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string ComputeReduce::get_thermo_colname(int m) {
+  if (replace && replace[m] >= 0) {
+    auto &val1 = values[m];
+    auto &val2 = values[replace[m]];
+    std::string val1string = fmt::format("c_{}", val1.id);
+    if (val1.argindex) val1string += fmt::format("[{}]", val1.argindex);
+    std::string val2string = fmt::format("c_{}", val2.id);
+    if (val2.argindex) val2string += fmt::format("[{}]", val2.argindex);
+    return fmt::format("c_{}:{}<-{}({})", id, val1string, modestr, val2string);
+  }
+
+  if (m == -1) m = 0; // scalar
+  auto &val = values[m];
+  std::string valstring = fmt::format("c_{}", val.id);
+  if (val.argindex) valstring += fmt::format("[{}]", val.argindex);
+  return fmt::format("c_{}:{}({})", id, modestr, valstring);
 }
 
 /* ---------------------------------------------------------------------- */

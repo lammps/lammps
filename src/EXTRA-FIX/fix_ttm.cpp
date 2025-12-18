@@ -16,6 +16,7 @@
    Contributing authors: Paul Crozier (SNL)
                          Carolyn Phillips (University of Michigan)
 ------------------------------------------------------------------------- */
+// clang-format on
 
 #include "fix_ttm.h"
 
@@ -25,9 +26,9 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "potential_file_reader.h"
 #include "random_mars.h"
 #include "respa.h"
-#include "potential_file_reader.h"
 #include "update.h"
 
 #include <cmath>
@@ -49,14 +50,10 @@ static constexpr double SHIFT = 0.0;
 /* ---------------------------------------------------------------------- */
 
 FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  random(nullptr),
-  gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), flangevin(nullptr),
-  T_electron(nullptr), T_electron_old(nullptr),
-  net_energy_transfer(nullptr), net_energy_transfer_all(nullptr)
+    Fix(lmp, narg, arg), random(nullptr), gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr),
+    flangevin(nullptr), T_electron(nullptr), T_electron_old(nullptr), net_energy_transfer(nullptr),
+    net_energy_transfer_all(nullptr)
 {
-  if (narg < 13) error->all(FLERR,"Illegal fix ttm command");
-
   vector_flag = 1;
   size_vector = 2;
   global_freq = 1;
@@ -64,95 +61,99 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   nevery = 1;
   restart_peratom = 1;
   restart_global = 1;
-
-  seed = utils::inumeric(FLERR,arg[3],false,lmp);
-  electronic_specific_heat = utils::numeric(FLERR,arg[4],false,lmp);
-  electronic_density = utils::numeric(FLERR,arg[5],false,lmp);
-  electronic_thermal_conductivity = utils::numeric(FLERR,arg[6],false,lmp);
-  gamma_p = utils::numeric(FLERR,arg[7],false,lmp);
-  gamma_s = utils::numeric(FLERR,arg[8],false,lmp);
-  v_0 = utils::numeric(FLERR,arg[9],false,lmp);
-  nxgrid = utils::inumeric(FLERR,arg[10],false,lmp);
-  nygrid = utils::inumeric(FLERR,arg[11],false,lmp);
-  nzgrid = utils::inumeric(FLERR,arg[12],false,lmp);
-
   tinit = 0.0;
-  infile = outfile = nullptr;
+  gamma_p = 0.0;
 
-  int iarg = 13;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"set") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ttm command");
-      tinit = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (tinit <= 0.0)
-        error->all(FLERR,"Fix ttm initial temperature must be > 0.0");
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"infile") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ttm command");
-      infile = utils::strdup(arg[iarg+1]);
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"outfile") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix ttm command");
-      outevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      outfile = utils::strdup(arg[iarg+2]);
-      iarg += 3;
-    } else error->all(FLERR,"Illegal fix ttm command");
+  // don't parse arguments for FixTTMThermal
+  if (!utils::strmatch(style, "^ttm/thermal")) {
+    std::string mystyle = fmt::format("fix {}", style);
+    if (narg < 13) utils::missing_cmd_args(FLERR, mystyle, error);
+
+    seed = utils::inumeric(FLERR, arg[3], false, lmp);
+    electronic_specific_heat = utils::numeric(FLERR, arg[4], false, lmp);
+    electronic_density = utils::numeric(FLERR, arg[5], false, lmp);
+    electronic_thermal_conductivity = utils::numeric(FLERR, arg[6], false, lmp);
+    gamma_p = utils::numeric(FLERR, arg[7], false, lmp);
+    gamma_s = utils::numeric(FLERR, arg[8], false, lmp);
+    v_0 = utils::numeric(FLERR, arg[9], false, lmp);
+    nxgrid = utils::inumeric(FLERR, arg[10], false, lmp);
+    nygrid = utils::inumeric(FLERR, arg[11], false, lmp);
+    nzgrid = utils::inumeric(FLERR, arg[12], false, lmp);
+
+    int iarg = 13;
+    while (iarg < narg) {
+      if (strcmp(arg[iarg], "set") == 0) {
+        if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, mystyle + " set", error);
+        tinit = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+        if (tinit <= 0.0)
+          error->all(FLERR, iarg + 1, "Fix {} initial temperature must be > 0.0", style);
+        iarg += 2;
+      } else if (strcmp(arg[iarg], "infile") == 0) {
+        if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, mystyle + " infile", error);
+        infile = arg[iarg + 1];
+        iarg += 2;
+      } else if (strcmp(arg[iarg], "outfile") == 0) {
+        if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, mystyle + " outfile", error);
+        outevery = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+        outfile = arg[iarg + 2];
+        iarg += 3;
+      } else
+        error->all(FLERR, iarg, "Unknown fix {} keyword {}", style, arg[iarg]);
+    }
+
+    // error check
+
+    if (seed <= 0) error->all(FLERR, 3, "Invalid random number seed in fix ttm command");
+    if (electronic_specific_heat <= 0.0)
+      error->all(FLERR, 4, "Fix {} electronic_specific_heat must be > 0.0", style);
+    if (electronic_density <= 0.0)
+      error->all(FLERR, 5, "Fix {} electronic_density must be > 0.0", style);
+    if (electronic_thermal_conductivity < 0.0)
+      error->all(FLERR, 6, "Fix {} electronic_thermal_conductivity must be >= 0.0", style);
+    if (gamma_p <= 0.0) error->all(FLERR, 7, "Fix {} gamma_p must be > 0.0", style);
+    if (gamma_s < 0.0) error->all(FLERR, 8, "Fix {} gamma_s must be >= 0.0", style);
+    if (v_0 < 0.0) error->all(FLERR, 9, "Fix {} v_0 must be >= 0.0", style);
+    if (nxgrid <= 0 || nygrid <= 0 || nzgrid <= 0)
+      error->all(FLERR, Error::NOPOINTER, "Fix {} grid sizes must be all > 0", style);
+
+    v_0_sq = v_0 * v_0;
+
+    // grid OFFSET to perform
+    // SHIFT to map atom to nearest or lower-left grid point
+
+    shift = OFFSET + SHIFT;
+
+    // initialize Marsaglia RNG with processor-unique seed
+
+    random = new RanMars(lmp, seed + comm->me);
+
+    // allocate per-type arrays for force prefactors
+
+    gfactor1 = new double[atom->ntypes + 1];
+    gfactor2 = new double[atom->ntypes + 1];
+
+    // check for allowed maximum number of total grid points
+
+    bigint totalgrid = (bigint) nxgrid * nygrid * nzgrid;
+    if (totalgrid > MAXSMALLINT) error->all(FLERR, "Too many grid points in fix ttm");
+    ngridtotal = totalgrid;
+
+    // allocate per-atom flangevin and zero it
+
+    flangevin = nullptr;
+    FixTTM::grow_arrays(atom->nmax);
+
+    for (int i = 0; i < atom->nmax; i++) {
+      flangevin[i][0] = 0.0;
+      flangevin[i][1] = 0.0;
+      flangevin[i][2] = 0.0;
+    }
+
+    // set 2 callbacks
+
+    atom->add_callback(Atom::GROW);
+    atom->add_callback(Atom::RESTART);
   }
-
-  // error check
-
-  if (seed <= 0)
-    error->all(FLERR,"Invalid random number seed in fix ttm command");
-  if (electronic_specific_heat <= 0.0)
-    error->all(FLERR,"Fix ttm electronic_specific_heat must be > 0.0");
-  if (electronic_density <= 0.0)
-    error->all(FLERR,"Fix ttm electronic_density must be > 0.0");
-  if (electronic_thermal_conductivity < 0.0)
-    error->all(FLERR,"Fix ttm electronic_thermal_conductivity must be >= 0.0");
-  if (gamma_p <= 0.0) error->all(FLERR,"Fix ttm gamma_p must be > 0.0");
-  if (gamma_s < 0.0) error->all(FLERR,"Fix ttm gamma_s must be >= 0.0");
-  if (v_0 < 0.0) error->all(FLERR,"Fix ttm v_0 must be >= 0.0");
-  if (nxgrid <= 0 || nygrid <= 0 || nzgrid <= 0)
-    error->all(FLERR,"Fix ttm grid sizes must be > 0");
-
-  v_0_sq = v_0*v_0;
-
-  // grid OFFSET to perform
-  // SHIFT to map atom to nearest or lower-left grid point
-
-  shift = OFFSET + SHIFT;
-
-  // initialize Marsaglia RNG with processor-unique seed
-
-  random = new RanMars(lmp,seed + comm->me);
-
-  // allocate per-type arrays for force prefactors
-
-  gfactor1 = new double[atom->ntypes+1];
-  gfactor2 = new double[atom->ntypes+1];
-
-  // check for allowed maximum number of total grid points
-
-  bigint totalgrid = (bigint) nxgrid * nygrid * nzgrid;
-  if (totalgrid > MAXSMALLINT)
-    error->all(FLERR,"Too many grid points in fix ttm");
-  ngridtotal = totalgrid;
-
-  // allocate per-atom flangevin and zero it
-
-  flangevin = nullptr;
-  FixTTM::grow_arrays(atom->nmax);
-
-  for (int i = 0; i < atom->nmax; i++) {
-    flangevin[i][0] = 0.0;
-    flangevin[i][1] = 0.0;
-    flangevin[i][2] = 0.0;
-  }
-
-  // set 2 callbacks
-
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
 
   // determines which class deallocate_grid() is called from
 
@@ -163,9 +164,6 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
 FixTTM::~FixTTM()
 {
-  delete[] infile;
-  delete[] outfile;
-
   delete random;
 
   delete[] gfactor1;
@@ -187,21 +185,20 @@ void FixTTM::post_constructor()
 
   // initialize electron temperatures on grid
 
-  int ix,iy,iz;
+  int ix, iy, iz;
   for (iz = 0; iz < nzgrid; iz++)
     for (iy = 0; iy < nygrid; iy++)
-      for (ix = 0; ix < nxgrid; ix++)
-        T_electron[iz][iy][ix] = tinit;
+      for (ix = 0; ix < nxgrid; ix++) T_electron[iz][iy][ix] = tinit;
 
   // zero net_energy_transfer_all
   // in case compute_vector accesses it on timestep 0
 
   outflag = 0;
-  memset(&net_energy_transfer_all[0][0][0],0,ngridtotal*sizeof(double));
+  memset(&net_energy_transfer_all[0][0][0], 0, ngridtotal * sizeof(double));
 
   // set initial electron temperatures from user input file
 
-  if (infile) read_electron_temperatures(infile);
+  if (!infile.empty()) read_electron_temperatures(infile);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -220,21 +217,20 @@ int FixTTM::setmask()
 void FixTTM::init()
 {
   if (domain->dimension == 2)
-    error->all(FLERR,"Cannot use fix ttm with 2d simulation");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix {} with 2d simulation", style);
   if (domain->nonperiodic != 0)
-    error->all(FLERR,"Cannot use non-periodic boundares with fix ttm");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use non-periodic boundares with fix {}", style);
   if (domain->triclinic)
-    error->all(FLERR,"Cannot use fix ttm with triclinic box");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix {} with triclinic box", style);
 
   // set force prefactors
 
   for (int i = 1; i <= atom->ntypes; i++) {
-    gfactor1[i] = - gamma_p / force->ftm2v;
-    gfactor2[i] =
-      sqrt(24.0*force->boltz*gamma_p/update->dt/force->mvv2e) / force->ftm2v;
+    gfactor1[i] = -gamma_p / force->ftm2v;
+    gfactor2[i] = sqrt(24.0 * force->boltz * gamma_p / update->dt / force->mvv2e) / force->ftm2v;
   }
 
-  if (utils::strmatch(update->integrate_style,"^respa"))
+  if (utils::strmatch(update->integrate_style, "^respa"))
     nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
@@ -242,12 +238,12 @@ void FixTTM::init()
 
 void FixTTM::setup(int vflag)
 {
-  if (utils::strmatch(update->integrate_style,"^verlet")) {
+  if (utils::strmatch(update->integrate_style, "^verlet")) {
     post_force_setup(vflag);
   } else {
-    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(nlevels_respa-1);
-    post_force_respa_setup(vflag,nlevels_respa-1,0);
-    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(nlevels_respa - 1);
+    post_force_respa_setup(vflag, nlevels_respa - 1, 0);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(nlevels_respa - 1);
   }
 }
 
@@ -269,6 +265,8 @@ void FixTTM::post_force_setup(int /*vflag*/)
     }
   }
 }
+
+// clang-format off
 
 /* ---------------------------------------------------------------------- */
 
@@ -449,7 +447,7 @@ void FixTTM::end_of_step()
 
   // output of grid electron temperatures to file
 
-  if (outfile && (update->ntimestep % outevery == 0))
+  if (!outfile.empty() && (update->ntimestep % outevery == 0))
     write_electron_temperatures(fmt::format("{}.{}",outfile,update->ntimestep));
 }
 
@@ -600,7 +598,7 @@ void FixTTM::restart(char *buf)
   int nzgrid_old = static_cast<int> (rlist[n++]);
 
   if (nxgrid_old != nxgrid || nygrid_old != nygrid || nzgrid_old != nzgrid)
-    error->all(FLERR,"Must restart fix ttm with same grid size");
+    error->all(FLERR, Error::NOLASTLINE, "Must restart fix ttm with same grid size");
 
   // change RN seed from initial seed, to avoid same Langevin factors
   // just increment by 1, since for RanMars that is a new RN stream
@@ -681,26 +679,19 @@ double FixTTM::compute_vector(int n)
     e_energy = 0.0;
     transfer_energy = 0.0;
 
-    int ix,iy,iz;
-
     double dx = domain->xprd/nxgrid;
     double dy = domain->yprd/nygrid;
     double dz = domain->zprd/nzgrid;
     double del_vol = dx*dy*dz;
 
-    for (iz = 0; iz < nzgrid; iz++)
-      for (iy = 0; iy < nygrid; iy++)
-        for (ix = 0; ix < nxgrid; ix++) {
-          e_energy +=
-            T_electron[iz][iy][ix]*electronic_specific_heat*
-            electronic_density*del_vol;
-          transfer_energy +=
-            net_energy_transfer_all[iz][iy][ix]*update->dt;
-          //printf("TRANSFER %d %d %d %g\n",ix,iy,iz,transfer_energy);
+    for (int iz = 0; iz < nzgrid; iz++) {
+      for (int iy = 0; iy < nygrid; iy++) {
+        for (int ix = 0; ix < nxgrid; ix++) {
+          e_energy += T_electron[iz][iy][ix]*electronic_specific_heat*electronic_density*del_vol;
+          transfer_energy += net_energy_transfer_all[iz][iy][ix] * update->dt;
         }
-
-    //printf("TRANSFER %g\n",transfer_energy);
-
+      }
+    }
     outflag = 1;
   }
 
@@ -717,7 +708,7 @@ double FixTTM::memory_usage()
 {
   double bytes = 0.0;
   bytes += (double) atom->nmax * 3 * sizeof(double);
-  bytes += (double) 4*ngridtotal * sizeof(int);
+  bytes += (double) 4*ngridtotal * sizeof(double);
   return bytes;
 }
 

@@ -99,4 +99,3 @@ class DihedralHarmonicKokkos : public DihedralHarmonic {
 
 #endif
 #endif
-

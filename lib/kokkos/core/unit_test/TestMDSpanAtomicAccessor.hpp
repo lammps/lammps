@@ -1,26 +1,19 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <type_traits>
 
 #include <gtest/gtest.h>
-#ifndef KOKKOS_ENABLE_CXX17
 #include <concepts>
-#endif
+
+#include <desul/atomics.hpp>
 
 template <class T, class ExecutionSpace>
 void test_atomic_accessor() {
@@ -60,10 +53,8 @@ void test_atomic_accessor() {
         static_assert(std::is_trivially_move_constructible_v<acc_t>);
         static_assert(std::is_trivially_assignable_v<acc_t, acc_t>);
         static_assert(std::is_trivially_move_assignable_v<acc_t>);
-#ifndef KOKKOS_ENABLE_CXX17
         static_assert(std::copyable<acc_t>);
         static_assert(std::is_empty_v<acc_t>);
-#endif
       },
       errors);
   ASSERT_EQ(errors, 0);

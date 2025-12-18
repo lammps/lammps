@@ -205,7 +205,7 @@ int** YukawaColloidT::compute(const int ago, const int inum_full,
                 tagint **special, const bool eflag_in, const bool vflag_in,
                 const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **jnum, const double cpu_time, bool &success,
-                double *rad) {
+                double *rad, double *prd, int *periodicity) {
   this->acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -251,7 +251,8 @@ int** YukawaColloidT::compute(const int ago, const int inum_full,
   // Build neighbor list on GPU if necessary
   if (ago==0) {
     this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
-                          sublo, subhi, tag, nspecial, special, success);
+                    sublo, subhi, tag, nspecial, special,
+                    prd, periodicity, success);
     if (!success)
       return nullptr;
     this->cast_rad_data(rad);

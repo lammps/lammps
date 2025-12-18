@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -27,7 +14,12 @@
 // constructor. undef'ed at the end
 #define KOKKOS_IMPL_OPENMPTARGET_WORKAROUND
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <OpenMPTarget/Kokkos_OpenMPTarget.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_UniqueToken.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Instance.hpp>
@@ -94,28 +86,16 @@ void OpenMPTargetInternal::print_configuration(std::ostream& os,
 }
 
 void OpenMPTargetInternal::impl_finalize() {
-  m_is_initialized = false;
-
   if (m_uniquetoken_ptr != nullptr)
     Kokkos::kokkos_free<Kokkos::Experimental::OpenMPTargetSpace>(
         m_uniquetoken_ptr);
 }
 
 void OpenMPTargetInternal::impl_initialize() {
-  m_is_initialized = true;
-
   // FIXME_OPENMPTARGET:  Only fix the number of teams for NVIDIA architectures
-  // from Pascal and upwards.
-  // FIXME_OPENMPTARGTE: Cray compiler did not yet implement omp_set_num_teams.
-#if !defined(KOKKOS_COMPILER_CRAY_LLVM)
-#if defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU) && defined(KOKKOS_COMPILER_CLANG) && \
-    (KOKKOS_COMPILER_CLANG >= 1300)
+#if defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
   omp_set_num_teams(512);
 #endif
-#endif
-}
-int OpenMPTargetInternal::impl_is_initialized() {
-  return m_is_initialized ? 1 : 0;
 }
 
 OpenMPTargetInternal* OpenMPTargetInternal::impl_singleton() {
@@ -128,14 +108,6 @@ void OpenMPTargetInternal::verify_is_process(const char* const label) {
   if (omp_in_parallel() && (!omp_is_initial_device())) {
     std::string msg(label);
     msg.append(" ERROR: in parallel or on device");
-    Kokkos::Impl::throw_runtime_exception(msg);
-  }
-}
-
-void OpenMPTargetInternal::verify_initialized(const char* const label) {
-  if (0 == Kokkos::Experimental::OpenMPTarget().impl_is_initialized()) {
-    std::string msg(label);
-    msg.append(" ERROR: not initialized");
     Kokkos::Impl::throw_runtime_exception(msg);
   }
 }
@@ -172,10 +144,7 @@ void OpenMPTargetInternal::resize_scratch(int64_t team_size,
   // max_active_teams is the number of active teams on the given hardware.
   // We set the number of teams to be twice the number of max_active_teams for
   // the compiler to pick the right number in its case.
-  // FIXME_OPENMPTARGET: Cray compiler did not yet implement omp_set_num_teams.
-#if !defined(KOKKOS_COMPILER_CRAY_LLVM)
   omp_set_num_teams(max_active_teams * 2);
-#endif
 
   // Total amount of scratch memory allocated is depenedent
   // on the maximum number of in-flight teams possible.
@@ -242,9 +211,6 @@ void OpenMPTarget::impl_initialize(InitializationSettings const& settings) {
 }
 void OpenMPTarget::impl_finalize() {
   Impl::OpenMPTargetInternal::impl_singleton()->impl_finalize();
-}
-int OpenMPTarget::impl_is_initialized() {
-  return Impl::OpenMPTargetInternal::impl_singleton()->impl_is_initialized();
 }
 }  // Namespace Experimental
 

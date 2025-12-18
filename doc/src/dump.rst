@@ -210,7 +210,7 @@ support these options; see details on the :doc:`dump_modify
 <dump_modify>` doc page.
 
 As described below, the filename determines the kind of output: text
-or binary or gzipped, one big file or one per timestep, one file for
+or binary or compressed, one big file or one per timestep, one file for
 all the processors or multiple smaller files.
 
 .. note::
@@ -659,22 +659,24 @@ the binary file.  The format of the binary file can be understood by
 looking at the :file:`tools/binary2txt.cpp` file.  This option is only
 available for the *atom* and *custom* styles.
 
-If the filename ends with ".gz", the dump file (or files, if "\*" or "%"
-is also used) is written in gzipped format.  A gzipped dump file will be
-about :math:`3\times` smaller than the text version, but will also take
-longer to write.  This option is not available for the *dcd* and *xtc*
-styles.
+If LAMMPS has been compiled with the :doc:`corresponding setting
+<Build_settings>` and if the filename ends with ".gz" or some other
+:ref:`supported compression format suffix <gzip>`, the dump file (or
+files, if "\*" or "%" is also used) is written in compressed format.  A
+compressed dump file will be about :math:`3\times` smaller than the text
+version, but will also take longer to write.  This option is not
+available for the *dcd* and *xtc* styles.
 
 Note that styles that end with *gz* are identical in command syntax to
-the corresponding styles without "gz", however, they generate
-compressed files using the zlib library. Thus the filename suffix
-".gz" is mandatory. This is an alternative approach to writing
-compressed files via a pipe, as done by the regular dump styles, which
-may be required on clusters where the interface to the high-speed
-network disallows using the fork() library call (which is needed for a
-pipe).  For the remainder of this page, you should thus consider the
-*atom* and *atom/gz* styles (etc.) to be inter-changeable, with the
-exception of the required filename suffix.
+the corresponding styles without "gz", however, they generate compressed
+files using the zlib library. Thus the filename suffix ".gz" is
+mandatory. This is an alternative approach to writing compressed files
+via a pipe (see above), as done by the regular dump styles, which may be
+required on HPC clusters where the interface to the high-speed network
+disallows using the fork() library call (which is needed for a pipe).
+For the remainder of this page, you should thus consider the *atom* and
+*atom/gz* styles (etc.) to be inter-changeable, with the exception of
+the required filename suffix.
 
 Similarly, styles that end with *zstd* are identical to the gz styles,
 but use the Zstd compression library instead and require a ".zst"
@@ -1024,8 +1026,8 @@ to effectively specify multiple values.
 Restrictions
 """"""""""""
 
-To write gzipped dump files, you must either compile LAMMPS with the
--DLAMMPS_GZIP option or use the styles from the COMPRESS package.
+To write compressed dump files, you must either compile LAMMPS with the
+``-DLAMMPS_GZIP`` option or use the styles from the COMPRESS package.
 See the :doc:`Build settings <Build_settings>` page for details.
 
 While a dump command is active (i.e., has not been stopped by using

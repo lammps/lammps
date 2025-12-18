@@ -163,19 +163,21 @@ Restrictions
 """"""""""""
 
 This fix is part of the MC package. It is only enabled if LAMMPS was
-built with that package.  See the :doc:`Build package <Build_package>`
-page for more info.
+built with that package.  Since it also contains specific support for
+EAM potentials it also requires installing the MANYBODY package. See
+the :doc:`Build package <Build_package>` page for more info.
 
-This fix style requires an :doc:`atom style <atom_style>` with per atom
-type masses.
+This fix style requires an :doc:`atom style <atom_style>` with per
+atom type masses.
 
 The fix provides three methods for calculating the potential energy
 change due to atom type swaps. For EAM type potentials, the default
 method is a carefully optimized local energy change calculation that
-is part of the source code for this fix. It takes advantage of the
-specific computational and communication requirements of EAM. Customizing
-the local method to handle other energy models such as Tersoff has been done,
-but these cases are not supported in the public LAMMPS code.
+is part of the source code for this fix.  It takes advantage of the
+specific computational and communication requirements of EAM.
+Customizing the local method to handle other energy models such as
+Tersoff has been done in earlier versions of this fix, but these
+cases are not supported in the public LAMMPS code.
 For all other LAMMPS energy models, the default method calculates
 the *total* potential energy of the system before and after each
 atom type swap.  This method does not depend on the details of the

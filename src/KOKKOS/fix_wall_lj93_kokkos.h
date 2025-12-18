@@ -33,6 +33,8 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef double value_type[];
+  const int value_count = 13;
 
   FixWallLJ93Kokkos(class LAMMPS *, int, char **);
   ~FixWallLJ93Kokkos() override;
@@ -41,9 +43,6 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
   void wall_particle(int, int, double) override;
 
   int m;
-
-  typedef double value_type[];
-  const int value_count = 13;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int&, value_type) const;

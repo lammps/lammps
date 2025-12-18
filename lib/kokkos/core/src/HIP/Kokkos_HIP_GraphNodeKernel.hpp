@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_HIP_GRAPHNODEKERNEL_HPP
 #define KOKKOS_HIP_GRAPHNODEKERNEL_HPP
@@ -111,8 +98,7 @@ class GraphNodeKernelImpl<Kokkos::HIP, PolicyType, Functor, PatternTag, Args...>
 
   hipGraph_t const* get_hip_graph_ptr() const { return m_graph_ptr; }
 
-  Kokkos::ObservingRawPtr<base_t> allocate_driver_memory_buffer(
-      const HIP& exec) const {
+  base_t* allocate_driver_memory_buffer(const HIP& exec) const {
     KOKKOS_EXPECTS(m_driver_storage == nullptr);
     std::string alloc_label =
         label + " - GraphNodeKernel global memory functor storage";
@@ -130,9 +116,9 @@ class GraphNodeKernelImpl<Kokkos::HIP, PolicyType, Functor, PatternTag, Args...>
   auto get_driver_storage() const { return m_driver_storage; }
 
  private:
-  Kokkos::ObservingRawPtr<const hipGraph_t> m_graph_ptr    = nullptr;
-  Kokkos::ObservingRawPtr<hipGraphNode_t> m_graph_node_ptr = nullptr;
-  mutable std::shared_ptr<base_t> m_driver_storage         = nullptr;
+  hipGraph_t const* m_graph_ptr                    = nullptr;
+  hipGraphNode_t* m_graph_node_ptr                 = nullptr;
+  mutable std::shared_ptr<base_t> m_driver_storage = nullptr;
   std::string label;
 };
 
@@ -142,13 +128,13 @@ template <typename KernelType,
           typename Tag =
               typename PatternTagFromImplSpecialization<KernelType>::type>
 struct get_graph_node_kernel_type
-    : type_identity<
+    : std::type_identity<
           GraphNodeKernelImpl<Kokkos::HIP, typename KernelType::Policy,
                               typename KernelType::functor_type, Tag>> {};
 
 template <typename KernelType>
 struct get_graph_node_kernel_type<KernelType, Kokkos::ParallelReduceTag>
-    : type_identity<GraphNodeKernelImpl<
+    : std::type_identity<GraphNodeKernelImpl<
           Kokkos::HIP, typename KernelType::Policy,
           CombinedFunctorReducer<typename KernelType::functor_type,
                                  typename KernelType::reducer_type>,

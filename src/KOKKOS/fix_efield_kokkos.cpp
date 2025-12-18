@@ -176,10 +176,10 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
 
   atomKK->modified(execution_space, datamask_modify);
 
-  fsum[0]=result[0];
-  fsum[1]=result[1];
-  fsum[2]=result[2];
-  fsum[3]=result[3];
+  fsum[0] = result[0];
+  fsum[1] = result[1];
+  fsum[2] = result[2];
+  fsum[3] = result[3];
 
   if (vflag_global) {
     virial[0] += result[4];

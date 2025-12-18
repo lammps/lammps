@@ -42,8 +42,8 @@ if("launch_compiler" IN_LIST Kokkos_FIND_COMPONENTS)
   )
   kokkos_compilation(GLOBAL CHECK_CUDA_COMPILES)
 
-elseif(@Kokkos_ENABLE_CUDA@ AND NOT @KOKKOS_COMPILE_LANGUAGE@ STREQUAL CUDA AND NOT "separable_compilation" IN_LIST
-                                                                                Kokkos_FIND_COMPONENTS
+elseif(@Kokkos_ENABLE_CUDA@ AND (NOT @KOKKOS_COMPILE_LANGUAGE@ STREQUAL CUDA OR Kokkos_ENABLE_MULTIPLE_CMAKE_LANGUAGES)
+       AND NOT "separable_compilation" IN_LIST Kokkos_FIND_COMPONENTS
 )
   #
   # if CUDA was enabled, the compilation language was not set to CUDA, and separable compilation was not

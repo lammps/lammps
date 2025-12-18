@@ -1,23 +1,15 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_STD_ALGORITHMS_REDUCE_IMPL_HPP
 #define KOKKOS_STD_ALGORITHMS_REDUCE_IMPL_HPP
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include "Kokkos_Constraints.hpp"
 #include "Kokkos_HelperPredicates.hpp"
 #include "Kokkos_ReducerWithArbitraryJoinerNoNeutralElement.hpp"
@@ -124,7 +116,7 @@ ValueType reduce_default_functors_exespace_impl(
   Impl::static_assert_is_not_openmptarget(ex);
   Impl::expect_valid_range(first, last);
 
-  using value_type = Kokkos::Impl::remove_cvref_t<ValueType>;
+  using value_type = std::remove_cvref_t<ValueType>;
 
   if (::Kokkos::is_detected<has_reduction_identity_sum_t, value_type>::value) {
     if (first == last) {
@@ -199,7 +191,7 @@ KOKKOS_FUNCTION ValueType reduce_default_functors_team_impl(
   Impl::static_assert_is_not_openmptarget(teamHandle);
   Impl::expect_valid_range(first, last);
 
-  using value_type = Kokkos::Impl::remove_cvref_t<ValueType>;
+  using value_type = std::remove_cvref_t<ValueType>;
 
   if (::Kokkos::is_detected<has_reduction_identity_sum_t, value_type>::value) {
     if (first == last) {

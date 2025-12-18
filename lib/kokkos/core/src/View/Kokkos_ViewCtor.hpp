@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_EXPERIMENTAL_IMPL_VIEW_CTOR_PROP_HPP
 #define KOKKOS_EXPERIMENTAL_IMPL_VIEW_CTOR_PROP_HPP
@@ -67,6 +54,9 @@ struct is_view_label<char[N]> : public std::true_type {};
 template <unsigned N>
 struct is_view_label<const char[N]> : public std::true_type {};
 
+template <typename T>
+constexpr bool is_view_label_v = is_view_label<T>::value;
+
 //----------------------------------------------------------------------------
 
 template <typename... P>
@@ -92,7 +82,7 @@ struct ViewCtorProp<void, CommonViewAllocProp<Specialize, T>> {
   KOKKOS_FUNCTION
   ViewCtorProp(const type &arg) : value(arg) {}
   KOKKOS_FUNCTION
-  ViewCtorProp(type &&arg) : value(arg) {}
+  ViewCtorProp(type &&arg) : value(std::move(arg)) {}
 
   type value;
 };
@@ -304,20 +294,6 @@ auto with_properties_if_unset(const ViewCtorProp<P...> &view_ctor_prop,
     return with_properties_if_unset(new_view_ctor_prop, properties...);
   } else
     return with_properties_if_unset(view_ctor_prop, properties...);
-
-// A workaround placed to prevent spurious "missing return statement at the
-// end of non-void function" warnings from CUDA builds (issue #5470). Because
-// KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK removes [[noreturn]] attribute from
-// cuda_abort(), an unreachable while(true); is placed as a fallback method
-#if (defined(KOKKOS_COMPILER_NVCC) && (KOKKOS_COMPILER_NVCC < 1150))
-  Kokkos::abort(
-      "Prevents an incorrect warning: missing return statement at end of "
-      "non-void function");
-#ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
-  while (true)
-    ;
-#endif
-#endif
 }
 #else
 
@@ -409,28 +385,7 @@ KOKKOS_FUNCTION const auto &get_property(
     static_assert(std::is_same_v<Tag, void>, "Invalid property tag!");
     return view_ctor_prop;
   }
-
-// A workaround placed to prevent spurious "missing return statement at the
-// end of non-void function" warnings from CUDA builds (issue #5470). Because
-// KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK removes [[noreturn]] attribute from
-// cuda_abort(), an unreachable while(true); is placed as a fallback method
-#if (defined(KOKKOS_COMPILER_NVCC) && (KOKKOS_COMPILER_NVCC < 1150))
-  Kokkos::abort(
-      "Prevents an incorrect warning: missing return statement at end of "
-      "non-void function");
-#ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
-  while (true)
-    ;
-#endif
-#endif
 }
-#if defined(KOKKOS_COMPILER_NVCC) && (KOKKOS_COMPILER_NVCC < 1150)
-// pragma pop is getting a warning from the underlying GCC
-// for unknown pragma if -pedantic is used
-#ifdef __CUDA_ARCH__
-#pragma pop
-#endif
-#endif
 #ifdef KOKKOS_IMPL_INTEL_BOGUS_MISSING_RETURN_STATEMENT_AT_END_OF_NON_VOID_FUNCTION
 #pragma warning(pop)
 #undef KOKKOS_IMPL_INTEL_BOGUS_MISSING_RETURN_STATEMENT_AT_END_OF_NON_VOID_FUNCTION
@@ -495,8 +450,8 @@ inline constexpr Kokkos::Impl::AllowPadding_t AllowPadding{};
  */
 template <class... Args>
 auto view_alloc(Args &&...args) {
-  using return_type = Impl::ViewCtorProp<typename Impl::ViewCtorProp<
-      void, Kokkos::Impl::remove_cvref_t<Args>>::type...>;
+  using return_type = Impl::ViewCtorProp<
+      typename Impl::ViewCtorProp<void, std::remove_cvref_t<Args>>::type...>;
 
   static_assert(!return_type::has_pointer,
                 "Cannot give pointer-to-memory for view allocation");

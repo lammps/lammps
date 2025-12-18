@@ -40,7 +40,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_fix_pafi_package[] =
-  "citation for fix pafi: doi:10.1103/PhysRevLett.120.135503\n\n"
+  "citation for fix pafi: https://doi.org/10.1103/PhysRevLett.120.135503\n\n"
   "@article{SwinburneMarinica2018,\n"
   "author={T. D. Swinburne and M. C. Marinica},\n"
   "title={Unsupervised Calculation of Free Energy Barriers in Large\n"

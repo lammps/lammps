@@ -756,77 +756,10 @@ This list was last updated for version 4.7.1 of the Kokkos library.
 
    .. tab:: Basic traditional make settings:
 
-      Choose which hardware to support in ``Makefile.machine`` via
-      ``KOKKOS_DEVICES`` and ``KOKKOS_ARCH`` settings.  See the
-      ``src/MAKE/OPTIONS/Makefile.kokkos*`` files for examples.
+      .. versionchanged:: TBD
 
-      For multicore CPUs using OpenMP:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = OpenMP
-         KOKKOS_ARCH = HOSTARCH          # HOSTARCH = HOST from list above
-
-      For Intel KNLs using OpenMP:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = OpenMP
-         KOKKOS_ARCH = KNL
-
-      For NVIDIA GPUs using CUDA:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = Cuda
-         KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is
-                                         #            hosting the GPU
-                                         # GPUARCH = GPU from list above
-         KOKKOS_CUDA_OPTIONS = "enable_lambda"
-         FFT_INC = -DFFT_CUFFT           # enable use of cuFFT (optional)
-         FFT_LIB = -lcufft               # link to cuFFT library
-
-      For GPUs, you also need the following lines in your
-      ``Makefile.machine`` before the CC line is defined.  They tell
-      ``mpicxx`` to use an ``nvcc`` compiler wrapper, which will use
-      ``nvcc`` for compiling CUDA files and a C++ compiler for
-      non-Kokkos, non-CUDA files.
-
-      .. code-block:: make
-
-         # For OpenMPI
-         KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
-         export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
-         CC = mpicxx
-
-      .. code-block:: make
-
-         # For MPICH and derivatives
-         KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
-         CC = mpicxx -cxx=$(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
-
-      For AMD or NVIDIA GPUs using HIP:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = HIP
-         KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is
-                                         #            hosting the GPU
-                                         # GPUARCH = GPU from list above
-         FFT_INC = -DFFT_HIPFFT          # enable use of hipFFT (optional)
-         FFT_LIB = -lhipfft              # link to hipFFT library
-
-      For Intel GPUs using SYCL:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = SYCL
-         KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is
-                                         #            hosting the GPU
-                                         # GPUARCH = GPU from list above
-         FFT_INC = -DFFT_KOKKOS_MKL_GPU  # enable use of oneMKL for Intel GPUs (optional)
-                                         # link to oneMKL FFT library
-         FFT_LIB = -lmkl_sycl_dft -lmkl_intel_ilp64 -lmkl_tbb_thread -mkl_core -ltbb
+      The KOKKOS package no longer supports the the traditional make build.
+      You need to build LAMMPS with CMake.
 
 Advanced KOKKOS compilation settings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -838,54 +771,43 @@ the full list (which keeps changing as the Kokkos package itself evolves),
 please consult the Kokkos library documentation.
 
 As alternative to using multi-threading via OpenMP
-(``-DKokkos_ENABLE_OPENMP=on`` or ``KOKKOS_DEVICES=OpenMP``) it is also
-possible to use Posix threads directly (``-DKokkos_ENABLE_PTHREAD=on``
-or ``KOKKOS_DEVICES=Pthread``).  While binding of threads to individual
-or groups of CPU cores is managed in OpenMP with environment variables,
-you need assistance from either the "hwloc" or "libnuma" library for the
-Pthread thread parallelization option. To enable use with CMake:
-``-DKokkos_ENABLE_HWLOC=on`` or ``-DKokkos_ENABLE_LIBNUMA=on``; and with
-conventional make: ``KOKKOS_USE_TPLS=hwloc`` or
-``KOKKOS_USE_TPLS=libnuma``.
+(``-DKokkos_ENABLE_OPENMP=on``) it is also possible to use Posix threads
+directly (``-DKokkos_ENABLE_PTHREAD=on``).  While binding of threads to
+individual or groups of CPU cores is managed in OpenMP with environment
+variables, you need assistance from either the "hwloc" or "libnuma"
+library for the Pthread thread parallelization option. To enable use
+with CMake: ``-DKokkos_ENABLE_HWLOC=on`` or
+``-DKokkos_ENABLE_LIBNUMA=on``.
 
-The CMake option ``-DKokkos_ENABLE_LIBRT=on`` or the makefile setting
-``KOKKOS_USE_TPLS=librt`` enables the use of a more accurate timer
-mechanism on many Unix-like platforms for internal profiling.
+The CMake option ``-DKokkos_ENABLE_LIBRT=on`` enables the use of a more
+accurate timer mechanism on many Unix-like platforms for internal
+profiling.
 
-The CMake option ``-DKokkos_ENABLE_DEBUG=on`` or the makefile setting
-``KOKKOS_DEBUG=yes`` enables printing of run-time
-debugging information that can be useful. It also enables runtime
-bounds checking on Kokkos data structures.  As to be expected, enabling
-this option will negatively impact the performance and thus is only
-recommended when developing a Kokkos-enabled style in LAMMPS.
+The CMake option ``-DKokkos_ENABLE_DEBUG=on`` enables printing of
+run-time debugging information that can be useful. It also enables
+runtime bounds checking on Kokkos data structures.  As to be expected,
+enabling this option will negatively impact the performance and thus is
+only recommended when developing a Kokkos-enabled style in LAMMPS.
 
-The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` or the makefile
-setting ``KOKKOS_CUDA_OPTIONS=enable_lambda,force_uvm`` enables the
-use of CUDA "Unified Virtual Memory" (UVM) in Kokkos.  UVM allows to
-transparently use RAM on the host to supplement the memory used on the
-GPU (with some performance penalty) and thus enables running larger
-problems that would otherwise not fit into the RAM on the GPU.
+The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` enables the use of CUDA
+"Unified Virtual Memory" (UVM) in Kokkos.  UVM allows to transparently
+use RAM on the host to supplement the memory used on the GPU (with some
+performance penalty) and thus enables running larger problems that would
+otherwise not fit into the RAM on the GPU.
 
 The CMake option ``-D KOKKOS_PREC=value`` sets the floating point
-precision of the calculations, where ``value`` can be one of:
-``double`` (FP64, default) or ``mixed`` (FP64 for accumulation of
-forces, energy, and virial, FP32 otherwise) or ``single`` (FP32).
-Similarly the makefile settings ``-DLMP_KOKKOS_DOUBLE_DOUBLE``
-(default), ``-DLMP_KOKKOS_SINGLE_DOUBLE``, and
-``-DLMP_KOKKOS_SINGLE_SINGLE`` set double, mixed, single precision
-respectively. When using reduced precision (single or mixed), the
-simulation should be carefully checked to ensure it is stable and that
-energy is acceptably conserved.
+precision of the calculations, where ``value`` can be one of: ``double``
+(FP64, default) or ``mixed`` (FP64 for accumulation of forces, energy,
+and virial, FP32 otherwise) or ``single`` (FP32).  When using reduced
+precision (single or mixed), the simulation should be carefully checked
+to ensure it is stable and that energy is acceptably conserved.
 
 The CMake option ``-D KOKKOS_LAYOUT=value`` sets the array layout of
 Kokkos views (e.g. forces, velocities, etc.) on GPUs, where ``value``
 can be one of: ``legacy`` (mostly LayoutRight, default) or ``default``
-(mostly LayoutLeft). Similarly the makefile settings
-``-DLMP_KOKKOS_LAYOUT_LEGACY`` (default) and
-``-DLMP_KOKKOS_LAYOUT_DEFAULT`` set legacy or default layouts
-respectively. Using the default layout (LayoutLeft) can give speedup
-on GPUs for some models, but a slowdown for others. LayoutRight is
-always used for positions on GPUs since it has been found to be
+(mostly LayoutLeft).  Using the default layout (LayoutLeft) can give
+speedup on GPUs for some models, but a slowdown for others. LayoutRight
+is always used for positions on GPUs since it has been found to be
 faster, and when compiling exclusively for CPUs.
 
 ----------

@@ -88,7 +88,7 @@ class AngleClass2Kokkos : public AngleClass2 {
   typename AT::t_kkfloat_1d d_ba_k1, d_ba_k2, d_ba_r1, d_ba_r2;
   typename AT::t_kkfloat_1d d_setflag, d_setflag_a, d_setflag_bb, d_setflag_ba;
 
-  void allocate();
+  void allocate() override;
 };
 
 }

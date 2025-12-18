@@ -1,24 +1,12 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_HIP_BLOCKSIZE_DEDUCTION_HPP
 #define KOKKOS_HIP_BLOCKSIZE_DEDUCTION_HPP
 
 #include <functional>
 #include <Kokkos_Macros.hpp>
+#include <Kokkos_BitManipulation.hpp>
 
 #if defined(__HIPCC__)
 
@@ -159,6 +147,39 @@ unsigned hip_get_preferred_blocksize(const int hip_device) {
   return get_preferred_blocksize_impl<DriverType, LaunchBounds>(hip_device);
 }
 
+// Heuristic to compute the block size for non-team parallelism
+template <typename DriverType, typename LaunchBounds = Kokkos::LaunchBounds<>,
+          HIPLaunchMechanism LaunchMechanism =
+              DeduceHIPLaunchMechanism<DriverType>::launch_mechanism>
+unsigned get_preferred_blocksize_for_range(HIPInternal const *hip_instance,
+                                           size_t requested_parallelism) {
+  /* General approach, if the user did not make a launch bounds request
+  - If the requested parallelism is less than the available concurrency, get the
+  largest block size that would result in at least 1 block per PE, while also:
+    - at least 256
+    - power of 2
+    - no more than 1024
+  */
+
+  if constexpr (HIPParallelLaunch<DriverType, LaunchBounds,
+                                  LaunchMechanism>::default_launchbounds()) {
+    if (requested_parallelism &&
+        requested_parallelism < size_t(hip_instance->concurrency())) {
+      const unsigned eus = hip_instance->m_deviceProp.multiProcessorCount;
+      const unsigned requestedPerEU = (requested_parallelism + eus - 1) / eus;
+      // round up to power of 2
+      unsigned threadsPerEU = Kokkos::bit_ceil(requestedPerEU);
+      threadsPerEU          = std::max(threadsPerEU,
+                                       unsigned(HIPTraits::ConservativeThreadsPerBlock));
+      threadsPerEU =
+          std::min(threadsPerEU, unsigned(HIPTraits::MaxThreadsPerBlock));
+      return threadsPerEU;
+    }
+  }
+  const int hip_device = hip_instance->m_hipDev;
+  return get_preferred_blocksize_impl<DriverType, LaunchBounds>(hip_device);
+}
+
 // Standardized blocksize deduction for parallel constructs with no LDS usage
 // Returns the max blocksize as dictated by register usage
 //
@@ -175,6 +196,9 @@ unsigned hip_get_max_blocksize() {
 //
 // The ShmemFunctor takes a single argument of the current blocksize under
 // consideration, and returns the LDS usage
+//
+// requested_parallelism is a hint about how much parallelism was requested
+// in the parallel construct
 //
 // Note: a returned block_size of zero indicates that the algorithm could not
 //       find a valid block size.  The caller is responsible for error handling.

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CORE_EXP_INTEROP_HPP
 #define KOKKOS_CORE_EXP_INTEROP_HPP
@@ -84,8 +71,7 @@ template <typename ViewT>
 struct python_view_type {
   static_assert(Kokkos::is_view<std::decay_t<ViewT>>::value);
 
-  using type =
-      Kokkos::Impl::python_view_type_impl_t<typename ViewT::array_type>;
+  using type = Kokkos::Impl::python_view_type_impl_t<typename ViewT::type>;
 };
 
 template <typename ViewT>

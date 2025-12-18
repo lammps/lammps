@@ -127,6 +127,3 @@ their settings may become outdated, too:
    make knl             # build with the INTEL package optimized for KNLs
    make opt             # build with the OPT package optimized for CPUs
    make omp             # build with the OPENMP package optimized for OpenMP
-   make kokkos_omp      # build with the KOKKOS package for OpenMP
-   make kokkos_cuda_mpi # build with the KOKKOS package for GPUs
-   make kokkos_phi      # build with the KOKKOS package for KNLs

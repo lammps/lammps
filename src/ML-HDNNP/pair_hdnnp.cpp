@@ -36,7 +36,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_user_hdnnp_package[] =
-    "ML-HDNNP package: doi:10.1021/acs.jctc.8b00770\n\n"
+    "ML-HDNNP package: https://doi.org/10.1021/acs.jctc.8b00770\n\n"
     "@Article{Singraber19,\n"
     " author = {Singraber, Andreas and Behler, J{\"o}rg and Dellago, Christoph},\n"
     " title = {Library-Based {LAMMPS} Implementation of High-Dimensional\n"

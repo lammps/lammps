@@ -1,19 +1,5 @@
-#@HEADER
-# ************************************************************************
-
-#                        Kokkos v. 4.0
-#       Copyright (2022) National Technology & Engineering
-#               Solutions of Sandia, LLC (NTESS).
-
-# Under the terms of Contract DE-NA0003525 with NTESS,
-# the U.S. Government retains certain rights in this software.
-
-# Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-
+# SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-
-# ************************************************************************
-# @HEADER
 
 import unittest
 import subprocess
@@ -32,22 +18,7 @@ def GetFlag(flag, *extra_args):
     return int(p.stdout)
 
 def GetNumThreads(max_threads):
-    args = []
-    name = platform.system()
-    if name == 'Darwin':
-        args = ['sysctl', '-n', 'hw.physicalcpu_max']
-    elif name == 'Linux':
-        args = ['nproc', '--all']
-    else:
-        args = ['wmic', 'cpu', 'get', 'NumberOfCores']
-
-    result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    output = result.stdout.decode('utf-8')
-    phys_cores_count = int(output)
-    looplist = [1] + [i*phys_cores_count for i in [1,2,3,4,5,6,7]] \
-        if GetFlag("hwloc_enabled") else [1,2,3,4,5]
-
-    for x in looplist:
+    for x in [1, 2] if GetFlag("hwloc_enabled") else [1, 2, 3, 4, 5]:
         if x >= max_threads:
             break
         yield x

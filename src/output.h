@@ -21,6 +21,7 @@
 namespace LAMMPS_NS {
 
 class Dump;
+struct json_metadata;
 
 class Output : protected Pointers {
  public:
@@ -75,13 +76,13 @@ class Output : protected Pointers {
   Output(class LAMMPS *);
   ~Output() override;
   void init();
-  void setup(int memflag = 1);                             // initial output before run/min
-  void write(bigint);                                      // output for current timestep
-  void write_dump(bigint);                                 // force output of dump snapshots
-  void write_restart(bigint);                              // force output of a restart file
-  void write_molecule_json(FILE *, int, int, int *);       // output molecule JSON objects to file
-  void reset_timestep(bigint);                             // reset output which depends on timestep
-  void reset_dt();                                         // reset output which depends on timestep size
+  void setup(int memflag = 1);                        // initial output before run/min
+  void write(bigint);                                 // output for current timestep
+  void write_dump(bigint);                            // force output of dump snapshots
+  void write_restart(bigint);                         // force output of a restart file
+  void write_molecule_json(FILE *, int, int, int *, json_metadata *); // JSON dump molecules
+  void reset_timestep(bigint);                        // reset output which depends on timestep
+  void reset_dt();                                    // reset output which depends on timestep size
 
   Dump *add_dump(int, char **);                       // add a Dump to Dump list
   void modify_dump(int, char **);                     // modify a Dump

@@ -36,13 +36,14 @@
 #include <cstring>
 #include <set>
 #include <utility>
+#include <string_view>
 
 using namespace LAMMPS_NS;
 
 static constexpr int MAX_GROUP = 32;
 static constexpr double EPSILON = 1.0e-6;
 
-enum { NONE, TYPE, MOLECULE, ID };
+enum { NONE, TYPE, MOLECULE, ID, SEGMENT, RESIDUE, NAME };
 enum { LT, LE, GT, GE, EQ, NEQ, BETWEEN };
 
 static constexpr double BIG = 1.0e20;
@@ -191,7 +192,8 @@ void Group::assign(int narg, char **arg)
       // add to group if atom matches type/molecule/id or condition
 
     } else if (strcmp(arg[1], "type") == 0 || strcmp(arg[1], "molecule") == 0 ||
-               strcmp(arg[1], "id") == 0) {
+               strcmp(arg[1], "id") == 0 || strcmp(arg[1], "segment") == 0 ||
+               strcmp(arg[1], "residue") == 0 || strcmp(arg[1], "name") == 0) {
 
       if (narg < 3) utils::missing_cmd_args(FLERR, std::string("group ") + arg[1], error);
 
@@ -202,12 +204,28 @@ void Group::assign(int narg, char **arg)
         category = MOLECULE;
       else if (strcmp(arg[1], "id") == 0)
         category = ID;
+      else if (strcmp(arg[1], "segment") == 0)
+        category = SEGMENT;
+      else if (strcmp(arg[1], "residue") == 0)
+        category = RESIDUE;
+      else if (strcmp(arg[1], "name") == 0)
+        category = NAME;
 
       if ((category == MOLECULE) && (!atom->molecule_flag))
         error->all(FLERR, "Group molecule command requires atom attribute molecule");
 
       if ((category == ID) && (!atom->tag_enable))
         error->all(FLERR, "Group id command requires atom IDs");
+
+      if ((category == SEGMENT) && (!atom->segment_flag))
+        error->all(FLERR, "Group segment command requires atom attribute segment");
+
+      if ((category == RESIDUE) && (!atom->residue_flag))
+        error->all(FLERR, "Group residue command requires atom attribute residue");
+
+      if ((category == NAME) && (!atom->name_flag))
+        error->all(FLERR, "Group name command requires atom attribute name");
+
 
       // args = logical condition
 
@@ -308,6 +326,20 @@ void Group::assign(int narg, char **arg)
               if (tattribute[i] >= bound1 && tattribute[i] <= bound2) mask[i] |= bit;
           }
         }
+
+      } else if ( category == SEGMENT || category == RESIDUE || category == NAME) {
+
+        std::string *sattribute = nullptr;
+        if (category == SEGMENT)
+          sattribute = atom->segment;
+        else if (category == RESIDUE)
+          sattribute = atom->residue;
+        else if (category == NAME)
+          sattribute = atom->name;
+          
+        for (i = 0; i < nlocal; i++)
+          if (sattribute[i] == std::string_view(arg[2]))
+            mask[i] |= bit;
 
         // args = list of values
 

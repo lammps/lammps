@@ -329,7 +329,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR, "The etypes and pair keyword are not compatible");
 
   // computatonal potential
-  group_psi = std::vector<double>(groups.size());
+  group_psi = std::vector<double>(groups.size(), 0.0);
   // union of all coupled groups
   std::string union_group = "conp_group";
   std::string group_cmd = union_group + " union";
@@ -842,6 +842,8 @@ double FixElectrodeConp::compute_array(int i, int j)
 double FixElectrodeConp::potential_energy()
 {
   // corrections to energy due to potential psi
+  auto psi = std::vector<double>(num_of_groups);
+  for (int i = 0; i < num_of_groups; i++) psi[i] = charge_solver->get_potential(i);
   double const qqrd2e = force->qqrd2e;
   int const nlocal = atom->nlocal;
   int *mask = atom->mask;
@@ -849,7 +851,7 @@ double FixElectrodeConp::potential_energy()
   double energy = 0;
   for (int i = 0, iele = 0; i < nlocal; i++) {
     if (groupbit & mask[i]) {
-      energy -= qqrd2e * q[i] * group_psi[iele_to_group_local[iele]] * evscale;
+      energy -= qqrd2e * q[i] * psi[iele_to_group_local[iele]] * evscale;
       iele++;
     }
   }

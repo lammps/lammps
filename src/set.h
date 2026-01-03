@@ -22,6 +22,8 @@ CommandStyle(set,Set);
 
 #include "command.h"
 
+#include <cstring>
+
 namespace LAMMPS_NS {
 
 class Set : public Command {
@@ -63,6 +65,7 @@ class Set : public Command {
     tagint tvalue1;
     bigint bvalue1;
     double dvalue1, dvalue2, dvalue3, dvalue4;
+    std::string svalue;
   };
 
   int naction, maxaction;
@@ -139,6 +142,9 @@ class Set : public Command {
   void process_x(int &, int, char **, Action *);
   void process_y(int &, int, char **, Action *);
   void process_z(int &, int, char **, Action *);
+  void process_segment(int &, int, char **, Action *);
+  void process_residue(int &, int, char **, Action *);
+  void process_name(int &, int, char **, Action *);
 
   void process_custom(int &, int, char **, Action *);
 
@@ -193,6 +199,9 @@ class Set : public Command {
   void invoke_x(Action *);
   void invoke_y(Action *);
   void invoke_z(Action *);
+  void invoke_segment(Action *);
+  void invoke_residue(Action *);
+  void invoke_name(Action *);
 
   void invoke_custom(Action *);
 };

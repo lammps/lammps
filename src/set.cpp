@@ -50,7 +50,7 @@ enum{ANGLE,ANGMOM,APIP_LAMBDA,BOND,CC,CHARGE,DENSITY,DIAMETER,DIHEDRAL,DIPOLE,
   SMD_CONTACT_RADIUS,SMD_MASS_DENSITY,SPH_CV,SPH_E,SPH_RHO,
   SPIN_ATOM,SPIN_ATOM_RANDOM,SPIN_ELECTRON,TEMPERATURE,THETA,THETA_RANDOM,
   TRI,TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,VOLUME,VX,VY,VZ,X,Y,Z,
-  IVEC,DVEC,IARRAY,DARRAY};
+  IVEC,DVEC,IARRAY,DARRAY,SEGMENT,RESIDUE,NAME};
 
 static constexpr int DELTA = 4;
 
@@ -400,6 +400,20 @@ void Set::process_args(int caller_flag, int narg, char **arg)
       action->keyword = Z;
       process_z(iarg,narg,arg,action);
       invoke_choice[naction++] = &Set::invoke_z;
+      
+    // CHARMM
+    } else if (strcmp(arg[iarg],"segment") == 0) {
+      action->keyword = SEGMENT;
+      process_segment(iarg,narg,arg,action);
+      invoke_choice[naction++] = &Set::invoke_segment;
+    } else if (strcmp(arg[iarg],"residue") == 0) {
+      action->keyword = RESIDUE;
+      process_residue(iarg,narg,arg,action);
+      invoke_choice[naction++] = &Set::invoke_residue;
+    } else if (strcmp(arg[iarg],"name") == 0) {
+      action->keyword = NAME;
+      process_name(iarg,narg,arg,action);
+      invoke_choice[naction++] = &Set::invoke_name;
 
     } else if (utils::strmatch(arg[iarg],"^[id]2?_")) {
       process_custom(iarg,narg,arg,action);
@@ -2909,6 +2923,94 @@ void Set::invoke_z(Action *action)
     x[i][2] = coord;
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+void Set::process_segment(int &iarg, int narg, char **arg, Action *action)
+{
+  if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set segment", error);
+
+  if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1,action);
+  else action->svalue = arg[iarg+1];
+
+  iarg += 2;
+}
+
+void Set::invoke_segment(Action *action)
+{
+  int nlocal = atom->nlocal;
+  std::string *segment = atom->segment;
+
+  // FIXME
+  //int varflag = action->varflag;
+  //double coord = 0.0;
+  //if (!action->varflag1) coord = action->dvalue1;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!select[i]) continue;
+    //if (varflag) coord = vec1[i];
+    segment[i] = action->svalue;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Set::process_residue(int &iarg, int narg, char **arg, Action *action)
+{
+  if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set residue", error);
+
+  if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1,action);
+  else action->svalue = arg[iarg+1];
+
+  iarg += 2;
+}
+
+void Set::invoke_residue(Action *action)
+{
+  int nlocal = atom->nlocal;
+  std::string *residue = atom->residue;
+
+  // FIXME
+  //int varflag = action->varflag;
+  //double coord = 0.0;
+  //if (!action->varflag1) coord = action->dvalue1;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!select[i]) continue;
+    //if (varflag) coord = vec1[i];
+    residue[i] = action->svalue;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Set::process_name(int &iarg, int narg, char **arg, Action *action)
+{
+  if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set name", error);
+
+  if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1,action);
+  else action->svalue = arg[iarg+1];
+
+  iarg += 2;
+}
+
+void Set::invoke_name(Action *action)
+{
+  int nlocal = atom->nlocal;
+  std::string *name = atom->name;
+
+  // FIXME
+  //int varflag = action->varflag;
+  //double coord = 0.0;
+  //if (!action->varflag1) coord = action->dvalue1;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!select[i]) continue;
+    //if (varflag) coord = vec1[i];
+    name[i] = action->svalue;
+  }
+}
+
 
 /* ---------------------------------------------------------------------- */
 

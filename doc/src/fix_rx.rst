@@ -112,7 +112,7 @@ this file is described below.
 There is no restriction on the total number or reaction equations that
 are specified.  The species names are arbitrary string names that are
 associated with the species concentrations.  Each species in a given
-reaction must be preceded by it's stoichiometric coefficient.  The
+reaction must be preceded by its stoichiometric coefficient.  The
 only delimiters that are recognized between the species are either a
 *+* or *=* character.  The *=* character corresponds to an
 irreversible reaction.  After specifying the reaction, the reaction

@@ -50,12 +50,14 @@ class Image : protected Pointers {
   void write_PPM(FILE *);
   void view_params(double, double, double, double, double, double);
 
-  void draw_sphere(const double *, const double *, double);
-  void draw_cube(const double *, const double *, double);
-  void draw_cylinder(const double *, const double *, const double *, double, int);
-  void draw_triangle(const double *, const double *, const double *, const double *);
-  void draw_box(double (*)[3], double);
-  void draw_axes(double (*)[3], double);
+  void draw_sphere(const double *, const double *, double, double opacity = 1.0);
+  void draw_cube(const double *, const double *, double, double opacity = 1.0);
+  void draw_cylinder(const double *, const double *, const double *, double, int,
+                     double opacity = 1.0);
+  void draw_triangle(const double *, const double *, const double *, const double *,
+                     double opacity = 1.0);
+  void draw_box(double (*)[3], double, double opacity = 1.0);
+  void draw_axes(double (*)[3], double, double opacity = 1.0);
 
   int map_dynamic(int);
   int map_reset(int, int, char **);

@@ -66,7 +66,7 @@ Optionally, the wall can be moving, if the *wiggle* keyword is appended.
 For the *wiggle* keyword, the wall oscillates sinusoidally, similar to
 the oscillations of particles which can be specified by the :doc:`fix move <fix_move>` command.  This is useful in packing simulations of
 particles.  The arguments to the *wiggle* keyword specify a dimension
-for the motion, as well as it's *amplitude* and *period*\ .  Note that
+for the motion, as well as its *amplitude* and *period*\ .  Note that
 if the dimension is in the plane of the wall, this is effectively a
 shearing motion.  If the dimension is perpendicular to the wall, it is
 more of a shaking motion.

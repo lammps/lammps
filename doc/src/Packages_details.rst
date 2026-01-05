@@ -1054,8 +1054,8 @@ This package has :ref:`specific installation instructions <gpu>` on the
 * ``lib/gpu/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`GPU package <Speed_gpu>`
-* :doc:`Section 2.6 -sf gpu <Run_options>`
-* :doc:`Section 2.6 -pk gpu <Run_options>`
+* :doc:`Section 4.2 -sf gpu <Run_options>`
+* :doc:`Section 4.2 -pk gpu <Run_options>`
 * :doc:`package gpu <package>`
 * :doc:`Commands <Commands_all>` pages (:doc:`pair <Commands_pair>`, :doc:`kspace <Commands_kspace>`)
   for styles followed by (g)
@@ -1165,8 +1165,8 @@ This package has :ref:`specific installation instructions <intel>` on the :doc:`
 * ``src/INTEL/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`INTEL package <Speed_intel>`
-* :doc:`Section 2.6 -sf intel <Run_options>`
-* :doc:`Section 2.6 -pk intel <Run_options>`
+* :doc:`Section 4.2 -sf intel <Run_options>`
+* :doc:`Section 4.2 -pk intel <Run_options>`
 * :doc:`package intel <package>`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
@@ -1302,9 +1302,9 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 * ``lib/kokkos/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`KOKKOS package <Speed_kokkos>`
-* :doc:`Section 2.6 -k on ... <Run_options>`
-* :doc:`Section 2.6 -sf kk <Run_options>`
-* :doc:`Section 2.6 -pk kokkos <Run_options>`
+* :doc:`Section 4.2 -k on ... <Run_options>`
+* :doc:`Section 4.2 -sf kk <Run_options>`
+* :doc:`Section 4.2 -pk kokkos <Run_options>`
 * :doc:`package kokkos <package>`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
@@ -2203,7 +2203,7 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 * ``src/OPT``: filenames -> commands
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`OPT package <Speed_opt>`
-* :doc:`Section 2.6 -sf opt <Run_options>`
+* :doc:`Section 4.2 -sf opt <Run_options>`
 * Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
 * `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 

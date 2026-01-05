@@ -192,7 +192,7 @@ No information about this fix is written to :doc:`binary restart files <restart>
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

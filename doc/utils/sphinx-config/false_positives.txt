@@ -191,6 +191,7 @@ AtomicPairStyle
 atomID
 atomistic
 atomtypes
+atrans
 attogram
 attograms
 attrac
@@ -217,6 +218,7 @@ awpmd
 AWPMD
 ax
 Axel
+axestrans
 Axilrod
 Ay
 ay
@@ -384,6 +386,7 @@ Bourne
 boxcolor
 boxhi
 boxlo
+boxtrans
 boxxhi
 boxxlo
 boxyhi
@@ -415,6 +418,7 @@ Bruskin
 Brusselle
 Bryantsev
 Btarget
+btrans
 btype
 buckPlusAttr
 buf
@@ -1736,6 +1740,7 @@ isokinetic
 isomorphism
 isothermal
 isotropically
+isovalue
 isovolume
 Isralewitz
 iter
@@ -3758,6 +3763,7 @@ strstr
 Stukowski
 Su
 subbox
+subboxtrans
 Subclassed
 subcutoff
 subcycle

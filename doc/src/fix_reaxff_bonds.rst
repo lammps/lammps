@@ -67,6 +67,29 @@ timestep numbers have the same length by adding leading zeroes
 (e.g. 00010 for a pad value of 5).  The default pad value is 0, i.e. no
 leading zeroes.
 
+.. versionadded:: TBD
+
+If the filename is "NULL", then no output is created.  This can be
+useful when using fix *reaxff/bonds* in combination with :doc:`dump
+image fix <dump_image>` keyword to visualize the bonds computed by
+the ReaxFF force field.
+
+Dump image info
+"""""""""""""""
+
+.. versionadded:: TBD
+
+Fix *reaxff/bonds* supports the *fix* keyword of :doc:`dump image
+<dump_image>`.  The fix will pass geometry information about the bonds
+computed by the :doc:`ReaxFF pair style <pair_reaxff>` to *dump image*
+so that they can be included in the rendered image.
+
+The *fflag1* setting of *dump image fix* determines whether the bonds
+will be capped with spheres (1) or not (0).
+
+The *fflag2* setting allows to adjust diameter of the cylinders for the
+bonds.  By default, a diameter of 0.5 length units will be used.
+
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info

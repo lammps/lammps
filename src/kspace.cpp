@@ -599,11 +599,11 @@ void KSpace::modify_params(int narg, char **arg)
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify force/disp/kspace", error);
       accuracy_kspace_6 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"eigtol") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify eigtol", error);
+    } else if ((strcmp(arg[iarg],"splittol") == 0) || (strcmp(arg[iarg],"eigtol") == 0)) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify splittol", error);
       splittol = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (splittol >= 1.0)
-        error->all(FLERR, iarg+1, "Kspace_modify eigtol value must be smaller than one");
+        error->all(FLERR, iarg+1, "Kspace_modify splittol value must be smaller than one");
       iarg += 2;
     } else if (strcmp(arg[iarg],"pressure/scalar") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify pressure/scalar", error);

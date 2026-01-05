@@ -81,12 +81,15 @@ Syntax
          axes = *yes* or *no* = do or do not draw xyz axes lines next to simulation box
          length = length of axes lines as fraction of respective box lengths
          diam = diameter of axes lines as fraction of shortest box length
-       *region* values = region-ID color drawstyle [npoints (optional) diameter (optional)]
+       *region* values = region-ID color drawstyle [opacity (optional) npoints (optional) diameter (optional)]
          region-ID = ID of the region to render
          color = color name for region graphics
-         drawstyle = *filled* or *frame* or *points*
+         drawstyle = *filled* or *transparent* or *frame* or *points*
            *filled* = render region as a filled object, with optional open faces
+           *transparent* = same as *filled* but has selectable opacity
            *frame* = render region as a wireframe (like box or subbox)
+           *points* = fill region with spheres at random locations
+         opacity  = level of opacity (from 0.0 to 1.0, only for drawstyle *transparent*)
          npoints  = number of attempted points (only for drawstyle *points*)
          diameter = diameter of wireframe or points (only for drawstyles *frame* and *points*)
        *subbox* values = lines diam = draw outline of processor subdomains
@@ -114,7 +117,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *backcolor* or *bcolor* or *bdiam* or *bitrate* or *boxcolor* or *color* or *framerate* or *gmap*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *atrans* or *backcolor* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -145,6 +148,9 @@ Syntax
            color = name of color used for that subset of values
          entry = color (for sequential style)
            color = name of color used for a bin of values
+       *atrans* args = type transparency
+         type = atom type (numeric or type label) or range of numeric types (see below)
+         transparency = transparency of atoms of that type (value between 0 (invisible) and 1 (fully opaque))
        *backcolor* arg = color
          color = name of color for background
        *bcolor* args = type color
@@ -153,13 +159,25 @@ Syntax
        *bdiam* args = type diam
          type = bond type (numeric or type label) or range of numeric types (see below)
          diam = diameter of bonds of that type (distance units)
-       *bitrate* arg = rate
-         rate = target bitrate for movie in kbps
+       *btrans* args = type transparency
+         type = bond type (numeric or type label) or range of numeric types (see below)
+         transparency = transparency of bonds of that type (value between 0 (invisible) and 1 (fully opaque))
+       *axestrans* arg = transparency
+         transparency = transparency for axes lines (value between 0 (invisible) and 1 (fully opaque))
+       *boxtrans* arg = transparency
+         transparency = transparency for simulation box lines (value between 0 (invisible) and 1 (fully opaque))
        *boxcolor* arg = color
          color = name of color for simulation box lines and processor subdomain lines
+       *subboxtrans* arg = transparency
+         transparency = transparency for simulation subbox lines (value between 0 (invisible) and 1 (fully opaque))
        *color* args = name R G B
          name = name of color
          R,G,B = red/green/blue numeric values from 0.0 to 1.0
+       *fcolor* args = fix-ID color
+         fix-ID = ID of the fix
+         color = name of color for image objects provided by this fix
+       *bitrate* arg = rate
+         rate = target bitrate for movie in kbps
        *framerate* arg = fps
          fps = frames per second for movie
        *gmap* args = identical to *amap* args
@@ -376,6 +394,9 @@ the mass of both atoms of a pair within the bond cutoff is lower than 3
 atomic mass units, a bond is **not** drawn; this prohibits displaying
 unwanted hydrogen-hydrogen bonds for alkyl or alcohol groups or for
 water with typical cutoffs suitable for displaying covalent bonds.
+For ReaxFF it is also possible to visualize bonds as they are computed
+through using :doc:`fix reaxff/bonds <fix_reaxff_bonds>` with the
+*fix* keyword (see below).
 
 ----------
 
@@ -504,46 +525,77 @@ change this via the dump_modify command.
 
 ----------
 
+.. versionchanged:: TBD
+
+   Support for several fix styles added and more flexible color selection
+
 The *fix* keyword can be used with a :doc:`fix <fix>` that produces
-objects to be drawn.
+objects to be drawn.  Below is a list of supported fixes:
 
-The *fflag1* and *fflag2* settings are numerical values which are
-passed to the fix to affect how the drawing of its objects is done.
-See the individual fix page for a description of what these
-parameters mean for a particular fix.
+* :doc:`fix graphics <fix_graphics>`
+* :doc:`fix indent <fix_indent>`
+* :doc:`fix smd/wall_surface <fix_smd_wall_surface>`
+* :doc:`fix wall/lj93 <fix_wall>`
+* :doc:`fix wall/lj126 <fix_wall>`
+* :doc:`fix wall/lj1043 <fix_wall>`
+* :doc:`fix wall/colloid <fix_wall>`
+* :doc:`fix wall/gran <fix_wall_gran>`
+* :doc:`fix wall/harmonic <fix_wall>`
+* :doc:`fix wall/harmonic/outside <fix_wall>`
+* :doc:`fix wall/lepton <fix_wall>`
+* :doc:`fix wall/morse <fix_wall>`
+* :doc:`fix wall/reflect <fix_wall_reflect>`
+* :doc:`fix wall/reflect/stochastic <fix_wall_reflect_stochastic>`
+* :doc:`fix wall/table <fix_wall>`
 
-The only setting currently allowed for the *color* value is *type*,
-which will color the fix objects according to their type.  By default
-the mapping of types to colors is as follows:
+The fix keyword may be used multiple times to include visualizations of
+graphics objects from multiple fixes.  The fix keyword is followed by
+the :doc:`fix ID <fix>` of the fix, the color style setting and two
+numerical values *fflag1* and *fflag2*.
 
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = aqua
-* type 6 = cyan
+The color style may be either *type*, *element*, or *const*.  The first
+two will use the same color as assigned to the corresponding atom type
+and thus it depends on the fix which atom type it associates with any
+object.  Often this will be atom type 1.  For the *const* type a
+constant color will be used that can be changed with a *dump_modify
+fcolor* command (see below).  By default the constant color will be
+"red" (same as the default color for atom type 1).
 
-and repeats itself for types > 6.  There is not yet an option to
-change this via the dump_modify command.
+The *fflag1* and *fflag2* settings are numerical values which are used
+by *dump image* to adjust how the drawing of the objects communicated by
+the fix is done.  See the documentation of the individual fixes for a
+description of what these parameters mean for the graphics objects
+provided by those fixes.
 
 ----------
 
 .. versionadded:: 10Sep2025
 
+.. versionchanged:: TBD
+
+   style *transparency* was added
+
 The *region* keyword can be used to create a graphical representation of
 a :doc:`region <region>`.  This can be helpful in debugging the location
 and extent of regions, especially when those have parameters controlled
 by variables.  Three styles of representing a region are available:
-*filled*, *frame*, and *points*.  With style *filled* the surface of the
-region is drawn.  For region styles that support open faces, surfaces
-are not drawn for such open faces.  Draw style *frame* represents the
-region with a mesh of "wires".  The diameter of these "wires" can be
-set.  Unlike with the *filled* style, you can see what is *inside* the
-region with this draw style.  The third draw style *points* generates a
-random point cloud inside the simulation box and draws only those points
-that are within the region.  Draw styles *filled* and *frame* support
-only "primitive" region style (no unions or intersections), but the
-*points* draw style supports all region styles.
+*filled*\, *transparency*\, *frame*\, and *points*.  With style *filled*
+the surface of the region is triangulated and drawn.  For region styles
+that support open faces, surfaces for such open faces are skipped.  The
+style *transparent* is like *filled* but takes an additional parameter
+in the range of 0.0 to 1.0 that defines the opacity and thus allows to
+see what is inside the region.  Draw style *frame* represents the region
+with a mesh of "wires".  The diameter of these "wires" can be set.
+Unlike with the *filled* style and similar to the *transparent* style,
+you can see what is *inside* the region with this draw style.  The third
+draw style, *points*\, generates a random point cloud inside the
+simulation box and draws only those points that are within the region.
+Draw styles *filled*\, *transparent*\, and *frame* support only
+"primitive" region styles (no unions or intersections), but the *points*
+draw style supports *all* region styles.
+
+Recommended transparency settings are the values of 0.25, 0.5, or 0.75
+when used in combination with *fsaa on*.
 
 ----------
 
@@ -1029,6 +1081,35 @@ pre-defined color names with new RBG values.
 
 ----------
 
+**Transparency settings for atoms bonds and standard visualization objects**
+
+.. versionadded:: TBD
+
+Various graphical objects in *dump image* output can be rendered in a
+transparent fashion using the so-called screen-door transparency method.
+This means that only a subset of pixels for a graphical object are
+written to the image.  This can be controlled with various
+*dump\_modify* settings: *atrans* for atoms, *btrans* for bonds,
+*axestrans* for axes lines, *boxtrans* for the simulation box, and
+*subboxtrans* for the subdomain box lines.  The transparency value
+must be between 0.0 (invisible) and 1.0 (fully opaque).  The default
+setting for all is 1.0.
+
+Recommended transparency settings are the values of 0.25, 0.5, or 0.75
+when used in combination with *fsaa on*.
+
+----------
+
+.. versionadded:: TBD
+
+The *fcolor* keyword sets the color of any image objects created by a
+fix.  The first argument is the fix ID used with the *dump image fix*
+command and the second argument is the color name.  The color name can
+be any of the 140 pre-defined colors (see below) or a color name defined
+by the *dump_modify color* option.
+
+----------
+
 The *framerate* keyword can be used with the :doc:`dump movie
 <dump_image>` command to define the duration of the resulting movie
 file.  Movie files written by the dump *movie* command have a default
@@ -1122,6 +1203,7 @@ The defaults for the dump image and dump movie keywords are as follows:
 * subbox no 0.0
 * shiny = 1.0
 * ssao = no
+* fsaa = no
 
 ----------
 
@@ -1130,14 +1212,18 @@ The defaults for the dump_modify keywords specific to dump image and dump movie 
 * acolor = \* red/green/blue/yellow/aqua/cyan
 * adiam = \* 1.0
 * amap = min max cf 0.0 2 min blue max red
+* atrans = 1.0
 * backcolor = black
 * bcolor = \* red/green/blue/yellow/aqua/cyan
 * bdiam = \* 0.5
-* bitrate = 2000
+* btrans = 1.0
 * boxcolor = yellow
+* axestrans = 1.0
+* boxtrans = 1.0
+* subboxtrans = 1.0
 * color = 140 color names are pre-defined as listed below
+* bitrate = 2000
 * framerate = 24
-* fsaa = no
 * gmap = min max cf 0.0 2 min blue max red
 
 ----------

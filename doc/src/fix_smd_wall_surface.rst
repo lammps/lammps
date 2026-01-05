@@ -50,6 +50,24 @@ directory.
 See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth Mach
 Dynamics in LAMMPS.
 
+Dump image info
+"""""""""""""""
+
+.. versionadded:: TBD
+
+Fix *smd/wall\_surface* supports the *fix* keyword of :doc:`dump image
+<dump_image>`.  The fix will pass geometry information about the wall
+particles to *dump image* so that they be included in the rendered
+image.
+
+The *fflag1* setting of *dump image fix* determines whether the wall will
+be rendered as a set of connected triangles (1) or as a mesh of cylinders (2).
+
+In case of using triangles, the *fflag2* setting determines the
+transparency of the triangles and must use a value between 0.0
+(invisible) and 1.0 (fully opaque).  If using a mesh of cylinders, the
+*fflag2* setting determines the diameter of the cylinders.
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -59,8 +77,9 @@ minimization. This fix has no outputs.
 Restrictions
 """"""""""""
 
-This fix is part of the MACHDYN package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This fix is part of the MACHDYN package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 The molecule ID given to the particles created by this fix have to be
 equal to or larger than 65535.

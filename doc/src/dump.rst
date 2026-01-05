@@ -987,7 +987,7 @@ the distance and energy of each bond:
 .. code-block:: LAMMPS
 
    compute 1 all property/local batom1 batom2 btype
-   compute 2 all bond/local dist eng
+   compute 2 all bond/local dist engpot
    dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2]
 
 ----------

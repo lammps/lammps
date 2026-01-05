@@ -20,6 +20,7 @@
 
 #include "atom.h"
 #include "atom_vec_body.h"
+#include "dump_image.h"
 #include "error.h"
 #include "math_extra.h"
 #include "math_eigen.h"
@@ -33,8 +34,6 @@ using namespace LAMMPS_NS;
 
 static constexpr double EPSILON = 1.0e-7;
 static constexpr int MAX_FACE_SIZE = 4;  // maximum number of vertices per face (for now)
-
-enum { SPHERE, LINE };       // also in DumpImage
 
 /* ---------------------------------------------------------------------- */
 
@@ -615,7 +614,7 @@ int BodyRoundedPolyhedron::image(int ibonus, double flag1, double /*flag2*/,
   if (nvertices == 1) { // spheres
 
     for (int i = 0; i < nvertices; i++) {
-      imflag[i] = SPHERE;
+      imflag[i] = DumpImage::SPHERE;
       MathExtra::quat_to_mat(bonus->quat,p);
       MathExtra::matvec(p,&bonus->dvalue[3*i],imdata[i]);
 
@@ -637,7 +636,7 @@ int BodyRoundedPolyhedron::image(int ibonus, double flag1, double /*flag2*/,
     int pt1, pt2;
 
     for (int i = 0; i < nedges; i++) {
-      imflag[i] = LINE;
+      imflag[i] = DumpImage::LINE;
 
       pt1 = static_cast<int>(edge_ends[2*i]);
       pt2 = static_cast<int>(edge_ends[2*i+1]);

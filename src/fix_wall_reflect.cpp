@@ -17,9 +17,12 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "dump_image.h"
 #include "error.h"
+#include "fix_wall.h"
 #include "input.h"
 #include "lattice.h"
+#include "memory.h"
 #include "modify.h"
 #include "update.h"
 #include "variable.h"
@@ -32,7 +35,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), nwall(0), varflag(0)
+  Fix(lmp, narg, arg), nwall(0), varflag(0), imgobjs(nullptr), imgparms(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "fix wall/reflect", error);
 
@@ -55,12 +58,12 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR, "Illegal fix wall/reflect {} command: missing argument(s)", arg[iarg]);
 
       int newwall;
-      if (strcmp(arg[iarg],"xlo") == 0) newwall = XLO;
-      else if (strcmp(arg[iarg],"xhi") == 0) newwall = XHI;
-      else if (strcmp(arg[iarg],"ylo") == 0) newwall = YLO;
-      else if (strcmp(arg[iarg],"yhi") == 0) newwall = YHI;
-      else if (strcmp(arg[iarg],"zlo") == 0) newwall = ZLO;
-      else if (strcmp(arg[iarg],"zhi") == 0) newwall = ZHI;
+      if (strcmp(arg[iarg],"xlo") == 0) newwall = FixWall::XLO;
+      else if (strcmp(arg[iarg],"xhi") == 0) newwall = FixWall::XHI;
+      else if (strcmp(arg[iarg],"ylo") == 0) newwall = FixWall::YLO;
+      else if (strcmp(arg[iarg],"yhi") == 0) newwall = FixWall::YHI;
+      else if (strcmp(arg[iarg],"zlo") == 0) newwall = FixWall::ZLO;
+      else if (strcmp(arg[iarg],"zhi") == 0) newwall = FixWall::ZHI;
 
       for (int m = 0; (m < nwall) && (m < 6); m++)
         if (newwall == wallwhich[m])
@@ -99,16 +102,16 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
   if (nwall == 0) utils::missing_cmd_args(FLERR, "fix wall/reflect", error);
 
   for (int m = 0; m < nwall; m++) {
-    if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
+    if ((wallwhich[m] == FixWall::XLO || wallwhich[m] == FixWall::XHI) && domain->xperiodic)
       error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension x");
-    if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
+    if ((wallwhich[m] == FixWall::YLO || wallwhich[m] == FixWall::YHI) && domain->yperiodic)
       error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension y");
-    if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
+    if ((wallwhich[m] == FixWall::ZLO || wallwhich[m] == FixWall::ZHI) && domain->zperiodic)
       error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension z");
   }
 
   for (int m = 0; m < nwall; m++)
-    if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->dimension == 2)
+    if ((wallwhich[m] == FixWall::ZLO || wallwhich[m] == FixWall::ZHI) && domain->dimension == 2)
       error->all(FLERR,
                  "Cannot use fix wall/reflect zlo/zhi for a 2d simulation");
 
@@ -128,8 +131,8 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
 
     for (int m = 0; m < nwall; m++) {
       if (wallstyle[m] != CONSTANT) continue;
-      if (wallwhich[m] < YLO) coord0[m] *= xscale;
-      else if (wallwhich[m] < ZLO) coord0[m] *= yscale;
+      if (wallwhich[m] < FixWall::YLO) coord0[m] *= xscale;
+      else if (wallwhich[m] < FixWall::ZLO) coord0[m] *= yscale;
       else coord0[m] *= zscale;
     }
   }
@@ -139,6 +142,27 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
   varflag = 0;
   for (int m = 0; m < nwall; m++)
     if (wallstyle[m] == VARIABLE) varflag = 1;
+
+  // for rendering walls with dump image.
+  if (domain->dimension == 2) {
+    // one cylinder object per wall to draw in 2d
+    memory->create(imgobjs, nwall, "fix_wall_reflect:imgobjs");
+    memory->create(imgparms, nwall, 8, "fix_wall_reflect:imgparms");
+    for (int m = 0; m < nwall; ++m) {
+      imgobjs[m] = DumpImage::CYLINDER;
+      imgparms[m][0] = 1;    // use color of first atom type by default
+    }
+  } else {
+    // two triangle objects per wall to draw in 3d
+    memory->create(imgobjs, 2 * nwall, "fix_wall_reflect:imgobjs");
+    memory->create(imgparms, 2 * nwall, 10, "fix_wall_reflect:imgparms");
+    for (int m = 0; m < nwall; ++m) {
+      imgobjs[2 * m] = DumpImage::TRIANGLE;
+      imgobjs[2 * m + 1] = DumpImage::TRIANGLE;
+      imgparms[2 * m][0] = 1;        // use color of first atom type by default
+      imgparms[2 * m + 1][0] = 1;    // use color of first atom type by default
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,6 +173,9 @@ FixWallReflect::~FixWallReflect()
 
   for (int m = 0; m < nwall; m++)
     if (wallstyle[m] == VARIABLE) delete [] varstr[m];
+
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -196,12 +223,15 @@ void FixWallReflect::post_integrate()
   for (int m = 0; m < nwall; m++) {
     if (wallstyle[m] == VARIABLE) {
       coord = input->variable->compute_equal(varindex[m]);
-      if (wallwhich[m] < YLO) coord *= xscale;
-      else if (wallwhich[m] < ZLO) coord *= yscale;
+      if (wallwhich[m] < FixWall::YLO) coord *= xscale;
+      else if (wallwhich[m] < FixWall::ZLO) coord *= yscale;
       else coord *= zscale;
     } else coord = coord0[m];
 
     wall_particle(m,wallwhich[m],coord);
+
+    // record wall graphics objects for dump image
+    FixWall::update_image_plane(m, wallwhich[m], coord, imgparms, domain);
   }
 
   if (varflag) modify->addstep_compute(update->ntimestep + 1);
@@ -237,5 +267,21 @@ void FixWallReflect::wall_particle(int /* m */, int which, double coord)
         }
       }
     }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   provide graphics information to dump image to render wall as plane
+   data has been copied to dedicated storage during fix indent execution
+------------------------------------------------------------------------- */
+
+int FixWallReflect::image(int *&objs, double **&parms)
+{
+  objs = imgobjs;
+  parms = imgparms;
+  if (domain->dimension == 2) {
+    return nwall;
+  } else {
+    return 2 * nwall;
   }
 }

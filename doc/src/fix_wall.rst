@@ -497,49 +497,77 @@ if you want the interpolation tables of length Ntable to match exactly
 what is in the tabulated file (with effectively no preliminary
 interpolation), you should set Ntable = Nfile.
 
-----------
+-----------------
+
+Dump image info
+"""""""""""""""
+
+.. versionadded:: TBD
+
+These wall fixes support the *fix* keyword of :doc:`dump image
+<dump_image>`.  The fixes will pass geometry information about the walls
+to *dump image* so that the walls will be included in the rendered
+image.  Please note, that for :doc:`2d systems <dimension>`, a wall
+rendered as a plane would be invisible and it is thus rendered as a
+cylinder.
+
+For 2d systems, the *fflag1* setting determines whether the cylinder
+representing the wall is capped with a sphere at the ends: 0 means no caps, 1
+means the lower end is capped, 2 means the upper end is capped, and 3
+means both ends are capped.  The *fflag2* setting allows to adjust the
+radius of the rendered cylinder.  It should be set to a value > 0 or the
+cylinder will not be visible since the diameter is set internally to
+zero due to lack of a suitable heuristic for deriving a meaningful
+diameter for all types of walls and unit settings.
+
+For 3d systems, the *fflag1* setting is ignored, but the *fflag2*
+setting determines the transparency of the wall.  It must be set to a
+value between 0.0 (invisible) and 1.0 (fully opaque).
+
+-----------------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files
-<restart>`.
+No information about these fixes are written to :doc:`binary restart
+files <restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by
-this fix to add the energy of interaction between atoms and all the
-specified walls to the global potential energy of the system as part
-of :doc:`thermodynamic output <thermo_style>`.  The default setting
-for this fix is :doc:`fix_modify energy no <fix_modify>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by these
+fixes to add the energy of interaction between atoms and all the
+specified walls to the global potential energy of the system as part of
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+these fixes is :doc:`fix_modify energy no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by
-this fix to add the contribution due to the interaction between atoms
+these fixes to add the contribution due to the interaction between atoms
 and all the specified walls to both the global pressure and per-atom
 stress of the system via the :doc:`compute pressure
 <compute_pressure>` and :doc:`compute stress/atom
 <compute_stress_atom>` commands.  The former can be accessed by
 :doc:`thermodynamic output <thermo_style>`.  The default setting for
-this fix is :doc:`fix_modify virial no <fix_modify>`.
+these fixes is :doc:`fix_modify virial no <fix_modify>`.
 
-The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
-fix. This allows to set at which level of the :doc:`r-RESPA
-<run_style>` integrator the fix is adding its forces. Default is the
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by these
+fixes.  This allows to set at which level of the :doc:`r-RESPA
+<run_style>` integrator a fix is adding its forces.  Default is the
 outermost level.
 
-This fix computes a global scalar energy and a global vector of forces,
-which can be accessed by various :doc:`output commands <Howto_output>`.
-Note that the scalar energy is the sum of interactions with all defined
-walls.  If you want the energy on a per-wall basis, you need to use
-multiple fix wall commands.  The length of the vector is equal to the
-number of walls defined by the fix.  Each vector value is the normal
-force on a specific wall.  Note that an outward force on a wall will be
-a negative value for *lo* walls and a positive value for *hi* walls.
-The scalar and vector values calculated by this fix are "extensive".
+These fixes compute a global scalar energy and a global vector of
+forces, which can be accessed by various :doc:`output commands
+<Howto_output>`.  Note that the scalar energy is the sum of interactions
+with all defined walls.  If you want the energy on a per-wall basis, you
+need to use multiple fix wall commands.  The length of the vector is
+equal to the number of walls defined by the fix.  Each vector value is
+the normal force on a specific wall.  Note that an outward force on a
+wall will be a negative value for *lo* walls and a positive value for
+*hi* walls.  The scalar and vector values calculated by this fix are
+"extensive".
 
-No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.
+No parameter of these fixes can be used with the *start/stop* keywords
+of the :doc:`run <run>` command.
 
-The forces due to this fix are imposed during an energy minimization,
-invoked by the :doc:`minimize <minimize>` command.
+The forces due to these fixes *are* imposed during an energy
+minimization, invoked by the :doc:`minimize <minimize>` command.
 
 .. note::
 

@@ -55,10 +55,14 @@ if(APPLE)
   if(NOT CMAKE_CXX_COMPILER)
     find_program(CMAKE_CXX_COMPILER NAMES clang++ g++ PATHS /opt/homebrew/bin /usr/bin)
   endif()
+  
+  message(STATUS "*** ok 1")
 
   if(NOT CMAKE_C_COMPILER OR NOT CMAKE_CXX_COMPILER)
     message(FATAL_ERROR "No suitable C or C++ compiler found on macOS")
   endif()
+  
+  message(STATUS "*** ok 2")
 
   # Detect compiler type
   execute_process(
@@ -66,11 +70,23 @@ if(APPLE)
     OUTPUT_VARIABLE COMPILER_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
+  
+  message(STATUS "*** ok 3")
 
+  # Use INPUT_FILE /dev/null to prevent the compiler from waiting on stdin
   execute_process(
-    COMMAND ${CMAKE_CXX_COMPILER} -dM -E - < /dev/null
+    COMMAND ${CMAKE_CXX_COMPILER} -dM -E -
+    INPUT_FILE /dev/null
     OUTPUT_VARIABLE COMPILER_MACRO_DEFS
+    ERROR_VARIABLE COMPILER_STDERR
+    RESULT_VARIABLE COMMAND_RESULT
   )
+
+  if(NOT COMMAND_RESULT EQUAL 0)
+    message(WARNING "Failed to detect compiler macros: ${COMPILER_STDERR}")
+  endif()
+  
+  message(STATUS "*** ok 4")
 
   if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
     set(COMPILER_IS_APPLECLANG TRUE)
@@ -79,6 +95,9 @@ if(APPLE)
   else()
     message(FATAL_ERROR "Unsupported compiler for macOS OpenMP: ${CMAKE_CXX_COMPILER_ID}")
   endif()
+  
+  message(STATUS "*** ok 5")
+
 
   # --------- OpenMP flags ----------
   if(COMPILER_IS_APPLECLANG)
@@ -108,18 +127,31 @@ if(APPLE)
   elseif(COMPILER_IS_GCC)
     message(STATUS "Using GCC with system OpenMP support")
 
-    # For GCC on macOS, usually -fopenmp works automatically
+    # 1. Get the directory where the current GCC's libraries are located
+    execute_process(
+      COMMAND ${CMAKE_CXX_COMPILER} -print-file-name=libgomp.dylib
+      OUTPUT_VARIABLE GOMP_PATH
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    get_filename_component(GOMP_DIR "${GOMP_PATH}" DIRECTORY)
+
+    # 2. Search for gomp specifically in that GCC's internal path
+    find_library(OPENMP_LIB NAMES gomp PATHS ${GOMP_DIR} NO_DEFAULT_PATH)
+
+    if(NOT OPENMP_LIB)
+      message(FATAL_ERROR "Could not find libgomp at ${GOMP_DIR}")
+    endif()
+
     set(OpenMP_C_FLAGS       "-fopenmp" CACHE STRING "" FORCE)
     set(OpenMP_CXX_FLAGS     "-fopenmp" CACHE STRING "" FORCE)
     set(OpenMP_C_LIB_NAMES   "gomp" CACHE STRING "" FORCE)
     set(OpenMP_CXX_LIB_NAMES "gomp" CACHE STRING "" FORCE)
-    find_library(OPENMP_LIB NAMES gomp)
-    if(NOT OPENMP_LIB)
-      message(FATAL_ERROR "Could not find libgomp for GCC OpenMP")
-    endif()
     set(OpenMP_omp_LIBRARY   ${OPENMP_LIB} CACHE STRING "" FORCE)
     set(OpenMP_CXX_LIBRARIES ${OPENMP_LIB} CACHE STRING "" FORCE)
+    
+    link_directories(${GOMP_DIR})
   endif()
+  
 endif()
 
 ########################################################################

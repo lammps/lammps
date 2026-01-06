@@ -191,7 +191,37 @@ class GranSubModNormalEPALinear : public GranSubModNormal {
     inline double round_up_negative_epsilon(double);
   };
 
-} // namespace LAMMPS_NS::Granular_NS
+/* ---------------------------------------------------------------------- */
 
+class GranSubModNormalEPALinear : public GranSubModNormal {
+ public:
+  GranSubModNormalEPALinear(class GranularModel *, class LAMMPS *);
+  void coeffs_to_local() override;
+  double calculate_forces();
+  void set_fncrit() override;
+  bool adhesive;
+
+ protected:
+  double k1, k2_hat, kc, phi_f, f0;
+};
+
+/* ---------------------------------------------------------------------- */
+
+/*class GranSubModNormalEPA : public GranSubModNormal {
+ public:
+  GranSubModNormalEPA(class GranularModel *, class LAMMPS *);
+  void coeffs_to_local() override;
+  void mix_coeffs(double*, double*) override;
+  double calculate_forces();
+  void set_fncrit() override;
+  bool adhesive;
+
+ protected:
+  double k, cohesion;
+  double Emix, F_pulloff, Fne;
+};
+*/
+}    // namespace Granular_NS
+}    // namespace LAMMPS_NS
 
 #endif /*GRAN_SUB_MOD_NORMAL_H */

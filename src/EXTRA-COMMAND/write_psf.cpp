@@ -217,6 +217,99 @@ void WritePsf::header()
 
 }
 
+/* ----------------------------------------------------------------------
+   write out Atoms section of psf file
+------------------------------------------------------------------------- */
+
+void WritePsf::atoms()
+{
+
+  int *recvcounts = new int[nprocs];
+  int *displs     = new int[nprocs];
+
+  int natoms_local = 0;
+  for (int i = 0; i < atom->nlocal; i++)
+    if (atom->mask[i] & groupbit)
+      natoms_local++;
+
+  // gather atom counts (in atoms, not bytes)
+  MPI_Gather(&natoms_local, 1, MPI_INT, recvcounts, 1, MPI_INT, 0, world);
+
+  int natoms = 0;
+  if (me == 0) {
+    displs[0] = 0;
+    for (int i = 0; i < nprocs; i++) {
+      if (i > 0) displs[i] = displs[i-1] + recvcounts[i-1];
+      natoms += recvcounts[i];
+    }
+  }
+
+  // allocate local buffer
+  psf_data *sendbuf = new psf_data[natoms_local];
+
+  // fill local buffer
+  int j = 0;
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (atom->mask[i] & groupbit) {
+      sendbuf[j].tag      = atom->tag[i];
+      sendbuf[j].molecule = atom->molecule[i];
+      sendbuf[j].type     = atom->type[i];
+      sendbuf[j].q        = atom->q_flag ? atom->q[i] : 0.0;
+      std::memset(sendbuf[j].segment, ' ', 8);
+      std::memset(sendbuf[j].residue, ' ', 8);
+      std::memset(sendbuf[j].name,    ' ', 8);
+      sendbuf[j].segment[8] = sendbuf[j].residue[8] = sendbuf[j].name[8] = '\0';
+      std::memcpy(sendbuf[j].segment, atom->segment[i].data(), std::min<size_t>(8, atom->segment[i].size()));
+      std::memcpy(sendbuf[j].residue, atom->residue[i].data(), std::min<size_t>(8, atom->residue[i].size()));
+      std::memcpy(sendbuf[j].name, atom->name[i].data(), std::min<size_t>(8, atom->name[i].size()));
+      j++;
+    }
+  }
+
+  // allocate receive buffer on root
+  psf_data *recvbuf = nullptr;
+  if (me == 0) recvbuf = new psf_data[natoms];
+
+  // convert counts to bytes
+  if (me == 0)
+    for (int i = 0; i < nprocs; i++) {
+      recvcounts[i] *= sizeof(psf_data);
+      displs[i]     *= sizeof(psf_data);
+    }
+
+  MPI_Gatherv(sendbuf, natoms_local * sizeof(psf_data), MPI_BYTE, recvbuf, recvcounts, displs, MPI_BYTE, 0, world);
+
+  if (me == 0) {
+
+    bigint *order;
+    memory->create(order, natoms, "write_psf:order");
+    for (int i = 0; i < natoms; i++) order[i] = i;
+    utils::merge_sort(order, natoms, (void *)recvbuf, compare_tags);
+
+    fmt::print(fp,"\n {:8} !NATOM\n",natoms);
+
+    for (int i = 0; i < natoms; i++) {
+      // II,LSEGID,LRESID,LRES,TYPE(I),IAC(I),CG(I),AMASS(I),IMOVE(I)
+      // (I10,1X,A8,1X,A8,1X,A8,1X,A8,1X,A4,1X,2G14.6,I8)
+      int j = order[i];
+      fmt::print(fp, "{:10} ", recvbuf[j].tag );
+      fmt::print(fp, "{:<8} ", recvbuf[j].segment );
+      fmt::print(fp, "{:<8} ", recvbuf[j].molecule );
+      fmt::print(fp, "{:<8} ", recvbuf[j].residue );
+      fmt::print(fp, "{:<8} ", recvbuf[j].name );
+      fmt::print(fp, "{:<4} ", atom->lmap->find(recvbuf[j].type, Atom::ATOM) );
+      fmt::print(fp, "{:12.6F}      ", recvbuf[j].q );
+      fmt::print(fp, "{:8g}           0\n", atom->mass[recvbuf[j].type] );
+    }
+    memory->destroy(order);
+  }
+
+  delete[] sendbuf;
+  delete[] recvcounts;
+  delete[] displs;
+  
+}
+
 
 /* ----------------------------------------------------------------------
    write out Bonds section of psf file
@@ -537,96 +630,6 @@ void WritePsf::impropers()
   }
 
   memory->destroy(buf);
-}
-
-/* ----------------------------------------------------------------------
-   write out Atoms section of psf file
-------------------------------------------------------------------------- */
-
-void WritePsf::atoms()
-{
-
-  int *recvcounts = new int[nprocs];
-  int *displs = new int[nprocs];
-  int natoms = natoms_local;
-  MPI_Gather( &natoms, 1, MPI_INT, recvcounts, 1, MPI_INT, 0, world);
-  recvcounts[0] = natoms_local;
-  displs[0] = 0;
-
-  psf_data *buf;
-
-  if (me > 0) buf = new psf_data[natoms_local];
-  else {
-    buf = new psf_data[natoms];
-    for ( int i=1; i<nprocs; i++) displs[i] = displs[i-1]+recvcounts[i-1];
-  }
-
-
-
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-  tagint *tag = atom->tag;
-  tagint *molecule = atom->molecule;
-  int *type = atom->type;
-  double *q = atom->q;
-
-  // atom_tag, segment_id, molecule_id, residue_id, name_id, type_id, charge
-
-  int j=-1;
-
-  for (int i = 0; i < nlocal; i++)
-    if ( mask[i] & groupbit) {
-      j++;
-      buf[j].tag = tag[i];
-      buf[j].molecule = molecule[i];
-      buf[j].type = type[i];
-      if(atom->q_flag) buf[j].q = q[i];
-      std::memset(buf[j].segment, ' ', 8);
-      std::memset(buf[j].residue, ' ', 8);
-      std::memset(buf[j].name,    ' ', 8);
-      buf[j].segment[8] = buf[j].residue[8] = buf[j].name[8] = '\0';
-      std::string segment = atom->segment[i];
-      std::string residue = atom->residue[i];
-      std::string name    = atom->name[i];
-      std::memcpy(buf[j].segment, segment.data(), std::min<size_t>(8, segment.size()) );
-      std::memcpy(buf[j].residue, residue.data(), std::min<size_t>(8, residue.size()) );
-      std::memcpy(buf[j].name,    name.data(),    std::min<size_t>(8, name.size())    );
-    }
-
-  if (me == 0)
-    MPI_Gatherv(MPI_IN_PLACE, natoms_local * sizeof(psf_data),MPI_BYTE,buf,recvcounts,displs,MPI_BYTE,0,world);
-  else
-    MPI_Gatherv(buf,natoms_local * sizeof(psf_data),MPI_BYTE,0,0,0,MPI_BYTE,0,world);
-
-  if (me == 0) {
-
-    bigint *order;
-    memory->create(order, natoms, "write_psf:order");
-    for (int i = 0; i < natoms; i++) order[i] = i;
-    //utils::merge_sort(order, natoms, (void *)buf, compare_tags);
-
-    fmt::print(fp,"\n {:8} !NATOM\n",natoms);
-
-    for (int i = 0; i < natoms; i++) {
-      // II,LSEGID,LRESID,LRES,TYPE(I),IAC(I),CG(I),AMASS(I),IMOVE(I)
-      // (I10,1X,A8,1X,A8,1X,A8,1X,A8,1X,A4,1X,2G14.6,I8)
-      int j = order[i];
-      fmt::print(fp, "{:10} ", buf[j].tag );
-      fmt::print(fp, "{:<8} ", buf[j].segment );
-      fmt::print(fp, "{:<8} ", buf[j].molecule );
-      fmt::print(fp, "{:<8} ", buf[j].residue );
-      fmt::print(fp, "{:<8} ", buf[j].name );
-      fmt::print(fp, "{:<4} ", atom->lmap->find(buf[j].type, Atom::ATOM) );
-      fmt::print(fp, "{:12.6F}      ", buf[j].q );
-      fmt::print(fp, "{:8g}           0\n", atom->mass[buf[j].type] );
-    }
-    memory->destroy(order);
-  }
-
-  memory->destroy(buf);
-  delete [] recvcounts;
-  delete [] displs;
-  delete [] buf;
 }
 
 /* ----------------------------------------------------------------------

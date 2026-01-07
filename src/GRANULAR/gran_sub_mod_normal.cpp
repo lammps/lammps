@@ -1034,7 +1034,7 @@ void GranSubModNormalEPALinear::coeffs_to_local()
   phi_f = coeffs[4];
   f0 = coeffs[5];
 
-  if (k1 < 0.0 || damp < 0.0 || k2_hat < 0.0 || kc < 0 || phi_f < 0 || f0 < 0) error->all(FLERR, "Illegal EPA linear normal model");
+  if (k1 < 0.0 || damp < 0.0 || k2_hat < 0.0 || kc < 0 || phi_f < 0 || f0 < 0) error->all(FLERR, "Illegal EPA linear normal model, all coeffs must be positive");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1084,7 +1084,7 @@ double GranSubModNormalEPALinear::calculate_forces()
 }
 
 /* ----------------------------------------------------------------------
-   Edinburgh elastic-plastic-adhesive, non-linear
+   Elastic-plastic-adhesive, non-linear
 ------------------------------------------------------------------------- */
 
 GranSubModNormalEPANonlinear::GranSubModNormalEPANonlinear(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)

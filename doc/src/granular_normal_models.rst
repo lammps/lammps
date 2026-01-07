@@ -3,15 +3,15 @@ Models for normal contact in granular interactions
 
 The normal force acts along the vector connecting the center of two particles,
 i.e. normal to the plane of contact between particles.
-In all cases, the normal forces is modeled as a function of overlap :math:`delta`. 
+In all cases, the normal forces is modeled as a function of overlap :math:`\delta_{ij}`. 
 The following quantities are common to all the normal models currently available:
 
-:math:`\delta_{ij} = R_i + R_j - \|\mathbf{r}_{ij}\|` is the particle overlap, 
-:math:`R_i, R_j` are the particle radii, 
-:math:`\mathbf{r}_{ij} = \mathbf{r}_i - \mathbf{r}_j` is the vector separating the two
-particle centers (note the i-j ordering so that the force is
-positive for repulsion), and 
-:math:`\mathbf{n} = \frac{\mathbf{r}_{ij}}{\|\mathbf{r}_{ij}\|}`
+| :math:`\delta_{ij} = R_i + R_j - \|\mathbf{r}_{ij}\|` is the particle overlap, 
+| :math:`R_i, R_j` are the particle radii, 
+| :math:`\mathbf{r}_{ij} = \mathbf{r}_i - \mathbf{r}_j` is the vector separating the two
+particle centers (note the i-j ordering so that the force is positive for repulsion), and
+| :math:`\mathbf{n} = \frac{\mathbf{r}_{ij}}{\|\mathbf{r}_{ij}\|}` is the unit vector along
+the direction between the two particles
 
 .. _hooke_normal_model:
 

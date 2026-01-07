@@ -189,7 +189,7 @@ void GranSubModTangentialLinearHistory::calculate_forces()
 
 
 //**********************************************
-// Linear history w/ static
+// Linear history w/ static friction
 //**********************************************
 
 GranSubModTangentialLinearHistoryStatic::GranSubModTangentialLinearHistoryStatic(GranularModel *gm, LAMMPS *lmp) :

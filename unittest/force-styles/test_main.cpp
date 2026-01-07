@@ -118,6 +118,22 @@ void EXPECT_TORQUES(const std::string &name, Atom *atom, const std::vector<coord
     if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
 }
 
+void EXPECT_CHARGES(const std::string &name, Atom *atom, const std::vector<double> &q_ref,
+                    double epsilon)
+{
+    SCOPED_TRACE("EXPECT_CHARGES: " + name);
+    double *q       = atom->q;
+    tagint *tag      = atom->tag;
+    const int nlocal = atom->nlocal;
+    ASSERT_EQ(nlocal + 1, q_ref.size());
+    ErrorStats stats;
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(q[i], q_ref[tag[i]], epsilon);
+    }
+    if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
+}
+
+
 // common read_yaml_file function
 bool read_yaml_file(const char *infile, TestConfig &config)
 {

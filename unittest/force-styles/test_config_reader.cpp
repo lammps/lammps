@@ -49,6 +49,7 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["run_pos"]        = &TestConfigReader::run_pos;
     consumers["run_vel"]        = &TestConfigReader::run_vel;
     consumers["run_torque"]     = &TestConfigReader::run_torque;
+    consumers["init_charges"]    = &TestConfigReader::init_charges;
 
     consumers["pair_style"] = &TestConfigReader::pair_style;
     consumers["pair_coeff"] = &TestConfigReader::pair_coeff;
@@ -181,6 +182,21 @@ void TestConfigReader::init_forces(const yaml_event_t &event)
         coord_t xyz;
         sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
         config.init_forces[tag] = xyz;
+    }
+}
+
+void TestConfigReader::init_charges(const yaml_event_t &event)
+{
+    config.init_charges.clear();
+    config.init_charges.resize(config.natoms + 1);
+    std::stringstream data((const char *)event.data.scalar.value);
+    std::string line;
+
+    while (std::getline(data, line, '\n')) {
+        int tag = 0;
+        double q;
+        sscanf(line.c_str(), "%d %lg", &tag, &q);
+        config.init_charges[tag] = q;
     }
 }
 

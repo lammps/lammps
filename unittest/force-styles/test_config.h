@@ -71,6 +71,7 @@ public:
     std::vector<coord_t> run_vel;
     std::vector<coord_t> restart_vel;
     std::vector<coord_t> run_torque;
+    std::vector<double> init_charges;
 
     TestConfig() :
         lammps_version(""), date_generated(""), basename(""), epsilon(1.0e-14), input_file(""),
@@ -97,6 +98,7 @@ public:
         restart_vel.clear();
         run_torque.clear();
         global_vector.clear();
+        init_charges.clear();
     }
     TestConfig(const TestConfig &)            = delete;
     TestConfig &operator=(const TestConfig &) = delete;

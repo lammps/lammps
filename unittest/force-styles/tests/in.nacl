@@ -1,5 +1,5 @@
-variable  newton_pair     index  on
-variable  data_file       index ${input_dir}/data.conp
+variable  newton_pair     index  off
+variable  data_file       index ${input_dir}/data.nacl
 variable  pair_style      index 'zero 8.0'
 variable  bond_style      index zero
 variable  angle_style     index zero
@@ -19,9 +19,6 @@ improper_style   ${improper_style}
 
 read_data        ${data_file}
 
-bond_coeff *
-angle_coeff *
 
-group bot type 1
-group top type 2
-group ele type 1 2
+group Na type 1
+group Cl type 2

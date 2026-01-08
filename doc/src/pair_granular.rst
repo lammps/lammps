@@ -91,7 +91,7 @@ and their required arguments are:
 
 1. :ref:`hooke <hooke_normal_model>` : :math:`k_n`, :math:`\eta_{n0}` (or :math:`e`)
 2. :ref:`hertz <hertz_normal_model>` : :math:`k_n`, :math:`\eta_{n0}` (or :math:`e`)
-3. *hertz/material* : E, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`
+3. :ref:`hertz/material <hertz_matiral> : E, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`
 4. *dmt* : E, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`, :math:`\gamma`
 5. *jkr* : E, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`, :math:`\gamma`
 6. *mdr* : :math:`E`, :math:`\nu`, :math:`Y`, :math:`\Delta\gamma`,

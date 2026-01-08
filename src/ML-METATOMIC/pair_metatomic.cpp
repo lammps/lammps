@@ -379,7 +379,6 @@ void PairMetatomic::settings(int argc, char ** argv) {
 }
 
 void PairMetatomic::pick_device(torch::Device& device, const char* requested) {
-
     torch::optional<std::string> requested_string;
     torch::DeviceType device_type;
 

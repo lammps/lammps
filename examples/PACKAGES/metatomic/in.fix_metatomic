@@ -1,0 +1,25 @@
+units metal
+atom_style atomic
+boundary p p p
+
+lattice fcc 4.05
+region box block 0 3 0 3 0 3
+create_box 1 box
+create_atoms 1 box
+
+mass 1 26.9815386
+
+velocity all create 800.0 12345 mom yes rot yes dist gaussian
+
+# pair_style metatomic flashmd-energy-model.pt
+# pair_coeff * * 13
+
+timestep 0.016
+
+fix 0 all metatomic flashmd-dynamics-model.pt types 13
+fix 1 all langevin 700.0 700.0 0.1 12345
+
+thermo 10
+thermo_style custom step temp pe ke etotal
+
+run 100

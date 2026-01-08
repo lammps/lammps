@@ -22,12 +22,7 @@
 
 using namespace LAMMPS_NS;
 
-PairMetatomicData::PairMetatomicData(std::string length_unit):
-    device(torch::kCPU),
-    check_consistency(false),
-    non_conservative(false),
-    max_cutoff(-1)
-{
+CommonMetatomicData::CommonMetatomicData(std::string length_unit): device(torch::kCPU) {
     auto options = torch::TensorOptions().dtype(torch::kInt32);
     this->selected_atoms_values = torch::zeros({0, 2}, options);
 
@@ -36,7 +31,7 @@ PairMetatomicData::PairMetatomicData(std::string length_unit):
     this->evaluation_options->set_length_unit(std::move(length_unit));
 }
 
-void PairMetatomicData::load_model(
+void CommonMetatomicData::load_model(
    LAMMPS* lmp,
    const char* path,
    const char* extensions_directory

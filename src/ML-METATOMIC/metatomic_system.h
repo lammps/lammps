@@ -75,6 +75,13 @@ public:
         torch::Device device
     );
 
+    // Add masses as extra data to this system, only for atoms which are not
+    // periodic images of other atoms
+    virtual void add_masses(metatomic_torch::System& system, double unit_conversion);
+    // Add momenta as extra data to this system, only for atoms which are not
+    // periodic images of other atoms
+    virtual void add_momenta(metatomic_torch::System& system, double unit_conversion);
+
     // Explicit strain for virial calculations. This uses the same dtype/device
     // as LAMMPS data (positions, …)
     torch::Tensor strain;

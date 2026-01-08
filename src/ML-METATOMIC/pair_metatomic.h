@@ -33,11 +33,8 @@ PairStyle(metatomic_9, PairMetatomic);
 
 #include "pair.h"
 
-#include <vector>
-
 namespace c10 {
     class Device;
-    enum class DeviceType: int8_t;
 }
 
 namespace at {
@@ -66,10 +63,6 @@ public:
     virtual void store_forces(const at::Tensor& forces_tensor);
 
 protected:
-    // get the set of devices both available on the current machine and supported
-    // by the model
-    std::vector<c10::DeviceType> available_devices();
-
     // pick the correct device to use from the user request (or nullptr) in
     // `pair_style metatomic`
     virtual void pick_device(c10::Device& device, const char* requested);

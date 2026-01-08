@@ -1,3 +1,4 @@
+
 # Use the correct kokkos settings. `neigh half` does not imply the use of a half
 # neighbor list, only a change in how contributions are summed together.
 # cf https://github.com/lammps/lammps/pull/4412

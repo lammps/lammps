@@ -548,3 +548,131 @@ metatomic_torch::System MetatomicSystemAdaptor::system_from_lmp(
 
     return system;
 }
+
+void MetatomicSystemAdaptor::add_masses(metatomic_torch::System& system, double unit_conversion) {
+    double* rmass = atom->rmass;
+    double* mass = atom->mass;
+    int* type = atom->type;
+
+    auto total_n_atoms = atom->nlocal + atom->nghost;
+
+    auto device = system->device();
+    auto dtype = system->scalar_type();
+
+    auto mta_to_lmp_tensor = torch::from_blob(
+        mta_to_lmp.data(),
+        {static_cast<int64_t>(mta_to_lmp.size())},
+        torch::TensorOptions().dtype(torch::kInt).device(torch::kCPU)
+    );
+
+    // gather masses (per-atom) in a tensor and ship to device
+    torch::Tensor masses;
+    auto float_tensor_options = torch::TensorOptions().dtype(torch::kFloat64).device(torch::kCPU);
+    if (rmass) {
+        masses = torch::from_blob(
+            rmass,
+            {total_n_atoms},
+            float_tensor_options.requires_grad(false)
+        );
+    } else {
+        // need to map from atom type to mass
+        masses = torch::empty({total_n_atoms}, float_tensor_options);
+        auto masses_accessor = masses.accessor<double, 1>();
+        for (int i=0; i<total_n_atoms; i++) {
+            masses_accessor[i] = mass[type[i]];
+        }
+    }
+
+    masses = masses.index_select(0, mta_to_lmp_tensor);
+    masses = masses * unit_conversion;
+
+    auto keys = metatensor_torch::LabelsHolder::single()->to(device);
+    auto label_tensor_options = torch::TensorOptions().dtype(torch::kInt32).device(device);
+    auto samples_values = torch::column_stack({
+        torch::zeros(system->size(), label_tensor_options).unsqueeze(1),
+        torch::arange(system->size(), label_tensor_options).unsqueeze(1)
+    });
+    auto samples = torch::make_intrusive<metatensor_torch::LabelsHolder>(
+        std::vector<std::string>{"system","atom"},
+        samples_values,
+        metatensor::assume_unique{}
+    );
+    auto properties = metatensor_torch::LabelsHolder::single()->to(device);
+    auto block = torch::make_intrusive<metatensor_torch::TensorBlockHolder>(
+        masses.to(dtype).to(device).unsqueeze(-1),  // add property dimension
+        samples,
+        std::vector<metatensor_torch::Labels>{},
+        properties
+    );
+    auto tensor = torch::make_intrusive<metatensor_torch::TensorMapHolder>(
+        keys,
+        std::vector<metatensor_torch::TensorBlock>{block}
+    );
+
+    system->add_data("masses", tensor, /*override=*/true);
+}
+
+
+void MetatomicSystemAdaptor::add_momenta(metatomic_torch::System& system, double unit_conversion) {
+    double* rmass = atom->rmass;
+    double* mass = atom->mass;
+    double** v = atom->v;
+    int* type = atom->type;
+
+    auto total_n_atoms = atom->nlocal + atom->nghost;
+
+    auto device = system->device();
+    auto dtype = system->scalar_type();
+
+    auto mta_to_lmp_tensor = torch::from_blob(
+        mta_to_lmp.data(),
+        {static_cast<int64_t>(mta_to_lmp.size())},
+        torch::TensorOptions().dtype(torch::kInt).device(torch::kCPU)
+    );
+
+    // gather momenta (per-atom) in a tensor and ship to device
+    torch::Tensor momenta = torch::zeros({total_n_atoms, 3}, torch::TensorOptions().dtype(torch::kFloat64).device(torch::kCPU));
+    auto momenta_accessor = momenta.accessor<double, 2>();
+    for (int i=0; i<total_n_atoms; i++) {
+        double m = rmass ? rmass[i] : mass[type[i]];
+        momenta_accessor[i][0] = m * v[i][0];
+        momenta_accessor[i][1] = m * v[i][1];
+        momenta_accessor[i][2] = m * v[i][2];
+    }
+
+    momenta = momenta.index_select(0, mta_to_lmp_tensor);
+    momenta = momenta * unit_conversion;
+
+    auto keys = metatensor_torch::LabelsHolder::single()->to(device);
+
+    auto label_tensor_options = torch::TensorOptions().dtype(torch::kInt32).device(device);
+    auto samples_values = torch::column_stack({
+        torch::zeros(system->size(), label_tensor_options).unsqueeze(1),
+        torch::arange(system->size(), label_tensor_options).unsqueeze(1)
+    });
+    auto samples = torch::make_intrusive<metatensor_torch::LabelsHolder>(
+        std::vector<std::string>{"system","atom"},
+        samples_values,
+        metatensor::assume_unique{}
+    );
+
+    auto component_values = torch::arange(3, label_tensor_options).unsqueeze(1);
+    auto component = torch::make_intrusive<metatensor_torch::LabelsHolder>(
+        std::vector<std::string>{"xyz"}, component_values
+    );
+
+    auto properties = metatensor_torch::LabelsHolder::single()->to(device);
+
+    auto block = torch::make_intrusive<metatensor_torch::TensorBlockHolder>(
+        momenta.to(dtype).to(device).unsqueeze(-1),
+        samples,
+        std::vector<metatensor_torch::Labels>{component},
+        properties
+    );
+    auto tensor = torch::make_intrusive<metatensor_torch::TensorMapHolder>(
+        keys,
+        std::vector<metatensor_torch::TensorBlock>{block}
+    );
+
+    system->add_data("momenta", tensor, /*override=*/true);
+}

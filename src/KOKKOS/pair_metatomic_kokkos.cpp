@@ -133,24 +133,12 @@ void PairMetatomicKokkos<DeviceType>::store_forces(const at::Tensor& forces_tens
 
     // in non-conservative mode we do not need to update forces on ghost atoms
     if (!mta_data->non_conservative) {
-        using HostUnmanaged = UnmanagedView<int*, LMPHostType>;
-        using DeviceUnmanaged = UnmanagedView<int*, DeviceType>;
-        using DeviceView = Kokkos::View<int*, Kokkos::LayoutRight, DeviceType>;
-
-        auto& mta_to_lmp = this->system_adaptor->mta_to_lmp;
-        DeviceUnmanaged mta_to_lmp_kk;
-        DeviceView mta_to_lmp_device;
-        if constexpr (std::is_same_v<typename HostUnmanaged::memory_space, typename DeviceUnmanaged::memory_space>) {
-            mta_to_lmp_kk = DeviceUnmanaged(mta_to_lmp.data(), mta_to_lmp.size());
-        } else {
-            // make a copy of mta_to_lmp on device
-            mta_to_lmp_device = DeviceView("mta_to_lmp_kk", mta_to_lmp.size());
-            Kokkos::deep_copy(
-                mta_to_lmp_device,
-                HostUnmanaged(mta_to_lmp.data(), mta_to_lmp.size())
-            );
-            mta_to_lmp_kk = DeviceUnmanaged(mta_to_lmp_device.data(), mta_to_lmp.size());
-        }
+        auto system_adaptor_kk = dynamic_cast<MetatomicSystemAdaptorKokkos<DeviceType>*>(this->system_adaptor.get());
+        assert(system_adaptor_kk != nullptr);
+        auto mta_to_lmp_kk = UnmanagedView<int32_t*, DeviceType>(
+            system_adaptor_kk->mta_to_lmp_tensor.template data_ptr<int32_t>(),
+            system_adaptor_kk->mta_to_lmp_tensor.size(0)
+        );
 
         Kokkos::parallel_for(
             Kokkos::RangePolicy(atomKK->nlocal, forces.size(0)),

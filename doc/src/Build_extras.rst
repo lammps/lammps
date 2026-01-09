@@ -961,12 +961,12 @@ for additional details.
 
       .. code-block:: bash
 
-         -D Python_EXECUTABLE=path   # path to Python executable to use
+         -D Python3_EXECUTABLE=path   # path to Python executable to use
 
       Without this setting, CMake will guess the default Python version
       on your system.  To use a different Python version, you can either
       create a virtualenv, activate it and then run cmake.  Or you can
-      set the Python_EXECUTABLE variable to specify which Python
+      set the Python3_EXECUTABLE variable to specify which Python
       interpreter should be used.  Note note that you will also need to
       have the development headers installed for this version,
       e.g. python3-devel.

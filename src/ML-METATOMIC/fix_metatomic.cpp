@@ -312,6 +312,17 @@ void FixMetatomic::init() {
 
         this->system_adaptor->add_nl_request(cutoff, options);
     }
+
+    // HACK: Explicitly set the binsize for the neighbor list if there is no
+    // pair_style that would set it instead.
+    //
+    // Otherwise, the default binsize of box[0] is used, which crashes kokkos
+    // for large-ish boxes (~40A), and slow down the simulation for non-kokkos.
+    if (strcmp(force->pair_style, "none") == 0) {
+        neighbor->binsize_user = 0.5 * mta_data->max_cutoff;
+        neighbor->binsizeflag = 1;
+    }
+    // END HACK
 }
 
 void FixMetatomic::pick_device(c10::Device& device, const char* requested) {

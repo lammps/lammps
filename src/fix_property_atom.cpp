@@ -46,9 +46,6 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   rmass_flag = 0;
   temperature_flag = 0;
   heatflow_flag = 0;
-  segment_flag = 0;
-  residue_flag = 0;
-  name_flag = 0;
   nmax_old = 0;
 
   nvalue = 0;
@@ -115,39 +112,6 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       styles[nvalue] = HEATFLOW;
       cols[nvalue] = 0;
       atom->heatflow_flag = heatflow_flag = 1;
-      values_peratom++;
-      nvalue++;
-      iarg++;
-
-      // CHARMM topology
-
-    } else if (strcmp(arg[iarg], "segment") == 0) {
-      if (atom->segment_flag)
-        error->all(FLERR, "Fix property/atom segment when atom_style already has segment attribute");
-      if (segment_flag) error->all(FLERR, "Fix property/atom cannot specify segment twice");
-      styles[nvalue] = SEGMENT;
-      cols[nvalue] = 0;
-      atom->segment_flag = segment_flag = 1;
-      values_peratom++;
-      nvalue++;
-      iarg++;
-    } else if (strcmp(arg[iarg], "residue") == 0) {
-      if (atom->residue_flag)
-        error->all(FLERR, "Fix property/atom residue when atom_style already has residue attribute");
-      if (residue_flag) error->all(FLERR, "Fix property/atom cannot specify residue twice");
-      styles[nvalue] = RESIDUE;
-      cols[nvalue] = 0;
-      atom->residue_flag = residue_flag = 1;
-      values_peratom++;
-      nvalue++;
-      iarg++;
-    } else if (strcmp(arg[iarg], "name") == 0) {
-      if (atom->name_flag)
-        error->all(FLERR, "Fix property/atom name when atom_style already has name attribute");
-      if (name_flag) error->all(FLERR, "Fix property/atom cannot specify name twice");
-      styles[nvalue] = NAME;
-      cols[nvalue] = 0;
-      atom->name_flag = name_flag = 1;
       values_peratom++;
       nvalue++;
       iarg++;
@@ -298,18 +262,6 @@ FixPropertyAtom::~FixPropertyAtom()
       atom->heatflow_flag = 0;
       memory->destroy(atom->heatflow);
       atom->heatflow = nullptr;
-    } else if (styles[nv] == SEGMENT) {
-      atom->segment_flag = 0;
-      memory->destroy(atom->segment);
-      atom->segment = nullptr;
-    } else if (styles[nv] == RESIDUE) {
-      atom->residue_flag = 0;
-      memory->destroy(atom->residue);
-      atom->residue = nullptr;
-    } else if (styles[nv] == NAME) {
-      atom->name_flag = 0;
-      memory->destroy(atom->name);
-      atom->name = nullptr;
     } else if (styles[nv] == IVEC) {
       atom->remove_custom(index[nv], 0, cols[nv]);
     } else if (styles[nv] == DVEC) {
@@ -655,18 +607,6 @@ void FixPropertyAtom::grow_arrays(int nmax)
       memory->grow(atom->heatflow, nmax, "atom:heatflow");
       size_t nbytes = (nmax - nmax_old) * sizeof(double);
       memset(&atom->heatflow[nmax_old], 0, nbytes);
-    } else if (styles[nv] == SEGMENT) {
-      memory->grow(atom->segment, nmax, "atom:segment");
-      size_t nbytes = (nmax - nmax_old) * sizeof(std::string);
-      memset(&atom->segment[nmax_old], 0, nbytes);
-    } else if (styles[nv] == RESIDUE) {
-      memory->grow(atom->residue, nmax, "atom:residue");
-      size_t nbytes = (nmax - nmax_old) * sizeof(std::string);
-      memset(&atom->residue[nmax_old], 0, nbytes);
-    } else if (styles[nv] == NAME) {
-      memory->grow(atom->name, nmax, "atom:name");
-      size_t nbytes = (nmax - nmax_old) * sizeof(std::string);
-      memset(&atom->name[nmax_old], 0, nbytes);
     } else if (styles[nv] == IVEC) {
       memory->grow(atom->ivector[index[nv]], nmax, "atom:ivector");
       size_t nbytes = (nmax - nmax_old) * sizeof(int);
@@ -708,12 +648,6 @@ void FixPropertyAtom::copy_arrays(int i, int j, int /*delflag*/)
       atom->temperature[j] = atom->temperature[i];
     else if (styles[nv] == HEATFLOW)
       atom->heatflow[j] = atom->heatflow[i];
-    else if (styles[nv] == SEGMENT)
-      atom->segment[j] = atom->segment[i];
-    else if (styles[nv] == RESIDUE)
-      atom->residue[j] = atom->residue[i];
-    else if (styles[nv] == NAME)
-      atom->name[j] = atom->name[i];
     else if (styles[nv] == IVEC)
       atom->ivector[index[nv]][j] = atom->ivector[index[nv]][i];
     else if (styles[nv] == DVEC)

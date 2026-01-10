@@ -38,10 +38,8 @@
 #include <algorithm>
 #include <cstring>
 #include <set>
-#include <unordered_map>
 #include <unordered_set>
 #include <utility>
-#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -984,25 +982,6 @@ void DeleteAtoms::options(int narg, char **arg)
 /* ----------------------------------------------------------------------
    condense tags for ATOMIC and MOLECULAR
 ------------------------------------------------------------------------- */
-
-// Callback for Ring Communication
-// Process incoming chunk of pairs against our local needs
-void ring_update_callback(int nbytes, char *buf, void *ptr) {
-    auto *cache = (std::unordered_map<tagint, tagint> *)ptr;
-    // Interpret buffer as array of pairs: .first = old_tag, .second = new_tag
-    using TagPair = std::pair<tagint, tagint>;
-    int num_entries = nbytes / sizeof(TagPair);
-    TagPair *pairs = (TagPair *)buf;
-    for (int i = 0; i < num_entries; ++i) {
-        tagint old = pairs[i].first;
-        // O(1) Lookup: Do we care about this OldTag?
-        auto it = cache->find(old);
-        if (it != cache->end()) {
-            // Update our cache with the NewTag
-            it->second = pairs[i].second;
-        }
-    }
-}
 
 /* ----------------------------------------------------------------------
    condense tags for ATOMIC and MOLECULAR

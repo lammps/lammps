@@ -56,10 +56,6 @@ protected:
   std::unordered_map<std::string, int> dtypelabel_map;
   std::unordered_map<std::string, int> itypelabel_map;
 
-  // read_psf, write_psf
-  int nsegmenttypes, nresiduetypes, nnametypes; // read_psf, write_psf
-  std::vector<std::string> stypelabel, rtypelabel, ntypelabel;  // read_psf, write_psf
-
   // per-type data struct mapping this label map to another
 
   struct Lmap2Lmap {

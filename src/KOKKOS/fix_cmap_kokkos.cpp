@@ -946,6 +946,30 @@ int FixCMAPKokkos<DeviceType>::closest_image(const int i, int j) const
   return closest;
 }
 
+
+template<class DeviceType>
+void FixCMAPKokkos<DeviceType>::update_ids(double **newIDs)
+{
+  k_num_crossterm.sync_host();
+  k_crossterm_type.sync_host();
+  k_crossterm_atom1.sync_host();
+  k_crossterm_atom2.sync_host();
+  k_crossterm_atom3.sync_host();
+  k_crossterm_atom4.sync_host();
+  k_crossterm_atom5.sync_host();
+
+  // Pass the double** buffer to the base class
+  FixCMAP::update_ids(newIDs);
+
+  k_num_crossterm.modify_host();
+  k_crossterm_type.modify_host();
+  k_crossterm_atom1.modify_host();
+  k_crossterm_atom2.modify_host();
+  k_crossterm_atom3.modify_host();
+  k_crossterm_atom4.modify_host();
+  k_crossterm_atom5.modify_host();
+}
+
 namespace LAMMPS_NS {
 template class FixCMAPKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU

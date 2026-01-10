@@ -993,46 +993,59 @@ void DeleteAtoms::condense_tags() {
     if (atom->map_style == Atom::MAP_NONE)
         error->all(FLERR, "Using 'condense yes' option requires an atom map");
 
-    // The atom array was compacted (atoms shifted), so Comm's internal 
-    // lists (forward_sendlist) are invalid and point to garbage.
-    // We must refresh ghosts and lists before any forward communication.
+    // ---------------------------------------------------------------
+    // CRITICAL FIX: Re-bin atoms and Refresh Comm Lists
+    // ---------------------------------------------------------------
+    // 1. Handle box/PBC checks
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     domain->reset_box();
-    comm->setup(); 
-    if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
+    
+    // 2. FORCE RE-BINNING (Fixes Segfault)
+    // The atom array was compacted, so old neighbor bins contain invalid
+    // indices (pointing to memory holes). We must rebuild bins so Comm
+    // can find the correct border atoms.
+    if (neighbor->style) neighbor->setup_bins();
 
-    // 1. Rebuild map (deleted atoms -> -1)
+    // 3. Rebuild Comm Lists
+    // This updates atom->nghost and builds a VALID forward_sendlist
+    // that matches the new atom array layout.
+    comm->setup();
+    
+    if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
+    // ---------------------------------------------------------------
+
+    // 4. Rebuild map (deleted atoms -> -1)
     atom->map_init();
     atom->map_set();
     
     int nlocal = atom->nlocal;
-    int nghost = atom->nghost; // Now this is consistent with the new Comm lists
+    int nghost = atom->nghost;
 
-    // 2. Determine New Tags
+    // 5. Determine New Tags (MPI_Scan)
     long local_count = nlocal;
     long scan_count = 0;
     MPI_Scan(&local_count, &scan_count, 1, MPI_LONG, MPI_SUM, world);
     tagint start_tag = (tagint)(scan_count - local_count) + 1;
 
-    // 3. Create newIDs buffer (double** for comm compatibility)
+    // 6. Create newIDs buffer (double** for comm compatibility)
     double **newIDs;
     memory->create(newIDs, nlocal + nghost, 1, "delete_atoms:newIDs");
 
-    // Pack local tags using ubuf
+    // Pack local tags using ubuf to preserve integer precision
     for (int i = 0; i < nlocal; i++) {
         newIDs[i][0] = ubuf(start_tag + i).d;
     }
-    // Initialize ghosts
+    // Initialize ghosts to 0
     for (int i = nlocal; i < nlocal + nghost; i++) {
         newIDs[i][0] = ubuf((tagint)0).d;
     }
 
-    // 4. Forward Comm (Halo Exchange)
-    // Now safe because Comm lists match the current atom array layout
+    // 7. Forward Comm (Halo Exchange)
+    // Safe now because forward_sendlist is valid
     comm->forward_comm_array(1, newIDs);
 
-    // 5. Update Topology
+    // 8. Update Topology
     if (atom->molecular != Atom::ATOMIC) {
 
         if (atom->avec->bonds_allow) {
@@ -1142,12 +1155,12 @@ void DeleteAtoms::condense_tags() {
         #endif
     }
 
-    // 6. Final Tag Assignment
+    // 9. Final Tag Assignment
     for (int i = 0; i < nlocal; i++) atom->tag[i] = (tagint) ubuf(newIDs[i][0]).i;
 
     memory->destroy(newIDs);
     
-    // 7. Reset Map
+    // 10. Reset Map
     atom->map_tag_max = -1;
     atom->map_init();
     atom->map_set();

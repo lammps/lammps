@@ -33,7 +33,7 @@ class Atom : protected Pointers {
  public:
   char *atom_style;
   AtomVec *avec;
-  enum { DOUBLE, INT, BIGINT, STRING };
+  enum { DOUBLE, INT, BIGINT, CHAR };
   enum { GROW = 0, RESTART = 1, BORDER = 2 };
   enum { ATOMIC = 0, MOLECULAR = 1, TEMPLATE = 2 };
   enum { ATOM = 0, BOND = 1, ANGLE = 2, DIHEDRAL = 3, IMPROPER = 4 };
@@ -184,8 +184,7 @@ class Atom : protected Pointers {
   
   // CHARMM package
 
-  std::string *segment, *residue, *name;
-
+  char **segment, **residue, **name;
 
   // end of customization section
   // --------------------------------------------------------------------

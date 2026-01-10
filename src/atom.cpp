@@ -589,9 +589,9 @@ void Atom::peratom_create()
 
   // CHARMM package
 
-  add_peratom("segment",&segment,STRING,0);
-  add_peratom("residue",&residue,STRING,0);
-  add_peratom("name",&name,STRING,0);
+  add_peratom("segment",&segment,CHAR,9);
+  add_peratom("residue",&residue,CHAR,9);
+  add_peratom("name",   &name,   CHAR,9);
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -3619,9 +3619,9 @@ int Atom::extract_size(const char *name, int type)
 
     // CHARMM package
 
-    if (strcmp(name,"segment") == 0) return nall;
-    if (strcmp(name,"residue") == 0) return nall;
-    if (strcmp(name,"name") == 0) return nall;
+    if (strcmp(name,"segment") == 0) return nlocal;
+    if (strcmp(name,"residue") == 0) return nlocal;
+    if (strcmp(name,"name") == 0) return nlocal;
 
     // end of customization section
     // --------------------------------------------------------------------

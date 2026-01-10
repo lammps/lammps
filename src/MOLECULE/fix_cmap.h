@@ -39,6 +39,7 @@ class FixCMAP : public Fix {
   void post_force_respa(int, int, int) override;
   void min_post_force(int) override;
   double compute_scalar() override;
+  void update_ids(double **) override;
 
   void read_data_header(char *) override;
   void read_data_section(char *, int, char *, tagint) override;

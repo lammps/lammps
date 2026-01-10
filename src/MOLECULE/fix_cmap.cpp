@@ -1334,3 +1334,49 @@ double FixCMAP::memory_usage()
   bytes += (double)maxcrossterm*6 * sizeof(int);    // crosstermlist
   return bytes;
 }
+
+/* ----------------------------------------------------------------------
+   Update atom IDs in CMAP terms using ubuf/array lookup
+------------------------------------------------------------------------- */
+
+void FixCMAP::update_ids(double **newIDs)
+{
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    int m = 0;
+    for (int j = 0; j < num_crossterm[i]; j++) {
+      
+      tagint t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0;
+      int k;
+
+      // Map: oldID -> local index k -> newIDs[k] -> newID
+      
+      k = atom->map(crossterm_atom1[i][j]);
+      if (k >= 0) t1 = (tagint) ubuf(newIDs[k][0]).i;
+
+      k = atom->map(crossterm_atom2[i][j]);
+      if (k >= 0) t2 = (tagint) ubuf(newIDs[k][0]).i;
+
+      k = atom->map(crossterm_atom3[i][j]);
+      if (k >= 0) t3 = (tagint) ubuf(newIDs[k][0]).i;
+
+      k = atom->map(crossterm_atom4[i][j]);
+      if (k >= 0) t4 = (tagint) ubuf(newIDs[k][0]).i;
+
+      k = atom->map(crossterm_atom5[i][j]);
+      if (k >= 0) t5 = (tagint) ubuf(newIDs[k][0]).i;
+
+      if (t1 > 0 && t2 > 0 && t3 > 0 && t4 > 0 && t5 > 0) {
+        crossterm_atom1[i][m] = t1;
+        crossterm_atom2[i][m] = t2;
+        crossterm_atom3[i][m] = t3;
+        crossterm_atom4[i][m] = t4;
+        crossterm_atom5[i][m] = t5;
+        crossterm_type[i][m]  = crossterm_type[i][j];
+        m++;
+      }
+    }
+    num_crossterm[i] = m;
+  }
+}

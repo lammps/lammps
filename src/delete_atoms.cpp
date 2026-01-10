@@ -1008,124 +1008,77 @@ void ring_update_callback(int nbytes, char *buf, void *ptr) {
     }
 }
 
+/* ----------------------------------------------------------------------
+   condense tags for ATOMIC and MOLECULAR
+   Uses ubuf + double** buffer for efficiency and standard compliance
+------------------------------------------------------------------------- */
+
 void DeleteAtoms::condense_tags() {
     
     if (atom->map_style == Atom::MAP_NONE)
         error->all(FLERR, "Using 'condense yes' option requires an atom map");
-        
+
+    // 1. Rebuild map (deleted atoms -> -1)
     atom->map_init();
     atom->map_set();
-    tagint *tag = atom->tag;
+    
     int nlocal = atom->nlocal;
+    int nghost = atom->nghost;
 
-    // --------------------------------------------------------
-    // PHASE 1: Determine New Tags (MPI_Scan)
-    // --------------------------------------------------------
+    // 2. Determine New Tags
     long local_count = nlocal;
     long scan_count = 0;
     MPI_Scan(&local_count, &scan_count, 1, MPI_LONG, MPI_SUM, world);
-    
     tagint start_tag = (tagint)(scan_count - local_count) + 1;
 
-    using TagPair = std::pair<tagint, tagint>;
-    std::vector<TagPair> my_replacements;
-    my_replacements.reserve(nlocal);
+    // 3. Create newIDs buffer (double** for comm compatibility)
+    double **newIDs;
+    memory->create(newIDs, nlocal + nghost, 1, "delete_atoms:newIDs");
+
+    // Pack local tags using ubuf
     for (int i = 0; i < nlocal; i++) {
-        my_replacements.push_back({tag[i], start_tag + i});
+        newIDs[i][0] = ubuf(start_tag + i).d;
+    }
+    // Initialize ghosts
+    for (int i = nlocal; i < nlocal + nghost; i++) {
+        newIDs[i][0] = ubuf((tagint)0).d;
     }
 
-    // --------------------------------------------------------
-    // PHASE 2: Build Lookup Cache (Needs)
-    // --------------------------------------------------------
-    std::unordered_map<tagint, tagint> topo_cache;
-    auto cache_tag = [&](tagint t) { if (t > 0) topo_cache[t] = 0; };
+    // 4. Forward Comm (Halo Exchange)
+    comm->forward_comm_array(1, newIDs);
 
-    if (atom->molecular != Atom::ATOMIC) {
-        if (atom->avec->bonds_allow) {
-            for (int i = 0; i < nlocal; i++)
-                for (int j = 0; j < atom->num_bond[i]; j++) 
-                    cache_tag(atom->bond_atom[i][j]);
-        }
-        if (atom->avec->angles_allow) {
-            for (int i = 0; i < nlocal; i++)
-                for (int j = 0; j < atom->num_angle[i]; j++) {
-                    cache_tag(atom->angle_atom1[i][j]);
-                    cache_tag(atom->angle_atom2[i][j]);
-                    cache_tag(atom->angle_atom3[i][j]);
-                }
-        }
-        if (atom->avec->dihedrals_allow) {
-            for (int i = 0; i < nlocal; i++)
-                for (int j = 0; j < atom->num_dihedral[i]; j++) {
-                    cache_tag(atom->dihedral_atom1[i][j]);
-                    cache_tag(atom->dihedral_atom2[i][j]);
-                    cache_tag(atom->dihedral_atom3[i][j]);
-                    cache_tag(atom->dihedral_atom4[i][j]);
-                }
-        }
-        if (atom->avec->impropers_allow) {
-             for (int i = 0; i < nlocal; i++)
-                for (int j = 0; j < atom->num_improper[i]; j++) {
-                    cache_tag(atom->improper_atom1[i][j]);
-                    cache_tag(atom->improper_atom2[i][j]);
-                    cache_tag(atom->improper_atom3[i][j]);
-                    cache_tag(atom->improper_atom4[i][j]);
-                }
-        }
-    }
-
-    // --------------------------------------------------------
-    // PHASE 3: Ring Communication
-    // --------------------------------------------------------
-    comm->ring(my_replacements.size(), sizeof(TagPair), 
-               my_replacements.data(), 
-               1, 
-               ring_update_callback, 
-               nullptr,       
-               &topo_cache);
-
-    // --------------------------------------------------------
-    // PHASE 4: Update Topology & Purge Broken Interactions
-    // --------------------------------------------------------
-    for (int i = 0; i < nlocal; i++) atom->tag[i] = my_replacements[i].second;
-
-    auto get_new_tag = [&](tagint old_t) -> tagint {
-            if (old_t <= 0) return 0;
-            auto it = topo_cache.find(old_t);
-            if (it != topo_cache.end()) return it->second; 
-            return 0; 
-    };
-
+    // 5. Update Topology
     if (atom->molecular != Atom::ATOMIC) {
 
-        // --- BONDS ---
         if (atom->avec->bonds_allow) {
             for (int i = 0; i < nlocal; i++) {
                 int m = 0;
                 for (int j = 0; j < atom->num_bond[i]; j++) {
-                    tagint new_t = get_new_tag(atom->bond_atom[i][j]);
-                    if (new_t > 0) {
-                        atom->bond_atom[i][m] = new_t;
-                        atom->bond_type[i][m] = atom->bond_type[i][j];
-                        m++;
-                    }
+                   tagint oldID = atom->bond_atom[i][j];
+                   int k = atom->map(oldID);
+                   if (k >= 0) {
+                      // Standard LAMMPS Pattern: unpack with ubuf
+                      atom->bond_atom[i][m] = (tagint) ubuf(newIDs[k][0]).i;
+                      atom->bond_type[i][m] = atom->bond_type[i][j];
+                      m++;
+                   }
                 }
                 atom->num_bond[i] = m;
             }
         }
 
-        // --- ANGLES ---
         if (atom->avec->angles_allow) {
             for (int i = 0; i < nlocal; i++) {
                 int m = 0;
                 for (int j = 0; j < atom->num_angle[i]; j++) {
-                    tagint t1 = get_new_tag(atom->angle_atom1[i][j]);
-                    tagint t2 = get_new_tag(atom->angle_atom2[i][j]);
-                    tagint t3 = get_new_tag(atom->angle_atom3[i][j]);
-                    if (t1 > 0 && t2 > 0 && t3 > 0) {
-                        atom->angle_atom1[i][m] = t1;
-                        atom->angle_atom2[i][m] = t2;
-                        atom->angle_atom3[i][m] = t3;
+                    int k1 = atom->map(atom->angle_atom1[i][j]);
+                    int k2 = atom->map(atom->angle_atom2[i][j]);
+                    int k3 = atom->map(atom->angle_atom3[i][j]);
+
+                    if (k1 >= 0 && k2 >= 0 && k3 >= 0) {
+                        atom->angle_atom1[i][m] = (tagint) ubuf(newIDs[k1][0]).i;
+                        atom->angle_atom2[i][m] = (tagint) ubuf(newIDs[k2][0]).i;
+                        atom->angle_atom3[i][m] = (tagint) ubuf(newIDs[k3][0]).i;
                         atom->angle_type[i][m] = atom->angle_type[i][j];
                         m++;
                     }
@@ -1134,20 +1087,20 @@ void DeleteAtoms::condense_tags() {
             }
         }
 
-        // --- DIHEDRALS ---
         if (atom->avec->dihedrals_allow) {
             for (int i = 0; i < nlocal; i++) {
                 int m = 0;
                 for (int j = 0; j < atom->num_dihedral[i]; j++) {
-                    tagint t1 = get_new_tag(atom->dihedral_atom1[i][j]);
-                    tagint t2 = get_new_tag(atom->dihedral_atom2[i][j]);
-                    tagint t3 = get_new_tag(atom->dihedral_atom3[i][j]);
-                    tagint t4 = get_new_tag(atom->dihedral_atom4[i][j]);
-                    if (t1 > 0 && t2 > 0 && t3 > 0 && t4 > 0) {
-                        atom->dihedral_atom1[i][m] = t1;
-                        atom->dihedral_atom2[i][m] = t2;
-                        atom->dihedral_atom3[i][m] = t3;
-                        atom->dihedral_atom4[i][m] = t4;
+                    int k1 = atom->map(atom->dihedral_atom1[i][j]);
+                    int k2 = atom->map(atom->dihedral_atom2[i][j]);
+                    int k3 = atom->map(atom->dihedral_atom3[i][j]);
+                    int k4 = atom->map(atom->dihedral_atom4[i][j]);
+
+                    if (k1 >= 0 && k2 >= 0 && k3 >= 0 && k4 >= 0) {
+                        atom->dihedral_atom1[i][m] = (tagint) ubuf(newIDs[k1][0]).i;
+                        atom->dihedral_atom2[i][m] = (tagint) ubuf(newIDs[k2][0]).i;
+                        atom->dihedral_atom3[i][m] = (tagint) ubuf(newIDs[k3][0]).i;
+                        atom->dihedral_atom4[i][m] = (tagint) ubuf(newIDs[k4][0]).i;
                         atom->dihedral_type[i][m] = atom->dihedral_type[i][j];
                         m++;
                     }
@@ -1156,20 +1109,20 @@ void DeleteAtoms::condense_tags() {
             }
         }
 
-        // --- IMPROPERS ---
         if (atom->avec->impropers_allow) {
-             for (int i = 0; i < nlocal; i++) {
+            for (int i = 0; i < nlocal; i++) {
                 int m = 0;
                 for (int j = 0; j < atom->num_improper[i]; j++) {
-                    tagint t1 = get_new_tag(atom->improper_atom1[i][j]);
-                    tagint t2 = get_new_tag(atom->improper_atom2[i][j]);
-                    tagint t3 = get_new_tag(atom->improper_atom3[i][j]);
-                    tagint t4 = get_new_tag(atom->improper_atom4[i][j]);
-                    if (t1 > 0 && t2 > 0 && t3 > 0 && t4 > 0) {
-                        atom->improper_atom1[i][m] = t1;
-                        atom->improper_atom2[i][m] = t2;
-                        atom->improper_atom3[i][m] = t3;
-                        atom->improper_atom4[i][m] = t4;
+                    int k1 = atom->map(atom->improper_atom1[i][j]);
+                    int k2 = atom->map(atom->improper_atom2[i][j]);
+                    int k3 = atom->map(atom->improper_atom3[i][j]);
+                    int k4 = atom->map(atom->improper_atom4[i][j]);
+
+                    if (k1 >= 0 && k2 >= 0 && k3 >= 0 && k4 >= 0) {
+                        atom->improper_atom1[i][m] = (tagint) ubuf(newIDs[k1][0]).i;
+                        atom->improper_atom2[i][m] = (tagint) ubuf(newIDs[k2][0]).i;
+                        atom->improper_atom3[i][m] = (tagint) ubuf(newIDs[k3][0]).i;
+                        atom->improper_atom4[i][m] = (tagint) ubuf(newIDs[k4][0]).i;
                         atom->improper_type[i][m] = atom->improper_type[i][j];
                         m++;
                     }
@@ -1178,36 +1131,39 @@ void DeleteAtoms::condense_tags() {
             }
         }
 
-
         // --- SPECIAL LISTS ---
         if (atom->special) {
             for (int i = 0; i < nlocal; i++) {
-                // nspecial[i] is an array of 3 ints: [0]=1-2, [1]=1-3, [2]=1-4
-                int n_total = atom->nspecial[i][0] + 
-                              atom->nspecial[i][1] + 
-                              atom->nspecial[i][2];
-
+                int n_total = atom->nspecial[i][0] + atom->nspecial[i][1] + atom->nspecial[i][2];
                 for (int j = 0; j < n_total; j++) {
-                     if (atom->special[i][j] > 0) {
-                        tagint new_s = get_new_tag(atom->special[i][j]);
-                        // Always update. If atom was deleted (new_s==0), 
-                        // setting it to 0 is safer than keeping the old invalid ID.
-                        atom->special[i][j] = new_s;
+                     int k = atom->map(atom->special[i][j]);
+                     if (k >= 0) {
+                         atom->special[i][j] = (tagint) ubuf(newIDs[k][0]).i;
+                     } else {
+                         atom->special[i][j] = 0;
                      }
                 }
             }
         }
+
+        // --- FIXES (Delegation) ---
+        #ifdef LMP_MOLECULE
+        {
+            for (auto *ifix : modify->get_fix_list()) {
+                if (utils::strmatch(ifix->style, "^cmap")) {
+                     static_cast<FixCMAP*>(ifix)->update_ids(newIDs);
+                }
+            }
+        }
+        #endif
     }
 
-    // --------------------------------------------------------
-    // PHASE 5: Sync Ghosts & Rebuild Map
-    // --------------------------------------------------------
-    if (domain->triclinic) domain->x2lamda(atom->nlocal);
-    domain->pbc(); 
-    domain->reset_box();
-    comm->setup(); 
-    if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
+    // 6. Final Tag Assignment
+    for (int i = 0; i < nlocal; i++) atom->tag[i] = (tagint) ubuf(newIDs[i][0]).i;
 
+    memory->destroy(newIDs);
+    
+    // 7. Reset Map
     atom->map_tag_max = -1;
     atom->map_init();
     atom->map_set();

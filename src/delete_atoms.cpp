@@ -43,10 +43,6 @@
 #include <utility>
 #include <vector>
 
-#if defined(LMP_MOLECULE)
-  #include "fix_cmap.h"
-#endif
-
 using namespace LAMMPS_NS;
 
 enum { UNKNOWN, FRACTION, COUNT };
@@ -1018,12 +1014,21 @@ void DeleteAtoms::condense_tags() {
     if (atom->map_style == Atom::MAP_NONE)
         error->all(FLERR, "Using 'condense yes' option requires an atom map");
 
+    // The atom array was compacted (atoms shifted), so Comm's internal 
+    // lists (forward_sendlist) are invalid and point to garbage.
+    // We must refresh ghosts and lists before any forward communication.
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    domain->reset_box();
+    comm->setup(); 
+    if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
+
     // 1. Rebuild map (deleted atoms -> -1)
     atom->map_init();
     atom->map_set();
     
     int nlocal = atom->nlocal;
-    int nghost = atom->nghost;
+    int nghost = atom->nghost; // Now this is consistent with the new Comm lists
 
     // 2. Determine New Tags
     long local_count = nlocal;
@@ -1045,6 +1050,7 @@ void DeleteAtoms::condense_tags() {
     }
 
     // 4. Forward Comm (Halo Exchange)
+    // Now safe because Comm lists match the current atom array layout
     comm->forward_comm_array(1, newIDs);
 
     // 5. Update Topology
@@ -1057,7 +1063,6 @@ void DeleteAtoms::condense_tags() {
                    tagint oldID = atom->bond_atom[i][j];
                    int k = atom->map(oldID);
                    if (k >= 0) {
-                      // Standard LAMMPS Pattern: unpack with ubuf
                       atom->bond_atom[i][m] = (tagint) ubuf(newIDs[k][0]).i;
                       atom->bond_type[i][m] = atom->bond_type[i][j];
                       m++;

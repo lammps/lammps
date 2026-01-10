@@ -35,24 +35,28 @@ AtomVecFull::AtomVecFull(LAMMPS *lmp) : AtomVec(lmp)
   fields_grow = {"q", "molecule", "num_bond", "bond_type", "bond_atom", "num_angle", "angle_type",
     "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type", "dihedral_atom1",
     "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper", "improper_type",
-    "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special"};
+    "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special",
+    "segment", "residue", "name"};
   fields_copy = {"q", "molecule", "num_bond", "bond_type", "bond_atom", "num_angle", "angle_type",
     "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type", "dihedral_atom1",
     "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper", "improper_type",
-    "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special"};
+    "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special",
+    "segment", "residue", "name"};
   fields_border = {"q", "molecule"};
   fields_border_vel = {"q", "molecule"};
   fields_exchange = {"q", "molecule", "num_bond", "bond_type", "bond_atom",
     "num_angle", "angle_type", "angle_atom1", "angle_atom2", "angle_atom3",
     "num_dihedral", "dihedral_type", "dihedral_atom1", "dihedral_atom2",
     "dihedral_atom3", "dihedral_atom4", "num_improper", "improper_type", "improper_atom1",
-    "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special"};
+    "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special",
+    "segment", "residue", "name"};
  fields_restart = {"q", "molecule", "num_bond", "bond_type", "bond_atom", "num_angle",
    "angle_type", "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type",
    "dihedral_atom1", "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper",
    "improper_type", "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4"};
   fields_create = {"q", "molecule", "num_bond", "num_angle",
-    "num_dihedral", "num_improper", "nspecial"};
+    "num_dihedral", "num_improper", "nspecial",
+    "segment", "residue", "name"};
   fields_data_atom = {"id", "molecule", "type", "q", "x"};
   fields_data_vel = {"id", "v"};
   // clang-format on

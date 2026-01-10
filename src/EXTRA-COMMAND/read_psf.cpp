@@ -32,9 +32,26 @@
 #include <string>
 #include <vector>
 
-#define MAX_PSF_LABEL_SIZE 8 // psf EXT format
+#define MAX_LABEL_SIZE 8 // psf EXT format
 
 using namespace LAMMPS_NS;
+
+static void ring_callback(int n, char *buf, void *ptr) {
+    auto *lmp = (LAMMPS *) ptr;
+    int ntypes = lmp->atom->ntypes;
+    auto *lmap = lmp->atom->lmap;
+    for (int i = 0; i < ntypes; i++) {
+        char *label_ptr = &buf[i * (MAX_LABEL_SIZE+1)];
+        if (label_ptr[0] != '\0') {
+            char arg0[6], arg1[MAX_LABEL_SIZE], arg2[MAX_LABEL_SIZE];
+            char *lmap_arg[3] = {arg0, arg1, arg2};
+            strncpy(lmap_arg[0], "atom", 5);
+            strncpy(lmap_arg[1],std::to_string(i+1).c_str(),MAX_LABEL_SIZE);
+            strncpy(lmap_arg[2],label_ptr,MAX_LABEL_SIZE);
+            lmap->modify_lmap(3,lmap_arg);
+        }
+    }
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -53,14 +70,14 @@ void ReadPsf::command(int narg, char **arg)
   atom->residue_flag = 1;
   atom->name_flag = 1;
   
-  //memory->create(atom->segment, atom->nmax, MAX_PSF_LABEL_SIZE+1, "atom:segment");
-  //memory->create(atom->residue, atom->nmax, MAX_PSF_LABEL_SIZE+1, "atom:residue");
-  //memory->create(atom->name,    atom->nmax, MAX_PSF_LABEL_SIZE+1, "atom:name");
+  //memory->create(atom->segment, atom->nmax, MAX_LABEL_SIZE+1, "atom:segment");
+  //memory->create(atom->residue, atom->nmax, MAX_LABEL_SIZE+1, "atom:residue");
+  //memory->create(atom->name,    atom->nmax, MAX_LABEL_SIZE+1, "atom:name");
   
   if (!atom->labelmapflag) atom->add_label_map();
   LabelMap *lmap = atom->lmap;
   char **lmap_arg;
-  memory->create(lmap_arg,3,MAX_PSF_LABEL_SIZE+1,"read_psf:lmap_arg");
+  memory->create(lmap_arg,3,MAX_LABEL_SIZE+1,"read_psf:lmap_arg");
 
   try {
     open(arg[0]);
@@ -83,19 +100,19 @@ void ReadPsf::command(int narg, char **arg)
       if( atom_index != -1 ) {
       
         // segment
-        std::strncpy(atom->segment[atom_index], values.next_string().c_str(), MAX_PSF_LABEL_SIZE);
-        atom->segment[atom_index][MAX_PSF_LABEL_SIZE] = '\0';
+        std::strncpy(atom->segment[atom_index], values.next_string().c_str(), MAX_LABEL_SIZE);
+        atom->segment[atom_index][MAX_LABEL_SIZE] = '\0';
 
         // skip molecule id
         values.skip(1);
 
         // residue
-        std::strncpy(atom->residue[atom_index], values.next_string().c_str(), MAX_PSF_LABEL_SIZE);
-        atom->residue[atom_index][MAX_PSF_LABEL_SIZE] = '\0';
+        std::strncpy(atom->residue[atom_index], values.next_string().c_str(), MAX_LABEL_SIZE);
+        atom->residue[atom_index][MAX_LABEL_SIZE] = '\0';
 
         // name
-        std::strncpy(atom->name[atom_index], values.next_string().c_str(), MAX_PSF_LABEL_SIZE);
-        atom->name[atom_index][MAX_PSF_LABEL_SIZE] = '\0';
+        std::strncpy(atom->name[atom_index], values.next_string().c_str(), MAX_LABEL_SIZE);
+        atom->name[atom_index][MAX_LABEL_SIZE] = '\0';
         
         int type_id = atom->type[atom_index];
         strncpy(lmap_arg[0], "atom", 5);
@@ -112,7 +129,17 @@ void ReadPsf::command(int narg, char **arg)
     if (compressed) platform::pclose(fp);
     else fclose(fp);
     fp = nullptr;
-
+    
+    // sync label map around the ring
+    char *buf;
+    memory->create(buf, lmap->natomtypes * (MAX_LABEL_SIZE+1), "read_psf:flat_lmap");
+    memset(buf, 0, lmap->natomtypes * (MAX_LABEL_SIZE+1));
+    for (int i = 0; i < lmap->natomtypes; i++)
+      if (!lmap->typelabel[i].empty())
+        strncpy(&buf[i * (MAX_LABEL_SIZE+1)], lmap->typelabel[i].c_str(), 8);
+    comm->ring(1, lmap->natomtypes * (MAX_LABEL_SIZE+1), buf, 99, ring_callback, nullptr, (void *)lmp, 0);
+    memory->destroy(buf);
+    
   } catch (EOFException &) {
     // reached end of file
     printf("reached EOF\n");

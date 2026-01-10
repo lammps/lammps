@@ -114,6 +114,8 @@ AtomVec::~AtomVec()
       else {
         memory->destroy(*((bigint ***) pdata));
       }
+    } else if (datatype == Atom::CHAR) {
+        memory->destroy(*((char ***) pdata));
     }
   }
 
@@ -253,6 +255,8 @@ void AtomVec::grow(int n)
         maxcols = *(mgrow.maxcols[i]);
         memory->grow(*((bigint ***) pdata), nmax * nthreads, maxcols, "atom:barray");
       }
+    } else if (datatype == Atom::CHAR) {
+      memory->grow(*((char ***) pdata), nmax * nthreads, cols, "atom:carray");
     }
   }
 
@@ -338,6 +342,12 @@ void AtomVec::copy(int i, int j, int delflag)
             ncols = (*((int **) plength))[i];
           for (m = 0; m < ncols; m++) array[j][m] = array[i][m];
         }
+      } else if (datatype == Atom::CHAR) {
+      
+        char **array = *((char ***) pdata);
+        std::strncpy(array[j], array[i], cols);
+
+
       }
     }
   }

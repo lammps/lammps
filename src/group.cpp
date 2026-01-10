@@ -329,17 +329,21 @@ void Group::assign(int narg, char **arg)
 
       } else if ( category == SEGMENT || category == RESIDUE || category == NAME) {
 
-        std::string *sattribute = nullptr;
+        char **cattribute = nullptr;   // pointer to the 2D array
+        //int ncols = 0;                // number of chars per row
+
         if (category == SEGMENT)
-          sattribute = atom->segment;
+          cattribute = atom->segment;
         else if (category == RESIDUE)
-          sattribute = atom->residue;
+          cattribute = atom->residue;
         else if (category == NAME)
-          sattribute = atom->name;
-          
-        for (i = 0; i < nlocal; i++)
-          if (sattribute[i] == std::string_view(arg[2]))
-            mask[i] |= bit;
+          cattribute = atom->name;
+
+        std::string_view target(arg[2]);
+
+        for (int i = 0; i < atom->nlocal; i++)
+          if (std::string_view(cattribute[i]) == target)
+            atom->mask[i] |= bit;
 
         // args = list of values
 

@@ -67,9 +67,9 @@ void WritePDB::write_pdb(const std::string &filename) {
   tagint *molecule = atom->molecule;
   double **x = atom->x;
   int *type = atom->type;
-  std::string *segment = atom->segment;
-  std::string *residue = atom->residue;
-  std::string *name = atom->name;
+  char **segment = atom->segment;
+  char **residue = atom->residue;
+  char **name = atom->name;
 
   bigint nblocal = atom->nlocal;
   bigint natoms;
@@ -154,8 +154,8 @@ void WritePDB::write_pdb(const std::string &filename) {
 
     utils::print(fp, "ATOM  {:5d} {:4.4s} {:3.3s} {:1.1s}{:4d}    {:8.3f}{:8.3f}{:8.3f}                      {:3.3s}\n",
             tag[j], atom_name,
-            (default_residue_mol ? std::to_string(molecule[j]) : residue[j]),
-            (default_chain_A ? "A" : segment[j]),
+            (default_residue_mol ? std::to_string(molecule[j]) : std::string_view(residue[j])),
+            (default_chain_A ? "A" : std::string_view(segment[j])),
             molecule[j], x[j][0], x[j][1], x[j][2], element);
   }
 

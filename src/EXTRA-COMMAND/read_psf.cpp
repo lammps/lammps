@@ -53,9 +53,9 @@ void ReadPsf::command(int narg, char **arg)
   atom->residue_flag = 1;
   atom->name_flag = 1;
   
-  atom->segment = new std::string[atom->nlocal];
-  atom->residue = new std::string[atom->nlocal];
-  atom->name = new std::string[atom->nlocal];
+  //memory->create(atom->segment, atom->nmax, MAX_PSF_LABEL_SIZE+1, "atom:segment");
+  //memory->create(atom->residue, atom->nmax, MAX_PSF_LABEL_SIZE+1, "atom:residue");
+  //memory->create(atom->name,    atom->nmax, MAX_PSF_LABEL_SIZE+1, "atom:name");
   
   if (!atom->labelmapflag) atom->add_label_map();
   LabelMap *lmap = atom->lmap;
@@ -69,10 +69,7 @@ void ReadPsf::command(int narg, char **arg)
     reader.skip_line();
     reader.skip_line();
     int ntitle = reader.next_int();
-
-    for( int i=0; i<ntitle ; i++)
-      reader.skip_line();
-
+    for( int i=0; i<ntitle ; i++) reader.skip_line();
     int natom = reader.next_int();
 
     for( int i=0; i<natom ; i++) {
@@ -84,14 +81,21 @@ void ReadPsf::command(int narg, char **arg)
       int atom_index = atom->map(atom_tag);
       
       if( atom_index != -1 ) {
-        // atom segment
-        atom->segment[atom_index] = values.next_string();
+      
+        // segment
+        std::strncpy(atom->segment[atom_index], values.next_string().c_str(), MAX_PSF_LABEL_SIZE);
+        atom->segment[atom_index][MAX_PSF_LABEL_SIZE] = '\0';
+
         // skip molecule id
         values.skip(1);
+
         // residue
-        atom->residue[atom_index] = values.next_string();
+        std::strncpy(atom->residue[atom_index], values.next_string().c_str(), MAX_PSF_LABEL_SIZE);
+        atom->residue[atom_index][MAX_PSF_LABEL_SIZE] = '\0';
+
         // name
-        atom->name[atom_index] = values.next_string();
+        std::strncpy(atom->name[atom_index], values.next_string().c_str(), MAX_PSF_LABEL_SIZE);
+        atom->name[atom_index][MAX_PSF_LABEL_SIZE] = '\0';
         
         int type_id = atom->type[atom_index];
         strncpy(lmap_arg[0], "atom", 5);

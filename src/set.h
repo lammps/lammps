@@ -65,7 +65,7 @@ class Set : public Command {
     tagint tvalue1;
     bigint bvalue1;
     double dvalue1, dvalue2, dvalue3, dvalue4;
-    std::string svalue;
+    std::string_view sview;
   };
 
   int naction, maxaction;

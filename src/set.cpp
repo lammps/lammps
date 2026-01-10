@@ -2931,7 +2931,7 @@ void Set::process_segment(int &iarg, int narg, char **arg, Action *action)
   if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set segment", error);
 
   if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1,action);
-  else action->svalue = arg[iarg+1];
+  else action->sview = std::string_view(arg[iarg+1]);
 
   iarg += 2;
 }
@@ -2939,7 +2939,7 @@ void Set::process_segment(int &iarg, int narg, char **arg, Action *action)
 void Set::invoke_segment(Action *action)
 {
   int nlocal = atom->nlocal;
-  std::string *segment = atom->segment;
+  char **segment = atom->segment;
 
   // FIXME
   //int varflag = action->varflag;
@@ -2949,7 +2949,7 @@ void Set::invoke_segment(Action *action)
   for (int i = 0; i < nlocal; i++) {
     if (!select[i]) continue;
     //if (varflag) coord = vec1[i];
-    segment[i] = action->svalue;
+    std::strncpy(segment[i], action->sview.data(), action->sview.size());
   }
 }
 
@@ -2960,7 +2960,7 @@ void Set::process_residue(int &iarg, int narg, char **arg, Action *action)
   if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set residue", error);
 
   if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1,action);
-  else action->svalue = arg[iarg+1];
+  else action->sview = std::string_view(arg[iarg+1]);
 
   iarg += 2;
 }
@@ -2968,7 +2968,7 @@ void Set::process_residue(int &iarg, int narg, char **arg, Action *action)
 void Set::invoke_residue(Action *action)
 {
   int nlocal = atom->nlocal;
-  std::string *residue = atom->residue;
+  char **residue = atom->residue;
 
   // FIXME
   //int varflag = action->varflag;
@@ -2978,7 +2978,7 @@ void Set::invoke_residue(Action *action)
   for (int i = 0; i < nlocal; i++) {
     if (!select[i]) continue;
     //if (varflag) coord = vec1[i];
-    residue[i] = action->svalue;
+    std::strncpy(residue[i], action->sview.data(), action->sview.size());
   }
 }
 
@@ -2989,7 +2989,7 @@ void Set::process_name(int &iarg, int narg, char **arg, Action *action)
   if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set name", error);
 
   if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1,action);
-  else action->svalue = arg[iarg+1];
+  else action->sview = std::string_view(arg[iarg+1]);
 
   iarg += 2;
 }
@@ -2997,7 +2997,7 @@ void Set::process_name(int &iarg, int narg, char **arg, Action *action)
 void Set::invoke_name(Action *action)
 {
   int nlocal = atom->nlocal;
-  std::string *name = atom->name;
+  char **name = atom->name;
 
   // FIXME
   //int varflag = action->varflag;
@@ -3007,7 +3007,7 @@ void Set::invoke_name(Action *action)
   for (int i = 0; i < nlocal; i++) {
     if (!select[i]) continue;
     //if (varflag) coord = vec1[i];
-    name[i] = action->svalue;
+    std::strncpy(name[i], action->sview.data(), action->sview.size());
   }
 }
 

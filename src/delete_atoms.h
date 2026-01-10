@@ -44,6 +44,7 @@ class DeleteAtoms : public Command {
   void delete_bond();
   void delete_molecule();
   void recount_topology();
+  void condense_tags();
   void options(int, char **);
 
   inline int sbmask(int j) const { return j >> SBBITS & 3; }

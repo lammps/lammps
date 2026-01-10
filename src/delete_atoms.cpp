@@ -1128,6 +1128,12 @@ void DeleteAtoms::condense_tags() {
             }
         }
 
+        // --- FIXES (Delegation) ---
+        // Requires update_ids to be virtual in Fix or this loop will fail to compile
+        for (auto *ifix : modify->get_fix_list()) {
+            if (ifix->stores_ids) ifix->update_ids(newIDs);
+        }
+
         // --- SPECIAL LISTS ---
         if (atom->special) {
             for (int i = 0; i < nlocal; i++) {
@@ -1142,17 +1148,6 @@ void DeleteAtoms::condense_tags() {
                 }
             }
         }
-
-        // --- FIXES (Delegation) ---
-        #ifdef LMP_MOLECULE
-        {
-            for (auto *ifix : modify->get_fix_list()) {
-                if (utils::strmatch(ifix->style, "^cmap")) {
-                     static_cast<FixCMAP*>(ifix)->update_ids(newIDs);
-                }
-            }
-        }
-        #endif
     }
 
     // 9. Final Tag Assignment

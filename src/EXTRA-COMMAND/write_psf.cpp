@@ -174,8 +174,7 @@ void WritePsf::write(const std::string &file)
   if (me == 0) {
     fp = fopen(file.c_str(),"w");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open data file {}: {}",
-                                   file, utils::getsyserror());
+      error->one(FLERR,"Cannot open data file {}: {}", file, utils::getsyserror());
   }
 
   // proc 0 writes header, ntype-length arrays, force fields
@@ -189,9 +188,9 @@ void WritePsf::write(const std::string &file)
 
   if ( atom->molecular == Atom::MOLECULAR) {
     if (atom->nbonds && nbonds) bonds();
-    if (atom->nangles && nangles) angles();
-    if (atom->ndihedrals) dihedrals();
-    if (atom->nimpropers) impropers();
+    //if (atom->nangles && nangles) angles();
+    //if (atom->ndihedrals) dihedrals();
+    //if (atom->nimpropers) impropers();
   }
 
   // close data file
@@ -255,13 +254,9 @@ void WritePsf::atoms()
       sendbuf[j].molecule = atom->molecule[i];
       sendbuf[j].type     = atom->type[i];
       sendbuf[j].q        = atom->q_flag ? atom->q[i] : 0.0;
-      std::memset(sendbuf[j].segment, ' ', 8);
-      std::memset(sendbuf[j].residue, ' ', 8);
-      std::memset(sendbuf[j].name,    ' ', 8);
-      sendbuf[j].segment[8] = sendbuf[j].residue[8] = sendbuf[j].name[8] = '\0';
-      std::memcpy(sendbuf[j].segment, atom->segment[i].data(), std::min<size_t>(8, atom->segment[i].size()));
-      std::memcpy(sendbuf[j].residue, atom->residue[i].data(), std::min<size_t>(8, atom->residue[i].size()));
-      std::memcpy(sendbuf[j].name, atom->name[i].data(), std::min<size_t>(8, atom->name[i].size()));
+      std::strncpy(sendbuf[j].segment, atom->segment[i], 8);
+      std::strncpy(sendbuf[j].residue, atom->residue[i], 8);
+      std::strncpy(sendbuf[j].name,    atom->name[i],    8);
       j++;
     }
   }

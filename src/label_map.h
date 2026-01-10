@@ -26,6 +26,7 @@ class LabelMap : protected Pointers {
   friend class DumpExtXYZ;
   friend class DumpXYZ;
   friend class ReadData;
+  friend class ReadPsf;
 
  public:
   LabelMap(LAMMPS *lmp, int, int, int, int, int);

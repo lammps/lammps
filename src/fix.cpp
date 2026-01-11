@@ -564,3 +564,14 @@ void Fix::v_tally(int n, int i, double vn)
   if (vflag_atom)
     vatom[i][n] += vn;
 }
+
+
+/* ----------------------------------------------------------------------
+Default error if stores_ids=1 and fix class doesnt have update_ids().
+------------------------------------------------------------------------- */
+
+void Fix::update_ids(double **newIDs) {
+  if (stores_ids)
+    error->all(FLERR, "Delete_atoms condense yes not supported with fix {}."
+                      "Please contribute update_ids() method to fix {} class.", style, style);
+}

@@ -980,21 +980,13 @@ void DeleteAtoms::options(int narg, char **arg)
   }
 }
 
-
-/* ----------------------------------------------------------------------
-   condense tags for ATOMIC and MOLECULAR
-------------------------------------------------------------------------- */
-
-
-
-
 /* ----------------------------------------------------------------------
    condense tags for ATOMIC and MOLECULAR
    Algorithm: Parallel Sample Sort (Scalable O(N/P))
    Preserves global ID ordering: OldID_A < OldID_B ==> NewID_A < NewID_B
 ------------------------------------------------------------------------- */
 void DeleteAtoms::condense_tags() {
-    
+
     if (atom->map_style == Atom::MAP_NONE)
         error->all(FLERR, "Using 'condense yes' option requires an atom map");
 
@@ -1007,13 +999,13 @@ void DeleteAtoms::condense_tags() {
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     domain->reset_box();
- 
+
     std::fprintf(stderr, "*** ok 2\n");
     std::fflush(stderr);
 
     // Force re-binning and list rebuild
     if (neighbor->style) neighbor->setup_bins();
-    comm->setup(); 
+    comm->setup();
 
     std::fprintf(stderr, "*** ok 3\n");
     std::fflush(stderr);
@@ -1025,10 +1017,10 @@ void DeleteAtoms::condense_tags() {
 
     atom->map_init();
     atom->map_set();
-    
+
     std::fprintf(stderr, "*** ok 5\n");
     std::fflush(stderr);
-    
+
     int nlocal = atom->nlocal;
     int nmax = atom->nmax;
     int nprocs, me;
@@ -1038,7 +1030,7 @@ void DeleteAtoms::condense_tags() {
     // ---------------------------------------------------------
     // 2. PARALLEL SAMPLE SORT
     // ---------------------------------------------------------
-    
+
     struct SortItem {
         tagint tag;
         int origin_index;
@@ -1051,14 +1043,14 @@ void DeleteAtoms::condense_tags() {
         my_items[i] = {atom->tag[i], i, me};
     }
     // Sort local atoms by Tag
-    std::sort(my_items.begin(), my_items.end(), 
+    std::sort(my_items.begin(), my_items.end(),
               [](const SortItem &a, const SortItem &b) { return a.tag < b.tag; });
-              
+
     std::fprintf(stderr, "*** ok 6\n");
     std::fflush(stderr);
 
     // Select P samples per proc
-    int num_samples = nprocs; 
+    int num_samples = nprocs;
     std::vector<tagint> local_samples(num_samples, MAXTAGINT);
     if (nlocal > 0) {
         for(int i=0; i<num_samples; i++) {
@@ -1069,8 +1061,8 @@ void DeleteAtoms::condense_tags() {
 
     // B. Gather Samples & Pick Splitters (Root only)
     std::vector<tagint> all_samples(nprocs * num_samples);
-    MPI_Gather(local_samples.data(), num_samples, MPI_LMP_TAGINT, 
-               all_samples.data(), num_samples, MPI_LMP_TAGINT, 
+    MPI_Gather(local_samples.data(), num_samples, MPI_LMP_TAGINT,
+               all_samples.data(), num_samples, MPI_LMP_TAGINT,
                0, world);
 
     std::fprintf(stderr, "*** ok 7\n");
@@ -1087,14 +1079,14 @@ void DeleteAtoms::condense_tags() {
         splitters[nprocs] = MAXTAGINT;
     }
     MPI_Bcast(splitters.data(), nprocs + 1, MPI_LMP_TAGINT, 0, world);
-    
+
     std::fprintf(stderr, "*** ok 8\n");
     std::fflush(stderr);
 
     // C. Bucketing (Assign atoms to target Procs)
     std::vector<int> send_counts(nprocs, 0);
     std::vector<std::vector<SortItem>> buckets(nprocs);
-    
+
     int current_bucket = 0;
     for(const auto &item : my_items) {
         // Find which processor owns this tag range
@@ -1133,7 +1125,7 @@ void DeleteAtoms::condense_tags() {
     }
 
     // Pack into flat arrays for MPI (struct SortItem is 16-24 bytes)
-    // tagint=8 bytes, int=4, int=4. 
+    // tagint=8 bytes, int=4, int=4.
     std::vector<tagint> s_tags(send_buffer.size());
     std::vector<int> s_idx(send_buffer.size()), s_rank(send_buffer.size());
     for(size_t i=0; i<send_buffer.size(); i++) {
@@ -1164,7 +1156,7 @@ void DeleteAtoms::condense_tags() {
         sorted_items[i] = {r_tags[i], r_idx[i], r_rank[i]};
     }
     // Final Sort: Now Proc 0 has smallest tags, Proc N has largest
-    std::sort(sorted_items.begin(), sorted_items.end(), 
+    std::sort(sorted_items.begin(), sorted_items.end(),
               [](const SortItem &a, const SortItem &b) { return a.tag < b.tag; });
 
     // Determine Global Start ID for this processor
@@ -1176,7 +1168,7 @@ void DeleteAtoms::condense_tags() {
     // F. Return New IDs to Owners
     // Reuse buckets to send data back
     for(int i=0; i<nprocs; i++) { send_counts[i]=0; buckets[i].clear(); }
-    
+
     for(int i=0; i<total_recv; i++) {
         tagint new_id = start_id + i;
         int target = sorted_items[i].origin_rank;
@@ -1259,7 +1251,7 @@ void DeleteAtoms::condense_tags() {
                 atom->num_bond[i] = m;
             }
         }
- 
+
         std::fprintf(stderr, "*** ok 15\n");
         std::fflush(stderr);
 

@@ -57,7 +57,7 @@ class FixCMAPKokkos : public FixCMAP, public KokkosBase {
     void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
     void set_arrays(int) override;
     void update_ids(double **newIDs) override;
-    
+
     int pack_exchange(int, double *) override;
     int unpack_exchange(int, double *) override;
 

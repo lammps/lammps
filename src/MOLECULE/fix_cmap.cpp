@@ -1346,12 +1346,12 @@ void FixCMAP::update_ids(double **newIDs)
   for (int i = 0; i < nlocal; i++) {
     int m = 0;
     for (int j = 0; j < num_crossterm[i]; j++) {
-      
+
       tagint t1 = 0, t2 = 0, t3 = 0, t4 = 0, t5 = 0;
       int k;
 
       // Map: oldID -> local index k -> newIDs[k] -> newID
-      
+
       k = atom->map(crossterm_atom1[i][j]);
       if (k >= 0) t1 = (tagint) ubuf(newIDs[k][0]).i;
 

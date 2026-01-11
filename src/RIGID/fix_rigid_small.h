@@ -67,6 +67,7 @@ class FixRigidSmall : public Fix {
   double extract_erotational();
   double compute_scalar() override;
   double memory_usage() override;
+  void update_ids(double **) override;
 
  protected:
   double dtv, dtf, dtq;

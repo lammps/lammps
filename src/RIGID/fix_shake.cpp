@@ -3587,3 +3587,29 @@ void FixShake::correct_coordinates(int vflag) {
   comm->forward_comm(this);
   xshake = xtmp;
 }
+
+/* ----------------------------------------------------------------------
+   Update atom IDs in SHAKE clusters
+------------------------------------------------------------------------- */
+
+void FixShake::update_ids(double **newIDs)
+{
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (shake_flag[i] == 0) continue;
+
+    // Map shake_flag to number of atoms in the cluster
+    // 1 = angle (3 atoms)
+    // 2,3,4 = bond cluster size
+    int n = 0;
+    if (shake_flag[i] == 1) n = 3;
+    else n = shake_flag[i];
+
+    for (int m = 0; m < n; m++) {
+      tagint oldID = shake_atom[i][m];
+      int k = atom->map(oldID);
+      if (k >= 0) shake_atom[i][m] = (tagint) ubuf(newIDs[k][0]).i;
+    }
+  }
+}

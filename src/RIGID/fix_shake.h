@@ -62,6 +62,8 @@ class FixShake : public Fix {
   void reset_dt() override;
   void *extract(const char *, int &) override;
   double compute_scalar() override;
+  
+  void update_ids(double **) override;
 
  protected:
   int vflag_post_force;     // store the vflag of last post_force call

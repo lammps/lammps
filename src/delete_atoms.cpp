@@ -1170,19 +1170,18 @@ void DeleteAtoms::condense_tags() {
   // Create newIDs buffer (Size nmax for safety)
   double **newIDs;
   const auto nall = atom->nlocal + atom->nghost;
-  memory->create(newIDs, nall, 1, "delete_atoms:newIDs");
-
-  // Init to 0
-  for(int i=0; i<nall; i++) newIDs[i][0] = ubuf((tagint)0).d;
+  const auto nmax = atom->nmax;
+  memory->create(newIDs, nmax, 1, "delete_atoms:newIDs");
 
   // Fill buffer from received data
   // Now we are back on the original processor, so r_idx is the local index
   for(int i=0; i<total_recv; i++) {
     int idx = r_idx[i];
     if (idx < nall) newIDs[idx][0] = ubuf(r_tags[i]).d;
+    else newIDs[i][0] = ubuf((tagint)0).d;
   }
 
-  if( comm->get_comm_cutoff() > 0.0 ) comm->forward_comm_array(1, newIDs);
+  if( nprocs>1 && comm->get_comm_cutoff() > 0.0 ) comm->forward_comm_array(1, newIDs);
 
   // ---------------------------------------------------------
   // 4. UPDATE TOPOLOGY (Standard)

@@ -62,7 +62,7 @@ class FixShake : public Fix {
   void reset_dt() override;
   void *extract(const char *, int &) override;
   double compute_scalar() override;
-  
+
   void update_ids(double **) override;
 
  protected:

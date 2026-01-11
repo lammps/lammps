@@ -1177,7 +1177,7 @@ void DeleteAtoms::condense_tags() {
     double **newIDs;
     const auto nall = atom->nlocal + atom->nghost;
     memory->create(newIDs, nall, 1, "delete_atoms:newIDs");
-    
+
     // Init to 0
     for(int i=0; i<nall; i++) newIDs[i][0] = ubuf((tagint)0).d;
 
@@ -1187,7 +1187,7 @@ void DeleteAtoms::condense_tags() {
         int idx = r_idx[i];
         if (idx < nall) newIDs[idx][0] = ubuf(r_tags[i]).d;
     }
-    
+
     if( comm->get_comm_cutoff() > 0.0 ) comm->forward_comm_array(1, newIDs);
 
     // ---------------------------------------------------------

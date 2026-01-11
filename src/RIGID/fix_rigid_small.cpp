@@ -3697,10 +3697,10 @@ void FixRigidSmall::update_ids(double **newIDs)
     // If this atom belongs to a body (bodytag > 0)
     if (bodytag[i] > 0) {
       tagint oldOwnerID = bodytag[i];
-      
+
       // Find where the owner atom is now (local or ghost index)
       int k = atom->map(oldOwnerID);
-      
+
       // If found, update bodytag to the owner's NEW ID
       if (k >= 0) bodytag[i] = (tagint) ubuf(newIDs[k][0]).i;
     }

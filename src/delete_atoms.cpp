@@ -1170,9 +1170,6 @@ void DeleteAtoms::condense_tags() {
     MPI_Alltoallv(s_idx.data(), send_counts.data(), send_displs.data(), MPI_INT,
                   r_idx.data(), recv_counts.data(), recv_displs.data(), MPI_INT, world);
 
-    std::fprintf(stderr, "*** ok 1\n");
-    std::fflush(stderr);
-
     // ---------------------------------------------------------
     // 3. APPLY NEW IDS
     // ---------------------------------------------------------
@@ -1196,10 +1193,6 @@ void DeleteAtoms::condense_tags() {
     // ---------------------------------------------------------
     // 4. UPDATE TOPOLOGY (Standard)
     // ---------------------------------------------------------
-    
-    
-    std::fprintf(stderr, "*** ok 3\n");
-    std::fflush(stderr);
 
     if (atom->molecular != Atom::ATOMIC) {
         // --- BONDS ---
@@ -1218,9 +1211,6 @@ void DeleteAtoms::condense_tags() {
                 atom->num_bond[i] = m;
             }
         }
-
-        std::fprintf(stderr, "*** ok 4\n");
-        std::fflush(stderr);
 
         // --- ANGLES ---
         if (atom->avec->angles_allow) {
@@ -1298,17 +1288,11 @@ void DeleteAtoms::condense_tags() {
             }
         }
 
-        std::fprintf(stderr, "*** ok 16\n");
-        std::fflush(stderr);
-
         // --- FIXES ---
         for (auto *ifix : modify->get_fix_list()) {
             if (ifix->stores_ids) ifix->update_ids(newIDs);
         }
     }
-
-    std::fprintf(stderr, "*** ok 17\n");
-    std::fflush(stderr);
 
     // Assign My New Tags
     for (int i = 0; i < nlocal; i++) atom->tag[i] = (tagint) ubuf(newIDs[i][0]).i;

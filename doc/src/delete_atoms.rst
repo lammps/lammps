@@ -154,11 +154,8 @@ keyword below.
 
 If the *condense* keyword set to *yes*, then after atoms are deleted,
 the atom IDs are re-assigned in such a way that the order of atom-IDs is
-preserved.  This process is not efficient and cannot be used for very
-large systems and requires local storage that scales with the number of
-total atoms in the system.  Also, the *compress* and the *condense*
-keywords cannot be used at the same time.  Whichever of the two is used
-last will be applied.
+preserved.  The *compress* and the *condense* keywords cannot be used at
+the same time.  Whichever of the two is used last will be applied.
 
 A molecular system with fixed bonds, angles, dihedrals, or improper
 interactions, is one where the topology of the interactions is

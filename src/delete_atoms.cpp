@@ -998,21 +998,36 @@ void DeleteAtoms::condense_tags() {
     if (atom->map_style == Atom::MAP_NONE)
         error->all(FLERR, "Using 'condense yes' option requires an atom map");
 
+    std::fprintf(stderr, "*** ok 1\n");
+    std::fflush(stderr);
+
     // ---------------------------------------------------------
     // 1. REFRESH COMM LISTS (Prevents Segfault/BusError)
     // ---------------------------------------------------------
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     domain->reset_box();
-    
+ 
+    std::fprintf(stderr, "*** ok 2\n");
+    std::fflush(stderr);
+
     // Force re-binning and list rebuild
     if (neighbor->style) neighbor->setup_bins();
     comm->setup(); 
-    
+
+    std::fprintf(stderr, "*** ok 3\n");
+    std::fflush(stderr);
+
     if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
-    
+
+    std::fprintf(stderr, "*** ok 4\n");
+    std::fflush(stderr);
+
     atom->map_init();
     atom->map_set();
+    
+    std::fprintf(stderr, "*** ok 5\n");
+    std::fflush(stderr);
     
     int nlocal = atom->nlocal;
     int nmax = atom->nmax;
@@ -1038,6 +1053,9 @@ void DeleteAtoms::condense_tags() {
     // Sort local atoms by Tag
     std::sort(my_items.begin(), my_items.end(), 
               [](const SortItem &a, const SortItem &b) { return a.tag < b.tag; });
+              
+    std::fprintf(stderr, "*** ok 6\n");
+    std::fflush(stderr);
 
     // Select P samples per proc
     int num_samples = nprocs; 
@@ -1055,6 +1073,9 @@ void DeleteAtoms::condense_tags() {
                all_samples.data(), num_samples, MPI_LMP_TAGINT, 
                0, world);
 
+    std::fprintf(stderr, "*** ok 7\n");
+    std::fflush(stderr);
+
     std::vector<tagint> splitters(nprocs + 1);
     if (me == 0) {
         std::sort(all_samples.begin(), all_samples.end());
@@ -1066,6 +1087,9 @@ void DeleteAtoms::condense_tags() {
         splitters[nprocs] = MAXTAGINT;
     }
     MPI_Bcast(splitters.data(), nprocs + 1, MPI_LMP_TAGINT, 0, world);
+    
+    std::fprintf(stderr, "*** ok 8\n");
+    std::fflush(stderr);
 
     // C. Bucketing (Assign atoms to target Procs)
     std::vector<int> send_counts(nprocs, 0);
@@ -1081,6 +1105,9 @@ void DeleteAtoms::condense_tags() {
         send_counts[current_bucket]++;
     }
 
+    std::fprintf(stderr, "*** ok 9\n");
+    std::fflush(stderr);
+
     // D. Exchange Data (Alltoallv)
     std::vector<int> send_displs(nprocs, 0);
     std::vector<SortItem> send_buffer;
@@ -1094,6 +1121,9 @@ void DeleteAtoms::condense_tags() {
 
     std::vector<int> recv_counts(nprocs);
     MPI_Alltoall(send_counts.data(), 1, MPI_INT, recv_counts.data(), 1, MPI_INT, world);
+
+    std::fprintf(stderr, "*** ok 10\n");
+    std::fflush(stderr);
 
     std::vector<int> recv_displs(nprocs, 0);
     int total_recv = 0;
@@ -1112,6 +1142,9 @@ void DeleteAtoms::condense_tags() {
         s_rank[i] = send_buffer[i].origin_rank;
     }
 
+    std::fprintf(stderr, "*** ok 11\n");
+    std::fflush(stderr);
+
     std::vector<tagint> r_tags(total_recv);
     std::vector<int> r_idx(total_recv), r_rank(total_recv);
 
@@ -1121,6 +1154,9 @@ void DeleteAtoms::condense_tags() {
                   r_idx.data(), recv_counts.data(), recv_displs.data(), MPI_INT, world);
     MPI_Alltoallv(s_rank.data(), send_counts.data(), send_displs.data(), MPI_INT,
                   r_rank.data(), recv_counts.data(), recv_displs.data(), MPI_INT, world);
+
+    std::fprintf(stderr, "*** ok 12\n");
+    std::fflush(stderr);
 
     // E. Sort Received Data & Assign Global IDs
     std::vector<SortItem> sorted_items(total_recv);
@@ -1148,6 +1184,9 @@ void DeleteAtoms::condense_tags() {
         buckets[target].push_back({new_id, sorted_items[i].origin_index, 0});
         send_counts[target]++;
     }
+
+    std::fprintf(stderr, "*** ok 13\n");
+    std::fflush(stderr);
 
     // Re-pack
     send_buffer.clear();
@@ -1178,6 +1217,9 @@ void DeleteAtoms::condense_tags() {
                   r_tags.data(), recv_counts.data(), recv_displs.data(), MPI_LMP_TAGINT, world);
     MPI_Alltoallv(s_idx.data(), send_counts.data(), send_displs.data(), MPI_INT,
                   r_idx.data(), recv_counts.data(), recv_displs.data(), MPI_INT, world);
+
+    std::fprintf(stderr, "*** ok 14\n");
+    std::fflush(stderr);
 
     // ---------------------------------------------------------
     // 3. APPLY NEW IDS
@@ -1217,7 +1259,10 @@ void DeleteAtoms::condense_tags() {
                 atom->num_bond[i] = m;
             }
         }
-        
+ 
+        std::fprintf(stderr, "*** ok 15\n");
+        std::fflush(stderr);
+
         // --- ANGLES ---
         if (atom->avec->angles_allow) {
             for (int i = 0; i < nlocal; i++) {
@@ -1294,11 +1339,17 @@ void DeleteAtoms::condense_tags() {
             }
         }
 
+        std::fprintf(stderr, "*** ok 16\n");
+        std::fflush(stderr);
+
         // --- FIXES ---
         for (auto *ifix : modify->get_fix_list()) {
             if (ifix->stores_ids) ifix->update_ids(newIDs);
         }
     }
+
+    std::fprintf(stderr, "*** ok 17\n");
+    std::fflush(stderr);
 
     // Assign My New Tags
     for (int i = 0; i < nlocal; i++) atom->tag[i] = (tagint) ubuf(newIDs[i][0]).i;

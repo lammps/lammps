@@ -114,6 +114,12 @@ void AtomVecFullKokkos::grow(int n)
                       atomKK->improper_per_atom,"atom:improper_atom3");
   memoryKK->grow_kokkos(atomKK->k_improper_atom4,atomKK->improper_atom4,nmax,
                       atomKK->improper_per_atom,"atom:improper_atom4");
+                      
+  // CHARMM package
+  memory->grow(atomKK->segment, nmax, 9, "atom:segment");
+  memory->grow(atomKK->residue, nmax, 9, "atom:residue");
+  memory->grow(atomKK->name,    nmax, 9, "atom:name");
+
 
   grow_pointers();
   atomKK->sync(Host,ALL_MASK);

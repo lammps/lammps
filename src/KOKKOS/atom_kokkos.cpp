@@ -113,6 +113,11 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_rho, rho);
   memoryKK->destroy_kokkos(k_dpdTheta, dpdTheta);
   memoryKK->destroy_kokkos(k_duChem, duChem);
+  
+  // CHARMM package
+  //memoryKK->destroy_kokkos(h_segment);
+  //memoryKK->destroy_kokkos(h_residue);
+  //memoryKK->destroy_kokkos(h_name);
 
   memoryKK->destroy_kokkos(k_dvector, dvector);
   dvector = nullptr;

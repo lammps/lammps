@@ -343,11 +343,8 @@ void AtomVec::copy(int i, int j, int delflag)
           for (m = 0; m < ncols; m++) array[j][m] = array[i][m];
         }
       } else if (datatype == Atom::CHAR) {
-      
         char **array = *((char ***) pdata);
         std::strncpy(array[j], array[i], cols);
-
-
       }
     }
   }
@@ -1240,6 +1237,12 @@ int AtomVec::pack_exchange(int i, double *buf)
             ncols = (*((int **) plength))[i];
           for (mm = 0; mm < ncols; mm++) buf[m++] = ubuf(array[i][mm]).d;
         }
+      }
+      if (datatype == Atom::CHAR) {
+
+        utils::logmesg(lmp, "*** AtomVec::pack_exchange i {} cols {}\n", i, cols);
+
+
       }
     }
   }

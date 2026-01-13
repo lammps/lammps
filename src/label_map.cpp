@@ -48,7 +48,6 @@ LabelMap::LabelMap(LAMMPS *_lmp, int _natomtypes, int _nbondtypes, int _nanglety
 {
   lmap2lmap.atom = lmap2lmap.bond = lmap2lmap.angle = lmap2lmap.dihedral = lmap2lmap.improper =
       nullptr;
-  nsegmenttypes = nresiduetypes = nnametypes = 0;
   reset_type_labels();
 }
 
@@ -287,15 +286,6 @@ int LabelMap::find(const std::string &mylabel, int mode) const
       break;
     case Atom::IMPROPER:
       return search(mylabel, itypelabel_map);
-      break;
-    case Atom::SEGMENT:
-      return search(mylabel, stypelabel_map);
-      break;
-    case Atom::RESIDUE:
-      return search(mylabel, rtypelabel_map);
-      break;
-    case Atom::NAME:
-      return search(mylabel, ntypelabel_map);
       break;
     default:
       return -1;
@@ -557,27 +547,6 @@ void LabelMap::write_map(const std::string &filename)
         if (!itypelabel[i].empty()) utils::print(fp, " {} \"\"\" {} \"\"\"", i + 1, itypelabel[i]);
       fputc('\n', fp);
     }
-
-    if (stypelabel_map.size() > 0) {
-      fputs("labelmap segment", fp);
-      for (int i = 0; i < nsegmenttypes; ++i)
-        if (!stypelabel[i].empty()) fmt::print(fp, " {} \"\"\" {} \"\"\"", i + 1, stypelabel[i]);
-      fputc('\n', fp);
-    }
-    if (rtypelabel_map.size() > 0) {
-      fputs("labelmap residue", fp);
-      for (int i = 0; i < nresiduetypes; ++i)
-        if (!rtypelabel[i].empty()) fmt::print(fp, " {} \"\"\" {} \"\"\"", i + 1, rtypelabel[i]);
-      fputc('\n', fp);
-    }
-    if (ntypelabel_map.size() > 0) {
-      fputs("labelmap name", fp);
-      for (int i = 0; i < nnametypes; ++i)
-        if (!ntypelabel[i].empty()) fmt::print(fp, " {} \"\"\" {} \"\"\"", i + 1, ntypelabel[i]);
-      fputc('\n', fp);
-    }
-
     fclose(fp);
   }
 }
-

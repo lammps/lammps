@@ -3008,6 +3008,7 @@ void Set::invoke_name(Action *action)
     if (!select[i]) continue;
     //if (varflag) coord = vec1[i];
     std::strncpy(name[i], action->sview.data(), action->sview.size());
+    name[i][action->sview.size()] = '\0';
   }
 }
 

@@ -1239,10 +1239,8 @@ int AtomVec::pack_exchange(int i, double *buf)
         }
       }
       if (datatype == Atom::CHAR) {
-
-        utils::logmesg(lmp, "*** AtomVec::pack_exchange i {} cols {}\n", i, cols);
-
-
+        char **array = *((char ***) pdata);
+        for (mm = 0; mm < cols; mm++) buf[m++] = ubuf((int)array[i][mm]).d;
       }
     }
   }
@@ -1335,6 +1333,9 @@ int AtomVec::unpack_exchange(double *buf)
             ncols = (*((int **) plength))[nlocal];
           for (mm = 0; mm < ncols; mm++) array[nlocal][mm] = (bigint) ubuf(buf[m++]).i;
         }
+      } else if (datatype == Atom::CHAR) {
+        char **array = *((char ***) pdata);
+        for (mm = 0; mm < cols; mm++) array[nlocal][mm] = (char) ubuf(buf[m++]).i;
       }
     }
   }

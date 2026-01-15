@@ -53,8 +53,6 @@ class DeleteAtoms : public Command {
 
   static void bondring(int, char *, void *);
   static void molring(int, char *, void *);
-  static void addtags(int, char *, void *);
-  static void settags(int, char *, void *);
 };
 
 }    // namespace LAMMPS_NS

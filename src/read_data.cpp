@@ -710,6 +710,13 @@ void ReadData::command(int narg, char **arg)
     if (firstpass) {
       delete lmap;
       lmap = new LabelMap(lmp, ntypes, nbondtypes, nangletypes, ndihedraltypes, nimpropertypes);
+      
+      if (addflag != NONE) {
+      
+        memory->grow(atom->lmap->lmap2lmap.atom, atom->ntypes+1, "lmap2lmap:atom");
+        atom->lmap->typelabel.resize(atom->ntypes+1);
+  
+      }
     }
 
     // -------------------------------------------------------------------------------------
@@ -2418,9 +2425,12 @@ void ReadData::typelabels(int mode)
   // merge this read_data label map to atom class
   // determine mapping to let labels override numeric types
   // valid operations for first or subsequent data files
-
+  
+  lmap->write_map("");
   atom->lmap->merge_lmap(lmap, mode);
+  atom->lmap->write_map("");
   lmap->create_lmap2lmap(atom->lmap, mode);
+
 }
 
 /* ----------------------------------------------------------------------
@@ -2548,6 +2558,8 @@ void ReadData::parse_keyword(int first)
     stop--;
   line[stop + 1] = '\0';
   strcpy(keyword, &line[start]);
+  
+  //utils::logmesg(lmp, "-------------------------------- {} --------------------------------\n", keyword);
 }
 
 /* ----------------------------------------------------------------------
@@ -2608,16 +2620,32 @@ void ReadData::parse_coeffs(char *line, const char *addstr, int dupflag, int nof
   if (ncoeffarg == 0) return;
 
   if (noffset) {
-    int value = utils::inumeric(FLERR, coeffarg[0], false, lmp);
+  
+    int mode;
+    if (lmap && labelmode) {
+      if (ilabel == lmap->lmap2lmap.atom)          mode = Atom::ATOM;
+      else if (ilabel == lmap->lmap2lmap.bond)     mode = Atom::BOND;
+      else if (ilabel == lmap->lmap2lmap.angle)    mode = Atom::ANGLE;
+      else if (ilabel == lmap->lmap2lmap.dihedral) mode = Atom::DIHEDRAL;
+      else if (ilabel == lmap->lmap2lmap.improper) mode = Atom::IMPROPER;
+    }
+  
+    int value;
+    if (utils::is_type(coeffarg[0])) value = atom->lmap->find(coeffarg[0], mode);
+    else value = utils::inumeric(FLERR, coeffarg[0], false, lmp);
     if (labelmode) value = ilabel[value - 1];
     argoffset1 = std::to_string(value + offset);
     coeffarg[0] = (char *) argoffset1.c_str();
     if (noffset == 2) {
-      value = utils::inumeric(FLERR, coeffarg[1], false, lmp);
+      if (utils::is_type(coeffarg[1])) value = atom->lmap->find(coeffarg[1], mode);
+      else value = utils::inumeric(FLERR, coeffarg[1], false, lmp);
       if (labelmode) value = ilabel[value - 1];
       argoffset2 = std::to_string(value + offset);
       coeffarg[1] = (char *) argoffset2.c_str();
     }
+    
+    //utils::logmesg(lmp, "*** noffset {} offset {} coeffarg {} {}\n", noffset, offset, coeffarg[0], coeffarg[1]);
+    
   }
 }
 

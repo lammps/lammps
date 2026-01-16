@@ -972,8 +972,8 @@ void DeleteAtoms::condense_tags()
   // -- Step A: Local Sort & Sampling --
   std::vector<SortItem> my_items(nlocal);
   for (int i = 0; i < nlocal; i++) my_items[i] = {atom->tag[i], me, i, 0};
-  
-  std::sort(my_items.begin(), my_items.end(), 
+
+  std::sort(my_items.begin(), my_items.end(),
             [](const SortItem &a, const SortItem &b) { return a.tag < b.tag; });
 
   // Select P-1 splitters
@@ -1026,13 +1026,15 @@ void DeleteAtoms::condense_tags()
                 recv_items.data(), recv_counts.data(), rdispls.data(), sort_item_type, world);
 
   // -- Step C: Local Merge & Global Scan --
-  std::sort(recv_items.begin(), recv_items.end(), 
+  std::sort(recv_items.begin(), recv_items.end(),
             [](const SortItem &a, const SortItem &b) { return a.tag < b.tag; });
 
   bigint my_chunk_size = total_recv;
-  bigint global_start = 0;
-  MPI_Exscan(&my_chunk_size, &global_start, 1, MPI_LMP_BIGINT, MPI_SUM, world);
-  if (me == 0) global_start = 0;
+  bigint scan_val = 0;
+
+  // Use MPI_Scan (inclusive) to calculate global offsets safely
+  MPI_Scan(&my_chunk_size, &scan_val, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+  bigint global_start = scan_val - my_chunk_size;
 
   for (int i = 0; i < total_recv; i++) recv_items[i].new_id = (tagint)(global_start + i + 1);
 
@@ -1054,12 +1056,11 @@ void DeleteAtoms::condense_tags()
     rdispls[i] = total_recv;
     total_recv += recv_counts[i];
   }
-  recv_items.resize(total_recv); 
+  recv_items.resize(total_recv);
 
   MPI_Alltoallv(sbuf.data(), send_counts.data(), sdispls.data(), sort_item_type,
                 recv_items.data(), recv_counts.data(), rdispls.data(), sort_item_type, world);
 
-  // Free the custom type
   MPI_Type_free(&sort_item_type);
 
   // ---------------------------------------------------------
@@ -1067,13 +1068,13 @@ void DeleteAtoms::condense_tags()
   // ---------------------------------------------------------
   double **newIDs;
   memory->create(newIDs, atom->nmax, 1, "delete_atoms:newIDs");
-  for (int i = 0; i < atom->nmax; i++) newIDs[i][0] = -1.0;
+
+  // Initialize to 0.0 (Standard)
+  for (int i = 0; i < atom->nmax; i++) newIDs[i][0] = ubuf(0).d;
 
   for (const auto &item : recv_items)
-    if (item.origin_index < atom->nmax) newIDs[item.origin_index][0] = (double) item.new_id;
-    
+    if (item.origin_index < atom->nmax) newIDs[item.origin_index][0] = ubuf(item.new_id).d;
 
-  // FORCE Communication to Ghosts
   if (nprocs > 1) comm->forward_comm_array(1, newIDs);
 
   // ---------------------------------------------------------
@@ -1087,7 +1088,7 @@ void DeleteAtoms::condense_tags()
         for (int j = 0; j < atom->num_bond[i]; j++) {
           int k = atom->map(atom->bond_atom[i][j]);
           if (k >= 0) {
-             tagint newID = (tagint) newIDs[k][0];
+             tagint newID = (tagint) ubuf(newIDs[k][0]).i;
              if (newID > 0) {
                atom->bond_atom[i][m] = newID;
                atom->bond_type[i][m] = atom->bond_type[i][j];
@@ -1098,7 +1099,7 @@ void DeleteAtoms::condense_tags()
         atom->num_bond[i] = m;
       }
     }
-    
+
     // --- ANGLES ---
     if (atom->avec->angles_allow) {
       for (int i = 0; i < nlocal; i++) {
@@ -1108,9 +1109,9 @@ void DeleteAtoms::condense_tags()
           int k2 = atom->map(atom->angle_atom2[i][j]);
           int k3 = atom->map(atom->angle_atom3[i][j]);
           if (k1 >= 0 && k2 >= 0 && k3 >= 0) {
-             tagint t1 = (tagint) newIDs[k1][0];
-             tagint t2 = (tagint) newIDs[k2][0];
-             tagint t3 = (tagint) newIDs[k3][0];
+             tagint t1 = (tagint) ubuf(newIDs[k1][0]).i;
+             tagint t2 = (tagint) ubuf(newIDs[k2][0]).i;
+             tagint t3 = (tagint) ubuf(newIDs[k3][0]).i;
              if (t1 > 0 && t2 > 0 && t3 > 0) {
                 atom->angle_atom1[i][m] = t1;
                 atom->angle_atom2[i][m] = t2;
@@ -1134,10 +1135,10 @@ void DeleteAtoms::condense_tags()
            int k3 = atom->map(atom->dihedral_atom3[i][j]);
            int k4 = atom->map(atom->dihedral_atom4[i][j]);
            if (k1 >= 0 && k2 >= 0 && k3 >= 0 && k4 >= 0) {
-              tagint t1 = (tagint) newIDs[k1][0];
-              tagint t2 = (tagint) newIDs[k2][0];
-              tagint t3 = (tagint) newIDs[k3][0];
-              tagint t4 = (tagint) newIDs[k4][0];
+              tagint t1 = (tagint) ubuf(newIDs[k1][0]).i;
+              tagint t2 = (tagint) ubuf(newIDs[k2][0]).i;
+              tagint t3 = (tagint) ubuf(newIDs[k3][0]).i;
+              tagint t4 = (tagint) ubuf(newIDs[k4][0]).i;
               if (t1 > 0 && t2 > 0 && t3 > 0 && t4 > 0) {
                  atom->dihedral_atom1[i][m] = t1;
                  atom->dihedral_atom2[i][m] = t2;
@@ -1162,10 +1163,10 @@ void DeleteAtoms::condense_tags()
            int k3 = atom->map(atom->improper_atom3[i][j]);
            int k4 = atom->map(atom->improper_atom4[i][j]);
            if (k1 >= 0 && k2 >= 0 && k3 >= 0 && k4 >= 0) {
-              tagint t1 = (tagint) newIDs[k1][0];
-              tagint t2 = (tagint) newIDs[k2][0];
-              tagint t3 = (tagint) newIDs[k3][0];
-              tagint t4 = (tagint) newIDs[k4][0];
+              tagint t1 = (tagint) ubuf(newIDs[k1][0]).i;
+              tagint t2 = (tagint) ubuf(newIDs[k2][0]).i;
+              tagint t3 = (tagint) ubuf(newIDs[k3][0]).i;
+              tagint t4 = (tagint) ubuf(newIDs[k4][0]).i;
               if (t1 > 0 && t2 > 0 && t3 > 0 && t4 > 0) {
                  atom->improper_atom1[i][m] = t1;
                  atom->improper_atom2[i][m] = t2;
@@ -1189,7 +1190,7 @@ void DeleteAtoms::condense_tags()
   // ---------------------------------------------------------
   int nall = nlocal + atom->nghost;
   for (int i = 0; i < nall; i++) {
-      tagint val = (tagint) newIDs[i][0];
+      tagint val = (tagint) ubuf(newIDs[i][0]).i;
       if (val > 0) atom->tag[i] = val;
   }
 
@@ -1198,6 +1199,6 @@ void DeleteAtoms::condense_tags()
   atom->map_tag_max = -1;
   atom->map_init();
   atom->map_set();
-  
+
   if (atom->molecular != Atom::ATOMIC && atom->special) Special(lmp).build();
 }

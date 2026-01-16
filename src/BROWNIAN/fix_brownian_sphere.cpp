@@ -57,39 +57,39 @@ void FixBrownianSphere::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBrownianSphere::initial_integrate(int /*vflag */)
-{
+void FixBrownianSphere::call_integrate() {
   if (domain->dimension == 2) {
     if (!noise_flag) {
-      initial_integrate_templated<0, 0, 1, 0>();
+      integrate_templated<0, 0, 1, 0>();
     } else if (gaussian_noise_flag) {
-      initial_integrate_templated<0, 1, 1, 0>();
+      integrate_templated<0, 1, 1, 0>();
     } else {
-      initial_integrate_templated<1, 0, 1, 0>();
+      integrate_templated<1, 0, 1, 0>();
     }
   } else if (planar_rot_flag) {
     if (!noise_flag) {
-      initial_integrate_templated<0, 0, 0, 1>();
+      integrate_templated<0, 0, 0, 1>();
     } else if (gaussian_noise_flag) {
-      initial_integrate_templated<0, 1, 0, 1>();
+      integrate_templated<0, 1, 0, 1>();
     } else {
-      initial_integrate_templated<1, 0, 0, 1>();
+      integrate_templated<1, 0, 0, 1>();
     }
   } else {
     if (!noise_flag) {
-      initial_integrate_templated<0, 0, 0, 0>();
+      integrate_templated<0, 0, 0, 0>();
     } else if (gaussian_noise_flag) {
-      initial_integrate_templated<0, 1, 0, 0>();
+      integrate_templated<0, 1, 0, 0>();
     } else {
-      initial_integrate_templated<1, 0, 0, 0>();
+      integrate_templated<1, 0, 0, 0>();
     }
   }
+ 
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D, int Tp_2Drot>
-void FixBrownianSphere::initial_integrate_templated()
+void FixBrownianSphere::integrate_templated()
 {
   double **x = atom->x;
   double **v = atom->v;

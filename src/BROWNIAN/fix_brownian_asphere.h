@@ -28,7 +28,6 @@ class FixBrownianAsphere : public FixBrownianBase {
  public:
   FixBrownianAsphere(class LAMMPS *, int, char **);
 
-  void initial_integrate(int) override;
   void init() override;
 
  protected:
@@ -36,7 +35,8 @@ class FixBrownianAsphere : public FixBrownianBase {
 
  private:
   template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_DIPOLE, int Tp_2D, int Tp_2Drot>
-  void initial_integrate_templated();
+  void integrate_templated();
+  virtual void call_integrate() override;
   double g4;
 };
 }    // namespace LAMMPS_NS

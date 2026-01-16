@@ -49,32 +49,33 @@ void FixBrownian::init()
   g2 *= sqrt(temp / gamma_t);
 }
 
-/* ---------------------------------------------------------------------- */
 
-void FixBrownian::initial_integrate(int /*vflag */)
+
+void FixBrownian::call_integrate()
 {
   if (domain->dimension == 2) {
     if (!noise_flag) {
-      initial_integrate_templated<0, 0, 1>();
+      integrate_templated<0, 0, 1>();
     } else if (gaussian_noise_flag) {
-      initial_integrate_templated<0, 1, 1>();
+      integrate_templated<0, 1, 1>();
     } else {
-      initial_integrate_templated<1, 0, 1>();
+      integrate_templated<1, 0, 1>();
     }
   } else {
     if (!noise_flag) {
-      initial_integrate_templated<0, 0, 0>();
+      integrate_templated<0, 0, 0>();
     } else if (gaussian_noise_flag) {
-      initial_integrate_templated<0, 1, 0>();
+      integrate_templated<0, 1, 0>();
     } else {
-      initial_integrate_templated<1, 0, 0>();
+      integrate_templated<1, 0, 0>();
     }
   }
-}
+} 
+
 
 /* ---------------------------------------------------------------------- */
 
-template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D> void FixBrownian::initial_integrate_templated()
+template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D> void FixBrownian::integrate_templated()
 {
   double **x = atom->x;
   double **v = atom->v;

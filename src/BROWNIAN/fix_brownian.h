@@ -29,10 +29,11 @@ class FixBrownian : public FixBrownianBase {
   FixBrownian(class LAMMPS *, int, char **);
 
   void init() override;
-  void initial_integrate(int) override;
 
+  
  private:
-  template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D> void initial_integrate_templated();
+  template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D> void integrate_templated();
+  virtual void call_integrate() override;
 };
 
 }    // namespace LAMMPS_NS

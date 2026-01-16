@@ -23,7 +23,7 @@ Syntax
 * temp = temperature
 * seed = random number generator seed
 * one or more keyword/value pairs may be appended
-* keyword = *rng* or *dipole* or *gamma_r_eigen* or *gamma_t_eigen* or *gamma_r* or *gamma_t* or *rotation_temp* or *planar_rotation*
+* keyword = *rng* or *dipole* or *gamma_r_eigen* or *gamma_t_eigen* or *gamma_r* or *gamma_t* or *rotation_temp* or *planar_rotation* or *final_integrate*
 
   .. parsed-literal::
 
@@ -44,6 +44,7 @@ Syntax
      *rotation_temp* values = *T* for *brownian/sphere* and *brownian/asphere*
         *T* = rotation temperature, which can be different then *temp* when out of equilibrium
      *planar_rotation* values = none (constrains rotational diffusion to be in xy plane if in 3D)
+     *final_integrate* values = none (executes the time integration at the end of the step)
 
 Examples
 """"""""
@@ -51,7 +52,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all brownian 1.0 12908410 gamma_t 1.0
-   fix 1 all brownian 1.0 12908410 gamma_t 3.0 rng gaussian
+   fix 1 all brownian 1.0 12908410 gamma_t 3.0 rng gaussian final_integrate
    fix 1 all brownian/sphere 1.0 1294019 gamma_t 3.0 gamma_r 1.0
    fix 1 all brownian/sphere 1.0 19581092 gamma_t 1.0 gamma_r 0.3  rng none
    fix 1 all brownian/asphere 1.0 1294019 gamma_t_eigen 1.0 2.0 3.0 gamma_r_eigen 4.0 7.0 8.0 rng gaussian
@@ -200,6 +201,10 @@ compatible with *brownian/sphere* and *brownian/asphere*.
 If the *planar_rotation* keyword is used, then rotation is constrained
 to the *x*\ -- *y* plane in a 3D simulation. Only compatible with
 *brownian/sphere* and *brownian/asphere* in 3D.
+
+If the *final_integrate* keyword is used, then the time integration
+is done at the end of the step. Otherwise, it is done at the beginning
+of the step (using previous step's forces).
 
 ----------
 

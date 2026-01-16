@@ -33,6 +33,7 @@
 #include "neighbor.h"
 #include "random_mars.h"
 #include "region.h"
+#include "special.h"
 #include "variable.h"
 
 #include <algorithm>
@@ -137,6 +138,7 @@ void DeleteAtoms::command(int narg, char **arg)
         avec->copy(nlocal - 1, i, 1);
         dlist[i] = dlist[nlocal - 1];
         nlocal--;
+        utils::logmesg(lmp, "*** DELETING ATOM rank {} i {} tag[i] {} map(tag[i]) {}\n", comm->me, i, atom->tag[i], atom->map(atom->tag[i]));
       } else
         i++;
     }
@@ -991,15 +993,17 @@ void DeleteAtoms::condense_tags() {
     error->all(FLERR, "Using 'condense yes' option requires an atom map");
 
   // ---------------------------------------------------------
-  // 1. REFRESH COMM LISTS (Prevents Segfault/BusError)
+  // 1. REFRESH COMM LISTS
   // ---------------------------------------------------------
+  
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
 
-  // Force re-binning and list rebuild
-  if (neighbor->style) neighbor->setup_bins();
+  // Rebuild the ghost lists and the communication plan for the new indices
   comm->setup();
+  comm->exchange(); // Syncs nlocal across ranks
+  comm->borders();  // Rebuilds the forward/backward comm plans and ghost indices
 
   if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
 
@@ -1172,16 +1176,19 @@ void DeleteAtoms::condense_tags() {
   const auto nall = atom->nlocal + atom->nghost;
   const auto nmax = atom->nmax;
   memory->create(newIDs, nmax, 1, "delete_atoms:newIDs");
+  for(int i=0; i<nmax; i++) newIDs[i][0] = ubuf((tagint)-1).d;
 
   // Fill buffer from received data
   // Now we are back on the original processor, so r_idx is the local index
   for(int i=0; i<total_recv; i++) {
     int idx = r_idx[i];
     if (idx < nall) newIDs[idx][0] = ubuf(r_tags[i]).d;
-    else newIDs[i][0] = ubuf((tagint)0).d;
+    if (idx < nall && r_tags[i]<1) utils::logmesg(lmp, "*** i {} total_recv {} idx {} r_tags[i] {}\n", i, total_recv, idx, r_tags[i]);
+
   }
 
-  if( nprocs>1 && comm->get_comm_cutoff() > 0.0 ) comm->forward_comm_array(1, newIDs);
+  //if( nprocs>1 && comm->get_comm_cutoff() > 0.0 )
+  comm->forward_comm_array(1, newIDs);
 
   // ---------------------------------------------------------
   // 4. UPDATE TOPOLOGY (Standard)
@@ -1190,13 +1197,15 @@ void DeleteAtoms::condense_tags() {
   if (atom->molecular != Atom::ATOMIC) {
     // --- BONDS ---
     if (atom->avec->bonds_allow) {
-      for (int i = 0; i < nlocal; i++) {
+      for (int i = 0; i < nall; i++) {
         int m = 0;
         for (int j = 0; j < atom->num_bond[i]; j++) {
           tagint oldID = atom->bond_atom[i][j];
           int k = atom->map(oldID);
-          if (k >= 0) {
-            atom->bond_atom[i][m] = (tagint) ubuf(newIDs[k][0]).i;
+          tagint newID = (tagint) ubuf(newIDs[k][0]).i;
+          if( oldID != newID ) utils::logmesg(lmp, "*** rank {} oldID {} k {} newID {} newID-oldId {}\n", comm->me, oldID, k, newID, newID-oldID);
+          if (k >= 0 && newID>0) {
+            atom->bond_atom[i][m] = newID;
             atom->bond_type[i][m] = atom->bond_type[i][j];
             m++;
           }
@@ -1207,7 +1216,7 @@ void DeleteAtoms::condense_tags() {
 
     // --- ANGLES ---
     if (atom->avec->angles_allow) {
-      for (int i = 0; i < nlocal; i++) {
+      for (int i = 0; i < nall; i++) {
         int m = 0;
         for (int j = 0; j < atom->num_angle[i]; j++) {
           int k1 = atom->map(atom->angle_atom1[i][j]);
@@ -1227,7 +1236,7 @@ void DeleteAtoms::condense_tags() {
 
     // --- DIHEDRALS ---
     if (atom->avec->dihedrals_allow) {
-      for (int i = 0; i < nlocal; i++) {
+      for (int i = 0; i < nall; i++) {
         int m = 0;
         for (int j = 0; j < atom->num_dihedral[i]; j++) {
           int k1 = atom->map(atom->dihedral_atom1[i][j]);
@@ -1249,7 +1258,7 @@ void DeleteAtoms::condense_tags() {
 
     // --- IMPROPERS ---
     if (atom->avec->impropers_allow) {
-      for (int i = 0; i < nlocal; i++) {
+      for (int i = 0; i < nall; i++) {
         int m = 0;
         for (int j = 0; j < atom->num_improper[i]; j++) {
           int k1 = atom->map(atom->improper_atom1[i][j]);
@@ -1269,17 +1278,13 @@ void DeleteAtoms::condense_tags() {
       }
     }
 
+    // NOW rebuild the map
+    atom->map_tag_max = -1;
+    atom->map_init();
+    atom->map_set();
+  
     // --- SPECIAL LISTS ---
-    if (atom->special) {
-      for (int i = 0; i < nlocal; i++) {
-        int n_total = atom->nspecial[i][0] + atom->nspecial[i][1] + atom->nspecial[i][2];
-        for (int j = 0; j < n_total; j++) {
-          int k = atom->map(atom->special[i][j]);
-          if (k >= 0) atom->special[i][j] = (tagint) ubuf(newIDs[k][0]).i;
-          else atom->special[i][j] = 0;
-        }
-      }
-    }
+    if (atom->special) Special(lmp).build();
 
     // --- FIXES ---
     for (auto *ifix : modify->get_fix_list())

@@ -33,6 +33,7 @@
 #include "neighbor.h"
 #include "random_mars.h"
 #include "region.h"
+#include "special.h"
 #include "variable.h"
 
 #include <algorithm>
@@ -930,226 +931,174 @@ void DeleteAtoms::options(int narg, char **arg)
    Algorithm: Parallel Sample Sort (Scalable O(N/P))
    Preserves global ID ordering: OldID_A < OldID_B ==> NewID_A < NewID_B
 ------------------------------------------------------------------------- */
-void DeleteAtoms::condense_tags() {
 
+void DeleteAtoms::condense_tags()
+{
   if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR, "Using 'condense yes' option requires an atom map");
 
   // ---------------------------------------------------------
-  // 1. REFRESH COMM LISTS (Prevents Segfault/BusError)
+  // 1. REFRESH COMM
   // ---------------------------------------------------------
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
-
-  // Force re-binning and list rebuild
-  if (neighbor->style) neighbor->setup_bins();
   comm->setup();
-
+  comm->exchange();
+  comm->borders();
   if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
 
-  atom->map_init();
-  atom->map_set();
-
+  // ---------------------------------------------------------
+  // 2. PARALLEL SAMPLE SORT
+  // ---------------------------------------------------------
   int nlocal = atom->nlocal;
   int nprocs, me;
   MPI_Comm_size(world, &nprocs);
   MPI_Comm_rank(world, &me);
 
-  // ---------------------------------------------------------
-  // 2. PARALLEL SAMPLE SORT
-  // ---------------------------------------------------------
-
+  // Struct to track atoms through the shuffle
   struct SortItem {
     tagint tag;
-    int origin_index;
     int origin_rank;
+    int origin_index;
+    tagint new_id;
   };
 
-  // A. Local Sort & Sampling
-  std::vector<SortItem> my_items(nlocal);
-  for(int i=0; i<nlocal; i++) my_items[i] = {atom->tag[i], i, me};
+  // Create MPI Datatype for SortItem
+  MPI_Datatype sort_item_type;
+  MPI_Type_contiguous((int)sizeof(SortItem), MPI_BYTE, &sort_item_type);
+  MPI_Type_commit(&sort_item_type);
 
-  // Sort local atoms by Tag
-  std::sort(my_items.begin(), my_items.end(),
+  // -- Step A: Local Sort & Sampling --
+  std::vector<SortItem> my_items(nlocal);
+  for (int i = 0; i < nlocal; i++) my_items[i] = {atom->tag[i], me, i, 0};
+  
+  std::sort(my_items.begin(), my_items.end(), 
             [](const SortItem &a, const SortItem &b) { return a.tag < b.tag; });
 
-  // Select P samples per proc
-  int num_samples = nprocs;
-  std::vector<tagint> local_samples(num_samples, MAXTAGINT);
-  if (nlocal > 0) {
-    for(int i=0; i<num_samples; i++) {
-      int idx = (i * nlocal) / num_samples;
-      local_samples[i] = my_items[idx].tag;
-    }
+  // Select P-1 splitters
+  std::vector<tagint> local_samples(nprocs);
+  for (int i = 0; i < nprocs; i++) {
+    if (nlocal > 0) local_samples[i] = my_items[(i * nlocal) / nprocs].tag;
+    else local_samples[i] = 0;
   }
 
-  // B. Gather Samples & Pick Splitters (Root only)
-  std::vector<tagint> all_samples(nprocs * num_samples);
-  MPI_Gather(local_samples.data(), num_samples, MPI_LMP_TAGINT,
-             all_samples.data(), num_samples, MPI_LMP_TAGINT,
-             0, world);
+  std::vector<tagint> all_samples;
+  if (me == 0) all_samples.resize(nprocs * nprocs);
+  MPI_Gather(local_samples.data(), nprocs * sizeof(tagint), MPI_BYTE,
+             all_samples.data(), nprocs * sizeof(tagint), MPI_BYTE, 0, world);
 
-  std::vector<tagint> splitters(nprocs + 1);
+  std::vector<tagint> splitters(nprocs - 1);
   if (me == 0) {
     std::sort(all_samples.begin(), all_samples.end());
-    // Pick splitters that evenly divide the sorted samples
-    for(int i=1; i<nprocs; i++) splitters[i] = all_samples[(i * all_samples.size()) / nprocs];
-    splitters[0] = 0;
-    splitters[nprocs] = MAXTAGINT;
+    for (int i = 0; i < nprocs - 1; i++) splitters[i] = all_samples[(i + 1) * nprocs];
   }
-  MPI_Bcast(splitters.data(), nprocs + 1, MPI_LMP_TAGINT, 0, world);
+  MPI_Bcast(splitters.data(), (nprocs - 1) * sizeof(tagint), MPI_BYTE, 0, world);
 
-  // C. Bucketing (Assign atoms to target Procs)
-  std::vector<int> send_counts(nprocs, 0);
-  std::vector<std::vector<SortItem>> buckets(nprocs);
-
-  int current_bucket = 0;
-  for(const auto &item : my_items) {
-    // Find which processor owns this tag range
-    while (current_bucket < nprocs - 1 && item.tag >= splitters[current_bucket+1]) current_bucket++;
-    buckets[current_bucket].push_back(item);
-    send_counts[current_bucket]++;
+  // -- Step B: Bucketing (Shuffle Out) --
+  std::vector<std::vector<SortItem>> send_buffers(nprocs);
+  for (const auto &item : my_items) {
+    auto it = std::upper_bound(splitters.begin(), splitters.end(), item.tag);
+    int bucket = std::distance(splitters.begin(), it);
+    send_buffers[bucket].push_back(item);
   }
 
-  // D. Exchange Data (Alltoallv)
-  std::vector<int> send_displs(nprocs, 0);
-  std::vector<SortItem> send_buffer;
-  send_buffer.reserve(nlocal);
-  int offset = 0;
-  for(int i=0; i<nprocs; i++) {
-    send_displs[i] = offset;
-    offset += send_counts[i];
-    send_buffer.insert(send_buffer.end(), buckets[i].begin(), buckets[i].end());
+  std::vector<int> send_counts(nprocs), recv_counts(nprocs);
+  std::vector<int> sdispls(nprocs), rdispls(nprocs);
+  std::vector<SortItem> sbuf;
+
+  for (int i = 0; i < nprocs; i++) {
+    send_counts[i] = send_buffers[i].size();
+    sdispls[i] = sbuf.size();
+    sbuf.insert(sbuf.end(), send_buffers[i].begin(), send_buffers[i].end());
   }
 
-  std::vector<int> recv_counts(nprocs);
   MPI_Alltoall(send_counts.data(), 1, MPI_INT, recv_counts.data(), 1, MPI_INT, world);
 
-  std::vector<int> recv_displs(nprocs, 0);
-  int total_recv = 0;
-  for(int i=0; i<nprocs; i++) {
-    recv_displs[i] = total_recv;
+  bigint total_recv = 0;
+  for (int i = 0; i < nprocs; i++) {
+    rdispls[i] = total_recv;
     total_recv += recv_counts[i];
   }
+  std::vector<SortItem> recv_items(total_recv);
 
-  // Pack into flat arrays for MPI (struct SortItem is 16-24 bytes)
-  // tagint=8 bytes, int=4, int=4.
-  std::vector<tagint> s_tags(send_buffer.size());
-  std::vector<int> s_idx(send_buffer.size()), s_rank(send_buffer.size());
-  for(size_t i=0; i<send_buffer.size(); i++) {
-    s_tags[i] = send_buffer[i].tag;
-    s_idx[i]  = send_buffer[i].origin_index;
-    s_rank[i] = send_buffer[i].origin_rank;
-  }
+  MPI_Alltoallv(sbuf.data(), send_counts.data(), sdispls.data(), sort_item_type,
+                recv_items.data(), recv_counts.data(), rdispls.data(), sort_item_type, world);
 
-  std::vector<tagint> r_tags(total_recv);
-  std::vector<int> r_idx(total_recv), r_rank(total_recv);
-
-  MPI_Alltoallv(s_tags.data(), send_counts.data(), send_displs.data(), MPI_LMP_TAGINT,
-                r_tags.data(), recv_counts.data(), recv_displs.data(), MPI_LMP_TAGINT, world);
-  MPI_Alltoallv(s_idx.data(), send_counts.data(), send_displs.data(), MPI_INT,
-                r_idx.data(), recv_counts.data(), recv_displs.data(), MPI_INT, world);
-  MPI_Alltoallv(s_rank.data(), send_counts.data(), send_displs.data(), MPI_INT,
-                r_rank.data(), recv_counts.data(), recv_displs.data(), MPI_INT, world);
-
-  // E. Sort Received Data & Assign Global IDs
-  std::vector<SortItem> sorted_items(total_recv);
-  for(int i=0; i<total_recv; i++) sorted_items[i] = {r_tags[i], r_idx[i], r_rank[i]};
-
-  // Final Sort: Now Proc 0 has smallest tags, Proc N has largest
-  std::sort(sorted_items.begin(), sorted_items.end(),
+  // -- Step C: Local Merge & Global Scan --
+  std::sort(recv_items.begin(), recv_items.end(), 
             [](const SortItem &a, const SortItem &b) { return a.tag < b.tag; });
 
-  // Determine Global Start ID for this processor
-  long local_size = total_recv;
-  long scan_offset = 0;
-  MPI_Scan(&local_size, &scan_offset, 1, MPI_LONG, MPI_SUM, world);
-  tagint start_id = (tagint)(scan_offset - local_size) + 1;
+  bigint my_chunk_size = total_recv;
+  bigint global_start = 0;
+  MPI_Exscan(&my_chunk_size, &global_start, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+  if (me == 0) global_start = 0;
 
-  // F. Return New IDs to Owners
-  // Reuse buckets to send data back
-  for(int i=0; i<nprocs; i++) { send_counts[i]=0; buckets[i].clear(); }
+  for (int i = 0; i < total_recv; i++) recv_items[i].new_id = (tagint)(global_start + i + 1);
 
-  for(int i=0; i<total_recv; i++) {
-    tagint new_id = start_id + i;
-    int target = sorted_items[i].origin_rank;
-    // Payload: {NewID, LocalIndexOnOrigin, 0}
-    buckets[target].push_back({new_id, sorted_items[i].origin_index, 0});
-    send_counts[target]++;
+  // -- Step D: Return New IDs (Shuffle Back) --
+  for(auto &vec : send_buffers) vec.clear();
+  for (const auto &item : recv_items) send_buffers[item.origin_rank].push_back(item);
+
+  sbuf.clear();
+  for (int i = 0; i < nprocs; i++) {
+    send_counts[i] = send_buffers[i].size();
+    sdispls[i] = sbuf.size();
+    sbuf.insert(sbuf.end(), send_buffers[i].begin(), send_buffers[i].end());
   }
 
-  // Re-pack
-  send_buffer.clear();
-  offset = 0;
-  for(int i=0; i<nprocs; i++) {
-    send_displs[i] = offset;
-    offset += send_counts[i];
-    send_buffer.insert(send_buffer.end(), buckets[i].begin(), buckets[i].end());
-  }
-
-  // Exchange counts (Return Trip)
   MPI_Alltoall(send_counts.data(), 1, MPI_INT, recv_counts.data(), 1, MPI_INT, world);
+
   total_recv = 0;
-  for(int i=0; i<nprocs; i++) { recv_displs[i] = total_recv; total_recv += recv_counts[i]; }
-
-  // Pack
-  s_tags.resize(send_buffer.size());
-  s_idx.resize(send_buffer.size());
-  for(size_t i=0; i<send_buffer.size(); i++) {
-    s_tags[i] = send_buffer[i].tag;  // This is the NEW ID
-    s_idx[i]  = send_buffer[i].origin_index;
+  for (int i = 0; i < nprocs; i++) {
+    rdispls[i] = total_recv;
+    total_recv += recv_counts[i];
   }
-  r_tags.resize(total_recv);
-  r_idx.resize(total_recv);
+  recv_items.resize(total_recv); 
 
-  // Exchange Data (Return Trip)
-  MPI_Alltoallv(s_tags.data(), send_counts.data(), send_displs.data(), MPI_LMP_TAGINT,
-                r_tags.data(), recv_counts.data(), recv_displs.data(), MPI_LMP_TAGINT, world);
-  MPI_Alltoallv(s_idx.data(), send_counts.data(), send_displs.data(), MPI_INT,
-                r_idx.data(), recv_counts.data(), recv_displs.data(), MPI_INT, world);
+  MPI_Alltoallv(sbuf.data(), send_counts.data(), sdispls.data(), sort_item_type,
+                recv_items.data(), recv_counts.data(), rdispls.data(), sort_item_type, world);
+
+  // Free the custom type
+  MPI_Type_free(&sort_item_type);
 
   // ---------------------------------------------------------
-  // 3. APPLY NEW IDS
+  // 3. STORE NEW IDS
   // ---------------------------------------------------------
-  // Create newIDs buffer (Size nmax for safety)
   double **newIDs;
-  const auto nall = atom->nlocal + atom->nghost;
-  const auto nmax = atom->nmax;
-  memory->create(newIDs, nmax, 1, "delete_atoms:newIDs");
+  memory->create(newIDs, atom->nmax, 1, "delete_atoms:newIDs");
+  for (int i = 0; i < atom->nmax; i++) newIDs[i][0] = -1.0;
 
-  // Fill buffer from received data
-  // Now we are back on the original processor, so r_idx is the local index
-  for(int i=0; i<total_recv; i++) {
-    int idx = r_idx[i];
-    if (idx < nall) newIDs[idx][0] = ubuf(r_tags[i]).d;
-    else newIDs[i][0] = ubuf((tagint)0).d;
-  }
+  for (const auto &item : recv_items)
+    if (item.origin_index < atom->nmax) newIDs[item.origin_index][0] = (double) item.new_id;
+    
 
-  if( nprocs>1 && comm->get_comm_cutoff() > 0.0 ) comm->forward_comm_array(1, newIDs);
+  // FORCE Communication to Ghosts
+  if (nprocs > 1) comm->forward_comm_array(1, newIDs);
 
   // ---------------------------------------------------------
-  // 4. UPDATE TOPOLOGY (Standard)
+  // 4. UPDATE TOPOLOGY
   // ---------------------------------------------------------
-
   if (atom->molecular != Atom::ATOMIC) {
     // --- BONDS ---
     if (atom->avec->bonds_allow) {
       for (int i = 0; i < nlocal; i++) {
         int m = 0;
         for (int j = 0; j < atom->num_bond[i]; j++) {
-          tagint oldID = atom->bond_atom[i][j];
-          int k = atom->map(oldID);
+          int k = atom->map(atom->bond_atom[i][j]);
           if (k >= 0) {
-            atom->bond_atom[i][m] = (tagint) ubuf(newIDs[k][0]).i;
-            atom->bond_type[i][m] = atom->bond_type[i][j];
-            m++;
+             tagint newID = (tagint) newIDs[k][0];
+             if (newID > 0) {
+               atom->bond_atom[i][m] = newID;
+               atom->bond_type[i][m] = atom->bond_type[i][j];
+               m++;
+             }
           }
         }
         atom->num_bond[i] = m;
       }
     }
-
+    
     // --- ANGLES ---
     if (atom->avec->angles_allow) {
       for (int i = 0; i < nlocal; i++) {
@@ -1159,11 +1108,16 @@ void DeleteAtoms::condense_tags() {
           int k2 = atom->map(atom->angle_atom2[i][j]);
           int k3 = atom->map(atom->angle_atom3[i][j]);
           if (k1 >= 0 && k2 >= 0 && k3 >= 0) {
-            atom->angle_atom1[i][m] = (tagint) ubuf(newIDs[k1][0]).i;
-            atom->angle_atom2[i][m] = (tagint) ubuf(newIDs[k2][0]).i;
-            atom->angle_atom3[i][m] = (tagint) ubuf(newIDs[k3][0]).i;
-            atom->angle_type[i][m] = atom->angle_type[i][j];
-            m++;
+             tagint t1 = (tagint) newIDs[k1][0];
+             tagint t2 = (tagint) newIDs[k2][0];
+             tagint t3 = (tagint) newIDs[k3][0];
+             if (t1 > 0 && t2 > 0 && t3 > 0) {
+                atom->angle_atom1[i][m] = t1;
+                atom->angle_atom2[i][m] = t2;
+                atom->angle_atom3[i][m] = t3;
+                atom->angle_type[i][m] = atom->angle_type[i][j];
+                m++;
+             }
           }
         }
         atom->num_angle[i] = m;
@@ -1175,18 +1129,24 @@ void DeleteAtoms::condense_tags() {
       for (int i = 0; i < nlocal; i++) {
         int m = 0;
         for (int j = 0; j < atom->num_dihedral[i]; j++) {
-          int k1 = atom->map(atom->dihedral_atom1[i][j]);
-          int k2 = atom->map(atom->dihedral_atom2[i][j]);
-          int k3 = atom->map(atom->dihedral_atom3[i][j]);
-          int k4 = atom->map(atom->dihedral_atom4[i][j]);
-          if (k1 >= 0 && k2 >= 0 && k3 >= 0 && k4 >= 0) {
-            atom->dihedral_atom1[i][m] = (tagint) ubuf(newIDs[k1][0]).i;
-            atom->dihedral_atom2[i][m] = (tagint) ubuf(newIDs[k2][0]).i;
-            atom->dihedral_atom3[i][m] = (tagint) ubuf(newIDs[k3][0]).i;
-            atom->dihedral_atom4[i][m] = (tagint) ubuf(newIDs[k4][0]).i;
-            atom->dihedral_type[i][m] = atom->dihedral_type[i][j];
-            m++;
-          }
+           int k1 = atom->map(atom->dihedral_atom1[i][j]);
+           int k2 = atom->map(atom->dihedral_atom2[i][j]);
+           int k3 = atom->map(atom->dihedral_atom3[i][j]);
+           int k4 = atom->map(atom->dihedral_atom4[i][j]);
+           if (k1 >= 0 && k2 >= 0 && k3 >= 0 && k4 >= 0) {
+              tagint t1 = (tagint) newIDs[k1][0];
+              tagint t2 = (tagint) newIDs[k2][0];
+              tagint t3 = (tagint) newIDs[k3][0];
+              tagint t4 = (tagint) newIDs[k4][0];
+              if (t1 > 0 && t2 > 0 && t3 > 0 && t4 > 0) {
+                 atom->dihedral_atom1[i][m] = t1;
+                 atom->dihedral_atom2[i][m] = t2;
+                 atom->dihedral_atom3[i][m] = t3;
+                 atom->dihedral_atom4[i][m] = t4;
+                 atom->dihedral_type[i][m] = atom->dihedral_type[i][j];
+                 m++;
+              }
+           }
         }
         atom->num_dihedral[i] = m;
       }
@@ -1197,46 +1157,47 @@ void DeleteAtoms::condense_tags() {
       for (int i = 0; i < nlocal; i++) {
         int m = 0;
         for (int j = 0; j < atom->num_improper[i]; j++) {
-          int k1 = atom->map(atom->improper_atom1[i][j]);
-          int k2 = atom->map(atom->improper_atom2[i][j]);
-          int k3 = atom->map(atom->improper_atom3[i][j]);
-          int k4 = atom->map(atom->improper_atom4[i][j]);
-          if (k1 >= 0 && k2 >= 0 && k3 >= 0 && k4 >= 0) {
-            atom->improper_atom1[i][m] = (tagint) ubuf(newIDs[k1][0]).i;
-            atom->improper_atom2[i][m] = (tagint) ubuf(newIDs[k2][0]).i;
-            atom->improper_atom3[i][m] = (tagint) ubuf(newIDs[k3][0]).i;
-            atom->improper_atom4[i][m] = (tagint) ubuf(newIDs[k4][0]).i;
-            atom->improper_type[i][m] = atom->improper_type[i][j];
-            m++;
-          }
+           int k1 = atom->map(atom->improper_atom1[i][j]);
+           int k2 = atom->map(atom->improper_atom2[i][j]);
+           int k3 = atom->map(atom->improper_atom3[i][j]);
+           int k4 = atom->map(atom->improper_atom4[i][j]);
+           if (k1 >= 0 && k2 >= 0 && k3 >= 0 && k4 >= 0) {
+              tagint t1 = (tagint) newIDs[k1][0];
+              tagint t2 = (tagint) newIDs[k2][0];
+              tagint t3 = (tagint) newIDs[k3][0];
+              tagint t4 = (tagint) newIDs[k4][0];
+              if (t1 > 0 && t2 > 0 && t3 > 0 && t4 > 0) {
+                 atom->improper_atom1[i][m] = t1;
+                 atom->improper_atom2[i][m] = t2;
+                 atom->improper_atom3[i][m] = t3;
+                 atom->improper_atom4[i][m] = t4;
+                 atom->improper_type[i][m] = atom->improper_type[i][j];
+                 m++;
+              }
+           }
         }
         atom->num_improper[i] = m;
       }
     }
 
-    // --- SPECIAL LISTS ---
-    if (atom->special) {
-      for (int i = 0; i < nlocal; i++) {
-        int n_total = atom->nspecial[i][0] + atom->nspecial[i][1] + atom->nspecial[i][2];
-        for (int j = 0; j < n_total; j++) {
-          int k = atom->map(atom->special[i][j]);
-          if (k >= 0) atom->special[i][j] = (tagint) ubuf(newIDs[k][0]).i;
-          else atom->special[i][j] = 0;
-        }
-      }
-    }
-
-    // --- FIXES ---
     for (auto *ifix : modify->get_fix_list())
       if (ifix->stores_ids) ifix->update_ids(newIDs);
-
   }
 
-  // Assign My New Tags
-  for (int i = 0; i < nlocal; i++) atom->tag[i] = (tagint) ubuf(newIDs[i][0]).i;
+  // ---------------------------------------------------------
+  // 5. UPDATE TAGS & REBUILD MAP
+  // ---------------------------------------------------------
+  int nall = nlocal + atom->nghost;
+  for (int i = 0; i < nall; i++) {
+      tagint val = (tagint) newIDs[i][0];
+      if (val > 0) atom->tag[i] = val;
+  }
 
   memory->destroy(newIDs);
+
   atom->map_tag_max = -1;
   atom->map_init();
   atom->map_set();
+  
+  if (atom->molecular != Atom::ATOMIC && atom->special) Special(lmp).build();
 }

@@ -24,9 +24,6 @@
 #include <signal.h>
 #include <fmt/ranges.h>
 
-// disambiguate the Fenix object from the Fenix namespace
-namespace fenix = ::Fenix;
-
 namespace LAMMPS_NS {
 
 Fenix* Fenix::active_controller = nullptr;
@@ -64,7 +61,7 @@ void Fenix::command(int narg, char** arg) {
 
   MPI_Comm full_world = world;
 
-  fenix::Args::FenixInitArgs fenix_args;
+  fenix::args::FenixInitArgs fenix_args;
   fenix_args.in_comm = full_world;
   fenix_args.out_comm = &resilient_world;
   fenix_args.spares = spare_ranks;

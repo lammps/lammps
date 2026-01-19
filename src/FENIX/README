@@ -7,7 +7,7 @@ The package provides the following features:
 
 The different options for the commands and fix are explained in the documentation.
 
-This package currently requires building against the feature/cpp branch of Fenix (github.com/sandialabs/fenix).
+This package currently requires building against the (default) develop branch of Fenix (github.com/sandialabs/fenix).
 
 Once built, you can test this package using one of the input files from the examples/PACKAGES/fenix dir. Input files must be passed with the "-in" flag, they cannot be sent through shell standard input.
 

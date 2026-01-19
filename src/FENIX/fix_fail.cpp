@@ -113,7 +113,7 @@ FixFail::FixFail(LAMMPS* lmp, int narg, char** arg) :
 ------------------------------------------------------------------------- */
 
 void FixFail::check_fail(){
-  if(skip_double_failure && Fenix::role() == FENIX_ROLE_RECOVERED_RANK) return;
+  if(skip_double_failure && fenix::role() == FENIX_ROLE_RECOVERED_RANK) return;
   if(fail_rank != -1 && comm->me != fail_rank) return;
   if(fail_timestep != -1 && update->ntimestep != fail_timestep) return;
   if(!fail_var.empty()){

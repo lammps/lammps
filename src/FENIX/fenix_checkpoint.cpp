@@ -22,8 +22,8 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace Fenix;
-using namespace Fenix::Data;
+using namespace fenix;
+using namespace fenix::data;
 
 namespace LAMMPS_NS {
 

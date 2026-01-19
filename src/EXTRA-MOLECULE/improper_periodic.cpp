@@ -17,6 +17,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "neighbor.h"
 
@@ -24,6 +25,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 static constexpr double TOLERANCE = 0.05;
 static constexpr double SMALL = 0.001;

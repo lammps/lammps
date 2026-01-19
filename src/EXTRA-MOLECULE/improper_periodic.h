@@ -13,7 +13,7 @@
 
 #ifdef IMPROPER_CLASS
 // clang-format off
-ImproperStyle(cvff,ImproperPeriodic);
+ImproperStyle(periodic,ImproperPeriodic);
 // clang-format on
 #else
 

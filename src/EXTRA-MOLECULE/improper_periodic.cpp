@@ -136,13 +136,15 @@ void ImproperPeriodic::compute(int eflag, int vflag)
 
     // cos and sin of 2 angles and final c
 
-    sc1 = sqrt(1.0 - c1mag * c1mag);
+    sin2 = MAX(1.0 - c1mag*c1mag,0.0);
+    sc1 = sqrt(sin2);
     if (sc1 < SMALL) sc1 = SMALL;
-    sc1 = 1.0 / sc1;
+    sc1 = 1.0/sc1;
 
-    sc2 = sqrt(1.0 - c2mag * c2mag);
+    sin2 = MAX(1.0 - c2mag*c2mag,0.0);
+    sc2 = sqrt(sin2);
     if (sc2 < SMALL) sc2 = SMALL;
-    sc2 = 1.0 / sc2;
+    sc2 = 1.0/sc2;
 
     s1 = sc1 * sc1;
     s2 = sc2 * sc2;
@@ -151,7 +153,8 @@ void ImproperPeriodic::compute(int eflag, int vflag)
 
     // error check
 
-    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) problem(FLERR, i1, i2, i3, i4);
+    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
+      problem(FLERR, i1, i2, i3, i4);
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
@@ -163,17 +166,19 @@ void ImproperPeriodic::compute(int eflag, int vflag)
 
     m = multiplicity[type];
 
-    double phi = acos(c);
-    double dphi = multiplicity[type] * phi - delta[type];
+    // periodic dihedral: E = k * (1 + cos(n*phi - delta))
+    double sinphi = sqrt(1.0 - c*c);
+    if (sinphi < SMALL) sinphi = SMALL;
 
-    double eimproper = k[type] * (1.0 + cos(dphi));
-    double dEdphi = -k[type] * multiplicity[type] * sin(dphi);
+    double cosnphi = cos(m * acos(c) - delta[type]);
+    double sinnphi = sin(m * acos(c) - delta[type]);
 
+    double eimproper = k[type] * (1.0 + cosnphi);
 
-    // if (eflag) eimproper = k[type] * p;
+    // dE/dc
+    double pd = k[type] * m * sinnphi / sinphi;
 
-    // a = 2.0 * k[type] * pd;
-    a = dEdphi;
+    a = pd;
     c = c * a;
     s12 = s12 * a;
     a11 = c * sb1 * s1;

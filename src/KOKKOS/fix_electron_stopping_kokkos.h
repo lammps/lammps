@@ -59,7 +59,7 @@ class FixElectronStoppingKokkos : public FixElectronStopping {
   typename AT::t_f_array f;
   typename AT::t_v_array_const v;
   typename AT::t_int_1d_randomread type;
-  typename AT::t_tagint_1d tag;
+  typename AT::t_tagint_1d_const tag;
   typename AT::t_int_1d_const d_mask;
   typename AT::t_float_1d_randomread d_mass;
   typename AT::t_float_1d_const d_rmass;

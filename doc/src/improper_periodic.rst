@@ -29,7 +29,7 @@ The *periodic* improper style uses the potential
 
 where :math:`\phi` is the improper dihedral angle.
 
-This improper style is the LAMMPS equivalent to the GROMACS dihedral 
+This improper style is the LAMMPS equivalent to the GROMACS dihedral
 type 4, the `periodic improper dihedral <https://manual.gromacs.org/documentation/current/reference-manual/functions/bonded-interactions.html#improper-dihedrals-periodic-type>`_.
 It enables the correct bookkeeping of topological information and energy
 contributions on impropers when moving forth and back between the GROMACS
@@ -39,8 +39,8 @@ If the 4 atoms in an improper quadruplet (listed in the data file read
 by the :doc:`read_data <read_data>` command) are ordered I,J,K,L then
 the improper dihedral angle is between the plane of I,J,K and the
 plane of J,K,L.  Note that because this is effectively a dihedral
-angle, the formula for this improper style is similar to 
-:doc:`dihedral_style harmonic <dihedral_harmonic>`, augmented by phase 
+angle, the formula for this improper style is similar to
+:doc:`dihedral_style harmonic <dihedral_harmonic>`, augmented by phase
 shift :math:`\phi_s`.
 
 Note that defining 4 atoms to interact in this way, does not mean that

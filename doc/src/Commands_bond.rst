@@ -168,6 +168,7 @@ OPT.
    * :doc:`fourier (o) <improper_fourier>`
    * :doc:`harmonic (iko) <improper_harmonic>`
    * :doc:`inversion/harmonic <improper_inversion_harmonic>`
+   * :doc:`periodic <improper_periodic>`
    * :doc:`ring (o) <improper_ring>`
    * :doc:`sqdistharm <improper_sqdistharm>`
    * :doc:`umbrella (o) <improper_umbrella>`

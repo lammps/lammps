@@ -85,6 +85,7 @@ more of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`fourier <improper_fourier>` - improper with multiple cosine terms
 * :doc:`harmonic <improper_harmonic>` - harmonic improper
 * :doc:`inversion/harmonic <improper_inversion_harmonic>` - harmonic improper with Wilson-Decius out-of-plane definition
+* :doc:`periodic <improper_periodic>` - GROMACS type 4 dihedral (periodic improper dihedral)
 * :doc:`ring <improper_ring>` - improper which prevents planar conformations
 * :doc:`umbrella <improper_umbrella>` - DREIDING improper
 * :doc:`sqdistharm <improper_sqdistharm>` - improper that is harmonic in the square of the out-of-plane distance

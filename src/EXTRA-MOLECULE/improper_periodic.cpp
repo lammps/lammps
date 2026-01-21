@@ -66,6 +66,7 @@ void ImproperPeriodic::compute(int eflag, int vflag)
   double b2mag, b3mag2, b3mag, ctmp, r12c1, c1mag, r12c2;
   double c2mag, sc1, sc2, s1, s2, s12, c, p, pd, rc2, a, a11, a22;
   double a33, a12, a13, a23, sx2, sy2, sz2;
+  double sin2;
 
   eimproper = 0.0;
   ev_init(eflag, vflag);

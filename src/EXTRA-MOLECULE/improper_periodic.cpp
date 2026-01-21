@@ -66,7 +66,7 @@ void ImproperPeriodic::compute(int eflag, int vflag)
   double b2mag, b3mag2, b3mag, ctmp, r12c1, c1mag, r12c2;
   double c2mag, sc1, sc2, s1, s2, s12, c, p, pd, rc2, a, a11, a22;
   double a33, a12, a13, a23, sx2, sy2, sz2;
-  double sin2;
+  double sin2, sinphi, sinnphi, cosnphi;
 
   eimproper = 0.0;
   ev_init(eflag, vflag);
@@ -161,23 +161,20 @@ void ImproperPeriodic::compute(int eflag, int vflag)
     if (c < -1.0) c = -1.0;
 
     // force & energy
-    // p = 1 + cos(n*phi) for d = 1
-    // p = 1 - cos(n*phi) for d = -1
-    // pd = dp/dc / 2
 
     m = multiplicity[type];
 
     // periodic dihedral: E = k * (1 + cos(n*phi - delta))
-    double sinphi = sqrt(1.0 - c*c);
+    sinphi = sqrt(1.0 - c*c);
     if (sinphi < SMALL) sinphi = SMALL;
 
-    double cosnphi = cos(m * acos(c) - delta[type]);
-    double sinnphi = sin(m * acos(c) - delta[type]);
+    cosnphi = cos(m * acos(c) - delta[type]);
+    sinnphi = sin(m * acos(c) - delta[type]);
 
-    double eimproper = k[type] * (1.0 + cosnphi);
+    eimproper += k[type] * (1.0 + cosnphi);
 
     // dE/dc
-    double pd = k[type] * m * sinnphi / sinphi;
+    pd = k[type] * m * sinnphi / sinphi;
 
     a = pd;
     c = c * a;

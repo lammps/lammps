@@ -272,8 +272,6 @@ void ImproperPeriodic::coeff(int narg, char **arg)
   int multiplicity_one = utils::inumeric(FLERR, arg[2], false, lmp);
   double delta_one = utils::numeric(FLERR, arg[3], false, lmp);
   delta_one *= MY_PI / 180.0;  // degrees → radians
-
-
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;

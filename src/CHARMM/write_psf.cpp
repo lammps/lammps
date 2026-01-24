@@ -324,7 +324,7 @@ int WritePsf::pack_bond(tagint **buf)
   for (i = 0; i < nlocal; i++)
     for (j = 0; j < num_bond[i]; j++) {
       if (tag[i] < bond_atom[i][j]) {
-        if (bond_type[i][j] == 0 || !( mask[i] & groupbit) || !( mask[j] & groupbit) ) continue;
+        if (bond_type[i][j] == 0 || !( mask[i] & groupbit)  ) continue; //|| !( mask[j] & groupbit)
         if (buf) {
           buf[m][0] = MAX(bond_type[i][j], -bond_type[i][j]);
           buf[m][1] = tag[i];

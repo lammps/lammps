@@ -1185,6 +1185,8 @@
 /improper_harmonic.h
 /improper_inversion_harmonic.cpp
 /improper_inversion_harmonic.h
+/improper_periodic.cpp
+/improper_periodic.h
 /improper_ring.cpp
 /improper_ring.h
 /improper_umbrella.cpp

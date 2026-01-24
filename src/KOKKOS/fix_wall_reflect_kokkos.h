@@ -38,6 +38,7 @@ class FixWallReflectKokkos : public FixWallReflect {
   FixWallReflectKokkos(class LAMMPS *, int, char **);
   void post_integrate() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixWallReflectPostIntegrate, const int&) const;
 

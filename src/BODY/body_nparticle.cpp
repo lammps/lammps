@@ -16,8 +16,8 @@
 
 #include "atom.h"
 #include "atom_vec_body.h"
-#include "dump_image.h"
 #include "error.h"
+#include "graphics.h"
 #include "math_extra.h"
 #include "math_eigen.h"
 #include "memory.h"
@@ -355,7 +355,7 @@ int BodyNparticle::image(int ibonus, double flag1, double /*flag2*/,
   int n = bonus->ivalue[0];
 
   for (int i = 0; i < n; i++) {
-    imflag[i] = DumpImage::SPHERE;
+    imflag[i] = Graphics::SPHERE;
     MathExtra::quat_to_mat(bonus->quat,p);
     MathExtra::matvec(p,&bonus->dvalue[3*i],imdata[i]);
 

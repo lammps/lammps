@@ -129,7 +129,7 @@ derived class.  See ``src/fix.h`` for additional details.
 +---------------------------+--------------------------------------------------------------------------------------------+
 | thermo                    | compute quantities for thermodynamic output (optional)                                     |
 +---------------------------+--------------------------------------------------------------------------------------------+
-| image                     | pass lists of graphics objects and their parameters to :doc:`dump image fix <dump_image>`  |
+| image                     | pass lists of graphics objects to :doc:`dump image fix <dump_image>` (optional)            |
 +---------------------------+--------------------------------------------------------------------------------------------+
 
 Typically, only a small fraction of these methods are defined for a

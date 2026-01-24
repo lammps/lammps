@@ -60,8 +60,8 @@ class FixNeighHistory : public Fix {
   int size_restart(int) override;
   int maxsize_restart() override;
 
-  int get_dnum() const { return dnum; }
-  int get_maxpartner() const { return maxpartner; }
+  [[nodiscard]] int get_dnum() const { return dnum; }
+  [[nodiscard]] int get_maxpartner() const { return maxpartner; }
 
  protected:
   int newton_pair;        // same as force setting
@@ -97,7 +97,7 @@ class FixNeighHistory : public Fix {
   void allocate_pages();
 
   // Shift by HISTBITS and check the first bit
-  inline int histmask(int j) const { return j >> HISTBITS & 1; }
+  [[nodiscard]] int histmask(int j) const { return j >> HISTBITS & 1; }
 
   enum { DEFAULT, NPARTNER, PERPARTNER };
 };

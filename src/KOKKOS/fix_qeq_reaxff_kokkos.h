@@ -69,70 +69,91 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void setup_pre_force(int) override;
   void pre_force(int) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void num_neigh_item(int, bigint&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqZero, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqInitMatvec, const int&) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void compute_h_item(int, bigint &, const bool &) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void compute_h_team(const typename Kokkos::TeamPolicy<DeviceType>::member_type &team, int, int) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqSparseMatvec1, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqZeroQGhosts, const int&) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqSparseMatvec2_Half<NEIGHFLAG>, const typename Kokkos::TeamPolicy<DeviceType, TagQEqSparseMatvec2_Half<NEIGHFLAG>>::member_type &team) const;
 
   typedef typename Kokkos::TeamPolicy<DeviceType, TagQEqSparseMatvec2_Full>::member_type membertype_vec;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqSparseMatvec2_Full, const membertype_vec &team) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqNorm1, const int&, KK_double2&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqDot1, const int&, KK_double2&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqDot2, const int&, KK_double2&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqDot3, const int&, KK_double2&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqSum1, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqSum2, const int&, KK_double2&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqCalculateQ, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT calculate_H_k(const KK_FLOAT &r, const KK_FLOAT &shld) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqPackForwardComm, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqUnpackForwardComm, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqPackExchange, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqUnpackExchange, const int&) const;
 
@@ -147,8 +168,10 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
                               ExecutionSpace space) override;
 
   struct params_qeq{
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_qeq() {chi=0;eta=0;gamma=0;};
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_qeq(int /*i*/) {chi=0;eta=0;gamma=0;};
     KK_FLOAT chi, eta, gamma;
@@ -300,6 +323,7 @@ struct FixQEqReaxFFKokkosNumNeighFunctor {
   FixQEqReaxFFKokkosNumNeighFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int ii, bigint &totneigh) const {
     c.num_neigh_item(ii, totneigh);
@@ -323,18 +347,20 @@ struct FixQEqReaxFFKokkosComputeHFunctor {
     c.cleanup_copy();
   };
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int ii, bigint &m_fill, const bool &final) const {
     c.template compute_h_item<NEIGHFLAG>(ii,m_fill,final);
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(
       const typename Kokkos::TeamPolicy<DeviceType>::member_type &team) const {
     c.template compute_h_team<NEIGHFLAG>(team, atoms_per_team, vector_length);
   }
 
-  size_t team_shmem_size(int /*team_size*/) const {
+  [[nodiscard]] size_t team_shmem_size(int /*team_size*/) const {
     size_t shmem_size =
         Kokkos::View<int *, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(
             atoms_per_team) + // s_ilist
@@ -359,6 +385,7 @@ namespace Kokkos {
   // reduction identity must be defined in Kokkos namespace
   template<>
   struct reduction_identity<KK_double2> {
+// NOLINTNEXTLINE
     KOKKOS_FORCEINLINE_FUNCTION static KK_double2 sum() {
       return KK_double2();
     }

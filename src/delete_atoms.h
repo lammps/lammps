@@ -47,7 +47,7 @@ class DeleteAtoms : public Command {
   void condense_tags();
   void options(int, char **);
 
-  inline int sbmask(int j) const { return j >> SBBITS & 3; }
+  [[nodiscard]] int sbmask(int j) const { return j >> SBBITS & 3; }
 
   // callback functions for ring communication
 

@@ -386,6 +386,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
 ------------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
   int start_ii, int count, int id
@@ -688,6 +689,7 @@ fprintf(stdout, "\n%6d %6d,%6d %6d: "
 
 template<class DeviceType>
 template<bool STACKPARAMS>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShardlowKokkos<DeviceType>::operator()(TagFixShardlowSSAUpdateDPDE<STACKPARAMS>, const int &workItem) const {
   const int ct = ssa_itemLen(workPhase, workItem);
@@ -697,6 +699,7 @@ void FixShardlowKokkos<DeviceType>::operator()(TagFixShardlowSSAUpdateDPDE<STACK
 
 template<class DeviceType>
 template<bool STACKPARAMS>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShardlowKokkos<DeviceType>::operator()(TagFixShardlowSSAUpdateDPDEGhost<STACKPARAMS>, const int &workItem) const {
   const int ct = ssa_gitemLen(workPhase, workItem);

@@ -105,6 +105,7 @@ void NPairSkipKokkos<DeviceType,TRIM>::build(NeighList *list)
 }
 
 template<class DeviceType, int TRIM>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NPairSkipKokkos<DeviceType,TRIM>::operator()(TagNPairSkipCompute, const int &ii, int &inum, const bool &final) const {
 
@@ -160,6 +161,7 @@ void NPairSkipKokkos<DeviceType,TRIM>::operator()(TagNPairSkipCompute, const int
 }
 
 template<class DeviceType, int TRIM>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NPairSkipKokkos<DeviceType,TRIM>::operator()(TagNPairSkipCountLocal, const int &i, int &num) const {
   if (d_ilist[i] < nlocal) num++;

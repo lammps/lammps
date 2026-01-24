@@ -60,6 +60,7 @@ class FixWall : public Fix {
   int eflag;      // per-wall flag for energy summation
   int ilevel_respa;
   int fldflag;
+
   int *imgobjs;
   double **imgparms;
 };

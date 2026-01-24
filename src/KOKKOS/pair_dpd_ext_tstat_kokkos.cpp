@@ -221,6 +221,7 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
 
 template<class DeviceType>
 template<int NEIGHFLAG, int VFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairDPDExtTstatKokkos<DeviceType>::operator() (TagDPDExtTstatKokkos<NEIGHFLAG,VFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -229,6 +230,7 @@ void PairDPDExtTstatKokkos<DeviceType>::operator() (TagDPDExtTstatKokkos<NEIGHFL
 
 template<class DeviceType>
 template<int NEIGHFLAG, int VFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairDPDExtTstatKokkos<DeviceType>::operator() (TagDPDExtTstatKokkos<NEIGHFLAG,VFLAG>, const int &ii, EV_FLOAT &ev) const {
 
@@ -340,6 +342,7 @@ void PairDPDExtTstatKokkos<DeviceType>::operator() (TagDPDExtTstatKokkos<NEIGHFL
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairDPDExtTstatKokkos<DeviceType>::v_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &fx, const KK_FLOAT &fy, const KK_FLOAT &fz,
@@ -402,6 +405,7 @@ void PairDPDExtTstatKokkos<DeviceType>::allocate()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int PairDPDExtTstatKokkos<DeviceType>::sbmask(const int& j) const {
   return j >> SBBITS & 3;

@@ -1899,7 +1899,7 @@ int DumpCustom::modify_param(int narg, char **arg)
   while (input && input->arg[argoff] && (strcmp(input->arg[argoff], arg[0]) != 0)) argoff++;
 
   if (strcmp(arg[0],"region") == 0) {
-    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify", error);
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify region", error);
     if (strcmp(arg[1],"none") == 0) {
       delete[] idregion;
       idregion = nullptr;

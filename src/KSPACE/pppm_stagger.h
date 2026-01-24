@@ -50,7 +50,7 @@ class PPPMStagger : public PPPM {
   void fieldforce_ad() override;
   void fieldforce_peratom() override;
 
-  inline double gf_denom2(const double &x, const double &y, const double &z) const
+  [[nodiscard]] double gf_denom2(const double &x, const double &y, const double &z) const
   {
     double sx, sy, sz;
     double x2 = x * x;

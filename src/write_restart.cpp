@@ -343,7 +343,8 @@ void WriteRestart::write(const std::string &file)
   // ping each proc in my cluster, receive its data, write data to file
   // else wait for ping from fileproc, send my data to fileproc
 
-  int tmp,recv_size;
+  int tmp = 0;
+  int recv_size;
 
   if (filewriter) {
     MPI_Status status;

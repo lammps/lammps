@@ -41,6 +41,7 @@ This is the list of packages that may require additional steps.
    * :ref:`COLVARS <colvar>`
    * :ref:`COMPRESS <compress>`
    * :ref:`ELECTRODE <electrode>`
+   * :ref:`GRAPHICS <graphics>`
    * :ref:`GPU <gpu>`
    * :ref:`H5MD <h5md>`
    * :ref:`INTEL <intel>`
@@ -107,6 +108,83 @@ versions use an incompatible API and thus LAMMPS will fail to compile.
 
       The COMPRESS package no longer supports the the traditional make build.
       You need to build LAMMPS with CMake.
+
+----------
+
+.. _graphics:
+
+GRAPHICS package
+----------------
+
+.. versionadded:: TBD
+
+   *dump image*\ , *dump_movie* and supporting classes were moved to form
+   the new GRAPHICS package together with several *fix graphics/...* styles.
+
+The :doc:`dump image <dump_image>` command has options to output JPEG or
+PNG image files in addition to the default PPM format, and the :doc:`fix
+graphics/labels <fix_graphics_labels>` can read images in JPEG or PNG
+format in addition to PPM format files.  Likewise, the :doc:`dump movie
+<dump_image>` command outputs movie files in a variety of movie formats.
+Using these additional options requires the following settings:
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D WITH_JPEG=value    # yes or no
+                               # default = yes if CMake finds JPEG development files, else no
+         -D WITH_PNG=value     # yes or no
+                               # default = yes if CMake finds PNG and ZLIB development files,
+                               # else no
+         -D WITH_FFMPEG=value  # yes or no
+                               # default = yes if CMake can find ffmpeg, else no
+
+      Usually these settings are all that is needed.  If CMake cannot
+      find the graphics header, library, executable files, you can set
+      these variables:
+
+      .. code-block:: bash
+
+         -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
+         -D JPEG_LIBRARY=path        # path to libjpeg.a (.so) file
+         -D PNG_INCLUDE_DIR=path     # path to png.h header file
+         -D PNG_LIBRARY=path         # path to libpng.a (.so) file
+         -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
+         -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
+         -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
+
+   .. tab:: Traditional make
+
+      .. code-block:: make
+
+         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG  <other LMP_INC settings>
+
+         JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h headers
+                                          # if make cannot find them
+         JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so)
+                                          # files if make cannot find them
+         JPG_LIB = -ljpeg -lpng -lz       # library names
+
+      As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
+      if make can find the graphics header and library files in their
+      default system locations.  You must specify ``JPG_LIB`` with a
+      list of graphics libraries to include in the link.  You must make
+      certain that the ffmpeg executable (or ffmpeg.exe on Windows) is
+      in a directory where LAMMPS can find it at runtime; that is
+      usually a directory list in your ``PATH`` environment variable.
+
+Using ``ffmpeg`` to output movie files requires that your machine
+supports the "popen" function in the standard runtime library.
+
+.. note::
+
+   On some clusters with high-speed networks, using the fork()
+   library call (required by popen()) can interfere with the fast
+   communication library and lead to simulations using ffmpeg to hang or
+   crash.
 
 ----------
 

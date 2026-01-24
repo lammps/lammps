@@ -156,6 +156,7 @@ public:
   norm_functor(typename FFT_AT::t_FFT_DATA_1d &d_out_, int norm_):
     d_out(d_out_),norm(norm_) {}
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i) const {
 #if defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_CUFFT) || defined(FFT_KOKKOS_HIPFFT) || defined(FFT_KOKKOS_MKL_GPU) || defined(FFT_KOKKOS_NVPL)
@@ -192,6 +193,7 @@ public:
       length = length_;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i) const {
     const int offset = i*length;

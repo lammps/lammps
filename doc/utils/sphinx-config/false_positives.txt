@@ -202,6 +202,7 @@ atype
 augt
 AuO
 automagically
+autoscale
 Auvergne
 Avalos
 avalue
@@ -313,6 +314,7 @@ bigint
 Bij
 bilayer
 bilayers
+bilinear
 binsize
 binstyle
 binutils
@@ -1282,6 +1284,7 @@ Fock
 Fogarty
 Foiles
 fontawesome
+fontcolor
 fopenmp
 forceclear
 forestgreen
@@ -1301,6 +1304,7 @@ fplo
 fprintf
 Fqq
 Fraige
+framecolor
 framerate
 Frauenheim
 Fraunhofer
@@ -1738,6 +1742,8 @@ isoenergetic
 isoenthalpic
 isokinetic
 isomorphism
+isosurface
+isosurfaces
 isothermal
 isotropically
 isovalue
@@ -2831,6 +2837,7 @@ obabo
 ochre
 ocl
 octahedral
+octahedron
 octants
 Odegard
 Og
@@ -3044,6 +3051,8 @@ Pisarev
 Pishevar
 Pitera
 pitorsion
+pixmap
+pixmaps
 pj
 pjintve
 pKa
@@ -3276,6 +3285,7 @@ RANN
 Rapetti
 Raphson
 Rappe
+rasterizer
 Ravelo
 rc
 Rc
@@ -3873,6 +3883,7 @@ textrm
 tfac
 tfmc
 tfMC
+tga
 tgnpt
 tgnvt
 th
@@ -3974,6 +3985,7 @@ tradeoff
 traj
 Tranchida
 transactional
+transcolor
 transferability
 translational
 Translational
@@ -4289,6 +4301,8 @@ wildcard
 Wildcard
 wildcards
 Winkler
+wireframe
+wireframes
 Wirnsberger
 wirtes
 witin

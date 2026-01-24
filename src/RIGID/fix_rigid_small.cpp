@@ -2647,7 +2647,8 @@ void FixRigidSmall::write_restart_file(const char *file)
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
-  int tmp,recvrow;
+  int tmp = 0;
+  int recvrow = 0;
 
   if (comm->me == 0) {
     MPI_Status status;

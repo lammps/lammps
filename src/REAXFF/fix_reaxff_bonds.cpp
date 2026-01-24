@@ -21,8 +21,8 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "dump_image.h"
 #include "force.h"
+#include "graphics.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "update.h"
@@ -52,6 +52,7 @@ FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
   padflag = 0;
   first_flag = true;
   numobjs = 0;
+  dynamic_group_allow = 1;     // applies only to FixReaxFFBonds::image()
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR, 3, "Illegal fix reaxff/bonds nevery value {}", nevery);
@@ -385,8 +386,8 @@ int FixReaxFFBonds::image(int *&objs, double **&parms)
   memory->create(imgobjs, numobjs, "reaxff/bonds:imgobjs");
   memory->create(imgparms, numobjs, 8, "reaxff/bonds:imgparms");
 
-  const int nlocal = atom->nlocal;
   const int *type = atom->type;
+  const int *mask = atom->mask;
   const double * const * const x = atom->x;
 
   int inum = reaxff->list->inum;
@@ -395,20 +396,24 @@ int FixReaxFFBonds::image(int *&objs, double **&parms)
   int n = 0;
   for (int ii = 0; ii < inum; ++ii) {
     int i = ilist[ii];
-    for (int jj = 0; jj < numneigh[i]; ++jj) {
-      int j = atom->map(neighid[i][jj]);
-      j = domain->closest_image(i,j);
-      if (j < 0) continue;
-      imgobjs[n] = DumpImage::BOND;
-      imgparms[n][0] = type[i];
-      imgparms[n][1] = type[j];
-      imgparms[n][2] = x[i][0];
-      imgparms[n][3] = x[i][1];
-      imgparms[n][4] = x[i][2];
-      imgparms[n][5] = x[j][0];
-      imgparms[n][6] = x[j][1];
-      imgparms[n][7] = x[j][2];
-      ++n;
+    if (mask[i] & groupbit) {
+      for (int jj = 0; jj < numneigh[i]; ++jj) {
+        int j = atom->map(neighid[i][jj]);
+        j = domain->closest_image(i,j);
+        if (j < 0) continue;
+        if (mask[j] & groupbit) {
+          imgobjs[n] = Graphics::BOND;
+          imgparms[n][0] = type[i];
+          imgparms[n][1] = type[j];
+          imgparms[n][2] = x[i][0];
+          imgparms[n][3] = x[i][1];
+          imgparms[n][4] = x[i][2];
+          imgparms[n][5] = x[j][0];
+          imgparms[n][6] = x[j][1];
+          imgparms[n][7] = x[j][2];
+          ++n;
+        }
+      }
     }
   }
 

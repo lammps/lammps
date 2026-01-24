@@ -108,6 +108,7 @@ void FixDtResetKokkos<DeviceType>::end_of_step()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixDtResetKokkos<DeviceType>::operator()(TagFixDtResetMass, const int &i, double &dt_min) const {
 
@@ -141,6 +142,7 @@ void FixDtResetKokkos<DeviceType>::operator()(TagFixDtResetMass, const int &i, d
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixDtResetKokkos<DeviceType>::operator()(TagFixDtResetRMass, const int &i, double &dt_min) const {
 

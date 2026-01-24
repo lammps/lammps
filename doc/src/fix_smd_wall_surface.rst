@@ -60,13 +60,18 @@ Fix *smd/wall\_surface* supports the *fix* keyword of :doc:`dump image
 particles to *dump image* so that they be included in the rendered
 image.
 
+The color of the wall mesh object is by default that of the first atom
+type when using color styles "type" or "element".  With color style
+"const" the default value of "white" can be changed using
+:doc:`dump_modify fcolor <dump_image>`.  The transparency is by default
+fully opaque and can be changed with *dump\_modify ftrans*\ .
+
 The *fflag1* setting of *dump image fix* determines whether the wall will
 be rendered as a set of connected triangles (1) or as a mesh of cylinders (2).
 
-In case of using triangles, the *fflag2* setting determines the
-transparency of the triangles and must use a value between 0.0
-(invisible) and 1.0 (fully opaque).  If using a mesh of cylinders, the
-*fflag2* setting determines the diameter of the cylinders.
+When rendering triangles, the *fflag2* setting is ignored.  When using a
+mesh of cylinders, the *fflag2* setting determines the diameter of the
+cylinders.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

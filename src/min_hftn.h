@@ -64,17 +64,17 @@ class MinHFTN : public Min {
                               const double dEnergyAtXin, const double dForce2AtXin,
                               double &dEnergyAtXout, double &dForce2AtXout, int &nStepType,
                               double &dStepLength2, double &dStepLengthInf);
-  double calc_xinf_using_mpi_() const;
-  double calc_dot_prod_using_mpi_(const int nIx1, const int nIx2) const;
-  double calc_grad_dot_v_using_mpi_(const int nIx) const;
+  [[nodiscard]] double calc_xinf_using_mpi_() const;
+  [[nodiscard]] double calc_dot_prod_using_mpi_(const int nIx1, const int nIx2) const;
+  [[nodiscard]] double calc_grad_dot_v_using_mpi_(const int nIx) const;
   void calc_dhd_dd_using_mpi_(double &dDHD, double &dDD) const;
   void calc_ppnew_pdold_using_mpi_(double &dPnewDotPnew, double &dPoldDotD) const;
   void calc_plengths_using_mpi_(double &dStepLength2, double &dStepLengthInf) const;
   bool step_exceeds_TR_(const double dTrustRadius, const double dPP, const double dPD,
                         const double dDD, double &dTau) const;
-  bool step_exceeds_DMAX_() const;
+  [[nodiscard]] bool step_exceeds_DMAX_() const;
   void adjust_step_to_tau_(const double tau);
-  double compute_to_tr_(const double dPP, const double dPD, const double dDD,
+  [[nodiscard]] double compute_to_tr_(const double dPP, const double dPD, const double dDD,
                         const double dTrustRadius, const bool bConsiderBothRoots, const double dDHD,
                         const double dPdotHD, const double dGradDotD) const;
   void evaluate_dir_der_(const bool bUseForwardDiffs, const int nIxDir, const int nIxResult,

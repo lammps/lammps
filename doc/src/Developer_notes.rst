@@ -8,6 +8,7 @@ code does, or what a function does and its input/outputs.  The topics
 on this page are intended to document code functionality at a higher level.
 
 .. contents:: Available notes
+   :local:
 
 ----
 

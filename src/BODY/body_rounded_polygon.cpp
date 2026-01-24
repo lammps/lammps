@@ -21,8 +21,8 @@
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "domain.h"
-#include "dump_image.h"
 #include "error.h"
+#include "graphics.h"
 #include "math_extra.h"
 #include "math_eigen.h"
 #include "memory.h"
@@ -43,15 +43,13 @@ BodyRoundedPolygon::BodyRoundedPolygon(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3) error->all(FLERR,"Invalid body rounded/polygon command");
 
   if (domain->dimension != 2)
-    error->all(FLERR,"Atom_style body rounded/polygon "
-               "can only be used in 2d simulations");
+    error->all(FLERR,"Atom_style body rounded/polygon can only be used in 2d simulations");
 
   // nmin and nmax are minimum and maximum number of vertices
 
   int nmin = utils::inumeric(FLERR,arg[1],false,lmp);
   int nmax = utils::inumeric(FLERR,arg[2],false,lmp);
-  if (nmin <= 0 || nmin > nmax)
-    error->all(FLERR,"Invalid body rounded/polygon command");
+  if (nmin <= 0 || nmin > nmax) error->all(FLERR,"Invalid body rounded/polygon command");
 
   size_forward = 0;
 
@@ -68,8 +66,8 @@ BodyRoundedPolygon::BodyRoundedPolygon(LAMMPS *lmp, int narg, char **arg) :
   dcp = new MyPoolChunk<double>(3*nmin+2*nmin+1+1,3*nmax+2*nmax+1+1);
   maxexchange = 1 + 3*nmax+2*nmax+1+1;      // icp max + dcp max
 
-  memory->create(imflag,nmax,"body/rounded/polygon:imflag");
-  memory->create(imdata,nmax,7,"body/nparticle:imdata");
+  memory->create(imflag,2*nmax,"body/rounded/polygon:imflag");
+  memory->create(imdata,2*nmax,9,"body/rounded/polygon:imdata");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -166,20 +164,16 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
   // set ninteger, ndouble in bonus and allocate 2 vectors of ints, doubles
 
   if (ninteger != 1)
-    error->one(FLERR,"Incorrect # of integer values in "
-               "Bodies section of data file");
+    error->one(FLERR,"Incorrect # of integer values in Bodies section of data file");
   int nsub = ifile[0];
-  if (nsub < 1)
-    error->one(FLERR,"Incorrect integer value in "
-               "Bodies section of data file");
+  if (nsub < 1) error->one(FLERR,"Incorrect integer value in Bodies section of data file");
 
   // nentries = number of double entries to be read from Body section:
   //   6 for inertia + 3*nsub for vertex coords + 1 for rounded radius
 
   int nentries = 6 + 3*nsub + 1;
   if (ndouble != nentries)
-    error->one(FLERR,"Incorrect # of floating-point values in "
-             "Bodies section of data file");
+    error->one(FLERR,"Incorrect # of floating-point values in Bodies section of data file");
 
   bonus->ninteger = 1;
   bonus->ivalue = icp->get(bonus->iindex);
@@ -201,8 +195,7 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
   double *inertia = bonus->inertia;
   double evectors[3][3];
   int ierror = MathEigen::jacobi3(tensor,inertia,evectors);
-  if (ierror) error->one(FLERR,
-                         "Insufficient Jacobi rotations for body nparticle");
+  if (ierror) error->one(FLERR,"Insufficient Jacobi rotations for body nparticle");
 
   // if any principal moment < scaled EPSILON, set to 0.0
 
@@ -434,11 +427,9 @@ double BodyRoundedPolygon::radius_body(int /*ninteger*/, int ndouble,
 {
   int nsub = ifile[0];
   if (nsub < 1)
-    error->one(FLERR,"Incorrect integer value in "
-               "Bodies section of data file");
+    error->one(FLERR,"Incorrect integer value in Bodies section of data file");
   if (ndouble != 6 + 3*nsub + 1)
-    error->one(FLERR,"Incorrect # of floating-point values in "
-               "Bodies section of data file");
+    error->one(FLERR,"Incorrect # of floating-point values in Bodies section of data file");
 
   // sub-particle coords are relative to body center at (0,0,0)
   // offset = 6 for sub-particle coords
@@ -498,61 +489,100 @@ void BodyRoundedPolygon::output(int ibonus, int m, double *values)
 
 /* ---------------------------------------------------------------------- */
 
-int BodyRoundedPolygon::image(int ibonus, double flag1, double /*flag2*/,
+int BodyRoundedPolygon::image(int ibonus, double flag1, double flag2,
                               int *&ivec, double **&darray)
 {
-  int j;
   double p[3][3];
-  double *x, rrad;
 
+  int nelements = 0;
   AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
+  const double *const x = atom->x[bonus->ilocal];
+  const double diam = (flag1 <= 0.0) ? 2.0 * rounded_radius(bonus) : flag1;
+
+  MathExtra::quat_to_mat(bonus->quat,p); // get rotation matrix for body frame to box frame
+
   int n = bonus->ivalue[0];
+  if (n == 1) {                 // special case: one vertex -> one sphere
+    imflag[0] = Graphics::SPHERE;
+    // transform body frame position to box frame
+    MathExtra::matvec(p,&bonus->dvalue[0],imdata[0]);
+    // translate and set diameter
+    imdata[0][0] += x[0];
+    imdata[0][1] += x[1];
+    imdata[0][2] = 0.0;
+    imdata[0][3] = diam;
 
-  if (n == 1) {
-    for (int i = 0; i < n; i++) {
-      imflag[i] = DumpImage::SPHERE;
-      MathExtra::quat_to_mat(bonus->quat,p);
-      MathExtra::matvec(p,&bonus->dvalue[3*i],imdata[i]);
-
-      rrad = enclosing_radius(bonus);
-      x = atom->x[bonus->ilocal];
-      imdata[i][0] += x[0];
-      imdata[i][1] += x[1];
-      imdata[i][2] += x[2];
-      if (flag1 <= 0) imdata[i][3] = 2*rrad;
-      else imdata[i][3] = flag1;
-    }
-
+    nelements = 1;
   } else {
 
-    // first end pt of each line
+    // select whether edges or faces or both should be drawn
+    bool edgeflag = true;
+    bool triflag = true;
+    int flag = static_cast<int>(flag2);
+    if (flag == 2) triflag = false;
+    if (flag == 1) edgeflag = false;
 
+    // copy first coordinate of connected lines
     for (int i = 0; i < n; i++) {
-      imflag[i] = DumpImage::LINE;
-      MathExtra::quat_to_mat(bonus->quat,p);
       MathExtra::matvec(p,&bonus->dvalue[3*i],imdata[i]);
-
-      rrad = rounded_radius(bonus);
-      x = atom->x[bonus->ilocal];
       imdata[i][0] += x[0];
       imdata[i][1] += x[1];
-      imdata[i][2] += x[2];
-      if (flag1 <= 0) imdata[i][6] = 2*rrad;
-      else imdata[i][6] = flag1;
+      imdata[i][2] = 0.0;
     }
 
-    // second end pt of each line
+    // add lines to next coordinate and wrap to first
+    if (n == 2) n = 1;          // special case: two vertices -> one rod only
+    if (edgeflag || n == 1) {   // always draw line for rod
+      for (int i = 0; i < n; i++) {
+        // register element type and copy second coordinate
+        imflag[nelements] = Graphics::LINE;
+        int next = nelements + 1;
+        if (next == n) next = 0;
+        imdata[nelements][3] = imdata[next][0];
+        imdata[nelements][4] = imdata[next][1];
+        imdata[nelements][5] = 0.0;
+        imdata[nelements][6] = diam;
+        ++nelements;
+      }
+    }
 
-    for (int i = 0; i < n; i++) {
-      j = i+1;
-      if (j == n) j = 0;
-      imdata[i][3] = imdata[j][0];
-      imdata[i][4] = imdata[j][1];
-      imdata[i][5] = imdata[j][2];
+    if (triflag && (n > 1)) {
+      double center[3] = {0.0, 0.0, 0.0};
+      // copy first outer coordinate
+      for (int i = 0; i < n; i++) {
+        MathExtra::matvec(p,&bonus->dvalue[3*i],imdata[nelements+i]);
+        imdata[nelements+i][0] += x[0];
+        imdata[nelements+i][1] += x[1];
+        imdata[nelements+i][2] = edgeflag ? 0.5*diam : 0.0;
+        center[0] += imdata[nelements+i][0];
+        center[1] += imdata[nelements+i][1];
+        center[2] += imdata[nelements+i][2];
+      }
+      double invn = 1.0/n;
+      center[0] *= invn;
+      center[1] *= invn;
+      center[2] *= invn;
+
+      // construct triangles
+      const int nmax = nelements + n;
+      for (int i = 0; i < n; i++) {
+        // register element type and copy second coordinate with wrap and center
+        imflag[nelements] = Graphics::TRI;
+        int next = nelements + 1;
+        if (next == nmax) next = nmax - n;
+        imdata[nelements][3] = center[0];
+        imdata[nelements][4] = center[1];
+        imdata[nelements][5] = center[2];
+        imdata[nelements][6] = imdata[next][0];
+        imdata[nelements][7] = imdata[next][1];
+        imdata[nelements][8] = edgeflag ? 0.5*diam : 0.0;
+
+        ++nelements;
+      }
     }
   }
 
   ivec = imflag;
   darray = imdata;
-  return n;
+  return nelements;
 }

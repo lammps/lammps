@@ -76,8 +76,8 @@ class PairExp6rx : public Pair {
   double *coeffAlpha, *coeffEps, *coeffRm;
   bool fractionalWeighting;
 
-  inline double func_rin(const double &) const;
-  inline double expValue(const double) const;
+  [[nodiscard]] double func_rin(const double &) const;
+  [[nodiscard]] double expValue(const double) const;
 };
 
 }    // namespace LAMMPS_NS

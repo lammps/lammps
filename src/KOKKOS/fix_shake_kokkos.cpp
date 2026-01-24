@@ -264,6 +264,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::operator()(TagFixShakePreNeighbor, const int &i) const {
   if (d_shake_flag[i]) {
@@ -669,6 +670,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::operator()(TagFixShakePostForce<NEIGHFLAG,EVFLAG>, const int &i, EV_FLOAT& ev) const {
   const int m = d_list[i];
@@ -680,6 +682,7 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakePostForce<NEIGHFLAG,EVFLA
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::operator()(TagFixShakePostForce<NEIGHFLAG,EVFLAG>, const int &i) const {
   EV_FLOAT ev;
@@ -805,6 +808,7 @@ void FixShakeKokkos<DeviceType>::unconstrained_update()
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::shake(int ilist, EV_FLOAT& ev) const
 {
@@ -915,6 +919,7 @@ void FixShakeKokkos<DeviceType>::shake(int ilist, EV_FLOAT& ev) const
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::shake3(int ilist, EV_FLOAT& ev) const
 {
@@ -1093,6 +1098,7 @@ void FixShakeKokkos<DeviceType>::shake3(int ilist, EV_FLOAT& ev) const
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::shake4(int ilist, EV_FLOAT& ev) const
 {
@@ -1347,6 +1353,7 @@ void FixShakeKokkos<DeviceType>::shake4(int ilist, EV_FLOAT& ev) const
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::shake3angle(int ilist, EV_FLOAT& ev) const
 {
@@ -1729,6 +1736,7 @@ void FixShakeKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagprev, in
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offset, const bool &final) const
 {
@@ -1858,6 +1866,7 @@ int FixShakeKokkos<DeviceType>::pack_exchange_kokkos(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::operator()(TagFixShakeUnpackExchange, const int &i) const
 {
@@ -2001,6 +2010,7 @@ int FixShakeKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1
 
 template<class DeviceType>
 template<int PBC_FLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::operator()(TagFixShakePackForwardComm<PBC_FLAG>, const int &i) const {
   const int j = d_sendlist(i);
@@ -2042,6 +2052,7 @@ void FixShakeKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in,
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::operator()(TagFixShakeUnpackForwardComm, const int &i) const {
   d_xshake(i + first,0) = static_cast<KK_FLOAT>(d_buf[3*i]);
@@ -2185,6 +2196,7 @@ void FixShakeKokkos<DeviceType>::correct_coordinates(int vflag) {
 ------------------------------------------------------------------------- */
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int n, int *atomlist, KK_FLOAT total,
      KK_FLOAT *v) const
@@ -2216,6 +2228,7 @@ void FixShakeKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int n, int *atomlist, KK_
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int FixShakeKokkos<DeviceType>::closest_image(const int i, int j) const
 {

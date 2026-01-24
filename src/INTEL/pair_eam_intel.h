@@ -76,9 +76,9 @@ class PairEAMIntel : public PairEAM {
     ~ForceConst() noexcept(false) { set_ntypes(0, 0, 0, nullptr, _cop); }
 
     void set_ntypes(const int ntypes, const int nr, const int nrho, Memory *memory, const int cop);
-    inline int rhor_jstride() const { return _nr; }
-    inline int rhor_istride() const { return _nr * _ntypes; }
-    inline int frho_stride() const { return _nrho; }
+    [[nodiscard]] int rhor_jstride() const { return _nr; }
+    [[nodiscard]] int rhor_istride() const { return _nr * _ntypes; }
+    [[nodiscard]] int frho_stride() const { return _nrho; }
 
    private:
     int _ntypes, _nr, _nrho, _cop;

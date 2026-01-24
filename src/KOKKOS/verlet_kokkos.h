@@ -37,6 +37,7 @@ class VerletKokkos : public Verlet {
   void run(int) override;
   void force_clear() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
     f(i,0) += f_merge_copy(i,0);

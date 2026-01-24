@@ -178,6 +178,7 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNVTSllodKokkos<DeviceType>::operator()(TagFixNVTSllod_temp1, const int &i) const {
   if (mask[i] & this->groupbit) {
@@ -188,6 +189,7 @@ void FixNVTSllodKokkos<DeviceType>::operator()(TagFixNVTSllod_temp1, const int &
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNVTSllodKokkos<DeviceType>::operator()(TagFixNVTSllod_temp2, const int &i) const {
   if (mask[i] & this->groupbit) {

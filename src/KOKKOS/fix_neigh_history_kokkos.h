@@ -53,15 +53,19 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   int unpack_exchange(int, double *) override;
   double memory_usage() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNeighHistoryPreExchange, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNeighHistoryPostNeighbor, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNeighHistoryPackExchange, const int&, int &, const bool &) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNeighHistoryUnpackExchange, const int&) const;
 
@@ -110,6 +114,7 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   void pre_exchange_no_newton() override;
 
   // Shift by HISTBITS and check the first bit
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int histmask(int j) const { return j >> HISTBITS & 1; }
 };

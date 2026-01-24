@@ -48,7 +48,7 @@ namespace {
     std::string message;
   public:
     explicit qeq_parser_error(const std::string &mesg) { message = mesg; }
-    const char *what() const noexcept override { return message.c_str(); }
+    [[nodiscard]] const char *what() const noexcept override { return message.c_str(); }
   };
 }
 

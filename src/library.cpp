@@ -803,9 +803,9 @@ void lammps_commands_string(void *handle, const char *str)
       else
         cmd = line;
 
-      if (utils::strmatch(line, "\"\"\".*\"\"\"")) {
+      if (utils::strmatch(line, R"(""".*""")")) {
         triple = false;
-      } else if (utils::strmatch(line, "\"\"\"")) {
+      } else if (utils::strmatch(line, R"(""")")) {
         triple = !triple;
       }
       if (triple) cmd += '\n';
@@ -6452,7 +6452,7 @@ namespace LAMMPS_NS {
   NeighProxy(class LAMMPS *lmp) : Command(lmp), neigh_idx(-1) {};
 
   void command(int, char **) override;
-  int get_index() const { return neigh_idx; }
+  [[nodiscard]] int get_index() const { return neigh_idx; }
  protected:
   int neigh_idx;
 };

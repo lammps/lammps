@@ -213,6 +213,7 @@ void PairYukawaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairYukawaKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT &rsq, const int &, const int &,
@@ -237,6 +238,7 @@ compute_fpair(const KK_FLOAT &rsq, const int &, const int &,
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairYukawaKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT &rsq, const int &, const int &,

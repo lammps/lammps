@@ -1,17 +1,19 @@
 # 3d rounded cubes and tetragonal pyramids
 
-variable    r     index 3
-variable    steps index 1000
+variable    r     index 4
+variable    steps index 10050
+variable    out   index 100  # graphics output every this many steps
 
 units       lj
 dimension   3
 boundary p p p
 
 atom_style  body rounded/polyhedron 1 10
+read_data   data.cubes-and-pyramids extra/atom/types 2
 
-read_data   data.cubes-and-pyramids extra/atom/types 1
-
-set atom 2 type 2
+# data file consists of one cube "atom" and one pyramid "atom"
+# the cube is atom type 1 the pyramid atom type 2
+# add two atom types so we can set colors for the progress bar
 
 replicate   $r $r $r
 
@@ -35,18 +37,22 @@ neigh_modify every 1 delay 0 check yes
 
 timestep     0.001
 
-fix          1 all npt/body temp 1.2 1.2 0.1 iso 0.02 0.2 1.0
-
+fix          1 all npt/body temp 1.2 1.2 0.1 iso 0.02 0.05 1.0
 compute      p2 all pressure 1_temp
-
-dump         2 all image 1000 image-bodies.*.png type type size 600 600 shiny 0.4 box yes 0.025 &
-             zoom 2.0 view 80 15 fsaa yes ssao yes 315123 0.8  body type 0.2 3
-
-dump_modify  2 pad 6 backcolor darkgray backcolor2 gray boxcolor silver &
-                     acolor 1 steelblue acolor 2 orange
 thermo_style custom step ke pe etotal c_p2 c_1_temp
-
 thermo       1000
+
+variable progress equal step/v_steps
+fix pbar all graphics/objects ${out} progbar 3 4 y 24.0 12.0 -1.4 30.0 0.5 v_progress 10
+
+dump         2 all image ${out} cubes-and-pyramids.*.png type type size 600 600 shiny 0.4 &
+                         box yes 0.025 axes no 0.5 0.1 zoom 1.5 view 80 0 fsaa yes ssao yes 315123 0.4 &
+                         body type 0.2 3 fix pbar type 0 0
+#            set cylinder diameter--^  ^-- set viz style (1 only faces, 2 cylinders, 3 both)
+dump_modify  2 pad 6 backcolor darkgray backcolor2 gray boxcolor white &
+                     acolor 1 steelblue acolor 2 orange  acolor 3 slategray  acolor 4 red
+#                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#                                                        || colors for progress bar ||
 
 run          ${steps}
 

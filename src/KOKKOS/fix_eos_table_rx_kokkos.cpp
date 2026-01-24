@@ -136,6 +136,7 @@ void FixEOStableRXKokkos<DeviceType>::setup(int /*vflag*/)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXSetup, const int &i) const {
   if (mask[i] & groupbit) {
@@ -147,6 +148,7 @@ void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXSetup, const in
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXTemperatureLookup, const int &i) const {
   if (mask[i] & groupbit)
@@ -188,6 +190,7 @@ void FixEOStableRXKokkos<DeviceType>::init()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXInit, const int &i) const {
   KK_FLOAT tmp;
@@ -230,6 +233,7 @@ void FixEOStableRXKokkos<DeviceType>::post_integrate()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXTemperatureLookup2, const int &i) const {
   if (mask[i] & groupbit) {
@@ -289,6 +293,7 @@ void FixEOStableRXKokkos<DeviceType>::end_of_step()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::energy_lookup(int id, KK_FLOAT thetai, KK_FLOAT &ui) const
 {
@@ -346,6 +351,7 @@ void FixEOStableRXKokkos<DeviceType>::energy_lookup(int id, KK_FLOAT thetai, KK_
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, KK_FLOAT ui, KK_FLOAT &thetai) const
 {

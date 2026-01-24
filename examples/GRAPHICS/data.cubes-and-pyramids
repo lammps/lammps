@@ -1,7 +1,7 @@
 LAMMPS data file for polygons: cubes, moment of inertia I = m edge^2/ 6
 2 atoms
 2 bodies
-1 atom types
+2 atom types
 0 6 xlo xhi
 0 6 ylo yhi
 0 6 zlo zhi
@@ -9,7 +9,7 @@ LAMMPS data file for polygons: cubes, moment of inertia I = m edge^2/ 6
 Atoms
 
 1 1 1 1 1.5 1.5 1.5
-2 1 1 1 4.0 4.0 4.0
+2 2 1 1 4.0 4.0 4.0
 
 Bodies
 

@@ -112,19 +112,13 @@ std::vector<triangle> transform(const std::vector<triangle> &triangles, const ve
 // ^        ^  ^
 // bot    mid tip
 
-ArrowObj::ArrowObj(double _tipl, double _tipw, double radius, int res)
+ArrowObj::ArrowObj(double _tipl, double _tipw, double radius, int res) :
+    tiplength(_tipl), tipwidth(_tipw), diameter(2.0 * radius), resolution(res)
 {
   triangles.clear();
 
   // we want at least 2 iterations.
   if (res < 2) return;
-
-  // store settings for arrow template
-
-  tiplength = _tipl;
-  tipwidth = _tipw;
-  diameter = 2.0 * radius;
-  resolution = res;
 
   vec3 tip{0.5, 0.0, 0.0};
   vec3 mid{0.5 - tiplength, 0.0, 0.0};

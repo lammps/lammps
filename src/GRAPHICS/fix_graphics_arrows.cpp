@@ -58,6 +58,7 @@ FixGraphicsArrows::FixGraphicsArrows(LAMMPS *lmp, int narg, char **arg) :
   scale = 1.0;
   autoscale = false;
   autovalue = 1.0;
+  xvar = yvar = zvar = -1;
 
   int iarg = 7;
   if (strcmp(arg[4], "dipole") == 0) {

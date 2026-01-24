@@ -89,6 +89,7 @@ void FixNVESphereKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNVESphereKokkos<DeviceType>::initial_integrate_item(const int i) const
 {
@@ -148,6 +149,7 @@ void FixNVESphereKokkos<DeviceType>::final_integrate()
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNVESphereKokkos<DeviceType>::final_integrate_item(const int i) const
 {
@@ -201,6 +203,7 @@ void FixNVESphereKokkos<DeviceType>::fused_integrate(int /*vflag*/)
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNVESphereKokkos<DeviceType>::fused_integrate_item(const int i) const
 {

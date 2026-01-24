@@ -572,7 +572,7 @@ void FixElectrodeConp::setup_post_neighbor()
       read_from_file(input_file_mat, elastance, "elastance");
     else if (!read_inv) {
       if (etypes_neighlists) neighbor->build_one(mat_neighlist);
-      auto array_compute = std::unique_ptr<ElectrodeMatrix>(new ElectrodeMatrix(lmp, igroup, eta));
+      auto array_compute = std::make_unique<ElectrodeMatrix>(lmp, igroup, eta);
       array_compute->setup(tag_to_iele, pair, mat_neighlist);
       if (etaflag) array_compute->setup_eta(eta_index);
       if (tfflag) array_compute->setup_tf(tf_types);

@@ -177,6 +177,7 @@ void ComputeCoordAtomKokkos<DeviceType>::compute_peratom()
 
 template<class DeviceType>
 template<int CSTYLE, int NCOL>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeCoordAtomKokkos<DeviceType>::operator()(TagComputeCoordAtom<CSTYLE,NCOL>, const int &ii) const
 {

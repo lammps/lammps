@@ -156,6 +156,7 @@ void PairLJCutCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
    ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairLJCutCoulDebyeKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
@@ -176,6 +177,7 @@ compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
    ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairLJCutCoulDebyeKokkos<DeviceType>::
 compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
@@ -199,6 +201,7 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
    ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairLJCutCoulDebyeKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
@@ -218,6 +221,7 @@ compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
    ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairLJCutCoulDebyeKokkos<DeviceType>::
 compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,

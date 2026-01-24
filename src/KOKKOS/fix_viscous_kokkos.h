@@ -41,6 +41,7 @@ class FixViscousKokkos : public FixViscous {
   void init() override;
   void post_force(int) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixViscous, const int&) const;
 

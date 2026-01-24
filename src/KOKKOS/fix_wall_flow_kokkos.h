@@ -54,16 +54,20 @@ class FixWallFlowKokkos : public FixWallFlow, public KokkosBase {
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagFixWallFlowInit, const int&) const;
 
   template<class MTag>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixWallFlowEndOfStep<MTag>, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixWallFlowPackExchange, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixWallFlowUnpackExchange, const int&) const;
 
@@ -103,18 +107,22 @@ class FixWallFlowKokkos : public FixWallFlow, public KokkosBase {
   rand_pool_t rand_pool;
 
   template<class MTag>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void generate_velocity_kk(int atom_i) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int compute_current_segment_kk(KK_FLOAT pos) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT get_mass(MassTag, int atom_i) const
   {
     return d_mass(d_type(atom_i));
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT get_mass(RMassTag, int atom_i) const
   {

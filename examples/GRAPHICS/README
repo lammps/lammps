@@ -10,5 +10,6 @@ automatically as they are created.
 
 Here is a list of the inputs and which graphics features they demonstrate
 
-- in.cubes-and-pyramids:    visualization of body particles
+- in.cubes-and-pyramids:    visualization of body particles, uses progress bar
 - in.breakable:             using autobond, color-by-property, adding objects and text
+- in.water-arrows:          box of water molecules, uses many kinds of arrows

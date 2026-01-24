@@ -146,8 +146,8 @@ class NeighRequest : protected Pointers {
   void enable_ghost();
   void enable_intel();
 
-  int get_size() const { return size; }
-  void *get_requestor() const { return requestor; }
+  [[nodiscard]] int get_size() const { return size; }
+  [[nodiscard]] void *get_requestor() const { return requestor; }
 };
 
 }    // namespace LAMMPS_NS

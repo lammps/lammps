@@ -212,13 +212,13 @@ Examples
 Description
 """""""""""
 
-Dump a high-quality rendered image of the atom configuration every :math:`N`
-timesteps and save the images either as a sequence of JPEG or PNG or
-PPM files, or as a single movie file.  The options for this command as
-well as the :doc:`dump_modify <dump_modify>` command control what is
-included in the image or movie and how it appears.  A series of such
-images can easily be manually converted into an animated movie of your
-simulation or the process can be automated without writing the
+Dump a high-quality rendered image of the atom configuration every
+:math:`N` timesteps and save the images either as a sequence of JPEG,
+PNG, TGA, or PPM files, or as a single movie file.  The options for this
+command as well as the :doc:`dump_modify <dump_modify>` command control
+what is included in the image or movie and how it appears.  A series of
+such images can easily be manually converted into an animated movie of
+your simulation or the process can be automated without writing the
 intermediate files using the dump movie style; see further details
 below.  Other dump styles store snapshots of numerical data associated
 with atoms in various formats, as discussed on the :doc:`dump <dump>`
@@ -251,23 +251,30 @@ Here are five sample images, rendered as JPEG or PNG files.
 A detailed discussion of advanced graphics settings and workflows
 with examples is provided in the :doc:`Howto_viz` howto.
 
+.. versionadded:: TBD
+
+   support for writing compressed TGA files
+
 Only atoms in the specified group are rendered in the image.  The
 :doc:`dump_modify region and thresh <dump_modify>` commands can also
 alter what atoms are included in the image.  The filename suffix
-determines whether a JPEG, PNG, or PPM file is created with the *image*
-dump style.  If the suffix is ".jpg" or ".jpeg", then a `JPEG format
-<jpeg_format_>`_ file is created, if the suffix is ".png", then a `PNG
-format <png_format_>`_ is created, else a `PPM (aka NETPBM) format
-<ppm_format_>`_ file is created.  The JPEG and PNG files are binary; PPM
-has a text mode header followed by binary data. JPEG images have lossy
-compression, PNG has lossless compression, and PPM files are
-uncompressed but can be compressed with a supported compression program,
-if LAMMPS has been compiled with :ref:`compression support <gzip>` and a
-supported suffix is used.
+determines whether a JPEG, PNG, TGA, or PPM file is created with the
+*image* dump style.  If the suffix is ".jpg" or ".jpeg", then a `JPEG
+format <jpeg_format_>`_ file is created, if the suffix is ".png", then a
+`PNG format <png_format_>`_ file is created, if the suffix is ".tga",
+then a compressed 24-bit RGB `TGA or TARGA format <tga_format_>`_
+file is created, else a `PPM (aka NETPBM) format <ppm_format_>`_ file is
+created.  The JPEG, PNG, and TGA files are binary; PPM has a text mode
+header followed by binary data. JPEG images have lossy compression, PNG
+and TGA have lossless compression, and PPM files are uncompressed but can
+be compressed with a supported compression program, if LAMMPS has been
+compiled with :ref:`compression support <gzip>` and a supported suffix
+is used.
 
 .. _jpeg_format: https://jpeg.org/jpeg/
 .. _png_format: https://en.wikipedia.org/wiki/Portable_Network_Graphics
 .. _ppm_format: https://en.wikipedia.org/wiki/Netpbm
+.. _tga_format: https://en.wikipedia.org/wiki/Truevision_TGA
 
 Similarly, the format of the resulting movie is chosen with the *movie*
 dump style. This is handled by the underlying FFmpeg converter and thus

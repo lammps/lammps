@@ -115,6 +115,7 @@ class FixBondReact : public Fix {
     struct ReactionAtomFlags {
       int edge;                                            // true if atom in molecule template has incorrect valency
       int landlocked;                                      // true if atom is at least three bonds away from edge atoms
+      bool wildcard;                                       // true if atom type contains a wildcard
       int recharged;                                       // true if atom whose charge should be updated
       int deleted;                                         // true if atom in pre-reacted template to delete
       int created;                                         // true if atom in post-reacted template to create
@@ -210,6 +211,7 @@ class FixBondReact : public Fix {
   void CreateAtoms(char *, Reaction &, int);
   void CustomCharges(int, Reaction &);
   void ChiralCenters(char *, Reaction &, int);
+  void ReadWildcards(char *, Reaction &, int);
   void ReadConstraints(char *, Reaction &);
   void readID(char *, Reaction::Constraint &, Reaction &, int);
 
@@ -219,6 +221,7 @@ class FixBondReact : public Fix {
   void check_a_neighbor(Superimpose &, Reaction &);
   void crosscheck_the_neighbor(Superimpose &, Reaction &);
   void inner_crosscheck_loop(Superimpose &, Reaction &);
+  bool compare_atomtype(int, Reaction &, int);
   int ring_check(Reaction &, std::vector<tagint> &);
   int check_constraints(Reaction &, std::vector<tagint> &);
   void get_IDcoords(Reaction::Constraint::IDType, int, double *, Molecule *, std::vector<tagint> &);

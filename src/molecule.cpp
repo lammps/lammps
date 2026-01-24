@@ -158,7 +158,7 @@ void Molecule::command(int narg, char **arg, int &index)
   // JSON files must have the extension .json
 
   std::string filename = arg[fileiarg];
-  if (utils::strmatch(filename, "\\.json$")) {
+  if (utils::strmatch(filename, R"(\.json$)")) {
 
     json moldata;
     std::vector<std::uint8_t> jsondata;
@@ -1805,7 +1805,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                "Molecule template {}: \"shake\" info is incomplete in JSON data");
   if (bodyflag && !rmassflag)
     error->all(FLERR, Error::NOLASTLINE,
-               "Molecule template {}: \"body\" JSON section requires \"masses\" section", id);
+               R"(Molecule template {}: "body" JSON section requires "masses" section)", id);
 
   // auto-generate special bonds if needed and not in file
 
@@ -2363,7 +2363,7 @@ void Molecule::read(int flag)
 
     // check for units keyword in first line and print warning on mismatch
 
-    auto units = Tokenizer(utils::strfind(line, "units = \\w+")).as_vector();
+    auto units = Tokenizer(utils::strfind(line, R"(units = \w+)")).as_vector();
     if ((flag == 0) && (units.size() > 2)) {
       if (units[2] != update->unit_style)
         error->warning(FLERR, "Inconsistent units in data file: current = {}, data file = {}",
@@ -2388,7 +2388,7 @@ void Molecule::read(int flag)
 
     auto text = utils::trim(utils::trim_comment(line));
     if (text.empty()) continue;
-    if (utils::strmatch(text, "^\\s*#")) continue;
+    if (utils::strmatch(text, R"(^\s*#)")) continue;
 
     // search line for header keywords and set corresponding variable
     try {
@@ -2396,31 +2396,31 @@ void Molecule::read(int flag)
 
       int nmatch = values.count();
       int nwant = 0;
-      if (values.matches("^\\s*\\d+\\s+atoms\\s*$")) {
+      if (values.matches(R"(^\s*\d+\s+atoms\s*$)")) {
         natoms = values.next_int();
         nwant = 2;
         has_atoms = true;
-      } else if (values.matches("^\\s*\\d+\\s+bonds\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+bonds\s*$)")) {
         nbonds = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\d+\\s+angles\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+angles\s*$)")) {
         nangles = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\d+\\s+dihedrals\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+dihedrals\s*$)")) {
         ndihedrals = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\d+\\s+impropers\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+impropers\s*$)")) {
         nimpropers = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\d+\\s+fragments\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+fragments\s*$)")) {
         nfragments = values.next_int();
         nwant = 2;
-      } else if (values.matches("^\\s*\\f+\\s+mass\\s*$")) {
+      } else if (values.matches(R"(^\s*\f+\s+mass\s*$)")) {
         massflag = massflag_user = 1;
         masstotal = values.next_double();
         nwant = 2;
         masstotal *= sizescale * sizescale * sizescale;
-      } else if (values.matches("^\\s*\\f+\\s+\\f+\\s+\\f+\\s+com\\s*$")) {
+      } else if (values.matches(R"(^\s*\f+\s+\f+\s+\f+\s+com\s*$)")) {
         comflag = comflag_user = 1;
         com[0] = values.next_double();
         com[1] = values.next_double();
@@ -2431,7 +2431,7 @@ void Molecule::read(int flag)
         com[2] *= sizescale;
         if ((domain->dimension == 2) && (com[2] != 0.0))
           error->all(FLERR, fileiarg, "Molecule file z center-of-mass must be 0.0 for 2d systems");
-      } else if (values.matches("^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+\\f+\\s+inertia\\s*$")) {
+      } else if (values.matches(R"(^\s*\f+\s+\f+\s+\f+\s+\f+\s+\f+\s+\f+\s+inertia\s*$)")) {
         inertiaflag = inertiaflag_user = 1;
         itensor[0] = values.next_double();
         itensor[1] = values.next_double();
@@ -2447,20 +2447,20 @@ void Molecule::read(int flag)
         itensor[3] *= scale5;
         itensor[4] *= scale5;
         itensor[5] *= scale5;
-      } else if (values.matches("^\\s*\\d+\\s+\\d+\\s+body\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+\d+\s+body\s*$)")) {
         bodyflag = 1;
         avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
         if (!avec_body) error->all(FLERR, fileiarg, "Molecule file requires atom style body");
         nibody = values.next_int();
         ndbody = values.next_int();
         nwant = 3;
-      } else if (values.matches("^\\s*\\d+\\s+\\S+\\s+types\\s*$")) {
+      } else if (values.matches(R"(^\s*\d+\s+\S+\s+types\s*$)")) {
         error->all(FLERR, fileiarg, "Found data file header keyword '{}' in molecule file", text);
-      } else if (values.matches("^\\s*\\f+\\s+\\f+\\s+[xyz]lo\\s+[xyz]hi\\s*$")) {
+      } else if (values.matches(R"(^\s*\f+\s+\f+\s+[xyz]lo\s+[xyz]hi\s*$)")) {
         error->all(FLERR, fileiarg, "Found data file header keyword '{}' in molecule file", text);
       } else {
         // unknown header keyword
-        if (values.matches("^\\s*\\f+\\s+\\S+")) {
+        if (values.matches(R"(^\s*\f+\s+\S+)")) {
           error->all(FLERR, fileiarg, "Unknown keyword or incorrectly formatted header line: {}",
                      line);
         } else

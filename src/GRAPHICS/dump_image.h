@@ -48,7 +48,7 @@ class DumpImage : public DumpCustom {
 
  protected:
   int filetype;
-  enum { PPM, JPG, PNG };    // file type constants
+  enum { PPM, JPG, PNG, TGA };    // file type constants
 
   int atomflag;         // 0/1 for draw atoms
   int acolor, adiam;    // what determines color/diam of atoms

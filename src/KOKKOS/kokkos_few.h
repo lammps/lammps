@@ -16,30 +16,39 @@ class Few {
       new (data() + (i++)) T(*it);
     }
   }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION Few(T const a[]) {
     for (std::size_t i = 0; i < n; ++i) new (data() + i) T(a[i]);
   }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION Few() {
     for (std::size_t i = 0; i < n; ++i) new (data() + i) T();
   }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION ~Few() {
     for (std::size_t i = 0; i < n; ++i) (data()[i]).~T();
   }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION Few(Few<T, n> const& rhs) {
     for (std::size_t i = 0; i < n; ++i) new (data() + i) T(rhs[i]);
   }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION void operator=(Few<T, n> const& rhs) {
     for (std::size_t i = 0; i < n; ++i) data()[i] = rhs[i];
   }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION T* data() {
     return reinterpret_cast<T*>(array_);
   }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION T const* data() const {
     return reinterpret_cast<T const*>(array_);
   }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION T& operator[](std::size_t i) {
     return data()[i];
   }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION T const& operator[](std::size_t i) const {
     return data()[i];
   }

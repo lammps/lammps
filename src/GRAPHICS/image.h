@@ -47,6 +47,7 @@ class Image : protected Pointers {
   void merge();
   void write_JPG(FILE *);
   void write_PNG(FILE *);
+  void write_TGA(FILE *, bool compressed = true);
   void write_PPM(FILE *);
   void view_params(double, double, double, double, double, double);
 

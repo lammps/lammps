@@ -438,6 +438,8 @@ FixGraphicsIsosurface::FixGraphicsIsosurface(LAMMPS *lmp, int narg, char **arg) 
   pflag = NUMBER;
   binary = 0;
   pad = 0;
+  pvar = -1;
+  pindex = -1;
 
   // parse mandatory args
 
@@ -998,11 +1000,12 @@ void FixGraphicsIsosurface::end_of_step()
         }
       }
       if (!binary) fprintf(fp, "endsolid %s\n", title.c_str());
-      fclose(fp);
+      fclose(fp);    // NOLINT
       delete[] filecurrent;
     } else {
       MPI_Send(stldata, 12 * numobjs, MPI_FLOAT, 0, 0, world);
     }
+    delete[] stldata;
   }
 }
 

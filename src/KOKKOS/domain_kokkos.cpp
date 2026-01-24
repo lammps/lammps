@@ -50,12 +50,14 @@ public:
   DomainResetBoxFunctor(DAT::ttransform_kkfloat_1d_3_lr _x):
     x(_x.view<DeviceType>()) {}
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void init(value_type &dst) const {
     dst.value[2][0] = dst.value[1][0] = dst.value[0][0] = BIG;
     dst.value[2][1] = dst.value[1][1] = dst.value[0][1] = -BIG;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void join(value_type &dst,
              const value_type &src) const {
@@ -67,6 +69,7 @@ public:
     dst.value[2][1] = MAX(dst.value[2][1],src.value[2][1]);
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i, value_type &dst) const {
     dst.value[0][0] = MIN(dst.value[0][0],x(i,0));
@@ -244,6 +247,7 @@ struct DomainPBCFunctor {
     h_rate[3]=_h_rate[3]; h_rate[4]=_h_rate[4]; h_rate[5]=_h_rate[5];
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i) const {
     if (PERIODIC && xperiodic) {
@@ -442,6 +446,7 @@ void DomainKokkos::remap_all()
   if (triclinic) lamda2x(nlocal);
 }
 
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DomainKokkos::operator()(TagDomain_remap_all, const int &i) const {
     imageint idim,otherdims;
@@ -543,6 +548,7 @@ void DomainKokkos::image_flip(int m_in, int n_in, int p_in)
   atomKK->modified(Device,IMAGE_MASK);
 }
 
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DomainKokkos::operator()(TagDomain_image_flip, const int &i) const {
   int xbox = (image[i] & IMGMASK) - IMGMAX;
@@ -589,6 +595,7 @@ void DomainKokkos::lamda2x(int n, int groupbit_in)
   atomKK->modified(Device,X_MASK);
 }
 
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DomainKokkos::operator()(TagDomain_lamda2x, const int &i) const {
   const KK_FLOAT xi1 = x(i,1);
@@ -598,6 +605,7 @@ void DomainKokkos::operator()(TagDomain_lamda2x, const int &i) const {
   x(i,2) = h[2]*xi2 + boxlo[2];
 }
 
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DomainKokkos::operator()(TagDomain_lamda2x_group, const int &i) const {
   if (mask[i] & groupbit) {
@@ -640,6 +648,7 @@ void DomainKokkos::x2lamda(int n, int groupbit_in)
   atomKK->modified(Device,X_MASK);
 }
 
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DomainKokkos::operator()(TagDomain_x2lamda, const int &i) const {
   KK_FLOAT delta[3];
@@ -652,6 +661,7 @@ void DomainKokkos::operator()(TagDomain_x2lamda, const int &i) const {
   x(i,2) = h_inv[2]*delta[2];
 }
 
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DomainKokkos::operator()(TagDomain_x2lamda_group, const int &i) const {
   if (mask[i] & groupbit) {

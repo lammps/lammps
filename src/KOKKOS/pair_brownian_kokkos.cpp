@@ -267,6 +267,7 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int FLAGFLD>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,VFLAG,FLAGFLD>, const int ii, EV_FLOAT &ev) const {
 
@@ -481,6 +482,7 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int FLAGFLD>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG,NEWTON_PAIR,VFLAG,FLAGFLD>, const int ii) const {
   EV_FLOAT ev;
@@ -492,6 +494,7 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairBrownianKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT & ev, int i, int j,
                                                         KK_FLOAT fx, KK_FLOAT fy, KK_FLOAT fz,

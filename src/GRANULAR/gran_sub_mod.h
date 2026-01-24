@@ -16,8 +16,8 @@
 
 #include "pointers.h"    // IWYU pragma: export
 
-namespace LAMMPS_NS {
-namespace Granular_NS {
+
+namespace LAMMPS_NS::Granular_NS {
   class GranularModel;
 
   class GranSubMod : protected Pointers {
@@ -61,7 +61,7 @@ namespace Granular_NS {
     double mix_mean(double, double);
   };
 
-}    // namespace Granular_NS
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::Granular_NS
+
 
 #endif /* GRAN_SUB_MOD_H */

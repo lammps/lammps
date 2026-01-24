@@ -86,9 +86,17 @@ fix labels all graphics/labels  500 text "LAMMPS Tutorial 2 - Stretching CNT usi
                                     text "Atoms with bonds  1: $(c_count[1])  2: $(c_count[2])  3: $(c_count[3])  4: $(c_count[4])" &
                                     32.5 7.5 5.0 size 24 fontcolor white backcolor silver
 
-dump viz all image 500 myimage.*.png c_nbond type size 1600 300 zoom 12.5 shiny 0.2 autobond 1.8 0.4 &
+dump viz all image 500 breakable.*.png c_nbond type size 1600 300 zoom 12.5 shiny 0.2 autobond 1.8 0.4 &
         adiam 0.8 box no 0.01 view 0 90 fsaa yes ssao yes 1325123 0.6 axes yes 0.5 0.1 &
         fix arrows const 0 0  fix labels const 0 0 fix vel const 0 0
+
+# comment out the dump image command above and uncomment the lines below to create a movie
+#
+#dump viz all movie 500 breakable.mp4 c_nbond type size 1600 300 zoom 12.5 shiny 0.2 autobond 1.8 0.4 &
+#        adiam 0.8 box no 0.01 view 0 90 fsaa yes ssao yes 1325123 0.6 axes yes 0.5 0.1 &
+#        fix arrows const 0 0  fix labels const 0 0 fix vel const 0 0
+#dump_modify viz framerate 8
+
 dump_modify viz pad 5 backcolor darkgray backcolor2 gray &
         fcolor arrows firebrick fcolor vel midnightblue acolor 1 lightslategray &
         amap 0 5 sa 1 5 midnightblue royalblue cadetblue lightslategray blue

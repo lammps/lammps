@@ -180,7 +180,7 @@ class KSpace : protected Pointers {
    see Eq 4 from Parallel Computing 35 (2009) 164-177
 ------------------------------------------------------------------------- */
 
-  double gamma(const double &rho) const
+  [[nodiscard]] double gamma(const double &rho) const
   {
     if (rho <= 1.0) {
       const int split_order = order / 2;
@@ -201,7 +201,7 @@ class KSpace : protected Pointers {
    see Eq 4 from Parallel Computing 35 (2009) 164-177
 ------------------------------------------------------------------------- */
 
-  double dgamma(const double &rho) const
+  [[nodiscard]] double dgamma(const double &rho) const
   {
     if (rho <= 1.0) {
       const int split_order = order / 2;

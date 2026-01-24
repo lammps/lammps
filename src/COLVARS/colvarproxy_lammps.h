@@ -58,10 +58,10 @@ class colvarproxy_lammps : public colvarproxy {
 
   // methods for lammps to move data or trigger actions in the proxy
  public:
-  bool total_forces_enabled() const override { return total_force_requested; };
+  [[nodiscard]] bool total_forces_enabled() const override { return total_force_requested; };
   // Total forces are saved at end of step, only processed at the next step
-  bool total_forces_same_step() const override { return false; };
-  bool want_exit() const { return do_exit; };
+  [[nodiscard]] bool total_forces_same_step() const override { return false; };
+  [[nodiscard]] bool want_exit() const { return do_exit; };
 
   // perform colvars computation. returns biasing energy
   double compute();
@@ -81,7 +81,7 @@ class colvarproxy_lammps : public colvarproxy {
   void log(std::string const &message) override;
   void error(std::string const &message) override;
 
-  cvm::rvector position_distance(cvm::atom_pos const &pos1,
+  [[nodiscard]] cvm::rvector position_distance(cvm::atom_pos const &pos1,
                                  cvm::atom_pos const &pos2) const override;
 
   cvm::real rand_gaussian() override;

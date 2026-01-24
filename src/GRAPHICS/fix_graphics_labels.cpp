@@ -137,8 +137,7 @@ unsigned char *read_image(FILE *fp, int &width, int &height, const std::string &
     unsigned char sig[8];
 
     // read and check PNG file signature
-    fread(sig, sizeof(unsigned char), 8, fp);
-    if (!png_check_sig(sig, 8)) return nullptr;
+    if ((fread(sig, sizeof(unsigned char), 8, fp) != 8) || !png_check_sig(sig, 8)) return nullptr;
 
     // set up reading from file
     png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
@@ -227,7 +226,8 @@ unsigned char *read_image(FILE *fp, int &width, int &height, const std::string &
     } while (buffer[0] == '#');
 
     int rv = sscanf(buffer, "%d%d", &width, &height);
-    if (rv != 2) return nullptr;
+    // don't read invalid or oversize images
+    if ((rv != 2) || (width < 1) || (height < 1) || ((width * height) > (1 << 30))) return nullptr;
 
     int tmp = 0;
     ptr = fgets(buffer, 128, fp);
@@ -277,8 +277,6 @@ unsigned char *read_image(FILE *fp, int &width, int &height, const std::string &
 
     return pixmap;
   }
-  info = "Unknown image file format.";
-  return nullptr;
 }
 }    // namespace
 
@@ -287,6 +285,7 @@ unsigned char *read_image(FILE *fp, int &width, int &height, const std::string &
 #define PARSE_VARIABLE(value, name, index)      \
   if (strstr(arg[index], "v_") == arg[index]) { \
     varflag = 1;                                \
+    delete[] name;                              \
     name = utils::strdup(arg[index] + 2);       \
   } else                                        \
     value = utils::numeric(FLERR, arg[index], false, lmp)
@@ -719,9 +718,9 @@ void FixGraphicsLabels::end_of_step()
       if (txt.notrans) {
         imgparms[n][7] = imgparms[n][8] = imgparms[n][9] = -1.0;
       } else {
-        imgparms[n][7] = (double)txt.transcolor[0] / 255.0;
-        imgparms[n][8] = (double)txt.transcolor[1] / 255.0;
-        imgparms[n][9] = (double)txt.transcolor[2] / 255.0;
+        imgparms[n][7] = (double) txt.transcolor[0] / 255.0;
+        imgparms[n][8] = (double) txt.transcolor[1] / 255.0;
+        imgparms[n][9] = (double) txt.transcolor[2] / 255.0;
       }
 
       imgparms[n][10] = txt.scale;

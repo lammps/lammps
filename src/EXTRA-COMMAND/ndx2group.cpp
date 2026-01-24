@@ -35,7 +35,7 @@ static std::string find_section(FILE *fp, const std::string &name)
 
   if (!fgets(linebuf, BUFLEN, fp)) throw TokenizerException("Read error", utils::getsyserror());
   while (!feof(fp)) {
-    if (utils::strmatch(linebuf, "^\\s*\\[.*\\]\\s*$")) {
+    if (utils::strmatch(linebuf, R"(^\s*\[.*\]\s*$)")) {
       auto words = Tokenizer(linebuf).as_vector();
       if (words.size() != 3)
         throw TokenizerException("Invalid group name in index file",
@@ -54,7 +54,7 @@ static std::vector<tagint> read_section(FILE *fp, std::string &name)
 
   while (fgets(linebuf, BUFLEN, fp)) {
     // start of new section. we are done, update "name"
-    if (utils::strmatch(linebuf, "^\\s*\\[.*\\]\\s*$")) {
+    if (utils::strmatch(linebuf, R"(^\s*\[.*\]\s*$)")) {
       auto words = Tokenizer(linebuf).as_vector();
       if (words.size() != 3)
         throw TokenizerException("Invalid group name in index file",

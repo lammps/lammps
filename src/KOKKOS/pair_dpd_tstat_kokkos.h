@@ -55,8 +55,10 @@ class PairDPDTstatKokkos : public PairDPDTstat {
   void compute(int, int) override;
 
   struct params_dpd {
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_dpd() {cut=gamma=sigma=0;}
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_dpd(int /*i*/) {cut=gamma=sigma=0;}
     KK_FLOAT cut,gamma,sigma;
@@ -66,14 +68,17 @@ class PairDPDTstatKokkos : public PairDPDTstat {
   struct TagDPDTstatKokkos{};
 
   template<int NEIGHFLAG, int VFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator () (TagDPDTstatKokkos<NEIGHFLAG,VFLAG>, const int &i) const;
 
   template<int NEIGHFLAG, int VFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator () (TagDPDTstatKokkos<NEIGHFLAG,VFLAG>, const int &i, EV_FLOAT&) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &fpair, const KK_FLOAT &delx,
@@ -128,6 +133,7 @@ class PairDPDTstatKokkos : public PairDPDTstat {
   DAT::ttransform_kkacc_1d_6 k_vatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
   friend void pair_virial_fdotr_compute<PairDPDTstatKokkos>(PairDPDTstatKokkos*);

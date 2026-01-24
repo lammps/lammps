@@ -79,6 +79,7 @@ void FixWallReflectKokkos<DeviceType>::post_integrate()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixWallReflectKokkos<DeviceType>::operator()(TagFixWallReflectPostIntegrate, const int &i) const {
   if (mask[i] & groupbit) {

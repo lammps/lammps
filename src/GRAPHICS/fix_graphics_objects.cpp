@@ -39,6 +39,7 @@ enum { X = 0, Y, Z };
 #define PARSE_VARIABLE(value, name, index)      \
   if (strstr(arg[index], "v_") == arg[index]) { \
     varflag = 1;                                \
+    delete[] name;                              \
     name = utils::strdup(arg[index] + 2);       \
   } else                                        \
     value = utils::numeric(FLERR, arg[index], false, lmp)

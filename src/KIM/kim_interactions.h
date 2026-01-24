@@ -70,7 +70,7 @@ class KimInteractions : protected Pointers {
 
  private:
   void do_setup(int, char **);
-  int species_to_atomic_no(const std::string &species) const;
+  [[nodiscard]] int species_to_atomic_no(const std::string &species) const;
   void KIM_SET_TYPE_PARAMETERS(const std::string &input_line) const;
 };
 

@@ -142,7 +142,7 @@ class Neighbor : protected Pointers {
 
   // report if we have INTEL package neighbor lists
 
-  bool has_intel_request() const;
+  [[nodiscard]] bool has_intel_request() const;
 
   int decide();                     // decide whether to build or not
   virtual int check_distance();     // check max distance moved since last build
@@ -169,7 +169,7 @@ class Neighbor : protected Pointers {
   NeighList *find_list(void *, const int id = 0) const;
   NeighRequest *find_request(void *, const int id = 0) const;
 
-  const std::vector<NeighRequest *> get_pair_requests() const;
+  [[nodiscard]] const std::vector<NeighRequest *> get_pair_requests() const;
   int any_full();                // check if any old requests had full neighbor lists
   void build_collection(int);    // build peratom collection array starting at the given index
 

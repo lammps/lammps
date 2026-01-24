@@ -14,8 +14,8 @@
 #ifndef LMP_PAIR_LJ_CUBIC_CONST_H
 #define LMP_PAIR_LJ_CUBIC_CONST_H
 
-namespace LAMMPS_NS {
-namespace PairLJCubicConstants {
+
+namespace LAMMPS_NS::PairLJCubicConstants {
 
   // LJ quantities scaled by epsilon and rmin = sigma*2^1/6
 
@@ -25,8 +25,8 @@ namespace PairLJCubicConstants {
   static constexpr double DPHIDS = 2.6899008972047196;    // gradient at s
   static constexpr double A3 = 27.9335700460986445;       // cubic coefficient
   static constexpr double SM = 1.5475372709146737;        // cubic cutoff = s*67/48}
-}    // namespace PairLJCubicConstants
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::PairLJCubicConstants
+
 #endif
 
 // python script to compute the constants

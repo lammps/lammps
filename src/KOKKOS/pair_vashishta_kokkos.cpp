@@ -190,6 +190,7 @@ void PairVashishtaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeShortNeigh, const int& ii) const {
     const int i = d_ilist[ii];
@@ -228,6 +229,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeShortNei
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
@@ -353,6 +355,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEI
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -363,6 +366,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEI
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
@@ -456,6 +460,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -466,6 +471,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullB<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
@@ -539,6 +545,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullB<NE
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullB<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -625,6 +632,7 @@ void PairVashishtaKokkos<DeviceType>::setup_params()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::twobody(const Param& param, const KK_FLOAT& rsq, KK_FLOAT& fforce,
                      const int& eflag, KK_FLOAT& eng) const
@@ -651,6 +659,7 @@ void PairVashishtaKokkos<DeviceType>::twobody(const Param& param, const KK_FLOAT
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::threebody(const Param& paramij, const Param& paramik, const Param& paramijk,
                        const KK_FLOAT& rsq1, const KK_FLOAT& rsq2,
@@ -710,6 +719,7 @@ void PairVashishtaKokkos<DeviceType>::threebody(const Param& paramij, const Para
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::threebodyj(const Param& paramij, const Param& paramik, const Param& paramijk,
                        const KK_FLOAT& rsq1, const KK_FLOAT& rsq2, KK_FLOAT *delr1, KK_FLOAT *delr2, KK_ACC_FLOAT *fj) const
@@ -757,6 +767,7 @@ void PairVashishtaKokkos<DeviceType>::threebodyj(const Param& paramij, const Par
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
@@ -831,6 +842,7 @@ void PairVashishtaKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::ev_tally3(EV_FLOAT &ev, const int &i, const int &j, int &k,
           const KK_FLOAT &evdwl, const KK_FLOAT &ecoul,
@@ -896,6 +908,7 @@ void PairVashishtaKokkos<DeviceType>::ev_tally3(EV_FLOAT &ev, const int &i, cons
  ------------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT & /*ev*/, const int &i,
           const KK_FLOAT &evdwl, const KK_FLOAT &ecoul,

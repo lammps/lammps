@@ -104,8 +104,21 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   if (utils::strmatch(filename, "\\.jpg$") || utils::strmatch(filename, "\\.JPG$")
       || utils::strmatch(filename, "\\.jpeg$") || utils::strmatch(filename, "\\.JPEG$"))
     filetype = JPG;
-  else if  (utils::strmatch(filename, "\\.png$") || utils::strmatch(filename, "\\.PNG$"))
+  else if (utils::strmatch(filename, "\\.png$") || utils::strmatch(filename, "\\.PNG$"))
     filetype = PNG;
+  else if (utils::strmatch(filename, "\\.tga$") || utils::strmatch(filename, "\\.TGA$"))
+    filetype = TGA;
+  else if (compressed && (utils::strmatch(filename, "\\.jpg\\.\\w+$") ||
+                          utils::strmatch(filename, "\\.JPG\\.\\w+$") ||
+                          utils::strmatch(filename, "\\.jpeg\\.\\w+$") ||
+                          utils::strmatch(filename, "\\.JPEG\\.\\w+$")))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use compression with JPEG images");
+  else if (compressed && (utils::strmatch(filename, "\\.png\\.\\w+$") ||
+                           utils::strmatch(filename, "\\.PNG\\.\\w+$")))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use compression with PNG images");
+  else if (compressed && (utils::strmatch(filename, "\\.tga\\.\\w+$") ||
+                          utils::strmatch(filename, "\\.TGA\\.\\w+$")))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use compression with TGA images");
   else filetype = PPM;
 
 #ifndef LAMMPS_JPEG
@@ -942,6 +955,7 @@ void DumpImage::write()
   if (me == 0) {
     if (filetype == JPG) image->write_JPG(fp);
     else if (filetype == PNG) image->write_PNG(fp);
+    else if (filetype == TGA) image->write_TGA(fp);
     else image->write_PPM(fp);
     if (multifile) {
       fclose(fp);

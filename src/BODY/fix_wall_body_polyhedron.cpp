@@ -556,7 +556,7 @@ int FixWallBodyPolyhedron::sphere_against_wall(int i, double wall_pos,double* vw
     hi[0] = x[i][0];
     hi[1] = wall_pos;
     hi[2] = x[i][2];
-  } else if (wallstyle == ZPLANE) {
+  } else { // if (wallstyle == ZPLANE) {
     hi[0] = x[i][0];
     hi[1] = x[i][1];
     hi[2] = wall_pos;
@@ -673,7 +673,7 @@ int FixWallBodyPolyhedron::compute_distance_to_wall(int ibody, int edge_index, d
     hi[0] = xpi1[0];
     hi[1] = wall_pos;
     hi[2] = xpi1[2];
-  } else if (wallstyle == ZPLANE) {
+  } else { // if (wallstyle == ZPLANE) {
     hi[0] = xpi1[0];
     hi[1] = xpi1[1];
     hi[2] = wall_pos;

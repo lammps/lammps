@@ -445,7 +445,8 @@ void FixColvars::setup(int vflag)
 {
   const tagint * const tag  = atom->tag;
   const int * const type = atom->type;
-  int i,nme,tmp,ndata;
+  int i,nme,ndata;
+  int tmp = 0;
   const auto nlocal = atom->nlocal;
   const auto me = comm->me;
 
@@ -649,7 +650,8 @@ void FixColvars::post_force(int /*vflag*/)
 
   MPI_Status status;
   MPI_Request request;
-  int tmp, ndata;
+  int tmp = 0;
+  int ndata =0;
 
   if (me == 0) {
 
@@ -803,7 +805,8 @@ void FixColvars::end_of_step()
 
     MPI_Status status;
     MPI_Request request;
-    int tmp, ndata;
+    int tmp = 0;
+    int ndata = 0;
 
     if (comm->me == 0) {
 

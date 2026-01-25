@@ -117,7 +117,7 @@ details on the *side* keyword below.
 Normally, regions in LAMMPS are "static", meaning their geometric
 extent does not change with time.  If the *move* or *rotate* keyword
 is used, as described below, the region becomes "dynamic", meaning
-it's location or orientation changes with time.  This may be useful,
+its location or orientation changes with time.  This may be useful,
 for example, when thermostatting a region, via the compute temp/region
 command, or when the fix wall/region command uses a region surface as
 a bounding wall on particle motion, i.e. a rotating container.
@@ -182,7 +182,7 @@ not have to be of unit length.  The "inside" of the plane is the
 half-space in the direction of the normal vector; see the discussion
 of the *side* option below.
 
-For style *prism*, a parallelepiped is defined (it's too hard to spell
+For style *prism*, a parallelepiped is defined (it is too hard to spell
 parallelepiped in an input script!).  The parallelepiped has its
 "origin" at (xlo,ylo,zlo) and is defined by 3 edge vectors starting
 from the origin given by A = (xhi-xlo,0,0); B = (xy,yhi-ylo,0); C =

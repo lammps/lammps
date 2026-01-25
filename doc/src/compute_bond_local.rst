@@ -20,7 +20,6 @@ Syntax
      *dist* = bond distance
      *engpot* = bond potential energy
      *force* = bond force
-
      *dx*,\ *dy*,\ *dz* = components of pairwise distance
      *fx*,\ *fy*,\ *fz* = components of bond force
      *engvib* = bond kinetic energy of vibration
@@ -47,9 +46,7 @@ Examples
 
    compute 1 all bond/local engpot
    compute 1 all bond/local dist engpot force
-
    compute 1 all bond/local dist fx fy fz b1 b2
-
    compute 1 all bond/local dist v_distsq set dist d
 
 Description
@@ -226,7 +223,7 @@ energy :doc:`units <units>`. The output for *force* will be in force
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

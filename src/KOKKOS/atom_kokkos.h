@@ -135,6 +135,7 @@ class AtomKokkos : public Atom {
   };
 
   template<class DeviceType>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static int map_kokkos(tagint global, int map_style, const DAT::tdual_int_1d &k_map_array, const dual_hash_type &k_map_hash)
   {
@@ -147,6 +148,7 @@ class AtomKokkos : public Atom {
   }
 
   template<class DeviceType>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static int map_find_hash_kokkos(tagint global, const dual_hash_type &k_map_hash)
   {
@@ -195,6 +197,7 @@ struct SortFunctor {
   SortFunctor(ViewType src, std::enable_if_t<ViewType::dynamic_rank==4,IndexView> ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1),src.extent(2),src.extent(3));
   }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const std::enable_if_t<ViewType::rank==1, int>& i) {
     dest(i) = source(index(i));

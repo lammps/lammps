@@ -42,6 +42,7 @@ class FixExternalKokkos : public FixExternal {
   void post_force(int) override;
   void grow_arrays(int) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixExternal, const int&) const;
 

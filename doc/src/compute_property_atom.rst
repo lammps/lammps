@@ -228,7 +228,7 @@ are given in rad/THz.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

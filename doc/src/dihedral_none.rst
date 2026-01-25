@@ -29,7 +29,7 @@ calculate dihedral statistics, but compute no dihedral interactions.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

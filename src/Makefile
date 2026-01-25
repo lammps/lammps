@@ -78,6 +78,7 @@ PACKAGE = \
 	extra-molecule \
 	extra-pair \
 	fep \
+	graphics \
 	granular \
 	intel \
 	interlayer \
@@ -119,7 +120,7 @@ PACKAGE = \
 # NOTE: the last four packages must remain at the end since
 # they depend on other packages to be installed first.
 
-PACKBASIC = molecule kspace manybody rigid
+PACKBASIC = molecule kspace manybody rigid graphics
 
 PACKMOST = \
 	kspace \
@@ -150,6 +151,7 @@ PACKMOST = \
 	extra-molecule \
 	extra-pair \
 	fep \
+	graphics \
 	granular \
 	interlayer \
 	manybody \

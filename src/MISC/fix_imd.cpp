@@ -809,7 +809,8 @@ void FixIMD::setup_v2() {
   taginthash_init(hashtable, num_coords);
   idmap = (void *)hashtable;
 
-  int tmp, ndata;
+  int tmp = 0;
+  int ndata = 0;
   auto *buf = static_cast<struct commdata *>(coord_data);
 
   if (me == 0) {
@@ -911,8 +912,8 @@ void FixIMD::setup_v3()
   taginthash_init(hashtable, num_coords);
   idmap = (void *)hashtable;
 
-  int tmp, ndata;
-
+  int tmp = 0;
+  int ndata = 0;
   struct commdata *buf = nullptr;
   if (imdsinfo->coords) {
     buf = static_cast<struct commdata *>(coord_data);
@@ -1236,7 +1237,8 @@ void FixIMD::handle_step_v2() {
     coord_data = memory->smalloc(maxbuf,"imd:coord_data");
   }
 
-  int tmp, ndata;
+  int tmp = 0;
+  int ndata = 0;
   buf = static_cast<struct commdata *>(coord_data);
 
   if (me == 0) {

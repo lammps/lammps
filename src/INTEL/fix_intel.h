@@ -74,7 +74,7 @@ class FixIntel : public Fix {
   inline IntelBuffers<float, double> *get_mixed_buffers() { return _mixed_buffers; }
   inline IntelBuffers<double, double> *get_double_buffers() { return _double_buffers; }
 
-  inline int nbor_pack_width() const { return _nbor_pack_width; }
+  [[nodiscard]] int nbor_pack_width() const { return _nbor_pack_width; }
   inline void nbor_pack_width(const int w) { _nbor_pack_width = w; }
   inline int three_body_neighbor() { return _three_body_neighbor; }
   inline void three_body_neighbor(const int i) { _three_body_neighbor = i; }

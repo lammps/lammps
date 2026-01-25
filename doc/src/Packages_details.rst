@@ -59,6 +59,7 @@ gives those details.
    * :ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>`
    * :ref:`FEP <PKG-FEP>`
    * :ref:`GPU <PKG-GPU>`
+   * :ref:`GRAPHICS <PKG-GRAPHICS>`
    * :ref:`GRANULAR <PKG-GRANULAR>`
    * :ref:`H5MD <PKG-H5MD>`
    * :ref:`INTEL <PKG-INTEL>`
@@ -1054,12 +1055,39 @@ This package has :ref:`specific installation instructions <gpu>` on the
 * ``lib/gpu/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`GPU package <Speed_gpu>`
-* :doc:`Section 2.6 -sf gpu <Run_options>`
-* :doc:`Section 2.6 -pk gpu <Run_options>`
+* :doc:`Section 4.2 -sf gpu <Run_options>`
+* :doc:`Section 4.2 -pk gpu <Run_options>`
 * :doc:`package gpu <package>`
 * :doc:`Commands <Commands_all>` pages (:doc:`pair <Commands_pair>`, :doc:`kspace <Commands_kspace>`)
   for styles followed by (g)
 * `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
+
+----------
+
+.. _PKG-GRAPHICS:
+
+GRAPHICS package
+----------------
+
+**Contents:**
+
+Dump styles :doc:`image and movie <dump_image>`, supporting classes for
+rendering images and fonts, several fixes for adding graphics objects to
+visualizations, and the region2vmd command for exporting visualizations
+of regions scripted graphics in VMD.
+
+**Supporting info:**
+
+* ``src/GRAPHICS``: filenames -> commands
+* :doc:`Howto_viz`
+* :doc:`dump image <dump_image>`
+* :doc:`dump movie <dump_image>`
+* :doc:`fix graphics/arrows <fix_graphics_arrows>`
+* :doc:`fix graphics/isosurface <fix_graphics_isosurface>`
+* :doc:`fix graphics/labels <fix_graphics_labels>`,
+* :doc:`fix graphics/objects <fix_graphics_objects>`,
+* :doc:`fix graphics/periodic <fix_graphics_periodic>`,
+* :doc:`region2vmd <region2vmd>`
 
 ----------
 
@@ -1165,8 +1193,8 @@ This package has :ref:`specific installation instructions <intel>` on the :doc:`
 * ``src/INTEL/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`INTEL package <Speed_intel>`
-* :doc:`Section 2.6 -sf intel <Run_options>`
-* :doc:`Section 2.6 -pk intel <Run_options>`
+* :doc:`Section 4.2 -sf intel <Run_options>`
+* :doc:`Section 4.2 -pk intel <Run_options>`
 * :doc:`package intel <package>`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
@@ -1302,9 +1330,9 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 * ``lib/kokkos/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`KOKKOS package <Speed_kokkos>`
-* :doc:`Section 2.6 -k on ... <Run_options>`
-* :doc:`Section 2.6 -sf kk <Run_options>`
-* :doc:`Section 2.6 -pk kokkos <Run_options>`
+* :doc:`Section 4.2 -k on ... <Run_options>`
+* :doc:`Section 4.2 -sf kk <Run_options>`
+* :doc:`Section 4.2 -pk kokkos <Run_options>`
 * :doc:`package kokkos <package>`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
@@ -2203,7 +2231,7 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 * ``src/OPT``: filenames -> commands
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`OPT package <Speed_opt>`
-* :doc:`Section 2.6 -sf opt <Run_options>`
+* :doc:`Section 4.2 -sf opt <Run_options>`
 * Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
 * `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 

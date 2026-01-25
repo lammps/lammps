@@ -15,15 +15,13 @@ Syntax
 * k_n = normal repulsion strength (force/distance or pressure units)
 * c_n = normal damping coefficient (force/distance or pressure units)
 * c_t = tangential damping coefficient (force/distance or pressure units)
-* wallstyle = *xplane* or *yplane* or *zcylinder*
+* wallstyle = *xplane* or *yplane*
 * args = list of arguments for a particular style
 
   .. parsed-literal::
 
        *xplane* or *yplane* args = lo hi
          lo,hi = position of lower and upper plane (distance units), either can be NULL)
-       *zcylinder* args = radius
-         radius = cylinder radius (distance units)
 
 * zero or more keyword/value pairs may be appended to args
 * keyword = *wiggle*
@@ -57,23 +55,20 @@ body particles.
 The parameters *k_n*, *c_n*, *c_t* have the same meaning and units as
 those specified with the :doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>` command.
 
-The *wallstyle* can be planar or cylindrical.  The 2 planar options
-specify a pair of walls in a dimension.  Wall positions are given by
-*lo* and *hi*\ .  Either of the values can be specified as NULL if a
-single wall is desired.  For a *zcylinder* wallstyle, the cylinder's
-axis is at x = y = 0.0, and the radius of the cylinder is specified.
-
-Optionally, the wall can be moving, if the *wiggle* keyword is
-appended.
+The *wallstyle* is planar and allows to specify a pair of walls in x-
+and y direction each.  Wall positions are given by *lo* and *hi*\ .
+Either of the values can be specified as NULL if a single wall per
+dimension is desired.  Optionally, the wall can be moving, if the
+*wiggle* keyword is appended.
 
 For the *wiggle* keyword, the wall oscillates sinusoidally, similar to
-the oscillations of particles which can be specified by the :doc:`fix move <fix_move>` command.  This is useful in packing simulations of
+the oscillations of particles which can be specified by the :doc:`fix
+move <fix_move>` command.  This is useful in packing simulations of
 particles.  The arguments to the *wiggle* keyword specify a dimension
-for the motion, as well as it's *amplitude* and *period*\ .  Note that
-if the dimension is in the plane of the wall, this is effectively a
+for the motion, as well as its *amplitude* and *period*\ .  Note that if
+the dimension is in the plane of the wall, this is effectively a
 shearing motion.  If the dimension is perpendicular to the wall, it is
-more of a shaking motion.  A *zcylinder* wall can only be wiggled in
-the z dimension.
+more of a shaking motion.
 
 Each timestep, the position of a wiggled wall in the appropriate *dim*
 is set according to this equation:
@@ -87,27 +82,57 @@ the *amplitude*, *omega* is 2 PI / *period*, and *delta* is the time
 elapsed since the fix was specified.  The velocity of the wall is set
 to the derivative of this expression.
 
+-----------------
+
+Dump image info
+"""""""""""""""
+
+.. versionadded:: TBD
+
+This fix supports the *fix* keyword of :doc:`dump image <dump_image>`.
+The fix will pass geometry information about the walls to *dump image*
+so that the walls will be included in the rendered image.  Please note,
+that for :doc:`2d systems <dimension>`, a wall rendered as a plane would
+be invisible and it is thus rendered as a cylinder.
+
+The color of the wall is by default that of the first atom type when
+using color styles "type" or "element".  With color style "const" the
+default value of "white" can be changed using :doc:`dump_modify fcolor
+<dump_image>`.  The transparency is by default fully opaque and can be
+changed with *dump\_modify ftrans*\ .
+
+The *fflag1* setting determines whether the cylinder representing the
+wall is capped with a sphere at the ends: 0 means no caps, 1 means the
+lower end is capped, 2 means the upper end is capped, and 3 means both
+ends are capped.  The *fflag2* setting allows to set the radius of the
+rendered cylinders.
+
+-------------------
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
-fix.  No global or per-atom quantities are stored by this fix for
-access by various :doc:`output commands <Howto_output>`.  No parameter
-of this fix can be used with the *start/stop* keywords of the
-:doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+fix.  No global or per-atom quantities are stored by this fix for access
+by various :doc:`output commands <Howto_output>`.  No parameter of this
+fix can be used with the *start/stop* keywords of the :doc:`run <run>`
+command.  This fix is not invoked during :doc:`energy minimization
+<minimize>`.
 
 Restrictions
 """"""""""""
 
-This fix is part of the BODY package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This fix is part of the BODY package.  It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>`
+page for more info.
 
 Any dimension (xy) that has a wall must be non-periodic.
 
 Related commands
 """"""""""""""""
 
-:doc:`atom_style body <atom_style>`, :doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>`
+:doc:`atom_style body <atom_style>`,
+:doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>`
 
 Default
 """""""

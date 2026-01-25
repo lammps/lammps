@@ -28,6 +28,7 @@ Contributing Author: Jacob Gissinger (jgissing@stevens.edu)
 #include "force.h"
 #include "group.h"
 #include "input.h"
+#include "label_map.h"
 #include "json_metadata.h"
 #include "math_const.h"
 #include "math_extra.h"
@@ -356,7 +357,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                       "'prob' keyword has too few arguments");
         // check if probability is a variable
         if (strncmp(arg[iarg+1],"v_",2) == 0) {
-          rxn.v_prob = input->variable->find(&arg[iarg][2]);
+          rxn.v_prob = input->variable->find(&arg[iarg+1][2]);
           validate_variable_keyword(&arg[iarg+1][2], rxn.v_prob);
           rxn.fraction = input->variable->compute_equal(rxn.v_prob);
         } else {
@@ -490,6 +491,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     int idx = 1;
     for (auto &atm : rxn.atoms) {
       atm.edge = 0;
+      atm.wildcard = false;
       atm.recharged = 1; // update all partial charges by default
       atm.deleted = 0;
       atm.created = 0;
@@ -1558,30 +1560,17 @@ void FixBondReact::make_a_guess(Superimpose &super, Reaction &rxn)
   if (assigned_count == nfirst_neighs) status = Status::GUESSFAIL;
 
   // check if all neigh atom types are the same between simulation and unreacted mol
-  int *mol_ntypes = new int[atom->ntypes];
-  int *lcl_ntypes = new int[atom->ntypes];
-
-  for (int i = 0; i < atom->ntypes; i++) {
-    mol_ntypes[i] = 0;
-    lcl_ntypes[i] = 0;
-  }
-
+  std::multiset<int> mol_types, lcl_types;
   for (int i = 0; i < nfirst_neighs; i++) {
-    mol_ntypes[(int)rxn.reactant->type[(int)rxn.reactant->special[sp.pion][i]-1]-1]++;
-    lcl_ntypes[(int)type[(int)atom->map(xspecial[atom->map(sp.glove[sp.pion])][i])]-1]++; //added -1
+    int imolatom = (int) rxn.reactant->special[sp.pion][i]-1;
+    if (!rxn.atoms[imolatom].wildcard) mol_types.insert(rxn.reactant->type[imolatom]);
+    lcl_types.insert(type[atom->map(xspecial[atom->map(sp.glove[sp.pion])][i])]);
   }
 
-  for (int i = 0; i < atom->ntypes; i++) {
-    if (mol_ntypes[i] != lcl_ntypes[i]) {
-      status = Status::GUESSFAIL;
-      delete[] mol_ntypes;
-      delete[] lcl_ntypes;
-      return;
-    }
+  if (!std::includes(lcl_types.begin(), lcl_types.end(), mol_types.begin(), mol_types.end())) {
+    status = Status::GUESSFAIL;
+    return;
   }
-
-  delete[] mol_ntypes;
-  delete[] lcl_ntypes;
 
   // okay everything seems to be in order. let's assign some ID pairs!!!
   neighbor_loop(super, rxn);
@@ -1629,7 +1618,9 @@ void FixBondReact::check_a_neighbor(Superimpose &super, Reaction &rxn)
 
       for (int i = 0; i < nfirst_neighs; i++) {
 
-        if (type[(int)atom->map(xspecial[(int)atom->map(sp.glove[sp.pion])][i])] == rxn.reactant->type[(int)rxn.reactant->special[sp.pion][sp.neigh]-1] &&
+        int checktype = type[(int)atom->map(xspecial[(int)atom->map(sp.glove[sp.pion])][i])];
+        int reactant_atom = (int) rxn.reactant->special[sp.pion][sp.neigh];
+        if (compare_atomtype(checktype, rxn, reactant_atom) &&
             nxspecial[(int)atom->map(xspecial[(int)atom->map(sp.glove[sp.pion])][i])][0] == 1) {
 
           int already_assigned = 0;
@@ -1680,7 +1671,9 @@ void FixBondReact::check_a_neighbor(Superimpose &super, Reaction &rxn)
 
   for (int i = 0; i < nfirst_neighs; i++) {
 
-    if (type[atom->map((int)xspecial[(int)atom->map(sp.glove[sp.pion])][i])] == rxn.reactant->type[(int)rxn.reactant->special[sp.pion][sp.neigh]-1]) {
+    int checktype = type[atom->map((int)xspecial[(int)atom->map(sp.glove[sp.pion])][i])];
+    int reactant_atom = (int) rxn.reactant->special[sp.pion][sp.neigh];
+    if (compare_atomtype(checktype, rxn, reactant_atom)) {
       int already_assigned = 0;
 
       //check if a first neighbor of the pioneer is already assigned to pre-reacted template
@@ -1737,7 +1730,11 @@ void FixBondReact::crosscheck_the_neighbor(Superimpose &super, Reaction &rxn)
   }
 
   for (sp.trace = 0; sp.trace < nfirst_neighs; sp.trace++) {
-    if (sp.neigh != sp.trace && rxn.reactant->type[(int)rxn.reactant->special[sp.pion][sp.neigh]-1] == rxn.reactant->type[(int)rxn.reactant->special[sp.pion][sp.trace]-1] &&
+    int reactant_atom1 = (int) rxn.reactant->special[sp.pion][sp.trace];
+    int atom1type = rxn.reactant->type[reactant_atom1-1];
+    int reactant_atom2 = (int) rxn.reactant->special[sp.pion][sp.neigh];
+    int atom2type = rxn.reactant->type[reactant_atom2-1];
+    if (sp.neigh != sp.trace && (compare_atomtype(atom2type, rxn, reactant_atom1) || compare_atomtype(atom1type, rxn, reactant_atom2)) &&
         sp.glove[rxn.reactant->special[sp.pion][sp.trace]-1] == 0) {
 
       if (avail_guesses == MAXGUESS) {
@@ -1781,7 +1778,9 @@ void FixBondReact::inner_crosscheck_loop(Superimpose &super, Reaction &rxn)
 
   int num_choices = 0;
   for (int i = 0; i < nfirst_neighs; i++) {
-    if (type[(int)atom->map(xspecial[atom->map(sp.glove[sp.pion])][i])] == rxn.reactant->type[(int)rxn.reactant->special[sp.pion][sp.neigh]-1]) {
+    int checktype = type[(int)atom->map(xspecial[atom->map(sp.glove[sp.pion])][i])];
+    int reactant_atom = (int) rxn.reactant->special[sp.pion][sp.neigh];
+    if (compare_atomtype(checktype, rxn, reactant_atom)) {
       if (num_choices == 5) { // here failed because too many identical first neighbors. but really no limit if situation arises
         status = Status::GUESSFAIL;
         return;
@@ -1843,6 +1842,17 @@ void FixBondReact::inner_crosscheck_loop(Superimpose &super, Reaction &rxn)
     return;
   }
   status = Status::CONTINUE;
+}
+
+/* ----------------------------------------------------------------------
+check if an atom type matches that of a reactant atom
+------------------------------------------------------------------------- */
+
+bool FixBondReact::compare_atomtype(int checktype, Reaction &rxn, int reactant_atom)
+{
+  int iatom = reactant_atom - 1; // index of reactant atom
+  if (checktype == rxn.reactant->type[iatom] || rxn.atoms[iatom].wildcard) return true;
+  else return false;
 }
 
 /* ----------------------------------------------------------------------
@@ -2213,14 +2223,14 @@ void FixBondReact::customvarnames()
           }
           if (pos1 == std::string::npos) break;
 
-          pos2 = varstr.find("(",pos1);
-          pos3 = varstr.find(")",pos2);
+          pos2 = varstr.find('(',pos1);
+          pos3 = varstr.find(')',pos2);
           if (pos2 == std::string::npos || pos3 == std::string::npos)
             error->all(FLERR,"Fix bond/react: Illegal rxn function syntax\n");
           prev3 = (int)pos3;
           argstr = varstr.substr(pos2+1,pos3-pos2-1);
           argstr.erase(remove_if(argstr.begin(), argstr.end(), isspace), argstr.end()); // remove whitespace
-          pos2 = argstr.find(",");
+          pos2 = argstr.find(',');
           if (pos2 != std::string::npos) varid = argstr.substr(0,pos2);
           else varid = argstr;
           // check if we already know about this variable
@@ -2306,15 +2316,15 @@ bool FixBondReact::custom_constraint(const std::string &varstr, Reaction &rxn, s
     if (pos1 == std::string::npos) break;
 
     fragid = "all"; // operate over entire reaction site by default
-    pos2 = varstr.find("(",pos1);
-    pos3 = varstr.find(")",pos2);
+    pos2 = varstr.find('(',pos1);
+    pos3 = varstr.find(')',pos2);
     if (pos2 == std::string::npos || pos3 == std::string::npos)
       error->one(FLERR,"Fix bond/react: Illegal rxn function syntax\n");
     evlstr.push_back(varstr.substr(prev3+1,pos1-(prev3+1)));
     prev3 = pos3;
     argstr = varstr.substr(pos2+1,pos3-pos2-1);
     argstr.erase(remove_if(argstr.begin(), argstr.end(), isspace), argstr.end()); // remove whitespace
-    pos2 = argstr.find(",");
+    pos2 = argstr.find(',');
     if (pos2 != std::string::npos) {
       varid = argstr.substr(0,pos2);
       fragid = argstr.substr(pos2+1);
@@ -2528,11 +2538,13 @@ void FixBondReact::find_landlocked_atoms(Reaction &rxn)
   // bad molecule templates check
   // if atoms change types, but aren't landlocked, that's bad
   for (int i = 0; i < rxn.product->natoms; i++) {
-    if ((rxn.atoms[i].created == 0) &&
-        (rxn.product->type[i] != rxn.reactant->type[rxn.atoms[i].amap[1]-1]) &&
-        (rxn.atoms[i].landlocked == 0))
-      error->all(FLERR, "Fix bond/react: Atom type affected by reaction {} is too close "
+    if (rxn.atoms[i].created == 0) {
+      int checktype = rxn.product->type[i];
+      int reactant_atom = rxn.atoms[i].amap[1];
+      if (!compare_atomtype(checktype, rxn, reactant_atom) && rxn.atoms[i].landlocked == 0)
+        error->all(FLERR, "Fix bond/react: Atom type affected by reaction {} is too close "
                  "to template edge", rxn.name);
+    }
   }
 
   // additionally, if a bond changes type, but neither involved atom is landlocked, bad
@@ -3192,7 +3204,7 @@ void FixBondReact::update_everything()
           i_react_tags[ilocal] = rxn.ID;
           i_rxn_instance[ilocal] = update_mega_glove[rxn.ibonding+1][i];
 
-          if (rxn.atoms[j].landlocked == 1)
+          if (rxn.atoms[j].landlocked == 1 && !rxn.atoms[j].wildcard)
             type[ilocal] = rxn.product->type[j];
           if (rxn.product->qflag && atom->q_flag && rxn.atoms[jj].recharged == 1) {
             double *q = atom->q;
@@ -3284,40 +3296,40 @@ void FixBondReact::update_everything()
       // let's first delete all bond info about landlocked atoms
       for (int j = 0; j < rxn.product->natoms; j++) {
         int jj = rxn.atoms[j].amap[1]-1;
-        if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
+        int jjlocal = atom->map(update_mega_glove[jj+1][i]);
+        if (jjlocal < nlocal && jjlocal >= 0) {
           if (rxn.atoms[j].landlocked == 1) {
-            delta_bonds -= num_bond[atom->map(update_mega_glove[jj+1][i])];
+            delta_bonds -= num_bond[jjlocal];
             // If deleting all bonds, first cache then remove all histories
             if (n_histories > 0)
               for (auto &ihistory: histories) {
-                for (int n = 0; n < num_bond[atom->map(update_mega_glove[jj+1][i])]; n++)
-                  dynamic_cast<FixBondHistory *>(ihistory)->cache_history(atom->map(update_mega_glove[jj+1][i]), n);
-                for (int n = 0; n < num_bond[atom->map(update_mega_glove[jj+1][i])]; n++)
-                  dynamic_cast<FixBondHistory *>(ihistory)->delete_history(atom->map(update_mega_glove[jj+1][i]), 0);
+                for (int n = 0; n < num_bond[jjlocal]; n++)
+                  dynamic_cast<FixBondHistory *>(ihistory)->cache_history(jjlocal, n);
+                for (int n = 0; n < num_bond[jjlocal]; n++)
+                  dynamic_cast<FixBondHistory *>(ihistory)->delete_history(jjlocal, 0);
               }
-            num_bond[atom->map(update_mega_glove[jj+1][i])] = 0;
+            num_bond[jjlocal] = 0;
           }
           if (rxn.atoms[j].landlocked == 0) {
-            for (int p = num_bond[atom->map(update_mega_glove[jj+1][i])]-1; p > -1 ; p--) {
+            for (int p = num_bond[jjlocal]-1; p > -1 ; p--) {
               for (int n = 0; n < rxn.product->natoms; n++) {
                 int nn = rxn.atoms[n].amap[1]-1;
-                if (n!=j && bond_atom[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] && rxn.atoms[n].landlocked == 1) {
+                if (n!=j && bond_atom[jjlocal][p] == update_mega_glove[nn+1][i] && rxn.atoms[n].landlocked == 1) {
                   // Cache history information, shift history, then delete final element
                   if (n_histories > 0)
                     for (auto &ihistory: histories)
-                      dynamic_cast<FixBondHistory *>(ihistory)->cache_history(atom->map(update_mega_glove[jj+1][i]), p);
-                  for (int m = p; m < num_bond[atom->map(update_mega_glove[jj+1][i])]-1; m++) {
-                    bond_type[atom->map(update_mega_glove[jj+1][i])][m] = bond_type[atom->map(update_mega_glove[jj+1][i])][m+1];
-                    bond_atom[atom->map(update_mega_glove[jj+1][i])][m] = bond_atom[atom->map(update_mega_glove[jj+1][i])][m+1];
+                      dynamic_cast<FixBondHistory *>(ihistory)->cache_history(jjlocal, p);
+                  for (int m = p; m < num_bond[jjlocal]-1; m++) {
+                    bond_type[jjlocal][m] = bond_type[jjlocal][m+1];
+                    bond_atom[jjlocal][m] = bond_atom[jjlocal][m+1];
                     if (n_histories > 0)
                       for (auto &ihistory: histories)
-                        dynamic_cast<FixBondHistory *>(ihistory)->shift_history(atom->map(update_mega_glove[jj+1][i]),m,m+1);
+                        dynamic_cast<FixBondHistory *>(ihistory)->shift_history(jjlocal,m,m+1);
                   }
                   if (n_histories > 0)
                     for (auto &ihistory: histories)
-                      dynamic_cast<FixBondHistory *>(ihistory)->delete_history(atom->map(update_mega_glove[jj+1][i]),
-                                                                 num_bond[atom->map(update_mega_glove[jj+1][i])]-1);
-                  num_bond[atom->map(update_mega_glove[jj+1][i])]--;
+                      dynamic_cast<FixBondHistory *>(ihistory)->delete_history(jjlocal, num_bond[jjlocal]-1);
+                  num_bond[jjlocal]--;
                   delta_bonds--;
                 }
               }
@@ -3328,31 +3340,54 @@ void FixBondReact::update_everything()
       // now let's add the new bond info.
       for (int j = 0; j < rxn.product->natoms; j++) {
         int jj = rxn.atoms[j].amap[1]-1;
-        if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
+        int jjlocal = atom->map(update_mega_glove[jj+1][i]);
+        if (jjlocal < nlocal && jjlocal >= 0) {
           if (rxn.atoms[j].landlocked == 1)  {
-            num_bond[atom->map(update_mega_glove[jj+1][i])] = rxn.product->num_bond[j];
+            num_bond[jjlocal] = rxn.product->num_bond[j];
             delta_bonds += rxn.product->num_bond[j];
             for (int p = 0; p < rxn.product->num_bond[j]; p++) {
-              bond_type[atom->map(update_mega_glove[jj+1][i])][p] = rxn.product->bond_type[j][p];
-              bond_atom[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[rxn.atoms[rxn.product->bond_atom[j][p]-1].amap[1]][i];
+              int batom = rxn.product->bond_atom[j][p];
+              int ibatom = rxn.atoms[batom-1].amap[1]-1;
+              int btag = update_mega_glove[ibatom+1][i];
+              if (rxn.atoms[jj].wildcard || rxn.atoms[ibatom].wildcard) {
+                int blocal = atom->map(btag);
+                if (blocal < 0) error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
+                int btype = atom->lmap->infer_bondtype(type[jjlocal],type[blocal]);
+                if (btype == -1) error->one(FLERR,"Bond/react: Unable to infer bond type from wildcard atoms");
+                bond_type[jjlocal][p] = btype;
+              } else {
+                bond_type[jjlocal][p] = rxn.product->bond_type[j][p];
+              }
+              bond_atom[jjlocal][p] = btag;
               // Check cached history data to see if bond regenerated
               if (n_histories > 0)
                 for (auto &ihistory: histories)
-                  dynamic_cast<FixBondHistory *>(ihistory)->check_cache(atom->map(update_mega_glove[jj+1][i]), p);
+                  dynamic_cast<FixBondHistory *>(ihistory)->check_cache(jjlocal, p);
             }
           }
           if (rxn.atoms[j].landlocked == 0) {
             for (int p = 0; p < rxn.product->num_bond[j]; p++) {
-              if (rxn.atoms[rxn.product->bond_atom[j][p]-1].landlocked == 1) {
-                insert_num = num_bond[atom->map(update_mega_glove[jj+1][i])];
-                bond_type[atom->map(update_mega_glove[jj+1][i])][insert_num] = rxn.product->bond_type[j][p];
-                bond_atom[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[rxn.atoms[rxn.product->bond_atom[j][p]-1].amap[1]][i];
+              int batom = rxn.product->bond_atom[j][p];
+              if (rxn.atoms[batom-1].landlocked == 1) {
+                int ibatom = rxn.atoms[batom-1].amap[1]-1;
+                int btag = update_mega_glove[ibatom+1][i];
+                insert_num = num_bond[jjlocal];
+                if (rxn.atoms[jj].wildcard || rxn.atoms[ibatom].wildcard) {
+                  int blocal = atom->map(btag);
+                  if (blocal < 0) error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
+                  int btype = atom->lmap->infer_bondtype(type[jjlocal],type[blocal]);
+                  if (btype == -1) error->one(FLERR,"Bond/react: Unable to infer bond type from wildcard atoms");
+                  bond_type[jjlocal][insert_num] = btype;
+                } else {
+                  bond_type[jjlocal][insert_num] = rxn.product->bond_type[j][p];
+                }
+                bond_atom[jjlocal][insert_num] = btag;
                 // Check cached history data to see if bond regenerated
                 if (n_histories > 0)
                   for (auto &ihistory: histories)
-                    dynamic_cast<FixBondHistory *>(ihistory)->check_cache(atom->map(update_mega_glove[jj+1][i]), insert_num);
-                num_bond[atom->map(update_mega_glove[jj+1][i])]++;
-                if (num_bond[atom->map(update_mega_glove[jj+1][i])] > atom->bond_per_atom)
+                    dynamic_cast<FixBondHistory *>(ihistory)->check_cache(jjlocal, insert_num);
+                num_bond[jjlocal]++;
+                if (num_bond[jjlocal] > atom->bond_per_atom)
                   error->one(FLERR,"Fix bond/react topology/atom exceed system topology/atom");
                 delta_bonds++;
               }
@@ -3378,26 +3413,27 @@ void FixBondReact::update_everything()
         auto &rxn = rxns[(int) update_mega_glove[0][i]];
         for (int j = 0; j < rxn.product->natoms; j++) {
           int jj = rxn.atoms[j].amap[1]-1;
-          if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
+          int jjlocal = atom->map(update_mega_glove[jj+1][i]);
+          if (jjlocal < nlocal && jjlocal >= 0) {
             if (rxn.atoms[j].landlocked == 1) {
-              delta_angle -= num_angle[atom->map(update_mega_glove[jj+1][i])];
-              num_angle[atom->map(update_mega_glove[jj+1][i])] = 0;
+              delta_angle -= num_angle[jjlocal];
+              num_angle[jjlocal] = 0;
             }
             if (rxn.atoms[j].landlocked == 0) {
-              for (int p = num_angle[atom->map(update_mega_glove[jj+1][i])]-1; p > -1; p--) {
+              for (int p = num_angle[jjlocal]-1; p > -1; p--) {
                 for (int n = 0; n < rxn.product->natoms; n++) {
                   int nn = rxn.atoms[n].amap[1]-1;
                   if (n!=j && rxn.atoms[n].landlocked == 1 &&
-                      (angle_atom1[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                       angle_atom2[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                       angle_atom3[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i])) {
-                    for (int m = p; m < num_angle[atom->map(update_mega_glove[jj+1][i])]-1; m++) {
-                      angle_type[atom->map(update_mega_glove[jj+1][i])][m] = angle_type[atom->map(update_mega_glove[jj+1][i])][m+1];
-                      angle_atom1[atom->map(update_mega_glove[jj+1][i])][m] = angle_atom1[atom->map(update_mega_glove[jj+1][i])][m+1];
-                      angle_atom2[atom->map(update_mega_glove[jj+1][i])][m] = angle_atom2[atom->map(update_mega_glove[jj+1][i])][m+1];
-                      angle_atom3[atom->map(update_mega_glove[jj+1][i])][m] = angle_atom3[atom->map(update_mega_glove[jj+1][i])][m+1];
+                      (angle_atom1[jjlocal][p] == update_mega_glove[nn+1][i] ||
+                       angle_atom2[jjlocal][p] == update_mega_glove[nn+1][i] ||
+                       angle_atom3[jjlocal][p] == update_mega_glove[nn+1][i])) {
+                    for (int m = p; m < num_angle[jjlocal]-1; m++) {
+                      angle_type[jjlocal][m] = angle_type[jjlocal][m+1];
+                      angle_atom1[jjlocal][m] = angle_atom1[jjlocal][m+1];
+                      angle_atom2[jjlocal][m] = angle_atom2[jjlocal][m+1];
+                      angle_atom3[jjlocal][m] = angle_atom3[jjlocal][m+1];
                     }
-                    num_angle[atom->map(update_mega_glove[jj+1][i])]--;
+                    num_angle[jjlocal]--;
                     delta_angle--;
                     break;
                   }
@@ -3410,29 +3446,74 @@ void FixBondReact::update_everything()
         if (rxn.product->angleflag) {
           for (int j = 0; j < rxn.product->natoms; j++) {
             int jj = rxn.atoms[j].amap[1]-1;
-            if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
+            int jjlocal = atom->map(update_mega_glove[jj+1][i]);
+            if (jjlocal < nlocal && jjlocal >= 0) {
               if (rxn.atoms[j].landlocked == 1) {
-                num_angle[atom->map(update_mega_glove[jj+1][i])] = rxn.product->num_angle[j];
+                num_angle[jjlocal] = rxn.product->num_angle[j];
                 delta_angle += rxn.product->num_angle[j];
                 for (int p = 0; p < rxn.product->num_angle[j]; p++) {
-                  angle_type[atom->map(update_mega_glove[jj+1][i])][p] = rxn.product->angle_type[j][p];
-                  angle_atom1[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[rxn.atoms[rxn.product->angle_atom1[j][p]-1].amap[1]][i];
-                  angle_atom2[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[rxn.atoms[rxn.product->angle_atom2[j][p]-1].amap[1]][i];
-                  angle_atom3[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[rxn.atoms[rxn.product->angle_atom3[j][p]-1].amap[1]][i];
+                  int aatom1 = rxn.product->angle_atom1[j][p];
+                  int aatom2 = rxn.product->angle_atom2[j][p];
+                  int aatom3 = rxn.product->angle_atom3[j][p];
+                  int iaatom1 = rxn.atoms[aatom1-1].amap[1]-1;
+                  int iaatom2 = rxn.atoms[aatom2-1].amap[1]-1;
+                  int iaatom3 = rxn.atoms[aatom3-1].amap[1]-1;
+                  int atag1 = update_mega_glove[iaatom1+1][i];
+                  int atag2 = update_mega_glove[iaatom2+1][i];
+                  int atag3 = update_mega_glove[iaatom3+1][i];
+                  if (rxn.atoms[iaatom1].wildcard ||
+                      rxn.atoms[iaatom2].wildcard ||
+                      rxn.atoms[iaatom3].wildcard) {
+                    int alocal1 = atom->map(atag1);
+                    int alocal2 = atom->map(atag2);
+                    int alocal3 = atom->map(atag3);
+                    if (alocal1 < 0 || alocal2 < 0 || alocal3 < 0)
+                      error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
+                    int atype = atom->lmap->infer_angletype(type[alocal1],type[alocal2],type[alocal3]);
+                    if (atype == -1) error->one(FLERR,"Bond/react: Unable to infer angle type from wildcard atoms");
+                    angle_type[jjlocal][p] = atype;
+                  } else {
+                    angle_type[jjlocal][p] = rxn.product->angle_type[j][p];
+                  }
+                  angle_atom1[jjlocal][p] = atag1;
+                  angle_atom2[jjlocal][p] = atag2;
+                  angle_atom3[jjlocal][p] = atag3;
                 }
               }
               if (rxn.atoms[j].landlocked == 0) {
                 for (int p = 0; p < rxn.product->num_angle[j]; p++) {
-                  if (rxn.atoms[rxn.product->angle_atom1[j][p]-1].landlocked == 1 ||
-                      rxn.atoms[rxn.product->angle_atom2[j][p]-1].landlocked == 1 ||
-                      rxn.atoms[rxn.product->angle_atom3[j][p]-1].landlocked == 1) {
-                    insert_num = num_angle[atom->map(update_mega_glove[jj+1][i])];
-                    angle_type[atom->map(update_mega_glove[jj+1][i])][insert_num] = rxn.product->angle_type[j][p];
-                    angle_atom1[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[rxn.atoms[rxn.product->angle_atom1[j][p]-1].amap[1]][i];
-                    angle_atom2[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[rxn.atoms[rxn.product->angle_atom2[j][p]-1].amap[1]][i];
-                    angle_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[rxn.atoms[rxn.product->angle_atom3[j][p]-1].amap[1]][i];
-                    num_angle[atom->map(update_mega_glove[jj+1][i])]++;
-                    if (num_angle[atom->map(update_mega_glove[jj+1][i])] > atom->angle_per_atom)
+                  int aatom1 = rxn.product->angle_atom1[j][p];
+                  int aatom2 = rxn.product->angle_atom2[j][p];
+                  int aatom3 = rxn.product->angle_atom3[j][p];
+                  if (rxn.atoms[aatom1-1].landlocked == 1 ||
+                      rxn.atoms[aatom2-1].landlocked == 1 ||
+                      rxn.atoms[aatom3-1].landlocked == 1) {
+                    int iaatom1 = rxn.atoms[aatom1-1].amap[1]-1;
+                    int iaatom2 = rxn.atoms[aatom2-1].amap[1]-1;
+                    int iaatom3 = rxn.atoms[aatom3-1].amap[1]-1;
+                    int atag1 = update_mega_glove[iaatom1+1][i];
+                    int atag2 = update_mega_glove[iaatom2+1][i];
+                    int atag3 = update_mega_glove[iaatom3+1][i];
+                    insert_num = num_angle[jjlocal];
+                    if (rxn.atoms[iaatom1].wildcard ||
+                        rxn.atoms[iaatom2].wildcard ||
+                        rxn.atoms[iaatom3].wildcard) {
+                      int alocal1 = atom->map(atag1);
+                      int alocal2 = atom->map(atag2);
+                      int alocal3 = atom->map(atag3);
+                      if (alocal1 < 0 || alocal2 < 0 || alocal3 < 0)
+                        error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
+                      int atype = atom->lmap->infer_angletype(type[alocal1],type[alocal2],type[alocal3]);
+                      if (atype == -1) error->one(FLERR,"Bond/react: Unable to infer angle type from wildcard atoms");
+                      angle_type[jjlocal][insert_num] = atype;
+                    } else {
+                      angle_type[jjlocal][insert_num] = rxn.product->angle_type[j][p];
+                    }
+                    angle_atom1[jjlocal][insert_num] = atag1;
+                    angle_atom2[jjlocal][insert_num] = atag2;
+                    angle_atom3[jjlocal][insert_num] = atag3;
+                    num_angle[jjlocal]++;
+                    if (num_angle[jjlocal] > atom->angle_per_atom)
                       error->one(FLERR,"Fix bond/react topology/atom exceed system topology/atom");
                     delta_angle++;
                   }
@@ -3457,28 +3538,29 @@ void FixBondReact::update_everything()
         auto &rxn = rxns[(int) update_mega_glove[0][i]];
         for (int j = 0; j < rxn.product->natoms; j++) {
           int jj = rxn.atoms[j].amap[1]-1;
-          if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
+          int jjlocal = atom->map(update_mega_glove[jj+1][i]);
+          if (jjlocal < nlocal && jjlocal >= 0) {
             if (rxn.atoms[j].landlocked == 1) {
-              delta_dihed -= num_dihedral[atom->map(update_mega_glove[jj+1][i])];
-              num_dihedral[atom->map(update_mega_glove[jj+1][i])] = 0;
+              delta_dihed -= num_dihedral[jjlocal];
+              num_dihedral[jjlocal] = 0;
             }
             if (rxn.atoms[j].landlocked == 0) {
-              for (int p = num_dihedral[atom->map(update_mega_glove[jj+1][i])]-1; p > -1; p--) {
+              for (int p = num_dihedral[jjlocal]-1; p > -1; p--) {
                 for (int n = 0; n < rxn.product->natoms; n++) {
                   int nn = rxn.atoms[n].amap[1]-1;
                   if (n!=j && rxn.atoms[n].landlocked == 1 &&
-                      (dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                       dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                       dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                       dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i])) {
-                    for (int m = p; m < num_dihedral[atom->map(update_mega_glove[jj+1][i])]-1; m++) {
-                      dihedral_type[atom->map(update_mega_glove[jj+1][i])][m] = dihedral_type[atom->map(update_mega_glove[jj+1][i])][m+1];
-                      dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][m] = dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][m+1];
-                      dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][m] = dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][m+1];
-                      dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][m] = dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][m+1];
-                      dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][m] = dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][m+1];
+                      (dihedral_atom1[jjlocal][p] == update_mega_glove[nn+1][i] ||
+                       dihedral_atom2[jjlocal][p] == update_mega_glove[nn+1][i] ||
+                       dihedral_atom3[jjlocal][p] == update_mega_glove[nn+1][i] ||
+                       dihedral_atom4[jjlocal][p] == update_mega_glove[nn+1][i])) {
+                    for (int m = p; m < num_dihedral[jjlocal]-1; m++) {
+                      dihedral_type[jjlocal][m] = dihedral_type[jjlocal][m+1];
+                      dihedral_atom1[jjlocal][m] = dihedral_atom1[jjlocal][m+1];
+                      dihedral_atom2[jjlocal][m] = dihedral_atom2[jjlocal][m+1];
+                      dihedral_atom3[jjlocal][m] = dihedral_atom3[jjlocal][m+1];
+                      dihedral_atom4[jjlocal][m] = dihedral_atom4[jjlocal][m+1];
                     }
-                    num_dihedral[atom->map(update_mega_glove[jj+1][i])]--;
+                    num_dihedral[jjlocal]--;
                     delta_dihed--;
                     break;
                   }
@@ -3491,32 +3573,87 @@ void FixBondReact::update_everything()
         if (rxn.product->dihedralflag) {
           for (int j = 0; j < rxn.product->natoms; j++) {
             int jj = rxn.atoms[j].amap[1]-1;
-            if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
+            int jjlocal = atom->map(update_mega_glove[jj+1][i]);
+            if (jjlocal < nlocal && jjlocal >= 0) {
               if (rxn.atoms[j].landlocked == 1) {
-                num_dihedral[atom->map(update_mega_glove[jj+1][i])] = rxn.product->num_dihedral[j];
+                num_dihedral[jjlocal] = rxn.product->num_dihedral[j];
                 delta_dihed += rxn.product->num_dihedral[j];
                 for (int p = 0; p < rxn.product->num_dihedral[j]; p++) {
-                  dihedral_type[atom->map(update_mega_glove[jj+1][i])][p] = rxn.product->dihedral_type[j][p];
-                  dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[rxn.atoms[rxn.product->dihedral_atom1[j][p]-1].amap[1]][i];
-                  dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[rxn.atoms[rxn.product->dihedral_atom2[j][p]-1].amap[1]][i];
-                  dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[rxn.atoms[rxn.product->dihedral_atom3[j][p]-1].amap[1]][i];
-                  dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[rxn.atoms[rxn.product->dihedral_atom4[j][p]-1].amap[1]][i];
+                  int atom1 = rxn.product->dihedral_atom1[j][p];
+                  int atom2 = rxn.product->dihedral_atom2[j][p];
+                  int atom3 = rxn.product->dihedral_atom3[j][p];
+                  int atom4 = rxn.product->dihedral_atom4[j][p];
+                  int iatom1 = rxn.atoms[atom1-1].amap[1]-1;
+                  int iatom2 = rxn.atoms[atom2-1].amap[1]-1;
+                  int iatom3 = rxn.atoms[atom3-1].amap[1]-1;
+                  int iatom4 = rxn.atoms[atom4-1].amap[1]-1;
+                  int tag1 = update_mega_glove[iatom1+1][i];
+                  int tag2 = update_mega_glove[iatom2+1][i];
+                  int tag3 = update_mega_glove[iatom3+1][i];
+                  int tag4 = update_mega_glove[iatom4+1][i];
+                  if (rxn.atoms[iatom1].wildcard ||
+                      rxn.atoms[iatom2].wildcard ||
+                      rxn.atoms[iatom3].wildcard ||
+                      rxn.atoms[iatom4].wildcard) {
+                    int local1 = atom->map(tag1);
+                    int local2 = atom->map(tag2);
+                    int local3 = atom->map(tag3);
+                    int local4 = atom->map(tag4);
+                    if (local1 < 0 || local2 < 0 || local3 < 0 || local4 < 0)
+                      error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
+                    int dtype = atom->lmap->infer_dihedraltype(type[local1],type[local2],type[local3],type[local4]);
+                    if (dtype == -1) error->one(FLERR,"Bond/react: Unable to infer dihedral type from wildcard atoms");
+                    dihedral_type[jjlocal][p] = dtype;
+                  } else {
+                    dihedral_type[jjlocal][p] = rxn.product->dihedral_type[j][p];
+                  }
+                  dihedral_atom1[jjlocal][p] = tag1;
+                  dihedral_atom2[jjlocal][p] = tag2;
+                  dihedral_atom3[jjlocal][p] = tag3;
+                  dihedral_atom4[jjlocal][p] = tag4;
                 }
               }
               if (rxn.atoms[j].landlocked == 0) {
                 for (int p = 0; p < rxn.product->num_dihedral[j]; p++) {
-                  if (rxn.atoms[rxn.product->dihedral_atom1[j][p]-1].landlocked == 1 ||
-                      rxn.atoms[rxn.product->dihedral_atom2[j][p]-1].landlocked == 1 ||
-                      rxn.atoms[rxn.product->dihedral_atom3[j][p]-1].landlocked == 1 ||
-                      rxn.atoms[rxn.product->dihedral_atom4[j][p]-1].landlocked == 1) {
-                    insert_num = num_dihedral[atom->map(update_mega_glove[jj+1][i])];
-                    dihedral_type[atom->map(update_mega_glove[jj+1][i])][insert_num] = rxn.product->dihedral_type[j][p];
-                    dihedral_atom1[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[rxn.atoms[rxn.product->dihedral_atom1[j][p]-1].amap[1]][i];
-                    dihedral_atom2[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[rxn.atoms[rxn.product->dihedral_atom2[j][p]-1].amap[1]][i];
-                    dihedral_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[rxn.atoms[rxn.product->dihedral_atom3[j][p]-1].amap[1]][i];
-                    dihedral_atom4[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[rxn.atoms[rxn.product->dihedral_atom4[j][p]-1].amap[1]][i];
-                    num_dihedral[atom->map(update_mega_glove[jj+1][i])]++;
-                    if (num_dihedral[atom->map(update_mega_glove[jj+1][i])] > atom->dihedral_per_atom)
+                  int atom1 = rxn.product->dihedral_atom1[j][p];
+                  int atom2 = rxn.product->dihedral_atom2[j][p];
+                  int atom3 = rxn.product->dihedral_atom3[j][p];
+                  int atom4 = rxn.product->dihedral_atom4[j][p];
+                  if (rxn.atoms[atom1-1].landlocked == 1 ||
+                      rxn.atoms[atom2-1].landlocked == 1 ||
+                      rxn.atoms[atom3-1].landlocked == 1 ||
+                      rxn.atoms[atom4-1].landlocked == 1) {
+                    int iatom1 = rxn.atoms[atom1-1].amap[1]-1;
+                    int iatom2 = rxn.atoms[atom2-1].amap[1]-1;
+                    int iatom3 = rxn.atoms[atom3-1].amap[1]-1;
+                    int iatom4 = rxn.atoms[atom4-1].amap[1]-1;
+                    int tag1 = update_mega_glove[iatom1+1][i];
+                    int tag2 = update_mega_glove[iatom2+1][i];
+                    int tag3 = update_mega_glove[iatom3+1][i];
+                    int tag4 = update_mega_glove[iatom4+1][i];
+                    insert_num = num_dihedral[jjlocal];
+                    if (rxn.atoms[iatom1].wildcard ||
+                        rxn.atoms[iatom2].wildcard ||
+                        rxn.atoms[iatom3].wildcard ||
+                        rxn.atoms[iatom4].wildcard) {
+                      int local1 = atom->map(tag1);
+                      int local2 = atom->map(tag2);
+                      int local3 = atom->map(tag3);
+                      int local4 = atom->map(tag4);
+                      if (local1 < 0 || local2 < 0 || local3 < 0 || local4 < 0)
+                        error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
+                      int dtype = atom->lmap->infer_dihedraltype(type[local1],type[local2],type[local3],type[local4]);
+                      if (dtype == -1) error->one(FLERR,"Bond/react: Unable to infer dihedral type from wildcard atoms");
+                      dihedral_type[jjlocal][insert_num] = dtype;
+                    } else {
+                      dihedral_type[jjlocal][insert_num] = rxn.product->dihedral_type[j][p];
+                    }
+                    dihedral_atom1[jjlocal][insert_num] = tag1;
+                    dihedral_atom2[jjlocal][insert_num] = tag2;
+                    dihedral_atom3[jjlocal][insert_num] = tag3;
+                    dihedral_atom4[jjlocal][insert_num] = tag4;
+                    num_dihedral[jjlocal]++;
+                    if (num_dihedral[jjlocal] > atom->dihedral_per_atom)
                       error->one(FLERR,"Fix bond/react topology/atom exceed system topology/atom");
                     delta_dihed++;
                   }
@@ -3541,28 +3678,29 @@ void FixBondReact::update_everything()
         auto &rxn = rxns[(int) update_mega_glove[0][i]];
         for (int j = 0; j < rxn.product->natoms; j++) {
           int jj = rxn.atoms[j].amap[1]-1;
-          if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
+          int jjlocal = atom->map(update_mega_glove[jj+1][i]);
+          if (jjlocal < nlocal && jjlocal >= 0) {
             if (rxn.atoms[j].landlocked == 1) {
-              delta_imprp -= num_improper[atom->map(update_mega_glove[jj+1][i])];
-              num_improper[atom->map(update_mega_glove[jj+1][i])] = 0;
+              delta_imprp -= num_improper[jjlocal];
+              num_improper[jjlocal] = 0;
             }
             if (rxn.atoms[j].landlocked == 0) {
-              for (int p = num_improper[atom->map(update_mega_glove[jj+1][i])]-1; p > -1; p--) {
+              for (int p = num_improper[jjlocal]-1; p > -1; p--) {
                 for (int n = 0; n < rxn.product->natoms; n++) {
                   int nn = rxn.atoms[n].amap[1]-1;
                   if (n!=j && rxn.atoms[n].landlocked == 1 &&
-                      (improper_atom1[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                       improper_atom2[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                       improper_atom3[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] ||
-                       improper_atom4[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i])) {
-                    for (int m = p; m < num_improper[atom->map(update_mega_glove[jj+1][i])]-1; m++) {
-                      improper_type[atom->map(update_mega_glove[jj+1][i])][m] = improper_type[atom->map(update_mega_glove[jj+1][i])][m+1];
-                      improper_atom1[atom->map(update_mega_glove[jj+1][i])][m] = improper_atom1[atom->map(update_mega_glove[jj+1][i])][m+1];
-                      improper_atom2[atom->map(update_mega_glove[jj+1][i])][m] = improper_atom2[atom->map(update_mega_glove[jj+1][i])][m+1];
-                      improper_atom3[atom->map(update_mega_glove[jj+1][i])][m] = improper_atom3[atom->map(update_mega_glove[jj+1][i])][m+1];
-                      improper_atom4[atom->map(update_mega_glove[jj+1][i])][m] = improper_atom4[atom->map(update_mega_glove[jj+1][i])][m+1];
+                      (improper_atom1[jjlocal][p] == update_mega_glove[nn+1][i] ||
+                       improper_atom2[jjlocal][p] == update_mega_glove[nn+1][i] ||
+                       improper_atom3[jjlocal][p] == update_mega_glove[nn+1][i] ||
+                       improper_atom4[jjlocal][p] == update_mega_glove[nn+1][i])) {
+                    for (int m = p; m < num_improper[jjlocal]-1; m++) {
+                      improper_type[jjlocal][m] = improper_type[jjlocal][m+1];
+                      improper_atom1[jjlocal][m] = improper_atom1[jjlocal][m+1];
+                      improper_atom2[jjlocal][m] = improper_atom2[jjlocal][m+1];
+                      improper_atom3[jjlocal][m] = improper_atom3[jjlocal][m+1];
+                      improper_atom4[jjlocal][m] = improper_atom4[jjlocal][m+1];
                     }
-                    num_improper[atom->map(update_mega_glove[jj+1][i])]--;
+                    num_improper[jjlocal]--;
                     delta_imprp--;
                     break;
                   }
@@ -3575,32 +3713,87 @@ void FixBondReact::update_everything()
         if (rxn.product->improperflag) {
           for (int j = 0; j < rxn.product->natoms; j++) {
             int jj = rxn.atoms[j].amap[1]-1;
-            if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
+            int jjlocal = atom->map(update_mega_glove[jj+1][i]);
+            if (jjlocal < nlocal && jjlocal >= 0) {
               if (rxn.atoms[j].landlocked == 1) {
-                num_improper[atom->map(update_mega_glove[jj+1][i])] = rxn.product->num_improper[j];
+                num_improper[jjlocal] = rxn.product->num_improper[j];
                 delta_imprp += rxn.product->num_improper[j];
                 for (int p = 0; p < rxn.product->num_improper[j]; p++) {
-                  improper_type[atom->map(update_mega_glove[jj+1][i])][p] = rxn.product->improper_type[j][p];
-                  improper_atom1[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[rxn.atoms[rxn.product->improper_atom1[j][p]-1].amap[1]][i];
-                  improper_atom2[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[rxn.atoms[rxn.product->improper_atom2[j][p]-1].amap[1]][i];
-                  improper_atom3[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[rxn.atoms[rxn.product->improper_atom3[j][p]-1].amap[1]][i];
-                  improper_atom4[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[rxn.atoms[rxn.product->improper_atom4[j][p]-1].amap[1]][i];
+                  int atom1 = rxn.product->improper_atom1[j][p];
+                  int atom2 = rxn.product->improper_atom2[j][p];
+                  int atom3 = rxn.product->improper_atom3[j][p];
+                  int atom4 = rxn.product->improper_atom4[j][p];
+                  int iatom1 = rxn.atoms[atom1-1].amap[1]-1;
+                  int iatom2 = rxn.atoms[atom2-1].amap[1]-1;
+                  int iatom3 = rxn.atoms[atom3-1].amap[1]-1;
+                  int iatom4 = rxn.atoms[atom4-1].amap[1]-1;
+                  int tag1 = update_mega_glove[iatom1+1][i];
+                  int tag2 = update_mega_glove[iatom2+1][i];
+                  int tag3 = update_mega_glove[iatom3+1][i];
+                  int tag4 = update_mega_glove[iatom4+1][i];
+                  if (rxn.atoms[iatom1].wildcard ||
+                      rxn.atoms[iatom2].wildcard ||
+                      rxn.atoms[iatom3].wildcard ||
+                      rxn.atoms[iatom4].wildcard) {
+                    int local1 = atom->map(tag1);
+                    int local2 = atom->map(tag2);
+                    int local3 = atom->map(tag3);
+                    int local4 = atom->map(tag4);
+                    if (local1 < 0 || local2 < 0 || local3 < 0 || local4 < 0)
+                      error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
+                    int itype = atom->lmap->infer_impropertype(type[local1],type[local2],type[local3],type[local4]);
+                    if (itype == -1) error->one(FLERR,"Bond/react: Unable to infer improper type from wildcard atoms");
+                    improper_type[jjlocal][p] = itype;
+                  } else {
+                    improper_type[jjlocal][p] = rxn.product->improper_type[j][p];
+                  }
+                  improper_atom1[jjlocal][p] = tag1;
+                  improper_atom2[jjlocal][p] = tag2;
+                  improper_atom3[jjlocal][p] = tag3;
+                  improper_atom4[jjlocal][p] = tag4;
                 }
               }
               if (rxn.atoms[j].landlocked == 0) {
                 for (int p = 0; p < rxn.product->num_improper[j]; p++) {
-                  if (rxn.atoms[rxn.product->improper_atom1[j][p]-1].landlocked == 1 ||
-                      rxn.atoms[rxn.product->improper_atom2[j][p]-1].landlocked == 1 ||
-                      rxn.atoms[rxn.product->improper_atom3[j][p]-1].landlocked == 1 ||
-                      rxn.atoms[rxn.product->improper_atom4[j][p]-1].landlocked == 1) {
-                    insert_num = num_improper[atom->map(update_mega_glove[jj+1][i])];
-                    improper_type[atom->map(update_mega_glove[jj+1][i])][insert_num] = rxn.product->improper_type[j][p];
-                    improper_atom1[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[rxn.atoms[rxn.product->improper_atom1[j][p]-1].amap[1]][i];
-                    improper_atom2[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[rxn.atoms[rxn.product->improper_atom2[j][p]-1].amap[1]][i];
-                    improper_atom3[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[rxn.atoms[rxn.product->improper_atom3[j][p]-1].amap[1]][i];
-                    improper_atom4[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[rxn.atoms[rxn.product->improper_atom4[j][p]-1].amap[1]][i];
-                    num_improper[atom->map(update_mega_glove[jj+1][i])]++;
-                    if (num_improper[atom->map(update_mega_glove[jj+1][i])] > atom->improper_per_atom)
+                  int atom1 = rxn.product->improper_atom1[j][p];
+                  int atom2 = rxn.product->improper_atom2[j][p];
+                  int atom3 = rxn.product->improper_atom3[j][p];
+                  int atom4 = rxn.product->improper_atom4[j][p];
+                  if (rxn.atoms[atom1-1].landlocked == 1 ||
+                      rxn.atoms[atom2-1].landlocked == 1 ||
+                      rxn.atoms[atom3-1].landlocked == 1 ||
+                      rxn.atoms[atom4-1].landlocked == 1) {
+                    int iatom1 = rxn.atoms[atom1-1].amap[1]-1;
+                    int iatom2 = rxn.atoms[atom2-1].amap[1]-1;
+                    int iatom3 = rxn.atoms[atom3-1].amap[1]-1;
+                    int iatom4 = rxn.atoms[atom4-1].amap[1]-1;
+                    int tag1 = update_mega_glove[iatom1+1][i];
+                    int tag2 = update_mega_glove[iatom2+1][i];
+                    int tag3 = update_mega_glove[iatom3+1][i];
+                    int tag4 = update_mega_glove[iatom4+1][i];
+                    insert_num = num_improper[jjlocal];
+                    if (rxn.atoms[iatom1].wildcard ||
+                        rxn.atoms[iatom2].wildcard ||
+                        rxn.atoms[iatom3].wildcard ||
+                        rxn.atoms[iatom4].wildcard) {
+                      int local1 = atom->map(tag1);
+                      int local2 = atom->map(tag2);
+                      int local3 = atom->map(tag3);
+                      int local4 = atom->map(tag4);
+                      if (local1 < 0 || local2 < 0 || local3 < 0 || local4 < 0)
+                        error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
+                      int itype = atom->lmap->infer_impropertype(type[local1],type[local2],type[local3],type[local4]);
+                      if (itype == -1) error->one(FLERR,"Bond/react: Unable to infer improper type from wildcard atoms");
+                      improper_type[jjlocal][insert_num] = itype;
+                    } else {
+                      improper_type[jjlocal][insert_num] = rxn.product->improper_type[j][p];
+                    }
+                    improper_atom1[jjlocal][insert_num] = tag1;
+                    improper_atom2[jjlocal][insert_num] = tag2;
+                    improper_atom3[jjlocal][insert_num] = tag3;
+                    improper_atom4[jjlocal][insert_num] = tag4;
+                    num_improper[jjlocal]++;
+                    if (num_improper[jjlocal] > atom->improper_per_atom)
                       error->one(FLERR,"Fix bond/react topology/atom exceed system topology/atom");
                     delta_imprp++;
                   }
@@ -3993,7 +4186,7 @@ read map file
 
 void FixBondReact::read_map_file(Reaction &rxn)
 {
-  int rv, nedge, nequivalent, nchiral, ndelete, ncreate = 0;
+  int rv, nedge, nequivalent, nchiral, nwild, ndelete, ncreate = 0;
   char line[MAXLINE] = {'\0'};
   char keyword[MAXLINE] = {'\0'};
   char *eof,*ptr;
@@ -4032,6 +4225,9 @@ void FixBondReact::read_map_file(Reaction &rxn)
       if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
     } else if (strstr(line,"chiralIDs")) {
       rv = sscanf(line,"%d",&nchiral);
+      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+    } else if (strstr(line,"wildcards")) {
+      rv = sscanf(line,"%d",&nwild);
       if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
     } else if (strstr(line,"constraints")) {
       int nconstraints;
@@ -4081,6 +4277,8 @@ void FixBondReact::read_map_file(Reaction &rxn)
       CreateAtoms(line, rxn, ncreate);
     } else if (strcmp(keyword,"ChiralIDs") == 0) {
       ChiralCenters(line, rxn, nchiral);
+    } else if (strcmp(keyword,"Wildcards") == 0) {
+      ReadWildcards(line, rxn, nwild);
     } else if (strcmp(keyword,"Constraints") == 0) {
       ReadConstraints(line, rxn);
     } else error->one(FLERR,"Fix bond/react: Unknown section in map file");
@@ -4219,6 +4417,18 @@ void FixBondReact::ChiralCenters(char *line, Reaction &rxn, int nchiral)
     }
     // get orientation
     rxn.atoms[tmp-1].chiral[1] = get_chirality(my4coords);
+  }
+}
+
+void FixBondReact::ReadWildcards(char *line, Reaction &rxn, int nwild)
+{
+  int tmp;
+  for (int i = 0; i < nwild; i++) {
+    readline(line);
+    sscanf(line,"%d",&tmp);
+    if (tmp > rxn.reactant->natoms)
+      error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
+    rxn.atoms[tmp-1].wildcard = true;
   }
 }
 

@@ -57,85 +57,106 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
 
   // RangePolicy versions
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const int&) const;
 
   // MDRangePolicy versions
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const int&, const int&, EV_FLOAT&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const int&, const int&) const;
 
   // TeamPolicy versions
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType, TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG> >::member_type&, EV_FLOAT&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType, TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG> >::member_type&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffZBLComputeShortNeigh, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void tersoff_zbl_compute(const int&, EV_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT ters_fc_k(const Param& param, const KK_FLOAT &r) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT ters_dfc(const Param& param, const KK_FLOAT &r) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT ters_fa_k(const Param& param, const KK_FLOAT &r) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT ters_dfa(const Param& param, const KK_FLOAT &r) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT ters_bij_k(const Param& param, const KK_FLOAT &bo) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT ters_dbij(const Param& param, const KK_FLOAT &bo) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT bondorder(const Param& param,
               const KK_FLOAT &rij, const KK_FLOAT &dx1, const KK_FLOAT &dy1, const KK_FLOAT &dz1,
               const KK_FLOAT &rik, const KK_FLOAT &dx2, const KK_FLOAT &dy2, const KK_FLOAT &dz2) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT ters_gijk(const Param& param, const KK_FLOAT &cos) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT ters_dgijk(const Param& param, const KK_FLOAT &cos) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ters_dthb(const Param& param, const KK_FLOAT &prefactor,
               const KK_FLOAT &rij, const KK_FLOAT &dx1, const KK_FLOAT &dy1, const KK_FLOAT &dz1,
               const KK_FLOAT &rik, const KK_FLOAT &dx2, const KK_FLOAT &dy2, const KK_FLOAT &dz2,
               KK_ACC_FLOAT *fi, KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ters_dthbj(const Param& param, const KK_FLOAT &prefactor,
               const KK_FLOAT &rij, const KK_FLOAT &dx1, const KK_FLOAT &dy1, const KK_FLOAT &dz1,
               const KK_FLOAT &rik, const KK_FLOAT &dx2, const KK_FLOAT &dy2, const KK_FLOAT &dz2,
               KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ters_dthbk(const Param& param, const KK_FLOAT &prefactor,
               const KK_FLOAT &rij, const KK_FLOAT &dx1, const KK_FLOAT &dy1, const KK_FLOAT &dz1,
               const KK_FLOAT &rik, const KK_FLOAT &dx2, const KK_FLOAT &dy2, const KK_FLOAT &dz2,
               KK_ACC_FLOAT *fk) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT vec3_dot(const KK_FLOAT x[3], const KK_FLOAT y[3]) const {
     KK_FLOAT dot = 0;
@@ -144,6 +165,7 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
     return dot;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void vec3_add(const KK_FLOAT x[3], const KK_FLOAT y[3], KK_FLOAT * const z) const {
     for (int i = 0; i < 3; i++)
@@ -151,6 +173,7 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
   }
 
   template<typename k_type, typename x_type, typename y_type>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void vec3_scale(const k_type k, const x_type x[3], y_type y[3]) const {
     for (int i = 0; i < 3; i++)
@@ -158,35 +181,42 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
   }
 
   template<typename kx_type, typename yz_type>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void vec3_scaleadd(const kx_type k, const kx_type x[3], const yz_type y[3], yz_type z[3]) const {
     for (int i = 0; i < 3; i++)
       z[i] = static_cast<yz_type>(k*x[i])+y[i];
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
                   const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally3(EV_FLOAT &ev, const int &i, const int &j, const int &k,
                 KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk, KK_FLOAT *drij, KK_FLOAT *drik) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally3_atom(EV_FLOAT &ev, const int &i, const int &j, const int &k,
                 KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk, KK_FLOAT *drji, KK_FLOAT *drjk) const;
 
   void setup_params() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT fermi_k(const Param& param, const KK_FLOAT &r) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT fermi_d_k(const Param& param, const KK_FLOAT &r) const;
 

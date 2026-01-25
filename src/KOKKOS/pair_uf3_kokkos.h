@@ -54,13 +54,16 @@ template <class DeviceType> class PairUF3Kokkos : public PairUF3 {
   template <typename T, typename V> void copy_3d(V &d, T ***h, int m, int n, int o);
 
   template <int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION void operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>, const int &,
                                          EV_FLOAT &) const;
 
   template <int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION void operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
                                          const int &) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairUF3ComputeShortNeigh, const int &) const;
 
@@ -115,21 +118,25 @@ template <class DeviceType> class PairUF3Kokkos : public PairUF3 {
   std::vector<double> get_dncoefficients(const double *knots, const double coefficient) const;
 
   template <int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void twobody(const int itype, const int jtype, const KK_FLOAT r, KK_FLOAT &evdwl,
                KK_FLOAT &fpair) const;
   template <int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void threebody(const int itype, const int jtype, const int ktype, const KK_FLOAT value_rij,
                  const KK_FLOAT value_rik, const KK_FLOAT value_rjk, KK_FLOAT &evdwl3,
                  KK_FLOAT (&fforce)[3]) const;
 
   template <int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION void
   ev_tally(EV_FLOAT &ev, const int &i, const int &j, const KK_FLOAT &epair, const KK_FLOAT &fpair,
            const KK_FLOAT &delx, const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
   template <int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION void ev_tally3(EV_FLOAT &ev, const int &i, const int &j, int &k,
                                         const KK_FLOAT &evdwl, const KK_FLOAT &ecoul, KK_ACC_FLOAT *fj,
                                         KK_ACC_FLOAT *fk, KK_FLOAT *drji, KK_FLOAT *drki) const;
@@ -175,10 +182,12 @@ template <class DeviceType> class PairUF3Kokkos : public PairUF3 {
   friend void pair_virial_fdotr_compute<PairUF3Kokkos>(PairUF3Kokkos *);
 };
 
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION int min(int i, int j)
 {
   return i < j ? i : j;
 }
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION int max(int i, int j)
 {
   return i > j ? i : j;

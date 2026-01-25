@@ -915,7 +915,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 
     // match grids
 
-    if (strmatch(word, "^[cf]_\\w+:\\w+:\\w+\\[\\d*\\*\\d*\\]")) {
+    if (strmatch(word, R"(^[cf]_\w+:\w+:\w+\[\d*\*\d*\])")) {
       auto gridid = utils::parse_grid_id(file, line, word, lmp->error);
 
       size_t first = gridid[2].find('[');
@@ -986,8 +986,8 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
       // match compute, fix, or custom property array reference with a '*' wildcard
       // number range in the first pair of square brackets
 
-    } else if (strmatch(word, "^[cfv]_\\w+\\[\\d*\\*\\d*\\]") ||
-               strmatch(word, "^[id]2_\\w+\\[\\d*\\*\\d*\\]")) {
+    } else if (strmatch(word, R"(^[cfv]_\w+\[\d*\*\d*\])") ||
+               strmatch(word, R"(^[id]2_\w+\[\d*\*\d*\])")) {
 
       // split off the compute/fix/property ID, the wildcard and trailing text
 
@@ -1374,8 +1374,8 @@ std::string utils::uppercase(const std::string &text)
 
 std::string utils::trim(const std::string &line)
 {
-  int beg = re_match(line.c_str(), "\\S+");
-  int end = re_match(line.c_str(), "\\s+$");
+  int beg = re_match(line.c_str(), R"(\S+)");
+  int end = re_match(line.c_str(), R"(\s+$)");
   if (beg < 0) beg = 0;
   if (end < 0) end = line.size();
 
@@ -1693,7 +1693,7 @@ bool utils::is_integer(const std::string &str)
 {
   if (str.empty()) return false;
 
-  return strmatch(str, "^[+-]?\\d+$");
+  return strmatch(str, R"(^[+-]?\d+$)");
 }
 
 /* ----------------------------------------------------------------------
@@ -1704,9 +1704,9 @@ bool utils::is_double(const std::string &str)
 {
   if (str.empty()) return false;
 
-  return strmatch(str, "^[+-]?\\d+\\.?\\d*$") ||
-      strmatch(str, "^[+-]?\\d+\\.?\\d*[eE][+-]?\\d+$") || strmatch(str, "^[+-]?\\d*\\.?\\d+$") ||
-      strmatch(str, "^[+-]?\\d*\\.?\\d+[eE][+-]?\\d+$");
+  return strmatch(str, R"(^[+-]?\d+\.?\d*$)") ||
+      strmatch(str, R"(^[+-]?\d+\.?\d*[eE][+-]?\d+$)") || strmatch(str, R"(^[+-]?\d*\.?\d+$)") ||
+      strmatch(str, R"(^[+-]?\d*\.?\d+[eE][+-]?\d+$)");
 }
 
 /* ----------------------------------------------------------------------

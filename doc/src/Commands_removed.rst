@@ -2,6 +2,7 @@ Removed commands and packages
 =============================
 
 .. contents::
+   :local:
 
 ------
 

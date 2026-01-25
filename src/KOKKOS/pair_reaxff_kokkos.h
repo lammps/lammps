@@ -136,47 +136,58 @@ class PairReaxFFKokkos : public PairReaxFF {
   void FindBondSpecies();
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputePolar<NEIGHFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputePolar<NEIGHFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeLJCoulombShortNeigh, const int&) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsHalfBlocking<NEIGHFLAG>, const int&) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsHalfBlockingPreview<NEIGHFLAG>, const int&) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsHalfPreview<NEIGHFLAG>, const int&) const;
 
   // Isolated function that builds the hbond list, reused across
   // TagPairReaxBuildListsHalfBlocking, HalfBlockingPreview, HalfPreview
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void build_hb_list(KK_FLOAT, int, int, int, int) const;
 
@@ -184,126 +195,159 @@ class PairReaxFFKokkos : public PairReaxFF {
   // TagPairReaxBuildListsHalfBlocking, HalfBlockingPreview, HalfPreview
   // Returns if we need to populate d_d* functions or not
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   bool build_bo_list(int, int, int&, int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsFull, const int&) const;
 
   // Isolated function that computes bond order parameters
   // Returns BO_s, BO_pi, BO_pi2, C12, C34, C56 by reference
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void compute_bo(KK_FLOAT, int, int, KK_FLOAT, KK_FLOAT, KK_FLOAT,
     KK_FLOAT&, KK_FLOAT&, KK_FLOAT&, KK_FLOAT&, KK_FLOAT&, KK_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxZero, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBondOrder1, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBondOrder2, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBondOrder3, const int&) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxUpdateBond<NEIGHFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeBond1<NEIGHFLAG,EFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeBond1<NEIGHFLAG,EFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int VFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeBond2<NEIGHFLAG,VFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int VFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeBond2<NEIGHFLAG,VFLAG>, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeMulti1, const int&) const;
 
   template<int NEIGHFLAG, int EFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EFLAG>, const int&) const;
 
   template<bool POPULATE>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxCountAngularTorsion<POPULATE>, const int&) const;
 
   // Abstraction for computing SBSO2, CSBO2, dSBO1, dsBO2
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void compute_angular_sbo(int, int, int) const;
 
   // Abstraction for counting and populating angular intermediates
   template<bool POPULATE>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int preprocess_angular(int, int, int, int) const;
 
   // Abstraction for counting and populating torsion intermediated
   template<bool POPULATE>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int preprocess_torsion(int, int, tagint, KK_FLOAT, KK_FLOAT, KK_FLOAT, int, int) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeAngularPreprocessed<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeAngularPreprocessed<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeTorsionPreprocessed<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeTorsionPreprocessed<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeHydrogen<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeHydrogen<NEIGHFLAG,EVFLAG>, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxFindBondZero, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void calculate_find_bond_item(int, int&, int) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void pack_bond_buffer_item(int, int&, const bool&) const;
 
   template<bool STORE_BONDS>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void pack_reduced_bond_buffer_item(int, int&, const bool&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxFindBondSpeciesZero, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxFindBondSpecies, const int&) const;
 
   struct params_sing {
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_sing() {mass=0;chi=0;eta=0;r_s=0;r_pi=0;r_pi2=0;valency=0;valency_val=0;valency_e=0;valency_boc=0;nlp_opt=0;
       p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;bcut_acks2=0;};
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_sing(int /*i*/) {mass=0;chi=0;eta=0;r_s=0;r_pi=0;r_pi2=0;valency=0;valency_val=0;valency_e=0;valency_boc=0;nlp_opt=0;
       p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;bcut_acks2=0;};
@@ -312,11 +356,13 @@ class PairReaxFFKokkos : public PairReaxFF {
   };
 
   struct params_twbp {
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_twbp() {gamma=0;gamma_w=0;alpha=0;r_vdw=0;epsilon=0;acore=0;ecore=0;rcore=0;lgre=0;lgcij=0;
       r_s=0;r_pi=0;r_pi2=0;p_bo1=0;p_bo2=0;p_bo3=0;p_bo4=0;p_bo5=0;p_bo6=0;ovc=0;v13cor=0;
       p_boc3=0;p_boc4=0;p_boc5=0;p_be1=0,p_be2=0,De_s=0,De_p=0;De_pp=0;
           p_ovun1=0;};
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_twbp(int /*i*/) {gamma=0;gamma_w=0;alpha=0;r_vdw=0;epsilon=0;acore=0;ecore=0;rcore=0;lgre=0;lgcij=0;
       r_s=0;r_pi=0;r_pi2=0;p_bo1=0;p_bo2=0;p_bo3=0;p_bo4=0;p_bo5=0;p_bo6=0;ovc=0;v13cor=0;
@@ -329,56 +375,69 @@ class PairReaxFFKokkos : public PairReaxFF {
   };
 
   struct params_thbp {
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_thbp() {cnt=0;theta_00=0;p_val1=0;p_val2=0;p_val4=0;p_val7=0;p_pen1=0;p_coa1=0;};
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_thbp(int /*i*/) {cnt=0;theta_00=0;p_val1=0;p_val2=0;p_val4=0;p_val7=0;p_pen1=0;p_coa1=0;};
     KK_FLOAT cnt, theta_00, p_val1, p_val2, p_val4, p_val7, p_pen1, p_coa1;
   };
 
   struct params_fbp {
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_fbp() {p_tor1=0;p_cot1=0;V1=0;V2=0;V3=0;};
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_fbp(int /*i*/) {p_tor1=0;p_cot1=0;V1=0;V2=0;V3=0;};
     KK_FLOAT p_tor1, p_cot1, V1, V2, V3;
   };
 
   struct params_hbp {
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_hbp() {p_hb1=0;p_hb2=0;p_hb3=0;r0_hb=0;};
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_hbp(int /*i*/) {p_hb1=0;p_hb2=0;p_hb3=0;r0_hb=0;};
     KK_FLOAT p_hb1, p_hb2, p_hb3, r0_hb;
   };
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT_REAX &ev, const int &i, const int &j, const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
                   const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void e_tally(EV_FLOAT_REAX &ev, const int &i, const int &j, const KK_FLOAT &epair) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void e_tally_single(EV_FLOAT_REAX &ev, const int &i, const KK_FLOAT &epair) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally(EV_FLOAT_REAX &ev, const int &i, KK_ACC_FLOAT *fi, KK_FLOAT *drij) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally3(EV_FLOAT_REAX &ev, const int &i, const int &j, const int &k,
     KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk, KK_FLOAT *drij, KK_FLOAT *drik) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally3_atom(EV_FLOAT_REAX &ev, const int &i, const int &j, const int &k,
     KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk, KK_FLOAT *drji, KK_FLOAT *drjk) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally4(EV_FLOAT_REAX &ev, const int &i, const int &j, const int &k, const int &l,
     KK_ACC_FLOAT *fi, KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk, KK_FLOAT *dril, KK_FLOAT *drjl, KK_FLOAT *drkl) const;
@@ -527,12 +586,14 @@ struct PairReaxKokkosFindBondFunctor  {
   PairReaxFFKokkos<DeviceType> c;
   PairReaxKokkosFindBondFunctor(PairReaxFFKokkos<DeviceType>* c_ptr, int groupbit):groupbit(groupbit),c(*c_ptr){};
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void join(int &dst,
              const int &src) const {
     dst = MAX(dst,src);
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int ii, int &numbonds) const {
     c.calculate_find_bond_item(ii,numbonds,groupbit);
@@ -547,6 +608,7 @@ struct PairReaxKokkosPackBondBufferFunctor  {
   PairReaxFFKokkos<DeviceType> c;
   PairReaxKokkosPackBondBufferFunctor(PairReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int ii, int &j, const bool &final) const {
     c.pack_bond_buffer_item(ii,j,final);
@@ -561,6 +623,7 @@ struct PairReaxKokkosPackReducedBondBufferFunctor  {
   PairReaxFFKokkos<DeviceType> c;
   PairReaxKokkosPackReducedBondBufferFunctor(PairReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int ii, int &j, const bool &final) const {
     c.template pack_reduced_bond_buffer_item<STORE_BONDS>(ii,j,final);

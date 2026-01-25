@@ -130,7 +130,7 @@ void Timer::barrier_stop()
 
 /* ---------------------------------------------------------------------- */
 
-double Timer::cpu(enum ttype which)
+double Timer::cpu(enum ttype which) const
 {
   double current_cpu = platform::cputime();
   return (current_cpu - cpu_array[which]);
@@ -138,7 +138,7 @@ double Timer::cpu(enum ttype which)
 
 /* ---------------------------------------------------------------------- */
 
-double Timer::elapsed(enum ttype which)
+double Timer::elapsed(enum ttype which) const
 {
   if (_level == OFF) return 0.0;
   double current_wall = platform::walltime();

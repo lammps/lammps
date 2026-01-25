@@ -38,6 +38,22 @@ class LabelMap : protected Pointers {
   const std::string &find(int, int) const;     // find type label for numeric type
   bool is_complete(int) const;                 // check if all types are assigned
 
+  // infer interaction types from standard hyphen-delimited format
+
+  int infer_bondtype(int, int);                      // infer bond type from two atom types
+  int infer_bondtype(std::vector<std::string>);      // infer bond type from two atom type labels
+
+  int infer_angletype(int, int, int);                // infer angle type from three atom types
+  int infer_angletype(std::vector<std::string>);     // infer angle type from three atom type labels
+
+  int infer_dihedraltype(int, int, int, int);        // infer dihedral type from four atom types
+  int infer_dihedraltype(std::vector<std::string>);  // infer dihedral type from four atom type labels
+
+  int infer_impropertype(int, int, int, int);        // infer improper type from four atom types
+  int infer_impropertype(std::vector<std::string>);  // infer improper type from four atom type labels
+
+  int parse_typelabel(int, std::string, std::vector<std::string> &); // get strings within hyphen delimiters
+
   // input/output for atom class label map
 
   void write_data(FILE *);

@@ -105,43 +105,43 @@ void PairAmoeba::read_prmfile(char *filename)
       section = END_OF_FILE;
       while (fgets(line, MAXLINE, fptr)) {
         ++nline;
-        if (utils::strmatch(line, "^\\s*##\\s+\\S+.*##\\s*$")) {
+        if (utils::strmatch(line, R"(^\s*##\s+\S+.*##\s*$)")) {
           auto trimmed = utils::trim(line);
-          if (utils::strmatch(trimmed, "^##\\s*Force Field"))
+          if (utils::strmatch(trimmed, R"(^##\s*Force Field)"))
             section = FFIELD;
-          else if (utils::strmatch(trimmed, "^##\\s*Literature"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Literature)"))
             section = LITERATURE;
-          else if (utils::strmatch(trimmed, "^##\\s*Atom Type"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Atom Type)"))
             section = ATOMTYPE;
-          else if (utils::strmatch(trimmed, "^##\\s*Van der Waals Param"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Van der Waals Param)"))
             section = VDWL;
-          else if (utils::strmatch(trimmed, "^##\\s*Van der Waals Pair"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Van der Waals Pair)"))
             section = VDWLPAIR;
-          else if (utils::strmatch(trimmed, "^##\\s*Bond Stretching"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Bond Stretching)"))
             section = BSTRETCH;
-          else if (utils::strmatch(trimmed, "^##\\s*Stretch-Bend"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Stretch-Bend)"))
             section = SBEND;
-          else if (utils::strmatch(trimmed, "^##\\s*Angle Bending"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Angle Bending)"))
             section = ABEND;
-          else if (utils::strmatch(trimmed, "^##\\s*Pauli Repulsion"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Pauli Repulsion)"))
             section = PAULI;
-          else if (utils::strmatch(trimmed, "^##\\s*Dispersion Param"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Dispersion Param)"))
             section = DISPERSION;
-          else if (utils::strmatch(trimmed, "^##\\s*Urey-Bradley"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Urey-Bradley)"))
             section = UB;
-          else if (utils::strmatch(trimmed, "^##\\s*Out-of-Plane"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Out-of-Plane)"))
             section = OUTPLANE;
-          else if (utils::strmatch(trimmed, "^##\\s*Torsional"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Torsional)"))
             section = TORSION;
-          else if (utils::strmatch(trimmed, "^##\\s*Pi-Torsion"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Pi-Torsion)"))
             section = PITORSION;
-          else if (utils::strmatch(trimmed, "^##\\s*Atomic Multipole"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Atomic Multipole)"))
             section = ATOMMULT;
-          else if (utils::strmatch(trimmed, "^##\\s*Charge Penetration"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Charge Penetration)"))
             section = QPENETRATION;
-          else if (utils::strmatch(trimmed, "^##\\s*Dipole Polarizability"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Dipole Polarizability)"))
             section = DIPPOLAR;
-          else if (utils::strmatch(trimmed, "^##\\s*Charge Transfer"))
+          else if (utils::strmatch(trimmed, R"(^##\s*Charge Transfer)"))
             section = QTRANSFER;
           else {
             section = UNKNOWN;
@@ -198,7 +198,7 @@ void PairAmoeba::read_prmfile(char *filename)
             if (pos != std::string::npos) trimmed = trimmed.substr(0, pos);
 
             // append to line if next line starts with a number
-            if (utils::is_double(utils::strfind(trimmed, "^\\S+"))) {
+            if (utils::is_double(utils::strfind(trimmed, R"(^\S+)"))) {
               strcat(line, " ");
               strcat(line, trimmed.c_str());
               has_next = false;
@@ -221,7 +221,7 @@ void PairAmoeba::read_prmfile(char *filename)
           }
 
           // skip concatenated line with commented out keyword
-          if (utils::strmatch(trimmed, "^#\\w+")) continue;
+          if (utils::strmatch(trimmed, R"(^#\w+)")) continue;
 
           // exit loop if line is not empty
           if (!trimmed.empty()) {

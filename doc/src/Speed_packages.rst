@@ -101,7 +101,7 @@ listed above.
 +-----------------------------------------------------------+---------------------------------------------+
 
 This is discussed on the :doc:`Packages <Packages>` and :doc:`extra
-Build info <Build_extra>` doc pages, and its use is illustrated in the
+Build info <Build_extras>` doc pages, and its use is illustrated in the
 individual accelerator sections.  Typically these steps only need to be
 done once, to create an executable that uses one or more accelerator
 packages.

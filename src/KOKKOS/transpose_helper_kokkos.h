@@ -100,6 +100,7 @@ struct TransposeHelperKokkos {
     }
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team_member) const {
 

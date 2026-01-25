@@ -32,8 +32,8 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 
 #include "rann_activation.h"
 
-namespace LAMMPS_NS {
-namespace RANN {
+
+namespace LAMMPS_NS::RANN {
 
   class Activation_linear : public Activation {
    public:
@@ -48,7 +48,7 @@ namespace RANN {
     double ddactivation_function(double) override { return 0.0; }
   };
 
-}    // namespace RANN
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::RANN
+
 
 #endif /* ACTIVATION_LINEAR_H */

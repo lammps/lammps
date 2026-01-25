@@ -49,24 +49,31 @@ class DomainKokkos : public Domain {
 
   int closest_image(const int, int) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_remap_all, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_image_flip, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_lamda2x, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_lamda2x_group, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_x2lamda, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_x2lamda_group, const int&) const;
 
+// NOLINTNEXTLINE
   static KOKKOS_INLINE_FUNCTION
   Few<double,3> unmap(Few<double,3> prd, Few<double,6> h, int triclinic,
       Few<double,3> x, imageint image);
@@ -80,6 +87,7 @@ class DomainKokkos : public Domain {
   ArrayTypes<LMPDeviceType>::t_int_1d mask;
 };
 
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 Few<double,3> DomainKokkos::unmap(Few<double,3> prd, Few<double,6> h,
     int triclinic, Few<double,3> x, imageint image)

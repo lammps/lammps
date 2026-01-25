@@ -227,7 +227,7 @@ TEST(Utils, split_words_trailing_whitespace)
 
 TEST(Utils, split_words_heredoc)
 {
-    auto list = utils::split_words("one two three \"\"\"");
+    auto list = utils::split_words(R"(one two three """)");
     ASSERT_EQ(list.size(), 4);
     ASSERT_THAT(list[0], StrEq("one"));
     ASSERT_THAT(list[1], StrEq("two"));
@@ -237,7 +237,7 @@ TEST(Utils, split_words_heredoc)
 
 TEST(Utils, split_words_heredoc_whitespace)
 {
-    auto list = utils::split_words("one two three \"\"\"   ");
+    auto list = utils::split_words(R"(one two three """   )");
     ASSERT_EQ(list.size(), 4);
     ASSERT_THAT(list[0], StrEq("one"));
     ASSERT_THAT(list[1], StrEq("two"));
@@ -256,7 +256,7 @@ TEST(Utils, split_words_quoted)
 
 TEST(Utils, split_words_partially_quoted)
 {
-    auto list = utils::split_words("one \'two \"three\"");
+    auto list = utils::split_words(R"(one 'two "three")");
     ASSERT_EQ(list.size(), 2);
     ASSERT_THAT(list[0], StrEq("one"));
     ASSERT_THAT(list[1], StrEq("two \"three\""));
@@ -264,7 +264,7 @@ TEST(Utils, split_words_partially_quoted)
 
 TEST(Utils, split_words_partially_escaped)
 {
-    auto list = utils::split_words("one \\'two \"three\"");
+    auto list = utils::split_words(R"(one \'two "three")");
     ASSERT_EQ(list.size(), 3);
     ASSERT_THAT(list[0], StrEq("one"));
     ASSERT_THAT(list[1], StrEq("\\'two"));
@@ -273,7 +273,7 @@ TEST(Utils, split_words_partially_escaped)
 
 TEST(Utils, split_words_escaped)
 {
-    auto list = utils::split_words("1\\' '\"two\"' 3\\\"");
+    auto list = utils::split_words(R"(1\' '"two"' 3\")");
     ASSERT_EQ(list.size(), 3);
     ASSERT_THAT(list[0], StrEq("1\\'"));
     ASSERT_THAT(list[1], StrEq("\"two\""));
@@ -282,7 +282,7 @@ TEST(Utils, split_words_escaped)
 
 TEST(Utils, split_words_quote_in_quoted)
 {
-    auto list = utils::split_words("one 't\\'wo' \"th\\\"ree\"");
+    auto list = utils::split_words(R"(one 't\'wo' "th\"ree")");
     ASSERT_EQ(list.size(), 3);
     ASSERT_THAT(list[0], StrEq("one"));
     ASSERT_THAT(list[1], StrEq("t\\'wo"));

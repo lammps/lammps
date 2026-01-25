@@ -263,7 +263,7 @@ position and velocity of atoms on the outermost rRESPA level.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

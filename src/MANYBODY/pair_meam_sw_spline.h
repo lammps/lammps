@@ -94,7 +94,7 @@ class PairMEAMSWSpline : public Pair {
     }
 
     /// Returns the number of knots.
-    int numKnots() const { return N; }
+    [[nodiscard]] int numKnots() const { return N; }
 
     /// Parses the spline knots from a text file.
     void parse(class PotentialFileReader &reader);
@@ -103,7 +103,7 @@ class PairMEAMSWSpline : public Pair {
     void prepareSpline();
 
     /// Evaluates the spline function at position x.
-    inline double eval(double x) const
+    [[nodiscard]] double eval(double x) const
     {
       x -= xmin;
       if (x <= 0.0) {    // Left extrapolation.
@@ -187,10 +187,10 @@ class PairMEAMSWSpline : public Pair {
     }
 
     /// Returns the number of bytes used by this function object.
-    double memory_usage() const { return sizeof(*this) + sizeof(X[0]) * N * 3; }
+    [[nodiscard]] double memory_usage() const { return sizeof(*this) + sizeof(X[0]) * N * 3; }
 
     /// Returns the cutoff radius of this function.
-    double cutoff() const { return X[N - 1]; }
+    [[nodiscard]] double cutoff() const { return X[N - 1]; }
 
     /// Writes a Gnuplot script that plots the spline function.
     void writeGnuplot(const char *filename, const char *title = nullptr) const;

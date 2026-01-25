@@ -13,6 +13,7 @@ this page.
 -------
 
 .. contents:: Individual paragraphs
+   :local:
 
 ------
 

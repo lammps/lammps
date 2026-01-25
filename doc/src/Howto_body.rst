@@ -186,7 +186,7 @@ with this body style to compute body/body and body/non-body interactions.
 
 The *rounded/polygon* body style represents body particles as a 2d
 polygon with a variable number of N vertices.  This style can only be
-used for 2d models; see the :doc:`boundary <boundary>` command.  See the
+used for 2d models; see the :doc:`dimension <dimension>` command.  See the
 :doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>` page for
 a diagram of two squares with rounded circles at the vertices.  Special cases
 for N = 1 (circle) and N = 2 (rod with rounded ends) can also be specified.
@@ -494,16 +494,17 @@ current COM and orientation of the body particle.
 The :doc:`dump image <dump_image>` command and its *body* keyword can
 be used to render body particles.
 
-For the *nparticle* body style, each body is drawn as a
-collection of spheres, one for each sub-particle.  The size of each
-sphere is determined by the *bflag1* parameter for the *body* keyword.
-The *bflag2* argument is ignored.
+For the *nparticle* body style, each body is drawn as a collection of
+spheres, one for each sub-particle.  The size of each sphere is
+determined by the *bflag1* parameter for the *body* keyword.  The
+*bflag2* argument is ignored.
 
 For the *rounded/polygon* body style, each body is drawn as a polygon
-with N line segments.  For the *rounded/polyhedron* body style, each
-face of each body is drawn as a polygon with N line segments.  The
-drawn diameter of each line segment is determined by the *bflag1*
-parameter for the *body* keyword.  The *bflag2* argument is ignored.
+and for *rounded/polyhedron* as a polyhedron.  The *bflag2* argument
+selects how the bodies are represented: for a value of 1, only the faces
+are drawn; for a value of 2, only a wireframe mesh is drawn, and for a
+value of 3 both.  The diameter of each wireframe line is determined by
+the *bflag1* parameter for the *body* keyword.
 
 Note that for both the *rounded/polygon* and *rounded/polyhedron*
 styles, line segments are drawn between the pairs of vertices.

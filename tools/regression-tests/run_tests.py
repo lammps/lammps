@@ -1593,7 +1593,8 @@ if __name__ == "__main__":
         input_list=['in.lj']
         total_tests = len(input_list)
         results = []
-        stat = iterate(lmp_binary, pwd, input_list, config, results, progress_file_abs)
+        stat = iterate(lmp_binary, pwd, input_list, config,
+                       results, progress_file_abs, failure_file_abs, walltime_ref, verbose, last_progress)
 
         completed_tests = stat['num_completed']
         skipped_tests = stat['num_skipped']

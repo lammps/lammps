@@ -184,6 +184,7 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPreNeighbor, const int i, int &l_ncrosstermlist, const bool is_final ) const
 {
@@ -243,6 +244,7 @@ void FixCMAPKokkos<DeviceType>::post_force(int vflag)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, double &ecmapKK) const
 {
@@ -805,6 +807,7 @@ void FixCMAPKokkos<DeviceType>::unpack_exchange_kokkos(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT FixCMAPKokkos<DeviceType>::dihedral_angle_atan2(KK_FLOAT fx, KK_FLOAT fy, KK_FLOAT fz,
                                       KK_FLOAT ax, KK_FLOAT ay, KK_FLOAT az,
@@ -831,6 +834,7 @@ KK_FLOAT FixCMAPKokkos<DeviceType>::dihedral_angle_atan2(KK_FLOAT fx, KK_FLOAT f
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixCMAPKokkos<DeviceType>::bc_interpol(KK_FLOAT x1, KK_FLOAT x2, int low1, int low2, KK_FLOAT *gs,
                            KK_FLOAT *d1gs, KK_FLOAT *d2gs, KK_FLOAT *d12gs,
@@ -915,6 +919,7 @@ void FixCMAPKokkos<DeviceType>::bc_interpol(KK_FLOAT x1, KK_FLOAT x2, int low1, 
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int FixCMAPKokkos<DeviceType>::closest_image(const int i, int j) const
 {

@@ -353,6 +353,9 @@ TEST_F(FileOperationsTest, write_restart)
     command("change_box all triclinic");
     command("write_restart triclinic.restart");
     END_HIDE_OUTPUT();
+    // increment restart version if it differs by 1,
+    //  i.e. it was written by a development version
+    if (lmp->num_ver - lmp->restart_ver == 1) lmp->restart_ver++;
     ASSERT_EQ(lmp->restart_ver, lmp->num_ver);
     ASSERT_EQ(lmp->atom->natoms, 1);
     ASSERT_EQ(lmp->update->ntimestep, 333);
@@ -367,6 +370,9 @@ TEST_F(FileOperationsTest, write_restart)
     BEGIN_HIDE_OUTPUT();
     command("read_restart triclinic.restart");
     END_HIDE_OUTPUT();
+    // increment restart version if it differs by 1,
+    //  i.e. it was written by a development version
+    if (lmp->num_ver - lmp->restart_ver == 1) lmp->restart_ver++;
     ASSERT_EQ(lmp->restart_ver, lmp->num_ver);
     ASSERT_EQ(lmp->atom->natoms, 1);
     ASSERT_EQ(lmp->update->ntimestep, 333);

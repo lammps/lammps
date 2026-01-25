@@ -982,7 +982,7 @@ the distance and energy of each bond:
 .. code-block:: LAMMPS
 
    compute 1 all property/local batom1 batom2 btype
-   compute 2 all bond/local dist eng
+   compute 2 all bond/local dist engpot
    dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2]
 
 ----------
@@ -1029,6 +1029,9 @@ Restrictions
 To write compressed dump files, you must either compile LAMMPS with the
 ``-DLAMMPS_GZIP`` option or use the styles from the COMPRESS package.
 See the :doc:`Build settings <Build_settings>` page for details.
+
+To create images or movies, you must install the GRAPHICS package.
+See the :doc:`Build extras <Build_extras>` page for details.
 
 While a dump command is active (i.e., has not been stopped by using
 the :doc:`undump command <undump>`), no commands may be used that will

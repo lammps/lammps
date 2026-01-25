@@ -43,6 +43,7 @@ class NPairTrimKokkos : public NPair {
   NPairTrimKokkos(class LAMMPS *);
   void build(class NeighList *) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNPairTrim, const int&) const;
 

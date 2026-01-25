@@ -45,7 +45,7 @@ TEST(JSON, serialize_deserialize)
     j1["name"]    = "Niels";
     j1["nothing"] = nullptr;
 
-    std::string expected = "{\"pi\":3.141,\"happy\":true,\"name\":\"Niels\",\"nothing\":null}";
+    std::string expected = R"({"pi":3.141,"happy":true,"name":"Niels","nothing":null})";
     std::string dumped   = j1.dump(-1);
     ASSERT_THAT(expected, Eq(dumped));
 

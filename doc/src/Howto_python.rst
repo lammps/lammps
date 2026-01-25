@@ -2,6 +2,7 @@ LAMMPS Python Tutorial
 ======================
 
 .. contents::
+   :local:
 
 -----
 

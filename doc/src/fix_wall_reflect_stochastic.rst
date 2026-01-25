@@ -97,6 +97,36 @@ previously used to define the lattice spacings.
 
 ----------
 
+Dump image info
+"""""""""""""""
+
+.. versionadded:: TBD
+
+This wall fix supports the *fix* keyword of :doc:`dump image
+<dump_image>`.  The fix will pass geometry information about the walls
+to *dump image* so that the walls will be included in the rendered
+image.  Please note, that for :doc:`2d systems <dimension>`, a wall
+rendered as a plane would be invisible and it is thus rendered as a
+cylinder.
+
+The color of the wall is by default that of the first atom type when
+using color styles "type" or "element".  With color style "const" the
+default value of "white" can be changed using :doc:`dump_modify fcolor
+<dump_image>`.  The transparency is by default fully opaque and can be
+changed with *dump\_modify ftrans*\ .
+
+The *fflag1* setting and the *fflag2* setting of *dump image fix* are
+only relevant for 2d systems.  The *fflag1* setting determines whether
+the cylinder is capped with a sphere at the ends: 0 means no caps, 1
+means the lower end is capped, 2 means the upper end is capped, and 3
+means both ends are capped.  The *fflag2* setting allows to adjust the
+radius of the rendered cylinder.  It should be set to a value > 0 or the
+cylinder will not be visible since the diameter is set internally to
+zero due to lack of a suitable heuristic for deriving a meaningful
+diameter for all types of walls and unit settings.
+
+----------
+
 Restrictions
 """"""""""""
 

@@ -49,10 +49,12 @@ class FixEfieldKokkos : public FixEfield {
   void post_force(int) override;
 
   template<int QFLAG, int MUFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixEfieldConstant<QFLAG,MUFLAG>, const int&, value_type) const;
 
   template<int QFLAG, int MUFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixEfieldNonConstant<QFLAG,MUFLAG>, const int&, value_type) const;
 
@@ -77,6 +79,7 @@ class FixEfieldKokkos : public FixEfield {
   DAT::ttransform_kkacc_1d_6 k_vatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally(value_type, int, KK_FLOAT*) const;
 };

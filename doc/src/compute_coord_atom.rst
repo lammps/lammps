@@ -142,7 +142,7 @@ explained above.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

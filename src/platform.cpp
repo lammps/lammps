@@ -22,10 +22,13 @@
 #include "utils.h"
 
 #include <cerrno>
+#include <chrono>
+#include <cstring>
 #include <deque>
 #include <exception>
 #include <filesystem>
 #include <mpi.h>
+#include <thread>
 #include <utility>
 
 ////////////////////////////////////////////////////////////////////////
@@ -74,10 +77,6 @@
 
 ////////////////////////////////////////////////////////////////////////
 
-#include <chrono>
-#include <cstring>
-#include <thread>
-
 /* ------------------------------------------------------------------ */
 namespace {
 /// Struct for listing on-the-fly compression/decompression commands
@@ -124,6 +123,9 @@ const compress_info &find_compress_type(const std::string &file)
 // set reference time stamp during executable/library init.
 // should provide better resolution than using epoch, if the system clock supports it.
 auto initial_time = std::chrono::steady_clock::now();
+
+// same for file time stamps where we use the current working directory as reference
+auto initial_file_time = std::filesystem::last_write_time(".");
 }    // namespace
 using namespace LAMMPS_NS;
 
@@ -934,7 +936,8 @@ std::string platform::path_dirname(const std::string &path)
 #else
   if (dir == "") return {"."};
 #endif
-  else return dir;
+  else
+    return dir;
 }
 
 /* ----------------------------------------------------------------------
@@ -1001,6 +1004,15 @@ bool platform::file_is_writable(const std::string &path)
     }
   }
   return false;
+}
+
+/* ----------------------------------------------------------------------
+   get file modification time since initial time stamp
+------------------------------------------------------------------------- */
+double platform::file_write_time(const std::string &path)
+{
+  auto timediff = std::filesystem::last_write_time(path) - initial_file_time;
+  return std::chrono::duration<double>(timediff).count();
 }
 
 /* ----------------------------------------------------------------------

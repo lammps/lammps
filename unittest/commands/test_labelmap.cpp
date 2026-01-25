@@ -166,7 +166,7 @@ TEST_F(LabelMapTest, Atoms)
 
     BEGIN_HIDE_OUTPUT();
     command("labelmap clear");
-    command("labelmap atom 1 \"C1'\" 2 'C2\"' 3 \"\"\"C1'-C2\" \"\"\" 4 \"\"\" C2\"-C1'\"\"\"");
+    command(R"(labelmap atom 1 "C1'" 2 'C2"' 3 """C1'-C2" """ 4 """ C2"-C1'""")");
     END_HIDE_OUTPUT();
     EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
     EXPECT_EQ(atom->lmap->find("C1'", Atom::ATOM), 1);
@@ -207,7 +207,7 @@ TEST_F(LabelMapTest, Topology)
     BEGIN_HIDE_OUTPUT();
     command("labelmap atom 2 \"N2'\"");
     command("labelmap bond 1 C1-N2 2 [C1][C1] 3 N2=N2");
-    command("labelmap angle 1 C1-N2-C1 2 \"\"\" N2'-C1\"-N2' \"\"\"");
+    command(R"(labelmap angle 1 C1-N2-C1 2 """ N2'-C1"-N2' """)");
     command("labelmap dihedral 1 'C1-N2-C1-N2'");
     command("labelmap improper 1 \"C1-N2-C1-N2\"");
     command("mass C1 12.0");

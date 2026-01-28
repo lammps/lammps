@@ -125,12 +125,12 @@ class Timer : protected Pointers {
   /** Get elapsed wall-clock time for a timer
    * \param which Timer type
    * \return Elapsed wall-clock time in seconds */
-  [[nodiscard]] double elapsed(enum ttype);
+  [[nodiscard]] double elapsed(enum ttype) const;
 
   /** Get elapsed CPU time for a timer
    * \param which Timer type
    * \return Elapsed CPU time in seconds */
-  [[nodiscard]] double cpu(enum ttype);
+  [[nodiscard]] double cpu(enum ttype) const;
 
   /** Get stored CPU time for a timer
    * \param which Timer type

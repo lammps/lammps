@@ -51,7 +51,7 @@ class FixWallFlow : public Fix {
   class RanMars *random;
   int *current_segment;
 
-  int compute_current_segment(double pos) const;
+  [[nodiscard]] int compute_current_segment(double pos) const;
   void generate_velocity(int i);
 };
 

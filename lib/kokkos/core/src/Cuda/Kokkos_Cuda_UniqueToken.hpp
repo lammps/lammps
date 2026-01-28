@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CUDA_UNIQUE_TOKEN_HPP
 #define KOKKOS_CUDA_UNIQUE_TOKEN_HPP
@@ -80,8 +67,7 @@ class UniqueToken<Cuda, UniqueTokenScope::Global> {
     int idx = blockIdx.x * (blockDim.x * blockDim.y) +
               threadIdx.y * blockDim.x + threadIdx.x;
     idx = idx % size();
-#if defined(KOKKOS_ARCH_KEPLER) || defined(KOKKOS_ARCH_PASCAL) || \
-    defined(KOKKOS_ARCH_MAXWELL)
+#if defined(KOKKOS_ARCH_MAXWELL) || defined(KOKKOS_ARCH_PASCAL)
     unsigned int mask        = __activemask();
     unsigned int active      = __ballot_sync(mask, 1);
     unsigned int done_active = 0;

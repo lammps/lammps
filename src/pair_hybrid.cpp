@@ -971,7 +971,7 @@ void PairHybrid::copy_svector(int itype, int jtype)
   // there is only one style in pair style hybrid for a pair of atom types
   Pair *this_style = styles[map[itype][jtype][0]];
 
-  for (int l = 0; this_style->single_extra; ++l) {
+  for (int l = 0; l < this_style->single_extra; ++l) {
     svector[l] = this_style->svector[l];
   }
 }

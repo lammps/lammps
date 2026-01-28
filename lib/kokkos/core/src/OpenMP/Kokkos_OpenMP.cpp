@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -94,10 +81,6 @@ void OpenMP::fence(const std::string &name) const {
         auto *internal_instance = this->impl_internal_space_instance();
         std::lock_guard<std::mutex> lock(internal_instance->m_instance_mutex);
       });
-}
-
-bool OpenMP::impl_is_initialized() noexcept {
-  return Impl::OpenMPInternal::singleton().is_initialized();
 }
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4

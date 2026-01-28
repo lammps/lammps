@@ -119,7 +119,7 @@ values are in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

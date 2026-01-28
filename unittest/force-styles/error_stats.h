@@ -25,11 +25,11 @@ public:
 
     void reset();
     void add(const double &val);
-    double avg() const;
-    double dev() const;
-    double max() const { return maxerr; }
-    double idx() const { return maxidx; }
-    bool has_data() const { return num > 0; }
+    [[nodiscard]] double avg() const;
+    [[nodiscard]] double dev() const;
+    [[nodiscard]] double max() const { return maxerr; }
+    [[nodiscard]] double idx() const { return maxidx; }
+    [[nodiscard]] bool has_data() const { return num > 0; }
 
 private:
     double sum, sumsq, maxerr;

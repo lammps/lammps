@@ -53,31 +53,15 @@ class Modify : protected Pointers {
   friend class RespaOMP;
 
  public:
-  int n_initial_integrate;    /**< Number of fixes called at initial_integrate */
-  int n_post_integrate;       /**< Number of fixes called at post_integrate */
-  int n_pre_exchange;         /**< Number of fixes called at pre_exchange */
-  int n_pre_neighbor;         /**< Number of fixes called at pre_neighbor */
-  int n_post_neighbor;        /**< Number of fixes called at post_neighbor */
-  int n_pre_force;            /**< Number of fixes called at pre_force */
-  int n_pre_reverse;          /**< Number of fixes called at pre_reverse */
-  int n_post_force_any;       /**< Number of fixes called at any post_force stage */
-  int n_final_integrate;      /**< Number of fixes called at final_integrate */
-  int n_end_of_step;          /**< Number of fixes called at end_of_step */
-  int n_energy_couple;        /**< Number of fixes contributing coupled energy */
-  int n_energy_global;        /**< Number of fixes contributing global energy */
-  int n_energy_atom;          /**< Number of fixes contributing per-atom energy */
-  int n_initial_integrate_respa;    /**< Number of fixes for rRESPA initial_integrate */
-  int n_post_integrate_respa;       /**< Number of fixes for rRESPA post_integrate */
-  int n_pre_force_respa;            /**< Number of fixes for rRESPA pre_force */
-  int n_post_force_respa_any;       /**< Number of fixes for any rRESPA post_force */
-  int n_final_integrate_respa;      /**< Number of fixes for rRESPA final_integrate */
-  int n_min_pre_exchange;     /**< Number of fixes for minimization pre_exchange */
-  int n_min_pre_neighbor;     /**< Number of fixes for minimization pre_neighbor */
-  int n_min_post_neighbor;    /**< Number of fixes for minimization post_neighbor */
-  int n_min_pre_force;        /**< Number of fixes for minimization pre_force */
-  int n_min_pre_reverse;      /**< Number of fixes for minimization pre_reverse */
-  int n_min_post_force;       /**< Number of fixes for minimization post_force */
-  int n_min_energy;           /**< Number of fixes for minimization energy */
+  int n_initial_integrate, n_post_integrate, n_pre_exchange;
+  int n_pre_neighbor, n_post_neighbor;
+  int n_pre_force, n_pre_reverse, n_post_force_any;
+  int n_final_integrate, n_end_of_step;
+  int n_energy_couple, n_energy_global, n_energy_atom;
+  int n_initial_integrate_respa, n_post_integrate_respa;
+  int n_pre_force_respa, n_post_force_respa_any, n_final_integrate_respa;
+  int n_min_pre_exchange, n_min_pre_neighbor, n_min_post_neighbor;
+  int n_min_pre_force, n_min_pre_reverse, n_min_post_force, n_min_energy;
 
   int restart_pbc_any;        /**< 1 if any fix sets restart_pbc flag */
   int nfix_restart_global;    /**< Number of stored fix global info from restart */
@@ -330,17 +314,17 @@ class Modify : protected Pointers {
   /** Get a fix by its ID
    * \param id ID of the fix to find
    * \return Pointer to Fix, or nullptr if not found */
-  Fix *get_fix_by_id(const std::string &) const;
+  [[nodiscard]] Fix *get_fix_by_id(const std::string &) const;
 
   /** Get a fix by its index in the array
    * \param idx Index of the fix
    * \return Pointer to Fix, or nullptr if index out of range */
-  Fix *get_fix_by_index(int idx) const { return ((idx >= 0) && (idx < nfix)) ? fix[idx] : nullptr; }
+  [[nodiscard]] Fix *get_fix_by_index(int idx) const { return ((idx >= 0) && (idx < nfix)) ? fix[idx] : nullptr; }
 
   /** Get all fixes matching a style pattern
    * \param style Style name to match
    * \return Vector of pointers to matching Fix instances */
-  const std::vector<Fix *> get_fix_by_style(const std::string &) const;
+  [[nodiscard]] const std::vector<Fix *> get_fix_by_style(const std::string &) const;
 
   /** Get the list of all fixes
    * \return Reference to vector containing all Fix pointers */
@@ -396,12 +380,12 @@ class Modify : protected Pointers {
   /** Get a compute by its ID
    * \param id ID of the compute to find
    * \return Pointer to Compute, or nullptr if not found */
-  Compute *get_compute_by_id(const std::string &) const;
+  [[nodiscard]] Compute *get_compute_by_id(const std::string &) const;
 
   /** Get a compute by its index in the array
    * \param idx Index of the compute
    * \return Pointer to Compute, or nullptr if index out of range */
-  Compute *get_compute_by_index(int idx) const
+  [[nodiscard]] Compute *get_compute_by_index(int idx) const
   {
     return ((idx >= 0) && (idx < ncompute)) ? compute[idx] : nullptr;
   }
@@ -409,7 +393,7 @@ class Modify : protected Pointers {
   /** Get all computes matching a style pattern
    * \param style Style name to match
    * \return Vector of pointers to matching Compute instances */
-  const std::vector<Compute *> get_compute_by_style(const std::string &) const;
+  [[nodiscard]] const std::vector<Compute *> get_compute_by_style(const std::string &) const;
 
   /** Get the list of all computes
    * \return Reference to vector containing all Compute pointers */
@@ -467,59 +451,43 @@ class Modify : protected Pointers {
  protected:
   // internal fix counts
 
-  int n_post_force;           /**< Number of fixes for post_force */
-  int n_post_force_group;     /**< Number of fixes for post_force by group */
-  int n_post_force_respa;     /**< Number of fixes for rRESPA post_force */
+  int n_post_force, n_post_force_group, n_post_force_respa;
 
   // lists of fixes to apply at different stages of timestep
 
-  int *list_initial_integrate;    /**< Fix indices for initial_integrate */
-  int *list_post_integrate;       /**< Fix indices for post_integrate */
-  int *list_pre_exchange;         /**< Fix indices for pre_exchange */
-  int *list_pre_neighbor;         /**< Fix indices for pre_neighbor */
-  int *list_post_neighbor;        /**< Fix indices for post_neighbor */
-  int *list_pre_force;            /**< Fix indices for pre_force */
-  int *list_pre_reverse;          /**< Fix indices for pre_reverse */
-  int *list_post_force;           /**< Fix indices for post_force */
-  int *list_post_force_group;     /**< Fix indices for post_force by group */
-  int *list_final_integrate;      /**< Fix indices for final_integrate */
-  int *list_end_of_step;          /**< Fix indices for end_of_step */
-  int *list_energy_couple;        /**< Fix indices for coupled energy */
-  int *list_energy_global;        /**< Fix indices for global energy */
-  int *list_energy_atom;          /**< Fix indices for per-atom energy */
-  int *list_initial_integrate_respa;    /**< Fix indices for rRESPA initial_integrate */
-  int *list_post_integrate_respa;       /**< Fix indices for rRESPA post_integrate */
-  int *list_pre_force_respa;            /**< Fix indices for rRESPA pre_force */
-  int *list_post_force_respa;           /**< Fix indices for rRESPA post_force */
-  int *list_final_integrate_respa;      /**< Fix indices for rRESPA final_integrate */
-  int *list_min_pre_exchange;     /**< Fix indices for minimization pre_exchange */
-  int *list_min_pre_neighbor;     /**< Fix indices for minimization pre_neighbor */
-  int *list_min_post_neighbor;    /**< Fix indices for minimization post_neighbor */
-  int *list_min_pre_force;        /**< Fix indices for minimization pre_force */
-  int *list_min_pre_reverse;      /**< Fix indices for minimization pre_reverse */
-  int *list_min_post_force;       /**< Fix indices for minimization post_force */
-  int *list_min_energy;           /**< Fix indices for minimization energy */
+  int *list_initial_integrate, *list_post_integrate;
+  int *list_pre_exchange, *list_pre_neighbor, *list_post_neighbor;
+  int *list_pre_force, *list_pre_reverse;
+  int *list_post_force, *list_post_force_group;
+  int *list_final_integrate, *list_end_of_step;
+  int *list_energy_couple, *list_energy_global, *list_energy_atom;
+  int *list_initial_integrate_respa, *list_post_integrate_respa;
+  int *list_pre_force_respa, *list_post_force_respa;
+  int *list_final_integrate_respa;
+  int *list_min_pre_exchange, *list_min_pre_neighbor, *list_min_post_neighbor;
+  int *list_min_pre_force, *list_min_pre_reverse, *list_min_post_force;
+  int *list_min_energy;
 
-  int *end_of_step_every;    /**< Frequency of end_of_step calls for each fix */
+  int *end_of_step_every;
 
-  int n_timeflag;       /**< Number of computes with time invocation tracking */
-  int *list_timeflag;   /**< List of compute indices with time tracking */
+  int n_timeflag;    // list of computes that store time invocation
+  int *list_timeflag;
 
-  char **id_restart_global;       /**< IDs of fixes with global restart info */
-  char **style_restart_global;    /**< Styles of fixes with global restart info */
-  char **state_restart_global;    /**< State strings for global restart */
-  int *used_restart_global;       /**< Flags for used global restart info */
+  char **id_restart_global;       // stored fix global info
+  char **style_restart_global;    // from read-in restart file
+  char **state_restart_global;
+  int *used_restart_global;
 
-  char **id_restart_peratom;       /**< IDs of fixes with per-atom restart info */
-  char **style_restart_peratom;    /**< Styles of fixes with per-atom restart info */
-  int *index_restart_peratom;      /**< Indices for per-atom restart info */
-  int *used_restart_peratom;       /**< Flags for used per-atom restart info */
+  char **id_restart_peratom;       // stored fix peratom info
+  char **style_restart_peratom;    // from read-in restart file
+  int *index_restart_peratom;
+  int *used_restart_peratom;
 
-  int index_permanent;    /**< Fix/compute index for library access */
+  int index_permanent;    // fix/compute index returned to library call
 
   // vectors to be used for new-API accessors as wrapper
-  std::vector<Fix *> fix_list;          /**< Vector wrapper for fix array */
-  std::vector<Compute *> compute_list;  /**< Vector wrapper for compute array */
+  std::vector<Fix *> fix_list;
+  std::vector<Compute *> compute_list;
 
   void list_init(int, int &, int *&);
   void list_init_end_of_step(int, int &, int *&);
@@ -532,13 +500,13 @@ class Modify : protected Pointers {
   void list_init_compute();
 
  public:
-  using ComputeCreator = Compute *(*) (LAMMPS *, int, char **);     /**< Function pointer type for compute creation */
-  using ComputeCreatorMap = std::map<std::string, ComputeCreator>;  /**< Map type for compute style factory */
-  ComputeCreatorMap *compute_map;    /**< Factory map for creating compute styles */
+  using ComputeCreator = Compute *(*) (LAMMPS *, int, char **);
+  using ComputeCreatorMap = std::map<std::string, ComputeCreator>;
+  ComputeCreatorMap *compute_map;
 
-  using FixCreator = Fix *(*) (LAMMPS *, int, char **);    /**< Function pointer type for fix creation */
-  using FixCreatorMap = std::map<std::string, FixCreator>; /**< Map type for fix style factory */
-  FixCreatorMap *fix_map;    /**< Factory map for creating fix styles */
+  using FixCreator = Fix *(*) (LAMMPS *, int, char **);
+  using FixCreatorMap = std::map<std::string, FixCreator>;
+  FixCreatorMap *fix_map;
 
  protected:
   void create_factories();

@@ -9,12 +9,6 @@ set(Kokkos_CXX_STANDARD @KOKKOS_CXX_STANDARD@)
 
 # Required to be a TriBITS-compliant external package
 if(NOT TARGET Kokkos::all_libs)
-  # CMake Error at <prefix>/lib/cmake/Kokkos/KokkosConfigCommon.cmake:10 (ADD_LIBRARY):
-  #   ADD_LIBRARY cannot create ALIAS target "Kokkos::all_libs" because target
-  #   "Kokkos::kokkos" is imported but not globally visible.
-  if(CMAKE_VERSION VERSION_LESS "3.18")
-    set_target_properties(Kokkos::kokkos PROPERTIES IMPORTED_GLOBAL ON)
-  endif()
   add_library(Kokkos::all_libs ALIAS Kokkos::kokkos)
 endif()
 
@@ -187,11 +181,11 @@ int main()
   if(NOT _RET EQUAL 0)
     # save the command for debugging
     set(_COMMANDS
-        "${_COMMAND}\n${_COMPILER} --cuda-gpu-arch=sm_35 ${ARGN} -c ${PROJECT_BINARY_DIR}/compile_tests/compiles_cuda.cu"
+        "${_COMMAND}\n${_COMPILER} --cuda-gpu-arch=sm_50 ${ARGN} -c ${PROJECT_BINARY_DIR}/compile_tests/compiles_cuda.cu"
     )
     # try the compile test again with clang arguments
     execute_process(
-      COMMAND ${_COMPILER} --cuda-gpu-arch=sm_35 -c ${PROJECT_BINARY_DIR}/compile_tests/compiles_cuda.cu
+      COMMAND ${_COMPILER} --cuda-gpu-arch=sm_50 -c ${PROJECT_BINARY_DIR}/compile_tests/compiles_cuda.cu
       RESULT_VARIABLE _RET
       WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/compile_tests
       TIMEOUT 15
@@ -226,12 +220,8 @@ function(kokkos_compilation)
   # if built w/o CUDA support, we want to basically make this a no-op
   set(_Kokkos_ENABLE_CUDA @Kokkos_ENABLE_CUDA@)
 
-  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.17)
-    set(MAYBE_CURRENT_INSTALLATION_ROOT "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../..")
-  endif()
-
   # search relative first and then absolute
-  set(_HINTS "${MAYBE_CURRENT_INSTALLATION_ROOT}" "@CMAKE_INSTALL_PREFIX@")
+  set(_HINTS "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../.." "@CMAKE_INSTALL_PREFIX@")
 
   # find kokkos_launch_compiler
   find_program(

@@ -303,6 +303,7 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::num_neigh_item(int ii, bigint &totneigh) const
 {
@@ -378,6 +379,7 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_array()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqZero, const int &ii) const
 {
@@ -405,6 +407,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqZero, const int &ii) const
 
 template<class DeviceType>
 template <int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::compute_h_item(int ii, bigint &m_fill, const bool &final) const
 {
@@ -473,6 +476,7 @@ void FixQEqReaxFFKokkos<DeviceType>::compute_h_item(int ii, bigint &m_fill, cons
 
 template <class DeviceType>
 template <int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::compute_h_team(
     const typename Kokkos::TeamPolicy<DeviceType>::member_type &team,
@@ -540,7 +544,7 @@ void FixQEqReaxFFKokkos<DeviceType>::compute_h_team(
   // calculated by the current team will be stored in d_val
   bigint team_firstnbr_idx = 0;
   Kokkos::single(Kokkos::PerTeam(team),
-                 [=](bigint &val) {
+                 [&](bigint &val) {
                    int totalnbrs = s_firstnbr[lastatom - firstatom - 1] +
                                    s_numnbrs[lastatom - firstatom - 1];
                    val = Kokkos::atomic_fetch_add(&d_mfill_offset(), totalnbrs);
@@ -678,6 +682,7 @@ void FixQEqReaxFFKokkos<DeviceType>::compute_h_team(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT FixQEqReaxFFKokkos<DeviceType>::calculate_H_k(const KK_FLOAT &r, const KK_FLOAT &shld) const
 {
@@ -700,6 +705,7 @@ KK_FLOAT FixQEqReaxFFKokkos<DeviceType>::calculate_H_k(const KK_FLOAT &r, const 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqInitMatvec, const int &ii) const
 {
@@ -889,6 +895,7 @@ void FixQEqReaxFFKokkos<DeviceType>::sparse_matvec_kokkos(typename AT::t_kkfloat
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec1, const int &ii) const
 {
@@ -906,6 +913,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec1, const int &
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqZeroQGhosts, const int &i) const
 {
@@ -921,6 +929,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqZeroQGhosts, const int &i)
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Half<NEIGHFLAG>, const typename Kokkos::TeamPolicy<DeviceType, TagQEqSparseMatvec2_Half<NEIGHFLAG>>::member_type &team) const
 {
@@ -961,6 +970,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Half<NEIGHFL
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Full, const membertype_vec &team) const
 {
@@ -990,6 +1000,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Full, const 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqNorm1, const int &ii, KK_double2& out) const
 {
@@ -1015,6 +1026,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqNorm1, const int &ii, KK_d
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot1, const int &ii, KK_double2& out) const
 {
@@ -1030,6 +1042,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot1, const int &ii, KK_do
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot2, const int &ii, KK_double2& out) const
 {
@@ -1045,6 +1058,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot2, const int &ii, KK_do
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot3, const int &ii, KK_double2& out) const
 {
@@ -1077,6 +1091,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot3, const int &ii, KK_do
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSum1, const int &ii) const
 {
@@ -1092,6 +1107,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSum1, const int &ii) const
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSum2, const int &ii, KK_double2& out) const
 {
@@ -1105,6 +1121,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSum2, const int &ii, KK_do
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqCalculateQ, const int &ii) const
 {
@@ -1139,6 +1156,7 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_i
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackForwardComm, const int &i) const {
   int j = d_sendlist(i);
@@ -1169,6 +1187,7 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackForwardComm, const int &i) const {
   if (pack_flag == 1) {
@@ -1363,18 +1382,20 @@ void FixQEqReaxFFKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, Bi
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackExchange, const int &mysend) const {
+
   const int i = d_exchange_sendlist(mysend);
-
-  for (int m = 0; m < nprev; m++) d_buf(mysend*nprev*2 + m) = static_cast<double>(d_s_hist(i,m));
-  for (int m = 0; m < nprev; m++) d_buf(mysend*nprev*2 + nprev+m) = static_cast<double>(d_t_hist(i,m));
-
   const int j = d_copylist(mysend);
 
-  if (j > -1) {
-    for (int m = 0; m < nprev; m++) d_s_hist(i,m) = d_s_hist(j,m);
-    for (int m = 0; m < nprev; m++) d_t_hist(i,m) = d_t_hist(j,m);
+  for (int m = 0; m < nprev; m++) {
+    d_buf(mysend*nprev*2 + m) = static_cast<double>(d_s_hist(i,m));
+    d_buf(mysend*nprev*2 + nprev+m) = static_cast<double>(d_t_hist(i,m));
+    if (j > -1) {
+      d_s_hist(i,m) = d_s_hist(j,m);
+      d_t_hist(i,m) = d_t_hist(j,m);
+    }
   }
 }
 
@@ -1415,6 +1436,7 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackExchange, const int &i) const
 {

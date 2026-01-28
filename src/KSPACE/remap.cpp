@@ -16,6 +16,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <set>
 
 #define PACK_DATA FFT_SCALAR
@@ -226,13 +227,11 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   // allocate memory for plan data struct
 
-  plan = (struct remap_plan_3d *) malloc(sizeof(struct remap_plan_3d));
-  if (plan == nullptr) return nullptr;
-
-  // zero out entire plan data structure including all pointers and set flags
-  memset(plan, 0, sizeof(struct remap_plan_3d));
-  plan->usecollective = usecollective;
-  plan->usenonblocking = usenonblocking;
+  try {
+    plan = new remap_plan_3d(usecollective, usenonblocking);
+  } catch (std::bad_alloc &) {
+    return nullptr;
+  }
 
   // store parameters in local data structs
 
@@ -264,13 +263,14 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   inarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
   if (inarray == nullptr) {
-    free(plan);
+    delete plan;
     return nullptr;
   }
 
   outarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
   if (outarray == nullptr) {
-    free(plan);
+    free(inarray);
+    delete plan;
     return nullptr;
   }
 
@@ -285,7 +285,6 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   if (!plan->usecollective) {
     // count send & recv collides, including self
-
     nsend = 0;
     nrecv = 0;
     for (i = 0; i < nprocs; i++) {
@@ -301,16 +300,18 @@ struct remap_plan_3d *remap_3d_create_plan(
       plan->send_offset = (int *) malloc(nsend*sizeof(int));
       plan->send_size = (int *) malloc(nsend*sizeof(int));
       plan->send_proc = (int *) malloc(nsend*sizeof(int));
-      plan->packplan = (struct pack_plan_3d *)
-        malloc(nsend*sizeof(struct pack_plan_3d));
+      plan->packplan = (struct pack_plan_3d *) malloc(nsend*sizeof(struct pack_plan_3d));
 
       if (plan->usenonblocking)
         plan->isend_reqs = (MPI_Request *) malloc(nsend*sizeof(MPI_Request));
       plan->send_bufloc = (int *) malloc(nsend*sizeof(int));
-      if (plan->send_bufloc == nullptr) return nullptr;
 
       if (plan->send_offset == nullptr || plan->send_size == nullptr ||
-          plan->send_proc == nullptr || plan->packplan == nullptr) return nullptr;
+          plan->send_proc == nullptr || plan->packplan == nullptr ||
+          (plan->usenonblocking && (plan->isend_reqs == nullptr)) || plan->send_bufloc == nullptr) {
+        delete plan;
+        return nullptr;
+      }
     }
 
     if (nrecv) {
@@ -338,12 +339,14 @@ struct remap_plan_3d *remap_3d_create_plan(
       plan->recv_proc = (int *) malloc(nrecv*sizeof(int));
       plan->recv_bufloc = (int *) malloc(nrecv*sizeof(int));
       plan->request = (MPI_Request *) malloc(nrecv*sizeof(MPI_Request));
-      plan->unpackplan = (struct pack_plan_3d *)
-        malloc(nrecv*sizeof(struct pack_plan_3d));
+      plan->unpackplan = (struct pack_plan_3d *) malloc(nrecv*sizeof(struct pack_plan_3d));
 
       if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
           plan->recv_proc == nullptr || plan->recv_bufloc == nullptr ||
-          plan->request == nullptr || plan->unpackplan == nullptr) return nullptr;
+          plan->request == nullptr || plan->unpackplan == nullptr) {
+        delete plan;
+        return nullptr;
+      }
     }
 
     // store send info, with self as last entry
@@ -458,7 +461,10 @@ struct remap_plan_3d *remap_3d_create_plan(
 
     if (size) {
       plan->sendbuf = (FFT_SCALAR*) malloc(sizeof(FFT_SCALAR) * size);
-      if (plan->sendbuf == nullptr) return nullptr;
+      if (plan->sendbuf == nullptr) {
+        delete plan;
+        return nullptr;
+      }
     }
 
     // if requested, allocate internal scratch space for recvs,
@@ -467,7 +473,10 @@ struct remap_plan_3d *remap_3d_create_plan(
     if (memory == 1) {
       if (nrecv > 0) {
         plan->scratch = (FFT_SCALAR*) malloc(sizeof(FFT_SCALAR) * nqty*out.isize*out.jsize*out.ksize);
-        if (plan->scratch == nullptr) return nullptr;
+        if (plan->scratch == nullptr) {
+          delete plan;
+          return nullptr;
+        }
       }
     }
 
@@ -557,7 +566,10 @@ struct remap_plan_3d *remap_3d_create_plan(
 
       if (plan->send_offset == nullptr || plan->send_size == nullptr ||
           plan->sendcnts == nullptr || plan->sdispls == nullptr ||
-          plan->packplan == nullptr) return nullptr;
+          plan->packplan == nullptr) {
+        delete plan;
+        return nullptr;
+      }
 
       // recv space
 
@@ -583,10 +595,10 @@ struct remap_plan_3d *remap_3d_create_plan(
       }
 
       plan->recv_offset = (int *) malloc(nrecv*sizeof(int));
-      plan->recv_size = (int *) malloc(plan->commringlen*sizeof(int));
+      plan->recv_size = (int *) malloc(plan->commringlen*sizeof(int) + 1);
 
-      plan->rcvcnts = (int *) malloc(plan->commringlen*sizeof(int));
-      plan->rdispls = (int *) malloc(plan->commringlen*sizeof(int));
+      plan->rcvcnts = (int *) malloc(plan->commringlen*sizeof(int) + 1);
+      plan->rdispls = (int *) malloc(plan->commringlen*sizeof(int) + 1);
 
       // only used when recvcnt > 0
 
@@ -595,7 +607,10 @@ struct remap_plan_3d *remap_3d_create_plan(
 
       if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
           plan->rcvcnts == nullptr || plan->rdispls == nullptr ||
-          plan->unpackplan == nullptr) return nullptr;
+          plan->unpackplan == nullptr) {
+        delete plan;
+        return nullptr;
+      }
     }
 
     // store send info, with self as last entry
@@ -699,8 +714,11 @@ struct remap_plan_3d *remap_3d_create_plan(
 
     if (memory == 1) {
       if (nrecv > 0) {
-        plan->scratch = (FFT_SCALAR*) malloc(nqty*out.isize*out.jsize*out.ksize * sizeof(FFT_SCALAR));
-        if (plan->scratch == nullptr) return nullptr;
+        plan->scratch = (FFT_SCALAR*) malloc(nqty*out.isize*out.jsize*out.ksize*sizeof(FFT_SCALAR));
+        if (plan->scratch == nullptr) {
+          delete plan;
+          return nullptr;
+        }
       }
     }
 
@@ -746,34 +764,9 @@ void remap_3d_destroy_plan(struct remap_plan_3d *plan)
   if (!((plan->usecollective) && (plan->commringlen == 0)))
     MPI_Comm_free(&plan->comm);
 
-  // free allocated buffers
-#define SAFE_FREE(ptr) if (ptr) free(ptr)
-
-  SAFE_FREE(plan->commringlist);
-  SAFE_FREE(plan->isend_reqs);
-  SAFE_FREE(plan->packplan);
-  SAFE_FREE(plan->rcvcnts);
-  SAFE_FREE(plan->rdispls);
-  SAFE_FREE(plan->recv_bufloc);
-  SAFE_FREE(plan->recv_offset);
-  SAFE_FREE(plan->recv_proc);
-  SAFE_FREE(plan->recv_size);
-  SAFE_FREE(plan->request);
-  SAFE_FREE(plan->scratch);
-  SAFE_FREE(plan->sdispls);
-  SAFE_FREE(plan->send_bufloc);
-  SAFE_FREE(plan->send_offset);
-  SAFE_FREE(plan->send_proc);
-  SAFE_FREE(plan->send_size);
-  SAFE_FREE(plan->sendbuf);
-  SAFE_FREE(plan->sendcnts);
-  SAFE_FREE(plan->unpackplan);
-
-#undef SAFE_FREE
-
   // free the plan itself
 
-  free(plan);
+  delete plan;
 }
 
 /* ----------------------------------------------------------------------
@@ -803,4 +796,49 @@ int remap_3d_collide(struct extent_3d *block1, struct extent_3d *block2,
   overlap->ksize = overlap->khi - overlap->klo + 1;
 
   return 1;
+}
+
+// clang-format on
+/* 3d remap plan custom constructor. must make certain all pointers are initialized to null */
+
+remap_plan_3d::remap_plan_3d(int _usecollective, int _usenonblocking) :
+    sendbuf(nullptr), scratch(nullptr), pack(nullptr), unpack(nullptr), send_offset(nullptr),
+    send_size(nullptr), send_proc(nullptr), send_bufloc(nullptr), isend_reqs(nullptr),
+    packplan(nullptr), recv_offset(nullptr), recv_size(nullptr), recv_proc(nullptr),
+    recv_bufloc(nullptr), request(nullptr), unpackplan(nullptr), commringlist(nullptr),
+    sendcnts(nullptr), rcvcnts(nullptr), sdispls(nullptr), rdispls(nullptr)
+{
+  usecollective = _usecollective;
+  usenonblocking = _usenonblocking;
+  nrecv = nsend = self = memory = usecollective = usenonblocking = commringlen = 0;
+  comm = MPI_COMM_NULL;
+}
+
+/* 3d remap plan destructor. free all allocated storage */
+remap_plan_3d::~remap_plan_3d()
+{
+  // free any allocated (= non-null) buffers
+#define SAFE_FREE(ptr) \
+  if (ptr) free(ptr)
+
+  SAFE_FREE(sendbuf);
+  SAFE_FREE(scratch);
+  SAFE_FREE(send_offset);
+  SAFE_FREE(send_size);
+  SAFE_FREE(send_proc);
+  SAFE_FREE(send_bufloc);
+  SAFE_FREE(isend_reqs);
+  SAFE_FREE(packplan);
+  SAFE_FREE(recv_offset);
+  SAFE_FREE(recv_size);
+  SAFE_FREE(recv_proc);
+  SAFE_FREE(recv_bufloc);
+  SAFE_FREE(request);
+  SAFE_FREE(unpackplan);
+  SAFE_FREE(commringlist);
+  SAFE_FREE(sendcnts);
+  SAFE_FREE(rcvcnts);
+  SAFE_FREE(rdispls);
+  SAFE_FREE(sdispls);
+#undef SAFE_FREE
 }

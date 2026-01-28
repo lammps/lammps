@@ -18,9 +18,9 @@
 
 // A normal cylinder
 
-namespace LAMMPS_NS {
 
-namespace user_manifold {
+
+namespace LAMMPS_NS::user_manifold {
 
   class manifold_cylinder : public manifold {
    public:
@@ -33,8 +33,8 @@ namespace user_manifold {
     static int expected_argc() { return NPARAMS; }
     int nparams() override { return NPARAMS; }
   };
-}    // namespace user_manifold
+} // namespace LAMMPS_NS::user_manifold
 
-}    // namespace LAMMPS_NS
+
 
 #endif    // LMP_MANIFOLD_CYLINDER_H

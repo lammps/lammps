@@ -38,7 +38,7 @@ class ThrData {
   };
 
   void check_tid(int);                     // thread id consistency check
-  int get_tid() const { return _tid; };    // our thread id.
+  [[nodiscard]] int get_tid() const { return _tid; };    // our thread id.
 
   // inline wrapper, to make this more efficient
   // when per-thread timers are off
@@ -52,10 +52,10 @@ class ThrData {
   void init_force(int, double **, double **, double *, double *, double *);
 
   // give access to per-thread offset arrays
-  double **get_f() const { return _f; };
-  double **get_torque() const { return _torque; };
-  double *get_de() const { return _de; };
-  double *get_drho() const { return _drho; };
+  [[nodiscard]] double **get_f() const { return _f; };
+  [[nodiscard]] double **get_torque() const { return _torque; };
+  [[nodiscard]] double *get_de() const { return _de; };
+  [[nodiscard]] double *get_drho() const { return _drho; };
 
   // setup and erase per atom arrays
   void init_adp(int, double *, double **, double **);    // ADP (+ EAM)
@@ -66,16 +66,16 @@ class ThrData {
   void init_pppm_disp(int, class Memory *);
 
   // access methods for arrays that we handle in this class
-  double **get_lambda() const { return _lambda; };
-  double **get_mu() const { return _mu; };
-  double *get_D_values() const { return _D_values; };
-  double *get_fp() const { return _fp; };
-  double *get_rho() const { return _rho; };
-  double *get_rhoB() const { return _rhoB; };
-  void *get_rho1d() const { return _rho1d; };
-  void *get_drho1d() const { return _drho1d; };
-  void *get_rho1d_6() const { return _rho1d_6; };
-  void *get_drho1d_6() const { return _drho1d_6; };
+  [[nodiscard]] double **get_lambda() const { return _lambda; };
+  [[nodiscard]] double **get_mu() const { return _mu; };
+  [[nodiscard]] double *get_D_values() const { return _D_values; };
+  [[nodiscard]] double *get_fp() const { return _fp; };
+  [[nodiscard]] double *get_rho() const { return _rho; };
+  [[nodiscard]] double *get_rhoB() const { return _rhoB; };
+  [[nodiscard]] void *get_rho1d() const { return _rho1d; };
+  [[nodiscard]] void *get_drho1d() const { return _drho1d; };
+  [[nodiscard]] void *get_rho1d_6() const { return _rho1d_6; };
+  [[nodiscard]] void *get_drho1d_6() const { return _drho1d_6; };
 
  private:
   double eng_vdwl;           // non-bonded non-coulomb energy

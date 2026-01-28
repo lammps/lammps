@@ -22,10 +22,13 @@
 #include "utils.h"
 
 #include <cerrno>
+#include <chrono>
+#include <cstring>
 #include <deque>
 #include <exception>
 #include <filesystem>
 #include <mpi.h>
+#include <thread>
 #include <utility>
 
 ////////////////////////////////////////////////////////////////////////
@@ -74,16 +77,12 @@
 
 ////////////////////////////////////////////////////////////////////////
 
-#include <chrono>
-#include <cstring>
-#include <thread>
-
 /* ------------------------------------------------------------------ */
 namespace {
 /// Struct for listing on-the-fly compression/decompression commands
 struct compress_info {
   /// identifier for the different compression algorithms
-  enum styles { NONE, GZIP, BZIP2, ZSTD, XZ, LZMA, LZ4 };
+  enum styles { NONE, GZIP, BZIP2, ZSTD, XZ, LZMA, LZ4, BROTLI, SEVENZIP };
   const std::string extension;          ///< filename extension for the current algorithm
   const std::string command;            ///< command to perform compression or decompression
   const std::string compressflags;      ///< flags to append to compress from stdin to stdout
@@ -100,6 +99,8 @@ const std::vector<compress_info> compress_styles = {
     {"xz",   "xz",    " > ",    " -cdf ",  compress_info::XZ},
     {"lzma", "xz", " --format=lzma > ", " --format=lzma -cdf ", compress_info::LZMA},
     {"lz4",  "lz4",   " > ",    " -cdf ",  compress_info::LZ4},
+    {"br",   "brotli", " > ",   " -cdf ",  compress_info::BROTLI},
+    {"7z",   "7z", " a -bb0 -si ",   " x -so ",  compress_info::SEVENZIP},
 };
 // clang-format on
 
@@ -122,7 +123,10 @@ const compress_info &find_compress_type(const std::string &file)
 // set reference time stamp during executable/library init.
 // should provide better resolution than using epoch, if the system clock supports it.
 auto initial_time = std::chrono::steady_clock::now();
-}
+
+// same for file time stamps where we use the current working directory as reference
+auto initial_file_time = std::filesystem::last_write_time(".");
+}    // namespace
 using namespace LAMMPS_NS;
 
 // get CPU time
@@ -932,7 +936,8 @@ std::string platform::path_dirname(const std::string &path)
 #else
   if (dir == "") return {"."};
 #endif
-  else return dir;
+  else
+    return dir;
 }
 
 /* ----------------------------------------------------------------------
@@ -1002,6 +1007,15 @@ bool platform::file_is_writable(const std::string &path)
 }
 
 /* ----------------------------------------------------------------------
+   get file modification time since initial time stamp
+------------------------------------------------------------------------- */
+double platform::file_write_time(const std::string &path)
+{
+  auto timediff = std::filesystem::last_write_time(path) - initial_file_time;
+  return std::chrono::duration<double>(timediff).count();
+}
+
+/* ----------------------------------------------------------------------
    determine available disk space, if supported. Return -1 if not.
 ------------------------------------------------------------------------- */
 
@@ -1053,6 +1067,18 @@ FILE *platform::compressed_read(const std::string &file)
   const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
 
+  // make certain the file exists and is readable
+
+  std::error_code ec;
+  if (!std::filesystem::exists(file, ec)) {
+    errno = ENOENT;
+    return nullptr;
+  }
+  if (!file_is_readable(file)) {
+    errno = EPERM;
+    return nullptr;
+  }
+
   if (find_exe_path(compress.command).size())
     // put quotes around file name so that they may contain blanks
     fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "r");
@@ -1073,9 +1099,14 @@ FILE *platform::compressed_write(const std::string &file)
   if (compress.style == ::compress_info::NONE) return nullptr;
   if (!file_is_writable(file)) return nullptr;
 
-  if (find_exe_path(compress.command).size())
-    // put quotes around file name so that they may contain blanks
+  if (find_exe_path(compress.command).size()) {
+    // explicitly delete existing files for compatibility with commands that cannot write to stdout
+    // and thus we don't use redirection to a file, but provide the file name as argument directly.
+    // this can result in failure or inclusion of the same filename multiple times with out deleting
+    if (file_is_readable(file)) unlink(file);
+    // put quotes around file name for shell command so that they may contain blanks
     fp = popen((compress.command + compress.compressflags + "\"" + file + "\""), "w");
+  }
 #endif
   return fp;
 }

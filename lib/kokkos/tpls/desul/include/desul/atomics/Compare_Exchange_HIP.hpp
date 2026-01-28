@@ -19,15 +19,13 @@ namespace desul {
 namespace Impl {
 
 template <class T>
-struct atomic_exchange_available_hip {
-  constexpr static bool value =
-      ((sizeof(T) == 1 && alignof(T) == 1) || (sizeof(T) == 4 && alignof(T) == 4) ||
-       (sizeof(T) == 8 && alignof(T) == 8)) &&
-      std::is_trivially_copyable<T>::value;
-};
+inline constexpr bool device_atomic_always_lock_free<T, void> =
+    ((sizeof(T) == 1 && alignof(T) == 1) || (sizeof(T) == 4 && alignof(T) == 4) ||
+     (sizeof(T) == 8 && alignof(T) == 8)) &&
+    std::is_trivially_copyable<T>::value;
 
 template <class T, class MemoryOrder, class MemoryScope>
-__device__ std::enable_if_t<atomic_exchange_available_hip<T>::value, T>
+__device__ std::enable_if_t<device_atomic_always_lock_free<T>, T>
 device_atomic_compare_exchange(
     T* const dest, T compare, T value, MemoryOrder, MemoryScope) {
   (void)__hip_atomic_compare_exchange_strong(
@@ -41,7 +39,7 @@ device_atomic_compare_exchange(
 }
 
 template <class T, class MemoryOrder, class MemoryScope>
-__device__ std::enable_if_t<atomic_exchange_available_hip<T>::value, T>
+__device__ std::enable_if_t<device_atomic_always_lock_free<T>, T>
 device_atomic_exchange(T* const dest, T value, MemoryOrder, MemoryScope) {
   T return_val = __hip_atomic_exchange(dest,
                                        value,
@@ -51,7 +49,7 @@ device_atomic_exchange(T* const dest, T value, MemoryOrder, MemoryScope) {
 }
 
 template <class T, class MemoryOrder, class MemoryScope>
-__device__ std::enable_if_t<!atomic_exchange_available_hip<T>::value, T>
+__device__ std::enable_if_t<!device_atomic_always_lock_free<T>, T>
 device_atomic_compare_exchange(
     T* const dest, T compare, T value, MemoryOrder, MemoryScope scope) {
   // This is a way to avoid deadlock in a warp or wave front
@@ -80,7 +78,7 @@ device_atomic_compare_exchange(
 }
 
 template <class T, class MemoryOrder, class MemoryScope>
-__device__ std::enable_if_t<!atomic_exchange_available_hip<T>::value, T>
+__device__ std::enable_if_t<!device_atomic_always_lock_free<T>, T>
 device_atomic_exchange(T* const dest, T value, MemoryOrder, MemoryScope scope) {
   // This is a way to avoid deadlock in a warp or wave front
   T return_val;

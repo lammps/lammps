@@ -65,7 +65,7 @@ command lays out a 3d grid of processors in each of 2 partitions.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

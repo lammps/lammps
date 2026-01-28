@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SORT_FREE_FUNCS_IMPL_HPP_
 #define KOKKOS_SORT_FREE_FUNCS_IMPL_HPP_
@@ -21,7 +8,15 @@
 #include "../Kokkos_BinSortPublicAPI.hpp"
 #include <std_algorithms/Kokkos_BeginEnd.hpp>
 #include <std_algorithms/Kokkos_Copy.hpp>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
+#include <Kokkos_Assert.hpp>
+
+#include <cmath>
 
 #if defined(KOKKOS_ENABLE_CUDA)
 

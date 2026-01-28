@@ -1,20 +1,13 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 #include <gtest/gtest.h>
 
@@ -216,6 +209,21 @@ TEST(TEST_CATEGORY, view_customization_accessor_from_mapping) {
 
 // This tests the ability to pass in the accessor arg
 // as an additional integral argument to constructor and shmem_size
+
+template <class ViewType, size_t... Idx>
+bool test_device_side_ctor(ViewType a, std::index_sequence<Idx...>) {
+  int error = 0;
+  Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<TEST_EXECSPACE>(0, 1),
+      KOKKOS_LAMBDA(int, int& errors) {
+        ViewType a2(a.data(), a.extent(Idx)..., a.accessor().size);
+        if (a2.accessor().size != a.accessor().size) errors++;
+        if (a2.accessor().stride != a.accessor().stride) errors++;
+      },
+      error);
+  return error == 0;
+}
+
 TEST(TEST_CATEGORY, view_customization_extra_int_arg) {
   // Rank 0
   {
@@ -229,6 +237,7 @@ TEST(TEST_CATEGORY, view_customization_extra_int_arg) {
     size_t shmem               = view_t::shmem_size(5);
     size_t expected_shmem_size = 5lu * sizeof(double) + sizeof(double);
     ASSERT_EQ(shmem, expected_shmem_size);
+    ASSERT_TRUE(test_device_side_ctor(a, std::make_index_sequence<0>()));
   }
   // Rank 3
   {
@@ -243,6 +252,7 @@ TEST(TEST_CATEGORY, view_customization_extra_int_arg) {
     size_t expected_shmem_size =
         3lu * 7lu * 11lu * 5lu * sizeof(double) + sizeof(double);
     ASSERT_EQ(shmem, expected_shmem_size);
+    ASSERT_TRUE(test_device_side_ctor(a, std::make_index_sequence<3>()));
   }
   // Rank 6
   {
@@ -258,6 +268,7 @@ TEST(TEST_CATEGORY, view_customization_extra_int_arg) {
         2lu * 3lu * 2lu * 7lu * 2lu * 11lu * 5lu * sizeof(double) +
         sizeof(double);
     ASSERT_EQ(shmem, expected_shmem_size);
+    ASSERT_TRUE(test_device_side_ctor(a, std::make_index_sequence<6>()));
   }
   // Rank 3
   {
@@ -272,6 +283,7 @@ TEST(TEST_CATEGORY, view_customization_extra_int_arg) {
     size_t expected_shmem_size =
         3lu * 7lu * 11lu * 5lu * sizeof(double) + sizeof(double);
     ASSERT_EQ(shmem, expected_shmem_size);
+    ASSERT_TRUE(test_device_side_ctor(a, std::make_index_sequence<3>()));
   }
   // Rank 6
   {
@@ -287,5 +299,45 @@ TEST(TEST_CATEGORY, view_customization_extra_int_arg) {
         2lu * 3lu * 2lu * 7lu * 2lu * 11lu * 5lu * sizeof(double) +
         sizeof(double);
     ASSERT_EQ(shmem, expected_shmem_size);
+    ASSERT_TRUE(test_device_side_ctor(a, std::make_index_sequence<6>()));
   }
+}
+
+void test_scratch_memory_allocation() {
+  using view_t = Kokkos::View<Foo::BarStrided*, TEST_EXECSPACE>;
+  size_t size  = 5;
+
+  using policy_t = Kokkos::TeamPolicy<TEST_EXECSPACE>;
+  policy_t p(1, Kokkos::AUTO());
+
+  using team_t = typename policy_t::member_type;
+
+  size_t shmem = view_t::shmem_size(2, size);
+  p.set_scratch_size(0, Kokkos::PerTeam(3 * shmem), Kokkos::PerThread(shmem));
+  int reported_errors;
+  Kokkos::parallel_reduce(
+      "TestScratch", p,
+      KOKKOS_LAMBDA(const team_t& team, int& errors) {
+        view_t tshmem1(team.team_shmem(), 2, size);
+        view_t tshmem2(team.team_scratch(0), 2, size);
+        if (tshmem1.accessor().size != size) errors++;
+        if (tshmem2.accessor().size != size) errors++;
+        if (tshmem1.data() + 2 * size != tshmem2.data()) errors++;
+
+        view_t my_data(team.thread_scratch(0), 2, size);
+        if (my_data.accessor().size != size) errors++;
+        view_t tshmem3(team.team_scratch(0), 2, size);
+        if (my_data.data() + 2 * size > tshmem3.data()) errors++;
+      },
+      reported_errors);
+  ASSERT_EQ(reported_errors, 0);
+}
+
+TEST(TEST_CATEGORY, view_customization_scratch_memory) {
+#ifdef KOKKOS_ENABLE_HPX  // FIXME_HPX
+  if (std::is_same_v<Kokkos::Experimental::HPX, TEST_EXECSPACE>)
+    GTEST_SKIP() << "HPX backend fails this test intermittently, since its the "
+                    "only backend failing disabling the test for now";
+#endif
+  test_scratch_memory_allocation();
 }

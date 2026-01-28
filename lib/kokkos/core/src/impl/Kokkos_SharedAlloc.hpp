@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SHARED_ALLOC_HPP
 #define KOKKOS_SHARED_ALLOC_HPP
@@ -532,7 +519,7 @@ union SharedAllocationTracker {
   // number of symbols and inline functions.
 
 #ifdef KOKKOS_ENABLE_IMPL_REF_COUNT_BRANCH_UNLIKELY
-#define KOKKOS_IMPL_BRANCH_PROB KOKKOS_IMPL_ATTRIBUTE_UNLIKELY
+#define KOKKOS_IMPL_BRANCH_PROB [[unlikely]]
 #else
 #define KOKKOS_IMPL_BRANCH_PROB
 #endif
@@ -604,6 +591,7 @@ union SharedAllocationTracker {
 
   // Copy:
   KOKKOS_FORCEINLINE_FUNCTION
+  // NOLINTNEXTLINE(bugprone-exception-escape)
   ~SharedAllocationTracker(){KOKKOS_IMPL_SHARED_ALLOCATION_TRACKER_DECREMENT}
 
   KOKKOS_FORCEINLINE_FUNCTION

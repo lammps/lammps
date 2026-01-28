@@ -94,9 +94,11 @@ class NPairSkipKokkos : public NPair {
   NPairSkipKokkos(class LAMMPS *);
   void build(class NeighList *) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNPairSkipCompute, const int&, int&, const bool&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNPairSkipCountLocal, const int&, int&) const;
 

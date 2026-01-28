@@ -36,8 +36,10 @@ Description
 
 .. versionadded:: 10Dec2025
 
-Add a torque to each atom in the group due to a self-alignment toward an
-intrinsic orientation. The torque is given by :
+Add a torque to each atom in the group which accounts for the
+reorientation of each particle toward its own velocity, a generic
+phenomenon called self-alignment (see :ref:`(Baconnier2025)
+<Baconnier2025>`). The torque is given by :
 
 .. math::
 
@@ -49,8 +51,7 @@ of the particle, and :math:`\mathbf{v}_i` is its velocity. The
 self-alignment term, introduced in :ref:`(Shimoyama1996)
 <Shimoyama1996>` with the study of collective motion in systems of
 self-propelled particles, is an effective torque arising from
-differential drag in asymmetric rigid bodies (see :ref:`(Baconnier2025)
-<Baconnier2025>`).
+differential drag in asymmetric rigid bodies.
 
 
 For mode *dipole*, :math:`e_i` is just equal to the dipole vectors of
@@ -62,11 +63,11 @@ the :math:`e_i` will not be unit vectors.
    If another command changes the magnitude of the dipole, the applied
    torque will change accordingly and no warning will be provided by
    LAMMPS. This is almost never what you want, so ensure you are not
-   changing dipole magnitudes with another LAMMPS fix or pair
-   style.  Furthermore, self-propulsion forces (almost) always set
-   :math:`e_i` to be a unit vector for all times, so it's best to set
-   all the dipole magnitudes to 1.0 unless you have a good reason not to
-   (see the :doc:`set <set>` command on how to do this).
+   changing dipole magnitudes with another LAMMPS fix or pair style.
+   Furthermore, self-propulsion forces (almost) always set :math:`e_i`
+   to be a unit vector for all times, so it's best to set all the dipole
+   magnitudes to 1.0 unless you have a good reason not to (see the
+   :doc:`set <set>` command on how to do this).
 
 For mode *quat*, :math:`e_i` points in the direction of a unit vector,
 oriented in the coordinate frame of the ellipsoidal particles, which

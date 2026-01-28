@@ -206,6 +206,7 @@ void ComputeGaussianGridLocalKokkos<DeviceType>::compute_local()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeGaussianGridLocalKokkos<DeviceType>::operator() (TagComputeGaussianGridLocalNeigh,const typename Kokkos::TeamPolicy<DeviceType, TagComputeGaussianGridLocalNeigh>::member_type& team) const
 {

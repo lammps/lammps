@@ -89,7 +89,7 @@ void ReadRestart::command(int narg, char **arg)
 
   if (strchr(arg[0],'%')) multiproc = 1;
   else multiproc = 0;
-  if (utils::strmatch(arg[0],"\\.mpiio"))
+  if (utils::strmatch(arg[0],R"(\.mpiio)"))
     error->all(FLERR,"MPI-IO files are no longer supported by LAMMPS");
 
   // open single restart file or base file for multiproc case
@@ -534,14 +534,14 @@ std::string ReadRestart::file_search(const std::string &inpfile)
       error->one(FLERR, "Filename part before '*' is too long to find restart with largest step");
 
     // convert pattern to equivalent regexp
-    pattern.replace(loc,1,"\\d+");
+    pattern.replace(loc,1,R"(\d+)");
 
     if (!std::filesystem::is_directory(dirname))
       error->one(FLERR,"Cannot open directory {} to search for restart file: {}",dirname);
 
     for (const auto &candidate : platform::list_directory(dirname)) {
       if (utils::strmatch(candidate,pattern)) {
-        auto num = (bigint) std::stoll(utils::strfind(candidate.substr(loc),"\\d+"));
+        auto num = (bigint) std::stoll(utils::strfind(candidate.substr(loc),R"(\d+)"));
         if (num > maxnum) maxnum = num;
       }
     }

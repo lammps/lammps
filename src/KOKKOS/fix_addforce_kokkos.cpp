@@ -182,6 +182,7 @@ void FixAddForceKokkos<DeviceType>::post_force(int vflag)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixAddForceKokkos<DeviceType>::operator()(TagFixAddForceConstant, const int &i, value_type result) const {
   if (mask[i] & groupbit) {
@@ -204,6 +205,7 @@ void FixAddForceKokkos<DeviceType>::operator()(TagFixAddForceConstant, const int
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixAddForceKokkos<DeviceType>::operator()(TagFixAddForceNonConstant, const int &i, value_type result) const {
   if (mask[i] & groupbit) {
@@ -249,6 +251,7 @@ void FixAddForceKokkos<DeviceType>::operator()(TagFixAddForceNonConstant, const 
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixAddForceKokkos<DeviceType>::v_tally(value_type result, int i, KK_FLOAT *v) const
 {

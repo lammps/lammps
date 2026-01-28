@@ -233,6 +233,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`Howto granular <Howto_granular>`
      - pour
      - no
+   * - :ref:`GRAPHICS <PKG-GRAPHICS>`
+     - generate graphics output
+     - :doc:`Howto_viz`
+     - n/a
+     - no
    * - :ref:`H5MD <PKG-H5MD>`
      - dump output via HDF5
      - :doc:`dump h5md <dump_h5md>`

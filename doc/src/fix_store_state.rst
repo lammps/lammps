@@ -163,7 +163,7 @@ the :doc:`run <run>` command.  This fix is not invoked during
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

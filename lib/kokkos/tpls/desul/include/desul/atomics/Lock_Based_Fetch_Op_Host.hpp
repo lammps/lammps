@@ -10,6 +10,15 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #define DESUL_ATOMICS_LOCK_BASED_FETCH_OP_HOST_HPP_
 
 #include <desul/atomics/Common.hpp>
+#ifdef DESUL_HAVE_GCC_ATOMICS
+#include <desul/atomics/Compare_Exchange_GCC.hpp>
+#endif
+#ifdef DESUL_HAVE_MSVC_ATOMICS
+#include <desul/atomics/Compare_Exchange_MSVC.hpp>
+#endif
+#ifdef DESUL_HAVE_OPENMP_ATOMICS
+#include <desul/atomics/Compare_Exchange_OpenMP.hpp>
+#endif
 #include <desul/atomics/Lock_Array.hpp>
 #include <desul/atomics/Thread_Fence.hpp>
 #include <type_traits>
@@ -21,9 +30,7 @@ template <class Oper,
           class T,
           class MemoryOrder,
           class MemoryScope,
-          // equivalent to:
-          //   requires !atomic_always_lock_free(sizeof(T))
-          std::enable_if_t<!atomic_always_lock_free(sizeof(T)), int> = 0>
+          std::enable_if_t<!host_atomic_always_lock_free<T>, int> = 0>
 inline T host_atomic_fetch_oper(const Oper& op,
                                 T* const dest,
                                 dont_deduce_this_parameter_t<const T> val,

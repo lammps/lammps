@@ -29,7 +29,7 @@ via the :doc:`compute_modify <compute_modify>` command.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

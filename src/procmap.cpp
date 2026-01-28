@@ -678,7 +678,7 @@ void ProcMap::output(char *file, int *procgrid, int ***grid2proc)
 
   // polled comm of grid mapping info from each proc to proc 0
 
-  int tmp;
+  int tmp = 0;
   int vec[6];
   char procname[MPI_MAX_PROCESSOR_NAME+1];
 

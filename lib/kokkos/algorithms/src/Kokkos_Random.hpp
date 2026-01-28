@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_RANDOM_HPP
 #define KOKKOS_RANDOM_HPP
@@ -21,7 +8,13 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_RANDOM
 #endif
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <Kokkos_Complex.hpp>
 #include <cstdio>
 #include <cstdlib>
@@ -77,13 +70,24 @@ namespace Kokkos {
       //Default constructor: does not initialize a pool
       Pool();
 
-      //Initializing constructor: calls init(seed,Device_Specific_Number);
-      Pool(unsigned int seed);
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed
+      Pool(uint64_t seed);
 
-      //Initialize Pool with seed as a starting seed with a pool_size of num_states
-      //The Random_XorShift64 generator is used in serial to initialize all states,
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed and a pool_size of num_states
+      //Note: The generator is used in serial to initialize all states,
       //thus the initialization process is platform independent and deterministic.
-      void init(unsigned int seed, int num_states);
+      Pool(uint64_t seed, uint64_t num_states);
+
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed using the specified execution space instance
+      Pool(const execution_space& exec, uint64_t seed);
+
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed with a pool_size of num_states using the 
+      //specified execution space instance
+      Pool(const execution_space& exec, uint64_t seed, uint64_t num_states);
 
       //Get a generator. This will lock one of the states, guaranteeing that each thread
       //will have its private generator. Note: on Cuda getting a state involves atomics,
@@ -585,7 +589,7 @@ struct Random_XorShift1024_State<false> {
   template <class StateViewType>
   KOKKOS_FUNCTION Random_XorShift1024_State(const StateViewType& v,
                                             int state_idx)
-      : state_(&v(state_idx, 0)), stride_(v.stride_1()) {}
+      : state_(&v(state_idx, 0)), stride_(v.stride(1)) {}
 
   // NOLINTBEGIN(bugprone-implicit-widening-of-multiplication-result)
   KOKKOS_FUNCTION
@@ -941,31 +945,34 @@ class Random_XorShift64_Pool {
 #endif
 
   Random_XorShift64_Pool(uint64_t seed) {
-    init(execution_space(), seed, execution_space().concurrency());
+    init_impl(execution_space(), seed, execution_space().concurrency());
     execution_space().fence("Random_XorShift64_Pool: Constructor");
   }
 
   Random_XorShift64_Pool(uint64_t seed, uint64_t num_states) {
-    init(execution_space(), seed, num_states);
+    init_impl(execution_space(), seed, num_states);
     execution_space().fence("Random_XorShift64_Pool: Constructor");
   }
 
   Random_XorShift64_Pool(const execution_space& exec, uint64_t seed) {
-    init(exec, seed, exec.concurrency());
+    init_impl(exec, seed, exec.concurrency());
   }
 
   Random_XorShift64_Pool(const execution_space& exec, uint64_t seed,
                          uint64_t num_states) {
-    init(exec, seed, num_states);
+    init_impl(exec, seed, num_states);
   }
 
-  void init(uint64_t seed, uint64_t num_states) {
-    init(execution_space(), seed, num_states);
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  KOKKOS_DEPRECATED void init(uint64_t seed, uint64_t num_states) {
+    init_impl(execution_space(), seed, num_states);
     execution_space().fence("Random_XorShift64_Pool::init");
   }
+#endif
 
  private:
-  void init(execution_space const& exec, uint64_t seed, uint64_t num_states) {
+  void init_impl(execution_space const& exec, uint64_t seed,
+                 uint64_t num_states) {
     num_states_ = num_states;
 
     if (seed == 0) seed = uint64_t(1318319);
@@ -980,9 +987,9 @@ class Random_XorShift64_Pool {
         state_data_type(view_alloc(exec, "Kokkos::Random_XorShift64::state"),
                         num_states_, padding_);
 
-    typename state_data_type::HostMirror h_state =
+    typename state_data_type::host_mirror_type h_state =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, state_);
-    typename locks_type::HostMirror h_lock =
+    typename locks_type::host_mirror_type h_lock =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, locks_);
 
     // if the host mirror is the device view, need to fence here
@@ -990,8 +997,9 @@ class Random_XorShift64_Pool {
     if (state_.data() == h_state.data())
       exec.fence("Random_XorShift64_Pool::init UnifiedMemory");
 
-    // Execute on the HostMirror's default execution space.
-    Random_XorShift64<typename state_data_type::HostMirror::execution_space>
+    // Execute on the host_mirror_type's default execution space.
+    Random_XorShift64<
+        typename state_data_type::host_mirror_type::execution_space>
         gen(seed, 0);
     for (int i = 0; i < 17; i++) gen.rand();
     for (int i = 0; i < num_states_; i++) {
@@ -1217,31 +1225,34 @@ class Random_XorShift1024_Pool {
 #endif
 
   Random_XorShift1024_Pool(uint64_t seed) {
-    init(execution_space(), seed, execution_space().concurrency());
+    init_impl(execution_space(), seed, execution_space().concurrency());
     execution_space().fence("Random_XorShift1024_Pool: Constructor");
   }
 
   Random_XorShift1024_Pool(uint64_t seed, uint64_t num_states) {
-    init(execution_space(), seed, num_states);
+    init_impl(execution_space(), seed, num_states);
     execution_space().fence("Random_XorShift1024_Pool: Constructor");
   }
 
   Random_XorShift1024_Pool(const execution_space& exec, uint64_t seed) {
-    init(exec, seed, exec.concurrency());
+    init_impl(exec, seed, exec.concurrency());
   }
 
   Random_XorShift1024_Pool(const execution_space& exec, uint64_t seed,
                            uint64_t num_states) {
-    init(exec, seed, num_states);
+    init_impl(exec, seed, num_states);
   }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   void init(uint64_t seed, uint64_t num_states) {
-    init(execution_space(), seed, num_states);
+    init_impl(execution_space(), seed, num_states);
     execution_space().fence("Random_XorShift1024_Pool::init");
   }
+#endif
 
  private:
-  void init(execution_space const& exec, uint64_t seed, uint64_t num_states) {
+  void init_impl(execution_space const& exec, uint64_t seed,
+                 uint64_t num_states) {
     num_states_ = num_states;
 
     if (seed == 0) seed = uint64_t(1318319);
@@ -1256,11 +1267,11 @@ class Random_XorShift1024_Pool {
     p_ = int_view_type(view_alloc(exec, "Kokkos::Random_XorShift1024::p"),
                        num_states_, padding_);
 
-    typename state_data_type::HostMirror h_state =
+    typename state_data_type::host_mirror_type h_state =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, state_);
-    typename locks_type::HostMirror h_lock =
+    typename locks_type::host_mirror_type h_lock =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, locks_);
-    typename int_view_type::HostMirror h_p =
+    typename int_view_type::host_mirror_type h_p =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, p_);
 
     // if the host mirror is the device view, need to fence here
@@ -1268,8 +1279,9 @@ class Random_XorShift1024_Pool {
     if (state_.data() == h_state.data())
       exec.fence("Random_XorShift1024_Pool::init UnifiedMemory");
 
-    // Execute on the HostMirror's default execution space.
-    Random_XorShift64<typename state_data_type::HostMirror::execution_space>
+    // Execute on the host_mirror_type's default execution space.
+    Random_XorShift64<
+        typename state_data_type::host_mirror_type::execution_space>
         gen(seed, 0);
     for (int i = 0; i < 17; i++) gen.rand();
     for (int i = 0; i < num_states_; i++) {

@@ -55,21 +55,27 @@ class PairMEAMKokkos : public PairMEAM, public KokkosBase {
   void coeff(int, char **) override;
   void init_style() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMEAMPackForwardComm, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMEAMUnpackForwardComm, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMEAMPackReverseComm, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMEAMUnpackReverseComm, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMEAMNeighStrip,  const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMEAMOffsets,  const int, int&) const;
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
 # scan source files for importing C++20 modules
 if(Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES)
@@ -101,19 +101,6 @@ if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE AND Kokkos_ENABLE_HIP)
   set(KOKKOS_COMPILE_LANGUAGE HIP)
 endif()
 
-if(Spack_WORKAROUND)
-  if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
-    message(FATAL_ERROR "Can't currently use Kokkos_ENABLE_COMPILER_AS_CMAKE_LANGUAGE in a spack installation!")
-  endif()
-
-  #if we are explicitly using Spack for development,
-  #nuke the Spack compiler
-  set(SPACK_CXX $ENV{SPACK_CXX})
-  if(SPACK_CXX)
-    set(CMAKE_CXX_COMPILER ${SPACK_CXX} CACHE STRING "the C++ compiler" FORCE)
-    set(ENV{CXX} ${SPACK_CXX})
-  endif()
-endif()
 # Always call the project command to define Kokkos_ variables
 # and to make sure that C++ is an enabled language
 project(Kokkos ${KOKKOS_COMPILE_LANGUAGE} ${KOKKOS_INTERNAL_EXTRA_COMPILE_LANGUAGE})
@@ -152,9 +139,9 @@ elseif(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
   endif()
 endif()
 
-set(Kokkos_VERSION_MAJOR 4)
-set(Kokkos_VERSION_MINOR 7)
-set(Kokkos_VERSION_PATCH 1)
+set(Kokkos_VERSION_MAJOR 5)
+set(Kokkos_VERSION_MINOR 0)
+set(Kokkos_VERSION_PATCH 0)
 set(Kokkos_VERSION "${Kokkos_VERSION_MAJOR}.${Kokkos_VERSION_MINOR}.${Kokkos_VERSION_PATCH}")
 message(STATUS "Kokkos version: ${Kokkos_VERSION}")
 math(EXPR KOKKOS_VERSION "${Kokkos_VERSION_MAJOR} * 10000 + ${Kokkos_VERSION_MINOR} * 100 + ${Kokkos_VERSION_PATCH}")

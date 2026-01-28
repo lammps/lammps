@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_HIP_PARALLEL_REDUCE_RANGE_HPP
 #define KOKKOS_HIP_PARALLEL_REDUCE_RANGE_HPP
@@ -216,9 +203,17 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
       return hip_single_inter_block_reduce_scan_shmem<false, WorkTag,
                                                       value_type>(f, n);
     };
-    return Kokkos::Impl::hip_get_preferred_blocksize<ParallelReduce,
-                                                     LaunchBounds>(
-        instance, shmem_functor);
+    constexpr auto light_weight =
+        Kokkos::Experimental::WorkItemProperty::HintLightWeight;
+    constexpr typename Policy::work_item_property property;
+    if constexpr ((property & light_weight) == light_weight) {
+      return Kokkos::Impl::hip_get_max_blocksize<ParallelReduce, LaunchBounds>(
+          instance, shmem_functor);
+    } else {
+      return Kokkos::Impl::hip_get_preferred_blocksize<ParallelReduce,
+                                                       LaunchBounds>(
+          instance, shmem_functor);
+    }
   }
 
   inline void execute() {

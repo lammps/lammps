@@ -162,10 +162,10 @@ below.
 
 .. note::
 
-   When using a single OpenMP thread, the Kokkos Serial back end (i.e.
-   ``Makefile.kokkos_mpi_only``) will give better performance than the OpenMP
-   back end (i.e. ``Makefile.kokkos_omp``) because some of the overhead to make
-   the code thread-safe is removed.
+   When using ONLY a single OpenMP thread, the Kokkos Serial back end
+   (i.e. ``-D Kokkos_ENABLE_SERIAL=yes``) will give better performance
+   than the OpenMP back end (i.e.  ``-D Kokkos_ENABLE_OPENMP=yes``)
+   because some of the overhead to make the code thread-safe is removed.
 
 .. note::
 
@@ -405,10 +405,8 @@ or the corresponding command-line flag.
 If you still get a segmentation fault, despite running with only one MPI
 process or using the command-line flag to turn off expecting a GPU-aware
 MPI library, then using the CMake compile setting
-``-DKokkos_ENABLE_DEBUG=on`` or adding ``KOKKOS_DEBUG=yes`` to your
-machine makefile for building with traditional make will generate useful
-output that can be passed to the LAMMPS developers for further
-debugging.
+``-DKokkos_ENABLE_DEBUG=on`` will generate useful output that can be
+passed to the LAMMPS developers for further debugging.
 
 Troubleshooting memory allocation on GPUs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -435,8 +433,7 @@ between CPU and GPU as needed.  The resulting LAMMPS performance depends
 on `memory access pattern, data residency, and GPU memory
 oversubscription
 <https://developer.nvidia.com/blog/improving-gpu-memory-oversubscription-performance/>`_
-. The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` or the makefile
-setting ``KOKKOS_CUDA_OPTIONS=enable_lambda,force_uvm`` enables using
+. The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` enables using
 :ref:`UVM with Kokkos <kokkos>` when compiling LAMMPS.
 
 Run with the KOKKOS package by editing an input script
@@ -467,16 +464,9 @@ wish to change any of its option defaults, as set by the "-k on"
 **Using OpenMP threading and CUDA together:**
 
 With the KOKKOS package, both OpenMP multi-threading and GPUs can be
-compiled and used together in a few special cases. In the makefile for
-the conventional build, the ``KOKKOS_DEVICES`` variable must include both,
-"Cuda" and "OpenMP", as is the case for ``/src/MAKE/OPTIONS/Makefile.kokkos_cuda_mpi``.
-
-.. code-block:: bash
-
-   KOKKOS_DEVICES=Cuda,OpenMP
-
-When building with CMake you need to enable both features as it is done
-in the ``kokkos-cuda.cmake`` CMake preset file.
+compiled and used together in a few special cases. You need to enable
+both features as it is done in the ``kokkos-cuda.cmake`` CMake preset
+file.
 
 .. code-block:: bash
 
@@ -507,13 +497,13 @@ execution of the CPU and GPU styles will NOT overlap, except for a
 special case:
 
 A kspace style and/or molecular topology (bonds, angles, etc.) running
-on the host CPU can overlap with a pair style running on the
-GPU. First compile with ``--default-stream per-thread`` added to ``CCFLAGS``
-in the Kokkos CUDA Makefile.  Then explicitly use the "/kk/host"
-suffix for kspace and bonds, angles, etc.  in the input file and the
-"kk" suffix (equal to "kk/device") on the command-line.  Also make
-sure the environment variable ``CUDA_LAUNCH_BLOCKING`` is not set to "1"
-so CPU/GPU overlap can occur.
+on the host CPU can overlap with a pair style running on the GPU. First
+compile with ``--default-stream per-thread`` added to ``-D
+CMAKE_CXX_FLAGS`` when configuring with CMake.  Then explicitly use the
+"/kk/host" suffix for kspace and bonds, angles, etc.  in the input file
+and the "kk" suffix (equal to "kk/device") on the command-line.  Also
+make sure the environment variable ``CUDA_LAUNCH_BLOCKING`` is not set
+to "1" so CPU/GPU overlap can occur.
 
 Performance to expect
 """""""""""""""""""""

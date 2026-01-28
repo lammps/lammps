@@ -180,7 +180,7 @@ The output for *pN* will be in whatever units the pair style defines.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

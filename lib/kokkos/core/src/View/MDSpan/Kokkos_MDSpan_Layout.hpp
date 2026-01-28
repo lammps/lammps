@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 static_assert(false,
@@ -40,14 +27,14 @@ template <class>
 struct IsLayoutRightPadded : std::false_type {};
 
 template <size_t Pad>
-struct IsLayoutRightPadded<Experimental::layout_right_padded<Pad>>
+struct IsLayoutRightPadded<::Kokkos::Experimental::layout_right_padded<Pad>>
     : std::true_type {};
 
 template <class>
 struct IsLayoutLeftPadded : std::false_type {};
 
 template <size_t Pad>
-struct IsLayoutLeftPadded<Experimental::layout_left_padded<Pad>>
+struct IsLayoutLeftPadded<::Kokkos::Experimental::layout_left_padded<Pad>>
     : std::true_type {};
 
 template <class ArrayLayout>
@@ -57,12 +44,12 @@ struct LayoutFromArrayLayout {
 
 template <>
 struct LayoutFromArrayLayout<LayoutLeft> {
-  using type = Experimental::layout_left_padded<dynamic_extent>;
+  using type = ::Kokkos::Experimental::layout_left_padded<dynamic_extent>;
 };
 
 template <>
 struct LayoutFromArrayLayout<LayoutRight> {
-  using type = Experimental::layout_right_padded<dynamic_extent>;
+  using type = ::Kokkos::Experimental::layout_right_padded<dynamic_extent>;
 };
 
 template <>

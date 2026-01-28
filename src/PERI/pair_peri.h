@@ -31,7 +31,7 @@ class PairPeri : public Pair {
   void settings(int, char **) override;
   static constexpr double NEAR_ZERO = 2.2204e-16;
 
-  double influence_function(const double &xi_x, const double &xi_y, const double &xi_z) const
+  [[nodiscard]] double influence_function(const double &xi_x, const double &xi_y, const double &xi_z) const
   {
     const double r = sqrt((xi_x * xi_x) + (xi_y * xi_y) + (xi_z * xi_z));
     return (fabs(r) < NEAR_ZERO) ? 1.0 / NEAR_ZERO : (1.0 / r);

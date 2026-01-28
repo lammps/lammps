@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
@@ -21,11 +8,13 @@ static_assert(false,
 #endif
 #ifndef KOKKOS_DESUL_ATOMICS_WRAPPER_HPP_
 #define KOKKOS_DESUL_ATOMICS_WRAPPER_HPP_
+
 #include <Kokkos_Macros.hpp>
 #include <desul/atomics.hpp>
 
-#include <impl/Kokkos_Utilities.hpp>  // identity_type
 #include <impl/Kokkos_Volatile_Load.hpp>
+
+#include <type_traits>
 
 namespace Kokkos {
 
@@ -60,7 +49,7 @@ KOKKOS_DEPRECATED inline const char* atomic_query_version() {
 namespace Impl {
 template <class T>
 using not_deduced_atomic_t =
-    std::add_const_t<std::remove_volatile_t<type_identity_t<T>>>;
+    std::add_const_t<std::remove_volatile_t<std::type_identity_t<T>>>;
 
 template <class T, class R>
 using enable_if_atomic_t =

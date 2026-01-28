@@ -31,16 +31,22 @@ Examples
 .. code-block:: LAMMPS
 
    write_data data.polymer
+   write_data data.polymer.gz
    write_data data.*
    write_data data.solid triclinic/general
 
 Description
 """""""""""
 
-Write a data file in text format of the current state of the
-simulation.  Data files can be read by the :doc:`read data <read_data>`
-command to begin a simulation.  The :doc:`read_data <read_data>` command
-also describes their format.
+Write a data file in text format of the current state of the simulation.
+Data files can be read by the :doc:`read data <read_data>` command to
+begin a simulation.
+
+.. versionadded:: TBD
+
+The file may also be a compressed text file (detected by its suffix) if
+LAMMPS has been compiled with support for :ref:`compression commands
+<gzip>` and the corresponding compression program is available.
 
 Similar to :doc:`dump <dump>` files, the data filename can contain a "\*"
 wild-card character.  The "\*" is replaced with the current timestep
@@ -182,6 +188,10 @@ This command requires inter-processor communication to migrate atoms
 before the data file is written.  This means that your system must be
 ready to perform a simulation before using this command (force fields
 setup, atom masses initialized, etc).
+
+To write compressed data files, you must compile LAMMPS with the
+``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings
+<Build_settings>` doc page for details.
 
 Related commands
 """"""""""""""""

@@ -176,11 +176,11 @@ class Error : protected Pointers {
 
   /** Get the current warning count
    * \return Number of warnings issued */
-  int get_numwarn() const { return numwarn; }
+  [[nodiscard]] int get_numwarn() const { return numwarn; }
 
   /** Get the maximum warning count
    * \return Maximum number of warnings before suppression */
-  int get_maxwarn() const { return maxwarn; }
+  [[nodiscard]] int get_maxwarn() const { return maxwarn; }
 
   /** Set the current warning count
    * \param val New warning count value */
@@ -196,11 +196,11 @@ class Error : protected Pointers {
 
   /** Get the last error message
    * \return String containing the last error message */
-  std::string get_last_error() const;
+  [[nodiscard]] std::string get_last_error() const;
 
   /** Get the type of the last error
    * \return ErrorType enum value of the last error */
-  ErrorType get_last_error_type() const;
+  [[nodiscard]] ErrorType get_last_error_type() const;
 
   /** Store an error message for later retrieval
    * \param msg Error message string

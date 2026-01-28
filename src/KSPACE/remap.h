@@ -18,6 +18,15 @@
 // details of how to do a 3d remap
 
 struct remap_plan_3d {
+  remap_plan_3d(int, int);
+  ~remap_plan_3d();
+
+  remap_plan_3d() = delete;
+  remap_plan_3d(const remap_plan_3d &) = delete;
+  remap_plan_3d(remap_plan_3d &&) = delete;
+  remap_plan_3d &operator=(const remap_plan_3d &) = delete;
+  remap_plan_3d &operator=(remap_plan_3d &&) = delete;
+
   FFT_SCALAR *sendbuf;    // buffer for MPI sends
   FFT_SCALAR *scratch;    // scratch buffer for MPI recvs
   void (*pack)(FFT_SCALAR *, FFT_SCALAR *, struct pack_plan_3d *);
@@ -45,10 +54,10 @@ struct remap_plan_3d {
   int usenonblocking;                 // if using point-to-point MPI, use MPI_Isend
   int commringlen;                    // length of commringlist
   int *commringlist;                  // ranks on communication ring of this plan
-  int *sendcnts;                    // # of elements in send buffer for each rank
-  int *rcvcnts;                     // # of elements in recv buffer for each rank
-  int *sdispls;                     // extraction location in send buffer for each rank
-  int *rdispls;                     // extraction location in recv buffer for each rank
+  int *sendcnts;                      // # of elements in send buffer for each rank
+  int *rcvcnts;                       // # of elements in recv buffer for each rank
+  int *sdispls;                       // extraction location in send buffer for each rank
+  int *rdispls;                       // extraction location in recv buffer for each rank
 };
 
 // collision between 2 regions

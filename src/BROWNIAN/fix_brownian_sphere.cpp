@@ -35,12 +35,12 @@ using namespace FixConst;
 FixBrownianSphere::FixBrownianSphere(LAMMPS *lmp, int narg, char **arg) :
     FixBrownianBase(lmp, narg, arg)
 {
-  if (gamma_t_eigen_flag || gamma_r_eigen_flag) {
-    error->all(FLERR, "Illegal fix brownian/sphere command.");
-  }
-
-  if (!gamma_t_flag || !gamma_r_flag) error->all(FLERR, "Illegal fix brownian/sphere command.");
-  if (!atom->mu_flag) error->all(FLERR, "Fix brownian/sphere requires atom attribute mu");
+  if (gamma_t_eigen_flag || gamma_r_eigen_flag)
+    error->all(FLERR, "Keywords gamma_t_eigen or gamma_r_eigen are not compatible with fix {}",
+               style);
+  if (!gamma_t_flag || !gamma_r_flag)
+    error->all(FLERR, "Keywords gamma_t and gamma_r are required for fix {}", style);
+  if (!atom->mu_flag) error->all(FLERR, "Fix {} requires atom attribute mu", style);
 }
 
 /* ---------------------------------------------------------------------- */

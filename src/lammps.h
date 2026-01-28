@@ -100,7 +100,7 @@ class LAMMPS {
   // get name of package that a style is part of
   const char *get_style_pkg(const char *style, const char *name) const;
   static const char *installed_packages[];
-  const char *non_pair_suffix() const;
+  [[nodiscard]] const char *non_pair_suffix() const;
 
   static bool has_git_info();
   static const char *git_commit();

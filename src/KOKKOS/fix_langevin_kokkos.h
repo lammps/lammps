@@ -33,10 +33,12 @@ namespace LAMMPS_NS {
 
   struct s_FSUM {
     double fx, fy, fz;
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     s_FSUM() {
       fx = fy = fz = 0.0;
     }
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     s_FSUM& operator+=(const s_FSUM &rhs) {
       fx += rhs.fx;
@@ -77,18 +79,23 @@ namespace LAMMPS_NS {
     void end_of_step() override;
 
     template<int Tp_TSTYLEATOM, int Tp_TALLY, int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       FSUM post_force_item(int) const;
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
       void zero_force_item(int) const;
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
       KK_FLOAT compute_energy_item(int) const;
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
       void end_of_step_item(int) const;
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
       void end_of_step_rmass_item(int) const;
 
@@ -154,23 +161,27 @@ namespace LAMMPS_NS {
       c(*c_ptr) {}
       ~FixLangevinKokkosPostForceFunctor() {c.set_copymode(1);}
 
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i) const {
         c.template post_force_item<Tp_TSTYLEATOM,Tp_TALLY,Tp_BIAS,Tp_RMASS,Tp_ZERO>(i);
       }
 
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i, value_type &fsum) const {
 
         fsum += c.template post_force_item<Tp_TSTYLEATOM,Tp_TALLY,Tp_BIAS,Tp_RMASS,Tp_ZERO>(i);
       }
 
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       static void init(value_type &update) {
         update.fx = 0.0;
         update.fy = 0.0;
         update.fz = 0.0;
       }
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       static void join(value_type &update,
                        const value_type &source) {
@@ -188,6 +199,7 @@ namespace LAMMPS_NS {
     FixLangevinKokkosZeroForceFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
       c(*c_ptr) {c.set_copymode(1);}
 
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i) const {
         c.zero_force_item(i);
@@ -202,14 +214,17 @@ namespace LAMMPS_NS {
     FixLangevinKokkosTallyEnergyFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
       c(*c_ptr) {c.set_copymode(1);}
 
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i, value_type &energy) const {
         energy += c.compute_energy_item(i);
       }
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       static void init(value_type &update) {
         update = 0.0;
       }
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       static void join(value_type &update,
                        const value_type &source) {
@@ -225,6 +240,7 @@ namespace LAMMPS_NS {
     FixLangevinKokkosEndOfStepFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
       c(*c_ptr) {c.set_copymode(1);}
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     void operator()(const int i) const {
       if (RMass) c.end_of_step_rmass_item(i);

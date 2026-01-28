@@ -73,7 +73,7 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
      gf_b = denominator expansion coeffs
   ------------------------------------------------------------------------- */
 
-  inline double gf_denom(const double &x, const double &y, const double &z) const
+  [[nodiscard]] double gf_denom(const double &x, const double &y, const double &z) const
   {
     double sx, sy, sz;
     sz = sy = sx = 0.0;

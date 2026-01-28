@@ -83,6 +83,7 @@ void NPairHalffullKokkos<DeviceType,NEWTON,TRI,TRIM>::build(NeighList *list)
 }
 
 template<class DeviceType, int NEWTON, int TRI, int TRIM>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NPairHalffullKokkos<DeviceType,NEWTON,TRI,TRIM>::operator()(TagNPairHalffullCompute, const int &ii) const {
   int n = 0;

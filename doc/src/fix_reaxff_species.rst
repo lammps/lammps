@@ -86,9 +86,10 @@ the first line.
    calculations, reneighboring only every 100 steps is already quite a
    low frequency.
 
-If the filename ends with ".gz", the output file is written in gzipped
-format.  A gzipped dump file will be about 3x smaller than the text version,
-but will also take longer to write.
+If the filename ends with ".gz" or some :ref:`other supported
+compression format suffix <gzip>`, the output file is written in
+compressed format.  A compressed output file can be significantly
+smaller than the text version, but will also take longer to write.
 
 .. versionadded:: 15Jun2023
 
@@ -296,7 +297,9 @@ The "fix reaxff/species" requires that :doc:`pair_style reaxff <pair_reaxff>` is
 This fix is part of the REAXFF package.  It is only enabled if LAMMPS was built with that
 package.  See the :doc:`Build package <Build_package>` page for more info.
 
-To write gzipped species files, you must compile LAMMPS with the -DLAMMPS_GZIP option.
+To write compressed species files, you must compile LAMMPS with the
+``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings <Build_settings>`
+doc page for details.
 
 Related commands
 """"""""""""""""

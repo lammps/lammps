@@ -1,24 +1,17 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <cstdio>
 #include <sstream>
 #include <iostream>
+#include <cmath>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 namespace Test {
 
@@ -1096,7 +1089,7 @@ struct ClassNoShmemSizeFunction {
           *this);
       Kokkos::fence();
 
-      typename Kokkos::View<int, ExecSpace>::HostMirror h_errors =
+      typename Kokkos::View<int, ExecSpace>::host_mirror_type h_errors =
           Kokkos::create_mirror_view(d_errors);
       Kokkos::deep_copy(h_errors, d_errors);
       ASSERT_EQ(h_errors(), 0);
@@ -1168,7 +1161,7 @@ struct ClassWithShmemSizeFunction {
           *this);
       Kokkos::fence();
 
-      typename Kokkos::View<int, ExecSpace>::HostMirror h_errors =
+      typename Kokkos::View<int, ExecSpace>::host_mirror_type h_errors =
           Kokkos::create_mirror_view(d_errors);
       Kokkos::deep_copy(h_errors, d_errors);
       ASSERT_EQ(h_errors(), 0);
@@ -1247,7 +1240,7 @@ void test_team_mulit_level_scratch_test_lambda() {
       });
   Kokkos::fence();
 
-  typename Kokkos::View<int, ExecSpace>::HostMirror h_errors =
+  typename Kokkos::View<int, ExecSpace>::host_mirror_type h_errors =
       Kokkos::create_mirror_view(errors);
   Kokkos::deep_copy(h_errors, d_errors);
   ASSERT_EQ(h_errors(), 0);

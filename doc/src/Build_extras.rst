@@ -41,6 +41,7 @@ This is the list of packages that may require additional steps.
    * :ref:`COLVARS <colvar>`
    * :ref:`COMPRESS <compress>`
    * :ref:`ELECTRODE <electrode>`
+   * :ref:`GRAPHICS <graphics>`
    * :ref:`GPU <gpu>`
    * :ref:`H5MD <h5md>`
    * :ref:`INTEL <intel>`
@@ -107,6 +108,83 @@ versions use an incompatible API and thus LAMMPS will fail to compile.
 
       The COMPRESS package no longer supports the the traditional make build.
       You need to build LAMMPS with CMake.
+
+----------
+
+.. _graphics:
+
+GRAPHICS package
+----------------
+
+.. versionadded:: TBD
+
+   *dump image*\ , *dump_movie* and supporting classes were moved to form
+   the new GRAPHICS package together with several *fix graphics/...* styles.
+
+The :doc:`dump image <dump_image>` command has options to output JPEG or
+PNG image files in addition to the default PPM format, and the :doc:`fix
+graphics/labels <fix_graphics_labels>` can read images in JPEG or PNG
+format in addition to PPM format files.  Likewise, the :doc:`dump movie
+<dump_image>` command outputs movie files in a variety of movie formats.
+Using these additional options requires the following settings:
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D WITH_JPEG=value    # yes or no
+                               # default = yes if CMake finds JPEG development files, else no
+         -D WITH_PNG=value     # yes or no
+                               # default = yes if CMake finds PNG and ZLIB development files,
+                               # else no
+         -D WITH_FFMPEG=value  # yes or no
+                               # default = yes if CMake can find ffmpeg, else no
+
+      Usually these settings are all that is needed.  If CMake cannot
+      find the graphics header, library, executable files, you can set
+      these variables:
+
+      .. code-block:: bash
+
+         -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
+         -D JPEG_LIBRARY=path        # path to libjpeg.a (.so) file
+         -D PNG_INCLUDE_DIR=path     # path to png.h header file
+         -D PNG_LIBRARY=path         # path to libpng.a (.so) file
+         -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
+         -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
+         -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
+
+   .. tab:: Traditional make
+
+      .. code-block:: make
+
+         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG  <other LMP_INC settings>
+
+         JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h headers
+                                          # if make cannot find them
+         JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so)
+                                          # files if make cannot find them
+         JPG_LIB = -ljpeg -lpng -lz       # library names
+
+      As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
+      if make can find the graphics header and library files in their
+      default system locations.  You must specify ``JPG_LIB`` with a
+      list of graphics libraries to include in the link.  You must make
+      certain that the ffmpeg executable (or ffmpeg.exe on Windows) is
+      in a directory where LAMMPS can find it at runtime; that is
+      usually a directory list in your ``PATH`` environment variable.
+
+Using ``ffmpeg`` to output movie files requires that your machine
+supports the "popen" function in the standard runtime library.
+
+.. note::
+
+   On some clusters with high-speed networks, using the fork()
+   library call (required by popen()) can interfere with the fast
+   communication library and lead to simulations using ffmpeg to hang or
+   crash.
 
 ----------
 
@@ -756,77 +834,10 @@ This list was last updated for version 4.7.1 of the Kokkos library.
 
    .. tab:: Basic traditional make settings:
 
-      Choose which hardware to support in ``Makefile.machine`` via
-      ``KOKKOS_DEVICES`` and ``KOKKOS_ARCH`` settings.  See the
-      ``src/MAKE/OPTIONS/Makefile.kokkos*`` files for examples.
+      .. versionchanged:: TBD
 
-      For multicore CPUs using OpenMP:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = OpenMP
-         KOKKOS_ARCH = HOSTARCH          # HOSTARCH = HOST from list above
-
-      For Intel KNLs using OpenMP:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = OpenMP
-         KOKKOS_ARCH = KNL
-
-      For NVIDIA GPUs using CUDA:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = Cuda
-         KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is
-                                         #            hosting the GPU
-                                         # GPUARCH = GPU from list above
-         KOKKOS_CUDA_OPTIONS = "enable_lambda"
-         FFT_INC = -DFFT_CUFFT           # enable use of cuFFT (optional)
-         FFT_LIB = -lcufft               # link to cuFFT library
-
-      For GPUs, you also need the following lines in your
-      ``Makefile.machine`` before the CC line is defined.  They tell
-      ``mpicxx`` to use an ``nvcc`` compiler wrapper, which will use
-      ``nvcc`` for compiling CUDA files and a C++ compiler for
-      non-Kokkos, non-CUDA files.
-
-      .. code-block:: make
-
-         # For OpenMPI
-         KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
-         export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
-         CC = mpicxx
-
-      .. code-block:: make
-
-         # For MPICH and derivatives
-         KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
-         CC = mpicxx -cxx=$(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
-
-      For AMD or NVIDIA GPUs using HIP:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = HIP
-         KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is
-                                         #            hosting the GPU
-                                         # GPUARCH = GPU from list above
-         FFT_INC = -DFFT_HIPFFT          # enable use of hipFFT (optional)
-         FFT_LIB = -lhipfft              # link to hipFFT library
-
-      For Intel GPUs using SYCL:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = SYCL
-         KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is
-                                         #            hosting the GPU
-                                         # GPUARCH = GPU from list above
-         FFT_INC = -DFFT_KOKKOS_MKL_GPU  # enable use of oneMKL for Intel GPUs (optional)
-                                         # link to oneMKL FFT library
-         FFT_LIB = -lmkl_sycl_dft -lmkl_intel_ilp64 -lmkl_tbb_thread -mkl_core -ltbb
+      The KOKKOS package no longer supports the the traditional make build.
+      You need to build LAMMPS with CMake.
 
 Advanced KOKKOS compilation settings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -838,54 +849,43 @@ the full list (which keeps changing as the Kokkos package itself evolves),
 please consult the Kokkos library documentation.
 
 As alternative to using multi-threading via OpenMP
-(``-DKokkos_ENABLE_OPENMP=on`` or ``KOKKOS_DEVICES=OpenMP``) it is also
-possible to use Posix threads directly (``-DKokkos_ENABLE_PTHREAD=on``
-or ``KOKKOS_DEVICES=Pthread``).  While binding of threads to individual
-or groups of CPU cores is managed in OpenMP with environment variables,
-you need assistance from either the "hwloc" or "libnuma" library for the
-Pthread thread parallelization option. To enable use with CMake:
-``-DKokkos_ENABLE_HWLOC=on`` or ``-DKokkos_ENABLE_LIBNUMA=on``; and with
-conventional make: ``KOKKOS_USE_TPLS=hwloc`` or
-``KOKKOS_USE_TPLS=libnuma``.
+(``-DKokkos_ENABLE_OPENMP=on``) it is also possible to use Posix threads
+directly (``-DKokkos_ENABLE_PTHREAD=on``).  While binding of threads to
+individual or groups of CPU cores is managed in OpenMP with environment
+variables, you need assistance from either the "hwloc" or "libnuma"
+library for the Pthread thread parallelization option. To enable use
+with CMake: ``-DKokkos_ENABLE_HWLOC=on`` or
+``-DKokkos_ENABLE_LIBNUMA=on``.
 
-The CMake option ``-DKokkos_ENABLE_LIBRT=on`` or the makefile setting
-``KOKKOS_USE_TPLS=librt`` enables the use of a more accurate timer
-mechanism on many Unix-like platforms for internal profiling.
+The CMake option ``-DKokkos_ENABLE_LIBRT=on`` enables the use of a more
+accurate timer mechanism on many Unix-like platforms for internal
+profiling.
 
-The CMake option ``-DKokkos_ENABLE_DEBUG=on`` or the makefile setting
-``KOKKOS_DEBUG=yes`` enables printing of run-time
-debugging information that can be useful. It also enables runtime
-bounds checking on Kokkos data structures.  As to be expected, enabling
-this option will negatively impact the performance and thus is only
-recommended when developing a Kokkos-enabled style in LAMMPS.
+The CMake option ``-DKokkos_ENABLE_DEBUG=on`` enables printing of
+run-time debugging information that can be useful. It also enables
+runtime bounds checking on Kokkos data structures.  As to be expected,
+enabling this option will negatively impact the performance and thus is
+only recommended when developing a Kokkos-enabled style in LAMMPS.
 
-The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` or the makefile
-setting ``KOKKOS_CUDA_OPTIONS=enable_lambda,force_uvm`` enables the
-use of CUDA "Unified Virtual Memory" (UVM) in Kokkos.  UVM allows to
-transparently use RAM on the host to supplement the memory used on the
-GPU (with some performance penalty) and thus enables running larger
-problems that would otherwise not fit into the RAM on the GPU.
+The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` enables the use of CUDA
+"Unified Virtual Memory" (UVM) in Kokkos.  UVM allows to transparently
+use RAM on the host to supplement the memory used on the GPU (with some
+performance penalty) and thus enables running larger problems that would
+otherwise not fit into the RAM on the GPU.
 
 The CMake option ``-D KOKKOS_PREC=value`` sets the floating point
-precision of the calculations, where ``value`` can be one of:
-``double`` (FP64, default) or ``mixed`` (FP64 for accumulation of
-forces, energy, and virial, FP32 otherwise) or ``single`` (FP32).
-Similarly the makefile settings ``-DLMP_KOKKOS_DOUBLE_DOUBLE``
-(default), ``-DLMP_KOKKOS_SINGLE_DOUBLE``, and
-``-DLMP_KOKKOS_SINGLE_SINGLE`` set double, mixed, single precision
-respectively. When using reduced precision (single or mixed), the
-simulation should be carefully checked to ensure it is stable and that
-energy is acceptably conserved.
+precision of the calculations, where ``value`` can be one of: ``double``
+(FP64, default) or ``mixed`` (FP64 for accumulation of forces, energy,
+and virial, FP32 otherwise) or ``single`` (FP32).  When using reduced
+precision (single or mixed), the simulation should be carefully checked
+to ensure it is stable and that energy is acceptably conserved.
 
 The CMake option ``-D KOKKOS_LAYOUT=value`` sets the array layout of
 Kokkos views (e.g. forces, velocities, etc.) on GPUs, where ``value``
 can be one of: ``legacy`` (mostly LayoutRight, default) or ``default``
-(mostly LayoutLeft). Similarly the makefile settings
-``-DLMP_KOKKOS_LAYOUT_LEGACY`` (default) and
-``-DLMP_KOKKOS_LAYOUT_DEFAULT`` set legacy or default layouts
-respectively. Using the default layout (LayoutLeft) can give speedup
-on GPUs for some models, but a slowdown for others. LayoutRight is
-always used for positions on GPUs since it has been found to be
+(mostly LayoutLeft).  Using the default layout (LayoutLeft) can give
+speedup on GPUs for some models, but a slowdown for others. LayoutRight
+is always used for positions on GPUs since it has been found to be
 faster, and when compiling exclusively for CPUs.
 
 ----------

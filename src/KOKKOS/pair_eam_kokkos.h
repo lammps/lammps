@@ -61,60 +61,75 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   void init_style() override;
 
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMPackForwardComm, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMUnpackForwardComm, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMInitialize, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PAIR>, const int&) const;
 
   template<int EFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelB<EFLAG>, const int&, EV_FLOAT&) const;
 
   template<int EFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelB<EFLAG>, const int&) const;
 
   template<int EFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelAB<EFLAG>, const int&, EV_FLOAT&) const;
 
   template<int EFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelAB<EFLAG>, const int&) const;
 
   template<int EFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelAB<EFLAG>, const typename Kokkos::TeamPolicy<DeviceType>::member_type&, EV_FLOAT&) const;
 
   template<int EFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelAB<EFLAG>, const typename Kokkos::TeamPolicy<DeviceType>::member_type&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType>::member_type&, EV_FLOAT&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType>::member_type&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,

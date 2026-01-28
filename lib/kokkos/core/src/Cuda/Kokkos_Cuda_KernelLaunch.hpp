@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CUDAEXEC_HPP
 #define KOKKOS_CUDAEXEC_HPP
@@ -35,6 +22,14 @@
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+// If KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT is used we leverage implicit constant
+// cache use via an argument attribute in the "local launch" mechanism. At that
+// point we only need local and global launch - the latter for functors that
+// exceed the kernel argument limit which is now 32kB. Local launch is always
+// strictly better than global launch - which means the light weight/heavy
+// weight property can be ignored - the only thing that matters is the size of
+// the functor.
+#ifndef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 /** \brief  Access to constant memory on the device */
 #ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
 
@@ -47,6 +42,7 @@ __device__ __constant__ unsigned long kokkos_impl_cuda_constant_memory_buffer
     [Kokkos::Impl::CudaTraits::ConstantMemoryUsage / sizeof(unsigned long)];
 
 #endif
+#endif  // !KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 
 template <typename T>
 inline __device__ T* kokkos_impl_cuda_shared_memory() {
@@ -64,6 +60,7 @@ namespace Impl {
 // function qualifier which could be used to improve performance.
 //----------------------------------------------------------------------------
 
+#ifndef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 template <class DriverType>
 __global__ static void cuda_parallel_launch_constant_memory() {
   const DriverType& driver =
@@ -94,6 +91,22 @@ __global__ __launch_bounds__(
                                                                  driver) {
   driver();
 }
+#else
+template <class DriverType>
+__global__ static void cuda_parallel_launch_local_memory(
+    const __grid_constant__ DriverType driver) {
+  driver();
+}
+
+template <class DriverType, unsigned int maxTperB, unsigned int minBperSM>
+__global__ __launch_bounds__(
+    maxTperB,
+    minBperSM) static void cuda_parallel_launch_local_memory(const __grid_constant__
+                                                                 DriverType
+                                                                     driver) {
+  driver();
+}
+#endif  // KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 
 template <class DriverType>
 __global__ static void cuda_parallel_launch_global_memory(
@@ -149,8 +162,6 @@ inline void configure_shmem_preference(const CudaInternal* cuda_instance,
                                        const KernelFuncPtr& func,
                                        const size_t block_size, int& shmem,
                                        const size_t occupancy) {
-#ifndef KOKKOS_ARCH_KEPLER
-
   const auto& func_attr =
       get_cuda_kernel_func_attributes<DriverType, LaunchBounds>(cuda_instance,
                                                                 func);
@@ -231,13 +242,6 @@ inline void configure_shmem_preference(const CudaInternal* cuda_instance,
   if (cache_config_preference_cached != carveout) {
     cache_config_preference_cached = set_cache_config();
   }
-#else
-  // Use the parameters so we don't get a warning
-  (void)func;
-  (void)device_props;
-  (void)block_size;
-  (void)occupancy;
-#endif
 }
 
 // </editor-fold> end Some helper functions for launch code readability }}}1
@@ -263,31 +267,51 @@ struct DeduceCudaLaunchMechanism {
       (sizeof(DriverType) < CudaTraits::KernelArgumentLimit
            ? CudaLaunchMechanism::LocalMemory
            : CudaLaunchMechanism::Default) |
+#ifndef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
       (sizeof(DriverType) < CudaTraits::ConstantMemoryUsage
            ? CudaLaunchMechanism::ConstantMemory
            : CudaLaunchMechanism::Default) |
+#endif
       CudaLaunchMechanism::GlobalMemory;
 
   static constexpr CudaLaunchMechanism requested_launch_mechanism =
+#ifdef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
+      CudaLaunchMechanism::LocalMemory |
+#else
       (((property & light_weight) == light_weight)
            ? CudaLaunchMechanism::LocalMemory
            : CudaLaunchMechanism::ConstantMemory) |
+#endif
       CudaLaunchMechanism::GlobalMemory;
 
   static constexpr CudaLaunchMechanism default_launch_mechanism =
+#ifdef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
+      (sizeof(DriverType) < CudaTraits::KernelArgumentLimit)
+          ? CudaLaunchMechanism::LocalMemory
+          : CudaLaunchMechanism::GlobalMemory;
+#else
       // BuildValidMask
       (sizeof(DriverType) < CudaTraits::ConstantMemoryUseThreshold)
           ? CudaLaunchMechanism::LocalMemory
           : ((sizeof(DriverType) < CudaTraits::ConstantMemoryUsage)
                  ? CudaLaunchMechanism::ConstantMemory
                  : CudaLaunchMechanism::GlobalMemory);
+#endif
 
-  //              None                LightWeight    HeavyWeight
-  // F<UseT       LCG LCG L  L        LCG  LG L  L    LCG  CG L  C
-  // UseT<F<KAL   LCG LCG C  C        LCG  LG C  L    LCG  CG C  C
-  // Kal<F<CMU     CG LCG C  C         CG  LG C  G     CG  CG C  C
-  // CMU<F          G LCG G  G          G  LG G  G      G  CG G  G
   static constexpr CudaLaunchMechanism launch_mechanism =
+#ifdef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
+      default_launch_mechanism;
+#else
+      // Logic mask for choosing launch mechanism by functor size (F) and
+      // Kernel Property. First column is restriction by size (local L,
+      // constant C, global G), second is restriction by property, third is
+      // default based on size, and last is actual mode.
+      //
+      //              None                LightWeight    HeavyWeight
+      // F<UseT       LCG LCG L  L        LCG  LG L  L    LCG  CG L  C
+      // UseT<F<KAL   LCG LCG C  C        LCG  LG C  L    LCG  CG C  C
+      // Kal<F<CMU     CG LCG C  C         CG  LG C  G     CG  CG C  C
+      // CMU<F          G LCG G  G          G  LG G  G      G  CG G  G
       ((property & light_weight) == light_weight)
           ? (sizeof(DriverType) < CudaTraits::KernelArgumentLimit
                  ? CudaLaunchMechanism::LocalMemory
@@ -297,6 +321,7 @@ struct DeduceCudaLaunchMechanism {
                         ? CudaLaunchMechanism::ConstantMemory
                         : CudaLaunchMechanism::GlobalMemory)
                  : (default_launch_mechanism));
+#endif  // KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 };
 
 // </editor-fold> end DeduceCudaLaunchMechanism }}}2
@@ -537,7 +562,7 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
 
 //------------------------------------------------------------------------------
 // <editor-fold desc="Constant Memory"> {{{2
-
+#ifndef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 template <class DriverType, unsigned int MaxThreadsPerBlock,
           unsigned int MinBlocksPerSM>
 struct CudaParallelLaunchKernelFunc<
@@ -628,6 +653,7 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
         driver, grid, block, shmem, cuda_instance);
   }
 };
+#endif  // !KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 
 // </editor-fold> end Constant Memory }}}2
 //------------------------------------------------------------------------------
@@ -677,8 +703,6 @@ struct CudaParallelLaunchImpl<
             desired_occupancy);
       }
 
-      desul::ensure_cuda_lock_arrays_on_device();
-
       // Invoke the driver function on the device
       base_t::invoke_kernel(driver, grid, block, shmem, cuda_instance);
 
@@ -708,33 +732,23 @@ template <class DriverType, class LaunchBounds = Kokkos::LaunchBounds<>,
           CudaLaunchMechanism LaunchMechanism =
               DeduceCudaLaunchMechanism<DriverType>::launch_mechanism,
           bool DoGraph = DriverType::Policy::is_graph_kernel::value>
-struct CudaParallelLaunch;
-
-// General launch mechanism
-template <class DriverType, class LaunchBounds,
-          CudaLaunchMechanism LaunchMechanism>
-struct CudaParallelLaunch<DriverType, LaunchBounds, LaunchMechanism,
-                          /* DoGraph = */ false>
+struct CudaParallelLaunch
     : CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism> {
   using base_t =
       CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism>;
-  template <class... Args>
-  CudaParallelLaunch(Args&&... args) {
-    base_t::launch_kernel((Args&&)args...);
-  }
-};
+  CudaParallelLaunch(const DriverType& driver, const dim3& grid,
+                     const dim3& block, const int shmem,
+                     const CudaInternal* cuda_instance) {
+    if (!Impl::is_empty_launch(grid, block)) {
+      desul::ensure_cuda_lock_arrays_on_device();
+    }
 
-// Launch mechanism for creating graph nodes
-template <class DriverType, class LaunchBounds,
-          CudaLaunchMechanism LaunchMechanism>
-struct CudaParallelLaunch<DriverType, LaunchBounds, LaunchMechanism,
-                          /* DoGraph = */ true>
-    : CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism> {
-  using base_t =
-      CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism>;
-  template <class... Args>
-  CudaParallelLaunch(Args&&... args) {
-    base_t::create_parallel_launch_graph_node((Args&&)args...);
+    if constexpr (DoGraph) {
+      base_t::create_parallel_launch_graph_node(driver, grid, block, shmem,
+                                                cuda_instance);
+    } else {
+      base_t::launch_kernel(driver, grid, block, shmem, cuda_instance);
+    }
   }
 };
 

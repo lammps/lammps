@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 /*--------------------------------------------------------------------------*/
 /* Kokkos interfaces */
@@ -24,7 +11,12 @@
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_CUDA
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 // #include <Cuda/Kokkos_Cuda_Error.hpp>
 // #include <Cuda/Kokkos_Cuda_BlockSize_Deduction.hpp>
@@ -202,7 +194,7 @@ void CudaInternal::print_configuration(std::ostream &s) const {
   s << "macro  KOKKOS_ENABLE_CUDA      : defined\n";
 #endif
 #if defined(CUDA_VERSION)
-  s << "macro  CUDA_VERSION          = " << CUDA_VERSION << " = version "
+  s << "macro  CUDA_VERSION          : " << CUDA_VERSION << " = version "
     << CUDA_VERSION / 1000 << "." << (CUDA_VERSION % 1000) / 10 << '\n';
 #endif
 
@@ -210,7 +202,10 @@ void CudaInternal::print_configuration(std::ostream &s) const {
     cudaDeviceProp prop;
     KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceProperties(&prop, i));
     s << "Kokkos::Cuda[ " << i << " ] " << prop.name;
-    if (m_cudaDev == i) s << " : Selected";
+    if (m_cudaDev == i)
+      s << " : Selected";
+    else
+      s << " : Not Selected";
     s << '\n'
       << "  Capability: " << prop.major << "." << prop.minor << '\n'
       << "  Total Global Memory: " << human_memory_size(prop.totalGlobalMem)
@@ -535,10 +530,6 @@ int Cuda::concurrency() const {
   return Impl::CudaInternal::concurrency();
 }
 
-int Cuda::impl_is_initialized() {
-  return Impl::CudaInternal::singleton().is_initialized();
-}
-
 void Cuda::impl_initialize(InitializationSettings const &settings) {
   const std::vector<int> &visible_devices = Impl::get_visible_devices();
   const int cuda_device_id =
@@ -747,12 +738,14 @@ int g_cuda_space_factory_initialized =
     initialize_space_factory<Cuda>("150_Cuda");
 
 int CudaInternal::m_cudaArch = -1;
-cudaDeviceProp CudaInternal::m_deviceProp;
+KOKKOS_IMPL_EXPORT cudaDeviceProp CudaInternal::m_deviceProp;
 std::set<int> CudaInternal::cuda_devices = {};
-std::map<int, unsigned long *> CudaInternal::constantMemHostStagingPerDevice =
-    {};
-std::map<int, cudaEvent_t> CudaInternal::constantMemReusablePerDevice = {};
-std::map<int, std::mutex> CudaInternal::constantMemMutexPerDevice     = {};
+KOKKOS_IMPL_EXPORT std::map<int, unsigned long *>
+    CudaInternal::constantMemHostStagingPerDevice = {};
+KOKKOS_IMPL_EXPORT std::map<int, cudaEvent_t>
+    CudaInternal::constantMemReusablePerDevice = {};
+KOKKOS_IMPL_EXPORT std::map<int, std::mutex>
+    CudaInternal::constantMemMutexPerDevice = {};
 
 }  // namespace Impl
 

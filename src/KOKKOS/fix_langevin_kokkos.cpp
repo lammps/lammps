@@ -390,6 +390,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
 
 template<class DeviceType>
 template<int Tp_TSTYLEATOM, int Tp_TALLY, int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
 {
@@ -453,6 +454,7 @@ FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixLangevinKokkos<DeviceType>::zero_force_item(int i) const
 {
@@ -559,6 +561,7 @@ double FixLangevinKokkos<DeviceType>::compute_scalar()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT FixLangevinKokkos<DeviceType>::compute_energy_item(int i) const
 {
@@ -604,6 +607,7 @@ void FixLangevinKokkos<DeviceType>::end_of_step()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixLangevinKokkos<DeviceType>::end_of_step_item(int i) const {
   KK_FLOAT tmp[3];
@@ -624,6 +628,7 @@ void FixLangevinKokkos<DeviceType>::end_of_step_item(int i) const {
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixLangevinKokkos<DeviceType>::end_of_step_rmass_item(int i) const
 {

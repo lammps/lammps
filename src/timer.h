@@ -100,47 +100,47 @@ class Timer : protected Pointers {
 
   /** Check if loop timing is enabled
    * \return true if level >= LOOP */
-  bool has_loop() const { return (_level >= LOOP); }
+  [[nodiscard]] bool has_loop() const { return (_level >= LOOP); }
 
   /** Check if normal timing is enabled
    * \return true if level >= NORMAL */
-  bool has_normal() const { return (_level >= NORMAL); }
+  [[nodiscard]] bool has_normal() const { return (_level >= NORMAL); }
 
   /** Check if full timing is enabled
    * \return true if level >= FULL */
-  bool has_full() const { return (_level >= FULL); }
+  [[nodiscard]] bool has_full() const { return (_level >= FULL); }
 
   /** Check if synchronization is enabled
    * \return true if sync is enabled */
-  bool has_sync() const { return (_sync != OFF); }
+  [[nodiscard]] bool has_sync() const { return (_sync != OFF); }
 
   /** Check if timeout is enabled
    * \return true if timeout is set */
-  bool has_timeout() const { return (_timeout >= 0.0); }
+  [[nodiscard]] bool has_timeout() const { return (_timeout >= 0.0); }
 
   /** Check if timeout has expired
    * \return true if timeout == 0.0 (expired) */
-  bool is_timeout() const { return (_timeout == 0.0); }
+  [[nodiscard]] bool is_timeout() const { return (_timeout == 0.0); }
 
   /** Get elapsed wall-clock time for a timer
    * \param which Timer type
    * \return Elapsed wall-clock time in seconds */
-  double elapsed(enum ttype);
+  [[nodiscard]] double elapsed(enum ttype);
 
   /** Get elapsed CPU time for a timer
    * \param which Timer type
    * \return Elapsed CPU time in seconds */
-  double cpu(enum ttype);
+  [[nodiscard]] double cpu(enum ttype);
 
   /** Get stored CPU time for a timer
    * \param which Timer type
    * \return CPU time in seconds */
-  double get_cpu(enum ttype which) const { return cpu_array[which]; };
+  [[nodiscard]] double get_cpu(enum ttype which) const { return cpu_array[which]; };
 
   /** Get stored wall-clock time for a timer
    * \param which Timer type
    * \return Wall-clock time in seconds */
-  double get_wall(enum ttype which) const { return wall_array[which]; };
+  [[nodiscard]] double get_wall(enum ttype which) const { return wall_array[which]; };
 
   /** Set wall-clock time for a timer
    * \param which Timer type
@@ -170,7 +170,7 @@ class Timer : protected Pointers {
   /** Check if timeout has occurred
    * \param step Current timestep
    * \return true if timeout has occurred */
-  bool check_timeout(int step)
+  [[nodiscard]] bool check_timeout(int step)
   {
     if (_timeout == 0.0) return true;
     if (_nextcheck != step)

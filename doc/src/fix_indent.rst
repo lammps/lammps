@@ -137,9 +137,9 @@ fashion.  For the latter, see the *start* and *stop* keywords of the
 :doc:`thermo_style custom <thermo_style>` for details.
 
 For example, if a spherical indenter's x-position is specified as v_x,
-then this variable definition will keep it's center at a relative
-position in the simulation box, 1/4 of the way from the left edge to
-the right edge, even if the box size changes:
+then this variable definition will keep its center at a relative
+position in the simulation box, 1/4 of the way from the left edge to the
+right edge, even if the box size changes:
 
 .. code-block:: LAMMPS
 
@@ -201,6 +201,40 @@ contains *xlat*, *ylat*, *zlat* keywords of the :doc:`thermo_style
    variable k equal 100.0/xlat/xlat
    fix 1 all indent $k sphere ...
 
+Dump image info
+"""""""""""""""
+
+.. versionadded:: TBD
+
+Fix indent supports the *fix* keyword of :doc:`dump image <dump_image>`.
+The fix will pass geometry information about the indenter to *dump
+image* so that the indenter object will be included in the rendered
+image.  Please note, that for :doc:`2d systems <dimension>`, a planar
+indenter rendered as a plane would be invisible and it is thus rendered
+as a cylinder.
+
+The color of the indenter object is by default that of the first atom
+type when using color styles "type" or "element".  With color style
+"const" the default value of "white" can be changed using
+:doc:`dump_modify fcolor <dump_image>`.  The transparency is by default
+fully opaque and can be changed with *dump\_modify ftrans*\ .
+
+The *fflag1* setting of *dump image fix* has no impact on rendering a
+spherical indenter or a planar indenter in 3d systems.  For a
+cylindrical indenter and a planar indenter in 2d systems it determines
+whether the cylinder is capped with a sphere at the ends: 0 means no
+caps, 1 means the lower end is capped, 2 means the upper end is capped,
+and 3 means both ends are capped.
+
+The *fflag2* setting allows you to adjust the radius of the rendered
+object for spherical indenters, cylindrical indenters, and planar
+indenters in 2d systems.  In many cases you want to use a negative value
+to reduce the radius of the rendered object so that it does not obscure
+atoms close to it.  For a planar indenter in 2d systems, it should be
+set to a positive value or the indenter will not be visible since there
+is no radius parameter associated with it (unlike for spherical or
+cylindrical indenters) and thus its radius is set to zero internally.
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -241,7 +275,7 @@ check if you have done this.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

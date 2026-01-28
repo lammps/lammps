@@ -60,7 +60,7 @@ temperature is correctly normalized.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

@@ -42,9 +42,11 @@ class FixNVTSllodKokkos : public FixNHKokkos<DeviceType> {
 
   void init() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNVTSllod_temp1, const int& i) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNVTSllod_temp2, const int& i) const;
 

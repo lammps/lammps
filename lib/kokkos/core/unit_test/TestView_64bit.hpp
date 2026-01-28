@@ -1,31 +1,18 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 namespace Test {
 
 template <class Device>
 void test_64bit() {
-  // We are running out of device memory on Intel GPUs
-#ifdef KOKKOS_ENABLE_SYCL
-  int64_t N = 4000000000;
-#else
-  int64_t N = 5000000000;
-#endif
+  int64_t N   = 5000000000;
   int64_t sum = 0;
   {
     Kokkos::parallel_reduce(
@@ -82,12 +69,7 @@ void test_64bit() {
     ASSERT_EQ(N0 * N1, sum);
   }
   {
-// We are running out of device memory on Intel GPUs
-#ifdef KOKKOS_ENABLE_SYCL
-    int N0 = 1024 * 1024 * 900;
-#else
-    int N0 = 1024 * 1024 * 1500;
-#endif
+    int N0    = 1024 * 1024 * 1500;
     int64_t P = 1713091;
     Kokkos::View<int*, Device> a("A", N0);
     Kokkos::parallel_for(
@@ -108,7 +90,15 @@ void test_64bit() {
 }
 
 #ifdef KOKKOS_ENABLE_LARGE_MEM_TESTS
-TEST(TEST_CATEGORY, view_64bit) { test_64bit<TEST_EXECSPACE>(); }
+TEST(TEST_CATEGORY, view_64bit) {
+#if defined(KOKKOS_ENABLE_DEBUG) && defined(KOKKOS_ENABLE_SERIAL)
+  if constexpr (std::is_same_v<TEST_EXECSPACE, Kokkos::Serial>)
+    GTEST_SKIP()
+        << "Test is too expensive to run with the Serial backend in Debug mode";
+#endif
+
+  test_64bit<TEST_EXECSPACE>();
+}
 #endif
 
 }  // namespace Test

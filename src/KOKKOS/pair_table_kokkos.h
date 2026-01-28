@@ -120,14 +120,17 @@ class PairTableKokkos : public PairTable {
   void create_kokkos_tables();
 
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   double compute_fpair(const double& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   double compute_evdwl(const double& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   double compute_ecoul(const double& /*rsq*/, const int& /*i*/, const int& /*j*/,
                         const int& /*itype*/, const int& /*jtype*/) const { return 0; }

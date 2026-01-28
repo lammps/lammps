@@ -6,6 +6,7 @@ This page provides a general overview of the kinds of files and file
 formats that LAMMPS is reading and writing.
 
 .. contents:: On this page
+   :local:
    :depth: 2
    :backlinks: top
 

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CUDA_PARALLEL_RANGE_HPP
 #define KOKKOS_CUDA_PARALLEL_RANGE_HPP
@@ -41,9 +28,10 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::Cuda> {
   using Policy = Kokkos::RangePolicy<Traits...>;
 
  private:
-  using Member       = typename Policy::member_type;
-  using WorkTag      = typename Policy::work_tag;
-  using LaunchBounds = typename Policy::launch_bounds;
+  using Member          = typename Policy::member_type;
+  using WorkTag         = typename Policy::work_tag;
+  using LaunchBounds    = typename Policy::launch_bounds;
+  using StaticBatchSize = typename Policy::static_batch_size;
 
   const FunctorType m_functor;
   const Policy m_policy;
@@ -70,22 +58,36 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::Cuda> {
   Policy const& get_policy() const { return m_policy; }
 
   inline __device__ void operator()() const {
-    const auto work_stride = Member(blockDim.y) * gridDim.x;
-    const Member work_end  = m_policy.end();
+    constexpr auto batch_size = Member(StaticBatchSize::batch_size);
+    const auto work_stride    = Member(blockDim.y) * gridDim.x;
+    const Member work_end     = m_policy.end();
 
     for (Member iwork = m_policy.begin() + threadIdx.y +
                         static_cast<Member>(blockDim.y) * blockIdx.x;
          iwork < work_end;
-         iwork = iwork < static_cast<Member>(work_end - work_stride)
-                     ? iwork + work_stride
-                     : work_end) {
-      this->template exec_range<WorkTag>(iwork);
+         iwork =
+             iwork < static_cast<Member>(work_end - work_stride * batch_size)
+                 ? iwork + work_stride * batch_size
+                 : work_end) {
+#if defined(KOKKOS_COMPILER_NVCC)
+#pragma unroll
+#endif
+      for (Member i = 0; i < static_cast<Member>(work_stride * batch_size) &&
+                         i < work_end - iwork;
+           i = (i < static_cast<Member>(work_end - work_stride - iwork))
+                   ? i + work_stride
+                   : work_end - iwork) {
+        this->template exec_range<WorkTag>(iwork + i);
+      }
     }
   }
 
   inline void execute() const {
-    const typename Policy::index_type nwork = m_policy.end() - m_policy.begin();
-
+    constexpr typename Policy::index_type batch_size =
+        StaticBatchSize::batch_size;
+    const typename Policy::index_type nwork =
+        (m_policy.end() - m_policy.begin()) / batch_size +
+        ((m_policy.end() - m_policy.begin()) % batch_size == 0 ? 0 : 1);
     cudaFuncAttributes attr =
         CudaParallelLaunch<ParallelFor, LaunchBounds>::get_cuda_func_attributes(
             m_policy.space().impl_internal_space_instance());

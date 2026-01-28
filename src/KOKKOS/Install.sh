@@ -12,17 +12,6 @@ export LC_ALL
 action () {
   if (test $mode = 0) then
     rm -f ../$1
-  elif (! cmp -s $1 ../$1) then
-    if (test -z "$2" || test -e ../$2) then
-      cp $1 ..
-      if (test $mode = 2) then
-        echo "  updating src/$1"
-      fi
-    fi
-  elif (test -n "$2") then
-    if (test ! -e ../$2) then
-      rm -f ../$1
-    fi
   fi
 }
 
@@ -462,40 +451,9 @@ action mliap_unified_couple_kokkos.pyx mliap_unified_couple.pyx
 
 # edit 2 Makefile.package files to include/exclude package info
 
-if (test $1 = 1) then
-
-  if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*kokkos[^ \t]* //g' ../Makefile.package
-    sed -i -e 's/[^ \t]*KOKKOS[^ \t]* //g' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_KOKKOS |' ../Makefile.package
-#    sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/kokkos\/core\/src |' ../Makefile.package
-    sed -i -e 's|^PKG_CPP_DEPENDS =[ \t]*|&$(KOKKOS_CPP_DEPENDS) |' ../Makefile.package
-    sed -i -e 's|^PKG_LIB =[ \t]*|&$(KOKKOS_LIBS) |' ../Makefile.package
-    sed -i -e 's|^PKG_LINK_DEPENDS =[ \t]*|&$(KOKKOS_LINK_DEPENDS) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(KOKKOS_LDFLAGS) |' ../Makefile.package
-#    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(kokkos_SYSPATH) |' ../Makefile.package
-  fi
-
-  if (test -e ../Makefile.package.settings) then
-    sed -i -e '/CXX\ =\ \$(CC)/d' ../Makefile.package.settings
-    sed -i -e '/^[ \t]*include.*kokkos.*$/d' ../Makefile.package.settings
-    # multiline form needed for BSD sed on Macs
-    sed -i -e '4 i \
-CXX = $(CC)
-' ../Makefile.package.settings
-    sed -i -e '5 i \
-include ..\/..\/lib\/kokkos\/Makefile.kokkos
-' ../Makefile.package.settings
-  fi
-
-  #  comb/omp triggers a persistent bug in nvcc. deleting it.
-  rm -f ../*_comb_omp.*
-
-elif (test $1 = 2) then
-
-  #  comb/omp triggers a persistent bug in nvcc. deleting it.
-  rm -f ../*_comb_omp.*
+if (test $1 = 1 || test $1 = 2) then
+  echo "The KOKKOS package no longer supports the legacy build system. Please build LAMMPS with CMake instead."
+  exit 1
 
 elif (test $1 = 0) then
 
@@ -509,27 +467,4 @@ elif (test $1 = 0) then
     sed -i -e '/^[ \t]*include.*kokkos.*$/d' ../Makefile.package.settings
   fi
 
-fi
-
-# Python cython stuff. Only need to convert/remove sources.
-# Package settings were already done in ML-IAP package Install.sh script.
-
-if (test $1 = 1) then
-  if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
-    cythonize -3 ../mliap_model_python_couple_kokkos.pyx
-    cythonize -3 ../mliap_unified_couple_kokkos.pyx
-  fi
-
-elif (test $1 = 0) then
-  rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
-  rm -f ../mliap_unified_couple_kokkos.cpp ../mliap_unified_couple_kokkos.h
-
-elif (test $1 = 2) then
-  if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
-    cythonize -3 ../mliap_model_python_couple_kokkos.pyx
-    cythonize -3 ../mliap_unified_couple_kokkos.pyx
-  else
-    rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
-    rm -f ../mliap_unified_couple_kokkos.cpp ../mliap_unified_couple_kokkos.h
-  fi
 fi

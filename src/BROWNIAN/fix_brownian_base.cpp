@@ -48,18 +48,19 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) :
   planar_rot_flag = 0;
   g2 = 0.0;
 
-  if (narg < 5) utils::missing_cmd_args(FLERR, "fix brownian", error);
+  std::string mystyle = fmt::format("fix {}", style);
+  if (narg < 5) utils::missing_cmd_args(FLERR, mystyle, error);
 
   temp = utils::numeric(FLERR, arg[3], false, lmp);
-  if (temp <= 0) error->all(FLERR, "Fix brownian temp must be > 0.0");
+  if (temp <= 0) error->all(FLERR, 3, "Fix {} temp must be > 0.0", style);
 
   seed = utils::inumeric(FLERR, arg[4], false, lmp);
-  if (seed <= 0) error->all(FLERR, "Fix brownian seed must be > 0");
+  if (seed <= 0) error->all(FLERR, 4, "Fix {} seed must be > 0", style);
 
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "rng") == 0) {
-      if (narg < iarg + 1) utils::missing_cmd_args(FLERR, "fix brownian rng", error);
+      if (narg < iarg + 2) utils::missing_cmd_args(FLERR, mystyle + " rng", error);
       if (strcmp(arg[iarg + 1], "uniform") == 0) {
         noise_flag = 1;
       } else if (strcmp(arg[iarg + 1], "gaussian") == 0) {
@@ -68,11 +69,11 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg + 1], "none") == 0) {
         noise_flag = 0;
       } else {
-        error->all(FLERR, "Unknown fix brownian rng keyword {}", arg[iarg + 1]);
+        error->all(FLERR, iarg + 1, "Unknown fix {} rng keyword {}", style, arg[iarg + 1]);
       }
       iarg = iarg + 2;
     } else if (strcmp(arg[iarg], "dipole") == 0) {
-      if (narg < iarg + 3) utils::missing_cmd_args(FLERR, "fix brownian dipole", error);
+      if (narg < iarg + 4) utils::missing_cmd_args(FLERR, mystyle + " dipole", error);
 
       dipole_flag = 1;
       delete[] dipole_body;
@@ -84,27 +85,31 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) :
       iarg = iarg + 4;
 
     } else if (strcmp(arg[iarg], "gamma_t_eigen") == 0) {
-      if (narg < iarg + 3) utils::missing_cmd_args(FLERR, "fix brownian gamma_t_eigen", error);
+      if (narg < iarg + 4) utils::missing_cmd_args(FLERR, mystyle + " gamma_t_eigen", error);
+
+      double gamma_t_tmp[3];
+      gamma_t_tmp[0] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      gamma_t_tmp[1] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      if (domain->dimension == 2) {
+        if (strcmp(arg[iarg + 3], "inf") != 0)
+          error->all(FLERR, iarg + 3, "Fix {} gamma_t_eigen third value must be inf for 2D system",
+                     style);
+        gamma_t_tmp[2] = 1.0;
+      } else {
+        gamma_t_tmp[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+      }
+      if ((gamma_t_tmp[0] <= 0.0) || (gamma_t_tmp[1] <= 0.0) || (gamma_t_tmp[2] <= 0.0))
+        error->all(FLERR, iarg, "Fix {} gamma_t_eigen values must be > 0", style);
 
       gamma_t_eigen_flag = 1;
       delete[] gamma_t_inv;
       delete[] gamma_t_invsqrt;
       gamma_t_inv = new double[3];
       gamma_t_invsqrt = new double[3];
-      gamma_t_inv[0] = 1. / utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      gamma_t_inv[1] = 1. / utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-
-      if (domain->dimension == 2) {
-        if (strcmp(arg[iarg + 3], "inf") != 0) {
-          error->all(FLERR, "Fix brownian gamma_t_eigen third value must be inf for 2D system.");
-        }
-        gamma_t_inv[2] = 0;
-      } else {
-        gamma_t_inv[2] = 1.0 / utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-      }
-
-      if (gamma_t_inv[0] < 0 || gamma_t_inv[1] < 0 || gamma_t_inv[2] < 0)
-        error->all(FLERR, "Fix brownian gamma_t_eigen values must be > 0.");
+      gamma_t_inv[0] = 1.0 / gamma_t_tmp[0];
+      gamma_t_inv[1] = 1.0 / gamma_t_tmp[1];
+      gamma_t_inv[2] = 1.0 / gamma_t_tmp[2];
+      if (domain->dimension == 2) gamma_t_inv[2] = 0.0;
 
       gamma_t_invsqrt[0] = sqrt(gamma_t_inv[0]);
       gamma_t_invsqrt[1] = sqrt(gamma_t_inv[1]);
@@ -112,7 +117,27 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) :
       iarg = iarg + 4;
 
     } else if (strcmp(arg[iarg], "gamma_r_eigen") == 0) {
-      if (narg == iarg + 3) error->all(FLERR, "Illegal fix brownian command.");
+      if (narg < iarg + 4) utils::missing_cmd_args(FLERR, mystyle + " gamma_r_eigen", error);
+
+      double gamma_r_tmp[3];
+      if (domain->dimension == 2) {
+        if (strcmp(arg[iarg + 1], "inf") != 0)
+          error->all(FLERR, iarg + 1, "Fix {} gamma_r_eigen first value must be inf for 2D system",
+                     style);
+        gamma_r_tmp[0] = 1.0;
+
+        if (strcmp(arg[iarg + 2], "inf") != 0)
+          error->all(FLERR, iarg + 2, "Fix {} gamma_r_eigen second value must be inf for 2D system",
+                     style);
+        gamma_r_tmp[1] = 1.0;
+      } else {
+        gamma_r_tmp[0] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+        gamma_r_tmp[1] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      }
+      gamma_r_tmp[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+
+      if ((gamma_r_tmp[0] <= 0.0) || (gamma_r_tmp[1] <= 0) || (gamma_r_tmp[2] <= 0))
+        error->all(FLERR, iarg, "Fix {} gamma_r_eigen values must be > 0", style);
 
       gamma_r_eigen_flag = 1;
       delete[] gamma_r_inv;
@@ -120,65 +145,52 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) :
       gamma_r_inv = new double[3];
       gamma_r_invsqrt = new double[3];
 
+      gamma_r_inv[0] = 1.0 / gamma_r_tmp[0];
+      gamma_r_inv[1] = 1.0 / gamma_r_tmp[1];
+      gamma_r_inv[2] = 1.0 / gamma_r_tmp[2];
       if (domain->dimension == 2) {
-        if (strcmp(arg[iarg + 1], "inf") != 0) {
-          error->all(FLERR, "Fix brownian gamma_r_eigen first value must be inf for 2D system.");
-        }
-        gamma_r_inv[0] = 0;
-
-        if (strcmp(arg[iarg + 2], "inf") != 0) {
-          error->all(FLERR, "Fix brownian gamma_r_eigen second value must be inf for 2D system.");
-        }
-        gamma_r_inv[1] = 0;
-      } else {
-
-        gamma_r_inv[0] = 1. / utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-        gamma_r_inv[1] = 1. / utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+        gamma_r_inv[0] = 0.0;
+        gamma_r_inv[1] = 0.0;
       }
-
-      gamma_r_inv[2] = 1. / utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-
-      if (gamma_r_inv[0] < 0 || gamma_r_inv[1] < 0 || gamma_r_inv[2] < 0)
-        error->all(FLERR, "Fix brownian gamma_r_eigen values must be > 0.");
-
       gamma_r_invsqrt[0] = sqrt(gamma_r_inv[0]);
       gamma_r_invsqrt[1] = sqrt(gamma_r_inv[1]);
       gamma_r_invsqrt[2] = sqrt(gamma_r_inv[2]);
       iarg = iarg + 4;
 
     } else if (strcmp(arg[iarg], "gamma_t") == 0) {
-      if (narg == iarg + 1) { error->all(FLERR, "Illegal fix brownian command."); }
+      if (narg < iarg + 2) utils::missing_cmd_args(FLERR, mystyle + " gamma_t", error);
 
       gamma_t_flag = 1;
       gamma_t = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      if (gamma_t <= 0) error->all(FLERR, "Fix brownian gamma_t must be > 0.");
+      if (gamma_t <= 0.0) error->all(FLERR, iarg + 1, "Fix {} gamma_t value must be > 0", style);
       iarg = iarg + 2;
 
     } else if (strcmp(arg[iarg], "gamma_r") == 0) {
-      if (narg == iarg + 1) { error->all(FLERR, "Illegal fix brownian command."); }
+      if (narg < iarg + 2) utils::missing_cmd_args(FLERR, mystyle + " gamma_r", error);
 
       gamma_r_flag = 1;
       gamma_r = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      if (gamma_r <= 0) error->all(FLERR, "Fix brownian gamma_r must be > 0.");
+      if (gamma_r <= 0) error->all(FLERR, iarg + 1, "Fix {} gamma_r value must be > 0", style);
       iarg = iarg + 2;
 
     } else if (strcmp(arg[iarg], "rotation_temp") == 0) {
-      if (narg == iarg + 1) { error->all(FLERR, "Illegal fix brownian command."); }
+      if (narg < iarg + 2) utils::missing_cmd_args(FLERR, mystyle + " rotation_temp", error);
 
       rot_temp_flag = 1;
       rot_temp = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      if (rot_temp <= 0) error->all(FLERR, "Fix brownian rotation_temp must be > 0.");
+      if (rot_temp <= 0)
+        error->all(FLERR, iarg + 1, "Fix {} rotation_temp value must be > 0", style);
       iarg = iarg + 2;
 
     } else if (strcmp(arg[iarg], "planar_rotation") == 0) {
 
       planar_rot_flag = 1;
       if (domain->dimension == 2)
-        error->all(FLERR, "The planar_rotation keyword is not allowed for 2D simulations");
+        error->all(FLERR, iarg, "The planar_rotation keyword is not allowed for 2D simulations");
       iarg = iarg + 1;
 
     } else {
-      error->all(FLERR, "Illegal fix brownian command.");
+      error->all(FLERR, iarg, "Unknown fix {} keyword {}", style, arg[iarg]);
     }
   }
   if (!rot_temp_flag) rot_temp = temp;

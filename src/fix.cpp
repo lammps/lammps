@@ -84,7 +84,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   scalar_flag = vector_flag = array_flag = 0;
   extscalar = extvector = extarray = -1;
   peratom_flag = local_flag = pergrid_flag = 0;
-  global_freq = local_freq = peratom_freq = pergrid_freq = -1;
+  local_freq = peratom_freq = pergrid_freq = -1;
   size_vector_variable = size_array_rows_variable = 0;
 
   comm_forward = comm_reverse = comm_border = 0;

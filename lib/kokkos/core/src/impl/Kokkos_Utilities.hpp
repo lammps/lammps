@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CORE_IMPL_UTILITIES_HPP
 #define KOKKOS_CORE_IMPL_UTILITIES_HPP
@@ -55,34 +42,6 @@ template <typename... Deps>
 struct always_false : std::false_type {};
 
 //==============================================================================
-
-#if defined(__cpp_lib_type_identity)
-// since C++20
-using std::type_identity;
-using std::type_identity_t;
-#else
-template <typename T>
-struct type_identity {
-  using type = T;
-};
-
-template <typename T>
-using type_identity_t = typename type_identity<T>::type;
-#endif
-
-#if defined(__cpp_lib_remove_cvref)
-// since C++20
-using std::remove_cvref;
-using std::remove_cvref_t;
-#else
-template <class T>
-struct remove_cvref {
-  using type = std::remove_cv_t<std::remove_reference_t<T>>;
-};
-
-template <class T>
-using remove_cvref_t = typename remove_cvref<T>::type;
-#endif
 
 // same as C++23 std::to_underlying but with __host__ __device__ annotations
 template <typename E>
@@ -156,7 +115,7 @@ struct _type_list_remove_first_impl<Entry, type_list<Entry, Ts...>,
 
 template <class Entry, class... OutTs>
 struct _type_list_remove_first_impl<Entry, type_list<>, type_list<OutTs...>>
-    : type_identity<type_list<OutTs...>> {};
+    : std::type_identity<type_list<OutTs...>> {};
 
 template <class Entry, class List>
 struct type_list_remove_first
@@ -174,6 +133,9 @@ struct type_list_any;
 template <template <class> class UnaryPred, class... Ts>
 struct type_list_any<UnaryPred, type_list<Ts...>>
     : std::bool_constant<(UnaryPred<Ts>::value || ...)> {};
+
+template <template <class> class UnaryPred, class... Ts>
+constexpr bool type_list_any_v = type_list_any<UnaryPred, Ts...>::value;
 
 // </editor-fold> end type_list_any }}}2
 //------------------------------------------------------------------------------
@@ -224,6 +186,36 @@ using filter_type_list_t =
     typename filter_type_list<PredicateT, T, ValueT>::type;
 
 // </editor-fold> end filter_type_list }}}2
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// <editor-fold desc="type_list_contains"> {{{2
+//  type_list_contains checks if a type is contained in the list.
+template <typename, typename...>
+struct type_list_contains;
+
+template <typename U, typename... Ts>
+struct type_list_contains<U, type_list<Ts...>>
+    : std::disjunction<std::is_same<U, Ts>...> {};
+
+template <typename U, typename... Ts>
+constexpr bool type_list_contains_v = type_list_contains<U, Ts...>::value;
+// </editor-fold> end type_list_contains }}}2
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// <editor-fold desc="type_list_size"> {{{2
+//  type_list_size returns the size of a type list.
+template <typename>
+struct type_list_size;
+
+template <typename... Ts>
+struct type_list_size<type_list<Ts...>>
+    : std::integral_constant<std::size_t, sizeof...(Ts)> {};
+
+template <typename T>
+constexpr std::size_t type_list_size_v = type_list_size<T>::value;
+// </editor-fold> end type_list_size }}}2
 //------------------------------------------------------------------------------
 
 // </editor-fold> end type_list }}}1

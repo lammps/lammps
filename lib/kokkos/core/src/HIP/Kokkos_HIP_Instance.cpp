@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 /*--------------------------------------------------------------------------*/
 /* Kokkos interfaces */
@@ -21,7 +8,12 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
 #endif
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 #include <HIP/Kokkos_HIP_Instance.hpp>
 #include <HIP/Kokkos_HIP.hpp>
@@ -29,7 +21,6 @@
 #include <HIP/Kokkos_HIP_IsXnack.hpp>
 #include <impl/Kokkos_CheckedIntegerOps.hpp>
 #include <impl/Kokkos_DeviceManagement.hpp>
-#include <impl/Kokkos_Error.hpp>
 
 /*--------------------------------------------------------------------------*/
 /* Standard 'C' libraries */
@@ -37,7 +28,6 @@
 
 /* Standard 'C++' libraries */
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -87,7 +77,7 @@ int HIPInternal::concurrency() {
 void HIPInternal::print_configuration(std::ostream &s) const {
   s << "macro  KOKKOS_ENABLE_HIP : defined" << '\n';
 #if defined(HIP_VERSION)
-  s << "macro  HIP_VERSION = " << HIP_VERSION << " = version "
+  s << "macro  HIP_VERSION : " << HIP_VERSION << " = version "
     << HIP_VERSION_MAJOR << '.' << HIP_VERSION_MINOR << '.' << HIP_VERSION_PATCH
     << '\n';
 #endif
@@ -113,7 +103,10 @@ void HIPInternal::print_configuration(std::ostream &s) const {
 
     s << "Kokkos::HIP[ " << i << " ] "
       << "gcnArch " << hipProp.gcnArchName;
-    if (m_hipDev == i) s << " : Selected";
+    if (m_hipDev == i)
+      s << " : Selected";
+    else
+      s << " : Not Selected";
     s << '\n'
       << "  Total Global Memory: "
       << ::Kokkos::Impl::human_memory_size(hipProp.totalGlobalMem) << '\n'
@@ -186,17 +179,7 @@ void HIPInternal::initialize(hipStream_t stream) {
   if (was_finalized)
     Kokkos::abort("Calling HIP::initialize after HIP::finalize is illegal\n");
 
-    // Get the device ID. If this is ROCm 5.6 or later, we can query this from
-    // the provided stream and potentially use multiple GPU devices. For
-    // ROCm 5.5 or earlier, we must use the singleton device id and there are no
-    // checks possible for the device id matching the device the stream was
-    // created on.
-#if (HIP_VERSION_MAJOR > 5 || \
-     (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 6))
   KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamGetDevice(stream, &m_hipDev));
-#else
-  m_hipDev = singleton().m_hipDev;
-#endif
   KOKKOS_IMPL_HIP_SAFE_CALL(hipSetDevice(m_hipDev));
   hip_devices.insert(m_hipDev);
 
@@ -432,10 +415,6 @@ std::map<int, SharedResourceLock> HIPInternal::constantMemReusable = {};
 
 //----------------------------------------------------------------------------
 
-Kokkos::HIP::size_type hip_internal_multiprocessor_count() {
-  return HIPInternal::singleton().m_deviceProp.multiProcessorCount;
-}
-
 Kokkos::HIP::size_type *hip_internal_scratch_space(const HIP &instance,
                                                    const std::size_t size) {
   return instance.impl_internal_space_instance()->scratch_space(size);
@@ -446,23 +425,6 @@ Kokkos::HIP::size_type *hip_internal_scratch_flags(const HIP &instance,
   return instance.impl_internal_space_instance()->scratch_flags(size);
 }
 
-}  // namespace Impl
-}  // namespace Kokkos
-
-//----------------------------------------------------------------------------
-
-namespace Kokkos {
-namespace Impl {
-void hip_internal_error_throw(hipError_t e, const char *name, const char *file,
-                              const int line) {
-  std::ostringstream out;
-  out << name << " error( " << hipGetErrorName(e)
-      << "): " << hipGetErrorString(e);
-  if (file) {
-    out << " " << file << ":" << line;
-  }
-  throw_runtime_exception(out.str());
-}
 }  // namespace Impl
 }  // namespace Kokkos
 

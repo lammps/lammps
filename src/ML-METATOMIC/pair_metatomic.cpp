@@ -286,12 +286,11 @@ void PairMetatomic::settings(int argc, char ** argv) {
 
     // Check that the model has the required outputs
     auto energy_output = outputs.find(mta_data->energy_key);
-    // LAMMPS assume that an energy will be available
     if (energy_output == outputs.end()) {
         lmp->error->one(FLERR,
-            "the model at '{}' does not have an 'energy' output, "
+            "the model at '{}' does not have an '{}' output, "
             "we can not use it with pair_style metatomic.",
-            model_path
+            model_path, mta_data->energy_key
         );
     }
 

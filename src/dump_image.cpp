@@ -441,8 +441,8 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     else if (i % 6 == 2) colortype[i] = image->color2rgb("green");
     else if (i % 6 == 3) colortype[i] = image->color2rgb("blue");
     else if (i % 6 == 4) colortype[i] = image->color2rgb("yellow");
-    else if (i % 6 == 5) colortype[i] = image->color2rgb("aqua");
-    else if (i % 6 == 0) colortype[i] = image->color2rgb("cyan");
+    else if (i % 6 == 5) colortype[i] = image->color2rgb("cyan");
+    else if (i % 6 == 0) colortype[i] = image->color2rgb("magenta");
   }
 
   if (bondflag) {
@@ -454,8 +454,8 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       else if (i % 6 == 2) bcolortype[i] = image->color2rgb("green");
       else if (i % 6 == 3) bcolortype[i] = image->color2rgb("blue");
       else if (i % 6 == 4) bcolortype[i] = image->color2rgb("yellow");
-      else if (i % 6 == 5) bcolortype[i] = image->color2rgb("aqua");
-      else if (i % 6 == 0) bcolortype[i] = image->color2rgb("cyan");
+      else if (i % 6 == 5) bcolortype[i] = image->color2rgb("cyan");
+      else if (i % 6 == 0) bcolortype[i] = image->color2rgb("magenta");
     }
   } else {
     bdiamtype = nullptr;

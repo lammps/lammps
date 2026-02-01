@@ -169,6 +169,7 @@ TEST_F(DeleteAtomsTest, CondenseAtomic)
         command("atom_modify id yes map yes ");
         command("region box block -4 4 -4 4 -4 4");
         command("create_box 1 box");
+        command("mass 1 1.0");
         command("fix oldid all property/atom i_oldid ghost yes");
         command("create_atoms 1 random 8 9648523 box");
         command("variable oldid atom id");

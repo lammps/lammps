@@ -940,6 +940,11 @@ void DeleteAtoms::condense_tags()
   // ---------------------------------------------------------
   // 1. REFRESH COMM
   // ---------------------------------------------------------
+  
+  // init entire system since comm->borders and neighbor->build is done
+  // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
+  lmp->init();
+  
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();

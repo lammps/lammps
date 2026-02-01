@@ -444,12 +444,13 @@ void ReadDump::header(int fieldinfo)
 {
   int boxinfo = 0;
   int triclinic_snap;
+  int triclinic_general;
   int fieldflag,xflag,yflag,zflag;
 
   if (filereader) {
     for (int i = 0; i < nreader; i++)
       nsnapatoms[i]
-        = readers[i]->read_header(box, boxinfo, triclinic_snap, fieldinfo, nfield, fieldtype,
+        = readers[i]->read_header(box, boxinfo, triclinic_snap, triclinic_general, fieldinfo, nfield, fieldtype,
                                   fieldlabel, scaleflag, wrapflag, fieldflag, xflag, yflag, zflag);
   }
 
@@ -457,6 +458,7 @@ void ReadDump::header(int fieldinfo)
     MPI_Bcast(nsnapatoms,nreader,MPI_LMP_BIGINT,0,clustercomm);
     MPI_Bcast(&boxinfo,1,MPI_INT,0,clustercomm);
     MPI_Bcast(&triclinic_snap,1,MPI_INT,0,clustercomm);
+    // MPI_Bcast(&triclinic_general,1,MPI_INT,0,clustercomm);
     MPI_Bcast(&box[0][0],9,MPI_DOUBLE,0,clustercomm);
   }
 

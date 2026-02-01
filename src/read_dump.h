@@ -77,7 +77,7 @@ class ReadDump : public Command {
   int scaled;     // 0/1 if dump file coords are unscaled/scaled
   int wrapped;    // 0/1 if dump file coords are unwrapped/wrapped
 
-  double box[3][3];                                   // dump file box parameters
+  double box[3][4];                                   // dump file box parameters
   double xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz;    // dump snapshot box params
   double xprd, yprd, zprd;
 

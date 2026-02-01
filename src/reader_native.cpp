@@ -21,6 +21,7 @@
 #include <cstring>
 #include <exception>
 #include <utility>
+#include <iostream>
 
 using namespace LAMMPS_NS;
 
@@ -183,7 +184,7 @@ void ReaderNative::skip_reading_magic_str()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
+bigint ReaderNative::read_header(double box[3][4], int &boxinfo, int &triclinic, int &triclinic_general,
                                  int fieldinfo, int nfield,
                                  int *fieldtype, char **fieldlabel,
                                  int scaleflag, int wrapflag, int &fieldflag,
@@ -252,12 +253,19 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
 
     boxinfo = 1;
     triclinic = 0;
+    triclinic_general  = 0;
     box[0][2] = box[1][2] = box[2][2] = 0.0;
     read_lines(1);
-    if (utils::strmatch(line, R"(ITEM: BOX BOUNDS.*abc\s+origin)")) {
-      error->one(FLERR, Error::NOLASTLINE,
-                 "Dump files in general triclinic format are not (yet) supported");
-    }
+    // if (utils::strmatch(line, R"(ITEM: BOX BOUNDS.*abc\s+origin)")) {
+    //   error->one(FLERR, Error::NOLASTLINE,
+    //              "Dump files in general triclinic format are not (yet) supported");
+    // }
+    
+    if (utils::strmatch(line, R"(ITEM: BOX BOUNDS.*abc\s+origin)")){
+      triclinic_general = 1;
+      triclinic = 1;
+      std::cout << "detected triclinic/general format\n";
+    } 
     if (utils::strmatch(line, R"(ITEM: BOX BOUNDS.*xy\s+xz\s+yz)")) triclinic = 1;
 
     try {
@@ -266,18 +274,21 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       box[0][0] = values.next_double();
       box[0][1] = values.next_double();
       if (triclinic) box[0][2] = values.next_double();
+      if (triclinic_general) box[0][3] = values.next_double();
 
       read_lines(1);
       values = ValueTokenizer(line);
       box[1][0] = values.next_double();
       box[1][1] = values.next_double();
       if (triclinic) box[1][2] = values.next_double();
+      if (triclinic_general) box[1][3] = values.next_double();
 
       read_lines(1);
       values = ValueTokenizer(line);
       box[2][0] = values.next_double();
       box[2][1] = values.next_double();
       if (triclinic) box[2][2] = values.next_double();
+      if (triclinic_general) box[2][3] = values.next_double();
     } catch (std::exception &e) {
       error->one(FLERR, "Dump file is incorrectly formatted: {}", e.what());
     }

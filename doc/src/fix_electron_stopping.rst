@@ -218,7 +218,7 @@ The default is no limitation by region, and minneigh = 1.
 
 .. _CasP:
 
-**(CasP)** CasP webpage: http://www.casp-program.org/
+**(CasP)** CasP webpage: https://lief.if.ufrgs.br/pub/CasP/
 
 .. _Stewart2018:
 

@@ -65,6 +65,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 # skip over obsolete MPI-2 C++ bindings
 set(MPI_CXX_SKIP_MPICXX TRUE)
 
+# compile external libraries for linking to shared objects
+set(CONFIGURE_REQUEST_PIC "--with-pic")
+set(CMAKE_REQUEST_PIC "-DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}")
+
 #######
 # helper functions from LAMMPSUtils.cmake
 function(validate_option name values)

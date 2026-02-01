@@ -363,19 +363,19 @@ contain any atom within three bonds of reacting atoms.
 Some atoms in the pre-reacted template that are not reacting may have
 missing topology with respect to the simulation. For example, the
 pre-reacted template may contain an atom that, in the simulation, is
-currently connected to the rest of a long polymer chain. These are
-referred to as edge atoms, and are also specified in the map file. All
-pre-reaction template atoms should be linked to an initiator atom, via
-at least one path that does not involve edge atoms. When the
-pre-reaction template contains edge atoms, not all atoms, bonds, etc.
-specified in the reaction templates will be updated. Specifically, topology
-that involves only atoms that are "too near" to template edges will not be
-updated. The definition of "too near the edge" depends on which
-interactions are defined in the simulation. If the simulation has defined
-dihedrals, atoms within two bonds of edge atoms are considered "too near
-the edge." If the simulation defines angles, but not dihedrals, atoms
-within one bond of edge atoms are considered "too near the edge." If just
-bonds are defined, only edge atoms are considered "too near the edge."
+currently connected to the rest of a long polymer chain. These are referred
+to as edge atoms, and are specified in the map file in the EdgeIDs section.
+All pre-reaction template atoms should be linked to an initiator atom, via
+at least one path that does not involve edge atoms. When the pre-reaction
+template contains edge atoms, not all atoms, bonds, etc. specified in the
+reaction templates will be updated. Specifically, topology that involves
+only atoms that are "too near" to template edges will not be updated. The
+definition of "too near the edge" depends on which interactions are defined
+in the simulation. If the simulation has defined dihedrals, atoms within
+two bonds of edge atoms are considered "too near the edge." If the
+simulation defines angles, but not dihedrals, atoms within one bond of edge
+atoms are considered "too near the edge." If just bonds are defined, only
+edge atoms are considered "too near the edge."
 
 .. note::
 
@@ -391,6 +391,26 @@ command page. It is highly recommended to use :doc:`Type labels <Howto_type_labe
 (added in version 15Sep2022) in both molecule templates and data
 files, which automates the process of syncing atom types between
 different input files.
+
+Wildcard atoms match to any atom type in the simulation.  Wildcard atoms
+can be used to reduce the number of reaction templates needed to model a
+set of similar reactions.  Wildcard atoms are specified in the Wildcards
+section of the map file.  The atom types of wildcard atoms in the
+simulation are not updated.  Any bond, angle, dihedral, or improper,
+that is defined in the reaction templates and contains a wildcard atom,
+will be updated by inferring its type from its constituent atom types.
+To use wildcard atoms, a specific :doc:`type label <Howto_type_labels>`
+format is necessary to infer the types of higher-order interactions.
+Bond, angle, dihedral, and improper type labels must contain their
+constituent atom types delimited by hyphens, e.g., 'c2-c2-c2-n' for a
+dihedral that contains three atoms of type 'c2' and one atom of 'n'.
+Certain symmetries are considered to account for equivalent ways of
+writing higher-order interactions.  Type labels for bonds, angles, and
+dihedrals are assumed to be equivalent to those written in reverse
+order.  For example, an angle with type label 'c1-c2-n' is equivalent to
+'n-c2-c1'.  Symmetries for impropers are more complex and are described
+on the doc page for each improper style in the 'Symmetry convention'
+section.
 
 The post-reacted molecule template contains a sample of the reaction
 site and its surrounding topology after the reaction has occurred. It
@@ -422,12 +442,13 @@ mandatory keyword is *equivalences*\ :
 
    N *equivalences* = # of atoms N in the reaction molecule templates
 
-The optional keywords are *edgeIDs*\ , *deleteIDs*\ , *chiralIDs*\ , and
-*constraints*\ :
+The optional keywords are *edgeIDs*\ , *wildcards*\ ,*deleteIDs*\ ,
+*createIDs*\ , *chiralIDs*\ , and *constraints*\ :
 
 .. parsed-literal::
 
    N *edgeIDs* = # of edge atoms N in the pre-reacted molecule template
+   N *wildcards* = # of atoms with wildcard atom types N
    N *deleteIDs* = # of atoms N that are deleted
    N *createIDs* = # of atoms N that are created
    N *chiralIDs* = # of chiral centers N
@@ -443,16 +464,17 @@ templates. The first column is an atom ID of the pre-reacted molecule
 template, and the second column is the corresponding atom ID of the
 post-reacted molecule template. The first optional section begins with
 the keyword "EdgeIDs" and lists the atom IDs of edge atoms in the
-pre-reacted molecule template. The second optional section begins with
-the keyword "DeleteIDs" and lists the atom IDs of pre-reaction
-template atoms to delete. The third optional section begins with the
-keyword "CreateIDs" and lists the atom IDs of the post-reaction
-template atoms to create. The fourth optional section begins with the
-keyword "ChiralIDs" lists the atom IDs of chiral atoms whose
-handedness should be enforced. The fifth optional section begins with
-the keyword "Constraints" and lists additional criteria that must be
-satisfied in order for the reaction to occur. Currently, there are
-six types of constraints available, as discussed below: "distance",
+pre-reacted molecule template.  The second optional section begins with
+the keyword "Wildcards" and lists the pre-reaction atom IDs of atoms that
+have wildcard atom types.  The third optional section begins with the
+keyword "DeleteIDs" and lists the atom IDs of pre-reaction template atoms
+to delete. The fourth optional section begins with the keyword "CreateIDs"
+and lists the atom IDs of the post-reaction template atoms to create. The
+fifth optional section begins with the keyword "ChiralIDs" lists the atom
+IDs of chiral atoms whose handedness should be enforced. The sixth optional
+section begins with the keyword "Constraints" and lists additional criteria
+that must be satisfied in order for the reaction to occur. Currently, there
+are six types of constraints available, as discussed below: "distance",
 "angle", "dihedral", "arrhenius", "rmsd", and "custom".
 
 A sample map file is given below:

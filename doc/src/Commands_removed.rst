@@ -2,6 +2,7 @@ Removed commands and packages
 =============================
 
 .. contents::
+   :local:
 
 ------
 
@@ -11,6 +12,18 @@ replacements.  LAMMPS has special dummy styles implemented, that will
 stop LAMMPS and print a suitable error message in most cases, when a
 style/command is used that has been removed or will replace the command
 with the direct alternative (if available) and print a warning.
+
+amber2lmp tools
+---------------
+
+.. deprecated:: TBD
+
+The tools in the ``tools/amber2lmp`` folder have been removed because
+they were unmaintained for a long time and required Python 2 which has
+been obsolete for a long time.  Instead the external `AMBER2LAMMPS tool
+<https://github.com/askforarun/AMBER2LAMMPS>`_ can be used for the same
+purpose.  There is an `Howto_amber2lammps` included in this manual.
+
 
 ATC, AWPMD, and POEMS packages
 ------------------------------

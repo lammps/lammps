@@ -480,7 +480,7 @@ TEST_F(VariableTest, IfCommand)
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if 1>2 then 'print \"bingo!\"' else 'print \"nope?\"'");
+    command(R"(if 1>2 then 'print "bingo!"' else 'print "nope?"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
@@ -490,27 +490,27 @@ TEST_F(VariableTest, IfCommand)
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if 2<1 then 'print \"bingo!\"' else 'print \"nope?\"'");
+    command(R"(if 2<1 then 'print "bingo!"' else 'print "nope?"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if (1<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    command(R"(if (1<=0) then 'print "bingo!"' else 'print "nope?"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if (0<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    command(R"(if (0<=0) then 'print "bingo!"' else 'print "nope?"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if (0>=1) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    command(R"(if (0>=1) then 'print "bingo!"' else 'print "nope?"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if (1>=1) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    command(R"(if (1>=1) then 'print "bingo!"' else 'print "nope?"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
@@ -525,17 +525,17 @@ TEST_F(VariableTest, IfCommand)
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if !((${one}!=1.0)||(2|^1)) then 'print \"missed\"' else 'print \"bingo!\"'");
+    command(R"(if !((${one}!=1.0)||(2|^1)) then 'print "missed"' else 'print "bingo!"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if (1>=2)&&(0&&1) then 'print \"missed\"' else 'print \"bingo!\"'");
+    command(R"(if (1>=2)&&(0&&1) then 'print "missed"' else 'print "bingo!"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if !1 then 'print \"missed\"' else 'print \"bingo!\"'");
+    command(R"(if !1 then 'print "missed"' else 'print "bingo!"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
@@ -680,7 +680,7 @@ TEST_F(VariableTest, LabelMapMolecular)
     command("labelmap atom 1 C1");
     command("labelmap atom 2 \"N2'\"");
     command("labelmap bond 1 C1-N2 2 [C1][C1] 3 N2=N2");
-    command("labelmap angle 1 C1-N2-C1 2 \"\"\" N2'-C1\"-N2' \"\"\"");
+    command(R"(labelmap angle 1 C1-N2-C1 2 """ N2'-C1"-N2' """)");
     command("labelmap dihedral 1 'C1-N2-C1-N2'");
     command("labelmap improper 1 \"C1-N2-C1-N2\"");
     command("variable t1 equal label2type(atom,C1)");

@@ -21,10 +21,12 @@ namespace LAMMPS_NS {
 
   struct s_KK_double2 {
     KK_FLOAT d0, d1;
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     s_KK_double2() {
       d0 = d1 = 0.0;
     }
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     s_KK_double2& operator+=(const s_KK_double2 &rhs) {
       d0 += rhs.d0;

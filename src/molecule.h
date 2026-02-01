@@ -133,7 +133,7 @@ class Molecule : protected Pointers {
 
   void command(int, char **, int &);
   void from_json(const std::string &id, const json &);
-  json to_json() const;
+  [[nodiscard]] json to_json() const;
 
   void compute_center();
   void compute_mass();

@@ -129,6 +129,7 @@ template <class DeviceType> void FixElectronStoppingKokkos<DeviceType>::post_for
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void
 FixElectronStoppingKokkos<DeviceType>::operator()(TagFixElectronStopping, const int &i,
                                                   double &seloss,

@@ -745,7 +745,7 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
         for (auto myatom : atoms_root) {
           int mytype = myatom.type;
           std::string typestr = std::to_string(mytype);
-          if (atom->labelmapflag) typestr = atom->lmap->find(mytype, Atom::ATOM);
+          if (atom->labelmapflag) typestr = atom->lmap->find_label(mytype, Atom::ATOM);
           utils::print(fp, "{}[{}, \"{}\"]", indent, myatom.tag, typestr);
           if (std::next(it) == atoms_root.end()) fprintf(fp, "\n");
           else fprintf(fp, ",\n");

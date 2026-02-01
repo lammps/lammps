@@ -201,6 +201,7 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 double PairTableKokkos<DeviceType>::
 compute_fpair(const double &rsq, const int &, const int &, const int &itype, const int &jtype) const {
@@ -233,6 +234,7 @@ compute_fpair(const double &rsq, const int &, const int &, const int &itype, con
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 double PairTableKokkos<DeviceType>::
 compute_evdwl(const double &rsq, const int &, const int &, const int &itype, const int &jtype) const {

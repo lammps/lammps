@@ -145,6 +145,7 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
    ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairCoulDebyeKokkos<DeviceType>::
 compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
@@ -168,6 +169,7 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
    ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairCoulDebyeKokkos<DeviceType>::
 compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,

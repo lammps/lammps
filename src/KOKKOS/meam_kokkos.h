@@ -39,16 +39,20 @@ template <class DeviceType> class MEAMKokkos : public MEAM {
   MEAMKokkos(Memory *mem);
   ~MEAMKokkos() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagMEAMDensFinal, const int &, EV_FLOAT &) const;
 
   template <int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION void operator()(TagMEAMDensInit<NEIGHFLAG>, const int &) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagMEAMZero, const int &) const;
 
   template <int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION void operator()(TagMEAMForce<NEIGHFLAG>, const int &, EV_FLOAT &) const;
 
  private:
@@ -91,33 +95,46 @@ template <class DeviceType> class MEAMKokkos : public MEAM {
                   typename AT::t_int_1d, typename AT::t_neighbors_2d, typename AT::t_neighbors_2d,
                   int, int, EV_FLOAT &);
   template <int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION void getscreen(int, int, typename AT::t_kkfloat_1d_3_lr, typename AT::t_int_1d,
                                         typename AT::t_int_1d, int, typename AT::t_int_1d,
                                         typename AT::t_int_1d) const;
   template <int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION void calc_rho1(int, int, typename AT::t_int_1d, typename AT::t_int_1d,
                                         typename AT::t_kkfloat_1d_3_lr, typename AT::t_int_1d, int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT fcut(const KK_FLOAT xi) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT dfcut(const KK_FLOAT xi, KK_FLOAT &dfc) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT dCfunc(const KK_FLOAT, const KK_FLOAT, const KK_FLOAT) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void dCfunc2(const KK_FLOAT, const KK_FLOAT, const KK_FLOAT, KK_FLOAT &, KK_FLOAT &) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT G_gam(const KK_FLOAT, const int, int &) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT dG_gam(const KK_FLOAT, const int, KK_FLOAT &) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT zbl(const KK_FLOAT, const int, const int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT embedding(const KK_FLOAT, const KK_FLOAT, const KK_FLOAT, KK_FLOAT &) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT erose(const KK_FLOAT, const KK_FLOAT, const KK_FLOAT, const KK_FLOAT, const KK_FLOAT, const KK_FLOAT,
                const int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void get_shpfcn(const lattice_t latt, const KK_FLOAT sthe, const KK_FLOAT cthe, KK_FLOAT (&s)[3]) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int get_Zij(const lattice_t) const;
 
@@ -230,18 +247,21 @@ template <class DeviceType> class MEAMKokkos : public MEAM {
       ndup_arho3mb;
 };
 
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 static bool iszero_kk(const KK_FLOAT f)
 {
   return fabs(f) < 1e-20;
 }
 
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 static bool isone_kk(const KK_FLOAT f)
 {
   return fabs(f - 1.0) < 1e-20;
 }
 
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 static KK_FLOAT fdiv_zero_kk(const KK_FLOAT n, const KK_FLOAT d)
 {

@@ -335,11 +335,11 @@ void Group::assign(int narg, char **arg)
             try {
               ValueTokenizer values(arg[iarg], ":");
               start = values.next_tagint();
-              if (utils::strmatch(arg[iarg], "^-?\\d+$")) {
+              if (utils::strmatch(arg[iarg], R"(^-?\d+$)")) {
                 stop = start;
-              } else if (utils::strmatch(arg[iarg], "^-?\\d+:-?\\d+$")) {
+              } else if (utils::strmatch(arg[iarg], R"(^-?\d+:-?\d+$)")) {
                 stop = values.next_tagint();
-              } else if (utils::strmatch(arg[iarg], "^-?\\d+:-?\\d+:\\d+$")) {
+              } else if (utils::strmatch(arg[iarg], R"(^-?\d+:-?\d+:\d+$)")) {
                 stop = values.next_tagint();
                 delta = values.next_tagint();
               } else

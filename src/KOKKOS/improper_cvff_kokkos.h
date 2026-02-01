@@ -45,14 +45,17 @@ class ImproperCvffKokkos : public ImproperCvff {
   void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagImproperCvffCompute<NEWTON_BOND,EVFLAG>, const int&, EV_FLOAT&) const;
 
   template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagImproperCvffCompute<NEWTON_BOND,EVFLAG>, const int&) const;
 
   //template<int NEWTON_BOND>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int i1, const int i2, const int i3, const int i4,
                           KK_FLOAT &eimproper, KK_FLOAT *f1, KK_FLOAT *f3, KK_FLOAT *f4,

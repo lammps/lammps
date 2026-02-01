@@ -128,6 +128,7 @@ void ComputeAveSphereAtomKokkos<DeviceType>::compute_peratom()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom, const int &ii) const
 {

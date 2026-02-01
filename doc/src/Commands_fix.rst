@@ -83,7 +83,11 @@ OPT.
    * :doc:`gjf <fix_gjf>`
    * :doc:`gld <fix_gld>`
    * :doc:`gle <fix_gle>`
-   * :doc:`graphics <fix_graphics>`
+   * :doc:`graphics/arrows <fix_graphics_arrows>`
+   * :doc:`graphics/isosurface <fix_graphics_isosurface>`
+   * :doc:`graphics/labels <fix_graphics_labels>`
+   * :doc:`graphics/objects <fix_graphics_objects>`
+   * :doc:`graphics/periodic <fix_graphics_periodic>`
    * :doc:`gravity (ko) <fix_gravity>`
    * :doc:`grem <fix_grem>`
    * :doc:`halt <fix_halt>`

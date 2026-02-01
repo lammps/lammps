@@ -1267,7 +1267,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
           case 1: {    // type label
             if (!labelmapflag)
               error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
-            type[nlocal - 1] = lmap->find(typestr, Atom::ATOM);
+            type[nlocal - 1] = lmap->find_type(typestr, Atom::ATOM);
             if (type[nlocal - 1] == -1)
               error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
             break;
@@ -1374,7 +1374,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
         }
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
-          itype = lmap->find(typestr, Atom::BOND);
+          itype = lmap->find_type(typestr, Atom::BOND);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
@@ -1469,7 +1469,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
         }
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
-          itype = lmap->find(typestr, Atom::ANGLE);
+          itype = lmap->find_type(typestr, Atom::ANGLE);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
@@ -1581,7 +1581,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
         }
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
-          itype = lmap->find(typestr, Atom::DIHEDRAL);
+          itype = lmap->find_type(typestr, Atom::DIHEDRAL);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
@@ -1709,7 +1709,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
         }
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
-          itype = lmap->find(typestr, Atom::IMPROPER);
+          itype = lmap->find_type(typestr, Atom::IMPROPER);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
@@ -1968,7 +1968,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
     case 1: {    // type label
       if (!atom->labelmapflag)
         error->all(file, line, "Invalid atom type in {}: {}", location, utils::trim(str));
-      itype = lmap->find(typestr, Atom::ATOM);
+      itype = lmap->find_type(typestr, Atom::ATOM);
       if (itype == -1)
         error->all(file, line, "Unknown atom type {} in {}: {}", typestr, location,
                    utils::trim(str));

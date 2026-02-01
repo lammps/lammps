@@ -190,6 +190,7 @@ void FixRxKokkos<DeviceType>::rk4(const double t_stop, double *y, double *rwork,
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::k_rk4(const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData) const
 {
@@ -250,6 +251,7 @@ void FixRxKokkos<DeviceType>::k_rk4(const double t_stop, VectorType& y, VectorTy
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, VectorType& y, VectorType& y_out, VectorType& rwk, UserDataType& userData) const
 {
@@ -354,6 +356,7 @@ void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, Vecto
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
                                          const double hmin, const double hmax,
@@ -449,6 +452,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData, CounterType& counter) const
 {
@@ -991,6 +995,7 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double /*t*/, const double *y, double *d
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rhs(double t, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
@@ -1005,6 +1010,7 @@ int FixRxKokkos<DeviceType>::k_rhs(double t, const VectorType& y, VectorType& dy
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rhs_dense(double /*t*/, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
@@ -1042,6 +1048,7 @@ int FixRxKokkos<DeviceType>::k_rhs_dense(double /*t*/, const VectorType& y, Vect
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
@@ -1129,6 +1136,7 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, Vec
 
 /*template <typename DeviceType>
   template <typename SolverType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(SolverType, const int &i) const
 {
@@ -1265,6 +1273,7 @@ void FixRxKokkos<DeviceType>::pre_force(int vflag)
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_zeroCounterViews, const int& i) const
 {
@@ -1276,6 +1285,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_zeroCounterViews, const
 
 template <typename DeviceType>
   template <bool ZERO_RATES>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES>, const int& i, CounterType& counter) const
 {
@@ -1700,6 +1710,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics()
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_zeroTemperatureViews, const int& i) const
 {
@@ -1711,6 +1722,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_zeroTemperatureViews, c
 
 template <typename DeviceType>
   template <int WT_FLAG, bool NEWTON_PAIR, int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_firstPairOperator<WT_FLAG,NEWTON_PAIR,NEIGHFLAG>, const int& ii) const
 {
@@ -1778,6 +1790,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_firstPairOperator<WT_FL
 
 template <typename DeviceType>
   template <int WT_FLAG, int LOCAL_TEMP_FLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_2ndPairOperator<WT_FLAG,LOCAL_TEMP_FLAG>, const int& i) const
 {

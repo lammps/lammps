@@ -4,6 +4,8 @@ package command
 ===============
 
 .. contents::
+   :local:
+   :backlinks: top
 
 Syntax
 """"""

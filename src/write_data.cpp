@@ -427,7 +427,8 @@ void WriteData::atoms()
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
-  int tmp,recvrow;
+  int tmp = 0;
+  int recvrow;
 
   if (comm->me == 0) {
     MPI_Status status;
@@ -480,7 +481,8 @@ void WriteData::velocities()
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
-  int tmp,recvrow;
+  int tmp = 0;
+  int recvrow;
 
   if (comm->me == 0) {
     MPI_Status status;
@@ -533,7 +535,8 @@ void WriteData::bonds()
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
-  int tmp,recvrow;
+  int tmp = 0;
+  int recvrow;
 
   int index = 1;
   if (comm->me == 0) {
@@ -588,7 +591,8 @@ void WriteData::angles()
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
-  int tmp,recvrow;
+  int tmp = 0;
+  int recvrow;
 
   int index = 1;
   if (comm->me == 0) {
@@ -643,7 +647,8 @@ void WriteData::dihedrals()
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
-  int tmp,recvrow;
+  int tmp = 0;
+  int recvrow;
 
   int index = 1;
   if (comm->me == 0) {
@@ -698,7 +703,8 @@ void WriteData::impropers()
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
-  int tmp,recvrow;
+  int tmp = 0;
+  int recvrow;
 
   int index = 1;
   if (comm->me == 0) {
@@ -753,7 +759,7 @@ void WriteData::bonus(int flag)
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
-  int tmp;
+  int tmp = 0;
 
   if (comm->me == 0) {
     MPI_Status status;
@@ -809,7 +815,8 @@ void WriteData::fix(Fix *ifix, int mth)
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
-  int tmp,recvrow;
+  int tmp = 0;
+  int recvrow;
 
   int index = 1;
   if (comm->me == 0) {

@@ -92,11 +92,18 @@ TEST_F(LabelMapTest, Atoms)
     command("mass \"O#\" 10.0");
     END_HIDE_OUTPUT();
     EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
-    EXPECT_EQ(atom->lmap->find("C1", Atom::ATOM), 1);
-    EXPECT_EQ(atom->lmap->find("N2", Atom::ATOM), 2);
-    EXPECT_EQ(atom->lmap->find("O#", Atom::ATOM), 3);
-    EXPECT_EQ(atom->lmap->find("H", Atom::ATOM), 4);
-    EXPECT_EQ(atom->lmap->find("X", Atom::ATOM), -1);
+    EXPECT_EQ(atom->lmap->find_type("C1", Atom::ATOM), 1);
+    EXPECT_EQ(atom->lmap->find_type("N2", Atom::ATOM), 2);
+    EXPECT_EQ(atom->lmap->find_type("O#", Atom::ATOM), 3);
+    EXPECT_EQ(atom->lmap->find_type("H", Atom::ATOM), 4);
+    EXPECT_EQ(atom->lmap->find_type("X", Atom::ATOM), -1);
+    EXPECT_EQ(atom->lmap->find_type("", Atom::ATOM), -1);
+    EXPECT_THAT(atom->lmap->find_label(1, Atom::ATOM), StrEq("C1"));
+    EXPECT_THAT(atom->lmap->find_label(2, Atom::ATOM), StrEq("N2"));
+    EXPECT_THAT(atom->lmap->find_label(3, Atom::ATOM), StrEq("O#"));
+    EXPECT_THAT(atom->lmap->find_label(4, Atom::ATOM), StrEq("H"));
+    EXPECT_THAT(atom->lmap->find_label(-1, Atom::ATOM), StrEq(""));
+    EXPECT_THAT(atom->lmap->find_label(5, Atom::ATOM), StrEq(""));
     EXPECT_DOUBLE_EQ(atom->mass[3], 10.0);
 
     EXPECT_EQ(utils::expand_type(FLERR, "1", Atom::ATOM, lmp), nullptr);
@@ -161,18 +168,22 @@ TEST_F(LabelMapTest, Atoms)
     command("labelmap atom 3 C1 2 N2");
     END_HIDE_OUTPUT();
     EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
-    EXPECT_EQ(atom->lmap->find("C1", Atom::ATOM), 3);
-    EXPECT_EQ(atom->lmap->find("N2", Atom::ATOM), 2);
+    EXPECT_EQ(atom->lmap->find_type("C1", Atom::ATOM), 3);
+    EXPECT_EQ(atom->lmap->find_type("N2", Atom::ATOM), 2);
 
     BEGIN_HIDE_OUTPUT();
     command("labelmap clear");
-    command("labelmap atom 1 \"C1'\" 2 'C2\"' 3 \"\"\"C1'-C2\" \"\"\" 4 \"\"\" C2\"-C1'\"\"\"");
+    command(R"(labelmap atom 1 "C1'" 2 'C2"' 3 """C1'-C2" """ 4 """ C2"-C1'""")");
     END_HIDE_OUTPUT();
     EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
-    EXPECT_EQ(atom->lmap->find("C1'", Atom::ATOM), 1);
-    EXPECT_EQ(atom->lmap->find("C2\"", Atom::ATOM), 2);
-    EXPECT_EQ(atom->lmap->find("C1'-C2\"", Atom::ATOM), 3);
-    EXPECT_EQ(atom->lmap->find("C2\"-C1'", Atom::ATOM), 4);
+    EXPECT_EQ(atom->lmap->find_type("C1'", Atom::ATOM), 1);
+    EXPECT_EQ(atom->lmap->find_type(R"(C2")", Atom::ATOM), 2);
+    EXPECT_EQ(atom->lmap->find_type(R"(C1'-C2")", Atom::ATOM), 3);
+    EXPECT_EQ(atom->lmap->find_type(R"(C2"-C1')", Atom::ATOM), 4);
+    EXPECT_THAT(atom->lmap->find_label(1, Atom::ATOM), StrEq("C1'"));
+    EXPECT_THAT(atom->lmap->find_label(2, Atom::ATOM), StrEq(R"(C2")"));
+    EXPECT_THAT(atom->lmap->find_label(3, Atom::ATOM), StrEq(R"(C1'-C2")"));
+    EXPECT_THAT(atom->lmap->find_label(4, Atom::ATOM), StrEq(R"(C2"-C1')"));
 }
 
 TEST_F(LabelMapTest, Topology)
@@ -207,7 +218,7 @@ TEST_F(LabelMapTest, Topology)
     BEGIN_HIDE_OUTPUT();
     command("labelmap atom 2 \"N2'\"");
     command("labelmap bond 1 C1-N2 2 [C1][C1] 3 N2=N2");
-    command("labelmap angle 1 C1-N2-C1 2 \"\"\" N2'-C1\"-N2' \"\"\"");
+    command(R"(labelmap angle 1 C1-N2-C1 2 """ N2'-C1"-N2' """)");
     command("labelmap dihedral 1 'C1-N2-C1-N2'");
     command("labelmap improper 1 \"C1-N2-C1-N2\"");
     command("mass C1 12.0");
@@ -220,17 +231,33 @@ TEST_F(LabelMapTest, Topology)
     EXPECT_TRUE(atom->lmap->is_complete(Atom::ANGLE));
     EXPECT_TRUE(atom->lmap->is_complete(Atom::DIHEDRAL));
     EXPECT_TRUE(atom->lmap->is_complete(Atom::IMPROPER));
-    EXPECT_EQ(atom->lmap->find("C1", Atom::ATOM), 1);
-    EXPECT_EQ(atom->lmap->find("N2'", Atom::ATOM), 2);
-    EXPECT_EQ(atom->lmap->find("C1-N2", Atom::BOND), 1);
-    EXPECT_EQ(atom->lmap->find("[C1][C1]", Atom::BOND), 2);
-    EXPECT_EQ(atom->lmap->find("N2=N2", Atom::BOND), 3);
-    EXPECT_EQ(atom->lmap->find("C1-N2-C1", Atom::ANGLE), 1);
-    EXPECT_EQ(atom->lmap->find("N2'-C1\"-N2'", Atom::ANGLE), 2);
-    EXPECT_EQ(atom->lmap->find("C1-N2-C1-N2", Atom::DIHEDRAL), 1);
-    EXPECT_EQ(atom->lmap->find("C1-N2-C1-N2", Atom::IMPROPER), 1);
-    EXPECT_EQ(atom->lmap->find("X", Atom::ATOM), -1);
-    EXPECT_EQ(atom->lmap->find("N2'-C1\"-N2'", Atom::BOND), -1);
+    EXPECT_EQ(atom->lmap->find_type("C1", Atom::ATOM), 1);
+    EXPECT_EQ(atom->lmap->find_type("N2'", Atom::ATOM), 2);
+    EXPECT_EQ(atom->lmap->find_type("C1-N2", Atom::BOND), 1);
+    EXPECT_EQ(atom->lmap->find_type("[C1][C1]", Atom::BOND), 2);
+    EXPECT_EQ(atom->lmap->find_type("N2=N2", Atom::BOND), 3);
+    EXPECT_EQ(atom->lmap->find_type("C1-N2-C1", Atom::ANGLE), 1);
+    EXPECT_EQ(atom->lmap->find_type("N2'-C1\"-N2'", Atom::ANGLE), 2);
+    EXPECT_EQ(atom->lmap->find_type("C1-N2-C1-N2", Atom::DIHEDRAL), 1);
+    EXPECT_EQ(atom->lmap->find_type("C1-N2-C1-N2", Atom::IMPROPER), 1);
+    EXPECT_EQ(atom->lmap->find_type("X", Atom::ATOM), -1);
+    EXPECT_EQ(atom->lmap->find_type("N2'-C1\"-N2'", Atom::BOND), -1);
+
+    EXPECT_THAT(atom->lmap->find_label(1, Atom::BOND), StrEq("C1-N2"));
+    EXPECT_THAT(atom->lmap->find_label(2, Atom::BOND), StrEq("[C1][C1]"));
+    EXPECT_THAT(atom->lmap->find_label(3, Atom::BOND), StrEq("N2=N2"));
+    EXPECT_THAT(atom->lmap->find_label(1, Atom::ANGLE), StrEq("C1-N2-C1"));
+    EXPECT_THAT(atom->lmap->find_label(2, Atom::ANGLE), StrEq(R"(N2'-C1"-N2')"));
+    EXPECT_THAT(atom->lmap->find_label(1, Atom::DIHEDRAL), StrEq("C1-N2-C1-N2"));
+    EXPECT_THAT(atom->lmap->find_label(1, Atom::IMPROPER), StrEq("C1-N2-C1-N2"));
+    EXPECT_THAT(atom->lmap->find_label(0, Atom::BOND), StrEq(""));
+    EXPECT_THAT(atom->lmap->find_label(4, Atom::BOND), StrEq(""));
+    EXPECT_THAT(atom->lmap->find_label(-1, Atom::ANGLE), StrEq(""));
+    EXPECT_THAT(atom->lmap->find_label(3, Atom::ANGLE), StrEq(""));
+    EXPECT_THAT(atom->lmap->find_label(0, Atom::DIHEDRAL), StrEq(""));
+    EXPECT_THAT(atom->lmap->find_label(2, Atom::DIHEDRAL), StrEq(""));
+    EXPECT_THAT(atom->lmap->find_label(-1, Atom::IMPROPER), StrEq(""));
+    EXPECT_THAT(atom->lmap->find_label(0, Atom::IMPROPER), StrEq(""));
     EXPECT_DOUBLE_EQ(atom->mass[1], 12.0);
     EXPECT_DOUBLE_EQ(atom->mass[2], 14.0);
 
@@ -255,17 +282,17 @@ TEST_F(LabelMapTest, Topology)
     EXPECT_TRUE(atom->lmap->is_complete(Atom::ANGLE));
     EXPECT_TRUE(atom->lmap->is_complete(Atom::DIHEDRAL));
     EXPECT_TRUE(atom->lmap->is_complete(Atom::IMPROPER));
-    EXPECT_EQ(atom->lmap->find("C1", Atom::ATOM), 1);
-    EXPECT_EQ(atom->lmap->find("N2'", Atom::ATOM), 2);
-    EXPECT_EQ(atom->lmap->find("C1-N2", Atom::BOND), 1);
-    EXPECT_EQ(atom->lmap->find("[C1][C1]", Atom::BOND), 2);
-    EXPECT_EQ(atom->lmap->find("N2=N2", Atom::BOND), 3);
-    EXPECT_EQ(atom->lmap->find("C1-N2-C1", Atom::ANGLE), 1);
-    EXPECT_EQ(atom->lmap->find("N2'-C1\"-N2'", Atom::ANGLE), 2);
-    EXPECT_EQ(atom->lmap->find("C1-N2-C1-N2", Atom::DIHEDRAL), 1);
-    EXPECT_EQ(atom->lmap->find("C1-N2-C1-N2", Atom::IMPROPER), 1);
-    EXPECT_EQ(atom->lmap->find("X", Atom::ATOM), -1);
-    EXPECT_EQ(atom->lmap->find("N2'-C1\"-N2'", Atom::BOND), -1);
+    EXPECT_EQ(atom->lmap->find_type("C1", Atom::ATOM), 1);
+    EXPECT_EQ(atom->lmap->find_type("N2'", Atom::ATOM), 2);
+    EXPECT_EQ(atom->lmap->find_type("C1-N2", Atom::BOND), 1);
+    EXPECT_EQ(atom->lmap->find_type("[C1][C1]", Atom::BOND), 2);
+    EXPECT_EQ(atom->lmap->find_type("N2=N2", Atom::BOND), 3);
+    EXPECT_EQ(atom->lmap->find_type("C1-N2-C1", Atom::ANGLE), 1);
+    EXPECT_EQ(atom->lmap->find_type("N2'-C1\"-N2'", Atom::ANGLE), 2);
+    EXPECT_EQ(atom->lmap->find_type("C1-N2-C1-N2", Atom::DIHEDRAL), 1);
+    EXPECT_EQ(atom->lmap->find_type("C1-N2-C1-N2", Atom::IMPROPER), 1);
+    EXPECT_EQ(atom->lmap->find_type("X", Atom::ATOM), -1);
+    EXPECT_EQ(atom->lmap->find_type("N2'-C1\"-N2'", Atom::BOND), -1);
     platform::unlink("labelmap_topology.inc");
 
     auto *expanded = utils::expand_type(FLERR, "N2'", Atom::ATOM, lmp);
@@ -291,6 +318,57 @@ TEST_F(LabelMapTest, Topology)
                  utils::expand_type(FLERR, "XX", Atom::DIHEDRAL, lmp););
     TEST_FAILURE(".*ERROR: Improper type string XX not found in labelmap.*",
                  utils::expand_type(FLERR, "XX", Atom::IMPROPER, lmp););
+
+    // check for inference
+
+    BEGIN_HIDE_OUTPUT();
+    command(R"(labelmap atom 2 "N2")");
+    command(R"(labelmap bond 2 "C1-C1")");
+    command(R"(labelmap bond 3 "N2-N2")");
+    command(R"(labelmap angle 2 "N2-C1-N2")");
+    END_HIDE_OUTPUT();
+
+    EXPECT_EQ(atom->lmap->infer_bondtype(1, 1), 2);
+    EXPECT_EQ(atom->lmap->infer_bondtype(1, 2), 1);
+    EXPECT_EQ(atom->lmap->infer_bondtype(2, 2), 3);
+    EXPECT_EQ(atom->lmap->infer_bondtype(2, 3), -1);
+    EXPECT_EQ(atom->lmap->infer_bondtype({"N2", "N2"}), 3);
+    EXPECT_EQ(atom->lmap->infer_bondtype({"C1", "N2"}), 1);
+    EXPECT_EQ(atom->lmap->infer_bondtype({"C1", "C1"}), 2);
+    EXPECT_EQ(atom->lmap->infer_bondtype({"N2", "C1"}), 1);
+    EXPECT_EQ(atom->lmap->infer_bondtype({"N3", "C1"}), -1);
+    EXPECT_EQ(atom->lmap->infer_angletype(1, 2, 1), 1);
+    EXPECT_EQ(atom->lmap->infer_angletype(2, 1, 2), 2);
+    EXPECT_EQ(atom->lmap->infer_angletype(1, 1, 1), -1);
+    EXPECT_EQ(atom->lmap->infer_angletype(3, 1, 1), -1);
+    EXPECT_EQ(atom->lmap->infer_angletype(1, 3, 1), -1);
+    EXPECT_EQ(atom->lmap->infer_angletype(1, 1, 3), -1);
+    EXPECT_EQ(atom->lmap->infer_angletype({"C1", "N2", "C1"}), 1);
+    EXPECT_EQ(atom->lmap->infer_angletype({"N2", "C1", "N2"}), 2);
+    EXPECT_EQ(atom->lmap->infer_angletype({"C1", "N2", "N2"}), -1);
+    EXPECT_EQ(atom->lmap->infer_angletype({"C1", "N3", "C1"}), -1);
+    EXPECT_EQ(atom->lmap->infer_dihedraltype(1, 2, 1, 2), 1);
+    EXPECT_EQ(atom->lmap->infer_dihedraltype(2, 1, 2, 2), -1);
+    EXPECT_EQ(atom->lmap->infer_dihedraltype(2, 1, 2, 1), 1);
+    EXPECT_EQ(atom->lmap->infer_dihedraltype(3, 1, 2, 1), -1);
+    EXPECT_EQ(atom->lmap->infer_dihedraltype(2, 3, 2, 1), -1);
+    EXPECT_EQ(atom->lmap->infer_dihedraltype(2, 1, 3, 1), -1);
+    EXPECT_EQ(atom->lmap->infer_dihedraltype(2, 1, 2, 3), -1);
+    EXPECT_EQ(atom->lmap->infer_dihedraltype({"C1", "N2", "C1", "N2"}), 1);
+    EXPECT_EQ(atom->lmap->infer_dihedraltype({"N2", "C1", "N2", "C1"}), 1);
+    EXPECT_EQ(atom->lmap->infer_dihedraltype({"C1", "N2", "N2", "C1"}), -1);
+    EXPECT_EQ(atom->lmap->infer_dihedraltype({"N3", "C1", "N2", "C1"}), -1);
+    EXPECT_EQ(atom->lmap->infer_impropertype(1, 2, 1, 2), 1);
+    EXPECT_EQ(atom->lmap->infer_impropertype(2, 1, 2, 2), -1);
+    EXPECT_EQ(atom->lmap->infer_impropertype(2, 1, 2, 1), 1);
+    EXPECT_EQ(atom->lmap->infer_impropertype(3, 1, 2, 1), -1);
+    EXPECT_EQ(atom->lmap->infer_impropertype(2, 3, 2, 1), -1);
+    EXPECT_EQ(atom->lmap->infer_impropertype(2, 1, 3, 1), -1);
+    EXPECT_EQ(atom->lmap->infer_impropertype(2, 1, 2, 3), -1);
+    EXPECT_EQ(atom->lmap->infer_impropertype({"C1", "N2", "C1", "N2"}), 1);
+    EXPECT_EQ(atom->lmap->infer_impropertype({"N2", "C1", "N2", "C1"}), 1);
+    EXPECT_EQ(atom->lmap->infer_impropertype({"C1", "N2", "N2", "C1"}), 1);
+    EXPECT_EQ(atom->lmap->infer_impropertype({"N3", "C1", "N2", "C1"}), -1);
 }
 } // namespace LAMMPS_NS
 

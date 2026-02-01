@@ -461,6 +461,7 @@ int PairEAMAlloyKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_i
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyPackForwardComm, const int &i) const {
   int j = d_sendlist(i);
@@ -478,6 +479,7 @@ void PairEAMAlloyKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyUnpackForwardComm, const int &i) const {
   d_fp[i + first] = v_buf[i];
@@ -550,6 +552,7 @@ void PairEAMAlloyKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, doubl
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyInitialize, const int &i) const {
   d_rho[i] = 0.0;
@@ -560,6 +563,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyInitialize, const
 ////Specialisation for Neighborlist types Half, HalfThread, Full
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelA<NEIGHFLAG,NEWTON_PAIR>, const int &ii) const {
 
@@ -615,6 +619,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelA<NEIGHFLAG
 ////Specialisation for Neighborlist types Half, HalfThread, Full
 template<class DeviceType>
 template<int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelB<EFLAG>, const int &ii, EV_FLOAT& ev) const {
 
@@ -644,6 +649,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelB<EFLAG>, c
 
 template<class DeviceType>
 template<int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelB<EFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -655,6 +661,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelB<EFLAG>, c
 ////Specialisation for Neighborlist types Half, HalfThread, Full
 template<class DeviceType>
 template<int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelAB<EFLAG>, const int &ii, EV_FLOAT& ev) const {
 
@@ -719,6 +726,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelAB<EFLAG>, 
 
 template<class DeviceType>
 template<int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelAB<EFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -730,6 +738,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelAB<EFLAG>, 
 ////Specialisation for Neighborlist types Half, HalfThread, Full
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
@@ -829,6 +838,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelC<NEIGHFLAG
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -840,6 +850,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelC<NEIGHFLAG
 ////Specialisation for Neighborlist types Half, HalfThread, Full
 template<class DeviceType>
 template<int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelAB<EFLAG>,
                                      const typename Kokkos::TeamPolicy<DeviceType>::member_type& team_member,
@@ -924,6 +935,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelAB<EFLAG>,
 #endif
 template<class DeviceType>
 template<int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelAB<EFLAG>,
                                            const typename Kokkos::TeamPolicy<DeviceType>::member_type& team_member) const {
@@ -936,6 +948,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelAB<EFLAG>,
 ////Specialisation for Neighborlist types Half, HalfThread, Full
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>,
                                            const typename Kokkos::TeamPolicy<DeviceType>::member_type& team_member,
@@ -1056,6 +1069,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelC<NEIGHFLAG
 #endif
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>,
                 /*const int &ii*/
@@ -1068,6 +1082,7 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelC<NEIGHFLAG
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,

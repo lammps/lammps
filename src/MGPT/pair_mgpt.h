@@ -62,7 +62,7 @@ public:
     int operator==(const Doublet &b) const {
       return (i == b.i) && (j == b.j);
     }
-    int hash() const { return i*333331 + j*331; }
+    [[nodiscard]] int hash() const { return i*333331 + j*331; }
   };
 
   template<typename T,typename K> class Hash {
@@ -329,7 +329,7 @@ public:
     Matrix operator/(double x) const {
       return (*this) * (1.0/x);
     }
-    Matrix transpose() const {
+    [[nodiscard]] Matrix transpose() const {
       Matrix T;
       for(int i = 1; i<=sz; i++)
         for(int j = 1; j<=sz; j++)
@@ -543,7 +543,7 @@ public:
   // Old matrix routines, only used in force debug routines.
 
   /// This function calculates the matrix product of ha and hb.
-  inline Matrix prodmat(const Matrix& ha, const Matrix& hb) const {
+  [[nodiscard]] Matrix prodmat(const Matrix& ha, const Matrix& hb) const {
     Matrix h;
     for(int l = 1; l <= lmax; l++) {
       for(int n = 1; n <= lmax; n++) {
@@ -556,7 +556,7 @@ public:
   }
 
   /// This function calculates the trace of the matrix product of ha and hb.
-  inline double trace(const Matrix& ha, const Matrix& hb) const {
+  [[nodiscard]] double trace(const Matrix& ha, const Matrix& hb) const {
     double zquan = 0.0;
     for(int n = 1; n <= lmax; n++) {
       double cquan = 0.0;
@@ -612,7 +612,7 @@ public:
         s = s + A[i][j]*B[i][j];
     return s;
   }
-  inline double transtrace(const Matrix& a,const Matrix& b) const
+  [[nodiscard]] double transtrace(const Matrix& a,const Matrix& b) const
     {
       int i,k;
       double s = 0.0;

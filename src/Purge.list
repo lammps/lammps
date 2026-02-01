@@ -53,6 +53,33 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+mliap_model_python_couple_kokkos.cpp
+mliap_model_python_couple_kokkos.h
+mliap_unified_couple.cpp
+mliap_unified_couple.h
+mliap_unified_couple_kokkos.cpp
+mliap_unified_couple_kokkos.h
+# moved to new GRAPHICS package in Jan 2026
+dump_image.cpp
+dump_image.h
+dump_movie.cpp
+dump_movie.h
+fix_graphics_arrows.cpp
+fix_graphics_arrows.h
+fix_graphics_isosurface.cpp
+fix_graphics_isosurface.h
+fix_graphics_labels.cpp
+fix_graphics_labels.h
+fix_graphics_objects.cpp
+fix_graphics_objects.h
+fix_graphics_periodic.cpp
+fix_graphics_periodic.h
+image.cpp
+image.h
+image_objects.cpp
+image_objects.h
+scalable_font.cpp
+scalable_font.h
 # renamed in Nov 2025
 fix_addtorque.h
 fix_addtorque.cpp

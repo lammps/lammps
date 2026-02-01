@@ -19,8 +19,8 @@
 
 #include "atom.h"
 #include "domain.h"
-#include "dump_image.h"
 #include "error.h"
+#include "graphics.h"
 #include "input.h"
 #include "lattice.h"
 #include "math_extra.h"
@@ -125,32 +125,66 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   // set up indenter visualization
 
   if (istyle == SPHERE) {
-    // one sphere object to draw
-    memory->create(imgobjs, 1, "fix_indent:imgobjs");
-    memory->create(imgparms, 1, 5, "fix_indent:imgparms");
-    imgobjs[0] = DumpImage::SPHERE;
-    imgparms[0][0] = 1;    // use color of first atom type
+    if (domain->dimension == 2) {
+      // one cone object to draw in 2d
+      memory->create(imgobjs, 1, "fix_indent:imgobjs");
+      memory->create(imgparms, 1, 10, "fix_indent:imgparms");
+      imgobjs[0] = Graphics::CONE;
+      imgparms[0][0] = 1;                     // use color of first atom type
+      imgparms[0][9] = Graphics::CONE_TOP;    // draw only the top circle
+    } else {
+      // one sphere object to draw in 3d
+      memory->create(imgobjs, 1, "fix_indent:imgobjs");
+      memory->create(imgparms, 1, 5, "fix_indent:imgparms");
+      imgobjs[0] = Graphics::SPHERE;
+      imgparms[0][0] = 1;    // use color of first atom type
+    }
   } else if (istyle == CYLINDER) {
     // one cylinder object to draw
     memory->create(imgobjs, 1, "fix_indent:imgobjs");
     memory->create(imgparms, 1, 8, "fix_indent:imgparms");
-    imgobjs[0] = DumpImage::CYLINDER;
+    imgobjs[0] = Graphics::CYLINDER;
     imgparms[0][0] = 1;    // use color of first atom type
+  } else if (istyle == CONE) {
+    if ((domain->dimension == 2) && (cdim != 2)) {
+      // three triangle objects to draw in 2d for x and y direction
+      memory->create(imgobjs, 3, "fix_indent:imgobjs");
+      memory->create(imgparms, 3, 10, "fix_indent:imgparms");
+      imgobjs[0] = Graphics::TRIANGLE;
+      imgobjs[1] = Graphics::TRIANGLE;
+      imgobjs[2] = Graphics::TRIANGLE;
+      // use color of first atom type with color style "type" or "element"
+      // use color style "const" and dump_modify fcolor to override
+      imgparms[0][0] = 1;
+      imgparms[1][0] = 1;
+      imgparms[2][0] = 1;
+    } else {
+      // one cone object to draw in 3d or if 2d and z-direction
+      memory->create(imgobjs, 1, "fix_indent:imgobjs");
+      memory->create(imgparms, 1, 10, "fix_indent:imgparms");
+      imgobjs[0] = Graphics::CONE;
+      imgparms[0][0] = 1;                     // use color of first atom type
+      imgparms[0][9] = Graphics::CONE_ALL;    // caps on both sides
+    }
   } else if (istyle == PLANE) {
     if (domain->dimension == 2) {
       // one cylinder object to draw in 2d
       memory->create(imgobjs, 1, "fix_indent:imgobjs");
       memory->create(imgparms, 1, 8, "fix_indent:imgparms");
-      imgobjs[0] = DumpImage::CYLINDER;
-      imgparms[0][0] = 1;    // use color of first atom type
+      imgobjs[0] = Graphics::CYLINDER;
+      // use color of first atom type with color style "type" or "element"
+      // use color style "const" and dump_modify fcolor to override
+      imgparms[0][0] = 1;
     } else {
       // two triangle objects to draw in 3d
       memory->create(imgobjs, 2, "fix_indent:imgobjs");
       memory->create(imgparms, 2, 10, "fix_indent:imgparms");
-      imgobjs[0] = DumpImage::TRIANGLE;
-      imgobjs[1] = DumpImage::TRIANGLE;
-      imgparms[0][0] = 1;    // use color of first atom type by default
-      imgparms[1][0] = 1;    // use color of first atom type by default
+      imgobjs[0] = Graphics::TRIANGLE;
+      imgobjs[1] = Graphics::TRIANGLE;
+      // use color of first atom type with color style "type" or "element"
+      // use color style "const" and dump_modify fcolor to override
+      imgparms[0][0] = 1;
+      imgparms[1][0] = 1;
     }
   }
 }
@@ -338,8 +372,17 @@ void FixIndent::post_force(int /*vflag*/)
 
     imgparms[0][1] = ctr[0];
     imgparms[0][2] = ctr[1];
-    imgparms[0][3] = ctr[2];
-    imgparms[0][4] = 2.0 * radius;
+    if (domain->dimension == 2) {
+      imgparms[0][3] = -0.5;
+      imgparms[0][4] = ctr[0];
+      imgparms[0][5] = ctr[1];
+      imgparms[0][6] = 0.5;
+      imgparms[0][7] = radius;
+      imgparms[0][8] = radius;
+    } else {
+      imgparms[0][3] = ctr[2];
+      imgparms[0][4] = 2.0 * radius;
+    }
 
     // cylindrical indenter
 
@@ -457,6 +500,71 @@ void FixIndent::post_force(int /*vflag*/)
         indenter[2] -= fy;
         indenter[3] -= fz;
       }
+    }
+
+    // store indenter object visualization parameters: positions of cone centers and radii
+
+    if ((domain->dimension == 2) && (cdim != 2)) {
+      // three triangles
+      for (int i = 0; i < 3; ++i) {    // z coordinate is always the same
+        imgparms[i][3] = 0.5;
+        imgparms[i][6] = 0.5;
+        imgparms[i][9] = 0.5;
+      }
+      // increase radii a little bit to avoid artifacts from triangles with zero edge length
+      if (cdim == 0) {
+        const double EPSILON = 0.0001 * domain->yprd;
+        imgparms[0][1] = lo;
+        imgparms[0][2] = ctr[1] - radiuslo - EPSILON;
+        imgparms[0][4] = hi;
+        imgparms[0][5] = ctr[1];
+        imgparms[0][7] = hi;
+        imgparms[0][8] = ctr[1] - radiushi - EPSILON;
+        imgparms[1][1] = lo;
+        imgparms[1][2] = ctr[1] - radiuslo - EPSILON;
+        imgparms[1][4] = lo;
+        imgparms[1][5] = ctr[1] + radiuslo + EPSILON;
+        imgparms[1][7] = hi;
+        imgparms[1][8] = ctr[1];
+        imgparms[2][1] = lo;
+        imgparms[2][2] = ctr[1] + radiuslo + EPSILON;
+        imgparms[2][4] = hi;
+        imgparms[2][5] = ctr[1] + radiushi + EPSILON;
+        imgparms[2][7] = hi;
+        imgparms[2][8] = ctr[1];
+      } else {    // if (cdim == 1)
+        const double EPSILON = 0.0001 * domain->xprd;
+        imgparms[0][1] = ctr[0] - radiuslo - EPSILON;
+        imgparms[0][2] = lo;
+        imgparms[0][4] = ctr[0];
+        imgparms[0][5] = hi;
+        imgparms[0][7] = ctr[0] - radiushi - EPSILON;
+        imgparms[0][8] = hi;
+        imgparms[1][1] = ctr[0] - radiuslo - EPSILON;
+        imgparms[1][2] = lo;
+        imgparms[1][4] = ctr[0] + radiuslo + EPSILON;
+        imgparms[1][5] = lo;
+        imgparms[1][7] = ctr[0];
+        imgparms[1][8] = hi;
+        imgparms[2][1] = ctr[0] + radiuslo + EPSILON;
+        imgparms[2][2] = lo;
+        imgparms[2][4] = ctr[0] + radiushi + EPSILON;
+        imgparms[2][5] = hi;
+        imgparms[2][7] = ctr[0];
+        imgparms[2][8] = hi;
+      }
+    } else {
+      // one cone
+      ctr[cdim] = hi;
+      imgparms[0][1] = ctr[0];
+      imgparms[0][2] = ctr[1];
+      imgparms[0][3] = ctr[2];
+      ctr[cdim] = lo;
+      imgparms[0][4] = ctr[0];
+      imgparms[0][5] = ctr[1];
+      imgparms[0][6] = ctr[2];
+      imgparms[0][7] = radiuslo;
+      imgparms[0][8] = radiushi;
     }
 
     // planar indenter
@@ -1016,6 +1124,11 @@ int FixIndent::image(int *&objs, double **&parms)
     return 1;
   else if (istyle == CYLINDER)
     return 1;
+  else if (istyle == CONE)
+    if ((domain->dimension == 2) && (cdim != 2))
+      return 3;
+    else
+      return 1;
   else if (istyle == PLANE)
     if (domain->dimension == 2)
       return 1;

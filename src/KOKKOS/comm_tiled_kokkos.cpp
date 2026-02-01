@@ -138,6 +138,7 @@ void CommTiledKokkos::forward_comm_device()
         for (i = 0; i < nrecv; i++) {
           buf = (double*)atomKK->k_x.view<DeviceType>().data() +
             firstrecv[iswap][i]*atomKK->k_x.view<DeviceType>().extent(1);
+          DeviceType().fence();
           MPI_Irecv(buf,size_forward_recv[iswap][i],
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
         }
@@ -166,6 +167,7 @@ void CommTiledKokkos::forward_comm_device()
         for (i = 0; i < nrecv; i++) {
           buf = k_buf_recv.view<DeviceType>().data() +
             forward_recv_offset[iswap][i]*k_buf_recv.view<DeviceType>().extent(1);
+          DeviceType().fence();
           MPI_Irecv(buf,
                     size_forward_recv[iswap][i],MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
         }
@@ -201,6 +203,7 @@ void CommTiledKokkos::forward_comm_device()
         for (i = 0; i < nrecv; i++) {
           buf = k_buf_recv.view<DeviceType>().data() +
             forward_recv_offset[iswap][i]*k_buf_recv.view<DeviceType>().extent(1);
+          DeviceType().fence();
           MPI_Irecv(buf,
                     size_forward_recv[iswap][i],MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
         }
@@ -279,6 +282,7 @@ void CommTiledKokkos::reverse_comm_device()
         for (i = 0; i < nsend; i++) {
           buf = k_buf_recv.view<DeviceType>().data() +
             reverse_recv_offset[iswap][i]*k_buf_recv.view<DeviceType>().extent(1);
+          DeviceType().fence();
           MPI_Irecv(buf,
                     size_reverse_recv[iswap][i],MPI_DOUBLE,sendproc[iswap][i],0,world,&requests[i]);
         }
@@ -313,6 +317,7 @@ void CommTiledKokkos::reverse_comm_device()
         for (i = 0; i < nsend; i++) {
           buf = k_buf_recv.view<DeviceType>().data() +
             reverse_recv_offset[iswap][i]*k_buf_recv.view<DeviceType>().extent(1);
+          DeviceType().fence();
           MPI_Irecv(buf,
                     size_reverse_recv[iswap][i],MPI_DOUBLE,sendproc[iswap][i],0,world,&requests[i]);
         }

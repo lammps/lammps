@@ -5,6 +5,7 @@ The build procedures in LAMMPS offers a few extra options which are
 useful during development, testing or debugging.
 
 .. contents::
+   :local:
 
 ----------
 

@@ -21,8 +21,8 @@
 #include "atom_vec.h"
 #include "comm.h"
 #include "domain.h"
-#include "dump_image.h"
 #include "error.h"
+#include "graphics.h"
 #include "memory.h"
 #include "text_file_reader.h"
 
@@ -359,7 +359,7 @@ int FixSMDWallSurface::image(int *&objs, double **&parms)
   numobjs = 0;
   for (int i = 0; i < nlocal; ++i) {
     if (type[i] == wall_particle_type) {
-      imgobjs[numobjs] = DumpImage::TRI;
+      imgobjs[numobjs] = Graphics::TRI;
       imgparms[numobjs][0] = wall_particle_type;
       imgparms[numobjs][1] = verts[i][0];
       imgparms[numobjs][2] = verts[i][1];

@@ -1285,7 +1285,7 @@ void ReadData::header(int firstpass)
 
     // check for units keyword in first line and print warning on mismatch
 
-    auto units = Tokenizer(utils::strfind(line, "units = \\w+")).as_vector();
+    auto units = Tokenizer(utils::strfind(line, R"(units = \w+)")).as_vector();
     if (units.size() > 2) {
       if (units[2] != update->unit_style)
         error->warning(FLERR, "Inconsistent units in data file: current = {}, data file = {}",
@@ -1340,14 +1340,14 @@ void ReadData::header(int firstpass)
     int extra_flag_value = 0;
     auto words = utils::split_words(line);
 
-    if (utils::strmatch(line, "^\\s*\\d+\\s+atoms\\s")) {
+    if (utils::strmatch(line, R"(^\s*\d+\s+atoms\s)")) {
       natoms = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE)
         atom->natoms = natoms;
       else if (firstpass)
         atom->natoms += natoms;
 
-    } else if (utils::strmatch(line, "^\\s*\\d+\\s+ellipsoids\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\d+\s+ellipsoids\s)")) {
       if (!avec_ellipsoid) error->all(FLERR, "No ellipsoids allowed with this atom style");
       nellipsoids = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE)
@@ -1355,7 +1355,7 @@ void ReadData::header(int firstpass)
       else if (firstpass)
         atom->nellipsoids += nellipsoids;
 
-    } else if (utils::strmatch(line, "^\\s*\\d+\\s+lines\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\d+\s+lines\s)")) {
       if (!avec_line) error->all(FLERR, "No lines allowed with this atom style");
       nlines = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE)
@@ -1363,7 +1363,7 @@ void ReadData::header(int firstpass)
       else if (firstpass)
         atom->nlines += nlines;
 
-    } else if (utils::strmatch(line, "^\\s*\\d+\\s+triangles\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\d+\s+triangles\s)")) {
       if (!avec_tri) error->all(FLERR, "No triangles allowed with this atom style");
       ntris = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE)
@@ -1371,7 +1371,7 @@ void ReadData::header(int firstpass)
       else if (firstpass)
         atom->ntris += ntris;
 
-    } else if (utils::strmatch(line, "^\\s*\\d+\\s+bodies\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\d+\s+bodies\s)")) {
       if (!avec_body) error->all(FLERR, "No bodies allowed with this atom style");
       nbodies = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE)
@@ -1379,28 +1379,28 @@ void ReadData::header(int firstpass)
       else if (firstpass)
         atom->nbodies += nbodies;
 
-    } else if (utils::strmatch(line, "^\\s*\\d+\\s+bonds\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\d+\s+bonds\s)")) {
       nbonds = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE)
         atom->nbonds = nbonds;
       else if (firstpass)
         atom->nbonds += nbonds;
 
-    } else if (utils::strmatch(line, "^\\s*\\d+\\s+angles\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\d+\s+angles\s)")) {
       nangles = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE)
         atom->nangles = nangles;
       else if (firstpass)
         atom->nangles += nangles;
 
-    } else if (utils::strmatch(line, "^\\s*\\d+\\s+dihedrals\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\d+\s+dihedrals\s)")) {
       ndihedrals = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE)
         atom->ndihedrals = ndihedrals;
       else if (firstpass)
         atom->ndihedrals += ndihedrals;
 
-    } else if (utils::strmatch(line, "^\\s*\\d+\\s+impropers\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\d+\s+impropers\s)")) {
       nimpropers = utils::bnumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE)
         atom->nimpropers = nimpropers;
@@ -1409,23 +1409,23 @@ void ReadData::header(int firstpass)
 
       // Atom class type settings are only set by first data file
 
-    } else if (utils::strmatch(line, "^\\s*\\d+\\s+atom\\s+types\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\d+\s+atom\s+types\s)")) {
       ntypes = utils::inumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->ntypes = ntypes + extra_atom_types;
 
-    } else if (utils::strmatch(line, "\\s*\\d+\\s+bond\\s+types\\s")) {
+    } else if (utils::strmatch(line, R"(\s*\d+\s+bond\s+types\s)")) {
       nbondtypes = utils::inumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->nbondtypes = nbondtypes + extra_bond_types;
 
-    } else if (utils::strmatch(line, "^\\s*\\d+\\s+angle\\s+types\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\d+\s+angle\s+types\s)")) {
       nangletypes = utils::inumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->nangletypes = nangletypes + extra_angle_types;
 
-    } else if (utils::strmatch(line, "^\\s*\\d+\\s+dihedral\\s+types\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\d+\s+dihedral\s+types\s)")) {
       ndihedraltypes = utils::inumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->ndihedraltypes = ndihedraltypes + extra_dihedral_types;
 
-    } else if (utils::strmatch(line, "^\\s*\\d+\\s+improper\\s+types\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\d+\s+improper\s+types\s)")) {
       nimpropertypes = utils::inumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->nimpropertypes = nimpropertypes + extra_improper_types;
 
@@ -1453,46 +1453,46 @@ void ReadData::header(int firstpass)
       // local copy of box info
       // so can treat differently for first vs subsequent data files
 
-    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+xlo\\s+xhi\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+xlo\s+xhi\s)")) {
       xloxhi_flag = 1;
       boxlo[0] = utils::numeric(FLERR, words[0], false, lmp);
       boxhi[0] = utils::numeric(FLERR, words[1], false, lmp);
 
-    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+ylo\\s+yhi\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+ylo\s+yhi\s)")) {
       yloyhi_flag = 1;
       boxlo[1] = utils::numeric(FLERR, words[0], false, lmp);
       boxhi[1] = utils::numeric(FLERR, words[1], false, lmp);
 
-    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+zlo\\s+zhi\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+zlo\s+zhi\s)")) {
       zlozhi_flag = 1;
       boxlo[2] = utils::numeric(FLERR, words[0], false, lmp);
       boxhi[2] = utils::numeric(FLERR, words[1], false, lmp);
 
-    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+xy\\s+xz\\s+yz\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+\f+\s+xy\s+xz\s+yz\s)")) {
       tilt_flag = 1;
       xy = utils::numeric(FLERR, words[0], false, lmp);
       xz = utils::numeric(FLERR, words[1], false, lmp);
       yz = utils::numeric(FLERR, words[2], false, lmp);
 
-    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\avec\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+\f+\s+\avec\s)")) {
       avec_flag = 1;
       avec[0] = utils::numeric(FLERR, words[0], false, lmp);
       avec[1] = utils::numeric(FLERR, words[1], false, lmp);
       avec[2] = utils::numeric(FLERR, words[2], false, lmp);
 
-    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\bvec\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+\f+\s+\bvec\s)")) {
       bvec_flag = 1;
       bvec[0] = utils::numeric(FLERR, words[0], false, lmp);
       bvec[1] = utils::numeric(FLERR, words[1], false, lmp);
       bvec[2] = utils::numeric(FLERR, words[2], false, lmp);
 
-    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\cvec\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+\f+\s+\cvec\s)")) {
       cvec_flag = 1;
       cvec[0] = utils::numeric(FLERR, words[0], false, lmp);
       cvec[1] = utils::numeric(FLERR, words[1], false, lmp);
       cvec[2] = utils::numeric(FLERR, words[2], false, lmp);
 
-    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\abc\\s+origin\\s")) {
+    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+\f+\s+\abc\s+origin\s)")) {
       abc_origin_flag = 1;
       abc_origin[0] = utils::numeric(FLERR, words[0], false, lmp);
       abc_origin[1] = utils::numeric(FLERR, words[1], false, lmp);

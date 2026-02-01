@@ -1030,6 +1030,9 @@ To write compressed dump files, you must either compile LAMMPS with the
 ``-DLAMMPS_GZIP`` option or use the styles from the COMPRESS package.
 See the :doc:`Build settings <Build_settings>` page for details.
 
+To create images or movies, you must install the GRAPHICS package.
+See the :doc:`Build extras <Build_extras>` page for details.
+
 While a dump command is active (i.e., has not been stopped by using
 the :doc:`undump command <undump>`), no commands may be used that will
 change the timestep (e.g., :doc:`reset_timestep <reset_timestep>`).

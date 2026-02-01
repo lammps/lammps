@@ -1,0 +1,20 @@
+Examples for advanced visualizations with dump image in LAMMPS
+
+This folder contains complete input examples for creating visualizations
+with the dump image command and various fixes in the GRAPHICS package.
+For exploring different options and settings, it is recommended to run
+these examples from LAMMPS-GUI and (temporarily) disable FSAA and SSAO.
+The simulation can then be conveniently started with CTRL-Enter and
+stopped with CTRL-\ and the slideshow viewer will display the images
+automatically as they are created.
+
+Here is a list of the inputs and which graphics features they demonstrate
+
+- in.cubes-and-pyramids:    visualization of body particles, uses progress bar
+                            https://www.youtube.com/shorts/OYn_VVodnIg
+
+- in.breakable:             using autobond, color-by-property, adding objects and text
+                            https://www.youtube.com/watch?v=f4hfPs7aCmI
+
+- in.water-arrows:          box of water molecules, uses many kinds of arrows
+                            https://www.youtube.com/shorts/4Cm5p0SfgNU

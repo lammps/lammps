@@ -42,6 +42,7 @@ template <class DeviceType> class ComputeAveSphereAtomKokkos : public ComputeAve
   void init() override;
   void compute_peratom() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeAveSphereAtom, const int &) const;
 

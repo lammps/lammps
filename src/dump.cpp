@@ -110,6 +110,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) :
   compressed = 0;
   binary = 0;
   multifile = 0;
+  multifile_override = 0;
   size_one = 0;
 
   multiproc = 0;
@@ -476,7 +477,8 @@ void Dump::write()
   // ping each proc in my cluster, receive its data, write data to file
   // else wait for ping from fileproc, send my data to fileproc
 
-  int tmp,nlines,nchars;
+  int tmp = 0;
+  int nlines,nchars;
   MPI_Status status;
   MPI_Request request;
 

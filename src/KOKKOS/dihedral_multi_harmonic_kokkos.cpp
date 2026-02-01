@@ -160,6 +160,7 @@ void DihedralMultiHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DihedralMultiHarmonicKokkos<DeviceType>::operator()(TagDihedralMultiHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
@@ -321,6 +322,7 @@ void DihedralMultiHarmonicKokkos<DeviceType>::operator()(TagDihedralMultiHarmoni
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DihedralMultiHarmonicKokkos<DeviceType>::operator()(TagDihedralMultiHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
@@ -409,6 +411,7 @@ void DihedralMultiHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
 
 template<class DeviceType>
 //template<int NEWTON_BOND>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DihedralMultiHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, const int i2, const int i3, const int i4,
                         KK_FLOAT &edihedral, KK_FLOAT *f1, KK_FLOAT *f3, KK_FLOAT *f4,

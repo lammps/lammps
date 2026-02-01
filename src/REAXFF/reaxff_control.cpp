@@ -54,7 +54,7 @@ namespace ReaxFF {
     explicit control_parser_error(const std::string &format, const std::string &keyword) {
       message = fmt::format(fmt::runtime(format), keyword);
     }
-    const char *what() const noexcept override { return message.c_str(); }
+    [[nodiscard]] const char *what() const noexcept override { return message.c_str(); }
   };
 
   // NOTE: this function is run on MPI rank 0 only

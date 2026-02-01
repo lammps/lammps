@@ -239,7 +239,7 @@ class Pair : protected Pointers {
  public:
   virtual void add_tally_callback(class Compute *);
   virtual void del_tally_callback(class Compute *);
-  bool did_tally_callback() const { return did_tally_flag != 0; }
+  [[nodiscard]] bool did_tally_callback() const { return did_tally_flag != 0; }
 
  protected:
   int instance_me;      // which Pair class instantiation I am
@@ -274,7 +274,7 @@ class Pair : protected Pointers {
 
   // Accessor for the INTEL package to determine virial calc for hybrid
 
-  inline int fdotr_is_set() const { return vflag_fdotr; }
+  [[nodiscard]] int fdotr_is_set() const { return vflag_fdotr; }
 
  protected:
   int vflag_fdotr;
@@ -303,7 +303,7 @@ class Pair : protected Pointers {
   void v_tally_tensor(int, int, int, int, double, double, double, double, double, double);
   void virial_fdotr_compute();
 
-  inline int sbmask(int j) const { return j >> SBBITS & 3; }
+  [[nodiscard]] int sbmask(int j) const { return j >> SBBITS & 3; }
 };
 
 }    // namespace LAMMPS_NS

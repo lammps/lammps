@@ -3,7 +3,7 @@ enable_language(C)
 
 find_package(GSL REQUIRED)
 find_package(PkgConfig QUIET)
-find_package(MPI REQUIRED)
+find_package(MPI REQUIRED COMPONENTS C MPICXX CXX Fortran)
 set(DOWNLOAD_SCAFACOS_DEFAULT ON)
 if(PKG_CONFIG_FOUND)
   pkg_check_modules(SCAFACOS QUIET scafacos)
@@ -19,6 +19,8 @@ if(DOWNLOAD_SCAFACOS)
   mark_as_advanced(SCAFACOS_URL)
   mark_as_advanced(SCAFACOS_MD5)
   GetFallbackURL(SCAFACOS_URL SCAFACOS_FALLBACK)
+  set(SCAFACOS_CXX_FLAGS "${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}} ${CMAKE_CXX_FLAGS}")
+  set(SCAFACOS_C_FLAGS "${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}} ${CMAKE_C_FLAGS}")
 
   include(ExternalProject)
   ExternalProject_Add(scafacos_build
@@ -32,6 +34,8 @@ if(DOWNLOAD_SCAFACOS)
                                              CXX=${CMAKE_MPI_CXX_COMPILER}
                                              CC=${CMAKE_MPI_C_COMPILER}
                                              F77=
+                                             CFLAGS=${SCAFACOS_C_FLAGS}
+                                             CXXFLAGS=${SCAFACOS_CXX_FLAGS}
     BUILD_BYPRODUCTS
       <INSTALL_DIR>/lib/libfcs.a
       <INSTALL_DIR>/lib/libfcs_direct.a
@@ -55,7 +59,7 @@ if(DOWNLOAD_SCAFACOS)
   set_target_properties(LAMMPS::SCAFACOS PROPERTIES
     IMPORTED_LOCATION "${INSTALL_DIR}/lib/libfcs.a"
     INTERFACE_INCLUDE_DIRECTORIES "${INSTALL_DIR}/include"
-    INTERFACE_LINK_LIBRARIES "${INSTALL_DIR}/lib/libfcs.a;${INSTALL_DIR}/lib/libfcs_direct.a;${INSTALL_DIR}/lib/libfcs_ewald.a;${INSTALL_DIR}/lib/libfcs_fmm.a;${INSTALL_DIR}/lib/libfcs_p2nfft.a;${INSTALL_DIR}/lib/libfcs_p3m.a;GSL::gsl;${INSTALL_DIR}/lib/libfcs_near.a;${INSTALL_DIR}/lib/libfcs_gridsort.a;${INSTALL_DIR}/lib/libfcs_resort.a;${INSTALL_DIR}/lib/libfcs_redist.a;${INSTALL_DIR}/lib/libfcs_common.a;${INSTALL_DIR}/lib/libfcs_pnfft.a;${INSTALL_DIR}/lib/libfcs_pfft.a;${INSTALL_DIR}/lib/libfcs_fftw3_mpi.a;${INSTALL_DIR}/lib/libfcs_fftw3.a;MPI::MPI_Fortran;MPI::MPI_C")
+    INTERFACE_LINK_LIBRARIES "${INSTALL_DIR}/lib/libfcs.a;${INSTALL_DIR}/lib/libfcs_direct.a;${INSTALL_DIR}/lib/libfcs_ewald.a;${INSTALL_DIR}/lib/libfcs_fmm.a;${INSTALL_DIR}/lib/libfcs_p2nfft.a;${INSTALL_DIR}/lib/libfcs_p3m.a;GSL::gsl;${INSTALL_DIR}/lib/libfcs_near.a;${INSTALL_DIR}/lib/libfcs_gridsort.a;${INSTALL_DIR}/lib/libfcs_resort.a;${INSTALL_DIR}/lib/libfcs_redist.a;${INSTALL_DIR}/lib/libfcs_common.a;${INSTALL_DIR}/lib/libfcs_pnfft.a;${INSTALL_DIR}/lib/libfcs_pfft.a;${INSTALL_DIR}/lib/libfcs_fftw3_mpi.a;${INSTALL_DIR}/lib/libfcs_fftw3.a;MPI::MPI_CXX;MPI::MPI_Fortran;MPI::MPI_C;${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES}")
   target_link_libraries(lammps PRIVATE LAMMPS::SCAFACOS)
   add_dependencies(LAMMPS::SCAFACOS scafacos_build)
 else()

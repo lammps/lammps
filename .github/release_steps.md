@@ -212,6 +212,26 @@ gh release upload patch_4Feb2025 LAMMPS-Win10-64bit-GUI-4Feb2025.exe
 The symbolic link is used to have a consistent naming scheme for the packages
 attached to the GitHub release page.
 
+#### LAMMPS Online Manual
+
+Creating the online docs requires setting some environment variables to have
+the extra box at the bottom of the navigation bar included that allows to
+switch between release, stable, and develop branch versions of the manual.
+Also the search box should use Google search instead of the javascript search.
+
+``` sh
+cd lammps-release
+make -C doc clean
+make -C doc upgrade
+env LAMMPS_WEBSITE_BUILD=1 LAMMPS_WEBSITE_BUILD_VERSION=release LAMMPS_WEBSITE_BASEURL="https://docs.lammps.org/" \
+    make -C doc html WEB_SEARCH=YES
+make -C doc pdf
+mv doc/Manual.pdf doc/html
+rsync -arpv doc/html/ www.lammps.org:/var/www/lammps/docs/release-new
+
+Then log into www.lammps.org and move the current folder away and
+the new folder in its place and update permissions.
+
 #### Clean up:
 
 ``` sh
@@ -243,6 +263,7 @@ and installed (e.g. to `$HOME/.local`) as static libraries only:
 - jpeg
 - zlib
 - png
+- voro++ (for VORONOI package)
 - Qt (for LAMMPS-GUI)
 
 When configuring LAMMPS the `cmake/presets/clang.cmake` should be used
@@ -298,8 +319,8 @@ Check out the LAMMPS website repo
 https://github.com/lammps/lammps-website.git and edit the file
 `src/download.txt` for the new release.  Test translation with `make
 html` and review `html/download.html` Then add and commit to git and
-push the changes to GitHub.  The Temple Jenkis cluster will
-automatically update https://www.lammps.org/download.html accordingly.
+push the changes to GitHub.  A cron job will automatically update
+https://www.lammps.org/ accordingly if there are changes.
 
 Also notify Steve of the release so he can update `src/bug.txt` on the
 website from the available release notes.
@@ -373,11 +394,10 @@ git tag -s -m 'Update 2 for Stable LAMMPS version 29 August 2024' stable_29Aug20
 git push git@github.com:lammps/lammps.git --tags maintenance stable
 ```
 
-Associate draft release notes with new tag and publish as "latest release".
-
-On https://ci.lammps.org/ go to "dev", "stable" and manually execute
-the "update\_release" task. This will update https://docs.lammps.org/stable
-and prepare a stable tarball.
+Associate draft release notes with new tag and prepare and upload
+various source and binary packages. Publish as "latest release"
+only when all uploads are complete as they cannot be changed after
+they are published since we are creating "immutable" releases now.
 
 ### Build and upload binary packages and source tarball to GitHub
 

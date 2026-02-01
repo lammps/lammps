@@ -554,7 +554,7 @@ TEST_F(KimCommandsTest, kim_query)
                  "one or more comma-separated items.*",
                  command(squery););
 
-    squery = "kim query a0 get_lattice_constant_cubic crystal=[\"fcc\"] species=[\"Al\"]";
+    squery = R"(kim query a0 get_lattice_constant_cubic crystal=["fcc"] species=["Al"])";
     TEST_FAILURE(".*ERROR: Illegal query format.\nMust use 'kim init' before "
                  "'kim query' or must provide the model name after query "
                  "function with the format of 'model=\\[model_name\\]'.*",

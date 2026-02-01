@@ -376,6 +376,32 @@ TEST(Platform, file_is_readable)
 #endif
 }
 
+TEST(Platform, file_write_time)
+{
+    platform::unlink("file_is_not_modified.txt");
+    platform::unlink("file_is_modified.txt");
+    FILE *fp = fopen("file_is_not_modified.txt", "w");
+    fputs("some text\n", fp);
+    fclose(fp);
+    fp = fopen("file_is_modified.txt", "w");
+    fputs("some text\n", fp);
+    fclose(fp);
+
+    auto ref_not_modified = platform::file_write_time("file_is_not_modified.txt");
+    auto ref_modified = platform::file_write_time("file_is_modified.txt");
+
+    platform::usleep(1000000);
+    fp = fopen("file_is_modified.txt", "w");
+    fputs("some text\n", fp);
+    fclose(fp);
+
+    EXPECT_EQ(ref_not_modified, platform::file_write_time("file_is_not_modified.txt"));
+    EXPECT_NE(ref_modified, platform::file_write_time("file_is_modified.txt"));
+
+    platform::unlink("file_is_not_modified.txt");
+    platform::unlink("file_is_modified.txt");
+}
+
 TEST(Platform, has_compress_extension)
 {
     ASSERT_FALSE(platform::has_compress_extension("dummy"));

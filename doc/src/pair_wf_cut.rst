@@ -44,7 +44,7 @@ with
 and
 
 .. math::
-  r_{min}=r_c\left[\frac{1+2\nu}{1+2\nu(r_c/\sigma)^{2\nu}}\right]^{1/{2\nu}}
+  r_{min}=r_c\left[\frac{1+2\nu}{1+2\nu(r_c/\sigma)^{2\nu}}\right]^{1/{2\mu}}
 
 :math:`r_c` is the cutoff.
 

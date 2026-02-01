@@ -211,6 +211,7 @@ void DihedralCharmmfswKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DihedralCharmmfswKokkos<DeviceType>::operator()(TagDihedralCharmmfswCompute<NEWTON_BOND,EVFLAG>, const int &n, EVM_FLOAT& evm) const {
 
@@ -425,6 +426,7 @@ void DihedralCharmmfswKokkos<DeviceType>::operator()(TagDihedralCharmmfswCompute
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DihedralCharmmfswKokkos<DeviceType>::operator()(TagDihedralCharmmfswCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EVM_FLOAT evm;
@@ -594,6 +596,7 @@ void DihedralCharmmfswKokkos<DeviceType>::read_restart(FILE *fp)
 
 template<class DeviceType>
 //template<int NEWTON_BOND>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DihedralCharmmfswKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i1, const int i2, const int i3, const int i4,
                         KK_FLOAT &edihedral, KK_FLOAT *f1, KK_FLOAT *f3, KK_FLOAT *f4,
@@ -719,6 +722,7 @@ void DihedralCharmmfswKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i1,
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DihedralCharmmfswKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i, const int j,
       const KK_FLOAT &evdwl, const KK_FLOAT &ecoul, const KK_FLOAT &fpair, const KK_FLOAT &delx,

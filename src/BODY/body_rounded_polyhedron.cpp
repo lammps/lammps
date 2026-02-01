@@ -20,8 +20,8 @@
 
 #include "atom.h"
 #include "atom_vec_body.h"
-#include "dump_image.h"
 #include "error.h"
+#include "graphics.h"
 #include "math_extra.h"
 #include "math_eigen.h"
 #include "memory.h"
@@ -46,8 +46,7 @@ BodyRoundedPolyhedron::BodyRoundedPolyhedron(LAMMPS *lmp, int narg, char **arg) 
 
   int nmin = utils::inumeric(FLERR,arg[1],false,lmp);
   int nmax = utils::inumeric(FLERR,arg[2],false,lmp);
-  if (nmin <= 0 || nmin > nmax)
-    error->all(FLERR,"Invalid body rounded/polyhedron command");
+  if (nmin <= 0 || nmin > nmax) error->all(FLERR,"Invalid body rounded/polyhedron command");
 
   size_forward = 0;
 
@@ -64,8 +63,8 @@ BodyRoundedPolyhedron::BodyRoundedPolyhedron(LAMMPS *lmp, int narg, char **arg) 
                                 3*nmax+2*nmax+MAX_FACE_SIZE*nmax+1+1);
   maxexchange = 3 + 3*nmax+2*nmax+MAX_FACE_SIZE*nmax+1+1;  // icp max + dcp max
 
-  memory->create(imflag,2*nmax,"body/rounded/polyhedron:imflag");
-  memory->create(imdata,2*nmax,7,"body/polyhedron:imdata");
+  memory->create(imflag,3*nmax,"body/rounded/polyhedron:imflag");
+  memory->create(imdata,3*nmax,9,"body/rounded/polyhedron:imdata");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,14 +196,11 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
   // set ninteger, ndouble in bonus and allocate 2 vectors of ints, doubles
 
   if (ninteger != 3)
-    error->one(FLERR,"Incorrect # of integer values in "
-               "Bodies section of data file");
+    error->one(FLERR,"Incorrect # of integer values in Bodies section of data file");
   int nsub = ifile[0];
   int ned = ifile[1];
   int nfac = ifile[2];
-  if (nsub < 1)
-    error->one(FLERR,"Incorrect integer value in "
-               "Bodies section of data file");
+  if (nsub < 1) error->one(FLERR,"Incorrect integer value in Bodies section of data file");
 
   // nentries = number of double entries to be read from Body section:
   // nsub == 1,2:
@@ -221,8 +217,7 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
   }
 
   if (ndouble != nentries)
-    error->one(FLERR,"Incorrect # of floating-point values in "
-               "Bodies section of data file");
+    error->one(FLERR,"Incorrect # of floating-point values in Bodies section of data file");
 
   bonus->ninteger = 3;
   bonus->ivalue = icp->get(bonus->iindex);
@@ -246,8 +241,7 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
   double *inertia = bonus->inertia;
   double evectors[3][3];
   int ierror = MathEigen::jacobi3(tensor,inertia,evectors);
-  if (ierror) error->one(FLERR,
-                         "Insufficient Jacobi rotations for body nparticle");
+  if (ierror) error->one(FLERR,"Insufficient Jacobi rotations for body nparticle");
 
   // if any principal moment < scaled EPSILON, set to 0.0
 
@@ -535,11 +529,9 @@ double BodyRoundedPolyhedron::radius_body(int /*ninteger*/, int ndouble,
   else nentries = 6 + 3*nsub + 2*nedges + MAX_FACE_SIZE*nfac + 1;
 
   if (nsub < 1)
-    error->one(FLERR,"Incorrect integer value in "
-               "Bodies section of data file");
+    error->one(FLERR,"Incorrect integer value in Bodies section of data file");
   if (ndouble != nentries)
-    error->one(FLERR,"Incorrect # of floating-point values in "
-               "Bodies section of data file");
+    error->one(FLERR,"Incorrect # of floating-point values in Bodies section of data file");
 
   // sub-particle coords are relative to body center at (0,0,0)
   // offset = 6 for sub-particle coords
@@ -601,64 +593,189 @@ void BodyRoundedPolyhedron::output(int ibonus, int m, double *values)
 
 /* ---------------------------------------------------------------------- */
 
-int BodyRoundedPolyhedron::image(int ibonus, double flag1, double /*flag2*/,
-                              int *&ivec, double **&darray)
+int BodyRoundedPolyhedron::image(int ibonus, double flag1, double flag2,
+                                 int *&ivec, double **&darray)
 {
-  int nelements;
   double p[3][3];
-  double *x, rrad;
 
-  AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
+  int nelements = 0;
+  AtomVecBody::Bonus *const bonus = &avec->bonus[ibonus];
+  const double *const x = atom->x[bonus->ilocal];
+  const double diam = (flag1 <= 0.0) ? 2.0 * rounded_radius(bonus) : flag1;
+
+  MathExtra::quat_to_mat(bonus->quat,p); // get rotation matrix for body frame to box frame
+
   int nvertices = bonus->ivalue[0];
+  if (nvertices == 1) { // special case: just one vertex -> one sphere
+    imflag[0] = Graphics::SPHERE;
+    // transform body frame position to box frame
+    MathExtra::matvec(p,&bonus->dvalue[0],imdata[0]);
+    // translate and set diameter
+    imdata[0][0] += x[0];
+    imdata[0][1] += x[1];
+    imdata[0][2] += x[2];
+    imdata[0][3] = diam;
 
-  if (nvertices == 1) { // spheres
-
-    for (int i = 0; i < nvertices; i++) {
-      imflag[i] = DumpImage::SPHERE;
-      MathExtra::quat_to_mat(bonus->quat,p);
-      MathExtra::matvec(p,&bonus->dvalue[3*i],imdata[i]);
-
-      rrad = enclosing_radius(bonus);
-      x = atom->x[bonus->ilocal];
-      imdata[i][0] += x[0];
-      imdata[i][1] += x[1];
-      imdata[i][2] += x[2];
-      if (flag1 <= 0) imdata[i][3] = 2*rrad;
-      else imdata[i][3] = flag1;
-    }
-
-    nelements = nvertices;
+    nelements = 1;
   } else {
-    //int nfaces = bonus->ivalue[2];
-    int nedges = bonus->ivalue[1]; //nvertices + nfaces - 2;
-    if (nvertices == 2) nedges = 1; // special case: rods
-    double* edge_ends = &bonus->dvalue[3*nvertices];
-    int pt1, pt2;
 
-    for (int i = 0; i < nedges; i++) {
-      imflag[i] = DumpImage::LINE;
+    // select whether edges or faces or both should be drawn
+    bool edgeflag = true;
+    bool triflag = true;
+    int flag = static_cast<int>(flag2);
+    if (flag == 2) triflag = false;
+    if (flag == 1) edgeflag = false;
 
-      pt1 = static_cast<int>(edge_ends[2*i]);
-      pt2 = static_cast<int>(edge_ends[2*i+1]);
+    int nedges = bonus->ivalue[1];
+    if (nvertices == 2) nedges = 1;                  // special case: just two vertices -> one rod
+    double *edge_ends = &bonus->dvalue[3*nvertices]; // skip over vertex positions in body data
+    if (edgeflag || (nedges == 1)) {                 // always draw edge for rod
+      for (int i = 0; i < nedges; i++) {
+        imflag[nelements] = Graphics::LINE;
 
-      MathExtra::quat_to_mat(bonus->quat,p);
-      MathExtra::matvec(p,&bonus->dvalue[3*pt1],imdata[i]);
-      MathExtra::matvec(p,&bonus->dvalue[3*pt2],&imdata[i][3]);
+        int pt1 = static_cast<int>(edge_ends[2*i]);
+        int pt2 = static_cast<int>(edge_ends[2*i+1]);
 
-      rrad = rounded_radius(bonus);
-      x = atom->x[bonus->ilocal];
-      imdata[i][0] += x[0];
-      imdata[i][1] += x[1];
-      imdata[i][2] += x[2];
-      imdata[i][3] += x[0];
-      imdata[i][4] += x[1];
-      imdata[i][5] += x[2];
+        // transform body frame positions to box frame
+        MathExtra::matvec(p,&bonus->dvalue[3*pt1],imdata[nelements]);
+        MathExtra::matvec(p,&bonus->dvalue[3*pt2],&imdata[nelements][3]);
 
-      if (flag1 <= 0) imdata[i][6] = 2*rrad;
-      else imdata[i][6] = flag1;
+        // translate and set diameter
+        imdata[nelements][0] += x[0];
+        imdata[nelements][1] += x[1];
+        imdata[nelements][2] += x[2];
+        imdata[nelements][3] += x[0];
+        imdata[nelements][4] += x[1];
+        imdata[nelements][5] += x[2];
+        imdata[nelements][6] = diam;
+
+        ++nelements;
+      }
     }
 
-    nelements = nedges;
+    if (triflag) {
+      int nfaces = bonus->ivalue[2];
+      // skip over vertex positions and edge indices in body data
+      edge_ends = &bonus->dvalue[3*nvertices+2*nedges];
+      for (int i = 0; i < nfaces; i++) {
+        int pt1 = static_cast<int>(edge_ends[4*i]);
+        int pt2 = static_cast<int>(edge_ends[4*i+1]);
+        int pt3 = static_cast<int>(edge_ends[4*i+2]);
+        int pt4 = static_cast<int>(edge_ends[4*i+3]);
+
+        // quadrilateral face requires two triangles. triangle has fourth vertex index set to -1
+        if (pt4 >= 0) {
+          // first triangle
+          imflag[nelements] = Graphics::TRI;
+          MathExtra::matvec(p,&bonus->dvalue[3*pt1],imdata[nelements]);
+          MathExtra::matvec(p,&bonus->dvalue[3*pt2],&imdata[nelements][3]);
+          MathExtra::matvec(p,&bonus->dvalue[3*pt3],&imdata[nelements][6]);
+          imdata[nelements][0] += x[0];
+          imdata[nelements][1] += x[1];
+          imdata[nelements][2] += x[2];
+          imdata[nelements][3] += x[0];
+          imdata[nelements][4] += x[1];
+          imdata[nelements][5] += x[2];
+          imdata[nelements][6] += x[0];
+          imdata[nelements][7] += x[1];
+          imdata[nelements][8] += x[2];
+          ++nelements;
+
+          // second triangle
+          imflag[nelements] = Graphics::TRI;
+          MathExtra::matvec(p,&bonus->dvalue[3*pt3],imdata[nelements]);
+          MathExtra::matvec(p,&bonus->dvalue[3*pt4],&imdata[nelements][3]);
+          MathExtra::matvec(p,&bonus->dvalue[3*pt1],&imdata[nelements][6]);
+          imdata[nelements][0] += x[0];
+          imdata[nelements][1] += x[1];
+          imdata[nelements][2] += x[2];
+          imdata[nelements][3] += x[0];
+          imdata[nelements][4] += x[1];
+          imdata[nelements][5] += x[2];
+          imdata[nelements][6] += x[0];
+          imdata[nelements][7] += x[1];
+          imdata[nelements][8] += x[2];
+
+          // shift triangles toward the outside of the body by half diameter when also drawing edges
+          if (edgeflag) {
+            double vec1[3];
+            // get center of face
+            double vec2[3] = {imdata[nelements][0],imdata[nelements][1],imdata[nelements][2]};
+            vec2[0] += imdata[nelements][3] + imdata[nelements][6] + imdata[nelements-1][3];
+            vec2[1] += imdata[nelements][4] + imdata[nelements][7] + imdata[nelements-1][4];
+            vec2[2] += imdata[nelements][5] + imdata[nelements][8] + imdata[nelements-1][5];
+            vec2[0] *= 0.25;
+            vec2[1] *= 0.25;
+            vec2[2] *= 0.25;
+            // get direction from center of body to face and scale to half diameter length
+            MathExtra::sub3(vec2,x,vec1);
+            MathExtra::snormalize3(0.5*diam,vec1,vec2);
+            // add shift to triangle corners
+            imdata[nelements][0] += vec2[0];
+            imdata[nelements][1] += vec2[1];
+            imdata[nelements][2] += vec2[2];
+            imdata[nelements][3] += vec2[0];
+            imdata[nelements][4] += vec2[1];
+            imdata[nelements][5] += vec2[2];
+            imdata[nelements][6] += vec2[0];
+            imdata[nelements][7] += vec2[1];
+            imdata[nelements][8] += vec2[2];
+            imdata[nelements-1][0] += vec2[0];
+            imdata[nelements-1][1] += vec2[1];
+            imdata[nelements-1][2] += vec2[2];
+            imdata[nelements-1][3] += vec2[0];
+            imdata[nelements-1][4] += vec2[1];
+            imdata[nelements-1][5] += vec2[2];
+            imdata[nelements-1][6] += vec2[0];
+            imdata[nelements-1][7] += vec2[1];
+            imdata[nelements-1][8] += vec2[2];
+          }
+
+          ++nelements;
+        } else {
+          imflag[nelements] = Graphics::TRI;
+          MathExtra::matvec(p,&bonus->dvalue[3*pt1],imdata[nelements]);
+          MathExtra::matvec(p,&bonus->dvalue[3*pt2],&imdata[nelements][3]);
+          MathExtra::matvec(p,&bonus->dvalue[3*pt3],&imdata[nelements][6]);
+          imdata[nelements][0] += x[0];
+          imdata[nelements][1] += x[1];
+          imdata[nelements][2] += x[2];
+          imdata[nelements][3] += x[0];
+          imdata[nelements][4] += x[1];
+          imdata[nelements][5] += x[2];
+          imdata[nelements][6] += x[0];
+          imdata[nelements][7] += x[1];
+          imdata[nelements][8] += x[2];
+
+          // shift triangle toward the outside of the body by half diameter when also drawing edges
+          if (edgeflag) {
+            double vec1[3];
+            // get center of face
+            double vec2[3] = {imdata[nelements][0],imdata[nelements][1],imdata[nelements][2]};
+            vec2[0] += imdata[nelements][3] + imdata[nelements][6];
+            vec2[1] += imdata[nelements][4] + imdata[nelements][7];
+            vec2[2] += imdata[nelements][5] + imdata[nelements][8];
+            vec2[0] *= 1.0/3.0;
+            vec2[1] *= 1.0/3.0;
+            vec2[2] *= 1.0/3.0;
+            // get direction from center of body to face and scale to half diameter length
+            MathExtra::sub3(vec2,x,vec1);
+            MathExtra::snormalize3(0.5*diam,vec1,vec2);
+            // add shift to triangle corners
+            imdata[nelements][0] += vec2[0];
+            imdata[nelements][1] += vec2[1];
+            imdata[nelements][2] += vec2[2];
+            imdata[nelements][3] += vec2[0];
+            imdata[nelements][4] += vec2[1];
+            imdata[nelements][5] += vec2[2];
+            imdata[nelements][6] += vec2[0];
+            imdata[nelements][7] += vec2[1];
+            imdata[nelements][8] += vec2[2];
+          }
+          ++nelements;
+        }
+      }
+    }
   }
 
   ivec = imflag;

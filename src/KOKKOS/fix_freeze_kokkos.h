@@ -36,6 +36,7 @@ class FixFreezeKokkos : public FixFreeze {
   struct OriginalForce {
     double values[3];
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     OriginalForce() {
       values[0] = 0;
@@ -43,6 +44,7 @@ class FixFreezeKokkos : public FixFreeze {
       values[2] = 0;
     }
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     OriginalForce &operator+=(const OriginalForce &rhs) {
       values[0] += rhs.values[0];
@@ -55,6 +57,7 @@ class FixFreezeKokkos : public FixFreeze {
   FixFreezeKokkos(class LAMMPS *, int, char **);
   void post_force(int) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i, OriginalForce &original) const;
 

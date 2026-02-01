@@ -1125,6 +1125,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputePolar<NEIGHFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
@@ -1147,6 +1148,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputePolar<NEIGHFLAG>
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputePolar<NEIGHFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
@@ -1157,6 +1159,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputePolar<NEIGHFLAG>
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
@@ -1343,6 +1346,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
@@ -1353,6 +1357,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
@@ -1492,6 +1497,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
@@ -1574,6 +1580,7 @@ void PairReaxFFKokkos<DeviceType>::allocate_array()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxZero, const int &n) const {
   d_total_bo(n) = 0;
@@ -1588,6 +1595,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxZero, const int &n) con
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<NEIGHFLAG>, const int &ii) const {
   constexpr int blocksize = PairReaxFFKokkos<DeviceType>::build_lists_half_blocksize;
@@ -1730,6 +1738,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingPreview<NEIGHFLAG>, const int &ii) const {
   constexpr int blocksize = PairReaxFFKokkos<DeviceType>::build_lists_half_blocksize;
@@ -1817,6 +1826,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<NEIGHFLAG>, const int &ii) const {
 
@@ -1874,6 +1884,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::build_hb_list(KK_FLOAT rsq, int i, int ihb, int j, int jtype) const {
 
@@ -1912,6 +1923,7 @@ void PairReaxFFKokkos<DeviceType>::build_hb_list(KK_FLOAT rsq, int i, int ihb, i
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 bool PairReaxFFKokkos<DeviceType>::build_bo_list(int i, int j, int& i_index, int& j_index) const {
 
@@ -1944,6 +1956,7 @@ bool PairReaxFFKokkos<DeviceType>::build_bo_list(int i, int j, int& i_index, int
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsFull, const int &ii) const {
 
@@ -2016,6 +2029,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsFull, const i
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::compute_bo(KK_FLOAT rij, int itype, int jtype, KK_FLOAT p_bo2, KK_FLOAT p_bo4, KK_FLOAT p_bo6,
   KK_FLOAT& BO_s, KK_FLOAT& BO_pi, KK_FLOAT& BO_pi2, KK_FLOAT& C12, KK_FLOAT& C34, KK_FLOAT& C56) const {
@@ -2047,6 +2061,7 @@ void PairReaxFFKokkos<DeviceType>::compute_bo(KK_FLOAT rij, int itype, int jtype
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder1, const int &ii) const {
 
@@ -2061,6 +2076,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder1, const int &
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &ii) const {
 
@@ -2189,6 +2205,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder3, const int &ii) const {
   // bot part of BO()
@@ -2223,6 +2240,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder3, const int &
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti1, const int &ii) const {
 
@@ -2255,6 +2273,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti1, const in
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
@@ -2396,6 +2415,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
@@ -2406,6 +2426,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
 
 template<class DeviceType>
 template<bool POPULATE>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxCountAngularTorsion<POPULATE>, const int &ii) const {
 
@@ -2453,6 +2474,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxCountAngularTorsion<POP
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::compute_angular_sbo(int i, int itype, int jnum) const {
 
@@ -2516,6 +2538,7 @@ void PairReaxFFKokkos<DeviceType>::compute_angular_sbo(int i, int itype, int jnu
 
 template<class DeviceType>
 template<bool POPULATE>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int PairReaxFFKokkos<DeviceType>::preprocess_angular(int i, int itype, int jnum, int location_angular) const {
 
@@ -2578,6 +2601,7 @@ int PairReaxFFKokkos<DeviceType>::preprocess_angular(int i, int itype, int jnum,
 
 template<class DeviceType>
 template<bool POPULATE>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int PairReaxFFKokkos<DeviceType>::preprocess_torsion(int i, int /*itype*/, tagint itag,
   KK_FLOAT xtmp, KK_FLOAT ytmp, KK_FLOAT ztmp, int jknum, int location_torsion) const {
@@ -2653,6 +2677,7 @@ int PairReaxFFKokkos<DeviceType>::preprocess_torsion(int i, int /*itype*/, tagin
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreprocessed<NEIGHFLAG,EVFLAG>, const int &apack, EV_FLOAT_REAX& ev) const {
 
@@ -2901,6 +2926,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreprocessed<NEIGHFLAG,EVFLAG>, const int &apack) const {
   EV_FLOAT_REAX ev;
@@ -2912,6 +2938,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreprocessed<NEIGHFLAG,EVFLAG>, const int &tpack, EV_FLOAT_REAX& ev) const {
 
@@ -3248,6 +3275,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreprocessed<NEIGHFLAG,EVFLAG>, const int &tpack) const {
   EV_FLOAT_REAX ev;
@@ -3259,6 +3287,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeHydrogen<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
@@ -3395,6 +3424,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeHydrogen<NEIGHFL
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeHydrogen<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
@@ -3406,6 +3436,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeHydrogen<NEIGHFL
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxUpdateBond<NEIGHFLAG>, const int &ii) const {
 
@@ -3461,6 +3492,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxUpdateBond<NEIGHFLAG>, 
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,EFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
@@ -3564,6 +3596,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,EFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
@@ -3574,6 +3607,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
 
 template<class DeviceType>
 template<int NEIGHFLAG, int VFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,VFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
@@ -3755,6 +3789,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
 
 template<class DeviceType>
 template<int NEIGHFLAG, int VFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,VFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
@@ -3765,6 +3800,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, const int &j,
       const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
@@ -3822,6 +3858,7 @@ void PairReaxFFKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, con
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::e_tally(EV_FLOAT_REAX & /*ev*/, const int &i, const int &j,
       const KK_FLOAT &epair) const
@@ -3840,6 +3877,7 @@ void PairReaxFFKokkos<DeviceType>::e_tally(EV_FLOAT_REAX & /*ev*/, const int &i,
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::e_tally_single(EV_FLOAT_REAX & /*ev*/, const int &i,
       const KK_FLOAT &epair) const
@@ -3856,6 +3894,7 @@ void PairReaxFFKokkos<DeviceType>::e_tally_single(EV_FLOAT_REAX & /*ev*/, const 
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::v_tally(EV_FLOAT_REAX &ev, const int &i,
   KK_ACC_FLOAT *fi, KK_FLOAT *drij) const
@@ -3893,6 +3932,7 @@ void PairReaxFFKokkos<DeviceType>::v_tally(EV_FLOAT_REAX &ev, const int &i,
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::v_tally3(EV_FLOAT_REAX &ev, const int &i, const int &j, const int &k,
   KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk, KK_FLOAT *drij, KK_FLOAT *drik) const
@@ -3933,6 +3973,7 @@ void PairReaxFFKokkos<DeviceType>::v_tally3(EV_FLOAT_REAX &ev, const int &i, con
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, const int &j, const int &k,
   const int &l, KK_ACC_FLOAT *fi, KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk, KK_FLOAT *dril, KK_FLOAT *drjl, KK_FLOAT *drkl) const
@@ -3972,6 +4013,7 @@ void PairReaxFFKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, con
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::v_tally3_atom(EV_FLOAT_REAX &ev, const int &i, const int & /*j*/,
                                                 const int & /*k*/, KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk,
@@ -4108,6 +4150,7 @@ void PairReaxFFKokkos<DeviceType>::FindBond(int &numbonds, int groupbit)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxFindBondZero, const int &i) const {
   d_numneigh_bonds[i] = 0;
@@ -4118,6 +4161,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxFindBondZero, const int
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::calculate_find_bond_item(int ii, int &numbonds, int groupbit) const
 {
@@ -4205,6 +4249,7 @@ void PairReaxFFKokkos<DeviceType>::PackReducedBondBuffer(DAT::tdual_double_1d k_
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::pack_bond_buffer_item(int i, int &j, const bool &final) const
 {
@@ -4247,6 +4292,7 @@ void PairReaxFFKokkos<DeviceType>::pack_bond_buffer_item(int i, int &j, const bo
 
 template<class DeviceType>
 template<bool STORE_BONDS>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::pack_reduced_bond_buffer_item(int i, int &j, const bool &final) const
 {
@@ -4319,6 +4365,7 @@ void PairReaxFFKokkos<DeviceType>::FindBondSpecies()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxFindBondSpeciesZero, const int &i) const {
   for (int j = 0; j < MAXSPECBOND; j++) {
@@ -4328,6 +4375,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxFindBondSpeciesZero, co
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxFindBondSpecies, const int &i) const {
   int nj = 0;

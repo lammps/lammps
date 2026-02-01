@@ -214,13 +214,21 @@ void AtomKokkos::sort()
       if (!fix_iextra->sort_device) {
         flag = 0;
         if (comm->me == 0)
-          error->warning(FLERR,"Fix {} not compatible with Kokkos sorting on device", fix_iextra->style);
+          error->warning(FLERR,"Fix {} not (yet) compatible with Kokkos sorting on device", fix_iextra->style);
         break;
       }
     }
     if (!flag) {
       if (comm->me == 0) {
-        error->warning(FLERR,"Fix with atom-based arrays not compatible with Kokkos sorting on device, "
+        error->warning(FLERR,"Fix with atom-based arrays not (yet) compatible with Kokkos sorting on device, "
+                           "switching to legacy host sorting");
+      }
+      sort_legacy = true;
+    }
+
+    if (hybrid_flag) {
+      if (comm->me == 0) {
+        error->warning(FLERR,"Atom_style hybrid not (yet) compatible with Kokkos sorting on device, "
                            "switching to legacy host sorting");
       }
       sort_legacy = true;
@@ -415,12 +423,12 @@ AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sfla
 {
   // check if avec already exists, if so this is a hybrid substyle
 
-  int hybrid_substyle_flag = (avec != nullptr);
+  hybrid_flag = (avec != nullptr);
 
   AtomVec *avec = Atom::new_avec(style, trysuffix, sflag);
   if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a Kokkos-enabled atom_style");
 
-  if (!hybrid_substyle_flag)
+  if (!hybrid_flag)
     avecKK = dynamic_cast<AtomVecKokkos*>(avec);
 
   return avec;

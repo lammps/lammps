@@ -59,6 +59,7 @@ gives those details.
    * :ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>`
    * :ref:`FEP <PKG-FEP>`
    * :ref:`GPU <PKG-GPU>`
+   * :ref:`GRAPHICS <PKG-GRAPHICS>`
    * :ref:`GRANULAR <PKG-GRANULAR>`
    * :ref:`H5MD <PKG-H5MD>`
    * :ref:`INTEL <PKG-INTEL>`
@@ -71,6 +72,7 @@ gives those details.
    * :ref:`MACHDYN <PKG-MACHDYN>`
    * :ref:`MANIFOLD <PKG-MANIFOLD>`
    * :ref:`MANYBODY <PKG-MANYBODY>`
+   * :ref:`MBX <PKG-MBX>`
    * :ref:`MC <PKG-MC>`
    * :ref:`MDI <PKG-MDI>`
    * :ref:`MEAM <PKG-MEAM>`
@@ -363,7 +365,7 @@ fix brownian/asphere <fix_brownian>` as well as
 Dynamics time integration of point, spherical and aspherical particles
 and also support self-propelled particles.
 
-**Authors:** Sam Cameron (University of Bristol),
+**Authors:** Sam Cameron (University of Bristol), Arthur Straube (Zuse Institute Berlin),
 Stefan Paquay (while at Brandeis University) (initial version of fix propel/self)
 
 .. versionadded:: 14May2021
@@ -1063,6 +1065,33 @@ This package has :ref:`specific installation instructions <gpu>` on the
 
 ----------
 
+.. _PKG-GRAPHICS:
+
+GRAPHICS package
+----------------
+
+**Contents:**
+
+Dump styles :doc:`image and movie <dump_image>`, supporting classes for
+rendering images and fonts, several fixes for adding graphics objects to
+visualizations, and the region2vmd command for exporting visualizations
+of regions scripted graphics in VMD.
+
+**Supporting info:**
+
+* ``src/GRAPHICS``: filenames -> commands
+* :doc:`Howto_viz`
+* :doc:`dump image <dump_image>`
+* :doc:`dump movie <dump_image>`
+* :doc:`fix graphics/arrows <fix_graphics_arrows>`
+* :doc:`fix graphics/isosurface <fix_graphics_isosurface>`
+* :doc:`fix graphics/labels <fix_graphics_labels>`,
+* :doc:`fix graphics/objects <fix_graphics_objects>`,
+* :doc:`fix graphics/periodic <fix_graphics_periodic>`,
+* :doc:`region2vmd <region2vmd>`
+
+----------
+
 .. _PKG-GRANULAR:
 
 GRANULAR package
@@ -1506,6 +1535,38 @@ A variety of many-body and bond-order potentials.  These include
 * ``examples/streitz``
 * ``examples/vashishta``
 * bench/in.eam
+
+----------
+
+.. _PKG-MBX:
+
+MBX Package
+-----------
+
+**Contents**
+
+The pair_style mbx command implements the MBX library for
+MB-pol and MB-nrg data-driven many-body potential energy functions. MBX
+is called using :doc:`pair_style mbx <pair_mbx>` command, which
+allow for MB-nrg potentials such as MB-pol to be used in LAMMPS.
+For more information on MBX, see the `MBX library <https://mbxsimulations.com>`_ website.
+
+**Authors:** The `MBX library <https://mbxsimulations.com>`_ is developed
+by the Paesani group at the University of California, San Diego. Major contributors
+include: Marc Riera, Christopher Knight, Ethan Bull-Vulpe, and Henry Agnew.
+
+.. versionadded:: TBD
+
+**Install:**
+
+This package has :ref:`specific installation instructions <mbx>` on the
+:doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* ``src/MBX``: filenames -> commands
+* :doc:`pair_style mbx <pair_mbx>`
+* https://mbxsimulations.com/
 
 ----------
 

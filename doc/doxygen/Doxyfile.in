@@ -8,7 +8,6 @@ PROJECT_LOGO           = lammps-logo.png
 CREATE_SUBDIRS         = NO
 ALLOW_UNICODE_NAMES    = NO
 OUTPUT_LANGUAGE        = English
-OUTPUT_TEXT_DIRECTION  = LTR
 
 BRIEF_MEMBER_DESC      = YES
 REPEAT_BRIEF           = YES
@@ -432,6 +431,8 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/text_file_reader.h        \
                          @LAMMPS_SOURCE_DIR@/potential_file_reader.cpp \
                          @LAMMPS_SOURCE_DIR@/potential_file_reader.h   \
+                         @LAMMPS_SOURCE_DIR@/label_map.cpp             \
+                         @LAMMPS_SOURCE_DIR@/label_map.h               \
                          @LAMMPS_SOURCE_DIR@/my_page.cpp               \
                          @LAMMPS_SOURCE_DIR@/my_page.h                 \
                          @LAMMPS_SOURCE_DIR@/my_pool_chunk.cpp         \

@@ -43,7 +43,6 @@ Pre-processing tools
 .. table_from_list::
    :columns: 6
 
-   * :ref:`amber2lmp <amber>`
    * :ref:`ch2lmp <charmm>`
    * :ref:`chain <chain>`
    * :ref:`createatoms <createatoms>`
@@ -59,6 +58,7 @@ Pre-processing tools
    * :ref:`stl_bin2txt <stlconvert>`
    * :ref:`tabulate <tabulate>`
    * :ref:`tinker <tinker>`
+   * :doc:`AMBER2LAMMPS <Howto_amber2lammps>`
 
 Post-processing tools
 =====================
@@ -66,7 +66,6 @@ Post-processing tools
 .. table_from_list::
    :columns: 6
 
-   * :ref:`amber2lmp <amber>`
    * :ref:`binary2txt <binary>`
    * :ref:`ch2lmp <charmm>`
    * :ref:`colvars <colvars_tools>`
@@ -107,24 +106,6 @@ Miscellaneous tools
 
 Tool descriptions
 =================
-
-.. _amber:
-
-amber2lmp tool
---------------------------
-
-The amber2lmp subdirectory contains three Python scripts for converting
-files back-and-forth between the AMBER MD code and LAMMPS.  See the
-README file in amber2lmp for more information.
-
-These tools were written by Keir Novik while he was at Queen Mary
-University of London.  Keir is no longer there and cannot support
-these tools which are out-of-date with respect to the current LAMMPS
-version (and maybe with respect to AMBER as well).  Since we don't use
-these tools at Sandia, you will need to experiment with them and make
-necessary modifications yourself.
-
-----------
 
 .. _binary:
 

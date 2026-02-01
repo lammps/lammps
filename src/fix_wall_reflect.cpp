@@ -17,9 +17,9 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "dump_image.h"
 #include "error.h"
 #include "fix_wall.h"
+#include "graphics.h"
 #include "input.h"
 #include "lattice.h"
 #include "memory.h"
@@ -149,7 +149,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
     memory->create(imgobjs, nwall, "fix_wall_reflect:imgobjs");
     memory->create(imgparms, nwall, 8, "fix_wall_reflect:imgparms");
     for (int m = 0; m < nwall; ++m) {
-      imgobjs[m] = DumpImage::CYLINDER;
+      imgobjs[m] = Graphics::CYLINDER;
       imgparms[m][0] = 1;    // use color of first atom type by default
     }
   } else {
@@ -157,8 +157,8 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
     memory->create(imgobjs, 2 * nwall, "fix_wall_reflect:imgobjs");
     memory->create(imgparms, 2 * nwall, 10, "fix_wall_reflect:imgparms");
     for (int m = 0; m < nwall; ++m) {
-      imgobjs[2 * m] = DumpImage::TRIANGLE;
-      imgobjs[2 * m + 1] = DumpImage::TRIANGLE;
+      imgobjs[2 * m] = Graphics::TRIANGLE;
+      imgobjs[2 * m + 1] = Graphics::TRIANGLE;
       imgparms[2 * m][0] = 1;        // use color of first atom type by default
       imgparms[2 * m + 1][0] = 1;    // use color of first atom type by default
     }

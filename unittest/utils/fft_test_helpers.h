@@ -163,11 +163,11 @@ public:
 
     // Accessors
     FFT_SCALAR *data() { return data_; }
-    const FFT_SCALAR *data() const { return data_; }
-    int size() const { return size_; }
-    int nfast() const { return nfast_; }
-    int nmid() const { return nmid_; }
-    int nslow() const { return nslow_; }
+    [[nodiscard]] const FFT_SCALAR *data() const { return data_; }
+    [[nodiscard]] int size() const { return size_; }
+    [[nodiscard]] int nfast() const { return nfast_; }
+    [[nodiscard]] int nmid() const { return nmid_; }
+    [[nodiscard]] int nslow() const { return nslow_; }
 
     // Zero all data
     void zero() { std::fill(data_, data_ + size_, 0.0); }
@@ -249,7 +249,7 @@ public:
     }
 
     // Check if input is purely real (for Hermitian symmetry tests)
-    virtual bool is_real_input() const = 0;
+    [[nodiscard]] virtual bool is_real_input() const = 0;
 };
 
 // =============================================================================
@@ -272,7 +272,7 @@ public:
         set_complex(data, 0, 0, 0, nfast, nmid, std::complex<FFT_SCALAR>(amplitude_, 0.0));
     }
 
-    bool is_real_input() const override { return true; }
+    [[nodiscard]] bool is_real_input() const override { return true; }
 
 private:
     FFT_SCALAR amplitude_;
@@ -296,7 +296,7 @@ public:
         }
     }
 
-    bool is_real_input() const override { return true; }
+    [[nodiscard]] bool is_real_input() const override { return true; }
 
 private:
     FFT_SCALAR value_;
@@ -334,7 +334,7 @@ public:
         }
     }
 
-    bool is_real_input() const override { return true; }
+    [[nodiscard]] bool is_real_input() const override { return true; }
 
 private:
     int kx_, ky_, kz_;
@@ -376,7 +376,7 @@ public:
         }
     }
 
-    bool is_real_input() const override { return true; }
+    [[nodiscard]] bool is_real_input() const override { return true; }
 
 private:
     FFT_SCALAR sigma_;
@@ -409,7 +409,7 @@ public:
         }
     }
 
-    bool is_real_input() const override { return false; }
+    [[nodiscard]] bool is_real_input() const override { return false; }
 
 private:
     unsigned int seed_;
@@ -471,9 +471,9 @@ public:
         }
     }
 
-    bool is_real_input() const override { return true; }
+    [[nodiscard]] bool is_real_input() const override { return true; }
 
-    const std::vector<Mode> &get_modes() const { return modes_; }
+    [[nodiscard]] const std::vector<Mode> &get_modes() const { return modes_; }
 
 private:
     std::vector<Mode> modes_;
@@ -504,7 +504,7 @@ public:
     virtual bool validate() = 0;
 
     // Get error statistics from last validation
-    virtual const ErrorStats &get_error_stats() const { return error_stats_; }
+    [[nodiscard]] virtual const ErrorStats &get_error_stats() const { return error_stats_; }
 
     // Enable/disable verbose output
     void set_verbose(bool verbose) { verbose_ = verbose; }

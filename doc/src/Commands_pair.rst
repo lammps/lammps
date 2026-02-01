@@ -198,6 +198,7 @@ OPT.
    * :doc:`lubricate/poly (o) <pair_lubricate>`
    * :doc:`lubricateU <pair_lubricateU>`
    * :doc:`lubricateU/poly <pair_lubricateU>`
+   * :doc:`mbx <pair_mbx>`
    * :doc:`mdpd (g) <pair_mesodpd>`
    * :doc:`mdpd/rhosum <pair_mesodpd>`
    * :doc:`meam (k) <pair_meam>`

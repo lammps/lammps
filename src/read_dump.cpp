@@ -28,6 +28,7 @@
 #include "reader.h"
 #include "style_reader.h"    // IWYU pragma: keep
 #include "update.h"
+#include "math_extra.h"
 
 #include <cstring>
 
@@ -473,7 +474,37 @@ void ReadDump::header(int fieldinfo)
     zlo = box[2][0];
     zhi = box[2][1];
 
-    if (triclinic_snap) {
+    if (triclinic_general){
+      double ax = box[0][0], ay = box[0][1], az = box[0][2];
+      double bx = box[1][0], by = box[1][1], bz = box[1][2];
+      double cx = box[2][0], cy = box[2][1], cz = box[2][2];
+      double avec[3] = {ax, ay, az};
+      double bvec[3] = {bx, by, bz};
+      double cvec[3] = {cx, cy, cz};
+      
+      double originx = box[0][3];
+      double originy = box[1][3];
+      double originz = box[2][3];
+      
+      double aprime[3],bprime[3],cprime[3];
+      double rotate_g2r[3][3];
+      domain->general_to_restricted_rotation(avec,bvec,cvec,rotate_g2r,aprime,bprime,cprime);
+
+      // set restricted triclinic boxlo, boxhi, and tilt factors
+
+      xlo = originx;
+      ylo = originy;
+      ylo = originy;
+
+      xhi = xlo + aprime[0];
+      yhi = ylo + bprime[1];
+      zhi = ylo + cprime[2];
+
+      xy = bprime[0];
+      xz = cprime[0];
+      yz = cprime[1];
+
+    }else if (triclinic_snap) {
       xy = box[0][2];
       xz = box[1][2];
       yz = box[2][2];

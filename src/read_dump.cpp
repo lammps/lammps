@@ -475,12 +475,9 @@ void ReadDump::header(int fieldinfo)
     zhi = box[2][1];
 
     if (triclinic_general){
-      double ax = box[0][0], ay = box[0][1], az = box[0][2];
-      double bx = box[1][0], by = box[1][1], bz = box[1][2];
-      double cx = box[2][0], cy = box[2][1], cz = box[2][2];
-      double avec[3] = {ax, ay, az};
-      double bvec[3] = {bx, by, bz};
-      double cvec[3] = {cx, cy, cz};
+      double avec[3] = {box[0][0], box[0][1], box[0][2]};
+      double bvec[3] = {box[1][0], box[1][1], box[1][2]};
+      double cvec[3] = {box[2][0], box[2][1], box[2][2]};
       
       double originx = box[0][3];
       double originy = box[1][3];

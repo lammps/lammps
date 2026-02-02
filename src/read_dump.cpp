@@ -491,11 +491,11 @@ void ReadDump::header(int fieldinfo)
 
       xlo = originx;
       ylo = originy;
-      ylo = originy;
+      zlo = originz;
 
       xhi = xlo + aprime[0];
       yhi = ylo + bprime[1];
-      zhi = ylo + cprime[2];
+      zhi = zlo + cprime[2];
 
       xy = bprime[0];
       xz = cprime[0];

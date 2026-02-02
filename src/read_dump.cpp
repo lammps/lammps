@@ -459,8 +459,8 @@ void ReadDump::header(int fieldinfo)
     MPI_Bcast(nsnapatoms,nreader,MPI_LMP_BIGINT,0,clustercomm);
     MPI_Bcast(&boxinfo,1,MPI_INT,0,clustercomm);
     MPI_Bcast(&triclinic_snap,1,MPI_INT,0,clustercomm);
-    // MPI_Bcast(&triclinic_general,1,MPI_INT,0,clustercomm);
-    MPI_Bcast(&box[0][0],9,MPI_DOUBLE,0,clustercomm);
+    MPI_Bcast(&triclinic_general,1,MPI_INT,0,clustercomm);
+    MPI_Bcast(&box[0][0],12,MPI_DOUBLE,0,clustercomm);
   }
 
   // local copy of snapshot box parameters

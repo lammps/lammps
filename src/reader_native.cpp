@@ -21,7 +21,6 @@
 #include <cstring>
 #include <exception>
 #include <utility>
-#include <iostream>
 
 using namespace LAMMPS_NS;
 
@@ -256,15 +255,10 @@ bigint ReaderNative::read_header(double box[3][4], int &boxinfo, int &triclinic,
     triclinic_general  = 0;
     box[0][2] = box[1][2] = box[2][2] = 0.0;
     read_lines(1);
-    // if (utils::strmatch(line, R"(ITEM: BOX BOUNDS.*abc\s+origin)")) {
-    //   error->one(FLERR, Error::NOLASTLINE,
-    //              "Dump files in general triclinic format are not (yet) supported");
-    // }
     
     if (utils::strmatch(line, R"(ITEM: BOX BOUNDS.*abc\s+origin)")){
       triclinic_general = 1;
       triclinic = 1;
-      std::cout << "detected triclinic/general format\n";
     } 
     if (utils::strmatch(line, R"(ITEM: BOX BOUNDS.*xy\s+xz\s+yz)")) triclinic = 1;
 

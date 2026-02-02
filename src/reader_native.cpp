@@ -255,11 +255,11 @@ bigint ReaderNative::read_header(double box[3][4], int &boxinfo, int &triclinic,
     triclinic_general  = 0;
     box[0][2] = box[1][2] = box[2][2] = 0.0;
     read_lines(1);
-    
+
     if (utils::strmatch(line, R"(ITEM: BOX BOUNDS.*abc\s+origin)")){
       triclinic_general = 1;
       triclinic = 1;
-    } 
+    }
     if (utils::strmatch(line, R"(ITEM: BOX BOUNDS.*xy\s+xz\s+yz)")) triclinic = 1;
 
     try {

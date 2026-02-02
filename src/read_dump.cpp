@@ -478,11 +478,11 @@ void ReadDump::header(int fieldinfo)
       double avec[3] = {box[0][0], box[0][1], box[0][2]};
       double bvec[3] = {box[1][0], box[1][1], box[1][2]};
       double cvec[3] = {box[2][0], box[2][1], box[2][2]};
-      
+
       double originx = box[0][3];
       double originy = box[1][3];
       double originz = box[2][3];
-      
+
       double aprime[3],bprime[3],cprime[3];
       double rotate_g2r[3][3];
       domain->general_to_restricted_rotation(avec,bvec,cvec,rotate_g2r,aprime,bprime,cprime);

@@ -501,7 +501,7 @@ void ReadDump::header(int fieldinfo)
       xz = cprime[0];
       yz = cprime[1];
 
-    }else if (triclinic_snap) {
+    } else if (triclinic_snap) {
       xy = box[0][2];
       xz = box[1][2];
       yz = box[2][2];

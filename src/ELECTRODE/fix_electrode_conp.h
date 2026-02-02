@@ -111,7 +111,7 @@ class FixElectrodeConp : public Fix {
   double self_energy(int);
   void v_tally(int, int, int, int, double, double, double, double);
   Pair *pair;
-  NeighList *mat_neighlist, *vec_neighlist;
+  NeighList *mat_neighlist, *vec_neighlist, *force_neighlist;
   std::vector<int> etypes;
   void request_etypes_neighlists();
   bool etypes_neighlists;

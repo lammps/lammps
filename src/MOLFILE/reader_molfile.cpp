@@ -178,7 +178,7 @@ void ReaderMolfile::skip()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-bigint ReaderMolfile::read_header(double box[3][3], int &boxinfo, int &triclinic,
+bigint ReaderMolfile::read_header(double box[3][4], int &boxinfo, int &triclinic, int &triclinic_general,
                                   int fieldinfo, int nfield,
                                   int *fieldtype, char ** /* fieldlabel */,
                                   int scaleflag, int wrapflag, int &fieldflag,

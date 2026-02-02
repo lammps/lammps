@@ -35,7 +35,7 @@ class ReaderMolfile : public Reader {
 
   int read_time(bigint &) override;
   void skip() override;
-  bigint read_header(double[3][3], int &, int &, int, int, int *, char **, int, int, int &, int &,
+  bigint read_header(double[3][4], int &, int &, int &, int, int, int *, char **, int, int, int &, int &,
                      int &, int &) override;
   void read_atoms(int, int, double **) override;
 

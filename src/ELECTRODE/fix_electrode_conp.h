@@ -94,6 +94,7 @@ class FixElectrodeConp : public Fix {
   std::string qtotal_var_name;
   int qtotal_var_id;
   VarStyle qtotal_var_style;
+  int n_equal;
 
  private:
   std::string output_file_inv, output_file_mat, output_file_vec;

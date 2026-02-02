@@ -40,6 +40,7 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
+#include "update.h"
 #include "variable.h"
 
 #include <cassert>
@@ -105,6 +106,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   bool predictor_set = false;
   pairflag = false;
   timer_flag = false;
+  n_equal = 0;
 
   update_time = 0;
   mult_time = 0;
@@ -121,6 +123,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   group_psi_const = std::vector<double>(1);
   etypes_neighlists = false;
   if (strstr(arg[3], "v_") == arg[3]) {
+    n_equal += 1;
     std::string vname = arg[3];
     group_psi_var_names[0] = vname.substr(2);
     group_psi_var_styles[0] = VarStyle::EQUAL;
@@ -138,6 +141,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
       group_bits.push_back(group->bitmask[id]);
       ++iarg;
       if (strstr(arg[iarg], "v_") == arg[iarg]) {
+        n_equal += 1;
         std::string vname = arg[iarg];
         group_psi_var_names.push_back(vname.substr(2));
         group_psi_var_styles.push_back(VarStyle::EQUAL);
@@ -208,6 +212,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg) error->all(FLERR, "Need one argument after qtotal keyword");
       ++iarg;
       if (strstr(arg[iarg], "v_") == arg[iarg]) {
+        n_equal += 1;
         std::string vname = arg[iarg];
         qtotal_var_name = vname.substr(2);
         qtotal_var_style = VarStyle::EQUAL;
@@ -766,6 +771,7 @@ void FixElectrodeConp::update_charges()
 {
   MPI_Barrier(world);
   double start = MPI_Wtime();
+  if (n_equal) modify->clearstep_compute();
   if (atom->nmax > nmax) {
     memory->destroy(potential_i);
     nmax = atom->nmax;
@@ -778,6 +784,7 @@ void FixElectrodeConp::update_charges()
   charge_solver->set_elyt_pot(potential_i);
   update_psi_set_constraint();
   set_charges(charge_solver->solve(group_psi));
+  if (n_equal) modify->addstep_compute(update->ntimestep + 1);
   MPI_Barrier(world);
   update_time += MPI_Wtime() - start;
 }

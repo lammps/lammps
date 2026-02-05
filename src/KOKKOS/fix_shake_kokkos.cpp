@@ -2260,6 +2260,18 @@ int FixShakeKokkos<DeviceType>::closest_image(const int i, int j) const
   return closest;
 }
 
+/* ----------------------------------------------------------------------
+   Update atom IDs in SHAKE clusters
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixShakeKokkos<DeviceType>::update_ids(double **newIDs)
+{
+  k_shake_atom.sync_host();
+  FixShake::update_ids(newIDs);
+  k_shake_atom.modify_host();
+}
+
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {

@@ -26,6 +26,8 @@ Syntax
        *respa* value = *1* to *max respa level* or *0* (for outermost level)
        *temp* value = compute ID that calculates a temperature
        *virial* value = *yes* or *no*
+       *vizsteps* value = number of MD steps that generated graphics objects should remain visible for fixes that support it
+
 
 Examples
 """"""""
@@ -35,6 +37,7 @@ Examples
    fix_modify 3 temp myTemp press myPress
    fix_modify 1 energy yes
    fix_modify tether respa 2
+   fix_modify myrxns vizsteps 100
 
 Description
 """""""""""
@@ -179,6 +182,14 @@ is padded with leading zeroes so they are all the same length = *Nchar*\
 be useful so that post-processing programs can easily read the files in
 ascending timestep order.  Please see the documentation of the individual
 fix styles if this keyword is supported.
+
+.. versionadded:: TBD
+
+The *vizsteps* keyword only applies when a fix produces event based
+graphics objects, e.g. atoms that were involved in a reaction or a Monte
+Carlo swap, move, or insert.  It determines for how many time steps the
+graphics objects will remain visible in the corresponding :doc:`dump
+image output <dump_image>`.
 
 Restrictions
 """"""""""""

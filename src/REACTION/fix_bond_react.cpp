@@ -26,6 +26,7 @@ Contributing Author: Jacob Gissinger (jgissing@stevens.edu)
 #include "error.h"
 #include "fix_bond_history.h"
 #include "force.h"
+#include "graphics.h"
 #include "group.h"
 #include "input.h"
 #include "label_map.h"
@@ -92,7 +93,7 @@ static const char cite_fix_bond_react[] =
 // clang-format off
 
 FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), imgobjs(nullptr), imgparms(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_bond_react);
 
@@ -156,6 +157,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR, Error::NOLASTLINE, "Fix bond/react is missing mandatory 'react' keyword");
 
   size_vector = nrxns;
+  vizsteps = 1000;
 
   int iarg = 3;
   stabilization_flag = 0;
@@ -256,6 +258,11 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
         fprintf(fpout, "    \"timesteps\": [\n");
         fflush(fpout);
       }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"vizsteps") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("Fix bond/react ") + arg[iarg], error);
+      vizsteps = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"react") == 0) {
       break;
@@ -661,6 +668,22 @@ FixBondReact::~FixBondReact()
     group->assign(master_group + " delete");
     if (stabilization_flag == 1) group->assign(exclude_group + " delete");
   }
+
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixBondReact::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"vizsteps") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify bond/react", error);
+    vizsteps = utils::inumeric(FLERR, arg[1], false, lmp);
+    return 2;
+  }
+
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3835,6 +3858,15 @@ void FixBondReact::update_everything()
     }
   }
 
+  // record atoms involved in a reaction and update viz arrays
+  if (vizsteps > 0) {
+    for (int i = 0; i < atom->nlocal; ++i) {
+      if (i_rxn_instance[i] > 0) {
+        vizatoms[atom->tag[i]] = vizsteps;
+      }
+    }
+  }
+
   memory->destroy(update_mega_glove);
   if (rescale_charges_anyflag) memory->destroy(sim_total_charges);
 
@@ -4646,6 +4678,20 @@ void FixBondReact::post_integrate_respa(int ilevel, int /*iloop*/)
 void FixBondReact::post_force(int /*vflag*/)
 {
   if (molid_mode == Reset_Mol_IDs::YES) reset_mol_ids->reset();
+
+  // if visualization support is enabled, age vizatoms and remove expired ones
+  if (vizsteps > 0) {
+    std::vector<tagint> eraseme;
+    for (const auto &[key, value] : vizatoms) {
+      int idx = atom->map(key);
+      if ((idx < 0) || (value < 0)) {
+        eraseme.push_back(key);
+        continue;
+      }
+      vizatoms[key] = value - 1;
+    }
+    for (const auto &key : eraseme) vizatoms.erase(key);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -4925,4 +4971,40 @@ for (int i = 0; i < atom->nlocal; i++) {
   // printf("\n");
 }
 #endif
+}
+
+/* ----------------------------------------------------------------------
+   provide graphics information to dump image to render spheres
+   at the location of atoms that were involved in a reaction
+------------------------------------------------------------------------- */
+
+int FixBondReact::image(int *&objs, double **&parms)
+{
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
+
+  int numobjs = vizatoms.size();
+  int n = 0;
+  if (numobjs > 0) {
+    memory->create(imgobjs, numobjs, "bond/react:imgobjs");
+    memory->create(imgparms, numobjs, 5, "bond/react:imgparms");
+
+    int idx;
+    const auto *const type = atom->type;
+    const auto *const *const x = atom->x;
+    for (const auto &[key, value] : vizatoms) {
+      idx = atom->map(key);
+      if (idx < 0) continue;
+      imgobjs[n] = Graphics::SPHERE;
+      imgparms[n][0] = type[idx];
+      imgparms[n][1] = x[idx][0];
+      imgparms[n][2] = x[idx][1];
+      imgparms[n][3] = x[idx][2];
+      imgparms[n][4] = 0.0;     // radius is set with fflag2 in dump image
+      ++n;
+    }
+  }
+  objs = imgobjs;
+  parms = imgparms;
+  return n;
 }

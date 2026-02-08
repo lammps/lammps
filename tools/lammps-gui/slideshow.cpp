@@ -155,6 +155,14 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     maxwidth     = maxsize.width();
 
     setLayout(mainLayout);
+
+    // set window flags for window manager
+    auto flags = windowFlags();
+    flags &= ~Qt::Dialog;
+    flags |= Qt::CustomizeWindowHint;
+    flags |= Qt::WindowMinimizeButtonHint;
+    flags &= ~Qt::WindowMaximizeButtonHint;
+    setWindowFlags(flags);
 }
 
 void SlideShow::add_image(const QString &filename)

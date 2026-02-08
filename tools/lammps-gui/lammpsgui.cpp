@@ -512,6 +512,14 @@ LammpsGui::LammpsGui(QWidget *parent, const QString &filename, int width, int he
     auto https_proxy = QString::fromLocal8Bit(qgetenv("https_proxy"));
     if (https_proxy.isEmpty()) https_proxy = settings.value("https_proxy", "").toString();
     if (!https_proxy.isEmpty()) lammps.command(QString("shell putenv https_proxy=") + https_proxy);
+
+    // set window flags for window manager
+    auto flags = windowFlags();
+    flags &= ~Qt::Dialog;
+    flags |= Qt::CustomizeWindowHint;
+    flags |= Qt::WindowMinimizeButtonHint;
+    flags &= ~Qt::WindowMaximizeButtonHint;
+    setWindowFlags(flags);
 }
 
 LammpsGui::~LammpsGui()

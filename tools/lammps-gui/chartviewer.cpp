@@ -218,6 +218,14 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
 
     installEventFilter(this);
     resize(settings.value("chartx", 640).toInt(), settings.value("charty", 480).toInt());
+
+    // set window flags for window manager
+    auto flags = windowFlags();
+    flags &= ~Qt::Dialog;
+    flags |= Qt::CustomizeWindowHint;
+    flags |= Qt::WindowMinimizeButtonHint;
+    flags &= ~Qt::WindowMaximizeButtonHint;
+    setWindowFlags(flags);
 }
 
 int ChartWindow::get_step() const

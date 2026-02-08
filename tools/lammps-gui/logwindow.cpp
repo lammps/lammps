@@ -88,6 +88,14 @@ LogWindow::LogWindow(const QString &_filename, QWidget *parent) :
     connect(action, &QShortcut::activated, this, &LogWindow::stop_run);
 
     installEventFilter(this);
+
+    // set window flags for window manager
+    auto flags = windowFlags();
+    flags &= ~Qt::Dialog;
+    flags |= Qt::CustomizeWindowHint;
+    flags |= Qt::WindowMinimizeButtonHint;
+    flags &= ~Qt::WindowMaximizeButtonHint;
+    setWindowFlags(flags);
 }
 
 LogWindow::~LogWindow()

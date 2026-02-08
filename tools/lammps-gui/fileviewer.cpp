@@ -104,6 +104,14 @@ FileViewer::FileViewer(const QString &_filename, const QString &title, QWidget *
         setWindowTitle("LAMMPS-GUI - Viewer - " + fileName);
     else
         setWindowTitle(title);
+
+    // set window flags for window manager
+    auto flags = windowFlags();
+    flags &= ~Qt::Dialog;
+    flags |= Qt::CustomizeWindowHint;
+    flags |= Qt::WindowMinimizeButtonHint;
+    flags &= ~Qt::WindowMaximizeButtonHint;
+    setWindowFlags(flags);
 }
 
 void FileViewer::quit()

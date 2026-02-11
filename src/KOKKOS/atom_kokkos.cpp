@@ -117,7 +117,9 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_duChem, duChem);
 
   memoryKK->destroy_kokkos(k_dvector, dvector);
+  memoryKK->destroy_kokkos(k_ivector, ivector);
   dvector = nullptr;
+  ivector = nullptr;
   delete [] fix_prop_atom;
 }
 
@@ -324,7 +326,9 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols, int ghost)
     ivghost = (int *) memory->srealloc(ivghost,nivector * sizeof(int),"atom:ivghost");
     ivghost[index] = ghost;
     ivector = (int **) memory->srealloc(ivector, nivector * sizeof(int *), "atom:ivector");
-    memory->create(ivector[index], nmax, "atom:ivector");
+    this->sync(Device, IVECTOR_MASK);
+    memoryKK->grow_kokkos(k_ivector, ivector, nivector, nmax, "atom:ivector");
+    this->modified(Device, IVECTOR_MASK);
 
   } else if (flag == 1 && cols == 0) {
     index = ndvector;

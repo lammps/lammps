@@ -39,6 +39,7 @@ class FixPropertyAtomKokkos : public FixPropertyAtom {
 
  private:
   int dvector_flag;
+  int ivector_flag;
 };
 
 }

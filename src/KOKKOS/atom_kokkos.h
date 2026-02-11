@@ -64,6 +64,9 @@ class AtomKokkos : public Atom {
   DAT::ttransform_kkfloat_2d k_dvector;
   DAT::ttransform_int_2d k_ivector;
 
+  std::vector<DAT::ttransform_kkfloat_2d> k_darray;
+  std::vector<DAT::ttransform_int_2d> k_iarray;
+
   // SPIN package
 
   DAT::ttransform_kkfloat_1d_4 k_sp;

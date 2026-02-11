@@ -118,8 +118,17 @@ AtomKokkos::~AtomKokkos()
 
   memoryKK->destroy_kokkos(k_dvector, dvector);
   memoryKK->destroy_kokkos(k_ivector, ivector);
-  dvector = nullptr;
-  ivector = nullptr;
+
+  auto d = k_darray.size();
+  while(d--) {
+    memoryKK->destroy_kokkos(k_darray[d], darray[d]);
+  }
+
+  auto i = k_iarray.size();
+  while(i--) {
+    memoryKK->destroy_kokkos(k_iarray[d], iarray[i]);
+  }
+
   delete [] fix_prop_atom;
 }
 
@@ -350,7 +359,11 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols, int ghost)
     iaghost = (int *) memory->srealloc(iaghost, niarray * sizeof(int), "atom:iaghost");
     iaghost[index] = ghost;
     iarray = (int ***) memory->srealloc(iarray, niarray * sizeof(int **), "atom:iarray");
-    memory->create(iarray[index], nmax, cols, "atom:iarray");
+    auto name = fmt::format("atom:iarray[{}]", index);
+    k_iarray.emplace_back(name, nmax, cols);
+    this->sync(Device, IARRAY_MASK);
+    memoryKK->grow_kokkos(k_iarray[index], iarray[index], nmax, cols, name.c_str());
+    this->modified(Device, IARRAY_MASK);
 
     icols = (int *) memory->srealloc(icols, niarray * sizeof(int), "atom:icols");
     icols[index] = cols;
@@ -363,7 +376,11 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols, int ghost)
     daghost = (int *) memory->srealloc(daghost, ndarray * sizeof(int), "atom:daghost");
     daghost[index] = ghost;
     darray = (double ***) memory->srealloc(darray, ndarray * sizeof(double **), "atom:darray");
-    memory->create(darray[index], nmax, cols, "atom:darray");
+    auto name = fmt::format("atom:darray[{}]", index);
+    k_darray.emplace_back(name, nmax, cols);
+    this->sync(Device, DARRAY_MASK);
+    memoryKK->grow_kokkos(k_darray[index], darray[index], nmax, cols, name.c_str());
+    this->modified(Device, DARRAY_MASK);
 
     dcols = (int *) memory->srealloc(dcols, ndarray * sizeof(int), "atom:dcols");
     dcols[index] = cols;

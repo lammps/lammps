@@ -170,6 +170,7 @@ void CommTiledKokkos::forward_comm_device()
         for (i = 0; i < nrecv; i++) {
           buf = atomKK->k_x.view<DeviceType>().data() +
             firstrecv[iswap][i]*atomKK->k_x.view<DeviceType>().extent(1);
+          DeviceType().fence();
           MPI_Irecv(buf,size_forward_recv[iswap][i],
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
         }
@@ -187,15 +188,18 @@ void CommTiledKokkos::forward_comm_device()
         auto k_sendlist_small = Kokkos::subview(k_sendlist,iswap,nsend,Kokkos::ALL);
         atomKK->avecKK->pack_comm_self(sendnum[iswap][nsend],k_sendlist_small,
                         firstrecv[iswap][nrecv],pbc_flag[iswap][nsend],pbc[iswap][nsend]);
+      }
+      if (recvother[iswap]) {
+        MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
         DeviceType().fence();
       }
-      if (recvother[iswap]) MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
 
     } else if (ghost_velocity) {
       if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {
           buf = k_buf_recv.view<DeviceType>().data() +
             forward_recv_offset[iswap][i]*k_buf_recv.view<DeviceType>().extent(1);
+          DeviceType().fence();
           MPI_Irecv(buf,
                     size_forward_recv[iswap][i],MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
         }
@@ -214,17 +218,15 @@ void CommTiledKokkos::forward_comm_device()
         auto k_sendlist_small = Kokkos::subview(k_sendlist,iswap,nsend,Kokkos::ALL);
         atomKK->avecKK->pack_comm_vel_kokkos(sendnum[iswap][nsend],k_sendlist_small,
                             k_buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
-        DeviceType().fence();
         atomKK->avecKK->unpack_comm_vel_kokkos(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],k_buf_send);
-        DeviceType().fence();
       }
       if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {
           MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
+          DeviceType().fence();
           auto k_buf_recv_offset = Kokkos::subview(k_buf_recv,std::pair<int,int>(forward_recv_offset[iswap][irecv],(int)k_buf_recv.extent(0)),Kokkos::ALL);
           atomKK->avecKK->unpack_comm_vel_kokkos(recvnum[iswap][irecv],firstrecv[iswap][irecv],
                                 k_buf_recv_offset);
-          DeviceType().fence();
         }
       }
 
@@ -233,6 +235,7 @@ void CommTiledKokkos::forward_comm_device()
         for (i = 0; i < nrecv; i++) {
           buf = k_buf_recv.view<DeviceType>().data() +
             forward_recv_offset[iswap][i]*k_buf_recv.view<DeviceType>().extent(1);
+          DeviceType().fence();
           MPI_Irecv(buf,
                     size_forward_recv[iswap][i],MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
         }
@@ -250,15 +253,14 @@ void CommTiledKokkos::forward_comm_device()
         auto k_sendlist_small = Kokkos::subview(k_sendlist,iswap,nsend,Kokkos::ALL);
         n = atomKK->avecKK->pack_comm_kokkos(sendnum[iswap][nsend],k_sendlist_small,
                         k_buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
-        DeviceType().fence();
       }
       if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {
           MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
+          DeviceType().fence();
           auto k_buf_recv_offset = Kokkos::subview(k_buf_recv,std::pair<int,int>(forward_recv_offset[iswap][irecv],(int)k_buf_recv.extent(0)),Kokkos::ALL);
           atomKK->avecKK->unpack_comm_kokkos(recvnum[iswap][irecv],firstrecv[iswap][irecv],
                                    k_buf_recv_offset);
-          DeviceType().fence();
         }
       }
     }
@@ -319,6 +321,7 @@ void CommTiledKokkos::reverse_comm_device()
         for (i = 0; i < nsend; i++) {
           buf = k_buf_recv.view<DeviceType>().data() +
             reverse_recv_offset[iswap][i]*k_buf_recv.view<DeviceType>().extent(1);
+          DeviceType().fence();
           MPI_Irecv(buf,
                     size_reverse_recv[iswap][i],MPI_DOUBLE,sendproc[iswap][i],0,world,&requests[i]);
         }
@@ -327,6 +330,7 @@ void CommTiledKokkos::reverse_comm_device()
         for (i = 0; i < nrecv; i++) {
           buf = atomKK->k_f.view<DeviceType>().data() +
             firstrecv[iswap][i]*atomKK->k_f.view<DeviceType>().extent(1);
+          DeviceType().fence();
           MPI_Send(buf,size_reverse_send[iswap][i],
                    MPI_DOUBLE,recvproc[iswap][i],0,world);
         }
@@ -335,16 +339,15 @@ void CommTiledKokkos::reverse_comm_device()
         auto k_sendlist_small = Kokkos::subview(k_sendlist,iswap,nsend,Kokkos::ALL);
         atomKK->avecKK->pack_reverse_self(sendnum[iswap][nsend],k_sendlist_small,
                              firstrecv[iswap][nrecv]);
-        DeviceType().fence();
       }
       if (sendother[iswap]) {
         for (i = 0; i < nsend; i++) {
           MPI_Waitany(nsend,requests,&irecv,MPI_STATUS_IGNORE);
+          DeviceType().fence();
           auto k_sendlist_small = Kokkos::subview(k_sendlist,iswap,irecv,Kokkos::ALL);
           auto k_buf_recv_offset = Kokkos::subview(k_buf_recv,std::pair<int,int>(reverse_recv_offset[iswap][irecv],(int)k_buf_recv.extent(0)),Kokkos::ALL);
           atomKK->avecKK->unpack_reverse_kokkos(sendnum[iswap][irecv],k_sendlist_small,
                                       k_buf_recv_offset);
-          DeviceType().fence();
         }
       }
 
@@ -353,6 +356,7 @@ void CommTiledKokkos::reverse_comm_device()
         for (i = 0; i < nsend; i++) {
           buf = k_buf_recv.view<DeviceType>().data() +
             reverse_recv_offset[iswap][i]*k_buf_recv.view<DeviceType>().extent(1);
+          DeviceType().fence();
           MPI_Irecv(buf,
                     size_reverse_recv[iswap][i],MPI_DOUBLE,sendproc[iswap][i],0,world,&requests[i]);
         }
@@ -367,18 +371,16 @@ void CommTiledKokkos::reverse_comm_device()
       if (sendself[iswap]) {
         auto k_sendlist_small = Kokkos::subview(k_sendlist,iswap,nsend,Kokkos::ALL);
         atomKK->avecKK->pack_reverse_kokkos(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],k_buf_send);
-        DeviceType().fence();
         atomKK->avecKK->unpack_reverse_kokkos(sendnum[iswap][nsend],k_sendlist_small,k_buf_send);
-        DeviceType().fence();
       }
       if (sendother[iswap]) {
         for (i = 0; i < nsend; i++) {
           MPI_Waitany(nsend,requests,&irecv,MPI_STATUS_IGNORE);
+          DeviceType().fence();
           auto k_sendlist_small = Kokkos::subview(k_sendlist,iswap,irecv,Kokkos::ALL);
           auto k_buf_recv_offset = Kokkos::subview(k_buf_recv,std::pair<int,int>(reverse_recv_offset[iswap][irecv],(int)k_buf_recv.extent(0)),Kokkos::ALL);
           atomKK->avecKK->unpack_reverse_kokkos(sendnum[iswap][irecv],k_sendlist_small,
                                k_buf_recv_offset);
-          DeviceType().fence();
         }
       }
     }

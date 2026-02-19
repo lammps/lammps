@@ -1107,6 +1107,10 @@ void LammpsGui::quit()
         settings.setValue("mainy", height());
     }
     settings.sync();
+
+    auto *clip = QGuiApplication::clipboard();
+    clip->clear();
+
     // quit application
     QCoreApplication::quit();
 }

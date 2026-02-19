@@ -518,7 +518,7 @@ LammpsGui::LammpsGui(QWidget *parent, const QString &filename, int width, int he
     flags &= ~Qt::Dialog;
     flags |= Qt::CustomizeWindowHint;
     flags |= Qt::WindowMinimizeButtonHint;
-    flags &= ~Qt::WindowMaximizeButtonHint;
+    flags |= Qt::WindowMaximizeButtonHint;
     setWindowFlags(flags);
 }
 

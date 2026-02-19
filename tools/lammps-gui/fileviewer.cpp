@@ -110,7 +110,12 @@ FileViewer::FileViewer(const QString &_filename, const QString &title, QWidget *
     flags &= ~Qt::Dialog;
     flags |= Qt::CustomizeWindowHint;
     flags |= Qt::WindowMinimizeButtonHint;
+    // must add maximize button for macOS to allow resizing, but remove on other platforms
+#if defined(Q_OS_MACOS)
+    flags |= Qt::WindowMaximizeButtonHint;
+#else
     flags &= ~Qt::WindowMaximizeButtonHint;
+#endif
     setWindowFlags(flags);
 }
 

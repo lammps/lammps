@@ -46,6 +46,7 @@
 #include <cfloat>
 #include <cmath>
 #include <cstring>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -93,6 +94,9 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   memory->create(type_list, atom->ntypes, "atom/swap:type_list");
   memory->create(mu, atom->ntypes + 1, "atom/swap:mu");
   for (int i = 0; i <= atom->ntypes; i++) mu[i] = 0.0;
+
+  // default value for multi-swap count
+  nswap_count = 1;
 
   // read options from end of input line
 
@@ -198,6 +202,12 @@ void FixAtomSwap::options(int narg, char **arg)
         mu[nmutypes] = utils::numeric(FLERR, arg[iarg], false, lmp);
         iarg++;
       }
+    } else if (strcmp(arg[iarg], "swap_count") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix atom/swap command");
+      nswap_count = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (nswap_count < 1)
+        error->all(FLERR, "Illegal fix atom/swap command: swap_count must be >= 1");
+      iarg += 2;
     } else
       error->all(FLERR, "Illegal fix atom/swap command");
   }
@@ -560,35 +570,83 @@ int FixAtomSwap::attempt_semi_grand()
 }
 
 /* ----------------------------------------------------------------------
-   attempt a swap of a pair of atoms
-   compare before/after energy and accept/reject the swap
+   attempt a swap of one or more pairs of atoms
+   nswap_count pairs are selected and swapped atomically as a single MC move
+   compare before/after total energy and accept/reject via Metropolis criterion
 ------------------------------------------------------------------------- */
 
 int FixAtomSwap::attempt_swap()
 {
-  if ((niswap == 0) || (njswap == 0)) return 0;
+  if ((niswap < nswap_count) || (njswap < nswap_count)) return 0;
 
   // pre-swap energy
 
   double energy_before = energy_stored;
 
-  // pick a random pair of atoms
-  // swap their properties
-
-  int i = pick_i_swap_atom();
-  int j = pick_j_swap_atom();
   int itype = type_list[0];
   int jtype = type_list[1];
 
-  if (i >= 0) {
-    atom->type[i] = jtype;
-    if (atom->q_flag) atom->q[i] = qtype[1];
-    if (atom->rmass != nullptr) atom->rmass[i] = mtype[1];
+  // pick nswap_count distinct i-type and j-type atoms
+  // local index is -1 when the atom resides on another proc
+
+  std::vector<int> i_picks(nswap_count, -1);
+  std::vector<int> j_picks(nswap_count, -1);
+  std::vector<int> i_global_picks;
+  std::vector<int> j_global_picks;
+  i_global_picks.reserve(nswap_count);
+  j_global_picks.reserve(nswap_count);
+
+  for (int k = 0; k < nswap_count; k++) {
+    int iwhichglobal;
+    bool is_dup;
+    do {
+      iwhichglobal = static_cast<int>(niswap * random_equal->uniform());
+      is_dup = false;
+      for (int prev : i_global_picks)
+        if (prev == iwhichglobal) {
+          is_dup = true;
+          break;
+        }
+    } while (is_dup);
+    i_global_picks.push_back(iwhichglobal);
+    if ((iwhichglobal >= niswap_before) && (iwhichglobal < niswap_before + niswap_local))
+      i_picks[k] = local_swap_iatom_list[iwhichglobal - niswap_before];
   }
-  if (j >= 0) {
-    atom->type[j] = itype;
-    if (atom->q_flag) atom->q[j] = qtype[0];
-    if (atom->rmass != nullptr) atom->rmass[j] = mtype[0];
+
+  for (int k = 0; k < nswap_count; k++) {
+    int jwhichglobal;
+    bool is_dup;
+    do {
+      jwhichglobal = static_cast<int>(njswap * random_equal->uniform());
+      is_dup = false;
+      for (int prev : j_global_picks)
+        if (prev == jwhichglobal) {
+          is_dup = true;
+          break;
+        }
+    } while (is_dup);
+    j_global_picks.push_back(jwhichglobal);
+    if ((jwhichglobal >= njswap_before) && (jwhichglobal < njswap_before + njswap_local))
+      j_picks[k] = local_swap_jatom_list[jwhichglobal - njswap_before];
+  }
+
+  // swap types (and charges/masses) of all selected atoms
+
+  for (int k = 0; k < nswap_count; k++) {
+    int i = i_picks[k];
+    if (i >= 0) {
+      atom->type[i] = jtype;
+      if (atom->q_flag) atom->q[i] = qtype[1];
+      if (atom->rmass != nullptr) atom->rmass[i] = mtype[1];
+    }
+  }
+  for (int k = 0; k < nswap_count; k++) {
+    int j = j_picks[k];
+    if (j >= 0) {
+      atom->type[j] = itype;
+      if (atom->q_flag) atom->q[j] = qtype[0];
+      if (atom->rmass != nullptr) atom->rmass[j] = mtype[0];
+    }
   }
 
   // if unequal_cutoffs, call comm->borders() and rebuild neighbor list
@@ -617,20 +675,28 @@ int FixAtomSwap::attempt_swap()
   if (random_equal->uniform() < exp(beta * (energy_before - energy_after))) {
     update_swap_atoms_list();
     if (ke_flag) {
-      if (i >= 0) {
-        atom->v[i][0] *= sqrt_mass_ratio[itype][jtype];
-        atom->v[i][1] *= sqrt_mass_ratio[itype][jtype];
-        atom->v[i][2] *= sqrt_mass_ratio[itype][jtype];
-      }
-      if (j >= 0) {
-        atom->v[j][0] *= sqrt_mass_ratio[jtype][itype];
-        atom->v[j][1] *= sqrt_mass_ratio[jtype][itype];
-        atom->v[j][2] *= sqrt_mass_ratio[jtype][itype];
+      for (int k = 0; k < nswap_count; k++) {
+        int i = i_picks[k];
+        if (i >= 0) {
+          atom->v[i][0] *= sqrt_mass_ratio[itype][jtype];
+          atom->v[i][1] *= sqrt_mass_ratio[itype][jtype];
+          atom->v[i][2] *= sqrt_mass_ratio[itype][jtype];
+        }
+        int j = j_picks[k];
+        if (j >= 0) {
+          atom->v[j][0] *= sqrt_mass_ratio[jtype][itype];
+          atom->v[j][1] *= sqrt_mass_ratio[jtype][itype];
+          atom->v[j][2] *= sqrt_mass_ratio[jtype][itype];
+        }
       }
       // record atoms for which the type was swapped and store the old types
       if (vizsteps > 0) {
-        vizatoms[atom->tag[i]] = std::make_pair(vizsteps, jtype);
-        vizatoms[atom->tag[j]] = std::make_pair(vizsteps, itype);
+        for (int k = 0; k < nswap_count; k++) {
+          int i = i_picks[k];
+          int j = j_picks[k];
+          if (i >= 0) vizatoms[atom->tag[i]] = std::make_pair(vizsteps, jtype);
+          if (j >= 0) vizatoms[atom->tag[j]] = std::make_pair(vizsteps, itype);
+        }
       }
     }
     energy_stored = energy_after;
@@ -642,15 +708,19 @@ int FixAtomSwap::attempt_swap()
   // do not need to re-call comm->borders() and rebuild neighbor list
   //   since will be done on next cycle or in Verlet when this fix finishes
 
-  if (i >= 0) {
-    atom->type[i] = type_list[0];
-    if (atom->q_flag) atom->q[i] = qtype[0];
-    if (atom->rmass != nullptr) atom->rmass[i] = mtype[0];
-  }
-  if (j >= 0) {
-    atom->type[j] = type_list[1];
-    if (atom->q_flag) atom->q[j] = qtype[1];
-    if (atom->rmass != nullptr) atom->rmass[j] = mtype[1];
+  for (int k = 0; k < nswap_count; k++) {
+    int i = i_picks[k];
+    if (i >= 0) {
+      atom->type[i] = type_list[0];
+      if (atom->q_flag) atom->q[i] = qtype[0];
+      if (atom->rmass != nullptr) atom->rmass[i] = mtype[0];
+    }
+    int j = j_picks[k];
+    if (j >= 0) {
+      atom->type[j] = type_list[1];
+      if (atom->q_flag) atom->q[j] = qtype[1];
+      if (atom->rmass != nullptr) atom->rmass[j] = mtype[1];
+    }
   }
 
   return 0;

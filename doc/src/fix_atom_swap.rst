@@ -17,7 +17,7 @@ Syntax
 * seed = random # seed (positive integer)
 * T = scaling temperature of the MC swaps (temperature units)
 * one or more keyword/value pairs may be appended to args
-* keyword = *types* or *mu* or *ke* or *semi-grand* or *region*
+* keyword = *types* or *mu* or *ke* or *semi-grand* or *region* or *swap_count*
 
   .. parsed-literal::
 
@@ -31,6 +31,8 @@ Syntax
          *yes* = semi-grand canonical ensemble, particle fractions not conserved
        *region* value = region-ID
          region-ID = ID of region to use as an exchange/move volume
+       *swap_count* value = N
+         N = number of atom pairs to include in each MC move (positive integer)
 
 Examples
 """"""""
@@ -40,6 +42,7 @@ Examples
    fix 2 all atom/swap 1 1 29494 300.0 ke no types 1 2
    fix myFix all atom/swap 100 1 12345 298.0 region my_swap_region types 5 6
    fix SGMC all atom/swap 1 100 345 1.0 semi-grand yes types 1 2 3 mu 0.0 4.3 -5.0
+   fix multiSwap all atom/swap 1 1 29494 300.0 types 1 2 swap_count 5
 
 Description
 """""""""""
@@ -109,6 +112,19 @@ volume.  The specified region must have been previously defined with a
 :doc:`region <region>` command.  It must be defined with side = *in*\ .
 Swap attempts occur only between atoms that are both within the
 specified region. Swaps are not otherwise attempted.
+
+.. versionchanged:: TBD
+
+The *swap_count* keyword sets the number of atom pairs that are swapped
+atomically in a single MC move.  The default value of 1 reproduces the
+original single-pair behavior.  When *swap_count* is set to *N* > 1,
+each MC trial selects *N* distinct atoms of the first swap type and *N*
+distinct atoms of the second swap type and swaps all of them
+simultaneously before evaluating the total system energy.  The move is
+the accepted or rejected as a whole based on the Metropolis criterion
+applied to the total energy change.  This is not compatible with
+*semi-grand*.  The number of eligible atoms of each swap type must be
+at least *N*; if not, the swap attempt is silently skipped.
 
 You should ensure you do not swap atoms belonging to a molecule, or
 LAMMPS will eventually generate an error when it tries to find those
@@ -244,7 +260,7 @@ Default
 """""""
 
 The option defaults are *ke* = yes, *semi-grand* = no, *mu* = 0.0 for
-all atom types.
+all atom types, *swap_count* = 1.
 
 ----------
 

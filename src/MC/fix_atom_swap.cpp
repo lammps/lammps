@@ -97,6 +97,7 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
 
   // default value for multi-swap count
   nswap_count = 1;
+  noforce_flag = 0;
 
   // read options from end of input line
 
@@ -207,6 +208,10 @@ void FixAtomSwap::options(int narg, char **arg)
       nswap_count = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       if (nswap_count < 1)
         error->all(FLERR, "Illegal fix atom/swap command: swap_count must be >= 1");
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "noforce") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix atom/swap command");
+      noforce_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
       error->all(FLERR, "Illegal fix atom/swap command");
@@ -737,7 +742,9 @@ double FixAtomSwap::energy_full()
 
   if (modify->n_pre_force) modify->pre_force(vflag);
 
+  if (noforce_flag && force->pair) force->pair->energy_only = 1;
   if (force->pair) force->pair->compute(eflag, vflag);
+  if (noforce_flag && force->pair) force->pair->energy_only = 0;
 
   if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag, vflag);

@@ -90,6 +90,7 @@ class Pair : protected Pointers {
   int evflag;    // energy,virial settings
   int eflag_either, eflag_global, eflag_atom;
   int vflag_either, vflag_global, vflag_atom, cvflag_atom;
+  int energy_only;    // flag: skip force accumulation (MC energy-only eval)
 
   int ncoultablebits;    // size of Coulomb table, accessed by KSpace
   int ndisptablebits;    // size of dispersion table

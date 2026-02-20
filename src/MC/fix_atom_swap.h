@@ -51,6 +51,7 @@ class FixAtomSwap : public Fix {
   int semi_grand_flag;    // yes = semi-grand canonical, no = constant composition
   int ncycles;
   int nswap_count;             // number of atom pairs to swap per MC move
+  int noforce_flag;            // 1 = skip force accumulation during MC energy evals
   int niswap, njswap;                  // # of i,j swap atoms on all procs
   int niswap_local, njswap_local;      // # of swap atoms on this proc
   int niswap_before, njswap_before;    // # of swap atoms on procs < this proc

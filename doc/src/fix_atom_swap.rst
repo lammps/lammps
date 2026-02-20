@@ -17,7 +17,7 @@ Syntax
 * seed = random # seed (positive integer)
 * T = scaling temperature of the MC swaps (temperature units)
 * one or more keyword/value pairs may be appended to args
-* keyword = *types* or *mu* or *ke* or *semi-grand* or *region* or *swap_count*
+* keyword = *types* or *mu* or *ke* or *semi-grand* or *region* or *swap_count* or *noforce*
 
   .. parsed-literal::
 
@@ -33,6 +33,9 @@ Syntax
          region-ID = ID of region to use as an exchange/move volume
        *swap_count* value = N
          N = number of atom pairs to include in each MC move (positive integer)
+       *noforce* value = *no* or *yes*
+         *no* = compute full energy and forces during MC energy evaluation
+         *yes* = skip force accumulation during MC energy evaluation (energy only)
 
 Examples
 """"""""
@@ -43,6 +46,7 @@ Examples
    fix myFix all atom/swap 100 1 12345 298.0 region my_swap_region types 5 6
    fix SGMC all atom/swap 1 100 345 1.0 semi-grand yes types 1 2 3 mu 0.0 4.3 -5.0
    fix multiSwap all atom/swap 1 1 29494 300.0 types 1 2 swap_count 5
+   fix fastSwap all atom/swap 1 1 29494 300.0 types 1 2 noforce yes
 
 Description
 """""""""""
@@ -125,6 +129,19 @@ the accepted or rejected as a whole based on the Metropolis criterion
 applied to the total energy change.  This is not compatible with
 *semi-grand*.  The number of eligible atoms of each swap type must be
 at least *N*; if not, the swap attempt is silently skipped.
+
+.. versionchanged:: TBD
+
+The *noforce* keyword controls whether force accumulation is skipped
+during the MC energy evaluation calls.  When set to *yes*, the pair
+potential is called with an internal ``energy_only`` flag that bypasses
+the force derivative loop, reducing the cost of each MC trial.  Only
+the energy is computed; the ``neighbours_forces`` array is not
+populated.  This is safe because forces are fully recomputed at the
+next regular MD timestep.  The speedup is largest for ML potentials
+(e.g. ML-PACE/ACE) where the force loop dominates compute time.  Not
+all pair styles support this flag; styles that do not will simply
+ignore it and compute forces as normal.
 
 You should ensure you do not swap atoms belonging to a molecule, or
 LAMMPS will eventually generate an error when it tries to find those
@@ -260,7 +277,7 @@ Default
 """""""
 
 The option defaults are *ke* = yes, *semi-grand* = no, *mu* = 0.0 for
-all atom types, *swap_count* = 1.
+all atom types, *swap_count* = 1, *noforce* = no.
 
 ----------
 

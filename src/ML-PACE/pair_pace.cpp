@@ -192,6 +192,7 @@ void PairPACE::compute(int eflag, int vflag)
     // jlist(neigh ind of 0-atom) = [1,2,10,7,99,25, .. 50 element in total]
 
     try {
+      aceimpl->ace->energy_only = (energy_only != 0);
       aceimpl->ace->compute_atom(i, x, type, jnum, jlist);
     } catch (std::exception &e) {
       error->one(FLERR, e.what());
@@ -202,28 +203,30 @@ void PairPACE::compute(int eflag, int vflag)
 
     // 'compute_atom' will update the `aceimpl->ace->e_atom` and `aceimpl->ace->neighbours_forces(jj, alpha)` arrays
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      delx = x[j][0] - xtmp;
-      dely = x[j][1] - ytmp;
-      delz = x[j][2] - ztmp;
+    if (!energy_only) {
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        j &= NEIGHMASK;
+        delx = x[j][0] - xtmp;
+        dely = x[j][1] - ytmp;
+        delz = x[j][2] - ztmp;
 
-      fij[0] = scale[itype][itype] * aceimpl->ace->neighbours_forces(jj, 0);
-      fij[1] = scale[itype][itype] * aceimpl->ace->neighbours_forces(jj, 1);
-      fij[2] = scale[itype][itype] * aceimpl->ace->neighbours_forces(jj, 2);
+        fij[0] = scale[itype][itype] * aceimpl->ace->neighbours_forces(jj, 0);
+        fij[1] = scale[itype][itype] * aceimpl->ace->neighbours_forces(jj, 1);
+        fij[2] = scale[itype][itype] * aceimpl->ace->neighbours_forces(jj, 2);
 
-      f[i][0] += fij[0];
-      f[i][1] += fij[1];
-      f[i][2] += fij[2];
-      f[j][0] -= fij[0];
-      f[j][1] -= fij[1];
-      f[j][2] -= fij[2];
+        f[i][0] += fij[0];
+        f[i][1] += fij[1];
+        f[i][2] += fij[2];
+        f[j][0] -= fij[0];
+        f[j][1] -= fij[1];
+        f[j][2] -= fij[2];
 
-      // tally per-atom virial contribution
-      if (vflag_either)
-        ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, fij[0], fij[1], fij[2], -delx, -dely,
-                     -delz);
+        // tally per-atom virial contribution
+        if (vflag_either)
+          ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, fij[0], fij[1], fij[2], -delx, -dely,
+                       -delz);
+      }
     }
 
     // tally energy contribution

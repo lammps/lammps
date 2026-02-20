@@ -309,20 +309,21 @@ void PairEAM::compute(int eflag, int vflag)
 
         recip = 1.0/r;
         phi = z2*recip;
-        phip = z2p*recip - phi*recip;
-        psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-        fpair = -scale[itype][jtype]*psip*recip;
-
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
-        if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fpair;
-          f[j][1] -= dely*fpair;
-          f[j][2] -= delz*fpair;
-        }
-
         if (eflag) evdwl = scale[itype][jtype]*phi;
+        if (!energy_only) {
+          phip = z2p*recip - phi*recip;
+          psip = fp[i]*rhojp + fp[j]*rhoip + phip;
+          fpair = -scale[itype][jtype]*psip*recip;
+
+          f[i][0] += delx*fpair;
+          f[i][1] += dely*fpair;
+          f[i][2] += delz*fpair;
+          if (newton_pair || j < nlocal) {
+            f[j][0] -= delx*fpair;
+            f[j][1] -= dely*fpair;
+            f[j][2] -= delz*fpair;
+          }
+        } else fpair = 0.0;
         if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
       }
     }

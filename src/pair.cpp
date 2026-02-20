@@ -67,6 +67,7 @@ Pair::Pair(LAMMPS *lmp) :
   instance_me = instance_total++;
 
   eng_vdwl = eng_coul = 0.0;
+  energy_only = 0;
 
   comm_forward = comm_reverse = comm_reverse_off = 0;
 

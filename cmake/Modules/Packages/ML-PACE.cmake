@@ -17,7 +17,15 @@ else()
     GetFallbackURL(PACELIB_URL PACELIB_FALLBACK)
 
     # LOCAL_ML-PACE points to top-level dir with local lammps-user-pace repo,
-    # to make it easier to check local build without going through the public github releases
+    # to make it easier to check local build without going through the public github releases.
+    # Auto-detect a fork at the sibling directory lammps-user-pace if LOCAL_ML-PACE is not set.
+    if(NOT LOCAL_ML-PACE)
+      get_filename_component(_default_pace_dir "${CMAKE_SOURCE_DIR}/../../lammps-user-pace" ABSOLUTE)
+      if(EXISTS "${_default_pace_dir}/ML-PACE")
+        set(LOCAL_ML-PACE "${_default_pace_dir}")
+        message(STATUS "Auto-detected local lammps-user-pace fork: ${LOCAL_ML-PACE}")
+      endif()
+    endif()
     if(LOCAL_ML-PACE)
      set(lib-pace "${LOCAL_ML-PACE}")
     else()

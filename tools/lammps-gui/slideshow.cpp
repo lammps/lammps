@@ -46,13 +46,14 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     do_loop(true)
 {
     imageLabel->setBackgroundRole(QPalette::Base);
+    imageLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     imageLabel->setScaledContents(false);
-    imageLabel->setMinimumSize(100, 100);
+    imageLabel->minimumSizeHint();
 
     imageName->setFrameStyle(QFrame::Raised);
     imageName->setFrameShape(QFrame::Panel);
     imageName->setAlignment(Qt::AlignCenter);
-    imageName->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    imageName->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     imageName->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     auto *shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_W), this);
@@ -191,8 +192,10 @@ void SlideShow::clear()
     imagefiles.clear();
     image.fill(Qt::black);
     imageLabel->setPixmap(QPixmap::fromImage(image));
-    imageLabel->adjustSize();
+    imageLabel->setMinimumSize(image.width(), image.height());
+    imageLabel->resize(image.width(), image.height());
     imageName->setText("(none)");
+    adjustSize();
     repaint();
 }
 

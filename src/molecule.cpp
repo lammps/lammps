@@ -64,6 +64,7 @@ Molecule::Molecule(LAMMPS *lmp) :
   toffset = 0;
   boffset = aoffset = doffset = ioffset = 0;
   sizescale = 1.0;
+  for (int i = 0; i < 4; i++) check_which_labels[i] = 0;
   json_format = 0;
 
   // initialize all fields to empty
@@ -133,6 +134,17 @@ void Molecule::command(int narg, char **arg, int &index)
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "molecule scale", error);
       sizescale = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       if (sizescale <= 0.0) error->all(FLERR, iarg + 1, "Illegal scale factor {}", sizescale);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "check_labels") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "check_labels", error);
+      if (strchr(arg[iarg + 1], 'b'))
+        check_which_labels[0] = 1;
+      if (strchr(arg[iarg + 1], 'a'))
+        check_which_labels[1] = 1;
+      if (strchr(arg[iarg + 1], 'd'))
+        check_which_labels[2] = 1;
+      if (strchr(arg[iarg + 1], 'i'))
+        check_which_labels[3] = 1;
       iarg += 2;
     } else
       break;
@@ -221,6 +233,7 @@ void Molecule::command(int narg, char **arg, int &index)
     Molecule::read(1);
     if (comm->me == 0) fclose(fp);
   }
+  if (comm->me == 0) Molecule::check_labels();
   Molecule::stats();
 }
 
@@ -4221,6 +4234,110 @@ void Molecule::skip_lines(int n, char *line, const std::string &section)
       error->one(FLERR, Error::NOLASTLINE,
                  "Unexpected line in molecule file while skipping {} section:\n{}",
                  section, line);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   check type label self-consistency
+------------------------------------------------------------------------- */
+
+void Molecule::check_labels()
+{
+  if (atom->labelmapflag) {
+    // in rare cases, bonds are not symmetric. only check if newton on for bonds
+    if (force->newton_bond && check_which_labels[0]) {
+      for (int i = 0; i < natoms; i++) {
+        int atom1 = i+1;
+        for (int j = 0; j < num_bond[i]; j++) {
+          int btype = bond_type[i][j];
+          int atom2 = bond_atom[i][j];
+          int inferred_type = atom->lmap->infer_bondtype(type[atom1-1], type[atom2-1]);
+          if (inferred_type != btype) {
+            std::string atom1_label = atom->lmap->find_label(type[atom1-1], Atom::ATOM);
+            std::string atom2_label = atom->lmap->find_label(type[atom2-1], Atom::ATOM);
+            std::string blabel = atom->lmap->find_label(btype, Atom::BOND);
+            if (inferred_type == -btype)
+              error->warning(FLERR, "In molecule template '{}', the bond between atoms {}, {} has constituent atom types ({}, {}) in reverse "
+                                    "order compared to its bond type label ({})", id, atom1, atom2, atom1_label, atom2_label, blabel);
+            else error->warning(FLERR, "In molecule template '{}', the bond between atoms {}, {} has constituent atom types ({}, {}) that do "
+                                       "not match its type label ({})", id, atom1, atom2, atom1_label, atom2_label, blabel);
+          }
+        }
+      }
+    }
+    // some angles are not symmetric, like class2
+    if (check_which_labels[1]) {
+      for (int i = 0; i < natoms; i++) {
+        for (int j = 0; j < num_angle[i]; j++) {
+          int atype = angle_type[i][j];
+          int atom1 = angle_atom1[i][j];
+          int atom2 = angle_atom2[i][j];
+          int atom3 = angle_atom3[i][j];
+          int inferred_type = atom->lmap->infer_angletype(type[atom1-1], type[atom2-1], type[atom3-1]);
+          if (inferred_type != atype) {
+            std::string atom1_label = atom->lmap->find_label(type[atom1-1], Atom::ATOM);
+            std::string atom2_label = atom->lmap->find_label(type[atom2-1], Atom::ATOM);
+            std::string atom3_label = atom->lmap->find_label(type[atom3-1], Atom::ATOM);
+            std::string alabel = atom->lmap->find_label(atype, Atom::ANGLE);
+            if (inferred_type == -atype)
+              error->warning(FLERR, "In molecule template '{}', the angle between atoms {}, {}, {} has constituent atom types ({}, {}, {}) in reverse "
+                                    "order compared to its angle type label ({})", id, atom1, atom2, atom3, atom1_label, atom2_label, atom3_label, alabel);
+            else error->warning(FLERR, "In molecule template '{}', the angle between atoms {}, {}, {} has constituent atom types ({}, {}, {}) that do not "
+                                       "match its type label ({})", id, atom1, atom2, atom3, atom1_label, atom2_label, atom3_label, alabel);
+          }
+        }
+      }
+    }
+    // some dihedrals are not symmetric, like class2
+    if (check_which_labels[2]) {
+      for (int i = 0; i < natoms; i++) {
+        for (int j = 0; j < num_dihedral[i]; j++) {
+          int dtype = dihedral_type[i][j];
+          int atom1 = dihedral_atom1[i][j];
+          int atom2 = dihedral_atom2[i][j];
+          int atom3 = dihedral_atom3[i][j];
+          int atom4 = dihedral_atom4[i][j];
+          int inferred_type = atom->lmap->infer_dihedraltype(type[atom1-1], type[atom2-1], type[atom3-1], type[atom4-1]);
+          if (inferred_type != dtype) {
+            std::string atom1_label = atom->lmap->find_label(type[atom1-1], Atom::ATOM);
+            std::string atom2_label = atom->lmap->find_label(type[atom2-1], Atom::ATOM);
+            std::string atom3_label = atom->lmap->find_label(type[atom3-1], Atom::ATOM);
+            std::string atom4_label = atom->lmap->find_label(type[atom4-1], Atom::ATOM);
+            std::string dlabel = atom->lmap->find_label(dtype, Atom::DIHEDRAL);
+            if (inferred_type == -dtype)
+              error->warning(FLERR, "In molecule template '{}', the dihedral between atoms {}, {}, {}, {} has constituent atom types ({}, {}, {}, {}) in reverse order "
+                                    "compared to its dihedral type label ({})", id, atom1, atom2, atom3, atom4, atom1_label, atom2_label, atom3_label, atom4_label, dlabel);
+            else error->warning(FLERR, "In molecule template '{}', the dihedral between atoms {}, {}, {}, {} has constituent atom types ({}, {}, {}, {}) that do "
+                                       "not match its dihedral label ({})", id, atom1, atom2, atom3, atom4, atom1_label, atom2_label, atom3_label, atom4_label, dlabel);
+          }
+        }
+      }
+    }
+    // some impropers are not symmetric, like class2
+    if (check_which_labels[3]) {
+      for (int i = 0; i < natoms; i++) {
+        for (int j = 0; j < num_improper[i]; j++) {
+          int itype = improper_type[i][j];
+          int atom1 = improper_atom1[i][j];
+          int atom2 = improper_atom2[i][j];
+          int atom3 = improper_atom3[i][j];
+          int atom4 = improper_atom4[i][j];
+          int inferred_type = atom->lmap->infer_impropertype(type[atom1-1], type[atom2-1], type[atom3-1], type[atom4-1]);
+          if (inferred_type != itype) {
+            std::string atom1_label = atom->lmap->find_label(type[atom1-1], Atom::ATOM);
+            std::string atom2_label = atom->lmap->find_label(type[atom2-1], Atom::ATOM);
+            std::string atom3_label = atom->lmap->find_label(type[atom3-1], Atom::ATOM);
+            std::string atom4_label = atom->lmap->find_label(type[atom4-1], Atom::ATOM);
+            std::string ilabel = atom->lmap->find_label(itype, Atom::IMPROPER);
+            if (inferred_type == -itype)
+              error->warning(FLERR, "In molecule template '{}', the improper containing atoms {}, {}, {}, {} has constituent atom types ({}, {}, {}, {}) in a different order "
+                                    "compared to its improper type label ({})", id, atom1, atom2, atom3, atom4, atom1_label, atom2_label, atom3_label, atom4_label, ilabel);
+            else error->warning(FLERR, "In molecule template '{}', the improper containing atoms {}, {}, {}, {} has constituent atom types ({}, {}, {}, {}) that do "
+                                       "not match its improper label ({})", id, atom1, atom2, atom3, atom4, atom1_label, atom2_label, atom3_label, atom4_label, ilabel);
+          }
+        }
+      }
+    }
   }
 }
 

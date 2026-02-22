@@ -116,7 +116,7 @@ FixShakeKokkos<DeviceType>::~FixShakeKokkos()
   k_shake_flag.sync_host();
   k_shake_atom.sync_host();
 
-  for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < atomKK->nlocal; i++) {
     if (shake_flag[i] == 0) continue;
     else if (shake_flag[i] == 1) {
       bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);

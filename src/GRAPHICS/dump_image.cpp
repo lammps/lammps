@@ -73,6 +73,8 @@ enum { NUMERIC, ATOM, TYPE, ELEMENT, ATTRIBUTE, CONSTANT, INDEX };
 enum { STATIC, DYNAMIC };
 enum { NO = 0, YES = 1, AUTO = 2 };
 enum { FILLED, FRAME, POINTS, TRANSPARENT };
+enum { OFF = 0, CENTER, LOWERLEFT, LOWERRIGHT, UPPERLEFT, UPPERRIGHT };
+
 }    // namespace
 // clang-format off
 
@@ -175,7 +177,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   boxflag = YES;
   boxdiam = 0.02;
-  axesflag = NO;
+  axesflag = OFF;
   subboxflag = NO;
   boxopacity = 1.0;
   axesopacity = 1.0;
@@ -301,6 +303,22 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       bodyflag2 = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
 
+    } else if (strcmp(arg[iarg],"compute") == 0) {
+      if (iarg+5 > narg) utils::missing_cmd_args(FLERR,"dump image compute", error);
+      std::string id_compute = arg[iarg+1];
+      auto *computeptr = modify->get_compute_by_id(id_compute);
+      if (!computeptr) error->all(FLERR, iarg+1, "Dump image compute ID {} does not exist", id_compute);
+      int computecolor = TYPE;
+      if (strcmp(arg[iarg+2],"type") == 0) computecolor = TYPE;
+      else if (strcmp(arg[iarg+2],"element") == 0) computecolor = ELEMENT;
+      else if (strcmp(arg[iarg+2],"const") == 0) computecolor = CONSTANT;
+      else error->all(FLERR, iarg+2, "Unsupported color style for dump image compute {}", arg[iarg+2]);
+      double computeflag1 = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      double computeflag2 = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      objects.emplace_back(id_compute, computeptr, nullptr, computecolor, computeflag1, computeflag2,
+                           image->color2rgb("white"));
+      iarg += 5;
+
     } else if (strcmp(arg[iarg],"fix") == 0) {
       if (iarg+5 > narg) utils::missing_cmd_args(FLERR,"dump image fix", error);
       std::string id_fix = arg[iarg+1];
@@ -313,7 +331,8 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR, iarg+2, "Unsupported color style for dump image fix {}", arg[iarg+2]);
       double fixflag1 = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       double fixflag2 = utils::numeric(FLERR,arg[iarg+4],false,lmp);
-      fixes.emplace_back(id_fix, fixptr, fixcolor, fixflag1, fixflag2, image->color2rgb("white"));
+      objects.emplace_back(id_fix, nullptr, fixptr, fixcolor, fixflag1, fixflag2,
+                           image->color2rgb("white"));
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"region") == 0) {
@@ -452,13 +471,32 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"axes") == 0) {
       if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"dump image axes", error);
-      axesflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
-      axeslen = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      axesdiam = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (axeslen < 0.0)
-        error->all(FLERR, iarg+2, "Invalid dump image axes length {}", axeslen);
-      if (axesdiam < 0.0)
-        error->all(FLERR,"Invalid dump image axes diameter {}", axesdiam);
+      if (strcmp(arg[iarg+1],"no") == 0) {
+        axesflag = OFF;
+      } else if (strcmp(arg[iarg+1],"center") == 0) {
+        axesflag = CENTER;
+      } else if (strcmp(arg[iarg+1],"lowerleft") == 0) {
+        axesflag = LOWERLEFT;
+      } else if (strcmp(arg[iarg+1],"yes") == 0) {
+        axesflag = LOWERLEFT;
+      } else if (strcmp(arg[iarg+1],"lowerright") == 0) {
+        axesflag = LOWERRIGHT;
+      } else if (strcmp(arg[iarg+1],"upperleft") == 0) {
+        axesflag = UPPERLEFT;
+      } else if (strcmp(arg[iarg+1],"upperright") == 0) {
+        axesflag = UPPERRIGHT;
+      } else {
+        error->all(FLERR, iarg+1, "Unknown axes location {}", arg[iarg+1]);
+      }
+
+      if (axesflag) {
+        axeslen = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        axesdiam = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+        if (axeslen <= 0.0)
+          error->all(FLERR, iarg+2, "Invalid dump image axes length {}", axeslen);
+        if (axesdiam <= 0.0)
+          error->all(FLERR,"Invalid dump image axes diameter {}", axesdiam);
+      }
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"subbox") == 0) {
@@ -562,8 +600,8 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     else if (i % 6 == 2) colortype[i] = image->color2rgb("green");
     else if (i % 6 == 3) colortype[i] = image->color2rgb("blue");
     else if (i % 6 == 4) colortype[i] = image->color2rgb("yellow");
-    else if (i % 6 == 5) colortype[i] = image->color2rgb("aqua");
-    else if (i % 6 == 0) colortype[i] = image->color2rgb("cyan");
+    else if (i % 6 == 5) colortype[i] = image->color2rgb("cyan");
+    else if (i % 6 == 0) colortype[i] = image->color2rgb("magenta");
   }
 
   if (bondflag == YES) {
@@ -577,8 +615,8 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       else if (i % 6 == 2) bcolortype[i] = image->color2rgb("green");
       else if (i % 6 == 3) bcolortype[i] = image->color2rgb("blue");
       else if (i % 6 == 4) bcolortype[i] = image->color2rgb("yellow");
-      else if (i % 6 == 5) bcolortype[i] = image->color2rgb("aqua");
-      else if (i % 6 == 0) bcolortype[i] = image->color2rgb("cyan");
+      else if (i % 6 == 5) bcolortype[i] = image->color2rgb("cyan");
+      else if (i % 6 == 0) bcolortype[i] = image->color2rgb("magenta");
     }
   }
 
@@ -757,20 +795,27 @@ void DumpImage::init_style()
       error->all(FLERR, "Dump image autobond cutoff is larger than periodic domain");
   }
 
-  // check if fixes with visualization info still exist
-  for (auto &ifix : fixes) {
-    auto *fixptr = modify->get_fix_by_id(ifix.id);
-    if (!fixptr)
-      error->all(FLERR, Error::NOLASTLINE, "Fix ID {} for dump image does not exist", ifix.id);
-    ifix.ptr = fixptr;
+  // check if computes and fixes with visualization info still exist
+  for (auto &iobj : objects) {
+    if (iobj.cptr) {
+      auto *computeptr = modify->get_compute_by_id(iobj.id);
+      if (!computeptr)
+        error->all(FLERR, Error::NOLASTLINE, "Compute ID {} for dump image does not exist", iobj.id);
+      iobj.cptr = computeptr;
 
-    // check if fix data for dump image is available at the required steps.
+    } else if (iobj.fptr) {
+      auto *fixptr = modify->get_fix_by_id(iobj.id);
+      if (!fixptr)
+        error->all(FLERR, Error::NOLASTLINE, "Fix ID {} for dump image does not exist", iobj.id);
+      iobj.fptr = fixptr;
 
-    int nfreq = fixptr->global_freq;
-    if ((update->ntimestep != 0) && ((nfreq == 0) || (nevery % nfreq)))
-      error->all(FLERR, Error::NOLASTLINE,
-                 "Dump {} and fix {} are not executed at compatible timesteps {}",
-                 style, fixptr->style, utils::errorurl(7));
+      // check if fix data for dump image is available at the required steps
+      int nfreq = fixptr->global_freq;
+      if ((update->ntimestep != 0) && ((nfreq == 0) || (nevery % nfreq)))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Dump {} and fix {} are not executed at compatible timesteps {}",
+                   style, fixptr->style, utils::errorurl(7));
+    }
   }
 }
 
@@ -1567,34 +1612,41 @@ void DumpImage::create_image()
   }
 
   // clang-format on
-  // render objects provided by fixes
+  // render objects provided by computes and fixes
 
-  for (const auto &ifix : fixes) {
-    int *fixvec = nullptr;
-    double **fixarray = nullptr;
+  for (const auto &iobj : objects) {
+    int *objvec = nullptr;
+    double **objarray = nullptr;
     const int ntypes = atom->ntypes;
-    n = ifix.ptr->image(fixvec, fixarray);
+    if (iobj.cptr) {
+      n = iobj.cptr->compute_image(objvec, objarray);
+    } else if (iobj.fptr) {
+      n = iobj.fptr->image(objvec, objarray);
+    } else {
+      continue;    // ignore objects without pointer
+    }
+
     for (i = 0; i < n; i++) {
-      if (!fixvec || !fixarray) continue;
+      if (!objvec || !objarray) continue;
 
       // set color and transparency
-      double opacity = ifix.opacity;
-      if (ifix.colorstyle == TYPE) {
-        itype = static_cast<int>(fixarray[i][0] - 1.0) % ntypes + 1;
+      double opacity = iobj.opacity;
+      if (iobj.colorstyle == TYPE) {
+        itype = static_cast<int>(objarray[i][0] - 1.0) % ntypes + 1;
         color = colortype[itype];
-      } else if (ifix.colorstyle == ELEMENT) {
-        itype = static_cast<int>(fixarray[i][0] - 1.0) % ntypes + 1;
+      } else if (iobj.colorstyle == ELEMENT) {
+        itype = static_cast<int>(objarray[i][0] - 1.0) % ntypes + 1;
         color = colorelement[itype];
-      } else if (ifix.colorstyle == CONSTANT) {
-        color = ifix.rgb;
+      } else if (iobj.colorstyle == CONSTANT) {
+        color = iobj.rgb;
       } else {
         color = image->color2rgb("white");
         opacity = 1.0;
       }
 
-      if (fixvec[i] == Graphics::SPHERE) {
-        diameter = fixarray[i][4];
-        if (fixarray[i][4] < 0) {
+      if (objvec[i] == Graphics::SPHERE) {
+        diameter = objarray[i][4];
+        if (objarray[i][4] < 0) {
           if (adiam == NUMERIC) {
             diameter = adiamvalue;
           } else if (adiam == TYPE) {
@@ -1603,62 +1655,62 @@ void DumpImage::create_image()
             diameter = diamelement[itype];
           }
         }
-        image->draw_sphere(&fixarray[i][1], color, diameter + ifix.flag2, opacity);
-      } else if (fixvec[i] == Graphics::LINE) {
+        image->draw_sphere(&objarray[i][1], color, diameter + iobj.flag2, opacity);
+      } else if (objvec[i] == Graphics::LINE) {
         // @sjplimp for consistency this should be:
-        // image->draw_cylinder(&fixarray[i][1],&fixarray[i][4],color,ifix.flag2,ifix.flag1);
-        image->draw_cylinder(&fixarray[i][1], &fixarray[i][4], color, ifix.flag1, 3, opacity);
-      } else if (fixvec[i] == Graphics::TRI) {    // don't render surface meshes in 2d
+        // image->draw_cylinder(&objarray[i][1],&objarray[i][4],color,iobj.flag2,iobj.flag1);
+        image->draw_cylinder(&objarray[i][1], &objarray[i][4], color, iobj.flag1, 3, opacity);
+      } else if (objvec[i] == Graphics::TRI) {    // don't render surface meshes in 2d
         if (domain->dimension == 3) {
-          p1 = &fixarray[i][1];
-          p2 = &fixarray[i][4];
-          p3 = &fixarray[i][7];
-          if (static_cast<int>(ifix.flag1) % 2) {
+          p1 = &objarray[i][1];
+          p2 = &objarray[i][4];
+          p3 = &objarray[i][7];
+          if (static_cast<int>(iobj.flag1) % 2) {
             image->draw_triangle(p1, p2, p3, color, opacity);
           } else {
-            image->draw_cylinder(p1, p2, color, ifix.flag2, 3, opacity);
-            image->draw_cylinder(p2, p3, color, ifix.flag2, 3, opacity);
-            image->draw_cylinder(p3, p1, color, ifix.flag2, 3, opacity);
+            image->draw_cylinder(p1, p2, color, iobj.flag2, 3, opacity);
+            image->draw_cylinder(p2, p3, color, iobj.flag2, 3, opacity);
+            image->draw_cylinder(p3, p1, color, iobj.flag2, 3, opacity);
           }
         }
-      } else if (fixvec[i] == Graphics::CYLINDER) {
-        image->draw_cylinder(&fixarray[i][1], &fixarray[i][4], color, fixarray[i][7] + ifix.flag2,
-                             (int) ifix.flag1, opacity);
-      } else if (fixvec[i] == Graphics::TRIANGLE) {
-        image->draw_triangle(&fixarray[i][1], &fixarray[i][4], &fixarray[i][7], color, opacity);
-      } else if (fixvec[i] == Graphics::ARROW) {
-        ArrowObj a(fixarray[i][9]);
-        a.draw(image, color, &fixarray[i][1], fixarray[i][7], &fixarray[i][4], fixarray[i][8],
-               opacity);
-      } else if (fixvec[i] == Graphics::CONE) {
-        ConeObj c(1.0, fixarray[i][7] + ifix.flag2, fixarray[i][8] + ifix.flag2,
-                  (int) fixarray[i][9]);
-        c.draw(image, vec3{fixarray[i][1], fixarray[i][2], fixarray[i][3]},
-               vec3{fixarray[i][4], fixarray[i][5], fixarray[i][6]}, color, opacity);
-      } else if (fixvec[i] == Graphics::PIXMAP) {
+      } else if (objvec[i] == Graphics::CYLINDER) {
+        image->draw_cylinder(&objarray[i][1], &objarray[i][4], color, objarray[i][7] + iobj.flag2,
+                             (int) iobj.flag1, opacity);
+      } else if (objvec[i] == Graphics::TRIANGLE) {
+        image->draw_triangle(&objarray[i][1], &objarray[i][4], &objarray[i][7], color, opacity);
+      } else if (objvec[i] == Graphics::ARROW) {
+        ArrowObj a(objarray[i][9]);
+        a.draw(image, color, &objarray[i][1], objarray[i][7] + iobj.flag1, &objarray[i][4],
+               objarray[i][8] + iobj.flag2, opacity);
+      } else if (objvec[i] == Graphics::CONE) {
+        ConeObj c(1.0, objarray[i][7] + iobj.flag2, objarray[i][8] + iobj.flag2,
+                  (int) objarray[i][9]);
+        c.draw(image, vec3{objarray[i][1], objarray[i][2], objarray[i][3]},
+               vec3{objarray[i][4], objarray[i][5], objarray[i][6]}, color, opacity);
+      } else if (objvec[i] == Graphics::PIXMAP) {
         // get pointer to pixmap buffer and get background transparency color
-        const auto *pixmap = (const unsigned char *) ubuf(fixarray[i][6]).i;
-        double transcolor[3] = {fixarray[i][7], fixarray[i][8], fixarray[i][9]};
-        if (ifix.flag1 == 0.0)    // coordinates are in box coordinates
-          image->draw_pixmap(&fixarray[i][1], (int) fixarray[i][4], (int) fixarray[i][5], pixmap,
-                             transcolor, fixarray[i][10], opacity);
+        const auto *pixmap = (const unsigned char *) ubuf(objarray[i][6]).i;
+        double transcolor[3] = {objarray[i][7], objarray[i][8], objarray[i][9]};
+        if (iobj.flag1 == 0.0)    // coordinates are in box coordinates
+          image->draw_pixmap(&objarray[i][1], (int) objarray[i][4], (int) objarray[i][5], pixmap,
+                             transcolor, objarray[i][10], opacity);
         else    // coordinates are in image coordinates, ignore z
-          image->draw_pixmap((int) fixarray[i][1], (int) fixarray[i][2], (int) fixarray[i][4],
-                             (int) fixarray[i][5], pixmap, transcolor, fixarray[i][10], opacity);
-      } else if (fixvec[i] == Graphics::BOND) {
-        int type1 = static_cast<int>(fixarray[i][0] - 1.0) % ntypes + 1;
-        int type2 = static_cast<int>(fixarray[i][1] - 1.0) % ntypes + 1;
+          image->draw_pixmap((int) objarray[i][1], (int) objarray[i][2], (int) objarray[i][4],
+                             (int) objarray[i][5], pixmap, transcolor, objarray[i][10], opacity);
+      } else if (objvec[i] == Graphics::BOND) {
+        int type1 = static_cast<int>(objarray[i][0] - 1.0) % ntypes + 1;
+        int type2 = static_cast<int>(objarray[i][1] - 1.0) % ntypes + 1;
         double *color1, *color2;
-        double opacity = ifix.opacity;
-        if (ifix.colorstyle == TYPE) {
+        double opacity = iobj.opacity;
+        if (iobj.colorstyle == TYPE) {
           color1 = colortype[type1];
           color2 = colortype[type2];
-        } else if (ifix.colorstyle == ELEMENT) {
+        } else if (iobj.colorstyle == ELEMENT) {
           color1 = colorelement[type1];
           color2 = colorelement[type2];
-        } else if (ifix.colorstyle == CONSTANT) {
-          color1 = ifix.rgb;
-          color2 = ifix.rgb;
+        } else if (iobj.colorstyle == CONSTANT) {
+          color1 = iobj.rgb;
+          color2 = iobj.rgb;
         } else {
           color1 = image->color2rgb("white");
           color2 = image->color2rgb("white");
@@ -1679,25 +1731,25 @@ void DumpImage::create_image()
           diameter = bdiamvalue;
         }
         // bond diameter adjustment from dump image command line
-        diameter += ifix.flag2;
+        diameter += iobj.flag2;
 
         // draw bond cylinder in 2 pieces
 
-        int capflag = (ifix.flag1 != 0.0) ? 3 : 0;
-        delx = fixarray[i][5] - fixarray[i][2];
-        dely = fixarray[i][6] - fixarray[i][3];
-        delz = fixarray[i][7] - fixarray[i][4];
+        int capflag = (iobj.flag1 != 0.0) ? 3 : 0;
+        delx = objarray[i][5] - objarray[i][2];
+        dely = objarray[i][6] - objarray[i][3];
+        delz = objarray[i][7] - objarray[i][4];
 
         domain->minimum_image(FLERR, delx, dely, delz);
         double xmid[3];
-        xmid[0] = fixarray[i][2] + 0.5 * delx;
-        xmid[1] = fixarray[i][3] + 0.5 * dely;
-        xmid[2] = fixarray[i][4] + 0.5 * delz;
-        image->draw_cylinder(&fixarray[i][2], xmid, color1, diameter, capflag, opacity);
-        xmid[0] = fixarray[i][5] - 0.5 * delx;
-        xmid[1] = fixarray[i][6] - 0.5 * dely;
-        xmid[2] = fixarray[i][7] - 0.5 * delz;
-        image->draw_cylinder(xmid, &fixarray[i][5], color2, diameter, capflag, opacity);
+        xmid[0] = objarray[i][2] + 0.5 * delx;
+        xmid[1] = objarray[i][3] + 0.5 * dely;
+        xmid[2] = objarray[i][4] + 0.5 * delz;
+        image->draw_cylinder(&objarray[i][2], xmid, color1, diameter, capflag, opacity);
+        xmid[0] = objarray[i][5] - 0.5 * delx;
+        xmid[1] = objarray[i][6] - 0.5 * dely;
+        xmid[2] = objarray[i][7] - 0.5 * delz;
+        image->draw_cylinder(xmid, &objarray[i][5], color2, diameter, capflag, opacity);
       }
     }
   }
@@ -2082,11 +2134,52 @@ void DumpImage::create_image()
 
     double offset = MAX(boxxhi-boxxlo,boxyhi-boxylo);
     if (domain->dimension == 3) offset = MAX(offset,boxzhi-boxzlo);
-    offset *= 0.1;
-    axes[0][0] -= offset; axes[0][1] -= offset; axes[0][2] -= offset;
-    axes[1][0] -= offset; axes[1][1] -= offset; axes[1][2] -= offset;
-    axes[2][0] -= offset; axes[2][1] -= offset; axes[2][2] -= offset;
-    axes[3][0] -= offset; axes[3][1] -= offset; axes[3][2] -= offset;
+
+    if (axesflag == CENTER)
+      offset *= 0.5;
+    else
+      offset *= 0.1;
+    if (axesflag == CENTER) {
+      axes[0][0] += offset; axes[0][1] += offset; axes[0][2] += offset;
+      axes[1][0] += offset; axes[1][1] += offset; axes[1][2] += offset;
+      axes[2][0] += offset; axes[2][1] += offset; axes[2][2] += offset;
+      axes[3][0] += offset; axes[3][1] += offset; axes[3][2] += offset;
+    } else if (axesflag == LOWERLEFT) {
+      axes[0][0] -= offset; axes[0][1] -= offset; axes[0][2] -= offset;
+      axes[1][0] -= offset; axes[1][1] -= offset; axes[1][2] -= offset;
+      axes[2][0] -= offset; axes[2][1] -= offset; axes[2][2] -= offset;
+      axes[3][0] -= offset; axes[3][1] -= offset; axes[3][2] -= offset;
+    } else if ((domain->dimension == 3) && (axesflag == LOWERRIGHT)) {
+      axes[0][0] -= offset; axes[0][1] += 8.0*offset; axes[0][2] -= offset;
+      axes[1][0] -= offset; axes[1][1] += 8.0*offset; axes[1][2] -= offset;
+      axes[2][0] -= offset; axes[2][1] += 8.0*offset; axes[2][2] -= offset;
+      axes[3][0] -= offset; axes[3][1] += 8.0*offset; axes[3][2] -= offset;
+    } else if  ((domain->dimension == 3) && (axesflag == UPPERLEFT)) {
+      axes[0][0] -= offset; axes[0][1] -= offset; axes[0][2] += 8.0*offset;
+      axes[1][0] -= offset; axes[1][1] -= offset; axes[1][2] += 8.0*offset;
+      axes[2][0] -= offset; axes[2][1] -= offset; axes[2][2] += 8.0*offset;
+      axes[3][0] -= offset; axes[3][1] -= offset; axes[3][2] += 8.0*offset;
+    } else if  ((domain->dimension == 3) && (axesflag == UPPERRIGHT)) {
+      axes[0][0] -= offset; axes[0][1] += 8.0*offset; axes[0][2] += 8.0*offset;
+      axes[1][0] -= offset; axes[1][1] += 8.0*offset; axes[1][2] += 8.0*offset;
+      axes[2][0] -= offset; axes[2][1] += 8.0*offset; axes[2][2] += 8.0*offset;
+      axes[3][0] -= offset; axes[3][1] += 8.0*offset; axes[3][2] += 8.0*offset;
+    } else if ((domain->dimension == 2) && (axesflag == LOWERRIGHT)) {
+      axes[0][0] += 8.0*offset; axes[0][1] -= offset; axes[0][2] -= offset;
+      axes[1][0] += 8.0*offset; axes[1][1] -= offset; axes[1][2] -= offset;
+      axes[2][0] += 8.0*offset; axes[2][1] -= offset; axes[2][2] -= offset;
+      axes[3][0] += 8.0*offset; axes[3][1] -= offset; axes[3][2] -= offset;
+    } else if  ((domain->dimension == 2) && (axesflag == UPPERLEFT)) {
+      axes[0][0] -= offset; axes[0][1] += 8.0*offset; axes[0][2] -= offset;
+      axes[1][0] -= offset; axes[1][1] += 8.0*offset; axes[1][2] -= offset;
+      axes[2][0] -= offset; axes[2][1] += 8.0*offset; axes[2][2] -= offset;
+      axes[3][0] -= offset; axes[3][1] += 8.0*offset; axes[3][2] -= offset;
+    } else if  ((domain->dimension == 2) && (axesflag == UPPERRIGHT)) {
+      axes[0][0] += 8.0*offset; axes[0][1] += 8.0*offset; axes[0][2] -= offset;
+      axes[1][0] += 8.0*offset; axes[1][1] += 8.0*offset; axes[1][2] -= offset;
+      axes[2][0] += 8.0*offset; axes[2][1] += 8.0*offset; axes[2][2] -= offset;
+      axes[3][0] += 8.0*offset; axes[3][1] += 8.0*offset; axes[3][2] -= offset;
+    }
 
     axes[1][0] = axes[0][0] + axeslen*(axes[1][0]-axes[0][0]);
     axes[1][1] = axes[0][1] + axeslen*(axes[1][1]-axes[0][1]);
@@ -2443,14 +2536,45 @@ int DumpImage::modify_param(int narg, char **arg)
     return 5;
   }
 
+  if (strcmp(arg[0],"ccolor") == 0) {
+    if (narg < 3) utils::missing_cmd_args(FLERR, "dump_modify ccolor", error);
+    auto *color =  image->color2rgb(arg[2]);
+    if (!color) error->all(FLERR, argoff + 2, "Unknown color for dump_modify ccolor: {}", arg[2]);
+    bool match = false;
+    for (auto &iobj : objects) {
+      if (iobj.cptr && (iobj.id == arg[1])) {
+        iobj.rgb = color;
+        match = true;
+      }
+    }
+    if (!match) error->all(FLERR, argoff + 1, "Compute ID {} is not included in dump {}", arg[1], id);
+    return 3;
+  }
+
+  if (strcmp(arg[0],"ctrans") == 0) {
+    if (narg < 3) utils::missing_cmd_args(FLERR, "dump_modify ctrans", error);
+    double opacity = utils::numeric(FLERR,arg[2],false,lmp);
+    if ((opacity < 0.0) || (opacity > 1.0))
+      error->all(FLERR, argoff + 2, "Illegal transparency {} for dump_modify ctrans", arg[2]);
+    bool match = false;
+    for (auto &iobj : objects) {
+      if (iobj.cptr && (iobj.id == arg[1])) {
+        iobj.opacity = opacity;
+        match = true;
+      }
+    }
+    if (!match) error->all(FLERR, argoff + 1, "Compute ID {} is not included in dump {}", arg[1], id);
+    return 3;
+  }
+
   if (strcmp(arg[0],"fcolor") == 0) {
     if (narg < 3) utils::missing_cmd_args(FLERR, "dump_modify fcolor", error);
     auto *color =  image->color2rgb(arg[2]);
     if (!color) error->all(FLERR, argoff + 2, "Unknown color for dump_modify fcolor: {}", arg[2]);
     bool match = false;
-    for (auto &ifix : fixes) {
-      if (ifix.id == arg[1]) {
-        ifix.rgb = color;
+    for (auto &iobj : objects) {
+      if (iobj.fptr && (iobj.id == arg[1])) {
+        iobj.rgb = color;
         match = true;
       }
     }
@@ -2464,9 +2588,9 @@ int DumpImage::modify_param(int narg, char **arg)
     if ((opacity < 0.0) || (opacity > 1.0))
       error->all(FLERR, argoff + 2, "Illegal transparency {} for dump_modify ftrans", arg[2]);
     bool match = false;
-    for (auto &ifix : fixes) {
-      if (ifix.id == arg[1]) {
-        ifix.opacity = opacity;
+    for (auto &iobj : objects) {
+      if (iobj.fptr && (iobj.id == arg[1])) {
+        iobj.opacity = opacity;
         match = true;
       }
     }

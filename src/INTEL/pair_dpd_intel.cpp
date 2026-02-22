@@ -28,6 +28,7 @@
 #include "suffix.h"
 
 #include <cmath>
+#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>

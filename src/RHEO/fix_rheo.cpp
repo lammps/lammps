@@ -125,17 +125,16 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
           shift_cross_type_flag = 1;
           shift_scale = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
           shift_cmin = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-          shift_wmin = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
-          iarg += 3;
+          shift_rmin = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
+          iarg += 4;
         } else if (strcmp(arg[iarg + 1], "exclude/type") == 0) {
           if (iarg + 2 >= narg) utils::missing_cmd_args(FLERR, "fix rheo shift exclude/type", error);
           utils::bounds(FLERR, arg[iarg + 2], 1, n, nlo, nhi, error);
           for (i = nlo; i <= nhi; i++) shift_type[i] = 0;
-          iarg += 1;
+          iarg += 2;
         } else {
           break;
         }
-        iarg += 1;
       }
     } else if (strcmp(arg[iarg], "thermal") == 0) {
       thermal_flag = 1;
@@ -146,25 +145,26 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
         surface_style = COORDINATION;
         zmin_surface = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
         zmin_splash = utils::inumeric(FLERR, arg[iarg + 3], false, lmp);
+        iarg += 3;
       } else if (strcmp(arg[iarg + 1], "divergence") == 0) {
         surface_style = DIVR;
         divr_surface = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         zmin_splash = utils::inumeric(FLERR, arg[iarg + 3], false, lmp);
+        iarg += 3;
       } else {
         error->all(FLERR, "Illegal surface/detection option in fix rheo, {}", arg[iarg + 1]);
       }
-      iarg += 3;
     } else if (strcmp(arg[iarg], "interface/reconstruct") == 0) {
       interface_flag = 1;
     } else if (strcmp(arg[iarg], "rho/sum") == 0) {
       rhosum_flag = 1;
-      while (iarg < narg) {  // optional sub-arguments
-        if (strcmp(arg[iarg], "self/mass") == 0) {
+      while (iarg + 1 < narg) {  // optional sub-arguments
+        if (strcmp(arg[iarg + 1], "self/mass") == 0) {
           rhosum_self_mass_flag = 1;
+          iarg += 1;
         } else {
           break;
         }
-        iarg += 1;
       }
     } else if (strcmp(arg[iarg], "density") == 0) {
       if (iarg + n >= narg) utils::missing_cmd_args(FLERR, "fix rheo density", error);

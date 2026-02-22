@@ -79,7 +79,7 @@ Syntax
         *no_affinity* values = none
     *kokkos* args = keyword value ...
       zero or more keyword/value pairs may be appended
-      keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/reverse* or *comm/pair/reverse* or *sort* or *atom/map* or *gpu/aware* or *pair/only*
+      keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/reverse* or *comm/pair/reverse* or *comm/fix/reverse* or *sort* or *atom/map* or *gpu/aware* or *pair/only*
         *neigh* value = *full* or *half*
           full = full neighbor list
           half = half neighbor list built in thread-safe manner
@@ -98,7 +98,7 @@ Syntax
         *binsize* value = size
           size = bin size for neighbor list construction (distance units)
         *comm* value = *no* or *host* or *device*
-          use value for comm/exchange and comm/forward and comm/pair/forward and comm/fix/forward and comm/reverse
+          use value for comm/exchange and comm/forward and comm/pair/forward and comm/fix/forward and comm/reverse and comm/fix/reverse
         *comm/exchange* value = *no* or *host* or *device*
         *comm/forward* value = *no* or *host* or *device*
         *comm/pair/forward* value = *no* or *device*
@@ -109,6 +109,10 @@ Syntax
           *device* = perform pack/unpack on device (e.g. on GPU)
         *comm/pair/reverse* value = *no* or *device*
           *no* = perform communication pack/unpack in non-KOKKOS mode
+          *device* = perform pack/unpack on device (e.g. on GPU)
+        *comm/fix/reverse* value = *no* or *host* or *device*
+          *no* = perform communication pack/unpack in non-KOKKOS mode
+          *host* = perform pack/unpack on host (e.g. with OpenMP threading)
           *device* = perform pack/unpack on device (e.g. on GPU)
         *sort* value = *no* or *device*
           *no* = perform atom sorting in non-KOKKOS mode
@@ -545,7 +549,8 @@ rule of thumb may give too large a binsize and the default should be
 overridden with a smaller value.
 
 The *comm* and *comm/exchange* and *comm/forward* and *comm/pair/forward*
-and *comm/fix/forward* and *comm/reverse* and *comm/pair/reverse*
+and *comm/fix/forward* and *comm/reverse* and *comm/pair/reverse* and
+*comm/fix/reverse*
 keywords determine whether the host or device performs the packing and
 unpacking of data when communicating per-atom data between processors.
 "Exchange" communication happens only on timesteps that neighbor lists
@@ -573,7 +578,8 @@ keywords, if a value of *host* is used it will be automatically
 be changed to *no* since these keywords don't support *host* mode. The
 value of *no* will also always be used when running on the CPU, i.e. setting
 the value to *device* will have no effect if the pair/fix style is
-running on the CPU. For the *comm/fix/forward* or *comm/pair/reverse*
+running on the CPU. For the *comm/fix/forward* or *comm/pair/reverse* or
+*comm/fix/reverse*
 keywords, not all styles support *device* mode and in that case will run
 in *no* mode instead.
 

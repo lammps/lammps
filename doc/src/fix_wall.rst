@@ -502,7 +502,7 @@ interpolation), you should set Ntable = Nfile.
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 These wall fixes support the *fix* keyword of :doc:`dump image
 <dump_image>`.  The fixes will pass geometry information about the walls

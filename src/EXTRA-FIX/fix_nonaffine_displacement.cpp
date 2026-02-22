@@ -146,6 +146,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
   comm_reverse = 0;
   comm_forward = 0;
   if (nad_style == D2MIN) {
+    size_peratom_cols = 9;
     comm_reverse = 18;
     comm_forward = 9;
   }
@@ -195,7 +196,7 @@ void FixNonaffineDisplacement::post_constructor()
 
   grow_arrays(atom->nmax);
   for (int i = 0; i < atom->nlocal; i++)
-    for (int j = 0; j < 3; j++) array_atom[i][j] = 0.0;
+    for (int j = 0; j < size_peratom_cols; j++) array_atom[i][j] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -627,6 +628,12 @@ void FixNonaffineDisplacement::calculate_D2Min()
     array_atom[i][0] = sqrt(D2min[i]);
     array_atom[i][1] = evol;
     array_atom[i][2] = edev;
+    array_atom[i][3] = E[0][0];
+    array_atom[i][4] = E[1][1];
+    array_atom[i][5] = E[2][2];
+    array_atom[i][6] = E[0][1];
+    array_atom[i][7] = E[0][2];
+    array_atom[i][8] = E[1][2];
   }
 }
 

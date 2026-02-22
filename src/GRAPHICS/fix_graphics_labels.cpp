@@ -643,7 +643,7 @@ FixGraphicsLabels::FixGraphicsLabels(LAMMPS *lmp, int narg, char **arg) :
         } else if (strcmp(arg[iarg], "length") == 0) {
           if (iarg + 2 > narg)
             utils::missing_cmd_args(FLERR, "fix graphics/labels colorscale length", error);
-          scale.length = 2.0 * utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+          scale.length = 2 * utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
           iarg += 2;
         } else if (strcmp(arg[iarg], "tics") == 0) {
           if (iarg + 2 > narg)

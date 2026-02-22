@@ -371,6 +371,10 @@ function(KOKKOS_ADD_LIBRARY LIBRARY_NAME)
 
   # MSVC and other platforms want to have the headers included as source files for better dependency detection
   add_library(${LIBRARY_NAME} ${LINK_TYPE} ${PARSE_HEADERS} ${PARSE_SOURCES})
+  if(PARSE_STATIC)
+    # We want position independent code to be able to link static libraries into shared ones.
+    set_target_properties(${LIBRARY_NAME} PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+  endif()
 
   if(Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES)
     if(PARSE_MODULE_INTERFACE)

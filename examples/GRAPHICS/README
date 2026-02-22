@@ -18,3 +18,10 @@ Here is a list of the inputs and which graphics features they demonstrate
 
 - in.water-arrows:          box of water molecules, uses many kinds of arrows
                             https://www.youtube.com/shorts/4Cm5p0SfgNU
+
+- in.peptide-hbonds:        peptide with surrounding water molecules
+                            visualize donated and accepted hydrogen bonds
+                            https://youtube.com/shorts/1QEjIITapwQ
+
+- in.obstacle-lines         trajectory lines with obstacle flow example
+                            https://youtu.be/9HEsGaOsdik

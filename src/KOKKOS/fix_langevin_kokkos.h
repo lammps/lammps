@@ -23,6 +23,7 @@ FixStyle(langevin/kk/host,FixLangevinKokkos<LMPHostType>);
 #ifndef LMP_FIX_LANGEVIN_KOKKOS_H
 #define LMP_FIX_LANGEVIN_KOKKOS_H
 
+#include "atom_vec_ellipsoid_kokkos.h"
 #include "fix_langevin.h"
 #include "kokkos_type.h"
 #include "kokkos_base.h"
@@ -99,6 +100,10 @@ namespace LAMMPS_NS {
     KOKKOS_INLINE_FUNCTION
       void end_of_step_rmass_item(int) const;
 
+// NOLINTNEXTLINE
+    KOKKOS_INLINE_FUNCTION
+      void angmom_thermostat_item(int i) const;
+
   private:
     typename AT::t_kkfloat_1d rmass;
     typename AT::t_kkfloat_1d mass;
@@ -136,6 +141,13 @@ namespace LAMMPS_NS {
     KK_FLOAT boltz,dt,mvv2e,ftm2v,fran_prop_const;
 
     void compute_target();
+    // For angmom thermostat
+    class AtomVecEllipsoidKokkos *avecEllipKK;
+    typename AtomVecEllipsoidKokkosBonusArray<DeviceType>::t_bonus_1d bonus;
+    typename ArrayTypes<DeviceType>::t_kkfloat_1d_3 torque;
+    typename ArrayTypes<DeviceType>::t_kkfloat_1d_3 angmom;
+    typename ArrayTypes<DeviceType>::t_int_1d ellipsoid;
+    void angmom_thermostat();
 
 #ifndef LMP_KOKKOS_DEBUG_RNG
     Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
@@ -245,6 +257,21 @@ namespace LAMMPS_NS {
     void operator()(const int i) const {
       if (RMass) c.end_of_step_rmass_item(i);
       else c.end_of_step_item(i);
+    }
+  };
+
+  // angmom thermostat functor
+  template<class DeviceType>
+  struct FixLangevinKokkosAngmomThermostatFunctor {
+    typedef DeviceType device_type;
+    FixLangevinKokkos<DeviceType> c;
+    FixLangevinKokkosAngmomThermostatFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
+      c(*c_ptr) {c.set_copymode(1);}
+
+// NOLINTNEXTLINE
+    KOKKOS_INLINE_FUNCTION
+    void operator()(const int i) const {
+      c.angmom_thermostat_item(i);
     }
   };
 }

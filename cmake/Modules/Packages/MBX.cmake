@@ -34,8 +34,8 @@ if(CONFIGURE_REQUEST_PIC)
   list(APPEND MBX_CONFIG_FLAGS ${CONFIGURE_REQUEST_PIC})
 endif()
 
-set(MBXLIB_URL "https://github.com/paesanilab/MBX/releases/download/v1.3.3/mbx-1.3.3.tar.gz" CACHE STRING "URL for MBX tarball")
-set(MBXLIB_MD5 "78abbf597e8077e5e0b18e86fc3248c1" CACHE STRING "MD5 checksum of MBX tarball")
+set(MBXLIB_URL "https://github.com/paesanilab/MBX/releases/download/v1.3.5/mbx-1.3.5.tar.gz" CACHE STRING "URL for MBX tarball")
+set(MBXLIB_MD5 "2ffdcdbebf3c10ba010c573545a33d47" CACHE STRING "MD5 checksum of MBX tarball")
 
 mark_as_advanced(MBXLIB_URL)
 mark_as_advanced(MBXLIB_MD5)

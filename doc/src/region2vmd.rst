@@ -165,7 +165,7 @@ file>', or from the File menu via "Load VMD visualization state".
 Restrictions
 """"""""""""
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Feb2026
 
 This command is part of the GRAPHICS package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package

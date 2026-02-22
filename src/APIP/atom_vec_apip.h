@@ -28,6 +28,7 @@ class AtomVecApip : public AtomVec {
  public:
   AtomVecApip(class LAMMPS *);
 
+  void process_args(int, char **) override;
   void grow_pointers() override;
 
   void force_clear(int, size_t) override;
@@ -37,6 +38,9 @@ class AtomVecApip : public AtomVec {
   double *apip_lambda, *apip_lambda_input, *apip_lambda_const, *apip_lambda_input_ta, *apip_e_fast,
       *apip_e_precise, **apip_f_const_lambda, **apip_f_dyn_lambda;
   int *apip_lambda_required;
+
+  enum { MODE_THERMOSTAT, MODE_CONS };
+  int mode_flag;
 };
 
 #ifndef LMP_ATOM_APIP_LAMBDA_REQUIRED

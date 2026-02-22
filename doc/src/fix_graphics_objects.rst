@@ -36,7 +36,7 @@ Syntax
          any of x1, y1, z1, x2, y2, z2, and R can be a variable (see below)
        *cone* args = type x1 y1 z1 x2 y2 z2 R1 R2 sides
          type = an atom type value to select the color of the cone
-         x1, y1, z1, x2, y2, z2 = positions of the centers at the bottom (x1,y1,z1) and the top (x2,y2,z2) of the arrow (distance units)
+         x1, y1, z1, x2, y2, z2 = positions of the centers at the bottom (x1,y1,z1) and the top (x2,y2,z2) of the cone (distance units)
          R1 = bottom radius (distance units)
          R2 = top radius (distance units)
          sides = bitmap value between 0 and 7 deciding whether bottom cap (1), top cap (2) or side (4) is drawn (unitless)
@@ -64,7 +64,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 This fix allows to add arbitrary objects to images rendered with
 :doc:`dump image <dump_image>` using the *fix* keyword.
@@ -167,23 +167,28 @@ definitions will grow the size of the sphere at a specified rate.
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
-Fix graphics/objects is designed to be used with the *fix* keyword of :doc:`dump
-image <dump_image>`.  The fix will pass geometry information about the
-objects listed on the command line to *dump image* so that they are
-included in the rendered image.
+Fix graphics/objects is designed to be used with the *fix* keyword of
+:doc:`dump image <dump_image>`.  The fix will pass geometry information
+about the objects listed on the command line to *dump image* so that
+they are included in the rendered image.
 
 The *fflag1* setting of *dump image fix* determines whether cylinder
 elements are capped with spheres: 0 means no caps, 1 means the lower end
 is capped, 2 means the upper end is capped, and 3 means both ends are
-capped.  This applies to the *cylinder* object and the elements of the
-*progbar* object.
+capped.  This applies to *cylinder* objects and the elements of the
+*progbar* object.  For *arrow* objects the *fflag1* setting allows to
+adjust the length of the arrow.  This allows for example to conveniently
+shrink the arrow by an atom diameter when the tip is located at the
+position of an atom and thus the tip would otherwise be (partially)
+obscured by the sphere representing the atom.  If the arrow positions
+already take that into account, *fflag1* should be set to zero.
 
 The *fflag2* setting allows you to adjust the radius of the rendered
-sphere, cylinder or cone items comprising the objects.  Since the radius
-of these objects is an input parameter for this fix, it is recommended
-to set this flag to 0.0.
+sphere, cylinder, arrow, or cone items comprising the objects.  Since
+the radius of these objects is an input parameter for this fix, it is
+recommended to set this flag to 0.0.
 
 .. figure:: JPG/fix-graphics-example.png
    :figclass: align-center
@@ -237,6 +242,7 @@ Related commands
 
 :doc:`fix graphics/arrows <fix_graphics_arrows>`,
 :doc:`fix graphics/labels <fix_graphics_labels>`,
+:doc:`fix graphics/lines <fix_graphics_lines>`,
 :doc:`fix graphics/isosurface <fix_graphics_isosurface>`,
 :doc:`fix graphics/periodic <fix_graphics_periodic>`
 

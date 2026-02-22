@@ -57,15 +57,15 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 This fix allows to add arrows to images rendered with :doc:`dump image
 <dump_image>` using the *fix* keyword to represent vector properties
 with arrows for either all atoms in the fix group or for :doc:`chunks
 <Howto_chunk>`.
 
-The *group-ID* sets the group ID of the atoms selected to have the selected
-property represented.  This may be a dynamic group.
+The *group-ID* sets the group ID of the atoms selected to have the
+selected property represented.  This may be a dynamic group.
 
 The *Nevery* keyword determines how often the arrows graphics data is
 updated.  This should be the same value as the corresponding *N*
@@ -123,9 +123,9 @@ Currently the following computes are compatible:
    * :doc:`vcm/chunk <compute_vcm_chunk>`
 
 The *scale* quantity determines the length of the arrows.  It should be
-chosen so that when multiplied with the per-atom vector quantity the result
-is of the same order of magnitude as atom positions, so that the vectors
-can be seen well.
+chosen so that when multiplied with the per-atom vector quantity the
+result is of the same order of magnitude as atom positions, so that the
+vectors can be seen well.
 
 The *radius* quantity determines the width of the arrows.
 
@@ -140,7 +140,7 @@ scalar (see below).
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 Fix graphics/arrows is designed to be used with the *fix* keyword of
 :doc:`dump image <dump_image>`.  The fix will add arrows based on the
@@ -153,10 +153,16 @@ of "white" can be changed using :doc:`dump_modify fcolor <dump_image>`.
 The transparency is by default fully opaque and can be changed with
 *dump\_modify ftrans*\ .
 
-The *fflag1* and *fflag2* settings of *dump image fix* are currently ignored.
+The *fflag1* setting of *dump image fix* allows to adjust the length of
+the arrows.  Since that value is already set or computed by the fix,
+*fflag1* should be set to 0.0.
+
+The *fflag2* setting allows you to adjust the radius of the rendered
+arrows.  Since the radius of the arrows is an input parameter for this
+fix, it is recommended to set this flag to 0.0.
 
 Restart, fix_modify, output, run start/stop, minimize info
-==========================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files
 <restart>`.
@@ -188,7 +194,8 @@ Related commands
 :doc:`fix graphics/isosurface <fix_graphics_isosurface>`,
 :doc:`fix graphics/objects <fix_graphics_objects>`,
 :doc:`fix graphics/periodic <fix_graphics_periodic>`,
-:doc:`fix graphics/objects <fix_graphics_objects>`
+:doc:`fix graphics/objects <fix_graphics_objects>`,
+:doc:`compute hbond/local <compute_hbond_local>`
 
 Default
 """""""

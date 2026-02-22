@@ -114,7 +114,7 @@ with "Load Visualization State..."  or type in the command console
 Advanced graphics features in the *dump image* command
 ======================================================
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 The following paragraphs discuss some of the more advanced features in
 the :doc:`dump image <dump_image>` command in LAMMPS with the help of
@@ -226,8 +226,8 @@ with six colors as follows:
 * type 2 = green
 * type 3 = blue
 * type 4 = yellow
-* type 5 = aqua
-* type 6 = cyan
+* type 5 = cyan
+* type 6 = magenta
 
 and repeats itself for types :math:`> 6`.  This mapping can be changed by the
 "dump_modify acolor" command, though.  If you want to change the color of a
@@ -756,33 +756,42 @@ Below is an example input deck for visualizing *cone* and *cylinder* regions:
 
    run 500
 
--------------
+-----------------------
 
-Visualizing graphics provided by fix commands
----------------------------------------------
+Visualizing graphics provided by compute or fix commands
+--------------------------------------------------------
 
 LAMMPS can display additional graphics objects in the :doc:`dump image
-<dump_image>` output that are added by fix styles.  These fall in two
-categories: fixes that were written with the specific purpose of adding
-graphics to the visualization and fixes that make objects or data
-visible that they maintain internally.  Examples for the latter case are
-visualizing the indenter object from :doc:`fix indent <fix_indent>` or
-the wall position from one of the wall fixes.  The details of what kind
-of graphics is added and how it can be configured is described in a
-section titled **Dump image info** in the documentation of the
-individual fix commands.
+<dump_image>` output that are added by compute or fix styles.  These
+fall in two categories: fixes that were written with the specific
+purpose of adding graphics to the visualization and computes or fixes
+that make objects or data visible that they maintain internally.
+Examples for the latter case are visualizing the indenter object from
+:doc:`fix indent <fix_indent>` or the wall position from one of the wall
+fixes.  The details of what kind of graphics is added and how it can be
+configured is described in a section titled **Dump image info** in the
+documentation of the individual fix commands.
 
-Below is a table with links to the documentation of supported fix
-styles:
+Below is a table with links to the documentation of supported compute
+and fix styles:
 
 .. table_from_list::
    :columns: 4
 
+   * :doc:`compute hbond/local <compute_hbond_local>`
    * :doc:`fix graphics/arrows <fix_graphics_arrows>`
    * :doc:`fix graphics/isosurface <fix_graphics_isosurface>`
    * :doc:`fix graphics/labels <fix_graphics_labels>`
+   * :doc:`fix graphics/lines <fix_graphics_lines>`
    * :doc:`fix graphics/objects <fix_graphics_objects>`
    * :doc:`fix graphics/periodic <fix_graphics_periodic>`
+   * :doc:`fix atom/swap <fix_atom_swap>`
+   * :doc:`fix bond/break <fix_bond_break>`
+   * :doc:`fix bond/create <fix_bond_create>`
+   * :doc:`fix bond/create/angle <fix_bond_create>`
+   * :doc:`fix bond/react <fix_bond_react>`
+   * :doc:`fix mol/swap <fix_mol_swap>`
+   * :doc:`fix neighbor/swap <fix_neighbor_swap>`
    * :doc:`fix indent <fix_indent>`
    * :doc:`fix reaxff/bonds <fix_reaxff_bonds>`
    * :doc:`fix smd/wall_surface <fix_smd_wall_surface>`
@@ -827,7 +836,7 @@ visualized with the *region* keyword of :doc:`dump image <dump_image>`
 
 Below are discussions about some aspects of specific fix commands and some input examples.
 
--------------
+-----------------------
 
 Fix graphics/objects
 ^^^^^^^^^^^^^^^^^^^^
@@ -961,6 +970,102 @@ and a transparent white triangle surface to represent those molecules.
 
    <center>(Isosurface graphics visualization example. Click to see the full-size images)</center><br>
 
+----------
+
+Compute hbond/local
+^^^^^^^^^^^^^^^^^^^
+
+Compute :doc:`hbond/local <compute_hbond_local>` of the
+:ref:`EXTRA-COMPUTE package <pkg-extra-compute>` provides access to the
+list of hydrogen bonds as they are dynamically computed by the compute
+style.  These can be added to the :doc:`dump image output <dump_image>`
+as arrows pointing from the hydrogen bond hydrogen atom to the hydrogen
+bond acceptor atom by using the *compute* keyword.  The compute provides
+a lot of flexibility in which atoms are considered for the hydrogen
+bonds so that the visualization can be rather simple and straightforward
+but also more complex to visualize only selected aspects.
+
+For a simple bulk water system, one could just show the entire hydrogen
+bond network and consider that the water oxygen atoms function as both,
+hydrogen bond donors and hydrogen bond acceptors.  Here is an example
+input segment that could be added to the ``examples/rdf-adf/in.spce``
+input file:
+
+.. code-block:: LAMMPS
+
+   group       ogroup type 1
+   group       hgroup type 2
+   compute     hb     all hbond/local 3.3 30.0 ogroup ogroup hgroup
+
+   dump        viz    all image 100 water-*.png element type size 600 600 zoom 1.331 view 70 20 &
+                                                shiny 0.2 ssao yes 348276 0.6 fsaa yes  box yes 0.025 &
+                                                bond atom 0.35 compute hb const -0.5 0.15
+   dump_modify viz    pad 6  boxcolor cadetblue backcolor darkgray backcolor2 silver element O H &
+                             adiam 1 0.5 adiam 2 0.4 ccolor hb yellow
+
+Note how the *cflag1* parameter is used to shrink the arrows so that
+their tips just touch the hydrogen bond acceptor atoms.
+
+If one wants to distinguish between donated and accepted hydrogen bonds
+for a subsystem, the input could become more complex and multiple
+computes may be needed.  Below is an input that could be added to
+``examples/peptide/in.peptide`` input file.  This selects a group of
+atoms centered on the peptide and containing the peptide and a shell
+of water molecules and uses different groups for hydrogen bond donors
+and acceptors to determine selectively hydrogen bonds between the peptide
+and the surrounding water molecules in both directions.
+
+.. code-block:: LAMMPS
+
+    # define ellipsoid region around peptide for hbond analysis and visualization
+    group     peptide type <= 12
+    variable  comx equal xcm(peptide,x)
+    variable  comy equal xcm(peptide,y)
+    variable  comz equal xcm(peptide,z)
+    region    shell ellipsoid v_comx v_comy v_comz 7.0 8.0 16.0
+    group     viz dynamic all region shell include molecule
+
+    # define groups of donor and acceptor atoms for peptide and water
+    group           pdonor    type 5
+    group           wdonor    type 13
+    group           pacceptor type 3 5 9 12
+    group           wacceptor type 13
+    group           hydrogen type 10 14
+
+    # peptide-water hydrogen bonds where the peptide is the donor
+    compute hb1 all hbond/local 3.3 30.0 pdonor wacceptor hydrogen
+    # peptide-water hydrogen bonds where the peptide is the acceptor
+    compute hb2 all hbond/local 3.7 30.0 wdonor pacceptor hydrogen
+
+    # create donor/acceptor hydrogen bond info text
+    fix label all graphics/labels 100 text "Hydrogen bonds donated:   $(c_hb1:%02.0f)" 207 72 0.0 &
+                                            size 24 backcolor darkgray &
+                                      text "Hydrogen bonds accepted: $(c_hb2:%02.0f)" 210 30 0.0 &
+                                            size 24 backcolor darkgray
+    # create colored arrows to go with text labels
+    fix obj   all graphics/objects 100 arrow 5 80.0 61.0 39 80.0 67.0 39 0.3 0.2 &
+                                       arrow 6 80.0 61.0 37.2 80.0 67.0 37.2 0.3 0.2
+
+    # combine the graphics into visualization using only a subset of atom
+    dump viz viz image 100 hbonds-*.png element element size 600 600 zoom 2.1 view 80 0 center s 0.5 0.52 0.52 &
+                           bond atom 0.3 fsaa yes ssao yes 12384 0.6 shiny 0.1 box no 0.1 &
+                           compute hb1 const -0.4 0.3 compute hb2 const -0.4 0.3 fix label const 1 0 fix obj type 0.0 0.0
+    dump_modify viz pad 5 boxcolor white backcolor darkgray backcolor2 silver &
+                          element C C O H N C C C O H H S O H ccolor hb1 cyan ccolor hb2 magenta
+
+.. |hbonds1| image:: img/hbonds-water.png
+   :width: 49%
+.. |hbonds2| image:: img/hbonds-peptide.png
+   :width: 49%
+
+|hbonds1|  |hbonds2|
+
+.. raw:: html
+
+   <center>(Hydrogen bond graphics visualization example. Click to see the full-size images)</center><br>
+
+----------
+
 Fix reaxff/bonds
 ^^^^^^^^^^^^^^^^
 
@@ -976,3 +1081,31 @@ Fix smd/wall_surface
 Fix :doc:`smd/wall_surface <fix_smd_wall_surface>` of the :ref:`MACHDYN
 package <pkg-machdyn>` creates a custom wall from a mesh of triangles
 that is read from an STL format file.
+
+MC package fixes
+^^^^^^^^^^^^^^^^
+
+Several fixes from the :ref:`MC package <pkg-mc>` have support for
+adding graphics to a visualization.  These are typically added spheres
+of the atoms that were swapped or involved in a bond that was created or
+broken.  Below is an example for input commands that use both, :doc:`fix
+bond/break <fix_bond_break>` and :doc:`fix bond/create/angle
+<fix_bond_create>`.  Atoms involved in a created bond are highlighted in
+red while atoms involved in a broken bond in yellow.
+
+.. code-block:: LAMMPS
+
+   fix break all bond/break 500 1 2.5
+   fix form all bond/create/angle 500 1 1 2.2 1 aconstrain 90.0 180
+   variable nsteps index 500
+   fix label all graphics/labels ${nsteps}  &
+         text "Step: $(step:%05.0f)  Bonds created: $(f_form[2]:%02.0f)  Bonds broken: $(f_break[2]:%02.0f)" 500 32 0 &
+         fontcolor black framecolor black
+
+   dump viz all image ${nsteps} breakable-*.png type type size 1000 400 zoom 8 shiny 0.1 fsaa yes &
+               bond atom 0.5 view 160 90 box no 0.0 ssao yes 238174 0.6 &
+               fix break const 0 1.5 fix form const 0 1.5 fix label const 1 0
+   dump_modify viz pad 6 backcolor white element C acolor 1 gray adiam 1 0.5 &
+               fcolor break goldenrod fcolor form firebrick
+
+.. image:: img/break-create.png

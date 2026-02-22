@@ -88,7 +88,7 @@ to the derivative of this expression.
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 This fix supports the *fix* keyword of :doc:`dump image <dump_image>`.
 The fix will pass geometry information about *xplane*\, *yplane*\, and

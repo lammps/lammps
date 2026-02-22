@@ -18,6 +18,7 @@
 
 #include "pointers.h"    // IWYU pragma: export
 
+#include <array>
 #include <unordered_map>
 
 namespace LAMMPS_NS {
@@ -142,7 +143,9 @@ Currently used when combining data from multiple sources with
    *
    * \param  atype1  First atom type index
    * \param  atype2  Second atom type index
-   * \return         Bond type index, or -1 if not found */
+   * \return         Bond type index if types match in the specified order,
+   *                 negative bond type index if types match in reverse order,
+   *                 0 if there is no match found */
   int infer_bondtype(int, int);
 
   /*! Infer bond type from atom type labels
@@ -152,7 +155,9 @@ Currently used when combining data from multiple sources with
    * Look up a bond type from two atom type labels.
    *
    * \param  labels  Vector of two atom type label strings
-   * \return         Bond type index, or -1 if not found */
+   * \return         Bond type index if types match in the specified order,
+   *                 negative bond type index if types match in reverse order,
+   *                 0 if there is no match found */
   int infer_bondtype(const std::vector<std::string> &);
 
   /*! Infer angle type from three numeric atom types
@@ -163,7 +168,9 @@ Currently used when combining data from multiple sources with
    * \param  atype1  First atom type index
    * \param  atype2  Second atom type index (center atom)
    * \param  atype3  Third atom type index
-   * \return         Angle type index, or -1 if not found */
+   * \return         Angle type index if types match in the specified order,
+   *                 negative angle type index if types match in reverse order,
+   *                 0 if there is no match found */
   int infer_angletype(int, int, int);
 
   /*! Infer angle type from three atom type labels
@@ -173,7 +180,9 @@ Currently used when combining data from multiple sources with
    * Look up an angle type from three atom type labels.
    *
    * \param  labels  Vector of three atom type label strings
-   * \return         Angle type index, or -1 if not found */
+   * \return         Angle type index if types match in the specified order,
+   *                 negative angle type index if types match in reverse order,
+   *                 0 if there is no match found */
   int infer_angletype(const std::vector<std::string> &);
 
   /*! Infer dihedral type from four numeric atom types
@@ -185,7 +194,9 @@ Currently used when combining data from multiple sources with
    * \param  atype2  Second atom type index
    * \param  atype3  Third atom type index
    * \param  atype4  Fourth atom type index
-   * \return         Dihedral type index, or -1 if not found */
+   * \return         Dihedral type index if types match in the specified order,
+   *                 negative dihedral type index if types match in reverse order,
+   *                 0 if there is no match found */
   int infer_dihedraltype(int, int, int, int);
 
   /*! Infer dihedral type from atom type labels
@@ -195,7 +206,9 @@ Currently used when combining data from multiple sources with
    * Look up a dihedral type from four atom type labels.
    *
    * \param  labels  Vector of four atom type label strings
-   * \return         Dihedral type index, or -1 if not found */
+   * \return         Dihedral type index if types match in the specified order,
+   *                 negative dihedral type index if types match in reverse order,
+   *                 0 if there is no match found */
   int infer_dihedraltype(const std::vector<std::string> &);
 
   /*! Infer improper type from four numeric atom types
@@ -207,8 +220,11 @@ Currently used when combining data from multiple sources with
    * \param  atype2  Second atom type index
    * \param  atype3  Third atom type index
    * \param  atype4  Fourth atom type index
-   * \return         Improper type index, or -1 if not found */
-  int infer_impropertype(int, int, int, int);
+   * \param  iorder  Order in which types were matched to improper type label
+   * \return         Improper type index if types match in the specified order,
+   *                 negative improper type index if types match but different order,
+   *                 0 if there is no match found */
+  int infer_impropertype(int, int, int, int, std::array<int, 4> *iorder = nullptr);
 
   /*! Infer improper type from atom type labels
    *
@@ -217,8 +233,11 @@ Currently used when combining data from multiple sources with
    * Look up an improper type from four atom type labels.
    *
    * \param  labels  Vector of four atom type label strings
-   * \return         Improper type index, or -1 if not found */
-  int infer_impropertype(const std::vector<std::string> &);
+   * \param  iorder  Order in which types were matched to improper type label
+   * \return         Improper type index if types match in the specified order,
+   *                 negative improper type index if types match but different order,
+   *                 0 if there is no match found */
+  int infer_impropertype(const std::vector<std::string> &, std::array<int, 4> *iorder = nullptr);
 
   /*! @} */
 

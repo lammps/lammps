@@ -34,6 +34,7 @@
 #include "suffix.h"
 
 #include <cmath>
+#include <cstring>
 
 #include "omp_compat.h"
 

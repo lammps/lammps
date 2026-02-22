@@ -495,6 +495,12 @@ struct alignas(2*sizeof(double)) s_KK_double2 {
   s_KK_double2() {
     v[0] = v[1] = 0.0;
   }
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  s_KK_double2(const double &x, const double &y) {
+    v[0] = x;
+    v[1] = y;
+  }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -512,6 +518,13 @@ struct alignas(2*sizeof(KK_FLOAT)) s_KK_FLOAT2 {
   KOKKOS_INLINE_FUNCTION
   s_KK_FLOAT2() {
     v[0] = v[1] = 0;
+  }
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  s_KK_FLOAT2(const KK_FLOAT &x, const KK_FLOAT &y) {
+    v[0] = x;
+    v[1] = y;
   }
 
 // NOLINTNEXTLINE

@@ -104,13 +104,10 @@ struct DynRankDimTraits {
         layout.dimension[7] != unspecified ? layout.dimension[7] : unspecified);
 
 #ifndef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
-    // In order to have a valid LayoutRight stride when Sacado passes through
-    // extra integer arguments, we need to set it to the dimension[6] for the
-    // rank-7 view coming out of here. Only if the original layout was already
-    // rank-7 we can preserve the stride.
-    // FIXME_SACADO
-    if constexpr (!std::is_same_v<Specialize, void> &&
-                  std::is_same_v<Layout, Kokkos::LayoutRight>) {
+    // In order to have a valid LayoutRight stride we need to set it to the
+    // dimension[6] for the rank-7 view coming out of here. Only if the original
+    // layout was already rank-7 we can preserve the stride.
+    if constexpr (std::is_same_v<Layout, Kokkos::LayoutRight>) {
       if (layout.dimension[6] == unspecified) {
         new_layout.stride = unspecified;
       } else {

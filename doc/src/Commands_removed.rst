@@ -16,7 +16,7 @@ with the direct alternative (if available) and print a warning.
 amber2lmp tools
 ---------------
 
-.. deprecated:: TBD
+.. deprecated:: 11Feb2026
 
 The tools in the ``tools/amber2lmp`` folder have been removed because
 they were unmaintained for a long time and required Python 2 which has

@@ -200,6 +200,10 @@ D. Immel, R. Drautz and G. Sutmann, "Adaptive-precision potentials for
 large-scale atomistic simulations", J. Chem. Phys. 162, 114119 (2025)
 `link <immel2025_doi_>`_
 
+D. Immel, R. Drautz and G. Sutmann, "Conservative adaptive-precision
+interatomic potentials", arXiv:2512.07693
+`link <immel2026_doi_>`_
+
 Adaptive-precision means, that a fast interatomic potential, such as EAM,
 is coupled to a precise interatomic potential, such as ACE.
 This package provides the required pair_styles and fixes to run an efficient,
@@ -209,6 +213,7 @@ In the context of this package, precision refers to the accuracy of an interatom
 potential.
 
 .. _immel2025_doi: https://doi.org/10.1063/5.0245877
+.. _immel2026_doi: https://doi.org/10.48550/arXiv.2512.07693
 
 **Authors:**
 
@@ -232,6 +237,7 @@ The APIP package requires also the installation of ML-PACE, which has
 * ``examples/PACKAGES/apip``
 * :doc:`fix atom_weight/apip <fix_atom_weight_apip>`
 * :doc:`fix lambda/apip <fix_lambda_apip>`
+* :doc:`fix lambda/la/csp/apip <fix_lambda_la_csp_apip>`
 * :doc:`fix lambda_thermostat/apip <fix_lambda_thermostat_apip>`
 * :doc:`pair_style eam/apip <pair_eam_apip>`
 * :doc:`pair_style lambda/zone/apip <pair_lambda_zone_apip>`
@@ -1306,12 +1312,12 @@ Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`, :ref:`INTEL
 <PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which have styles
 optimized for CPUs, KNLs, and GPUs.
 
-You must have a C++17 compatible compiler to use this package.
-KOKKOS makes extensive use of advanced C++ features, which can
-expose compiler bugs, especially when compiling for maximum
-performance at high optimization levels. Please see the file
-``lib/kokkos/README`` for a list of compilers and their respective
-platforms, that are known to work.
+You must have a C++20 compatible compiler to use this package.  KOKKOS
+makes extensive use of advanced C++ features, which can expose compiler
+bugs, especially when compiling for maximum performance at high
+optimization levels.  Please see the file ``lib/kokkos/README`` for a
+list of compilers and their respective platforms, that are known to
+work.
 
 **Authors:** The KOKKOS package was created primarily by Christian Trott
 and Stan Moore (Sandia), with contributions from other folks as well.
@@ -1555,7 +1561,7 @@ For more information on MBX, see the `MBX library <https://mbxsimulations.com>`_
 by the Paesani group at the University of California, San Diego. Major contributors
 include: Marc Riera, Christopher Knight, Ethan Bull-Vulpe, and Henry Agnew.
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 **Install:**
 
@@ -1593,6 +1599,9 @@ conjunction with molecular dynamics (MD).
 * :doc:`fix bond/swap <fix_bond_swap>`
 * :doc:`fix charge/regulation <fix_charge_regulation>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix hmc <fix_hmc>`
+* :doc:`fix mol/swap <fix_mol_swap>`
+* :doc:`fix neighbo/swap <fix_neighbor_swap>`
 * :doc:`fix sgcmc <fix_sgcmc>`
 * :doc:`fix tfmc <fix_tfmc>`
 * :doc:`fix widom <fix_widom>`

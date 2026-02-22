@@ -809,18 +809,23 @@ std::string Atom::get_style()
 }
 
 /* ----------------------------------------------------------------------
-   return ptr to AtomVec class if matches style or to matching hybrid sub-class
-   return nullptr if no match
+   return ptr to AtomVec class if it matches the style argument w/o suffix
+     or ptr to the matching hybrid sub-class without regard of the suffix
+   return nullptr if no match.
 ------------------------------------------------------------------------- */
 
-AtomVec *Atom::style_match(const char *style)
+AtomVec *Atom::style_match(const std::string &style)
 {
-  if (strcmp(atom_style,style) == 0) return avec;
-  else if (strcmp(atom_style,"hybrid") == 0) {
+  std::string pattern = style;
+  pattern.insert(0,1,'^');
+
+  if (utils::strmatch(atom_style, pattern)) return avec;
+  else if (utils::strmatch(atom_style,"^hybrid")) {
     auto *avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
-    for (int i = 0; i < avec_hybrid->nstyles; i++)
-      if (strcmp(avec_hybrid->keywords[i],style) == 0)
+    for (int i = 0; i < avec_hybrid->nstyles; i++) {
+      if (utils::strmatch(avec_hybrid->keywords[i], pattern))
         return avec_hybrid->styles[i];
+    }
   }
   return nullptr;
 }

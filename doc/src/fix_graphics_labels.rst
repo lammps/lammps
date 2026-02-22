@@ -112,7 +112,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 This fix allows to add either images or text as "labels" to :doc:`dump
 image <dump_image>` created images by using the *fix* keyword.  This can
@@ -450,6 +450,7 @@ Related commands
 :doc:`fix print <fix_print>`,
 :doc:`fix graphics/arrows <fix_graphics_arrows>`,
 :doc:`fix graphics/isosurface <fix_graphics_isosurface>`,
+:doc:`fix graphics/lines <fix_graphics_lines>`,
 :doc:`fix graphics/objects <fix_graphics_objects>`,
 :doc:`fix graphics/periodic <fix_graphics_periodic>`
 

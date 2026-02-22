@@ -3,7 +3,7 @@ AMBER to LAMMPS Tutorial
 
 **written by Arun Srikanth Sridhar**
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 `AMBER2LAMMPS <amber2lammps_>`_ is a Python utility that converts AMBER
 topology (``.prmtop``) and coordinate/charge (``.crd``) files into

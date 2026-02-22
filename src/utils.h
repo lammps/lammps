@@ -707,10 +707,26 @@ size_t count_words(const char *text);
 
 size_t trim_and_count_words(const std::string &text, const std::string &separators = " \t\r\n\f");
 
+/*! Take list of values and join them with a given separator text.
+ *
+ * This is the inverse operation of what the Tokenizer classes do.
+ * This is a generalization of the join_words() function and similar
+ * to fmt::join() but only supports the vector STL container, and to
+ * use the begin/end iterator version you have to use:
+ * `utils::join(std::vector(x.begin(), x.end()), sep);`.
+ * This approach can also be used to support other STL containers.
+ *
+ * \param values  STL vector with values
+ * \param sep     separator string (may be empty)
+ * \return  string with the concatenated values and separators */
+
+template <typename T>
+std::string join(const std::vector<T> &values, const std::string &sep);
+
 /*! Take list of words and join them with a given separator text.
  *
  * This is the inverse operation of what the split_words() function
- * Tokenizer classes do.
+ * and Tokenizer classes do.
  *
  * \param words  STL vector with strings
  * \param sep    separator string (may be empty)

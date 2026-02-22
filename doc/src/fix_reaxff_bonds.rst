@@ -68,7 +68,7 @@ timestep numbers have the same length by adding leading zeroes
 (e.g. 00010 for a pad value of 5).  The default pad value is 0, i.e. no
 leading zeroes.
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 If the filename is "NULL", then no output is created.  This can be
 useful when using fix *reaxff/bonds* in combination with :doc:`dump
@@ -78,7 +78,7 @@ the ReaxFF force field.
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 Fix *reaxff/bonds* supports the *fix* keyword of :doc:`dump image
 <dump_image>`.  The fix will pass geometry information about the bonds

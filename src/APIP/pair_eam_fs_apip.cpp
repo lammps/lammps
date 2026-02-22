@@ -24,6 +24,8 @@
 #include "memory.h"
 #include "potential_file_reader.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -46,12 +48,8 @@ void PairEAMFSAPIP::coeff(int narg, char **arg)
 
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes) error->all(FLERR, "Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0], "*") != 0 || strcmp(arg[1], "*") != 0)
-    error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg != 3 + atom->ntypes)
+    error->all(FLERR, "Number of element to type mappings does not match number of atom types");
 
   // read EAM Finnis-Sinclair file
 
@@ -104,7 +102,7 @@ void PairEAMFSAPIP::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -136,14 +134,8 @@ void PairEAMFSAPIP::read_file(char *filename)
         error->one(FLERR, "Incorrect element names in EAM potential file");
 
       file->elements = new char *[file->nelements];
-      for (int i = 0; i < file->nelements; i++) {
-        const std::string word = values.next_string();
-        const int n = word.length() + 1;
-        file->elements[i] = new char[n];
-        strcpy(file->elements[i], word.c_str());
-      }
-
-      //
+      for (int i = 0; i < file->nelements; i++)
+        file->elements[i] = utils::strdup(values.next_string());
 
       if (he_flag)
         values = reader.next_values(6);

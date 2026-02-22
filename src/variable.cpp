@@ -39,8 +39,6 @@
 #include "universe.h"
 #include "update.h"
 
-#include "fmt/ranges.h"
-
 #include <algorithm>
 #include <cctype>
 #include <cmath>
@@ -557,7 +555,7 @@ void Variable::set(int narg, char **arg)
         vecs[ivar].dynamic = 0;
         parse_vector(ivar, data[ivar][0]);
         std::vector<double> vec(vecs[ivar].values, vecs[ivar].values + vecs[ivar].n);
-        data[ivar][1] = utils::strdup(fmt::format("[{}]", fmt::join(vec, ",")));
+        data[ivar][1] = utils::strdup(fmt::format("[{}]", utils::join(vec, ",")));
       }
       eval_in_progress[ivar] = 0;
       replaceflag = 1;
@@ -576,7 +574,7 @@ void Variable::set(int narg, char **arg)
         vecs[nvar].dynamic = 0;
         parse_vector(nvar, data[nvar][0]);
         std::vector<double> vec(vecs[nvar].values, vecs[nvar].values + vecs[nvar].n);
-        data[nvar][1] = utils::strdup(fmt::format("[{}]", fmt::join(vec, ",")));
+        data[nvar][1] = utils::strdup(fmt::format("[{}]", utils::join(vec, ",")));
       }
     }
 
@@ -1125,7 +1123,7 @@ char *Variable::retrieve(const char *name)
       compute_vector(ivar,&result);
       delete[] data[ivar][1];
       std::vector <double> vectmp(vecs[ivar].values,vecs[ivar].values + vecs[ivar].n);
-      std::string str = fmt::format("[{}]", fmt::join(vectmp,","));
+      std::string str = fmt::format("[{}]", utils::join(vectmp,","));
       data[ivar][1] = utils::strdup(str);
     }
 

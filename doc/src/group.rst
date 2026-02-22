@@ -43,6 +43,8 @@ Syntax
            *var* value = name of variable
            *property* value = name of custom integer or floating point vector
            *every* value = N = update group every this many timesteps
+           *include* args = molecule
+             molecule = add atoms to group with same molecule ID as atoms already in group
        *static* = no args
 
 Examples
@@ -258,6 +260,15 @@ the argument for the *every* keyword (:math:`N = 1` is the default).  For an
 energy minimization, via the :doc:`minimize <minimize>` command, an
 assignment is made at the beginning of the minimization, but not
 during the iterations of the minimizer.
+
+The optional *include* keyword with its arg *molecule* adds atoms to a
+dynamic group that have the same molecule ID as atoms already in the
+group.  The molecule ID = 0 is ignored in this operation, since it is
+assumed to flag isolated atoms that are not part of molecules.  An
+example of where this operation is useful is if the dynamic group is
+defined using a *region*.  If molecules straddle the region boundary,
+then atoms outside the region that are part of molecules with atoms
+inside the region will be added to the group (see above).
 
 The point in the timestep at which atoms are assigned to a dynamic
 group is after interatomic forces have been computed, but before any

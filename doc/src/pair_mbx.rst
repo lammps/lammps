@@ -49,7 +49,7 @@ See ``examples/PACKAGES/mbx`` for full examples of how to use MBX in LAMMPS.
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 The MBX (Many-Body eXpansion) software is a C++ library that provides
 access to many-body energy (MB-nrg) potential energy functions, such as

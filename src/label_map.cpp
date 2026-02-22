@@ -377,18 +377,19 @@ bool LabelMap::is_complete(int mode) const
    infer bond type from two atom types
    input/output is numeric types, uses type labels internally
    assumes bond type labels are of the form "a-b" for atom types 'a' and 'b'
+   returns negative of numeric type if constituent atoms types in reverse order
 ------------------------------------------------------------------------- */
 
 int LabelMap::infer_bondtype(int type1, int type2)
 {
   // check for out of range input
-  if ((type1 < 1) || (type1 > natomtypes) || (type2 < 1) || (type2 > natomtypes)) return -1;
+  if ((type1 < 1) || (type1 > natomtypes) || (type2 < 1) || (type2 > natomtypes)) return 0;
 
   // convert numeric atom types to type label
   std::vector<std::string> mytypes(2);
   mytypes[0] = typelabel[type1 - 1];
   mytypes[1] = typelabel[type2 - 1];
-  if (mytypes[0].empty() || mytypes[1].empty()) return -1;
+  if (mytypes[0].empty() || mytypes[1].empty()) return 0;
 
   return infer_bondtype(mytypes);
 }
@@ -396,26 +397,29 @@ int LabelMap::infer_bondtype(int type1, int type2)
 /* ----------------------------------------------------------------------
    infer numeric type from two atom type labels
    assumes bond types are of the form "a-b" for atom types 'a' and 'b'
+   returns negative of numeric type if constituent atoms types in reverse order
 ------------------------------------------------------------------------- */
 
 int LabelMap::infer_bondtype(const std::vector<std::string> &mytypes)
 {
   // search for matching bond type label with symmetry considerations
+  int out = 0;
   std::vector<std::string> btypes(2);
   for (int i = 0; i < nbondtypes; i++) {
     int status = parse_typelabel(2, btypelabel[i], btypes);
-    if ((status != -1) && (btypes.size() == 2))
-      if ((mytypes[0] == btypes[0] && mytypes[1] == btypes[1]) ||
-          (mytypes[0] == btypes[1] && mytypes[1] == btypes[0]))
-        return i + 1;
+    if ((status != -1) && (btypes.size() == 2)) {
+      if (mytypes[0] == btypes[0] && mytypes[1] == btypes[1]) return i + 1;
+      if (mytypes[0] == btypes[1] && mytypes[1] == btypes[0]) out = -(i + 1);
+    }
   }
-  return -1;
+  return out;
 }
 
 /* ----------------------------------------------------------------------
    infer angle type from three atom types
    input/output is numeric types, uses type labels internally
    assumes angle types of the form "a-b-c" for atom types 'a', 'b', 'c'
+   returns negative of numeric type if constituent atoms types in reverse order
 ------------------------------------------------------------------------- */
 
 int LabelMap::infer_angletype(int type1, int type2, int type3)
@@ -423,7 +427,7 @@ int LabelMap::infer_angletype(int type1, int type2, int type3)
   // check for out of range input
   if ((type1 < 1) || (type1 > natomtypes) || (type2 < 1) || (type2 > natomtypes) || (type3 < 1) ||
       (type3 > natomtypes))
-    return -1;
+    return 0;
 
   // convert numeric atom types to type label
   std::vector<std::string> mytypes(3);
@@ -431,7 +435,7 @@ int LabelMap::infer_angletype(int type1, int type2, int type3)
   mytypes[1] = typelabel[type2 - 1];
   mytypes[2] = typelabel[type3 - 1];
   for (size_t i = 0; i < 3; i++)
-    if (mytypes[i].empty()) return -1;
+    if (mytypes[i].empty()) return 0;
 
   return infer_angletype(mytypes);
 }
@@ -440,28 +444,31 @@ int LabelMap::infer_angletype(int type1, int type2, int type3)
    infer angle type from three atom types
    input/output is numeric types, uses type labels internally
    assumes angle types of the form "a-b-c" for atom types 'a', 'b', 'c'
+   returns negative of numeric type if constituent atoms types in reverse order
 ------------------------------------------------------------------------- */
 
 int LabelMap::infer_angletype(const std::vector<std::string> &mytypes)
 {
   // search for matching angle type label, with symmetry considerations
 
+  int out = 0;
   int status;
   std::vector<std::string> atypes(3);
   for (int i = 0; i < nangletypes; i++) {
     status = parse_typelabel(3, atypelabel[i], atypes);
-    if (status != -1 && mytypes[1] == atypes[1])
-      if ((mytypes[0] == atypes[0] && mytypes[2] == atypes[2]) ||
-          (mytypes[0] == atypes[2] && mytypes[2] == atypes[0]))
-        return i + 1;
+    if (status != -1 && mytypes[1] == atypes[1]) {
+      if (mytypes[0] == atypes[0] && mytypes[2] == atypes[2]) return i + 1;
+      if (mytypes[0] == atypes[2] && mytypes[2] == atypes[0]) out = -(i + 1);
+    }
   }
-  return -1;
+  return out;
 }
 
 /* ----------------------------------------------------------------------
    infer dihedral type from four atom types
    input/output is numeric types, uses type labels internally
    assumes dihedral types of the form "a-b-c-d"
+   returns negative of numeric type if constituent atoms types in reverse order
 ------------------------------------------------------------------------- */
 
 int LabelMap::infer_dihedraltype(int type1, int type2, int type3, int type4)
@@ -469,7 +476,7 @@ int LabelMap::infer_dihedraltype(int type1, int type2, int type3, int type4)
   // check for out of range input
   if ((type1 < 1) || (type1 > natomtypes) || (type2 < 1) || (type2 > natomtypes) || (type3 < 1) ||
       (type3 > natomtypes) || (type4 < 1) || (type4 > natomtypes))
-    return -1;
+    return 0;
 
   // convert numeric atom types to type label
   std::vector<std::string> mytypes(4);
@@ -478,7 +485,7 @@ int LabelMap::infer_dihedraltype(int type1, int type2, int type3, int type4)
   mytypes[2] = typelabel[type3 - 1];
   mytypes[3] = typelabel[type4 - 1];
   for (size_t i = 0; i < 4; i++)
-    if (mytypes[i].empty()) return -1;
+    if (mytypes[i].empty()) return 0;
 
   return infer_dihedraltype(mytypes);
 }
@@ -487,24 +494,26 @@ int LabelMap::infer_dihedraltype(int type1, int type2, int type3, int type4)
    infer dihedral type from four atom types
    input/output is numeric types, uses type labels internally
    assumes dihedral types of the form "a-b-c-d"
+   returns negative of numeric type if constituent atoms types in reverse order
 ------------------------------------------------------------------------- */
 
 int LabelMap::infer_dihedraltype(const std::vector<std::string> &mytypes)
 {
   // search for matching dihedral type label
 
+  int out = 0;
   int status;
   std::vector<std::string> dtypes(4);
   for (int i = 0; i < ndihedraltypes; i++) {
     status = parse_typelabel(4, dtypelabel[i], dtypes);
-    if (status != -1)
-      if ((mytypes[0] == dtypes[0] && mytypes[1] == dtypes[1] && mytypes[2] == dtypes[2] &&
-           mytypes[3] == dtypes[3]) ||
-          (mytypes[3] == dtypes[0] && mytypes[2] == dtypes[1] && mytypes[1] == dtypes[2] &&
-           mytypes[0] == dtypes[3]))
-        return i + 1;
+    if (status != -1) {
+      if (mytypes[0] == dtypes[0] && mytypes[1] == dtypes[1] && mytypes[2] == dtypes[2] &&
+           mytypes[3] == dtypes[3]) return i + 1;
+      if (mytypes[3] == dtypes[0] && mytypes[2] == dtypes[1] && mytypes[1] == dtypes[2] &&
+           mytypes[0] == dtypes[3]) out = -(i + 1);
+    }
   }
-  return -1;
+  return out;
 }
 
 /* ----------------------------------------------------------------------
@@ -514,12 +523,12 @@ int LabelMap::infer_dihedraltype(const std::vector<std::string> &mytypes)
    the symmetry of the improper is encoded in improper.symmatoms
 ------------------------------------------------------------------------- */
 
-int LabelMap::infer_impropertype(int type1, int type2, int type3, int type4)
+int LabelMap::infer_impropertype(int type1, int type2, int type3, int type4, std::array<int, 4> *iorder)
 {
   // check for out of range input
   if ((type1 < 1) || (type1 > natomtypes) || (type2 < 1) || (type2 > natomtypes) || (type3 < 1) ||
       (type3 > natomtypes) || (type4 < 1) || (type4 > natomtypes))
-    return -1;
+    return 0;
 
   // convert numeric atom types to type label
   std::vector<std::string> mytypes(4);
@@ -528,9 +537,9 @@ int LabelMap::infer_impropertype(int type1, int type2, int type3, int type4)
   mytypes[2] = typelabel[type3 - 1];
   mytypes[3] = typelabel[type4 - 1];
   for (int i = 0; i < 4; i++)
-    if (mytypes[i].empty()) return -1;
+    if (mytypes[i].empty()) return 0;
 
-  return infer_impropertype(mytypes);
+  return infer_impropertype(mytypes, iorder);
 }
 
 /* ----------------------------------------------------------------------
@@ -540,41 +549,49 @@ int LabelMap::infer_impropertype(int type1, int type2, int type3, int type4)
    the symmetry of the improper is encoded in improper.symmatoms
 ------------------------------------------------------------------------- */
 
-int LabelMap::infer_impropertype(const std::vector<std::string> &mytypes)
+int LabelMap::infer_impropertype(const std::vector<std::string> &mytypes, std::array<int, 4> *iorder)
 {
   // search for matching improper type label
-
-  int status, nlist;
+  int out = 0;
+  int status, navail_types;
   std::vector<std::string> itypes(4);
-  std::vector<std::string> list1(4);
-  std::vector<std::string> list2(4);
+  std::vector<std::string> avail_types;
   for (int i = 0; i < nimpropertypes; i++) {
-    nlist = 0;
     status = parse_typelabel(4, itypelabel[i], itypes);
     if (status != -1) {
+      if (mytypes[0] == itypes[0] && mytypes[1] == itypes[1] && mytypes[2] == itypes[2] &&
+          mytypes[3] == itypes[3]) return i + 1;
+      navail_types = 4;
+      avail_types = mytypes;
       for (int j = 0; j < 4; j++) {
-        if (force->improper && (force->improper->symmatoms[j] == 1)) {
+        if (force->improper && force->improper->symmatoms[j] == 1) {
           if (mytypes[j] != itypes[j]) {
             status = -1;
             break;
           }
-        } else {
-          list1[nlist] = mytypes[j];
-          list2[nlist++] = itypes[j];
+          avail_types[j] = "";
+          navail_types--;
         }
       }
       if (status == -1) continue;
-      std::sort(list1.begin(), list1.end());
-      std::sort(list2.begin(), list2.end());
-      for (int j = 0; j < nlist; j++)
-        if (list1[j] != list2[j]) {
-          status = -1;
-          break;
+
+      if (iorder) *iorder = {0, 1, 2, 3};
+      for (int j = 0; j < 4; j++) {
+        if (std::string(force->improper_style) == "none" || force->improper->symmatoms[j] == 0) {
+          for (int k = 0; k < 4; k++) {
+            if (itypes[j] == avail_types[k]) {
+              avail_types[k] = "";
+              navail_types--;
+              if (iorder) (*iorder)[j] = k;
+              break;
+            }
+          }
         }
-      if (status != -1) return i + 1;
+      }
+      if (navail_types == 0) out = -(i + 1);
     }
   }
-  return -1;
+  return out;
 }
 
 /* ----------------------------------------------------------------------

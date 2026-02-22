@@ -41,23 +41,24 @@ center GPUs) are under development.  You choose the mode at build time
 to produce an executable compatible with a specific hardware.
 
 The following compatibility notes have been last updated for LAMMPS
-version 23 November 2023 and Kokkos version 4.2.
+version 11 February 2026 and its bundled Kokkos library version 5.0.2.
 
-.. admonition:: C++17 support
+.. admonition:: C++20 support
    :class: note
 
-   Kokkos requires using a compiler that supports the c++17 standard. For
-   some compilers, it may be necessary to add a flag to enable c++17 support.
-   For example, the GNU compiler uses the ``-std=c++17`` flag. For a list of
-   compilers that have been tested with the Kokkos library, see the
-   `requirements document of the Kokkos Wiki
+   Kokkos requires using a compiler that supports the C++20
+   standard. For some compilers, it may be necessary to add a flag to
+   enable C++20 support.  For example, the GNU compiler uses the
+   ``-std=c++20`` flag.  For a list of compilers that have been tested
+   with the Kokkos library, see the `requirements document of the Kokkos
+   Wiki
    <https://kokkos.org/kokkos-core-wiki/get-started/requirements.html>`_.
 
 .. admonition:: NVIDIA CUDA support
    :class: note
 
    To build with Kokkos support for NVIDIA GPUs, the NVIDIA CUDA toolkit
-   software version 11.0 or later must be installed on your system. See
+   software version 12.2 or later must be installed on your system. See
    the discussion for the :doc:`GPU package <Speed_gpu>` for details of
    how to check and do this.
 
@@ -65,15 +66,17 @@ version 23 November 2023 and Kokkos version 4.2.
    :class: note
 
    To build with Kokkos support for AMD GPUs, the AMD ROCm toolkit
-   software version 5.2.0 or later must be installed on your system.
+   software version 6.2.0 or later must be installed on your system.
 
 .. admonition:: Intel Data Center GPU support
    :class: note
 
    Support for Kokkos with Intel Data Center GPU accelerators (formerly
    known under the code name "Ponte Vecchio") in LAMMPS is still a work
-   in progress.  Only a subset of the functionality works correctly.
-   Please contact the LAMMPS developers if you run into problems.
+   in progress.  Minimum required version is the Intel LLVM (not
+   classic) compiler version 2024.1.  The LAMMPS developers do not
+   regularly test the status of this, so please contact the LAMMPS
+   developers if you run into problems.
 
 .. admonition:: CUDA and MPI library compatibility
    :class: note

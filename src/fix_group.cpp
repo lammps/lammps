@@ -36,12 +36,12 @@ using namespace FixConst;
 FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), idregion(nullptr), idvar(nullptr), idprop(nullptr), region(nullptr)
 {
-  // dgroupbit = bitmask of dynamic group
+  // gbit = bitmask of dynamic group
   // group ID is last part of fix ID
 
   auto dgroupid = std::string(id).substr(strlen("GROUP_"));
-  gbit = group->bitmask[group->find(dgroupid)];
-  gbitinverse = group->inversemask[group->find(dgroupid)];
+  gbit = group->get_bitmask_by_id(FLERR, dgroupid, "dynamic group");
+  gbitinverse = group->get_inversemask_by_id(FLERR, dgroupid, "dynamic group");
 
   comm_forward = 1;
 
@@ -50,6 +50,7 @@ FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) :
   regionflag = 0;
   varflag = 0;
   propflag = 0;
+  moleculeflag = 0;
   nevery = 1;
 
   int iarg = 3;
@@ -91,6 +92,17 @@ FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) :
       if (nevery <= 0)
         error->all(FLERR, "Illegal every value {} for dynamic group {}", nevery, dgroupid);
       iarg += 2;
+    } else if (strcmp(arg[iarg], "include") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "group dynamic include", error);
+      if (strcmp(arg[iarg + 1], "molecule") == 0) {
+        moleculeflag = 1;
+        if (!atom->molecule_flag)
+          error->all(FLERR,
+                     "Dynamic Group include molecule setting requires atom attribute molecule");
+        iarg += 2;
+      } else {
+        error->all(FLERR, "Unknown include setting {} in dynamic group command", arg[iarg + 1]);
+      }
     } else
       error->all(FLERR, "Unknown keyword {} in dynamic group command", arg[iarg]);
   }
@@ -239,6 +251,8 @@ void FixGroup::set_group()
   // ensure ghost atom masks are also updated
 
   comm->forward_comm(this);
+
+  if (moleculeflag) group->add_molecules(0,gbit);
 }
 
 /* ---------------------------------------------------------------------- */

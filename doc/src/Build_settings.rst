@@ -388,7 +388,7 @@ in whichever ``lib/gpu/Makefile`` is used must be the same as above.
 Read or write compressed files
 -----------------------------------------
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Feb2026
 
    Added support for ``brotli`` and ``7-zip``
 

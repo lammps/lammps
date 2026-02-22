@@ -90,6 +90,8 @@
 /fix_graphics_isosurface.h
 /fix_graphics_labels.cpp
 /fix_graphics_labels.h
+/fix_graphics_lines.cpp
+/fix_graphics_lines.h
 /fix_graphics_objects.cpp
 /fix_graphics_objects.h
 /fix_graphics_periodic.cpp
@@ -136,6 +138,8 @@
 /atom_vec_apip.h
 /fix_lambda_apip.cpp
 /fix_lambda_apip.h
+/fix_lambda_la_csp_apip.cpp
+/fix_lambda_la_csp_apip.h
 /fix_lambda_thermostat_apip.cpp
 /fix_lambda_thermostat_apip.h
 /pair_lambda_input_apip.cpp

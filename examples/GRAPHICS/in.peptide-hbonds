@@ -1,0 +1,62 @@
+# Solvated 5-mer peptide
+
+units           real
+atom_style      full
+
+pair_style      lj/charmm/coul/long 8.0 10.0 10.0
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+kspace_style    pppm 0.0001
+
+read_data       data.peptide
+
+neighbor        2.0 bin
+neigh_modify    delay 5
+
+timestep        2.0
+
+thermo_style    multi
+thermo          1000
+
+fix             1 all nvt temp 275.0 275.0 100.0 tchain 1
+fix             2 all shake 0.0001 10 1000 b 4 6 8 10 12 14 18 a 31
+
+# define region around peptide for hbond analysis and visualization
+group           peptide type <= 12
+variable comx equal xcm(peptide,x)
+variable comy equal xcm(peptide,y)
+variable comz equal xcm(peptide,z)
+region water ellipsoid v_comx v_comy v_comz 7.0 8.0 16.0
+group           viz dynamic all region water include molecule
+
+# define groups of donor and acceptor atoms for peptide and water
+group           pdonor    type 5
+group           wdonor    type 13
+group           pacceptor type 3 5 9 12
+group           wacceptor type 13
+group           hydrogen type 10 14
+
+# peptide-water hydrogen bonds where the peptide is the donor
+compute hb1 all hbond/local 3.3 30.0 pdonor wacceptor hydrogen
+# peptide-water hydrogen bonds where the peptide is the acceptor
+compute hb2 all hbond/local 3.7 30.0 wdonor pacceptor hydrogen
+
+# create donor/acceptor hydrogen bonds info text
+fix label all graphics/labels 100 text " Hydrogen bonds donated:  $(c_hb1:%02.0f)" 207 72 0.0 &
+                                        size 24 backcolor darkgray &
+                                  text "Hydrogen bonds accepted: $(c_hb2:%02.0f)" 210 30 0.0 &
+                                        size 24 backcolor darkgray
+# create colored arrows to go with text labels
+fix obj   all graphics/objects 100 arrow 5 80.0 61.0 39 80.0 67.0 39 0.3 0.2 &
+                                   arrow 6 80.0 61.0 37.2 80.0 67.0 37.2 0.3 0.2
+
+# combine the graphics into visualization
+dump viz viz image 100 hbonds-*.png element element size 600 600 zoom 2.1 view 80 0 bond atom 0.3 &
+                       fsaa yes ssao yes 12384 0.6 shiny 0.1 box no 0.1 center s 0.5 0.52 0.52 &
+                       compute hb1 const -0.4 0.3 compute hb2 const -0.4 0.3 fix label const 1 0 fix obj type 0.0 0.0
+dump_modify viz pad 5 boxcolor white backcolor darkgray backcolor2 silver &
+    element C C O H N C C C O H H S O H ccolor hb1 cyan ccolor hb2 magenta
+
+run             20000

@@ -85,7 +85,7 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   if (atom->molecular != Atom::MOLECULAR)
-    error->all(FLERR,"Cannot use fix bond/swap with non-molecular systems");
+    error->all(FLERR, 2, "Cannot use fix bond/swap with non-molecular systems");
 
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group

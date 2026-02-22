@@ -117,7 +117,7 @@ versions use an incompatible API and thus LAMMPS will fail to compile.
 GRAPHICS package
 ----------------
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
    *dump image*\ , *dump_movie* and supporting classes were moved to form
    the new GRAPHICS package together with several *fix graphics/...* styles.
@@ -293,7 +293,11 @@ compiling LAMMPS on the head node of a GPU cluster, this library may not
 be installed, so you may need to copy it over from one of the compute
 nodes (best into this directory).  Recent versions of the CUDA toolkit
 starting from CUDA 9 provide a dummy ``libcuda.so`` library (typically
-under ``$(CUDA_HOME)/lib64/stubs``), that can be used for linking.
+under ``$(CUDA_HOME)/lib64/stubs``), that can be used for linking.  If
+you are compiling LAMMPS with the ``-D BUILD_SHARED_LIBS=ON`` setting,
+you may get to see ``ld: warning: libcuda.so.1, needed by
+liblammps.so.0, not found``.  This may be worked around by also setting:
+``-DCMAKE_EXE_LINKER_FLAGS=-Wl,--unresolved-symbols=ignore-in-shared-libs``.
 
 To support the CUDA multi-process server (MPS) you can set the define
 ``-DCUDA_MPS_SUPPORT``.  Please note that in this case you must **not**
@@ -835,7 +839,7 @@ This list was last updated for version 4.7.1 of the Kokkos library.
 
    .. tab:: Basic traditional make settings:
 
-      .. versionchanged:: TBD
+      .. versionchanged:: 11Feb2026
 
       The KOKKOS package no longer supports the the traditional make build.
       You need to build LAMMPS with CMake.
@@ -1239,7 +1243,7 @@ This package depends on the KSPACE package.
 MBX package
 -----------
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 This package requires the MBX library that can be downloaded and built
 either before LAMMPS is built or as part of the LAMMPS compilation.  The

@@ -1,11 +1,12 @@
 .. index:: pair_style lj/cubic
 .. index:: pair_style lj/cubic/gpu
+.. index:: pair_style lj/cubic/kk
 .. index:: pair_style lj/cubic/omp
 
 pair_style lj/cubic command
 ===========================
 
-Accelerator Variants: *lj/cubic/gpu*, *lj/cubic/omp*
+Accelerator Variants: *lj/cubic/gpu*, *lj/cubic/kk*, *lj/cubic/omp*
 
 Syntax
 """"""

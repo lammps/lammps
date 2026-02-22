@@ -45,10 +45,10 @@ class ComputeRHEOVShift : public Compute {
  private:
   int nmax_store, comm_stage;
   double dtv, cut, cutsq, cutthird;
-  double scale, wmin, cmin;
+  double scale, rmin, cmin;
   int surface_flag, interface_flag, cross_type_flag;
   double *rho0;
-  double *wsame, *ct, **cgradt;
+  double *rsame, *ct, **cgradt;
   int *shift_type;
 
   class NeighList *list;

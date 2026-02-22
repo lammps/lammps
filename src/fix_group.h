@@ -39,7 +39,7 @@ class FixGroup : public Fix {
 
  private:
   int gbit, gbitinverse;
-  int regionflag, varflag, propflag, proptype;
+  int regionflag, varflag, propflag, proptype, moleculeflag;
   int ivar, iprop;
   char *idregion, *idvar, *idprop;
   class Region *region;

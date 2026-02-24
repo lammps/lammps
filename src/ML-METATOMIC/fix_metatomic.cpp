@@ -95,9 +95,24 @@ FixMetatomic::FixMetatomic(LAMMPS *lmp, int narg, char **arg): Fix(lmp, narg, ar
     this->extensions_directory = std::nullopt;
     std::vector<int> parsed_types;
 
+    this->mta_data = new FixMetatomicData(std::move(length_unit));
+
     int iarg = 4;
     while (iarg < narg) {
-        if (strcmp(arg[iarg], "types") == 0) {
+        if (strcmp(arg[iarg], "check_consistency") == 0) {  
+            iarg += 1;
+            if (iarg == narg - 1) {
+                error->one(FLERR, "expected <on/off> after 'check_consistency' in pair_style metatomic, got nothing");
+            } else if (strcmp(arg[iarg + 1], "on") == 0) {
+                mta_data->check_consistency = true;
+                iarg += 1;
+            } else if (strcmp(arg[iarg + 1], "off") == 0) {
+                mta_data->check_consistency = false;
+                iarg += 1;
+            } else {
+                error->one(FLERR, "expected <on/off> after 'check_consistency' in fix metatomic, got '{}'", arg[iarg + 1]);
+            }
+        } else if (strcmp(arg[iarg], "types") == 0) {
             types_are_set = true;
             // Require exactly atom->ntypes integer values after the "types" keyword.
             iarg++;
@@ -165,7 +180,6 @@ FixMetatomic::FixMetatomic(LAMMPS *lmp, int narg, char **arg): Fix(lmp, narg, ar
         type_mapping[i] = parsed_types[i - 1];
     }
 
-    this->mta_data = new FixMetatomicData(std::move(length_unit));
 
     // FlashMD needs position change delta-q and momenta p
     auto positions = torch::make_intrusive<metatomic_torch::ModelOutputHolder>(

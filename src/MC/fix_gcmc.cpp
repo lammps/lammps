@@ -280,8 +280,7 @@ void FixGCMC::options(int narg, char **arg)
       if (imol == -1)
         error->all(FLERR,"Molecule template ID for fix gcmc does not exist");
       if (atom->molecules[imol]->nset > 1 && comm->me == 0)
-        error->warning(FLERR,"Molecule template for "
-                       "fix gcmc has multiple molecules");
+        error->warning(FLERR,"Molecule template for fix gcmc has multiple molecules");
       exchmode = EXCHMOL;
       onemols = atom->molecules;
       nmol = onemols[imol]->nset;
@@ -716,8 +715,7 @@ void FixGCMC::init()
   // warning if group id is "all"
 
   if ((comm->me == 0) && (groupbit & 1))
-    error->warning(FLERR, "Fix gcmc is being applied "
-                   "to the default group all");
+    error->warning(FLERR, "Fix gcmc is being applied ""to the default group all");
 
   // construct group bitmask for all new atoms
   // aggregated over all group keywords
@@ -794,9 +792,8 @@ void FixGCMC::pre_exchange()
 
   if (full_flag) {
     energy_stored = energy_full();
-    if (overlap_flag && energy_stored > MAXENERGYTEST)
-        error->warning(FLERR,"Energy of old configuration in "
-                       "fix gcmc is > MAXENERGYTEST.");
+    if (overlap_flag && (energy_stored > MAXENERGYTEST) && (comm->me == 0))
+      error->warning(FLERR,"Energy of old configuration in fix gcmc is > MAXENERGYTEST.");
 
     for (int i = 0; i < ncycles; i++) {
       int ixm = static_cast<int>(random_equal->uniform()*ncycles) + 1;
@@ -865,8 +862,8 @@ void FixGCMC::attempt_atomic_translation()
   if (i >= 0) {
     double **x = atom->x;
     double energy_before = energy(i,ngcmc_type,-1,x[i]);
-    if (overlap_flag && energy_before > MAXENERGYTEST)
-        error->warning(FLERR,"Energy of old configuration in fix gcmc is > MAXENERGYTEST.");
+    if (overlap_flag && (energy_before > MAXENERGYTEST) && (comm->me == 0))
+      error->warning(FLERR,"Energy of old configuration in fix gcmc is > MAXENERGYTEST.");
     double rsq = 1.1;
     double rx,ry,rz;
     rx = ry = rz = 0.0;
@@ -1089,9 +1086,8 @@ void FixGCMC::attempt_molecule_translation()
   if (translation_molecule == -1) return;
 
   double energy_before_sum = molecule_energy(translation_molecule);
-  if (overlap_flag && energy_before_sum > MAXENERGYTEST)
-    error->warning(FLERR,"Energy of old configuration in "
-                   "fix gcmc is > MAXENERGYTEST.");
+  if (overlap_flag && (energy_before_sum > MAXENERGYTEST) && (comm->me == 0))
+    error->warning(FLERR,"Energy of old configuration in fix gcmc is > MAXENERGYTEST.");
 
   double **x = atom->x;
   double rx,ry,rz;
@@ -1188,9 +1184,8 @@ void FixGCMC::attempt_molecule_rotation()
   if (rotation_molecule == -1) return;
 
   double energy_before_sum = molecule_energy(rotation_molecule);
-  if (overlap_flag && energy_before_sum > MAXENERGYTEST)
-    error->warning(FLERR,"Energy of old configuration in "
-                   "fix gcmc is > MAXENERGYTEST.");
+  if (overlap_flag && (energy_before_sum > MAXENERGYTEST) && (comm->me == 0))
+    error->warning(FLERR,"Energy of old configuration in fix gcmc is > MAXENERGYTEST.");
 
   int *mask = atom->mask;
   int nmolcoords = 0;

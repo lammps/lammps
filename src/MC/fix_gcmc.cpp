@@ -878,6 +878,7 @@ void FixGCMC::attempt_atomic_translation()
     coord[1] = x[i][1] + displace*ry;
     coord[2] = x[i][2] + displace*rz;
     if (region) {
+      int region_attempt = 0;
       while (region->match(coord[0],coord[1],coord[2]) == 0) {
         rsq = 1.1;
         while (rsq > 1.0) {
@@ -889,10 +890,14 @@ void FixGCMC::attempt_atomic_translation()
         coord[0] = x[i][0] + displace*rx;
         coord[1] = x[i][1] + displace*ry;
         coord[2] = x[i][2] + displace*rz;
+        ++region_attempt;
+        if (region_attempt >= max_region_attempts) break;
       }
+      if (!region->match(coord[0],coord[1],coord[2]))
+        error->one(FLERR,"Fix gcmc translation put atom outside region");
     }
     if (!domain->inside_nonperiodic(coord))
-      error->one(FLERR,"Fix gcmc put atom outside box");
+      error->one(FLERR,"Fix gcmc translation put atom outside box");
 
     double energy_after = energy(i,ngcmc_type,-1,coord);
 
@@ -1118,6 +1123,7 @@ void FixGCMC::attempt_molecule_translation()
     coord[0] = com[0] + displace*rx;
     coord[1] = com[1] + displace*ry;
     coord[2] = com[2] + displace*rz;
+    int region_attempt = 0;
     while (region->match(coord[0],coord[1],coord[2]) == 0) {
       rsq = 1.1;
       while (rsq > 1.0) {
@@ -1129,10 +1135,14 @@ void FixGCMC::attempt_molecule_translation()
       coord[0] = com[0] + displace*rx;
       coord[1] = com[1] + displace*ry;
       coord[2] = com[2] + displace*rz;
+      ++region_attempt;
+      if (region_attempt >= max_region_attempts) break;
     }
     com_displace[0] = displace*rx;
     com_displace[1] = displace*ry;
     com_displace[2] = displace*rz;
+    if (!region->match(coord[0],coord[1],coord[2]))
+      error->one(FLERR,"Fix gcmc translation put molecule COM outside region");
   }
 
   double energy_after = 0.0;
@@ -1142,7 +1152,7 @@ void FixGCMC::attempt_molecule_translation()
       coord[1] = x[i][1] + com_displace[1];
       coord[2] = x[i][2] + com_displace[2];
       if (!domain->inside_nonperiodic(coord))
-        error->one(FLERR,"Fix gcmc put atom outside box");
+        error->one(FLERR,"Fix gcmc translation put molecule atom outside box");
       energy_after += energy(i,atom->type[i],translation_molecule,coord);
     }
   }
@@ -1333,8 +1343,7 @@ void FixGCMC::attempt_molecule_insertion()
       (region_yhi-region_ylo);
     com_coord[2] = region_zlo + random_equal->uniform() *
       (region_zhi-region_zlo);
-    while (region->match(com_coord[0],com_coord[1],
-                                           com_coord[2]) == 0) {
+    while (region->match(com_coord[0],com_coord[1],com_coord[2]) == 0) {
       com_coord[0] = region_xlo + random_equal->uniform() *
         (region_xhi-region_xlo);
       com_coord[1] = region_ylo + random_equal->uniform() *
@@ -1545,6 +1554,7 @@ void FixGCMC::attempt_atomic_translation_full()
     coord[1] = x[i][1] + displace*ry;
     coord[2] = x[i][2] + displace*rz;
     if (region) {
+      int region_attempt = 0;
       while (region->match(coord[0],coord[1],coord[2]) == 0) {
         rsq = 1.1;
         while (rsq > 1.0) {
@@ -1556,10 +1566,14 @@ void FixGCMC::attempt_atomic_translation_full()
         coord[0] = x[i][0] + displace*rx;
         coord[1] = x[i][1] + displace*ry;
         coord[2] = x[i][2] + displace*rz;
+        ++region_attempt;
+        if (region_attempt >= max_region_attempts) break;
       }
+      if (!region->match(coord[0],coord[1],coord[2]))
+        error->one(FLERR,"Fix gcmc translation put atom outside region");
     }
     if (!domain->inside_nonperiodic(coord))
-      error->one(FLERR,"Fix gcmc put atom outside box");
+      error->one(FLERR,"Fix gcmc translation put atom outside box");
     xtmp[0] = x[i][0];
     xtmp[1] = x[i][1];
     xtmp[2] = x[i][2];
@@ -1794,6 +1808,7 @@ void FixGCMC::attempt_molecule_translation_full()
         mask[i] &= molecule_group_inversebit;
       }
     }
+    int region_attempt = 0;
     double com[3];
     com[0] = com[1] = com[2] = 0.0;
     group->xcm(molecule_group,gas_mass,com);
@@ -1811,7 +1826,11 @@ void FixGCMC::attempt_molecule_translation_full()
       coord[0] = com[0] + displace*rx;
       coord[1] = com[1] + displace*ry;
       coord[2] = com[2] + displace*rz;
+      ++region_attempt;
+      if (region_attempt >= max_region_attempts) break;
     }
+    if (!region->match(coord[0],coord[1],coord[2]))
+      error->one(FLERR,"Fix gcmc translation put molecule COM outside region");
     com_displace[0] = displace*rx;
     com_displace[1] = displace*ry;
     com_displace[2] = displace*rz;
@@ -1823,7 +1842,7 @@ void FixGCMC::attempt_molecule_translation_full()
       x[i][1] += com_displace[1];
       x[i][2] += com_displace[2];
       if (!domain->inside_nonperiodic(x[i]))
-        error->one(FLERR,"Fix gcmc put atom outside box");
+        error->one(FLERR,"Fix gcmc put molecule atom outside box");
     }
   }
 
@@ -2065,8 +2084,7 @@ void FixGCMC::attempt_molecule_insertion_full()
       (region_yhi-region_ylo);
     com_coord[2] = region_zlo + random_equal->uniform() *
       (region_zhi-region_zlo);
-    while (region->match(com_coord[0],com_coord[1],
-                                           com_coord[2]) == 0) {
+    while (region->match(com_coord[0],com_coord[1],com_coord[2]) == 0) {
       com_coord[0] = region_xlo + random_equal->uniform() *
         (region_xhi-region_xlo);
       com_coord[1] = region_ylo + random_equal->uniform() *
@@ -2494,8 +2512,7 @@ void FixGCMC::update_gas_atoms_list()
 
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit) {
-          if (region->match(comx[molecule[i]],
-             comy[molecule[i]],comz[molecule[i]]) == 1) {
+          if (region->match(comx[molecule[i]],comy[molecule[i]],comz[molecule[i]]) == 1) {
             local_gas_list[ngas_local] = i;
             ngas_local++;
           }

@@ -1777,7 +1777,9 @@ Centroid tally functions for many-body potentials (according to Torii 2008):
 They take as args for the 3-body case: ijk, fijk, rij/ik/jk, Uijk, pijk and
 apply the centroid formula of Torii 2008 to compute the centroid virial. The 
 tallying of the energy is already done correctly by the ev_tally functions,
-so we only need to compute the centroid virial here.
+so we only need to compute the centroid virial here. The energy is passed 
+for the callbacks of centroid tallying functions for the TALLY package.
+It is not used in the virial computation.
 ----------------------------------------------------------------------------- */
 
 void Pair::cv_tally3(int i, int j, int k, double *fi, double *fj, double *fk, double Uijk, double pi, double pj, double pk)
@@ -1828,6 +1830,15 @@ void Pair::cv_tally3(int i, int j, int k, double *fi, double *fj, double *fk, do
     cvatom[k][6] += rk0[1] * fk[0];
     cvatom[k][7] += rk0[2] * fk[0];
     cvatom[k][8] += rk0[2] * fk[1];
+  }
+
+  /* Callbacks to the Compute::pair_cv_tally3_callback() function */
+  if (num_tally_compute > 0) {
+    did_tally_flag = 1;
+    for (int m=0; m < num_tally_compute; ++m) {
+      Compute *c = list_tally_compute[m];
+      c->pair_cv_tally3_callback(i, j, k, fi, fj, fk, Uijk, pi, pj, pk);
+    }
   }
 }
 
@@ -1893,6 +1904,15 @@ void Pair::cv_tally4(int i, int j, int k, int l, double *fi, double *fj, double 
     cvatom[l][6] += rl0[1] * fl[0];
     cvatom[l][7] += rl0[2] * fl[0];
     cvatom[l][8] += rl0[2] * fl[1];
+  }
+    
+    /* Callbacks to the Compute::pair_cv_tally4_callback() function */
+    if (num_tally_compute > 0) {
+    did_tally_flag = 1;
+    for (int m=0; m < num_tally_compute; ++m) {
+      Compute *c = list_tally_compute[m];
+      c->pair_cv_tally4_callback(i, j, k, l, fi, fj, fk, fl, Uijkl, pi, pj, pk, pl);
+    }
   }
 }
 

@@ -88,7 +88,7 @@ void ComputeHeatFluxVirialTally::init()
     force->pair->add_tally_callback(this);
 
   if (comm->me == 0) {
-    if (force->pair->single_enable == 0 || force->pair->centroidstressflag != CENTROID_AVAIL)
+    if (force->pair->single_enable == 0 && force->pair->centroidstressflag != CENTROID_AVAIL)
       error->warning(FLERR, "Compute heat/flux/virial/tally used with incompatible pair style");
 
     if (force->bond || force->angle || force->dihedral || force->improper || force->kspace)

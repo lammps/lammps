@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "citeme.h"
 #include "error.h"
 #include "force.h"
 #include "group.h"
@@ -23,6 +24,25 @@
 #include "update.h"
 
 using namespace LAMMPS_NS;
+
+static const char cite_tally_pair_manybody[] =
+    "compute tallying of general many-body forces: "
+    "doi:10.1103/mtkk-kyyy\n\n"
+    "@article{Poulos2026,\n"
+    " title = {Exact formula and spectral decomposition of the heat flux in molecular dynamics \n"
+    "          for arbitrary many-body potentials},\n"
+    " author = {Poulos, Markos and Surblys, Donatas and Termentzidis, Konstantinos},\n"
+    " journal = {Phys. Rev. B},\n"
+    " volume = {113},\n"
+    " issue = {4},\n"
+    " pages = {045414},\n"
+    " numpages = {10},\n"
+    " year = {2026},\n"
+    " month = {Jan},\n"
+    " publisher = {American Physical Society},\n"
+    " doi = {10.1103/mtkk-kyyy},\n"
+    " url = {https://link.aps.org/doi/10.1103/mtkk-kyyy}\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -67,6 +87,9 @@ ComputeHeatFluxVirialTally::ComputeHeatFluxVirialTally(LAMMPS *lmp, int narg, ch
         error->all(FLERR, "Illegal compute heat/flux/virial/tally command: unknown keyword {}", arg[iarg]);
       iarg++;
     }
+  }
+  if (lmp->citeme) {
+  if(force->pair->manybody_flag) lmp->citeme->add(cite_tally_pair_manybody);
   }
 }
 

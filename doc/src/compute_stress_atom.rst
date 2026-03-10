@@ -151,17 +151,17 @@ atoms.
 
 Details of how compute *centroid/stress/atom* obtains the virial for
 individual atoms are given in :ref:`(Poulos2026) <Poulos1>`, :ref:`(Surblys2019) <Surblys1>` and
-:ref:`(Surblys2021) <Surblys2>`. The main idea is that the virial of the atom :math:`I` is the sum over all interaction terms where atom :math:`I` participates, of the force :math:`\mathbf{F}_I` on the atom due to the interaction and
+:ref:`(Surblys2021) <Surblys2>`. The main idea is that the virial of the atom :math:`I` is the sum over all many-body interaction terms where atom :math:`I` participates, of the force :math:`\mathbf{F}_I` on the atom due to the specific interaction term and
 its positional vector :math:`\mathbf{r}_{I0}`, relative to the weighted
 geometric center :math:`\mathbf{r}_{0}` of the interacting atoms, regardless of the number of
-participating atoms. The centroid :math:`\mathbf{r}_{I0}` of each interaction group is computed by weighting the positions of the atoms participating in the interaction by the fraction of the potential energy of the interaction group attributed to atom :math:`I`:
+participating atoms. The centroid :math:`\mathbf{r}_{I0}` of each interaction term is computed by weighting the positions of the atoms participating in the interaction by the fraction :math:`p_i` of the potential energy :math:`U` of the interaction term attributed to atom :math:`I`:
 
 .. math::
    \boldsymbol{r}_{0I} &= \boldsymbol{r}_I -\boldsymbol{r}_0 \\
    \boldsymbol{r}_0 &= \sum_{j=1}^{N} p_j \boldsymbol{r}_j \\
-   p_j &= \frac{E_j}{\sum_{j=1}^{N} E_j}
+   p_j &= \frac{U_j}{\sum_{j=1}^{N} U_j}
   
-where :math:`j` runs over all atoms of a specific interaction group. The periodic boundary treatment is identical to
+where :math:`j` runs over all atoms participating in the specific interaction term. The periodic boundary treatment is identical to
 that of compute *stress/atom*, and both of them reduce to identical
 expressions for two-body interactions, i.e. computed values for
 contributions from bonds and two-body pair styles, such as

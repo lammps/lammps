@@ -146,11 +146,18 @@ if(GPU_API STREQUAL "CUDA")
       if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
         string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
       endif()
-      # Lovelace (GPU Arch 8.9) is supported by CUDA 11.8 and later
+      # Ada Lovelace (GPU Arch 8.9) and Hopper (GPU Arch 9.0) are supported by CUDA 11.8 and later
       if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
         string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
       endif()
-      # newer GPU Arch versions require CUDA 12.0 or later which is handled above
+      # Backwell (GPU Arch 100) is supported by CUDA 12.4 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.4")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_100,code=[sm_100,compute_100]")
+      endif()
+      # Rubin (GPU Arch 120) require CUDA 12.8 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.8")
+        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_120,code=[sm_120,compute_120]")
+      endif()
     endif()
   endif()
 
@@ -331,11 +338,18 @@ elseif(GPU_API STREQUAL "HIP")
       if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
       endif()
-      # Lovelace (GPU Arch 8.9) is supported by CUDA 11.8 and later
+      # Ada Lovelace (GPU Arch 8.9) and Hopper (GPU Arch 9.0) are supported by CUDA 11.8 and later
       if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
       endif()
-      # newer GPU Arch versions require CUDA 12.0 or later which is handled above
+      # Backwell (GPU Arch 100) is supported by CUDA 12.4 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.4")
+        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_100,code=[sm_100,compute_100]")
+      endif()
+      # Rubin (GPU Arch 120) require CUDA 12.8 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.8")
+        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_120,code=[sm_120,compute_120]")
+      endif()
     endif()
   endif()
 
@@ -424,16 +438,16 @@ elseif(GPU_API STREQUAL "HIP")
         message(STATUS "CUB download requested")
         # TODO: test update to current version 1.17.2
         set(CUB_URL "https://github.com/nvidia/cub/archive/1.12.0.tar.gz" CACHE STRING "URL for CUB tarball")
-        set(CUB_MD5 "1cf595beacafff104700921bac8519f3" CACHE STRING "MD5 checksum of CUB tarball")
+        set(CUB_SHA256 "3b03d0cbc9549606fbeda69a920562eb563836346b39014c79dfd024165ee549" CACHE STRING "SHA256 checksum of CUB tarball")
         mark_as_advanced(CUB_URL)
-        mark_as_advanced(CUB_MD5)
+        mark_as_advanced(CUB_SHA256)
         GetFallbackURL(CUB_URL CUB_FALLBACK)
 
         include(ExternalProject)
 
         ExternalProject_Add(CUB
           URL     ${CUB_URL} ${CUB_FALLBACK}
-          URL_MD5 ${CUB_MD5}
+          URL_HASH SHA256=${CUB_SHA256}
           PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
           CONFIGURE_COMMAND ""
           BUILD_COMMAND ""

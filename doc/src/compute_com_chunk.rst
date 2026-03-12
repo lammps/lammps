@@ -49,7 +49,7 @@ This compute calculates the :math:`(x,y,z)` coordinates of the center of
 mass for each chunk, which includes all effects due to atoms passing
 through periodic boundaries.
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 If the *wrap* flag is used with an argument of *yes*, *true*, *on* or
 *1* the computed center of mass is wrapped back into the simulation

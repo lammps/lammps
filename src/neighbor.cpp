@@ -856,7 +856,8 @@ int Neighbor::init_pair()
     if (requests[i]->cut) {
       if (comm_cutoff < (requests[i]->cutoff + (requests[i]->occasional ? 0.0 : skin)))
         error->all(FLERR,  Error::NOLASTLINE,
-                   "Custom neighbor list cutoff too large for communication cutoff");
+                   "Custom neighbor list cutoff {} is too large for communication cutoff {}",
+                   (requests[i]->cutoff + (requests[i]->occasional ? 0.0 : skin)), comm_cutoff);
     }
   }
 

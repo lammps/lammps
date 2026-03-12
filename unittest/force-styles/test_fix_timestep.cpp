@@ -197,6 +197,9 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         // run_stress, if enabled
         if (ifix->thermo_virial) {
             auto *stress = ifix->virial;
+            // avoid false positives on tiny stresses. force to zero instead.
+            for (int i = 0; i < 6; ++i)
+                if (fabs(stress[i]) < 1.0e-13) stress[i] = 0.0;
             block = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}",
                                 stress[0], stress[1], stress[2], stress[3], stress[4], stress[5]);
             writer.emit_block("run_stress", block);
@@ -205,6 +208,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         // global scalar
         if (ifix->scalar_flag) {
             double value = ifix->compute_scalar();
+            // avoid false positives on tiny values. force to zero instead.
+            if (fabs(value) < 1.0e-13) value = 0.0;
             writer.emit("global_scalar", value);
         }
 
@@ -212,8 +217,13 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         if (ifix->vector_flag) {
             int num = ifix->size_vector;
             block   = std::to_string(num);
-            for (int i = 0; i < num; ++i)
-                block += fmt::format(" {}", ifix->compute_vector(i));
+            double value;
+            for (int i = 0; i < num; ++i) {
+                // avoid false positives on tiny values. force to zero instead.
+                value = ifix->compute_vector(i);
+                if (fabs(value) < 1.0e-13) value = 0.0;
+                block += fmt::format(" {:23.16e}", value);
+            }
             writer.emit_block("global_vector", block);
         }
     }

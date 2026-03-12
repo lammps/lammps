@@ -18,7 +18,7 @@ Syntax
 * bond/react = style name of this fix command
 * the common keyword/values may be appended directly after 'bond/react'
 * common keywords apply to all reaction specifications
-* common_keyword = *stabilization* or *reset_mol_ids* or *rate_limit* or *max_rxn*
+* common_keyword = *stabilization* or *reset_mol_ids* or *rate_limit* or *max_rxn* or *shuffle_seed* or *file*
 
   .. parsed-literal::
 
@@ -246,6 +246,8 @@ if available; reactions are chosen deterministically if a positive integer
 is specified for the 'shuffle_seed' keyword. Multiple *max_rxn* keywords
 can be specified.
 
+.. versionadded:: 10Dec2025
+
 The *file* keyword can be used to dump information about each reaction that
 occurs during the simulation. The atom IDs, types, and coordinates of all
 atoms in the reaction site are printed out on the timestep that the
@@ -434,15 +436,15 @@ provided on the :doc:`molecule <molecule>` command page.
 
 The map file is a text document with the following format:
 
-A map file has a header and a body. The header of map file the
-contains one mandatory keyword and five optional keywords. The
+A map file has a header and a body. The header of the map file
+contains one mandatory keyword and six optional keywords. The
 mandatory keyword is *equivalences*\ :
 
 .. parsed-literal::
 
    N *equivalences* = # of atoms N in the reaction molecule templates
 
-The optional keywords are *edgeIDs*\ , *wildcards*\ ,*deleteIDs*\ ,
+The optional keywords are *edgeIDs*\ , *wildcards*\ , *deleteIDs*\ ,
 *createIDs*\ , *chiralIDs*\ , and *constraints*\ :
 
 .. parsed-literal::
@@ -454,7 +456,7 @@ The optional keywords are *edgeIDs*\ , *wildcards*\ ,*deleteIDs*\ ,
    N *chiralIDs* = # of chiral centers N
    N *constraints* = # of reaction constraints N
 
-The body of the map file contains two mandatory sections and five
+The body of the map file contains two mandatory sections and six
 optional sections. The first mandatory section begins with the keyword
 "InitiatorIDs" and lists the two atom IDs of the initiator atom pair
 in the pre-reacted molecule template. The second mandatory section
@@ -843,7 +845,7 @@ You can dump out snapshots of the current bond topology via the
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 Fix *bond/react* supports the *fix* keyword of :doc:`dump image
 <dump_image>`.  The fix will pass geometry information about atoms
@@ -906,11 +908,14 @@ create images like those shown below:
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Cumulative reaction counts for each reaction are written to :doc:`binary restart files <restart>`.
-These values are associated with the reaction name (react-ID).
-Additionally, internally-created per-atom properties are stored to
-allow for smooth restarts. None of the :doc:`fix_modify <fix_modify>`
-options are relevant to this fix.
+Cumulative reaction counts for each reaction are written to :doc:`binary
+restart files <restart>`.  These values are associated with the reaction
+name (react-ID).  Additionally, internally-created per-atom properties
+are stored to allow for smooth restarts.
+
+The *vizsteps* option of the :doc:`fix_modify <fix_modify>` command is
+supported by this fix to control on which timesteps reacted atoms are
+highlighted in :doc:`dump image <dump_image>` output.
 
 This fix computes one statistic for each *react* argument that it
 stores in a global vector, of length (number of react arguments), that

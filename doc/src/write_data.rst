@@ -42,7 +42,7 @@ Write a data file in text format of the current state of the simulation.
 Data files can be read by the :doc:`read data <read_data>` command to
 begin a simulation.
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 The file may also be a compressed text file (detected by its suffix) if
 LAMMPS has been compiled with support for :ref:`compression commands

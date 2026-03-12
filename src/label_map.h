@@ -18,6 +18,7 @@
 
 #include "pointers.h"    // IWYU pragma: export
 
+#include <array>
 #include <unordered_map>
 
 namespace LAMMPS_NS {
@@ -57,7 +58,8 @@ class LabelMap : protected Pointers {
    * \param  nangletypes      Number of angle types in map
    * \param  ndihedraltypes   Number of dihedral types in map
    * \param  nimpropertypes   Number of improper types in map */
-  LabelMap(LAMMPS *lmp, int, int, int, int, int);
+  LabelMap(LAMMPS *lmp, int natomtypes, int nbondtypes, int nangletypes, int ndihedraltypes,
+           int nimpropertypes);
   ~LabelMap() override;
 
   /*! Process labelmap command from input script
@@ -71,7 +73,7 @@ Add or modify type label mappings from the LAMMPS
    *
    * \param  narg  Number of arguments
    * \param  arg   Array of argument strings */
-  void modify_lmap(int, char **);
+  void modify_lmap(int narg, char **arg);
 
   /*! Copy another LabelMap into this one
    *
@@ -86,7 +88,7 @@ Currently used when combining data from multiple sources with
    *
    * \param  lmap  Pointer to source LabelMap
    * \param  mode  Merge mode flag */
-  void merge_lmap(LabelMap *, int);
+  void merge_lmap(LabelMap *lmap, int mode);
 
   /*! Create index mapping between two LabelMaps
    *
@@ -95,7 +97,7 @@ Currently used when combining data from multiple sources with
    *
    * \param  lmap  Pointer to source LabelMap
    * \param  mode  Mapping mode flag */
-  void create_lmap2lmap(LabelMap *, int);
+  void create_lmap2lmap(LabelMap *lmap, int mode);
 
   /*! Find numeric type from type label
    *
@@ -142,8 +144,10 @@ Currently used when combining data from multiple sources with
    *
    * \param  atype1  First atom type index
    * \param  atype2  Second atom type index
-   * \return         Bond type index, or -1 if not found */
-  int infer_bondtype(int, int);
+   * \return         Bond type index if types match in the specified order,
+   *                 negative bond type index if types match in reverse order,
+   *                 0 if there is no match found */
+  int infer_bondtype(int atype1, int atype2);
 
   /*! Infer bond type from atom type labels
    *
@@ -152,8 +156,10 @@ Currently used when combining data from multiple sources with
    * Look up a bond type from two atom type labels.
    *
    * \param  labels  Vector of two atom type label strings
-   * \return         Bond type index, or -1 if not found */
-  int infer_bondtype(const std::vector<std::string> &);
+   * \return         Bond type index if types match in the specified order,
+   *                 negative bond type index if types match in reverse order,
+   *                 0 if there is no match found */
+  int infer_bondtype(const std::vector<std::string> &labels);
 
   /*! Infer angle type from three numeric atom types
    *
@@ -163,8 +169,10 @@ Currently used when combining data from multiple sources with
    * \param  atype1  First atom type index
    * \param  atype2  Second atom type index (center atom)
    * \param  atype3  Third atom type index
-   * \return         Angle type index, or -1 if not found */
-  int infer_angletype(int, int, int);
+   * \return         Angle type index if types match in the specified order,
+   *                 negative angle type index if types match in reverse order,
+   *                 0 if there is no match found */
+  int infer_angletype(int atype1, int atype2, int atype3);
 
   /*! Infer angle type from three atom type labels
    *
@@ -173,8 +181,10 @@ Currently used when combining data from multiple sources with
    * Look up an angle type from three atom type labels.
    *
    * \param  labels  Vector of three atom type label strings
-   * \return         Angle type index, or -1 if not found */
-  int infer_angletype(const std::vector<std::string> &);
+   * \return         Angle type index if types match in the specified order,
+   *                 negative angle type index if types match in reverse order,
+   *                 0 if there is no match found */
+  int infer_angletype(const std::vector<std::string> &labels);
 
   /*! Infer dihedral type from four numeric atom types
    *
@@ -185,8 +195,10 @@ Currently used when combining data from multiple sources with
    * \param  atype2  Second atom type index
    * \param  atype3  Third atom type index
    * \param  atype4  Fourth atom type index
-   * \return         Dihedral type index, or -1 if not found */
-  int infer_dihedraltype(int, int, int, int);
+   * \return         Dihedral type index if types match in the specified order,
+   *                 negative dihedral type index if types match in reverse order,
+   *                 0 if there is no match found */
+  int infer_dihedraltype(int atype1, int atype2, int atype3, int atype4);
 
   /*! Infer dihedral type from atom type labels
    *
@@ -195,8 +207,10 @@ Currently used when combining data from multiple sources with
    * Look up a dihedral type from four atom type labels.
    *
    * \param  labels  Vector of four atom type label strings
-   * \return         Dihedral type index, or -1 if not found */
-  int infer_dihedraltype(const std::vector<std::string> &);
+   * \return         Dihedral type index if types match in the specified order,
+   *                 negative dihedral type index if types match in reverse order,
+   *                 0 if there is no match found */
+  int infer_dihedraltype(const std::vector<std::string> &labels);
 
   /*! Infer improper type from four numeric atom types
    *
@@ -207,8 +221,12 @@ Currently used when combining data from multiple sources with
    * \param  atype2  Second atom type index
    * \param  atype3  Third atom type index
    * \param  atype4  Fourth atom type index
-   * \return         Improper type index, or -1 if not found */
-  int infer_impropertype(int, int, int, int);
+   * \param  iorder  Order in which types were matched to improper type label
+   * \return         Improper type index if types match in the specified order,
+   *                 negative improper type index if types match but different order,
+   *                 0 if there is no match found */
+  int infer_impropertype(int atype1, int atype2, int atype3, int atype4,
+                         std::array<int, 4> *iorder = nullptr);
 
   /*! Infer improper type from atom type labels
    *
@@ -217,8 +235,12 @@ Currently used when combining data from multiple sources with
    * Look up an improper type from four atom type labels.
    *
    * \param  labels  Vector of four atom type label strings
-   * \return         Improper type index, or -1 if not found */
-  int infer_impropertype(const std::vector<std::string> &);
+   * \param  iorder  Order in which types were matched to improper type label
+   * \return         Improper type index if types match in the specified order,
+   *                 negative improper type index if types match but different order,
+   *                 0 if there is no match found */
+  int infer_impropertype(const std::vector<std::string> &labels,
+                         std::array<int, 4> *iorder = nullptr);
 
   /*! @} */
 
@@ -227,11 +249,11 @@ Currently used when combining data from multiple sources with
    * Split a hyphen-delimited label (e.g., "C-N-H") into individual type strings.
    * Validates that the number of components matches the expected count.
    *
-   * \param  ntypes  Expected number of components
-   * \param  label   Hyphen-delimited label string
-   * \param  types   Output vector to store component strings
-   * \return         0 on success, -1 if component count doesn't match ntypes */
-  int parse_typelabel(int, const std::string &, std::vector<std::string> &);
+   * \param       ntypes  Expected number of components
+   * \param       label   Hyphen-delimited label string
+   * \param[out]  types   Output vector to store component strings
+   * \return      0 on success, -1 if component count doesn't match ntypes */
+  int parse_typelabel(int ntypes, const std::string &label, std::vector<std::string> &types);
 
   /*! \name I/O methods for label map persistence
    * @{ */
@@ -241,7 +263,7 @@ Currently used when combining data from multiple sources with
    * Output all type labels as sections to a LAMMPS data file.
    *
    * \param  fp  File pointer for writing */
-  void write_data(FILE *);
+  void write_data(FILE *fp);
 
   /*! Read label map from restart file
    *
@@ -265,11 +287,11 @@ Currently used when combining data from multiple sources with
       atypelabel;                                     //!< Label storage (atoms, bonds, angles)
   std::vector<std::string> dtypelabel, itypelabel;    //!< Label storage (dihedrals, impropers)
 
-  std::unordered_map<std::string, int> typelabel_map;     //!< Atom label → type mapping
-  std::unordered_map<std::string, int> btypelabel_map;    //!< Bond label → type mapping
-  std::unordered_map<std::string, int> atypelabel_map;    //!< Angle label → type mapping
-  std::unordered_map<std::string, int> dtypelabel_map;    //!< Dihedral label → type mapping
-  std::unordered_map<std::string, int> itypelabel_map;    //!< Improper label → type mapping
+  std::unordered_map<std::string, int> typelabel_map;     //!< Atom label -> type mapping
+  std::unordered_map<std::string, int> btypelabel_map;    //!< Bond label -> type mapping
+  std::unordered_map<std::string, int> atypelabel_map;    //!< Angle label -> type mapping
+  std::unordered_map<std::string, int> dtypelabel_map;    //!< Dihedral label -> type mapping
+  std::unordered_map<std::string, int> itypelabel_map;    //!< Improper label -> type mapping
 
   /*! \struct Lmap2Lmap
    *  \brief Mapping structure between two LabelMaps
@@ -288,16 +310,51 @@ Currently used when combining data from multiple sources with
   Lmap2Lmap lmap2lmap;    //!< Instance of inter-map translation data
 
   void reset_type_labels();    //!< Clear all type labels
-  int find_or_create(
-      const std::string &, std::vector<std::string> &,
-      std::unordered_map<std::string, int> &);    //!< Look up type or create new type
-  int search(const std::string &,
-             const std::unordered_map<std::string, int> &) const;    //!< Look up type index
-  char *read_string(FILE *);                         //!< Read string from binary file
-  void write_string(const std::string &, FILE *);    //!< Write string to binary file
-  int read_int(FILE *);                              //!< Read integer from binary file
 
-  void write_map(const std::string &);    //!< Write label map to file for debugging
+  /*! Look up type label with given name or create new label if it doesn't exist
+
+   * \param          mylabel     string with type label
+   * \param[in,out]  labels      list of type labels
+   * \param[in,out]  labels_map  label to numeric type hash table
+   * \return numeric type
+   */
+  int find_or_create(const std::string &mylabel, std::vector<std::string> &labels,
+                     std::unordered_map<std::string, int> &labels_map);
+
+  /*! Look up numeric type of type label string in type map
+   *
+   * \param mylabel      type label
+   * \param labels_map   label to type map
+   * \return numeric type or -1 if not found */
+  int search(const std::string &mylabel,
+             const std::unordered_map<std::string, int> &labels_map) const;
+
+  /*! Read a C-style string from a binary file and broadcast to world communicator
+   *
+   * the string buffer is allocated with new and must be freed by the calling code with delete[]
+   *
+   * \param fp  FILE pointer of the openend file
+   * \return pointer to the allocated string buffer */
+  char *read_string(FILE *fp);
+
+  /*! Encode string to binary file.
+   *
+   * Must be only called from MPI rank 0.
+   *
+   * \param str string to write to the file
+   * \param fp  FILE pointer of the opened file */
+  void write_string(const std::string &str, FILE *fp);
+
+  /*! Read integer from binary file and broadcast it to world communicator
+   *
+   * \param fp FILE pointer of the opened file
+   * \return  integer value read from file */
+  int read_int(FILE *fp);
+
+  /*! Write out current label maps to a file for debugging
+   *
+   * \param filename  file name */
+  void write_map(const std::string &filename);
 };
 
 }    // namespace LAMMPS_NS

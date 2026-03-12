@@ -135,6 +135,91 @@ and for ROCm HIP:
   ./hip_get_devices
 
 ------------------------------------------------------------------------------
+                           ADD NEW PAIR STYLES
+------------------------------------------------------------------------------
+
+Suppose that you have already implemented a pair style class named PairFoo.
+Now you want to have a new class PairFooGPU for GPU acceleration.  The following
+steps will guide you through the process of adding a new pair style to
+the GPU package in LAMMPS. There are two places you need to add
+new source files: the Foo class and exported functions the GPU library
+in lib/gpu (i.e. libgpu.a) and the new /gpu styles in src/GPU.
+
+1. Addition to the GPU library under lib/gpu
+
+You will need to add four source files:
+  lal_foo.h:       header of the class Foo
+  lal_foo.cpp:     contains the implementation of the class Foo
+  lal_foo.cu:      contains the GPU kernel(s) for the force compute,
+                   where the computation mirrors what you have in PairFoo.
+  lal_foo_ext.cpp: creates an instance of the Foo class and exports
+                   the necessary functions to be invoked by the GPU
+                   version of the pair style to initialize a Foo instance.
+
+A good start for implementing a new pair style to look at is
+the corresponding files for the Gauss class in lib/gpu. You will see
+how the per-type arrays are declared and allocated (lal_gauss.h and lal_gauss.cpp),
+how the kernels are implemented (lal_gauss.cu) and how the exported functions
+are defined (lal_gauss_ext.cpp).
+
+The class Gauss is derived from BaseAtomic, which handles the host device
+transfers for the atom properties (positions and types) and the force
+computation in two compute() functions.  One compute() function is invoked
+when the atom neighbor lists are copied from the host, the other
+(with the sub-domain coordinates arguments sublo and subhi) when
+the atom neighbor lists are built from the device.  After the neighbor lists
+are ready, both compute() functions invoke the loop() function to launch
+the force compute kernels.  Any child class of BaseAtomic, Gauss in this case,
+needs to override this virtual loop() function. The pair force kernels
+are defined in the .cu file: the _fast kernel is invoked in the cases
+where all the pair coefficients can be loaded in the thread block
+shared memory, i.e., when the number of atom types is smaller than 12.
+
+The Gauss class also needs to allocate and deallocate memory for
+the arrays that store pair coefficients, and transfer them to the device
+in the init() member function. These arrays are data structures provided
+by the Geryon library that allow for efficient memory management and
+data transfer between host and device.
+
+2. Addition to src/GPU
+
+Next, you will create an entry from src/GPU to call the external functions
+defined in lal_foo_ext.cpp. You will need to implement the PairFooGPU class
+derived from your PairFoo class with a header file (pair_foo_gpu.h) and
+a source file (pair_foo_gpu.cpp). Again, pair_gauss_gpu.h and
+pair_gauss_gpu.cpp are good examples to start with.
+
+In the PairFooGPU class, you will invoke the external functions from
+the Gauss class provided by lal_gauss_ext.cpp at the proper place.
+For instance, in the init_style() function, you will call the init()
+function of the Gauss class to allocate memory for the pair coefficients
+and transfer them to the device. In the PairFooGPU::compute() function,
+you will call the corresponding functions: _compute() function for "neigh no"
+(neighbor builds on the host) or _compute_n() for "neigh yes"
+(neighbor builds on the device) to compute the atom forces, potential energy
+and virial. The class destructor will invoke the clear() function to release
+the memory allocated by the GPU library both on host and device.
+
+3. Build LAMMPS with the new pair style
+
+For CMake builds, you may want to modify the file cmake/Module/Packages/GPU.cmake
+if the new pair style depends on certain packages to be installed.
+You then run cmake with the following command to build LAMMPS with
+the GPU package with your new pair style:
+
+  cmake -S cmake -B build -C cmake/presets/basic.cmake -D PKG_GPU=ON
+  cmake --build build -j4
+
+By design, your PairFooGPU class depends on PairFoo, so if PairFoo is
+part of the MISC package, for example, PairFooGPU will be built with
+both -D PKG_MISC=ON and -D PKG_GPU=ON.
+
+Note: It is possible to support fix and compute styles within the GPU package
+using the Geryon library.  You need to perform host-device data transfers and
+computation on the device for each MPI process. The PPPMGPU class is an example
+for this extension.
+
+------------------------------------------------------------------------------
                            References for Details
 ------------------------------------------------------------------------------
 

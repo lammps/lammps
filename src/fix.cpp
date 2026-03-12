@@ -111,7 +111,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   datamask_modify = ALL_MASK;
 
   kokkosable = copymode = 0;
-  forward_comm_device = exchange_comm_device = sort_device = 0;
+  forward_comm_device = reverse_comm_device = exchange_comm_device = sort_device = 0;
   fuse_integrate_flag = 0;
 }
 
@@ -292,6 +292,7 @@ void Fix::v_setup(int vflag)
   int i,n;
 
   evflag = 1;
+  vflag_either = vflag;
   vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
   if (centroidstressflag != CENTROID_AVAIL) {
     vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);

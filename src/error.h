@@ -104,7 +104,6 @@ class Error : protected Pointers {
   [[noreturn]] void _all(const std::string &, int, int, fmt::string_view, fmt::format_args args);
   [[noreturn]] void _one(const std::string &, int, int, fmt::string_view, fmt::format_args args);
   void _warning(const std::string &, int, fmt::string_view, fmt::format_args args);
-  void _message(const std::string &, int, fmt::string_view, fmt::format_args args);
 };
 
 }    // namespace LAMMPS_NS

@@ -224,13 +224,16 @@ int MinFireKokkos::run_iterate(int maxiter) {
       });
     }
 
+    // cannot use "if constexpr" below because CUDA device lambdas
+    //  cannot first-capture variables in constexpr-if context
+
     double dtvone = dt;
     auto l_dmax = dmax;
     if constexpr (!ABCFLAG) {
-      Kokkos::parallel_reduce("min_fire/dtv_limit", nlocal, LAMMPS_LAMBDA(const int i, KK_FLOAT &dtmin_local) {
+      Kokkos::parallel_reduce("min_fire/dtv_limit", nlocal, LAMMPS_LAMBDA(const int i, double &dtmin_local) {
         KK_FLOAT vmax = fmax(fabs(l_v(i,0)), fmax(fabs(l_v(i,1)), fabs(l_v(i,2))));
         if (dtmin_local * vmax > l_dmax) dtmin_local = l_dmax / vmax;
-      }, Kokkos::Min<KK_FLOAT>(dtvone));
+      }, Kokkos::Min<double>(dtvone));
       dtvone = Kokkos::min(dtvone, dt);
     }
     MPI_Allreduce(&dtvone, &dtv, 1, MPI_DOUBLE, MPI_MIN, world);
@@ -251,7 +254,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
       KK_FLOAT mass_val = (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
       KK_FLOAT dtfm = dtf_final / mass_val;
       KK_FLOAT dtfm_half = dtf_half / mass_val;
-      if constexpr (INTEGRATOR == EULERIMPLICIT || INTEGRATOR == LEAPFROG) {
+      if (INTEGRATOR == EULERIMPLICIT || INTEGRATOR == LEAPFROG) {
         l_v(i,0) += dtfm * l_f(i,0);
         l_v(i,1) += dtfm * l_f(i,1);
         l_v(i,2) += dtfm * l_f(i,2);
@@ -259,7 +262,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
           l_v(i,0) = scale1 * l_v(i,0) + scale2 * l_f(i,0);
           l_v(i,1) = scale1 * l_v(i,1) + scale2 * l_f(i,1);
           l_v(i,2) = scale1 * l_v(i,2) + scale2 * l_f(i,2);
-          if constexpr (ABCFLAG) {
+          if (ABCFLAG) {
             // make sure that the displacement is not larger than dmax
             if (fabs(l_v(i,0)*dtv) > l_dmax) l_v(i,0) = l_dmax/dtv * l_v(i,0)/fabs(l_v(i,0));
             if (fabs(l_v(i,1)*dtv) > l_dmax) l_v(i,1) = l_dmax/dtv * l_v(i,1)/fabs(l_v(i,1));
@@ -269,7 +272,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
         l_x(i,0) += dtv * l_v(i,0);
         l_x(i,1) += dtv * l_v(i,1);
         l_x(i,2) += dtv * l_v(i,2);
-      } else if constexpr (INTEGRATOR == VERLET) {
+      } else if (INTEGRATOR == VERLET) {
         l_v(i,0) += dtfm_half * l_f(i,0);
         l_v(i,1) += dtfm_half * l_f(i,1);
         l_v(i,2) += dtfm_half * l_f(i,2);
@@ -277,7 +280,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
           l_v(i,0) = scale1 * l_v(i,0) + scale2 * l_f(i,0);
           l_v(i,1) = scale1 * l_v(i,1) + scale2 * l_f(i,1);
           l_v(i,2) = scale1 * l_v(i,2) + scale2 * l_f(i,2);
-          if constexpr (ABCFLAG) {
+          if (ABCFLAG) {
             // make sure that the displacement is not larger than dmax
             if (fabs(l_v(i,0)*dtv) > l_dmax) l_v(i,0) = l_dmax/dtv * l_v(i,0)/fabs(l_v(i,0));
             if (fabs(l_v(i,1)*dtv) > l_dmax) l_v(i,1) = l_dmax/dtv * l_v(i,1)/fabs(l_v(i,1));
@@ -287,12 +290,12 @@ int MinFireKokkos::run_iterate(int maxiter) {
         l_x(i,0) += dtv * l_v(i,0);
         l_x(i,1) += dtv * l_v(i,1);
         l_x(i,2) += dtv * l_v(i,2);
-      } else if constexpr (INTEGRATOR == EULEREXPLICIT) {
+      } else if (INTEGRATOR == EULEREXPLICIT) {
         if (vdotfall > 0.0) {
           l_v(i,0) = scale1 * l_v(i,0) + scale2 * l_f(i,0);
           l_v(i,1) = scale1 * l_v(i,1) + scale2 * l_f(i,1);
           l_v(i,2) = scale1 * l_v(i,2) + scale2 * l_f(i,2);
-          if constexpr (ABCFLAG) {
+          if (ABCFLAG) {
             // make sure that the displacement is not larger than dmax
             if (fabs(l_v(i,0)*dtv) > l_dmax) l_v(i,0) = l_dmax/dtv * l_v(i,0)/fabs(l_v(i,0));
             if (fabs(l_v(i,1)*dtv) > l_dmax) l_v(i,1) = l_dmax/dtv * l_v(i,1)/fabs(l_v(i,1));

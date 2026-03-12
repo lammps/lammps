@@ -23,6 +23,7 @@
 /src/FEP/             @agiliopadua
 /src/GPU/             @ndtrung81
 /src/GRANULAR/        @jtclemm @dsbolin
+/src/GRAPHICS/        @akohlmey
 /src/INTEL/           @wmbrownintel
 /src/KIM/             @ellio167
 /src/KOKKOS/          @stanmoore1
@@ -60,10 +61,12 @@
 /src/MANYBODY/pair_vashishta_table.* @andeplane
 /src/MANYBODY/pair_atm.*             @sergeylishchuk
 /src/MANYBODY/pair_nb3b_screened.*   @flodesani
+/src/OPENMP/fix_nvt_sllod_omp.*      @akohlmey @jtclemm @sjplimp @athomps
 /src/REPLICA/*_grem.*                @dstelter92
 /src/EXTRA-COMMAND/geturl.*          @akohlmey
 /src/EXTRA-COMMAND/group_ndx.*       @akohlmey
 /src/EXTRA-COMMAND/ndx_group.*       @akohlmey
+/src/EXTRA-COMPUTE/compute_hbond_local.* @akohlmey
 /src/EXTRA-COMPUTE/compute_stress_mop*.* @RomainVermorel
 /src/EXTRA-COMPUTE/compute_born_matrix.* @Bibobu @athomps
 /src/EXTRA-DUMP/dump_extxyz.*        @fxcoudert @akohlmey
@@ -148,6 +151,9 @@
 /src/verlet.*              @sjplimp @stanmoore1
 /src/math_eigen_impl.h     @jewettaij
 /src/fix_press_langevin.*  @Bibobu
+/src/fix_nvt_sllod.*       @jtclemm @sjplimp @athomps
+/src/compute_temp_deform.* @jtclemm @sjplimp @athomps
+/src/fix_deform.*          @jtclemm @sjplimp @athomps
 
 # tools
 /tools/coding_standard/ @akohlmey

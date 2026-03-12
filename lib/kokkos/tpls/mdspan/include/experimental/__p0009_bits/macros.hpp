@@ -21,6 +21,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <type_traits> // std::is_void
+#if defined(MDSPAN_IMPL_HAS_SYCL)
+#include <sycl/sycl.hpp> // sycl::ext::oneapi::experimental::printf
+#endif
 #if defined(MDSPAN_IMPL_HAS_CUDA) || defined(MDSPAN_IMPL_HAS_HIP) || defined(MDSPAN_IMPL_HAS_SYCL)
 #include "assert.h"
 #endif

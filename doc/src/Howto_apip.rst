@@ -2,7 +2,8 @@ Adaptive-precision interatomic potentials (APIP)
 ================================================
 
 The :ref:`PKG-APIP <PKG-APIP>` enables use of adaptive-precision potentials
-as described in :ref:`(Immel) <Immel2025_1>`.
+as described in :ref:`(Immel2025) <Immel2025_1>` and
+:ref:`(Immel2026) <Immel2026_2>`.
 In the context of this package, precision refers to the accuracy of an interatomic
 potential.
 
@@ -29,13 +30,13 @@ kept constant as explained below.
 
 The potential energy :math:`E_i` of an atom :math:`i` described by an
 adaptive-precision
-interatomic potential is given by :ref:`(Immel) <Immel2025_1>`
+interatomic potential is given by :ref:`(Immel2025) <Immel2025_1>`
 
 .. math::
 
    E_i = \lambda_i E_i^\text{(fast)} + (1-\lambda_i) E_i^\text{(precise)},
 
-whereas :math:`E_i^\text{(fast)}` is the potential energy of atom :math:`i`
+where :math:`E_i^\text{(fast)}` is the potential energy of atom :math:`i`
 according to a fast interatomic potential,
 :math:`E_i^\text{(precise)}` is the potential energy according to a precise
 interatomic potential and :math:`\lambda_i\in[0,1]` is the
@@ -65,14 +66,41 @@ potential is explained in :ref:`here <implementing_new_apip_styles>`.
 The switching parameter :math:`\lambda_i` that combines the two potentials
 can be dynamically calculated during a
 simulation.
+There are two ways to calculate dynamic switching parameters.
+
+1. according to :ref:`(Immel2026) <Immel2026_2>` with a differentiable
+switching parameter that results in a conservative potential.
+Energy and momentum are (in the absence of external forces) conserved
+by design.
+
+2. according to :ref:`(Immel2025) <Immel2025_1>` with a non-differentiable
+switching parameter. In this case, the implementation can be optimized for
+performance by using the switching parameters of the previous timestep.
+Thereby, one can perform most of the switching-parameter calculation within
+the force-calculation routine and include this calculations in the load-
+balancing. The potential is not conservative and energy- and
+momentum-conservation are achieved through a local correction.
+
 Alternatively, one can set a constant switching parameter before the start
 of a simulation.
+Using constant switching parameters results in a conservative potential.
+
 To run a simulation with an adaptive-precision potential, one needs the
 following components:
 
 .. tabs::
 
-   .. tab:: dynamic switching parameter
+   .. tab:: conservative dynamic switching parameter
+
+        #. :doc:`atom_style apip conservative <atom_style>` so that the switching parameter :math:`\lambda_i` can be stored.
+        #. A fast potential: :doc:`eam/apip <pair_eam_apip>` or :doc:`pace/fast/apip <pair_pace_apip>`.
+        #. A precise potential: :doc:`pace/precise/apip <pair_pace_apip>`.
+        #. :doc:`fix lambda/la/csp/apip <fix_lambda_la_csp_apip>` to calculate a differentiable switching parameter :math:`\lambda_i`.
+        #. :doc:`pair_style hybrid/overlay <pair_hybrid>` to combine the previously mentioned pair_styles.
+        #. :doc:`fix atom_weight/apip <fix_atom_weight_apip>` to approximate the load caused by every atom, as the computations of the pair_styles are only required for a subset of atoms.
+        #. :doc:`fix balance <fix_balance>` to perform dynamic load balancing with the calculated load.
+
+   .. tab:: dynamic switching parameter with correction
 
         #. :doc:`atom_style apip <atom_style>` so that the switching parameter :math:`\lambda_i` can be stored.
         #. A fast potential: :doc:`eam/apip <pair_eam_apip>` or :doc:`pace/fast/apip <pair_pace_apip>`.
@@ -102,12 +130,60 @@ Example
 .. note::
 
    How to select the values of the parameters of an adaptive-precision
-   interatomic potential is discussed in detail in :ref:`(Immel) <Immel2025_1>`.
+   interatomic potential is discussed in detail in :ref:`(Immel2025) <Immel2025_1>`
+   and :ref:`(Immel2026) <Immel2026_2>`.
 
 
 .. tabs::
 
-   .. tab:: dynamic switching parameter
+   .. tab:: conservative dynamic switching parameter
+
+      Lines like these would appear in the input script:
+
+      .. code-block:: LAMMPS
+
+         atom_style apip conservative
+         comm_style tiled
+
+         pair_style hybrid/overlay eam/fs/apip pace/precise/apip
+         pair_coeff * * eam/fs/apip Cu.eam.fs Cu
+         pair_coeff * * pace/precise/apip Cu.yace Cu
+
+         # calculate a differentiable switching parameter to obtain
+         # a conservative potential
+         fix 2 all lambda/la/csp/apip 0.24 1.5 11.0 12.0 bcc
+
+         fix 4 all atom_weight/apip 100 eam ace 0 0 all
+
+         variable myweight atom f_4
+
+         fix 5 all balance 100 1.1 rcb weight var myweight
+
+      First, the :doc:`atom_style apip conservative <atom_style>` and the communication style are set.
+
+      .. note::
+         Note, that :doc:`comm_style <comm_style>` *tiled* is required for the style *rcb* of
+         :doc:`fix balance <fix_balance>`, but not for APIP.
+         However, the flexibility offered by the balancing style *rcb*, compared to the
+         balancing style *shift*, is advantageous for APIP.
+
+      A conservative adaptive-precision EAM-ACE potential is defined based on
+      the differentiable switching parameter calculated by
+      :doc:`fix lambda/la/csp/apip <fix_lambda_la_csp_apip>`, i.e.,
+      :math:`\lambda` is calculated from the locally averaged CSP.
+      The :doc:`pair_style hybrid/overlay <pair_hybrid>` combines the fast EAM
+      and the precise ACE potential, interpolated by the corresponding
+      switching parameter.
+      Furthermore, the :doc:`fix lambda/la/csp/apip <fix_lambda_la_csp_apip>`
+      calculates the forces caused by the differentiation of the switching
+      parameter. Thereby, one obtains a conservative potential
+      (:math:`\pmb{F}_i = -\nabla_i \sum_k E_k`) that by design conserves
+      energy and momentum in the absence of external forces.
+
+      The fix 4 calculates the computational weight that is used by fix 5 to
+      balance the load between different processors.
+
+   .. tab:: dynamic switching parameter with correction
 
       Lines like these would appear in the input script:
 
@@ -222,4 +298,8 @@ of new adaptive-precision potentials.
 
 .. _Immel2025_1:
 
-**(Immel)** Immel, Drautz and Sutmann, J Chem Phys, 162, 114119 (2025)
+**(Immel2025)** Immel, Drautz and Sutmann, J Chem Phys, 162, 114119 (2025)
+
+.. _Immel2026_2:
+
+**(Immel2026)** Immel, Drautz and Sutmann, arXiv:2512.07693

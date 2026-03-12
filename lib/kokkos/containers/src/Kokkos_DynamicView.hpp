@@ -283,6 +283,12 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
   /** \brief  Must be accessible everywhere */
   using host_mirror_type = DynamicView;
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  /** \brief  Compatible HostMirror view */
+  using HostMirror KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use host_mirror_type instead.") = host_mirror_type;
+#endif
+
   /** \brief Unified types */
   using uniform_device =
       Kokkos::Device<typename traits::device_type::execution_space,

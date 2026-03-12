@@ -53,7 +53,8 @@ that implements a published method or algorithm.
 
 \endverbatim
 
-   * \param reference  String containing the citation in BibTeX format with DOI header */
+ *
+ * \param reference  String containing the citation in BibTeX format with DOI header */
   void add(const std::string &reference);
 
   /** Flush accumulated citation buffers to screen and log file

@@ -867,6 +867,14 @@ else()
     ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module")
 endif()
 
+###############################################################################
+# Create tarball for download with html and PDF version of manual included
+###############################################################################
+add_custom_target(tarball
+  COMMAND ${LAMMPS_DIR}/cmake/packaging/build_tarball.sh ${LAMMPS_DIR}/doc
+)
+
+
 include(Testing)
 include(CodeCoverage)
 include(CodingStandard)

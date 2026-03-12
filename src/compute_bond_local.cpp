@@ -59,10 +59,10 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), bstyle(nullptr), vvar(nullptr), dstr(nullptr), vstr(nullptr),
     vlocal(nullptr), alocal(nullptr)
 {
-  if (narg < 4) error->all(FLERR, "Illegal compute bond/local command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute bond/local", error);
 
   if (atom->avec->bonds_allow == 0)
-    error->all(FLERR, "Compute bond/local used when bonds are not allowed");
+    error->all(FLERR, 2, "Compute bond/local used when bonds are not allowed");
 
   local_flag = 1;
   comm_forward = 3;
@@ -114,7 +114,8 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
       nvar++;
     } else if (utils::strmatch(arg[iarg], R"(^b\d+$)")) {    // b1, b2, b3, ... bN
       int n = std::stoi(&arg[iarg][1]);
-      if (n <= 0) error->all(FLERR, "Invalid keyword {} in compute bond/local command", arg[iarg]);
+      if (n <= 0)
+        error->all(FLERR, iarg, "Invalid keyword {} in compute bond/local command", arg[iarg]);
       bstyle[nvalues] = BN;
       bindex[nvalues++] = n - 1;
     } else
@@ -134,10 +135,10 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
         delete[] dstr;
         dstr = utils::strdup(arg[iarg + 2]);
       } else
-        error->all(FLERR, "Unknown compute bond/local set keyword: {}", arg[iarg + 2]);
+        error->all(FLERR, iarg + 2, "Unknown compute bond/local set keyword: {}", arg[iarg + 2]);
       iarg += 3;
     } else
-      error->all(FLERR, "Unknown compute bond/local keyword: {}", arg[iarg]);
+      error->all(FLERR, iarg, "Unknown compute bond/local keyword: {}", arg[iarg]);
   }
 
   // error check
@@ -208,21 +209,25 @@ ComputeBondLocal::~ComputeBondLocal()
 
 void ComputeBondLocal::init()
 {
-  if (force->bond == nullptr) error->all(FLERR, "No bond style is defined for compute bond/local");
+  if (force->bond == nullptr)
+    error->all(FLERR, Error::NOLASTLINE, "No bond style is defined for compute bond/local");
 
   for (int i = 0; i < nvalues; i++)
     if (bstyle[i] == BN && bindex[i] >= force->bond->single_extra)
-      error->all(FLERR, "Bond style does not have extra field requested by compute bond/local");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Bond style does not have extra field requested by compute bond/local");
 
   if (nvar) {
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
-      if (vvar[i] < 0) error->all(FLERR, "Variable name for compute bond/local does not exist");
+      if (vvar[i] < 0)
+        error->all(FLERR, Error::NOLASTLINE, "Variable name for compute bond/local does not exist");
     }
 
     if (dstr) {
       dvar = input->variable->find(dstr);
-      if (dvar < 0) error->all(FLERR, "Variable name for compute bond/local does not exist");
+      if (dvar < 0)
+        error->all(FLERR, Error::NOLASTLINE, "Variable name for compute bond/local does not exist");
     }
   }
 

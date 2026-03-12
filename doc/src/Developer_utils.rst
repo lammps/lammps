@@ -160,6 +160,9 @@ and parsing files or arguments.
 .. doxygenfunction:: trim_and_count_words
    :project: progguide
 
+.. doxygenfunction:: join
+   :project: progguide
+
 .. doxygenfunction:: join_words
    :project: progguide
 

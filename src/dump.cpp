@@ -1310,7 +1310,7 @@ void Dump::modify_params(int narg, char **arg)
         sort_flag = 1;
         sortcol = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         sortorder = ASCEND;
-        if (sortcol == 0) error->all(FLERR, "Invalid dump_modify sort argument: {}", sortcol);
+        if (sortcol == 0) error->all(FLERR, iarg+2,"Invalid dump_modify sort argument: {}", sortcol);
         if (sortcol < 0) {
           sortorder = DESCEND;
           sortcol = -sortcol;
@@ -1331,7 +1331,7 @@ void Dump::modify_params(int narg, char **arg)
 
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);
-      if (n == 0) error->all(FLERR,"Unknown dump_modify keyword: {}", arg[iarg]);
+      if (n == 0) error->all(FLERR,iarg+1,"Unknown dump_modify keyword: {}", arg[iarg]);
       iarg += n;
     }
   }

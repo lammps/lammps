@@ -6,7 +6,7 @@
 improper_style cvff command
 ===========================
 
-Accelerator Variants: *cvff/intel*, *cvff/omp*
+Accelerator Variants: *cvff/intel*, *cvff/kk*, *cvff/omp*
 
 Syntax
 """"""

@@ -17,7 +17,8 @@ min_style quickmin command
 min_style fire command
 ======================
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
+
 Accelerator Variant: *fire/kk*
 
 :doc:`min_style spin <min_spin>` command

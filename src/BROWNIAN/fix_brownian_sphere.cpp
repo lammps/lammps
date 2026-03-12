@@ -148,7 +148,7 @@ void FixBrownianSphere::initial_integrate_templated()
   double wx, wy, wz;
   double **torque = atom->torque;
   double **mu = atom->mu;
-  double mux, muy, muz, mulen;
+  double mulen;
 
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 

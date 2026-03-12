@@ -3375,9 +3375,9 @@ void FixBondReact::update_everything()
               if (rxn.atoms[jj].wildcard || rxn.atoms[ibatom].wildcard) {
                 int blocal = atom->map(btag);
                 if (blocal < 0) error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
-                int btype = atom->lmap->infer_bondtype(type[jjlocal],type[blocal]);
-                if (btype == -1) error->one(FLERR,"Bond/react: Unable to infer bond type from wildcard atoms");
-                bond_type[jjlocal][p] = btype;
+                int signed_btype = atom->lmap->infer_bondtype(type[jjlocal],type[blocal]);
+                if (!signed_btype) error->one(FLERR,"Bond/react: Unable to infer bond type from wildcard atoms");
+                bond_type[jjlocal][p] = std::abs(signed_btype);
               } else {
                 bond_type[jjlocal][p] = rxn.product->bond_type[j][p];
               }
@@ -3398,9 +3398,9 @@ void FixBondReact::update_everything()
                 if (rxn.atoms[jj].wildcard || rxn.atoms[ibatom].wildcard) {
                   int blocal = atom->map(btag);
                   if (blocal < 0) error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
-                  int btype = atom->lmap->infer_bondtype(type[jjlocal],type[blocal]);
-                  if (btype == -1) error->one(FLERR,"Bond/react: Unable to infer bond type from wildcard atoms");
-                  bond_type[jjlocal][insert_num] = btype;
+                  int signed_btype = atom->lmap->infer_bondtype(type[jjlocal],type[blocal]);
+                  if (!signed_btype) error->one(FLERR,"Bond/react: Unable to infer bond type from wildcard atoms");
+                  bond_type[jjlocal][insert_num] = std::abs(signed_btype);
                 } else {
                   bond_type[jjlocal][insert_num] = rxn.product->bond_type[j][p];
                 }
@@ -3492,15 +3492,24 @@ void FixBondReact::update_everything()
                     int alocal3 = atom->map(atag3);
                     if (alocal1 < 0 || alocal2 < 0 || alocal3 < 0)
                       error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
-                    int atype = atom->lmap->infer_angletype(type[alocal1],type[alocal2],type[alocal3]);
-                    if (atype == -1) error->one(FLERR,"Bond/react: Unable to infer angle type from wildcard atoms");
-                    angle_type[jjlocal][p] = atype;
+                    int signed_atype = atom->lmap->infer_angletype(type[alocal1],type[alocal2],type[alocal3]);
+                    if (!signed_atype) error->one(FLERR,"Bond/react: Unable to infer angle type from wildcard atoms");
+                    angle_type[jjlocal][p] = std::abs(signed_atype);
+                    if (signed_atype > 0) {
+                      angle_atom1[jjlocal][p] = atag1;
+                      angle_atom2[jjlocal][p] = atag2;
+                      angle_atom3[jjlocal][p] = atag3;
+                    } else {
+                      angle_atom1[jjlocal][p] = atag3;
+                      angle_atom2[jjlocal][p] = atag2;
+                      angle_atom3[jjlocal][p] = atag1;
+                    }
                   } else {
                     angle_type[jjlocal][p] = rxn.product->angle_type[j][p];
+                    angle_atom1[jjlocal][p] = atag1;
+                    angle_atom2[jjlocal][p] = atag2;
+                    angle_atom3[jjlocal][p] = atag3;
                   }
-                  angle_atom1[jjlocal][p] = atag1;
-                  angle_atom2[jjlocal][p] = atag2;
-                  angle_atom3[jjlocal][p] = atag3;
                 }
               }
               if (rxn.atoms[j].landlocked == 0) {
@@ -3526,15 +3535,24 @@ void FixBondReact::update_everything()
                       int alocal3 = atom->map(atag3);
                       if (alocal1 < 0 || alocal2 < 0 || alocal3 < 0)
                         error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
-                      int atype = atom->lmap->infer_angletype(type[alocal1],type[alocal2],type[alocal3]);
-                      if (atype == -1) error->one(FLERR,"Bond/react: Unable to infer angle type from wildcard atoms");
-                      angle_type[jjlocal][insert_num] = atype;
+                      int signed_atype = atom->lmap->infer_angletype(type[alocal1],type[alocal2],type[alocal3]);
+                      if (!signed_atype) error->one(FLERR,"Bond/react: Unable to infer angle type from wildcard atoms");
+                      angle_type[jjlocal][insert_num] = std::abs(signed_atype);
+                      if (signed_atype > 0) {
+                        angle_atom1[jjlocal][insert_num] = atag1;
+                        angle_atom2[jjlocal][insert_num] = atag2;
+                        angle_atom3[jjlocal][insert_num] = atag3;
+                      } else {
+                        angle_atom1[jjlocal][insert_num] = atag3;
+                        angle_atom2[jjlocal][insert_num] = atag2;
+                        angle_atom3[jjlocal][insert_num] = atag1;
+                      }
                     } else {
                       angle_type[jjlocal][insert_num] = rxn.product->angle_type[j][p];
+                      angle_atom1[jjlocal][insert_num] = atag1;
+                      angle_atom2[jjlocal][insert_num] = atag2;
+                      angle_atom3[jjlocal][insert_num] = atag3;
                     }
-                    angle_atom1[jjlocal][insert_num] = atag1;
-                    angle_atom2[jjlocal][insert_num] = atag2;
-                    angle_atom3[jjlocal][insert_num] = atag3;
                     num_angle[jjlocal]++;
                     if (num_angle[jjlocal] > atom->angle_per_atom)
                       error->one(FLERR,"Fix bond/react topology/atom exceed system topology/atom");
@@ -3624,16 +3642,27 @@ void FixBondReact::update_everything()
                     int local4 = atom->map(tag4);
                     if (local1 < 0 || local2 < 0 || local3 < 0 || local4 < 0)
                       error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
-                    int dtype = atom->lmap->infer_dihedraltype(type[local1],type[local2],type[local3],type[local4]);
-                    if (dtype == -1) error->one(FLERR,"Bond/react: Unable to infer dihedral type from wildcard atoms");
-                    dihedral_type[jjlocal][p] = dtype;
+                    int signed_dtype = atom->lmap->infer_dihedraltype(type[local1],type[local2],type[local3],type[local4]);
+                    if (!signed_dtype) error->one(FLERR,"Bond/react: Unable to infer dihedral type from wildcard atoms");
+                    dihedral_type[jjlocal][p] = std::abs(signed_dtype);
+                    if (signed_dtype > 0) {
+                      dihedral_atom1[jjlocal][p] = tag1;
+                      dihedral_atom2[jjlocal][p] = tag2;
+                      dihedral_atom3[jjlocal][p] = tag3;
+                      dihedral_atom4[jjlocal][p] = tag4;
+                    } else {
+                      dihedral_atom1[jjlocal][p] = tag4;
+                      dihedral_atom2[jjlocal][p] = tag3;
+                      dihedral_atom3[jjlocal][p] = tag2;
+                      dihedral_atom4[jjlocal][p] = tag1;
+                    }
                   } else {
                     dihedral_type[jjlocal][p] = rxn.product->dihedral_type[j][p];
+                    dihedral_atom1[jjlocal][p] = tag1;
+                    dihedral_atom2[jjlocal][p] = tag2;
+                    dihedral_atom3[jjlocal][p] = tag3;
+                    dihedral_atom4[jjlocal][p] = tag4;
                   }
-                  dihedral_atom1[jjlocal][p] = tag1;
-                  dihedral_atom2[jjlocal][p] = tag2;
-                  dihedral_atom3[jjlocal][p] = tag3;
-                  dihedral_atom4[jjlocal][p] = tag4;
                 }
               }
               if (rxn.atoms[j].landlocked == 0) {
@@ -3665,16 +3694,27 @@ void FixBondReact::update_everything()
                       int local4 = atom->map(tag4);
                       if (local1 < 0 || local2 < 0 || local3 < 0 || local4 < 0)
                         error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
-                      int dtype = atom->lmap->infer_dihedraltype(type[local1],type[local2],type[local3],type[local4]);
-                      if (dtype == -1) error->one(FLERR,"Bond/react: Unable to infer dihedral type from wildcard atoms");
-                      dihedral_type[jjlocal][insert_num] = dtype;
+                      int signed_dtype = atom->lmap->infer_dihedraltype(type[local1],type[local2],type[local3],type[local4]);
+                      if (!signed_dtype) error->one(FLERR,"Bond/react: Unable to infer dihedral type from wildcard atoms");
+                      dihedral_type[jjlocal][insert_num] = std::abs(signed_dtype);
+                      if (signed_dtype > 0) {
+                        dihedral_atom1[jjlocal][insert_num] = tag1;
+                        dihedral_atom2[jjlocal][insert_num] = tag2;
+                        dihedral_atom3[jjlocal][insert_num] = tag3;
+                        dihedral_atom4[jjlocal][insert_num] = tag4;
+                      } else {
+                        dihedral_atom1[jjlocal][insert_num] = tag4;
+                        dihedral_atom2[jjlocal][insert_num] = tag3;
+                        dihedral_atom3[jjlocal][insert_num] = tag2;
+                        dihedral_atom4[jjlocal][insert_num] = tag1;
+                      }
                     } else {
                       dihedral_type[jjlocal][insert_num] = rxn.product->dihedral_type[j][p];
+                      dihedral_atom1[jjlocal][insert_num] = tag1;
+                      dihedral_atom2[jjlocal][insert_num] = tag2;
+                      dihedral_atom3[jjlocal][insert_num] = tag3;
+                      dihedral_atom4[jjlocal][insert_num] = tag4;
                     }
-                    dihedral_atom1[jjlocal][insert_num] = tag1;
-                    dihedral_atom2[jjlocal][insert_num] = tag2;
-                    dihedral_atom3[jjlocal][insert_num] = tag3;
-                    dihedral_atom4[jjlocal][insert_num] = tag4;
                     num_dihedral[jjlocal]++;
                     if (num_dihedral[jjlocal] > atom->dihedral_per_atom)
                       error->one(FLERR,"Fix bond/react topology/atom exceed system topology/atom");
@@ -3764,16 +3804,30 @@ void FixBondReact::update_everything()
                     int local4 = atom->map(tag4);
                     if (local1 < 0 || local2 < 0 || local3 < 0 || local4 < 0)
                       error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
-                    int itype = atom->lmap->infer_impropertype(type[local1],type[local2],type[local3],type[local4]);
-                    if (itype == -1) error->one(FLERR,"Bond/react: Unable to infer improper type from wildcard atoms");
-                    improper_type[jjlocal][p] = itype;
+                    std::array<int, 4> iorder;
+                    int signed_itype = atom->lmap->infer_impropertype(type[local1],type[local2],type[local3],type[local4],&iorder);
+                    if (!signed_itype) error->one(FLERR,"Bond/react: Unable to infer improper type from wildcard atoms");
+                    improper_type[jjlocal][p] = std::abs(signed_itype);
+                    if (signed_itype > 0) {
+                      improper_atom1[jjlocal][p] = tag1;
+                      improper_atom2[jjlocal][p] = tag2;
+                      improper_atom3[jjlocal][p] = tag3;
+                      improper_atom4[jjlocal][p] = tag4;
+                    } else {
+                      tagint* iptrs[4] = {&improper_atom1[jjlocal][p],&improper_atom2[jjlocal][p],
+                                          &improper_atom3[jjlocal][p],&improper_atom4[jjlocal][p]};
+                      // types guaranteed to match, just in wrong order
+                      std::array<tagint, 4> tags = {tag1, tag2, tag3, tag4};
+                      for (int iatom = 0; iatom < 4; iatom++)
+                        *iptrs[iatom] = tags[iorder[iatom]];
+                    }
                   } else {
                     improper_type[jjlocal][p] = rxn.product->improper_type[j][p];
+                    improper_atom1[jjlocal][p] = tag1;
+                    improper_atom2[jjlocal][p] = tag2;
+                    improper_atom3[jjlocal][p] = tag3;
+                    improper_atom4[jjlocal][p] = tag4;
                   }
-                  improper_atom1[jjlocal][p] = tag1;
-                  improper_atom2[jjlocal][p] = tag2;
-                  improper_atom3[jjlocal][p] = tag3;
-                  improper_atom4[jjlocal][p] = tag4;
                 }
               }
               if (rxn.atoms[j].landlocked == 0) {
@@ -3805,16 +3859,30 @@ void FixBondReact::update_everything()
                       int local4 = atom->map(tag4);
                       if (local1 < 0 || local2 < 0 || local3 < 0 || local4 < 0)
                         error->one(FLERR,"Bond/react: Fix bond/react needs ghost atoms from further away");
-                      int itype = atom->lmap->infer_impropertype(type[local1],type[local2],type[local3],type[local4]);
-                      if (itype == -1) error->one(FLERR,"Bond/react: Unable to infer improper type from wildcard atoms");
-                      improper_type[jjlocal][insert_num] = itype;
+                      std::array<int, 4> iorder;
+                      int signed_itype = atom->lmap->infer_impropertype(type[local1],type[local2],type[local3],type[local4],&iorder);
+                      if (!signed_itype) error->one(FLERR,"Bond/react: Unable to infer improper type from wildcard atoms");
+                      improper_type[jjlocal][insert_num] = std::abs(signed_itype);
+                      if (signed_itype > 0) {
+                        improper_atom1[jjlocal][insert_num] = tag1;
+                        improper_atom2[jjlocal][insert_num] = tag2;
+                        improper_atom3[jjlocal][insert_num] = tag3;
+                        improper_atom4[jjlocal][insert_num] = tag4;
+                      } else {
+                        tagint* iptrs[4] = {&improper_atom1[jjlocal][insert_num],&improper_atom2[jjlocal][insert_num],
+                                            &improper_atom3[jjlocal][insert_num],&improper_atom4[jjlocal][insert_num]};
+                        // types guaranteed to match, just in wrong order
+                        std::array<tagint, 4> tags = {tag1, tag2, tag3, tag4};
+                        for (int iatom = 0; iatom < 4; iatom++)
+                          *iptrs[iatom] = tags[iorder[iatom]];
+                      }
                     } else {
                       improper_type[jjlocal][insert_num] = rxn.product->improper_type[j][p];
+                      improper_atom1[jjlocal][insert_num] = tag1;
+                      improper_atom2[jjlocal][insert_num] = tag2;
+                      improper_atom3[jjlocal][insert_num] = tag3;
+                      improper_atom4[jjlocal][insert_num] = tag4;
                     }
-                    improper_atom1[jjlocal][insert_num] = tag1;
-                    improper_atom2[jjlocal][insert_num] = tag2;
-                    improper_atom3[jjlocal][insert_num] = tag3;
-                    improper_atom4[jjlocal][insert_num] = tag4;
                     num_improper[jjlocal]++;
                     if (num_improper[jjlocal] > atom->improper_per_atom)
                       error->one(FLERR,"Fix bond/react topology/atom exceed system topology/atom");

@@ -57,7 +57,7 @@ sometimes be confusing or need additional explanations.
   do, but very strictly applies the syntax as described in the
   documentation.  If you run into errors that LAMMPS does not catch that
   you think it should flag, please send an email to the `developers
-  <https://www.lammps.org/authors.html>`_ or create an new topic on the
+  <https://www.lammps.org/authors.html>`_ or create a new topic on the
   dedicated `MatSci forum section <https://matsci.org/lammps/>`_.
 
 - If you get an error message about an invalid command in your input

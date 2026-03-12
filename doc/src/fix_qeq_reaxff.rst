@@ -24,10 +24,11 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *dual* or *maxiter* or *nowarn*
+     keyword = *dual* or *maxiter* or *nowarn* or *matfree*
        *dual* = process S and T matrix in parallel (only for qeq/reaxff/omp)
        *maxiter* N = limit the number of iterations to *N*
        *nowarn* = do not print a warning message if the maximum number of iterations was reached
+       *matfree* = use a matrix-free approach for applying the H matrix (only for qeq/reaxff/kk)
 
 Examples
 """"""""
@@ -89,6 +90,14 @@ useful for comparing serial and parallel results where having the
 same fixed number of QEq iterations is desired, which can be achieved
 by using a very small tolerance and setting *maxiter* to the desired
 number of iterations.
+
+The optional *matfree* keyword replaces the sequence of
+explicitly constructing the H matrix, then (repeatedly) applying it
+with a matrix-free approach where the H matrix is effectively
+regenerated each time it is applied. This trades performance for
+reduced memory requirements because it avoids the overheads of
+storing the matrix. This is only supported for the *qeq/reaxff/kk*
+style, with both full and half qeq neighbor lists supported.
 
 .. note::
 

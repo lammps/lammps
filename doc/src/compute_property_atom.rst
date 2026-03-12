@@ -35,7 +35,8 @@ Syntax
                              vfrac, s0, espin, eradius, ervel, erforce,
                              rho, drho, e, de, cv, buckling,
                              apip_lambda, apip_lambda_input, apip_e_fast,
-                             apip_e_precise
+                             apip_e_precise, apip_la_inp, apip_la_avg,
+                             apip_la_norm
 
   .. parsed-literal::
 
@@ -78,6 +79,9 @@ Syntax
            *apip_lambda* = switching parameter
            *apip_lambda_input* = input used to calculate the switching parameter
            *apip_e_fast,apip_e_precise* = potential energies mixed by the adaptive-precision potential
+           *apip_la_inp* = input used for the local averaging of the descriptor
+           *apip_la_norm* = locally averaged radial weighting function used for normalization
+           *apip_la_avg* = locally averaged descriptor used to calculate the switching parameter
 
   .. parsed-literal::
 
@@ -173,10 +177,19 @@ triangular particles and define the corner points of each triangle.
 
 The accessible quantities from the :doc:`APIP package <Howto_apip>` are
 explained in the doc pages of this package in detail.
-In short: *apip_lambda* is the switching parameter :math:`\lambda\in[0,1]`,
-that is calculated from *apip_lambda_input* and that mixes the energies
-of a fast (*apip_e_fast*) and a precise (*apip_e_precise*) potential
-into an adaptive-precision energy.
+In short: *apip_lambda* is the switching parameter :math:`\lambda\in[0,1]`.
+The switching parameter can be calculated from *apip_lambda_input* and mixes
+the energies of a
+fast (*apip_e_fast*) and a precise (*apip_e_precise*) potential into an
+adaptive-precision energy.
+
+.. versionchanged:: TBD
+
+Alternatively, the switching parameter can be calculated from a
+locally averaged descriptor (*apip_la_avg*) to obtain a conservative
+potential.
+The descriptor is calculated from an atomic property (*apip_la_inp*) and
+normalized with a locally averaged weighting function (*apip_la_norm*).
 
 .. note::
 

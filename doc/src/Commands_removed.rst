@@ -16,7 +16,7 @@ with the direct alternative (if available) and print a warning.
 amber2lmp tools
 ---------------
 
-.. deprecated:: TBD
+.. deprecated:: 11Feb2026
 
 The tools in the ``tools/amber2lmp`` folder have been removed because
 they were unmaintained for a long time and required Python 2 which has
@@ -30,12 +30,11 @@ ATC, AWPMD, and POEMS packages
 
 .. deprecated:: 10Sep2025
 
-The ATC, AWPMD, and POEMS packages are removed.because there were
+The ATC, AWPMD, and POEMS packages are removed because they were
 unmaintained for a long time and their legacy C++ programming style
-started to create problems with modern C++ compilers.  LAMMPS version
-22 July 2025 is the last version that contains them.  You have to
-download and compile this version, if you want to use any of these
-packages.
+started to create problems with modern C++ compilers.  LAMMPS version 22
+July 2025 is the last version that contains them.  You have to download
+and compile this version, if you want to use any of these packages.
 
 .. toctree::
    :maxdepth: 0

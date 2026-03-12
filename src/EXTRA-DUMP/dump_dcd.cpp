@@ -22,7 +22,6 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
-#include "fmt/chrono.h"
 #include "group.h"
 #include "memory.h"
 #include "output.h"
@@ -318,7 +317,7 @@ void DumpDCD::write_dcd_header(const char *remarks)
   float out_float;
   char title_string[200];
   time_t t;
-  std::tm current_time;
+  struct tm *current_time;
 
   int ntimestep = update->ntimestep;
 
@@ -350,14 +349,19 @@ void DumpDCD::write_dcd_header(const char *remarks)
   fwrite_int32(fp,84);
   fwrite_int32(fp,164);
   fwrite_int32(fp,2);
-  strncpy(title_string,remarks,80);
-  title_string[79] = '\0';
+  // pad string with blanks and truncate at 80 chars
+  snprintf(title_string, sizeof(title_string),
+           "%s                                        "
+           "                                        ", remarks);
   fwrite(title_string,80,1,fp);
   t = time(nullptr);
-  current_time = fmt::localtime(t);
-  std::string s = fmt::format("REMARKS Created {:%d %B,%Y at %H:%M}", current_time);
-  memset(title_string,' ',81);
-  memcpy(title_string, s.c_str(), s.size());
+  current_time = localtime(&t);
+  // pad string with blanks and truncate at 80 chars
+  strftime(title_string, sizeof(title_string),
+           "REMARKS Created %d %B,%Y at %H:%M"
+           "                                        "
+           "                                        ",
+           current_time);
   fwrite(title_string,80,1,fp);
   fwrite_int32(fp,164);
   fwrite_int32(fp,4);

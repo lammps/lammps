@@ -12,11 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_harmonic_outside.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "citeme.h"
 #include "error.h"
 
+#include <cstring>
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

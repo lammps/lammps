@@ -33,7 +33,9 @@ using MathConst::MY_PI;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) :
+    AtomVec(lmp), bonus(nullptr), ellipsoid(nullptr), rmass(nullptr), angmom(nullptr),
+    quat_hold(nullptr)
 {
   molecular = Atom::ATOMIC;
   bonus_flag = 1;
@@ -47,7 +49,6 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
   atom->rmass_flag = atom->angmom_flag = atom->torque_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
-  bonus = nullptr;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings

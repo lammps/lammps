@@ -30,6 +30,7 @@ acs
 Acta
 actinide
 activationfunctions
+acut
 acylindricity
 addforce
 Addington
@@ -53,6 +54,7 @@ agilio
 Agilio
 agni
 Agnolin
+agroup
 ahi
 Ahrens
 Ai
@@ -500,6 +502,7 @@ cfg
 CFG
 cfile
 CFL
+cflag
 cgdna
 CGDNA
 cgmap
@@ -837,6 +840,7 @@ df
 dfftw
 DFT
 dftb
+dgroup
 dh
 dhex
 di
@@ -848,6 +852,7 @@ diagonalized
 diagonalizers
 diagonalizing
 Diallo
+dialogs
 diblock
 dichalcogenide
 dichalcogenides
@@ -1055,6 +1060,7 @@ Elj
 Ellad
 ellipsoidflag
 elong
+elongational
 Elsevier
 Elsner
 Elstner
@@ -1236,6 +1242,7 @@ Fickian
 fieldname
 figshare
 Fij
+Fikar
 filelink
 filename
 Filename
@@ -1464,6 +1471,7 @@ Grigera
 Grimme
 grmask
 Grmask
+Groger
 gromacs
 Gromacs
 gromos
@@ -1557,6 +1565,7 @@ Heyes
 HfO
 hftn
 hgrid
+hgroup
 hhmrr
 Hibbs
 Higdon
@@ -1696,6 +1705,7 @@ initializer
 initializations
 InitiatorIDs
 initio
+inp
 InP
 inq
 inregion
@@ -2697,6 +2707,7 @@ nktv
 nl
 nlayers
 nlen
+Nlength
 Nlimit
 nlines
 Nlines
@@ -2930,6 +2941,7 @@ outputss
 Ouyang
 overdamped
 overlayed
+oversubscription
 Ovito
 oxdna
 oxDNA
@@ -3013,6 +3025,7 @@ Peng
 peptide
 peratom
 Perf
+performant
 Pergamon
 pergrid
 peri
@@ -3788,10 +3801,8 @@ Straub
 strcmp
 streitz
 Streitz
-Streiz
 strerror
 strided
-strietz
 stringstreams
 strmatch
 strncmp

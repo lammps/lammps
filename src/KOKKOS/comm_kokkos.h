@@ -30,6 +30,7 @@ class CommKokkos : public CommBrick {
   bool reverse_pair_comm_legacy;
   bool forward_fix_comm_legacy;
   bool reverse_comm_legacy;
+  bool reverse_fix_comm_legacy;
   bool exchange_comm_on_host;
   bool forward_comm_on_host;
   bool reverse_comm_on_host;
@@ -64,6 +65,7 @@ class CommKokkos : public CommBrick {
   template<class DeviceType> void forward_comm_device(Pair *pair, int size=0);
   template<class DeviceType> void reverse_comm_device(Pair *pair, int size=0);
   template<class DeviceType> void forward_comm_device(Fix *fix, int size=0);
+  template<class DeviceType> void reverse_comm_device(Fix *fix, int size=0);
   template<class DeviceType> void exchange_device();
   template<class DeviceType> void borders_device();
 
@@ -72,7 +74,8 @@ class CommKokkos : public CommBrick {
   DAT::tdual_int_scalar k_total_send;
   DAT::tdual_double_2d_lr k_buf_send,k_buf_recv;
   DAT::tdual_int_1d k_exchange_sendlist,k_exchange_copylist,k_indices;
-  DAT::tdual_int_scalar k_count;
+  DAT::tdual_int_1d k_exchange_sendlist_bonus,k_exchange_copylist_bonus;
+  DAT::tdual_int_1d k_count;
 
   DAT::tdual_int_2d_lr k_swap;
   DAT::tdual_int_2d_lr k_swap2;

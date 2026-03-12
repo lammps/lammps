@@ -29,7 +29,7 @@ General features
 * spatial decomposition of simulation domain for MPI parallelism
 * particle decomposition inside spatial decomposition for OpenMP and GPU parallelism
 * GPLv2 licensed open-source distribution
-* highly portable C++-11 (optional packages may require C++17)
+* highly portable C++-17 (optional packages may require C++20)
 * modular code with most functionality in optional packages
 * only depends on MPI library for basic parallel functionality, MPI stub for serial compilation
 * other libraries are optional and only required for specific packages

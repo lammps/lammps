@@ -13,6 +13,20 @@
 
 #include "my_pool_chunk.h"
 
+#if defined(LMP_INTEL) && ((defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)))
+#ifndef LMP_INTEL_NO_TBB
+#define LMP_USE_TBB_ALLOCATOR
+#include "tbb/scalable_allocator.h"
+#else
+#include <cstring>
+#if defined(__APPLE__)
+#include <malloc/malloc.h>
+#else
+#include <malloc.h>
+#endif
+#endif
+#endif
+
 #if defined(LMP_INTEL) && !defined(LAMMPS_MEMALIGN) && !defined(_WIN32)
 #define LAMMPS_MEMALIGN 64
 #endif
@@ -185,8 +199,12 @@ template <class T> void MyPoolChunk<T>::allocate(int ibin)
     whichbin[i] = ibin;
 #if defined(LAMMPS_MEMALIGN)
     void *ptr;
+#if defined(LMP_USE_TBB_ALLOCATOR)
+    ptr = scalable_aligned_malloc(sizeof(T) * chunkperpage * chunksize[ibin], LAMMPS_MEMALIGN);
+#else
     if (posix_memalign(&ptr, LAMMPS_MEMALIGN, sizeof(T) * chunkperpage * chunksize[ibin]))
       errorflag = 2;
+#endif
     pages[i] = (T *) ptr;
 #else
     pages[i] = (T *) malloc(sizeof(T) * chunkperpage * chunksize[ibin]);

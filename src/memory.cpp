@@ -76,7 +76,7 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
     return nullptr;
   }
 
-#if defined(LMP_USE_TBB_ALLOCATOR)
+#if defined(LMP_USE_TBB_ALLOCATOR) && defined(LAMMPS_MEMALIGN)
   ptr = scalable_aligned_realloc(ptr, nbytes, LAMMPS_MEMALIGN);
 #elif defined(LMP_INTEL_NO_TBB) && defined(LAMMPS_MEMALIGN) && \
     (defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER))

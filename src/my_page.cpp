@@ -13,6 +13,20 @@
 
 #include "my_page.h"
 
+#if defined(LMP_INTEL) && ((defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)))
+#ifndef LMP_INTEL_NO_TBB
+#define LMP_USE_TBB_ALLOCATOR
+#include "tbb/scalable_allocator.h"
+#else
+#include <cstring>
+#if defined(__APPLE__)
+#include <malloc/malloc.h>
+#else
+#include <malloc.h>
+#endif
+#endif
+#endif
+
 #if defined(LMP_INTEL) && !defined(LAMMPS_MEMALIGN) && !defined(_WIN32)
 #define LAMMPS_MEMALIGN 64
 #endif
@@ -156,7 +170,11 @@ template <class T> void MyPage<T>::allocate()
   for (int i = npage - pagedelta; i < npage; i++) {
 #if defined(LAMMPS_MEMALIGN)
     void *ptr;
+#if defined(LMP_USE_TBB_ALLOCATOR)
+    ptr = scalable_aligned_malloc(pagesize * sizeof(T), LAMMPS_MEMALIGN);
+#else
     if (posix_memalign(&ptr, LAMMPS_MEMALIGN, pagesize * sizeof(T))) errorflag = 2;
+#endif
     pages[i] = (T *) ptr;
 #else
     pages[i] = (T *) malloc(pagesize * sizeof(T));

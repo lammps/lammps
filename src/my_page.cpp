@@ -188,7 +188,13 @@ template <class T> void MyPage<T>::allocate()
 template <class T> void MyPage<T>::deallocate()
 {
   reset();
-  for (int i = 0; i < npage; i++) free(pages[i]);
+  for (int i = 0; i < npage; i++) {
+#if defined(LMP_USE_TBB_ALLOCATOR)
+    scalable_aligned_free(pages[i]);
+#else
+    free(pages[i]);
+#endif
+  }
   free(pages);
   pages = nullptr;
   npage = 0;

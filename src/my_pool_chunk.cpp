@@ -103,7 +103,13 @@ template <class T> MyPoolChunk<T>::~MyPoolChunk()
   delete[] chunksize;
   if (npage) {
     free(freelist);
-    for (int i = 0; i < npage; i++) free(pages[i]);
+    for (int i = 0; i < npage; i++) {
+#if defined(LMP_USE_TBB_ALLOCATOR)
+      scalable_aligned_free(pages[i]);
+#else
+      free(pages[i]);
+#endif
+    }
     free(pages);
     free(whichbin);
   }

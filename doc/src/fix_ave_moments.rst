@@ -190,6 +190,8 @@ For *skew*, the adjusted Fisher--Pearson standardized moment :math:`G_1
 For *kurtosis*, the adjusted Fisher--Pearson standardized moment
 :math:`G_2 = \frac{k_4}{k_2^2}` is calculated.
 
+.. versionadded:: TBD
+
 For *cv*, the coefficient of variation :math:`cv = \frac{stddev}{\bar{x}}`
 is calculated, i.e. the ratio of the Bessel-corrected sample standard
 deviation to the arithmetic mean. When the mean :math:`\bar{x}` is zero,

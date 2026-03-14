@@ -147,7 +147,8 @@ Syntax
 
   .. parsed-literal::
 
-         possible attributes = index, c_ID, c_ID[I], f_ID, f_ID[I]
+         possible attributes = step, index, c_ID, c_ID[I], f_ID, f_ID[I]
+           step = timestep
            index = enumeration of local values
            c_ID = local vector calculated by a compute with ID
            c_ID[I] = Ith column of local array calculated by a compute with ID, I can include wildcard (see below)
@@ -933,6 +934,13 @@ which could then be output into dump files.
 ----------
 
 Attributes used as arguments to the *local* style:
+
+.. versionadded:: TBD
+
+The *step* attribute can be used to print the timestep for each line
+written into the dump file. This simplifies post-processing with
+external tools (e.g. pandas in python) by avoiding complicated
+multiline parsing to recover the timestep for a given local datum.
 
 The *index* attribute can be used to generate an index number from 1
 to N for each line written into the dump file, where N is the total

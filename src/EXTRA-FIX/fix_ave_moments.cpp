@@ -13,7 +13,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Sebastian Huetter (OvGU)
+   Contributing author:           Sebastian Huetter (OvGU)
+   Coefficient of variation (cv): Mitch Murphy (alphataubio at gmail)
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_moments.h"

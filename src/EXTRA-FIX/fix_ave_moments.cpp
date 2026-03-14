@@ -37,7 +37,7 @@ using namespace FixConst;
 using MathSpecial::square;
 using MathSpecial::cube;
 
-enum { MEAN, STDDEV, VARIANCE, SKEW, KURTOSIS };
+enum { MEAN, STDDEV, VARIANCE, SKEW, KURTOSIS, CV };
 
 /* ---------------------------------------------------------------------- */
 
@@ -404,6 +404,8 @@ int FixAveMoments::consume_moments(int iarg, int narg, char **arg)
       moments.push_back(SKEW);
     else if (strcmp(arg[iarg],"kurtosis") == 0)
       moments.push_back(KURTOSIS);
+    else if (strcmp(arg[iarg],"cv") == 0)
+      moments.push_back(CV);
     else
       break;
     iarg++;
@@ -608,6 +610,8 @@ void FixAveMoments::update_results()
     const double G1 = k3 / cube(stddev);
     // adjusted Fisher-Pearson standardized moment coefficient G2 (from unbiased cumulant)
     const double G2 = k4 / square(k2);
+    // coefficient of variation (ratio of standard deviation to mean)
+    const double cv = (mean != 0.0) ? stddev / mean : 0.0;
 
     // map to result array, starting at value interleave offset
     double* rfirst = &result[i * moments.size()];
@@ -627,6 +631,9 @@ void FixAveMoments::update_results()
           break;
         case KURTOSIS:
           rfirst[j] = G2;
+          break;
+        case CV:
+          rfirst[j] = cv;
           break;
       }
     }

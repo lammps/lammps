@@ -28,7 +28,7 @@ Syntax
        v_name[I] = value calculated by a vector-style variable with name, I can include wildcard (see below)
 
 * one or more moments to compute can be listed
-* moment = *mean* or *stddev* or *variance* or *skew* or *kurtosis*, see exact definitions below.
+* moment = *mean* or *stddev* or *variance* or *skew* or *kurtosis* or *cv*, see exact definitions below.
 * zero or more keyword/arg pairs may be appended
 * keyword = *start* or *history*
 
@@ -46,6 +46,7 @@ Examples
 
    fix 1 all ave/moments 1 1000 100 v_volume mean stddev
    fix 1 all ave/moments 1 200 1000 v_volume variance kurtosis history 10
+   fix 1 all ave/moments 1 1000 100 v_volume mean stddev cv
 
 Description
 """""""""""
@@ -188,6 +189,11 @@ For *skew*, the adjusted Fisher--Pearson standardized moment :math:`G_1
 
 For *kurtosis*, the adjusted Fisher--Pearson standardized moment
 :math:`G_2 = \frac{k_4}{k_2^2}` is calculated.
+
+For *cv*, the coefficient of variation :math:`cv = \frac{stddev}{\bar{x}}`
+is calculated, i.e. the ratio of the Bessel-corrected sample standard
+deviation to the arithmetic mean. When the mean :math:`\bar{x}` is zero,
+this quantity is undefined and the implementation returns 0.0.
 
 ----------
 

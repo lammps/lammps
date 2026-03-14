@@ -144,7 +144,7 @@ namespace LAMMPS_NS {
     // For angmom thermostat
     class AtomVecEllipsoidKokkos *avecEllipKK;
     typename AtomVecEllipsoidKokkosBonusArray<DeviceType>::t_bonus_1d bonus;
-    typename ArrayTypes<DeviceType>::t_kkfloat_1d_3 torque;
+    typename ArrayTypes<DeviceType>::t_kkacc_1d_3 torque;
     typename ArrayTypes<DeviceType>::t_kkfloat_1d_3 angmom;
     typename ArrayTypes<DeviceType>::t_int_1d ellipsoid;
     void angmom_thermostat();

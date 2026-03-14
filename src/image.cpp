@@ -2006,5 +2006,5 @@ double *ColorMap::value2color(double value)
     return mentry[ibin%nentry].color;
   }
 
-  return mentry[0];
+  return mentry[0].color;
 }

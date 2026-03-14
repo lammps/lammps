@@ -18,11 +18,12 @@ Syntax
   .. parsed-literal::
 
      possible attributes = natom1, natom2, ntype1, ntype2,
-                           patom1, patom2, ptype1, ptype2,
+                           patom1, patom2, ptype1, ptype2, pmolecule1, pmolecule2,
                            batom1, batom2, btype,
                            aatom1, aatom2, aatom3, atype,
                            datom1, datom2, datom3, datom4, dtype,
-                           iatom1, iatom2, iatom3, iatom4, itype
+                           iatom1, iatom2, iatom3, iatom4, itype,
+
 
   * Neighbor attributes
 
@@ -37,6 +38,7 @@ Syntax
 
      patom1, patom2 = store IDs of two atoms in each pair (within force cutoff)
      ptype1, ptype2 = store types of two atoms in each pair (within force cutoff)
+     pmolecule1, pmolecule2 = store molecule IDs of two atoms in each pair (within force cutoff)
 
   * Bond attributes
 
@@ -108,6 +110,13 @@ and *patom2*, the distance between the atoms must be less than the
 force cutoff distance for that pair to be included, as defined by the
 :doc:`pair_style <pair_style>` and :doc:`pair_coeff <pair_coeff>`
 commands.
+
+.. versionadded:: TBD
+
+For *pmolecule1* and *pmolecule2*, the distance between the atoms must
+be less than the force cutoff distance for that pair to be included, as
+defined by the :doc:`pair_style <pair_style>` and :doc:`pair_coeff
+<pair_coeff>` commands.
 
 The optional *cutoff* keyword determines how the force cutoff distance
 for an interaction is determined for the *patom1* and *patom2*

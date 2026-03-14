@@ -15,14 +15,15 @@
 #include "grid3d.h"
 
 #include "comm.h"
+#include "compute.h"
 #include "domain.h"
 #include "error.h"
-#include "irregular.h"
-#include "pair.h"
-#include "kspace.h"
 #include "fix.h"
+#include "irregular.h"
+#include "kspace.h"
 #include "math_extra.h"
 #include "memory.h"
+#include "pair.h"
 
 #include <cstring>
 
@@ -1276,6 +1277,9 @@ void Grid3d::forward_comm(int caller, void *ptr, int which, int nper, int nbyte,
     else if (caller == FIX)
       forward_comm_brick<Fix>((Fix *) ptr,which,nper,nbyte,
                               buf1,buf2,datatype);
+    else if (caller == COMPUTE)
+      forward_comm_brick<Compute>((Compute *) ptr,which,nper,nbyte,
+                                 buf1,buf2,datatype);
   } else {
     if (caller == KSPACE)
       forward_comm_tiled<KSpace>((KSpace *) ptr,which,nper,nbyte,
@@ -1286,6 +1290,9 @@ void Grid3d::forward_comm(int caller, void *ptr, int which, int nper, int nbyte,
     else if (caller == FIX)
       forward_comm_tiled<Fix>((Fix *) ptr,which,nper,nbyte,
                               buf1,buf2,datatype);
+    else if (caller == COMPUTE)
+      forward_comm_tiled<Compute>((Compute *) ptr,which,nper,nbyte,
+                                 buf1,buf2,datatype);
   }
 }
 

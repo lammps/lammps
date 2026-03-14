@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class Grid3d : protected Pointers {
  public:
-  enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
+  enum { KSPACE = 0, PAIR = 1, FIX = 2, COMPUTE = 3 };    // calling classes
 
   Grid3d(class LAMMPS *, MPI_Comm, int, int, int);
   Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int, int,

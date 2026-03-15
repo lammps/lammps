@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Norbert Podhorszki (Oak Ridge National Laboratory)
+   Contributing author:          Norbert Podhorszki (ORNL)
+   ADIOS 2.11.0 (BP5) and C++20: Mitch Murphy (alphataubio at gmail)
 ------------------------------------------------------------------------- */
 
 #include "reader_adios.h"
@@ -71,7 +72,7 @@ ReaderADIOS::ReaderADIOS(LAMMPS *lmp) : Reader(lmp)
   FILE *cfgfp = fopen("adios2_config.xml", "r");
   if (!cfgfp) {
     cfgfp = fopen("adios2_config.xml", "w");
-    if (cfgfp) fputs(default_config, cfgfp);
+    if (cfgfp) { fwrite(default_config.data(), 1, default_config.size(), cfgfp); }
   }
   if (cfgfp) fclose(cfgfp);
 

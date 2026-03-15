@@ -62,9 +62,9 @@ void Group2Ndx::command(int narg, char **arg)
 
   if (narg == 1) {    // write out all groups
     int count = 0;
-    for (int i = 0; count < group->ngroup; ++i) { 
+    for (int i = 0; count < group->ngroup; ++i) {
       if (group->names[i] != nullptr) {
-        write_group(fp, i); 
+        write_group(fp, i);
         count++;
       }
     }

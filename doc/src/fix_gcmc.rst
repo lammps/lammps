@@ -25,7 +25,10 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *mol* or *mcmoves* or *rigid* or *shake* or *region* or *maxangle* or *pressure* or *fugacity_coeff* or *full_energy* or *charge* or *group* or *grouptype* or *intra_energy* or *tfac_insert* or *overlap_cutoff* or *max* or *min*
+     keyword = *mcemc*, *mol*, *region*, *maxangle*, *pressure*, *fugacity_coeff*, *full_energy*, *charge*, *group*, *grouptype*, *intra_energy*, *tfac_insert*, or *overlap_cutoff*
+       *mcemc* values = ntotal vgauge
+         ntotal = total number of particles in gauge cell + simulation cell for MCEMC moves
+         vgauge = gauge cell volume for MCEMC moves
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
        *mcmoves* values = Patomtrans Pmoltrans Pmolrotate
@@ -60,6 +63,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 2 gas gcmc 10 1000 1000 2 29494 298.0 -0.5 0.01
+   fix 2 adsorbate gcmc 1 100 100 1 1234 300.0 0.0 0.1 mcemc 80 1200.0
    fix 3 water gcmc 10 100 100 0 3456543 3.0 -2.5 0.1 mol my_one_water maxangle 180 full_energy
    fix 4 my_gas gcmc 1 10 10 1 123456543 300.0 -12.5 1.0 region disk
 
@@ -69,10 +73,12 @@ Examples
 Description
 """""""""""
 
-This fix performs grand canonical Monte Carlo (GCMC) exchanges of atoms
-or molecules with an imaginary ideal gas reservoir at the specified *T*
-and chemical potential (:math:`\mu`) as discussed in :ref:`(Frenkel)
-<Frenkel2>`.  It also attempts Monte Carlo (MC) moves (translations and
+The fix can operate in two different ensembles: grand canonical ensemble
+Monte Carlo (GCMC) - particle exchange with infinite reservoir as discussed in :ref:`(Frenkel)
+<Frenkel2>` or mesocanonical ensemble Monte Carlo (MCEMC) - particle exchange 
+with finite gauge cell as discussed in :ref:`(Parashar) <Parashar>`. 
+The choice of ensemble is determined by the presence or absence of the *mcemc* 
+keyword in the fix command. It also attempts Monte Carlo (MC) moves (translations and
 molecule rotations) within the simulation cell or region.  If used with
 the :doc:`fix nvt <fix_nh>` command, simulations in the grand canonical
 ensemble (muVT, constant chemical potential, constant volume, and
@@ -80,12 +86,12 @@ constant temperature) can be performed.  Specific uses include computing
 isotherms in microporous materials, or computing vapor-liquid
 coexistence curves.
 
-Every *N* timesteps the fix attempts both GCMC exchanges (insertions or
-deletions) and MC moves of gas atoms or molecules.  On those timesteps, the
-average number of attempted GCMC exchanges is *X*, while the average number
-of attempted MC moves is *M*.  For GCMC exchanges of either molecular or
-atomic gasses, these exchanges can be either deletions or insertions, with
-equal probability.
+Every *N* timesteps the fix attempts both GCMC/MCEMC exchanges (insertions or
+deletions) and MC moves of gas atoms or molecules.  On those timesteps,
+the average number of attempted GCMC exchanges is *X*, while the average
+number of attempted MC moves is *M*.  For GCMC/MCEMC exchanges of either
+molecular or atomic gasses, these exchanges can be either deletions or
+insertions, with equal probability.
 
 .. note::
 
@@ -122,12 +128,12 @@ the file read by the :doc:`molecule <molecule>` command.
    Monte Carlo.  Hence it is generally not a good idea to specify the
    default group "all" in the fix command, although it is allowed.
 
-This fix cannot be used to perform GCMC insertions of gas atoms or
-molecules other than the exchanged type, but GCMC deletions, and MC
+This fix cannot be used to perform GCMC/MCEMC insertions of gas atoms or
+molecules other than the exchanged type, but GCMC/MCEMC deletions, and MC
 translations, and rotations can be performed on any atom/molecule in the
 fix group.  All atoms in the simulation cell can be moved using regular
 time integration translations, e.g. via :doc:`fix nvt <fix_nh>`,
-resulting in a hybrid GCMC+MD simulation.  A smaller-than-usual timestep
+resulting in a hybrid GCMC/MCEMC+MD simulation.  A smaller-than-usual timestep
 size may be needed when running such a hybrid simulation, especially if
 the inserted molecules are not well equilibrated.
 
@@ -178,6 +184,78 @@ are taken from the template molecule provided by the user.  The center
 of mass of the molecule is placed at the insertion point.  The
 orientation of the molecule is chosen at random by rotating about this
 point.
+
+If the *mcemc* keyword is used, then MCEMC exchange moves are performed
+instead of gcmc exchange moves, and the chemical potential and fugacity
+coefficient input parameters are ignored. MCEMC and GCMC give identical
+adsorption isotherms for microporous materials. For larger pores
+(> 2 nm), GCMC often shows a hysteretic adsorption/desorption
+isotherm, while MCEMC yields a reversible S-shaped van der Waals type
+isotherm (see :ref:`(Parashar) <Parashar>`). The MCEMC isotherm spans
+stable and meta-stable states, whereas GCMC samples only stable states.
+MCEMC lies between the grand canonical ensemble (unrestricted
+fluctuations) and the canonical ensemble (closed system). MCEMC reduces
+to GCMC when the gauge-cell volume is infinite and to the canonical
+ensemble when the gauge-cell volume is zero.
+During the MCEMC exchange move, the particles are exchanged between
+the system and a finite ideal gas reservoir (gauge cell) such that the
+total number of particles in the combined system (system + gauge cell)
+remains constant.
+
+.. math::
+
+   N_{total} = N_{system} + N_{gauge}
+
+where :math:`N_{total}` is the total number of particles in the
+combined system, :math:`N_{system}` is the number of particles in
+the simulation system, and :math:`N_{gauge}` is the number of particles
+in the ideal gas reservoir (gauge cell). The gauge cell has a fixed
+volume (:math:`V_{gauge}`) and is maintained at the same temperature
+(*T*) as the simulation system. The combined system is in thermal and
+chemical equilibrium, hence the chemical potential of the system is
+equal to that of the gauge cell. The chemical potential of the gauge
+cell (and hence the system) is given by:
+
+.. math::
+    \mu^{id} = k_{B}T \ln(\frac{N_{gauge}\Lambda^{3}}{V_{gauge}})
+
+where :math:`k_{B}` is the Boltzmann constant, :math:`\Lambda` is
+the thermal de Broglie wavelength of the ideal gas particles at
+temperature *T*, :math:`V_{gauge}` is the volume of gauge cell, and
+:math:`N_{gauge}` is the average number of particles in the gauge
+cell. The constant :math:`\Lambda` is required for dimensional
+consistency. For all unit styles except *lj* it is defined as the
+thermal de Broglie wavelength.
+
+.. math::
+
+   \Lambda = \sqrt{ \frac{h^2}{2 \pi m k_B T}}
+
+where *h* is Planck's constant, and *m* is the mass of the exchanged
+atom or molecule.  For unit style *lj*, :math:`\Lambda` is simply set to
+unity.
+
+In GCMC, the chemical potential of the infinite ideal gas reservoir is
+imposed on the system using the exchange move, while in MCEMC, the gauge
+cell is used to measure the chemical potential of the system. 
+For calculating adsorption isotherm using GCMC, the input is the
+chemical potential of the infinite reservoir and the output is the
+average number of particles observed in the system. In MCEMC, there are two inputs: :math:`N_{total}` and
+:math:`V_{gauge}`.  From these two inputs, the chemical potential (and
+hence fugacity) of the system is calculated based on ideal gas chemical
+potential in the gauge cell. The number of particles adsorbed 
+is simply the average number of particles observed in the system. 
+
+..note::
+
+   :math:`N_{total}` and :math:`V_{gauge}` should not be chosen
+   arbitrarily- :math:`V_{gauge}` should be small enough to stabilize the fluid
+   configuration within the system yet large enough for accurate
+   measurement of chemical potential. The recommendation is to calculate
+   :math:`V_{gauge}` using the ideal gas equation, such that the gauge
+   cell contains roughly 70-80 particles during a simulation. Generating
+   a GCMC isotherm beforehand can help you choose an appropriate value of
+   :math:`N_{total}`.
 
 Individual atoms are inserted, unless the *mol* keyword is used.  It
 specifies a *template-ID* previously defined using the :doc:`molecule
@@ -268,21 +346,9 @@ related to the density or pressure of the fictitious gas reservoir by:
 where :math:`k_B` is the Boltzmann constant, *T* is the
 user-specified temperature, :math:`\rho` is the number density, *P* is
 the pressure, and :math:`\phi` is the fugacity coefficient.  The
-constant :math:`\Lambda` is required for dimensional consistency.  For
-all unit styles except *lj* it is defined as the thermal de Broglie
-wavelength
-
-.. math::
-
-   \Lambda = \sqrt{ \frac{h^2}{2 \pi m k_B T}}
-
-where *h* is Planck's constant, and *m* is the mass of the exchanged atom
-or molecule.  For unit style *lj*, :math:`\Lambda` is simply set to
-unity. Note that prior to March 2017, :math:`\Lambda` for unit style *lj*
-was calculated using the above formula with *h* set to the rather specific
-value of 0.18292026.  Chemical potential under the old definition can
-be converted to an equivalent value under the new definition by
-subtracting :math:`3 k T \ln(\Lambda_{old})`.
+constant :math:`\Lambda` is unity for unit style *lj* and for all
+other unit styles it is defined as the thermal de Broglie wavelength
+(see equation above).
 
 As an alternative to specifying mu directly, the ideal gas reservoir can
 be defined by its pressure *P* using the *pressure* keyword, in which
@@ -507,3 +573,8 @@ listed above.
 
 **(Frenkel)** Frenkel and Smit, Understanding Molecular Simulation,
 Academic Press, London, 2002.
+
+.. _Parashar:
+
+**(Parashar)** Parashar, S., Neimark, A.V., Journal of Colloid And
+Interface Science, 2024. DOI: 10.1016/j.jcis.2024.06.083

@@ -1,0 +1,56 @@
+# MCEMC for LJ simple fluid, no dynamics
+
+# Variables modifiable using -var command line switch
+# temp:   reservoir temperature
+# disp:   maximum displacement for MC moves
+# lbox:   simulation box size
+# ntotal: total number of particles (Ngauge + Nsimulation)
+# vgauge: volume of gauge cell
+
+variable        temp    equal 2.0       # reservoir temperature
+variable        disp    equal 1.0       # maximum displacement
+variable        lbox    equal 5.0       # box size
+variable        ntotal  equal 80        # total particles (Ngauge + Nsimulation)
+variable        vgauge  equal 1200      # volume of gauge cell
+
+# Global model settings
+
+units           lj
+atom_style      atomic
+pair_style      lj/cut 3.0
+pair_modify     tail no        # turn off to avoid triggering full_energy
+
+# Box setup
+
+region          box block 0 ${lbox} 0 ${lbox} 0 ${lbox}
+create_box      1 box
+
+# Lennard-Jones parameters
+
+pair_coeff      * * 1.0 1.0          # LJ epsilon=1.0, sigma=1.0
+mass            1 1.0                 # mass for type 1
+
+# Setup dedicated group for MCEMC
+
+group           mcemcgroup type 1
+
+# GCMC fix with mcemc keyword
+fix             mymcemc mcemcgroup gcmc 1 100 100 1 1234 ${temp} 0.0 ${disp} mcemc ${ntotal} ${vgauge} 
+
+# atom count
+
+variable        type1 atom "type==1"
+group           type1 dynamic mcemcgroup var type1
+variable        nsimulation equal count(type1)
+variable        ngauge equal ${ntotal}-v_nsimulation
+variable        volgauge equal ${vgauge}
+
+# averaging
+fix             ave all ave/time 1 100 100 v_nsimulation v_ngauge v_volgauge ave one file mcemc_output.dat
+
+compute_modify  thermo_temp dynamic/dof yes
+
+thermo_style    custom step atoms v_nsimulation v_ngauge temp press pe ke etotal   
+thermo          100                                                     
+
+run             10000

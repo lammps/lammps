@@ -285,28 +285,18 @@ void DumpAtomADIOS::init_style()
   // Build the column name list.
   std::vector<std::string> columnNames;
 
-  // BUG FIX (was heap corruption):
-  // The original code assigned string literals directly to 'columns', a
-  // char* member that the Dump base class manages with new[]/delete[].
-  // Calling delete[] on a string-literal address silently corrupts the
-  // allocator's free-list metadata, which manifests later as:
-  //   "malloc_consolidate(): invalid chunk size"  /
-  //   "free(): corrupted unsorted chunks"
-  // Fix: always use utils::strdup() to place a heap-allocated copy.
-  delete[] columns;
-  columns = nullptr;
-
+  // DumpAtom base class stores column labels in std::string; assign directly.
   if (scale_flag == 0 && image_flag == 0) {
-    columns     = utils::strdup("id type x y z");
+    columns     = "id type x y z";
     columnNames = {"id", "type", "x", "y", "z"};
   } else if (scale_flag == 0 && image_flag == 1) {
-    columns     = utils::strdup("id type x y z ix iy iz");
+    columns     = "id type x y z ix iy iz";
     columnNames = {"id", "type", "x", "y", "z", "ix", "iy", "iz"};
   } else if (scale_flag == 1 && image_flag == 0) {
-    columns     = utils::strdup("id type xs ys zs");
+    columns     = "id type xs ys zs";
     columnNames = {"id", "type", "xs", "ys", "zs"};
   } else if (scale_flag == 1 && image_flag == 1) {
-    columns     = utils::strdup("id type xs ys zs ix iy iz");
+    columns     = "id type xs ys zs ix iy iz";
     columnNames = {"id", "type", "xs", "ys", "zs", "ix", "iy", "iz"};
   }
 

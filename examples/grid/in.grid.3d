@@ -31,6 +31,14 @@ fix             ave all ave/grid 10 10 100 5 5 5 vx vy vz
 # dump grid
 
 compute         ave all property/grid 5 5 5 id ix iy
+compute         owner all property/grid 5 5 5 proc
+
+# RegionGrid demo (compute -> region):
+# select cells currently owned by MPI rank 0 from compute property/grid "proc".
+# with fix balance active, the spatial footprint of rank 0 changes over time,
+# so this region deforms dynamically.
+
+region          proc0 grid c_owner:grid:data lt 0.5
 #dump            ave all grid 100 tmp.dump.3d &
 #                c_ave:grid:data[*] f_ave:grid:count f_ave:grid:data[*]
 #dump_modify     ave sort 1
@@ -42,6 +50,9 @@ compute         ave all property/grid 5 5 5 id ix iy
 #dump            10 all image 100 tmp.image.*.3d.png type type &
 #                grid f_ave:grid:count view 60 -30 shiny 0.0 &
 #                subbox yes 0.01
+#dump            10 all movie 100 tmp.proc0.3d.mpg type type &
+#                grid f_ave:grid:count region proc0 firebrick transparent 0.5 &
+#                view 60 -30 shiny 0.0 subbox yes 0.01
 
 # run
 

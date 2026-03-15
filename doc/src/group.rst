@@ -116,7 +116,7 @@ to a group.
 
 The *region* style puts all atoms in the region volume into the group.
 Note that this is a static one-time assignment.  The atoms remain
-assigned (or not assigned) to the group even in they later move out of
+assigned (or not assigned) to the group even if they later move out of
 the region volume.
 
 The *type*, *id*, and *molecule* styles put all atoms with the
@@ -132,7 +132,7 @@ with an optional increment.  The first example with ``500:1000`` has the
 default increment of 1 and would add all atom IDs from 500 to 1000
 (inclusive) to the group sub, along with 10, 25, and 50 since they also
 appear in the list of values.  The second example with ``100:10000:10``
-uses an increment of 10 and would thus would add atoms IDs
+uses an increment of 10 and would thus add atoms IDs
 :math:`100, 110, 120, \dots, 9990, 10000` to the group sub.
 
 The second format is a *logical* followed by one or two values (type

@@ -81,8 +81,8 @@ Here are suggestions on how to perform these tasks:
   on the LAMMPS homepage lists some external packages for analysis of MD
   simulation data, including data produced by LAMMPS.
 
-* **Visualization:** LAMMPS can produce NETPBM, JPG, or PNG format
-  snapshot images on-the-fly via its :doc:`dump image <dump_image>`
+* **Visualization:** LAMMPS can produce NETPBM, TGA, JPG, or PNG
+  format snapshot images on-the-fly via its :doc:`dump image <dump_image>`
   command and pass them to an external program, `FFmpeg
   <https://ffmpeg.org/>`_, to generate movies from them.  The
   :ref:`LAMMPS-GUI tool <lammps_gui>` has a *Snapshot Image Viewer*
@@ -90,7 +90,7 @@ Here are suggestions on how to perform these tasks:
   visualization settings interactively.  It also has a *Slide Show*
   feature where images created by :doc:`dump image <dump_image>` are
   collected during a simulation and can be animated interactively or
-  exported to a movie with FFmpeg.
+  exported to a movie with FFmpeg or ImageMagick.
 
   For high-quality, interactive visualization, there are many excellent
   and free tools available.  See the `Visualization Tools
@@ -113,4 +113,4 @@ Here are suggestions on how to perform these tasks:
   setup, analysis, plotting, and visualization (via OpenGL) for LAMMPS
   simulations.  It thus provides some functionality for several of the
   above bullets.  Pizza.py is written in `Python <https://www.python.org>`_
-  and is available for download from `this page <https://sjplimp.github.io/download.html>`_.
+  and is available for download from https://lammps.github.io/pizza/.

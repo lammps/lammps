@@ -31,8 +31,9 @@ Create a small test system
 Debugging problems often requires running a simulation many times with
 small modifications, thus it can be a huge time saver to first assemble
 a small test system input that has the same issue, but will take much
-time until it triggers the error condition.  Also, it will be easier to
-see what happens.
+less time until it triggers the error condition.  Also, it will be
+easier to see what happens when visualizing the system or looking at
+output files.
 
 .. _hint02:
 
@@ -81,15 +82,15 @@ While a segmentation fault is likely an indication of a bug in LAMMPS,
 it need not always be; it can also be the consequence of too aggressive
 simulation settings.  For time critical code paths, LAMMPS will assume
 the user has chosen the settings carefully and will not make any checks
-to avoid to avoid performance penalties.
+to avoid performance penalties.
 
 A crucial step in resolving a segmentation fault is to identify the
-exact location in the code where it happens.  Please see `Errors_debug`
-for a couple of examples showing how to do this on a Linux machine.
-With this information -- a simple way to reproduce the segmentation
-fault and the exact :doc:`LAMMPS version <Manual_version>` and platform
-you are running on -- you can contact the LAMMPS developers or post in
-the LAMMPS forum to get assistance.
+exact location in the code where it happens.  Please see
+:doc:`Errors_debug` for a couple of examples showing how to do this on a
+Linux machine.  With this information -- a simple way to reproduce the
+segmentation fault and the exact :doc:`LAMMPS version <Manual_version>`
+and platform you are running on -- you can contact the LAMMPS developers
+or post in the LAMMPS forum to get assistance.
 
 .. _hint05:
 
@@ -100,7 +101,7 @@ Fast moving atoms may be "lost" or "missing" when their velocity becomes
 so large that they can cross a sub-domain within one timestep.  This
 often happens when atoms are too close, but atoms may also "move" too
 fast from sub-domain to sub-domain if the box changes rapidly.
-E.g. when setting a large an initial box with :doc:`shrink-wrap boundary
+E.g. when setting a large initial box with :doc:`shrink-wrap boundary
 conditions <boundary>` that collapses on the first step (in this case
 the solution is often using 'm' instead of 's' as a boundary condition).
 
@@ -266,7 +267,7 @@ before the box (e.g. a compute or fix reference or a thermo keyword).
 Illegal ... command
 ^^^^^^^^^^^^^^^^^^^
 
-These are a catchall error messages that used to be used a lot in LAMMPS
+These are catchall error messages that used to be used a *lot* in LAMMPS
 (also programmers are sometimes lazy).  They usually include the name of
 the source file and the line where the error happened.  This can be used
 to track down what caused the error (most often some form of syntax error)
@@ -433,7 +434,7 @@ Nose-Hoover (or other) barostat, and thus it may be advisable to run
 with only a thermostat for a bit until the potential energy has
 stabilized.
 
-.. _err007:
+.. _err0007:
 
 Fix used in ... not computed at compatible time
 -----------------------------------------------
@@ -521,7 +522,7 @@ executable.  In rare cases, there may be licensing or portability issues
 that prevent including a package in publicly accessible binaries or in a
 specific environment.
 
-.. _err011:
+.. _err0011:
 
 Energy or stress was not tallied by pair style
 ----------------------------------------------
@@ -570,7 +571,7 @@ For example:
    variable cutoff index 10.0
    pair_style lj/cut ${cutoff}  # this is correct
    pair_style lj/cut $cutoff    # this is incorrect, LAMMPS looks for 'c' instead of 'cutoff'
-   variable c      index 5.0    # if $c is defined, LAMMPS subsitutes only '$c' and reads: 5utoff
+   variable c      index 5.0    # if $c is defined, LAMMPS substitutes only '$c' and reads: 5utoff
 
 Another potential source of this error may be invalid command line
 variables (-var or -v argument) used when launching LAMMPS from an
@@ -908,7 +909,7 @@ the lack of a time-integrating fix is intentional or not.
 System is not charge neutral, net charge = ...
 ----------------------------------------------
 
-the sum of charges in the system is not zero.  When a system is not
+The sum of charges in the system is not zero.  When a system is not
 charge-neutral, methods that evolve/manipulate per-atom charges,
 evaluate Coulomb interactions, evaluate Coulomb forces, or
 evaluate/manipulate other properties relying on per-atom charges may
@@ -1021,7 +1022,7 @@ Error messages ending in 'Please contact the LAMMPS developers'
 Such error messages indicate that something unexpected has happened and
 that it will require a good understanding of the details of the design
 of LAMMPS to resolve this.  This can be due to some bug in contributed
-code, and oversight when updating functionality, a feature that is
+code, an oversight when updating functionality, a feature that is
 scheduled to be removed or reaching a combination of flags and settings
 that should not be possible or similar.
 

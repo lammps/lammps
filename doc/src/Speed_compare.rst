@@ -54,7 +54,7 @@ section below for examples where this has been done.
   (desktop) GPUs. Using lower performance GPUs (e.g. on laptops) may
   result in a slowdown instead.
 * For the GPU package, specifically when running in parallel with MPI,
-  if it often more efficient to exclude the PPPM kspace style from GPU
+  it is often more efficient to exclude the PPPM kspace style from GPU
   acceleration and instead run it - concurrently with a GPU accelerated
   pair style - on the CPU. This can often be easily achieved with placing
   a *suffix off* command before and a *suffix on* command after the

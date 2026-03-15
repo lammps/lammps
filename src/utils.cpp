@@ -1921,6 +1921,8 @@ FILE *utils::open_potential(const std::string &name, LAMMPS *lmp, int *auto_conv
   std::string filepath = get_potential_file_path(name);
 
   if (!filepath.empty()) {
+    // update path if file is a redirect file on Windows
+    filepath = platform::file_redirect(filepath);
     std::string unit_style = lmp->update->unit_style;
     std::string date = get_potential_date(filepath, "potential");
     std::string units = get_potential_units(filepath, "potential");

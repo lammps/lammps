@@ -8,6 +8,8 @@ fix efield command
 fix efield/tip4p command
 ========================
 
+Accelerator Variant: *efield/kk*
+
 Syntax
 """"""
 

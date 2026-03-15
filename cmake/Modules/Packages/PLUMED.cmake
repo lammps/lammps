@@ -34,10 +34,10 @@ endif()
 # fix_plumed.cpp when version changes from v2.n.x to v2.n+1.y
 set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.9.4/plumed-src-2.9.4.tgz"
   CACHE STRING "URL for PLUMED tarball")
-set(PLUMED_MD5 "e540bf5132e3270e843398a6080d00c7" CACHE STRING "MD5 checksum of PLUMED tarball")
+set(PLUMED_SHA256 "830bc880fec66f92c2d7a7bc5723336e65400ed8a24e561717e2c5a88eee0765" CACHE STRING "SHA256 checksum of PLUMED tarball")
 
 mark_as_advanced(PLUMED_URL)
-mark_as_advanced(PLUMED_MD5)
+mark_as_advanced(PLUMED_SHA256)
 GetFallbackURL(PLUMED_URL PLUMED_FALLBACK)
 
 # adjust C++ standard support for self-compiled Plumed2
@@ -59,7 +59,7 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
   include(ExternalProject)
   ExternalProject_Add(plumed_build
     URL     ${PLUMED_URL} ${PLUMED_FALLBACK}
-    URL_MD5 ${PLUMED_MD5}
+    URL_HASH SHA256=${PLUMED_SHA256}
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ${CROSS_CONFIGURE} --disable-shared --disable-bsymbolic --disable-dlopen
                                          --disable-python --enable-cxx=${PLUMED_CXX_STANDARD}
@@ -144,7 +144,7 @@ else()
     include(ExternalProject)
     ExternalProject_Add(plumed_build
       URL     ${PLUMED_URL} ${PLUMED_FALLBACK}
-      URL_MD5 ${PLUMED_MD5}
+      URL_HASH SHA256=${PLUMED_SHA256}
       BUILD_IN_SOURCE 1
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
                                              ${CONFIGURE_REQUEST_PIC}

@@ -22,6 +22,11 @@ in.ehex = add/subtract energy to 2 regions via fix ehex
 in.mp = use fix thermal/conductivity and the Muller-Plathe method
 in.heatflux = use compute heat/flux and the Green-Kubo method
 
+Additional RegionGrid demo:
+in.heat.region_grid = compute/grid-driven voxel channel geometry
+  (compute property/grid -> region grid) with hot/cold channel endcaps
+  and optional dump movie visualization of the evolving channel regions
+
 The NEMD systems have 8000 atoms with a box length 2x larger in z, the
 non-equilibrium direction.  The G-K system has 4000 atoms and a cubic
 box; it also needs to be run longer to generate good statistics.

@@ -1,0 +1,114 @@
+# sample LAMMPS input script for thermal conductivity of liquid LJ
+# use compute property/grid + region grid to define a voxelized thermal channel
+# then add/subtract energy in hot/cold channel endcaps via fix heat
+
+# settings
+
+variable        x equal 10
+variable        y equal 10
+variable        z equal 20
+
+variable        rho equal 0.6
+variable        t equal 1.35
+variable        rc equal 2.5
+
+# setup problem
+
+units           lj
+atom_style      atomic
+
+lattice         fcc ${rho}
+region          box block 0 ${x} 0 ${y} 0 ${z}
+create_box      1 box
+create_atoms    1 box
+mass            1 1.0
+
+velocity        all create ${t} 87287
+
+pair_style      lj/cut ${rc}
+pair_coeff      1 1 1.0 1.0
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1
+
+# ----------------------------------------------------------------------
+# compute-grid producer and region_grid consumer
+# ----------------------------------------------------------------------
+# c_geom publishes voxel center coordinates (xc,yc,zc).
+# region_grid thresholds those fields to build a narrow thermal channel
+# centered in x/y and extending along z.
+
+compute         geom all property/grid 20 20 40 xc yc zc
+
+region          xlo grid c_geom:grid:data[1] ge 4.0
+region          xhi grid c_geom:grid:data[1] le 6.0
+region          ylo grid c_geom:grid:data[2] ge 4.0
+region          yhi grid c_geom:grid:data[2] le 6.0
+region          channel intersect 4 xlo xhi ylo yhi
+
+# hot/cold slabs intersected with channel
+
+region          zhot grid c_geom:grid:data[3] ge 0.0
+region          zhot2 grid c_geom:grid:data[3] le 1.0
+region          hot_channel intersect 3 channel zhot zhot2
+
+region          zcold grid c_geom:grid:data[3] ge 10.0
+region          zcold2 grid c_geom:grid:data[3] le 11.0
+region          cold_channel intersect 3 channel zcold zcold2
+
+group           ghot region hot_channel
+group           gcold region cold_channel
+
+compute         Thot all temp/region hot_channel
+compute         Tcold all temp/region cold_channel
+
+# 1st equilibration run
+
+fix             1 all nvt temp ${t} ${t} 0.5
+thermo          100
+run             1000
+
+velocity        all scale ${t}
+
+unfix           1
+
+# 2nd equilibration run (establish gradient along channel)
+
+fix             1 all nve
+fix             hot ghot heat 1 40.0
+fix             cold gcold heat 1 -40.0
+
+thermo_style    custom step temp c_Thot c_Tcold
+thermo_modify   colname c_Thot Temp_hot colname c_Tcold Temp_cold
+thermo          1000
+run             10000
+
+# thermal conductivity-like channel diagnostic
+
+compute         ke all ke/atom
+variable        temp atom c_ke/1.5
+
+compute         layers all chunk/atom bin/1d z lower 0.05 units reduced
+fix             2 all ave/chunk 10 100 1000 layers v_temp file profile.heat.region_grid
+
+variable        tdiff equal f_2[1][3]-f_2[11][3]
+fix             ave all ave/time 1 1 1000 v_tdiff ave running start 13000
+
+variable        kappa equal (40/(lx*ly)/2.0)*(lz/2.0)/f_ave
+thermo_style    custom step temp c_Thot c_Tcold v_tdiff f_ave
+thermo_modify   colname c_Thot Temp_hot colname c_Tcold Temp_cold &
+                colname v_tdiff dTemp_step colname f_ave dTemp
+
+# optional movie visualization of region_grid channel geometry
+# (requires LAMMPS built with movie support)
+
+#dump            mov all movie 200 tmp.kappa.channel.mpg type type &
+#                size 800 600 view 60 -30 shiny 0.0 &
+#                region channel steelblue transparent 0.5 &
+#                region hot_channel red frame &
+#                region cold_channel cyan frame &
+#                box yes 0.01
+#dump_modify     mov adiam 1 0.7
+
+run             20000
+print           "Running average thermal conductivity proxy (channel): $(v_kappa:%.2f)"

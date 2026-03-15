@@ -13,7 +13,7 @@ Syntax
    region ID style args keyword arg ...
 
 * ID = user-assigned name for the region
-* style = *delete* or *block* or *cone* or *cylinder* or *ellipsoid* or *plane* or *prism* or *sphere* or *union* or *intersect*
+* style = *delete* or *block* or *cone* or *cylinder* or *ellipsoid* or *grid* or *plane* or *prism* or *sphere* or *union* or *intersect*
 
   .. parsed-literal::
 
@@ -37,6 +37,10 @@ Syntax
          x,y,z = center of ellipsoid (distance units)
          a,b,c = half the length of the principal axes of the ellipsoid (distance units)
            x,y,z,a,b and c can be a variable (see below)
+       *grid* args = gridref op value
+         gridref = grid reference of form c_ID:gname:dname or f_ID:gname:dname
+         op = *gt* or *ge* or *lt* or *le* or *eq* or *ne*
+         value = threshold for comparison (floating point)
        *plane* args = px py pz nx ny nz
          px,py,pz = point on the plane (distance units)
          nx,ny,nz = direction normal to plane (distance units)
@@ -92,6 +96,8 @@ Examples
    region 2 sphere 0.0 0.0 0.0 5 side out move v_left v_up NULL
    region openbox block 0 10 0 10 0 10 open 5 open 6 units box
    region funnel cone z 10 10 2 5 0 10 open 1 units box
+   region hot grid f_twotemp:grid:data gt 1200.0
+   region protein grid c_ses:grid:data gt 0.5
 
 Description
 """""""""""
@@ -175,6 +181,35 @@ ellipsoid has its center at (x,y,z) and is defined by 3 axis-aligned
 vectors given by A = (a,0,0); B = (0,b,0); C = (0,0,c).  Note that
 although the ellipsoid is specified as axis-aligned it can be rotated
 via the optional *rotate* keyword.
+
+.. versionadded:: TBD
+
+For style *grid*, a region is defined by thresholding a distributed 3d
+grid field produced by a compute or fix.  The *gridref* argument uses the
+standard LAMMPS grid reference syntax ``c_ID:gname:dname`` for computes
+or ``f_ID:gname:dname`` for fixes, where *ID* is the compute/fix ID,
+*gname* is the grid name, and *dname* is the data name (optionally
+appended with ``[N]`` to select column *N* from array data).  The *op*
+argument is a comparison operator (*gt*, *ge*, *lt*, *le*, *eq*, *ne*)
+and *value* is a floating-point threshold.  A grid cell is considered
+"inside" the region when its field value satisfies the comparison against
+the threshold.
+
+Because the region reads a live field, its shape can change every
+timestep (it sets ``varshape = 1`` internally).  For example, using
+``f_twotemp:grid:data gt 1200.0`` with :doc:`fix ttm/grid <fix_ttm>`
+defines a region that tracks where the electron temperature exceeds
+1200 K, producing a dynamic hot-electron front that evolves as the
+simulation progresses.
+
+The region surface (used by :doc:`fix wall/region <fix_wall_region>`)
+is defined at grid cell faces where an "inside" cell borders an
+"outside" cell.  The surface resolution is therefore limited to the
+grid spacing of the producer field.
+
+The *grid* style does not support the *units*, *move*, or *rotate*
+keywords.  The bounding box of the region is the axis-aligned extent
+of the grid cells that satisfy the threshold condition.
 
 For style *plane*, a plane is defined which contain the point
 (px,py,pz) and has a normal vector (nx,ny,nz).  The normal vector does

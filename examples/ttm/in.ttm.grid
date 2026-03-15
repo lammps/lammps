@@ -34,11 +34,17 @@ fix             twotemp all ttm/grid 342785 1.2470e-5 0.087614 &
 compute         pe all pe/atom
 compute         ke all ke/atom
 
+# RegionGrid: define a dynamic region from the electron temperature field
+# Cells where Te > 1200 K are considered "inside" the hot-electron zone
+# As electron-ion coupling transfers energy to the lattice, the region evolves
+
+region          hot_zone grid f_twotemp:grid:data gt 1200.0
+
 timestep        0.0001
 thermo          100
 
 thermo_style    custom step temp etotal f_twotemp[1] f_twotemp[2]
-                thermo_modify format float "%20.16g"
+thermo_modify   format float "%20.16g"
 
 # dump output
 
@@ -55,6 +61,16 @@ thermo_style    custom step temp etotal f_twotemp[1] f_twotemp[2]
 
 #dump            vtk all grid/vtk 100 tmp.dump.*.vtk f_ave:grid:data
 #dump_modify     vtk sort id buffer no
+
+# Region visualization via dump image
+# Renders the hot-electron zone as a colored point cloud
+# As Te drops below 1200 K via electron-ion coupling, the region shrinks
+
+#dump            viz all image 100 ttm_grid_*.png type type &
+#                size 600 600 zoom 1.5 view 70 20 &
+#                region hot_zone firebrick points 5000 0.3 &
+#                box yes 0.025 fsaa yes
+#dump_modify     viz pad 4 backcolor darkgray acolor 1 gray adiam 1 0.3
 
 # run simulation
 

@@ -75,9 +75,9 @@ Description
 
 The fix can operate in two different ensembles: grand canonical ensemble
 Monte Carlo (GCMC) - particle exchange with infinite reservoir as discussed in :ref:`(Frenkel)
-<Frenkel2>` or mesocanonical ensemble Monte Carlo (MCEMC) - particle exchange 
-with finite gauge cell as discussed in :ref:`(Parashar) <Parashar>`. 
-The choice of ensemble is determined by the presence or absence of the *mcemc* 
+<Frenkel2>` or mesocanonical ensemble Monte Carlo (MCEMC) - particle exchange
+with finite gauge cell as discussed in :ref:`(Parashar) <Parashar>`.
+The choice of ensemble is determined by the presence or absence of the *mcemc*
 keyword in the fix command. It also attempts Monte Carlo (MC) moves (translations and
 molecule rotations) within the simulation cell or region.  If used with
 the :doc:`fix nvt <fix_nh>` command, simulations in the grand canonical
@@ -237,14 +237,14 @@ unity.
 
 In GCMC, the chemical potential of the infinite ideal gas reservoir is
 imposed on the system using the exchange move, while in MCEMC, the gauge
-cell is used to measure the chemical potential of the system. 
+cell is used to measure the chemical potential of the system.
 For calculating adsorption isotherm using GCMC, the input is the
 chemical potential of the infinite reservoir and the output is the
 average number of particles observed in the system. In MCEMC, there are two inputs: :math:`N_{total}` and
 :math:`V_{gauge}`.  From these two inputs, the chemical potential (and
 hence fugacity) of the system is calculated based on ideal gas chemical
-potential in the gauge cell. The number of particles adsorbed 
-is simply the average number of particles observed in the system. 
+potential in the gauge cell. The number of particles adsorbed
+is simply the average number of particles observed in the system.
 
 ..note::
 

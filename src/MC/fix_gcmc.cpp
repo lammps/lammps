@@ -386,7 +386,7 @@ void FixGCMC::options(int narg, char **arg)
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc max", error);
       max_ngas = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } 
+    }
     // if mcemc keyword is used, the chemical potentiala and fugacity coefficient are ignored
       else if (strcmp(arg[iarg], "mcemc") == 0) {
       if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix gcmc mcemc", error);

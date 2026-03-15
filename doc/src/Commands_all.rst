@@ -124,7 +124,7 @@ An alphabetic list of general LAMMPS commands.
 
 Additional general LAMMPS commands provided by packages.  A few
 commands have accelerated versions.  This is indicated by an
-additional letter in parenthesis: k = KOKKOS.
+additional letter in parentheses: k = KOKKOS.
 
 .. table_from_list::
    :columns: 6

@@ -395,7 +395,7 @@ change some variables later with additional *-D* flags.  A few examples:
 
 The first command will install the packages ``KSPACE``, ``MANYBODY``,
 ``MOLECULE``, ``RIGID``, ``GRAPHICS``, and ``MISC``; the first five from
-the preset file and the fifth from the explicit variable definition.
+the preset file and the sixth from the explicit variable definition.
 The second command will first switch the compiler toolchain to use the
 Clang compilers and install a large number of packages that are not
 depending on any special external libraries or tools and are not very

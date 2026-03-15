@@ -709,7 +709,7 @@ the same ``LAMMPS_CACHING_DIR``. This script does the following:
     ``pip`` and ``git``
  #. Start a simple local HTTP server using Python to host files for CMake
 
-Afterwards, it will print out instruction on how to modify the CMake
+Afterwards, it will print out instructions on how to modify the CMake
 commands to make sure it uses the local HTTP server.
 
 To undo the environment changes and shutdown the local HTTP server,
@@ -780,9 +780,9 @@ The phonon subdirectory contains a post-processing tool, *phana*, useful
 for analyzing the output of the :doc:`fix phonon <fix_phonon>` command
 in the PHONON package.
 
-See the README file for instruction on building the tool and what
-library it needs.  And see the examples/PACKAGES/phonon directory
-for example problems that can be post-processed with this tool.
+See the README file for instructions on building the tool and what
+library it needs.  And see the examples/PACKAGES/phonon directory for
+example problems that can be post-processed with this tool.
 
 This tool was written by Ling-Ti Kong at Shanghai Jiao Tong
 University.
@@ -1084,10 +1084,11 @@ tabulate tool
 
 .. versionadded:: 22Dec2022
 
-The ``tabulate`` folder contains Python scripts scripts to generate and
-visualize tabulated potential files for LAMMPS.  The bulk of the code is in the
-``tabulate`` module in the ``tabulate.py`` file.  Some example files
-demonstrating its use are included.  See the README file for more information.
+The ``tabulate`` folder contains Python scripts to generate and
+visualize tabulated potential files for LAMMPS.  The bulk of the code is
+in the ``tabulate`` module in the ``tabulate.py`` file.  Some example
+files demonstrating its use are included.  See the README file for more
+information.
 
 ----------
 
@@ -1096,7 +1097,7 @@ demonstrating its use are included.  See the README file for more information.
 tinker tool
 --------------
 
-The ``tinker`` folder contains Python scripts scripts to convert Tinker input
+The ``tinker`` folder contains Python scripts to convert Tinker input
 files to LAMMPS.
 
 See the README file for more information.
@@ -1115,7 +1116,7 @@ using `valgrind's <https://valgrind.org/>`_ ` `memcheck tool
 <https://valgrind.org/info/tools.html#memcheck>`_ to search for memory
 access violation and memory leaks.  These suppressions are automatically
 invoked when running tests through CMake "ctest -T memcheck".  See the
-instruction in the ``README`` file to add these suppressions when using
+instructions in the ``README`` file to add these suppressions when using
 valgrind with LAMMPS or other programs.
 
 ----------

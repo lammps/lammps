@@ -2466,13 +2466,15 @@ int ReadData::reallocate(int **pcount, int cmax, int amax)
 
 void ReadData::open(const std::string &file)
 {
-  if (platform::has_compress_extension(file)) {
+  // file may be a redirect, e.g. on a git checkout on Windows in lieu of a symbolic link
+  auto path = platform::file_redirect(file);
+  if (platform::has_compress_extension(path)) {
     compressed = 1;
-    fp = platform::compressed_read(file);
+    fp = platform::compressed_read(path);
     if (!fp) error->one(FLERR, "Cannot open compressed file {}", file);
   } else {
     compressed = 0;
-    fp = fopen(file.c_str(), "r");
+    fp = fopen(path.c_str(), "r");
     if (!fp) error->one(FLERR, "Cannot open file {}: {}", file, utils::getsyserror());
   }
 }

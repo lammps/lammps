@@ -97,7 +97,7 @@ the values at the grid points for the isosurface.  The default setting
 of *none* just uses a value of 1.0, resulting in the data grid
 representing a smoothed out number density.  Other possible arguments
 are *mass* (for representing the smoothed out mass density) or a
-references to a a :doc:`compute <compute>`, a :doc:`fix <fix>`, or a
+references to a :doc:`compute <compute>`, a :doc:`fix <fix>`, or a
 reference to an atom-style :doc:`variable <variable>`.  The compute or
 fix must produce a per-atom vector or array, not a global or local
 quantity.  In case the property is a per-atom array, the column must be
@@ -135,9 +135,9 @@ Dump image info
 
 Fix graphics/isosurface is designed to be used with the *fix* keyword of
 :doc:`dump image <dump_image>`.  The fix will construct an isosurface
-based on the atom positions, the selected property.  of the atoms in the
-fix group and pass the graphics geometry information about it to *dump
-image* so that it is included in the rendered image.
+based on the atom positions and the selected property of the atoms in
+the fix group and pass the graphics geometry information about it to
+*dump image* so that it is included in the rendered image.
 
 The *fflag1* setting of *dump image fix* determines whether the
 isosurface will be rendered as a set of connected triangles (1) or as a
@@ -228,7 +228,7 @@ and the Tachyon ray tracer (from left to right).
 
 .. raw:: html
 
-   <center>(Fix graphics/isosurface visualization and exporty example. Click to see the full-size images)</center><br>
+   <center>(Fix graphics/isosurface visualization and export example. Click to see the full-size images)</center><br>
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

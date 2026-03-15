@@ -15,9 +15,9 @@ option(DOWNLOAD_SCAFACOS "Download ScaFaCoS library instead of using an already 
 if(DOWNLOAD_SCAFACOS)
   message(STATUS "ScaFaCoS download requested - we will build our own")
   set(SCAFACOS_URL "https://github.com/scafacos/scafacos/releases/download/v1.0.4/scafacos-1.0.4.tar.gz" CACHE STRING "URL for SCAFACOS tarball")
-  set(SCAFACOS_MD5 "23867540ec32e63ce71d6ecc105278d2" CACHE STRING "MD5 checksum of SCAFACOS tarball")
+  set(SCAFACOS_SHA256 "6634c4202e825e771d1dd75bbe9cac5cee41136c87653fde98fbd634681c1be6" CACHE STRING "SHA256 checksum of SCAFACOS tarball")
   mark_as_advanced(SCAFACOS_URL)
-  mark_as_advanced(SCAFACOS_MD5)
+  mark_as_advanced(SCAFACOS_SHA256)
   GetFallbackURL(SCAFACOS_URL SCAFACOS_FALLBACK)
   set(SCAFACOS_CXX_FLAGS "${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}} ${CMAKE_CXX_FLAGS}")
   set(SCAFACOS_C_FLAGS "${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}} ${CMAKE_C_FLAGS}")
@@ -25,7 +25,7 @@ if(DOWNLOAD_SCAFACOS)
   include(ExternalProject)
   ExternalProject_Add(scafacos_build
     URL     ${SCAFACOS_URL} ${SCAFACOS_FALLBACK}
-    URL_MD5 ${SCAFACOS_MD5}
+    URL_HASH SHA256=${SCAFACOS_SHA256}
     CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-doc
                                              --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m
                                              --with-internal-fftw --with-internal-pfft

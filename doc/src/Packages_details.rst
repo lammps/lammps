@@ -367,14 +367,15 @@ BROWNIAN package
 
 **Contents:**
 
-This package provides :doc:`fix brownian, fix brownian/sphere, and
-fix brownian/asphere <fix_brownian>` as well as
-:doc:`fix propel/self <fix_propel_self>` which allow to do Brownian
-Dynamics time integration of point, spherical and aspherical particles
-and also support self-propelled particles.
+This package provides :doc:`fix brownian, fix brownian/sphere, and fix
+brownian/asphere <fix_brownian>` as well as :doc:`fix propel/self
+<fix_propel_self>` which allow performing Brownian Dynamics time
+integration of point, spherical and aspherical particles and also
+support self-propelled particles.
 
-**Authors:** Sam Cameron (University of Bristol), Arthur Straube (Zuse Institute Berlin),
-Stefan Paquay (while at Brandeis University) (initial version of fix propel/self)
+**Authors:** Sam Cameron (University of Bristol), Arthur Straube (Zuse
+Institute Berlin), Stefan Paquay (while at Brandeis University) (initial
+version of fix propel/self)
 
 .. versionadded:: 14May2021
 
@@ -1084,7 +1085,7 @@ GRAPHICS package
 Dump styles :doc:`image and movie <dump_image>`, supporting classes for
 rendering images and fonts, several fixes for adding graphics objects to
 visualizations, and the region2vmd command for exporting visualizations
-of regions scripted graphics in VMD.
+of regions as scripted graphics in VMD.
 
 **Supporting info:**
 
@@ -1408,7 +1409,8 @@ Ontario).
 
 **Install:**
 
-The LATBOLTZ package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
+The LATBOLTZ package requires that LAMMPS is built in :ref:`MPI parallel
+mode <serial>`.
 
 **Supporting info:**
 
@@ -1560,15 +1562,16 @@ MBX Package
 
 **Contents**
 
-The pair_style mbx command implements the MBX library for
-MB-pol and MB-nrg data-driven many-body potential energy functions. MBX
-is called using :doc:`pair_style mbx <pair_mbx>` command, which
-allow for MB-nrg potentials such as MB-pol to be used in LAMMPS.
-For more information on MBX, see the `MBX library <https://mbxsimulations.com>`_ website.
+The pair_style mbx command implements the MBX library for MB-pol and
+MB-nrg data-driven many-body potential energy functions. MBX is called
+using :doc:`pair_style mbx <pair_mbx>` command, which allows for MB-nrg
+potentials such as MB-pol to be used in LAMMPS.  For more information on
+MBX, see the `MBX library <https://mbxsimulations.com>`_ website.
 
-**Authors:** The `MBX library <https://mbxsimulations.com>`_ is developed
-by the Paesani group at the University of California, San Diego. Major contributors
-include: Marc Riera, Christopher Knight, Ethan Bull-Vulpe, and Henry Agnew.
+**Authors:** The `MBX library <https://mbxsimulations.com>`_ is
+developed by the Paesani group at the University of California, San
+Diego. Major contributors include: Marc Riera, Christopher Knight, Ethan
+Bull-Vulpe, and Henry Agnew.
 
 .. versionadded:: 11Feb2026
 
@@ -1797,10 +1800,10 @@ ML-HDNNP package
 
 **Contents:**
 
-A :doc:`pair_style hdnnp <pair_hdnnp>` command which allows to use
-high-dimensional neural network potentials (HDNNPs), a form of machine learning
-potentials. HDNNPs must be carefully trained prior to their application in a
-molecular dynamics simulation.
+A :doc:`pair_style hdnnp <pair_hdnnp>` command which allows the use of
+high-dimensional neural network potentials (HDNNPs), a form of machine
+learning potentials.  HDNNPs must be carefully trained prior to their
+application in a molecular dynamics simulation.
 
 .. _n2p2: https://github.com/CompPhysVienna/n2p2
 
@@ -2745,24 +2748,26 @@ SCAFACOS package
 
 **Contents:**
 
-A KSpace style which wraps the `ScaFaCoS Coulomb solver library <http://www.scafacos.de/>`_ to compute long-range Coulombic
+A KSpace style which wraps the `ScaFaCoS Coulomb solver library
+<http://www.scafacos.de/>`_ to compute long-range Coulombic
 interactions.
 
-To use this package you must have the ScaFaCoS library available on
-your system.
+To use this package you must have the ScaFaCoS library available on your
+system.
 
 **Author:** Rene Halver (JSC) wrote the scafacos LAMMPS command.
 
 ScaFaCoS itself was developed by a consortium of German research
-facilities with a BMBF (German Ministry of Science and Education)
-funded project in 2009-2012. Participants of the consortium were the
-Universities of Bonn, Chemnitz, Stuttgart, and Wuppertal as well as
-the Forschungszentrum Juelich.
+facilities with a BMBF (German Ministry of Science and Education) funded
+project in 2009-2012. Participants of the consortium were the
+Universities of Bonn, Chemnitz, Stuttgart, and Wuppertal as well as the
+Forschungszentrum Juelich.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <scafacos>` on the :doc:`Build extras <Build_extras>` page.
-The SCAFACOS package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
+This package has :ref:`specific installation instructions <scafacos>` on
+the :doc:`Build extras <Build_extras>` page.  The SCAFACOS package
+requires that LAMMPS is built in :ref:`MPI parallel mode <serial>`.
 
 **Supporting info:**
 
@@ -2981,7 +2986,7 @@ VORONOI package
 A compute command which calculates the Voronoi tesselation of a
 collection of atoms by wrapping the `Voro++ library
 <https://math.lbl.gov/voro++/>`_.  This can be used to calculate the
-local volume or each atoms or its near neighbors.
+local volume of atoms or their near neighbors.
 
 To use this package you must have the Voro++ library available on your
 system.

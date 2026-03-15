@@ -126,7 +126,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -163,7 +163,7 @@ Syntax
        *backcolor* arg = color
          color = name of color for background
        *backcolor2* arg = color
-         color = name of second color for vertical background gradiant. "none" to disable gradient
+         color = name of second color for vertical background gradient. "none" to disable gradient
        *bcolor* args = type color
          type = bond type (numeric or type label) or range of numeric types (see below)
          color = name of color or color1/color2/...
@@ -393,7 +393,7 @@ discretely so that the value of -3.2 is "orange".
 
 If "vx", for example, is used as the *diameter* setting, then the atom
 will be rendered using the x-component of its velocity as the
-diameter.  If the per-atom value <= 0.0, them the atom will not be
+diameter.  If the per-atom value <= 0.0, then the atom will not be
 drawn.  Note that finite-size spherical particles, as defined by
 :doc:`atom_style sphere <atom_style>` define a per-particle radius or
 diameter, which can be used as the *diameter* setting.
@@ -500,15 +500,14 @@ spheres, the same as if they were regular atoms.
 
    added *index* and *atom* color styles
 
-The there are currently three supported settings for the *color* value:
-*type*, *index*, or *atom*.  With the *type* setting the line particles
-will be colored according to the atom type of the particle.  With the
-*index* setting the coloring follows the line index instead.  With the
-*atom* setting, the color follows the coloring selected for coloring
-atoms (including using color maps).  For *type* and *index* settings,
-the value is mapped to the colors of atom types thus the coloring style
-for atoms **must** be set to *type*.  The list of colors is by default
-the list of atom type colors as follows:
+There are currently three supported settings for the *color* value:
+*type*, *index*, or *atom*.  With the *type* setting the line segment
+particles will be colored according to the atom type of the particle.
+With the *index* setting, colors from the list of available per-atom
+type colors are assigned to the line particles in a non-deterministic
+round-robin fashion.  With the *atom* setting, the color follows the
+coloring selected for coloring atoms (including using color maps).  The
+list of atom type colors is by default as follows:
 
 * type 1 = red
 * type 2 = green
@@ -541,15 +540,14 @@ be drawn as spheres, the same as if they were regular atoms.
 
    added *index* and *atom* color styles
 
-The there are currently three supported settings for the *color* value:
-*type*, *index*, or *atom*.  With the *type* setting the triangles
-will be colored according to the atom type of the particle.  With the
-*index* setting the coloring follows the triangle index instead.  With the
-*atom* setting, the color follows the coloring selected for coloring
-atoms (including using color maps).  For *type* and *index* settings,
-the value is mapped to the colors of atom types thus the coloring style
-for atoms **must** be set to *type*.  The list of colors is by default
-the list of atom type colors as follows:
+There are currently three supported settings for the *color* value:
+*type*, *index*, or *atom*.  With the *type* setting the triangles will
+be colored according to the atom type of the particle.  With the *index*
+setting, colors from the list of available per-atom type colors are
+assigned to the triangulated particles in a non-deterministic
+round-robin fashion.  With the *atom* setting, the color follows the
+coloring selected for coloring atoms (including using color maps).  The
+list of atom type colors is by default as follows:
 
 * type 1 = red
 * type 2 = green
@@ -580,15 +578,14 @@ atoms.
 
    added *index* and *atom* color styles
 
-The there are currently three supported settings for the *color* value:
+There are currently three supported settings for the *color* value:
 *type*, *index*, or *atom*.  With the *type* setting the ellipsoids will
 be colored according to the atom type of the particle.  With the *index*
-setting the coloring follows the ellipsoid index instead.  With the
-*atom* setting, the color follows the coloring selected for coloring
-atoms (including using color maps).  For *type* and *index* settings,
-the value is mapped to the colors of atom types thus the coloring style
-for atoms **must** be set to *type*.  The list of colors is by default
-the list of atom type colors as follows:
+setting, colors from the list of available per-atom type colors are
+assigned to the ellipsoid particles in a non-deterministic round-robin
+fashion.  With the *atom* setting, the color follows the coloring
+selected for coloring atoms (including using color maps).  The list of
+atom type colors is by default as follows:
 
 * type 1 = red
 * type 2 = green
@@ -651,15 +648,14 @@ parameters mean for each body style.
 
    added *atom* color style
 
-The there are currently three supported settings for the *color* value:
+There are currently three supported settings for the *color* value:
 *type*, *index*, or *atom*.  With the *atom* setting, the color follows
 the coloring selected for coloring atoms (including using color maps).
 With the *type* setting the body particles will be colored according to
-the atom type of the particle.  With the *index* setting the coloring
-follows the body index instead.  For the *type* and *index* settings,
-the value (type or index) is mapped to the colors of atom types thus
-the coloring style for atoms **must** be set to *type*.  The list of
-colors is by default as follows:
+the atom type of the particle.  With the *index* setting, colors from
+the list of available per-atom type colors are assigned to the body
+particles in a non-deterministic round-robin fashion.  The list of atom
+type colors is by default as follows:
 
 * type 1 = red
 * type 2 = green
@@ -792,7 +788,7 @@ center point in simulation space.
 The *up* keyword determines what direction in simulation space will be
 "up" in the image.  Internally it is stored as a vector that is in the
 plane perpendicular to the view vector implied by the *theta* and
-*pni* values, and which is also in the plane defined by the view
+*phi* values, and which is also in the plane defined by the view
 vector and user-specified up vector.  Thus this internal vector is
 computed from the user-specified *up* vector as
 
@@ -831,8 +827,8 @@ green, and blue, respectively.  The origin of these arrows will be
 offset from the lower left corner of the box by 10%.  If *center* is set
 the origin of the arrows will be in the center of the box. If
 *lowerright* is set, the origin of the arrows will be offset by 20% of
-the lower right corner of the box. If *upperleft* or *upperight* are set
-the origin of the arrows will be placed similar to the lower corner
+the lower right corner of the box. If *upperleft* or *upperright* are
+set the origin of the arrows will be placed similar to the lower corner
 arrows, but offset by 20% from the top.  The *length* setting determines
 how long the cylinders will be as a fraction of the respective box
 lengths.  The *diam* setting determines their thickness as a fraction of
@@ -1069,7 +1065,7 @@ graphics/labels <fix_graphics_labels>` to generate a colormap legend:
    dump_modify viz pad 6 boxcolor lightskyblue backcolor darkgray backcolor2 silver adiam * 1.2
 
    # customize the color map using a continuous map with fractions
-   dump_modify viz amap 0.0 8 cf 0.0 6 min red 0.2 organge 0.4 green 0.6 darkcyan 0.8 blue max purple
+   dump_modify viz amap 0.0 8 cf 0.0 6 min red 0.2 orange 0.4 green 0.6 darkcyan 0.8 blue max purple
 
 This is an altered *dump_modify* command line to generate a sequential color map:
 
@@ -1201,7 +1197,7 @@ floating point values between 0.0 and 1.0 inclusive or as a single
 When a color name is converted to RGB values, the user-defined color
 names are searched first, then the 140 pre-defined color names.  This
 means you can also use the *color* keyword to overwrite one of the
-pre-defined color names with new RBG values.
+pre-defined color names with new RGB values.
 
 ----------
 
@@ -1340,7 +1336,7 @@ The defaults for the dump image and dump movie keywords are as follows:
 * zoom = 1.0
 * box = yes 0.02
 * axes = no 0.0 0.0
-* subbox no 0.0
+* subbox = no 0.0
 * shiny = 1.0
 * ssao = no
 * fsaa = no

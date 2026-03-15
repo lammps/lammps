@@ -14,7 +14,7 @@ Syntax
    fix ID group-ID reaxff/bonds Nevery filename
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* reax/bonds = style name of this fix command
+* reaxff/bonds = style name of this fix command
 * Nevery = output interval in timesteps
 * filename = name of output file
 
@@ -61,7 +61,7 @@ smaller than the text version, but will also take longer to write.
 .. versionadded:: 2Apr2025
 
 If the filename contains the wildcard character "\*", a new file is
-created on every timestep there bond information is written.  The "\*"
+created on every timestep where bond information is written.  The "\*"
 character is replaced with the timestep value.  Note that the
 :doc:`fix_modify pad <fix_modify>` command can be used so that all
 timestep numbers have the same length by adding leading zeroes

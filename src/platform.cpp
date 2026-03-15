@@ -18,6 +18,7 @@
 #include "platform.h"
 
 #include "fmt/format.h"
+#include "safe_pointers.h"
 #include "text_file_reader.h"
 #include "utils.h"
 
@@ -1004,6 +1005,27 @@ bool platform::file_is_writable(const std::string &path)
     }
   }
   return false;
+}
+
+/* ----------------------------------------------------------------------
+   read first line of file to see if it is a redirect file of a git checkout
+   on a file system without symlinks
+------------------------------------------------------------------------- */
+
+std::string platform::file_redirect(const std::string &path)
+{
+#if defined(_WIN32)
+  // read the first (and only) line and see if it is a valid path
+  SafeFilePtr fp = fopen(path.c_str(), "r");
+  if (fp) {
+    char buffer[1024];
+    if (fgets(buffer, 1024, fp)) {
+      auto target = utils::trim(buffer);
+      if (platform::file_is_readable(target)) return target;
+    }
+  }
+#endif
+  return path;
 }
 
 /* ----------------------------------------------------------------------

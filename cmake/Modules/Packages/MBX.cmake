@@ -35,10 +35,10 @@ if(CONFIGURE_REQUEST_PIC)
 endif()
 
 set(MBXLIB_URL "https://github.com/paesanilab/MBX/releases/download/v1.3.5/mbx-1.3.5.tar.gz" CACHE STRING "URL for MBX tarball")
-set(MBXLIB_MD5 "2ffdcdbebf3c10ba010c573545a33d47" CACHE STRING "MD5 checksum of MBX tarball")
+set(MBXLIB_SHA256 "f66de645b28d73e52be69e6c857b7bd58b6dd0ee398030daecc5bf976bf28111" CACHE STRING "SHA256 checksum of MBX tarball")
 
 mark_as_advanced(MBXLIB_URL)
-mark_as_advanced(MBXLIB_MD5)
+mark_as_advanced(MBXLIB_SHA256)
 
 set(MBX_LINK_LIBS)
 find_package(FFTW3 REQUIRED)
@@ -67,7 +67,7 @@ if(DOWNLOAD_MBX)
   include(ExternalProject)
   ExternalProject_Add(mbx_build
     URL     ${MBXLIB_URL}
-    URL_HASH MD5=${MBXLIB_MD5}
+    URL_HASH SHA256=${MBXLIB_SHA256}
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
                       --prefix=<INSTALL_DIR>
                       ${MBX_CONFIG_FLAGS}

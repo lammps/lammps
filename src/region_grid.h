@@ -34,7 +34,7 @@ class RegGrid : public Region {
   int surface_interior(double *, double) override;
   int surface_exterior(double *, double) override;
 
- private:
+ protected:
   enum { COMPUTE_SOURCE, FIX_SOURCE };
   enum { OP_GT, OP_GE, OP_LT, OP_LE, OP_EQ, OP_NE };
 

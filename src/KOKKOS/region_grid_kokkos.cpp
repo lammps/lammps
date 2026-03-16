@@ -59,11 +59,17 @@ void RegGridKokkos<DeviceType>::init()
 template<class DeviceType>
 void RegGridKokkos<DeviceType>::allocate_grid_view()
 {
-  if (!grid3d || !griddata) return;
+
+  if (!grid3d || (ncol == 0 && !vec3d) || (ncol > 0 && !array3d)) return;
 
   RegGrid::resolve_grid_reference();
-  memoryKK->create_kokkos(k_griddata,griddata,nx,ny,nz,"RegGridKokkos:k_griddata");
 
+  if (ncol == 0)
+    memoryKK->create_kokkos(k_vec3d,vec3d,nx,ny,nz,"RegGridKokkos:k_vec3d");
+  else {
+    //FIXME
+    //memoryKK->create_kokkos(k_array3d,array3d,nx,ny,nz,ncol,"RegGridKokkos:k_array3d");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -71,7 +77,7 @@ void RegGridKokkos<DeviceType>::allocate_grid_view()
 template<class DeviceType>
 void RegGridKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_int_1d k_match_in)
 {
-  k_griddata.sync_device();
+  k_vec3d.sync_device();
 
   groupbit = groupbit_in;
   d_match = k_match_in.template view<DeviceType>();
@@ -92,11 +98,9 @@ void RegGridKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_int
 template<class DeviceType>
 void RegGridKokkos<DeviceType>::sync_grid_to_device()
 {
-  if (!grid3d || !griddata) return;
+  if (!grid3d || !vec3d) return;
 
   allocate_grid_view();
-
-  if (d_gridvals.extent(0) == 0) return;
 
   int col = (gridindex > 0) ? gridindex - 1 : 0;
 
@@ -109,7 +113,6 @@ void RegGridKokkos<DeviceType>::sync_grid_to_device()
   k_dx = domain->xprd / nx;
   k_dy = domain->yprd / ny;
   k_dz = domain->zprd / nz;
-  grid_synced = 1;
 }
 
 /* ---------------------------------------------------------------------- */

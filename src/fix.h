@@ -15,10 +15,12 @@
 #define LMP_FIX_H
 
 #include "pointers.h"    // IWYU pragma: export
+#include "restartable.h"
+#include "file_writer.h"
 
 namespace LAMMPS_NS {
 
-class Fix : protected Pointers {
+class Fix : protected Pointers, public Restartable {
   friend class Neighbor;
 
  public:
@@ -31,6 +33,9 @@ class Fix : protected Pointers {
   int restart_peratom;     // 1 if Fix saves peratom state, 0 if not
   int restart_file;        // 1 if Fix writes own restart file, 0 if not
   int force_reneighbor;    // 1 if Fix forces reneighboring, 0 if not
+  
+  int restart_global_fw;   // 1 if Fix saves global state and supports filewriter API, 0 if not
+  int restart_local_fw;    // 1 if Fix saves local state and supports filewriter API, 0 if not
 
   int box_change;    // >0 if Fix changes box size, shape, or sub-domains, 0 if not
   // clang-format off
@@ -168,9 +173,13 @@ class Fix : protected Pointers {
   virtual void fused_integrate(int) {}
   virtual void end_of_step() {}
   virtual void post_run() {}
-  virtual void write_restart(FILE *) {}
+  virtual void write_restart(FILE *);
+  virtual void write_restart_global(FileWriter*) const override {}
+  virtual void write_restart_local(FileWriter*) const override {}
   virtual void write_restart_file(const char *) {}
-  virtual void restart(char *) {}
+  virtual void restart(char *);
+  virtual void read_restart_global(size_t, char *) override {}
+  virtual void read_restart_local(size_t, char *) override {}
 
   virtual void grow_arrays(int) {}
   virtual void copy_arrays(int, int, int) {}

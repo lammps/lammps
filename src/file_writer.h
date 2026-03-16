@@ -19,6 +19,8 @@
 #define LMP_FILE_WRITER_H
 
 #include <string>
+#include <type_traits>
+#include "restartable.h"
 
 namespace LAMMPS_NS {
 
@@ -30,7 +32,23 @@ class FileWriter {
   virtual void close() = 0;
   virtual void flush() = 0;
   virtual size_t write(const void *buffer, size_t length) = 0;
+
   [[nodiscard]] virtual bool isopen() const = 0;
+
+  virtual size_t write_restart_global_size(const Restartable*);
+  virtual size_t write_restart_local_size(const Restartable*);
+
+  // Quick little helper functions for easier writing of typed values
+  template<typename T>
+  size_t writev(const T& t) {
+    static_assert(std::is_trivially_copyable_v<T>);
+    return this->write(&t, sizeof(T));
+  }
+  template<typename T>
+  size_t writev(const T* t, size_t count) {
+    static_assert(std::is_trivially_copyable_v<T>);
+    return this->write(t, sizeof(T)*count);
+  }
 };
 
 class FileWriterException : public std::exception {

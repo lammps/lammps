@@ -242,7 +242,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
   // then previous step scale factors are written to restart file
   // initialize them here in case one is used and other is never defined
 
-  if (scaleflag && (diam_flag || chgflag)) restart_global = 1;
+  if (scaleflag && (diam_flag || chgflag)) restart_global_fw = 1;
   previous_diam_scale = previous_chg_scale = 1.0;
 
   // allocate pair style arrays
@@ -984,20 +984,17 @@ void FixAdapt::set_arrays(int i)
    write scale factors for diameter and charge to restart file
 ------------------------------------------------------------------------- */
 
-void FixAdapt::write_restart(FILE *fp)
+void FixAdapt::write_restart_global(FileWriter *fw) const
 {
-  int size = 2*sizeof(double);
-
-  fwrite(&size,sizeof(int),1,fp);
-  fwrite(&previous_diam_scale,sizeof(double),1,fp);
-  fwrite(&previous_chg_scale,sizeof(double),1,fp);
+  fw->writev(previous_diam_scale);
+  fw->writev(previous_chg_scale);
 }
 
 /* ----------------------------------------------------------------------
    use scale factors from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
-void FixAdapt::restart(char *buf)
+void FixAdapt::read_restart_global(size_t size, char *buf)
 {
   auto *dbuf = (double *) buf;
 

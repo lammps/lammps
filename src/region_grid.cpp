@@ -200,43 +200,13 @@ void RegGrid::update_bbox()
     return;
   }
 
-  double *boxlo = domain->boxlo;
-  double dx = domain->xprd / nx;
-  double dy = domain->yprd / ny;
-  double dz = domain->zprd / nz;
-
-  int nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in;
-  grid3d->get_bounds_owned(nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in);
-
-  int ixlo = nx, ixhi = -1;
-  int iylo = ny, iyhi = -1;
-  int izlo = nz, izhi = -1;
-
-  for (int iz = nzlo_in; iz <= nzhi_in; iz++)
-    for (int iy = nylo_in; iy <= nyhi_in; iy++)
-      for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-        if (cell_inside(ix, iy, iz)) {
-          if (ix < ixlo) ixlo = ix;
-          if (ix > ixhi) ixhi = ix;
-          if (iy < iylo) iylo = iy;
-          if (iy > iyhi) iyhi = iy;
-          if (iz < izlo) izlo = iz;
-          if (iz > izhi) izhi = iz;
-        }
-      }
-
-  if (ixhi < 0) {
-    bboxflag = 0;
-    return;
-  }
-
   bboxflag = 1;
-  extent_xlo = boxlo[0] + ixlo * dx;
-  extent_xhi = boxlo[0] + (ixhi + 1) * dx;
-  extent_ylo = boxlo[1] + iylo * dy;
-  extent_yhi = boxlo[1] + (iyhi + 1) * dy;
-  extent_zlo = boxlo[2] + izlo * dz;
-  extent_zhi = boxlo[2] + (izhi + 1) * dz;
+  extent_xlo = domain->boxlo[0];
+  extent_xhi = domain->boxhi[0];
+  extent_ylo = domain->boxlo[1];
+  extent_yhi = domain->boxhi[1];
+  extent_zlo = domain->boxlo[2];
+  extent_zhi = domain->boxhi[2];
 }
 
 /* ---------------------------------------------------------------------- */

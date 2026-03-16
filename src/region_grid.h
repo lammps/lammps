@@ -49,10 +49,9 @@ class RegGrid : public Region {
   double threshold;
 
   class Grid3d *grid3d;
-  int nx, ny, nz;
+  int nx, ny, nz, ncol;
   int nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out;
-  void *griddata;
-  int ncol;
+  double ***vec3d, ****array3d;
 
   void resolve_grid_reference();
   void update_bbox();

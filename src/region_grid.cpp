@@ -31,7 +31,8 @@ static constexpr int OFFSET = 16384;
 
 RegGrid::RegGrid(LAMMPS *lmp, int narg, char **arg) :
     Region(lmp, narg, arg), gridref(nullptr), source_id(nullptr),
-    grid_name(nullptr), data_name(nullptr), grid3d(nullptr), griddata(nullptr)
+    grid_name(nullptr), data_name(nullptr), grid3d(nullptr),
+    vec3d(nullptr), array3d(nullptr)
 {
   // region ID grid gridref op value [region-options]
 
@@ -130,7 +131,7 @@ void RegGrid::resolve_grid_reference()
       error->all(FLERR, "Compute '{}' does not provide grid data '{}'", source_id, data_name);
 
     grid3d = (Grid3d *) compute->get_grid_by_index(igrid);
-    griddata = compute->get_griddata_by_index(idata);
+    vec3d = static_cast<double***>(compute->get_griddata_by_index(idata));
 
   } else {
     auto *fix = modify->get_fix_by_id(source_id);
@@ -148,7 +149,7 @@ void RegGrid::resolve_grid_reference()
       error->all(FLERR, "Fix '{}' does not provide grid data '{}'", source_id, data_name);
 
     grid3d = (Grid3d *) fix->get_grid_by_index(igrid);
-    griddata = fix->get_griddata_by_index(idata);
+    vec3d = static_cast<double***>(fix->get_griddata_by_index(idata));
   }
 
   if (!grid3d)
@@ -174,14 +175,14 @@ void RegGrid::shape_update()
     }
 
     grid3d = (Grid3d *) compute->get_grid_by_index(igrid);
-    griddata = compute->get_griddata_by_index(idata);
+    vec3d = static_cast<double***>(compute->get_griddata_by_index(idata));
 
   } else {
     auto *fix = modify->get_fix_by_id(source_id);
     if (!fix) return;
 
     grid3d = (Grid3d *) fix->get_grid_by_index(igrid);
-    griddata = fix->get_griddata_by_index(idata);
+    vec3d = static_cast<double***>(fix->get_griddata_by_index(idata));
   }
 
   if (grid3d) {
@@ -195,7 +196,7 @@ void RegGrid::shape_update()
 
 void RegGrid::update_bbox()
 {
-  if (!grid3d || !griddata) {
+  if (!grid3d || (ncol == 0 && !vec3d) || (ncol > 0 && !array3d)) {
     bboxflag = 0;
     return;
   }
@@ -213,12 +214,12 @@ void RegGrid::update_bbox()
 
 int RegGrid::inside(double x, double y, double z)
 {
-  if (!grid3d || !griddata) return 0;
+  if (!grid3d || (ncol == 0 && !vec3d) || (ncol > 0 && !array3d)) return 0;
 
   double *boxlo = domain->boxlo;
-  double dxinv = nx / domain->xprd;
-  double dyinv = ny / domain->yprd;
-  double dzinv = nz / domain->zprd;
+  const double dxinv = nx / domain->xprd;
+  const double dyinv = ny / domain->yprd;
+  const double dzinv = nz / domain->zprd;
 
   int ix = static_cast<int>((x - boxlo[0]) * dxinv + OFFSET) - OFFSET;
   int iy = static_cast<int>((y - boxlo[1]) * dyinv + OFFSET) - OFFSET;
@@ -230,10 +231,8 @@ int RegGrid::inside(double x, double y, double z)
 
   double value;
   if (ncol == 0) {
-    auto vec3d = (double ***) griddata;
     value = vec3d[iz][iy][ix];
   } else {
-    auto array3d = (double ****) griddata;
     int col = (gridindex > 0) ? gridindex - 1 : 0;
     value = array3d[iz][iy][ix][col];
   }
@@ -245,12 +244,12 @@ int RegGrid::inside(double x, double y, double z)
 
 int RegGrid::surface_interior(double *x, double cutoff)
 {
-  if (!grid3d || !griddata) return 0;
+  if (!grid3d || (ncol == 0 && !vec3d) || (ncol > 0 && !array3d)) return 0;
 
   double *boxlo = domain->boxlo;
-  double dx = domain->xprd / nx;
-  double dy = domain->yprd / ny;
-  double dz = domain->zprd / nz;
+  const double dx = domain->xprd / nx;
+  const double dy = domain->yprd / ny;
+  const double dz = domain->zprd / nz;
 
   int ix = static_cast<int>((x[0] - boxlo[0]) / dx + OFFSET) - OFFSET;
   int iy = static_cast<int>((x[1] - boxlo[1]) / dy + OFFSET) - OFFSET;
@@ -334,7 +333,7 @@ int RegGrid::surface_interior(double *x, double cutoff)
 
 int RegGrid::surface_exterior(double *x, double cutoff)
 {
-  if (!grid3d || !griddata) return 0;
+  if (!grid3d || (ncol == 0 && !vec3d) || (ncol > 0 && !array3d)) return 0;
 
   double *boxlo = domain->boxlo;
   double dx = domain->xprd / nx;
@@ -431,10 +430,8 @@ bool RegGrid::cell_inside(int ix, int iy, int iz)
 
   double value;
   if (ncol == 0) {
-    auto vec3d = (double ***) griddata;
     value = vec3d[iz][iy][ix];
   } else {
-    auto array3d = (double ****) griddata;
     int col = (gridindex > 0) ? gridindex - 1 : 0;
     value = array3d[iz][iy][ix][col];
   }

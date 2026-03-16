@@ -43,6 +43,7 @@
 #include "region.h"
 #include "suffix.h"
 #include "update.h"
+#include "citeme.h"
 
 #include <cmath>
 #include <cstring>
@@ -66,6 +67,18 @@ static constexpr double MAXENERGYTEST = 1.0e50;
 
 enum { EXCHATOM, EXCHMOL };          // exchmode
 enum { NONE, MOVEATOM, MOVEMOL };    // movemode
+
+static const char cite_mcemc[] =
+  "fix mcemc command: doi:10.1016/j.jcis.2024.06.083\n\n"
+  "@Article{Parashar,\n"
+  "author = {Parashar, S. and Neimark, A. V.},\n"
+  "title = {Understanding the Origins of Reversible and Hysteretic Pathways of\
+  Adsorption Phase Transitions in Metal-Organic Frameworks},\n"
+  "journal = {Journal of Colloid And Interface Science},\n"
+  "year = {2024},\n"
+  "doi = {10.1016/j.jcis.2024.06.083},\n"
+  "}\n\n";
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -390,7 +403,10 @@ void FixGCMC::options(int narg, char **arg)
     // if mcemc keyword is used, the chemical potentiala and fugacity coefficient are ignored
       else if (strcmp(arg[iarg], "mcemc") == 0) {
       if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix gcmc mcemc", error);
+      {
       run_mcemc = true;
+      if (lmp->citeme) lmp->citeme->add(cite_mcemc);
+      }
       mcemc_ntotal = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       mcemc_vgauge = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       if (mcemc_vgauge <= 0.0)

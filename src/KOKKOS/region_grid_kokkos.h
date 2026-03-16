@@ -68,10 +68,6 @@ class RegGridKokkos : public RegGrid, public KokkosBase {
     double xs, ys, zs;
     double xnear[3], xorig[3];
 
-    if (dynamic) {
-      xorig[0] = x; xorig[1] = y; xorig[2] = z;
-      inverse_transform(x, y, z);
-    }
 
     xnear[0] = x; xnear[1] = y; xnear[2] = z;
 
@@ -95,8 +91,17 @@ class RegGridKokkos : public RegGrid, public KokkosBase {
   typename AT::t_kkfloat_1d_3_lr_randomread d_x;
   typename AT::t_int_1d_randomread d_mask;
 
-  DAT::ttransform_kkfloat_3d k_griddata;
-  typename AT::t_kkfloat_3d d_griddata;
+  DAT::tdual_double_3d_lr k_vec3d;
+  typename AT::t_double_3d_lr d_vec3d;
+  DAT::tdual_double_4d_lr k_array3d;
+  typename AT::t_double_4d_lr d_array3d;
+
+  double k_boxlo0, k_boxlo1, k_boxlo2;
+  double k_dxinv, k_dyinv, k_dzinv;
+  double k_dx, k_dy, k_dz;
+
+  void allocate_grid_view();
+  void sync_grid_to_device();
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -110,7 +115,7 @@ class RegGridKokkos : public RegGrid, public KokkosBase {
         iy < nylo_out || iy > nyhi_out ||
         iz < nzlo_out || iz > nzhi_out) return 0;
 
-    const KK_FLOAT value = d_griddata(iz - nzlo_out, iy - nylo_out, ix - nxlo_out);
+    const KK_FLOAT value = d_vec3d(iz - nzlo_out, iy - nylo_out, ix - nxlo_out);
     return k_evaluate(value);
   }
 
@@ -122,7 +127,7 @@ class RegGridKokkos : public RegGrid, public KokkosBase {
         iy < nylo_out || iy > nyhi_out ||
         iz < nzlo_out || iz > nzhi_out) return false;
 
-    const KK_FLOAT value = d_griddata(iz - nzlo_out, iy - nylo_out, ix - nxlo_out);
+    const KK_FLOAT value = d_vec3d(iz - nzlo_out, iy - nylo_out, ix - nxlo_out);
     return k_evaluate(value) == 1;
   }
 

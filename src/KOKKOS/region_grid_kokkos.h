@@ -13,9 +13,9 @@
 
 #ifdef REGION_CLASS
 // clang-format off
-RegionStyle(grid/kk,RegGridKokkos<LMPDeviceType>);
-RegionStyle(grid/kk/device,RegGridKokkos<LMPDeviceType>);
-RegionStyle(grid/kk/host,RegGridKokkos<LMPHostType>);
+RegionStyle(grid2/kk,RegGridKokkos<LMPDeviceType>);
+RegionStyle(grid2/kk/device,RegGridKokkos<LMPDeviceType>);
+RegionStyle(grid2/kk/host,RegGridKokkos<LMPHostType>);
 // clang-format on
 #else
 
@@ -44,6 +44,7 @@ class RegGridKokkos : public RegGrid, public KokkosBase {
 
   RegGridKokkos(class LAMMPS *, int, char **);
   ~RegGridKokkos() override;
+  void init() override;
 
   void match_all_kokkos(int, DAT::tdual_int_1d) override;
 
@@ -55,7 +56,6 @@ class RegGridKokkos : public RegGrid, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   int match_kokkos(double x, double y, double z) const
   {
-    if (dynamic) inverse_transform(x,y,z);
     if (openflag) return 1;
     return !(k_inside(x,y,z) ^ interior);
   }
@@ -76,24 +76,10 @@ class RegGridKokkos : public RegGrid, public KokkosBase {
     xnear[0] = x; xnear[1] = y; xnear[2] = z;
 
     if (!openflag) {
-      if (interior)
-        ncontact = surface_interior_kokkos(xnear, cutoff);
-      else
-        ncontact = surface_exterior_kokkos(xnear, cutoff);
+      if (interior) ncontact = surface_interior_kokkos(xnear, cutoff);
+      else ncontact = surface_exterior_kokkos(xnear, cutoff);
     } else {
       ncontact = surface_exterior_kokkos(xnear, cutoff) + surface_interior_kokkos(xnear, cutoff);
-    }
-
-    if (rotateflag && ncontact) {
-      for (int i = 0; i < ncontact; i++) {
-        xs = xnear[0] - d_contact[i].delx;
-        ys = xnear[1] - d_contact[i].dely;
-        zs = xnear[2] - d_contact[i].delz;
-        forward_transform(xs, ys, zs);
-        d_contact[i].delx = xorig[0] - xs;
-        d_contact[i].dely = xorig[1] - ys;
-        d_contact[i].delz = xorig[2] - zs;
-      }
     }
 
     return ncontact;
@@ -109,13 +95,8 @@ class RegGridKokkos : public RegGrid, public KokkosBase {
   typename AT::t_kkfloat_1d_3_lr_randomread d_x;
   typename AT::t_int_1d_randomread d_mask;
 
-  Kokkos::View<double***, DeviceType> d_gridvals;
-
-  double k_boxlo0, k_boxlo1, k_boxlo2;
-  double k_dxinv, k_dyinv, k_dzinv;
-  double k_dx, k_dy, k_dz;
-
-  void sync_grid_to_device();
+  DAT::ttransform_kkfloat_3d k_griddata;
+  typename AT::t_kkfloat_3d d_griddata;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -129,7 +110,7 @@ class RegGridKokkos : public RegGrid, public KokkosBase {
         iy < nylo_out || iy > nyhi_out ||
         iz < nzlo_out || iz > nzhi_out) return 0;
 
-    double value = d_gridvals(iz - nzlo_out, iy - nylo_out, ix - nxlo_out);
+    const KK_FLOAT value = d_griddata(iz - nzlo_out, iy - nylo_out, ix - nxlo_out);
     return k_evaluate(value);
   }
 
@@ -141,7 +122,7 @@ class RegGridKokkos : public RegGrid, public KokkosBase {
         iy < nylo_out || iy > nyhi_out ||
         iz < nzlo_out || iz > nzhi_out) return false;
 
-    double value = d_gridvals(iz - nzlo_out, iy - nylo_out, ix - nxlo_out);
+    const KK_FLOAT value = d_griddata(iz - nzlo_out, iy - nylo_out, ix - nxlo_out);
     return k_evaluate(value) == 1;
   }
 
@@ -314,62 +295,10 @@ class RegGridKokkos : public RegGrid, public KokkosBase {
     return 1;
   }
 
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void forward_transform(double &x, double &y, double &z) const
-  {
-    if (rotateflag) rotate(x, y, z, theta);
-    if (moveflag) {
-      x += dx;
-      y += dy;
-      z += dz;
-    }
-  }
-
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void inverse_transform(double &x, double &y, double &z) const
-  {
-    if (moveflag) {
-      x -= dx;
-      y -= dy;
-      z -= dz;
-    }
-    if (rotateflag) rotate(x,y,z,-theta);
-  }
-
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void rotate(double &x, double &y, double &z, double angle) const
-  {
-    double a[3],b[3],c[3],d[3],disp[3];
-
-    double sine = sin(angle);
-    double cosine = cos(angle);
-    d[0] = x - point[0];
-    d[1] = y - point[1];
-    d[2] = z - point[2];
-    double x0dotr = d[0]*runit[0] + d[1]*runit[1] + d[2]*runit[2];
-    c[0] = x0dotr * runit[0];
-    c[1] = x0dotr * runit[1];
-    c[2] = x0dotr * runit[2];
-    a[0] = d[0] - c[0];
-    a[1] = d[1] - c[1];
-    a[2] = d[2] - c[2];
-    b[0] = runit[1]*a[2] - runit[2]*a[1];
-    b[1] = runit[2]*a[0] - runit[0]*a[2];
-    b[2] = runit[0]*a[1] - runit[1]*a[0];
-    disp[0] = a[0]*cosine  + b[0]*sine;
-    disp[1] = a[1]*cosine  + b[1]*sine;
-    disp[2] = a[2]*cosine  + b[2]*sine;
-    x = point[0] + c[0] + disp[0];
-    y = point[1] + c[1] + disp[1];
-    z = point[2] + c[2] + disp[2];
-  }
 
 };
 
 }
 
-#endif
+#endif // !LMP_REGION_GRID_KOKKOS_H
 #endif

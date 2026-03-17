@@ -119,7 +119,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
   alpha_final = 0.0;
   int flagv0 = 1;
 
-  //atomKK->sync(Device, X_MASK | V_MASK | F_MASK | RMASS_MASK | TYPE_MASK);
+  atomKK->sync(Device, X_MASK | V_MASK | F_MASK | RMASS_MASK | TYPE_MASK);
   auto l_x = atomKK->k_x.view_device();
   auto l_v = atomKK->k_v.view_device();
   auto l_f = atomKK->k_f.view_device();

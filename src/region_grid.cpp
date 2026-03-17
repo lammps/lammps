@@ -13,6 +13,7 @@
 
 #include "region_grid.h"
 
+#include "comm.h"
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
@@ -21,11 +22,51 @@
 #include "modify.h"
 #include "update.h"
 
+#include <cstdarg>
+#include <cstdio>
 #include <cstring>
+#include <ctime>
+#include <string>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
 static constexpr int OFFSET = 16384;
+static constexpr const char *DEBUG_LOG_PATH = "debug-43d466.log";
+static constexpr const char *DEBUG_SESSION_ID = "43d466";
+
+static std::string reggrid_jsonf(const char *fmt, ...)
+{
+  va_list args;
+  va_start(args, fmt);
+  va_list args_copy;
+  va_copy(args_copy, args);
+  const int needed = std::vsnprintf(nullptr, 0, fmt, args);
+  va_end(args);
+  if (needed < 0) {
+    va_end(args_copy);
+    return "{}";
+  }
+  std::vector<char> buf(static_cast<size_t>(needed) + 1);
+  std::vsnprintf(buf.data(), buf.size(), fmt, args_copy);
+  va_end(args_copy);
+  return std::string(buf.data());
+}
+
+static void reggrid_debug_log(const char *run_id, const char *hypothesis_id,
+                              const char *location, const char *message,
+                              const std::string &data_json)
+{
+  FILE *fp = std::fopen(DEBUG_LOG_PATH, "a");
+  if (!fp) return;
+  const long long ts = static_cast<long long>(std::time(nullptr)) * 1000LL;
+  std::fprintf(fp,
+               "{\"sessionId\":\"%s\",\"runId\":\"%s\",\"hypothesisId\":\"%s\","
+               "\"location\":\"%s\",\"message\":\"%s\",\"data\":%s,\"timestamp\":%lld}\n",
+               DEBUG_SESSION_ID, run_id, hypothesis_id, location, message,
+               data_json.c_str(), ts);
+  std::fclose(fp);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -165,13 +206,37 @@ void RegGrid::resolve_grid_reference()
 
 void RegGrid::shape_update()
 {
+  // #region agent log
+  reggrid_debug_log("pre-fix", "H8", "region_grid.cpp:shape_update:entry",
+                    "shape_update entry",
+                    reggrid_jsonf("{\"rank\":%d,\"source_type\":%d,\"ntimestep\":%lld}",
+                                  comm->me, source_type, static_cast<long long>(update->ntimestep)));
+  // #endregion
+
   if (source_type == COMPUTE_SOURCE) {
     auto *compute = modify->get_compute_by_id(source_id);
     if (!compute) return;
 
+    // #region agent log
+    reggrid_debug_log("pre-fix", "H9", "region_grid.cpp:shape_update:before_compute_gate",
+                      "checking compute invoked_flag",
+                      reggrid_jsonf("{\"rank\":%d,\"invoked_pergrid\":%d}",
+                                    comm->me,
+                                    (compute->invoked_flag & Compute::INVOKED_PERGRID) ? 1 : 0));
+    // #endregion
     if (!(compute->invoked_flag & Compute::INVOKED_PERGRID)) {
+      // #region agent log
+      reggrid_debug_log("pre-fix", "H9", "region_grid.cpp:shape_update:before_compute_pergrid",
+                        "calling compute_pergrid",
+                        reggrid_jsonf("{\"rank\":%d}", comm->me));
+      // #endregion
       compute->compute_pergrid();
       compute->invoked_flag |= Compute::INVOKED_PERGRID;
+      // #region agent log
+      reggrid_debug_log("pre-fix", "H9", "region_grid.cpp:shape_update:after_compute_pergrid",
+                        "returned compute_pergrid",
+                        reggrid_jsonf("{\"rank\":%d}", comm->me));
+      // #endregion
     }
 
     grid3d = (Grid3d *) compute->get_grid_by_index(igrid);
@@ -189,6 +254,12 @@ void RegGrid::shape_update()
     grid3d->get_size(nx, ny, nz);
     grid3d->get_bounds_ghost(nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
     update_bbox();
+    // #region agent log
+    reggrid_debug_log("pre-fix", "H10", "region_grid.cpp:shape_update:after_grid_refresh",
+                      "grid refreshed after shape_update",
+                      reggrid_jsonf("{\"rank\":%d,\"nx\":%d,\"ny\":%d,\"nz\":%d,\"nxlo_out\":%d,\"nxhi_out\":%d,\"nylo_out\":%d,\"nyhi_out\":%d,\"nzlo_out\":%d,\"nzhi_out\":%d}",
+                                    comm->me, nx, ny, nz, nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out));
+    // #endregion
   }
 }
 

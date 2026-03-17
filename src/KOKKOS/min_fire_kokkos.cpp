@@ -319,7 +319,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
       }
     });
 
-    //atomKK->modified(Device, X_MASK | V_MASK);
+    atomKK->modified(Device, X_MASK | V_MASK);
     eprevious = ecurrent;
     ecurrent = energy_force(0);
     neval++;

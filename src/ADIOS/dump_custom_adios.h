@@ -44,12 +44,22 @@ class DumpCustomADIOS : public DumpCustom {
   DumpCustomADIOS &operator=(const DumpCustomADIOS &) = delete;
 
  protected:
+  int  modify_param(int, char **) override;
   void openfile() override;
   void write() override;
   void init_style() override;
 
  private:
   std::unique_ptr<DumpCustomADIOSInternal> internal;
+
+  // dump_modify adios_precision fp32|fp64  (default: fp64)
+  bool adios_use_float_{false};
+
+  // dump_modify adios_shared_replicas yes|no  (default: no)
+  // When yes and universe->nworlds > 1, all partitions write to the same
+  // .bp file using universe->uworld.  Each replica writes to its own
+  // per-replica ADIOS variable (e.g. atoms_replica0, atoms_replica1, ...).
+  bool adios_shared_replicas_{false};
 };
 
 }    // namespace LAMMPS_NS

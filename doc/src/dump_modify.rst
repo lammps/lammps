@@ -101,6 +101,19 @@ Syntax
        *mass* arg = *yes* or *no*
        *vel* arg = *yes* or *no*
 
+* these keywords apply only to the ``atom/adios``, ``custom/adios``, and ``local/adios`` dump styles
+* keyword = *precision* or *shared*
+
+  .. parsed-literal::
+
+       *precision* arg = *fp32* or *float* or *fp64* or *double*
+         fp32 or float  = write trajectory and box data as 32-bit floating point
+         fp64 or double = write trajectory and box data as 64-bit floating point (default)
+       *shared* arg = *yes* or *no*
+         yes = all replicas write to the same .bp file (one ADIOS step per timestep,
+               per-replica variables named with a _replicaN suffix)
+         no  = each replica writes to its own .bp file (default)
+
 * these keywords apply only to the */gz* and */zstd* dump styles
 * keyword = *compression_level*
 
@@ -973,6 +986,8 @@ Default
 
 The option defaults are
 
+* precision = fp64 (for /adios dump styles)
+* shared = no (for /adios dump styles)
 * append = no
 * balance = no
 * buffer = yes for dump styles *atom*, *custom*, *loca*, and *xyz*

@@ -25,6 +25,7 @@ An alphabetic list of all LAMMPS :doc:`dump <dump>` commands.
    * :doc:`h5md <dump_h5md>`
    * :doc:`image <dump_image>`
    * :doc:`local <dump>`
+   * :doc:`local/adios <dump_adios>`
    * :doc:`local/gz <dump>`
    * :doc:`local/zstd <dump>`
    * :doc:`molfile <dump_molfile>`

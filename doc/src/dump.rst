@@ -48,6 +48,9 @@ dump command
 :doc:`dump custom/adios <dump_adios>` command
 =============================================
 
+:doc:`dump local/adios <dump_adios>` command
+============================================
+
 :doc:`dump cfg/uef <dump_cfg_uef>` command
 ==========================================
 
@@ -60,7 +63,7 @@ Syntax
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/adios* or *dcd* or *extxyz* or *grid* or *grid/vtk* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *yaml*
+   * style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/adios* or *dcd* or *extxyz* or *grid* or *grid/vtk* or *h5md* or *image* or *local* or *local/adios* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *yaml*
 * N = dump on timesteps which are multiples of N
 * file = name of file to write dump info to
 * attribute1,attribute2,... = list of attributes for a particular style
@@ -84,6 +87,7 @@ Syntax
        *grid/vtk* attributes = see below
        *image* attributes = discussed on :doc:`dump image <dump_image>` page
        *local*, *local/gz*, *local/zstd* attributes = see below
+       *local/adios* attributes = same as *local* attributes, discussed on :doc:`dump local/adios <dump_adios>` page
        *molfile* attributes = discussed on :doc:`dump molfile <dump_molfile>` page
        *movie* attributes = discussed on :doc:`dump image <dump_image>` page
        *netcdf* attributes = discussed on :doc:`dump netcdf <dump_netcdf>` page

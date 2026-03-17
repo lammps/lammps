@@ -130,7 +130,8 @@ ADIOS package
 **Contents:**
 
 ADIOS is a high-performance I/O library. This package implements the
-:doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>` and
+:doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>`,
+:doc:`dump local/adios <dump_adios>`, and
 :doc:`read_dump ... format adios <read_dump>`
 commands to write and read data using the ADIOS library.
 
@@ -150,6 +151,7 @@ This package has :ref:`specific installation instructions <adios>` on the :doc:`
 * https://github.com/ornladios/ADIOS2
 * :doc:`dump atom/adios <dump_adios>`
 * :doc:`dump custom/adios <dump_adios>`
+* :doc:`dump local/adios <dump_adios>`
 * :doc:`read_dump <read_dump>`
 
 ----------

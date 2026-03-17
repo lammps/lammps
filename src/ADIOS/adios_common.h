@@ -44,6 +44,11 @@ inline constexpr std::string_view default_config =
             <parameter key="NumAggregators" value="1"/>
         </engine>
     </io>
+    <io name="local">
+        <engine type="BP5">
+            <parameter key="NumAggregators" value="1"/>
+        </engine>
+    </io>
     <io name="read_dump">
         <engine type="BP5">
         </engine>

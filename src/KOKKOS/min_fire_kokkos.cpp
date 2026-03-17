@@ -119,7 +119,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
   alpha_final = 0.0;
   int flagv0 = 1;
 
-  atomKK->sync(Device, X_MASK | V_MASK | F_MASK | RMASS_MASK | TYPE_MASK);
+  //atomKK->sync(Device, X_MASK | V_MASK | F_MASK | RMASS_MASK | TYPE_MASK);
   auto l_x = atomKK->k_x.view_device();
   auto l_v = atomKK->k_v.view_device();
   auto l_f = atomKK->k_f.view_device();
@@ -319,20 +319,20 @@ int MinFireKokkos::run_iterate(int maxiter) {
       }
     });
 
-    atomKK->modified(Device, X_MASK | V_MASK);
+    //atomKK->modified(Device, X_MASK | V_MASK);
     eprevious = ecurrent;
     ecurrent = energy_force(0);
     neval++;
 
     if constexpr (INTEGRATOR == VERLET) {
-      atomKK->sync(Device, V_MASK | F_MASK);
+      //atomKK->sync(Device, V_MASK | F_MASK);
       Kokkos::parallel_for("min_fire/verlet_v_final", nlocal, LAMMPS_LAMBDA(const int i) {
         KK_FLOAT dtfm_half = dtf_half / (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
         l_v(i,0) += dtfm_half * l_f(i,0);
         l_v(i,1) += dtfm_half * l_f(i,1);
         l_v(i,2) += dtfm_half * l_f(i,2);
       });
-      atomKK->modified(Device, V_MASK);
+      //atomKK->modified(Device, V_MASK);
     }
     flagv0 = 0;
 
@@ -379,6 +379,6 @@ int MinFireKokkos::run_iterate(int maxiter) {
       timer->stamp(Timer::OUTPUT);
     }
   }
-  atomKK->modified(Device, X_MASK | V_MASK | F_MASK);
+  //atomKK->modified(Device, X_MASK | V_MASK | F_MASK);
   return MAXITER;
 }

@@ -62,12 +62,24 @@ class CommTiledKokkos : public CommTiled {
 
   template<class DeviceType> void forward_comm_device();
   template<class DeviceType> void reverse_comm_device();
+  template<class DeviceType> void exchange_device();
+  template<class DeviceType> void borders_device();
 
  protected:
   int nprocmaxtot;
 
   DAT::tdual_int_3d_lr k_sendlist;
   DAT::tdual_double_2d_lr k_buf_send,k_buf_recv;
+
+  // exchange_device: per-dim atom sendlist/copylist and bonus counterparts
+  DAT::tdual_int_1d k_exchange_sendlist;
+  DAT::tdual_int_1d k_exchange_copylist;
+  DAT::tdual_int_1d k_exchange_sendlist_bonus;
+  DAT::tdual_int_1d k_exchange_copylist_bonus;
+  DAT::tdual_int_1d k_count;          // (0)=atoms to send, (1)=bonus to send
+  DAT::tdual_int_scalar k_total_send; // atomic counter for BuildBorderListFunctorTiled
+  DAT::tdual_int_1d k_indices;        // atom-index map for fix unpack_exchange_kokkos
+  class AtomKokkos *atomKK;
 
   void grow_send(int, int) override;             // reallocate send buffer
   void grow_recv(int, int flag = 0) override;    // free/allocate recv buffer

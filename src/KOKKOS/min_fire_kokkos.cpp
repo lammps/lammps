@@ -20,6 +20,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
+#include "kokkos.h"
 #include "error.h"
 #include "force.h"
 #include "output.h"
@@ -53,6 +54,10 @@ void MinFireKokkos::init() {
 }
 
 void MinFireKokkos::setup_style() {
+  // Avoid Host<->HostKK side effects while initializing FIRE velocities.
+  const int prev_auto_sync = lmp->kokkos->auto_sync;
+  lmp->kokkos->auto_sync = 0;
+
   atomKK->sync(Device, V_MASK);
   auto l_v = atomKK->k_v.view_device();
   int nlocal = atom->nlocal;
@@ -77,7 +82,10 @@ void MinFireKokkos::setup_style() {
   Kokkos::parallel_for("min_fire/zero_v", nlocal, LAMMPS_LAMBDA(const int i) {
     l_v(i,0) = l_v(i,1) = l_v(i,2) = 0.0;
   });
+  Kokkos::fence();
   atomKK->modified(Device, V_MASK);
+
+  lmp->kokkos->auto_sync = prev_auto_sync;
 }
 
 void MinFireKokkos::reset_vectors() {

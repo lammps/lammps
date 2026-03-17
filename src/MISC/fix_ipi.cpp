@@ -371,6 +371,33 @@ void FixIPI::initial_integrate(int /*vflag*/)
     }
   }
 
+  // Wrap coordinates into the simulation box unconditionally.
+  // i-PI sends unwrapped coordinates that may be far from the box
+  // (e.g., after restart with diffused atoms), causing "Lost Atom" errors
+  // when LAMMPS boundaries are non-periodic (pbc=False in i-PI).
+  if (domain->triclinic) {
+    domain->x2lamda(atom->nlocal);
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        x[i][0] -= floor(x[i][0]);
+        x[i][1] -= floor(x[i][1]);
+        x[i][2] -= floor(x[i][2]);
+      }
+    }
+    domain->lamda2x(atom->nlocal);
+  } else {
+    double xprd = boxhi[0] - boxlo[0];
+    double yprd = boxhi[1] - boxlo[1];
+    double zprd = boxhi[2] - boxlo[2];
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        x[i][0] -= floor((x[i][0] - boxlo[0]) / xprd) * xprd;
+        x[i][1] -= floor((x[i][1] - boxlo[1]) / yprd) * yprd;
+        x[i][2] -= floor((x[i][2] - boxlo[2]) / zprd) * zprd;
+      }
+    }
+  }
+
   // ensure atoms are in current box & update box via shrink-wrap
   // has to be be done before invoking Irregular::migrate_atoms()
   //   since it requires atoms be inside simulation box

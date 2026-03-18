@@ -58,7 +58,6 @@ void MinFireKokkos::setup_style() {
   const int prev_auto_sync = lmp->kokkos->auto_sync;
   lmp->kokkos->auto_sync = 0;
 
-  atomKK->sync(Device, V_MASK);
   auto l_v = atomKK->k_v.view_device();
   int nlocal = atom->nlocal;
 
@@ -83,7 +82,7 @@ void MinFireKokkos::setup_style() {
     l_v(i,0) = l_v(i,1) = l_v(i,2) = 0.0;
   });
   Kokkos::fence();
-  atomKK->modified(Device, V_MASK);
+  atomKK->k_v.sync_host();
 
   lmp->kokkos->auto_sync = prev_auto_sync;
 }
@@ -129,7 +128,11 @@ int MinFireKokkos::run_iterate(int maxiter) {
   int nlocal = atom->nlocal;
 
   if constexpr (INTEGRATOR == LEAPFROG) {
-    energy_force(0);
+    atomKK->k_x.sync_host();
+    atomKK->k_v.sync_host();
+    energy_force(0);  // ghost vel might change on host during comm
+    atomKK->k_x.sync_device();
+    atomKK->k_v.sync_device();
     neval++;
     double dtf = -0.5 * dt * force->ftm2v;
     Kokkos::parallel_for("min_fire/leapfrog_init", atom->nlocal, LAMMPS_LAMBDA(const int i) {
@@ -221,7 +224,11 @@ int MinFireKokkos::run_iterate(int maxiter) {
     }
 
     if (!ABCFLAG && flagv0) {
-      energy_force(0);
+      atomKK->k_x.sync_host();
+      atomKK->k_v.sync_host();
+      energy_force(0);  // ghost vel might change on host during comm
+      atomKK->k_x.sync_device();
+      atomKK->k_v.sync_device();
       neval++;
       double dtf_init = dt * force->ftm2v;
       Kokkos::parallel_for("min_fire/v_init", nlocal, LAMMPS_LAMBDA(const int i) {
@@ -233,7 +240,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
     }
 
     // cannot use "if constexpr" below because CUDA device lambdas
-    //  cannot first-capture variables in constexpr-if context
+    // cannot first-capture variables in constexpr-if context
 
     double dtvone = dt;
     auto l_dmax = dmax;
@@ -319,20 +326,21 @@ int MinFireKokkos::run_iterate(int maxiter) {
       }
     });
 
-    atomKK->modified(Device, X_MASK | V_MASK);
     eprevious = ecurrent;
-    ecurrent = energy_force(0);
+    atomKK->k_x.sync_host();
+    atomKK->k_v.sync_host();
+    ecurrent = energy_force(0); // ghost vel might change on host during comm
+    atomKK->k_x.sync_device();
+    atomKK->k_v.sync_device();
     neval++;
 
     if constexpr (INTEGRATOR == VERLET) {
-      //atomKK->sync(Device, V_MASK | F_MASK);
       Kokkos::parallel_for("min_fire/verlet_v_final", nlocal, LAMMPS_LAMBDA(const int i) {
         KK_FLOAT dtfm_half = dtf_half / (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
         l_v(i,0) += dtfm_half * l_f(i,0);
         l_v(i,1) += dtfm_half * l_f(i,1);
         l_v(i,2) += dtfm_half * l_f(i,2);
       });
-      //atomKK->modified(Device, V_MASK);
     }
     flagv0 = 0;
 
@@ -379,6 +387,8 @@ int MinFireKokkos::run_iterate(int maxiter) {
       timer->stamp(Timer::OUTPUT);
     }
   }
-  //atomKK->modified(Device, X_MASK | V_MASK | F_MASK);
+
+  atomKK->k_x.sync_host();
+  atomKK->k_v.sync_host();
   return MAXITER;
 }

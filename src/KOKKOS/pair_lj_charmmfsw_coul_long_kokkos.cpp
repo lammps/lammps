@@ -32,7 +32,7 @@
      - lj3/lj4 params hoisted to local KK_FLOAT before branching
      - 8 separate table deep_copy calls consolidated to 1 host alloc
        + 8 device transfers (no redundant host heap churn)
-     - c_x = x (const alias) instead of double .view<>() call
+     - c_x and x both call .view<DeviceType>() (different View types; no shortcut possible)
      - atomKK->modified() moved to after pair_compute() returns
      - switch1 scoped inside its if-block
  ------------------------------------------------------------------------- */
@@ -136,10 +136,8 @@ void PairLJCharmmfswCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_
   // Moving this call here prevents a spurious dirty flag if an early
   // exit occurs between this point and pair_compute().
 
-  x    = atomKK->k_x.view<DeviceType>();
-  // FIX (Issue 9): c_x is a const alias of x — same underlying pointer,
-  // no second .view<>() template instantiation.
-  c_x  = x;
+  x   = atomKK->k_x.view<DeviceType>();
+  c_x = atomKK->k_x.view<DeviceType>();
   f    = atomKK->k_f.view<DeviceType>();
   q    = atomKK->k_q.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
@@ -483,13 +481,20 @@ void PairLJCharmmfswCoulLongKokkos<DeviceType>::init_tables(
   // each 1-D view used inside the kernel.
   host_table_type h_table("HostTable", ntable);
 
-  // Helper lambda: fill h_table from a raw double* src, create a device
-  // view, deep_copy, and assign to dst.
-  auto copy_table = [&](double* src, table_type& dst, const char* label) {
-    dst = table_type(label, ntable);
+  // Helper lambda: fill h_table from a raw double* src, deep_copy into a
+  // plain (non-const, non-RandomAccess) device view, then assign to dst.
+  // dst is t_kkfloat_1d_randomread (const + MemoryTraits<RandomAccess>);
+  // Kokkos allows implicit conversion from the plain view on assignment,
+  // but cannot bind a non-const reference directly to the randomread member.
+  auto copy_table = [&](double* src,
+                        typename AT::t_kkfloat_1d_randomread& dst,
+                        const char* label)
+  {
+    table_type tmp(std::string(label), ntable);
     for (int i = 0; i < ntable; i++)
       h_table(i) = static_cast<KK_FLOAT>(src[i]);
-    Kokkos::deep_copy(dst, h_table);
+    Kokkos::deep_copy(tmp, h_table);
+    dst = tmp;   // implicit: plain view → const + RandomAccess view
   };
 
   copy_table(rtable,  d_rtable,  "d_rtable");

@@ -260,6 +260,7 @@ int colvarmodule::read_config_file(char const  *config_filename)
   }
   proxy->close_input_stream(config_filename);
 
+  conf = colvarparse::normalize_config(conf);
   return parse_config(conf);
 }
 
@@ -279,6 +280,7 @@ int colvarmodule::read_config_string(std::string const &config_str)
       conf.append(line+"\n");
   }
 
+  conf = colvarparse::normalize_config(conf);
   return parse_config(conf);
 }
 

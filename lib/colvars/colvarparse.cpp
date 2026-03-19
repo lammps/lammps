@@ -1005,6 +1005,123 @@ int colvarparse::check_ascii(std::string const &conf)
 }
 
 
+std::string colvarparse::normalize_config(std::string const &conf)
+{
+  std::string result;
+  result.reserve(conf.size() + conf.size() / 4);
+
+  size_t const n = conf.size();
+  size_t i = 0;
+  bool at_line_start = true;
+
+  // Returns the position of the next non-whitespace character at or after pos,
+  // or n if none exists.
+  auto next_nonws = [&](size_t pos) -> size_t {
+    while (pos < n &&
+           (conf[pos] == ' ' || conf[pos] == '\t' ||
+            conf[pos] == '\n' || conf[pos] == '\r'))
+      pos++;
+    return pos;
+  };
+
+  auto ensure_newline = [&]() {
+    if (!at_line_start) {
+      result += '\n';
+      at_line_start = true;
+    }
+  };
+
+  while (i < n) {
+    char c = conf[i];
+
+    // Comments: already stripped by read_config_line, but handle defensively
+    if (c == '#') {
+      while (i < n && conf[i] != '\n')
+        result += conf[i++];
+      continue;
+    }
+
+    // Quoted strings: pass through as a single opaque token
+    if (c == '"') {
+      result += c;
+      i++;
+      at_line_start = false;
+      while (i < n && conf[i] != '"')
+        result += conf[i++];
+      if (i < n)
+        result += conf[i++]; // closing quote
+      continue;
+    }
+
+    // Newlines: normalize to a single newline, strip leading indent on next line
+    if (c == '\n' || c == '\r') {
+      if (c == '\r' && i + 1 < n && conf[i + 1] == '\n')
+        i++; // consume the LF of a CRLF pair
+      i++;
+      ensure_newline();
+      while (i < n && (conf[i] == ' ' || conf[i] == '\t'))
+        i++;
+      continue;
+    }
+
+    // Horizontal whitespace: emit a single space (only if not at line start)
+    if (c == ' ' || c == '\t') {
+      if (!at_line_start)
+        result += ' ';
+      i++;
+      while (i < n && (conf[i] == ' ' || conf[i] == '\t'))
+        i++;
+      continue;
+    }
+
+    // Opening brace: always followed by a newline; skip subsequent whitespace
+    if (c == '{') {
+      result += "{\n";
+      at_line_start = true;
+      i++;
+      while (i < n &&
+             (conf[i] == ' ' || conf[i] == '\t' ||
+              conf[i] == '\n' || conf[i] == '\r'))
+        i++;
+      continue;
+    }
+
+    // Closing brace: must be on its own line; skip subsequent whitespace
+    if (c == '}') {
+      ensure_newline();
+      result += "}\n";
+      at_line_start = true;
+      i++;
+      while (i < n &&
+             (conf[i] == ' ' || conf[i] == '\t' ||
+              conf[i] == '\n' || conf[i] == '\r'))
+        i++;
+      continue;
+    }
+
+    // Word token: collect all non-special characters
+    size_t const word_start = i;
+    while (i < n &&
+           conf[i] != ' ' && conf[i] != '\t' &&
+           conf[i] != '\n' && conf[i] != '\r' &&
+           conf[i] != '{' && conf[i] != '}' &&
+           conf[i] != '#' && conf[i] != '"')
+      i++;
+
+    // If this word is immediately followed (possibly after whitespace) by '{'
+    // it is a block-opening keyword and must start on its own line.
+    size_t const nw = next_nonws(i);
+    if (nw < n && conf[nw] == '{')
+      ensure_newline();
+
+    result.append(conf, word_start, i - word_start);
+    at_line_start = false;
+  }
+
+  return result;
+}
+
+
 void colvarparse::split_string(const std::string& data, const std::string& delim, std::vector<std::string>& dest) {
     size_t index = 0, new_index = 0;
     std::string tmpstr;

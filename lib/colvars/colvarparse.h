@@ -334,6 +334,13 @@ public:
   /// \param conf The configuration string
   static int check_ascii(std::string const &conf);
 
+  /// \brief Normalize a config string so that each keyword starts on its own
+  /// line, enabling single-line syntax such as:
+  ///   colvar { name foo alpha { prefix foo_ } }
+  /// to be parsed identically to the equivalent multi-line form.
+  /// Already-formatted multi-line configs pass through unchanged in meaning.
+  static std::string normalize_config(std::string const &conf);
+
   /// \brief Split a string with a specified delimiter into a vector
   /// \param data The string to be splitted
   /// \param delim A delimiter

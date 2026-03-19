@@ -49,59 +49,119 @@ class PairLJCharmmfswCoulLongKokkos : public PairLJCharmmfswCoulLong {
   template<bool STACKPARAMS, class Specialisation>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  KK_FLOAT compute_fpair(const KK_FLOAT& rsq, const int& i, const int& j, const int& itype, const int& jtype) const;
+  KK_FLOAT compute_fpair(const KK_FLOAT& rsq, const int& i, const int& j,
+                          const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  KK_FLOAT compute_evdwl(const KK_FLOAT& rsq, const int& i, const int& j, const int& itype, const int& jtype) const;
+  KK_FLOAT compute_evdwl(const KK_FLOAT& rsq, const int& i, const int& j,
+                          const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  KK_FLOAT compute_fcoul(const KK_FLOAT& rsq, const int& i, const int& j, const int& itype,
-                        const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const;
+  KK_FLOAT compute_fcoul(const KK_FLOAT& rsq, const int& i, const int& j,
+                          const int& itype, const int& jtype,
+                          const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const;
 
   template<bool STACKPARAMS, class Specialisation>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  KK_FLOAT compute_ecoul(const KK_FLOAT& rsq, const int& i, const int& j, const int& itype,
-                        const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const;
+  KK_FLOAT compute_ecoul(const KK_FLOAT& rsq, const int& i, const int& j,
+                          const int& itype, const int& jtype,
+                          const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const;
+
+  // ------------------------------------------------------------------
+  // Shared Ewald direct-space helper.
+  //
+  // Computes all expensive transcendentals (sqrt, exp, erfc polynomial)
+  // that are common to both compute_fcoul and compute_ecoul, so they
+  // are evaluated only once per pair when eflag is active.
+  //
+  // Outputs:
+  //   prefactor  = qqrd2e * qi * qj / r
+  //   erfc_val   = erfc(g_ewald * r)   [minimax polynomial approximation]
+  //   grij_expm2 = (g_ewald*r) * exp(-(g_ewald*r)^2)   [needed for force]
+  //   r2inv      = 1/rsq                                 [needed for force return]
+  // ------------------------------------------------------------------
+  KOKKOS_INLINE_FUNCTION
+  void ewald_direct(KK_FLOAT rsq, int j, KK_FLOAT qtmp,
+                    KK_FLOAT &prefactor, KK_FLOAT &erfc_val,
+                    KK_FLOAT &grij_expm2, KK_FLOAT &r2inv) const;
 
   Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
-  params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];  // hardwired to space for 12 atom types
+  params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   KK_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   KK_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+
   typename AT::t_kkfloat_1d_3_lr_randomread x;
-  typename AT::t_kkfloat_1d_3_lr c_x;
+  typename AT::t_kkfloat_1d_3_lr c_x;        // const alias of x; assigned as c_x = x
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_kkfloat_1d_randomread q;
 
-  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d   k_eatom;
   DAT::ttransform_kkacc_1d_6 k_vatom;
-  typename AT::t_kkacc_1d d_eatom;
-  typename AT::t_kkacc_1d_6 d_vatom;
+  typename AT::t_kkacc_1d    d_eatom;
+  typename AT::t_kkacc_1d_6  d_vatom;
 
   int newton_pair;
 
   DAT::ttransform_kkfloat_2d k_cutsq;
-  typename AT::t_kkfloat_2d d_cutsq;
-  typename AT::t_kkfloat_2d d_cut_ljsq;
-  typename AT::t_kkfloat_2d d_cut_coulsq;
+  typename AT::t_kkfloat_2d  d_cutsq;
+  typename AT::t_kkfloat_2d  d_cut_ljsq;
+  typename AT::t_kkfloat_2d  d_cut_coulsq;
 
+  // Coulomb lookup tables on device (rows of a single batched transfer;
+  // see init_tables()).
   typename AT::t_kkfloat_1d_randomread
-    d_rtable, d_drtable, d_ftable, d_dftable,
-    d_ctable, d_dctable, d_etable, d_detable;
+    d_rtable,  d_drtable,
+    d_ftable,  d_dftable,
+    d_ctable,  d_dctable,
+    d_etable,  d_detable;
 
   int neighflag;
-  int nlocal,nall,eflag,vflag;
+  int nlocal, nall, eflag, vflag;
 
   KK_FLOAT special_lj[4];
   KK_FLOAT special_coul[4];
   KK_FLOAT qqrd2e;
+
+  // ------------------------------------------------------------------
+  // KK_FLOAT shadow copies of base-class double scalars.
+  //
+  // All of these members exist as `double` in PairLJCharmmfswCoulLong
+  // (or its parents).  Using them directly inside KOKKOS_INLINE_FUNCTION
+  // device kernels when KK_FLOAT == float silently promotes every
+  // arithmetic operation to double precision, destroying throughput on
+  // GPUs where f64 throughput is 2–32× slower than f32.
+  //
+  // Each shadow is set via static_cast<KK_FLOAT>(...) in init_style()
+  // and init_tables() immediately after the base-class call that
+  // initialises the underlying double value.
+  // ------------------------------------------------------------------
+
+  // LJ force-switching scalars
+  KK_FLOAT kk_cut_ljsq;         // cut_lj^2
+  KK_FLOAT kk_cut_lj_innersq;   // cut_lj_inner^2
+  KK_FLOAT kk_denom_lj;         // denominator for force-switch function
+
+  // LJ energy-switching scalars
+  KK_FLOAT kk_cut_lj6;          // cut_lj^6
+  KK_FLOAT kk_denom_lj12;       // energy-switch denominator (r^-12 term)
+  KK_FLOAT kk_cut_lj3;          // cut_lj^3
+  KK_FLOAT kk_denom_lj6;        // energy-switch denominator (r^-6 term)
+  KK_FLOAT kk_cut_lj6inv;       // 1 / cut_lj^6
+  KK_FLOAT kk_cut_lj3inv;       // 1 / cut_lj^3
+  KK_FLOAT kk_cut_lj_inner6inv; // 1 / cut_lj_inner^6
+  KK_FLOAT kk_cut_lj_inner3inv; // 1 / cut_lj_inner^3
+
+  // Ewald / Coulomb scalars
+  KK_FLOAT kk_g_ewald;          // Ewald splitting parameter
+  KK_FLOAT kk_tabinnersq;       // rsq threshold below which direct erfc is used
 
   void allocate() override;
 
@@ -141,4 +201,3 @@ class PairLJCharmmfswCoulLongKokkos : public PairLJCharmmfswCoulLong {
 
 #endif
 #endif
-

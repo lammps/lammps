@@ -553,8 +553,8 @@ ChartViewer::ChartViewer(const QString &title, int _index, QWidget *parent) :
     xaxis->setTickCount(5);
     xaxis->setLabelFormat("%d");
     yaxis->setTickCount(5);
-    xaxis->setMinorTickCount(5);
-    yaxis->setMinorTickCount(5);
+    xaxis->setMinorTickCount(4);
+    yaxis->setMinorTickCount(4);
     yaxis->setTitleText(title);
     series->setName(title);
 

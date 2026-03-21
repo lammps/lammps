@@ -27,8 +27,8 @@ Syntax
 
      keyword = *mcemc*, *mol*, *region*, *maxangle*, *pressure*, *fugacity_coeff*, *full_energy*, *charge*, *group*, *grouptype*, *intra_energy*, *tfac_insert*, or *overlap_cutoff*
        *mcemc* values = ntotal vgauge
-         ntotal = total number of particles in gauge cell + simulation cell for MCEMC moves
-         vgauge = gauge cell volume for MCEMC moves
+         ntotal = total number of particles in gauge cell + simulation cell for MCEMC moves (unitless)
+         vgauge = gauge cell volume for MCEMC moves (volume units)
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
        *mcmoves* values = Patomtrans Pmoltrans Pmolrotate
@@ -186,20 +186,9 @@ orientation of the molecule is chosen at random by rotating about this
 point.
 
 If the *mcemc* keyword is used, then MCEMC exchange moves are performed
-instead of gcmc exchange moves, and the chemical potential and fugacity
-coefficient input parameters are ignored. MCEMC and GCMC give identical
-adsorption isotherms for microporous materials. For larger pores
-(> 2 nm), GCMC often shows a hysteretic adsorption/desorption
-isotherm, while MCEMC yields a reversible S-shaped van der Waals type
-isotherm (see :ref:`(Parashar) <Parashar>`). The MCEMC isotherm spans
-stable and meta-stable states, whereas GCMC samples only stable states.
-MCEMC lies between the grand canonical ensemble (unrestricted
-fluctuations) and the canonical ensemble (closed system). MCEMC reduces
-to GCMC when the gauge-cell volume is infinite and to the canonical
-ensemble when the gauge-cell volume is zero.
-During the MCEMC exchange move, the particles are exchanged between
-the system and a finite ideal gas reservoir (gauge cell) such that the
-total number of particles in the combined system (system + gauge cell)
+instead of gcmc exchange moves. During the MCEMC exchange move, the particles are exchanged between
+the system and a finite ideal gas reservoir, referred to as the gauge cell,
+such that the total number of particles in the combined system (system + gauge cell)
 remains constant.
 
 .. math::
@@ -209,12 +198,10 @@ remains constant.
 where :math:`N_{total}` is the total number of particles in the
 combined system, :math:`N_{system}` is the number of particles in
 the simulation system, and :math:`N_{gauge}` is the number of particles
-in the ideal gas reservoir (gauge cell). The gauge cell has a fixed
-volume (:math:`V_{gauge}`) and is maintained at the same temperature
-(*T*) as the simulation system. The combined system is in thermal and
-chemical equilibrium, hence the chemical potential of the system is
-equal to that of the gauge cell. The chemical potential of the gauge
-cell (and hence the system) is given by:
+in the gauge cell. The gauge cell has a fixed volume (:math:`V_{gauge}`)
+and is maintained at the same temperature (*T*) as the simulation system.
+Only the system cell is actively simulated whereas the gauge cell is not explicitly simulated.
+The chemical potential of the gauge cell (and system) is given by:
 
 .. math::
     \mu^{id} = k_{B}T \ln(\frac{N_{gauge}\Lambda^{3}}{V_{gauge}})
@@ -235,27 +222,43 @@ where *h* is Planck's constant, and *m* is the mass of the exchanged
 atom or molecule.  For unit style *lj*, :math:`\Lambda` is simply set to
 unity.
 
-In GCMC, the chemical potential of the infinite ideal gas reservoir is
-imposed on the system using the exchange move, while in MCEMC, the gauge
-cell is used to measure the chemical potential of the system.
-For calculating adsorption isotherm using GCMC, the input is the
-chemical potential of the infinite reservoir and the output is the
-average number of particles observed in the system. In MCEMC, there are two inputs: :math:`N_{total}` and
-:math:`V_{gauge}`.  From these two inputs, the chemical potential (and
-hence fugacity) of the system is calculated based on ideal gas chemical
-potential in the gauge cell. The number of particles adsorbed
-is simply the average number of particles observed in the system.
+While GCMC and MCEMC both facilitate the study of particle exchange,
+they differ fundamentally in how they handle the chemical potential.
+In GCMC, the chemical potential of an infinite ideal gas reservoir is
+imposed directly on the system through exchange moves, with the
+average number of particles observed serving as the
+adsorbed amount. In contrast, MCEMC utilizes a gauge cell to measure the system's chemical
+potential. By providing the total number of particles (:math:`N_{total}`)
+and the gauge cell volume (:math:`V_{gauge}`) as inputs, the chemical potential and
+fugacity are calculated based on the ideal gas behavior within the gauge cell,
+while the adsorbed amount is determined by the average particle count observed
+in the system.
+
+Both MCEMC and GCMC produce identical adsorption isotherms for microporous materials,
+but their isotherms differ in larger pores (exceeding 2 nm). While
+GCMC often exhibits hysteretic adsorption/desorption loops, MCEMC produes
+a reversible, S-shaped van der Waals-type isotherm that spans both stable
+and metastable states. MCEMC functions as a bridge between the grand canonical
+ensemble (unrestricted fluctuations) and the canonical ensemble (closed system).
+Specifically, MCEMC reduces to GCMC as the gauge cell volume approaches infinity
+and recovers the canonical ensemble when the gauge cell volume is zero.
 
 ..note::
 
-   :math:`N_{total}` and :math:`V_{gauge}` should not be chosen
-   arbitrarily- :math:`V_{gauge}` should be small enough to stabilize the fluid
+   - MCEMC starts by putting :math:`N_{total}` particles in the gauge
+   cell and zero particles in the system.
+   - Parameters like :math:`N_{total}` and :math:`V_{gauge}` should be carefully
+   chosen in this way :math:`V_{gauge}` should be small enough to stabilize the fluid
    configuration within the system yet large enough for accurate
    measurement of chemical potential. The recommendation is to calculate
    :math:`V_{gauge}` using the ideal gas equation, such that the gauge
    cell contains roughly 70-80 particles during a simulation. Generating
-   a GCMC isotherm beforehand can help you choose an appropriate value of
+   a GCMC isotherm beforehand can help choose an appropriate value of
    :math:`N_{total}`.
+   - When MCEMC is used, the specified chemical potential and fugacity
+   coefficient input parameters are ignored.
+   - MCEMC is similar to GCMC in temrs of computational cost since
+   the only difference is new acceptance criteria for exchange moves.
 
 Individual atoms are inserted, unless the *mol* keyword is used.  It
 specifies a *template-ID* previously defined using the :doc:`molecule

@@ -804,8 +804,8 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
 
   double xf = xmap / pixelWidth;
   double yf = ymap / pixelWidth;
-  int xc = static_cast<int>(xf);
-  int yc = static_cast<int>(yf);
+  int xc = static_cast<int>(floor(xf));
+  int yc = static_cast<int>(floor(yf));
   double width_error = xf - xc;
   double height_error = yf - yc;
 
@@ -818,10 +818,10 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
   double pixelRightFull = rasterRight / pixelWidth;
   double pixelDownFull = rasterDown / pixelWidth;
   double pixelUpFull = rasterUp / pixelWidth;
-  int pixelLeft = std::lround(pixelLeftFull);
-  int pixelRight = std::lround(pixelRightFull);
-  int pixelDown = std::lround(pixelDownFull);
-  int pixelUp = std::lround(pixelUpFull);
+  int pixelLeft = static_cast<int>(ceil(pixelLeftFull));
+  int pixelRight = static_cast<int>(ceil(pixelRightFull));
+  int pixelDown = static_cast<int>(ceil(pixelDownFull));
+  int pixelUp = static_cast<int>(ceil(pixelUpFull));
 
   for (int iy = yc - pixelDown; iy <= yc + pixelUp; iy ++) {
     for (int ix = xc - pixelLeft; ix <= xc + pixelRight; ix ++) {
@@ -845,18 +845,12 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
       double s1[3], s2[3], s3[3];
       double c1[3], c2[3];
 
-      // for grid cell viz:
-      // using <= if test can leave single-pixel gaps between 2 tris
-      // using < if test fixes it
-      // suggested by Nathan Fabian, Nov 2022
-
       MathExtra::sub3 (zlocal, xlocal, s1);
       MathExtra::sub3 (ylocal, xlocal, s2);
       MathExtra::sub3 (p, xlocal, s3);
       MathExtra::cross3 (s1, s2, c1);
       MathExtra::cross3 (s1, s3, c2);
       if (MathExtra::dot3 (c1, c2) < 0) continue;
-      //if (MathExtra::dot3 (c1, c2) <= 0) continue;
 
       MathExtra::sub3 (xlocal, ylocal, s1);
       MathExtra::sub3 (zlocal, ylocal, s2);
@@ -864,7 +858,6 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
       MathExtra::cross3 (s1, s2, c1);
       MathExtra::cross3 (s1, s3, c2);
       if (MathExtra::dot3 (c1, c2) < 0) continue;
-      //if (MathExtra::dot3 (c1, c2) <= 0) continue;
 
       MathExtra::sub3 (ylocal, zlocal, s1);
       MathExtra::sub3 (xlocal, zlocal, s2);
@@ -872,7 +865,6 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
       MathExtra::cross3 (s1, s2, c1);
       MathExtra::cross3 (s1, s3, c2);
       if (MathExtra::dot3 (c1, c2) < 0) continue;
-      //if (MathExtra::dot3 (c1, c2) <= 0) continue;
 
       double cNormal[3];
       cNormal[0] = MathExtra::dot3(camRight, normal);

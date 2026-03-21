@@ -1348,7 +1348,7 @@ void FixGCMC::attempt_molecule_deletion()
 
   double deletion_prob;
   if (run_mcemc) {
-    deletion_prob = mcemc_vgauge*ngas*exp(beta*deletion_energy_sum)/((mcemc_ntotal-ngas+1)*volume);
+    deletion_prob = mcemc_vgauge*ngas*exp(beta*deletion_energy_sum)/((mcemc_ntotal-ngas+1)*volume*natoms_per_molecule);
   } else {
     deletion_prob = ngas*exp(beta*deletion_energy_sum)/(zz*volume*natoms_per_molecule);
   }
@@ -1488,7 +1488,7 @@ void FixGCMC::attempt_molecule_insertion()
 
   double insertion_prob;
   if (run_mcemc) {
-    insertion_prob = (mcemc_ntotal-ngas)*volume*exp(-beta*insertion_energy_sum)/(ngas+1)/mcemc_vgauge;
+    insertion_prob = (mcemc_ntotal-ngas)*volume*natoms_per_molecule*exp(-beta*insertion_energy_sum)/(ngas+natoms_per_molecule)/mcemc_vgauge;
   } else {
     insertion_prob = zz*volume*natoms_per_molecule*exp(-beta*insertion_energy_sum)/(ngas + natoms_per_molecule);
   }
@@ -2083,7 +2083,7 @@ void FixGCMC::attempt_molecule_deletion_full()
 
   double deltaphi;
   if (run_mcemc) {
-    deltaphi = mcemc_vgauge*ngas*exp(beta*((energy_before - energy_intra) - energy_after))/((mcemc_ntotal-ngas+1)*volume);
+    deltaphi = mcemc_vgauge*ngas*exp(beta*((energy_before - energy_intra) - energy_after))/((mcemc_ntotal-ngas+1)*volume*natoms_per_molecule);
   } else {
     deltaphi = ngas*exp(beta*((energy_before - energy_intra) - energy_after))/(zz*volume*natoms_per_molecule);
   }
@@ -2294,7 +2294,7 @@ void FixGCMC::attempt_molecule_insertion_full()
 
   double deltaphi;
   if (run_mcemc) {
-    deltaphi = (mcemc_ntotal-ngas)*volume*exp(beta*((energy_before - energy_intra) - energy_after))/(ngas+1)/mcemc_vgauge;
+    deltaphi = (mcemc_ntotal-ngas)*volume*natoms_per_molecule*exp(beta*((energy_before - energy_intra) - energy_after))/(ngas+natoms_per_molecule)/mcemc_vgauge;
   } else {
     deltaphi = zz*volume*natoms_per_molecule*exp(beta*(energy_before - (energy_after - energy_intra)))/(ngas + natoms_per_molecule);
   }

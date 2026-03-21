@@ -75,6 +75,7 @@ void MinFireKokkos::setup_style() {
 
   // initialize the velocities
 
+  atomKK->sync(Device, V_MASK);
   Kokkos::parallel_for("min_fire/zero_v", nlocal, LAMMPS_LAMBDA(const int i) {
     l_v(i,0) = l_v(i,1) = l_v(i,2) = 0.0;
   });
@@ -122,10 +123,11 @@ int MinFireKokkos::run_iterate(int maxiter) {
   int nlocal = atom->nlocal;
 
   if constexpr (INTEGRATOR == LEAPFROG) {
-    energy_force(0);  // ghost vel might change on host during comm
+    atomKK->sync(Host, X_MASK | V_MASK | F_MASK);
+    energy_force(0); // ghost vel might change on host during comm
+    atomKK->sync(Device, X_MASK | V_MASK | F_MASK);
     neval++;
     double dtf = -0.5 * dt * force->ftm2v;
-    atomKK->sync(Device, V_MASK | F_MASK);
     Kokkos::parallel_for("min_fire/leapfrog_init", atom->nlocal, LAMMPS_LAMBDA(const int i) {
       KK_FLOAT dtfm = dtf / (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
       l_v(i,0) = dtfm * l_f(i,0);
@@ -219,10 +221,11 @@ int MinFireKokkos::run_iterate(int maxiter) {
     }
 
     if (!ABCFLAG && flagv0) {
-      energy_force(0);  // ghost vel might change on host during comm
+      atomKK->sync(Host, X_MASK | V_MASK | F_MASK);
+      energy_force(0); // ghost vel might change on host during comm
+      atomKK->sync(Device, X_MASK | V_MASK | F_MASK);
       neval++;
       double dtf_init = dt * force->ftm2v;
-      atomKK->sync(Device, V_MASK | F_MASK);
       Kokkos::parallel_for("min_fire/v_init", nlocal, LAMMPS_LAMBDA(const int i) {
         KK_FLOAT dtfm = dtf_init / (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
         l_v(i,0) = dtfm * l_f(i,0);
@@ -256,6 +259,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
 
     KK_FLOAT dtf_final = dtv * force->ftm2v;
     KK_FLOAT dtf_half = 0.5 * dtf_final;
+    atomKK->sync(Device, X_MASK | V_MASK | F_MASK);
     Kokkos::parallel_for("min_fire/integrate", nlocal, LAMMPS_LAMBDA(const int i) {
       KK_FLOAT mass_val = (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
       KK_FLOAT dtfm = dtf_final / mass_val;
@@ -319,11 +323,12 @@ int MinFireKokkos::run_iterate(int maxiter) {
     atomKK->modified(Device, X_MASK | V_MASK);
 
     eprevious = ecurrent;
+    atomKK->sync(Host, X_MASK | V_MASK | F_MASK);
     ecurrent = energy_force(0); // ghost vel might change on host during comm
+    atomKK->sync(Device, X_MASK | V_MASK | F_MASK);
     neval++;
 
     if constexpr (INTEGRATOR == VERLET) {
-      atomKK->sync(Device, V_MASK | F_MASK);
       Kokkos::parallel_for("min_fire/verlet_v_final", nlocal, LAMMPS_LAMBDA(const int i) {
         KK_FLOAT dtfm_half = dtf_half / (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
         l_v(i,0) += dtfm_half * l_f(i,0);

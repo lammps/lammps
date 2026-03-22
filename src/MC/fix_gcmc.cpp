@@ -287,6 +287,7 @@ void FixGCMC::options(int narg, char **arg)
   max_ngas = INT_MAX;
   run_mcemc = false; // default is to run gcmc moves
   mcemc_ntotal = 0;
+  mcemc_ngauge = 0;
   mcemc_vgauge = 0.0;
 
   int iarg = 0;
@@ -972,7 +973,7 @@ void FixGCMC::attempt_atomic_deletion()
     double deletion_energy = energy(i,ngcmc_type,-1,atom->x[i]);
     double deletion_prob;
     if (run_mcemc) {
-      deletion_prob = mcemc_vgauge*ngas*exp(beta*deletion_energy)/((mcemc_ntotal-ngas+1)*volume);
+      deletion_prob = mcemc_vgauge*ngas*exp(beta*deletion_energy)/((mcemc_ngauge+1)*volume);
     } else {
       deletion_prob = ngas*exp(beta*deletion_energy)/(zz*volume);
     }
@@ -1073,7 +1074,7 @@ void FixGCMC::attempt_atomic_insertion()
 
     double insertion_prob;
     if (run_mcemc) {
-      insertion_prob = (mcemc_ntotal-ngas)*volume*exp(-beta*insertion_energy)/(ngas+1)/mcemc_vgauge;
+      insertion_prob = mcemc_ngauge*volume*exp(-beta*insertion_energy)/(ngas+1)/mcemc_vgauge;
     } else {
       insertion_prob = zz*volume*exp(-beta*insertion_energy)/(ngas+1);
     }
@@ -1348,7 +1349,7 @@ void FixGCMC::attempt_molecule_deletion()
 
   double deletion_prob;
   if (run_mcemc) {
-    deletion_prob = mcemc_vgauge*ngas*exp(beta*deletion_energy_sum)/((mcemc_ntotal-ngas+1)*volume*natoms_per_molecule);
+    deletion_prob = mcemc_vgauge*ngas*exp(beta*deletion_energy_sum)/((mcemc_ngauge+1)*volume*natoms_per_molecule);
   } else {
     deletion_prob = ngas*exp(beta*deletion_energy_sum)/(zz*volume*natoms_per_molecule);
   }
@@ -1488,7 +1489,7 @@ void FixGCMC::attempt_molecule_insertion()
 
   double insertion_prob;
   if (run_mcemc) {
-    insertion_prob = (mcemc_ntotal-ngas)*volume*natoms_per_molecule*exp(-beta*insertion_energy_sum)/(ngas+natoms_per_molecule)/mcemc_vgauge;
+    insertion_prob = mcemc_ngauge*volume*natoms_per_molecule*exp(-beta*insertion_energy_sum)/(ngas+natoms_per_molecule)/mcemc_vgauge;
   } else {
     insertion_prob = zz*volume*natoms_per_molecule*exp(-beta*insertion_energy_sum)/(ngas + natoms_per_molecule);
   }
@@ -1697,7 +1698,7 @@ void FixGCMC::attempt_atomic_deletion_full()
 
   double deletion_prob;
   if (run_mcemc) {
-    deletion_prob = mcemc_vgauge*ngas*exp(beta*(energy_before - energy_after))/((mcemc_ntotal-ngas+1)*volume);
+    deletion_prob = mcemc_vgauge*ngas*exp(beta*(energy_before - energy_after))/((mcemc_ngauge+1)*volume);
   } else {
     deletion_prob = ngas*exp(beta*(energy_before - energy_after))/(zz*volume);
   }
@@ -1819,7 +1820,7 @@ void FixGCMC::attempt_atomic_insertion_full()
 
   double insertion_prob;
   if (run_mcemc) {
-    insertion_prob = (mcemc_ntotal-ngas)*volume*exp(beta*(energy_before - energy_after))/(ngas+1)/mcemc_vgauge;
+    insertion_prob = mcemc_ngauge*volume*exp(beta*(energy_before - energy_after))/(ngas+1)/mcemc_vgauge;
   } else {
     insertion_prob = zz*volume*exp(beta*(energy_before - energy_after))/(ngas+1);
   }
@@ -2083,7 +2084,7 @@ void FixGCMC::attempt_molecule_deletion_full()
 
   double deltaphi;
   if (run_mcemc) {
-    deltaphi = mcemc_vgauge*ngas*exp(beta*((energy_before - energy_intra) - energy_after))/((mcemc_ntotal-ngas+1)*volume*natoms_per_molecule);
+    deltaphi = mcemc_vgauge*ngas*exp(beta*((energy_before - energy_intra) - energy_after))/((mcemc_ngauge+1)*volume*natoms_per_molecule);
   } else {
     deltaphi = ngas*exp(beta*((energy_before - energy_intra) - energy_after))/(zz*volume*natoms_per_molecule);
   }
@@ -2294,7 +2295,7 @@ void FixGCMC::attempt_molecule_insertion_full()
 
   double deltaphi;
   if (run_mcemc) {
-    deltaphi = (mcemc_ntotal-ngas)*volume*natoms_per_molecule*exp(beta*((energy_before - energy_intra) - energy_after))/(ngas+natoms_per_molecule)/mcemc_vgauge;
+    deltaphi = mcemc_ngauge*volume*natoms_per_molecule*exp(beta*((energy_before - energy_intra) - energy_after))/(ngas+natoms_per_molecule)/mcemc_vgauge;
   } else {
     deltaphi = zz*volume*natoms_per_molecule*exp(beta*(energy_before - (energy_after - energy_intra)))/(ngas + natoms_per_molecule);
   }
@@ -2631,6 +2632,7 @@ void FixGCMC::update_gas_atoms_list()
   MPI_Allreduce(&ngas_local,&ngas,1,MPI_INT,MPI_SUM,world);
   MPI_Scan(&ngas_local,&ngas_before,1,MPI_INT,MPI_SUM,world);
   ngas_before -= ngas_local;
+  mcemc_ngauge = mcemc_ntotal - ngas;
 }
 
 /* ----------------------------------------------------------------------

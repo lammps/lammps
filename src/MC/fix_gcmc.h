@@ -88,6 +88,7 @@ class FixGCMC : public Fix {
   double pressure, fugacity_coeff, charge;
   bool run_mcemc; // true if mcemc keyword is used, which triggers mcemc moves instead of gcmc moves
   int mcemc_ntotal; // total number of particles in gauge cell + simulation cell for mcemc moves
+  int mcemc_ngauge; // number of particles in gauge cell for mcemc moves
   double mcemc_vgauge; // gauge cell volume for mcemc moves
   double xlo, xhi, ylo, yhi, zlo, zhi;
   double region_xlo, region_xhi, region_ylo, region_yhi, region_zlo, region_zhi;

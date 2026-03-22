@@ -61,10 +61,13 @@ class Image : protected Pointers {
   void draw_axes(double (*)[3], double, double opacity = 1.0);
   void draw_pixmap(const double *, int, int, const unsigned char *, double *, double scale = 1.0,
                    double opacity = 1.0);
+  void draw_pixmap(int, int, int, int, const unsigned char *, double *, double scale = 1.0,
+                   double opacity = 1.0, double depth = 0.0);
 
   int map_dynamic(int);
   int map_reset(int, int, char **);
   int map_minmax(int, double, double);
+  int map_info(int, double &, double &);
   double *map_value2color(int, double);
 
   int addcolor(char *, double, double, double);
@@ -164,6 +167,7 @@ class ColorMap : protected Pointers {
   ~ColorMap() override;
   int reset(int, char **);
   int minmax(double, double);
+  int info(double &, double &);
   double *value2color(double);
 
  private:

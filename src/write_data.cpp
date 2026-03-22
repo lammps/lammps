@@ -204,6 +204,7 @@ void WriteData::write(const std::string &file)
 
   if (comm->me == 0) {
     if (platform::has_compress_extension(file)) {
+      fp.set_pclose();
       fp = platform::compressed_write(file);
     } else {
       fp = fopen(file.c_str(), "w");
@@ -266,10 +267,6 @@ void WriteData::write(const std::string &file)
   // restore internal per-atom data that was rotated
 
   if (domain->triclinic_general) atom->avec->write_data_restore_restricted();
-
-  // close data file
-
-  if (comm->me == 0) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

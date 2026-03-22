@@ -13,7 +13,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Nathan Fabian (Sandia)
+   Contributing authors: Nathan Fabian (Sandia)
+                     and Axel Kohlmeyer (Temple)
 ------------------------------------------------------------------------- */
 
 #include "image.h"
@@ -51,6 +52,7 @@ namespace {
 constexpr int NCOLORS = 140;
 constexpr int NELEMENTS = 109;
 constexpr double EPSILON = 1.0e-6;
+constexpr double TRANS_DELTA = 0.01;
 
 enum { NUMERIC, MINVALUE, MAXVALUE };
 enum { CONTINUOUS, DISCRETE, SEQUENTIAL };
@@ -825,11 +827,34 @@ void Image::draw_pixmap(const double *x, int pixwidth, int pixheight, const unsi
   xc += width / 2;
   yc += height / 2;
 
+  // convert back to non-FSAA image coordinates, so we can re-use the pixmap drawing code
+  if (fsaa) {
+    xc /= 2;
+    yc /= 2;
+  }
+
+  draw_pixmap(xc, yc, pixwidth, pixheight, pixmap, transcolor, scale, opacity, dist);
+}
+
+/* ----------------------------------------------------------------------
+   scale and add pixmap centered at location xc, yc in image coordinates to image
+   background color indicates transparency and pixels in that color are skipped
+------------------------------------------------------------------------- */
+
+void Image::draw_pixmap(int xc, int yc, int pixwidth, int pixheight, const unsigned char *pixmap,
+                        double *transcolor, double scale, double opacity, double dist)
+{
   const unsigned char *mypixmap = pixmap;
   unsigned char *npixmap = nullptr;
 
-  // adjust scale factor for FSAA and only scale as much as needed.
-  if (fsaa) scale *= 2.0;
+  // adjust scale factor and image location for FSAA
+  if (fsaa) {
+    scale *= 2.0;
+    xc *= 2;
+    yc *= 2;
+  }
+
+  // only scale as much as needed.
   if (scale != 1.0) {
     int nwidth = std::lround(scale * pixwidth + 0.5);
     int nheight = std::lround(scale * pixheight + 0.5);
@@ -864,9 +889,9 @@ void Image::draw_pixmap(const double *x, int pixwidth, int pixheight, const unsi
       // we allow a few steps difference for each channel to account
       // for rounding errors and reduce "bleeding" from interpolation
 
-      if ((fabs(pixelcolor[0] - transcolor[0]) < 0.01) &&
-          (fabs(pixelcolor[1] - transcolor[1]) < 0.01) &&
-          (fabs(pixelcolor[2] - transcolor[2]) < 0.01)) continue;
+      if ((fabs(pixelcolor[0] - transcolor[0]) < TRANS_DELTA) &&
+          (fabs(pixelcolor[1] - transcolor[1]) < TRANS_DELTA) &&
+          (fabs(pixelcolor[2] - transcolor[2]) < TRANS_DELTA)) continue;
 
       draw_pixel(ix, iy, dist, normal, pixelcolor);
     }
@@ -1335,6 +1360,7 @@ void Image::draw_pixel(int ix, int iy, double depth,
                        const double *surface, const double *surfaceColor)
 {
   if (!std::isfinite(depth)) return; // reject pixels with invalid depth buffer values
+  if (!surfaceColor) return;         // reject pixels with an invalid color
 
   double diffuseKey,diffuseFill,diffuseBack,specularKey;
   if (depth < 0 || (depthBuffer[ix + iy*width] >= 0 && depth >= depthBuffer[ix + iy*width])) return;
@@ -1727,6 +1753,15 @@ int Image::map_reset(int index, int narg, char **arg)
 int Image::map_minmax(int index, double mindynamic, double maxdynamic)
 {
   return maps[index]->minmax(mindynamic,maxdynamic);
+}
+
+/* ----------------------------------------------------------------------
+   get min/max bounds of dynamic color map index and return 1 if dynamic
+------------------------------------------------------------------------- */
+
+int Image::map_info(int index, double &min, double &max)
+{
+  return maps[index]->info(min, max);
 }
 
 /* ----------------------------------------------------------------------
@@ -2290,8 +2325,8 @@ ColorMap::ColorMap(LAMMPS *lmp, Image *caller) : Pointers(lmp)
 
   dynamic = 1;
 
-  mlo = MINVALUE;
-  mhi = MAXVALUE;
+  locurrent = mlo = MINVALUE;
+  hicurrent = mhi = MAXVALUE;
   mstyle = CONTINUOUS;
   mrange = FRACTIONAL;
 
@@ -2355,6 +2390,7 @@ int ColorMap::reset(int narg, char **arg)
   if (nentry < 1) return 5;
   delete [] mentry;
   mentry = new MapEntry[nentry];
+  mentry[0].svalue = 0.0;
 
   int n = 5;
   for (int i = 0; i < nentry; i++) {
@@ -2467,6 +2503,13 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
   return 0;
 }
 
+int ColorMap::info(double &min, double &max)
+{
+  min = locurrent;
+  max = hicurrent;
+  return dynamic;
+}
+
 /* ----------------------------------------------------------------------
    convert value into an RGB color via color map
    return pointer to 3-vector
@@ -2511,5 +2554,6 @@ double *ColorMap::value2color(double value)
     return mentry[ibin%nentry].color;
   }
 
-  return nullptr;
+  // always return a non-NULL pointer
+  return mentry[0].color;
 }

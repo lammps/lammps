@@ -18,6 +18,8 @@
 
 #include "lmptype.h"
 
+#include <cmath>
+
 #ifdef __INTEL_LLVM_COMPILER
 #define USE_OMP_SIMD
 #define __INTEL_COMPILER_BUILD_DATE __INTEL_LLVM_COMPILER

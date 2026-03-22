@@ -1,11 +1,12 @@
 .. index:: pair_style lj/cubic
 .. index:: pair_style lj/cubic/gpu
+.. index:: pair_style lj/cubic/kk
 .. index:: pair_style lj/cubic/omp
 
 pair_style lj/cubic command
 ===========================
 
-Accelerator Variants: *lj/cubic/gpu*, *lj/cubic/omp*
+Accelerator Variants: *lj/cubic/gpu*, *lj/cubic/kk*, *lj/cubic/omp*
 
 Syntax
 """"""
@@ -41,13 +42,12 @@ the energy and force are zero.
      & = u_{LJ}(r_s) + (r-r_s) u'_{LJ}(r_s) - \frac{1}{6} A_3 (r-r_s)^3 \qquad r_s < r \leq r_c \\
      & = 0 \qquad r > r_c
 
-The location of the inflection point :math:`r_s` is defined
-by the LJ diameter, :math:`r_s/\sigma = (26/7)^{1/6}`. The cutoff distance
-is defined by :math:`r_c/r_s = 67/48` or :math:`r_c/\sigma = 1.737...`
-The analytic expression for the
-the cubic coefficient
-:math:`A_3 r_{min}^3/\epsilon = 27.93...` is given in the paper by
-Holian and Ravelo :ref:`(Holian) <Holian>`.
+The location of the inflection point :math:`r_s` is defined by the LJ
+diameter, :math:`r_s/\sigma = (26/7)^{1/6}`. The cutoff distance is
+defined by :math:`r_c/r_s = 67/48` or :math:`r_c/\sigma = 1.737...` The
+analytic expression for the cubic coefficient :math:`A_3
+r_{min}^3/\epsilon = 27.93...` is given in the paper by Holian and
+Ravelo :ref:`(Holian) <Holian>`.
 
 This potential is commonly used to study the shock mechanics of FCC
 solids, as in Ravelo et al. :ref:`(Ravelo) <Ravelo2>`.

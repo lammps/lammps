@@ -63,6 +63,7 @@ class FixQEqReaxFF : public Fix {
   int n_cap, nmax, m_cap;
   int pack_flag;
   int nlevels_respa;
+  int matrix_free;     // kokkos backend; whether or not to use the matrix-free form
   class NeighList *list;
   class PairReaxFF *reaxff;
   class FixEfield *efield;

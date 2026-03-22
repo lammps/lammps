@@ -29,6 +29,7 @@
 #include "neighbor.h"
 #include "pair.h"
 #include "respa.h"
+#include "safe_pointers.h"
 #include "update.h"
 
 #include <cmath>
@@ -92,7 +93,7 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
     char *result;
     int count;
 
-    FILE *infile = utils::open_potential(dir_filename,lmp,nullptr);
+    SafeFilePtr infile = utils::open_potential(dir_filename,lmp,nullptr);
     if (infile == nullptr)
       error->one(FLERR,"Cannot open fix orient/eco file {}: {}",
                                    dir_filename, utils::getsyserror());
@@ -102,7 +103,6 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
       count = sscanf(line, "%lg %lg %lg", &dir_vec[i][0], &dir_vec[i][1], &dir_vec[i][2]);
       if (count != 3) error->one(FLERR, "Fix orient/eco file read failed");
     }
-    fclose(infile);
 
     // calculate reciprocal lattice vectors
     get_reciprocal();

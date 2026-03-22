@@ -14,7 +14,7 @@ Syntax
 * graphics/labels = style name of this fix command
 * Nevery = update graphics information every this many time steps
 * zero or more keyword/args groups may be appended
-* keyword = *image* or *text*
+* keyword = *image* or *text* or *colorscale*
 
   .. parsed-literal::
 
@@ -35,7 +35,7 @@ Syntax
         x, y, z  = position where the center of the text is located in the visualization
         any of x, y, or z can be a variable (see below)
 
-        keyword = *fontcolor* or *framecolor* or *backcolor* or *transcolor* or *size*
+        keyword = *fontcolor* or *framecolor* or *backcolor* or *transcolor* or *size* or *horizontal* or *vertical*
           *fontcolor* arg = select color for text: *white* (default) or *black* or *r/g/b*
              *white* = uses white
              *black* = uses black
@@ -60,6 +60,42 @@ Syntax
              *none* = disables transparency
              *r/g/b* = provide three integers in the range 0 to 255
           *size* value = set the size of the characters (default 24), can be a variable (see below)
+          *horizontal* = create horizontal text label
+          *vertical* = create vertical text label
+
+     *colorscale* dump-ID titletext x y z keyword args = display a colormap label in visualization
+        labeltext = text for the legend of the colormap label, must be quoted if it contains whitespace
+        x, y, z  = position where the center of the colormap label is located in the visualization
+        any of x, y, or z can be a variable (see below)
+
+        keyword = *fontcolor* or *framecolor* or *backcolor* or *transcolor* or *size* or *horizontal* or *vertical*
+          *fontcolor* arg = select color for text: *white* (default) or *black* or *r/g/b*
+             *white* = uses white
+             *black* = uses black
+             *r/g/b* = provide three integers in the range 0 to 255
+          *framecolor* arg = select color for frame around text: *silver* (default) or *darkgray* or *white* or *black* or *r/g/b*
+             *silver* = uses a very light gray
+             *darkgray* = uses a very dark gray
+             *white* = uses white
+             *black* = uses black
+             *r/g/b* = provide three integers in the range 0 to 255
+          *backcolor* arg = select color for background of the text: *silver* (default) or *darkgray* or *white* or *black* *r/g/b*
+             *silver* = uses a very light gray
+             *darkgray* = uses a very dark gray
+             *white* = uses white
+             *black* = uses black
+             *r/g/b* = provide three integers in the range 0 to 255
+          *transcolor* arg = select color for transparency: *silver* (default) or *darkgray* or *white* or *black* or *none* or *r/g/b*
+             *silver* = uses a very light gray
+             *darkgray* = uses a very dark gray
+             *white* = uses white
+             *black* = uses black
+             *none* = disables transparency
+             *r/g/b* = provide three integers in the range 0 to 255
+          *size* value = set the size of the characters (default 24), can be a variable (see below)
+          *length* value = approximate minimal length of the colorscale label
+          *horizontal* = create horizontal text label
+          *vertical* = create vertical text label
 
 Examples
 """"""""
@@ -70,20 +106,34 @@ Examples
    fix pot all graphics/labels 100 image teapot.ppm 1.0 v_ypos v_zpos scale v_prog transcolor 19/92/192
    fix lbl all graphics/labels 1000 text "LAMMPS graphics demo" 5.0 -1.0 -2.0 backcolor darkgray framecolor black
    fix info all graphics/labels 1000 text "Step: $(step)  Angle: ${rot}" 5.0 -1.0 -2.0 size 32
+   fix obj all graphics/labels 200 colorscale viz "Atom Velocity" 20.0 6.5 13.0 size 32 length 1000 &
+                                     transcolor none framecolor white backcolor darkgray tics 12
 
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 This fix allows to add either images or text as "labels" to :doc:`dump
 image <dump_image>` created images by using the *fix* keyword.  This can
 be useful to augment images with additional graphics or text directly
-and without having to post-process the images.  Since the positioning
-uses the coordinate system of the simulation and because the graphics
-objects use the depth buffer of the image rasterizer, atoms and other
-graphics in the "scene" can be located before or behind any text or
-image label.
+and without having to post-process the images.  The positions can be
+either interpreted as coordinates in the simulation box or as
+coordinates in the coordinate system of the image.  The selection is
+made by setting the *fflag1* keyword in the :doc:`dump image fix
+<dump_image>` command (see the "Dump image info" section below).  When
+the positioning uses the coordinate system of the simulation the
+distance of the graphics objects from the camera is determined from the
+given z-coordinate and atoms or other graphics objects in the "scene"
+can be located in front of or behind any *image*, *text* or *colorscale*
+label.  The label is *always* parallel to the image plane.
+
+When the image coordinate system is used, the labels are *always* on
+top, and if two labels are overlapping, the label that is added to the
+image *first* will be on top of the other.  That order cannot be changed
+within the same fix, but you can use multiple fix commands and then the
+order of the *fix* keywords in the *dump image"* command line determines
+the order and thus which label is drawn on top of the other.
 
 The *group-id* is ignored by this fix.
 
@@ -96,14 +146,16 @@ compatible.
 The *image* keyword reads an image file and adds it to the visualization
 centered around the provided position and optionally scaled by the
 provided scale factor.  The filename suffix determines whether LAMMPS
-will try to read a file in JPEG, PNG, or PPM format.  If the suffix is
-".jpg" or ".jpeg", then LAMMPS attempts to read the image in `JPEG
-format <jpeg_format_>`_, if the suffix is ".png", then lammps attempts
-to read the image in `PNG format <png_format_>`_.  Otherwise LAMMPS will
-try to read the image in `ppm (aka netpbm) format <ppm_format_>`_.  Not
-all variants of those file formats are compatible with image reader code
-in LAMMPS.  If LAMMPS encounters an incompatible or unrecognizable file
-format or a corrupted file, it will stop with an error.
+will try to read a file in JPEG, PNG, TGA, or PPM format.  If the suffix
+is ".jpg" or ".jpeg", then LAMMPS attempts to read the image in `JPEG
+format <jpeg_format_>`_, if the suffix is ".png", then LAMMPS attempts
+to read the image in `PNG format <png_format_>`_, and if the suffix is
+".tga" then LAMMPS will read the file in `TGA format <tga_format_>`_.
+Otherwise LAMMPS will try to read the image in `ppm (aka netpbm) format
+<ppm_format_>`_.  Not all variants of those file formats are compatible
+with image reader code in LAMMPS.  If LAMMPS encounters an incompatible
+or unrecognizable file format or a corrupted file, it will stop with an
+error.
 
 If LAMMPS detects during a run that the file has been changed, it will
 re-read it.  This allows for instance to create a plot using internal
@@ -166,11 +218,94 @@ are required arguments.  Optional keyword / value pairs may be added:
     processing.
 
   When rendering text with transparent background it is recommended to
-  select a similar color but slightly darker or brighter color as background.
-  This will reduce unwanted color effects at the edges due to anti-aliasing.
+  select a similar color but slightly darker or brighter color as
+  background.  This will reduce unwanted color effects at the edges due
+  to anti-aliasing.
 
-There may be multiple *image* or *text* keywords with their arguments
-in a single fix *graphics/labels* command.
+  The *horizontal* keyword selects creating a horizontal text label
+  (this is the default setting).  The *vertical* keyword selects
+  creating a vertical text label instead.
+
+The *colorscale* keyword will create a colormap legend indicating the
+mapping of values to the color of atoms in the :doc:`dump image
+<dump_image>` instance with the given dump-ID and adds it to the
+visualization centered around the provided position in a similar fashion
+as with the *image* or *text* keywords.  The requirements for the text
+argument are the same as in the :doc:`fix print <fix_print>` command: it
+must be a single argument, so text with whitespace must be quoted; and
+the text may contain equal style or immediate variables using the
+``${name}`` or ``$(expression)`` format.  The variables are evaluated
+and expanded at every *Nevery* time step.  The text is shown in the
+center of and above the colormap.  To the left from the text is the
+lower boundary value and to the right the upper boundary value.  The
+colors are created by a linear interpolation between the lower and upper
+boundary value and writing out pixels in the corresponding color.  The
+fix will receive the actual values from the dump with the given
+*dump-ID*.
+
+.. admonition:: Dynamic color maps
+   :class: note
+
+  When using a dynamic color map with "min" or "max" as the upper or
+  lower range values of the map, the dump will execute only *after* the
+  fix, and thus the upper and lower boundary values will be those from
+  the *previous* step where the dump created an image. will be
+  determined every time the fix is executed and the numbers updated
+  accordingly.  Thus when adding a *colorscale* label with this fix it
+  is generally recommended to use a map with a fixed range. This is
+  especially true when creating movies as a fixed range prevents the
+  color scale label to shrink or grow due to the different width of
+  characters.
+
+When using the *colorscale* keyword, the dump-ID, text and its position
+in the "scene" are required arguments.  Optional keyword / value pairs
+may be added:
+
+  The *size* value determines the size of the letters in the text in
+  pixels (approximately) and values between 4 and 512 are accepted.  The
+  default value is 24. The size (height and width) of the colorbar
+  follows the size of the text.
+
+  The *length* value allows to set a minimal length of the colorscale
+  label.  For technical reasons, this is not exactly enforced, but
+  rather a rough approximation that is used to determine the amount of
+  padding in the text.
+
+  The *tics* value determines how many "tics" or lines separating the
+  colors are drawn.  This can simplify determining which value a
+  specific color corresponds to.
+
+  There are four color settings: *fontcolor* or *framecolor* or
+  *backcolor* or *transcolor*\ .  The color can be specified for all of
+  those either as an R/G/B triple with values ranging from 0 to 255 for
+  each channel (e.g. yellow would be "255/255/0").  There are also a few
+  shortcuts for common choices: *silver*, *darkgray*, *white*, *black*.
+  The default *backcolor* value is *silver*.
+
+  - *fontcolor* selects the color for the text, the border of the
+    colorbar and the tics. default is *white*
+  - *backcolor* selects the color for the background, default is
+    *silver*
+  - *framecolor* selects the color for the frame around the background,
+    default is *silver*.
+  - *transcolor* value selects a color for transparency, default is
+    *silver*.  If this color is the same as any of the other color
+    settings, those pixels are not drawn.  Thus with the default
+    settings, the text will be rendered in white without background or
+    frame.  The *none* setting for *transcolor* disables transparency
+    processing.
+
+  When rendering text with transparent background it is recommended to
+  select a similar color but slightly darker or brighter color as
+  background.  This will reduce unwanted color effects at the edges due
+  to anti-aliasing.
+
+  The *horizontal* keyword selects creating a horizontal colorscale label
+  (this is the default setting).  The *vertical* keyword selects
+  creating a vertical text label instead.
+
+There may be multiple *image* or *text* or *colorscale* keywords with
+their arguments in a single fix *graphics/labels* command.
 
 The arguments for the positions of an *image* or *text* and the *scale*
 factor of an *image* or the *size* of a *text* can be specified as
@@ -185,6 +320,7 @@ more detailed discussion on using variables with graphics objects.
 .. _jpeg_format: https://jpeg.org/jpeg/
 .. _png_format: https://en.wikipedia.org/wiki/portable_network_graphics
 .. _ppm_format: https://en.wikipedia.org/wiki/netpbm
+.. _tga_format: https://en.wikipedia.org/wiki/Truevision_TGA
 
 -----------
 
@@ -200,7 +336,16 @@ The color style setting for the fix in the :doc:`dump image
 transparency is by default fully opaque and can be changed with
 *dump\_modify ftrans*\ .
 
-The *fflag1* and *fflag2* settings of *dump image fix* are ignored.
+The *fflag1* setting of *dump image fix* determines how the coordinates
+for the location of the center of the image or the center of the text
+label are interpreted.  Setting *fflag1* to 0 uses the simulation box
+coordinate system (x, y, and z) while setting *fflag1* to 1 uses the
+image coordinate system where (0,0) is the location of the lower left
+corner and (<image width>, <image height>) the upper right corner.  In
+the latter case, the z-coordinate is ignored and the image or label is
+placed on top of everything.
+
+The *fflag2* settings of *dump image fix* is ignored.
 
 --------------
 
@@ -280,7 +425,7 @@ the generated plot into the visualization of the atom.
 ---------
 
 Restart, fix_modify, output, run start/stop, minimize info
-==========================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files
 <restart>`.
@@ -305,10 +450,11 @@ Related commands
 :doc:`fix print <fix_print>`,
 :doc:`fix graphics/arrows <fix_graphics_arrows>`,
 :doc:`fix graphics/isosurface <fix_graphics_isosurface>`,
+:doc:`fix graphics/lines <fix_graphics_lines>`,
 :doc:`fix graphics/objects <fix_graphics_objects>`,
 :doc:`fix graphics/periodic <fix_graphics_periodic>`
 
 Default
 """""""
 
-transcolor = "none" for *image* and "silver" for *text*, scale = 1.0, fontcolor = white, backcolor = silver, framecolor = silver, size = 24
+transcolor = "none" for *image* and "silver" for *text*, scale = 1.0, fontcolor = white, backcolor = silver, framecolor = silver, size = 24, horizontal, tics = 0

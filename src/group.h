@@ -20,12 +20,15 @@ namespace LAMMPS_NS {
 class Region;
 
 class Group : protected Pointers {
+  friend class FixGroup;
+
  public:
-  int ngroup;          // # of defined groups
-  char **names;        // name of each group
-  int *bitmask;        // one-bit mask for each group
-  int *inversemask;    // inverse mask for each group
-  int *dynamic;        // 1 if dynamic, 0 if not
+  enum { MAX_GROUP = 32 };    // max # of groups. limited to 32 because bitmasks are 32-bit int.
+  int ngroup;                 // # of defined groups
+  char **names;               // name of each group
+  int *bitmask;               // one-bit mask for each group
+  int *inversemask;           // inverse mask for each group
+  int *dynamic;               // 1 if dynamic, 0 if not
 
   Group(class LAMMPS *);
   ~Group() override;
@@ -36,6 +39,7 @@ class Group : protected Pointers {
   int find(const std::string &);              // lookup name in list of groups
   int find_or_create(const char *);           // lookup name or create new group
   int get_bitmask_by_id(const std::string &, int, const std::string &, const std::string &);
+  int get_inversemask_by_id(const std::string &, int, const std::string &, const std::string &);
   void write_restart(FILE *);
   void read_restart(FILE *);
 
@@ -66,7 +70,7 @@ class Group : protected Pointers {
   void inertia(int, double *, double[3][3], Region *);
   void omega(double *, double[3][3], double *);    // angular velocity
 
- private:
+ protected:
   int me;
 
   int find_unused();

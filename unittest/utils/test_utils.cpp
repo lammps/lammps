@@ -180,10 +180,132 @@ TEST(Utils, count_words_with_extra_spaces)
     ASSERT_EQ(utils::count_words("   some text # comment   "), 4);
 }
 
+TEST(Utils, join)
+{
+    std::vector<int> intvalues = {1, 2, 3};
+
+    auto combined = utils::join(intvalues, " ");
+    ASSERT_THAT(combined, StrEq("1 2 3"));
+    combined = utils::join(intvalues, "");
+    ASSERT_THAT(combined, StrEq("123"));
+    intvalues[1] = 5;
+    combined         = utils::join(intvalues, "__");
+    ASSERT_THAT(combined, StrEq("1__5__3"));
+    intvalues.resize(1);
+    combined = utils::join(intvalues, "/");
+    ASSERT_THAT(combined, StrEq("1"));
+    intvalues.emplace_back(4);
+    combined = utils::join(intvalues, "1");
+    ASSERT_THAT(combined, StrEq("114"));
+
+    std::vector<long int> longvalues = {1, 2, 3};
+
+    combined = utils::join(longvalues, " ");
+    ASSERT_THAT(combined, StrEq("1 2 3"));
+    combined = utils::join(longvalues, "");
+    ASSERT_THAT(combined, StrEq("123"));
+    longvalues[1] = 5;
+    combined         = utils::join(longvalues, "__");
+    ASSERT_THAT(combined, StrEq("1__5__3"));
+    longvalues.resize(1);
+    combined = utils::join(longvalues, "/");
+    ASSERT_THAT(combined, StrEq("1"));
+    longvalues.emplace_back(4);
+    combined = utils::join(longvalues, "1");
+    ASSERT_THAT(combined, StrEq("114"));
+
+    std::vector<long long int> longlongvalues = {1, 2, 3};
+
+    combined = utils::join(longlongvalues, " ");
+    ASSERT_THAT(combined, StrEq("1 2 3"));
+    combined = utils::join(longlongvalues, "");
+    ASSERT_THAT(combined, StrEq("123"));
+    longlongvalues[1] = 5;
+    combined         = utils::join(longlongvalues, "__");
+    ASSERT_THAT(combined, StrEq("1__5__3"));
+    longlongvalues.resize(1);
+    combined = utils::join(longlongvalues, "/");
+    ASSERT_THAT(combined, StrEq("1"));
+    longlongvalues.emplace_back(4);
+    combined = utils::join(longlongvalues, "1");
+    ASSERT_THAT(combined, StrEq("114"));
+
+    std::vector<float> floatvalues = {1.0, -2.000000001, 3.500001};
+
+    combined = utils::join(floatvalues, " ");
+    EXPECT_THAT(combined, StrEq("1 -2 3.500001"));
+    combined = utils::join(floatvalues, "");
+    EXPECT_THAT(combined, StrEq("1-23.500001"));
+    floatvalues[1] = -5.05;
+    combined         = utils::join(floatvalues, "__");
+    EXPECT_THAT(combined, StrEq("1__-5.05__3.500001"));
+    floatvalues.resize(1);
+    combined = utils::join(floatvalues, "/");
+    EXPECT_THAT(combined, StrEq("1"));
+    floatvalues.emplace_back(0.00000000004);
+    combined = utils::join(floatvalues, " ");
+    EXPECT_THAT(combined, StrEq("1 4e-11"));
+
+    std::vector<double> doublevalues = {1.0, -2.0000000000000002, 3.5000000000001};
+
+    combined = utils::join(doublevalues, " ");
+    EXPECT_THAT(combined, StrEq("1 -2 3.5000000000001"));
+    combined = utils::join(doublevalues, "");
+    EXPECT_THAT(combined, StrEq("1-23.5000000000001"));
+    doublevalues[1] = -5.05;
+    combined         = utils::join(doublevalues, "__");
+    EXPECT_THAT(combined, StrEq("1__-5.05__3.5000000000001"));
+    doublevalues.resize(1);
+    combined = utils::join(doublevalues, "/");
+    EXPECT_THAT(combined, StrEq("1"));
+    doublevalues.emplace_back(0.00000000004);
+    combined = utils::join(doublevalues, " ");
+    EXPECT_THAT(combined, StrEq("1 4e-11"));
+
+    std::vector<std::string> words = {"one", "two", "three"};
+
+    combined = utils::join(words, " ");
+    ASSERT_THAT(combined, StrEq("one two three"));
+    combined = utils::join(words, "");
+    ASSERT_THAT(combined, StrEq("onetwothree"));
+    words[1] = "two ";
+    combined = utils::join(words, "__");
+    ASSERT_THAT(combined, StrEq("one__two __three"));
+    words.resize(1);
+    combined = utils::join(words, "/");
+    ASSERT_THAT(combined, StrEq("one"));
+    words.emplace_back("");
+    combined = utils::join(words, "1");
+    ASSERT_THAT(combined, StrEq("one1"));
+    words.clear();
+    combined = utils::join(words, ".");
+    ASSERT_THAT(combined, StrEq(""));
+
+    std::vector<const char *> strings = {"one", "two", "three"};
+
+    combined = utils::join(strings, " ");
+    ASSERT_THAT(combined, StrEq("one two three"));
+    combined = utils::join(strings, "");
+    ASSERT_THAT(combined, StrEq("onetwothree"));
+    strings[1] = "two ";
+    combined = utils::join(strings, "__");
+    ASSERT_THAT(combined, StrEq("one__two __three"));
+    strings.resize(1);
+    combined = utils::join(strings, "/");
+    ASSERT_THAT(combined, StrEq("one"));
+    strings.emplace_back("");
+    combined = utils::join(strings, "1");
+    ASSERT_THAT(combined, StrEq("one1"));
+    strings.clear();
+    combined = utils::join(strings, ".");
+    ASSERT_THAT(combined, StrEq(""));
+}
+
 TEST(Utils, join_words)
 {
     std::vector<std::string> words = {"one", "two", "three"};
-    auto combined                  = utils::join_words(words, " ");
+
+    auto combined = utils::join_words(words, " ");
     ASSERT_THAT(combined, StrEq("one two three"));
     combined = utils::join_words(words, "");
     ASSERT_THAT(combined, StrEq("onetwothree"));
@@ -196,6 +318,9 @@ TEST(Utils, join_words)
     words.emplace_back("");
     combined = utils::join_words(words, "1");
     ASSERT_THAT(combined, StrEq("one1"));
+    words.clear();
+    combined = utils::join_words(words, ".");
+    ASSERT_THAT(combined, StrEq(""));
 }
 
 TEST(Utils, split_words_simple)
@@ -1037,8 +1162,10 @@ TEST(Utils, parse_grid_id)
 
 TEST(Utils, errorurl)
 {
-    ASSERT_THAT(utils::errorurl(10), StrEq("\nFor more information see https://docs.lammps.org/err0010"));
-    ASSERT_THAT(utils::errorurl(0), StrEq("\nFor more information see https://docs.lammps.org/Errors_details.html"));
+    ASSERT_THAT(utils::errorurl(10),
+                StrEq("\nFor more information see https://docs.lammps.org/err0010"));
+    ASSERT_THAT(utils::errorurl(0),
+                StrEq("\nFor more information see https://docs.lammps.org/Errors_details.html"));
     ASSERT_THAT(utils::errorurl(-1), StrEq(""));
 }
 

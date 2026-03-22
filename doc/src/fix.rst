@@ -265,6 +265,7 @@ accelerated styles exist.
 * :doc:`graphics/arrows <fix_graphics_arrows>` - add arrow graphics objects to :doc:`dump image <dump_image>` output
 * :doc:`graphics/isosurface <fix_graphics_isosurface>` - add an isosurface for a group of atoms to :doc:`dump image <dump_image>` output
 * :doc:`graphics/labels <fix_graphics_labels>` - add images or text as graphics objects to :doc:`dump image <dump_image>` output
+* :doc:`graphics/lines <fix_graphics_lines>` - add a trace of atom positions to :doc:`dump image <dump_image>` output
 * :doc:`graphics/objects <fix_graphics_objects>` - add graphics objects to :doc:`dump image <dump_image>` output
 * :doc:`graphics/periodic <fix_graphics_periodic>` - add selected periodic images of atoms and bonds to :doc:`dump image <dump_image>` output
 * :doc:`gravity <fix_gravity>` - add gravity to atoms in a granular simulation
@@ -279,6 +280,7 @@ accelerated styles exist.
 * :doc:`indent <fix_indent>` - impose force due to an indenter
 * :doc:`ipi <fix_ipi>` - enable LAMMPS to run as a client for i-PI path-integral simulations
 * :doc:`lambda/apip <fix_lambda_apip>` - compute switching parameter, that controls the precision of an :doc:`APIP potential <Howto_apip>`
+* :doc:`lambda/la/csp/apip <fix_lambda_la_csp_apip>` - compute a conservative switching parameter, that controls the precision of an :doc:`APIP potential <Howto_apip>`
 * :doc:`langevin <fix_langevin>` - Langevin temperature control
 * :doc:`langevin/drude <fix_langevin_drude>` - Langevin temperature control of Drude oscillators
 * :doc:`langevin/eff <fix_langevin_eff>` - Langevin temperature control for the electron force field model

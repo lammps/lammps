@@ -214,10 +214,10 @@ directory:
 
 .. code-block:: bash
 
-   Makefile.intel_cpu_intelmpi # Intel Compiler, Intel MPI, No Offload
-   Makefile.knl                # Intel Compiler, Intel MPI, No Offload
-   Makefile.intel_cpu_mpich    # Intel Compiler, MPICH, No Offload
-   Makefile.intel_cpu_openpmi  # Intel Compiler, OpenMPI, No Offload
+   Makefile.intel_cpu_intelmpi  # Intel Compiler, Intel MPI, No Offload
+   Makefile.knl                 # Intel Compiler, Intel MPI, No Offload
+   Makefile.intel_cpu_mpich     # Intel Compiler, MPICH, No Offload
+   Makefile.intel_cpu_openmpi   # Intel Compiler, OpenMPI, No Offload
    Makefile.intel_co-processor  # Intel Compiler, Intel MPI, Offload
 
 Makefile.knl is identical to Makefile.intel_cpu_intelmpi except that

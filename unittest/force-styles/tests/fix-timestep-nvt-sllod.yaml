@@ -13,7 +13,7 @@ post_commands: ! |
   variable vx atom y*${gamma}
   if $(step)==0 then "velocity all set v_vx NULL NULL sum yes"
   fix all all deform 2 xy erate ${gamma} remap v
-  fix test all nvt/sllod temp 50.0 ${t_target} 1.0 psllod no
+  fix test all nvt/sllod temp 50.0 ${t_target} 1.0 kick no psllod no integrator legacy
 input_file: in.fourmol
 natoms: 29
 global_scalar: 2854867.1697558644

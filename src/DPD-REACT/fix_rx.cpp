@@ -27,6 +27,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair_dpd_fdt_energy.h"
+#include "safe_pointers.h"
 #include "update.h"
 
 #include <algorithm> // std::max
@@ -238,8 +239,7 @@ void FixRX::post_constructor()
 
   // open file on proc 0
 
-  FILE *fp;
-  fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     fp = utils::open_potential(kineticsFile,lmp,nullptr);
     if (fp == nullptr)
@@ -259,7 +259,6 @@ void FixRX::post_constructor()
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -775,8 +774,7 @@ void FixRX::read_file(char *file)
 
   // open file on proc 0
 
-  FILE *fp;
-  fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     fp = utils::open_potential(file,lmp,nullptr);
     if (fp == nullptr) {
@@ -798,7 +796,6 @@ void FixRX::read_file(char *file)
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -851,7 +848,6 @@ void FixRX::read_file(char *file)
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);

@@ -488,7 +488,8 @@ struct ViewTraits {
  public:
   //------------------------------------
   // Data type traits:
-#ifdef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
+#if defined(KOKKOS_ENABLE_IMPL_VIEW_LEGACY) && \
+    defined(KOKKOS_ENABLE_DEPRECATED_CODE_5)
   using data_type           = typename data_analysis::type;
   using const_data_type     = typename data_analysis::const_type;
   using non_const_data_type = typename data_analysis::non_const_type;

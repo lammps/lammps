@@ -24,7 +24,7 @@ AtomStyle(ellipsoid,AtomVecEllipsoid);
 
 namespace LAMMPS_NS {
 
-class AtomVecEllipsoid : public AtomVec {
+class AtomVecEllipsoid : virtual public AtomVec {
  public:
   struct Bonus {
     double shape[3];
@@ -69,7 +69,7 @@ class AtomVecEllipsoid : public AtomVec {
 
   int nlocal_bonus;
 
- private:
+ protected:
   int *ellipsoid;
   double *rmass;
   double **angmom;
@@ -79,7 +79,7 @@ class AtomVecEllipsoid : public AtomVec {
   int ellipsoid_flag;
   double rmass_one;
 
-  void grow_bonus();
+  virtual void grow_bonus();
   void copy_bonus_all(int, int);
 };
 

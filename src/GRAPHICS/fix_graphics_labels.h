@@ -63,12 +63,35 @@ class FixGraphicsLabels : public Fix {
     unsigned char framecolor[3];
     unsigned char transcolor[3];
     bool notrans;
+    bool horizontal;
     double size;
     double scale;
     int xvar, yvar, zvar, svar;
     char *xstr, *ystr, *zstr, *sstr;
   };
   std::vector<TextInfo> texts;
+
+  struct ScaleInfo {
+    std::string dumpid;
+    std::string text;
+    double pos[3];
+    int width;
+    int height;
+    unsigned char *pixmap;
+    unsigned char fontcolor[3];
+    unsigned char backcolor[3];
+    unsigned char framecolor[3];
+    unsigned char transcolor[3];
+    bool notrans;
+    bool horizontal;
+    double size;
+    double scale;
+    int length;
+    int tics;
+    int xvar, yvar, zvar, svar;
+    char *xstr, *ystr, *zstr, *sstr;
+  };
+  std::vector<ScaleInfo> scales;
 
   int varflag;
   int numobjs;

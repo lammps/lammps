@@ -23,7 +23,7 @@ Syntax
 * temp = temperature
 * seed = random number generator seed
 * one or more keyword/value pairs may be appended
-* keyword = *rng* or *dipole* or *gamma_r_eigen* or *gamma_t_eigen* or *gamma_r* or *gamma_t* or *rotation_temp* or *planar_rotation*
+* keyword = *rng* or *dipole* or *gamma_r_eigen* or *gamma_t_eigen* or *gamma_r* or *gamma_t* or *rotation_style* or *rotation_temp* or *planar_rotation*
 
   .. parsed-literal::
 
@@ -41,8 +41,11 @@ Syntax
        *gt1*, *gt2*, and *gt3* = diagonal entries of body frame translational friction tensor
      *gamma_t* values = *gt* for *brownian* and *brownian/sphere*
         *gt* = magnitude of the (isotropic) translational friction tensor
+     *rotation_style* values = *geometric* or *projection* for *brownian/sphere*
+        *geometric* = geometric, rotation-based integration scheme
+        *projection* = projection-based integration scheme
      *rotation_temp* values = *T* for *brownian/sphere* and *brownian/asphere*
-        *T* = rotation temperature, which can be different then *temp* when out of equilibrium
+        *T* = rotation temperature, which can be different than *temp* when out of equilibrium
      *planar_rotation* values = none (constrains rotational diffusion to be in xy plane if in 3D)
 
 Examples
@@ -53,7 +56,8 @@ Examples
    fix 1 all brownian 1.0 12908410 gamma_t 1.0
    fix 1 all brownian 1.0 12908410 gamma_t 3.0 rng gaussian
    fix 1 all brownian/sphere 1.0 1294019 gamma_t 3.0 gamma_r 1.0
-   fix 1 all brownian/sphere 1.0 19581092 gamma_t 1.0 gamma_r 0.3  rng none
+   fix 1 all brownian/sphere 1.0 19581092 gamma_t 1.0 gamma_r 0.3 rng none
+   fix 1 all brownian/sphere 1.0 19581092 gamma_t 1.0 gamma_r 0.3 rng gaussian rotation_style projection
    fix 1 all brownian/asphere 1.0 1294019 gamma_t_eigen 1.0 2.0 3.0 gamma_r_eigen 4.0 7.0 8.0 rng gaussian
    fix 1 all brownian/asphere 1.0 1294019 gamma_t_eigen 1.0 2.0 3.0 gamma_r_eigen 4.0 7.0 8.0 dipole 1.0 0.0 0.0
 
@@ -77,10 +81,11 @@ positions is
 in the lab-frame (i.e., :math:`\boldsymbol{\gamma}_t` is not diagonal, but
 only depends on orientation and so the noise is still additive).
 
-The rotational motion for the spherical and ellipsoidal particles is not
-as simple an expression, but is chosen to replicate the Boltzmann
-distribution for the case of conservative torques (see :ref:`(Ilie)
-<Ilie1>` or :ref:`(Delong) <Delong1>`).
+The overdamped rotational motion for the spherical and ellipsoidal particles
+results from random rotations instead of translations, which are chosen in such
+a way that the motion reproduces the equilibrium Boltzmann distribution for the
+case of conservative torques (see :ref:`(Hoefling) <Hoefling1>`, :ref:`(Ilie)
+<Ilie1>`, and :ref:`(Delong) <Delong1>`).
 
 For the style *brownian*, only the positions of the particles are
 updated. This is therefore suitable for point particle simulations.
@@ -93,18 +98,34 @@ updated. This style therefore requires the hybrid atom style
 
 .. math::
 
-   \boldsymbol{\mu}(t+dt) = \frac{\boldsymbol{\mu}(t) + \boldsymbol{\omega} \times \boldsymbol{\mu}dt
-   }{|\boldsymbol{\mu}(t) + \boldsymbol{\omega} \times \boldsymbol{\mu}|}
+   \boldsymbol{\mu}(t+dt) = \mathrm{R}(\boldsymbol{\omega} dt) \, \boldsymbol{\mu}(t) \,,
 
-which correctly reproduces a Boltzmann distribution of orientations and
-rotational diffusion moments (see :ref:`(Ilie) <Ilie1>`) when
+where :math:`\mathrm{R}(\boldsymbol{\omega} dt)` is a rotation matrix with axis
+:math:`\boldsymbol{n} = \boldsymbol{\omega} / |\boldsymbol{\omega}|`
+and angle :math:`\theta = |\boldsymbol{\omega}| dt` (see :ref:`(Hoefling) <Hoefling1>`).
+For small angles, the action of the rotation matrix can be cast into a
+tangential increment :math:`\boldsymbol{\omega} \times \boldsymbol{\mu}dt` and
+subsequent projection to preserve the magnitude :math:`|\boldsymbol{\mu}(t)|` of
+the dipole (see :ref:`(Ilie) <Ilie1>`):
+
+.. math::
+
+   \boldsymbol{\mu}(t+dt) = |\boldsymbol{\mu}(t)| \,
+      \frac{\boldsymbol{\mu}(t) + \boldsymbol{\omega} \times \boldsymbol{\mu}dt
+      }{|\boldsymbol{\mu}(t) + \boldsymbol{\omega} \times \boldsymbol{\mu}dt|}\,.
+
+For suitable time step :math:`dt`, both expressions were shown to correctly
+reproduce the Boltzmann distribution of orientations and rotational diffusion
+moments when
 
 .. math::
 
    \boldsymbol{\omega} = \frac{\mathbf{T}}{\gamma_r} + \sqrt{\frac{2 k_B T_{rot}}{\gamma_r}\frac{d\mathbf{W}}{dt}},
 
-with :math:`d\mathbf{W}` being a random number with zero mean and variance :math:`dt`
-and :math:`T_{rot}` is *rotation_temp*.
+with :math:`d\mathbf{W}` being a random number with zero mean and variance
+:math:`dt` and :math:`T_{rot}` is *rotation_temp*. The geometric integration
+scheme, however, accepts time steps that can be an order of magnitude larger
+(see :ref:`(Hoefling) <Hoefling1>`).
 
 For the style *brownian/asphere*, the center of mass positions and the
 quaternions of ellipsoidal particles are updated. This fix style is
@@ -160,7 +181,6 @@ a similar algorithm.
 
 ---------
 
-
 If the *rng* keyword is used with the *uniform* value, then the noise
 is generated from a uniform distribution (see
 :ref:`(Dunweg) <Dunweg7>` for why this works). This is the same method
@@ -193,8 +213,18 @@ If the *dipole* keyword is used, then the dipole moments of the particles
 are updated as described above. Only compatible with *brownian/asphere*
 (as *brownian/sphere* updates dipoles automatically).
 
+.. versionadded:: 11Feb2026
+
+If the *rotation_style* keyword is used with the *geometric* value, then the
+geometric, rotation-based integration scheme (:ref:`(Hoefling) <Hoefling1>`)
+is used. If the keyword is used with the *projection* value, the linearized,
+projection-based scheme (:ref:`(Ilie) <Ilie1>`) is used. Only
+compatible with *brownian/sphere*.
+
+Note: *rotation_style projection* reproduces the legacy behavior (the former default).
+
 If the *rotation_temp* keyword is used, then the rotational diffusion
-will be occur at this prescribed temperature instead of *temp*. Only
+will occur at this prescribed temperature instead of *temp*. Only
 compatible with *brownian/sphere* and *brownian/asphere*.
 
 If the *planar_rotation* keyword is used, then rotation is constrained
@@ -245,10 +275,17 @@ Related commands
 Default
 """""""
 
-The default for *rng* is *uniform*. The default for the rotational and
-translational friction tensors are the identity tensor.
+.. versionchanged:: 11Feb2026
+
+The default for *rng* is *uniform*. The default for *rotation_style* is *geometric*.
+The default for the rotational and translational friction tensors are the identity
+tensor.
 
 ----------
+
+.. _Hoefling1:
+
+**(Hoefling)** :math:`\mathrm{H\ddot{o}fling}` and Straube, Physical Review Research, 7, 043034 (2025).
 
 .. _Ilie1:
 
@@ -256,7 +293,7 @@ translational friction tensors are the identity tensor.
 
 .. _Delong1:
 
-**(Delong)** Delong, Usabiaga, Donev, Journal of Chemical Physics. 143, 144107 (2015)
+**(Delong)** Delong, Usabiaga, Donev, Journal of Chemical Physics. 143, 144107 (2015).
 
 .. _Dunweg7:
 

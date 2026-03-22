@@ -108,13 +108,13 @@ are listed in the sections below.
 Note that for all the body styles, if the data file defines a general
 triclinic box, then the orientation of the body particle and its
 corresponding 6 moments of inertia and other orientation-dependent
-values should reflect the fact the body is defined withing a general
+values should reflect the fact the body is defined within a general
 triclinic box with edge vectors **A**,**B**,**C**.  LAMMPS will rotate
 the box to convert it to a restricted triclinic box.  This operation
 will also rotate the orientation of the body particles.  See the
-:doc:`Howto triclinic <Howto_triclinic>` doc page for more details.
-The sections below highlight the orientation-dependent values specific
-to each body style.
+:doc:`Howto triclinic <Howto_triclinic>` doc page for more details.  The
+sections below highlight the orientation-dependent values specific to
+each body style.
 
 ----------
 
@@ -464,7 +464,7 @@ these polyhedron vertex displacements are orientation-dependent and,
 as mentioned above, should reflect the body particle's orientation
 within the general triclinic box.
 
-The :doc:`pair_style body/rounded/polhedron
+The :doc:`pair_style body/rounded/polyhedron
 <pair_body_rounded_polyhedron>` command can be used with this body
 style to compute body/body interactions.  The :doc:`fix
 wall/body/polyhedron <fix_wall_body_polygon>` command can be used with
@@ -476,7 +476,7 @@ wall.
 **Output specifics for all body styles:**
 
 For the :doc:`compute body/local <compute_body_local>` and :doc:`dump
-local <dump>` commands, all 3 of the body styles described on his page
+local <dump>` commands, all 3 of the body styles described on this page
 produces one datum for each of the N vertices (of sub-particles) in a
 body particle.  The datum has 3 values:
 

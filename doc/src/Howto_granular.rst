@@ -1,9 +1,9 @@
 Granular models
 ===============
 
-Granular system are composed of spherical particles with a diameter,
-as opposed to point particles.  This means they have an angular
-velocity and torque can be imparted to them to cause them to rotate.
+Granular systems are composed of spherical particles with a diameter, as
+opposed to point particles.  This means they have an angular velocity
+and torque can be imparted to them to cause them to rotate.
 
 To run a simulation of a granular model, you will want to use
 the following commands:
@@ -16,12 +16,13 @@ This compute
 
 * :doc:`compute erotate/sphere <compute_erotate_sphere>`
 
-calculates rotational kinetic energy which can be :doc:`output with thermodynamic info <Howto_output>`.
-The compute
+calculates rotational kinetic energy which can be :doc:`output with
+thermodynamic info <Howto_output>`.  The compute
 
 * :doc:`compute fabric <compute_fabric>`
 
-calculates various versions of the fabric tensor for granular and non-granular pair styles.
+calculates various versions of the fabric tensor for granular and
+non-granular pair styles.
 
 Use one of these 4 pair potentials, which compute forces and torques
 between interacting pairs of particles:

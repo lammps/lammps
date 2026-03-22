@@ -23,6 +23,7 @@
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 
 #include <algorithm>
@@ -134,7 +135,7 @@ EAPOD::~EAPOD()
 void EAPOD::read_pod_file(const std::string &pod_file)
 {
   std::string podfilename = pod_file;
-  FILE *fppod;
+  SafeFilePtr fppod;
   if (comm->me == 0) {
 
     fppod = utils::open_potential(podfilename,lmp,nullptr);
@@ -153,7 +154,6 @@ void EAPOD::read_pod_file(const std::string &pod_file)
       ptr = fgets(line,MAXLINE,fppod);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fppod);
       }
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -402,7 +402,7 @@ void EAPOD::read_pod_file(const std::string &pod_file)
 void EAPOD::read_model_coeff_file(const std::string &coeff_file)
 {
   std::string coefffilename = coeff_file;
-  FILE *fpcoeff;
+  SafeFilePtr fpcoeff;
   if (comm->me == 0) {
 
     fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
@@ -420,7 +420,6 @@ void EAPOD::read_model_coeff_file(const std::string &coeff_file)
       ptr = fgets(line,MAXLINE,fpcoeff);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fpcoeff);
       }
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -457,7 +456,6 @@ void EAPOD::read_model_coeff_file(const std::string &coeff_file)
       ptr = fgets(line,MAXLINE,fpcoeff);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fpcoeff);
       }
     }
 
@@ -482,7 +480,6 @@ void EAPOD::read_model_coeff_file(const std::string &coeff_file)
       ptr = fgets(line,MAXLINE,fpcoeff);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fpcoeff);
       }
     }
 
@@ -507,7 +504,6 @@ void EAPOD::read_model_coeff_file(const std::string &coeff_file)
       ptr = fgets(line,MAXLINE,fpcoeff);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fpcoeff);
       }
     }
 
@@ -523,10 +519,6 @@ void EAPOD::read_model_coeff_file(const std::string &coeff_file)
     } catch (TokenizerException &e) {
       error->all(FLERR,"Incorrect format in model coefficient file: {}", e.what());
     }
-  }
-
-  if (comm->me == 0) {
-    if (!eof) fclose(fpcoeff);
   }
 
 
@@ -553,7 +545,7 @@ void EAPOD::read_model_coeff_file(const std::string &coeff_file)
 int EAPOD::read_coeff_file(const std::string &coeff_file)
 {
   std::string coefffilename = coeff_file;
-  FILE *fpcoeff;
+  SafeFilePtr fpcoeff;
   if (comm->me == 0) {
 
     fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
@@ -572,7 +564,6 @@ int EAPOD::read_coeff_file(const std::string &coeff_file)
       ptr = fgets(line,MAXLINE,fpcoeff);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fpcoeff);
       }
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -608,7 +599,6 @@ int EAPOD::read_coeff_file(const std::string &coeff_file)
       ptr = fgets(line,MAXLINE,fpcoeff);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fpcoeff);
       }
     }
 
@@ -629,10 +619,6 @@ int EAPOD::read_coeff_file(const std::string &coeff_file)
   }
 
   if (comm->me == 0) {
-    if (!eof) fclose(fpcoeff);
-  }
-
-  if (comm->me == 0) {
     utils::logmesg(lmp, "**************** Begin of POD Coefficients ****************\n");
     utils::logmesg(lmp, "total number of coefficients for POD potential: {}\n", ncoeffall);
     utils::logmesg(lmp, "**************** End of POD Coefficients ****************\n\n");
@@ -645,7 +631,7 @@ int EAPOD::read_coeff_file(const std::string &coeff_file)
 int EAPOD::read_projection_matrix(const std::string &proj_file)
 {
   std::string projfilename = proj_file;
-  FILE *fpproj;
+  SafeFilePtr fpproj;
   if (comm->me == 0) {
 
     fpproj = utils::open_potential(projfilename,lmp,nullptr);
@@ -664,7 +650,6 @@ int EAPOD::read_projection_matrix(const std::string &proj_file)
       ptr = fgets(line,MAXLINE,fpproj);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fpproj);
       }
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -700,7 +685,6 @@ int EAPOD::read_projection_matrix(const std::string &proj_file)
       ptr = fgets(line,MAXLINE,fpproj);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fpproj);
       }
     }
 
@@ -719,9 +703,6 @@ int EAPOD::read_projection_matrix(const std::string &proj_file)
       error->all(FLERR,"Incorrect format in PCA projection matrix file: {}", e.what());
     }
   }
-  if (comm->me == 0) {
-    if (!eof) fclose(fpproj);
-  }
 
   if (comm->me == 0) {
     utils::logmesg(lmp, "**************** Begin of PCA projection matrix ****************\n");
@@ -736,7 +717,7 @@ int EAPOD::read_projection_matrix(const std::string &proj_file)
 int EAPOD::read_centroids(const std::string &centroids_file)
 {
   std::string centfilename = centroids_file;
-  FILE *fpcent;
+  SafeFilePtr fpcent;
   if (comm->me == 0) {
 
     fpcent = utils::open_potential(centfilename,lmp,nullptr);
@@ -755,7 +736,6 @@ int EAPOD::read_centroids(const std::string &centroids_file)
       ptr = fgets(line,MAXLINE,fpcent);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fpcent);
       }
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -791,7 +771,6 @@ int EAPOD::read_centroids(const std::string &centroids_file)
       ptr = fgets(line,MAXLINE,fpcent);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fpcent);
       }
     }
 
@@ -809,9 +788,6 @@ int EAPOD::read_centroids(const std::string &centroids_file)
     } catch (TokenizerException &e) {
       error->all(FLERR,"Incorrect format in PCA centroids file: {}", e.what());
     }
-  }
-  if (comm->me == 0) {
-    if (!eof) fclose(fpcent);
   }
 
   if (comm->me == 0) {

@@ -178,7 +178,7 @@ void *impl_allocate_common(const int device_id,
                 "Please update your CUDA runtime version or "
                 "reconfigure with "
                 "-D Kokkos_ENABLE_IMPL_CUDA_UNIFIED_MEMORY=OFF");
-  if (arg_alloc_size) {  // cudaMemAdvise_v2 does not work with nullptr
+  if (arg_alloc_size) {  // cudaMemAdvise does not work with nullptr
     error_code = cudaMallocManaged(&ptr, arg_alloc_size, cudaMemAttachGlobal);
     if (error_code == cudaSuccess) {
       // One would think cudaMemLocation{device_id,
@@ -187,8 +187,14 @@ void *impl_allocate_common(const int device_id,
       cudaMemLocation loc;
       loc.id   = device_id;
       loc.type = cudaMemLocationTypeDevice;
+#if CUDART_VERSION < 13000  // cudaMemAdvise_v2 was deprecated in CUDA 13, it is
+                            // now the same as cudaMemAdvise
       KOKKOS_IMPL_CUDA_SAFE_CALL(cudaMemAdvise_v2(
           ptr, arg_alloc_size, cudaMemAdviseSetPreferredLocation, loc));
+#else
+      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaMemAdvise(
+          ptr, arg_alloc_size, cudaMemAdviseSetPreferredLocation, loc));
+#endif
     }
   }
 #elif (defined(KOKKOS_ENABLE_IMPL_CUDA_MALLOC_ASYNC) && CUDART_VERSION >= 11020)

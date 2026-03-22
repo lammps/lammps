@@ -36,6 +36,8 @@
 #include "update.h"
 
 #include <cstring>
+#include <limits>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -44,6 +46,10 @@ using namespace LAMMPS_NS;
 
 enum{ONELEVEL,TWOLEVEL,NUMA,CUSTOM};
 enum{CART,CARTREORDER,XYZ};
+
+namespace {
+  constexpr double EPSILON = std::numeric_limits<double>::epsilon();
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -684,7 +690,7 @@ double Comm::get_comm_cutoff()
   if (!force->pair && (cutghostuser == 0.0)) {
     maxcommcutoff = MAX(maxcommcutoff,maxbondcutoff);
   } else {
-    if ((me == 0) && (maxbondcutoff > maxcommcutoff))
+    if ((me == 0) && ((maxbondcutoff - EPSILON) > maxcommcutoff))
       error->warning(FLERR,"Communication cutoff {} is shorter than a bond "
                      "length based estimate of {}. This may lead to errors.",
                      maxcommcutoff,maxbondcutoff);
@@ -693,7 +699,7 @@ double Comm::get_comm_cutoff()
   // print warning if neighborlist cutoff overrides user cutoff
 
   if ((me == 0) && (update->setupflag == 1)) {
-    if ((cutghostuser > 0.0) && (maxcommcutoff > cutghostuser))
+    if ((cutghostuser > 0.0) && ((maxcommcutoff - EPSILON) > cutghostuser))
       error->warning(FLERR,"Communication cutoff adjusted to {}",maxcommcutoff);
   }
 

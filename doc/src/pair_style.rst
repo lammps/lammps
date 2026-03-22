@@ -291,6 +291,7 @@ accelerated styles exist.
 * :doc:`lubricate/poly <pair_lubricate>` - Hydrodynamic lubrication forces with polydispersity
 * :doc:`lubricateU <pair_lubricateU>` - Hydrodynamic lubrication forces for Fast Lubrication Dynamics
 * :doc:`lubricateU/poly <pair_lubricateU>` - Hydrodynamic lubrication forces for Fast Lubrication with polydispersity
+* :doc:`mbx <pair_mbx>` - Many-Body eXpansion (MBX) potential
 * :doc:`mdpd <pair_mesodpd>` - mDPD particle interactions
 * :doc:`mdpd/rhosum <pair_mesodpd>` - mDPD particle interactions for mass density
 * :doc:`meam <pair_meam>` - Modified embedded atom method (MEAM)

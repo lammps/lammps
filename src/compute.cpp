@@ -62,7 +62,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = vector_flag = array_flag = 0;
   thermo_modify_colname = 0;
   extscalar = extvector = extarray = -1;
-  peratom_flag = local_flag = pergrid_flag = 0;
+  peratom_flag = local_flag = pergrid_flag = image_flag = 0;
   size_vector_variable = size_array_rows_variable = 0;
 
   tempflag = pressflag = peflag = 0;
@@ -78,7 +78,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
 
   initialized_flag = 0;
   invoked_scalar = invoked_vector = invoked_array = -1;
-  invoked_peratom = invoked_local = -1;
+  invoked_peratom = invoked_local = invoked_image = -1;
   invoked_flag = INVOKED_NONE;
 
   // set modify defaults
@@ -142,7 +142,10 @@ void Compute::modify_params(int narg, char **arg)
 
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"extra/dof") == 0) {
+    int n = modify_param(narg-iarg, &arg[iarg]);
+    if (n != 0) {
+      iarg += n;
+    } else if (strcmp(arg[iarg],"extra/dof") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute_modify extra/dof", error);
       extra_dof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
@@ -151,10 +154,8 @@ void Compute::modify_params(int narg, char **arg)
       dynamic_user = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else {
-      int n = modify_param(narg-iarg, &arg[iarg]);
-        if (n== 0)
-          error->all(FLERR, iarg + 1, "Compute {} {} does not support compute_modify {} command",
-                     id, style, arg[iarg]);
+      error->all(FLERR, iarg + 1, "Compute {} {} does not support compute_modify {} command",
+                 id, style, arg[iarg]);
     }
   }
 }

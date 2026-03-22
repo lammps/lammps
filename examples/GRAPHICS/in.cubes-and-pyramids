@@ -45,9 +45,9 @@ thermo       1000
 variable progress equal step/v_steps
 fix pbar all graphics/objects ${out} progbar 3 4 y 24.0 12.0 -1.4 30.0 0.5 v_progress 10
 
-dump         2 all image ${out} cubes-and-pyramids.*.png type type size 600 600 shiny 0.4 &
+dump         2 all image ${out} cubes-and-pyramids.*.ppm type type size 600 600 shiny 0.4 &
                          box yes 0.025 axes no 0.5 0.1 zoom 1.5 view 80 0 fsaa yes ssao yes 315123 0.4 &
-                         body type 0.2 3 fix pbar type 0 0
+                         body atom 0.2 3 fix pbar type 0 0
 #            set cylinder diameter--^  ^-- set viz style (1 only faces, 2 cylinders, 3 both)
 dump_modify  2 pad 6 backcolor darkgray backcolor2 gray boxcolor white &
                      acolor 1 steelblue acolor 2 orange  acolor 3 slategray  acolor 4 red

@@ -15,6 +15,7 @@
 #define LMP_DUMP_H
 
 #include "pointers.h"    // IWYU pragma: export
+#include "safe_pointers.h"
 
 #include <map>
 
@@ -60,17 +61,17 @@ class Dump : protected Pointers {
  protected:
   int me, nprocs;    // proc info
 
-  int compressed;          // 1 if dump file is written compressed, 0 no
-  int binary;              // 1 if dump file is written binary, 0 no
-  int multifile;           // 0 = one big file, 1 = one file per timestep
-  int multifile_override;  // 1 to override the "must have '*'" restriction in `write_dump`
-  int multiproc;           // 0 = proc 0 writes for all,
-                           // else # of procs writing files
-  int nclusterprocs;       // # of procs in my cluster that write to one file
-  int filewriter;          // 1 if this proc writes a file, else 0
-  int fileproc;            // ID of proc in my cluster who writes to file
-  char *multiname;         // filename with % converted to cluster ID
-  MPI_Comm clustercomm;    // MPI communicator within my cluster of procs
+  int compressed;            // 1 if dump file is written compressed, 0 no
+  int binary;                // 1 if dump file is written binary, 0 no
+  int multifile;             // 0 = one big file, 1 = one file per timestep
+  int multifile_override;    // 1 to override the "must have '*'" restriction in `write_dump`
+  int multiproc;             // 0 = proc 0 writes for all,
+                             // else # of procs writing files
+  int nclusterprocs;         // # of procs in my cluster that write to one file
+  int filewriter;            // 1 if this proc writes a file, else 0
+  int fileproc;              // ID of proc in my cluster who writes to file
+  char *multiname;           // filename with % converted to cluster ID
+  MPI_Comm clustercomm;      // MPI communicator within my cluster of procs
 
   int flush_flag;           // 0 if no flush, 1 if flush every dump
   int sort_flag;            // 1 if sorted output
@@ -115,10 +116,10 @@ class Dump : protected Pointers {
   std::map<std::string, int> key2col;
   std::vector<std::string> keyword_user;
 
-  FILE *fp;        // file to write dump to
-  int size_one;    // # of quantities for one atom
-  int nme;         // # of atoms in this dump from me
-  int nsme;        // # of chars in string output from me
+  SafeFilePtr fp;    // file to write dump to
+  int size_one;      // # of quantities for one atom
+  int nme;           // # of atoms in this dump from me
+  int nsme;          // # of chars in string output from me
 
   double boxxlo, boxxhi;    // local copies of domain values
   double boxylo, boxyhi;    // lo/hi are bounding box for triclinic

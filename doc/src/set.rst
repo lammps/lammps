@@ -27,12 +27,12 @@ Syntax
   or *density* or *density/disc* or *diameter* or *dihedral* or *dipole*
   or *dipole/random* or *dpd/theta* or *edpd/cv* or *edpd/temp* or
   *epsilon* or *image* or *improper* or *length* or *mass* or *mol* or
-  *omega* or *quat* or *quat/random* or *radius/electron* or *shape* or
-  *smd/contact/radius* or *smd/mass/density* or *sph/cv* or *sph/e* or
-  *sph/rho* or *spin/atom* or *spin/atom/random* or *spin/electron* or
-  *temperature* or *theta* or *theta/random* or *tri* or *type* or
-  *type/fraction* or *type/ratio* or *type/subset* or *volume* or *vx*
-  or *vy* or *vz* or *x* or *y* or *z* or *i_name* or *d_name* or
+  *omega* or *quat* or *quat/random* or *radius/electron* or *rheo/rho* or
+  *rheo/status* or *shape* or *smd/contact/radius* or *smd/mass/density* or
+  *sph/cv* or *sph/e* or *sph/rho* or *spin/atom* or *spin/atom/random* or
+  *spin/electron* or *temperature* or *theta* or *theta/random* or *tri* or
+  *type* or *type/fraction* or *type/ratio* or *type/subset* or *volume* or
+  *vx* or *vy* or *vz* or *x* or *y* or *z* or *i_name* or *d_name* or
   *i2_name* or *d2_name*
 
   .. parsed-literal::
@@ -96,6 +96,10 @@ Syntax
          seed = random # seed (positive integer) for quaternion orientations
        *radius/electron* value = eradius
          eradius = electron radius (or fixed-core radius) (distance units)
+         value can be an atom-style variable (see below)
+       *rheo/rho* value = density of RHEO particles (mass/distance\^3)
+         value can be an atom-style variable (see below)
+       *rheo/status* value = status or phase of RHEO particles (unitless)
          value can be an atom-style variable (see below)
        *shape* values = Sx Sy Sz
          Sx,Sy,Sz = 3 diameters of ellipsoid (distance units)
@@ -511,6 +515,10 @@ use of an atom-style variable.
 
 Keyword *radius/electron* uses the specified value to set the radius
 of electrons or fixed cores.
+
+Keywords *rheo/rho* and *rheo/status* set the density and the status of
+rheo particles. In particular, one can only set the phase in the status
+as described by the :doc:`RHEO howto page <Howto_rheo>`.
 
 Keyword *shape* sets the size and shape of the selected atoms.  The
 particles must be ellipsoids as defined by the :doc:`atom_style

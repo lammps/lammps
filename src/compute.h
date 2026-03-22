@@ -31,6 +31,7 @@ class Compute : protected Pointers {
     INVOKED_PERATOM = 1<<3,
     INVOKED_LOCAL   = 1<<4,
     INVOKED_PERGRID = 1<<5,
+    INVOKED_IMAGE   = 1<<6,
   };
   // clang-format on
   static int instance_total;    // # of Compute classes ever instantiated
@@ -46,24 +47,23 @@ class Compute : protected Pointers {
   double *vector_local;    // computed local vector
   double **array_local;    // computed local array
 
-  int scalar_flag;                 // 0/1 if compute_scalar() function exists
-  int vector_flag;                 // 0/1 if compute_vector() function exists
-  int array_flag;                  // 0/1 if compute_array() function exists
-  int thermo_modify_colname;       // 1 if fix has custom column names for output
+  int scalar_flag;     // 0/1 if compute_scalar() function exists
+  int vector_flag;     // 0/1 if compute_vector() function exists
+  int array_flag;      // 0/1 if compute_array() function exists
+  int pergrid_flag;    // 0/1 if compute_pergrid() function exists
+  int image_flag;      // 0/1 if compute_image() function exists
+  int peratom_flag;    // 0/1 if compute_peratom() function exists
+  int local_flag;      // 0/1 if compute_local() function exists
+
+  int thermo_modify_colname;       // 1 if compute has custom column names for output
   int size_vector;                 // length of global vector
   int size_array_rows;             // rows in global array
   int size_array_cols;             // columns in global array
   int size_vector_variable;        // 1 if vec length is unknown in advance
   int size_array_rows_variable;    // 1 if array rows is unknown in advance
-
-  int peratom_flag;         // 0/1 if compute_peratom() function exists
-  int size_peratom_cols;    // 0 = vector, N = columns in peratom array
-
-  int local_flag;         // 0/1 if compute_local() function exists
-  int size_local_rows;    // rows in local vector or array
-  int size_local_cols;    // 0 = vector, N = columns in local array
-
-  int pergrid_flag;    // 0/1 if compute_pergrid() function exists
+  int size_peratom_cols;           // 0 = vector, N = columns in peratom array
+  int size_local_rows;             // rows in local vector or array
+  int size_local_cols;             // 0 = vector, N = columns in local array
 
   int extscalar;    // 0/1 if global scalar is intensive/extensive
   int extvector;    // 0/1/-1 if global vector is all int/ext/extlist
@@ -94,6 +94,7 @@ class Compute : protected Pointers {
   bigint invoked_scalar;     // last timestep on which compute_scalar() was invoked
   bigint invoked_vector;     // ditto for compute_vector()
   bigint invoked_array;      // ditto for compute_array()
+  bigint invoked_image;      // ditto for compute_image()
   bigint invoked_peratom;    // ditto for compute_peratom()
   bigint invoked_local;      // ditto for compute_local()
   bigint invoked_pergrid;    // ditto for compute_grid()
@@ -125,11 +126,12 @@ class Compute : protected Pointers {
   virtual double compute_scalar() { return 0.0; }
   virtual void compute_vector() {}
   virtual void compute_array() {}
+  virtual int compute_image(int *&, double **&) { return 0; }
   virtual void compute_peratom() {}
   virtual void compute_local() {}
   virtual void compute_pergrid() {}
   virtual void set_arrays(int) {}
-  virtual std::string get_thermo_colname(int) { return {};  }
+  virtual std::string get_thermo_colname(int) { return {}; }
 
   virtual int pack_forward_comm(int, int *, double *, int, int *) { return 0; }
   virtual void unpack_forward_comm(int, int, double *) {}
@@ -153,6 +155,7 @@ class Compute : protected Pointers {
   virtual void restore_bias(int, double *) {}
   virtual void restore_bias_thr(int, double *, double *) {}
   virtual void restore_bias_all() {}
+  virtual void restore_bias_all_kk() {}
 
   virtual void reset_extra_compute_fix(const char *);
 

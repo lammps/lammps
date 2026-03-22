@@ -35,9 +35,13 @@ class ScalableFont {
   ~ScalableFont();
 
   void select_font(int family, int style, int size);
-  unsigned char *create_pixmap(const std::string &text, int &width, int &height,
-                               const unsigned char *font, const unsigned char *frame,
-                               const unsigned char *back);
+  unsigned char *create_label(const std::string &text, int &width, int &height,
+                              const unsigned char *font, const unsigned char *frame,
+                              const unsigned char *back, bool horizontal = true);
+  unsigned char *create_colorscale(const std::string &text, int &width, int &height,
+                                   const unsigned char *font, const unsigned char *frame,
+                                   const unsigned char *back, bool horizontal, int minwidth,
+                                   class LAMMPS_NS::Image *image, int mapidx, int tics);
 
  private:
   void *ctx;

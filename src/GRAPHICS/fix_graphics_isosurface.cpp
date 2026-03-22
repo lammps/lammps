@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "respa.h"
+#include "safe_pointers.h"
 #include "update.h"
 #include "variable.h"
 
@@ -923,13 +924,14 @@ void FixGraphicsIsosurface::end_of_step()
       }
     }
 
-    FILE *fp = nullptr;
+    SafeFilePtr fp;
     if (comm->me == 0) {    // only MPI rank 0 writes to the file
       auto *filecurrent = utils::strdup(utils::star_subst(filename, update->ntimestep, pad));
       if (platform::has_compress_extension(filename)) {
         if (binary)
           error->one(FLERR, Error::NOLASTLINE, "Connot use compression with binary output: {}",
                      filename);
+        fp.set_pclose();
         fp = platform::compressed_write(filecurrent);
       } else if (binary) {
         fp = fopen(filecurrent, "wb");
@@ -1000,7 +1002,6 @@ void FixGraphicsIsosurface::end_of_step()
         }
       }
       if (!binary) fprintf(fp, "endsolid %s\n", title.c_str());
-      fclose(fp);    // NOLINT
       delete[] filecurrent;
     } else {
       MPI_Send(stldata, 12 * numobjs, MPI_FLOAT, 0, 0, world);

@@ -23,6 +23,7 @@
 #include "error.h"
 #include "group.h"
 #include "memory.h"
+#include "safe_pointers.h"
 #include "universe.h"
 #include "update.h"
 
@@ -40,6 +41,28 @@
 #include "adios_common.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_ADIOS;
+
+// common definition for all ADIOS package classes
+
+const char *LAMMPS_ADIOS::default_config =
+    (const char *) "<?xml version=\"1.0\"?>\n"
+                   "<adios-config>\n"
+                   "    <io name=\"atom\">\n"
+                   "        <engine type=\"BP4\">\n"
+                   "            <parameter key=\"substreams\" value=\"1\"/>\n"
+                   "        </engine>\n"
+                   "    </io>\n"
+                   "    <io name=\"custom\">\n"
+                   "        <engine type=\"BP4\">\n"
+                   "            <parameter key=\"substreams\" value=\"1\"/>\n"
+                   "        </engine>\n"
+                   "    </io>\n"
+                   "    <io name=\"read_dump\">\n"
+                   "        <engine type=\"BP4\">\n"
+                   "        </engine>\n"
+                   "    </io>\n"
+                   "</adios-config>\n";
 
 // -------------------------------------------------------------------------
 // Pimpl implementation type

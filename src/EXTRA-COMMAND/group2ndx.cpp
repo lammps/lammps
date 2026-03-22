@@ -61,12 +61,8 @@ void Group2Ndx::command(int narg, char **arg)
   }
 
   if (narg == 1) {    // write out all groups
-    int count = 0;
-    for (int i = 0; count < group->ngroup; ++i) {
-      if (group->names[i] != nullptr) {
-        write_group(fp, i);
-        count++;
-      }
+    for (int i = 0; i < Group::MAX_GROUP; ++i) {
+      if (group->names[i]) write_group(fp, i);
     }
   } else {    // write only selected groups
     for (int i = 1; i < narg; ++i) {

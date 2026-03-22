@@ -30,6 +30,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "neighbor.h"
+#include "safe_pointers.h"
 #include "suffix.h"
 #include "update.h"
 
@@ -1837,7 +1838,7 @@ void Pair::write_file(int narg, char **arg)
   // add line with DATE: and UNITS: tag when creating new file
   // print header in format used by pair_style table
 
-  FILE *fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     std::string table_file = arg[6];
 
@@ -1952,8 +1953,6 @@ void Pair::write_file(int narg, char **arg)
   double *tmp;
   if (epair) epair->swap_eam(eamfp_hold, &tmp);
   if (atom->q) atom->q = q_hold;
-
-  if (comm->me == 0) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

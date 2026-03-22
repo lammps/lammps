@@ -1042,8 +1042,7 @@ void DumpImage::write()
     else if (filetype == TGA) image->write_TGA(fp);
     else image->write_PPM(fp);
     if (multifile) {
-      fclose(fp);
-      fp = nullptr;
+      fp = nullptr;             // implicitly close file
 
       // cache last dump image filename for access through library interface.
       // update only *after* the file has been written so there will be no invalid read.

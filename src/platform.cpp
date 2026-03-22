@@ -974,11 +974,8 @@ std::string platform::path_join(const std::string &a, const std::string &b)
 
 bool platform::file_is_readable(const std::string &path)
 {
-  FILE *fp = fopen(path.c_str(), "r");
-  if (fp) {
-    fclose(fp);
-    return true;
-  }
+  SafeFilePtr fp = fopen(path.c_str(), "r");
+  if (fp) return true;
   return false;
 }
 
@@ -990,16 +987,14 @@ bool platform::file_is_writable(const std::string &path)
 {
   // if the file exists, try to append and don't delete
 
+  SafeFilePtr fp;
   if (file_is_readable(path)) {
-    FILE *fp = fopen(path.c_str(), "a");
-    if (fp) {
-      fclose(fp);
-      return true;
-    }
+    fp = fopen(path.c_str(), "a");
+    if (fp) return true;
   } else {
-    FILE *fp = fopen(path.c_str(), "w");
+    fp = fopen(path.c_str(), "w");
     if (fp) {
-      fclose(fp);
+      fp = nullptr;
       unlink(path);
       return true;
     }

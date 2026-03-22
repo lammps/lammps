@@ -28,6 +28,7 @@
 #include "pair.h"
 #include "pair_mbx.h"
 #include "respa.h"
+#include "safe_pointers.h"
 #include "universe.h"
 #include "update.h"
 
@@ -480,11 +481,10 @@ FixMBX::FixMBX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     int size = 0;
     if (me == 0) {
       // Test if file present
-      FILE *fp = fopen(json_file.c_str(), "r");
+      SafeFilePtr fp = fopen(json_file.c_str(), "r");
       if (fp == NULL) {
         error->one(FLERR, "Cannot open file " + json_file);
-      } else
-        fclose(fp);
+      }
 
       std::ifstream t(json_file);
       t.seekg(0, std::ios::end);

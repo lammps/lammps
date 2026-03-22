@@ -186,7 +186,7 @@ void Fix::modify_params(int narg, char **arg)
   }
 }
 
-void::Fix::set_molecule(int, tagint, int, double *, double *, double *)
+void Fix::set_molecule(int, tagint, int, double *, double *, double *)
 {
   error->all(FLERR,"Molecule update not implemented for fix {}", style);
 }

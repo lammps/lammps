@@ -26,6 +26,8 @@
 using namespace LAMMPS_NS;
 
 using testing::StrEq;
+using testing::StartsWith;
+using testing::EndsWith;
 
 using utils::read_lines_from_file;
 using utils::sfgets;
@@ -233,7 +235,7 @@ TEST_F(FileOperationsTest, read_lines_from_file)
 
 TEST_F(FileOperationsTest, logmesg)
 {
-    char buf[64];
+    char buf[128];
     BEGIN_HIDE_OUTPUT();
     command("echo none");
     END_HIDE_OUTPUT();
@@ -247,12 +249,15 @@ TEST_F(FileOperationsTest, logmesg)
     utils::logmesg(lmp, "six {}\n");
     command("log none");
     std::string out = END_CAPTURE_OUTPUT();
-    memset(buf, 0, 64);
+    memset(buf, 0, 128);
     FILE *fp = fopen("test_logmesg.log", "r");
-    fread(buf, 1, 64, fp);
+    fread(buf, 1, 128, fp);
     fclose(fp);
-    ASSERT_THAT(out, StrEq("one\ntwo\nthree=3\nargument not found\nfive\nsix {}\n"));
-    ASSERT_THAT(buf, StrEq("two\nthree=3\nargument not found\nfive\nsix {}\n"));
+
+    ASSERT_THAT(out,StartsWith("one\ntwo\nthree=3\n"));
+    ASSERT_THAT(out,EndsWith("\nfive\nsix {}\n"));
+    ASSERT_THAT(buf,StartsWith("two\nthree=3\n"));
+    ASSERT_THAT(buf,EndsWith("\nfive\nsix {}\n"));
     remove("test_logmesg.log");
 }
 

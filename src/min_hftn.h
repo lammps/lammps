@@ -21,6 +21,7 @@ MinimizeStyle(hftn,MinHFTN);
 #define LMP_MIN_HFTN_H
 
 #include "min.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -55,7 +56,7 @@ class MinHFTN : public Min {
   double *_daExtraGlobal[NUM_HFTN_ATOM_BASED_VECTORS];
 
   int _nNumUnknowns;
-  FILE *_fpPrint;
+  SafeFilePtr _fpPrint;
 
   int execute_hftn_(const bool bPrintProgress, const double dInitialEnergy,
                     const double dInitialForce2, double &dFinalEnergy, double &dFinalForce2);
@@ -84,7 +85,6 @@ class MinHFTN : public Min {
                         const double dEnergy, const double dForce2, const int nStepType,
                         const double dTrustRadius, const double dStepLength2,
                         const double dActualRed, const double dPredictedRed) const;
-  void close_hftn_print_file_();
 };
 
 }    // namespace LAMMPS_NS

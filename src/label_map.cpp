@@ -19,6 +19,7 @@
 #include "error.h"
 #include "force.h"
 #include "improper.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 
 #include <algorithm>
@@ -746,7 +747,7 @@ int LabelMap::read_int(FILE *fp)
 void LabelMap::write_map(const std::string &filename)
 {
   if (comm->me == 0) {
-    FILE *fp = fopen(filename.c_str(), "w");
+    SafeFilePtr fp = fopen(filename.c_str(), "w");
     if (!fp) error->one(FLERR, "Cannot open label map file {}: {}", filename, utils::getsyserror());
     if (typelabel_map.size() > 0) {
       fputs("labelmap atom", fp);
@@ -778,6 +779,5 @@ void LabelMap::write_map(const std::string &filename)
         if (!itypelabel[i].empty()) utils::print(fp, R"( {} """ {} """)", i + 1, itypelabel[i]);
       fputc('\n', fp);
     }
-    fclose(fp);
   }
 }

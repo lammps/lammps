@@ -29,6 +29,7 @@
 #include "potential_file_reader.h"
 #include "random_mars.h"
 #include "respa.h"
+#include "safe_pointers.h"
 #include "update.h"
 
 #include <cmath>
@@ -518,7 +519,7 @@ void FixTTM::write_electron_temperatures(const std::string &filename)
 {
   if (comm->me) return;
 
-  FILE *fp = fopen(filename.c_str(),"w");
+  SafeFilePtr fp = fopen(filename.c_str(),"w");
   if (!fp) error->one(FLERR,"Fix ttm could not open output file {}: {}",
                       filename,utils::getsyserror());
   utils::print(fp,"# DATE: {} UNITS: {} COMMENT: Electron temperature on "
@@ -532,7 +533,6 @@ void FixTTM::write_electron_temperatures(const std::string &filename)
       for (ix = 0; ix < nxgrid; ix++)
         fprintf(fp,"%d %d %d %20.16g\n",ix+1,iy+1,iz+1,T_electron[iz][iy][ix]);
 
-  fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */

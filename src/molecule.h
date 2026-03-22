@@ -17,6 +17,7 @@
 #include "pointers.h"
 
 #include "json_fwd.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -145,7 +146,7 @@ class Molecule : protected Pointers {
   void print(FILE *fp=stdout);
 
  private:
-  FILE *fp;
+  SafeFilePtr fp;
   int *count;
   int toffset, boffset, aoffset, doffset, ioffset;
   int json_format;

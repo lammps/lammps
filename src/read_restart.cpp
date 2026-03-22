@@ -165,8 +165,7 @@ void ReadRestart::command(int narg, char **arg)
   // close header file if in multiproc mode
 
   if (multiproc && me == 0) {
-    fclose(fp);
-    fp = nullptr;
+    fp = nullptr;               // implicitly closes the file
   }
 
   // read per-proc info
@@ -230,11 +229,6 @@ void ReadRestart::command(int narg, char **arg)
         } else m += static_cast<int> (buf[m]);
       }
     }
-
-    if (me == 0) {
-      fclose(fp);
-      fp = nullptr;
-    }
   }
 
   // input of multiple native files with procs <= files
@@ -272,9 +266,6 @@ void ReadRestart::command(int narg, char **arg)
         m = 0;
         while (m < n) m += avec->unpack_restart(&buf[m]);
       }
-
-      fclose(fp);
-      fp = nullptr;
     }
   }
 
@@ -367,10 +358,6 @@ void ReadRestart::command(int narg, char **arg)
       }
     }
 
-    if (filereader && fp != nullptr) {
-      fclose(fp);
-      fp = nullptr;
-    }
     MPI_Comm_free(&clustercomm);
   }
 
@@ -379,7 +366,7 @@ void ReadRestart::command(int narg, char **arg)
   delete[] file;
   memory->destroy(buf);
 
-  // for multiproc or MPI-IO files:
+  // for multiproc files:
   // perform irregular comm to migrate atoms to correct procs
 
   if (multiproc) {

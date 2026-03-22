@@ -52,6 +52,7 @@ namespace {
 constexpr int NCOLORS = 140;
 constexpr int NELEMENTS = 109;
 constexpr double EPSILON = 1.0e-6;
+constexpr double TRANS_DELTA = 0.01;
 
 enum { NUMERIC, MINVALUE, MAXVALUE };
 enum { CONTINUOUS, DISCRETE, SEQUENTIAL };
@@ -888,9 +889,9 @@ void Image::draw_pixmap(int xc, int yc, int pixwidth, int pixheight, const unsig
       // we allow a few steps difference for each channel to account
       // for rounding errors and reduce "bleeding" from interpolation
 
-      if ((fabs(pixelcolor[0] - transcolor[0]) < 0.01) &&
-          (fabs(pixelcolor[1] - transcolor[1]) < 0.01) &&
-          (fabs(pixelcolor[2] - transcolor[2]) < 0.01)) continue;
+      if ((fabs(pixelcolor[0] - transcolor[0]) < TRANS_DELTA) &&
+          (fabs(pixelcolor[1] - transcolor[1]) < TRANS_DELTA) &&
+          (fabs(pixelcolor[2] - transcolor[2]) < TRANS_DELTA)) continue;
 
       draw_pixel(ix, iy, dist, normal, pixelcolor);
     }
@@ -1359,6 +1360,7 @@ void Image::draw_pixel(int ix, int iy, double depth,
                        const double *surface, const double *surfaceColor)
 {
   if (!std::isfinite(depth)) return; // reject pixels with invalid depth buffer values
+  if (!surfaceColor) return;         // reject pixels with an invalid color
 
   double diffuseKey,diffuseFill,diffuseBack,specularKey;
   if (depth < 0 || (depthBuffer[ix + iy*width] >= 0 && depth >= depthBuffer[ix + iy*width])) return;
@@ -2552,5 +2554,6 @@ double *ColorMap::value2color(double value)
     return mentry[ibin%nentry].color;
   }
 
-  return nullptr;
+  // always return a non-NULL pointer
+  return mentry[0].color;
 }

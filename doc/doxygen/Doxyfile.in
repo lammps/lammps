@@ -442,6 +442,7 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/platform.cpp              \
                          @LAMMPS_SOURCE_DIR@/math_special.h            \
                          @LAMMPS_SOURCE_DIR@/math_special.cpp          \
+                         @LAMMPS_SOURCE_DIR@/safe_pointers.h           \
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

@@ -23,11 +23,12 @@ class Group : protected Pointers {
   friend class FixGroup;
 
  public:
-  int ngroup;          // # of defined groups
-  char **names;        // name of each group
-  int *bitmask;        // one-bit mask for each group
-  int *inversemask;    // inverse mask for each group
-  int *dynamic;        // 1 if dynamic, 0 if not
+  enum { MAX_GROUP = 32 };    // max # of groups. limited to 32 because bitmasks are 32-bit int.
+  int ngroup;                 // # of defined groups
+  char **names;               // name of each group
+  int *bitmask;               // one-bit mask for each group
+  int *inversemask;           // inverse mask for each group
+  int *dynamic;               // 1 if dynamic, 0 if not
 
   Group(class LAMMPS *);
   ~Group() override;

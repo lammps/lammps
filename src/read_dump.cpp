@@ -1292,10 +1292,6 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "read_dump format", error);
       delete[] readerstyle;
       readerstyle = utils::strdup(arg[iarg+1]);
-      // adjust first field type added by default depending on format
-      if (strcmp(readerstyle, "xyz") == 0) fieldtype[0] = Reader::TYPE;
-      if (strcmp(readerstyle, "native") == 0) fieldtype[0] = Reader::ID;
-      if (strcmp(readerstyle, "molfile") == 0) fieldtype[0] = Reader::TYPE;
       iarg += 2;
       break;
     } else error->all(FLERR,"Unknown read_dump keyword: {}",arg[iarg]);

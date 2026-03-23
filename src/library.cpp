@@ -71,9 +71,6 @@
 /// string buffer for error messages of global errors
 static std::string lammps_last_global_errormessage;
 
-/// maximum number of groups
-static constexpr int LMP_MAX_GROUP = 32;
-
 using namespace LAMMPS_NS;
 
 // for printing the non-null pointer argument warning only once
@@ -1338,6 +1335,9 @@ be called without a valid LAMMPS object handle (it is ignored).
    * - imageint
      - size of the ``imageint`` integer type, 4 or 8 bytes.
        Set at :ref:`compile time <size>`.
+   * - MAX_GROUP
+     - size of the bitmask for groups in bits, should be 32.
+       Currently hard coded.
 
 .. _extract_image_masks:
 
@@ -1557,6 +1557,8 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"bigint") == 0) return sizeof(bigint);
   if (strcmp(keyword,"tagint") == 0) return sizeof(tagint);
   if (strcmp(keyword,"imageint") == 0) return sizeof(imageint);
+
+  if (strcmp(keyword,"MAX_GROUP") == 0) return Group::MAX_GROUP;
 
   if (strcmp(keyword,"IMGMASK") == 0) return IMGMASK;
   if (strcmp(keyword,"IMGBITS") == 0) return IMGBITS;
@@ -7227,7 +7229,7 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
     }
   } else if (strcmp(category,"group") == 0) {
     // the list of groups may have "holes". So the available range is always 0 to 32
-    if ((idx >= 0) && (idx < LMP_MAX_GROUP)) {
+    if ((idx >= 0) && (idx < Group::MAX_GROUP)) {
       if (lmp->group->names[idx]) {
         strncpy(buffer, lmp->group->names[idx], buf_size);
         return 1;

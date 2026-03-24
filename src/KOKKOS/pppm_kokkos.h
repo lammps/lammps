@@ -46,6 +46,7 @@ struct TagPPPM_setup_triclinic2{};
 struct TagPPPM_compute_gf_ik{};
 struct TagPPPM_compute_gf_ik_triclinic{};
 struct TagPPPM_self1{};
+struct TagPPPM_self1_ghost{};
 struct TagPPPM_self2{};
 struct TagPPPM_brick2fft{};
 struct TagPPPM_particle_map{};
@@ -147,6 +148,10 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPPPM_self1, const int&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPPPM_self1_ghost, const int&) const;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -472,6 +477,8 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
                      const FFT_SCALAR &) const;
   void compute_rho_coeff();
   void slabcorr() override;
+
+  virtual void pp_pre_particle_map(){};
 
   // grid communication
 

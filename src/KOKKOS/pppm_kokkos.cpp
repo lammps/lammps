@@ -18,8 +18,10 @@
 
 #include "pppm_kokkos.h"
 
+#include "angle.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "bond.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -33,6 +35,7 @@
 #include "pair.h"
 #include "remap_kokkos.h"
 #include "kokkos_few.h"
+#include "utils.h"
 
 #include <cmath>
 
@@ -186,8 +189,35 @@ void PPPMKokkos<DeviceType>::init()
 
   qdist = 0.0;
 
-  if (tip4pflag)
-      error->all(FLERR,"Cannot (yet) use PPPM Kokkos TIP4P");
+  if (tip4pflag) {
+    if (me == 0) utils::logmesg(lmp,"  extracting TIP4P info from pair style\n");
+
+    auto *p_qdist = (double *) force->pair->extract("qdist",itmp);
+    int *p_typeO = (int *) force->pair->extract("typeO",itmp);
+    int *p_typeH = (int *) force->pair->extract("typeH",itmp);
+    int *p_typeA = (int *) force->pair->extract("typeA",itmp);
+    int *p_typeB = (int *) force->pair->extract("typeB",itmp);
+    if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
+      error->all(FLERR,"Pair style is incompatible with TIP4P KSpace style");
+    qdist = *p_qdist;
+    typeO = *p_typeO;
+    typeH = *p_typeH;
+    int typeA = *p_typeA;
+    int typeB = *p_typeB;
+
+    if (force->angle == nullptr || force->bond == nullptr ||
+        force->angle->setflag == nullptr || force->bond->setflag == nullptr)
+      error->all(FLERR,"Bond and angle potentials must be defined for TIP4P");
+    if (typeA < 1 || typeA > atom->nangletypes ||
+        force->angle->setflag[typeA] == 0)
+      error->all(FLERR,"Bad TIP4P angle type for PPPM/TIP4P");
+    if (typeB < 1 || typeB > atom->nbondtypes ||
+        force->bond->setflag[typeB] == 0)
+      error->all(FLERR,"Bad TIP4P bond type for PPPM/TIP4P");
+    double theta = force->angle->equilibrium_angle(typeA);
+    double blen = force->bond->equilibrium_distance(typeB);
+    alpha = qdist / (cos(0.5*theta) * blen);
+  }
 
   // compute qsum & qsqsum and warn if not charge-neutral
 
@@ -623,6 +653,8 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
     d_rho1d = typename FFT_AT::t_FFT_SCALAR_2d_3("pppm:rho1d",nmax,order/2+order/2+1);
   }
 
+  pp_pre_particle_map();
+
   // find grid points for all my particles
   // map my particle charge onto my local 3d density grid
 
@@ -694,6 +726,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   if (evflag_atom) {
     int nlocal = atomKK->nlocal;
     int ntotal = nlocal;
+    if (tip4pflag) ntotal += atomKK->nghost;
 
     // ensure all relevant _kk values are up to date
     g_ewald_kk = static_cast<KK_FLOAT>(g_ewald);
@@ -702,6 +735,10 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
     if (eflag_atom) {
       copymode = 1;
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_self1>(0,nlocal),*this);
+      if (tip4pflag) {
+        Kokkos::parallel_for(
+            Kokkos::RangePolicy<DeviceType, TagPPPM_self1_ghost>(nlocal,ntotal),*this);
+      }
       copymode = 0;
     }
 
@@ -742,6 +779,14 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_self1, const int &i) const
                                       static_cast<KK_FLOAT>(MY_PI2)*q[i]*static_cast<KK_FLOAT>(qsum) / (g_ewald_kk*g_ewald_kk*static_cast<KK_FLOAT>(volume)));
   e_self *= static_cast<KK_ACC_FLOAT>(qscale);
   d_eatom[i] = e_self;
+}
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_self1_ghost, const int &i) const
+{
+  d_eatom[i] *= static_cast<KK_ACC_FLOAT>(0.5*qscale);
 }
 
 template<class DeviceType>

@@ -135,14 +135,14 @@ void DihedralMultiHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in
   if (h_warning_flag())
     error->warning(FLERR,"Dihedral problem");
 
-  if (eflag_global) energy += ev.evdwl;
+  if (eflag_global) energy += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -225,15 +225,16 @@ void DihedralMultiHarmonicKokkos<DeviceType>::operator()(TagDihedralMultiHarmoni
 
   // cos and sin of 2 angles and final c
 
-  KK_FLOAT sin2 = MAX(1.0 - c1mag * c1mag, 0.0);
+  KK_FLOAT sin2 = MAX(static_cast<KK_FLOAT>(1.0) - c1mag * c1mag, static_cast<KK_FLOAT>(0.0));
   KK_FLOAT sc1 = sqrt(sin2);
-  if (sc1 < SMALL) sc1 = SMALL;
-  sc1 = 1.0 / sc1;
+  const KK_FLOAT smallv = static_cast<KK_FLOAT>(SMALL);
+  if (sc1 < smallv) sc1 = smallv;
+  sc1 = static_cast<KK_FLOAT>(1.0) / sc1;
 
-  sin2 = MAX(1.0 - c2mag * c2mag, 0.0);
+  sin2 = MAX(static_cast<KK_FLOAT>(1.0) - c2mag * c2mag, static_cast<KK_FLOAT>(0.0));
   KK_FLOAT sc2 = sqrt(sin2);
-  if (sc2 < SMALL) sc2 = SMALL;
-  sc2 = 1.0 / sc2;
+  if (sc2 < smallv) sc2 = smallv;
+  sc2 = static_cast<KK_FLOAT>(1.0) / sc2;
 
   KK_FLOAT s1 = sc1 * sc1;
   KK_FLOAT s2 = sc2 * sc2;
@@ -242,18 +243,21 @@ void DihedralMultiHarmonicKokkos<DeviceType>::operator()(TagDihedralMultiHarmoni
 
   // error check
 
-  if ((c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) && !d_warning_flag())
+  const KK_FLOAT tol = static_cast<KK_FLOAT>(TOLERANCE);
+  const KK_FLOAT one = static_cast<KK_FLOAT>(1.0);
+  if ((c > one + tol || c < (-one - tol)) && !d_warning_flag())
     d_warning_flag() = 1;
 
-  if (c > 1.0) c = 1.0;
-  if (c < -1.0) c = -1.0;
+  if (c > one) c = one;
+  if (c < -one) c = -one;
 
   // force & energy
   // p = sum (i=1,5) a_i * c**(i-1)
   // pd = dp/dc
 
   KK_FLOAT p = d_a1[type] + c * (d_a2[type] + c * (d_a3[type] + c * (d_a4[type] + c * d_a5[type])));
-  KK_FLOAT pd = d_a2[type] + c * (2.0 * d_a3[type] + c * (3.0 * d_a4[type] + c * 4.0 * d_a5[type]));
+  KK_FLOAT pd = d_a2[type] + c * (static_cast<KK_FLOAT>(2.0) * d_a3[type] +
+      c * (static_cast<KK_FLOAT>(3.0) * d_a4[type] + c * static_cast<KK_FLOAT>(4.0) * d_a5[type]));
 
   KK_FLOAT edihedral = 0.0;
   if (eflag) edihedral = p;
@@ -262,7 +266,7 @@ void DihedralMultiHarmonicKokkos<DeviceType>::operator()(TagDihedralMultiHarmoni
   c = c * a;
   s12 = s12 * a;
   const KK_FLOAT a11 = c * sb1 * s1;
-  const KK_FLOAT a22 = -sb2 * (2.0 * c0 * s12 - c * (s1 + s2));
+  const KK_FLOAT a22 = -sb2 * (static_cast<KK_FLOAT>(2.0) * c0 * s12 - c * (s1 + s2));
   const KK_FLOAT a33 = c * sb3 * s2;
   const KK_FLOAT a12 = -r12c1 * (c1mag * c * s1 + c2mag * s12);
   const KK_FLOAT a13 = -rb1 * rb3 * s12;
@@ -363,11 +367,11 @@ void DihedralMultiHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
   for (int i = ilo; i <= ihi; i++) {
-    k_a1.view_host()[i] = a1[i];
-    k_a2.view_host()[i] = a2[i];
-    k_a3.view_host()[i] = a3[i];
-    k_a4.view_host()[i] = a4[i];
-    k_a5.view_host()[i] = a5[i];
+    k_a1.view_host()[i] = static_cast<KK_FLOAT>(a1[i]);
+    k_a2.view_host()[i] = static_cast<KK_FLOAT>(a2[i]);
+    k_a3.view_host()[i] = static_cast<KK_FLOAT>(a3[i]);
+    k_a4.view_host()[i] = static_cast<KK_FLOAT>(a4[i]);
+    k_a5.view_host()[i] = static_cast<KK_FLOAT>(a5[i]);
   }
 
   k_a1.modify_host();
@@ -388,11 +392,11 @@ void DihedralMultiHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
 
   int n = atom->ndihedraltypes;
   for (int i = 1; i <= n; i++) {
-    k_a1.view_host()[i] = a1[i];
-    k_a2.view_host()[i] = a2[i];
-    k_a3.view_host()[i] = a3[i];
-    k_a4.view_host()[i] = a4[i];
-    k_a5.view_host()[i] = a5[i];
+    k_a1.view_host()[i] = static_cast<KK_FLOAT>(a1[i]);
+    k_a2.view_host()[i] = static_cast<KK_FLOAT>(a2[i]);
+    k_a3.view_host()[i] = static_cast<KK_FLOAT>(a3[i]);
+    k_a4.view_host()[i] = static_cast<KK_FLOAT>(a4[i]);
+    k_a5.view_host()[i] = static_cast<KK_FLOAT>(a5[i]);
   }
 
   k_a1.modify_host();
@@ -430,7 +434,7 @@ void DihedralMultiHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i
     if (eflag_global) {
       if (newton_bond) ev.evdwl += edihedral;
       else {
-        edihedralquarter = 0.25*edihedral;
+        edihedralquarter = static_cast<KK_FLOAT>(0.25) * edihedral;
         if (i1 < nlocal) ev.evdwl += edihedralquarter;
         if (i2 < nlocal) ev.evdwl += edihedralquarter;
         if (i3 < nlocal) ev.evdwl += edihedralquarter;
@@ -438,7 +442,7 @@ void DihedralMultiHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i
       }
     }
     if (eflag_atom) {
-      edihedralquarter = 0.25*edihedral;
+      edihedralquarter = static_cast<KK_FLOAT>(0.25) * edihedral;
       if (newton_bond || i1 < nlocal) v_eatom[i1] += edihedralquarter;
       if (newton_bond || i2 < nlocal) v_eatom[i2] += edihedralquarter;
       if (newton_bond || i3 < nlocal) v_eatom[i3] += edihedralquarter;
@@ -463,73 +467,75 @@ void DihedralMultiHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i
         ev.v[4] += v[4];
         ev.v[5] += v[5];
       } else {
+        const KK_FLOAT vq = static_cast<KK_FLOAT>(0.25);
         if (i1 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          ev.v[0] += vq*v[0];
+          ev.v[1] += vq*v[1];
+          ev.v[2] += vq*v[2];
+          ev.v[3] += vq*v[3];
+          ev.v[4] += vq*v[4];
+          ev.v[5] += vq*v[5];
         }
         if (i2 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          ev.v[0] += vq*v[0];
+          ev.v[1] += vq*v[1];
+          ev.v[2] += vq*v[2];
+          ev.v[3] += vq*v[3];
+          ev.v[4] += vq*v[4];
+          ev.v[5] += vq*v[5];
         }
         if (i3 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          ev.v[0] += vq*v[0];
+          ev.v[1] += vq*v[1];
+          ev.v[2] += vq*v[2];
+          ev.v[3] += vq*v[3];
+          ev.v[4] += vq*v[4];
+          ev.v[5] += vq*v[5];
         }
         if (i4 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          ev.v[0] += vq*v[0];
+          ev.v[1] += vq*v[1];
+          ev.v[2] += vq*v[2];
+          ev.v[3] += vq*v[3];
+          ev.v[4] += vq*v[4];
+          ev.v[5] += vq*v[5];
         }
       }
     }
 
     if (vflag_atom) {
+      const KK_ACC_FLOAT vq = static_cast<KK_ACC_FLOAT>(0.25);
       if (newton_bond || i1 < nlocal) {
-        v_vatom(i1,0) += 0.25*v[0];
-        v_vatom(i1,1) += 0.25*v[1];
-        v_vatom(i1,2) += 0.25*v[2];
-        v_vatom(i1,3) += 0.25*v[3];
-        v_vatom(i1,4) += 0.25*v[4];
-        v_vatom(i1,5) += 0.25*v[5];
+        v_vatom(i1,0) += vq*v[0];
+        v_vatom(i1,1) += vq*v[1];
+        v_vatom(i1,2) += vq*v[2];
+        v_vatom(i1,3) += vq*v[3];
+        v_vatom(i1,4) += vq*v[4];
+        v_vatom(i1,5) += vq*v[5];
       }
       if (newton_bond || i2 < nlocal) {
-        v_vatom(i2,0) += 0.25*v[0];
-        v_vatom(i2,1) += 0.25*v[1];
-        v_vatom(i2,2) += 0.25*v[2];
-        v_vatom(i2,3) += 0.25*v[3];
-        v_vatom(i2,4) += 0.25*v[4];
-        v_vatom(i2,5) += 0.25*v[5];
+        v_vatom(i2,0) += vq*v[0];
+        v_vatom(i2,1) += vq*v[1];
+        v_vatom(i2,2) += vq*v[2];
+        v_vatom(i2,3) += vq*v[3];
+        v_vatom(i2,4) += vq*v[4];
+        v_vatom(i2,5) += vq*v[5];
       }
       if (newton_bond || i3 < nlocal) {
-        v_vatom(i3,0) += 0.25*v[0];
-        v_vatom(i3,1) += 0.25*v[1];
-        v_vatom(i3,2) += 0.25*v[2];
-        v_vatom(i3,3) += 0.25*v[3];
-        v_vatom(i3,4) += 0.25*v[4];
-        v_vatom(i3,5) += 0.25*v[5];
+        v_vatom(i3,0) += vq*v[0];
+        v_vatom(i3,1) += vq*v[1];
+        v_vatom(i3,2) += vq*v[2];
+        v_vatom(i3,3) += vq*v[3];
+        v_vatom(i3,4) += vq*v[4];
+        v_vatom(i3,5) += vq*v[5];
       }
       if (newton_bond || i4 < nlocal) {
-        v_vatom(i4,0) += 0.25*v[0];
-        v_vatom(i4,1) += 0.25*v[1];
-        v_vatom(i4,2) += 0.25*v[2];
-        v_vatom(i4,3) += 0.25*v[3];
-        v_vatom(i4,4) += 0.25*v[4];
-        v_vatom(i4,5) += 0.25*v[5];
+        v_vatom(i4,0) += vq*v[0];
+        v_vatom(i4,1) += vq*v[1];
+        v_vatom(i4,2) += vq*v[2];
+        v_vatom(i4,3) += vq*v[3];
+        v_vatom(i4,4) += vq*v[4];
+        v_vatom(i4,5) += vq*v[5];
       }
     }
   }

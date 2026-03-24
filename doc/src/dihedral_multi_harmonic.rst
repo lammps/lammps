@@ -52,8 +52,9 @@ Restrictions
 """"""""""""
 
 This dihedral style can only be used if LAMMPS was built with the
-MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
-for more info.
+MOLECULE package.  The *multi/harmonic/kk* style is also only available
+if LAMMPS was built with the KOKKOS package.  See the
+:doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""

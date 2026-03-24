@@ -37,7 +37,7 @@ OPT.
    * :doc:`lepton (o) <bond_lepton>`
    * :doc:`mesocnt <bond_mesocnt>`
    * :doc:`mm3 <bond_mm3>`
-   * :doc:`morse (o) <bond_morse>`
+   * :doc:`morse (ok) <bond_morse>`
    * :doc:`nonlinear (o) <bond_nonlinear>`
    * :doc:`oxdna/fene <bond_oxdna>`
    * :doc:`oxdna2/fene <bond_oxdna>`

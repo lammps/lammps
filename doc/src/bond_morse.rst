@@ -1,10 +1,15 @@
 .. index:: bond_style morse
+.. index:: bond_style morse/kk
 .. index:: bond_style morse/omp
 
 bond_style morse command
 ========================
 
-Accelerator Variants: *morse/omp*
+Accelerator Variants: *morse/kk*, *morse/omp*
+
+.. versionadded:: TBD
+
+   Kokkos accelerated styles *morse/kk*\ , *morse/kk/device*\ , and *morse/kk/host*
 
 Syntax
 """"""
@@ -52,8 +57,9 @@ Restrictions
 """"""""""""
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
-package.  See the :doc:`Build package <Build_package>` page for more
-info.
+package.  The *morse/kk* style is also only available if LAMMPS was built
+with the KOKKOS package.  See the :doc:`Build package <Build_package>` page
+for more info.
 
 Related commands
 """"""""""""""""

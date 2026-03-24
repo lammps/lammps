@@ -1054,6 +1054,7 @@ atom_vec_spin_kokkos.h
 bond_class2_kokkos.h
 bond_fene_kokkos.h
 bond_harmonic_kokkos.h
+bond_morse_kokkos.h
 bond_hybrid_kokkos.h
 comm_kokkos.h
 comm_tiled_kokkos.h
@@ -1275,6 +1276,7 @@ atom_vec_spin_kokkos.cpp
 bond_class2_kokkos.cpp
 bond_fene_kokkos.cpp
 bond_harmonic_kokkos.cpp
+bond_morse_kokkos.cpp
 bond_hybrid_kokkos.cpp
 comm_kokkos.cpp
 comm_tiled_kokkos.cpp

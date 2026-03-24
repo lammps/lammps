@@ -42,6 +42,7 @@ There are two ways to implement TIP4P-like water in LAMMPS:
    * :doc:`pair_style tip4p/long/soft <pair_fep_soft>`
    * :doc:`pair_style lj/cut/tip4p/long/soft <pair_fep_soft>`
    * :doc:`kspace_style pppm/tip4p <kspace_style>`
+   * :doc:`kspace_style pppm/tip4p/kk <kspace_style>`
    * :doc:`kspace_style pppm/disp/tip4p <kspace_style>`
 
    The bond lengths and bond angles should be held fixed using the

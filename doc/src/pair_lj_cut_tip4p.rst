@@ -145,9 +145,10 @@ computed in reciprocal space.
 .. note::
 
    For TIP4P long-range electrostatics with the Kokkos pair style
-   *lj/cut/tip4p/long/kk*\ , use a host (non-Kokkos) TIP4P kspace style
-   such as :doc:`kspace_style pppm/tip4p <kspace_style>`\ .  The Kokkos
-   *pppm/kk* style does not support TIP4P.
+   *lj/cut/tip4p/long/kk*\ , use the Kokkos TIP4P solver
+   :doc:`kspace_style pppm/tip4p/kk <kspace_style>` (or the host styles
+   *pppm/tip4p* / *pppm/tip4p/omp*\ ).  The plain Kokkos style *pppm/kk*
+   does not implement TIP4P.
 
 
 Coefficients
@@ -245,7 +246,7 @@ Restrictions
 
 The *lj/cut/tip4p/long* styles are part of the
 KSPACE package.  The *lj/cut/tip4p/long/kk* style also requires the
-KOKKOS package.  The *lj/cut/tip4p/cut* style is part of the MOLECULE
+KOKKOS package and is intended for use with *pppm/tip4p/kk*\ .  The *lj/cut/tip4p/cut* style is part of the MOLECULE
 package. These styles are only enabled if LAMMPS was built with those
 packages.  See the :doc:`Build package <Build_package>` page for
 more info.

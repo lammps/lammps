@@ -23,6 +23,9 @@
 .. index:: kspace_style pppm/cg/omp
 .. index:: kspace_style pppm/stagger
 .. index:: kspace_style pppm/tip4p
+.. index:: kspace_style pppm/tip4p/kk
+.. index:: kspace_style pppm/tip4p/kk/device
+.. index:: kspace_style pppm/tip4p/kk/host
 .. index:: kspace_style pppm/tip4p/omp
 .. index:: kspace_style pppm/electrode
 .. index:: kspace_style pppm/electrode/intel
@@ -44,7 +47,7 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
+* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/tip4p/kk* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
 
   .. parsed-literal::
 
@@ -75,6 +78,8 @@ Syntax
        *pppm/disp* value = accuracy
          accuracy = desired relative error in forces
        *pppm/tip4p* value = accuracy
+         accuracy = desired relative error in forces
+       *pppm/tip4p/kk* value = accuracy
          accuracy = desired relative error in forces
        *pppm/disp/tip4p* value = accuracy
          accuracy = desired relative error in forces
@@ -226,6 +231,14 @@ The *pppm/tip4p* style is identical to the *pppm* style except that it
 adds a charge at the massless fourth site in each TIP4P water molecule.
 It should be used with :doc:`pair styles <pair_style>` with a
 *tip4p/long* in their style name.
+
+The *pppm/tip4p/kk* style is the Kokkos variant of *pppm/tip4p*\ , analogous
+to *pppm/kk* for *pppm*\ .  Use it with a Kokkos TIP4P pair style such as
+*lj/cut/tip4p/long/kk*\ .
+
+.. versionadded:: TBD
+
+   Kokkos TIP4P PPPM styles *pppm/tip4p/kk*\ , *pppm/tip4p/kk/device*\ , and *pppm/tip4p/kk/host*
 
 The *pppm/stagger* style performs calculations using two different
 meshes, one shifted slightly with respect to the other.  This can
@@ -469,10 +482,12 @@ relative RMS error.
   :doc:`Build settings <Build_settings>` doc page for how to select a
   3rd-party FFT library.
 
-  TIP4P long-range electrostatics are not supported by *pppm/kk*\ ; use
-  *pppm/tip4p* (or *pppm/tip4p/omp*\ ) on the host with the Kokkos pair
-  style *lj/cut/tip4p/long/kk*\ , as described on the
-  :doc:`pair_style lj/cut/tip4p <pair_lj_cut_tip4p>` page.
+  TIP4P long-range electrostatics are not supported by plain *pppm/kk*\ ;
+  use *pppm/tip4p/kk* (or *pppm/tip4p/kk/device* or *pppm/tip4p/kk/host*\ )
+  together with a TIP4P-compatible Kokkos pair style such as
+  *lj/cut/tip4p/long/kk*\ , or use the host styles *pppm/tip4p* or
+  *pppm/tip4p/omp*\ .  See the :doc:`pair_style lj/cut/tip4p <pair_lj_cut_tip4p>`
+  and :doc:`Howto tip4p <Howto_tip4p>` pages.
 
 ----------
 

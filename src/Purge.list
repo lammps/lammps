@@ -1242,6 +1242,7 @@ pair_yukawa_colloid_kokkos.h
 pair_yukawa_kokkos.h
 pair_zbl_kokkos.h
 pppm_kokkos.h
+pppm_tip4p_kokkos.h
 rand_pool_wrap_kokkos.h
 region_block_kokkos.h
 region_sphere_kokkos.h
@@ -1440,6 +1441,7 @@ pair_yukawa_colloid_kokkos.cpp
 pair_yukawa_kokkos.cpp
 pair_zbl_kokkos.cpp
 pppm_kokkos.cpp
+pppm_tip4p_kokkos.cpp
 rand_pool_wrap_kokkos.cpp
 region_block_kokkos.cpp
 region_sphere_kokkos.cpp

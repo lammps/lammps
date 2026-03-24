@@ -373,6 +373,8 @@ action pair_lj_cut_coul_dsf_kokkos.cpp pair_lj_cut_coul_dsf.cpp
 action pair_lj_cut_coul_dsf_kokkos.h pair_lj_cut_coul_dsf.h
 action pair_lj_cut_coul_long_kokkos.cpp pair_lj_cut_coul_long.cpp
 action pair_lj_cut_coul_long_kokkos.h pair_lj_cut_coul_long.h
+action pair_lj_cut_tip4p_long_kokkos.cpp pair_lj_cut_tip4p_long.cpp
+action pair_lj_cut_tip4p_long_kokkos.h pair_lj_cut_tip4p_long.h
 action pair_lj_cut_dipole_cut_kokkos.cpp pair_lj_cut_dipole_cut.cpp
 action pair_lj_cut_dipole_cut_kokkos.h pair_lj_cut_dipole_cut.h
 action pair_lj_cut_kokkos.cpp

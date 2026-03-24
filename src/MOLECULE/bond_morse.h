@@ -41,7 +41,7 @@ class BondMorse : public Bond {
  protected:
   double *d0, *alpha, *r0;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

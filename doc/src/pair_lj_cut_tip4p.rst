@@ -2,6 +2,7 @@
 .. index:: pair_style lj/cut/tip4p/cut/omp
 .. index:: pair_style lj/cut/tip4p/long
 .. index:: pair_style lj/cut/tip4p/long/gpu
+.. index:: pair_style lj/cut/tip4p/long/kk
 .. index:: pair_style lj/cut/tip4p/long/omp
 .. index:: pair_style lj/cut/tip4p/long/opt
 
@@ -13,7 +14,11 @@ Accelerator Variants: *lj/cut/tip4p/cut/omp*
 pair_style lj/cut/tip4p/long command
 ====================================
 
-Accelerator Variants: *lj/cut/tip4p/long/gpu*, *lj/cut/tip4p/long/omp*, *lj/cut/tip4p/long/opt*
+Accelerator Variants: *lj/cut/tip4p/long/gpu*, *lj/cut/tip4p/long/kk*, *lj/cut/tip4p/long/omp*, *lj/cut/tip4p/long/opt*
+
+.. versionadded:: TBD
+
+   Kokkos accelerated styles *lj/cut/tip4p/long/kk*\ , *lj/cut/tip4p/long/kk/device*\ , and *lj/cut/tip4p/long/kk/host*
 
 Syntax
 """"""
@@ -137,6 +142,13 @@ specified for this style means that pairwise interactions within this
 distance are computed directly; interactions outside that distance are
 computed in reciprocal space.
 
+.. note::
+
+   For TIP4P long-range electrostatics with the Kokkos pair style
+   *lj/cut/tip4p/long/kk*\ , use a host (non-Kokkos) TIP4P kspace style
+   such as :doc:`kspace_style pppm/tip4p <kspace_style>`\ .  The Kokkos
+   *pppm/kk* style does not support TIP4P.
+
 
 Coefficients
 """"""""""""
@@ -204,7 +216,8 @@ All of the *lj/cut* pair styles support the
 :doc:`pair_modify <pair_modify>` shift option for the energy of the
 Lennard-Jones portion of the pair interaction.
 
-The *lj/cut/coul/long* and *lj/cut/tip4p/long* pair styles support the
+The *lj/cut/coul/long*\ , *lj/cut/coul/long/kk*\ , *lj/cut/tip4p/long*\ , and
+*lj/cut/tip4p/long/kk* pair styles support the
 :doc:`pair_modify <pair_modify>` table option since they can tabulate
 the short-range portion of the long-range Coulombic interaction.
 
@@ -220,6 +233,9 @@ The *lj/cut* and *lj/cut/coul/long* pair styles support the use of the
 *inner*, *middle*, and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
 The other styles only support the *pair* keyword of run_style respa.
+The *lj/cut/tip4p/long/kk* style does not support the *inner*\ ,
+*middle*\ , or *outer* rRESPA keywords (only *pair*\ ), consistent with
+other Kokkos pair styles.
 See the :doc:`run_style <run_style>` command for details.
 
 ----------
@@ -228,7 +244,8 @@ Restrictions
 """"""""""""
 
 The *lj/cut/tip4p/long* styles are part of the
-KSPACE package. The *lj/cut/tip4p/cut* style is part of the MOLECULE
+KSPACE package.  The *lj/cut/tip4p/long/kk* style also requires the
+KOKKOS package.  The *lj/cut/tip4p/cut* style is part of the MOLECULE
 package. These styles are only enabled if LAMMPS was built with those
 packages.  See the :doc:`Build package <Build_package>` page for
 more info.

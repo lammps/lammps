@@ -135,6 +135,7 @@ Related commands
 * :doc:`pair_style lj/cut/coul/wolf <pair_lj_cut_coul>`
 * :doc:`pair_style lj/cut/tip4p/cut <pair_lj_cut_tip4p>`
 * :doc:`pair_style lj/cut/tip4p/long <pair_lj_cut_tip4p>`
+* :doc:`pair_style lj/cut/tip4p/long/kk <pair_lj_cut_tip4p>`
 
 Default
 """""""

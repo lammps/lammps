@@ -469,6 +469,11 @@ relative RMS error.
   :doc:`Build settings <Build_settings>` doc page for how to select a
   3rd-party FFT library.
 
+  TIP4P long-range electrostatics are not supported by *pppm/kk*\ ; use
+  *pppm/tip4p* (or *pppm/tip4p/omp*\ ) on the host with the Kokkos pair
+  style *lj/cut/tip4p/long/kk*\ , as described on the
+  :doc:`pair_style lj/cut/tip4p <pair_lj_cut_tip4p>` page.
+
 ----------
 
 Restrictions

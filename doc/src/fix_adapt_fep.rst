@@ -176,7 +176,7 @@ these parameters:
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`lj/cut/coul/cut/soft, lj/cut/coul/long/soft <pair_fep_soft>`           | epsilon,sigma,lambda    | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
-| :doc:`lj/cut/tip4p/cut, lj/cut/tip4p/long <pair_lj_cut_tip4p>`               | epsilon,sigma           | type pairs |
+| :doc:`lj/cut/tip4p/cut, lj/cut/tip4p/long, lj/cut/tip4p/long/kk <pair_lj_cut_tip4p>` | epsilon,sigma           | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+
 | :doc:`lj/cut/tip4p/long/soft <pair_fep_soft>`                                | epsilon,sigma,lambda    | type pairs |
 +------------------------------------------------------------------------------+-------------------------+------------+

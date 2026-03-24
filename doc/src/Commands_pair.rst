@@ -171,7 +171,7 @@ OPT.
    * :doc:`lj/cut/sphere (o) <pair_lj_cut_sphere>`
    * :doc:`lj/cut/thole/long (o) <pair_thole>`
    * :doc:`lj/cut/tip4p/cut (o) <pair_lj_cut_tip4p>`
-   * :doc:`lj/cut/tip4p/long (got) <pair_lj_cut_tip4p>`
+   * :doc:`lj/cut/tip4p/long (gkot) <pair_lj_cut_tip4p>`
    * :doc:`lj/cut/tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`lj/expand (gko) <pair_lj_expand>`
    * :doc:`lj/expand/coul/long (gk) <pair_lj_expand>`

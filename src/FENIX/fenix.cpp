@@ -65,7 +65,6 @@ void Fenix::command(int narg, char** arg) {
   fenix_args.in_comm = full_world;
   fenix_args.out_comm = &resilient_world;
   fenix_args.spares = spare_ranks;
-  fenix_args.callback_exception_mode = fenix::SQUASH;
 
   // Only non-spare ranks leave init
   fenix::init(fenix_args);

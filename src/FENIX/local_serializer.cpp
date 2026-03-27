@@ -14,7 +14,6 @@
 #include "FENIX/local_serializer.h"
 
 #include <cstdio>
-#include <fmt/ranges.h>
 
 #include "memory.h"
 #include "error.h"

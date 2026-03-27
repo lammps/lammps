@@ -17,6 +17,7 @@
 #include "write_restart.h"
 #include "error.h"
 
+#include <cstring>
 #include <string>
 
 namespace LAMMPS_NS {

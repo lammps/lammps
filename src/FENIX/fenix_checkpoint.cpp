@@ -17,7 +17,6 @@
 #include "fenix.hpp"
 
 #include <cstdio>
-#include <fmt/ranges.h>
 
 #include "memory.h"
 #include "error.h"

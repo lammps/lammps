@@ -22,7 +22,6 @@
 #include "fenix.hpp"
 
 #include <signal.h>
-#include <fmt/ranges.h>
 
 namespace LAMMPS_NS {
 
@@ -143,10 +142,13 @@ void Fenix::fault_handler(){
   int me = comm->me;
 
   if(comm->me == 0){
+    std::string fail_list = "[";
+    for(auto i : fenix::fail_list()) fail_list += fmt::format("{}, ", i);
+    fail_list = fail_list.substr(0, fail_list.size()-2) + "]";
+
     utils::logmesg(lmp,
         "\n\n\nFenix recovering from rank failure(s) [{}] with {} spare ranks"
-        " remaining\n\n",
-        fmt::join(fenix::fail_list(), ", "), fenix::nspare()
+        " remaining\n\n", fail_list, fenix::nspare()
     );
   }
 

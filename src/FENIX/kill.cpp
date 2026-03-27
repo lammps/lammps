@@ -18,6 +18,7 @@
 #include "utils.h"
 
 #include <signal.h>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

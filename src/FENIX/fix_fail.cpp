@@ -23,6 +23,7 @@
 #include "fenix.hpp"
 
 #include <signal.h>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

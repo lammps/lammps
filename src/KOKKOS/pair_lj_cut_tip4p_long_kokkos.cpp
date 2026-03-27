@@ -136,7 +136,7 @@ struct PairTIP4PPreprocess {
 template<typename EatAccess, typename VatAccess>
 KOKKOS_INLINE_FUNCTION void tip4p_ev_tally_tip4p(
     EV_FLOAT &ev, const int key, const int *vlist, const KK_FLOAT v[6], const KK_FLOAT ecoul,
-    const KK_FLOAT alpha, EatAccess a_eatom, VatAccess a_vatom, const int eflag_atom,
+    const KK_FLOAT alpha, const EatAccess &a_eatom, const VatAccess &a_vatom, const int eflag_atom,
     const int vflag_global, const int vflag_atom, const int eflag_global, const KK_FLOAT scale)
 {
   const KK_ACC_FLOAT z = static_cast<KK_ACC_FLOAT>(scale);
@@ -213,7 +213,7 @@ struct PairTIP4PLongComputeFunctor {
   typedef typename PairLJCutTIP4PLongKokkos<DeviceType>::AT AT;
   typedef EV_FLOAT value_type;
   typedef typename KKDevice<DeviceType>::value KKDeviceType;
-  typedef typename NeedDup_v<NEIGHFLAG, DeviceType> DUP;
+  using DUP = NeedDup_v<NEIGHFLAG, DeviceType>;
 
   PairLJCutTIP4PLongKokkos<DeviceType> c;
   NeighListKokkos<DeviceType> list;
@@ -419,9 +419,9 @@ struct PairTIP4PLongComputeFunctor {
       KK_FLOAT dely = dely_lj;
       KK_FLOAT delz = delz_lj;
       if (rsq < c.tip4p_cut_coulsqplus) {
+        int jH1 = 0, jH2 = 0;
         if (itype == typeO || jtype == typeO) {
           KK_FLOAT x2[3];
-          int jH1 = 0, jH2 = 0;
           if (jtype == typeO) {
             jH1 = c.d_tip4p_hneigh(j, 0);
             jH2 = c.d_tip4p_hneigh(j, 1);

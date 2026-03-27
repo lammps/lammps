@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 using MathConst::MY_PI;
 
 static const char cite_compute_xrd_c[] =
-  "compute xrd command: doi:10.1088/0965-0393/21/5/055020\n\n"
+  "compute xrd command: https://doi.org/10.1088/0965-0393/21/5/055020\n\n"
   "@Article{Coleman13,\n"
   " author = {S. P. Coleman and D. E. Spearot and L. Capolungo},\n"
   " title = {Virtual Diffraction Analysis of {Ni} [010] Symmetric Tilt Grain Boundaries},\n"

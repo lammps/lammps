@@ -28,9 +28,10 @@
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
+#include "potential_file_reader.h"
 #include "random_mars.h"
 #include "respa.h"
-#include "potential_file_reader.h"
+#include "safe_pointers.h"
 #include "update.h"
 
 #include <cmath>
@@ -48,7 +49,7 @@ using namespace MathConst;
 //   to spatially average consistent with the TTM grid
 
 static const char cite_fix_ttm_mod[] =
-  "fix ttm/mod command: doi:10.1088/0953-8984/26/47/475401, doi:10.1002/ctpp.201310025\n\n"
+  "fix ttm/mod command: https://doi.org/10.1088/0953-8984/26/47/475401, https://doi.org/10.1002/ctpp.201310025\n\n"
   "@article{Pisarev2014,\n"
   "author = {Pisarev, V. V. and Starikov, S. V.},\n"
   "title = {Atomistic Simulation of Ion Track Formation in {UO$_2$}.},\n"
@@ -625,7 +626,7 @@ void FixTTMMod::write_electron_temperatures(const std::string &filename)
 {
   if (comm->me) return;
 
-  FILE *fp = fopen(filename.c_str(),"w");
+  SafeFilePtr fp = fopen(filename.c_str(),"w");
   if (!fp) error->one(FLERR,"Fix ttm/mod could not open output file {}: {}",
                       filename, utils::getsyserror());
   utils::print(fp,"# DATE: {} UNITS: {} COMMENT: Electron temperature "
@@ -642,7 +643,6 @@ void FixTTMMod::write_electron_temperatures(const std::string &filename)
         fprintf(fp,"%d %d %d %20.16g\n",ix+1,iy+1,iz+1,T_electron[iz][iy][ix]);
       }
 
-  fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */

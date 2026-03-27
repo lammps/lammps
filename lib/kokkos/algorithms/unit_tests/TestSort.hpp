@@ -1,33 +1,24 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_ALGORITHMS_UNITTESTS_TEST_SORT_HPP
 #define KOKKOS_ALGORITHMS_UNITTESTS_TEST_SORT_HPP
 
 #include <gtest/gtest.h>
-#include <Kokkos_Core.hpp>
-#include <Kokkos_DynamicView.hpp>
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.dynamic_view;
 import kokkos.random;
 import kokkos.sort;
 #else
+#include <Kokkos_Core.hpp>
+#include <Kokkos_DynamicView.hpp>
 #include <Kokkos_Random.hpp>
 #include <Kokkos_Sort.hpp>
 #endif
+
+#include <algorithm>
 
 namespace Test {
 namespace SortImpl {

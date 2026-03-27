@@ -472,7 +472,7 @@ void PairE3B::init_style()
 }
 
 static const char cite_E3B1[] =
-    "Explicit Three-Body (E3B) potential for water: doi:10.1021/jp8009468\n\n"
+    "Explicit Three-Body (E3B) potential for water: https://doi.org/10.1021/jp8009468\n\n"
     "@article{kumar_water_2008,\n"
     "title = {Water Simulation Model with Explicit Three-Molecule Interactions},\n"
     "volume = {112},\n"
@@ -485,7 +485,7 @@ static const char cite_E3B1[] =
     "}\n\n";
 
 static const char cite_E3B2[] =
-    "Explicit Three-Body (E3B) potential for water: doi:10.1063/1.3587053\n\n"
+    "Explicit Three-Body (E3B) potential for water: https://doi.org/10.1063/1.3587053\n\n"
     "@article{tainter_robust_2011,\n"
     "title = {Robust Three-Body Water Simulation Model},\n"
     "volume = {134},\n"
@@ -498,7 +498,7 @@ static const char cite_E3B2[] =
     "}\n\n";
 
 static const char cite_E3B3[] =
-    "Explicit Three-Body (E3B) potential for water: doi:10.1021/acs.jctc.5b00117\n\n"
+    "Explicit Three-Body (E3B) potential for water: https://doi.org/10.1021/acs.jctc.5b00117\n\n"
     "@article{tainter_reparametrized_2015,\n"
     "title = {Reparametrized {E3B} (Explicit Three-Body) Water Model Using the {TIP4P/2005} Model "
     "as a Reference},\n"

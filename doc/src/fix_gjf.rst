@@ -197,7 +197,7 @@ The option defaults are vel = vhalf, method = 1.
 
 .. _Finkelstein:
 
-**(Finkelstein)** Finkelstein, Cheng, Florin, Seibold, Gronbech-Jensen, J. Chem. Phys., 155, 18 (2021)
+**(Finkelstein)** Finkelstein, Cheng, Fiorin, Seibold, Gronbech-Jensen, J. Chem. Phys., 155, 18 (2021)
 
 .. _Gronbech-Jensen-2024:
 

@@ -140,18 +140,19 @@ protected:
         int out_klo = 0, out_khi = nslow - 1;
 
         // FFT parameters
-        int scaled        = 0; // No scaling
-        int permute       = 0; // No permutation
-        int nbuf          = 0; // Buffer size (output)
-        int usecollective = 0; // Use point-to-point communication
-        int usegpu        = 0; // Let KOKKOS decide based on backend
+        int scaled         = 0; // No scaling
+        int permute        = 0; // No permutation
+        int nbuf           = 0; // Buffer size (output)
+        int usecollective  = 0; // Use point-to-point communication
+        int usenonblocking = 0; // Use blocking point-to-point communication
+        int usegpu         = 0; // Let KOKKOS decide based on backend
 
         // Create FFT3dKokkos object
         BEGIN_HIDE_OUTPUT();
         fft = new FFT3dKokkos<DeviceType>(lmp, MPI_COMM_WORLD, nfast, nmid, nslow, in_ilo, in_ihi,
                                           in_jlo, in_jhi, in_klo, in_khi, out_ilo, out_ihi, out_jlo,
                                           out_jhi, out_klo, out_khi, scaled, permute, &nbuf,
-                                          usecollective, usegpu);
+                                          usecollective, usenonblocking, usegpu);
         END_HIDE_OUTPUT();
 
         ASSERT_NE(fft, nullptr);
@@ -555,13 +556,13 @@ TEST_F(FFT3DKokkosTest, Threading_OpenMP_Concurrent)
         int out_jlo = in_jlo, out_jhi = in_jhi;
         int out_klo = in_klo, out_khi = in_khi;
         int scaled = 0, permute = 0, nbuf = 0;
-        int usecollective = 0, usegpu_aware = 0;
+        int usecollective = 0, usegpu_aware = 0, usenonblocking = 0;
 
         BEGIN_HIDE_OUTPUT();
         auto fft = new FFT3dKokkos<LMPDeviceType>(
             lmp, MPI_COMM_WORLD, grid_size, grid_size, grid_size, in_ilo, in_ihi, in_jlo, in_jhi,
             in_klo, in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi, scaled, permute,
-            &nbuf, usecollective, usegpu_aware);
+            &nbuf, usecollective, usenonblocking, usegpu_aware);
         END_HIDE_OUTPUT();
 
         ffts.push_back(fft);
@@ -657,13 +658,13 @@ TEST_F(FFT3DKokkosTest, Threading_Threads_Concurrent)
         int out_jlo = in_jlo, out_jhi = in_jhi;
         int out_klo = in_klo, out_khi = in_khi;
         int scaled = 0, permute = 0, nbuf = 0;
-        int usecollective = 0, usegpu_aware = 0;
+        int usecollective = 0, usegpu_aware = 0, usenonblocking = 0;
 
         BEGIN_HIDE_OUTPUT();
         auto fft = new FFT3dKokkos<LMPDeviceType>(
             lmp, MPI_COMM_WORLD, grid_size, grid_size, grid_size, in_ilo, in_ihi, in_jlo, in_jhi,
             in_klo, in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi, scaled, permute,
-            &nbuf, usecollective, usegpu_aware);
+            &nbuf, usecollective, usenonblocking, usegpu_aware);
         END_HIDE_OUTPUT();
 
         ffts.push_back(fft);
@@ -730,13 +731,13 @@ TEST_F(FFT3DKokkosTest, Threading_Safety)
     int out_jlo = in_jlo, out_jhi = in_jhi;
     int out_klo = in_klo, out_khi = in_khi;
     int scaled = 0, permute = 0, nbuf = 0;
-    int usecollective = 0, usegpu_aware = 0;
+    int usecollective = 0, usegpu_aware = 0, usenonblocking = 0;
 
     BEGIN_HIDE_OUTPUT();
     auto fft_device = new FFT3dKokkos<LMPDeviceType>(
         lmp, MPI_COMM_WORLD, grid_size, grid_size, grid_size, in_ilo, in_ihi, in_jlo, in_jhi,
         in_klo, in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi, scaled, permute,
-        &nbuf, usecollective, usegpu_aware);
+        &nbuf, usecollective, usenonblocking, usegpu_aware);
     END_HIDE_OUTPUT();
 
     ASSERT_NE(fft_device, nullptr);
@@ -880,14 +881,14 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_2proc_32x32x32)
 
     // FFT parameters
     int scaled = 0, permute = 0, nbuf = 0;
-    int usecollective = 0, usegpu_aware = 0;
+    int usecollective = 0, usegpu_aware = 0, usenonblocking = 0;
 
     // Create MPI-aware FFT3dKokkos object
     BEGIN_HIDE_OUTPUT();
     auto fft_mpi = new FFT3dKokkos<LMPDeviceType>(
         lmp, MPI_COMM_WORLD, grid_size, grid_size, grid_size, in_ilo, in_ihi, in_jlo, in_jhi,
         in_klo, in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi, scaled, permute,
-        &nbuf, usecollective, usegpu_aware);
+        &nbuf, usecollective, usenonblocking, usegpu_aware);
     END_HIDE_OUTPUT();
 
     ASSERT_NE(fft_mpi, nullptr);
@@ -1012,14 +1013,14 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_4proc_64x64x64)
 
     // FFT parameters
     int scaled = 0, permute = 0, nbuf = 0;
-    int usecollective = 0, usegpu_aware = 0;
+    int usecollective = 0, usegpu_aware = 0, usenonblocking = 0;
 
     // Create MPI-aware FFT3dKokkos object
     BEGIN_HIDE_OUTPUT();
     auto fft_mpi = new FFT3dKokkos<LMPDeviceType>(
         lmp, MPI_COMM_WORLD, grid_size, grid_size, grid_size, in_ilo, in_ihi, in_jlo, in_jhi,
         in_klo, in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi, scaled, permute,
-        &nbuf, usecollective, usegpu_aware);
+        &nbuf, usecollective, usenonblocking, usegpu_aware);
     END_HIDE_OUTPUT();
 
     ASSERT_NE(fft_mpi, nullptr);
@@ -1146,6 +1147,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_GPU_2proc)
     // FFT parameters (disable GPU-aware MPI for now)
     int scaled = 0, permute = 0, nbuf = 0;
     int usecollective = 0;
+    int usenonblocking = 0;
     int usegpu_aware  = 0; // Would check lmp->kokkos->gpu_aware_flag if KokkosLMP was complete
 
     // Create MPI+GPU FFT3dKokkos object
@@ -1153,7 +1155,7 @@ TEST_F(FFT3DKokkosTest, RoundTrip_Kokkos_MPI_GPU_2proc)
     auto fft_mpi = new FFT3dKokkos<LMPDeviceType>(
         lmp, MPI_COMM_WORLD, grid_size, grid_size, grid_size, in_ilo, in_ihi, in_jlo, in_jhi,
         in_klo, in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi, scaled, permute,
-        &nbuf, usecollective, usegpu_aware);
+        &nbuf, usecollective, usenonblocking, usegpu_aware);
     END_HIDE_OUTPUT();
 
     ASSERT_NE(fft_mpi, nullptr);

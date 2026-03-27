@@ -53,11 +53,11 @@ class PairMEAMSpline : public Pair {
 
   // helper functions for compute()
 
-  int ij_to_potl(const int itype, const int jtype, const int ntypes) const
+  [[nodiscard]] int ij_to_potl(const int itype, const int jtype, const int ntypes) const
   {
     return jtype - 1 + (itype - 1) * ntypes - (itype - 1) * itype / 2;
   }
-  int i_to_potl(const int itype) const { return itype - 1; }
+  [[nodiscard]] int i_to_potl(const int itype) const { return itype - 1; }
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
@@ -107,7 +107,7 @@ class PairMEAMSpline : public Pair {
     }
 
     /// Returns the number of knots.
-    int numKnots() const { return N; }
+    [[nodiscard]] int numKnots() const { return N; }
 
     /// Parses the spline knots from a text file.
     void parse(class PotentialFileReader &reader, bool isNewFormat);
@@ -116,7 +116,7 @@ class PairMEAMSpline : public Pair {
     void prepareSpline();
 
     /// Evaluates the spline function at position x.
-    inline double eval(double x) const
+    [[nodiscard]] double eval(double x) const
     {
       x -= xmin;
       if (x <= 0.0) {    // Left extrapolation.
@@ -197,10 +197,10 @@ class PairMEAMSpline : public Pair {
     }
 
     /// Returns the number of bytes used by this function object.
-    double memory_usage() const { return sizeof(*this) + sizeof(X[0]) * N * 3; }
+    [[nodiscard]] double memory_usage() const { return sizeof(*this) + sizeof(X[0]) * N * 3; }
 
     /// Returns the cutoff radius of this function.
-    double cutoff() const { return X[N - 1]; }
+    [[nodiscard]] double cutoff() const { return X[N - 1]; }
 
     /// Writes a Gnuplot script that plots the spline function.
     void writeGnuplot(const char *filename, const char *title = nullptr) const;

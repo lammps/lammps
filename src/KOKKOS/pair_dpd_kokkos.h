@@ -55,8 +55,10 @@ class PairDPDKokkos : public PairDPD {
   void compute(int, int) override;
 
   struct params_dpd {
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_dpd() {cut=a0=gamma=sigma=0;}
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_dpd(int /*i*/) {cut=a0=gamma=sigma=0;}
     KK_FLOAT cut,a0,gamma,sigma;
@@ -66,14 +68,17 @@ class PairDPDKokkos : public PairDPD {
   struct TagDPDKokkos{};
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator () (TagDPDKokkos<NEIGHFLAG,EVFLAG>, const int &i) const;
 
   template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator () (TagDPDKokkos<NEIGHFLAG,EVFLAG>, const int &i, EV_FLOAT&) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
                 const KK_FLOAT &epair, const KK_FLOAT &fpair,
@@ -132,6 +137,7 @@ class PairDPDKokkos : public PairDPD {
   typename AT::t_kkacc_1d d_eatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
   friend void pair_virial_fdotr_compute<PairDPDKokkos>(PairDPDKokkos*);

@@ -41,7 +41,7 @@ enum { NOBIAS, BIAS };
 enum { CONSTANT, EQUAL, ATOM };
 
 static const char cite_gjf[] =
-    "GJ methods: doi:10.1080/00268976.2019.1662506\n\n"
+    "GJ methods: https://doi.org/10.1080/00268976.2019.1662506\n\n"
     "@Article{gronbech-jensen_complete_2020,\n"
     "title = {Complete set of stochastic Verlet-type thermostats for correct Langevin "
     "simulations},\n"
@@ -54,7 +54,7 @@ static const char cite_gjf[] =
     "year = {2020}\n"
     "}\n\n";
 
-static const char cite_gjf_7[] = "GJ-VII method: doi:10.1063/5.0066008\n\n"
+static const char cite_gjf_7[] = "GJ-VII method: https://doi.org/10.1063/5.0066008\n\n"
                                  "@Article{finkelstein_2021,\n"
                                  "title = {Bringing discrete-time Langevin splitting methods into "
                                  "agreement with thermodynamics},\n"
@@ -70,7 +70,7 @@ static const char cite_gjf_7[] = "GJ-VII method: doi:10.1063/5.0066008\n\n"
                                  "}\n\n";
 
 static const char cite_gjf_8[] =
-    "GJ-VIII method: doi:10.1007/s10955-024-03345-1\n\n"
+    "GJ-VIII method: https://doi.org/10.1007/s10955-024-03345-1\n\n"
     "@Article{gronbech_jensen_2024,\n"
     "title = {On the Definition of Velocity in Discrete-Time, Stochastic Langevin Simulations},\n"
     "volume = {191},\n"
@@ -84,7 +84,7 @@ static const char cite_gjf_8[] =
     "}\n\n";
 
 static const char cite_gjf_vhalf[] =
-    "GJ-I vhalf method: doi:10.1080/00268976.2019.1570369\n\n"
+    "GJ-I vhalf method: https://doi.org/10.1080/00268976.2019.1570369\n\n"
     "@Article{jensen_accurate_2019,\n"
     "title = {Accurate configurational and kinetic statistics in discrete-time Langevin systems},\n"
     "volume = {117},\n"
@@ -97,7 +97,7 @@ static const char cite_gjf_vhalf[] =
     "}\n\n";
 
 static const char cite_gjf_vfull[] =
-    "GJ-I vfull method: doi:10.1080/00268976.2012.760055\n\n"
+    "GJ-I vfull method: https://doi.org/10.1080/00268976.2012.760055\n\n"
     "@Article{gronbech-jensen_simple_2013,\n"
     "title = {A simple and effective Verlet-type algorithm for simulating Langevin dynamics},\n"
     "volume = {111},\n"

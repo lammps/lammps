@@ -116,16 +116,17 @@ protected:
         int out_klo = 0, out_khi = nslow - 1;
 
         // FFT parameters
-        int scaled        = 0; // No scaling
-        int permute       = 0; // No permutation
-        int nbuf          = 0; // Buffer size (output)
-        int usecollective = 0; // Use point-to-point communication
+        int scaled         = 0; // No scaling
+        int permute        = 0; // No permutation
+        int nbuf           = 0; // Buffer size (output)
+        int usecollective  = 0; // Use point-to-point communication
+        int usenonblocking = 0; // Use blocking point-to-point communication
 
         // Create FFT3d object
         BEGIN_HIDE_OUTPUT();
         fft = new FFT3d(lmp, MPI_COMM_WORLD, nfast, nmid, nslow, in_ilo, in_ihi, in_jlo, in_jhi,
                         in_klo, in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi,
-                        scaled, permute, &nbuf, usecollective);
+                        scaled, permute, &nbuf, usecollective, usenonblocking);
         END_HIDE_OUTPUT();
 
         ASSERT_NE(fft, nullptr);
@@ -654,16 +655,17 @@ TEST_F(FFT3DTest, RoundTrip_MPI_2proc_32x32x32)
     std::memset(output_data, 0, 2 * local_size * sizeof(FFT_SCALAR));
 
     // FFT parameters
-    int scaled        = 0; // No scaling
-    int permute       = 0; // No permutation
-    int nbuf          = 0; // Buffer size (output)
-    int usecollective = 0; // Use point-to-point communication
+    int scaled         = 0; // No scaling
+    int permute        = 0; // No permutation
+    int nbuf           = 0; // Buffer size (output)
+    int usecollective  = 0; // Use point-to-point communication
+    int usenonblocking = 0; // Use blocking point-to-point communication
 
     // Create MPI-aware FFT3d object
     BEGIN_HIDE_OUTPUT();
     fft = new FFT3d(lmp, MPI_COMM_WORLD, nfast, nmid, nslow, in_ilo, in_ihi, in_jlo, in_jhi, in_klo,
                     in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi, scaled, permute,
-                    &nbuf, usecollective);
+                    &nbuf, usecollective, usenonblocking);
     END_HIDE_OUTPUT();
 
     ASSERT_NE(fft, nullptr);
@@ -799,16 +801,17 @@ TEST_F(FFT3DTest, RoundTrip_MPI_4proc_64x64x64)
     std::memset(output_data, 0, 2 * local_size * sizeof(FFT_SCALAR));
 
     // FFT parameters
-    int scaled        = 0; // No scaling
-    int permute       = 0; // No permutation
-    int nbuf          = 0; // Buffer size (output)
-    int usecollective = 0; // Use point-to-point communication
+    int scaled         = 0; // No scaling
+    int permute        = 0; // No permutation
+    int nbuf           = 0; // Buffer size (output)
+    int usecollective  = 0; // Use point-to-point communication
+    int usenonblocking = 0; // Use blocking point-to-point communication
 
     // Create MPI-aware FFT3d object
     BEGIN_HIDE_OUTPUT();
     fft = new FFT3d(lmp, MPI_COMM_WORLD, nfast, nmid, nslow, in_ilo, in_ihi, in_jlo, in_jhi, in_klo,
                     in_khi, out_ilo, out_ihi, out_jlo, out_jhi, out_klo, out_khi, scaled, permute,
-                    &nbuf, usecollective);
+                    &nbuf, usecollective, usenonblocking);
     END_HIDE_OUTPUT();
 
     ASSERT_NE(fft, nullptr);

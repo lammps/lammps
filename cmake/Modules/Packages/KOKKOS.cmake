@@ -1,8 +1,8 @@
 ########################################################################
-# As of version 4.0.0 Kokkos requires C++17
-if(CMAKE_CXX_STANDARD LESS 17)
+# As of version 5.0.0 Kokkos requires C++20
+if(CMAKE_CXX_STANDARD LESS 20)
   message(FATAL_ERROR "The KOKKOS package requires the C++ standard to
-be set to at least C++17")
+be set to at least C++20")
 endif()
 
 # Set Kokkos Precision
@@ -38,6 +38,11 @@ message(STATUS "Using " ${KOKKOS_LAYOUT_LOWER} " view layout for KOKKOS package"
 
 ########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
+
+# temporarily enable Kokkos legacy view implementation to prevent integer overflows when indexing neighborlist views
+option(Kokkos_ENABLE_IMPL_VIEW_LEGACY "Enable legacy Kokkos view implementation" ON)
+mark_as_advanced(Kokkos_ENABLE_IMPL_VIEW_LEGACY)
+
 if(Kokkos_ENABLE_HIP)
   option(Kokkos_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS "Enable multiple kernel instantiations with HIP" ON)
   mark_as_advanced(Kokkos_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS)
@@ -88,15 +93,15 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
-  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/4.7.01.tar.gz" CACHE STRING "URL for KOKKOS tarball")
-  set(KOKKOS_MD5 "06bc2f6f9804f9d16228059e87c85239" CACHE STRING "MD5 checksum of KOKKOS tarball")
+  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/5.0.2.tar.gz" CACHE STRING "URL for KOKKOS tarball")
+  set(KOKKOS_SHA256 "d826f2e0bf1bc3515b4887e3a2594c7fb7a2b5b005dd8798242a8fd1953a9a21" CACHE STRING "SHA256 checksum of KOKKOS tarball")
   mark_as_advanced(KOKKOS_URL)
-  mark_as_advanced(KOKKOS_MD5)
+  mark_as_advanced(KOKKOS_SHA256)
   GetFallbackURL(KOKKOS_URL KOKKOS_FALLBACK)
 
   ExternalProject_Add(kokkos_build
     URL     ${KOKKOS_URL} ${KOKKOS_FALLBACK}
-    URL_MD5 ${KOKKOS_MD5}
+    URL_HASH SHA256=${KOKKOS_SHA256}
     CMAKE_ARGS ${KOKKOS_LIB_BUILD_ARGS}
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkokkoscore.a <INSTALL_DIR>/lib/libkokkoscontainers.a
   )
@@ -114,7 +119,7 @@ if(DOWNLOAD_KOKKOS)
   add_dependencies(LAMMPS::KOKKOSCORE kokkos_build)
   add_dependencies(LAMMPS::KOKKOSCONTAINERS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 4.7.01 REQUIRED CONFIG)
+  find_package(Kokkos 5.0.2 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
 else()
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
@@ -158,7 +163,8 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
-                       ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
+                       ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/rand_pool_wrap_kokkos.cpp)
 
 # fix wall/gran has been refactored in an incompatible way. Use old version of base class for now
 if(PKG_GRANULAR)

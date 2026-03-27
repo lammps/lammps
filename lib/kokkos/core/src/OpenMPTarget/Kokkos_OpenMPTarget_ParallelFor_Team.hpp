@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_OPENMPTARGET_PARALLEL_FOR_TEAM_HPP
 #define KOKKOS_OPENMPTARGET_PARALLEL_FOR_TEAM_HPP
@@ -88,16 +75,12 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   void execute() const {
     Experimental::Impl::OpenMPTargetInternal::verify_is_process(
         "Kokkos::Experimental::OpenMPTarget parallel_for");
-    Experimental::Impl::OpenMPTargetInternal::verify_initialized(
-        "Kokkos::Experimental::OpenMPTarget parallel_for");
     execute_impl();
   }
 
  private:
   void execute_impl() const {
     Experimental::Impl::OpenMPTargetInternal::verify_is_process(
-        "Kokkos::Experimental::OpenMPTarget parallel_for");
-    Experimental::Impl::OpenMPTargetInternal::verify_initialized(
         "Kokkos::Experimental::OpenMPTarget parallel_for");
     const auto league_size   = m_policy.league_size();
     const auto team_size     = m_policy.team_size();
@@ -117,14 +100,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     // mode but works in the Debug mode.
 
     // Maximum active teams possible.
-    // FIXME_OPENMPTARGET: Cray compiler did not yet implement
-    // omp_get_max_teams.
-#if !defined(KOKKOS_COMPILER_CRAY_LLVM)
     int max_active_teams = omp_get_max_teams();
-#else
-    int max_active_teams =
-        std::min(m_policy.space().concurrency() / team_size, league_size);
-#endif
 
     // FIXME_OPENMPTARGET: Although the maximum number of teams is set using the
     // omp_set_num_teams in the resize_scratch routine, the call is not
@@ -171,9 +147,9 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   ParallelFor(const FunctorType& arg_functor, const Policy& arg_policy)
       : m_functor(arg_functor),
         m_policy(arg_policy),
-        m_shmem_size(arg_policy.scratch_size(0) + arg_policy.scratch_size(1) +
+        m_shmem_size(m_policy.scratch_size(0) + m_policy.scratch_size(1) +
                      FunctorTeamShmemSize<FunctorType>::value(
-                         arg_functor, arg_policy.team_size())) {}
+                         arg_functor, m_policy.team_size())) {}
 };
 
 }  // namespace Impl

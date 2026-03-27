@@ -42,6 +42,8 @@ Syntax
        *delete_rate_limit* value = Nlimit Nsteps
              Nlimit = maximum number of deletions allowed to occur within interval
              Nsteps = the interval (number of timesteps) over which to count deletions
+       *delete_subgroup* value = group-ID
+             group-ID = name of a :doc:`group <group>`
 
 Examples
 """"""""
@@ -84,9 +86,10 @@ the first line.
    calculations, reneighboring only every 100 steps is already quite a
    low frequency.
 
-If the filename ends with ".gz", the output file is written in gzipped
-format.  A gzipped dump file will be about 3x smaller than the text version,
-but will also take longer to write.
+If the filename ends with ".gz" or some :ref:`other supported
+compression format suffix <gzip>`, the output file is written in
+compressed format.  A compressed output file can be significantly
+smaller than the text version, but will also take longer to write.
 
 .. versionadded:: 15Jun2023
 
@@ -149,6 +152,7 @@ deletes molecules that are identified as "CO" and "CO2" in the species
 output file.  The *masslimit* keyword permits deletion of molecules with
 molecular weights between *massmin* and *massmax*.  The *specieslist* and
 *masslimit* keywords cannot both be used in the same *reaxff/species* fix.
+
 The *delete_rate_limit* keyword can enforce an upper limit on the overall
 rate of molecule deletion. The number of deletion occurrences is limited to
 Nlimit within an interval of Nsteps timesteps. Nlimit can be specified with
@@ -157,8 +161,16 @@ an equal-style :doc:`variable <variable>`. When using the
 first Nsteps timesteps of the first run (after reading either a data or
 restart file).
 
+.. versionadded:: 10Dec2025
+
+The *delete_subgroup* keyword enforces a requirement that deleted molecules
+must have at least one atom in the group specified by the keyword's
+*group-ID* argument.  For example, this keyword can be used to delete an
+entire molecule when it is partially inside a :doc:`region <region>`, as
+long as the molecule is fully contained with the overall fix group.
+
 The *delete* keyword can output information about the deleted molecules in
-either legacy format or JSON format. The latter is activated when the
+either the legacy format or in JSON format.  The latter is activated when the
 *filedel* argument has a '.json' extension.  The legacy format lists how
 many of each species are deleted, while the JSON format provides the atom ID,
 atom type, and coordinates of deleted atoms within each molecule.  The
@@ -285,7 +297,9 @@ The "fix reaxff/species" requires that :doc:`pair_style reaxff <pair_reaxff>` is
 This fix is part of the REAXFF package.  It is only enabled if LAMMPS was built with that
 package.  See the :doc:`Build package <Build_package>` page for more info.
 
-To write gzipped species files, you must compile LAMMPS with the -DLAMMPS_GZIP option.
+To write compressed species files, you must compile LAMMPS with the
+``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings <Build_settings>`
+doc page for details.
 
 Related commands
 """"""""""""""""

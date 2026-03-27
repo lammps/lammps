@@ -46,13 +46,13 @@ class Thermo : protected Pointers {
   // for accessing cached thermo and related data
   void lock_cache();
   void unlock_cache();
-  const int *get_line() const { return &nline; }
-  const char *get_image_fname() const { return image_fname.c_str(); }
+  [[nodiscard]] const int *get_line() const { return &nline; }
+  [[nodiscard]] const char *get_image_fname() const { return image_fname.c_str(); }
 
-  const int *get_nfield() const { return &nfield; }
-  const bigint *get_timestep() const { return &ntimestep; }
-  const std::vector<multitype> &get_fields() const { return field_data; }
-  const std::vector<std::string> &get_keywords() const { return keyword; }
+  [[nodiscard]] const int *get_nfield() const { return &nfield; }
+  [[nodiscard]] const bigint *get_timestep() const { return &ntimestep; }
+  [[nodiscard]] const std::vector<multitype> &get_fields() const { return field_data; }
+  [[nodiscard]] const std::vector<std::string> &get_keywords() const { return keyword; }
 
   void set_line(int _nline) { nline = _nline; }
   void set_image_fname(const std::string &fname) { image_fname = fname; }
@@ -128,6 +128,7 @@ class Thermo : protected Pointers {
   void deallocate();
 
   void parse_fields(const std::string &);
+  void colname_auto();
   int add_compute(const char *, int);
   int add_fix(const char *);
   int add_variable(const char *);

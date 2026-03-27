@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
@@ -30,6 +17,7 @@ static_assert(false,
 #include <impl/KokkosExp_Host_IterateTile.hpp>
 #include <Kokkos_ExecPolicy.hpp>
 #include <type_traits>
+#include <array>
 #include <cmath>
 
 namespace Kokkos {
@@ -135,10 +123,12 @@ constexpr NVCC_WONT_LET_ME_CALL_YOU_Array to_array_potentially_narrowing(
 }
 
 struct TileSizeProperties {
-  int max_threads;
+  int max_threads;  // (per SM, CU)
   int default_largest_tile_size;
   int default_tile_size;
   int max_total_tile_size;
+  // For GPU backends: hardware limits for block dimensions
+  std::array<int, 3> max_threads_dimensions;
 };
 
 template <typename ExecutionSpace>
@@ -149,6 +139,9 @@ TileSizeProperties get_tile_size_properties(const ExecutionSpace&) {
   properties.default_largest_tile_size = 0;
   properties.default_tile_size         = 2;
   properties.max_total_tile_size       = std::numeric_limits<int>::max();
+  for (int i = 0; i < 3; ++i) {
+    properties.max_threads_dimensions[i] = std::numeric_limits<int>::max();
+  }
   return properties;
 }
 
@@ -312,6 +305,12 @@ struct MDRangePolicy<P, Properties...>
                 upper),
             Impl::to_array_potentially_narrowing<index_type, decltype(m_tile)>(
                 tile)) {}
+
+  MDRangePolicy(const Impl::PolicyUpdate, const MDRangePolicy& other,
+                typename traits::execution_space space)
+      : MDRangePolicy(other) {
+    this->m_space = std::move(space);
+  }
 
   template <class... OtherProperties>
   MDRangePolicy(const MDRangePolicy<OtherProperties...> p)

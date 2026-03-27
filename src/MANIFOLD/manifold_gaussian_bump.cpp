@@ -64,7 +64,7 @@ public:
     if (fabs( y(1) - y1 ) > 1e-8 ) err->one(FLERR, "y1 wrong");
   }
 
-  double get_t_from_x( double xx ) const
+  [[nodiscard]] double get_t_from_x( double xx ) const
   {
     if (xx < x0 || xx > x1) {
       err->one(FLERR,"x ( {} ) out of bounds [{}, {}]", xx, x0, x1 );
@@ -94,26 +94,26 @@ public:
     return t;
   }
 
-  double x( double t ) const
+  [[nodiscard]] double x( double t ) const
   {
     double t2 = t*t;
     double t3 = t2*t;
     return a*t3 + b*t2 + c*t + d;
   }
 
-  double y_from_x( double x ) const
+  [[nodiscard]] double y_from_x( double x ) const
   {
     double t = get_t_from_x( x );
     return y(t);
   }
 
-  double yp_from_x( double x ) const
+  [[nodiscard]] double yp_from_x( double x ) const
   {
     double t = get_t_from_x( x );
     return yp(t);
   }
 
-  double y( double t ) const
+  [[nodiscard]] double y( double t ) const
   {
     double t2 = t*t;
     double t3 = t2*t;
@@ -126,19 +126,19 @@ public:
     yy = y(t);
   }
 
-  double xp( double t ) const
+  [[nodiscard]] double xp( double t ) const
   {
     double t2 = t*t;
     return 3*a*t2 + 2*b*t + c;
   }
 
-  double yp( double t ) const
+  [[nodiscard]] double yp( double t ) const
   {
     double t2 = t*t;
     return 3*t2*s + 2*u*t + v;
   }
 
-  double xpp( double t ) const
+  [[nodiscard]] double xpp( double t ) const
   {
     return 6*a*t + 2*b;
   }

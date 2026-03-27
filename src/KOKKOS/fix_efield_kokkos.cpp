@@ -176,10 +176,10 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
 
   atomKK->modified(execution_space, datamask_modify);
 
-  fsum[0]=result[0];
-  fsum[1]=result[1];
-  fsum[2]=result[2];
-  fsum[3]=result[3];
+  fsum[0] = result[0];
+  fsum[1] = result[1];
+  fsum[2] = result[2];
+  fsum[3] = result[3];
 
   if (vflag_global) {
     virial[0] += result[4];
@@ -198,6 +198,7 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
 
 template<class DeviceType>
 template<int QFLAG, int MUFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant<QFLAG,MUFLAG>, const int &i, value_type result) const {
   if ( QFLAG && (d_mask(i) & groupbit)) {
@@ -243,6 +244,7 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant<QFLAG,MUFLAG>,
 
 template<class DeviceType>
 template<int QFLAG, int MUFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldNonConstant<QFLAG,MUFLAG>, const int &i, value_type result) const {
   if ( QFLAG && (d_mask(i) & groupbit)) {
@@ -289,6 +291,7 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldNonConstant<QFLAG,MUFLA
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixEfieldKokkos<DeviceType>::v_tally(value_type result, int i, KK_FLOAT *v) const
 {

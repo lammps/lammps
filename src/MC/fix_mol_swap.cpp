@@ -24,12 +24,15 @@
 #include "error.h"
 #include "fix.h"
 #include "force.h"
+#include "graphics.h"
 #include "improper.h"
 #include "kspace.h"
+#include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "random_park.h"
+#include "suffix.h"
 #include "update.h"
 
 #include <cmath>
@@ -43,7 +46,7 @@ static constexpr double BIG = 1.0e20;
 /* ---------------------------------------------------------------------- */
 
 FixMolSwap::FixMolSwap(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), random(nullptr), c_pe(nullptr)
+  Fix(lmp, narg, arg), random(nullptr), c_pe(nullptr), imgobjs(nullptr), imgparms(nullptr)
 {
   if (narg < 9) error->all(FLERR,"Illegal fix mol/swap command");
 
@@ -53,6 +56,13 @@ FixMolSwap::FixMolSwap(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   restart_global = 1;
   time_depend = 1;
+
+  // no visualization without an atom map
+  if (atom->map_style == Atom::MAP_NONE) {
+    vizsteps = 0;
+  } else {
+    vizsteps = 1000;
+  }
 
   // parse args
 
@@ -121,6 +131,21 @@ FixMolSwap::FixMolSwap(LAMMPS *lmp, int narg, char **arg) :
 FixMolSwap::~FixMolSwap()
 {
   delete random;
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixMolSwap::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"vizsteps") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify mol/swap", error);
+    vizsteps = utils::inumeric(FLERR, arg[1], false, lmp);
+    return 2;
+  }
+
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -136,6 +161,9 @@ int FixMolSwap::setmask()
 
 void FixMolSwap::init()
 {
+  if (force->pair && (force->pair->suffix_flag & Suffix::INTEL))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
+
   // c_pe = compute used to calculate before/after potential energy
 
   auto *id_pe = (char *) "thermo_pe";
@@ -263,6 +291,20 @@ void FixMolSwap::pre_exchange()
   nswap_accept += naccept;
 
   next_reneighbor = update->ntimestep + nevery;
+
+  // if visualization support is enabled, age vizatoms and remove expired ones
+  if (vizsteps > 0) {
+    std::vector<tagint> eraseme;
+    for (const auto &[key, data] : vizatoms) {
+      int idx = atom->map(key);
+      if ((idx < 0) || (data.first < 0)) {
+        eraseme.push_back(key);
+        continue;
+      }
+      vizatoms[key] = std::make_pair(data.first - nevery, data.second);
+    }
+    for (const auto &key : eraseme) vizatoms.erase(key);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -335,6 +377,19 @@ int FixMolSwap::attempt_swap()
 
   if (random->uniform() < exp(beta*(energy_before - energy_after))) {
     energy_stored = energy_after;
+
+    // record swapped atoms for visualization
+    if (vizsteps > 0) {
+      for (int i = 0; i < nlocal; i++) {
+        if (molecule[i] != molID) continue;
+        if (!(mask[i] & groupbit)) continue;
+        if (type[i] == jtype) {
+          vizatoms[atom->tag[i]] = std::make_pair(vizsteps, itype);
+        } else if (type[i] == itype) {
+          vizatoms[atom->tag[i]] = std::make_pair(vizsteps, jtype);
+        }
+      }
+    }
     return 1;
   }
 
@@ -500,4 +555,44 @@ void FixMolSwap::restart(char *buf)
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
     error->all(FLERR,"Must not reset timestep when restarting fix mol/swap");
+}
+
+/* ----------------------------------------------------------------------
+   provide graphics information to dump image to render spheres
+   at the location of atoms that were involved in a reaction
+------------------------------------------------------------------------- */
+
+int FixMolSwap::image(int *&objs, double **&parms)
+{
+  // no visualization without an atom map
+  if (atom->map_style == Atom::MAP_NONE)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Cannot use fix mol/swap in dump image without an atom map");
+
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
+
+  int numobjs = vizatoms.size();
+  int n = 0;
+  if (numobjs > 0) {
+    memory->create(imgobjs, numobjs, "mol/swap:imgobjs");
+    memory->create(imgparms, numobjs, 5, "mol/swap:imgparms");
+
+    int idx;
+    const auto *const *const x = atom->x;
+    for (const auto &[key, data] : vizatoms) {
+      idx = atom->map(key);
+      if (idx < 0) continue;
+      imgobjs[n] = Graphics::SPHERE;
+      imgparms[n][0] = data.second; // use stored pre-swap atom type
+      imgparms[n][1] = x[idx][0];
+      imgparms[n][2] = x[idx][1];
+      imgparms[n][3] = x[idx][2];
+      imgparms[n][4] = 0.0;     // radius is set with fflag2 in dump image
+      ++n;
+    }
+  }
+  objs = imgobjs;
+  parms = imgparms;
+  return n;
 }

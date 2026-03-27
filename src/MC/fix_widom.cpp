@@ -41,6 +41,7 @@
 #include "pair.h"
 #include "random_park.h"
 #include "region.h"
+#include "suffix.h"
 #include "update.h"
 
 #include <cmath>
@@ -281,6 +282,9 @@ int FixWidom::setmask()
 
 void FixWidom::init()
 {
+  if (force->pair && (force->pair->suffix_flag & Suffix::INTEL))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
+
   if (!atom->mass) error->all(FLERR, Error::NOLASTLINE, "Fix widom requires per atom type masses");
   if (atom->rmass_flag && (comm->me == 0))
     error->warning(FLERR, "Fix widom will use per atom type masses for velocity initialization");

@@ -18,17 +18,11 @@ namespace desul {
 namespace Impl {
 
 template <class T>
-struct host_atomic_exchange_available_gcc {
-  constexpr static bool value =
+inline constexpr bool host_atomic_always_lock_free<T, void> =
 #ifndef DESUL_HAVE_LIBATOMIC
-      ((sizeof(T) == 4 && alignof(T) == 4) ||
-#ifdef DESUL_HAVE_16BYTE_COMPARE_AND_SWAP
-       (sizeof(T) == 16 && alignof(T) == 16) ||
+    ((sizeof(T) == 4 && alignof(T) == 4) || (sizeof(T) == 8 && alignof(T) == 8)) &&
 #endif
-       (sizeof(T) == 8 && alignof(T) == 8)) &&
-#endif
-      std::is_trivially_copyable<T>::value;
-};
+    std::is_trivially_copyable<T>::value;
 
 // clang-format off
 // Disable warning for large atomics on clang 7 and up (checked with godbolt)
@@ -41,18 +35,20 @@ struct host_atomic_exchange_available_gcc {
 #endif
 
 template <class T, class MemoryOrder, class MemoryScope>
-std::enable_if_t<host_atomic_exchange_available_gcc<T>::value, T> host_atomic_exchange(
-    T* dest, T value, MemoryOrder, MemoryScope) {
+std::enable_if_t<host_atomic_always_lock_free<T>, T> host_atomic_exchange(T* dest,
+                                                                          T value,
+                                                                          MemoryOrder,
+                                                                          MemoryScope) {
   T return_val;
   __atomic_exchange(dest, &value, &return_val, GCCMemoryOrder<MemoryOrder>::value);
   return return_val;
 }
 
-// Failure mode for host_atomic_compare_exchange_n cannot be RELEASE nor ACQREL so
+// Failure mode for host_atomic_compare_exchange_n cannot be RELEASE nor ACQ_REL so
 // Those two get handled separately.
 template <class T, class MemoryOrder, class MemoryScope>
-std::enable_if_t<host_atomic_exchange_available_gcc<T>::value, T>
-host_atomic_compare_exchange(T* dest, T compare, T value, MemoryOrder, MemoryScope) {
+std::enable_if_t<host_atomic_always_lock_free<T>, T> host_atomic_compare_exchange(
+    T* dest, T compare, T value, MemoryOrder, MemoryScope) {
   (void)__atomic_compare_exchange(dest,
                                   &compare,
                                   &value,
@@ -63,8 +59,7 @@ host_atomic_compare_exchange(T* dest, T compare, T value, MemoryOrder, MemorySco
 }
 
 template <class T, class MemoryScope>
-std::enable_if_t<host_atomic_exchange_available_gcc<T>::value, T>
-host_atomic_compare_exchange(
+std::enable_if_t<host_atomic_always_lock_free<T>, T> host_atomic_compare_exchange(
     T* dest, T compare, T value, MemoryOrderRelease, MemoryScope) {
   (void)__atomic_compare_exchange(
       dest, &compare, &value, false, __ATOMIC_RELEASE, __ATOMIC_RELAXED);
@@ -72,8 +67,7 @@ host_atomic_compare_exchange(
 }
 
 template <class T, class MemoryScope>
-std::enable_if_t<host_atomic_exchange_available_gcc<T>::value, T>
-host_atomic_compare_exchange(
+std::enable_if_t<host_atomic_always_lock_free<T>, T> host_atomic_compare_exchange(
     T* dest, T compare, T value, MemoryOrderAcqRel, MemoryScope) {
   (void)__atomic_compare_exchange(
       dest, &compare, &value, false, __ATOMIC_ACQ_REL, __ATOMIC_ACQUIRE);
@@ -81,7 +75,7 @@ host_atomic_compare_exchange(
 }
 
 template <class T, class MemoryOrder, class MemoryScope>
-std::enable_if_t<!host_atomic_exchange_available_gcc<T>::value, T> host_atomic_exchange(
+std::enable_if_t<!host_atomic_always_lock_free<T>, T> host_atomic_exchange(
     T* const dest,
     dont_deduce_this_parameter_t<const T> val,
     MemoryOrder /*order*/,
@@ -100,12 +94,12 @@ std::enable_if_t<!host_atomic_exchange_available_gcc<T>::value, T> host_atomic_e
 }
 
 template <class T, class MemoryOrder, class MemoryScope>
-std::enable_if_t<!host_atomic_exchange_available_gcc<T>::value, T>
-host_atomic_compare_exchange(T* const dest,
-                             dont_deduce_this_parameter_t<const T> compare,
-                             dont_deduce_this_parameter_t<const T> val,
-                             MemoryOrder /*order*/,
-                             MemoryScope scope) {
+std::enable_if_t<!host_atomic_always_lock_free<T>, T> host_atomic_compare_exchange(
+    T* const dest,
+    dont_deduce_this_parameter_t<const T> compare,
+    dont_deduce_this_parameter_t<const T> val,
+    MemoryOrder /*order*/,
+    MemoryScope scope) {
   // Acquire a lock for the address
   // clang-format off
   while (!lock_address((void*)dest, scope)) {}

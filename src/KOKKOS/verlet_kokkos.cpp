@@ -38,6 +38,7 @@ struct ForceAdder {
   ViewA a;
   ViewB b;
   ForceAdder(const ViewA& a_, const ViewB& b_):a(a_),b(b_) {}
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
     a(i,0) += b(i,0);
@@ -52,6 +53,7 @@ template<class View>
 struct Zero {
   View v;
   Zero(const View &v_):v(v_) {}
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int &i) const {
     v(i,0) = 0;
@@ -381,8 +383,8 @@ void VerletKokkos::run(int n)
     }
 
     bool execute_on_host = false;
-    unsigned int datamask_read_host = 0;
-    unsigned int datamask_exclude = 0;
+    uint64_t datamask_read_host = 0;
+    uint64_t datamask_exclude = 0;
     int allow_overlap = lmp->kokkos->allow_overlap;
 
     if (allow_overlap && atomKK->k_f.view_hostkk().data() != atomKK->k_f.view_device().data()) {

@@ -1,0 +1,115 @@
+# LAMMPS Input File
+# Licensed under CC BY 4.0
+# A Set of Tutorials for the LAMMPS Simulation Package (LiveCoMS, 2025)
+# By Simon Gravelle, Cecilia M. S. Alvares, Jacob R. Gissinger, and Axel Kohlmeyer
+# Please cite doi.org/10.33011/livecoms.6.1.3037
+# Find more on GitHub: https://github.com/lammpstutorials
+
+units metal
+atom_style atomic
+boundary f f f
+
+read_data data.breakable
+pair_style airebo 3.0
+pair_coeff * * CH.airebo C
+
+group carbon_atoms type 1
+
+variable xmax equal bound(carbon_atoms,xmax)-0.5
+variable xmin equal bound(carbon_atoms,xmin)+0.5
+region rtop block ${xmax} INF INF INF INF INF
+region rbot block INF ${xmin} INF INF INF INF
+region rmid block ${xmin} ${xmax} INF INF INF INF
+
+group cnt_top region rtop
+group cnt_bot region rbot
+group cnt_mid region rmid
+
+variable xmax_del equal ${xmax}-2
+variable xmin_del equal ${xmin}+2
+region rdel block ${xmin_del} ${xmax_del} INF INF INF INF
+
+group rdel region rdel
+delete_atoms random fraction 0.02 no rdel NULL 482793
+
+reset_atoms id sort yes
+velocity cnt_mid create 300 48455 mom yes rot yes
+
+fix mynve1 cnt_top nve
+fix mynve2 cnt_bot nve
+fix mynvt cnt_mid nvt temp 300 300 0.1
+
+fix mysf1 cnt_bot setforce 0 0 0
+fix mysf2 cnt_top setforce 0 0 0
+velocity cnt_bot set 0 0 0
+velocity cnt_top set 0 0 0
+
+variable Lcnt equal xcm(cnt_top,x)-xcm(cnt_bot,x)
+
+# compute and format simulation time
+variable time equal step*dt
+variable ps format time %5.2f
+
+# compute and format force on CNT edge atoms
+variable Fcnt equal 0.5*(f_mysf1[1]-f_mysf2[1])
+variable force format Fcnt '% 7.3f'
+
+# velocity of CNT edge atoms
+variable Vcnt equal vcm(cnt_top,x)
+variable vel format Vcnt '% 4.2f'
+
+# compute bottom and tip position of left and right arrow
+variable rbot equal -48.0
+variable rtop equal -46.0+0.1*v_Fcnt
+variable ltop equal xcm(cnt_top,x)+8
+variable lbot equal xcm(cnt_top,x)+8-10*vcm(cnt_top,x)
+
+# count atoms with different numbers of bonds, i.e. neighbors closer than 1.8 Angstroms
+compute nbond all coord/atom cutoff 1.8
+variable n1 atom c_nbond==1
+variable n2 atom c_nbond==2
+variable n3 atom c_nbond==3
+variable n4 atom c_nbond==4
+compute count all reduce sum v_n1 v_n2 v_n3 v_n4
+
+# place arrows into visualizations. Use two fixes to give each a different color
+fix arrows all graphics/objects 500 arrow 1 v_rbot 0.0 0.0 v_rtop 0.0 0.0 1.0 0.3
+fix vel    all graphics/objects 500 arrow 1 v_lbot 0.0 0.0  v_ltop 0.0 0.0 1.0 0.3 
+
+# add text labels using different styles and references to variables and compute results
+fix labels all graphics/labels  500 text "LAMMPS Tutorial 2 - Stretching CNT using AIREBO potential" 0.0 -7.7 5.3 size 28 &
+                                    framecolor black backcolor darkgray &
+                                    text "Simulation time: ${ps} ps" -4.0 7.5 5.0 size 28 &
+                                    fontcolor 220/200/0 backcolor darkgray transcolor darkgray framecolor darkgray &
+                                    text "Force: ${force} eV/Angstrom"  -34 8.5 5.0 size 20 &
+                                    text "Velocity: ${vel} Angstrom/ps" -34 7.0 5.0 size 20 &
+                                    text "Atoms with bonds  1: $(c_count[1])  2: $(c_count[2])  3: $(c_count[3])  4: $(c_count[4])" &
+                                    32.5 7.5 5.0 size 24 fontcolor white backcolor silver
+
+dump viz all image 500 breakable.*.ppm c_nbond type size 1600 300 zoom 12.5 shiny 0.2 autobond 1.8 0.4 &
+        adiam 0.8 box no 0.01 view 0 90 fsaa yes ssao yes 1325123 0.6 axes yes 0.5 0.1 &
+        fix arrows const 0 0  fix labels const 0 0 fix vel const 0 0
+
+# comment out the dump image command above and uncomment the lines below to create a movie
+#
+#dump viz all movie 500 breakable.mp4 c_nbond type size 1600 300 zoom 12.5 shiny 0.2 autobond 1.8 0.4 &
+#        adiam 0.8 box no 0.01 view 0 90 fsaa yes ssao yes 1325123 0.6 axes yes 0.5 0.1 &
+#        fix arrows const 0 0  fix labels const 0 0 fix vel const 0 0
+#dump_modify viz framerate 8
+
+dump_modify viz pad 5 backcolor darkgray backcolor2 gray &
+        fcolor arrows firebrick fcolor vel midnightblue acolor 1 lightslategray &
+        amap 0 5 sa 1 5 midnightblue royalblue cadetblue lightslategray blue
+
+compute Tmid cnt_mid temp
+thermo 100
+thermo_style custom step temp etotal v_Lcnt v_Fcnt v_lbot v_ltop
+thermo_modify temp Tmid line yaml
+
+timestep 0.0005
+run 10000
+
+velocity cnt_top set 0.75 0 0
+velocity cnt_bot set -0.75 0 0
+
+run 40000

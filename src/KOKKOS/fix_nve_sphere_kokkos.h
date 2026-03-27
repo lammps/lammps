@@ -41,10 +41,13 @@ class FixNVESphereKokkos : public FixNVESphere {
     void final_integrate() override;
     void fused_integrate(int) override;
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     void initial_integrate_item(const int i) const;
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     void final_integrate_item(const int i) const;
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     void fused_integrate_item(int) const;
 
@@ -66,6 +69,7 @@ struct FixNVESphereKokkosInitialIntegrateFunctor {
   typedef ArrayTypes<DeviceType> AT;
   FixNVESphereKokkos<DeviceType> c;
   FixNVESphereKokkosInitialIntegrateFunctor(FixNVESphereKokkos<DeviceType> *c_ptr): c(*c_ptr) { c.cleanup_copy(); }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
     c.initial_integrate_item(i);
@@ -78,6 +82,7 @@ struct FixNVESphereKokkosFinalIntegrateFunctor {
   typedef ArrayTypes<DeviceType> AT;
   FixNVESphereKokkos<DeviceType> c;
   FixNVESphereKokkosFinalIntegrateFunctor(FixNVESphereKokkos<DeviceType> *c_ptr): c(*c_ptr) { c.cleanup_copy(); }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
     c.final_integrate_item(i);
@@ -90,6 +95,7 @@ struct FixNVESphereKokkosFusedIntegrateFunctor {
   typedef ArrayTypes<DeviceType> AT;
   FixNVESphereKokkos<DeviceType> c;
   FixNVESphereKokkosFusedIntegrateFunctor(FixNVESphereKokkos<DeviceType> *c_ptr): c(*c_ptr) { c.cleanup_copy(); }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
     c.fused_integrate_item(i);

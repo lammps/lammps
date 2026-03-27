@@ -33,10 +33,14 @@ release and should not contain any other changes. (Exceptions: this
 document, last minute trivial(!) changes).
 
 This PR shall not be merged before **all** pending tests have completed
-and cleared.  We currently use a mix of automated tests running on
-either Temple's Jenkins cluster or GitHub workflows.  Those include time
-consuming tests not run on pull requests.  If needed, a bug-fix pull
-request should be created and merged to clear all tests.
+and cleared.  We currently use automated tests with GitHub workflows.
+There is also a Coverity Scan run with static code analysis done every
+thursday evening or when triggered manually.  That output should be
+checked for any significant issues before a release, too.  In addition
+there is a nightly static code analysis run that can be checked at
+https://downloads.lammps.org/analysis/
+If needed, a bug-fix pull request should be created and merged to clear
+pending issues.
 
 ### Create release on GitHub
 
@@ -45,9 +49,9 @@ cleared testing, the 'next\_release' branch is merged into 'develop'.
 
 Check out or update the 'develop' branch locally, pull the latest
 changes, merge them into 'release' with a fast forward(!) merge, and
-apply a suitable release tag (for historical reasons the tag starts with
-"patch_" followed by the date, and finally push everything back to
-GitHub.  There should be no commits made to 'release' but only
+apply a suitable release tag (for historical reasons the tag starts
+with "patch_" followed by the date, and finally push everything back
+to GitHub.  There should be no commits made to 'release' but only
 fast forward merges.  Example:
 
 ```
@@ -60,17 +64,20 @@ git tag -s -m "LAMMPS feature release 4 February 2025" patch_4Feb2025
 git push git@github.com:lammps/lammps.git --tags develop release
 ```
 
-Applying this tag will trigger two actions on the Temple Jenkins cluster:
-- The online manual at https://docs.lammps.org/ will be updated to the
+After applying this tag two steps will need to be executed manually
+(they used to be run automatically, but this is currently not available).
+- The online manual at https://docs.lammps.org/ needs to be updated to the
   state of the 'release' branch.  Merges to the 'develop' branch will
   trigger updating https://docs.lammps.org/latest/ so by reviewing the
   version of the manual under the "latest" URL, it is possible to preview
   what the updated release documentation will look like.
 - A downloadable tar archive of the LAMMPS distribution that includes the
-  html format documentation and a PDF of the manual will be created and
-  uploaded to the download server at https://download.lammps.org/tars
+  html format documentation and a PDF of the manual needs to be created
+  and uploaded to the download server at https://download.lammps.org/tars
   Note that the file is added, but the `index.html` file is not updated,
-  so it is not yet publicly visible.
+  so it is not yet publicly visible.  The index file is updated manually
+  with a local script after symlinks and SHASUM files have been updated
+  as well.
 
 Go to https://github.com/lammps/lammps/releases and create a new (draft)
 release page with a summary of all the changes included and references
@@ -81,9 +88,17 @@ a tag" drop-down list. Go to the bottom of the list and select the "Set
 as pre-release" checkbox.  The "Set as the latest release" button is
 reserved for stable releases and updates to them.
 
-If everything is in order, you can click on the "Publish release"
-button.  Otherwise, click on "Save draft" and finish pending tasks until
-you can return to edit the release page and publish it.
+Releases are now "immutable", so neither the tag hash nor any uploaded
+assets can be changed after the release is published.  Only the
+release notes text may be changed, e.g. to document issues with the
+uploaded assets.
+
+Thus only when *everything* is in order *and* all required assets (source,
+binary packages for different platforms, manual PDF) are uploaded in
+a suitable version, you can click on the "Publish release" button.
+Otherwise, click on "Save draft" and finish pending tasks until you can
+return to edit the release page, update assets, and publish it when
+it is ready.
 
 ### Prepare pre-compiled packages, update packages to GitHub
 
@@ -197,6 +212,26 @@ gh release upload patch_4Feb2025 LAMMPS-Win10-64bit-GUI-4Feb2025.exe
 The symbolic link is used to have a consistent naming scheme for the packages
 attached to the GitHub release page.
 
+#### LAMMPS Online Manual
+
+Creating the online docs requires setting some environment variables to have
+the extra box at the bottom of the navigation bar included that allows to
+switch between release, stable, and develop branch versions of the manual.
+Also the search box should use Google search instead of the javascript search.
+
+``` sh
+cd lammps-release
+make -C doc clean
+make -C doc upgrade
+env LAMMPS_WEBSITE_BUILD=1 LAMMPS_WEBSITE_BUILD_VERSION=release LAMMPS_WEBSITE_BASEURL="https://docs.lammps.org/" \
+    make -C doc html WEB_SEARCH=YES
+make -C doc pdf
+mv doc/Manual.pdf doc/html
+rsync -arpv doc/html/ www.lammps.org:/var/www/lammps/docs/release-new
+
+Then log into www.lammps.org and move the current folder away and
+the new folder in its place and update permissions.
+
 #### Clean up:
 
 ``` sh
@@ -228,6 +263,7 @@ and installed (e.g. to `$HOME/.local`) as static libraries only:
 - jpeg
 - zlib
 - png
+- voro++ (for VORONOI package)
 - Qt (for LAMMPS-GUI)
 
 When configuring LAMMPS the `cmake/presets/clang.cmake` should be used
@@ -283,8 +319,8 @@ Check out the LAMMPS website repo
 https://github.com/lammps/lammps-website.git and edit the file
 `src/download.txt` for the new release.  Test translation with `make
 html` and review `html/download.html` Then add and commit to git and
-push the changes to GitHub.  The Temple Jenkis cluster will
-automatically update https://www.lammps.org/download.html accordingly.
+push the changes to GitHub.  A cron job will automatically update
+https://www.lammps.org/ accordingly if there are changes.
 
 Also notify Steve of the release so he can update `src/bug.txt` on the
 website from the available release notes.
@@ -358,11 +394,10 @@ git tag -s -m 'Update 2 for Stable LAMMPS version 29 August 2024' stable_29Aug20
 git push git@github.com:lammps/lammps.git --tags maintenance stable
 ```
 
-Associate draft release notes with new tag and publish as "latest release".
-
-On https://ci.lammps.org/ go to "dev", "stable" and manually execute
-the "update\_release" task. This will update https://docs.lammps.org/stable
-and prepare a stable tarball.
+Associate draft release notes with new tag and prepare and upload
+various source and binary packages. Publish as "latest release"
+only when all uploads are complete as they cannot be changed after
+they are published since we are creating "immutable" releases now.
 
 ### Build and upload binary packages and source tarball to GitHub
 

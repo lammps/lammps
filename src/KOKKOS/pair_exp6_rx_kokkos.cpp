@@ -26,6 +26,7 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "fix.h"
+#include "safe_pointers.h"
 #include "atom_masks.h"
 #include "neigh_request.h"
 #include "atom_kokkos.h"
@@ -348,6 +349,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxZeroMixingWeights, const int &i) const {
   PairExp6ParamData.epsilon1[i] = 0.0;
@@ -369,6 +371,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxZeroMixingWeights, co
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxgetMixingWeights, const int &i) const {
   getMixingWeights (i, PairExp6ParamData.epsilon1[i],
@@ -391,6 +394,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxgetMixingWeights, con
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
@@ -752,6 +756,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -762,6 +767,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
@@ -1132,6 +1138,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 // temporary local short vector arrays for the inner j-loop to increase vectorization.
 
 template<int n>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
 KK_FLOAT __powint(const KK_FLOAT& x, const int)
 {
@@ -1147,6 +1154,7 @@ KK_FLOAT __powint(const KK_FLOAT& x, const int)
 
 template<class DeviceType>
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool Site1EqSite2, bool UseAtomics, bool OneType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& ev) const
 {
@@ -1598,6 +1606,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -1605,6 +1614,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCollapseDupViews, const int &i) const {
   for (int n = 0; n < nthreads; n++) {
@@ -1617,6 +1627,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCollapseDupViews, con
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxZeroDupViews, const int &i) const {
   for (int n = 0; n < nthreads; n++) {
@@ -1687,8 +1698,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
 
   // open file on proc 0
 
-  FILE *fp;
-  fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     fp = utils::open_potential(file,lmp,nullptr);
     if (fp == nullptr) {
@@ -1711,7 +1721,6 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -1820,6 +1829,7 @@ void PairExp6rxKokkos<DeviceType>::setup()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK_FLOAT &alpha1,KK_FLOAT &rm1, KK_FLOAT &mixWtSite1,KK_FLOAT &epsilon2,KK_FLOAT &alpha2,KK_FLOAT &rm2,KK_FLOAT &mixWtSite2,KK_FLOAT &epsilon1_old,KK_FLOAT &alpha1_old,KK_FLOAT &rm1_old, KK_FLOAT &mixWtSite1old,KK_FLOAT &epsilon2_old,KK_FLOAT &alpha2_old,KK_FLOAT &rm2_old,KK_FLOAT &mixWtSite2old) const
 {
@@ -2476,6 +2486,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::exponentScaling(KK_FLOAT phi, KK_FLOAT &epsilon, KK_FLOAT &rm) const
 {
@@ -2501,6 +2512,7 @@ void PairExp6rxKokkos<DeviceType>::exponentScaling(KK_FLOAT phi, KK_FLOAT &epsil
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::polynomialScaling(KK_FLOAT phi, KK_FLOAT &alpha, KK_FLOAT &epsilon, KK_FLOAT &rm) const
 {
@@ -2517,6 +2529,7 @@ void PairExp6rxKokkos<DeviceType>::polynomialScaling(KK_FLOAT phi, KK_FLOAT &alp
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairExp6rxKokkos<DeviceType>::func_rin(const KK_FLOAT &alpha) const
 {
@@ -2534,6 +2547,7 @@ KK_FLOAT PairExp6rxKokkos<DeviceType>::func_rin(const KK_FLOAT &alpha) const
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairExp6rxKokkos<DeviceType>::expValue(KK_FLOAT value) const
 {
@@ -2548,6 +2562,7 @@ KK_FLOAT PairExp6rxKokkos<DeviceType>::expValue(KK_FLOAT value) const
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
@@ -2641,6 +2656,7 @@ void PairExp6rxKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const in
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int PairExp6rxKokkos<DeviceType>::sbmask(const int& j) const {
   return j >> SBBITS & 3;

@@ -291,6 +291,7 @@ accelerated styles exist.
 * :doc:`lubricate/poly <pair_lubricate>` - Hydrodynamic lubrication forces with polydispersity
 * :doc:`lubricateU <pair_lubricateU>` - Hydrodynamic lubrication forces for Fast Lubrication Dynamics
 * :doc:`lubricateU/poly <pair_lubricateU>` - Hydrodynamic lubrication forces for Fast Lubrication with polydispersity
+* :doc:`mbx <pair_mbx>` - Many-Body eXpansion (MBX) potential
 * :doc:`mdpd <pair_mesodpd>` - mDPD particle interactions
 * :doc:`mdpd/rhosum <pair_mesodpd>` - mDPD particle interactions for mass density
 * :doc:`meam <pair_meam>` - Modified embedded atom method (MEAM)
@@ -354,6 +355,7 @@ accelerated styles exist.
 * :doc:`rheo/solid <pair_rheo_solid>` - solid interactions in RHEO package
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential
 * :doc:`saip/metal <pair_saip_metal>` - Interlayer potential for hetero-junctions formed with hexagonal 2D materials and metal surfaces
+* :doc:`saip/metal/tmd <pair_saip_metal>` - Interlayer potential for transition-metal dichalcogenide / metal interfaces
 * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - Smoothed dissipative particle dynamics for water at isothermal conditions
 * :doc:`smatb <pair_smatb>` - Second Moment Approximation to the Tight Binding
 * :doc:`smatb/single <pair_smatb>` - Second Moment Approximation to the Tight Binding for single-element systems

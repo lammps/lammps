@@ -16,9 +16,9 @@
 
 #include <cmath>
 
-namespace LAMMPS_NS {
 
-namespace MathSpecial {
+
+namespace LAMMPS_NS::MathSpecial {
 
   /*! Fast tabulated factorial function
    *
@@ -59,6 +59,11 @@ namespace MathSpecial {
    *  \return  value of e^x as double precision number */
 
   extern double fm_exp(double x);
+
+  /*  MDF taper function defined in Mei et al. (Phys. Rev. B 43:4653, 1991). It is used
+   *  to smoothly terminate functions between rmin and rmax. */
+
+  extern void mdftaper(double r, double rmin, double rmax, double &f, double &df);
 
   // support function for scaled error function complement
 
@@ -178,7 +183,7 @@ namespace MathSpecial {
 
     return yy;
   }
-}    // namespace MathSpecial
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::MathSpecial
+
 
 #endif

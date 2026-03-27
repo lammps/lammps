@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -22,7 +9,12 @@
 #include <SYCL/Kokkos_SYCL_Instance.hpp>
 #include <SYCL/Kokkos_SYCL.hpp>
 #include <Kokkos_HostSpace.hpp>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_DeviceManagement.hpp>
 #include <impl/Kokkos_ExecSpaceManager.hpp>
@@ -76,10 +68,6 @@ int SYCL::concurrency() const { return m_space_instance->m_maxConcurrency; }
 #endif
 
 const char* SYCL::name() { return "SYCL"; }
-
-bool SYCL::impl_is_initialized() {
-  return Impl::SYCLInternal::singleton().is_initialized();
-}
 
 void SYCL::impl_finalize() { Impl::SYCLInternal::singleton().finalize(); }
 
@@ -167,7 +155,10 @@ void SYCL::print_configuration(std::ostream& os, bool verbose) const {
     }
     os << "[" << device.get_backend() << "]:" << device_type << ':' << counter
        << "] " << device.get_info<sycl::info::device::name>();
-    if (counter == active_device) os << " : Selected";
+    if (counter == active_device)
+      os << " : Selected";
+    else
+      os << " : Not Selected";
     os << '\n';
     ++counter;
   }

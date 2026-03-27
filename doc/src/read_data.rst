@@ -62,8 +62,9 @@ Description
 """""""""""
 
 Read in a data file containing information LAMMPS needs to run a
-simulation.  The file can be ASCII text or a gzipped text file
-(detected by a .gz suffix).
+simulation.  The file can be ASCII text or a compressed text file
+(detected by its suffix) if LAMMPS has been compiled with support
+for :ref:`compression commands <gzip>`.
 
 This is one of 3 ways to specify the simulation box: see the
 :doc:`create_box <create_box>` and :doc:`read_restart <read_restart>`
@@ -1717,8 +1718,8 @@ Translational velocities can also be (re)set by the :doc:`velocity
 Restrictions
 """"""""""""
 
-To read gzipped data files, you must compile LAMMPS with the
--DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
+To read compressed data files, you must compile LAMMPS with the
+``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
 Label maps are currently not supported when using the KOKKOS package.

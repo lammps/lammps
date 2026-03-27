@@ -1,24 +1,16 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <sstream>
 #include <iostream>
 #include <limits>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <TestNonTrivialScalarTypes.hpp>
 
 //--------------------------------------------------------------------------
@@ -365,14 +357,6 @@ struct TestReducers {
   }
 
   static void test_sum_team_policy(int N, SumFunctor f, Scalar reference_sum) {
-#ifdef KOKKOS_ENABLE_OPENACC
-    if constexpr (std::is_same_v<ExecSpace, Kokkos::Experimental::OpenACC> &&
-                  (std::is_same_v<Scalar, size_t> ||
-                   std::is_same_v<Scalar, double>)) {
-      return;  // FIXME_OPENACC
-    }
-#endif
-
     Scalar sum_scalar;
     Kokkos::View<Scalar, ExecSpace> sum_view("result");
     Kokkos::deep_copy(sum_view, Scalar(1));
@@ -447,10 +431,58 @@ struct TestReducers {
     }
   }
 
+  // Test that reducers return correct results with LaunchBounds value smaller
+  // than 32.
+  template <int N>
+  static void test_launch_bounds() {
+    Kokkos::View<Scalar*> v("", N);
+    Kokkos::deep_copy(v, Scalar(2));
+
+    // Functor
+    auto suml  = KOKKOS_LAMBDA(const int i, Scalar& ret) { ret += v(i); };
+    auto prodl = KOKKOS_LAMBDA(const int i, Scalar& ret) { ret *= v(i); };
+
+    // This first reduction is necessary to ensure we trigger the bug #8443
+    Scalar ret;
+    Kokkos::parallel_reduce(Kokkos::RangePolicy(0, 1), suml,
+                            Kokkos::Sum<Scalar>(ret));
+    EXPECT_EQ(ret, 2) << "N=" << N;
+
+    // Test that LaunchBounds<N> works with Sum
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<Kokkos::LaunchBounds<N>>(0, N),
+                            suml, Kokkos::Sum<Scalar>(ret));
+    EXPECT_EQ(ret, 2 * N) << "N=" << N;
+
+    // This test can't be run on int32 with N>= 31 because of overflow
+    if constexpr (!(std::is_integral_v<Scalar> && sizeof(Scalar) <= 32) ||
+                  N < 31) {
+      // Test that LaunchBounds<N> works with Prod
+      Kokkos::parallel_reduce(
+          Kokkos::RangePolicy<Kokkos::LaunchBounds<N>>(0, N), prodl,
+          Kokkos::Prod<Scalar>(ret));
+
+      Scalar expected = Scalar(1ull << N);
+      EXPECT_EQ(ret, expected) << "N=" << N;
+    }
+  }
+
+  static void test_launch_bounds() {
+    test_launch_bounds<1>();
+    test_launch_bounds<5>();
+    test_launch_bounds<31>();
+  }
+
   static void test_sum(int N) {
     Kokkos::View<Scalar*, ExecSpace> values("Values", N);
     auto h_values        = Kokkos::create_mirror_view(values);
     Scalar reference_sum = 0;
+
+// FIXME spurious warnings like
+// error: 'SR.14123' may be used uninitialized [-Werror=maybe-uninitialized]
+#if defined(KOKKOS_COMPILER_GNU) && KOKKOS_COMPILER_GNU >= 1500
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 
     for (int i = 0; i < N; i++) {
       int denom = sizeof(Scalar) <= 2 ? 10 : 100;
@@ -472,6 +504,13 @@ struct TestReducers {
       h_values(i) = (Scalar)((rand() % denom) & mask);
       reference_sum += h_values(i);
     }
+
+// FIXME spurious warnings like
+// error: 'SR.14123' may be used uninitialized [-Werror=maybe-uninitialized]
+#if defined(KOKKOS_COMPILER_GNU) && KOKKOS_COMPILER_GNU >= 1500
+#pragma GCC diagnostic pop
+#endif
+
     Kokkos::deep_copy(values, h_values);
 
     SumFunctor f;
@@ -501,7 +540,11 @@ struct TestReducers {
       ASSERT_EQ(sum_scalar_view, reference_sum) << "N: " << N;
     }
 
-    test_sum_team_policy(N, f, reference_sum);
+// FIXME_OPENACC - custom reduction with TeamPolicy is not yet implemented.
+#ifdef KOKKOS_ENABLE_OPENACC
+    if constexpr (!std::is_same_v<ExecSpace, Kokkos::Experimental::OpenACC>)
+      test_sum_team_policy(N, f, reference_sum);
+#endif
 
     {
       Kokkos::View<Scalar, Kokkos::HostSpace> sum_view("View");
@@ -1560,49 +1603,42 @@ struct TestReducers {
   }
 
   static void execute_float() {
+    test_launch_bounds();
     test_sum(10001);
     test_prod(35);
     test_min(10003);
-#if !defined(KOKKOS_ENABLE_OPENACC)
-    // FIXME_OPENACC - OpenACC (V3.3) does not support custom reductions.
     test_minloc(10003);
     test_minloc_loc_init(3);
+// FIXME_OPENACC - custom reduction with MDRangePolicy is not yet implemented.
+#if !defined(KOKKOS_ENABLE_OPENACC)
 // FIXME_OPENMPTARGET requires custom reductions.
 #if !defined(KOKKOS_ENABLE_OPENMPTARGET)
     test_minloc_2d(100);
 #endif
 #endif
     test_max(10007);
-#if !defined(KOKKOS_ENABLE_OPENACC)
-    // FIXME_OPENACC - OpenACC (V3.3) does not support custom reductions.
     test_maxloc(10007);
     test_maxloc_loc_init(3);
+// FIXME_OPENACC - custom reduction with MDRangePolicy is not yet implemented.
+#if !defined(KOKKOS_ENABLE_OPENACC)
 // FIXME_OPENMPTARGET requires custom reductions.
 #if !defined(KOKKOS_ENABLE_OPENMPTARGET)
     test_maxloc_2d(100);
 #endif
 #endif
-// FIXME_OPENACC - OpenACC (V3.3) does not support custom reductions.
-#if !defined(KOKKOS_ENABLE_OPENACC)
-// FIXME_OPENMPTARGET - The minmaxloc test fails llvm < 13 version,
-// test_minmaxloc_2d requires custom reductions
-#if defined(KOKKOS_ENABLE_OPENMPTARGET)
-#if defined(KOKKOS_COMPILER_CLANG) && (KOKKOS_COMPILER_CLANG >= 1300) && \
-    (KOKKOS_COMPILER_CLANG <= 1700)
+#if defined(KOKKOS_ENABLE_OPENMPTARGET)  // FIXME_OPENMPTARGET custom reducers
     test_minmaxloc(10007);
-#else
-    if (!std::is_same_v<ExecSpace, Kokkos::Experimental::OpenMPTarget>)
-      test_minmaxloc(10007);
-#endif
 #else
     test_minmaxloc(10007);
     test_minmaxloc_loc_init(3);
+// FIXME_OPENACC - custom reduction with MDRangePolicy is not yet implemented.
+#if !defined(KOKKOS_ENABLE_OPENACC)
     test_minmaxloc_2d(100);
+#endif
 
     test_minmaxfirstlastloc_loc_init(3);
     test_minfirstloc_loc_init(3);
     test_maxfirstloc_loc_init(3);
-#endif
 #endif
   }
 
@@ -1610,54 +1646,49 @@ struct TestReducers {
   // Although unlikely, the test below could still in principle overflow.
   // For reference log(numeric_limits<int>)/log(4) is 15.5
   static void execute_integer() {
+    test_launch_bounds();
     test_sum(10001);
     test_prod(sizeof(Scalar) > 4 ? 35 : 19);  // avoid int overflow (see above)
     test_min(10003);
-#if !defined(KOKKOS_ENABLE_OPENACC)
-    // FIXME_OPENACC - OpenACC (V3.3) does not support custom reductions.
     test_minloc(10003);
     test_minloc_loc_init(3);
 #if defined(KOKKOS_ENABLE_CUDA)
     if (!std::is_same_v<ExecSpace, Kokkos::Cuda>)
 #endif
+    // FIXME_OPENACC - custom reduction with MDRangePolicy is not yet
+    // implemented.
+#if !defined(KOKKOS_ENABLE_OPENACC)
     // FIXME_OPENMPTARGET requires custom reductions.
 #if !defined(KOKKOS_ENABLE_OPENMPTARGET)
       test_minloc_2d(100);
 #endif
 #endif
     test_max(10007);
-#if !defined(KOKKOS_ENABLE_OPENACC)
-    // FIXME_OPENACC - OpenACC (V3.3) does not support custom reductions.
     test_maxloc(10007);
     test_maxloc_loc_init(3);
 #if defined(KOKKOS_ENABLE_CUDA)
     if (!std::is_same_v<ExecSpace, Kokkos::Cuda>)
 #endif
+// FIXME_OPENACC - custom reduction with MDRangePolicy is not yet implemented.
+#if !defined(KOKKOS_ENABLE_OPENACC)
 // FIXME_OPENMPTARGET requires custom reductions.
 #if !defined(KOKKOS_ENABLE_OPENMPTARGET)
       test_maxloc_2d(100);
 #endif
 #endif
-// FIXME_OPENACC - OpenACC (V3.3) does not support custom reductions.
-#if !defined(KOKKOS_ENABLE_OPENACC)
-// FIXME_OPENMPTARGET - The minmaxloc test fails llvm < 13 version,
-// the minmaxloc_2d test requires custom reductions.
-#if defined(KOKKOS_ENABLE_OPENMPTARGET)
-#if defined(KOKKOS_COMPILER_CLANG) && (KOKKOS_COMPILER_CLANG >= 1300)
+#if defined(KOKKOS_ENABLE_OPENMPTARGET)  // FIXME_OPENMPTARGET custom reducers
     test_minmaxloc(10007);
-#else
-    if (!std::is_same_v<ExecSpace, Kokkos::Experimental::OpenMPTarget>)
-      test_minmaxloc(10007);
-#endif
 #else
     test_minmaxloc(10007);
     test_minmaxloc_loc_init(3);
+// FIXME_OPENACC - custom reduction with MDRangePolicy is not yet implemented.
+#if !defined(KOKKOS_ENABLE_OPENACC)
     test_minmaxloc_2d(100);
+#endif
 
     test_minmaxfirstlastloc_loc_init(3);
     test_minfirstloc_loc_init(3);
     test_maxfirstloc_loc_init(3);
-#endif
 #endif
     test_BAnd(35);
     test_BOr(35);

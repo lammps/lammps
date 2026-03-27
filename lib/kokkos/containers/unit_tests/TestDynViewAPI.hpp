@@ -1,25 +1,19 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.dyn_rank_view;
+import kokkos.dyn_rank_view_impl;
+#else
 #include <Kokkos_Core.hpp>
+#include <Kokkos_DynRankView.hpp>
+#endif
 #include <sstream>
 #include <iostream>
-#include <Kokkos_DynRankView.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -731,7 +725,7 @@ class TestDynViewAPI {
 
   static void run_test_mirror() {
     using view_type   = Kokkos::DynRankView<int, host_drv_space>;
-    using mirror_type = typename view_type::HostMirror;
+    using mirror_type = typename view_type::host_mirror_type;
     view_type a("a");
     mirror_type am = Kokkos::create_mirror_view(a);
     mirror_type ax = Kokkos::create_mirror(a);
@@ -1117,8 +1111,9 @@ class TestDynViewAPI {
   }
 
   static void run_test_scalar() {
-    using hView0 = typename dView0::HostMirror;  // HostMirror of DynRankView is
-                                                 // a DynRankView
+    using hView0 =
+        typename dView0::host_mirror_type;  // host_mirror_type of DynRankView
+                                            // is a DynRankView
 
     dView0 dx, dy;
     hView0 hx, hy;
@@ -1216,7 +1211,7 @@ class TestDynViewAPI {
     // usual "(void)" marker to avoid compiler warnings for unused
     // variables.
 
-    using hView0 = typename dView0::HostMirror;
+    using hView0 = typename dView0::host_mirror_type;
 
     {
       hView0 thing;

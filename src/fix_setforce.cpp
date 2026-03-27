@@ -29,8 +29,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum { NONE, CONSTANT, EQUAL, ATOM };
-
 /* ---------------------------------------------------------------------- */
 
 FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :

@@ -108,13 +108,13 @@ are listed in the sections below.
 Note that for all the body styles, if the data file defines a general
 triclinic box, then the orientation of the body particle and its
 corresponding 6 moments of inertia and other orientation-dependent
-values should reflect the fact the body is defined withing a general
+values should reflect the fact the body is defined within a general
 triclinic box with edge vectors **A**,**B**,**C**.  LAMMPS will rotate
 the box to convert it to a restricted triclinic box.  This operation
 will also rotate the orientation of the body particles.  See the
-:doc:`Howto triclinic <Howto_triclinic>` doc page for more details.
-The sections below highlight the orientation-dependent values specific
-to each body style.
+:doc:`Howto triclinic <Howto_triclinic>` doc page for more details.  The
+sections below highlight the orientation-dependent values specific to
+each body style.
 
 ----------
 
@@ -186,7 +186,7 @@ with this body style to compute body/body and body/non-body interactions.
 
 The *rounded/polygon* body style represents body particles as a 2d
 polygon with a variable number of N vertices.  This style can only be
-used for 2d models; see the :doc:`boundary <boundary>` command.  See the
+used for 2d models; see the :doc:`dimension <dimension>` command.  See the
 :doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>` page for
 a diagram of two squares with rounded circles at the vertices.  Special cases
 for N = 1 (circle) and N = 2 (rod with rounded ends) can also be specified.
@@ -464,7 +464,7 @@ these polyhedron vertex displacements are orientation-dependent and,
 as mentioned above, should reflect the body particle's orientation
 within the general triclinic box.
 
-The :doc:`pair_style body/rounded/polhedron
+The :doc:`pair_style body/rounded/polyhedron
 <pair_body_rounded_polyhedron>` command can be used with this body
 style to compute body/body interactions.  The :doc:`fix
 wall/body/polyhedron <fix_wall_body_polygon>` command can be used with
@@ -476,7 +476,7 @@ wall.
 **Output specifics for all body styles:**
 
 For the :doc:`compute body/local <compute_body_local>` and :doc:`dump
-local <dump>` commands, all 3 of the body styles described on his page
+local <dump>` commands, all 3 of the body styles described on this page
 produces one datum for each of the N vertices (of sub-particles) in a
 body particle.  The datum has 3 values:
 
@@ -494,16 +494,17 @@ current COM and orientation of the body particle.
 The :doc:`dump image <dump_image>` command and its *body* keyword can
 be used to render body particles.
 
-For the *nparticle* body style, each body is drawn as a
-collection of spheres, one for each sub-particle.  The size of each
-sphere is determined by the *bflag1* parameter for the *body* keyword.
-The *bflag2* argument is ignored.
+For the *nparticle* body style, each body is drawn as a collection of
+spheres, one for each sub-particle.  The size of each sphere is
+determined by the *bflag1* parameter for the *body* keyword.  The
+*bflag2* argument is ignored.
 
 For the *rounded/polygon* body style, each body is drawn as a polygon
-with N line segments.  For the *rounded/polyhedron* body style, each
-face of each body is drawn as a polygon with N line segments.  The
-drawn diameter of each line segment is determined by the *bflag1*
-parameter for the *body* keyword.  The *bflag2* argument is ignored.
+and for *rounded/polyhedron* as a polyhedron.  The *bflag2* argument
+selects how the bodies are represented: for a value of 1, only the faces
+are drawn; for a value of 2, only a wireframe mesh is drawn, and for a
+value of 3 both.  The diameter of each wireframe line is determined by
+the *bflag1* parameter for the *body* keyword.
 
 Note that for both the *rounded/polygon* and *rounded/polyhedron*
 styles, line segments are drawn between the pairs of vertices.

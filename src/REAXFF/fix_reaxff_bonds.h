@@ -33,6 +33,8 @@ class FixReaxFFBonds : public Fix {
   void setup(int) override;
   void end_of_step() override;
 
+  int image(int *&, double **&) override;
+
  protected:
   int nmax, compressed, multifile, padflag;
   int *numneigh;
@@ -54,8 +56,13 @@ class FixReaxFFBonds : public Fix {
   struct _reax_list *lists;
   class PairReaxFF *reaxff;
   class NeighList *list;
+
+  // arrays for dump image rendering
+
+  int numobjs;
+  int *imgobjs;
+  double **imgparms;
 };
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

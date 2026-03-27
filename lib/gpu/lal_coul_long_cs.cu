@@ -39,9 +39,15 @@ _texture( q_tex,int2);
 #define B4        (acctyp)-5.80844129e-3
 #define B5        (acctyp)1.14652755e-1
 
+#if defined _DOUBLE_DOUBLE
 #define EPSILON (acctyp)(1.0e-20)
 #define EPS_EWALD (acctyp)(1.0e-6)
 #define EPS_EWALD_SQR (acctyp)(1.0e-12)
+#else
+#define EPSILON (numtyp)(1.0e-7)
+#define EPS_EWALD (numtyp)(1.0e-6)
+#define EPS_EWALD_SQR (numtyp)(1.0e-8)
+#endif
 
 __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
                           const __global numtyp *restrict scale,
@@ -91,7 +97,7 @@ __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
       int j=dev_packed[nbor];
 
       numtyp factor_coul;
-      factor_coul = sp_cl[sbmask(j)];
+      factor_coul = (numtyp)1.0-sp_cl[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -112,14 +118,14 @@ __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
         numtyp r = ucl_rsqrt(r2inv);
         fetch(prefactor,j,q_tex);
         prefactor *= qqrd2e * scale[mtype] * qtmp;
-        if (factor_coul<(numtyp)1.0) {
+        if (factor_coul > (acctyp)0) {
           numtyp grij = g_ewald * (r+EPS_EWALD);
           numtyp expm2 = ucl_exp(-grij*grij);
           acctyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
           numtyp u = (numtyp)1.0 - t;
           _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
           prefactor /= (r+EPS_EWALD);
-          force = prefactor * (_erfc + EWALD_F*grij*expm2 - ((numtyp)1.0-factor_coul));
+          force = prefactor * (_erfc + EWALD_F*grij*expm2 - factor_coul);
           // Additionally r2inv needs to be accordingly modified since the later
           // scaling of the overall force shall be consistent
           r2inv = ucl_recip(rsq + EPS_EWALD_SQR);
@@ -140,9 +146,7 @@ __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          numtyp e = prefactor*_erfc;
-          if (factor_coul<(numtyp)1.0) e -= ((numtyp)1.0-factor_coul)*prefactor;
-          e_coul += e;
+          e_coul += prefactor*(_erfc-factor_coul);
         }
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
@@ -213,7 +217,7 @@ __kernel void k_coul_long_cs_fast(const __global numtyp4 *restrict x_,
       int j=dev_packed[nbor];
 
       numtyp factor_coul;
-      factor_coul = sp_cl[sbmask(j)];
+      factor_coul = (numtyp)1.0-sp_cl[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -233,7 +237,7 @@ __kernel void k_coul_long_cs_fast(const __global numtyp4 *restrict x_,
         numtyp r = ucl_rsqrt(r2inv);
         fetch(prefactor,j,q_tex);
         prefactor *= qqrd2e * scale[mtype] * qtmp;
-        if (factor_coul<(numtyp)1.0) {
+        if (factor_coul > (acctyp)0) {
           numtyp grij = g_ewald * (r+EPS_EWALD);
           numtyp expm2 = ucl_exp(-grij*grij);
           acctyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
@@ -261,9 +265,7 @@ __kernel void k_coul_long_cs_fast(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          numtyp e = prefactor*_erfc;
-          if (factor_coul<(numtyp)1.0) e -= ((numtyp)1.0-factor_coul)*prefactor;
-          e_coul += e;
+          e_coul += prefactor*(_erfc-factor_coul);
         }
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;

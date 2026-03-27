@@ -426,7 +426,7 @@ template <typename TYPE, typename... Indices>
 static std::enable_if_t<TYPE::rank_dynamic == sizeof...(Indices),void> realloc_kokkos(TYPE &data, const char *name, Indices... ns)
 {
   data = TYPE();
-  data = TYPE(std::string(name), ns...);
+  data = TYPE(Kokkos::NoInit(std::string(name)), ns...);
 }
 
 template <typename TYPE, typename... Indices>
@@ -434,7 +434,7 @@ static std::enable_if_t<TYPE::rank_dynamic == sizeof...(Indices) || sizeof...(In
 {
   data = TYPE();
   if constexpr (sizeof...(Indices) != 0)
-    data = TYPE(std::string(name), ns...);
+    data = TYPE(Kokkos::NoInit(std::string(name)), ns...);
 }
 
 /* ----------------------------------------------------------------------

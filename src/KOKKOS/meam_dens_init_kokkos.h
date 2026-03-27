@@ -22,11 +22,11 @@ using namespace MathSpecialKokkos;
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void MEAMKokkos<DeviceType>::operator()(TagMEAMDensInit<NEIGHFLAG>, const int &i) const {
-  int ii, offsetval;
-  ii = d_ilist_half[i];
-  offsetval = d_offset[i];
+  int offsetval = d_offset[i];
+  int ii = d_ilist_half[i];
   // compute screening function and derivatives
   this->template getscreen<NEIGHFLAG>(ii, offsetval, x, d_numneigh_half,
             d_numneigh_full, ntype, type, d_map);
@@ -38,6 +38,7 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensInit<NEIGHFLAG>, const int &i
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void MEAMKokkos<DeviceType>::operator()(TagMEAMZero, const int &i) const {
   d_rho0[i] = 0.0;
@@ -285,6 +286,7 @@ MEAMKokkos<DeviceType>::meam_dens_init(int inum_half, int ntype, typename AT::t_
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void
 MEAMKokkos<DeviceType>::getscreen(int i, int offset, typename AT::t_kkfloat_1d_3_lr x, typename AT::t_int_1d d_numneigh_half,
@@ -446,6 +448,7 @@ const {
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void
 MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d type, typename AT::t_int_1d d_map, typename AT::t_kkfloat_1d_3_lr x, typename AT::t_int_1d d_numneigh,
@@ -607,6 +610,7 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
 //Cutoff function and derivative
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT MEAMKokkos<DeviceType>::dfcut(const KK_FLOAT xi, KK_FLOAT& dfc) const
 {
@@ -632,6 +636,7 @@ KK_FLOAT MEAMKokkos<DeviceType>::dfcut(const KK_FLOAT xi, KK_FLOAT& dfc) const
   // Inputs: rij,rij2,rik2,rjk2
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT MEAMKokkos<DeviceType>::dCfunc(const KK_FLOAT rij2, const KK_FLOAT rik2, const KK_FLOAT rjk2) const
 {
@@ -647,6 +652,7 @@ KK_FLOAT MEAMKokkos<DeviceType>::dCfunc(const KK_FLOAT rij2, const KK_FLOAT rik2
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void MEAMKokkos<DeviceType>::dCfunc2(const KK_FLOAT rij2, const KK_FLOAT rik2, const KK_FLOAT rjk2, KK_FLOAT& dCikj1, KK_FLOAT& dCikj2) const
 {
@@ -663,6 +669,7 @@ void MEAMKokkos<DeviceType>::dCfunc2(const KK_FLOAT rij2, const KK_FLOAT rik2, c
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT MEAMKokkos<DeviceType>::fcut(const KK_FLOAT xi) const
 {

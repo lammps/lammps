@@ -39,7 +39,8 @@ kokkos_enable_option(IMPL_CUDA_MALLOC_ASYNC OFF "Whether to enable CudaMallocAsy
 kokkos_enable_option(IMPL_NVHPC_AS_DEVICE_COMPILER OFF "Whether to allow nvc++ as Cuda device compiler")
 kokkos_enable_option(IMPL_CUDA_UNIFIED_MEMORY OFF "Whether to leverage unified memory architectures for CUDA")
 
-kokkos_enable_option(DEPRECATED_CODE_4 ON "Whether code deprecated in major release 4 is available")
+kokkos_enable_option(DEPRECATED_CODE_4 OFF "Whether code deprecated in major release 4 is available")
+kokkos_enable_option(DEPRECATED_CODE_5 ON "Whether code deprecated in major release 5 is available")
 kokkos_enable_option(DEPRECATION_WARNINGS ON "Whether to emit deprecation warnings")
 kokkos_enable_option(HIP_RELOCATABLE_DEVICE_CODE OFF "Whether to enable relocatable device code (RDC) for HIP")
 
@@ -85,11 +86,37 @@ kokkos_enable_option(COMPILER_WARNINGS OFF "Whether to print all compiler warnin
 kokkos_enable_option(TUNING OFF "Whether to create bindings for tuning tools")
 kokkos_enable_option(AGGRESSIVE_VECTORIZATION OFF "Whether to aggressively vectorize loops")
 kokkos_enable_option(COMPILE_AS_CMAKE_LANGUAGE OFF "Whether to use native cmake language support")
+kokkos_enable_option(MULTIPLE_CMAKE_LANGUAGES OFF "Whether to allow Kokkos to be used with multiple CMake languages")
+if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE AND Kokkos_ENABLE_MULTIPLE_CMAKE_LANGUAGES)
+  message(
+    FATAL_ERROR
+      "Using both Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE and Kokkos_ENABLE_MULTIPLE_CMAKE_LANGUAGES is not allowed."
+  )
+endif()
+if((Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE OR Kokkos_ENABLE_MULTIPLE_CMAKE_LANGUAGES) AND Kokkos_ENABLE_CUDA)
+  if(CMAKE_VERSION VERSION_LESS "3.25.2")
+    message(FATAL_ERROR "Building Kokkos with CUDA as language and c++20 requires CMake version 3.25.2 or higher.")
+  endif()
+endif()
 kokkos_enable_option(
   HIP_MULTIPLE_KERNEL_INSTANTIATIONS OFF
   "Whether multiple kernels are instantiated at compile time - improve performance but increase compile time"
 )
-kokkos_enable_option(IMPL_HIP_MALLOC_ASYNC ${KOKKOS_ENABLE_HIP} "Whether to enable hipMallocAsync")
+# FIXME_HIP
+if(KOKKOS_ENABLE_HIP)
+  #here just for the version, can be removed with the fixme as it will be found by our TPL processing
+  find_package(hip REQUIRED PATHS ${ROCM_PATH} $ENV{ROCM_PATH})
+endif()
+if(hip_VERSION VERSION_GREATER_EQUAL 7.0.0)
+  set(HIP_MALLOC_ASYNC_DEFAULT OFF)
+else()
+  set(HIP_MALLOC_ASYNC_DEFAULT ${KOKKOS_ENABLE_HIP})
+endif()
+kokkos_enable_option(IMPL_HIP_MALLOC_ASYNC ${HIP_MALLOC_ASYNC_DEFAULT} "Whether to enable hipMallocAsync")
+if((hip_VERSION VERSION_GREATER_EQUAL 7.0.0) AND Kokkos_ENABLE_IMPL_HIP_MALLOC_ASYNC)
+  message(WARNING "Using Kokkos_ENABLE_IMPL_HIP_MALLOC_ASYNC is problematic with ROCm 7")
+endif()
+
 kokkos_enable_option(OPENACC_FORCE_HOST_AS_DEVICE OFF "Whether to force to use host as a target device for OpenACC")
 
 # This option will go away eventually, but allows fallback to old implementation when needed.
@@ -119,7 +146,7 @@ if(Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES)
   endif()
 endif()
 
-kokkos_enable_option(IMPL_MDSPAN ON "Whether to enable experimental mdspan support")
+kokkos_enable_option(IMPL_MDSPAN ON "Whether to enable mdspan support (internal use only)")
 kokkos_enable_option(MDSPAN_EXTERNAL OFF "Whether to use an external version of mdspan")
 kokkos_enable_option(
   IMPL_CHECK_POSSIBLY_BREAKING_LAYOUTS
@@ -130,7 +157,12 @@ mark_as_advanced(Kokkos_ENABLE_IMPL_MDSPAN)
 mark_as_advanced(Kokkos_ENABLE_MDSPAN_EXTERNAL)
 mark_as_advanced(IMPL_CHECK_POSSIBLY_BREAKING_LAYOUTS)
 
-kokkos_enable_option(IMPL_VIEW_LEGACY ON "Whether to use the legacy implementation of View")
+if(Kokkos_ENABLE_IMPL_MDSPAN)
+  set(VIEW_LEGACY_DEFAULT OFF)
+else()
+  set(VIEW_LEGACY_DEFAULT ON)
+endif()
+kokkos_enable_option(IMPL_VIEW_LEGACY ${VIEW_LEGACY_DEFAULT} "Whether to use the legacy implementation of View")
 mark_as_advanced(Kokkos_ENABLE_IMPL_VIEW_LEGACY)
 if(NOT Kokkos_ENABLE_IMPL_VIEW_LEGACY AND NOT Kokkos_ENABLE_IMPL_MDSPAN)
   message(FATAL_ERROR "Kokkos_ENABLE_IMPL_MDSPAN must be set to use the new View implementation")

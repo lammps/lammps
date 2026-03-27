@@ -32,55 +32,54 @@ namespace LAMMPS_NS {
 class AtomVecHybridKokkos : public AtomVecKokkos, public AtomVecHybrid {
  public:
   AtomVecHybridKokkos(class LAMMPS *);
+  void init() override;
+  void process_args(int, char **) override;
 
   void grow(int) override;
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
 
-  int pack_comm_kokkos(const int &n, const DAT::tdual_int_1d &k_sendlist,
-                       const DAT::tdual_double_2d_lr &buf,
-                       const int &pbc_flag, const int pbc[]) override;
-  void unpack_comm_kokkos(const int &n, const int &nfirst,
-                          const DAT::tdual_double_2d_lr &buf) override;
-  int pack_comm_self(const int &n, const DAT::tdual_int_1d &list,
-                     const int nfirst,
-                     const int &pbc_flag, const int pbc[]) override;
-  int pack_border_kokkos(int n, DAT::tdual_int_1d k_sendlist,
-                         DAT::tdual_double_2d_lr buf,
-                         int pbc_flag, int *pbc, ExecutionSpace space) override;
-  void unpack_border_kokkos(const int &n, const int &nfirst,
-                            const DAT::tdual_double_2d_lr &buf,
-                            ExecutionSpace space) override;
-  int pack_exchange_kokkos(const int &nsend,DAT::tdual_double_2d_lr &buf,
-                           DAT::tdual_int_1d k_sendlist,
-                           DAT::tdual_int_1d k_copylist,
-                           ExecutionSpace space) override;
-  int unpack_exchange_kokkos(DAT::tdual_double_2d_lr &k_buf, int nrecv,
-                             int nlocal, int dim, double lo, double hi,
-                             ExecutionSpace space,
-                             DAT::tdual_int_1d &k_indices) override;
+  void pack_comm_bonus_kokkos(const int &n, const DAT::tdual_int_1d &list,
+                              const DAT::tdual_double_2d_lr &buf, int vel_flag = 0) override;
 
-  void sync(ExecutionSpace space, unsigned int mask) override;
-  void modified(ExecutionSpace space, unsigned int mask) override;
-  void sync_pinned(ExecutionSpace space, unsigned int mask, int async_flag = 0) override;
+  void unpack_comm_bonus_kokkos(const int &n, const int &nfirst,
+                                const DAT::tdual_double_2d_lr &buf, int vel_flag = 0) override;
+
+  void pack_comm_self_bonus_kokkos(const int &n, const DAT::tdual_int_1d &list,
+                                   const int nfirst) override;
+
+
+  void pack_comm_self_fused_bonus_kokkos(const int &n,
+                                         const DAT::tdual_int_2d_lr &list,
+                                         const DAT::tdual_int_1d &sendnum_scan,
+                                         const DAT::tdual_int_1d &firstrecv,
+                                         const DAT::tdual_int_1d &g2l) override;
+
+  void pack_border_bonus_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                                DAT::tdual_double_2d_lr &buf,
+                                ExecutionSpace space, int vel_flag = 0) override;
+
+  void unpack_border_bonus_kokkos(const int &n, const int &nfirst,
+                                  const DAT::tdual_double_2d_lr &buf,
+                                  ExecutionSpace space, int vel_flag = 0) override;
+
+  void pack_exchange_bonus_kokkos(const int &nsend, DAT::tdual_double_2d_lr &buf,
+                                  DAT::tdual_int_1d k_sendlist,
+                                  DAT::tdual_int_1d k_copylist,
+                                  DAT::tdual_int_1d k_copylist_bonus,
+                                  ExecutionSpace space) override;
+
+  void unpack_exchange_bonus_kokkos(DAT::tdual_double_2d_lr &k_buf,
+                                    int nrecv,
+                                    ExecutionSpace space,
+                                    DAT::tdual_int_1d &k_indices) override;
+
+  void set_size_exchange() override;
+  void sync(ExecutionSpace space, uint64_t mask) override;
+  void modified(ExecutionSpace space, uint64_t mask) override;
+  void sync_pinned(ExecutionSpace space, uint64_t mask, int async_flag = 0) override;
 
  private:
-  DAT::t_tagint_1d d_tag;
-  DAT::t_int_1d d_type, d_mask;
-  HAT::t_tagint_1d h_tag;
-  HAT::t_int_1d h_type, h_mask;
-
-  DAT::t_imageint_1d d_image;
-  HAT::t_imageint_1d h_image;
-
-  DAT::t_kkfloat_1d_3_lr d_x;
-  DAT::t_kkfloat_1d_3 d_v;
-  DAT::t_kkacc_1d_3 d_f;
-  HAT::t_kkfloat_1d_3_lr h_x;
-  HAT::t_kkfloat_1d_3 h_v;
-  HAT::t_kkacc_1d_3 h_f;
-
-  DAT::t_kkfloat_1d_3 d_omega, d_angmom;
-  HAT::t_kkfloat_1d_3 h_omega, h_angmom;
+  class AtomVecKokkos **stylesKK;
 };
 
 } // namespace LAMMPS_NS

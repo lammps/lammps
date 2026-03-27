@@ -51,7 +51,7 @@ The per-atom vector values will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

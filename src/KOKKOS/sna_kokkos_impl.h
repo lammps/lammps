@@ -14,7 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Christian Trott (SNL), Stan Moore (SNL),
-    Evan Weinberg (NVIDIA)
+                         Evan Weinberg (NVIDIA)
 ------------------------------------------------------------------------- */
 
 #include "sna_kokkos.h"
@@ -76,6 +76,7 @@ SNAKokkos<DeviceType, real_type, accum_type, vector_length>::SNAKokkos(const Cop
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 SNAKokkos<DeviceType, real_type, accum_type, vector_length>::~SNAKokkos()
 {
@@ -349,6 +350,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::grow_rij(int n
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_cayley_klein(const int& iatom, const int& jnbor) const
 {
@@ -437,6 +439,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_cayley
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::pre_ui(const int& iatom, const int& j, const int& ielem) const
 {
@@ -470,6 +473,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::pre_ui(const i
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template<bool chemsnap, int ui_batch>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_ui_small(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
   const int iatom_mod, const int j_bend, const int first_jnbor, const int ninside, const int iatom_div) const
@@ -523,6 +527,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_ui_sma
 // and some amount of load imbalance, at the expense of reducing parallelism
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template<bool chemsnap, int ui_batch>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_ui_large(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team,
   const int iatom_mod, const int first_jnbor, const int ninside, const int iatom_div) const
@@ -585,6 +590,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_ui_lar
 // Core "evaluation" kernel that gets reused in `compute_ui_small` and `compute_ui_large`
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template<bool chemsnap, int ui_batch>
+// NOLINTNEXTLINE
 KOKKOS_FORCEINLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::evaluate_ui_jbend(
           const MultiWignerWrapper<real_type, vector_length, ui_batch>& ulist_wrapper,
@@ -741,6 +747,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::evaluate_ui_jb
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <bool need_atomics> KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_ui_cpu(const int& iatom, const int& jnbor) const
 {
@@ -865,6 +872,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_ui_cpu
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::transform_ui(const int& iatom, const int& idxu) const
 {
@@ -897,6 +905,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::transform_ui(c
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <bool chemsnap, int yi_batch> KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_zi(const int& iatom, const int& jjz) const
 {
@@ -932,6 +941,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_zi(con
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <int yi_batch> KOKKOS_FORCEINLINE_FUNCTION
 auto SNAKokkos<DeviceType, real_type, accum_type, vector_length>::evaluate_zi(const int& j1, const int& j2, const int& j,
         const int& ma1min, const int& ma2max, const int& mb1min, const int& mb2max, const int& na, const int& nb,
@@ -994,6 +1004,7 @@ auto SNAKokkos<DeviceType, real_type, accum_type, vector_length>::evaluate_zi(co
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <bool chemsnap, int yi_batch> KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_bi(const int& iatom, const int& jjb) const
 {
@@ -1040,6 +1051,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_bi(con
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <int yi_batch> KOKKOS_INLINE_FUNCTION
 auto SNAKokkos<DeviceType, real_type, accum_type, vector_length>::evaluate_bi(const int& j, const int& jjz, const int& jju, const int& iatom, const int& elem1, const int& elem2, const int& elem3) const
 {
@@ -1133,6 +1145,7 @@ auto SNAKokkos<DeviceType, real_type, accum_type, vector_length>::evaluate_bi(co
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_beta_linear(const int& iatom, const int& idxb, const int& ielem) const
 {
@@ -1146,6 +1159,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_beta_l
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template <bool need_atomics>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_beta_quadratic(const int& iatom, const int& idxb, const int& ielem) const
 {
@@ -1208,6 +1222,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_beta_q
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template <bool chemsnap, bool need_atomics, int yi_batch>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_yi(const int& iatom, const int& jjz) const
 {
@@ -1268,6 +1283,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_yi(con
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template <bool chemsnap, bool need_atomics, int yi_batch>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_yi_with_zlist(const int& iatom, const int& jjz) const
 {
@@ -1331,6 +1347,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_yi_wit
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <bool chemsnap, int yi_batch> KOKKOS_FORCEINLINE_FUNCTION
 auto SNAKokkos<DeviceType, real_type, accum_type, vector_length>::evaluate_beta_scaled(const int& j1, const int& j2, const int& j,
           const int& iatom, const int& elem1, const int& elem2, const int& elem3) const {
@@ -1395,6 +1412,7 @@ auto SNAKokkos<DeviceType, real_type, accum_type, vector_length>::evaluate_beta_
 // Version of the code that exposes additional parallelism by threading over `j_bend` values
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template<int start, int num_dims>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_fused_deidrj_small(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int iatom_mod, const int j_bend, const int jnbor, const int iatom_div) const
 {
@@ -1438,6 +1456,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_fused_
 // and some amount of load imbalance, at the expense of reducing parallelism
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template<int start, int num_dims>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_fused_deidrj_large(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int iatom_mod, const int jnbor, const int iatom_div) const
 {
@@ -1492,6 +1511,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_fused_
 // `compute_fused_deidrj_large`
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 template<int num_dims>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 auto SNAKokkos<DeviceType, real_type, accum_type, vector_length>::evaluate_duidrj_jbend(const WignerWrapper<real_type, vector_length>& ulist_wrapper,
   const complex& a, const complex& b, const real_type& sfac, const MultiWignerWrapper<real_type, vector_length, num_dims>& dulist_wrapper,
@@ -1657,6 +1677,7 @@ auto SNAKokkos<DeviceType, real_type, accum_type, vector_length>::evaluate_duidr
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_duidrj_cpu(const int& iatom, const int& jnbor) const
 {
@@ -1840,6 +1861,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_duidrj
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_deidrj_cpu(const int& iatom, const int& jnbor) const
 {
@@ -2198,6 +2220,7 @@ int SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_ncoeff(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 real_type SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_sfac(real_type r, real_type rcut, real_type sinner, real_type  dinner) const
 {
@@ -2231,6 +2254,7 @@ real_type SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_s
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 real_type SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_dsfac(real_type r, real_type rcut, real_type sinner, real_type dinner) const
 {
@@ -2279,6 +2303,7 @@ real_type SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_d
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_s_dsfac(const real_type r, const real_type rcut, const real_type sinner, const real_type dinner, real_type& sfac, real_type& dsfac) const {
 

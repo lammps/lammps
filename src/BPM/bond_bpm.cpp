@@ -37,7 +37,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_bpm[] =
-    "BPM bond style: doi:10.1039/D3SM01373A\n\n"
+    "BPM bond style: https://doi.org/10.1039/D3SM01373A\n\n"
     "@Article{Clemmer2024,\n"
     " author =  {Clemmer, Joel T. and Monti, Joseph M. and Lechman, Jeremy B.},\n"
     " title =   {A soft departure from jamming: the compaction of deformable\n"

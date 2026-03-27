@@ -27,6 +27,7 @@
 #include "memory.h"
 #include "neighbor.h"
 #include "random_mars.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 #include "update.h"
 
@@ -53,8 +54,9 @@ FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
   pergrid_freq = 1;
   restart_file = 1;
 
-  if (outfile) error->all(FLERR,"Fix ttm/grid does not support outfile option - "
-                          "use dump grid command or restart files instead");
+  if (outfile.size() > 0)
+    error->all(FLERR, Error::NOPOINTER, "Fix ttm/grid does not support outfile option - "
+               "use dump grid command or restart files instead");
 
   skin_original = neighbor->skin;
 }
@@ -94,10 +96,9 @@ void FixTTMGrid::post_constructor()
   // set initial electron temperatures from user input file
   // communicate new T_electron values to ghost grid points
 
-  if (infile) {
+  if (!infile.empty()) {
     read_electron_temperatures(infile);
-    grid->forward_comm(Grid3d::FIX,this,0,1,sizeof(double),
-                       grid_buf1,grid_buf2,MPI_DOUBLE);
+    grid->forward_comm(Grid3d::FIX,this,0,1,sizeof(double), grid_buf1,grid_buf2,MPI_DOUBLE);
   }
 }
 
@@ -108,7 +109,8 @@ void FixTTMGrid::init()
   FixTTM::init();
 
   if (neighbor->skin > skin_original)
-    error->all(FLERR,"Cannot extend neighbor skin after fix ttm/grid defined");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Cannot extend neighbor skin after fix ttm/grid defined");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -274,7 +276,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 
   // proc 0 opens file
 
-  FILE *fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     fp = utils::open_potential(filename, lmp, nullptr);
     if (!fp) error->one(FLERR, "Cannot open grid file: {}: {}", filename, utils::getsyserror());
@@ -284,10 +286,6 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
   // Grid3d::read_file() calls back to unpack_read_grid() with chunks of lines
 
   grid->read_file(Grid3d::FIX,this,fp,CHUNK,MAXLINE);
-
-  // close file
-
-  if (comm->me == 0) fclose(fp);
 
   // check completeness of input data
 

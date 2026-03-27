@@ -43,6 +43,7 @@ class FixWallRegionKokkos : public FixWallRegion {
   void post_force(int) override;
 
   template<class T>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void wall_particle(T, const int, value_type) const;
 
@@ -56,27 +57,33 @@ class FixWallRegionKokkos : public FixWallRegion {
   DAT::ttransform_kkacc_1d_6 k_vatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT lj93(KK_FLOAT, KK_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT lj126(KK_FLOAT, KK_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT lj1043(KK_FLOAT, KK_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT morse(KK_FLOAT, KK_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT colloid(KK_FLOAT, KK_FLOAT, KK_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT harmonic(KK_FLOAT, KK_FLOAT&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally(value_type, int, KK_FLOAT*) const;
-
 };
 
 template <class DeviceType, class T>
@@ -91,11 +98,13 @@ struct FixWallRegionKokkosFunctor {
   FixWallRegionKokkosFunctor(FixWallRegionKokkos<DeviceType>* c_ptr, T *regionKK):
     value_count(10), c(*c_ptr), regionKK(regionKK) {}
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void init(value_type result) const {
     for (int i=0 ; i<10 ; i++ ) result[i] = 0.0;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i, value_type result) const {
     c.wall_particle(regionKK,i,result);

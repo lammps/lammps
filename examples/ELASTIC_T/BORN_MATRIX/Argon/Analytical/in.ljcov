@@ -10,7 +10,7 @@
 # adjustable parameters
 
 units           real
-variable        nsteps index 100000    # length of run
+variable        nsteps index 10000     # length of run
 variable        nthermo index  1000    # thermo output interval 
 variable        nlat equal 5           # size of box
 variable        T    equal 60.         # Temperature in K
@@ -39,7 +39,7 @@ thermo 100
 fix aL all ave/time 1 1 1 v_vol ave running
 fix NPT all npt temp $T $T 100 aniso 1. 1. 1000 fixedpoint 0. 0. 0.
 
-run 20000
+run 2000
 
 unfix NPT
 

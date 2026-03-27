@@ -33,7 +33,6 @@ modules:
       - -D DOWNLOAD_POTENTIALS=no
       - -D PKG_AMOEBA=yes
       - -D PKG_ASPHERE=yes
-      - -D PKG_AWPMD=yes
       - -D PKG_BOCS=yes
       - -D PKG_BODY=yes
       - -D PKG_BPM=yes
@@ -62,6 +61,7 @@ modules:
       - -D PKG_EXTRA-MOLECULE=yes
       - -D PKG_EXTRA-PAIR=yes
       - -D PKG_FEP=yes
+      - -D PKG_GRAPHICS=yes
       - -D PKG_GRANULAR=yes
       - -D PKG_GPU=yes
       - -D GPU_API=opencl
@@ -90,7 +90,6 @@ modules:
       - -D PKG_PERI=yes
       - -D PKG_PHONON=yes
       - -D PKG_PLUGIN=yes
-      - -D PKG_POEMS=yes
       - -D PKG_PTM=yes
       - -D PKG_PYTHON=yes
       - -D PKG_QEQ=yes

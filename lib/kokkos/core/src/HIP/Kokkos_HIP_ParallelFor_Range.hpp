@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_HIP_PARALLEL_FOR_RANGE_HPP
 #define KOKKOS_HIP_PARALLEL_FOR_RANGE_HPP
@@ -76,8 +63,9 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::HIP> {
 
     using DriverType = ParallelFor<FunctorType, Policy, Kokkos::HIP>;
     const int block_size =
-        Kokkos::Impl::hip_get_preferred_blocksize<DriverType, LaunchBounds>(
-            m_policy.space().hip_device());
+        Kokkos::Impl::get_preferred_blocksize_for_range<DriverType,
+                                                        LaunchBounds>(
+            m_policy.space().impl_internal_space_instance(), nwork);
 
     if (block_size == 0) {
       Kokkos::Impl::throw_runtime_exception(

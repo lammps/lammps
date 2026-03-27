@@ -35,7 +35,7 @@ Examples
 Description
 """""""""""
 
-Dump a snapshot of atom coordinates every N timesteps in Amber-style
+Dump a snapshot of atom coordinates every N timesteps in AMBER-style
 NetCDF file format.  NetCDF files are binary, portable and
 self-describing.  This dump style will write only one file on the root
 node.  The dump style *netcdf* uses the `standard NetCDF library <netcdf-home_>`_.  All data is collected on one processor and then

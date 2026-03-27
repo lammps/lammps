@@ -349,6 +349,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int NeighborKokkosExecute<DeviceType>::find_special(const int &i, const int &j) const
 {
@@ -379,6 +380,7 @@ int NeighborKokkosExecute<DeviceType>::find_special(const int &i, const int &j) 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int NeighborKokkosExecute<DeviceType>::exclusion(const int &i,const int &j,
                                              const int &itype,const int &jtype) const

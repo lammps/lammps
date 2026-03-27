@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_ALGORITHMS_UNITTESTS_TEST_STD_ALGOS_COMMON_HPP
 #define KOKKOS_ALGORITHMS_UNITTESTS_TEST_STD_ALGOS_COMMON_HPP
@@ -20,17 +7,19 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
 import kokkos.random;
 import kokkos.std_algorithms;
 #else
+#include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
 #include <Kokkos_StdAlgorithms.hpp>
 #endif
-#include <Kokkos_Core.hpp>
 #include <TestStdAlgorithmsHelperFunctors.hpp>
-#include <utility>
+#include <algorithm>
 #include <numeric>
 #include <random>
+#include <utility>
 
 namespace Test {
 namespace stdalgos {
@@ -252,245 +241,6 @@ template <class ValueType1, class ValueType2>
 auto make_bounds(const ValueType1& lower, const ValueType2 upper) {
   return Kokkos::pair<ValueType1, ValueType2>{lower, upper};
 }
-
-// libstdc++ as provided by GCC 8 does not have reduce, transform_reduce,
-// exclusive_scan, inclusive_scan, transform_exclusive_scan,
-// transform_inclusive_scan and for GCC 9.1, 9.2 fails to compile them for
-// missing overload not accepting policy so use here simplified versions of
-// them, only for testing purpose
-#if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE <= 9)
-
-template <class InputIterator, class ValueType, class BinaryOp>
-ValueType testing_reduce(InputIterator first, InputIterator last,
-                         ValueType initIn, BinaryOp binOp) {
-  using value_type = std::remove_const_t<ValueType>;
-  value_type init  = initIn;
-
-  while (last - first >= 4) {
-    ValueType v1 = binOp(first[0], first[1]);
-    ValueType v2 = binOp(first[2], first[3]);
-    ValueType v3 = binOp(v1, v2);
-    init         = binOp(init, v3);
-    first += 4;
-  }
-
-  for (; first != last; ++first) {
-    init = binOp(init, *first);
-  }
-
-  return init;
-}
-
-template <class InputIterator, class ValueType>
-ValueType testing_reduce(InputIterator first, InputIterator last,
-                         ValueType init) {
-  return testing_reduce(
-      first, last, init,
-      [](const ValueType& lhs, const ValueType& rhs) { return lhs + rhs; });
-}
-
-template <class InputIterator>
-auto testing_reduce(InputIterator first, InputIterator last) {
-  using ValueType = typename InputIterator::value_type;
-  return testing_reduce(
-      first, last, ValueType{},
-      [](const ValueType& lhs, const ValueType& rhs) { return lhs + rhs; });
-}
-
-template <class InputIterator1, class InputIterator2, class ValueType,
-          class BinaryJoiner, class BinaryTransform>
-ValueType testing_transform_reduce(InputIterator1 first1, InputIterator1 last1,
-                                   InputIterator2 first2, ValueType initIn,
-                                   BinaryJoiner binJoiner,
-                                   BinaryTransform binTransform) {
-  using value_type = std::remove_const_t<ValueType>;
-  value_type init  = initIn;
-
-  while (last1 - first1 >= 4) {
-    ValueType v1 = binJoiner(binTransform(first1[0], first2[0]),
-                             binTransform(first1[1], first2[1]));
-
-    ValueType v2 = binJoiner(binTransform(first1[2], first2[2]),
-                             binTransform(first1[3], first2[3]));
-
-    ValueType v3 = binJoiner(v1, v2);
-    init         = binJoiner(init, v3);
-
-    first1 += 4;
-    first2 += 4;
-  }
-
-  for (; first1 != last1; ++first1, ++first2) {
-    init = binJoiner(init, binTransform(*first1, *first2));
-  }
-
-  return init;
-}
-
-template <class InputIterator1, class InputIterator2, class ValueType>
-ValueType testing_transform_reduce(InputIterator1 first1, InputIterator1 last1,
-                                   InputIterator2 first2, ValueType init) {
-  return testing_transform_reduce(
-      first1, last1, first2, init,
-      [](const ValueType& lhs, const ValueType& rhs) { return lhs + rhs; },
-      [](const ValueType& lhs, const ValueType& rhs) { return lhs * rhs; });
-}
-
-template <class InputIterator, class ValueType, class BinaryJoiner,
-          class UnaryTransform>
-ValueType testing_transform_reduce(InputIterator first, InputIterator last,
-                                   ValueType initIn, BinaryJoiner binJoiner,
-                                   UnaryTransform unaryTransform) {
-  using value_type = std::remove_const_t<ValueType>;
-  value_type init  = initIn;
-
-  while (last - first >= 4) {
-    ValueType v1 =
-        binJoiner(unaryTransform(first[0]), unaryTransform(first[1]));
-    ValueType v2 =
-        binJoiner(unaryTransform(first[2]), unaryTransform(first[3]));
-    ValueType v3 = binJoiner(v1, v2);
-    init         = binJoiner(init, v3);
-    first += 4;
-  }
-
-  for (; first != last; ++first) {
-    init = binJoiner(init, unaryTransform(*first));
-  }
-
-  return init;
-}
-
-/*
-   EXCLUSIVE_SCAN
- */
-template <class InputIterator, class OutputIterator, class ValueType,
-          class BinaryOp>
-OutputIterator testing_exclusive_scan(InputIterator first, InputIterator last,
-                                      OutputIterator result, ValueType initIn,
-                                      BinaryOp binOp) {
-  using value_type = std::remove_const_t<ValueType>;
-  value_type init  = initIn;
-
-  while (first != last) {
-    auto v = init;
-    init   = binOp(init, *first);
-    ++first;
-    *result++ = v;
-  }
-
-  return result;
-}
-
-template <class InputIterator, class OutputIterator, class ValueType>
-OutputIterator testing_exclusive_scan(InputIterator first, InputIterator last,
-                                      OutputIterator result, ValueType init) {
-  return testing_exclusive_scan(
-      first, last, result, init,
-      [](const ValueType& lhs, const ValueType& rhs) { return lhs + rhs; });
-}
-
-/*
-   INCLUSIVE_SCAN
- */
-template <class InputIterator, class OutputIterator, class BinaryOp,
-          class ValueType>
-OutputIterator testing_inclusive_scan(InputIterator first, InputIterator last,
-                                      OutputIterator result, BinaryOp binOp,
-                                      ValueType initIn) {
-  using value_type = std::remove_const_t<ValueType>;
-  value_type init  = initIn;
-  for (; first != last; ++first) {
-    init      = binOp(init, *first);
-    *result++ = init;
-  }
-
-  return result;
-}
-
-template <class InputIterator, class OutputIterator, class BinaryOp>
-OutputIterator testing_inclusive_scan(InputIterator first, InputIterator last,
-                                      OutputIterator result, BinaryOp bop) {
-  if (first != last) {
-    auto init = *first;
-    *result++ = init;
-    ++first;
-    if (first != last) {
-      result = testing_inclusive_scan(first, last, result, bop, init);
-    }
-  }
-  return result;
-}
-
-template <class InputIterator, class OutputIterator>
-OutputIterator testing_inclusive_scan(InputIterator first, InputIterator last,
-                                      OutputIterator result) {
-  using ValueType = typename InputIterator::value_type;
-  return testing_inclusive_scan(
-      first, last, result,
-      [](const ValueType& lhs, const ValueType& rhs) { return lhs + rhs; });
-}
-
-/*
-   TRANSFORM_EXCLUSIVE_SCAN
- */
-template <class InputIterator, class OutputIterator, class ValueType,
-          class BinaryOp, class UnaryOp>
-OutputIterator testing_transform_exclusive_scan(
-    InputIterator first, InputIterator last, OutputIterator result,
-    ValueType initIn, BinaryOp binOp, UnaryOp unaryOp) {
-  using value_type = std::remove_const_t<ValueType>;
-  value_type init  = initIn;
-
-  while (first != last) {
-    auto v = init;
-    init   = binOp(init, unaryOp(*first));
-    ++first;
-    *result++ = v;
-  }
-
-  return result;
-}
-
-template <class InputIterator, class OutputIterator, class BinaryOp,
-          class UnaryOp, class ValueType>
-OutputIterator testing_transform_inclusive_scan(InputIterator first,
-                                                InputIterator last,
-                                                OutputIterator result,
-                                                BinaryOp binOp, UnaryOp unaryOp,
-                                                ValueType initIn) {
-  using value_type = std::remove_const_t<ValueType>;
-  value_type init  = initIn;
-
-  for (; first != last; ++first) {
-    init      = binOp(init, unaryOp(*first));
-    *result++ = init;
-  }
-
-  return result;
-}
-
-template <class InputIterator, class OutputIterator, class BinaryOp,
-          class UnaryOp>
-OutputIterator testing_transform_inclusive_scan(InputIterator first,
-                                                InputIterator last,
-                                                OutputIterator result,
-                                                BinaryOp binOp,
-                                                UnaryOp unaryOp) {
-  if (first != last) {
-    auto init = unaryOp(*first);
-    *result++ = init;
-    ++first;
-    if (first != last) {
-      result = testing_transform_inclusive_scan(first, last, result, binOp,
-                                                unaryOp, init);
-    }
-  }
-
-  return result;
-}
-
-#endif
 
 template <class LayoutTagType, class ValueType>
 auto create_random_view_and_host_clone(

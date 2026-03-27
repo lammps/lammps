@@ -39,7 +39,7 @@ enum { SCALAR, VECTOR };
 /* ---------------------------------------------------------------------- */
 
 FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), nvalues(0), fp(nullptr), offlist(nullptr), format(nullptr), vector(nullptr),
+    Fix(lmp, narg, arg), nvalues(0), offlist(nullptr), format(nullptr), vector(nullptr),
     vector_total(nullptr), vector_list(nullptr), column(nullptr), array(nullptr),
     array_total(nullptr), array_list(nullptr)
 {
@@ -449,10 +449,8 @@ FixAveTime::~FixAveTime()
   delete[] format;
   delete[] extlist;
 
-  if (fp && comm->me == 0) {
-    if (yaml_flag) fputs("...\n", fp);
-    fclose(fp);
-  }
+  if (fp && (comm->me == 0) && yaml_flag) fputs("...\n", fp);
+
   memory->destroy(column);
 
   delete[] vector;
@@ -1013,7 +1011,6 @@ void FixAveTime::options(int iarg, int narg, char **arg)
 {
   // option defaults
 
-  fp = nullptr;
   ave = ONE;
   startstep = 0;
   mode = SCALAR;

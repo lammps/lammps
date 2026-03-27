@@ -15,6 +15,7 @@ Syntax
   .. parsed-literal::
 
        args = none for any style except the following
+         *apip* arg = *conservative*/*thermostat* (optional) for conservative APIP/lambda thermostat APIP
          *body* args = bstyle bstyle-args
            bstyle = style of body particles
            bstyle-args = additional arguments specific to the bstyle
@@ -117,10 +118,14 @@ the Additional Information section below.
      - *bond* + "angle data"
      - :ref:`MOLECULE <PKG-MOLECULE>`
      - bead-spring polymers with stiffness
-   * - *apip*
+   * - *apip thermostat*
      - *atomic* + apip_lambda, apip_lambda_required, apip_lambda_input, apip_lambda_const, apip_lambda_input_ta, apip_e_fast, apip_e_precise, apip_f_const_lambda, apip_f_dyn_lambda
      - :ref:`APIP <PKG-APIP>`
-     - adaptive-precision interatomic potentials(APIP), see :doc:`APIP howto <Howto_apip>`
+     - adaptive-precision interatomic potentials(APIP) with a :doc:`lambda thermostat <fix_lambda_thermostat_apip>`, see :doc:`APIP howto <Howto_apip>`
+   * - *apip conservative*
+     - *atomic* + apip_lambda, apip_lambda_required, apip_e_fast, apip_e_precise
+     - :ref:`APIP <PKG-APIP>`
+     - conservative adaptive-precision interatomic potentials(APIP), see :doc:`APIP howto <Howto_apip>`
    * - *atomic*
      - tag, type, x, v, f, image, mask
      -
@@ -272,6 +277,14 @@ with both flavors of mass.
 
 Additional information about specific atom styles
 """""""""""""""""""""""""""""""""""""""""""""""""
+
+.. versionchanged:: TBD
+
+For the *apip* style, one can choose between the style for
+conservative potentials and the style for the
+:doc:`lambda thermostat <fix_lambda_thermostat_apip>`.
+The :doc:`Howto apip <Howto_apip>` describes the differences between
+both use cases.
 
 For the *body* style, the particles are arbitrary bodies with internal
 attributes defined by the "style" of the bodies, which is specified by
@@ -485,6 +498,8 @@ Default
 
 The default atom style is *atomic*.  If atom_style *sphere* or
 *bpm/sphere* is used, its default argument is 0.
+If atom_style *apip* is used, its default argument is
+'thermostat'.
 
 ----------
 

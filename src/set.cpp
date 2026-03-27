@@ -1656,7 +1656,7 @@ void Set::process_image(int &iarg, int narg, char **arg, Action *action)
     }
   }
 
-  if (strcmp(arg[iarg+1],"NULL") == 0) action->ivalue6 = 0;
+  if (strcmp(arg[iarg+3],"NULL") == 0) action->ivalue6 = 0;
   else {
     action->ivalue6 = 1;
     if (utils::strmatch(arg[iarg+3],"^v_")) {

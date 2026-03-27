@@ -67,7 +67,7 @@ static constexpr double BIG = 1.0e20;
 enum{NONE,ALL,PARTIAL,TEMPLATE};
 
 static const char cite_neigh_multi[] =
-  "neighbor multi command: doi:10.1016/j.cpc.2008.03.005, doi:10.1007/s40571-020-00361-2\n\n"
+  "neighbor multi command: https://doi.org/10.1016/j.cpc.2008.03.005, https://doi.org/10.1007/s40571-020-00361-2\n\n"
   "@Article{Intveld08,\n"
   " author =  {in 't Veld, P. J. and S. J.~Plimpton and G. S. Grest},\n"
   " title =   {Accurate and Efficient Methods for Modeling Colloidal\n"
@@ -856,7 +856,8 @@ int Neighbor::init_pair()
     if (requests[i]->cut) {
       if (comm_cutoff < (requests[i]->cutoff + (requests[i]->occasional ? 0.0 : skin)))
         error->all(FLERR,  Error::NOLASTLINE,
-                   "Custom neighbor list cutoff too large for communication cutoff");
+                   "Custom neighbor list cutoff {} is too large for communication cutoff {}",
+                   (requests[i]->cutoff + (requests[i]->occasional ? 0.0 : skin)), comm_cutoff);
     }
   }
 

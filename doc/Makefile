@@ -52,7 +52,7 @@ SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocess
 # we only want to use explicitly listed files.
 DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile.in | sed -e 's/@LAMMPS_SOURCE_DIR@/..\/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
 
-.PHONY: help clean-all clean clean-spelling epub mobi html pdf spelling anchor_check style_check char_check link_check role_check xmlgen fasthtml fasthtml-init 
+.PHONY: help clean-all clean clean-spelling epub mobi html pdf spelling anchor_check style_check char_check link_check role_check xmlgen fasthtml fasthtml-init check
 
 FASTHTMLFILES = $(patsubst $(RSTDIR)/%.rst,fasthtml/%.html,$(wildcard $(RSTDIR)/*rst))
 # ------------------------------------------
@@ -69,6 +69,7 @@ help:
 	@echo "  upgrade       upgrade sphinx, extensions, and dependencies to latest supported versions"
 	@echo "  clean         remove all intermediate files"
 	@echo "  clean-all     reset the entire build environment"
+	@echo "  check         run 'anchor_check', 'style_check', 'package_check', 'char_check', and 'role_check'"
 	@echo "  anchor_check  scan for duplicate anchor labels"
 	@echo "  style_check   check for complete and consistent style lists"
 	@echo "  package_check check for complete and consistent package lists"
@@ -235,6 +236,8 @@ pdf: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@cp -r src/PDF latex/PDF
 	@rm -rf latex/PDF/.[sg]*
 	@echo "Build finished. Manual.pdf is in this directory."
+
+check : anchor_check style_check package_check char_check role_check
 
 anchor_check : $(ANCHORCHECK)
 	@(\

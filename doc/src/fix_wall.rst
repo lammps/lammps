@@ -4,6 +4,7 @@
 .. index:: fix wall/lj1043
 .. index:: fix wall/colloid
 .. index:: fix wall/harmonic
+.. index:: fix wall/harmonic/outside
 .. index:: fix wall/lepton
 .. index:: fix wall/morse
 .. index:: fix wall/table
@@ -25,6 +26,9 @@ fix wall/colloid command
 fix wall/harmonic command
 =========================
 
+fix wall/harmonic/outside command
+=================================
+
 fix wall/lepton command
 =========================
 
@@ -42,7 +46,7 @@ Syntax
    fix ID group-ID style [tabstyle] [N] face args ... keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style = *wall/lj93* or *wall/lj126* or *wall/lj1043* or *wall/colloid* or *wall/harmonic* or *wall/lepton* or *wall/morse* or *wall/table*
+* style = *wall/lj93* or *wall/lj126* or *wall/lj1043* or *wall/colloid* or *wall/harmonic* or *wall/harmonic/outside* or *wall/lepton* or *wall/morse* or *wall/table*
 * tabstyle = *linear* or *spline* = method of table interpolation (only applies to *wall/table*)
 * N = use N values in *linear* or *spline* interpolation (only applies to *wall/table*)
 * one or more face/arg pairs may be appended
@@ -187,12 +191,30 @@ spring potential:
 
  E = \epsilon \quad (r - r_c)^2 \qquad r < r_c
 
+For style *wall/harmonic/outside*,
+the energy E is given by an attractive-only harmonic
+spring potential for selected atoms group passing outside
+the wall placed at :math:`w_0` up to a cutoff distance :math:`r_c`:
+.. math::
+
+ E = \epsilon \quad (r - w_0)^2 \qquad r < r_c
+
+
 For style *wall/morse*, the energy E is given by a Morse potential:
 
 .. math::
 
    E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
        \qquad r < r_c
+
+
+For style *wall/harmonic/outside*, the formulation avoids the presence
+of repulsive bands inside a controlled volume preventing the definition
+of a precise volumetric concentration (see example scripts for 2D visualization).
+Instead, the particles are allowed to go outside by a small amount,
+getting a finer definition of the concentration inside the controlled
+volume, as employed for the CMC determination in
+Barraud et al :ref:`(Barraud) <Barraud>`.
 
 .. versionadded:: 28Mar2023
 
@@ -211,7 +233,7 @@ Optionally, the expression may use "rc" to refer to the cutoff distance
 for the given wall.  Further constants in the expression can be defined
 in the same string as additional expressions separated by semicolons.
 The expression "k*(r-rc)^2;k=100.0" represents a repulsive-only harmonic
-spring as in fix *wall/harmonic* with a force constant *K* (same as
+spring as in fix *wall/harmonic* or *wall/harmonic/outside* with a force constant *K* (same as
 :math:`\epsilon` above) of 100 energy units.  More details on the Lepton
 expression strings are given below.
 
@@ -310,11 +332,12 @@ particle and a 3d half-lattice of Lennard-Jones 12/6 particles of size
 the density of particles in the wall and colloid can be different, as
 specified by the :math:`\epsilon` prefactor.
 
-For the *wall/harmonic* style, :math:`\epsilon` is effectively the spring
-constant K, and has units (energy/distance\^2).  The input parameter
-:math:`\sigma` is ignored.  The minimum energy position of the harmonic
-spring is at the *cutoff*\ .  This is a repulsive-only spring since the
-interaction is truncated at the *cutoff*
+For the *wall/harmonic* and *wall/harmonic/outside* style,
+:math:`\epsilon` is effectively the spring constant K, and has units
+(energy/distance\^2).  The input parameter :math:`\sigma` is ignored.
+The minimum energy position of the harmonic spring is at the *cutoff*\ .
+This is a repulsive-only spring since the interaction is truncated at
+the *cutoff*
 
 For the *wall/morse* style, the three parameters are in this order:
 :math:`D_0` the depth of the potential, :math:`\alpha` the width
@@ -335,7 +358,7 @@ easy to specify a time-dependent wall interaction.
 
 .. note::
 
-   For all of the styles, you must ensure that r is always > 0 for
+   For all of the styles (except wall/harmonic/outside), you must ensure that r is always > 0 for
    all particles in the group, or LAMMPS will generate an error.  This
    means you cannot start your simulation with particles at the wall
    position *coord* (r = 0) or with particles on the wrong side of the
@@ -474,49 +497,81 @@ if you want the interpolation tables of length Ntable to match exactly
 what is in the tabulated file (with effectively no preliminary
 interpolation), you should set Ntable = Nfile.
 
-----------
+-----------------
+
+Dump image info
+"""""""""""""""
+
+.. versionadded:: 11Feb2026
+
+These wall fixes support the *fix* keyword of :doc:`dump image
+<dump_image>`.  The fixes will pass geometry information about the walls
+to *dump image* so that the walls will be included in the rendered
+image.  Please note, that for :doc:`2d systems <dimension>`, a wall
+rendered as a plane would be invisible and it is thus rendered as a
+cylinder.
+
+The color of the wall is by default that of the first atom type when
+using color styles "type" or "element".  With color style "const" the
+default value of "white" can be changed using :doc:`dump_modify fcolor
+<dump_image>`.  The transparency is by default fully opaque and can be
+changed with *dump\_modify ftrans*\ .
+
+For 2d systems, the *fflag1* setting determines whether the cylinder
+representing the wall is capped with a sphere at the ends: 0 means no caps, 1
+means the lower end is capped, 2 means the upper end is capped, and 3
+means both ends are capped.  The *fflag2* setting allows to adjust the
+radius of the rendered cylinder.  It should be set to a value > 0 or the
+cylinder will not be visible since the diameter is set internally to
+zero due to lack of a suitable heuristic for deriving a meaningful
+diameter for all types of walls and unit settings.
+
+For 3d systems, both *fflag1* and *fflag2* are ignored.
+
+-----------------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files
-<restart>`.
+No information about these fixes are written to :doc:`binary restart
+files <restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by
-this fix to add the energy of interaction between atoms and all the
-specified walls to the global potential energy of the system as part
-of :doc:`thermodynamic output <thermo_style>`.  The default setting
-for this fix is :doc:`fix_modify energy no <fix_modify>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by these
+fixes to add the energy of interaction between atoms and all the
+specified walls to the global potential energy of the system as part of
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+these fixes is :doc:`fix_modify energy no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by
-this fix to add the contribution due to the interaction between atoms
+these fixes to add the contribution due to the interaction between atoms
 and all the specified walls to both the global pressure and per-atom
 stress of the system via the :doc:`compute pressure
 <compute_pressure>` and :doc:`compute stress/atom
 <compute_stress_atom>` commands.  The former can be accessed by
 :doc:`thermodynamic output <thermo_style>`.  The default setting for
-this fix is :doc:`fix_modify virial no <fix_modify>`.
+these fixes is :doc:`fix_modify virial no <fix_modify>`.
 
-The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
-fix. This allows to set at which level of the :doc:`r-RESPA
-<run_style>` integrator the fix is adding its forces. Default is the
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by these
+fixes.  This allows to set at which level of the :doc:`r-RESPA
+<run_style>` integrator a fix is adding its forces.  Default is the
 outermost level.
 
-This fix computes a global scalar energy and a global vector of forces,
-which can be accessed by various :doc:`output commands <Howto_output>`.
-Note that the scalar energy is the sum of interactions with all defined
-walls.  If you want the energy on a per-wall basis, you need to use
-multiple fix wall commands.  The length of the vector is equal to the
-number of walls defined by the fix.  Each vector value is the normal
-force on a specific wall.  Note that an outward force on a wall will be
-a negative value for *lo* walls and a positive value for *hi* walls.
-The scalar and vector values calculated by this fix are "extensive".
+These fixes compute a global scalar energy and a global vector of
+forces, which can be accessed by various :doc:`output commands
+<Howto_output>`.  Note that the scalar energy is the sum of interactions
+with all defined walls.  If you want the energy on a per-wall basis, you
+need to use multiple fix wall commands.  The length of the vector is
+equal to the number of walls defined by the fix.  Each vector value is
+the normal force on a specific wall.  Note that an outward force on a
+wall will be a negative value for *lo* walls and a positive value for
+*hi* walls.  The scalar and vector values calculated by this fix are
+"extensive".
 
-No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.
+No parameter of these fixes can be used with the *start/stop* keywords
+of the :doc:`run <run>` command.
 
-The forces due to this fix are imposed during an energy minimization,
-invoked by the :doc:`minimize <minimize>` command.
+The forces due to these fixes *are* imposed during an energy
+minimization, invoked by the :doc:`minimize <minimize>` command.
 
 .. note::
 
@@ -557,3 +612,7 @@ The option defaults units = lattice, fld = no, and pbc = no.
 
 **(Magda)** Magda, Tirrell, Davis, J Chem Phys, 83, 1888-1901 (1985);
 erratum in JCP 84, 2901 (1986).
+
+.. _Barraud:
+
+**(Barraud)** Barraud, Dalmazzone, Moureta, De Bruin, Creton, Pasquier, Lachet and Nieto-Draghi, Langmuir, 41 (11), 7272-7282 (2025).

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 #ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
@@ -121,32 +108,6 @@ void fill_view(ViewType dest_view, const std::string& name) {
   Kokkos::parallel_for("copy", dest_view.extent(0), F1);
 }
 
-// my own because std::inclusive_scan is ONLY found with std=c++17
-template <class it1, class it2, class BinOp>
-void my_host_inclusive_scan(it1 first, it1 last, it2 dest, BinOp bop) {
-  if (first != last) {
-    auto init = *first;
-    *dest     = init;
-    while (++first < last) {
-      init      = bop(*first, init);
-      *(++dest) = init;
-    }
-  }
-}
-
-template <class it1, class it2, class BinOp, class ValType>
-void my_host_inclusive_scan(it1 first, it1 last, it2 dest, BinOp bop,
-                            ValType init) {
-  if (first != last) {
-    init  = bop(*first, init);
-    *dest = init;
-    while (++first < last) {
-      init      = bop(*first, init);
-      *(++dest) = init;
-    }
-  }
-}
-
 template <class ValueType>
 struct MultiplyFunctor {
   KOKKOS_INLINE_FUNCTION
@@ -177,8 +138,8 @@ struct VerifyData {
     using gold_view_value_type = typename ViewType2::value_type;
     Kokkos::View<gold_view_value_type*, Kokkos::HostSpace> gold_h(
         "goldh", data_view.extent(0));
-    my_host_inclusive_scan(KE::cbegin(data_view_h), KE::cend(data_view_h),
-                           KE::begin(gold_h), bop, args...);
+    std::inclusive_scan(KE::cbegin(data_view_h), KE::cend(data_view_h),
+                        KE::begin(gold_h), bop, args...);
 
     auto test_view_dc = create_deep_copyable_compatible_clone(test_view);
     auto test_view_h =

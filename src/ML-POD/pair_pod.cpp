@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "safe_pointers.h"
 
 #include <algorithm>
 #include <cmath>
@@ -2112,24 +2113,22 @@ void PairPOD::blockatomenergyforce(double *ei, double *fij, int Ni, int Nij)
 
 void PairPOD::savematrix2binfile(const std::string &filename, double *A, int nrows, int ncols)
 {
-  FILE *fp = fopen(filename.c_str(), "wb");
+  SafeFilePtr fp = fopen(filename.c_str(), "wb");
   double sz[2];
   sz[0] = (double) nrows;
   sz[1] = (double) ncols;
   fwrite( reinterpret_cast<char*>( sz ), sizeof(double) * (2), 1, fp);
   fwrite( reinterpret_cast<char*>( A ), sizeof(double) * (nrows*ncols), 1, fp);
-  fclose(fp);
 }
 
 void PairPOD::saveintmatrix2binfile(const std::string &filename, int *A, int nrows, int ncols)
 {
-  FILE *fp = fopen(filename.c_str(), "wb");
+  SafeFilePtr fp = fopen(filename.c_str(), "wb");
   int sz[2];
   sz[0] = nrows;
   sz[1] = ncols;
   fwrite( reinterpret_cast<char*>( sz ), sizeof(int) * (2), 1, fp);
   fwrite( reinterpret_cast<char*>( A ), sizeof(int) * (nrows*ncols), 1, fp);
-  fclose(fp);
 }
 
 void PairPOD::savedatafordebugging()

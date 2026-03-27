@@ -53,7 +53,7 @@ static constexpr double BIG = 1e10;
 #define ONETWOBIT 0x40000000
 
 static const char cite_srp[] =
-  "pair srp command: doi:10.1063/1.3698476\n\n"
+  "pair srp command: https://doi.org/10.1063/1.3698476\n\n"
   "@Article{Sirk2012\n"
   " author = {T. W. Sirk and Y. R. Sliozberg and J. K. Brennan and M. Lisal and J. W. Andzelm},\n"
   " title = {An Enhanced Entangled Polymer Model for Dissipative Particle Dynamics},\n"

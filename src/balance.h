@@ -21,6 +21,7 @@ CommandStyle(balance,Balance);
 #define LMP_BALANCE_H
 
 #include "command.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -78,7 +79,7 @@ class Balance : public Command {
   class Imbalance **imbalances;    // list of Imb classes, one per weight style
   double *weight;                  // ptr to FixStore weight vector
 
-  FILE *fp;    // balance output file
+  SafeFilePtr fp;    // balance output file
   int firststep;
 
   double imbalance_splits();

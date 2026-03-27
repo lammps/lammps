@@ -20,6 +20,10 @@ class.  See dump.h for details.
 +---------------+---------------------------------------------------+
 | write_data    | write a proc's data to a file                     |
 +---------------+---------------------------------------------------+
+| modify_param  | called when dump_modify is executed (optional)    |
++---------------+---------------------------------------------------+
+| extract       | provide access to internal data (optional)        |
++---------------+---------------------------------------------------+
 
 See the :doc:`dump <dump>` command and its *custom* style for a list of
 keywords for atom information that can already be dumped by

@@ -12,6 +12,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <set>
+
 #include "remap_kokkos.h"
 
 #include "error.h"
@@ -35,13 +37,13 @@ RemapKokkos<DeviceType>::RemapKokkos(LAMMPS *lmp, MPI_Comm comm,
              int out_klo, int out_khi,
              int nqty, int permute, int memory,
              int precision, int usecollective,
-             int usegpu_aware) : Pointers(lmp)
+             int usenonblocking, int usegpu_aware) : Pointers(lmp)
 {
   plan = remap_3d_create_plan_kokkos(comm,
                               in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                               out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
                               nqty,permute,memory,precision,usecollective,
-                              usegpu_aware);
+                              usenonblocking, usegpu_aware);
   if (plan == nullptr) error->one(FLERR,"Could not create 3d remap plan");
 }
 
@@ -130,7 +132,6 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
   if (!plan->usecollective) {
     int i,isend,irecv;
 
-
     for (irecv = 0; irecv < plan->nrecv; irecv++) {
       FFT_SCALAR* scratch = v_scratch + plan->recv_bufloc[irecv];
       MPI_Irecv(scratch,plan->recv_size[irecv],
@@ -142,14 +143,26 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
 
     for (isend = 0; isend < plan->nsend; isend++) {
       int in_offset = plan->send_offset[isend];
-      plan->pack(d_in,in_offset,
-                 plan->d_sendbuf,0,&plan->packplan[isend]);
+      if (plan->usenonblocking) {
+        plan->pack(d_in,in_offset,
+                  plan->d_sendbuf,plan->send_bufloc[isend],
+                  &plan->packplan[isend]);
+      } else {
+        plan->pack(d_in,in_offset,
+                  plan->d_sendbuf,0,
+                  &plan->packplan[isend]);
+      }
 
       if (!plan->usegpu_aware)
         Kokkos::deep_copy(plan->h_sendbuf,plan->d_sendbuf);
 
-      MPI_Send(v_sendbuf,plan->send_size[isend],MPI_FFT_SCALAR,
-               plan->send_proc[isend],0,plan->comm);
+      if (plan->usenonblocking) {
+        MPI_Isend(v_sendbuf + plan->send_bufloc[isend],plan->send_size[isend],MPI_FFT_SCALAR,
+                plan->send_proc[isend],0,plan->comm,&plan->isend_reqs[isend]);
+      } else {
+        MPI_Send(v_sendbuf,plan->send_size[isend],MPI_FFT_SCALAR,
+                plan->send_proc[isend],0,plan->comm);
+      }
     }
 
     // copy in -> scratch -> out for self data
@@ -183,6 +196,11 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
       plan->unpack(d_scratch,scratch_offset,
                    d_out,out_offset,&plan->unpackplan[irecv]);
     }
+
+    if (plan->usenonblocking) {
+      // finally, wait for all Isends to be done
+      MPI_Waitall(plan->nsend,plan->isend_reqs,MPI_STATUS_IGNORE);
+    }
   } else {
     if (plan->commringlen > 0) {
       int isend,irecv;
@@ -199,9 +217,6 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
                       &plan->packplan[numpacked]);
           numpacked++;
         }
-        else if (plan->commringlist[isend] == me && plan->self) {
-          numpacked++;
-        }
       }
 
       if (!plan->usegpu_aware)
@@ -216,26 +231,12 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
       if (!plan->usegpu_aware)
         Kokkos::deep_copy(d_scratch,plan->h_scratch);
 
-      // copy in -> scratch -> out for self data
-
-      if (plan->self) {
-        plan->pack(d_in,plan->send_offset[plan->selfnsendloc],
-                  plan->d_sendbuf,plan->sdispls[plan->selfcommringloc],
-                  &plan->packplan[plan->selfnsendloc]);
-        plan->unpack(plan->d_sendbuf,plan->sdispls[plan->selfcommringloc],
-                    d_out,plan->recv_offset[plan->selfnrecvloc],
-                    &plan->unpackplan[plan->selfnrecvloc]);
-      }
-
       numpacked = 0;
       for (irecv = 0; irecv < plan->commringlen; irecv++) {
         if (plan->rcvcnts[irecv]) {
           plan->unpack(d_scratch,plan->rdispls[irecv],
                        d_out,plan->recv_offset[numpacked],
                        &plan->unpackplan[numpacked]);
-          numpacked++;
-        }
-        else if (plan->commringlist[irecv] == me && plan->self) {
           numpacked++;
         }
       }
@@ -266,6 +267,7 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
                           1 = single precision (4 bytes per datum)
                           2 = double precision (8 bytes per datum)
    usecollective        whether to use collective MPI or point-to-point
+   usenonblocking       when using point-to-point MPI, use non-blocking MPI_Isend
    usegpu_aware         whether to use GPU-Aware MPI or not
 ------------------------------------------------------------------------- */
 
@@ -277,7 +279,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   int out_ilo, int out_ihi, int out_jlo, int out_jhi,
   int out_klo, int out_khi,
   int nqty, int permute, int memory, int /*precision*/,
-  int usecollective, int usegpu_aware)
+  int usecollective, int usenonblocking, int usegpu_aware)
 {
 
   struct remap_plan_3d_kokkos<DeviceType> *plan;
@@ -294,7 +296,28 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
 
   plan = new struct remap_plan_3d_kokkos<DeviceType>;
   if (plan == nullptr) return nullptr;
+
+  // nullify all pointers managed with malloc()/free()
+  plan->commringlist = nullptr;
+  plan->isend_reqs = nullptr;
+  plan->packplan = nullptr;
+  plan->rcvcnts = nullptr;
+  plan->rdispls = nullptr;
+  plan->recv_bufloc = nullptr;
+  plan->recv_offset = nullptr;
+  plan->recv_proc = nullptr;
+  plan->recv_size = nullptr;
+  plan->request = nullptr;
+  plan->sdispls = nullptr;
+  plan->send_bufloc = nullptr;
+  plan->send_offset = nullptr;
+  plan->send_proc = nullptr;
+  plan->send_size = nullptr;
+  plan->sendcnts = nullptr;
+  plan->unpackplan = nullptr;
+
   plan->usecollective = usecollective;
+  plan->usenonblocking = usenonblocking;
   plan->usegpu_aware = usegpu_aware;
 
   // store parameters in local data structs
@@ -359,6 +382,11 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
       plan->packplan = (struct pack_plan_3d *)
         malloc(nsend*sizeof(struct pack_plan_3d));
 
+      if (plan->usenonblocking)
+        plan->isend_reqs = (MPI_Request *) malloc(nsend*sizeof(MPI_Request));
+        plan->send_bufloc = (int *) malloc(nsend*sizeof(int));
+        if (plan->send_bufloc == nullptr) return nullptr;
+
       if (plan->send_offset == nullptr || plan->send_size == nullptr ||
           plan->send_proc == nullptr || plan->packplan == nullptr) return nullptr;
     }
@@ -400,6 +428,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
 
     nsend = 0;
     iproc = me;
+    ibuf = 0;
     for (i = 0; i < nprocs; i++) {
       iproc++;
       if (iproc == nprocs) iproc = 0;
@@ -415,6 +444,8 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
         plan->packplan[nsend].nstride_plane = nqty*in.jsize*in.isize;
         plan->packplan[nsend].nqty = nqty;
         plan->send_size[nsend] = nqty*overlap.isize*overlap.jsize*overlap.ksize;
+        plan->send_bufloc[nsend] = ibuf;
+        ibuf += plan->send_size[nsend];
         nsend++;
       }
     }
@@ -497,8 +528,13 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     // find biggest send message (not including self) and malloc space for it
 
     size = 0;
-    for (nsend = 0; nsend < plan->nsend; nsend++)
-      size = MAX(size,plan->send_size[nsend]);
+    if (plan->usenonblocking) {
+      for (nsend = 0; nsend < plan->nsend; nsend++)
+        size += plan->send_size[nsend];
+    } else {
+      for (nsend = 0; nsend < plan->nsend; nsend++)
+        size = MAX(size,plan->send_size[nsend]);
+    }
 
     if (size) {
       plan->d_sendbuf = typename FFT_AT::t_FFT_SCALAR_1d("remap3d:sendbuf",size);
@@ -521,70 +557,61 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     MPI_Comm_dup(comm,&plan->comm);
   } else {
 
-    // Improved approach - use an AllReduce to aggregate which ranks need to be included
-    // To do this, we build the local proc's send/receive list, then do an AllReduce
-    // to create the send/recv count for the Alltoallv
-
-    // local arrays to be used in the allreduce
-    // start with max length -- nprocs. Unused entries will be removed later
-
-    int *local_cnts = (int*) malloc(2*nprocs*sizeof(int));
-    if (local_cnts == nullptr) return nullptr;
-    int *local_sendcnts = local_cnts;
-    int *local_recvcnts = (local_cnts + nprocs);
-
-    // local arrays used to store the results of the allreduce
-
-    int *global_cnts = (int*) malloc(2*nprocs*sizeof(int));
-    if (global_cnts == nullptr) return nullptr;
-    int *global_sendcnts = global_cnts;
-    int *global_recvcnts = (global_cnts + nprocs);
-
-    // count send & recv collides, including self
+    int *commringlist;
+    int commringlen = 0;
+    // use a C++ set to organize the commringlist (C++17)
+    std::set<int> commringset;
 
     nsend = 0;
     nrecv = 0;
     for (i = 0; i < nprocs; i++) {
-      local_sendcnts[i] = remap_3d_collide(&in,&outarray[i],&overlap);
-      local_recvcnts[i] = remap_3d_collide(&out,&inarray[i],&overlap);
-      nsend += local_sendcnts[i];
-      nrecv += local_recvcnts[i];
-    }
-
-    // perform an AllReduce to get the counts from all other processors and build sendcnts list
-
-    MPI_Allreduce(local_cnts, global_cnts, 2*nprocs, MPI_INT, MPI_SUM, comm);
-
-    // now remove procs that are 0 in send or recv to create minimized sendcnts/recvcnts for AlltoAllv
-    // also builds commringlist -- which is already sorted
-
-    int *commringlist = (int*) malloc(nprocs * sizeof(int));
-    int commringlen = 0;
-
-    for (i = 0; i < nprocs; i++) {
-      if (global_sendcnts[i] > 0 || global_recvcnts[i] > 0) {
-        commringlist[commringlen] = i;
-        commringlen++;
+      if (remap_3d_collide(&in,&outarray[i],&overlap)) {
+        commringset.insert(i);
+        nsend++;
+      }
+      if (remap_3d_collide(&out,&inarray[i],&overlap)) {
+        commringset.insert(i);
+        nrecv++;
       }
     }
 
-    // resize commringlist to final size
+    int commringappend = 1;
+    while (commringappend) {
+      commringappend = 0;
+      for (int setproci : commringset) {
+        for (int j = 0; j < nprocs; j++) {
+          // short-circuit if already in commring
+          if (commringset.find(j) != commringset.end())
+            continue;
+          if (remap_3d_collide(&inarray[setproci],&outarray[j],&overlap)) {
+            auto set_insert_result = commringset.insert(j);
+            if (set_insert_result.second) {
+              commringappend++;
+            }
+          }
+          if (remap_3d_collide(&outarray[setproci],&inarray[j],&overlap)) {
+            auto set_insert_result = commringset.insert(j);
+            if (set_insert_result.second) {
+              commringappend++;
+            }
+          }
+        }
+      }
+    }
 
-    commringlist = (int *) realloc(commringlist, commringlen*sizeof(int));
+    // build already-sorted commringlist as an array
+    commringlist = (int*) malloc(commringset.size() * sizeof(int));
+    commringlen = 0;
+
+    for (int setproci : commringset) {
+      commringlist[commringlen] = setproci;
+      commringlen++;
+    }
 
     // set the plan->commringlist
 
     plan->commringlen = commringlen;
     plan->commringlist = commringlist;
-
-    // clean up local buffers that are finished
-
-    local_sendcnts = nullptr;
-    local_recvcnts = nullptr;
-    global_recvcnts = nullptr;
-    global_sendcnts = nullptr;
-    free(local_cnts);
-    free(global_cnts);
 
     // malloc space for send & recv info
     // if the current proc is involved in any way in the communication, allocate space
@@ -594,10 +621,6 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     if (nsend || nrecv) {
 
       // send space
-
-      plan->selfcommringloc = -1;
-      plan->selfnsendloc = -1;
-      plan->selfnrecvloc = -1;
 
       plan->nsend = nsend;
       plan->pack = PackKokkos<DeviceType>::pack_3d;
@@ -663,10 +686,6 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     int total_send_size = 0;
     for (i = 0; i < plan->commringlen; i++) {
       iproc = plan->commringlist[i];
-      if (iproc == me) {
-        plan->selfcommringloc = i;
-        plan->selfnsendloc = nsend;
-      }
       if (remap_3d_collide(&in,&outarray[iproc],&overlap)) {
         //plan->send_proc[nsend] = i;
         // number of entries required for this pack's 3-d coords
@@ -705,11 +724,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
 
     for (i = 0; i < plan->commringlen; i++) {
       iproc = plan->commringlist[i];
-      if (iproc == me) {
-        plan->selfnrecvloc = nrecv;
-      }
       if (remap_3d_collide(&out,&inarray[iproc],&overlap)) {
-
         if (permute == 0) {
           plan->recv_offset[nrecv] = nqty *
             ((overlap.klo-out.klo)*out.jsize*out.isize +
@@ -759,16 +774,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     // init remaining fields in remap plan
 
     plan->memory = memory;
-
-    if (plan->sendcnts[plan->selfcommringloc]) {
-      plan->self = 1;
-      plan->sendcnts[plan->selfcommringloc] = 0;
-      plan->rcvcnts[plan->selfcommringloc] = 0;
-    }
-    else {
-      plan->self = 0;
-    }
-
+    plan->self = 0;
 
     // if requested, allocate internal scratch space for recvs,
     // only need it if I will receive any data (including self)
@@ -824,46 +830,27 @@ void RemapKokkos<DeviceType>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_
   if (!((plan->usecollective) && (plan->commringlen == 0)))
     MPI_Comm_free(&plan->comm);
 
-  if (plan->usecollective) {
-    if (plan->commringlist != nullptr) {
-      free(plan->commringlist);
-      free(plan->sendcnts);
-      free(plan->rcvcnts);
-      free(plan->sdispls);
-      free(plan->rdispls);
-    }
+#define SAFE_FREE(ptr) if (ptr) free(ptr)
 
-    if (plan->nsend) {
-      free(plan->send_offset);
-      free(plan->send_size);
-      free(plan->packplan);
-    }
+  SAFE_FREE(plan->commringlist);
+  SAFE_FREE(plan->isend_reqs);
+  SAFE_FREE(plan->packplan);
+  SAFE_FREE(plan->rcvcnts);
+  SAFE_FREE(plan->rdispls);
+  SAFE_FREE(plan->recv_bufloc);
+  SAFE_FREE(plan->recv_offset);
+  SAFE_FREE(plan->recv_proc);
+  SAFE_FREE(plan->recv_size);
+  SAFE_FREE(plan->request);
+  SAFE_FREE(plan->sdispls);
+  SAFE_FREE(plan->send_bufloc);
+  SAFE_FREE(plan->send_offset);
+  SAFE_FREE(plan->send_proc);
+  SAFE_FREE(plan->send_size);
+  SAFE_FREE(plan->sendcnts);
+  SAFE_FREE(plan->unpackplan);
 
-    if (plan->nrecv) {
-      free(plan->recv_offset);
-      free(plan->recv_size);
-      free(plan->unpackplan);
-    }
-  } else {
-
-    // free arrays used in pt2pt communication
-
-    if (plan->nsend || plan->self) {
-      free(plan->send_offset);
-      free(plan->send_size);
-      free(plan->send_proc);
-      free(plan->packplan);
-    }
-
-    if (plan->nrecv || plan->self) {
-      free(plan->recv_offset);
-      free(plan->recv_size);
-      free(plan->recv_proc);
-      free(plan->recv_bufloc);
-      free(plan->request);
-      free(plan->unpackplan);
-    }
-  }
+#undef SAFE_FREE
 
   // free plan itself
 

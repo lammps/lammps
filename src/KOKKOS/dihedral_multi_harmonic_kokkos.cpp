@@ -160,6 +160,7 @@ void DihedralMultiHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DihedralMultiHarmonicKokkos<DeviceType>::operator()(TagDihedralMultiHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
@@ -321,6 +322,7 @@ void DihedralMultiHarmonicKokkos<DeviceType>::operator()(TagDihedralMultiHarmoni
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DihedralMultiHarmonicKokkos<DeviceType>::operator()(TagDihedralMultiHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
@@ -357,8 +359,10 @@ void DihedralMultiHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   DihedralMultiHarmonic::coeff(narg, arg);
 
-  int n = atom->ndihedraltypes;
-  for (int i = 1; i <= n; i++) {
+  int ilo,ihi;
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
+
+  for (int i = ilo; i <= ihi; i++) {
     k_a1.view_host()[i] = a1[i];
     k_a2.view_host()[i] = a2[i];
     k_a3.view_host()[i] = a3[i];
@@ -407,6 +411,7 @@ void DihedralMultiHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
 
 template<class DeviceType>
 //template<int NEWTON_BOND>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DihedralMultiHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, const int i2, const int i3, const int i4,
                         KK_FLOAT &edihedral, KK_FLOAT *f1, KK_FLOAT *f3, KK_FLOAT *f4,

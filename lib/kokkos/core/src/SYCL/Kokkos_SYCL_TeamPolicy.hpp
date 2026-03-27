@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SYCL_TEAM_POLICY_HPP
 #define KOKKOS_SYCL_TEAM_POLICY_HPP
@@ -148,7 +135,7 @@ class Kokkos::Impl::TeamPolicyInternal<Kokkos::SYCL, Properties...>
   typename traits::execution_space space() const { return m_space; }
 
   TeamPolicyInternal()
-      : m_space(typename traits::execution_space()),
+      : m_space(),
         m_league_size(0),
         m_team_size(-1),
         m_vector_length(0),
@@ -159,9 +146,9 @@ class Kokkos::Impl::TeamPolicyInternal<Kokkos::SYCL, Properties...>
         m_tune_vector_length(false) {}
 
   /** \brief  Specify league size, request team size */
-  TeamPolicyInternal(const execution_space space_, int league_size_,
+  TeamPolicyInternal(execution_space space, int league_size_,
                      int team_size_request, int vector_length_request = 1)
-      : m_space(space_),
+      : m_space(std::move(space)),
         m_league_size(league_size_),
         m_team_size(team_size_request),
         m_vector_length(determine_vector_length(vector_length_request)),
@@ -188,27 +175,27 @@ class Kokkos::Impl::TeamPolicyInternal<Kokkos::SYCL, Properties...>
   }
 
   /** \brief  Specify league size, request team size */
-  TeamPolicyInternal(const execution_space space_, int league_size_,
+  TeamPolicyInternal(execution_space space, int league_size_,
                      const Kokkos::AUTO_t& /* team_size_request */,
                      int vector_length_request = 1)
-      : TeamPolicyInternal(space_, league_size_, -1, vector_length_request) {}
+      : TeamPolicyInternal(std::move(space), league_size_, -1,
+                           vector_length_request) {}
   // FLAG
   /** \brief  Specify league size and team size, request vector length*/
-  TeamPolicyInternal(const execution_space space_, int league_size_,
+  TeamPolicyInternal(execution_space space, int league_size_,
                      int team_size_request,
                      const Kokkos::AUTO_t& /* vector_length_request */
                      )
-      : TeamPolicyInternal(space_, league_size_, team_size_request, -1)
-
-  {}
+      : TeamPolicyInternal(std::move(space), league_size_, team_size_request,
+                           -1) {}
 
   /** \brief  Specify league size, request team size and vector length*/
-  TeamPolicyInternal(const execution_space space_, int league_size_,
+  TeamPolicyInternal(execution_space space, int league_size_,
                      const Kokkos::AUTO_t& /* team_size_request */,
                      const Kokkos::AUTO_t& /* vector_length_request */
 
                      )
-      : TeamPolicyInternal(space_, league_size_, -1, -1)
+      : TeamPolicyInternal(std::move(space), league_size_, -1, -1)
 
   {}
 
@@ -241,6 +228,12 @@ class Kokkos::Impl::TeamPolicyInternal<Kokkos::SYCL, Properties...>
                      )
       : TeamPolicyInternal(typename traits::execution_space(), league_size_, -1,
                            -1) {}
+
+  TeamPolicyInternal(const PolicyUpdate, const TeamPolicyInternal& other,
+                     typename traits::execution_space space)
+      : TeamPolicyInternal(other) {
+    this->m_space = std::move(space);
+  }
 
   int chunk_size() const { return m_chunk_size; }
 

@@ -357,6 +357,7 @@ class NPairHalffullKokkos : public NPair {
   NPairHalffullKokkos(class LAMMPS *);
   void build(class NeighList *) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNPairHalffullCompute, const int&) const;
 

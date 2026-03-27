@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_GRAPH_HPP
 #define KOKKOS_GRAPH_HPP
@@ -109,12 +96,10 @@ struct [[nodiscard]] Graph {
 
   auto root_node() const { return root_t{m_impl_ptr, m_root}; }
 
-  void submit(const execution_space& exec) const {
+  void submit(const execution_space& exec = execution_space{}) const {
     KOKKOS_EXPECTS(bool(m_impl_ptr))
     (*m_impl_ptr).submit(exec);
   }
-
-  void submit() const { submit(get_execution_space()); }
 
   decltype(auto) native_graph();
 
@@ -173,9 +158,8 @@ Graph<ExecutionSpace> create_graph(ExecutionSpace ex, Closure&& arg_closure) {
 template <
     class ExecutionSpace = DefaultExecutionSpace,
     class Closure = Kokkos::Impl::DoNotExplicitlySpecifyThisTemplateParameter>
-std::enable_if_t<
-    !Kokkos::is_execution_space_v<Kokkos::Impl::remove_cvref_t<Closure>>,
-    Graph<ExecutionSpace>>
+std::enable_if_t<!Kokkos::is_execution_space_v<std::remove_cvref_t<Closure>>,
+                 Graph<ExecutionSpace>>
 create_graph(Closure&& arg_closure) {
   return create_graph(ExecutionSpace{}, (Closure&&)arg_closure);
 }
@@ -190,7 +174,7 @@ decltype(auto) Graph<ExecutionSpace>::native_graph() {
   if constexpr (std::is_same_v<ExecutionSpace, Kokkos::Cuda>) {
     return m_impl_ptr->cuda_graph();
   }
-#elif defined(KOKKOS_ENABLE_HIP) && defined(KOKKOS_IMPL_HIP_NATIVE_GRAPH)
+#elif defined(KOKKOS_ENABLE_HIP)
   if constexpr (std::is_same_v<ExecutionSpace, Kokkos::HIP>) {
     return m_impl_ptr->hip_graph();
   }
@@ -208,7 +192,7 @@ decltype(auto) Graph<ExecutionSpace>::native_graph_exec() {
   if constexpr (std::is_same_v<ExecutionSpace, Kokkos::Cuda>) {
     return m_impl_ptr->cuda_graph_exec();
   }
-#elif defined(KOKKOS_ENABLE_HIP) && defined(KOKKOS_IMPL_HIP_NATIVE_GRAPH)
+#elif defined(KOKKOS_ENABLE_HIP)
   if constexpr (std::is_same_v<ExecutionSpace, Kokkos::HIP>) {
     return m_impl_ptr->hip_graph_exec();
   }
@@ -231,10 +215,7 @@ decltype(auto) Graph<ExecutionSpace>::native_graph_exec() {
 #include <impl/Kokkos_Default_Graph_Impl.hpp>
 #include <Cuda/Kokkos_Cuda_Graph_Impl.hpp>
 #if defined(KOKKOS_ENABLE_HIP)
-// The implementation of hipGraph in ROCm 5.2 is bugged, so we cannot use it.
-#if defined(KOKKOS_IMPL_HIP_NATIVE_GRAPH)
 #include <HIP/Kokkos_HIP_Graph_Impl.hpp>
-#endif
 #endif
 #ifdef KOKKOS_IMPL_SYCL_GRAPH_SUPPORT
 #include <SYCL/Kokkos_SYCL_Graph_Impl.hpp>

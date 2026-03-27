@@ -63,7 +63,7 @@ using namespace LAMMPS_NS;
 using namespace ReaxFF;
 
 static const char cite_pair_reaxff_omp[] =
-  "pair reaxff/omp and fix qeq/reaxff/omp command: doi:10.1177/1094342017746221\n\n"
+  "pair reaxff/omp and fix qeq/reaxff/omp command: https://doi.org/10.1177/1094342017746221\n\n"
   "@Article{Aktulga17,\n"
   " author =  {H. M. Aktulga and C. Knight and P. Coffman and\n"
   "    K. A. O'Hearn and T. R. Shan and W. Jiang},\n"

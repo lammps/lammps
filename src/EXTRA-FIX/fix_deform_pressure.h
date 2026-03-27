@@ -30,7 +30,7 @@ class FixDeformPressure : public FixDeform {
   ~FixDeformPressure() override;
   void init() override;
   void setup(int) override;
-  void end_of_step() override;
+  void update_box() override;
   void write_restart(FILE *) override;
   void restart(char *buf) override;
   int modify_param(int, char **) override;
@@ -51,9 +51,7 @@ class FixDeformPressure : public FixDeform {
   struct SetExtra {
     double ptarget, pgain;
     double prior_pressure, prior_rate;
-    double cumulative_shift;
     double cumulative_vshift[3];
-    double cumulative_remap;
     int saved;
     char *pstr;
     int pvar, pvar_flag;

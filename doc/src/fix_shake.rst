@@ -204,7 +204,7 @@ will be fulfilled to the desired accuracy within a few MD steps
 following the minimization. The default value for *kbond* depends on the
 :doc:`units <units>` setting and is 1.0e9*k_B.
 
-.. versionadded:: TBD
+.. versionadded:: 10Dec2025
 
 The *store* keyword controls whether the fix stores the constraint
 (or restraint) forces as a per-atom property.

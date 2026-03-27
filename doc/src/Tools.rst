@@ -43,7 +43,6 @@ Pre-processing tools
 .. table_from_list::
    :columns: 6
 
-   * :ref:`amber2lmp <amber>`
    * :ref:`ch2lmp <charmm>`
    * :ref:`chain <chain>`
    * :ref:`createatoms <createatoms>`
@@ -59,6 +58,7 @@ Pre-processing tools
    * :ref:`stl_bin2txt <stlconvert>`
    * :ref:`tabulate <tabulate>`
    * :ref:`tinker <tinker>`
+   * :doc:`AMBER2LAMMPS <Howto_amber2lammps>`
 
 Post-processing tools
 =====================
@@ -66,7 +66,6 @@ Post-processing tools
 .. table_from_list::
    :columns: 6
 
-   * :ref:`amber2lmp <amber>`
    * :ref:`binary2txt <binary>`
    * :ref:`ch2lmp <charmm>`
    * :ref:`colvars <colvars_tools>`
@@ -107,24 +106,6 @@ Miscellaneous tools
 
 Tool descriptions
 =================
-
-.. _amber:
-
-amber2lmp tool
---------------------------
-
-The amber2lmp subdirectory contains three Python scripts for converting
-files back-and-forth between the AMBER MD code and LAMMPS.  See the
-README file in amber2lmp for more information.
-
-These tools were written by Keir Novik while he was at Queen Mary
-University of London.  Keir is no longer there and cannot support
-these tools which are out-of-date with respect to the current LAMMPS
-version (and maybe with respect to AMBER as well).  Since we don't use
-these tools at Sandia, you will need to experiment with them and make
-necessary modifications yourself.
-
-----------
 
 .. _binary:
 
@@ -728,7 +709,7 @@ the same ``LAMMPS_CACHING_DIR``. This script does the following:
     ``pip`` and ``git``
  #. Start a simple local HTTP server using Python to host files for CMake
 
-Afterwards, it will print out instruction on how to modify the CMake
+Afterwards, it will print out instructions on how to modify the CMake
 commands to make sure it uses the local HTTP server.
 
 To undo the environment changes and shutdown the local HTTP server,
@@ -799,9 +780,9 @@ The phonon subdirectory contains a post-processing tool, *phana*, useful
 for analyzing the output of the :doc:`fix phonon <fix_phonon>` command
 in the PHONON package.
 
-See the README file for instruction on building the tool and what
-library it needs.  And see the examples/PACKAGES/phonon directory
-for example problems that can be post-processed with this tool.
+See the README file for instructions on building the tool and what
+library it needs.  And see the examples/PACKAGES/phonon directory for
+example problems that can be post-processed with this tool.
 
 This tool was written by Ling-Ti Kong at Shanghai Jiao Tong
 University.
@@ -878,7 +859,7 @@ with those in the provided log file with the same number of processors
 in the same subdirectory. If the differences between the actual and
 reference values are within specified tolerances, the test is considered
 passed.  For each test batch, that is, a set of example input scripts,
-the mpirun command, the LAMMPS command-line arguments, and the
+the ``mpirun`` command, the LAMMPS command-line arguments, and the
 tolerances for individual thermo quantities can be specified in a
 configuration file in YAML format.
 
@@ -1103,10 +1084,11 @@ tabulate tool
 
 .. versionadded:: 22Dec2022
 
-The ``tabulate`` folder contains Python scripts scripts to generate and
-visualize tabulated potential files for LAMMPS.  The bulk of the code is in the
-``tabulate`` module in the ``tabulate.py`` file.  Some example files
-demonstrating its use are included.  See the README file for more information.
+The ``tabulate`` folder contains Python scripts to generate and
+visualize tabulated potential files for LAMMPS.  The bulk of the code is
+in the ``tabulate`` module in the ``tabulate.py`` file.  Some example
+files demonstrating its use are included.  See the README file for more
+information.
 
 ----------
 
@@ -1115,7 +1097,7 @@ demonstrating its use are included.  See the README file for more information.
 tinker tool
 --------------
 
-The ``tinker`` folder contains Python scripts scripts to convert Tinker input
+The ``tinker`` folder contains Python scripts to convert Tinker input
 files to LAMMPS.
 
 See the README file for more information.
@@ -1134,7 +1116,7 @@ using `valgrind's <https://valgrind.org/>`_ ` `memcheck tool
 <https://valgrind.org/info/tools.html#memcheck>`_ to search for memory
 access violation and memory leaks.  These suppressions are automatically
 invoked when running tests through CMake "ctest -T memcheck".  See the
-instruction in the ``README`` file to add these suppressions when using
+instructions in the ``README`` file to add these suppressions when using
 valgrind with LAMMPS or other programs.
 
 ----------

@@ -108,9 +108,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   ioptional = parse_fields(nfield,earg);
 
-  if (ioptional < nfield &&
-      strcmp(style,"image") != 0 && strcmp(style,"movie") != 0)
-    error->all(FLERR,"Invalid attribute {} in dump {} command",earg[ioptional],style);
+  if ((ioptional < nfield) && (strcmp(style,"image") != 0) && (strcmp(style,"movie") != 0))
+    error->all(FLERR, "Invalid attribute {} in dump {} command", earg[ioptional], style);
 
   // noptional = # of optional args
   // reset nfield to subtract off optional args
@@ -1455,6 +1454,10 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
   for (int iarg = 0; iarg < narg; iarg++) {
     int errptr = iarg + argoff;
+
+    // only attempt to parse first two fields for dump image/movie
+    if ((iarg == 2) && ((strcmp(style,"image") == 0) || (strcmp(style,"movie") == 0))) return 2;
+
     if (strcmp(arg[iarg],"id") == 0) {
       pack_choice[iarg] = &DumpCustom::pack_id;
       if (sizeof(tagint) == sizeof(smallint)) vtype[iarg] = Dump::INT;
@@ -1899,7 +1902,7 @@ int DumpCustom::modify_param(int narg, char **arg)
   while (input && input->arg[argoff] && (strcmp(input->arg[argoff], arg[0]) != 0)) argoff++;
 
   if (strcmp(arg[0],"region") == 0) {
-    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify", error);
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify region", error);
     if (strcmp(arg[1],"none") == 0) {
       delete[] idregion;
       idregion = nullptr;
@@ -2254,7 +2257,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     else error->all(FLERR,"Invalid dump_modify thresh operator");
 
     // set threshold value as number or special LAST keyword
-    // create FixStore to hold LAST values, should work with restart
+    // create FixStoreAtom to hold LAST values, should work with restart
     // id = dump-ID + nthreshlast + DUMP_STORE, fix group = dump group
 
     if (strcmp(arg[3],"LAST") != 0) {

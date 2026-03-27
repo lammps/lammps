@@ -28,6 +28,7 @@
 #include "error.h"
 #include "fix.h"
 #include "force.h"
+#include "graphics.h"
 #include "group.h"
 #include "improper.h"
 #include "kspace.h"
@@ -39,6 +40,7 @@
 #include "pair.h"
 #include "random_park.h"
 #include "region.h"
+#include "suffix.h"
 #include "update.h"
 
 #include <cfloat>
@@ -52,7 +54,7 @@ using MathExtra::distsq3;
 using MathSpecial::square;
 
 static const char cite_fix_neighbor_swap[] =
-    "fix neighbor/swap command: doi:10.1016/j.commatsci.2022.111929\n\n"
+    "fix neighbor/swap command: https://doi.org/10.1016/j.commatsci.2022.111929\n\n"
     "@Article{Tavenner2023111929,\n"
     " author = {Jacob P. Tavenner and Mikhail I. Mendelev and John W. Lawson},\n"
     " title = {Molecular dynamics based kinetic Monte Carlo simulation for accelerated "
@@ -71,7 +73,7 @@ FixNeighborSwap::FixNeighborSwap(LAMMPS *lmp, int narg, char **arg) :
     qtype(nullptr), mtype(nullptr), sqrt_mass_ratio(nullptr), voro_neighbor_list(nullptr),
     local_swap_iatom_list(nullptr), local_swap_neighbor_list(nullptr),
     local_swap_type_list(nullptr), local_swap_probability(nullptr), random_equal(nullptr),
-    id_voro(nullptr), c_voro(nullptr), c_pe(nullptr)
+    id_voro(nullptr), c_voro(nullptr), c_pe(nullptr), imgobjs(nullptr), imgparms(nullptr)
 {
   if (narg < 10) utils::missing_cmd_args(FLERR, "fix neighbor/swap", error);
 
@@ -83,6 +85,13 @@ FixNeighborSwap::FixNeighborSwap(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   restart_global = 1;
   time_depend = 1;
+
+  // no visualization without an atom map
+  if (atom->map_style == Atom::MAP_NONE) {
+    vizsteps = 0;
+  } else {
+    vizsteps = 1000;
+  }
 
   if (lmp->citeme) lmp->citeme->add(cite_fix_neighbor_swap);
 
@@ -172,6 +181,8 @@ FixNeighborSwap::~FixNeighborSwap()
   delete[] idregion;
   delete[] id_voro;
   delete random_equal;
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
 }
 
 // helper function: detect known keywords
@@ -264,6 +275,19 @@ void FixNeighborSwap::options(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
+int FixNeighborSwap::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"vizsteps") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify neighbor/swap", error);
+    vizsteps = utils::inumeric(FLERR, arg[1], false, lmp);
+    return 2;
+  }
+
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int FixNeighborSwap::setmask()
 {
   int mask = 0;
@@ -275,6 +299,9 @@ int FixNeighborSwap::setmask()
 
 void FixNeighborSwap::init()
 {
+  if (force->pair && (force->pair->suffix_flag & Suffix::INTEL))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
+
   c_pe = modify->get_compute_by_id("thermo_pe");
   if (!c_pe) error->all(FLERR, Error::NOLASTLINE, "Could not find 'thermo_pe' compute");
 
@@ -459,6 +486,20 @@ void FixNeighborSwap::pre_exchange()
   nswap_successes += nsuccess;
 
   next_reneighbor = update->ntimestep + nevery;
+
+  // if visualization support is enabled, age vizatoms and remove expired ones
+  if (vizsteps > 0) {
+    std::vector<tagint> eraseme;
+    for (const auto &[key, data] : vizatoms) {
+      int idx = atom->map(key);
+      if ((idx < 0) || (data.first < 0)) {
+        eraseme.push_back(key);
+        continue;
+      }
+      vizatoms[key] = std::make_pair(data.first - nevery, data.second);
+    }
+    for (const auto &key : eraseme) vizatoms.erase(key);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -491,7 +532,14 @@ int FixNeighborSwap::attempt_swap()
   int jtype = jtype_selected;
 
   // Accept swap if types are equal, no change to system
-  if (itype == jtype) return 1;
+  if (itype == jtype) {
+    // record atoms for which the type was swapped and store the old types
+    if (vizsteps > 0) {
+      vizatoms[atom->tag[i]] = std::make_pair(vizsteps, jtype);
+      vizatoms[atom->tag[j]] = std::make_pair(vizsteps, itype);
+    }
+    return 1;
+  }
 
   // error out when pick_i_swap_atom() or pick_j_swap_neighbor() picked invalid indices
   if (i >= atom->nlocal)
@@ -551,6 +599,11 @@ int FixNeighborSwap::attempt_swap()
       }
     }
     energy_stored = energy_after;
+    // record atoms for which the type was swapped and store the old types
+    if (vizsteps > 0) {
+      vizatoms[atom->tag[i]] = std::make_pair(vizsteps, itype);
+      vizatoms[atom->tag[j]] = std::make_pair(vizsteps, jtype);
+    }
     return 1;
   }
 
@@ -1003,4 +1056,44 @@ void FixNeighborSwap::restart(char *buf)
   if (ntimestep_restart != update->ntimestep)
     error->all(FLERR, Error::NOLASTLINE,
                "Must not reset timestep when restarting fix neighbor/swap");
+}
+
+/* ----------------------------------------------------------------------
+   provide graphics information to dump image to render spheres
+   at the location of atoms that were involved in a reaction
+------------------------------------------------------------------------- */
+
+int FixNeighborSwap::image(int *&objs, double **&parms)
+{
+  // no visualization without an atom map
+  if (atom->map_style == Atom::MAP_NONE)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Cannot use fix neighbor/swap in dump image without an atom map");
+
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
+
+  int numobjs = vizatoms.size();
+  int n = 0;
+  if (numobjs > 0) {
+    memory->create(imgobjs, numobjs, "neighbor/swap:imgobjs");
+    memory->create(imgparms, numobjs, 5, "neighbor/swap:imgparms");
+
+    int idx;
+    const auto *const *const x = atom->x;
+    for (const auto &[key, data] : vizatoms) {
+      idx = atom->map(key);
+      if (idx < 0) continue;
+      imgobjs[n] = Graphics::SPHERE;
+      imgparms[n][0] = data.second; // use stored pre-swap atom type
+      imgparms[n][1] = x[idx][0];
+      imgparms[n][2] = x[idx][1];
+      imgparms[n][3] = x[idx][2];
+      imgparms[n][4] = 0.0;     // radius is set with fflag2 in dump image
+      ++n;
+    }
+  }
+  objs = imgobjs;
+  parms = imgparms;
+  return n;
 }

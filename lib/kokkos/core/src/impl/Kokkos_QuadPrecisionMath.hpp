@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_QUAD_PRECISION_MATH_HPP
 #define KOKKOS_QUAD_PRECISION_MATH_HPP
@@ -21,8 +8,6 @@
 
 #if defined(KOKKOS_ENABLE_LIBQUADMATH)
 
-#include <Kokkos_NumericTraits.hpp>
-#include <Kokkos_ReductionIdentity.hpp>
 #include <Kokkos_MathematicalConstants.hpp>
 #include <Kokkos_MathematicalFunctions.hpp>
 
@@ -31,63 +16,6 @@
 #if !(defined(__FLOAT128__) || defined(__SIZEOF_FLOAT128__))
 #error __float128 not supported on this host
 #endif
-
-//<editor-fold desc="numeric traits __float128 specializations">
-namespace Kokkos {
-namespace Experimental {
-#define KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(TRAIT, TYPE, VALUE_TYPE, VALUE) \
-  template <>                                                                \
-  struct TRAIT<TYPE> {                                                       \
-    static constexpr VALUE_TYPE value = VALUE;                               \
-  };                                                                         \
-  template <>                                                                \
-  inline constexpr auto TRAIT##_v<TYPE> = TRAIT<TYPE>::value;
-
-// clang-format off
-// Numeric distinguished value traits
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(infinity,       __float128, __float128, HUGE_VALQ)
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(finite_min,     __float128, __float128, -FLT128_MAX)
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(finite_max,     __float128, __float128, FLT128_MAX)
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(epsilon,        __float128, __float128, FLT128_EPSILON)
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(round_error,    __float128, __float128, static_cast<__float128>(0.5))
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(norm_min,       __float128, __float128, FLT128_MIN)
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(denorm_min,     __float128, __float128, FLT128_DENORM_MIN)
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(quiet_NaN,      __float128, __float128, __builtin_nanq(""))
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(signaling_NaN,  __float128, __float128, __builtin_nansq(""))
-
-// Numeric characteristics traits
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(digits,         __float128,        int, FLT128_MANT_DIG)
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(digits10,       __float128,        int, FLT128_DIG)
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(max_digits10,   __float128,        int, 36)
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(radix,          __float128,        int, 2)
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(min_exponent,   __float128,        int, FLT128_MIN_EXP)
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(max_exponent,   __float128,        int, FLT128_MAX_EXP)
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(min_exponent10, __float128,        int, FLT128_MIN_10_EXP)
-KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT(max_exponent10, __float128,        int, FLT128_MAX_10_EXP)
-// clang-format on
-
-#undef KOKKOS_IMPL_SPECIALIZE_NUMERIC_TRAIT
-}  // namespace Experimental
-}  // namespace Kokkos
-//</editor-fold>
-
-namespace Kokkos {
-template <>
-struct reduction_identity<__float128> {
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static __float128 sum() {
-    return static_cast<__float128>(0.0);
-  }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static __float128 prod() {
-    return static_cast<__float128>(1.0);
-  }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static __float128 max() {
-    return -FLT128_MAX;
-  }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static __float128 min() {
-    return FLT128_MAX;
-  }
-};
-}  // namespace Kokkos
 
 //<editor-fold desc="Common mathematical functions __float128 overloads">
 namespace Kokkos {
@@ -108,9 +36,7 @@ inline __float128 fdim(__float128 x, __float128 y) { return ::fdimq(x, y); }
 inline __float128 nanq(char const* arg) { return ::nanq(arg); }
 // Exponential functions
 inline __float128 exp(__float128 x) { return ::expq(x); }
-#if defined(KOKKOS_COMPILER_GNU) && (KOKKOS_COMPILER_GNU >= 910)
 inline __float128 exp2(__float128 x) { return ::exp2q(x); }
-#endif
 inline __float128 expm1(__float128 x) { return ::expm1q(x); }
 inline __float128 log(__float128 x) { return ::logq(x); }
 inline __float128 log10(__float128 x) { return ::log10q(x); }

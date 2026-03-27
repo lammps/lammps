@@ -14,8 +14,8 @@
 #ifndef LMP_EWALD_CONST_H
 #define LMP_EWALD_CONST_H
 
-namespace LAMMPS_NS {
-namespace EwaldConst {
+
+namespace LAMMPS_NS::EwaldConst {
   static constexpr double EWALD_F = 1.12837917;
   static constexpr double EWALD_P = 0.3275911;
   static constexpr double A1 = 0.254829592;
@@ -23,7 +23,7 @@ namespace EwaldConst {
   static constexpr double A3 = 1.421413741;
   static constexpr double A4 = -1.453152027;
   static constexpr double A5 = 1.061405429;
-}    // namespace EwaldConst
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::EwaldConst
+
 
 #endif

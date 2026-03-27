@@ -33,6 +33,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+// threshold comparison operators
+enum {NONE, LT, LE, GT, GE, EQ, NEQ, OR, XOR};
 /* ---------------------------------------------------------------------- */
 
 FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
@@ -44,7 +46,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   peratom_freq = 1;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery < 0) error->all(FLERR,"Invalid fix store/state never value {}", nevery);
+  if (nevery < 0) error->all(FLERR, 3, "Invalid fix store/state nevery value {}", nevery);
 
   // parse values
   // customize a new keyword by adding to if statement
@@ -66,7 +68,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       val.pack_choice = &FixStoreState::pack_id;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_molecule;
     } else if (strcmp(arg[iarg],"type") == 0) {
@@ -139,83 +141,83 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_q;
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_mux;
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_muy;
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_muz;
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_mu;
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_radius;
     } else if (strcmp(arg[iarg],"diameter") == 0) {
       if (!atom->radius_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_diameter;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_omegax;
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_omegay;
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_omegaz;
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_angmomx;
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_angmomy;
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_angmomz;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_tqx;
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_tqy;
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_tqz;
 
@@ -231,7 +233,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
       if (val.which == ArgInfo::NONE) break;
       if ((val.which == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
-        error->all(FLERR,"Illegal fix store/state argument: {}", arg[iarg]);
+        error->all(FLERR, iarg, "Illegal fix store/state argument: {}", arg[iarg]);
     }
     values.push_back(std::move(val));
     iarg++;
@@ -240,13 +242,46 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   comflag = 0;
+  threshflag = 0;
+  thresh_name = "";
+  thresh_idx = -1;
+  thresh_op = NONE;
+  thresh_val = 0.0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"com") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix store/state com", error);
       comflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else error->all(FLERR,"Unknown fix store/state keyword: {}", arg[iarg]);
+    } else if (strcmp(arg[iarg],"thresh") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"fix store/state thresh", error);
+      if (threshflag)
+        error->all(FLERR, iarg, "The fix store/state thresh keyword may be used only once");
+      threshflag = 1;
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+        thresh_name = arg[iarg+1]+2;
+        thresh_idx = input->variable->find(thresh_name.c_str());
+        if (thresh_idx < 0)
+          error->all(FLERR, iarg+1,
+                     "Variable name {} for fix store/state thresh does not exist", thresh_name);
+        if (input->variable->equalstyle(thresh_idx) == 0)
+          error->all(FLERR, iarg+1,
+                     "Fix store/state thresh variable {} has incompatible style", thresh_name);
+      } else {
+        error->all(FLERR, iarg+1, "No variable reference as first argument to thresh keyword");
+      }
+      if (strcmp(arg[iarg+2],"<") == 0) thresh_op = LT;
+      else if (strcmp(arg[iarg+2],"<=") == 0) thresh_op = LE;
+      else if (strcmp(arg[iarg+2],">") == 0) thresh_op = GT;
+      else if (strcmp(arg[iarg+2],">=") == 0) thresh_op = GE;
+      else if (strcmp(arg[iarg+2],"==") == 0) thresh_op = EQ;
+      else if (strcmp(arg[iarg+2],"!=") == 0) thresh_op = NEQ;
+      else if (strcmp(arg[iarg+2],"|^") == 0) thresh_op = XOR;
+      else error->all(FLERR, iarg+2,
+                      "Unsupported fix store/state thresh comparison operator {}", arg[iarg+2]);
+      thresh_val = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      iarg += 4;
+    } else error->all(FLERR, iarg, "Unknown fix store/state keyword: {}", arg[iarg]);
   }
 
   // error check
@@ -387,30 +422,47 @@ void FixStoreState::init()
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
       if (!val.val.c)
-        error->all(FLERR,"Compute ID {} for fix store/state does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Compute ID {} for fix store/state does not exist", val.id);
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
       if (!val.val.f)
-        error->all(FLERR,"Fix ID {} for fix store/state does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Fix ID {} for fix store/state does not exist", val.id);
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR,"Variable name {} for fix store/state does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Variable name {} for fix store/state does not exist", val.id);
 
     } else if (val.which == ArgInfo::DNAME) {
       int iflag,cols;
       val.val.d = atom->find_custom(val.id.c_str(), iflag, cols);
       if (val.val.d < 0)
-        error->all(FLERR,"Custom vector/array {} for fix store/state does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Custom vector/array {} for fix store/state does not exist", val.id);
 
     } else if (val.which == ArgInfo::INAME) {
       int iflag,cols;
       val.val.i = atom->find_custom(val.id.c_str(), iflag, cols);
       if (val.val.i < 0)
-        error->all(FLERR,"Custom vector/array {} for fix store/state does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Custom vector/array {} for fix store/state does not exist", val.id);
     }
+  }
+
+  // re-check threshold variable as it may have been redefined or deleted
+
+  if (threshflag) {
+    thresh_idx = input->variable->find(thresh_name.c_str());
+    if (thresh_idx < 0)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Variable name {} for fix store/state thresh does not exist", thresh_name);
+    if (input->variable->equalstyle(thresh_idx) == 0)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Fix store/state thresh variable {} has incompatible style", thresh_name);
   }
 }
 
@@ -433,6 +485,32 @@ void FixStoreState::setup(int /*vflag*/)
 
 void FixStoreState::end_of_step()
 {
+  // skip storing data if threshold condition is not met
+
+  if (threshflag) {
+    auto val = input->variable->compute_equal(thresh_idx);
+    bool expr = true;
+    switch (thresh_op) {
+    case LT: expr = val < thresh_val;
+      break;
+    case LE: expr = val <= thresh_val;
+      break;
+    case GT: expr = val > thresh_val;
+      break;
+    case GE: expr = val >= thresh_val;
+      break;
+    case EQ: expr = val == thresh_val;
+      break;
+    case NEQ: expr = val != thresh_val;
+      break;
+    case XOR: expr = (val == 0.0) != (thresh_val == 0.0);
+      break;
+    default:
+      expr = true;  // should not happen
+    }
+    if (!expr) return;
+  }
+
   // compute com if comflag set
 
   if (comflag) {

@@ -66,9 +66,9 @@ template <class DeviceType> class MLIAPDataKokkos : public MLIAPData {
   void generate_neighdata(class NeighList *, int = 0, int = 0) override;
   void grow_neigharrays() override;
 
-  void modified(ExecutionSpace space, unsigned int mask, bool ignore_auto_sync = false);
+  void modified(ExecutionSpace space, uint64_t mask, bool ignore_auto_sync = false);
 
-  void sync(ExecutionSpace space, unsigned int mask, bool ignore_auto_sync = false);
+  void sync(ExecutionSpace space, uint64_t mask, bool ignore_auto_sync = false);
 
   PairMLIAPKokkos<DeviceType> *k_pairmliap;
 

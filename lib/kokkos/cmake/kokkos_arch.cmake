@@ -83,10 +83,6 @@ if(Kokkos_ENABLE_CUDA
   set(KOKKOS_SHOW_CUDA_ARCHS ON)
 endif()
 
-kokkos_arch_option(KEPLER30 GPU "NVIDIA Kepler generation CC 3.0" "KOKKOS_SHOW_CUDA_ARCHS")
-kokkos_arch_option(KEPLER32 GPU "NVIDIA Kepler generation CC 3.2" "KOKKOS_SHOW_CUDA_ARCHS")
-kokkos_arch_option(KEPLER35 GPU "NVIDIA Kepler generation CC 3.5" "KOKKOS_SHOW_CUDA_ARCHS")
-kokkos_arch_option(KEPLER37 GPU "NVIDIA Kepler generation CC 3.7" "KOKKOS_SHOW_CUDA_ARCHS")
 kokkos_arch_option(MAXWELL50 GPU "NVIDIA Maxwell generation CC 5.0" "KOKKOS_SHOW_CUDA_ARCHS")
 kokkos_arch_option(MAXWELL52 GPU "NVIDIA Maxwell generation CC 5.2" "KOKKOS_SHOW_CUDA_ARCHS")
 kokkos_arch_option(MAXWELL53 GPU "NVIDIA Maxwell generation CC 5.3" "KOKKOS_SHOW_CUDA_ARCHS")
@@ -121,9 +117,12 @@ list(APPEND CORRESPONDING_AMD_FLAGS gfx90a gfx90a gfx908 gfx908)
 list(APPEND SUPPORTED_AMD_GPUS MI50/60 MI50/60)
 list(APPEND SUPPORTED_AMD_ARCHS VEGA906 AMD_GFX906)
 list(APPEND CORRESPONDING_AMD_FLAGS gfx906 gfx906)
-list(APPEND SUPPORTED_AMD_GPUS PHOENIX RX7900XTX V620/W6800 V620/W6800)
-list(APPEND SUPPORTED_AMD_ARCHS AMD_GFX1103 AMD_GFX1100 NAVI1030 AMD_GFX1030)
-list(APPEND CORRESPONDING_AMD_FLAGS gfx1103 gfx1100 gfx1030 gfx1030)
+list(APPEND SUPPORTED_AMD_GPUS RX9070XT RX7900XTX V620/W6800 V620/W6800)
+list(APPEND SUPPORTED_AMD_ARCHS AMD_GFX1201 AMD_GFX1100 NAVI1030 AMD_GFX1030)
+list(APPEND CORRESPONDING_AMD_FLAGS gfx1201 gfx1100 gfx1030 gfx1030)
+list(APPEND SUPPORTED_AMD_GPUS PHOENIX)
+list(APPEND SUPPORTED_AMD_ARCHS AMD_GFX1103)
+list(APPEND CORRESPONDING_AMD_FLAGS gfx1103)
 
 #FIXME CAN BE REPLACED WITH LIST_ZIP IN CMAKE 3.17
 foreach(ARCH IN LISTS SUPPORTED_AMD_ARCHS)
@@ -243,12 +242,12 @@ mark_as_advanced(Kokkos_IMPL_AMDGPU_LINK)
 #clear anything that might be in the cache
 global_set(KOKKOS_AMDGPU_OPTIONS)
 if(KOKKOS_ENABLE_HIP)
+  global_append(KOKKOS_AMDGPU_OPTIONS -xhip)
   set(AMDGPU_ARCH_FLAG "--offload-arch")
   if(NOT KOKKOS_CXX_COMPILER_ID STREQUAL HIPCC)
     if(NOT CMAKE_CXX_STANDARD)
-      message(FATAL_ERROR "Kokkos requires CMAKE_CXX_STANDARD to set to 17 or higher")
+      message(FATAL_ERROR "Kokkos requires CMAKE_CXX_STANDARD to set to 20 or higher")
     endif()
-    global_append(KOKKOS_AMDGPU_OPTIONS -xhip)
     if(DEFINED ENV{ROCM_PATH})
       global_append(KOKKOS_AMDGPU_OPTIONS --rocm-path=$ENV{ROCM_PATH})
     endif()
@@ -569,19 +568,15 @@ if(KOKKOS_ARCH_HSW)
 endif()
 
 if(KOKKOS_ARCH_RISCV_SG2042)
-  if(NOT (KOKKOS_CXX_COMPILER_ID STREQUAL GNU AND KOKKOS_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12)
-     OR (KOKKOS_CXX_COMPILER_ID STREQUAL Clang AND KOKKOS_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 14)
-  )
-    message(SEND_ERROR "Only gcc >= 12 and clang >= 14 support RISC-V.")
+  if(NOT (KOKKOS_CXX_COMPILER_ID STREQUAL GNU AND KOKKOS_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12))
+    message(SEND_ERROR "Only gcc >= 12 support RISC-V.")
   endif()
   compiler_specific_flags(COMPILER_ID KOKKOS_CXX_HOST_COMPILER_ID DEFAULT -march=rv64imafdcv)
 endif()
 
 if(KOKKOS_ARCH_RISCV_RVA22V)
-  if(NOT (KOKKOS_CXX_COMPILER_ID STREQUAL GNU AND KOKKOS_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12)
-     OR (KOKKOS_CXX_COMPILER_ID STREQUAL Clang AND KOKKOS_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 14)
-  )
-    message(SEND_ERROR "Only gcc >= 12 and clang >= 14 support RISC-V.")
+  if(NOT (KOKKOS_CXX_COMPILER_ID STREQUAL GNU AND KOKKOS_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12))
+    message(SEND_ERROR "Only gcc >= 12 support RISC-V.")
   endif()
   compiler_specific_flags(
     COMPILER_ID KOKKOS_CXX_HOST_COMPILER_ID DEFAULT
@@ -590,10 +585,8 @@ if(KOKKOS_ARCH_RISCV_RVA22V)
 endif()
 
 if(KOKKOS_ARCH_RISCV_U74MC)
-  if(NOT (KOKKOS_CXX_COMPILER_ID STREQUAL GNU AND KOKKOS_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12)
-     OR (KOKKOS_CXX_COMPILER_ID STREQUAL Clang AND KOKKOS_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 14)
-  )
-    message(SEND_ERROR "Only gcc >= 12 and clang >= 14 support RISC-V.")
+  if(NOT (KOKKOS_CXX_COMPILER_ID STREQUAL GNU AND KOKKOS_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12))
+    message(SEND_ERROR "Only gcc >= 12 support RISC-V.")
   endif()
   compiler_specific_flags(COMPILER_ID KOKKOS_CXX_HOST_COMPILER_ID DEFAULT -march=rv64imafdc_zicntr_zicsr_zifencei_zihpm)
 endif()
@@ -773,7 +766,6 @@ if(KOKKOS_ARCH_NATIVE)
     check_cxx_symbol_exists(__ARM_NEON "" KOKKOS_COMPILER_HAS_ARM_NEON)
     unset(KOKKOS_COMPILER_HAS_AVX CACHE)
     check_cxx_symbol_exists(__AVX__ "" KOKKOS_COMPILER_HAS_AVX)
-    set(CMAKE_REQUIRED_FLAGS "${KOKKOS_COMPILE_OPTIONS}")
 
     unset(CMAKE_REQUIRED_QUIET)
     unset(CMAKE_REQUIRED_FLAGS)
@@ -918,6 +910,7 @@ if(KOKKOS_ENABLE_SYCL)
   endif()
 
   check_cxx_symbol_exists(SYCL_EXT_ONEAPI_GRAPH "sycl/sycl.hpp" KOKKOS_IMPL_HAVE_SYCL_EXT_ONEAPI_GRAPH)
+  unset(CMAKE_REQUIRED_FLAGS)
 endif()
 
 set(CUDA_ARCH_ALREADY_SPECIFIED "")
@@ -965,10 +958,6 @@ endfunction()
 
 #These will define KOKKOS_CUDA_ARCH_FLAG
 #to the corresponding flag name if ON
-check_cuda_arch(KEPLER30 sm_30)
-check_cuda_arch(KEPLER32 sm_32)
-check_cuda_arch(KEPLER35 sm_35)
-check_cuda_arch(KEPLER37 sm_37)
 check_cuda_arch(MAXWELL50 sm_50)
 check_cuda_arch(MAXWELL52 sm_52)
 check_cuda_arch(MAXWELL53 sm_53)
@@ -1263,15 +1252,6 @@ if(KOKKOS_ENABLE_CUDA AND NOT CUDA_ARCH_ALREADY_SPECIFIED)
         "If you are cross-compiling, you should try to do this on a compute node."
     )
   endif()
-endif()
-
-#Regardless of version, make sure we define the general architecture name
-if(KOKKOS_ARCH_KEPLER30
-   OR KOKKOS_ARCH_KEPLER32
-   OR KOKKOS_ARCH_KEPLER35
-   OR KOKKOS_ARCH_KEPLER37
-)
-  set(KOKKOS_ARCH_KEPLER ON)
 endif()
 
 #Regardless of version, make sure we define the general architecture name

@@ -168,6 +168,7 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle(int m_in, int which, double co
 }
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixWallLJ93Kokkos<DeviceType>::operator()(const int &i, value_type result) const {
   if (d_mask(i) & groupbit) {
@@ -210,6 +211,7 @@ void FixWallLJ93Kokkos<DeviceType>::operator()(const int &i, value_type result) 
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixWallLJ93Kokkos<DeviceType>::v_tally(value_type result, int n, int i, KK_FLOAT vn) const
 {

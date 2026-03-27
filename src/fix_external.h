@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 
 class FixExternal : public Fix {
  public:
+  enum { PF_CALLBACK, PF_ARRAY };
   double **fexternal;
 
   FixExternal(class LAMMPS *, int, char **);
@@ -59,7 +60,7 @@ class FixExternal : public Fix {
 
   void *extract(const char *, int &) override;
 
- private:
+ protected:
   int mode, ncall, napply, eflag_caller;
   FnPtr callback;
   void *ptr_caller;

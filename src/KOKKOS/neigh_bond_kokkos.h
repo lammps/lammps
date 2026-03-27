@@ -41,30 +41,41 @@ class NeighBondKokkos : protected Pointers  {
   typedef int value_type;
 
   NeighBondKokkos(class LAMMPS *);
-  ~NeighBondKokkos() override = default;
+  ~NeighBondKokkos() override;
   void init_topology_kk();
   void build_topology_kk();
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighBondBondAll, const int&, int&) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighBondBondPartial, const int&, int&) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighBondBondCheck, const int&, int&) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighBondAngleAll, const int&, int&) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighBondAnglePartial, const int&, int&) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighBondAngleCheck, const int&, int&) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighBondDihedralAll, const int&, int&) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighBondDihedralPartial, const int&, int&) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighBondDihedralCheck, const int&, int&) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighBondImproperAll, const int&, int&) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighBondImproperPartial, const int&, int&) const;
 
@@ -75,7 +86,7 @@ class NeighBondKokkos : protected Pointers  {
 
   // KOKKOS host/device flag and data masks
   ExecutionSpace execution_space;
-  unsigned int datamask_read,datamask_modify;
+  uint64_t datamask_read,datamask_modify;
 
   int maxbond,maxangle,maxdihedral,maximproper;   // size of bond lists
   int me,nprocs;
@@ -121,9 +132,11 @@ class NeighBondKokkos : protected Pointers  {
   typename AT::t_int_scalar d_fail_flag;
   HAT::t_int_scalar h_fail_flag;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int closest_image(const int, int) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void minimum_image(double &dx, double &dy, double &dz) const;
 

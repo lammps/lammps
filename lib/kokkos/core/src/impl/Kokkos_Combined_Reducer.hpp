@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_COMBINED_REDUCER_HPP
 #define KOKKOS_COMBINED_REDUCER_HPP
@@ -363,13 +350,14 @@ struct CombinedReductionFunctorWrapperImpl<
   // TODO: forward final() function to user functor hook, or just ignore it?
 
  private:
+  // NOLINTBEGIN(cppcoreguidelines-rvalue-reference-param-not-moved)
   // variadic forwarding for MDRangePolicy
   // see comment above for why this has to be so gross
   // recursive case
   template <class... IdxOrMemberTypes, class IdxOrMemberType1,
             class... IdxOrMemberTypesThenValueType>
   KOKKOS_FORCEINLINE_FUNCTION std::enable_if_t<
-      !std::is_same_v<remove_cvref_t<IdxOrMemberType1>, value_type>>
+      !std::is_same_v<std::remove_cvref_t<IdxOrMemberType1>, value_type>>
   _call_op_impl(IdxOrMemberTypes&&... idxs, IdxOrMemberType1&& idx,
                 IdxOrMemberTypesThenValueType&&... args) const {
     this->template _call_op_impl<IdxOrMemberTypes&&..., IdxOrMemberType1&&>(
@@ -384,6 +372,7 @@ struct CombinedReductionFunctorWrapperImpl<
     m_functor((IdxOrMemberTypes&&)idxs...,
               out.template get<Idxs, typename Reducers::value_type>()...);
   }
+  // NOLINTEND(cppcoreguidelines-rvalue-reference-param-not-moved)
 };
 
 template <class Functor, class Space, class... Reducers>

@@ -157,6 +157,7 @@ void AngleClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void AngleClass2Kokkos<DeviceType>::operator()(TagAngleClass2Compute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
@@ -310,6 +311,7 @@ void AngleClass2Kokkos<DeviceType>::operator()(TagAngleClass2Compute<NEWTON_BOND
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void AngleClass2Kokkos<DeviceType>::operator()(TagAngleClass2Compute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
@@ -322,17 +324,6 @@ template<class DeviceType>
 void AngleClass2Kokkos<DeviceType>::allocate()
 {
   AngleClass2::allocate();
-
-}
-
-/* ----------------------------------------------------------------------
-   set coeffs for one or more types
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void AngleClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
-{
-  AngleClass2::coeff(narg, arg);
 
   int n = atom->nangletypes;
   k_k2 = DAT::tdual_kkfloat_1d("AngleClass2::k2",n+1);
@@ -367,9 +358,21 @@ void AngleClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   d_setflag_bb = k_setflag_bb.template view<DeviceType>();
   d_setflag_ba = k_setflag_ba.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();
+}
 
-  //int n = atom->nangletypes;
-  for (int i = 1; i <= n; i++) {
+/* ----------------------------------------------------------------------
+   set coeffs for one or more types
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void AngleClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
+{
+  AngleClass2::coeff(narg, arg);
+
+  int ilo,ihi;
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
+
+  for (int i = ilo; i <= ihi; i++) {
     k_k2.view_host()[i] = k2[i];
     k_k3.view_host()[i] = k3[i];
     k_k4.view_host()[i] = k4[i];
@@ -490,6 +493,7 @@ void AngleClass2Kokkos<DeviceType>::read_restart(FILE *fp)
 
 template<class DeviceType>
 //template<int NEWTON_BOND>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void AngleClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const int j, const int k,
                      KK_FLOAT &eangle, KK_FLOAT *f1, KK_FLOAT *f3,

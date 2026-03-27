@@ -15,12 +15,10 @@
 
 #include "comm.h"
 #include "error.h"
-#ifndef FMT_STATIC_THOUSANDS_SEPARATOR
-#include "fmt/chrono.h"
-#endif
 #include "tokenizer.h"
 
 #include <array>
+#include <cmath>
 #include <ctime>
 
 using namespace LAMMPS_NS;
@@ -130,7 +128,7 @@ void Timer::barrier_stop()
 
 /* ---------------------------------------------------------------------- */
 
-double Timer::cpu(enum ttype which)
+double Timer::cpu(enum ttype which) const
 {
   double current_cpu = platform::cputime();
   return (current_cpu - cpu_array[which]);
@@ -138,7 +136,7 @@ double Timer::cpu(enum ttype which)
 
 /* ---------------------------------------------------------------------- */
 
-double Timer::elapsed(enum ttype which)
+double Timer::elapsed(enum ttype which) const
 {
   if (_level == OFF) return 0.0;
   double current_wall = platform::walltime();
@@ -219,7 +217,7 @@ double Timer::get_timeout_remain()
 namespace {
 const std::array<const std::string, Timer::NUMLVL> timer_style = {"off", "loop", "normal", "full"};
 const std::array<const std::string, 3> timer_mode = {"nosync", "(dummy)", "sync"};
-}
+}    // namespace
 
 void Timer::modify_params(int narg, char **arg)
 {
@@ -269,15 +267,12 @@ void Timer::modify_params(int narg, char **arg)
     // format timeout setting
     std::string timeout = "off";
     if (_timeout >= 0.0) {
-#if defined(FMT_STATIC_THOUSANDS_SEPARATOR)
-      char outstr[200];
-      struct tm *tv = gmtime(&((time_t) _timeout));
-      strftime(outstr, 200, "%02d:%M:%S", tv);
-      timeout = outstr;
-#else
-      std::tm tv = fmt::gmtime((std::time_t) _timeout);
-      timeout = fmt::format("{:02d}:{:%M:%S}", tv.tm_yday * 24 + tv.tm_hour, tv);
-#endif
+      // round to seconds and break down to hours, minutes, and seconds
+      auto tmptime = lround(_timeout);
+      auto hours = tmptime / 3600L;
+      auto minutes = (tmptime % 3600L) / 60L;
+      auto seconds = tmptime % 60L;
+      timeout = fmt::format("{:02d}:{:02d}:{:02d}", hours, minutes, seconds);
     }
 
     utils::logmesg(lmp, "New timer settings: style={}  mode={}  timeout={}\n", timer_style[_level],

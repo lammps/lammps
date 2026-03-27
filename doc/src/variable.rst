@@ -43,7 +43,7 @@ Syntax
          N = integer size of loop
          pad = all values will be same length, e.g. 001, 002, ..., 100
        *universe* args = one or more strings
-       *world* args = one string for each partition of processors
+       *world* args = one string for each partition of MPI processes
 
        *equal* or *vector* or *atom* args = one formula containing numbers, thermo keywords,
            math operations, built-in functions, atom values and vectors, compute/fix/variable references
@@ -388,7 +388,7 @@ by the :doc:`shell <shell>` command.
 For the *index* style, one or more strings are specified.  Initially,
 the first string is assigned to the variable.  Each time a
 :doc:`next <next>` command is used with the variable name, the next
-string is assigned.  All processors assign the same string to the
+string is assigned.  All MPI processes assign the same string to the
 variable.
 
 Index-style variables with a single string value can also be set by
@@ -425,7 +425,7 @@ is specified.  This allows generation of a long list of runs
 (e.g. 1000) without having to list N strings in the input script.
 Initially, the string "1" is assigned to the variable.  Each time a
 :doc:`next <next>` command is used with the variable name, the next
-string ("2", "3", etc) is assigned.  All processors assign the same
+string ("2", "3", etc) is assigned.  All MPI processes assign the same
 string to the variable.  The *loop* style can also be specified with
 two arguments N1 and N2.  In this case the loop runs from N1 to N2
 inclusive, and the string N1 is initially assigned to the variable.
@@ -508,7 +508,7 @@ For the *world* style, one or more strings are specified.  There must
 be one string for each processor partition or "world".  LAMMPS can be
 run with multiple partitions via the :doc:`-partition command-line
 switch <Run_options>`.  This variable command assigns one string to
-each world.  All processors in the world are assigned the same string.
+each world.  All MPI processes in the world are assigned the same string.
 The next command cannot be used with equal-style variables, since
 there is only one value per world.  This style of variable is useful
 when you wish to run different simulations on different partitions, or
@@ -1074,7 +1074,7 @@ the LAMMPS executable and the running simulation via calling the
 :cpp:func:`lammps_extract_setting` library function.  For example, the
 number of processors (MPI ranks) being used by the simulation or the MPI
 process ID (for this processor) can be queried, or the number of atom
-types, bond types and so on. For the full list of available keywords
+types, bond types and so on.  For the full list of available keywords
 *name* and their meaning, see the documentation for extract_setting()
 via the link in this paragraph.
 

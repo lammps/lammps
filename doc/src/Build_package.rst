@@ -148,8 +148,8 @@ other files dependent on that package are also excluded.
    however, if you downloaded a tarball, 3 packages (KSPACE, MANYBODY,
    MOLECULE) were pre-installed via the traditional make procedure in
    the ``src`` directory.  That is no longer the case, so that CMake
-   will build as-is without needing to first uninstall those
-   packages. You can quickly include those packages (plus RIGID) by
+   will build as-is without needing to first uninstall those packages.
+   You can quickly include those packages (plus RIGID and GRAPHICS) by
    using the "basic" preset with CMake or ``make yes-basic`` with
    traditional make as discussed below.
 
@@ -174,7 +174,7 @@ make a copy of one of them and modify it to suit your needs.
 
 .. code-block:: bash
 
-    # enable just a few core packages
+    # enable just a few core packages (MOLECULE, KSPACE, MANYBODY, RIGID, GRAPHICS)
     cmake -C ../cmake/presets/basic.cmake    [OPTIONS] ../cmake
 
     # enable most packages

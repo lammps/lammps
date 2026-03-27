@@ -16,24 +16,9 @@
 #ifndef LMP_ADIOS_COMMON_H
 #define LMP_ADIOS_COMMON_H
 
-// common definitions for all ADIOS package classes
-
-static const char default_config[] = "<?xml version=\"1.0\"?>\n"
-                                     "<adios-config>\n"
-                                     "    <io name=\"atom\">\n"
-                                     "        <engine type=\"BP4\">\n"
-                                     "            <parameter key=\"substreams\" value=\"1\"/>\n"
-                                     "        </engine>\n"
-                                     "    </io>\n"
-                                     "    <io name=\"custom\">\n"
-                                     "        <engine type=\"BP4\">\n"
-                                     "            <parameter key=\"substreams\" value=\"1\"/>\n"
-                                     "        </engine>\n"
-                                     "    </io>\n"
-                                     "    <io name=\"read_dump\">\n"
-                                     "        <engine type=\"BP4\">\n"
-                                     "        </engine>\n"
-                                     "    </io>\n"
-                                     "</adios-config>\n";
+// common definition for all ADIOS package classes
+namespace LAMMPS_ADIOS {
+extern const char *default_config;
+}
 
 #endif

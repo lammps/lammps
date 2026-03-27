@@ -77,6 +77,31 @@
 /fix_brownian*.h
 /fix_propel_self.cpp
 /fix_propel_self.h
+/fix_align_self.cpp
+/fix_align_self.h
+
+/dump_image.cpp
+/dump_image.h
+/dump_movie.cpp
+/dump_movie.h
+/fix_graphics_arrows.cpp
+/fix_graphics_arrows.h
+/fix_graphics_isosurface.cpp
+/fix_graphics_isosurface.h
+/fix_graphics_labels.cpp
+/fix_graphics_labels.h
+/fix_graphics_lines.cpp
+/fix_graphics_lines.h
+/fix_graphics_objects.cpp
+/fix_graphics_objects.h
+/fix_graphics_periodic.cpp
+/fix_graphics_periodic.h
+/image.cpp
+/image.h
+/image_objects.cpp
+/image_objects.h
+/scalable_font.cpp
+/scalable_font.h
 
 /kim_*.cpp
 /kim_*.h
@@ -113,6 +138,8 @@
 /atom_vec_apip.h
 /fix_lambda_apip.cpp
 /fix_lambda_apip.h
+/fix_lambda_la_csp_apip.cpp
+/fix_lambda_la_csp_apip.h
 /fix_lambda_thermostat_apip.cpp
 /fix_lambda_thermostat_apip.h
 /pair_lambda_input_apip.cpp
@@ -224,6 +251,10 @@
 /inthash.h
 /fix_plumed.cpp
 /fix_plumed.h
+/fix_mbx.cpp
+/fix_mbx.h
+/pair_mbx.cpp
+/pair_mbx.h
 /dump_molfile.cpp
 /dump_molfile.h
 /molfile_interface.cpp
@@ -814,7 +845,6 @@
 /ewald.h
 /ewald_cg.cpp
 /ewald_cg.h
-/ewald_const.h
 /ewald_dipole.cpp
 /ewald_dipole.h
 /ewald_dipole_spin.cpp
@@ -835,8 +865,10 @@
 /fix_adapt_fep.h
 /fix_add_heat.cpp
 /fix_add_heat.h
-/fix_addtorque.cpp
-/fix_addtorque.h
+/fix_addtorque_atom.cpp
+/fix_addtorque_atom.h
+/fix_addtorque_group.cpp
+/fix_addtorque_group.h
 /fix_append_atoms.cpp
 /fix_append_atoms.h
 /fix_atc.cpp
@@ -1070,6 +1102,8 @@
 /fix_rigid_nvt_small.h
 /fix_rigid_small.cpp
 /fix_rigid_small.h
+/fix_settorque_atom.cpp
+/fix_settorque_atom.h
 /fix_sgcmc.cpp
 /fix_sgcmc.h
 /fix_shake.cpp
@@ -1747,6 +1781,8 @@
 /fix_ttm_grid.h
 /fix_ttm_mod.cpp
 /fix_ttm_mod.h
+/fix_ttm_thermal.cpp
+/fix_ttm_thermal.h
 /granular_model.cpp
 /granular_model.h
 /gran_sub_mod_normal.cpp
@@ -1841,4 +1877,3 @@
 /pair_vashishta*.h
 /pair_lj_pirani.cpp
 /pair_lj_pirani.h
-

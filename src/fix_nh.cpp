@@ -44,9 +44,9 @@ static constexpr double DELTAFLIP = 0.1;
 static constexpr double TILTMAX = 1.5;
 static constexpr double EPSILON = 1.0e-6;
 
-enum{NOBIAS,BIAS};
 enum{NONE,XYZ,XY,YZ,XZ};
 enum{ISO,ANISO,TRICLINIC};
+enum{NOBIAS,BIAS};
 
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
@@ -61,6 +61,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
 
   restart_global = 1;
   dynamic_group_allow = 1;
+  thermo_modify_colname = 1;
   time_integrate = 1;
   scalar_flag = 1;
   vector_flag = 1;
@@ -356,9 +357,15 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"ext") == 0) {
       iarg += 2;
 
-    // keyword psllod is parsed in fix/nvt/sllod
+    // keywords psllod, peculiar, kick and integrator are parsed in fix/nvt/sllod
 
     } else if (strcmp(arg[iarg],"psllod") == 0) {
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "peculiar") == 0) {
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "kick") == 0) {
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "integrator") == 0) {
       iarg += 2;
 
     } else error->all(FLERR,"Unknown fix {} keyword: {}", style, arg[iarg]);
@@ -1675,6 +1682,151 @@ double FixNH::compute_vector(int n)
   }
 
   return 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string FixNH::get_thermo_colname(int n)
+{
+
+  // scalar value if n == -1
+  if (n == -1) return fmt::format("f_{}:ecouple",id);
+
+  int ilen;
+
+  if (tstat_flag) {
+    ilen = mtchain;
+    if (n < ilen) return fmt::format("f_{}:eta[{}]",id,n+1);
+    n -= ilen;
+    ilen = mtchain;
+    if (n < ilen) return fmt::format("f_{}:eta_dot[{}]",id,n+1);
+    n -= ilen;
+  }
+
+  if (pstat_flag) {
+    if (pstyle == ISO) {
+      ilen = 1;
+      if (n < ilen) return fmt::format("f_{}:omega[{}]",id,n+1);
+      n -= ilen;
+    } else if (pstyle == ANISO) {
+      ilen = 3;
+      if (n < ilen) return fmt::format("f_{}:omega[{}]",id,n+1);
+      n -= ilen;
+    } else {
+      ilen = 6;
+      if (n < ilen) return fmt::format("f_{}:omega[{}]",id,n+1);
+      n -= ilen;
+    }
+
+    if (pstyle == ISO) {
+      ilen = 1;
+      if (n < ilen) return fmt::format("f_{}:omega_dot[{}]",id,n+1);
+      n -= ilen;
+    } else if (pstyle == ANISO) {
+      ilen = 3;
+      if (n < ilen) return fmt::format("f_{}:omega_dot[{}]",id,n+1);
+      n -= ilen;
+    } else {
+      ilen = 6;
+      if (n < ilen) return fmt::format("f_{}:omega_dot[{}]",id,n+1);
+      n -= ilen;
+    }
+
+    if (mpchain) {
+      ilen = mpchain;
+      if (n < ilen) return fmt::format("f_{}:etap[{}]",id,n+1);
+      n -= ilen;
+      ilen = mpchain;
+      if (n < ilen) return fmt::format("f_{}:etap_dot[{}]",id,n+1);
+      n -= ilen;
+    }
+  }
+
+  if (tstat_flag) {
+    ilen = mtchain;
+    if (n < ilen) {
+      return fmt::format("f_{}:PE_eta[{}]",id,n+1);
+    }
+    n -= ilen;
+    ilen = mtchain;
+    if (n < ilen) {
+      return fmt::format("f_{}:KE_eta_dot[{}]",id,n+1);
+    }
+    n -= ilen;
+  }
+
+  if (pstat_flag) {
+    if (pstyle == ISO) {
+      ilen = 1;
+      if (n < ilen)
+        return fmt::format("f_{}:PE_omega[{}]",id,n+1);
+      n -= ilen;
+    } else if (pstyle == ANISO) {
+      ilen = 3;
+      if (n < ilen) {
+        if (p_flag[n])
+          return fmt::format("f_{}:PE_omega[{}]",id,n+1);
+        else
+          return fmt::format("f_{}:PE_omega[none]",id);
+      }
+      n -= ilen;
+    } else {
+      ilen = 6;
+      if (n < ilen) {
+        if (n > 2) return fmt::format("f_{}:PE_omega[none]",id);
+        else if (p_flag[n])
+          return fmt::format("f_{}:PE_omega[{}]",id,n+1);
+        else
+          return fmt::format("f_{}:PE_omega[none]",id);
+      }
+      n -= ilen;
+    }
+
+    if (pstyle == ISO) {
+      ilen = 1;
+      if (n < ilen)
+        return fmt::format("f_{}:KE_omega_dot[{}]",id,n+1);
+      n -= ilen;
+    } else if (pstyle == ANISO) {
+      ilen = 3;
+      if (n < ilen) {
+        if (p_flag[n])
+          return fmt::format("f_{}:KE_omega_dot[{}]",id,n+1);
+        else return fmt::format("f_{}:KE_omega_dot[none]",id);
+      }
+      n -= ilen;
+    } else {
+      ilen = 6;
+      if (n < ilen) {
+        if (p_flag[n])
+          return fmt::format("f_{}:KE_omega_dot[{}]",id,n+1);
+        else return fmt::format("f_{}:KE_omega_dot[none]",id);
+      }
+      n -= ilen;
+    }
+
+    if (mpchain) {
+      ilen = mpchain;
+      if (n < ilen) {
+        return fmt::format("f_{}:PE_etap[{}]",id,n+1);
+      }
+      n -= ilen;
+      ilen = mpchain;
+      if (n < ilen) {
+        return fmt::format("f_{}:KE_etap_dot[{}]",id,n+1);
+      }
+      n -= ilen;
+    }
+
+    if (deviatoric_flag) {
+      ilen = 1;
+      if (n < ilen)
+        return fmt::format("f_{}:PE_strain[{}]",id,n+1);
+      n -= ilen;
+    }
+  }
+
+  return "none";
 }
 
 /* ---------------------------------------------------------------------- */

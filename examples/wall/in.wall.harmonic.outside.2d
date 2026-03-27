@@ -1,0 +1,60 @@
+# 2D LJ mixture with a single hard wall at xhi; solute more strongly repelled
+units          lj
+dimension      2
+boundary       p p p           # fixed in x,y; periodic in z (ignored in 2D)
+atom_style     atomic
+neigh_modify   delay 0 every 1
+
+variable       x equal 20
+variable       y equal 20
+variable       rho equal 0.6
+variable       t equal 1.0
+variable       rc equal 2.5
+
+# Wall parameters
+variable       eps_hard equal 5.0    # solute-wall strength
+variable       sigw     equal 1.0
+variable       inLen   equal ${x}/1.5
+variable       wall_x_lo   equal ${x}/2.0-${inLen}/2.0
+variable       wall_x_hi   equal ${x}/2.0+${inLen}/2.0
+variable       rcw      equal ${x}-${wall_x_hi}
+
+# Problem setup
+lattice        sq2 ${rho}
+region         simbox block 0 $x 0 $y -0.1 0.1
+
+create_box     2 simbox
+create_atoms   1 box
+
+group          solvent type 1
+region         inVol block  ${wall_x_lo} ${wall_x_hi} 0 $y -0.1 0.1
+set            region inVol type/fraction 2 0.5 12393   # 50% solute
+group          solute  type 2
+
+mass           1 1.0
+mass           2 1.0
+
+pair_style     lj/cut ${rc}
+pair_coeff     1 1 1.0 1.0 ${rc}
+pair_coeff     1 2 1.0 1.0 ${rc}
+pair_coeff     2 2 1.0 1.0 ${rc}
+
+
+# Only one hard wall at xhi; no walls on xlo/ylo/yhi
+print "Setting up walls at xhi=${wall_x_hi} ; xlo=${wall_x_lo} with eps=${eps_hard} and rc=${rcw}"
+fix            w2 solute  wall/harmonic/outside xlo ${wall_x_lo} ${eps_hard} ${sigw} ${rcw} xhi ${wall_x_hi} ${eps_hard} ${sigw} ${rcw} pbc yes
+
+# Integration
+velocity       all create ${t} 97287
+fix            1 all nvt temp ${t} ${t} 0.1
+
+# Output
+thermo         1000
+thermo_style   custom step temp etotal press f_w2[1]
+
+#dump           dmp all custom 5000 dump.wall.harmonic.outside.2d id type x y vx vy
+#dump_modify    dmp sort id
+#dump		   2 all image 5000 image.wall.harmonic.outside.2d.*.jpg type type zoom 1.6 region inVol blue frame 0.5
+
+timestep       0.01
+run            20000

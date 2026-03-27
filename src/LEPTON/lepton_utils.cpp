@@ -17,12 +17,11 @@
 
 #include "lepton_utils.h"
 
+#include "error.h"
 #include "input.h"
 #include "lammps.h"
 #include "pair_zbl_const.h"
 #include "variable.h"
-
-#include "fmt/args.h"
 
 #include <cctype>
 #include <cmath>
@@ -44,7 +43,7 @@ class DerivativeException : public std::exception {
   {
     message = fmt::format("Order {} derivative of function {} in {} is not supported", deg, fn, vn);
   }
-  const char *what() const noexcept override { return message.c_str(); }
+  [[nodiscard]] const char *what() const noexcept override { return message.c_str(); }
 };
 }    // namespace Lepton
 
@@ -61,12 +60,9 @@ double Lepton::ZBLFunction::evaluate(const double *args) const
 
 double Lepton::ZBLFunction::evaluateDerivative(const double *args, const int *order) const
 {
-  if (order[0] > 0)
-    throw DerivativeException(order[0], "zbl()", "'zi'");
-  if (order[1] > 0)
-    throw DerivativeException(order[0], "zbl()", "'zj'");
-  if (order[2] > 1)
-    throw DerivativeException(order[0], "zbl()", "'r'");
+  if (order[0] > 0) throw DerivativeException(order[0], "zbl()", "'zi'");
+  if (order[1] > 0) throw DerivativeException(order[0], "zbl()", "'zj'");
+  if (order[2] > 1) throw DerivativeException(order[0], "zbl()", "'r'");
 
   if (order[2] == 1) {
     const double zi = args[0];
@@ -98,7 +94,7 @@ class VariableException : public std::exception {
   {
     message = fmt::format("Variable {} in expression {} does not exist", var, expr);
   }
-  const char *what() const noexcept override { return message.c_str(); }
+  [[nodiscard]] const char *what() const noexcept override { return message.c_str(); }
 };
 }    // namespace LeptonUtils
 
@@ -114,21 +110,24 @@ std::string LeptonUtils::condense(const std::string &in)
 /// substitute variable references with their values
 std::string LeptonUtils::substitute(const std::string &in, LAMMPS_NS::LAMMPS *lmp)
 {
-  std::string format, name;
-  std::unordered_set<std::string> vars;
+  std::string output, name;
   bool in_var = false;
   char hold = ' ';
+  auto *variable = lmp->input->variable;
 
   for (const auto &c : in) {
     if (in_var) {
       if (isalnum(c) || (c == '_')) {
-        format.push_back(c);
         name.push_back(c);
       } else {
         in_var = false;
-        format.push_back('}');
-        format.push_back(c);
-        vars.insert(name);
+        const char *val = variable->retrieve(name.c_str());
+        if (val)
+          output.append(val);
+        else
+          lmp->error->all(FLERR, "Variable {} in expression {} does not exist", name, in);
+
+        output.push_back(c);
       }
     } else {
       if (hold == 'v') {
@@ -136,33 +135,26 @@ std::string LeptonUtils::substitute(const std::string &in, LAMMPS_NS::LAMMPS *lm
           in_var = true;
           hold = ' ';
           name.clear();
-          format.push_back('{');
         } else {
-          format.push_back(hold);
+          output.push_back(hold);
           hold = ' ';
-          format.push_back(c);
+          output.push_back(c);
         }
       } else {
         if (c == 'v')
           hold = c;
         else
-          format.push_back(c);
+          output.push_back(c);
       }
     }
   }
   if (in_var) {
-    format.push_back('}');
-    vars.insert(name);
+    const char *val = variable->retrieve(name.c_str());
+    if (val)
+      output.append(val);
+    else
+      lmp->error->all(FLERR, "Variable {} in expression {} does not exist", name, in);
   }
 
-  auto *variable = lmp->input->variable;
-  fmt::dynamic_format_arg_store<fmt::format_context> args;
-  for (const auto &v : vars) {
-    const char *val = variable->retrieve(v.c_str());
-    if (val)
-      args.push_back(fmt::arg(v.c_str(), val));
-    else
-      throw VariableException(v, in);
-  }
-  return fmt::vformat(format, args);
+  return output;
 }

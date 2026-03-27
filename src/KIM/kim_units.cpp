@@ -269,8 +269,8 @@ static double constexpr volt_per_micrometer_si =
 static double constexpr volt_per_nanometer_si =
              1.0/nanometer_si;                      // [V/m] volt/nanometer
 
-namespace LAMMPS_NS {
-namespace kim_units {
+
+namespace LAMMPS_NS::kim_units {
 // Define enumerations
 enum sys_type
 {
@@ -411,7 +411,6 @@ double get_density_conversion_factor(units from_unit_enum, units to_unit_enum);
 double get_unit_conversion_factor(unit_type &unit_type_enum, sys_type from_system_enum,
                                   sys_type to_system_enum);
 
-}
 }
 
 // Define dictionaries

@@ -50,16 +50,22 @@ class FixNVEKokkos : public FixNVE {
   void final_integrate() override;
   void fused_integrate(int) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void initial_integrate_item(int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void initial_integrate_rmass_item(int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void final_integrate_item(int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void final_integrate_rmass_item(int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void fused_integrate_item(int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void fused_integrate_rmass_item(int) const;
 
@@ -81,6 +87,7 @@ struct FixNVEKokkosInitialIntegrateFunctor  {
 
   FixNVEKokkosInitialIntegrateFunctor(FixNVEKokkos<DeviceType>* c_ptr):
   c(*c_ptr) {c.cleanup_copy();};
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
     if (RMass) c.initial_integrate_rmass_item(i);
@@ -95,6 +102,7 @@ struct FixNVEKokkosFinalIntegrateFunctor  {
 
   FixNVEKokkosFinalIntegrateFunctor(FixNVEKokkos<DeviceType>* c_ptr):
   c(*c_ptr) {c.cleanup_copy();};
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
     if (RMass) c.final_integrate_rmass_item(i);
@@ -109,6 +117,7 @@ struct FixNVEKokkosFusedIntegrateFunctor  {
 
   FixNVEKokkosFusedIntegrateFunctor(FixNVEKokkos<DeviceType>* c_ptr):
   c(*c_ptr) {c.cleanup_copy();};
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
     if (RMass)

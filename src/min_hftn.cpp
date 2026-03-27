@@ -85,8 +85,6 @@ MinHFTN::MinHFTN(LAMMPS *lmp) : Min(lmp)
     _daExtraGlobal[i] = nullptr;
   for (int  i = 0; i < NUM_HFTN_ATOM_BASED_VECTORS; i++)
     _daExtraAtom[i] = nullptr;
-
-  _fpPrint = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -214,8 +212,6 @@ int MinHFTN::iterate(int)
                                   dFinalEnergy,
                                   dFinalFnorm2);
   modify->min_clearstore();
-  if (bPrintProgress)
-    close_hftn_print_file_();
 
   return( nStopCode );
 }
@@ -1599,7 +1595,7 @@ void MinHFTN::open_hftn_print_file_()
   MPI_Comm_rank (world, &nMyRank);
 
   auto szTmp = fmt::format("progress_MinHFTN_{}.txt", nMyRank);
-  _fpPrint = fopen (szTmp.c_str(), "w");
+  _fpPrint = fopen(szTmp.c_str(), "w");
   if (_fpPrint == nullptr) return;
 
   fprintf (_fpPrint, "  Iter   Evals      Energy         |F|_2"
@@ -1671,11 +1667,3 @@ void MinHFTN::hftn_print_line_(const bool    bIsStepAccepted,
   fflush (_fpPrint);
 }
 
-/* ----------------------------------------------------------------------
-   Private method close_hftn_print_file_
-------------------------------------------------------------------------- */
-
-void MinHFTN::close_hftn_print_file_()
-{
-  if (_fpPrint != nullptr) fclose (_fpPrint);
-}

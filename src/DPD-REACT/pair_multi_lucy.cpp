@@ -33,6 +33,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "safe_pointers.h"
 
 #include <cmath>
 #include <cstring>
@@ -44,7 +45,7 @@ enum { NONE, RLINEAR, RSQ };
 static constexpr int MAXLINE = 1024;
 
 static const char cite_pair_multi_lucy[] =
-  "pair_style multi/lucy command: doi:10.1063/1.4942520\n\n"
+  "pair_style multi/lucy command: https://doi.org/10.1063/1.4942520\n\n"
   "@Article{Moore16,\n"
   " author = {J. D. Moore and B. C. Barnes and S. Izvekov and M. Lisal and M. S. Sellers and D. E. Taylor and J. K. Brennan},\n"
   " title = {A Coarse-Grain Force Field for {RDX}:  Density Dependent and Energy Conserving},\n"
@@ -350,7 +351,7 @@ void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
 
   // open file
 
-  FILE *fp = fopen(file,"r");
+  SafeFilePtr fp = fopen(file,"r");
   if (fp == nullptr) {
     char str[128];
     snprintf(str,128,"Cannot open file %s",file);
@@ -406,7 +407,6 @@ void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
 
   // close file
 
-  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

@@ -53,7 +53,7 @@ velocity	all scale $t
 variable	xyrate equal ${srate}/ly 
 
 fix		1 all nvt/sllod temp $t $t 0.1
-fix		2 all deform 1 xy erate ${xyrate} remap v
+fix		2 all deform 0 xy erate ${xyrate} remap v
 
 compute         layers all chunk/atom bin/1d y center 0.05 units reduced
 fix		4 all ave/chunk 20 250 5000 layers vx file profile.nemd.2d

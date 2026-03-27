@@ -35,4 +35,31 @@ if(CMAKE_PROJECT_NAME STREQUAL "Trilinos")
 
   # FIXME_TRILINOS We run into problems when trying to use an external GTest in Trilinos CI
   set(CMAKE_DISABLE_FIND_PACKAGE_GTest ON)
+
+  assert_defined(
+    Kokkos_ENABLE_SERIAL
+    Kokkos_ENABLE_OPENMP
+    Kokkos_ENABLE_THREADS
+    Kokkos_ENABLE_HPX
+    Kokkos_ENABLE_CUDA
+    Kokkos_ENABLE_HIP
+    Kokkos_ENABLE_SYCL
+    Kokkos_ENABLE_OPENACC
+  )
+
+  if(Kokkos_ENABLE_SERIAL
+     AND NOT Kokkos_ENABLE_OPENMP
+     AND NOT Kokkos_ENABLE_THREADS
+     AND NOT Kokkos_ENABLE_HPX
+     AND NOT Kokkos_ENABLE_CUDA
+     AND NOT Kokkos_ENABLE_HIP
+     AND NOT Kokkos_ENABLE_SYCL
+     AND NOT Kokkos_ENABLE_OPENACC
+  )
+    if(NOT DEFINED Kokkos_ENABLE_ATOMICS_BYPASS)
+      set(Kokkos_ENABLE_ATOMICS_BYPASS ON
+          CACHE BOOL "Whether to make atomics non-atomic for non-threaded MPI-only use cases" FORCE
+      )
+    endif()
+  endif()
 endif()

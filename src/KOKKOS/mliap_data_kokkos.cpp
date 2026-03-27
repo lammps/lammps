@@ -270,7 +270,7 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void MLIAPDataKokkos<DeviceType>::modified(ExecutionSpace space, unsigned int mask, bool ignore_auto_sync) {
+void MLIAPDataKokkos<DeviceType>::modified(ExecutionSpace space, uint64_t mask, bool ignore_auto_sync) {
   if (space == Device) {
     if (mask & IATOMS_MASK      ) k_iatoms         .modify_device();
     if (mask & IELEMS_MASK      ) k_ielems         .modify_device();
@@ -316,7 +316,7 @@ void MLIAPDataKokkos<DeviceType>::modified(ExecutionSpace space, unsigned int ma
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void MLIAPDataKokkos<DeviceType>::sync(ExecutionSpace space, unsigned int mask, bool ignore_auto_sync) {
+void MLIAPDataKokkos<DeviceType>::sync(ExecutionSpace space, uint64_t mask, bool ignore_auto_sync) {
 
   if (space == Device) {
     if (lmp->kokkos->auto_sync && !ignore_auto_sync) modified(Host, mask, true);

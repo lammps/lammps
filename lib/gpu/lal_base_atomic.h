@@ -125,6 +125,12 @@ class BaseAtomic {
                        double *sublo, double *subhi, tagint *tag, int **nspecial,
                        tagint **special, bool &success);
 
+  void build_nbor_list(const int inum, const int host_inum,
+                       const int nall, double **host_x, int *host_type,
+                       double *sublo, double *subhi, tagint *tag, int **nspecial,
+                       tagint **special, double *prd, int *periodicity,
+                       bool &success);
+
   /// Pair loop with host neighboring
   void compute(const int f_ago, const int inum_full,
                const int nall, double **host_x, int *host_type,
@@ -138,7 +144,8 @@ class BaseAtomic {
                 double *subhi, tagint *tag, int **nspecial,
                 tagint **special, const bool eflag, const bool vflag,
                 const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **numj, const double cpu_time, bool &success);
+                int **ilist, int **numj, const double cpu_time, bool &success,
+                double *prd=nullptr, int *periodicity=nullptr);
 
   // -------------------------- DEVICE DATA -------------------------
 

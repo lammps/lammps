@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CUDA_REDUCESCAN_HPP
 #define KOKKOS_CUDA_REDUCESCAN_HPP
@@ -215,14 +202,19 @@ struct CudaReductionsFunctor<FunctorType, false, true> {
 
   __device__ static inline void scalar_intra_block_reduction(
       const FunctorType& functor, Scalar value, const bool skip,
-      Scalar* my_global_team_buffer_element, const int shared_elements,
+      Scalar* my_global_team_buffer_element, const unsigned int shared_elements,
       Scalar* shared_team_buffer_element) {
-    const int warp_id = (threadIdx.y * blockDim.x) / 32;
+    const unsigned int warp_id     = (threadIdx.y * blockDim.x) / 32u;
+    const unsigned int num_threads = blockDim.x * blockDim.y;
     Scalar* const my_shared_team_buffer_element =
         shared_team_buffer_element + warp_id % shared_elements;
 
+    const unsigned int num_active_threads_in_warp0 =
+        Kokkos::min(32u, num_threads);
+
     // Warp Level Reduction, ignoring Kokkos vector entries
-    scalar_intra_warp_reduction(functor, value, skip, 32, value);
+    scalar_intra_warp_reduction(functor, value, skip,
+                                num_active_threads_in_warp0, value);
 
     if (warp_id < shared_elements) {
       *my_shared_team_buffer_element = value;
@@ -231,21 +223,27 @@ struct CudaReductionsFunctor<FunctorType, false, true> {
     // warp reduction
     __syncthreads();
 
-    const int num_warps = blockDim.x * blockDim.y / 32;
-    for (int w = shared_elements; w < num_warps; w += shared_elements) {
+    const unsigned int num_warps = num_threads / 32u;
+    for (unsigned int w = shared_elements; w < num_warps;
+         w += shared_elements) {
       if (warp_id >= w && warp_id < w + shared_elements) {
-        if ((threadIdx.y * blockDim.x + threadIdx.x) % 32 == 0)
+        if ((threadIdx.y * blockDim.x + threadIdx.x) % 32u == 0u)
           functor.join(my_shared_team_buffer_element, &value);
       }
       __syncthreads();
     }
 
-    if (warp_id == 0) {
+    if (warp_id == 0u) {
       functor.init(&value);
+
+      // We can increment by WarpSize rather than num_active_threads_in_warp0
+      // because if the first warp is not complete, we won't enter the loop
       for (unsigned int i = threadIdx.y * blockDim.x + threadIdx.x;
-           i < blockDim.y * blockDim.x / 32; i += 32)
+           i < num_warps; i += 32u)
         functor.join(&value, &shared_team_buffer_element[i]);
-      scalar_intra_warp_reduction(functor, value, false, 32,
+
+      scalar_intra_warp_reduction(functor, value, false,
+                                  num_active_threads_in_warp0,
                                   *my_global_team_buffer_element);
     }
   }
@@ -258,9 +256,9 @@ struct CudaReductionsFunctor<FunctorType, false, true> {
     Scalar* const my_global_team_buffer_element =
         global_team_buffer_element + blockIdx.x;
     Scalar* shared_team_buffer_elements = ((Scalar*)shared_data);
-    Scalar value        = shared_team_buffer_elements[threadIdx.y];
-    int shared_elements = blockDim.x * blockDim.y / 32;
-    int global_elements = block_count;
+    Scalar value                 = shared_team_buffer_elements[threadIdx.y];
+    unsigned int shared_elements = blockDim.x * blockDim.y / 32u;
+    unsigned int global_elements = block_count;
     __syncthreads();
 
     scalar_intra_block_reduction(functor, value, true,
@@ -268,21 +266,21 @@ struct CudaReductionsFunctor<FunctorType, false, true> {
                                  shared_team_buffer_elements);
     __threadfence();
     __syncthreads();
-    unsigned int num_teams_done = 0;
+    unsigned int num_teams_done = 0u;
     // The cast in the atomic call is necessary to find matching call with
     // MSVC/NVCC
-    if (threadIdx.x + threadIdx.y == 0) {
+    if (threadIdx.x + threadIdx.y == 0u) {
       num_teams_done =
           Kokkos::atomic_fetch_add(global_flags, static_cast<unsigned int>(1)) +
-          1;
+          1u;
     }
     bool is_last_block = false;
     if (__syncthreads_or(num_teams_done == gridDim.x)) {
       is_last_block = true;
-      *global_flags = 0;
+      *global_flags = 0u;
       functor.init(&value);
-      for (int i = threadIdx.y * blockDim.x + threadIdx.x; i < global_elements;
-           i += blockDim.x * blockDim.y) {
+      for (unsigned int i = threadIdx.y * blockDim.x + threadIdx.x;
+           i < global_elements; i += blockDim.x * blockDim.y) {
         functor.join(&value, &global_team_buffer_element[i]);
       }
       scalar_intra_block_reduction(
@@ -315,7 +313,7 @@ struct CudaReductionsFunctor<FunctorType, false, false> {
     __syncwarp(mask);
 
     for (int delta = skip_vector ? blockDim.x : 1; delta < width; delta *= 2) {
-      if ((lane_id + delta < 32) && (lane_id % (delta * 2) == 0)) {
+      if ((lane_id + delta < width) && (lane_id % (delta * 2) == 0)) {
         functor.join(value, value + delta);
       }
       __syncwarp(mask);
@@ -328,24 +326,25 @@ struct CudaReductionsFunctor<FunctorType, false, false> {
   __device__ static inline void scalar_intra_block_reduction(
       const FunctorType& functor, Scalar value, const bool skip, Scalar* result,
       const int /*shared_elements*/, Scalar* shared_team_buffer_element) {
-    const int warp_id = (threadIdx.y * blockDim.x) / 32;
+    const int warp_id              = (threadIdx.y * blockDim.x) / 32;
+    const unsigned int num_threads = blockDim.x * blockDim.y;
     Scalar* const my_shared_team_buffer_element =
         shared_team_buffer_element + threadIdx.y * blockDim.x + threadIdx.x;
     *my_shared_team_buffer_element = value;
     // Warp Level Reduction, ignoring Kokkos vector entries
     scalar_intra_warp_reduction(functor, my_shared_team_buffer_element, skip,
-                                32);
+                                Kokkos::min(32u, num_threads));
     // Wait for every warp to be done before using one warp to do final cross
     // warp reduction
     __syncthreads();
 
     if (warp_id == 0) {
       const unsigned int delta = (threadIdx.y * blockDim.x + threadIdx.x) * 32;
-      if (delta < blockDim.x * blockDim.y)
+      if (delta < num_threads)
         *my_shared_team_buffer_element = shared_team_buffer_element[delta];
       __syncwarp(0xffffffff);
       scalar_intra_warp_reduction(functor, my_shared_team_buffer_element, false,
-                                  blockDim.x * blockDim.y / 32);
+                                  num_threads / 32);
       if (threadIdx.x + threadIdx.y == 0) *result = *shared_team_buffer_element;
     }
   }

@@ -24,6 +24,7 @@
 
 #define IJ_SIZE 131072
 
+// same settings with lal_neighbor_gpu.cu
 #if !defined(USE_OPENCL) && !defined(USE_HIP)
 #ifndef LAL_USE_OLD_NEIGHBOR
 // Issue with incorrect results with CUDA >= 11.2 and pre-12.0
@@ -34,6 +35,10 @@
 #endif
 
 #if defined(USE_HIP) || defined(__APPLE__)
+#define LAL_USE_OLD_NEIGHBOR
+#endif
+
+#ifdef USE_CUDPP
 #define LAL_USE_OLD_NEIGHBOR
 #endif
 
@@ -193,6 +198,14 @@ class Neighbor {
                        double *sublo, double *subhi, tagint *tag,
                        int **nspecial, tagint **special, bool &success,
                        int &max_nbors, UCL_Vector<int,int> &error_flag);
+
+  template <class numtyp, class acctyp>
+  void build_nbor_list(double **x, const int inum, const int host_inum,
+                       const int nall, Atom<numtyp,acctyp> &atom,
+                       double *sublo, double *subhi, tagint *tag,
+                       int **nspecial, tagint **special, bool &success,
+                       int &max_nbors, double* prd, int* periodicity,
+                       UCL_Vector<int,int> &error_flag);
 
   /// Return the number of bytes used on device
   inline double gpu_bytes() {

@@ -1771,17 +1771,17 @@ void _noopt PPPMDisp::allocate()
     fft1 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                      nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                      nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                     0,0,&tmp,collective_flag);
+                     0,0,&tmp,collective_flag,nonblocking_flag);
 
     fft2 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                      nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                      nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                     0,0,&tmp,collective_flag);
+                     0,0,&tmp,collective_flag,nonblocking_flag);
 
     remap = new Remap(lmp,world,
                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                       nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                      1,0,0,FFT_PRECISION,collective_flag);
+                      1,0,0,FFT_PRECISION,collective_flag,nonblocking_flag);
   }
 
   // --------------------------------------
@@ -1848,19 +1848,19 @@ void _noopt PPPMDisp::allocate()
       new FFT3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
                 nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
                 nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                0,0,&tmp,collective_flag);
+                0,0,&tmp,collective_flag,nonblocking_flag);
 
     fft2_6 =
       new FFT3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
                 nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
                 nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
-                0,0,&tmp,collective_flag);
+                0,0,&tmp,collective_flag,nonblocking_flag);
 
     remap_6 =
       new Remap(lmp,world,
                 nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                 nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                1,0,0,FFT_PRECISION,collective_flag);
+                1,0,0,FFT_PRECISION,collective_flag,nonblocking_flag);
   }
 
   // --------------------------------------

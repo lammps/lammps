@@ -16,6 +16,9 @@
 
 #include <cstddef>
 
+#include "lmptype.h"
+#include "buffer_reader.h"
+
 namespace LAMMPS_NS {
 
 class FileWriter;
@@ -23,10 +26,10 @@ class FileWriter;
 class Restartable {
  public:
   virtual void write_restart_global(FileWriter*) const = 0;
-  virtual void write_restart_local(FileWriter*) const = 0;
+  virtual void write_restart_local(FileWriter*) const {}
 
-  virtual void read_restart_global(size_t, char*) = 0;
-  virtual void read_restart_local(size_t, char*) = 0;
+  virtual void read_restart_global(BufferReader) = 0;
+  virtual void read_restart_local(BufferReader) {}
 };
 
 } // namespace LAMMPS_NS

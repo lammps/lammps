@@ -15,10 +15,11 @@
 #define LMP_PAIR_H
 
 #include "pointers.h"    // IWYU pragma: export
+#include "restartable.h"
 
 namespace LAMMPS_NS {
 
-class Pair : protected Pointers {
+class Pair : protected Pointers, public Restartable {
   friend class AngleSPICA;
   friend class AngleSPICAOMP;
   friend class BondQuartic;
@@ -57,6 +58,7 @@ class Pair : protected Pointers {
   int atomic_energy_enable;     // 1 if compute_atomic_energy() routine exists
 
   int restartinfo;                // 1 if pair style writes restart info
+  int restartinfo_filewriter;     // 1 if pair style writes restart info with filewriter API
   int respa_enable;               // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                  // 1 if allows only one coeff * * call
   int manybody_flag;              // 1 if a manybody potential
@@ -198,11 +200,15 @@ class Pair : protected Pointers {
 
   virtual void write_restart(FILE *);
   virtual void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *) {}
-  virtual void read_restart_settings(FILE *) {}
+  virtual void write_restart_settings(FILE *);
+  virtual void read_restart_settings(FILE *);
+  virtual void write_restart_settings(FileWriter *) const {}
+  virtual void read_restart_settings(BufferReader *) { }
+  virtual void write_restart_global(FileWriter *) const override;
+  virtual void read_restart_global(BufferReader) override;
   virtual void write_data(FILE *) {}
   virtual void write_data_all(FILE *) {}
-
+  
   virtual int pack_forward_comm(int, int *, double *, int, int *) { return 0; }
   virtual void unpack_forward_comm(int, int, double *) {}
   virtual int pack_reverse_comm(int, int, double *) { return 0; }

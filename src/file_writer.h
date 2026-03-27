@@ -20,6 +20,7 @@
 
 #include <string>
 #include <type_traits>
+
 #include "restartable.h"
 
 namespace LAMMPS_NS {

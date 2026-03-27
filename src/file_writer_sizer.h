@@ -15,6 +15,8 @@
 #define LMP_FILE_WRITER_SIZER_H
 
 #include <string>
+
+#include "lmptype.h"
 #include "file_writer.h"
 
 namespace LAMMPS_NS {
@@ -24,7 +26,7 @@ class FileWriterSizer : public FileWriter {
   FileWriterSizer() { len = 0; }
   ~FileWriterSizer() = default;
 
-  size_t size() { return len; }
+  bigint size() { return len; }
 
   size_t write(const void *buffer, size_t length) final {
     len += length;
@@ -43,7 +45,7 @@ class FileWriterSizer : public FileWriter {
   [[nodiscard]] bool isopen() const final { return true; }
 
  private:
-  size_t len;
+  bigint len;
 };
 
 } // namespace LAMMPS_NS

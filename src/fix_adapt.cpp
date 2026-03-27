@@ -994,10 +994,8 @@ void FixAdapt::write_restart_global(FileWriter *fw) const
    use scale factors from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
-void FixAdapt::read_restart_global(size_t size, char *buf)
+void FixAdapt::read_restart_global(BufferReader br)
 {
-  auto *dbuf = (double *) buf;
-
-  previous_diam_scale = dbuf[0];
-  previous_chg_scale = dbuf[1];
+  br.read(previous_diam_scale);
+  br.read(previous_chg_scale);
 }

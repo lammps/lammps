@@ -178,8 +178,8 @@ class Fix : protected Pointers, public Restartable {
   virtual void write_restart_local(FileWriter*) const override {}
   virtual void write_restart_file(const char *) {}
   virtual void restart(char *);
-  virtual void read_restart_global(size_t, char *) override {}
-  virtual void read_restart_local(size_t, char *) override {}
+  virtual void read_restart_global(BufferReader) override {}
+  virtual void read_restart_local(BufferReader) override {}
 
   virtual void grow_arrays(int) {}
   virtual void copy_arrays(int, int, int) {}

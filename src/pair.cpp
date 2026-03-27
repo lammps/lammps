@@ -32,6 +32,8 @@
 #include "neighbor.h"
 #include "suffix.h"
 #include "update.h"
+#include "file_writer_wrapper.h"
+#include "file_writer_sizer.h"
 
 #include <cfloat>     // IWYU pragma: keep
 #include <climits>    // IWYU pragma: keep
@@ -756,19 +758,97 @@ void Pair::compute_dummy(int eflag, int vflag, int alloc)
 
 /* ---------------------------------------------------------------------- */
 
-void Pair::read_restart(FILE *)
+void Pair::read_restart(FILE *fp)
 {
-  if (comm->me == 0)
-    error->warning(FLERR,"Pair style restartinfo set but has no restart support");
+  if (!restartinfo_filewriter) {
+    if (comm->me == 0)
+      error->warning(FLERR,"Pair style restartinfo set but has no restart support");
+    return;
+  }
+
+  bigint n_bytes;
+  if (comm->me == 0) {
+    utils::sfread(FLERR, &n_bytes, sizeof(n_bytes), 1, fp, nullptr, error);
+  }
+  MPI_Bcast(&n_bytes, 1, MPI_LMP_BIGINT, 0, world);
+
+  std::vector<char> bytes(n_bytes);
+  if (comm->me == 0) {
+    utils::sfread(FLERR, bytes.data(), 1, n_bytes, fp, nullptr, error);
+  }
+  MPI_Bcast(bytes.data(), n_bytes, MPI_CHAR, 0, world);
+
+  read_restart_global(BufferReader(bytes.data(), n_bytes));
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Pair::write_restart(FILE *)
+void Pair::write_restart(FILE *fp)
+{
+  if (comm->me == 0) {
+    if (!restartinfo_filewriter) {
+      error->warning(FLERR,"Pair style restartinfo set but has no restart support");
+      return;
+    }
+    FileWriterWrapper fw(fp);
+    fw.write_restart_global_size(this);
+    write_restart_global(&fw);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Pair::write_restart_settings(FILE *fp)
+{
+  if (restartinfo_filewriter && comm->me == 0) {
+    FileWriterSizer sizer;
+    write_restart_settings(&sizer);
+
+    FileWriterWrapper fw(fp);
+    fw.writev(sizer.size());
+
+    write_restart_settings(&fw);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Pair::read_restart_settings(FILE *fp)
+{
+  if (restartinfo_filewriter) {
+    bigint n_bytes;
+    if (comm->me == 0) {
+      utils::sfread(FLERR, &n_bytes, sizeof(n_bytes), 1, fp, nullptr, error);
+    }
+    MPI_Bcast(&n_bytes, 1, MPI_LMP_BIGINT, 0, world);
+
+    std::vector<char> bytes(n_bytes);
+    if (comm->me == 0) {
+      utils::sfread(FLERR, bytes.data(), 1, n_bytes, fp, nullptr, error);
+    }
+    MPI_Bcast(bytes.data(), n_bytes, MPI_CHAR, 0, world);
+    
+    BufferReader br(bytes.data(), n_bytes);
+    read_restart_settings(&br);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Pair::read_restart_global(BufferReader)
+{
+  if (comm->me == 0)
+    error->warning(FLERR,"Pair style restartinfo_filewriter set but has no filewriter restart support");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Pair::write_restart_global(FileWriter *) const
 {
   if (comm->me == 0)
     error->warning(FLERR,"Pair style restartinfo set but has no restart support");
 }
+
 
 /* -------------------------------------------------------------------
    register a callback to a compute, so it can compute and accumulate

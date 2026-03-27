@@ -24,6 +24,7 @@
 #include "file_writer_wrapper.h"
 #include "file_writer_sizer.h"
 #include "file_writer_buffer.h"
+#include "buffer_reader.h"
 
 #include <cstring>
 
@@ -156,7 +157,7 @@ void Fix::init_flags()
 ------------------------------------------------------------------------- */
 
 void Fix::write_restart(FILE *fp) {
-  size_t global_size = 0;
+  bigint global_size = 0;
   if (restart_global_fw) {
     FileWriterSizer sizer;
     sizer.write_restart_global_size(this);
@@ -164,7 +165,7 @@ void Fix::write_restart(FILE *fp) {
     global_size = sizer.size();
   }
 
-  size_t local_size = 0, total_local_size = 0;
+  bigint local_size = 0, total_local_size = 0;
   if (restart_local_fw) {
     FileWriterSizer sizer;
     this->write_restart_local(&sizer);
@@ -174,7 +175,8 @@ void Fix::write_restart(FILE *fp) {
       + local_size * comm->nprocs;
   }
 
-  size_t total_size = global_size + total_local_size;
+  // Modify expects an integer size, not a bigint
+  int total_size = global_size + total_local_size;
 
   FileWriterWrapper fw(fp);
   fw.writev(total_size);
@@ -213,25 +215,18 @@ void Fix::write_restart(FILE *fp) {
 ------------------------------------------------------------------------- */
 
 void Fix::restart(char *buf) {
-  size_t pos = 0;
+  BufferReader br(buf);
 
   if (restart_global_fw) {
-    size_t global_size = *((size_t*)(buf + pos));
-    pos += sizeof(size_t);
-    this->read_restart_global(global_size, buf + pos);
-    pos += global_size;
+    bigint global_size = br.read<bigint>();
+    this->read_restart_global(br.sub_buf(global_size));
   }
   if (restart_local_fw) {
-    int nprocs = *((int*)(buf + pos));
-    pos += sizeof(int);
-    size_t local_size = *((size_t*)(buf + pos));
-    pos += sizeof(size_t);
-    pos += local_size*comm->me;
+    int nprocs = br.read<int>();
+    bigint local_size = br.read<bigint>();
 
-    // This rank may be higher than nprocs when data was written
-    if (comm->me >= nprocs) local_size = 0;
-
-    this->read_restart_local(local_size, buf + pos);
+    br.skip_bytes(local_size*comm->me);
+    this->read_restart_local(br.sub_buf(local_size));
   }
 }
 

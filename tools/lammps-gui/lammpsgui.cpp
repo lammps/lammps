@@ -84,8 +84,8 @@ constexpr int DEFAULT_BUFLEN = 1024;
 constexpr int MAX_DEFAULT_THREADS = 16;
 #endif
 
-constexpr int MINIMUM_WIDTH       = 400;
-constexpr int MINIMUM_HEIGHT      = 300;
+constexpr int MINIMUM_WIDTH  = 400;
+constexpr int MINIMUM_HEIGHT = 300;
 
 const QString blank(" ");
 const QString citeme("# When using LAMMPS-GUI in your project, please cite: "
@@ -1174,6 +1174,9 @@ void LammpsGui::logupdate()
         completed = t_elapsed / t_total * 1000.0;
         // update cpu usage
         int percent_cpu = (int)lammps.get_thermo("cpuuse");
+        // clear any error messages from polling thermo data
+        lammps.get_last_error_message(nullptr, 0);
+
         cpuuse->setText(QString("%1%CPU").arg(percent_cpu, 4));
         if (percent_cpu < 25.0 * nthreads) {
             cpuuse->setStyleSheet("QLabel {background-color: black; color: white;}");
@@ -1755,7 +1758,7 @@ void LammpsGui::about()
         auto end   = info.find("Info-Info-Info", start);
         // protect from a failed or incomplete capture
         if ((start != std::string::npos) && (end != std::string::npos))
-        info       = std::string(info, start, end - start);
+            info = std::string(info, start, end - start);
     }
 
     info += citeme.toStdString();

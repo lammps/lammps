@@ -1048,6 +1048,8 @@ void LammpsGui::write_file(const QString &fileName)
     if (text.back().toLatin1() != '\n') out << "\n"; // add final newline if missing
     file.close();
     dirstatus->setText(QString(" Directory: ") + current_dir);
+    // update list of files for completion since we may have changed the working directory
+    ui->textEdit->setFileList();
     ui->textEdit->document()->setModified(false);
 }
 

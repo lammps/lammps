@@ -25,14 +25,17 @@ ComputeStyle(ave/sphere/atom/kk/host,ComputeAveSphereAtomKokkos<LMPHostType>);
 
 #include "compute_ave_sphere_atom.h"
 #include "kokkos_type.h"
+#include "kokkos_base.h"
 
 namespace LAMMPS_NS {
 
 // clang-format off
 struct TagComputeAveSphereAtom {};
+struct TagComputeAveSphereAtomPackForwardComm{};
+struct TagComputeAveSphereAtomUnpackForwardComm{};
 // clang-format on
 
-template <class DeviceType> class ComputeAveSphereAtomKokkos : public ComputeAveSphereAtom {
+template <class DeviceType> class ComputeAveSphereAtomKokkos : public ComputeAveSphereAtom, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -42,9 +45,23 @@ template <class DeviceType> class ComputeAveSphereAtomKokkos : public ComputeAve
   void init() override;
   void compute_peratom() override;
 
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d&,
+                       int, int *) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d&) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeAveSphereAtom, const int &) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagComputeAveSphereAtomPackForwardComm, const int&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagComputeAveSphereAtomUnpackForwardComm, const int&) const;
 
  private:
   KK_FLOAT adof, mvv2e, mv2d, boltz;
@@ -62,6 +79,11 @@ template <class DeviceType> class ComputeAveSphereAtomKokkos : public ComputeAve
 
   DAT::ttransform_kkfloat_2d k_result;
   typename AT::t_kkfloat_2d d_result;
+
+  int first,nsend;
+
+  typename AT::t_int_1d d_sendlist;
+  typename AT::t_double_1d_um d_buf;
 };
 
 }    // namespace LAMMPS_NS

@@ -8,7 +8,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   region2vmd file keyword arg ...
+   region2vmd filename keyword arg ...
 
 * filename = name of file to write VMD script commands to
 * zero or more keyword/arg pairs may be appended
@@ -51,7 +51,7 @@ represent the region in VMD.  Each region will be stored in a separate
    :doc:`dump image <dump_image>` command.  For more information,
    see :doc:`Howto_viz`.
 
-The *region2vmd* command is following by the filename for the resulting
+The *region2vmd* command is followed by the filename for the resulting
 VMD script and an arbitrary number of keyword argument pairs to either
 write out a new *region* visualization, change the *color* or *material*
 setting, or to insert arbitrary VMD script *command*\ s.  The keywords

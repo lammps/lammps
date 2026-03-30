@@ -187,7 +187,7 @@ timestep to the next.
 
 The output for *dist* and *hdist* will be in distance :doc:`units
 <units>`.  The output for *angle* will be in degrees.  The output for
-*strength* will be in energy :doc:`units <units>`.
+*ehb* will be in energy :doc:`units <units>`.
 
 -----------
 

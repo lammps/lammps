@@ -80,6 +80,12 @@ to the path as a C++ string class instance.
 .. doxygenfunction:: file_is_readable
    :project: progguide
 
+.. doxygenfunction:: file_is_writable
+   :project: progguide
+
+.. doxygenfunction:: file_redirect
+   :project: progguide
+
 .. doxygenfunction:: is_console
    :project: progguide
 

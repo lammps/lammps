@@ -22,13 +22,10 @@ compute snap command
 compute sna/grid command
 ========================
 
-compute sna/grid/kk command
-===========================
-
 compute sna/grid/local command
 ==============================
 
-Accelerator Variants: *sna/grid/local/kk*
+Accelerator Variants: *sna/grid/kk*, *sna/grid/local/kk*
 
 Syntax
 """"""

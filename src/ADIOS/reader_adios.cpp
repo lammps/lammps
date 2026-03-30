@@ -20,6 +20,7 @@
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
+#include "safe_pointers.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -29,6 +30,7 @@
 #include "adios_common.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_ADIOS;
 
 static constexpr double SMALL = 1.0e-6;
 
@@ -68,12 +70,11 @@ ReaderADIOS::ReaderADIOS(LAMMPS *lmp) : Reader(lmp)
   me = comm->me;
 
   // create a default adios2_config.xml if it doesn't exist yet.
-  FILE *cfgfp = fopen("adios2_config.xml", "r");
+  SafeFilePtr cfgfp = fopen("adios2_config.xml", "r");
   if (!cfgfp) {
     cfgfp = fopen("adios2_config.xml", "w");
     if (cfgfp) fputs(default_config, cfgfp);
   }
-  if (cfgfp) fclose(cfgfp);
 
   internal = new ReadADIOSInternal();
   try {

@@ -332,5 +332,5 @@ Cambridge University Press, (2017) https://doi.org/10.1017/9781139017848.
 
 .. _Sanderson:
 
-**(Sanderson and Searles)** Sanderson and Searles, arXiv preprint arXiv\:2512.01318, (2025) https://doi.org/10.48550/arXiv.2512.01318.
+**(Sanderson and Searles)** Sanderson and Searles, J Chem Phys, 164, 084121 (2026) https://doi.org/10.1063/5.0315430.
 

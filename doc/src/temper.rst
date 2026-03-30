@@ -8,10 +8,10 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   temper N M temp fix-ID seed1 seed2 index
+   temper Nsteps Nevery temp fix-ID seed1 seed2 index
 
-* N = total # of timesteps to run
-* M = attempt a tempering swap every this many steps
+* Nsteps = total # of timesteps to run
+* Nevery = attempt a tempering swap every this many steps
 * temp = initial temperature for this ensemble
 * fix-ID = ID of the fix that will control temperature during the run
 * seed1 = random # seed used to decide on adjacent temperature to partner with
@@ -60,20 +60,20 @@ command for more details.  For example:
 would define 4 temperatures, and assign one of them to the thermostat
 used by each replica, and to the temper command.
 
-As the tempering simulation runs for *N* timesteps, a temperature swap
-between adjacent ensembles will be attempted every *M* timesteps.  If
-*seed1* is 0, then the swap attempts will alternate between odd and
-even pairings.  If *seed1* is non-zero then it is used as a seed in a
-random number generator to randomly choose an odd or even pairing each
-time.  Each attempted swap of temperatures is either accepted or
-rejected based on a Boltzmann-weighted Metropolis criterion which uses
-*seed2* in the random number generator.
+As the tempering simulation runs for *Nsteps* timesteps, a temperature
+swap between adjacent ensembles will be attempted every *Nevery*
+timesteps.  If *seed1* is 0, then the swap attempts will alternate
+between odd and even pairings.  If *seed1* is non-zero then it is used
+as a seed in a random number generator to randomly choose an odd or even
+pairing each time.  Each attempted swap of temperatures is either
+accepted or rejected based on a Boltzmann-weighted Metropolis criterion
+which uses *seed2* in the random number generator.
 
 As a tempering run proceeds, multiple log files and screen output files
 are created, one per replica.  By default these files are named
 ``log.lammps.M`` and ``screen.M`` where *M* is the replica number from 0
 to *N*-1, with *N* = # of replicas.  See the :doc:`-log and -screen
-command-line swiches <Run_options>` for info on how to change these
+command-line switches <Run_options>` for info on how to change these
 names.
 
 The main screen and log file (``log.lammps``) will list information
@@ -123,7 +123,7 @@ manner:
    contain "continuous trajectories" for individual atoms, because two
    successive snapshots (in time) may be from different replicas. The
    reorder_remd_traj python script can do the reordering for you
-   (and additionally also calculated configurational log-weights of
+   (and additionally also calculates configurational log-weights of
    trajectory snapshots in the canonical ensemble). The script can be found
    in the tools/replica directory while instructions on how to use it is
    available in doc/Tools (in brief) and as a README file in tools/replica

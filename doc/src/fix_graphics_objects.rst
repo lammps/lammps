@@ -83,9 +83,9 @@ Available graphics objects are (see above for exact command line syntax):
 - *cylinder* - a cylinder defined by its two center endpoints and its radius
 - *arrow* - a cylinder with a cone at one side (see note below)
 - *cone* - a truncated cone with a flat circular cap at either side (see note below)
-- *progbar* - progress bar a long a selected axis and with optional tick marks
+- *progbar* - progress bar along a selected axis and with optional tick marks
 
-The *type* quantity determines the color of the object.  Its represents
+The *type* quantity determines the color of the object.  It represents
 an *atom* type and the object will be colored the same as the
 corresponding atom type when the "type" or "element" color style is used
 in the :doc:`dump image fix <dump_image>` command.  For the *progbar*

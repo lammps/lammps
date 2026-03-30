@@ -39,7 +39,6 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr int MAX_GROUP = 32;
 static constexpr double EPSILON = 1.0e-6;
 
 enum { NONE, TYPE, MOLECULE, ID };
@@ -152,7 +151,7 @@ void Group::assign(int narg, char **arg)
   bool created = false;
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", MAX_GROUP);
+    if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", int(MAX_GROUP));
     igroup = find_unused();
     names[igroup] = utils::strdup(arg[0]);
     ngroup++;
@@ -592,7 +591,7 @@ void Group::create(const std::string &name, int *flag)
   int igroup = find(name);
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", MAX_GROUP);
+    if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", int(MAX_GROUP));
     igroup = find_unused();
     names[igroup] = utils::strdup(name);
     ngroup++;
@@ -629,7 +628,7 @@ int Group::find_or_create(const char *name)
   int igroup = find(name);
   if (igroup >= 0) return igroup;
 
-  if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", MAX_GROUP);
+  if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", int(MAX_GROUP));
   igroup = find_unused();
   names[igroup] = utils::strdup(name);
   ngroup++;
@@ -658,7 +657,8 @@ int Group::get_bitmask_by_id(const std::string &file, int line, const std::strin
 {
   int igroup = find(name);
   if (igroup < 0)
-    error->all(file, line, "Group ID {} requested by {} does not exist", name, caller);
+    error->all(file, line, Error::NOLASTLINE, "Group ID {} requested by {} does not exist", name,
+               caller);
   return bitmask[igroup];
 }
 
@@ -667,7 +667,7 @@ int Group::get_bitmask_by_id(const std::string &file, int line, const std::strin
 ------------------------------------------------------------------------- */
 
 int Group::get_inversemask_by_id(const std::string &file, int line, const std::string &name,
-                             const std::string &caller)
+                                 const std::string &caller)
 {
   int igroup = find(name);
   if (igroup < 0)
@@ -703,7 +703,7 @@ void Group::add_molecules(int /*igroup*/, int bit)
   memory->create(list, n, "group:list");
 
   n = 0;
-  for(const auto pos : hash) list[n++] = pos;
+  for (const auto pos : hash) list[n++] = pos;
 
   molbit = bit;
   comm->ring(n, sizeof(tagint), list, 1, molring, nullptr, (void *) this);

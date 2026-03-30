@@ -248,7 +248,7 @@ can have multiple reasons:
   system size, e.g. :doc:`kspace styles like ewald or pppm
   <kspace_style>`. There is very little that can be done in this case.
 - The output interval is not set or set to a large value with the
-  :doc:`thermo <thermo>` command. I the first case, there will be output
+  :doc:`thermo <thermo>` command. In the first case, there will be output
   only at the first and last step.
 - The output is block-buffered and instead of line-buffered. The output
   will only be written to the screen after 4096 or 8192 characters of

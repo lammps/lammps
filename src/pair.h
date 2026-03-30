@@ -90,7 +90,7 @@ class Pair : protected Pointers, public Restartable {
   int trim_flag;    // pair_modify flag for trimming neigh list
 
   int evflag;    // energy,virial settings
-  int eflag_either, eflag_global, eflag_atom;
+  int eflag_either, eflag_global, eflag_atom, eflag_only;
   int vflag_either, vflag_global, vflag_atom, cvflag_atom;
 
   int ncoultablebits;    // size of Coulomb table, accessed by KSpace

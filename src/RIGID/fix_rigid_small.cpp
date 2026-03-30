@@ -580,6 +580,10 @@ void FixRigidSmall::init()
     gvec = (double *) ifix->extract("gvec", tmp);
   }
 
+  // error for not supported superellipsoids
+
+  if (atom->superellipsoid_flag) error->all(FLERR,"Superellipsoids not supported in fix rigid/small");
+
   // timestep info
 
   dtv = update->dt;

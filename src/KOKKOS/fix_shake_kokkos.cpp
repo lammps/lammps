@@ -447,7 +447,7 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeMinPostForce<NEIGHFLAG,VF
   const int i0 = d_closest_list(i, 0);
 
   auto apply_restraint = [&](int idx0, int idx1, int type_idx, bool is_angle) {
-    if (idx0 < 0 || idx1 < 0) return 0.0;
+    if (idx0 < 0 || idx1 < 0) return (KK_FLOAT)0.0;
     const KK_FLOAT d0 = is_angle ? d_angle_distance[type_idx] : d_bond_distance[type_idx];
     const KK_FLOAT delx = d_x(idx0, 0) - d_x(idx1, 0);
     const KK_FLOAT dely = d_x(idx0, 1) - d_x(idx1, 1);

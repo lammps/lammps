@@ -58,7 +58,6 @@ class PairGranular : public Pair {
   int neighprev;
   double *onerad_dynamic, *onerad_frozen;
   double *maxrad_dynamic, *maxrad_frozen;
-  double **cut;
 
   class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;

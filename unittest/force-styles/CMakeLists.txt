@@ -3,13 +3,13 @@
 find_package(YAML)
 if(NOT YAML_FOUND)
   set(YAML_URL "https://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz" CACHE STRING "URL for libyaml tarball")
-  set(YAML_MD5 "bb15429d8fb787e7d3f1c83ae129a999" CACHE STRING "MD5 checksum of libyaml tarball")
+  set(YAML_SHA256 "c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4" CACHE STRING "SHA256 checksum of libyaml tarball")
   mark_as_advanced(YAML_URL)
-  mark_as_advanced(YAML_MD5)
+  mark_as_advanced(YAML_SHA256)
 
   # download and build a local copy of libyaml
   include(ExternalCMakeProject)
-  ExternalCMakeProject(libyaml ${YAML_URL} ${YAML_MD5} yaml . CMakeLists.libyaml)
+  ExternalCMakeProject(libyaml ${YAML_URL} ${YAML_SHA256} yaml . CMakeLists.libyaml)
   add_library(Yaml::Yaml ALIAS yaml)
 endif()
 

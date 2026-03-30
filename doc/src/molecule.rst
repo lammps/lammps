@@ -13,7 +13,7 @@ Syntax
 * ID = user-assigned name for the molecule template
 * file1,file2,... = names of files containing molecule descriptions
 * zero or more keyword/value pairs may be appended after each file
-* keyword = *offset* or *toff* or *boff* or *aoff* or *doff* or *ioff* or *scale* or *check_labels*
+* keyword = *offset* or *toff* or *boff* or *aoff* or *doff* or *ioff* or *scale* or *check_labels* or *auto*
 
   .. parsed-literal::
 
@@ -37,6 +37,10 @@ Syntax
          sfactor = scale factor to apply to the size, mass, and dipole of the molecule
        *check_labels* value = string
          string = string containing any of the following characters: 'b', 'a', 'd', or 'i'
+       *auto* value = string
+         string = string containing any of the following characters:
+          'a', 'd', or 'i', which will autogenerate angles, dihedrals, and
+          impropers, respectively
 
 Examples
 """"""""
@@ -49,6 +53,7 @@ Examples
    molecule CO2 co2.txt boff 3 aoff 2
    molecule 1 mymol.txt offset 6 9 18 23 14
    molecule objects file.1 scale 1.5 file.1 scale 2.0 file.2 scale 1.3
+   molecule 1 mymol.txt auto ad
 
 Description
 """""""""""
@@ -162,6 +167,36 @@ complex and are described on the doc page for each improper style in the
    feature is *not* available for the :doc:`read_restart command
    <read_restart>`, thus binary restart files need to be converted to
    data files first.
+
+.. versionadded:: TBD
+
+The *auto* keyword allows the molecule command to generate new angles,
+dihedrals, and/or impropers, and assign their angle types, dihedral
+types, and/or improper types.  New interactions are discovered by
+traversing the bond graph defined in the *Bonds* section, and new types
+are inferred using :doc:`type label<Howto_type_labels>`.  Type labels
+for angle, dihedral, and improper types must already be defined (e.g.,
+by the read_data command), to use the *auto* keyword, and each of the
+labels must be defined as a list with its constituent atom type labels
+separated by hyphens, as described for the *check_labels* keyword.  The
+*auto* value is a single string that should contain one or more of the
+characters 'a', 'd', and 'i', which correspond to angles, dihedrals, and
+impropers, respectively.  For example, the keyword/value pair *auto adi*
+will generate angle, dihedral, and improper information, while *auto di*
+will only generate information for dihedrals and impropers but not for
+angles.  Angles are generated from all unique 1-2-3 paths through the
+bond graph.  Dihedrals are generated from all unique 1-2-3-4 paths
+through the bond graph, as long as there are no duplicate atoms in the
+dihedral.  Impropers are generated from all atoms bonded to exactly
+three neighbors.  The type assigned to each generated 2-, 3- and 4-body
+interaction is found by searching the list of type labels for a match,
+e.g., 'c1-c2-c3' or 'c3-c2-c1' in the case of a 3-atom angle.   If a
+matching type cannot be found, LAMMPS will generate an error.
+
+.. note::
+
+  This command requires *Special Bonds* data to exist, which are
+  generated automatically by default.
 
 ----------
 

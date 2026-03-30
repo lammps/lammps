@@ -39,8 +39,8 @@ static constexpr double BIG = 1.0e20;
 /* ---------------------------------------------------------------------- */
 
 FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), nvalues(0), fp(nullptr), stats_list(nullptr), bin(nullptr),
-    bin_total(nullptr), bin_all(nullptr), bin_list(nullptr), coord(nullptr), vector(nullptr)
+    Fix(lmp, narg, arg), nvalues(0), stats_list(nullptr), bin(nullptr), bin_total(nullptr),
+    bin_all(nullptr), bin_list(nullptr), coord(nullptr), vector(nullptr)
 {
   const auto mycmd = fmt::format("fix {}", style);
   if (narg < 10) utils::missing_cmd_args(FLERR, mycmd, error);
@@ -438,8 +438,6 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveHisto::~FixAveHisto()
 {
-  if (fp && comm->me == 0) fclose(fp);
-
   delete[] bin;
   delete[] bin_total;
   delete[] bin_all;

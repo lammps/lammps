@@ -52,6 +52,7 @@ namespace {
 constexpr int NCOLORS = 140;
 constexpr int NELEMENTS = 109;
 constexpr double EPSILON = 1.0e-6;
+constexpr double TRANS_DELTA = 0.01;
 
 enum { NUMERIC, MINVALUE, MAXVALUE };
 enum { CONTINUOUS, DISCRETE, SEQUENTIAL };
@@ -577,8 +578,8 @@ void Image::clear()
   int blue  = background[2];
 
   if (background2[0] < 0.0) {
-    for (int iy = 0; iy < height; iy ++) {
-      for (int ix = 0; ix < width; ix ++) {
+    for (int iy = 0; iy < height; ++iy) {
+      for (int ix = 0; ix < width; ++ix) {
         imageBuffer[iy * width * 3 + ix * 3 + 0] = red;
         imageBuffer[iy * width * 3 + ix * 3 + 1] = green;
         imageBuffer[iy * width * 3 + ix * 3 + 2] = blue;
@@ -586,12 +587,12 @@ void Image::clear()
       }
     }
   } else {
-    for (int iy = 0; iy < height; iy ++) {
+    for (int iy = 0; iy < height; ++iy) {
       double fraction = (double) iy / (double) height;
       red   = static_cast<int>(fraction * background2[0] + (1.0 - fraction) * background[0]);
       green = static_cast<int>(fraction * background2[1] + (1.0 - fraction) * background[1]);
       blue  = static_cast<int>(fraction * background2[2] + (1.0 - fraction) * background[2]);
-      for (int ix = 0; ix < width; ix ++) {
+      for (int ix = 0; ix < width; ++ix) {
         imageBuffer[iy * width * 3 + ix * 3 + 0] = red;
         imageBuffer[iy * width * 3 + ix * 3 + 1] = green;
         imageBuffer[iy * width * 3 + ix * 3 + 2] = blue;
@@ -843,6 +844,8 @@ void Image::draw_pixmap(const double *x, int pixwidth, int pixheight, const unsi
 void Image::draw_pixmap(int xc, int yc, int pixwidth, int pixheight, const unsigned char *pixmap,
                         double *transcolor, double scale, double opacity, double dist)
 {
+  if (opacity <= 0.0) return;  // nothing to do
+
   const unsigned char *mypixmap = pixmap;
   unsigned char *npixmap = nullptr;
 
@@ -873,7 +876,7 @@ void Image::draw_pixmap(int xc, int yc, int pixwidth, int pixheight, const unsig
       int iy = ylo + j - pixheight/2;
       int ix = xlo + i - pixwidth/2;
       if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
-      if (((opacity < 1.0) && (transthresh[ix % TRANK][iy % TRANK] > opacity)) || (opacity <= 0.0))
+      if ((opacity < 1.0) && (transthresh[ix % TRANK][iy % TRANK] > opacity))
         continue;
 
       // get color of pixel at x/y position of pixmap
@@ -888,9 +891,9 @@ void Image::draw_pixmap(int xc, int yc, int pixwidth, int pixheight, const unsig
       // we allow a few steps difference for each channel to account
       // for rounding errors and reduce "bleeding" from interpolation
 
-      if ((fabs(pixelcolor[0] - transcolor[0]) < 0.01) &&
-          (fabs(pixelcolor[1] - transcolor[1]) < 0.01) &&
-          (fabs(pixelcolor[2] - transcolor[2]) < 0.01)) continue;
+      if ((fabs(pixelcolor[0] - transcolor[0]) < TRANS_DELTA) &&
+          (fabs(pixelcolor[1] - transcolor[1]) < TRANS_DELTA) &&
+          (fabs(pixelcolor[2] - transcolor[2]) < TRANS_DELTA)) continue;
 
       draw_pixel(ix, iy, dist, normal, pixelcolor);
     }
@@ -939,7 +942,7 @@ void Image::draw_sphere(const double *x, const double *surfaceColor, double diam
   for (int iy = yc - pixelRadius; iy <= yc + pixelRadius; iy++) {
     for (int ix = xc - pixelRadius; ix <= xc + pixelRadius; ix++) {
       if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
-      if (((opacity < 1.0) && (transthresh[ix % TRANK][iy % TRANK] > opacity)) || (opacity <= 0.0))
+      if ((opacity < 1.0) && (transthresh[ix % TRANK][iy % TRANK] > opacity))
         continue;
 
       double surface[3];
@@ -1004,10 +1007,10 @@ void Image::draw_cube(const double *x, const double *surfaceColor, double diamet
   xc += width / 2;
   yc += height / 2;
 
-  for (int iy = yc - pixelHalfWidth; iy <= yc + pixelHalfWidth; iy ++) {
-    for (int ix = xc - pixelHalfWidth; ix <= xc + pixelHalfWidth; ix ++) {
+  for (int iy = yc - pixelHalfWidth; iy <= yc + pixelHalfWidth; ++iy) {
+    for (int ix = xc - pixelHalfWidth; ix <= xc + pixelHalfWidth; ++ix) {
       if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
-      if (((opacity < 1.0) && (transthresh[ix % TRANK][iy % TRANK] > opacity)) || (opacity <= 0.0))
+      if ((opacity < 1.0) && (transthresh[ix % TRANK][iy % TRANK] > opacity))
         continue;
 
       double sy = ((iy - yc) - height_error) * pixelWidth;
@@ -1020,7 +1023,7 @@ void Image::draw_cube(const double *x, const double *surfaceColor, double diamet
       // only render up to 3 which are facing the camera
       // these checks short circuit a dot product, testing for > 0
 
-      for (int dim = 0; dim < 3; dim ++) {
+      for (int dim = 0; dim < 3; ++dim) {
         if (camDir[dim] > 0) {          // positive faces camera
           t = (radius - surface[dim]) / camDir[dim];
           normal[0] = camRight[dim];
@@ -1160,10 +1163,10 @@ void Image::draw_cylinder(const double *x, const double *y,
 
   double a = camLDir[0] * camLDir[0];
 
-  for (int iy = yc - pixelHalfHeight; iy <= yc + pixelHalfHeight; iy ++) {
-    for (int ix = xc - pixelHalfWidth; ix <= xc + pixelHalfWidth; ix ++) {
+  for (int iy = yc - pixelHalfHeight; iy <= yc + pixelHalfHeight; ++iy) {
+    for (int ix = xc - pixelHalfWidth; ix <= xc + pixelHalfWidth; ++ix) {
       if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
-      if (((opacity < 1.0) && (transthresh[ix % TRANK][iy % TRANK] > opacity)) || (opacity <= 0.0))
+      if ((opacity < 1.0) && (transthresh[ix % TRANK][iy % TRANK] > opacity))
         continue;
 
       double surface[3], normal[3];
@@ -1272,8 +1275,8 @@ void Image::draw_triangle(const double *x, const double *y, const double *z,
   double pixelWidth = (tanPerPixel > 0) ? tanPerPixel * dist : -tanPerPixel / zoom;
   double xf = xmap / pixelWidth;
   double yf = ymap / pixelWidth;
-  int xc = static_cast<int>(xf);
-  int yc = static_cast<int>(yf);
+  int xc = static_cast<int>(floor(xf));
+  int yc = static_cast<int>(floor(yf));
   double width_error = xf - xc;
   double height_error = yf - yc;
 
@@ -1286,15 +1289,15 @@ void Image::draw_triangle(const double *x, const double *y, const double *z,
   double pixelRightFull = rasterRight / pixelWidth;
   double pixelDownFull = rasterDown / pixelWidth;
   double pixelUpFull = rasterUp / pixelWidth;
-  int pixelLeft = std::lround(pixelLeftFull);
-  int pixelRight = std::lround(pixelRightFull);
-  int pixelDown = std::lround(pixelDownFull);
-  int pixelUp = std::lround(pixelUpFull);
+  int pixelLeft = static_cast<int>(ceil(pixelLeftFull));
+  int pixelRight = static_cast<int>(ceil(pixelRightFull));
+  int pixelDown = static_cast<int>(ceil(pixelDownFull));
+  int pixelUp = static_cast<int>(ceil(pixelUpFull));
 
-  for (int iy = yc - pixelDown; iy <= yc + pixelUp; iy ++) {
-    for (int ix = xc - pixelLeft; ix <= xc + pixelRight; ix ++) {
+  for (int iy = yc - pixelDown; iy <= yc + pixelUp; ++iy) {
+    for (int ix = xc - pixelLeft; ix <= xc + pixelRight; ++ix) {
       if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
-      if (((opacity < 1.0) && (transthresh[ix % TRANK][iy % TRANK] > opacity)) || (opacity <= 0.0))
+      if ((opacity < 1.0) && (transthresh[ix % TRANK][iy % TRANK] > opacity))
         continue;
 
       double sy = ((iy - yc) - height_error) * pixelWidth;
@@ -1314,12 +1317,6 @@ void Image::draw_triangle(const double *x, const double *y, const double *z,
 
       double s1[3], s2[3], s3[3];
       double c1[3], c2[3];
-
-      // for grid cell and other triangle meshes:
-      // there can be single pixel gaps due to rounding
-      // using <= if test can leave single-pixel gaps between 2 triangles
-      // using < if test fixes most of them
-      // suggested by Nathan Fabian, Nov 2022
 
       MathExtra::sub3(zlocal, xlocal, s1);
       MathExtra::sub3(ylocal, xlocal, s2);
@@ -1353,12 +1350,175 @@ void Image::draw_triangle(const double *x, const double *y, const double *z,
   }
 }
 
+/* ----------------------------------------------------------------------
+   draw triangle with 3 corner points x,y,z
+   3 normals nx,ny,nz and 3 colors cx,cy,cz, one per corner
+   normal and color for each pixel are interpolated using barycentric coords
+------------------------------------------------------------------------- */
+
+void Image::draw_trinorm(const double *x, const double *y, const double *z,
+                         const double *nx, const double *ny, const double *nz,
+                         const double *cx, const double *cy, const double *cz,
+                         const double opacity)
+{
+  if (opacity <= 0.0) return;  // nothing to do
+
+  double d1[3], d1len, d2[3], d2len, normal[3], invndotd;
+  double xlocal[3], ylocal[3], zlocal[3];
+  double surface[3];
+  double depth;
+
+  xlocal[0] = x[0] - xctr;
+  xlocal[1] = x[1] - yctr;
+  xlocal[2] = x[2] - zctr;
+  ylocal[0] = y[0] - xctr;
+  ylocal[1] = y[1] - yctr;
+  ylocal[2] = y[2] - zctr;
+  zlocal[0] = z[0] - xctr;
+  zlocal[1] = z[1] - yctr;
+  zlocal[2] = z[2] - zctr;
+
+  MathExtra::sub3(xlocal, ylocal, d1);
+  d1len = MathExtra::len3(d1);
+  if (d1len == 0.0) return;     // zero length of triangle side
+  MathExtra::scale3(1.0 / d1len, d1);
+
+  MathExtra::sub3(zlocal, ylocal, d2);
+  d2len = MathExtra::len3(d2);
+  if (d2len == 0.0) return;     // zero length of triangle side
+  MathExtra::scale3(1.0 / d2len, d2);
+
+  MathExtra::cross3(d1, d2, normal);
+  MathExtra::norm3(normal);
+  invndotd = MathExtra::dot3(normal, camDir);
+
+  // triangle parallel to camera and thus invisible
+  if (invndotd == 0.0) return;
+  invndotd = 1.0 / invndotd;
+
+  double r[3],u[3];
+
+  r[0] = MathExtra::dot3(camRight,xlocal);
+  r[1] = MathExtra::dot3(camRight,ylocal);
+  r[2] = MathExtra::dot3(camRight,zlocal);
+
+  u[0] = MathExtra::dot3(camUp,xlocal);
+  u[1] = MathExtra::dot3(camUp,ylocal);
+  u[2] = MathExtra::dot3(camUp,zlocal);
+
+  double rasterLeft = r[0] - MIN(r[0],MIN(r[1],r[2]));
+  double rasterRight = MAX(r[0],MAX(r[1],r[2])) - r[0];
+  double rasterDown = u[0] - MIN(u[0],MIN(u[1],u[2]));
+  double rasterUp = MAX(u[0],MAX(u[1],u[2])) - u[0];
+
+  double xmap = MathExtra::dot3(camRight,xlocal);
+  double ymap = MathExtra::dot3(camUp,xlocal);
+  double dist = MathExtra::dot3(camPos,camDir) - MathExtra::dot3(xlocal,camDir);
+
+  double pixelWidth = (tanPerPixel > 0) ? tanPerPixel * dist : -tanPerPixel / zoom;
+  double xf = xmap / pixelWidth;
+  double yf = ymap / pixelWidth;
+  int xc = static_cast<int>(floor(xf));
+  int yc = static_cast<int>(floor(yf));
+  double width_error = xf - xc;
+  double height_error = yf - yc;
+
+  // shift 0,0 to screen center (vs lower left)
+
+  xc += width / 2;
+  yc += height / 2;
+
+  double pixelLeftFull = rasterLeft / pixelWidth;
+  double pixelRightFull = rasterRight / pixelWidth;
+  double pixelDownFull = rasterDown / pixelWidth;
+  double pixelUpFull = rasterUp / pixelWidth;
+  int pixelLeft = static_cast<int>(ceil(pixelLeftFull));
+  int pixelRight = static_cast<int>(ceil(pixelRightFull));
+  int pixelDown = static_cast<int>(ceil(pixelDownFull));
+  int pixelUp = static_cast<int>(ceil(pixelUpFull));
+
+  // precompute for barycentric coordinates
+
+  double v0[3], v1[3];
+  MathExtra::sub3(ylocal, xlocal, v0);
+  MathExtra::sub3(zlocal, xlocal, v1);
+  double d00 = MathExtra::dot3(v0, v0);
+  double d01 = MathExtra::dot3(v0, v1);
+  double d11 = MathExtra::dot3(v1, v1);
+  double denom = d00 * d11 - d01 * d01;
+  if (denom == 0.0) return;    // degenerate triangle
+  double inv_denom = 1.0 / denom;
+
+  for (int iy = yc - pixelDown; iy <= yc + pixelUp; ++iy) {
+    for (int ix = xc - pixelLeft; ix <= xc + pixelRight; ++ix) {
+      if (iy < 0 || iy >= height || ix < 0 || ix >= width) continue;
+      if ((opacity < 1.0) && (transthresh[ix % TRANK][iy % TRANK] > opacity))
+        continue;
+
+      double sy = ((iy - yc) - height_error) * pixelWidth;
+      double sx = ((ix - xc) - width_error) * pixelWidth;
+      surface[0] = camRight[0] * sx + camUp[0] * sy;
+      surface[1] = camRight[1] * sx + camUp[1] * sy;
+      surface[2] = camRight[2] * sx + camUp[2] * sy;
+
+      double t = -MathExtra::dot3(normal,surface) * invndotd;
+
+      // compute point on triangle plane
+
+      double p[3];
+      p[0] = xlocal[0] + surface[0] + camDir[0] * t;
+      p[1] = xlocal[1] + surface[1] + camDir[1] * t;
+      p[2] = xlocal[2] + surface[2] + camDir[2] * t;
+
+      // compute barycentric coordinates
+
+      double v2[3];
+      MathExtra::sub3(p, xlocal, v2);
+      double d20 = MathExtra::dot3(v2, v0);
+      double d21 = MathExtra::dot3(v2, v1);
+      double lambda_y = (d11 * d20 - d01 * d21) * inv_denom;
+      double lambda_z = (d00 * d21 - d01 * d20) * inv_denom;
+      double lambda_x = 1.0 - lambda_y - lambda_z;
+
+      // point outside triangle if any barycentric coordinate is negative
+
+      if ((lambda_x < 0.0) || (lambda_y < 0.0) || (lambda_z < 0.0)) continue;
+
+      // interpolate normal from per-vertex normals
+
+      double inormal[3];
+      inormal[0] = lambda_x * nx[0] + lambda_y * ny[0] + lambda_z * nz[0];
+      inormal[1] = lambda_x * nx[1] + lambda_y * ny[1] + lambda_z * nz[1];
+      inormal[2] = lambda_x * nx[2] + lambda_y * ny[2] + lambda_z * nz[2];
+      MathExtra::norm3(inormal);
+
+      // interpolate color from per-vertex colors
+
+      double icolor[3];
+      icolor[0] = lambda_x * cx[0] + lambda_y * cy[0] + lambda_z * cz[0];
+      icolor[1] = lambda_x * cx[1] + lambda_y * cy[1] + lambda_z * cz[1];
+      icolor[2] = lambda_x * cx[2] + lambda_y * cy[2] + lambda_z * cz[2];
+
+      // transform interpolated normal to camera space
+
+      double cNormal[3];
+      cNormal[0] = MathExtra::dot3(camRight, inormal);
+      cNormal[1] = MathExtra::dot3(camUp, inormal);
+      cNormal[2] = MathExtra::dot3(camDir, inormal);
+
+      depth = dist - t;
+      draw_pixel(ix, iy, depth, cNormal, icolor);
+    }
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
-void Image::draw_pixel(int ix, int iy, double depth,
-                       const double *surface, const double *surfaceColor)
+void Image::draw_pixel(int ix, int iy, double depth, const double *surface,
+                       const double *surfaceColor)
 {
   if (!std::isfinite(depth)) return; // reject pixels with invalid depth buffer values
+  if (!surfaceColor) return;         // reject pixels with an invalid color
 
   double diffuseKey,diffuseFill,diffuseBack,specularKey;
   if (depth < 0 || (depthBuffer[ix + iy*width] >= 0 && depth >= depthBuffer[ix + iy*width])) return;
@@ -1427,7 +1587,7 @@ void Image::compute_SSAO()
   int pixelstart = static_cast<int>(1.0*me/nprocs * npixels);
   int pixelstop = static_cast<int>(1.0*(me+1)/nprocs * npixels);
 
-  // file buffer with random numbers to avoid race conditions
+  // fill buffer with random numbers to avoid race conditions
   auto *uniform = new double[pixelstop - pixelstart];
   for (int i = 0; i < pixelstop - pixelstart; ++i) uniform[i] = random->uniform();
 
@@ -1448,7 +1608,7 @@ void Image::compute_SSAO()
     double mytheta = uniform[index - pixelstart] * SSAOJitter;
     double ao = 0.0;
 
-    for (int s = 0; s < SSAOSamples; s ++) {
+    for (int s = 0; s < SSAOSamples; ++s) {
       double hx = cos(mytheta);
       double hy = sin(mytheta);
       mytheta += delTheta;
@@ -2552,5 +2712,6 @@ double *ColorMap::value2color(double value)
     return mentry[ibin%nentry].color;
   }
 
-  return nullptr;
+  // always return a non-NULL pointer
+  return mentry[0].color;
 }

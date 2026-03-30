@@ -358,7 +358,8 @@ void FixSRD::init()
     error->all(FLERR, Error::NOLASTLINE, "Cannot change timestep once fix srd is set up");
   if (comm->style != Comm::BRICK)
     error->all(FLERR, Error::NOLASTLINE, "Fix srd currently only be used with comm_style brick");
-
+  if (atom->superellipsoid_flag)
+    error->all(FLERR, Error::NOLASTLINE, "Fix srd does not currently support superellipsoids");
   // orthogonal vs triclinic simulation box
   // could be static or shearing box
 

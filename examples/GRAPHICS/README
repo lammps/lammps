@@ -21,7 +21,8 @@ Here is a list of the inputs and which graphics features they demonstrate
 
 - in.peptide-hbonds:        peptide with surrounding water molecules
                             visualize donated and accepted hydrogen bonds
-                            https://youtube.com/shorts/1QEjIITapwQ
+                            overlay graphics from image without background
+                            https://youtube.com/shorts/Q6KBE08AG8c
 
 - in.obstacle-lines         trajectory lines with obstacle flow example
                             https://youtu.be/9HEsGaOsdik

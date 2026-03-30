@@ -108,13 +108,13 @@ are listed in the sections below.
 Note that for all the body styles, if the data file defines a general
 triclinic box, then the orientation of the body particle and its
 corresponding 6 moments of inertia and other orientation-dependent
-values should reflect the fact the body is defined withing a general
+values should reflect the fact the body is defined within a general
 triclinic box with edge vectors **A**,**B**,**C**.  LAMMPS will rotate
 the box to convert it to a restricted triclinic box.  This operation
 will also rotate the orientation of the body particles.  See the
-:doc:`Howto triclinic <Howto_triclinic>` doc page for more details.
-The sections below highlight the orientation-dependent values specific
-to each body style.
+:doc:`Howto triclinic <Howto_triclinic>` doc page for more details.  The
+sections below highlight the orientation-dependent values specific to
+each body style.
 
 ----------
 
@@ -464,7 +464,7 @@ these polyhedron vertex displacements are orientation-dependent and,
 as mentioned above, should reflect the body particle's orientation
 within the general triclinic box.
 
-The :doc:`pair_style body/rounded/polhedron
+The :doc:`pair_style body/rounded/polyhedron
 <pair_body_rounded_polyhedron>` command can be used with this body
 style to compute body/body interactions.  The :doc:`fix
 wall/body/polyhedron <fix_wall_body_polygon>` command can be used with
@@ -476,7 +476,7 @@ wall.
 **Output specifics for all body styles:**
 
 For the :doc:`compute body/local <compute_body_local>` and :doc:`dump
-local <dump>` commands, all 3 of the body styles described on his page
+local <dump>` commands, all 3 of the body styles described on this page
 produces one datum for each of the N vertices (of sub-particles) in a
 body particle.  The datum has 3 values:
 
@@ -499,12 +499,21 @@ spheres, one for each sub-particle.  The size of each sphere is
 determined by the *bflag1* parameter for the *body* keyword.  The
 *bflag2* argument is ignored.
 
-For the *rounded/polygon* body style, each body is drawn as a polygon
-and for *rounded/polyhedron* as a polyhedron.  The *bflag2* argument
+For the *rounded/polygon* body style, each body is drawn as a polygon.
+The *bflag2* argument selects how the bodies are represented: for a
+value of 1, only the faces are drawn; for a value of 2 instead only a
+wireframe outline is drawn; and for a value of 3 both the faces and the
+wireframe outline are drawn.  The diameter of the wireframe cylinders is
+determined by the *bflag1* parameter for the *body* keyword.
+
+For the *rounded/polyhedron* body style, each body is drawn as a
+polyhedron consisting of triangles and squares.  The *bflag2* argument
 selects how the bodies are represented: for a value of 1, only the faces
-are drawn; for a value of 2, only a wireframe mesh is drawn, and for a
-value of 3 both.  The diameter of each wireframe line is determined by
-the *bflag1* parameter for the *body* keyword.
+are drawn with some shading added; for a value of 2 instead only a
+wireframe mesh is drawn; for a value of 3 both the faces and the
+wireframe mesh are drawn; and for a value of 4 only the faces are drawn,
+but without shading.  The diameter of the wireframe cylinders is
+determined by the *bflag1* parameter for the *body* keyword.
 
 Note that for both the *rounded/polygon* and *rounded/polyhedron*
 styles, line segments are drawn between the pairs of vertices.

@@ -99,6 +99,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
 
   copymode = 0;
   kokkosable = 0;
+  forward_comm_device = 0;
 }
 
 /* ---------------------------------------------------------------------- */

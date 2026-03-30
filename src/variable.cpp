@@ -33,6 +33,7 @@
 #include "output.h"
 #include "random_mars.h"
 #include "region.h"
+#include "safe_pointers.h"
 #include "thermo.h"
 #include "timer.h"
 #include "tokenizer.h"
@@ -302,12 +303,10 @@ void Variable::set(int narg, char **arg)
     which[nvar] = universe->iworld;
 
     if (universe->me == 0) {
-      FILE *fp = fopen("tmp.lammps.variable", "w");
+      SafeFilePtr fp = fopen("tmp.lammps.variable", "w");
       if (fp == nullptr)
         error->one(FLERR, "Cannot open temporary file for world counter: " + utils::getsyserror());
       fprintf(fp, "%d\n", universe->nworlds);
-      fclose(fp);
-      fp = nullptr;
     }
 
     for (int jvar = 0; jvar < nvar; jvar++)
@@ -799,6 +798,7 @@ int Variable::next(int narg, char **arg)
       int done = reader[ivar]->read_scalar(data[ivar][0]);
       if (done) {
         flag = 1;
+        if (comm->me == 0) error->warning(FLERR, "Auto-deleting variable {}\n", arg[iarg]);
         remove(ivar);
       }
     }
@@ -810,6 +810,7 @@ int Variable::next(int narg, char **arg)
       int done = reader[ivar]->read_peratom();
       if (done) {
         flag = 1;
+        if (comm->me == 0) error->warning(FLERR, "Auto-deleting variable {}\n", arg[iarg]);
         remove(ivar);
       }
     }
@@ -845,7 +846,7 @@ int Variable::next(int narg, char **arg)
       // and we have to start over.
       // if the read is short (we need at least one byte) we try reading again.
 
-      FILE *fp;
+      SafeFilePtr fp;
       char buf[64];
       for (int loopmax = 0; loopmax < 100; ++loopmax) {
         fp = fopen("tmp.lammps.variable.lock","r");
@@ -854,7 +855,6 @@ int Variable::next(int narg, char **arg)
         buf[0] = buf[1] = '\0';
         auto tmp = fread(buf,1,64,fp);
         (void) tmp; // can be safely ignored, suppress compiler warning in a portable way
-        fclose(fp);
 
         if (strlen(buf) > 0) {
           nextindex = std::stoi(buf);
@@ -872,8 +872,6 @@ int Variable::next(int narg, char **arg)
 
       fp = fopen("tmp.lammps.variable.lock","w");
       fprintf(fp,"%d\n",nextindex+1);
-      fclose(fp);
-      fp = nullptr;
       (void) rename("tmp.lammps.variable.lock","tmp.lammps.variable");
       if (universe->uscreen)
         fprintf(universe->uscreen, "Increment via next: value %d on partition %d\n",
@@ -4912,7 +4910,10 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     if (style[ivar] == SCALARFILE) {
       double value = std::stod(data[ivar][0]);
       int done = reader[ivar]->read_scalar(data[ivar][0]);
-      if (done) remove(ivar);
+      if (done) {
+        if (comm->me == 0) error->warning(FLERR, "Auto-deleting variable {}\n", args[0]);
+        remove(ivar);
+      }
 
       if (tree) {
         auto *newtree = new Tree();
@@ -4934,7 +4935,10 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       memcpy(result,reader[ivar]->fixstore->vstore,(atom->nlocal*sizeof(double))&MEMCPYMASK);
 
       int done = reader[ivar]->read_peratom();
-      if (done) remove(ivar);
+      if (done) {
+        if (comm->me == 0) error->warning(FLERR, "Auto-deleting variable {}\n", args[0]);
+        remove(ivar);
+      }
 
       auto *newtree = new Tree();
       newtree->type = ATOMARRAY;
@@ -4949,9 +4953,8 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     if (narg != 1)
       print_var_error(FLERR,"Invalid is_file() function in variable formula",ivar);
 
-    FILE *fp = fopen(args[0],"r");
+    SafeFilePtr fp = fopen(args[0],"r");
     value = (fp == nullptr) ? 0.0 : 1.0;
-    if (fp) fclose(fp);
 
     // save value in tree or on argstack
 
@@ -5710,7 +5713,6 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
 {
   me = comm->me;
   style = flag;
-  fp = nullptr;
 
   if (me == 0) {
     fp = fopen(file,"r");
@@ -5742,11 +5744,6 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
 
 VarReader::~VarReader()
 {
-  if (me == 0) {
-    fclose(fp);
-    fp = nullptr;
-  }
-
   // check modify in case all fixes have already been deleted
 
   if (fixstore) {

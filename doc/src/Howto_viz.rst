@@ -238,13 +238,13 @@ example to color atoms of type 1 in gray and type 2 in white, you would use:
 
    dump_modify img  acolor 1 gray acolor 2 white
 
-There are 144 predefined colors, but you can add new colors or modify
+There are 140 predefined colors, but you can add new colors or modify
 existing ones, too, with the *dump_modify color* keyword.  The *color*
 keyword is followed by the name of the color and the intensity of the
 red, green, and blue components (R/G/B) in a range from 0.0 to 1.0. Here
 is an example to create eight new color names followed by the *acolor*
 keyword with a wildcard to replace the default map of six atom colors
-with a new map of the either newly defined colors.
+with a new map of the eight newly defined colors.
 
 .. code-block:: LAMMPS
 
@@ -275,7 +275,7 @@ the charge:
 .. code-block:: LAMMPS
 
    dump viz peptide image 1000 image-*.png q type size 600 600 zoom 2.0
-   dump_modify amap -1.0 1.0 ca 0 3 min blue 0.0 white max red
+   dump_modify viz amap -1.0 1.0 ca 0 3 min blue 0.0 white max red
 
 
 .. |colors1| image:: img/colors-default.png
@@ -454,13 +454,14 @@ lines can be transferred to the cut-n-paste buffer of the windowing
 system and pasted into the input file and then further adjusted.
 
 Once the input contains a :doc:`dump image <dump_image>` command,
-LAMMPS-GUI will notice when a new image has been created and load it
-into "Slide Show Dialog".  This streamlines the process of building more
-complex visualizations once you have copied it into the input since you
-have editor and image viewer as part of the same program and can quickly
-start and stop LAMMPS with a mouse click or keystroke.  A large part of
-the visualization examples on shown in this Howto page have been created
-this way.
+LAMMPS-GUI notices when a new image has been created and loads it into
+the "Slide Show Dialog".  This streamlines the process of building more
+complex visualizations once you have copied an initial draft created
+with the "Image Viewer Dialog" into the input since you have editor and
+image viewer as part of the same program and can quickly start and stop
+LAMMPS with a mouse click or keystroke.  A large part of the
+visualization examples shown in this Howto page have been created this
+way.
 
 .. |gui1| image:: JPG/lammps-gui-main.png
    :width: 38%
@@ -477,14 +478,14 @@ Visualizing systems using potentials with implicit bonds
 --------------------------------------------------------
 
 There are several pair styles available in LAMMPS where the bond
-information is not taken from from the bond topology in a data file but
-the potentials first determine a "bond-order" parameter for pairs of
-atoms and - depending on the value of that parameter - apply forces for
-bonded interactions.  This applies to :doc:`ReaxFF <pair_reaxff>`,
-:doc:`REBO and AIREBO <pair_airebo>`, :doc:`BOP <pair_bop>`, and several
-others pair styles.  These implicit bonds will not be shown by
-:doc:`dump image <dump_image>` since its mechanism for displaying bonds
-relies on explicit bonds being present in the bond topology.
+information is not taken from the bond topology in a data file but the
+potentials first determine a "bond-order" parameter for pairs of atoms
+and - depending on the value of that parameter - apply forces for bonded
+interactions.  This applies to :doc:`ReaxFF <pair_reaxff>`, :doc:`REBO
+and AIREBO <pair_airebo>`, :doc:`BOP <pair_bop>`, and several others
+pair styles.  These implicit bonds will not be shown by :doc:`dump image
+<dump_image>` since its mechanism for displaying bonds relies on
+explicit bonds being present in the bond topology.
 
 One can hide the fact that there are no bonds by setting the atom radii
 to the covalent radii of the corresponding elements (see leftmost
@@ -501,7 +502,7 @@ currently three approaches to make those bonds visible.
    the computation of the model.  This is currently only available for
    ReaxFF by using :doc:`fix reaxff/bonds <fix_reaxff_bonds>`.
 
-#. Use the *autobonds* keyword of :doc:`dump image <dump_image>` to
+#. Use the *autobond* keyword of :doc:`dump image <dump_image>` to
    approximate the bonds based on a simple distance heuristic.  This is
    similar to the *Dynamic Bonds* representation in `VMD
    <https://www.ks.uiuc.edu/Research/vmd/>`_.  How accurate this option
@@ -516,18 +517,18 @@ currently three approaches to make those bonds visible.
    hydrogen-hydrogen distance for hydrogen atoms bound to the same atom
    (e.g. in water, methane or hydrocarbon chains).
 
-#. Use use a combination of :doc:`fix bond/break <fix_bond_break>`
-   and :doc:`fix bond/create/angle <fix_bond_create>` with :doc:`bond
-   style zero <bond_zero>` to dynamically create and remove bonds that
-   do not add any forces.  This also requires to tell the neighbor list
-   code to not treat any pairs of atoms as special neighbors (otherwise
-   the corresponding pairs of atoms could be excluded from the neighbor
-   list and thus the forces computed by the pair style incorrect)
-   through using the :doc:`special_bonds <special_bonds>` command.
-   Unlike the two other options which were recently added when this
-   document when was written, this method also works with older versions
-   of LAMMPS.  Here is an example of the necessary commands for a carbon
-   nanotube (that is modeled with AIREBO):
+#. Use a combination of :doc:`fix bond/break <fix_bond_break>` and
+   :doc:`fix bond/create/angle <fix_bond_create>` with :doc:`bond style
+   zero <bond_zero>` to dynamically create and remove bonds that do not
+   add any forces.  This also requires to tell the neighbor list code to
+   not treat any pairs of atoms as special neighbors (otherwise the
+   corresponding pairs of atoms could be excluded from the neighbor list
+   and thus the forces computed by the pair style incorrect) through
+   using the :doc:`special_bonds <special_bonds>` command.  Unlike the
+   two other options, which were added more recently, this method also
+   works with older versions of LAMMPS.  Here is an example of the
+   necessary commands for a carbon nanotube modeled with the AIREBO
+   potential:
 
    .. code-block:: LAMMPS
 
@@ -604,12 +605,15 @@ faces (*bflag1* value 1), or both (*bflag1* value 3).
 
 -------------
 
-Visualizing ellipsoid particles
--------------------------------
+Visualizing ellipsoid and superellipsoid particles
+--------------------------------------------------
+
+.. versionadded:: 11Feb2026
 
 Ellipsoidal particles are a generalization of spheres that may have
-three different radii to define the shape.  They can be modeled using
-pair styles :doc:`gayberne <pair_gayberne>` or :doc:`resquared
+three different radii to define the shape.  Superellipsoids are in turn
+a generalization of ellipsoids.  They can be modeled using pair styles
+like :doc:`gayberne <pair_gayberne>` or :doc:`resquared
 <pair_resquared>`.  The regular :doc:`dump custom <dump>` command can
 output the center of those bodies, the shape parameters and the
 orientation as quaternions.  If one follows the required conventions and
@@ -617,47 +621,77 @@ follows the documented steps, those trajectory dump files can be
 `imported and visualized in OVITO
 <https://www.ovito.org/manual/advanced_topics/aspherical_particles.html>`_
 
-As an alternative, the ellipsoid particles can be visualized directly
-with :doc:`dump image <dump_image>` using the *ellipsoid* keyword.  The
-color and transparency settings can be changed by settings those
-properties for the corresponding atom types.  It is also possible to
-represent the ellipsoids via generating a triangle mesh and visualizing
-it as either wireframes (*eflag* value 2), planar faces (*eflag* value
-1), or both (*eflag* value 3), same as demonstrated for body particles
-above.  The use of a triangle mesh is currently required since the
-rasterizer built into LAMMPS does not offer a suitable graphics
-primitive for ellipsoids.  The mesh is constructed by iteratively
-refining a triangle mesh representing an octahedron where each triangle
-is replaced by four triangles.  For a smooth representation a refinement
-level of 5 or 6 is required, which will cause a significant slowdown of
-the rendering of the image.  Also, some artifacts can happen due to
-rounding which can be somewhat minimized using FSAA (which causes
-further slowdown of the rendering).
+.. versionchanged:: TBD
 
-.. |ellipsoid1| image:: img/ellipsoid-level2.png
-   :width: 33%
-.. |ellipsoid2| image:: img/ellipsoid-level4.png
-   :width: 33%
-.. |ellipsoid3| image:: img/ellipsoid-level6.png
-   :width: 33%
+   Now uses curved triangles instead of flat ones; "both" option is removed; support for superellipsoids was added
 
-|ellipsoid1|  |ellipsoid2|  |ellipsoid3|
+As an alternative, the ellipsoid and superellipsoid particles can be
+visualized directly with :doc:`dump image <dump_image>` using the
+*ellipsoid* keyword.  The color and transparency settings can be changed
+by setting those properties for the corresponding atom types.  It is
+also possible to represent the ellipsoids via generating a triangle mesh
+and visualizing it as either wireframes (*eflag* value 2) or rounded
+triangle faces (*eflag* value 1).  The use of a triangle mesh is
+currently required since the rasterizer built into LAMMPS does not offer
+suitable graphics primitives for ellipsoids or superellipsoids.  The
+mesh is constructed by iteratively refining a triangle mesh representing
+an icosahedron, where each triangle is replaced by four triangles in
+each iteration.  For a smooth representation a refinement level of 4
+seems sufficient, but high resolution images may benefit from a higher
+level (maximum is 6, see example images below).  A high refinement level
+can cause a significant slowdown of the rendering of the image due to
+the large number of triangles that need to be computed and drawn.  This
+slowdown will be more pronounced when enabling FSAA or SSAO or both.
+
+.. |ellipsoid1| image:: img/ellipsoid-mesh.png
+   :width: 24%
+.. |ellipsoid2| image:: img/ellipsoid-level2.png
+   :width: 24%
+.. |ellipsoid3| image:: img/ellipsoid-level4.png
+   :width: 24%
+.. |ellipsoid4| image:: img/ellipsoid-level6.png
+   :width: 24%
+
+|ellipsoid1|  |ellipsoid2|  |ellipsoid3|  |ellipsoid4|
 
 .. raw:: html
 
-   <center>(Ellipsoid particle visualization examples for different mesh refinement levels.
-   left: level 2, center: level 4, right: level 6. Click to see the full-size images)</center><br>
+   <center>(Ellipsoid particle visualization examples for different mesh
+         levels.  from left to right: wireframe level 3, triangles level
+         2, triangles level 4, triangles level 6. Click to see the
+         full-size images)</center><br>
 
 These images were created by adding the following :doc:`dump image and dump_modify <dump_image>`
 commands to the ``in.ellipse.resquared`` input example:
 
 .. code-block:: LAMMPS
 
-   #                                                       change + this
-   dump viz all image 1000 image-*.png type type ellipsoid type 3 4 0.05 &
-         size 600 600 zoom 2.2 shiny 0.1 fsaa yes view 80 -10 box yes 0.025 &
-         axes no 0.0 0.0 center s 0.5 0.5 0.5 ssao yes 32185474 0.6
-   dump_modify viz pad 9 boxcolor white backcolor gray adiam 1 4 adiam 2 7
+   #                                                   change /V\ this
+   dump viz all image 1000 image-*.png x type ellipsoid atom 1 4 0.2 &
+        size 600 600 zoom 1.331 view 80 20 box yes 0.025 shiny 0.2 fsaa yes
+   dump_modify viz pad 6 boxcolor goldenrod backcolor black backcolor2 white &
+        color map1 0.459 0.055 0.075 color map2 0.000 0.227 0.427 &
+        amap min max cf 0.0 5 min map1 0.1 map1 0.5 white 0.9 map2 max map2
+
+.. versionadded:: TBD
+
+The visualization of superellipsoids works exactly the same way as for
+ellipsoids by creating a triangle mesh of an icosahedron and refining
+and deforming it.  The difference is merely internally the applied
+deformation function and the corresponding computation of the surface
+normals.  LAMMPS will auto-detect which function to use.  Some
+visualizations of the ``in.drop_test``, the ``in.bowling``, and the
+``in.super_table`` examples from the
+``examples/ASPHERE/superellipsoid_gran`` folder are shown below.
+
+.. |superellipsoid1| image:: img/superellipsoids-drop.png
+   :width: 23%
+.. |superellipsoid2| image:: img/superellipsoids-bowl.png
+   :width: 41%
+.. |superellipsoid3| image:: img/superellipsoids-zoo.png
+   :width: 31%
+
+|superellipsoid1|  |superellipsoid2|  |superellipsoid3|
 
 -------------
 
@@ -910,7 +944,7 @@ velocities:
    fix dipole all graphics/objects 1 arrow 1  v_dip1x v_dip1y v_dip1z v_dip2x v_dip2y v_dip2z 0.3 0.2
 
    dump viz all image 100 image-*.png element type size 600 600 zoom 1.3 view 70 20 shiny 0.1 &
-                bond atom 0.2box yes 0.025 axes no 0.0 0.0 center s 0.5 0.5 0.5 fsaa yes &
+                bond atom 0.2 box yes 0.025 axes no 0.0 0.0 center s 0.5 0.5 0.5 fsaa yes &
                 fix dipole const 0 0 fix vec const 0 0 fix vel const 0 0 ssao yes 315465 0.8
    dump_modify viz pad 6 boxcolor white backcolor gray element O H  bdiam 1 0.2 &
                 adiam 1 0.5 adiam 2 0.3 acolor 1 silver acolor 2 red fcolor vec goldenrod &
@@ -995,7 +1029,7 @@ input file:
 
    group       ogroup type 1
    group       hgroup type 2
-   compute     hb     all hbond/local 3.3 30.0 ogroup ogroup hgroup
+   compute     hb     all hbond/local 3.5 30.0 ogroup ogroup hgroup
 
    dump        viz    all image 100 water-*.png element type size 600 600 zoom 1.331 view 70 20 &
                                                 shiny 0.2 ssao yes 348276 0.6 fsaa yes  box yes 0.025 &
@@ -1017,25 +1051,19 @@ and the surrounding water molecules in both directions.
 
 .. code-block:: LAMMPS
 
-    # define ellipsoid region around peptide for hbond analysis and visualization
-    group     peptide type <= 12
-    variable  comx equal xcm(peptide,x)
-    variable  comy equal xcm(peptide,y)
-    variable  comz equal xcm(peptide,z)
-    region    shell ellipsoid v_comx v_comy v_comz 7.0 8.0 16.0
-    group     viz dynamic all region shell include molecule
+    # select atoms for visualization: peptide and water molecules within 3.5 angstrom
+    group     viz dynamic peptide within 3.5 include molecule every 100
 
-    # define groups of donor and acceptor atoms for peptide and water
-    group           pdonor    type 5
-    group           wdonor    type 13
-    group           pacceptor type 3 5 9 12
-    group           wacceptor type 13
-    group           hydrogen type 10 14
+    # define groups of donor, acceptor, and hydrogen atoms for peptide and water
+    group           pdonor    type  5  9        # peptide donors : nitrogens and phenol oxygen
+    group           woxygen   type 13           # water oxygens are donor and acceptor
+    group           pacceptor type  3  5  9 12  # peptide acceptors: oxygens, nitrogens, and sulfur
+    group           hydrogen  type  4 10 14     # hydrogens bonded to oxygens and nitrogens
 
     # peptide-water hydrogen bonds where the peptide is the donor
-    compute hb1 all hbond/local 3.3 30.0 pdonor wacceptor hydrogen
+    compute hb1 all hbond/local 3.5 30.0 pdonor woxygen hydrogen
     # peptide-water hydrogen bonds where the peptide is the acceptor
-    compute hb2 all hbond/local 3.7 30.0 wdonor pacceptor hydrogen
+    compute hb2 all hbond/local 3.7 30.0 woxygen pacceptor hydrogen
 
     # create donor/acceptor hydrogen bond info text
     fix label all graphics/labels 100 text "Hydrogen bonds donated:   $(c_hb1:%02.0f)" 207 72 0.0 &

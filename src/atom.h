@@ -191,7 +191,7 @@ class Atom : protected Pointers {
   // 1 if variable is used, 0 if not
 
   int labelmapflag, types_style;
-  int ellipsoid_flag, line_flag, tri_flag, body_flag;
+  int ellipsoid_flag, line_flag, tri_flag, body_flag, superellipsoid_flag;
   int peri_flag, electron_flag, sph_flag;
 
   int molecule_flag, molindex_flag, molatom_flag;

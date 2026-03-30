@@ -108,9 +108,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   ioptional = parse_fields(nfield,earg);
 
-  if (ioptional < nfield &&
-      strcmp(style,"image") != 0 && strcmp(style,"movie") != 0)
-    error->all(FLERR,"Invalid attribute {} in dump {} command",earg[ioptional],style);
+  if ((ioptional < nfield) && (strcmp(style,"image") != 0) && (strcmp(style,"movie") != 0))
+    error->all(FLERR, "Invalid attribute {} in dump {} command", earg[ioptional], style);
 
   // noptional = # of optional args
   // reset nfield to subtract off optional args
@@ -1455,6 +1454,10 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
   for (int iarg = 0; iarg < narg; iarg++) {
     int errptr = iarg + argoff;
+
+    // only attempt to parse first two fields for dump image/movie
+    if ((iarg == 2) && ((strcmp(style,"image") == 0) || (strcmp(style,"movie") == 0))) return 2;
+
     if (strcmp(arg[iarg],"id") == 0) {
       pack_choice[iarg] = &DumpCustom::pack_id;
       if (sizeof(tagint) == sizeof(smallint)) vtype[iarg] = Dump::INT;

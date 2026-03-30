@@ -11,6 +11,11 @@ reduces redundant implementations and encourages consistent behavior and
 thus has some overlap with the :doc:`"platform" sub-namespace
 <Developer_platform>`.
 
+.. contents::
+   :local:
+
+----------
+
 I/O with status check and similar functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -109,6 +114,7 @@ strings for compliance without conversion.
 .. doxygenfunction:: logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
+----------
 
 String processing
 ^^^^^^^^^^^^^^^^^
@@ -193,6 +199,8 @@ and parsing files or arguments.
 .. doxygenfunction:: is_type
    :project: progguide
 
+----------
+
 Potential file functions
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -214,6 +222,8 @@ Potential file functions
 .. doxygenfunction:: open_potential(const std::string &name, LAMMPS *lmp, int *auto_convert)
    :project: progguide
 
+----------
+
 Argument processing
 ^^^^^^^^^^^^^^^^^^^
 
@@ -231,6 +241,8 @@ Argument processing
 
 .. doxygenfunction:: expand_type
    :project: progguide
+
+----------
 
 Convenience functions
 ^^^^^^^^^^^^^^^^^^^^^
@@ -274,6 +286,8 @@ Convenience functions
 .. doxygenfunction:: current_date
    :project: progguide
 
+----------
+
 Customized standard functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -283,7 +297,7 @@ Customized standard functions
 .. doxygenfunction:: merge_sort
    :project: progguide
 
----------------------------
+----------
 
 Special Math functions
 ----------------------
@@ -321,7 +335,7 @@ mathematical functions for a variety of applications.
 .. doxygenfunction:: powsinxx
    :project: progguide
 
----------------------------
+----------
 
 Tokenizer classes
 -----------------
@@ -439,7 +453,7 @@ This code example should produce the following output:
 
 
 Argument parsing classes
----------------------------
+------------------------
 
 The purpose of argument parsing classes it to simplify and unify how
 arguments of commands in LAMMPS are parsed and to make abstractions of
@@ -479,6 +493,23 @@ A typical code segment would look like this:
    :project: progguide
    :members:
 
+
+----------
+
+.. _safe-pointer-classes:
+
+Safe pointer classes
+--------------------
+
+These are custom classes to support the `Resource Acquisition Is
+Initialization (RAII)
+<https://en.wikipedia.org/wiki/Resource_acquisition_is_initialization>`_
+programming idiom in LAMMPS for certain types of pointers.  Currently
+there is:
+
+.. doxygenclass:: LAMMPS_NS::SafeFilePtr
+   :project: progguide
+   :members:
 
 ----------
 
@@ -798,7 +829,7 @@ Tohoku University (under MIT license)
 .. doxygenfunction:: MathEigen::jacobi3(double const mat[3][3], double *eval, double evec[3][3], int sort)
    :project: progguide
 
----------------------------
+----------
 
 .. _communication_buffer_coding_with_ubuf:
 
@@ -816,7 +847,7 @@ union.  It is used in the various "pack" and "unpack" functions in the
 LAMMPS classes to store and retrieve integers that may be 64-bit from
 the communication buffers.
 
----------------------------
+----------
 
 .. doxygenunion:: LAMMPS_NS::ubuf
    :project: progguide

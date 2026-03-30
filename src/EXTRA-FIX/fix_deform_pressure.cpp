@@ -406,7 +406,7 @@ void FixDeformPressure::init()
 
   // reset cumulative counters to match resetting "start" variables in parent
 
-  set[6].cumulative_shift = 0.0;
+  set_box.cumulative_shift = 0.0;
   for (int i = 0; i < 7; i++) {
     set_extra[i].cumulative_vshift[0] = 0.0;
     set_extra[i].cumulative_vshift[1] = 0.0;

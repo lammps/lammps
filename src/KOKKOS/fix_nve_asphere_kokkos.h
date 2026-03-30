@@ -54,9 +54,9 @@ class FixNVEAsphereKokkos : public FixNVEAsphere {
     typename ArrayTypes<DeviceType>::t_int_1d ellipsoid;
     typename ArrayTypes<DeviceType>::t_kkfloat_1d_3_lr x;
     typename ArrayTypes<DeviceType>::t_kkfloat_1d_3 v;
-    typename ArrayTypes<DeviceType>::t_kkfloat_1d_3 f;
+    typename ArrayTypes<DeviceType>::t_kkacc_1d_3 f;
     typename ArrayTypes<DeviceType>::t_kkfloat_1d_3 angmom;
-    typename ArrayTypes<DeviceType>::t_kkfloat_1d_3 torque;
+    typename ArrayTypes<DeviceType>::t_kkacc_1d_3 torque;
     typename ArrayTypes<DeviceType>::t_kkfloat_1d rmass;
     typename ArrayTypes<DeviceType>::t_int_1d mask;
 };

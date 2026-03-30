@@ -33,6 +33,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "safe_pointers.h"
 
 #include <cmath>
 #include <cstring>
@@ -350,7 +351,7 @@ void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
 
   // open file
 
-  FILE *fp = fopen(file,"r");
+  SafeFilePtr fp = fopen(file,"r");
   if (fp == nullptr) {
     char str[128];
     snprintf(str,128,"Cannot open file %s",file);
@@ -406,7 +407,6 @@ void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
 
   // close file
 
-  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

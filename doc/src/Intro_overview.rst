@@ -37,7 +37,7 @@ executables are provided.
 
 LAMMPS is designed to be easy to modify or extend with new capabilities,
 such as new force fields, atom types, boundary conditions, or
-diagnostics.  See the :doc:`Modify` section of for more details.
+diagnostics.  See the :doc:`Modify` section for more details.
 
 In the most general sense, LAMMPS integrates Newton's equations of
 motion for a collection of interacting particles.  A single particle can

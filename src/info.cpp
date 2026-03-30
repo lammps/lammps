@@ -490,14 +490,15 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & GROUPS) {
-    int ngroup = group->ngroup;
     char **names = group->names;
     int *dynamic = group->dynamic;
     fputs("\nGroup information:\n",out);
-    for (int i=0; i < ngroup; ++i) {
-      if (names[i])
+    for (int i=0; i < Group::MAX_GROUP; ++i) {
+      // skip over deleted groups
+      if (names[i]) {
         utils::print(out,"Group[{:2d}]:     {:16} ({})\n",
-                   i, names[i], dynamic[i] ? "dynamic" : "static");
+                     i, names[i], dynamic[i] ? "dynamic" : "static");
+      }
     }
   }
 

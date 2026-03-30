@@ -667,7 +667,7 @@ void FixContinuumChunk::end_of_step()
     if (reducedflag)
       width *= domain->prd[cdim[m]];
     if (0.5 * width < w_cut)
-      error->all(FLERR, "Chunk half width {} smaller than specified cutoff {}", 0.5 * width, w_cut);
+      error->all(FLERR, "Chunk half width {} (box units) smaller than specified cutoff {}", 0.5 * width, w_cut);
   }
 
   // zero out arrays for one sample
@@ -698,7 +698,7 @@ void FixContinuumChunk::end_of_step()
   int a, b, itype, style, component, field_index, jboundary;
   double w, wc, mi, voli, r, rsq_atom_bin, rsq_cont_bin, rsq_pair, r_pair;
   double f_norm, w_int_tmp;
-  double xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3];
+  double coordx[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3];
   double dx_pair[3], dx_atom_bin[3], dx_bin_cont[3], dx_atom_cont[3];
 
   double **x = atom->x;
@@ -743,10 +743,11 @@ void FixContinuumChunk::end_of_step()
       // x[i] is default so won't contribute unless binned in that coord
       MathExtra::copy3(x[i], xbin);
       for (a = 0; a < ncoord; a++) {
-        xbin[cdim[a]] = coord[m][a];
         if (reducedflag) {
-          xbin[cdim[a]] *= domain->prd[cdim[a]];
-          xbin[cdim[a]] += domain->boxlo[cdim[a]];
+          domain->lamda2x(coord[m], coordx);
+          xbin[cdim[a]] = coordx[a];
+        } else {
+          xbin[cdim[a]] = coord[m][a];
         }
       }
 
@@ -928,10 +929,11 @@ void FixContinuumChunk::end_of_step()
 
         MathExtra::copy3(x[i], xbin);
         for (a = 0; a < ncoord; a++) {
-          xbin[cdim[a]] = coord[m][a];
           if (reducedflag) {
-            xbin[cdim[a]] *= domain->prd[cdim[a]];
-            xbin[cdim[a]] += domain->boxlo[cdim[a]];
+            domain->lamda2x(coord[m], coordx);
+            xbin[cdim[a]] = coordx[a];
+          } else {
+            xbin[cdim[a]] = coord[m][a];
           }
         }
 

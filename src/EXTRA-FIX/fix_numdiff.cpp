@@ -296,18 +296,20 @@ double FixNumDiff::update_energy()
 {
   force_clear(atom->f);
 
-  int eflag = 1;
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
 
-  if (pair_compute_flag) force->pair->compute(eflag, 0);
+  if (pair_compute_flag) force->pair->compute(eflag, vflag);
 
   if (atom->molecular != Atom::ATOMIC) {
-    if (force->bond) force->bond->compute(eflag, 0);
-    if (force->angle) force->angle->compute(eflag, 0);
-    if (force->dihedral) force->dihedral->compute(eflag, 0);
-    if (force->improper) force->improper->compute(eflag, 0);
+    if (force->bond) force->bond->compute(eflag, vflag);
+    if (force->angle) force->angle->compute(eflag, vflag);
+    if (force->dihedral) force->dihedral->compute(eflag, vflag);
+    if (force->improper) force->improper->compute(eflag, vflag);
   }
 
-  if (kspace_compute_flag) force->kspace->compute(eflag, 0);
+  if (kspace_compute_flag) force->kspace->compute(eflag, vflag);
 
   double energy = pe->compute_scalar();
   return energy;

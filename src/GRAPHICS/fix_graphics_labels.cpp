@@ -24,6 +24,7 @@
 #include "modify.h"
 #include "output.h"
 #include "respa.h"
+#include "safe_pointers.h"
 #include "text_file_reader.h"
 #include "tokenizer.h"
 #include "update.h"
@@ -438,14 +439,13 @@ FixGraphicsLabels::FixGraphicsLabels(LAMMPS *lmp, int narg, char **arg) :
       // must always open in binary mode to avoid data corruption on Windows
       if (comm->me == 0) {
         pix.filename = arg[iarg + 1];
-        FILE *fp = fopen(pix.filename.c_str(), "rb");
+        SafeFilePtr fp = fopen(pix.filename.c_str(), "rb");
         if (!fp)
           error->one(FLERR, iarg + 1, "Cannot open fix graphics/labels image file {}: {}",
                      pix.filename, utils::getsyserror());
         pix.timestamp = platform::file_write_time(pix.filename);
         std::string info;
         pix.pixmap = read_image(fp, pix.width, pix.height, pix.filename, info);
-        fclose(fp);
         if (!pix.pixmap)
           error->one(FLERR, iarg + 1, "Reading fix graphics/labels image file {} failed: {}",
                      pix.filename, info);
@@ -643,7 +643,7 @@ FixGraphicsLabels::FixGraphicsLabels(LAMMPS *lmp, int narg, char **arg) :
         } else if (strcmp(arg[iarg], "length") == 0) {
           if (iarg + 2 > narg)
             utils::missing_cmd_args(FLERR, "fix graphics/labels colorscale length", error);
-          scale.length = 2.0 * utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+          scale.length = 2 * utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
           iarg += 2;
         } else if (strcmp(arg[iarg], "tics") == 0) {
           if (iarg + 2 > narg)
@@ -845,13 +845,12 @@ void FixGraphicsLabels::end_of_step()
       if (pix.timestamp != timestamp) {
         pix.timestamp = timestamp;
 
-        FILE *fp = fopen(pix.filename.c_str(), "rb");
+        SafeFilePtr fp = fopen(pix.filename.c_str(), "rb");
         if (!fp)
           error->one(FLERR, Error::NOLASTLINE, "Cannot open fix graphics/labels image file {}: {}",
                      pix.filename, utils::getsyserror());
         std::string info;
         pix.pixmap = read_image(fp, pix.width, pix.height, pix.filename, info);
-        fclose(fp);
         if (!pix.pixmap)
           error->one(FLERR, Error::NOLASTLINE,
                      "Reading fix graphics/labels image file {} failed: {}", pix.filename, info);

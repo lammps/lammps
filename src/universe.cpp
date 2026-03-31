@@ -16,6 +16,7 @@
 
 #include "error.h"
 #include "memory.h"
+#include "safe_pointers.h"
 
 #include <cstring>
 
@@ -84,7 +85,7 @@ void Universe::reorder(char *style, char *arg)
   } else if (strcmp(style,"custom") == 0) {
 
     if (me == 0) {
-      FILE *fp = fopen(arg,"r");
+      SafeFilePtr fp = fopen(arg,"r");
       if (fp == nullptr)
         error->universe_one(FLERR,fmt::format("Cannot open -reorder file {}: {}", arg,
                                               utils::getsyserror()));
@@ -122,7 +123,6 @@ void Universe::reorder(char *style, char *arg)
                                        "file", me_orig, me_new);
         uni2orig[me_new] = me_orig;
       }
-      fclose(fp);
     }
 
     // bcast uni2org from proc 0 to all other universe procs

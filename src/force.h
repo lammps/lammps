@@ -27,9 +27,14 @@ class KSpace;
 class Pair;
 
 /** Flags for energy computation modes */
-enum { ENERGY_NONE = 0x00, ENERGY_GLOBAL = 0x01, ENERGY_ATOM = 0x02 };
-
 // clang-format off
+enum {
+  ENERGY_NONE   = 0x00,    /**< No energy computation */
+  ENERGY_GLOBAL = 0x01,    /**< Global energy computation */
+  ENERGY_ATOM   = 0x02,    /**< Per-atom energy computation */
+  ENERGY_ONLY   = 0x04     /**< Compute global energy only, no forces */
+};
+
 /** Flags for virial computation modes */
 enum {
   VIRIAL_NONE     = 0x00,    /**< No virial computation */
@@ -38,10 +43,14 @@ enum {
   VIRIAL_ATOM     = 0x04,    /**< Per-atom virial */
   VIRIAL_CENTROID = 0x08     /**< Centroid virial for rigid bodies */
 };
-// clang-format on
 
 /** Flags for centroid stress availability */
-enum { CENTROID_SAME = 0, CENTROID_AVAIL = 1, CENTROID_NOTAVAIL = 2 };
+enum {
+  CENTROID_SAME     = 0x00,
+  CENTROID_AVAIL    = 0x01,
+  CENTROID_NOTAVAIL = 0x02
+};
+// clang-format on
 
 /** \class LAMMPS_NS::Force
  * \brief Manager for interatomic force field styles in LAMMPS
@@ -65,79 +74,85 @@ enum { CENTROID_SAME = 0, CENTROID_AVAIL = 1, CENTROID_NOTAVAIL = 2 };
  * \sa LAMMPS_NS::Pair, LAMMPS_NS::Bond, LAMMPS_NS::Angle, LAMMPS_NS::KSpace */
 class Force : protected Pointers {
  public:
-  double boltz;          /**< Boltzmann constant (energy/degree-K) */
-  double hplanck;        /**< Planck's constant (energy-time) */
-  double mvv2e;          /**< Conversion factor: mv^2 to energy */
-  double ftm2v;          /**< Conversion factor: ft/m to velocity */
-  double mv2d;           /**< Conversion factor: mass/volume to density */
-  double nktv2p;         /**< Conversion factor: NkT/V to pressure */
-  double qqr2e;          /**< Conversion factor: q^2/r to energy */
-  double qe2f;           /**< Conversion factor: qE to force */
-  double vxmu2f;         /**< Conversion factor: v*dynamic-viscosity to force */
-  double xxt2kmu;        /**< Conversion factor: xx/t to kinematic-viscosity */
-  double dielectric;     /**< Dielectric constant */
-  double qqrd2e;         /**< Conversion factor: q^2/r to energy with dielectric */
-  double e_mass;         /**< Electron mass */
-  double hhmrr2e;        /**< Conversion factor: (hbar)^2/(mr^2) to energy */
-  double mvh2r;          /**< Conversion factor: mv/hbar to distance */
-  double angstrom;       /**< 1 angstrom in native units */
-  double femtosecond;    /**< 1 femtosecond in native units */
-  double qelectron;      /**< 1 electron charge (absolute) in native units */
+  double boltz;       /**< Boltzmann constant (energy/degree-K) */
+  double hplanck;     /**< Planck's constant (energy-time) */
+  double mvv2e;       /**< Conversion factor: mv^2 to energy */
+  double ftm2v;       /**< Conversion factor: ft/m to velocity */
+  double mv2d;        /**< Conversion factor: mass/volume to density */
+  double nktv2p;      /**< Conversion factor: NkT/V to pressure */
+  double qqr2e;       /**< Conversion factor: q^2/r to energy */
+  double qe2f;        /**< Conversion factor: qE to force */
+  double vxmu2f;      /**< Conversion factor: v*dynamic-viscosity to force */
+  double xxt2kmu;     /**< Conversion factor: xx/t to kinematic-viscosity */
+  double dielectric;  /**< Dielectric constant */
+  double qqrd2e;      /**< Conversion factor: q^2/r to energy with dielectric */
+  double e_mass;      /**< Electron mass */
+  double hhmrr2e;     /**< Conversion factor: (hbar)^2/(mr^2) to energy */
+  double mvh2r;       /**< Conversion factor: mv/hbar to distance */
+  double angstrom;    /**< 1 angstrom in native units */
+  double femtosecond; /**< 1 femtosecond in native units */
+  double qelectron;   /**< 1 electron charge (absolute) in native units */
 
-  double qqr2e_lammps_real;    /**< LAMMPS version of qqr2e for real units */
-  double qqr2e_charmm_real;    /**< CHARMM version of qqr2e for real units */
+  double qqr2e_lammps_real; /**< LAMMPS version of qqr2e for real units */
+  double qqr2e_charmm_real; /**< CHARMM version of qqr2e for real units */
 
-  int newton;          /**< Newton's 3rd law setting: 0 = off, 1 = on */
-  int newton_pair;     /**< Newton's 3rd law for pair: 0 = off, 1 = on */
-  int newton_bond;     /**< Newton's 3rd law for bonds: 0 = off, 1 = on */
+  int newton;      /**< Newton's 3rd law setting: 0 = off, 1 = on */
+  int newton_pair; /**< Newton's 3rd law for pair: 0 = off, 1 = on */
+  int newton_bond; /**< Newton's 3rd law for bonds: 0 = off, 1 = on */
 
-  Pair *pair;              /**< Pointer to current pair style instance */
-  char *pair_style;        /**< Current pair style name */
-  char *pair_restart;      /**< Pair style name from restart file */
+  Pair *pair;         /**< Pointer to current pair style instance */
+  char *pair_style;   /**< Current pair style name */
+  char *pair_restart; /**< Pair style name from restart file */
 
-  Bond *bond;              /**< Pointer to current bond style instance */
-  char *bond_style;        /**< Current bond style name */
+  Bond *bond;       /**< Pointer to current bond style instance */
+  char *bond_style; /**< Current bond style name */
 
-  Angle *angle;            /**< Pointer to current angle style instance */
-  char *angle_style;       /**< Current angle style name */
+  Angle *angle;      /**< Pointer to current angle style instance */
+  char *angle_style; /**< Current angle style name */
 
-  Dihedral *dihedral;      /**< Pointer to current dihedral style instance */
-  char *dihedral_style;    /**< Current dihedral style name */
+  Dihedral *dihedral;   /**< Pointer to current dihedral style instance */
+  char *dihedral_style; /**< Current dihedral style name */
 
-  Improper *improper;      /**< Pointer to current improper style instance */
-  char *improper_style;    /**< Current improper style name */
+  Improper *improper;   /**< Pointer to current improper style instance */
+  char *improper_style; /**< Current improper style name */
 
-  KSpace *kspace;          /**< Pointer to current kspace style instance */
-  char *kspace_style;      /**< Current kspace style name */
+  KSpace *kspace;     /**< Pointer to current kspace style instance */
+  char *kspace_style; /**< Current kspace style name */
 
-  using PairCreator = Pair *(*)(LAMMPS *);            /**< Function pointer type for pair creation */
-  using BondCreator = Bond *(*)(LAMMPS *);            /**< Function pointer type for bond creation */
-  using AngleCreator = Angle *(*)(LAMMPS *);          /**< Function pointer type for angle creation */
-  using DihedralCreator = Dihedral *(*)(LAMMPS *);    /**< Function pointer type for dihedral creation */
-  using ImproperCreator = Improper *(*)(LAMMPS *);    /**< Function pointer type for improper creation */
-  using KSpaceCreator = KSpace *(*)(LAMMPS *);        /**< Function pointer type for kspace creation */
+  using PairCreator = Pair *(*) (LAMMPS *);   /**< Function pointer type for pair creation */
+  using BondCreator = Bond *(*) (LAMMPS *);   /**< Function pointer type for bond creation */
+  using AngleCreator = Angle *(*) (LAMMPS *); /**< Function pointer type for angle creation */
+  using DihedralCreator =
+      Dihedral *(*) (LAMMPS *); /**< Function pointer type for dihedral creation */
+  using ImproperCreator =
+      Improper *(*) (LAMMPS *);                 /**< Function pointer type for improper creation */
+  using KSpaceCreator = KSpace *(*) (LAMMPS *); /**< Function pointer type for kspace creation */
 
-  using PairCreatorMap = std::map<std::string, PairCreator>;          /**< Map type for pair style factory */
-  using BondCreatorMap = std::map<std::string, BondCreator>;          /**< Map type for bond style factory */
-  using AngleCreatorMap = std::map<std::string, AngleCreator>;        /**< Map type for angle style factory */
-  using DihedralCreatorMap = std::map<std::string, DihedralCreator>;  /**< Map type for dihedral style factory */
-  using ImproperCreatorMap = std::map<std::string, ImproperCreator>;  /**< Map type for improper style factory */
-  using KSpaceCreatorMap = std::map<std::string, KSpaceCreator>;      /**< Map type for kspace style factory */
+  using PairCreatorMap = std::map<std::string, PairCreator>; /**< Map type for pair style factory */
+  using BondCreatorMap = std::map<std::string, BondCreator>; /**< Map type for bond style factory */
+  using AngleCreatorMap =
+      std::map<std::string, AngleCreator>; /**< Map type for angle style factory */
+  using DihedralCreatorMap =
+      std::map<std::string, DihedralCreator>; /**< Map type for dihedral style factory */
+  using ImproperCreatorMap =
+      std::map<std::string, ImproperCreator>; /**< Map type for improper style factory */
+  using KSpaceCreatorMap =
+      std::map<std::string, KSpaceCreator>; /**< Map type for kspace style factory */
 
-  PairCreatorMap *pair_map;          /**< Factory map for pair styles */
-  BondCreatorMap *bond_map;          /**< Factory map for bond styles */
-  AngleCreatorMap *angle_map;        /**< Factory map for angle styles */
-  DihedralCreatorMap *dihedral_map;  /**< Factory map for dihedral styles */
-  ImproperCreatorMap *improper_map;  /**< Factory map for improper styles */
-  KSpaceCreatorMap *kspace_map;      /**< Factory map for kspace styles */
+  PairCreatorMap *pair_map;         /**< Factory map for pair styles */
+  BondCreatorMap *bond_map;         /**< Factory map for bond styles */
+  AngleCreatorMap *angle_map;       /**< Factory map for angle styles */
+  DihedralCreatorMap *dihedral_map; /**< Factory map for dihedral styles */
+  ImproperCreatorMap *improper_map; /**< Factory map for improper styles */
+  KSpaceCreatorMap *kspace_map;     /**< Factory map for kspace styles */
 
   // index [0] is not used in these arrays
-  double special_lj[4];      /**< 1-2, 1-3, 1-4 weighting factors for LJ interactions */
-  double special_coul[4];    /**< 1-2, 1-3, 1-4 weighting factors for Coulombic interactions */
-  int special_angle;         /**< 0 = ignore defined angles, 1 = only weight 1,3 if in angle */
-  int special_dihedral;      /**< 0 = ignore defined dihedrals, 1 = only weight 1,4 if in dihedral */
-  int special_extra;         /**< Extra space for dynamically added bonds */
-  int special_onefive;       /**< 0 = 1-5 neighbors not stored, 1 = stored */
+  double special_lj[4];   /**< 1-2, 1-3, 1-4 weighting factors for LJ interactions */
+  double special_coul[4]; /**< 1-2, 1-3, 1-4 weighting factors for Coulombic interactions */
+  int special_angle;      /**< 0 = ignore defined angles, 1 = only weight 1,3 if in angle */
+  int special_dihedral;   /**< 0 = ignore defined dihedrals, 1 = only weight 1,4 if in dihedral */
+  int special_extra;      /**< Extra space for dynamically added bonds */
+  int special_onefive;    /**< 0 = 1-5 neighbors not stored, 1 = stored */
 
   /** Constructor for Force class
    * \param lmp Pointer to the main LAMMPS instance */

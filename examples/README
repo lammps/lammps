@@ -173,6 +173,11 @@ fluctuations are averaged. The second method
 is newer in LAMMPS and is generally more efficient and
 more reliable.
 
+The GRAPHICS directory has commented example scripts for creating
+advanced visualizations and animations with LAMMPS using the
+GRAPHICS package.  See the GRAPHICS/README file for more info
+and have a look at https://docs.lammps.org/Howto_viz.html
+
 The HEAT directory has example scripts for heat exchange algorithms
 (e.g. used for establishing a thermal gradient), using two different
 methods.  See the HEAT/README file for more info.

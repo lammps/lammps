@@ -115,18 +115,27 @@ In addition to using automated tests, code contributed to LAMMPS is
 subject to a code review by core LAMMPS developers (that includes
 contributions by the core LAMMPS developers themselves).
 
-we also make use of a number static code analysis tools for maintaining
-and improving the quality of the LAMMPS source code through tools like
-`Coverity SCAN <https://scan.coverity.com/>`_, `CodeQL
-<https://codeql.github.com/>`_, `Clang Static Analyzer
-<https://clang-analyzer.llvm.org/>`_, `Clang-Tidy
-<https://clang.llvm.org/extra/clang-tidy/>`_ and simply looking at
-compiler warnings.
+We make use of a number of static code analysis tools for maintaining
+and improving the quality of the LAMMPS source code.  Tools used
+include:
+
+- `Coverity SCAN <https://scan.coverity.com/>`_
+- `CodeQL <https://codeql.github.com/>`_
+- `Clang Static Analyzer <https://clang-analyzer.llvm.org/>`_
+- `Clang-Tidy <https://clang.llvm.org/extra/clang-tidy/>`_
+- Enabling and looking at compiler warnings
 
 CodeQL alerts for the ``develop`` branch of LAMMPS can be seen at
-https://github.com/lammps/lammps/security/code-scanning and static code
+https://github.com/lammps/lammps/security/code-scanning.  Static code
 analysis reports for the ``develop`` branch from the clang tools are
 available at https://download.lammps.org/analysis/
+
+We currently also request code reviews from `GitHub Copilot
+<https://github.com/features/copilot>`_ to lower the code review
+workload for the LAMMPS developers.  The LAMMPS git repository includes
+specific instructions for Copilot to particularly look for compliance of
+submitted pull requests with LAMMPS coding and documentation
+conventions.
 
 A discussion of software engineering methods applied to LAMMPS over time
 can be found in the paper `LAMMPS: A Case Study For Applying Modern

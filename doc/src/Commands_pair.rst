@@ -112,6 +112,7 @@ OPT.
    * :doc:`gran/hooke (o) <pair_gran>`
    * :doc:`gran/hooke/history (ko) <pair_gran>`
    * :doc:`granular <pair_granular>`
+   * :doc:`granular/superellipsoid <pair_granular_superellipsoid>`
    * :doc:`gw <pair_gw>`
    * :doc:`gw/zbl <pair_gw>`
    * :doc:`harmonic/cut (o) <pair_harmonic_cut>`
@@ -149,7 +150,7 @@ OPT.
    * :doc:`lj/class2/coul/long/cs <pair_cs>`
    * :doc:`lj/class2/coul/long/soft <pair_fep_soft>`
    * :doc:`lj/class2/soft <pair_fep_soft>`
-   * :doc:`lj/cubic (go) <pair_lj_cubic>`
+   * :doc:`lj/cubic (gko) <pair_lj_cubic>`
    * :doc:`lj/cut (gikot) <pair_lj>`
    * :doc:`lj/cut/coul/cut (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/cut/dielectric (o) <pair_dielectric>`
@@ -198,6 +199,7 @@ OPT.
    * :doc:`lubricate/poly (o) <pair_lubricate>`
    * :doc:`lubricateU <pair_lubricateU>`
    * :doc:`lubricateU/poly <pair_lubricateU>`
+   * :doc:`mbx <pair_mbx>`
    * :doc:`mdpd (g) <pair_mesodpd>`
    * :doc:`mdpd/rhosum <pair_mesodpd>`
    * :doc:`meam (k) <pair_meam>`

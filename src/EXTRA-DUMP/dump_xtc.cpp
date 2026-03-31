@@ -149,9 +149,7 @@ void DumpXTC::init_style()
 void DumpXTC::openfile()
 {
   // XTC maintains it's own XDR file ptr
-  // set fp to a null pointer so parent dump class will not use it
 
-  fp = nullptr;
   if (me == 0)
     if (xdropen(xd,filename,"w") == 0)
       error->one(FLERR,"Cannot open XTC format dump file {}: {}", filename, utils::getsyserror());

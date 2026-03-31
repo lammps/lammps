@@ -45,6 +45,7 @@ using dbl3_t = struct { double x,y,z; };
 void FixNHOMP::remap()
 {
   double oldlo,oldhi,expfac;
+  double isofac;
 
   double * const * _noalias const x = atom->x;
   const int * _noalias const mask = atom->mask;
@@ -121,6 +122,8 @@ void FixNHOMP::remap()
     }
   }
 
+  if (isochoric) isofac = vol_start;
+
   // scale diagonal components
   // scale tilt factors with cell, if set
 
@@ -128,16 +131,20 @@ void FixNHOMP::remap()
     oldlo = domain->boxlo[0];
     oldhi = domain->boxhi[0];
     expfac = exp(dto*omega_dot[0]);
+    isofac /= expfac;
     domain->boxlo[0] = (oldlo-fixedpoint[0])*expfac + fixedpoint[0];
     domain->boxhi[0] = (oldhi-fixedpoint[0])*expfac + fixedpoint[0];
+    if (isochoric) isofac /= domain->boxhi[0] - domain->boxlo[0];
   }
 
   if (p_flag[1]) {
     oldlo = domain->boxlo[1];
     oldhi = domain->boxhi[1];
     expfac = exp(dto*omega_dot[1]);
+    isofac /= expfac;
     domain->boxlo[1] = (oldlo-fixedpoint[1])*expfac + fixedpoint[1];
     domain->boxhi[1] = (oldhi-fixedpoint[1])*expfac + fixedpoint[1];
+    if (isochoric) isofac /= domain->boxhi[1] - domain->boxlo[1];
     if (scalexy) h[5] *= expfac;
   }
 
@@ -145,10 +152,43 @@ void FixNHOMP::remap()
     oldlo = domain->boxlo[2];
     oldhi = domain->boxhi[2];
     expfac = exp(dto*omega_dot[2]);
+    isofac /= expfac;
     domain->boxlo[2] = (oldlo-fixedpoint[2])*expfac + fixedpoint[2];
     domain->boxhi[2] = (oldhi-fixedpoint[2])*expfac + fixedpoint[2];
+    if (isochoric) isofac /= domain->boxhi[2] - domain->boxlo[2];
     if (scalexz) h[4] *= expfac;
     if (scaleyz) h[3] *= expfac;
+  }
+
+  if (isochoric) {
+    for (int i = 0; i < 3; i++) {
+      if (p_isoch[i] || !p_flag[i]) isofac /= (domain->boxhi[i]-domain->boxlo[i]);
+    }
+    int iso_sum = p_isoch[0] + p_isoch[1] + p_isoch[2];
+    if (iso_sum == 2) isofac = sqrt(isofac);
+    if (p_isoch[0]) {
+      // Scale x
+      oldlo = domain->boxlo[0];
+      oldhi = domain->boxhi[0];
+      domain->boxlo[0] = (oldlo-fixedpoint[0])*isofac + fixedpoint[0];
+      domain->boxhi[0] = (oldhi-fixedpoint[0])*isofac + fixedpoint[0];
+    }
+    if (p_isoch[1]) {
+      // Scale y
+      oldlo = domain->boxlo[1];
+      oldhi = domain->boxhi[1];
+      domain->boxlo[1] = (oldlo-fixedpoint[1])*isofac + fixedpoint[1];
+      domain->boxhi[1] = (oldhi-fixedpoint[1])*isofac + fixedpoint[1];
+      if (scalexy) h[5] *= isofac;
+    }
+    if (p_isoch[2]) {
+      oldlo = domain->boxlo[2];
+      oldhi = domain->boxhi[2];
+      domain->boxlo[2] = (oldlo-fixedpoint[2])*isofac + fixedpoint[2];
+      domain->boxhi[2] = (oldhi-fixedpoint[2])*isofac + fixedpoint[2];
+      if (scalexz) h[4] *= isofac;
+      if (scaleyz) h[3] *= isofac;
+    }
   }
 
   // off-diagonal components, second half

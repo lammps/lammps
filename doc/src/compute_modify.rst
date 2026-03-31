@@ -12,7 +12,7 @@ Syntax
 
 * compute-ID = ID of the compute to modify
 * one or more keyword/value pairs may be listed
-* keyword = *extra/dof* or *dynamic/dof*
+* keyword = *extra/dof* or *dynamic/dof* or *temp*
 
   .. parsed-literal::
 
@@ -20,6 +20,7 @@ Syntax
          N = # of extra degrees of freedom to subtract
        *dynamic/dof* value = *yes* or *no*
          yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
+       *temp* value = compute ID that calculates a temperature
 
 Examples
 """"""""
@@ -57,6 +58,11 @@ are adding atoms or molecules to the system (see the :doc:`fix pour
 (e.g. due to exiting the simulation box or via :doc:`fix evaporate
 <fix_evaporate>`), then this option should be used to ensure the
 temperature is correctly normalized.
+
+.. versionadded:: 11Feb2026
+
+The *temp* keyword is used with :doc:`compute temp/deform <compute_temp_deform>`
+to change the internal temperature compute.
 
 Restrictions
 """"""""""""

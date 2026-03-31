@@ -313,10 +313,15 @@ so that one could look up the cause by reading the source code.
 
 The new policy encourages more specific error messages that ideally
 indicate the cause directly, and requiring no further lookup. This is
-aided by the `{fmt} library <https://fmt.dev>`_ enabling Error class
-methods that take a variable number of arguments and an error text that
-will be treated like a {fmt} syntax format string.  Error messages should
-still preferably be kept to a single line or two lines at most.
+aided by either the `{fmt} library <https://fmt.dev>`_ or the `C++
+format library
+<https://cppreference.com/w/cpp/utility/format.html>`_ (for C++20
+and later) enabling :cpp:class:`LAMMPS_NS::Error` class methods that
+take a variable number of arguments and an error text that will be
+treated like a `C++ format string
+<https://cppreference.com/w/cpp/utility/format/spec.html>`_. Error
+messages should still preferably be kept to a single line or two lines
+at most.
 
 For more complex explanations or errors that have multiple possible
 reasons, a paragraph should be added to the `Error_details` page with an

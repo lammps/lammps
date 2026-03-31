@@ -1,0 +1,47 @@
+#
+# LAMMPS example script to call the class2-xe potential 
+#
+#------------Input_variables------------
+variable        pseed  equal  12345
+variable        myid   string detda_class2xe_test
+
+
+#------------Initialization------------
+units           real
+dimension       3
+boundary        p p p
+newton          on
+
+
+#------------Force Field------------
+atom_style      full
+bond_style      morse
+angle_style     class2xe
+dihedral_style  class2xe
+improper_style  class2
+special_bonds   lj/coul 0 0 1
+
+kspace_style    pppm 1.0e-4
+pair_style      lj/class2/coul/long 12.0
+pair_modify     mix sixthpower
+
+neighbor        2.0 bin
+neigh_modify    delay 0 every 1 check yes one 5000 page 100000
+
+read_data       detda_PCFF-2xe.data
+
+
+#------------Thermosettings------------
+timestep        1.0
+thermo          10
+thermo_style    custom step temp press density ke pe etotal evdwl ecoul epair ebond eangle edihed eimp
+restart         10 rst1.a.${myid} rst2.a.${myid}
+
+
+#------------Run some dynamics------------
+velocity        all create 300 ${pseed} rot yes mom yes
+fix             1 all nvt temp 300 300 $(100*dt)
+
+run             100
+write_data      ${myid}.data
+

@@ -237,6 +237,7 @@ class View : public ViewTraits<DataType, Properties...> {
  public:
   //----------------------------------------
   /** \brief  Compatible view of data type */
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   using type = std::conditional_t<
       has_hooks_policy,
       View<typename traits::scalar_array_type, typename traits::array_layout,
@@ -244,6 +245,15 @@ class View : public ViewTraits<DataType, Properties...> {
            typename traits::memory_traits>,
       View<typename traits::scalar_array_type, typename traits::array_layout,
            typename traits::device_type, typename traits::memory_traits>>;
+#else
+  using type = std::conditional_t<
+      has_hooks_policy,
+      View<typename traits::data_type, typename traits::array_layout,
+           typename traits::device_type, typename traits::hooks_policy,
+           typename traits::memory_traits>,
+      View<typename traits::data_type, typename traits::array_layout,
+           typename traits::device_type, typename traits::memory_traits>>;
+#endif
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   /** \brief  Compatible view of array of data types */

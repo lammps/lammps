@@ -24,6 +24,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
+#include "safe_pointers.h"
 
 #include <cfloat>
 #include <cmath>
@@ -716,8 +717,7 @@ void PairExp6rx::read_file(char *file)
 
   // open file on proc 0
 
-  FILE *fp;
-  fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     fp = utils::open_potential(file,lmp,nullptr);
     if (fp == nullptr) {
@@ -740,7 +740,6 @@ void PairExp6rx::read_file(char *file)
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -760,10 +759,8 @@ void PairExp6rx::read_file(char *file)
       n = strlen(line);
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+        if (ptr == nullptr) eof = 1;
+        else n = strlen(line) + 1;
       }
       MPI_Bcast(&eof,1,MPI_INT,0,world);
       if (eof) break;
@@ -828,13 +825,11 @@ void PairExp6rx::read_file2(char *file)
 
   // open file on proc 0
 
-  FILE *fp;
-  fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     fp = fopen(file,"r");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open polynomial file {}: {}",
-                                   file,utils::getsyserror());
+      error->one(FLERR,"Cannot open polynomial file {}: {}", file, utils::getsyserror());
   }
 
   // one set of params can span multiple lines
@@ -846,10 +841,8 @@ void PairExp6rx::read_file2(char *file)
   while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
+      if (ptr == nullptr) eof = 1;
+      else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof) break;
@@ -868,10 +861,8 @@ void PairExp6rx::read_file2(char *file)
       n = strlen(line);
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
+        if (ptr == nullptr) eof = 1;
+        else n = strlen(line) + 1;
       }
       MPI_Bcast(&eof,1,MPI_INT,0,world);
       if (eof) break;

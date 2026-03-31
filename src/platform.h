@@ -256,12 +256,12 @@ std::string find_exe_path(const std::string &cmd);
 
 int chdir(const std::string &path);
 
-/*! Create a directory
+/*! Create a directory or directory path
  *
- * Unlike the the ``mkdir()`` or ``_mkdir()`` functions of the
- * C library, this function will also try to create non-existing sub-directories
- * in case they don't exist, and thus behaves like the ``mkdir -p`` command rather
- * than plain ``mkdir`` or ``md`.
+ * Unlike the the ``mkdir()`` or ``_mkdir()`` functions of the C library, this
+ * function will also try to create non-existing sub-directories in case they
+ * don't exist, and thus it behaves like the ``mkdir -p`` command rather than
+ * plain ``mkdir`` or ``md`` in a Unix or Windows shell, respectively.
  *
  * \param  path  directory path
  * \return -1 if unsuccessful, otherwise >= 0  */
@@ -370,6 +370,21 @@ bool file_is_readable(const std::string &path);
 
 bool file_is_writable(const std::string &path);
 
+/*! Return target path if the file is a 'redirect file'
+ *
+ * Git uses 'redirect files' instead of symbolic links on Windows since
+ * the Windows file system has no symbolic links.  The redirect file
+ * is a text file with just one line: the symbolic link target path.
+ * This function opens the path parameter and reads a line.  If that
+ * line is a readable file, it returns that path, otherwise the
+ * original path.  The check is only performed when compiled for
+ * Windows.  Otherwise the original path is always returned.
+ *
+ * \param path  file path to check
+ * \return      the redirected path or the original path */
+
+std::string file_redirect(const std::string &path);
+
 /*! Report a time stamp when a file was last written to
  *
  * For increased accuracy and portability, the time stamp is relative
@@ -385,7 +400,7 @@ bool file_is_writable(const std::string &path);
 
 double file_write_time(const std::string &path);
 
-  /*! Return free disk space in bytes of file system pointed to by path
+/*! Return free disk space in bytes of file system pointed to by path
    *
    * Returns -1.0 if the path is invalid or free space reporting not supported.
    *

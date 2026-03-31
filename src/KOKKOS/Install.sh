@@ -61,6 +61,8 @@ action atom_vec_dipole_kokkos.cpp atom_vec_dipole.cpp
 action atom_vec_dipole_kokkos.h atom_vec_dipole.h
 action atom_vec_dpd_kokkos.cpp atom_vec_dpd.cpp
 action atom_vec_dpd_kokkos.h atom_vec_dpd.h
+action atom_vec_ellipsoid_kokkos.cpp atom_vec_ellipsoid.cpp
+action atom_vec_ellipsoid_kokkos.h atom_vec_ellipsoid.h
 action atom_vec_full_kokkos.cpp atom_vec_full.cpp
 action atom_vec_full_kokkos.h atom_vec_full.h
 action atom_vec_hybrid_kokkos.cpp
@@ -89,6 +91,8 @@ action compute_ave_sphere_atom_kokkos.cpp compute_ave_sphere_atom.cpp
 action compute_ave_sphere_atom_kokkos.h compute_ave_sphere_atom.h
 action compute_coord_atom_kokkos.cpp
 action compute_coord_atom_kokkos.h
+action compute_erotate_asphere_kokkos.cpp compute_erotate_asphere.cpp
+action compute_erotate_asphere_kokkos.h compute_erotate_asphere.h
 action compute_erotate_sphere_kokkos.cpp
 action compute_erotate_sphere_kokkos.h
 action compute_composition_atom_kokkos.cpp compute_composition_atom.cpp
@@ -180,6 +184,8 @@ action fix_nve_limit_kokkos.cpp
 action fix_nve_limit_kokkos.h
 action fix_nve_sphere_kokkos.cpp
 action fix_nve_sphere_kokkos.h
+action fix_nve_asphere_kokkos.cpp fix_nve_asphere.cpp
+action fix_nve_asphere_kokkos.h fix_nve_asphere.h
 action fix_nvt_kokkos.cpp
 action fix_nvt_kokkos.h
 action fix_nvt_sllod_kokkos.cpp
@@ -242,6 +248,7 @@ action kokkos_few.h
 action kokkos_type.h
 action kokkos.cpp
 action kokkos.h
+action math_extra_kokkos.h
 action math_special_kokkos.cpp
 action math_special_kokkos.h
 action meam_dens_final_kokkos.h meam_dens_final.cpp

@@ -29,7 +29,7 @@ symbols and more.
 Modern text often uses `UTF-8 character encoding
 <https://en.wikipedia.org/wiki/UTF-8>`_ instead.  This encoding is a way
 to represent many more different characters as defined by the Unicode
-standard.  UFT-8 is compatible with ASCII, since the first 128 values
+standard.  UTF-8 is compatible with ASCII, since the first 128 values
 are identical with the ASCII encoding.  It is important to note,
 however, that there are Unicode characters that *look* similar to ASCII
 characters, but have a different binary representation.  As a general
@@ -175,8 +175,9 @@ used as a portable alternatives to a :doc:`binary restart file
 :doc:`command line <Run_options>`.
 
 Data files have a header section at the very beginning of the file and
-multiple titled sections such as "Atoms", Masses", "Pair Coeffs", and so
-on.  Header keywords can only be used *before* the first title section.
+multiple titled sections such as "Atoms", "Masses", "Pair Coeffs", and
+so on.  Header keywords can only be used *before* the first title
+section.
 
 The data file **always** starts with a "title" line, which will be
 **ignored** by LAMMPS.  Omitting the title line can lead to unexpected

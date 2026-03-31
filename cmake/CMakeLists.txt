@@ -306,6 +306,7 @@ set(STANDARD_PACKAGES
   MACHDYN
   MANIFOLD
   MANYBODY
+  MBX
   MC
   MDI
   MEAM
@@ -561,7 +562,7 @@ else()
 endif()
 
 foreach(PKG_WITH_INCL GRAPHICS KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM COMPRESS ML-PACE LEPTON EXTRA-COMMAND)
+        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM COMPRESS ML-PACE LEPTON EXTRA-COMMAND MBX)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -865,6 +866,14 @@ else()
     install-python
     ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module")
 endif()
+
+###############################################################################
+# Create tarball for download with html and PDF version of manual included
+###############################################################################
+add_custom_target(tarball
+  COMMAND ${LAMMPS_DIR}/cmake/packaging/build_tarball.sh ${LAMMPS_DIR}/doc
+)
+
 
 include(Testing)
 include(CodeCoverage)

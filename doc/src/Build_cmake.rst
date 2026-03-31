@@ -206,14 +206,14 @@ Configuration and build options
 
 The CMake commands have one mandatory argument: a folder containing a
 file called ``CMakeLists.txt`` (for LAMMPS it is located in the
-``cmake`` folder, in that case the current working directory becomes
-the build folder) or a build folder containing a file called
+``cmake`` folder, in that case the current working directory becomes the
+build folder) or a build folder containing a file called
 ``CMakeCache.txt``, which is generated at the end of the CMake
 configuration step.  The cache file contains all current CMake settings.
-This is a "legacy mode" or running CMake and thus often found
-when searching the web.  We recommend to use the ``-S`` and ``-B``
-folders to explicitly set the path to the folder containing the
-``CMakeLists.txt`` file and the build folder, respectively.
+This is a "legacy mode" of running CMake and thus often found when
+searching the web.  We recommend to use the ``-S`` and ``-B`` folders to
+explicitly set the path to the folder containing the ``CMakeLists.txt``
+file and the build folder, respectively.
 
 To modify settings, enable or disable features, you need to set
 *variables* with either the ``-D`` command-line flag (``-D
@@ -252,19 +252,21 @@ of them you can use the command:
 
    cmake --build build --target lmp
 
-Especially, when programming LAMMPS and you are making just local
-changes, or only want to make certain that the code still compiles
-and links, you may want to skip may of the extra steps that are
-run by default and then append "/fast" to the target.  Example:
+Especially, when programming LAMMPS and you are making only local
+changes, or only want to make certain that the code still compiles and
+links, you may want to skip many of the extra steps that are run by
+default and then append "/fast" to the target.  Example:
 
 .. code-block:: bash
 
    cmake --build build --target lammps/fast
 
-Note that this speeds up the build by skipping a lot of checks for
-dependencies, and avoiding to re-run CMake, so you may occasionally need
-to compile without the "/fast" suffix or use the "all" (= default)
-target to update everything.
+Note that this speeds up the build by avoiding to re-run CMake and
+skipping a lot of checks for possible dependencies, so you may
+occasionally need to compile without the "/fast" suffix or use the "all"
+(= default) target to update everything.  This would be *required* when
+adding new files, additional dependencies, or making changes to the
+CMake scripts.
 
 Some custom targets, e.g. "install-python" are explicitly excluded
 from the "all" target and must be built individually.

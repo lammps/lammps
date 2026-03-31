@@ -66,7 +66,6 @@ Balance::Balance(LAMMPS *lmp) : Command(lmp)
   imbalances = nullptr;
   fixstore = nullptr;
 
-  fp = nullptr;
   firststep = 1;
 }
 
@@ -102,8 +101,6 @@ Balance::~Balance()
 
   if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
   fixstore = nullptr;
-
-  if (fp) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -436,7 +433,6 @@ void Balance::options(int iarg, int narg, char **arg, int sortflag_default)
   sortflag = sortflag_default;
   outflag = 0;
   int outarg = 0;
-  fp = nullptr;
   oldrcb = 0;
 
   while (iarg < narg) {

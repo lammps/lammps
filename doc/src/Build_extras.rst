@@ -49,6 +49,7 @@ This is the list of packages that may require additional steps.
    * :ref:`KOKKOS <kokkos>`
    * :ref:`LEPTON <lepton>`
    * :ref:`MACHDYN <machdyn>`
+   * :ref:`MBX <mbx>`
    * :ref:`MDI <mdi>`
    * :ref:`MISC <misc>`
    * :ref:`ML-HDNNP <ml-hdnnp>`
@@ -106,7 +107,7 @@ versions use an incompatible API and thus LAMMPS will fail to compile.
 
       .. versionchanged:: 10Sep2025
 
-      The COMPRESS package no longer supports the the traditional make build.
+      The COMPRESS package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -116,7 +117,7 @@ versions use an incompatible API and thus LAMMPS will fail to compile.
 GRAPHICS package
 ----------------
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
    *dump image*\ , *dump_movie* and supporting classes were moved to form
    the new GRAPHICS package together with several *fix graphics/...* styles.
@@ -292,7 +293,11 @@ compiling LAMMPS on the head node of a GPU cluster, this library may not
 be installed, so you may need to copy it over from one of the compute
 nodes (best into this directory).  Recent versions of the CUDA toolkit
 starting from CUDA 9 provide a dummy ``libcuda.so`` library (typically
-under ``$(CUDA_HOME)/lib64/stubs``), that can be used for linking.
+under ``$(CUDA_HOME)/lib64/stubs``), that can be used for linking.  If
+you are compiling LAMMPS with the ``-D BUILD_SHARED_LIBS=ON`` setting,
+you may get to see ``ld: warning: libcuda.so.1, needed by
+liblammps.so.0, not found``.  This may be worked around by also setting:
+``-DCMAKE_EXE_LINKER_FLAGS=-Wl,--unresolved-symbols=ignore-in-shared-libs``.
 
 To support the CUDA multi-process server (MPS) you can set the define
 ``-DCUDA_MPS_SUPPORT``.  Please note that in this case you must **not**
@@ -381,9 +386,12 @@ option in preparations to run on Aurora system at Argonne.
 KIM package
 ---------------------
 
-To build with this package, the KIM library with API v2 must be downloaded
-and built on your system. It must include the KIM models that you want to
-use with LAMMPS.
+To build with this package, the KIM API v2.0+ must be downloaded
+and built on your system. See
+`Obtaining KIM Models <https://openkim.org/doc/usage/obtaining-models>`_ to
+learn how to install the KIM API, as well as how to install any models you
+wish to use afterward.
+See the list of all KIM models here: https://openkim.org/browse/models
 
 If you would like to use the :doc:`kim query <kim_commands>`
 command, you also need to have libcurl installed with the matching
@@ -398,16 +406,6 @@ done using *pip* as ``pip install kim-property``, or from the *conda-forge*
 channel as ``conda install kim-property`` if LAMMPS is built in Conda. More
 detailed information is available at:
 `kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
-
-In addition to installing the KIM API, it is also necessary to install the
-library of KIM models (interatomic potentials).
-See `Obtaining KIM Models <https://openkim.org/doc/usage/obtaining-models>`_ to
-learn how to install a pre-build binary of the OpenKIM Repository of Models.
-See the list of all KIM models here: https://openkim.org/browse/models
-
-(Also note that when downloading and installing from source
-the KIM API library with all its models, may take a long time (tens of
-minutes to hours) to build.  Of course you only need to do that once.)
 
 .. tabs::
 
@@ -425,11 +423,15 @@ minutes to hours) to build.  Of course you only need to do that once.)
                                          # value = no (default) or yes
 
       If ``DOWNLOAD_KIM`` is set to ``yes`` (or ``on``), the KIM API library
-      will be downloaded and built inside the CMake build directory.  If
+      will be downloaded and built inside the CMake build directory.  Note that
+      in most cases it is recommended that you do not use this option, and instead
+      provide a KIM API installation yourself before building LAMMPS.  If
       the KIM library is already installed on your system (in a location
       where CMake cannot find it), you may need to set the
       ``PKG_CONFIG_PATH`` environment variable so that libkim-api can be
-      found, or run the command ``source kim-api-activate``.
+      found, or run the command ``source kim-api-activate``.  If CMake cannot find
+      the KIM API when configuring for the first time (or after clearing the
+      CMake cache), the default value of the ``DOWNLOAD_KIM`` option will be ``yes``.
 
       Extra unit tests can only be available if they are explicitly requested
       (``KIM_EXTRA_UNITTESTS`` is set to ``yes`` (or ``on``)) and the prerequisites
@@ -440,7 +442,7 @@ minutes to hours) to build.  Of course you only need to do that once.)
 
       .. versionchanged:: 10Sep2025
 
-      The KIM package no longer supports the the traditional make build.
+      The KIM package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 Debugging OpenKIM web queries in LAMMPS
@@ -490,9 +492,9 @@ Enabling the extra unit tests have some requirements,
   `kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
 * It is also necessary to install the following KIM models:
 
-  * ``EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000``
-  * ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005``
-  * ``LennardJones612_UniversalShifted__MO_959249795837_003``
+  * ``EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_001``
+  * ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_006``
+  * ``LennardJones612_UniversalShifted__MO_959249795837_003`` (this model is an example model automatically built with the API unless explicitly disabled)
 
   See `Obtaining KIM Models <https://openkim.org/doc/usage/obtaining-models>`_
   to learn how to install a pre-built binary of the OpenKIM Repository of
@@ -834,9 +836,9 @@ This list was last updated for version 4.7.1 of the Kokkos library.
 
    .. tab:: Basic traditional make settings:
 
-      .. versionchanged:: TBD
+      .. versionchanged:: 11Feb2026
 
-      The KOKKOS package no longer supports the the traditional make build.
+      The KOKKOS package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 Advanced KOKKOS compilation settings
@@ -915,7 +917,7 @@ included in the LAMMPS source distribution in the ``lib/lepton`` folder.
 
       .. versionchanged:: 10Sep2025
 
-      The LEPTON package no longer supports the the traditional make build.
+      The LEPTON package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -948,7 +950,7 @@ Eigen3 is a template library, so you do not need to build it.
 
       .. versionchanged:: 10Sep2025
 
-      The MACHDYN package no longer supports the the traditional make build.
+      The MACHDYN package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1053,7 +1055,7 @@ for additional details.
 
       .. versionchanged:: 10Sep2025
 
-      The PYTHON package no longer supports the the traditional make build.
+      The PYTHON package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1092,7 +1094,7 @@ binary package provided by your operating system.
 
       .. versionchanged:: 10Sep2025
 
-      The VORONOI package no longer supports the the traditional make build.
+      The VORONOI package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1162,7 +1164,7 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
 
       .. versionchanged:: 10Sep2025
 
-      The APIP package no longer supports the the traditional make
+      The APIP package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1194,7 +1196,7 @@ module included in the LAMMPS source distribution.
 
       .. versionchanged:: 10Sep2025
 
-      The COLVARS package no longer supports the the traditional make build.
+      The COLVARS package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1228,8 +1230,54 @@ This package depends on the KSPACE package.
 
    .. tab:: Traditional make
 
-      The ELECTRODE package no longer supports the the traditional make
+      The ELECTRODE package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
+
+----------
+
+.. _mbx:
+
+MBX package
+-----------
+
+.. versionadded:: 11Feb2026
+
+This package requires the MBX library that can be downloaded and built
+either before LAMMPS is built or as part of the LAMMPS compilation.  The
+code for the library can be found at:
+`https://github.com/paesanilab/MBX/
+<https://github.com/paesanilab/MBX/>`_
+
+Instead of including the MBX package directly into LAMMPS, it is also
+possible to skip this step and build the MBX package as a plugin using
+the CMake script files in the ``examples/PACKAGE/mbx/plugin`` folder and
+then load this plugin at runtime with the :doc:`plugin command
+<plugin>`.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. versionchanged:: 30Mar2026
+
+         Replaced MD5 checksums with SHA-256
+
+      By default the MBX library will be downloaded from the git
+      repository and built automatically when the MBX package is enabled
+      with ``-D PKG_MBX=yes``.  The location for the sources may be
+      customized by setting the variable ``MBXLIB_URL`` when configuring
+      with CMake (e.g. to use a local archive on machines without
+      internet access).  Since CMake checks the validity of the archive
+      using a SHA-256 checksum you may also need to set the
+      ``MBXLIB_SHA256`` variable to the corresponding checksum
+      (e.g. computed with ``sha256sum``) if you provide a different
+      library version than what is downloaded automatically.
+
+
+   .. tab:: Traditional make
+
+      The MBX package does not support the traditional make
+      build.  You need to build LAMMPS with CMake to use it.
 
 ----------
 
@@ -1252,22 +1300,26 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
 
    .. tab:: CMake build
 
+      .. versionchanged:: 30Mar2026
+
+         Replaced MD5 checksums with SHA-256
+
       By default the library will be downloaded from the git repository
       and built automatically when the ML-PACE package is enabled with
       ``-D PKG_ML-PACE=yes``.  The location for the sources may be
       customized by setting the variable ``PACELIB_URL`` when
       configuring with CMake (e.g. to use a local archive on machines
-      without internet access).  Since CMake checks the validity of the
-      archive with ``md5sum`` you may also need to set ``PACELIB_MD5``
-      if you provide a different library version than what is downloaded
-      automatically.
-
+      without internet access).    Since CMake checks the validity of the archive
+      using a SHA-256 checksum you may also need to set the
+      ``PACELIB_SHA256`` variable to the corresponding checksum
+      (e.g. computed with ``sha256sum``) if you provide a different
+      library version than what is downloaded automatically.
 
    .. tab:: Traditional make
 
       .. versionchanged:: 10Sep2025
 
-      The ML-PACE package no longer supports the the traditional make
+      The ML-PACE package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1287,7 +1339,7 @@ ML-POD package
 
       .. versionchanged:: 10Sep2025
 
-      The ML-POD package no longer supports the the traditional make
+      The ML-POD package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1336,7 +1388,7 @@ within CMake will download the non-commercial use version.
 
       .. versionchanged:: 10Sep2025
 
-      The ML-QUIP package no longer supports the the traditional make
+      The ML-QUIP package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1431,7 +1483,7 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
 
       .. versionchanged:: 10Sep2025
 
-      The PLUMED package no longer supports the the traditional make
+      The PLUMED package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1461,7 +1513,7 @@ the HDF5 library.
 
       .. versionchanged:: 10Sep2025
 
-      The H5MD package no longer supports the the traditional make
+      The H5MD package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1516,7 +1568,7 @@ details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
 
       .. versionchanged:: 10Sep2025
 
-      The ML-HDNNP package no longer supports the the traditional make
+      The ML-HDNNP package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1609,7 +1661,7 @@ MDI package
 
       .. versionchanged:: 10Sep2025
 
-      The MDI package no longer supports the the traditional make build.
+      The MDI package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1672,7 +1724,7 @@ MOLFILE package
 
       .. versionchanged:: 10Sep2025
 
-      The MOLFILE package no longer supports the the traditional make
+      The MOLFILE package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1702,7 +1754,7 @@ on your system.
 
       .. versionchanged:: 10Sep2025
 
-      The NETCDF package no longer supports the the traditional make build.
+      The NETCDF package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1801,7 +1853,7 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
 
       .. versionchanged:: 10Sep2025
 
-      The QMMM package no longer supports the the traditional make build.
+      The QMMM package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1838,7 +1890,7 @@ This package depends on the BPM package.
 
       .. versionchanged:: 10Sep2025
 
-      The RHEO package no longer supports the the traditional make build.
+      The RHEO package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1873,7 +1925,7 @@ To build with this package, you must download and build the
 
       .. versionchanged:: 10Sep2025
 
-      The SCAFACOS package no longer supports the the traditional make build.
+      The SCAFACOS package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1902,5 +1954,5 @@ your system.
 
       .. versionchanged:: 10Sep2025
 
-      The VTK package no longer supports the the traditional make build.
+      The VTK package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.

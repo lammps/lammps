@@ -90,6 +90,8 @@
 /fix_graphics_isosurface.h
 /fix_graphics_labels.cpp
 /fix_graphics_labels.h
+/fix_graphics_lines.cpp
+/fix_graphics_lines.h
 /fix_graphics_objects.cpp
 /fix_graphics_objects.h
 /fix_graphics_periodic.cpp
@@ -136,6 +138,8 @@
 /atom_vec_apip.h
 /fix_lambda_apip.cpp
 /fix_lambda_apip.h
+/fix_lambda_la_csp_apip.cpp
+/fix_lambda_la_csp_apip.h
 /fix_lambda_thermostat_apip.cpp
 /fix_lambda_thermostat_apip.h
 /pair_lambda_input_apip.cpp
@@ -247,6 +251,10 @@
 /inthash.h
 /fix_plumed.cpp
 /fix_plumed.h
+/fix_mbx.cpp
+/fix_mbx.h
+/pair_mbx.cpp
+/pair_mbx.h
 /dump_molfile.cpp
 /dump_molfile.h
 /molfile_interface.cpp
@@ -837,7 +845,6 @@
 /ewald.h
 /ewald_cg.cpp
 /ewald_cg.h
-/ewald_const.h
 /ewald_dipole.cpp
 /ewald_dipole.h
 /ewald_dipole_spin.cpp
@@ -1193,6 +1200,8 @@
 /kissfft.h
 /lj_spica_common.h
 /math_complex.h
+/math_extra_superellipsoids.cpp
+/math_extra_superellipsoids.h
 /math_vector.h
 /message.cpp
 /message.h
@@ -1330,6 +1339,8 @@
 /pair_gayberne.h
 /pair_granular.cpp
 /pair_granular.h
+/pair_granular_superellipsoid.cpp
+/pair_granular_superellipsoid.h
 /pair_gran_easy.cpp
 /pair_gran_easy.h
 /pair_gran_hertz_history.cpp

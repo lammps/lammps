@@ -360,7 +360,7 @@ double PairLJCutSphere::single(int i, int j, int itype, int jtype, double rsq,
   sigma6 = powint(sigma, 6);
   r2inv = 1.0 / rsq;
   r6inv = r2inv * r2inv * r2inv;
-  forcelj = r6inv * 24.0 * epsilon[itype][jtype] * (sigma6 * sigma6 * r6inv - sigma6);
+  forcelj = r6inv * 24.0 * epsilon[itype][jtype] * (2.0 * sigma6 * sigma6 * r6inv - sigma6);
   fforce = factor_lj * forcelj * r2inv;
 
   philj = r6inv * 4.0 * epsilon[itype][jtype] * (sigma6 * sigma6 * r6inv - sigma6);

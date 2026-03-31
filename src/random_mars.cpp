@@ -36,7 +36,7 @@ RanMars::RanMars(LAMMPS *lmp, int seed) : Pointers(lmp),
   double s,t;
 
   if (seed <= 0 || seed > 900000000)
-    error->one(FLERR, Error::NOLASTLINE, "Invalid seed for Marsaglia random # generator");
+    error->one(FLERR, Error::NOLASTLINE, "Invalid seed {} for the Marsaglia random # generator", seed);
 
   save = 0;
   u = new double[97+1];

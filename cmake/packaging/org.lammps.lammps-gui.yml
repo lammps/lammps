@@ -61,6 +61,7 @@ modules:
       - -D PKG_EXTRA-MOLECULE=yes
       - -D PKG_EXTRA-PAIR=yes
       - -D PKG_FEP=yes
+      - -D PKG_GRAPHICS=yes
       - -D PKG_GRANULAR=yes
       - -D PKG_GPU=yes
       - -D GPU_API=opencl

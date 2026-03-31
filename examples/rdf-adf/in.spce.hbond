@@ -1,0 +1,83 @@
+# Liquid water hydrogen bonds
+
+units           real
+atom_style      full
+
+pair_style      lj/cut/coul/long 12.0 12.0
+bond_style      harmonic
+angle_style     harmonic
+
+read_data       data.spce
+
+pair_coeff      * * 0.0     1.0
+pair_coeff      1 1 0.15535 3.166
+pair_modify     tail yes
+kspace_style    pppm 1.0e-6
+
+dihedral_style  none
+improper_style  none
+
+bond_coeff      1 1000.00 1.000
+angle_coeff     1 100.0 109.47
+
+neighbor        2.0 bin
+timestep        2.0
+neigh_modify    every 1 delay 2 check yes
+
+fix             1 all shake 0.0001 20 0 b 1 a 1
+fix             2 all nvt temp 300.0 300.0 100.0
+
+velocity all create 300.0 6244325
+
+thermo 100
+run 500
+
+reset_timestep 0
+
+group           ogroup type 1
+group           hgroup type 2
+variable        nmol equal count(ogroup)
+
+# water oxygen atoms are both hydrogen bond donor and acceptor
+compute         hb       all      hbond/local 3.3 30.0 ogroup ogroup hgroup dist hdist angle ehb # ecut 1.5
+
+# output all hydrogen bonds. each line contains: hydrogen-ID donor-ID acceptor-ID r_DA r_HA theta_HDA e_hb
+#dump            hb       all      local 100 hbonds.dump c_hb[*]
+#dump_modify     hb label "HBONDS" colname 1 Hydrogen colname 2 "   Donor " colname 3 Acceptor &
+#                   colname 4 " r_DA  " colname 5 "  r_HA  " colname 6 "  theta " colname 7 "  e_hb"  &
+#                   format line "%20.0f %8.0f %8.0f %8.3f %8.3f %8.3f %8.3f"
+
+# for the number of hydrogen bonds per molecule we must multiply by 2
+# since water oxygens are in equal parts hydrogen bond donor and acceptor
+variable        nhb_mol equal 2.0*c_hb/${nmol}
+# get average values for distances, angles and strength for the current step
+compute         avg      all      reduce ave c_hb[4] c_hb[5] c_hb[6] c_hb[7] inputs local
+# get running average of those values
+fix             ave      all      ave/time 100 1 100 v_nhb_mol c_avg[1] c_avg[2] c_avg[3] c_avg[4] ave running
+
+# get histogram of hydrogen bond distance
+fix       dhist all ave/histo 100 10 1000 2.3 3.3 30 c_hb[4] file hbond_histo_dist.dat mode vector kind local
+# get histogram of hydrogen bond angle
+fix       ahist all ave/histo 100 10 1000 0.0 30.0 30 c_hb[6] file hbond_histo_angle.dat mode vector kind local
+# get histogram of hydrogen bond strength
+fix       bhist all ave/histo 100 10 1000 -1.0 7.5 30 c_hb[7] file hbond_histo_eng.dat mode vector kind local beyond extra
+
+# output computed global data as thermo output first for step then averaged
+thermo_style    custom step temp press v_nhb_mol c_avg[*] f_ave[*]
+thermo_modify   colname 4 "n_HB/mol" colname 5 "r_DA " colname 6 "r_HA " colname 7 "theta_HDA" colname 8 "e_HB " &
+                colname 9 "<n_HB/mol>" colname 10 "<r_DA> " colname 11 "<r_HA> " colname 12 "<theta_HDA>" colname 13 "<e_HB> "
+
+thermo          100
+
+# dump viz all image 100 hbond-*.png element type size 600 600 zoom 1.331 shiny 0.2 ssao yes 348276 0.6 &
+#           fsaa yes bond atom 0.35 view 70 20 box yes 0.025 compute hb const -0.5 0.2
+# dump_modify viz pad 6 boxcolor cadetblue backcolor darkgray backcolor2 silver element O H &
+#            adiam 1 0.5 adiam 2 0.4 ccolor hb yellow ctrans hb 1.0
+
+run 1000
+print ""
+print "Results after simulation of $(time/1000.0) ps:"
+print "Average number of hydrogen bonds per water molecule <n_HB/mol>:   $(f_ave[1]:%6.2f)"
+print "Average hydrogen bond donor-acceptor distance <r_DA> /Angstrom:   $(f_ave[2]:%6.2f)"
+print "Average hydrogen bond angle <theta_HDA> /degrees:                 $(f_ave[4]:%6.2f)"
+print "Average hydrogen bond streangth <e_HB> /(kcal/mol):               $(f_ave[5]:%6.2f)"

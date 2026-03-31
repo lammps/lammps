@@ -185,7 +185,7 @@ Guidelines for best performance
 """""""""""""""""""""""""""""""
 
 * Using multiple MPI tasks (2-10) per GPU will often give the best
-  performance, as allowed my most multicore CPU/GPU configurations.
+  performance, as allowed by most multicore CPU/GPU configurations.
   Using too many MPI tasks will result in worse performance due to
   growing overhead with the growing number of MPI tasks.
 * If the number of particles per MPI task is small (e.g. 100s of

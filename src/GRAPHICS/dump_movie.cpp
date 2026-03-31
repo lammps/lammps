@@ -33,15 +33,6 @@ DumpMovie::DumpMovie(LAMMPS *lmp, int narg, char **arg) : DumpImage(lmp, narg, a
   filetype = PPM;
   bitrate = 2000;
   framerate = 24;
-  fp = nullptr;
-}
-
-/* ---------------------------------------------------------------------- */
-
-DumpMovie::~DumpMovie()
-{
-  if (fp) platform::pclose(fp);
-  fp = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,9 +45,9 @@ void DumpMovie::openfile()
     auto moviecmd = fmt::format("ffmpeg -v error -y -r {:.2f} -f image2pipe -c:v ppm -i - "
                                 "-r 24.0 -b:v {}k {}",
                                 framerate, bitrate, filename);
+    fp.set_pclose();
     fp = platform::popen(moviecmd, "w");
 #else
-    fp = nullptr;
     error->one(FLERR, "Support for writing movies not included");
 #endif
 

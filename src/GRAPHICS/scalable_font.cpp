@@ -1291,9 +1291,9 @@ unsigned char *ScalableFont::create_colorscale(const std::string &text, int &wid
             pixmap[offs + 1] = font[1];
             pixmap[offs + 2] = font[2];
           } else {
-            pixmap[offs] = color[0] * 255;
-            pixmap[offs + 1] = color[1] * 255;
-            pixmap[offs + 2] = color[2] * 255;
+            pixmap[offs] = static_cast<unsigned char>(color[0] * 255.0);
+            pixmap[offs + 1] = static_cast<unsigned char>(color[1] * 255.0);
+            pixmap[offs + 2] = static_cast<unsigned char>(color[2] * 255.0);
           }
           if (x == ticmax) {
             ticmin += ticinc;
@@ -1306,9 +1306,9 @@ unsigned char *ScalableFont::create_colorscale(const std::string &text, int &wid
             pixmap[offs + 1] = font[1];
             pixmap[offs + 2] = font[2];
           } else {
-            pixmap[offs] = color[0] * 255;
-            pixmap[offs + 1] = color[1] * 255;
-            pixmap[offs + 2] = color[2] * 255;
+            pixmap[offs] = static_cast<unsigned char>(color[0] * 255.0);
+            pixmap[offs + 1] = static_cast<unsigned char>(color[1] * 255.0);
+            pixmap[offs + 2] = static_cast<unsigned char>(color[2] * 255.0);
           }
         }
       }

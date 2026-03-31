@@ -10,7 +10,7 @@ Syntax
 
    processors Px Py Pz keyword args ...
 
-* Px,Py,Pz = # of processors in each dimension of 3d grid overlaying the simulation domain
+* Px,Py,Pz = # of MPI processes in each dimension of 3d grid overlaying the simulation domain
 * zero or more keyword/arg pairs may be appended
 * keyword = *grid* or *map* or *part* or *file*
 
@@ -28,16 +28,16 @@ Syntax
        *numa_nodes* arg = Nn
              Nn = number of numa domains per node
        *map* arg = *cart* or *cart/reorder* or *xyz* or *xzy* or *yxz* or *yzx* or *zxy* or *zyx*
-          cart = use MPI_Cart() methods to map processors to 3d grid with reorder = 0
-          cart/reorder = use MPI_Cart() methods to map processors to 3d grid with reorder = 1
-          xyz,xzy,yxz,yzx,zxy,zyx = map processors to 3d grid in IJK ordering
+          cart = use MPI_Cart() methods to map MPI processes to 3d grid with reorder = 0
+          cart/reorder = use MPI_Cart() methods to map MPI processes to 3d grid with reorder = 1
+          xyz,xzy,yxz,yzx,zxy,zyx = map MPI processes to 3d grid in IJK ordering
        *part* args = Psend Precv cstyle
          Psend = partition # (1 to Np) which will send its processor layout
          Precv = partition # (1 to Np) which will recv the processor layout
          cstyle = *multiple*
            *multiple* = Psend grid will be multiple of Precv grid in each dimension
        *file* arg = outfile
-         outfile = name of file to write 3d grid of processors to
+         outfile = name of file to write 3d grid of MPI process ranks to
 
 Examples
 """"""""
@@ -55,41 +55,43 @@ Examples
 Description
 """""""""""
 
-Specify how processors are mapped as a regular 3d grid to the global
-simulation box.  The mapping involves 2 steps.  First if there are P
-processors it means choosing a factorization P = Px by Py by Pz so
-that there are Px processors in the x dimension, and similarly for the
-y and z dimensions.  Second, the P processors are mapped to the
-regular 3d grid.  The arguments to this command control each of these
-2 steps.
+Specify how MPI processes are mapped as a regular 3d grid to the global
+simulation box.  The mapping involves 2 steps.  First if there are *P*
+MPI processes, it means choosing a factorization *P* = *Px* by *Py* by
+*Pz* so that there are *Px* MPI processes in the x dimension, and
+similarly for the y and z dimensions.  Second, the *P* MPI processes are
+mapped to the regular 3d grid.  The arguments to this command control
+each of these 2 steps.
 
-The Px, Py, Pz parameters affect the factorization.  Any of the 3
+The *Px*, *Py*, *Pz* parameters affect the factorization.  Any of the 3
 parameters can be specified with an asterisk "\*", which means LAMMPS
-will choose the number of processors in that dimension of the grid.
+will choose the number of MPI processes in that dimension of the grid.
 It will do this based on the size and shape of the global simulation
-box so as to minimize the surface-to-volume ratio of each processor's
+box so as to minimize the surface-to-volume ratio of each MPI rank's
 subdomain.
 
-Choosing explicit values for Px or Py or Pz can be used to override
-the default manner in which LAMMPS will create the regular 3d grid of
-processors, if it is known to be sub-optimal for a particular problem.
-E.g. a problem where the extent of atoms will change dramatically in a
-particular dimension over the course of the simulation.
+Choosing explicit values for *Px* or *Py* or *Pz* can be used to
+override the default manner in which LAMMPS will create the regular 3d
+grid of MPI processes, if it is known to be sub-optimal for a particular
+problem.  E.g. a problem where the extent of atoms will change
+dramatically in a particular dimension over the course of the
+simulation.
 
-The product of Px, Py, Pz must equal P, the total # of processors
-LAMMPS is running on.  For a :doc:`2d simulation <dimension>`, Pz must
-equal 1.
+The product of *Px*, *Py*, *Pz* must equal *P*, the total # of MPI
+processes LAMMPS is running on.  For a :doc:`2d simulation <dimension>`,
+*Pz* must equal 1.
 
-Note that if you run on a prime number of processors P, then a grid
-such as 1 x P x 1 will be required, which may incur extra
+Note that if you run on a prime number of MPI processes *P*, then a grid
+such as 1 x *P* x 1 will be required, which may incur extra
 communication costs due to the high surface area of each processor's
 subdomain.
 
-Also note that if multiple partitions are being used then P is the
-number of processors in this partition; see the :doc:`-partition command-line switch <Run_options>` page for details.  Also note
-that you can prefix the processors command with the
-:doc:`partition <partition>` command to easily specify different
-Px,Py,Pz values for different partitions.
+Also note that if multiple partitions are being used then *P* is the
+number of MPI processes in this partition; see the :doc:`-partition
+command-line switch <Run_options>` page for details.  Also note that you
+can prefix the *processors* command with the :doc:`partition
+<partition>` command to easily specify different *Px*, *Py*, *Pz* values
+for different partitions.
 
 You can use the :doc:`partition <partition>` command to specify
 different processor grids for different partitions, e.g.
@@ -112,27 +114,27 @@ different processor grids for different partitions, e.g.
 If load-balancing is never invoked via the :doc:`balance <balance>` or
 :doc:`fix balance <fix_balance>` commands, then the initial regular grid
 will persist for all simulations.  If balancing is performed, some of
-the methods invoked by those commands retain the logical topology of
-the initial 3d grid, and the mapping of processors to the grid
-specified by the processors command.  However the grid spacings in
-different dimensions may change, so that processors own subdomains of
+the methods invoked by those commands retain the logical topology of the
+initial 3d grid, and the mapping of MPI processes to the grid specified
+by the *processors* command.  However the grid spacings in different
+dimensions may change, so that MPI processes would own subdomains of
 different sizes.  If the :doc:`comm_style tiled <comm_style>` command is
-used, methods invoked by the balancing commands may discard the 3d
-grid of processors and tile the simulation domain with subdomains of
+used, methods invoked by the balancing commands may discard the 3d grid
+of MPI processes and tile the simulation domain with subdomains of
 different sizes and shapes which no longer have a logical 3d
 connectivity.  If that occurs, all the information specified by the
-processors command is ignored.
+*processors* command is ignored.
 
 ----------
 
-The *grid* keyword affects the factorization of P into Px,Py,Pz and it
-can also affect how the P processor IDs are mapped to the 3d grid of
-processors.
+The *grid* keyword affects the factorization of *P* into *Px*, *Py*,
+*Pz* and it can also affect how the *P* MPI ranks are mapped to the 3d
+grid of MPI processes.
 
-The *onelevel* style creates a 3d grid that is compatible with the
-Px,Py,Pz settings, and which minimizes the surface-to-volume ratio of
+The *onelevel* style creates a 3d grid that is compatible with the *Px*,
+*Py*, *Pz* settings, and which minimizes the surface-to-volume ratio of
 each processor's subdomain, as described above.  The mapping of
-processors to the grid is determined by the *map* keyword setting.
+MPI processes to the grid is determined by the *map* keyword setting.
 
 The *twolevel* style can be used on machines with multicore nodes to
 minimize off-node communication.  It ensures that contiguous
@@ -145,42 +147,44 @@ The *Cx*, *Cy*, *Cz* settings are similar to the *Px*, *Py*, *Pz*
 settings, only their product should equal *Nc*\ .  Any of the 3
 parameters can be specified with an asterisk "\*", which means LAMMPS
 will choose the number of cores in that dimension of the node's
-sub-grid.  As with Px,Py,Pz, it will do this based on the size and
-shape of the global simulation box so as to minimize the
+sub-grid.  As with *Px*, *Py*, *Pz*, it will do this based on the size
+and shape of the global simulation box so as to minimize the
 surface-to-volume ratio of each processor's subdomain.
 
 .. note::
 
-   For the *twolevel* style to work correctly, it assumes the MPI
-   ranks of processors LAMMPS is running on are ordered by core and then
-   by node.  E.g. if you are running on 2 quad-core nodes, for a total of
-   8 processors, then it assumes processors 0,1,2,3 are on node 1, and
-   processors 4,5,6,7 are on node 2.  This is the default rank ordering
-   for most MPI implementations, but some MPIs provide options for this
-   ordering, e.g. via environment variable settings.
+   For the *twolevel* style to work correctly, it assumes the ranks of
+   the MPI processes that LAMMPS is running on are ordered by core and
+   then by node.  E.g. if you are running on 2 quad-core nodes, for a
+   total of 8 MPI processes, then it assumes ranks 0, 1, 2, and 3 are on
+   node 1, and ranks 4, 5, 6, and 7 are on node 2.  This is the default
+   rank ordering for most MPI implementations, but some MPI libraries
+   provide options for customizing this ordering, e.g. via environment
+   variable settings.
 
 The *numa* style operates similar to the *twolevel* keyword except that
 it auto-detects which cores are running on which nodes.  It will also
-subdivide the cores into numa domains. Currently, the number of numa
-domains is not auto-detected and must be specified using the
-*numa_nodes* keyword; otherwise, the default value is used. The *numa*
-style uses a different algorithm than the *twolevel* keyword for doing
-the two-level factorization of the simulation box into a 3d processor
-grid to minimize off-node communication and communication across numa
-domains. It does its own MPI-based mapping of nodes and cores to the
-regular 3d grid.  Thus it may produce a different layout of the
-processors than the *twolevel* options.
+subdivide the cores into `NUMA domains
+<https://en.wikipedia.org/wiki/Non-uniform_memory_access>`_.  Currently,
+the number of NUMA domains is not auto-detected and must be specified
+using the *numa_nodes* keyword.  Otherwise, the default value is used.
+The *numa* style uses a different algorithm than the *twolevel* keyword
+for doing the two-level factorization of the simulation box into a 3d
+processor grid to minimize off-node communication and communication
+across NUMA domains.  It does its own MPI-based mapping of nodes and
+cores to the regular 3d grid.  Thus it may produce a different layout of
+the MPI ranks than the *twolevel* options.
 
 The *numa* style will give an error if the number of MPI processes is
-not divisible by the number of cores used per node, or any of the Px
-or Py or Pz values is greater than 1.
+not divisible by the number of cores used per node, or any of the *Px*
+or *Py* or *Pz* values is greater than 1.
 
 .. note::
 
-   Unlike the *twolevel* style, the *numa* style does not require
-   any particular ordering of MPI ranks in order to work correctly. This
-   is because it auto-detects which processes are running on which nodes.
-   However, it assumes that the lowest ranks are in the first numa
+   Unlike the *twolevel* style, the *numa* style does not require any
+   particular ordering of MPI ranks in order to work correctly.  This is
+   because it auto-detects which processes are running on which nodes.
+   However, it assumes that the lowest ranks are in the first NUMA
    domain, and so forth. MPI rank orderings that do not preserve this
    property might result in more intra-node communication between CPUs.
 
@@ -194,26 +198,27 @@ The first non-blank, non-comment line should have
 
 .. parsed-literal::
 
-   Px Py Py
+   Px Py Pz
 
 These must be compatible with the total number of processors
-and the Px, Py, Pz settings of the processors command.
+and the *Px*, *Py*, *Pz* settings of the processors command.
 
 This line should be immediately followed by
-P = Px\*Py\*Pz lines of the form:
+P = *Px* \* *Py* \* *Pz* lines of the form:
 
 .. parsed-literal::
 
    ID I J K
 
-where ID is a processor ID (from 0 to P-1) and I,J,K are the
-processors location in the 3d grid.  I must be a number from 1 to Px
-(inclusive) and similarly for J and K.  The P lines can be listed in
-any order, but no processor ID should appear more than once.
+where ID is an MPI process rank (from 0 to P-1) and *I*, *J*, *K* are
+the MPI rank's location in the 3d grid.  *I* must be a number from 1 to
+*Px* (inclusive) and similarly for *J* and *Py* or *K* and *Pz*.  The
+*P* lines can be listed in any order, but no MPI rank should appear more
+than once.
 
 ----------
 
-The *numa_nodes* keyword is used to specify the number of numa domains
+The *numa_nodes* keyword is used to specify the number of NUMA domains
 per node. It is currently only used by the *numa* style for two-level
 factorization to reduce the amount of MPI communications between CPUs.
 A good setting for this will typically be equal to the number of CPU
@@ -221,27 +226,35 @@ sockets per node.
 
 ----------
 
-The *map* keyword affects how the P processor IDs (from 0 to P-1) are
-mapped to the 3d grid of processors.  It is only used by the
+The *map* keyword affects how the *P* MPI process ranks (from 0 to P-1)
+are mapped to the 3d grid of MPI processes.  It is only used by the
 *onelevel* and *twolevel* grid settings.
 
 The *cart* style uses the family of MPI Cartesian functions to perform
-the mapping, namely MPI_Cart_create(), MPI_Cart_get(),
-MPI_Cart_shift(), and MPI_Cart_rank().  It invokes the
-MPI_Cart_create() function with its reorder flag = 0, so that MPI is
-not free to reorder the processors.
+the mapping, namely `MPI_Cart_create()
+<https://docs.open-mpi.org/en/main/man-openmpi/man3/MPI_Cart_create.3.html>`_,
+`MPI_Cart_get()
+<https://docs.open-mpi.org/en/main/man-openmpi/man3/MPI_Cart_get.3.html>`_,
+`MPI_Cart_shift()
+<https://docs.open-mpi.org/en/main/man-openmpi/man3/MPI_Cart_shift.3.html>`_,
+and `MPI_Cart_rank()
+<https://docs.open-mpi.org/en/main/man-openmpi/man3/MPI_Cart_rank.3.html>`_.
+It invokes the `MPI_Cart_create()
+<https://docs.open-mpi.org/en/main/man-openmpi/man3/MPI_Cart_create.3.html>`_
+function with its reorder flag = 0, so that MPI is not free to reorder
+the processors.
 
 The *cart/reorder* style does the same thing as the *cart* style
 except it sets the reorder flag to 1, so that MPI can reorder
 processors if it desires.
 
-The *xyz*, *xzy*, *yxz*, *yzx*, *zxy*, and *zyx* styles are all
-similar.  If the style is IJK, then it maps the P processors to the
-grid so that the processor ID in the I direction varies fastest, the
-processor ID in the J direction varies next fastest, and the processor
-ID in the K direction varies slowest.  For example, if you select
-style *xyz* and you have a 2x2x2 grid of 8 processors, the assignments
-of the 8 octants of the simulation domain will be:
+The *xyz*, *xzy*, *yxz*, *yzx*, *zxy*, and *zyx* styles are all similar.
+If the style is IJK, then it maps the *P* processors to the grid so that
+the MPI ranks in the *I* direction varies fastest, the MPI ranks in the
+*J* direction varies next fastest, and the MPI rank in the *K* direction
+varies slowest.  For example, if you select style *xyz* and you have a
+2x2x2 grid of 8 processors, the assignments of the 8 octants of the
+simulation domain will be:
 
 .. parsed-literal::
 
@@ -255,13 +268,15 @@ of the 8 octants of the simulation domain will be:
    proc 7 = hi x, hi y, hi z octant
 
 Note that, in principle, an MPI implementation on a particular machine
-should be aware of both the machine's network topology and the
-specific subset of processors and nodes that were assigned to your
-simulation.  Thus its MPI_Cart calls can optimize the assignment of
-MPI processes to the 3d grid to minimize communication costs.  In
-practice, however, few if any MPI implementations actually do this.
-So it is likely that the *cart* and *cart/reorder* styles simply give
-the same result as one of the IJK styles.
+should be aware of both the machine's network topology and the specific
+subset of processors and nodes that were assigned to your simulation.
+Thus its `MPI_Cart()
+<https://docs.open-mpi.org/en/main/man-openmpi/man3/MPI_Cart.3.html>`_
+calls can optimize the assignment of MPI processes to the 3d grid to
+minimize communication costs.  In practice, however, few if any MPI
+implementations actually do this.  So it is likely that the *cart* and
+*cart/reorder* styles simply give the same result as one of the *IJK*
+styles.
 
 Also note, that for the *twolevel* grid style, the *map* setting is
 used to first map the nodes to the 3d grid, then again to the cores
@@ -270,23 +285,24 @@ styles are not supported, so an *xyz* style is used in their place.
 
 ----------
 
-The *part* keyword affects the factorization of P into Px,Py,Pz.
+The *part* keyword affects the factorization of *P* into *Px*, *Py*, *Pz*.
 
 It can be useful when running in multi-partition mode, e.g. with the
 :doc:`run_style verlet/split <run_style>` command.  It specifies a
-dependency between a sending partition *Psend* and a receiving
-partition *Precv* which is enforced when each is setting up their own
-mapping of their processors to the simulation box.  Each of *Psend*
-and *Precv* must be integers from 1 to Np, where Np is the number of
-partitions you have defined via the :doc:`-partition command-line switch <Run_options>`.
+dependency between a sending partition *Psend* and a receiving partition
+*Precv* which is enforced when each is setting up their own mapping of
+their processors to the simulation box.  Each of *Psend* and *Precv*
+must be integers from 1 to *Np*, where *Np* is the number of partitions
+you have defined via the :doc:`-partition command-line switch
+<Run_options>`.
 
-A "dependency" means that the sending partition will create its
-regular 3d grid as Px by Py by Pz and after it has done this, it will
-send the Px,Py,Pz values to the receiving partition.  The receiving
+A "dependency" means that the sending partition will create its regular
+3d grid as *Px* by *Py* by *Pz* and after it has done this, it will send
+the *Px*, *Py*, *Pz* values to the receiving partition.  The receiving
 partition will wait to receive these values before creating its own
-regular 3d grid and will use the sender's Px,Py,Pz values as a
-constraint.  The nature of the constraint is determined by the
-*cstyle* argument.
+regular 3d grid and will use the sender's *Px*, *Py*, *Pz* values as a
+constraint.  The nature of the constraint is determined by the *cstyle*
+argument.
 
 For a *cstyle* of *multiple*, each dimension of the sender's processor
 grid is required to be an integer multiple of the corresponding
@@ -294,29 +310,28 @@ dimension in the receiver's processor grid.  This is a requirement of
 the :doc:`run_style verlet/split <run_style>` command.
 
 For example, assume the sending partition creates a 4x6x10 grid = 240
-processor grid.  If the receiving partition is running on 80
-processors, it could create a 4x2x10 grid, but it will not create a
-2x4x10 grid, since in the y-dimension, 6 is not an integer multiple of
-4.
+processor grid.  If the receiving partition is running on 80 processors,
+it could create a 4x2x10 grid, but it will not create a 2x4x10 grid,
+since in the y-dimension, 6 is not an integer multiple of 4.
 
 .. note::
 
    If you use the :doc:`partition <partition>` command to invoke
    different "processors" commands on different partitions, and you also
-   use the *part* keyword, then you must ensure that both the sending and
-   receiving partitions invoke the "processors" command that connects the
-   2 partitions via the *part* keyword.  LAMMPS cannot easily check for
-   this, but your simulation will likely hang in its setup phase if this
-   error has been made.
+   use the *part* keyword, then you must ensure that both the sending
+   and receiving partitions invoke the "processors" command that
+   connects the 2 partitions via the *part* keyword.  LAMMPS cannot
+   easily check for this, but your simulation will likely hang in its
+   setup phase if this error has been made.
 
 ----------
 
-The *file* keyword writes the mapping of the factorization of P
-processors and their mapping to the 3d grid to the specified file
+The *file* keyword writes the mapping of the factorization of *P* MPI
+processes and their mapping to the 3d grid to the specified file
 *outfile*\ .  This is useful to check that you assigned physical
-processors in the manner you desired, which can be tricky to figure
-out, especially when running on multiple partitions or on, a multicore
-machine or when the processor ranks were reordered by use of the
+processors in the manner you desired, which can be tricky to figure out,
+especially when running on multiple partitions or on, a multicore
+machine or when the MPI ranks were reordered by use of the
 :doc:`-reorder command-line switch <Run_options>` or due to use of
 MPI-specific launch options such as a config file.
 
@@ -327,21 +342,22 @@ one-line per processor in this format:
 
 world-ID universe-ID original-ID: I J K: name
 
-The IDs are the processor's rank in this simulation (the world), the
-universe (of multiple simulations), and the original MPI communicator
-used to instantiate LAMMPS, respectively.  The world and universe IDs
-will only be different if you are running on more than one partition;
-see the :doc:`-partition command-line switch <Run_options>`.  The
-universe and original IDs will only be different if you used the
-:doc:`-reorder command-line switch <Run_options>` to reorder the
-processors differently than their rank in the original communicator
-LAMMPS was instantiated with.
+The IDs are the MPI ranks in this simulation (the world), the universe
+(of multiple simulations), and the original MPI communicator used to
+instantiate LAMMPS, respectively.  The world and universe IDs will only
+be different if you are running on more than one partition; see the
+:doc:`-partition command-line switch <Run_options>`.  The universe and
+original IDs will only be different if you used the :doc:`-reorder
+command-line switch <Run_options>` to reorder the MPI processes
+differently than their rank in the original communicator LAMMPS was
+instantiated with.
 
-I,J,K are the indices of the processor in the regular 3d grid, each
-from 1 to Nd, where Nd is the number of processors in that dimension
-of the grid.
+*I*, *J*, *K* are the indices of the processor in the regular 3d grid,
+each from 1 to *Nd*, where *Nd* is the number of MPI processes in that
+dimension of the grid.
 
-The *name* is what is returned by a call to MPI_Get_processor_name()
+The *name* is what is returned by a call to `MPI_Get_processor_name()
+<https://docs.open-mpi.org/en/main/man-openmpi/man3/MPI_Get_processor_name.3.html>`_
 and should represent an identifier relevant to the physical processors
 in your machine.  Note that depending on the MPI implementation,
 multiple cores can have the same *name*\ .
@@ -351,9 +367,9 @@ multiple cores can have the same *name*\ .
 Restrictions
 """"""""""""
 
-This command cannot be used after the simulation box is defined by a
+This command cannot be used *after* the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
-It can be used before a restart file is read to change the 3d
+It can be used *before* a restart file is read to change the 3d
 processor grid from what is specified in the restart file.
 
 The *grid numa* keyword only currently works with the *map cart*
@@ -370,5 +386,5 @@ Related commands
 Default
 """""""
 
-The option defaults are Px Py Pz = \* \* \*, grid = onelevel, map =
+The option defaults are *Px* *Py* *Pz* = \* \* \*, grid = onelevel, map =
 cart, and numa_nodes = 2.

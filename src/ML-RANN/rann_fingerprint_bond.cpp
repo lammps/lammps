@@ -78,26 +78,21 @@ Fingerprint_bond::~Fingerprint_bond() {
 bool Fingerprint_bond::parse_values(std::string constant,std::vector<std::string> line1) {
   int nwords,l;
   nwords=line1.size();
-  if (constant.compare("re")==0) {
+  if (constant == "re") {
     re = strtod(line1[0].c_str(),nullptr);
-  }
-  else if (constant.compare("rc")==0) {
+  } else if (constant == "rc") {
     rc = strtod(line1[0].c_str(),nullptr);
-  }
-  else if (constant.compare("alphak")==0) {
+  } else if (constant == "alphak") {
     delete[] alpha_k;
     alpha_k = new double[nwords];
     for (l=0;l<nwords;l++) {
       alpha_k[l]=strtod(line1[l].c_str(),nullptr);
     }
-  }
-  else if (constant.compare("dr")==0) {
+  } else if (constant == "dr") {
     dr = strtod(line1[0].c_str(),nullptr);
-  }
-  else if (constant.compare("k")==0) {
+  } else if (constant == "k") {
     kmax = strtol(line1[0].c_str(),nullptr,10);
-  }
-  else if (constant.compare("m")==0) {
+  } else if (constant == "m") {
     mlength = strtol(line1[0].c_str(),nullptr,10);
   }
   else pair->errorf(FLERR,"Undefined value for bond power");

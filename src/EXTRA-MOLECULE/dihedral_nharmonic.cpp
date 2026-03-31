@@ -40,18 +40,21 @@ DihedralNHarmonic::DihedralNHarmonic(LAMMPS *lmp) : Dihedral(lmp)
   writedata = 1;
   a = nullptr;
   born_matrix_enable = 1;
+  nterms_max = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 DihedralNHarmonic::~DihedralNHarmonic()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     for (int i = 1; i <= atom->ndihedraltypes; i++)
-      delete [] a[i];
-    delete [] a;
-    delete [] nterms;
+      delete[] a[i];
+    delete[] a;
+    delete[] nterms;
   }
 }
 
@@ -259,8 +262,9 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
 {
   if (narg < 3) error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 
-  int n = utils::inumeric(FLERR,arg[1],false,lmp);
-  if (narg != n + 2)
+  int nterms_one = utils::inumeric(FLERR,arg[1],false,lmp);
+  nterms_max = MAX(nterms_max,nterms_one);
+  if (narg != nterms_one + 2)
     error->all(FLERR,"Incorrect args for dihedral coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
@@ -271,9 +275,9 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     delete[] a[i];
-    a[i] = new double [n];
-    nterms[i] = n;
-    for (int j = 0; j < n; j++) {
+    a[i] = new double [nterms_one];
+    nterms[i] = nterms_one;
+    for (int j = 0; j < nterms_one; j++) {
       a[i][j] = utils::numeric(FLERR,arg[2+j],false,lmp);
       setflag[i] = 1;
     }
@@ -289,7 +293,11 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
 
 void DihedralNHarmonic::write_restart(FILE *fp)
 {
+  // must store nterms_max in restart file in addition to the nterms array
+  // the KOKKOS version requires it to store the coefficients in a 2d view
+  fwrite(&nterms_max,sizeof(int),1,fp);
   fwrite(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
+
   for (int i = 1; i <= atom->ndihedraltypes; i++)
     fwrite(a[i],sizeof(double),nterms[i],fp);
 }
@@ -302,9 +310,11 @@ void DihedralNHarmonic::read_restart(FILE *fp)
 {
   allocate();
 
-  if (comm->me == 0)
+  if (comm->me == 0) {
+    utils::sfread(FLERR,&nterms_max,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,nullptr,error);
-
+  }
+  MPI_Bcast(&nterms_max,1,MPI_INT,0,world);
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
   // allocate

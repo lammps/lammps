@@ -27,6 +27,7 @@
 #include "memory.h"
 #include "neighbor.h"
 #include "random_mars.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 #include "update.h"
 
@@ -275,7 +276,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 
   // proc 0 opens file
 
-  FILE *fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     fp = utils::open_potential(filename, lmp, nullptr);
     if (!fp) error->one(FLERR, "Cannot open grid file: {}: {}", filename, utils::getsyserror());
@@ -285,10 +286,6 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
   // Grid3d::read_file() calls back to unpack_read_grid() with chunks of lines
 
   grid->read_file(Grid3d::FIX,this,fp,CHUNK,MAXLINE);
-
-  // close file
-
-  if (comm->me == 0) fclose(fp);
 
   // check completeness of input data
 

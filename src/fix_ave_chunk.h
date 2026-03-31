@@ -21,6 +21,7 @@ FixStyle(ave/chunk,FixAveChunk);
 #define LMP_FIX_AVE_CHUNK_H
 
 #include "fix.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -56,7 +57,7 @@ class FixAveChunk : public Fix {
   char *format;
   char *tstring, *sstring, *id_bias;
   class Compute *tbias;    // ptr to additional bias compute
-  FILE *fp;
+  SafeFilePtr fp;
 
   int densityflag;    // 1 if density/number or density/mass requested
   int volflag;        // SCALAR/VECTOR for density normalization by volume

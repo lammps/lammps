@@ -43,15 +43,15 @@
 #include "region.h"
 #include "update.h"
 #include "variable.h"
-#ifndef FMT_STATIC_THOUSANDS_SEPARATOR
-#include "fmt/chrono.h"
-#endif
 
 #include <cctype>
 #include <cmath>
 #include <cstring>
 #include <ctime>
 #include <map>
+#if __has_include(<version>)
+#include <version>
+#endif
 
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -272,16 +272,9 @@ void Info::command(int narg, char **arg)
   if (out == nullptr) return;
 
   fputs("\nInfo-Info-Info-Info-Info-Info-Info-Info-Info-Info-Info\n",out);
-#if defined(FMT_STATIC_THOUSANDS_SEPARATOR)
-  {
-    time_t tv = time(nullptr);
-    struct tm *now = localtime(&tv);
-    utils::print(out, "Printed on {}", asctime(now));
-  }
-#else
-  std::tm now = fmt::localtime(std::time(nullptr));
-  utils::print(out,"Printed on {}", std::asctime(&now));
-#endif
+  time_t tv = time(nullptr);
+  struct tm *now = localtime(&tv);
+  utils::print(out, "Printed on {}", asctime(now));
 
   if (flags & CONFIG) {
     utils::print(out,"\nLAMMPS version: {} / {}\n", lmp->version, lmp->num_ver);
@@ -497,14 +490,15 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & GROUPS) {
-    int ngroup = group->ngroup;
     char **names = group->names;
     int *dynamic = group->dynamic;
     fputs("\nGroup information:\n",out);
-    for (int i=0; i < ngroup; ++i) {
-      if (names[i])
+    for (int i=0; i < Group::MAX_GROUP; ++i) {
+      // skip over deleted groups
+      if (names[i]) {
         utils::print(out,"Group[{:2d}]:     {:16} ({})\n",
-                   i, names[i], dynamic[i] ? "dynamic" : "static");
+                     i, names[i], dynamic[i] ? "dynamic" : "static");
+      }
     }
   }
 
@@ -1334,6 +1328,7 @@ std::string Info::get_fft_info()
 }
 
 /* ---------------------------------------------------------------------- */
+#if !defined(__cpp_lib_format) || (__cpp_lib_format < 201907L)
 
 static constexpr int fmt_ver_major = FMT_VERSION / 10000;
 static constexpr int fmt_ver_minor = (FMT_VERSION % 10000) / 100;
@@ -1344,6 +1339,12 @@ std::string Info::get_fmt_info()
   return fmt::format("Embedded fmt library version: {}.{}.{}\n",
                      fmt_ver_major, fmt_ver_minor, fmt_ver_patch);
 }
+#else
+std::string Info::get_fmt_info()
+{
+  return "Using fmt library emulation with std::format\n";
+}
+#endif
 
 /* ---------------------------------------------------------------------- */
 

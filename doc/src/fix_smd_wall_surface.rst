@@ -53,7 +53,7 @@ Dynamics in LAMMPS.
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 Fix *smd/wall\_surface* supports the *fix* keyword of :doc:`dump image
 <dump_image>`.  The fix will pass geometry information about the wall

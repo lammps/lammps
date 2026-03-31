@@ -14,7 +14,8 @@
 /* ----------------------------------------------------------------------
    Originally modified from CG-DNA/fix_nve_dotc_langevin.cpp.
 
-   Contributing author: Sam Cameron (University of Bristol)
+   Contributing authors: Sam Cameron (University of Bristol),
+                         Arthur Straube (Zuse Institute Berlin)
 ------------------------------------------------------------------------- */
 
 #include "fix_brownian_base.h"
@@ -46,6 +47,8 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) :
   dipole_flag = 0;
   rot_temp_flag = 0;
   planar_rot_flag = 0;
+  rot_style = ROT_GEOMETRIC;
+  if (utils::strmatch(style, "^brownian/sphere")) rot_style = ROT_PROJECTION;
   g2 = 0.0;
 
   std::string mystyle = fmt::format("fix {}", style);
@@ -187,7 +190,21 @@ FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) :
       planar_rot_flag = 1;
       if (domain->dimension == 2)
         error->all(FLERR, iarg, "The planar_rotation keyword is not allowed for 2D simulations");
-      iarg = iarg + 1;
+      ++iarg;
+
+    } else if (strcmp(arg[iarg], "rotation_style") == 0) {
+
+      if (!utils::strmatch(style, "^brownian/sphere"))
+        error->all(FLERR, "Keyword rotation_style is only supported for fix brownian/sphere");
+      if (narg < iarg + 2) utils::missing_cmd_args(FLERR, "fix brownian rotation_style", error);
+
+      if (strcmp(arg[iarg + 1], "projection") == 0)
+        rot_style = ROT_PROJECTION;
+      else if (strcmp(arg[iarg + 1], "geometric") == 0)
+        rot_style = ROT_GEOMETRIC;
+      else
+        error->all(FLERR, iarg + 1, "Unknown fix {} rotation_style {}", style);
+      iarg = iarg + 2;
 
     } else {
       error->all(FLERR, iarg, "Unknown fix {} keyword {}", style, arg[iarg]);

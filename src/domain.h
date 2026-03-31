@@ -255,6 +255,7 @@ class Domain : protected Pointers {
    * \param image Image flags
    * \param xnew Output: unwrapped position */
   void unmap(const double *, imageint, double *);
+  void unmap(const double *, const double *, imageint, int, double *, double *);
 
   /** Flip image flags when box is flipped
    * \param flipx Flip in x direction

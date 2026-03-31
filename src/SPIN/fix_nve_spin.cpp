@@ -349,22 +349,24 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       comm->forward_comm();
       int i = stack_foot[j];
       while (i >= 0) {
+        const int next = forward_stacks[i];
         if (mask[i] & groupbit) {
           ComputeInteractionsSpin(i);
           AdvanceSingleSpin(i);
-          i = forward_stacks[i];
         }
+        i = next;
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
       comm->forward_comm();
       int i = stack_head[j];
       while (i >= 0) {
+        const int next = backward_stacks[i];
         if (mask[i] & groupbit) {
           ComputeInteractionsSpin(i);
           AdvanceSingleSpin(i);
-          i = backward_stacks[i];
         }
+        i = next;
       }
     }
   } else {                                       // serial seq. update
@@ -402,22 +404,24 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       comm->forward_comm();
       int i = stack_foot[j];
       while (i >= 0) {
+        const int next = forward_stacks[i];
         if (mask[i] & groupbit) {
           ComputeInteractionsSpin(i);
           AdvanceSingleSpin(i);
-          i = forward_stacks[i];
         }
+        i = next;
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
       comm->forward_comm();
       int i = stack_head[j];
       while (i >= 0) {
+        const int next = backward_stacks[i];
         if (mask[i] & groupbit) {
           ComputeInteractionsSpin(i);
           AdvanceSingleSpin(i);
-          i = backward_stacks[i];
         }
+        i = next;
       }
     }
   } else {                                      // serial seq. update

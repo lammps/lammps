@@ -57,6 +57,9 @@ class Image : protected Pointers {
                      double opacity = 1.0);
   void draw_triangle(const double *, const double *, const double *, const double *,
                      double opacity = 1.0);
+  void draw_trinorm(const double *, const double *, const double *, const double *, const double *,
+                    const double *, const double *, const double *, const double *,
+                    double opacity = 1.0);
   void draw_box(double (*)[3], double, double opacity = 1.0);
   void draw_axes(double (*)[3], double, double opacity = 1.0);
   void draw_pixmap(const double *, int, int, const unsigned char *, double *, double scale = 1.0,

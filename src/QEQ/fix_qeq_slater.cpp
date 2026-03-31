@@ -23,6 +23,7 @@
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -34,12 +35,16 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace FixConst;
+using MathSpecial::mdftaper;
+
 
 /* ---------------------------------------------------------------------- */
 
 FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) : FixQEq(lmp, narg, arg)
 {
   alpha = 0.20;
+  vtype = 0;
+  drtap = 0.0;
 
   // optional arg
   int iarg = 8;
@@ -48,12 +53,32 @@ FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) : FixQEq(lmp, narg
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix qeq/slater alpha", error);
       alpha = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
+      if (iarg < narg) {
+        if (strcmp(arg[iarg],"wolf") == 0) { // type of potential (0=erfc(r)/r, 1=Wolf, 2=Fennell & Gezelter)
+          vtype = 1;
+          iarg++;
+          // optional taper width; do not treat following keyword (e.g. "warn") as numeric
+          if (iarg < narg && utils::is_double(arg[iarg])) {
+            drtap = utils::numeric(FLERR, arg[iarg], false, lmp);
+            iarg++;
+          }
+        } else if (strcmp(arg[iarg],"dsf") == 0) {
+          vtype = 2;
+          iarg++;
+          // optional taper width; do not treat following keyword (e.g. "warn") as numeric
+          if (iarg < narg && utils::is_double(arg[iarg])) {
+            drtap = utils::numeric(FLERR, arg[iarg], false, lmp);
+            iarg++;
+          }
+        }
+      }
     } else if (strcmp(arg[iarg], "warn") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix qeq/slater warn", error);
       maxwarn = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else
+    } else {
       error->all(FLERR, "Unknown fix qeq/slater keyword: {}", arg[iarg]);
+    }
   }
 
   if (streitz_flag) extract_streitz();
@@ -189,7 +214,12 @@ void FixQEqSlater::compute_H()
 
       r = sqrt(rsq);
       H.jlist[m_fill] = j;
-      H.val[m_fill] = calculate_H(zei, zej, zj, r, zjtmp);
+      if (vtype == 0)
+        H.val[m_fill] = calculate_H(zei, zej, zj, r, zjtmp);
+      else if (vtype == 1)
+        H.val[m_fill] = calculate_H_wolf(zei, zej, zj, r, zjtmp);
+      else if (vtype == 2)
+        H.val[m_fill] = calculate_H_dsf(zei, zej, zj, r, zjtmp);
       m_fill++;
     }
     H.numnbrs[i] = m_fill - H.firstnbr[i];
@@ -207,6 +237,7 @@ double FixQEqSlater::calculate_H(double zei, double zej, double zj,
                 double r, double &zjtmp)
 {
   double rinv = 1.0/r;
+  double rc = cutoff;
 
   double exp2zir = exp(-2.0*zei*r);
   double zei2 = zei*zei;
@@ -228,6 +259,7 @@ double FixQEqSlater::calculate_H(double zei, double zej, double zj,
   double etmp1, etmp2;
   double e1, e2, e3, e4;
   double ci_jfi, ci_fifj;
+  double ftap, dftap;
 
   e1 = e2 = e3 = e4 = 0.0;
   etmp1 = etmp2 = 0.0;
@@ -246,8 +278,10 @@ double FixQEqSlater::calculate_H(double zei, double zej, double zj,
     ci_fifj = -exp2zir*(e1+e3/r) - exp2zjr*(e2+e4/r);
   }
 
-  etmp1 = 1.00 * (ci_jfi - ci_fifj);
-  etmp2 = 0.50 * (ci_fifj + erfcr*rinv);
+  mdftaper(r, rc-drtap, rc, ftap, dftap);
+
+  etmp1 = 1.00 * (ci_jfi - ci_fifj) * ftap;
+  etmp2 = 0.50 * (ci_fifj + erfcr*rinv) * ftap;
 
   zjtmp += qqrd2e * zj * etmp1;
   return qqrd2e * etmp2;
@@ -284,6 +318,7 @@ double FixQEqSlater::calculate_H_wolf(double zei, double zej, double zj,
 
   double eshift, fshift, ci_jfi, ci_fifj;
   double etmp1, etmp2, etmp3;
+  double ftap, dftap;
 
   double a = alpha;
   double erfcr = erfc(a*r);
@@ -316,13 +351,74 @@ double FixQEqSlater::calculate_H_wolf(double zei, double zej, double zj,
               - eshift - (r-rc)*fshift;
   }
 
+  mdftaper(r, rc-drtap, rc, ftap, dftap);
+
   etmp1 = erfcr/r - erfcrc/rc;
-  etmp2 = 1.00 * (ci_jfi - ci_fifj);
-  etmp3 = 0.50 * (etmp1 + ci_fifj);
+  etmp2 = 1.00 * (ci_jfi - ci_fifj) * ftap;
+  etmp3 = 0.50 * (etmp1 + ci_fifj*ftap);
 
   zjtmp += qqrd2e * zj * etmp2;
   return qqrd2e * etmp3;
+}
 
+/* ---------------------------------------------------------------------- */
+
+double FixQEqSlater::calculate_H_dsf(double zei, double zej, double zj,
+                double r, double &zjtmp)
+{
+  double rinv = 1.0/r;
+
+  double exp2zir = exp(-2.0*zei*r);
+  double zei2 = zei*zei;
+  double zei4 = zei2*zei2;
+  double zei6 = zei2*zei4;
+
+  double exp2zjr = exp(-2.0*zej*r);
+  double zej2 = zej*zej;
+  double zej4 = zej2*zej2;
+  double zej6 = zej2*zej4;
+
+  double sm1 = 11.0/8.0;
+  double sm2 = 3.00/4.0;
+  double sm3 = 1.00/6.0;
+
+  double erfcr = erfc(alpha*r);
+  double qqrd2e = force->qqrd2e;
+
+  double etmp1, etmp2;
+  double e1, e2, e3, e4;
+  double ci_jfi, ci_fifj;
+
+  double rc = cutoff;
+  double erfcrc = erfc(alpha*rc);
+  double edsf;
+  double ftap, dftap;
+
+  e1 = e2 = e3 = e4 = 0.0;
+  etmp1 = etmp2 = edsf = 0.0;
+
+  ci_jfi = -zei*exp2zir - rinv*exp2zir;
+
+  if (zei == zej) {
+    ci_fifj = -exp2zir*(rinv + zei*(sm1 + sm2*zei*r + sm3*zei2*r*r));
+  } else {
+    e1 = zei*zej4/((zei+zej)*(zei+zej)*(zei-zej)*(zei-zej));
+    e2 = zej*zei4/((zei+zej)*(zei+zej)*(zej-zei)*(zej-zei));
+    e3 = (3.0*zei2*zej4-zej6) /
+         ((zei+zej)*(zei+zej)*(zei+zej)*(zei-zej)*(zei-zej)*(zei-zej));
+    e4 = (3.0*zej2*zei4-zei6) /
+         ((zei+zej)*(zei+zej)*(zei+zej)*(zej-zei)*(zej-zei)*(zej-zei));
+    ci_fifj = -exp2zir*(e1+e3/r) - exp2zjr*(e2+e4/r);
+  }
+
+  mdftaper(r, rc-drtap, rc, ftap, dftap);
+
+  edsf = erfcr/r - erfcrc/rc + (erfcrc/(rc*rc)+2.0*alpha/MY_PIS*exp(-alpha*alpha*rc*rc)/rc)*(r-rc);
+  etmp1 = 1.00 * (ci_jfi - ci_fifj) * ftap;
+  etmp2 = 0.50 * (ci_fifj*ftap + edsf);
+
+  zjtmp += qqrd2e * zj * etmp1;
+  return qqrd2e * etmp2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -356,5 +452,4 @@ void FixQEqSlater::sparse_matvec(sparse_matrix *A, double *x, double *b)
       }
     }
   }
-
 }

@@ -41,7 +41,10 @@ class Region;
  *
  * \sa LAMMPS_NS::Pointers */
 class Group : protected Pointers {
+  friend class FixGroup;
+
  public:
+  enum { MAX_GROUP = 32 };    // max # of groups. limited to 32 because bitmasks are 32-bit int.
   int ngroup;          /**< Number of defined groups */
   char **names;        /**< Array of group names [ngroup] */
   int *bitmask;        /**< One-bit mask for each group [ngroup] */
@@ -86,6 +89,7 @@ class Group : protected Pointers {
    * \param line Error context string
    * \return Group bitmask */
   int get_bitmask_by_id(const std::string &, int, const std::string &, const std::string &);
+  int get_inversemask_by_id(const std::string &, int, const std::string &, const std::string &);
 
   /** Write group info to restart file
    * \param fp File pointer for restart file */
@@ -251,7 +255,7 @@ class Group : protected Pointers {
    * \param omega Output: angular velocity [3] */
   void omega(double *, double[3][3], double *);
 
- private:
+ protected:
   int me;    /**< MPI rank of this processor */
 
   int find_unused();

@@ -24,6 +24,7 @@
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
+#include "safe_pointers.h"
 
 #include <cmath>
 #include <cstring>
@@ -305,8 +306,7 @@ void FixEOStableRX::read_file(char *file)
 
   // open file on proc 0
 
-  FILE *fp;
-  fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     fp = fopen(file,"r");
     if (fp == nullptr) {
@@ -327,7 +327,6 @@ void FixEOStableRX::read_file(char *file)
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -349,7 +348,6 @@ void FixEOStableRX::read_file(char *file)
         ptr = fgets(&line[n],MAXLINE-n,fp);
         if (ptr == nullptr) {
           eof = 1;
-          fclose(fp);
         } else n = strlen(line) + 1;
       }
       MPI_Bcast(&eof,1,MPI_INT,0,world);
@@ -419,7 +417,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 
   // open file
 
-  FILE *fp = fopen(file,"r");
+  SafeFilePtr fp = fopen(file,"r");
   if (fp == nullptr) {
     char str[128];
     snprintf(str,128,"Cannot open file %s",file);
@@ -500,7 +498,6 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
       tbl2->efile[i] = rtmp;
     }
   }
-  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

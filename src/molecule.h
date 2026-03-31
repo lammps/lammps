@@ -17,6 +17,7 @@
 #include "pointers.h"
 
 #include "json_fwd.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -48,6 +49,7 @@ class Molecule : protected Pointers {
 
   int xflag, typeflag, moleculeflag, fragmentflag, qflag, radiusflag, muflag, rmassflag;
   int bondflag, angleflag, dihedralflag, improperflag;
+  int auto_angleflag, auto_dihedralflag, auto_improperflag;
   int nspecialflag, specialflag;
   int shakeflag, shakeflagflag, shakeatomflag, shaketypeflag;
   int bodyflag, ibodyflag, dbodyflag;
@@ -145,10 +147,11 @@ class Molecule : protected Pointers {
   void print(FILE *fp=stdout);
 
  private:
-  FILE *fp;
+  SafeFilePtr fp;
   int *count;
   int toffset, boffset, aoffset, doffset, ioffset;
   int json_format;
+  int check_which_labels[4];
   double sizescale;
 
   void read(int);
@@ -167,6 +170,9 @@ class Molecule : protected Pointers {
   void nspecial_read(int, char *);
   void special_read(char *);
   void special_generate();
+  void generate_angles();
+  void generate_dihedrals();
+  void generate_impropers();
   void shakeflag_read(char *);
   void shakeatom_read(char *);
   void shaketype_read(char *);
@@ -180,6 +186,7 @@ class Molecule : protected Pointers {
   std::string parse_keyword(int, char *);
   void skip_lines(int, char *, const std::string &);
 
+  void check_labels();
   void stats();
 };
 

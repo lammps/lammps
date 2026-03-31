@@ -780,6 +780,67 @@ TEST_F(MoleculeFileTest, dipoles)
     EXPECT_NEAR(mu[1][3], sqrt(2.0), EPSILON);
 }
 
+TEST_F(MoleculeFileTest, auto_invalidopt)
+{
+    TEST_FAILURE(".*Illegal auto option f.*", run_mol_cmd(test_name, "auto afi", "Comment\n\n"););
+}
+
+TEST_F(MoleculeFileTest, auto_angle_dihedral)
+{
+    command("atom_style full");
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 4 box bond/types 1 angle/types 1 dihedral/types 1 "
+            "extra/bond/per/atom 2 extra/angle/per/atom 2 extra/dihedral/per/atom 1 extra/special/per/atom 4");
+
+    command("labelmap atom 1 A");
+    command("labelmap bond 1 A-A");
+    command("labelmap angle 1 A-A-A");
+    command("labelmap dihedral 1 A-A-A-A");
+
+    run_mol_cmd(test_name, "auto ad",
+                "Comment\n"
+                "4 atoms\n"
+                "3 bonds\n\n"
+                "Types\n\n"
+                "1 1\n2 1\n3 1\n4 1\n\n"
+                "Bonds\n\n"
+                "1 1 1 2\n"
+                "2 1 2 3\n"
+                "3 1 3 4\n\n");
+
+    Molecule *mol = lmp->atom->molecules[0];
+    ASSERT_EQ(mol->nangles, 2);
+    ASSERT_EQ(mol->ndihedrals, 1);
+}
+
+TEST_F(MoleculeFileTest, auto_angle_improper)
+{
+    command("atom_style full");
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 4 box bond/types 1 angle/types 1 improper/types 1 "
+            "extra/bond/per/atom 2 extra/angle/per/atom 2 extra/improper/per/atom 1 extra/special/per/atom 4");
+
+    command("labelmap atom 1 A");
+    command("labelmap bond 1 A-A");
+    command("labelmap angle 1 A-A-A");
+    command("labelmap improper 1 A-A-A-A");
+
+    run_mol_cmd(test_name, "auto ai",
+                "Comment\n"
+                "4 atoms\n"
+                "3 bonds\n\n"
+                "Types\n\n"
+                "1 1\n2 1\n3 1\n4 1\n\n"
+                "Bonds\n\n"
+                "1 1 1 2\n"
+                "2 1 1 3\n"
+                "3 1 1 4\n\n");
+
+    Molecule *mol = lmp->atom->molecules[0];
+    ASSERT_EQ(mol->nangles, 3);
+    ASSERT_EQ(mol->nimpropers, 1);
+}
+
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);

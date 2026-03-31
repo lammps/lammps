@@ -21,6 +21,7 @@ CommandStyle(read_restart,ReadRestart);
 #define LMP_READ_RESTART_H
 
 #include "command.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -31,7 +32,7 @@ class ReadRestart : public Command {
 
  private:
   int me, nprocs;
-  FILE *fp;
+  SafeFilePtr fp;
 
   int multiproc;         // 0 = restart file is a single file
                          // 1 = restart file is parallel (multiple files)

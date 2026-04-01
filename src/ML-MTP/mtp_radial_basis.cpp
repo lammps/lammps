@@ -19,58 +19,32 @@
 
 #include "error.h"
 #include "memory.h"
-#include "potential_file_reader.h"
 #include "text_file_reader.h"
 #include "utils.h"
 
-#include "csignal"
-#include "cstring"
-
 using namespace LAMMPS_NS;
 
-RadialMTPBasis::RadialMTPBasis(TextFileReader &tfr, LAMMPS *lmp)
-{
-  this->lmp = lmp;
-
-  //Clear out old arrays if any
-  if (allocated) {
-    lmp->memory->destroy(radial_basis_vals);
-    lmp->memory->destroy(radial_basis_ders);
-  }
-
-  ReadBasisProperties(tfr);
-}
+RadialMTPBasis::RadialMTPBasis(TextFileReader &tfr, LAMMPS *lmp) : lmp(lmp)
+{ read_basis_properties(tfr); }
 
 RadialMTPBasis::RadialMTPBasis(int size, LAMMPS *lmp) : size(size), lmp(lmp)
 {
-  //Clear out old arrays if any
-  if (allocated) {
-    lmp->memory->destroy(radial_basis_vals);
-    lmp->memory->destroy(radial_basis_ders);
-  }
-
-  //Allocate the memory for the basis set values and deriviatives.
   lmp->memory->create(radial_basis_vals, size, "pair:mtp_radial_vals");
   lmp->memory->create(radial_basis_ders, size, "pair:mtp_radial_ders");
-
-  allocated = 1;
 }
 
-void RadialMTPBasis::ReadBasisProperties(TextFileReader &tfr)
+void RadialMTPBasis::read_basis_properties(TextFileReader &tfr)
 {
 
-  std::string new_separators = "=, ";
-  std::string separators = TOKENIZER_DEFAULT_SEPARATORS + new_separators;
+  const std::string new_separators = "=, ";
+  const std::string separators = TOKENIZER_DEFAULT_SEPARATORS + new_separators;
 
-  //Extact next line and it's tokens
   ValueTokenizer line_tokens{std::string(tfr.next_line()), separators};
   std::string keyword = line_tokens.next_string();
 
   // First check if scaling is available
   if (keyword == "scaling") {
-    //If available alert the user and extract the next lines
     scaling = line_tokens.next_double();
-    utils::logmesg(lmp, "MTP Scaling Value = {} ", scaling);
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
   }
@@ -92,14 +66,15 @@ void RadialMTPBasis::ReadBasisProperties(TextFileReader &tfr)
   keyword = line_tokens.next_string();
   if (keyword != "radial_basis_size")
     lmp->error->all(FLERR, "Error in reading MTP file. Cannot read radial basis set size.");
-  size = line_tokens.next_int();    // Assuming size is an int
+  size = line_tokens.next_int();
 
-  //Allocate the memory for the basis set values and deriviatives.
+  //Allocate the memory for the basis set values and derivatives.
   lmp->memory->create(radial_basis_vals, size, "pair:mtp_radial_vals");
   lmp->memory->create(radial_basis_ders, size, "pair:mtp_radial_ders");
 
   allocated = 1;
 }
+
 RadialMTPBasis::~RadialMTPBasis()
 {
   lmp->memory->destroy(radial_basis_vals);
@@ -110,7 +85,7 @@ void RBChebyshev::calc_radial_basis(double dist)
 {
   double ksi = (2 * dist - (min_cutoff + max_cutoff)) / (max_cutoff - min_cutoff);
 
-  radial_basis_vals[0] = scaling * (1 * (dist - max_cutoff) * (dist - max_cutoff));
+  radial_basis_vals[0] = scaling * (dist - max_cutoff) * (dist - max_cutoff);
   radial_basis_vals[1] = scaling * (ksi * (dist - max_cutoff) * (dist - max_cutoff));
   for (int i = 2; i < size; i++) {
     radial_basis_vals[i] = 2 * ksi * radial_basis_vals[i - 1] - radial_basis_vals[i - 2];

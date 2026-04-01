@@ -37,9 +37,8 @@ PairMTP::PairMTP(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  no_virial_fdotr_compute = 0;
 }
-
-/* ---------------------------------------------------------------------- */
 
 PairMTP::~PairMTP()
 {
@@ -67,10 +66,8 @@ PairMTP::~PairMTP()
 /* ----------------------------------------------------------------------
    Straightfoward MTP implementation based on MLIP3
    ---------------------------------------------------------------------- */
-
 void PairMTP::compute(int eflag, int vflag)
 {
-
   ev_setup(eflag, vflag);
 
   double **x = atom->x;      // atomic positons
@@ -85,40 +82,36 @@ void PairMTP::compute(int eflag, int vflag)
 
   // Loop over all provided neighbourhoods
   for (int ii = 0; ii < inum; ii++) {
-    const int i = ilist[ii];          // Set central atom index
+    const int i = ilist[ii];
     const int itype = type[i] - 1;    // Set central atom type. Convert back to zero indexing.
-    if (itype >= species_count)
-      error->one(FLERR,
-                 "Too few species count in the MTP potential!");    // Might not need this check
-    int jnum = numneigh[i];                                         // Set number of neighbours
+    if (itype >= species_count) error->one(FLERR, "Too few species count in the MTP potential!");
+    const int jnum = numneigh[i];
     double nbh_energy = 0;
-    const double xi[3] = {x[i][0], x[i][1],
-                          x[i][2]};    // Cache the position of the central atom for efficiency
+    const double xi[3] = {x[i][0], x[i][1], x[i][2]};
 
+    // Resize per neighbor arrays
     if (jac_size < jnum) {
-      memory->grow(moment_jacobian, jnum, alpha_index_basic_count, 3,
-                   "moment_jacobian");                       // Resize the working jacobian.
-      memory->grow(within_cutoff, jnum, "within_cutoff");    // Resize within cuf
+      memory->grow(moment_jacobian, jnum, alpha_index_basic_count, 3, "moment_jacobian");
+      memory->grow(within_cutoff, jnum, "within_cutoff");
       jac_size = jnum;
     }
-    std::fill(&moment_tensor_vals[0], &moment_tensor_vals[0] + alpha_moment_count,
-              0.0);    //Fill moments with 0
-    std::fill(&nbh_energy_ders_wrt_moments[0], &nbh_energy_ders_wrt_moments[0] + alpha_moment_count,
-              0.0);    //Fill moment derivatives with 0
 
-    // ------------ Begin Alpha Basic Calc ------------
-    // Loop over all neighbours
+    // Clear moment and derivative arrays
+    std::fill(&moment_tensor_vals[0], &moment_tensor_vals[0] + alpha_moment_count, 0.0);
+    std::fill(&nbh_energy_ders_wrt_moments[0], &nbh_energy_ders_wrt_moments[0] + alpha_moment_count,
+              0.0);
+
+    // ------------ Calculate Basic Moments ------------
     for (int jj = 0; jj < jnum; jj++) {
-      int j = firstneigh[i][jj];    //List of neighbours
+      int j = firstneigh[i][jj];
       j &= NEIGHMASK;
-      const int jtype = type[j] - 1;    // Convert back to zero indexing
-      if (jtype >= species_count)
-        error->one(FLERR,
-                   "Too few species count in the MTP potential!");    // Might not need this check
+      const int jtype = type[j] - 1;    // Convert to zero indexing
+      if (jtype >= species_count) error->one(FLERR, "Too few species count in the MTP potential!");
 
       const double r[3] = {x[j][0] - xi[0], x[j][1] - xi[1], x[j][2] - xi[2]};
       const double rsq = r[0] * r[0] + r[1] * r[1] + r[2] * r[2];
 
+      // Check cutoff and store for backwards pass
       if (rsq > cutsq[itype + 1][jtype + 1]) {    //1 indexing
         within_cutoff[jj] = false;
         continue;
@@ -128,18 +121,18 @@ void PairMTP::compute(int eflag, int vflag)
       const double dist = std::sqrt(rsq);
       radial_basis->calc_radial_basis_ders(dist);
 
-      // Precompute the coord and distance power
+      // Precompute the coord and distance powers
       for (int k = 1; k < max_alpha_index_basic; k++) {
         dist_powers[k] = dist_powers[k - 1] * dist;
         for (int a = 0; a < 3; a++) coord_powers[k][a] = coord_powers[k - 1][a] * r[a];
       }
 
-      // Compute the radial basis values
+      // Compute the radial basis values and derivatives
       for (int mu = 0; mu < radial_func_count; mu++) {
         double val = 0;
         double der = 0;
-        int pair_offset = itype * species_count + jtype;
-        int offset = (pair_offset * radial_coeff_count_per_pair) + mu * radial_basis_size;
+        const int pair_offset = itype * species_count + jtype;
+        const int offset = (pair_offset * radial_coeff_count_per_pair) + mu * radial_basis_size;
 
         for (int ri = 0; ri < radial_basis_size; ri++) {
           val += radial_basis_coeffs[offset + ri] * radial_basis->radial_basis_vals[ri];
@@ -149,7 +142,7 @@ void PairMTP::compute(int eflag, int vflag)
         radial_ders[mu] = der;
       }
 
-      //Calculate the alpha basics
+      // Accumulate into the basic moment elements
       for (int k = 0; k < alpha_index_basic_count; k++) {
         double val = 0;
         double der = 0;
@@ -163,19 +156,17 @@ void PairMTP::compute(int eflag, int vflag)
         double norm_fac = 1.0 / dist_powers[norm_rank];
         val *= norm_fac;
         der = der * norm_fac - norm_rank * val / dist;
-
         double pow0 = coord_powers[alpha_index_basic[k][1]][0];
         double pow1 = coord_powers[alpha_index_basic[k][2]][1];
         double pow2 = coord_powers[alpha_index_basic[k][3]][2];
         double pow = pow0 * pow1 * pow2;
         moment_tensor_vals[k] += val * pow;
 
-        // Get the component's derivatives too
+        // Calculate the Jacobian from derivatives
         pow *= der / dist;
         moment_jacobian[jj][k][0] = pow * r[0];
         moment_jacobian[jj][k][1] = pow * r[1];
         moment_jacobian[jj][k][2] = pow * r[2];
-
         if (alpha_index_basic[k][1] != 0) {
           moment_jacobian[jj][k][0] += val * alpha_index_basic[k][1] *
               coord_powers[alpha_index_basic[k][1] - 1][0] * pow1 * pow2;
@@ -191,7 +182,7 @@ void PairMTP::compute(int eflag, int vflag)
       }
     }
 
-    // ------------ Contruct Other Alphas  ------------
+    // ------------ Contruct Composite Moment Values  ------------
     for (int k = 0; k < alpha_index_times_count; k++) {
       double val0 = moment_tensor_vals[alpha_index_times[k][0]];
       double val1 = moment_tensor_vals[alpha_index_times[k][1]];
@@ -199,24 +190,22 @@ void PairMTP::compute(int eflag, int vflag)
       moment_tensor_vals[alpha_index_times[k][3]] += val2 * val0 * val1;
     }
 
-    // ------------ Compute Basis Set From Alpha Map ------------
+    // ------------ If Energies Are Needed Compute Basis Set From Alpha Map ------------
     if (eflag_atom || eflag_global) {
       nbh_energy = species_coeffs[itype];    // Essentially the reference point energy per species
       for (int k = 0; k < alpha_scalar_count; k++)
         nbh_energy += linear_coeffs[k] * moment_tensor_vals[alpha_moment_mapping[k]];
 
-      // Tally energies per flags
       if (eflag_atom) eatom[i] = nbh_energy;
       if (eflag_global) eng_vdwl += nbh_energy;
     }
 
     // =========== Begin Backpropogation ===========
-
-    //------------ Step 1: NBH energy derivative is the corresponding linear combination------------
+    //------------ NBH energy derivative is the corresponding linear combination------------
     for (int k = 0; k < alpha_scalar_count; k++)
       nbh_energy_ders_wrt_moments[alpha_moment_mapping[k]] = linear_coeffs[k];
 
-    //------------ Step 2: Propogate chain rule through the alpha times to the alpha basics ------------
+    //------------ Propogate chain rule through the composite moment elements times to the basics ------------
     for (int k = alpha_index_times_count - 1; k >= 0; k--) {
       int a0 = alpha_index_times[k][0];
       int a1 = alpha_index_times[k][1];
@@ -231,7 +220,7 @@ void PairMTP::compute(int eflag, int vflag)
       nbh_energy_ders_wrt_moments[a0] += val3 * multipiler * val1;
     }
 
-    //------------ Step 3: Multiply energy ders wrt moment by the Jacobian to get forces ------------
+    //------------  Multiply energy ders wrt basic moments by the Jacobian to get forces ------------
     for (int jj = 0; jj < jnum; jj++) {
       int j = firstneigh[i][jj];
       j &= NEIGHMASK;
@@ -239,10 +228,8 @@ void PairMTP::compute(int eflag, int vflag)
 
       double temp_force[3] = {0, 0, 0};
       for (int k = 0; k < alpha_index_basic_count; k++)
-        for (int a = 0; a < 3; a++) {
-          //Calculate forces
+        for (int a = 0; a < 3; a++)
           temp_force[a] += nbh_energy_ders_wrt_moments[k] * moment_jacobian[jj][k][a];
-        }
 
       f[i][0] += temp_force[0];
       f[i][1] += temp_force[1];
@@ -252,9 +239,8 @@ void PairMTP::compute(int eflag, int vflag)
       f[j][1] -= temp_force[1];
       f[j][2] -= temp_force[2];
 
-      //Calculate virial stress
+      // Accumulate virial stress only if requested
       if (vflag) {
-        // We only need to calculate rel pos again if stress are needed
         const double r[3] = {x[j][0] - xi[0], x[j][1] - xi[1], x[j][2] - xi[2]};
         virial[0] -= temp_force[0] * r[0];    //xx
         virial[1] -= temp_force[1] * r[1];    //yy
@@ -277,18 +263,20 @@ void PairMTP::compute(int eflag, int vflag)
     }
   }
 }
+
 /* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
-
 void PairMTP::settings(int narg, char **arg)
 {
   if (comm->me == 0) {
-    if (narg < 1) error->one(FLERR, "Pair mtp only accepts 1 argument, the MTP potential file");
+    if (narg < 1)
+      error->one(FLERR, "pair_style mtp only accepts 1 argument, the MTP potential file");
     if (narg > 1)
-      utils::logmesg(lmp,
-                     "Pair mtp only accepts 1 argument, the MTP potential file. Ignoring excessive "
-                     "arguments!\n");
+      utils::logmesg(
+          lmp,
+          "pair_style mtp only accepts 1 argument, the MTP potential file. Ignoring excessive "
+          "arguments!\n");
   }
   FILE *mtp_file = utils::open_potential(arg[0], lmp, nullptr);
   read_file(mtp_file);
@@ -298,7 +286,6 @@ void PairMTP::settings(int narg, char **arg)
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
-
 void PairMTP::coeff(int narg, char **arg)
 {
   // The potential file is specified in the setting function instead.
@@ -308,7 +295,6 @@ void PairMTP::coeff(int narg, char **arg)
 /* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
-
 void PairMTP::init_style()
 {
   if (force->newton_pair != 1) error->all(FLERR, "Pair style MTP requires Newton Pair on");
@@ -333,33 +319,24 @@ double PairMTP::init_one(int i, int j)
 ------------------------------------------------------------------------- */
 void PairMTP::read_file(FILE *mtp_file)
 {
-  /*NOTE: TextFileReader is used in lieu of PotentialFileReader to ensure compatability 
-with the MLIP-3 package. The alpha indicies in this format are all in one line, requiring
-access to the buffer size that is not provided in PFR.
-
-Might be able to replace that section with next_values which is in both TFR and PFR.
-*/
-
   //Open the MTP file on proc 0
   if (comm->me == 0) {
     TextFileReader tfr(mtp_file, "ml-mtp");
     tfr.ignore_comments = true;
-    std::string new_separators = "=, ";
-    std::string separators = TOKENIZER_DEFAULT_SEPARATORS + new_separators;
+    const std::string new_separators = "=, ";
+    const std::string separators = TOKENIZER_DEFAULT_SEPARATORS + new_separators;
 
     ValueTokenizer line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     std::string keyword = line_tokens.next_string();
-
     if (keyword != "MTP")    // Files checking
       error->one(FLERR, "Only MTP potential files are accepted.");
     std::string version_line = std::string(tfr.next_line());
     if (version_line != "version = 1.1.0\n")    // Version checking
       error->one(FLERR, "MTP file must have version \"1.1.0\"");
 
-    // Read the potential name (optional)
+    // Read the potential name (optional field)
     line_tokens = ValueTokenizer(tfr.next_line(), separators);
     keyword = line_tokens.next_string();
-
     if (keyword == "potential_name") {
       try {
         potential_name = line_tokens.next_string();
@@ -379,8 +356,6 @@ Might be able to replace that section with next_values which is in both TFR and 
       scaling = 1;
     }
 
-    utils::logmesg(lmp, "The scaling is : {:.2e}.\n", scaling);
-
     // Read the species count
     if (keyword != "species_count")
       error->one(FLERR, "Error reading MTP file. Species count not found.");
@@ -391,7 +366,7 @@ Might be able to replace that section with next_values which is in both TFR and 
     memory->create(setflag, np1, np1, "pair:setflag");
     memory->create(cutsq, np1, np1, "pair:cutsq");
 
-    // Read the potential tag (also optional)
+    // Read the potential tag (also optional field)
     line_tokens = ValueTokenizer(tfr.next_line(), separators);
     keyword = line_tokens.next_string();
     if (keyword == "potential_tag") {
@@ -409,23 +384,24 @@ Might be able to replace that section with next_values which is in both TFR and 
       error->one(FLERR, "Error reading MTP file. No radial basis set type is specified.");
     std::string radial_basis_type = line_tokens.next_string();
 
-    // Set the type of radial basis. No switch/case with strings...
+    // Set the type of radial basis.
     if (radial_basis_type == "RBChebyshev") {
       radial_basis = new RBChebyshev(tfr, lmp);
-      radial_basis->scaling = scaling;
-      radial_basis_size = radial_basis->size;
       radial_basis_type_index = 1;
     } else
       error->one(FLERR,
                  "Error reading MTP file. The specified radial basis set type, {}, was not found..",
                  radial_basis_type);
 
+    radial_basis->scaling = scaling;
+    radial_basis_size = radial_basis->size;
+
     // Read the basis function count
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
     if (keyword != "radial_funcs_count")
       lmp->error->one(FLERR, "Error in reading MTP file. Cannot read radial function count.");
-    radial_func_count = line_tokens.next_int();    // Assuming count is an int
+    radial_func_count = line_tokens.next_int();
 
     // Check for magnetic basis which is currently unsupported.
     line_tokens = ValueTokenizer(tfr.next_line(), separators);
@@ -434,30 +410,28 @@ Might be able to replace that section with next_values which is in both TFR and 
       if (keyword == "magnetic_basis_type")
         error->one(FLERR, "Magnetic basis is currently not supported.");
       else
-        error->one(FLERR, "Error in reading MTP file. Cannot read radial coeffs count.");
+        error->one(FLERR, "Error in reading MTP file. Cannot read radial coeffs.");
     }
 
     // Allocate memory for radial basis
     int pairs_count = species_count * species_count;
     int radial_coeff_count_per_pair = radial_basis_size * radial_func_count;
-
     memory->create(radial_basis_coeffs, pairs_count * radial_coeff_count_per_pair,
                    "radial_basis_coeffs");
 
     // Read the radial basis coeffs
     double rcutmaxsq = radial_basis->max_cutoff * radial_basis->max_cutoff;
     for (int i = 0; i < pairs_count; i++) {
+
       //Read which pairs are being allocated
       line_tokens = ValueTokenizer(tfr.next_line(), separators + "-");
       int type1 = line_tokens.next_int();
       int type2 = line_tokens.next_int();
-      setflag[type1 + 1][type2 + 1] = 1;          // Make sure the setflag is set
-      cutsq[type1 + 1][type2 + 1] = rcutmaxsq;    // Make sure the cutsq is set
+      setflag[type1 + 1][type2 + 1] = 1;
+      cutsq[type1 + 1][type2 + 1] = rcutmaxsq;
 
-      // Read the coeffs for the pair. First find the offset in the array pointer.
+      // Read the coeffs for the pair with offset in the array pointer.
       int pair_offset = (type1 * species_count + type2) * radial_coeff_count_per_pair;
-
-      // Read all the coefficients
       for (int j = 0; j < radial_func_count; j++) {
         line_tokens = ValueTokenizer(tfr.next_line(), separators + "{,}");
         for (int k = 0; k < radial_basis_size; k++) {
@@ -485,12 +459,9 @@ Might be able to replace that section with next_values which is in both TFR and 
 
     // Read the basic alphas
     int radial_func_max = 0;
-    tfr.set_bufsize(
-        (alpha_index_basic_count * 20 + 20) *
-        sizeof(
-            char));    // Adjust the buffer size. This needed to ensure cross-compatability since the MLIP files stores all the alpha indicies on the same line.
-    line_tokens = ValueTokenizer(tfr.next_line(), separators + "{},");
+    tfr.set_bufsize((alpha_index_basic_count * 20 + 20) * sizeof(char));
 
+    line_tokens = ValueTokenizer(tfr.next_line(), separators + "{},");
     keyword = line_tokens.next_string();
     if (keyword != "alpha_index_basic")
       error->one(FLERR, "Error reading MTP file. Alpha index basic not found.");
@@ -505,7 +476,7 @@ Might be able to replace that section with next_values which is in both TFR and 
     if (radial_func_max != radial_func_count - 1)    //Index validity check
       error->one(FLERR, "Wrong number of radial functions specified!");
 
-    //Precompute the maximum alpha basic index
+    //Find the maximum alpha basic index
     max_alpha_index_basic = 0;
     for (int i = 0; i < alpha_index_basic_count; i++)
       max_alpha_index_basic =
@@ -521,10 +492,7 @@ Might be able to replace that section with next_values which is in both TFR and 
     alpha_index_times_count = line_tokens.next_int();
 
     // Read the alphas times
-    tfr.set_bufsize(
-        (alpha_index_times_count * 32 + 20) *
-        sizeof(
-            char));    // Adjust the buffer size. This needed to ensure cross-compatability since the MLIP files stores all the alpha indicies on the same line.
+    tfr.set_bufsize((alpha_index_times_count * 40 + 20) * sizeof(char));
     line_tokens = ValueTokenizer(tfr.next_line(), separators + "{},");
     keyword = line_tokens.next_string();
     if (keyword != "alpha_index_times")
@@ -584,11 +552,10 @@ Might be able to replace that section with next_values which is in both TFR and 
   MPI_Bcast(&alpha_index_times_count, 1, MPI_INT, 0, world);
   MPI_Bcast(&alpha_scalar_count, 1, MPI_INT, 0, world);
 
-  // Precalc some constants
-  int pairs_count = species_count * species_count;
+  const int pairs_count = species_count * species_count;
   radial_coeff_count_per_pair = radial_basis_size * radial_func_count;
   radial_coeff_count = pairs_count * radial_coeff_count_per_pair;
-  int np1 = (species_count + 1);
+  const int np1 = (species_count + 1);
 
   //Working buffers
   memory->create(dist_powers, max_alpha_index_basic, "dist_powers");
@@ -608,7 +575,7 @@ Might be able to replace that section with next_values which is in both TFR and 
     memory->create(cutsq, np1, np1, "pair:cutsq");
     memory->create(setflag, np1, np1, "pair:setflag");
 
-    //Alpha indicies
+    //Alpha index
     memory->create(alpha_index_basic, alpha_index_basic_count, 4, "alpha_index_basic");
     memory->create(alpha_index_times, alpha_index_times_count, 4, "alpha_index_times");
     memory->create(alpha_moment_mapping, alpha_scalar_count, "alpha_moment_mapping");
@@ -631,7 +598,7 @@ Might be able to replace that section with next_values which is in both TFR and 
   max_cutoff = radial_basis->max_cutoff;
   max_cutoff_sq = max_cutoff * max_cutoff;
 
-  //Now we B Cast into arrays
+  //Now we B Cast arrays
   //Flags
   MPI_Bcast(&cutsq[0][0], np1 * np1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&setflag[0][0], np1 * np1, MPI_INT, 0, world);
@@ -641,14 +608,13 @@ Might be able to replace that section with next_values which is in both TFR and 
   MPI_Bcast(&alpha_index_times[0][0], alpha_index_times_count * 4, MPI_INT, 0, world);
   MPI_Bcast(alpha_moment_mapping, alpha_scalar_count, MPI_INT, 0, world);
 
-  // //Working buffers
-  // //Preassign constant values for dist powers and coord powers. Other buffers can be uninited.
-  dist_powers[0] = coord_powers[0][0] = coord_powers[0][1] = coord_powers[0][2] = 1;
-
   // Coefficients
   MPI_Bcast(radial_basis_coeffs, radial_coeff_count, MPI_DOUBLE, 0, world);
   MPI_Bcast(linear_coeffs, alpha_scalar_count, MPI_DOUBLE, 0, world);
   MPI_Bcast(species_coeffs, species_count, MPI_DOUBLE, 0, world);
+
+  // Set working buffers
+  dist_powers[0] = coord_powers[0][0] = coord_powers[0][1] = coord_powers[0][2] = 1;
 
   allocated = 1;
 }

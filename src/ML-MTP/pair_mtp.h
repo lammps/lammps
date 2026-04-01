@@ -56,10 +56,11 @@ class PairMTP : public Pair {
   int radial_basis_size;              // Number of elements in bases
   int radial_coeff_count;             // Number of total radial coeffs
   int radial_coeff_count_per_pair;    // Number of coeffs for species pair
-  double min_cutoff;                  // Min radial cutoff
-  double max_cutoff;                  // Max radial cutoff
-  double
-      max_cutoff_sq;    // Maximum radial cutoff squared (The MTP only supports one cutoff for all species combinations)
+
+  //The MTP only supports one cutoff set for all species combinations
+  double min_cutoff;       // Min radial cutoff
+  double max_cutoff;       // Max radial cutoff
+  double max_cutoff_sq;    // Maximum radial cutoff squared
 
   double *linear_coeffs;     // These are the moment tensor basis coeffs (xi)
   double *species_coeffs;    // For the species coefficients (0th rank moment tensor)

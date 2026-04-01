@@ -20,9 +20,11 @@
 
 #include "text_file_reader.h"
 
+#include "pointers.h"
+
 namespace LAMMPS_NS {
 
-class RadialMTPBasis {
+class RadialMTPBasis : protected Pointers {
  public:
   RadialMTPBasis(TextFileReader &tfr, LAMMPS *lmp);
   RadialMTPBasis(int size, LAMMPS *lmp);
@@ -37,12 +39,10 @@ class RadialMTPBasis {
   double scaling = 1.0;    // All functions are multiplied by scaling
 
   // Values and derivatives for radial basis functions
-  double *radial_basis_vals;
-  double *radial_basis_ders;
+  double *radial_basis_vals = nullptr;
+  double *radial_basis_ders = nullptr;
 
  protected:
-  LAMMPS *lmp;    // LAMMPS reference
-
  private:
   //Specifically reads the basis properties (ie. cutoffs and size) and not the radial parameters
   void read_basis_properties(TextFileReader &tfr);

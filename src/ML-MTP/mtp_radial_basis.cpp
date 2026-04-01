@@ -24,18 +24,17 @@
 
 using namespace LAMMPS_NS;
 
-RadialMTPBasis::RadialMTPBasis(TextFileReader &tfr, LAMMPS *lmp) : lmp(lmp)
+RadialMTPBasis::RadialMTPBasis(TextFileReader &tfr, LAMMPS *lmp) : Pointers(lmp)
 { read_basis_properties(tfr); }
 
-RadialMTPBasis::RadialMTPBasis(int size, LAMMPS *lmp) : size(size), lmp(lmp)
+RadialMTPBasis::RadialMTPBasis(int size, LAMMPS *lmp) : Pointers(lmp), size(size)
 {
-  lmp->memory->create(radial_basis_vals, size, "pair:mtp_radial_vals");
-  lmp->memory->create(radial_basis_ders, size, "pair:mtp_radial_ders");
+  memory->create(radial_basis_vals, size, "pair:mtp_radial_vals");
+  memory->create(radial_basis_ders, size, "pair:mtp_radial_ders");
 }
 
 void RadialMTPBasis::read_basis_properties(TextFileReader &tfr)
 {
-
   const std::string new_separators = "=, ";
   const std::string separators = TOKENIZER_DEFAULT_SEPARATORS + new_separators;
 
@@ -51,34 +50,32 @@ void RadialMTPBasis::read_basis_properties(TextFileReader &tfr)
 
   // Read the lower cutoff
   if (keyword != "min_val" && keyword != "min_dist")
-    lmp->error->all(FLERR, "Error in reading MTP file. Cannot read lower cutoff.");
+    error->all(FLERR, "Error in reading MTP file. Cannot read lower cutoff.");
   min_cutoff = line_tokens.next_double();
 
   // Read the upper cutoff
   line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
   keyword = line_tokens.next_string();
   if (keyword != "max_val" && keyword != "max_dist")
-    lmp->error->all(FLERR, "Error in reading MTP file. Cannot read upper cutoff.");
+    error->all(FLERR, "Error in reading MTP file. Cannot read upper cutoff.");
   max_cutoff = line_tokens.next_double();
 
   // Read the basis size set value
   line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
   keyword = line_tokens.next_string();
   if (keyword != "radial_basis_size")
-    lmp->error->all(FLERR, "Error in reading MTP file. Cannot read radial basis set size.");
+    error->all(FLERR, "Error in reading MTP file. Cannot read radial basis set size.");
   size = line_tokens.next_int();
 
   //Allocate the memory for the basis set values and derivatives.
-  lmp->memory->create(radial_basis_vals, size, "pair:mtp_radial_vals");
-  lmp->memory->create(radial_basis_ders, size, "pair:mtp_radial_ders");
-
-  allocated = 1;
+  memory->create(radial_basis_vals, size, "pair:mtp_radial_vals");
+  memory->create(radial_basis_ders, size, "pair:mtp_radial_ders");
 }
 
 RadialMTPBasis::~RadialMTPBasis()
 {
-  lmp->memory->destroy(radial_basis_vals);
-  lmp->memory->destroy(radial_basis_ders);
+  memory->destroy(radial_basis_vals);
+  memory->destroy(radial_basis_ders);
 }
 
 void RBChebyshev::calc_radial_basis(double dist)

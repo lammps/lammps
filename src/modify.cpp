@@ -25,6 +25,7 @@
 #include "group.h"
 #include "input.h"
 #include "memory.h"
+#include "label_map.h"
 #include "region.h"
 #include "update.h"
 #include "variable.h"
@@ -322,6 +323,10 @@ void Modify::setup(int vflag)
     for (int i = 0; i < nfix; i++) fix[i]->setup(vflag);
   else if (update->whichflag == 2)
     for (int i = 0; i < nfix; i++) fix[i]->min_setup(vflag);
+
+  // runtime check for type label self-consistency
+
+  if (atom->labelmapflag && atom->lmap->checkflag) atom->lmap->check_labels();
 }
 
 /* ----------------------------------------------------------------------

@@ -76,7 +76,6 @@ export {
 
   // execution policies
   namespace Impl {
-  using ::Kokkos::Impl::get_tile_size_properties;
   using ::Kokkos::Impl::ParallelConstructName;
   using ::Kokkos::Impl::PolicyTraits;
   using ::Kokkos::Impl::PolicyUpdate;
@@ -86,6 +85,7 @@ export {
   // miscellaneous
   namespace Impl {
   using ::Kokkos::Impl::FunctorAnalysis;
+  using ::Kokkos::Impl::integral_constant;
   using ::Kokkos::Impl::python_view_type_impl_t;
   using ::Kokkos::Impl::throw_runtime_exception;
   }  // namespace Impl

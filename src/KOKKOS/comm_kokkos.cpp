@@ -87,6 +87,10 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   max_buf_fix = 0;
   k_buf_send_fix = DAT::tdual_double_1d("comm:k_buf_send_fix",1);
   k_buf_recv_fix = DAT::tdual_double_1d("comm:k_recv_send_fix",1);
+
+  max_buf_compute = 0;
+  k_buf_send_compute = DAT::tdual_double_1d("comm:k_buf_send_compute",1);
+  k_buf_recv_compute = DAT::tdual_double_1d("comm:k_recv_send_compute",1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -117,6 +121,7 @@ void CommKokkos::init()
   forward_pair_comm_legacy = lmp->kokkos->forward_pair_comm_legacy;
   reverse_pair_comm_legacy = lmp->kokkos->reverse_pair_comm_legacy;
   forward_fix_comm_legacy = lmp->kokkos->forward_fix_comm_legacy;
+  forward_compute_comm_legacy = lmp->kokkos->forward_compute_comm_legacy;
   reverse_comm_legacy = lmp->kokkos->reverse_comm_legacy;
   reverse_fix_comm_legacy = lmp->kokkos->reverse_fix_comm_legacy;
   exchange_comm_on_host = lmp->kokkos->exchange_comm_on_host;
@@ -555,8 +560,86 @@ void CommKokkos::reverse_comm_variable(Fix *fix)
 
 void CommKokkos::forward_comm(Compute *compute, int size)
 {
-  k_sendlist.sync_host();
-  CommBrick::forward_comm(compute, size);
+  if (compute->execution_space == Host || compute->execution_space == HostKK ||
+      !compute->forward_comm_device || forward_compute_comm_legacy) {
+    k_sendlist.sync_host();
+    CommBrick::forward_comm(compute, size);
+  } else {
+    k_sendlist.sync_device();
+    forward_comm_device<LMPDeviceType>(compute, size);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void CommKokkos::forward_comm_device(Compute *compute, int size)
+{
+  int iswap,n,nsize;
+  MPI_Request request;
+  DAT::tdual_double_1d k_buf_tmp;
+
+  if (size) nsize = size;
+  else nsize = compute->comm_forward;
+  KokkosBase* computeKKBase = dynamic_cast<KokkosBase*>(compute);
+
+  for (iswap = 0; iswap < nswap; iswap++) {
+    int n = MAX(max_buf_compute,nsize*sendnum[iswap]);
+    n = MAX(n,nsize*recvnum[iswap]);
+    if (n > max_buf_compute)
+      grow_buf_compute(n);
+  }
+
+  for (iswap = 0; iswap < nswap; iswap++) {
+
+    // pack buffer
+
+    auto k_sendlist_iswap = Kokkos::subview(k_sendlist,iswap,Kokkos::ALL);
+    n = computeKKBase->pack_forward_comm_kokkos(sendnum[iswap],k_sendlist_iswap,
+                                      k_buf_send_compute,pbc_flag[iswap],pbc[iswap]);
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      double* buf_send_compute;
+      double* buf_recv_compute;
+      if (lmp->kokkos->gpu_aware_flag) {
+        buf_send_compute = k_buf_send_compute.view<DeviceType>().data();
+        buf_recv_compute = k_buf_recv_compute.view<DeviceType>().data();
+      } else {
+        k_buf_send_compute.modify<DeviceType>();
+        k_buf_send_compute.sync_host();
+        buf_send_compute = k_buf_send_compute.view_host().data();
+        buf_recv_compute = k_buf_recv_compute.view_host().data();
+      }
+
+      if (recvnum[iswap]) {
+        DeviceType().fence();
+        MPI_Irecv(buf_recv_compute,nsize*recvnum[iswap],MPI_DOUBLE,
+                  recvproc[iswap],0,world,&request);
+      }
+      if (sendnum[iswap]) {
+        DeviceType().fence();
+        MPI_Send(buf_send_compute,n,MPI_DOUBLE,sendproc[iswap],0,world);
+      }
+
+      if (recvnum[iswap]) {
+        MPI_Wait(&request,MPI_STATUS_IGNORE);
+        DeviceType().fence();
+      }
+
+      if (!lmp->kokkos->gpu_aware_flag) {
+        k_buf_recv_compute.modify_host();
+        k_buf_recv_compute.sync<DeviceType>();
+      }
+      k_buf_tmp = k_buf_recv_compute;
+    } else k_buf_tmp = k_buf_send_compute;
+
+    // unpack buffer
+
+    computeKKBase->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_tmp);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -713,6 +796,15 @@ void CommKokkos::grow_buf_fix(int n) {
   k_buf_send_fix.resize(max_buf_fix);
   k_buf_recv_fix.resize(max_buf_fix);
 }
+
+/* ---------------------------------------------------------------------- */
+
+void CommKokkos::grow_buf_compute(int n) {
+  max_buf_compute = n * BUFFACTOR;
+  k_buf_send_compute.resize(max_buf_compute);
+  k_buf_recv_compute.resize(max_buf_compute);
+}
+
 
 /* ---------------------------------------------------------------------- */
 

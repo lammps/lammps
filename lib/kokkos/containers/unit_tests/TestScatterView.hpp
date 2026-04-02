@@ -79,6 +79,8 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       --scatter_access_atomic(k, 9);
       ++scatter_access_atomic(k, 10);
       scatter_access(k, 11) -= 3;
+      scatter_access(k, 0).update(0);
+      scatter_access_atomic(k, 0).update(0);
     }
   }
 
@@ -175,6 +177,8 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       scatter_access(k, 0) *= 4.0;
       scatter_access_atomic(k, 1) *= 2.0;
       scatter_access(k, 2) *= 1.0;
+      scatter_access(k, 2).update(1.0);
+      scatter_access_atomic(k, 1).update(1.0);
     }
   }
 
@@ -469,7 +473,12 @@ struct test_default_scatter_sub_view {
 
       scatter_view_test_impl.run_parallel(original_sub_view.extent(0));
 
-      Kokkos::Experimental::contribute(original_sub_view, scatter_view);
+      // purposefully using a rvalue below
+      // see https://github.com/kokkos/kokkos/issues/8588
+      Kokkos::Experimental::contribute(/*original_sub_view=*/
+                                       Kokkos::subview(original_view, rangeDim0,
+                                                       rangeDim1),
+                                       scatter_view);
       Kokkos::fence();
 
       scatter_view_test_impl.validateResultsForSubview(original_view, rangeDim0,

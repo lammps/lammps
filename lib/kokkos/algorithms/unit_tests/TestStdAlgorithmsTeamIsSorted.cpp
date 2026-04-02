@@ -38,9 +38,7 @@ struct TestFunctorA {
       result = KE::is_sorted(member, myRowView);
       Kokkos::single(Kokkos::PerTeam(member),
                      [=, *this]() { m_returnsView(myRowIndex) = result; });
-    }
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
-    else if (m_apiPick == 2) {
+    } else if (m_apiPick == 2) {
       using value_type = typename ViewType::value_type;
       result = KE::is_sorted(member, KE::cbegin(myRowView), KE::cend(myRowView),
                              CustomLessThanComparator<value_type>{});
@@ -53,7 +51,6 @@ struct TestFunctorA {
       Kokkos::single(Kokkos::PerTeam(member),
                      [=, *this]() { m_returnsView(myRowIndex) = result; });
     }
-#endif
 
     // store result of checking if all members have their local
     // values matching the one stored in m_distancesView
@@ -166,11 +163,7 @@ template <class LayoutTag, class ValueType>
 void run_all_scenarios(bool makeDataSortedOnPurpose) {
   for (int numTeams : teamSizesToTest) {
     for (const auto& numCols : {0, 1, 2, 13, 101, 1444, 5153}) {
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
       for (int apiId : {0, 1, 2, 3}) {
-#else
-      for (int apiId : {0, 1}) {
-#endif
         test_A<LayoutTag, ValueType>(numTeams, numCols, apiId,
                                      makeDataSortedOnPurpose);
       }

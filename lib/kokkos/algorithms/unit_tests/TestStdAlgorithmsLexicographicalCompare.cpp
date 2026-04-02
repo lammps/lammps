@@ -127,12 +127,9 @@ void run_all_scenarios() {
 }
 
 TEST(std_algorithms_lexicographical_compare_test, test) {
-// FIXME: should this disable only custom comparator tests?
-#if !defined KOKKOS_ENABLE_OPENMPTARGET
   run_all_scenarios<DynamicTag, double>();
   run_all_scenarios<StridedTwoTag, int>();
   run_all_scenarios<StridedThreeTag, unsigned>();
-#endif
 }
 
 }  // namespace LexicographicalCompare

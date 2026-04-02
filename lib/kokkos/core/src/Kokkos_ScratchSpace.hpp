@@ -57,15 +57,6 @@ class ScratchMemorySpace {
 
   static constexpr const char* name() { return "ScratchMemorySpace"; }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  // This function is unused
-  template <typename IntType>
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION static constexpr IntType align(
-      const IntType& size) {
-    return (size + DEFAULT_ALIGNMENT_MASK) & ~DEFAULT_ALIGNMENT_MASK;
-  }
-#endif
-
   template <typename IntType>
   KOKKOS_INLINE_FUNCTION void* get_shmem(const IntType& size,
                                          int level = -1) const {

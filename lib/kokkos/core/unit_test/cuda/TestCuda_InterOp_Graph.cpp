@@ -38,9 +38,10 @@ class TEST_CATEGORY_FIXTURE(GraphInterOp) : public ::testing::Test {
   void SetUp() override {
     data = view_t(Kokkos::view_alloc(exec, "witness"));
 
-    graph = Kokkos::Experimental::create_graph(exec, [&](const auto& root) {
-      root.then_parallel_for(1, Increment<view_t>{data});
-    });
+    graph = Kokkos::Experimental::create_graph(
+        Kokkos::Experimental::get_device_handle(exec), [&](const auto& root) {
+          root.then_parallel_for(1, Increment<view_t>{data});
+        });
   }
 
  protected:
@@ -135,7 +136,8 @@ TEST_F(TEST_CATEGORY_FIXTURE(GraphInterOp), construct_from_native) {
   cudaGraph_t native_graph = nullptr;
   KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGraphCreate(&native_graph, 0));
 
-  Kokkos::Experimental::Graph graph_from_native(this->exec, native_graph);
+  Kokkos::Experimental::Graph graph_from_native(
+      Kokkos::Experimental::get_device_handle(this->exec), native_graph);
 
   ASSERT_EQ(native_graph, graph_from_native.native_graph());
 

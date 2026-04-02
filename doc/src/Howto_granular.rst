@@ -1,16 +1,20 @@
 Granular models
 ===============
 
-Granular systems are composed of spherical particles with a diameter, as
-opposed to point particles.  This means they have an angular velocity
-and torque can be imparted to them to cause them to rotate.
+Granular systems are typically composed of spherical particles with a diameter,
+as opposed to point particles.  This means they have an angular
+velocity and torque can be imparted to them to cause them to rotate.
 
-To run a simulation of a granular model, you will want to use
+To run a simulation of a granular model, you will typically want to use
 the following commands:
 
 * :doc:`atom_style sphere <atom_style>`
 * :doc:`fix nve/sphere <fix_nve_sphere>`
 * :doc:`fix gravity <fix_gravity>`
+
+Aspherical granular particles can be simulated by creating clusters of spherical
+particles using either the :doc:`rigid <fix_rigid>` or :doc:`BPM <Howto_bpm>`
+package or by using :doc:`superellipsoids <pair_granular_superellipsoid>`.
 
 This compute
 

@@ -28,15 +28,10 @@ TEST(TEST_CATEGORY, scratch_align) { TestScratchAlignment<TEST_EXECSPACE>(); }
 TEST(TEST_CATEGORY, shmem_size) { TestShmemSize<TEST_EXECSPACE>(); }
 
 TEST(TEST_CATEGORY, multi_level_scratch) {
-  // FIXME_OPENMPTARGET This unit test needs ~350KB of scratch memory for L0 and
-  // L1 combined per team. Currently OpenMPTarget cannot allocate this high
-  // amount of scratch memory.
-#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
   TestMultiLevelScratchTeam<TEST_EXECSPACE,
                             Kokkos::Schedule<Kokkos::Static> >();
   TestMultiLevelScratchTeam<TEST_EXECSPACE,
                             Kokkos::Schedule<Kokkos::Dynamic> >();
-#endif
 }
 
 struct DummyTeamParallelForFunctor {

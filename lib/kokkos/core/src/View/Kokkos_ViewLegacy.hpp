@@ -338,10 +338,6 @@ class View : public ViewTraits<DataType, Properties...> {
   static constexpr Impl::integral_constant<size_t,
                                            traits::dimension::rank_dynamic>
       rank_dynamic = {};
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  enum {Rank KOKKOS_DEPRECATED_WITH_COMMENT("Use rank instead.") =
-            map_type::Rank};
-#endif
 
   template <typename iType>
   KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<std::is_integral_v<iType>,
@@ -908,8 +904,11 @@ class View : public ViewTraits<DataType, Properties...> {
 
 // FIXME_NVCC: nvcc 12.2 and 12.3 view these as ambiguous even though they have
 // exclusive requirements clauses. 12.6 Also has some issues though it manifests
-// differently
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_COMPILER_NVHPC)
+// differently. Clang with CUDA also had segfaults in CI
+// Define the workaround here since this condition will be re-used.
+// We undef KOKKOS_IMPL_VIEW_HOOKS_NVCC_WORKAROUND later.
+#if defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_COMPILER_NVHPC) || \
+    (defined(KOKKOS_COMPILER_CLANG) && defined(KOKKOS_ENABLE_CUDA))
 #define KOKKOS_IMPL_VIEW_HOOKS_NVCC_WORKAROUND 1
 #endif
 #ifdef KOKKOS_IMPL_VIEW_HOOKS_NVCC_WORKAROUND
@@ -1534,22 +1533,6 @@ KOKKOS_INLINE_FUNCTION auto subview(const View<D, P...>& src, Args... args) {
       typename Impl::RemoveAlignedMemoryTrait<D, P...>::type,
       Args...>::type(src, args...);
 }
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-template <class MemoryTraits, class D, class... P, class... Args>
-KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION auto subview(const View<D, P...>& src,
-                                                      Args... args) {
-  static_assert(View<D, P...>::rank == sizeof...(Args),
-                "subview requires one argument for each source View rank");
-  static_assert(Kokkos::is_memory_traits<MemoryTraits>::value);
-
-  return typename Kokkos::Impl::ViewMapping<
-      void /* deduce subview type from source view traits */
-      ,
-      typename Impl::RemoveAlignedMemoryTrait<D, P..., MemoryTraits>::type,
-      Args...>::type(src, args...);
-}
-#endif
 
 template <class V, class... Args>
 using Subview = decltype(subview(std::declval<V>(), std::declval<Args>()...));

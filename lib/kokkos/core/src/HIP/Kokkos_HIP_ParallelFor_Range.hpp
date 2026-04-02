@@ -18,9 +18,10 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::HIP> {
   using Policy = Kokkos::RangePolicy<Traits...>;
 
  private:
-  using Member       = typename Policy::member_type;
-  using WorkTag      = typename Policy::work_tag;
-  using LaunchBounds = typename Policy::launch_bounds;
+  using Member          = typename Policy::member_type;
+  using WorkTag         = typename Policy::work_tag;
+  using LaunchBounds    = typename Policy::launch_bounds;
+  using StaticBatchSize = typename Policy::static_batch_size;
 
   const FunctorType m_functor;
   const Policy m_policy;
@@ -40,26 +41,36 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::HIP> {
  public:
   using functor_type = FunctorType;
 
-  ParallelFor()                              = delete;
-  ParallelFor(ParallelFor const&)            = default;
-  ParallelFor& operator=(ParallelFor const&) = delete;
+  ParallelFor() = delete;
 
   inline __device__ void operator()() const {
-    const auto work_stride = Member(blockDim.y) * gridDim.x;
-    const Member work_end  = m_policy.end();
+    constexpr auto batch_size = Member(StaticBatchSize::batch_size);
+    const auto work_stride    = Member(blockDim.y) * gridDim.x;
+    const Member work_end     = m_policy.end();
 
     for (Member iwork = m_policy.begin() + threadIdx.y +
                         static_cast<Member>(blockDim.y) * blockIdx.x;
          iwork < work_end;
-         iwork = iwork < static_cast<Member>(work_end - work_stride)
-                     ? iwork + work_stride
-                     : work_end) {
-      this->template exec_range<WorkTag>(iwork);
+         iwork =
+             iwork < static_cast<Member>(work_end - work_stride * batch_size)
+                 ? iwork + work_stride * batch_size
+                 : work_end) {
+      for (Member i = 0; i < static_cast<Member>(work_stride * batch_size) &&
+                         i < work_end - iwork;
+           i = (i < static_cast<Member>(work_end - work_stride - iwork))
+                   ? i + work_stride
+                   : work_end - iwork) {
+        this->template exec_range<WorkTag>(iwork + i);
+      }
     }
   }
 
   inline void execute() const {
-    const typename Policy::index_type nwork = m_policy.end() - m_policy.begin();
+    constexpr typename Policy::index_type batch_size =
+        StaticBatchSize::batch_size;
+    const typename Policy::index_type nwork =
+        (m_policy.end() - m_policy.begin()) / batch_size +
+        ((m_policy.end() - m_policy.begin()) % batch_size == 0 ? 0 : 1);
 
     using DriverType = ParallelFor<FunctorType, Policy, Kokkos::HIP>;
     const int block_size =

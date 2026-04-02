@@ -44,93 +44,48 @@ atomic_compare_exchange(T* dest, T cmp, T val, MemoryOrder order, MemoryScope sc
 }
 
 // Fetch_Oper atomics: return value before operation
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_fetch_add(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_add(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_add(dest, val, order, scope);)
-}
+#define DESUL_IMPL_ATOMIC_OP(_OP)                                                     \
+  DESUL_IMPL_ACC_ROUTINE_DIRECTIVE                                                    \
+  template <class T, class MemoryOrder, class MemoryScope>                            \
+  DESUL_INLINE_FUNCTION T atomic_fetch##_OP(                                          \
+      T* const dest, const T val, MemoryOrder order, MemoryScope scope) {             \
+    DESUL_IF_ON_DEVICE(                                                               \
+        return Impl::device_atomic_fetch##_OP(dest, val, order, scope);)              \
+    DESUL_IF_ON_HOST(return Impl::host_atomic_fetch##_OP(dest, val, order, scope);)   \
+  }                                                                                   \
+                                                                                      \
+  DESUL_IMPL_ACC_ROUTINE_DIRECTIVE                                                    \
+  template <class T, class MemoryOrder, class MemoryScope>                            \
+  DESUL_INLINE_FUNCTION T atomic##_OP##_fetch(                                        \
+      T* const dest, const T val, MemoryOrder order, MemoryScope scope) {             \
+    DESUL_IF_ON_DEVICE(                                                               \
+        return Impl::device_atomic##_OP##_fetch(dest, val, order, scope);)            \
+    DESUL_IF_ON_HOST(return Impl::host_atomic##_OP##_fetch(dest, val, order, scope);) \
+  }                                                                                   \
+                                                                                      \
+  DESUL_IMPL_ACC_ROUTINE_DIRECTIVE                                                    \
+  template <class T, class MemoryOrder, class MemoryScope>                            \
+  DESUL_INLINE_FUNCTION void atomic##_OP(                                             \
+      T* const dest, const T val, MemoryOrder order, MemoryScope scope) {             \
+    DESUL_IF_ON_DEVICE(Impl::device_atomic##_OP(dest, val, order, scope);)            \
+    DESUL_IF_ON_HOST(Impl::host_atomic##_OP(dest, val, order, scope);)                \
+  }
 
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_fetch_sub(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_sub(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_sub(dest, val, order, scope);)
-}
+DESUL_IMPL_ATOMIC_OP(_add)
+DESUL_IMPL_ATOMIC_OP(_sub)
+DESUL_IMPL_ATOMIC_OP(_max)
+DESUL_IMPL_ATOMIC_OP(_min)
+DESUL_IMPL_ATOMIC_OP(_mod)
+DESUL_IMPL_ATOMIC_OP(_mul)
+DESUL_IMPL_ATOMIC_OP(_div)
+DESUL_IMPL_ATOMIC_OP(_and)
+DESUL_IMPL_ATOMIC_OP(_or)
+DESUL_IMPL_ATOMIC_OP(_xor)
+DESUL_IMPL_ATOMIC_OP(_nand)
+DESUL_IMPL_ATOMIC_OP(_inc_mod)
+DESUL_IMPL_ATOMIC_OP(_dec_mod)
 
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_fetch_max(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_max(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_max(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_fetch_min(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_min(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_min(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_fetch_mul(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_mul(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_mul(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_fetch_div(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_div(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_div(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_fetch_mod(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_mod(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_mod(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_fetch_and(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_and(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_and(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_fetch_or(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_or(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_or(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_fetch_xor(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_xor(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_xor(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_fetch_nand(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_nand(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_nand(dest, val, order, scope);)
-}
+#undef DESUL_IMPL_ATOMIC_OP
 
 DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
 template <class T, class MemoryOrder, class MemoryScope>
@@ -150,95 +105,6 @@ DESUL_INLINE_FUNCTION T atomic_fetch_rshift(T* const dest,
                                             MemoryScope scope) {
   DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_rshift(dest, val, order, scope);)
   DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_rshift(dest, val, order, scope);)
-}
-
-// Oper Fetch atomics: return value after operation
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_add_fetch(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_add_fetch(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_add_fetch(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_sub_fetch(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_sub_fetch(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_sub_fetch(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_max_fetch(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_max_fetch(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_max_fetch(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_min_fetch(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_min_fetch(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_min_fetch(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_mul_fetch(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_mul_fetch(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_mul_fetch(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_div_fetch(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_div_fetch(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_div_fetch(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_mod_fetch(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_mod_fetch(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_mod_fetch(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_and_fetch(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_and_fetch(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_and_fetch(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_or_fetch(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_or_fetch(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_or_fetch(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_xor_fetch(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_xor_fetch(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_xor_fetch(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_nand_fetch(T* const dest, const T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_nand_fetch(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_nand_fetch(dest, val, order, scope);)
 }
 
 DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
@@ -261,6 +127,26 @@ DESUL_INLINE_FUNCTION T atomic_rshift_fetch(T* const dest,
   DESUL_IF_ON_HOST(return Impl::host_atomic_rshift_fetch(dest, val, order, scope);)
 }
 
+DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
+template <class T, class MemoryOrder, class MemoryScope>
+DESUL_INLINE_FUNCTION void atomic_lshift(T* const dest,
+                                         const unsigned int val,
+                                         MemoryOrder order,
+                                         MemoryScope scope) {
+  DESUL_IF_ON_DEVICE(return Impl::device_atomic_lshift(dest, val, order, scope);)
+  DESUL_IF_ON_HOST(return Impl::host_atomic_lshift(dest, val, order, scope);)
+}
+
+DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
+template <class T, class MemoryOrder, class MemoryScope>
+DESUL_INLINE_FUNCTION void atomic_rshift(T* const dest,
+                                         const unsigned int val,
+                                         MemoryOrder order,
+                                         MemoryScope scope) {
+  DESUL_IF_ON_DEVICE(return Impl::device_atomic_rshift(dest, val, order, scope);)
+  DESUL_IF_ON_HOST(return Impl::host_atomic_rshift(dest, val, order, scope);)
+}
+
 // Other atomics
 
 DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
@@ -280,66 +166,6 @@ DESUL_INLINE_FUNCTION void atomic_store(T* const dest,
                                         MemoryScope scope) {
   DESUL_IF_ON_DEVICE(return Impl::device_atomic_store(dest, val, order, scope);)
   DESUL_IF_ON_HOST(return Impl::host_atomic_store(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION void atomic_add(T* const dest,
-                                      const T val,
-                                      MemoryOrder order,
-                                      MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_add(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_add(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION void atomic_sub(T* const dest,
-                                      const T val,
-                                      MemoryOrder order,
-                                      MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_sub(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_sub(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION void atomic_mul(T* const dest,
-                                      const T val,
-                                      MemoryOrder order,
-                                      MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_mul(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_mul(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION void atomic_div(T* const dest,
-                                      const T val,
-                                      MemoryOrder order,
-                                      MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_div(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_div(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION void atomic_min(T* const dest,
-                                      const T val,
-                                      MemoryOrder order,
-                                      MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_min(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_min(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION void atomic_max(T* const dest,
-                                      const T val,
-                                      MemoryOrder order,
-                                      MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_max(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_max(dest, val, order, scope);)
 }
 
 DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
@@ -371,27 +197,11 @@ DESUL_INLINE_FUNCTION T atomic_fetch_inc(T* const dest,
 
 DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
 template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_fetch_inc_mod(T* const dest, T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_inc_mod(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_inc_mod(dest, val, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
 DESUL_INLINE_FUNCTION T atomic_fetch_dec(T* const dest,
                                          MemoryOrder order,
                                          MemoryScope scope) {
   DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_dec(dest, order, scope);)
   DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_dec(dest, order, scope);)
-}
-
-DESUL_IMPL_ACC_ROUTINE_DIRECTIVE
-template <class T, class MemoryOrder, class MemoryScope>
-DESUL_INLINE_FUNCTION T
-atomic_fetch_dec_mod(T* const dest, T val, MemoryOrder order, MemoryScope scope) {
-  DESUL_IF_ON_DEVICE(return Impl::device_atomic_fetch_dec_mod(dest, val, order, scope);)
-  DESUL_IF_ON_HOST(return Impl::host_atomic_fetch_dec_mod(dest, val, order, scope);)
 }
 
 DESUL_IMPL_ACC_ROUTINE_DIRECTIVE

@@ -150,7 +150,15 @@ do
   *.cpp|*.cxx|*.cc|*.C|*.c++|*.cu)
     cpp_files="$cpp_files $1"
     ;;
-   # Ensure we only have one optimization flag because NVCC doesn't allow multiple
+  #fast-compile level for device code, tradeoff between compilation speed and runtime performance
+  -Ofc=*|--Ofast-compile=*)
+    cuda_args="$cuda_args $1"
+    ;;
+  -Ofc|--Ofast-compile)
+    cuda_args="$cuda_args $1 $2"
+    shift
+    ;;
+  # Ensure we only have one optimization flag because NVCC doesn't allow multiple
   -O*)
     if [ -n "$optimization_flag" ]; then
         if [ "$1" = "$optimization_flag" ]; then
@@ -236,10 +244,10 @@ do
     cuda_args="$cuda_args $1"
     ;;
   #Handle known nvcc args that have an argument
-  -maxrregcount=*|--maxrregcount=*|-time=*|-Xptxas=*)
+  -maxrregcount=*|--maxrregcount=*|-time=*|-Xptxas=*|--fdevice-time-trace=*|-fdevice-time-trace=*)
     cuda_args="$cuda_args $1"
     ;;
-  -maxrregcount|--default-stream|-Xnvlink|--ftz|--prec-div|--prec-sqrt|--fmad|-cudart|--cudart|-include|-time|-Xptxas)
+  -maxrregcount|--default-stream|-Xnvlink|--ftz|--prec-div|--prec-sqrt|--fmad|-cudart|--cudart|-include|-time|-Xptxas|--fdevice-time-trace|-fdevice-time-trace)
     cuda_args="$cuda_args $1 $2"
     shift
     ;;
@@ -315,11 +323,11 @@ do
     ;;
   # End of Werror handling
   #Handle unsupported standard flags
-  --std=c++1y|-std=c++1y|--std=gnu++1y|-std=gnu++1y|--std=c++1z|-std=c++1z|--std=gnu++1z|-std=gnu++1z|--std=c++2a|-std=c++2a)
-    fallback_std_flag="-std=c++17"
+  --std=c++1y|-std=c++1y|--std=gnu++1y|-std=gnu++1y|--std=c++1z|-std=c++1z|--std=gnu++1z|-std=gnu++1z|--std=c++2a|-std=c++2a|--std=c++2b|-std=c++2b|--std=c++2c|-std=c++2c)
+    fallback_std_flag="-std=c++20"
     # this is hopefully just occurring in a downstream project during CMake feature tests
     # we really have no choice here but to accept the flag and change  to an accepted C++ standard
-    echo "nvcc_wrapper does not accept standard flags $1 since partial standard flags and standards after C++17 are not supported. nvcc_wrapper will use $fallback_std_flag instead. It is undefined behavior to use this flag. This should only be occurring during CMake configuration."
+    echo "nvcc_wrapper does not accept standard flags $1 since partial standard flags and standards after C++20 are not supported. nvcc_wrapper will use $fallback_std_flag instead. It is undefined behavior to use this flag. This should only be occurring during CMake configuration."
     if [ -n "$std_flag" ]; then
        warn_std_flag
        shared_args=${shared_args/ $std_flag/}
@@ -337,25 +345,7 @@ do
     std_flag=$corrected_std_flag
     shared_args="$shared_args $std_flag"
     ;;
-  --std=c++20|-std=c++20)
-    if [ -n "$std_flag" ]; then
-      warn_std_flag
-      shared_args=${shared_args/ $std_flag/}
-    fi
-    # NVCC only has C++20 from version 12 on
-    cuda_main_version=$([[ $(${nvcc_compiler} --version) =~ V([0-9]+) ]] && echo ${BASH_REMATCH[1]})
-    if [ ${cuda_main_version} -lt 12 ]; then
-      fallback_std_flag="-std=c++17"
-      # this is hopefully just occurring in a downstream project during CMake feature tests
-      # we really have no choice here but to accept the flag and change  to an accepted C++ standard
-      echo "nvcc_wrapper does not accept standard flags $1 since partial standard flags and standards after C++17 are not supported. nvcc_wrapper will use $fallback_std_flag instead. It is undefined behavior to use this flag. This should only be occurring during CMake configuration."
-      std_flag=$fallback_std_flag
-    else
-      std_flag=$1
-    fi
-    shared_args="$shared_args $std_flag"
-    ;;
-  --std=c++11|-std=c++11|--std=c++14|-std=c++14|--std=c++17|-std=c++17)
+  --std=c++11|-std=c++11|--std=c++14|-std=c++14|--std=c++17|-std=c++17|--std=c++20|-std=c++20)
     if [ -n "$std_flag" ]; then
        warn_std_flag
        shared_args=${shared_args/ $std_flag/}
@@ -365,7 +355,7 @@ do
     ;;
 
   #convert PGI standard flags to something nvcc can handle
-  --c++11|--c++14|--c++17)
+  --c++11|--c++14|--c++17|--c++20)
     if [ -n "$std_flag" ]; then
        warn_std_flag
        shared_args=${shared_args/ $std_flag/}

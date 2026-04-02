@@ -35,9 +35,10 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   size_t m_scratch_size[2];
 
   template <typename FunctorWrapper>
-  sycl::event sycl_direct_launch(const sycl_device_ptr<char> global_scratch_ptr,
-                                 const FunctorWrapper& functor_wrapper,
-                                 const sycl::event& memcpy_event) const {
+  sycl::event sycl_direct_launch(
+      const sycl::global_ptr<char> global_scratch_ptr,
+      const FunctorWrapper& functor_wrapper,
+      const sycl::event& memcpy_event) const {
     // Convenience references
     const Kokkos::SYCL& space = m_policy.space();
     sycl::queue& q            = space.sycl_queue();
@@ -130,8 +131,8 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     // Functor's reduce memory, team scan memory, and team shared memory depend
     // upon team size.
     int scratch_pool_id = instance.acquire_team_scratch_space();
-    const sycl_device_ptr<char> global_scratch_ptr =
-        static_cast<sycl_device_ptr<char>>(instance.resize_team_scratch_space(
+    const sycl::global_ptr<char> global_scratch_ptr =
+        static_cast<sycl::global_ptr<char>>(instance.resize_team_scratch_space(
             scratch_pool_id,
             static_cast<ptrdiff_t>(m_scratch_size[1]) * m_league_size));
 
@@ -170,22 +171,32 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
     const auto& instance = *m_policy.space().impl_internal_space_instance();
     if (static_cast<int>(instance.m_maxShmemPerBlock) <
-        m_shmem_size - m_shmem_begin) {
+        m_shmem_size + m_shmem_begin) {
       std::stringstream out;
-      out << "Kokkos::Impl::ParallelFor<SYCL> insufficient shared memory! "
-             "Requested "
-          << m_shmem_size - m_shmem_begin << " bytes but maximum is "
-          << instance.m_maxShmemPerBlock << '\n';
+      out << "Kokkos::parallel_for<SYCL> Requested too much scratch memory on "
+             "level 0. Requested: "
+          << m_shmem_size + m_shmem_begin
+          << ", Maximum: " << instance.m_maxShmemPerBlock;
+      Kokkos::Impl::throw_runtime_exception(out.str());
+    }
+
+    if (m_scratch_size[1] > static_cast<size_t>(m_policy.scratch_size_max(1))) {
+      std::stringstream out;
+      out << "Kokkos::parallel_for<SYCL> Requested too much scratch memory on "
+             "level 1. Requested: "
+          << m_scratch_size[1] << ", Maximum: " << m_policy.scratch_size_max(1);
       Kokkos::Impl::throw_runtime_exception(out.str());
     }
 
     const auto max_team_size =
         m_policy.team_size_max(arg_functor, ParallelForTag{});
-    if (m_team_size > m_policy.team_size_max(arg_functor, ParallelForTag{}))
-      Kokkos::Impl::throw_runtime_exception(
-          "Kokkos::Impl::ParallelFor<SYCL> requested too large team size. The "
-          "maximal team_size is " +
-          std::to_string(max_team_size) + '!');
+    if (m_team_size > max_team_size) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<SYCL>: Requested too large team size. "
+               "Requested: "
+            << m_team_size << ", Maximum: " << max_team_size;
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
   }
 };
 

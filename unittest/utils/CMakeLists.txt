@@ -154,3 +154,10 @@ endif()
 # =============================================================================
 # End of FFT Testing Infrastructure
 # =============================================================================
+
+# Extra math tests for superellipsoids
+if(PKG_ASPHERE)
+  add_executable(test_math_extra_superellipsoids test_math_extra_superellipsoids.cpp)
+  target_link_libraries(test_math_extra_superellipsoids PRIVATE lammps GTest::GMockMain)
+  add_test(NAME MathExtraSuperellipsoids COMMAND test_math_extra_superellipsoids)
+endif()

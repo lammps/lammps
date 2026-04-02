@@ -25,7 +25,7 @@ class KokkosBase {
  public:
   KokkosBase() {}
 
-  // Pair
+  // Forward for Pair, Fix, Compute
   virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_1d,
                                        DAT::tdual_double_1d &,
                                        int, int *) {return 0;};
@@ -35,18 +35,7 @@ class KokkosBase {
   virtual void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d,
                                           DAT::tdual_double_1d &) {}
 
-  // Fix
-  virtual int pack_forward_comm_fix_kokkos(int, DAT::tdual_int_1d,
-                                           DAT::tdual_double_1d &,
-                                           int, int *) {return 0;};
-  virtual void unpack_forward_comm_fix_kokkos(int, int, DAT::tdual_double_1d &) {}
-
-
-  virtual int pack_reverse_comm_fix_kokkos(int, int, DAT::tdual_double_1d &) {return 0;};
-  virtual void unpack_reverse_comm_fix_kokkos(int, DAT::tdual_int_1d,
-                                          int, DAT::tdual_double_1d &) {}
-
-
+  // Exchange
   virtual int pack_exchange_kokkos(const int & /*nsend*/, DAT::tdual_double_2d_lr & /*k_buf*/,
                                    DAT::tdual_int_1d /*k_sendlist*/,
                                    DAT::tdual_int_1d /*k_copylist*/,

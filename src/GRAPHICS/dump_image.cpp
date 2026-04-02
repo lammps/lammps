@@ -321,12 +321,13 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       else
         error->all(FLERR, iarg+1, "Dump image ellipsoid only supports color by type, atom, or index");
       estyle = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-      if ((estyle < 0) || (estyle > 3))
-        error->all(FLERR, iarg+2, "Dump image ellipsoid only supports style setting 1, 2, or 3");
+      // unless the wireframe setting is requested, we draw rounded triangles
+      if (estyle !=2) estyle = 1;
+
       elevel = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       if (elevel == 0) elevel = 4; // default setting
-      if (elevel > 6)
-        error->all(FLERR, iarg+3, "Dump image ellipsoid mesh refinement level {} is too large", elevel);
+      if ((elevel < 0) || (elevel > 6))
+        error->all(FLERR, iarg+3, "Dump image ellipsoid invalid mesh refinement level {}", elevel);
       ediamvalue = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       iarg += 5;
 
@@ -1377,7 +1378,7 @@ void DumpImage::create_image()
   }
 
   // render atoms that are ellipsoids
-  // estyle = 1 for tri only, estyle 2 for wireframe only, estyle 3 for both
+  // estyle = 1 for tri only, estyle 2 for wireframe only
 
   if (ellipsoidflag) {
     double **x = atom->x;
@@ -1409,17 +1410,15 @@ void DumpImage::create_image()
       } else {
         color = image->color2rgb("white");
       }
-      savedColors saved;
-      if (estyle & 1) {
-        // brighten flat surfaces a little bit
-        saved = reset_lighting(image, 0.3, 0.8, 0.45, 0.8);
-      }
       EllipsoidObj e(elevel);
-      e.draw(image, estyle, color, x[j], avec_ellipsoid->bonus[ellipsoid[j]].shape,
-             avec_ellipsoid->bonus[ellipsoid[j]].quat, ediamvalue, opacity);
-      if (estyle & 1) {
-        // restore previous settings
-        restore_lighting(saved, image);
+      if (avec_ellipsoid->bonus_super) {
+        auto *bonus = avec_ellipsoid->bonus_super;
+        e.draw(image, estyle, color, x[j], bonus[ellipsoid[j]].shape, bonus[ellipsoid[j]].quat,
+               ediamvalue, opacity, bonus[ellipsoid[j]].block);
+      } else {
+        auto *bonus = avec_ellipsoid->bonus;
+        e.draw(image, estyle, color, x[j], bonus[ellipsoid[j]].shape,bonus[ellipsoid[j]].quat,
+               ediamvalue, opacity, nullptr);
       }
       m += size_one;
     }
@@ -1466,11 +1465,17 @@ void DumpImage::create_image()
         else if (bodyvec[k] == Graphics::LINE)
           image->draw_cylinder(&bodyarray[k][0],&bodyarray[k][3],color,bodyarray[k][6],3,opacity);
         else if (bodyvec[k] == Graphics::TRI) {
-          // brighten flat surfaces a little bit
+          // brighten flat surfaces somewhat
           auto saved = reset_lighting(image, 0.3, 0.8, 0.45, 0.8);
-
           image->draw_triangle(&bodyarray[k][0],&bodyarray[k][3],&bodyarray[k][6],color,opacity);
-
+          // restore previous settings
+          restore_lighting(saved, image);
+        } else if (bodyvec[k] == Graphics::TRINORM) {
+          // brighten surfaces a little bit
+          auto saved = reset_lighting(image, 0.6, 0.3, 0.5, 0.7);
+          image->draw_trinorm(&bodyarray[k][0],&bodyarray[k][3],&bodyarray[k][6],
+                              &bodyarray[k][9],&bodyarray[k][12],&bodyarray[k][15],
+                              color,color,color,opacity);
           // restore previous settings
           restore_lighting(saved, image);
         }
@@ -1755,17 +1760,18 @@ void DumpImage::create_image()
       if (!objvec || !objarray) continue;
 
       // set color and transparency
+      double *white = image->color2rgb("white");
       opacity = iobj.opacity;
       if (iobj.colorstyle == TYPE) {
         itype = static_cast<int>(objarray[i][0] - 1.0) % ntypes + 1;
-        color = colortype[itype];
+        color = (itype > 0) ? colortype[itype] : white;
       } else if (iobj.colorstyle == ELEMENT) {
         itype = static_cast<int>(objarray[i][0] - 1.0) % ntypes + 1;
-        color = colorelement[itype];
+        color = (itype > 0) ? colorelement[itype] : white;
       } else if (iobj.colorstyle == CONSTANT) {
         color = iobj.rgb;
       } else {
-        color = image->color2rgb("white");
+        color = white;
         opacity = 1.0;
       }
 
@@ -1785,6 +1791,7 @@ void DumpImage::create_image()
         // @sjplimp for consistency this should be:
         // image->draw_cylinder(&objarray[i][1],&objarray[i][4],color,iobj.flag2,iobj.flag1);
         image->draw_cylinder(&objarray[i][1], &objarray[i][4], color, iobj.flag1, 3, opacity);
+
       } else if (objvec[i] == Graphics::TRI) {    // don't render surface meshes in 2d
         if (domain->dimension == 3) {
           p1 = &objarray[i][1];
@@ -1798,20 +1805,60 @@ void DumpImage::create_image()
             image->draw_cylinder(p3, p1, color, iobj.flag2, 3, opacity);
           }
         }
+
+      } else if (objvec[i] == Graphics::TRINORM) {    // don't render surface meshes in 2d
+        if (domain->dimension == 3) {
+          double *color2 = nullptr;
+          double *color3 = nullptr;
+          if (iobj.colorstyle == TYPE) {
+            itype = static_cast<int>(objarray[i][1] - 1.0) % ntypes + 1;
+            color2 = (itype > 0) ? colortype[itype] : white;
+            itype = static_cast<int>(objarray[i][2] - 1.0) % ntypes + 1;
+            color3 = (itype > 0) ? colortype[itype] : white;
+          } else if (iobj.colorstyle == ELEMENT) {
+            itype = static_cast<int>(objarray[i][1] - 1.0) % ntypes + 1;
+            color2 = (itype > 0) ? colorelement[itype] : white;
+            itype = static_cast<int>(objarray[i][2] - 1.0) % ntypes + 1;
+            color3 = (itype > 0) ? colorelement[itype] : white;
+          } else if (iobj.colorstyle == CONSTANT) {
+            color2 = iobj.rgb;
+            color3 = iobj.rgb;
+          } else {
+            color2 = color3 = image->color2rgb("white");
+            opacity = 1.0;
+          }
+
+          p1 = &objarray[i][3];
+          p2 = &objarray[i][6];
+          p3 = &objarray[i][9];
+          if (static_cast<int>(iobj.flag1) % 2) {
+            image->draw_trinorm(p1, p2, p3, &objarray[i][12], &objarray[i][15], &objarray[i][18],
+                                color, color2, color3, opacity);
+          } else {
+            image->draw_cylinder(p1, p2, color, iobj.flag2, 3, opacity);
+            image->draw_cylinder(p2, p3, color, iobj.flag2, 3, opacity);
+            image->draw_cylinder(p3, p1, color, iobj.flag2, 3, opacity);
+          }
+        }
+
       } else if (objvec[i] == Graphics::CYLINDER) {
         image->draw_cylinder(&objarray[i][1], &objarray[i][4], color, objarray[i][7] + iobj.flag2,
                              (int) iobj.flag1, opacity);
+
       } else if (objvec[i] == Graphics::TRIANGLE) {
         image->draw_triangle(&objarray[i][1], &objarray[i][4], &objarray[i][7], color, opacity);
+
       } else if (objvec[i] == Graphics::ARROW) {
         ArrowObj a(objarray[i][9]);
         a.draw(image, color, &objarray[i][1], objarray[i][7] + iobj.flag1, &objarray[i][4],
                objarray[i][8] + iobj.flag2, opacity);
+
       } else if (objvec[i] == Graphics::CONE) {
         ConeObj c(1.0, objarray[i][7] + iobj.flag2, objarray[i][8] + iobj.flag2,
                   (int) objarray[i][9]);
         c.draw(image, vec3{objarray[i][1], objarray[i][2], objarray[i][3]},
                vec3{objarray[i][4], objarray[i][5], objarray[i][6]}, color, opacity);
+
       } else if (objvec[i] == Graphics::PIXMAP) {
         // get pointer to pixmap buffer and get background transparency color
         const auto *pixmap = (const unsigned char *) ubuf(objarray[i][6]).i;    // NOLINT
@@ -1822,6 +1869,7 @@ void DumpImage::create_image()
         else    // coordinates are in image coordinates, ignore z
           image->draw_pixmap((int) objarray[i][1], (int) objarray[i][2], (int) objarray[i][4],
                              (int) objarray[i][5], pixmap, transcolor, objarray[i][10], opacity);
+
       } else if (objvec[i] == Graphics::BOND) {
         int type1 = static_cast<int>(objarray[i][0] - 1.0) % ntypes + 1;
         int type2 = static_cast<int>(objarray[i][1] - 1.0) % ntypes + 1;

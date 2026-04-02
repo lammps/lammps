@@ -41,10 +41,20 @@ struct FunctorReduce {
   }
 };
 }  // namespace
+}  // namespace Test
+
+template <class T, int N>
+struct Kokkos::reduction_identity<Test::MyArray<T, N>> {
+  KOKKOS_FUNCTION static Test::MyArray<T, N> sum() {
+    return Test::MyArray<T, N>{};
+  }
+};
+
+namespace Test {
 
 using policy_type = Kokkos::TeamPolicy<TEST_EXECSPACE>;
 using policy_type_128_8 =
-    Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<128, 8> >;
+    Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<128, 8>>;
 
 // We need to special case for NVIDIA architectures which don't have space for
 // 2048 threads ptxas warns and with errors as warning errors out: "ptxas error
@@ -53,12 +63,12 @@ using policy_type_128_8 =
 // policy
 #if defined(KOKKOS_ARCH_TURING75) || defined(KOKKOS_ARCH_AMPERE86) || \
     defined(KOKKOS_ARCH_AMPERE87) || defined(KOKKOS_ARCH_ADA89) ||    \
-    defined(KOKKOS_ARCH_BLACKWELL120)
+    defined(KOKKOS_ARCH_BLACKWELL120) || defined(KOKKOS_ARCH_BLACKWELL121)
 using policy_type_1024_2 =
-    Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<1024, 1> >;
+    Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<1024, 1>>;
 #else
 using policy_type_1024_2 =
-    Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<1024, 2> >;
+    Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<1024, 2>>;
 #endif
 
 template <class T, int N, class PolicyType, int S>
@@ -71,11 +81,19 @@ void test_team_policy_max_recommended_static_size(int scratch_size) {
       FunctorFor<T, N, PolicyType, S>(), Kokkos::ParallelForTag());
   int team_size_max_reduce = p.team_size_max(
       FunctorReduce<T, N, PolicyType, S>(), Kokkos::ParallelReduceTag());
+  MyArray<T, N> dummy;
+  int team_size_max_reduce_reducer = p.team_size_max(
+      FunctorReduce<T, N, PolicyType, S>(), Kokkos::Sum<MyArray<T, N>>{dummy},
+      Kokkos::ParallelReduceTag());
   int team_size_rec_reduce = p.team_size_recommended(
       FunctorReduce<T, N, PolicyType, S>(), Kokkos::ParallelReduceTag());
+  int team_size_rec_reduce_reducer = p.team_size_recommended(
+      FunctorReduce<T, N, PolicyType, S>(), Kokkos::Sum<MyArray<T, N>>{dummy},
+      Kokkos::ParallelReduceTag());
 
   ASSERT_GE(team_size_max_for, team_size_rec_for);
   ASSERT_GE(team_size_max_reduce, team_size_rec_reduce);
+  ASSERT_GE(team_size_max_reduce_reducer, team_size_rec_reduce_reducer);
   ASSERT_GE(team_size_max_for, team_size_max_reduce);
 
   Kokkos::parallel_for(PolicyType(10000, team_size_max_for, 4)

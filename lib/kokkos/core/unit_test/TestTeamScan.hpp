@@ -63,9 +63,11 @@ struct TestTeamScan {
     // be used.
     if (ExecutionSpace().concurrency() > 10000)
       Kokkos::parallel_for(policy_type(M, 127), *this);
-    else if (ExecutionSpace().concurrency() > 2)
-      Kokkos::parallel_for(policy_type(M, 3), *this);
-    else
+    else if (ExecutionSpace().concurrency() > 2) {
+      auto max_team_size =
+          policy_type(M, 1).team_size_max(*this, Kokkos::ParallelForTag{});
+      Kokkos::parallel_for(policy_type(M, std::min(3, max_team_size)), *this);
+    } else
       Kokkos::parallel_for(policy_type(M, 1), *this);
 
     auto a_i = Kokkos::create_mirror_view(a_d);
@@ -182,9 +184,11 @@ struct TestTeamScanRetVal {
     // be used.
     if (ExecutionSpace().concurrency() > 10000)
       Kokkos::parallel_for(policy_type(M, 127), *this);
-    else if (ExecutionSpace().concurrency() > 2)
-      Kokkos::parallel_for(policy_type(M, 3), *this);
-    else
+    else if (ExecutionSpace().concurrency() > 2) {
+      auto max_team_size =
+          policy_type(M, 1).team_size_max(*this, Kokkos::ParallelForTag{});
+      Kokkos::parallel_for(policy_type(M, std::min(3, max_team_size)), *this);
+    } else
       Kokkos::parallel_for(policy_type(M, 1), *this);
 
     Kokkos::fence();

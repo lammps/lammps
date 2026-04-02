@@ -63,12 +63,25 @@ TEST(TEST_CATEGORY, quad_precision_reductions) {
 TEST(TEST_CATEGORY, quad_precision_common_math_functions) {
   Kokkos::parallel_for(
       Kokkos::RangePolicy<Kokkos::DefaultHostExecutionSpace>(0, 1),
-      KOKKOS_LAMBDA(int) {
+      KOKKOS_LAMBDA(int i) {
         (void)Kokkos::fabs((__float128)0);
         (void)Kokkos::sqrt((__float128)1);
         (void)Kokkos::exp((__float128)2);
         (void)Kokkos::sin((__float128)3);
         (void)Kokkos::cosh((__float128)4);
+        (void)Kokkos::lround((__float128)5);
+        (void)Kokkos::llround((__float128)6);
+        (void)Kokkos::nearbyint((__float128)7);
+        (void)Kokkos::rint((__float128)8);
+        (void)Kokkos::lrint((__float128)9);
+        (void)Kokkos::llrint((__float128)10);
+        (void)Kokkos::frexp((__float128)11, &i);
+        (void)Kokkos::ldexp((__float128)12, i);
+        __float128 dummy;
+        (void)Kokkos::modf((__float128)13, &dummy);
+        (void)Kokkos::scalbn((__float128)14, i);
+        (void)Kokkos::scalbln((__float128)15, i);
+        (void)Kokkos::ilogb((__float128)16);
       });
 }
 

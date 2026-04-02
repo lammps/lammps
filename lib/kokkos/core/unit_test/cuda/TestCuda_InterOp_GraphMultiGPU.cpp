@@ -56,8 +56,8 @@ struct ThenFunctor {
 };
 
 TEST_F(TEST_CATEGORY_FIXTURE(multi_gpu), then) {
-  using view_t        = Kokkos::View<unsigned int, Kokkos::CudaSpace>;
-  using shared_view_t = Kokkos::View<unsigned int, Kokkos::SharedSpace>;
+  using view_t        = Kokkos::View<int, Kokkos::CudaSpace>;
+  using shared_view_t = Kokkos::View<int, Kokkos::SharedSpace>;
 
   const shared_view_t shared(Kokkos::view_alloc("shared data"));
 
@@ -78,7 +78,9 @@ TEST_F(TEST_CATEGORY_FIXTURE(multi_gpu), then) {
   // when adding a node.
   for (int idevice = 0; idevice < num_devices; ++idevice) {
     pred = pred.then(
-        "then node device " + std::to_string(idevice), execs.at(idevice),
+        Kokkos::Experimental::node_props(
+            "then node device " + std::to_string(idevice),
+            Kokkos::Experimental::get_device_handle(execs.at(idevice))),
         ThenFunctor<view_t, shared_view_t>{views.at(idevice), shared});
   }
 

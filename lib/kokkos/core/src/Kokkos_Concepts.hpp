@@ -114,14 +114,14 @@ struct LaunchBounds {
 
 namespace Kokkos {
 
-#define KOKKOS_IMPL_IS_CONCEPT(CONCEPT)                        \
+#define KOKKOS_IMPL_DEFINE_TRAIT_FROM_TYPEDEF(TYPEDEF)         \
   template <typename T>                                        \
-  struct is_##CONCEPT {                                        \
+  struct is_##TYPEDEF {                                        \
    private:                                                    \
     template <typename U>                                      \
-    using have_t = typename U::CONCEPT;                        \
+    using have_t = typename U::TYPEDEF;                        \
     template <typename U>                                      \
-    using have_type_t = typename U::CONCEPT##_type;            \
+    using have_type_t = typename U::TYPEDEF##_type;            \
                                                                \
    public:                                                     \
     static constexpr bool value =                              \
@@ -130,33 +130,42 @@ namespace Kokkos {
     constexpr operator bool() const noexcept { return value; } \
   };                                                           \
   template <typename T>                                        \
-  inline constexpr bool is_##CONCEPT##_v = is_##CONCEPT<T>::value;
+  inline constexpr bool is_##TYPEDEF##_v = is_##TYPEDEF<T>::value;
+
+#define KOKKOS_IMPL_DEFINE_CONCEPT_AND_TRAIT_FROM_TYPEDEF(TYPEDEF,       \
+                                                          CXX20_CONCEPT) \
+  KOKKOS_IMPL_DEFINE_TRAIT_FROM_TYPEDEF(TYPEDEF)                         \
+  template <typename T>                                                  \
+  concept CXX20_CONCEPT = is_##TYPEDEF##_v<T>;
 
 // Public concept:
 
-KOKKOS_IMPL_IS_CONCEPT(memory_space)
-KOKKOS_IMPL_IS_CONCEPT(memory_traits)
-KOKKOS_IMPL_IS_CONCEPT(execution_space)
-KOKKOS_IMPL_IS_CONCEPT(execution_policy)
-KOKKOS_IMPL_IS_CONCEPT(array_layout)
-KOKKOS_IMPL_IS_CONCEPT(reducer)
-KOKKOS_IMPL_IS_CONCEPT(team_handle)
+KOKKOS_IMPL_DEFINE_CONCEPT_AND_TRAIT_FROM_TYPEDEF(memory_space, MemorySpace)
+KOKKOS_IMPL_DEFINE_TRAIT_FROM_TYPEDEF(memory_traits)
+KOKKOS_IMPL_DEFINE_CONCEPT_AND_TRAIT_FROM_TYPEDEF(execution_space,
+                                                  ExecutionSpace)
+KOKKOS_IMPL_DEFINE_CONCEPT_AND_TRAIT_FROM_TYPEDEF(execution_policy,
+                                                  ExecutionPolicy)
+KOKKOS_IMPL_DEFINE_TRAIT_FROM_TYPEDEF(array_layout)
+KOKKOS_IMPL_DEFINE_CONCEPT_AND_TRAIT_FROM_TYPEDEF(reducer, Reducer)
+KOKKOS_IMPL_DEFINE_CONCEPT_AND_TRAIT_FROM_TYPEDEF(team_handle, TeamHandle)
 namespace Experimental {
-KOKKOS_IMPL_IS_CONCEPT(work_item_property)
-KOKKOS_IMPL_IS_CONCEPT(hooks_policy)
+KOKKOS_IMPL_DEFINE_TRAIT_FROM_TYPEDEF(work_item_property)
+KOKKOS_IMPL_DEFINE_TRAIT_FROM_TYPEDEF(hooks_policy)
 }  // namespace Experimental
 
 namespace Impl {
 
 // Implementation concept:
 
-KOKKOS_IMPL_IS_CONCEPT(thread_team_member)
-KOKKOS_IMPL_IS_CONCEPT(host_thread_team_member)
-KOKKOS_IMPL_IS_CONCEPT(graph_kernel)
+KOKKOS_IMPL_DEFINE_TRAIT_FROM_TYPEDEF(thread_team_member)
+KOKKOS_IMPL_DEFINE_TRAIT_FROM_TYPEDEF(host_thread_team_member)
+KOKKOS_IMPL_DEFINE_TRAIT_FROM_TYPEDEF(graph_kernel)
 
 }  // namespace Impl
 
-#undef KOKKOS_IMPL_IS_CONCEPT
+#undef KOKKOS_IMPL_DEFINE_TRAIT_FROM_TYPEDEF
+#undef KOKKOS_IMPL_DEFINE_CONCEPT_AND_TRAIT_FROM_TYPEDEF
 
 }  // namespace Kokkos
 

@@ -69,7 +69,10 @@ the :doc:`dump image fix <dump_image>` command.  The color is that of
 the atom type's element color instead with the *element* coloring
 scheme, or just a globally set constant color for the whole isosurface
 with the *const* coloring scheme.  That color can be set with the
-*fcolor* keyword of the :doc:`dump modify <dump_image>` command.
+*fcolor* keyword of the :doc:`dump modify <dump_image>` command.  For
+rounded triangles, the color is interpolated across the triangle if
+there are different colors assigned to the different corners of the
+triangle.
 
 The isosurface's transparency setting is fully opaque by default and can
 be changed with the *ftrans* keyword of the :doc:`dump modify
@@ -140,11 +143,11 @@ the fix group and pass the graphics geometry information about it to
 *dump image* so that it is included in the rendered image.
 
 The *fflag1* setting of *dump image fix* determines whether the
-isosurface will be rendered as a set of connected triangles (1) or as a
-mesh of cylinders (2).
+isosurface will be rendered as a set of connected rounded triangles (1)
+or as a mesh of cylinders (2).
 
 If using a mesh of cylinders, the *fflag2* setting determines the
-diameter of the cylinders.
+diameter of the cylinders, otherwise it is ignored.
 
 The *quality* settings of "min" and "low" work best with the cylinder
 mesh setting while the other quality settings are more suitable for a

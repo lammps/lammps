@@ -31,21 +31,6 @@ struct my_complex {
   }
 
   KOKKOS_INLINE_FUNCTION
-  my_complex(const my_complex &src) {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  my_complex &operator=(const my_complex &src) {
-    re    = src.re;
-    im    = src.im;
-    dummy = src.dummy;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION
   my_complex(const double &val) {
     re    = val;
     im    = 0.0;
@@ -122,19 +107,8 @@ struct array_reduce {
     for (int i = 0; i < N; i++) data[i] = scalar_t();
   }
   KOKKOS_INLINE_FUNCTION
-  array_reduce(const array_reduce &rhs) {
-    for (int i = 0; i < N; i++) data[i] = rhs.data[i];
-  }
-  KOKKOS_INLINE_FUNCTION
   array_reduce(const scalar_t value) {
     for (int i = 0; i < N; i++) data[i] = scalar_t(value);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  array_reduce &operator=(const array_reduce &src) {
-    if (&src == this) return *this;
-    for (int i = 0; i < N; i++) data[i] = src.data[i];
-    return *this;
   }
 
   KOKKOS_INLINE_FUNCTION  // add operator
@@ -210,9 +184,6 @@ struct point_t {
   point_t() : x(0), y(0), z(0) {}
 
   KOKKOS_FUNCTION
-  point_t(const point_t &val) : x(val.x), y(val.y), z(val.z) {}
-
-  KOKKOS_FUNCTION
   point_t(const int rhs) { x = y = z = static_cast<uint8_t>(rhs); }
 
   KOKKOS_FUNCTION
@@ -221,13 +192,6 @@ struct point_t {
   KOKKOS_FUNCTION
   bool operator==(const point_t rhs) const {
     return (x == rhs.x && y == rhs.y && z == rhs.z);
-  }
-
-  KOKKOS_FUNCTION
-  void operator=(point_t rhs) {
-    x = rhs.x;
-    y = rhs.y;
-    z = rhs.z;
   }
 
   KOKKOS_FUNCTION

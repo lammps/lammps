@@ -38,6 +38,7 @@ class DihedralNHarmonic : public Dihedral {
  protected:
   int *nterms;
   double **a;
+  int nterms_max;
 
   void allocate();
 };

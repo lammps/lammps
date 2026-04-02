@@ -30,20 +30,12 @@ struct TestRange {
   struct VerifyOffsetTag {};
 
   int N;
-#ifndef KOKKOS_WORKAROUND_OPENMPTARGET_GCC
   static const int offset = 13;
-#else
-  int offset;
-#endif
   TestRange(const size_t N_)
       : m_flags(Kokkos::view_alloc(Kokkos::WithoutInitializing, "flags"), N_),
         result_view(Kokkos::view_alloc(Kokkos::WithoutInitializing, "results"),
                     N_),
-        N(N_) {
-#ifdef KOKKOS_WORKAROUND_OPENMPTARGET_GCC
-    offset = 13;
-#endif
-  }
+        N(N_) {}
 
   void test_for() {
     typename view_type::host_mirror_type host_flags =
@@ -368,7 +360,6 @@ struct TestStaticBatchSize {
   }
 };
 
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
 TEST(TEST_CATEGORY, range_dynamic_policy) {
 #if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
     !defined(KOKKOS_ENABLE_SYCL)
@@ -386,7 +377,6 @@ TEST(TEST_CATEGORY, range_dynamic_policy) {
   }
 #endif
 }
-#endif
 
 // For 32-bit builds a View can't store enough elements
 #ifndef KOKKOS_IMPL_32BIT

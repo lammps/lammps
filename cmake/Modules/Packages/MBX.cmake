@@ -6,8 +6,8 @@ if(POLICY CMP0135)
   cmake_policy(SET CMP0135 OLD)
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  message(FATAL_ERROR "Compiling the MBX package for Windows is currently not supported")
+if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (NOT CMAKE_CROSSCOMPILING))
+  message(FATAL_ERROR "Compiling the MBX package natively for Windows is currently not supported")
 endif()
 
 # for supporting multiple concurrent mbx installations for debugging and testing
@@ -34,8 +34,8 @@ if(CONFIGURE_REQUEST_PIC)
   list(APPEND MBX_CONFIG_FLAGS ${CONFIGURE_REQUEST_PIC})
 endif()
 
-set(MBXLIB_URL "https://github.com/paesanilab/MBX/releases/download/v1.3.5/mbx-1.3.5.tar.gz" CACHE STRING "URL for MBX tarball")
-set(MBXLIB_SHA256 "f66de645b28d73e52be69e6c857b7bd58b6dd0ee398030daecc5bf976bf28111" CACHE STRING "SHA256 checksum of MBX tarball")
+set(MBXLIB_URL "https://github.com/paesanilab/MBX/releases/download/v1.3.12/mbx-1.3.12.tar.gz" CACHE STRING "URL for MBX tarball")
+set(MBXLIB_SHA256 "0f3600d0841e1736abec3fe6a38c8ff673523fe4494169db2839ddaa9bb618bf" CACHE STRING "SHA256 checksum of MBX tarball")
 
 mark_as_advanced(MBXLIB_URL)
 mark_as_advanced(MBXLIB_SHA256)
@@ -65,17 +65,38 @@ if(DOWNLOAD_MBX)
   message(STATUS "MBX_CONFIG_FLAGS: ${MBX_CONFIG_FLAGS}")
 
   include(ExternalProject)
-  ExternalProject_Add(mbx_build
-    URL     ${MBXLIB_URL}
-    URL_HASH SHA256=${MBXLIB_SHA256}
-    CONFIGURE_COMMAND <SOURCE_DIR>/configure
-                      --prefix=<INSTALL_DIR>
-                      ${MBX_CONFIG_FLAGS}
-                      CXX=${MBX_CONFIG_CXX}
-                      CC=${MBX_CONFIG_CC}
-                      CPPFLAGS=-I${FFTW3_INCLUDE_DIRS}
-    BUILD_BYPRODUCTS ${MBX_BUILD_BYPRODUCTS}
-  )
+
+  # hacks to make Linux-to-Windows cross-compilation work
+  if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
+    ExternalProject_Add(mbx_build
+      URL     ${MBXLIB_URL}
+      URL_HASH SHA256=${MBXLIB_SHA256}
+      BUILD_IN_SOURCE TRUE
+      CONFIGURE_COMMAND mingw64-configure
+                        --prefix=<INSTALL_DIR>
+                        --disable-i-pi-plugin
+                        ${MBX_CONFIG_FLAGS}
+      INSTALL_COMMAND make install prefix=-build includedir=/include bindir=/bin
+                                 datadir=/share exec_prefix=/ infodir=/share/info
+                                 libdir=/lib libexecdir=/libexec localstatedir=/var
+                                 mandir=/share/man sbindir=/sbin sharedstatedir=/com
+                                 sysconfdir=/etc DESTDIR=<INSTALL_DIR>
+      BUILD_BYPRODUCTS ${MBX_BUILD_BYPRODUCTS}
+    )
+  else()
+    ExternalProject_Add(mbx_build
+      URL     ${MBXLIB_URL}
+      URL_HASH SHA256=${MBXLIB_SHA256}
+      CONFIGURE_COMMAND <SOURCE_DIR>/configure
+                        --prefix=<INSTALL_DIR>
+                        --disable-i-pi-plugin
+                        ${MBX_CONFIG_FLAGS}
+                        CXX=${MBX_CONFIG_CXX}
+                        CC=${MBX_CONFIG_CC}
+                        CPPFLAGS=-I${FFTW3_INCLUDE_DIRS}
+      BUILD_BYPRODUCTS ${MBX_BUILD_BYPRODUCTS}
+    )
+  endif()
   ExternalProject_get_property(mbx_build INSTALL_DIR)
   add_library(LAMMPS::MBX UNKNOWN IMPORTED)
   add_dependencies(LAMMPS::MBX mbx_build)

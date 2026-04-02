@@ -51,25 +51,20 @@ class OpenMP {
   using size_type            = memory_space::size_type;
   using scratch_memory_space = ScratchMemorySpace<OpenMP>;
 
+  KOKKOS_DEFAULTED_FUNCTION OpenMP(const OpenMP&) = default;
+  KOKKOS_FUNCTION OpenMP(OpenMP&& other) noexcept
+      : OpenMP(static_cast<const OpenMP&>(other)) {}
+  KOKKOS_DEFAULTED_FUNCTION OpenMP& operator=(const OpenMP&) = default;
+  KOKKOS_FUNCTION OpenMP& operator=(OpenMP&& other) noexcept {
+    return *this = static_cast<const OpenMP&>(other);
+  }
+  ~OpenMP();
   OpenMP();
 
   explicit OpenMP(int pool_size);
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  template <typename T = void>
-  KOKKOS_DEPRECATED_WITH_COMMENT(
-      "OpenMP execution space should be constructed explicitly.")
-  OpenMP(int pool_size)
-      : OpenMP(pool_size) {}
-#endif
-
   /// \brief Print configuration information to the given output stream.
   void print_configuration(std::ostream& os, bool verbose = false) const;
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  /// \brief is the instance running a parallel algorithm
-  KOKKOS_DEPRECATED static bool in_parallel(OpenMP const& = OpenMP()) noexcept;
-#endif
 
   /// \brief Wait until all dispatched functors complete on the given instance
   ///
@@ -79,22 +74,7 @@ class OpenMP {
   void fence(std::string const& name =
                  "Kokkos::OpenMP::fence: Unnamed Instance Fence") const;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  /// \brief Does the given instance return immediately after launching
-  /// a parallel algorithm
-  ///
-  /// This always returns false on OpenMP
-  KOKKOS_DEPRECATED inline static bool is_asynchronous(
-      OpenMP const& = OpenMP()) noexcept {
-    return false;
-  }
-#endif
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  static int concurrency(OpenMP const& = OpenMP());
-#else
   int concurrency() const;
-#endif
 
   static void impl_initialize(InitializationSettings const&);
 

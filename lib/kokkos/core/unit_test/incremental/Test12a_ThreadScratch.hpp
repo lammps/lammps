@@ -97,18 +97,9 @@ TEST(TEST_CATEGORY, IncrTest_12a_ThreadScratch) {
 #endif
 
   ThreadScratch<TEST_EXECSPACE> test;
-  // FIXME_OPENMPTARGET - team_size has to be a multiple of 32 for the tests to
-  // pass in the Release and RelWithDebInfo builds. Does not need the team_size
-  // to be a multiple of 32 for the Debug builds.
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  test.run(1, 32, 9);
-  test.run(2, 64, 22);
-  test.run(14, 128, 321);
-#else
   test.run(1, 55, 9);
   test.run(2, 4, 22);
   test.run(14, 277, 321);
-#endif
 }
 KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_POP()
 

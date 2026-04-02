@@ -499,12 +499,21 @@ spheres, one for each sub-particle.  The size of each sphere is
 determined by the *bflag1* parameter for the *body* keyword.  The
 *bflag2* argument is ignored.
 
-For the *rounded/polygon* body style, each body is drawn as a polygon
-and for *rounded/polyhedron* as a polyhedron.  The *bflag2* argument
+For the *rounded/polygon* body style, each body is drawn as a polygon.
+The *bflag2* argument selects how the bodies are represented: for a
+value of 1, only the faces are drawn; for a value of 2 instead only a
+wireframe outline is drawn; and for a value of 3 both the faces and the
+wireframe outline are drawn.  The diameter of the wireframe cylinders is
+determined by the *bflag1* parameter for the *body* keyword.
+
+For the *rounded/polyhedron* body style, each body is drawn as a
+polyhedron consisting of triangles and squares.  The *bflag2* argument
 selects how the bodies are represented: for a value of 1, only the faces
-are drawn; for a value of 2, only a wireframe mesh is drawn, and for a
-value of 3 both.  The diameter of each wireframe line is determined by
-the *bflag1* parameter for the *body* keyword.
+are drawn with some shading added; for a value of 2 instead only a
+wireframe mesh is drawn; for a value of 3 both the faces and the
+wireframe mesh are drawn; and for a value of 4 only the faces are drawn,
+but without shading.  The diameter of the wireframe cylinders is
+determined by the *bflag1* parameter for the *body* keyword.
 
 Note that for both the *rounded/polygon* and *rounded/polyhedron*
 styles, line segments are drawn between the pairs of vertices.

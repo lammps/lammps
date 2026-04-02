@@ -28,12 +28,7 @@ class AnonymousSpace {
   using device_type = Kokkos::Device<execution_space, memory_space>;
 
   /**\brief  Default memory space instance */
-  AnonymousSpace()                                  = default;
-  AnonymousSpace(AnonymousSpace &&rhs)              = default;
-  AnonymousSpace(const AnonymousSpace &rhs)         = default;
-  AnonymousSpace &operator=(AnonymousSpace &&)      = default;
-  AnonymousSpace &operator=(const AnonymousSpace &) = default;
-  ~AnonymousSpace()                                 = default;
+  AnonymousSpace() = default;
 
   /**\brief Return Name of the MemorySpace */
   static constexpr const char *name() { return "Anonymous"; }

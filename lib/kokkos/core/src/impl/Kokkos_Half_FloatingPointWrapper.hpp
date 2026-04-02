@@ -27,9 +27,15 @@ struct is_bfloat16 : std::false_type {};
 
 // KOKKOS_HALF_IS_FULL_TYPE_ON_ARCH: A macro to select which
 // floating_pointer_wrapper operator paths should be used. For CUDA, let the
-// compiler conditionally select when device ops are used For SYCL, we have a
-// full half type on both host and device
-#if defined(__CUDA_ARCH__) || defined(KOKKOS_ENABLE_SYCL)
+// compiler conditionally select when device ops are used. For SYCL, we have a
+// full half type on both host and device. For HIP, we have a full half type on
+// host and device only for ROCm 6.4 and later.
+#if defined(__CUDA_ARCH__) ||                                 \
+    (defined(KOKKOS_ENABLE_HIP) &&                            \
+     ((HIP_VERSION_MAJOR > 6 ||                               \
+       (HIP_VERSION_MAJOR == 6 && HIP_VERSION_MINOR >= 4)) || \
+      defined(__HIP_DEVICE_COMPILE__))) ||                    \
+    defined(KOKKOS_ENABLE_SYCL)
 #define KOKKOS_HALF_IS_FULL_TYPE_ON_ARCH
 #endif
 
@@ -277,27 +283,6 @@ class alignas(FloatType) floating_point_wrapper {
   // since Cuda supports half precision initialization via the below constructor
   KOKKOS_FUNCTION
   floating_point_wrapper() : val(0.0F) {}
-
-// Copy constructors
-// Getting "C2580: multiple versions of a defaulted special
-// member function are not allowed" with VS 16.11.3 and CUDA 11.4.2
-#if defined(_WIN32) && defined(KOKKOS_ENABLE_CUDA)
-  KOKKOS_FUNCTION
-  floating_point_wrapper(const floating_point_wrapper& rhs) : val(rhs.val) {}
-
-  KOKKOS_FUNCTION
-  floating_point_wrapper& operator=(const floating_point_wrapper& rhs) {
-    val = rhs.val;
-    return *this;
-  }
-#else
-  KOKKOS_DEFAULTED_FUNCTION
-  floating_point_wrapper(const floating_point_wrapper&) noexcept = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  floating_point_wrapper& operator=(const floating_point_wrapper&) noexcept =
-      default;
-#endif
 
   KOKKOS_FUNCTION
   floating_point_wrapper(bit_comparison_type rhs) {

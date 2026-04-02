@@ -25,7 +25,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *mol*, *region*, *maxangle*, *pressure*, *fugacity_coeff*, *full_energy*, *charge*, *group*, *grouptype*, *intra_energy*, *tfac_insert*, or *overlap_cutoff*
+     keyword = *mol* or *mcmoves* or *rigid* or *shake* or *region* or *maxangle* or *pressure* or *fugacity_coeff* or *full_energy* or *charge* or *group* or *grouptype* or *intra_energy* or *tfac_insert* or *overlap_cutoff* or *max* or *min*
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
        *mcmoves* values = Patomtrans Pmoltrans Pmolrotate
@@ -402,7 +402,10 @@ Restart, fix_modify, output, run start/stop, minimize info
 This fix writes the state of the fix to :doc:`binary restart files
 <restart>`.  This includes information about the random number
 generator seed, the next timestep for MC exchanges, the number of MC
-step attempts and successes etc.  See the :doc:`read_restart
+step attempts and successes etc. This ensures that the
+sequence of Monte Carlo moves generated after reading from a restart
+file are exactly the same as those that are generated in the original
+run. See the :doc:`read_restart
 <read_restart>` command for info on how to re-specify a fix in an
 input script that reads a restart file, so that the operation of the
 fix continues in an uninterrupted fashion.

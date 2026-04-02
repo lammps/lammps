@@ -12,6 +12,7 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #include <desul/atomics/Common.hpp>
 #include <desul/atomics/Compare_Exchange_OpenACC.hpp>
 #include <desul/atomics/Lock_Array.hpp>
+#include <desul/atomics/Operator_Function_Objects.hpp>
 #include <desul/atomics/Thread_Fence.hpp>
 #include <type_traits>
 
@@ -38,7 +39,9 @@ inline T device_atomic_fetch_oper(const Oper& op,
   }
 
   device_atomic_thread_fence(MemoryOrderAcquire(), scope);
-  T return_val = *dest;
+  T return_val{};
+  if constexpr (!std::is_same_v<Oper, _store_fetch_operator<T, const T>>)
+    return_val = *dest;
   *dest = op.apply(return_val, val);
   device_atomic_thread_fence(MemoryOrderRelease(), scope);
   unlock_address((void*)dest, scope);

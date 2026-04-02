@@ -140,8 +140,8 @@ elseif(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
 endif()
 
 set(Kokkos_VERSION_MAJOR 5)
-set(Kokkos_VERSION_MINOR 0)
-set(Kokkos_VERSION_PATCH 2)
+set(Kokkos_VERSION_MINOR 1)
+set(Kokkos_VERSION_PATCH 99)
 set(Kokkos_VERSION "${Kokkos_VERSION_MAJOR}.${Kokkos_VERSION_MINOR}.${Kokkos_VERSION_PATCH}")
 message(STATUS "Kokkos version: ${Kokkos_VERSION}")
 math(EXPR KOKKOS_VERSION "${Kokkos_VERSION_MAJOR} * 10000 + ${Kokkos_VERSION_MINOR} * 100 + ${Kokkos_VERSION_PATCH}")
@@ -189,6 +189,10 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/kokkos_configure_trilinos.cmake)
 
 if(Kokkos_ENABLE_TESTS)
   find_package(GTest QUIET)
+endif()
+
+if(Kokkos_ENABLE_BENCHMARKS)
+  find_package(benchmark QUIET 1.8.3)
 endif()
 
 # Include a set of Kokkos-specific wrapper functions that

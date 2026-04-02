@@ -5,6 +5,7 @@
 #define KOKKOS_CUDA_INSTANCE_HPP_
 
 #include <vector>
+#include <impl/Kokkos_HostSharedPtr.hpp>
 #include <impl/Kokkos_Tools.hpp>
 #include <atomic>
 #include <Cuda/Kokkos_Cuda_Error.hpp>
@@ -74,9 +75,6 @@ namespace Kokkos {
 namespace Impl {
 
 class CudaInternal {
- private:
-  CudaInternal(const CudaInternal&);
-  CudaInternal& operator=(const CudaInternal&);
 #ifdef KOKKOS_IMPL_DEBUG_CUDA_SERIAL_EXECUTION
   static bool kokkos_impl_cuda_use_serial_execution_v;
 #endif
@@ -90,31 +88,32 @@ class CudaInternal {
   static int m_cudaArch;
   static int concurrency();
 
+  static HostSharedPtr<CudaInternal> default_instance;
+
   KOKKOS_IMPL_EXPORT static cudaDeviceProp m_deviceProp;
 
   // Scratch Spaces for Reductions
-  mutable std::size_t m_scratchSpaceCount;
-  mutable std::size_t m_scratchFlagsCount;
-  mutable std::size_t m_scratchUnifiedCount;
-  mutable std::size_t m_scratchFunctorSize;
+  mutable std::size_t m_scratchSpaceCount   = 0;
+  mutable std::size_t m_scratchFlagsCount   = 0;
+  mutable std::size_t m_scratchUnifiedCount = 0;
+  mutable std::size_t m_scratchFunctorSize  = 0;
 
-  mutable size_type* m_scratchSpace;
-  mutable size_type* m_scratchFlags;
-  mutable size_type* m_scratchUnified;
-  mutable size_type* m_scratchFunctor;
-  cudaStream_t m_stream;
-  uint32_t m_instance_id;
+  mutable size_type* m_scratchSpace   = nullptr;
+  mutable size_type* m_scratchFlags   = nullptr;
+  mutable size_type* m_scratchUnified = nullptr;
+  mutable size_type* m_scratchFunctor = nullptr;
+  cudaStream_t m_stream               = nullptr;
+  uint32_t m_instance_id =
+      Kokkos::Tools::Experimental::Impl::idForInstance<Kokkos::Cuda>(
+          reinterpret_cast<uintptr_t>(this));
 
   // Team Scratch Level 1 Space
-  int m_n_team_scratch = 10;
-  mutable int64_t m_team_scratch_current_size[10];
-  mutable void* m_team_scratch_ptr[10];
-  mutable std::atomic_int m_team_scratch_pool[10];
-  int32_t* m_scratch_locks;
-  size_t m_num_scratch_locks;
-
-  bool was_initialized = false;
-  bool was_finalized   = false;
+  int m_n_team_scratch                            = 10;
+  mutable int64_t m_team_scratch_current_size[10] = {};
+  mutable void* m_team_scratch_ptr[10]            = {};
+  mutable std::atomic_int m_team_scratch_pool[10] = {};
+  int32_t* m_scratch_locks                        = nullptr;
+  size_t m_num_scratch_locks                      = 0;
 
   static std::set<int> cuda_devices;
   KOKKOS_IMPL_EXPORT static std::map<int, unsigned long*>
@@ -123,16 +122,12 @@ class CudaInternal {
       constantMemReusablePerDevice;
   KOKKOS_IMPL_EXPORT static std::map<int, std::mutex> constantMemMutexPerDevice;
 
-  static CudaInternal& singleton();
-
   int verify_is_initialized(const char* const label) const;
 
-  int is_initialized() const {
-    return nullptr != m_scratchSpace && nullptr != m_scratchFlags;
-  }
-
-  void initialize(cudaStream_t stream);
-  void finalize();
+  CudaInternal(cudaStream_t stream);
+  ~CudaInternal();
+  CudaInternal(const CudaInternal&)            = delete;
+  CudaInternal& operator=(const CudaInternal&) = delete;
 
   void print_configuration(std::ostream&) const;
 
@@ -143,28 +138,6 @@ class CudaInternal {
 
   void fence(const std::string&) const;
   void fence() const;
-
-  ~CudaInternal();
-
-  CudaInternal()
-      : m_scratchSpaceCount(0),
-        m_scratchFlagsCount(0),
-        m_scratchUnifiedCount(0),
-        m_scratchFunctorSize(0),
-        m_scratchSpace(nullptr),
-        m_scratchFlags(nullptr),
-        m_scratchUnified(nullptr),
-        m_scratchFunctor(nullptr),
-        m_stream(nullptr),
-        m_instance_id(
-            Kokkos::Tools::Experimental::Impl::idForInstance<Kokkos::Cuda>(
-                reinterpret_cast<uintptr_t>(this))) {
-    for (int i = 0; i < m_n_team_scratch; ++i) {
-      m_team_scratch_current_size[i] = 0;
-      m_team_scratch_ptr[i]          = nullptr;
-      m_team_scratch_pool[i]         = 0;
-    }
-  }
 
   // Using CUDA API function/objects will be w.r.t. device 0 unless
   // cudaSetDevice(device_id) is called with the correct device_id.
@@ -275,17 +248,6 @@ class CudaInternal {
     return cudaMallocHost(ptr, size);
   }
 
-  cudaError_t cuda_mem_prefetch_async_wrapper(const void* devPtr, size_t count,
-                                              int dstDevice) const {
-    set_cuda_device();
-#if CUDART_VERSION >= 13000
-    cudaMemLocation loc = {cudaMemLocationTypeDevice, dstDevice};
-    return cudaMemPrefetchAsync(devPtr, count, loc, 0, m_stream);
-#else
-    return cudaMemPrefetchAsync(devPtr, count, dstDevice, m_stream);
-#endif
-  }
-
   cudaError_t cuda_memcpy_wrapper(void* dst, const void* src, size_t count,
                                   cudaMemcpyKind kind) const {
     set_cuda_device();
@@ -316,12 +278,6 @@ class CudaInternal {
                                         size_t count) const {
     set_cuda_device();
     return cudaMemsetAsync(devPtr, value, count, m_stream);
-  }
-
-  cudaError_t cuda_pointer_get_attributes_wrapper(
-      cudaPointerAttributes* attributes, const void* ptr) const {
-    set_cuda_device();
-    return cudaPointerGetAttributes(attributes, ptr);
   }
 
   cudaError_t cuda_stream_create_wrapper(cudaStream_t* pStream) const {

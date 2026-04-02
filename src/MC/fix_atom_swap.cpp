@@ -662,8 +662,9 @@ int FixAtomSwap::attempt_swap()
 
 double FixAtomSwap::energy_full()
 {
-  int eflag = 1;
-  int vflag = 0;
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
 
   if (modify->n_pre_force) modify->pre_force(vflag);
 

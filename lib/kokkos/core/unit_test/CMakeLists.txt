@@ -1,31 +1,4 @@
 #
-# Add test-only library for gtest to be reused by all the subpackages
-#
-
-if(NOT GTest_FOUND) # fallback to internal gtest
-  set(GTEST_SOURCE_DIR ${Kokkos_SOURCE_DIR}/tpls/gtest)
-
-  kokkos_add_test_library(
-    kokkos_gtest STATIC HEADERS ${GTEST_SOURCE_DIR}/gtest/gtest.h SOURCES ${GTEST_SOURCE_DIR}/gtest/gtest-all.cc
-  )
-
-  target_include_directories(kokkos_gtest SYSTEM PUBLIC ${GTEST_SOURCE_DIR})
-  if((NOT (Kokkos_ENABLE_CUDA AND WIN32)) AND (NOT ("${KOKKOS_CXX_COMPILER_ID}" STREQUAL "Fujitsu")))
-    target_compile_features(kokkos_gtest PUBLIC cxx_std_14)
-  endif()
-
-  # Suppress clang-tidy diagnostics on code that we do not have control over
-  if(CMAKE_CXX_CLANG_TIDY)
-    set_target_properties(kokkos_gtest PROPERTIES CXX_CLANG_TIDY "")
-  endif()
-
-  find_package(Threads QUIET)
-  if(TARGET Threads::Threads)
-    set_target_properties(kokkos_gtest PROPERTIES INTERFACE_LINK_LIBRARIES Threads::Threads)
-  endif()
-endif()
-
-#
 # Define Incremental Testing Feature Levels
 # Define Device name mappings (i.e. what comes after Kokkos:: for the ExecSpace)
 #
@@ -38,18 +11,6 @@ set(KOKKOS_HPX_FEATURE_LEVEL 999)
 set(KOKKOS_HPX_NAME Experimental::HPX)
 set(KOKKOS_OPENMP_FEATURE_LEVEL 999)
 set(KOKKOS_OPENMP_NAME OpenMP)
-
-# FIXME_OPENMPTARGET - The NVIDIA HPC compiler nvc++ only compiles the first 8 incremental tests for the OpenMPTarget backend.
-# FIXME_OPENMPTARGET - Clang version 17 fails to compile incremental tests past 12 with verion 17. There is PR for this in upstream already. So it should be fixed by version 18.
-if(KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
-  set(KOKKOS_OPENMPTARGET_FEATURE_LEVEL 10)
-elseif(KOKKOS_CXX_COMPILER_ID STREQUAL "Clang" AND KOKKOS_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.0.0)
-  set(KOKKOS_OPENMPTARGET_FEATURE_LEVEL 12)
-else()
-  set(KOKKOS_OPENMPTARGET_FEATURE_LEVEL 14)
-endif()
-
-set(KOKKOS_OPENMPTARGET_NAME Experimental::OpenMPTarget)
 set(KOKKOS_SERIAL_FEATURE_LEVEL 999)
 set(KOKKOS_SERIAL_NAME Serial)
 set(KOKKOS_SYCL_FEATURE_LEVEL 999)
@@ -96,6 +57,7 @@ set(COMPILE_ONLY_SOURCES
     view/TestViewCustomization.cpp
     view/TestExtentsDatatypeConversion.cpp
     view/TestConversionFromPointer.cpp
+    view/TestMemoryTraitTypes.cpp
 )
 
 if(NOT Kokkos_ENABLE_IMPL_MDSPAN OR KOKKOS_CXX_COMPILER_ID STREQUAL "Intel")
@@ -121,12 +83,9 @@ else()
   endif()
 endif()
 
-if(Kokkos_ENABLE_OPENMPTARGET)
-  list(REMOVE_ITEM COMPILE_ONLY_SOURCES TestNestedReducerCTAD.cpp)
-endif()
 kokkos_add_executable(CoreTestCompileOnly SOURCES TestCompileMain.cpp ${COMPILE_ONLY_SOURCES})
 
-foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;OpenACC;HIP;SYCL)
+foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenACC;HIP;SYCL)
   string(TOUPPER ${Tag} DEVICE)
   string(TOLOWER ${Tag} dir)
 
@@ -171,6 +130,7 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;OpenACC;HIP;SYCL)
       ExecutionSpace
       FunctorAnalysis
       Graph
+      GraphNodeCtorProps
       HostSharedPtr
       HostSharedPtrAccessOnDevice
       JoinBackwardCompatibility
@@ -208,6 +168,7 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;OpenACC;HIP;SYCL)
         OccupancyControlTrait
         Other
         ParallelScanRangePolicy
+        CustomScalarParallelScan
         Printf
         QuadPrecisionMath
         RangePolicy
@@ -338,7 +299,16 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;OpenACC;HIP;SYCL)
     endforeach()
 
     set(${Tag}_SOURCES2D)
-    foreach(Name SubView_c10 SubView_c11 SubView_c12 SubView_c13 SubView_c14 SubView_c15)
+    foreach(
+      Name
+      SubView_c10
+      SubView_c11
+      SubView_c12
+      SubView_c13
+      SubView_c14
+      SubView_c15
+      SubView_c16
+    )
       set(file ${dir}/Test${Tag}_${Name}.cpp)
       # Write to a temporary intermediate file and call configure_file to avoid
       # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
@@ -355,12 +325,15 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;OpenACC;HIP;SYCL)
     # detail tests for the mdspan based View
     if(Kokkos_ENABLE_IMPL_MDSPAN)
       set(BV_TestNames BasicView ReferenceCountedAccessor ReferenceCountedDataHandle AllocationAndSpanSize
-                       LegacyLayoutFunction
+                       ViewEqualityOperator LegacyLayoutFunction
       )
       if(NOT Kokkos_ENABLE_IMPL_VIEW_LEGACY AND NOT Kokkos_ENABLE_OPENACC)
         list(APPEND BV_TestNames ViewCustomizationAccessorArg ViewCustomizationAllocationType
              ViewCustomizationAccessorFromMapping
         )
+      endif()
+      if(NOT Kokkos_ENABLE_IMPL_VIEW_LEGACY)
+        list(APPEND BV_TestNames ViewCtorDataHandle)
       endif()
       set(${Tag}_VIEWSUPPORT)
       foreach(Name IN LISTS BV_TestNames)
@@ -412,58 +385,6 @@ foreach(PairDeviceSpace HIP-HostPinned;HIP-Managed;Cuda-HostPinned;Cuda-UVM;SYCL
   endif()
 endforeach()
 
-# Disable non-compiling tests based on clang version.
-if(Kokkos_ENABLE_OPENMPTARGET)
-  list(
-    REMOVE_ITEM
-    OpenMPTarget_SOURCES
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Other.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamCombinedReducers.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamReductionScan.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_WorkGraph.cpp
-    IF
-    (KOKKOS_CXX_COMPILER_ID STREQUAL "Clang" AND KOKKOS_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16.0.0)
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_shared.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MinMaxClamp.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_LocalDeepCopy.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reducers_d.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamVectorRange.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewAPI_e.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamScan.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamBasic.cpp
-    IF
-    (KOKKOS_CXX_COMPILER_VERSION VERSION_LESS 17.0.3)
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c01.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c02.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c03.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reducers_d.cpp
-    endif
-    ()
-    endif
-    ()
-    # FIXME_OPENMPTARGET_CRAY: The following tests fail at compile time when the OpenMPTarget backend is enabled with the Cray compiler.
-    # Atomic compare/exchange is used in these tests which can be one of the reasons for the compilation failures.
-    IF
-    (KOKKOS_CXX_COMPILER_ID STREQUAL Cray)
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_complexdouble.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_UniqueToken.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SharedAlloc.cpp
-    ENDIF
-    ()
-  )
-endif()
-
-# FIXME_OPENMPTARGET - MinMaxClamp fails even with the host backend when OpenMPTarget backend is enabled.
-# FIXME_OPENMPTARGET - Unsure of the reason as of now.
-if(KOKKOS_CXX_COMPILER_ID STREQUAL "Clang" AND KOKKOS_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16.0.0)
-  if(Kokkos_ENABLE_OPENMPTARGET AND Kokkos_ENABLE_OPENMP)
-    list(REMOVE_ITEM OpenMP_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/openmp/TestOpenMP_MinMaxClamp.cpp)
-  endif()
-  if(Kokkos_ENABLE_OPENMPTARGET AND Kokkos_ENABLE_SERIAL)
-    list(REMOVE_ITEM Serial_SOURCES1 ${CMAKE_CURRENT_BINARY_DIR}/serial/TestSerial_MinMaxClamp.cpp)
-  endif()
-endif()
-
 if(Kokkos_ENABLE_OPENACC)
   list(
     REMOVE_ITEM
@@ -483,84 +404,6 @@ if(Kokkos_ENABLE_OPENACC)
     ${CMAKE_CURRENT_BINARY_DIR}/openacc/TestOpenACC_ViewMapping_subview.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/openacc/TestOpenACC_ViewOfClass.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/openacc/TestOpenACC_WorkGraph.cpp
-  )
-endif()
-
-# FIXME_OPENMPTARGET - Comment non-passing tests with amdclang++
-# FIXME_OPENMPTARGET - Need to check on GFX1030 and GFX1100 architectures
-if(KOKKOS_ARCH_VEGA)
-  set(KOKKOS_AMDGPU_ARCH TRUE)
-endif()
-if(KOKKOS_ENABLE_OPENMPTARGET AND KOKKOS_CXX_COMPILER_ID STREQUAL Clang AND KOKKOS_AMDGPU_ARCH)
-  list(REMOVE_ITEM OpenMPTarget_SOURCES ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reducers_e.cpp)
-endif()
-
-# FIXME_OPENMPTARGET - Comment non-passing tests with the NVIDIA HPC compiler nvc++
-if(KOKKOS_ENABLE_OPENMPTARGET AND KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
-  list(
-    REMOVE_ITEM
-    OpenMPTarget_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/default/TestDefaultDeviceType_a1.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/default/TestDefaultDeviceType_b1.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_double.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_float.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_int.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_longint.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_longlongint.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_unsignedint.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicOperations_unsignedlongint.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Atomics.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_AtomicViews.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_BlockSizeDeduction.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_CommonPolicyConstructors.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_CommonPolicyInterface.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_DeepCopyAlignment.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_HostSharedPtr.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_HostSharedPtrAccessOnDevice.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MathematicalFunctions.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_a.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_b.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_c.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRange_d.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_MDRangePolicyConstructors.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_NumericTraits.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_RangePolicy.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_RangePolicyConstructors.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_RangePolicyRequire.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reducers_a.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reducers_b.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reducers_c.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reducers_d.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reducers_e.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_Reductions_DeviceView.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_b.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c01.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c02.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c03.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c04.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c05.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c06.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c07.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c08.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c09.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c10.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c11.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c12.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_SubView_c13.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamBasic.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamPolicyConstructors.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamScratch.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamTeamSize.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_TeamVectorRange.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_UniqueToken.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewAPI_a.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewAPI_b.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewAPI_c.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewAPI_d.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewAPI_f.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewMapping_b.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/openmptarget/TestOpenMPTarget_ViewResize.cpp
   )
 endif()
 
@@ -656,13 +499,14 @@ if(KOKKOS_ENABLE_OPENACC AND KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
   # clang-linker-wrapper to hang for a long time while building the unit tests.
   # In some cases, including them caused the build not to complete after an hour,
   # but excluding them permitted the build to finish in 1.5 mins or less.
-  if(KOKKOS_AMDGPU_ARCH)
+  if(KOKKOS_ARCH_VEGA) # FIXME_OPENACC
     list(
       REMOVE_ITEM
       OpenACC_SOURCES
       ${CMAKE_CURRENT_BINARY_DIR}/openacc/TestOpenACC_BitManipulationBuiltins.cpp
       ${CMAKE_CURRENT_BINARY_DIR}/openacc/TestOpenACC_MathematicalFunctions3.cpp
       ${CMAKE_CURRENT_BINARY_DIR}/openacc/TestOpenACC_ParallelScanRangePolicy.cpp
+      ${CMAKE_CURRENT_BINARY_DIR}/openacc/TestOpenACC_CustomScalarParallelScan.cpp
       ${CMAKE_CURRENT_BINARY_DIR}/openacc/TestOpenACC_SubView_c04.cpp
       ${CMAKE_CURRENT_BINARY_DIR}/openacc/TestOpenACC_SubView_c05.cpp
       ${CMAKE_CURRENT_BINARY_DIR}/openacc/TestOpenACC_SubView_c06.cpp
@@ -707,13 +551,6 @@ if(Kokkos_ENABLE_HPX)
     hpx/TestHPX_IndependentInstancesRefCounting.cpp
     hpx/TestHPX_IndependentInstancesSynchronization.cpp
   )
-  if(Kokkos_ENABLE_DEPRECATED_CODE_4)
-    kokkos_add_executable_and_test(CoreUnitTest_HPX_InParallel SOURCES UnitTestMainInit.cpp hpx/TestHPX_InParallel.cpp)
-  endif()
-endif()
-
-if(Kokkos_ENABLE_OPENMPTARGET)
-  kokkos_add_executable_and_test(CoreUnitTest_OpenMPTarget SOURCES UnitTestMainInit.cpp ${OpenMPTarget_SOURCES})
 endif()
 
 if(Kokkos_ENABLE_OPENACC)
@@ -860,18 +697,18 @@ set(DEFAULT_DEVICE_SOURCES
     default/TestDefaultDeviceTypeResize.cpp
     default/TestDefaultDeviceTypeViewAPI.cpp
 )
-# FIXME_OPENMPTARGET and FIXME_OPENACC do not provide a MemorySpace that can be accessed from all ExecSpaces
+# FIXME_OPENACC do not provide a MemorySpace that can be accessed from all ExecSpaces
 # FIXME_SYCL clock_tic does not give the correct timings for cloc_tic
-if(KOKKOS_ENABLE_OPENACC OR KOKKOS_ENABLE_OPENMPTARGET OR KOKKOS_ENABLE_SYCL)
+if(KOKKOS_ENABLE_OPENACC OR KOKKOS_ENABLE_SYCL)
   list(REMOVE_ITEM DEFAULT_DEVICE_SOURCES TestSharedSpace.cpp)
 endif()
-# FIXME_OPENMPTARGET and FIXME_OPENACC do not provide a HostPinnedMemorySpace that can be accessed from all ExecSpaces
-if(KOKKOS_ENABLE_OPENACC OR KOKKOS_ENABLE_OPENMPTARGET)
+# FIXME_OPENACC do not provide a HostPinnedMemorySpace that can be accessed from all ExecSpaces
+if(KOKKOS_ENABLE_OPENACC)
   list(REMOVE_ITEM DEFAULT_DEVICE_SOURCES TestSharedHostPinnedSpace.cpp)
 endif()
 
-# FIXME_OPENMPTARGET, FIXME_OPENACC - Comment non-passing tests with the NVIDIA HPC compiler nvc++
-if((KOKKOS_ENABLE_OPENMPTARGET OR KOKKOS_ENABLE_OPENACC) AND KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
+# FIXME_OPENACC - Comment non-passing tests with the NVIDIA HPC compiler nvc++
+if(KOKKOS_ENABLE_OPENACC AND KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
   list(
     REMOVE_ITEM
     DEFAULT_DEVICE_SOURCES

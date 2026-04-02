@@ -1,0 +1,301 @@
+LAMMPS (10 Dec 2025 - Development - patch_10Dec2025-125-g8985ed3c66-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# fix gcmc example with fix shake
+
+# variables available on command line
+
+variable        mu index -8.1
+variable	disp index 0.5
+variable        temp index 338.0
+variable        lbox index 10.0
+variable        spacing index 5.0
+
+# global model settings
+
+units           real
+atom_style      full
+boundary        p p p
+pair_style      lj/cut/coul/long  14
+pair_modify     mix arithmetic tail yes
+kspace_style    ewald 0.0001
+bond_style      harmonic
+angle_style     harmonic
+
+# box, start molecules on simple cubic lattice
+
+lattice 	sc ${spacing}
+lattice 	sc 5.0
+Lattice spacing in x,y,z = 5 5 5
+region          box block 0 ${lbox} 0 ${lbox} 0 ${lbox} units box
+region          box block 0 10.0 0 ${lbox} 0 ${lbox} units box
+region          box block 0 10.0 0 10.0 0 ${lbox} units box
+region          box block 0 10.0 0 10.0 0 10.0 units box
+create_box      2 box                                       bond/types 1                                angle/types 1                               extra/bond/per/atom 2                       extra/angle/per/atom 1                      extra/special/per/atom 2
+Created orthogonal box = (0 0 0) to (10 10 10)
+  1 by 2 by 2 MPI processor grid
+
+molecule        h2omol H2O.txt
+Read molecule template h2omol:
+# Water molecule. SPC/E model.
+  1 molecules
+  0 fragments
+  0 bodies
+  3 atoms with max type 2
+  2 bonds with max type 1
+  1 angles with max type 1
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+create_atoms   	0 box mol h2omol 464563 units box
+Created 24 atoms
+  using box units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.003 seconds
+
+# rigid SPC/E water model
+
+pair_coeff      1 1 0.15535 3.166
+pair_coeff      * 2 0.0000 0.0000
+
+bond_coeff      1     1000       1.0
+angle_coeff     1      100       109.47
+
+# masses
+
+mass 1 15.9994
+mass 2 1.0
+
+# MD settings
+
+group           h2o type 1 2
+24 atoms in group h2o
+neighbor        2.0 bin
+neigh_modify    every 1 delay 1 check yes
+velocity       	all create ${temp} 54654
+velocity       	all create 338.0 54654
+timestep        1.0
+
+minimize 0.0 0.0 100 1000
+Switching to 'neigh_modify every 1 delay 0 check yes' setting during minimization
+Ewald initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.17044845
+  estimated absolute RMS force accuracy = 0.033206374
+  estimated relative force accuracy = 0.00010000001
+  KSpace vectors: actual max1d max3d = 16 2 62
+                  kxmax kymax kzmax  = 2 2 2
+Generated 0 of 1 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 16
+  ghost atom cutoff = 16
+  binsize = 8, bins = 2 2 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 11.85 | 11.92 | 12.12 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   338           -0.95546485     9.2628112e-06  22.217362      805.04028    
+       100   338           -15.273306      0.20594388     8.1054551     -95.912612    
+Loop time of 0.0320509 on 4 procs for 100 steps with 24 atoms
+
+98.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+    -0.955455591456625  -15.0222740429501  -15.0673621835651
+  Force two-norm initial, final = 24.052787 14.932952
+  Force max component initial, final = 8.3161245 5.4344027
+  Final line search alpha, max atom move = 0.010391588 0.056472074
+  Iterations, force evaluations = 100 291
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0045716  | 0.0092022  | 0.014285   |   3.6 | 28.71
+Bond    | 8.6504e-05 | 0.00013352 | 0.00016946 |   0.0 |  0.42
+Kspace  | 0.0016563  | 0.0066016  | 0.011073   |   4.1 | 20.60
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.014098   | 0.0143     | 0.014499   |   0.1 | 44.62
+Output  | 1.9238e-05 | 2.1567e-05 | 2.8412e-05 |   0.0 |  0.07
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.001792   |            |       |  5.59
+
+Nlocal:              6 ave           8 max           4 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:           1722 ave        1724 max        1720 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Neighs:           1256 ave        2048 max         640 min
+Histogram: 1 0 0 1 1 0 0 0 0 1
+
+Total # of neighbors = 5024
+Ave neighs/atom = 209.33333
+Ave special neighs/atom = 2
+Neighbor list builds = 0
+Dangerous builds = 0
+reset_timestep 0
+
+# rigid constraints with thermostat
+
+fix             mynvt h2o nvt temp ${temp} ${temp} 100
+fix             mynvt h2o nvt temp 338.0 ${temp} 100
+fix             mynvt h2o nvt temp 338.0 338.0 100
+fix             wshake h2o shake 0.0001 50 0 b 1 a 1 mol h2omol
+Finding SHAKE clusters ...
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+       8 = # of frozen angles
+  find clusters CPU = 0.000 seconds
+
+# important to make temperature dofs dynamic
+
+compute_modify  thermo_temp dynamic/dof yes
+compute_modify  mynvt_temp dynamic/dof yes
+
+run 1000
+Ewald initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.17044845
+  estimated absolute RMS force accuracy = 0.033206374
+  estimated relative force accuracy = 0.00010000001
+  KSpace vectors: actual max1d max3d = 16 2 62
+                  kxmax kymax kzmax  = 2 2 2
+Generated 0 of 1 mixed pair_coeff terms from arithmetic mixing rule
+Per MPI rank memory allocation (min/avg/max) = 11.6 | 11.6 | 11.6 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   518.26667     -15.273306      0              7.8995113      20.304529    
+      1000   262.00762     -52.750541      0             -41.035617     -263.49214    
+Loop time of 0.101894 on 4 procs for 1000 steps with 24 atoms
+
+Performance: 847.944 ns/day, 0.028 hours/ns, 9814.168 timesteps/s, 235.540 katom-step/s
+99.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0091663  | 0.016578   | 0.027766   |   6.1 | 16.27
+Bond    | 9.0373e-05 | 0.0001131  | 0.00014015 |   0.0 |  0.11
+Kspace  | 0.005337   | 0.015901   | 0.022831   |   5.8 | 15.61
+Neigh   | 0.0019387  | 0.001953   | 0.0019755  |   0.0 |  1.92
+Comm    | 0.039254   | 0.040091   | 0.04074    |   0.3 | 39.35
+Output  | 3.7821e-05 | 4.512e-05  | 6.6671e-05 |   0.0 |  0.04
+Modify  | 0.025217   | 0.025472   | 0.025739   |   0.1 | 25.00
+Other   |            | 0.001741   |            |       |  1.71
+
+Nlocal:              6 ave           9 max           2 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+Nghost:           1356 ave        1502 max        1219 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+Neighs:        1260.25 ave        2079 max         510 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+
+Total # of neighbors = 5041
+Ave neighs/atom = 210.04167
+Ave special neighs/atom = 2
+Neighbor list builds = 31
+Dangerous builds = 0
+reset_timestep 0
+
+# gcmc
+
+variable        tfac equal 5.0/3.0 # (3 trans + 2 rot)/(3 trans)
+fix             mygcmc h2o gcmc 100 100 0 0 54341 ${temp} ${mu} ${disp} mol                 h2omol tfac_insert ${tfac} group h2o shake wshake
+fix             mygcmc h2o gcmc 100 100 0 0 54341 338.0 ${mu} ${disp} mol                 h2omol tfac_insert ${tfac} group h2o shake wshake
+fix             mygcmc h2o gcmc 100 100 0 0 54341 338.0 -8.1 ${disp} mol                 h2omol tfac_insert ${tfac} group h2o shake wshake
+fix             mygcmc h2o gcmc 100 100 0 0 54341 338.0 -8.1 0.5 mol                 h2omol tfac_insert ${tfac} group h2o shake wshake
+fix             mygcmc h2o gcmc 100 100 0 0 54341 338.0 -8.1 0.5 mol                 h2omol tfac_insert 1.66666666666667 group h2o shake wshake
+
+# atom counts
+
+variable 	oxygen atom "type==1"
+variable 	hydrogen atom "type==2"
+group 	        oxygen dynamic all var oxygen
+dynamic group oxygen defined
+group 		hydrogen dynamic all var hydrogen
+dynamic group hydrogen defined
+variable        nO equal count(oxygen)
+variable        nH equal count(hydrogen)
+
+# output
+
+variable	tacc equal f_mygcmc[2]/(f_mygcmc[1]+0.1)
+variable	iacc equal f_mygcmc[4]/(f_mygcmc[3]+0.1)
+variable	dacc equal f_mygcmc[6]/(f_mygcmc[5]+0.1)
+variable	racc equal f_mygcmc[8]/(f_mygcmc[7]+0.1)
+thermo_style    custom step temp press pe ke density atoms v_iacc v_dacc v_tacc v_racc v_nO v_nH
+thermo          1000
+
+# run
+
+run             20000
+Ewald initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.17044845
+  estimated absolute RMS force accuracy = 0.033206374
+  estimated relative force accuracy = 0.00010000001
+  KSpace vectors: actual max1d max3d = 16 2 62
+                  kxmax kymax kzmax  = 2 2 2
+Generated 0 of 1 mixed pair_coeff terms from arithmetic mixing rule
+WARNING: Fix gcmc using full_energy option (src/MC/fix_gcmc.cpp:545)
+0 atoms in group FixGCMC:gcmc_exclusion_group:mygcmc
+0 atoms in group FixGCMC:rotation_gas_atoms:mygcmc
+WARNING: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies (src/neighbor.cpp:659)
+Per MPI rank memory allocation (min/avg/max) = 11.6 | 11.6 | 11.6 Mbytes
+   Step          Temp          Press          PotEng         KinEng        Density        Atoms        v_iacc         v_dacc         v_tacc         v_racc          v_nO           v_nH     
+         0   262.00762     -263.4426      -52.750541      11.714924      0.23910963            24   0              0              0              0              8              16           
+      1000   300.09641     -2543.5353     -214.54971      42.042929      0.7173289             72   0.051474955    0.02019794     0              0              24             48           
+      2000   366.84617     -458.2176      -306.31773      62.329429      0.86677242            87   0.037636049    0.015731       0              0              29             58           
+      3000   375.36053     -3757.2166     -328.77789      68.251586      0.92654983            93   0.026807855    0.011272462    0              0              31             62           
+      4000   316.25676     -3445.2121     -351.50855      61.275586      0.98632724            99   0.021232496    0.0084071015   0              0              33             66           
+      5000   293.30834     -2568.2718     -345.42657      56.829269      0.98632724            99   0.016826249    0.0067888663   0              0              33             66           
+      6000   329.11459     -177.52243     -361.86182      63.766825      0.98632724            99   0.013957662    0.0056835278   0              0              33             66           
+      7000   320.23345      4885.5216     -334.68456      62.04608       0.98632724            99   0.011938262    0.0048821114   0              0              33             66           
+      8000   360.37147     -695.02117     -358.29214      69.822928      0.98632724            99   0.010696251    0.0045224994   0              0              33             66           
+      9000   302.59106     -951.87476     -369.37693      60.431754      1.0162159            102   0.0097667088   0.0040043603   0              0              34             68           
+     10000   474.58368      1158.9568     -380.49229      94.781134      1.0162159            102   0.0087682589   0.0036129343   0              0              34             68           
+     11000   352.95317     -1060.7663     -363.98491      70.489787      1.0162159            102   0.0079708701   0.0032846116   0              0              34             68           
+     12000   335.54351      2278.8028     -374.11303      69.013212      1.0461046            105   0.0074428144   0.0030231269   0              0              35             70           
+     13000   364.07851      2137.7734     -361.70012      74.882174      1.0461046            105   0.006866979    0.002791953    0              0              35             70           
+     14000   335.63158      1741.4419     -384.79157      69.031326      1.0461046            105   0.0063837937   0.0025895182   0              0              35             70           
+     15000   338.94802      1167.7028     -358.31824      69.713438      1.0461046            105   0.0059593966   0.0024163993   0              0              35             70           
+     16000   342.68914      1256.0864     -384.13374      70.482895      1.0461046            105   0.0055630416   0.0022752841   0              0              35             70           
+     17000   352.75174      2408.804      -379.32761      72.55253       1.0461046            105   0.005242861    0.0021385038   0              0              35             70           
+     18000   356.15373      1240.0612     -378.98192      73.252237      1.0461046            105   0.0049520749   0.0020194994   0              0              35             70           
+     19000   319.35421     -1510.6497     -352.75892      65.683462      1.0461046            105   0.0046889164   0.0019142623   0              0              35             70           
+     20000   330.87049     -1094.8927     -369.84741      68.052084      1.0461046            105   0.0044465964   0.0018218439   0              0              35             70           
+Loop time of 59.1548 on 4 procs for 20000 steps with 105 atoms
+
+Performance: 29.211 ns/day, 0.822 hours/ns, 338.096 timesteps/s, 35.500 katom-step/s
+99.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 7.4544     | 10.23      | 12.775     |  63.3 | 17.29
+Bond    | 0.020637   | 0.021321   | 0.022468   |   0.5 |  0.04
+Kspace  | 0.61747    | 3.1551     | 5.9262     | 113.8 |  5.33
+Neigh   | 0.70619    | 0.70678    | 0.70716    |   0.0 |  1.19
+Comm    | 1.8687     | 1.8758     | 1.8786     |   0.3 |  3.17
+Output  | 0.00080807 | 0.001116   | 0.0020367  |   1.6 |  0.00
+Modify  | 43.074     | 43.074     | 43.075     |   0.0 | 72.82
+Other   |            | 0.09035    |            |       |  0.15
+
+Nlocal:          26.25 ave          29 max          24 min
+Histogram: 1 0 1 0 0 0 1 0 0 1
+Nghost:         5919.5 ave        5977 max        5853 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Neighs:        23614.2 ave       27235 max       16467 min
+Histogram: 1 0 0 0 0 0 0 1 0 2
+
+Total # of neighbors = 94457
+Ave neighs/atom = 899.59048
+Ave special neighs/atom = 2
+Neighbor list builds = 20935
+Dangerous builds = 0
+
+Total wall time: 0:00:59

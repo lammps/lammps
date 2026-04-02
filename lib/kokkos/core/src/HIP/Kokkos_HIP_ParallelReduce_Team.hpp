@@ -287,6 +287,12 @@ class ParallelReduce<CombinedFunctorReducerType,
         reducer.init(m_result_ptr);
       }
     }
+
+    if (m_scratch_pool_id >= 0) {
+      m_policy.space()
+          .impl_internal_space_instance()
+          ->release_team_scratch_space(m_scratch_pool_id);
+    }
   }
 
   template <class ViewType>
@@ -313,7 +319,7 @@ class ParallelReduce<CombinedFunctorReducerType,
     auto internal_space_instance =
         m_policy.space().impl_internal_space_instance();
     if (m_team_size < 0) {
-      m_team_size = arg_policy.team_size_recommended(
+      m_team_size = arg_policy.team_size_recommended_internal(
           arg_functor_reducer.get_functor(), arg_functor_reducer.get_reducer(),
           ParallelReduceTag());
       if (m_team_size <= 0)
@@ -375,28 +381,39 @@ class ParallelReduce<CombinedFunctorReducerType,
           std::string("Kokkos::Impl::ParallelReduce< HIP > bad team size"));
     }
 
-    if (internal_space_instance->m_deviceProp.sharedMemPerBlock <
-        shmem_size_total) {
-      Kokkos::Impl::throw_runtime_exception(
-          std::string("Kokkos::Impl::ParallelReduce< HIP > requested too much "
-                      "L0 scratch memory"));
+    auto maxShmemPerBlock =
+        internal_space_instance->m_deviceProp.sharedMemPerBlock;
+    if (maxShmemPerBlock < shmem_size_total) {
+      std::stringstream error;
+      error
+          << "Kokkos::parallel_reduce<HIP>: Requested too much scratch memory "
+             "on level 0. Requested: "
+          << m_shmem_size
+          << ", Maximum: " << maxShmemPerBlock - m_shmem_begin - m_team_begin;
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
     }
 
-    size_t max_size = arg_policy.team_size_max(
-        arg_functor_reducer.get_functor(), arg_functor_reducer.get_reducer(),
-        ParallelReduceTag());
-    if (static_cast<int>(m_team_size) > static_cast<int>(max_size)) {
-      Kokkos::Impl::throw_runtime_exception(
-          std::string("Kokkos::Impl::ParallelReduce< HIP > requested too "
-                      "large team size."));
+    if (m_scratch_size[1] > static_cast<size_t>(m_policy.scratch_size_max(1))) {
+      std::stringstream error;
+      error
+          << "Kokkos::parallel_reduce<HIP>: Requested too much scratch memory "
+             "on level 1. Requested: "
+          << m_scratch_size[1] << ", Maximum: " << m_policy.scratch_size_max(1);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
     }
-  }
 
-  ~ParallelReduce() {
-    if (m_scratch_pool_id >= 0) {
-      m_policy.space()
-          .impl_internal_space_instance()
-          ->release_team_scratch_space(m_scratch_pool_id);
+    if (m_team_size >
+        arg_policy.team_size_max_internal(m_functor_reducer.get_functor(),
+                                          m_functor_reducer.get_reducer(),
+                                          ParallelReduceTag())) {
+      std::stringstream error;
+      error << "Kokkos::parallel_reduce<HIP>: Requested too large team size. "
+               "Requested: "
+            << m_team_size << ", Maximum: "
+            << arg_policy.team_size_max_internal(
+                   m_functor_reducer.get_functor(),
+                   m_functor_reducer.get_reducer(), ParallelReduceTag());
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
     }
   }
 };

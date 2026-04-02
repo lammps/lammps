@@ -112,6 +112,7 @@ OPT.
    * :doc:`gran/hooke (o) <pair_gran>`
    * :doc:`gran/hooke/history (ko) <pair_gran>`
    * :doc:`granular <pair_granular>`
+   * :doc:`granular/superellipsoid <pair_granular_superellipsoid>`
    * :doc:`gw <pair_gw>`
    * :doc:`gw/zbl <pair_gw>`
    * :doc:`harmonic/cut (o) <pair_harmonic_cut>`

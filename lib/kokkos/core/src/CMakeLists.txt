@@ -18,9 +18,6 @@ if(NOT desul_FOUND)
       set(DESUL_ATOMICS_ENABLE_SYCL_SEPARABLE_COMPILATION ON)
     endif()
   endif()
-  if(KOKKOS_ENABLE_OPENMPTARGET)
-    set(DESUL_ATOMICS_ENABLE_OPENMP ON) # not a typo Kokkos OpenMPTarget -> Desul OpenMP
-  endif()
   if(KOKKOS_ENABLE_OPENACC)
     # FIXME_OPENACC FIXME_CLACC - Below condition will be removed if Clacc can compile atomics.
     if(KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
@@ -58,11 +55,6 @@ endif()
 if(KOKKOS_ENABLE_OPENMP)
   append_glob(KOKKOS_CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/OpenMP/*.cpp)
   append_glob(KOKKOS_CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/OpenMP/*.hpp)
-endif()
-
-if(KOKKOS_ENABLE_OPENMPTARGET)
-  append_glob(KOKKOS_CORE_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/OpenMPTarget/*.cpp)
-  append_glob(KOKKOS_CORE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/OpenMPTarget/*.hpp)
 endif()
 
 if(KOKKOS_ENABLE_OPENACC)
@@ -192,14 +184,6 @@ if(NOT KOKKOS_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
   kokkos_link_tpl(kokkoscore PUBLIC ROCM)
 endif()
 kokkos_link_tpl(kokkoscore PUBLIC LIBQUADMATH)
-
-# FIXME: We need a proper solution to figure out whether to enable
-#        libatomic
-# Most compilers only require libatomic for 128-bit CAS
-# I (CT) had removed 128bit CAS from desul to not need libatomic.
-if(KOKKOS_ENABLE_OPENMPTARGET)
-  target_link_libraries(kokkoscore PUBLIC atomic)
-endif()
 
 if(desul_FOUND)
   target_link_libraries(kokkoscore PUBLIC desul_atomics)

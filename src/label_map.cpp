@@ -41,7 +41,9 @@ static const char cite_type_label_framework[] =
     " pages =   {3282--3297}\n"
     "}\n\n";
 
-static const std::string empty;
+namespace {
+const std::string empty;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,6 +54,7 @@ LabelMap::LabelMap(LAMMPS *_lmp, int _natomtypes, int _nbondtypes, int _nanglety
 {
   lmap2lmap.atom = lmap2lmap.bond = lmap2lmap.angle = lmap2lmap.dihedral = lmap2lmap.improper =
       nullptr;
+  checkflag = 0;
   reset_type_labels();
 }
 
@@ -72,6 +75,8 @@ LabelMap::~LabelMap()
 
 void LabelMap::reset_type_labels()
 {
+  for (int i = 0; i < 4; i++) check_which_labels[i] = 0;
+
   typelabel_map.clear();
   typelabel.resize(natomtypes);
   delete[] lmap2lmap.atom;
@@ -150,6 +155,33 @@ void LabelMap::modify_lmap(int narg, char **arg)
   } else if (tlabel == "write") {
     if (narg != 2) error->all(FLERR, "Incorrect number of arguments for labelmap write command");
     write_map(arg[1]);
+    return;
+  } else if (tlabel == "check_labels") {
+    if (narg != 2)
+      error->all(FLERR, "Incorrect number of arguments for labelmap check_labels command");
+    for (int j = 0; j < 4; j++) check_which_labels[j] = 0;
+    int i = 0;
+    char option;
+    while ((option = arg[1][i++]) != '\0') {
+      switch (option) {
+        case 'b':
+          check_which_labels[0] = 1;
+          break;
+        case 'a':
+          check_which_labels[1] = 1;
+          break;
+        case 'd':
+          check_which_labels[2] = 1;
+          break;
+        case 'i':
+          check_which_labels[3] = 1;
+          break;
+        default:
+          error->all(FLERR, "Labelmap command: Illegal check_labels option {}", option);
+          break;
+      }
+    }
+    checkflag = 1;
     return;
   } else
     error->all(FLERR, "Unknown labelmap keyword {}", tlabel);
@@ -509,9 +541,11 @@ int LabelMap::infer_dihedraltype(const std::vector<std::string> &mytypes)
     status = parse_typelabel(4, dtypelabel[i], dtypes);
     if (status != -1) {
       if (mytypes[0] == dtypes[0] && mytypes[1] == dtypes[1] && mytypes[2] == dtypes[2] &&
-           mytypes[3] == dtypes[3]) return i + 1;
+          mytypes[3] == dtypes[3])
+        return i + 1;
       if (mytypes[3] == dtypes[0] && mytypes[2] == dtypes[1] && mytypes[1] == dtypes[2] &&
-           mytypes[0] == dtypes[3]) out = -(i + 1);
+          mytypes[0] == dtypes[3])
+        out = -(i + 1);
     }
   }
   return out;
@@ -561,7 +595,8 @@ int LabelMap::infer_impropertype(const std::vector<std::string> &mytypes, std::a
     status = parse_typelabel(4, itypelabel[i], itypes);
     if (status != -1) {
       if (mytypes[0] == itypes[0] && mytypes[1] == itypes[1] && mytypes[2] == itypes[2] &&
-          mytypes[3] == itypes[3]) return i + 1;
+          mytypes[3] == itypes[3])
+        return i + 1;
       navail_types = 4;
       avail_types = mytypes;
       for (int j = 0; j < 4; j++) {
@@ -578,7 +613,7 @@ int LabelMap::infer_impropertype(const std::vector<std::string> &mytypes, std::a
 
       if (iorder) *iorder = {0, 1, 2, 3};
       for (int j = 0; j < 4; j++) {
-        if (std::string(force->improper_style) == "none" || force->improper->symmatoms[j] == 0) {
+        if (std::string(force->improper_style) == "none" || force->improper->symmatoms[j] != 1) {
           for (int k = 0; k < 4; k++) {
             if (itypes[j] == avail_types[k]) {
               avail_types[k] = "";
@@ -601,8 +636,8 @@ int LabelMap::infer_impropertype(const std::vector<std::string> &mytypes, std::a
 
 int LabelMap::parse_typelabel(int ntypes, const std::string &label, std::vector<std::string> &types)
 {
-  auto out = Tokenizer(label,"-").as_vector();
-  if ((int)out.size() != ntypes) return -1;
+  auto out = Tokenizer(label, "-").as_vector();
+  if ((int) out.size() != ntypes) return -1;
   types = std::move(out);
   return 1;
 }
@@ -780,4 +815,173 @@ void LabelMap::write_map(const std::string &filename)
       fputc('\n', fp);
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   check type label self-consistency
+------------------------------------------------------------------------- */
+
+void LabelMap::check_labels()
+{
+  int *type = atom->type;
+  tagint *tag = atom->tag;
+  // in rare cases, bonds are not symmetric. only check if newton on for bonds
+  int globally_perfect_labels;
+  int perfect_labels = 1;
+  if (force->newton_bond && check_which_labels[0]) {
+    for (int i = 0; i < atom->nlocal; i++) {
+      int atom1 = i;
+      for (int j = 0; j < atom->num_bond[i]; j++) {
+        int btype = atom->bond_type[i][j];
+        if (btype < 1) continue;
+        int atom2 = atom->map(atom->bond_atom[i][j]);
+        int inferred_type = atom->lmap->infer_bondtype(type[atom1], type[atom2]);
+        if (inferred_type != btype) {
+          perfect_labels = 0;
+          std::string atom1_label = atom->lmap->find_label(type[atom1], Atom::ATOM);
+          std::string atom2_label = atom->lmap->find_label(type[atom2], Atom::ATOM);
+          std::string blabel = atom->lmap->find_label(btype, Atom::BOND);
+          if (inferred_type == -btype)
+            error->warning(FLERR,
+                           "Bond between atoms {}, {} has constituent atom types ({}, {}) in "
+                           "reverse order compared "
+                           "to its bond type label ({})",
+                           tag[atom1], tag[atom2], atom1_label, atom2_label, blabel);
+          else
+            error->warning(
+                FLERR,
+                "Bond between atoms {}, {} has constituent atom types ({}, {}) that do not match "
+                "its type label ({})",
+                tag[atom1], tag[atom2], atom1_label, atom2_label, blabel);
+        }
+      }
+    }
+    MPI_Reduce(&perfect_labels, &globally_perfect_labels, 1, MPI_INT, MPI_SUM, 0, world);
+    if (comm->me == 0 && globally_perfect_labels == comm->nprocs)
+      utils::logmesg(lmp, "All bonds in the simulation have self-consistent type labels\n");
+  }
+
+  // some angles are not symmetric, like class2
+  perfect_labels = 1;
+  if (check_which_labels[1]) {
+    for (int i = 0; i < atom->nlocal; i++) {
+      for (int j = 0; j < atom->num_angle[i]; j++) {
+        int atype = atom->angle_type[i][j];
+        if (atype < 1) continue;
+        int atom1 = atom->map(atom->angle_atom1[i][j]);
+        int atom2 = atom->map(atom->angle_atom2[i][j]);
+        int atom3 = atom->map(atom->angle_atom3[i][j]);
+        int inferred_type = atom->lmap->infer_angletype(type[atom1], type[atom2], type[atom3]);
+        if (inferred_type != atype) {
+          perfect_labels = 0;
+          std::string atom1_label = atom->lmap->find_label(type[atom1], Atom::ATOM);
+          std::string atom2_label = atom->lmap->find_label(type[atom2], Atom::ATOM);
+          std::string atom3_label = atom->lmap->find_label(type[atom3], Atom::ATOM);
+          std::string alabel = atom->lmap->find_label(atype, Atom::ANGLE);
+          if (inferred_type == -atype)
+            error->warning(FLERR,
+                           "Angle between atoms {}, {}, {} has constituent atom types ({}, {}, {}) "
+                           "in reverse order compared "
+                           "to its angle type label ({})",
+                           tag[atom1], tag[atom2], tag[atom3], atom1_label, atom2_label,
+                           atom3_label, alabel);
+          else
+            error->warning(FLERR,
+                           "Angle between atoms {}, {}, {} has constituent atom types ({}, {}, {}) "
+                           "that do not match its "
+                           "type label ({})",
+                           tag[atom1], tag[atom2], tag[atom3], atom1_label, atom2_label,
+                           atom3_label, alabel);
+        }
+      }
+    }
+    MPI_Reduce(&perfect_labels, &globally_perfect_labels, 1, MPI_INT, MPI_SUM, 0, world);
+    if (comm->me == 0 && globally_perfect_labels == comm->nprocs)
+      utils::logmesg(lmp, "All angles in the simulation have self-consistent type labels\n");
+  }
+
+  // some dihedrals are not symmetric, like class2
+  perfect_labels = 1;
+  if (check_which_labels[2]) {
+    for (int i = 0; i < atom->nlocal; i++) {
+      for (int j = 0; j < atom->num_dihedral[i]; j++) {
+        int dtype = atom->dihedral_type[i][j];
+        if (dtype < 1) continue;
+        int atom1 = atom->map(atom->dihedral_atom1[i][j]);
+        int atom2 = atom->map(atom->dihedral_atom2[i][j]);
+        int atom3 = atom->map(atom->dihedral_atom3[i][j]);
+        int atom4 = atom->map(atom->dihedral_atom4[i][j]);
+        int inferred_type =
+            atom->lmap->infer_dihedraltype(type[atom1], type[atom2], type[atom3], type[atom4]);
+        if (inferred_type != dtype) {
+          perfect_labels = 0;
+          std::string atom1_label = atom->lmap->find_label(type[atom1], Atom::ATOM);
+          std::string atom2_label = atom->lmap->find_label(type[atom2], Atom::ATOM);
+          std::string atom3_label = atom->lmap->find_label(type[atom3], Atom::ATOM);
+          std::string atom4_label = atom->lmap->find_label(type[atom4], Atom::ATOM);
+          std::string dlabel = atom->lmap->find_label(dtype, Atom::DIHEDRAL);
+          if (inferred_type == -dtype)
+            error->warning(FLERR,
+                           "Dihedral between atoms {}, {}, {}, {} has constituent atom types ({}, "
+                           "{}, {}, {}) in reverse order compared to its "
+                           "dihedral type label ({})",
+                           tag[atom1], tag[atom2], tag[atom3], tag[atom4], atom1_label, atom2_label,
+                           atom3_label, atom4_label, dlabel);
+          else
+            error->warning(FLERR,
+                           "Dihedral between atoms {}, {}, {}, {} has constituent atom types ({}, "
+                           "{}, {}, {}) that do not match its "
+                           "dihedral label ({})",
+                           tag[atom1], tag[atom2], tag[atom3], tag[atom4], atom1_label, atom2_label,
+                           atom3_label, atom4_label, dlabel);
+        }
+      }
+    }
+    MPI_Reduce(&perfect_labels, &globally_perfect_labels, 1, MPI_INT, MPI_SUM, 0, world);
+    if (comm->me == 0 && globally_perfect_labels == comm->nprocs)
+      utils::logmesg(lmp, "All dihedrals in the simulation have self-consistent type labels\n");
+  }
+
+  // some impropers are not symmetric, like class2
+  perfect_labels = 1;
+  if (check_which_labels[3]) {
+    for (int i = 0; i < atom->nlocal; i++) {
+      for (int j = 0; j < atom->num_improper[i]; j++) {
+        int itype = atom->improper_type[i][j];
+        if (itype < 1) continue;
+        int atom1 = atom->map(atom->improper_atom1[i][j]);
+        int atom2 = atom->map(atom->improper_atom2[i][j]);
+        int atom3 = atom->map(atom->improper_atom3[i][j]);
+        int atom4 = atom->map(atom->improper_atom4[i][j]);
+        int inferred_type =
+            atom->lmap->infer_impropertype(type[atom1], type[atom2], type[atom3], type[atom4]);
+        if (inferred_type != itype) {
+          perfect_labels = 0;
+          std::string atom1_label = atom->lmap->find_label(type[atom1], Atom::ATOM);
+          std::string atom2_label = atom->lmap->find_label(type[atom2], Atom::ATOM);
+          std::string atom3_label = atom->lmap->find_label(type[atom3], Atom::ATOM);
+          std::string atom4_label = atom->lmap->find_label(type[atom4], Atom::ATOM);
+          std::string ilabel = atom->lmap->find_label(itype, Atom::IMPROPER);
+          if (inferred_type == -itype)
+            error->warning(FLERR,
+                           "Improper containing atoms {}, {}, {}, {} has constituent atom types "
+                           "({}, {}, {}, {}) in a different order compared to its "
+                           "improper type label ({})",
+                           tag[atom1], tag[atom2], tag[atom3], tag[atom4], atom1_label, atom2_label,
+                           atom3_label, atom4_label, ilabel);
+          else
+            error->warning(FLERR,
+                           "Improper containing atoms {}, {}, {}, {} has constituent atom types "
+                           "({}, {}, {}, {}) that do not match its "
+                           "improper label ({})",
+                           tag[atom1], tag[atom2], tag[atom3], tag[atom4], atom1_label, atom2_label,
+                           atom3_label, atom4_label, ilabel);
+        }
+      }
+    }
+    MPI_Reduce(&perfect_labels, &globally_perfect_labels, 1, MPI_INT, MPI_SUM, 0, world);
+    if (comm->me == 0 && globally_perfect_labels == comm->nprocs)
+      utils::logmesg(lmp, "All impropers in the simulation have self-consistent type labels\n");
+  }
+  checkflag = 0;
 }

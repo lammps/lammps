@@ -32,11 +32,15 @@
 #define KOKKOS_IMPL_ARCH_NVIDIA_GPU 90
 #elif defined(KOKKOS_ARCH_BLACKWELL100)
 #define KOKKOS_IMPL_ARCH_NVIDIA_GPU 100
+#elif defined(KOKKOS_ARCH_BLACKWELL103)
+#define KOKKOS_IMPL_ARCH_NVIDIA_GPU 103
 #elif defined(KOKKOS_ARCH_BLACKWELL120)
 #define KOKKOS_IMPL_ARCH_NVIDIA_GPU 120
+#elif defined(KOKKOS_ARCH_BLACKWELL121)
+#define KOKKOS_IMPL_ARCH_NVIDIA_GPU 121
 #elif defined(KOKKOS_ENABLE_CUDA)
 // do not raise an error on other backends that may run on NVIDIA GPUs such as
-// OpenACC, OpenMPTarget, or SYCL
+// OpenACC, or SYCL
 #error NVIDIA GPU arch not recognized
 #endif
 

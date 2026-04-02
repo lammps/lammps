@@ -52,7 +52,7 @@ Syntax
          width = numeric value for triangle edge width (distance units)
        *ellipsoid* = color eflag level width
          color = *type* or *index* or *atom*
-         eflag = 1 for triangles, 2 for wireframe, 3 for both
+         eflag = 1 for triangles, 2 for wireframe
          level = mesh refinement level, value between 1 (low resolution) and 6 (ultra high resolution)
          width = diameter of wireframe edges (distance units) (ignored for triangles)
        *body* = color bflag1 bflag2
@@ -496,7 +496,7 @@ is used to define particles as line segments, and will draw them as
 lines.  If this keyword is not used, such particles will be drawn as
 spheres, the same as if they were regular atoms.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Mar2026
 
    added *index* and *atom* color styles
 
@@ -536,7 +536,7 @@ edges are drawn, the *width* setting determines the diameters of the
 line segments.  If this keyword is not used, triangle particles will
 be drawn as spheres, the same as if they were regular atoms.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Mar2026
 
    added *index* and *atom* color styles
 
@@ -566,15 +566,20 @@ colors than atom types are desired, the *number of atom types* must be
 
 .. versionadded:: 11Feb2026
 
+.. versionchanged:: 30Mar2026
+
+   Now uses rounded triangles
+
 The *ellipsoid* keyword can be used when :doc:`atom_style ellipsoid
 <atom_style>` is used to define particles as ellipsoids, and will draw
-them as a mesh of triangles or edges or both, depending on the setting
-for *eflag*\ .  If edges are drawn, the *width* setting determines the
-diameters of the line segments.  If this keyword is not used, ellipsoid
-particles will be drawn as spheres, the same as if they were regular
-atoms.
+them as a mesh of rounded triangles or edges, depending on the setting
+for *eflag*\ (1 for rounded triangles, 2 for edges, other values are
+accepted for backward compatibility but select rounded triangles).
+If edges are drawn, the *width* setting determines the diameters of the
+line segments.  If this keyword is not used, ellipsoid particles will be
+drawn as spheres, the same as if they were regular atoms.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Mar2026
 
    added *index* and *atom* color styles
 
@@ -600,26 +605,27 @@ colors than atom types are desired, the *number of atom types* must be
 *increased* correspondingly when using either the :doc:`create_box
 <create_box>` or the :doc:`read_data <read_data>` command.
 
+.. versionchanged:: 30Mar2026
+
+   changed initial geometry to icosahedron and use rounded triangles
+
 The *level* setting determines the number of triangles in the mesh of
 triangles and thus the resolution of the representation of the
-ellipsoid.  At level 1 the ellipsoid is represented by an octahedron
+ellipsoid.  At level 1 the ellipsoid is represented by an icosahedron
 that is stretched according to the ellipsoid's shape parameters.  For
-each higher level, any of the triangles is replaced by four triangles
-and their edges are shifted to be on the surface of the ellipsoid.  The
-maximum allowed level is 6 (corresponding to 8192 triangles).
+each higher level, a refinement iteration is performed where any of the
+triangles are replaced by four triangles and their edges are shifted to
+be on the surface of the ellipsoid.  The maximum allowed refinement
+level is 6 (corresponding to 12288 triangles per ellipsoid).
 
 .. admonition:: Image quality versus rendering speed
    :class: Hint
 
    Since the rendered ellipsoids are constructed from iteratively
-   refined triangle meshes, the image quality increases with each
-   refinement level, but so does the computational effort to render the
-   image.  Rendering only triangles is much faster than rendering the
-   wireframe edges.  However, at mesh refinement levels of 4 and up,
-   artifacts from the image rendering library are more common where
-   triangles meet.  These artifacts can be somewhat hidden by using the
-   *fsaa yes* setting, but are also less visible when rendering both
-   edges and triangles.
+   refined triangle meshes as explained above, the image quality
+   increases with each refinement level, but so does the computational
+   effort to render the image.  This becomes more pronounced when FSAA
+   or SSAO or both are enabled.
 
 ----------
 
@@ -644,7 +650,7 @@ parameters mean for each body style.
 
    added *index* color style
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Mar2026
 
    added *atom* color style
 
@@ -1177,7 +1183,7 @@ dump_modify color option.
 
 ----------
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Mar2026
 
    add support for entering colors in hexadecimal
 

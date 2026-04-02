@@ -375,4 +375,27 @@ constexpr bool test_array_equality_comparable() {
 
 static_assert(test_array_equality_comparable());
 
+struct IntegralConvertibleType {
+  KOKKOS_INLINE_FUNCTION constexpr operator std::size_t() const noexcept {
+    return static_cast<std::size_t>(v);
+  }
+  int v;
+};
+
+constexpr bool test_array_indexable_with_integral_convertible_type() {
+  using array_type = Kokkos::Array<int, 2>;
+  static_assert(!std::is_integral_v<IntegralConvertibleType>);
+  static_assert(std::is_nothrow_convertible_v<IntegralConvertibleType,
+                                              array_type::size_type>);
+  array_type arr{2, 3};
+  (void)arr[IntegralConvertibleType{0}];
+
+  enum Test { one };
+  (void)arr[one];
+
+  return true;
+}
+
+static_assert(test_array_indexable_with_integral_convertible_type());
+
 }  // namespace

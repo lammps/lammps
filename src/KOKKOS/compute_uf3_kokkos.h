@@ -22,40 +22,25 @@ ComputeStyle(uf3/kk/host, ComputeUF3Kokkos<LMPHostType>);
 #ifndef LMP_COMPUTE_UF3_KOKKOS_H
 #define LMP_COMPUTE_UF3_KOKKOS_H
 
-#include "compute.h"
-#include "kokkos.h"
+#include "compute_uf3.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-template <class DeviceType> class ComputeUF3Kokkos : public Compute {
+template <class DeviceType> class ComputeUF3Kokkos : public ComputeUF3 {
  public:
   typedef DeviceType device_type;
 
   ComputeUF3Kokkos(class LAMMPS *, int, char **);
   ~ComputeUF3Kokkos() override;
   void init() override;
-  void init_list(int, class NeighList *) override;
   void compute_array() override;
-  double memory_usage() override;
 
  private:
-  class PairUF3 *uf3_reader;
   class AtomKokkos *atomKK;
-  double cutmax;
-  int lastcol;
-  int ncoeff;
-  int **col_off_2b;
-  class NeighList *list;
-  class Compute *c_pe, *c_virial;
-  std::string id_virial;
-  double **uf3local;
-  double **uf3all;
-
-  void free_local();
-  void build_column_offsets();
 };
 
 }    // namespace LAMMPS_NS
+
 #endif
 #endif

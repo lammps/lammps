@@ -26,6 +26,7 @@ ComputeStyle(uf3/kk/host, ComputeUF3Kokkos<LMPHostType>);
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
+template <typename T> class MyPage;
 
 template <class DeviceType> class ComputeUF3Kokkos : public ComputeUF3 {
  public:
@@ -38,6 +39,13 @@ template <class DeviceType> class ComputeUF3Kokkos : public ComputeUF3 {
 
  private:
   class AtomKokkos *atomKK;
+  int kk_mirror_nmax;
+  int *kk_mirror_ilist;
+  int *kk_mirror_numneigh;
+  int **kk_mirror_firstneigh;
+  MyPage<int> *kk_mirror_ipage;
+  void free_kk_mirror();
+  void mirror_kokkos_neighbors_to_cpu();
 };
 
 }    // namespace LAMMPS_NS

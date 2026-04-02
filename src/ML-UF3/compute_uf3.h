@@ -54,6 +54,7 @@ class ComputeUF3 : public Compute {
   double memory_usage() override;
 
  protected:
+  void compute_array_core();
   void free_local();
 
   UF3Reader *uf3_reader;

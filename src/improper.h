@@ -15,10 +15,11 @@
 #define LMP_IMPROPER_H
 
 #include "pointers.h"    // IWYU pragma: export
+#include "restartable.h"
 
 namespace LAMMPS_NS {
 
-class Improper : protected Pointers {
+class Improper : public Restartable {
   friend class ThrOMP;
   friend class FixOMP;
 
@@ -58,10 +59,6 @@ class Improper : protected Pointers {
   virtual void compute(int, int) = 0;
   virtual void settings(int, char **);
   virtual void coeff(int, char **) = 0;
-  virtual void write_restart(FILE *) = 0;
-  virtual void read_restart(FILE *) = 0;
-  virtual void write_restart_settings(FILE *) {};
-  virtual void read_restart_settings(FILE *) {};
   virtual void write_data(FILE *) {}
   virtual double memory_usage();
   virtual void born_matrix(int /*dtype*/, int /*at1*/, int /*at2*/, int /*at3*/, int /*at4*/,
@@ -72,6 +69,8 @@ class Improper : protected Pointers {
   }
   virtual void *extract(const char *, int &) { return nullptr; }
   void reinit();
+
+  [[nodiscard]] bool fp_restartable() const final { return true; }
 
  protected:
   int suffix_flag;    // suffix compatibility flag

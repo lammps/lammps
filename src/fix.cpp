@@ -38,7 +38,7 @@ int Fix::instance_total = 0;
 /* ---------------------------------------------------------------------- */
 
 Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
-  Pointers(lmp),
+  Restartable(lmp),
   id(nullptr), style(nullptr), extlist(nullptr), vector_atom(nullptr), array_atom(nullptr),
   vector_local(nullptr), array_local(nullptr), eatom(nullptr), vatom(nullptr),
   cvatom(nullptr)
@@ -59,6 +59,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   style = utils::strdup(arg[2]);
 
   restart_global = restart_peratom = restart_file = 0;
+  write_restart_size_prefix = true;
   force_reneighbor = 0;
   box_change = NO_BOX_CHANGE;
   thermo_energy = 0;
@@ -147,89 +148,6 @@ void Fix::init_flags()
     error->all(FLERR, "Must set 'extarray' when setting 'array_flag' for fix {}.  "
                "Please contact the LAMMPS developers.{}", style, utils::errorurl(35));
 }
-
-/* ----------------------------------------------------------------------
-   Default write_restart implementation if this fix implements the FileWriter
-     API, for backwards compatibility.
-   For now, assume local_size is consistent on all ranks. If that needs to
-     change, add a restart_local_props bitfield variable with a variable-size
-     bit option.
-------------------------------------------------------------------------- */
-
-void Fix::write_restart(FILE *fp) {
-  bigint global_size = 0;
-  if (restart_global_fw) {
-    FileWriterSizer sizer;
-    sizer.write_restart_global_size(this);
-    this->write_restart_global(&sizer);
-    global_size = sizer.size();
-  }
-
-  bigint local_size = 0, total_local_size = 0;
-  if (restart_local_fw) {
-    FileWriterSizer sizer;
-    this->write_restart_local(&sizer);
-    local_size = sizer.size();
-
-    total_local_size = sizeof(comm->nprocs) + sizeof(local_size)
-      + local_size * comm->nprocs;
-  }
-
-  // Modify expects an integer size, not a bigint
-  int total_size = global_size + total_local_size;
-
-  FileWriterWrapper fw(fp);
-  fw.writev(total_size);
-
-  if (restart_global_fw && comm->me == 0) {
-    fw.write_restart_global_size(this);
-    this->write_restart_global(&fw);
-  }
-
-  if (restart_local_fw) {
-    std::vector<char> ldata(local_size);
-    FileWriterBuffer fw_buf(&ldata[0], local_size);
-    this->write_restart_local(&fw_buf);
-    
-    std::vector<char> total_ldata;
-    if(comm->me == 0) total_ldata.resize(local_size*comm->nprocs);
-    MPI_Gather(&ldata[0], local_size, MPI_BYTE,
-         &total_ldata[0], local_size, MPI_BYTE, 0, world);
-    
-    if(comm->me == 0) {
-      fw.writev(comm->nprocs);
-      fw.writev(local_size);
-      fw.write(&total_ldata[0], local_size*comm->nprocs);
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   Default restart implementation if this fix implements the FileWriter API, for
-     backwards compatibility.
-   For now, assume local_size is consistent on all ranks. If that needs to
-     change, add a restart_local_props bitfield variable with a variable-size
-     bit option.
-   Similarly, for now assume data from procs beyond the current nprocs should
-     be ignored. Otherwise, add bitfield options for how to distribute the rest.
-------------------------------------------------------------------------- */
-
-void Fix::restart(char *buf) {
-  BufferReader br(buf);
-
-  if (restart_global_fw) {
-    bigint global_size = br.read<bigint>();
-    this->read_restart_global(br.sub_buf(global_size));
-  }
-  if (restart_local_fw) {
-    int nprocs = br.read<int>();
-    bigint local_size = br.read<bigint>();
-
-    br.skip_bytes(local_size*comm->me);
-    this->read_restart_local(br.sub_buf(local_size));
-  }
-}
-
 
 /* ----------------------------------------------------------------------
    process params common to all fixes here

@@ -1489,13 +1489,13 @@ void Modify::write_restart(FILE *fp)
 
   int count = 0;
   for (int i = 0; i < nfix; i++)
-    if (fix[i]->restart_global) count++;
+    if (fix[i]->fp_restartable()) count++;
 
   if (me == 0) fwrite(&count, sizeof(int), 1, fp);
 
   int n;
   for (int i = 0; i < nfix; i++)
-    if (fix[i]->restart_global) {
+    if (fix[i]->fp_restartable()) {
       if (me == 0) {
         n = strlen(fix[i]->id) + 1;
         fwrite(&n, sizeof(int), 1, fp);

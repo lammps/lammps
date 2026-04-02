@@ -28,6 +28,7 @@
 #include "respa.h"
 #include "update.h"
 #include "file_writer.h"
+#include "buffer_reader.h"
 
 #include <cmath>
 #include <cstring>
@@ -42,7 +43,7 @@ PairLJCut::PairLJCut(LAMMPS *lmp) : Pair(lmp)
   respa_enable = 1;
   born_matrix_enable = 1;
   writedata = 1;
-  restartinfo_filewriter = 1;
+  restartable_global = true;
 }
 
 /* ---------------------------------------------------------------------- */

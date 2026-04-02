@@ -39,7 +39,7 @@ int Bond::instance_total = 0;
 ------------------------------------------------------------------------- */
 
 Bond::Bond(LAMMPS *_lmp) :
-    Pointers(_lmp), setflag(nullptr), virial{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, eatom(nullptr),
+    Restartable(lmp), setflag(nullptr), virial{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, eatom(nullptr),
     vatom(nullptr), svector(nullptr)
 {
   instance_me = instance_total++;

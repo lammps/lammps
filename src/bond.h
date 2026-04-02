@@ -15,10 +15,11 @@
 #define LMP_BOND_H
 
 #include "pointers.h"    // IWYU pragma: export
+#include "restartable.h"
 
 namespace LAMMPS_NS {
 
-class Bond : protected Pointers {
+class Bond : public Restartable {
   friend class ThrOMP;
   friend class FixOMP;
 
@@ -59,10 +60,6 @@ class Bond : protected Pointers {
   virtual void settings(int, char **);
   virtual void coeff(int, char **) = 0;
   virtual double equilibrium_distance(int) = 0;
-  virtual void write_restart(FILE *) = 0;
-  virtual void read_restart(FILE *) = 0;
-  virtual void write_restart_settings(FILE *) {};
-  virtual void read_restart_settings(FILE *) {};
   virtual void write_data(FILE *) {}
   virtual double single(int, double, int, int, double &) = 0;
   virtual double memory_usage();
@@ -82,6 +79,8 @@ class Bond : protected Pointers {
   }
 
   void write_file(int, char **);
+
+  [[nodiscard]] bool fp_restartable() const final { return true; }
 
  protected:
   int instance_me;    // which Bond class instantiation I am

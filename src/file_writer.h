@@ -33,8 +33,10 @@ class FileWriter {
   virtual void close() = 0;
   virtual void flush() = 0;
   virtual size_t write(const void *buffer, size_t length) = 0;
+  size_t write(const void *b, bigint l) { return write(b, (size_t)l); }
 
   [[nodiscard]] virtual bool isopen() const = 0;
+  [[nodiscard]] virtual bool issizer() const;
 
   virtual size_t write_restart_global_size(const Restartable*);
   virtual size_t write_restart_local_size(const Restartable*);

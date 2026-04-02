@@ -17,6 +17,8 @@
 
 using namespace LAMMPS_NS;
 
+bool FileWriter::issizer() const { return false; }
+
 size_t FileWriter::write_restart_global_size(const Restartable* r) {
   FileWriterSizer sizer;
   r->write_restart_global(&sizer);

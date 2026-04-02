@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Improper::Improper(LAMMPS *_lmp) : Pointers(_lmp)
+Improper::Improper(LAMMPS *_lmp) : Restartable(_lmp)
 {
   energy = 0.0;
   writedata = 0;

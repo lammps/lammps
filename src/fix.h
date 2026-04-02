@@ -14,13 +14,12 @@
 #ifndef LMP_FIX_H
 #define LMP_FIX_H
 
-#include "pointers.h"    // IWYU pragma: export
 #include "restartable.h"
 #include "file_writer.h"
 
 namespace LAMMPS_NS {
 
-class Fix : protected Pointers, public Restartable {
+class Fix : public Restartable {
   friend class Neighbor;
 
  public:
@@ -34,9 +33,6 @@ class Fix : protected Pointers, public Restartable {
   int restart_file;        // 1 if Fix writes own restart file, 0 if not
   int force_reneighbor;    // 1 if Fix forces reneighboring, 0 if not
   
-  int restart_global_fw;   // 1 if Fix saves global state and supports filewriter API, 0 if not
-  int restart_local_fw;    // 1 if Fix saves local state and supports filewriter API, 0 if not
-
   int box_change;    // >0 if Fix changes box size, shape, or sub-domains, 0 if not
   // clang-format off
   enum {
@@ -173,13 +169,7 @@ class Fix : protected Pointers, public Restartable {
   virtual void fused_integrate(int) {}
   virtual void end_of_step() {}
   virtual void post_run() {}
-  virtual void write_restart(FILE *);
-  virtual void write_restart_global(FileWriter*) const override {}
-  virtual void write_restart_local(FileWriter*) const override {}
   virtual void write_restart_file(const char *) {}
-  virtual void restart(char *);
-  virtual void read_restart_global(BufferReader) override {}
-  virtual void read_restart_local(BufferReader) override {}
 
   virtual void grow_arrays(int) {}
   virtual void copy_arrays(int, int, int) {}
@@ -277,6 +267,10 @@ class Fix : protected Pointers, public Restartable {
   virtual double memory_usage() { return 0.0; }
 
   void set_copymode(int value) { copymode = value; }
+
+  [[nodiscard]] bool fp_restartable() const override {
+    return restartable() || restart_global;
+  }
 
  protected:
   int instance_me;    // which Fix class instantiation I am

@@ -43,6 +43,7 @@ class FileWriterSizer : public FileWriter {
   void close() final { len = 0; }
   void flush() final { }
   [[nodiscard]] bool isopen() const final { return true; }
+  [[nodiscard]] bool issizer() const final { return true; }
 
  private:
   bigint len;

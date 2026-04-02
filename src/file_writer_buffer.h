@@ -31,6 +31,7 @@ class FileWriterBuffer : public FileWriter {
     buf = buffer;
     len = buffer_length;
   }
+  FileWriterBuffer(char* b, bigint l) : FileWriterBuffer(b, (size_t)l) { }
 
   size_t write(const void *buffer, size_t length) final {
     if (length > len) {

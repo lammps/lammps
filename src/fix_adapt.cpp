@@ -38,6 +38,8 @@
 #include "respa.h"
 #include "update.h"
 #include "variable.h"
+#include "buffer_reader.h"
+#include "file_writer.h"
 
 #include <cstring>
 
@@ -242,7 +244,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
   // then previous step scale factors are written to restart file
   // initialize them here in case one is used and other is never defined
 
-  if (scaleflag && (diam_flag || chgflag)) restart_global_fw = 1;
+  if (scaleflag && (diam_flag || chgflag)) restartable_global = true;
   previous_diam_scale = previous_chg_scale = 1.0;
 
   // allocate pair style arrays

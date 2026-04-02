@@ -523,7 +523,7 @@ void WriteRestart::type_arrays()
 void WriteRestart::force_fields()
 {
   if (force->pair) {
-    if (force->pair->restartinfo) {
+    if (force->pair->fp_restartable()) {
       write_string(PAIR,utils::strip_style_suffix(force->pair_style,lmp));
       force->pair->write_restart(fp);
     } else {

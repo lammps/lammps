@@ -140,7 +140,6 @@ void run_single_scenario(const InfoType& scenario_info) {
   ASSERT_EQ(r3, gold) << name << ", " << view_tag_to_string(Tag{});
   ASSERT_EQ(r4, gold) << name << ", " << view_tag_to_string(Tag{});
 
-#if !defined KOKKOS_ENABLE_OPENMPTARGET
   CustomLessThanComparator<ValueType, ValueType> comp;
   [[maybe_unused]] auto r5 =
       KE::is_sorted_until(exespace(), KE::cbegin(view), KE::cend(view), comp);
@@ -149,7 +148,6 @@ void run_single_scenario(const InfoType& scenario_info) {
   [[maybe_unused]] auto r7 = KE::is_sorted_until(exespace(), view, comp);
   [[maybe_unused]] auto r8 =
       KE::is_sorted_until("label", exespace(), view, comp);
-#endif
 
   ASSERT_EQ(r1, gold) << name << ", " << view_tag_to_string(Tag{});
   ASSERT_EQ(r2, gold) << name << ", " << view_tag_to_string(Tag{});

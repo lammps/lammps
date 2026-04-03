@@ -24,6 +24,7 @@ enum {
   TRI,         // a surface mesh as triangles or cylinder mesh based on fflag1, fflag2 sets diameter
   CYLINDER,    // a cylinder with diameter given by fix, fflag1 choose caps, fflag2 adjusts diameter
   TRIANGLE,    // a regular triangle, no settings apply
+  TRINORM,     // a curved triangle with surface normals and a color for each corner
   BOND,        // two connected cylinders with bond diameter, colored by atom types, fflag1 sets cap
   ARROW,       // a cylinder with a conical tip and a flat cap at the bottom
   CONE,        // a truncated cone with flat caps, fflag1 sets caps

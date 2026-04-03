@@ -17,23 +17,11 @@ int Kokkos::Experimental::Impl::OpenACCInternal::m_acc_device_num = -1;
 int Kokkos::Experimental::Impl::OpenACCInternal::m_concurrency    = -1;
 int Kokkos::Experimental::Impl::OpenACCInternal::m_next_async     = -1;
 
-Kokkos::Experimental::Impl::OpenACCInternal&
-Kokkos::Experimental::Impl::OpenACCInternal::singleton() {
-  static OpenACCInternal self;
-  return self;
-}
+Kokkos::Impl::HostSharedPtr<Kokkos::Experimental::Impl::OpenACCInternal>
+    Kokkos::Experimental::Impl::OpenACCInternal::default_instance;
 
-bool Kokkos::Experimental::Impl::OpenACCInternal::verify_is_initialized(
-    const char* const label) const {
-  if (!m_is_initialized) {
-    Kokkos::abort((std::string("Kokkos::Experimental::OpenACC::") + label +
-                   " : ERROR device not initialized\n")
-                      .c_str());
-  }
-  return m_is_initialized;
-}
-
-void Kokkos::Experimental::Impl::OpenACCInternal::initialize(int async_arg) {
+Kokkos::Experimental::Impl::OpenACCInternal::OpenACCInternal(int async_arg)
+    : m_async_arg(async_arg) {
   if ((async_arg < 0) && (async_arg != acc_async_sync) &&
       (async_arg != acc_async_noval)) {
     Kokkos::abort((std::string("Kokkos::Experimental::OpenACC::initialize()") +
@@ -41,16 +29,6 @@ void Kokkos::Experimental::Impl::OpenACCInternal::initialize(int async_arg) {
                    " unless being a special value defined in OpenACC\n")
                       .c_str());
   }
-  m_async_arg      = async_arg;
-  m_is_initialized = true;
-}
-
-void Kokkos::Experimental::Impl::OpenACCInternal::finalize() {
-  m_is_initialized = false;
-}
-
-bool Kokkos::Experimental::Impl::OpenACCInternal::is_initialized() const {
-  return m_is_initialized;
 }
 
 void Kokkos::Experimental::Impl::OpenACCInternal::print_configuration(
@@ -73,12 +51,6 @@ uint32_t Kokkos::Experimental::Impl::OpenACCInternal::instance_id()
       reinterpret_cast<uintptr_t>(this));
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-int Kokkos::Experimental::OpenACC::concurrency() {
-  return Impl::OpenACCInternal::m_concurrency;
-}
-#else
 int Kokkos::Experimental::OpenACC::concurrency() const {
   return Impl::OpenACCInternal::m_concurrency;
 }
-#endif

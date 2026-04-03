@@ -53,1091 +53,348 @@ KOKKOS_IMPL_FORCEINLINE_FUNCTION void _tag_invoke_array(Functor const& f,
                                 (Args&&)args...);
 }
 
-// ------------------------------------------------------------------ //
-// ParallelFor iteration pattern
-template <int N, typename PolicyType, typename Functor, typename MaxGridSize,
-          typename Tag>
-struct DeviceIterateTile;
-
-// Rank 2
-template <typename PolicyType, typename Functor, typename MaxGridSize,
-          typename Tag>
-struct DeviceIterateTile<2, PolicyType, Functor, MaxGridSize, Tag> {
-  using index_type = typename PolicyType::index_type;
+// ------------------------------------------------------------------------- //
+// Compute GPU launch parameters (grid/block dimensions) for MDRangePolicy
+//
+// Ranks 2-3: Direct mapping - each policy dimension maps to one GPU dimension.
+// Ranks 4-6: Dimension packing - pairs of policy dimensions are packed
+//            into single GPU dimensions to fit the 3D hardware limit.
+//
+// Returns: CUDA/HIP: std::pair<dim3 grid, dim3 block>
+//          SYCL:     sycl::nd_range<3>{global, local}
+//
+template <typename... Traits, typename MaxGridSize>
+auto compute_device_launch_params(
+    const Kokkos::MDRangePolicy<Traits...>& policy,
+    const MaxGridSize& max_grid_size) {
+  using Policy           = Kokkos::MDRangePolicy<Traits...>;
+  using array_index_type = typename Policy::array_index_type;
 
 #ifdef KOKKOS_ENABLE_SYCL
-  KOKKOS_IMPL_DEVICE_FUNCTION DeviceIterateTile(
-      const PolicyType& policy_, const Functor& f_,
-      const MaxGridSize& max_grid_size_,
-      const EmulateCUDADim3<index_type> gridDim_,
-      const EmulateCUDADim3<index_type> blockIdx_,
-      const EmulateCUDADim3<index_type> threadIdx_)
-      : m_policy(policy_),
-        m_func(f_),
-        m_max_grid_size(max_grid_size_),
-        gridDim(gridDim_),
-        blockIdx(blockIdx_),
-        threadIdx(threadIdx_) {}
+  EmulateCUDADim3 block{1, 1, 1};
 #else
-  KOKKOS_IMPL_DEVICE_FUNCTION DeviceIterateTile(
-      const PolicyType& policy_, const Functor& f_,
-      const MaxGridSize& max_grid_size_)
-      : m_policy(policy_), m_func(f_), m_max_grid_size(max_grid_size_) {}
+  dim3 block{1, 1, 1};
 #endif
 
-  KOKKOS_IMPL_DEVICE_FUNCTION
-  void exec_range() const {
-    // LL
-    if (PolicyType::inner_direction == Iterate::Left) {
-      // iterate over y blocks
-      for (index_type tile_id1 = static_cast<index_type>(blockIdx.y);
-           tile_id1 < m_policy.m_tile_end[1]; tile_id1 += gridDim.y) {
-        // compute index for dimension 1
-        const index_type offset_1 =
-            tile_id1 * m_policy.m_tile[1] +
-            static_cast<index_type>(threadIdx.y) +
-            static_cast<index_type>(m_policy.m_lower[1]);
-        // check index for dimension 1 is within range
-        if (offset_1 < m_policy.m_upper[1] &&
-            static_cast<index_type>(threadIdx.y) < m_policy.m_tile[1]) {
-          // iterate over x blocks
-          for (index_type tile_id0 = static_cast<index_type>(blockIdx.x);
-               tile_id0 < m_policy.m_tile_end[0]; tile_id0 += gridDim.x) {
-            // compute index for dimension 0
-            const index_type offset_0 =
-                tile_id0 * m_policy.m_tile[0] +
-                static_cast<index_type>(threadIdx.x) +
-                static_cast<index_type>(m_policy.m_lower[0]);
-            // check index for dimension 0 is within range
-            if (offset_0 < m_policy.m_upper[0] &&
-                static_cast<index_type>(threadIdx.x) < m_policy.m_tile[0]) {
-              // call kernel with computed indices
-              Impl::_tag_invoke<Tag>(m_func, offset_0, offset_1);
-            }
-          }
-        }
-      }
+  array_index_type grid_0 = 1;
+  array_index_type grid_1 = 1;
+  array_index_type grid_2 = 1;
+
+  if constexpr (Policy::inner_direction == Iterate::Left) {
+    if constexpr (Policy::rank == 2) {
+      block.x = policy.m_tile[0];
+      block.y = policy.m_tile[1];
+      grid_0  = policy.m_tile_end[0];
+      grid_1  = policy.m_tile_end[1];
+    } else if constexpr (Policy::rank == 3) {
+      block.x = policy.m_tile[0];
+      block.y = policy.m_tile[1];
+      block.z = policy.m_tile[2];
+      grid_0  = policy.m_tile_end[0];
+      grid_1  = policy.m_tile_end[1];
+      grid_2  = policy.m_tile_end[2];
+    } else if constexpr (Policy::rank == 4) {
+      block.x = policy.m_tile[0] * policy.m_tile[1];
+      block.y = policy.m_tile[2];
+      block.z = policy.m_tile[3];
+      grid_0  = policy.m_tile_end[0] * policy.m_tile_end[1];
+      grid_1  = policy.m_tile_end[2];
+      grid_2  = policy.m_tile_end[3];
+    } else if constexpr (Policy::rank == 5) {
+      block.x = policy.m_tile[0] * policy.m_tile[1];
+      block.y = policy.m_tile[2] * policy.m_tile[3];
+      block.z = policy.m_tile[4];
+      grid_0  = policy.m_tile_end[0] * policy.m_tile_end[1];
+      grid_1  = policy.m_tile_end[2] * policy.m_tile_end[3];
+      grid_2  = policy.m_tile_end[4];
+    } else if constexpr (Policy::rank == 6) {
+      block.x = policy.m_tile[0] * policy.m_tile[1];
+      block.y = policy.m_tile[2] * policy.m_tile[3];
+      block.z = policy.m_tile[4] * policy.m_tile[5];
+      grid_0  = policy.m_tile_end[0] * policy.m_tile_end[1];
+      grid_1  = policy.m_tile_end[2] * policy.m_tile_end[3];
+      grid_2  = policy.m_tile_end[4] * policy.m_tile_end[5];
     }
-    // LR
-    else {
-      // iterate over x blocks
-      for (index_type tile_id0 = static_cast<index_type>(blockIdx.x);
-           tile_id0 < m_policy.m_tile_end[0]; tile_id0 += gridDim.x) {
-        // compute index for dimension 0
-        const index_type offset_0 =
-            tile_id0 * m_policy.m_tile[0] +
-            static_cast<index_type>(threadIdx.x) +
-            static_cast<index_type>(m_policy.m_lower[0]);
-        // check index for dimension 0 is within range
-        if (offset_0 < m_policy.m_upper[0] &&
-            static_cast<index_type>(threadIdx.x) < m_policy.m_tile[0]) {
-          // iterate over y blocks
-          for (index_type tile_id1 = static_cast<index_type>(blockIdx.y);
-               tile_id1 < m_policy.m_tile_end[1]; tile_id1 += gridDim.y) {
-            // compute index for dimension 1
-            const index_type offset_1 =
-                tile_id1 * m_policy.m_tile[1] +
-                static_cast<index_type>(threadIdx.y) +
-                static_cast<index_type>(m_policy.m_lower[1]);
-            // check index for dimension 1 is within range
-            if (offset_1 < m_policy.m_upper[1] &&
-                static_cast<index_type>(threadIdx.y) < m_policy.m_tile[1]) {
-              // call kernel with computed indices
-              Impl::_tag_invoke<Tag>(m_func, offset_0, offset_1);
-            }
-          }
-        }
-      }
+  } else {  // InnerDirection == Right
+    if constexpr (Policy::rank == 2) {
+      block.x = policy.m_tile[1];
+      block.y = policy.m_tile[0];
+      grid_0  = policy.m_tile_end[1];
+      grid_1  = policy.m_tile_end[0];
+    } else if constexpr (Policy::rank == 3) {
+      block.x = policy.m_tile[2];
+      block.y = policy.m_tile[1];
+      block.z = policy.m_tile[0];
+      grid_0  = policy.m_tile_end[2];
+      grid_1  = policy.m_tile_end[1];
+      grid_2  = policy.m_tile_end[0];
+    } else if constexpr (Policy::rank == 4) {
+      block.x = policy.m_tile[3] * policy.m_tile[2];
+      block.y = policy.m_tile[1];
+      block.z = policy.m_tile[0];
+      grid_0  = policy.m_tile_end[3] * policy.m_tile_end[2];
+      grid_1  = policy.m_tile_end[1];
+      grid_2  = policy.m_tile_end[0];
+    } else if constexpr (Policy::rank == 5) {
+      block.x = policy.m_tile[4] * policy.m_tile[3];
+      block.y = policy.m_tile[2] * policy.m_tile[1];
+      block.z = policy.m_tile[0];
+      grid_0  = policy.m_tile_end[4] * policy.m_tile_end[3];
+      grid_1  = policy.m_tile_end[2] * policy.m_tile_end[1];
+      grid_2  = policy.m_tile_end[0];
+    } else if constexpr (Policy::rank == 6) {
+      block.x = policy.m_tile[5] * policy.m_tile[4];
+      block.y = policy.m_tile[3] * policy.m_tile[2];
+      block.z = policy.m_tile[1] * policy.m_tile[0];
+      grid_0  = policy.m_tile_end[5] * policy.m_tile_end[4];
+      grid_1  = policy.m_tile_end[3] * policy.m_tile_end[2];
+      grid_2  = policy.m_tile_end[1] * policy.m_tile_end[0];
     }
-  }  // end exec_range
+  }
+
+#ifdef KOKKOS_ENABLE_SYCL
+  // SYCL uses nd_range with global = grid * local sizes
+  sycl::range<3> local_sizes(block.x, block.y, block.z);
+  sycl::range<3> global_sizes(
+      std::min<array_index_type>(grid_0, max_grid_size[0]) * local_sizes[0],
+      std::min<array_index_type>(grid_1, max_grid_size[1]) * local_sizes[1],
+      std::min<array_index_type>(grid_2, max_grid_size[2]) * local_sizes[2]);
+  return sycl::nd_range<3>(global_sizes, local_sizes);
+#else
+  dim3 grid(std::min<array_index_type>(grid_0, max_grid_size[0]),
+            std::min<array_index_type>(grid_1, max_grid_size[1]),
+            std::min<array_index_type>(grid_2, max_grid_size[2]));
+  return std::pair(grid, block);
+#endif
+}
+
+// ------------------------------------------------------------------------- //
+// ParallelFor iteration pattern - maps GPU threads to N-D iteration space
+//
+// For ranks 2-3: Direct mapping of hardware threads to iteration space
+// dimensions.
+// For ranks 4-6: Multiple logical indices are packed into single
+// hardware dimensions.
+//
+// 1. Start iterating at the hardware thread identifier.
+// 2. Extend the iteration space range with stride loops using grid dimensions.
+// 3. Bounds check against m_upper to filter out-of-bounds iterations.
+//
+template <int Rank, typename array_index_type, typename index_type,
+          typename Functor, Kokkos::Iterate Layout, typename Tag>
+struct DeviceIterate;
+
+template <int Rank, typename array_index_type, typename index_type,
+          typename Functor, Kokkos::Iterate Layout, typename Tag>
+struct DeviceIterate {
+  using array_type = Kokkos::Array<array_index_type, Rank>;
 
  private:
-  const PolicyType& m_policy;
-  const Functor& m_func;
-  const MaxGridSize& m_max_grid_size;
+  const array_type m_lower;
+  const array_type m_upper;
+  const array_type m_extent;  // tile_size * num_tiles
+  const Functor& m_functor;
+
 #ifdef KOKKOS_ENABLE_SYCL
   const EmulateCUDADim3<index_type> gridDim;
+  const EmulateCUDADim3<index_type> blockDim;
   const EmulateCUDADim3<index_type> blockIdx;
   const EmulateCUDADim3<index_type> threadIdx;
 #endif
-};
 
-// Rank 3
-template <typename PolicyType, typename Functor, typename MaxGridSize,
-          typename Tag>
-struct DeviceIterateTile<3, PolicyType, Functor, MaxGridSize, Tag> {
-  using index_type = typename PolicyType::index_type;
-
+ public:
 #ifdef KOKKOS_ENABLE_SYCL
-  KOKKOS_IMPL_DEVICE_FUNCTION DeviceIterateTile(
-      const PolicyType& policy_, const Functor& f_,
-      const MaxGridSize& max_grid_size_,
+  KOKKOS_IMPL_DEVICE_FUNCTION DeviceIterate(
+      const array_type& lower, const array_type& upper,
+      const array_type& extent, const Functor& functor,
       const EmulateCUDADim3<index_type> gridDim_,
+      const EmulateCUDADim3<index_type> blockDim_,
       const EmulateCUDADim3<index_type> blockIdx_,
       const EmulateCUDADim3<index_type> threadIdx_)
-      : m_policy(policy_),
-        m_func(f_),
-        m_max_grid_size(max_grid_size_),
+      : m_lower(lower),
+        m_upper(upper),
+        m_extent(extent),
+        m_functor(functor),
         gridDim(gridDim_),
+        blockDim(blockDim_),
         blockIdx(blockIdx_),
         threadIdx(threadIdx_) {}
 #else
-  KOKKOS_IMPL_DEVICE_FUNCTION DeviceIterateTile(
-      const PolicyType& policy_, const Functor& f_,
-      const MaxGridSize& max_grid_size_)
-      : m_policy(policy_), m_func(f_), m_max_grid_size(max_grid_size_) {}
+
+  KOKKOS_IMPL_DEVICE_FUNCTION DeviceIterate(const array_type& lower,
+                                            const array_type& upper,
+                                            const array_type& extent,
+                                            const Functor& functor)
+      : m_lower(lower), m_upper(upper), m_extent(extent), m_functor(functor) {}
 #endif
 
   KOKKOS_IMPL_DEVICE_FUNCTION
-  void exec_range() const {
-    // LL
-    if (PolicyType::inner_direction == Iterate::Left) {
-      // iterate over z blocks
-      for (index_type tile_id2 = static_cast<index_type>(blockIdx.z);
-           tile_id2 < m_policy.m_tile_end[2]; tile_id2 += gridDim.z) {
-        // compute index for dimension 2
-        const index_type offset_2 =
-            tile_id2 * m_policy.m_tile[2] +
-            static_cast<index_type>(threadIdx.z) +
-            static_cast<index_type>(m_policy.m_lower[2]);
-        // check index for dimension 2 is within range
-        if (offset_2 < m_policy.m_upper[2] &&
-            static_cast<index_type>(threadIdx.z) < m_policy.m_tile[2]) {
-          // iterate over y blocks
-          for (index_type tile_id1 = static_cast<index_type>(blockIdx.y);
-               tile_id1 < m_policy.m_tile_end[1]; tile_id1 += gridDim.y) {
-            // compute index for dimension 1
-            const index_type offset_1 =
-                tile_id1 * m_policy.m_tile[1] +
-                static_cast<index_type>(threadIdx.y) +
-                static_cast<index_type>(m_policy.m_lower[1]);
-            // check index for dimension 1 is within range
-            if (offset_1 < m_policy.m_upper[1] &&
-                static_cast<index_type>(threadIdx.y) < m_policy.m_tile[1]) {
-              // iterate over x blocks
-              for (index_type tile_id0 = static_cast<index_type>(blockIdx.x);
-                   tile_id0 < m_policy.m_tile_end[0]; tile_id0 += gridDim.x) {
-                // compute index for dimension 0
-                const index_type offset_0 =
-                    tile_id0 * m_policy.m_tile[0] +
-                    static_cast<index_type>(threadIdx.x) +
-                    static_cast<index_type>(m_policy.m_lower[0]);
-                // check index for dimension 0 is within range
-                if (offset_0 < m_policy.m_upper[0] &&
-                    static_cast<index_type>(threadIdx.x) < m_policy.m_tile[0]) {
-                  // call kernel with computed indices
-                  Impl::_tag_invoke<Tag>(m_func, offset_0, offset_1, offset_2);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    // LR
-    else {
-      // iterate over x blocks
-      for (index_type tile_id0 = static_cast<index_type>(blockIdx.x);
-           tile_id0 < m_policy.m_tile_end[0]; tile_id0 += gridDim.x) {
-        // compute index for dimension 0
-        const index_type offset_0 =
-            tile_id0 * m_policy.m_tile[0] +
-            static_cast<index_type>(threadIdx.x) +
-            static_cast<index_type>(m_policy.m_lower[0]);
-        // check index for dimension 0 is within range
-        if (offset_0 < m_policy.m_upper[0] &&
-            static_cast<index_type>(threadIdx.x) < m_policy.m_tile[0]) {
-          // iterate over y blocks
-          for (index_type tile_id1 = static_cast<index_type>(blockIdx.y);
-               tile_id1 < m_policy.m_tile_end[1]; tile_id1 += gridDim.y) {
-            // compute index for dimension 1
-            const index_type offset_1 =
-                tile_id1 * m_policy.m_tile[1] +
-                static_cast<index_type>(threadIdx.y) +
-                static_cast<index_type>(m_policy.m_lower[1]);
-            // check index for dimension 1 is within range
-            if (offset_1 < m_policy.m_upper[1] &&
-                static_cast<index_type>(threadIdx.y) < m_policy.m_tile[1]) {
-              // iterate over z blocks
-              for (index_type tile_id2 = static_cast<index_type>(blockIdx.z);
-                   tile_id2 < m_policy.m_tile_end[2]; tile_id2 += gridDim.z) {
-                // compute index for dimension 2
-                const index_type offset_2 =
-                    tile_id2 * m_policy.m_tile[2] +
-                    static_cast<index_type>(threadIdx.z) +
-                    static_cast<index_type>(m_policy.m_lower[2]);
-                // check index for dimension 2 is within range
-                if (offset_2 < m_policy.m_upper[2] &&
-                    static_cast<index_type>(threadIdx.z) < m_policy.m_tile[2]) {
-                  // call kernel with computed indices
-                  Impl::_tag_invoke<Tag>(m_func, offset_0, offset_1, offset_2);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }  // end exec_range
+  void exec_range() const { iterate(std::integral_constant<unsigned, Rank>()); }
 
  private:
-  const PolicyType& m_policy;
-  const Functor& m_func;
-  const MaxGridSize& m_max_grid_size;
-#ifdef KOKKOS_ENABLE_SYCL
-  const EmulateCUDADim3<index_type> gridDim;
-  const EmulateCUDADim3<index_type> blockIdx;
-  const EmulateCUDADim3<index_type> threadIdx;
-#endif
-};
+  // Runtime expression to determine if Dim is part of a packed pair
+  // Packing occurs on consecutive dimension pairs for rank > 3
+  template <unsigned Dim>
+  KOKKOS_IMPL_DEVICE_FUNCTION static consteval bool is_packed_index() {
+    return ((Dim == 0 || Dim == 1) && Rank > 3) ||
+           ((Dim == 2 || Dim == 3) && Rank > 4) ||
+           ((Dim == 4 || Dim == 5) && Rank > 5);
+  }
 
-// Rank 4
-template <typename PolicyType, typename Functor, typename MaxGridSize,
-          typename Tag>
-struct DeviceIterateTile<4, PolicyType, Functor, MaxGridSize, Tag> {
-  using index_type = typename PolicyType::index_type;
-
-#ifdef KOKKOS_ENABLE_SYCL
-  KOKKOS_IMPL_DEVICE_FUNCTION DeviceIterateTile(
-      const PolicyType& policy_, const Functor& f_,
-      const MaxGridSize& max_grid_size_,
-      const EmulateCUDADim3<index_type> gridDim_,
-      const EmulateCUDADim3<index_type> blockIdx_,
-      const EmulateCUDADim3<index_type> threadIdx_)
-      : m_policy(policy_),
-        m_func(f_),
-        m_max_grid_size(max_grid_size_),
-        gridDim(gridDim_),
-        blockIdx(blockIdx_),
-        threadIdx(threadIdx_) {}
-#else
-  KOKKOS_IMPL_DEVICE_FUNCTION DeviceIterateTile(
-      const PolicyType& policy_, const Functor& f_,
-      const MaxGridSize& max_grid_size_)
-      : m_policy(policy_), m_func(f_), m_max_grid_size(max_grid_size_) {}
-#endif
-
-  KOKKOS_IMPL_DEVICE_FUNCTION
-  void exec_range() const {
-    // LL
-    if (PolicyType::inner_direction == Iterate::Left) {
-      // number of tiles for dimension 0
-      const index_type temp0 = m_policy.m_tile_end[0];
-      // number of tiles for dimension 1
-      const index_type temp1 = m_policy.m_tile_end[1];
-
-      // number of virtual blocks for dimension 0
-      const index_type numbl0 =
-          Kokkos::min(temp0, static_cast<index_type>(m_max_grid_size[0]));
-      // number of virtual blocks for dimension 1
-      const index_type numbl1 =
-          (temp0 * temp1 > static_cast<index_type>(m_max_grid_size[0])
-               ? static_cast<index_type>(m_max_grid_size[0]) / numbl0
-               : Kokkos::min(temp1,
-                             static_cast<index_type>(m_max_grid_size[0])));
-
-      // first virtual block index for dimension 0
-      const index_type tile_id0 = static_cast<index_type>(blockIdx.x) % numbl0;
-      // first virtual block index for dimension 1
-      const index_type tile_id1 = static_cast<index_type>(blockIdx.x) / numbl0;
-
-      // virtual thread index for dimension 0
-      const index_type thr_id0 =
-          static_cast<index_type>(threadIdx.x) % m_policy.m_tile[0];
-      // virtual thread index for dimension 1
-      const index_type thr_id1 =
-          static_cast<index_type>(threadIdx.x) / m_policy.m_tile[0];
-
-      // iterate over z blocks
-      for (index_type tile_id3 = static_cast<index_type>(blockIdx.z);
-           tile_id3 < m_policy.m_tile_end[3]; tile_id3 += gridDim.z) {
-        // compute index for dimension 3
-        const index_type offset_3 =
-            tile_id3 * m_policy.m_tile[3] +
-            static_cast<index_type>(threadIdx.z) +
-            static_cast<index_type>(m_policy.m_lower[3]);
-        // check index for dimension 3 is within range
-        if (offset_3 < m_policy.m_upper[3] &&
-            static_cast<index_type>(threadIdx.z) < m_policy.m_tile[3]) {
-          // iterate over y blocks
-          for (index_type tile_id2 = static_cast<index_type>(blockIdx.y);
-               tile_id2 < m_policy.m_tile_end[2]; tile_id2 += gridDim.y) {
-            // compute index for dimension 2
-            const index_type offset_2 =
-                tile_id2 * m_policy.m_tile[2] +
-                static_cast<index_type>(threadIdx.y) +
-                static_cast<index_type>(m_policy.m_lower[2]);
-            // check index for dimension 2 is within range
-            if (offset_2 < m_policy.m_upper[2] &&
-                static_cast<index_type>(threadIdx.y) < m_policy.m_tile[2]) {
-              // iterate over virtual blocks for dimension 1
-              for (index_type j = tile_id1; j < m_policy.m_tile_end[1];
-                   j += numbl1) {
-                // compute index for dimension 1
-                const index_type offset_1 =
-                    j * m_policy.m_tile[1] + thr_id1 +
-                    static_cast<index_type>(m_policy.m_lower[1]);
-                // check index for dimension 1 is within range
-                if (offset_1 < m_policy.m_upper[1] &&
-                    thr_id1 < m_policy.m_tile[1]) {
-                  // iterate over virtual blocks for dimension 0
-                  for (index_type i = tile_id0; i < m_policy.m_tile_end[0];
-                       i += numbl0) {
-                    // compute index for dimension 0
-                    const index_type offset_0 =
-                        i * m_policy.m_tile[0] + thr_id0 +
-                        static_cast<index_type>(m_policy.m_lower[0]);
-                    // check index for dimension 0 is within range
-                    if (offset_0 < m_policy.m_upper[0] &&
-                        thr_id0 < m_policy.m_tile[0]) {
-                      // call kernel with computed indices
-                      Impl::_tag_invoke<Tag>(m_func, offset_0, offset_1,
-                                             offset_2, offset_3);
-                    }
-                  }
-                }
-              }
-            }
-          }
+  // Packed: returns flat hardware thread ID (unpacking happens in iterate())
+  // Unpacked: returns global index (lower + blockIdx * blockDim + threadIdx)
+  template <unsigned R>
+  KOKKOS_IMPL_DEVICE_FUNCTION KOKKOS_IMPL_FORCEINLINE constexpr index_type
+  my_begin() const noexcept {
+    static_assert(R < 6);
+    if constexpr (is_packed_index<R>()) {
+      if constexpr (R == 0 || R == 1) {
+        return blockIdx.x * blockDim.x + threadIdx.x;
+      } else if constexpr (R == 2 || R == 3) {
+        return blockIdx.y * blockDim.y + threadIdx.y;
+      } else if constexpr (R == 4 || R == 5) {
+        return blockIdx.z * blockDim.z + threadIdx.z;
+      }
+    } else {
+      // No packed index
+      if constexpr (Rank < 4) {
+        if constexpr (R == 0) {
+          return m_lower[R] + blockIdx.x * blockDim.x + threadIdx.x;
+        } else if constexpr (R == 1) {
+          return m_lower[R] + blockIdx.y * blockDim.y + threadIdx.y;
+        } else if constexpr (R == 2) {
+          return m_lower[R] + blockIdx.z * blockDim.z + threadIdx.z;
+        }
+      } else {
+        // Mix of packed and unpacked for Rank 4 and 5
+        if constexpr (R == 2) {
+          return m_lower[R] + blockIdx.y * blockDim.y + threadIdx.y;
+        } else if constexpr (R == 3 || R == 4) {
+          return m_lower[R] + blockIdx.z * blockDim.z + threadIdx.z;
         }
       }
     }
-    // LR
-    else {
-      // number of tiles for dimension 0
-      const index_type temp0 = m_policy.m_tile_end[0];
-      // number of tiles for dimension 1
-      const index_type temp1 = m_policy.m_tile_end[1];
+    return m_lower[R];
+  }
 
-      // number of virtual blocks for dimension 1
-      const index_type numbl1 =
-          Kokkos::min(temp1, static_cast<index_type>(m_max_grid_size[0]));
-      // number of virtual blocks for dimension 0
-      const index_type numbl0 =
-          (temp0 * temp1 > static_cast<index_type>(m_max_grid_size[0])
-               ? static_cast<index_type>(m_max_grid_size[0]) / numbl1
-               : Kokkos::min(temp0,
-                             static_cast<index_type>(m_max_grid_size[0])));
+  // Packed: end at the product of two consecutive extents
+  // Unpacked: directly use m_upper
+  template <unsigned R>
+  KOKKOS_IMPL_DEVICE_FUNCTION KOKKOS_IMPL_FORCEINLINE constexpr index_type
+  my_end() const noexcept {
+    static_assert(R < 6);
+    if constexpr (is_packed_index<R>()) {
+      if constexpr (R % 2 == 0) {
+        return m_extent[R] * m_extent[R + 1];
+      } else {
+        return m_extent[R] * m_extent[R - 1];
+      }
+    } else {
+      return m_upper[R];
+    }
+  }
 
-      // first virtual block index for dimension 0
-      const index_type tile_id0 = static_cast<index_type>(blockIdx.x) / numbl1;
-      // first virtual block index for dimension 1
-      const index_type tile_id1 = static_cast<index_type>(blockIdx.x) % numbl1;
-
-      // virtual thread index for dimension 0
-      const index_type thr_id0 =
-          static_cast<index_type>(threadIdx.x) / m_policy.m_tile[1];
-      // virtual thread index for dimension 1
-      const index_type thr_id1 =
-          static_cast<index_type>(threadIdx.x) % m_policy.m_tile[1];
-
-      // iterate over virtual blocks for dimension 0
-      for (index_type i = tile_id0; i < m_policy.m_tile_end[0]; i += numbl0) {
-        // compute index for dimension 0
-        const index_type offset_0 =
-            i * m_policy.m_tile[0] + thr_id0 +
-            static_cast<index_type>(m_policy.m_lower[0]);
-        // check index for dimension 0 is within range
-        if (offset_0 < m_policy.m_upper[0] && thr_id0 < m_policy.m_tile[0]) {
-          // iterate over virtual blocks for dimension 1
-          for (index_type j = tile_id1; j < m_policy.m_tile_end[1];
-               j += numbl1) {
-            // compute index for dimension 1
-            const index_type offset_1 =
-                j * m_policy.m_tile[1] + thr_id1 +
-                static_cast<index_type>(m_policy.m_lower[1]);
-            // check index for dimension 1 is within range
-            if (offset_1 < m_policy.m_upper[1] &&
-                thr_id1 < m_policy.m_tile[1]) {
-              // iterate over y blocks
-              for (index_type tile_id2 = static_cast<index_type>(blockIdx.y);
-                   tile_id2 < m_policy.m_tile_end[2]; tile_id2 += gridDim.y) {
-                // compute index for dimension 2
-                const index_type offset_2 =
-                    tile_id2 * m_policy.m_tile[2] +
-                    static_cast<index_type>(threadIdx.y) +
-                    static_cast<index_type>(m_policy.m_lower[2]);
-                // check index for dimension 2 is within range
-                if (offset_2 < m_policy.m_upper[2] &&
-                    static_cast<index_type>(threadIdx.y) < m_policy.m_tile[2]) {
-                  // iterate over z blocks
-                  for (index_type tile_id3 =
-                           static_cast<index_type>(blockIdx.z);
-                       tile_id3 < m_policy.m_tile_end[3];
-                       tile_id3 += gridDim.z) {
-                    // compute index for dimension 3
-                    const index_type offset_3 =
-                        tile_id3 * m_policy.m_tile[3] +
-                        static_cast<index_type>(threadIdx.z) +
-                        static_cast<index_type>(m_policy.m_lower[3]);
-                    // check index for dimension 3 is within range
-                    if (offset_3 < m_policy.m_upper[3] &&
-                        static_cast<index_type>(threadIdx.z) <
-                            m_policy.m_tile[3]) {
-                      // call kernel with computed indices
-                      Impl::_tag_invoke<Tag>(m_func, offset_0, offset_1,
-                                             offset_2, offset_3);
-                    }
-                  }
-                }
-              }
-            }
-          }
+  // Stride by the total number of threads in the GPU dimension
+  template <unsigned R>
+  KOKKOS_IMPL_DEVICE_FUNCTION KOKKOS_IMPL_FORCEINLINE constexpr index_type
+  my_stride() const noexcept {
+    static_assert(R < 6);
+    if constexpr (is_packed_index<R>()) {
+      if constexpr (R == 0 || R == 1) {
+        return static_cast<index_type>(blockDim.x) *
+               static_cast<index_type>(gridDim.x);
+      } else if constexpr (R == 2 || R == 3) {
+        return static_cast<index_type>(blockDim.y) *
+               static_cast<index_type>(gridDim.y);
+      } else if constexpr (R == 4 || R == 5) {
+        return static_cast<index_type>(blockDim.z) *
+               static_cast<index_type>(gridDim.z);
+      }
+    } else {
+      // No packed index for all ranks
+      if constexpr (Rank < 4) {
+        if constexpr (R == 0) {
+          return static_cast<index_type>(blockDim.x) *
+                 static_cast<index_type>(gridDim.x);
+        } else if constexpr (R == 1) {
+          return static_cast<index_type>(blockDim.y) *
+                 static_cast<index_type>(gridDim.y);
+        } else if constexpr (R == 2) {
+          return static_cast<index_type>(blockDim.z) *
+                 static_cast<index_type>(gridDim.z);
+        }
+      } else {
+        // Mix of packed and unpacked for Rank 4 and 5
+        if constexpr (R == 2) {
+          return static_cast<index_type>(blockDim.y) *
+                 static_cast<index_type>(gridDim.y);
+        } else if constexpr (R == 3 || R == 4) {
+          return static_cast<index_type>(blockDim.z) *
+                 static_cast<index_type>(gridDim.z);
         }
       }
     }
-  }  // end exec_range
+    return index_type{1};
+  }
 
- private:
-  const PolicyType& m_policy;
-  const Functor& m_func;
-  const MaxGridSize& m_max_grid_size;
-#ifdef KOKKOS_ENABLE_SYCL
-  const EmulateCUDADim3<index_type> gridDim;
-  const EmulateCUDADim3<index_type> blockIdx;
-  const EmulateCUDADim3<index_type> threadIdx;
-#endif
-};
+  // ----------------------------------------------------------------------- //
+  // Nested loops with recursive template instantiation
+  //
+  // Accumulates indices in parameter pack Idxs...
+  // The fastest changing index is always i0 (innermost loop).
+  //
+  // Functor call order depends on the Layout:
+  //  Layout::Left:
+  //    functor(i0, i1, i2, ..., iR)
+  //  Layout::Right:
+  //    functor(iR, ..., i2, i1, i0)
+  //
+  // For Layout::Right, bounds were previously swapped during ParallelFor
+  // construction, so i0 correctly iterates over the range of iR while
+  // remaining the "fastest-changing" index.
+  //
+  template <unsigned R, typename... Idxs>
+  KOKKOS_IMPL_DEVICE_FUNCTION inline void iterate(
+      std::integral_constant<unsigned, R>, Idxs... idxs) const {
+    constexpr unsigned rankIdx = R - 1;
+    const index_type start     = my_begin<rankIdx>();
+    const index_type end       = my_end<rankIdx>();
+    const index_type stride    = my_stride<rankIdx>();
 
-// Rank 5
-template <typename PolicyType, typename Functor, typename MaxGridSize,
-          typename Tag>
-struct DeviceIterateTile<5, PolicyType, Functor, MaxGridSize, Tag> {
-  using index_type = typename PolicyType::index_type;
+    for (index_type idx = start; idx < end; idx += stride) {
+      if constexpr (is_packed_index<rankIdx>()) {
+        static_assert(R >= 2);
+        // Unpack two consecutive indices
+        constexpr unsigned idx1 = (rankIdx % 2 == 0) ? rankIdx : (rankIdx - 1);
+        constexpr unsigned idx2 = (rankIdx % 2 == 0) ? (rankIdx + 1) : rankIdx;
 
-#ifdef KOKKOS_ENABLE_SYCL
-  KOKKOS_IMPL_DEVICE_FUNCTION DeviceIterateTile(
-      const PolicyType& policy_, const Functor& f_,
-      const MaxGridSize& max_grid_size_,
-      const EmulateCUDADim3<index_type> gridDim_,
-      const EmulateCUDADim3<index_type> blockIdx_,
-      const EmulateCUDADim3<index_type> threadIdx_)
-      : m_policy(policy_),
-        m_func(f_),
-        m_max_grid_size(max_grid_size_),
-        gridDim(gridDim_),
-        blockIdx(blockIdx_),
-        threadIdx(threadIdx_) {}
-#else
-  KOKKOS_IMPL_DEVICE_FUNCTION DeviceIterateTile(
-      const PolicyType& policy_, const Functor& f_,
-      const MaxGridSize& max_grid_size_)
-      : m_policy(policy_), m_func(f_), m_max_grid_size(max_grid_size_) {}
-#endif
+        const index_type id_1 = idx % m_extent[idx1] + m_lower[idx1];
+        const index_type id_2 = idx / m_extent[idx1] + m_lower[idx2];
 
-  KOKKOS_IMPL_DEVICE_FUNCTION
-  void exec_range() const {
-    // LL
-    if (PolicyType::inner_direction == Iterate::Left) {
-      // number of tiles for dimension 0
-      index_type temp0 = m_policy.m_tile_end[0];
-      // number of tiles for dimension 1
-      index_type temp1 = m_policy.m_tile_end[1];
-
-      // number of virtual blocks for dimension 0
-      const index_type numbl0 =
-          Kokkos::min(temp0, static_cast<index_type>(m_max_grid_size[0]));
-      // number of virtual blocks for dimension 1
-      const index_type numbl1 =
-          (temp0 * temp1 > static_cast<index_type>(m_max_grid_size[0])
-               ? static_cast<index_type>(m_max_grid_size[0]) / numbl0
-               : Kokkos::min(temp1,
-                             static_cast<index_type>(m_max_grid_size[0])));
-
-      // first virtual block index for dimension 0
-      const index_type tile_id0 = static_cast<index_type>(blockIdx.x) % numbl0;
-      // first virtual block index for dimension 1
-      const index_type tile_id1 = static_cast<index_type>(blockIdx.x) / numbl0;
-
-      // virtual thread index for dimension 0
-      const index_type thr_id0 =
-          static_cast<index_type>(threadIdx.x) % m_policy.m_tile[0];
-      // virtual thread index for dimension 1
-      const index_type thr_id1 =
-          static_cast<index_type>(threadIdx.x) / m_policy.m_tile[0];
-
-      // number of tiles for dimension 2
-      temp0 = m_policy.m_tile_end[2];
-      // number of tiles for dimension 3
-      temp1 = m_policy.m_tile_end[3];
-
-      // number of virtual blocks for dimension 2
-      const index_type numbl2 =
-          Kokkos::min(temp0, static_cast<index_type>(m_max_grid_size[1]));
-      // number of virtual blocks for dimension 3
-      const index_type numbl3 =
-          (temp0 * temp1 > static_cast<index_type>(m_max_grid_size[1])
-               ? static_cast<index_type>(m_max_grid_size[1]) / numbl2
-               : Kokkos::min(temp1,
-                             static_cast<index_type>(m_max_grid_size[1])));
-
-      // first virtual block index for dimension 2
-      const index_type tile_id2 = static_cast<index_type>(blockIdx.y) % numbl2;
-      // first virtual block index for dimension 3
-      const index_type tile_id3 = static_cast<index_type>(blockIdx.y) / numbl2;
-
-      // virtual thread index for dimension 2
-      const index_type thr_id2 =
-          static_cast<index_type>(threadIdx.y) % m_policy.m_tile[2];
-      // virtual thread index for dimension 3
-      const index_type thr_id3 =
-          static_cast<index_type>(threadIdx.y) / m_policy.m_tile[2];
-
-      // iterate over z blocks
-      for (index_type tile_id4 = static_cast<index_type>(blockIdx.z);
-           tile_id4 < m_policy.m_tile_end[4]; tile_id4 += gridDim.z) {
-        // compute index for dimension 4
-        const index_type offset_4 =
-            tile_id4 * m_policy.m_tile[4] +
-            static_cast<index_type>(threadIdx.z) +
-            static_cast<index_type>(m_policy.m_lower[4]);
-        // check index for dimension 4 is within range
-        if (offset_4 < m_policy.m_upper[4] &&
-            static_cast<index_type>(threadIdx.z) < m_policy.m_tile[4]) {
-          // iterate over virtual blocks for dimension 3
-          for (index_type l = tile_id3; l < m_policy.m_tile_end[3];
-               l += numbl3) {
-            // compute index for dimension 3
-            const index_type offset_3 =
-                l * m_policy.m_tile[3] + thr_id3 +
-                static_cast<index_type>(m_policy.m_lower[3]);
-            // check index for dimension 3 is within range
-            if (offset_3 < m_policy.m_upper[3] &&
-                thr_id3 < m_policy.m_tile[3]) {
-              // iterate over virtual blocks for dimension 2
-              for (index_type k = tile_id2; k < m_policy.m_tile_end[2];
-                   k += numbl2) {
-                // compute index for dimension 2
-                const index_type offset_2 =
-                    k * m_policy.m_tile[2] + thr_id2 +
-                    static_cast<index_type>(m_policy.m_lower[2]);
-                // check index for dimension 2 is within range
-                if (offset_2 < m_policy.m_upper[2] &&
-                    thr_id2 < m_policy.m_tile[2]) {
-                  // iterate over virtual blocks for dimension 1
-                  for (index_type j = tile_id1; j < m_policy.m_tile_end[1];
-                       j += numbl1) {
-                    // compute index for dimension 1
-                    const index_type offset_1 =
-                        j * m_policy.m_tile[1] + thr_id1 +
-                        static_cast<index_type>(m_policy.m_lower[1]);
-                    // check index for dimension 1 is within range
-                    if (offset_1 < m_policy.m_upper[1] &&
-                        thr_id1 < m_policy.m_tile[1]) {
-                      // iterate over virtual blocks for dimension 0
-                      for (index_type i = tile_id0; i < m_policy.m_tile_end[0];
-                           i += numbl0) {
-                        // compute index for dimension 0
-                        const index_type offset_0 =
-                            i * m_policy.m_tile[0] + thr_id0 +
-                            static_cast<index_type>(m_policy.m_lower[0]);
-                        // check index for dimension 0 is within range
-                        if (offset_0 < m_policy.m_upper[0] &&
-                            thr_id0 < m_policy.m_tile[0]) {
-                          // call kernel with computed indices
-                          Impl::_tag_invoke<Tag>(m_func, offset_0, offset_1,
-                                                 offset_2, offset_3, offset_4);
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
+        if (id_1 < m_upper[idx1] && id_2 < m_upper[idx2]) {
+          if constexpr (Layout == Iterate::Left) {
+            iterate(std::integral_constant<unsigned, R - 2>(), id_1, id_2,
+                    idxs...);
+          } else {
+            iterate(std::integral_constant<unsigned, R - 2>(), idxs..., id_2,
+                    id_1);
           }
+        }
+      } else {
+        if constexpr (Layout == Iterate::Left) {
+          iterate(std::integral_constant<unsigned, R - 1>(), idx, idxs...);
+        } else {
+          iterate(std::integral_constant<unsigned, R - 1>(), idxs..., idx);
         }
       }
     }
-    // LR
-    else {
-      // number of tiles for dimension 0
-      index_type temp0 = m_policy.m_tile_end[0];
-      // number of tiles for dimension 1
-      index_type temp1 = m_policy.m_tile_end[1];
+  }
 
-      // number of virtual blocks for dimension 1
-      const index_type numbl1 =
-          Kokkos::min(temp1, static_cast<index_type>(m_max_grid_size[0]));
-      // number of virtual blocks for dimension 0
-      const index_type numbl0 =
-          (temp0 * temp1 > static_cast<index_type>(m_max_grid_size[0])
-               ? static_cast<index_type>(m_max_grid_size[0]) / numbl1
-               : Kokkos::min(temp0,
-                             static_cast<index_type>(m_max_grid_size[0])));
-
-      // first virtual block index for dimension 0
-      const index_type tile_id0 = static_cast<index_type>(blockIdx.x) / numbl1;
-      // first virtual block index for dimension 1
-      const index_type tile_id1 = static_cast<index_type>(blockIdx.x) % numbl1;
-
-      // virtual thread index for dimension 0
-      const index_type thr_id0 =
-          static_cast<index_type>(threadIdx.x) / m_policy.m_tile[1];
-      // virtual thread index for dimension 1
-      const index_type thr_id1 =
-          static_cast<index_type>(threadIdx.x) % m_policy.m_tile[1];
-
-      // number of tiles for dimension 2
-      temp0 = m_policy.m_tile_end[2];
-      // number of tiles for dimension 3
-      temp1 = m_policy.m_tile_end[3];
-
-      // number of virtual blocks for dimension 3
-      const index_type numbl3 =
-          Kokkos::min(temp1, static_cast<index_type>(m_max_grid_size[1]));
-      // number of virtual blocks for dimension 2
-      const index_type numbl2 =
-          (temp0 * temp1 > static_cast<index_type>(m_max_grid_size[1])
-               ? static_cast<index_type>(m_max_grid_size[1]) / numbl3
-               : Kokkos::min(temp0,
-                             static_cast<index_type>(m_max_grid_size[1])));
-
-      // first virtual block index for dimension 2
-      const index_type tile_id2 = static_cast<index_type>(blockIdx.y) / numbl3;
-      // first virtual block index for dimension 3
-      const index_type tile_id3 = static_cast<index_type>(blockIdx.y) % numbl3;
-
-      // virtual thread index for dimension 2
-      const index_type thr_id2 =
-          static_cast<index_type>(threadIdx.y) / m_policy.m_tile[3];
-      // virtual thread index for dimension 3
-      const index_type thr_id3 =
-          static_cast<index_type>(threadIdx.y) % m_policy.m_tile[3];
-
-      // iterate over virtual blocks for dimension 0
-      for (index_type i = tile_id0; i < m_policy.m_tile_end[0]; i += numbl0) {
-        // compute index for dimension 0
-        const index_type offset_0 =
-            i * m_policy.m_tile[0] + thr_id0 +
-            static_cast<index_type>(m_policy.m_lower[0]);
-        // check index for dimension 0 is within range
-        if (offset_0 < m_policy.m_upper[0] && thr_id0 < m_policy.m_tile[0]) {
-          // iterate over virtual blocks for dimension 1
-          for (index_type j = tile_id1; j < m_policy.m_tile_end[1];
-               j += numbl1) {
-            // compute index for dimension 1
-            const index_type offset_1 =
-                j * m_policy.m_tile[1] + thr_id1 +
-                static_cast<index_type>(m_policy.m_lower[1]);
-            // check index for dimension 1 is within range
-            if (offset_1 < m_policy.m_upper[1] &&
-                thr_id1 < m_policy.m_tile[1]) {
-              // iterate over virtual blocks for dimension 2
-              for (index_type k = tile_id2; k < m_policy.m_tile_end[2];
-                   k += numbl2) {
-                // compute index for dimension 2
-                const index_type offset_2 =
-                    k * m_policy.m_tile[2] + thr_id2 +
-                    static_cast<index_type>(m_policy.m_lower[2]);
-                // check index for dimension 2 is within range
-                if (offset_2 < m_policy.m_upper[2] &&
-                    thr_id2 < m_policy.m_tile[2]) {
-                  // iterate over virtual blocks for dimension 3
-                  for (index_type l = tile_id3; l < m_policy.m_tile_end[3];
-                       l += numbl3) {
-                    // compute index for dimension 3
-                    const index_type offset_3 =
-                        l * m_policy.m_tile[3] + thr_id3 +
-                        static_cast<index_type>(m_policy.m_lower[3]);
-                    // check index for dimension 3 is within range
-                    if (offset_3 < m_policy.m_upper[3] &&
-                        thr_id3 < m_policy.m_tile[3]) {
-                      // iterate over z blocks
-                      for (index_type tile_id4 =
-                               static_cast<index_type>(blockIdx.z);
-                           tile_id4 < m_policy.m_tile_end[4];
-                           tile_id4 += gridDim.z) {
-                        // compute index for dimension 3
-                        const index_type offset_4 =
-                            tile_id4 * m_policy.m_tile[4] +
-                            static_cast<index_type>(threadIdx.z) +
-                            static_cast<index_type>(m_policy.m_lower[4]);
-                        // check index for dimension 3 is within range
-                        if (offset_4 < m_policy.m_upper[4] &&
-                            static_cast<index_type>(threadIdx.z) <
-                                m_policy.m_tile[4]) {
-                          // call kernel with computed indices
-                          Impl::_tag_invoke<Tag>(m_func, offset_0, offset_1,
-                                                 offset_2, offset_3, offset_4);
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }  // end exec_range
-
- private:
-  const PolicyType& m_policy;
-  const Functor& m_func;
-  const MaxGridSize& m_max_grid_size;
-#ifdef KOKKOS_ENABLE_SYCL
-  const EmulateCUDADim3<index_type> gridDim;
-  const EmulateCUDADim3<index_type> blockIdx;
-  const EmulateCUDADim3<index_type> threadIdx;
-#endif
-};
-
-// Rank 6
-template <typename PolicyType, typename Functor, typename MaxGridSize,
-          typename Tag>
-struct DeviceIterateTile<6, PolicyType, Functor, MaxGridSize, Tag> {
-  using index_type = typename PolicyType::index_type;
-
-#ifdef KOKKOS_ENABLE_SYCL
-  KOKKOS_IMPL_DEVICE_FUNCTION DeviceIterateTile(
-      const PolicyType& policy_, const Functor& f_,
-      const MaxGridSize& max_grid_size_,
-      const EmulateCUDADim3<index_type> gridDim_,
-      const EmulateCUDADim3<index_type> blockIdx_,
-      const EmulateCUDADim3<index_type> threadIdx_)
-      : m_policy(policy_),
-        m_func(f_),
-        m_max_grid_size(max_grid_size_),
-        gridDim(gridDim_),
-        blockIdx(blockIdx_),
-        threadIdx(threadIdx_) {}
-#else
-  KOKKOS_IMPL_DEVICE_FUNCTION DeviceIterateTile(
-      const PolicyType& policy_, const Functor& f_,
-      const MaxGridSize& max_grid_size_)
-      : m_policy(policy_), m_func(f_), m_max_grid_size(max_grid_size_) {}
-#endif
-
-  KOKKOS_IMPL_DEVICE_FUNCTION
-  void exec_range() const {
-    // LL
-    if (PolicyType::inner_direction == Iterate::Left) {
-      // number of tiles for dimension 0
-      index_type temp0 = m_policy.m_tile_end[0];
-      // number of tiles for dimension 1
-      index_type temp1 = m_policy.m_tile_end[1];
-
-      // number of virtual blocks for dimension 0
-      const index_type numbl0 =
-          Kokkos::min(temp0, static_cast<index_type>(m_max_grid_size[0]));
-      // number of virtual blocks for dimension 1
-      const index_type numbl1 =
-          (temp0 * temp1 > static_cast<index_type>(m_max_grid_size[0])
-               ? static_cast<index_type>(m_max_grid_size[0]) / numbl0
-               : Kokkos::min(temp1,
-                             static_cast<index_type>(m_max_grid_size[0])));
-
-      // first virtual block index for dimension 0
-      const index_type tile_id0 = static_cast<index_type>(blockIdx.x) % numbl0;
-      // first virtual block index for dimension 1
-      const index_type tile_id1 = static_cast<index_type>(blockIdx.x) / numbl0;
-
-      // virtual thread index for dimension 0
-      const index_type thr_id0 =
-          static_cast<index_type>(threadIdx.x) % m_policy.m_tile[0];
-      // virtual thread index for dimension 1
-      const index_type thr_id1 =
-          static_cast<index_type>(threadIdx.x) / m_policy.m_tile[0];
-
-      // number of tiles for dimension 2
-      temp0 = m_policy.m_tile_end[2];
-      // number of tiles for dimension 3
-      temp1 = m_policy.m_tile_end[3];
-
-      // number of virtual blocks for dimension 2
-      const index_type numbl2 =
-          Kokkos::min(temp0, static_cast<index_type>(m_max_grid_size[1]));
-      // number of virtual blocks for dimension 3
-      const index_type numbl3 =
-          (temp0 * temp1 > static_cast<index_type>(m_max_grid_size[1])
-               ? static_cast<index_type>(m_max_grid_size[1]) / numbl2
-               : Kokkos::min(temp1,
-                             static_cast<index_type>(m_max_grid_size[1])));
-
-      // first virtual block index for dimension 2
-      const index_type tile_id2 = static_cast<index_type>(blockIdx.y) % numbl2;
-      // first virtual block index for dimension 3
-      const index_type tile_id3 = static_cast<index_type>(blockIdx.y) / numbl2;
-
-      // virtual thread index for dimension 2
-      const index_type thr_id2 =
-          static_cast<index_type>(threadIdx.y) % m_policy.m_tile[2];
-      // virtual thread index for dimension 3
-      const index_type thr_id3 =
-          static_cast<index_type>(threadIdx.y) / m_policy.m_tile[2];
-
-      // number of tiles for dimension 4
-      temp0 = m_policy.m_tile_end[4];
-      // number of tiles for dimension 5
-      temp1 = m_policy.m_tile_end[5];
-
-      // number of virtual blocks for dimension 4
-      const index_type numbl4 =
-          Kokkos::min(temp0, static_cast<index_type>(m_max_grid_size[2]));
-      // number of virtual blocks for dimension 5
-      const index_type numbl5 =
-          (temp0 * temp1 > static_cast<index_type>(m_max_grid_size[2])
-               ? static_cast<index_type>(m_max_grid_size[2]) / numbl4
-               : Kokkos::min(temp1,
-                             static_cast<index_type>(m_max_grid_size[2])));
-
-      // first virtual block index for dimension 4
-      const index_type tile_id4 = static_cast<index_type>(blockIdx.z) % numbl4;
-      // first virtual block index for dimension 5
-      const index_type tile_id5 = static_cast<index_type>(blockIdx.z) / numbl4;
-
-      // virtual thread index for dimension 4
-      const index_type thr_id4 =
-          static_cast<index_type>(threadIdx.z) % m_policy.m_tile[4];
-      // virtual thread index for dimension 5
-      const index_type thr_id5 =
-          static_cast<index_type>(threadIdx.z) / m_policy.m_tile[4];
-
-      // iterate over virtual blocks for dimension 5
-      for (index_type n = tile_id5; n < m_policy.m_tile_end[5]; n += numbl5) {
-        // compute index for dimension 5
-        const index_type offset_5 =
-            n * m_policy.m_tile[5] + thr_id5 +
-            static_cast<index_type>(m_policy.m_lower[5]);
-        // check index for dimension 5 is within range
-        if (offset_5 < m_policy.m_upper[5] && thr_id5 < m_policy.m_tile[5]) {
-          // iterate over virtual blocks for dimension 4
-          for (index_type m = tile_id4; m < m_policy.m_tile_end[4];
-               m += numbl4) {
-            // compute index for dimension 4
-            const index_type offset_4 =
-                m * m_policy.m_tile[4] + thr_id4 +
-                static_cast<index_type>(m_policy.m_lower[4]);
-            // check index for dimension 4 is within range
-            if (offset_4 < m_policy.m_upper[4] &&
-                thr_id4 < m_policy.m_tile[4]) {
-              // iterate over virtual blocks for dimension 3
-              for (index_type l = tile_id3; l < m_policy.m_tile_end[3];
-                   l += numbl3) {
-                // compute index for dimension 3
-                const index_type offset_3 =
-                    l * m_policy.m_tile[3] + thr_id3 +
-                    static_cast<index_type>(m_policy.m_lower[3]);
-                // check index for dimension 3 is within range
-                if (offset_3 < m_policy.m_upper[3] &&
-                    thr_id3 < m_policy.m_tile[3]) {
-                  // iterate over virtual blocks for dimension 2
-                  for (index_type k = tile_id2; k < m_policy.m_tile_end[2];
-                       k += numbl2) {
-                    // compute index for dimension 2
-                    const index_type offset_2 =
-                        k * m_policy.m_tile[2] + thr_id2 +
-                        static_cast<index_type>(m_policy.m_lower[2]);
-                    // check index for dimension 2 is within range
-                    if (offset_2 < m_policy.m_upper[2] &&
-                        thr_id2 < m_policy.m_tile[2]) {
-                      // iterate over virtual blocks for dimension 1
-                      for (index_type j = tile_id1; j < m_policy.m_tile_end[1];
-                           j += numbl1) {
-                        // compute index for dimension 1
-                        const index_type offset_1 =
-                            j * m_policy.m_tile[1] + thr_id1 +
-                            static_cast<index_type>(m_policy.m_lower[1]);
-                        // check index for dimension 1 is within range
-                        if (offset_1 < m_policy.m_upper[1] &&
-                            thr_id1 < m_policy.m_tile[1]) {
-                          // iterate over virtual blocks for dimension 0
-                          for (index_type i = tile_id0;
-                               i < m_policy.m_tile_end[0]; i += numbl0) {
-                            // compute index for dimension 0
-                            const index_type offset_0 =
-                                i * m_policy.m_tile[0] + thr_id0 +
-                                static_cast<index_type>(m_policy.m_lower[0]);
-                            // check index for dimension 0 is within range
-                            if (offset_0 < m_policy.m_upper[0] &&
-                                thr_id0 < m_policy.m_tile[0]) {
-                              // call kernel with computed indices
-                              Impl::_tag_invoke<Tag>(m_func, offset_0, offset_1,
-                                                     offset_2, offset_3,
-                                                     offset_4, offset_5);
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    // LR
-    else {
-      // number of tiles for dimension 0
-      index_type temp0 = m_policy.m_tile_end[0];
-      // number of tiles for dimension 1
-      index_type temp1 = m_policy.m_tile_end[1];
-
-      // number of virtual blocks for dimension 1
-      const index_type numbl1 =
-          Kokkos::min(temp1, static_cast<index_type>(m_max_grid_size[0]));
-      // number of virtual blocks for dimension 0
-      const index_type numbl0 =
-          (temp0 * temp1 > static_cast<index_type>(m_max_grid_size[0])
-               ? static_cast<index_type>(m_max_grid_size[0]) / numbl1
-               : Kokkos::min(temp0,
-                             static_cast<index_type>(m_max_grid_size[0])));
-
-      // first virtual block index for dimension 0
-      const index_type tile_id0 = static_cast<index_type>(blockIdx.x) / numbl1;
-      // first virtual block index for dimension 1
-      const index_type tile_id1 = static_cast<index_type>(blockIdx.x) % numbl1;
-
-      // virtual thread index for dimension 0
-      const index_type thr_id0 =
-          static_cast<index_type>(threadIdx.x) / m_policy.m_tile[1];
-      // virtual thread index for dimension 1
-      const index_type thr_id1 =
-          static_cast<index_type>(threadIdx.x) % m_policy.m_tile[1];
-
-      // number of tiles for dimension 2
-      temp0 = m_policy.m_tile_end[2];
-      // number of tiles for dimension 3
-      temp1 = m_policy.m_tile_end[3];
-
-      // number of virtual blocks for dimension 3
-      const index_type numbl3 =
-          Kokkos::min(temp1, static_cast<index_type>(m_max_grid_size[1]));
-      // number of virtual blocks for dimension 2
-      const index_type numbl2 =
-          (temp0 * temp1 > static_cast<index_type>(m_max_grid_size[1])
-               ? static_cast<index_type>(m_max_grid_size[1]) / numbl3
-               : Kokkos::min(temp0,
-                             static_cast<index_type>(m_max_grid_size[1])));
-
-      // first virtual block index for dimension 2
-      const index_type tile_id2 = static_cast<index_type>(blockIdx.y) / numbl3;
-      // first virtual block index for dimension 3
-      const index_type tile_id3 = static_cast<index_type>(blockIdx.y) % numbl3;
-
-      // virtual thread index for dimension 2
-      const index_type thr_id2 =
-          static_cast<index_type>(threadIdx.y) / m_policy.m_tile[3];
-      // virtual thread index for dimension 3
-      const index_type thr_id3 =
-          static_cast<index_type>(threadIdx.y) % m_policy.m_tile[3];
-
-      // number of tiles for dimension 4
-      temp0 = m_policy.m_tile_end[4];
-      // number of tiles for dimension 5
-      temp1 = m_policy.m_tile_end[5];
-
-      // number of virtual blocks for dimension 5
-      const index_type numbl5 =
-          Kokkos::min(temp1, static_cast<index_type>(m_max_grid_size[2]));
-      // number of virtual blocks for dimension 3
-      const index_type numbl4 =
-          (temp0 * temp1 > static_cast<index_type>(m_max_grid_size[2])
-               ? static_cast<index_type>(m_max_grid_size[2]) / numbl5
-               : Kokkos::min(temp0,
-                             static_cast<index_type>(m_max_grid_size[2])));
-
-      // first virtual block index for dimension 4
-      const index_type tile_id4 = static_cast<index_type>(blockIdx.z) / numbl5;
-      // first virtual block index for dimension 5
-      const index_type tile_id5 = static_cast<index_type>(blockIdx.z) % numbl5;
-
-      // virtual thread index for dimension 4
-      const index_type thr_id4 =
-          static_cast<index_type>(threadIdx.z) / m_policy.m_tile[5];
-      // virtual thread index for dimension 5
-      const index_type thr_id5 =
-          static_cast<index_type>(threadIdx.z) % m_policy.m_tile[5];
-
-      // iterate over virtual blocks for dimension 0
-      for (index_type i = tile_id0; i < m_policy.m_tile_end[0]; i += numbl0) {
-        // compute index for dimension 0
-        const index_type offset_0 =
-            i * m_policy.m_tile[0] + thr_id0 +
-            static_cast<index_type>(m_policy.m_lower[0]);
-        // check index for dimension 0 is within range
-        if (offset_0 < m_policy.m_upper[0] && thr_id0 < m_policy.m_tile[0]) {
-          // iterate over virtual blocks for dimension 1
-          for (index_type j = tile_id1; j < m_policy.m_tile_end[1];
-               j += numbl1) {
-            // compute index for dimension 1
-            const index_type offset_1 =
-                j * m_policy.m_tile[1] + thr_id1 +
-                static_cast<index_type>(m_policy.m_lower[1]);
-            // check index for dimension 1 is within range
-            if (offset_1 < m_policy.m_upper[1] &&
-                thr_id1 < m_policy.m_tile[1]) {
-              // iterate over virtual blocks for dimension 2
-              for (index_type k = tile_id2; k < m_policy.m_tile_end[2];
-                   k += numbl2) {
-                // compute index for dimension 2
-                const index_type offset_2 =
-                    k * m_policy.m_tile[2] + thr_id2 +
-                    static_cast<index_type>(m_policy.m_lower[2]);
-                // check index for dimension 2 is within range
-                if (offset_2 < m_policy.m_upper[2] &&
-                    thr_id2 < m_policy.m_tile[2]) {
-                  // iterate over virtual blocks for dimension 3
-                  for (index_type l = tile_id3; l < m_policy.m_tile_end[3];
-                       l += numbl3) {
-                    // compute index for dimension 3
-                    const index_type offset_3 =
-                        l * m_policy.m_tile[3] + thr_id3 +
-                        static_cast<index_type>(m_policy.m_lower[3]);
-                    // check index for dimension 3 is within range
-                    if (offset_3 < m_policy.m_upper[3] &&
-                        thr_id3 < m_policy.m_tile[3]) {
-                      // iterate over virtual blocks for dimension 4
-                      for (index_type m = tile_id4; m < m_policy.m_tile_end[4];
-                           m += numbl4) {
-                        // compute index for dimension 4
-                        const index_type offset_4 =
-                            m * m_policy.m_tile[4] + thr_id4 +
-                            static_cast<index_type>(m_policy.m_lower[4]);
-                        // check index for dimension 4 is within range
-                        if (offset_4 < m_policy.m_upper[4] &&
-                            thr_id4 < m_policy.m_tile[4]) {
-                          // iterate over virtual blocks for dimension 5
-                          for (index_type n = tile_id5;
-                               n < m_policy.m_tile_end[5]; n += numbl5) {
-                            // compute index for dimension 5
-                            const index_type offset_5 =
-                                n * m_policy.m_tile[5] + thr_id5 +
-                                static_cast<index_type>(m_policy.m_lower[5]);
-                            // check index for dimension 5 is within range
-                            if (offset_5 < m_policy.m_upper[5] &&
-                                thr_id5 < m_policy.m_tile[5]) {
-                              // call kernel with computed indices
-                              Impl::_tag_invoke<Tag>(m_func, offset_0, offset_1,
-                                                     offset_2, offset_3,
-                                                     offset_4, offset_5);
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }  // end exec_range
-
- private:
-  const PolicyType& m_policy;
-  const Functor& m_func;
-  const MaxGridSize& m_max_grid_size;
-#ifdef KOKKOS_ENABLE_SYCL
-  const EmulateCUDADim3<index_type> gridDim;
-  const EmulateCUDADim3<index_type> blockIdx;
-  const EmulateCUDADim3<index_type> threadIdx;
-#endif
+  template <typename... Idxs>
+  KOKKOS_IMPL_DEVICE_FUNCTION inline void iterate(
+      std::integral_constant<unsigned, 0u>, Idxs... idxs) const {
+    Impl::_tag_invoke<Tag>(m_functor, idxs...);
+  }
 };
 
 // ----------------------------------------------------------------------------------

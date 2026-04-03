@@ -227,6 +227,24 @@ from the list of active variables, and is thus available to be
 re-defined in a subsequent variable command.  The *delete* style does
 the same thing.
 
+.. versionchanged:: 30Mar2026
+
+.. admonition:: Auto-deleted variables can lead to problems
+   :class: warning
+
+   Special care must be taken when iterated variables, e.g. file style
+   variables are exhausted and thus get deleted **during** a run.  For
+   performance reasons, many features in LAMMPS cache how variables are
+   looked up during a run or minimization for the duration of that run
+   or minimization and this can lead to unexpected behavior when
+   variables get auto-deleted.  The cached index can be out of range or
+   point to the wrong variable.  Thus, LAMMPS will print a warning when
+   a file or atomfile is exhausted and auto-deleted.  This can be
+   avoided by making certain that those variables have additional
+   elements.  This condition is rare, but hard to debug, so make certain
+   that when you see this warning, that this is the intended behavior
+   and be warned of the potential side effects.
+
 Variables are **not** deleted by the :doc:`clear <clear>` command with
 the exception of atomfile-style variables.
 

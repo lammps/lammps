@@ -3,8 +3,6 @@
 
 #include <TestStdAlgorithmsCommon.hpp>
 
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
-
 namespace Test {
 namespace stdalgos {
 namespace TeamReduce {
@@ -243,5 +241,3 @@ TEST(std_algorithms_reduce_team_test, test) {
 }  // namespace TeamReduce
 }  // namespace stdalgos
 }  // namespace Test
-
-#endif

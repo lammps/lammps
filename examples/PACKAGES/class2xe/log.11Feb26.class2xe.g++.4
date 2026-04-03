@@ -1,0 +1,128 @@
+LAMMPS (11 Feb 2026)
+  using 1 OpenMP thread(s) per MPI task
+Reading data file ...
+  orthogonal box = (-10 -10 -10) to (10 10 10)
+  1 by 2 by 2 MPI processor grid
+  reading atom labelmap ...
+  reading bond labelmap ...
+  reading angle labelmap ...
+  reading dihedral labelmap ...
+  reading improper labelmap ...
+  reading atoms ...
+  31 atoms
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  15 = max dihedrals/atom
+  scanning impropers ...
+  4 = max impropers/atom
+  orthogonal box = (-10 -10 -10) to (10 10 10)
+  1 by 2 by 2 MPI processor grid
+  reading bonds ...
+  31 bonds
+  reading angles ...
+  54 angles
+  reading dihedrals ...
+  68 dihedrals
+  reading impropers ...
+  28 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        1       
+  special bond factors coul:  0        0        1       
+     4 = max # of 1-2 neighbors
+     7 = max # of 1-3 neighbors
+    10 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.036 seconds
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+- ClassII-xe Style: https://doi.org/10.1038/s41524-025-01838-5
+- Type Label Framework: https://doi.org/10.1021/acs.jpcb.3c08419
+The log file lists these citations in BibTeX format.
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.17877424
+  grid = 5 5 5
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00601225
+  estimated relative force accuracy = 1.8105712e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 640 45
+Generated 15 of 15 mixed pair_coeff terms from sixthpower/sixthpower mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 5000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/class2/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : real
+  Current step  : 0
+  Time step     : 1
+Per MPI rank memory allocation (min/avg/max) = 14.93 | 15.14 | 15.58 Mbytes
+   Step          Temp          Press         Density         KinEng         PotEng         TotEng         E_vdwl         E_coul         E_pair         E_bond        E_angle        E_dihed        E_impro    
+         0   300            1739.4974      0.037005008    26.82729       50.795577      77.622867      20.655036      47.173946      31.194238      41.590973      15.446336     -37.451902      0.015931822  
+        10   392.90619      14.768189      0.037005008    35.135361      41.835325      76.970687      19.746545      46.599878      29.679987      23.187758      20.023985     -31.861844      0.80543826   
+        20   344.32353     -1718.9816      0.037005008    30.790892      45.28744       76.078332      14.239357      45.906296      23.47885       16.888354      14.255508     -9.3574917      0.02221999   
+        30   396.32094     -1127.4506      0.037005008    35.440723      40.244508      75.685231      15.116786      45.849074      24.265104      22.306847      9.7769077     -16.578754      0.47440349   
+        40   338.74793      1020.7769      0.037005008    30.292297      45.670472      75.962769      17.370352      45.899076      26.572666      27.685444      21.861584     -30.569892      0.12067103   
+        50   285.37987      2305.7954      0.037005008    25.519895      50.809627      76.329522      19.205394      46.20846       28.716275      36.314245      15.817663     -30.314364      0.27580687   
+        60   305.2622       1169.9177      0.037005008    27.297859      47.154733      74.452591      17.857056      46.723144      27.918252      23.626928      24.282943     -28.879101      0.20571015   
+        70   329.41332     -590.62548      0.037005008    29.457556      44.771281      74.228837      15.677153      46.306206      25.297824      11.06237       22.88821      -14.691447      0.21432402   
+        80   362.73192     -619.31497      0.037005008    32.437049      40.795975      73.233024      15.958011      46.196401      25.498357      27.843746      15.226837     -27.86224       0.089274965  
+        90   248.50576     -875.30133      0.037005008    22.222454      50.451376      72.67383       17.856866      45.983233      27.136834      21.702464      25.637603     -24.067766      0.042239931  
+       100   295.1639      -224.80687      0.037005008    26.394826      45.321518      71.716344      18.987736      46.309596      28.632455      26.341346      16.848156     -26.826461      0.32602225   
+Loop time of 0.0843581 on 4 procs for 100 steps with 31 atoms
+
+Performance: 102.420 ns/day, 0.234 hours/ns, 1185.422 timesteps/s, 36.748 katom-step/s
+76.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0002442  | 0.00045187 | 0.0006193  |   0.0 |  0.54
+Bond    | 0.0003901  | 0.0011175  | 0.0018941  |   1.7 |  1.32
+Kspace  | 0.0045432  | 0.0050136  | 0.0055096  |   0.5 |  5.94
+Neigh   | 0.0004722  | 0.00049452 | 0.0005168  |   0.0 |  0.59
+Comm    | 0.001994   | 0.0020892  | 0.0021904  |   0.2 |  2.48
+Output  | 0.074685   | 0.074687   | 0.074689   |   0.0 | 88.54
+Modify  | 0.0002263  | 0.00024025 | 0.0002482  |   0.0 |  0.28
+Other   |            | 0.0002645  |            |       |  0.31
+
+Nlocal:           7.75 ave          10 max           7 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+Nghost:         358.25 ave         365 max         353 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+Neighs:            128 ave         218 max          23 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+
+Total # of neighbors = 512
+Ave neighs/atom = 16.516129
+Ave special neighs/atom = 5.483871
+Neighbor list builds = 10
+Dangerous builds = 0
+System init for write_data ...
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.17877424
+  grid = 5 5 5
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00601225
+  estimated relative force accuracy = 1.8105712e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 640 45
+Generated 15 of 15 mixed pair_coeff terms from sixthpower/sixthpower mixing rule
+Total wall time: 0:00:00

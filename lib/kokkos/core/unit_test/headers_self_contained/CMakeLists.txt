@@ -7,11 +7,6 @@ file(GLOB KOKKOS_CORE_HEADERS RELATIVE ${BASE_DIR}/core/src ${BASE_DIR}/core/src
 file(GLOB KOKKOS_CONTAINERS_HEADERS RELATIVE ${BASE_DIR}/containers/src ${BASE_DIR}/containers/src/*.hpp)
 file(GLOB KOKKOS_ALGORITHMS_HEADERS RELATIVE ${BASE_DIR}/algorithms/src ${BASE_DIR}/algorithms/src/*.hpp)
 
-# erroring out when deprecated code is disabled and raising warnings that are treated as errors in the CI otherwise
-if(NOT Kokkos_ENABLE_DEPRECATED_CODE_4 OR Kokkos_ENABLE_DEPRECATION_WARNINGS)
-  list(REMOVE_ITEM KOKKOS_CONTAINERS_HEADERS "Kokkos_Vector.hpp" "Kokkos_StaticCrsGraph.hpp")
-endif()
-
 # FIXME circular dependencies and execution space type not complete
 list(REMOVE_ITEM KOKKOS_CORE_HEADERS "Kokkos_MemoryPool.hpp")
 

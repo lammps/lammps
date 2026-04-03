@@ -25,7 +25,8 @@ namespace Impl {
 // <editor-fold desc="GraphImpl default implementation"> {{{1
 
 template <class ExecutionSpace>
-struct GraphImpl : private InstanceStorage<ExecutionSpace> {
+struct GraphImpl
+    : private InstanceStorage<Kokkos::Impl::DeviceHandle<ExecutionSpace>> {
  public:
   using root_node_impl_t =
       GraphNodeImpl<ExecutionSpace, Kokkos::Experimental::TypeErasedTag,
@@ -34,8 +35,10 @@ struct GraphImpl : private InstanceStorage<ExecutionSpace> {
   using aggregate_impl_t = GraphNodeAggregateDefaultImpl<ExecutionSpace>;
 
  private:
-  using execution_space_instance_storage_base_t =
-      InstanceStorage<ExecutionSpace>;
+  using device_handle_t = Kokkos::Impl::DeviceHandle<ExecutionSpace>;
+
+  using device_handle_storage_base_t =
+      InstanceStorage<Kokkos::Impl::DeviceHandle<ExecutionSpace>>;
 
   using node_details_t = GraphNodeBackendSpecificDetails<ExecutionSpace>;
   std::set<std::shared_ptr<node_details_t>> m_sinks;
@@ -53,14 +56,14 @@ struct GraphImpl : private InstanceStorage<ExecutionSpace> {
   GraphImpl& operator=(GraphImpl&&)      = delete;
   ~GraphImpl()                           = default;
 
-  explicit GraphImpl(ExecutionSpace arg_space)
-      : execution_space_instance_storage_base_t(std::move(arg_space)) {}
+  explicit GraphImpl(const device_handle_t& device_handle)
+      : device_handle_storage_base_t(device_handle) {}
 
   // </editor-fold> end Constructors, destructor, and assignment }}}2
   //----------------------------------------------------------------------------
 
-  ExecutionSpace const& get_execution_space() const {
-    return this->execution_space_instance_storage_base_t::instance();
+  device_handle_t const& get_device_handle() const {
+    return this->device_handle_storage_base_t::instance();
   }
 
   //----------------------------------------------------------------------------
@@ -110,13 +113,13 @@ struct GraphImpl : private InstanceStorage<ExecutionSpace> {
         GraphNodeImpl<ExecutionSpace, aggregate_impl_t,
                       Kokkos::Experimental::TypeErasedTag>;
     return GraphAccess::make_node_shared_ptr<aggregate_node_impl_t>(
-        this->get_execution_space(), _graph_node_kernel_ctor_tag{},
+        this->get_device_handle(), _graph_node_kernel_ctor_tag{},
         aggregate_impl_t{});
   }
 
   auto create_root_node_ptr() {
     auto rv = Kokkos::Impl::GraphAccess::make_node_shared_ptr<root_node_impl_t>(
-        get_execution_space(), _graph_node_is_root_ctor_tag{});
+        get_device_handle(), _graph_node_is_root_ctor_tag{});
     m_sinks.insert(rv);
     return rv;
   }

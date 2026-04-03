@@ -490,7 +490,6 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & GROUPS) {
-    int ngroup = group->ngroup;
     char **names = group->names;
     int *dynamic = group->dynamic;
     fputs("\nGroup information:\n",out);

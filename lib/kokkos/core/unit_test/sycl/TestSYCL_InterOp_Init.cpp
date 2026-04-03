@@ -17,18 +17,23 @@ namespace Test {
 // SYCL.
 TEST(sycl, raw_sycl_interop) {
   // Make sure all queues use the same context
-  Kokkos::initialize();
-  Kokkos::SYCL default_space;
-  sycl::context default_context = default_space.sycl_queue().get_context();
-
-  sycl::queue queue(default_context, sycl::default_selector_v,
-                    sycl::property::queue::in_order());
+  sycl::queue queue;
+  int* p;
   constexpr int n = 100;
-  int* p          = sycl::malloc_device<int>(n, queue);
+
+  Kokkos::initialize();
   {
-    TEST_EXECSPACE space(queue);
-    Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v(p, n);
-    Kokkos::deep_copy(space, v, 5);
+    Kokkos::SYCL default_space;
+    sycl::context default_context = default_space.sycl_queue().get_context();
+
+    queue = sycl::queue(default_context, sycl::default_selector_v,
+                        sycl::property::queue::in_order());
+    p     = sycl::malloc_device<int>(n, queue);
+    {
+      TEST_EXECSPACE space(queue);
+      Kokkos::View<int*, Kokkos::MemoryTraits<Kokkos::Unmanaged>> v(p, n);
+      Kokkos::deep_copy(space, v, 5);
+    }
   }
   Kokkos::finalize();
 

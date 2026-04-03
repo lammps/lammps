@@ -26,12 +26,24 @@ namespace LAMMPS_NS {
 
 class AtomVecEllipsoid : virtual public AtomVec {
  public:
+  enum BlockType {
+    ELLIPSOID = 0, // n1 = n2 = 2
+    N1_EQUAL_N2 = 1, // n1 = n2 > 2
+    GENERAL = 2, // n1 != n2, n1 > 2, n2 > 2
+  };
   struct Bonus {
     double shape[3];
     double quat[4];
     int ilocal;
   };
   struct Bonus *bonus;
+
+  struct BonusSuper : public Bonus {
+    double block[2];
+    double inertia[3];
+    BlockType type;
+  };
+  struct BonusSuper *bonus_super;
 
   AtomVecEllipsoid(class LAMMPS *);
   ~AtomVecEllipsoid() override;
@@ -66,12 +78,13 @@ class AtomVecEllipsoid : virtual public AtomVec {
   // unique to AtomVecEllipsoid
 
   void set_shape(int, double, double, double);
+  void set_block(int, double, double);
 
   int nlocal_bonus;
 
  protected:
   int *ellipsoid;
-  double *rmass;
+  double *radius, *rmass;
   double **angmom;
   double **quat_hold;
 
@@ -81,6 +94,28 @@ class AtomVecEllipsoid : virtual public AtomVec {
 
   virtual void grow_bonus();
   void copy_bonus_all(int, int);
+
+  static BlockType determine_type(double *);
+  static double radius_ellipsoid(double *, double *, BlockType);
+  static void inertia_ellipsoid_principal(double *, double, double *,
+                                   double *block, BlockType);
+
+
+  template <bool is_super>
+  int pack_comm_bonus_templated(int, int *, double *);
+
+  template <bool is_super>
+  void unpack_comm_bonus_templated(int, int, double *);
+
+  template <bool is_super>
+  int pack_border_bonus_templated(int, int *, double *);
+
+  template <bool is_super>
+  int unpack_border_bonus_templated(int, int, double *);
+
+  void process_args(int, char **) override;
+
+
 };
 
 }    // namespace LAMMPS_NS

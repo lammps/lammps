@@ -15,8 +15,10 @@ import kokkos.core;
 #else
 #include <Kokkos_Core.hpp>
 #endif
-#include <impl/Kokkos_Error.hpp>
+
+#include <impl/Kokkos_CheckUsage.hpp>
 #include <impl/Kokkos_DeviceManagement.hpp>
+#include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_ExecSpaceManager.hpp>
 
 namespace {
@@ -38,38 +40,39 @@ struct Container {
 }  // namespace
 
 namespace Kokkos {
+
+SYCL::~SYCL() { Impl::check_execution_space_destructor_precondition(name()); }
+
 SYCL::SYCL()
-    : m_space_instance(&Impl::SYCLInternal::singleton(),
-                       [](Impl::SYCLInternal*) {}) {
-  Impl::SYCLInternal::singleton().verify_is_initialized(
-      "SYCL instance constructor");
-}
+    : m_space_instance(
+          (Impl::check_execution_space_constructor_precondition(name()),
+           Impl::SYCLInternal::default_instance)) {}
 
 SYCL::SYCL(const sycl::queue& stream)
-    : m_space_instance(new Impl::SYCLInternal, [](Impl::SYCLInternal* ptr) {
-        ptr->finalize();
-        delete ptr;
-      }) {
+    : m_space_instance(
+          (Impl::check_execution_space_constructor_precondition(name()),
+           Impl::HostSharedPtr(new Impl::SYCLInternal(stream)))) {
 #ifdef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
   if (!stream.is_in_order())
     Kokkos::abort("User provided sycl::queues must be in-order!");
 #endif
-  Impl::SYCLInternal::singleton().verify_is_initialized(
-      "SYCL instance constructor");
-  m_space_instance->initialize(stream);
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-int SYCL::concurrency() {
-  return Impl::SYCLInternal::singleton().m_maxConcurrency;
-}
-#else
 int SYCL::concurrency() const { return m_space_instance->m_maxConcurrency; }
-#endif
 
 const char* SYCL::name() { return "SYCL"; }
 
-void SYCL::impl_finalize() { Impl::SYCLInternal::singleton().finalize(); }
+void SYCL::impl_finalize() {
+  // The global_unique_token_locks array is static and should only be
+  // deallocated once by the default instance
+  Impl::sycl_global_unique_token_locks(true);
+#ifdef KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED
+  desul::Impl::finalize_lock_arrays();
+  desul::Impl::finalize_lock_arrays_sycl(
+      Impl::SYCLInternal::default_instance->m_queue);
+#endif
+  Impl::SYCLInternal::default_instance = nullptr;
+}
 
 void SYCL::print_configuration(std::ostream& os, bool verbose) const {
   os << "\nRuntime Configuration:\n";
@@ -183,7 +186,7 @@ void SYCL::impl_static_fence(const std::string& name) {
         std::scoped_lock lock(Impl::SYCLInternal::mutex);
         for (auto& queue : Impl::SYCLInternal::all_queues) {
           try {
-            (*queue)->wait_and_throw();
+            queue->wait_and_throw();
           } catch (sycl::exception const& e) {
             Kokkos::Impl::throw_runtime_exception(
                 std::string("There was a synchronous SYCL error:\n") +=
@@ -198,8 +201,15 @@ void SYCL::impl_initialize(InitializationSettings const& settings) {
   const auto id =
       ::Kokkos::Impl::get_gpu(settings).value_or(visible_devices[0]);
   std::vector<sycl::device> sycl_devices = Impl::get_sycl_devices();
-  Impl::SYCLInternal::singleton().initialize(sycl_devices[id]);
+  Impl::SYCLInternal::default_instance =
+      Impl::HostSharedPtr(new Impl::SYCLInternal(sycl_devices[id]));
   Impl::SYCLInternal::m_syclDev = id;
+#ifdef KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED
+  // Init the array for used for arbitrarily sized atomics
+  desul::Impl::init_lock_arrays();
+  desul::Impl::init_lock_arrays_sycl(
+      Impl::SYCLInternal::default_instance->m_queue);
+#endif
 }
 
 std::ostream& SYCL::impl_sycl_info(std::ostream& os,

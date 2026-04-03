@@ -31,10 +31,10 @@ read_data tiny_nylon.data &
 
 velocity all create 300.0 4928459 dist gaussian
 
-molecule mol1 rxn1_stp1_unreacted.json
-molecule mol2 rxn1_stp1_reacted.json
-molecule mol3 rxn1_stp2_unreacted.json
-molecule mol4 rxn1_stp2_reacted.json
+molecule mol1 rxn1_stp1_unreacted.json auto adi
+molecule mol2 rxn1_stp1_reacted.json auto adi
+molecule mol3 rxn1_stp2_unreacted.json auto adi
+molecule mol4 rxn1_stp2_reacted.json auto adi
 
 thermo 50
 

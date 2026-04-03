@@ -17,6 +17,7 @@ class Timer {
  public:
   Timer(const Timer&)            = delete;
   Timer& operator=(const Timer&) = delete;
+  ~Timer()                       = default;
 
   Timer() { reset(); }
 

@@ -20,6 +20,7 @@ static_assert(false,
 #include <typeinfo>
 #endif
 #include <limits>
+#include <sstream>
 #include <type_traits>
 
 //----------------------------------------------------------------------------
@@ -33,11 +34,6 @@ struct ParallelReduceTag {};
 struct ChunkSize {
   int value;
   explicit ChunkSize(int value_) : value(value_) {}
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  template <typename T = void>
-  KOKKOS_DEPRECATED_WITH_COMMENT("ChunkSize should be constructed explicitly.")
-  ChunkSize(int value_) : value(value_) {}
-#endif
 };
 
 namespace Impl {
@@ -178,15 +174,6 @@ class RangePolicy : public Impl::PolicyTraits<Properties...> {
       : RangePolicy(other) {
     this->m_space = std::move(space);
   }
-
- public:
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use set_chunk_size instead")
-  inline void set(ChunkSize chunksize) {
-    m_granularity      = chunksize.value;
-    m_granularity_mask = m_granularity - 1;
-  }
-#endif
 
  public:
   /** \brief return chunk_size */
@@ -345,8 +332,6 @@ class RangePolicy : public Impl::PolicyTraits<Properties...> {
    private:
     member_type m_begin;
     member_type m_end;
-    WorkRange();
-    WorkRange& operator=(const WorkRange&);
   };
 };
 
@@ -553,6 +538,9 @@ inline std::enable_if_t<!std::is_integral_v<iType>, int> extract_vector_length(
   return 1;
 }
 
+// Causes abnormal program termination if level is not `0` or `1`
+void team_policy_check_valid_storage_level_argument(int level);
+
 }  // namespace Impl
 
 Impl::PerTeamValue PerTeam(const size_t& arg);
@@ -594,9 +582,6 @@ struct ScratchRequest {
   }
 };
 
-// Causes abnormal program termination if level is not `0` or `1`
-void team_policy_check_valid_storage_level_argument(int level);
-
 /** \brief  Execution policy for parallel work over a league of teams of
  * threads.
  *
@@ -635,6 +620,49 @@ class TeamPolicy
   template <class... OtherProperties>
   friend class TeamPolicy;
 
+  static int validate_league_size_argument(int league_size) {
+    if (league_size < 0) {
+      std::stringstream err;
+      err << "Kokkos::TeamPolicy error: league_size (" << league_size
+          << ") must be greater than or equal to 0";
+      Kokkos::abort(err.str().c_str());
+    }
+    return league_size;
+  }
+  static int validate_team_size_argument(int team_size) {
+    if (team_size < 1) {
+      std::stringstream err;
+      err << "Kokkos::TeamPolicy error: team_size (" << team_size
+          << ") must be greater than or equal to 1";
+      Kokkos::abort(err.str().c_str());
+    }
+    return team_size;
+  }
+  static int validate_vector_length_argument(int vector_length) {
+    if (vector_length < 1) {
+      std::stringstream err;
+      err << "Kokkos::TeamPolicy error: vector_length (" << vector_length
+          << ") must be greater than or equal to 1";
+      Kokkos::abort(err.str().c_str());
+    }
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_5
+    int const vector_length_max = internal_policy::vector_length_max();
+    if (vector_length > vector_length_max) {
+      std::stringstream err;
+      err << "Kokkos::TeamPolicy error: vector_length (" << vector_length
+          << ") exceeds the maximum allowed (" << vector_length_max << ")";
+      Kokkos::abort(err.str().c_str());
+    }
+    if (!Kokkos::has_single_bit(static_cast<unsigned>(vector_length))) {
+      std::stringstream err;
+      err << "Kokkos::TeamPolicy error: vector_length (" << vector_length
+          << ") must be a power of 2";
+      Kokkos::abort(err.str().c_str());
+    }
+#endif
+    return vector_length;
+  }
+
  public:
   using traits = Impl::PolicyTraits<Properties...>;
 
@@ -643,47 +671,46 @@ class TeamPolicy
   TeamPolicy() : internal_policy(0, AUTO) {}
 
   /** \brief  Construct policy with the given instance of the execution space */
-  TeamPolicy(const typename traits::execution_space& space_,
-             int league_size_request, int team_size_request,
-             int vector_length_request = 1)
-      : internal_policy(space_, league_size_request, team_size_request,
-                        vector_length_request) {}
+  TeamPolicy(const typename traits::execution_space& space_, int league_size,
+             int team_size, int vector_length = 1)
+      : internal_policy(space_, validate_league_size_argument(league_size),
+                        validate_team_size_argument(team_size),
+                        validate_vector_length_argument(vector_length)) {}
 
-  TeamPolicy(const typename traits::execution_space& space_,
-             int league_size_request, const Kokkos::AUTO_t&,
-             int vector_length_request = 1)
-      : internal_policy(space_, league_size_request, Kokkos::AUTO(),
-                        vector_length_request) {}
+  TeamPolicy(const typename traits::execution_space& space_, int league_size,
+             Kokkos::AUTO_t, int vector_length = 1)
+      : internal_policy(space_, validate_league_size_argument(league_size),
+                        Kokkos::AUTO,
+                        validate_vector_length_argument(vector_length)) {}
 
-  TeamPolicy(const typename traits::execution_space& space_,
-             int league_size_request, const Kokkos::AUTO_t&,
-             const Kokkos::AUTO_t&)
-      : internal_policy(space_, league_size_request, Kokkos::AUTO(),
-                        Kokkos::AUTO()) {}
-  TeamPolicy(const typename traits::execution_space& space_,
-             int league_size_request, const int team_size_request,
-             const Kokkos::AUTO_t&)
-      : internal_policy(space_, league_size_request, team_size_request,
-                        Kokkos::AUTO()) {}
+  TeamPolicy(const typename traits::execution_space& space_, int league_size,
+             Kokkos::AUTO_t, Kokkos::AUTO_t)
+      : internal_policy(space_, league_size, Kokkos::AUTO, Kokkos::AUTO) {}
+
+  TeamPolicy(const typename traits::execution_space& space_, int league_size,
+             const int team_size, Kokkos::AUTO_t)
+      : internal_policy(space_, validate_league_size_argument(league_size),
+                        validate_team_size_argument(team_size), Kokkos::AUTO) {}
+
   /** \brief  Construct policy with the default instance of the execution space
    */
-  TeamPolicy(int league_size_request, int team_size_request,
-             int vector_length_request = 1)
-      : internal_policy(league_size_request, team_size_request,
-                        vector_length_request) {}
+  TeamPolicy(int league_size, int team_size, int vector_length = 1)
+      : internal_policy(validate_league_size_argument(league_size),
+                        validate_team_size_argument(team_size),
+                        validate_vector_length_argument(vector_length)) {}
 
-  TeamPolicy(int league_size_request, const Kokkos::AUTO_t&,
-             int vector_length_request = 1)
-      : internal_policy(league_size_request, Kokkos::AUTO(),
-                        vector_length_request) {}
+  TeamPolicy(int league_size, Kokkos::AUTO_t, int vector_length = 1)
+      : internal_policy(validate_league_size_argument(league_size),
+                        Kokkos::AUTO,
+                        validate_vector_length_argument(vector_length)) {}
 
-  TeamPolicy(int league_size_request, const Kokkos::AUTO_t&,
-             const Kokkos::AUTO_t&)
-      : internal_policy(league_size_request, Kokkos::AUTO(), Kokkos::AUTO()) {}
-  TeamPolicy(int league_size_request, const int team_size_request,
-             const Kokkos::AUTO_t&)
-      : internal_policy(league_size_request, team_size_request,
-                        Kokkos::AUTO()) {}
+  TeamPolicy(int league_size, Kokkos::AUTO_t, Kokkos::AUTO_t)
+      : internal_policy(validate_league_size_argument(league_size),
+                        Kokkos::AUTO, Kokkos::AUTO) {}
+
+  TeamPolicy(int league_size, int team_size, Kokkos::AUTO_t)
+      : internal_policy(validate_league_size_argument(league_size),
+                        validate_team_size_argument(team_size), Kokkos::AUTO) {}
 
   template <class... OtherProperties>
   TeamPolicy(const TeamPolicy<OtherProperties...> p) : internal_policy(p) {
@@ -715,27 +742,27 @@ class TeamPolicy
                                  internal_policy&>,
                   "internal set_chunk_size should return a reference");
 
-    team_policy_check_valid_storage_level_argument(level);
+    Impl::team_policy_check_valid_storage_level_argument(level);
     return static_cast<TeamPolicy&>(
         internal_policy::set_scratch_size(level, per_team));
   }
   inline TeamPolicy& set_scratch_size(const int& level,
                                       const Impl::PerThreadValue& per_thread) {
-    team_policy_check_valid_storage_level_argument(level);
+    Impl::team_policy_check_valid_storage_level_argument(level);
     return static_cast<TeamPolicy&>(
         internal_policy::set_scratch_size(level, per_thread));
   }
   inline TeamPolicy& set_scratch_size(const int& level,
                                       const Impl::PerTeamValue& per_team,
                                       const Impl::PerThreadValue& per_thread) {
-    team_policy_check_valid_storage_level_argument(level);
+    Impl::team_policy_check_valid_storage_level_argument(level);
     return static_cast<TeamPolicy&>(
         internal_policy::set_scratch_size(level, per_team, per_thread));
   }
   inline TeamPolicy& set_scratch_size(const int& level,
                                       const Impl::PerThreadValue& per_thread,
                                       const Impl::PerTeamValue& per_team) {
-    team_policy_check_valid_storage_level_argument(level);
+    Impl::team_policy_check_valid_storage_level_argument(level);
     return static_cast<TeamPolicy&>(
         internal_policy::set_scratch_size(level, per_team, per_thread));
   }

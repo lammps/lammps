@@ -62,6 +62,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 
+static constexpr double MBX_CUTOFF_TOL = 1e-9;
+
 std::string FixMBX::cite_pair_mbx = std::string(
     "pair mbx command:\n\n" \
     "@article{10.1063/5.0156036,\n" \
@@ -614,6 +616,8 @@ void FixMBX::init()
 {
   if (!atom->q_flag) error->all(FLERR, "[MBX] Fix mbx requires atom attribute q");
 
+  if (!atom->molecule_flag) error->all(FLERR, "[MBX] Fix mbx requires atom attribute molecule");
+
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR, "[MBX] Fix mbx group has no atoms");
 
@@ -652,8 +656,8 @@ void FixMBX::mbx_fill_system_information_from_atom()
   }
 
   // Reset anchors
-  int * last_anchor = mol_anchor + nall;
-  std::fill(mol_anchor, last_anchor, 0);
+  int *last_anchor = mol_anchor + nall;
+  memset(mol_anchor, 0, sizeof(int)*nall);
 
   for (int i = 0; i < nall; ++i) {
     // Assign anchor TODO careful, not necessarily true
@@ -1193,7 +1197,7 @@ void FixMBX::mbx_init()
 
     double mbx_cut = mbx_impl->ptr_mbx->GetRealspaceCutoff();
     double diff_sq = (mbx_cut - pair_mbx->cut_global) * (mbx_cut - pair_mbx->cut_global);
-    if (diff_sq > 1e-9) error->one(FLERR, "[MBX] cutoff not consistent with LAMMPS");
+    if (diff_sq > MBX_CUTOFF_TOL) error->one(FLERR, "[MBX] cutoff not consistent with LAMMPS");
     double mbx_2b_cut = mbx_impl->ptr_mbx->Get2bCutoff();
     if (mbx_2b_cut > mbx_cut)
       error->one(FLERR,
@@ -1266,20 +1270,13 @@ void FixMBX::mbx_init_local()
   mbx_num_atoms_local = 0;
   mbx_num_ext_local = 0;
 
-  for (int i = 0; i < nall; ++i) mol_local[i] = 0;
-
-  // add all local+ghost monomers
-
   for (int i = 0; i < nall; ++i) {
+    mol_local[i] = 0;
     if (mol_anchor[i]) mol_local[i] = 1;
   }
 
   // remove ghost monomers that are periodic images of local monomer
   // -- just an artifact for small systems and PBC
-  // -- should be able to remove this
-
-  // Look for atoms that are local (0<i<nlocal)
-  // Then update tag+j to make local if atom is local and anchor
 
   for (int i = nlocal; i < nall; ++i) {
     if (mol_anchor[i]) {
@@ -1290,19 +1287,17 @@ void FixMBX::mbx_init_local()
 
   // remove ghost monomers that are periodic images of ghost monomer
   // -- just an artifact for small systems and PBC
-  // -- should be able to remove this
 
-  double ximage[3];
+  // if two ghost have the same tag, then they are periodic
+  // -- images of each other, so remove the second one
+
   for (int i = nlocal; i < nall - 1; ++i) {
     if (mol_anchor[i] && mol_local[i]) {
       for (int j = i + 1; j < nall; ++j) {
         if (mol_anchor[j] && mol_local[j]) {
-          domain->closest_image(x[i], x[j], ximage);
-          double dx = x[i][0] - ximage[0];
-          double dy = x[i][1] - ximage[1];
-          double dz = x[i][2] - ximage[2];
-          double rsq = dx * dx + dy * dy + dz * dz;
-          if (rsq < 0.00001) mol_local[j] = 0;
+          if (atom->tag[i] == atom->tag[j]) {
+            mol_local[j] = 0;
+          }
         }
       }
     }
@@ -1310,6 +1305,7 @@ void FixMBX::mbx_init_local()
 
   std::vector<size_t> molec;
 
+  double ximage[3];
   const double xlo = domain->boxlo[0];
   const double ylo = domain->boxlo[1];
   const double zlo = domain->boxlo[2];
@@ -1406,7 +1402,7 @@ void FixMBX::mbx_init_local()
 
     double mbx_cut = mbx_impl->ptr_mbx_local->GetRealspaceCutoff();
     double diff_sq = (mbx_cut - pair_mbx->cut_global) * (mbx_cut - pair_mbx->cut_global);
-    if (diff_sq > 1e-9) error->one(FLERR, "[MBX] cutoff not consistent with LAMMPS");
+    if (diff_sq > MBX_CUTOFF_TOL) error->one(FLERR, "[MBX] cutoff not consistent with LAMMPS");
     double mbx_2b_cut = mbx_impl->ptr_mbx_local->Get2bCutoff();
     if (mbx_2b_cut > mbx_cut)
       error->one(FLERR,

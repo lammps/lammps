@@ -605,12 +605,15 @@ faces (*bflag1* value 1), or both (*bflag1* value 3).
 
 -------------
 
-Visualizing ellipsoid particles
--------------------------------
+Visualizing ellipsoid and superellipsoid particles
+--------------------------------------------------
+
+.. versionadded:: 11Feb2026
 
 Ellipsoidal particles are a generalization of spheres that may have
-three different radii to define the shape.  They can be modeled using
-pair styles :doc:`gayberne <pair_gayberne>` or :doc:`resquared
+three different radii to define the shape.  Superellipsoids are in turn
+a generalization of ellipsoids.  They can be modeled using pair styles
+like :doc:`gayberne <pair_gayberne>` or :doc:`resquared
 <pair_resquared>`.  The regular :doc:`dump custom <dump>` command can
 output the center of those bodies, the shape parameters and the
 orientation as quaternions.  If one follows the required conventions and
@@ -618,47 +621,77 @@ follows the documented steps, those trajectory dump files can be
 `imported and visualized in OVITO
 <https://www.ovito.org/manual/advanced_topics/aspherical_particles.html>`_
 
-As an alternative, the ellipsoid particles can be visualized directly
-with :doc:`dump image <dump_image>` using the *ellipsoid* keyword.  The
-color and transparency settings can be changed by settings those
-properties for the corresponding atom types.  It is also possible to
-represent the ellipsoids via generating a triangle mesh and visualizing
-it as either wireframes (*eflag* value 2), planar faces (*eflag* value
-1), or both (*eflag* value 3), same as demonstrated for body particles
-above.  The use of a triangle mesh is currently required since the
-rasterizer built into LAMMPS does not offer a suitable graphics
-primitive for ellipsoids.  The mesh is constructed by iteratively
-refining a triangle mesh representing an octahedron where each triangle
-is replaced by four triangles.  For a smooth representation a refinement
-level of 5 or 6 is required, which will cause a significant slowdown of
-the rendering of the image.  Also, some artifacts can happen due to
-rounding which can be somewhat minimized using FSAA (which causes
-further slowdown of the rendering).
+.. versionchanged:: 30Mar2026
 
-.. |ellipsoid1| image:: img/ellipsoid-level2.png
-   :width: 33%
-.. |ellipsoid2| image:: img/ellipsoid-level4.png
-   :width: 33%
-.. |ellipsoid3| image:: img/ellipsoid-level6.png
-   :width: 33%
+   Now uses curved triangles instead of flat ones; "both" option is removed; support for superellipsoids was added
 
-|ellipsoid1|  |ellipsoid2|  |ellipsoid3|
+As an alternative, the ellipsoid and superellipsoid particles can be
+visualized directly with :doc:`dump image <dump_image>` using the
+*ellipsoid* keyword.  The color and transparency settings can be changed
+by setting those properties for the corresponding atom types.  It is
+also possible to represent the ellipsoids via generating a triangle mesh
+and visualizing it as either wireframes (*eflag* value 2) or rounded
+triangle faces (*eflag* value 1).  The use of a triangle mesh is
+currently required since the rasterizer built into LAMMPS does not offer
+suitable graphics primitives for ellipsoids or superellipsoids.  The
+mesh is constructed by iteratively refining a triangle mesh representing
+an icosahedron, where each triangle is replaced by four triangles in
+each iteration.  For a smooth representation a refinement level of 4
+seems sufficient, but high resolution images may benefit from a higher
+level (maximum is 6, see example images below).  A high refinement level
+can cause a significant slowdown of the rendering of the image due to
+the large number of triangles that need to be computed and drawn.  This
+slowdown will be more pronounced when enabling FSAA or SSAO or both.
+
+.. |ellipsoid1| image:: img/ellipsoid-mesh.png
+   :width: 24%
+.. |ellipsoid2| image:: img/ellipsoid-level2.png
+   :width: 24%
+.. |ellipsoid3| image:: img/ellipsoid-level4.png
+   :width: 24%
+.. |ellipsoid4| image:: img/ellipsoid-level6.png
+   :width: 24%
+
+|ellipsoid1|  |ellipsoid2|  |ellipsoid3|  |ellipsoid4|
 
 .. raw:: html
 
-   <center>(Ellipsoid particle visualization examples for different mesh refinement levels.
-   left: level 2, center: level 4, right: level 6. Click to see the full-size images)</center><br>
+   <center>(Ellipsoid particle visualization examples for different mesh
+         levels.  from left to right: wireframe level 3, triangles level
+         2, triangles level 4, triangles level 6. Click to see the
+         full-size images)</center><br>
 
 These images were created by adding the following :doc:`dump image and dump_modify <dump_image>`
 commands to the ``in.ellipse.resquared`` input example:
 
 .. code-block:: LAMMPS
 
-   #                                                       change + this
-   dump viz all image 1000 image-*.png type type ellipsoid type 3 4 0.05 &
-         size 600 600 zoom 2.2 shiny 0.1 fsaa yes view 80 -10 box yes 0.025 &
-         axes no 0.0 0.0 center s 0.5 0.5 0.5 ssao yes 32185474 0.6
-   dump_modify viz pad 9 boxcolor white backcolor gray adiam 1 4 adiam 2 7
+   #                                                   change /V\ this
+   dump viz all image 1000 image-*.png x type ellipsoid atom 1 4 0.2 &
+        size 600 600 zoom 1.331 view 80 20 box yes 0.025 shiny 0.2 fsaa yes
+   dump_modify viz pad 6 boxcolor goldenrod backcolor black backcolor2 white &
+        color map1 0.459 0.055 0.075 color map2 0.000 0.227 0.427 &
+        amap min max cf 0.0 5 min map1 0.1 map1 0.5 white 0.9 map2 max map2
+
+.. versionadded:: 30Mar2026
+
+The visualization of superellipsoids works exactly the same way as for
+ellipsoids by creating a triangle mesh of an icosahedron and refining
+and deforming it.  The difference is merely internally the applied
+deformation function and the corresponding computation of the surface
+normals.  LAMMPS will auto-detect which function to use.  Some
+visualizations of the ``in.drop_test``, the ``in.bowling``, and the
+``in.super_table`` examples from the
+``examples/ASPHERE/superellipsoid_gran`` folder are shown below.
+
+.. |superellipsoid1| image:: img/superellipsoids-drop.png
+   :width: 23%
+.. |superellipsoid2| image:: img/superellipsoids-bowl.png
+   :width: 41%
+.. |superellipsoid3| image:: img/superellipsoids-zoo.png
+   :width: 31%
+
+|superellipsoid1|  |superellipsoid2|  |superellipsoid3|
 
 -------------
 

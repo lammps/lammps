@@ -7,9 +7,6 @@
 #include <Kokkos_Macros.hpp>
 #include <stdint.h>
 #include <chrono>
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-#include <omp.h>
-#endif
 
 // To use OpenCL(TM) built-in intrinsics inside kernels, we have to
 // forward-declare their prototype, also see
@@ -49,10 +46,6 @@ KOKKOS_IMPL_DEVICE_FUNCTION inline uint64_t clock_tic_device() noexcept {
     defined(KOKKOS_ARCH_INTEL_GPU) && defined(__SYCL_DEVICE_ONLY__)
 
   return intel_get_cycle_counter();
-
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-
-  return omp_get_wtime() * 1.e9;
 
 #else
 

@@ -387,18 +387,14 @@ struct TestStruct {
     TEST_ALGO_MACRO_B1E1(is_sorted_until);
     TEST_ALGO_MACRO_V1(is_sorted_until);
 
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     TEST_ALGO_MACRO_B1E1_VARIAD(is_sorted_until, TrivialComparator<T>());
     TEST_ALGO_MACRO_V1_VARIAD(is_sorted_until, TrivialComparator<T>());
-#endif
 
     TEST_ALGO_MACRO_B1E1(is_sorted);
     TEST_ALGO_MACRO_V1(is_sorted);
 
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     TEST_ALGO_MACRO_B1E1_VARIAD(is_sorted, TrivialComparator<T>());
     TEST_ALGO_MACRO_V1_VARIAD(is_sorted, TrivialComparator<T>());
-#endif
   }
 
   void minmax_ops() {
@@ -409,14 +405,12 @@ struct TestStruct {
     TEST_ALGO_MACRO_B1E1(minmax_element);
     TEST_ALGO_MACRO_V1(minmax_element);
 
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     TEST_ALGO_MACRO_B1E1_VARIAD(min_element, TrivialComparator<T>());
     TEST_ALGO_MACRO_V1_VARIAD(min_element, TrivialComparator<T>());
     TEST_ALGO_MACRO_B1E1_VARIAD(max_element, TrivialComparator<T>());
     TEST_ALGO_MACRO_V1_VARIAD(max_element, TrivialComparator<T>());
     TEST_ALGO_MACRO_B1E1_VARIAD(minmax_element, TrivialComparator<T>());
     TEST_ALGO_MACRO_V1_VARIAD(minmax_element, TrivialComparator<T>());
-#endif
   }
 
   void partitionig_ops() {
@@ -439,7 +433,6 @@ struct TestStruct {
 
     TEST_ALGO_MACRO_B1E1B2_VARIAD(exclusive_scan, T{});
     TEST_ALGO_MACRO_V1V2_VARIAD(exclusive_scan, T{});
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     TEST_ALGO_MACRO_B1E1B2_VARIAD(exclusive_scan, T{},
                                   TrivialBinaryFunctor<T>());
     TEST_ALGO_MACRO_V1V2_VARIAD(exclusive_scan, T{}, TrivialBinaryFunctor<T>());
@@ -450,11 +443,9 @@ struct TestStruct {
     TEST_ALGO_MACRO_V1V2_VARIAD(transform_exclusive_scan, T{},
                                 TrivialBinaryFunctor<T>(),
                                 TrivialUnaryFunctor<T>());
-#endif
 
     TEST_ALGO_MACRO_B1E1B2(inclusive_scan);
     TEST_ALGO_MACRO_V1V2(inclusive_scan);
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     TEST_ALGO_MACRO_B1E1B2_VARIAD(inclusive_scan, TrivialBinaryFunctor<T>());
     TEST_ALGO_MACRO_V1V2_VARIAD(inclusive_scan, TrivialBinaryFunctor<T>());
     TEST_ALGO_MACRO_B1E1B2_VARIAD(inclusive_scan, TrivialBinaryFunctor<T>(),
@@ -473,9 +464,7 @@ struct TestStruct {
     TEST_ALGO_MACRO_V1V2_VARIAD(transform_inclusive_scan,
                                 TrivialBinaryFunctor<T>(),
                                 TrivialUnaryFunctor<T>(), T{});
-#endif
 
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     TEST_ALGO_MACRO_B1E1(reduce);
     TEST_ALGO_MACRO_V1(reduce);
     TEST_ALGO_MACRO_B1E1_VARIAD(reduce, T{});
@@ -498,7 +487,6 @@ struct TestStruct {
     TEST_ALGO_MACRO_V1_VARIAD(transform_reduce, T{},
                               TrivialReduceJoinFunctor<T>(),
                               TrivialTransformReduceUnaryTransformer<T>());
-#endif
   }
 };
 

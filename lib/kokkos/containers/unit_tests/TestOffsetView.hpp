@@ -48,16 +48,6 @@ void test_offsetview_construction() {
 
   ASSERT_EQ("firstOV", ov.label());
 
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-  KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
-#endif
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  ASSERT_EQ(2u, ov.Rank);
-#endif
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-  KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
-#endif
-
   ASSERT_EQ(2u, ov.rank());
 
   ASSERT_EQ(ov.begin(0), -1);

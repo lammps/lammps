@@ -890,16 +890,17 @@ void Pair::map_element2type(int narg, char **arg, bool update_setflag)
    setup for energy, virial computation
    see integrate::ev_set() for bitwise settings of eflag/vflag
    set the following flags, values are otherwise set to 0:
-     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
-     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag is set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag is set
      eflag_either != 0 if eflag_global or eflag_atom is set
-     vflag_global != 0 if VIRIAL_PAIR bit of vflag set, OR
+     eflag_only   != 0 if ENERGY_GLOBAL and ENERGY_ONLY bits of eflag are set
+     vflag_global != 0 if VIRIAL_PAIR bit of vflag is set, OR
                        if VIRIAL_FDOTR bit of vflag is set but no_virial_fdotr = 1
-     vflag_fdotr  != 0 if VIRIAL_FDOTR bit of vflag set and no_virial_fdotr = 0
-     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set, OR
-                       if VIRIAL_CENTROID bit of vflag set
+     vflag_fdotr  != 0 if VIRIAL_FDOTR bit of vflag is set and no_virial_fdotr = 0
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag is set, OR
+                       if VIRIAL_CENTROID bit of vflag is set
                        and centroidstressflag != CENTROID_AVAIL
-     cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag set
+     cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag is set
                        and centroidstressflag = CENTROID_AVAIL
      vflag_either != 0 if any of vflag_global, vflag_atom, cvflag_atom is set
      evflag       != 0 if eflag_either or vflag_either is set
@@ -913,9 +914,10 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
 {
   int i,n;
 
-  eflag_either = eflag;
+  eflag_either = eflag & (ENERGY_GLOBAL | ENERGY_ATOM);
   eflag_global = eflag & ENERGY_GLOBAL;
   eflag_atom = eflag & ENERGY_ATOM;
+  eflag_only = eflag_global ? (eflag & ENERGY_ONLY) : 0;
 
   vflag_global = vflag & VIRIAL_PAIR;
   if (vflag & VIRIAL_FDOTR && no_virial_fdotr_compute == 1) vflag_global = 1;
@@ -1015,6 +1017,7 @@ void Pair::ev_unset()
   eflag_either = 0;
   eflag_global = 0;
   eflag_atom = 0;
+  eflag_only = 0;
 
   vflag_either = 0;
   vflag_global = 0;

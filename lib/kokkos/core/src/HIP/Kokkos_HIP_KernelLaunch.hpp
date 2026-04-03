@@ -451,7 +451,7 @@ struct HIPParallelLaunchKernelInvoker<DriverType, LaunchBounds,
       // FIXME_HIP Modifying the assignment to args causes a segfault in
       // hip_graph.force_global_launch
       // NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)
-      void const *args[] = {&driver_ptr};
+      void *args[] = {&driver_ptr};
 
       hipKernelNodeParams params = {};
 
@@ -460,7 +460,7 @@ struct HIPParallelLaunchKernelInvoker<DriverType, LaunchBounds,
       params.sharedMemBytes = shmem;
       // Casting a function pointer to a data pointer...
       params.func         = reinterpret_cast<void *>(base_t::get_kernel_func());
-      params.kernelParams = const_cast<void **>(args);
+      params.kernelParams = args;
       params.extra        = nullptr;
 
       KOKKOS_IMPL_HIP_SAFE_CALL(hip_instance->hip_graph_add_kernel_node_wrapper(

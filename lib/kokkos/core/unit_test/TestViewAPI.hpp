@@ -910,7 +910,6 @@ class TestViewAPI {
       Kokkos::parallel_for(int(N0), f);
       Kokkos::fence();
     }
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     TestViewOperator_LeftAndRight<int[2][3][4][2][3][4], device> f6;
     f6.testit();
     TestViewOperator_LeftAndRight<int[2][3][4][2][3], device> f5;
@@ -923,21 +922,16 @@ class TestViewAPI {
     f2.testit();
     TestViewOperator_LeftAndRight<int[2], device> f1;
     f1.testit();
-#endif
   }
 
   static void run_test_view_operator_b() {
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     TestViewOperator_LeftAndRight<int[2][3][4][2][3][4][2], device> f7;
     f7.testit();
-#endif
   }
 
   static void run_test_view_operator_c() {
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     TestViewOperator_LeftAndRight<int[2][3][4][2][3][4][2][3], device> f8;
     f8.testit();
-#endif
   }
 
   static void run_test_mirror() {
@@ -984,9 +978,7 @@ class TestViewAPI {
     Kokkos::deep_copy(dx, hx);
     Kokkos::deep_copy(dy, dx);
     Kokkos::deep_copy(hy, dy);
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     ASSERT_EQ(hx(), hy());
-#endif
   }
 
   static void run_test_contruction_from_layout() {
@@ -1201,9 +1193,6 @@ class TestViewAPI {
 
     ASSERT_EQ(unmanaged_from_ptr_dx.span(),
               unsigned(N0) * unsigned(N1) * unsigned(N2) * unsigned(N3));
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-    return;
-#endif
     hx = Kokkos::create_mirror(dx);
     hy = Kokkos::create_mirror(dy);
 
@@ -1347,6 +1336,17 @@ class TestViewAPI {
         : view(other.view) {
       throw std::bad_alloc();
     }
+
+    test_refcount_poison_copy_functor(test_refcount_poison_copy_functor &&other)
+        : view(other.view) {
+      throw std::bad_alloc();
+    }
+
+    test_refcount_poison_copy_functor &operator=(
+        const test_refcount_poison_copy_functor &) = delete;
+    test_refcount_poison_copy_functor &operator=(
+        test_refcount_poison_copy_functor &&) = delete;
+    ~test_refcount_poison_copy_functor()      = default;
 
     KOKKOS_INLINE_FUNCTION void operator()(int) const {}
 

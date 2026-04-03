@@ -23,67 +23,17 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
-//
-// exespace impl
-//
-template <class ExecutionSpace, class InputIteratorType,
-          class OutputIteratorType, class ValueType>
-OutputIteratorType exclusive_scan_default_op_exespace_impl(
-    const std::string& label, const ExecutionSpace& ex,
-    InputIteratorType first_from, InputIteratorType last_from,
-    OutputIteratorType first_dest, ValueType init_value) {
-  // checks
-  Impl::static_assert_random_access_and_accessible(ex, first_from, first_dest);
-  Impl::static_assert_iterators_have_matching_difference_type(first_from,
-                                                              first_dest);
-  Impl::expect_valid_range(first_from, last_from);
-
-  // does it make sense to do this static_assert too?
-  // using input_iterator_value_type = typename InputIteratorType::value_type;
-  // static_assert
-  //   (std::is_convertible<std::remove_cv_t<input_iterator_value_type>,
-  //   ValueType>::value,
-  //    "exclusive_scan: InputIteratorType::value_type not convertible to
-  //    ValueType");
-
-  // we are unnecessarily duplicating code, but this is on purpose
-  // so that we can use the default_op for OpenMPTarget.
-  // Originally, I had this implemented as:
-  // '''
-  // using bop_type   = StdExclusiveScanDefaultJoinFunctor<ValueType>;
-  // call exclusive_scan_custom_op_impl(..., bop_type());
-  // '''
-  // which avoids duplicating the functors, but for OpenMPTarget
-  // I cannot use a custom binary op.
-  // This is the same problem that occurs for reductions.
-
-  // aliases
-  using index_type = typename InputIteratorType::difference_type;
-  using func_type  = std::conditional_t<
-      ::Kokkos::is_detected<ex_scan_has_reduction_identity_sum_t,
-                            ValueType>::value,
-      ExclusiveScanDefaultFunctorForKnownNeutralElement<
-          ExecutionSpace, index_type, ValueType, InputIteratorType,
-          OutputIteratorType>,
-      ExclusiveScanDefaultFunctorWithValueWrapper<ExecutionSpace, index_type,
-                                                  ValueType, InputIteratorType,
-                                                  OutputIteratorType>>;
-
-  // run
-  const auto num_elements =
-      Kokkos::Experimental::distance(first_from, last_from);
-  ::Kokkos::parallel_scan(
-      label, RangePolicy<ExecutionSpace>(ex, 0, num_elements),
-      func_type(std::move(init_value), first_from, first_dest));
-
-  ex.fence("Kokkos::exclusive_scan_default_op: fence after operation");
-
-  return first_dest + num_elements;
-}
+template <class ValueType>
+struct StdExclusiveScanDefaultJoinFunctor {
+  KOKKOS_FUNCTION
+  constexpr ValueType operator()(const ValueType& a, const ValueType& b) const {
+    return a + b;
+  }
+};
 
 template <class ExecutionSpace, class InputIteratorType,
           class OutputIteratorType, class ValueType, class BinaryOpType>
-OutputIteratorType exclusive_scan_custom_op_exespace_impl(
+OutputIteratorType exclusive_scan_exespace_impl(
     const std::string& label, const ExecutionSpace& ex,
     InputIteratorType first_from, InputIteratorType last_from,
     OutputIteratorType first_dest, ValueType init_value, BinaryOpType bop) {
@@ -107,7 +57,7 @@ OutputIteratorType exclusive_scan_custom_op_exespace_impl(
                           RangePolicy<ExecutionSpace>(ex, 0, num_elements),
                           func_type(std::move(init_value), first_from,
                                     first_dest, bop, unary_op_type()));
-  ex.fence("Kokkos::exclusive_scan_custom_op: fence after operation");
+  ex.fence("Kokkos::exclusive_scan: fence after operation");
 
   // return
   return first_dest + num_elements;

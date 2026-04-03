@@ -597,7 +597,8 @@ class BasicView {
     // Explicit cast is needed because submdspan_mapping may return a different
     // layout type.
     using sub_accessor_t = typename OtherAccessorPolicy::offset_policy;
-    m_ptr = src_view.m_acc.offset(src_view.m_ptr, sub_mapping_result.offset);
+    m_ptr                = static_cast<data_handle_type>(
+        src_view.m_acc.offset(src_view.m_ptr, sub_mapping_result.offset));
     m_map = mapping_type(sub_mapping_result.mapping);
     m_acc = sub_accessor_t(src_view.m_acc);
 

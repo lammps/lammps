@@ -22,6 +22,7 @@ export {
   using ::Kokkos::Experimental::Impl::device_abi_set;
   using ::Kokkos::Experimental::Impl::host_abi_set;
   using ::Kokkos::Experimental::Impl::Identity;
+  using ::Kokkos::Experimental::Impl::simd_size_t;
   }  // namespace Impl
   }  // namespace Kokkos::Experimental
 }

@@ -244,6 +244,8 @@ lammps/
 
 5. **Documentation:** All new commands or features must be documented. Put `.. versionadded:: TBD` or
    `.. versionchanged:: TBD` in front of paragraphs documenting the new or changed functionality.
+   The `.. versionadded:: TBD` directive should be used with new features or added keywords.
+   The `.. versionchanged:: TBD` directive should be used when the behavior of a keyword changes.
    The `TBD` will be manually replaced with the release version string during the release preparation.
    This does not apply when the change is only adding an accelerated version of an existing style.
    Instead the corresponding code letter should be added to the respective Commands_\*.rst file.

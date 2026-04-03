@@ -691,9 +691,15 @@ They must be specified in uppercase.
    *  - BLACKWELL100
       - GPU
       - NVIDIA Blackwell generation CC 10.0
+   *  - BLACKWELL103
+      - GPU
+      - NVIDIA Blackwell generation CC 10.3
    *  - BLACKWELL120
       - GPU
       - NVIDIA Blackwell generation CC 12.0
+   *  - BLACKWELL121
+      - GPU
+      - NVIDIA Blackwell generation CC 12.1
    *  - AMD_GFX906
       - GPU
       - AMD GPU MI50/60
@@ -712,6 +718,9 @@ They must be specified in uppercase.
    *  - AMD_GFX942_APU
       - GPU
       - AMD APU MI300A
+   *  - AMD_GFX950
+      - GPU
+      - AMD GPU MI350
    *  - AMD_GFX1030
       - GPU
       - AMD GPU V620/W6800
@@ -746,7 +755,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU DG2
 
-This list was last updated for version 4.7.1 of the Kokkos library.
+This list was last updated for version 5.1.0 of the Kokkos library.
 
 .. tabs::
 
@@ -1258,7 +1267,7 @@ then load this plugin at runtime with the :doc:`plugin command
 
    .. tab:: CMake build
 
-      .. versionchanged:: TBD
+      .. versionchanged:: 30Mar2026
 
          Replaced MD5 checksums with SHA-256
 
@@ -1300,7 +1309,7 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
 
    .. tab:: CMake build
 
-      .. versionchanged:: TBD
+      .. versionchanged:: 30Mar2026
 
          Replaced MD5 checksums with SHA-256
 

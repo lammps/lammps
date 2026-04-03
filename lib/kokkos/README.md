@@ -24,7 +24,7 @@ To start learning about Kokkos:
 
 - [Programming guide](https://kokkos.org/kokkos-core-wiki/programmingguide.html): contains in "narrative" form a technical description of the programming model, machine model, and the main building blocks like the Views and parallel dispatch.
 
-- [API reference](https://kokkos.org/kokkos-core-wiki/): organized by category, i.e., [core](https://kokkos.org/kokkos-core-wiki/API/core-index.html), [algorithms](https://kokkos.org/kokkos-core-wiki/API/algorithms-index.html) and [containers](https://kokkos.org/kokkos-core-wiki/API/containers-index.html) or, if you prefer, in [alphabetical order](https://kokkos.org/kokkos-core-wiki/API/alphabetical.html).
+- [API reference](https://kokkos.org/kokkos-core-wiki/): organized by category, i.e., [core](https://kokkos.org/kokkos-core-wiki/API/core-index.html), [algorithms](https://kokkos.org/kokkos-core-wiki/API/algorithms-index.html), [containers](https://kokkos.org/kokkos-core-wiki/API/containers-index.html), and [simd](https://kokkos.org/kokkos-core-wiki/API/simd-index.html).
 
 - [Use cases and Examples](https://kokkos.org/kokkos-core-wiki/tutorials-and-examples/use-cases-and-examples.html): a serie of examples ranging from how to use Kokkos with MPI to Fortran interoperability.
 

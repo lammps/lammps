@@ -35,14 +35,10 @@ struct ChunkedArrayManager {
   using pointer_type = ValueType*;
   using track_type   = Kokkos::Impl::SharedAllocationTracker;
 
-  ChunkedArrayManager()                                      = default;
-  ChunkedArrayManager(ChunkedArrayManager const&)            = default;
-  ChunkedArrayManager(ChunkedArrayManager&&)                 = default;
-  ChunkedArrayManager& operator=(ChunkedArrayManager&&)      = default;
-  ChunkedArrayManager& operator=(const ChunkedArrayManager&) = default;
-
   template <typename Space, typename Value>
   friend struct ChunkedArrayManager;
+
+  ChunkedArrayManager() = default;
 
   template <typename Space, typename Value>
   inline ChunkedArrayManager(const ChunkedArrayManager<Space, Value>& rhs)
@@ -124,11 +120,7 @@ struct ChunkedArrayManager {
   /// allocation
   template <typename Space>
   struct Destroy {
-    Destroy()                          = default;
-    Destroy(Destroy&&)                 = default;
-    Destroy(const Destroy&)            = default;
-    Destroy& operator=(Destroy&&)      = default;
-    Destroy& operator=(const Destroy&) = default;
+    Destroy() = default;
 
     Destroy(std::string label, value_type** arg_chunk,
             const unsigned arg_chunk_max, const unsigned arg_chunk_size,
@@ -475,12 +467,7 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
 
   //----------------------------------------------------------------------
 
-  ~DynamicView()                             = default;
-  DynamicView()                              = default;
-  DynamicView(DynamicView&&)                 = default;
-  DynamicView(const DynamicView&)            = default;
-  DynamicView& operator=(DynamicView&&)      = default;
-  DynamicView& operator=(const DynamicView&) = default;
+  DynamicView() = default;
 
   template <class RT, class... RP>
   DynamicView(const DynamicView<RT, RP...>& rhs)
@@ -515,7 +502,7 @@ class DynamicView : public Kokkos::ViewTraits<DataType, P...> {
         m_chunk_max((max_extent + m_chunk_mask) >>
                     m_chunk_shift)  // max num pointers-to-chunks in array
         ,
-        m_chunk_size(2 << (m_chunk_shift - 1)) {
+        m_chunk_size(1 << m_chunk_shift) {
     m_chunks = device_accessor(m_chunk_max, m_chunk_size);
 
     const std::string& label =
@@ -634,10 +621,6 @@ inline auto create_mirror(const Kokkos::Experimental::DynamicView<T, P...>& src,
 
     return ret;
   }
-#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-    !defined(KOKKOS_COMPILER_MSVC)
-  __builtin_unreachable();
-#endif
 }
 
 }  // namespace Impl
@@ -732,10 +715,6 @@ inline auto create_mirror_view(
       return Kokkos::Impl::choose_create_mirror(src, arg_prop);
     }
   }
-#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-    !defined(KOKKOS_COMPILER_MSVC)
-  __builtin_unreachable();
-#endif
 }
 
 }  // namespace Impl
@@ -1001,10 +980,6 @@ auto create_mirror_view_and_copy(
       deep_copy(mirror, src);
     return mirror;
   }
-#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-    !defined(KOKKOS_COMPILER_MSVC)
-  __builtin_unreachable();
-#endif
 }
 
 template <class Space, class T, class... P,

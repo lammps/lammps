@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -40,22 +39,24 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-static constexpr double DELTAFLIP = 0.1;
-static constexpr double TILTMAX = 1.5;
-static constexpr double EPSILON = 1.0e-6;
+namespace {
+constexpr double DELTAFLIP = 0.1;
+constexpr double TILTMAX = 1.5;
+constexpr double EPSILON = 1.0e-6;
 
-enum{NONE,XYZ,XY,YZ,XZ};
-enum{ISO,ANISO,TRICLINIC};
-enum{NOBIAS,BIAS};
+enum { NONE, XYZ, XY, YZ, XZ };
+enum { ISO, ANISO, TRICLINIC };
+enum { NOBIAS, BIAS };
+}    // namespace
 
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
 
 FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), id_dilate(nullptr), irregular(nullptr), step_respa(nullptr), id_temp(nullptr),
-    id_press(nullptr), eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr), eta_mass(nullptr),
-    etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr), etap_mass(nullptr)
+    Fix(lmp, narg, arg), id_dilate(nullptr), irregular(nullptr), step_respa(nullptr),
+    id_temp(nullptr), id_press(nullptr), eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
+    eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr), etap_mass(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
 
@@ -88,6 +89,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   dipole_flag = 0;
   dlm_flag = 0;
   p_temp_flag = 0;
+  isochoric = 0;
 
   tcomputeflag = 0;
   pcomputeflag = 0;
@@ -105,9 +107,9 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
 
   // set fixed-point to default = center of cell
 
-  fixedpoint[0] = 0.5*(domain->boxlo[0]+domain->boxhi[0]);
-  fixedpoint[1] = 0.5*(domain->boxlo[1]+domain->boxhi[1]);
-  fixedpoint[2] = 0.5*(domain->boxlo[2]+domain->boxhi[2]);
+  fixedpoint[0] = 0.5 * (domain->boxlo[0] + domain->boxhi[0]);
+  fixedpoint[1] = 0.5 * (domain->boxlo[1] + domain->boxhi[1]);
+  fixedpoint[2] = 0.5 * (domain->boxlo[2] + domain->boxhi[2]);
 
   // used by FixNVTSllod to preserve non-default value
 
@@ -120,6 +122,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < 6; i++) {
     p_start[i] = p_stop[i] = p_period[i] = p_target[i] = 0.0;
     p_flag[i] = 0;
+    if (i < 3) p_isoch[i] = 0;
   }
 
   // process keywords
@@ -127,56 +130,57 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"temp") == 0) {
-      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} temp", style), error);
+    if (strcmp(arg[iarg], "temp") == 0) {
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} temp", style), error);
       tstat_flag = 1;
-      t_start = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      t_start = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       t_target = t_start;
-      t_stop = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      t_period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (t_start <= 0.0 || t_stop <= 0.0)
-        error->all(FLERR, "Target temperature for fix {} cannot be 0.0", style);
+      t_stop = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      t_period = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+      if (t_start <= 0.0)
+        error->all(FLERR, iarg + 1, "Target temperature for fix {} cannot be <= 0.0", style);
+      if (t_stop <= 0.0)
+        error->all(FLERR, iarg + 2, "Target temperature for fix {} cannot be <= 0.0", style);
+      if (t_period <= 0.0)
+        error->all(FLERR, iarg + 3, "Temperature damping for fix {} cannot be <= 0.0", style);
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"iso") == 0) {
-      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} iso", style), error);
+    } else if (strcmp(arg[iarg], "iso") == 0) {
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} iso", style), error);
       pcouple = XYZ;
-      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[0] = p_period[1] = p_period[2] =
-        utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
         p_flag[2] = 0;
       }
       iarg += 4;
-    } else if (strcmp(arg[iarg],"aniso") == 0) {
-      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} aniso", style), error);
+    } else if (strcmp(arg[iarg], "aniso") == 0) {
+      if (iarg + 4 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} aniso", style), error);
       pcouple = NONE;
-      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[0] = p_period[1] = p_period[2] =
-        utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
         p_flag[2] = 0;
       }
       iarg += 4;
-    } else if (strcmp(arg[iarg],"tri") == 0) {
-      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} tri", style), error);
+    } else if (strcmp(arg[iarg], "tri") == 0) {
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} tri", style), error);
       pcouple = NONE;
       scalexy = scalexz = scaleyz = 0;
-      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[0] = p_period[1] = p_period[2] =
-        utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       p_start[3] = p_start[4] = p_start[5] = 0.0;
       p_stop[3] = p_stop[4] = p_stop[5] = 0.0;
-      p_period[3] = p_period[4] = p_period[5] =
-        utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      p_period[3] = p_period[4] = p_period[5] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[3] = p_flag[4] = p_flag[5] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -187,179 +191,225 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
         p_flag[4] = 0;
       }
       iarg += 4;
-    } else if (strcmp(arg[iarg],"x") == 0) {
-      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} x", style), error);
-      p_start[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[0] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "x") == 0) {
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} x", style), error);
+      p_start[0] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[0] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[0] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[0] = 1;
       deviatoric_flag = 1;
       iarg += 4;
-    } else if (strcmp(arg[iarg],"y") == 0) {
-      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} y", style), error);
-      p_start[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "y") == 0) {
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} y", style), error);
+      p_start[1] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[1] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[1] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[1] = 1;
       deviatoric_flag = 1;
       iarg += 4;
-    } else if (strcmp(arg[iarg],"z") == 0) {
-      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} z", style), error);
-      p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "z") == 0) {
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} z", style), error);
+      p_start[2] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[2] = 1;
       deviatoric_flag = 1;
       iarg += 4;
-      if (dimension == 2) error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
+      if (dimension == 2)
+        error->all(FLERR, iarg, "Invalid fix {} command for a 2d simulation", style);
 
-    } else if (strcmp(arg[iarg],"yz") == 0) {
-      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} yz", style), error);
-      p_start[3] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[3] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[3] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "yz") == 0) {
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} yz", style), error);
+      p_start[3] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[3] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[3] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[3] = 1;
       deviatoric_flag = 1;
       scaleyz = 0;
       iarg += 4;
-      if (dimension == 2) error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
-    } else if (strcmp(arg[iarg],"xz") == 0) {
-      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} xz", style), error);
-      p_start[4] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[4] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[4] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      if (dimension == 2)
+        error->all(FLERR, iarg, "Invalid fix {} command for a 2d simulation", style);
+    } else if (strcmp(arg[iarg], "xz") == 0) {
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} xz", style), error);
+      p_start[4] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[4] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[4] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[4] = 1;
       deviatoric_flag = 1;
       scalexz = 0;
       iarg += 4;
-      if (dimension == 2) error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
-    } else if (strcmp(arg[iarg],"xy") == 0) {
-      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} xy", style), error);
-      p_start[5] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[5] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[5] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      if (dimension == 2)
+        error->all(FLERR, iarg, "Invalid fix {} command for a 2d simulation", style);
+    } else if (strcmp(arg[iarg], "xy") == 0) {
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} xy", style), error);
+      p_start[5] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[5] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[5] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[5] = 1;
       deviatoric_flag = 1;
       scalexy = 0;
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"couple") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} couple", style), error);
-      if (strcmp(arg[iarg+1],"xyz") == 0) pcouple = XYZ;
-      else if (strcmp(arg[iarg+1],"xy") == 0) pcouple = XY;
-      else if (strcmp(arg[iarg+1],"yz") == 0) pcouple = YZ;
-      else if (strcmp(arg[iarg+1],"xz") == 0) pcouple = XZ;
-      else if (strcmp(arg[iarg+1],"none") == 0) pcouple = NONE;
-      else error->all(FLERR,"Illegal fix {} couple option: {}", style, arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "couple") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} couple", style), error);
+      if (strcmp(arg[iarg + 1], "xyz") == 0)
+        pcouple = XYZ;
+      else if (strcmp(arg[iarg + 1], "xy") == 0)
+        pcouple = XY;
+      else if (strcmp(arg[iarg + 1], "yz") == 0)
+        pcouple = YZ;
+      else if (strcmp(arg[iarg + 1], "xz") == 0)
+        pcouple = XZ;
+      else if (strcmp(arg[iarg + 1], "none") == 0)
+        pcouple = NONE;
+      else
+        error->all(FLERR, iarg + 1, "Illegal fix {} couple option: {}", style, arg[iarg + 1]);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"drag") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} drag", style), error);
-      drag = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (drag < 0.0) error->all(FLERR, "Invalid fix {} drag argument: {}", style, drag);
+    } else if (strcmp(arg[iarg], "drag") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} drag", style), error);
+      drag = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (drag < 0.0) error->all(FLERR, iarg + 1, "Invalid fix {} drag argument: {}", style, drag);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"ptemp") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} ptemp", style), error);
-      p_temp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "ptemp") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} ptemp", style), error);
+      p_temp = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       p_temp_flag = 1;
-      if (p_temp <= 0.0) error->all(FLERR, "Invalid fix {} ptemp argument: {}", style, p_temp);
+      if (p_temp <= 0.0)
+        error->all(FLERR, iarg + 1, "Invalid fix {} ptemp argument: {}", style, p_temp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"dilate") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} dilate", style), error);
-      if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
+    } else if (strcmp(arg[iarg], "dilate") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} dilate", style), error);
+      if (strcmp(arg[iarg + 1], "all") == 0)
+        allremap = 1;
       else {
         allremap = 0;
         delete[] id_dilate;
-        id_dilate = utils::strdup(arg[iarg+1]);
+        id_dilate = utils::strdup(arg[iarg + 1]);
         int idilate = group->find(id_dilate);
         if (idilate < 0)
-          error->all(FLERR,"Fix {} dilate group ID {} does not exist", style, id_dilate);
+          error->all(FLERR, iarg + 1, "Fix {} dilate group ID {} does not exist", style, id_dilate);
       }
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"tchain") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} tchain", style), error);
-      mtchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "tchain") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} tchain", style), error);
+      mtchain = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       // used by FixNVTSllod to preserve non-default value
       mtchain_default_flag = 0;
-      if (mtchain < 1) error->all(FLERR, "Invalid fix {} tchain argument: {}", style, mtchain);
+      if (mtchain < 1)
+        error->all(FLERR, iarg + 1, "Invalid fix {} tchain argument: {}", style, mtchain);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"pchain") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} pchain", style), error);
-      mpchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (mpchain < 0) error->all(FLERR, "Invalid fix {} pchain argument: {}", style, mpchain);
+    } else if (strcmp(arg[iarg], "pchain") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} pchain", style), error);
+      mpchain = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (mpchain < 0)
+        error->all(FLERR, iarg + 1, "Invalid fix {} pchain argument: {}", style, mpchain);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"mtk") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} mtk", style), error);
-      mtk_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "mtk") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} mtk", style), error);
+      mtk_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"tloop") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} tloop", style), error);
-      nc_tchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (nc_tchain < 0) error->all(FLERR, "Invalid fix {} tloop argument: {}", style, nc_tchain);
+    } else if (strcmp(arg[iarg], "tloop") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} tloop", style), error);
+      nc_tchain = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (nc_tchain < 0)
+        error->all(FLERR, iarg + 1, "Invalid fix {} tloop argument: {}", style, nc_tchain);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"ploop") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} ploop", style), error);
-      nc_pchain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (nc_pchain < 0) error->all(FLERR, "Invalid fix {} ploop argument: {}", style, nc_pchain);
+    } else if (strcmp(arg[iarg], "ploop") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} ploop", style), error);
+      nc_pchain = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (nc_pchain < 0)
+        error->all(FLERR, iarg + 1, "Invalid fix {} ploop argument: {}", style, nc_pchain);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"nreset") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} nreset", style), error);
-      nreset_h0 = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (nreset_h0 < 0) error->all(FLERR, "Invalid fix {} nreset argument: {}", style, nreset_h0);
+    } else if (strcmp(arg[iarg], "nreset") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} nreset", style), error);
+      nreset_h0 = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (nreset_h0 < 0)
+        error->all(FLERR, iarg + 1, "Invalid fix {} nreset argument: {}", style, nreset_h0);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"scalexy") == 0) {
-      if (iarg+2 > narg)
+    } else if (strcmp(arg[iarg], "scalexy") == 0) {
+      if (iarg + 2 > narg)
         utils::missing_cmd_args(FLERR, fmt::format("fix {} scalexy", style), error);
-      scalexy = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      scalexy = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"scalexz") == 0) {
-      if (iarg+2 > narg)
+    } else if (strcmp(arg[iarg], "scalexz") == 0) {
+      if (iarg + 2 > narg)
         utils::missing_cmd_args(FLERR, fmt::format("fix {} scalexz", style), error);
-      scalexz = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      scalexz = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"scaleyz") == 0) {
-      if (iarg+2 > narg)
+    } else if (strcmp(arg[iarg], "scaleyz") == 0) {
+      if (iarg + 2 > narg)
         utils::missing_cmd_args(FLERR, fmt::format("fix {} scaleyz", style), error);
-      scaleyz = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      scaleyz = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"flip") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} flip", style), error);
-      flipflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "flip") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} flip", style), error);
+      flipflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"update") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} update", style), error);
-      if (strcmp(arg[iarg+1],"dipole") == 0) dipole_flag = 1;
-      else if (strcmp(arg[iarg+1],"dipole/dlm") == 0) {
+    } else if (strcmp(arg[iarg], "update") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} update", style), error);
+      if (strcmp(arg[iarg + 1], "dipole") == 0)
+        dipole_flag = 1;
+      else if (strcmp(arg[iarg + 1], "dipole/dlm") == 0) {
         dipole_flag = 1;
         dlm_flag = 1;
-      } else error->all(FLERR, "Invalid fix {} update argument: {}", style, arg[iarg+1]);
+      } else
+        error->all(FLERR, iarg + 1, "Invalid fix {} update argument: {}", style, arg[iarg + 1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
-      if (iarg+4 > narg)
+    } else if (strcmp(arg[iarg], "isochoric") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} isochoric", style), error);
+      if (strcmp(arg[iarg + 1], "x") == 0)
+        p_isoch[0] = 1;
+      else if (strcmp(arg[iarg + 1], "y") == 0)
+        p_isoch[1] = 1;
+      else if (strcmp(arg[iarg + 1], "z") == 0)
+        p_isoch[2] = 1;
+      else if (strcmp(arg[iarg + 1], "xy") == 0)
+        p_isoch[0] = p_isoch[1] = 1;
+      else if (strcmp(arg[iarg + 1], "yz") == 0)
+        p_isoch[1] = p_isoch[2] = 1;
+      else if (strcmp(arg[iarg + 1], "xz") == 0)
+        p_isoch[0] = p_isoch[2] = 1;
+      else
+        error->all(FLERR, iarg + 1, "Illegal fix {} isochoric option: {}", style, arg[iarg + 1]);
+      isochoric = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "fixedpoint") == 0) {
+      if (iarg + 4 > narg)
         utils::missing_cmd_args(FLERR, fmt::format("fix {} fixedpoint", style), error);
-      fixedpoint[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      fixedpoint[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      fixedpoint[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      fixedpoint[0] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      fixedpoint[1] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      fixedpoint[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       iarg += 4;
 
-    // disc keyword is also parsed in fix/nh/sphere
+      // disc keyword is also parsed in fix/nh/sphere
 
-    } else if (strcmp(arg[iarg],"disc") == 0) {
+    } else if (strcmp(arg[iarg], "disc") == 0) {
       iarg++;
 
-    // keywords erate, strain, and ext are also parsed in fix/nh/uef
+      // keywords erate, strain, and ext are also parsed in fix/nh/uef
 
-    } else if (strcmp(arg[iarg],"erate") == 0) {
+    } else if (strcmp(arg[iarg], "erate") == 0) {
       iarg += 3;
-    } else if (strcmp(arg[iarg],"strain") == 0) {
+    } else if (strcmp(arg[iarg], "strain") == 0) {
       iarg += 3;
-    } else if (strcmp(arg[iarg],"ext") == 0) {
+    } else if (strcmp(arg[iarg], "ext") == 0) {
       iarg += 2;
 
-    // keywords psllod, peculiar, kick and integrator are parsed in fix/nvt/sllod
+      // keywords psllod, peculiar, kick and integrator are parsed in fix/nvt/sllod
 
-    } else if (strcmp(arg[iarg],"psllod") == 0) {
+    } else if (strcmp(arg[iarg], "psllod") == 0) {
       iarg += 2;
     } else if (strcmp(arg[iarg], "peculiar") == 0) {
       iarg += 2;
@@ -368,9 +418,11 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "integrator") == 0) {
       iarg += 2;
 
-    } else error->all(FLERR,"Unknown fix {} keyword: {}", style, arg[iarg]);
+    } else
+      error->all(FLERR, iarg, "Unknown fix {} keyword: {}", style, arg[iarg]);
   }
 
+  // clang-format off
   // error checks
 
   if (dimension == 2 && (p_flag[2] || p_flag[3] || p_flag[4]))
@@ -461,6 +513,29 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
+  if (isochoric) {
+    for (int i = 0; i < 3; i++) {
+      if (p_flag[i] && p_isoch[i])
+        error->all(FLERR,"Cannot use barostated dimension as isochoric dimension.");
+    }
+    if (dimension == 3 && (p_flag[0] + p_flag[1] + p_flag[2] > 2)) {
+      error->all(FLERR,"Cannot perform isochoric NPT with all dimensions barostated.");
+    } else if (dimension == 2 && (p_flag[0] + p_flag[1] > 1)) {
+      error->all(FLERR,"Cannot perform 2d isochoric NPT with all dimensions barostated.");
+    } else if (p_flag[0] + p_flag[1] + p_flag[2] == 0) {
+      error->all(FLERR,"Isochoric simulation requires at least 1 diagonal dimension to be barostated.");
+    }
+    if (dimension == 3) {
+      if (domain->xperiodic * p_isoch[0] + domain->yperiodic * p_isoch[1] + domain->zperiodic * p_isoch[2] == 0)
+        error->all(FLERR, "Isochoric NPT requires periodic boundary conditions along isochoric dimensions.");
+    } else {
+      if (domain->xperiodic * p_isoch[0] + domain->yperiodic * p_isoch[0] == 0)
+        error->all(FLERR, "Isochoric NPT requires periodic boundary conditions along isochoric dimensions.");
+      if (p_isoch[2])
+        error->all(FLERR, "2d Isochoric NPT cannot use z dimension.");
+    }
+  }
+
   if ((tstat_flag && t_period <= 0.0) ||
       (p_flag[0] && p_period[0] <= 0.0) ||
       (p_flag[1] && p_period[1] <= 0.0) ||
@@ -490,6 +565,16 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     if (p_flag[3]) box_change |= BOX_CHANGE_YZ;
     if (p_flag[4]) box_change |= BOX_CHANGE_XZ;
     if (p_flag[5]) box_change |= BOX_CHANGE_XY;
+    // In the isochoric case, dimensions can change size while not being
+    // barostated to maintain volume/area
+    if (isochoric) {
+      if (dimension == 3) vol_start = domain->xprd * domain->yprd * domain->zprd;
+      else vol_start = domain->xprd * domain->yprd;
+
+      if (p_isoch[0]) box_change |= BOX_CHANGE_X;
+      if (p_isoch[1]) box_change |= BOX_CHANGE_Y;
+      if (dimension == 3 && p_isoch[2]) box_change |= BOX_CHANGE_Z;
+    }
     no_change_box = 1;
     if (allremap == 0) restart_pbc = 1;
 
@@ -1072,7 +1157,7 @@ void FixNH::remap()
 {
   int i;
   double oldlo,oldhi;
-  double expfac;
+  double expfac, isofac;
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -1148,6 +1233,7 @@ void FixNH::remap()
 
   // scale diagonal components
   // scale tilt factors with cell, if set
+  if (isochoric) isofac = vol_start;
 
   if (p_flag[0]) {
     oldlo = domain->boxlo[0];
@@ -1155,6 +1241,7 @@ void FixNH::remap()
     expfac = exp(dto*omega_dot[0]);
     domain->boxlo[0] = (oldlo-fixedpoint[0])*expfac + fixedpoint[0];
     domain->boxhi[0] = (oldhi-fixedpoint[0])*expfac + fixedpoint[0];
+    if (isochoric) isofac /= domain->boxhi[0] - domain->boxlo[0];
   }
 
   if (p_flag[1]) {
@@ -1163,6 +1250,7 @@ void FixNH::remap()
     expfac = exp(dto*omega_dot[1]);
     domain->boxlo[1] = (oldlo-fixedpoint[1])*expfac + fixedpoint[1];
     domain->boxhi[1] = (oldhi-fixedpoint[1])*expfac + fixedpoint[1];
+    if (isochoric) isofac /= domain->boxhi[1] - domain->boxlo[1];
     if (scalexy) h[5] *= expfac;
   }
 
@@ -1172,8 +1260,42 @@ void FixNH::remap()
     expfac = exp(dto*omega_dot[2]);
     domain->boxlo[2] = (oldlo-fixedpoint[2])*expfac + fixedpoint[2];
     domain->boxhi[2] = (oldhi-fixedpoint[2])*expfac + fixedpoint[2];
+    if (isochoric) isofac /= domain->boxhi[2] - domain->boxlo[2];
     if (scalexz) h[4] *= expfac;
     if (scaleyz) h[3] *= expfac;
+  }
+
+  if (isochoric) {
+
+    // We remove remaining dimensions so that only scale factors are left
+    // in isofac
+    for (int i = 0; i < 3; i++) {
+      if (p_isoch[i] || !p_flag[i]) isofac /= (domain->boxhi[i]-domain->boxlo[i]);
+    }
+    int iso_sum = p_isoch[0] + p_isoch[1] + p_isoch[2];
+    if (iso_sum == 2) isofac = sqrt(isofac);
+
+    if (p_isoch[0]) {
+      oldlo = domain->boxlo[0];
+      oldhi = domain->boxhi[0];
+      domain->boxlo[0] = (oldlo-fixedpoint[0])*isofac + fixedpoint[0];
+      domain->boxhi[0] = (oldhi-fixedpoint[0])*isofac + fixedpoint[0];
+    }
+    if (p_isoch[1]) {
+      oldlo = domain->boxlo[1];
+      oldhi = domain->boxhi[1];
+      domain->boxlo[1] = (oldlo-fixedpoint[1])*isofac + fixedpoint[1];
+      domain->boxhi[1] = (oldhi-fixedpoint[1])*isofac + fixedpoint[1];
+      if (scalexy) h[5] *= isofac;
+    }
+    if (p_isoch[2]) {
+      oldlo = domain->boxlo[2];
+      oldhi = domain->boxhi[2];
+      domain->boxlo[2] = (oldlo-fixedpoint[2])*isofac + fixedpoint[2];
+      domain->boxhi[2] = (oldhi-fixedpoint[2])*isofac + fixedpoint[2];
+      if (scalexz) h[4] *= isofac;
+      if (scaleyz) h[3] *= isofac;
+    }
   }
 
   // off-diagonal components, second half
@@ -1271,8 +1393,9 @@ int FixNH::size_restart_global()
   int nsize = 2;
   if (tstat_flag) nsize += 1 + 2*mtchain;
   if (pstat_flag) {
-    nsize += 16 + 2*mpchain;
+    nsize += 17 + 2*mpchain;
     if (deviatoric_flag) nsize += 6;
+    if (isochoric) nsize += 4;
   }
 
   return nsize;
@@ -1328,6 +1451,13 @@ int FixNH::pack_restart_data(double *list)
       list[n++] = h0_inv[4];
       list[n++] = h0_inv[5];
     }
+    list[n++] = isochoric;
+    if (isochoric) {
+        list[n++] = p_isoch[0];
+        list[n++] = p_isoch[1];
+        list[n++] = p_isoch[2];
+        list[n++] = vol_start;
+    }
   }
 
   return n;
@@ -1341,9 +1471,9 @@ void FixNH::restart(char *buf)
 {
   int n = 0;
   auto *list = (double *) buf;
-  int flag = static_cast<int> (list[n++]);
+  int flag = static_cast<int>(list[n++]);
   if (flag) {
-    int m = static_cast<int> (list[n++]);
+    int m = static_cast<int>(list[n++]);
     if (tstat_flag && m == mtchain) {
       for (int ich = 0; ich < mtchain; ich++)
         eta[ich] = list[n++];
@@ -1351,7 +1481,7 @@ void FixNH::restart(char *buf)
         eta_dot[ich] = list[n++];
     } else n += 2*m;
   }
-  flag = static_cast<int> (list[n++]);
+  flag = static_cast<int>(list[n++]);
   if (flag) {
     omega[0] = list[n++];
     omega[1] = list[n++];
@@ -1367,14 +1497,14 @@ void FixNH::restart(char *buf)
     omega_dot[5] = list[n++];
     vol0 = list[n++];
     t0 = list[n++];
-    int m = static_cast<int> (list[n++]);
+    int m = static_cast<int>(list[n++]);
     if (pstat_flag && m == mpchain) {
       for (int ich = 0; ich < mpchain; ich++)
         etap[ich] = list[n++];
       for (int ich = 0; ich < mpchain; ich++)
         etap_dot[ich] = list[n++];
     } else n+=2*m;
-    flag = static_cast<int> (list[n++]);
+    flag = static_cast<int>(list[n++]);
     if (flag) {
       h0_inv[0] = list[n++];
       h0_inv[1] = list[n++];
@@ -1382,6 +1512,13 @@ void FixNH::restart(char *buf)
       h0_inv[3] = list[n++];
       h0_inv[4] = list[n++];
       h0_inv[5] = list[n++];
+    }
+    flag = static_cast<int>(list[n++]);
+    if (flag) {
+      p_isoch[0] = static_cast<int>(list[n++]);
+      p_isoch[1] = static_cast<int>(list[n++]);
+      p_isoch[2] = static_cast<int>(list[n++]);
+      vol_start = list[n++];
     }
   }
 }

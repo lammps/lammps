@@ -25,8 +25,10 @@ template <typename ExecutionSpace>
 void test_bug_pr_3103() {
   using Policy =
       Kokkos::TeamPolicy<ExecutionSpace, Kokkos::LaunchBounds<32, 1>>;
-  int const league_size   = 1;
-  int const team_size     = std::min(32, ExecutionSpace().concurrency());
+  int const league_size = 1;
+  int const team_size   = std::min(
+      32, Policy(league_size, Kokkos::AUTO)
+              .team_size_max(PoorMansLambda{}, Kokkos::ParallelForTag{}));
   int const vector_length = 1;
 
   Kokkos::parallel_for(Policy(league_size, team_size, vector_length),

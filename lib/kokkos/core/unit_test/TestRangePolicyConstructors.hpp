@@ -297,23 +297,6 @@ constexpr bool test_chunk_size_explicit() {
   using ExecutionSpace = TEST_EXECSPACE;
   using Kokkos::ChunkSize;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  static_assert(std::is_convertible_v<int, ChunkSize>);
-  static_assert(std::is_constructible_v<ChunkSize, int>);
-  // Some execution spaces were implicitly constructible from int
-  // which made the constructor call ambiguous.
-  static_assert(
-      std::is_constructible_v<Kokkos::DefaultExecutionSpace, int> ||
-      std::is_constructible_v<
-          Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>, int, int, int>);
-  static_assert(std::is_constructible_v<
-                Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>, int, int,
-                ChunkSize>);
-  static_assert(std::is_constructible_v<Kokkos::RangePolicy<ExecutionSpace>,
-                                        ExecutionSpace, int, int, int>);
-  static_assert(std::is_constructible_v<Kokkos::RangePolicy<ExecutionSpace>,
-                                        ExecutionSpace, int, int, ChunkSize>);
-#else
   static_assert(!std::is_convertible_v<int, ChunkSize>);
   static_assert(std::is_constructible_v<ChunkSize, int>);
   static_assert(
@@ -326,7 +309,6 @@ constexpr bool test_chunk_size_explicit() {
                                          ExecutionSpace, int, int, int>);
   static_assert(std::is_constructible_v<Kokkos::RangePolicy<ExecutionSpace>,
                                         ExecutionSpace, int, int, ChunkSize>);
-#endif
   return true;
 }
 
@@ -353,8 +335,8 @@ TEST(TEST_CATEGORY, range_policy_impl_set_space) {
 
   const policy_t policy_new(Kokkos::Impl::PolicyUpdate{}, policy_old, exec_new);
   ASSERT_EQ(policy_new.space(), exec_new);
-  ASSERT_EQ(policy_new.begin(), 42);
-  ASSERT_EQ(policy_new.end(), 666);
+  ASSERT_EQ(policy_new.begin(), 42u);
+  ASSERT_EQ(policy_new.end(), 666u);
 }
 
 }  // namespace

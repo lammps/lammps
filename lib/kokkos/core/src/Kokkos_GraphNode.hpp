@@ -20,13 +20,25 @@ static_assert(false,
 #include <impl/Kokkos_GraphImpl_Utilities.hpp>
 #include <impl/Kokkos_GraphImpl.hpp>  // GraphAccess
 #include <impl/Kokkos_GraphNodeThenPolicy.hpp>
+#include <impl/Kokkos_GraphNodeCtorProps.hpp>
 
 #include <memory>  // std::shared_ptr
 
 namespace Kokkos {
 namespace Experimental {
 
-template <class ExecutionSpace, class Kernel /*= TypeErasedTag*/,
+#define KOKKOS_IMPL_POLICY_ON_DEFAULT_EXEC(policy)                         \
+  if (policy.space() != std::remove_cvref_t<decltype(policy.space())>{})   \
+    Kokkos::abort(                                                         \
+        "The execution space instance of the execution policy of a graph " \
+        "node must be the default one.");
+
+template <typename T, typename Exec>
+concept ExecutionPolicyOn =
+    ExecutionPolicy<T> && std::same_as<typename T::execution_space, Exec>;
+
+template <Kokkos::ExecutionSpace ExecutionSpace,
+          class Kernel /*= TypeErasedTag*/,
           class Predecessor /*= TypeErasedTag*/>
 class GraphNodeRef {
   //----------------------------------------------------------------------------
@@ -39,10 +51,6 @@ class GraphNodeRef {
       std::is_same_v<Predecessor, TypeErasedTag> ||
           Kokkos::Impl::is_specialization_of<Predecessor, GraphNodeRef>::value,
       "Invalid predecessor template parameter given to GraphNodeRef");
-
-  static_assert(
-      Kokkos::is_execution_space<ExecutionSpace>::value,
-      "Invalid execution space template parameter given to GraphNodeRef");
 
   static_assert(std::is_same_v<Predecessor, TypeErasedTag> ||
                     Kokkos::Impl::is_graph_kernel<Kernel>::value ||
@@ -69,10 +77,12 @@ class GraphNodeRef {
   //----------------------------------------------------------------------------
 
  private:
+  using device_handle_t = Kokkos::Impl::DeviceHandle<ExecutionSpace>;
+
   //----------------------------------------------------------------------------
   // <editor-fold desc="Friends"> {{{2
 
-  template <class, class, class>
+  template <Kokkos::ExecutionSpace, class, class>
   friend class GraphNodeRef;
   friend struct Kokkos::Impl::GraphAccess;
   friend struct Graph<execution_space>;
@@ -136,7 +146,7 @@ class GraphNodeRef {
         m_graph_impl,
         Kokkos::Impl::GraphAccess::make_node_shared_ptr<
             typename return_t::node_impl_t>(
-            m_node_impl->execution_space_instance(),
+            m_node_impl->get_device_handle(),
             Kokkos::Impl::_graph_node_kernel_ctor_tag{},
             (NextKernelDeduced&&)arg_kernel,
             // *this is the predecessor
@@ -171,12 +181,7 @@ class GraphNodeRef {
   // <editor-fold desc="rule of 6 ctors"> {{{3
 
   // Copyable and movable (basically just shared_ptr semantics
-  GraphNodeRef() noexcept                          = default;
-  GraphNodeRef(GraphNodeRef const&)                = default;
-  GraphNodeRef(GraphNodeRef&&) noexcept            = default;
-  GraphNodeRef& operator=(GraphNodeRef const&)     = default;
-  GraphNodeRef& operator=(GraphNodeRef&&) noexcept = default;
-  ~GraphNodeRef()                                  = default;
+  GraphNodeRef() noexcept = default;
 
   // </editor-fold> end rule of 6 ctors }}}3
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -217,32 +222,39 @@ class GraphNodeRef {
 
   // TODO We should do better than a p-for (that uses registers, heavier).
   //      This should "just" launch the function on device with our driver.
-  template <
-      typename Label, typename Policy, typename Functor,
-      std::enable_if_t<
-          std::is_invocable_r_v<void, const std::remove_cvref_t<Functor>> &&
-              Kokkos::Impl::is_view_label_v<std::remove_cvref_t<Label>> &&
-              Kokkos::Impl::is_specialization_of_v<Policy, ThenPolicy>,
-          int> = 0>
-  auto then(Label&& label, const ExecutionSpace& exec, Policy&& policy,
-            Functor&& functor) const {
+  template <typename Props, typename Policy, typename Functor>
+    requires(Kokkos::Impl::NodeProperties<std::remove_cvref_t<Props>> &&
+             std::is_invocable_r_v<void, const std::remove_cvref_t<Functor>> &&
+             Kokkos::Impl::is_specialization_of_v<Policy, ThenPolicy>)
+  auto then(Props&& props, Policy&& policy, Functor&& functor) const {
     using next_kernel_t =
         Kokkos::Impl::GraphNodeThenImpl<ExecutionSpace,
                                         std::remove_cvref_t<Policy>,
                                         std::remove_cvref_t<Functor>>;
-    return this->_then_kernel(next_kernel_t(std::forward<Label>(label), exec,
-                                            std::forward<Policy>(policy),
-                                            std::forward<Functor>(functor)));
+    auto graph_ptr = m_graph_impl.lock();
+    KOKKOS_EXPECTS(bool(graph_ptr))
+    auto full_props = Kokkos::Impl::with_properties_if_unset(
+        std::forward<Props>(props), graph_ptr->get_device_handle(),
+        "[unlabeled]");
+    return this->_then_kernel(next_kernel_t{
+        Kokkos::Impl::extract_property<std::string>(full_props),
+        Kokkos::Impl::extract_property<device_handle_t>(full_props).m_exec,
+        std::forward<Policy>(policy), std::forward<Functor>(functor)});
+  }
+
+  template <typename Props, typename Functor>
+    requires Kokkos::Impl::NodeProperties<std::remove_cvref_t<Props>>
+  auto then(Props&& props, Functor&& functor) const {
+    return this->then(std::forward<Props>(props), ThenPolicy{},
+                      std::forward<Functor>(functor));
   }
 
   // Overload for a label.
-  template <
-      typename Label, typename Functor,
-      std::enable_if_t<
-          Kokkos::Impl::is_view_label_v<std::remove_cvref_t<Label>>, int> = 0>
+  template <typename Label, typename Functor>
+    requires Kokkos::Impl::ViewLabel<std::remove_cvref_t<Label>>
   auto then(Label&& label, Functor&& functor) const {
-    return this->then(std::forward<Label>(label), ExecutionSpace{},
-                      ThenPolicy{}, std::forward<Functor>(functor));
+    return this->then(node_props(std::forward<Label>(label)), ThenPolicy{},
+                      std::forward<Functor>(functor));
   }
 
   // Overload for a policy.
@@ -251,8 +263,7 @@ class GraphNodeRef {
                                  std::remove_cvref_t<Policy>, ThenPolicy>,
                              int> = 0>
   auto then(Policy&& policy, Functor&& functor) const {
-    return this->then(std::string{}, ExecutionSpace{},
-                      std::forward<Policy>(policy),
+    return this->then(node_props(), std::forward<Policy>(policy),
                       std::forward<Functor>(functor));
   }
 
@@ -264,16 +275,15 @@ class GraphNodeRef {
                     Kokkos::Impl::is_view_label_v<std::remove_cvref_t<Label>>,
                 int> = 0>
   auto then(Label&& label, Policy&& policy, Functor&& functor) const {
-    return this->then(std::forward<Label>(label), ExecutionSpace{},
+    return this->then(node_props(std::forward<Label>(label)),
                       std::forward<Policy>(policy),
                       std::forward<Functor>(functor));
   }
 
   // Overload without policy given.
-  template <typename Label, typename Functor>
-  auto then(Label&& label, const ExecutionSpace& exec,
-            Functor&& functor) const {
-    return this->then(std::forward<Label>(label), exec, ThenPolicy{},
+  template <typename Functor>
+  auto then(Functor&& functor) const {
+    return this->then(node_props(), ThenPolicy{},
                       std::forward<Functor>(functor));
   }
 
@@ -291,7 +301,7 @@ class GraphNodeRef {
         m_graph_impl,
         Kokkos::Impl::GraphAccess::make_node_shared_ptr<
             typename return_t::node_impl_t>(
-            m_node_impl->execution_space_instance(),
+            m_node_impl->get_device_handle(),
             Kokkos::Impl::_graph_node_host_ctor_tag{},
             std::forward<Functor>(functor),
             Kokkos::Impl::_graph_node_predecessor_ctor_tag{}, *this));
@@ -334,7 +344,7 @@ class GraphNodeRef {
           m_graph_impl,
           Kokkos::Impl::GraphAccess::make_node_shared_ptr<
               typename return_t::node_impl_t>(
-              m_node_impl->execution_space_instance(),
+              m_node_impl->get_device_handle(),
               Kokkos::Impl::_graph_node_capture_ctor_tag{},
               std::forward<Functor>(functor),
               Kokkos::Impl::_graph_node_predecessor_ctor_tag{}, *this));
@@ -351,63 +361,64 @@ class GraphNodeRef {
   }
 #endif
 
-  template <class Policy, class Functor,
-            std::enable_if_t<
-                // equivalent to:
-                //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
-                is_execution_policy<std::remove_cvref_t<Policy>>::value,
-                // --------------------
-                int> = 0>
-  auto then_parallel_for(std::string arg_name, Policy&& arg_policy,
+  template <typename Props, class Policy, class Functor>
+    requires(Kokkos::Impl::NodeProperties<std::remove_cvref_t<Props>> &&
+             ExecutionPolicyOn<std::remove_cvref_t<Policy>, ExecutionSpace>)
+  auto then_parallel_for(Props&& props, Policy&& arg_policy,
                          Functor&& functor) const {
     //----------------------------------------
     KOKKOS_EXPECTS(!m_graph_impl.expired())
     KOKKOS_EXPECTS(bool(m_node_impl))
-    // TODO @graph restore this expectation once we add comparability to space
-    //      instances
-    // KOKKOS_EXPECTS(
-    //   arg_policy.space() == m_graph_impl->get_execution_space());
+
+    KOKKOS_IMPL_POLICY_ON_DEFAULT_EXEC(arg_policy)
 
     // needs to static assert constraint: DataParallelFunctor<Functor>
 
-    using policy_t = std::remove_cvref_t<Policy>;
-    // constraint check: same execution space type (or defaulted, maybe?)
-    static_assert(
-        std::is_same_v<typename policy_t::execution_space, execution_space>,
-        // TODO @graph make defaulted execution space work
-        //|| policy_t::execution_space_is_defaulted,
-        "Execution Space mismatch between execution policy and graph");
+    auto graph_ptr = m_graph_impl.lock();
+    KOKKOS_EXPECTS(bool(graph_ptr))
+    auto full_props =
+        with_properties_if_unset(std::forward<Props>(props),
+                                 graph_ptr->get_device_handle(), "[unlabeled]");
 
-    auto policy = Experimental::require((Policy&&)arg_policy,
-                                        Kokkos::Impl::KernelInGraphProperty{});
+    auto policy = Experimental::require(
+        Policy(Kokkos::Impl::PolicyUpdate{}, (Policy&&)arg_policy,
+               Kokkos::Impl::get_property<device_handle_t>(full_props).m_exec),
+        Kokkos::Impl::KernelInGraphProperty{});
 
     using next_policy_t = decltype(policy);
     using next_kernel_t =
         Kokkos::Impl::GraphNodeKernelImpl<ExecutionSpace, next_policy_t,
                                           std::decay_t<Functor>,
                                           Kokkos::ParallelForTag>;
-    return this->_then_kernel(next_kernel_t{std::move(arg_name), policy.space(),
-                                            (Functor&&)functor,
-                                            (Policy&&)policy});
+    return this->_then_kernel(next_kernel_t{
+        Kokkos::Impl::extract_property<std::string>(full_props),
+        Kokkos::Impl::extract_property<device_handle_t>(full_props).m_exec,
+        (Functor&&)functor, std::move(policy)});
   }
 
-  template <class Policy, class Functor,
-            std::enable_if_t<
-                // equivalent to:
-                //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
-                is_execution_policy<std::remove_cvref_t<Policy>>::value,
-                // --------------------
-                int> = 0>
+  template <class Policy, class Functor>
+    requires ExecutionPolicyOn<std::remove_cvref_t<Policy>, ExecutionSpace>
   auto then_parallel_for(Policy&& policy, Functor&& functor) const {
     // needs to static assert constraint: DataParallelFunctor<Functor>
-    return this->then_parallel_for("", (Policy&&)policy, (Functor&&)functor);
+    return this->then_parallel_for(node_props(), (Policy&&)policy,
+                                   (Functor&&)functor);
+  }
+
+  template <class Label, class Policy, class Functor>
+    requires(ExecutionPolicyOn<std::remove_cvref_t<Policy>, ExecutionSpace> &&
+             Kokkos::Impl::is_view_label_v<std::remove_cvref_t<Label>>)
+  auto then_parallel_for(Label&& label, Policy&& policy,
+                         Functor&& functor) const {
+    // needs to static assert constraint: DataParallelFunctor<Functor>
+    return this->then_parallel_for(node_props(std::forward<Label>(label)),
+                                   (Policy&&)policy, (Functor&&)functor);
   }
 
   template <class Functor>
   auto then_parallel_for(std::string name, std::size_t n,
                          Functor&& functor) const {
     // needs to static assert constraint: DataParallelFunctor<Functor>
-    return this->then_parallel_for(std::move(name),
+    return this->then_parallel_for(node_props(std::move(name)),
                                    Kokkos::RangePolicy<execution_space>(0, n),
                                    (Functor&&)functor);
   }
@@ -415,7 +426,9 @@ class GraphNodeRef {
   template <class Functor>
   auto then_parallel_for(std::size_t n, Functor&& functor) const {
     // needs to static assert constraint: DataParallelFunctor<Functor>
-    return this->then_parallel_for("", n, (Functor&&)functor);
+    return this->then_parallel_for(node_props(),
+                                   Kokkos::RangePolicy<execution_space>(0, n),
+                                   (Functor&&)functor);
   }
 
   // </editor-fold> end then_parallel_for }}}2
@@ -434,33 +447,24 @@ class GraphNodeRef {
       return static_cast<T2&&>(v2);
   }
 
-  template <class Policy, class Functor, class ReturnType,
-            std::enable_if_t<
-                // equivalent to:
-                //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
-                is_execution_policy<std::remove_cvref_t<Policy>>::value,
-                // --------------------
-                int> = 0>
-  auto then_parallel_reduce(std::string arg_name, Policy&& arg_policy,
+  template <typename Props, class Policy, class Functor, class ReturnType>
+    requires(Kokkos::Impl::NodeProperties<std::remove_cvref_t<Props>> &&
+             ExecutionPolicyOn<std::remove_cvref_t<Policy>, ExecutionSpace>)
+  auto then_parallel_reduce(Props&& props, Policy&& arg_policy,
                             Functor&& functor,
                             ReturnType&& return_value) const {
     auto graph_impl_ptr = m_graph_impl.lock();
     KOKKOS_EXPECTS(bool(graph_impl_ptr))
     KOKKOS_EXPECTS(bool(m_node_impl))
-    // TODO @graph restore this expectation once we add comparability to space
-    //      instances
-    // KOKKOS_EXPECTS(
-    //   arg_policy.space() == m_graph_impl->get_execution_space());
+
+    KOKKOS_IMPL_POLICY_ON_DEFAULT_EXEC(arg_policy)
 
     // needs static assertion of constraint:
     //   DataParallelReductionFunctor<Functor, ReturnType>
 
-    using policy_t = std::remove_cv_t<std::remove_reference_t<Policy>>;
-    static_assert(
-        std::is_same_v<typename policy_t::execution_space, execution_space>,
-        // TODO @graph make defaulted execution space work
-        // || policy_t::execution_space_is_defaulted,
-        "Execution Space mismatch between execution policy and graph");
+    auto full_props = with_properties_if_unset(
+        std::forward<Props>(props), graph_impl_ptr->get_device_handle(),
+        "[unlabeled]");
 
     // This is also just an expectation, but it's one that we expect the user
     // to interact with (even in release mode), so we should throw an exception
@@ -469,7 +473,8 @@ class GraphNodeRef {
     // whether or not they point to a View as a runtime boolean rather than part
     // of the type.
     if (Kokkos::Impl::parallel_reduce_needs_fence(
-            graph_impl_ptr->get_execution_space(), return_value)) {
+            Kokkos::Impl::get_property<device_handle_t>(full_props).m_exec,
+            return_value)) {
       Kokkos::Impl::throw_runtime_exception(
           "Parallel reductions in graphs can't operate on Reducers that "
           "reference a scalar because they can't complete synchronously. Use a "
@@ -517,8 +522,10 @@ class GraphNodeRef {
     // End of Kokkos reducer disaster
     //----------------------------------------
 
-    auto policy = Experimental::require((Policy&&)arg_policy,
-                                        Kokkos::Impl::KernelInGraphProperty{});
+    auto policy = Experimental::require(
+        Policy(Kokkos::Impl::PolicyUpdate{}, (Policy&&)arg_policy,
+               Kokkos::Impl::get_property<device_handle_t>(full_props).m_exec),
+        Kokkos::Impl::KernelInGraphProperty{});
 
     using passed_reducer_type = typename return_value_adapter::reducer_type;
 
@@ -545,21 +552,18 @@ class GraphNodeRef {
                                           Kokkos::ParallelReduceTag>;
 
     return this->_then_kernel(next_kernel_t{
-        std::move(arg_name), graph_impl_ptr->get_execution_space(),
-        functor_reducer, (Policy&&)policy,
-        return_value_adapter::return_value(return_value, functor)});
+        Kokkos::Impl::extract_property<std::string>(full_props),
+        Kokkos::Impl::extract_property<device_handle_t>(full_props).m_exec,
+        std::move(functor_reducer), std::move(policy),
+        return_value_adapter::return_value(return_value,
+                                           std::forward<Functor>(functor))});
   }
 
-  template <class Policy, class Functor, class ReturnType,
-            std::enable_if_t<
-                // equivalent to:
-                //   requires Kokkos::ExecutionPolicy<remove_cvref_t<Policy>>
-                is_execution_policy<std::remove_cvref_t<Policy>>::value,
-                // --------------------
-                int> = 0>
+  template <class Policy, class Functor, class ReturnType>
+    requires ExecutionPolicyOn<std::remove_cvref_t<Policy>, ExecutionSpace>
   auto then_parallel_reduce(Policy&& arg_policy, Functor&& functor,
                             ReturnType&& return_value) const {
-    return this->then_parallel_reduce("", (Policy&&)arg_policy,
+    return this->then_parallel_reduce(node_props(), (Policy&&)arg_policy,
                                       (Functor&&)functor,
                                       (ReturnType&&)return_value);
   }
@@ -570,16 +574,18 @@ class GraphNodeRef {
                             Functor&& functor,
                             ReturnType&& return_value) const {
     return this->then_parallel_reduce(
-        std::move(label), Kokkos::RangePolicy<execution_space>{0, idx_end},
-        (Functor&&)functor, (ReturnType&&)return_value);
+        node_props(std::move(label)),
+        Kokkos::RangePolicy<execution_space>{0, idx_end}, (Functor&&)functor,
+        (ReturnType&&)return_value);
   }
 
   template <class Functor, class ReturnType>
   auto then_parallel_reduce(typename execution_space::size_type idx_end,
                             Functor&& functor,
                             ReturnType&& return_value) const {
-    return this->then_parallel_reduce("", idx_end, (Functor&&)functor,
-                                      (ReturnType&&)return_value);
+    return this->then_parallel_reduce(
+        node_props(), Kokkos::RangePolicy<execution_space>{0, idx_end},
+        (Functor&&)functor, (ReturnType&&)return_value);
   }
 
   // </editor-fold> end then_parallel_reduce }}}2

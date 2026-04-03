@@ -7,6 +7,7 @@
 #include <omp.h>
 #include <OpenMP/Kokkos_OpenMP_Instance.hpp>
 #include <KokkosExp_MDRangePolicy.hpp>
+#include <sstream>
 
 namespace Kokkos {
 namespace Impl {
@@ -513,6 +514,29 @@ class ParallelReduce<CombinedFunctorReducerType,
                                         Kokkos::HostSpace>::accessible,
         "Kokkos::OpenMP reduce result must be a View accessible from "
         "HostSpace");
+
+    if ((arg_policy.scratch_size(0) +
+         FunctorTeamShmemSize<FunctorType>::value(
+             m_functor_reducer.get_functor(), arg_policy.team_size())) >
+        static_cast<size_t>(TeamPolicy<Kokkos::OpenMP>::scratch_size_max(0))) {
+      std::stringstream error;
+      error << "Kokkos::parallel_reduce<OpenMP>: Requested too much scratch "
+               "memory on level 0. Requested: "
+            << arg_policy.scratch_size(0) +
+                   FunctorTeamShmemSize<FunctorType>::value(
+                       m_functor_reducer.get_functor(), arg_policy.team_size())
+            << ", Maximum: " << TeamPolicy<Kokkos::OpenMP>::scratch_size_max(0);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
+    if (arg_policy.scratch_size(1) >
+        static_cast<size_t>(TeamPolicy<Kokkos::OpenMP>::scratch_size_max(1))) {
+      std::stringstream error;
+      error << "Kokkos::parallel_reduce<OpenMP>: Requested too much scratch "
+               "memory on level 1. Requested: "
+            << arg_policy.scratch_size(1)
+            << ", Maximum: " << TeamPolicy<Kokkos::OpenMP>::scratch_size_max(1);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
   }
 };
 

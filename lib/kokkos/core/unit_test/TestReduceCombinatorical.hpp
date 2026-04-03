@@ -350,13 +350,11 @@ struct TestReduceCombinatoricalInstantiation {
     Kokkos::fence();
     ASSERT_EQ(expected_result, result_view());
 
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     result_view() = 99;
     CallParallelReduce(args..., result_view_device);
     Kokkos::fence();
     Kokkos::deep_copy(result_view, result_view_device);
     ASSERT_EQ(expected_result, result_view());
-#endif
 
     value = 99;
     CallParallelReduce(
@@ -375,8 +373,6 @@ struct TestReduceCombinatoricalInstantiation {
     ASSERT_EQ(expected_result, result_view_const_um());
 
     value = 99;
-// WORKAROUND OPENMPTARGET Custom Reducers not implemented
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     CallParallelReduce(args...,
                        Test::ReduceCombinatorical::AddPlus<double>(value));
     if ((Kokkos::DefaultExecutionSpace().concurrency() > 1) &&
@@ -403,7 +399,6 @@ struct TestReduceCombinatoricalInstantiation {
     } else {
       ASSERT_EQ(expected_result, value);
     }
-#endif
   }
 
   // FIXME_CUDA segfaults at runtime when using a lambda
@@ -443,9 +438,6 @@ struct TestReduceCombinatoricalInstantiation {
     AddReturnArgument(
         N, args...,
         Test::ReduceCombinatorical::FunctorScalar<ISTEAM>(result_view));
-// WORKAROUND OPENMPTARGET: reductions with functor join/init/final
-// not implemented
-#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
     AddReturnArgument(
         N, args...,
         Test::ReduceCombinatorical::FunctorScalarInit<ISTEAM>(result_view));
@@ -483,7 +475,6 @@ struct TestReduceCombinatoricalInstantiation {
     Kokkos::fence();
     Kokkos::deep_copy(h_r, result_view);
     ASSERT_EQ(expected_result, h_r());
-#endif
   }
 
   template <class... Args>
@@ -558,9 +549,7 @@ struct TestReduceCombinatoricalInstantiation {
     std::string s("Std::String");
     AddPolicy_1(1000, s.c_str());
     AddPolicy_1(1000, "Char Constant");
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     AddPolicy_1(0, "Char Constant");
-#endif
   }
 
   static void execute_c1() {
@@ -574,9 +563,7 @@ struct TestReduceCombinatoricalInstantiation {
     std::string s("Std::String");
     AddPolicy_2(1000, s.c_str());
     AddPolicy_2(1000, "Char Constant");
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     AddPolicy_2(0, "Char Constant");
-#endif
   }
 
   static void execute_c2() {
@@ -584,26 +571,18 @@ struct TestReduceCombinatoricalInstantiation {
     AddPolicy_2(1000, s);
   }
 
-  static void execute_a3() {
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
-    AddPolicy_3(1000);
-#endif
-  }
+  static void execute_a3() { AddPolicy_3(1000); }
 
   static void execute_b3() {
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     std::string s("Std::String");
     AddPolicy_3(1000, s.c_str());
     AddPolicy_3(1000, "Char Constant");
     AddPolicy_3(0, "Char Constant");
-#endif
   }
 
   static void execute_c3() {
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
     std::string s("Std::String");
     AddPolicy_3(1000, s);
-#endif
   }
 };
 

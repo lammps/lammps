@@ -29,6 +29,11 @@ struct NestedView {
     return *this;
   }
 
+  KOKKOS_DEFAULTED_FUNCTION NestedView(const NestedView &)            = default;
+  KOKKOS_DEFAULTED_FUNCTION NestedView(NestedView &&)                 = default;
+  KOKKOS_DEFAULTED_FUNCTION NestedView &operator=(const NestedView &) = default;
+  KOKKOS_DEFAULTED_FUNCTION NestedView &operator=(NestedView &&)      = default;
+
   KOKKOS_INLINE_FUNCTION
   ~NestedView() {
     if (member.extent(0)) {

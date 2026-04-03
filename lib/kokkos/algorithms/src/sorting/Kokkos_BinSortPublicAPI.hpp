@@ -136,11 +136,7 @@ class BinSort {
   bool sort_within_bins;
 
  public:
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED BinSort() = default;
-#else
   BinSort() = delete;
-#endif
 
   //----------------------------------------
   // Constructor: takes the keys, the binning_operator and optionally whether to

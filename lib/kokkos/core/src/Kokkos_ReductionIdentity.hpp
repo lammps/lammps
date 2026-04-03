@@ -26,7 +26,7 @@ struct reduction_identity<Integral> {
   KOKKOS_FUNCTION constexpr static Integral max() noexcept { return min_; }
   KOKKOS_FUNCTION constexpr static Integral min() noexcept { return max_; }
   KOKKOS_FUNCTION constexpr static Integral bor() noexcept { return 0x0; }
-  KOKKOS_FUNCTION constexpr static Integral band() noexcept { return 0x0; }
+  KOKKOS_FUNCTION constexpr static Integral band() noexcept { return ~(0x0); }
   KOKKOS_FUNCTION constexpr static Integral lor() noexcept { return 0; }
   KOKKOS_FUNCTION constexpr static Integral land() noexcept { return 1; }
 };

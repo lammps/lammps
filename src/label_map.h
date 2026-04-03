@@ -62,6 +62,8 @@ class LabelMap : protected Pointers {
            int nimpropertypes);
   ~LabelMap() override;
 
+  int checkflag;    //!< Flag to check for self-consistent type labels
+
   /*! Process labelmap command from input script
    *
    \verbatim embed:rst
@@ -279,6 +281,8 @@ Currently used when combining data from multiple sources with
    * \param  fp  File pointer for writing */
   void write_restart(FILE *);
 
+  void check_labels();    //!< Check if type labels are self-consistent
+
   /*! @} */
 
  protected:
@@ -292,6 +296,8 @@ Currently used when combining data from multiple sources with
   std::unordered_map<std::string, int> atypelabel_map;    //!< Angle label -> type mapping
   std::unordered_map<std::string, int> dtypelabel_map;    //!< Dihedral label -> type mapping
   std::unordered_map<std::string, int> itypelabel_map;    //!< Improper label -> type mapping
+
+  int check_which_labels[4];    //!< Indicate check for bonds, angles, dihedrals, and/or impropers
 
   /*! \struct Lmap2Lmap
    *  \brief Mapping structure between two LabelMaps

@@ -44,7 +44,7 @@ using namespace MathConst;
 
 enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 
-enum{ANGLE,ANGMOM,APIP_LAMBDA,BOND,CC,CHARGE,DENSITY,DIAMETER,DIHEDRAL,DIPOLE,
+enum{ANGLE,ANGMOM,APIP_LAMBDA,BLOCK,BOND,CC,CHARGE,DENSITY,DIAMETER,DIHEDRAL,DIPOLE,
   DIPOLE_RANDOM,DPD_THETA,EDPD_CV,EDPD_TEMP,EPSILON,IMAGE,IMPROPER,LENGTH,
   MASS,MOLECULE,OMEGA,QUAT,QUAT_RANDOM,RADIUS_ELECTRON,RHEO_STATUS,SHAPE,
   SMD_CONTACT_RADIUS,SMD_MASS_DENSITY,SPH_CV,SPH_E,SPH_RHO,
@@ -212,6 +212,10 @@ void Set::process_args(int caller_flag, int narg, char **arg)
       action->keyword = APIP_LAMBDA;
       process_apip_lambda(iarg,narg,arg,action);
       invoke_choice[naction++] = &Set::invoke_apip_lambda;
+    } else if (strcmp(arg[iarg],"block") == 0) {
+      action->keyword = BLOCK;
+      process_block(iarg, narg, arg, action);
+      invoke_choice[naction++] = &Set::invoke_block;
     } else if (strcmp(arg[iarg],"bond") == 0) {
       action->keyword = BOND;
       process_bond(iarg,narg,arg,action);
@@ -801,8 +805,10 @@ void Set::setrandom(int keyword, Action *action)
     if (domain->dimension == 3) {
       for (i = 0; i < nlocal; i++)
         if (select[i]) {
-          if (avec_ellipsoid && ellipsoid[i] >= 0)
-            quat_one = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+          if (avec_ellipsoid && ellipsoid[i] >= 0){
+            if (atom->superellipsoid_flag) quat_one = avec_ellipsoid->bonus_super[ellipsoid[i]].quat;
+            else quat_one = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+          }
           else if (avec_tri && tri[i] >= 0)
             quat_one = avec_tri->bonus[tri[i]].quat;
           else if (avec_body && body[i] >= 0)
@@ -828,8 +834,10 @@ void Set::setrandom(int keyword, Action *action)
       double theta2;
       for (i = 0; i < nlocal; i++)
         if (select[i]) {
-          if (avec_ellipsoid && ellipsoid[i] >= 0)
-            quat_one = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+          if (avec_ellipsoid && ellipsoid[i] >= 0){
+              if (atom->superellipsoid_flag) quat_one = avec_ellipsoid->bonus_super[ellipsoid[i]].quat;
+              else quat_one = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+          }
           else if (avec_body && body[i] >= 0)
             quat_one = avec_body->bonus[body[i]].quat;
           else if (quat_flag)
@@ -1114,6 +1122,58 @@ void Set::invoke_apip_lambda(Action *action)
 
 /* ---------------------------------------------------------------------- */
 
+void Set::process_block(int &iarg, int narg, char **arg, Action *action)
+{
+  if (!atom->superellipsoid_flag)
+    error->all(FLERR,"Cannot set attribute {} for atom style {} (only available for ellipsoid "
+               "with superellipsoid flag)", arg[iarg], atom->get_style());
+  if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "set block", error);
+  if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1,action);
+  else {
+    action->dvalue1 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    if (action->dvalue1 < 2.0) error->one(FLERR,"Invalid block in set command");
+  }
+  if (utils::strmatch(arg[iarg+2],"^v_")) varparse(arg[iarg+2],2,action);
+  else {
+    action->dvalue2 = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+    if (action->dvalue2 < 2.0) error->one(FLERR,"Invalid block in set command");
+  }
+  iarg += 3;
+}
+
+void Set::invoke_block(Action *action)
+{
+  int nlocal = atom->nlocal;
+  auto *avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  if (!avec_ellipsoid) return;
+
+  int varflag = action->varflag;
+  double block1 = 0.0, block2 = 0.0;
+  if (!action->varflag1) block1 = action->dvalue1;
+  if (!action->varflag2) block2 = action->dvalue2;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!select[i]) continue;
+
+    if (varflag) {
+      if (action->varflag1) block1 = vec1[i];
+      if (action->varflag2) block2 = vec2[i];
+      if (block1 < 2.0 || block2 < 2.0)
+        error->one(FLERR, Error::NOLASTLINE, "Invalid block in set command");
+    }
+
+    avec_ellipsoid->set_block(i, block1, block2);
+  }
+
+  // update global ellipsoid count
+  // TODO: Not sure if block should update the ellipsoid count
+  //       what happens if you call this twice in invike_shape and invoke_block ?
+  //   bigint nlocal_bonus = avec_ellipsoid->nlocal_bonus;
+  //   MPI_Allreduce(&nlocal_bonus,&atom->nellipsoids,1,MPI_LMP_BIGINT,MPI_SUM,world);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Set::process_bond(int &iarg, int narg, char **arg, Action *action)
 {
   if (atom->avec->bonds_allow == 0)
@@ -1285,7 +1345,9 @@ void Set::invoke_density(Action *action)
       else rmass[i] = 4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i] * density;
 
     else if (ellipsoid_flag && ellipsoid[i] >= 0) {
-      double *shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
+      double *shape;
+      if (atom->superellipsoid_flag) shape = avec_ellipsoid->bonus_super[ellipsoid[i]].shape;
+      else shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
       // could enable 2d ellipse (versus 3d ellipsoid) when time integration
       //   options (fix nve/asphere, fix nh/asphere) are also implemented
       // if (discflag)
@@ -1953,8 +2015,10 @@ void Set::invoke_quat(Action *action)
   for (int i = 0; i < nlocal; i++) {
     if (!select[i]) continue;
 
-    if (avec_ellipsoid && ellipsoid[i] >= 0)
-      quat_one = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+    if (avec_ellipsoid && ellipsoid[i] >= 0){
+      if (atom->superellipsoid_flag) quat_one = avec_ellipsoid->bonus_super[ellipsoid[i]].quat;
+      else quat_one = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+    }
     else if (avec_tri && tri[i] >= 0)
       quat_one = avec_tri->bonus[tri[i]].quat;
     else if (avec_body && body[i] >= 0)

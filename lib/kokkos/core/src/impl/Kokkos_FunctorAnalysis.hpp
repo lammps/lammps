@@ -5,6 +5,7 @@
 #define KOKKOS_FUNCTORANALYSIS_HPP
 
 #include <cstddef>
+#include <new>
 #include <Kokkos_Core_fwd.hpp>
 #include <impl/Kokkos_Traits.hpp>
 

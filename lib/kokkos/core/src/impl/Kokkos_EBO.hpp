@@ -53,21 +53,6 @@ struct EBOBaseImpl<T, true, CtorNotOnDevice> {
                              long> = 0>
   inline constexpr explicit EBOBaseImpl(Args&&...) noexcept {}
 
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr EBOBaseImpl(EBOBaseImpl const&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr EBOBaseImpl(EBOBaseImpl&&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr EBOBaseImpl& operator=(EBOBaseImpl const&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr EBOBaseImpl& operator=(EBOBaseImpl&&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  ~EBOBaseImpl() = default;
-
   KOKKOS_INLINE_FUNCTION
   constexpr T& _ebo_data_member() & { return *reinterpret_cast<T*>(this); }
 
@@ -115,23 +100,6 @@ struct EBOBaseImpl<T, false, CTorsNotOnDevice> {
   inline constexpr explicit EBOBaseImpl(Args&&... args) noexcept(
       noexcept(T(std::forward<Args>(args)...)))
       : m_ebo_object(std::forward<Args>(args)...) {}
-
-  // TODO @tasking @minor DSH noexcept in the right places?
-
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr EBOBaseImpl(EBOBaseImpl const&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr EBOBaseImpl(EBOBaseImpl&&) noexcept = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr EBOBaseImpl& operator=(EBOBaseImpl const&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr EBOBaseImpl& operator=(EBOBaseImpl&&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  ~EBOBaseImpl() = default;
 
   KOKKOS_INLINE_FUNCTION
   T& _ebo_data_member() & { return m_ebo_object; }

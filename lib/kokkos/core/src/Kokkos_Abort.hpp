@@ -42,7 +42,7 @@ namespace Impl {
 #elif defined(KOKKOS_ENABLE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
 // FIXME_SYCL SYCL doesn't abort
 #define KOKKOS_IMPL_ABORT_NORETURN
-#elif !defined(KOKKOS_ENABLE_OPENMPTARGET) && !defined(KOKKOS_ENABLE_OPENACC)
+#elif !defined(KOKKOS_ENABLE_OPENACC)
 // Host aborts
 #define KOKKOS_IMPL_ABORT_NORETURN [[noreturn]]
 #else
@@ -59,9 +59,8 @@ namespace Impl {
 #define KOKKOS_IMPL_ABORT_NORETURN_DEVICE KOKKOS_IMPL_ABORT_NORETURN
 #endif
 
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) ||          \
-    defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET) || \
-    defined(KOKKOS_ENABLE_OPENACC)
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
+    defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENACC)
 KOKKOS_IMPL_ABORT_NORETURN_DEVICE inline KOKKOS_IMPL_DEVICE_FUNCTION void
 device_abort(const char *const msg) {
 #if defined(KOKKOS_ENABLE_CUDA)
@@ -70,8 +69,8 @@ device_abort(const char *const msg) {
   ::Kokkos::Impl::hip_abort(msg);
 #elif defined(KOKKOS_ENABLE_SYCL)
   ::Kokkos::Impl::sycl_abort(msg);
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET) || defined(KOKKOS_ENABLE_OPENACC)
-  printf("%s", msg);  // FIXME_OPENMPTARGET FIXME_OPENACC
+#elif defined(KOKKOS_ENABLE_OPENACC)
+  printf("%s", msg);  // FIXME_OPENACC
 #else
 #error faulty logic
 #endif

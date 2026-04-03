@@ -167,7 +167,8 @@ ThreadsInternal::~ThreadsInternal() {
   const unsigned entry = m_pool_size - (m_pool_rank + 1);
 
   if (m_scratch) {
-    Kokkos::kokkos_free<Kokkos::HostSpace>(m_scratch);
+    Kokkos::HostSpace{}.deallocate("Kokkos::thread_scratch", m_scratch,
+                                   m_scratch_thread_end);
     m_scratch = nullptr;
   }
 
@@ -235,15 +236,6 @@ void ThreadsInternal::verify_is_process(const std::string &name,
   }
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-KOKKOS_DEPRECATED int ThreadsInternal::in_parallel() {
-  // A thread function is in execution and
-  // the function argument is not the special threads process argument and
-  // the master process is a worker or is not the master process.
-  return s_current_function && (&s_threads_process != s_current_function_arg) &&
-         (s_threads_process.m_pool_base || !is_process());
-}
-#endif
 void ThreadsInternal::fence() {
   fence("Kokkos::ThreadsInternal::fence: Unnamed Instance Fence");
 }
@@ -306,7 +298,8 @@ void ThreadsInternal::execute_resize_scratch_in_serial() {
 
   auto deallocate_scratch_memory = [](ThreadsInternal &exec) {
     if (exec.m_scratch) {
-      Kokkos::kokkos_free<Kokkos::HostSpace>(exec.m_scratch);
+      Kokkos::HostSpace{}.deallocate("Kokkos::thread_scratch", exec.m_scratch,
+                                     exec.m_scratch_thread_end);
       exec.m_scratch = nullptr;
     }
   };
@@ -358,8 +351,8 @@ void ThreadsInternal::first_touch_allocate_thread_private_scratch(
   if (s_threads_process.m_scratch_thread_end) {
     // Allocate tracked memory:
     {
-      exec.m_scratch = Kokkos::kokkos_malloc<Kokkos::HostSpace>(
-          "Kokkos::thread_scratch", s_threads_process.m_scratch_thread_end);
+      exec.m_scratch = Kokkos::HostSpace{}.allocate("Kokkos::thread_scratch",
+                                                    exec.m_scratch_thread_end);
     }
 
     unsigned *ptr = reinterpret_cast<unsigned *>(exec.m_scratch);
@@ -617,7 +610,7 @@ void ThreadsInternal::initialize(int thread_count_arg) {
 void ThreadsInternal::finalize() {
   verify_is_process("ThreadsInternal::finalize", false);
 
-  fence();
+  fence("Kokkos::ThreadsInternal::finalize: fence on destruction");
 
   resize_scratch(0, 0);
 
@@ -666,11 +659,7 @@ void ThreadsInternal::finalize() {
 
 namespace Kokkos {
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-int Threads::concurrency() { return impl_thread_pool_size(0); }
-#else
 int Threads::concurrency() const { return impl_thread_pool_size(0); }
-#endif
 
 void Threads::fence(const std::string &name) const {
   Impl::ThreadsInternal::fence(name);

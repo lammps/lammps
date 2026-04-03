@@ -78,19 +78,6 @@ TEST(kokkosp, create_mirror_no_init_view_ctor) {
 }
 
 TEST(kokkosp, create_mirror_view_and_copy) {
-#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
-  if (std::is_same<Kokkos::DefaultExecutionSpace,
-                   Kokkos::Experimental::OpenMPTarget>::value)
-    GTEST_SKIP() << "skipping since the OpenMPTarget has unexpected fences";
-#endif
-
-#ifdef KOKKOS_ENABLE_CUDA
-  if (std::is_same_v<Kokkos::DefaultExecutionSpace::memory_space,
-                     Kokkos::CudaUVMSpace>)
-    GTEST_SKIP()
-        << "skipping since the CudaUVMSpace requires additional fences";
-#endif
-
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels(),
                      Config::EnableFences());

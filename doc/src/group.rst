@@ -265,7 +265,7 @@ energy minimization, via the :doc:`minimize <minimize>` command, an
 assignment is made at the beginning of the minimization, but not during
 the iterations of the minimizer.
 
-.. versionadded:: TBD
+.. versionadded:: 30Mar2026
 
 The optional *exclude* keyword has a group ID as argument and after all
 other atom selections for the dynamic group have been performed, it
@@ -286,7 +286,7 @@ molecules straddle the region boundary, then atoms outside the region
 that are part of molecules with atoms inside the region will be added to
 the group (see above).
 
-.. versionadded:: TBD
+.. versionadded:: 30Mar2026
 
 The optional *within* keyword with its *cutoff* argument adds atoms to a
 dynamic group that are within the given cutoff distance from any of the

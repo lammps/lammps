@@ -120,7 +120,7 @@ void test_view_out_of_bounds_access() {
   TestViewOutOfBoundAccess(make_view<V7>(lbl), exec_space, prefix + ".*" + lbl);
   TestViewOutOfBoundAccess(make_view<V8>(lbl), exec_space, prefix + ".*" + lbl);
   V0 v0("v0");  // obtain a valid pointer for an allocation in the right space
-  int* const ptr = v0.data();  
+  int* const ptr = v0.data();
   TestViewOutOfBoundAccess(make_view<V1>(ptr), exec_space, prefix + ".*UNMANAGED");
   TestViewOutOfBoundAccess(make_view<V2>(ptr), exec_space, prefix + ".*UNMANAGED");
   TestViewOutOfBoundAccess(make_view<V3>(ptr), exec_space, prefix + ".*UNMANAGED");
@@ -147,12 +147,6 @@ TEST(TEST_CATEGORY_DEATH, view_out_of_bounds_access) {
   if (std::is_same_v<ExecutionSpace, Kokkos::SYCL>) {
     GTEST_SKIP() << "skipping SYCL device-side abort does not work when NDEBUG "
                     "is defined";
-  }
-#endif
-#if defined(KOKKOS_ENABLE_OPENMPTARGET)  // FIXME_OPENMPTARGET
-  if (std::is_same_v<ExecutionSpace, Kokkos::Experimental::OpenMPTarget>) {
-    GTEST_SKIP() << "skipping because OpenMPTarget backend is currently not "
-                    "able to abort from the device";
   }
 #endif
 #if defined(KOKKOS_ENABLE_OPENACC)  // FIXME_OPENACC

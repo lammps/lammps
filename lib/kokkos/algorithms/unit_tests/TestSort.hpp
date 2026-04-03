@@ -207,29 +207,18 @@ void test_sort_integer_overflow() {
 }  // namespace SortImpl
 
 TEST(TEST_CATEGORY, SortUnsignedValueType) {
-  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
-#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
-  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
-#endif
   using ExecutionSpace = TEST_EXECSPACE;
   using key_type       = unsigned;
   constexpr int N      = 171;
 
   SortImpl::test_1D_sort_impl<ExecutionSpace, key_type>(N * N * N);
 
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
-  // FIXME_OPENMPTARGET: OpenMPTarget doesn't support DynamicView yet.
   SortImpl::test_dynamic_view_sort_impl<ExecutionSpace, key_type>(N * N);
-#endif
 
   SortImpl::test_issue_4978_impl<ExecutionSpace>();
 }
 
 TEST(TEST_CATEGORY, SortEmptyView) {
-  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
-#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
-  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
-#endif
   using ExecutionSpace = TEST_EXECSPACE;
 
   // does not matter if we use int or something else

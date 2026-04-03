@@ -41,7 +41,8 @@ inline void host_test_simd_load(SimdType const& init, SimdType const& expected,
   }
 
   auto mask = (result == expected);
-  for (size_t i = 0; i < SimdType::size(); ++i) {
+  for (Kokkos::Experimental::Impl::simd_size_t i = 0; i < SimdType::size();
+       ++i) {
     EXPECT_TRUE(mask[i]);
   }
 }
@@ -60,7 +61,8 @@ inline void host_test_simd_store(SimdType const& init, SimdType const& expected,
     simd_unchecked_store(init, arr, args...);
   }
 
-  for (size_t i = 0; i < SimdType::size(); ++i) {
+  for (Kokkos::Experimental::Impl::simd_size_t i = 0; i < SimdType::size();
+       ++i) {
     EXPECT_EQ(arr[i], expected[i]);
   }
 }
@@ -162,7 +164,8 @@ KOKKOS_INLINE_FUNCTION void device_test_simd_store(SimdType const& init,
   }
 
   kokkos_checker checker;
-  for (size_t i = 0; i < SimdType::size(); ++i) {
+  for (Kokkos::Experimental::Impl::simd_size_t i = 0; i < SimdType::size();
+       ++i) {
     checker.equality(arr[i], expected[i]);
   }
 }
@@ -229,8 +232,8 @@ TEST(simd, host_loadstore) {
 }
 
 TEST(simd, device_loadstore) {
-  Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::IndexType<int>>(0, 1),
-                       simd_device_loadstore_functor());
+  Kokkos::parallel_for(1, simd_device_loadstore_functor());
+  Kokkos::fence();
 }
 
 #endif

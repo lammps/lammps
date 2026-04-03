@@ -273,63 +273,6 @@ struct LoadStoreAtomicTest {
   static const char* name() { return "load/store"; }
 };
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
-#endif
-struct DeprecatedAssignAtomicTest {
-  template <class T>
-  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
-                                        T* ptr_op_fetch, T update) {
-    T old_val = Kokkos::atomic_load(ptr_op);
-    Kokkos::atomic_assign(ptr_op, update);
-    Kokkos::atomic_assign(ptr_op_fetch, update);
-    Kokkos::atomic_assign(ptr_fetch_op, update);
-    return Kokkos::pair<T, T>(old_val, update);
-  }
-  template <class T>
-  KOKKOS_FUNCTION static T op(T, T update) {
-    return update;
-  }
-  static const char* name() { return "load/assign"; }
-};
-
-struct DeprecatedIncrementAtomicTest {
-  template <class T>
-  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
-                                        T* ptr_op_fetch, T) {
-    Kokkos::atomic_increment(ptr_op);
-    T old_val = Kokkos::atomic_fetch_inc(ptr_fetch_op);
-    T new_val = Kokkos::atomic_inc_fetch(ptr_op_fetch);
-    return Kokkos::pair<T, T>(old_val, new_val);
-  }
-  template <class T>
-  KOKKOS_FUNCTION static T op(T old, T) {
-    return old + 1;
-  }
-  static const char* name() { return "increment"; }
-};
-
-struct DeprecatedDecrementAtomicTest {
-  template <class T>
-  KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
-                                        T* ptr_op_fetch, T) {
-    Kokkos::atomic_decrement(ptr_op);
-    T old_val = Kokkos::atomic_fetch_dec(ptr_fetch_op);
-    T new_val = Kokkos::atomic_dec_fetch(ptr_op_fetch);
-    return Kokkos::pair<T, T>(old_val, new_val);
-  }
-  template <class T>
-  KOKKOS_FUNCTION static T op(T old, T) {
-    return old - 1;
-  }
-  static const char* name() { return "decrement"; }
-};
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
-#endif
-#endif
-
 struct IncModAtomicTest {
   template <class T>
   KOKKOS_FUNCTION static auto atomic_op(T* ptr_op, T* ptr_fetch_op,
@@ -525,28 +468,11 @@ bool AtomicOperationsTestIntegralType(int old_val_in, int update_in, int test) {
                             : true;
 #endif
     case 13:
-      return
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-          atomic_op_test<DeprecatedIncrementAtomicTest, T, ExecSpace>(old_val,
-                                                                      update) &&
-#endif
-          atomic_op_test<IncAtomicTest, T, ExecSpace>(old_val, update);
+      return atomic_op_test<IncAtomicTest, T, ExecSpace>(old_val, update);
     case 14:
-      return
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-          atomic_op_test<DeprecatedDecrementAtomicTest, T, ExecSpace>(old_val,
-                                                                      update) &&
-#endif
-
-          atomic_op_test<DecAtomicTest, T, ExecSpace>(old_val, update);
+      return atomic_op_test<DecAtomicTest, T, ExecSpace>(old_val, update);
     case 15:
-      return
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-          atomic_op_test<DeprecatedAssignAtomicTest, T, ExecSpace>(old_val,
-                                                                   update) &&
-#endif
-
-          atomic_op_test<LoadStoreAtomicTest, T, ExecSpace>(old_val, update);
+      return atomic_op_test<LoadStoreAtomicTest, T, ExecSpace>(old_val, update);
     default: Kokkos::abort("unreachable");
   }
 

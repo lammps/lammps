@@ -1125,6 +1125,11 @@ int FixChargeRegulation::get_random_particle(int ptype, double charge, double rd
 /* ---------------------------------------------------------------------- */
 
 double FixChargeRegulation::energy_full() {
+
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
+
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   comm->exchange();
@@ -1133,8 +1138,7 @@ double FixChargeRegulation::energy_full() {
   if (triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
   if (modify->n_pre_neighbor) modify->pre_neighbor();
   neighbor->build(1);
-  int eflag = 1;
-  int vflag = 0;
+
   if (overlap_flag) {
     int overlaptestall;
     int overlaptest = 0;

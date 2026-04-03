@@ -154,7 +154,7 @@ void FitPOD::command(int narg, char **arg)
 
       if (comm->me == 0) {    // save coefficients into a text file
         std::string filename = traindata.filenametag + "_coefficients" + ".pod";
-        FILE *fp = fopen(filename.c_str(), "w");
+        SafeFilePtr fp = fopen(filename.c_str(), "w");
 
         int nCoeffAll = desc.nCoeffAll;
         int n1 = 0, n2 = 0;
@@ -173,7 +173,6 @@ void FitPOD::command(int narg, char **arg)
         for (int count = 0; count < n2; count++) {
           utils::print(fp, "{:<10.{}f}\n", fastpodptr->Centroids[count], 14);
         }
-        fclose(fp);
       }
     }
 
@@ -369,10 +368,7 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
       // Get next line.
       if (comm->me == 0) {
         ptr = fgets(line, MAXLINE, fpdata);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fpdata);
-        }
+        if (ptr == nullptr) eof = 1;
       }
       MPI_Bcast(&eof, 1, MPI_INT, 0, world);
       if (eof) break;
@@ -395,10 +391,7 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
         // Get next line.
         if (comm->me == 0) {
           ptr = fgets(line, MAXLINE, fpdata);
-          if (ptr == nullptr) {
-            eof = 1;
-            fclose(fpdata);
-          }
+          if (ptr == nullptr) eof = 1;
         }
         MPI_Bcast(&eof, 1, MPI_INT, 0, world);
         if (eof) break;
@@ -1734,10 +1727,9 @@ void FitPOD::print_analysis(const datastruct &data, double *outarray, double *er
   std::string filename_analysis =
       fmt::format("{}_{}_analysis.pod", data.filenametag, data.training ? "training" : "test");
 
-  FILE *fp_errors = nullptr;
-  FILE *fp_analysis = nullptr;
-  fp_errors = fopen(filename_errors.c_str(), "w");
-  fp_analysis = fopen(filename_analysis.c_str(), "w");
+  SafeFilePtr fp_errors(fopen(filename_errors.c_str(), "w"));
+  SafeFilePtr fp_analysis(fopen(filename_analysis.c_str(), "w"));
+  if (!fp_errors || !fp_analysis) return;
 
   std::string mystr =
       fmt::format("**************** Begin of Error Analysis for the {} Data Set ****************\n",
@@ -1802,9 +1794,6 @@ void FitPOD::print_analysis(const datastruct &data, double *outarray, double *er
 
   utils::logmesg(lmp, mystr);
   utils::print(fp_errors, mystr);
-
-  fclose(fp_errors);
-  fclose(fp_analysis);
 }
 
 void FitPOD::error_analysis(const datastruct &data, double *coeff)

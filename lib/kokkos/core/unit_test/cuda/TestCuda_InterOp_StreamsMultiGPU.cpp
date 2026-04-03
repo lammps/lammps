@@ -130,7 +130,7 @@ TEST_F(TEST_CATEGORY_FIXTURE(multi_gpu), stream_sync_semantics_raw_cuda) {
 
     // Launch "long" kernel on device 0.
     KOKKOS_IMPL_CUDA_SAFE_CALL(cudaSetDevice(devices[0]));
-    constexpr size_t size = 10000;
+    constexpr int size = 10000;
     accumulate_kernel<size><<<1, 1, 0, streams[0]>>>(value);
 
     // Wait for the kernel running on device 0 while we are on device 1, then

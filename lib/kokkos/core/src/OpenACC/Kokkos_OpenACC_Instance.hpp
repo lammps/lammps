@@ -5,6 +5,7 @@
 #define KOKKOS_OPENACC_INSTANCE_HPP
 
 #include <impl/Kokkos_InitializationSettings.hpp>
+#include <impl/Kokkos_HostSharedPtr.hpp>
 
 #include <openacc.h>
 
@@ -15,26 +16,23 @@
 namespace Kokkos::Experimental::Impl {
 
 class OpenACCInternal {
-  bool m_is_initialized = false;
-
-  OpenACCInternal(const OpenACCInternal&)            = default;
-  OpenACCInternal& operator=(const OpenACCInternal&) = default;
+  OpenACCInternal(const OpenACCInternal&)            = delete;
+  OpenACCInternal& operator=(const OpenACCInternal&) = delete;
 
  public:
+  static Kokkos::Impl::HostSharedPtr<OpenACCInternal> default_instance;
   static int m_acc_device_num;
   static int m_concurrency;
   static int m_next_async;
   int m_async_arg = acc_async_noval;
 
-  OpenACCInternal() = default;
+  OpenACCInternal(int async_arg = acc_async_noval);
 
-  static OpenACCInternal& singleton();
-
-  bool verify_is_initialized(const char* const label) const;
-
-  void initialize(int async_arg = acc_async_noval);
-  void finalize();
-  bool is_initialized() const;
+  ~OpenACCInternal() {
+    fence(
+        "Kokkos::Experimental::Impl::OpenACCInternal::finalize: fence on "
+        "destruction");
+  }
 
   void print_configuration(std::ostream& os, bool verbose = false) const;
 

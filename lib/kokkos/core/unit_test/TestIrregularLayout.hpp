@@ -59,6 +59,9 @@ struct LayoutSelective {
     return *this;
   }
 
+  KOKKOS_DEFAULTED_FUNCTION
+  ~LayoutSelective() = default;
+
   KOKKOS_INLINE_FUNCTION
   explicit LayoutSelective(const size_t ol_[], const size_t size_) {
     assign(ol_, size_);
@@ -130,9 +133,7 @@ struct ViewOffset<Dimension, Kokkos::LayoutSelective, void> {
   }
 
   //----------------------------------------
-  ViewOffset()                             = default;
-  ViewOffset(const ViewOffset&)            = default;
-  ViewOffset& operator=(const ViewOffset&) = default;
+  ViewOffset() = default;
 
   KOKKOS_INLINE_FUNCTION
   ViewOffset(std::integral_constant<unsigned, 0> const&,

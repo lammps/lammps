@@ -45,9 +45,7 @@ struct TestFunctorA {
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;
       });
-    }
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
-    else if (m_apiPick == 2) {
+    } else if (m_apiPick == 2) {
       using value_type = typename ViewType::value_type;
       auto it =
           KE::min_element(member, KE::cbegin(myRowView), KE::cend(myRowView),
@@ -67,7 +65,6 @@ struct TestFunctorA {
         m_distancesView(myRowIndex) = resultDist;
       });
     }
-#endif
 
     // store result of checking if all members have their local
     // values matching the one stored in m_distancesView
@@ -146,8 +143,6 @@ template <class LayoutTag, class ValueType>
 void run_all_scenarios() {
   for (int numTeams : teamSizesToTest) {
     for (const auto& numCols : {0, 1, 2, 13, 101, 1444, 5113}) {
-      // for OpenMPTarget we need to avod api accepting a custom
-      // comparator because it is not supported
       for (int apiId : {0, 1, 2, 3}) {
         test_A<LayoutTag, ValueType>(numTeams, numCols, apiId);
       }
@@ -156,11 +151,9 @@ void run_all_scenarios() {
 }
 
 TEST(std_algorithms_min_element_team_test, test) {
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
   run_all_scenarios<DynamicTag, int>();
   run_all_scenarios<StridedTwoRowsTag, double>();
   run_all_scenarios<StridedThreeRowsTag, int>();
-#endif
 }
 
 }  // namespace TeamMinElement

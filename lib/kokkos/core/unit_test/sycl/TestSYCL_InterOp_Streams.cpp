@@ -8,53 +8,59 @@ namespace Test {
 // Test Interoperability with SYCL Streams
 TEST(sycl, raw_sycl_queues) {
   // Make sure all queues use the same context
+  sycl::queue queue;
+  int* p;
   Kokkos::initialize();
-  Kokkos::SYCL default_space;
-  sycl::context default_context = default_space.sycl_queue().get_context();
-
-  sycl::queue queue(default_context, sycl::default_selector_v,
-                    sycl::property::queue::in_order());
-  int* p            = sycl::malloc_device<int>(100, queue);
-  using MemorySpace = typename TEST_EXECSPACE::memory_space;
-
   {
-    TEST_EXECSPACE space0(queue);
-    Kokkos::View<int*, TEST_EXECSPACE> v(p, 100);
-    Kokkos::deep_copy(space0, v, 5);
-    int sum = 0;
+    Kokkos::SYCL default_space;
+    sycl::context default_context = default_space.sycl_queue().get_context();
 
-    Kokkos::parallel_for("Test::sycl::raw_sycl_queue::Range",
-                         Kokkos::RangePolicy<TEST_EXECSPACE>(space0, 0, 100),
-                         FunctorRange<MemorySpace>(v));
-    Kokkos::parallel_reduce("Test::sycl::raw_sycl_queue::RangeReduce",
-                            Kokkos::RangePolicy<TEST_EXECSPACE>(space0, 0, 100),
-                            FunctorRangeReduce<MemorySpace>(v), sum);
-    space0.fence();
-    ASSERT_EQ(6 * 100, sum);
+    queue             = sycl::queue(default_context, sycl::default_selector_v,
+                                    sycl::property::queue::in_order());
+    p                 = sycl::malloc_device<int>(100, queue);
+    using MemorySpace = typename TEST_EXECSPACE::memory_space;
 
-    Kokkos::parallel_for("Test::sycl::raw_sycl_queue::MDRange",
-                         Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>(
-                             space0, {0, 0}, {10, 10}),
-                         FunctorMDRange<MemorySpace>(v));
-    space0.fence();
-    Kokkos::parallel_reduce(
-        "Test::sycl::raw_sycl_queue::MDRangeReduce",
-        Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>(space0, {0, 0},
-                                                               {10, 10}),
-        FunctorMDRangeReduce<MemorySpace>(v), sum);
-    space0.fence();
-    ASSERT_EQ(7 * 100, sum);
+    {
+      TEST_EXECSPACE space0(queue);
+      Kokkos::View<int*, TEST_EXECSPACE> v(p, 100);
+      Kokkos::deep_copy(space0, v, 5);
+      int sum = 0;
 
-    Kokkos::parallel_for("Test::sycl::raw_sycl_queue::Team",
-                         Kokkos::TeamPolicy<TEST_EXECSPACE>(space0, 10, 10),
-                         FunctorTeam<MemorySpace, TEST_EXECSPACE>(v));
-    space0.fence();
-    Kokkos::parallel_reduce("Test::sycl::raw_sycl_queue::Team",
-                            Kokkos::TeamPolicy<TEST_EXECSPACE>(space0, 10, 10),
-                            FunctorTeamReduce<MemorySpace, TEST_EXECSPACE>(v),
-                            sum);
-    space0.fence();
-    ASSERT_EQ(8 * 100, sum);
+      Kokkos::parallel_for("Test::sycl::raw_sycl_queue::Range",
+                           Kokkos::RangePolicy<TEST_EXECSPACE>(space0, 0, 100),
+                           FunctorRange<MemorySpace>(v));
+      Kokkos::parallel_reduce(
+          "Test::sycl::raw_sycl_queue::RangeReduce",
+          Kokkos::RangePolicy<TEST_EXECSPACE>(space0, 0, 100),
+          FunctorRangeReduce<MemorySpace>(v), sum);
+      space0.fence();
+      ASSERT_EQ(6 * 100, sum);
+
+      Kokkos::parallel_for(
+          "Test::sycl::raw_sycl_queue::MDRange",
+          Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>(space0, {0, 0},
+                                                                 {10, 10}),
+          FunctorMDRange<MemorySpace>(v));
+      space0.fence();
+      Kokkos::parallel_reduce(
+          "Test::sycl::raw_sycl_queue::MDRangeReduce",
+          Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>(space0, {0, 0},
+                                                                 {10, 10}),
+          FunctorMDRangeReduce<MemorySpace>(v), sum);
+      space0.fence();
+      ASSERT_EQ(7 * 100, sum);
+
+      Kokkos::parallel_for("Test::sycl::raw_sycl_queue::Team",
+                           Kokkos::TeamPolicy<TEST_EXECSPACE>(space0, 10, 10),
+                           FunctorTeam<MemorySpace, TEST_EXECSPACE>(v));
+      space0.fence();
+      Kokkos::parallel_reduce(
+          "Test::sycl::raw_sycl_queue::Team",
+          Kokkos::TeamPolicy<TEST_EXECSPACE>(space0, 10, 10),
+          FunctorTeamReduce<MemorySpace, TEST_EXECSPACE>(v), sum);
+      space0.fence();
+      ASSERT_EQ(8 * 100, sum);
+    }
   }
   Kokkos::finalize();
 

@@ -1086,9 +1086,10 @@ char *ReadRestart::read_string()
 {
   int n = read_int();
   if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
-  auto *value = new char[n];
+  auto *value = new char[n+1];
   if (me == 0) utils::sfread(FLERR,value,sizeof(char),n,fp,nullptr,error);
-  MPI_Bcast(value,n,MPI_CHAR,0,world);
+  value[n] = '\0';
+  MPI_Bcast(value,n+1,MPI_CHAR,0,world);
   return value;
 }
 

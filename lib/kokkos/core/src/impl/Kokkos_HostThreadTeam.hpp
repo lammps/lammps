@@ -434,13 +434,6 @@ class HostThreadTeamMember {
         m_league_rank(arg_league_rank),
         m_league_size(arg_league_size) {}
 
-  ~HostThreadTeamMember()                                      = default;
-  HostThreadTeamMember()                                       = delete;
-  HostThreadTeamMember(HostThreadTeamMember&&)                 = default;
-  HostThreadTeamMember(HostThreadTeamMember const&)            = default;
-  HostThreadTeamMember& operator=(HostThreadTeamMember&&)      = default;
-  HostThreadTeamMember& operator=(HostThreadTeamMember const&) = default;
-
   //----------------------------------------
 
   KOKKOS_INLINE_FUNCTION

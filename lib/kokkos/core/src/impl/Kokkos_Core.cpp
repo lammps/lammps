@@ -127,8 +127,6 @@ int get_device_count() {
 #elif defined(KOKKOS_ENABLE_OPENACC)
   return acc_get_num_devices(
       Kokkos::Experimental::Impl::OpenACC_Traits::dev_type);
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-  return omp_get_num_devices();
 #else
   Kokkos::abort("implementation bug");
   return -1;
@@ -166,8 +164,6 @@ std::vector<int> const& Kokkos::Impl::get_visible_devices() {
   int device = HIP().hip_device();
 #elif defined(KOKKOS_ENABLE_OPENACC)
   int device = Experimental::OpenACC().acc_device_number();
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-  int device = omp_get_default_device();  // FIXME_OPENMPTARGET
 #elif defined(KOKKOS_ENABLE_SYCL)
   int device = Impl::SYCLInternal::m_syclDev;
 #else
@@ -687,15 +683,19 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
 #elif defined(KOKKOS_ARCH_AMPERE86)
   declare_configuration_metadata("architecture", "GPU architecture", "AMPERE86");
 #elif defined(KOKKOS_ARCH_AMPERE87)
-  declare_configuration_metadata("architecture", "GPU architecture", "AMPERE87");  
+  declare_configuration_metadata("architecture", "GPU architecture", "AMPERE87");
 #elif defined(KOKKOS_ARCH_ADA89)
   declare_configuration_metadata("architecture", "GPU architecture", "ADA89");
 #elif defined(KOKKOS_ARCH_HOPPER90)
   declare_configuration_metadata("architecture", "GPU architecture", "HOPPER90");
 #elif defined(KOKKOS_ARCH_BLACKWELL100)
   declare_configuration_metadata("architecture", "GPU architecture", "BLACKWELL100");
+#elif defined(KOKKOS_ARCH_BLACKWELL103)
+  declare_configuration_metadata("architecture", "GPU architecture", "BLACKWELL103");
 #elif defined(KOKKOS_ARCH_BLACKWELL120)
   declare_configuration_metadata("architecture", "GPU architecture", "BLACKWELL120");
+#elif defined(KOKKOS_ARCH_BLACKWELL121)
+  declare_configuration_metadata("architecture", "GPU architecture", "BLACKWELL121");
 #elif defined(KOKKOS_ARCH_AMD_GFX906)
   declare_configuration_metadata("architecture", "GPU architecture", "AMD_GFX906");
 #elif defined(KOKKOS_ARCH_AMD_GFX908)

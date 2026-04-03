@@ -27,6 +27,7 @@ kokkos_check_deprecated_options(
 set(KOKKOS_ARCH_LIST)
 
 include(CheckCXXCompilerFlag)
+include(CheckSourceCompiles)
 
 kokkos_deprecated_list(ARCH ARCH)
 
@@ -75,11 +76,7 @@ declare_and_check_host_arch(RISCV_SG2042 "SG2042 (RISC-V) CPUs")
 declare_and_check_host_arch(RISCV_RVA22V "RVA22V (RISC-V) CPUs")
 declare_and_check_host_arch(RISCV_U74MC "U74MC (RISC-V) CPUs")
 
-if(Kokkos_ENABLE_CUDA
-   OR Kokkos_ENABLE_OPENMPTARGET
-   OR Kokkos_ENABLE_OPENACC
-   OR Kokkos_ENABLE_SYCL
-)
+if(Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_OPENACC OR Kokkos_ENABLE_SYCL)
   set(KOKKOS_SHOW_CUDA_ARCHS ON)
 endif()
 
@@ -97,20 +94,18 @@ kokkos_arch_option(AMPERE87 GPU "NVIDIA Ampere generation CC 8.7" "KOKKOS_SHOW_C
 kokkos_arch_option(ADA89 GPU "NVIDIA Ada generation CC 8.9" "KOKKOS_SHOW_CUDA_ARCHS")
 kokkos_arch_option(HOPPER90 GPU "NVIDIA Hopper generation CC 9.0" "KOKKOS_SHOW_CUDA_ARCHS")
 kokkos_arch_option(BLACKWELL100 GPU "NVIDIA Blackwell generation CC 10.0" "KOKKOS_SHOW_CUDA_ARCHS")
+kokkos_arch_option(BLACKWELL103 GPU "NVIDIA Blackwell generation CC 10.3" "KOKKOS_SHOW_CUDA_ARCHS")
 kokkos_arch_option(BLACKWELL120 GPU "NVIDIA Blackwell generation CC 12.0" "KOKKOS_SHOW_CUDA_ARCHS")
+kokkos_arch_option(BLACKWELL121 GPU "NVIDIA Blackwell generation CC 12.1" "KOKKOS_SHOW_CUDA_ARCHS")
 
-if(Kokkos_ENABLE_HIP
-   OR Kokkos_ENABLE_OPENMPTARGET
-   OR Kokkos_ENABLE_OPENACC
-   OR Kokkos_ENABLE_SYCL
-)
+if(Kokkos_ENABLE_HIP OR Kokkos_ENABLE_OPENACC OR Kokkos_ENABLE_SYCL)
   set(KOKKOS_SHOW_HIP_ARCHS ON)
 endif()
 
 # AMD archs ordered in decreasing priority of autodetection
-list(APPEND SUPPORTED_AMD_GPUS MI300 MI300A MI300)
-list(APPEND SUPPORTED_AMD_ARCHS AMD_GFX942 AMD_GFX942_APU AMD_GFX940)
-list(APPEND CORRESPONDING_AMD_FLAGS gfx942 gfx942 gfx940)
+list(APPEND SUPPORTED_AMD_GPUS MI300 MI300A MI300 MI350)
+list(APPEND SUPPORTED_AMD_ARCHS AMD_GFX942 AMD_GFX942_APU AMD_GFX940 AMD_GFX950)
+list(APPEND CORRESPONDING_AMD_FLAGS gfx942 gfx942 gfx940 gfx950)
 list(APPEND SUPPORTED_AMD_GPUS MI200 MI200 MI100 MI100)
 list(APPEND SUPPORTED_AMD_ARCHS VEGA90A AMD_GFX90A VEGA908 AMD_GFX908)
 list(APPEND CORRESPONDING_AMD_FLAGS gfx90a gfx90a gfx908 gfx908)
@@ -245,9 +240,6 @@ if(KOKKOS_ENABLE_HIP)
   global_append(KOKKOS_AMDGPU_OPTIONS -xhip)
   set(AMDGPU_ARCH_FLAG "--offload-arch")
   if(NOT KOKKOS_CXX_COMPILER_ID STREQUAL HIPCC)
-    if(NOT CMAKE_CXX_STANDARD)
-      message(FATAL_ERROR "Kokkos requires CMAKE_CXX_STANDARD to set to 20 or higher")
-    endif()
     if(DEFINED ENV{ROCM_PATH})
       global_append(KOKKOS_AMDGPU_OPTIONS --rocm-path=$ENV{ROCM_PATH})
     endif()
@@ -272,6 +264,79 @@ if(KOKKOS_ARCH_NATIVE)
 
   compiler_specific_flags(COMPILER_ID KOKKOS_CXX_HOST_COMPILER_ID DEFAULT ${KOKKOS_NATIVE_FLAGS})
 endif()
+
+#------------------------------- KOKKOS NEON and SVE detection ---------------------------
+function(kokkos_use_neon_if_compiler_allows_it)
+  cmake_parse_arguments(ARG "" "" "COMPILER_FLAGS" ${ARGN})
+  if(ARG_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "'kokkos_use_neon_if_compiler_allows_it' has unrecognized arguments: ${ARG_UNPARSED_ARGUMENTS}")
+  endif()
+
+  if(ARG_COMPILER_FLAGS)
+    set(CMAKE_REQUIRED_FLAGS ${ARG_COMPILER_FLAGS})
+  endif()
+
+  unset(KOKKOS_COMPILER_HAS_ARM_NEON CACHE)
+  #FIXME_Kokkos_launch_compiler
+  get_property(kokkos_global_rule_compile GLOBAL PROPERTY RULE_LAUNCH_COMPILE)
+  if("${kokkos_global_rule_compile}" MATCHES "kokkos_launch_compiler")
+    message(WARNING "The use of 'kokkos_launch_compiler' prevents reliable NEON detection. Disabling NEON.\n"
+                    "You can force the use of NEON by using the Kokkos_ARCH_* flag specific to your target "
+                    "processor instead of Kokkos_ARCH_NATIVE."
+    )
+  else()
+    check_source_compiles(
+      ${KOKKOS_COMPILE_LANGUAGE}
+      "
+      #include <arm_neon.h>
+      int main() {
+          float32x2_t a;
+          a = vadd_f32(a, a);
+      }
+      "
+      KOKKOS_COMPILER_HAS_ARM_NEON
+    )
+  endif()
+endfunction()
+
+function(kokkos_use_sve_if_compiler_allows_it)
+  cmake_parse_arguments(ARG "" "" "COMPILER_FLAGS" ${ARGN})
+  if(ARG_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "'kokkos_use_sve_if_compiler_allows_it' has unrecognized arguments: ${ARG_UNPARSED_ARGUMENTS}")
+  endif()
+
+  if(ARG_COMPILER_FLAGS)
+    set(CMAKE_REQUIRED_FLAGS ${ARG_COMPILER_FLAGS})
+  endif()
+
+  unset(KOKKOS_COMPILER_HAS_ARM_SVE CACHE)
+  #FIXME_Kokkos_launch_compiler
+  get_property(kokkos_global_rule_compile GLOBAL PROPERTY RULE_LAUNCH_COMPILE)
+  if("${kokkos_global_rule_compile}" MATCHES "kokkos_launch_compiler")
+    message(WARNING "The use of 'kokkos_launch_compiler' prevents reliable SVE detection. Disabling SVE.\n"
+                    "You can force the use of SVE by using the Kokkos_ARCH_* flag specific to your target "
+                    "processor instead of Kokkos_ARCH_NATIVE."
+    )
+  else()
+    check_source_compiles(
+      ${KOKKOS_COMPILE_LANGUAGE}
+      "
+      #include <arm_neon.h>
+      #include <arm_sve.h>
+      int main() {
+        svuint64_t z;
+        uint64x2_t res;
+        svbool_t pg0 = svpfirst(svptrue_b64(), svpfalse());
+        svbool_t pg1 = svpnext_b64(pg0, pg0);
+        res[0] = svlastb(pg0, z);
+        res[1] = svlastb(pg1, z);
+        return 0;
+      }
+      "
+      KOKKOS_COMPILER_HAS_ARM_SVE
+    )
+  endif()
+endfunction()
 
 if(KOKKOS_ARCH_ARMV80)
   set(KOKKOS_ARCH_ARM_NEON ON)
@@ -760,10 +825,8 @@ if(KOKKOS_ARCH_NATIVE)
     check_cxx_symbol_exists(__AVX512F__ "" KOKKOS_COMPILER_HAS_AVX512)
     unset(KOKKOS_COMPILER_HAS_AVX2 CACHE)
     check_cxx_symbol_exists(__AVX2__ "" KOKKOS_COMPILER_HAS_AVX2)
-    unset(KOKKOS_COMPILER_HAS_ARM_SVE CACHE)
-    check_cxx_symbol_exists(__ARM_FEATURE_SVE "" KOKKOS_COMPILER_HAS_ARM_SVE)
-    unset(KOKKOS_COMPILER_HAS_ARM_NEON CACHE)
-    check_cxx_symbol_exists(__ARM_NEON "" KOKKOS_COMPILER_HAS_ARM_NEON)
+    kokkos_use_sve_if_compiler_allows_it(COMPILER_FLAGS "${KOKKOS_NATIVE_FLAGS}")
+    kokkos_use_neon_if_compiler_allows_it(COMPILER_FLAGS "${KOKKOS_NATIVE_FLAGS}")
     unset(KOKKOS_COMPILER_HAS_AVX CACHE)
     check_cxx_symbol_exists(__AVX__ "" KOKKOS_COMPILER_HAS_AVX)
 
@@ -813,11 +876,6 @@ if(KOKKOS_CXX_HOST_COMPILER_ID STREQUAL NVHPC)
   set(KOKKOS_ARCH_AVX512XEON OFF)
 endif()
 
-# FIXME_NVCC nvcc doesn't seem to support Arm Neon.
-if(KOKKOS_ARCH_ARM_NEON AND KOKKOS_CXX_COMPILER_ID STREQUAL NVIDIA)
-  unset(KOKKOS_ARCH_ARM_NEON)
-endif()
-
 if(NOT KOKKOS_COMPILE_LANGUAGE STREQUAL CUDA)
   if(KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
     compiler_specific_flags(Clang -fgpu-rdc --offload-new-driver NVIDIA --relocatable-device-code=true)
@@ -832,6 +890,13 @@ endif()
 # MSVC ABI has many deprecation warnings, so ignore them
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
   compiler_specific_defs(Clang _CRT_SECURE_NO_WARNINGS)
+endif()
+
+# MSVC needs another flag to allow using __VA_OPT__
+if(KOKKOS_CXX_COMPILER_ID STREQUAL NVIDIA)
+  compiler_specific_options(COMPILER_ID KOKKOS_CXX_HOST_COMPILER_ID MSVC -Xcompiler=/Zc:preprocessor)
+else()
+  compiler_specific_options(COMPILER_ID KOKKOS_CXX_HOST_COMPILER_ID MSVC /Zc:preprocessor)
 endif()
 
 #Right now we cannot get the compiler ID when cross-compiling, so just check
@@ -868,12 +933,17 @@ endif()
 #   implementation. Otherwise, the feature is not supported when building shared
 #   libraries. Thus, we don't even check for support if shared libraries are
 #   requested and SYCL_EXT_ONEAPI_DEVICE_GLOBAL is not defined.
-#   As of oneAPI 2025.0.0, this feature only works well for Intel GPUs.
-#   For simplicity only test for JIT and PVC
+#   As of oneAPI 2025.0.0, the codeplay documentation indicates support
+#   for device_global on Nvidia and AMD GPUs. However, testing suggested
+#   that the feature only works well as of oneAPI 2025.1.1.
+#   Otherwise, for simplicity we only test for JIT and PVC.
 if(KOKKOS_ENABLE_SYCL)
   string(REPLACE ";" " " CMAKE_REQUIRED_FLAGS "${KOKKOS_COMPILE_OPTIONS}")
   include(CheckCXXSymbolExists)
-  if(Kokkos_ARCH_INTEL_PVC OR Kokkos_ARCH_INTEL_GEN)
+  if(Kokkos_ARCH_INTEL_PVC OR Kokkos_ARCH_INTEL_GEN
+     OR (KOKKOS_ENABLE_UNSUPPORTED_ARCHS AND KOKKOS_CXX_COMPILER_ID STREQUAL IntelLLVM
+         AND KOKKOS_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 2025.1.1)
+  )
     check_cxx_symbol_exists(
       SYCL_EXT_ONEAPI_DEVICE_GLOBAL "sycl/sycl.hpp" KOKKOS_IMPL_HAVE_SYCL_EXT_ONEAPI_DEVICE_GLOBAL
     )
@@ -923,14 +993,10 @@ function(CHECK_CUDA_ARCH ARCH FLAG)
       )
     endif()
     set(CUDA_ARCH_ALREADY_SPECIFIED ${ARCH} PARENT_SCOPE)
-    if(NOT KOKKOS_ENABLE_CUDA
-       AND NOT KOKKOS_ENABLE_OPENMPTARGET
-       AND NOT KOKKOS_ENABLE_SYCL
-       AND NOT KOKKOS_ENABLE_OPENACC
-    )
+    if(NOT KOKKOS_ENABLE_CUDA AND NOT KOKKOS_ENABLE_SYCL AND NOT KOKKOS_ENABLE_OPENACC)
       message(
         WARNING
-          "Given CUDA arch ${ARCH}, but Kokkos_ENABLE_CUDA, Kokkos_ENABLE_SYCL, Kokkos_ENABLE_OPENACC, and Kokkos_ENABLE_OPENMPTARGET are OFF. Option will be ignored."
+          "Given CUDA arch ${ARCH}, but Kokkos_ENABLE_CUDA, Kokkos_ENABLE_SYCL and Kokkos_ENABLE_OPENACC are OFF. Option will be ignored."
       )
       unset(KOKKOS_ARCH_${ARCH} PARENT_SCOPE)
     else()
@@ -972,7 +1038,9 @@ check_cuda_arch(AMPERE87 sm_87)
 check_cuda_arch(ADA89 sm_89)
 check_cuda_arch(HOPPER90 sm_90)
 check_cuda_arch(BLACKWELL100 sm_100)
+check_cuda_arch(BLACKWELL103 sm_103)
 check_cuda_arch(BLACKWELL120 sm_120)
+check_cuda_arch(BLACKWELL121 sm_121)
 
 set(AMDGPU_ARCH_ALREADY_SPECIFIED "")
 function(CHECK_AMDGPU_ARCH ARCH FLAG)
@@ -984,14 +1052,10 @@ function(CHECK_AMDGPU_ARCH ARCH FLAG)
       )
     endif()
     set(AMDGPU_ARCH_ALREADY_SPECIFIED ${ARCH} PARENT_SCOPE)
-    if(NOT KOKKOS_ENABLE_HIP
-       AND NOT KOKKOS_ENABLE_OPENMPTARGET
-       AND NOT KOKKOS_ENABLE_OPENACC
-       AND NOT KOKKOS_ENABLE_SYCL
-    )
+    if(NOT KOKKOS_ENABLE_HIP AND NOT KOKKOS_ENABLE_OPENACC AND NOT KOKKOS_ENABLE_SYCL)
       message(
         WARNING
-          "Given AMD GPU architecture ${ARCH}, but Kokkos_ENABLE_HIP, Kokkos_ENABLE_SYCL, Kokkos_ENABLE_OPENACC, and Kokkos_ENABLE_OPENMPTARGET are OFF. Option will be ignored."
+          "Given AMD GPU architecture ${ARCH}, but Kokkos_ENABLE_HIP, Kokkos_ENABLE_SYCL and Kokkos_ENABLE_OPENACC are OFF. Option will be ignored."
       )
       unset(KOKKOS_ARCH_${ARCH} PARENT_SCOPE)
     else()
@@ -1067,22 +1131,6 @@ endif()
 
 if(KOKKOS_ENABLE_OPENMP)
   compiler_specific_link_options(CrayClang -fopenmp)
-endif()
-
-if(KOKKOS_ENABLE_OPENMPTARGET)
-  set(CLANG_CUDA_ARCH ${KOKKOS_CUDA_ARCH_FLAG})
-  if(CLANG_CUDA_ARCH)
-    string(REPLACE "sm_" "cc" NVHPC_CUDA_ARCH ${CLANG_CUDA_ARCH})
-    compiler_specific_flags(
-      Clang -Xopenmp-target -march=${CLANG_CUDA_ARCH} -fopenmp-targets=nvptx64 NVHPC -gpu=${NVHPC_CUDA_ARCH}
-    )
-  endif()
-  set(CLANG_AMDGPU_ARCH ${KOKKOS_AMDGPU_ARCH_FLAG})
-  if(CLANG_AMDGPU_ARCH)
-    compiler_specific_flags(
-      Clang -Xopenmp-target=amdgcn-amd-amdhsa -march=${CLANG_AMDGPU_ARCH} -fopenmp-targets=amdgcn-amd-amdhsa
-    )
-  endif()
 endif()
 
 if(KOKKOS_ENABLE_OPENACC)
@@ -1277,7 +1325,11 @@ if(KOKKOS_ARCH_HOPPER90)
   set(KOKKOS_ARCH_HOPPER ON)
 endif()
 
-if(KOKKOS_ARCH_BLACKWELL100 OR KOKKOS_ARCH_BLACKWELL120)
+if(KOKKOS_ARCH_BLACKWELL100
+   OR KOKKOS_ARCH_BLACKWELL103
+   OR KOKKOS_ARCH_BLACKWELL120
+   OR KOKKOS_ARCH_BLACKWELL121
+)
   set(KOKKOS_ARCH_BLACKWELL ON)
 endif()
 
@@ -1396,11 +1448,29 @@ foreach(ARCH IN LISTS SUPPORTED_AMD_ARCHS)
   endif()
 endforeach()
 
+#FIXME_HIP right now we only check if the arch autodetected by hip is the same as the one enabled in Kokkos. If not we warn/error
+if(Kokkos_ENABLE_HIP)
+  foreach(arch IN LISTS GPU_TARGETS)
+    if(NOT (arch STREQUAL KOKKOS_HIP_ARCHITECTURES))
+      if(KOKKOS_ENABLE_DEPRECATED_CODE_5)
+        set(MESSAGE_TYPE WARNING)
+      else()
+        set(MESSAGE_TYPE FATAL_ERROR)
+      endif()
+      message(
+        ${MESSAGE_TYPE}
+        "AMD GPU architectures given via GPU_TARGETS=\"${GPU_TARGETS}\" are not compatible with the architecture enabled in Kokkos which is ${KOKKOS_HIP_ARCHITECTURES}. Kokkos allows only one device architecture to be active. To resolve this, configure with -DGPU_TARGETS=\"${KOKKOS_HIP_ARCHITECTURES}\" to prevent it from being set implicitly by find_package calls."
+      )
+      break()
+    endif()
+  endforeach()
+endif()
+
 #CMake verbose is kind of pointless
 #Let's just always print things
 message(STATUS "Built-in Execution Spaces:")
 
-foreach(_BACKEND Cuda OpenMPTarget HIP SYCL OpenACC)
+foreach(_BACKEND Cuda HIP SYCL OpenACC)
   string(TOUPPER ${_BACKEND} UC_BACKEND)
   if(KOKKOS_ENABLE_${UC_BACKEND})
     if(_DEVICE_PARALLEL)
@@ -1413,15 +1483,6 @@ foreach(_BACKEND Cuda OpenMPTarget HIP SYCL OpenACC)
       )
     endif()
     if(${_BACKEND} STREQUAL "Cuda")
-      if(KOKKOS_ENABLE_CUDA_UVM)
-        message(
-          DEPRECATION
-            "Setting Kokkos_ENABLE_CUDA_UVM is deprecated - use the portable Kokkos::SharedSpace as an explicit memory space in your code instead"
-        )
-        if(NOT KOKKOS_ENABLE_DEPRECATED_CODE_4)
-          message(FATAL_ERROR "Kokkos_ENABLE_DEPRECATED_CODE_4 must be set to use Kokkos_ENABLE_CUDA_UVM")
-        endif()
-      endif()
       set(_DEVICE_PARALLEL "Kokkos::${_BACKEND}")
     elseif(${_BACKEND} STREQUAL "HIP" OR ${_BACKEND} STREQUAL "SYCL")
       set(_DEVICE_PARALLEL "Kokkos::${_BACKEND}")

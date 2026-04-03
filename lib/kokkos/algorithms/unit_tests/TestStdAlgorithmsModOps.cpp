@@ -16,12 +16,17 @@ struct MyMovableType {
   int m_value = 11;
 
   MyMovableType() = default;
+
+  MyMovableType(const MyMovableType&) = delete;
+
   MyMovableType(MyMovableType&& other) {
     if (this != &other) {
       m_value       = other.m_value;
       other.m_value = -2;
     }
   }
+
+  MyMovableType& operator=(const MyMovableType&) = delete;
 
   MyMovableType& operator=(MyMovableType&& other) {
     if (this != &other) {
@@ -30,6 +35,8 @@ struct MyMovableType {
     }
     return *this;
   }
+
+  ~MyMovableType() = default;
 };
 
 TEST(std_algorithms_mod_ops_test, move) {

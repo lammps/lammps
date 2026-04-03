@@ -990,7 +990,7 @@ function(kokkos_check_flags)
     check_compiler_flag(${INP_LANGUAGE} "${QUOTED_FLAGS}" KOKKOS_COMPILE_OPTIONS_CHECK)
     if(NOT KOKKOS_COMPILE_OPTIONS_CHECK)
       message(
-        FATAL_ERROR
+        WARNING
           "The compiler for ${KOKKOS_COMPILE_LANGUAGE} can not consume flag(s) ${QUOTED_FLAGS} in combination with the CMAKE_${KOKKOS_COMPILE_LANGUAGE}_FLAGS=${CMAKE_${KOKKOS_COMPILE_LANGUAGE}_FLAGS}. Please check the given configuration."
       )
     endif()
@@ -1005,7 +1005,7 @@ function(kokkos_check_flags)
     check_linker_flag(${INP_LANGUAGE} "${QUOTED_FLAGS}" KOKKOS_LINK_OPTIONS_CHECK)
     if(NOT KOKKOS_LINK_OPTIONS_CHECK)
       message(
-        FATAL_ERROR
+        WARNING
           "The linker for ${KOKKOS_COMPILE_LANGUAGE} can not consume flag(s) ${QUOTED_FLAGS}. Please check the given configuration."
       )
     endif()

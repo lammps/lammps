@@ -798,6 +798,7 @@ int Variable::next(int narg, char **arg)
       int done = reader[ivar]->read_scalar(data[ivar][0]);
       if (done) {
         flag = 1;
+        if (comm->me == 0) error->warning(FLERR, "Auto-deleting variable {}\n", arg[iarg]);
         remove(ivar);
       }
     }
@@ -809,6 +810,7 @@ int Variable::next(int narg, char **arg)
       int done = reader[ivar]->read_peratom();
       if (done) {
         flag = 1;
+        if (comm->me == 0) error->warning(FLERR, "Auto-deleting variable {}\n", arg[iarg]);
         remove(ivar);
       }
     }
@@ -4908,7 +4910,10 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     if (style[ivar] == SCALARFILE) {
       double value = std::stod(data[ivar][0]);
       int done = reader[ivar]->read_scalar(data[ivar][0]);
-      if (done) remove(ivar);
+      if (done) {
+        if (comm->me == 0) error->warning(FLERR, "Auto-deleting variable {}\n", args[0]);
+        remove(ivar);
+      }
 
       if (tree) {
         auto *newtree = new Tree();
@@ -4930,7 +4935,10 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       memcpy(result,reader[ivar]->fixstore->vstore,(atom->nlocal*sizeof(double))&MEMCPYMASK);
 
       int done = reader[ivar]->read_peratom();
-      if (done) remove(ivar);
+      if (done) {
+        if (comm->me == 0) error->warning(FLERR, "Auto-deleting variable {}\n", args[0]);
+        remove(ivar);
+      }
 
       auto *newtree = new Tree();
       newtree->type = ATOMARRAY;

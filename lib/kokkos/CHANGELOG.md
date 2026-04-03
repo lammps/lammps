@@ -1,4 +1,60 @@
 # CHANGELOG
+## 5.1.0
+
+[Full Changelog](https://github.com/kokkos/kokkos/compare/5.0.2...5.1.0)
+
+### Features:
+* Export Kokkos type traits as C++20 concepts [\#8494](https://github.com/kokkos/kokkos/pull/8494)
+
+### Backend and Architecture Enhancements:
+
+#### CUDA:
+* Added `Kokkos_ARCH_BLACKWELL103` configure option for NVIDIA B300 GPUs [\#8791](https://github.com/kokkos/kokkos/pull/8791)
+* Fix compiling with Clang+Cuda+OpenMP with Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE=ON [\#8810](https://github.com/kokkos/kokkos/pull/8810)
+* `nvcc_wrapper`: Add support for `-Ofc` and `--fdevice-time-trace` flags [\#8865](https://github.com/kokkos/kokkos/pull/8865)
+
+#### HIP:
+* Search the CMake variable `ROCM_PATH` for dependencies [\#8669](https://github.com/kokkos/kokkos/pull/8669)
+* Added support for brain floating-point (`bhalf_t`) [\#8705](https://github.com/kokkos/kokkos/pull/8705)
+* Implemented true reduced-precision mathematical functions (instead of falling back to `float`) [\#8705](https://github.com/kokkos/kokkos/pull/8705)
+* Add support for AMD MI355 and MI350 (`AMD_GFX950`) [\#8839](https://github.com/kokkos/kokkos/pull/8839)
+* Fix race conditions in HIP `parallel_scan` when running on MI300A  [\#8648](https://github.com/kokkos/kokkos/pull/8648)
+
+### General Enhancements
+* Enable ScatterView to contribute into a View that is an rvalue [\#8594](https://github.com/kokkos/kokkos/pull/8594)
+* Add bitwise operators to simd vectors and simd masks [\#8565](https://github.com/kokkos/kokkos/pull/8565)
+* Use Array::size_type for subscript operators [\#8692](https://github.com/kokkos/kokkos/pull/8692)
+* Add missing numeric trait `denorm_min` for `Kokkos::Experimental::half_t` and `Kokkos::Experimental::bhalf_t` [\#8769](https://github.com/kokkos/kokkos/pull/8769)
+* Use StaticBatchSize in ViewFill [\#8795](https://github.com/kokkos/kokkos/pull/8795)
+* Enforce failure when exceeding team_size_max and scratch_size_max checks [\#7445](https://github.com/kokkos/kokkos/pull/7445)
+* Enable MPI detection with PALS [\#8895](https://github.com/kokkos/kokkos/pull/8895)
+* Add simd memory permute functions [\#8775](https://github.com/kokkos/kokkos/pull/8775)
+* Performance improvements using `MDRangePolicy` with `CUDA`, `HIP` and `SYCL` [\#8638](https://github.com/kokkos/kokkos/pull/8638),  [\#8731](https://github.com/kokkos/kokkos/pull/8731)
+* Add `Kokkos::norm`for `Kokkos::complex`- similar to `std::norm` [\#8627](https://github.com/kokkos/kokkos/pull/8927)
+* Use neon and sve SIMD instructions if `nvcc` supports them [\#8667](https://github.com/kokkos/kokkos/pull/8667)
+* Expand math support: complete the implementation of all remaining math functions and increase half-type support [\#8595](https://github.com/kokkos/kokkos/pull/8789) [\#8858](https://github.com/kokkos/kokkos/pull/8858) [\#8873](https://github.com/kokkos/kokkos/pull/8873) [\#8712](https://github.com/kokkos/kokkos/pull/8712) [\#8827](https://github.com/kokkos/kokkos/pull/8827) [\#8819](https://github.com/kokkos/kokkos/pull/8819) [\#8719](https://github.com/kokkos/kokkos/pull/8719) [\#8863](https://github.com/kokkos/kokkos/pull/8863) [\#8862](https://github.com/kokkos/kokkos/pull/8862) [\#8778](https://github.com/kokkos/kokkos/pull/8778) [\#8891](https://github.com/kokkos/kokkos/pull/8891)
+* Improve performance of `deep_copy` from scalar in view fill using StaticBatchSize [\#8795](https://github.com/kokkos/kokkos/pull/8795) [\#8829](https://github.com/kokkos/kokkos/pull/8829)
+
+### Build System Changes
+* Warn about multiple device architectures enabled by `find_package(HIP)` [\#8938](https://github.com/kokkos/kokkos/pull/8938)
+
+### Incompatibilities (i.e. breaking changes)
+* Execution spaces can only be constructed after `Kokkos::initialize()` has been called and must be destructed before `Kokkos::finalize()` [\#8546](https://github.com/kokkos/kokkos/pull/8546) [\#8677](https://github.com/kokkos/kokkos/pull/8677)
+* ScatterValue isn't move constructible/assignable anymore [\#8761](https://github.com/kokkos/kokkos/pull/8761)
+* Enforce TeamPolicy constructor preconditions (includes vector length must be a power of two) [\#8904](https://github.com/kokkos/kokkos/pull/8904) [\#8907](https://github.com/kokkos/kokkos/pull/8907)
+* OpenMP: Warn on exec space instance created within omp region [\#8919](https://github.com/kokkos/kokkos/pull/8919)
+* Remove the deprecated OpenMPTarget backend [\#8701](https://github.com/kokkos/kokkos/pull/8701) [\#8717](https://github.com/kokkos/kokkos/pull/8717) [\#8749](https://github.com/kokkos/kokkos/pull/8749) [\#8767](https://github.com/kokkos/kokkos/pull/8767)
+
+### Bug Fixes
+* Fix reduction_identity for BAnd [\#8715](https://github.com/kokkos/kokkos/pull/8715)
+* Restrict lock free host atomics to the actual sizes that are lock free [\#8809](https://github.com/kokkos/kokkos/pull/8809)
+* Use intrinsics when calling min and max on simd vectors of integral types [\#8899](https://github.com/kokkos/kokkos/pull/8899)
+* Adds missing `constexpr` specifiers on `conj()`, and for the `real()` and `imag()` non-member functions taking complex numbers [\#8928](https://github.com/kokkos/kokkos/pull/8928)
+* Ensure that execution space instances fence on finalize [\#8626](https://github.com/kokkos/kokkos/pull/8626)
+* Update `team_fan_{in|out}` member functions of `ThreadsExecTeamMember` not to call host-only fuctions on the device [\#8730](https://github.com/kokkos/kokkos/pull/8730)
+* Make overloads of `isnormal` compliant with std [\#8857](https://github.com/kokkos/kokkos/pull/8857)
+* Fix compiler macros identify GCC and LLVM Clang on OSX [\#8592](https://github.com/kokkos/kokkos/pull/8592) [\#8952](https://github.com/kokkos/kokkos/pull/8952)
+
 ## 5.0.2
 
 [Full Changelog](https://github.com/kokkos/kokkos/compare/5.0.1...5.0.2)
@@ -111,6 +167,15 @@
 * Cuda,HIP: Launch work graph on the specified instance [\#8576](https://github.com/kokkos/kokkos/pull/8576)
 * Work around a performance regression related to index computation in the mdspan-based View [\#8476](https://github.com/kokkos/kokkos/pull/8476)
 * Fix a failure at configure time when SVE is enabled and the tests are disabled [\#8661](https://github.com/kokkos/kokkos/pull/8661)
+
+## 4.7.02
+
+[Full Changelog](https://github.com/kokkos/kokkos/compare/4.7.01...4.7.02)
+
+### Bug Fixes
+* Link kokkoscore directly with CMAKE_DL_LIBS [\#8456](https://github.com/kokkos/kokkos/pull/8456)
+* mdspan fixes for cuda >= 12.9 [\#8562](https://github.com/kokkos/kokkos/pull/8562), [\#8615](https://github.com/kokkos/kokkos/pull/8615)
+* Replace cudaMemAdvise_v2 with cudaMemAdvise when CUDART_VERSION >= 13000 [\#8726](https://github.com/kokkos/kokkos/pull/8726)
 
 ## 4.7.01
 

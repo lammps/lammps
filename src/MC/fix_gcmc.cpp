@@ -400,14 +400,11 @@ void FixGCMC::options(int narg, char **arg)
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc max", error);
       max_ngas = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    }
-    // if mcemc keyword is used, the chemical potentiala and fugacity coefficient are ignored
-      else if (strcmp(arg[iarg], "mcemc") == 0) {
+    } else if (strcmp(arg[iarg], "mcemc") == 0) {
+      // if mcemc keyword is used, the chemical potential and fugacity coefficient are ignored
       if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix gcmc mcemc", error);
-      {
       run_mcemc = true;
       if (lmp->citeme) lmp->citeme->add(cite_mcemc);
-      }
       mcemc_ntotal = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       mcemc_vgauge = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       if (mcemc_vgauge <= 0.0)
@@ -415,8 +412,7 @@ void FixGCMC::options(int narg, char **arg)
       if (mcemc_ntotal <= 0)
         error->all(FLERR, "Fix gcmc mcemc: ntotal must be positive");
       iarg += 3;
-    }
-      else {
+    } else {
       error->all(FLERR, iarg, "Unknown fix gcmc keyword {}", arg[iarg]);
     }
   }
@@ -2295,7 +2291,7 @@ void FixGCMC::attempt_molecule_insertion_full()
 
   double deltaphi;
   if (run_mcemc) {
-    deltaphi = mcemc_ngauge*volume*natoms_per_molecule*exp(beta*((energy_before - energy_intra) - energy_after))/(ngas+natoms_per_molecule)/mcemc_vgauge;
+    deltaphi = mcemc_ngauge*volume*natoms_per_molecule*exp(beta*(energy_before - (energy_after - energy_intra)))/(ngas+natoms_per_molecule)/mcemc_vgauge;
   } else {
     deltaphi = zz*volume*natoms_per_molecule*exp(beta*(energy_before - (energy_after - energy_intra)))/(ngas + natoms_per_molecule);
   }
@@ -2632,7 +2628,12 @@ void FixGCMC::update_gas_atoms_list()
   MPI_Allreduce(&ngas_local,&ngas,1,MPI_INT,MPI_SUM,world);
   MPI_Scan(&ngas_local,&ngas_before,1,MPI_INT,MPI_SUM,world);
   ngas_before -= ngas_local;
+  if (run_mcemc) {
+  if (mcemc_ntotal < ngas)
+    error->one(FLERR,"MCEMC: requested total number of gas particles is "
+                      "smaller than current number of gas atoms");
   mcemc_ngauge = mcemc_ntotal - ngas;
+  }
 }
 
 /* ----------------------------------------------------------------------

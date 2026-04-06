@@ -31,6 +31,7 @@
 #include "lammps.h"
 #include "kokkos.h"
 #include "pointers.h"
+#include <cuda_runtime.h>
 
 using namespace LAMMPS_NS;
 
@@ -355,11 +356,31 @@ int PairMLIAPKokkos<DeviceType>::forward_comm(CommType* copy_from_, CommType* co
   copy_from = copy_from_;
   comm_forward = vec_len=vl;
 
-  Kokkos::parallel_for((atom->nlocal+atom->nghost)*vl, KOKKOS_LAMBDA (int i) {
+  int total = (atom->nlocal+atom->nghost)*vl;
+
+  // Sync all CUDA streams (torch may have pending ops on its own stream)
+  cudaDeviceSynchronize();
+
+  Kokkos::parallel_for(total, KOKKOS_LAMBDA (int i) {
     copy_to_[i] = copy_from_[i];
   });
-  //call comm
+  Kokkos::fence();
+
+  // Create host mirror for non-Kokkos comm fallback (comm_style tiled)
+  size_t bytes = total * sizeof(CommType);
+  comm_host_buf_.resize((bytes + sizeof(double) - 1) / sizeof(double));
+  CommType* host_ptr = reinterpret_cast<CommType*>(comm_host_buf_.data());
+
+  // Use cudaMemcpy directly instead of Kokkos::View wrapping torch pointers
+  cudaMemcpy(host_ptr, copy_to_, bytes, cudaMemcpyDeviceToHost);
+
+  used_host_comm_ = false;
   comm->forward_comm(this);
+
+  // Sync host buffer back to device if non-Kokkos comm path was used
+  if (used_host_comm_) {
+    cudaMemcpy(copy_to_, host_ptr, bytes, cudaMemcpyHostToDevice);
+  }
 
   return 0;
 }
@@ -381,11 +402,31 @@ int PairMLIAPKokkos<DeviceType>::reverse_comm(CommType* copy_from_, CommType* co
   copy_from = copy_from_;
   comm_reverse = vec_len = vl;
 
-  Kokkos::parallel_for((atom->nlocal+atom->nghost)*vl, KOKKOS_LAMBDA (int i) {
+  int total = (atom->nlocal+atom->nghost)*vl;
+
+  // Sync all CUDA streams (torch may have pending ops on its own stream)
+  cudaDeviceSynchronize();
+
+  Kokkos::parallel_for(total, KOKKOS_LAMBDA (int i) {
     copy_to_[i] = copy_from_[i]; // Copy inputs
   });
+  Kokkos::fence();
 
+  // Create host mirror for non-Kokkos comm fallback (comm_style tiled)
+  size_t bytes = total * sizeof(CommType);
+  comm_host_buf_.resize((bytes + sizeof(double) - 1) / sizeof(double));
+  CommType* host_ptr = reinterpret_cast<CommType*>(comm_host_buf_.data());
+
+  // Use cudaMemcpy directly instead of Kokkos::View wrapping torch pointers
+  cudaMemcpy(host_ptr, copy_to_, bytes, cudaMemcpyDeviceToHost);
+
+  used_host_comm_ = false;
   comm->reverse_comm(this);
+
+  // Sync host buffer back to device if non-Kokkos comm path was used
+  if (used_host_comm_) {
+    cudaMemcpy(copy_to_, host_ptr, bytes, cudaMemcpyHostToDevice);
+  }
 
   Kokkos::parallel_for(
     Kokkos::RangePolicy<>( (atom->nlocal)*vl,(atom->nlocal + atom->nghost)*vl),
@@ -461,13 +502,16 @@ int PairMLIAPKokkos<DeviceType>::pack_forward_comm(int nv, int* idx_v, double *f
 template<class DeviceType>
 template <typename CommType>
 int PairMLIAPKokkos<DeviceType>::pack_forward_comm(int nv, int* idx_v, double *fill,
-                                                   int /*int2*/, int */*intp*/, CommType *copy_to)
+                                                   int /*int2*/, int */*intp*/, CommType * /*copy_to_dev*/)
 {
+  // Use host buffer instead of device pointer
+  used_host_comm_ = true;
+  CommType* ct = reinterpret_cast<CommType*>(comm_host_buf_.data());
   for (int i=0;i<nv;++i) {
     int gstart=idx_v[i]*vec_len;
     int start=i*vec_len;
     for (int j=0;j<vec_len;++j)
-      fill[start++] = static_cast<double>(copy_to[gstart++]);
+      fill[start++] = static_cast<double>(ct[gstart++]);
   }
   return nv*vec_len;
 }
@@ -524,12 +568,15 @@ void PairMLIAPKokkos<DeviceType>::unpack_forward_comm(int nv, int first_up, doub
 template <class DeviceType>
 template <typename CommType>
 void PairMLIAPKokkos<DeviceType>::unpack_forward_comm(
-    int nv, int first_up, double *fill, CommType *copy_to) {
+    int nv, int first_up, double *fill, CommType * /*copy_to_dev*/) {
+  // Use host buffer instead of device pointer
+  used_host_comm_ = true;
+  CommType* ct = reinterpret_cast<CommType*>(comm_host_buf_.data());
   for (int i=0; i<nv; ++i) {
     int gstart=(first_up+i)*vec_len;
     int start=i*vec_len;
     for (int j=0;j<vec_len;++j) {
-      copy_to[gstart+j] = static_cast<CommType>(fill[start+j]);
+      ct[gstart+j] = static_cast<CommType>(fill[start+j]);
     }
   }
 }
@@ -588,13 +635,16 @@ int PairMLIAPKokkos<DeviceType>::pack_reverse_comm(int nv, int first_up, double 
 /* ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<typename CommType>
-int PairMLIAPKokkos<DeviceType>::pack_reverse_comm(int nv, int first_up, double *fill, CommType *copy_to)
+int PairMLIAPKokkos<DeviceType>::pack_reverse_comm(int nv, int first_up, double *fill, CommType * /*copy_to_dev*/)
 {
+  // Use host buffer instead of device pointer
+  used_host_comm_ = true;
+  CommType* ct = reinterpret_cast<CommType*>(comm_host_buf_.data());
   for (int i=0;i<nv;++i) {
     int gstart=(first_up+i)*vec_len;
     int start=i*vec_len;
     for (int j=0;j<vec_len;++j) {
-      fill[start++] = static_cast<double>(copy_to[gstart++]);
+      fill[start++] = static_cast<double>(ct[gstart++]);
     }
   }
   return nv*vec_len;
@@ -657,13 +707,16 @@ void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm(int nv, int *idx, double *
 
 template<class DeviceType>
 template<typename CommType>
-void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm(int nv, int *idx, double *fill, CommType *copy_to)
+void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm(int nv, int *idx, double *fill, CommType * /*copy_to_dev*/)
 {
+  // Use host buffer instead of device pointer
+  used_host_comm_ = true;
+  CommType* ct = reinterpret_cast<CommType*>(comm_host_buf_.data());
   for (int i=0;i<nv;++i) {
     int gstart=idx[i]*vec_len;
     int start=i*vec_len;
     for (int j=0;j<vec_len;++j)
-      copy_to[gstart++] += static_cast<CommType>(fill[start++]);
+      ct[gstart++] += static_cast<CommType>(fill[start++]);
   }
 }
 namespace LAMMPS_NS {

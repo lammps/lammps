@@ -1244,6 +1244,13 @@ void CommTiled::forward_comm(Pair *pair, int size)
   if (size) nsize = size;
   else nsize = pair->comm_forward;
 
+  // Ensure send/recv buffers are large enough for nsize values per atom
+  if (nsize > maxforward) {
+    maxforward = nsize;
+    if (maxforward*smaxone > maxsend) grow_send(maxforward*smaxone,0);
+    if (maxforward*rmaxall > maxrecv) grow_recv(maxforward*rmaxall);
+  }
+
   for (int iswap = 0; iswap < nswap; iswap++) {
     nsend = nsendproc[iswap] - sendself[iswap];
     nrecv = nrecvproc[iswap] - sendself[iswap];
@@ -1292,6 +1299,13 @@ void CommTiled::reverse_comm(Pair *pair, int size)
 
   if (size) nsize = MAX(pair->comm_reverse, pair->comm_reverse_off);
   else nsize = pair->comm_reverse;
+
+  // Ensure send/recv buffers are large enough for nsize values per atom
+  if (nsize > maxforward) {
+    maxforward = nsize;
+    if (maxforward*smaxone > maxsend) grow_send(maxforward*smaxone,0);
+    if (maxforward*rmaxall > maxrecv) grow_recv(maxforward*rmaxall);
+  }
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     nsend = nsendproc[iswap] - sendself[iswap];

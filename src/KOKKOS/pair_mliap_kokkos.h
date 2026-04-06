@@ -104,6 +104,13 @@ public:
   enum class COMM_TYPE {FLOAT=0, DOUBLE, UNSET} comm_type;
   int vec_len;
 
+  // Host mirror buffer for non-Kokkos comm fallback (e.g. comm_style tiled).
+  // CommTiledKokkos::forward_comm(Pair*) falls back to CPU pack/unpack which
+  // cannot access GPU pointers. We copy device data to this host buffer before
+  // comm and sync back after.
+  std::vector<double> comm_host_buf_;
+  bool used_host_comm_;
+
   typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_kkfloat_1d_3_randomread v;
   typename AT::t_kkacc_1d_3 f;

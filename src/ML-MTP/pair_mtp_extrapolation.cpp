@@ -29,7 +29,6 @@
 #include "neighbor.h"
 
 #include <cmath>
-#include <csignal>
 #include <fstream>
 #include <iostream>
 
@@ -541,10 +540,8 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
   // We initialize the extrapolation grades during compute since its size depend on problem size.
 
   if (comm->me == 0) {
-    // Read the weights. Not used but serves as a check.
-
-    std::string new_separators = "=, ";
-    std::string separators = TOKENIZER_DEFAULT_SEPARATORS + new_separators;
+    const std::string new_separators = "=, ";
+    const std::string separators = TOKENIZER_DEFAULT_SEPARATORS + new_separators;
     TextFileReader tfr(mtp_file, "ml-mtp");
     tfr.ignore_comments = false;
 
@@ -553,7 +550,6 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
       error->one(
           FLERR,
           "No selection state found! Consider training/retraining or disabling extrapolation!\n");
-      // For now, if the user specified an untrained potential, we simply throw an error;
     }
 
     ValueTokenizer line_tokens = ValueTokenizer(std::string(line), separators);
@@ -562,16 +558,13 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
       lmp->error->one(
           FLERR,
           "Error in reading MTP file selection state. Please verify MVS version is #MVS_v1.1!");
-
     tfr.ignore_comments = true;    // Accept comments after reading the version which is a comment
-
-    int energy_weight, site_en_weight;
 
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
     if (keyword != "energy_weight")
       lmp->error->one(FLERR, "Error in reading MTP file, energy_weight");
-    energy_weight = line_tokens.next_double();
+    const double energy_weight = line_tokens.next_double();
 
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
@@ -587,7 +580,7 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
     keyword = line_tokens.next_string();
     if (keyword != "site_en_weight")
       lmp->error->one(FLERR, "Error in reading MTP file, site_en_weight");
-    site_en_weight = line_tokens.next_double();
+    const double site_en_weight = line_tokens.next_double();
 
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();

@@ -175,27 +175,29 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::settings(int narg, c
   // No need to deep copy the working buffers.
 }
 
+/* ----------------------------------------------------------------------
+   Finds the size of each alpha times waves.
+------------------------------------------------------------------------- */
 template <class DeviceType> void PairMTPKokkos<DeviceType>::prepare_waves()
 {
-  // Finds the size of each alpha times waves.
   // The alpha times in the MLIP-3 format are already sorted by child node.
-  int wave_number = 0;
+  std::vector<int> waves;
   int last_max_node = alpha_index_basic_count - 1;
   int last_max_edge = 0;
 
   for (int i = 0; i < alpha_index_times_count; i++) {
-
     if (alpha_index_times[i][0] > last_max_node || alpha_index_times[i][1] > last_max_node) {
-      if (wave_number == 2)
-        error->all(FLERR,
-                   "Error in the alpha times indicies! Only potentials trained from the MLIP-3 "
-                   "templates are currently supported in mtp/kk.");
-      wave_sizes[wave_number++] = i - last_max_edge;
+      waves.push_back(i - last_max_edge);
       last_max_node = alpha_index_times[i - 1][3];
       last_max_edge = i;
     }
   }
-  wave_sizes[2] = alpha_index_times_count - last_max_edge;
+  waves.push_back(alpha_index_times_count - last_max_edge);
+
+  MemKK::realloc_kokkos(d_waves, "mtp/kk:d_waves", waves.size());
+  auto h_waves = Kokkos::create_mirror_view(d_waves);
+  for (int i = 0; i < waves.size(); i++) { h_waves(i) = waves[i]; }
+  Kokkos::deep_copy(d_waves, h_waves);
 }
 
 // Finds the maximum number of neighbours in all neigbhourhoods. This enables use to set the size (2nd index) of the jacobian. (Copied from other potentials)
@@ -646,21 +648,21 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
     const typename Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaTimes>::member_type &team)
     const
 {
-  int ii = team.league_rank();
+  const int ii = team.league_rank();
 
   int offset = 0;
   // Traverse all edges in the alpha times compute graph. We need to do this in waves to ensure dependencies.
   for (int i = 0; i < 3; i++) {
-    int wave_size = wave_sizes[i];
+    const int wave_size = d_waves[i];
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, wave_size), [=](const int kk) {
-      int k = offset + kk;    // Offset for the wave
-      int a0 = d_alpha_index_times(k, 0);
-      int a1 = d_alpha_index_times(k, 1);
-      int mult = d_alpha_index_times(k, 2);
-      int a3 = d_alpha_index_times(k, 3);
+      const int k = offset + kk;    // Offset for the wave
+      const int a0 = d_alpha_index_times(k, 0);
+      const int a1 = d_alpha_index_times(k, 1);
+      const int mult = d_alpha_index_times(k, 2);
+      const int a3 = d_alpha_index_times(k, 3);
 
-      KK_FLOAT val0 = d_moment_tensor_vals(ii, a0);
-      KK_FLOAT val1 = d_moment_tensor_vals(ii, a1);
+      const KK_FLOAT val0 = d_moment_tensor_vals(ii, a0);
+      const KK_FLOAT val1 = d_moment_tensor_vals(ii, a1);
 
       Kokkos::atomic_add(&d_moment_tensor_vals(ii, a3), mult * val0 * val1);
     });
@@ -682,23 +684,23 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
     const
 {
 
-  int ii = team.league_rank();
+  const int ii = team.league_rank();
 
   int offset = alpha_index_times_count;
   // Traverse all edges in the alpha times compute graph. We need to do this in reverse waves to ensure dependencies.
   for (int i = 2; i >= 0; i--) {
-    int wave_size = wave_sizes[i];
+    const int wave_size = d_waves[i];
     offset -= wave_size;
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, wave_size), [=](const int kk) {
-      int k = kk + offset;    // Offset for the wave
-      int a0 = d_alpha_index_times(k, 0);
-      int a1 = d_alpha_index_times(k, 1);
-      int mult = d_alpha_index_times(k, 2);
-      int a3 = d_alpha_index_times(k, 3);
+      const int k = kk + offset;    // Offset for the wave
+      const int a0 = d_alpha_index_times(k, 0);
+      const int a1 = d_alpha_index_times(k, 1);
+      const int mult = d_alpha_index_times(k, 2);
+      const int a3 = d_alpha_index_times(k, 3);
 
-      KK_FLOAT val0 = d_moment_tensor_vals(ii, a0);
-      KK_FLOAT val1 = d_moment_tensor_vals(ii, a1);
-      KK_FLOAT val3 = d_nbh_energy_ders_wrt_moments(ii, a3);
+      const KK_FLOAT val0 = d_moment_tensor_vals(ii, a0);
+      const KK_FLOAT val1 = d_moment_tensor_vals(ii, a1);
+      const KK_FLOAT val3 = d_nbh_energy_ders_wrt_moments(ii, a3);
 
       Kokkos::atomic_add(&d_nbh_energy_ders_wrt_moments(ii, a1), val3 * mult * val0);
       Kokkos::atomic_add(&d_nbh_energy_ders_wrt_moments(ii, a0), val3 * mult * val1);

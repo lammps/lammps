@@ -539,7 +539,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   shared_double_2d s_radial_basis_ders(team.team_scratch(0), array_size, radial_basis_size);
 
   // Now we calculate the alpha basics.
-  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [=](const int jj) {
+  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](const int jj) {
     const int j = d_valid_neighs(jj, ii + chunk_offset);
     const int jtype = type[j] - 1;    // switch to zero indexing
     const KK_FLOAT r[3] = {x(j, 0) - xi[0], x(j, 1) - xi[1], x(j, 2) - xi[2]};
@@ -654,7 +654,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   // Traverse all edges in the alpha times compute graph. We need to do this in waves to ensure dependencies.
   for (int i = 0; i < 3; i++) {
     const int wave_size = d_waves[i];
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, wave_size), [=](const int kk) {
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, wave_size), [&](const int kk) {
       const int k = offset + kk;    // Offset for the wave
       const int a0 = d_alpha_index_times(k, 0);
       const int a1 = d_alpha_index_times(k, 1);
@@ -691,7 +691,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   for (int i = 2; i >= 0; i--) {
     const int wave_size = d_waves[i];
     offset -= wave_size;
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, wave_size), [=](const int kk) {
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, wave_size), [&](const int kk) {
       const int k = kk + offset;    // Offset for the wave
       const int a0 = d_alpha_index_times(k, 0);
       const int a1 = d_alpha_index_times(k, 1);

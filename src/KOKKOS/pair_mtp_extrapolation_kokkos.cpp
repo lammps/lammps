@@ -65,9 +65,8 @@ template <class DeviceType> void PairMTPExtrapolationKokkos<DeviceType>::init_st
 {
   if (host_flag) {
     if (lmp->kokkos->nthreads > 1)
-      error->all(
-          FLERR,
-          "Pair style mtp/extrapolation/kk/s can currently only run on a single CPU thread.");
+      error->all(FLERR,
+                 "Pair style mtp/extrapolation/kk can currently only run on a single CPU thread.");
 
     PairMTPExtrapolation::init_style();
     return;
@@ -83,7 +82,7 @@ template <class DeviceType> void PairMTPExtrapolationKokkos<DeviceType>::init_st
                            !std::is_same_v<DeviceType, LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType, LMPDeviceType>);
   if (neighflag == FULL)
-    error->all(FLERR, "Must use half neighbor list style with pair mtp/extrapolation/kk/s.");
+    error->all(FLERR, "Must use half neighbor list style with pair mtp/extrapolation/kk.");
 }
 
 /* ----------------------------------------------------------------------
@@ -114,11 +113,10 @@ void PairMTPExtrapolationKokkos<DeviceType>::settings(int narg, char **arg)
   // We may need to process in chunks to deal with memory limitations
   // For now we expect the user to specify the chunk size
   if (narg != 3 && narg != 6)
-    error->all(
-        FLERR,
-        "Pair mtp/extrapolation/kk/s requires 3 : {potential_file} \"chunksize\" {chunksize} "
-        "Or 6 arguments: {potential_file} {output_file} {selection_threshold} "
-        "{break_threshold} \"chunksize\" {chunksize}.");
+    error->all(FLERR,
+               "Pair mtp/extrapolation/kk requires 3 : {potential_file} \"chunksize\" {chunksize} "
+               "Or 6 arguments: {potential_file} {output_file} {selection_threshold} "
+               "{break_threshold} \"chunksize\" {chunksize}.");
 
   if (narg == 3) {
     if (LAMMPS_NS::utils::lowercase(arg[1]) != "chunksize")
@@ -138,33 +136,33 @@ void PairMTPExtrapolationKokkos<DeviceType>::settings(int narg, char **arg)
 
   // ---------- Now we move arrays to device ----------
   // First we set up the index lists
-  MemKK::realloc_kokkos(d_alpha_index_basic, "mtp/extrapolation/kk/s:alpha_index_basic",
+  MemKK::realloc_kokkos(d_alpha_index_basic, "mtp/extrapolation/kk:alpha_index_basic",
                         alpha_index_basic_count, 4);
-  MemKK::realloc_kokkos(d_alpha_index_times, "mtp/extrapolation/kk/s:alpha_index_times",
+  MemKK::realloc_kokkos(d_alpha_index_times, "mtp/extrapolation/kk:alpha_index_times",
                         alpha_index_times_count, 4);
-  MemKK::realloc_kokkos(d_alpha_moment_mapping, "mtp/extrapolation/kk/s:alpha_moment_mapping",
+  MemKK::realloc_kokkos(d_alpha_moment_mapping, "mtp/extrapolation/kk:alpha_moment_mapping",
                         alpha_scalar_count);
 
   // Setup the learned coefficients
   int radial_coeff_count = species_count * species_count * radial_basis_size * radial_func_count;
-  MemKK::realloc_kokkos(d_radial_basis_coeffs, "mtp/extrapolation/kk/s:radial_coeffs",
+  MemKK::realloc_kokkos(d_radial_basis_coeffs, "mtp/extrapolation/kk:radial_coeffs",
                         radial_coeff_count);
-  MemKK::realloc_kokkos(d_species_coeffs, "mtp/extrapolation/kk/s:species_coeffs", species_count);
-  MemKK::realloc_kokkos(d_linear_coeffs, "mtp/extrapolation/kk/s:linear_coeffs",
-                        alpha_scalar_count);
+  MemKK::realloc_kokkos(d_species_coeffs, "mtp/extrapolation/kk:species_coeffs", species_count);
+  MemKK::realloc_kokkos(d_linear_coeffs, "mtp/extrapolation/kk:linear_coeffs", alpha_scalar_count);
 
   // We need to init these as very small views to begin with because the user might specify a very large chunk_size which is much more than inum.
   //We will resize these as needed in compute.
-  MemKK::realloc_kokkos(d_moment_jacobian, "mtp/extrapolation/kk/s:moment_jacobian", 1, 1,
+  MemKK::realloc_kokkos(d_valid_neighs, "mtp/extrapolation/kk:valid_neighs", 1, 1);
+  MemKK::realloc_kokkos(d_num_valid_neighs, "mtp/extrapolation/kk:num_valid_neighs", 1);
+  MemKK::realloc_kokkos(d_moment_jacobian, "mtp/extrapolation/kk:moment_jacobian", 1, 1,
                         alpha_index_basic_count, 3);
-  MemKK::realloc_kokkos(d_radial_jacobian, "mtp/extrapolation/kk/s:radial_jacobian", 1,
+  MemKK::realloc_kokkos(d_radial_jacobian, "mtp/extrapolation/kk:radial_jacobian", 1,
                         alpha_index_basic_count, radial_coeff_count_per_pair * species_count);
-  MemKK::realloc_kokkos(d_within_cutoff, "mtp/extrapolation/kk/s:within_cutoff", 1, 1);
-  MemKK::realloc_kokkos(d_moment_tensor_vals, "mtp/extrapolation/kk/s:moment_tensor_vals", 1,
+
+  MemKK::realloc_kokkos(d_moment_tensor_vals, "mtp/extrapolation/kk:moment_tensor_vals", 1,
                         alpha_moment_count);
   MemKK::realloc_kokkos(d_nbh_energy_ders_wrt_moments,
-                        "mtp/extrapolation/kk/s:nbh_energy_ders_wrt_moments", 1,
-                        alpha_moment_count);
+                        "mtp/extrapolation/kk:nbh_energy_ders_wrt_moments", 1, alpha_moment_count);
 
   //Declare host arrays
   auto h_alpha_index_basic = Kokkos::create_mirror_view(d_alpha_index_basic);
@@ -200,7 +198,7 @@ void PairMTPExtrapolationKokkos<DeviceType>::settings(int narg, char **arg)
   //Setup the inverse active set if nbh mode or
   // Or if we are calcing the cfg grade on device, (ie. not mpi splitted)
   if (!configuration_mode || comm->nprocs == 1) {
-    MemKK::realloc_kokkos(d_inverse_active_set, "mtp/extrapolation/kk/s:inverse_active_set",
+    MemKK::realloc_kokkos(d_inverse_active_set, "mtp/extrapolation/kk:inverse_active_set",
                           coeff_count, coeff_count);
     auto h_inverse_active_set = Kokkos::create_mirror_view(d_inverse_active_set);
     for (int i = 0; i < coeff_count; i++)
@@ -208,16 +206,16 @@ void PairMTPExtrapolationKokkos<DeviceType>::settings(int narg, char **arg)
     Kokkos::deep_copy(d_inverse_active_set, h_inverse_active_set);
 
     if (!configuration_mode) {    // In neighbourhood mode only, we need memory to store grades
-      MemKK::realloc_kokkos(d_nbh_extrapolation_grades, "mtp/extrapolation/kk/s:inverse_active_set",
+      MemKK::realloc_kokkos(d_nbh_extrapolation_grades, "mtp/extrapolation/kk:inverse_active_set",
                             1);    //We will resize as needed in compute.
     }
   }
 
   if (configuration_mode) {
-    MemKK::realloc_kokkos(d_energy_ders_wrt_coeffs, "mtp/extrapolation/kk/s:energy_der_wrt_coeffs",
+    MemKK::realloc_kokkos(d_energy_ders_wrt_coeffs, "mtp/extrapolation/kk:energy_der_wrt_coeffs",
                           coeff_count);
     MemKK::realloc_kokkos(d_tmp_energy_ders_wrt_coeffs,
-                          "mtp/extrapolation/kk/s:tmp_energy_der_wrt_coeffs", coeff_count);
+                          "mtp/extrapolation/kk:tmp_energy_der_wrt_coeffs", coeff_count);
   }
 }
 
@@ -295,6 +293,67 @@ template <class DeviceType> struct FindMaxNumNeighs {
   }
 };
 
+// Finds the maximum number of valid MTP neighbours in all neigbhourhoods.
+template <class DeviceType> struct FindMaxValidNeighs {
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+  typename AT::t_int_1d_randomread d_ilist;
+  typename AT::t_int_1d_randomread d_numneigh;
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  const KK_FLOAT max_cutoff_sq;
+  Kokkos::View<int *, DeviceType> d_num_valid_neighs;
+  Kokkos::View<int **, DeviceType> d_valid_neighs;
+
+  FindMaxValidNeighs(typename AT::t_int_1d_randomread d_ilist,
+                     typename AT::t_int_1d_randomread d_numneigh,
+                     typename AT::t_neighbors_2d d_neighbors,
+                     typename AT::t_kkfloat_1d_3_lr_randomread x, KK_FLOAT max_cutoff_sq,
+                     Kokkos::View<int *, DeviceType> d_num_valid_neighs,
+                     Kokkos::View<int **, DeviceType> d_valid_neighs) :
+      d_ilist(d_ilist), d_numneigh(d_numneigh), d_neighbors(d_neighbors), x(x),
+      max_cutoff_sq(max_cutoff_sq), d_num_valid_neighs(d_num_valid_neighs),
+      d_valid_neighs(d_valid_neighs)
+  {
+  }
+  ~FindMaxValidNeighs() {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const typename Kokkos::TeamPolicy<DeviceType>::member_type &team,
+                  int &max_valid_neighs) const
+  {
+    const int ii = team.league_rank();
+    const int i = d_ilist[ii];
+    const int num_neighs = d_numneigh(i);
+
+    const KK_FLOAT xi[3] = {x(i, 0), x(i, 1), x(i, 2)};
+
+    Kokkos::parallel_scan(Kokkos::TeamThreadRange(team, num_neighs),
+                          [&](const int jj, int &prefix, const bool final) {
+                            const int j = d_neighbors(i, jj) & NEIGHMASK;
+
+                            const KK_FLOAT r0 = x(j, 0) - xi[0];
+                            const KK_FLOAT r1 = x(j, 1) - xi[1];
+                            const KK_FLOAT r2 = x(j, 2) - xi[2];
+                            const KK_FLOAT rsq = Kokkos::fma(r0, r0, Kokkos::fma(r1, r1, r2 * r2));
+
+                            const int is_valid = (rsq < max_cutoff_sq) ? 1 : 0;
+                            const int pos = prefix;
+                            prefix += is_valid;
+
+                            if (final) {
+                              if (is_valid) { d_valid_neighs(pos, ii) = j; }
+
+                              // The last iteration’s final prefix is the total number of valid neighbors.
+                              if (jj == num_neighs - 1) {
+                                d_num_valid_neighs(ii) = prefix;
+                                if (max_valid_neighs < prefix) max_valid_neighs = prefix;
+                              }
+                            }
+                          });
+  }
+};
+
 /* ----------------------------------------------------------------------
    This version is a straightforward implementation
    ---------------------------------------------------------------------- */
@@ -368,6 +427,25 @@ void PairMTPExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   Kokkos::parallel_reduce("PairMTPExtrapolationKokkos::find_max_neighs", inum,
                           FindMaxNumNeighs<DeviceType>(k_list), Kokkos::Max<int>(max_neighs));
 
+  if ((int) d_num_valid_neighs.extent(0) < inum) {
+    Kokkos::realloc(Kokkos::WithoutInitializing, d_num_valid_neighs, inum);
+  }
+  if ((int) d_valid_neighs.extent(1) < inum || (int) d_valid_neighs.extent(0) < max_neighs) {
+    Kokkos::realloc(Kokkos::WithoutInitializing, d_valid_neighs, max_neighs, inum);
+  }
+
+  // Precalculate the number of valid MTP neighs and stream compact them
+  max_valid_neighs = 0;
+  {
+    const int team_size = 64;
+    Kokkos::TeamPolicy<DeviceType> policy_valid_neighs(inum, team_size);
+    Kokkos::parallel_reduce("PairMTPKokkos::find_max_valid_neighs", policy_valid_neighs,
+                            FindMaxValidNeighs<DeviceType>(d_ilist, d_numneigh, d_neighbors, x,
+                                                           max_cutoff_sq, d_num_valid_neighs,
+                                                           d_valid_neighs),
+                            Kokkos::Max<int>(max_valid_neighs));
+  }
+
   // Handling batching
   chunk_size = MIN(input_chunk_size,
                    inum);    // chunksize is the maximum atoms per pass as defined by the user
@@ -387,15 +465,14 @@ void PairMTPExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::realloc(Kokkos::WithoutInitializing, d_radial_jacobian, chunk_size,
                     alpha_index_basic_count, species_count * radial_coeff_count_per_pair);
   }
-  // Resize the jacobian and within _cutoff if max_neighs is too large. Do not initalize; first access is write.
+  // Resize the jacobian if max_valid_neighs is too large. Do not initalize; first access is write.
   if ((int) d_moment_jacobian.extent(1) < chunk_size ||
-      (int) d_moment_jacobian.extent(0) < max_neighs) {
-    Kokkos::realloc(Kokkos::WithoutInitializing, d_moment_jacobian, max_neighs, chunk_size,
+      (int) d_moment_jacobian.extent(0) < max_valid_neighs) {
+    Kokkos::realloc(Kokkos::WithoutInitializing, d_moment_jacobian, max_valid_neighs, chunk_size,
                     alpha_index_basic_count, 3);
-    Kokkos::realloc(Kokkos::WithoutInitializing, d_within_cutoff, max_neighs, chunk_size);
   }
 
-  // Resize nbh grades to inum not chunk size. The reduces host communication need. Only 1 FP64 per nbh.
+  // Resize nbh grades to inum not chunk size. The reduces host communication needed. Only 1 FP64 per nbh.
   if (!configuration_mode && (int) d_nbh_extrapolation_grades.extent(0) < inum)
     Kokkos::realloc(Kokkos::WithoutInitializing, d_nbh_extrapolation_grades, inum);
 
@@ -430,30 +507,30 @@ void PairMTPExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     {
       int team_size = team_size_default;
       int vector_length = vector_length_default;
-      if (!host_flag && max_neighs < 32) team_size = 32;
+      if (!host_flag && max_valid_neighs < 32) team_size = 32;
 
       // Only calculate the radial jacobian on steps extrapolation is needed
       if (calculate_grade_this_step) {
-        check_team_size_for<TagPairMTPComputeAlphaBasicRad>(chunk_size * max_neighs, team_size,
-                                                            vector_length);
+        check_team_size_for<TagPairMTPComputeAlphaBasicRad>(chunk_size * max_valid_neighs,
+                                                            team_size, vector_length);
         int radial_scratch_count = 2 * (radial_func_count + radial_basis_size);
         int dist_coords_scratch_count = 4 * max_alpha_index_basic;
         // Reduce the scratch size to the max number of neighbors
         int scratch_size = scratch_size_helper<KK_FLOAT>(
-            min(team_size, max_neighs) * (radial_scratch_count + dist_coords_scratch_count));
+            min(team_size, max_valid_neighs) * (radial_scratch_count + dist_coords_scratch_count));
         Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaBasicRad> policy_basic_alpha_rad(
             chunk_size, team_size);
         policy_basic_alpha_rad =
             policy_basic_alpha_rad.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
         Kokkos::parallel_for("ComputeAlphaBasicRad", policy_basic_alpha_rad, *this);
       } else {
-        check_team_size_for<TagPairMTPComputeAlphaBasic>(chunk_size * max_neighs, team_size,
+        check_team_size_for<TagPairMTPComputeAlphaBasic>(chunk_size * max_valid_neighs, team_size,
                                                          vector_length);
         int radial_scratch_count = 2 * (radial_func_count + radial_basis_size);
         int dist_coords_scratch_count = 4 * max_alpha_index_basic;
         // Reduce the scratch size to the max number of neighbors
         int scratch_size = scratch_size_helper<KK_FLOAT>(
-            min(team_size, max_neighs) * (radial_scratch_count + dist_coords_scratch_count));
+            min(team_size, max_valid_neighs) * (radial_scratch_count + dist_coords_scratch_count));
         Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaBasic> policy_basic_alpha(chunk_size,
                                                                                        team_size);
         policy_basic_alpha = policy_basic_alpha.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
@@ -537,7 +614,7 @@ void PairMTPExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     // ========== Compute force (and dot product with alphas to get energy if needed) ==========
     {
       int team_size = team_size_default;
-      if (!host_flag && max_neighs < 32) team_size = 32;
+      if (!host_flag && max_valid_neighs < 32) team_size = 32;
       if (neighflag == HALF) {
         Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeForce<HALF, 1>> policy_force(chunk_size,
                                                                                      team_size);
@@ -679,7 +756,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPExtrapolationKokkos<DeviceType>::operator()(
   const int i = d_ilist[ii + chunk_offset];
   const KK_FLOAT xi[3] = {x(i, 0), x(i, 1), x(i, 2)};
   const int itype = type[i] - 1;    // switch to zero indexing
-  const int jnum = d_numneigh(i);
+  const int jnum = d_num_valid_neighs(ii + chunk_offset);
   const int array_size = Kokkos::min(team.team_size(), jnum);
 
   shared_double_2d s_radial_vals(team.team_scratch(0), array_size, radial_func_count);
@@ -690,16 +767,11 @@ KOKKOS_INLINE_FUNCTION void PairMTPExtrapolationKokkos<DeviceType>::operator()(
   shared_double_2d s_radial_basis_ders(team.team_scratch(0), array_size, radial_basis_size);
 
   // Now we calculate the alpha basics. There might be benefits to using a parallel reduce into the array of moment values here.
-  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [=](const int jj) {
-    const int j = d_neighbors(i, jj) & NEIGHMASK;
+  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](const int jj) {
+    const int j = d_valid_neighs(jj, ii + chunk_offset);
     const int jtype = type[j] - 1;    // switch to zero indexing
     const KK_FLOAT r[3] = {x(j, 0) - xi[0], x(j, 1) - xi[1], x(j, 2) - xi[2]};
     const KK_FLOAT rsq = Kokkos::fma(r[0], r[0], Kokkos::fma(r[1], r[1], r[2] * r[2]));
-
-    const bool valid_pair = rsq < max_cutoff_sq;
-    d_within_cutoff(jj, ii) = valid_pair;
-
-    if (!valid_pair) return;
     const KK_FLOAT dist = sqrt(rsq);
 
     s_dist_powers(thread, 0) = s_coord_powers(thread, 0, 0) = s_coord_powers(thread, 0, 1) =
@@ -812,7 +884,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPExtrapolationKokkos<DeviceType>::operator()(
   const int i = d_ilist[ii + chunk_offset];
   const KK_FLOAT xi[3] = {x(i, 0), x(i, 1), x(i, 2)};
   const int itype = type[i] - 1;    // switch to zero indexing
-  const int jnum = d_numneigh(i);
+  const int jnum = d_num_valid_neighs(ii + chunk_offset);
   const int array_size = Kokkos::min(team.team_size(), jnum);
 
   shared_double_2d s_radial_vals(team.team_scratch(0), array_size, radial_func_count);
@@ -823,16 +895,11 @@ KOKKOS_INLINE_FUNCTION void PairMTPExtrapolationKokkos<DeviceType>::operator()(
   shared_double_2d s_radial_basis_ders(team.team_scratch(0), array_size, radial_basis_size);
 
   // Now we calculate the alpha basics. There might be benefits to using a parallel reduce into the array of moment values here.
-  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [=](const int jj) {
-    const int j = d_neighbors(i, jj) & NEIGHMASK;
+  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](const int jj) {
+    const int j = d_valid_neighs(jj, ii + chunk_offset);
     const int jtype = type[j] - 1;    // switch to zero indexing
     const KK_FLOAT r[3] = {x(j, 0) - xi[0], x(j, 1) - xi[1], x(j, 2) - xi[2]};
     const KK_FLOAT rsq = Kokkos::fma(r[0], r[0], Kokkos::fma(r[1], r[1], r[2] * r[2]));
-
-    const bool valid_pair = rsq < max_cutoff_sq;
-    d_within_cutoff(jj, ii) = valid_pair;
-
-    if (!valid_pair) return;
     const KK_FLOAT dist = sqrt(rsq);
 
     s_dist_powers(thread, 0) = s_coord_powers(thread, 0, 0) = s_coord_powers(thread, 0, 1) =
@@ -1022,13 +1089,11 @@ KOKKOS_INLINE_FUNCTION void PairMTPExtrapolationKokkos<DeviceType>::operator()(
 
   const int ii = team.league_rank();
   const int i = d_ilist[ii + chunk_offset];
-  const int jnum = d_numneigh(i);
+  const int jnum = d_num_valid_neighs(ii + chunk_offset);
   bool need_energies = EVFLAG && eflag_either;
 
   Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](const int jj) {
-    const int j = d_neighbors(i, jj) & NEIGHMASK;
-
-    if (!d_within_cutoff(jj, ii)) return;
+    const int j = d_valid_neighs(jj, ii + chunk_offset);
 
     KK_ACC_FLOAT temp_force[3] = {0, 0, 0};
     for (int k = 0; k < alpha_index_basic_count; k++) {

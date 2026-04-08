@@ -174,6 +174,8 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   Kokkos::View<double *, DeviceType> d_tmp_energy_ders_wrt_coeffs;
 
   // Global working buffers.
+  Kokkos::View<int **, DeviceType> d_valid_neighs;
+  Kokkos::View<int *, DeviceType> d_num_valid_neighs;
   Kokkos::View<double ****, DeviceType> d_moment_jacobian;
   Kokkos::View<double ***, DeviceType> d_radial_jacobian;
   Kokkos::View<double **, Kokkos::LayoutRight, DeviceType> d_moment_tensor_vals;

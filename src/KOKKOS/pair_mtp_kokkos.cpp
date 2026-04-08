@@ -620,12 +620,8 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
       Kokkos::atomic_add(&d_moment_tensor_vals(ii, k), val * pow);
 
       // Get the component's derivatives too
-      KK_FLOAT temp_jac[3] = {pow * r[0], pow * r[1], pow * r[2]};
-
       pow *= der / dist;
-      temp_jac[0] = pow * r[0];
-      temp_jac[1] = pow * r[1];
-      temp_jac[2] = pow * r[2];
+      KK_FLOAT temp_jac[3] = {pow * r[0], pow * r[1], pow * r[2]};
 
       if (a0 != 0)
         temp_jac[0] =
@@ -690,7 +686,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
 
   int offset = alpha_index_times_count;
   // Traverse all edges in the alpha times compute graph. We need to do this in reverse waves to ensure dependencies.
-  for (int i = num_waves; i >= 0; i--) {
+  for (int i = num_waves - 1; i >= 0; i--) {
     const int wave_size = d_waves[i];
     offset -= wave_size;
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, wave_size), [&](const int kk) {

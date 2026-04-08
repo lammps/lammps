@@ -194,9 +194,11 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::prepare_waves()
   }
   waves.push_back(alpha_index_times_count - last_max_edge);
 
-  MemKK::realloc_kokkos(d_waves, "mtp/kk:d_waves", waves.size());
+  num_waves = waves.size();
+
+  MemKK::realloc_kokkos(d_waves, "mtp/kk:d_waves", num_waves);
   auto h_waves = Kokkos::create_mirror_view(d_waves);
-  for (int i = 0; i < waves.size(); i++) { h_waves(i) = waves[i]; }
+  for (int i = 0; i < num_waves; i++) { h_waves(i) = waves[i]; }
   Kokkos::deep_copy(d_waves, h_waves);
 }
 
@@ -652,7 +654,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
 
   int offset = 0;
   // Traverse all edges in the alpha times compute graph. We need to do this in waves to ensure dependencies.
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < num_waves; i++) {
     const int wave_size = d_waves[i];
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, wave_size), [&](const int kk) {
       const int k = offset + kk;    // Offset for the wave
@@ -683,12 +685,11 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
     const typename Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeNbhDers>::member_type &team)
     const
 {
-
   const int ii = team.league_rank();
 
   int offset = alpha_index_times_count;
   // Traverse all edges in the alpha times compute graph. We need to do this in reverse waves to ensure dependencies.
-  for (int i = 2; i >= 0; i--) {
+  for (int i = num_waves; i >= 0; i--) {
     const int wave_size = d_waves[i];
     offset -= wave_size;
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, wave_size), [&](const int kk) {

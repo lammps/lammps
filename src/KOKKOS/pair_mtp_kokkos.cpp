@@ -354,7 +354,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
   }
 
   // Precalculate the number of valid MTP neighs and stream compact them
-  int max_valid_neighs = 0;
+  max_valid_neighs = 0;
   {
     const int team_size = 64;
     Kokkos::TeamPolicy<DeviceType> policy_valid_neighs(inum, team_size);
@@ -364,6 +364,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
                                                            d_valid_neighs),
                             Kokkos::Max<int>(max_valid_neighs));
   }
+
   // Handling batching
   chunk_size =    // chunk_size is the working chunk size and may change per compute pass
       MIN(input_chunk_size,
@@ -382,7 +383,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
     Kokkos::realloc(Kokkos::WithoutInitializing, d_nbh_energy_ders_wrt_moments, chunk_size,
                     alpha_moment_count);
   }
-  // Resize the jacobian and within _cutoff if max_neighs is too large. Do not initalize; first access is write.
+  // Resize the jacobian if max_valid_neighs is too large. Do not initalize; first access is write.
   if ((int) d_moment_jacobian.extent(1) < chunk_size ||
       (int) d_moment_jacobian.extent(0) < max_valid_neighs) {
     Kokkos::realloc(Kokkos::WithoutInitializing, d_moment_jacobian, max_valid_neighs, chunk_size,
@@ -449,7 +450,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
     // ========== Compute force (and dot product with alphas to get energy if needed) ==========
     {
       int team_size = team_size_default;
-      if (!host_flag && max_neighs < 32) team_size = 32;
+      if (!host_flag && max_valid_neighs < 32) team_size = 32;
 
       if (neighflag == HALF) {
         Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeForce<HALF, 1>> policy_force(chunk_size,

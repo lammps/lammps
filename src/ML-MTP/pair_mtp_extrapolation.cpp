@@ -22,7 +22,6 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fmt/format.h"
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -30,7 +29,6 @@
 
 #include <cmath>
 #include <fstream>
-#include <iostream>
 
 using namespace LAMMPS_NS;
 
@@ -53,8 +51,7 @@ PairMTPExtrapolation::~PairMTPExtrapolation()
     memory->destroy(radial_jacobian);
     memory->destroy(energy_ders_wrt_coeffs);
     if (!configuration_mode) memory->destroy(nbh_extrapolation_grades);
-    if (mlip3_style) delete write_buffer_ptr;
-    write_buffer_ptr = nullptr;
+    if (mlip3_style) memory->destroy(write_buffer);
   }
 }
 
@@ -387,8 +384,6 @@ void PairMTPExtrapolation::evaluate_grades()
   if (max_grade >= break_threshold && comm->me == 0) {
     std::fflush(preselected_file);    // Ensure the writing buffers are flushed before breaking.
     std::fclose(preselected_file);
-    delete write_buffer_ptr;
-    write_buffer_ptr = nullptr;
     error->one(FLERR, "Exceeded Break Threshold: {:.5f}. Terminating simulation.\n", max_grade);
   }
 }
@@ -397,84 +392,84 @@ void PairMTPExtrapolation::evaluate_grades()
 ------------------------------------------------------------------------- */
 void PairMTPExtrapolation::write_config()
 {
-  /* ----------------------------------------------------------------------
-  The core of the writing is in the atom data across MPI processes. 
-  We will first preconvert the relevant data into a string/char array
-  after which we can send it sequentially to rank 0 to write.
-------------------------------------------------------------------------- */
-  write_buffer_ptr->clear();    // Clear the buffer from the last print
+  int inum = list->inum;
+  int *type = atom->type;
+  double **x = atom->x;
+  int index_offset = 0;
 
-  int inum = list->inum;     // The number of central atoms (neigbhourhoods)
-  int *type = atom->type;    //atomic types
-  double **x = atom->x;      // atomic positons
-  int index_offset = 0;      // offset to get global indicies
-
-  MPI_Scan(&inum, &index_offset, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  MPI_Scan(&inum, &index_offset, 1, MPI_INT, MPI_SUM, world);
   index_offset -= inum;
 
+  const int MAX_LINE = 128;
+  bigint needed_size = (bigint) inum * MAX_LINE;
+
+  if (needed_size > write_buffer_size) {
+    write_buffer_size = needed_size;
+    memory->grow(write_buffer, write_buffer_size, "write_buffer");
+  }
+
+  bigint local_buffer_size = 0;
   for (int ii = 0; ii < inum; ii++) {
     const int i = ii;
     const int itype = type[i] - 1;
     const double xi[3] = {x[i][0], x[i][1], x[i][2]};
     const int global_i = i + index_offset + 1;
 
+    int n = 0;
+    // snprintf returns the EXACT number of characters it wants to write
     if (!configuration_mode) {
-      const double grade = nbh_extrapolation_grades[i];
-      fmt::format_to(std::back_inserter(*write_buffer_ptr),
-                     "{}\t{}\t{:.6f}\t{:.6f}\t{:.6f}\t{:.5f}\n", global_i, itype, xi[0], xi[1],
-                     xi[2], grade);
-    } else
-      fmt::format_to(std::back_inserter(*write_buffer_ptr), "{}\t{}\t{:.6f}\t{:.6f}\t{:.6f}\n",
-                     global_i, itype, xi[0], xi[1], xi[2]);
+      n = snprintf(write_buffer + local_buffer_size, MAX_LINE, "%d\t%d\t%.6f\t%.6f\t%.6f\t%.5f\n",
+                   global_i, itype, xi[0], xi[1], xi[2], nbh_extrapolation_grades[i]);
+    } else {
+      n = snprintf(write_buffer + local_buffer_size, MAX_LINE, "%d\t%d\t%.6f\t%.6f\t%.6f\n",
+                   global_i, itype, xi[0], xi[1], xi[2]);
+    }
+
+    // Memory usage check
+    if (n >= MAX_LINE) n = MAX_LINE - 1;
+    local_buffer_size += n;
   }
 
-  bigint char_buffer_size = write_buffer_ptr->size();
-  bigint max_char_buffer_size;
-
-  // We first communicate the maximum needed buffer size and the cumulative atom count to the writer process (rank 0)
-  MPI_Reduce(&char_buffer_size, &max_char_buffer_size, 1, MPI_LMP_BIGINT, MPI_MAX, 0, world);
-
-  if (comm->me == 0 && max_char_buffer_size > write_buffer_ptr->capacity())
-    write_buffer_ptr->reserve(max_char_buffer_size);
-
-  // Print header info and proc 0 atomdata
+  // Find max memory needed and ensure Rank 0 can handle it
+  bigint max_bytes_any_proc;
+  MPI_Reduce(&local_buffer_size, &max_bytes_any_proc, 1, MPI_LMP_BIGINT, MPI_MAX, 0, world);
   if (comm->me == 0) {
+    if (max_bytes_any_proc > write_buffer_size) {
+      write_buffer_size = max_bytes_any_proc;
+      memory->grow(write_buffer, write_buffer_size, "write_buffer");
+    }
+
+    // Standard MLIP header prints
     std::fprintf(preselected_file, "BEGIN_CFG\n");
-    std::fprintf(preselected_file, "Size\n");
-    std::fprintf(preselected_file, "%ld\n", atom->natoms);
+    std::fprintf(preselected_file, "Size\n%ld\n", (long) atom->natoms);
     std::fprintf(preselected_file, "Supercell\n");
     std::fprintf(preselected_file, "%.6f %.6f %.6f\n", domain->xprd, 0.0, 0.0);
     std::fprintf(preselected_file, "%.6f %.6f %.6f\n", domain->xy, domain->yprd, 0.0);
     std::fprintf(preselected_file, "%.6f %.6f %.6f\n", domain->xz, domain->yz, domain->zprd);
-    if (!configuration_mode)
-      std::fprintf(
-          preselected_file,
-          "AtomData:  id type       cartes_x      cartes_y      cartes_z       nbh_grades\n");
-    else
-      std::fprintf(preselected_file,
-                   "AtomData:  id type       cartes_x      cartes_y      cartes_z\n");
 
-    std::fwrite(write_buffer_ptr->data(), 1, char_buffer_size, preselected_file);
-  }
+    const char *header = (!configuration_mode)
+        ? "AtomData:  id type       cartes_x      cartes_y      cartes_z       nbh_grades\n"
+        : "AtomData:  id type       cartes_x      cartes_y      cartes_z\n";
+    std::fputs(header, preselected_file);
 
-  // Send information to proc 0
-  if (comm->me != 0) {
-    MPI_Send(&write_buffer_ptr->data()[0], char_buffer_size, MPI_CHAR, 0, 0, world);
-  } else
+    // Write Rank 0's data
+    std::fwrite(write_buffer, 1, local_buffer_size, preselected_file);
+
+    // Receive and write from others
     for (int i = 1; i < comm->nprocs; i++) {
       MPI_Status status;
-      int n_chars;
-      //Now we loop through each proc and receive and write on proc 0
-      MPI_Recv(&write_buffer_ptr->data()[0], max_char_buffer_size, MPI_CHAR, i, 0, world, &status);
-      MPI_Get_count(&status, MPI_CHAR, &n_chars);
-      std::fwrite(write_buffer_ptr->data(), 1, n_chars, preselected_file);
+      MPI_Recv(write_buffer, write_buffer_size, MPI_CHAR, i, 0, world, &status);
+      int n_received;
+      MPI_Get_count(&status, MPI_CHAR, &n_received);
+      std::fwrite(write_buffer, 1, n_received, preselected_file);
     }
-  if (comm->me == 0) {
+
     std::fprintf(preselected_file, "Feature   MV_grade\t%.6f\n", max_grade);
     std::fprintf(preselected_file, "END_CFG\n\n");
+  } else {
+    MPI_Send(write_buffer, local_buffer_size, MPI_CHAR, 0, 0, world);
   }
 }
-
 /* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
@@ -513,10 +508,8 @@ void PairMTPExtrapolation::settings(int narg, char **arg)
       utils::logmesg(lmp, "Extrapolation Mode: {} mode.\n",
                      (configuration_mode ? "Configuration" : "Neighborhood"));
 
-  if (mlip3_style) {
+  if (mlip3_style)
     if (comm->me == 0) preselected_file = std::fopen(arg[1], "w");
-    write_buffer_ptr = new fmt::memory_buffer();
-  }
 }
 
 /* ----------------------------------------------------------------------

@@ -110,8 +110,7 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   int input_chunk_size, chunk_size,
       chunk_offset;    // Needed to process the computation in batches to avoid running out of VRAM.
 
-  // Characteric flags
-  int inum, max_neighs, max_valid_neighs;
+  int inum, max_neighs, max_valid_neighs, num_waves;
   int host_flag, neighflag;
 
   int eflag, vflag;    // Energy and virial flag
@@ -133,7 +132,7 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   // Alphas indicies
   Kokkos::View<int **, DeviceType> d_alpha_index_basic;      // For constructing the basic alphas.
   Kokkos::View<int **, DeviceType> d_alpha_index_times;      // For combining alphas
-  Kokkos::View<int *, DeviceType> d_waves;                   // Break in dependency waves
+  Kokkos::View<int *, DeviceType> d_waves;                   // Dependency waves
   Kokkos::View<int *, DeviceType> d_alpha_moment_mapping;    // Maps alphas to the basis functions.
 
   // The learned coefficients.

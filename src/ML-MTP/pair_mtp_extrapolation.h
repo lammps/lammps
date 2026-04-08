@@ -68,8 +68,9 @@ class PairMTPExtrapolation : public PairMTP {
   double *nbh_extrapolation_grades = nullptr;    // Extrapolation grades of all neighbourhoods
 
   // Data for compiling configs in a MLIP-3 compatible format
-  FILE *preselected_file;                  // Write to preselected file
-  fmt::memory_buffer *write_buffer_ptr;    // Write buffer pointer
+  FILE *preselected_file;    // Write to preselected file
+  bigint write_buffer_size = 0;
+  char *write_buffer = nullptr;
 };
 
 }    // namespace LAMMPS_NS

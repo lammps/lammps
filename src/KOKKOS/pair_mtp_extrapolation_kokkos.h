@@ -160,26 +160,26 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   Kokkos::View<int *, DeviceType> d_alpha_moment_mapping;    // Maps alphas to the basis functions.
 
   // The learned coefficients.
-  Kokkos::View<double *, DeviceType> d_radial_basis_coeffs;    // The radial components.
-  Kokkos::View<double *, DeviceType> d_species_coeffs;         // The species-based constants
-  Kokkos::View<double *, DeviceType> d_linear_coeffs;          // Basis coeffs
+  Kokkos::View<KK_FLOAT *, DeviceType> d_radial_basis_coeffs;    // The radial components.
+  Kokkos::View<KK_FLOAT *, DeviceType> d_species_coeffs;         // The species-based constants
+  Kokkos::View<KK_FLOAT *, DeviceType> d_linear_coeffs;          // Basis coeffs
 
   // Inverse active set and grades. Only needed in neigbhourhood mode and single MPI configuration mode.
-  Kokkos::View<double **, DeviceType> d_inverse_active_set;
-  Kokkos::View<double *, DeviceType> d_nbh_extrapolation_grades;
+  Kokkos::View<KK_FLOAT **, DeviceType> d_inverse_active_set;
+  Kokkos::View<KK_FLOAT *, DeviceType> d_nbh_extrapolation_grades;
 
   // Source for candidate vector reduction. Only needed in configuration mode.
   // We need two arrays to account for multiple chunks.
-  Kokkos::View<double *, DeviceType> d_energy_ders_wrt_coeffs;
-  Kokkos::View<double *, DeviceType> d_tmp_energy_ders_wrt_coeffs;
+  Kokkos::View<KK_FLOAT *, DeviceType> d_energy_ders_wrt_coeffs;
+  Kokkos::View<KK_FLOAT *, DeviceType> d_tmp_energy_ders_wrt_coeffs;
 
   // Global working buffers.
   Kokkos::View<int **, DeviceType> d_valid_neighs;
   Kokkos::View<int *, DeviceType> d_num_valid_neighs;
-  Kokkos::View<double ****, DeviceType> d_moment_jacobian;
-  Kokkos::View<double ***, DeviceType> d_radial_jacobian;
-  Kokkos::View<double **, Kokkos::LayoutRight, DeviceType> d_moment_tensor_vals;
-  Kokkos::View<double **, Kokkos::LayoutRight, DeviceType> d_nbh_energy_ders_wrt_moments;
+  Kokkos::View<KK_FLOAT ****, DeviceType> d_moment_jacobian;
+  Kokkos::View<KK_FLOAT ***, DeviceType> d_radial_jacobian;
+  Kokkos::View<KK_FLOAT **, Kokkos::LayoutRight, DeviceType> d_moment_tensor_vals;
+  Kokkos::View<KK_FLOAT **, Kokkos::LayoutRight, DeviceType> d_nbh_energy_ders_wrt_moments;
   Kokkos::View<bool **, DeviceType> d_within_cutoff;
 
   // Typedefs for shared memory
@@ -220,7 +220,7 @@ template <class DeviceType> struct sComputeNbhGrades {
 
   typedef Kokkos::View<KK_FLOAT *, typename DeviceType::scratch_memory_space,
                        Kokkos::MemoryTraits<Kokkos::Unmanaged>>
-      shared_double_1d;    // Used for storing coeff derivatives
+      shared_kk_float_1d;    // Used for storing coeff derivatives
 
   const int chunk_size;
   const int chunk_offset;

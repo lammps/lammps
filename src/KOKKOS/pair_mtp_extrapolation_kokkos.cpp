@@ -260,9 +260,16 @@ template <class DeviceType> void PairMTPExtrapolationKokkos<DeviceType>::evaluat
         memory->grow(nbh_extrapolation_grades, inum, "nbh_extrapolation_grades");
         nbh_count = inum;
       }
-      Kokkos::View<double *, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
-          h_nbh_extrapolation_grades(nbh_extrapolation_grades, inum);
+
+      //// Mirror directly to host. Cannot handle single precision though.
+      // Kokkos::View<KK_FLOAT *, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+      //     h_nbh_extrapolation_grades(nbh_extrapolation_grades, inum);
+      // Kokkos::deep_copy(h_nbh_extrapolation_grades, d_nbh_extrapolation_grades);
+
+      // Mirror to buffer on host. Then copy to array. This handles doubles and floats.
+      auto h_nbh_extrapolation_grades = Kokkos::create_mirror_view(d_nbh_extrapolation_grades);
       Kokkos::deep_copy(h_nbh_extrapolation_grades, d_nbh_extrapolation_grades);
+      for (int i = 0; i < inum; i++) nbh_extrapolation_grades[i] = h_nbh_extrapolation_grades[i];
     }
 
     if (mlip3_style) write_config();
@@ -607,7 +614,8 @@ void PairMTPExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
                 d_alpha_moment_mapping, d_inverse_active_set, d_nbh_extrapolation_grades),
             Kokkos::Max<KK_FLOAT>(chunk_max_grade));
 
-        max_grade = Kokkos::max(chunk_max_grade, max_grade);    // Get max over all chunks
+        max_grade = (chunk_max_grade > max_grade) ? chunk_max_grade
+                                                  : max_grade;    // Get max over all chunks
       }
     }
 
@@ -686,10 +694,13 @@ void PairMTPExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::TeamPolicy<DeviceType> policy_calc_grades(coeff_count, team_size);
       policy_calc_grades.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
 
+      // A temporary variable sunce max_grade is a double!
+      KK_FLOAT tmp_max_grade = 0;
       Kokkos::parallel_reduce(
           "sComputeCfgGrade", policy_calc_grades,
           sComputeCfgGrade<DeviceType>(coeff_count, d_energy_ders_wrt_coeffs, d_inverse_active_set),
-          Kokkos::Max<KK_FLOAT>(max_grade));
+          Kokkos::Max<KK_FLOAT>(tmp_max_grade));
+      max_grade = tmp_max_grade;
 
       if (atom->natoms > 0)
         max_grade /= atom->natoms;    // Normalize
@@ -697,12 +708,18 @@ void PairMTPExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         max_grade = 0.0;
       pvector[0] = max_grade;
 
-    } else {    // Multiple Processes
+    } else {    // On multiple procs we need to move ders to host and MPI reduce across ranks
 
-      // On multiple procs we need to move ders to host and MPI reduce across ranks
-      Kokkos::View<double *, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
-          h_energy_ders_wrt_coeffs(energy_ders_wrt_coeffs, coeff_count);
+      //// Mirror directly to host. Cannot handle single precision though.
+      // Kokkos::View<KK_FLOAT *, Kokkos::HostSpace, Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+      //     h_energy_ders_wrt_coeffs(energy_ders_wrt_coeffs, coeff_count);
+      // Kokkos::deep_copy(h_energy_ders_wrt_coeffs, d_energy_ders_wrt_coeffs);
+
+      // Mirror to buffer on host. Then copy to array. This handles doubles and floats.
+      auto h_energy_ders_wrt_coeffs = Kokkos::create_mirror_view(d_energy_ders_wrt_coeffs);
       Kokkos::deep_copy(h_energy_ders_wrt_coeffs, d_energy_ders_wrt_coeffs);
+      for (int i = 0; i < alpha_scalar_count; i++)
+        energy_ders_wrt_coeffs[i] = h_energy_ders_wrt_coeffs[i];
 
       PairMTPExtrapolation::compile_grades();
     }    // Normalize by atom count in CFG mode
@@ -1215,7 +1232,7 @@ KOKKOS_INLINE_FUNCTION void sComputeNbhGrades<DeviceType>::operator()(
   const int itype = type(i) - 1;    // switch to zero indexing
 
   // Shared memory to store the candidate vector
-  shared_double_1d s_candidate_vector(team.team_scratch(0), coeff_count);
+  shared_kk_float_1d s_candidate_vector(team.team_scratch(0), coeff_count);
 
   // Initialize the radial and species coeff ders
   Kokkos::parallel_for(Kokkos::TeamThreadRange(team, radial_coeff_count + species_count),

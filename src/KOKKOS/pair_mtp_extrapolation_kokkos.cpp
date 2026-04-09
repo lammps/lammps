@@ -759,12 +759,12 @@ KOKKOS_INLINE_FUNCTION void PairMTPExtrapolationKokkos<DeviceType>::operator()(
   const int jnum = d_num_valid_neighs(ii + chunk_offset);
   const int array_size = Kokkos::min(team.team_size(), jnum);
 
-  shared_double_2d s_radial_vals(team.team_scratch(0), array_size, radial_func_count);
-  shared_double_2d s_radial_ders(team.team_scratch(0), array_size, radial_func_count);
-  shared_double_2d s_dist_powers(team.team_scratch(0), array_size, max_alpha_index_basic);
-  shared_double_3d s_coord_powers(team.team_scratch(0), array_size, max_alpha_index_basic);
-  shared_double_2d s_radial_basis_vals(team.team_scratch(0), array_size, radial_basis_size);
-  shared_double_2d s_radial_basis_ders(team.team_scratch(0), array_size, radial_basis_size);
+  shared_kk_float_2d s_radial_vals(team.team_scratch(0), array_size, radial_func_count);
+  shared_kk_float_2d s_radial_ders(team.team_scratch(0), array_size, radial_func_count);
+  shared_kk_float_2d s_dist_powers(team.team_scratch(0), array_size, max_alpha_index_basic);
+  shared_kk_float_3d s_coord_powers(team.team_scratch(0), array_size, max_alpha_index_basic);
+  shared_kk_float_2d s_radial_basis_vals(team.team_scratch(0), array_size, radial_basis_size);
+  shared_kk_float_2d s_radial_basis_ders(team.team_scratch(0), array_size, radial_basis_size);
 
   // Now we calculate the alpha basics. There might be benefits to using a parallel reduce into the array of moment values here.
   Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](const int jj) {
@@ -883,12 +883,12 @@ KOKKOS_INLINE_FUNCTION void PairMTPExtrapolationKokkos<DeviceType>::operator()(
   const int jnum = d_num_valid_neighs(ii + chunk_offset);
   const int array_size = Kokkos::min(team.team_size(), jnum);
 
-  shared_double_2d s_radial_vals(team.team_scratch(0), array_size, radial_func_count);
-  shared_double_2d s_radial_ders(team.team_scratch(0), array_size, radial_func_count);
-  shared_double_2d s_dist_powers(team.team_scratch(0), array_size, max_alpha_index_basic);
-  shared_double_3d s_coord_powers(team.team_scratch(0), array_size, max_alpha_index_basic);
-  shared_double_2d s_radial_basis_vals(team.team_scratch(0), array_size, radial_basis_size);
-  shared_double_2d s_radial_basis_ders(team.team_scratch(0), array_size, radial_basis_size);
+  shared_kk_float_2d s_radial_vals(team.team_scratch(0), array_size, radial_func_count);
+  shared_kk_float_2d s_radial_ders(team.team_scratch(0), array_size, radial_func_count);
+  shared_kk_float_2d s_dist_powers(team.team_scratch(0), array_size, max_alpha_index_basic);
+  shared_kk_float_3d s_coord_powers(team.team_scratch(0), array_size, max_alpha_index_basic);
+  shared_kk_float_2d s_radial_basis_vals(team.team_scratch(0), array_size, radial_basis_size);
+  shared_kk_float_2d s_radial_basis_ders(team.team_scratch(0), array_size, radial_basis_size);
 
   // Now we calculate the alpha basics. There might be benefits to using a parallel reduce into the array of moment values here.
   Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](const int jj) {

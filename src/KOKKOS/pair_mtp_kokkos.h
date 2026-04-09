@@ -136,17 +136,17 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   Kokkos::View<int *, DeviceType> d_alpha_moment_mapping;    // Maps alphas to the basis functions.
 
   // The learned coefficients.
-  Kokkos::View<double *, DeviceType> d_radial_basis_coeffs;    // The radial components.
-  Kokkos::View<double *, DeviceType> d_species_coeffs;         // The species-based constants
-  Kokkos::View<double *, DeviceType> d_linear_coeffs;          // Basis coeffs
+  Kokkos::View<KK_FLOAT *, DeviceType> d_radial_basis_coeffs;    // The radial components.
+  Kokkos::View<KK_FLOAT *, DeviceType> d_species_coeffs;         // The species-based constants
+  Kokkos::View<KK_FLOAT *, DeviceType> d_linear_coeffs;          // Basis coeffs
 
   // Global working buffers.
   Kokkos::View<int **, DeviceType> d_valid_neighs;
   Kokkos::View<int *, DeviceType> d_num_valid_neighs;
-  Kokkos::View<double ****, DeviceType> d_moment_jacobian;
-  Kokkos::View<double **, Kokkos::LayoutRight, DeviceType>
+  Kokkos::View<KK_FLOAT ****, DeviceType> d_moment_jacobian;
+  Kokkos::View<KK_FLOAT **, Kokkos::LayoutRight, DeviceType>
       d_moment_tensor_vals;    // This promotes some memory coalescing
-  Kokkos::View<double **, Kokkos::LayoutRight, DeviceType> d_nbh_energy_ders_wrt_moments;
+  Kokkos::View<KK_FLOAT **, Kokkos::LayoutRight, DeviceType> d_nbh_energy_ders_wrt_moments;
 
   // Typedefs for shared memory
   typedef Kokkos::View<KK_FLOAT **[3], typename DeviceType::scratch_memory_space,

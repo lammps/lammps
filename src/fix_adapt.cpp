@@ -992,18 +992,18 @@ void FixAdapt::set_arrays(int i)
    write scale factors for diameter and charge to restart file
 ------------------------------------------------------------------------- */
 
-void FixAdapt::write_restart_global(FileWriter *fw) const
+void FixAdapt::write_restart_global(FileWriter& fw) const
 {
-  fw->writev(previous_diam_scale);
-  fw->writev(previous_chg_scale);
+  fw.writev(previous_diam_scale);
+  fw.writev(previous_chg_scale);
 }
 
 /* ----------------------------------------------------------------------
    use scale factors from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
-void FixAdapt::read_restart_global(BufferReader br)
+void FixAdapt::read_restart_global(BufferReader& br)
 {
-  br.read(previous_diam_scale);
-  br.read(previous_chg_scale);
+  br.read(BRERR,previous_diam_scale);
+  br.read(BRERR,previous_chg_scale);
 }

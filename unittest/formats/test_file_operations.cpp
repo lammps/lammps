@@ -304,27 +304,27 @@ TEST_F(FileOperationsTest, error_all_one)
 TEST_F(FileOperationsTest, write_restart)
 {
     ASSERT_EQ(lmp->restart_ver, -1);
-    BEGIN_HIDE_OUTPUT();
-    command("echo none");
-    END_HIDE_OUTPUT();
+    HIDE_OUTPUT([&]{
+        command("echo none");
+    });
     TEST_FAILURE(".*ERROR: Write_restart command before simulation box is defined.*",
                  command("write_restart test.restart"););
 
-    BEGIN_HIDE_OUTPUT();
-    command("region box block -2 2 -2 2 -2 2");
-    command("create_box 1 box");
-    command("create_atoms 1 single 0.0 0.0 0.0");
-    command("mass 1 1.0");
-    command("reset_timestep 333");
-    command("comm_modify cutoff 0.2");
-    command("write_restart noinit.restart noinit");
-    command("run 0 post no");
-    command("write_restart test.restart");
-    command("write_restart step*.restart");
-    command("write_restart multi-%.restart");
-    command("write_restart multi2-%.restart fileper 2");
-    command("write_restart multi3-%.restart nfile 1");
-    END_HIDE_OUTPUT();
+    HIDE_OUTPUT([&]{
+        command("region box block -2 2 -2 2 -2 2");
+        command("create_box 1 box");
+        command("create_atoms 1 single 0.0 0.0 0.0");
+        command("mass 1 1.0");
+        command("reset_timestep 333");
+        command("comm_modify cutoff 0.2");
+        command("write_restart noinit.restart noinit");
+        command("run 0 post no");
+        command("write_restart test.restart");
+        command("write_restart step*.restart");
+        command("write_restart multi-%.restart");
+        command("write_restart multi2-%.restart fileper 2");
+        command("write_restart multi3-%.restart nfile 1");
+    });
 
     ASSERT_FILE_EXISTS("noinit.restart");
     ASSERT_FILE_EXISTS("test.restart");
@@ -341,9 +341,9 @@ TEST_F(FileOperationsTest, write_restart)
     TEST_FAILURE(".*ERROR on proc 0: Cannot open restart file some_crazy_dir/test.restart:"
                  " No such file or directory.*",
                  command("write_restart some_crazy_dir/test.restart"););
-    BEGIN_HIDE_OUTPUT();
-    command("clear");
-    END_HIDE_OUTPUT();
+    HIDE_OUTPUT([&]{
+        command("clear");
+    });
     ASSERT_EQ(lmp->restart_ver, -1);
     ASSERT_EQ(lmp->atom->natoms, 0);
     ASSERT_EQ(lmp->update->ntimestep, 0);
@@ -353,11 +353,11 @@ TEST_F(FileOperationsTest, write_restart)
         ".*ERROR on proc 0: Cannot open restart file noexist.restart: No such file or directory.*",
         command("read_restart noexist.restart"););
 
-    BEGIN_HIDE_OUTPUT();
-    command("read_restart step333.restart");
-    command("change_box all triclinic");
-    command("write_restart triclinic.restart");
-    END_HIDE_OUTPUT();
+    HIDE_OUTPUT([&]{
+        command("read_restart step333.restart");
+        command("change_box all triclinic");
+        command("write_restart triclinic.restart");
+    });
     // increment restart version if it differs by 1,
     //  i.e. it was written by a development version
     if (lmp->num_ver - lmp->restart_ver == 1) lmp->restart_ver++;
@@ -365,16 +365,16 @@ TEST_F(FileOperationsTest, write_restart)
     ASSERT_EQ(lmp->atom->natoms, 1);
     ASSERT_EQ(lmp->update->ntimestep, 333);
     ASSERT_EQ(lmp->domain->triclinic, 1);
-    BEGIN_HIDE_OUTPUT();
-    command("clear");
-    END_HIDE_OUTPUT();
+    HIDE_OUTPUT([&]{
+        command("clear");
+    });
     ASSERT_EQ(lmp->restart_ver, -1);
     ASSERT_EQ(lmp->atom->natoms, 0);
     ASSERT_EQ(lmp->update->ntimestep, 0);
     ASSERT_EQ(lmp->domain->triclinic, 0);
-    BEGIN_HIDE_OUTPUT();
-    command("read_restart triclinic.restart");
-    END_HIDE_OUTPUT();
+    HIDE_OUTPUT([&]{
+        command("read_restart triclinic.restart");
+    });
     // increment restart version if it differs by 1,
     //  i.e. it was written by a development version
     if (lmp->num_ver - lmp->restart_ver == 1) lmp->restart_ver++;

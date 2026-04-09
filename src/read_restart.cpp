@@ -34,6 +34,9 @@
 #include "pair.h"
 #include "special.h"
 #include "update.h"
+#include "buffer_reader.h"
+#include "buffer_reader_file.h"
+#include "buffer_reader_root_file.h"
 
 #include <cstring>
 #include <filesystem>
@@ -95,33 +98,31 @@ void ReadRestart::command(int narg, char **arg)
     error->all(FLERR, Error::ARGZERO, "MPI-IO restart files are no longer supported by LAMMPS");
 
   // open single restart file or base file for multiproc case
-
+  std::string hfile = file;
+  if (multiproc) hfile.replace(hfile.find('%'),1,"base");
   if (me == 0) {
     utils::logmesg(lmp,"Reading restart file ...\n");
-    std::string hfile = file;
-    if (multiproc) {
-      hfile.replace(hfile.find('%'),1,"base");
-    }
     fp = fopen(hfile.c_str(),"rb");
     if (fp == nullptr)
       error->one(FLERR, Error::ARGZERO, "Cannot open restart file {}: {}", hfile,
                  utils::getsyserror());
   }
+  BufferReaderRootFile br_root(world, fp, hfile, error);
 
   // read magic string, endian flag, format revision
 
-  magic_string();
-  endian();
-  format_revision();
-  check_eof_magic();
+  magic_string(br_root);
+  endian(br_root);
+  format_revision(br_root);
+  check_eof_magic(br_root);
 
   if ((comm->me == 0) && (modify->get_fix_by_style("property/atom").size() > 0))
     error->warning(FLERR, "Fix property/atom command must be specified after read_restart "
                    "to restore its data.");
 
   // read header info which creates simulation box
-
-  header();
+fprintf(stderr, "%s", fmt::format("Reading header at {}\n", br_root.pos()).c_str());
+  header(br_root);
   domain->box_exist = 1;
 
   // problem setup using info from header
@@ -150,17 +151,21 @@ void ReadRestart::command(int narg, char **arg)
   // read groups, ntype-length arrays, force field, fix info from file
   // nextra = max # of extra quantities stored with each atom
 
-  group->read_restart(fp);
-  type_arrays();
-  force_fields();
+fprintf(stderr, "%s", fmt::format("Reading group at {}\n", br_root.pos()).c_str());
+  group->read_restart(br_root);
+fprintf(stderr, "%s", fmt::format("Reading type arrays at {}\n", br_root.pos()).c_str());
+  type_arrays(br_root);
+fprintf(stderr, "%s", fmt::format("Reading force fields at {}\n", br_root.pos()).c_str());
+  force_fields(br_root);
+fprintf(stderr, "%s", fmt::format("Reading modify at {}\n", br_root.pos()).c_str());
+  modify->read_restart(br_root);
+fprintf(stderr, "%s", fmt::format("Reading file layout at {}\n", br_root.pos()).c_str());
+  file_layout(br_root);
 
-  int nextra = modify->read_restart(fp);
+  int nextra = modify->restart_maxsize_peratom;
   atom->nextra_store = nextra;
   memory->create(atom->extra,n,nextra,"atom:extra");
 
-  // read file layout info
-
-  file_layout();
 
   // close header file if in multiproc mode
 
@@ -198,16 +203,19 @@ void ReadRestart::command(int narg, char **arg)
     }
 
     for (int iproc = 0; iproc < nprocs_file; iproc++) {
-      if (read_int() != PERPROC)
+      if (br_root.read<int>(BRERR) != PERPROC)
         error->all(FLERR, 1, "Invalid flag in peratom section of restart file");
 
-      n = read_int();
+      n = br_root.read<int>(BRERR);
+      if (n < 0)
+        error->all(FLERR,"Illegal PERPROC in peratom section of restart file");
+
       if (n > maxbuf) {
         maxbuf = n;
         memory->destroy(buf);
         memory->create(buf,maxbuf,"read_restart:buf");
       }
-      read_double_vec(n,buf);
+      br_root.read_buf<double>(BRERR,buf,n);
 
       m = 0;
       while (m < n) {
@@ -544,351 +552,358 @@ std::string ReadRestart::file_search(const std::string &inpfile)
    read header of restart file
 ------------------------------------------------------------------------- */
 
-void ReadRestart::header()
+void ReadRestart::header(BufferReader& br)
 {
-  int xperiodic(-1),yperiodic(-1),zperiodic(-1);
+  xperiodic = yperiodic = zperiodic = 0;
 
   // read flags and fields until flag = -1
 
-  int flag = read_int();
+  int flag = br.read<int>(BRERR);
   while (flag >= 0) {
-
-    // check restart file version, warn if different
-
-    if (flag == VERSION) {
-      char *version = read_string();
-      lmp->restart_ver = utils::date2num(version);
-
-      if (me == 0)
-        utils::logmesg(lmp,"  restart file = {}, LAMMPS = {}\n", version, lmp->version);
-      delete[] version;
-
-      // we have no forward compatibility, thus exit with error
-
-      if (revision > FORMAT_REVISION)
-        error->all(FLERR, 1, "Restart file format revision incompatible with current LAMMPS version");
-
-      // warn when attempting to read older format revision
-
-      if ((me == 0) && (revision < FORMAT_REVISION))
-        error->warning(FLERR,"Old restart file format revision. Switching to compatibility mode.");
-
-    // check lmptype.h sizes, error if different
-
-    } else if (flag == SMALLINT) {
-      int size = read_int();
-      if (size != sizeof(smallint))
-        error->all(FLERR,"Smallint setting in lmptype.h is not compatible");
-    } else if (flag == IMAGEINT) {
-      int size = read_int();
-      if (size != sizeof(imageint))
-        error->all(FLERR,"Imageint setting in lmptype.h is not compatible");
-    } else if (flag == TAGINT) {
-      int size = read_int();
-      if (size != sizeof(tagint))
-        error->all(FLERR,"Tagint setting in lmptype.h is not compatible");
-    } else if (flag == BIGINT) {
-      int size = read_int();
-      if (size != sizeof(bigint))
-        error->all(FLERR,"Bigint setting in lmptype.h is not compatible");
-
-    // reset unit_style only if different
-    // so that timestep,neighbor-skin are not changed
-
-    } else if (flag == UNITS) {
-      char *style = read_string();
-      if (strcmp(style,update->unit_style) != 0) update->set_units(style);
-      delete[] style;
-
-    } else if (flag == NTIMESTEP) {
-      update->ntimestep = read_bigint();
-
-    // set dimension from restart file
-
-    } else if (flag == DIMENSION) {
-      int dimension = read_int();
-      domain->dimension = dimension;
-      if (domain->dimension == 2 && domain->zperiodic == 0)
-        error->all(FLERR, "Cannot run 2d simulation with non-periodic Z dimension");
-
-    // read nprocs from restart file, warn if different
-
-    } else if (flag == NPROCS) {
-      nprocs_file = read_int();
-      if (nprocs_file != comm->nprocs && me == 0)
-        error->warning(FLERR,"Restart file used different # of processors: {} vs. {}",
-                       nprocs_file,comm->nprocs);
-
-    // don't set procgrid, warn if different
-
-    } else if (flag == PROCGRID) {
-      int procgrid[3];
-      read_int();
-      read_int_vec(3,procgrid);
-      flag = 0;
-      if (comm->user_procgrid[0] != 0 &&
-          procgrid[0] != comm->user_procgrid[0]) flag = 1;
-      if (comm->user_procgrid[1] != 0 &&
-          procgrid[1] != comm->user_procgrid[1]) flag = 1;
-      if (comm->user_procgrid[2] != 0 &&
-          procgrid[2] != comm->user_procgrid[2]) flag = 1;
-      if (flag && me == 0)
-        error->warning(FLERR,"Restart file used different 3d processor grid");
-
-    // don't set newton_pair, leave input script value unchanged
-    // set newton_bond from restart file
-    // warn if different and input script settings are not default
-
-    } else if (flag == NEWTON_PAIR) {
-      int newton_pair_file = read_int();
-      if (force->newton_pair != 1) {
-        if (newton_pair_file != force->newton_pair && me == 0)
-          error->warning(FLERR, "Restart file used different newton pair setting, "
-                         "using input script value");
-      }
-    } else if (flag == NEWTON_BOND) {
-      int newton_bond_file = read_int();
-      if (force->newton_bond != 1) {
-        if (newton_bond_file != force->newton_bond && me == 0)
-          error->warning(FLERR, "Restart file used different newton bond setting, "
-                         "using restart file value");
-      }
-      force->newton_bond = newton_bond_file;
-      if (force->newton_pair || force->newton_bond) force->newton = 1;
-      else force->newton = 0;
-
-    // set boundary settings from restart file
-    // warn if different and input script settings are not default
-
-    } else if (flag == XPERIODIC) {
-      xperiodic = read_int();
-    } else if (flag == YPERIODIC) {
-      yperiodic = read_int();
-    } else if (flag == ZPERIODIC) {
-      zperiodic = read_int();
-    } else if (flag == BOUNDARY) {
-      int boundary[3][2];
-      read_int();
-      read_int_vec(6,&boundary[0][0]);
-
-      if (domain->boundary[0][0] || domain->boundary[0][1] ||
-          domain->boundary[1][0] || domain->boundary[1][1] ||
-          domain->boundary[2][0] || domain->boundary[2][1]) {
-        if (boundary[0][0] != domain->boundary[0][0] ||
-            boundary[0][1] != domain->boundary[0][1] ||
-            boundary[1][0] != domain->boundary[1][0] ||
-            boundary[1][1] != domain->boundary[1][1] ||
-            boundary[2][0] != domain->boundary[2][0] ||
-            boundary[2][1] != domain->boundary[2][1]) {
-          if (me == 0)
-            error->warning(FLERR, "Restart file used different boundary settings, "
-                           "using restart file values");
-        }
-      }
-
-      domain->boundary[0][0] = boundary[0][0];
-      domain->boundary[0][1] = boundary[0][1];
-      domain->boundary[1][0] = boundary[1][0];
-      domain->boundary[1][1] = boundary[1][1];
-      domain->boundary[2][0] = boundary[2][0];
-      domain->boundary[2][1] = boundary[2][1];
-
-      if (xperiodic < 0 || yperiodic < 0 || zperiodic < 0)
-        error->all(FLERR,"Illegal or unset periodicity in restart");
-
-      domain->periodicity[0] = domain->xperiodic = xperiodic;
-      domain->periodicity[1] = domain->yperiodic = yperiodic;
-      domain->periodicity[2] = domain->zperiodic = zperiodic;
-
-      domain->nonperiodic = 0;
-      if (xperiodic == 0 || yperiodic == 0 || zperiodic == 0) {
-        domain->nonperiodic = 1;
-        if (boundary[0][0] >= 2 || boundary[0][1] >= 2 ||
-            boundary[1][0] >= 2 || boundary[1][1] >= 2 ||
-            boundary[2][0] >= 2 || boundary[2][1] >= 2)
-          domain->nonperiodic = 2;
-      }
-
-    } else if (flag == BOUNDMIN) {
-      double minbound[6];
-      read_int();
-      read_double_vec(6,minbound);
-      domain->minxlo = minbound[0]; domain->minxhi = minbound[1];
-      domain->minylo = minbound[2]; domain->minyhi = minbound[3];
-      domain->minzlo = minbound[4]; domain->minzhi = minbound[5];
-
-    // create new AtomVec class using any stored args
-
-    } else if (flag == ATOM_STYLE) {
-      char *style = read_string();
-      int nargcopy = read_int();
-      auto *argcopy = new char*[nargcopy];
-      for (int i = 0; i < nargcopy; i++)
-        argcopy[i] = read_string();
-      atom->create_avec(style,nargcopy,argcopy,1);
-      if (comm->me == 0)
-        utils::logmesg(lmp,"  restoring atom style {} from restart\n",atom->atom_style);
-      for (int i = 0; i < nargcopy; i++) delete[] argcopy[i];
-      delete[] argcopy;
-      delete[] style;
-
-    } else if (flag == NATOMS) {
-      atom->natoms = read_bigint();
-    } else if (flag == NTYPES) {
-      atom->ntypes = read_int();
-    } else if (flag == NBONDS) {
-      atom->nbonds = read_bigint();
-    } else if (flag == NBONDTYPES) {
-      atom->nbondtypes = read_int();
-    } else if (flag == BOND_PER_ATOM) {
-      atom->bond_per_atom = read_int();
-    } else if (flag == NANGLES) {
-      atom->nangles = read_bigint();
-    } else if (flag == NANGLETYPES) {
-      atom->nangletypes = read_int();
-    } else if (flag == ANGLE_PER_ATOM) {
-      atom->angle_per_atom = read_int();
-    } else if (flag == NDIHEDRALS) {
-      atom->ndihedrals = read_bigint();
-    } else if (flag == NDIHEDRALTYPES) {
-      atom->ndihedraltypes = read_int();
-    } else if (flag == DIHEDRAL_PER_ATOM) {
-      atom->dihedral_per_atom = read_int();
-    } else if (flag == NIMPROPERS) {
-      atom->nimpropers = read_bigint();
-    } else if (flag == NIMPROPERTYPES) {
-      atom->nimpropertypes = read_int();
-    } else if (flag == IMPROPER_PER_ATOM) {
-      atom->improper_per_atom = read_int();
-
-    } else if (flag == TRICLINIC) {
-      domain->triclinic = read_int();
-    } else if (flag == BOXLO) {
-      read_int();
-      read_double_vec(3,domain->boxlo);
-    } else if (flag == BOXHI) {
-      read_int();
-      read_double_vec(3,domain->boxhi);
-    } else if (flag == XY) {
-      domain->xy = read_double();
-    } else if (flag == XZ) {
-      domain->xz = read_double();
-    } else if (flag == YZ) {
-      domain->yz = read_double();
-
-    } else if (flag == TRICLINIC_GENERAL) {
-      domain->triclinic_general = read_int();
-    } else if (flag == ROTATE_G2R) {
-      read_int();
-      read_double_vec(9,&domain->rotate_g2r[0][0]);
-      MathExtra::transpose3(domain->rotate_g2r,domain->rotate_r2g);
-
-    } else if (flag == SPECIAL_LJ) {
-      read_int();
-      read_double_vec(3,&force->special_lj[1]);
-    } else if (flag == SPECIAL_COUL) {
-      read_int();
-      read_double_vec(3,&force->special_coul[1]);
-
-    } else if (flag == TIMESTEP) {
-      update->dt = read_double();
-
-    } else if (flag == ATOM_ID) {
-      atom->tag_enable = read_int();
-    } else if (flag == ATOM_MAP_STYLE) {
-      // we should be able to enable an atom map, even
-      // if the simulation in the restart didn't use one
-      int itmp = read_int();
-      if (atom->map_user == Atom::MAP_NONE) atom->map_style = itmp;
-    } else if (flag == ATOM_MAP_USER) {
-      read_int();  // ignored
-    } else if (flag == ATOM_SORTFREQ) {
-      atom->sortfreq = read_int();
-    } else if (flag == ATOM_SORTBIN) {
-      atom->userbinsize = read_double();
-
-    } else if (flag == COMM_MODE) {
-      comm->mode = read_int();
-    } else if (flag == COMM_CUTOFF) {
-      comm->cutghostuser = read_double();
-    } else if (flag == COMM_VEL) {
-      comm->ghost_velocity = read_int();
-
-    } else if (flag == EXTRA_BOND_PER_ATOM) {
-      atom->extra_bond_per_atom = read_int();
-    } else if (flag == EXTRA_ANGLE_PER_ATOM) {
-      atom->extra_angle_per_atom = read_int();
-    } else if (flag == EXTRA_DIHEDRAL_PER_ATOM) {
-      atom->extra_dihedral_per_atom = read_int();
-    } else if (flag == EXTRA_IMPROPER_PER_ATOM) {
-      atom->extra_improper_per_atom = read_int();
-    } else if (flag == ATOM_MAXSPECIAL) {
-      atom->maxspecial = read_int();
-    } else if (flag == ATOM_MAXEXCHANGE) {
-      if (atom->avec) atom->avec->maxexchange = read_int();
-    } else if (flag == NELLIPSOIDS) {
-      atom->nellipsoids = read_bigint();
-    } else if (flag == NLINES) {
-      atom->nlines = read_bigint();
-    } else if (flag == NTRIS) {
-      atom->ntris = read_bigint();
-    } else if (flag == NBODIES) {
-      atom->nbodies = read_bigint();
-
-    } else if (flag == ATIMESTEP) {
-      update->atimestep = read_bigint();
-    } else if (flag == ATIME) {
-      update->atime = read_double();
-
-    // set dimension from restart file
-
-      // for backward compatibility
-    } else if (flag == EXTRA_SPECIAL_PER_ATOM) {
-      force->special_extra = read_int();
-
-    } else error->all(FLERR,"Invalid flag in header section of restart file");
-
-    flag = read_int();
+    header_flag(br, flag);
+    flag = br.read<int>(BRERR);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ReadRestart::type_arrays()
+void ReadRestart::header_flag(BufferReader& br, int flag)
 {
-  int flag = read_int();
+  // check restart file version, warn if different
+
+  if (flag == VERSION) {
+    char *version = read_string(br);
+    lmp->restart_ver = utils::date2num(version);
+
+    if (me == 0)
+      utils::logmesg(lmp,"  restart file = {}, LAMMPS = {}\n", version, lmp->version);
+    delete[] version;
+
+    // we have no forward compatibility, thus exit with error
+
+    if (revision > FORMAT_REVISION)
+      error->all(FLERR, 1, "Restart file format revision incompatible with current LAMMPS version");
+
+    // warn when attempting to read older format revision
+
+    if ((me == 0) && (revision < FORMAT_REVISION))
+      error->warning(FLERR,"Old restart file format revision. Switching to compatibility mode.");
+
+  // check lmptype.h sizes, error if different
+
+  } else if (flag == SMALLINT) {
+    int size = br.read<int>(BRERR);
+    if (size != sizeof(smallint))
+      error->all(FLERR,"Smallint setting in lmptype.h is not compatible");
+  } else if (flag == IMAGEINT) {
+    int size = br.read<int>(BRERR);
+    if (size != sizeof(imageint))
+      error->all(FLERR,"Imageint setting in lmptype.h is not compatible");
+  } else if (flag == TAGINT) {
+    int size = br.read<int>(BRERR);
+    if (size != sizeof(tagint))
+      error->all(FLERR,"Tagint setting in lmptype.h is not compatible");
+  } else if (flag == BIGINT) {
+    int size = br.read<int>(BRERR);
+    if (size != sizeof(bigint))
+      error->all(FLERR,"Bigint setting in lmptype.h is not compatible");
+
+  // reset unit_style only if different
+  // so that timestep,neighbor-skin are not changed
+
+  } else if (flag == UNITS) {
+    char *style = read_string(br);
+    if (strcmp(style,update->unit_style) != 0) update->set_units(style);
+    delete[] style;
+
+  } else if (flag == NTIMESTEP) {
+    update->ntimestep = br.read<bigint>(BRERR);
+
+  // set dimension from restart file
+
+  } else if (flag == DIMENSION) {
+    int dimension = br.read<int>(BRERR);
+    domain->dimension = dimension;
+    if (domain->dimension == 2 && domain->zperiodic == 0)
+      error->all(FLERR, "Cannot run 2d simulation with non-periodic Z dimension");
+
+  // read nprocs from restart file, warn if different
+
+  } else if (flag == NPROCS) {
+    nprocs_file = br.read<int>(BRERR);
+    if (nprocs_file != comm->nprocs && me == 0)
+      error->warning(FLERR,"Restart file used different # of processors: {} vs. {}",
+                     nprocs_file,comm->nprocs);
+
+  // don't set procgrid, warn if different
+
+  } else if (flag == PROCGRID) {
+    int procgrid[3];
+    br.read<int>(BRERR);
+    br.read_buf<int>(BRERR,procgrid,3);
+    flag = 0;
+    if (comm->user_procgrid[0] != 0 &&
+        procgrid[0] != comm->user_procgrid[0]) flag = 1;
+    if (comm->user_procgrid[1] != 0 &&
+        procgrid[1] != comm->user_procgrid[1]) flag = 1;
+    if (comm->user_procgrid[2] != 0 &&
+        procgrid[2] != comm->user_procgrid[2]) flag = 1;
+    if (flag && me == 0)
+      error->warning(FLERR,"Restart file used different 3d processor grid");
+
+  // don't set newton_pair, leave input script value unchanged
+  // set newton_bond from restart file
+  // warn if different and input script settings are not default
+
+  } else if (flag == NEWTON_PAIR) {
+    int newton_pair_file = br.read<int>(BRERR);
+    if (force->newton_pair != 1) {
+      if (newton_pair_file != force->newton_pair && me == 0)
+        error->warning(FLERR, "Restart file used different newton pair setting, "
+                       "using input script value");
+    }
+  } else if (flag == NEWTON_BOND) {
+    int newton_bond_file = br.read<int>(BRERR);
+    if (force->newton_bond != 1) {
+      if (newton_bond_file != force->newton_bond && me == 0)
+        error->warning(FLERR, "Restart file used different newton bond setting, "
+                       "using restart file value");
+    }
+    force->newton_bond = newton_bond_file;
+    if (force->newton_pair || force->newton_bond) force->newton = 1;
+    else force->newton = 0;
+
+  // set boundary settings from restart file
+  // warn if different and input script settings are not default
+
+  } else if (flag == XPERIODIC) {
+    xperiodic = br.read<int>(BRERR);
+  } else if (flag == YPERIODIC) {
+    yperiodic = br.read<int>(BRERR);
+  } else if (flag == ZPERIODIC) {
+    zperiodic = br.read<int>(BRERR);
+  } else if (flag == BOUNDARY) {
+    int boundary[3][2];
+    br.read<int>(BRERR);
+    br.read_buf(BRERR,&boundary[0][0],6);
+
+    if (domain->boundary[0][0] || domain->boundary[0][1] ||
+        domain->boundary[1][0] || domain->boundary[1][1] ||
+        domain->boundary[2][0] || domain->boundary[2][1]) {
+      if (boundary[0][0] != domain->boundary[0][0] ||
+          boundary[0][1] != domain->boundary[0][1] ||
+          boundary[1][0] != domain->boundary[1][0] ||
+          boundary[1][1] != domain->boundary[1][1] ||
+          boundary[2][0] != domain->boundary[2][0] ||
+          boundary[2][1] != domain->boundary[2][1]) {
+        if (me == 0)
+          error->warning(FLERR, "Restart file used different boundary settings, "
+                         "using restart file values");
+      }
+    }
+
+    domain->boundary[0][0] = boundary[0][0];
+    domain->boundary[0][1] = boundary[0][1];
+    domain->boundary[1][0] = boundary[1][0];
+    domain->boundary[1][1] = boundary[1][1];
+    domain->boundary[2][0] = boundary[2][0];
+    domain->boundary[2][1] = boundary[2][1];
+
+    if (xperiodic < 0 || yperiodic < 0 || zperiodic < 0)
+      error->all(FLERR,"Illegal or unset periodicity in restart");
+
+    domain->periodicity[0] = domain->xperiodic = xperiodic;
+    domain->periodicity[1] = domain->yperiodic = yperiodic;
+    domain->periodicity[2] = domain->zperiodic = zperiodic;
+
+    domain->nonperiodic = 0;
+    if (xperiodic == 0 || yperiodic == 0 || zperiodic == 0) {
+      domain->nonperiodic = 1;
+      if (boundary[0][0] >= 2 || boundary[0][1] >= 2 ||
+          boundary[1][0] >= 2 || boundary[1][1] >= 2 ||
+          boundary[2][0] >= 2 || boundary[2][1] >= 2)
+        domain->nonperiodic = 2;
+    }
+
+  } else if (flag == BOUNDMIN) {
+    double minbound[6];
+    br.read<int>(BRERR);
+    br.read_buf<double>(BRERR,minbound,6);
+    domain->minxlo = minbound[0]; domain->minxhi = minbound[1];
+    domain->minylo = minbound[2]; domain->minyhi = minbound[3];
+    domain->minzlo = minbound[4]; domain->minzhi = minbound[5];
+
+  // create new AtomVec class using any stored args
+
+  } else if (flag == ATOM_STYLE) {
+    char *style = read_string(br);
+    int nargcopy = br.read<int>(BRERR);
+    auto *argcopy = new char*[nargcopy];
+    for (int i = 0; i < nargcopy; i++)
+      argcopy[i] = read_string(br);
+    atom->create_avec(style,nargcopy,argcopy,1);
+    if (comm->me == 0)
+      utils::logmesg(lmp,"  restoring atom style {} from restart\n",atom->atom_style);
+    for (int i = 0; i < nargcopy; i++) delete[] argcopy[i];
+    delete[] argcopy;
+    delete[] style;
+
+  } else if (flag == NATOMS) {
+    atom->natoms = br.read<bigint>(BRERR);
+  } else if (flag == NTYPES) {
+    atom->ntypes = br.read<int>(BRERR);
+    if (atom->ntypes < 0) error->all(FLERR,"Illegal NTYPES in restart file");
+  } else if (flag == NBONDS) {
+    atom->nbonds = br.read<bigint>(BRERR);
+  } else if (flag == NBONDTYPES) {
+    atom->nbondtypes = br.read<int>(BRERR);
+  } else if (flag == BOND_PER_ATOM) {
+    atom->bond_per_atom = br.read<int>(BRERR);
+  } else if (flag == NANGLES) {
+    atom->nangles = br.read<bigint>(BRERR);
+  } else if (flag == NANGLETYPES) {
+    atom->nangletypes = br.read<int>(BRERR);
+  } else if (flag == ANGLE_PER_ATOM) {
+    atom->angle_per_atom = br.read<int>(BRERR);
+  } else if (flag == NDIHEDRALS) {
+    atom->ndihedrals = br.read<bigint>(BRERR);
+  } else if (flag == NDIHEDRALTYPES) {
+    atom->ndihedraltypes = br.read<int>(BRERR);
+  } else if (flag == DIHEDRAL_PER_ATOM) {
+    atom->dihedral_per_atom = br.read<int>(BRERR);
+  } else if (flag == NIMPROPERS) {
+    atom->nimpropers = br.read<bigint>(BRERR);
+  } else if (flag == NIMPROPERTYPES) {
+    atom->nimpropertypes = br.read<int>(BRERR);
+  } else if (flag == IMPROPER_PER_ATOM) {
+    atom->improper_per_atom = br.read<int>(BRERR);
+
+  } else if (flag == TRICLINIC) {
+    domain->triclinic = br.read<int>(BRERR);
+  } else if (flag == BOXLO) {
+    br.read<int>(BRERR);
+    br.read_buf<double>(BRERR,domain->boxlo,3);
+  } else if (flag == BOXHI) {
+    br.read<int>(BRERR);
+    br.read_buf<double>(BRERR,domain->boxhi,3);
+  } else if (flag == XY) {
+    domain->xy = br.read<double>(BRERR);
+  } else if (flag == XZ) {
+    domain->xz = br.read<double>(BRERR);
+  } else if (flag == YZ) {
+    domain->yz = br.read<double>(BRERR);
+
+  } else if (flag == TRICLINIC_GENERAL) {
+    domain->triclinic_general = br.read<int>(BRERR);
+  } else if (flag == ROTATE_G2R) {
+    br.read<int>(BRERR);
+    br.read_buf<double>(BRERR,&domain->rotate_g2r[0][0],9);
+    MathExtra::transpose3(domain->rotate_g2r,domain->rotate_r2g);
+
+  } else if (flag == SPECIAL_LJ) {
+    br.read<int>(BRERR);
+    br.read_buf<double>(BRERR,&force->special_lj[1],3);
+  } else if (flag == SPECIAL_COUL) {
+    br.read<int>(BRERR);
+    br.read_buf<double>(BRERR,&force->special_coul[1],3);
+
+  } else if (flag == TIMESTEP) {
+    update->dt = br.read<double>(BRERR);
+
+  } else if (flag == ATOM_ID) {
+    atom->tag_enable = br.read<int>(BRERR);
+  } else if (flag == ATOM_MAP_STYLE) {
+    // we should be able to enable an atom map, even
+    // if the simulation in the restart didn't use one
+    int itmp = br.read<int>(BRERR);
+    if (atom->map_user == Atom::MAP_NONE) atom->map_style = itmp;
+  } else if (flag == ATOM_MAP_USER) {
+    br.read<int>(BRERR);  // ignored
+  } else if (flag == ATOM_SORTFREQ) {
+    atom->sortfreq = br.read<int>(BRERR);
+  } else if (flag == ATOM_SORTBIN) {
+    atom->userbinsize = br.read<double>(BRERR);
+
+  } else if (flag == COMM_MODE) {
+    comm->mode = br.read<int>(BRERR);
+  } else if (flag == COMM_CUTOFF) {
+    comm->cutghostuser = br.read<double>(BRERR);
+  } else if (flag == COMM_VEL) {
+    comm->ghost_velocity = br.read<int>(BRERR);
+
+  } else if (flag == EXTRA_BOND_PER_ATOM) {
+    atom->extra_bond_per_atom = br.read<int>(BRERR);
+  } else if (flag == EXTRA_ANGLE_PER_ATOM) {
+    atom->extra_angle_per_atom = br.read<int>(BRERR);
+  } else if (flag == EXTRA_DIHEDRAL_PER_ATOM) {
+    atom->extra_dihedral_per_atom = br.read<int>(BRERR);
+  } else if (flag == EXTRA_IMPROPER_PER_ATOM) {
+    atom->extra_improper_per_atom = br.read<int>(BRERR);
+  } else if (flag == ATOM_MAXSPECIAL) {
+    atom->maxspecial = br.read<int>(BRERR);
+  } else if (flag == ATOM_MAXEXCHANGE) {
+    if (atom->avec) atom->avec->maxexchange = br.read<int>(BRERR);
+  } else if (flag == NELLIPSOIDS) {
+    atom->nellipsoids = br.read<bigint>(BRERR);
+  } else if (flag == NLINES) {
+    atom->nlines = br.read<bigint>(BRERR);
+  } else if (flag == NTRIS) {
+    atom->ntris = br.read<bigint>(BRERR);
+  } else if (flag == NBODIES) {
+    atom->nbodies = br.read<bigint>(BRERR);
+
+  } else if (flag == ATIMESTEP) {
+    update->atimestep = br.read<bigint>(BRERR);
+  } else if (flag == ATIME) {
+    update->atime = br.read<double>(BRERR);
+
+  // set dimension from restart file
+
+    // for backward compatibility
+  } else if (flag == EXTRA_SPECIAL_PER_ATOM) {
+    force->special_extra = br.read<int>(BRERR);
+
+  } else error->all(FLERR,"Invalid flag in header section of restart file");
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ReadRestart::type_arrays(BufferReader& br)
+{
+  int flag = br.read<int>(BRERR);
   while (flag >= 0) {
 
     if (flag == MASS) {
-      read_int();
+      br.read<int>(BRERR);
       auto *mass = new double[atom->ntypes+1];
-      read_double_vec(atom->ntypes,&mass[1]);
+      br.read_buf<double>(BRERR,&mass[1],atom->ntypes);
       atom->set_mass(mass);
       delete[] mass;
 
     } else if (flag == LABELMAP) {
-      read_int();
+      br.read<int>(BRERR);
       atom->add_label_map();
       atom->lmap->read_restart(fp);
 
     } else error->all(FLERR,
                       "Invalid flag in type arrays section of restart file");
 
-    flag = read_int();
+    flag = br.read<int>(BRERR);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ReadRestart::force_fields()
+void ReadRestart::force_fields(BufferReader& br)
 {
   char *style;
 
-  int flag = read_int();
+  int flag = br.read<int>(BRERR);
   while (flag >= 0) {
 
     if (flag == PAIR) {
-      style = read_string();
+      style = read_string(br);
       force->create_pair(style,1);
       delete[] style;
       if (comm->me == 0)
@@ -897,14 +912,14 @@ void ReadRestart::force_fields()
       force->pair->read_restart(fp);
 
     } else if (flag == NO_PAIR) {
-      style = read_string();
+      style = read_string(br);
       if (comm->me == 0)
         utils::logmesg(lmp,"  pair style {} stores no restart info\n", style);
       force->create_pair("none",0);
       force->pair_restart = style;
 
     } else if (flag == BOND) {
-      style = read_string();
+      style = read_string(br);
       force->create_bond(style,1);
       delete[] style;
       if (comm->me == 0)
@@ -913,7 +928,7 @@ void ReadRestart::force_fields()
       force->bond->read_restart(fp);
 
     } else if (flag == ANGLE) {
-      style = read_string();
+      style = read_string(br);
       force->create_angle(style,1);
       delete[] style;
       if (comm->me == 0)
@@ -922,7 +937,7 @@ void ReadRestart::force_fields()
       force->angle->read_restart(fp);
 
     } else if (flag == DIHEDRAL) {
-      style = read_string();
+      style = read_string(br);
       force->create_dihedral(style,1);
       delete[] style;
       if (comm->me == 0)
@@ -931,7 +946,7 @@ void ReadRestart::force_fields()
       force->dihedral->read_restart(fp);
 
     } else if (flag == IMPROPER) {
-      style = read_string();
+      style = read_string(br);
       force->create_improper(style,1);
       delete[] style;
       if (comm->me == 0)
@@ -942,25 +957,28 @@ void ReadRestart::force_fields()
     } else error->all(FLERR,
                       "Invalid flag in force field section of restart file");
 
-    flag = read_int();
+    flag = br.read<int>(BRERR);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ReadRestart::file_layout()
+void ReadRestart::file_layout(BufferReader& br)
 {
-  int flag = read_int();
+  int flag = br.read<int>(BRERR);
   while (flag >= 0) {
 
     if (flag == MULTIPROC) {
-      multiproc_file = read_int();
+      multiproc_file = br.read<int>(BRERR);
       if (multiproc == 0 && multiproc_file)
         error->all(FLERR,"Restart file is not a multi-proc file");
       if (multiproc && multiproc_file == 0)
         error->all(FLERR,"Restart file is a multi-proc file");
-    }
-    flag = read_int();
+    } else if (flag == EXTRA_FIX_PER_ATOM) {
+      modify->restart_maxsize_peratom = br.read<int>(BRERR);
+    } else error->all(FLERR,
+                      "Invalid flag in file layout section of restart file");
+    flag = br.read<int>(BRERR);
   }
 }
 
@@ -973,17 +991,10 @@ void ReadRestart::file_layout()
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-void ReadRestart::magic_string()
+void ReadRestart::magic_string(BufferReader& br)
 {
   int n = strlen(MAGIC_STRING) + 1;
-  auto *str = new char[n];
-
-  int count;
-  if (me == 0) count = fread(str,sizeof(char),n,fp);
-  MPI_Bcast(&count,1,MPI_INT,0,world);
-  if (count < n)
-    error->all(FLERR,"Invalid LAMMPS restart file");
-  MPI_Bcast(str,n,MPI_CHAR,0,world);
+  auto *str = br.read_buf<char>(BRERR, n);
   if (strcmp(str,MAGIC_STRING) != 0)
     error->all(FLERR,"Invalid LAMMPS restart file");
   delete[] str;
@@ -992,27 +1003,28 @@ void ReadRestart::magic_string()
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-void ReadRestart::endian()
+void ReadRestart::endian(BufferReader& br)
 {
-  int endian = read_int();
+  int endian = br.read<int>(BRERR);
   if (endian == ENDIAN) return;
   if (endian == ENDIANSWAP)
     error->all(FLERR,"Restart file byte ordering is swapped");
-  else error->all(FLERR,"Restart file byte ordering is not recognized");
+  else error->all(FLERR,"Restart file byte ordering {} is not recognized (expected {} or {})", endian, ENDIAN, ENDIANSWAP);
 }
 
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-void ReadRestart::format_revision()
+void ReadRestart::format_revision(BufferReader& br)
 {
-  revision = read_int();
+  revision = br.read<int>(BRERR);
+  modify->restart_revision = revision;
 }
 
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-void ReadRestart::check_eof_magic()
+void ReadRestart::check_eof_magic(BufferReader& br)
 {
   // no check for revision 0 restart files
   if (revision < 1) return;
@@ -1021,17 +1033,11 @@ void ReadRestart::check_eof_magic()
   auto *str = new char[n];
 
   // read magic string at end of file and restore file pointer
+  bigint pos = br.pos();
+  br.seek(BRERR, br.size() - n);
+  br.read_buf(BRERR, str, n);
+  br.seek(BRERR, pos);
 
-  if (me == 0) {
-    bigint curpos = platform::ftell(fp);
-    (void) platform::fseek(fp,platform::END_OF_FILE);
-    bigint offset = platform::ftell(fp) - n;
-    (void) platform::fseek(fp,offset);
-    utils::sfread(FLERR,str,sizeof(char),n,fp,nullptr,error);
-    (void) platform::fseek(fp,curpos);
-  }
-
-  MPI_Bcast(str,n,MPI_CHAR,0,world);
   if (strcmp(str,MAGIC_STRING) != 0)
     error->all(FLERR,"Incomplete or corrupted LAMMPS restart file");
 
@@ -1039,78 +1045,17 @@ void ReadRestart::check_eof_magic()
 }
 
 /* ----------------------------------------------------------------------
-   read an int from restart file and bcast it
-------------------------------------------------------------------------- */
-
-int ReadRestart::read_int()
-{
-  int value;
-  if ((me == 0) && (fread(&value,sizeof(int),1,fp) < 1))
-    value = -1;
-  MPI_Bcast(&value,1,MPI_INT,0,world);
-  return value;
-}
-
-/* ----------------------------------------------------------------------
-   read a bigint from restart file and bcast it
-------------------------------------------------------------------------- */
-
-bigint ReadRestart::read_bigint()
-{
-  bigint value;
-  if ((me == 0) && (fread(&value,sizeof(bigint),1,fp) < 1))
-    value = -1;
-  MPI_Bcast(&value,1,MPI_LMP_BIGINT,0,world);
-  return value;
-}
-
-/* ----------------------------------------------------------------------
-   read a double from restart file and bcast it
-------------------------------------------------------------------------- */
-
-double ReadRestart::read_double()
-{
-  double value;
-  if ((me == 0) && (fread(&value,sizeof(double),1,fp) < 1))
-    value = 0.0;
-  MPI_Bcast(&value,1,MPI_DOUBLE,0,world);
-  return value;
-}
-
-/* ----------------------------------------------------------------------
    read a char string (including nullptr) and bcast it
    str is allocated here, ptr is returned, caller must deallocate
 ------------------------------------------------------------------------- */
 
-char *ReadRestart::read_string()
+char *ReadRestart::read_string(BufferReader& br)
 {
-  int n = read_int();
+  int n = br.read<int>(BRERR);
   if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
+
   auto *value = new char[n+1];
-  if (me == 0) utils::sfread(FLERR,value,sizeof(char),n,fp,nullptr,error);
+  br.read_buf(BRERR, value, n);
   value[n] = '\0';
-  MPI_Bcast(value,n+1,MPI_CHAR,0,world);
   return value;
-}
-
-/* ----------------------------------------------------------------------
-   read vector of N ints from restart file and bcast them
-------------------------------------------------------------------------- */
-
-void ReadRestart::read_int_vec(int n, int *vec)
-{
-  if (n < 0) error->all(FLERR,"Illegal size integer vector read requested");
-  if (me == 0) utils::sfread(FLERR,vec,sizeof(int),n,fp,nullptr,error);
-  MPI_Bcast(vec,n,MPI_INT,0,world);
-}
-
-/* ----------------------------------------------------------------------
-   read vector of N doubles from restart file and bcast them
-------------------------------------------------------------------------- */
-
-void ReadRestart::read_double_vec(int n, double *vec)
-{
-  if (n < 0) error->all(FLERR,"Illegal size double vector read requested");
-  if (me == 0) utils::sfread(FLERR,vec,sizeof(double),n,fp,nullptr,error);
-  MPI_Bcast(vec,n,MPI_DOUBLE,0,world);
 }

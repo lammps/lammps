@@ -273,10 +273,6 @@ class Pair : public Restartable {
 
   [[nodiscard]] int fdotr_is_set() const { return vflag_fdotr; }
 
-  [[nodiscard]] bool fp_restartable() const override {
-    return restartable() || restartinfo;
-  }
-
  protected:
   int vflag_fdotr;
   int maxeatom, maxvatom, maxcvatom;

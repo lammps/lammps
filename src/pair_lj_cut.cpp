@@ -563,18 +563,18 @@ double PairLJCut::init_one(int i, int j)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJCut::write_restart_global(FileWriter *fw) const
+void PairLJCut::write_restart_global(FileWriter& fw) const
 {
   write_restart_settings(fw);
 
   int i, j;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      fw->writev(setflag[i][j]);
+      fw.writev(setflag[i][j]);
       if (setflag[i][j]) {
-        fw->writev(epsilon[i][j]);
-        fw->writev(sigma[i][j]);
-        fw->writev(cut[i][j]);
+        fw.writev(epsilon[i][j]);
+        fw.writev(sigma[i][j]);
+        fw.writev(cut[i][j]);
       }
     }
 }
@@ -583,19 +583,19 @@ void PairLJCut::write_restart_global(FileWriter *fw) const
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJCut::read_restart_global(BufferReader br)
+void PairLJCut::read_restart_global(BufferReader& br)
 {
-  read_restart_settings(&br);
+  read_restart_settings(br);
   allocate();
 
   int i, j;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      br.read(setflag[i][j]);
+      br.read(BRERR, setflag[i][j]);
       if (setflag[i][j]) {
-        br.read(epsilon[i][j]);
-        br.read(sigma[i][j]);
-        br.read(cut[i][j]);
+        br.read(BRERR, epsilon[i][j]);
+        br.read(BRERR, sigma[i][j]);
+        br.read(BRERR, cut[i][j]);
       }
     }
 }
@@ -604,24 +604,24 @@ void PairLJCut::read_restart_global(BufferReader br)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJCut::write_restart_settings(FileWriter *fw) const
+void PairLJCut::write_restart_settings(FileWriter& fw) const
 {
-  fw->writev(cut_global);
-  fw->writev(offset_flag);
-  fw->writev(mix_flag);
-  fw->writev(tail_flag);
+  fw.writev(cut_global);
+  fw.writev(offset_flag);
+  fw.writev(mix_flag);
+  fw.writev(tail_flag);
 }
 
 /* ----------------------------------------------------------------------
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJCut::read_restart_settings(BufferReader *br)
+void PairLJCut::read_restart_settings(BufferReader& br)
 {
-  br->read(cut_global);
-  br->read(offset_flag);
-  br->read(mix_flag);
-  br->read(tail_flag);
+  br.read(BRERR, cut_global);
+  br.read(BRERR, offset_flag);
+  br.read(BRERR, mix_flag);
+  br.read(BRERR, tail_flag);
 }
 
 /* ----------------------------------------------------------------------

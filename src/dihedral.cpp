@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
    DihedralCharmm will override this
 ------------------------------------------------------------------------- */
 
-Dihedral::Dihedral(LAMMPS *_lmp) : Restartable(_lmp)
+Dihedral::Dihedral(LAMMPS *_lmp) : Restartable(_lmp, ALWAYS_FILE_RESTARTABLE)
 {
   energy = 0.0;
   writedata = 0;

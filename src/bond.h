@@ -80,8 +80,6 @@ class Bond : public Restartable {
 
   void write_file(int, char **);
 
-  [[nodiscard]] bool fp_restartable() const final { return true; }
-
  protected:
   int instance_me;    // which Bond class instantiation I am
   int suffix_flag;    // suffix compatibility flag

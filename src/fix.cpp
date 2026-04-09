@@ -38,7 +38,7 @@ int Fix::instance_total = 0;
 /* ---------------------------------------------------------------------- */
 
 Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
-  Restartable(lmp),
+  Restartable(lmp, restart_global),
   id(nullptr), style(nullptr), extlist(nullptr), vector_atom(nullptr), array_atom(nullptr),
   vector_local(nullptr), array_local(nullptr), eatom(nullptr), vatom(nullptr),
   cvatom(nullptr)

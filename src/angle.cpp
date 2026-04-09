@@ -29,7 +29,7 @@ static constexpr double FOURTH = 0.25;
 
 /* ---------------------------------------------------------------------- */
 
-Angle::Angle(LAMMPS *_lmp) : Restartable(_lmp)
+Angle::Angle(LAMMPS *_lmp) : Restartable(_lmp, ALWAYS_FILE_RESTARTABLE)
 {
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;

@@ -22,6 +22,8 @@ CommandStyle(write_restart,WriteRestart);
 
 #include "command.h"
 #include "safe_pointers.h"
+#include "restartable.h"
+#include "file_writer.h"
 
 namespace LAMMPS_NS {
 
@@ -32,9 +34,19 @@ class WriteRestart : public Command {
   void multiproc_options(int, int, char **);
   void write(const std::string &);
 
- private:
+  void write_restart_global(FileWriter&);
+  void write_restart_local(FileWriter&);
+
+ protected:
   int me, nprocs;
   SafeFilePtr fp;
+
+  enum WriteMode {
+    WRITE_RESTART,
+    WRITE_RESTART_GLOBAL,
+    WRITE_RESTART_LOCAL
+  } mode;
+  
   bigint natoms;    // natoms (sum of nlocal) to write into file
   int noinit;
 
@@ -45,21 +57,28 @@ class WriteRestart : public Command {
   int fileproc;         // ID of proc in my cluster who writes to file
   int icluster;         // which cluster I am in
 
-  void header();
-  void type_arrays();
-  void force_fields();
-  void file_layout(int);
+  void global(FileWriter&);
 
-  void magic_string();
-  void endian();
-  void version_numeric();
+  void header(FileWriter&);
+  void type_arrays(FileWriter&);
+  void force_fields(FileWriter&);
+  void file_layout(FileWriter&, int, int);
 
-  void write_int(int, int);
-  void write_bigint(int, bigint);
-  void write_double(int, double);
-  void write_string(int, const std::string &);
-  void write_int_vec(int, int, int *);
-  void write_double_vec(int, int, double *);
+  bool is_restartable(const Restartable *);
+  void write_restartable(FileWriter&, Restartable *);
+  
+  void magic_string(FileWriter&);
+
+  template<typename T>
+  void write_val(FileWriter& fw, const int& tag, const T& val) {
+    fw.writev(tag);
+    fw.writev(val);
+  }
+  template<typename T>
+  void write_vec(FileWriter& fw, const int& tag, const int& len, const T *vec) {
+    write_val(fw, tag, len);
+    fw.writev(vec, len);
+  }
 };
 }    // namespace LAMMPS_NS
 #endif

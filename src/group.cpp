@@ -31,6 +31,8 @@
 #include "region.h"
 #include "tokenizer.h"
 #include "variable.h"
+#include "file_writer.h"
+#include "buffer_reader.h"
 
 #include <cmath>
 #include <cstring>
@@ -50,9 +52,10 @@ static constexpr double BIG = 1.0e20;
    initialize group memory
 ------------------------------------------------------------------------- */
 
-Group::Group(LAMMPS *lmp) : Pointers(lmp)
+Group::Group(LAMMPS *lmp) : Restartable(lmp)
 {
   MPI_Comm_rank(world, &me);
+  restartable_global = true;
 
   names = new char *[MAX_GROUP];
   bitmask = new int[MAX_GROUP];
@@ -735,26 +738,21 @@ void Group::molring(int n, char *cbuf, void *ptr)
 
 /* ----------------------------------------------------------------------
    write group info to a restart file
-   only called by proc 0
 ------------------------------------------------------------------------- */
 
-void Group::write_restart(FILE *fp)
+void Group::write_restart_global(FileWriter& fw) const
 {
-  fwrite(&ngroup, sizeof(int), 1, fp);
+  fw.writev(ngroup);
 
   // use count to not change restart format with deleted groups
   // remove this on next major release
 
-  int n;
   int count = 0;
   for (int i = 0; i < MAX_GROUP; i++) {
-    if (names[i])
-      n = strlen(names[i]) + 1;
-    else
-      n = 0;
-    fwrite(&n, sizeof(int), 1, fp);
+    int n = names[i] ? strlen(names[i]) + 1 : 0;
+    fw.writev(n);
     if (n) {
-      fwrite(names[i], sizeof(char), n, fp);
+      fw.writev(names[i], n);
       count++;
     }
     if (count == ngroup) break;
@@ -763,39 +761,33 @@ void Group::write_restart(FILE *fp)
 
 /* ----------------------------------------------------------------------
    read group info from a restart file
-   proc 0 reads, bcast to all procs
 ------------------------------------------------------------------------- */
 
-void Group::read_restart(FILE *fp)
+void Group::read_restart_global(BufferReader& br)
 {
   int i, n;
 
   // delete existing group names
   // atom masks will be overwritten by reading of restart file
 
-  for (i = 0; i < MAX_GROUP; i++) delete[] names[i];
+  for (i = 0; i < MAX_GROUP; i++) {
+    delete[] names[i];
+    names[i] = nullptr;
+  }
 
-  if (me == 0) utils::sfread(FLERR, &ngroup, sizeof(int), 1, fp, nullptr, error);
-  MPI_Bcast(&ngroup, 1, MPI_INT, 0, world);
+  br.read(BRERR, ngroup);
 
   // use count to not change restart format with deleted groups
   // remove this on next major release
 
   int count = 0;
   for (i = 0; i < MAX_GROUP; i++) {
-    if (count == ngroup) {
-      names[i] = nullptr;
-      continue;
-    }
-    if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
-    MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    br.read(BRERR, n);
     if (n) {
-      names[i] = new char[n];
-      if (me == 0) utils::sfread(FLERR, names[i], sizeof(char), n, fp, nullptr, error);
-      MPI_Bcast(names[i], n, MPI_CHAR, 0, world);
+      names[i] = br.read_buf<char>(BRERR, n);
       count++;
-    } else
-      names[i] = nullptr;
+    }
+    if (count == ngroup) break;
   }
 }
 

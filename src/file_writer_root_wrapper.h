@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_FILE_WRITER_WRAPPER_H
-#define LMP_FILE_WRITER_WRAPPER_H
+#ifndef LMP_FILE_WRITER_ROOT_WRAPPER_H
+#define LMP_FILE_WRITER_ROOT_WRAPPER_H
 
 #include <string>
 #include <stdio.h>
@@ -21,30 +21,31 @@
 
 namespace LAMMPS_NS {
 
-class FileWriterWrapper : public FileWriter {
+class FileWriterRootWrapper : public FileWriter {
  public:
-  FileWriterWrapper() { fp = nullptr; }
-  ~FileWriterWrapper() = default;
-
-  FileWriterWrapper(FILE *file_ptr) { fp = file_ptr; }
-
+  ~FileWriterRootWrapper() = default;
+  FileWriterRootWrapper() : FileWriterRootWrapper(-1, nullptr) {}
+  FileWriterRootWrapper(int m_rank, FILE *file) : rank(m_rank), fp(file) {}
+  
   [[nodiscard]] FILE* get_fp() const override { return fp; }
 
   size_t write(const void *buffer, size_t length) final {
-    return fwrite(buffer, length, 1, fp) * length;
+    if (rank == 0) return fwrite(buffer, length, 1, fp) * length;
+    else return 0;
   }
 
   void open(const std::string &path, bool append = false) final {
-    throw FileWriterException("Cannot call open on FileWriterWrapper");
+    throw FileWriterException("Cannot call open on FileWriterRootWrapper");
   }
   void close() final {
-    throw FileWriterException("Cannot call close on FileWriterWrapper");
+    throw FileWriterException("Cannot call close on FileWriterRootWrapper");
   }
-  void flush() final { fflush(fp); }
-  [[nodiscard]] bool isopen() const final { return fp != nullptr; }
+  void flush() final { if (rank == 0) fflush(fp); }
+  [[nodiscard]] bool isopen() const final { return true; }
 
  private:
-  FILE* fp = nullptr;
+  int rank;
+  FILE* fp;
 };
 
 } // namespace LAMMPS_NS

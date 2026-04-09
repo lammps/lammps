@@ -21,6 +21,8 @@
 #include "improper.h"
 #include "safe_pointers.h"
 #include "tokenizer.h"
+#include "file_writer.h"
+#include "buffer_reader.h"
 
 #include <algorithm>
 #include <cstring>
@@ -49,9 +51,10 @@ const std::string empty;
 
 LabelMap::LabelMap(LAMMPS *_lmp, int _natomtypes, int _nbondtypes, int _nangletypes,
                    int _ndihedraltypes, int _nimpropertypes) :
-    Pointers(_lmp), natomtypes(_natomtypes), nbondtypes(_nbondtypes), nangletypes(_nangletypes),
+    Restartable(_lmp), natomtypes(_natomtypes), nbondtypes(_nbondtypes), nangletypes(_nangletypes),
     ndihedraltypes(_ndihedraltypes), nimpropertypes(_nimpropertypes)
 {
+  restartable_global = true;
   lmap2lmap.atom = lmap2lmap.bond = lmap2lmap.angle = lmap2lmap.dihedral = lmap2lmap.improper =
       nullptr;
   checkflag = 0;
@@ -675,104 +678,35 @@ void LabelMap::write_data(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads from restart file, bcasts
+   Read from restart data buffer
 ------------------------------------------------------------------------- */
 
-void LabelMap::read_restart(FILE *fp)
+static void read_labels(
+  BufferReader& br, int count, std::vector<std::string>& vec,
+  std::unordered_map<std::string, int>& map
+) {
+  br.read_buf(BRERR, vec.data(), count);
+  for (int i = 0; i < count; i++) if(!vec[i].empty()) map[vec[i]] = i + 1;
+}
+void LabelMap::read_restart_global(BufferReader& br)
 {
-  char *charlabel;
-
-  for (int i = 0; i < natomtypes; i++) {
-    charlabel = read_string(fp);
-    typelabel[i] = charlabel;
-    if (strlen(charlabel) > 0) typelabel_map[charlabel] = i + 1;
-    delete[] charlabel;
-  }
-
-  for (int i = 0; i < nbondtypes; i++) {
-    charlabel = read_string(fp);
-    btypelabel[i] = charlabel;
-    if (strlen(charlabel) > 0) btypelabel_map[charlabel] = i + 1;
-    delete[] charlabel;
-  }
-
-  for (int i = 0; i < nangletypes; i++) {
-    charlabel = read_string(fp);
-    atypelabel[i] = charlabel;
-    if (strlen(charlabel) > 0) atypelabel_map[charlabel] = i + 1;
-    delete[] charlabel;
-  }
-
-  for (int i = 0; i < ndihedraltypes; i++) {
-    charlabel = read_string(fp);
-    dtypelabel[i] = charlabel;
-    if (strlen(charlabel) > 0) dtypelabel_map[charlabel] = i + 1;
-    delete[] charlabel;
-  }
-
-  for (int i = 0; i < nimpropertypes; i++) {
-    charlabel = read_string(fp);
-    itypelabel[i] = charlabel;
-    if (strlen(charlabel) > 0) itypelabel_map[charlabel] = i + 1;
-    delete[] charlabel;
-  }
+  read_labels(br, natomtypes,     typelabel,  typelabel_map);
+  read_labels(br, nbondtypes,     btypelabel, btypelabel_map);
+  read_labels(br, nangletypes,    atypelabel, atypelabel_map);
+  read_labels(br, ndihedraltypes, dtypelabel, dtypelabel_map);
+  read_labels(br, nimpropertypes, itypelabel, itypelabel_map);
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes to restart file
+   Write to restart file
 ------------------------------------------------------------------------- */
 
-void LabelMap::write_restart(FILE *fp)
-{
-  for (int i = 0; i < natomtypes; i++) write_string(typelabel[i], fp);
-
-  for (int i = 0; i < nbondtypes; i++) write_string(btypelabel[i], fp);
-
-  for (int i = 0; i < nangletypes; i++) write_string(atypelabel[i], fp);
-
-  for (int i = 0; i < ndihedraltypes; i++) write_string(dtypelabel[i], fp);
-
-  for (int i = 0; i < nimpropertypes; i++) write_string(itypelabel[i], fp);
-}
-
-/* ----------------------------------------------------------------------
-   read a char string (including nullptr) and bcast it
-   str is allocated here, ptr is returned, caller must deallocate
-------------------------------------------------------------------------- */
-
-char *LabelMap::read_string(FILE *fp)
-{
-  int n = read_int(fp);
-  if (n < 0) error->all(FLERR, "Illegal size string or corrupt restart");
-  char *value = new char[n];
-  if (comm->me == 0) utils::sfread(FLERR, value, sizeof(char), n, fp, nullptr, error);
-  MPI_Bcast(value, n, MPI_CHAR, 0, world);
-  return value;
-}
-
-/* ----------------------------------------------------------------------
-   write a flag and a C-style char string (including the terminating null
-   byte) into the restart file
-------------------------------------------------------------------------- */
-
-void LabelMap::write_string(const std::string &str, FILE *fp)
-{
-  const char *cstr = str.c_str();
-  int n = strlen(cstr) + 1;
-  fwrite(&n, sizeof(int), 1, fp);
-  fwrite(cstr, sizeof(char), n, fp);
-}
-
-/* ----------------------------------------------------------------------
-   read an int from restart file and bcast it
-------------------------------------------------------------------------- */
-
-int LabelMap::read_int(FILE *fp)
-{
-  int value;
-  if ((comm->me == 0) && (fread(&value, sizeof(int), 1, fp) < 1)) value = -1;
-  MPI_Bcast(&value, 1, MPI_INT, 0, world);
-  return value;
+void LabelMap::write_restart_global(FileWriter& fw) const {
+  fw.writev(typelabel.data(), natomtypes);
+  fw.writev(btypelabel.data(), nbondtypes);
+  fw.writev(atypelabel.data(), nangletypes);
+  fw.writev(dtypelabel.data(), ndihedraltypes);
+  fw.writev(itypelabel.data(), nimpropertypes);
 }
 
 /* ----------------------------------------------------------------------

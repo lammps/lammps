@@ -34,6 +34,9 @@
 #include "pair.h"
 #include "thermo.h"
 #include "update.h"
+#include "file_writer.h"
+#include "file_writer_wrapper.h"
+#include "file_writer_root_wrapper.h"
 
 #include <cstring>
 
@@ -189,6 +192,8 @@ void WriteRestart::multiproc_options(int multiproc_caller, int narg, char **arg)
 
 void WriteRestart::write(const std::string &file)
 {
+  mode = WRITE_RESTART;
+
   // special case where reneighboring is not done in integrator
   //   on timestep restart file is written (due to build_once being set)
   // if box is changing, must be reset, else restart file will have
@@ -218,26 +223,11 @@ void WriteRestart::write(const std::string &file)
       error->one(FLERR, "Cannot open restart file {}: {}", base, utils::getsyserror());
   }
 
-  // proc 0 writes magic string, endian flag, numeric version
-
-  if (me == 0) {
-    magic_string();
-    endian();
-    version_numeric();
+  // proc 0 writes magic string, global info
+  {
+    FileWriterRootWrapper fw_rooted(me, fp);
+    global(fw_rooted);
   }
-
-  // proc 0 writes header, groups, pertype info, force field info
-
-  if (me == 0) {
-    header();
-    group->write_restart(fp);
-    type_arrays();
-    force_fields();
-  }
-
-  // all procs write fix info
-
-  modify->write_restart(fp);
 
   // communication buffer for my atom info
   // max_size = largest buffer needed by any proc
@@ -245,17 +235,20 @@ void WriteRestart::write(const std::string &file)
   //   for a huge one-proc problem, nlocal could be 32-bit
   //   but nlocal * doubles-peratom could overflow
 
-  int max_size;
   int send_size = atom->avec->size_restart();
-  MPI_Allreduce(&send_size,&max_size,1,MPI_INT,MPI_MAX,world);
+  int max_sizes[2], sizes[2] = {send_size, modify->maxsize_restart()};
+  MPI_Allreduce(sizes,max_sizes,2,MPI_INT,MPI_MAX,world);
+  int max_size = max_sizes[0], max_extra = max_sizes[1];
 
   double *buf;
   memory->create(buf,max_size,"write_restart:buf");
   memset(buf,0,max_size*sizeof(double));
 
-  // all procs write file layout info which may include per-proc sizes
-
-  file_layout(send_size);
+  // Proc 0 writes file layout info which may include per-proc sizes
+  {
+    FileWriterRootWrapper fw_rooted(me, fp);
+    file_layout(fw_rooted, send_size, max_extra);
+  }
 
   // header info is complete
   // if multiproc output:
@@ -265,7 +258,8 @@ void WriteRestart::write(const std::string &file)
   int io_error = 0;
   if (multiproc) {
     if (me == 0 && fp) {
-      magic_string();
+      FileWriterWrapper fw(fp);
+      magic_string(fw);
       if (ferror(fp)) io_error = 1;
       fp = nullptr;             // implicitly closes file
     }
@@ -277,7 +271,6 @@ void WriteRestart::write(const std::string &file)
       fp = fopen(multiname.c_str(),"wb");
       if (fp == nullptr)
         error->one(FLERR, "Cannot open restart file {}: {}", multiname, utils::getsyserror());
-      write_int(PROCSPERFILE,nclusterprocs);
     }
   }
 
@@ -351,6 +344,9 @@ void WriteRestart::write(const std::string &file)
   int recv_size;
 
   if (filewriter) {
+    FileWriterWrapper fw(fp);
+    if (multiproc) write_val<int>(fw,PROCSPERFILE,nclusterprocs);
+
     MPI_Status status;
     MPI_Request request;
     for (int iproc = 0; iproc < nclusterprocs; iproc++) {
@@ -361,12 +357,11 @@ void WriteRestart::write(const std::string &file)
         MPI_Get_count(&status,MPI_DOUBLE,&recv_size);
       } else recv_size = send_size;
 
-      write_double_vec(PERPROC,recv_size,buf);
+      write_vec<double>(fw,PERPROC,recv_size,buf);
     }
-    magic_string();
+    magic_string(fw);
     if (ferror(fp)) io_error = 1;
     fp = nullptr;               // implicitly closes file
-
   } else {
     MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(buf,send_size,MPI_DOUBLE,fileproc,0,world);
@@ -389,28 +384,45 @@ void WriteRestart::write(const std::string &file)
       fix->write_restart_file(file.c_str());
 }
 
+void WriteRestart::write_restart_global(FileWriter& fw) {
+  mode = WRITE_RESTART_GLOBAL;
+  global(fw);
+  magic_string(fw);
+}
+
+void WriteRestart::global(FileWriter& fw) {
+  magic_string(fw);
+  fw.writev<int>(ENDIAN);
+  fw.writev<int>(FORMAT_REVISION);
+  header(fw);
+  write_restartable(fw, group);
+  type_arrays(fw);
+  force_fields(fw);
+  write_restartable(fw, modify);
+}
+
 /* ----------------------------------------------------------------------
-   proc 0 writes out problem description
+   Writes out problem description
 ------------------------------------------------------------------------- */
 
-void WriteRestart::header()
+void WriteRestart::header(FileWriter& fw)
 {
-  write_string(VERSION,lmp->version);
-  write_int(SMALLINT,sizeof(smallint));
-  write_int(IMAGEINT,sizeof(imageint));
-  write_int(TAGINT,sizeof(tagint));
-  write_int(BIGINT,sizeof(bigint));
-  write_string(UNITS,update->unit_style);
-  write_bigint(NTIMESTEP,update->ntimestep);
-  write_int(DIMENSION,domain->dimension);
-  write_int(NPROCS,nprocs);
-  write_int_vec(PROCGRID,3,comm->procgrid);
-  write_int(NEWTON_PAIR,force->newton_pair);
-  write_int(NEWTON_BOND,force->newton_bond);
-  write_int(XPERIODIC,domain->xperiodic);
-  write_int(YPERIODIC,domain->yperiodic);
-  write_int(ZPERIODIC,domain->zperiodic);
-  write_int_vec(BOUNDARY,6,&domain->boundary[0][0]);
+  write_val<std::string>(fw,VERSION,lmp->version);
+  write_val<int>(fw,SMALLINT,sizeof(smallint));
+  write_val<int>(fw,IMAGEINT,sizeof(imageint));
+  write_val<int>(fw,TAGINT,sizeof(tagint));
+  write_val<int>(fw,BIGINT,sizeof(bigint));
+  write_val<std::string>(fw,UNITS,update->unit_style);
+  write_val<bigint>(fw,NTIMESTEP,update->ntimestep);
+  write_val<int>(fw,DIMENSION,domain->dimension);
+  write_val<int>(fw,NPROCS,nprocs);
+  write_vec<int>(fw,PROCGRID,3,comm->procgrid);
+  write_val<int>(fw,NEWTON_PAIR,force->newton_pair);
+  write_val<int>(fw,NEWTON_BOND,force->newton_bond);
+  write_val<int>(fw,XPERIODIC,domain->xperiodic);
+  write_val<int>(fw,YPERIODIC,domain->yperiodic);
+  write_val<int>(fw,ZPERIODIC,domain->zperiodic);
+  write_vec<int>(fw,BOUNDARY,6,&domain->boundary[0][0]);
 
   // added field for shrink-wrap boundaries with minimum - 2 Jul 2015
 
@@ -418,249 +430,184 @@ void WriteRestart::header()
   minbound[0] = domain->minxlo; minbound[1] = domain->minxhi;
   minbound[2] = domain->minylo; minbound[3] = domain->minyhi;
   minbound[4] = domain->minzlo; minbound[5] = domain->minzhi;
-  write_double_vec(BOUNDMIN,6,minbound);
+  write_vec<double>(fw,BOUNDMIN,6,minbound);
 
   // write atom_style and its args
 
-  write_string(ATOM_STYLE,utils::strip_style_suffix(atom->atom_style,lmp));
-  fwrite(&atom->avec->nargcopy,sizeof(int),1,fp);
+  write_val<std::string>(fw,ATOM_STYLE,utils::strip_style_suffix(atom->atom_style,lmp));
+  fw.writev<int>(atom->avec->nargcopy);
   for (int i = 0; i < atom->avec->nargcopy; i++) {
     int n = strlen(atom->avec->argcopy[i]) + 1;
-    fwrite(&n,sizeof(int),1,fp);
-    fwrite(atom->avec->argcopy[i],sizeof(char),n,fp);
+    fw.writev(n);
+    fw.writev(atom->avec->argcopy[i], n);
   }
 
-  write_bigint(NATOMS,natoms);
-  write_int(NTYPES,atom->ntypes);
-  write_bigint(NBONDS,atom->nbonds);
-  write_int(NBONDTYPES,atom->nbondtypes);
-  write_int(BOND_PER_ATOM,atom->bond_per_atom);
-  write_bigint(NANGLES,atom->nangles);
-  write_int(NANGLETYPES,atom->nangletypes);
-  write_int(ANGLE_PER_ATOM,atom->angle_per_atom);
-  write_bigint(NDIHEDRALS,atom->ndihedrals);
-  write_int(NDIHEDRALTYPES,atom->ndihedraltypes);
-  write_int(DIHEDRAL_PER_ATOM,atom->dihedral_per_atom);
-  write_bigint(NIMPROPERS,atom->nimpropers);
-  write_int(NIMPROPERTYPES,atom->nimpropertypes);
-  write_int(IMPROPER_PER_ATOM,atom->improper_per_atom);
+  write_val<bigint>(fw,NATOMS,natoms);
+  write_val<int>(fw,NTYPES,atom->ntypes);
+  write_val<bigint>(fw,NBONDS,atom->nbonds);
+  write_val<int>(fw,NBONDTYPES,atom->nbondtypes);
+  write_val<int>(fw,BOND_PER_ATOM,atom->bond_per_atom);
+  write_val<bigint>(fw,NANGLES,atom->nangles);
+  write_val<int>(fw,NANGLETYPES,atom->nangletypes);
+  write_val<int>(fw,ANGLE_PER_ATOM,atom->angle_per_atom);
+  write_val<bigint>(fw,NDIHEDRALS,atom->ndihedrals);
+  write_val<int>(fw,NDIHEDRALTYPES,atom->ndihedraltypes);
+  write_val<int>(fw,DIHEDRAL_PER_ATOM,atom->dihedral_per_atom);
+  write_val<bigint>(fw,NIMPROPERS,atom->nimpropers);
+  write_val<int>(fw,NIMPROPERTYPES,atom->nimpropertypes);
+  write_val<int>(fw,IMPROPER_PER_ATOM,atom->improper_per_atom);
 
-  write_int(TRICLINIC,domain->triclinic);
-  write_double_vec(BOXLO,3,domain->boxlo);
-  write_double_vec(BOXHI,3,domain->boxhi);
-  write_double(XY,domain->xy);
-  write_double(XZ,domain->xz);
-  write_double(YZ,domain->yz);
+  write_val<int>(fw,TRICLINIC,domain->triclinic);
+  write_vec<double>(fw,BOXLO,3,domain->boxlo);
+  write_vec<double>(fw,BOXHI,3,domain->boxhi);
+  write_val<double>(fw,XY,domain->xy);
+  write_val<double>(fw,XZ,domain->xz);
+  write_val<double>(fw,YZ,domain->yz);
 
-  write_int(TRICLINIC_GENERAL,domain->triclinic_general);
+  write_val<int>(fw,TRICLINIC_GENERAL,domain->triclinic_general);
   if (domain->triclinic_general)
-    write_double_vec(ROTATE_G2R,9,&domain->rotate_g2r[0][0]);
+    write_vec<double>(fw,ROTATE_G2R,9,&domain->rotate_g2r[0][0]);
 
-  write_double_vec(SPECIAL_LJ,3,&force->special_lj[1]);
-  write_double_vec(SPECIAL_COUL,3,&force->special_coul[1]);
+  write_vec<double>(fw,SPECIAL_LJ,3,&force->special_lj[1]);
+  write_vec<double>(fw,SPECIAL_COUL,3,&force->special_coul[1]);
 
-  write_double(TIMESTEP,update->dt);
+  write_val<double>(fw,TIMESTEP,update->dt);
 
-  write_int(ATOM_ID,atom->tag_enable);
-  write_int(ATOM_MAP_STYLE,atom->map_style);
-  write_int(ATOM_MAP_USER,atom->map_user);
-  write_int(ATOM_SORTFREQ,atom->sortfreq);
-  write_double(ATOM_SORTBIN,atom->userbinsize);
+  write_val<int>(fw,ATOM_ID,atom->tag_enable);
+  write_val<int>(fw,ATOM_MAP_STYLE,atom->map_style);
+  write_val<int>(fw,ATOM_MAP_USER,atom->map_user);
+  write_val<int>(fw,ATOM_SORTFREQ,atom->sortfreq);
+  write_val<double>(fw,ATOM_SORTBIN,atom->userbinsize);
 
-  write_int(COMM_MODE,comm->mode);
-  write_double(COMM_CUTOFF,comm->cutghostuser);
-  write_int(COMM_VEL,comm->ghost_velocity);
+  write_val<int>(fw,COMM_MODE,comm->mode);
+  write_val<double>(fw,COMM_CUTOFF,comm->cutghostuser);
+  write_val<int>(fw,COMM_VEL,comm->ghost_velocity);
 
-  write_int(EXTRA_BOND_PER_ATOM,atom->extra_bond_per_atom);
-  write_int(EXTRA_ANGLE_PER_ATOM,atom->extra_angle_per_atom);
-  write_int(EXTRA_DIHEDRAL_PER_ATOM,atom->extra_dihedral_per_atom);
-  write_int(EXTRA_IMPROPER_PER_ATOM,atom->extra_improper_per_atom);
-  write_int(ATOM_MAXSPECIAL,atom->maxspecial);
+  write_val<int>(fw,EXTRA_BOND_PER_ATOM,atom->extra_bond_per_atom);
+  write_val<int>(fw,EXTRA_ANGLE_PER_ATOM,atom->extra_angle_per_atom);
+  write_val<int>(fw,EXTRA_DIHEDRAL_PER_ATOM,atom->extra_dihedral_per_atom);
+  write_val<int>(fw,EXTRA_IMPROPER_PER_ATOM,atom->extra_improper_per_atom);
+  write_val<int>(fw,ATOM_MAXSPECIAL,atom->maxspecial);
 
   // write out AtomVec::maxexchange (extra storage for communicating
   // per-atom bond, angle, dihedral, and improper data). added 25 Oct 2025
 
-  write_int(ATOM_MAXEXCHANGE,atom->avec->maxexchange);
+  write_val<int>(fw,ATOM_MAXEXCHANGE,atom->avec->maxexchange);
 
-  write_bigint(NELLIPSOIDS,atom->nellipsoids);
-  write_bigint(NLINES,atom->nlines);
-  write_bigint(NTRIS,atom->ntris);
-  write_bigint(NBODIES,atom->nbodies);
+  write_val<bigint>(fw,NELLIPSOIDS,atom->nellipsoids);
+  write_val<bigint>(fw,NLINES,atom->nlines);
+  write_val<bigint>(fw,NTRIS,atom->ntris);
+  write_val<bigint>(fw,NBODIES,atom->nbodies);
 
   // write out current simulation time. added 3 May 2022
 
-  write_bigint(ATIMESTEP,update->atimestep);
-  write_double(ATIME,update->atime);
+  write_val<bigint>(fw,ATIMESTEP,update->atimestep);
+  write_val<double>(fw,ATIME,update->atime);
 
   // -1 flag signals end of header
 
-  int flag = -1;
-  fwrite(&flag,sizeof(int),1,fp);
+  fw.writev<int>(-1);
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out any type-based arrays that are defined
+   Writes out any type-based arrays that are defined
 ------------------------------------------------------------------------- */
 
-void WriteRestart::type_arrays()
+void WriteRestart::type_arrays(FileWriter& fw)
 {
-  if (atom->mass) write_double_vec(MASS,atom->ntypes,&atom->mass[1]);
+  if (fw && atom->mass) write_vec<double>(fw,MASS,atom->ntypes,&atom->mass[1]);
   if (atom->labelmapflag) {
-    write_int(LABELMAP,atom->labelmapflag);
-    atom->lmap->write_restart(fp);
+    write_val<int>(fw,LABELMAP,atom->labelmapflag);
+    write_restartable(fw,atom->lmap);
   }
 
   // -1 flag signals end of type arrays
 
-  int flag = -1;
-  fwrite(&flag,sizeof(int),1,fp);
+  fw.writev<int>(-1);
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out and force field styles and data that are defined
+   Writes out force field styles and data that are defined
 ------------------------------------------------------------------------- */
 
-void WriteRestart::force_fields()
+void WriteRestart::force_fields(FileWriter& fw)
 {
   if (force->pair) {
-    if (force->pair->fp_restartable()) {
-      write_string(PAIR,utils::strip_style_suffix(force->pair_style,lmp));
-      force->pair->write_restart(fp);
-    } else {
-      write_string(NO_PAIR,utils::strip_style_suffix(force->pair_style,lmp));
-    }
+    int tag = is_restartable(force->pair) ? PAIR : NO_PAIR;
+    write_val<std::string>(fw,tag,utils::strip_style_suffix(force->pair_style,lmp));
+    write_restartable(fw,force->pair);
   }
   if (atom->avec->bonds_allow && force->bond) {
-    write_string(BOND,utils::strip_style_suffix(force->bond_style,lmp));
-    force->bond->write_restart(fp);
+    write_val<std::string>(fw,BOND,utils::strip_style_suffix(force->bond_style,lmp));
+    write_restartable(fw,force->bond);
   }
   if (atom->avec->angles_allow && force->angle) {
-    write_string(ANGLE,utils::strip_style_suffix(force->angle_style,lmp));
-    force->angle->write_restart(fp);
+    write_val<std::string>(fw,ANGLE,utils::strip_style_suffix(force->angle_style,lmp));
+    write_restartable(fw,force->angle);
   }
   if (atom->avec->dihedrals_allow && force->dihedral) {
-    write_string(DIHEDRAL,utils::strip_style_suffix(force->dihedral_style,lmp));
-    force->dihedral->write_restart(fp);
+    write_val<std::string>(fw,DIHEDRAL,utils::strip_style_suffix(force->dihedral_style,lmp));
+    write_restartable(fw,force->dihedral);
   }
   if (atom->avec->impropers_allow && force->improper) {
-    write_string(IMPROPER,utils::strip_style_suffix(force->improper_style,lmp));
-    force->improper->write_restart(fp);
+    write_val<std::string>(fw,IMPROPER,utils::strip_style_suffix(force->improper_style,lmp));
+    write_restartable(fw,force->improper);
   }
 
   // -1 flag signals end of force field info
 
-  int flag = -1;
-  fwrite(&flag,sizeof(int),1,fp);
+  fw.writev<int>(-1);
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out file layout info
-   all procs call this method, only proc 0 writes to file
+   Writes out file layout info
+   All procs call this method, only procs with open FileWriters write info
 ------------------------------------------------------------------------- */
 
-void WriteRestart::file_layout(int /*send_size*/)
+void WriteRestart::file_layout(FileWriter& fw, int /*send_size*/, int max_extra)
 {
-  if (me == 0) write_int(MULTIPROC,multiproc);
+  write_val<int>(fw,MULTIPROC,multiproc);
+  write_val<int>(fw,EXTRA_FIX_PER_ATOM,max_extra);
 
   // -1 flag signals end of file layout info
+  fw.writev<int>(-1);
+}
 
-  if (me == 0) {
-    int flag = -1;
-    fwrite(&flag,sizeof(int),1,fp);
+/* ---------------------------------------------------------------------- */
+
+void WriteRestart::write_restartable(FileWriter& fw, Restartable *r) {
+  if (!is_restartable(r)) return;
+  switch(mode) {
+  case WRITE_RESTART:
+    // "r->restartable" implies this should be called on all callers to ensure
+    // all locals are aggregated as needed. Else, just call on callers with an
+    // open SafeFilePtr
+    if (r->restartable() || fp) r->write_restart(fp);
+    break;
+  case WRITE_RESTART_GLOBAL:
+    r->write_restart_global(fw);
+    break;
+  case WRITE_RESTART_LOCAL:
+    r->write_restart_local(fw);
+    break;
+  default: error->all(FLERR, "Unknown WriteRestart mode {}", (int)mode);
   }
 }
 
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// low-level fwrite methods
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-
 /* ---------------------------------------------------------------------- */
 
-void WriteRestart::magic_string()
-{
-  const char magic[] = MAGIC_STRING;
-  fwrite(magic,sizeof(char),strlen(magic)+1,fp);
+bool WriteRestart::is_restartable(const Restartable *r) {
+  switch (mode) {
+  case WRITE_RESTART: return r->restartable_file();
+  case WRITE_RESTART_GLOBAL: return r->restartable_global;
+  case WRITE_RESTART_LOCAL: return r->restartable_local;
+  default: error->all(FLERR, "Unknown WriteRestart mode {}", (int)mode);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void WriteRestart::endian()
+void WriteRestart::magic_string(FileWriter& fw)
 {
-  int endian = ENDIAN;
-  fwrite(&endian,sizeof(int),1,fp);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void WriteRestart::version_numeric()
-{
-  int vn = FORMAT_REVISION;
-  fwrite(&vn,sizeof(int),1,fp);
-}
-
-/* ----------------------------------------------------------------------
-   write a flag and an int into the restart file
-------------------------------------------------------------------------- */
-
-void WriteRestart::write_int(int flag, int value)
-{
-  fwrite(&flag,sizeof(int),1,fp);
-  fwrite(&value,sizeof(int),1,fp);
-}
-
-/* ----------------------------------------------------------------------
-   write a flag and a bigint into the restart file
-------------------------------------------------------------------------- */
-
-void WriteRestart::write_bigint(int flag, bigint value)
-{
-  fwrite(&flag,sizeof(int),1,fp);
-  fwrite(&value,sizeof(bigint),1,fp);
-}
-
-/* ----------------------------------------------------------------------
-   write a flag and a double into the restart file
-------------------------------------------------------------------------- */
-
-void WriteRestart::write_double(int flag, double value)
-{
-  fwrite(&flag,sizeof(int),1,fp);
-  fwrite(&value,sizeof(double),1,fp);
-}
-
-/* ----------------------------------------------------------------------
-   write a flag and a C-style char string (including the terminating null
-   byte) into the restart file
-------------------------------------------------------------------------- */
-
-void WriteRestart::write_string(int flag, const std::string &value)
-{
-  int n = value.size() + 1;
-  fwrite(&flag,sizeof(int),1,fp);
-  fwrite(&n,sizeof(int),1,fp);
-  fwrite(value.c_str(),sizeof(char),n,fp);
-}
-
-/* ----------------------------------------------------------------------
-   write a flag and vector of N ints into the restart file
-------------------------------------------------------------------------- */
-
-void WriteRestart::write_int_vec(int flag, int n, int *vec)
-{
-  fwrite(&flag,sizeof(int),1,fp);
-  fwrite(&n,sizeof(int),1,fp);
-  fwrite(vec,sizeof(int),n,fp);
-}
-
-/* ----------------------------------------------------------------------
-   write a flag and vector of N doubles into the restart file
-------------------------------------------------------------------------- */
-
-void WriteRestart::write_double_vec(int flag, int n, double *vec)
-{
-  fwrite(&flag,sizeof(int),1,fp);
-  fwrite(&n,sizeof(int),1,fp);
-  fwrite(vec,sizeof(double),n,fp);
+  fw.writev(MAGIC_STRING, strlen(MAGIC_STRING)+1);
 }

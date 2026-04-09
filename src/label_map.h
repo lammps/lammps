@@ -16,7 +16,7 @@
 #ifndef LMP_LABEL_MAP_H
 #define LMP_LABEL_MAP_H
 
-#include "pointers.h"    // IWYU pragma: export
+#include "restartable.h"
 
 #include <array>
 #include <unordered_map>
@@ -42,7 +42,7 @@ namespace LAMMPS_NS {
  * interaction types from constituent atom types when using a hyphen-delimited
  * format convention. */
 
-class LabelMap : protected Pointers {
+class LabelMap : public Restartable {
   friend class AtomVec;
   friend class DumpCustom;
   friend class DumpExtXYZ;
@@ -267,19 +267,19 @@ Currently used when combining data from multiple sources with
    * \param  fp  File pointer for writing */
   void write_data(FILE *fp);
 
-  /*! Read label map from restart file
+  /*! Read label map from restart buffer
    *
    * Restore label map data from a LAMMPS restart file.
    *
-   * \param  fp  File pointer for reading */
-  void read_restart(FILE *fp);
+   * \param br BufferReader for reading */
+  void read_restart_global(BufferReader& br) override;
 
   /*! Write label map to restart file
    *
    * Save label map data to a LAMMPS restart file for later restoration.
    *
-   * \param  fp  File pointer for writing */
-  void write_restart(FILE *);
+   * \param  fw  FileWriter for writing */
+  void write_restart_global(FileWriter& fw) const override;
 
   void check_labels();    //!< Check if type labels are self-consistent
 
@@ -334,28 +334,6 @@ Currently used when combining data from multiple sources with
    * \return numeric type or -1 if not found */
   int search(const std::string &mylabel,
              const std::unordered_map<std::string, int> &labels_map) const;
-
-  /*! Read a C-style string from a binary file and broadcast to world communicator
-   *
-   * the string buffer is allocated with new and must be freed by the calling code with delete[]
-   *
-   * \param fp  FILE pointer of the openend file
-   * \return pointer to the allocated string buffer */
-  char *read_string(FILE *fp);
-
-  /*! Encode string to binary file.
-   *
-   * Must be only called from MPI rank 0.
-   *
-   * \param str string to write to the file
-   * \param fp  FILE pointer of the opened file */
-  void write_string(const std::string &str, FILE *fp);
-
-  /*! Read integer from binary file and broadcast it to world communicator
-   *
-   * \param fp FILE pointer of the opened file
-   * \return  integer value read from file */
-  int read_int(FILE *fp);
 
   /*! Write out current label maps to a file for debugging
    *

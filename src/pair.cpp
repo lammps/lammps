@@ -57,7 +57,7 @@ int Pair::instance_total = 0;
 /* ---------------------------------------------------------------------- */
 
 Pair::Pair(LAMMPS *lmp) :
-    Restartable(lmp), virial{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, eatom(nullptr), vatom(nullptr),
+    Restartable(lmp, restartinfo), virial{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, eatom(nullptr), vatom(nullptr),
     cvatom(nullptr), cutsq(nullptr), setflag(nullptr), cutghost(nullptr), rtable(nullptr),
     drtable(nullptr), ftable(nullptr), dftable(nullptr), ctable(nullptr), dctable(nullptr),
     etable(nullptr), detable(nullptr), ptable(nullptr), dptable(nullptr), vtable(nullptr),

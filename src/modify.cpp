@@ -29,6 +29,10 @@
 #include "region.h"
 #include "update.h"
 #include "variable.h"
+#include "file_writer.h"
+#include "buffer_reader.h"
+#include "file_writer_root_wrapper.h"
+#include "buffer_reader_root_file.h"
 
 #include <cstring>
 
@@ -48,7 +52,7 @@ template <typename S, typename T> static S *style_creator(LAMMPS *lmp, int narg,
 
 /* ---------------------------------------------------------------------- */
 
-Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
+Modify::Modify(LAMMPS *lmp) : Restartable(lmp)
 {
   nfix = maxfix = 0;
   n_initial_integrate = n_post_integrate = 0;
@@ -82,11 +86,19 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 
   list_timeflag = nullptr;
 
+  restartable_global = restartable_local = true;
   restart_pbc_any = 0;
+  restart_merged_mode = 0;
+  restart_revision = 0;
+  restart_maxsize_peratom = 0;
   nfix_restart_global = 0;
   id_restart_global = style_restart_global = nullptr;
   state_restart_global = nullptr;
-  used_restart_global = nullptr;
+  size_restart_global = used_restart_global = nullptr;
+  nfix_restart_local = 0;
+  id_restart_local = style_restart_local = nullptr;
+  state_restart_local = nullptr;
+  size_restart_local = used_restart_local = nullptr;
   nfix_restart_peratom = 0;
   id_restart_peratom = style_restart_peratom = nullptr;
   index_restart_peratom = used_restart_peratom = nullptr;
@@ -952,18 +964,36 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
 
   fix[ifix]->post_constructor();
 
-  // check if Fix is in restart_global list
+  // check if Fix is in restart_global or restart_local lists
   // if yes, pass state info to the Fix so it can reset itself
 
   for (int i = 0; i < nfix_restart_global; i++)
     if ((strcmp(id_restart_global[i], fix[ifix]->id) == 0) &&
         (utils::strip_style_suffix(fix[ifix]->style, lmp) == style_restart_global[i])) {
-      fix[ifix]->restart(state_restart_global[i]);
+      if (restart_merged_mode) {
+        fix[ifix]->restart(state_restart_global[i]);
+      } else {
+        BufferReader br(state_restart_global[i], size_restart_global[i], error);
+        fix[ifix]->read_restart_global(br);
+      }
       used_restart_global[i] = 1;
       fix[ifix]->restart_reset = 1;
       if (comm->me == 0)
         utils::logmesg(lmp,
                        "Resetting global fix info from restart file:\n"
+                       "  fix style: {}, fix ID: {}\n",
+                       fix[ifix]->style, fix[ifix]->id);
+    }
+  for (int i = 0; i < nfix_restart_local; i++)
+    if ((strcmp(id_restart_local[i], fix[ifix]->id) == 0) &&
+        (utils::strip_style_suffix(fix[ifix]->style, lmp) == style_restart_local[i])) {
+      BufferReader br(state_restart_local[i], size_restart_local[i], error);
+      fix[ifix]->read_restart_local(br);
+      used_restart_local[i] = 1;
+      fix[ifix]->restart_reset = 1;
+      if (comm->me == 0)
+        utils::logmesg(lmp,
+                       "Resetting local fix info from restart file:\n"
                        "  fix style: {}, fix ID: {}\n",
                        fix[ifix]->style, fix[ifix]->id);
     }
@@ -1485,48 +1515,76 @@ void Modify::addstep_compute_all(bigint newstep)
 
 void Modify::write_restart(FILE *fp)
 {
-  int me = comm->me;
+  restart_merged_mode = true;
+  FileWriterRootWrapper fw(comm->me, fp);
+  this->write_restart_global(fw);
+}
 
+void Modify::write_restart_global(FileWriter& fw) const
+{
   int count = 0;
-  for (int i = 0; i < nfix; i++)
-    if (fix[i]->fp_restartable()) count++;
+  for (int i = 0; i < nfix; i++) {
+    bool global_restartable = restart_merged_mode ?
+      fix[i]->restartable_file() : fix[i]->restartable_global;
+    if (global_restartable)
+      count++;
+    else if (fix[i]->restartable_file())
+      error->all(FLERR, "Fix {} must use FILE* API", fix[i]->style);
+  }
 
-  if (me == 0) fwrite(&count, sizeof(int), 1, fp);
+  fw.writev<int>(count);
+  for (int i = 0; i < nfix; i++) {
+    bool global_restartable = restart_merged_mode ?
+      fix[i]->restartable_file() : fix[i]->restartable_global;
+    if (!global_restartable) continue;
 
-  int n;
-  for (int i = 0; i < nfix; i++)
-    if (fix[i]->fp_restartable()) {
-      if (me == 0) {
-        n = strlen(fix[i]->id) + 1;
-        fwrite(&n, sizeof(int), 1, fp);
-        fwrite(fix[i]->id, sizeof(char), n, fp);
-        auto fix_style = utils::strip_style_suffix(fix[i]->style, lmp);
-        n = fix_style.size() + 1;
-        fwrite(&n, sizeof(int), 1, fp);
-        fwrite(fix_style.c_str(), sizeof(char), n, fp);
-      }
-      fix[i]->write_restart(fp);
+    fw.writev(fix[i]->id);
+    fw.writev(utils::strip_style_suffix(fix[i]->style, lmp));
+    if (restart_merged_mode) {
+      fix[i]->write_restart(fw.get_fp());
+    } else {
+      fw.write_restart_global_size(fix[i]);
+      fix[i]->write_restart_global(fw);
     }
+  }
 
   count = 0;
-  for (int i = 0; i < nfix; i++)
-    if (fix[i]->restart_peratom) count++;
+  for (int i = 0; i < nfix; i++) if (fix[i]->restart_peratom) count++;
+  fw.writev(count);
+  for (int i = 0; i < nfix; i++) {
+    if (!fix[i]->restart_peratom) continue;
+    fw.writev(fix[i]->id);
+    fw.writev(fix[i]->style);
+  }
 
-  if (me == 0) fwrite(&count, sizeof(int), 1, fp);
+  if (restart_merged_mode) return;
 
-  for (int i = 0; i < nfix; i++)
-    if (fix[i]->restart_peratom) {
-      int maxsize_restart = fix[i]->maxsize_restart();
-      if (me == 0) {
-        n = strlen(fix[i]->id) + 1;
-        fwrite(&n, sizeof(int), 1, fp);
-        fwrite(fix[i]->id, sizeof(char), n, fp);
-        n = strlen(fix[i]->style) + 1;
-        fwrite(&n, sizeof(int), 1, fp);
-        fwrite(fix[i]->style, sizeof(char), n, fp);
-        fwrite(&maxsize_restart, sizeof(int), 1, fp);
-      }
-    }
+  count = 0;
+  for (int i = 0; i < nfix; i++) if (fix[i]->restartable_local) count++;
+  fw.writev(count);
+  for (int i = 0; i < nfix; i++) {
+    if (!fix[i]->restartable_local) continue;
+    fw.writev(fix[i]->id);
+    fw.writev(fix[i]->style);
+  }
+}
+
+void Modify::write_restart_local(FileWriter& fw) const {
+  for (int i = 0; i < nfix; i++) {
+    if (!fix[i]->restartable_local) continue;
+    fw.write_restart_local_size(fix[i]);
+    fix[i]->write_restart_local(fw);
+  }
+}
+
+int Modify::maxsize_restart()
+{
+  int maxsize = 0;
+  for (int i = 0; i < nfix; i++) {
+    if(fix[i]->restart_peratom)
+      maxsize += fix[i]->maxsize_restart();
+  }
+  return maxsize;
 }
 
 /* ----------------------------------------------------------------------
@@ -1536,92 +1594,75 @@ void Modify::write_restart(FILE *fp)
    return maxsize of extra info that will be stored with any atom
 ------------------------------------------------------------------------- */
 
-int Modify::read_restart(FILE *fp)
+void Modify::read_restart(BufferReaderRootFile& br)
 {
-  // nfix_restart_global = # of restart entries with global state info
+  restart_merged_mode = true;
+  read_restart_global(br);
+}
 
-  int me = comm->me;
-  if (me == 0) utils::sfread(FLERR, &nfix_restart_global, sizeof(int), 1, fp, nullptr, error);
-  MPI_Bcast(&nfix_restart_global, 1, MPI_INT, 0, world);
+void Modify::read_restart_global(BufferReader& br) {
+  if (restart_revision < 4) restart_maxsize_peratom = 0;
 
-  // allocate space for each entry
-
+  br.read<int>(BRERR,nfix_restart_global);
   if (nfix_restart_global > 0) {
     id_restart_global = new char *[nfix_restart_global];
     style_restart_global = new char *[nfix_restart_global];
     state_restart_global = new char *[nfix_restart_global];
+    size_restart_global = new int[nfix_restart_global];
     used_restart_global = new int[nfix_restart_global];
   }
-
-  // read each entry and Bcast to all procs
-  // each entry has id string, style string, chunk of state data
-
-  int n;
   for (int i = 0; i < nfix_restart_global; i++) {
-    if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
-    MPI_Bcast(&n, 1, MPI_INT, 0, world);
-    id_restart_global[i] = new char[n];
-    if (me == 0) utils::sfread(FLERR, id_restart_global[i], sizeof(char), n, fp, nullptr, error);
-    MPI_Bcast(id_restart_global[i], n, MPI_CHAR, 0, world);
-
-    if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
-    MPI_Bcast(&n, 1, MPI_INT, 0, world);
-    style_restart_global[i] = new char[n];
-    if (me == 0) utils::sfread(FLERR, style_restart_global[i], sizeof(char), n, fp, nullptr, error);
-    MPI_Bcast(style_restart_global[i], n, MPI_CHAR, 0, world);
-
-    if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
-    MPI_Bcast(&n, 1, MPI_INT, 0, world);
-    state_restart_global[i] = new char[n];
-    if (me == 0) utils::sfread(FLERR, state_restart_global[i], sizeof(char), n, fp, nullptr, error);
-    MPI_Bcast(state_restart_global[i], n, MPI_CHAR, 0, world);
-
-    used_restart_global[i] = 0;
+    id_restart_global[i]    = br.read<char*>(BRERR);
+    style_restart_global[i] = br.read<char*>(BRERR);
+    size_restart_global[i]  = br.read<int>(BRERR);
+    state_restart_global[i] = nullptr;
+    if (size_restart_global[i])
+      state_restart_global[i] = br.read_buf<char>(BRERR,size_restart_global[i]);
+    used_restart_global[i]  = 0;
   }
 
-  // nfix_restart_peratom = # of restart entries with peratom info
-
-  int maxsize = 0;
-
-  if (me == 0) utils::sfread(FLERR, &nfix_restart_peratom, sizeof(int), 1, fp, nullptr, error);
-  MPI_Bcast(&nfix_restart_peratom, 1, MPI_INT, 0, world);
-
-  // allocate space for each entry
-
+  br.read(BRERR, nfix_restart_peratom);
   if (nfix_restart_peratom) {
     id_restart_peratom = new char *[nfix_restart_peratom];
     style_restart_peratom = new char *[nfix_restart_peratom];
     index_restart_peratom = new int[nfix_restart_peratom];
     used_restart_peratom = new int[nfix_restart_peratom];
   }
-
-  // read each entry and Bcast to all procs
-  // each entry has id string, style string, maxsize of one atom's data
-  // set index = which set of extra data this fix represents
-
   for (int i = 0; i < nfix_restart_peratom; i++) {
-    if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
-    MPI_Bcast(&n, 1, MPI_INT, 0, world);
-    id_restart_peratom[i] = new char[n];
-    if (me == 0) utils::sfread(FLERR, id_restart_peratom[i], sizeof(char), n, fp, nullptr, error);
-    MPI_Bcast(id_restart_peratom[i], n, MPI_CHAR, 0, world);
-
-    if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
-    MPI_Bcast(&n, 1, MPI_INT, 0, world);
-    style_restart_peratom[i] = new char[n];
-    if (me == 0)
-      utils::sfread(FLERR, style_restart_peratom[i], sizeof(char), n, fp, nullptr, error);
-    MPI_Bcast(style_restart_peratom[i], n, MPI_CHAR, 0, world);
-
-    if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
-    MPI_Bcast(&n, 1, MPI_INT, 0, world);
-    maxsize += n;
-
+    id_restart_peratom[i]    = br.read<char*>(BRERR);
+    style_restart_peratom[i] = br.read<char*>(BRERR);
+    if (restart_revision < 4) restart_maxsize_peratom += br.read<int>(BRERR);
     index_restart_peratom[i] = i;
-    used_restart_peratom[i] = 0;
+    used_restart_peratom[i]  = 0;
   }
 
-  return maxsize;
+  if (restart_merged_mode) return;
+
+  br.read(BRERR,nfix_restart_local);
+  if (nfix_restart_local) {
+    id_restart_local = new char *[nfix_restart_local];
+    style_restart_local = new char *[nfix_restart_local];
+    state_restart_local = new char *[nfix_restart_local];
+    size_restart_local = new int[nfix_restart_local];
+    used_restart_local = new int[nfix_restart_local];
+  }
+  for (int i = 0; i < nfix_restart_local; i++) {
+    id_restart_local[i]    = br.read<char*>(BRERR);
+    style_restart_local[i] = br.read<char*>(BRERR);
+    size_restart_local[i]  = 0;
+    state_restart_local[i] = nullptr;
+    used_restart_local[i]  = 0;
+  }
+}
+
+void Modify::read_restart_local(BufferReader& br) {
+  if (br.size() == 0) return; // We may be past the stored nprocs
+
+  for (int i = 0; i < nfix_restart_local; i++) {
+    size_restart_local[i] = br.read<int>(BRERR);
+    if (size_restart_local[i])
+      state_restart_local[i] = br.read_buf<char>(BRERR, size_restart_local[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1656,7 +1697,37 @@ void Modify::restart_deallocate(int flag)
     delete[] id_restart_global;
     delete[] style_restart_global;
     delete[] state_restart_global;
+    delete[] size_restart_global;
     delete[] used_restart_global;
+  }
+
+  if (nfix_restart_local) {
+    if (flag && comm->me == 0) {
+      int i;
+      for (i = 0; i < nfix_restart_local; i++)
+        if (used_restart_local[i] == 0) break;
+      if (i == nfix_restart_local) {
+        utils::logmesg(lmp, "All restart file local fix info was re-assigned\n");
+      } else {
+        utils::logmesg(lmp, "Unused restart file local fix info:\n");
+        for (i = 0; i < nfix_restart_local; i++) {
+          if (used_restart_local[i]) continue;
+          utils::logmesg(lmp, "  fix style: {}, fix ID: {}\n", style_restart_local[i],
+                         id_restart_local[i]);
+        }
+      }
+    }
+    
+    for (int i = 0; i < nfix_restart_local; i++) {
+      delete[] id_restart_local[i];
+      delete[] style_restart_local[i];
+      if (state_restart_local[i]) delete[] state_restart_local[i];
+    }
+    delete[] id_restart_local;
+    delete[] style_restart_local;
+    delete[] state_restart_local;
+    delete[] size_restart_local;
+    delete[] used_restart_local;
   }
 
   if (nfix_restart_peratom) {
@@ -1686,7 +1757,7 @@ void Modify::restart_deallocate(int flag)
     delete[] used_restart_peratom;
   }
 
-  nfix_restart_global = nfix_restart_peratom = 0;
+  nfix_restart_global = nfix_restart_local = nfix_restart_peratom = 0;
 }
 
 /* ----------------------------------------------------------------------

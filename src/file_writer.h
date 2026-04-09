@@ -35,8 +35,12 @@ class FileWriter {
   virtual size_t write(const void *buffer, size_t length) = 0;
   size_t write(const void *b, bigint l) { return write(b, (size_t)l); }
 
+  [[nodiscard]] virtual FILE* get_fp() const { return nullptr; }
+
   [[nodiscard]] virtual bool isopen() const = 0;
   [[nodiscard]] virtual bool issizer() const;
+  
+  explicit operator bool() const { return isopen(); }
 
   virtual size_t write_restart_global_size(const Restartable*);
   virtual size_t write_restart_local_size(const Restartable*);
@@ -47,12 +51,21 @@ class FileWriter {
     static_assert(std::is_trivially_copyable_v<T>);
     return this->write(&t, sizeof(T));
   }
+
   template<typename T>
   size_t writev(const T* t, size_t count) {
-    static_assert(std::is_trivially_copyable_v<T>);
-    return this->write(t, sizeof(T)*count);
+    if constexpr (std::is_trivially_copyable_v<T>) {
+      return this->write(t, sizeof(T)*count);
+    } else {
+      size_t ret = 0;
+      for (int i = 0; i < count; i++) ret += writev(t[i]);
+      return ret;
+    }
   }
 };
+  
+template<> size_t FileWriter::writev<std::string>(const std::string& str);
+template<> size_t FileWriter::writev<char*>(char* const& str);
 
 class FileWriterException : public std::exception {
   std::string message;

@@ -67,8 +67,6 @@ class Angle : public Restartable {
   virtual void *extract(const char *, int &) { return nullptr; }
   void reinit();
 
-  [[nodiscard]] bool fp_restartable() const final { return true; }
-
  protected:
   int suffix_flag;    // suffix compatibility flag
 

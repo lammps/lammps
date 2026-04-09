@@ -14,7 +14,7 @@
 #ifndef LMP_MODIFY_H
 #define LMP_MODIFY_H
 
-#include "pointers.h"
+#include "restartable.h"
 
 #include <map>
 
@@ -23,7 +23,7 @@ namespace LAMMPS_NS {
 class Compute;
 class Fix;
 
-class Modify : protected Pointers {
+class Modify : public Restartable {
   friend class Info;
   friend class FixSRP;
   friend class Respa;
@@ -41,7 +41,10 @@ class Modify : protected Pointers {
   int n_min_pre_force, n_min_pre_reverse, n_min_post_force, n_min_energy;
 
   int restart_pbc_any;         // 1 if any fix sets restart_pbc
+  int restart_revision;
+  int restart_maxsize_peratom; // Set while reading restart file
   int nfix_restart_global;     // stored fix global info from restart file
+  int nfix_restart_local;      // stored fix global info from restart file
   int nfix_restart_peratom;    // stored fix peratom info from restart file
 
   int nfix, maxfix;
@@ -152,9 +155,15 @@ class Modify : protected Pointers {
   int check_rigid_region_overlap(int, class Region *);
   int check_rigid_list_overlap(int *);
 
-  void write_restart(FILE *);
-  int read_restart(FILE *);
+  void write_restart(FILE *) override;
+  void read_restart(BufferReaderRootFile&) override;
+  void write_restart_global(FileWriter&) const override;
+  void write_restart_local(FileWriter&) const override;
+  void read_restart_global(BufferReader&) override;
+  void read_restart_local(BufferReader&) override;
   void restart_deallocate(int);
+
+  int maxsize_restart();
 
   double memory_usage();
 
@@ -183,10 +192,19 @@ class Modify : protected Pointers {
   int n_timeflag;    // list of computes that store time invocation
   int *list_timeflag;
 
+  int restart_merged_mode; // 1 if restarted with old restart API
+
   char **id_restart_global;       // stored fix global info
   char **style_restart_global;    // from read-in restart file
   char **state_restart_global;
+  int *size_restart_global;
   int *used_restart_global;
+
+  char **id_restart_local;       // stored fix local info
+  char **style_restart_local;    // from read-in restart file
+  char **state_restart_local;
+  int *size_restart_local;
+  int *used_restart_local;
 
   char **id_restart_peratom;       // stored fix peratom info
   char **style_restart_peratom;    // from read-in restart file
@@ -220,6 +238,8 @@ class Modify : protected Pointers {
 
  protected:
   void create_factories();
+
+ private:
 };
 
 }    // namespace LAMMPS_NS

@@ -268,10 +268,6 @@ class Fix : public Restartable {
 
   void set_copymode(int value) { copymode = value; }
 
-  [[nodiscard]] bool fp_restartable() const override {
-    return restartable() || restart_global;
-  }
-
  protected:
   int instance_me;    // which Fix class instantiation I am
 

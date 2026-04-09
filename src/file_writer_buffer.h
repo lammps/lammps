@@ -14,7 +14,7 @@
 #ifndef LMP_FILE_WRITER_BUFFER_H
 #define LMP_FILE_WRITER_BUFFER_H
 
-#include <string>
+#include <cstring>
 #include "file_writer.h"
 
 namespace LAMMPS_NS {

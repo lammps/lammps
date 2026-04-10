@@ -137,10 +137,12 @@ KK_FLOAT PairLJCutKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+  const KK_FLOAT lj1 = STACKPARAMS ? m_params[itype][jtype].lj1 : params(itype,jtype).lj1;
+  const KK_FLOAT lj2 = STACKPARAMS ? m_params[itype][jtype].lj2 : params(itype,jtype).lj2;
 
-  const KK_FLOAT forcelj = r6inv *
-    ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
-     (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
+  // Fused Multiply-Add computes (lj1 * r6inv) + (-lj2) with a single
+  // rounding step to avoid catastrophic cancellation with FP32
+  const KK_FLOAT forcelj = r6inv * Kokkos::fma(lj1, r6inv, -lj2);
 
   return forcelj*r2inv;
 }

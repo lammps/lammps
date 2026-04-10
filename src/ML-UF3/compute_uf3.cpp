@@ -192,9 +192,7 @@ void ComputeUF3::init()
     error->all(FLERR, "Compute uf3 cutoff {} is longer than pairwise cutoff {}", cutmax,
                force->pair->cutforce);
 
-  // Perpetual full list (same pattern as pair_style uf3). Occasional + build_one() can skip the
-  // actual npair::build() when last_build >= lastcall, leaving inum/jlist stale and zero descriptors.
-  neighbor->add_request(this, NeighConst::REQ_FULL);
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
   memory->create(uf3local, size_array_rows, size_array_cols, "compute_uf3:uf3local");
   memory->create(uf3all, size_array_rows, size_array_cols, "compute_uf3:uf3all");
@@ -222,28 +220,14 @@ void ComputeUF3::compute_array()
   for (int irow = 0; irow < size_array_rows; irow++)
     for (int ic = 0; ic < size_array_cols; ic++) uf3local[irow][ic] = 0.0;
 
-  compute_array_core();
-}
+  neighbor->build_one(list);
 
-/* ---------------------------------------------------------------------- */
-
-void ComputeUF3::compute_array_core()
-{
   double **x = atom->x;
   int *mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
   const bigint natoms = atom->natoms;
   int n = static_cast<int>(natoms);
-
-  for (int i = 0; i < nlocal; i++) {
-    const tagint tg = atom->tag[i];
-    if (tg < 1 || tg > n)
-      error->all(FLERR, Error::NOLASTLINE,
-                 "Compute uf3: atom tag {} is out of range [1,{}] (Natoms). "
-                 "FitSNAP expects tags 1..N matching row layout.",
-                 tg, n);
-  }
 
   int inum = list->inum;
   int *ilist = list->ilist;

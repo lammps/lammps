@@ -397,12 +397,15 @@ public:
 #if defined (LMP_KOKKOS_SINGLE_SINGLE) // single
 typedef float KK_FLOAT;
 typedef float KK_ACC_FLOAT;
+const MPI_Datatype MPI_KK_ACC_FLOAT = MPI_FLOAT;
 #elif defined (LMP_KOKKOS_DOUBLE_DOUBLE)  // double
 typedef double KK_FLOAT;
 typedef double KK_ACC_FLOAT;
+const MPI_Datatype MPI_KK_ACC_FLOAT = MPI_DOUBLE;
 #elif defined (LMP_KOKKOS_SINGLE_DOUBLE) // mixed
 typedef float KK_FLOAT;
 typedef double KK_ACC_FLOAT;
+const MPI_Datatype MPI_KK_ACC_FLOAT = MPI_DOUBLE;
 #endif
 
 struct s_EV_FLOAT {

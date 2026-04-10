@@ -37,8 +37,7 @@ class MinFireKokkos : public MinKokkos {
   template <int INTEGRATOR, bool ABCFLAG> int run_iterate(int);
 
 private:
-  double dt, dtmax, dtmin;
-  double alpha;
+  KK_FLOAT dt, dtmax, dtmin, alpha;
   bigint last_negative, ntimestep_start;
   int vdotf_negatif;
 

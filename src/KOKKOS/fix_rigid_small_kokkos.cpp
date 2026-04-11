@@ -44,6 +44,12 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
 
+using MathExtraKokkos::angmom_to_omega;
+using MathExtraKokkos::richardson;
+using MathExtraKokkos::q_to_exyz;
+using MathExtraKokkos::matvec;
+
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

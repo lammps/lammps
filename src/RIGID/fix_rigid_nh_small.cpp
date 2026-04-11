@@ -149,6 +149,9 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
 
 FixRigidNHSmall::~FixRigidNHSmall()
 {
+  // Kokkos parallel_for copies this object as a functor; skip teardown on copies
+  if (copymode) return;
+
   if (tstat_flag || pstat_flag) {
     deallocate_chain();
     deallocate_order();

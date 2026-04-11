@@ -480,6 +480,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
 FixRigidSmall::~FixRigidSmall()
 {
+  // Kokkos parallel_for copies this object as a functor; skip teardown on copies
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   if (modify->get_fix_by_id(id)) atom->delete_callback(id,Atom::GROW);

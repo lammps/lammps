@@ -22,7 +22,9 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cstdlib>
 #include <cstring>
+#include <exception>
 #include <ctime>
 #include <iostream>
 #include <set>
@@ -209,8 +211,18 @@ bool verbose = false;
 #define XSTR(val) #val
 std::string INPUT_FOLDER = STRINGIFY(TEST_INPUT_FOLDER);
 
+// Kokkos OpenMP teardown on macOS throws std::system_error from a static
+// destructor after pthreads has partially cleaned up.  Intercept it here so
+// the test binary exits with the real Google-Test result code.
+static int g_test_result = 1;
+static void kokkos_omp_teardown_terminate()
+{
+    _Exit(g_test_result);
+}
+
 int main(int argc, char **argv)
 {
+    std::set_terminate(kokkos_omp_teardown_terminate);
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
@@ -280,6 +292,7 @@ int main(int argc, char **argv)
     }
 
     int rv = RUN_ALL_TESTS();
+    g_test_result = rv;
     MPI_Finalize();
     return rv;
 }

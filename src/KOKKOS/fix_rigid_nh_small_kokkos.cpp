@@ -48,8 +48,6 @@ using namespace MathConst;
 using namespace MathExtra;
 using namespace RigidConst;
 
-static constexpr int DELTA_BODY = 10000;
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

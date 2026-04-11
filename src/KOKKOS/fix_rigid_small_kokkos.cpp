@@ -41,8 +41,6 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
 
-static constexpr int DELTA_BODY = 10000;
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

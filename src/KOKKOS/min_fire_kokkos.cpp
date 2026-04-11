@@ -141,12 +141,8 @@ int MinFireKokkos::run_iterate(int maxiter) {
     Kokkos::parallel_reduce("min_fire/vdotf", nlocal, LAMMPS_LAMBDA(const int i, KK_ACC_FLOAT &vdf) {
       vdf += l_v(i,0)*l_f(i,0) + l_v(i,1)*l_f(i,1) + l_v(i,2)*l_f(i,2);
     }, vdotf_local);
-    MPI_Allreduce(&vdotf_local, &vdotf_all, 1, MPI_KK_ACC_FLOAT, MPI_SUM, world);
-
-    if (update->multireplica == 1) {
-      vdotf_local = vdotf_all;
-      MPI_Allreduce(&vdotf_local, &vdotf_all, 1, MPI_KK_ACC_FLOAT, MPI_SUM, universe->uworld);
-    }
+    // bugfix for multiprocess replicas
+    MPI_Allreduce(&vdotf_local, &vdotf_all, 1, MPI_KK_ACC_FLOAT, MPI_SUM, mpi_comm);
 
     if (vdotf_all > 0.0) {
       KK_ACC_FLOAT vdotv_local, fdotf_local, vdotv_all, fdotf_all;
@@ -158,15 +154,9 @@ int MinFireKokkos::run_iterate(int maxiter) {
         ff += l_f(i,0)*l_f(i,0) + l_f(i,1)*l_f(i,1) + l_f(i,2)*l_f(i,2);
       }, fdotf_local);
 
-      MPI_Allreduce(&vdotv_local, &vdotv_all, 1, MPI_KK_ACC_FLOAT, MPI_SUM, world);
-      MPI_Allreduce(&fdotf_local, &fdotf_all, 1, MPI_KK_ACC_FLOAT, MPI_SUM, world);
-
-      if (update->multireplica == 1) {
-        KK_ACC_FLOAT dot_tmp = vdotv_all;
-        MPI_Allreduce(&dot_tmp, &vdotv_all, 1, MPI_KK_ACC_FLOAT, MPI_SUM, universe->uworld);
-        dot_tmp = fdotf_all;
-        MPI_Allreduce(&dot_tmp, &fdotf_all, 1, MPI_KK_ACC_FLOAT, MPI_SUM, universe->uworld);
-      }
+      // bugfix for multiprocess replicas
+      MPI_Allreduce(&vdotv_local, &vdotv_all, 1, MPI_KK_ACC_FLOAT, MPI_SUM, mpi_comm);
+      MPI_Allreduce(&fdotf_local, &fdotf_all, 1, MPI_KK_ACC_FLOAT, MPI_SUM, mpi_comm);
 
       if constexpr (ABCFLAG) {
         if (alpha < 1e-10) alpha = 1e-10;
@@ -226,7 +216,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
       });
     }
 
-    KK_ACC_FLOAT dtvone = dt;
+    KK_ACC_FLOAT dtvone = static_cast<KK_ACC_FLOAT>(dt);
     auto l_dmax = dmax;
     if constexpr (!ABCFLAG) {
       Kokkos::parallel_reduce("min_fire/dtv_limit", nlocal, LAMMPS_LAMBDA(const int i, KK_ACC_FLOAT &dtmin_local) {
@@ -236,12 +226,8 @@ int MinFireKokkos::run_iterate(int maxiter) {
       dtvone = Kokkos::min(dtvone, static_cast<KK_ACC_FLOAT>(dt));
     }
     KK_ACC_FLOAT dtv;
-    MPI_Allreduce(&dtvone, &dtv, 1, MPI_KK_ACC_FLOAT, MPI_MIN, world);
-
-    if (update->multireplica == 1) {
-      KK_ACC_FLOAT dtv_tmp = dtv;
-      MPI_Allreduce(&dtv_tmp, &dtv, 1, MPI_KK_ACC_FLOAT, MPI_MIN, universe->uworld);
-    }
+    // bugfix for multiprocess replicas
+    MPI_Allreduce(&dtvone, &dtv, 1, MPI_KK_ACC_FLOAT, MPI_MIN, mpi_comm);
 
     if (flagv0) {
       Kokkos::parallel_for("min_fire/final_v_zero", nlocal, LAMMPS_LAMBDA(const int i) {

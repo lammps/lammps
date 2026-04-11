@@ -33,6 +33,9 @@ class MinFire : public Min {
   void reset_vectors() override;
   int iterate(int) override;
 
+ protected:
+  MPI_Comm mpi_comm;
+
  private:
   double dt, dtmax, dtmin;
   double alpha;

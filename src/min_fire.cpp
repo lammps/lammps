@@ -42,7 +42,7 @@ static constexpr double EPS_ENERGY = 1.0e-8;
 
 /* ---------------------------------------------------------------------- */
 
-MinFire::MinFire(LAMMPS *lmp) : Min(lmp) {}
+MinFire::MinFire(LAMMPS *lmp) : Min(lmp), mpi_comm(MPI_COMM_NULL) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -62,6 +62,11 @@ void MinFire::init()
   alpha = alpha0;
   last_negative = ntimestep_start = update->ntimestep;
   vdotf_negatif = 0;
+
+  // bugfix for multiprocess replicas
+  if (update->multireplica == 1) mpi_comm = universe->uworld;
+  else mpi_comm = world;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -210,19 +215,11 @@ template <int INTEGRATOR, bool ABCFLAG> int MinFire::run_iterate(int maxiter)
     int *type = atom->type;
 
     // vdotfall = v dot f
-
     vdotf = 0.0;
     for (int i = 0; i < nlocal; i++)
       vdotf += v[i][0]*f[i][0] + v[i][1]*f[i][1] + v[i][2]*f[i][2];
-    MPI_Allreduce(&vdotf,&vdotfall,1,MPI_DOUBLE,MPI_SUM,world);
-
-    // sum vdotf over replicas, if necessary
-    // this communicator would be invalid for multiprocess replicas
-
-    if (update->multireplica == 1) {
-      vdotf = vdotfall;
-      MPI_Allreduce(&vdotf,&vdotfall,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
-    }
+    // bugfix for multiprocess replicas
+    MPI_Allreduce(&vdotf,&vdotfall,1,MPI_DOUBLE,MPI_SUM,mpi_comm);
 
     // if (v dot f) > 0:
     // v = (1-alpha) v + alpha |v| Fhat
@@ -233,38 +230,23 @@ template <int INTEGRATOR, bool ABCFLAG> int MinFire::run_iterate(int maxiter)
     // increase timestep, update global timestep and decrease alpha
 
     if (vdotfall > 0.0) {
+
       vdotv = 0.0;
       vdotf_negatif = 0;
       for (int i = 0; i < nlocal; i++)
         vdotv += v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
-      MPI_Allreduce(&vdotv,&vdotvall,1,MPI_DOUBLE,MPI_SUM,world);
-
-      // sum vdotv over replicas, if necessary
-      // this communicator would be invalid for multiprocess replicas
-
-      if (update->multireplica == 1) {
-        vdotv = vdotvall;
-        MPI_Allreduce(&vdotv,&vdotvall,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
-      }
+      // bugfix for multiprocess replicas
+      MPI_Allreduce(&vdotv,&vdotvall,1,MPI_DOUBLE,MPI_SUM,mpi_comm);
 
       fdotf = 0.0;
       for (int i = 0; i < nlocal; i++)
         fdotf += f[i][0]*f[i][0] + f[i][1]*f[i][1] + f[i][2]*f[i][2];
-      MPI_Allreduce(&fdotf,&fdotfall,1,MPI_DOUBLE,MPI_SUM,world);
-
-      // sum fdotf over replicas, if necessary
-      // this communicator would be invalid for multiprocess replicas
-
-      if (update->multireplica == 1) {
-        fdotf = fdotfall;
-        MPI_Allreduce(&fdotf,&fdotfall,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
-      }
+      // bugfix for multiprocess replicas
+      MPI_Allreduce(&fdotf,&fdotfall,1,MPI_DOUBLE,MPI_SUM,mpi_comm);
 
       if (ABCFLAG) {
         // limit the value of alpha to avoid divergence of abcfire
-        if (alpha < 1e-10) {
-          alpha=1e-10;
-        }
+        if (alpha < 1e-10) alpha=1e-10;
 
         // calculate the factor abc, used for abcfire
         abc = (1.0-pow(1.0-alpha, (double)(ntimestep-last_negative)));
@@ -364,22 +346,14 @@ template <int INTEGRATOR, bool ABCFLAG> int MinFire::run_iterate(int maxiter)
         if (dtvone*vmax > dmax) dtvone = dmax/vmax;
       }
     }
-
-    MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
+    // bugfix for multiprocess replicas
+    MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,mpi_comm);
 
     // reset velocities when necessary
 
     if (flagv0) {
       for (int i = 0; i < nlocal; i++)
         v[i][0] = v[i][1] = v[i][2] = 0.0;
-    }
-
-    // min dtv over replicas, if necessary
-    // this communicator would be invalid for multiprocess replicas
-
-    if (update->multireplica == 1) {
-      dtvone = dtv;
-      MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,universe->uworld);
     }
 
     // Adapt to requested integration style for dynamics

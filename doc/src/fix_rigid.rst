@@ -45,17 +45,38 @@ fix rigid/small command
 
 Accelerator Variants: *rigid/small/omp*
 
+.. versionadded:: TBD
+
+    Accelerator Variants: *rigid/small/kk*
+
 fix rigid/nve/small command
 ===========================
+
+.. versionadded:: TBD
+
+    Accelerator Variants: *rigid/nve/small/kk*
 
 fix rigid/nvt/small command
 ===========================
 
+.. versionadded:: TBD
+
+    Accelerator Variants: *rigid/nvt/small/kk*
+
 fix rigid/npt/small command
 ===========================
 
+.. versionadded:: TBD
+
+    Accelerator Variants: *rigid/npt/small/kk*
+
 fix rigid/nph/small command
 ===========================
+
+.. versionadded:: TBD
+
+    Accelerator Variants: *rigid/nph/small/kk*
+
 
 Syntax
 """"""

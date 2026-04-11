@@ -49,6 +49,10 @@ void MinFireKokkos::init() {
   alpha = alpha0;
   last_negative = ntimestep_start = update->ntimestep;
   vdotf_negatif = 0;
+
+  // bugfix for multiprocess replicas
+  if (update->multireplica == 1) mpi_comm = universe->uworld;
+  else mpi_comm = world;
 }
 
 void MinFireKokkos::setup_style() {

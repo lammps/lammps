@@ -33,15 +33,13 @@ class MinFire : public Min {
   void reset_vectors() override;
   int iterate(int) override;
 
- protected:
-  MPI_Comm mpi_comm;
-
  private:
   double dt, dtmax, dtmin;
   double alpha;
   bigint last_negative, ntimestep_start;
   int vdotf_negatif, flagv0;
   template <int INTEGRATOR, bool ABCFLAG> int run_iterate(int);
+  MPI_Comm mpi_comm;
 };
 
 }    // namespace LAMMPS_NS

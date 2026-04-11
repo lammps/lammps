@@ -13,9 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mitch Murphy (alphataubio@gmail.com)
-   references: Kamberaj et al., J. Chem. Phys. 122, 224114 (2005)
-               Miller et al., J Chem Phys. 116, 8649-8659 (2002)
+   Contributing author: Mitch Murphy (alphataubio at gmail)
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_npt_small_kokkos.h"

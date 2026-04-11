@@ -32,10 +32,10 @@ namespace LAMMPS_NS {
 struct TagRigidSmallInitialIntegrate {};
 struct TagRigidSmallFinalIntegrate {};
 
-template<int TRICLINIC, int EVFLAG>
+template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
 struct TagRigidSmallSetXV {};
 
-template<int TRICLINIC, int EVFLAG>
+template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
 struct TagRigidSmallSetV {};
 
 struct TagRigidSmallComputeForcesTorquesZero {};
@@ -48,8 +48,7 @@ class FixRigidSmallKokkos : public FixRigidSmall {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  typedef double value_type[];
-  const int value_count = 6;
+  typedef EV_FLOAT value_type;
 
   FixRigidSmallKokkos(class LAMMPS *, int, char **);
   ~FixRigidSmallKokkos() override;
@@ -78,19 +77,31 @@ class FixRigidSmallKokkos : public FixRigidSmall {
   void zero_momentum() override;
   void zero_rotation() override;
 
+  double compute_scalar() override;
+
+  void grow_body() override;
+
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRigidSmallInitialIntegrate, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRigidSmallFinalIntegrate, const int&) const;
 
-  template<int TRICLINIC, int EVFLAG>
+  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSmallSetXV<TRICLINIC,EVFLAG>, const int&, value_type) const;
+  void operator()(TagRigidSmallSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
 
-  template<int TRICLINIC, int EVFLAG>
+  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSmallSetV<TRICLINIC,EVFLAG>, const int&, value_type) const;
+  void operator()(TagRigidSmallSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT &) const;
+
+  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSmallSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
+
+  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSmallSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT &) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRigidSmallComputeForcesTorquesZero, const int&) const;
@@ -115,15 +126,28 @@ class FixRigidSmallKokkos : public FixRigidSmall {
   DAT::tdual_tagint_1d k_bodytag;
   DAT::tdual_int_1d k_atom2body;
   DAT::tdual_imageint_1d k_xcmimage;
-  DAT::tdual_float_2d k_displace;
+  DAT::tdual_kkfloat_2d k_displace;
   DAT::tdual_int_1d k_eflags;
 
   typename AT::t_int_1d d_bodyown;
   typename AT::t_tagint_1d d_bodytag;
   typename AT::t_int_1d d_atom2body;
   typename AT::t_imageint_1d d_xcmimage;
-  typename AT::t_float_2d d_displace;
+  typename AT::t_kkfloat_2d d_displace;
   typename AT::t_int_1d d_eflags;
+
+  using KKDeviceType = typename KKDevice<DeviceType>::value;
+
+  template<typename DataType, typename Layout>
+  using DupScatterView =
+      KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterDuplicated>;
+
+  template<typename DataType, typename Layout>
+  using NonDupScatterView =
+      KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
+
+  DupScatterView<KK_ACC_FLOAT *[6], typename AT::t_kkacc_1d_6::array_layout> dup_vatom;
+  NonDupScatterView<KK_ACC_FLOAT *[6], typename AT::t_kkacc_1d_6::array_layout> ndup_vatom;
 
   typename AT::t_kkfloat_1d_3_lr d_x;
   typename AT::t_kkfloat_1d_3 d_v;
@@ -134,8 +158,10 @@ class FixRigidSmallKokkos : public FixRigidSmall {
   typename AT::t_int_1d d_mask;
   typename AT::t_imageint_1d d_image;
 
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_virial_array d_vatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
   Few<double,3> d_prd;
   Few<double,6> d_h;
@@ -158,5 +184,5 @@ class FixRigidSmallKokkos : public FixRigidSmall {
 
 }    // namespace LAMMPS_NS
 
-#endif
+#endif // !LMP_FIX_RIGID_SMALL_KOKKOS_H
 #endif

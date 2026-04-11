@@ -80,6 +80,19 @@ namespace MathExtraKokkos {
 
   KOKKOS_INLINE_FUNCTION void mq_to_omega(KK_FLOAT *m, double *q, KK_FLOAT *moments, KK_FLOAT *w);
   KOKKOS_INLINE_FUNCTION void quat_to_mat(const double *quat, KK_FLOAT mat[3][3]);
+
+  KOKKOS_INLINE_FUNCTION void q_to_exyz(const double *q, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez);
+  KOKKOS_INLINE_FUNCTION void quatvec(const double *a, const KK_FLOAT *b, KK_FLOAT *c);
+  KOKKOS_INLINE_FUNCTION void invquatvec(const double *a, const KK_FLOAT *b, KK_FLOAT *c);
+  KOKKOS_INLINE_FUNCTION void quatquat(const double *a, const double *b, double *c);
+  KOKKOS_INLINE_FUNCTION void no_squish_rotate(int k, double *p, double *q,
+                                               const KK_FLOAT *inertia, KK_FLOAT dt);
+  KOKKOS_INLINE_FUNCTION void angmom_to_omega(const KK_FLOAT *m, const KK_FLOAT *ex,
+                                              const KK_FLOAT *ey, const KK_FLOAT *ez,
+                                              const KK_FLOAT *idiag, KK_FLOAT *w);
+  KOKKOS_INLINE_FUNCTION void omega_to_angmom(const KK_FLOAT *w, const KK_FLOAT *ex,
+                                              const KK_FLOAT *ey, const KK_FLOAT *ez,
+                                              const KK_FLOAT *idiag, KK_FLOAT *m);
 }
 
 /* ----------------------------------------------------------------------
@@ -607,6 +620,146 @@ void MathExtraKokkos::quat_to_mat(const double *quat, KK_FLOAT mat[3][3])
   mat[2][0] = twoik-twojw;
   mat[2][1] = twojk+twoiw;
   mat[2][2] = w2-i2-j2+k2;
+}
+
+/* ----------------------------------------------------------------------
+   quaternion to body-frame axes (column vectors of rotation matrix)
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::q_to_exyz(const double *q, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez)
+{
+  ex[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
+  ex[1] = 2.0 * (q[1]*q[2] + q[0]*q[3]);
+  ex[2] = 2.0 * (q[1]*q[3] - q[0]*q[2]);
+
+  ey[0] = 2.0 * (q[1]*q[2] - q[0]*q[3]);
+  ey[1] = q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3];
+  ey[2] = 2.0 * (q[2]*q[3] + q[0]*q[1]);
+
+  ez[0] = 2.0 * (q[1]*q[3] + q[0]*q[2]);
+  ez[1] = 2.0 * (q[2]*q[3] - q[0]*q[1]);
+  ez[2] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
+}
+
+/* ----------------------------------------------------------------------
+   quaternion-vector multiply: c = a*b, where b = (0,b)
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::quatvec(const double *a, const KK_FLOAT *b, KK_FLOAT *c)
+{
+  c[0] = -a[1]*b[0] - a[2]*b[1] - a[3]*b[2];
+  c[1] =  a[0]*b[0] + a[2]*b[2] - a[3]*b[1];
+  c[2] =  a[0]*b[1] + a[3]*b[0] - a[1]*b[2];
+  c[3] =  a[0]*b[2] + a[1]*b[1] - a[2]*b[0];
+}
+
+/* ----------------------------------------------------------------------
+   inverse-quaternion-vector multiply: c = inv(a)*b
+   a is a quaternion, b is a four-component vector, c is three-component
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::invquatvec(const double *a, const KK_FLOAT *b, KK_FLOAT *c)
+{
+  c[0] = -a[1]*b[0] + a[0]*b[1] + a[3]*b[2] - a[2]*b[3];
+  c[1] = -a[2]*b[0] - a[3]*b[1] + a[0]*b[2] + a[1]*b[3];
+  c[2] = -a[3]*b[0] + a[2]*b[1] - a[1]*b[2] + a[0]*b[3];
+}
+
+/* ----------------------------------------------------------------------
+   quaternion-quaternion multiply: c = a*b
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::quatquat(const double *a, const double *b, double *c)
+{
+  c[0] = a[0]*b[0] - a[1]*b[1] - a[2]*b[2] - a[3]*b[3];
+  c[1] = a[0]*b[1] + b[0]*a[1] + a[2]*b[3] - a[3]*b[2];
+  c[2] = a[0]*b[2] + b[0]*a[2] + a[3]*b[1] - a[1]*b[3];
+  c[3] = a[0]*b[3] + b[0]*a[3] + a[1]*b[2] - a[2]*b[1];
+}
+
+/* ----------------------------------------------------------------------
+   no-squish rotation for NH quaternion integration
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::no_squish_rotate(int k, double *p, double *q,
+                                       const KK_FLOAT *inertia, KK_FLOAT dt)
+{
+  KK_FLOAT phi,c_phi,s_phi;
+  KK_FLOAT kp[4],kq[4];
+
+  if (k == 1) {
+    kq[0] = -q[1];  kp[0] = -p[1];
+    kq[1] =  q[0];  kp[1] =  p[0];
+    kq[2] =  q[3];  kp[2] =  p[3];
+    kq[3] = -q[2];  kp[3] = -p[2];
+  } else if (k == 2) {
+    kq[0] = -q[2];  kp[0] = -p[2];
+    kq[1] = -q[3];  kp[1] = -p[3];
+    kq[2] =  q[0];  kp[2] =  p[0];
+    kq[3] =  q[1];  kp[3] =  p[1];
+  } else if (k == 3) {
+    kq[0] = -q[3];  kp[0] = -p[3];
+    kq[1] =  q[2];  kp[1] =  p[2];
+    kq[2] = -q[1];  kp[2] = -p[1];
+    kq[3] =  q[0];  kp[3] =  p[0];
+  }
+
+  phi = p[0]*kq[0] + p[1]*kq[1] + p[2]*kq[2] + p[3]*kq[3];
+  if (inertia[k-1] == 0.0) phi = 0.0;
+  else phi /= 4.0 * inertia[k-1];
+  c_phi = cos(dt * phi);
+  s_phi = sin(dt * phi);
+
+  p[0] = c_phi*p[0] + s_phi*kp[0];
+  p[1] = c_phi*p[1] + s_phi*kp[1];
+  p[2] = c_phi*p[2] + s_phi*kp[2];
+  p[3] = c_phi*p[3] + s_phi*kp[3];
+
+  q[0] = c_phi*q[0] + s_phi*kq[0];
+  q[1] = c_phi*q[1] + s_phi*kq[1];
+  q[2] = c_phi*q[2] + s_phi*kq[2];
+  q[3] = c_phi*q[3] + s_phi*kq[3];
+}
+
+/* ----------------------------------------------------------------------
+   angular momentum to omega via body-frame axes
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::angmom_to_omega(const KK_FLOAT *m, const KK_FLOAT *ex,
+                                      const KK_FLOAT *ey, const KK_FLOAT *ez,
+                                      const KK_FLOAT *idiag, KK_FLOAT *w)
+{
+  KK_FLOAT wbody[3];
+
+  if (idiag[0] == 0.0) wbody[0] = 0.0;
+  else wbody[0] = (m[0]*ex[0] + m[1]*ex[1] + m[2]*ex[2]) / idiag[0];
+  if (idiag[1] == 0.0) wbody[1] = 0.0;
+  else wbody[1] = (m[0]*ey[0] + m[1]*ey[1] + m[2]*ey[2]) / idiag[1];
+  if (idiag[2] == 0.0) wbody[2] = 0.0;
+  else wbody[2] = (m[0]*ez[0] + m[1]*ez[1] + m[2]*ez[2]) / idiag[2];
+
+  w[0] = wbody[0]*ex[0] + wbody[1]*ey[0] + wbody[2]*ez[0];
+  w[1] = wbody[0]*ex[1] + wbody[1]*ey[1] + wbody[2]*ez[1];
+  w[2] = wbody[0]*ex[2] + wbody[1]*ey[2] + wbody[2]*ez[2];
+}
+
+/* ----------------------------------------------------------------------
+   omega to angular momentum via body-frame axes
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::omega_to_angmom(const KK_FLOAT *w, const KK_FLOAT *ex,
+                                      const KK_FLOAT *ey, const KK_FLOAT *ez,
+                                      const KK_FLOAT *idiag, KK_FLOAT *m)
+{
+  KK_FLOAT mbody[3];
+
+  mbody[0] = (w[0]*ex[0] + w[1]*ex[1] + w[2]*ex[2]) * idiag[0];
+  mbody[1] = (w[0]*ey[0] + w[1]*ey[1] + w[2]*ey[2]) * idiag[1];
+  mbody[2] = (w[0]*ez[0] + w[1]*ez[1] + w[2]*ez[2]) * idiag[2];
+
+  m[0] = mbody[0]*ex[0] + mbody[1]*ey[0] + mbody[2]*ez[0];
+  m[1] = mbody[0]*ex[1] + mbody[1]*ey[1] + mbody[2]*ez[1];
+  m[2] = mbody[0]*ex[2] + mbody[1]*ey[2] + mbody[2]*ez[2];
 }
 
 #endif

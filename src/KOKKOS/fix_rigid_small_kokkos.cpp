@@ -562,26 +562,40 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidSmallSetXV<TRICLINIC,NE
   }
   KK_FLOAT xnew[3];
   MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, &d_displace(i, 0), xnew);
-  d_v(i,0) = Kokkos::fma(bk.omega[1], xnew[2], Kokkos::fma(-bk.omega[2], xnew[1], bk.vcm[0]));
-  d_v(i,1) = Kokkos::fma(bk.omega[2], xnew[0], Kokkos::fma(-bk.omega[0], xnew[2], bk.vcm[1]));
-  d_v(i,2) = Kokkos::fma(bk.omega[0], xnew[1], Kokkos::fma(-bk.omega[1], xnew[0], bk.vcm[2]));
-  d_x(i,0) = xnew[0] + bk.xcm[0] - deltax;
-  d_x(i,1) = xnew[1] + bk.xcm[1] - deltay;
-  d_x(i,2) = xnew[2] + bk.xcm[2] - deltaz;
-
   if constexpr (EVFLAG) {
+    // Compute v_new in KK_ACC_FLOAT before truncating to KK_FLOAT for storage.
+    // Using the pre-truncation value for the constraint-force virial avoids
+    // one extra float rounding in v_new - v_old.
+    const KK_ACC_FLOAT vnew0 = Kokkos::fma(KK_ACC_FLOAT(bk.omega[1]), KK_ACC_FLOAT(xnew[2]),
+                               Kokkos::fma(KK_ACC_FLOAT(-bk.omega[2]), KK_ACC_FLOAT(xnew[1]),
+                               KK_ACC_FLOAT(bk.vcm[0])));
+    const KK_ACC_FLOAT vnew1 = Kokkos::fma(KK_ACC_FLOAT(bk.omega[2]), KK_ACC_FLOAT(xnew[0]),
+                               Kokkos::fma(KK_ACC_FLOAT(-bk.omega[0]), KK_ACC_FLOAT(xnew[2]),
+                               KK_ACC_FLOAT(bk.vcm[1])));
+    const KK_ACC_FLOAT vnew2 = Kokkos::fma(KK_ACC_FLOAT(bk.omega[0]), KK_ACC_FLOAT(xnew[1]),
+                               Kokkos::fma(KK_ACC_FLOAT(-bk.omega[1]), KK_ACC_FLOAT(xnew[0]),
+                               KK_ACC_FLOAT(bk.vcm[2])));
+    d_v(i,0) = KK_FLOAT(vnew0);
+    d_v(i,1) = KK_FLOAT(vnew1);
+    d_v(i,2) = KK_FLOAT(vnew2);
+    d_x(i,0) = xnew[0] + bk.xcm[0] - deltax;
+    d_x(i,1) = xnew[1] + bk.xcm[1] - deltay;
+    d_x(i,2) = xnew[2] + bk.xcm[2] - deltaz;
     KK_FLOAT massone;
     if (d_rmass.data()) massone = d_rmass(i);
     else massone = d_mass(d_type(i));
-    const KK_FLOAT fc0 = 0.5*(massone*(d_v(i,0) - vx)/dtf - d_f(i,0));
-    const KK_FLOAT fc1 = 0.5*(massone*(d_v(i,1) - vy)/dtf - d_f(i,1));
-    const KK_FLOAT fc2 = 0.5*(massone*(d_v(i,2) - vz)/dtf - d_f(i,2));
-    const KK_ACC_FLOAT vd00 = static_cast<KK_ACC_FLOAT>(x0*fc0);
-    const KK_ACC_FLOAT vd11 = static_cast<KK_ACC_FLOAT>(x1*fc1);
-    const KK_ACC_FLOAT vd22 = static_cast<KK_ACC_FLOAT>(x2*fc2);
-    const KK_ACC_FLOAT vd01 = static_cast<KK_ACC_FLOAT>(x0*fc1);
-    const KK_ACC_FLOAT vd02 = static_cast<KK_ACC_FLOAT>(x0*fc2);
-    const KK_ACC_FLOAT vd12 = static_cast<KK_ACC_FLOAT>(x1*fc2);
+    // vx, vy, vz are double; subtract pre-truncation vnew* to eliminate
+    // the double-rounding that would occur by reading back d_v after the store.
+    const KK_ACC_FLOAT half_m_dt = KK_ACC_FLOAT(0.5) * KK_ACC_FLOAT(massone) / KK_ACC_FLOAT(dtf);
+    const KK_ACC_FLOAT fc0 = Kokkos::fma(half_m_dt, vnew0 - vx, KK_ACC_FLOAT(-0.5)*KK_ACC_FLOAT(d_f(i,0)));
+    const KK_ACC_FLOAT fc1 = Kokkos::fma(half_m_dt, vnew1 - vy, KK_ACC_FLOAT(-0.5)*KK_ACC_FLOAT(d_f(i,1)));
+    const KK_ACC_FLOAT fc2 = Kokkos::fma(half_m_dt, vnew2 - vz, KK_ACC_FLOAT(-0.5)*KK_ACC_FLOAT(d_f(i,2)));
+    const KK_ACC_FLOAT vd00 = KK_ACC_FLOAT(x0)*fc0;
+    const KK_ACC_FLOAT vd11 = KK_ACC_FLOAT(x1)*fc1;
+    const KK_ACC_FLOAT vd22 = KK_ACC_FLOAT(x2)*fc2;
+    const KK_ACC_FLOAT vd01 = KK_ACC_FLOAT(x0)*fc1;
+    const KK_ACC_FLOAT vd02 = KK_ACC_FLOAT(x0)*fc2;
+    const KK_ACC_FLOAT vd12 = KK_ACC_FLOAT(x1)*fc2;
     if (vflag_global) {
       ev.v[0] += vd00;
       ev.v[1] += vd11;
@@ -601,6 +615,13 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidSmallSetXV<TRICLINIC,NE
       a_vatom(i,4) += vd02;
       a_vatom(i,5) += vd12;
     }
+  } else {
+    d_v(i,0) = Kokkos::fma(bk.omega[1], xnew[2], Kokkos::fma(-bk.omega[2], xnew[1], bk.vcm[0]));
+    d_v(i,1) = Kokkos::fma(bk.omega[2], xnew[0], Kokkos::fma(-bk.omega[0], xnew[2], bk.vcm[1]));
+    d_v(i,2) = Kokkos::fma(bk.omega[0], xnew[1], Kokkos::fma(-bk.omega[1], xnew[0], bk.vcm[2]));
+    d_x(i,0) = xnew[0] + bk.xcm[0] - deltax;
+    d_x(i,1) = xnew[1] + bk.xcm[1] - deltay;
+    d_x(i,2) = xnew[2] + bk.xcm[2] - deltaz;
   }
 }
 
@@ -731,39 +752,47 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidSmallSetV<TRICLINIC,NEI
   const BodyKokkos &bk = d_body[ibody];
   KK_FLOAT delta[3];
   MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, &d_displace(i, 0), delta);
-  KK_FLOAT vx = 0.0, vy = 0.0, vz = 0.0;
   if constexpr (EVFLAG) {
-    vx = d_v(i,0);
-    vy = d_v(i,1);
-    vz = d_v(i,2);
-  }
-  d_v(i,0) = Kokkos::fma(bk.omega[1], delta[2], Kokkos::fma(-bk.omega[2], delta[1], bk.vcm[0]));
-  d_v(i,1) = Kokkos::fma(bk.omega[2], delta[0], Kokkos::fma(-bk.omega[0], delta[2], bk.vcm[1]));
-  d_v(i,2) = Kokkos::fma(bk.omega[0], delta[1], Kokkos::fma(-bk.omega[1], delta[0], bk.vcm[2]));
-
-  if constexpr (EVFLAG) {
+    // Save old velocity in KK_ACC_FLOAT before overwriting.
+    const KK_ACC_FLOAT vx = KK_ACC_FLOAT(d_v(i,0));
+    const KK_ACC_FLOAT vy = KK_ACC_FLOAT(d_v(i,1));
+    const KK_ACC_FLOAT vz = KK_ACC_FLOAT(d_v(i,2));
+    // Compute v_new in KK_ACC_FLOAT before truncating to KK_FLOAT for storage.
+    const KK_ACC_FLOAT vnew0 = Kokkos::fma(KK_ACC_FLOAT(bk.omega[1]), KK_ACC_FLOAT(delta[2]),
+                               Kokkos::fma(KK_ACC_FLOAT(-bk.omega[2]), KK_ACC_FLOAT(delta[1]),
+                               KK_ACC_FLOAT(bk.vcm[0])));
+    const KK_ACC_FLOAT vnew1 = Kokkos::fma(KK_ACC_FLOAT(bk.omega[2]), KK_ACC_FLOAT(delta[0]),
+                               Kokkos::fma(KK_ACC_FLOAT(-bk.omega[0]), KK_ACC_FLOAT(delta[2]),
+                               KK_ACC_FLOAT(bk.vcm[1])));
+    const KK_ACC_FLOAT vnew2 = Kokkos::fma(KK_ACC_FLOAT(bk.omega[0]), KK_ACC_FLOAT(delta[1]),
+                               Kokkos::fma(KK_ACC_FLOAT(-bk.omega[1]), KK_ACC_FLOAT(delta[0]),
+                               KK_ACC_FLOAT(bk.vcm[2])));
+    d_v(i,0) = KK_FLOAT(vnew0);
+    d_v(i,1) = KK_FLOAT(vnew1);
+    d_v(i,2) = KK_FLOAT(vnew2);
     KK_FLOAT massone;
     if (d_rmass.data()) massone = d_rmass(i);
     else massone = d_mass(d_type(i));
-    const KK_FLOAT fc0 = 0.5*(massone*(d_v(i,0) - vx)/dtf - d_f(i,0));
-    const KK_FLOAT fc1 = 0.5*(massone*(d_v(i,1) - vy)/dtf - d_f(i,1));
-    const KK_FLOAT fc2 = 0.5*(massone*(d_v(i,2) - vz)/dtf - d_f(i,2));
+    const KK_ACC_FLOAT half_m_dt = KK_ACC_FLOAT(0.5) * KK_ACC_FLOAT(massone) / KK_ACC_FLOAT(dtf);
+    const KK_ACC_FLOAT fc0 = Kokkos::fma(half_m_dt, vnew0 - vx, KK_ACC_FLOAT(-0.5)*KK_ACC_FLOAT(d_f(i,0)));
+    const KK_ACC_FLOAT fc1 = Kokkos::fma(half_m_dt, vnew1 - vy, KK_ACC_FLOAT(-0.5)*KK_ACC_FLOAT(d_f(i,1)));
+    const KK_ACC_FLOAT fc2 = Kokkos::fma(half_m_dt, vnew2 - vz, KK_ACC_FLOAT(-0.5)*KK_ACC_FLOAT(d_f(i,2)));
     const int xbox = (d_xcmimage(i) & IMGMASK) - IMGMAX;
     const int ybox = (d_xcmimage(i) >> IMGBITS & IMGMASK) - IMGMAX;
     const int zbox = (d_xcmimage(i) >> IMG2BITS) - IMGMAX;
-    const KK_FLOAT x0 = TRICLINIC
-      ? Kokkos::fma(KK_FLOAT(xbox), d_prd[0], Kokkos::fma(KK_FLOAT(ybox), d_h[5], Kokkos::fma(KK_FLOAT(zbox), d_h[4], d_x(i,0))))
-      : Kokkos::fma(KK_FLOAT(xbox), d_prd[0], d_x(i,0));
-    const KK_FLOAT x1 = TRICLINIC
-      ? Kokkos::fma(KK_FLOAT(ybox), d_prd[1], Kokkos::fma(KK_FLOAT(zbox), d_h[3], d_x(i,1)))
-      : Kokkos::fma(KK_FLOAT(ybox), d_prd[1], d_x(i,1));
-    const KK_FLOAT x2 = Kokkos::fma(KK_FLOAT(zbox), d_prd[2], d_x(i,2));
-    const KK_ACC_FLOAT vd00 = static_cast<KK_ACC_FLOAT>(x0*fc0);
-    const KK_ACC_FLOAT vd11 = static_cast<KK_ACC_FLOAT>(x1*fc1);
-    const KK_ACC_FLOAT vd22 = static_cast<KK_ACC_FLOAT>(x2*fc2);
-    const KK_ACC_FLOAT vd01 = static_cast<KK_ACC_FLOAT>(x0*fc1);
-    const KK_ACC_FLOAT vd02 = static_cast<KK_ACC_FLOAT>(x0*fc2);
-    const KK_ACC_FLOAT vd12 = static_cast<KK_ACC_FLOAT>(x1*fc2);
+    const KK_ACC_FLOAT x0 = TRICLINIC
+      ? Kokkos::fma(KK_ACC_FLOAT(xbox), KK_ACC_FLOAT(d_prd[0]), Kokkos::fma(KK_ACC_FLOAT(ybox), KK_ACC_FLOAT(d_h[5]), Kokkos::fma(KK_ACC_FLOAT(zbox), KK_ACC_FLOAT(d_h[4]), KK_ACC_FLOAT(d_x(i,0)))))
+      : Kokkos::fma(KK_ACC_FLOAT(xbox), KK_ACC_FLOAT(d_prd[0]), KK_ACC_FLOAT(d_x(i,0)));
+    const KK_ACC_FLOAT x1 = TRICLINIC
+      ? Kokkos::fma(KK_ACC_FLOAT(ybox), KK_ACC_FLOAT(d_prd[1]), Kokkos::fma(KK_ACC_FLOAT(zbox), KK_ACC_FLOAT(d_h[3]), KK_ACC_FLOAT(d_x(i,1))))
+      : Kokkos::fma(KK_ACC_FLOAT(ybox), KK_ACC_FLOAT(d_prd[1]), KK_ACC_FLOAT(d_x(i,1)));
+    const KK_ACC_FLOAT x2 = Kokkos::fma(KK_ACC_FLOAT(zbox), KK_ACC_FLOAT(d_prd[2]), KK_ACC_FLOAT(d_x(i,2)));
+    const KK_ACC_FLOAT vd00 = x0*fc0;
+    const KK_ACC_FLOAT vd11 = x1*fc1;
+    const KK_ACC_FLOAT vd22 = x2*fc2;
+    const KK_ACC_FLOAT vd01 = x0*fc1;
+    const KK_ACC_FLOAT vd02 = x0*fc2;
+    const KK_ACC_FLOAT vd12 = x1*fc2;
 
     if (vflag_global) {
       ev.v[0] += vd00;
@@ -785,6 +814,10 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidSmallSetV<TRICLINIC,NEI
       a_vatom(i,4) += vd02;
       a_vatom(i,5) += vd12;
     }
+  } else {
+    d_v(i,0) = Kokkos::fma(bk.omega[1], delta[2], Kokkos::fma(-bk.omega[2], delta[1], bk.vcm[0]));
+    d_v(i,1) = Kokkos::fma(bk.omega[2], delta[0], Kokkos::fma(-bk.omega[0], delta[2], bk.vcm[1]));
+    d_v(i,2) = Kokkos::fma(bk.omega[0], delta[1], Kokkos::fma(-bk.omega[1], delta[0], bk.vcm[2]));
   }
 }
 

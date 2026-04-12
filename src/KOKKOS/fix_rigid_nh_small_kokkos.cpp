@@ -1457,12 +1457,6 @@ void FixRigidNHSmallKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, do
 }
 
 template<class DeviceType>
-void FixRigidNHSmallKokkos<DeviceType>::reset_dt()
-{
-  FixRigidSmall::reset_dt();
-}
-
-template<class DeviceType>
 double FixRigidNHSmallKokkos<DeviceType>::compute_scalar()
 {
   k_body.sync_host();

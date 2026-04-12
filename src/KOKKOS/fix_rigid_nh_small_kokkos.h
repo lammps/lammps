@@ -66,12 +66,9 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
 
-  void reset_dt() override;
   void zero_momentum() override;
   void zero_rotation() override;
-
   double compute_scalar() override;
-
   void grow_body() override;
 
   KOKKOS_INLINE_FUNCTION

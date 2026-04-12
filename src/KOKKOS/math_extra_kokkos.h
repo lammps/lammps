@@ -69,7 +69,8 @@ namespace MathExtraKokkos {
   KOKKOS_INLINE_FUNCTION void vecmat(const KK_FLOAT *v, const KK_FLOAT m[3][3], KK_FLOAT *ans);
   KOKKOS_INLINE_FUNCTION void scalar_times3(const KK_FLOAT f, KK_FLOAT m[3][3]);
 
-  KOKKOS_INLINE_FUNCTION void richardson(double *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *moments, KK_FLOAT dtq);
+  template <typename T>
+  KOKKOS_INLINE_FUNCTION void richardson(T *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *moments, KK_FLOAT dtq);
 
   // quaternion operations
   KOKKOS_INLINE_FUNCTION void qnormalize(double *q);
@@ -81,11 +82,19 @@ namespace MathExtraKokkos {
   KOKKOS_INLINE_FUNCTION void mq_to_omega(KK_FLOAT *m, double *q, KK_FLOAT *moments, KK_FLOAT *w);
   KOKKOS_INLINE_FUNCTION void quat_to_mat(const double *quat, KK_FLOAT mat[3][3]);
 
-  KOKKOS_INLINE_FUNCTION void q_to_exyz(const double *q, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez);
-  KOKKOS_INLINE_FUNCTION void quatvec(const double *a, const KK_FLOAT *b, KK_FLOAT *c);
-  KOKKOS_INLINE_FUNCTION void invquatvec(const double *a, const KK_FLOAT *b, KK_FLOAT *c);
+  template <typename T>
+  KOKKOS_INLINE_FUNCTION void q_to_exyz(const T *q, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez);
+
+  template <typename T>
+  KOKKOS_INLINE_FUNCTION void quatvec(const T *a, const KK_FLOAT *b, KK_FLOAT *c);
+
+  template <typename T>
+  KOKKOS_INLINE_FUNCTION void invquatvec(const T *a, const KK_FLOAT *b, KK_FLOAT *c);
+
   KOKKOS_INLINE_FUNCTION void quatquat(const double *a, const double *b, double *c);
-  KOKKOS_INLINE_FUNCTION void no_squish_rotate(int k, double *p, double *q,
+
+  template <typename T>
+  KOKKOS_INLINE_FUNCTION void no_squish_rotate(int k, T *p, T *q,
                                                const KK_FLOAT *inertia, KK_FLOAT dt);
   KOKKOS_INLINE_FUNCTION void angmom_to_omega(const KK_FLOAT *m, const KK_FLOAT *ex,
                                               const KK_FLOAT *ey, const KK_FLOAT *ez,
@@ -200,7 +209,7 @@ void MathExtraKokkos::sub3(const KK_FLOAT *v1, const KK_FLOAT *v2, KK_FLOAT *ans
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT MathExtraKokkos::len3(const KK_FLOAT *v)
 {
-  return sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+  return sqrt(lensq3(v));
 }
 
 /* ----------------------------------------------------------------------
@@ -210,7 +219,8 @@ KK_FLOAT MathExtraKokkos::len3(const KK_FLOAT *v)
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT MathExtraKokkos::lensq3(const KK_FLOAT *v)
 {
-  return v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
+  // v0^2 + v1^2 + v2^2
+  return Kokkos::fma(v[0], v[0], Kokkos::fma(v[1], v[1], v[2]*v[2]));
 }
 
 /* ----------------------------------------------------------------------
@@ -220,7 +230,8 @@ KK_FLOAT MathExtraKokkos::lensq3(const KK_FLOAT *v)
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT MathExtraKokkos::dot3(const KK_FLOAT *v1, const KK_FLOAT *v2)
 {
-  return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
+  // v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
+  return Kokkos::fma(v1[0], v2[0], Kokkos::fma(v1[1], v2[1], v1[2]*v2[2]));
 }
 
 /* ----------------------------------------------------------------------
@@ -466,8 +477,9 @@ void MathExtraKokkos::scalar_times3(const KK_FLOAT f, KK_FLOAT m[3][3])
    return new normalized quaternion q
    also returns updated omega at 1/2 step
 ------------------------------------------------------------------------- */
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::richardson(double *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *moments, KK_FLOAT dtq)
+void MathExtraKokkos::richardson(T *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *moments, KK_FLOAT dtq)
 {
   // full update from dq/dt = 1/2 w q
 
@@ -625,8 +637,9 @@ void MathExtraKokkos::quat_to_mat(const double *quat, KK_FLOAT mat[3][3])
 /* ----------------------------------------------------------------------
    quaternion to body-frame axes (column vectors of rotation matrix)
 ------------------------------------------------------------------------- */
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::q_to_exyz(const double *q, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez)
+void MathExtraKokkos::q_to_exyz(const T *q, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez)
 {
   ex[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
   ex[1] = 2.0 * (q[1]*q[2] + q[0]*q[3]);
@@ -644,8 +657,9 @@ void MathExtraKokkos::q_to_exyz(const double *q, KK_FLOAT *ex, KK_FLOAT *ey, KK_
 /* ----------------------------------------------------------------------
    quaternion-vector multiply: c = a*b, where b = (0,b)
 ------------------------------------------------------------------------- */
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::quatvec(const double *a, const KK_FLOAT *b, KK_FLOAT *c)
+void MathExtraKokkos::quatvec(const T *a, const KK_FLOAT *b, KK_FLOAT *c)
 {
   c[0] = -a[1]*b[0] - a[2]*b[1] - a[3]*b[2];
   c[1] =  a[0]*b[0] + a[2]*b[2] - a[3]*b[1];
@@ -657,8 +671,9 @@ void MathExtraKokkos::quatvec(const double *a, const KK_FLOAT *b, KK_FLOAT *c)
    inverse-quaternion-vector multiply: c = inv(a)*b
    a is a quaternion, b is a four-component vector, c is three-component
 ------------------------------------------------------------------------- */
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::invquatvec(const double *a, const KK_FLOAT *b, KK_FLOAT *c)
+void MathExtraKokkos::invquatvec(const T *a, const KK_FLOAT *b, KK_FLOAT *c)
 {
   c[0] = -a[1]*b[0] + a[0]*b[1] + a[3]*b[2] - a[2]*b[3];
   c[1] = -a[2]*b[0] - a[3]*b[1] + a[0]*b[2] + a[1]*b[3];
@@ -680,8 +695,9 @@ void MathExtraKokkos::quatquat(const double *a, const double *b, double *c)
 /* ----------------------------------------------------------------------
    no-squish rotation for NH quaternion integration
 ------------------------------------------------------------------------- */
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::no_squish_rotate(int k, double *p, double *q,
+void MathExtraKokkos::no_squish_rotate(int k, T *p, T *q,
                                        const KK_FLOAT *inertia, KK_FLOAT dt)
 {
   KK_FLOAT phi,c_phi,s_phi;
@@ -710,15 +726,15 @@ void MathExtraKokkos::no_squish_rotate(int k, double *p, double *q,
   c_phi = cos(dt * phi);
   s_phi = sin(dt * phi);
 
-  p[0] = c_phi*p[0] + s_phi*kp[0];
-  p[1] = c_phi*p[1] + s_phi*kp[1];
-  p[2] = c_phi*p[2] + s_phi*kp[2];
-  p[3] = c_phi*p[3] + s_phi*kp[3];
+  p[0] = Kokkos::fma(c_phi, p[0], s_phi*kp[0]);
+  p[1] = Kokkos::fma(c_phi, p[1], s_phi*kp[1]);
+  p[2] = Kokkos::fma(c_phi, p[2], s_phi*kp[2]);
+  p[3] = Kokkos::fma(c_phi, p[3], s_phi*kp[3]);
 
-  q[0] = c_phi*q[0] + s_phi*kq[0];
-  q[1] = c_phi*q[1] + s_phi*kq[1];
-  q[2] = c_phi*q[2] + s_phi*kq[2];
-  q[3] = c_phi*q[3] + s_phi*kq[3];
+  q[0] = Kokkos::fma(c_phi, q[0], s_phi*kq[0]);
+  q[1] = Kokkos::fma(c_phi, q[1], s_phi*kq[1]);
+  q[2] = Kokkos::fma(c_phi, q[2], s_phi*kq[2]);
+  q[3] = Kokkos::fma(c_phi, q[3], s_phi*kq[3]);
 }
 
 /* ----------------------------------------------------------------------
@@ -762,4 +778,4 @@ void MathExtraKokkos::omega_to_angmom(const KK_FLOAT *w, const KK_FLOAT *ex,
   m[2] = mbody[0]*ex[2] + mbody[1]*ey[2] + mbody[2]*ez[2];
 }
 
-#endif
+#endif // !LMP_MATH_EXTRA_KOKKOS_H

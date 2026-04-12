@@ -39,11 +39,7 @@ struct TagRigidSmallSetXV {};
 template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
 struct TagRigidSmallSetV {};
 
-struct TagRigidSmallComputeForcesTorquesZero {};
 struct TagRigidSmallComputeForcesTorques {};
-struct TagRigidSmallImageShift {};
-struct TagRigidSmallEnforce2d {};
-
 template<class DeviceType>
 class FixRigidSmallKokkos : public FixRigidSmall {
  public:
@@ -102,16 +98,7 @@ class FixRigidSmallKokkos : public FixRigidSmall {
   void operator()(TagRigidSmallSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT &) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSmallComputeForcesTorquesZero, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
   void operator()(TagRigidSmallComputeForcesTorques, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSmallImageShift, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSmallEnforce2d, const int&) const;
 
  protected:
   class AtomKokkos *atomKK;

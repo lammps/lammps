@@ -68,22 +68,7 @@ class FixRigidSmall : public Fix {
   double compute_scalar() override;
   double memory_usage() override;
 
- protected:
-  double dtv, dtf, dtq;
-  double *step_respa;
-  int triclinic;
-
-  char *inpfile;       // file to read rigid body attributes from
-  int setupflag;       // 1 if body properties are setup, else 0
-  int earlyflag;       // 1 if forces/torques are computed at post_force()
-  int commflag;        // various modes of forward/reverse comm
-  int customflag;      // 1 if custom property/variable define bodies
-  bigint nbody;        // total # of rigid bodies (supports >2^31)
-  int nlinear;         // total # of linear rigid bodies
-  tagint maxmol;       // max mol-ID
-  double maxextent;    // furthest distance from body owner to body atom
-
-  struct Body {
+    struct Body {
     int natoms;            // total number of atoms in body
     int ilocal;            // index of owning atom
     double mass;           // total mass of body
@@ -105,6 +90,21 @@ class FixRigidSmall : public Fix {
     imageint image;        // image flags of xcm
     imageint dummy;        // dummy entry for better alignment
   };
+
+ protected:
+  double dtv, dtf, dtq;
+  double *step_respa;
+  int triclinic;
+
+  char *inpfile;       // file to read rigid body attributes from
+  int setupflag;       // 1 if body properties are setup, else 0
+  int earlyflag;       // 1 if forces/torques are computed at post_force()
+  int commflag;        // various modes of forward/reverse comm
+  int customflag;      // 1 if custom property/variable define bodies
+  bigint nbody;        // total # of rigid bodies (supports >2^31)
+  int nlinear;         // total # of linear rigid bodies
+  tagint maxmol;       // max mol-ID
+  double maxextent;    // furthest distance from body owner to body atom
 
   Body *body;         // list of rigid bodies, owned and ghost
   int nlocal_body;    // # of owned rigid bodies

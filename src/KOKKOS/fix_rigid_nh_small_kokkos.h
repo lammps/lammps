@@ -17,6 +17,7 @@
 #include "fix_rigid_nh_small.h"
 #include "kokkos_type.h"
 #include "kokkos_few.h"
+#include "rigid_body_kokkos.hpp"
 
 namespace LAMMPS_NS {
 
@@ -115,14 +116,14 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
   class DomainKokkos *domainKK;
   ExecutionSpace execution_space;
 
-  Kokkos::DualView<Body*, Kokkos::LayoutRight, DeviceType> k_body;
-  typename Kokkos::DualView<Body*, Kokkos::LayoutRight, DeviceType>::t_dev d_body;
+  Kokkos::DualView<BodyKokkos *, Kokkos::LayoutRight, DeviceType> k_body;
+  typename Kokkos::DualView<BodyKokkos *, Kokkos::LayoutRight, DeviceType>::t_dev d_body;
 
   DAT::tdual_int_1d k_bodyown;
   DAT::tdual_tagint_1d k_bodytag;
   DAT::tdual_int_1d k_atom2body;
   DAT::tdual_imageint_1d k_xcmimage;
-  DAT::tdual_kkfloat_2d k_displace;
+  TransformView<KK_FLOAT **, double **, Kokkos::LayoutRight, DeviceType> k_displace;
   DAT::tdual_int_1d k_eflags;
 
   typename AT::t_int_1d d_bodyown;
@@ -171,6 +172,7 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
   void image_shift_kokkos();
   void grow_body_kokkos();
 
+  void sync_body_host();
   void sync_fix_data_device();
 
   template<int TRICLINIC, int EVFLAG>

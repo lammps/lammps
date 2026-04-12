@@ -41,6 +41,7 @@
 #include <cmath>
 #include <cstring>
 #include <type_traits>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -73,13 +74,29 @@ FixRigidNHSmallKokkos<DeviceType>::FixRigidNHSmallKokkos(LAMMPS *lmp, int narg, 
   memoryKK->destroy_kokkos(k_bodytag, bodytag);
   memoryKK->destroy_kokkos(k_atom2body, atom2body);
   memoryKK->destroy_kokkos(k_xcmimage, xcmimage);
-  memoryKK->destroy_kokkos(k_displace, displace);
+
+  {
+    double **old_displace = displace;
+    std::vector<double> displace_backup((bigint) nmax * 3);
+    for (int i = 0; i < nmax; i++)
+      for (int j = 0; j < 3; j++)
+        displace_backup[(bigint) i * 3 + j] = old_displace[i][j];
+    memory->destroy(displace);
+    k_displace =
+        TransformView<KK_FLOAT **, double **, Kokkos::LayoutRight, DeviceType>("rigid/small:displace", nmax, 3);
+    double *dh = const_cast<double *>(k_displace.view_host().data());
+    memcpy(dh, displace_backup.data(), displace_backup.size() * sizeof(double));
+    bigint nbytes = ((bigint) sizeof(double *)) * nmax;
+    displace = (double **) memory->smalloc(nbytes, "rigid/small:displace");
+    for (int i = 0; i < nmax; i++) displace[i] = &k_displace.view_host()(i, 0);
+    k_displace.modify_host();
+    k_displace.sync_device();
+  }
 
   memoryKK->create_kokkos(k_bodyown, bodyown, nmax, "rigid/small:bodyown");
   memoryKK->create_kokkos(k_bodytag, bodytag, nmax, "rigid/small:bodytag");
   memoryKK->create_kokkos(k_atom2body, atom2body, nmax, "rigid/small:atom2body");
   memoryKK->create_kokkos(k_xcmimage, xcmimage, nmax, "rigid/small:xcmimage");
-  memoryKK->create_kokkos(k_displace, displace, nmax, 3, "rigid/small:displace");
 
   if (nlocal > 0) {
     memcpy(bodyown, old_bodyown, nlocal * sizeof(int));
@@ -102,16 +119,10 @@ FixRigidNHSmallKokkos<DeviceType>::FixRigidNHSmallKokkos(LAMMPS *lmp, int narg, 
     d_eflags = k_eflags.template view<DeviceType>();
   }
 
-  k_body = Kokkos::DualView<Body*, Kokkos::LayoutRight, DeviceType>("rigid/small:body", nmax_body);
-  if (nlocal_body > 0) {
-    auto h_body = k_body.view_host();
-    auto src = Kokkos::View<Body*, Kokkos::LayoutRight, Kokkos::HostSpace>(body, nlocal_body);
-    Kokkos::deep_copy(Kokkos::subview(h_body, Kokkos::make_pair(0, nlocal_body)), src);
-    k_body.modify_host();
-  }
-  memory->sfree(body);
-  body = k_body.view_host().data();
-  d_body = k_body.view_device();
+  k_body = Kokkos::DualView<BodyKokkos *, Kokkos::LayoutRight, DeviceType>("rigid/small:body", nmax_body);
+  rigid_body_copy_kk_from_legacy_host(k_body, body, nmax_body);
+  k_body.sync_device();
+  d_body = k_body.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -125,7 +136,11 @@ FixRigidNHSmallKokkos<DeviceType>::~FixRigidNHSmallKokkos()
   memoryKK->destroy_kokkos(k_bodytag, bodytag);
   memoryKK->destroy_kokkos(k_atom2body, atom2body);
   memoryKK->destroy_kokkos(k_xcmimage, xcmimage);
-  memoryKK->destroy_kokkos(k_displace, displace);
+  if (displace) {
+    memory->sfree(displace);
+    displace = nullptr;
+  }
+  memoryKK->destroy_kokkos(k_displace);
   if (extended)
     memoryKK->destroy_kokkos(k_eflags, eflags);
 
@@ -133,9 +148,7 @@ FixRigidNHSmallKokkos<DeviceType>::~FixRigidNHSmallKokkos()
   bodytag = nullptr;
   atom2body = nullptr;
   xcmimage = nullptr;
-  displace = nullptr;
   eflags = nullptr;
-  body = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -426,69 +439,68 @@ KOKKOS_INLINE_FUNCTION
 void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHInitialIntegrate,
                                                     const int &ibody) const
 {
-  Body b = d_body[ibody];
-  KK_FLOAT dtfm, mbody[3], tbody[3], fquat[4];
+  BodyKokkos &bk = d_body[ibody];
+  KK_FLOAT mbody[3], tbody[3], fquat[4];
 
   // step 1.1 - update vcm by 1/2 step
-  dtfm = dtf / b.mass;
-  b.vcm[0] += dtfm * b.fcm[0];
-  b.vcm[1] += dtfm * b.fcm[1];
-  b.vcm[2] += dtfm * b.fcm[2];
+  const KK_FLOAT dtfm = dtf / bk.mass;
+  bk.vcm[0] += dtfm * bk.fcm[0];
+  bk.vcm[1] += dtfm * bk.fcm[1];
+  bk.vcm[2] += dtfm * bk.fcm[2];
 
   if (tstat_flag || pstat_flag) {
-    b.vcm[0] *= d_scale_t[0];
-    b.vcm[1] *= d_scale_t[1];
-    b.vcm[2] *= d_scale_t[2];
+    bk.vcm[0] *= d_scale_t[0];
+    bk.vcm[1] *= d_scale_t[1];
+    bk.vcm[2] *= d_scale_t[2];
   }
 
   // step 1.2 - update xcm by full step
   if (!pstat_flag) {
-    b.xcm[0] += dtv * b.vcm[0];
-    b.xcm[1] += dtv * b.vcm[1];
-    b.xcm[2] += dtv * b.vcm[2];
+    bk.xcm[0] += dtv * bk.vcm[0];
+    bk.xcm[1] += dtv * bk.vcm[1];
+    bk.xcm[2] += dtv * bk.vcm[2];
   } else {
-    b.xcm[0] += d_scale_v[0] * b.vcm[0];
-    b.xcm[1] += d_scale_v[1] * b.vcm[1];
-    b.xcm[2] += d_scale_v[2] * b.vcm[2];
+    bk.xcm[0] += d_scale_v[0] * bk.vcm[0];
+    bk.xcm[1] += d_scale_v[1] * bk.vcm[1];
+    bk.xcm[2] += d_scale_v[2] * bk.vcm[2];
   }
 
   // step 1.3 - apply torque to quaternion momentum
-  MathExtraKokkos::transpose_matvec(b.ex_space, b.ey_space, b.ez_space,
-                                    b.torque, tbody);
-  MathExtraKokkos::quatvec(b.quat, tbody, fquat);
+  MathExtraKokkos::transpose_matvec(bk.ex_space, bk.ey_space, bk.ez_space,
+                                    bk.torque, tbody);
+  MathExtraKokkos::quatvec(bk.quat, tbody, fquat);
 
-  b.conjqm[0] += d_dtf2 * fquat[0];
-  b.conjqm[1] += d_dtf2 * fquat[1];
-  b.conjqm[2] += d_dtf2 * fquat[2];
-  b.conjqm[3] += d_dtf2 * fquat[3];
+  bk.conjqm[0] += d_dtf2 * fquat[0];
+  bk.conjqm[1] += d_dtf2 * fquat[1];
+  bk.conjqm[2] += d_dtf2 * fquat[2];
+  bk.conjqm[3] += d_dtf2 * fquat[3];
 
   if (tstat_flag || pstat_flag) {
-    b.conjqm[0] *= d_scale_r;
-    b.conjqm[1] *= d_scale_r;
-    b.conjqm[2] *= d_scale_r;
-    b.conjqm[3] *= d_scale_r;
+    bk.conjqm[0] *= d_scale_r;
+    bk.conjqm[1] *= d_scale_r;
+    bk.conjqm[2] *= d_scale_r;
+    bk.conjqm[3] *= d_scale_r;
   }
 
   // step 1.4 to 1.13 - no_squish_rotate
-  MathExtraKokkos::no_squish_rotate(3, b.conjqm, b.quat, b.inertia, dtq);
-  MathExtraKokkos::no_squish_rotate(2, b.conjqm, b.quat, b.inertia, dtq);
-  MathExtraKokkos::no_squish_rotate(1, b.conjqm, b.quat, b.inertia, dtv);
-  MathExtraKokkos::no_squish_rotate(2, b.conjqm, b.quat, b.inertia, dtq);
-  MathExtraKokkos::no_squish_rotate(3, b.conjqm, b.quat, b.inertia, dtq);
+  MathExtraKokkos::no_squish_rotate(3, bk.conjqm, bk.quat, bk.inertia, dtq);
+  MathExtraKokkos::no_squish_rotate(2, bk.conjqm, bk.quat, bk.inertia, dtq);
+  MathExtraKokkos::no_squish_rotate(1, bk.conjqm, bk.quat, bk.inertia, dtv);
+  MathExtraKokkos::no_squish_rotate(2, bk.conjqm, bk.quat, bk.inertia, dtq);
+  MathExtraKokkos::no_squish_rotate(3, bk.conjqm, bk.quat, bk.inertia, dtq);
 
   // update exyz_space, transform p back to angmom, update omega
-  MathExtraKokkos::q_to_exyz(b.quat, b.ex_space, b.ey_space, b.ez_space);
-  MathExtraKokkos::invquatvec(b.quat, b.conjqm, mbody);
-  MathExtraKokkos::matvec(b.ex_space, b.ey_space, b.ez_space, mbody, b.angmom);
+  MathExtraKokkos::q_to_exyz(bk.quat, bk.ex_space, bk.ey_space, bk.ez_space);
+  MathExtraKokkos::invquatvec(bk.quat, bk.conjqm, mbody);
+  MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, mbody, bk.angmom);
 
-  b.angmom[0] *= 0.5;
-  b.angmom[1] *= 0.5;
-  b.angmom[2] *= 0.5;
+  bk.angmom[0] *= 0.5;
+  bk.angmom[1] *= 0.5;
+  bk.angmom[2] *= 0.5;
 
-  MathExtraKokkos::angmom_to_omega(b.angmom, b.ex_space, b.ey_space,
-                                   b.ez_space, b.inertia, b.omega);
+  MathExtraKokkos::angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
+                                   bk.ez_space, bk.inertia, bk.omega);
 
-  d_body[ibody] = b;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -640,47 +652,46 @@ KOKKOS_INLINE_FUNCTION
 void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHFinalIntegrate,
                                                     const int &ibody) const
 {
-  Body b = d_body[ibody];
-  KK_FLOAT dtfm, mbody[3], tbody[3], fquat[4];
+  BodyKokkos &bk = d_body[ibody];
+  KK_FLOAT mbody[3], tbody[3], fquat[4];
 
-  dtfm = dtf / b.mass;
+  const KK_FLOAT dtfm = dtf / bk.mass;
   if (tstat_flag || pstat_flag) {
-    b.vcm[0] *= d_scale_t[0];
-    b.vcm[1] *= d_scale_t[1];
-    b.vcm[2] *= d_scale_t[2];
+    bk.vcm[0] *= d_scale_t[0];
+    bk.vcm[1] *= d_scale_t[1];
+    bk.vcm[2] *= d_scale_t[2];
   }
 
-  b.vcm[0] += dtfm * b.fcm[0];
-  b.vcm[1] += dtfm * b.fcm[1];
-  b.vcm[2] += dtfm * b.fcm[2];
+  bk.vcm[0] += dtfm * bk.fcm[0];
+  bk.vcm[1] += dtfm * bk.fcm[1];
+  bk.vcm[2] += dtfm * bk.fcm[2];
 
-  MathExtraKokkos::transpose_matvec(b.ex_space, b.ey_space,
-                                    b.ez_space, b.torque, tbody);
-  MathExtraKokkos::quatvec(b.quat, tbody, fquat);
+  MathExtraKokkos::transpose_matvec(bk.ex_space, bk.ey_space,
+                                    bk.ez_space, bk.torque, tbody);
+  MathExtraKokkos::quatvec(bk.quat, tbody, fquat);
 
   if (tstat_flag || pstat_flag) {
-    b.conjqm[0] = d_scale_r * b.conjqm[0] + d_dtf2 * fquat[0];
-    b.conjqm[1] = d_scale_r * b.conjqm[1] + d_dtf2 * fquat[1];
-    b.conjqm[2] = d_scale_r * b.conjqm[2] + d_dtf2 * fquat[2];
-    b.conjqm[3] = d_scale_r * b.conjqm[3] + d_dtf2 * fquat[3];
+    bk.conjqm[0] = d_scale_r * bk.conjqm[0] + d_dtf2 * fquat[0];
+    bk.conjqm[1] = d_scale_r * bk.conjqm[1] + d_dtf2 * fquat[1];
+    bk.conjqm[2] = d_scale_r * bk.conjqm[2] + d_dtf2 * fquat[2];
+    bk.conjqm[3] = d_scale_r * bk.conjqm[3] + d_dtf2 * fquat[3];
   } else {
-    b.conjqm[0] += d_dtf2 * fquat[0];
-    b.conjqm[1] += d_dtf2 * fquat[1];
-    b.conjqm[2] += d_dtf2 * fquat[2];
-    b.conjqm[3] += d_dtf2 * fquat[3];
+    bk.conjqm[0] += d_dtf2 * fquat[0];
+    bk.conjqm[1] += d_dtf2 * fquat[1];
+    bk.conjqm[2] += d_dtf2 * fquat[2];
+    bk.conjqm[3] += d_dtf2 * fquat[3];
   }
 
-  MathExtraKokkos::invquatvec(b.quat, b.conjqm, mbody);
-  MathExtraKokkos::matvec(b.ex_space, b.ey_space, b.ez_space, mbody, b.angmom);
+  MathExtraKokkos::invquatvec(bk.quat, bk.conjqm, mbody);
+  MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, mbody, bk.angmom);
 
-  b.angmom[0] *= 0.5;
-  b.angmom[1] *= 0.5;
-  b.angmom[2] *= 0.5;
+  bk.angmom[0] *= 0.5;
+  bk.angmom[1] *= 0.5;
+  bk.angmom[2] *= 0.5;
 
-  MathExtraKokkos::angmom_to_omega(b.angmom, b.ex_space, b.ey_space,
-                                   b.ez_space, b.inertia, b.omega);
+  MathExtraKokkos::angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
+                                   bk.ez_space, bk.inertia, bk.omega);
 
-  d_body[ibody] = b;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -692,11 +703,11 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHAccumKE,
                                                     double &akin_t_local,
                                                     double &akin_r_local) const
 {
-  const Body &b = d_body[ibody];
-  akin_t_local += b.mass*(b.vcm[0]*b.vcm[0] + b.vcm[1]*b.vcm[1] +
-    b.vcm[2]*b.vcm[2]);
-  akin_r_local += b.angmom[0]*b.omega[0] + b.angmom[1]*b.omega[1] +
-    b.angmom[2]*b.omega[2];
+  const BodyKokkos &bk = d_body[ibody];
+  akin_t_local += bk.mass*(bk.vcm[0]*bk.vcm[0] + bk.vcm[1]*bk.vcm[1] +
+    bk.vcm[2]*bk.vcm[2]);
+  akin_r_local += bk.angmom[0]*bk.omega[0] + bk.angmom[1]*bk.omega[1] +
+    bk.angmom[2]*bk.omega[2];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -852,10 +863,9 @@ KOKKOS_INLINE_FUNCTION
 void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHComputeForcesTorquesZero,
                                                     const int &ibody) const
 {
-  Body b = d_body[ibody];
-  b.fcm[0] = b.fcm[1] = b.fcm[2] = 0.0;
-  b.torque[0] = b.torque[1] = b.torque[2] = 0.0;
-  d_body[ibody] = b;
+  BodyKokkos &bk = d_body[ibody];
+  bk.fcm[0] = bk.fcm[1] = bk.fcm[2] = 0.0;
+  bk.torque[0] = bk.torque[1] = bk.torque[2] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -906,12 +916,11 @@ KOKKOS_INLINE_FUNCTION
 void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHEnforce2d,
                                                     const int &ibody) const
 {
-  Body b = d_body[ibody];
-  b.xcm[2] = 0.0;  b.vcm[2] = 0.0;  b.fcm[2] = 0.0;  b.xgc[2] = 0.0;
-  b.torque[0] = 0.0; b.torque[1] = 0.0;
-  b.angmom[0] = 0.0; b.angmom[1] = 0.0;
-  b.omega[0] = 0.0;  b.omega[1] = 0.0;
-  d_body[ibody] = b;
+  BodyKokkos &bk = d_body[ibody];
+  bk.xcm[2] = 0.0;  bk.vcm[2] = 0.0;  bk.fcm[2] = 0.0;  bk.xgc[2] = 0.0;
+  bk.torque[0] = 0.0; bk.torque[1] = 0.0;
+  bk.angmom[0] = 0.0; bk.angmom[1] = 0.0;
+  bk.omega[0] = 0.0;  bk.omega[1] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -943,19 +952,19 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHImageShift,
                                                     const int &i) const
 {
   if (d_atom2body(i) < 0) return;
-  const Body &b = d_body[d_atom2body(i)];
+  const BodyKokkos &bk = d_body[d_atom2body(i)];
 
   imageint tdim, bdim;
   imageint xdim[3];
 
   tdim = d_image(i) & IMGMASK;
-  bdim = b.image & IMGMASK;
+  bdim = bk.image & IMGMASK;
   xdim[0] = IMGMAX + tdim - bdim;
   tdim = (d_image(i) >> IMGBITS) & IMGMASK;
-  bdim = (b.image >> IMGBITS) & IMGMASK;
+  bdim = (bk.image >> IMGBITS) & IMGMASK;
   xdim[1] = IMGMAX + tdim - bdim;
   tdim = d_image(i) >> IMG2BITS;
-  bdim = b.image >> IMG2BITS;
+  bdim = bk.image >> IMG2BITS;
   xdim[2] = IMGMAX + tdim - bdim;
 
   d_xcmimage(i) = (xdim[2] << IMG2BITS) | (xdim[1] << IMGBITS) | xdim[0];
@@ -1052,7 +1061,7 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHSetXV<TRICLINIC,NEI
   const int ibody = d_atom2body(i);
   if (ibody < 0) return;
 
-  const Body &b = d_body[ibody];
+  const BodyKokkos &bk = d_body[ibody];
 
   const int xbox = (d_xcmimage(i) & IMGMASK) - IMGMAX;
   const int ybox = (d_xcmimage(i) >> IMGBITS & IMGMASK) - IMGMAX;
@@ -1074,15 +1083,15 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHSetXV<TRICLINIC,NEI
 
   KK_FLOAT disp[3] = {(KK_FLOAT)d_displace(i,0), (KK_FLOAT)d_displace(i,1), (KK_FLOAT)d_displace(i,2)};
   KK_FLOAT xnew[3];
-  MathExtraKokkos::matvec(b.ex_space, b.ey_space, b.ez_space, disp, xnew);
+  MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, disp, xnew);
 
-  d_v(i,0) = b.omega[1]*xnew[2] - b.omega[2]*xnew[1] + b.vcm[0];
-  d_v(i,1) = b.omega[2]*xnew[0] - b.omega[0]*xnew[2] + b.vcm[1];
-  d_v(i,2) = b.omega[0]*xnew[1] - b.omega[1]*xnew[0] + b.vcm[2];
+  d_v(i,0) = bk.omega[1]*xnew[2] - bk.omega[2]*xnew[1] + bk.vcm[0];
+  d_v(i,1) = bk.omega[2]*xnew[0] - bk.omega[0]*xnew[2] + bk.vcm[1];
+  d_v(i,2) = bk.omega[0]*xnew[1] - bk.omega[1]*xnew[0] + bk.vcm[2];
 
-  d_x(i,0) = xnew[0] + b.xcm[0] - deltax;
-  d_x(i,1) = xnew[1] + b.xcm[1] - deltay;
-  d_x(i,2) = xnew[2] + b.xcm[2] - deltaz;
+  d_x(i,0) = xnew[0] + bk.xcm[0] - deltax;
+  d_x(i,1) = xnew[1] + bk.xcm[1] - deltay;
+  d_x(i,2) = xnew[2] + bk.xcm[2] - deltaz;
 
   if constexpr (EVFLAG) {
     double massone;
@@ -1199,11 +1208,11 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHSetV<TRICLINIC,NEIG
   const int ibody = d_atom2body(i);
   if (ibody < 0) return;
 
-  const Body &b = d_body[ibody];
+  const BodyKokkos &bk = d_body[ibody];
 
   KK_FLOAT disp[3] = {(KK_FLOAT)d_displace(i,0), (KK_FLOAT)d_displace(i,1), (KK_FLOAT)d_displace(i,2)};
   KK_FLOAT delta[3];
-  MathExtraKokkos::matvec(b.ex_space, b.ey_space, b.ez_space, disp, delta);
+  MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, disp, delta);
 
   double vx = 0.0, vy = 0.0, vz = 0.0;
   if constexpr (EVFLAG) {
@@ -1212,9 +1221,9 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHSetV<TRICLINIC,NEIG
     vz = d_v(i,2);
   }
 
-  d_v(i,0) = b.omega[1]*delta[2] - b.omega[2]*delta[1] + b.vcm[0];
-  d_v(i,1) = b.omega[2]*delta[0] - b.omega[0]*delta[2] + b.vcm[1];
-  d_v(i,2) = b.omega[0]*delta[1] - b.omega[1]*delta[0] + b.vcm[2];
+  d_v(i,0) = bk.omega[1]*delta[2] - bk.omega[2]*delta[1] + bk.vcm[0];
+  d_v(i,1) = bk.omega[2]*delta[0] - bk.omega[0]*delta[2] + bk.vcm[1];
+  d_v(i,2) = bk.omega[0]*delta[1] - bk.omega[1]*delta[0] + bk.vcm[2];
 
   if constexpr (EVFLAG) {
     double massone;

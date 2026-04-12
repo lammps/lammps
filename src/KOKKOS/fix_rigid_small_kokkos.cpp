@@ -207,7 +207,7 @@ void FixRigidSmallKokkos<DeviceType>::initial_integrate(int vflag)
   k_atom2body.template sync<DeviceType>();
   k_displace.template sync<DeviceType>();
   k_xcmimage.template sync<DeviceType>();
-  
+
   d_body = k_body.template view<DeviceType>();
   d_atom2body = k_atom2body.template view<DeviceType>();
   d_displace = k_displace.template view<DeviceType>();

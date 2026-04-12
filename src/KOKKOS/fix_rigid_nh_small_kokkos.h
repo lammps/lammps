@@ -116,8 +116,9 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
   class DomainKokkos *domainKK;
   ExecutionSpace execution_space;
 
-  Kokkos::DualView<BodyKokkos *, Kokkos::LayoutRight, DeviceType> k_body;
-  typename Kokkos::DualView<BodyKokkos *, Kokkos::LayoutRight, DeviceType>::t_dev d_body;
+  #include "rigid_body_kokkos.hpp"
+  TransformView<BodyKokkos*, Body*, Kokkos::LayoutRight, DeviceType> k_body;
+  Kokkos::View <BodyKokkos*,        Kokkos::LayoutRight, DeviceType> d_body;
 
   DAT::tdual_int_1d k_bodyown;
   DAT::tdual_tagint_1d k_bodytag;

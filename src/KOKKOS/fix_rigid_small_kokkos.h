@@ -120,8 +120,9 @@ class FixRigidSmallKokkos : public FixRigidSmall {
   class AtomKokkos *atomKK;
   ExecutionSpace execution_space;
 
-  Kokkos::DualView<BodyKokkos *, Kokkos::LayoutRight, DeviceType> k_body;
-  typename Kokkos::DualView<BodyKokkos *, Kokkos::LayoutRight, DeviceType>::t_dev d_body;
+  #include "rigid_body_kokkos.hpp"
+  TransformView<BodyKokkos*, Body*, Kokkos::LayoutRight, DeviceType> k_body;
+  Kokkos::View <BodyKokkos*,        Kokkos::LayoutRight, DeviceType> d_body;
 
   DAT::tdual_int_1d k_bodyown;
   DAT::tdual_tagint_1d k_bodytag;
@@ -164,8 +165,8 @@ class FixRigidSmallKokkos : public FixRigidSmall {
   typename AT::t_kkacc_1d d_eatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 
-  Few<double,3> d_prd;
-  Few<double,6> d_h;
+  Few<KK_FLOAT,3> d_prd;
+  Few<KK_FLOAT,6> d_h;
 
   void sync_body_device();
   void sync_body_host();

@@ -109,8 +109,13 @@ FixRigidNHSmallKokkos<DeviceType>::FixRigidNHSmallKokkos(LAMMPS *lmp, int narg, 
     d_eflags = k_eflags.template view<DeviceType>();
   }
   k_body = TransformView<BodyKokkos*, Body*, Kokkos::LayoutRight, DeviceType>("rigid/small:body", nmax_body);
-  // *** k_body.modify_host();
-  // k_body.sync_device();
+  if (nmax_body > 0 && body != nullptr) {
+    memcpy(k_body.view_host().data(), body, (bigint) nmax_body * sizeof(Body));
+    memory->sfree(body);
+    body = k_body.view_host().data();
+    k_body.modify_host();
+    k_body.sync_device();
+  }
   d_body = k_body.template view<DeviceType>();
 }
 
@@ -130,6 +135,7 @@ FixRigidNHSmallKokkos<DeviceType>::~FixRigidNHSmallKokkos()
   }
   memoryKK->destroy_kokkos(k_displace);
   if (extended) memoryKK->destroy_kokkos(k_eflags, eflags);
+  body = nullptr;
   bodyown = nullptr;
   bodytag = nullptr;
   atom2body = nullptr;
@@ -153,7 +159,8 @@ template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
 {
   atomKK->sync(Host, ALL_MASK);
-  k_body.sync_host();
+  // Do not sync_host() here: device-side body buffers can be uninitialized before
+  // FixRigidSmall::setup() and would overwrite valid host rigid-body data.
 
   FixRigidSmall::setup(vflag);
   // Match FixRigidSmallKokkos::setup after CPU rigid/small setup
@@ -396,15 +403,15 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
   if (extended) {
     atomKK->sync(Host, ALL_MASK);
     k_body.sync_host();
-  } else if (pstat_flag) {
-    // set_xv wrote device x,v; second remap() uses host atom coords (CPU path)
-    atomKK->sync(Host, X_MASK | V_MASK);
   }
 
   // remap again + kspace
   if (pstat_flag) {
     remap();
-    if (kspace_flag) force->kspace->setup();
+    if (kspace_flag) {
+      atomKK->sync(Host, X_MASK | V_MASK);
+      force->kspace->setup();
+    }
   }
 
   atomKK->modified(execution_space, X_MASK | V_MASK);
@@ -701,19 +708,17 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
   int i;
   double oldlo, oldhi, ctr, expfac;
 
-  atomKK->sync(Host, X_MASK | MASK_MASK);
-  double **x_h = atom->x;
-  int *mask_h = atom->mask;
   int nlocal = atom->nlocal;
 
   for (i = 0; i < 3; i++) epsilon[i] += dtq * epsilon_dot[i];
 
-  if (allremap) domain->x2lamda(nlocal);
-  else {
-    for (i = 0; i < nlocal; i++)
-      if (mask_h[i] & dilate_group_bit)
-        domain->x2lamda(x_h[i], x_h[i]);
-  }
+  // Use Kokkos domain remapping on device coordinates (same pattern as fix nh/kk).
+  // CPU domain->x2lamda on atom->x bypasses the atom coord TransformView and
+  // breaks sync with Kokkos device buffers.
+  if (allremap)
+    domainKK->x2lamda(nlocal);
+  else
+    domainKK->x2lamda(nlocal, dilate_group_bit);
 
   for (auto &ifix : rfix) ifix->deform(0);
 
@@ -731,16 +736,12 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
   domain->set_global_box();
   domain->set_local_box();
 
-  if (allremap) domain->lamda2x(nlocal);
-  else {
-    for (i = 0; i < nlocal; i++)
-      if (mask_h[i] & dilate_group_bit)
-        domain->lamda2x(x_h[i], x_h[i]);
-  }
+  if (allremap)
+    domainKK->lamda2x(nlocal);
+  else
+    domainKK->lamda2x(nlocal, dilate_group_bit);
 
   for (auto &ifix : rfix) ifix->deform(1);
-
-  atomKK->modified(Host, X_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1260,13 +1261,8 @@ template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::setup_pre_neighbor()
 {
   atomKK->sync(Host, ALL_MASK);
-  k_body.sync_host();
-  k_bodyown.sync_host();
-  k_bodytag.sync_host();
-  k_atom2body.sync_host();
-  k_xcmimage.sync_host();
-  k_displace.sync_host();
-  if (extended) k_eflags.sync_host();
+  // Avoid sync_host() on fix-owned DualViews before setup_bodies_static():
+  // Kokkos device buffers are uninitialized and would overwrite valid host data.
 
   FixRigidSmall::setup_pre_neighbor();
 
@@ -1285,7 +1281,8 @@ void FixRigidNHSmallKokkos<DeviceType>::setup_pre_neighbor()
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::pre_neighbor()
 {
-  k_body.sync_host();
+  // Device-side body[] is uninitialized until integration; do not pull it onto host.
+
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
     Body *b = &body[ibody];
     domain->remap(b->xcm, b->image);
@@ -1297,6 +1294,7 @@ void FixRigidNHSmallKokkos<DeviceType>::pre_neighbor()
   comm->forward_comm(this);
 
   k_body.modify_host();
+  k_body.sync_device();
   k_bodyown.sync_host();
   k_bodytag.sync_host();
   k_atom2body.sync_host();
@@ -1313,11 +1311,8 @@ void FixRigidNHSmallKokkos<DeviceType>::pre_neighbor()
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::grow_arrays(int nmax)
 {
-  k_bodyown.template sync<DeviceType>();
-  k_bodytag.template sync<DeviceType>();
-  k_atom2body.template sync<DeviceType>();
-  k_xcmimage.template sync<DeviceType>();
-  k_displace.template sync<DeviceType>();
+  // Do not sync from device before grow: uninitialized device data must not
+  // overwrite the host arrays this routine is about to resize.
 
   memoryKK->grow_kokkos(k_bodyown, bodyown, nmax, "rigid/small:bodyown");
   memoryKK->grow_kokkos(k_bodytag, bodytag, nmax, "rigid/small:bodytag");
@@ -1431,7 +1426,7 @@ template<class DeviceType>
 int FixRigidNHSmallKokkos<DeviceType>::pack_forward_comm(int n, int *list,
                                                           double *buf, int pbc_flag, int *pbc)
 {
-  k_bodyown.sync_host(); k_body.sync_host();
+  k_bodyown.sync_host();
   return FixRigidSmall::pack_forward_comm(n, list, buf, pbc_flag, pbc);
 }
 

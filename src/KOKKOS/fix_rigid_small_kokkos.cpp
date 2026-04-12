@@ -129,6 +129,15 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
   }
 
   k_body = TransformView<BodyKokkos*, Body*, Kokkos::LayoutRight, DeviceType>("rigid/small:body", nmax_body);
+  // Base class `body` is a separate malloc from TransformView's legacy host buffer.
+  // Use one array so CPU setup_bodies_static() and Kokkos sync see the same data.
+  if (nmax_body > 0 && body != nullptr) {
+    memcpy(k_body.view_host().data(), body, (bigint) nmax_body * sizeof(Body));
+    memory->sfree(body);
+    body = k_body.view_host().data();
+    k_body.modify_host();
+    k_body.sync_device();
+  }
   d_body = k_body.template view<DeviceType>();
 }
 
@@ -259,31 +268,24 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidSmallInitialIntegrate, 
 {
   BodyKokkos &bk = d_body[ibody];
   const KK_FLOAT dtfm = dtf / bk.mass;
-  bk.vcm[0] += dtfm * bk.fcm[0];
-  bk.vcm[1] += dtfm * bk.fcm[1];
-  bk.vcm[2] += dtfm * bk.fcm[2];
-  bk.xcm[0] += dtv * bk.vcm[0];
-  bk.xcm[1] += dtv * bk.vcm[1];
-  bk.xcm[2] += dtv * bk.vcm[2];
-  bk.angmom[0] += dtf * bk.torque[0];
-  bk.angmom[1] += dtf * bk.torque[1];
-  bk.angmom[2] += dtf * bk.torque[2];
+  bk.vcm[0] = Kokkos::fma(dtfm, bk.fcm[0], bk.vcm[0]);
+  bk.vcm[1] = Kokkos::fma(dtfm, bk.fcm[1], bk.vcm[1]);
+  bk.vcm[2] = Kokkos::fma(dtfm, bk.fcm[2], bk.vcm[2]);
+  bk.xcm[0] = Kokkos::fma(dtv, bk.vcm[0], bk.xcm[0]);
+  bk.xcm[1] = Kokkos::fma(dtv, bk.vcm[1], bk.xcm[1]);
+  bk.xcm[2] = Kokkos::fma(dtv, bk.vcm[2], bk.xcm[2]);
+  bk.angmom[0] = Kokkos::fma(dtf, bk.torque[0], bk.angmom[0]);
+  bk.angmom[1] = Kokkos::fma(dtf, bk.torque[1], bk.angmom[1]);
+  bk.angmom[2] = Kokkos::fma(dtf, bk.torque[2], bk.angmom[2]);
 
-  //Kokkos::printf("***/kk ibody %i natoms %i, dtfm %f bk.mass %f bk.fcm %f %f %f bk.vcm %f %f %f\n", ibody, bk.natoms, dtfm, bk.mass, bk.fcm[0], bk.fcm[1], bk.fcm[2], bk.vcm[0], bk.vcm[1], bk.vcm[2]);
+  Kokkos::printf(
+      "***/kk step %i ibody %i natoms %i, dtfm %f bk.mass %f bk.fcm %f %f %f bk.vcm %f %f %f\n", update->ntimestep, ibody,
+      bk.natoms, dtfm, bk.mass, bk.fcm[0], bk.fcm[1], bk.fcm[2], bk.vcm[0], bk.vcm[1], bk.vcm[2]);
 
-  KK_FLOAT omega_k[3];
   MathExtraKokkos::angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
-                                   bk.ez_space, bk.inertia, omega_k);
-  bk.omega[0] = omega_k[0];
-  bk.omega[1] = omega_k[1];
-  bk.omega[2] = omega_k[2];
-  double qu[4] = {(double) bk.quat[0], (double) bk.quat[1], (double) bk.quat[2], (double) bk.quat[3]};
-  MathExtraKokkos::richardson(qu, bk.angmom, bk.omega, bk.inertia, dtq);
-  bk.quat[0] = (KK_FLOAT) qu[0];
-  bk.quat[1] = (KK_FLOAT) qu[1];
-  bk.quat[2] = (KK_FLOAT) qu[2];
-  bk.quat[3] = (KK_FLOAT) qu[3];
-  MathExtraKokkos::q_to_exyz(qu, bk.ex_space, bk.ey_space, bk.ez_space);
+                                   bk.ez_space, bk.inertia, bk.omega);
+  MathExtraKokkos::richardson(bk.quat, bk.angmom, bk.omega, bk.inertia, dtq);
+  MathExtraKokkos::q_to_exyz(bk.quat, bk.ex_space, bk.ey_space, bk.ez_space);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1079,6 +1081,7 @@ void FixRigidSmallKokkos<DeviceType>::grow_body()
 {
   FixRigidSmall::grow_body();
   k_body.resize(nmax_body);
+  body = k_body.view_host().data();
   k_body.modify_host();
   k_body.sync_device();
   d_body = k_body.template view<DeviceType>();

@@ -218,13 +218,14 @@ void FixRigidSmallKokkos<DeviceType>::initial_integrate(int vflag)
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,
     TagRigidSmallInitialIntegrate>(0, nlocal_body), *this);
   copymode = 0;
-  k_body.template modify<DeviceType>();
+  k_body.modify_device();
   k_body.sync_host();
   // virial setup
   v_init(vflag);
   // forward communicate body info
   commflag = INITIAL;
   comm->forward_comm(this, 29);
+  k_body.modify_host();
   k_body.sync_device();
 
   // set coords/velocity of atoms from body state -- device kernel
@@ -307,6 +308,9 @@ void FixRigidSmallKokkos<DeviceType>::post_force(int /*vflag*/)
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::final_integrate()
 {
+
+  utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::final_integrate() TOP k_body(0).vcm[0] {}\n", k_body.view_host()(0).vcm[0]);
+
   atomKK->sync(execution_space, X_MASK | V_MASK | F_MASK | MASK_MASK |
                TYPE_MASK | RMASS_MASK | IMAGE_MASK);
   d_x = atomKK->k_x.template view<DeviceType>();
@@ -332,9 +336,15 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
   k_body.modify_device();
   k_body.sync_host();
 
+  utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::final_integrate() BEFORE k_body(0).vcm[0] {}\n", k_body.view_host()(0).vcm[0]);
+
   commflag = FINAL;
   comm->forward_comm(this, 10);
-  k_body.template sync<DeviceType>();
+  k_body.modify_host();
+  k_body.sync_device();
+
+  utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::final_integrate() AFTER k_body(0).vcm[0] {}\n", k_body.view_host()(0).vcm[0]);
+
   k_atom2body.template sync<DeviceType>();
   k_displace.template sync<DeviceType>();
   k_xcmimage.template sync<DeviceType>();
@@ -393,6 +403,9 @@ template<class DeviceType>
 template<int TRICLINIC, int EVFLAG>
 void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos()
 {
+
+  //utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::pack_reverse_comm({})\n", n);
+
   int nlocal = atomKK->nlocal;
   copymode = 1;
   if constexpr (!EVFLAG) {
@@ -607,7 +620,12 @@ template<class DeviceType>
 template<int TRICLINIC, int EVFLAG>
 void FixRigidSmallKokkos<DeviceType>::set_v_kokkos()
 {
+
+  utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::set_v_kokkos({}) k_body(0).vcm[0] {}\n", EVFLAG, k_body.view_hostkk()(0).vcm[0]);
+
   int nlocal = atomKK->nlocal;
+  k_body.sync_device();
+
   copymode = 1;
   if constexpr (!EVFLAG) {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,
@@ -653,6 +671,7 @@ void FixRigidSmallKokkos<DeviceType>::set_v_kokkos()
     if (vflag_atom && need_dup) dup_vatom = {};
   }
   copymode = 0;
+  k_body.modify_device();
 
   // extended particles: host fallback
   if (extended) {
@@ -733,6 +752,9 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidSmallSetV<TRICLINIC,NEI
   d_v(i,0) = bk.omega[1]*delta[2] - bk.omega[2]*delta[1] + bk.vcm[0];
   d_v(i,1) = bk.omega[2]*delta[0] - bk.omega[0]*delta[2] + bk.vcm[1];
   d_v(i,2) = bk.omega[0]*delta[1] - bk.omega[1]*delta[0] + bk.vcm[2];
+
+  Kokkos::printf("***/kk step %i ibody %i delta %f %f %f bk.vcm %f %f %f\n", update->ntimestep, ibody, delta[0], delta[1], delta[2], bk.vcm[0], bk.vcm[1], bk.vcm[2]);
+
   if constexpr (EVFLAG) {
     KK_FLOAT massone;
     if (d_rmass.data()) massone = d_rmass(i);
@@ -781,10 +803,14 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidSmallSetV<TRICLINIC,NEI
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques()
 {
+
+  utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques()\n");
+
   atomKK->sync(execution_space, X_MASK | F_MASK | IMAGE_MASK);
   d_x = atomKK->k_x.template view<DeviceType>();
   d_f = atomKK->k_f.template view<DeviceType>();
-  d_image = atomKK->k_image.template view<DeviceType>();
+  
+  atomKK->k_image.template sync<DeviceType>();
   k_body.template sync<DeviceType>();
   k_atom2body.template sync<DeviceType>();
   k_xcmimage.template sync<DeviceType>();
@@ -922,7 +948,7 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::image_shift_kokkos()
 {
 
-/* ---------------------------------------------------------------------- */
+  utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::image_shift_kokkos()\n");
 
   atomKK->sync(execution_space, IMAGE_MASK);
   k_body.template sync<DeviceType>();
@@ -956,7 +982,7 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
 {
 
-/* ---------------------------------------------------------------------- */
+  utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()\n");
 
   atomKK->sync(Host, ALL_MASK);
   k_body.sync_host();
@@ -966,7 +992,9 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
   k_xcmimage.sync_host();
   k_displace.sync_host();
   if (extended) k_eflags.sync_host();
+
   FixRigidSmall::setup_pre_neighbor();
+
   k_body.modify_host();
   k_bodyown.modify_host();
   k_bodytag.modify_host();
@@ -975,6 +1003,16 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
   k_displace.modify_host();
   if (extended) k_eflags.modify_host();
   atomKK->modified(Host, X_MASK | IMAGE_MASK);
+
+  k_body.sync_device();
+  k_bodyown.sync_device();
+  k_bodytag.sync_device();
+  k_atom2body.sync_device();
+  k_xcmimage.sync_device();
+  k_displace.sync_device();
+  if (extended) k_eflags.sync_device();
+  atomKK->sync(Device, X_MASK | IMAGE_MASK);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -982,6 +1020,9 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::pre_neighbor()
 {
+
+  utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::pre_neighbor()\n");
+
   k_body.sync_host();
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
     FixRigidSmall::Body *b = &body[ibody];
@@ -1004,6 +1045,9 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor()
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::grow_arrays(int nmax)
 {
+
+  utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::grow_arrays({})\n", nmax);
+
   k_bodyown.template sync<DeviceType>();
   k_bodytag.template sync<DeviceType>();
   k_atom2body.template sync<DeviceType>();
@@ -1050,6 +1094,9 @@ void FixRigidSmallKokkos<DeviceType>::grow_arrays(int nmax)
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::grow_body()
 {
+
+  utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::grow_body()\n");
+
   FixRigidSmall::grow_body();
   k_body.resize(nmax_body);
   body = k_body.view_host().data();
@@ -1063,6 +1110,9 @@ void FixRigidSmallKokkos<DeviceType>::grow_body()
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 {
+
+  //utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::pack_reverse_comm({})\n", n);
+
   k_body.sync_host();
   k_bodyown.sync_host();
   k_bodytag.sync_host();
@@ -1087,6 +1137,9 @@ void FixRigidSmallKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::set_arrays(int i)
 {
+
+  //utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::pack_reverse_comm({})\n", n);
+
   k_body.sync_host();
   k_bodyown.sync_host();
   k_bodytag.sync_host();
@@ -1111,6 +1164,9 @@ void FixRigidSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagpre
                                                     int imol, double *xgeom,
                                                     double *vcm, double *quat)
 {
+
+  //utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::pack_reverse_comm({})\n", n);
+
   k_body.sync_host();
   k_bodyown.sync_host();
   k_bodytag.sync_host();
@@ -1131,6 +1187,7 @@ void FixRigidSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagpre
 template<class DeviceType>
 int FixRigidSmallKokkos<DeviceType>::pack_exchange(int i, double *buf)
 {
+  utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::pack_exchange({})\n", i);
   k_body.sync_host();
   k_bodytag.sync_host();
   k_xcmimage.sync_host();
@@ -1145,6 +1202,8 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange(int i, double *buf)
 template<class DeviceType>
 int FixRigidSmallKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 {
+  utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::unpack_exchange({})\n", nlocal);
+
   int result = FixRigidSmall::unpack_exchange(nlocal, buf);
   k_body.modify_host();
   k_bodytag.modify_host();
@@ -1161,6 +1220,9 @@ template<class DeviceType>
 int FixRigidSmallKokkos<DeviceType>::pack_forward_comm(int n, int *list,
                                                         double *buf, int pbc_flag, int *pbc)
 {
+
+  //utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::pack_forward_comm({})\n", n);
+
   k_body.sync_host();
   k_bodyown.sync_host();
   return FixRigidSmall::pack_forward_comm(n, list, buf, pbc_flag, pbc);
@@ -1171,9 +1233,12 @@ int FixRigidSmallKokkos<DeviceType>::pack_forward_comm(int n, int *list,
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
+  //utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::unpack_forward_comm({})\n", n);
   FixRigidSmall::unpack_forward_comm(n, first, buf);
   k_body.modify_host();
   k_bodyown.modify_host();
+  k_body.sync_device();
+  k_bodyown.sync_device();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1181,7 +1246,10 @@ void FixRigidSmallKokkos<DeviceType>::unpack_forward_comm(int n, int first, doub
 template<class DeviceType>
 int FixRigidSmallKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
+  //utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::pack_reverse_comm({})\n", n);
+
   k_body.sync_host();
+  k_bodyown.sync_host();
   return FixRigidSmall::pack_reverse_comm(n, first, buf);
 }
 
@@ -1190,8 +1258,13 @@ int FixRigidSmallKokkos<DeviceType>::pack_reverse_comm(int n, int first, double 
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  FixRigidSmall::unpack_reverse_comm(n, list, buf);
+   //utils::logmesg(lmp, "*** FixRigidSmallKokkos<DeviceType>::unpack_reverse_comm({})\n", n);
+
+ FixRigidSmall::unpack_reverse_comm(n, list, buf);
   k_body.modify_host();
+  k_bodyown.modify_host();
+  k_body.sync_device();
+  k_bodyown.sync_device();
 }
 
 /* ---------------------------------------------------------------------- */

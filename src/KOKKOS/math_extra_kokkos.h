@@ -422,9 +422,9 @@ KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::matvec(const T *ex, const T *ey, const T *ez,
                        const T *v, T *ans)
 {
-  ans[0] = ex[0]*v[0] + ey[0]*v[1] + ez[0]*v[2];
-  ans[1] = ex[1]*v[0] + ey[1]*v[1] + ez[1]*v[2];
-  ans[2] = ex[2]*v[0] + ey[2]*v[1] + ez[2]*v[2];
+  ans[0] = Kokkos::fma(ez[0], v[2], Kokkos::fma(ey[0], v[1], ex[0]*v[0]));
+  ans[1] = Kokkos::fma(ez[1], v[2], Kokkos::fma(ey[1], v[1], ex[1]*v[0]));
+  ans[2] = Kokkos::fma(ez[2], v[2], Kokkos::fma(ey[2], v[1], ex[2]*v[0]));
 }
 
 /* ----------------------------------------------------------------------
@@ -435,9 +435,9 @@ template <typename T>
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::transpose_matvec(const T m[3][3], const T *v, T *ans)
 {
-  ans[0] = m[0][0]*v[0] + m[1][0]*v[1] + m[2][0]*v[2];
-  ans[1] = m[0][1]*v[0] + m[1][1]*v[1] + m[2][1]*v[2];
-  ans[2] = m[0][2]*v[0] + m[1][2]*v[1] + m[2][2]*v[2];
+  ans[0] = Kokkos::fma(m[2][0], v[2], Kokkos::fma(m[1][0], v[1], m[0][0]*v[0]));
+  ans[1] = Kokkos::fma(m[2][1], v[2], Kokkos::fma(m[1][1], v[1], m[0][1]*v[0]));
+  ans[2] = Kokkos::fma(m[2][2], v[2], Kokkos::fma(m[1][2], v[1], m[0][2]*v[0]));
 }
 
 /* ----------------------------------------------------------------------
@@ -449,9 +449,9 @@ KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::transpose_matvec(const T *ex, const T *ey,
                                        const T *ez, const T *v, T *ans)
 {
-  ans[0] = ex[0]*v[0] + ex[1]*v[1] + ex[2]*v[2];
-  ans[1] = ey[0]*v[0] + ey[1]*v[1] + ey[2]*v[2];
-  ans[2] = ez[0]*v[0] + ez[1]*v[1] + ez[2]*v[2];
+  ans[0] = Kokkos::fma(ex[2], v[2], Kokkos::fma(ex[1], v[1], ex[0]*v[0]));
+  ans[1] = Kokkos::fma(ey[2], v[2], Kokkos::fma(ey[1], v[1], ey[0]*v[0]));
+  ans[2] = Kokkos::fma(ez[2], v[2], Kokkos::fma(ez[1], v[1], ez[0]*v[0]));
 }
 
 /* ----------------------------------------------------------------------

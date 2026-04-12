@@ -24,17 +24,13 @@ namespace LAMMPS_NS {
 struct TagRigidNHInitialIntegrate {};
 struct TagRigidNHFinalIntegrate {};
 struct TagRigidNHAccumKE {};
+struct TagRigidNHComputeForcesTorques {};
 
 template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
 struct TagRigidNHSetXV {};
 
 template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
 struct TagRigidNHSetV {};
-
-struct TagRigidNHComputeForcesTorquesZero {};
-struct TagRigidNHComputeForcesTorques {};
-struct TagRigidNHImageShift {};
-struct TagRigidNHEnforce2d {};
 
 template<class DeviceType>
 class FixRigidNHSmallKokkos : public FixRigidNHSmall {
@@ -97,16 +93,7 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
   void operator()(TagRigidNHSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT &) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidNHComputeForcesTorquesZero, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
   void operator()(TagRigidNHComputeForcesTorques, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidNHImageShift, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidNHEnforce2d, const int&) const;
 
  protected:
   class AtomKokkos *atomKK;
@@ -145,8 +132,8 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
   typename AT::t_kkacc_1d d_eatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 
-  Few<double,3> d_prd;
-  Few<double,6> d_h;
+  Few<KK_FLOAT,3> d_prd;
+  Few<KK_FLOAT,6> d_h;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
@@ -165,13 +152,9 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
   KK_FLOAT d_dtf2;
 
   void remap();
-  void compute_forces_and_torques_kokkos();
+  void compute_forces_and_torques() override;
   void enforce2d_kokkos();
   void image_shift_kokkos();
-  void grow_body_kokkos();
-
-  void sync_body_host();
-  void sync_fix_data_device();
 
   template<int TRICLINIC, int EVFLAG>
   void set_xv_kokkos();
@@ -182,4 +165,4 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
 
 }    // namespace LAMMPS_NS
 
-#endif
+#endif // !LMP_FIX_RIGID_NH_SMALL_KOKKOS_H

@@ -21,6 +21,13 @@ class Few {
     for (std::size_t i = 0; i < n; ++i) new (data() + i) T(a[i]);
   }
 // NOLINTNEXTLINE
+  template <typename T2>
+  KOKKOS_INLINE_FUNCTION Few(T2 const a[]) {
+    for (std::size_t i = 0; i < n; ++i) {
+      new (data() + i) T(static_cast<T>(a[i]));
+    }
+  }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION Few() {
     for (std::size_t i = 0; i < n; ++i) new (data() + i) T();
   }
@@ -31,6 +38,13 @@ class Few {
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION Few(Few<T, n> const& rhs) {
     for (std::size_t i = 0; i < n; ++i) new (data() + i) T(rhs[i]);
+  }
+// NOLINTNEXTLINE
+  template <typename T2>
+  KOKKOS_INLINE_FUNCTION Few(Few<T2, n> const& rhs) {
+    for (std::size_t i = 0; i < n; ++i) {
+      new (data() + i) T(static_cast<T>(rhs[i]));
+    }
   }
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION void operator=(Few<T, n> const& rhs) {

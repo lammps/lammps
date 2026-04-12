@@ -152,11 +152,7 @@ class FixRigidSmallKokkos : public FixRigidSmall {
   Few<KK_FLOAT,3> d_prd;
   Few<KK_FLOAT,6> d_h;
 
-  void sync_body_device();
-  void sync_body_host();
-  void sync_fix_data_device();
-
-  void compute_forces_and_torques_kokkos();
+  void compute_forces_and_torques() override;
   void enforce2d_kokkos();
   void image_shift_kokkos();
   void grow_body_kokkos();

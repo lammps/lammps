@@ -299,7 +299,7 @@ void FixRigidSmallKokkos<DeviceType>::post_force(int /*vflag*/)
     apply_langevin_thermostat();
     k_body.modify_host();
   }
-  if (earlyflag) compute_forces_and_torques_kokkos();
+  if (earlyflag) compute_forces_and_torques();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -318,7 +318,7 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
   d_mask = atomKK->k_mask.template view<DeviceType>();
   d_image = atomKK->k_image.template view<DeviceType>();
 
-  if (!earlyflag) compute_forces_and_torques_kokkos();
+  if (!earlyflag) compute_forces_and_torques();
   if (domain->dimension == 2) enforce2d_kokkos();
 
   // body integration loop on device
@@ -329,8 +329,7 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,
     TagRigidSmallFinalIntegrate>(0, nlocal_body), *this);
   copymode = 0;
-
-  k_body.template modify<DeviceType>();
+  k_body.modify_device();
   k_body.sync_host();
 
   commflag = FINAL;
@@ -384,12 +383,8 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidSmallFinalIntegrate, co
   bk.angmom[0] += dtf * bk.torque[0];
   bk.angmom[1] += dtf * bk.torque[1];
   bk.angmom[2] += dtf * bk.torque[2];
-  KK_FLOAT omega_k[3];
   MathExtraKokkos::angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
-                                   bk.ez_space, bk.inertia, omega_k);
-  bk.omega[0] = omega_k[0];
-  bk.omega[1] = omega_k[1];
-  bk.omega[2] = omega_k[2];
+                                   bk.ez_space, bk.inertia, bk.omega);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -784,7 +779,7 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidSmallSetV<TRICLINIC,NEI
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
+void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques()
 {
   atomKK->sync(execution_space, X_MASK | F_MASK | IMAGE_MASK);
   d_x = atomKK->k_x.template view<DeviceType>();
@@ -793,9 +788,6 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
   k_body.template sync<DeviceType>();
   k_atom2body.template sync<DeviceType>();
   k_xcmimage.template sync<DeviceType>();
-  d_body = k_body.template view<DeviceType>();
-  d_atom2body = k_atom2body.template view<DeviceType>();
-  d_xcmimage = k_xcmimage.template view<DeviceType>();
   d_prd = Few<KK_FLOAT,3>(domain->prd);
   d_h = Few<KK_FLOAT,6>(domain->h);
   int nbody_total = nlocal_body + nghost_body;
@@ -813,6 +805,7 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
   // accumulate from atoms
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,
     TagRigidSmallComputeForcesTorques>(0, nlocal), *this);
+  k_body.modify_device();
   copymode = 0;
 
   // extended particles torque: host
@@ -839,7 +832,9 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
 
   // reverse comm
   commflag = FORCE_TORQUE;
+  k_body.sync_host();
   comm->reverse_comm(this, 6);
+  k_body.modify_host();
   k_body.sync_device();
 
   // Langevin + gravity on host (body-level, small count)
@@ -878,24 +873,27 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidSmallComputeForcesTorqu
 {
   const int ibody = d_atom2body(i);
   if (ibody < 0) return;
+  BodyKokkos &bk = d_body[ibody];
 
   // accumulate force
-  Kokkos::atomic_add(&d_body[ibody].fcm[0], d_f(i,0));
-  Kokkos::atomic_add(&d_body[ibody].fcm[1], d_f(i,1));
-  Kokkos::atomic_add(&d_body[ibody].fcm[2], d_f(i,2));
+  Kokkos::atomic_add(&bk.fcm[0], d_f(i,0));
+  Kokkos::atomic_add(&bk.fcm[1], d_f(i,1));
+  Kokkos::atomic_add(&bk.fcm[2], d_f(i,2));
 
   // unwrap position and compute torque
   Few<KK_FLOAT,3> x_i;
   x_i[0] = d_x(i,0); x_i[1] = d_x(i,1); x_i[2] = d_x(i,2);
   Few<KK_FLOAT,3> unwrap = DomainKokkos::unmap(d_prd, d_h, triclinic, x_i, d_xcmimage(i));
 
-  const KK_FLOAT dx = unwrap[0] - d_body[ibody].xcm[0];
-  const KK_FLOAT dy = unwrap[1] - d_body[ibody].xcm[1];
-  const KK_FLOAT dz = unwrap[2] - d_body[ibody].xcm[2];
+  const KK_FLOAT dx = unwrap[0] - bk.xcm[0];
+  const KK_FLOAT dy = unwrap[1] - bk.xcm[1];
+  const KK_FLOAT dz = unwrap[2] - bk.xcm[2];
 
-  Kokkos::atomic_add(&d_body[ibody].torque[0], dy*d_f(i,2) - dz*d_f(i,1));
-  Kokkos::atomic_add(&d_body[ibody].torque[1], dz*d_f(i,0) - dx*d_f(i,2));
-  Kokkos::atomic_add(&d_body[ibody].torque[2], dx*d_f(i,1) - dy*d_f(i,0));
+  Kokkos::printf("***/kk step %i ibody %i dxyz %f %f %f d_f(%i) %f %f %f\n", update->ntimestep, ibody, dx, dy, dz, i, d_f(i,0), d_f(i,1), d_f(i,2));
+
+  Kokkos::atomic_add(&bk.torque[0], dy*d_f(i,2) - dz*d_f(i,1));
+  Kokkos::atomic_add(&bk.torque[1], dz*d_f(i,0) - dx*d_f(i,2));
+  Kokkos::atomic_add(&bk.torque[2], dx*d_f(i,1) - dy*d_f(i,0));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1139,7 +1137,6 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange(int i, double *buf)
   k_displace.sync_host();
   k_bodyown.sync_host();
   if (extended) k_eflags.sync_host();
-
   return FixRigidSmall::pack_exchange(i, buf);
 }
 

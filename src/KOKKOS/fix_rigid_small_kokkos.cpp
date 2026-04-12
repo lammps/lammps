@@ -793,11 +793,9 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidSmallSetV<TRICLINIC,NEI
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques()
 {
-
   atomKK->sync(execution_space, X_MASK | F_MASK | IMAGE_MASK);
   d_x = atomKK->k_x.template view<DeviceType>();
   d_f = atomKK->k_f.template view<DeviceType>();
-  
   atomKK->k_image.template sync<DeviceType>();
   k_body.template sync<DeviceType>();
   k_atom2body.template sync<DeviceType>();

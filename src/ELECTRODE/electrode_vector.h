@@ -31,12 +31,15 @@ class ElectrodeVector : public Fix {
   int setmask() override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
-  void setup_general(class Pair *, class NeighList *, bool, bool);
+  virtual void setup_general(class Pair *, class NeighList *, bool, bool);
   void setup_tf(const std::map<int, double> &);
   void setup_hardness(int index);
   void setup_eta(int);
   void compute_pot(double *);
   int igroup, source_group;
+
+ protected:
+  virtual void pair_contribution(double *);
 
  private:
   bool invert_source;
@@ -56,7 +59,6 @@ class ElectrodeVector : public Fix {
   bool kspaceflag;
   class ElectrodeKSpace *electrode_kspace;
 
-  void pair_contribution(double *);
   void self_contribution(double *);
   void tf_contribution(double *);
   void hardness_contribution(double *);

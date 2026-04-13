@@ -100,7 +100,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   thermo_time = 0.;
 
   top_group = 0;
-  intelflag = false;
+  intelflag = (bool) strstr(style, "/intel");
   tfflag = false;
   etapropflag = enflag = hardnessflag = false;
   predictor_cols = 1;
@@ -350,10 +350,6 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   need_array_compute = !(read_inv || read_mat) && matrix_algo;
   need_elec_vector = algo == Algo::CG;
   // Might work with the plan to create "compute potential/atom"
-  elyt_vector = new ElectrodeVector(lmp, 0, arg, igroup, igroup, eta, true);
-  if (need_elec_vector) {
-    elec_vector = new ElectrodeVector(lmp, 0, arg, igroup, igroup, eta, false);
-  }
   assert(groups.size() == group_bits.size());
   assert(groups.size() == group_psi.size());
   assert(groups.size() == group_psi_const.size());
@@ -409,6 +405,13 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   nlocalele = 0;
 
   nmax = 0;
+
+  if (!intelflag) { # so /intel makes ElectrodeVectorIntel instead
+    elyt_vector = new ElectrodeVector(lmp, 0, arg, igroup, igroup, eta, true);
+    if (need_elec_vector) {
+      elec_vector = new ElectrodeVector(lmp, 0, arg, igroup, igroup, eta, false);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

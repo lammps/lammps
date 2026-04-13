@@ -95,10 +95,9 @@ namespace MathExtraKokkos {
   KOKKOS_INLINE_FUNCTION void axisangle_to_quat(const KK_FLOAT *v, const KK_FLOAT angle,
                                 KK_FLOAT *quat);
 
+  template <typename T>
   KOKKOS_INLINE_FUNCTION
-  void mq_to_omega(KK_FLOAT *m, double *q, KK_FLOAT *moments, KK_FLOAT *w);
-  KOKKOS_INLINE_FUNCTION
-  void mq_to_omega(KK_FLOAT *m, KK_FLOAT *q, KK_FLOAT *moments, KK_FLOAT *w);
+  void mq_to_omega(KK_FLOAT *m, T *q, KK_FLOAT *moments, KK_FLOAT *w);
 
   template <typename T>
   KOKKOS_INLINE_FUNCTION void quat_to_mat(const T *quat, T mat[3][3]);
@@ -613,24 +612,22 @@ void MathExtraKokkos::axisangle_to_quat(const KK_FLOAT *v, const KK_FLOAT angle,
    project space-frame angular momentum onto body axes
      and divide by principal moments
 ------------------------------------------------------------------------- */
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::mq_to_omega(KK_FLOAT *m, double *q, KK_FLOAT *moments, KK_FLOAT *w)
+void MathExtraKokkos::mq_to_omega(KK_FLOAT *m, T *q, KK_FLOAT *moments, KK_FLOAT *w)
 {
-  KK_FLOAT kk_float_q[4] = {
+#if defined (LMP_KOKKOS_DOUBLE_DOUBLE)  // double
+  KK_FLOAT kk_q[3] = {
     static_cast<KK_FLOAT>(q[0]),
     static_cast<KK_FLOAT>(q[1]),
-    static_cast<KK_FLOAT>(q[2]),
-    static_cast<KK_FLOAT>(q[3])
+    static_cast<KK_FLOAT>(q[2])
   };
-  mq_to_omega(m, kk_float_q, moments, w);
-}
+#else // single or mixed, ie. KK_FLOAT = float
+  T *kk_q = q;
+#endif
 
-KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::mq_to_omega(KK_FLOAT *m, KK_FLOAT *q, KK_FLOAT *moments, KK_FLOAT *w)
-{
-  KK_FLOAT wbody[3];
-  KK_FLOAT rot[3][3];
-  MathExtraKokkos::quat_to_mat(q,rot);
+  KK_FLOAT wbody[3], rot[3][3];
+  MathExtraKokkos::quat_to_mat(kk_q,rot);
   MathExtraKokkos::transpose_matvec(rot,m,wbody);
   if (moments[0] == 0.0) wbody[0] = 0.0;
   else wbody[0] /= moments[0];

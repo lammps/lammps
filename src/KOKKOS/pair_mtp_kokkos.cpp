@@ -97,27 +97,8 @@ template <class DeviceType> double PairMTPKokkos<DeviceType>::init_one(int i, in
 ------------------------------------------------------------------------- */
 
 template <class DeviceType> void PairMTPKokkos<DeviceType>::coeff(int narg, char **arg)
-{ PairMTP::coeff(narg, arg); }
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-template <class DeviceType> void PairMTPKokkos<DeviceType>::settings(int narg, char **arg)
 {
-  // We may need to process in chunks to deal with memory limitations
-  // For now we expect the user to specify the chunk size
-
-  if (narg != 3 || LAMMPS_NS::utils::lowercase(arg[1]) != "chunksize")
-    error->all(FLERR,
-               "Pair mtp/kk requires 3 arguments {{potential_file} \"chunksize\" {chunksize}}.");
-
-  input_chunk_size = utils::inumeric(FLERR, arg[2], true, lmp);
-
-  PairMTP ::settings(
-      1, arg);    // This also calls read_file which parses and loads the necessary arrays in host
-
-  // Prepare and check the alpha times waves
+  PairMTP::coeff(narg, arg);
   PairMTPKokkos::prepare_waves();
 
   // ---------- Now we move arrays to device ----------
@@ -127,6 +108,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::settings(int narg, c
   MemKK::realloc_kokkos(d_alpha_index_times, "mtp/kk:alpha_index_times", alpha_index_times_count,
                         4);
   MemKK::realloc_kokkos(d_alpha_moment_mapping, "mtp/kk:moment_mapping", alpha_scalar_count);
+  MemKK::realloc_kokkos(d_map, "mtp/kk:mapping", atom->ntypes + 1);
 
   // Setup the learned coefficients
   int radial_coeff_count = species_count * species_count * radial_basis_size * radial_func_count;
@@ -147,6 +129,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::settings(int narg, c
   auto h_alpha_index_basic = Kokkos::create_mirror_view(d_alpha_index_basic);
   auto h_alpha_index_times = Kokkos::create_mirror_view(d_alpha_index_times);
   auto h_alpha_moment_mapping = Kokkos::create_mirror_view(d_alpha_moment_mapping);
+  auto h_map = Kokkos::create_mirror_view(d_map);
   auto h_radial_basis_coeffs = Kokkos::create_mirror_view(d_radial_basis_coeffs);
   auto h_species_coeffs = Kokkos::create_mirror_view(d_species_coeffs);
   auto h_linear_coeffs = Kokkos::create_mirror_view(d_linear_coeffs);
@@ -162,6 +145,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::settings(int narg, c
     h_alpha_moment_mapping(i) = alpha_moment_mapping[i];
     h_linear_coeffs(i) = linear_coeffs[i];
   }
+  for (int i = 0; i < atom->ntypes + 1; i++) h_map[i] = map[i];
   for (int i = 0; i < radial_coeff_count; i++) h_radial_basis_coeffs(i) = radial_basis_coeffs[i];
   for (int i = 0; i < species_count; i++) h_species_coeffs(i) = species_coeffs[i];
 
@@ -169,10 +153,22 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::settings(int narg, c
   Kokkos::deep_copy(d_alpha_index_basic, h_alpha_index_basic);
   Kokkos::deep_copy(d_alpha_index_times, h_alpha_index_times);
   Kokkos::deep_copy(d_alpha_moment_mapping, h_alpha_moment_mapping);
+  Kokkos::deep_copy(d_map, h_map);
   Kokkos::deep_copy(d_radial_basis_coeffs, h_radial_basis_coeffs);
   Kokkos::deep_copy(d_species_coeffs, h_species_coeffs);
   Kokkos::deep_copy(d_linear_coeffs, h_linear_coeffs);
-  // No need to deep copy the working buffers.
+}
+
+/* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+template <class DeviceType> void PairMTPKokkos<DeviceType>::settings(int narg, char **arg)
+{
+  if (narg != 2 || LAMMPS_NS::utils::lowercase(arg[0]) != "chunksize")
+    error->all(FLERR, "Pair mtp/kk requires 2 arguments \"chunksize\" {chunksize}}.");
+
+  input_chunk_size = utils::inumeric(FLERR, arg[1], true, lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -530,7 +526,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   // Get information about the central atom
   const int i = d_ilist[ii + chunk_offset];
   const KK_FLOAT xi[3] = {x(i, 0), x(i, 1), x(i, 2)};
-  const int itype = type[i] - 1;    // switch to zero indexing
+  const int itype = d_map(type[i]);
   const int jnum = d_num_valid_neighs(ii + chunk_offset);
   const int array_size = Kokkos::min(team.team_size(), jnum);
 
@@ -544,7 +540,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   // Now we calculate the alpha basics.
   Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](const int jj) {
     const int j = d_valid_neighs(jj, ii + chunk_offset);
-    const int jtype = type[j] - 1;    // switch to zero indexing
+    const int jtype = d_map(type[j]);
     const KK_FLOAT r[3] = {x(j, 0) - xi[0], x(j, 1) - xi[1], x(j, 2) - xi[2]};
     const KK_FLOAT rsq = Kokkos::fma(r[0], r[0], Kokkos::fma(r[1], r[1], r[2] * r[2]));
     const KK_FLOAT dist = sqrt(rsq);
@@ -753,7 +749,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   });
 
   if (need_energies) {
-    const int itype = type(i) - 1;    // zero indexing
+    const int itype = d_map(type[i]);    // zero indexing
     KK_FLOAT nbh_energy = 0;
 
     // Reduction to find the dot product of the linear coeffs and the moment tensor vals

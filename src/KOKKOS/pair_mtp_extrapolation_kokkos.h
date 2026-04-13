@@ -158,6 +158,7 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   Kokkos::View<int **, DeviceType> d_alpha_index_times;      // For combining alphas
   Kokkos::View<int *, DeviceType> d_waves;                   // Dependency waves
   Kokkos::View<int *, DeviceType> d_alpha_moment_mapping;    // Maps alphas to the basis functions.
+  Kokkos::View<int *, DeviceType> d_map;                     // Element Map
 
   // The learned coefficients.
   Kokkos::View<KK_FLOAT *, DeviceType> d_radial_basis_coeffs;    // The radial components.
@@ -180,7 +181,6 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   Kokkos::View<KK_FLOAT ***, DeviceType> d_radial_jacobian;
   Kokkos::View<KK_FLOAT **, Kokkos::LayoutRight, DeviceType> d_moment_tensor_vals;
   Kokkos::View<KK_FLOAT **, Kokkos::LayoutRight, DeviceType> d_nbh_energy_ders_wrt_moments;
-  Kokkos::View<bool **, DeviceType> d_within_cutoff;
 
   // Typedefs for shared memory
   typedef Kokkos::View<KK_FLOAT **[3], typename DeviceType::scratch_memory_space,

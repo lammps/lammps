@@ -1585,6 +1585,7 @@ void LammpsGui::render_image()
             // add a run 0 and thus create the state of the initial system without running.
             // this will allow us to create a snapshot image.
             auto saved = ui->textEdit->textCursor();
+            ui->textEdit->moveCursor(QTextCursor::Start);
 #if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
             if (ui->textEdit->find(QRegExp(QStringLiteral("^\\s*(run|minimize)\\s+")))) {
 #else
@@ -1603,13 +1604,13 @@ void LammpsGui::render_image()
                 // clear any possible error status
                 lammps.get_last_error_message(nullptr, 0);
             }
+            ui->textEdit->setTextCursor(saved);
             // still no system box. bail out with a suitable message
             if (!lammps.extract_setting("box_exist")) {
                 QMessageBox::warning(this, "ImageViewer Error",
                                      "Cannot create snapshot image without a system box");
                 return;
             }
-            ui->textEdit->setTextCursor(saved);
         }
         // if configured, delete old image window before opening new one
         if (QSettings().value("imagereplace", true).toBool()) delete imagewindow;

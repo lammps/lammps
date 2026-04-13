@@ -316,12 +316,9 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
   d_mask = atomKK->k_mask.template view<DeviceType>();
   d_image = atomKK->k_image.template view<DeviceType>();
 
+  k_body.template sync<DeviceType>();
   if (!earlyflag) compute_forces_and_torques();
   if (domain->dimension == 2) enforce2d_kokkos();
-
-  // body integration loop on device
-  k_body.template sync<DeviceType>();
-  d_body = k_body.template view<DeviceType>();
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,
@@ -435,7 +432,6 @@ void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos()
     if (vflag_atom && need_dup) dup_vatom = {};
   }
   // update geometric center of bodies
-  copymode = 1;
   auto l_body = d_body;
   Kokkos::parallel_for(nlocal_body + nghost_body, KOKKOS_LAMBDA(const int &ibody) {
     BodyKokkos &bk = l_body[ibody];
@@ -1039,10 +1035,10 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor()
   nghost_body = 0;
   commflag = FULL_BODY;
   comm->forward_comm(this);
-  k_body.sync_host();
-  k_bodyown.sync_host();
-  k_bodytag.sync_host();
-  k_atom2body.sync_host();
+  k_body.modify_host();
+  k_bodyown.modify_host();
+  k_bodytag.modify_host();
+  k_atom2body.modify_host();
   reset_atom2body();
   k_atom2body.modify_host();
   image_shift_kokkos();
@@ -1303,6 +1299,8 @@ void FixRigidSmallKokkos<DeviceType>::zero_rotation()
   // forward communicate of omega to all ghost copies
   commflag = FINAL;
   comm->forward_comm(this,10);
+  k_body.modify_host();
+  k_body.sync_device();
 
   // set velocity of atoms in rigid bodues
   if (triclinic) set_v_kokkos<1,0>();

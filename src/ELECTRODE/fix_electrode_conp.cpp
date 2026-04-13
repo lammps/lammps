@@ -406,7 +406,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = 0;
 
-  if (!intelflag) { # so /intel makes ElectrodeVectorIntel instead
+  if (!intelflag) { // so /intel makes ElectrodeVectorIntel instead
     elyt_vector = new ElectrodeVector(lmp, 0, arg, igroup, igroup, eta, true);
     if (need_elec_vector) {
       elec_vector = new ElectrodeVector(lmp, 0, arg, igroup, igroup, eta, false);

@@ -23,6 +23,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -83,8 +84,9 @@ void PairMTP::compute(int eflag, int vflag)
   // Loop over all provided neighbourhoods
   for (int ii = 0; ii < inum; ii++) {
     const int i = ilist[ii];
-    const int itype = type[i] - 1;    // Set central atom type. Convert back to zero indexing.
-    if (itype >= species_count) error->one(FLERR, "Too few species count in the MTP potential!");
+    const int itype = map[type[i]];
+    if (itype < 0) continue;
+
     const int jnum = numneigh[i];
     double nbh_energy = 0;
     const double xi[3] = {x[i][0], x[i][1], x[i][2]};
@@ -105,14 +107,14 @@ void PairMTP::compute(int eflag, int vflag)
     for (int jj = 0; jj < jnum; jj++) {
       int j = firstneigh[i][jj];
       j &= NEIGHMASK;
-      const int jtype = type[j] - 1;    // Convert to zero indexing
-      if (jtype >= species_count) error->one(FLERR, "Too few species count in the MTP potential!");
+      const int jtype = map[type[j]];    // Convert to zero indexing
+      if (jtype < 0) continue;
 
       const double r[3] = {x[j][0] - xi[0], x[j][1] - xi[1], x[j][2] - xi[2]};
       const double rsq = r[0] * r[0] + r[1] * r[1] + r[2] * r[2];
 
       // Check cutoff and store for backwards pass
-      if (rsq > cutsq[itype + 1][jtype + 1]) {    //1 indexing
+      if (rsq > max_cutoff_sq) {
         within_cutoff[jj] = false;
         continue;
       }
@@ -270,17 +272,11 @@ void PairMTP::compute(int eflag, int vflag)
 void PairMTP::settings(int narg, char **arg)
 {
   if (comm->me == 0) {
-    if (narg < 1)
-      error->one(FLERR, "pair_style mtp only accepts 1 argument, the MTP potential file");
     if (narg > 1)
-      utils::logmesg(
-          lmp,
-          "pair_style mtp only accepts 1 argument, the MTP potential file. Ignoring excessive "
-          "arguments!\n");
+      utils::logmesg(lmp,
+                     "pair_style mtp does not accept arguments. Ignoring excessive "
+                     "arguments!\n");
   }
-  FILE *mtp_file = utils::open_potential(arg[0], lmp, nullptr);
-  read_file(mtp_file);
-  fclose(mtp_file);
 }
 
 /* ----------------------------------------------------------------------
@@ -288,8 +284,19 @@ void PairMTP::settings(int narg, char **arg)
 ------------------------------------------------------------------------- */
 void PairMTP::coeff(int narg, char **arg)
 {
-  // The potential file is specified in the setting function instead.
-  if (narg != 2) error->all(FLERR, "Only \"pair_coeff * *\" is permitted");
+  const int n = atom->ntypes;
+  if (narg != 3 + n)
+    error->all(
+        FLERR,
+        "Incorrect args for pair coefficients. Pair_coeff mtp only accepts the MTP potential file "
+        "and the species mappping.");
+
+  // Read in MTP and allocate memory
+  FILE *mtp_file = utils::open_potential(arg[2], lmp, nullptr);
+  read_file(mtp_file);
+  fclose(mtp_file);
+
+  prepare_map(narg - 3, arg + 3);
 }
 
 /* ----------------------------------------------------------------------
@@ -309,7 +316,9 @@ void PairMTP::init_style()
 
 double PairMTP::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR, "Not all pair coeffs are set. See types {}-{}.", i, j);
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "All pair coeffs are not set. Status\n" + Info::get_pair_coeff_status(lmp));
 
   return radial_basis->max_cutoff;
 }
@@ -360,11 +369,7 @@ void PairMTP::read_file(FILE *mtp_file)
     if (keyword != "species_count")
       error->one(FLERR, "Error reading MTP file. Species count not found.");
     species_count = line_tokens.next_int();
-    utils::logmesg(lmp, "There are {} species.\n", species_count);
-
-    int np1 = species_count + 1;    // Lammps is 1 indexed instead of MLIP which is 0 indexed
-    memory->create(setflag, np1, np1, "pair:setflag");
-    memory->create(cutsq, np1, np1, "pair:cutsq");
+    utils::logmesg(lmp, "There are {} species in this MTP.\n", species_count);
 
     // Read the potential tag (also optional field)
     line_tokens = ValueTokenizer(tfr.next_line(), separators);
@@ -427,8 +432,6 @@ void PairMTP::read_file(FILE *mtp_file)
       line_tokens = ValueTokenizer(tfr.next_line(), separators + "-");
       int type1 = line_tokens.next_int();
       int type2 = line_tokens.next_int();
-      setflag[type1 + 1][type2 + 1] = 1;
-      cutsq[type1 + 1][type2 + 1] = rcutmaxsq;
 
       // Read the coeffs for the pair with offset in the array pointer.
       int pair_offset = (type1 * species_count + type2) * radial_coeff_count_per_pair;
@@ -571,10 +574,6 @@ void PairMTP::read_file(FILE *mtp_file)
       radial_basis->scaling = scaling;
     }
 
-    //Flags
-    memory->create(cutsq, np1, np1, "pair:cutsq");
-    memory->create(setflag, np1, np1, "pair:setflag");
-
     //Alpha index
     memory->create(alpha_index_basic, alpha_index_basic_count, 4, "alpha_index_basic");
     memory->create(alpha_index_times, alpha_index_times_count, 4, "alpha_index_times");
@@ -598,12 +597,8 @@ void PairMTP::read_file(FILE *mtp_file)
   max_cutoff = radial_basis->max_cutoff;
   max_cutoff_sq = max_cutoff * max_cutoff;
 
-  //Now we B Cast arrays
-  //Flags
-  MPI_Bcast(&cutsq[0][0], np1 * np1, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&setflag[0][0], np1 * np1, MPI_INT, 0, world);
-
-  // //Alphas
+  // Now we B Cast arrays
+  // Alphas
   MPI_Bcast(&alpha_index_basic[0][0], alpha_index_basic_count * 4, MPI_INT, 0, world);
   MPI_Bcast(&alpha_index_times[0][0], alpha_index_times_count * 4, MPI_INT, 0, world);
   MPI_Bcast(alpha_moment_mapping, alpha_scalar_count, MPI_INT, 0, world);
@@ -617,4 +612,35 @@ void PairMTP::read_file(FILE *mtp_file)
   dist_powers[0] = coord_powers[0][0] = coord_powers[0][1] = coord_powers[0][2] = 1;
 
   allocated = 1;
+}
+
+/* ----------------------------------------------------------------------
+   Sets up the MTP element mapping and allocates memory for cutoffs and setflag
+------------------------------------------------------------------------- */
+
+void PairMTP::prepare_map(int narg, char **arg)
+{
+  const int n = atom->ntypes;
+  const int np1 = n + 1;
+
+  // Set up basic flags
+  memory->create(setflag, np1, np1, "pair:setflag");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
+  memory->create(map, np1, "pair:map");
+  map_element2type(narg, arg);
+
+  // Readjust Map
+  for (int i = 1; i < np1; i++) {
+    std::string entry = arg[i - 1];
+    if (entry == "NULL") {
+      map[i] = -1;
+    } else {
+      int type = utils::inumeric(FLERR, entry, false, lmp);
+      if (type >= species_count || type < 0)
+        error->all(FLERR, "The provided MTP does not support atom type {}!", type);
+      map[i] = type;
+    }
+  }
+  // MTP uses a single global cutoff
+  std::fill(&cutsq[0][0], &cutsq[0][0] + np1 * np1, max_cutoff_sq);
 }

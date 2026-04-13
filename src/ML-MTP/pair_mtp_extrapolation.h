@@ -34,6 +34,7 @@ class PairMTPExtrapolation : public PairMTP {
   ~PairMTPExtrapolation() override;
   void compute(int, int) override;                        //Workhorse comuptation
   void settings(int, char **) override;                   // Reads args from "pair_style"
+  void coeff(int, char **) override;                      // Reads args from "pair_coeff"
   void *extract(const char *, int &) override;            // Provides access to compute grade flag
   void *extract_peratom(const char *, int &) override;    // Provides access to per-atom data
 

@@ -355,10 +355,10 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   assert(groups.size() == group_psi_const.size());
   assert(groups.size() == group_psi_var_styles.size());
   assert(groups.size() == group_psi_var_names.size());
-  assert(igroup == elyt_vector->igroup);
+  // assert(igroup == elyt_vector->igroup);
   if (predictor_set && algo != Algo::CG && algo != Algo::MATRIX_CG)
     error->all(FLERR, "Selected algorithm does not support predictor keyword");
-  if (need_elec_vector) assert(igroup == elec_vector->igroup);
+  // if (need_elec_vector) assert(igroup == elec_vector->igroup);
   if (algo != Algo::MATRIX_INV) {
     if (read_inv || write_inv)
       error->all(

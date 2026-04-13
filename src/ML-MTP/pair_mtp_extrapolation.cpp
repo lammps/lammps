@@ -93,12 +93,9 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
 
   // Loop over all provided neighbourhoods
   for (int ii = 0; ii < inum; ii++) {
-    const int i = ilist[ii];          // Set central atom index
-    const int itype = type[i] - 1;    // Set central atom type. Convert back to zero indexing.
-    if (itype >= species_count)
-      error->all(FLERR,
-                 "Too few species count in the MTP potential!");    // Might not need this check
-    int jnum = numneigh[i];                                         // Set number of neighbours
+    const int i = ilist[ii];    // Set central atom index
+    const int itype = map[type[i]];
+    int jnum = numneigh[i];    // Set number of neighbours
     double nbh_energy = 0;
     const double xi[3] = {x[i][0], x[i][1],
                           x[i][2]};    // Cache the position of the central atom for efficiency
@@ -128,15 +125,11 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
     for (int jj = 0; jj < jnum; jj++) {
       int j = firstneigh[i][jj];    //List of neighbours
       j &= NEIGHMASK;
-      const int jtype = type[j] - 1;    // Convert back to zero indexing
-      if (jtype >= species_count)
-        error->all(FLERR,
-                   "Too few species count in the MTP potential!");    // Might not need this check
-
+      const int jtype = map[type[j]];
       const double r[3] = {x[j][0] - xi[0], x[j][1] - xi[1], x[j][2] - xi[2]};
       const double rsq = r[0] * r[0] + r[1] * r[1] + r[2] * r[2];
 
-      if (rsq > cutsq[itype + 1][jtype + 1]) {    //1 indexing
+      if (rsq > max_cutoff_sq) {    //1 indexing
         within_cutoff[jj] = false;
         continue;
       }
@@ -411,7 +404,7 @@ void PairMTPExtrapolation::write_config()
   bigint local_buffer_size = 0;
   for (int ii = 0; ii < inum; ii++) {
     const int i = ii;
-    const int itype = type[i] - 1;
+    const int itype = map[type[i]];
     const double xi[3] = {x[i][0], x[i][1], x[i][2]};
     const int global_i = i + index_offset + 1;
 
@@ -476,26 +469,21 @@ void PairMTPExtrapolation::write_config()
 
 void PairMTPExtrapolation::settings(int narg, char **arg)
 {
-
-  if ((narg == 3 && LAMMPS_NS::utils::lowercase(arg[1]) == "chunksize") ||
-      (narg == 6 && LAMMPS_NS::utils::lowercase(arg[4]) == "chunksize")) {
+  if ((narg == 2 && LAMMPS_NS::utils::lowercase(arg[0]) == "chunksize") ||
+      (narg == 5 && LAMMPS_NS::utils::lowercase(arg[3]) == "chunksize")) {
     if (comm->me == 0) utils::logmesg(lmp, "Ignoring chunksize settings!\n");
     narg -= 2;    // Ignore the chunksize settings
-  } else if (narg != 1 && narg != 4)
+  } else if (narg != 0 && narg != 3)
     error->all(FLERR,
-               "Pair mtp/extrapolation only accepts 1 argument: {potential_file}. "
-               "Or 4 arguments: {potential_file} {output_file}. {selection_threshold} "
+               "Pair mtp/extrapolation accepts no arguments."
+               "Or exactly 4 arguments: {output_file}. {selection_threshold} "
                "{break_threshold}.");
 
-  if (narg == 4) {
+  if (narg == 3) {
     mlip3_style = true;
-    select_threshold = utils::numeric(FLERR, arg[2], true, lmp);
-    break_threshold = utils::numeric(FLERR, arg[3], true, lmp);
+    select_threshold = utils::numeric(FLERR, arg[1], true, lmp);
+    break_threshold = utils::numeric(FLERR, arg[2], true, lmp);
   }
-
-  FILE *mtp_file = utils::open_potential(arg[0], lmp, nullptr);
-  PairMTPExtrapolation::read_file(mtp_file);
-  fclose(mtp_file);
 
   if (comm->me == 0)
     if (mlip3_style)
@@ -509,7 +497,26 @@ void PairMTPExtrapolation::settings(int narg, char **arg)
                      (configuration_mode ? "Configuration" : "Neighborhood"));
 
   if (mlip3_style)
-    if (comm->me == 0) preselected_file = std::fopen(arg[1], "w");
+    if (comm->me == 0) preselected_file = std::fopen(arg[0], "w");
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
+void PairMTPExtrapolation::coeff(int narg, char **arg)
+{
+  const int n = atom->ntypes;
+  if (narg != 3 + n)
+    error->all(FLERR,
+               "Incorrect args for pair coefficients. Pair_coeff mtp/extrapolation only accepts "
+               "the MTP potential file and the species mappping.");
+
+  // Read in MTP and allocate memory
+  FILE *mtp_file = utils::open_potential(arg[2], lmp, nullptr);
+  PairMTPExtrapolation::read_file(mtp_file);
+  fclose(mtp_file);
+
+  PairMTP::prepare_map(narg - 3, arg + 3);
 }
 
 /* ----------------------------------------------------------------------

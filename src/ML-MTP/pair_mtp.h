@@ -35,12 +35,14 @@ class PairMTP : public Pair {
   ~PairMTP() override;
   void compute(int, int) override;         //Workhorse comuptation
   void settings(int, char **) override;    // Reads args from "pair_style"
-  void coeff(int, char **) override;       // Reads args from "pair_coeff" (only * * for mtp)
+  void coeff(int, char **) override;       // Reads args from "pair_coeff"
   void init_style() override;              //Init style
   double init_one(int, int) override;      // Checks that species are inited
 
  protected:
-  void read_file(FILE *);                     //Parsing file using LAMMPS utils
+  void read_file(FILE *);                    //Parsing file using LAMMPS utils
+  void prepare_map(int narg, char **arg);    // Handles element mapping
+
   std::string potential_name = "Untitled";    //An optional name which isn't currently used.
   std::string potential_tag = "";    //An optional tag/description which isn't currently used.
 

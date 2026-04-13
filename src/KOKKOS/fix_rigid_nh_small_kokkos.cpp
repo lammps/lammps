@@ -55,6 +55,9 @@ template<class DeviceType>
 FixRigidNHSmallKokkos<DeviceType>::FixRigidNHSmallKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixRigidNHSmall(lmp, narg, arg)
 {
+
+  Kokkos::printf("*** FixRigidNHSmallKokkos() ok 1\n");
+
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   domainKK = (DomainKokkos *) domain;
@@ -193,6 +196,9 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
     }
   }, akin_t, akin_r);
   copymode = 0;
+  k_body.modify_device();
+  k_body.sync_host();
+
 
   if (tstat_flag || pstat_flag) {
     KK_ACC_FLOAT ke[2], keall[2];
@@ -335,10 +341,10 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
     TagRigidNHInitialIntegrate>(0, nlocal_body), *this);
   copymode = 0;
 
-  k_body.template modify<DeviceType>();
-  k_body.sync_host();
 
   // forward communicate
+  k_body.modify_device();
+  k_body.sync_host();
   commflag = INITIAL;
   comm->forward_comm(this, 29);
   k_body.modify_host();
@@ -458,6 +464,8 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHInitialIntegrate,
     bk.xcm[2] = Kokkos::fma(d_scale_v[2], bk.vcm[2], bk.xcm[2]);
   }
 
+  Kokkos::printf("*** step %i ibody %i mass %f fcm %f %f %f \n", update->ntimestep, ibody, bk.mass, bk.fcm[0], bk.fcm[1], bk.fcm[2]);
+
   // step 1.3 - apply torque to quaternion momentum
   MathExtraKokkos::transpose_matvec(bk.ex_space, bk.ey_space, bk.ez_space,
                                     bk.torque, tbody);
@@ -504,7 +512,6 @@ void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
   double tmp;
   KK_FLOAT scale_t[3], scale_r_local;
   KK_FLOAT dtf2_local = dtf * 2.0;
-
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
   scale_r_local = 1.0;
 
@@ -557,18 +564,20 @@ void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
 
   // accumulate kinetic energies for pstat
   if (pstat_flag) {
-    akin_t = akin_r = 0.0;
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      Body *b = &body[ibody];
-      akin_t += b->mass*(b->vcm[0]*b->vcm[0] + b->vcm[1]*b->vcm[1] +
-        b->vcm[2]*b->vcm[2]);
-      akin_r += b->angmom[0]*b->omega[0] + b->angmom[1]*b->omega[1] +
-        b->angmom[2]*b->omega[2];
-    }
-    double ke[2], keall[2];
-    ke[0] = akin_t;
-    ke[1] = akin_r;
-    MPI_Allreduce(ke, keall, 2, MPI_DOUBLE, MPI_SUM, world);
+    copymode = 1;
+    auto l_body = d_body;
+    KK_ACC_FLOAT ke[2], keall[2];
+    Kokkos::parallel_reduce(nlocal_body,
+      KOKKOS_LAMBDA(const int ibody, KK_ACC_FLOAT &l_akin_t, KK_ACC_FLOAT &l_akin_r ) {
+        BodyKokkos &bk = l_body[ibody];
+        l_akin_t += bk.mass*(bk.vcm[0]*bk.vcm[0] + bk.vcm[1]*bk.vcm[1] +
+                    bk.vcm[2]*bk.vcm[2]);
+        l_akin_r += bk.angmom[0]*bk.omega[0] + bk.angmom[1]*bk.omega[1] +
+                    bk.angmom[2]*bk.omega[2];
+      }, ke[0], ke[1]
+    );
+    copymode = 0;
+    MPI_Allreduce(ke, keall, 2, MPI_KK_ACC_FLOAT, MPI_SUM, world);
     akin_t = keall[0];
     akin_r = keall[1];
   }
@@ -680,6 +689,8 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHFinalIntegrate,
   bk.angmom[1] *= 0.5;
   bk.angmom[2] *= 0.5;
 
+  Kokkos::printf("*** FINALINTEGRATE step %i ibody %i mass %f fcm %f %f %f \n", update->ntimestep, ibody, bk.mass, bk.fcm[0], bk.fcm[1], bk.fcm[2]);
+
   MathExtraKokkos::angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
                                    bk.ez_space, bk.inertia, bk.omega);
 
@@ -757,6 +768,7 @@ void FixRigidNHSmallKokkos<DeviceType>::compute_forces_and_torques()
   int nlocal = atomKK->nlocal;
 
   copymode = 1;
+  k_body.sync_device();
   auto l_body = d_body;
   Kokkos::parallel_for(nbody_total, KOKKOS_LAMBDA(const int &ibody) {
     BodyKokkos &bk = l_body[ibody];
@@ -789,6 +801,7 @@ void FixRigidNHSmallKokkos<DeviceType>::compute_forces_and_torques()
     k_body.sync_host();
   }
 
+  k_body.sync_host();
   commflag = FORCE_TORQUE;
   comm->reverse_comm(this, 6);
   k_body.modify_host();
@@ -841,6 +854,8 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHComputeForcesTorque
   const KK_FLOAT dx = unwrap[0] - bk.xcm[0];
   const KK_FLOAT dy = unwrap[1] - bk.xcm[1];
   const KK_FLOAT dz = unwrap[2] - bk.xcm[2];
+
+  Kokkos::printf("*** compute_forces_and_torques() step %i ibody %i mass %f fcm %f %f %f \n", update->ntimestep, ibody, bk.mass, bk.fcm[0], bk.fcm[1], bk.fcm[2]);
 
   Kokkos::atomic_add(&bk.torque[0], Kokkos::fma(dy, d_f(i,2), -dz*d_f(i,1)));
   Kokkos::atomic_add(&bk.torque[1], Kokkos::fma(dz, d_f(i,0), -dx*d_f(i,2)));
@@ -1130,6 +1145,8 @@ void FixRigidNHSmallKokkos<DeviceType>::set_v_kokkos()
     if (vflag_atom && need_dup) dup_vatom = {};
   }
   copymode = 0;
+  k_body.modify_device();
+
 }
 
 template<class DeviceType>
@@ -1233,8 +1250,13 @@ template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::setup_pre_neighbor()
 {
   atomKK->sync(Host, ALL_MASK);
-  // Avoid sync_host() on fix-owned DualViews before setup_bodies_static():
-  // Kokkos device buffers are uninitialized and would overwrite valid host data.
+  k_body.sync_host();
+  k_bodyown.sync_host();
+  k_bodytag.sync_host();
+  k_atom2body.sync_host();
+  k_xcmimage.sync_host();
+  k_displace.sync_host();
+  if (extended) k_eflags.sync_host();
 
   FixRigidSmall::setup_pre_neighbor();
 
@@ -1263,8 +1285,8 @@ void FixRigidNHSmallKokkos<DeviceType>::setup_pre_neighbor()
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::pre_neighbor()
 {
-  // Device-side body[] is uninitialized until integration; do not pull it onto host.
 
+  k_body.sync_host();
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
     Body *b = &body[ibody];
     domain->remap(b->xcm, b->image);
@@ -1274,14 +1296,11 @@ void FixRigidNHSmallKokkos<DeviceType>::pre_neighbor()
   nghost_body = 0;
   commflag = FULL_BODY;
   comm->forward_comm(this);
-
   k_body.modify_host();
-
   k_body.sync_device();
   k_bodyown.sync_host();
   k_bodytag.sync_host();
   k_atom2body.sync_host();
-
   reset_atom2body();
   k_atom2body.modify_host();
   image_shift_kokkos();

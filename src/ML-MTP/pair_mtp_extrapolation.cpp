@@ -93,6 +93,7 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
 
   // Loop over all provided neighbourhoods
   for (int ii = 0; ii < inum; ii++) {
+    int valid_count = 0;
     const int i = ilist[ii];    // Set central atom index
     const int itype = map[type[i]];
     int jnum = numneigh[i];    // Set number of neighbours
@@ -103,7 +104,7 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
     // Resize the jacobian and cutoff if needed. No need to initialize, first access is write
     if (jac_size < jnum) {
       memory->grow(moment_jacobian, jnum, alpha_index_basic_count, 3, "moment_jacobian");
-      memory->grow(within_cutoff, jnum, "within_cutoff");
+      memory->grow(valid_j, jnum, "valid_j");
       jac_size = jnum;
     }
 
@@ -129,11 +130,9 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       const double r[3] = {x[j][0] - xi[0], x[j][1] - xi[1], x[j][2] - xi[2]};
       const double rsq = r[0] * r[0] + r[1] * r[1] + r[2] * r[2];
 
-      if (rsq > max_cutoff_sq) {    //1 indexing
-        within_cutoff[jj] = false;
-        continue;
-      }
-      within_cutoff[jj] = true;
+      if (rsq > max_cutoff_sq) continue;
+
+      valid_j[valid_count] = j;
 
       const double dist = std::sqrt(rsq);
       radial_basis->calc_radial_basis_ders(dist);    // Calculate radial basis
@@ -145,10 +144,10 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       }
 
       // Compute the radial basis values
+      int pair_offset = itype * species_count + jtype;
       for (int mu = 0; mu < radial_func_count; mu++) {
         double val = 0;
         double der = 0;
-        int pair_offset = itype * species_count + jtype;
         int offset = (pair_offset * radial_coeff_count_per_pair) + mu * radial_basis_size;
 
         for (int ri = 0; ri < radial_basis_size; ri++) {
@@ -190,23 +189,24 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
 
         // Get the component's derivatives too
         pow *= der / dist;
-        moment_jacobian[jj][k][0] = pow * r[0];
-        moment_jacobian[jj][k][1] = pow * r[1];
-        moment_jacobian[jj][k][2] = pow * r[2];
+        moment_jacobian[valid_count][k][0] = pow * r[0];
+        moment_jacobian[valid_count][k][1] = pow * r[1];
+        moment_jacobian[valid_count][k][2] = pow * r[2];
 
         if (alpha_index_basic[k][1] != 0) {
-          moment_jacobian[jj][k][0] += val * alpha_index_basic[k][1] *
+          moment_jacobian[valid_count][k][0] += val * alpha_index_basic[k][1] *
               coord_powers[alpha_index_basic[k][1] - 1][0] * pow1 * pow2;
         }    //Chain rule for nonzero rank
         if (alpha_index_basic[k][2] != 0) {
-          moment_jacobian[jj][k][1] += val * alpha_index_basic[k][2] * pow0 *
+          moment_jacobian[valid_count][k][1] += val * alpha_index_basic[k][2] * pow0 *
               coord_powers[alpha_index_basic[k][2] - 1][1] * pow2;
         }    //Chain rule for nonzero rank
         if (alpha_index_basic[k][3] != 0) {
-          moment_jacobian[jj][k][2] += val * alpha_index_basic[k][3] * pow0 * pow1 *
+          moment_jacobian[valid_count][k][2] += val * alpha_index_basic[k][3] * pow0 * pow1 *
               coord_powers[alpha_index_basic[k][3] - 1][2];
         }    //Chain rule for nonzero rank
       }
+      valid_count++;
     }
 
     // ------------ Contruct Other Alphas  ------------
@@ -260,10 +260,8 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
     }
 
     //------------ Step 3: Multiply energy ders wrt moment by the moment jacobian to get forces ------------
-    for (int jj = 0; jj < jnum; jj++) {
-      int j = firstneigh[i][jj];
-      j &= NEIGHMASK;
-      if (!within_cutoff[jj]) continue;
+    for (int jj = 0; jj < valid_count; jj++) {
+      int j = valid_j[jj];
 
       double temp_force[3] = {0, 0, 0};
       for (int k = 0; k < alpha_index_basic_count; k++) {

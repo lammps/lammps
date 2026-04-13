@@ -57,7 +57,7 @@ PairMTP::~PairMTP()
     memory->destroy(alpha_moment_mapping);
     memory->destroy(moment_jacobian);
     memory->destroy(nbh_energy_ders_wrt_moments);
-    memory->destroy(within_cutoff);
+    memory->destroy(valid_j);
 
     delete radial_basis;
     radial_basis = nullptr;
@@ -83,6 +83,7 @@ void PairMTP::compute(int eflag, int vflag)
 
   // Loop over all provided neighbourhoods
   for (int ii = 0; ii < inum; ii++) {
+    int valid_count = 0;
     const int i = ilist[ii];
     const int itype = map[type[i]];
     if (itype < 0) continue;
@@ -94,7 +95,7 @@ void PairMTP::compute(int eflag, int vflag)
     // Resize per neighbor arrays
     if (jac_size < jnum) {
       memory->grow(moment_jacobian, jnum, alpha_index_basic_count, 3, "moment_jacobian");
-      memory->grow(within_cutoff, jnum, "within_cutoff");
+      memory->grow(valid_j, jnum, "valid_j");
       jac_size = jnum;
     }
 
@@ -114,11 +115,8 @@ void PairMTP::compute(int eflag, int vflag)
       const double rsq = r[0] * r[0] + r[1] * r[1] + r[2] * r[2];
 
       // Check cutoff and store for backwards pass
-      if (rsq > max_cutoff_sq) {
-        within_cutoff[jj] = false;
-        continue;
-      }
-      within_cutoff[jj] = true;
+      if (rsq > max_cutoff_sq) continue;
+      valid_j[valid_count] = j;
 
       const double dist = std::sqrt(rsq);
       radial_basis->calc_radial_basis_ders(dist);
@@ -130,10 +128,10 @@ void PairMTP::compute(int eflag, int vflag)
       }
 
       // Compute the radial basis values and derivatives
+      const int pair_offset = itype * species_count + jtype;
       for (int mu = 0; mu < radial_func_count; mu++) {
         double val = 0;
         double der = 0;
-        const int pair_offset = itype * species_count + jtype;
         const int offset = (pair_offset * radial_coeff_count_per_pair) + mu * radial_basis_size;
 
         for (int ri = 0; ri < radial_basis_size; ri++) {
@@ -166,22 +164,23 @@ void PairMTP::compute(int eflag, int vflag)
 
         // Calculate the Jacobian from derivatives
         pow *= der / dist;
-        moment_jacobian[jj][k][0] = pow * r[0];
-        moment_jacobian[jj][k][1] = pow * r[1];
-        moment_jacobian[jj][k][2] = pow * r[2];
+        moment_jacobian[valid_count][k][0] = pow * r[0];
+        moment_jacobian[valid_count][k][1] = pow * r[1];
+        moment_jacobian[valid_count][k][2] = pow * r[2];
         if (alpha_index_basic[k][1] != 0) {
-          moment_jacobian[jj][k][0] += val * alpha_index_basic[k][1] *
+          moment_jacobian[valid_count][k][0] += val * alpha_index_basic[k][1] *
               coord_powers[alpha_index_basic[k][1] - 1][0] * pow1 * pow2;
         }    //Chain rule for nonzero rank
         if (alpha_index_basic[k][2] != 0) {
-          moment_jacobian[jj][k][1] += val * alpha_index_basic[k][2] * pow0 *
+          moment_jacobian[valid_count][k][1] += val * alpha_index_basic[k][2] * pow0 *
               coord_powers[alpha_index_basic[k][2] - 1][1] * pow2;
         }    //Chain rule for nonzero rank
         if (alpha_index_basic[k][3] != 0) {
-          moment_jacobian[jj][k][2] += val * alpha_index_basic[k][3] * pow0 * pow1 *
+          moment_jacobian[valid_count][k][2] += val * alpha_index_basic[k][3] * pow0 * pow1 *
               coord_powers[alpha_index_basic[k][3] - 1][2];
         }    //Chain rule for nonzero rank
       }
+      valid_count++;
     }
 
     // ------------ Contruct Composite Moment Values  ------------
@@ -223,10 +222,8 @@ void PairMTP::compute(int eflag, int vflag)
     }
 
     //------------  Multiply energy ders wrt basic moments by the Jacobian to get forces ------------
-    for (int jj = 0; jj < jnum; jj++) {
-      int j = firstneigh[i][jj];
-      j &= NEIGHMASK;
-      if (!within_cutoff[jj]) continue;
+    for (int jj = 0; jj < valid_count; jj++) {
+      int j = valid_j[jj];
 
       double temp_force[3] = {0, 0, 0};
       for (int k = 0; k < alpha_index_basic_count; k++)
@@ -582,7 +579,6 @@ void PairMTP::read_file(FILE *mtp_file)
     //Working buffers
     memory->create(moment_tensor_vals, alpha_moment_count, "moment_tensor_vals");
     memory->create(nbh_energy_ders_wrt_moments, alpha_moment_count, "nbh_energy_ders_wrt_moments");
-    //Jacobian and within_cutoff will be first created with memory->grow during calculation.
 
     //Coefficients
     memory->create(radial_basis_coeffs, radial_coeff_count, "radial_basis_coeffs");

@@ -81,9 +81,7 @@ class PairMTP : public Pair {
   double ***moment_jacobian = nullptr;    // First created during compute using grow
   double *moment_tensor_vals;             //Buffer to hold the moments
   double *nbh_energy_ders_wrt_moments;    // Same as above except for ders
-
-  // Cache whether to calculate forces based on cutoff as calculated in alpha basics
-  bool *within_cutoff = nullptr;    // First created during compute using grow
+  int *valid_j = nullptr;                 // First created during compute using grow
 };
 
 }    // namespace LAMMPS_NS

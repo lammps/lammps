@@ -14,7 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Stan Moore (SNL)
-                         Mitch Murphy (alphataubio@gmail.com)
+                         Mitch Murphy (alphataubio at gmail)
 ------------------------------------------------------------------------- */
 
 #include "fix_nh_kokkos.h"

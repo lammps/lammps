@@ -555,7 +555,6 @@ void PairMTP::read_file(FILE *mtp_file)
   const int pairs_count = species_count * species_count;
   radial_coeff_count_per_pair = radial_basis_size * radial_func_count;
   radial_coeff_count = pairs_count * radial_coeff_count_per_pair;
-  const int np1 = (species_count + 1);
 
   //Working buffers
   memory->create(dist_powers, max_alpha_index_basic, "dist_powers");

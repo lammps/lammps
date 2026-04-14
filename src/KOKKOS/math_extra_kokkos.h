@@ -616,13 +616,13 @@ template <typename T>
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::mq_to_omega(KK_FLOAT *m, T *q, KK_FLOAT *moments, KK_FLOAT *w)
 {
-#if defined (LMP_KOKKOS_DOUBLE_DOUBLE)  // double
+#if !(defined LMP_KOKKOS_DOUBLE_DOUBLE) // KK_FLOAT = float
   KK_FLOAT kk_q[3] = {
     static_cast<KK_FLOAT>(q[0]),
     static_cast<KK_FLOAT>(q[1]),
     static_cast<KK_FLOAT>(q[2])
   };
-#else // single or mixed, ie. KK_FLOAT = float
+#else // KK_FLOAT = double
   T *kk_q = q;
 #endif
 

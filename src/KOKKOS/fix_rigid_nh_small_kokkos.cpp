@@ -733,13 +733,11 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
       e_fac[i] = 1.0;
     }
   }
-  
+
   domainKK->set_global_box();
   domainKK->set_local_box();
-
   if (allremap) domainKK->lamda2x(nlocal);
   else domainKK->lamda2x(nlocal, dilate_group_bit);
-  
   for (auto &ifix : rfix) ifix->deform(1);
 
   // 3. THE FIX: Dilate the Rigid Body Centers of Mass on the Device
@@ -748,7 +746,6 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
   auto l_p_flag = Few<int, 3>{p_flag[0], p_flag[1], p_flag[2]};
   auto l_center = Few<KK_FLOAT, 3>{(KK_FLOAT)center[0], (KK_FLOAT)center[1], (KK_FLOAT)center[2]};
   auto l_efac = Few<KK_FLOAT, 3>{(KK_FLOAT)e_fac[0], (KK_FLOAT)e_fac[1], (KK_FLOAT)e_fac[2]};
-
   copymode = 1;
   Kokkos::parallel_for(nlocal_body, KOKKOS_LAMBDA(const int &ibody) {
     BodyKokkos &bk = l_body[ibody];
@@ -757,7 +754,6 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
     if (l_p_flag[2]) bk.xcm[2] = (bk.xcm[2] - l_center[2]) * l_efac[2] + l_center[2];
   });
   copymode = 0;
-  
   k_body.modify_device();
 }
 
@@ -1015,7 +1011,7 @@ void FixRigidNHSmallKokkos<DeviceType>::set_xv_kokkos()
   });
   copymode = 0;
   k_body.modify_device();
-  
+
 }
 
 template<class DeviceType>

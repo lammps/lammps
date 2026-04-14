@@ -95,15 +95,17 @@ class FixElectrodeConp : public Fix {
   int qtotal_var_id;
   VarStyle qtotal_var_style;
   int n_equal;
+  ElectrodeVector *elyt_vector, *elec_vector;   // protected so /intel classes
+  bool need_elec_vector;			// can build their own custom
+  double eta;					// ElectrodeVectorIntel
 
  private:
   std::string output_file_inv, output_file_mat, output_file_vec;
   std::string input_file_inv, input_file_mat;
-  ElectrodeVector *elyt_vector, *elec_vector;
   double **matrix;
   bool read_inv, read_mat, write_inv, write_mat, write_vec;
-  bool matrix_algo, need_array_compute, need_elec_vector;
-  double eta, cg_threshold;
+  bool matrix_algo, need_array_compute;
+  double cg_threshold;
   double update_time, mult_time;
   double gausscorr(int, int, bool);
   void update_charges();

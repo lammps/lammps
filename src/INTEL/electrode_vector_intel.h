@@ -27,12 +27,13 @@ class ElectrodeVectorIntel : public ElectrodeVector {
  public:
   ElectrodeVectorIntel(class LAMMPS *lmp, int narg, char **arg, int sensor_group,
      int source_group, double eta, bool invert_source) :
-  ElectrodeVector(lmp, narg, arg, sensor_group, source_group, eta, invert_source)
+  ElectrodeVector(lmp, narg, arg, sensor_group, source_group, eta, invert_source),
+  fix(nullptr)
   {
   }
-  void setup_general(class Pair *, class NeighList *, bool, bool);
 
  private:
+  void get_fix_intel() override;
   void pair_contribution(double *) override;
   FixIntel *fix;
   int _cop, _lrt, _ccache_stride;

@@ -31,30 +31,31 @@ class ElectrodeVector : public Fix {
   int setmask() override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
-  virtual void setup_general(class Pair *, class NeighList *, bool, bool);
+  void setup_general(class Pair *, class NeighList *, bool, bool);
   void setup_tf(const std::map<int, double> &);
   void setup_hardness(int index);
   void setup_eta(int);
   void compute_pot(double *);
   int igroup, source_group;
 
- protected:
+ protected: // for ElectrodeVectorIntel
+  virtual void get_fix_intel() {}
   virtual void pair_contribution(double *);
-
- private:
   bool invert_source;
   int groupbit, source_grpbit;
-  bigint ngroup;
   double **cutsq;
   double g_ewald, eta;
-  bool pairflag;
-  bool tfflag;
-  bool hardnessflag;
   bool etaflag;
+  class NeighList *list;
   int eta_index;
+
+ private:
+  bigint ngroup;
+  bool tfflag;
+  bool pairflag;
+  bool hardnessflag;
   std::map<int, double> tf_types;
   int hardness_index;
-  class NeighList *list;
   class ElectrodePair *electrode_pair;
   bool kspaceflag;
   class ElectrodeKSpace *electrode_kspace;

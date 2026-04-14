@@ -15,22 +15,24 @@
    Contributing author: Shern Tee (UQ)
  ------------------------------------------------------------------------- */
 
+#include "electrode_vector_intel.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "electrode_vector_intel.h"
+#include "electrode_math.h"
 #include "force.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 
+#include <cassert>
+
 using namespace LAMMPS_NS;
 
-void ElectrodeVectorIntel::setup_general(Pair *fix_pair, class NeighList *fix_neighlist, bool pairflag,
-                                    bool timer_flag)
+void ElectrodeVectorIntel::get_fix_intel()
 {
   fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
   if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
-  ElectrodeVector::setup_general(fix_pair, fix_neighlist, timer_flag);
 }
 
 void ElectrodeVectorIntel::pair_contribution(double *vector)
@@ -75,7 +77,7 @@ void ElectrodeVectorIntel::pair_contribution(IntelBuffers<flt_t,acc_t> *buffers,
   flt_t *_noalias const q = buffers->get_q(0);
   int nlocal = atom->nlocal;
   int nthr;
-  if (_use_lrt)
+  if (_lrt)
     nthr = 1;
   else
     nthr = comm->nthreads;

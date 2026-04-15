@@ -343,7 +343,7 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
     atomKK->sync(Host, ALL_MASK);
     k_body.sync_host();
   }
-  
+
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
     k_vatom.sync_host();
@@ -1110,7 +1110,7 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidMap, const int &i) const 
+void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidMap, const int &i) const
 {
   d_atom2body(i) = -1;
   if (d_bodytag(i)) {

@@ -126,7 +126,7 @@ class FixRigidSmallKokkos : public FixRigidSmall {
   int map_style;
   DAT::tdual_int_1d k_map_array;
   dual_hash_type k_map_hash;
-  
+
   typename AT::t_int_1d d_atom2body, d_bodyown, d_eflags;
   typename AT::t_tagint_1d d_tag, d_bodytag;
   typename AT::t_imageint_1d d_xcmimage;

@@ -46,7 +46,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
-using namespace MathExtra;
 using namespace RigidConst;
 
 /* ---------------------------------------------------------------------- */
@@ -55,9 +54,6 @@ template<class DeviceType>
 FixRigidNHSmallKokkos<DeviceType>::FixRigidNHSmallKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixRigidNHSmall(lmp, narg, arg)
 {
-
-  Kokkos::printf("*** FixRigidNHSmallKokkos() ok 1\n");
-
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   domainKK = (DomainKokkos *) domain;
@@ -162,11 +158,7 @@ template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
 {
   atomKK->sync(Host, ALL_MASK);
-  // Do not sync_host() here: device-side body buffers can be uninitialized before
-  // FixRigidSmall::setup() and would overwrite valid host rigid-body data.
-
   FixRigidSmall::setup(vflag);
-  // Match FixRigidSmallKokkos::setup after CPU rigid/small setup
   atomKK->modified(Host, X_MASK | V_MASK);
   k_body.modify_host();
   k_body.sync_device();
@@ -178,23 +170,25 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
   auto l_tstat_flag = tstat_flag;
   auto l_pstat_flag = pstat_flag;
 
-  Kokkos::parallel_reduce(nlocal_body, KOKKOS_LAMBDA(const int ibody, KK_ACC_FLOAT &l_akin_t, KK_ACC_FLOAT &l_akin_r ) {
-    BodyKokkos &bk = l_body[ibody];
-    KK_FLOAT mbody[3];
-    MathExtraKokkos::transpose_matvec(bk.ex_space, bk.ey_space, bk.ez_space,
-                                bk.angmom, mbody);
-    MathExtraKokkos::quatvec(bk.quat, mbody, bk.conjqm);
-    bk.conjqm[0] *= 2.0;
-    bk.conjqm[1] *= 2.0;
-    bk.conjqm[2] *= 2.0;
-    bk.conjqm[3] *= 2.0;
-    if (l_tstat_flag || l_pstat_flag) {
-      l_akin_t += bk.mass*(bk.vcm[0]*bk.vcm[0] + bk.vcm[1]*bk.vcm[1] +
-        bk.vcm[2]*bk.vcm[2]);
-      l_akin_r += bk.angmom[0]*bk.omega[0] + bk.angmom[1]*bk.omega[1] +
-        bk.angmom[2]*bk.omega[2];
-    }
-  }, akin_t, akin_r);
+  Kokkos::parallel_reduce(nlocal_body,
+    KOKKOS_LAMBDA(const int ibody, KK_ACC_FLOAT &l_akin_t, KK_ACC_FLOAT &l_akin_r ) {
+      BodyKokkos &bk = l_body[ibody];
+      KK_FLOAT mbody[3];
+      MathExtraKokkos::transpose_matvec(bk.ex_space, bk.ey_space, bk.ez_space,
+                                        bk.angmom, mbody);
+      MathExtraKokkos::quatvec(bk.quat, mbody, bk.conjqm);
+      bk.conjqm[0] *= 2.0;
+      bk.conjqm[1] *= 2.0;
+      bk.conjqm[2] *= 2.0;
+      bk.conjqm[3] *= 2.0;
+      if (l_tstat_flag || l_pstat_flag) {
+        l_akin_t += bk.mass*(bk.vcm[0]*bk.vcm[0] + bk.vcm[1]*bk.vcm[1] +
+                    bk.vcm[2]*bk.vcm[2]);
+        l_akin_r += bk.angmom[0]*bk.omega[0] + bk.angmom[1]*bk.omega[1] +
+                    bk.angmom[2]*bk.omega[2];
+      }
+    }, akin_t, akin_r
+  );
   copymode = 0;
   k_body.modify_device();
   k_body.sync_host();
@@ -313,7 +307,6 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
     d_scale_v[2] = dtv * exp(tmp) * maclaurin_series(tmp);
   }
 
-  // sync data to device
   atomKK->sync(execution_space, X_MASK | V_MASK | F_MASK | MASK_MASK |
                TYPE_MASK | RMASS_MASK | IMAGE_MASK);
   d_x = atomKK->k_x.template view<DeviceType>();
@@ -324,7 +317,6 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
   d_type = atomKK->k_type.template view<DeviceType>();
   d_mask = atomKK->k_mask.template view<DeviceType>();
   d_image = atomKK->k_image.template view<DeviceType>();
-
   k_body.template sync<DeviceType>();
   k_atom2body.template sync<DeviceType>();
   k_displace.template sync<DeviceType>();
@@ -334,12 +326,12 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
   d_displace = k_displace.template view<DeviceType>();
   d_xcmimage = k_xcmimage.template view<DeviceType>();
 
-  // NH body integration on device
   copymode = 1;
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,
-    TagRigidNHInitialIntegrate>(0, nlocal_body), *this);
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType, TagRigidNHInitialIntegrate>(0, nlocal_body),
+    *this
+  );
   copymode = 0;
-
 
   // forward communicate
   k_body.modify_device();
@@ -386,8 +378,8 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
   k_body.template sync<DeviceType>();
   d_body = k_body.template view<DeviceType>();
 
-  d_prd = Few<KK_FLOAT,3>(domain->prd);
-  d_h = Few<KK_FLOAT,6>(domain->h);
+  d_prd = Few<KK_FLOAT,3>(domainKK->prd);
+  d_h = Few<KK_FLOAT,6>(domainKK->h);
 
   if (vflag_atom) {
     if (atom->nmax > (int) d_vatom.extent(0)) {
@@ -438,21 +430,17 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHInitialIntegrate,
                                                     const int &ibody) const
 {
   BodyKokkos &bk = d_body[ibody];
-  KK_FLOAT mbody[3], tbody[3], fquat[4];
-
-  // step 1.1 - update vcm by 1/2 step
+  // update vcm by 1/2 step
   const KK_FLOAT dtfm = dtf / bk.mass;
   bk.vcm[0] = Kokkos::fma(dtfm, bk.fcm[0], bk.vcm[0]);
   bk.vcm[1] = Kokkos::fma(dtfm, bk.fcm[1], bk.vcm[1]);
   bk.vcm[2] = Kokkos::fma(dtfm, bk.fcm[2], bk.vcm[2]);
-
   if (tstat_flag || pstat_flag) {
     bk.vcm[0] *= d_scale_t[0];
     bk.vcm[1] *= d_scale_t[1];
     bk.vcm[2] *= d_scale_t[2];
   }
-
-  // step 1.2 - update xcm by full step
+  // update xcm by full step
   if (!pstat_flag) {
     bk.xcm[0] = Kokkos::fma(dtv, bk.vcm[0], bk.xcm[0]);
     bk.xcm[1] = Kokkos::fma(dtv, bk.vcm[1], bk.xcm[1]);
@@ -463,25 +451,21 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHInitialIntegrate,
     bk.xcm[2] = Kokkos::fma(d_scale_v[2], bk.vcm[2], bk.xcm[2]);
   }
 
-  Kokkos::printf("*** step %i ibody %i mass %f fcm %f %f %f \n", update->ntimestep, ibody, bk.mass, bk.fcm[0], bk.fcm[1], bk.fcm[2]);
-
-  // step 1.3 - apply torque to quaternion momentum
+  // apply torque to quaternion momentum
+  KK_FLOAT mbody[3], tbody[3], fquat[4];
   MathExtraKokkos::transpose_matvec(bk.ex_space, bk.ey_space, bk.ez_space,
                                     bk.torque, tbody);
   MathExtraKokkos::quatvec(bk.quat, tbody, fquat);
-
   bk.conjqm[0] = Kokkos::fma(d_dtf2, fquat[0], bk.conjqm[0]);
   bk.conjqm[1] = Kokkos::fma(d_dtf2, fquat[1], bk.conjqm[1]);
   bk.conjqm[2] = Kokkos::fma(d_dtf2, fquat[2], bk.conjqm[2]);
   bk.conjqm[3] = Kokkos::fma(d_dtf2, fquat[3], bk.conjqm[3]);
-
   if (tstat_flag || pstat_flag) {
     bk.conjqm[0] *= d_scale_r;
     bk.conjqm[1] *= d_scale_r;
     bk.conjqm[2] *= d_scale_r;
     bk.conjqm[3] *= d_scale_r;
   }
-
   // step 1.4 to 1.13 - no_squish_rotate
   MathExtraKokkos::no_squish_rotate(3, bk.conjqm, bk.quat, bk.inertia, dtq);
   MathExtraKokkos::no_squish_rotate(2, bk.conjqm, bk.quat, bk.inertia, dtq);
@@ -501,6 +485,20 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHInitialIntegrate,
   MathExtraKokkos::angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
                                    bk.ez_space, bk.inertia, bk.omega);
 
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidNHSmallKokkos<DeviceType>::post_force(int /*vflag*/)
+{
+  if (langflag) {
+    atomKK->sync(Host, ALL_MASK);
+    k_body.sync_host();
+    apply_langevin_thermostat();
+    k_body.modify_host();
+  }
+  if (earlyflag) compute_forces_and_torques_kokkos();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -545,7 +543,7 @@ void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
   d_mask = atomKK->k_mask.template view<DeviceType>();
   d_image = atomKK->k_image.template view<DeviceType>();
 
-  if (!earlyflag) compute_forces_and_torques();
+  if (!earlyflag) compute_forces_and_torques_kokkos();
   if (domainKK->dimension == 2) enforce2d_kokkos();
 
   k_body.template sync<DeviceType>();
@@ -576,7 +574,6 @@ void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
                     bk.vcm[2]*bk.vcm[2]);
         l_akin_r += bk.angmom[0]*bk.omega[0] + bk.angmom[1]*bk.omega[1] +
                     bk.angmom[2]*bk.omega[2];
-        Kokkos::printf("*** ibody %i bk.mass %f vcm %f %f %f \n", ibody, bk.mass, bk.vcm[0], bk.vcm[1], bk.vcm[2] );
       }, ke[0], ke[1]
     );
     copymode = 0;
@@ -584,9 +581,6 @@ void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
     akin_t = keall[0];
     akin_r = keall[1];
   }
-
-  utils::logmesg(lmp, "*** akin_t {} akin_r {}\n", akin_t, akin_r);
-
 
   // set_v on device
   k_body.template sync<DeviceType>();
@@ -610,14 +604,11 @@ void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
     if (evflag) set_v_kokkos<0,1>();
     else set_v_kokkos<0,0>();
   }
-
+  atomKK->modified(execution_space, V_MASK);
   if (extended) {
     atomKK->sync(Host, ALL_MASK);
     k_body.sync_host();
   }
-
-  atomKK->modified(execution_space, V_MASK);
-
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
     k_vatom.sync_host();
@@ -660,22 +651,18 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHFinalIntegrate,
 {
   BodyKokkos &bk = d_body[ibody];
   KK_FLOAT mbody[3], tbody[3], fquat[4];
-
   const KK_FLOAT dtfm = dtf / bk.mass;
   if (tstat_flag || pstat_flag) {
     bk.vcm[0] *= d_scale_t[0];
     bk.vcm[1] *= d_scale_t[1];
     bk.vcm[2] *= d_scale_t[2];
   }
-
   bk.vcm[0] = Kokkos::fma(dtfm, bk.fcm[0], bk.vcm[0]);
   bk.vcm[1] = Kokkos::fma(dtfm, bk.fcm[1], bk.vcm[1]);
   bk.vcm[2] = Kokkos::fma(dtfm, bk.fcm[2], bk.vcm[2]);
-
   MathExtraKokkos::transpose_matvec(bk.ex_space, bk.ey_space,
                                     bk.ez_space, bk.torque, tbody);
   MathExtraKokkos::quatvec(bk.quat, tbody, fquat);
-
   if (tstat_flag || pstat_flag) {
     bk.conjqm[0] = Kokkos::fma(d_scale_r, bk.conjqm[0], d_dtf2 * fquat[0]);
     bk.conjqm[1] = Kokkos::fma(d_scale_r, bk.conjqm[1], d_dtf2 * fquat[1]);
@@ -687,16 +674,11 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHFinalIntegrate,
     bk.conjqm[2] = Kokkos::fma(d_dtf2, fquat[2], bk.conjqm[2]);
     bk.conjqm[3] = Kokkos::fma(d_dtf2, fquat[3], bk.conjqm[3]);
   }
-
   MathExtraKokkos::invquatvec(bk.quat, bk.conjqm, mbody);
   MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, mbody, bk.angmom);
-
   bk.angmom[0] *= 0.5;
   bk.angmom[1] *= 0.5;
   bk.angmom[2] *= 0.5;
-
-  Kokkos::printf("*** FINALINTEGRATE step %i ibody %i d_scale_t %f %f %f mass %f fcm %f %f %f d_f(0) %f %f %f \n", update->ntimestep, ibody, d_scale_t[0], d_scale_t[1], d_scale_t[2], bk.mass, bk.fcm[0], bk.fcm[1], bk.fcm[2], d_f(0,0), d_f(0,1), d_f(0,2));
-
 
   MathExtraKokkos::angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
                                    bk.ez_space, bk.inertia, bk.omega);
@@ -747,12 +729,14 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
   auto l_center = Few<KK_FLOAT, 3>{(KK_FLOAT)center[0], (KK_FLOAT)center[1], (KK_FLOAT)center[2]};
   auto l_efac = Few<KK_FLOAT, 3>{(KK_FLOAT)e_fac[0], (KK_FLOAT)e_fac[1], (KK_FLOAT)e_fac[2]};
   copymode = 1;
-  Kokkos::parallel_for(nlocal_body, KOKKOS_LAMBDA(const int &ibody) {
-    BodyKokkos &bk = l_body[ibody];
-    if (l_p_flag[0]) bk.xcm[0] = (bk.xcm[0] - l_center[0]) * l_efac[0] + l_center[0];
-    if (l_p_flag[1]) bk.xcm[1] = (bk.xcm[1] - l_center[1]) * l_efac[1] + l_center[1];
-    if (l_p_flag[2]) bk.xcm[2] = (bk.xcm[2] - l_center[2]) * l_efac[2] + l_center[2];
-  });
+  Kokkos::parallel_for(nlocal_body,
+    KOKKOS_LAMBDA(const int &ibody) {
+      BodyKokkos &bk = l_body[ibody];
+      if (l_p_flag[0]) bk.xcm[0] = (bk.xcm[0] - l_center[0]) * l_efac[0] + l_center[0];
+      if (l_p_flag[1]) bk.xcm[1] = (bk.xcm[1] - l_center[1]) * l_efac[1] + l_center[1];
+      if (l_p_flag[2]) bk.xcm[2] = (bk.xcm[2] - l_center[2]) * l_efac[2] + l_center[2];
+    }
+  );
   copymode = 0;
   k_body.modify_device();
 }
@@ -760,21 +744,7 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidNHSmallKokkos<DeviceType>::post_force(int /*vflag*/)
-{
-  if (langflag) {
-    atomKK->sync(Host, ALL_MASK);
-    k_body.sync_host();
-    apply_langevin_thermostat();
-    k_body.modify_host();
-  }
-  if (earlyflag) compute_forces_and_torques();
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixRigidNHSmallKokkos<DeviceType>::compute_forces_and_torques()
+void FixRigidNHSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
 {
   atomKK->sync(execution_space, X_MASK | F_MASK | IMAGE_MASK);
   d_x = atomKK->k_x.template view<DeviceType>();
@@ -797,17 +767,20 @@ void FixRigidNHSmallKokkos<DeviceType>::compute_forces_and_torques()
   copymode = 1;
   k_body.sync_device();
   auto l_body = d_body;
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nbody_total),
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, nbody_total),
     KOKKOS_LAMBDA(const int &ibody) {
-      BodyKokkos &bk = l_body[ibody];
+      BodyKokkos &bk = l_body(ibody);
       bk.fcm[0] = bk.fcm[1] = bk.fcm[2] = 0.0;
       bk.torque[0] = bk.torque[1] = bk.torque[2] = 0.0;
     }
   );
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,
-    TagRigidNHComputeForcesTorques>(0, nlocal), *this);
-  copymode = 0;
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType, TagRigidNHComputeForcesTorques>(0, nlocal),
+    *this
+  );
   k_body.modify_device();
+  copymode = 0;
 
   if (extended) {
     k_body.template modify<DeviceType>();
@@ -875,73 +848,16 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHComputeForcesTorque
   Kokkos::atomic_add(&bk.fcm[0], d_f(i,0));
   Kokkos::atomic_add(&bk.fcm[1], d_f(i,1));
   Kokkos::atomic_add(&bk.fcm[2], d_f(i,2));
-
   Few<KK_FLOAT,3> x_i;
   x_i[0] = d_x(i,0); x_i[1] = d_x(i,1); x_i[2] = d_x(i,2);
   Few<KK_FLOAT,3> unwrap = DomainKokkos::unmap(d_prd, d_h, triclinic, x_i, d_xcmimage(i));
-
   const KK_FLOAT dx = unwrap[0] - bk.xcm[0];
   const KK_FLOAT dy = unwrap[1] - bk.xcm[1];
   const KK_FLOAT dz = unwrap[2] - bk.xcm[2];
 
-  Kokkos::printf("*** compute_forces_and_torques() step %i ibody %i mass %f fcm %f %f %f d_f(%i) %f %f %f \n", update->ntimestep, ibody, bk.mass, bk.fcm[0], bk.fcm[1], bk.fcm[2], i, d_f(i,0), d_f(i,1), d_f(i,2));
-
   Kokkos::atomic_add(&bk.torque[0], Kokkos::fma(dy, d_f(i,2), -dz*d_f(i,1)));
   Kokkos::atomic_add(&bk.torque[1], Kokkos::fma(dz, d_f(i,0), -dx*d_f(i,2)));
   Kokkos::atomic_add(&bk.torque[2], Kokkos::fma(dx, d_f(i,1), -dy*d_f(i,0)));
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixRigidNHSmallKokkos<DeviceType>::enforce2d_kokkos()
-{
-  k_body.sync_device();
-  copymode = 1;
-  auto l_body = d_body;
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nlocal_body),
-    KOKKOS_LAMBDA(const int &ibody) {
-      BodyKokkos &bk = l_body[ibody];
-      bk.xcm[2] = bk.vcm[2] = bk.fcm[2] = bk.xgc[2] = 0.0;
-      bk.torque[0] = bk.torque[1] = 0.0;
-      bk.angmom[0] = bk.angmom[1] = 0.0;
-      bk.omega[0] = bk.omega[1] = 0.0;
-    }
-  );
-  copymode = 0;
-  k_body.modify_device();
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixRigidNHSmallKokkos<DeviceType>::image_shift_kokkos()
-{
-  atomKK->sync(execution_space, IMAGE_MASK);
-  k_body.sync_device();
-  k_atom2body.template sync<DeviceType>();
-  k_xcmimage.template sync<DeviceType>();
-  auto l_image = atomKK->k_image.template view<DeviceType>();
-  auto l_xcmimage = d_xcmimage;
-  auto l_body = d_body;
-  auto l_atom2body = d_atom2body;
-  copymode = 1;
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, atomKK->nlocal), KOKKOS_LAMBDA(const int &i) {
-    if (l_atom2body(i) < 0) return;
-    const BodyKokkos &bk = l_body[l_atom2body(i)];
-    imageint tdim = l_image(i) & IMGMASK;
-    imageint bdim = bk.image & IMGMASK;
-    const imageint xdim0 = IMGMAX + tdim - bdim;
-    tdim = (l_image(i) >> IMGBITS) & IMGMASK;
-    bdim = (bk.image >> IMGBITS) & IMGMASK;
-    const imageint xdim1 = IMGMAX + tdim - bdim;
-    tdim = l_image(i) >> IMG2BITS;
-    bdim = bk.image >> IMG2BITS;
-    const imageint xdim2 = IMGMAX + tdim - bdim;
-    l_xcmimage(i) = (xdim2 << IMG2BITS) | (xdim1 << IMGBITS) | xdim0;
-  });
-  copymode = 0;
-  k_xcmimage.template modify<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -954,8 +870,10 @@ void FixRigidNHSmallKokkos<DeviceType>::set_xv_kokkos()
 
   copymode = 1;
   if constexpr (!EVFLAG) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,
-      TagRigidNHSetXV<TRICLINIC,HALF,0>>(0, nlocal), *this);
+    Kokkos::parallel_for(
+      Kokkos::RangePolicy<DeviceType, TagRigidNHSetXV<TRICLINIC,HALF,0>>(0, nlocal),
+      *this
+    );
   } else {
     int neighflag = lmp->kokkos->neighflag;
     if (neighflag == FULL) {
@@ -979,11 +897,15 @@ void FixRigidNHSmallKokkos<DeviceType>::set_xv_kokkos()
 
     EV_FLOAT ev{};
     if (neighflag == HALF) {
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,
-        TagRigidNHSetXV<TRICLINIC,HALF,1>>(0, nlocal), *this, ev);
+      Kokkos::parallel_reduce(
+        Kokkos::RangePolicy<DeviceType, TagRigidNHSetXV<TRICLINIC,HALF,1>>(0, nlocal),
+        *this, ev
+      );
     } else {
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,
-        TagRigidNHSetXV<TRICLINIC,HALFTHREAD,1>>(0, nlocal), *this, ev);
+      Kokkos::parallel_reduce(
+        Kokkos::RangePolicy<DeviceType, TagRigidNHSetXV<TRICLINIC,HALFTHREAD,1>>(0, nlocal),
+        *this, ev
+      );
     }
     if (vflag_global) {
       virial[0] += static_cast<double>(ev.v[0]);
@@ -1001,17 +923,19 @@ void FixRigidNHSmallKokkos<DeviceType>::set_xv_kokkos()
   // update geometric center of bodies
   copymode = 1;
   auto l_body = d_body;
-  Kokkos::parallel_for(nlocal_body + nghost_body, KOKKOS_LAMBDA(const int &ibody) {
-    BodyKokkos &bk = l_body[ibody];
-    KK_FLOAT xgc_tmp[3];
-    MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, bk.xgc_body, xgc_tmp);
-    bk.xgc[0] = xgc_tmp[0] + bk.xcm[0];
-    bk.xgc[1] = xgc_tmp[1] + bk.xcm[1];
-    bk.xgc[2] = xgc_tmp[2] + bk.xcm[2];
-  });
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, nlocal_body + nghost_body),
+    KOKKOS_LAMBDA(const int &ibody) {
+      BodyKokkos &bk = l_body[ibody];
+      KK_FLOAT xgc_tmp[3];
+      MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, bk.xgc_body, xgc_tmp);
+      bk.xgc[0] = xgc_tmp[0] + bk.xcm[0];
+      bk.xgc[1] = xgc_tmp[1] + bk.xcm[1];
+      bk.xgc[2] = xgc_tmp[2] + bk.xcm[2];
+    }
+  );
   copymode = 0;
   k_body.modify_device();
-
 }
 
 template<class DeviceType>
@@ -1131,8 +1055,10 @@ void FixRigidNHSmallKokkos<DeviceType>::set_v_kokkos()
 
   copymode = 1;
   if constexpr (!EVFLAG) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,
-      TagRigidNHSetV<TRICLINIC,HALF,0>>(0, nlocal), *this);
+    Kokkos::parallel_for(
+      Kokkos::RangePolicy<DeviceType, TagRigidNHSetV<TRICLINIC,HALF,0>>(0, nlocal),
+      *this
+    );
   } else {
     int neighflag = lmp->kokkos->neighflag;
     if (neighflag == FULL) {
@@ -1156,11 +1082,15 @@ void FixRigidNHSmallKokkos<DeviceType>::set_v_kokkos()
 
     EV_FLOAT ev{};
     if (neighflag == HALF) {
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,
-        TagRigidNHSetV<TRICLINIC,HALF,1>>(0, nlocal), *this, ev);
+      Kokkos::parallel_reduce(
+        Kokkos::RangePolicy<DeviceType, TagRigidNHSetV<TRICLINIC,HALF,1>>(0, nlocal),
+        *this, ev
+      );
     } else {
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,
-        TagRigidNHSetV<TRICLINIC,HALFTHREAD,1>>(0, nlocal), *this, ev);
+      Kokkos::parallel_reduce(
+        Kokkos::RangePolicy<DeviceType, TagRigidNHSetV<TRICLINIC,HALFTHREAD,1>>(0, nlocal),
+        *this, ev
+      );
     }
 
     if (vflag_global) {
@@ -1177,7 +1107,6 @@ void FixRigidNHSmallKokkos<DeviceType>::set_v_kokkos()
   }
   copymode = 0;
   k_body.modify_device();
-
 }
 
 template<class DeviceType>
@@ -1278,6 +1207,63 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHSetV<TRICLINIC,NEIG
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+void FixRigidNHSmallKokkos<DeviceType>::enforce2d_kokkos()
+{
+  copymode = 1;
+  k_body.sync_device();
+  auto l_body = d_body;
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, nlocal_body),
+    KOKKOS_LAMBDA(const int &ibody) {
+      BodyKokkos &bk = l_body[ibody];
+      bk.xcm[2] = bk.vcm[2] = bk.fcm[2] = bk.xgc[2] = 0.0;
+      bk.torque[0] = bk.torque[1] = 0.0;
+      bk.angmom[0] = bk.angmom[1] = 0.0;
+      bk.omega[0] = bk.omega[1] = 0.0;
+    }
+  );
+  k_body.modify_device();
+  copymode = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidNHSmallKokkos<DeviceType>::image_shift_kokkos()
+{
+  copymode = 1;
+  atomKK->sync(execution_space, IMAGE_MASK);
+  k_atom2body.template sync<DeviceType>();
+  k_xcmimage.template sync<DeviceType>();
+  k_body.sync_device();
+  auto l_image = atomKK->k_image.template view<DeviceType>();
+  auto l_atom2body = d_atom2body;
+  auto l_xcmimage = d_xcmimage;
+  auto l_body = d_body;
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, atomKK->nlocal),
+    KOKKOS_LAMBDA(const int &i) {
+      if (l_atom2body(i) < 0) return;
+      const BodyKokkos &bk = l_body(l_atom2body(i));
+      imageint tdim = l_image(i) & IMGMASK;
+      imageint bdim = bk.image & IMGMASK;
+      const imageint xdim0 = IMGMAX + tdim - bdim;
+      tdim = (l_image(i) >> IMGBITS) & IMGMASK;
+      bdim = (bk.image >> IMGBITS) & IMGMASK;
+      const imageint xdim1 = IMGMAX + tdim - bdim;
+      tdim = l_image(i) >> IMG2BITS;
+      bdim = bk.image >> IMG2BITS;
+      const imageint xdim2 = IMGMAX + tdim - bdim;
+      l_xcmimage(i) = (xdim2 << IMG2BITS) | (xdim1 << IMGBITS) | xdim0;
+    }
+  );
+  k_xcmimage.template modify<DeviceType>();
+  copymode = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::setup_pre_neighbor()
 {
   atomKK->sync(Host, ALL_MASK);
@@ -1308,7 +1294,6 @@ void FixRigidNHSmallKokkos<DeviceType>::setup_pre_neighbor()
   k_displace.sync_device();
   if (extended) k_eflags.sync_device();
   atomKK->sync(Device, X_MASK | IMAGE_MASK);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1316,116 +1301,68 @@ void FixRigidNHSmallKokkos<DeviceType>::setup_pre_neighbor()
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::pre_neighbor()
 {
-
-if(false) {
-  k_body.sync_device();
-  copymode = 1;
-  auto l_body = d_body;
-  auto l_xperiodic = domain->xperiodic;
-  auto l_yperiodic = domain->yperiodic;
-  auto l_zperiodic = domain->zperiodic;
-  auto l_lo0 = domain->boxlo[0];
-  auto l_lo1 = domain->boxlo[1];
-  auto l_lo2 = domain->boxlo[2];
-  auto l_hi0 = domain->boxhi[0];
-  auto l_hi1 = domain->boxhi[1];
-  auto l_hi2 = domain->boxhi[2];
-  auto l_period0 = domain->prd[0];
-  auto l_period1 = domain->prd[1];
-  auto l_period2 = domain->prd[2];
-
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, nlocal_body),
-    KOKKOS_LAMBDA(const int &ibody) {
-      BodyKokkos &bk = l_body[ibody];
-      imageint idim,otherdims;
-      if (l_xperiodic) {
-        while (bk.xcm[0] < l_lo0) {
-          bk.xcm[0] += l_period0;
-          idim = bk.image & IMGMASK;
-          otherdims = bk.image ^ idim;
-          idim--;
-          idim &= IMGMASK;
-          bk.image = otherdims | idim;
-        }
-        while (bk.xcm[0] >= l_hi0) {
-          bk.xcm[0] -= l_period0;
-          idim = bk.image & IMGMASK;
-          otherdims = bk.image ^ idim;
-          idim++;
-          idim &= IMGMASK;
-          bk.image = otherdims | idim;
-        }
-        bk.xcm[0] = MAX(bk.xcm[0], l_lo0);
-      }
-
-      if (l_yperiodic) {
-        while (bk.xcm[1] < l_lo1) {
-          bk.xcm[1] += l_period1;
-          idim = (bk.image >> IMGBITS) & IMGMASK;
-          otherdims = bk.image ^ (idim << IMGBITS);
-          idim--;
-          idim &= IMGMASK;
-          bk.image = otherdims | (idim << IMGBITS);
-        }
-        while (bk.xcm[1] >= l_hi1) {
-          bk.xcm[1] -= l_period1;
-          idim = (bk.image >> IMGBITS) & IMGMASK;
-          otherdims = bk.image ^ (idim << IMGBITS);
-          idim++;
-          idim &= IMGMASK;
-          bk.image = otherdims | (idim << IMGBITS);
-        }
-        bk.xcm[1] = MAX(bk.xcm[1], l_lo1);
-      }
-
-      if (l_zperiodic) {
-        while (bk.xcm[2] < l_lo2) {
-          bk.xcm[2] += l_period2;
-          idim = bk.image >> IMG2BITS;
-          otherdims = bk.image ^ (idim << IMG2BITS);
-          idim--;
-          idim &= IMGMASK;
-          bk.image = otherdims | (idim << IMG2BITS);
-        }
-        while (bk.xcm[2] >= l_hi2) {
-          bk.xcm[2] -= l_period2;
-          idim = bk.image >> IMG2BITS;
-          otherdims = bk.image ^ (idim << IMG2BITS);
-          idim++;
-          idim &= IMGMASK;
-          bk.image = otherdims | (idim << IMG2BITS);
-        }
-        bk.xcm[2] = MAX(bk.xcm[2], l_lo2);
-      }
-    }
-  );
-  copymode = 0;
-  k_body.modify_device();
   k_body.sync_host();
-
-} else {
-
-
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
     Body *b = &body[ibody];
     domain->remap(b->xcm, b->image);
   }
-
-}
+  k_body.modify_host();
+  k_body.sync_device();
 
   nghost_body = 0;
   commflag = FULL_BODY;
+  k_body.sync_host();
   comm->forward_comm(this);
   k_body.modify_host();
   k_body.sync_device();
 
-  k_bodyown.sync_host();
-  k_bodytag.sync_host();
-  k_atom2body.sync_host();
-  reset_atom2body();
-  k_atom2body.modify_host();
-  k_atom2body.sync_device();
+  // reset atom2body for all owned atoms
+  // do this via bodyown of atom that owns the body the owned atom is in
+  // atom2body values can point to original body or any image of the body
+  copymode = 1;
+  map_style = atom->map_style;
+  if (map_style == Atom::MAP_ARRAY) {
+    k_map_array = atomKK->k_map_array;
+    k_map_array.template sync<DeviceType>();
+  } else if (map_style == Atom::MAP_HASH) {
+    k_map_hash = atomKK->k_map_hash;
+    k_map_hash.template sync<DeviceType>();
+  }
+  atomKK->sync(execution_space, TAG_MASK);
+  k_atom2body.template sync<DeviceType>();
+  k_bodytag.template sync<DeviceType>();
+  k_bodyown.template sync<DeviceType>();
+  d_tag = atomKK->k_tag.template view<DeviceType>();
+  d_atom2body = k_atom2body.template view<DeviceType>();
+  d_bodytag = k_bodytag.template view<DeviceType>();
+  d_bodyown = k_bodyown.template view<DeviceType>();
+  comm_me = comm->me;
+  ntimestep = update->ntimestep;
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType, TagRigidNHMap>(0, atomKK->nlocal),
+    *this
+  );
+  k_atom2body.modify_device();
+  copymode = 0;
   image_shift_kokkos();
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHMap, const int &i) const
+{
+  d_atom2body(i) = -1;
+  if (d_bodytag(i)) {
+    const int iowner = AtomKokkos::map_kokkos<DeviceType>(
+      d_bodytag(i), map_style, k_map_array, k_map_hash);
+    if (iowner == -1) {
+      Kokkos::printf("Rigid body atoms %lld %lld missing on proc %d at step %lld\n",
+                     (long long) d_tag(i), (long long) d_bodytag(i),
+                     comm_me, (long long) ntimestep);
+      Kokkos::abort("Rigid body atom missing");
+    }
+    d_atom2body(i) = d_bodyown(iowner);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1492,16 +1429,26 @@ void FixRigidNHSmallKokkos<DeviceType>::grow_body()
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 {
-  k_bodyown.sync_host(); k_bodytag.sync_host(); k_atom2body.sync_host();
-  k_xcmimage.sync_host(); k_displace.sync_host(); k_body.sync_host();
+  k_body.sync_host();
+  k_bodyown.sync_host();
+  k_bodytag.sync_host();
+  k_atom2body.sync_host();
+  k_xcmimage.sync_host();
+  k_displace.sync_host();
   if (extended) k_eflags.sync_host();
 
   FixRigidSmall::copy_arrays(i, j, delflag);
 
-  k_bodyown.modify_host(); k_bodytag.modify_host(); k_atom2body.modify_host();
-  k_xcmimage.modify_host(); k_displace.modify_host(); k_body.modify_host();
+  k_body.modify_host();
+  k_bodyown.modify_host();
+  k_bodytag.modify_host();
+  k_atom2body.modify_host();
+  k_xcmimage.modify_host();
+  k_displace.modify_host();
   if (extended) k_eflags.modify_host();
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::set_arrays(int i)
@@ -1523,17 +1470,25 @@ void FixRigidNHSmallKokkos<DeviceType>::set_arrays(int i)
   k_displace.modify_host();
 }
 
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagprev,
                                                       int imol, double *xgeom,
                                                       double *vcm, double *quat)
 {
-  k_bodyown.sync_host(); k_bodytag.sync_host(); k_displace.sync_host(); k_body.sync_host();
+  k_body.sync_host();
+  k_bodyown.sync_host();
+  k_bodytag.sync_host();
+  k_displace.sync_host();
   if (extended) k_eflags.sync_host();
 
   FixRigidSmall::set_molecule(nlocalprev, tagprev, imol, xgeom, vcm, quat);
 
-  k_bodyown.modify_host(); k_bodytag.modify_host(); k_displace.modify_host(); k_body.modify_host();
+  k_body.modify_host();
+  k_bodyown.modify_host();
+  k_bodytag.modify_host();
+  k_displace.modify_host();
   if (extended) k_eflags.modify_host();
 }
 
@@ -1550,6 +1505,7 @@ int FixRigidNHSmallKokkos<DeviceType>::pack_exchange(int i, double *buf)
   if (extended) k_eflags.sync_host();
   return FixRigidSmall::pack_exchange(i, buf);
 }
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -1594,6 +1550,7 @@ template<class DeviceType>
 int FixRigidNHSmallKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
   k_body.sync_host();
+  k_bodyown.sync_host();
   return FixRigidSmall::pack_reverse_comm(n, first, buf);
 }
 
@@ -1625,23 +1582,24 @@ void FixRigidNHSmallKokkos<DeviceType>::zero_momentum()
 {
   copymode = 1;
   auto l_body = d_body;
-  Kokkos::parallel_for(nlocal_body + nghost_body, KOKKOS_LAMBDA(const int &ibody) {
-    BodyKokkos &bk = l_body[ibody];
-    bk.vcm[0] = bk.vcm[1] = bk.vcm[2] = 0.0;
-  });
-  copymode = 0;
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, nlocal_body + nghost_body),
+    KOKKOS_LAMBDA(const int &ibody) {
+      BodyKokkos &bk = l_body(ibody);
+      bk.vcm[0] = bk.vcm[1] = bk.vcm[2] = 0.0;
+    }
+  );
   k_body.modify_device();
-  k_body.sync_host();
+  copymode = 0;
   // forward communicate of omega to all ghost copies
   commflag = FINAL;
+  k_body.sync_host();
   comm->forward_comm(this,10);
   k_body.modify_host();
   k_body.sync_device();
-
   // set velocity of atoms in rigid bodues
   if (triclinic) set_v_kokkos<1,0>();
   else set_v_kokkos<0,0>();
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1651,27 +1609,26 @@ void FixRigidNHSmallKokkos<DeviceType>::zero_rotation()
 {
   copymode = 1;
   auto l_body = d_body;
-  Kokkos::parallel_for(nlocal_body + nghost_body, KOKKOS_LAMBDA(const int &ibody) {
-    BodyKokkos &bk = l_body[ibody];
-    bk.angmom[0] = bk.angmom[1] = bk.angmom[2] = 0.0;
-    bk.omega[0] = bk.omega[1] = bk.omega[2] = 0.0;
-  });
-  copymode = 0;
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, nlocal_body + nghost_body),
+    KOKKOS_LAMBDA(const int &ibody) {
+      BodyKokkos &bk = l_body(ibody);
+      bk.angmom[0] = bk.angmom[1] = bk.angmom[2] = 0.0;
+      bk.omega[0] = bk.omega[1] = bk.omega[2] = 0.0;
+    }
+  );
   k_body.modify_device();
-  k_body.sync_host();
-
+  copymode = 0;
   // forward communicate of omega to all ghost copies
   commflag = FINAL;
+  k_body.sync_host();
   comm->forward_comm(this,10);
   k_body.modify_host();
   k_body.sync_device();
-
   // set velocity of atoms in rigid bodues
   if (triclinic) set_v_kokkos<1,0>();
   else set_v_kokkos<0,0>();
-
 }
-
 
 /* ---------------------------------------------------------------------- */
 

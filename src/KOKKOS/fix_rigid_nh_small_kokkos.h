@@ -25,6 +25,7 @@ struct TagRigidNHInitialIntegrate {};
 struct TagRigidNHFinalIntegrate {};
 struct TagRigidNHAccumKE {};
 struct TagRigidNHComputeForcesTorques {};
+struct TagRigidNHMap {};
 
 template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
 struct TagRigidNHSetXV {};
@@ -95,6 +96,9 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRigidNHComputeForcesTorques, const int&) const;
 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidNHMap, const int &i) const;
+
  protected:
   class AtomKokkos *atomKK;
   class DomainKokkos *domainKK;
@@ -111,8 +115,14 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
   TransformView<KK_FLOAT **, double **, Kokkos::LayoutRight, DeviceType> k_displace;
   DAT::tdual_int_1d k_eflags;
 
+  int comm_me;
+  bigint ntimestep;
+  int map_style;
+  DAT::tdual_int_1d k_map_array;
+  dual_hash_type k_map_hash;
+
   typename AT::t_int_1d d_bodyown;
-  typename AT::t_tagint_1d d_bodytag;
+  typename AT::t_tagint_1d d_tag, d_bodytag;
   typename AT::t_int_1d d_atom2body;
   typename AT::t_imageint_1d d_xcmimage;
   typename AT::t_kkfloat_2d d_displace;
@@ -152,7 +162,7 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
   KK_FLOAT d_dtf2;
 
   void remap();
-  void compute_forces_and_torques() override;
+  void compute_forces_and_torques_kokkos();
   void enforce2d_kokkos();
   void image_shift_kokkos();
 

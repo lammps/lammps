@@ -24,14 +24,16 @@ FixStyle(rigid/small/kk/host,FixRigidSmallKokkos<LMPHostType>);
 #define LMP_FIX_RIGID_SMALL_KOKKOS_H
 
 #include "fix_rigid_small.h"
-#include "kokkos_type.h"
+#include "kokkos_base.h"
 #include "kokkos_few.h"
+#include "kokkos_type.h"
 #include "rigid_body_kokkos.hpp"
 
 namespace LAMMPS_NS {
 
 struct TagRigidSmallInitialIntegrate {};
 struct TagRigidSmallFinalIntegrate {};
+struct TagRigidMap {};
 
 template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
 struct TagRigidSmallSetXV {};
@@ -41,7 +43,7 @@ struct TagRigidSmallSetV {};
 
 struct TagRigidSmallComputeForcesTorques {};
 template<class DeviceType>
-class FixRigidSmallKokkos : public FixRigidSmall {
+class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -100,27 +102,36 @@ class FixRigidSmallKokkos : public FixRigidSmall {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRigidSmallComputeForcesTorques, const int&) const;
 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidMap, const int &i) const;
+
+
  protected:
   class AtomKokkos *atomKK;
+  class DomainKokkos *domainKK;
   ExecutionSpace execution_space;
+
+  int comm_me;
+  bigint ntimestep;
 
   #include "rigid_body_kokkos.hpp"
   TransformView<BodyKokkos*, Body*, Kokkos::LayoutRight, DeviceType> k_body;
   Kokkos::View <BodyKokkos*,        Kokkos::LayoutRight, DeviceType> d_body;
 
-  DAT::tdual_int_1d k_bodyown;
-  DAT::tdual_tagint_1d k_bodytag;
-  DAT::tdual_int_1d k_atom2body;
-  DAT::tdual_imageint_1d k_xcmimage;
-  TransformView<KK_FLOAT **, double **, Kokkos::LayoutRight, DeviceType> k_displace;
-  DAT::tdual_int_1d k_eflags;
+  TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_displace;
 
-  typename AT::t_int_1d d_bodyown;
-  typename AT::t_tagint_1d d_bodytag;
-  typename AT::t_int_1d d_atom2body;
+  DAT::tdual_int_1d k_atom2body, k_bodyown, k_eflags;
+  DAT::tdual_tagint_1d k_bodytag;
+  DAT::tdual_imageint_1d k_xcmimage;
+
+  int map_style;
+  DAT::tdual_int_1d k_map_array;
+  dual_hash_type k_map_hash;
+  
+  typename AT::t_int_1d d_atom2body, d_bodyown, d_eflags;
+  typename AT::t_tagint_1d d_tag, d_bodytag;
   typename AT::t_imageint_1d d_xcmimage;
   typename AT::t_kkfloat_2d d_displace;
-  typename AT::t_int_1d d_eflags;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
@@ -162,6 +173,28 @@ class FixRigidSmallKokkos : public FixRigidSmall {
 
   template<int TRICLINIC, int EVFLAG>
   void set_v_kokkos();
+
+  // KOKKOS BASE
+
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d &,
+                               int, int *) override;
+
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d &) override;
+
+  int pack_reverse_comm_kokkos(int, int, DAT::tdual_double_1d &) override;
+
+  void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d,
+                                          DAT::tdual_double_1d &) override;
+
+  int pack_exchange_kokkos(const int &, DAT::tdual_double_2d_lr &,
+                           DAT::tdual_int_1d, DAT::tdual_int_1d, ExecutionSpace) override;
+
+  void unpack_exchange_kokkos(DAT::tdual_double_2d_lr &, DAT::tdual_int_1d &,
+                              int, int, int, ExecutionSpace) override;
+
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &) override;
+
+
 };
 
 }    // namespace LAMMPS_NS

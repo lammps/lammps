@@ -529,9 +529,6 @@ void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
   d_scale_r = scale_r_local;
   d_dtf2 = dtf2_local;
 
-  utils::logmesg(lmp, "*** scale_r_local {} mtk_term2 {} d_dtf2 {}\n", scale_r_local, mtk_term2, d_dtf2);
-
-
   atomKK->sync(execution_space, X_MASK | V_MASK | F_MASK | MASK_MASK |
                TYPE_MASK | RMASS_MASK | IMAGE_MASK);
   d_x = atomKK->k_x.template view<DeviceType>();

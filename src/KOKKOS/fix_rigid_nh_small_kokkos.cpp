@@ -169,9 +169,9 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
   auto l_body = d_body;
   auto l_tstat_flag = tstat_flag;
   auto l_pstat_flag = pstat_flag;
-
+  KK_ACC_FLOAT ke[2], keall[2];
   Kokkos::parallel_reduce(nlocal_body,
-    KOKKOS_LAMBDA(const int ibody, KK_ACC_FLOAT &l_akin_t, KK_ACC_FLOAT &l_akin_r ) {
+    KOKKOS_LAMBDA(const int &ibody, KK_ACC_FLOAT &l_akin_t, KK_ACC_FLOAT &l_akin_r ) {
       BodyKokkos &bk = l_body[ibody];
       KK_FLOAT mbody[3];
       MathExtraKokkos::transpose_matvec(bk.ex_space, bk.ey_space, bk.ez_space,
@@ -187,17 +187,13 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
         l_akin_r += bk.angmom[0]*bk.omega[0] + bk.angmom[1]*bk.omega[1] +
                     bk.angmom[2]*bk.omega[2];
       }
-    }, akin_t, akin_r
+    }, ke[0], ke[1]
   );
   copymode = 0;
   k_body.modify_device();
   k_body.sync_host();
 
-
   if (tstat_flag || pstat_flag) {
-    KK_ACC_FLOAT ke[2], keall[2];
-    ke[0] = akin_t;
-    ke[1] = akin_r;
     MPI_Allreduce(ke, keall, 2, MPI_KK_ACC_FLOAT, MPI_SUM, world);
     akin_t = keall[0];
     akin_r = keall[1];

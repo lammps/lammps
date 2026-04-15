@@ -616,17 +616,12 @@ template <typename T>
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::mq_to_omega(KK_FLOAT *m, T *q, KK_FLOAT *moments, KK_FLOAT *w)
 {
-#if !(defined LMP_KOKKOS_DOUBLE_DOUBLE) // KK_FLOAT = float
-  KK_FLOAT kk_q[3] = {
+  KK_FLOAT wbody[3], rot[3][3], kk_q[4] = {
     static_cast<KK_FLOAT>(q[0]),
     static_cast<KK_FLOAT>(q[1]),
-    static_cast<KK_FLOAT>(q[2])
+    static_cast<KK_FLOAT>(q[2]),
+    static_cast<KK_FLOAT>(q[3])
   };
-#else // KK_FLOAT = double
-  T *kk_q = q;
-#endif
-
-  KK_FLOAT wbody[3], rot[3][3];
   MathExtraKokkos::quat_to_mat(kk_q,rot);
   MathExtraKokkos::transpose_matvec(rot,m,wbody);
   if (moments[0] == 0.0) wbody[0] = 0.0;

@@ -46,13 +46,14 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     do_loop(true)
 {
     imageLabel->setBackgroundRole(QPalette::Base);
+    imageLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     imageLabel->setScaledContents(false);
-    imageLabel->setMinimumSize(100, 100);
+    imageLabel->minimumSizeHint();
 
     imageName->setFrameStyle(QFrame::Raised);
     imageName->setFrameShape(QFrame::Panel);
     imageName->setAlignment(Qt::AlignCenter);
-    imageName->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    imageName->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     imageName->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     auto *shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_W), this);
@@ -117,7 +118,6 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     connect(goloop, &QPushButton::released, this, &SlideShow::loop);
     connect(zoomin, &QPushButton::released, this, &SlideShow::zoomIn);
     connect(zoomout, &QPushButton::released, this, &SlideShow::zoomOut);
-    connect(gofirst, &QPushButton::released, this, &SlideShow::first);
     connect(normal, &QPushButton::released, this, &SlideShow::normalSize);
 
     navLayout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Expanding, QSizePolicy::Minimum));
@@ -155,6 +155,19 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     maxwidth     = maxsize.width();
 
     setLayout(mainLayout);
+
+    // set window flags for window manager
+    auto flags = windowFlags();
+    flags &= ~Qt::Dialog;
+    flags |= Qt::CustomizeWindowHint;
+    flags |= Qt::WindowMinimizeButtonHint;
+    // must add maximize button for macOS to allow resizing, but remove on other platforms
+#if defined(Q_OS_MACOS)
+    flags |= Qt::WindowMaximizeButtonHint;
+#else
+    flags &= ~Qt::WindowMaximizeButtonHint;
+#endif
+    setWindowFlags(flags);
 }
 
 void SlideShow::add_image(const QString &filename)
@@ -179,8 +192,10 @@ void SlideShow::clear()
     imagefiles.clear();
     image.fill(Qt::black);
     imageLabel->setPixmap(QPixmap::fromImage(image));
-    imageLabel->adjustSize();
+    imageLabel->setMinimumSize(image.width(), image.height());
+    imageLabel->resize(image.width(), image.height());
     imageName->setText("(none)");
+    adjustSize();
     repaint();
 }
 

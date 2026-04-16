@@ -185,7 +185,7 @@ void Fix::modify_params(int narg, char **arg)
   }
 }
 
-void::Fix::set_molecule(int, tagint, int, double *, double *, double *)
+void Fix::set_molecule(int, tagint, int, double *, double *, double *)
 {
   error->all(FLERR,"Molecule update not implemented for fix {}", style);
 }
@@ -291,6 +291,7 @@ void Fix::v_setup(int vflag)
   int i,n;
 
   evflag = 1;
+  vflag_either = vflag;
   vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
   if (centroidstressflag != CENTROID_AVAIL) {
     vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);

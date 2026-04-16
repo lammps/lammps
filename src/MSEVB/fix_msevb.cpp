@@ -918,93 +918,78 @@ void FixMSEVB::init_list(int /*id*/, NeighList *ptr) { list = ptr; }
 
 void FixMSEVB::setup(int vflag) {
   if (universe->me == 0) {
-    fmt::memory_buffer buf;
-    auto out = std::back_inserter(buf);
-
-    fmt::format_to(out, "\n");
-    fmt::format_to(out,
-                   "=======================================================\n");
-    fmt::format_to(out, "  MSEVB: {} partition(s)\n", npartitions);
-    fmt::format_to(out,
-                   "=======================================================\n");
+    std::string msg;
+    msg += fmt::format("\nFix msevb: {} partition(s)\n", npartitions);
+    msg += "----------------------------------------------------------------\n";
 
     for (size_t r = 0; r < rxndefs.size(); r++) {
       const auto &rd = rxndefs[r];
-
-      fmt::format_to(out, "\n  Reaction {}:\n", r);
-      fmt::format_to(out, "    pre-mol:    {}\n", rd.pre_mol_id);
-      fmt::format_to(out, "    post-mol:   {}\n", rd.post_mol_id);
-      fmt::format_to(out, "    map file:   {}\n", rd.map_file_path);
-      fmt::format_to(out, "    cutoff:     {:.4f} A\n",
-                     std::sqrt(rd.cutoff_sq));
-      fmt::format_to(out, "    atom types: H={} X={} Y={}\n", rd.type_H,
-                     rd.type_X, rd.type_Y);
-      fmt::format_to(out, "    shells:     {}\n", rd.shells);
+      msg += fmt::format("\n  Reaction {}:  {} -> {}  (map: {})\n",
+                         r, rd.pre_mol_id, rd.post_mol_id, rd.map_file_path);
+      msg += fmt::format("    {:<17}{:.4f} A\n",
+                         "cutoff:", std::sqrt(rd.cutoff_sq));
+      msg += fmt::format("    {:<17}H={}  X={}  Y={}\n",
+                         "atom types:", rd.type_H, rd.type_X, rd.type_Y);
+      msg += fmt::format("    {:<17}{}\n", "shells:", rd.shells);
       if (rd.energy_offset != 0.0)
-        fmt::format_to(out, "    offset:     {:.6f} eV\n", rd.energy_offset);
+        msg += fmt::format("    {:<17}{:.6f} eV\n",
+                           "energy offset:", rd.energy_offset);
 
       // Coupling
-      const char *cpl_source = rd.coupling_set ? "per-reaction" : "global";
+      const char *src = rd.coupling_set ? "per-reaction" : "global";
+      std::string cpl;
       switch (rd.coupling_type) {
       case COUPLING_NONE:
-        fmt::format_to(out, "    coupling:   none (diagonal only)  [{}]\n",
-                       cpl_source);
+        cpl = fmt::format("none  [{}]", src);
         break;
       case COUPLING_RAITERI2011:
-        fmt::format_to(
-            out, "    coupling:   raiteri2011  lambda={:.4f}  zeta={:.4f}",
-            rd.coupling_lambda, rd.coupling_zeta);
+        cpl = fmt::format("raiteri2011  lambda={:.4f}  zeta={:.4f}",
+                          rd.coupling_lambda, rd.coupling_zeta);
         if (rd.coupling_taper > 0.0)
-          fmt::format_to(out, "  taper={:.4f}", rd.coupling_taper);
-        fmt::format_to(out, "  [{}]\n", cpl_source);
+          cpl += fmt::format("  taper={:.4f}", rd.coupling_taper);
+        cpl += fmt::format("  [{}]", src);
         break;
       case COUPLING_VUILLEUMIER1998:
-        fmt::format_to(
-            out,
-            "    coupling:   vuilleumier1998  v12={:.4f}  alpha={:.4f}"
-            "  gamma={:.4f}",
-            rd.coupling_v12, rd.coupling_alpha, rd.coupling_gamma_v);
+        cpl = fmt::format("vuilleumier1998  v12={:.4f}  alpha={:.4f}"
+                          "  gamma={:.4f}",
+                          rd.coupling_v12, rd.coupling_alpha,
+                          rd.coupling_gamma_v);
         if (rd.coupling_taper > 0.0)
-          fmt::format_to(out, "  taper={:.4f}", rd.coupling_taper);
-        fmt::format_to(out, "  [{}]\n", cpl_source);
+          cpl += fmt::format("  taper={:.4f}", rd.coupling_taper);
+        cpl += fmt::format("  [{}]", src);
         break;
       case COUPLING_GRIMME2015:
-        fmt::format_to(out, "    coupling:   grimme2015  a={:.4f}  b={:.4f}",
-                       rd.coupling_a, rd.coupling_b);
+        cpl = fmt::format("grimme2015  a={:.4f}  b={:.4f}",
+                          rd.coupling_a, rd.coupling_b);
         if (rd.coupling_taper > 0.0)
-          fmt::format_to(out, "  taper={:.4f}", rd.coupling_taper);
-        fmt::format_to(out, "  [{}]\n", cpl_source);
+          cpl += fmt::format("  taper={:.4f}", rd.coupling_taper);
+        cpl += fmt::format("  [{}]", src);
         break;
       }
+      msg += fmt::format("    {:<17}{}\n", "coupling:", cpl);
 
-      // Topology diff summary
-      fmt::format_to(out, "    topology diff:\n");
-      fmt::format_to(out, "      type changes:  {}\n", rd.type_changes.size());
-      fmt::format_to(out, "      bond breaks:   {}\n", rd.bond_breaks.size());
-      fmt::format_to(out, "      bond creates:  {}\n", rd.bond_creates.size());
-      fmt::format_to(out, "      bond retypes:  {}\n", rd.bond_retypes.size());
+      // Topology diff
+      msg += fmt::format("    {:<17}{} type-change  {} bond-break"
+                         "  {} bond-create  {} bond-retype\n",
+                         "topology:",
+                         rd.type_changes.size(), rd.bond_breaks.size(),
+                         rd.bond_creates.size(), rd.bond_retypes.size());
     }
 
-    // Global options
-    fmt::format_to(out, "\n  Global options:\n");
-    fmt::format_to(out, "    max shells:   {}\n", max_shells);
+    msg += "\n  Global options:\n";
+    msg += fmt::format("    {:<17}{}\n", "max shells:", max_shells);
     if (fermi_dirac_enabled)
-      fmt::format_to(out, "    fermi-dirac:  T={:.2f} K  (RT={:.6f})\n",
-                     fd_temperature, fd_RT);
+      msg += fmt::format("    {:<17}T={:.2f} K  (RT={:.6f})\n",
+                         "fermi-dirac:", fd_temperature, fd_RT);
     if (enumerate_product_states)
-      fmt::format_to(out, "    product states: enabled\n");
+      msg += fmt::format("    {:<17}enabled\n", "product states:");
     if (output_every > 0)
-      fmt::format_to(out, "    output:       {} every {} steps\n",
-                     output_filename, output_every);
+      msg += fmt::format("    {:<17}{}  every {} steps\n",
+                         "output:", output_filename, output_every);
 
-    fmt::format_to(
-        out, "\n=======================================================\n\n");
+    msg += "----------------------------------------------------------------\n\n";
 
-    std::string msg = fmt::to_string(buf);
-    if (universe->uscreen)
-      fmt::print(universe->uscreen, "{}", msg);
-    if (universe->ulogfile)
-      fmt::print(universe->ulogfile, "{}", msg);
+    utils::logmesg(lmp, msg);
   }
   post_force(vflag);
 }

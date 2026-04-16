@@ -543,38 +543,6 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg)
 /* ---------------------------------------------------------------------- */
 
 FixMSEVB::~FixMSEVB() {
-  if (prof_ncalls > 0 && ipartition == 0 && comm->me == 0) {
-    double total = prof_pi_sync + prof_pi_detect + prof_pi_apply +
-                   prof_build_H + prof_coupling + prof_excess +
-                   prof_eigensolver + prof_hellmann + prof_pressure;
-    fprintf(
-        stderr,
-        "\n=== MSEVB profiling (%d calls) ===\n"
-        "  post_integrate:\n"
-        "    sync/check:   %8.3f s  (%5.1f%%)\n"
-        "    detect_sites: %8.3f s  (%5.1f%%)\n"
-        "    apply_states: %8.3f s  (%5.1f%%)\n"
-        "  post_force:\n"
-        "    gather_PE:    %8.3f s  (%5.1f%%)\n"
-        "      pe_compute: %8.3f s\n"
-        "      pe_allred:  %8.3f s\n"
-        "    coupling:     %8.3f s  (%5.1f%%)\n"
-        "    excess:       %8.3f s  (%5.1f%%)\n"
-        "    eigensolver:  %8.3f s  (%5.1f%%)\n"
-        "    HF_forces:    %8.3f s  (%5.1f%%)\n"
-        "    pressure:     %8.3f s  (%5.1f%%)\n"
-        "  total:          %8.3f s\n"
-        "===============================\n\n",
-        prof_ncalls, prof_pi_sync, 100.0 * prof_pi_sync / total, prof_pi_detect,
-        100.0 * prof_pi_detect / total, prof_pi_apply,
-        100.0 * prof_pi_apply / total, prof_build_H,
-        100.0 * prof_build_H / total, prof_pe_compute, prof_pe_allreduce,
-        prof_coupling, 100.0 * prof_coupling / total, prof_excess,
-        100.0 * prof_excess / total, prof_eigensolver,
-        100.0 * prof_eigensolver / total, prof_hellmann,
-        100.0 * prof_hellmann / total, prof_pressure,
-        100.0 * prof_pressure / total, total);
-  }
   MPI_Comm_free(&samerank);
   modify->delete_compute(id_pe);
   modify->delete_compute(id_temp);
@@ -1082,23 +1050,12 @@ void FixMSEVB::sync_positions() {
 /* ---------------------------------------------------------------------- */
 
 void FixMSEVB::post_integrate() {
-  double t0 = MPI_Wtime();
   check_consistency_atoms();
   sync_positions();
-  double t1 = MPI_Wtime();
-  prof_pi_sync += t1 - t0;
-
-  t0 = MPI_Wtime();
   restore_reference_topology();
   detect_reactive_sites();
   update_reactive_group();
-  t1 = MPI_Wtime();
-  prof_pi_detect += t1 - t0;
-
-  t0 = MPI_Wtime();
   apply_per_partition_state_changes();
-  t1 = MPI_Wtime();
-  prof_pi_apply += t1 - t0;
 
   if (nsites > 0)
     next_reneighbor = update->ntimestep;
@@ -1145,9 +1102,6 @@ void FixMSEVB::pre_force(int /*vflag*/) {
 /* ---------------------------------------------------------------------- */
 
 void FixMSEVB::post_force(int vflag) {
-  double t0, t1;
-  prof_ncalls++;
-
   // Initialize virial tallying (zeros virial[6] when thermo_virial is set)
   v_init(vflag);
 
@@ -1171,76 +1125,49 @@ void FixMSEVB::post_force(int vflag) {
   const bool need_forces = any_non_none || fermi_dirac_enabled;
 
   // 1. Gather potential energies (non-blocking)
-  t0 = MPI_Wtime();
   gather_potential_energies();
-  t1 = MPI_Wtime();
-  prof_build_H += t1 - t0;
 
   // 2. Wait for PE, build Hamiltonian, compute coupling values
-  t0 = MPI_Wtime();
   MPI_Wait(&epot_request, MPI_STATUS_IGNORE);
   build_hamiltonian();
   if (any_non_none)
     compute_coupling_values();
-  t1 = MPI_Wtime();
-  prof_coupling += t1 - t0;
 
   if (excess_force_mode == 0) {
     // ---- Approach A: save/restore + excess_forces buffer ----
 
     // 3. Excess states (saves/restores atom->f, fills excess_forces)
-    t0 = MPI_Wtime();
     if (nsites_serial > 0)
       compute_excess_states();
-    t1 = MPI_Wtime();
-    prof_excess += t1 - t0;
 
     // 4. Solve eigensystem
-    t0 = MPI_Wtime();
     solve_eigensystem();
-    t1 = MPI_Wtime();
-    prof_eigensolver += t1 - t0;
 
     // 5. Force mixing
-    t0 = MPI_Wtime();
     if (need_forces) {
       compute_mixing_weights();
       weight_based_hellmann_feynman_forces();
     }
-    t1 = MPI_Wtime();
-    prof_hellmann += t1 - t0;
 
   } else {
     // ---- Approach B: split energy-only + deferred force application ----
 
     // 3. Excess state energies + coupling values (no force storage)
-    t0 = MPI_Wtime();
     if (nsites_serial > 0)
       compute_excess_energies();
-    t1 = MPI_Wtime();
-    prof_excess += t1 - t0;
 
     // 4. Solve eigensystem
-    t0 = MPI_Wtime();
     solve_eigensystem();
-    t1 = MPI_Wtime();
-    prof_eigensolver += t1 - t0;
 
     // 5. Force mixing (parallel states only)
-    t0 = MPI_Wtime();
     if (need_forces) {
       compute_mixing_weights();
       weight_based_hellmann_feynman_forces();
     }
-    t1 = MPI_Wtime();
-    prof_hellmann += t1 - t0;
 
     // 6. Apply excess forces with known weights
-    t0 = MPI_Wtime();
     if (nsites_serial > 0 && need_forces)
       apply_excess_forces();
-    t1 = MPI_Wtime();
-    prof_excess += t1 - t0;
   }
 
   // --- Permanent transfer + optional SCF topology loop -----------------

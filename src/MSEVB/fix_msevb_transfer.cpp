@@ -72,20 +72,14 @@ void FixMSEVB::gather_potential_energies() {
   const int np = npartitions;
   const double scalefac = 1.0 / comm->nprocs;
 
-  double t0 = MPI_Wtime();
   for (int i = 0; i < np; i++)
     my_epot[i] = 0.0;
   my_epot[ipartition] = scalefac * pe->compute_scalar();
-  double t1 = MPI_Wtime();
-  prof_pe_compute += t1 - t0;
 
   // Start non-blocking allreduce — completion waited in post_force()
   // after gather_forces() overlaps with the MPI progress.
-  t0 = MPI_Wtime();
   MPI_Iallreduce(my_epot, epot, npartitions, MPI_DOUBLE, MPI_SUM,
                  universe->uworld, &epot_request);
-  t1 = MPI_Wtime();
-  prof_pe_allreduce += t1 - t0;
 
   pe->addstep(update->ntimestep + 1);
 }

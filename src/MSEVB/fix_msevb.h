@@ -371,14 +371,6 @@ protected:
   virtual void modified_topology_on_host();
   virtual void sync_before_neighbor_build();
 
-  // ---- Profiling accumulators -------------------------------------------
-  double prof_gather_pe{0}, prof_build_H{0}, prof_coupling{0}, prof_excess{0};
-  double prof_eigensolver{0}, prof_hellmann{0}, prof_pressure{0},
-      prof_transfer{0};
-  double prof_pe_compute{0}, prof_pe_allreduce{0};
-  // post_integrate sub-timers
-  double prof_pi_sync{0}, prof_pi_detect{0}, prof_pi_apply{0};
-  int prof_ncalls{0};
 };
 
 } // namespace LAMMPS_NS

@@ -1,0 +1,27 @@
+# MSEVB output  |  fix evb  |  every 1 steps
+
+==========================================
+  Timestep 0               nstates=2  (parallel=1  serial=0)
+==========================================
+
+Reactive states: 1
+  state    tag_X    initiator1    initiator2  parent  type    transfer chain
+  -----  -------  ------------  ------------  ------  ------  -----------------------------
+      1        8             9             5       0  para    8-9--5[r3]
+
+Hamiltonian
+             |            0            1
+  -----------+--------------------------
+     0 ref   |  -31342.856399     0.502327
+     1 para  |     0.502327  -31339.057134
+
+Eigenvalues and ground-state amplitudes:
+  state  eigenvalue (E_n)       |c_n|^2
+  -----  ----------------  ------------
+      0   -31342.92169282    0.98338512
+      1   -31338.99183954    0.01661488
+
+  E_ground = -31342.9216928172 
+
+ Ground state's predominant contributor is state 0 with amplitude 0.98338512
+ No reference topology update required

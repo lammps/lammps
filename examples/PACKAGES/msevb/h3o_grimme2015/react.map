@@ -1,0 +1,15 @@
+# Map file for H3O+ proton transfer (1-shell template)
+# Format: REACTER-compatible
+# Atom 2 (H3, ibonding) transfers from Atom 1 (O3, X) to Atom 5 (O2, jbonding/Y)
+
+InitiatorIDs
+2 5
+
+Equivalences
+1 1
+2 2
+3 3
+4 4
+5 5
+6 6
+7 7

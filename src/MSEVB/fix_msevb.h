@@ -40,6 +40,8 @@ class FixMSEVB : public Fix {
   void setup_pre_force(int) override;
   void pre_force(int) override;
   void post_force(int) override;
+  void min_pre_force(int) override;
+  void min_post_force(int) override;
   double compute_scalar() override;
   double compute_vector(int) override;
   void *extract(const char *, int &) override;

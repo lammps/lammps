@@ -511,6 +511,8 @@ int FixMSEVB::setmask()
   mask |= POST_INTEGRATE;
   mask |= PRE_FORCE;
   mask |= POST_FORCE;
+  mask |= MIN_PRE_FORCE;
+  mask |= MIN_POST_FORCE;
   return mask;
 }
 
@@ -971,6 +973,39 @@ void FixMSEVB::pre_force(int /*vflag*/)
   int istate = (ipartition < nstates) ? ipartition : 0;
   if (istate == 0) return;
   comm->forward_comm(this);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMSEVB::min_pre_force(int vflag)
+{
+  // During minimization there is no post_integrate, so site detection and
+  // per-partition topology changes are handled here instead.
+  check_consistency_atoms();
+  sync_positions();
+  restore_reference_topology();
+  detect_reactive_sites();
+  update_reactive_group();
+  apply_per_partition_state_changes();
+
+  if (nsites > 0) {
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    comm->exchange();
+    comm->borders();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
+    sync_before_neighbor_build();
+    neighbor->build(1);
+  }
+
+  pre_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMSEVB::min_post_force(int vflag)
+{
+  post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

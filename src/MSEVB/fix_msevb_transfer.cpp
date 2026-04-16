@@ -158,9 +158,13 @@ bool FixMSEVB::do_permanent_transfer(int &out_max_state, double &out_max_amp) {
   out_max_amp   = max_amp;
 
   if (universe->me == 0) {
-    auto msg = fmt::format("MSEVB: permanent transfer at step {} "
-                           "(site {}, amplitude {:.4f})\n",
-                           update->ntimestep, sk, max_amp);
+    const ReactionDef &rxn = rxndefs[sites[sk].rxn_idx];
+    auto msg = fmt::format("MSEVB: reaction {} -> {} at step {}"
+                           " between atom IDs {} and {},"
+                           " amplitude {:.4f}\n",
+                           rxn.pre_mol_id, rxn.post_mol_id,
+                           update->ntimestep,
+                           sites[sk].tag_H, sites[sk].tag_Y, max_amp);
     utils::logmesg(lmp, msg);
   }
 

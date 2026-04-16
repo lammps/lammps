@@ -113,7 +113,7 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg)
       coupling_gamma_v(0.0), coupling_a(0.0), coupling_b(0.0),
       coupling_taper(0.0), coupling_enabled(0), temp_compute(nullptr),
       press_compute(nullptr), enumerate_product_states(0),
-      fermi_dirac_enabled(0), fd_temperature(0.0), fd_RT(0.0), grimme_simple(0),
+      fermi_dirac_enabled(0), fd_temperature(0.0), fd_RT(0.0),
       max_shells(1), output_every(0),
       output_fp(nullptr),
       reactive_group_bit(0),
@@ -340,9 +340,6 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg)
       fd_temperature = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       fermi_dirac_enabled = 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg], "grimme_simple") == 0) {
-      grimme_simple = 1;
-      iarg += 1;
     } else if (strcmp(arg[iarg], "output") == 0) {
       if (iarg + 2 >= narg)
         error->universe_all(
@@ -1026,8 +1023,6 @@ void FixMSEVB::setup(int vflag) {
     if (fermi_dirac_enabled)
       fmt::format_to(out, "    fermi-dirac:  T={:.2f} K  (RT={:.6f})\n",
                      fd_temperature, fd_RT);
-    if (grimme_simple)
-      fmt::format_to(out, "    grimme_simple: enabled (debug mode)\n");
     if (enumerate_product_states)
       fmt::format_to(out, "    product states: enabled\n");
     if (output_every > 0)
@@ -1210,10 +1205,7 @@ void FixMSEVB::post_force(int vflag) {
     t0 = MPI_Wtime();
     if (need_forces) {
       compute_mixing_weights();
-      if (grimme_simple)
-        simple_force_mixing();
-      else
-        weight_based_hellmann_feynman_forces();
+      weight_based_hellmann_feynman_forces();
     }
     t1 = MPI_Wtime();
     prof_hellmann += t1 - t0;
@@ -1238,10 +1230,7 @@ void FixMSEVB::post_force(int vflag) {
     t0 = MPI_Wtime();
     if (need_forces) {
       compute_mixing_weights();
-      if (grimme_simple)
-        simple_force_mixing();
-      else
-        weight_based_hellmann_feynman_forces();
+      weight_based_hellmann_feynman_forces();
     }
     t1 = MPI_Wtime();
     prof_hellmann += t1 - t0;
@@ -1386,10 +1375,7 @@ void FixMSEVB::post_force(int vflag) {
           solve_eigensystem();
           if (need_forces) {
             compute_mixing_weights();
-            if (grimme_simple)
-              simple_force_mixing();
-            else
-              weight_based_hellmann_feynman_forces();
+            weight_based_hellmann_feynman_forces();
           }
         } else {
           if (nsites_serial > 0)
@@ -1397,10 +1383,7 @@ void FixMSEVB::post_force(int vflag) {
           solve_eigensystem();
           if (need_forces) {
             compute_mixing_weights();
-            if (grimme_simple)
-              simple_force_mixing();
-            else
-              weight_based_hellmann_feynman_forces();
+            weight_based_hellmann_feynman_forces();
           }
           if (nsites_serial > 0 && need_forces)
             apply_excess_forces();

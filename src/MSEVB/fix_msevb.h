@@ -286,9 +286,6 @@ protected:
   double fd_temperature;
   double fd_RT;
 
-  // ---- Debug ----------------------------------------------------------
-  int grimme_simple; // 1 = use explicit dH contraction instead of weight decomposition
-
   // ---- Reactive-atom group tracking -----------------------------------
   // A LAMMPS group named "<fix_id>_atoms" is created in init() and kept
   // current after every detect_reactive_sites() call.  It contains every
@@ -347,7 +344,6 @@ protected:
   void compute_mixing_weights();
   void apply_coupling_corrections();
   void weight_based_hellmann_feynman_forces();
-  void simple_force_mixing();
   void fermi_dirac_occupancies(double *evals, int ns, double *occupancies);
 
   void sync_positions();

@@ -38,7 +38,7 @@ thermo 1
 variable p world 0 1
 
 labelmap atom 1  Ba 2  Zr 3  Y 4  O1 5  O2 6  O3 7  H1 8  O4
-dump all_dump all custom 1 all_dump.lammpstrj.${p} id typelabel xu yu zu
-dump msevb_dump evb_atoms custom 1 msevb_dump.lammpstrj.${p} id typelabel xu yu zu
+#dump all_dump all custom 1 all_dump.lammpstrj.${p} id typelabel xu yu zu
+#dump msevb_dump evb_atoms custom 1 msevb_dump.lammpstrj.${p} id typelabel xu yu zu
 
 run 0

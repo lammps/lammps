@@ -19,15 +19,13 @@ Syntax
      *coupling* values = style params
        style = *none* or *raiteri2011* or *vuilleumier1998* or *grimme2015*
          *none* = no off-diagonal coupling (diagonal EVB only)
-         *raiteri2011* params = *lambda* V *zeta* Z [*taper* T]
+         *raiteri2011* params = *lambda* V *zeta* Z
            V = coupling prefactor (energy units)
            Z = Gaussian decay parameter (inverse distance-squared units)
-           T = distance at which taper begins (distance units)
-         *vuilleumier1998* params = *v12* V *alpha* A *gamma* G [*taper* T]
+         *vuilleumier1998* params = *v12* V *alpha* A *gamma* G
            V = coupling prefactor (energy units)
            A = linear decay parameter (inverse distance units)
            G = Gaussian decay parameter (inverse distance-squared units)
-           T = distance at which taper begins (distance units)
          *grimme2015* params = *a* A *b* B
            A = coupling prefactor (energy units)
            B = energy decay parameter (inverse energy-squared units)
@@ -38,16 +36,17 @@ Syntax
        cutoff = distance between initiator atoms at which reaction is considered (distance units)
        zero or more per-reaction keywords may follow in any order:
          *coupling* style params = per-reaction coupling override (same syntax as global *coupling*)
-         *taper* T = per-reaction taper start distance (distance units)
+         *taper* T = distance at which coupling begins to taper to zero (distance units)
          *offset* E = energy offset added to this state's diagonal Hamiltonian element (energy units)
-         *shells* N = maximum proton-hopping shell depth for this reaction (default: inherits global *shells*)
+         *shells* N = maximum shell depth for this reaction (default: inherits global *shells*)
+     *taper* T = global default taper start distance (distance units)
      *shells* value = N
        N = global default for maximum shell depth (default: 1)
      *fermi_dirac* value = T
        T = electronic temperature for Fermi-Dirac occupancy smearing (temperature units)
      *product_states* = enumerate product states for multi-site reactions (no value)
      *scf_topology* value = *yes* or *no*
-       re-evaluate EVB after each permanent transfer until convergence (default: yes)
+       re-evaluate EVB after each permanent transfer until convergence (default: no)
      *scf_max_iter* value = N
        N = maximum SCF iterations per timestep (default: 10)
      *output* values = filename every
@@ -108,26 +107,34 @@ schemes, energy offsets, Fermi-Dirac smearing, and SCF topology convergence.
 Partitions and setup
 ''''''''''''''''''''
 
-This fix must be run with multiple :doc:`processor partitions
+This fix is designed to be run with multiple :doc:`processor partitions
 <Howto_replica>` launched via the :doc:`-partition <Run_options>`
 command-line switch.  Each partition evaluates forces for one EVB bonding
-state, and each partition must use an identical domain decomposition
-(same number of processors and box subdivision).  Positions, box geometry,
-and velocities are synchronized across partitions at each step.
+state.  Using more than one partition is strongly recommended: a single
+partition evaluates all states sequentially and will be significantly slower
+than distributing them.  All partitions must use an identical domain
+decomposition (same number of processors and box subdivision).  Positions,
+box geometry, and velocities are synchronized across partitions at each step.
 
-The number of partitions defines the number of *parallel* states, each
-corresponding to a distinct set of reactive sites detected during the
-simulation.  Additional *serial* states (evaluated sequentially on
-partition 0 only) are generated automatically for each reactive site
-beyond the number of partitions.  Running with more partitions increases
-parallelism.
+All reactive states are detected once per step and then distributed across
+partitions in batches.  States assigned to a given partition are evaluated
+in parallel with those on other partitions; if the number of states exceeds
+the number of partitions, subsequent batches reuse the partitions
+sequentially until all states are evaluated.  Running with more partitions
+reduces the number of batches and therefore the wall time per step.
 
-The pre- and post-reaction molecule templates and map file follow the
-same conventions as :doc:`fix bond/react <fix_bond_react>`: the templates
-are loaded with the :doc:`molecule <molecule>` command before this fix is
-defined, and the map file specifies the atom-by-atom correspondence between
-the pre- and post-reaction templates and identifies the two *initiator* atoms
-(the atom that transfers, H, and the acceptor, Y).
+.. note::
+
+   The pre- and post-reaction molecule templates and map file use the same
+   format as :doc:`fix bond/react <fix_bond_react>`: templates are loaded
+   with the :doc:`molecule <molecule>` command, and the map file specifies
+   the atom-by-atom correspondence between the pre- and post-reaction
+   templates and identifies the two *initiator* atoms (the transferring atom
+   H and the acceptor Y).  Only basic topology changes are supported
+   (bond creation and deletion, atom type and charge changes, angle, dihedral,
+   and improper updates).  The more advanced bond/react features such as atom
+   insertion or deletion, modification of atom IDs, and the use of atom labels
+   in templates are not implemented.
 
 ----------
 
@@ -169,9 +176,12 @@ theorem:
    = -\mathbf{u}_g^\top \frac{\partial \hat{\mathcal{H}}}{\partial \alpha}
    \mathbf{u}_g
 
-The diagonal forces come from each partition's force evaluation; the
-off-diagonal coupling forces are computed analytically from the coupling
-function derivatives.
+The diagonal elements of :math:`\partial\hat{\mathcal{H}}/\partial\alpha`
+are the forces from each state's force evaluation.  When the number of
+states exceeds the number of partitions, some partitions evaluate more than
+one state per step; when fewer states are detected than partitions, some
+partitions are idle for that step.  The off-diagonal coupling forces are
+computed analytically from the coupling function derivatives.
 
 ----------
 
@@ -183,6 +193,9 @@ off-diagonal Hamiltonian elements.  A global coupling applies to all
 reactions that do not specify their own; a per-reaction *coupling* keyword
 inside a *reaction* block overrides it for that reaction only.  If no global
 coupling is given, every *reaction* block must provide its own.
+
+Per-reaction keywords (*coupling*, *taper*, *offset*, *shells*) may appear
+in any order after the four required *reaction* arguments.
 
 *none*
 
@@ -227,10 +240,14 @@ coupling is given, every *reaction* block must provide its own.
 
   where :math:`\Delta E_{ij} = E_i - E_j`.
 
-For the *raiteri2011* and *vuilleumier1998* styles, the optional *taper*
-parameter applies a smooth MDF damping function that reduces the coupling
-to zero between the taper distance *T* and the reaction *cutoff* distance.
-This prevents discontinuities at the boundary of the reactive zone.
+The optional *taper* keyword applies a smooth MDF damping function that
+reduces the coupling to zero between the taper distance *T* and the
+reaction *cutoff* distance.  The damping is based on the distance between
+the initiator atoms H and Y and applies to all coupling styles, including
+*grimme2015*.  This prevents discontinuities at the boundary of the
+reactive zone.  The *taper* keyword may appear at the global level
+(applies to all reactions without their own *taper*) or inside a
+*reaction* block (per-reaction).
 
 ----------
 
@@ -264,10 +281,9 @@ Multi-shell reactions
 The *shells* keyword controls how many bond-hopping steps are considered
 when enumerating reactive states.  At shell depth 1 (the default), only
 direct donor-acceptor pairs within *cutoff* are reactive.  At depth N,
-the code additionally searches for chains of length up to N by traversing
-the bonded neighbors of each detected reactive site to find secondary
-acceptors, and so on recursively.  Each additional shell can dramatically
-increase the number of EVB states.
+the code searches for chains of length up to N by traversing the bonded
+neighbors of each detected reactive site recursively.  Each additional
+shell can dramatically increase the number of EVB states.
 
 ----------
 
@@ -276,15 +292,16 @@ Permanent transfer
 
 After each EVB evaluation, this fix checks whether the state with the
 largest amplitude is no longer the reference state (state 0).  If so, it
-commits the corresponding topology change permanently: bond order, atom
+commits the corresponding topology change permanently: bond types, atom
 types, charges, angles, dihedrals, and impropers are updated, the neighbor
 list is rebuilt, and the new topology is broadcast to all partitions.
-A line is written to the LAMMPS log recording the reaction.
+A line is written to the LAMMPS log recording the reaction type and the
+atom IDs involved.
 
-When *scf_topology yes* is set (the default), the EVB evaluation is
-repeated after each permanent transfer until no further transfer is
-detected or *scf_max_iter* iterations are reached.  This self-consistent
-loop is important when consecutive hops are energetically favorable.
+When *scf_topology yes* is set, the EVB evaluation is repeated after each
+permanent transfer until no further transfer is detected or *scf_max_iter*
+iterations are reached.  This self-consistent loop is important when
+consecutive hops are energetically favorable.
 
 ----------
 
@@ -336,7 +353,11 @@ values.
 The virial contribution from the coupling forces is tallied and included
 when :doc:`fix_modify virial yes <fix_modify>` is set.
 
-This fix is not invoked during :doc:`energy minimization <minimize>`.
+This fix is invoked during :doc:`energy minimization <minimize>`.  The EVB
+force mixing and permanent transfer logic runs at each minimization step.
+Note that permanent topology changes during minimization trigger a neighbor
+list rebuild and effectively restart the local minimization from the new
+topology.
 
 Restrictions
 """"""""""""
@@ -345,8 +366,7 @@ This fix is part of the MSEVB package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 page for more info.
 
-This fix requires multiple processor partitions.  Exactly one instance of
-this fix may be active at a time.
+Exactly one instance of this fix may be active at a time.
 
 All partitions must have an identical domain decomposition (same number
 of processors and the same spatial subdivision).
@@ -365,7 +385,7 @@ Related commands
 Default
 """""""
 
-The default values are *shells* = 1, *scf_topology* = yes,
+The default values are *shells* = 1, *scf_topology* = no,
 *scf_max_iter* = 10, and *fermi_dirac* disabled.
 No global coupling is set; every *reaction* block must provide its own
 if no global *coupling* keyword is given.

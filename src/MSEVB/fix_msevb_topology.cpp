@@ -47,9 +47,9 @@ using namespace LAMMPS_NS;
    every timestep anyway.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::grow_sites(int n) {
-  if (n <= sites_nmax)
-    return;
+void FixMSEVB::grow_sites(int n)
+{
+  if (n <= sites_nmax) return;
 
   int newmax = MAX(n, MAX(2 * sites_nmax, 4));
 
@@ -116,8 +116,8 @@ void FixMSEVB::grow_sites(int n) {
    chain_rxn_flat[site_idx * max_shells + 0] after this call.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::init_site(int site_idx, tagint tag_H, tagint tag_X, tagint tag_Y,
-                         double dist_sq) {
+void FixMSEVB::init_site(int site_idx, tagint tag_H, tagint tag_X, tagint tag_Y, double dist_sq)
+{
   ReactiveSite *s = &sites[site_idx];
   s->tag_H = tag_H;
   s->tag_X = tag_X;
@@ -128,8 +128,7 @@ void FixMSEVB::init_site(int site_idx, tagint tag_H, tagint tag_X, tagint tag_Y,
   s->shell = 1;
   s->chain_len = 1;
   s->n_components = 0;
-  for (int c = 0; c < MAX_COMPONENTS; c++)
-    s->components[c] = -1;
+  for (int c = 0; c < MAX_COMPONENTS; c++) s->components[c] = -1;
   tagint *cH = chain_H_flat + site_idx * max_shells;
   tagint *cX = chain_X_flat + site_idx * max_shells;
   tagint *cY = chain_Y_flat + site_idx * max_shells;
@@ -137,7 +136,7 @@ void FixMSEVB::init_site(int site_idx, tagint tag_H, tagint tag_X, tagint tag_Y,
   cH[0] = tag_H;
   cX[0] = tag_X;
   cY[0] = tag_Y;
-  cR[0] = 0; // caller must overwrite with actual rxn_idx
+  cR[0] = 0;    // caller must overwrite with actual rxn_idx
   for (int d = 1; d < max_shells; d++) {
     cH[d] = 0;
     cX[d] = 0;
@@ -154,7 +153,8 @@ void FixMSEVB::init_site(int site_idx, tagint tag_H, tagint tag_X, tagint tag_Y,
    check consistency of owned atom count and ordering across partitions
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::check_consistency_atoms() {
+void FixMSEVB::check_consistency_atoms()
+{
   const int nlocal = atom->nlocal;
   int np = npartitions;
 
@@ -167,41 +167,36 @@ void FixMSEVB::check_consistency_atoms() {
 
   int fail = 0;
   for (int i = 1; i < npartitions; i++)
-    if (all_nlocal[i] != all_nlocal[0])
-      fail = 1;
+    if (all_nlocal[i] != all_nlocal[0]) fail = 1;
 
   int allfail = 0;
   MPI_Allreduce(&fail, &allfail, 1, MPI_INT, MPI_MAX, universe->uworld);
   if (allfail)
-    error->universe_all(
-        FLERR, "Fix msevb: local atom count is inconsistent across partitions");
+    error->universe_all(FLERR, "Fix msevb: local atom count is inconsistent across partitions");
 
-  tagint *tagbuf = (tagint *)commbuf;
+  tagint *tagbuf = (tagint *) commbuf;
   tagint *tag = atom->tag;
   if (nlocal > 0) {
     if (ipartition == 0)
-      for (int i = 0; i < nlocal; i++)
-        tagbuf[i] = tag[i];
+      for (int i = 0; i < nlocal; i++) tagbuf[i] = tag[i];
     MPI_Bcast(tagbuf, nlocal, MPI_LMP_TAGINT, 0, samerank);
   }
 
   fail = allfail = 0;
   if (ipartition > 0)
     for (int i = 0; i < nlocal; i++)
-      if (tag[i] != tagbuf[i])
-        fail = 1;
+      if (tag[i] != tagbuf[i]) fail = 1;
   MPI_Allreduce(&fail, &allfail, 1, MPI_INT, MPI_MAX, universe->uworld);
   if (allfail)
-    error->universe_all(
-        FLERR,
-        "Fix msevb: local atom ordering is inconsistent across partitions");
+    error->universe_all(FLERR, "Fix msevb: local atom ordering is inconsistent across partitions");
 }
 
 /* ----------------------------------------------------------------------
    Destroy all ref_* flat arrays (safe to call when pointers are null).
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::destroy_ref_topology() {
+void FixMSEVB::destroy_ref_topology()
+{
   memory->destroy(ref_type);
   memory->destroy(ref_charge);
   memory->destroy(ref_molecule);
@@ -235,8 +230,8 @@ void FixMSEVB::destroy_ref_topology() {
    after returning.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::allocate_ref_topology(tagint sz, int bpa, int apa,
-                                     int dpa, int ipa, int mspc) {
+void FixMSEVB::allocate_ref_topology(tagint sz, int bpa, int apa, int dpa, int ipa, int mspc)
+{
   memory->create(ref_type, sz, "msevb:ref_type");
   memory->create(ref_charge, sz, "msevb:ref_charge");
   memory->create(ref_molecule, sz, "msevb:ref_molecule");
@@ -268,7 +263,8 @@ void FixMSEVB::allocate_ref_topology(tagint sz, int bpa, int apa,
    Snapshot the current topology into ref_* flat arrays.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::snapshot_reference_topology() {
+void FixMSEVB::snapshot_reference_topology()
+{
   const int nlocal = atom->nlocal;
   const int bpa = atom->bond_per_atom;
   const int apa = atom->angle_per_atom;
@@ -277,9 +273,8 @@ void FixMSEVB::snapshot_reference_topology() {
   const int mspc = atom->maxspecial;
   const tagint maxtag = atom->map_tag_max;
 
-  if (maxtag != ref_maxtag || bpa != ref_bond_per_atom ||
-      apa != ref_angle_per_atom || dpa != ref_dihedral_per_atom ||
-      ipa != ref_improper_per_atom || mspc != ref_maxspecial) {
+  if (maxtag != ref_maxtag || bpa != ref_bond_per_atom || apa != ref_angle_per_atom ||
+      dpa != ref_dihedral_per_atom || ipa != ref_improper_per_atom || mspc != ref_maxspecial) {
     destroy_ref_topology();
     allocate_ref_topology(maxtag + 1, bpa, apa, dpa, ipa, mspc);
     ref_maxtag = maxtag;
@@ -385,64 +380,49 @@ void FixMSEVB::snapshot_reference_topology() {
         ref_improper_atom4_flat[t * ipa + k] = improper_atom4[i][k];
       }
     }
-    for (int k = 0; k < 3; k++)
-      ref_nspecial_flat[t * 3 + k] = nspecial[i][k];
+    for (int k = 0; k < 3; k++) ref_nspecial_flat[t * 3 + k] = nspecial[i][k];
     int ns = nspecial[i][2];
-    for (int k = 0; k < ns; k++)
-      ref_special_flat[t * mspc + k] = special[i][k];
+    for (int k = 0; k < ns; k++) ref_special_flat[t * mspc + k] = special[i][k];
   }
 
   if (comm->nprocs > 1) {
     MPI_Allreduce(MPI_IN_PLACE, ref_type, sz, MPI_INT, MPI_SUM, world);
     MPI_Allreduce(MPI_IN_PLACE, ref_charge, sz, MPI_DOUBLE, MPI_SUM, world);
-    MPI_Allreduce(MPI_IN_PLACE, ref_molecule, sz, MPI_LMP_TAGINT, MPI_SUM,
-                  world);
+    MPI_Allreduce(MPI_IN_PLACE, ref_molecule, sz, MPI_LMP_TAGINT, MPI_SUM, world);
     MPI_Allreduce(MPI_IN_PLACE, ref_num_bond, sz, MPI_INT, MPI_SUM, world);
-    MPI_Allreduce(MPI_IN_PLACE, ref_bond_type_flat, sz * bpa, MPI_INT, MPI_SUM,
-                  world);
-    MPI_Allreduce(MPI_IN_PLACE, ref_bond_atom_flat, sz * bpa, MPI_LMP_TAGINT,
-                  MPI_SUM, world);
+    MPI_Allreduce(MPI_IN_PLACE, ref_bond_type_flat, sz * bpa, MPI_INT, MPI_SUM, world);
+    MPI_Allreduce(MPI_IN_PLACE, ref_bond_atom_flat, sz * bpa, MPI_LMP_TAGINT, MPI_SUM, world);
     MPI_Allreduce(MPI_IN_PLACE, ref_num_angle, sz, MPI_INT, MPI_SUM, world);
-    MPI_Allreduce(MPI_IN_PLACE, ref_angle_type_flat, sz * apa, MPI_INT, MPI_SUM,
-                  world);
-    MPI_Allreduce(MPI_IN_PLACE, ref_angle_atom1_flat, sz * apa, MPI_LMP_TAGINT,
-                  MPI_SUM, world);
-    MPI_Allreduce(MPI_IN_PLACE, ref_angle_atom2_flat, sz * apa, MPI_LMP_TAGINT,
-                  MPI_SUM, world);
-    MPI_Allreduce(MPI_IN_PLACE, ref_angle_atom3_flat, sz * apa, MPI_LMP_TAGINT,
-                  MPI_SUM, world);
+    MPI_Allreduce(MPI_IN_PLACE, ref_angle_type_flat, sz * apa, MPI_INT, MPI_SUM, world);
+    MPI_Allreduce(MPI_IN_PLACE, ref_angle_atom1_flat, sz * apa, MPI_LMP_TAGINT, MPI_SUM, world);
+    MPI_Allreduce(MPI_IN_PLACE, ref_angle_atom2_flat, sz * apa, MPI_LMP_TAGINT, MPI_SUM, world);
+    MPI_Allreduce(MPI_IN_PLACE, ref_angle_atom3_flat, sz * apa, MPI_LMP_TAGINT, MPI_SUM, world);
     if (dpa > 0) {
-      MPI_Allreduce(MPI_IN_PLACE, ref_num_dihedral, sz, MPI_INT, MPI_SUM,
+      MPI_Allreduce(MPI_IN_PLACE, ref_num_dihedral, sz, MPI_INT, MPI_SUM, world);
+      MPI_Allreduce(MPI_IN_PLACE, ref_dihedral_type_flat, sz * dpa, MPI_INT, MPI_SUM, world);
+      MPI_Allreduce(MPI_IN_PLACE, ref_dihedral_atom1_flat, sz * dpa, MPI_LMP_TAGINT, MPI_SUM,
                     world);
-      MPI_Allreduce(MPI_IN_PLACE, ref_dihedral_type_flat, sz * dpa, MPI_INT,
-                    MPI_SUM, world);
-      MPI_Allreduce(MPI_IN_PLACE, ref_dihedral_atom1_flat, sz * dpa,
-                    MPI_LMP_TAGINT, MPI_SUM, world);
-      MPI_Allreduce(MPI_IN_PLACE, ref_dihedral_atom2_flat, sz * dpa,
-                    MPI_LMP_TAGINT, MPI_SUM, world);
-      MPI_Allreduce(MPI_IN_PLACE, ref_dihedral_atom3_flat, sz * dpa,
-                    MPI_LMP_TAGINT, MPI_SUM, world);
-      MPI_Allreduce(MPI_IN_PLACE, ref_dihedral_atom4_flat, sz * dpa,
-                    MPI_LMP_TAGINT, MPI_SUM, world);
+      MPI_Allreduce(MPI_IN_PLACE, ref_dihedral_atom2_flat, sz * dpa, MPI_LMP_TAGINT, MPI_SUM,
+                    world);
+      MPI_Allreduce(MPI_IN_PLACE, ref_dihedral_atom3_flat, sz * dpa, MPI_LMP_TAGINT, MPI_SUM,
+                    world);
+      MPI_Allreduce(MPI_IN_PLACE, ref_dihedral_atom4_flat, sz * dpa, MPI_LMP_TAGINT, MPI_SUM,
+                    world);
     }
     if (ipa > 0) {
-      MPI_Allreduce(MPI_IN_PLACE, ref_num_improper, sz, MPI_INT, MPI_SUM,
+      MPI_Allreduce(MPI_IN_PLACE, ref_num_improper, sz, MPI_INT, MPI_SUM, world);
+      MPI_Allreduce(MPI_IN_PLACE, ref_improper_type_flat, sz * ipa, MPI_INT, MPI_SUM, world);
+      MPI_Allreduce(MPI_IN_PLACE, ref_improper_atom1_flat, sz * ipa, MPI_LMP_TAGINT, MPI_SUM,
                     world);
-      MPI_Allreduce(MPI_IN_PLACE, ref_improper_type_flat, sz * ipa, MPI_INT,
-                    MPI_SUM, world);
-      MPI_Allreduce(MPI_IN_PLACE, ref_improper_atom1_flat, sz * ipa,
-                    MPI_LMP_TAGINT, MPI_SUM, world);
-      MPI_Allreduce(MPI_IN_PLACE, ref_improper_atom2_flat, sz * ipa,
-                    MPI_LMP_TAGINT, MPI_SUM, world);
-      MPI_Allreduce(MPI_IN_PLACE, ref_improper_atom3_flat, sz * ipa,
-                    MPI_LMP_TAGINT, MPI_SUM, world);
-      MPI_Allreduce(MPI_IN_PLACE, ref_improper_atom4_flat, sz * ipa,
-                    MPI_LMP_TAGINT, MPI_SUM, world);
+      MPI_Allreduce(MPI_IN_PLACE, ref_improper_atom2_flat, sz * ipa, MPI_LMP_TAGINT, MPI_SUM,
+                    world);
+      MPI_Allreduce(MPI_IN_PLACE, ref_improper_atom3_flat, sz * ipa, MPI_LMP_TAGINT, MPI_SUM,
+                    world);
+      MPI_Allreduce(MPI_IN_PLACE, ref_improper_atom4_flat, sz * ipa, MPI_LMP_TAGINT, MPI_SUM,
+                    world);
     }
-    MPI_Allreduce(MPI_IN_PLACE, ref_nspecial_flat, sz * 3, MPI_INT, MPI_SUM,
-                  world);
-    MPI_Allreduce(MPI_IN_PLACE, ref_special_flat, sz * mspc, MPI_LMP_TAGINT,
-                  MPI_SUM, world);
+    MPI_Allreduce(MPI_IN_PLACE, ref_nspecial_flat, sz * 3, MPI_INT, MPI_SUM, world);
+    MPI_Allreduce(MPI_IN_PLACE, ref_special_flat, sz * mspc, MPI_LMP_TAGINT, MPI_SUM, world);
   }
 
   ref_snapshot_valid = 1;
@@ -452,7 +432,8 @@ void FixMSEVB::snapshot_reference_topology() {
    Restore topology from ref_* snapshot.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::restore_reference_topology() {
+void FixMSEVB::restore_reference_topology()
+{
   const int nlocal = atom->nlocal;
   const int bpa = ref_bond_per_atom;
   const int apa = ref_angle_per_atom;
@@ -477,8 +458,7 @@ void FixMSEVB::restore_reference_topology() {
 
   for (int i = 0; i < nlocal; i++) {
     const tagint t = tag[i];
-    if (t < 0 || t > ref_maxtag)
-      continue;
+    if (t < 0 || t > ref_maxtag) continue;
     type[i] = ref_type[t];
     q[i] = ref_charge[t];
     molecule[i] = ref_molecule[t];
@@ -514,11 +494,9 @@ void FixMSEVB::restore_reference_topology() {
         atom->improper_atom4[i][k] = ref_improper_atom4_flat[t * ipa + k];
       }
     }
-    for (int k = 0; k < 3; k++)
-      nspecial[i][k] = ref_nspecial_flat[t * 3 + k];
+    for (int k = 0; k < 3; k++) nspecial[i][k] = ref_nspecial_flat[t * 3 + k];
     int ns_tot = nspecial[i][2];
-    for (int k = 0; k < ns_tot; k++)
-      special_arr[i][k] = ref_special_flat[t * mspc + k];
+    for (int k = 0; k < ns_tot; k++) special_arr[i][k] = ref_special_flat[t * mspc + k];
   }
 }
 
@@ -530,13 +508,13 @@ void FixMSEVB::restore_reference_topology() {
    sites[] is grown via grow_sites(); nsites = total sites detected.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::detect_reactive_sites() {
+void FixMSEVB::detect_reactive_sites()
+{
   nsites = 0;
   nstates = 1;
 
   if (ipartition == 0) {
-    if (!list)
-      goto broadcast;
+    if (!list) goto broadcast;
 
     const int nlocal = atom->nlocal;
     int *type = atom->type;
@@ -555,7 +533,7 @@ void FixMSEVB::detect_reactive_sites() {
     //   [3]          tag_Y  (as double)
     //   [4]          rxn_idx (as double)
     //   [5..4+GN]   glove[0..glove_nmax-1] (as doubles)
-    const int GN = glove_nmax; // 0 if no reactions (shouldn't happen)
+    const int GN = glove_nmax;    // 0 if no reactions (shouldn't happen)
     const int TSTRIDE = 5 + GN;
 
     tagint *glove_tmp = new tagint[MAX(GN, 1)]();
@@ -564,47 +542,39 @@ void FixMSEVB::detect_reactive_sites() {
     double *tmpl_local = new double[MAX_TMPL_CAND * TSTRIDE]();
     int n_tmpl_local = 0;
 
-    for (int ri = 0; ri < (int)rxndefs.size(); ri++) {
+    for (int ri = 0; ri < (int) rxndefs.size(); ri++) {
       const ReactionDef &rxn = rxndefs[ri];
-      if (rxn.glove_n == 0)
-        continue;
+      if (rxn.glove_n == 0) continue;
 
       for (int ii = 0; ii < inum; ii++) {
         int ih = ilist[ii];
-        if (ih >= nlocal)
-          continue;
-        if (type[ih] != rxn.type_H)
-          continue;
+        if (ih >= nlocal) continue;
+        if (type[ih] != rxn.type_H) continue;
 
         int *jlistH = firstneigh[ih];
         int jnumH = numneigh[ih];
         for (int jj = 0; jj < jnumH; jj++) {
           int j = jlistH[jj] & NEIGHMASK;
-          if (type[j] != rxn.type_Y)
-            continue;
+          if (type[j] != rxn.type_Y) continue;
 
           double dx = x[ih][0] - x[j][0];
           double dy = x[ih][1] - x[j][1];
           double dz = x[ih][2] - x[j][2];
           domain->minimum_image(FLERR, dx, dy, dz);
           double rsq = dx * dx + dy * dy + dz * dz;
-          if (rsq >= rxn.cutoff_sq)
-            continue;
+          if (rsq >= rxn.cutoff_sq) continue;
 
           // Run superimpose: BFS from (ih→ibonding, j→jbonding).
           // Pass ref topology (special list = symmetric 1-2 neighbors) so
           // ghost/off-rank atoms can be matched in multi-rank partitions.
           memset(glove_tmp, 0, GN * sizeof(tagint));
-          RefTopo ref_topo{ref_type, ref_nspecial_flat, ref_special_flat,
-                           ref_maxspecial, ref_maxtag};
-          bool ok = msevb_superimpose(lmp, rxn.pre_mol, rxn.is_edge.data(),
-                                      rxn.ibonding, rxn.jbonding, tag[ih],
-                                      tag[j], glove_tmp, nullptr, &ref_topo);
-          if (!ok)
-            continue;
+          RefTopo ref_topo{ref_type, ref_nspecial_flat, ref_special_flat, ref_maxspecial,
+                           ref_maxtag};
+          bool ok = msevb_superimpose(lmp, rxn.pre_mol, rxn.is_edge.data(), rxn.ibonding,
+                                      rxn.jbonding, tag[ih], tag[j], glove_tmp, nullptr, &ref_topo);
+          if (!ok) continue;
 
-          if (n_tmpl_local >= MAX_TMPL_CAND)
-            continue;
+          if (n_tmpl_local >= MAX_TMPL_CAND) continue;
 
           tagint tX = (rxn.ix_bonding >= 0) ? glove_tmp[rxn.ix_bonding] : 0;
 
@@ -615,8 +585,7 @@ void FixMSEVB::detect_reactive_sites() {
           tmpl_local[b + 3] = static_cast<double>(tag[j]);
           tmpl_local[b + 4] = static_cast<double>(ri);
           for (int g = 0; g < GN; g++)
-            tmpl_local[b + 5 + g] =
-                static_cast<double>((g < rxn.glove_n) ? glove_tmp[g] : 0);
+            tmpl_local[b + 5 + g] = static_cast<double>((g < rxn.glove_n) ? glove_tmp[g] : 0);
           n_tmpl_local++;
         }
       }
@@ -640,8 +609,8 @@ void FixMSEVB::detect_reactive_sites() {
     }
 
     double *tmpl_all = new double[MAX(total_tmpl, 1) * TSTRIDE]();
-    MPI_Allgatherv(tmpl_local, n_tmpl_local * TSTRIDE, MPI_DOUBLE, tmpl_all,
-                   tl_sc, tl_rd, MPI_DOUBLE, world);
+    MPI_Allgatherv(tmpl_local, n_tmpl_local * TSTRIDE, MPI_DOUBLE, tmpl_all, tl_sc, tl_rd,
+                   MPI_DOUBLE, world);
 
     delete[] tmpl_local;
     delete[] tl_nc;
@@ -654,16 +623,14 @@ void FixMSEVB::detect_reactive_sites() {
     const int SORT_STRIDE = TSTRIDE;
     std::vector<double> tmp_e(SORT_STRIDE);
     for (int i = 1; i < total_tmpl; i++) {
-      for (int k = 0; k < SORT_STRIDE; k++)
-        tmp_e[k] = tmpl_all[i * TSTRIDE + k];
+      for (int k = 0; k < SORT_STRIDE; k++) tmp_e[k] = tmpl_all[i * TSTRIDE + k];
       int j = i - 1;
       while (j >= 0 && tmpl_all[j * TSTRIDE] > tmp_e[0]) {
         for (int k = 0; k < SORT_STRIDE; k++)
           tmpl_all[(j + 1) * TSTRIDE + k] = tmpl_all[j * TSTRIDE + k];
         j--;
       }
-      for (int k = 0; k < SORT_STRIDE; k++)
-        tmpl_all[(j + 1) * TSTRIDE + k] = tmp_e[k];
+      for (int k = 0; k < SORT_STRIDE; k++) tmpl_all[(j + 1) * TSTRIDE + k] = tmp_e[k];
     }
 
     // ---- Pick sites: unique Y acceptors, sorted by distance ---------
@@ -678,8 +645,7 @@ void FixMSEVB::detect_reactive_sites() {
           dup = 1;
           break;
         }
-      if (dup)
-        continue;
+      if (dup) continue;
 
       tagint tH = static_cast<tagint>(tmpl_all[b + 1]);
       tagint tX = static_cast<tagint>(tmpl_all[b + 2]);
@@ -709,13 +675,11 @@ void FixMSEVB::detect_reactive_sites() {
     // multi-shell + multi-site product states are experimental.
     if (max_shells > 1 && nsites > 1) {
       for (size_t ri = 0; ri < rxndefs.size(); ri++) {
-        if (rxndefs[ri].shells <= 1)
-          continue;
+        if (rxndefs[ri].shells <= 1) continue;
         int n_distinct_donors = 0;
-        tagint seen_X[64]; // generous upper bound for distinct donors
+        tagint seen_X[64];    // generous upper bound for distinct donors
         for (int s = 0; s < nsites; s++) {
-          if (sites[s].rxn_idx != (int)ri || sites[s].shell != 1)
-            continue;
+          if (sites[s].rxn_idx != (int) ri || sites[s].shell != 1) continue;
           int dup = 0;
           for (int d = 0; d < n_distinct_donors; d++)
             if (seen_X[d] == sites[s].tag_X) {
@@ -723,27 +687,25 @@ void FixMSEVB::detect_reactive_sites() {
               break;
             }
           if (!dup) {
-            if (n_distinct_donors < 64)
-              seen_X[n_distinct_donors] = sites[s].tag_X;
+            if (n_distinct_donors < 64) seen_X[n_distinct_donors] = sites[s].tag_X;
             n_distinct_donors++;
           }
         }
         if (n_distinct_donors > 1) {
           if (!enumerate_product_states) {
             error->one(FLERR,
-                       fmt::format(
-                           "Fix msevb: reaction {} has shells={} but {} distinct "
-                           "donors (multi-shell + multi-site not supported; "
-                           "add product_states keyword to use this combination)",
-                           ri, rxndefs[ri].shells, n_distinct_donors));
+                       fmt::format("Fix msevb: reaction {} has shells={} but {} distinct "
+                                   "donors (multi-shell + multi-site not supported; "
+                                   "add product_states keyword to use this combination)",
+                                   ri, rxndefs[ri].shells, n_distinct_donors));
           } else if (!product_states_multishell_warning && universe->me == 0) {
             utils::logmesg(lmp,
-                fmt::format("WARNING: Fix msevb: reaction {} has shells={} and "
-                            "{} distinct donors.  Combining multi-shell chains "
-                            "with product_states is experimental and has not "
-                            "been validated against a reference implementation. "
-                            "Proceed with caution.\n",
-                            ri, rxndefs[ri].shells, n_distinct_donors));
+                           fmt::format("WARNING: Fix msevb: reaction {} has shells={} and "
+                                       "{} distinct donors.  Combining multi-shell chains "
+                                       "with product_states is experimental and has not "
+                                       "been validated against a reference implementation. "
+                                       "Proceed with caution.\n",
+                                       ri, rxndefs[ri].shells, n_distinct_donors));
             product_states_multishell_warning = true;
           }
         }
@@ -757,10 +719,8 @@ void FixMSEVB::detect_reactive_sites() {
     for (int shell = 2; shell <= max_shells; shell++) {
       int prev_nsites = nsites;
       for (int s = 0; s < prev_nsites; s++) {
-        if (sites[s].shell != shell - 1)
-          continue;
-        if (sites[s].chain_len >= rxndefs[sites[s].rxn_idx].shells)
-          continue;
+        if (sites[s].shell != shell - 1) continue;
+        if (sites[s].chain_len >= rxndefs[sites[s].rxn_idx].shells) continue;
 
         int s_rxn_idx = sites[s].rxn_idx;
         const ReactionDef &prxn = rxndefs[s_rxn_idx];
@@ -784,21 +744,19 @@ void FixMSEVB::detect_reactive_sites() {
           while (cur >= 0 && sites[cur].shell > 1) {
             // Find the parent site index.
             int parent_state = sites[cur].parent_state;
-            int parent_site = parent_state - 1; // state N -> site N-1
+            int parent_site = parent_state - 1;    // state N -> site N-1
             ancestors.push_back(parent_site);
             cur = parent_site;
           }
           // Apply from oldest ancestor to most recent (reverse order).
-          for (int ai = (int)ancestors.size() - 1; ai >= 0; ai--) {
+          for (int ai = (int) ancestors.size() - 1; ai >= 0; ai--) {
             int anc = ancestors[ai];
             const ReactionDef &arxn = rxndefs[sites[anc].rxn_idx];
             const tagint *a_glove = glove_flat + anc * GN;
             for (const auto &tc : arxn.type_changes) {
-              if (tc.pre_idx < 0 || tc.pre_idx >= arxn.glove_n)
-                continue;
+              if (tc.pre_idx < 0 || tc.pre_idx >= arxn.glove_n) continue;
               tagint r = a_glove[tc.pre_idx];
-              if (r == 0)
-                continue;
+              if (r == 0) continue;
               vtopo.type_override[r] = tc.new_type;
             }
           }
@@ -807,11 +765,9 @@ void FixMSEVB::detect_reactive_sites() {
         // Apply type changes from this site's transfer (overrides
         // any ancestor changes on the same atoms).
         for (const auto &tc : prxn.type_changes) {
-          if (tc.pre_idx < 0 || tc.pre_idx >= prxn.glove_n)
-            continue;
+          if (tc.pre_idx < 0 || tc.pre_idx >= prxn.glove_n) continue;
           tagint r = s_glove[tc.pre_idx];
-          if (r == 0)
-            continue;
+          if (r == 0) continue;
           vtopo.type_override[r] = tc.new_type;
         }
 
@@ -824,12 +780,10 @@ void FixMSEVB::detect_reactive_sites() {
           if (!vtopo.bond_override.count(t_tag)) {
             std::vector<tagint> bonds;
             if (t_tag > 0 && t_tag <= ref_maxtag) {
-              int nb = ref_nspecial_flat[t_tag * 3 + 0]; // 1-2 neighbor count
+              int nb = ref_nspecial_flat[t_tag * 3 + 0];    // 1-2 neighbor count
               for (int b = 0; b < nb; b++) {
-                tagint ba =
-                    ref_special_flat[(tagint)t_tag * ref_maxspecial + b];
-                if (ba != 0)
-                  bonds.push_back(ba);
+                tagint ba = ref_special_flat[(tagint) t_tag * ref_maxspecial + b];
+                if (ba != 0) bonds.push_back(ba);
               }
             }
             vtopo.bond_override[t_tag] = bonds;
@@ -839,34 +793,26 @@ void FixMSEVB::detect_reactive_sites() {
 
         // Apply bond breaks and creates from the template diff.
         for (const auto &bb : prxn.bond_breaks) {
-          if (bb.pre_idx1 < 0 || bb.pre_idx1 >= prxn.glove_n)
-            continue;
-          if (bb.pre_idx2 < 0 || bb.pre_idx2 >= prxn.glove_n)
-            continue;
+          if (bb.pre_idx1 < 0 || bb.pre_idx1 >= prxn.glove_n) continue;
+          if (bb.pre_idx2 < 0 || bb.pre_idx2 >= prxn.glove_n) continue;
           tagint r1 = s_glove[bb.pre_idx1];
           tagint r2 = s_glove[bb.pre_idx2];
-          if (r1 == 0 || r2 == 0)
-            continue;
+          if (r1 == 0 || r2 == 0) continue;
           auto &b1 = get_vtopo_bonds(r1);
           b1.erase(std::remove(b1.begin(), b1.end(), r2), b1.end());
           auto &b2 = get_vtopo_bonds(r2);
           b2.erase(std::remove(b2.begin(), b2.end(), r1), b2.end());
         }
         for (const auto &bc : prxn.bond_creates) {
-          if (bc.pre_idx1 < 0 || bc.pre_idx1 >= prxn.glove_n)
-            continue;
-          if (bc.pre_idx2 < 0 || bc.pre_idx2 >= prxn.glove_n)
-            continue;
+          if (bc.pre_idx1 < 0 || bc.pre_idx1 >= prxn.glove_n) continue;
+          if (bc.pre_idx2 < 0 || bc.pre_idx2 >= prxn.glove_n) continue;
           tagint r1 = s_glove[bc.pre_idx1];
           tagint r2 = s_glove[bc.pre_idx2];
-          if (r1 == 0 || r2 == 0)
-            continue;
+          if (r1 == 0 || r2 == 0) continue;
           auto &b1 = get_vtopo_bonds(r1);
-          if (std::find(b1.begin(), b1.end(), r2) == b1.end())
-            b1.push_back(r2);
+          if (std::find(b1.begin(), b1.end(), r2) == b1.end()) b1.push_back(r2);
           auto &b2 = get_vtopo_bonds(r2);
-          if (std::find(b2.begin(), b2.end(), r1) == b2.end())
-            b2.push_back(r1);
+          if (std::find(b2.begin(), b2.end(), r1) == b2.end()) b2.push_back(r1);
         }
 
         // The new donor X is the acceptor Y of the parent site.
@@ -884,19 +830,16 @@ void FixMSEVB::detect_reactive_sites() {
               bp_type = vit->second;
             else {
               int bp_local = atom->map(bp_tag);
-              if (bp_local < 0)
-                continue;
+              if (bp_local < 0) continue;
               bp_type = type[bp_local];
             }
           }
           // bp_tag must not be the parent H (already transferred).
-          if (bp_tag == sites[s].tag_H)
-            continue;
+          if (bp_tag == sites[s].tag_H) continue;
 
           // Look for acceptors Y near bp_tag in neighbor list.
           int bp_local = atom->map(bp_tag);
-          if (bp_local < 0 || bp_local >= nlocal)
-            continue;
+          if (bp_local < 0 || bp_local >= nlocal) continue;
 
           int *jlist_bp = firstneigh[bp_local];
           int jnum_bp = numneigh[bp_local];
@@ -923,24 +866,20 @@ void FixMSEVB::detect_reactive_sites() {
                 is_ancestor = 1;
                 break;
               }
-            if (is_ancestor)
-              continue;
+            if (is_ancestor) continue;
 
             // Try all reactions for this (H, Y) candidate.
-            for (int ri = 0; ri < (int)rxndefs.size(); ri++) {
+            for (int ri = 0; ri < (int) rxndefs.size(); ri++) {
               const ReactionDef &crxn = rxndefs[ri];
-              if (bp_type != crxn.type_H)
-                continue;
-              if (j_type != crxn.type_Y)
-                continue;
+              if (bp_type != crxn.type_H) continue;
+              if (j_type != crxn.type_Y) continue;
 
               double dx = x[bp_local][0] - x[j][0];
               double dy = x[bp_local][1] - x[j][1];
               double dz = x[bp_local][2] - x[j][2];
               domain->minimum_image(FLERR, dx, dy, dz);
               double rsq = dx * dx + dy * dy + dz * dz;
-              if (rsq >= crxn.cutoff_sq)
-                continue;
+              if (rsq >= crxn.cutoff_sq) continue;
 
               // Skip duplicate Y within this shell.
               int dup = 0;
@@ -949,25 +888,22 @@ void FixMSEVB::detect_reactive_sites() {
                   dup = 1;
                   break;
                 }
-              if (dup)
-                continue;
+              if (dup) continue;
 
               // Run superimpose with vtopo (virtual bonds) and ref (fallback
               // for ghost/off-rank atoms in multi-rank partitions).
               std::vector<tagint> new_glove(GN, 0);
-              RefTopo ref_topo2{ref_type, ref_nspecial_flat, ref_special_flat,
-                                ref_maxspecial, ref_maxtag};
-              bool ok =
-                  msevb_superimpose(lmp, crxn.pre_mol, crxn.is_edge.data(),
-                                    crxn.ibonding, crxn.jbonding, bp_tag, j_tag,
-                                    new_glove.data(), &vtopo, &ref_topo2);
-              if (!ok)
-                continue;
+              RefTopo ref_topo2{ref_type, ref_nspecial_flat, ref_special_flat, ref_maxspecial,
+                                ref_maxtag};
+              bool ok = msevb_superimpose(lmp, crxn.pre_mol, crxn.is_edge.data(), crxn.ibonding,
+                                          crxn.jbonding, bp_tag, j_tag, new_glove.data(), &vtopo,
+                                          &ref_topo2);
+              if (!ok) continue;
 
               // Snapshot parent chain before grow_sites() may reallocate.
               int s_chain_len = sites[s].chain_len;
-              std::vector<tagint> s_chain_H(s_chain_len),
-                  s_chain_X(s_chain_len), s_chain_Y(s_chain_len);
+              std::vector<tagint> s_chain_H(s_chain_len), s_chain_X(s_chain_len),
+                  s_chain_Y(s_chain_len);
               std::vector<int> s_chain_rxn(s_chain_len);
               std::vector<tagint> s_chain_glove(s_chain_len * GN);
               for (int d = 0; d < s_chain_len; d++) {
@@ -977,14 +913,12 @@ void FixMSEVB::detect_reactive_sites() {
                 s_chain_rxn[d] = chain_rxn_flat[s * max_shells + d];
                 if (GN > 0)
                   memcpy(&s_chain_glove[d * GN],
-                         chain_glove_flat + (s * max_shells + d) * glove_nmax,
-                         GN * sizeof(tagint));
+                         chain_glove_flat + (s * max_shells + d) * glove_nmax, GN * sizeof(tagint));
               }
 
               grow_sites(nsites + 1);
               ReactiveSite *ns_ptr = &sites[nsites];
-              tagint tX_new =
-                  (crxn.ix_bonding >= 0) ? new_glove[crxn.ix_bonding] : 0;
+              tagint tX_new = (crxn.ix_bonding >= 0) ? new_glove[crxn.ix_bonding] : 0;
               ns_ptr->tag_H = bp_tag;
               ns_ptr->tag_X = tX_new;
               ns_ptr->tag_Y = j_tag;
@@ -994,8 +928,7 @@ void FixMSEVB::detect_reactive_sites() {
               ns_ptr->shell = shell;
               ns_ptr->chain_len = s_chain_len + 1;
               ns_ptr->n_components = 0;
-              for (int c = 0; c < MAX_COMPONENTS; c++)
-                ns_ptr->components[c] = -1;
+              for (int c = 0; c < MAX_COMPONENTS; c++) ns_ptr->components[c] = -1;
 
               tagint *nH = chain_H_flat + nsites * max_shells;
               tagint *nX = chain_X_flat + nsites * max_shells;
@@ -1021,22 +954,18 @@ void FixMSEVB::detect_reactive_sites() {
               // Store glove for this shell-N site + chain_glove for all depths.
               if (GN > 0) {
                 tagint *gptr = glove_flat + nsites * GN;
-                for (int g = 0; g < GN; g++)
-                  gptr[g] = new_glove[g];
+                for (int g = 0; g < GN; g++) gptr[g] = new_glove[g];
                 // Copy parent chain glove entries for depths 0..chain_len-2
                 for (int d = 0; d < s_chain_len; d++)
-                  memcpy(chain_glove_flat +
-                             (nsites * max_shells + d) * glove_nmax,
+                  memcpy(chain_glove_flat + (nsites * max_shells + d) * glove_nmax,
                          &s_chain_glove[d * GN], GN * sizeof(tagint));
                 // Store new glove at depth chain_len-1 (= s_chain_len)
-                memcpy(chain_glove_flat +
-                           (nsites * max_shells + s_chain_len) * glove_nmax,
+                memcpy(chain_glove_flat + (nsites * max_shells + s_chain_len) * glove_nmax,
                        new_glove.data(), GN * sizeof(tagint));
                 // Zero remaining depths
                 for (int d = s_chain_len + 1; d < max_shells; d++)
-                  memset(chain_glove_flat +
-                             (nsites * max_shells + d) * glove_nmax,
-                         0, glove_nmax * sizeof(tagint));
+                  memset(chain_glove_flat + (nsites * max_shells + d) * glove_nmax, 0,
+                         glove_nmax * sizeof(tagint));
               }
 
               nsites++;
@@ -1070,91 +999,83 @@ void FixMSEVB::detect_reactive_sites() {
           const ReactiveSite &sv = sites[prev_nsites + k];
           int b = k * SFIELD;
           sendbuf[b + 0] = sv.dist_sq;
-          sendbuf[b + 1] = (double)sv.tag_H;
-          sendbuf[b + 2] = (double)sv.tag_X;
-          sendbuf[b + 3] = (double)sv.tag_Y;
-          sendbuf[b + 4] = (double)sv.parent_state;
-          sendbuf[b + 5] = (double)sv.shell;
-          sendbuf[b + 6] = (double)sv.chain_len;
-          sendbuf[b + 7] = (double)sv.rxn_idx;
+          sendbuf[b + 1] = (double) sv.tag_H;
+          sendbuf[b + 2] = (double) sv.tag_X;
+          sendbuf[b + 3] = (double) sv.tag_Y;
+          sendbuf[b + 4] = (double) sv.parent_state;
+          sendbuf[b + 5] = (double) sv.shell;
+          sendbuf[b + 6] = (double) sv.chain_len;
+          sendbuf[b + 7] = (double) sv.rxn_idx;
           const tagint *svH = chain_H_flat + (prev_nsites + k) * max_shells;
           const tagint *svX = chain_X_flat + (prev_nsites + k) * max_shells;
           const tagint *svY = chain_Y_flat + (prev_nsites + k) * max_shells;
           const int *svR = chain_rxn_flat + (prev_nsites + k) * max_shells;
           for (int d = 0; d < max_shells; d++) {
-            sendbuf[b + 8 + d] = (double)svH[d];
-            sendbuf[b + 8 + max_shells + d] = (double)svX[d];
-            sendbuf[b + 8 + 2 * max_shells + d] = (double)svY[d];
-            sendbuf[b + 8 + 3 * max_shells + d] = (double)svR[d];
+            sendbuf[b + 8 + d] = (double) svH[d];
+            sendbuf[b + 8 + max_shells + d] = (double) svX[d];
+            sendbuf[b + 8 + 2 * max_shells + d] = (double) svY[d];
+            sendbuf[b + 8 + 3 * max_shells + d] = (double) svR[d];
           }
           if (GN > 0) {
             const tagint *gv = glove_flat + (prev_nsites + k) * GN;
-            for (int g = 0; g < GN; g++)
-              sendbuf[b + 8 + 4 * max_shells + g] = (double)gv[g];
+            for (int g = 0; g < GN; g++) sendbuf[b + 8 + 4 * max_shells + g] = (double) gv[g];
           }
           if (GN > 0) {
             for (int d = 0; d < max_shells; d++) {
               const tagint *cg =
-                  chain_glove_flat +
-                  ((prev_nsites + k) * max_shells + d) * glove_nmax;
+                  chain_glove_flat + ((prev_nsites + k) * max_shells + d) * glove_nmax;
               for (int g = 0; g < GN; g++)
-                sendbuf[b + 8 + 4 * max_shells + GN + d * GN + g] =
-                    (double)cg[g];
+                sendbuf[b + 8 + 4 * max_shells + GN + d * GN + g] = (double) cg[g];
             }
           }
         }
 
         double *recvbuf = new double[MAX(total_new, 1) * SFIELD]();
-        MPI_Allgatherv(sendbuf, my_new * SFIELD, MPI_DOUBLE, recvbuf, scounts,
-                       rdispls, MPI_DOUBLE, world);
+        MPI_Allgatherv(sendbuf, my_new * SFIELD, MPI_DOUBLE, recvbuf, scounts, rdispls, MPI_DOUBLE,
+                       world);
 
         nsites = prev_nsites;
         for (int i = 0; i < total_new; i++) {
           int b = i * SFIELD;
-          tagint tY = (tagint)recvbuf[b + 3];
+          tagint tY = (tagint) recvbuf[b + 3];
           int dup = 0;
           for (int k = prev_nsites; k < nsites; k++)
             if (sites[k].tag_Y == tY) {
               dup = 1;
               break;
             }
-          if (dup)
-            continue;
+          if (dup) continue;
           grow_sites(nsites + 1);
           ReactiveSite &ns = sites[nsites];
           ns.dist_sq = recvbuf[b + 0];
-          ns.tag_H = (tagint)recvbuf[b + 1];
-          ns.tag_X = (tagint)recvbuf[b + 2];
+          ns.tag_H = (tagint) recvbuf[b + 1];
+          ns.tag_X = (tagint) recvbuf[b + 2];
           ns.tag_Y = tY;
-          ns.parent_state = (int)recvbuf[b + 4];
-          ns.shell = (int)recvbuf[b + 5];
-          ns.chain_len = (int)recvbuf[b + 6];
-          ns.rxn_idx = (int)recvbuf[b + 7];
+          ns.parent_state = (int) recvbuf[b + 4];
+          ns.shell = (int) recvbuf[b + 5];
+          ns.chain_len = (int) recvbuf[b + 6];
+          ns.rxn_idx = (int) recvbuf[b + 7];
           ns.n_components = 0;
-          for (int c = 0; c < MAX_COMPONENTS; c++)
-            ns.components[c] = -1;
+          for (int c = 0; c < MAX_COMPONENTS; c++) ns.components[c] = -1;
           tagint *nH = chain_H_flat + nsites * max_shells;
           tagint *nX = chain_X_flat + nsites * max_shells;
           tagint *nY = chain_Y_flat + nsites * max_shells;
           int *nR = chain_rxn_flat + nsites * max_shells;
           for (int d = 0; d < max_shells; d++) {
-            nH[d] = (tagint)recvbuf[b + 8 + d];
-            nX[d] = (tagint)recvbuf[b + 8 + max_shells + d];
-            nY[d] = (tagint)recvbuf[b + 8 + 2 * max_shells + d];
-            nR[d] = (int)recvbuf[b + 8 + 3 * max_shells + d];
+            nH[d] = (tagint) recvbuf[b + 8 + d];
+            nX[d] = (tagint) recvbuf[b + 8 + max_shells + d];
+            nY[d] = (tagint) recvbuf[b + 8 + 2 * max_shells + d];
+            nR[d] = (int) recvbuf[b + 8 + 3 * max_shells + d];
           }
           if (GN > 0) {
             tagint *gptr = glove_flat + nsites * GN;
-            for (int g = 0; g < GN; g++)
-              gptr[g] = (tagint)recvbuf[b + 8 + 4 * max_shells + g];
+            for (int g = 0; g < GN; g++) gptr[g] = (tagint) recvbuf[b + 8 + 4 * max_shells + g];
           }
           if (GN > 0) {
             for (int d = 0; d < max_shells; d++) {
-              tagint *cg =
-                  chain_glove_flat + (nsites * max_shells + d) * glove_nmax;
+              tagint *cg = chain_glove_flat + (nsites * max_shells + d) * glove_nmax;
               for (int g = 0; g < GN; g++)
-                cg[g] =
-                    (tagint)recvbuf[b + 8 + 4 * max_shells + GN + d * GN + g];
+                cg[g] = (tagint) recvbuf[b + 8 + 4 * max_shells + GN + d * GN + g];
             }
           }
           nsites++;
@@ -1177,8 +1098,7 @@ void FixMSEVB::detect_reactive_sites() {
     if (enumerate_product_states) {
       const int n_tip = nsites;
       for (int a = 0; a < n_tip; a++) {
-        if (sites[a].n_components != 0)
-          continue;
+        if (sites[a].n_components != 0) continue;
         const int clen_a = sites[a].chain_len;
         std::vector<tagint> tags_a;
         tags_a.reserve(clen_a * 3);
@@ -1191,8 +1111,7 @@ void FixMSEVB::detect_reactive_sites() {
           if (y) tags_a.push_back(y);
         }
         for (int b = a + 1; b < n_tip; b++) {
-          if (sites[b].n_components != 0)
-            continue;
+          if (sites[b].n_components != 0) continue;
           const int clen_b = sites[b].chain_len;
           std::vector<tagint> tags_b;
           tags_b.reserve(clen_b * 3);
@@ -1207,7 +1126,10 @@ void FixMSEVB::detect_reactive_sites() {
           bool overlap = false;
           for (tagint ta : tags_a) {
             for (tagint tb : tags_b) {
-              if (ta == tb) { overlap = true; break; }
+              if (ta == tb) {
+                overlap = true;
+                break;
+              }
             }
             if (overlap) break;
           }
@@ -1217,31 +1139,26 @@ void FixMSEVB::detect_reactive_sites() {
           tagint aX = chain_X_flat[a * max_shells + 0];
           tagint aY = chain_Y_flat[a * max_shells + 0];
           init_site(nsites, aH, aX, aY, 0.0);
-          chain_rxn_flat[nsites * max_shells + 0] =
-              chain_rxn_flat[a * max_shells + 0];
+          chain_rxn_flat[nsites * max_shells + 0] = chain_rxn_flat[a * max_shells + 0];
           ReactiveSite &ps = sites[nsites];
-          ps.rxn_idx    = sites[a].rxn_idx;
-          ps.shell      = sites[a].shell;
-          ps.chain_len  = sites[a].chain_len;
+          ps.rxn_idx = sites[a].rxn_idx;
+          ps.shell = sites[a].shell;
+          ps.chain_len = sites[a].chain_len;
           ps.n_components = 2;
           ps.components[0] = a;
           ps.components[1] = b;
-          for (int c = 2; c < MAX_COMPONENTS; c++)
-            ps.components[c] = -1;
+          for (int c = 2; c < MAX_COMPONENTS; c++) ps.components[c] = -1;
           if (GN > 0) {
-            memcpy(glove_flat + nsites * GN,
-                   glove_flat + a * GN,
-                   GN * sizeof(tagint));
+            memcpy(glove_flat + nsites * GN, glove_flat + a * GN, GN * sizeof(tagint));
             memcpy(chain_glove_flat + nsites * max_shells * glove_nmax,
-                   chain_glove_flat + a * max_shells * glove_nmax,
-                   glove_nmax * sizeof(tagint));
+                   chain_glove_flat + a * max_shells * glove_nmax, glove_nmax * sizeof(tagint));
           }
           nsites++;
         }
       }
     }
 
-  } // end ipartition == 0
+  }    // end ipartition == 0
 
 broadcast:
   MPI_Bcast(&nsites, 1, MPI_INT, 0, samerank);
@@ -1254,17 +1171,16 @@ broadcast:
 
   if (nsites_serial > 0 && universe->me == 0) {
     if (!partition_warning) {
-      auto msg = fmt::format(
-          "WARNING: Fix msevb detected {} reactive states but only {} "
-          "partitions are available; \nWARNING: {} excess state(s) will be "
-          "evaluated "
-          "in {} batched round(s). \nWARNING: This will only affect simulation "
-          "speed "
-          "and will not impact results. \nWARNING: This warning will not "
-          "appear again. "
-          "\n",
-          nstates, npartitions, nsites_serial,
-          (nsites_serial + npartitions - 1) / npartitions);
+      auto msg = fmt::format("WARNING: Fix msevb detected {} reactive states but only {} "
+                             "partitions are available; \nWARNING: {} excess state(s) will be "
+                             "evaluated "
+                             "in {} batched round(s). \nWARNING: This will only affect simulation "
+                             "speed "
+                             "and will not impact results. \nWARNING: This warning will not "
+                             "appear again. "
+                             "\n",
+                             nstates, npartitions, nsites_serial,
+                             (nsites_serial + npartitions - 1) / npartitions);
       utils::logmesg(lmp, msg);
       partition_warning = true;
     }
@@ -1287,7 +1203,7 @@ broadcast:
     int buf_needed = nsites * PER_SITE;
     tagint *tagbuf;
     bool used_tmp = false;
-    if ((int)(nmax * sizeof(double) / sizeof(tagint)) >= buf_needed) {
+    if ((int) (nmax * sizeof(double) / sizeof(tagint)) >= buf_needed) {
       tagbuf = reinterpret_cast<tagint *>(commbuf);
     } else {
       tagbuf = new tagint[buf_needed];
@@ -1308,26 +1224,20 @@ broadcast:
           tagbuf[base + 7 + d] = chain_H_flat[k * max_shells + d];
           tagbuf[base + 7 + MSD + d] = chain_X_flat[k * max_shells + d];
           tagbuf[base + 7 + 2 * MSD + d] = chain_Y_flat[k * max_shells + d];
-          tagbuf[base + 7 + 3 * MSD + d] =
-              static_cast<tagint>(chain_rxn_flat[k * max_shells + d]);
+          tagbuf[base + 7 + 3 * MSD + d] = static_cast<tagint>(chain_rxn_flat[k * max_shells + d]);
         }
         if (GN > 0) {
           const tagint *gptr = glove_flat + k * GN;
-          for (int g = 0; g < GN; g++)
-            tagbuf[base + 7 + 4 * MSD + g] = gptr[g];
+          for (int g = 0; g < GN; g++) tagbuf[base + 7 + 4 * MSD + g] = gptr[g];
           for (int d = 0; d < MSD; d++) {
-            const tagint *cg =
-                chain_glove_flat + (k * max_shells + d) * glove_nmax;
-            for (int g = 0; g < GN; g++)
-              tagbuf[base + 7 + 4 * MSD + GN + d * GN + g] = cg[g];
+            const tagint *cg = chain_glove_flat + (k * max_shells + d) * glove_nmax;
+            for (int g = 0; g < GN; g++) tagbuf[base + 7 + 4 * MSD + GN + d * GN + g] = cg[g];
           }
         }
-        tagbuf[base + 7 + 4 * MSD + GN + MSD * GN] =
-            static_cast<tagint>(sites[k].n_components);
+        tagbuf[base + 7 + 4 * MSD + GN + MSD * GN] = static_cast<tagint>(sites[k].n_components);
         for (int c = 0; c < MPC; c++)
           tagbuf[base + 7 + 4 * MSD + GN + MSD * GN + 1 + c] =
-              static_cast<tagint>(
-                  (c < sites[k].n_components) ? sites[k].components[c] : -1);
+              static_cast<tagint>((c < sites[k].n_components) ? sites[k].components[c] : -1);
       }
     }
 
@@ -1335,8 +1245,7 @@ broadcast:
     MPI_Bcast(tagbuf, buf_needed, MPI_LMP_TAGINT, 0, world);
 
     // On non-p0 partitions, ensure glove_flat is sized.
-    if (GN > 0)
-      grow_sites(MAX(nsites, 1));
+    if (GN > 0) grow_sites(MAX(nsites, 1));
 
     for (int k = 0; k < nsites; k++) {
       int base = k * PER_SITE;
@@ -1351,28 +1260,23 @@ broadcast:
         chain_H_flat[k * max_shells + d] = tagbuf[base + 7 + d];
         chain_X_flat[k * max_shells + d] = tagbuf[base + 7 + MSD + d];
         chain_Y_flat[k * max_shells + d] = tagbuf[base + 7 + 2 * MSD + d];
-        chain_rxn_flat[k * max_shells + d] =
-            static_cast<int>(tagbuf[base + 7 + 3 * MSD + d]);
+        chain_rxn_flat[k * max_shells + d] = static_cast<int>(tagbuf[base + 7 + 3 * MSD + d]);
       }
       if (GN > 0) {
         tagint *gptr = glove_flat + k * GN;
-        for (int g = 0; g < GN; g++)
-          gptr[g] = tagbuf[base + 7 + 4 * MSD + g];
+        for (int g = 0; g < GN; g++) gptr[g] = tagbuf[base + 7 + 4 * MSD + g];
         for (int d = 0; d < MSD; d++) {
           tagint *cg = chain_glove_flat + (k * max_shells + d) * glove_nmax;
-          for (int g = 0; g < GN; g++)
-            cg[g] = tagbuf[base + 7 + 4 * MSD + GN + d * GN + g];
+          for (int g = 0; g < GN; g++) cg[g] = tagbuf[base + 7 + 4 * MSD + GN + d * GN + g];
         }
       }
-      sites[k].n_components =
-          static_cast<int>(tagbuf[base + 7 + 4 * MSD + GN + MSD * GN]);
+      sites[k].n_components = static_cast<int>(tagbuf[base + 7 + 4 * MSD + GN + MSD * GN]);
       for (int c = 0; c < MPC; c++)
-        sites[k].components[c] = static_cast<int>(
-            tagbuf[base + 7 + 4 * MSD + GN + MSD * GN + 1 + c]);
+        sites[k].components[c] =
+            static_cast<int>(tagbuf[base + 7 + 4 * MSD + GN + MSD * GN + 1 + c]);
     }
 
-    if (used_tmp)
-      delete[] tagbuf;
+    if (used_tmp) delete[] tagbuf;
   }
 
   // Resolve global tags to local indices on this rank (-1 if not owned here).
@@ -1388,14 +1292,12 @@ broadcast:
    then rebuild special bonds via Special::build().
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::apply_per_partition_state_changes() {
-  if (!reaction_enabled || nsites == 0)
-    return;
+void FixMSEVB::apply_per_partition_state_changes()
+{
+  if (!reaction_enabled || nsites == 0) return;
 
-  int istate =
-      (ipartition > 0 && ipartition <= nsites_parallel) ? ipartition : 0;
-  if (istate == 0)
-    return;
+  int istate = (ipartition > 0 && ipartition <= nsites_parallel) ? ipartition : 0;
+  if (istate == 0) return;
 
   int sk = istate - 1;
 
@@ -1407,8 +1309,7 @@ void FixMSEVB::apply_per_partition_state_changes() {
   // Charges changed — kspace (PPPM) caches qsqsum for its self-energy
   // correction and only updates it when atom count changes.  Force a
   // recalculation so the kspace energy reflects the new charges.
-  if (force->kspace)
-    force->kspace->qsum_qsq(0);
+  if (force->kspace) force->kspace->qsum_qsq(0);
   modified_topology_on_host();
 }
 
@@ -1421,7 +1322,8 @@ void FixMSEVB::apply_per_partition_state_changes() {
    consecutive depths.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::apply_site_changes(int sk) {
+void FixMSEVB::apply_site_changes(int sk)
+{
   if (sites[sk].n_components > 0) {
     for (int ci = 0; ci < sites[sk].n_components; ci++) {
       int comp = sites[sk].components[ci];
@@ -1432,13 +1334,10 @@ void FixMSEVB::apply_site_changes(int sk) {
         tagint tX = chain_X_flat[comp * max_shells + d];
         tagint tH = chain_H_flat[comp * max_shells + d];
         tagint tY = chain_Y_flat[comp * max_shells + d];
-        apply_state_change(glove_c, atom->map(tX), atom->map(tH),
-                           atom->map(tY), tX, tH, tY, rxn_c);
-        if (d < comp_len - 1)
-          comm->forward_comm(this);
+        apply_state_change(glove_c, atom->map(tX), atom->map(tH), atom->map(tY), tX, tH, tY, rxn_c);
+        if (d < comp_len - 1) comm->forward_comm(this);
       }
-      if (ci < sites[sk].n_components - 1)
-        comm->forward_comm(this);
+      if (ci < sites[sk].n_components - 1) comm->forward_comm(this);
     }
   } else {
     const int chain_len = sites[sk].chain_len;
@@ -1448,10 +1347,8 @@ void FixMSEVB::apply_site_changes(int sk) {
       tagint tX = chain_X_flat[sk * max_shells + d];
       tagint tH = chain_H_flat[sk * max_shells + d];
       tagint tY = chain_Y_flat[sk * max_shells + d];
-      apply_state_change(glove_d, atom->map(tX), atom->map(tH),
-                         atom->map(tY), tX, tH, tY, rxn_d);
-      if (d < chain_len - 1)
-        comm->forward_comm(this);
+      apply_state_change(glove_d, atom->map(tX), atom->map(tH), atom->map(tY), tX, tH, tY, rxn_d);
+      if (d < chain_len - 1) comm->forward_comm(this);
     }
   }
 }
@@ -1467,9 +1364,9 @@ void FixMSEVB::apply_site_changes(int sk) {
      5. Update molecule ID for H (transferred atom).
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H,
-                                  int idx_Y, tagint tag_X, tagint tag_H,
-                                  tagint tag_Y, const ReactionDef &rxn) {
+void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H, int idx_Y,
+                                  tagint tag_X, tagint tag_H, tagint tag_Y, const ReactionDef &rxn)
+{
   int *type = atom->type;
   double *q = atom->q;
   tagint *molecule = atom->molecule;
@@ -1478,15 +1375,13 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H,
   tagint **bond_atom_arr = atom->bond_atom;
   const int nlocal = atom->nlocal;
 
-  if (!glove)
-    return;
+  if (!glove) return;
 
   const int GN = rxn.glove_n;
 
   // Helper: remove a bond stored on atom idx pointing to partner_tag.
   auto remove_bond_on = [&](int idx, tagint partner_tag) {
-    if (idx < 0 || idx >= nlocal)
-      return;
+    if (idx < 0 || idx >= nlocal) return;
     for (int k = 0; k < num_bond_arr[idx]; k++) {
       if (bond_atom_arr[idx][k] == partner_tag) {
         int last = num_bond_arr[idx] - 1;
@@ -1502,33 +1397,26 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H,
 
   // Step 1: Apply type/charge changes.
   for (const auto &tc : rxn.type_changes) {
-    if (tc.pre_idx < 0 || tc.pre_idx >= GN)
-      continue;
+    if (tc.pre_idx < 0 || tc.pre_idx >= GN) continue;
     tagint r = glove[tc.pre_idx];
-    if (r == 0)
-      continue;
+    if (r == 0) continue;
     int local_r = atom->map(r);
-    if (local_r < 0 || local_r >= nlocal)
-      continue;
+    if (local_r < 0 || local_r >= nlocal) continue;
     type[local_r] = tc.new_type;
     // Set charge from the post-template; look it up from post_mol if available.
     if (rxn.post_mol && rxn.pre_to_post[tc.pre_idx] >= 0) {
       int post_i = rxn.pre_to_post[tc.pre_idx];
-      if (rxn.post_mol->qflag)
-        q[local_r] = rxn.post_mol->q[post_i];
+      if (rxn.post_mol->qflag) q[local_r] = rxn.post_mol->q[post_i];
     }
   }
 
   // Step 2: Bond breaks.
   for (const auto &bb : rxn.bond_breaks) {
-    if (bb.pre_idx1 < 0 || bb.pre_idx1 >= GN)
-      continue;
-    if (bb.pre_idx2 < 0 || bb.pre_idx2 >= GN)
-      continue;
+    if (bb.pre_idx1 < 0 || bb.pre_idx1 >= GN) continue;
+    if (bb.pre_idx2 < 0 || bb.pre_idx2 >= GN) continue;
     tagint r1 = glove[bb.pre_idx1];
     tagint r2 = glove[bb.pre_idx2];
-    if (r1 == 0 || r2 == 0)
-      continue;
+    if (r1 == 0 || r2 == 0) continue;
     int local_r1 = atom->map(r1);
     int local_r2 = atom->map(r2);
     remove_bond_on(local_r1, r2);
@@ -1542,21 +1430,18 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H,
   // partition (without this rule each rank would independently add the bond
   // to its local endpoint, giving a double-counted bond energy).
   for (const auto &bc : rxn.bond_creates) {
-    if (bc.pre_idx1 < 0 || bc.pre_idx1 >= GN)
-      continue;
-    if (bc.pre_idx2 < 0 || bc.pre_idx2 >= GN)
-      continue;
+    if (bc.pre_idx1 < 0 || bc.pre_idx1 >= GN) continue;
+    if (bc.pre_idx2 < 0 || bc.pre_idx2 >= GN) continue;
     tagint r1 = glove[bc.pre_idx1];
     tagint r2 = glove[bc.pre_idx2];
-    if (r1 == 0 || r2 == 0)
-      continue;
+    if (r1 == 0 || r2 == 0) continue;
 
     // Determine the canonical "owner": atom with the lower global tag.
     tagint owner_tag = (r1 < r2) ? r1 : r2;
     tagint partner_tag = (r1 < r2) ? r2 : r1;
     int local_owner = atom->map(owner_tag);
     if (local_owner < 0 || local_owner >= nlocal)
-      continue; // owner is on another rank; that rank will store the bond
+      continue;    // owner is on another rank; that rank will store the bond
 
     bond_atom_arr[local_owner][num_bond_arr[local_owner]] = partner_tag;
     bond_type_arr[local_owner][num_bond_arr[local_owner]] = bc.bond_type;
@@ -1567,21 +1452,17 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H,
   // but change type (e.g., O-H bonds changing from H3O+ type to H2O type).
   // Scan bond lists of both endpoints; update whichever side stores the bond.
   for (const auto &br : rxn.bond_retypes) {
-    if (br.pre_idx1 < 0 || br.pre_idx1 >= GN)
-      continue;
-    if (br.pre_idx2 < 0 || br.pre_idx2 >= GN)
-      continue;
+    if (br.pre_idx1 < 0 || br.pre_idx1 >= GN) continue;
+    if (br.pre_idx2 < 0 || br.pre_idx2 >= GN) continue;
     tagint r1 = glove[br.pre_idx1];
     tagint r2 = glove[br.pre_idx2];
-    if (r1 == 0 || r2 == 0)
-      continue;
+    if (r1 == 0 || r2 == 0) continue;
     // Update on whichever local atom stores the bond.
     for (int side = 0; side < 2; side++) {
       tagint owner_tag = (side == 0) ? r1 : r2;
       tagint partner_tag = (side == 0) ? r2 : r1;
       int local_owner = atom->map(owner_tag);
-      if (local_owner < 0 || local_owner >= nlocal)
-        continue;
+      if (local_owner < 0 || local_owner >= nlocal) continue;
       for (int k = 0; k < num_bond_arr[local_owner]; k++) {
         if (bond_atom_arr[local_owner][k] == partner_tag) {
           bond_type_arr[local_owner][k] = br.new_bond_type;
@@ -1609,8 +1490,7 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H,
   std::vector<int> post_to_pre(natoms_post, -1);
   if (rxn.post_mol) {
     for (int i = 0; i < GN; i++)
-      if (rxn.pre_to_post[i] >= 0)
-        post_to_pre[rxn.pre_to_post[i]] = i;
+      if (rxn.pre_to_post[i] >= 0) post_to_pre[rxn.pre_to_post[i]] = i;
   }
 
   if (atom->nangles > 0 && rxn.post_mol && rxn.post_mol->nangles > 0) {
@@ -1622,14 +1502,11 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H,
 
     // a. Zero angle counts for non-edge local glove atoms.
     for (int pi = 0; pi < GN; pi++) {
-      if (rxn.is_edge[pi])
-        continue;
+      if (rxn.is_edge[pi]) continue;
       tagint r = glove[pi];
-      if (r == 0)
-        continue;
+      if (r == 0) continue;
       int local_r = atom->map(r);
-      if (local_r >= 0 && local_r < nlocal)
-        num_angle_arr[local_r] = 0;
+      if (local_r >= 0 && local_r < nlocal) num_angle_arr[local_r] = 0;
     }
 
     // b. Add angles from post_mol, storing on the central atom (atom2).
@@ -1638,28 +1515,22 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H,
     // to visit each unique angle exactly once.
     for (int m = 0; m < natoms_post; m++) {
       int pre_m = post_to_pre[m];
-      if (pre_m < 0)
-        continue; // no pre-atom maps here
+      if (pre_m < 0) continue;    // no pre-atom maps here
       for (int k = 0; k < rxn.post_mol->num_angle[m]; k++) {
-        int pa1 = rxn.post_mol->angle_atom1[m][k] - 1; // 0-based post indices
-        int pa2 = rxn.post_mol->angle_atom2[m][k] - 1; // central atom
+        int pa1 = rxn.post_mol->angle_atom1[m][k] - 1;    // 0-based post indices
+        int pa2 = rxn.post_mol->angle_atom2[m][k] - 1;    // central atom
         int pa3 = rxn.post_mol->angle_atom3[m][k] - 1;
-        if (pa2 != m)
-          continue; // only process when m is the central atom
+        if (pa2 != m) continue;    // only process when m is the central atom
         int pre1 = (pa1 >= 0 && pa1 < natoms_post) ? post_to_pre[pa1] : -1;
-        int pre2 = pre_m; // pa2 == m
+        int pre2 = pre_m;    // pa2 == m
         int pre3 = (pa3 >= 0 && pa3 < natoms_post) ? post_to_pre[pa3] : -1;
-        if (pre1 < 0 || pre3 < 0)
-          continue;
+        if (pre1 < 0 || pre3 < 0) continue;
         tagint r1 = glove[pre1], r2 = glove[pre2], r3 = glove[pre3];
-        if (r1 == 0 || r2 == 0 || r3 == 0)
-          continue;
+        if (r1 == 0 || r2 == 0 || r3 == 0) continue;
         int local_r2 = atom->map(r2);
-        if (local_r2 < 0 || local_r2 >= nlocal)
-          continue;
+        if (local_r2 < 0 || local_r2 >= nlocal) continue;
         int na = num_angle_arr[local_r2];
-        if (na >= atom->angle_per_atom)
-          continue; // safety: don't overflow
+        if (na >= atom->angle_per_atom) continue;    // safety: don't overflow
         angle_type_arr[local_r2][na] = rxn.post_mol->angle_type[m][k];
         angle_atom1_arr[local_r2][na] = r1;
         angle_atom2_arr[local_r2][na] = r2;
@@ -1683,44 +1554,35 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H,
 
     // a. Zero dihedral counts for non-edge local glove atoms.
     for (int pi = 0; pi < GN; pi++) {
-      if (rxn.is_edge[pi])
-        continue;
+      if (rxn.is_edge[pi]) continue;
       tagint r = glove[pi];
-      if (r == 0)
-        continue;
+      if (r == 0) continue;
       int local_r = atom->map(r);
-      if (local_r >= 0 && local_r < nlocal)
-        num_dihedral_arr[local_r] = 0;
+      if (local_r >= 0 && local_r < nlocal) num_dihedral_arr[local_r] = 0;
     }
 
     // b. Add dihedrals from post_mol, storing on atom2 (LAMMPS convention).
     for (int m = 0; m < natoms_post; m++) {
       int pre_m = post_to_pre[m];
-      if (pre_m < 0)
-        continue;
+      if (pre_m < 0) continue;
       for (int k = 0; k < rxn.post_mol->num_dihedral[m]; k++) {
         int pa1 = rxn.post_mol->dihedral_atom1[m][k] - 1;
         int pa2 = rxn.post_mol->dihedral_atom2[m][k] - 1;
         int pa3 = rxn.post_mol->dihedral_atom3[m][k] - 1;
         int pa4 = rxn.post_mol->dihedral_atom4[m][k] - 1;
-        if (pa2 != m)
-          continue; // only process when m is the storage atom
+        if (pa2 != m) continue;    // only process when m is the storage atom
         int pre1 = (pa1 >= 0 && pa1 < natoms_post) ? post_to_pre[pa1] : -1;
         int pre2 = pre_m;
         int pre3 = (pa3 >= 0 && pa3 < natoms_post) ? post_to_pre[pa3] : -1;
         int pre4 = (pa4 >= 0 && pa4 < natoms_post) ? post_to_pre[pa4] : -1;
-        if (pre1 < 0 || pre3 < 0 || pre4 < 0)
-          continue;
+        if (pre1 < 0 || pre3 < 0 || pre4 < 0) continue;
         tagint r1 = glove[pre1], r2 = glove[pre2];
         tagint r3 = glove[pre3], r4 = glove[pre4];
-        if (r1 == 0 || r2 == 0 || r3 == 0 || r4 == 0)
-          continue;
+        if (r1 == 0 || r2 == 0 || r3 == 0 || r4 == 0) continue;
         int local_r2 = atom->map(r2);
-        if (local_r2 < 0 || local_r2 >= nlocal)
-          continue;
+        if (local_r2 < 0 || local_r2 >= nlocal) continue;
         int nd = num_dihedral_arr[local_r2];
-        if (nd >= atom->dihedral_per_atom)
-          continue;
+        if (nd >= atom->dihedral_per_atom) continue;
         dihedral_type_arr[local_r2][nd] = rxn.post_mol->dihedral_type[m][k];
         dihedral_atom1_arr[local_r2][nd] = r1;
         dihedral_atom2_arr[local_r2][nd] = r2;
@@ -1743,44 +1605,35 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H,
 
     // a. Zero improper counts for non-edge local glove atoms.
     for (int pi = 0; pi < GN; pi++) {
-      if (rxn.is_edge[pi])
-        continue;
+      if (rxn.is_edge[pi]) continue;
       tagint r = glove[pi];
-      if (r == 0)
-        continue;
+      if (r == 0) continue;
       int local_r = atom->map(r);
-      if (local_r >= 0 && local_r < nlocal)
-        num_improper_arr[local_r] = 0;
+      if (local_r >= 0 && local_r < nlocal) num_improper_arr[local_r] = 0;
     }
 
     // b. Add impropers from post_mol, storing on atom2.
     for (int m = 0; m < natoms_post; m++) {
       int pre_m = post_to_pre[m];
-      if (pre_m < 0)
-        continue;
+      if (pre_m < 0) continue;
       for (int k = 0; k < rxn.post_mol->num_improper[m]; k++) {
         int pa1 = rxn.post_mol->improper_atom1[m][k] - 1;
         int pa2 = rxn.post_mol->improper_atom2[m][k] - 1;
         int pa3 = rxn.post_mol->improper_atom3[m][k] - 1;
         int pa4 = rxn.post_mol->improper_atom4[m][k] - 1;
-        if (pa2 != m)
-          continue;
+        if (pa2 != m) continue;
         int pre1 = (pa1 >= 0 && pa1 < natoms_post) ? post_to_pre[pa1] : -1;
         int pre2 = pre_m;
         int pre3 = (pa3 >= 0 && pa3 < natoms_post) ? post_to_pre[pa3] : -1;
         int pre4 = (pa4 >= 0 && pa4 < natoms_post) ? post_to_pre[pa4] : -1;
-        if (pre1 < 0 || pre3 < 0 || pre4 < 0)
-          continue;
+        if (pre1 < 0 || pre3 < 0 || pre4 < 0) continue;
         tagint r1 = glove[pre1], r2 = glove[pre2];
         tagint r3 = glove[pre3], r4 = glove[pre4];
-        if (r1 == 0 || r2 == 0 || r3 == 0 || r4 == 0)
-          continue;
+        if (r1 == 0 || r2 == 0 || r3 == 0 || r4 == 0) continue;
         int local_r2 = atom->map(r2);
-        if (local_r2 < 0 || local_r2 >= nlocal)
-          continue;
+        if (local_r2 < 0 || local_r2 >= nlocal) continue;
         int ni = num_improper_arr[local_r2];
-        if (ni >= atom->improper_per_atom)
-          continue;
+        if (ni >= atom->improper_per_atom) continue;
         improper_type_arr[local_r2][ni] = rxn.post_mol->improper_type[m][k];
         improper_atom1_arr[local_r2][ni] = r1;
         improper_atom2_arr[local_r2][ni] = r2;
@@ -1793,12 +1646,10 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H,
 
   // Step 5: Update molecule ID for the transferred H atom.
   // H (ibonding) moves from X's molecule to Y's molecule.
-  tagint tag_H_used =
-      (tag_H != 0) ? tag_H
-                   : ((glove_nmax > rxn.ibonding) ? glove[rxn.ibonding] : 0);
-  tagint tag_Y_used =
-      (tag_Y != 0) ? tag_Y
-                   : ((glove_nmax > rxn.jbonding) ? glove[rxn.jbonding] : 0);
+  tagint tag_H_used = (tag_H != 0) ? tag_H
+                                   : ((glove_nmax > rxn.ibonding) ? glove[rxn.ibonding] : 0);
+  tagint tag_Y_used = (tag_Y != 0) ? tag_Y
+                                   : ((glove_nmax > rxn.jbonding) ? glove[rxn.jbonding] : 0);
   if (tag_H_used != 0) {
     int local_H = atom->map(tag_H_used);
     if (local_H >= 0 && local_H < nlocal) {
@@ -1807,11 +1658,9 @@ void FixMSEVB::apply_state_change(const tagint *glove, int idx_X, int idx_H,
         mol_Y = ref_molecule[tag_Y_used];
       else {
         int local_Y = atom->map(tag_Y_used);
-        if (local_Y >= 0)
-          mol_Y = molecule[local_Y];
+        if (local_Y >= 0) mol_Y = molecule[local_Y];
       }
-      if (mol_Y > 0)
-        molecule[local_H] = mol_Y;
+      if (mol_Y > 0) molecule[local_H] = mol_Y;
     }
   }
 }

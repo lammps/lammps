@@ -35,7 +35,8 @@ using namespace LAMMPS_NS;
    Requires snapshot_reference_topology() to have been called first.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::broadcast_reference_topology() {
+void FixMSEVB::broadcast_reference_topology()
+{
   const tagint sz = ref_maxtag + 1;
   MPI_Bcast(ref_type, sz, MPI_INT, 0, samerank);
   MPI_Bcast(ref_charge, sz, MPI_DOUBLE, 0, samerank);
@@ -68,18 +69,17 @@ void FixMSEVB::broadcast_reference_topology() {
    Gather potential energy from each partition via MPI_Allreduce.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::gather_potential_energies() {
+void FixMSEVB::gather_potential_energies()
+{
   const int np = npartitions;
   const double scalefac = 1.0 / comm->nprocs;
 
-  for (int i = 0; i < np; i++)
-    my_epot[i] = 0.0;
+  for (int i = 0; i < np; i++) my_epot[i] = 0.0;
   my_epot[ipartition] = scalefac * pe->compute_scalar();
 
   // Start non-blocking allreduce — completion waited in post_force()
   // after gather_forces() overlaps with the MPI progress.
-  MPI_Iallreduce(my_epot, epot, npartitions, MPI_DOUBLE, MPI_SUM,
-                 universe->uworld, &epot_request);
+  MPI_Iallreduce(my_epot, epot, npartitions, MPI_DOUBLE, MPI_SUM, universe->uworld, &epot_request);
 
   pe->addstep(update->ntimestep + 1);
 }
@@ -90,10 +90,11 @@ void FixMSEVB::gather_potential_energies() {
    Matches Python MuStaRD behavior — stateless, no threshold or cooldown.
 ---------------------------------------------------------------------- */
 
-bool FixMSEVB::do_permanent_transfer(int &out_max_state, double &out_max_amp) {
+bool FixMSEVB::do_permanent_transfer(int &out_max_state, double &out_max_amp)
+{
   if (!reaction_enabled || nsites == 0) {
     out_max_state = 0;
-    out_max_amp   = (amplitudes ? amplitudes[0] : 0.0);
+    out_max_amp = (amplitudes ? amplitudes[0] : 0.0);
     return false;
   }
 
@@ -109,7 +110,7 @@ bool FixMSEVB::do_permanent_transfer(int &out_max_state, double &out_max_amp) {
 
   if (max_state == 0) {
     out_max_state = 0;
-    out_max_amp   = max_amp;
+    out_max_amp = max_amp;
     return false;
   }
   int sk = max_state - 1;
@@ -122,49 +123,41 @@ bool FixMSEVB::do_permanent_transfer(int &out_max_state, double &out_max_amp) {
         int comp = sites[sk].components[ci];
         const int comp_len = sites[comp].chain_len;
         for (int d = 0; d < comp_len; d++) {
-          const ReactionDef &rxn_c =
-              rxndefs[chain_rxn_flat[comp * max_shells + d]];
-          const tagint *glove_c =
-              chain_glove_flat + (comp * max_shells + d) * glove_nmax;
+          const ReactionDef &rxn_c = rxndefs[chain_rxn_flat[comp * max_shells + d]];
+          const tagint *glove_c = chain_glove_flat + (comp * max_shells + d) * glove_nmax;
           tagint tX = chain_X_flat[comp * max_shells + d];
           tagint tH = chain_H_flat[comp * max_shells + d];
           tagint tY = chain_Y_flat[comp * max_shells + d];
-          apply_state_change(glove_c, atom->map(tX), atom->map(tH),
-                             atom->map(tY), tX, tH, tY, rxn_c);
-          if (d < comp_len - 1)
-            comm->forward_comm(this);
+          apply_state_change(glove_c, atom->map(tX), atom->map(tH), atom->map(tY), tX, tH, tY,
+                             rxn_c);
+          if (d < comp_len - 1) comm->forward_comm(this);
         }
-        if (ci < sites[sk].n_components - 1)
-          comm->forward_comm(this);
+        if (ci < sites[sk].n_components - 1) comm->forward_comm(this);
       }
     } else {
       const int chain_len = sites[sk].chain_len;
 
       for (int d = 0; d < chain_len; d++) {
-        const ReactionDef &rxn_d =
-            rxndefs[chain_rxn_flat[sk * max_shells + d]];
-        const tagint *glove_d =
-            chain_glove_flat + (sk * max_shells + d) * glove_nmax;
+        const ReactionDef &rxn_d = rxndefs[chain_rxn_flat[sk * max_shells + d]];
+        const tagint *glove_d = chain_glove_flat + (sk * max_shells + d) * glove_nmax;
         tagint tX = chain_X_flat[sk * max_shells + d];
         tagint tH = chain_H_flat[sk * max_shells + d];
         tagint tY = chain_Y_flat[sk * max_shells + d];
-        apply_state_change(glove_d, atom->map(tX), atom->map(tH),
-                           atom->map(tY), tX, tH, tY, rxn_d);
+        apply_state_change(glove_d, atom->map(tX), atom->map(tH), atom->map(tY), tX, tH, tY, rxn_d);
       }
     }
   }
 
   out_max_state = max_state;
-  out_max_amp   = max_amp;
+  out_max_amp = max_amp;
 
   if (universe->me == 0) {
     const ReactionDef &rxn = rxndefs[sites[sk].rxn_idx];
     auto msg = fmt::format("MSEVB: reaction {} -> {} at step {}"
                            " between atom IDs {} and {},"
                            " amplitude {:.4f}\n",
-                           rxn.pre_mol_id, rxn.post_mol_id,
-                           update->ntimestep,
-                           sites[sk].tag_H, sites[sk].tag_Y, max_amp);
+                           rxn.pre_mol_id, rxn.post_mol_id, update->ntimestep, sites[sk].tag_H,
+                           sites[sk].tag_Y, max_amp);
     utils::logmesg(lmp, msg);
   }
 
@@ -191,13 +184,11 @@ bool FixMSEVB::do_permanent_transfer(int &out_max_state, double &out_max_amp) {
     // neighbor->build() bakes stale pre-transfer specials into the GPU
     // neighbor list.  (CPU no-op; critical for msevb/kk.)
     modified_topology_on_host();
-    if (domain->triclinic)
-      domain->x2lamda(atom->nlocal);
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     comm->borders();
-    if (domain->triclinic)
-      domain->lamda2x(atom->nlocal + atom->nghost);
+    if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
     sync_before_neighbor_build();
     neighbor->build(1);
   }
@@ -208,7 +199,6 @@ bool FixMSEVB::do_permanent_transfer(int &out_max_state, double &out_max_amp) {
   // Sync velocities from partition 0 to other partitions.
   // samerank connects same-rank procs across partitions (which have
   // the same nlocal and atom ordering), so this is safe.
-  if (atom->nlocal > 0)
-    MPI_Bcast(&atom->v[0][0], 3 * atom->nlocal, MPI_DOUBLE, 0, samerank);
+  if (atom->nlocal > 0) MPI_Bcast(&atom->v[0][0], 3 * atom->nlocal, MPI_DOUBLE, 0, samerank);
   return true;
 }

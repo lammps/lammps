@@ -9,8 +9,8 @@
 #include "molecule.h"
 
 #include <cstring>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -35,12 +35,10 @@ using namespace LAMMPS_NS;
    partitions where some template atoms are owned by other ranks.
 ---------------------------------------------------------------------- */
 
-bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol,
-                                   const int *is_edge, int ibonding,
-                                   int jbonding, tagint tag_H, tagint tag_Y,
-                                   tagint *glove,
-                                   const VirtualTopo *vtopo,
-                                   const RefTopo     *ref) {
+bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol, const int *is_edge, int ibonding,
+                                  int jbonding, tagint tag_H, tagint tag_Y, tagint *glove,
+                                  const VirtualTopo *vtopo, const RefTopo *ref)
+{
   const int natoms = mol->natoms;
   memset(glove, 0, natoms * sizeof(tagint));
   glove[ibonding] = tag_H;
@@ -59,18 +57,19 @@ bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol,
   // --- Helpers -----------------------------------------------------------
 
   // Number of 1-2 template neighbors of template atom i (0-based).
-  auto tmpl_nn = [&](int i) { return mol->nspecial[i][0]; };
+  auto tmpl_nn = [&](int i) {
+    return mol->nspecial[i][0];
+  };
   // j-th 1-2 template neighbor of template atom i, as 0-based index.
   auto tmpl_neigh = [&](int i, int j) {
-    return (int)(mol->special[i][j] - 1); // convert from 1-based
+    return (int) (mol->special[i][j] - 1);    // convert from 1-based
   };
 
   // Check whether template atom ti has any unassigned non-edge neighbor.
   auto has_unassigned_neigh = [&](int ti) -> bool {
     for (int j = 0; j < tmpl_nn(ti); j++) {
       int k = tmpl_neigh(ti, j);
-      if (!is_edge[k] && glove[k] == 0)
-        return true;
+      if (!is_edge[k] && glove[k] == 0) return true;
     }
     return false;
   };
@@ -80,15 +79,12 @@ bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol,
   auto real_type = [&](tagint r) -> int {
     if (vtopo) {
       auto it = vtopo->type_override.find(r);
-      if (it != vtopo->type_override.end())
-        return it->second;
+      if (it != vtopo->type_override.end()) return it->second;
     }
     int local_r = atom->map(r);
-    if (local_r >= 0 && local_r < nlocal)
-      return atype[local_r];
+    if (local_r >= 0 && local_r < nlocal) return atype[local_r];
     // Fall back to ref snapshot for ghost/off-rank atoms.
-    if (ref && r >= 0 && r <= ref->maxtag)
-      return ref->type[r];
+    if (ref && r >= 0 && r <= ref->maxtag) return ref->type[r];
     return 0;
   };
 
@@ -99,24 +95,21 @@ bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol,
     // vtopo override takes priority.
     if (vtopo) {
       auto vit = vtopo->bond_override.find(r);
-      if (vit != vtopo->bond_override.end())
-        return vit->second;
+      if (vit != vtopo->bond_override.end()) return vit->second;
     }
     // Local atom: use LAMMPS special list.
     int local_r = atom->map(r);
     if (local_r >= 0 && local_r < nlocal) {
       int ns = nspecial[local_r][0];
       std::vector<tagint> tags(ns);
-      for (int s = 0; s < ns; s++)
-        tags[s] = special[local_r][s];
+      for (int s = 0; s < ns; s++) tags[s] = special[local_r][s];
       return tags;
     }
     // Ghost / off-rank: use reference special list (symmetric 1-2 neighbors).
     if (ref && r >= 0 && r <= ref->maxtag) {
-      int nb = ref->nspecial_flat[r * 3 + 0]; // count of 1-2 bonded neighbors
+      int nb = ref->nspecial_flat[r * 3 + 0];    // count of 1-2 bonded neighbors
       std::vector<tagint> tags(nb);
-      for (int b = 0; b < nb; b++)
-        tags[b] = ref->special_flat[(tagint)r * ref->maxspecial + b];
+      for (int b = 0; b < nb; b++) tags[b] = ref->special_flat[(tagint) r * ref->maxspecial + b];
       return tags;
     }
     return {};
@@ -127,13 +120,11 @@ bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol,
   // the bond-partner list of r.
   auto compatible = [&](int tneigh, tagint r) -> bool {
     std::vector<tagint> nbrs = get_bond_tags(r);
-    if (nbrs.empty())
-      return false; // can't verify; fail safely
+    if (nbrs.empty()) return false;    // can't verify; fail safely
 
     for (int j = 0; j < tmpl_nn(tneigh); j++) {
       int k = tmpl_neigh(tneigh, j);
-      if (glove[k] == 0)
-        continue; // not yet assigned; skip
+      if (glove[k] == 0) continue;    // not yet assigned; skip
       bool found = false;
       for (tagint nb_tag : nbrs) {
         if (nb_tag == glove[k]) {
@@ -141,8 +132,7 @@ bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol,
           break;
         }
       }
-      if (!found)
-        return false;
+      if (!found) return false;
     }
     return true;
   };
@@ -153,10 +143,8 @@ bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol,
   std::vector<int> queue;
   queue.reserve(natoms);
 
-  if (has_unassigned_neigh(ibonding))
-    queue.push_back(ibonding);
-  if (has_unassigned_neigh(jbonding))
-    queue.push_back(jbonding);
+  if (has_unassigned_neigh(ibonding)) queue.push_back(ibonding);
+  if (has_unassigned_neigh(jbonding)) queue.push_back(jbonding);
 
   // Process pioneers.
   for (size_t qi = 0; qi < queue.size(); qi++) {
@@ -165,16 +153,13 @@ bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol,
 
     // Get bond-partner tags for this pioneer's real atom.
     std::vector<tagint> pion_nbrs = get_bond_tags(pion_tag);
-    if (pion_nbrs.empty())
-      return false; // no connectivity data available for this pioneer
+    if (pion_nbrs.empty()) return false;    // no connectivity data available for this pioneer
 
     // For each unassigned non-edge template neighbor of this pioneer:
     for (int j = 0; j < tmpl_nn(pion); j++) {
       const int tneigh = tmpl_neigh(pion, j);
-      if (is_edge[tneigh])
-        continue;
-      if (glove[tneigh] != 0)
-        continue; // already assigned
+      if (is_edge[tneigh]) continue;
+      if (glove[tneigh] != 0) continue;    // already assigned
 
       const int ttype = mol->type[tneigh];
 
@@ -187,19 +172,15 @@ bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol,
 
       for (tagint r : pion_nbrs) {
         int rt = real_type(r);
-        if (rt != ttype)
-          continue;
-        if (assigned.count(r))
-          continue;
-        if (!compatible(tneigh, r))
-          continue;
+        if (rt != ttype) continue;
+        if (assigned.count(r)) continue;
+        if (!compatible(tneigh, r)) continue;
 
         candidate = r;
-        break; // take first valid symmetric candidate
+        break;    // take first valid symmetric candidate
       }
 
-      if (candidate == 0)
-        return false; // no match found
+      if (candidate == 0) return false;    // no match found
 
       glove[tneigh] = candidate;
       assigned.insert(candidate);
@@ -213,16 +194,14 @@ bool LAMMPS_NS::msevb_superimpose(LAMMPS *lmp, Molecule *mol,
             break;
           }
         }
-        if (!already_queued)
-          queue.push_back(tneigh);
+        if (!already_queued) queue.push_back(tneigh);
       }
     }
   }
 
   // Verify every non-edge template atom is assigned.
   for (int i = 0; i < natoms; i++)
-    if (!is_edge[i] && glove[i] == 0)
-      return false;
+    if (!is_edge[i] && glove[i] == 0) return false;
 
   return true;
 }

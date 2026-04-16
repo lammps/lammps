@@ -6,11 +6,15 @@
 #ifndef LMP_FIX_MSEVB_SUPERIMPOSE_H
 #define LMP_FIX_MSEVB_SUPERIMPOSE_H
 
-#include "lammps.h"
-#include "molecule.h"
+#include "lmptype.h"
 
 #include <unordered_map>
 #include <vector>
+
+namespace LAMMPS_NS {
+class LAMMPS;
+class Molecule;
+}    // namespace LAMMPS_NS
 
 namespace LAMMPS_NS {
 
@@ -18,7 +22,7 @@ namespace LAMMPS_NS {
 // When populated, these maps override atom->type[] and atom->special[]
 // for atoms that appear as keys.  Keys are global atom tags.
 struct VirtualTopo {
-  std::unordered_map<tagint, int>                type_override;
+  std::unordered_map<tagint, int> type_override;
   std::unordered_map<tagint, std::vector<tagint>> bond_override;
 };
 
@@ -30,11 +34,11 @@ struct VirtualTopo {
 // bond_atom list, because LAMMPS stores each bond on only one atom but the
 // special list is symmetric (both bonded atoms list each other).
 struct RefTopo {
-  const int    *type;           // [0..maxtag]: atom type by global tag
-  const int    *nspecial_flat;  // [tag*3 + 0]: count of 1-2 bonded neighbors
-  const tagint *special_flat;   // [tag*maxspecial + k]: k-th 1-2 neighbor tag
-  int           maxspecial;     // stride for special_flat
-  tagint        maxtag;         // maximum valid tag index
+  const int *type;               // [0..maxtag]: atom type by global tag
+  const int *nspecial_flat;      // [tag*3 + 0]: count of 1-2 bonded neighbors
+  const tagint *special_flat;    // [tag*maxspecial + k]: k-th 1-2 neighbor tag
+  int maxspecial;                // stride for special_flat
+  tagint maxtag;                 // maximum valid tag index
 };
 
 // msevb_superimpose: attempt to match molecule template mol onto the real
@@ -53,12 +57,10 @@ struct RefTopo {
 //   ref       — optional reference topology for ghost/off-rank atom fallback
 //
 // Returns true on success (all non-edge atoms assigned uniquely), false otherwise.
-bool msevb_superimpose(LAMMPS *lmp, Molecule *mol, const int *is_edge,
-                       int ibonding, int jbonding,
+bool msevb_superimpose(LAMMPS *lmp, Molecule *mol, const int *is_edge, int ibonding, int jbonding,
                        tagint tag_H, tagint tag_Y, tagint *glove,
-                       const VirtualTopo *vtopo = nullptr,
-                       const RefTopo     *ref   = nullptr);
+                       const VirtualTopo *vtopo = nullptr, const RefTopo *ref = nullptr);
 
-} // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
 #endif

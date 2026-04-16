@@ -28,7 +28,7 @@ FixStyle(msevb,FixMSEVB);
 namespace LAMMPS_NS {
 
 class FixMSEVB : public Fix {
-public:
+ public:
   FixMSEVB(class LAMMPS *, int, char **);
   ~FixMSEVB() override;
 
@@ -46,7 +46,7 @@ public:
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
 
-protected:
+ protected:
   // ---- Coupling type enum -----------------------------------------------
   enum CouplingType {
     COUPLING_NONE,
@@ -58,8 +58,8 @@ protected:
   // ---- Reaction definition (per-reaction) ------------------------------
   // All reactions are now template-based: pre/post molecule files + map file.
   struct ReactionDef {
-    int type_H, type_Y; // atom types (from pre_mol), used for fast scan
-    int type_X;         // type of X (bond-breaking partner of H); -1 if none
+    int type_H, type_Y;    // atom types (from pre_mol), used for fast scan
+    int type_X;            // type of X (bond-breaking partner of H); -1 if none
     double cutoff_sq;
 
     // Per-reaction coupling (optional override; defaults from global coupling)
@@ -91,7 +91,7 @@ protected:
     struct BondRetype {
       int pre_idx1, pre_idx2;
       int new_bond_type;
-    }; // same pair, type changes
+    };    // same pair, type changes
 
     // Names / paths used for init() loading
     std::string pre_mol_id, post_mol_id, map_file_path;
@@ -100,28 +100,27 @@ protected:
     class Molecule *pre_mol;
     class Molecule *post_mol;
 
-    int glove_n;    // mol->natoms for pre-template (0 until init())
-    int ibonding;   // 0-based pre-template index of H
-    int jbonding;   // 0-based pre-template index of Y
-    int ix_bonding; // 0-based pre-template index of X (-1 if no breaking bond)
+    int glove_n;       // mol->natoms for pre-template (0 until init())
+    int ibonding;      // 0-based pre-template index of H
+    int jbonding;      // 0-based pre-template index of Y
+    int ix_bonding;    // 0-based pre-template index of X (-1 if no breaking bond)
 
-    std::vector<int> is_edge; // [glove_n]: 1=edge atom (not matched by BFS)
-    std::vector<int>
-        pre_to_post; // [glove_n]: pre_to_post[i]=0-based post idx (-1=none)
+    std::vector<int> is_edge;        // [glove_n]: 1=edge atom (not matched by BFS)
+    std::vector<int> pre_to_post;    // [glove_n]: pre_to_post[i]=0-based post idx (-1=none)
 
     std::vector<TypeChange> type_changes;
     std::vector<BondBreak> bond_breaks;
     std::vector<BondCreate> bond_creates;
-    std::vector<BondRetype> bond_retypes; // bonds that persist but change type
+    std::vector<BondRetype> bond_retypes;    // bonds that persist but change type
 
-    ReactionDef()
-        : type_H(0), type_Y(0), type_X(-1), cutoff_sq(0.0), coupling_set(false),
-          coupling_type(COUPLING_NONE), coupling_lambda(0.0),
-          coupling_zeta(0.0), coupling_v12(0.0), coupling_alpha(0.0),
-          coupling_gamma_v(0.0), coupling_a(0.0), coupling_b(0.0),
-          coupling_taper(0.0), energy_offset(0.0), shells(-1), pre_mol(nullptr),
-          post_mol(nullptr), glove_n(0), ibonding(-1), jbonding(-1),
-          ix_bonding(-1) {}
+    ReactionDef() :
+        type_H(0), type_Y(0), type_X(-1), cutoff_sq(0.0), coupling_set(false),
+        coupling_type(COUPLING_NONE), coupling_lambda(0.0), coupling_zeta(0.0), coupling_v12(0.0),
+        coupling_alpha(0.0), coupling_gamma_v(0.0), coupling_a(0.0), coupling_b(0.0),
+        coupling_taper(0.0), energy_offset(0.0), shells(-1), pre_mol(nullptr), post_mol(nullptr),
+        glove_n(0), ibonding(-1), jbonding(-1), ix_bonding(-1)
+    {
+    }
   };
 
   // ---- Reactive site --------------------------------------------------
@@ -134,8 +133,8 @@ protected:
     int parent_state;
     int shell;
     int chain_len;
-    int n_components;               // 0 = single-site; >0 = product state
-    int components[MAX_COMPONENTS]; // indices into sites[] for each component
+    int n_components;                  // 0 = single-site; >0 = product state
+    int components[MAX_COMPONENTS];    // indices into sites[] for each component
   };
 
   // ---- Partition / communicator ---------------------------------------
@@ -168,7 +167,7 @@ protected:
   double *eigenvalues;
   double *eigenvectors;
   double *amplitudes;
-  double *fd_occ; // FD occupancy per eigenstate; null when FD disabled
+  double *fd_occ;    // FD occupancy per eigenstate; null when FD disabled
   int eigensys_nmax;
 
   // ---- Consistency check scratch arrays (npartitions, fixed) ----------
@@ -176,38 +175,36 @@ protected:
   int *all_nlocal;
 
   // ---- Weight-based force mixing --------------------------------------
-  double *weights; // [nstates] scalar mixing weights per EVB state
+  double *weights;    // [nstates] scalar mixing weights per EVB state
   int weights_nmax;
 
   // Sparse coupling correction for position-based (Raiteri/Vuilleumier) edges
   struct CouplingCorrection {
     tagint tag_H, tag_X, tag_Y;
     double fH[3], fX[3], fY[3];
-    double rho_factor; // 2 * rho[parent][child]
+    double rho_factor;    // 2 * rho[parent][child]
   };
   std::vector<CouplingCorrection> coupling_corrections;
-  double coupling_virial[6]; // virial from coupling correction forces
+  double coupling_virial[6];    // virial from coupling correction forces
 
   // Result of evaluating coupling for a single edge
   struct CouplingResult {
-    double V;                    // coupling value (Hamiltonian off-diagonal)
-    double g;                    // Grimme weight scalar (-2*b*dE*V); 0 for position-based
-    double fH[3], fX[3], fY[3]; // sparse forces; valid when has_forces=true
-    bool valid;                  // false if needed atoms not found on this rank
-    bool is_grimme;              // true for COUPLING_GRIMME2015
-    bool has_forces;             // true if fH/fX/fY are set
+    double V;                      // coupling value (Hamiltonian off-diagonal)
+    double g;                      // Grimme weight scalar (-2*b*dE*V); 0 for position-based
+    double fH[3], fX[3], fY[3];    // sparse forces; valid when has_forces=true
+    bool valid;                    // false if needed atoms not found on this rank
+    bool is_grimme;                // true for COUPLING_GRIMME2015
+    bool has_forces;               // true if fH/fX/fY are set
   };
 
-  CouplingResult evaluate_coupling(const ReactionDef &rxn,
-                                   double E_parent, double E_child,
+  CouplingResult evaluate_coupling(const ReactionDef &rxn, double E_parent, double E_child,
                                    tagint tag_H, tagint tag_X, tagint tag_Y);
 
   // ---- Excess state force storage (Approach A: save/restore) ----------
-  double *saved_forces; // [nmax*3] save/restore atom->f around excess eval
-  double
-      *excess_forces; // [nsites_serial * ef_nmax * 3] per-excess-state forces
-  int excess_forces_nmax;        // max atoms dimension of excess_forces
-  int excess_forces_nmax_serial; // max nsites_serial dimension
+  double *saved_forces;             // [nmax*3] save/restore atom->f around excess eval
+  double *excess_forces;            // [nsites_serial * ef_nmax * 3] per-excess-state forces
+  int excess_forces_nmax;           // max atoms dimension of excess_forces
+  int excess_forces_nmax_serial;    // max nsites_serial dimension
 
   // ---- Excess force mode: 0=save/restore (A), 1=split (B) -----------
   int excess_force_mode;
@@ -228,13 +225,14 @@ protected:
   tagint *chain_H_flat;
   tagint *chain_X_flat;
   tagint *chain_Y_flat;
-  int *chain_rxn_flat;       // per-depth rxn_idx: chain_rxn_flat[site * max_shells + d]
-  tagint *chain_glove_flat;  // per-depth glove: chain_glove_flat[(site * max_shells + d) * glove_nmax + g]
+  int *chain_rxn_flat;    // per-depth rxn_idx: chain_rxn_flat[site * max_shells + d]
+  tagint *
+      chain_glove_flat;    // per-depth glove: chain_glove_flat[(site * max_shells + d) * glove_nmax + g]
 
   // Per-site glove for template reactions: glove_flat[site_idx * glove_nmax +
   // i] = real global tag for pre-template atom i. Zero for unmatched atoms.
   tagint *glove_flat;
-  int glove_nmax; // max pre-template natoms across all reactions; 0 if none
+  int glove_nmax;    // max pre-template natoms across all reactions; 0 if none
 
   // ---- Reference topology snapshot ------------------------------------
   int *ref_type;
@@ -292,14 +290,14 @@ protected:
   // atom touched by any active reactive site (H, X, Y for every chain
   // depth of every non-product-state site).  Use this group in dump
   // commands to write only MSEVB-relevant atoms.
-  std::string reactive_group_name;  // "<id>_atoms"
-  int         reactive_group_bit;   // bitmask bit for that group; 0 = not yet created
+  std::string reactive_group_name;    // "<id>_atoms"
+  int reactive_group_bit;             // bitmask bit for that group; 0 = not yet created
 
-  void update_reactive_group();     // called after detect_reactive_sites()
+  void update_reactive_group();    // called after detect_reactive_sites()
 
   // ---- SCF topology minimisation --------------------------------------
-  bool scf_topology;  // default: true — re-evaluate EVB until no more transfers
-  int scf_max_iter;   // max SCF iterations per step (default: 10)
+  bool scf_topology;    // default: true — re-evaluate EVB until no more transfers
+  int scf_max_iter;     // max SCF iterations per step (default: 10)
 
   // ---- Misc -----------------------------------------------------------
   bool partition_warning{false};
@@ -329,12 +327,11 @@ protected:
   // and between components of a product state.
   void apply_site_changes(int sk);
 
-  void init_site(int site_idx, tagint tag_H, tagint tag_X, tagint tag_Y,
-                 double dist_sq);
+  void init_site(int site_idx, tagint tag_H, tagint tag_X, tagint tag_Y, double dist_sq);
 
-  void compute_excess_states();   // Approach A: save/restore + buffer
-  void compute_excess_energies(); // Approach B: energy-only pass
-  void apply_excess_forces();     // Approach B: deferred force application
+  void compute_excess_states();      // Approach A: save/restore + buffer
+  void compute_excess_energies();    // Approach B: energy-only pass
+  void apply_excess_forces();        // Approach B: deferred force application
 
   // ---- Methods --------------------------------------------------------
   void check_consistency_atoms();
@@ -355,9 +352,8 @@ protected:
   void detect_reactive_sites();
 
   // Apply one template state change using the given glove mapping.
-  void apply_state_change(const tagint *glove, int idx_X, int idx_H, int idx_Y,
-                          tagint tag_X, tagint tag_H, tagint tag_Y,
-                          const ReactionDef &rxn);
+  void apply_state_change(const tagint *glove, int idx_X, int idx_H, int idx_Y, tagint tag_X,
+                          tagint tag_H, tagint tag_Y, const ReactionDef &rxn);
 
   // Template-reaction helpers called from init().
   void parse_template_mapfile(ReactionDef &rd);
@@ -370,10 +366,9 @@ protected:
   virtual void modified_forces_on_host();
   virtual void modified_topology_on_host();
   virtual void sync_before_neighbor_build();
-
 };
 
-} // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

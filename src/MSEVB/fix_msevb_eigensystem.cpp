@@ -58,9 +58,9 @@ using namespace LAMMPS_NS;
    All arrays that scale with nstates x nstates are managed here.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::grow_eigensystem_arrays() {
-  if (nstates <= eigensys_nmax)
-    return;
+void FixMSEVB::grow_eigensystem_arrays()
+{
+  if (nstates <= eigensys_nmax) return;
 
   memory->destroy(hamiltonian);
   memory->destroy(H_work);
@@ -72,16 +72,13 @@ void FixMSEVB::grow_eigensystem_arrays() {
 
   eigensys_nmax = nstates;
 
-  memory->create(hamiltonian, eigensys_nmax * eigensys_nmax,
-                 "msevb:hamiltonian");
+  memory->create(hamiltonian, eigensys_nmax * eigensys_nmax, "msevb:hamiltonian");
   memory->create(H_work, eigensys_nmax * eigensys_nmax, "msevb:H_work");
   memory->create(eigenvalues, eigensys_nmax, "msevb:eigenvalues");
-  memory->create(eigenvectors, eigensys_nmax * eigensys_nmax,
-                 "msevb:eigenvectors");
+  memory->create(eigenvectors, eigensys_nmax * eigensys_nmax, "msevb:eigenvectors");
   memory->create(amplitudes, eigensys_nmax, "msevb:amplitudes");
   memory->create(weights, eigensys_nmax, "msevb:weights");
-  if (fermi_dirac_enabled)
-    memory->create(fd_occ, eigensys_nmax, "msevb:fd_occ");
+  if (fermi_dirac_enabled) memory->create(fd_occ, eigensys_nmax, "msevb:fd_occ");
 
   weights_nmax = eigensys_nmax;
 }
@@ -92,17 +89,15 @@ void FixMSEVB::grow_eigensystem_arrays() {
    MPI_Allreduce in gather_potential_energies().
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::grow_epot_arrays() {
-  if (nstates <= epot_nmax)
-    return;
+void FixMSEVB::grow_epot_arrays()
+{
+  if (nstates <= epot_nmax) return;
 
   // Preserve existing values (parallel states were just gathered).
   double *old_epot = epot;
   memory->create(epot, nstates, "msevb:epot");
-  for (int i = 0; i < epot_nmax; i++)
-    epot[i] = old_epot[i];
-  for (int i = epot_nmax; i < nstates; i++)
-    epot[i] = 0.0;
+  for (int i = 0; i < epot_nmax; i++) epot[i] = old_epot[i];
+  for (int i = epot_nmax; i < nstates; i++) epot[i] = 0.0;
   memory->destroy(old_epot);
   epot_nmax = nstates;
 }
@@ -113,19 +108,15 @@ void FixMSEVB::grow_epot_arrays() {
    Size: nsites_serial * ef_nmax * 3  (vs old dH_all: ns² * nmax * 3)
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::grow_excess_forces(int nlocal_max) {
-  if (nsites_serial <= excess_forces_nmax_serial &&
-      nlocal_max <= excess_forces_nmax)
-    return;
+void FixMSEVB::grow_excess_forces(int nlocal_max)
+{
+  if (nsites_serial <= excess_forces_nmax_serial && nlocal_max <= excess_forces_nmax) return;
 
-  if (nlocal_max > excess_forces_nmax)
-    excess_forces_nmax = nlocal_max;
-  if (nsites_serial > excess_forces_nmax_serial)
-    excess_forces_nmax_serial = nsites_serial;
+  if (nlocal_max > excess_forces_nmax) excess_forces_nmax = nlocal_max;
+  if (nsites_serial > excess_forces_nmax_serial) excess_forces_nmax_serial = nsites_serial;
 
   delete[] excess_forces;
-  const bigint sz =
-      (bigint)excess_forces_nmax_serial * excess_forces_nmax * 3;
+  const bigint sz = (bigint) excess_forces_nmax_serial * excess_forces_nmax * 3;
   excess_forces = new double[sz]();
 }
 
@@ -138,9 +129,9 @@ void FixMSEVB::grow_excess_forces(int nlocal_max) {
    batches of npartitions, so each batch does one parallel force eval.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::compute_excess_states() {
-  if (nsites_serial == 0)
-    return;
+void FixMSEVB::compute_excess_states()
+{
+  if (nsites_serial == 0) return;
 
   const int ns = nstates;
   const int np = npartitions;
@@ -148,8 +139,7 @@ void FixMSEVB::compute_excess_states() {
 
   std::vector<int> active_serial;
   active_serial.reserve(nsites_serial);
-  for (int b = 0; b < nsites_serial; b++)
-    active_serial.push_back(b);
+  for (int b = 0; b < nsites_serial; b++) active_serial.push_back(b);
 
   const int n_active = static_cast<int>(active_serial.size());
   if (n_active == 0) return;
@@ -201,8 +191,7 @@ void FixMSEVB::compute_excess_states() {
   {
     int my_nmax_atoms = atom->nmax;
     int global_nmax_atoms;
-    MPI_Allreduce(&my_nmax_atoms, &global_nmax_atoms, 1, MPI_INT, MPI_MAX,
-                  universe->uworld);
+    MPI_Allreduce(&my_nmax_atoms, &global_nmax_atoms, 1, MPI_INT, MPI_MAX, universe->uworld);
     grow_excess_forces(global_nmax_atoms);
   }
 
@@ -211,16 +200,17 @@ void FixMSEVB::compute_excess_states() {
   for (int b = 0; b < nsites_serial; b++) {
     bool is_active = false;
     for (int a = 0; a < n_active; a++) {
-      if (active_serial[a] == b) { is_active = true; break; }
+      if (active_serial[a] == b) {
+        is_active = true;
+        break;
+      }
     }
-    if (!is_active)
-      memset(&excess_forces[b * ef_stride], 0, ef_stride * sizeof(double));
+    if (!is_active) memset(&excess_forces[b * ef_stride], 0, ef_stride * sizeof(double));
   }
 
   for (int batch = 0; batch < nbatches; batch++) {
     const int batch_start = batch * np;
-    const int batch_count =
-        (n_active - batch_start < np) ? n_active - batch_start : np;
+    const int batch_count = (n_active - batch_start < np) ? n_active - batch_start : np;
 
     // Which excess state does this partition evaluate?
     const bool active = (ipartition < batch_count);
@@ -234,23 +224,19 @@ void FixMSEVB::compute_excess_states() {
     comm->forward_comm(this);
 
     // ---- 2. Apply excess state topology (active partitions only) ------
-    if (active)
-      apply_site_changes(sk);
+    if (active) apply_site_changes(sk);
 
     // ---- 3. Rebuild specials + neighbors (all partitions) -------------
     {
       Special special_obj(lmp);
       special_obj.build(true);
-      if (force->kspace)
-        force->kspace->qsum_qsq(0);
+      if (force->kspace) force->kspace->qsum_qsq(0);
       modified_topology_on_host();
-      if (domain->triclinic)
-        domain->x2lamda(atom->nlocal);
+      if (domain->triclinic) domain->x2lamda(atom->nlocal);
       domain->pbc();
       comm->exchange();
       comm->borders();
-      if (domain->triclinic)
-        domain->lamda2x(atom->nlocal + atom->nghost);
+      if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
       sync_before_neighbor_build();
       neighbor->build(1);
     }
@@ -266,50 +252,36 @@ void FixMSEVB::compute_excess_states() {
     // ---- 4. Forward comm + zero forces (all partitions) ---------------
     comm->forward_comm(this);
     double **f = atom->f;
-    for (int i = 0; i < cur_nlocal; i++)
-      f[i][0] = f[i][1] = f[i][2] = 0.0;
+    for (int i = 0; i < cur_nlocal; i++) f[i][0] = f[i][1] = f[i][2] = 0.0;
     modified_forces_on_host();
 
     // ---- 5. Evaluate forces + energy (all partitions in parallel) -----
     sync_before_force_compute();
-    if (force->pair && force->pair->compute_flag)
-      force->pair->compute(eflag, vflag);
+    if (force->pair && force->pair->compute_flag) force->pair->compute(eflag, vflag);
 
     if (atom->molecular != Atom::ATOMIC) {
-      if (force->bond)
-        force->bond->compute(eflag, vflag);
-      if (force->angle)
-        force->angle->compute(eflag, vflag);
-      if (force->dihedral)
-        force->dihedral->compute(eflag, vflag);
-      if (force->improper)
-        force->improper->compute(eflag, vflag);
+      if (force->bond) force->bond->compute(eflag, vflag);
+      if (force->angle) force->angle->compute(eflag, vflag);
+      if (force->dihedral) force->dihedral->compute(eflag, vflag);
+      if (force->improper) force->improper->compute(eflag, vflag);
     }
 
-    if (force->kspace && force->kspace->compute_flag)
-      force->kspace->compute(eflag, vflag);
+    if (force->kspace && force->kspace->compute_flag) force->kspace->compute(eflag, vflag);
 
-    if (force->newton)
-      comm->reverse_comm();
+    if (force->newton) comm->reverse_comm();
     modified_after_force_compute();
 
     // ---- 6. Reduce energy within each partition -----------------------
     double eng = 0.0;
-    if (force->pair)
-      eng += force->pair->eng_vdwl + force->pair->eng_coul;
+    if (force->pair) eng += force->pair->eng_vdwl + force->pair->eng_coul;
     if (atom->molecular != Atom::ATOMIC) {
-      if (force->bond)
-        eng += force->bond->energy;
-      if (force->angle)
-        eng += force->angle->energy;
-      if (force->dihedral)
-        eng += force->dihedral->energy;
-      if (force->improper)
-        eng += force->improper->energy;
+      if (force->bond) eng += force->bond->energy;
+      if (force->angle) eng += force->angle->energy;
+      if (force->dihedral) eng += force->dihedral->energy;
+      if (force->improper) eng += force->improper->energy;
     }
     MPI_Allreduce(MPI_IN_PLACE, &eng, 1, MPI_DOUBLE, MPI_SUM, world);
-    if (force->kspace)
-      eng += force->kspace->energy;
+    if (force->kspace) eng += force->kspace->energy;
 
     // ---- 7. Share energies + excess forces across partitions ----------
     for (int b = 0; b < batch_count; b++) {
@@ -331,8 +303,7 @@ void FixMSEVB::compute_excess_states() {
         }
       } else {
         for (int d = 0; d < sites[b_sk].chain_len; d++)
-          offset +=
-              rxndefs[chain_rxn_flat[b_sk * max_shells + d]].energy_offset;
+          offset += rxndefs[chain_rxn_flat[b_sk * max_shells + d]].energy_offset;
       }
       hamiltonian[b_state * ns + b_state] = b_eng + offset;
 
@@ -361,8 +332,7 @@ void FixMSEVB::compute_excess_states() {
           const int comp_j = sites[b_sk].components[1 - ci];
           const ReactionDef &rxn_cpl = rxndefs[sites[comp_j].rxn_idx];
 
-          if (rxn_cpl.coupling_type == COUPLING_NONE)
-            continue;
+          if (rxn_cpl.coupling_type == COUPLING_NONE) continue;
 
           if (rxn_cpl.coupling_type == COUPLING_GRIMME2015) {
             double V, g;
@@ -371,18 +341,16 @@ void FixMSEVB::compute_excess_states() {
               int gidx_Y = atom->map(sites[comp_j].tag_Y);
               double tfH[3], tfY[3];
               if (gidx_H >= 0 && gidx_Y >= 0)
-                Grimme2015::compute_scalar_tapered(
-                    rxn_cpl.coupling_a, rxn_cpl.coupling_b,
-                    epot[par_i], epot[b_state],
-                    atom->x[gidx_H], atom->x[gidx_Y], domain,
-                    rxn_cpl.coupling_taper, std::sqrt(rxn_cpl.cutoff_sq),
-                    V, g, tfH, tfY);
+                Grimme2015::compute_scalar_tapered(rxn_cpl.coupling_a, rxn_cpl.coupling_b,
+                                                   epot[par_i], epot[b_state], atom->x[gidx_H],
+                                                   atom->x[gidx_Y], domain, rxn_cpl.coupling_taper,
+                                                   std::sqrt(rxn_cpl.cutoff_sq), V, g, tfH, tfY);
               else
-                Grimme2015::compute_scalar(rxn_cpl.coupling_a,
-                    rxn_cpl.coupling_b, epot[par_i], epot[b_state], V, g);
+                Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[par_i],
+                                           epot[b_state], V, g);
             } else {
-              Grimme2015::compute_scalar(rxn_cpl.coupling_a,
-                  rxn_cpl.coupling_b, epot[par_i], epot[b_state], V, g);
+              Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[par_i],
+                                         epot[b_state], V, g);
             }
             hamiltonian[par_i * ns + b_state] = V;
             hamiltonian[b_state * ns + par_i] = V;
@@ -398,36 +366,31 @@ void FixMSEVB::compute_excess_states() {
 
               if (rxn_cpl.coupling_type == COUPLING_RAITERI2011) {
                 if (rxn_cpl.coupling_taper > 0.0)
-                  Raiteri2011::compute_tapered(
-                      rxn_cpl.coupling_lambda, rxn_cpl.coupling_zeta,
-                      x[idx_H], x[idx_X], x[idx_Y], domain,
-                      rxn_cpl.coupling_taper, cutoff, V, fH, fX, fY);
+                  Raiteri2011::compute_tapered(rxn_cpl.coupling_lambda, rxn_cpl.coupling_zeta,
+                                               x[idx_H], x[idx_X], x[idx_Y], domain,
+                                               rxn_cpl.coupling_taper, cutoff, V, fH, fX, fY);
                 else
-                  Raiteri2011::compute(rxn_cpl.coupling_lambda,
-                                       rxn_cpl.coupling_zeta, x[idx_H],
-                                       x[idx_X], x[idx_Y], domain, V, fH, fX,
-                                       fY);
+                  Raiteri2011::compute(rxn_cpl.coupling_lambda, rxn_cpl.coupling_zeta, x[idx_H],
+                                       x[idx_X], x[idx_Y], domain, V, fH, fX, fY);
               } else {
                 if (rxn_cpl.coupling_taper > 0.0)
-                  Vuilleumier1998::compute_tapered(
-                      rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
-                      rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X], x[idx_Y],
-                      domain, rxn_cpl.coupling_taper, cutoff, V, fH, fX, fY);
+                  Vuilleumier1998::compute_tapered(rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
+                                                   rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X],
+                                                   x[idx_Y], domain, rxn_cpl.coupling_taper, cutoff,
+                                                   V, fH, fX, fY);
                 else
-                  Vuilleumier1998::compute(
-                      rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
-                      rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X], x[idx_Y],
-                      domain, V, fH, fX, fY);
+                  Vuilleumier1998::compute(rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
+                                           rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X], x[idx_Y],
+                                           domain, V, fH, fX, fY);
               }
 
               if (comm->me == 0) {
                 hamiltonian[par_i * ns + b_state] = V;
                 hamiltonian[b_state * ns + par_i] = V;
               }
-              MPI_Allreduce(MPI_IN_PLACE, &hamiltonian[par_i * ns + b_state],
-                            1, MPI_DOUBLE, MPI_SUM, world);
-              hamiltonian[b_state * ns + par_i] =
-                  hamiltonian[par_i * ns + b_state];
+              MPI_Allreduce(MPI_IN_PLACE, &hamiltonian[par_i * ns + b_state], 1, MPI_DOUBLE,
+                            MPI_SUM, world);
+              hamiltonian[b_state * ns + par_i] = hamiltonian[par_i * ns + b_state];
             }
           }
         }
@@ -435,8 +398,7 @@ void FixMSEVB::compute_excess_states() {
         const int parent = sites[b_sk].parent_state;
         const ReactionDef &rxn_cpl = rxndefs[sites[b_sk].rxn_idx];
 
-        if (rxn_cpl.coupling_type == COUPLING_NONE)
-          continue;
+        if (rxn_cpl.coupling_type == COUPLING_NONE) continue;
 
         if (rxn_cpl.coupling_type == COUPLING_GRIMME2015) {
           double V, g;
@@ -445,18 +407,16 @@ void FixMSEVB::compute_excess_states() {
             int gidx_Y = atom->map(sites[b_sk].tag_Y);
             double tfH[3], tfY[3];
             if (gidx_H >= 0 && gidx_Y >= 0)
-              Grimme2015::compute_scalar_tapered(
-                  rxn_cpl.coupling_a, rxn_cpl.coupling_b,
-                  epot[parent], epot[b_state],
-                  atom->x[gidx_H], atom->x[gidx_Y], domain,
-                  rxn_cpl.coupling_taper, std::sqrt(rxn_cpl.cutoff_sq),
-                  V, g, tfH, tfY);
+              Grimme2015::compute_scalar_tapered(rxn_cpl.coupling_a, rxn_cpl.coupling_b,
+                                                 epot[parent], epot[b_state], atom->x[gidx_H],
+                                                 atom->x[gidx_Y], domain, rxn_cpl.coupling_taper,
+                                                 std::sqrt(rxn_cpl.cutoff_sq), V, g, tfH, tfY);
             else
-              Grimme2015::compute_scalar(rxn_cpl.coupling_a,
-                  rxn_cpl.coupling_b, epot[parent], epot[b_state], V, g);
+              Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[parent],
+                                         epot[b_state], V, g);
           } else {
-            Grimme2015::compute_scalar(rxn_cpl.coupling_a,
-                rxn_cpl.coupling_b, epot[parent], epot[b_state], V, g);
+            Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[parent],
+                                       epot[b_state], V, g);
           }
           hamiltonian[parent * ns + b_state] = V;
           hamiltonian[b_state * ns + parent] = V;
@@ -472,55 +432,47 @@ void FixMSEVB::compute_excess_states() {
 
             if (rxn_cpl.coupling_type == COUPLING_RAITERI2011) {
               if (rxn_cpl.coupling_taper > 0.0)
-                Raiteri2011::compute_tapered(
-                    rxn_cpl.coupling_lambda, rxn_cpl.coupling_zeta, x[idx_H],
-                    x[idx_X], x[idx_Y], domain, rxn_cpl.coupling_taper,
-                    cutoff, V, fH, fX, fY);
+                Raiteri2011::compute_tapered(rxn_cpl.coupling_lambda, rxn_cpl.coupling_zeta,
+                                             x[idx_H], x[idx_X], x[idx_Y], domain,
+                                             rxn_cpl.coupling_taper, cutoff, V, fH, fX, fY);
               else
-                Raiteri2011::compute(rxn_cpl.coupling_lambda,
-                                     rxn_cpl.coupling_zeta, x[idx_H],
-                                     x[idx_X], x[idx_Y], domain, V, fH, fX,
-                                     fY);
+                Raiteri2011::compute(rxn_cpl.coupling_lambda, rxn_cpl.coupling_zeta, x[idx_H],
+                                     x[idx_X], x[idx_Y], domain, V, fH, fX, fY);
             } else {
               if (rxn_cpl.coupling_taper > 0.0)
-                Vuilleumier1998::compute_tapered(
-                    rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
-                    rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X], x[idx_Y],
-                    domain, rxn_cpl.coupling_taper, cutoff, V, fH, fX, fY);
+                Vuilleumier1998::compute_tapered(rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
+                                                 rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X],
+                                                 x[idx_Y], domain, rxn_cpl.coupling_taper, cutoff,
+                                                 V, fH, fX, fY);
               else
-                Vuilleumier1998::compute(
-                    rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
-                    rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X], x[idx_Y],
-                    domain, V, fH, fX, fY);
+                Vuilleumier1998::compute(rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
+                                         rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X], x[idx_Y],
+                                         domain, V, fH, fX, fY);
             }
 
             if (comm->me == 0) {
               hamiltonian[parent * ns + b_state] = V;
               hamiltonian[b_state * ns + parent] = V;
             }
-            MPI_Allreduce(MPI_IN_PLACE,
-                          &hamiltonian[parent * ns + b_state], 1,
-                          MPI_DOUBLE, MPI_SUM, world);
-            hamiltonian[b_state * ns + parent] =
-                hamiltonian[parent * ns + b_state];
+            MPI_Allreduce(MPI_IN_PLACE, &hamiltonian[parent * ns + b_state], 1, MPI_DOUBLE, MPI_SUM,
+                          world);
+            hamiltonian[b_state * ns + parent] = hamiltonian[parent * ns + b_state];
           }
         }
       }
     }
-  } // end batch loop
+  }    // end batch loop
 
   // Restore reference topology on all partitions after all batches.
   restore_reference_topology();
   {
     Special special_obj(lmp);
     special_obj.build(true);
-    if (domain->triclinic)
-      domain->x2lamda(atom->nlocal);
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     comm->borders();
-    if (domain->triclinic)
-      domain->lamda2x(atom->nlocal + atom->nghost);
+    if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
     neighbor->build(1);
   }
 
@@ -561,9 +513,9 @@ void FixMSEVB::compute_excess_states() {
    Called before eigensystem solve (only needs Hamiltonian entries).
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::compute_excess_energies() {
-  if (nsites_serial == 0)
-    return;
+void FixMSEVB::compute_excess_energies()
+{
+  if (nsites_serial == 0) return;
 
   const int ns = nstates;
   const int np = npartitions;
@@ -571,8 +523,7 @@ void FixMSEVB::compute_excess_energies() {
 
   std::vector<int> active_serial;
   active_serial.reserve(nsites_serial);
-  for (int b = 0; b < nsites_serial; b++)
-    active_serial.push_back(b);
+  for (int b = 0; b < nsites_serial; b++) active_serial.push_back(b);
 
   const int n_active = static_cast<int>(active_serial.size());
   if (n_active == 0) return;
@@ -620,8 +571,7 @@ void FixMSEVB::compute_excess_energies() {
 
   for (int batch = 0; batch < nbatches; batch++) {
     const int batch_start = batch * np;
-    const int batch_count =
-        (n_active - batch_start < np) ? n_active - batch_start : np;
+    const int batch_count = (n_active - batch_start < np) ? n_active - batch_start : np;
 
     const bool active = (ipartition < batch_count);
     const int my_active_idx = active ? batch_start + ipartition : -1;
@@ -634,23 +584,19 @@ void FixMSEVB::compute_excess_energies() {
     comm->forward_comm(this);
 
     // 2. Apply excess state topology
-    if (active)
-      apply_site_changes(sk);
+    if (active) apply_site_changes(sk);
 
     // 3. Rebuild specials + neighbors
     {
       Special special_obj(lmp);
       special_obj.build(true);
-      if (force->kspace)
-        force->kspace->qsum_qsq(0);
+      if (force->kspace) force->kspace->qsum_qsq(0);
       modified_topology_on_host();
-      if (domain->triclinic)
-        domain->x2lamda(atom->nlocal);
+      if (domain->triclinic) domain->x2lamda(atom->nlocal);
       domain->pbc();
       comm->exchange();
       comm->borders();
-      if (domain->triclinic)
-        domain->lamda2x(atom->nlocal + atom->nghost);
+      if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
       sync_before_neighbor_build();
       neighbor->build(1);
     }
@@ -660,49 +606,36 @@ void FixMSEVB::compute_excess_energies() {
     // 4. Forward comm + zero forces
     comm->forward_comm(this);
     double **f = atom->f;
-    for (int i = 0; i < cur_nlocal; i++)
-      f[i][0] = f[i][1] = f[i][2] = 0.0;
+    for (int i = 0; i < cur_nlocal; i++) f[i][0] = f[i][1] = f[i][2] = 0.0;
     modified_forces_on_host();
 
     // 5. Evaluate forces + energy
     sync_before_force_compute();
-    if (force->pair && force->pair->compute_flag)
-      force->pair->compute(eflag, vflag);
+    if (force->pair && force->pair->compute_flag) force->pair->compute(eflag, vflag);
 
     if (atom->molecular != Atom::ATOMIC) {
-      if (force->bond)
-        force->bond->compute(eflag, vflag);
-      if (force->angle)
-        force->angle->compute(eflag, vflag);
-      if (force->dihedral)
-        force->dihedral->compute(eflag, vflag);
-      if (force->improper)
-        force->improper->compute(eflag, vflag);
+      if (force->bond) force->bond->compute(eflag, vflag);
+      if (force->angle) force->angle->compute(eflag, vflag);
+      if (force->dihedral) force->dihedral->compute(eflag, vflag);
+      if (force->improper) force->improper->compute(eflag, vflag);
     }
 
-    if (force->kspace && force->kspace->compute_flag)
-      force->kspace->compute(eflag, vflag);
+    if (force->kspace && force->kspace->compute_flag) force->kspace->compute(eflag, vflag);
 
     // No reverse_comm needed — forces not stored
     modified_after_force_compute();
 
     // 6. Reduce energy
     double eng = 0.0;
-    if (force->pair)
-      eng += force->pair->eng_vdwl + force->pair->eng_coul;
+    if (force->pair) eng += force->pair->eng_vdwl + force->pair->eng_coul;
     if (atom->molecular != Atom::ATOMIC) {
-      if (force->bond)
-        eng += force->bond->energy;
-      if (force->angle)
-        eng += force->angle->energy;
-      if (force->dihedral)
-        eng += force->dihedral->energy;
-      if (force->improper)
-        eng += force->improper->energy;
+      if (force->bond) eng += force->bond->energy;
+      if (force->angle) eng += force->angle->energy;
+      if (force->dihedral) eng += force->dihedral->energy;
+      if (force->improper) eng += force->improper->energy;
     }
     MPI_Allreduce(MPI_IN_PLACE, &eng, 1, MPI_DOUBLE, MPI_SUM, world);
-    if (force->kspace)
-      eng += force->kspace->energy;
+    if (force->kspace) eng += force->kspace->energy;
 
     // 7. Share energies across partitions (no force storage)
     for (int b = 0; b < batch_count; b++) {
@@ -724,8 +657,7 @@ void FixMSEVB::compute_excess_energies() {
         }
       } else {
         for (int d = 0; d < sites[b_sk].chain_len; d++)
-          offset +=
-              rxndefs[chain_rxn_flat[b_sk * max_shells + d]].energy_offset;
+          offset += rxndefs[chain_rxn_flat[b_sk * max_shells + d]].energy_offset;
       }
       hamiltonian[b_state * ns + b_state] = b_eng + offset;
     }
@@ -742,8 +674,7 @@ void FixMSEVB::compute_excess_energies() {
           const int comp_j = sites[b_sk].components[1 - ci];
           const ReactionDef &rxn_cpl = rxndefs[sites[comp_j].rxn_idx];
 
-          if (rxn_cpl.coupling_type == COUPLING_NONE)
-            continue;
+          if (rxn_cpl.coupling_type == COUPLING_NONE) continue;
 
           if (rxn_cpl.coupling_type == COUPLING_GRIMME2015) {
             double V, g;
@@ -752,18 +683,16 @@ void FixMSEVB::compute_excess_energies() {
               int gidx_Y = atom->map(sites[comp_j].tag_Y);
               double tfH[3], tfY[3];
               if (gidx_H >= 0 && gidx_Y >= 0)
-                Grimme2015::compute_scalar_tapered(
-                    rxn_cpl.coupling_a, rxn_cpl.coupling_b,
-                    epot[par_i], epot[b_state],
-                    atom->x[gidx_H], atom->x[gidx_Y], domain,
-                    rxn_cpl.coupling_taper, std::sqrt(rxn_cpl.cutoff_sq),
-                    V, g, tfH, tfY);
+                Grimme2015::compute_scalar_tapered(rxn_cpl.coupling_a, rxn_cpl.coupling_b,
+                                                   epot[par_i], epot[b_state], atom->x[gidx_H],
+                                                   atom->x[gidx_Y], domain, rxn_cpl.coupling_taper,
+                                                   std::sqrt(rxn_cpl.cutoff_sq), V, g, tfH, tfY);
               else
-                Grimme2015::compute_scalar(rxn_cpl.coupling_a,
-                    rxn_cpl.coupling_b, epot[par_i], epot[b_state], V, g);
+                Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[par_i],
+                                           epot[b_state], V, g);
             } else {
-              Grimme2015::compute_scalar(rxn_cpl.coupling_a,
-                  rxn_cpl.coupling_b, epot[par_i], epot[b_state], V, g);
+              Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[par_i],
+                                         epot[b_state], V, g);
             }
             hamiltonian[par_i * ns + b_state] = V;
             hamiltonian[b_state * ns + par_i] = V;
@@ -779,36 +708,31 @@ void FixMSEVB::compute_excess_energies() {
 
               if (rxn_cpl.coupling_type == COUPLING_RAITERI2011) {
                 if (rxn_cpl.coupling_taper > 0.0)
-                  Raiteri2011::compute_tapered(
-                      rxn_cpl.coupling_lambda, rxn_cpl.coupling_zeta,
-                      x[idx_H], x[idx_X], x[idx_Y], domain,
-                      rxn_cpl.coupling_taper, cutoff, V, fH, fX, fY);
+                  Raiteri2011::compute_tapered(rxn_cpl.coupling_lambda, rxn_cpl.coupling_zeta,
+                                               x[idx_H], x[idx_X], x[idx_Y], domain,
+                                               rxn_cpl.coupling_taper, cutoff, V, fH, fX, fY);
                 else
-                  Raiteri2011::compute(rxn_cpl.coupling_lambda,
-                                       rxn_cpl.coupling_zeta, x[idx_H],
-                                       x[idx_X], x[idx_Y], domain, V, fH, fX,
-                                       fY);
+                  Raiteri2011::compute(rxn_cpl.coupling_lambda, rxn_cpl.coupling_zeta, x[idx_H],
+                                       x[idx_X], x[idx_Y], domain, V, fH, fX, fY);
               } else {
                 if (rxn_cpl.coupling_taper > 0.0)
-                  Vuilleumier1998::compute_tapered(
-                      rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
-                      rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X], x[idx_Y],
-                      domain, rxn_cpl.coupling_taper, cutoff, V, fH, fX, fY);
+                  Vuilleumier1998::compute_tapered(rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
+                                                   rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X],
+                                                   x[idx_Y], domain, rxn_cpl.coupling_taper, cutoff,
+                                                   V, fH, fX, fY);
                 else
-                  Vuilleumier1998::compute(
-                      rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
-                      rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X], x[idx_Y],
-                      domain, V, fH, fX, fY);
+                  Vuilleumier1998::compute(rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
+                                           rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X], x[idx_Y],
+                                           domain, V, fH, fX, fY);
               }
 
               if (comm->me == 0) {
                 hamiltonian[par_i * ns + b_state] = V;
                 hamiltonian[b_state * ns + par_i] = V;
               }
-              MPI_Allreduce(MPI_IN_PLACE, &hamiltonian[par_i * ns + b_state],
-                            1, MPI_DOUBLE, MPI_SUM, world);
-              hamiltonian[b_state * ns + par_i] =
-                  hamiltonian[par_i * ns + b_state];
+              MPI_Allreduce(MPI_IN_PLACE, &hamiltonian[par_i * ns + b_state], 1, MPI_DOUBLE,
+                            MPI_SUM, world);
+              hamiltonian[b_state * ns + par_i] = hamiltonian[par_i * ns + b_state];
             }
           }
         }
@@ -816,8 +740,7 @@ void FixMSEVB::compute_excess_energies() {
         const int parent = sites[b_sk].parent_state;
         const ReactionDef &rxn_cpl = rxndefs[sites[b_sk].rxn_idx];
 
-        if (rxn_cpl.coupling_type == COUPLING_NONE)
-          continue;
+        if (rxn_cpl.coupling_type == COUPLING_NONE) continue;
 
         if (rxn_cpl.coupling_type == COUPLING_GRIMME2015) {
           double V, g;
@@ -826,18 +749,16 @@ void FixMSEVB::compute_excess_energies() {
             int gidx_Y = atom->map(sites[b_sk].tag_Y);
             double tfH[3], tfY[3];
             if (gidx_H >= 0 && gidx_Y >= 0)
-              Grimme2015::compute_scalar_tapered(
-                  rxn_cpl.coupling_a, rxn_cpl.coupling_b,
-                  epot[parent], epot[b_state],
-                  atom->x[gidx_H], atom->x[gidx_Y], domain,
-                  rxn_cpl.coupling_taper, std::sqrt(rxn_cpl.cutoff_sq),
-                  V, g, tfH, tfY);
+              Grimme2015::compute_scalar_tapered(rxn_cpl.coupling_a, rxn_cpl.coupling_b,
+                                                 epot[parent], epot[b_state], atom->x[gidx_H],
+                                                 atom->x[gidx_Y], domain, rxn_cpl.coupling_taper,
+                                                 std::sqrt(rxn_cpl.cutoff_sq), V, g, tfH, tfY);
             else
-              Grimme2015::compute_scalar(rxn_cpl.coupling_a,
-                  rxn_cpl.coupling_b, epot[parent], epot[b_state], V, g);
+              Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[parent],
+                                         epot[b_state], V, g);
           } else {
-            Grimme2015::compute_scalar(rxn_cpl.coupling_a,
-                rxn_cpl.coupling_b, epot[parent], epot[b_state], V, g);
+            Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[parent],
+                                       epot[b_state], V, g);
           }
           hamiltonian[parent * ns + b_state] = V;
           hamiltonian[b_state * ns + parent] = V;
@@ -853,55 +774,47 @@ void FixMSEVB::compute_excess_energies() {
 
             if (rxn_cpl.coupling_type == COUPLING_RAITERI2011) {
               if (rxn_cpl.coupling_taper > 0.0)
-                Raiteri2011::compute_tapered(
-                    rxn_cpl.coupling_lambda, rxn_cpl.coupling_zeta, x[idx_H],
-                    x[idx_X], x[idx_Y], domain, rxn_cpl.coupling_taper,
-                    cutoff, V, fH, fX, fY);
+                Raiteri2011::compute_tapered(rxn_cpl.coupling_lambda, rxn_cpl.coupling_zeta,
+                                             x[idx_H], x[idx_X], x[idx_Y], domain,
+                                             rxn_cpl.coupling_taper, cutoff, V, fH, fX, fY);
               else
-                Raiteri2011::compute(rxn_cpl.coupling_lambda,
-                                     rxn_cpl.coupling_zeta, x[idx_H],
-                                     x[idx_X], x[idx_Y], domain, V, fH, fX,
-                                     fY);
+                Raiteri2011::compute(rxn_cpl.coupling_lambda, rxn_cpl.coupling_zeta, x[idx_H],
+                                     x[idx_X], x[idx_Y], domain, V, fH, fX, fY);
             } else {
               if (rxn_cpl.coupling_taper > 0.0)
-                Vuilleumier1998::compute_tapered(
-                    rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
-                    rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X], x[idx_Y],
-                    domain, rxn_cpl.coupling_taper, cutoff, V, fH, fX, fY);
+                Vuilleumier1998::compute_tapered(rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
+                                                 rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X],
+                                                 x[idx_Y], domain, rxn_cpl.coupling_taper, cutoff,
+                                                 V, fH, fX, fY);
               else
-                Vuilleumier1998::compute(
-                    rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
-                    rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X], x[idx_Y],
-                    domain, V, fH, fX, fY);
+                Vuilleumier1998::compute(rxn_cpl.coupling_v12, rxn_cpl.coupling_alpha,
+                                         rxn_cpl.coupling_gamma_v, x[idx_H], x[idx_X], x[idx_Y],
+                                         domain, V, fH, fX, fY);
             }
 
             if (comm->me == 0) {
               hamiltonian[parent * ns + b_state] = V;
               hamiltonian[b_state * ns + parent] = V;
             }
-            MPI_Allreduce(MPI_IN_PLACE,
-                          &hamiltonian[parent * ns + b_state], 1,
-                          MPI_DOUBLE, MPI_SUM, world);
-            hamiltonian[b_state * ns + parent] =
-                hamiltonian[parent * ns + b_state];
+            MPI_Allreduce(MPI_IN_PLACE, &hamiltonian[parent * ns + b_state], 1, MPI_DOUBLE, MPI_SUM,
+                          world);
+            hamiltonian[b_state * ns + parent] = hamiltonian[parent * ns + b_state];
           }
         }
       }
     }
-  } // end batch loop
+  }    // end batch loop
 
   // Restore reference topology
   restore_reference_topology();
   {
     Special special_obj(lmp);
     special_obj.build(true);
-    if (domain->triclinic)
-      domain->x2lamda(atom->nlocal);
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     comm->borders();
-    if (domain->triclinic)
-      domain->lamda2x(atom->nlocal + atom->nghost);
+    if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
     neighbor->build(1);
   }
 
@@ -945,18 +858,17 @@ void FixMSEVB::compute_excess_energies() {
    parallel state forces.  atom->f contains the mixed parallel forces.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::apply_excess_forces() {
-  if (nsites_serial == 0)
-    return;
+void FixMSEVB::apply_excess_forces()
+{
+  if (nsites_serial == 0) return;
 
   const int ns = nstates;
   const int np = npartitions;
-  const int eflag = 0, vflag = 0; // energy already known, only need forces
+  const int eflag = 0, vflag = 0;    // energy already known, only need forces
 
   std::vector<int> active_serial;
   active_serial.reserve(nsites_serial);
-  for (int b = 0; b < nsites_serial; b++)
-    active_serial.push_back(b);
+  for (int b = 0; b < nsites_serial; b++) active_serial.push_back(b);
 
   const int n_active = static_cast<int>(active_serial.size());
   if (n_active == 0) return;
@@ -970,8 +882,7 @@ void FixMSEVB::apply_excess_forces() {
 
   for (int batch = 0; batch < nbatches; batch++) {
     const int batch_start = batch * np;
-    const int batch_count =
-        (n_active - batch_start < np) ? n_active - batch_start : np;
+    const int batch_count = (n_active - batch_start < np) ? n_active - batch_start : np;
 
     const bool active = (ipartition < batch_count);
     const int my_active_idx = active ? batch_start + ipartition : -1;
@@ -984,23 +895,19 @@ void FixMSEVB::apply_excess_forces() {
     comm->forward_comm(this);
 
     // 2. Apply excess state topology
-    if (active)
-      apply_site_changes(sk);
+    if (active) apply_site_changes(sk);
 
     // 3. Rebuild specials + neighbors
     {
       Special special_obj(lmp);
       special_obj.build(true);
-      if (force->kspace)
-        force->kspace->qsum_qsq(0);
+      if (force->kspace) force->kspace->qsum_qsq(0);
       modified_topology_on_host();
-      if (domain->triclinic)
-        domain->x2lamda(atom->nlocal);
+      if (domain->triclinic) domain->x2lamda(atom->nlocal);
       domain->pbc();
       comm->exchange();
       comm->borders();
-      if (domain->triclinic)
-        domain->lamda2x(atom->nlocal + atom->nghost);
+      if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
       sync_before_neighbor_build();
       neighbor->build(1);
     }
@@ -1010,31 +917,23 @@ void FixMSEVB::apply_excess_forces() {
     // 4. Forward comm + zero forces
     comm->forward_comm(this);
     double **f = atom->f;
-    for (int i = 0; i < cur_nlocal; i++)
-      f[i][0] = f[i][1] = f[i][2] = 0.0;
+    for (int i = 0; i < cur_nlocal; i++) f[i][0] = f[i][1] = f[i][2] = 0.0;
     modified_forces_on_host();
 
     // 5. Evaluate forces only (no energy needed)
     sync_before_force_compute();
-    if (force->pair && force->pair->compute_flag)
-      force->pair->compute(eflag, vflag);
+    if (force->pair && force->pair->compute_flag) force->pair->compute(eflag, vflag);
 
     if (atom->molecular != Atom::ATOMIC) {
-      if (force->bond)
-        force->bond->compute(eflag, vflag);
-      if (force->angle)
-        force->angle->compute(eflag, vflag);
-      if (force->dihedral)
-        force->dihedral->compute(eflag, vflag);
-      if (force->improper)
-        force->improper->compute(eflag, vflag);
+      if (force->bond) force->bond->compute(eflag, vflag);
+      if (force->angle) force->angle->compute(eflag, vflag);
+      if (force->dihedral) force->dihedral->compute(eflag, vflag);
+      if (force->improper) force->improper->compute(eflag, vflag);
     }
 
-    if (force->kspace && force->kspace->compute_flag)
-      force->kspace->compute(eflag, vflag);
+    if (force->kspace && force->kspace->compute_flag) force->kspace->compute(eflag, vflag);
 
-    if (force->newton)
-      comm->reverse_comm();
+    if (force->newton) comm->reverse_comm();
     modified_after_force_compute();
     sync_forces_to_host();
 
@@ -1048,32 +947,28 @@ void FixMSEVB::apply_excess_forces() {
         f[a][2] *= wk;
       }
     } else {
-      for (int a = 0; a < cur_nlocal; a++)
-        f[a][0] = f[a][1] = f[a][2] = 0.0;
+      for (int a = 0; a < cur_nlocal; a++) f[a][0] = f[a][1] = f[a][2] = 0.0;
     }
 
-    MPI_Allreduce(MPI_IN_PLACE, &f[0][0], cur_nlocal * 3, MPI_DOUBLE,
-                  MPI_SUM, samerank);
+    MPI_Allreduce(MPI_IN_PLACE, &f[0][0], cur_nlocal * 3, MPI_DOUBLE, MPI_SUM, samerank);
 
     for (int a = 0; a < cur_nlocal; a++) {
       saved_forces[a * 3 + 0] += f[a][0];
       saved_forces[a * 3 + 1] += f[a][1];
       saved_forces[a * 3 + 2] += f[a][2];
     }
-  } // end batch loop
+  }    // end batch loop
 
   // Restore reference topology
   restore_reference_topology();
   {
     Special special_obj(lmp);
     special_obj.build(true);
-    if (domain->triclinic)
-      domain->x2lamda(atom->nlocal);
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     comm->exchange();
     comm->borders();
-    if (domain->triclinic)
-      domain->lamda2x(atom->nlocal + atom->nghost);
+    if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
     neighbor->build(1);
   }
 
@@ -1087,11 +982,11 @@ void FixMSEVB::apply_excess_forces() {
    Uses nstates x nstates layout (not npartitions x npartitions).
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::build_hamiltonian() {
+void FixMSEVB::build_hamiltonian()
+{
   const int ns = nstates;
 
-  for (int i = 0; i < ns * ns; i++)
-    hamiltonian[i] = 0.0;
+  for (int i = 0; i < ns * ns; i++) hamiltonian[i] = 0.0;
 
   for (int i = 0; i < ns; i++) {
     double offset = 0.0;
@@ -1103,8 +998,7 @@ void FixMSEVB::build_hamiltonian() {
           offset += rxndefs[sites[site.components[ci]].rxn_idx].energy_offset;
       } else {
         for (int d = 0; d < site.chain_len; d++)
-          offset +=
-              rxndefs[chain_rxn_flat[sk * max_shells + d]].energy_offset;
+          offset += rxndefs[chain_rxn_flat[sk * max_shells + d]].energy_offset;
       }
     }
     hamiltonian[i * ns + i] = epot[i] + offset;
@@ -1118,84 +1012,74 @@ void FixMSEVB::build_hamiltonian() {
    Grimme taper), and validity flags.
 ---------------------------------------------------------------------- */
 
-FixMSEVB::CouplingResult FixMSEVB::evaluate_coupling(
-    const ReactionDef &rxn, double E_parent, double E_child,
-    tagint tag_H, tagint tag_X, tagint tag_Y) {
+FixMSEVB::CouplingResult FixMSEVB::evaluate_coupling(const ReactionDef &rxn, double E_parent,
+                                                     double E_child, tagint tag_H, tagint tag_X,
+                                                     tagint tag_Y)
+{
   CouplingResult cr = {};
 
   switch (rxn.coupling_type) {
-  case COUPLING_GRIMME2015: {
-    cr.is_grimme = true;
-    cr.valid = true;
-    if (rxn.coupling_taper > 0.0) {
-      int idx_H = atom->map(tag_H);
-      int idx_Y = atom->map(tag_Y);
-      if (idx_H >= 0 && idx_Y >= 0) {
-        cr.has_forces = true;
-        Grimme2015::compute_scalar_tapered(
-            rxn.coupling_a, rxn.coupling_b, E_parent, E_child,
-            atom->x[idx_H], atom->x[idx_Y], domain,
-            rxn.coupling_taper, std::sqrt(rxn.cutoff_sq),
-            cr.V, cr.g, cr.fH, cr.fY);
+    case COUPLING_GRIMME2015: {
+      cr.is_grimme = true;
+      cr.valid = true;
+      if (rxn.coupling_taper > 0.0) {
+        int idx_H = atom->map(tag_H);
+        int idx_Y = atom->map(tag_Y);
+        if (idx_H >= 0 && idx_Y >= 0) {
+          cr.has_forces = true;
+          Grimme2015::compute_scalar_tapered(
+              rxn.coupling_a, rxn.coupling_b, E_parent, E_child, atom->x[idx_H], atom->x[idx_Y],
+              domain, rxn.coupling_taper, std::sqrt(rxn.cutoff_sq), cr.V, cr.g, cr.fH, cr.fY);
+        } else {
+          Grimme2015::compute_scalar(rxn.coupling_a, rxn.coupling_b, E_parent, E_child, cr.V, cr.g);
+        }
       } else {
-        Grimme2015::compute_scalar(rxn.coupling_a, rxn.coupling_b,
-                                   E_parent, E_child, cr.V, cr.g);
+        Grimme2015::compute_scalar(rxn.coupling_a, rxn.coupling_b, E_parent, E_child, cr.V, cr.g);
       }
-    } else {
-      Grimme2015::compute_scalar(rxn.coupling_a, rxn.coupling_b,
-                                 E_parent, E_child, cr.V, cr.g);
+      break;
     }
-    break;
-  }
 
-  case COUPLING_RAITERI2011: {
-    int idx_H = atom->map(tag_H);
-    int idx_X = atom->map(tag_X);
-    int idx_Y = atom->map(tag_Y);
-    if (idx_H >= 0 && idx_X >= 0 && idx_Y >= 0) {
-      cr.valid = true;
-      cr.has_forces = true;
-      double **x = atom->x;
-      if (rxn.coupling_taper > 0.0)
-        Raiteri2011::compute_tapered(
-            rxn.coupling_lambda, rxn.coupling_zeta,
-            x[idx_H], x[idx_X], x[idx_Y], domain,
-            rxn.coupling_taper, std::sqrt(rxn.cutoff_sq),
-            cr.V, cr.fH, cr.fX, cr.fY);
-      else
-        Raiteri2011::compute(
-            rxn.coupling_lambda, rxn.coupling_zeta,
-            x[idx_H], x[idx_X], x[idx_Y], domain,
-            cr.V, cr.fH, cr.fX, cr.fY);
+    case COUPLING_RAITERI2011: {
+      int idx_H = atom->map(tag_H);
+      int idx_X = atom->map(tag_X);
+      int idx_Y = atom->map(tag_Y);
+      if (idx_H >= 0 && idx_X >= 0 && idx_Y >= 0) {
+        cr.valid = true;
+        cr.has_forces = true;
+        double **x = atom->x;
+        if (rxn.coupling_taper > 0.0)
+          Raiteri2011::compute_tapered(rxn.coupling_lambda, rxn.coupling_zeta, x[idx_H], x[idx_X],
+                                       x[idx_Y], domain, rxn.coupling_taper,
+                                       std::sqrt(rxn.cutoff_sq), cr.V, cr.fH, cr.fX, cr.fY);
+        else
+          Raiteri2011::compute(rxn.coupling_lambda, rxn.coupling_zeta, x[idx_H], x[idx_X], x[idx_Y],
+                               domain, cr.V, cr.fH, cr.fX, cr.fY);
+      }
+      break;
     }
-    break;
-  }
 
-  case COUPLING_VUILLEUMIER1998: {
-    int idx_H = atom->map(tag_H);
-    int idx_X = atom->map(tag_X);
-    int idx_Y = atom->map(tag_Y);
-    if (idx_H >= 0 && idx_X >= 0 && idx_Y >= 0) {
-      cr.valid = true;
-      cr.has_forces = true;
-      double **x = atom->x;
-      if (rxn.coupling_taper > 0.0)
-        Vuilleumier1998::compute_tapered(
-            rxn.coupling_v12, rxn.coupling_alpha, rxn.coupling_gamma_v,
-            x[idx_H], x[idx_X], x[idx_Y], domain,
-            rxn.coupling_taper, std::sqrt(rxn.cutoff_sq),
-            cr.V, cr.fH, cr.fX, cr.fY);
-      else
-        Vuilleumier1998::compute(
-            rxn.coupling_v12, rxn.coupling_alpha, rxn.coupling_gamma_v,
-            x[idx_H], x[idx_X], x[idx_Y], domain,
-            cr.V, cr.fH, cr.fX, cr.fY);
+    case COUPLING_VUILLEUMIER1998: {
+      int idx_H = atom->map(tag_H);
+      int idx_X = atom->map(tag_X);
+      int idx_Y = atom->map(tag_Y);
+      if (idx_H >= 0 && idx_X >= 0 && idx_Y >= 0) {
+        cr.valid = true;
+        cr.has_forces = true;
+        double **x = atom->x;
+        if (rxn.coupling_taper > 0.0)
+          Vuilleumier1998::compute_tapered(rxn.coupling_v12, rxn.coupling_alpha,
+                                           rxn.coupling_gamma_v, x[idx_H], x[idx_X], x[idx_Y],
+                                           domain, rxn.coupling_taper, std::sqrt(rxn.cutoff_sq),
+                                           cr.V, cr.fH, cr.fX, cr.fY);
+        else
+          Vuilleumier1998::compute(rxn.coupling_v12, rxn.coupling_alpha, rxn.coupling_gamma_v,
+                                   x[idx_H], x[idx_X], x[idx_Y], domain, cr.V, cr.fH, cr.fX, cr.fY);
+      }
+      break;
     }
-    break;
-  }
 
-  default:
-    break;
+    default:
+      break;
   }
 
   return cr;
@@ -1207,20 +1091,18 @@ FixMSEVB::CouplingResult FixMSEVB::evaluate_coupling(
    (identical positions and energies after sync).
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::compute_coupling_values() {
-  if (nsites == 0)
-    return;
+void FixMSEVB::compute_coupling_values()
+{
+  if (nsites == 0) return;
 
   const int ns = nstates;
 
   // Helper lambda: process one coupling edge, fill hamiltonian
-  auto fill_hamiltonian_edge = [&](int parent, int child,
-                                   const ReactiveSite &site) {
+  auto fill_hamiltonian_edge = [&](int parent, int child, const ReactiveSite &site) {
     const ReactionDef &rxn = rxndefs[site.rxn_idx];
     if (rxn.coupling_type == COUPLING_NONE) return;
 
-    auto cr = evaluate_coupling(rxn, epot[parent], epot[child],
-                                site.tag_H, site.tag_X, site.tag_Y);
+    auto cr = evaluate_coupling(rxn, epot[parent], epot[child], site.tag_H, site.tag_X, site.tag_Y);
 
     if (cr.is_grimme) {
       // Grimme: all ranks compute identically from synced energies
@@ -1232,8 +1114,7 @@ void FixMSEVB::compute_coupling_values() {
         hamiltonian[parent * ns + child] = cr.V;
         hamiltonian[child * ns + parent] = cr.V;
       }
-      MPI_Allreduce(MPI_IN_PLACE, &hamiltonian[parent * ns + child],
-                    1, MPI_DOUBLE, MPI_SUM, world);
+      MPI_Allreduce(MPI_IN_PLACE, &hamiltonian[parent * ns + child], 1, MPI_DOUBLE, MPI_SUM, world);
       hamiltonian[child * ns + parent] = hamiltonian[parent * ns + child];
     }
   };
@@ -1255,8 +1136,7 @@ void FixMSEVB::compute_coupling_values() {
   // (multi-rank partitions may have different contributing ranks)
   auto bcast_edge = [&](int parent, int child, const ReactiveSite &site) {
     const ReactionDef &rxn = rxndefs[site.rxn_idx];
-    if (rxn.coupling_type != COUPLING_NONE &&
-        rxn.coupling_type != COUPLING_GRIMME2015) {
+    if (rxn.coupling_type != COUPLING_NONE && rxn.coupling_type != COUPLING_GRIMME2015) {
       MPI_Bcast(&hamiltonian[parent * ns + child], 1, MPI_DOUBLE, 0, samerank);
       hamiltonian[child * ns + parent] = hamiltonian[parent * ns + child];
     }
@@ -1280,30 +1160,26 @@ void FixMSEVB::compute_coupling_values() {
    Solve the eigensystem of the nstates x nstates Hamiltonian.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::solve_eigensystem() {
+void FixMSEVB::solve_eigensystem()
+{
   const int ns = nstates;
 
   for (int i = 0; i < ns; i++)
-    for (int j = 0; j < ns; j++)
-      H_work[i * ns + j] = hamiltonian[i * ns + j];
+    for (int j = 0; j < ns; j++) H_work[i * ns + j] = hamiltonian[i * ns + j];
 
   for (int i = 0; i < ns; i++) {
     eigenvalues[i] = 0.0;
     amplitudes[i] = 0.0;
   }
-  for (int i = 0; i < ns * ns; i++)
-    eigenvectors[i] = 0.0;
+  for (int i = 0; i < ns * ns; i++) eigenvectors[i] = 0.0;
 
   int info = JacobiEigen::solve(ns, H_work, eigenvalues, eigenvectors);
 
-  if (info != 0)
-    error->universe_all(FLERR,
-                        "Fix msevb: Jacobi eigensolver did not converge");
+  if (info != 0) error->universe_all(FLERR, "Fix msevb: Jacobi eigensolver did not converge");
 
   epot_ground = eigenvalues[0];
 
-  for (int i = 0; i < ns; i++)
-    amplitudes[i] = eigenvectors[i * ns + 0] * eigenvectors[i * ns + 0];
+  for (int i = 0; i < ns; i++) amplitudes[i] = eigenvectors[i * ns + 0] * eigenvectors[i * ns + 0];
 }
 
 /* ----------------------------------------------------------------------
@@ -1322,7 +1198,8 @@ void FixMSEVB::solve_eigensystem() {
      → stored as CouplingCorrection for direct application
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::compute_mixing_weights() {
+void FixMSEVB::compute_mixing_weights()
+{
   const int ns = nstates;
 
   // Build density matrix (unchanged)
@@ -1332,29 +1209,24 @@ void FixMSEVB::compute_mixing_weights() {
     fermi_dirac_occupancies(eigenvalues, ns, fd_occ);
 
     epot_ground = 0.0;
-    for (int k = 0; k < ns; k++)
-      epot_ground += fd_occ[k] * eigenvalues[k];
+    for (int k = 0; k < ns; k++) epot_ground += fd_occ[k] * eigenvalues[k];
 
     for (int k = 0; k < ns; k++) {
       if (fd_occ[k] < 1.0e-15) continue;
       for (int i = 0; i < ns; i++)
         for (int j = 0; j < ns; j++)
-          rho[i * ns + j] +=
-              fd_occ[k] * eigenvectors[i * ns + k] * eigenvectors[j * ns + k];
+          rho[i * ns + j] += fd_occ[k] * eigenvectors[i * ns + k] * eigenvectors[j * ns + k];
     }
 
-    for (int i = 0; i < ns; i++)
-      amplitudes[i] = rho[i * ns + i];
+    for (int i = 0; i < ns; i++) amplitudes[i] = rho[i * ns + i];
   } else {
     for (int i = 0; i < ns; i++)
       for (int j = 0; j < ns; j++)
-        rho[i * ns + j] =
-            eigenvectors[i * ns + 0] * eigenvectors[j * ns + 0];
+        rho[i * ns + j] = eigenvectors[i * ns + 0] * eigenvectors[j * ns + 0];
   }
 
   // Initialize weights from diagonal of density matrix
-  for (int k = 0; k < ns; k++)
-    weights[k] = rho[k * ns + k];
+  for (int k = 0; k < ns; k++) weights[k] = rho[k * ns + k];
 
   // Coupling adjustments and corrections for all sites (parallel + serial).
   // Single pass replaces separate Grimme weight adjustment + position-based
@@ -1367,8 +1239,7 @@ void FixMSEVB::compute_mixing_weights() {
 
     double rho_pc = rho[parent * ns + child];
 
-    auto cr = evaluate_coupling(rxn, epot[parent], epot[child],
-                                site.tag_H, site.tag_X, site.tag_Y);
+    auto cr = evaluate_coupling(rxn, epot[parent], epot[child], site.tag_H, site.tag_X, site.tag_Y);
 
     // Grimme weight adjustment: -2*rho_pc*g to parent, +2*rho_pc*g to child
     if (cr.is_grimme) {
@@ -1418,8 +1289,7 @@ void FixMSEVB::apply_coupling_corrections()
   double **f = atom->f;
   double **x = atom->x;
 
-  for (int k = 0; k < 6; k++)
-    coupling_virial[k] = 0.0;
+  for (int k = 0; k < 6; k++) coupling_virial[k] = 0.0;
 
   for (const auto &cc : coupling_corrections) {
     int idx_H = atom->map(cc.tag_H);
@@ -1445,16 +1315,14 @@ void FixMSEVB::apply_coupling_corrections()
     // Accumulate virial: vir[ab] = dHX[a]*FH[b] + dYX[a]*FY[b]
     if (idx_H >= 0 && idx_H < nlocal && idx_X >= 0 && idx_Y >= 0) {
       double dHX[3] = {x[idx_H][0] - x[idx_X][0], x[idx_H][1] - x[idx_X][1],
-                        x[idx_H][2] - x[idx_X][2]};
+                       x[idx_H][2] - x[idx_X][2]};
       double dYX[3] = {x[idx_Y][0] - x[idx_X][0], x[idx_Y][1] - x[idx_X][1],
-                        x[idx_Y][2] - x[idx_X][2]};
+                       x[idx_Y][2] - x[idx_X][2]};
       domain->minimum_image(FLERR, dHX[0], dHX[1], dHX[2]);
       domain->minimum_image(FLERR, dYX[0], dYX[1], dYX[2]);
 
-      double FH[3] = {cc.rho_factor * cc.fH[0], cc.rho_factor * cc.fH[1],
-                       cc.rho_factor * cc.fH[2]};
-      double FY[3] = {cc.rho_factor * cc.fY[0], cc.rho_factor * cc.fY[1],
-                       cc.rho_factor * cc.fY[2]};
+      double FH[3] = {cc.rho_factor * cc.fH[0], cc.rho_factor * cc.fH[1], cc.rho_factor * cc.fH[2]};
+      double FY[3] = {cc.rho_factor * cc.fY[0], cc.rho_factor * cc.fY[1], cc.rho_factor * cc.fY[2]};
 
       coupling_virial[0] += dHX[0] * FH[0] + dYX[0] * FY[0];
       coupling_virial[1] += dHX[1] * FH[1] + dYX[1] * FY[1];
@@ -1478,7 +1346,8 @@ void FixMSEVB::apply_coupling_corrections()
    Communication: single Allreduce of natoms*3 doubles (vs ns*natoms*3).
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::weight_based_hellmann_feynman_forces() {
+void FixMSEVB::weight_based_hellmann_feynman_forces()
+{
   sync_forces_to_host();
   const int nlocal = atom->nlocal;
   double **f = atom->f;
@@ -1493,8 +1362,7 @@ void FixMSEVB::weight_based_hellmann_feynman_forces() {
   }
 
   // Allreduce weighted forces across partitions (samerank comm)
-  MPI_Allreduce(MPI_IN_PLACE, &f[0][0], 3 * nlocal, MPI_DOUBLE, MPI_SUM,
-                samerank);
+  MPI_Allreduce(MPI_IN_PLACE, &f[0][0], 3 * nlocal, MPI_DOUBLE, MPI_SUM, samerank);
 
   // Add excess state diagonal force contributions from excess_forces buffer.
   // Only used by Approach A (compute_excess_states fills excess_forces).
@@ -1505,8 +1373,7 @@ void FixMSEVB::weight_based_hellmann_feynman_forces() {
       int sk = nsites_parallel + b;
       int state_k = sk + 1;
       double wk = weights[state_k];
-      if (std::fabs(wk) < 1.0e-30)
-        continue;
+      if (std::fabs(wk) < 1.0e-30) continue;
       const int ef_off = b * ef_stride;
       for (int a = 0; a < nlocal; a++) {
         f[a][0] += wk * excess_forces[ef_off + a * 3 + 0];
@@ -1524,7 +1391,8 @@ void FixMSEVB::weight_based_hellmann_feynman_forces() {
    Fermi-Dirac occupancy solver.
 ---------------------------------------------------------------------- */
 
-void FixMSEVB::fermi_dirac_occupancies(double *evals, int ns, double *occ) {
+void FixMSEVB::fermi_dirac_occupancies(double *evals, int ns, double *occ)
+{
   double mu = (ns > 1) ? 0.5 * (evals[0] + evals[1]) : evals[0];
 
   for (int iter = 0; iter < 150; iter++) {
@@ -1547,12 +1415,9 @@ void FixMSEVB::fermi_dirac_occupancies(double *evals, int ns, double *occ) {
       sumq += f;
       dsumq += df;
     }
-    if (fabs(sumq - 1.0) < 1.0e-10)
-      return;
-    if (fabs(dsumq) > 1.0e-20)
-      mu += (1.0 - sumq) / dsumq;
+    if (fabs(sumq - 1.0) < 1.0e-10) return;
+    if (fabs(dsumq) > 1.0e-20) mu += (1.0 - sumq) / dsumq;
   }
 
-  error->universe_all(
-      FLERR, "Fix msevb: Fermi-Dirac occupancy solver did not converge");
+  error->universe_all(FLERR, "Fix msevb: Fermi-Dirac occupancy solver did not converge");
 }

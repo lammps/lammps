@@ -119,6 +119,7 @@ OPT.
    * :doc:`momentum (k) <fix_momentum>`
    * :doc:`momentum/chunk <fix_momentum>`
    * :doc:`move <fix_move>`
+   * :doc:`msevb <fix_msevb>`
    * :doc:`msst <fix_msst>`
    * :doc:`mvv/dpd <fix_mvv_dpd>`
    * :doc:`mvv/edpd <fix_mvv_dpd>`

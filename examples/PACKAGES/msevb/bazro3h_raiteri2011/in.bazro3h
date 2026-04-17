@@ -23,8 +23,8 @@ fix com all momentum 100 linear 1 1 1
 variable p world 0 1
 
 labelmap atom 1  Ba 2  Zr 3   Y 4  O1 5  O2 6  O3 7  H1
-#dump all_dump all custom 1 all_dump.lammpstrj.${p} id typelabel xu yu zu
-#dump msevb_dump evb_atoms custom 1 msevb_dump.lammpstrj.${p} id typelabel xu yu zu
+#dump all_dump all custom 1 all_dump.lammpstrj.${p} id typelabel x y z
+#dump msevb_dump evb_atoms custom 1 msevb_dump.lammpstrj.${p} id typelabel x y z
 
 thermo_style custom step temp pe ke etotal f_evb
 thermo_modify flush yes

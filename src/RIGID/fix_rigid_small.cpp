@@ -170,7 +170,6 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   // parse optional args
 
-  int seed;
   langflag = 0;
   inpfile = nullptr;
   onemols = nullptr;

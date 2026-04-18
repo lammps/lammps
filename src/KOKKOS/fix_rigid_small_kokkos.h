@@ -28,6 +28,8 @@ FixStyle(rigid/small/kk/host,FixRigidSmallKokkos<LMPHostType>);
 #include "kokkos_few.h"
 #include "kokkos_type.h"
 #include "rigid_body_kokkos.hpp"
+#include "Kokkos_Random.hpp"
+#include "rand_pool_wrap_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -114,24 +116,30 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   int comm_me;
   bigint ntimestep;
 
+  DAT::tdual_int_1d k_atom2body, k_bodyown, k_eflags;
+  DAT::tdual_tagint_1d k_bodytag;
+  DAT::tdual_imageint_1d k_xcmimage;
+
+  typename AT::t_kkfloat_1d_3_lr d_x;
+  typename AT::t_kkfloat_1d_3 d_v;
+  typename AT::t_kkacc_1d_3 d_f;
+  typename AT::t_kkfloat_1d d_rmass, d_mass;
+  typename AT::t_int_1d d_type, d_mask, d_atom2body, d_bodyown, d_eflags;
+  typename AT::t_tagint_1d d_tag, d_bodytag;
+  typename AT::t_imageint_1d d_image, d_xcmimage;
+
   #include "rigid_body_kokkos.hpp"
   TransformView<BodyKokkos*, Body*, Kokkos::LayoutRight, DeviceType> k_body;
   Kokkos::View <BodyKokkos*,        Kokkos::LayoutRight, DeviceType> d_body;
 
   TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_displace;
+  typename AT::t_kkfloat_2d d_displace;
 
-  DAT::tdual_int_1d k_atom2body, k_bodyown, k_eflags;
-  DAT::tdual_tagint_1d k_bodytag;
-  DAT::tdual_imageint_1d k_xcmimage;
+  TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_langextra;
 
   int map_style;
   DAT::tdual_int_1d k_map_array;
   dual_hash_type k_map_hash;
-
-  typename AT::t_int_1d d_atom2body, d_bodyown, d_eflags;
-  typename AT::t_tagint_1d d_tag, d_bodytag;
-  typename AT::t_imageint_1d d_xcmimage;
-  typename AT::t_kkfloat_2d d_displace;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
@@ -146,15 +154,6 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   DupScatterView<KK_ACC_FLOAT *[6], typename AT::t_kkacc_1d_6::array_layout> dup_vatom;
   NonDupScatterView<KK_ACC_FLOAT *[6], typename AT::t_kkacc_1d_6::array_layout> ndup_vatom;
 
-  typename AT::t_kkfloat_1d_3_lr d_x;
-  typename AT::t_kkfloat_1d_3 d_v;
-  typename AT::t_kkacc_1d_3 d_f;
-  typename AT::t_kkfloat_1d d_rmass;
-  typename AT::t_kkfloat_1d d_mass;
-  typename AT::t_int_1d d_type;
-  typename AT::t_int_1d d_mask;
-  typename AT::t_imageint_1d d_image;
-
   DAT::ttransform_kkacc_1d k_eatom;
   DAT::ttransform_kkacc_1d_6 k_vatom;
   typename AT::t_kkacc_1d d_eatom;
@@ -163,6 +162,7 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   Few<KK_FLOAT,3> d_prd;
   Few<KK_FLOAT,6> d_h;
 
+  void apply_langevin_thermostat() override;
   void compute_forces_and_torques() override;
   void enforce2d_kokkos();
   void image_shift_kokkos();
@@ -194,6 +194,16 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
 
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &) override;
 
+#ifndef LMP_KOKKOS_DEBUG_RNG
+    Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
+    typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
+
+    //Kokkos::Random_XorShift1024_Pool<DeviceType> rand_pool;
+    //typedef typename Kokkos::Random_XorShift1024_Pool<DeviceType>::generator_type rand_type;
+#else
+    RandPoolWrap rand_pool;
+    typedef RandWrap rand_type;
+#endif
 
 };
 

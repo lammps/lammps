@@ -68,7 +68,7 @@ class FixRigidSmall : public Fix {
   double compute_scalar() override;
   double memory_usage() override;
 
-    struct Body {
+  struct Body {
     int natoms;            // total number of atoms in body
     int ilocal;            // index of owning atom
     double mass;           // total mass of body
@@ -92,6 +92,7 @@ class FixRigidSmall : public Fix {
   };
 
  protected:
+  int seed;
   double dtv, dtf, dtq;
   double *step_respa;
   int triclinic;
@@ -201,7 +202,7 @@ class FixRigidSmall : public Fix {
   void create_bodies(tagint *);
   void setup_bodies_static();
   void setup_bodies_dynamic();
-  void apply_langevin_thermostat();
+  virtual void apply_langevin_thermostat();
   virtual void compute_forces_and_torques();
   void enforce2d();
   void readfile(int, double **, int *);

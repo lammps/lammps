@@ -50,7 +50,12 @@ using namespace RigidConst;
 
 template<class DeviceType>
 FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixRigidSmall(lmp, narg, arg)
+  FixRigidSmall(lmp, narg, arg),
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool(seed + comm->me, lmp)
+#else
+  rand_pool(seed + comm->me)
+#endif
 {
   kokkosable = 1;
   //exchange_comm_device = sort_device = 1;
@@ -139,6 +144,10 @@ FixRigidSmallKokkos<DeviceType>::~FixRigidSmallKokkos()
   atom2body = nullptr;
   xcmimage = nullptr;
   eflags = nullptr;
+
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool.destroy();
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,6 +158,9 @@ void FixRigidSmallKokkos<DeviceType>::init()
   FixRigidSmall::init();
   atomKK->k_mass.modify_host();
   atomKK->k_mass.template sync<DeviceType>();
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool.init(random,seed + comm->me);
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -157,6 +169,11 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
 {
   atomKK->sync(Host, ALL_MASK);
+  if (langflag && (nlocal_body > maxlang)) {
+    maxlang = nlocal_body + nghost_body;
+    memoryKK->destroy_kokkos(k_langextra, langextra);
+    memoryKK->create_kokkos(k_langextra, langextra, 6, "rigid/small:langextra");
+  }
   FixRigidSmall::setup(vflag);
   atomKK->modified(Host, X_MASK | V_MASK);
   k_body.modify_host();
@@ -274,13 +291,83 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidSmallInitialIntegrate, 
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::post_force(int /*vflag*/)
 {
-  if (langflag) {
-    atomKK->sync(Host, ALL_MASK);
-    k_body.sync_host();
-    apply_langevin_thermostat();
-    k_body.modify_host();
-  }
+  if (langflag) apply_langevin_thermostat();
   if (earlyflag) compute_forces_and_torques();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::apply_langevin_thermostat()
+{
+  // grow langextra if needed
+  if (nlocal_body > maxlang) {
+    maxlang = nlocal_body + nghost_body;
+    memoryKK->destroy_kokkos(k_langextra, langextra);
+    memoryKK->create_kokkos(k_langextra, langextra, 6, "rigid/small:langextra");
+  }
+
+  KK_FLOAT delta = update->ntimestep - update->beginstep;
+  delta /= update->endstep - update->beginstep;
+  const KK_FLOAT l_t_target = t_start + delta * (t_stop-t_start);
+  const KK_FLOAT l_tsqrt = sqrt(l_t_target);
+  const KK_FLOAT l_t_period = static_cast<KK_FLOAT>(t_period);
+
+  const KK_FLOAT l_ftm2v = force->ftm2v;
+  const KK_FLOAT l_langfactor = sqrt(24.0 * force->boltz / t_period
+    / update->dt / force->mvv2e) / l_ftm2v;
+
+  copymode = 1;
+  auto l_body = d_body;
+  auto l_rand_pool = rand_pool;
+  auto l_langextra = k_langextra.template view<DeviceType>();
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, nlocal_body + nghost_body),
+    KOKKOS_LAMBDA(const int &ibody) {
+      BodyKokkos &bk = l_body(ibody);
+      KK_FLOAT gamma1 = -bk.mass / l_t_period / l_ftm2v;
+      KK_FLOAT gamma2 = sqrt(bk.mass) * l_tsqrt * l_langfactor;
+
+      rand_type rand_gen = l_rand_pool.get_state();
+#if defined (LMP_KOKKOS_SINGLE_SINGLE) || defined (LMP_KOKKOS_SINGLE_DOUBLE)
+      const float rnd1 = rand_gen.frand() - 0.5;
+      const float rnd2 = rand_gen.frand() - 0.5;
+      const float rnd3 = rand_gen.frand() - 0.5;
+      const float rnd4 = rand_gen.frand() - 0.5;
+      const float rnd5 = rand_gen.frand() - 0.5;
+      const float rnd6 = rand_gen.frand() - 0.5;
+#elif defined (LMP_KOKKOS_DOUBLE_DOUBLE)
+      const double rnd1 = rand_gen.drand() - 0.5;
+      const double rnd2 = rand_gen.drand() - 0.5;
+      const double rnd3 = rand_gen.drand() - 0.5;
+      const double rnd4 = rand_gen.drand() - 0.5;
+      const double rnd5 = rand_gen.drand() - 0.5;
+      const double rnd6 = rand_gen.drand() - 0.5;
+#endif
+      l_rand_pool.free_state(rand_gen);
+
+      l_langextra(ibody, 0) = gamma1 * bk.vcm[0] + gamma2 * rnd1;
+      l_langextra(ibody, 1) = gamma1 * bk.vcm[1] + gamma2 * rnd2;
+      l_langextra(ibody, 2) = gamma1 * bk.vcm[2] + gamma2 * rnd3;
+      gamma1 = -1.0 / l_t_period / l_ftm2v;
+      gamma2 = l_tsqrt * l_langfactor;
+      KK_FLOAT wbody[3], tbody[3];
+      // convert omega from space frame to body frame
+      MathExtraKokkos::transpose_matvec(bk.ex_space,bk.ey_space,bk.ez_space,bk.omega,wbody);
+      // compute langevin torques in the body frame
+      tbody[0] = bk.inertia[0] * gamma1 * wbody[0]
+                 + sqrt(bk.inertia[0]) * gamma2 * rnd4;
+      tbody[1] = bk.inertia[1] * gamma1 * wbody[1]
+                 + sqrt(bk.inertia[1]) * gamma2 * rnd5;
+      tbody[2] = bk.inertia[2] * gamma1 * wbody[2] +
+                 + sqrt(bk.inertia[2]) * gamma2 * rnd6;
+      // convert langevin torques from body frame back to space frame
+      MathExtraKokkos::matvec(bk.ex_space,bk.ey_space,bk.ez_space,tbody,
+                              &l_langextra(ibody, 3));
+    }
+  );
+  copymode = 0;
+  k_langextra.modify_device();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -874,7 +961,7 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques()
   Kokkos::parallel_for(
     Kokkos::RangePolicy<DeviceType>(0, nbody_total),
     KOKKOS_LAMBDA(const int &ibody) {
-      BodyKokkos &bk = l_body[ibody];
+      BodyKokkos &bk = l_body(ibody);
       bk.fcm[0] = bk.fcm[1] = bk.fcm[2] = KK_FLOAT(0.0);
       bk.torque[0] = bk.torque[1] = bk.torque[2] = KK_FLOAT(0.0);
     }
@@ -914,29 +1001,43 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques()
   k_body.sync_device();
 
   if (langflag) {
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      double *fcm = body[ibody].fcm;
-      fcm[0] += langextra[ibody][0];
-      fcm[1] += langextra[ibody][1];
-      fcm[2] += langextra[ibody][2];
-      double *tcm = body[ibody].torque;
-      tcm[0] += langextra[ibody][3];
-      tcm[1] += langextra[ibody][4];
-      tcm[2] += langextra[ibody][5];
-    }
+    copymode = 1;
+    auto l_body = d_body;
+    auto l_langextra = k_langextra.template view<DeviceType>();
+    Kokkos::parallel_for(
+      Kokkos::RangePolicy<DeviceType>(0, nbody_total),
+      KOKKOS_LAMBDA(const int &ibody) {
+        BodyKokkos &bk = l_body(ibody);
+        bk.fcm[0] += l_langextra(ibody, 0);
+        bk.fcm[1] += l_langextra(ibody, 1);
+        bk.fcm[2] += l_langextra(ibody, 2);
+        bk.torque[0] += l_langextra(ibody, 3);
+        bk.torque[1] += l_langextra(ibody, 4);
+        bk.torque[2] += l_langextra(ibody, 5);
+      }
+    );
+    copymode = 0;
   }
 
   if (id_gravity) {
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      double gmass = body[ibody].mass;
-      double *fcm = body[ibody].fcm;
-      fcm[0] += gvec[0]*gmass;
-      fcm[1] += gvec[1]*gmass;
-      fcm[2] += gvec[2]*gmass;
-    }
+    copymode = 1;
+    auto l_body = d_body;
+    auto l_gvec0 = gvec[0];
+    auto l_gvec1 = gvec[1];
+    auto l_gvec2 = gvec[2];
+    Kokkos::parallel_for(
+      Kokkos::RangePolicy<DeviceType>(0, nbody_total),
+      KOKKOS_LAMBDA(const int &ibody) {
+        BodyKokkos &bk = l_body(ibody);
+        bk.fcm[0] += l_gvec0 * bk.mass;
+        bk.fcm[1] += l_gvec1 * bk.mass;
+        bk.fcm[2] += l_gvec2 * bk.mass;
+      }
+    );
+    copymode = 0;
   }
 
-  if (langflag || id_gravity) k_body.sync_device();
+  if (langflag || id_gravity) k_body.modify_device();
 }
 
 /* ---------------------------------------------------------------------- */

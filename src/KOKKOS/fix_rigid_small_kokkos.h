@@ -24,6 +24,7 @@ FixStyle(rigid/small/kk/host,FixRigidSmallKokkos<LMPHostType>);
 #define LMP_FIX_RIGID_SMALL_KOKKOS_H
 
 #include "fix_rigid_small.h"
+#include "kokkos_base.h"
 #include "kokkos_few.h"
 #include "kokkos_type.h"
 #include "rigid_body_kokkos.hpp"
@@ -42,7 +43,7 @@ struct TagRigidSmallSetV {};
 
 struct TagRigidSmallComputeForcesTorques {};
 template<class DeviceType>
-class FixRigidSmallKokkos : public FixRigidSmall {
+class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -172,6 +173,27 @@ class FixRigidSmallKokkos : public FixRigidSmall {
 
   template<int TRICLINIC, int EVFLAG>
   void set_v_kokkos();
+
+  // KOKKOS BASE
+
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d &,
+                               int, int *) override;
+
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d &) override;
+
+  int pack_reverse_comm_kokkos(int, int, DAT::tdual_double_1d &) override;
+
+  void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d,
+                                          DAT::tdual_double_1d &) override;
+
+  int pack_exchange_kokkos(const int &, DAT::tdual_double_2d_lr &,
+                           DAT::tdual_int_1d, DAT::tdual_int_1d, ExecutionSpace) override;
+
+  void unpack_exchange_kokkos(DAT::tdual_double_2d_lr &, DAT::tdual_int_1d &,
+                              int, int, int, ExecutionSpace) override;
+
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &) override;
+
 
 };
 

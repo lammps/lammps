@@ -53,6 +53,7 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
   FixRigidSmall(lmp, narg, arg)
 {
   kokkosable = 1;
+  //exchange_comm_device = sort_device = 1;
   atomKK = (AtomKokkos *) atom;
   domainKK = (DomainKokkos *) domain;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -1389,6 +1390,37 @@ void FixRigidSmallKokkos<DeviceType>::zero_rotation()
   // set velocity of atoms in rigid bodues
   if (triclinic) set_v_kokkos<1,0>();
   else set_v_kokkos<0,0>();
+}
+
+/* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_body.sync_device();
+  k_bodytag.sync_device();
+  k_xcmimage.sync_device();
+  k_displace.sync_device();
+  k_bodyown.sync_device();
+  if (extended) k_eflags.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_body.view_device());
+  Sorter.sort(LMPDeviceType(), k_bodytag.view_device());
+  Sorter.sort(LMPDeviceType(), k_xcmimage.view_device());
+  Sorter.sort(LMPDeviceType(), k_displace.view_device());
+  Sorter.sort(LMPDeviceType(), k_bodyown.view_device());
+  if (extended) Sorter.sort(LMPDeviceType(), k_eflags.view_device());
+
+  k_body.modify_device();
+  k_bodytag.modify_device();
+  k_xcmimage.modify_device();
+  k_displace.modify_device();
+  k_bodyown.modify_device();
+  if (extended) k_eflags.modify_device();
 }
 
 /* ---------------------------------------------------------------------- */

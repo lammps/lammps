@@ -197,9 +197,6 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
 #ifndef LMP_KOKKOS_DEBUG_RNG
     Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
     typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
-
-    //Kokkos::Random_XorShift1024_Pool<DeviceType> rand_pool;
-    //typedef typename Kokkos::Random_XorShift1024_Pool<DeviceType>::generator_type rand_type;
 #else
     RandPoolWrap rand_pool;
     typedef RandWrap rand_type;

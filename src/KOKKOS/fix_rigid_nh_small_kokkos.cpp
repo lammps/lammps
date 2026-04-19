@@ -1629,8 +1629,75 @@ void FixRigidNHSmallKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, do
 template<class DeviceType>
 double FixRigidNHSmallKokkos<DeviceType>::compute_scalar()
 {
-  k_body.sync_host();
-  return FixRigidNHSmall::compute_scalar();
+  // compute the kinetic parts of H_NVE in Kameraj et al (JCP 2005, pp 224114)
+  // translational and rotational kinetic energy
+  double ke = 0.0, ke_all;
+  copymode = 1;
+  k_body.sync_device();
+  auto l_body = d_body;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<DeviceType>(0, nlocal_body),
+    KOKKOS_LAMBDA(const int &ibody, double &l_ke) {
+      BodyKokkos &bk = l_body(ibody);
+      l_ke += bk.mass * (bk.vcm[0]*bk.vcm[0] + bk.vcm[1]*bk.vcm[1] + bk.vcm[2]*bk.vcm[2]);
+      double Pkq[4];
+      for (int k = 1; k < 4; k++) {
+        if (k == 1) {
+          Pkq[0] = -bk.quat[1];
+          Pkq[1] =  bk.quat[0];
+          Pkq[2] =  bk.quat[3];
+          Pkq[3] = -bk.quat[2];
+        } else if (k == 2) {
+          Pkq[0] = -bk.quat[2];
+          Pkq[1] = -bk.quat[3];
+          Pkq[2] =  bk.quat[0];
+          Pkq[3] =  bk.quat[1];
+        } else if (k == 3) {
+          Pkq[0] = -bk.quat[3];
+          Pkq[1] =  bk.quat[2];
+          Pkq[2] = -bk.quat[1];
+          Pkq[3] =  bk.quat[0];
+        }
+        double tmp = bk.conjqm[0]*Pkq[0] + bk.conjqm[1]*Pkq[1]
+                     + bk.conjqm[2]*Pkq[2] + bk.conjqm[3]*Pkq[3];
+        tmp *= tmp;
+        if (fabs(bk.inertia[k-1]) < 1e-6) tmp = 0.0;
+        else tmp /= (8.0 * bk.inertia[k-1]);
+        l_ke += tmp;
+      }
+    }, ke
+  );
+  copymode = 0;
+  MPI_Allreduce(&ke, &ke_all, 1, MPI_DOUBLE, MPI_SUM, world);
+  double energy = ke_all * mvv2e;
+  double kt = boltz * t_target;
+  if (tstat_flag) {
+    // thermostat chain energy: from equation 12 in Kameraj et al (JCP 2005)
+    energy += kt * (nf_t * eta_t[0] + nf_r * eta_r[0]);
+    for (int i = 1; i < t_chain; i++) energy += kt * (eta_t[i] + eta_r[i]);
+    for (int i = 0; i < t_chain; i++) {
+      energy += 0.5 * q_t[i] * (eta_dot_t[i] * eta_dot_t[i]);
+      energy += 0.5 * q_r[i] * (eta_dot_r[i] * eta_dot_r[i]);
+    }
+  }
+  if (pstat_flag) {
+    // using equation 22 in Kameraj et al for H_NPT
+    double e = 0.0;
+    for (int i = 0; i < 3; i++) {
+      if (p_flag[i])
+        e += epsilon_mass[i] * epsilon_dot[i] * epsilon_dot[i];
+    }
+    energy += e*(0.5/pdim);
+    double vol = domain->xprd * domain->yprd;
+    if (domain->dimension == 3) vol *= domain->zprd;
+    double p0 = (p_target[0] + p_target[1] + p_target[2]) / 3.0;
+    energy += p0 * vol / nktv2p;
+    for (int i = 0;  i < p_chain; i++) {
+      energy += kt * eta_b[i];
+      energy += 0.5 * q_b[i] * (eta_dot_b[i] * eta_dot_b[i]);
+    }
+  }
+  return energy;
 }
 
 /* ---------------------------------------------------------------------- */

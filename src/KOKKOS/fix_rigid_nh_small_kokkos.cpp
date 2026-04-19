@@ -771,16 +771,22 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
   // 3. THE FIX: Dilate the Rigid Body Centers of Mass on the Device
   k_body.sync_device();
   auto l_body = d_body;
-  auto l_p_flag = Few<int, 3>{p_flag[0], p_flag[1], p_flag[2]};
-  auto l_center = Few<KK_FLOAT, 3>{(KK_FLOAT)center[0], (KK_FLOAT)center[1], (KK_FLOAT)center[2]};
-  auto l_efac = Few<KK_FLOAT, 3>{(KK_FLOAT)e_fac[0], (KK_FLOAT)e_fac[1], (KK_FLOAT)e_fac[2]};
+  auto l_p_flag0 = p_flag[0];
+  auto l_p_flag1 = p_flag[1];
+  auto l_p_flag2 = p_flag[2];
+  KK_FLOAT l_center0 = static_cast<KK_FLOAT>(center[0]);
+  KK_FLOAT l_center1 = static_cast<KK_FLOAT>(center[1]);
+  KK_FLOAT l_center2 = static_cast<KK_FLOAT>(center[2]);
+  KK_FLOAT l_efac0 = static_cast<KK_FLOAT>(e_fac[0]);
+  KK_FLOAT l_efac1 = static_cast<KK_FLOAT>(e_fac[1]);
+  KK_FLOAT l_efac2 = static_cast<KK_FLOAT>(e_fac[2]);
   copymode = 1;
   Kokkos::parallel_for(nlocal_body,
     KOKKOS_LAMBDA(const int &ibody) {
       BodyKokkos &bk = l_body(ibody);
-      if (l_p_flag[0]) bk.xcm[0] = (bk.xcm[0] - l_center[0]) * l_efac[0] + l_center[0];
-      if (l_p_flag[1]) bk.xcm[1] = (bk.xcm[1] - l_center[1]) * l_efac[1] + l_center[1];
-      if (l_p_flag[2]) bk.xcm[2] = (bk.xcm[2] - l_center[2]) * l_efac[2] + l_center[2];
+      if (l_p_flag0) bk.xcm[0] = (bk.xcm[0] - l_center0) * l_efac0 + l_center0;
+      if (l_p_flag1) bk.xcm[1] = (bk.xcm[1] - l_center1) * l_efac1 + l_center1;
+      if (l_p_flag2) bk.xcm[2] = (bk.xcm[2] - l_center2) * l_efac2 + l_center2;
     }
   );
   copymode = 0;

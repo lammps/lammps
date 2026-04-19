@@ -1421,51 +1421,35 @@ void FixRigidSmallKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, doub
 template<class DeviceType>
 double FixRigidSmallKokkos<DeviceType>::compute_scalar()
 {
-  k_body.sync_host();
-  return FixRigidSmall::compute_scalar();
-}
-
-/*
-{
-
-  double *vcm,*inertia;
-
-  KK_ACC_FLOAT t;
-
-  for (int i = 0; i < nlocal_body; i++) {
-
-    double wbody[3],rot[3][3];
-
-
-    vcm = body[i].vcm;
-    t += body[i].mass * (vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2]);
-
-    // for Iw^2 rotational term, need wbody = angular velocity in body frame
-    // not omega = angular velocity in space frame
-
-    inertia = body[i].inertia;
-
-    KK_FLOAT wbody[3],rot[3][3];
-    MathExtraKokkos::quat_to_mat(bk.quat,rot);
-    MathExtraKokkos::transpose_matvec(rot, bk.angmom, wbody);
-    if (bk.inertia[0] == 0.0) wbody[0] = 0.0;
-    else wbody[0] /= bk.inertia[0];
-    if (bk.inertia[1] == 0.0) wbody[1] = 0.0;
-    else wbody[1] /= bk.inertia[1];
-    if (bk.inertia[2] == 0.0) wbody[2] = 0.0;
-    else wbody[2] /= bk.inertia[2];
-
-    t += bk.inertia[0] * wbody[0] * wbody[0]
-         + bk.inertia[1] * wbody[1] * wbody[1]
-         + bk.inertia[2] * wbody[2] * wbody[2];
-  }
-
-  double tall;
-  MPI_Allreduce(&t,&tall,1,MPI_DOUBLE,MPI_SUM,world);
-
-  double tfactor = force->mvv2e / ((6.0*nbody - nlinear) * force->boltz);
-  tall *= tfactor;
-  return tall;
+  KK_ACC_FLOAT t, t_all;
+  copymode = 1;
+  auto l_body = d_body;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<DeviceType>(0, nlocal_body),
+    KOKKOS_LAMBDA(const int &ibody, KK_ACC_FLOAT &l_t) {
+      BodyKokkos &bk = l_body(ibody);
+      l_t += bk.mass * (bk.vcm[0]*bk.vcm[0] + bk.vcm[1]*bk.vcm[1] + bk.vcm[2]*bk.vcm[2]);
+      // for Iw^2 rotational term, need wbody = angular velocity in body frame
+      // not omega = angular velocity in space frame
+      KK_FLOAT wbody[3], rot[3][3];
+      MathExtraKokkos::quat_to_mat(bk.quat, rot);
+      MathExtraKokkos::transpose_matvec(rot, bk.angmom, wbody);
+      if (bk.inertia[0] == 0.0) wbody[0] = 0.0;
+      else wbody[0] /= bk.inertia[0];
+      if (bk.inertia[1] == 0.0) wbody[1] = 0.0;
+      else wbody[1] /= bk.inertia[1];
+      if (bk.inertia[2] == 0.0) wbody[2] = 0.0;
+      else wbody[2] /= bk.inertia[2];
+      l_t += bk.inertia[0] * wbody[0] * wbody[0]
+             + bk.inertia[1] * wbody[1] * wbody[1]
+             + bk.inertia[2] * wbody[2] * wbody[2];
+    }, t
+  );
+  copymode = 0;
+  MPI_Allreduce(&t, &t_all, 1, MPI_KK_ACC_FLOAT, MPI_SUM, world);
+  KK_ACC_FLOAT tfactor = force->mvv2e / ((6.0*nbody - nlinear) * force->boltz);
+  t_all *= tfactor;
+  return static_cast<double>(t_all);
 }
 */
 

@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class PairILPTMD : virtual public PairILPGrapheneHBN {
  public:
   PairILPTMD(class LAMMPS *);
+  void settings(int, char **) override;
 
  protected:
-  void settings(int, char **) override;
   void ILP_neigh() override;
   void calc_normal() override;
   void calc_FRep(int, int) override;

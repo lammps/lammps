@@ -424,7 +424,7 @@ bool FixEHEX::check_cluster(tagint *shake_atom, int n, Region *region)
 
       // check if reduced mass is used
 
-      mi = (rmass) ? rmass[lid[i]] : mass[type[lid[i]]];
+      mi = rmass ? rmass[lid[i]] : mass[type[lid[i]]];
       mcluster += mi;
 
       // accumulate centre of mass
@@ -530,7 +530,7 @@ void FixEHEX::com_properties(double *vr, double *sfr, double *sfvr, double *K, d
 
       // check if reduced mass is used
 
-      mi = (rmass) ? rmass[i] : mass[type[i]];
+      mi = rmass ? rmass[i] : mass[type[i]];
 
       // accumulate total mass
 
@@ -572,7 +572,7 @@ void FixEHEX::com_properties(double *vr, double *sfr, double *sfvr, double *K, d
   *mr = buf[4];
 
   if (nlocal > 0)
-    mi = (rmass) ? rmass[0] : mass[type[0]];
+    mi = rmass ? rmass[0] : mass[type[0]];
   else
     mi = 1.0;
   if ((*mr / mi) < 1.e-14) error->all(FLERR, "Fix ehex error mass of region is close to zero");

@@ -548,7 +548,7 @@ void PairReaxFF::write_reax_atoms()
   int *num_hbonds = fix_reaxff->num_hbonds;
 
   if (api->system->N > api->system->total_cap)
-    error->all(FLERR,"Too many ghost atoms");
+    error->all(FLERR,"Too many ghost atoms in ReaxFF pair style");
 
   for (int i = 0; i < api->system->N; ++i) {
     api->system->my_atoms[i].orig_id = atom->tag[i];
@@ -665,7 +665,7 @@ int PairReaxFF::write_reax_lists()
       j &= NEIGHMASK;
       get_distance(x[j], x[i], &d_sqr, &dvec);
 
-      if (d_sqr <= (cutoff_sqr)) {
+      if (d_sqr <= cutoff_sqr) {
         dist[j] = sqrt(d_sqr);
         set_far_nbr(&far_list[num_nbrs], j, dist[j], dvec);
         ++num_nbrs;

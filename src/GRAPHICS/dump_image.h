@@ -43,6 +43,7 @@ class DumpImage : public DumpCustom {
   ~DumpImage() override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
+  void write() override;
 
   void *extract(const char *, int &) override;
 
@@ -162,7 +163,6 @@ class DumpImage : public DumpCustom {
 
   void init_style() override;
   int modify_param(int, char **) override;
-  void write() override;
 
   void box_center();
   void view_params();

@@ -229,25 +229,25 @@ void FixWallPiston::post_integrate()
     paccelz = maxvz / tott;
 
     if (zloflag) {
-      zlo = z0 + paccelz*tott*tott/2.5 * (t2p5 );
-      vz =  paccelz * tott * (t1p5 );
+      zlo = z0 + paccelz*tott*tott/2.5 * t2p5;
+      vz =  paccelz * tott * t1p5;
     } else error->all(FLERR, "NL ramp in wall/piston only implemented in zlo for now");
   } else if (rampNL4flag) {
     paccelz = maxvz / tott;
 
     if (zloflag) {
-      zlo = z0 + paccelz/tott/3.0 * (ttt);
-      vz =  paccelz / tott * (tt);
+      zlo = z0 + paccelz/tott/3.0 * ttt;
+      vz =  paccelz / tott * tt;
     } else error->all(FLERR, "NL ramp in wall/piston only implemented in zlo for now");
   } else if (rampNL5flag) {
     paccelz = maxvz / tott;
 
     if (zloflag) {
-      zlo = z0 + paccelz/tott/tott/4.0 * (tttt);
-      vz =  paccelz / tott / tott * (ttt);
+      zlo = z0 + paccelz/tott/tott/4.0 * tttt;
+      vz =  paccelz / tott / tott * ttt;
     } else error->all(FLERR, "NL ramp in wall/piston only implemented in zlo for now");
   } else {
-    if (zloflag) { zlo = z0 + vz * t; }
+    if (zloflag) zlo = z0 + vz * t;
   }
 
   if ((update->ntimestep % 1000 == 0) && (comm->me == 0))

@@ -186,12 +186,15 @@ FixNeighborSwap::~FixNeighborSwap()
 }
 
 // helper function: detect known keywords
-static const std::unordered_set<std::string> known_keywords = {"region", "ke", "types", "diff",
-                                                               "rates"};
-static bool is_keyword(const std::string &arg)
+namespace {
+// NOLINTNEXTLINE
+const std::unordered_set<std::string> known_keywords = {"region", "ke", "types", "diff", "rates"};
+
+bool is_keyword(const std::string &arg)
 {
   return known_keywords.find(arg) != known_keywords.end();
 }
+}    // namespace
 
 /* ----------------------------------------------------------------------
    parse optional parameters at end of input line
@@ -277,7 +280,7 @@ void FixNeighborSwap::options(int narg, char **arg)
 
 int FixNeighborSwap::modify_param(int narg, char **arg)
 {
-  if (strcmp(arg[0],"vizsteps") == 0) {
+  if (strcmp(arg[0], "vizsteps") == 0) {
     if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify neighbor/swap", error);
     vizsteps = utils::inumeric(FLERR, arg[1], false, lmp);
     return 2;
@@ -753,10 +756,10 @@ void FixNeighborSwap::build_i_neighbor_list(int i_center)
 
     // Find local voronoi entry with selected central atom
     if ((int) voro_neighbor_list[n][0] == id_center) {
-      temp_j_id = voro_neighbor_list[n][1]; // NOLINT
+      temp_j_id = voro_neighbor_list[n][1];    // NOLINT
       temp_j = -1;
     } else if (((int) voro_neighbor_list[n][1] == id_center) && (i_center < 0)) {
-      temp_j_id = voro_neighbor_list[n][0]; // NOLINT
+      temp_j_id = voro_neighbor_list[n][0];    // NOLINT
       temp_j = -1;
     } else {
       continue;
@@ -1086,11 +1089,11 @@ int FixNeighborSwap::image(int *&objs, double **&parms)
       idx = atom->map(key);
       if (idx < 0) continue;
       imgobjs[n] = Graphics::SPHERE;
-      imgparms[n][0] = data.second; // use stored pre-swap atom type
+      imgparms[n][0] = data.second;    // use stored pre-swap atom type
       imgparms[n][1] = x[idx][0];
       imgparms[n][2] = x[idx][1];
       imgparms[n][3] = x[idx][2];
-      imgparms[n][4] = 0.0;     // radius is set with fflag2 in dump image
+      imgparms[n][4] = 0.0;    // radius is set with fflag2 in dump image
       ++n;
     }
   }

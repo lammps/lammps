@@ -1253,7 +1253,7 @@ init(std::vector<T>& v)
 {
   std::random_device dev;
   std::mt19937 mt(dev());
-  std::uniform_real_distribution<T> rand((T)(-1.0), (T)(1.0));
+  std::uniform_real_distribution<T> rand((T)-1.0, (T)1.0);
 
   int n = v.size();
   for (int i = 0;i < n;i++) {
@@ -1270,7 +1270,7 @@ init(std::vector<std::complex<T>>& v)
 {
   std::random_device dev;
   std::mt19937 mt(dev());
-  std::uniform_real_distribution<T> rand((T)(-1.0), (T)(1.0));
+  std::uniform_real_distribution<T> rand((T)-1.0, (T)1.0);
 
   int n = v.size();
   for (int i = 0;i < n;i++) {

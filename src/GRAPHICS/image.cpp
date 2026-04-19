@@ -200,16 +200,16 @@ void scale_pixmap(int ow, int oh, const unsigned char *opix, int nw, int nh, uns
 
       // interpolate R, G, and B channels separately with bilinear scaling
       npix[i * 3 * nw + 3 * j] =
-          (unsigned char) (a[0] * (1 - x_diff) * (1 - y_diff) + b[0] * (x_diff) * (1 - y_diff) +
-                           c[0] * (y_diff) * (1 - x_diff) + d[0] * (x_diff * y_diff));
+          (unsigned char) (a[0] * (1 - x_diff) * (1 - y_diff) + b[0] * x_diff * (1 - y_diff) +
+                           c[0] * y_diff * (1 - x_diff) + d[0] * (x_diff * y_diff));
 
       npix[i * 3 * nw + 3 * j + 1] =
-          (unsigned char) (a[1] * (1 - x_diff) * (1 - y_diff) + b[1] * (x_diff) * (1 - y_diff) +
-                           c[1] * (y_diff) * (1 - x_diff) + d[1] * (x_diff * y_diff));
+          (unsigned char) (a[1] * (1 - x_diff) * (1 - y_diff) + b[1] * x_diff * (1 - y_diff) +
+                           c[1] * y_diff * (1 - x_diff) + d[1] * (x_diff * y_diff));
 
       npix[i * 3 * nw + 3 * j + 2] =
-          (unsigned char) (a[2] * (1 - x_diff) * (1 - y_diff) + b[2] * (x_diff) * (1 - y_diff) +
-                           c[2] * (y_diff) * (1 - x_diff) + d[2] * (x_diff * y_diff));
+          (unsigned char) (a[2] * (1 - x_diff) * (1 - y_diff) + b[2] * x_diff * (1 - y_diff) +
+                           c[2] * y_diff * (1 - x_diff) + d[2] * (x_diff * y_diff));
     }
   }
 }

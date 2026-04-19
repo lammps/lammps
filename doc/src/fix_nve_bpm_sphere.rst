@@ -13,10 +13,13 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * nve/bpm/sphere = style name of this fix command
 * zero or more keyword/value pairs may be appended
-* keyword = *disc*
+* keyword = *update* or *disc*
 
   .. parsed-literal::
 
+       *update* value = *dipole* or *dipole/dlm*
+         dipole = update orientation of dipole moment during integration
+         dipole/dlm = use DLM integrator to update dipole orientation
        *disc* value = none = treat particles as 2d discs, not spheres
 
 Examples
@@ -50,6 +53,23 @@ disc (circle) instead of as a sphere.  This is only possible for 2d
 simulations, as defined by the :doc:`dimension <dimension>` keyword.
 The only difference between discs and spheres in this context is their
 moment of inertia, as used in the time integration.
+
+.. versionadded:: TBD
+
+If the *update* keyword is used with the *dipole* value, then the
+orientation of the dipole moment of each particle is also updated
+during the time integration,
+similar to the :doc:`fix nve/sphere <fix_nve_sphere>` command.
+This option should be used for models where a dipole moment is
+assigned to finite-size particles, e.g. spheroids via use of the
+:doc:`atom_style hybrid bpm/sphere dipole <atom_style>` command.
+
+The default dipole orientation integrator can be changed to the
+Dullweber-Leimkuhler-McLachlan integration scheme
+:ref:`(Dullweber) <nh-Dullweber>` when using *update* with the value
+*dipole/dlm*\ . This integrator is symplectic and time-reversible,
+giving better energy conservation and allows slightly longer timesteps
+at only a small additional computational cost.
 
 ----------
 

@@ -506,7 +506,7 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
 
   if (comm->me == 0 && ntimestep >= 0) WriteFormulas(Nmole, Nspec);
 
-  if (posflag && ((ntimestep) % posfreq == 0)) {
+  if (posflag && (ntimestep % posfreq == 0)) {
     WritePos(Nmole, Nspec);
     if (comm->me == 0) fflush(pos);
   }

@@ -200,7 +200,7 @@ void PairSMATBSingle::compute(int eflag, int vflag)
           aexpp = a5 * polyval5 + a4 * polyval4 + a3 * polyval3;
           Fr = -2.0 * (5.0 * a5 * polyval4 + 4.0 * a4 * polyval3 + 3.0 * a3 * polyval2);
           qsiexpq = x5 * polyval5 + x4 * polyval4 + x3 * polyval3;
-          Fb = ((5.0 * x5 * polyval4 + 4.0 * x4 * polyval3 + 3.0 * x3 * polyval2)) * qsiexpq;
+          Fb = (5.0 * x5 * polyval4 + 4.0 * x4 * polyval3 + 3.0 * x3 * polyval2) * qsiexpq;
         }
 
         // calculates the module of the pair energy between i and j

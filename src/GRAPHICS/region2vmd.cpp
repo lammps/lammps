@@ -38,24 +38,28 @@
 using namespace LAMMPS_NS;
 
 using MathConst::MY_2PI;
-static constexpr double SMALL = 1.0e-10;
-static constexpr double DELTA = 1.0e-5;
-static constexpr int RESOLUTION = 20;
-static constexpr double RADINC = MY_2PI / RESOLUTION;
 
-static const std::unordered_set<std::string> vmdcolors{
+namespace {
+constexpr double SMALL = 1.0e-10;
+constexpr double DELTA = 1.0e-5;
+constexpr int RESOLUTION = 20;
+constexpr double RADINC = MY_2PI / RESOLUTION;
+
+// NOLINTBEGIN
+const std::unordered_set<std::string> vmdcolors{
     "blue",    "red",      "gray",   "orange", "yellow",  "tan",    "silver",  "green",  "white",
     "pink",    "cyan",     "purple", "lime",   "mauve",   "ochre",  "iceblue", "black",  "yellow2",
     "yellow3", "green2",   "green3", "cyan2",  "cyan3",   "blue2",  "blue3",   "violet", "violet2",
     "magenta", "magenta2", "red2",   "red3",   "orange2", "orange3"};
 
-static const std::unordered_set<std::string> vmdmaterials{
+const std::unordered_set<std::string> vmdmaterials{
     "Opaque",      "Transparent", "BrushedMetal", "Diffuse",     "Ghost",          "Glass1",
     "Glass2",      "Glass3",      "Glossy",       "HardPlastic", "MetallicPastel", "Steel",
     "Translucent", "Edgy",        "EdgyShiny",    "EdgyGlass",   "Goodsell",       "AOShiny",
     "AOChalky",    "AOEdgy",      "BlownGlass",   "GlassBubble", "RTChrome"};
+// NOLINTEND
 
-static constexpr char draw_ellipsoid_function[] =
+constexpr char draw_ellipsoid_function[] =
     "\n# VMD script code to emulate ellipsoids with trinorm graphics objects\n"
     "proc vmd_draw_ellipsoid {mol level {center {0.0 0.0 0.0}} {radius {1.0 1.0 1.0}}} {\n"
     "   set orient {1.0 0.0 0.0 0.0}\n"
@@ -163,6 +167,7 @@ static constexpr char draw_ellipsoid_function[] =
     "   }\n"
     "   return $gid\n"
     "}\n\n";
+}
 
 /* ---------------------------------------------------------------------- */
 

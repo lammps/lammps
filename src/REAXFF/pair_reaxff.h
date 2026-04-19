@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -11,6 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+// clang-format off
 
 /* ----------------------------------------------------------------------
    Contributing author: Hasan Metin Aktulga, Purdue University
@@ -76,12 +76,12 @@ class PairReaxFF : public Pair {
   void write_reax_atoms();
   void get_distance(rvec, rvec, double *, rvec *);
   void set_far_nbr(ReaxFF::far_neighbor_data *, int, double, rvec);
-  int estimate_reax_lists();
-  int write_reax_lists();
-  void read_reax_forces(int);
+  virtual int estimate_reax_lists();
+  virtual int write_reax_lists();
+  virtual void read_reax_forces(int);
 
   int nmax;
-  void FindBond();
+  virtual void FindBond();
   double memory_usage() override;
 };
 

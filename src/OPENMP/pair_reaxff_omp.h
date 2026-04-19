@@ -98,11 +98,10 @@ class PairReaxFFOMP : public PairReaxFF, public ThrOMP {
 
  protected:
   void setup() override;
-  virtual void write_reax_atoms();
-  virtual int estimate_reax_lists();
-  virtual int write_reax_lists();
-  virtual void read_reax_forces(int);
-  virtual void FindBond();
+  int estimate_reax_lists() override;
+  int write_reax_lists() override;
+  void read_reax_forces(int) override;
+  void FindBond() override;
 
   // work array used in write_reax_lists()
   int *num_nbrs_offset;

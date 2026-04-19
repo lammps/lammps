@@ -1101,17 +1101,17 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHSmallSetV<TRICLINIC
     const double fc1 = Kokkos::fma(half_m_dt, vnew1 - vy, -0.5*d_f(i,1));
     const double fc2 = Kokkos::fma(half_m_dt, vnew2 - vz, -0.5*d_f(i,2));
 
-    const int xbox = (d_xcmimage(i) & IMGMASK) - IMGMAX;
-    const int ybox = (d_xcmimage(i) >> IMGBITS & IMGMASK) - IMGMAX;
-    const int zbox = (d_xcmimage(i) >> IMG2BITS) - IMGMAX;
+    const double xbox = static_cast<double>((d_xcmimage(i) & IMGMASK) - IMGMAX);
+    const double ybox = static_cast<double>((d_xcmimage(i) >> IMGBITS & IMGMASK) - IMGMAX);
+    const double zbox = static_cast<double>((d_xcmimage(i) >> IMG2BITS) - IMGMAX);
 
     const double x0 = TRICLINIC
-      ? Kokkos::fma(double(xbox), d_prd[0], Kokkos::fma(double(ybox), d_h[5], Kokkos::fma(double(zbox), d_h[4], d_x(i,0))))
-      : Kokkos::fma(double(xbox), d_prd[0], d_x(i,0));
+      ? Kokkos::fma(xbox, d_prd[0], Kokkos::fma(ybox, d_h[5], Kokkos::fma(zbox, d_h[4], d_x(i,0))))
+      : Kokkos::fma(xbox, d_prd[0], d_x(i,0));
     const double x1 = TRICLINIC
-      ? Kokkos::fma(double(ybox), d_prd[1], Kokkos::fma(double(zbox), d_h[3], d_x(i,1)))
-      : Kokkos::fma(double(ybox), d_prd[1], d_x(i,1));
-    const double x2 = Kokkos::fma(double(zbox), d_prd[2], d_x(i,2));
+      ? Kokkos::fma(ybox, d_prd[1], Kokkos::fma(zbox, d_h[3], d_x(i,1)))
+      : Kokkos::fma(ybox, d_prd[1], d_x(i,1));
+    const double x2 = Kokkos::fma(zbox, d_prd[2], d_x(i,2));
 
     const KK_ACC_FLOAT vd00 = KK_ACC_FLOAT(x0*fc0);
     const KK_ACC_FLOAT vd11 = KK_ACC_FLOAT(x1*fc1);

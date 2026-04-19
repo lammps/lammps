@@ -15,26 +15,29 @@
 #define LMP_FIX_RIGID_NH_SMALL_KOKKOS_H
 
 #include "fix_rigid_nh_small.h"
-#include "kokkos_type.h"
+#include "Kokkos_Random.hpp"
+#include "kokkos_base.h"
 #include "kokkos_few.h"
+#include "kokkos_type.h"
+#include "rand_pool_wrap_kokkos.h"
 #include "rigid_body_kokkos.hpp"
 
 namespace LAMMPS_NS {
 
-struct TagRigidNHInitialIntegrate {};
-struct TagRigidNHFinalIntegrate {};
-struct TagRigidNHAccumKE {};
-struct TagRigidNHComputeForcesTorques {};
-struct TagRigidNHMap {};
+struct TagRigidNHSmallInitialIntegrate {};
+struct TagRigidNHSmallFinalIntegrate {};
+struct TagRigidNHSmallAccumKE {};
+struct TagRigidNHSmallComputeForcesTorques {};
+struct TagRigidNHSmallMap {};
 
 template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
-struct TagRigidNHSetXV {};
+struct TagRigidNHSmallSetXV {};
 
 template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
-struct TagRigidNHSetV {};
+struct TagRigidNHSmallSetV {};
 
 template<class DeviceType>
-class FixRigidNHSmallKokkos : public FixRigidNHSmall {
+class FixRigidNHSmallKokkos : public FixRigidNHSmall, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -69,35 +72,35 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
   void grow_body() override;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidNHInitialIntegrate, const int&) const;
+  void operator()(TagRigidNHSmallInitialIntegrate, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidNHFinalIntegrate, const int&) const;
+  void operator()(TagRigidNHSmallFinalIntegrate, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidNHAccumKE, const int&, double&, double&) const;
-
-  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidNHSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagRigidNHSmallAccumKE, const int&, double&, double&) const;
 
   template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidNHSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT &) const;
+  void operator()(TagRigidNHSmallSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidNHSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagRigidNHSmallSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT &) const;
 
   template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidNHSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT &) const;
+  void operator()(TagRigidNHSmallSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
+
+  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidNHSmallSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT &) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidNHComputeForcesTorques, const int&) const;
+  void operator()(TagRigidNHSmallComputeForcesTorques, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidNHMap, const int &i) const;
+  void operator()(TagRigidNHSmallMap, const int &i) const;
 
  protected:
   class AtomKokkos *atomKK;
@@ -162,7 +165,7 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
   KK_FLOAT d_dtf2;
 
   void remap();
-  void compute_forces_and_torques_kokkos();
+  void compute_forces_and_torques() override;
   void enforce2d_kokkos();
   void image_shift_kokkos();
 
@@ -171,6 +174,41 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall {
 
   template<int TRICLINIC, int EVFLAG>
   void set_v_kokkos();
+
+  // LANGFLAG
+
+#ifndef LMP_KOKKOS_DEBUG_RNG
+    Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
+    typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
+#else
+    RandPoolWrap rand_pool;
+    typedef RandWrap rand_type;
+#endif
+
+  TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_langextra;
+  void apply_langevin_thermostat() override;
+
+
+  // KOKKOS BASE
+
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d &,
+                               int, int *) override;
+
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d &) override;
+
+  int pack_reverse_comm_kokkos(int, int, DAT::tdual_double_1d &) override;
+
+  void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d,
+                                          DAT::tdual_double_1d &) override;
+
+  int pack_exchange_kokkos(const int &, DAT::tdual_double_2d_lr &,
+                           DAT::tdual_int_1d, DAT::tdual_int_1d, ExecutionSpace) override;
+
+  void unpack_exchange_kokkos(DAT::tdual_double_2d_lr &, DAT::tdual_int_1d &,
+                              int, int, int, ExecutionSpace) override;
+
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &) override;
+
 };
 
 }    // namespace LAMMPS_NS

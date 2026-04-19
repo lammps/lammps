@@ -24,18 +24,19 @@ FixStyle(rigid/small/kk/host,FixRigidSmallKokkos<LMPHostType>);
 #define LMP_FIX_RIGID_SMALL_KOKKOS_H
 
 #include "fix_rigid_small.h"
+#include "Kokkos_Random.hpp"
 #include "kokkos_base.h"
 #include "kokkos_few.h"
 #include "kokkos_type.h"
-#include "rigid_body_kokkos.hpp"
-#include "Kokkos_Random.hpp"
 #include "rand_pool_wrap_kokkos.h"
+#include "rigid_body_kokkos.hpp"
 
 namespace LAMMPS_NS {
 
 struct TagRigidSmallInitialIntegrate {};
 struct TagRigidSmallFinalIntegrate {};
-struct TagRigidMap {};
+struct TagRigidSmallComputeForcesTorques {};
+struct TagRigidSmallMap {};
 
 template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
 struct TagRigidSmallSetXV {};
@@ -43,7 +44,6 @@ struct TagRigidSmallSetXV {};
 template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
 struct TagRigidSmallSetV {};
 
-struct TagRigidSmallComputeForcesTorques {};
 template<class DeviceType>
 class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
  public:
@@ -105,8 +105,7 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   void operator()(TagRigidSmallComputeForcesTorques, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidMap, const int &i) const;
-
+  void operator()(TagRigidSmallMap, const int &i) const;
 
  protected:
   class AtomKokkos *atomKK;
@@ -135,8 +134,6 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_displace;
   typename AT::t_kkfloat_2d d_displace;
 
-  TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_langextra;
-
   int map_style;
   DAT::tdual_int_1d k_map_array;
   dual_hash_type k_map_hash;
@@ -162,7 +159,6 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   Few<KK_FLOAT,3> d_prd;
   Few<KK_FLOAT,6> d_h;
 
-  void apply_langevin_thermostat() override;
   void compute_forces_and_torques() override;
   void enforce2d_kokkos();
   void image_shift_kokkos();
@@ -173,6 +169,19 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
 
   template<int TRICLINIC, int EVFLAG>
   void set_v_kokkos();
+
+  // LANGFLAG
+
+#ifndef LMP_KOKKOS_DEBUG_RNG
+    Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
+    typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
+#else
+    RandPoolWrap rand_pool;
+    typedef RandWrap rand_type;
+#endif
+
+  TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_langextra;
+  void apply_langevin_thermostat() override;
 
   // KOKKOS BASE
 
@@ -193,14 +202,6 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
                               int, int, int, ExecutionSpace) override;
 
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &) override;
-
-#ifndef LMP_KOKKOS_DEBUG_RNG
-    Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
-    typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
-#else
-    RandPoolWrap rand_pool;
-    typedef RandWrap rand_type;
-#endif
 
 };
 

@@ -28,7 +28,6 @@ template<class DeviceType>
 FixRigidNVTSmallKokkos<DeviceType>::FixRigidNVTSmallKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixRigidNHSmallKokkos<DeviceType>(lmp, narg, arg)
 {
-  this->scalar_flag = 1;
   this->restart_global = 1;
   this->extscalar = 1;
 

@@ -58,8 +58,7 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
 #endif
 {
   kokkosable = 1;
-  forward_comm_device = 1;
-  //exchange_comm_device = sort_device = 1;
+  forward_comm_device = reverse_comm_device = exchange_comm_device = sort_device = 1;
   atomKK = (AtomKokkos *) atom;
   domainKK = (DomainKokkos *) domain;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -1374,7 +1373,7 @@ int FixRigidSmallKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 
 template<class DeviceType>
 int FixRigidSmallKokkos<DeviceType>::pack_forward_comm(int n, int *list,
-                                                        double *buf, int pbc_flag, int *pbc)
+                                                       double *buf, int pbc_flag, int *pbc)
 {
   k_body.sync_host();
   k_bodyown.sync_host();
@@ -1451,8 +1450,6 @@ double FixRigidSmallKokkos<DeviceType>::compute_scalar()
   t_all *= tfactor;
   return static_cast<double>(t_all);
 }
-*/
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -1522,7 +1519,7 @@ int FixRigidSmallKokkos<DeviceType>::pack_forward_comm_kokkos(
     return FixRigidSmall::pack_forward_comm(n, list, buf, pbc_flag, pbc);
   }
 
-  int result;
+  int result = 0;
   auto l_sendlist = k_sendlist.view<DeviceType>();
   auto l_buf = k_buf.view<DeviceType>();
   auto l_body = k_body.template view<DeviceType>();
@@ -1709,7 +1706,7 @@ int FixRigidSmallKokkos<DeviceType>::pack_reverse_comm_kokkos(
     int n, int first, DAT::tdual_double_1d &k_buf)
 {
   if (commflag == FORCE_TORQUE) {
-    int result;
+    int result = 0;
     auto l_buf = k_buf.view<DeviceType>();
     auto l_body = k_body.template view<DeviceType>();
     auto l_bodyown = k_bodyown.template view<DeviceType>();
@@ -1789,6 +1786,183 @@ void FixRigidSmallKokkos<DeviceType>::unpack_reverse_comm_kokkos(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos(
+    const int &nsend, DAT::tdual_double_2d_lr &k_buf,
+    DAT::tdual_int_1d k_sendlist, DAT::tdual_int_1d k_copylist,
+    ExecutionSpace space)
+{
+  int result = 0;
+  auto l_buf = typename AT::t_double_1d_um(
+      k_buf.template view<DeviceType>().data(),
+      k_buf.extent(0)*k_buf.extent(1)
+  );
+  auto l_sendlist = k_sendlist.view<DeviceType>();
+  auto l_copylist = k_copylist.view<DeviceType>();
+  auto l_bodytag = k_bodytag.template view<DeviceType>();
+  auto l_xcmimage = k_xcmimage.template view<DeviceType>();
+  auto l_displace = k_displace.template view<DeviceType>();
+  auto l_bodyown = k_bodyown.template view<DeviceType>();
+  auto l_body = k_body.template view<DeviceType>();
+  auto l_vatom = k_vatom.view<DeviceType>();
+  auto l_vflag_atom = vflag_atom;
+  int l_bodysize_kk = sizeof(BodyKokkos)/sizeof(double);
+  if (l_bodysize_kk * sizeof(double) != sizeof(BodyKokkos)) l_bodysize_kk++;
+
+  copymode = 1;
+  Kokkos::parallel_scan(
+    Kokkos::RangePolicy<DeviceType>(0, nsend),
+    KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
+      const int local_idx = l_sendlist(i);
+      l_buf(0) = d_ubuf(l_bodytag(local_idx)).d;
+      l_buf(1) = d_ubuf(l_xcmimage(local_idx)).d;
+      l_buf(2) = l_displace(local_idx, 0);
+      l_buf(3) = l_displace(local_idx, 1);
+      l_buf(4) = l_displace(local_idx, 2);
+      m += 5;
+
+      /*
+      // extended attribute info
+      if (l_extended) {
+        l_buf(m++) = l_eflags(local_idx);
+        for (int j = 0; j < l_orientflag; j++)
+        l_buf[m++] = l_orient(local_idx,j);
+        if (l_dorientflag) {
+          l_buf(m++) = l_dorient(local_idx, 0);
+          l_buf(m++) = l_dorient(local_idx, 1);
+          l_buf(m++) = l_dorient(local_idx, 2);
+        }
+      }
+      */
+
+      // atom not in a rigid body
+      if (!l_bodytag(local_idx)) return;
+
+      // must also pack vatom if per-atom virial calculated on this timestep
+      // since vatom is calculated before and after atom migration
+      if (l_vflag_atom) {
+        for (int k = 0; k < 6; k++) l_buf(m++) = l_vatom(local_idx, k);
+      }
+
+      // atom does not own its rigid body
+      if (l_bodyown(local_idx) < 0) {
+        l_buf(m++) = 0;
+        return;
+      }
+
+      // body info for atom that owns a rigid body
+      l_buf(m++) = 1;
+      memcpy(&l_buf(m),&l_body(l_bodyown(local_idx)),sizeof(BodyKokkos));
+      m += l_bodysize_kk;
+    }, result
+  );
+  return result;
+}
+
+
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(
+    DAT::tdual_double_2d_lr &k_buf, DAT::tdual_int_1d &k_indices,
+    int nrecv, int nrecv1, int nextrarecv1, ExecutionSpace space)
+{
+  auto l_buf = typename AT::t_double_1d_um(
+      k_buf.template view<DeviceType>().data(),
+      k_buf.extent(0)*k_buf.extent(1)
+  );
+  auto l_bodytag = k_bodytag.template view<DeviceType>();
+  auto l_indices = k_indices.template view<DeviceType>();
+  auto l_xcmimage = k_xcmimage.template view<DeviceType>();
+  auto l_displace = k_displace.template view<DeviceType>();
+  auto l_bodyown = k_bodyown.template view<DeviceType>();
+  auto l_body = k_body.template view<DeviceType>();
+  auto l_vatom = k_vatom.view<DeviceType>();
+  auto l_vflag_atom = vflag_atom;
+  int l_bodysize_kk = sizeof(BodyKokkos)/sizeof(double);
+  if (l_bodysize_kk * sizeof(double) != sizeof(BodyKokkos)) l_bodysize_kk++;
+  auto l_nlocal_body = nlocal_body;
+  int nbody_recv = 0;
+
+  copymode = 1;
+  Kokkos::parallel_scan(
+    Kokkos::RangePolicy<DeviceType>(0, nrecv),
+    KOKKOS_LAMBDA(const int &i, int &l_nbody_recv, const bool &final) {
+
+      const int local_idx = l_indices(i);
+      if (local_idx < 0) return;
+      int m = static_cast<int>(ubuf(l_buf(i)).i);
+      if (i >= nrecv1)
+        m = nextrarecv1 + static_cast<int>(ubuf(l_buf(nextrarecv1 + i - nrecv1)).i);
+
+      tagint tag = static_cast<tagint>(ubuf(l_buf(m++)).i);
+      if (!final) {
+        if (tag) {
+          // Look ahead in the buffer to check if this atom owns the body
+          // Skip xcmimage (1), displace (3), and vatom (6 if active)
+          const int bodyown_offset = m + 4 + (l_vflag_atom ? 6 : 0);
+          const int bodyown_val = static_cast<int>(l_buf(bodyown_offset));
+          if (bodyown_val != 0) l_nbody_recv++;
+        }
+        return;
+      }
+
+      l_bodytag(local_idx) = tag;
+      l_xcmimage(local_idx) = static_cast<imageint>(ubuf(l_buf(m++)).i);
+      l_displace(local_idx, 0) = l_buf(m++);
+      l_displace(local_idx, 1) = l_buf(m++);
+      l_displace(local_idx, 2) = l_buf(m++);
+
+      /*
+      // extended attribute info
+      if (l_extended) {
+        l_eflags(nlocal) = static_cast<int>(l_buf(m++));
+        for (int j = 0; j < l_orientflag; j++)
+          l_orient[nlocal][j] = l_buf(m++);
+        if (l_dorientflag) {
+          l_dorient[nlocal][0] = l_buf(m++);
+          l_dorient[nlocal][1] = l_buf(m++);
+          l_dorient[nlocal][2] = l_buf(m++);
+        }
+      }
+      */
+
+      // atom not in a rigid body
+      if (!l_bodytag(local_idx)) {
+        l_bodyown(local_idx) = -1;
+        return;
+      }
+
+      // must also unpack vatom if per-atom virial calculated on this timestep
+      // since vatom is calculated before and after atom migration
+
+      if (l_vflag_atom) {
+        for (int k = 0; k < 6; k++) l_vatom(local_idx, k) = l_buf(m++);
+      }
+
+      // atom does not own its rigid body
+      l_bodyown(local_idx) = static_cast<int>(l_buf(m++));
+      if (l_bodyown(local_idx) == 0) {
+        l_bodyown(local_idx) = -1;
+        return;
+      }
+
+      // body info for atom that owns a rigid body
+      const int l_nbody_idx = l_nlocal_body + l_nbody_recv;
+      memcpy(&l_body(l_nbody_idx), &l_buf(m), sizeof(BodyKokkos));
+      m += l_bodysize_kk;
+      l_body(l_nbody_idx).ilocal = local_idx;
+      l_bodyown(local_idx) = l_nbody_idx;
+      l_nbody_recv++;
+    }, nbody_recv
+  );
+  nlocal_body += nbody_recv;
+  copymode = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
 {
   // always sort on the device
@@ -1814,165 +1988,6 @@ void FixRigidSmallKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, B
   k_bodyown.modify_device();
   if (extended) k_eflags.modify_device();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos(
-    const int &nsend, DAT::tdual_double_2d_lr &k_buf,
-    DAT::tdual_int_1d k_sendlist, DAT::tdual_int_1d k_copylist,
-    ExecutionSpace space)
-{
-  k_body.sync_host();
-  k_bodytag.sync_host();
-  k_xcmimage.sync_host();
-  k_displace.sync_host();
-  k_bodyown.sync_host();
-  if (extended) k_eflags.sync_host();
-  if (vflag_atom) k_vatom.sync_host();
-
-  k_buf.sync_host();
-  k_sendlist.sync_host();
-  k_copylist.sync_host();
-
-  double *buf = k_buf.view_host().data();
-  auto h_list = k_sendlist.view_host();
-  auto h_copy = k_copylist.view_host();
-
-  int offset = nsend;
-  for (int s = 0; s < nsend; s++) {
-    const int i = h_list(s);
-    buf[s] = ubuf(static_cast<int64_t>(offset)).d;
-    offset += FixRigidSmall::pack_exchange(i, buf + offset);
-    const int j = h_copy(s);
-    if (j > -1) FixRigidSmallKokkos<DeviceType>::copy_arrays(j, i, 0);
-  }
-
-  k_body.modify_host();
-  k_bodytag.modify_host();
-  k_xcmimage.modify_host();
-  k_displace.modify_host();
-  k_bodyown.modify_host();
-  if (extended) k_eflags.modify_host();
-  if (vflag_atom) k_vatom.modify_host();
-
-  k_buf.modify_host();
-  if (space == Host)
-    k_buf.sync_host();
-  else
-    k_buf.sync_device();
-
-  return offset;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(
-    DAT::tdual_double_2d_lr &k_buf, DAT::tdual_int_1d &k_indices,
-    int nrecv, int nrecv1, int nextrarecv1, ExecutionSpace space)
-{
-  (void) space;
-  k_buf.sync_host();
-  k_indices.sync_host();
-
-  double *buf = k_buf.view_host().data();
-  auto h_ind = k_indices.view_host();
-
-  for (int i = 0; i < nrecv; i++) {
-    const int index = h_ind(i);
-    if (index < 0) continue;
-    int m = static_cast<int>(ubuf(buf[i]).i);
-    if (i >= nrecv1)
-      m = nextrarecv1 + static_cast<int>(ubuf(buf[nextrarecv1 + i - nrecv1]).i);
-    FixRigidSmall::unpack_exchange(index, buf + m);
-  }
-
-  k_body.modify_host();
-  k_bodytag.modify_host();
-  k_xcmimage.modify_host();
-  k_displace.modify_host();
-  k_bodyown.modify_host();
-  if (extended) k_eflags.modify_host();
-  if (vflag_atom) k_vatom.modify_host();
-
-  k_buf.modify_host();
-  if (space == Host)
-    k_buf.sync_host();
-  else
-    k_buf.sync_device();
-}
-
-
-
-
-
-
-
-
-
 
 /* ---------------------------------------------------------------------- */
 

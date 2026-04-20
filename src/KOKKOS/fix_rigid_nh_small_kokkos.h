@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 struct TagRigidNHSmallInitialIntegrate {};
 struct TagRigidNHSmallFinalIntegrate {};
 struct TagRigidNHSmallAccumKE {};
-struct TagRigidNHSmallComputeForcesTorques {};
 struct TagRigidNHSmallMap {};
 
 template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
@@ -95,9 +94,6 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall, public KokkosBase {
   template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRigidNHSmallSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT &) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidNHSmallComputeForcesTorques, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRigidNHSmallMap, const int &i) const;

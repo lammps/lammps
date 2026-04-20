@@ -51,6 +51,7 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall, public KokkosBase {
   void final_integrate() override;
   void pre_neighbor() override;
   void setup_pre_neighbor() override;
+  void deform(int) override;
   void post_force(int) override;
 
   void grow_arrays(int) override;

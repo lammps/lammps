@@ -764,27 +764,54 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
 
 /* ---------------------------------------------------------------------- */
 
-  // 3. THE FIX: Dilate the Rigid Body Centers of Mass on the Device
+template<class DeviceType>
+void FixRigidNHSmallKokkos<DeviceType>::deform(int flag)
+{
   k_body.sync_device();
-  auto l_body = d_body;
-  auto l_p_flag0 = p_flag[0];
-  auto l_p_flag1 = p_flag[1];
-  auto l_p_flag2 = p_flag[2];
-  KK_FLOAT l_center0 = static_cast<KK_FLOAT>(center[0]);
-  KK_FLOAT l_center1 = static_cast<KK_FLOAT>(center[1]);
-  KK_FLOAT l_center2 = static_cast<KK_FLOAT>(center[2]);
-  KK_FLOAT l_efac0 = static_cast<KK_FLOAT>(e_fac[0]);
-  KK_FLOAT l_efac1 = static_cast<KK_FLOAT>(e_fac[1]);
-  KK_FLOAT l_efac2 = static_cast<KK_FLOAT>(e_fac[2]);
+  auto l_body = k_body.template view<DeviceType>();
   copymode = 1;
-  Kokkos::parallel_for(nlocal_body,
-    KOKKOS_LAMBDA(const int &ibody) {
-      BodyKokkos &bk = l_body(ibody);
-      if (l_p_flag0) bk.xcm[0] = (bk.xcm[0] - l_center0) * l_efac0 + l_center0;
-      if (l_p_flag1) bk.xcm[1] = (bk.xcm[1] - l_center1) * l_efac1 + l_center1;
-      if (l_p_flag2) bk.xcm[2] = (bk.xcm[2] - l_center2) * l_efac2 + l_center2;
-    }
-  );
+  auto l_lo0 = domain->boxlo[0];
+  auto l_lo1 = domain->boxlo[1];
+  auto l_lo2 = domain->boxlo[2];
+  if (flag == 0) {
+    auto l_h_inv0 = domain->h_inv[0];
+    auto l_h_inv1 = domain->h_inv[1];
+    auto l_h_inv2 = domain->h_inv[2];
+    auto l_h_inv3 = domain->h_inv[3];
+    auto l_h_inv4 = domain->h_inv[4];
+    auto l_h_inv5 = domain->h_inv[5];
+    Kokkos::parallel_for(
+      Kokkos::RangePolicy<DeviceType>(0, nlocal_body),
+      KOKKOS_LAMBDA(const int ibody) {
+        BodyKokkos &bk = l_body(ibody);
+        const KK_FLOAT delta0 = bk.xcm[0] - l_lo0;
+        const KK_FLOAT delta1 = bk.xcm[1] - l_lo1;
+        const KK_FLOAT delta2 = bk.xcm[2] - l_lo2;
+        bk.xcm[0] = l_h_inv0*delta0 + l_h_inv5*delta1 + l_h_inv4*delta2;
+        bk.xcm[1] = l_h_inv1*delta1 + l_h_inv3*delta2;
+        bk.xcm[2] = l_h_inv2*delta2;
+      }
+    );
+  }
+  else {
+    auto l_h0 = domain->h[0];
+    auto l_h1 = domain->h[1];
+    auto l_h2 = domain->h[2];
+    auto l_h3 = domain->h[3];
+    auto l_h4 = domain->h[4];
+    auto l_h5 = domain->h[5];
+    Kokkos::parallel_for(
+      Kokkos::RangePolicy<DeviceType>(0, nlocal_body),
+      KOKKOS_LAMBDA(const int ibody) {
+        BodyKokkos &bk = l_body(ibody);
+        const KK_FLOAT xi1 = bk.xcm[1];
+        const KK_FLOAT xi2 = bk.xcm[2];
+        bk.xcm[0] = l_h0*bk.xcm[0] + l_h5*xi1 + l_h4*xi2 + l_lo0;
+        bk.xcm[1] = l_h1*xi1 + l_h3*xi2 + l_lo1;
+        bk.xcm[2] = l_h2*xi2 + l_lo2;
+      }
+    );
+  }
   copymode = 0;
   k_body.modify_device();
 }

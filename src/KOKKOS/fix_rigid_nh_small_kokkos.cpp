@@ -171,14 +171,69 @@ void FixRigidNHSmallKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
 {
+
+  const int nlocal = atom->nlocal;
+
+  // error if maxextent > comm->cutghost
+  // NOTE: could just warn if an override flag set
+  // NOTE: this could fail for comm multi mode if user sets a wrong cutoff
+  //       for atom types in rigid bodies - need a more careful test
+  // must check here, not in init, b/c neigh/comm values set after fix init
+
+  double cutghost = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  if (maxextent > cutghost)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Rigid body extent {} > ghost atom cutoff - use comm_modify cutoff", maxextent);
+
   if (langflag && (nlocal_body > maxlang)) {
     memoryKK->destroy_kokkos(k_langextra, langextra);
     maxlang = nlocal_body + nghost_body;
     memoryKK->create_kokkos(k_langextra, langextra, 6, "rigid/small:langextra");
   }
-  atomKK->sync(Host, ALL_MASK);
-  FixRigidSmall::setup(vflag);
-  atomKK->modified(Host, X_MASK | V_MASK);
+
+  compute_forces_and_torques();
+  // enforce 2d body forces and torques
+  if (domain->dimension == 2) enforce2d();
+
+  // virial setup before call to set_v
+  v_init(vflag);
+
+  // compute and forward communicate vcm and omega of all bodies
+  copymode = 1;
+  k_body.sync_device();
+  auto l_body = k_body.template view<DeviceType>();
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, nlocal_body),
+    KOKKOS_LAMBDA(const int &ibody) {
+      BodyKokkos &bk = l_body(ibody);
+      MathExtraKokkos::angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
+                                       bk.ez_space, bk.inertia, bk.omega);
+    }
+  );
+  k_body.modify_device();
+  copymode = 0;
+
+  commflag = FINAL;
+  comm->forward_comm(this,10);
+
+  // set velocity/rotation of atoms in rigid bodues
+  if (triclinic) {
+    if (evflag) set_v_kokkos<1,1>();
+    else set_v_kokkos<1,0>();
+  } else {
+    if (evflag) set_v_kokkos<0,1>();
+    else set_v_kokkos<0,0>();
+  }
+
+  // guesstimate virial as 2x the set_v contribution
+  if (vflag_global) {
+    for (int n = 0; n < 6; n++) virial[n] *= 2.0;
+  }
+  if (vflag_atom) {
+    for (int i = 0; i < nlocal; i++) {
+      for (int n = 0; n < 6; n++) vatom[i][n] *= 2.0;
+    }
+  }
 
   compute_dof();
 

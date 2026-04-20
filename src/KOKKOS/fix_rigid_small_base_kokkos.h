@@ -3,12 +3,168 @@
    fix_rigid_small_kokkos and fix_rigid_nh_small_kokkos.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_RIGID_BODY_KOKKOS_HPP
-#define LMP_RIGID_BODY_KOKKOS_HPP
+#ifndef LMP_FIX_RIGID_SMALL_BASE_KOKKOS_H
+#define LMP_FIX_RIGID_SMALL_BASE_KOKKOS_H
+
+#include "kokkos_base.h"
 
 #include "fix_rigid_small.h"
+#include "kokkos_few.h"
+#include "kokkos_type.h"
 
-using namespace LAMMPS_NS;
+#include "Kokkos_Random.hpp"
+#include "rand_pool_wrap_kokkos.h"
+
+
+namespace LAMMPS_NS {
+
+template<int NH_FLAG, int TSTAT_FLAG, int PSTAT_FLAG>
+struct TagRigidSmallInitialIntegrate {};
+
+struct TagRigidSmallFinalIntegrate {};
+struct TagRigidSmallResetAtom2Body {};
+
+template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
+struct TagRigidSmallSetXV {};
+
+template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
+struct TagRigidSmallSetV {};
+
+template<class DeviceType>
+class FixRigidSmallBaseKokkos : public KokkosBase {
+ public:
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+  typedef EV_FLOAT value_type;
+
+  FixRigidSmallBaseKokkos(class LAMMPS *, int, char **);
+  ~FixRigidSmallBaseKokkos() override;
+
+  template<int NH_FLAG, int TSTAT_FLAG, int PSTAT_FLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSmallInitialIntegrate, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSmallFinalIntegrate, const int&) const;
+
+  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSmallSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
+
+  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSmallSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT &) const;
+
+  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSmallSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
+
+  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSmallSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT &) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSmallResetAtom2Body, const int &i) const;
+
+protected:
+
+  DAT::tdual_int_1d k_atom2body, k_bodyown, k_eflags;
+  DAT::tdual_tagint_1d k_bodytag;
+  DAT::tdual_imageint_1d k_xcmimage;
+  
+  TransformView<BodyKokkos*, Body*, Kokkos::LayoutRight, DeviceType> k_body;
+  Kokkos::View <BodyKokkos*,        Kokkos::LayoutRight, DeviceType> d_body;
+
+  TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_displace;
+  typename AT::t_kkfloat_2d d_displace;
+
+  int map_style;
+  DAT::tdual_int_1d k_map_array;
+  dual_hash_type k_map_hash;
+
+  int comm_me;
+  bigint ntimestep;
+
+  typename AT::t_kkfloat_1d_3_lr d_x;
+  typename AT::t_kkfloat_1d_3 d_v;
+  typename AT::t_kkacc_1d_3 d_f;
+  typename AT::t_kkfloat_1d d_rmass, d_mass;
+  typename AT::t_int_1d d_type, d_mask, d_atom2body, d_bodyown, d_eflags;
+  typename AT::t_tagint_1d d_tag, d_bodytag;
+  typename AT::t_imageint_1d d_image, d_xcmimage;
+
+  using KKDeviceType = typename KKDevice<DeviceType>::value;
+
+  template<typename DataType, typename Layout>
+  using DupScatterView =
+      KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterDuplicated>;
+
+  template<typename DataType, typename Layout>
+  using NonDupScatterView =
+      KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
+
+  DupScatterView<KK_ACC_FLOAT *[6], typename AT::t_kkacc_1d_6::array_layout> dup_vatom;
+  NonDupScatterView<KK_ACC_FLOAT *[6], typename AT::t_kkacc_1d_6::array_layout> ndup_vatom;
+
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
+
+  Few<KK_FLOAT,3> d_prd;
+  Few<KK_FLOAT,6> d_h;
+
+  void compute_forces_and_torques() override;
+  void enforce2d() override;
+  void reset_atom2body() override;
+  void image_shift() override;
+  void grow_body() override;
+
+  template<int TRICLINIC, int EVFLAG>
+  void set_xv_kokkos();
+
+  template<int TRICLINIC, int EVFLAG>
+  void set_v_kokkos();
+
+  void modify_host_base();
+  void modify_device_base();
+  void sync_host_base();
+  void sync_device_base()
+
+  // LANGFLAG
+
+#ifndef LMP_KOKKOS_DEBUG_RNG
+    Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
+    typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
+#else
+    RandPoolWrap rand_pool;
+    typedef RandWrap rand_type;
+#endif
+
+  TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_langextra;
+  void apply_langevin_thermostat() override;
+
+  // KOKKOS BASE
+
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d &,
+                               int, int *) override;
+
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d &) override;
+
+  int pack_reverse_comm_kokkos(int, int, DAT::tdual_double_1d &) override;
+
+  void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d,
+                                          DAT::tdual_double_1d &) override;
+
+  int pack_exchange_kokkos(const int &, DAT::tdual_double_2d_lr &,
+                           DAT::tdual_int_1d, DAT::tdual_int_1d, ExecutionSpace) override;
+
+  void unpack_exchange_kokkos(DAT::tdual_double_2d_lr &, DAT::tdual_int_1d &,
+                              int, int, int, ExecutionSpace) override;
+
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &) override;
+  
+};
 
 struct BodyKokkos {
   int natoms, ilocal;
@@ -175,4 +331,6 @@ struct Transform<FixRigidSmall::Body, BodyKokkos> {
   }
 };
 
-#endif // !LMP_RIGID_BODY_KOKKOS_HPP
+}    // namespace LAMMPS_NS
+
+#endif // !LMP_FIX_RIGID_SMALL_BASE_KOKKOS_H

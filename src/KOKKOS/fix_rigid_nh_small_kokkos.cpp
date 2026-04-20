@@ -1590,12 +1590,13 @@ void FixRigidNHSmallKokkos<DeviceType>::grow_arrays(int nmax)
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::grow_body()
 {
-  FixRigidSmall::grow_body();
+  nmax_body += DELTA_BODY;
   k_body.resize(nmax_body);
+  memcpy(k_body.view_host().data(), body, (bigint) nmax_body * sizeof(Body));
+  memory->sfree(body);
   body = k_body.view_host().data();
   k_body.modify_host();
   k_body.sync_device();
-  d_body = k_body.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */

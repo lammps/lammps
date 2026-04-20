@@ -736,37 +736,33 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHSmallFinalIntegrate
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::remap()
 {
-  double oldlo, oldhi, ctr, expfac;
-  const int nlocal = atom->nlocal;
+  int nlocal = atom->nlocal;
+  // epsilon is not used, except for book-keeping
   for (int i = 0; i < 3; i++) epsilon[i] += dtq * epsilon_dot[i];
-
-  // 1. Dilate non-rigid atoms (if any)
+  // convert pertinent atoms and rigid bodies to lamda coords
   if (allremap) domainKK->x2lamda(nlocal);
   else domainKK->x2lamda(nlocal, dilate_group_bit);
-
   for (auto &ifix : rfix) ifix->deform(0);
-
-  // 2. Compute scaling factors and update box bounds
-  double center[3], e_fac[3];
+  // reset global and local box to new size/shape
   for (int i = 0; i < 3; i++) {
     if (p_flag[i]) {
-      oldlo = domainKK->boxlo[i];
-      oldhi = domainKK->boxhi[i];
-      center[i] = 0.5 * (oldlo + oldhi);
-      e_fac[i] = exp(dtq * epsilon_dot[i]);
-      domainKK->boxlo[i] = (oldlo - center[i]) * e_fac[i] + center[i];
-      domainKK->boxhi[i] = (oldhi - center[i]) * e_fac[i] + center[i];
-    } else {
-      center[i] = 0.0;
-      e_fac[i] = 1.0;
+      const double oldlo = domain->boxlo[i];
+      const double oldhi = domain->boxhi[i];
+      const double ctr = 0.5 * (oldlo + oldhi);
+      const double expfac = exp(dtq * epsilon_dot[i]);
+      domain->boxlo[i] = (oldlo-ctr)*expfac + ctr;
+      domain->boxhi[i] = (oldhi-ctr)*expfac + ctr;
     }
   }
-
-  domainKK->set_global_box();
-  domainKK->set_local_box();
+  domain->set_global_box();
+  domain->set_local_box();
+  // convert pertinent atoms and rigid bodies back to box coords
   if (allremap) domainKK->lamda2x(nlocal);
   else domainKK->lamda2x(nlocal, dilate_group_bit);
   for (auto &ifix : rfix) ifix->deform(1);
+}
+
+/* ---------------------------------------------------------------------- */
 
   // 3. THE FIX: Dilate the Rigid Body Centers of Mass on the Device
   k_body.sync_device();

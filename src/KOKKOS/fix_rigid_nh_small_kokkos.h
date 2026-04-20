@@ -164,7 +164,7 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall, public KokkosBase {
   KK_FLOAT d_scale_t[3], d_scale_v[3], d_scale_r;
   KK_FLOAT d_dtf2;
 
-  void remap();
+  void remap() override;
   void compute_forces_and_torques() override;
   void enforce2d_kokkos();
   void image_shift_kokkos();

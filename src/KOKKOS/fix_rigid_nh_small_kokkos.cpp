@@ -1385,17 +1385,106 @@ void FixRigidNHSmallKokkos<DeviceType>::setup_pre_neighbor()
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::pre_neighbor()
 {
-  k_body.sync_host();
-  for (int ibody = 0; ibody < nlocal_body; ibody++) {
-    Body *b = &body[ibody];
-    domain->remap(b->xcm, b->image);
-  }
-  k_body.modify_host();
+
+  copymode = 1;
+  auto l_body = k_body.template view<DeviceType>();
   k_body.sync_device();
+  auto l_xperiodic = domain->xperiodic;
+  auto l_yperiodic = domain->yperiodic;
+  auto l_zperiodic = domain->zperiodic;
+  auto l_lo0 = static_cast<KK_FLOAT>(domain->boxlo[0]);
+  auto l_lo1 = static_cast<KK_FLOAT>(domain->boxlo[1]);
+  auto l_lo2 = static_cast<KK_FLOAT>(domain->boxlo[2]);
+  auto l_hi0 = static_cast<KK_FLOAT>(domain->boxhi[0]);
+  auto l_hi1 = static_cast<KK_FLOAT>(domain->boxhi[1]);
+  auto l_hi2 = static_cast<KK_FLOAT>(domain->boxhi[2]);
+  auto l_period0 = static_cast<KK_FLOAT>(domain->prd[0]);
+  auto l_period1 = static_cast<KK_FLOAT>(domain->prd[1]);
+  auto l_period2 = static_cast<KK_FLOAT>(domain->prd[2]);
+
+  utils::logmesg(lmp, "*** pre_neighbor() {} {} {}\n{} {} {}\n{} {} {}\n{} {} {}\n",
+    l_xperiodic, l_yperiodic, l_zperiodic, l_lo0,l_lo1,l_lo2,l_hi0,l_hi1,l_hi2,l_period0,l_period1,l_period2
+  );
+
+
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, nlocal_body),
+    KOKKOS_LAMBDA(const int &ibody) {
+      BodyKokkos &bk = l_body(ibody);
+      imageint idim, otherdims;
+      if (l_xperiodic) {
+        while (bk.xcm[0] < l_lo0) {
+          bk.xcm[0] += l_period0;
+          idim = bk.image & IMGMASK;
+          otherdims = bk.image ^ idim;
+          idim--;
+          idim &= IMGMASK;
+          bk.image = otherdims | idim;
+        }
+        while (bk.xcm[0] >= l_hi0) {
+          bk.xcm[0] -= l_period0;
+          idim = bk.image & IMGMASK;
+          otherdims = bk.image ^ idim;
+          idim++;
+          idim &= IMGMASK;
+          bk.image = otherdims | idim;
+        }
+        bk.xcm[0] = MAX(bk.xcm[0], l_lo0);
+      }
+      if (l_yperiodic) {
+        while (bk.xcm[1] < l_lo1) {
+          bk.xcm[1] += l_period1;
+          idim = (bk.image >> IMGBITS) & IMGMASK;
+          otherdims = bk.image ^ (idim << IMGBITS);
+          idim--;
+          idim &= IMGMASK;
+          bk.image = otherdims | (idim << IMGBITS);
+        }
+        while (bk.xcm[1] >= l_hi1) {
+          bk.xcm[1] -= l_period1;
+          idim = (bk.image >> IMGBITS) & IMGMASK;
+          otherdims = bk.image ^ (idim << IMGBITS);
+          idim++;
+          idim &= IMGMASK;
+          bk.image = otherdims | (idim << IMGBITS);
+        }
+        bk.xcm[1] = MAX(bk.xcm[1], l_lo1);
+      }
+      if (l_zperiodic) {
+        while (bk.xcm[2] < l_lo2) {
+          bk.xcm[2] += l_period2;
+          idim = bk.image >> IMG2BITS;
+          otherdims = bk.image ^ (idim << IMG2BITS);
+          idim--;
+          idim &= IMGMASK;
+          bk.image = otherdims | (idim << IMG2BITS);
+        }
+        while (bk.xcm[2] >= l_hi2) {
+          bk.xcm[2] -= l_period2;
+          idim = bk.image >> IMG2BITS;
+          otherdims = bk.image ^ (idim << IMG2BITS);
+          idim++;
+          idim &= IMGMASK;
+          bk.image = otherdims | (idim << IMG2BITS);
+        }
+        bk.xcm[2] = MAX(bk.xcm[2], l_lo2);
+      }
+    }
+  );
+  k_body.modify_device();
+  copymode = 0;
 
   nghost_body = 0;
   commflag = FULL_BODY;
   comm->forward_comm(this);
+  //k_body.modify_host();
+  //k_body.sync_device();
+
+  reset_atom2body();
+  image_shift();
+}
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::reset_atom2body()

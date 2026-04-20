@@ -3,8 +3,8 @@
    fix_rigid_small_kokkos and fix_rigid_nh_small_kokkos.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_FIX_RIGID_SMALL_BASE_KOKKOS_H
-#define LMP_FIX_RIGID_SMALL_BASE_KOKKOS_H
+#ifndef LMP_FIX_RIGID_BASE_KOKKOS_H
+#define LMP_FIX_RIGID_BASE_KOKKOS_H
 
 #include "kokkos_base.h"
 
@@ -18,11 +18,13 @@
 
 namespace LAMMPS_NS {
 
-template<int NH_FLAG, int TSTAT_FLAG, int PSTAT_FLAG>
+struct TagRigidSmallResetAtom2Body {};
+
+template<bool NH, bool TSTAT, bool PSTAT>
 struct TagRigidSmallInitialIntegrate {};
 
+template<bool NH, bool TSTAT, bool PSTAT>
 struct TagRigidSmallFinalIntegrate {};
-struct TagRigidSmallResetAtom2Body {};
 
 template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
 struct TagRigidSmallSetXV {};
@@ -37,15 +39,24 @@ class FixRigidSmallBaseKokkos : public KokkosBase {
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
 
-  FixRigidSmallBaseKokkos(class LAMMPS *, int, char **);
-  ~FixRigidSmallBaseKokkos() override;
+  FixRigidSmallBaseKokkos(Atom*, Domain*);
+  ~FixRigidSmallBaseKokkos();
 
-  template<int NH_FLAG, int TSTAT_FLAG, int PSTAT_FLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSmallInitialIntegrate, const int&) const;
+  void setup_base(int);
 
+  template<bool NH, bool TSTAT, bool PSTAT>
+  void initial_integrate_base(int);
+
+  template<bool NH, bool TSTAT, bool PSTAT>
+  void final_integrate_base();
+
+  template<bool NH, bool TSTAT, bool PSTAT>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSmallFinalIntegrate, const int&) const;
+  void operator()(TagRigidSmallInitialIntegrate<NH,TSTAT,PSTAT>, const int&) const;
+
+  template<bool NH, bool TSTAT, bool PSTAT>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSmallFinalIntegrate<NH,TSTAT,PSTAT>, const int&) const;
 
   template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -53,7 +64,7 @@ class FixRigidSmallBaseKokkos : public KokkosBase {
 
   template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSmallSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT &) const;
+  void operator()(TagRigidSmallSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
 
   template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -61,20 +72,29 @@ class FixRigidSmallBaseKokkos : public KokkosBase {
 
   template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSmallSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT &) const;
+  void operator()(TagRigidSmallSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRigidSmallResetAtom2Body, const int &i) const;
 
 protected:
 
+  void compute_forces_and_torques_base();
+  void enforce2d_base();
+  void grow_arrays_base(int);
+  void grow_body_base(int);
+  void image_shift_base();
+  void reset_atom2body_base();
+  void zero_momentum_base();
+  void zero_rotation_base();
+
+  template<bool NH, bool TSTAT, bool PSTAT>
+  double compute_scalar_base();
+
   DAT::tdual_int_1d k_atom2body, k_bodyown, k_eflags;
   DAT::tdual_tagint_1d k_bodytag;
   DAT::tdual_imageint_1d k_xcmimage;
   
-  TransformView<BodyKokkos*, Body*, Kokkos::LayoutRight, DeviceType> k_body;
-  Kokkos::View <BodyKokkos*,        Kokkos::LayoutRight, DeviceType> d_body;
-
   TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_displace;
   typename AT::t_kkfloat_2d d_displace;
 
@@ -114,12 +134,6 @@ protected:
   Few<KK_FLOAT,3> d_prd;
   Few<KK_FLOAT,6> d_h;
 
-  void compute_forces_and_torques() override;
-  void enforce2d() override;
-  void reset_atom2body() override;
-  void image_shift() override;
-  void grow_body() override;
-
   template<int TRICLINIC, int EVFLAG>
   void set_xv_kokkos();
 
@@ -129,7 +143,7 @@ protected:
   void modify_host_base();
   void modify_device_base();
   void sync_host_base();
-  void sync_device_base()
+  void sync_device_base();
 
   // LANGFLAG
 
@@ -142,7 +156,7 @@ protected:
 #endif
 
   TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_langextra;
-  void apply_langevin_thermostat() override;
+  void apply_langevin_thermostat_base();
 
   // KOKKOS BASE
 
@@ -163,36 +177,23 @@ protected:
                               int, int, int, ExecutionSpace) override;
 
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &) override;
-  
-};
 
-struct BodyKokkos {
-  int natoms, ilocal;
-  KK_FLOAT mass;
-  KK_FLOAT xcm[3];
-  KK_FLOAT xgc[3];
-  KK_FLOAT vcm[3];
-  KK_FLOAT fcm[3];
-  KK_FLOAT torque[3];
-  KK_FLOAT quat[4];
-  KK_FLOAT inertia[3];
-  KK_FLOAT ex_space[3];
-  KK_FLOAT ey_space[3];
-  KK_FLOAT ez_space[3];
-  KK_FLOAT xgc_body[3];
-  KK_FLOAT angmom[3];
-  KK_FLOAT omega[3];
-  KK_FLOAT conjqm[4];
-  imageint image;
-  imageint dummy; // dummy entry for better alignment
+  // BODY KOKKOS
 
-  // Default constructor (required since we are declaring custom constructors)
-  KOKKOS_INLINE_FUNCTION
-  BodyKokkos() = default;
+  using Body = FixRigidSmall::Body;
 
-  // Constructor from legacy LAMMPS Body (fixes static_cast<BodyKokkos>(b))
-  KOKKOS_INLINE_FUNCTION
-  BodyKokkos(const FixRigidSmall::Body &b) {
+  struct BodyKokkos {
+    int natoms, ilocal;
+    KK_FLOAT mass, xcm[3], xgc[3], vcm[3], fcm[3], torque[3], quat[4], inertia[3];
+    KK_FLOAT ex_space[3], ey_space[3], ez_space[3];
+    KK_FLOAT xgc_body[3], angmom[3], omega[3], conjqm[4];
+    imageint image;
+
+    KOKKOS_INLINE_FUNCTION
+    BodyKokkos() = default;
+
+    KOKKOS_INLINE_FUNCTION
+    BodyKokkos(const Body &b) {
     natoms = b.natoms;
     ilocal = b.ilocal;
     mass   = static_cast<KK_FLOAT>(b.mass);
@@ -243,10 +244,9 @@ struct BodyKokkos {
     image = b.image;
   }
 
-  // Conversion operator back to legacy LAMMPS Body (fixes static_cast<FixRigidSmall::Body>(bk))
   KOKKOS_INLINE_FUNCTION
-  operator FixRigidSmall::Body() const {
-    FixRigidSmall::Body b;
+  operator Body() const {
+    Body b;
     b.natoms = natoms;
     b.ilocal = ilocal;
     b.mass   = static_cast<double>(mass);
@@ -297,39 +297,37 @@ struct BodyKokkos {
     b.image = image;
     return b;
   }
-};
+  }; // struct BodyKokkos
 
-template<typename To, typename From>
-struct Transform {
-  static constexpr bool is_identity = std::is_same_v<To, From>;
-  KOKKOS_INLINE_FUNCTION
-  static To transform(const From &x)
-  {
-    return x;
-  }
-};
+  TransformView<BodyKokkos*, Body*, Kokkos::LayoutRight, DeviceType> k_body;
+  Kokkos::View <BodyKokkos*,        Kokkos::LayoutRight, DeviceType> d_body;
 
-// Simplified Transform specializations leveraging the new constructors
-template<>
-struct Transform<BodyKokkos, FixRigidSmall::Body> {
-  static constexpr bool is_identity = false;
-  KOKKOS_INLINE_FUNCTION
-  static BodyKokkos transform(const FixRigidSmall::Body &b)
-  {
-    return BodyKokkos(b);
-  }
-};
+  template<typename To, typename From>
+  struct Transform {
+    static constexpr bool is_identity = std::is_same_v<To, From>;
+    KOKKOS_INLINE_FUNCTION
+    static To transform(const From &x) { return x; }
+  };
 
-template<>
-struct Transform<FixRigidSmall::Body, BodyKokkos> {
-  static constexpr bool is_identity = false;
+  template<>
+  struct Transform<BodyKokkos, Body> {
+    static constexpr bool is_identity = false;
+    KOKKOS_INLINE_FUNCTION
+    static BodyKokkos transform(const Body &b) {
+      return BodyKokkos(b);
+    }
+  };
 
-  KOKKOS_INLINE_FUNCTION
-  static FixRigidSmall::Body transform(const BodyKokkos &bk)
-  {
-    return static_cast<FixRigidSmall::Body>(bk);
-  }
-};
+  template<>
+  struct Transform<Body, BodyKokkos> {
+    static constexpr bool is_identity = false;
+    KOKKOS_INLINE_FUNCTION
+    static Body transform(const BodyKokkos &bk) {
+      return static_cast<Body>(bk);
+    }
+  };
+
+}; // class FixRigidSmallBaseKokkos
 
 }    // namespace LAMMPS_NS
 

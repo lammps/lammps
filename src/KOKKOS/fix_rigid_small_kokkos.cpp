@@ -19,42 +19,29 @@
 #include "fix_rigid_small_kokkos.h"
 
 #include "atom_kokkos.h"
-#include "kokkos.h"
 #include "atom_masks.h"
-#include "atom_vec_ellipsoid.h"
-#include "atom_vec_line.h"
-#include "atom_vec_tri.h"
 #include "comm.h"
-#include "domain_kokkos.h"
-#include "error.h"
 #include "force.h"
-#include "math_extra.h"
-#include "math_const.h"
+#include "kokkos.h"
 #include "memory_kokkos.h"
 #include "modify.h"
 #include "rigid_const.h"
-#include "update.h"
-
-#include <cmath>
-#include <cstring>
-#include <type_traits>
-#include <vector>
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
-using namespace MathConst;
 using namespace RigidConst;
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixRigidSmall(lmp, narg, arg)
+  FixRigidSmall(lmp, narg, arg), FixRigidSmallBaseKokkos<DeviceType>(atom, domain)
 {
   kokkosable = 1;
-  forward_comm_device = reverse_comm_device = exchange_comm_device = sort_device = 1;
+  forward_comm_device = 1;
+  reverse_comm_device = 1;
+  exchange_comm_device = 1;
+  sort_device = 1;
   atomKK = (AtomKokkos *) atom;
-  domainKK = (DomainKokkos *) domain;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
@@ -89,14 +76,7 @@ void FixRigidSmallKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
 {
-  if (langflag && (nlocal_body > maxlang)) {
-    maxlang = nlocal_body + nghost_body;
-    memoryKK->destroy_kokkos(k_langextra, langextra);
-    memoryKK->create_kokkos(k_langextra, langextra, 6, "rigid/small:langextra");
-  }
-  atomKK->sync(Host, ALL_MASK);
-  FixRigidSmall::setup(vflag);
-  atomKK->modified(Host, X_MASK | V_MASK);
+  this->setup_base(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,7 +85,7 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::initial_integrate(int vflag)
 {
   copymode = 1;
-  this->initial_integrate_base<0,0,0>(vflag);
+  this->template initial_integrate_base<false,false,false>(vflag);
   copymode = 0;
 }
 
@@ -124,7 +104,7 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::final_integrate()
 {
   copymode = 1;
-  this->final_integrate_base<0,0,0>();
+  this->template final_integrate_base<false,false,false>();
   copymode = 0;
 }
 
@@ -156,12 +136,7 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::grow_body()
 {
   nmax_body += DELTA_BODY;
-  k_body.resize(nmax_body);
-  memcpy(k_body.view_host().data(), body, (bigint) nmax_body * sizeof(Body));
-  memory->sfree(body);
-  body = k_body.view_host().data();
-  k_body.modify_host();
-  k_body.sync_device();
+  this->grow_body_base(nmax_body);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,23 +144,9 @@ void FixRigidSmallKokkos<DeviceType>::grow_body()
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 {
-  k_body.sync_host();
-  k_bodyown.sync_host();
-  k_bodytag.sync_host();
-  k_atom2body.sync_host();
-  k_xcmimage.sync_host();
-  k_displace.sync_host();
-  if (extended) k_eflags.sync_host();
-
+  this->sync_host_base();
   FixRigidSmall::copy_arrays(i, j, delflag);
-
-  k_body.modify_host();
-  k_bodyown.modify_host();
-  k_bodytag.modify_host();
-  k_atom2body.modify_host();
-  k_xcmimage.modify_host();
-  k_displace.modify_host();
-  if (extended) k_eflags.modify_host();
+  this->modify_host_base();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -193,21 +154,9 @@ void FixRigidSmallKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::set_arrays(int i)
 {
-  k_body.sync_host();
-  k_bodyown.sync_host();
-  k_bodytag.sync_host();
-  k_atom2body.sync_host();
-  k_xcmimage.sync_host();
-  k_displace.sync_host();
-
+  this->sync_host_base();
   FixRigidSmall::set_arrays(i);
-
-  k_body.modify_host();
-  k_bodyown.modify_host();
-  k_bodytag.modify_host();
-  k_atom2body.modify_host();
-  k_xcmimage.modify_host();
-  k_displace.modify_host();
+  this->modify_host_base();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -217,19 +166,9 @@ void FixRigidSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagpre
                                                     int imol, double *xgeom,
                                                     double *vcm, double *quat)
 {
-  k_body.sync_host();
-  k_bodyown.sync_host();
-  k_bodytag.sync_host();
-  k_displace.sync_host();
-  if (extended) k_eflags.sync_host();
-
+  this->sync_host_base();
   FixRigidSmall::set_molecule(nlocalprev, tagprev, imol, xgeom, vcm, quat);
-
-  k_body.modify_host();
-  k_bodyown.modify_host();
-  k_bodytag.modify_host();
-  k_displace.modify_host();
-  if (extended) k_eflags.modify_host();
+  this->modify_host_base();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -301,36 +240,7 @@ void FixRigidSmallKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, doub
 template<class DeviceType>
 double FixRigidSmallKokkos<DeviceType>::compute_scalar()
 {
-  KK_ACC_FLOAT t, t_all;
-  copymode = 1;
-  k_body.sync_device();
-  auto l_body = this->d_body;
-  Kokkos::parallel_reduce(
-    Kokkos::RangePolicy<DeviceType>(0, nlocal_body),
-    KOKKOS_LAMBDA(const int &ibody, KK_ACC_FLOAT &l_t) {
-      BodyKokkos &bk = l_body(ibody);
-      l_t += bk.mass * (bk.vcm[0]*bk.vcm[0] + bk.vcm[1]*bk.vcm[1] + bk.vcm[2]*bk.vcm[2]);
-      // for Iw^2 rotational term, need wbody = angular velocity in body frame
-      // not omega = angular velocity in space frame
-      KK_FLOAT wbody[3], rot[3][3];
-      MathExtraKokkos::quat_to_mat(bk.quat, rot);
-      MathExtraKokkos::transpose_matvec(rot, bk.angmom, wbody);
-      if (bk.inertia[0] == 0.0) wbody[0] = 0.0;
-      else wbody[0] /= bk.inertia[0];
-      if (bk.inertia[1] == 0.0) wbody[1] = 0.0;
-      else wbody[1] /= bk.inertia[1];
-      if (bk.inertia[2] == 0.0) wbody[2] = 0.0;
-      else wbody[2] /= bk.inertia[2];
-      l_t += bk.inertia[0] * wbody[0] * wbody[0]
-             + bk.inertia[1] * wbody[1] * wbody[1]
-             + bk.inertia[2] * wbody[2] * wbody[2];
-    }, t
-  );
-  copymode = 0;
-  MPI_Allreduce(&t, &t_all, 1, MPI_KK_ACC_FLOAT, MPI_SUM, world);
-  KK_ACC_FLOAT tfactor = force->mvv2e / ((6.0*nbody - nlinear) * force->boltz);
-  t_all *= tfactor;
-  return static_cast<double>(t_all);
+  return this->template compute_scalar_base<false,false,false>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -339,22 +249,8 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::zero_momentum()
 {
   copymode = 1;
-  auto l_body = d_body;
-  Kokkos::parallel_for(
-    Kokkos::RangePolicy<DeviceType>(0, nlocal_body + nghost_body),
-    KOKKOS_LAMBDA(const int &ibody) {
-      BodyKokkos &bk = l_body(ibody);
-      bk.vcm[0] = bk.vcm[1] = bk.vcm[2] = 0.0;
-    }
-  );
-  k_body.modify_device();
+  this->zero_momentum_base();
   copymode = 0;
-  // forward communicate of omega to all ghost copies
-  commflag = FINAL;
-  comm->forward_comm(this,10);
-  // set velocity of atoms in rigid bodues
-  if (triclinic) set_v_kokkos<1,0>();
-  else set_v_kokkos<0,0>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -363,24 +259,11 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::zero_rotation()
 {
   copymode = 1;
-  auto l_body = d_body;
-  Kokkos::parallel_for(
-    Kokkos::RangePolicy<DeviceType>(0, nlocal_body + nghost_body),
-    KOKKOS_LAMBDA(const int &ibody) {
-      BodyKokkos &bk = l_body(ibody);
-      bk.angmom[0] = bk.angmom[1] = bk.angmom[2] = 0.0;
-      bk.omega[0] = bk.omega[1] = bk.omega[2] = 0.0;
-    }
-  );
-  k_body.modify_device();
+  this->zero_rotation_base();
   copymode = 0;
-  // forward communicate of omega to all ghost copies
-  commflag = FINAL;
-  comm->forward_comm(this,10);
-  // set velocity of atoms in rigid bodues
-  if (triclinic) set_v_kokkos<1,0>();
-  else set_v_kokkos<0,0>();
 }
+
+/* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
 template class FixRigidSmallKokkos<LMPDeviceType>;

@@ -24,20 +24,16 @@ FixStyle(rigid/small/kk/host,FixRigidSmallKokkos<LMPHostType>);
 #define LMP_FIX_RIGID_SMALL_KOKKOS_H
 
 #include "fix_rigid_small.h"
-#include "fix_rigid_small.h"
+#include "fix_rigid_base_kokkos.h"
 
 
 namespace LAMMPS_NS {
 
 template<class DeviceType>
-class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
+class FixRigidSmallKokkos : public FixRigidSmall, public FixRigidSmallBaseKokkos<DeviceType> {
  public:
-  typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
-  typedef EV_FLOAT value_type;
-
   FixRigidSmallKokkos(class LAMMPS *, int, char **);
-  ~FixRigidSmallKokkos() override;
+  ~FixRigidSmallKokkos();
 
   void init() override;
   void setup(int) override;
@@ -67,6 +63,8 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   class AtomKokkos *atomKK;
   class DomainKokkos *domainKK;
   ExecutionSpace execution_space;
+
+  void grow_body() override;
 
 };
 

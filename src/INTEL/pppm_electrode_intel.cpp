@@ -38,9 +38,9 @@
 #include "pair.h"
 #include "pppm_intel.h"
 #include "remap_wrap.h"
-#include "slab_dipole.h"
+#include "slab_dipole_intel.h"
 #include "update.h"
-#include "wire_dipole.h"
+#include "wire_dipole_intel.h"
 
 #include <algorithm>
 #include <cmath>
@@ -505,8 +505,7 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, double
   ---------------------------------------------------------------------  */
 void PPPMElectrodeIntel::compute_matrix(bigint *imat, double **matrix, bool timer_flag)
 {
-  // TODO replace compute with required setup
-  compute(1, 0);
+  compute(1, 0); // could be further optimized some day
 
   // fft green's function k -> r
   double *greens_real;
@@ -1061,20 +1060,31 @@ void PPPMElectrodeIntel::compute_vector_corr(double *vec, int sensor_grpbit, int
   boundcorr->vector_corr(vec, sensor_grpbit, source_grpbit, invert_source);
 }
 
-void PPPMElectrodeIntel::allocate()
+/* ----------------------------------------------------------------------
+    return constructed boundary correction (/intel override)
+------------------------------------------------------------------------- */
+
+BoundaryCorrection* PPPMElectrodeIntel::allocate_boundcorr(int slabflag, int wireflag)
 {
   if (slabflag == 1) {
     // EW3Dc dipole correction
-    boundcorr = new SlabDipole(lmp);
+    return new SlabDipoleIntel(lmp);
   } else if (wireflag == 1) {
     // EW3Dc wire correction
-    boundcorr = new WireDipole(lmp);
+    return new WireDipoleIntel(lmp);
   } else {
-    // base BoundaryCorrection -- used for ffield
-    boundcorr = new BoundaryCorrection(lmp);
+    // dummy BoundaryCorrection for ffield
+    return new BoundaryCorrection(lmp);
   }
+}
 
-  PPPM::allocate();
+/* ----------------------------------------------------------------------
+   allocate memory that depends on # of K-vectors and order
+------------------------------------------------------------------------- */
+
+void PPPMElectrodeIntel::allocate()
+{
+  PPPM::allocate(); // also allocates boundcorr
   /* ----------------------------------------------------------------------
      Allocate density_brick with extra padding for vector writes
   ------------------------------------------------------------------------- */

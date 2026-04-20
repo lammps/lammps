@@ -163,8 +163,9 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall, public KokkosBase {
 
   void remap() override;
   void compute_forces_and_torques() override;
-  void enforce2d_kokkos();
-  void image_shift_kokkos();
+  void enforce2d() override;
+  void reset_atom2body() override;
+  void image_shift() override;
 
   template<int TRICLINIC, int EVFLAG>
   void set_xv_kokkos();

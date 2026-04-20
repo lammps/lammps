@@ -119,7 +119,6 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
     k_body.modify_host();
     k_body.sync_device();
   }
-  d_body = k_body.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -377,7 +376,7 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
   d_image = atomKK->k_image.template view<DeviceType>();
 
   if (!earlyflag) compute_forces_and_torques();
-  if (domainKK->dimension == 2) enforce2d_kokkos();
+  if (domainKK->dimension == 2) enforce2d();
 
   copymode = 1;
   k_body.sync_device();
@@ -1037,7 +1036,7 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagRigidSmallComputeForcesTorqu
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::enforce2d_kokkos()
+void FixRigidSmallKokkos<DeviceType>::enforce2d()
 {
   copymode = 1;
   k_body.sync_device();
@@ -1059,7 +1058,7 @@ void FixRigidSmallKokkos<DeviceType>::enforce2d_kokkos()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::image_shift_kokkos()
+void FixRigidSmallKokkos<DeviceType>::image_shift()
 {
   copymode = 1;
   atomKK->sync(execution_space, IMAGE_MASK);
@@ -1069,12 +1068,13 @@ void FixRigidSmallKokkos<DeviceType>::image_shift_kokkos()
   auto l_image = atomKK->k_image.template view<DeviceType>();
   auto l_atom2body = d_atom2body;
   auto l_xcmimage = d_xcmimage;
-  auto l_body = d_body;
+  auto l_body = k_body.template view<DeviceType>();;
   Kokkos::parallel_for(
     Kokkos::RangePolicy<DeviceType>(0, atomKK->nlocal),
     KOKKOS_LAMBDA(const int &i) {
-      if (l_atom2body(i) < 0) return;
-      const BodyKokkos &bk = l_body(l_atom2body(i));
+      const int ibody = l_atom2body(i);
+      if (ibody < 0) return;
+      const BodyKokkos &bk = l_body(ibody);
       imageint tdim = l_image(i) & IMGMASK;
       imageint bdim = bk.image & IMGMASK;
       const imageint xdim0 = IMGMAX + tdim - bdim;
@@ -1143,6 +1143,9 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor()
   commflag = FULL_BODY;
   comm->forward_comm(this);
 
+  k_body.modify_host();
+  k_body.sync_device();
+
   // reset atom2body for all owned atoms
   // do this via bodyown of atom that owns the body the owned atom is in
   // atom2body values can point to original body or any image of the body
@@ -1171,8 +1174,45 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor()
   );
   k_atom2body.modify_device();
   copymode = 0;
-  image_shift_kokkos();
+  image_shift();
 }
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::reset_atom2body()
+{
+  // reset atom2body for all owned atoms
+  // do this via bodyown of atom that owns the body the owned atom is in
+  // atom2body values can point to original body or any image of the body
+  copymode = 1;
+  map_style = atom->map_style;
+  if (map_style == Atom::MAP_ARRAY) {
+    k_map_array = atomKK->k_map_array;
+    k_map_array.template sync<DeviceType>();
+  } else if (map_style == Atom::MAP_HASH) {
+    k_map_hash = atomKK->k_map_hash;
+    k_map_hash.template sync<DeviceType>();
+  }
+  atomKK->sync(execution_space, TAG_MASK);
+  k_atom2body.template sync<DeviceType>();
+  k_bodytag.template sync<DeviceType>();
+  k_bodyown.template sync<DeviceType>();
+  d_tag = atomKK->k_tag.template view<DeviceType>();
+  d_atom2body = k_atom2body.template view<DeviceType>();
+  d_bodytag = k_bodytag.template view<DeviceType>();
+  d_bodyown = k_bodyown.template view<DeviceType>();
+  comm_me = comm->me;
+  ntimestep = update->ntimestep;
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType, TagRigidSmallMap>(0, atomKK->nlocal),
+    *this
+  );
+  k_atom2body.modify_device();
+  copymode = 0;
+}
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION

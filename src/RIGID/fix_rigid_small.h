@@ -196,7 +196,7 @@ class FixRigidSmall : public Fix {
 
   // local methods
 
-  void image_shift();
+  virtual void image_shift();
   void set_xv();
   void set_v();
   void create_bodies(tagint *);
@@ -204,10 +204,10 @@ class FixRigidSmall : public Fix {
   void setup_bodies_dynamic();
   virtual void apply_langevin_thermostat();
   virtual void compute_forces_and_torques();
-  void enforce2d();
+  virtual void enforce2d();
   void readfile(int, double **, int *);
   virtual void grow_body();
-  void reset_atom2body();
+  virtual void reset_atom2body();
 
   // callback function for rendezvous communication
 

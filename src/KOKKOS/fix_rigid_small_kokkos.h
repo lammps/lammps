@@ -160,9 +160,9 @@ class FixRigidSmallKokkos : public FixRigidSmall, public KokkosBase {
   Few<KK_FLOAT,6> d_h;
 
   void compute_forces_and_torques() override;
-  void enforce2d_kokkos();
-  void image_shift_kokkos();
-  void grow_body_kokkos();
+  void enforce2d() override;
+  void reset_atom2body() override;
+  void image_shift() override;
 
   template<int TRICLINIC, int EVFLAG>
   void set_xv_kokkos();

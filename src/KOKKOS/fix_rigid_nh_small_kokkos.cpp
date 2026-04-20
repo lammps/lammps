@@ -592,7 +592,7 @@ void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
   d_image = atomKK->k_image.template view<DeviceType>();
 
   if (!earlyflag) compute_forces_and_torques();
-  if (domainKK->dimension == 2) enforce2d_kokkos();
+  if (domainKK->dimension == 2) enforce2d();
 
   copymode = 1;
   k_body.sync_device();
@@ -1291,7 +1291,7 @@ void FixRigidNHSmallKokkos<DeviceType>::compute_forces_and_torques()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidNHSmallKokkos<DeviceType>::enforce2d_kokkos()
+void FixRigidNHSmallKokkos<DeviceType>::enforce2d()
 {
   copymode = 1;
   k_body.sync_device();
@@ -1313,7 +1313,7 @@ void FixRigidNHSmallKokkos<DeviceType>::enforce2d_kokkos()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidNHSmallKokkos<DeviceType>::image_shift_kokkos()
+void FixRigidNHSmallKokkos<DeviceType>::image_shift()
 {
   copymode = 1;
   atomKK->sync(execution_space, IMAGE_MASK);
@@ -1397,6 +1397,9 @@ void FixRigidNHSmallKokkos<DeviceType>::pre_neighbor()
   commflag = FULL_BODY;
   comm->forward_comm(this);
 
+template<class DeviceType>
+void FixRigidNHSmallKokkos<DeviceType>::reset_atom2body()
+{
   // reset atom2body for all owned atoms
   // do this via bodyown of atom that owns the body the owned atom is in
   // atom2body values can point to original body or any image of the body
@@ -1425,8 +1428,9 @@ void FixRigidNHSmallKokkos<DeviceType>::pre_neighbor()
   );
   k_atom2body.modify_device();
   copymode = 0;
-  image_shift_kokkos();
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION

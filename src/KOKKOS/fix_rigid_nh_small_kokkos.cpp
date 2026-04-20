@@ -172,8 +172,8 @@ template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
 {
   if (langflag && (nlocal_body > maxlang)) {
-    maxlang = nlocal_body + nghost_body;
     memoryKK->destroy_kokkos(k_langextra, langextra);
+    maxlang = nlocal_body + nghost_body;
     memoryKK->create_kokkos(k_langextra, langextra, 6, "rigid/small:langextra");
   }
   atomKK->sync(Host, ALL_MASK);
@@ -204,7 +204,7 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
         l_akin_t += bk.mass * (bk.vcm[0] * bk.vcm[0] + bk.vcm[1] * bk.vcm[1]
                                + bk.vcm[2] * bk.vcm[2]);
         l_akin_r += bk.angmom[0] * bk.omega[0] + bk.angmom[1] * bk.omega[1]
-                    + bk.angmom[2]*bk.omega[2];
+                    + bk.angmom[2] * bk.omega[2];
       }
     }, ke[0], ke[1]
   );
@@ -365,9 +365,6 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
   // remap
   if (pstat_flag) remap();
 
-  //*** k_body.sync_device();
-  //*** d_body = k_body.template view<DeviceType>();
-
   // virial setup
   v_init(vflag);
   if (vflag_atom) {
@@ -380,8 +377,6 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
     }
     Kokkos::deep_copy(d_vatom, 0.0);
   }
-  d_prd = Few<KK_FLOAT,3>(domainKK->prd);
-  d_h = Few<KK_FLOAT,6>(domainKK->h);
   if (triclinic) {
     if (evflag) set_xv_kokkos<1,1>();
     else set_xv_kokkos<1,0>();
@@ -725,10 +720,8 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHSmallFinalIntegrate
   bk.angmom[0] *= 0.5;
   bk.angmom[1] *= 0.5;
   bk.angmom[2] *= 0.5;
-
   MathExtraKokkos::angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
                                    bk.ez_space, bk.inertia, bk.omega);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1092,9 +1085,7 @@ void FixRigidNHSmallKokkos<DeviceType>::operator()(TagRigidNHSmallSetV<TRICLINIC
 {
   const int ibody = d_atom2body(i);
   if (ibody < 0) return;
-
   const BodyKokkos &bk = d_body(ibody);
-
   KK_FLOAT delta[3];
   MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, &d_displace(i, 0), delta);
 
@@ -1176,7 +1167,9 @@ void FixRigidNHSmallKokkos<DeviceType>::compute_forces_and_torques()
 {
   const int nbody_total = nlocal_body + nghost_body;
   const int nlocal = atomKK->nlocal;
+
   copymode = 1;
+
   k_body.sync_device();
   auto l_body = d_body;
   d_prd = Few<KK_FLOAT,3>(domainKK->prd);
@@ -1897,6 +1890,7 @@ int FixRigidNHSmallKokkos<DeviceType>::pack_forward_comm_kokkos(
     k_body.sync_device();
     k_bodyown.sync_device();
   }
+  
   copymode = 1;
   if (commflag == INITIAL) {
     Kokkos::parallel_scan(

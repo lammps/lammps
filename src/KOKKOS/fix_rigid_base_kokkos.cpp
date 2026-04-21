@@ -35,6 +35,16 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace RigidConst;
 
+using MathExtraKokkos::angmom_to_omega;
+using MathExtraKokkos::invquatvec;
+using MathExtraKokkos::matvec;
+using MathExtraKokkos::no_squish_rotate;
+using MathExtraKokkos::q_to_exyz;
+using MathExtraKokkos::quat_to_mat;
+using MathExtraKokkos::quatvec;
+using MathExtraKokkos::richardson;
+using MathExtraKokkos::transpose_matvec;
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType, class FixRigidBase>
@@ -404,16 +414,16 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate_base(int vfl
           // update quaternion a full step via Richardson iteration
           // returns new normalized quaternion, also updated omega at 1/2 step
           // update ex,ey,ez to reflect new quaternion
-          MathExtraKokkos::angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
+          angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
                                      bk.ez_space, bk.inertia, bk.omega);
-          MathExtraKokkos::richardson(bk.quat,bk.angmom,bk.omega,bk.inertia,l_dtq);
-          MathExtraKokkos::q_to_exyz(bk.quat, bk.ex_space, bk.ey_space, bk.ez_space);
+          richardson(bk.quat,bk.angmom,bk.omega,bk.inertia,l_dtq);
+          q_to_exyz(bk.quat, bk.ex_space, bk.ey_space, bk.ez_space);
         } else {
           // apply torque to quaternion momentum
           KK_FLOAT mbody[3], tbody[3], fquat[4];
-          MathExtraKokkos::transpose_matvec(bk.ex_space, bk.ey_space, bk.ez_space,
+          transpose_matvec(bk.ex_space, bk.ey_space, bk.ez_space,
                                       bk.torque, tbody);
-          MathExtraKokkos::quatvec(bk.quat, tbody, fquat);
+          quatvec(bk.quat, tbody, fquat);
           bk.conjqm[0] = fma(l_dtf2, fquat[0], bk.conjqm[0]);
           bk.conjqm[1] = fma(l_dtf2, fquat[1], bk.conjqm[1]);
           bk.conjqm[2] = fma(l_dtf2, fquat[2], bk.conjqm[2]);
@@ -425,19 +435,19 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate_base(int vfl
             bk.conjqm[3] *= l_scale_r;
           }
           // step 1.4 to 1.13 - no_squish_rotate
-          MathExtraKokkos::no_squish_rotate(3, bk.conjqm, bk.quat, bk.inertia, l_dtq);
-          MathExtraKokkos::no_squish_rotate(2, bk.conjqm, bk.quat, bk.inertia, l_dtq);
-          MathExtraKokkos::no_squish_rotate(1, bk.conjqm, bk.quat, bk.inertia, l_dtv);
-          MathExtraKokkos::no_squish_rotate(2, bk.conjqm, bk.quat, bk.inertia, l_dtq);
-          MathExtraKokkos::no_squish_rotate(3, bk.conjqm, bk.quat, bk.inertia, l_dtq);
+          no_squish_rotate(3, bk.conjqm, bk.quat, bk.inertia, l_dtq);
+          no_squish_rotate(2, bk.conjqm, bk.quat, bk.inertia, l_dtq);
+          no_squish_rotate(1, bk.conjqm, bk.quat, bk.inertia, l_dtv);
+          no_squish_rotate(2, bk.conjqm, bk.quat, bk.inertia, l_dtq);
+          no_squish_rotate(3, bk.conjqm, bk.quat, bk.inertia, l_dtq);
           // update exyz_space, transform p back to angmom, update omega
-          MathExtraKokkos::q_to_exyz(bk.quat, bk.ex_space, bk.ey_space, bk.ez_space);
-          MathExtraKokkos::invquatvec(bk.quat, bk.conjqm, mbody);
-          MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, mbody, bk.angmom);
+          q_to_exyz(bk.quat, bk.ex_space, bk.ey_space, bk.ez_space);
+          invquatvec(bk.quat, bk.conjqm, mbody);
+          matvec(bk.ex_space, bk.ey_space, bk.ez_space, mbody, bk.angmom);
           bk.angmom[0] *= 0.5;
           bk.angmom[1] *= 0.5;
           bk.angmom[2] *= 0.5;
-          MathExtraKokkos::angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
+          angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
                                      bk.ez_space, bk.inertia, bk.omega);
         }
       }
@@ -538,13 +548,13 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::final_integrate_base()
           bk.angmom[0] = fma(l_dtf, bk.torque[0], bk.angmom[0]);
           bk.angmom[1] = fma(l_dtf, bk.torque[1], bk.angmom[1]);
           bk.angmom[2] = fma(l_dtf, bk.torque[2], bk.angmom[2]);
-          MathExtraKokkos::angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
+          angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
                                    bk.ez_space, bk.inertia, bk.omega);
         } else {
           KK_FLOAT mbody[3], tbody[3], fquat[4];
-          MathExtraKokkos::transpose_matvec(bk.ex_space, bk.ey_space,
+          transpose_matvec(bk.ex_space, bk.ey_space,
                                     bk.ez_space, bk.torque, tbody);
-          MathExtraKokkos::quatvec(bk.quat, tbody, fquat);
+          quatvec(bk.quat, tbody, fquat);
           if constexpr (TSTAT || PSTAT) {
             bk.conjqm[0] = fma(l_scale_r, bk.conjqm[0], l_dtf2 * fquat[0]);
             bk.conjqm[1] = fma(l_scale_r, bk.conjqm[1], l_dtf2 * fquat[1]);
@@ -556,12 +566,12 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::final_integrate_base()
             bk.conjqm[2] = Kokkos::fma(l_dtf2, fquat[2], bk.conjqm[2]);
             bk.conjqm[3] = Kokkos::fma(l_dtf2, fquat[3], bk.conjqm[3]);
           }
-          MathExtraKokkos::invquatvec(bk.quat, bk.conjqm, mbody);
-          MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, mbody, bk.angmom);
+          invquatvec(bk.quat, bk.conjqm, mbody);
+          matvec(bk.ex_space, bk.ey_space, bk.ez_space, mbody, bk.angmom);
           bk.angmom[0] *= 0.5;
           bk.angmom[1] *= 0.5;
           bk.angmom[2] *= 0.5;
-          MathExtraKokkos::angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
+          angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
                                    bk.ez_space, bk.inertia, bk.omega);
         }
       }
@@ -671,8 +681,8 @@ double FixRigidBaseKokkos<DeviceType,FixRigidBase>::compute_scalar_base()
       // for Iw^2 rotational term, need wbody = angular velocity in body frame
       // not omega = angular velocity in space frame
       KK_FLOAT wbody[3], rot[3][3];
-      MathExtraKokkos::quat_to_mat(bk.quat, rot);
-      MathExtraKokkos::transpose_matvec(rot, bk.angmom, wbody);
+      quat_to_mat(bk.quat, rot);
+      transpose_matvec(rot, bk.angmom, wbody);
       if (bk.inertia[0] == 0.0) wbody[0] = 0.0;
       else wbody[0] /= bk.inertia[0];
       if (bk.inertia[1] == 0.0) wbody[1] = 0.0;
@@ -739,9 +749,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::zero_rotation_base()
   if (base()->triclinic) set_v_base<true,false>();
   else set_v_base<false,false>();
 }
-
-
-
 
 
 
@@ -819,7 +826,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
         }
 
         KK_FLOAT xnew[3];
-        MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, &l_displace(i, 0), xnew);
+        matvec(bk.ex_space, bk.ey_space, bk.ez_space, &l_displace(i, 0), xnew);
 
         if constexpr (EVFLAG) {
           // Compute v_new in KK_ACC_FLOAT before truncating to KK_FLOAT for storage,
@@ -978,7 +985,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
     KOKKOS_LAMBDA(const int &ibody) {
       BodyKokkos &bk = l_body(ibody);
       KK_FLOAT xgc_tmp[3];
-      MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, bk.xgc_body, xgc_tmp);
+      matvec(bk.ex_space, bk.ey_space, bk.ez_space, bk.xgc_body, xgc_tmp);
       bk.xgc[0] = xgc_tmp[0] + bk.xcm[0];
       bk.xgc[1] = xgc_tmp[1] + bk.xcm[1];
       bk.xgc[2] = xgc_tmp[2] + bk.xcm[2];
@@ -994,7 +1001,10 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
 }
 
 
-}
+
+
+
+
 
 
 
@@ -1533,7 +1543,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::apply_langevin_thermostat_base
       gamma2 = l_tsqrt * l_langfactor;
       KK_FLOAT wbody[3], tbody[3];
       // convert omega from space frame to body frame
-      MathExtraKokkos::transpose_matvec(bk.ex_space,bk.ey_space,bk.ez_space,bk.omega,wbody);
+      transpose_matvec(bk.ex_space,bk.ey_space,bk.ez_space,bk.omega,wbody);
       // compute langevin torques in the body frame
       tbody[0] = bk.inertia[0] * gamma1 * wbody[0]
                  + sqrt(bk.inertia[0]) * gamma2 * rnd4;
@@ -1542,7 +1552,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::apply_langevin_thermostat_base
       tbody[2] = bk.inertia[2] * gamma1 * wbody[2] +
                  + sqrt(bk.inertia[2]) * gamma2 * rnd6;
       // convert langevin torques from body frame back to space frame
-      MathExtraKokkos::matvec(bk.ex_space,bk.ey_space,bk.ez_space,tbody,
+      matvec(bk.ex_space,bk.ey_space,bk.ez_space,tbody,
                               &l_langextra(ibody, 3));
     }
   );
@@ -1730,7 +1740,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::operator()(TagRigidSetV<TRICLI
   const BodyKokkos &bk = l_body(ibody);
 
   KK_FLOAT delta[3];
-  MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, &d_displace(i, 0), delta);
+  matvec(bk.ex_space, bk.ey_space, bk.ez_space, &d_displace(i, 0), delta);
 
   if constexpr (EVFLAG) {
     const double vx = l_v(i,0);

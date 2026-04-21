@@ -34,7 +34,8 @@ using namespace RigidConst;
 
 template<class DeviceType>
 FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixRigidSmall(lmp, narg, arg), FixRigidSmallBaseKokkos<DeviceType>(atom, domain)
+  FixRigidSmall(lmp, narg, arg),
+  FixRigidBaseKokkos<DeviceType, FixRigidSmall>(atom, domain)
 {
   kokkosable = 1;
   forward_comm_device = 1;
@@ -74,28 +75,18 @@ void FixRigidSmallKokkos<DeviceType>::init()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
+void FixRigidSmallKokkos<DeviceType>::pre_neighbor()
 {
-  this->setup_base(vflag);
+  this->pre_neighbor_base();
 }
+
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::initial_integrate(int vflag)
 {
-  copymode = 1;
   this->template initial_integrate_base<false,false,false>(vflag);
-  copymode = 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::post_force(int /*vflag*/)
-{
-  if (langflag) this->apply_langevin_thermostat_base();
-  if (earlyflag) this->compute_forces_and_torques_base();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -103,9 +94,7 @@ void FixRigidSmallKokkos<DeviceType>::post_force(int /*vflag*/)
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::final_integrate()
 {
-  copymode = 1;
   this->template final_integrate_base<false,false,false>();
-  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -122,22 +111,6 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
   this->sync_device_base();
 }
 
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::grow_arrays(int nmax)
-{
-  this->grow_arrays_base(nmax);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::grow_body()
-{
-  nmax_body += DELTA_BODY;
-  this->grow_body_base(nmax_body);
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -174,7 +147,7 @@ void FixRigidSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagpre
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixRigidSmallKokkos<DeviceType>::pack_exchange(int i, double *buf)
+int FixRigidNHSmallKokkos<DeviceType>::pack_exchange(int i, double *buf)
 {
   this->sync_host_base();
   return FixRigidSmall::pack_exchange(i, buf);
@@ -183,7 +156,7 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange(int i, double *buf)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixRigidSmallKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
+int FixRigidNHSmallKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 {
   int result = FixRigidSmall::unpack_exchange(nlocal, buf);
   this->modify_host_base();
@@ -193,75 +166,44 @@ int FixRigidSmallKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixRigidSmallKokkos<DeviceType>::pack_forward_comm(int n, int *list,
-                                                       double *buf, int pbc_flag, int *pbc)
+int FixRigidNHSmallKokkos<DeviceType>::pack_forward_comm(int n, int *list,
+                                                          double *buf, int pbc_flag, int *pbc)
 {
-  this->k_body.sync_host();
-  this->k_bodyown.sync_host();
+  k_body.sync_host();
+  k_bodyown.sync_host();
   return FixRigidSmall::pack_forward_comm(n, list, buf, pbc_flag, pbc);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
+void FixRigidNHSmallKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
   FixRigidSmall::unpack_forward_comm(n, first, buf);
-  this->k_body.modify_host();
-  this->k_bodyown.modify_host();
-  this->k_body.sync_device();
-  this->k_bodyown.sync_device();
+  k_body.modify_host();
+  k_bodyown.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixRigidSmallKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
+int FixRigidNHSmallKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
-  this->k_body.sync_host();
-  this->k_bodyown.sync_host();
+  k_body.sync_host();
+  k_bodyown.sync_host();
   return FixRigidSmall::pack_reverse_comm(n, first, buf);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
+void FixRigidNHSmallKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
   FixRigidSmall::unpack_reverse_comm(n, list, buf);
-  this->k_body.modify_host();
-  this->k_bodyown.modify_host();
-  this->k_body.sync_device();
-  this->k_bodyown.sync_device();
+  k_body.modify_host();
+  k_bodyown.modify_host();
 }
 
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-double FixRigidSmallKokkos<DeviceType>::compute_scalar()
-{
-  return this->template compute_scalar_base<false,false,false>();
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::zero_momentum()
-{
-  copymode = 1;
-  this->zero_momentum_base();
-  copymode = 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::zero_rotation()
-{
-  copymode = 1;
-  this->zero_rotation_base();
-  copymode = 0;
-}
 
 /* ---------------------------------------------------------------------- */
 

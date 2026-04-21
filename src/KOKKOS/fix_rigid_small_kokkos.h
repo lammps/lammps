@@ -30,10 +30,10 @@ FixStyle(rigid/small/kk/host,FixRigidSmallKokkos<LMPHostType>);
 namespace LAMMPS_NS {
 
 template<class DeviceType>
-class FixRigidSmallKokkos : public FixRigidSmall, public FixRigidSmallBaseKokkos<DeviceType> {
+class FixRigidSmallKokkos : public FixRigidSmall, public FixRigidBaseKokkos<DeviceType, FixRigidSmall> {
  public:
   FixRigidSmallKokkos(class LAMMPS *, int, char **);
-  ~FixRigidSmallKokkos();
+  ~FixRigidSmallKokkos() override;
 
   void init() override;
   void setup(int) override;
@@ -61,7 +61,6 @@ class FixRigidSmallKokkos : public FixRigidSmall, public FixRigidSmallBaseKokkos
 
  protected:
   class AtomKokkos *atomKK;
-  class DomainKokkos *domainKK;
   ExecutionSpace execution_space;
 
   void grow_body() override;

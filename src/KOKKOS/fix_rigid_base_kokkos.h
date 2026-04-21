@@ -6,17 +6,23 @@
 #ifndef LMP_FIX_RIGID_BASE_KOKKOS_H
 #define LMP_FIX_RIGID_BASE_KOKKOS_H
 
-#include "kokkos_base.h"
-
+#include "fix_rigid.h"
+#include "fix_rigid_nh.h"
 #include "fix_rigid_small.h"
+#include "fix_rigid_nh_small.h"
+
+#include "kokkos.h"
+#include "kokkos_base.h"
 #include "kokkos_few.h"
 #include "kokkos_type.h"
 
+// langflag
 #include "Kokkos_Random.hpp"
 #include "rand_pool_wrap_kokkos.h"
 
-
 namespace LAMMPS_NS {
+
+using Kokkos::fma;
 
 struct TagRigidSmallResetAtom2Body {};
 
@@ -32,16 +38,18 @@ struct TagRigidSmallSetXV {};
 template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
 struct TagRigidSmallSetV {};
 
-template<class DeviceType>
-class FixRigidSmallBaseKokkos : public KokkosBase {
+template<class DeviceType, class FixRigidBase>
+class FixRigidBaseKokkos : public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
 
-  FixRigidSmallBaseKokkos(Atom*, Domain*);
-  ~FixRigidSmallBaseKokkos();
+  FixRigidBaseKokkos(Atom*, Domain*);
+  ~FixRigidBaseKokkos();
 
+  // fix methods
+  void setup_pre_neighbor_base();
   void setup_base(int);
 
   template<bool NH, bool TSTAT, bool PSTAT>
@@ -50,6 +58,7 @@ class FixRigidSmallBaseKokkos : public KokkosBase {
   template<bool NH, bool TSTAT, bool PSTAT>
   void final_integrate_base();
 
+  // templated tag operators
   template<bool NH, bool TSTAT, bool PSTAT>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRigidSmallInitialIntegrate<NH,TSTAT,PSTAT>, const int&) const;
@@ -79,17 +88,31 @@ class FixRigidSmallBaseKokkos : public KokkosBase {
 
 protected:
 
-  void compute_forces_and_torques_base();
-  void enforce2d_base();
-  void grow_arrays_base(int);
-  void grow_body_base(int);
-  void image_shift_base();
-  void reset_atom2body_base();
-  void zero_momentum_base();
-  void zero_rotation_base();
+  // CRTP accessors — every concrete KK class inherits from
+  // both FixRigidBase and FixRigidBaseKokkos<DeviceType, FixRigidBase>
+  FixRigidBase* base() { return static_cast<FixRigidBase*>(this); }
+  const FixRigidBase* base() const { return static_cast<const FixRigidBase*>(this); }
+
+  static constexpr bool nh_flag    = std::is_base_of_v<FixRigidNH,    FixRigidBase>;
+  static constexpr bool small_flag = std::is_base_of_v<FixRigidSmall, FixRigidBase>;
+
+  int nbody_total() { return base()->nlocal_body + base()->nghost_body; }
+
+  void compute_forces_and_torques();
+  void enforce2d();
+  void grow_arrays(int);
+  void grow_body(int);
+  void image_shift();
+  void reset_atom2body();
+  void zero_momentum();
+  void zero_rotation();
 
   template<bool NH, bool TSTAT, bool PSTAT>
-  double compute_scalar_base();
+  double compute_scalar();
+
+  class AtomKokkos *atomKK;
+  class DomainKokkos *domainKK;
+  ExecutionSpace execution_space;
 
   DAT::tdual_int_1d k_atom2body, k_bodyown, k_eflags;
   DAT::tdual_tagint_1d k_bodytag;
@@ -156,7 +179,7 @@ protected:
 #endif
 
   TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_langextra;
-  void apply_langevin_thermostat_base();
+  void apply_langevin_thermostat();
 
   // KOKKOS BASE
 
@@ -327,8 +350,8 @@ protected:
     }
   };
 
-}; // class FixRigidSmallBaseKokkos
+}; // class FixRigidBaseKokkos
 
 }    // namespace LAMMPS_NS
 
-#endif // !LMP_FIX_RIGID_SMALL_BASE_KOKKOS_H
+#endif // !LMP_FIX_RIGID_BASE_KOKKOS_H

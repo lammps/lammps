@@ -27,9 +27,6 @@ using Kokkos::fma;
 struct TagRigidResetAtom2Body {};
 
 template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
-struct TagRigidSetXV {};
-
-template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
 struct TagRigidSetV {};
 
 template<class DeviceType, class FixRigidBase>
@@ -43,10 +40,6 @@ class FixRigidBaseKokkos : public KokkosBase {
   ~FixRigidBaseKokkos();
 
   // templated tagged operators
-
-  template<bool TRICLINIC, bool NEIGHFLAG, bool EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<bool TRICLINIC, bool NEIGHFLAG, bool EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -191,7 +184,7 @@ protected:
   void image_shift_base();
   void reset_atom2body_base();
 
-  template<bool TRICLINIC, bool EVFLAG>
+  template<bool EVFLAG>
   void set_xv_base();
 
   template<bool TRICLINIC, bool EVFLAG>
@@ -250,8 +243,6 @@ protected:
   DAT::ttransform_kkacc_1d_6 k_vatom;
   typename AT::t_kkacc_1d d_eatom;
   typename AT::t_kkacc_1d_6 d_vatom;
-
-
 
   void modify_host_base();
   void modify_device_base();

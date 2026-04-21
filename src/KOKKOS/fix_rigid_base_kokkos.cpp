@@ -470,13 +470,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate_base(int vfl
     Kokkos::deep_copy(d_vatom, 0.0);
   }
 
-  if (base()->triclinic) {
-    if (base()->evflag) set_xv_base<true,true>();
-    else set_xv_base<true,false>();
-  } else {
-    if (base()->evflag) set_xv_base<false,true>();
-    else set_xv_base<false,false>();
-  }
+  if (base()->evflag) set_xv_base<true>();
+  else set_xv_base<false>();
 
   if (base()->vflag_atom) {
     k_vatom.template modify<DeviceType>();
@@ -757,6 +752,249 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::zero_rotation_base()
 
 
 
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType, class FixRigidBase>
+template<bool EVFLAG>
+void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
+{
+  auto l_x = atomKK->k_x.template view<DeviceType>();
+  auto l_v = atomKK->k_v.template view<DeviceType>();
+  auto l_f = atomKK->k_f.template view<DeviceType>();
+  auto l_rmass = atomKK->k_rmass.template view<DeviceType>();
+  auto l_mass = atomKK->k_mass.template view<DeviceType>();
+  auto l_type = atomKK->k_type.template view<DeviceType>();
+  atomKK->sync(execution_space, X_MASK | V_MASK | F_MASK | TYPE_MASK | RMASS_MASK);
+
+  k_atom2body.sync_device();
+  k_body.sync_device();
+  k_xcmimage.sync_device();
+  k_displace.sync_device();
+  auto l_atom2body = k_atom2body.template view<DeviceType>();
+  auto l_body = k_body.template view<DeviceType>();
+  auto l_xcmimage = k_xcmimage.template view<DeviceType>();
+  auto l_displace = k_displace.template view<DeviceType>();
+
+  auto l_h0 = domainKK->h[0];
+  auto l_h1 = domainKK->h[1];
+  auto l_h2 = domainKK->h[2];
+  auto l_h3 = domainKK->h[3];
+  auto l_h4 = domainKK->h[4];
+  auto l_h5 = domainKK->h[5];
+  auto l_prd0 = static_cast<KK_FLOAT>(domainKK->prd[0]);
+  auto l_prd1 = static_cast<KK_FLOAT>(domainKK->prd[1]);
+  auto l_prd2 = static_cast<KK_FLOAT>(domainKK->prd[2]);
+
+  KK_FLOAT l_dtf = static_cast<KK_FLOAT>(base()->dtf);
+  auto l_vflag_global = base()->vflag_global;
+  auto l_vflag_atom = base()->vflag_atom;
+
+  auto lambda = [&]<bool TRICLINIC, int NEIGHFLAG>(const int &i, EV_FLOAT &ev) {
+        const int ibody = l_atom2body(i);
+        if (ibody < 0) return;
+        const BodyKokkos &bk = l_body(ibody);
+
+        const KK_FLOAT xbox = static_cast<KK_FLOAT>((l_xcmimage(i) & IMGMASK) - IMGMAX);
+        const KK_FLOAT ybox = static_cast<KK_FLOAT>((l_xcmimage(i) >> IMGBITS & IMGMASK) - IMGMAX);
+        const KK_FLOAT zbox = static_cast<KK_FLOAT>((l_xcmimage(i) >> IMG2BITS) - IMGMAX);
+
+        KK_FLOAT deltax, deltay;
+        if constexpr(TRICLINIC) {
+          deltax = fma(xbox, l_prd0, fma(ybox, l_h5, fma(zbox, l_h4, l_x(i,0))));
+          deltay = fma(ybox, l_prd1, fma(zbox, l_h3, l_x(i,1)));
+        } else {
+          deltax = fma(xbox, l_prd0, l_x(i,0));
+          deltay = fma(ybox, l_prd1, l_x(i,1));
+        }
+        const KK_FLOAT deltaz = fma(zbox, l_prd2, l_x(i,2));
+
+        KK_FLOAT x0 = 0.0, x1 = 0.0, x2 = 0.0, vx = 0.0, vy = 0.0, vz = 0.0;
+        if constexpr (EVFLAG) {
+          x0 = l_x(i,0) + deltax;
+          x1 = l_x(i,1) + deltay;
+          x2 = l_x(i,2) + deltaz;
+          vx = l_v(i,0);
+          vy = l_v(i,1);
+          vz = l_v(i,2);
+        }
+
+        KK_FLOAT xnew[3];
+        MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, &l_displace(i, 0), xnew);
+
+        if constexpr (EVFLAG) {
+          // Compute v_new in KK_ACC_FLOAT before truncating to KK_FLOAT for storage,
+          // so the pre-truncation value can be used for the constraint-force virial.
+          const KK_ACC_FLOAT vnew0 = fma(KK_ACC_FLOAT(bk.omega[1]), KK_ACC_FLOAT(xnew[2]),
+                               fma(KK_ACC_FLOAT(-bk.omega[2]), KK_ACC_FLOAT(xnew[1]),
+                               KK_ACC_FLOAT(bk.vcm[0])));
+          const KK_ACC_FLOAT vnew1 = fma(KK_ACC_FLOAT(bk.omega[2]), KK_ACC_FLOAT(xnew[0]),
+                               fma(KK_ACC_FLOAT(-bk.omega[0]), KK_ACC_FLOAT(xnew[2]),
+                               KK_ACC_FLOAT(bk.vcm[1])));
+          const KK_ACC_FLOAT vnew2 = fma(KK_ACC_FLOAT(bk.omega[0]), KK_ACC_FLOAT(xnew[1]),
+                               fma(KK_ACC_FLOAT(-bk.omega[1]), KK_ACC_FLOAT(xnew[0]),
+                               KK_ACC_FLOAT(bk.vcm[2])));
+          l_v(i,0) = KK_FLOAT(vnew0);
+          l_v(i,1) = KK_FLOAT(vnew1);
+          l_v(i,2) = KK_FLOAT(vnew2);
+          l_x(i,0) = xnew[0] + bk.xcm[0] - deltax;
+          l_x(i,1) = xnew[1] + bk.xcm[1] - deltay;
+          l_x(i,2) = xnew[2] + bk.xcm[2] - deltaz;
+
+          double massone;
+          if (d_rmass.data()) massone = l_rmass(i);
+          else massone = l_mass(l_type(i));
+          const double half_m_dt = 0.5 * massone / l_dtf;
+          const KK_ACC_FLOAT fc0 = fma(half_m_dt, vnew0 - vx, -0.5*l_f(i,0));
+          const KK_ACC_FLOAT fc1 = fma(half_m_dt, vnew1 - vy, -0.5*l_f(i,1));
+          const KK_ACC_FLOAT fc2 = fma(half_m_dt, vnew2 - vz, -0.5*l_f(i,2));
+
+          const KK_ACC_FLOAT vd00 = x0*fc0;
+          const KK_ACC_FLOAT vd11 = x1*fc1;
+          const KK_ACC_FLOAT vd22 = x2*fc2;
+          const KK_ACC_FLOAT vd01 = x0*fc1;
+          const KK_ACC_FLOAT vd02 = x0*fc2;
+          const KK_ACC_FLOAT vd12 = x1*fc2;
+
+          if constexpr (l_vflag_global) {
+            ev.v[0] += vd00;
+            ev.v[1] += vd11;
+            ev.v[2] += vd22;
+            ev.v[3] += vd01;
+            ev.v[4] += vd02;
+            ev.v[5] += vd12;
+          }
+          if constexpr (l_vflag_atom) {
+            auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,
+              decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom, ndup_vatom);
+            auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+            a_vatom(i,0) += vd00;
+            a_vatom(i,1) += vd11;
+            a_vatom(i,2) += vd22;
+            a_vatom(i,3) += vd01;
+            a_vatom(i,4) += vd02;
+            a_vatom(i,5) += vd12;
+          }
+        } else {
+          l_v(i,0) = fma(bk.omega[1], xnew[2], fma(-bk.omega[2], xnew[1], bk.vcm[0]));
+          l_v(i,1) = fma(bk.omega[2], xnew[0], fma(-bk.omega[0], xnew[2], bk.vcm[1]));
+          l_v(i,2) = fma(bk.omega[0], xnew[1], fma(-bk.omega[1], xnew[0], bk.vcm[2]));
+          l_x(i,0) = xnew[0] + bk.xcm[0] - deltax;
+          l_x(i,1) = xnew[1] + bk.xcm[1] - deltay;
+          l_x(i,2) = xnew[2] + bk.xcm[2] - deltaz;
+        }
+      };
+
+  const int nlocal = atomKK->nlocal;
+  base()->copymode = 1;
+  if constexpr (!EVFLAG) {
+    // TagRigidSetXV<TRICLINIC,HALF,0>>(0, nlocal),
+    EV_FLOAT ev;
+    if (base()->triclinic) {
+      Kokkos::parallel_for(
+        Kokkos::RangePolicy<DeviceType>(0, nlocal),
+        KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
+          lambda.template operator()<true,HALF>(i, ev);
+        }
+      );
+    } else {
+      Kokkos::parallel_for(
+        Kokkos::RangePolicy<DeviceType>(0, nlocal),
+        KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
+          lambda.template operator()<false,HALF>(i, ev);
+        }
+      );
+    }
+  } else {
+    auto kokkos = base()->lmp->kokkos;
+    int neighflag = kokkos->neighflag;
+    if (neighflag == FULL) {
+      neighflag =
+        (kokkos->nthreads > 1 || kokkos->ngpus > 0) ? HALFTHREAD : HALF;
+    }
+    const bool need_dup =
+      (neighflag != HALF) &&
+      std::is_same_v<NeedDup_v<HALFTHREAD, DeviceType>,
+                     Kokkos::Experimental::ScatterDuplicated>;
+    if (l_vflag_atom) {
+      if (need_dup)
+        dup_vatom = Kokkos::Experimental::create_scatter_view<
+          Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_vatom);
+      else
+        ndup_vatom = Kokkos::Experimental::create_scatter_view<
+          Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
+    }
+    EV_FLOAT ev{};
+    if (neighflag == HALF) {
+      // TagRigidSetXV<TRICLINIC,HALF>>(0, nlocal),
+      if (base()->triclinic) {
+        Kokkos::parallel_reduce(
+          Kokkos::RangePolicy<DeviceType>(0, nlocal),
+          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
+            lambda.template operator()<true,HALF>(i, ev);
+          }
+        );
+      } else {
+        Kokkos::parallel_reduce(
+          Kokkos::RangePolicy<DeviceType>(0, nlocal),
+          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
+            lambda.template operator()<false,HALF>(i, ev);
+          }
+        );
+      }
+    } else {
+      // TagRigidSetXV<TRICLINIC,HALFTHREAD>>(0, nlocal),
+      if (base()->triclinic) {
+        Kokkos::parallel_reduce(
+          Kokkos::RangePolicy<DeviceType>(0, nlocal),
+          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
+            lambda.template operator()<true,HALFTHREAD>(i, ev);
+          }
+        );
+      } else {
+        Kokkos::parallel_reduce(
+          Kokkos::RangePolicy<DeviceType>(0, nlocal),
+          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
+            lambda.template operator()<false,HALFTHREAD>(i, ev);
+          }
+        );
+      }
+    }
+    if (l_vflag_global) {
+      base()->virial[0] += static_cast<double>(ev.v[0]);
+      base()->virial[1] += static_cast<double>(ev.v[1]);
+      base()->virial[2] += static_cast<double>(ev.v[2]);
+      base()->virial[3] += static_cast<double>(ev.v[3]);
+      base()->virial[4] += static_cast<double>(ev.v[4]);
+      base()->virial[5] += static_cast<double>(ev.v[5]);
+    }
+    if (l_vflag_atom && need_dup) {
+      Kokkos::Experimental::contribute(d_vatom, dup_vatom);
+      dup_vatom = {};
+    }
+  }
+  // update geometric center of bodies
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, nbody_total()),
+    KOKKOS_LAMBDA(const int &ibody) {
+      BodyKokkos &bk = l_body(ibody);
+      KK_FLOAT xgc_tmp[3];
+      MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, bk.xgc_body, xgc_tmp);
+      bk.xgc[0] = xgc_tmp[0] + bk.xcm[0];
+      bk.xgc[1] = xgc_tmp[1] + bk.xcm[1];
+      bk.xgc[2] = xgc_tmp[2] + bk.xcm[2];
+    }
+  );
+  base()->copymode = 0;
+  atomKK->modified(execution_space, X_MASK | V_MASK);
+  k_body.modify_device();
+
+  if (base()->extended) {
+    // not implemented
+  }
+}
+
+
+}
 
 
 
@@ -1397,202 +1635,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::deform_base(int flag)
   k_body.modify_device();
 }
 
-/* ---------------------------------------------------------------------- */
 
-template<class DeviceType, class FixRigidBase>
-template<bool TRICLINIC, bool EVFLAG>
-void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
-{
-  const int nlocal = atomKK->nlocal;
-  base()->copymode = 1;
-  d_x = atomKK->k_x.template view<DeviceType>();
-  d_v = atomKK->k_v.template view<DeviceType>();
-  d_f = atomKK->k_f.template view<DeviceType>();
-  d_rmass = atomKK->k_rmass.template view<DeviceType>();
-  d_mass = atomKK->k_mass.template view<DeviceType>();
-  d_type = atomKK->k_type.template view<DeviceType>();
-  atomKK->sync(execution_space, X_MASK | V_MASK | F_MASK | TYPE_MASK | RMASS_MASK);
-  k_body.sync_device();
 
-  if constexpr (!EVFLAG) {
-    Kokkos::parallel_for(
-      Kokkos::RangePolicy<DeviceType, TagRigidSetXV<TRICLINIC,HALF,0>>(0, nlocal),
-      *this
-    );
-  } else {
-    auto kokkos = base()->lmp->kokkos;
-    int neighflag = kokkos->neighflag;
-    if (neighflag == FULL) {
-      neighflag =
-        (kokkos->nthreads > 1 || kokkos->ngpus > 0) ? HALFTHREAD : HALF;
-    }
-    const bool need_dup =
-      (neighflag != HALF) &&
-      std::is_same_v<NeedDup_v<HALFTHREAD, DeviceType>,
-                     Kokkos::Experimental::ScatterDuplicated>;
-    if (base()->vflag_atom) {
-      if (need_dup)
-        dup_vatom = Kokkos::Experimental::create_scatter_view<
-          Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_vatom);
-      else
-        ndup_vatom = Kokkos::Experimental::create_scatter_view<
-          Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
-    }
-    EV_FLOAT ev{};
-    if (neighflag == HALF) {
-      Kokkos::parallel_reduce(
-        Kokkos::RangePolicy<DeviceType, TagRigidSetXV<TRICLINIC,HALF,1>>(0, nlocal),
-        *this, ev
-      );
-    } else {
-      Kokkos::parallel_reduce(
-        Kokkos::RangePolicy<DeviceType, TagRigidSetXV<TRICLINIC,HALFTHREAD,1>>(0, nlocal),
-        *this, ev
-      );
-    }
-    if (base()->vflag_global) {
-      base()->virial[0] += static_cast<double>(ev.v[0]);
-      base()->virial[1] += static_cast<double>(ev.v[1]);
-      base()->virial[2] += static_cast<double>(ev.v[2]);
-      base()->virial[3] += static_cast<double>(ev.v[3]);
-      base()->virial[4] += static_cast<double>(ev.v[4]);
-      base()->virial[5] += static_cast<double>(ev.v[5]);
-    }
-    if (base()->vflag_atom && need_dup) Kokkos::Experimental::contribute(d_vatom, dup_vatom);
-    if (base()->vflag_atom && need_dup) dup_vatom = {};
-  }
-  // update geometric center of bodies
-  auto l_body = d_body;
-  Kokkos::parallel_for(
-    Kokkos::RangePolicy<DeviceType>(0, nbody_total()),
-    KOKKOS_LAMBDA(const int &ibody) {
-      BodyKokkos &bk = l_body(ibody);
-      KK_FLOAT xgc_tmp[3];
-      MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, bk.xgc_body, xgc_tmp);
-      bk.xgc[0] = xgc_tmp[0] + bk.xcm[0];
-      bk.xgc[1] = xgc_tmp[1] + bk.xcm[1];
-      bk.xgc[2] = xgc_tmp[2] + bk.xcm[2];
-    }
-  );
-  atomKK->modified(execution_space, X_MASK | V_MASK);
-  k_body.modify_device();
-  base()->copymode = 0;
 
-  if (base()->extended) {
-    // not implemented
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType, class FixRigidBase>
-template<bool TRICLINIC, bool NEIGHFLAG, bool EVFLAG>
-KOKKOS_INLINE_FUNCTION
-void FixRigidBaseKokkos<DeviceType,FixRigidBase>::operator()(TagRigidSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>,
-                                                  const int &i) const
-{
-  EV_FLOAT ev;
-  this->template operator()(TagRigidSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>(), i, ev);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType, class FixRigidBase>
-template<bool TRICLINIC, bool NEIGHFLAG, bool EVFLAG>
-KOKKOS_INLINE_FUNCTION
-void FixRigidBaseKokkos<DeviceType,FixRigidBase>::operator()(TagRigidSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>,
-                                                  const int &i, EV_FLOAT &ev) const
-{
-  const int ibody = l_atom2body(i);
-  if (ibody < 0) return;
-  const BodyKokkos &bk = l_body(ibody);
-  const int xbox = (d_xcmimage(i) & IMGMASK) - IMGMAX;
-  const int ybox = (d_xcmimage(i) >> IMGBITS & IMGMASK) - IMGMAX;
-  const int zbox = (d_xcmimage(i) >> IMG2BITS) - IMGMAX;
-
-  const double deltax = TRICLINIC
-    ? fma(double(xbox), d_prd[0], fma(double(ybox), d_h[5], double(zbox)*d_h[4]))
-    : double(xbox)*d_prd[0];
-  const double deltay = TRICLINIC
-    ? fma(double(ybox), d_prd[1], double(zbox)*d_h[3])
-    : double(ybox)*d_prd[1];
-  const double deltaz = double(zbox)*d_prd[2];
-
-  double x0 = 0.0, x1 = 0.0, x2 = 0.0, vx = 0.0, vy = 0.0, vz = 0.0;
-  if constexpr (EVFLAG) {
-    x0 = d_x(i,0) + deltax;
-    x1 = d_x(i,1) + deltay;
-    x2 = d_x(i,2) + deltaz;
-    vx = d_v(i,0);
-    vy = d_v(i,1);
-    vz = d_v(i,2);
-  }
-
-  KK_FLOAT xnew[3];
-  MathExtraKokkos::matvec(bk.ex_space, bk.ey_space, bk.ez_space, &l_displace(i, 0), xnew);
-
-  if constexpr (EVFLAG) {
-    // Compute v_new in KK_ACC_FLOAT before truncating to KK_FLOAT for storage,
-    // so the pre-truncation value can be used for the constraint-force virial.
-    const KK_ACC_FLOAT vnew0 = fma(KK_ACC_FLOAT(bk.omega[1]), KK_ACC_FLOAT(xnew[2]),
-                               fma(KK_ACC_FLOAT(-bk.omega[2]), KK_ACC_FLOAT(xnew[1]),
-                               KK_ACC_FLOAT(bk.vcm[0])));
-    const KK_ACC_FLOAT vnew1 = fma(KK_ACC_FLOAT(bk.omega[2]), KK_ACC_FLOAT(xnew[0]),
-                               fma(KK_ACC_FLOAT(-bk.omega[0]), KK_ACC_FLOAT(xnew[2]),
-                               KK_ACC_FLOAT(bk.vcm[1])));
-    const KK_ACC_FLOAT vnew2 = fma(KK_ACC_FLOAT(bk.omega[0]), KK_ACC_FLOAT(xnew[1]),
-                               fma(KK_ACC_FLOAT(-bk.omega[1]), KK_ACC_FLOAT(xnew[0]),
-                               KK_ACC_FLOAT(bk.vcm[2])));
-    l_v(i,0) = KK_FLOAT(vnew0);
-    l_v(i,1) = KK_FLOAT(vnew1);
-    l_v(i,2) = KK_FLOAT(vnew2);
-    l_x(i,0) = xnew[0] + bk.xcm[0] - deltax;
-    l_x(i,1) = xnew[1] + bk.xcm[1] - deltay;
-    l_x(i,2) = xnew[2] + bk.xcm[2] - deltaz;
-
-    double massone;
-    if (d_rmass.data()) massone = d_rmass(i);
-    else massone = d_mass(d_type(i));
-    const double half_m_dt = 0.5 * massone / dtf;
-    const double fc0 = fma(half_m_dt, vnew0 - vx, -0.5*d_f(i,0));
-    const double fc1 = fma(half_m_dt, vnew1 - vy, -0.5*d_f(i,1));
-    const double fc2 = fma(half_m_dt, vnew2 - vz, -0.5*d_f(i,2));
-
-    const KK_ACC_FLOAT vd00 = KK_ACC_FLOAT(x0*fc0);
-    const KK_ACC_FLOAT vd11 = KK_ACC_FLOAT(x1*fc1);
-    const KK_ACC_FLOAT vd22 = KK_ACC_FLOAT(x2*fc2);
-    const KK_ACC_FLOAT vd01 = KK_ACC_FLOAT(x0*fc1);
-    const KK_ACC_FLOAT vd02 = KK_ACC_FLOAT(x0*fc2);
-    const KK_ACC_FLOAT vd12 = KK_ACC_FLOAT(x1*fc2);
-
-    if constexpr (l_vflag_global) {
-      ev.v[0] += vd00;
-      ev.v[1] += vd11;
-      ev.v[2] += vd22;
-      ev.v[3] += vd01;
-      ev.v[4] += vd02;
-      ev.v[5] += vd12;
-    }
-    if constexpr (l_vflag_atom) {
-      auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,
-        decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom, ndup_vatom);
-      auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-      a_vatom(i,0) += vd00;
-      a_vatom(i,1) += vd11;
-      a_vatom(i,2) += vd22;
-      a_vatom(i,3) += vd01;
-      a_vatom(i,4) += vd02;
-      a_vatom(i,5) += vd12;
-    }
-  } else {
-    d_v(i,0) = fma(bk.omega[1], xnew[2], fma(-bk.omega[2], xnew[1], bk.vcm[0]));
-    d_v(i,1) = fma(bk.omega[2], xnew[0], fma(-bk.omega[0], xnew[2], bk.vcm[1]));
-    d_v(i,2) = fma(bk.omega[0], xnew[1], fma(-bk.omega[1], xnew[0], bk.vcm[2]));
-    d_x(i,0) = xnew[0] + bk.xcm[0] - deltax;
-    d_x(i,1) = xnew[1] + bk.xcm[1] - deltay;
-    d_x(i,2) = xnew[2] + bk.xcm[2] - deltaz;
-  }
-}
 
 /* ---------------------------------------------------------------------- */
 

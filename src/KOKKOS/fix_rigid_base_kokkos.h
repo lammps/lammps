@@ -74,6 +74,7 @@ protected:
   void zero_momentum_base();
   void zero_rotation_base();
   double compute_scalar_base();
+  void deform_base(int);
 
 /*
   virtual void post_constructor() {}
@@ -184,6 +185,7 @@ protected:
   // protected methods
   void compute_forces_and_torques_base();
   void enforce2d_base();
+  void remap_base();
   void grow_arrays_base(int);
   void grow_body_base(int);
   void image_shift_base();

@@ -1323,7 +1323,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::remap_base()
   // convert pertinent atoms and rigid bodies to lamda coords
   if (base()->allremap) domainKK->x2lamda(nlocal);
   else domainKK->x2lamda(nlocal, base()->dilate_group_bit);
-  for (auto &ifix : base()->rfix) ifix->deform(0);
+  for (auto &ifix : base()->rfix) ifix->deform_base(0);
   // reset global and local box to new size/shape
   for (int i = 0; i < 3; i++) {
     if (base()->p_flag[i]) {
@@ -1340,7 +1340,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::remap_base()
   // convert pertinent atoms and rigid bodies back to box coords
   if (base()->allremap) domainKK->lamda2x(nlocal);
   else domainKK->lamda2x(nlocal, base()->dilate_group_bit);
-  for (auto &ifix : base()->rfix) ifix->deform(1);
+  for (auto &ifix : base()->rfix) ifix->deform_base(1);
 }
 
 /* ---------------------------------------------------------------------- */

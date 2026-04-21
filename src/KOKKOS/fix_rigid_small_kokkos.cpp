@@ -59,7 +59,9 @@ FixRigidSmallKokkos<DeviceType>::~FixRigidSmallKokkos()
   if (copymode) return;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   FIX METHODS
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::init()
@@ -72,29 +74,19 @@ void FixRigidSmallKokkos<DeviceType>::init()
 #endif
 }
 
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::pre_neighbor()
-{
+void FixRigidSmallKokkos<DeviceType>::pre_neighbor() {
   this->pre_neighbor_base();
 }
 
-
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::initial_integrate(int vflag)
-{
-  this->template initial_integrate_base<false,false,false>(vflag);
+void FixRigidSmallKokkos<DeviceType>::initial_integrate(int vflag) {
+  this->initial_integrate_base(vflag);
 }
 
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::final_integrate()
-{
-  this->template final_integrate_base<false,false,false>();
+void FixRigidSmallKokkos<DeviceType>::final_integrate() {
+  this->final_integrate_base();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -147,7 +139,7 @@ void FixRigidSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagpre
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixRigidNHSmallKokkos<DeviceType>::pack_exchange(int i, double *buf)
+int FixRigidSmallKokkos<DeviceType>::pack_exchange(int i, double *buf)
 {
   this->sync_host_base();
   return FixRigidSmall::pack_exchange(i, buf);
@@ -156,7 +148,7 @@ int FixRigidNHSmallKokkos<DeviceType>::pack_exchange(int i, double *buf)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixRigidNHSmallKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
+int FixRigidSmallKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 {
   int result = FixRigidSmall::unpack_exchange(nlocal, buf);
   this->modify_host_base();
@@ -166,42 +158,42 @@ int FixRigidNHSmallKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixRigidNHSmallKokkos<DeviceType>::pack_forward_comm(int n, int *list,
+int FixRigidSmallKokkos<DeviceType>::pack_forward_comm(int n, int *list,
                                                           double *buf, int pbc_flag, int *pbc)
 {
-  k_body.sync_host();
-  k_bodyown.sync_host();
+  this->k_body.sync_host();
+  this->k_bodyown.sync_host();
   return FixRigidSmall::pack_forward_comm(n, list, buf, pbc_flag, pbc);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidNHSmallKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
+void FixRigidSmallKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
   FixRigidSmall::unpack_forward_comm(n, first, buf);
-  k_body.modify_host();
-  k_bodyown.modify_host();
+  this->k_body.modify_host();
+  this->k_bodyown.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixRigidNHSmallKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
+int FixRigidSmallKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
-  k_body.sync_host();
-  k_bodyown.sync_host();
+  this->k_body.sync_host();
+  this->k_bodyown.sync_host();
   return FixRigidSmall::pack_reverse_comm(n, first, buf);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidNHSmallKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
+void FixRigidSmallKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
   FixRigidSmall::unpack_reverse_comm(n, list, buf);
-  k_body.modify_host();
-  k_bodyown.modify_host();
+  this->k_body.modify_host();
+  this->k_bodyown.modify_host();
 }
 
 

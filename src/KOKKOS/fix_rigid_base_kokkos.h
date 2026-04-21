@@ -42,16 +42,38 @@ class FixRigidBaseKokkos : public KokkosBase {
   FixRigidBaseKokkos(Atom*, Domain*);
   ~FixRigidBaseKokkos();
 
+  // templated tagged operators
+
+  template<bool TRICLINIC, bool NEIGHFLAG, bool EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
+
+  template<bool TRICLINIC, bool NEIGHFLAG, bool EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
+
+  template<bool TRICLINIC, bool NEIGHFLAG, bool EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
+
+  template<bool TRICLINIC, bool NEIGHFLAG, bool EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagRigidResetAtom2Body, const int &i) const;
+
+protected:
+
   // fix methods
   void setup_base(int);
   void setup_pre_neighbor_base();
-
   void initial_integrate_base(int);
   void pre_neighbor_base();
   void final_integrate_base();
-
-  void zero_momentum_base() {}
-  void zero_rotation_base() {}
+  void zero_momentum_base();
+  void zero_rotation_base();
+  double compute_scalar_base();
 
 /*
   virtual void post_constructor() {}
@@ -120,15 +142,12 @@ class FixRigidBaseKokkos : public KokkosBase {
   virtual void min_step(double, double *) {}
   virtual double max_alpha(double *) { return 0.0; }
   virtual int min_dof() { return 0; }
-
   virtual int pack_forward_comm(int, int *, double *, int, int *) { return 0; }
   virtual void unpack_forward_comm(int, int, double *) {}
   virtual int pack_reverse_comm_size(int, int) { return 0; }
   virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
-
   virtual void reset_grid() {};
-
   virtual void pack_forward_grid(int, void *, int, int *) {};
   virtual void unpack_forward_grid(int, void *, int, int *) {};
   virtual void pack_reverse_grid(int, void *, int, int *) {};
@@ -138,67 +157,43 @@ class FixRigidBaseKokkos : public KokkosBase {
   virtual int unpack_read_grid(int, char *) { return 0; };
   virtual void pack_write_grid(int, void *) {};
   virtual void unpack_write_grid(int, void *, int *) {};
-
   virtual int get_grid_by_name(const std::string &, int &) { return -1; };
   virtual void *get_grid_by_index(int) { return nullptr; };
   virtual int get_griddata_by_name(int, const std::string &, int &) { return -1; };
   virtual void *get_griddata_by_index(int) { return nullptr; };
-
   virtual double compute_scalar() { return 0.0; }
-  virtual double compute_vector(int) { return 0.0; }
-  virtual double compute_array(int, int) { return 0.0; }
-  virtual std::string get_thermo_colname(int) { return {}; }
-
   virtual bigint dof(int) { return 0; }
   virtual void deform(int) {}
   virtual void reset_target(double) {}
   virtual void reset_dt() {}
-
   virtual void read_data_header(char *) {}
   virtual void read_data_section(char *, int, char *, tagint) {}
   virtual bigint read_data_skip_lines(char *) { return 0; }
-
   virtual void write_data_header(FILE *, int) {}
   virtual void write_data_section_size(int, int &, int &) {}
   virtual void write_data_section_pack(int, double **) {}
   virtual void write_data_section_keyword(int, FILE *) {}
   virtual void write_data_section(int, FILE *, int, double **, int) {}
-
-
-
   virtual void rebuild_special() {}
-
   virtual int image(int *&, double **&) { return 0; }
-
   virtual int modify_param(int, char **) { return 0; }
   virtual void *extract(const char *, int &) { return nullptr; }
-
 */
 
 
+  // protected methods
+  void compute_forces_and_torques_base();
+  void enforce2d_base();
+  void grow_arrays_base(int);
+  void grow_body_base(int);
+  void image_shift_base();
+  void reset_atom2body_base();
 
-  // templated tagged operators
+  template<bool TRICLINIC, bool EVFLAG>
+  void set_xv_base();
 
-  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
-
-  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
-
-  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
-
-  template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidResetAtom2Body, const int &i) const;
-
-protected:
+  template<bool TRICLINIC, bool EVFLAG>
+  void set_v_base();
 
   // CRTP accessors — every concrete KK class inherits from
   // both FixRigidBase and FixRigidBaseKokkos<DeviceType, FixRigidBase>
@@ -209,18 +204,6 @@ protected:
   static constexpr bool is_small = std::is_base_of_v<FixRigidSmall, FixRigidBase>;
 
   int nbody_total() { return base()->nlocal_body + base()->nghost_body; }
-
-  void compute_forces_and_torques();
-  void enforce2d();
-  void grow_arrays(int);
-  void grow_body(int);
-  void image_shift();
-  void reset_atom2body();
-  void zero_momentum();
-  void zero_rotation();
-
-  template<bool NH, bool TSTAT, bool PSTAT>
-  double compute_scalar();
 
   class AtomKokkos *atomKK;
   class DomainKokkos *domainKK;
@@ -266,14 +249,7 @@ protected:
   typename AT::t_kkacc_1d d_eatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 
-  Few<KK_FLOAT,3> d_prd;
-  Few<KK_FLOAT,6> d_h;
 
-  template<int TRICLINIC, int EVFLAG>
-  void set_xv_kokkos();
-
-  template<int TRICLINIC, int EVFLAG>
-  void set_v_kokkos();
 
   void modify_host_base();
   void modify_device_base();
@@ -291,7 +267,7 @@ protected:
 #endif
 
   TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_langextra;
-  void apply_langevin_thermostat();
+  void apply_langevin_thermostat_base();
 
   // KOKKOS BASE
 

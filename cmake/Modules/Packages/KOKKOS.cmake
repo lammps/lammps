@@ -153,17 +153,18 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/atom_vec_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/comm_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/comm_tiled_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/fix_rigid_base_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/min_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/min_linesearch_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/neighbor_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/neigh_list_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/neigh_bond_kokkos.cpp
-                       ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.cpp
-                       ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
-                       ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/rand_pool_wrap_kokkos.cpp)
 
 # fix wall/gran has been refactored in an incompatible way. Use old version of base class for now

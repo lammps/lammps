@@ -122,7 +122,7 @@ if(PKG_ELECTRODE)
   list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/electrode_vector_intel.cpp)
   list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/wire_dipole_intel.cpp)
   list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/slab_dipole_intel.cpp)
-  list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/wire_2d_intel.cpp)
+  list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/slab_2d_intel.cpp)
 endif()
 
 target_sources(lammps PRIVATE ${INTEL_SOURCES})

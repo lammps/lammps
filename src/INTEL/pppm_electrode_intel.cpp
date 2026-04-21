@@ -1061,30 +1061,23 @@ void PPPMElectrodeIntel::compute_vector_corr(double *vec, int sensor_grpbit, int
 }
 
 /* ----------------------------------------------------------------------
-    return constructed boundary correction (/intel override)
-------------------------------------------------------------------------- */
-
-BoundaryCorrection* PPPMElectrodeIntel::allocate_boundcorr(int slabflag, int wireflag)
-{
-  if (slabflag == 1) {
-    // EW3Dc dipole correction
-    return new SlabDipoleIntel(lmp);
-  } else if (wireflag == 1) {
-    // EW3Dc wire correction
-    return new WireDipoleIntel(lmp);
-  } else {
-    // dummy BoundaryCorrection for ffield
-    return new BoundaryCorrection(lmp);
-  }
-}
-
-/* ----------------------------------------------------------------------
    allocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
 void PPPMElectrodeIntel::allocate()
 {
-  PPPM::allocate(); // also allocates boundcorr
+  if (slabflag == 1) {
+    // EW3Dc dipole correction
+    boundcorr = new SlabDipoleIntel(lmp, fix);
+  } else if (wireflag == 1) {
+    // EW3Dc wire correction
+    boundcorr = new WireDipoleIntel(lmp, fix);
+  } else {
+    // dummy BoundaryCorrection for ffield
+    boundcorr = new BoundaryCorrection(lmp);
+  }
+
+  PPPM::allocate();
   /* ----------------------------------------------------------------------
      Allocate density_brick with extra padding for vector writes
   ------------------------------------------------------------------------- */

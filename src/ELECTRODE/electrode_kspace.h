@@ -18,6 +18,7 @@
 #ifndef LMP_ELECTRODE_KSPACE_H
 #define LMP_ELECTRODE_KSPACE_H
 
+#include "boundary_correction.h"
 #include "lmptype.h"
 
 namespace LAMMPS_NS {

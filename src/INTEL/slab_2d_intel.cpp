@@ -24,6 +24,7 @@
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
+#include "omp_compat.h"
 
 #include <cmath>
 
@@ -76,9 +77,11 @@ void Slab2dIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double /*qsu
     nthr = comm->nthreads;
 
   std::vector<double> z = std::vector<double>(nlocal);
-#if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, x, z) if (!_use_lrt)
-#endif
+
+  #if defined(_OPENMP)
+  #pragma omp parallel LMP_DEFAULT_NONE \
+    shared(nlocal, nthr, x, z) if (!_use_lrt)
+  #endif
   {
     int ifrom, ito, tid;
     IP_PRE_omp_range_id(ifrom, ito, tid, nlocal, nthr);
@@ -103,11 +106,13 @@ void Slab2dIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double /*qsu
   const double efact = qscale * MY_PIS / area;
 
   double e_keq0 = 0;
-#if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE reduction(+ : e_keq0)                                 \
+
+  #if defined(_OPENMP)
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(nlocal, nthr, x, q, f, q_all, z_all, natoms, g_ewald, g_ewald_inv, ffact, efact, \
-               eflag_atom, eflag_global, eatom) if (!_use_lrt)
-#endif
+    eflag_atom, eflag_global, eatom) \
+    reduction(+ : e_keq0) if (!_use_lrt)
+  #endif
   {
     int ifrom, ito, tid;
     IP_PRE_omp_range_id(ifrom, ito, tid, nlocal, nthr);
@@ -174,7 +179,8 @@ void Slab2dIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *vec, 
 
   int nelectrolyte_local = 0;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE reduction(+ : nelectrolyte_local) \
+#pragma omp parallel LMP_DEFAULT_NONE \
+ reduction(+ : nelectrolyte_local) \
     shared(nlocal, nthr, mask, source_grpbit, invert_source) if (!_use_lrt)
 #endif
   {
@@ -190,7 +196,8 @@ void Slab2dIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *vec, 
 
   std::vector<int> nelectrolyte_per_thr = std::vector<int>(nthr, 0);
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, mask, source_grpbit, invert_source, x, \
+#pragma omp parallel LMP_DEFAULT_NONE \
+ shared(nlocal, nthr, mask, source_grpbit, invert_source, x, \
                                                  q, z_local, q_local,                             \
                                                  nelectrolyte_per_thr) if (!_use_lrt)
 #endif
@@ -212,7 +219,8 @@ void Slab2dIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *vec, 
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, mask, source_grpbit, invert_source, x, \
+#pragma omp parallel LMP_DEFAULT_NONE \
+ shared(nlocal, nthr, mask, source_grpbit, invert_source, x, \
                                                  q, z_local, q_local,                             \
                                                  nelectrolyte_per_thr) if (!_use_lrt)
 #endif
@@ -246,7 +254,8 @@ void Slab2dIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *vec, 
   double const area = domain->xprd * domain->yprd;
   double const prefac = 2 * MY_PIS / area;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, vec, x, mask, sensor_grpbit, z_all, \
+#pragma omp parallel LMP_DEFAULT_NONE \
+ shared(nlocal, nthr, vec, x, mask, sensor_grpbit, z_all, \
                                                  q_all, n_electrolyte, g_ewald, g_ewald_inv,   \
                                                  prefac) if (!_use_lrt)
 #endif
@@ -301,7 +310,8 @@ void Slab2dIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *imat,
 
   int ngrouplocal = 0;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE reduction(+ : ngrouplocal) \
+#pragma omp parallel LMP_DEFAULT_NONE \
+ reduction(+ : ngrouplocal) \
     shared(nlocal, nthr, imat) if (!_use_lrt)
 #endif
   {
@@ -318,7 +328,8 @@ void Slab2dIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *imat,
   std::vector<double> nprd_local = std::vector<double>(ngrouplocal);
   std::vector<int> ngrouplocal_per_thr = std::vector<int>(nthr, 0);
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, imat, x, nprd_local, \
+#pragma omp parallel LMP_DEFAULT_NONE \
+ shared(nlocal, nthr, imat, x, nprd_local, \
                                                  ngrouplocal_per_thr) if (!_use_lrt)
 #endif
   {
@@ -339,7 +350,8 @@ void Slab2dIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *imat,
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, imat, x, nprd_local, \
+#pragma omp parallel LMP_DEFAULT_NONE \
+ shared(nlocal, nthr, imat, x, nprd_local, \
                                                  ngrouplocal_per_thr) if (!_use_lrt)
 #endif
   {
@@ -366,7 +378,8 @@ void Slab2dIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *imat,
   const double prefac = 2.0 * MY_PIS / area;
   std::vector<bigint> jmat = gather_jmat(imat);
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, imat, x, jmat, ngroup, nprd_all, \
+#pragma omp parallel LMP_DEFAULT_NONE \
+ shared(nlocal, nthr, imat, x, jmat, ngroup, nprd_all, \
                                                  matrix, prefac, g_ewald, g_ewald_inv,      \
                                                  g_ewald_sq) if (!_use_lrt)
 #endif

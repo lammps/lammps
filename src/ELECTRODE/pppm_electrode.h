@@ -49,8 +49,6 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   FFT_SCALAR ***electrolyte_density_brick;
   FFT_SCALAR *electrolyte_density_fft;
   class BoundaryCorrection *boundcorr;
-  virtual class BoundaryCorrection *allocate_boundcorr(int, int);
-  // for kspace_intel to add its own
 
   void set_grid_global() override;
   void set_grid_local() override;

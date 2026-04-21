@@ -60,7 +60,6 @@ class PPPMElectrodeIntel : public PPPMIntel, public ElectrodeKSpace {
   void allocate() override;
   void deallocate() override;
   void allocate_peratom() override;
-  virtual class BoundaryCorrection *allocate_boundcorr(int, int) override;
 
  private:
   int compute_step;

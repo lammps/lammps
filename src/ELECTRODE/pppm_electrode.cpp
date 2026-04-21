@@ -958,30 +958,22 @@ void PPPMElectrode::two_step_multiplication(bigint *imat, double *greens_real, d
 }
 
 /* ----------------------------------------------------------------------
-    return constructed boundary correction (overridden by /intel)
-------------------------------------------------------------------------- */
-
-BoundaryCorrection* PPPMElectrode::allocate_boundcorr(int slabflag, int wireflag)
-{
-  if (slabflag == 1) {
-    // EW3Dc dipole correction
-    return new SlabDipole(lmp);
-  } else if (wireflag == 1) {
-    // EW3Dc wire correction
-    return new WireDipole(lmp);
-  } else {
-    // dummy BoundaryCorrection for ffield
-    return new BoundaryCorrection(lmp);
-  }
-}
-
-/* ----------------------------------------------------------------------
    allocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
 void PPPMElectrode::allocate()
 {
-  boundcorr = allocate_boundcorr(slabflag, wireflag);
+  if (slabflag == 1) {
+    // EW3Dc dipole correction
+    boundcorr = new SlabDipole(lmp);
+  } else if (wireflag == 1) {
+    // EW3Dc wire correction
+    boundcorr = new WireDipole(lmp);
+  } else {
+    // dummy BoundaryCorrection for ffield
+    boundcorr = new BoundaryCorrection(lmp);
+  }
+  
   // ----------------------------------------------------------------------
   // code from PPPM::allocate(), altered to use different Grid3d constructor
   // ----------------------------------------------------------------------

@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "force.h"
 #include "math_const.h"
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

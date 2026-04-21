@@ -1879,6 +1879,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::compute_forces_and_torques_bas
   auto l_f = atomKK->k_f.template view<DeviceType>();
   auto l_prd = Few<KK_FLOAT,3>(domainKK->prd);
   auto l_h = Few<KK_FLOAT,6>(domainKK->h);
+  auto l_triclinic = base()->triclinic;
   Kokkos::parallel_for(
     Kokkos::RangePolicy<DeviceType>(0, nlocal),
     KOKKOS_LAMBDA(const int &i) {
@@ -2122,8 +2123,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::grow_body_base()
   k_body.modify_host();
   k_body.sync_device();
 }
-
-
 
 /* ----------------------------------------------------------------------
   KOKKOS BASE
@@ -2671,3 +2670,11 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::sync_device_base()
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
+template class FixRigidBaseKokkos<LMPDeviceType, FixRigidSmall>;
+//template class FixRigidBaseKokkos<LMPDeviceType, FixRigidNHSmall>;
+#ifdef LMP_KOKKOS_GPU
+//template class FixRigidBaseKokkos<LMPHostType, FixRigidSmall>;
+//template class FixRigidBaseKokkos<LMPHostType, FixRigidNHSmall>;
+#endif
+}

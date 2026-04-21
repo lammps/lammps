@@ -165,7 +165,7 @@ protected:
   void enforce2d_base();
   void remap_base();
   void grow_arrays_base(int);
-  void grow_body_base(int);
+  void grow_body_base();
   void image_shift_base();
   void reset_atom2body_base();
 

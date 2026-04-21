@@ -26,9 +26,6 @@ using Kokkos::fma;
 
 struct TagRigidResetAtom2Body {};
 
-template<int TRICLINIC, int NEIGHFLAG, int EVFLAG>
-struct TagRigidSetV {};
-
 template<class DeviceType, class FixRigidBase>
 class FixRigidBaseKokkos : public KokkosBase {
  public:
@@ -40,14 +37,6 @@ class FixRigidBaseKokkos : public KokkosBase {
   ~FixRigidBaseKokkos();
 
   // templated tagged operators
-
-  template<bool TRICLINIC, bool NEIGHFLAG, bool EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
-
-  template<bool TRICLINIC, bool NEIGHFLAG, bool EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRigidResetAtom2Body, const int &i) const;
@@ -183,7 +172,7 @@ protected:
   template<bool EVFLAG>
   void set_xv_base();
 
-  template<bool TRICLINIC, bool EVFLAG>
+  template<bool EVFLAG>
   void set_v_base();
 
   // CRTP accessors — every concrete KK class inherits from

@@ -237,12 +237,12 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
   auto l_hi0 = static_cast<KK_FLOAT>(domainKK->boxhi[0]);
   auto l_hi1 = static_cast<KK_FLOAT>(domainKK->boxhi[1]);
   auto l_hi2 = static_cast<KK_FLOAT>(domainKK->boxhi[2]);
-  auto l_period0 = static_cast<KK_FLOAT>(domainKK->prd[0]);
-  auto l_period1 = static_cast<KK_FLOAT>(domainKK->prd[1]);
-  auto l_period2 = static_cast<KK_FLOAT>(domainKK->prd[2]);
+  auto l_prd0 = static_cast<KK_FLOAT>(domainKK->prd[0]);
+  auto l_prd1 = static_cast<KK_FLOAT>(domainKK->prd[1]);
+  auto l_prd2 = static_cast<KK_FLOAT>(domainKK->prd[2]);
 
   utils::logmesg(base()->lmp, "*** pre_neighbor() {} {} {}\n{} {} {}\n{} {} {}\n{} {} {}\n",
-    l_xperiodic, l_yperiodic, l_zperiodic, l_lo0,l_lo1,l_lo2,l_hi0,l_hi1,l_hi2,l_period0,l_period1,l_period2
+    l_xperiodic, l_yperiodic, l_zperiodic, l_lo0,l_lo1,l_lo2,l_hi0,l_hi1,l_hi2,l_prd0,l_prd1,l_prd2
   );
 
   Kokkos::parallel_for(
@@ -252,7 +252,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
       imageint idim, otherdims;
       if (l_xperiodic) {
         while (bk.xcm[0] < l_lo0) {
-          bk.xcm[0] += l_period0;
+          bk.xcm[0] += l_prd0;
           idim = bk.image & IMGMASK;
           otherdims = bk.image ^ idim;
           idim--;
@@ -260,7 +260,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
           bk.image = otherdims | idim;
         }
         while (bk.xcm[0] >= l_hi0) {
-          bk.xcm[0] -= l_period0;
+          bk.xcm[0] -= l_prd0;
           idim = bk.image & IMGMASK;
           otherdims = bk.image ^ idim;
           idim++;
@@ -271,7 +271,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
       }
       if (l_yperiodic) {
         while (bk.xcm[1] < l_lo1) {
-          bk.xcm[1] += l_period1;
+          bk.xcm[1] += l_prd1;
           idim = (bk.image >> IMGBITS) & IMGMASK;
           otherdims = bk.image ^ (idim << IMGBITS);
           idim--;
@@ -279,7 +279,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
           bk.image = otherdims | (idim << IMGBITS);
         }
         while (bk.xcm[1] >= l_hi1) {
-          bk.xcm[1] -= l_period1;
+          bk.xcm[1] -= l_prd1;
           idim = (bk.image >> IMGBITS) & IMGMASK;
           otherdims = bk.image ^ (idim << IMGBITS);
           idim++;
@@ -290,7 +290,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
       }
       if (l_zperiodic) {
         while (bk.xcm[2] < l_lo2) {
-          bk.xcm[2] += l_period2;
+          bk.xcm[2] += l_prd2;
           idim = bk.image >> IMG2BITS;
           otherdims = bk.image ^ (idim << IMG2BITS);
           idim--;
@@ -298,7 +298,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
           bk.image = otherdims | (idim << IMG2BITS);
         }
         while (bk.xcm[2] >= l_hi2) {
-          bk.xcm[2] -= l_period2;
+          bk.xcm[2] -= l_prd2;
           idim = bk.image >> IMG2BITS;
           otherdims = bk.image ^ (idim << IMG2BITS);
           idim++;
@@ -1834,7 +1834,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::compute_forces_and_torques_bas
     }
   );
 
-  atomKK->sync(execution_space, X_MASK | F_MASK | IMAGE_MASK);
+  atomKK->sync(execution_space, X_MASK | F_MASK );
   k_atom2body.template sync<DeviceType>();
   k_xcmimage.template sync<DeviceType>();
   auto l_atom2body = k_atom2body.template view<DeviceType>();

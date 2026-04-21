@@ -43,10 +43,6 @@ class FixRigidBaseKokkos : public KokkosBase {
 
   template<bool TRICLINIC, bool NEIGHFLAG, bool EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidSetXV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
-
-  template<bool TRICLINIC, bool NEIGHFLAG, bool EVFLAG>
-  KOKKOS_INLINE_FUNCTION
   void operator()(TagRigidSetV<TRICLINIC,NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<bool TRICLINIC, bool NEIGHFLAG, bool EVFLAG>

@@ -116,6 +116,18 @@ void PPPMElectrodeIntel::init()
       error->all(FLERR, "Incorrect boundaries with wire PPPM/electrode");
   }
   compute_step = -1;
+
+  // must put here to get initialized intelFix
+  if (slabflag == 1) {
+    // EW3Dc dipole correction
+    boundcorr = new SlabDipoleIntel(lmp, fix);
+  } else if (wireflag == 1) {
+    // EW3Dc wire correction
+    boundcorr = new WireDipoleIntel(lmp, fix);
+  } else {
+    // dummy BoundaryCorrection for ffield
+    boundcorr = new BoundaryCorrection(lmp);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1066,17 +1078,6 @@ void PPPMElectrodeIntel::compute_vector_corr(double *vec, int sensor_grpbit, int
 
 void PPPMElectrodeIntel::allocate()
 {
-  if (slabflag == 1) {
-    // EW3Dc dipole correction
-    boundcorr = new SlabDipoleIntel(lmp, fix);
-  } else if (wireflag == 1) {
-    // EW3Dc wire correction
-    boundcorr = new WireDipoleIntel(lmp, fix);
-  } else {
-    // dummy BoundaryCorrection for ffield
-    boundcorr = new BoundaryCorrection(lmp);
-  }
-
   PPPM::allocate();
   /* ----------------------------------------------------------------------
      Allocate density_brick with extra padding for vector writes
@@ -1196,25 +1197,32 @@ void PPPMElectrodeIntel::deallocate()
 
 void PPPMElectrodeIntel::pack_buffers_q()
 {
-  fix->start_watch(TIME_PACK);
-  int packthreads;
-  if (comm->nthreads > INTEL_HTHREADS)
-    packthreads = comm->nthreads;
+  if (fix->precision() == FixIntel::PREC_MODE_MIXED)
+    pack_buffers_q<float, double>(fix->get_mixed_buffers());
+  else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
+    pack_buffers_q<double, double>(fix->get_double_buffers());
   else
-    packthreads = 1;
+    pack_buffers_q<float, float>(fix->get_single_buffers());
+}
+
+template <class flt_t, class acc_t>
+void PPPMElectrodeIntel::pack_buffers_q(IntelBuffers<flt_t, acc_t> *buffers)
+{
+  fix->start_watch(TIME_PACK);
+  int nthr;
+  if (_use_lrt)
+    nthr = 1;
+  else
+    nthr = comm->nthreads;
+  int const ntotal = atom->nlocal + atom->nghost;
 #if defined(_OPENMP)
-#pragma omp parallel if (packthreads > 1)
+#pragma omp parallel \
+  shared (nthr) if (!_use_lrt)
 #endif
   {
     int ifrom, ito, tid;
-    IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost, packthreads,
-                              sizeof(IntelBuffers<float, double>::atom_t));
-    if (fix->precision() == FixIntel::PREC_MODE_MIXED)
-      fix->get_mixed_buffers()->thr_pack_q(ifrom, ito);
-    else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
-      fix->get_double_buffers()->thr_pack_q(ifrom, ito);
-    else
-      fix->get_single_buffers()->thr_pack_q(ifrom, ito);
+    IP_PRE_omp_range_id_align(ifrom, ito, tid, ntotal, nthr, sizeof(flt_t));
+    buffers->thr_pack_q(ifrom, ito);
   }
   fix->stop_watch(TIME_PACK);
 }

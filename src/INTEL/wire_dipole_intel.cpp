@@ -22,7 +22,6 @@
 #include "comm.h"
 #include "force.h"
 #include "math_const.h"
-#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -75,7 +74,7 @@ void WireDipoleIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double /
   double xdipole = 0.0;
   double ydipole = 0.0;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE reduction(+ : xdipole, ydipole) \
+#pragma omp parallel reduction(+ : xdipole, ydipole) \
     shared(nlocal, nthr, x, q) if (!_use_lrt)
 #endif
   {
@@ -96,7 +95,7 @@ void WireDipoleIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double /
   double ydipole_r2 = 0.0;
   if (eflag_atom) {
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE reduction(+ : xdipole_r2, ydipole_r2) \
+#pragma omp parallel reduction(+ : xdipole_r2, ydipole_r2) \
     shared(nlocal, nthr, x, q) if (!_use_lrt)
 #endif
     {
@@ -125,7 +124,7 @@ void WireDipoleIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double /
   if (eflag_atom) {
     double efact = qscale * MY_PI / volume;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, x, q, eatom, efact, xdipole_all, \
+#pragma omp parallel shared(nlocal, nthr, x, q, eatom, efact, xdipole_all, \
                                                  ydipole_all, xdipole_r2,                   \
                                                  ydipole_r2) if (!_use_lrt)
 #endif
@@ -142,7 +141,7 @@ void WireDipoleIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double /
   double ffact = qscale * (-MY_2PI / volume);
   double **f = atom->f;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, x, q, f, ffact, xdipole_all, \
+#pragma omp parallel shared(nlocal, nthr, x, q, f, ffact, xdipole_all, \
                                                  ydipole_all) if (!_use_lrt)
 #endif
   {
@@ -196,7 +195,7 @@ void WireDipoleIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *v
   double xdipole = 0.0;
   double ydipole = 0.0;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE reduction(+ : xdipole, ydipole) \
+#pragma omp parallel reduction(+ : xdipole, ydipole) \
     shared(nlocal, nthr, x, q, mask, source_grpbit, invert_source) if (!_use_lrt)
 #endif
   {
@@ -216,7 +215,7 @@ void WireDipoleIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *v
   for (double &d : dipole) d *= MY_2PI / volume;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, vec, x, mask, sensor_grpbit, \
+#pragma omp parallel shared(nlocal, nthr, vec, x, mask, sensor_grpbit, \
                                                  dipole) if (!_use_lrt)
 #endif
   {
@@ -262,7 +261,7 @@ void WireDipoleIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *i
 
   int ngrouplocal = 0;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE reduction(+ : ngrouplocal) \
+#pragma omp parallel reduction(+ : ngrouplocal) \
     shared(nlocal, nthr, imat) if (!_use_lrt)
 #endif
   {
@@ -281,7 +280,7 @@ void WireDipoleIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *i
 
   std::vector<int> ngrouplocal_per_thr = std::vector<int>(nthr, 0);
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, imat, x, xprd_local, yprd_local, \
+#pragma omp parallel shared(nlocal, nthr, imat, x, xprd_local, yprd_local, \
                                                  ngrouplocal_per_thr) if (!_use_lrt)
 #endif
   {
@@ -302,7 +301,7 @@ void WireDipoleIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *i
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, imat, x, xprd_local, yprd_local, \
+#pragma omp parallel shared(nlocal, nthr, imat, x, xprd_local, yprd_local, \
                                                  ngrouplocal_per_thr) if (!_use_lrt)
 #endif
   {
@@ -330,7 +329,7 @@ void WireDipoleIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *i
   std::vector<bigint> jmat = gather_jmat(imat);
   const double prefac = MY_2PI / volume;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE shared(nlocal, nthr, imat, x, jmat, ngroup, xprd_all, \
+#pragma omp parallel shared(nlocal, nthr, imat, x, jmat, ngroup, xprd_all, \
                                                  yprd_all, matrix, prefac) if (!_use_lrt)
 #endif
   {

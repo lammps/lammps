@@ -24,7 +24,6 @@
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
-#include "omp_compat.h"
 
 #include <cmath>
 
@@ -83,7 +82,7 @@ void SlabDipoleIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double q
 
   double dipole = 0.0;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  reduction(+ : dipole) \
     shared(nlocal, nthr, x, q) if (!_use_lrt)
 #endif
@@ -99,7 +98,7 @@ void SlabDipoleIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double q
   double dipole_r2 = 0.0;
   if (eflag_atom || fabs(qsum) > SMALL) {
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  reduction(+ : dipole_r2) \
     shared(nlocal, nthr, x, q) if (!_use_lrt)
 #endif
@@ -123,7 +122,7 @@ void SlabDipoleIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double q
   if (eflag_atom) {
     double efact = qscale * MY_2PI / volume;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  shared(nlocal, nthr, x, q, eatom, efact, dipole, \
                                                  dipole_r2, qsum, zprd_slab) if (!_use_lrt)
 #endif
@@ -141,7 +140,7 @@ void SlabDipoleIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double q
   double const ffact = qscale * (-4.0 * MY_PI / volume);
   double **f = atom->f;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  shared(nlocal, nthr, x, q, f, ffact, dipole, \
                                                  qsum) if (!_use_lrt)
 #endif
@@ -192,7 +191,7 @@ void SlabDipoleIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *v
 
   double dipole = 0.0;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  reduction(+ : dipole) \
     shared(nlocal, nthr, x, q, mask, source_grpbit, invert_source) if (!_use_lrt)
 #endif
@@ -209,7 +208,7 @@ void SlabDipoleIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *v
   dipole *= 4.0 * MY_PI / volume;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  shared(nlocal, nthr, vec, x, mask, sensor_grpbit, \
                                                  dipole) if (!_use_lrt)
 #endif
@@ -256,7 +255,7 @@ void SlabDipoleIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *i
 
   int ngrouplocal = 0;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  reduction(+ : ngrouplocal) \
     shared(nlocal, nthr, imat) if (!_use_lrt)
 #endif
@@ -272,43 +271,9 @@ void SlabDipoleIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *i
   MPI_Allreduce(&ngrouplocal, &ngroup, 1, MPI_INT, MPI_SUM, world);
 
   std::vector<double> nprd_local = std::vector<double>(ngrouplocal);
-  std::vector<int> ngrouplocal_per_thr = std::vector<int>(nthr, 0);
-#if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
- shared(nlocal, nthr, imat, x, nprd_local, \
-                                                 ngrouplocal_per_thr) if (!_use_lrt)
-#endif
-  {
-    int ifrom, ito, tid;
-    IP_PRE_omp_range_id(ifrom, ito, tid, nlocal, nthr);
-
-    int n = 0;
-    for (int i = ifrom; i < ito; i++)
-      if (imat[i] > -1) n++;
-    ngrouplocal_per_thr[tid] = n;
-  }
-
-  int offset = 0;
-  for (int t = 0; t < nthr; t++) {
-    int tmp = ngrouplocal_per_thr[t];
-    ngrouplocal_per_thr[t] = offset;
-    offset += tmp;
-  }
-
-#if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
- shared(nlocal, nthr, imat, x, nprd_local, \
-                                                 ngrouplocal_per_thr) if (!_use_lrt)
-#endif
-  {
-    int ifrom, ito, tid;
-    IP_PRE_omp_range_id(ifrom, ito, tid, nlocal, nthr);
-
-    int n = ngrouplocal_per_thr[tid];
-    for (int i = ifrom; i < ito; i++) {
+  for (int i = 0, n = 0; i < nlocal; i++) {
       if (imat[i] < 0) continue;
       nprd_local[n++] = x[i].z;
-    }
   }
 
   std::vector<int> recvcounts = gather_recvcounts(ngrouplocal);
@@ -320,7 +285,7 @@ void SlabDipoleIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *i
   std::vector<bigint> jmat = gather_jmat(imat);
   const double prefac = MY_4PI / volume;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  shared(nlocal, nthr, imat, x, jmat, ngroup, nprd_all, \
                                                  matrix, prefac) if (!_use_lrt)
 #endif

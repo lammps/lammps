@@ -24,7 +24,6 @@
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
-#include "omp_compat.h"
 
 #include <cmath>
 
@@ -79,7 +78,7 @@ void Slab2dIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double /*qsu
   std::vector<double> z = std::vector<double>(nlocal);
 
   #if defined(_OPENMP)
-  #pragma omp parallel LMP_DEFAULT_NONE \
+  #pragma omp parallel \
     shared(nlocal, nthr, x, z) if (!_use_lrt)
   #endif
   {
@@ -108,7 +107,7 @@ void Slab2dIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double /*qsu
   double e_keq0 = 0;
 
   #if defined(_OPENMP)
-  #pragma omp parallel LMP_DEFAULT_NONE \
+  #pragma omp parallel \
     shared(nlocal, nthr, x, q, f, q_all, z_all, natoms, g_ewald, g_ewald_inv, ffact, efact, \
     eflag_atom, eflag_global, eatom) \
     reduction(+ : e_keq0) if (!_use_lrt)
@@ -179,7 +178,7 @@ void Slab2dIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *vec, 
 
   int nelectrolyte_local = 0;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  reduction(+ : nelectrolyte_local) \
     shared(nlocal, nthr, mask, source_grpbit, invert_source) if (!_use_lrt)
 #endif
@@ -196,7 +195,7 @@ void Slab2dIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *vec, 
 
   std::vector<int> nelectrolyte_per_thr = std::vector<int>(nthr, 0);
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  shared(nlocal, nthr, mask, source_grpbit, invert_source, x, \
                                                  q, z_local, q_local,                             \
                                                  nelectrolyte_per_thr) if (!_use_lrt)
@@ -219,7 +218,7 @@ void Slab2dIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *vec, 
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  shared(nlocal, nthr, mask, source_grpbit, invert_source, x, \
                                                  q, z_local, q_local,                             \
                                                  nelectrolyte_per_thr) if (!_use_lrt)
@@ -254,7 +253,7 @@ void Slab2dIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *vec, 
   double const area = domain->xprd * domain->yprd;
   double const prefac = 2 * MY_PIS / area;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  shared(nlocal, nthr, vec, x, mask, sensor_grpbit, z_all, \
                                                  q_all, n_electrolyte, g_ewald, g_ewald_inv,   \
                                                  prefac) if (!_use_lrt)
@@ -310,7 +309,7 @@ void Slab2dIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *imat,
 
   int ngrouplocal = 0;
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  reduction(+ : ngrouplocal) \
     shared(nlocal, nthr, imat) if (!_use_lrt)
 #endif
@@ -328,7 +327,7 @@ void Slab2dIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *imat,
   std::vector<double> nprd_local = std::vector<double>(ngrouplocal);
   std::vector<int> ngrouplocal_per_thr = std::vector<int>(nthr, 0);
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  shared(nlocal, nthr, imat, x, nprd_local, \
                                                  ngrouplocal_per_thr) if (!_use_lrt)
 #endif
@@ -350,7 +349,7 @@ void Slab2dIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *imat,
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  shared(nlocal, nthr, imat, x, nprd_local, \
                                                  ngrouplocal_per_thr) if (!_use_lrt)
 #endif
@@ -378,7 +377,7 @@ void Slab2dIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *imat,
   const double prefac = 2.0 * MY_PIS / area;
   std::vector<bigint> jmat = gather_jmat(imat);
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE \
+#pragma omp parallel \
  shared(nlocal, nthr, imat, x, jmat, ngroup, nprd_all, \
                                                  matrix, prefac, g_ewald, g_ewald_inv,      \
                                                  g_ewald_sq) if (!_use_lrt)

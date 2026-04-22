@@ -1022,29 +1022,41 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
     if (bodytag[i] >= 0) xcmimage[i] = image[i];
     else xcmimage[i] = 0;
 
+  base()->copymode = 1;
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, atomKK->nlocal),
+    KOKKOS_LAMBDA(const int &i) {
+      if (l_bodytag(i) >= 0) l_xcmimage(i) = l_image(i);
+      else l_xcmimage(i) = 0;
+    }
+  );
+  base()->copymode = 0;
+
   // acquire ghost bodies via forward comm
   // set atom2body for ghost atoms via forward comm
   // set atom2body for other owned atoms via reset_atom2body()
   base()->nghost_body = 0;
   base()->commflag = FULL_BODY;
-  base()->comm->forward_comm(this);
-  reset_atom2body();
+  base()->comm->forward_comm(fix_base());
+  reset_atom2body_base();
 
   // compute mass & center-of-mass of each rigid body
 
   double **x = atom->x;
+  auto l_body = d_body;
 
-  double *xcm;
-  double *xgc;
-
-  for (ibody = 0; ibody < nlocal_body+nghost_body; ibody++) {
-    xcm = body[ibody].xcm;
-    xgc = body[ibody].xgc;
-    xcm[0] = xcm[1] = xcm[2] = 0.0;
-    xgc[0] = xgc[1] = xgc[2] = 0.0;
-    body[ibody].mass = 0.0;
-    body[ibody].natoms = 0;
-  }
+  base()->copymode = 1;
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, nbody_total()),
+    KOKKOS_LAMBDA(const int &ibody) {
+      BodyKokkos &bk = l_body(ibody);
+      bk.xcm[0] = bk.xcm[1] = bk.xcm[2] = KK_FLOAT(0.0);
+      bk.xgc[0] = bk.xgc[1] = bk.xgc[2] = KK_FLOAT(0.0);
+      bk.mass = KK_FLOAT(0.0);
+      bk.natoms = 0;
+    }
+  );
+  base()->copymode = 0;
 
   double unwrap[3];
   double massone;
@@ -1122,7 +1134,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
   // remap the xcm of each body back into simulation box
   //   and reset body and atom xcmimage flags via pre_neighbor()
 
-  pre_neighbor();
+  pre_neighbor_base();
 
   // compute 6 moments of inertia of each body in Cartesian reference frame
   // dx,dy,dz = coords relative to center-of-mass
@@ -1196,18 +1208,15 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
     if (ierror)
       error->all(FLERR, Error::NOLASTLINE, "Insufficient Jacobi rotations for rigid body");
 
-    ex = body[ibody].ex_space;
-    ex[0] = evectors[0][0];
-    ex[1] = evectors[1][0];
-    ex[2] = evectors[2][0];
-    ey = body[ibody].ey_space;
-    ey[0] = evectors[0][1];
-    ey[1] = evectors[1][1];
-    ey[2] = evectors[2][1];
-    ez = body[ibody].ez_space;
-    ez[0] = evectors[0][2];
-    ez[1] = evectors[1][2];
-    ez[2] = evectors[2][2];
+    bk.ex_space[0] = evectors[0][0];
+    bk.ex_space[1] = evectors[1][0];
+    bk.ex_space[2] = evectors[2][0];
+    bk.ey_space[0] = evectors[0][1];
+    bk.ey_space[1] = evectors[1][1];
+    bk.ey_space[2] = evectors[2][1];
+    bk.ez_space[0] = evectors[0][2];
+    bk.ez_space[1] = evectors[1][2];
+    bk.ez_space[2] = evectors[2][2];
 
     // for 2d, ensure that evector along z axis is last
     // necessary so that quaternion is a simple rotation around +z axis
@@ -1272,7 +1281,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
 
   for (i = 0; i < nlocal; i++) {
     if (atom2body[i] < 0) {
-      displace[i][0] = displace[i][1] = displace[i][2] = 0.0;
+      l_displace(i,0) = l_displace(i,1) = l_displace(i,2) = 0.0;
       continue;
     }
 
@@ -1283,7 +1292,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
     delta[0] = unwrap[0] - xcm[0];
     delta[1] = unwrap[1] - xcm[1];
     delta[2] = unwrap[2] - xcm[2];
-    MathExtra::transpose_matvec(b->ex_space,b->ey_space,b->ez_space,
+    transpose_matvec(b->ex_space,b->ey_space,b->ez_space,
                                 delta,displace[i]);
 
     if (extended) {
@@ -1301,10 +1310,10 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
     for (i = 0; i < 6; i++) itensor[ibody][i] = 0.0;
 
   for (i = 0; i < nlocal; i++) {
-    if (atom2body[i] < 0) continue;
+    if (l_atom2body(i) < 0) continue;
     inertia = itensor[atom2body[i]];
 
-    if (rmass) massone = rmass[i];
+    if (rmass) massone = l_rmass(i);
     else massone = mass[type[i]];
 
     inertia[0] += massone *

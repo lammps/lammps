@@ -175,6 +175,7 @@ protected:
   // CRTP
   Fix* fix_base() { return static_cast<Fix*>(base()); }
   FixRigidBase* base() { return dynamic_cast<FixRigidBase*>(this); }
+  FixRigidBase* base_ptr;
   FixRigidNHSmall* nh_base() { return dynamic_cast<FixRigidNHSmall*>(this); }
   static constexpr bool is_nh    = std::is_base_of_v<FixRigidNH,    FixRigidBase>;
   static constexpr bool is_small = std::is_base_of_v<FixRigidSmall, FixRigidBase>;

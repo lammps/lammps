@@ -71,23 +71,23 @@ FixRigidBaseKokkos<DeviceType,FixRigidBase>::FixRigidBaseKokkos(Atom* atom, Doma
 template<class DeviceType, class FixRigidBase>
 FixRigidBaseKokkos<DeviceType,FixRigidBase>::~FixRigidBaseKokkos()
 {
-  if (base()->copymode) return;
-  base()->memoryKK->destroy_kokkos(k_bodyown, base()->bodyown);
-  base()->memoryKK->destroy_kokkos(k_bodytag, base()->bodytag);
-  base()->memoryKK->destroy_kokkos(k_atom2body, base()->atom2body);
-  base()->memoryKK->destroy_kokkos(k_xcmimage, base()->xcmimage);
-  if (base()->displace) {
-    base()->memory->sfree(base()->displace);
-    base()->displace = nullptr;
+  if (base_ptr->copymode) return;
+  base_ptr->memoryKK->destroy_kokkos(k_bodyown, base_ptr->bodyown);
+  base_ptr->memoryKK->destroy_kokkos(k_bodytag, base_ptr->bodytag);
+  base_ptr->memoryKK->destroy_kokkos(k_atom2body, base_ptr->atom2body);
+  base_ptr->memoryKK->destroy_kokkos(k_xcmimage, base_ptr->xcmimage);
+  if (base_ptr->displace) {
+    base_ptr->memory->sfree(base_ptr->displace);
+    base_ptr->displace = nullptr;
   }
-  base()->memoryKK->destroy_kokkos(k_displace);
-  if (base()->extended) base()->memoryKK->destroy_kokkos(k_eflags, base()->eflags);
-  base()->body = nullptr;
-  base()->bodyown = nullptr;
-  base()->bodytag = nullptr;
-  base()->atom2body = nullptr;
-  base()->xcmimage = nullptr;
-  base()->eflags = nullptr;
+  base_ptr->memoryKK->destroy_kokkos(k_displace);
+  if (base_ptr->extended) base_ptr->memoryKK->destroy_kokkos(k_eflags, base_ptr->eflags);
+  base_ptr->body = nullptr;
+  base_ptr->bodyown = nullptr;
+  base_ptr->bodytag = nullptr;
+  base_ptr->atom2body = nullptr;
+  base_ptr->xcmimage = nullptr;
+  base_ptr->eflags = nullptr;
 #ifdef LMP_KOKKOS_DEBUG_RNG
   rand_pool.destroy();
 #endif
@@ -112,6 +112,7 @@ FixRigidBaseKokkos<DeviceType,FixRigidBase>::~FixRigidBaseKokkos()
 template<class DeviceType, class FixRigidBase>
 void FixRigidBaseKokkos<DeviceType,FixRigidBase>::post_constructor_base()
 {
+  base_ptr = base(); // keep the pointer for destructor later
   const int nmax = atomKK->nmax;
   const int nlocal = atomKK->nlocal;
   // save bodytag and bodyown filled by the base constructor's create_bodies()

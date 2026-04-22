@@ -172,14 +172,12 @@ protected:
   template<bool EVFLAG>
   void set_v_base();
 
-  // CRTP accessors — every concrete KK class inherits from
-  // both FixRigidBase and FixRigidBaseKokkos<DeviceType, FixRigidBase>
-  FixRigidBase* base() { return static_cast<FixRigidBase*>(this); }
-  const FixRigidBase* base() const { return static_cast<const FixRigidBase*>(this); }
-
+  // CRTP
+  Fix* fix_base() { return static_cast<Fix*>(base()); }
+  FixRigidBase* base() { return dynamic_cast<FixRigidBase*>(this); }
+  FixRigidNHSmall* nh_base() { return dynamic_cast<FixRigidNHSmall*>(this); }
   static constexpr bool is_nh    = std::is_base_of_v<FixRigidNH,    FixRigidBase>;
   static constexpr bool is_small = std::is_base_of_v<FixRigidSmall, FixRigidBase>;
-
   int nbody_total() { return base()->nlocal_body + base()->nghost_body; }
 
   // kokkos views

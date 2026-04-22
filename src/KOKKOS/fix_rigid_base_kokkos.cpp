@@ -18,6 +18,13 @@
 
 #include "fix_rigid_base_kokkos.h"
 
+#include "fix.h"
+#include "fix_rigid.h"
+#include "fix_rigid_small.h"
+#include "fix_rigid_nh.h"        
+#include "fix_rigid_nh_small.h"
+#include "fix_rigid_small_kokkos.h"
+
 #include "atom_kokkos.h"
 #include "kokkos.h"
 #include "atom_masks.h"
@@ -307,7 +314,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
 
   base()->nghost_body = 0;
   base()->commflag = FULL_BODY;
-  base()->comm->forward_comm(this);
+  base()->comm->forward_comm(fix_base());
   //k_body.modify_host();
   //k_body.sync_device();
 
@@ -626,7 +633,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate_base(int vfl
   base()->copymode = 0;
 
   base()->commflag = INITIAL;
-  base()->comm->forward_comm(this, 29);
+  base()->comm->forward_comm(fix_base(), 29);
 
   // virial setup
   base()->v_init(vflag);
@@ -752,7 +759,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::final_integrate_base()
   k_body.modify_device();
 
   base()->commflag = FINAL;
-  base()->comm->forward_comm(this, 10);
+  base()->comm->forward_comm(fix_base(), 10);
 
   if (base()->vflag_atom) k_vatom.template sync<DeviceType>();
 
@@ -874,7 +881,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::zero_momentum_base()
   base()->copymode = 0;
   // forward communicate of omega to all ghost copies
   base()->commflag = FINAL;
-  base()->comm->forward_comm(this,10);
+  base()->comm->forward_comm(fix_base(),10);
   // set velocity of atoms in rigid bodues
   set_v_base<false>();
 }
@@ -898,7 +905,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::zero_rotation_base()
   k_body.modify_device();
   // forward communicate of omega to all ghost copies
   base()->commflag = FINAL;
-  base()->comm->forward_comm(this,10);
+  base()->comm->forward_comm(fix_base(),10);
   // set velocity of atoms in rigid bodues
   set_v_base<false>();
 }
@@ -1055,7 +1062,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
   // reverse communicate xcm, mass of all bodies
 
   base()->commflag = XCM_MASS;
-  base()->comm->reverse_comm(this,8);
+  base()->comm->reverse_comm(fix_base(),8);
 
   for (ibody = 0; ibody < nlocal_body; ibody++) {
     xcm = body[ibody].xcm;
@@ -1149,7 +1156,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
   // reverse communicate inertia tensor of all bodies
 
   base()->commflag = ITENSOR;
-  base()->comm->reverse_comm(this,6);
+  base()->comm->reverse_comm(fix_base(),6);
 
   // overwrite Cartesian inertia tensor with file values
 
@@ -1243,7 +1250,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
   // forward communicate updated info of all bodies
 
   base()->commflag = INITIAL;
-  base()->comm->forward_comm(this,29);
+  base()->comm->forward_comm(fix_base(),29);
 
   // displace = initial atom coords in basis of principal axes
   // set displace = 0.0 for atoms not in any rigid body
@@ -1308,7 +1315,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
   // reverse communicate inertia tensor of all bodies
 
   base()->commflag = ITENSOR;
-  base()->comm->reverse_comm(this,6);
+  base()->comm->reverse_comm(fix_base(),6);
 
   // error check that re-computed moments of inertia match diagonalized ones
   // do not do test for bodies with params read from inpfile
@@ -2038,7 +2045,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::compute_forces_and_torques_bas
   }
 
   base()->commflag = FORCE_TORQUE;
-  base()->comm->reverse_comm(this, 6);
+  base()->comm->reverse_comm(fix_base(), 6);
 
   if (base()->langflag) {
     base()->copymode = 1;
@@ -2266,7 +2273,7 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_forward_comm_kokkos(
     k_bodyown.sync_host();
     int *list = k_sendlist.view_host().data();
     double *buf = k_buf.view_host().data();
-    return FixRigidBase::pack_forward_comm(n, list, buf, pbc_flag, pbc);
+    return base()->pack_forward_comm(n, list, buf, pbc_flag, pbc);
   }
 
   int result = 0;
@@ -2362,7 +2369,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_forward_comm_kokkos(
   if (base()->commflag == FULL_BODY) {
     // punt to base class
     double *buf = k_buf.view_host().data();
-    FixRigidBase::unpack_forward_comm(n, first, buf);
+    base()->unpack_forward_comm(n, first, buf);
     k_body.modify_host();
     k_bodyown.modify_host();
     k_body.sync_device();
@@ -2487,7 +2494,7 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_reverse_comm_kokkos(
   k_body.sync_host();
   k_bodyown.sync_host();
   double *buf = k_buf.view_host().data();
-  return FixRigidBase::pack_reverse_comm(n, first, buf);
+  return base()->pack_reverse_comm(n, first, buf);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2527,7 +2534,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_reverse_comm_kokkos(
     // punt the rest to base class
     int *list = k_sendlist.view_host().data();
     double *buf = k_buf.view_host().data();
-    FixRigidBase::unpack_reverse_comm(n, list, buf);
+    base()->unpack_reverse_comm(n, list, buf);
     k_body.modify_host();
     k_body.sync_device();
   }

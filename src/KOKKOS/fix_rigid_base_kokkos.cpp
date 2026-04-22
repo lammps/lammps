@@ -2069,6 +2069,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::compute_forces_and_torques_bas
     k_body.sync_device();
     auto l_body = k_body.template view<DeviceType>();
     auto l_langextra = k_langextra.template view<DeviceType>();
+    base()->copymode = 1;
     Kokkos::parallel_for(
       Kokkos::RangePolicy<DeviceType>(0, nbody_total()),
       KOKKOS_LAMBDA(const int &ibody) {
@@ -2177,8 +2178,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::reset_atom2body_base()
   k_atom2body.template sync<DeviceType>();
   k_bodytag.template sync<DeviceType>();
   k_bodyown.template sync<DeviceType>();
-
-  // Create local copies of views and variables for the lambda to capture
   auto l_tag = atomKK->k_tag.template view<DeviceType>();
   auto l_atom2body = k_atom2body.template view<DeviceType>();
   auto l_bodytag = k_bodytag.template view<DeviceType>();
@@ -2235,7 +2234,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::grow_arrays_base(int nmax)
   if (base()->extended) {
     k_eflags.template sync<DeviceType>();
     base()->memoryKK->grow_kokkos(k_eflags, base()->eflags, nmax, "rigid/small:eflags");
-    d_eflags = k_eflags.template view<DeviceType>();
     if (base()->orientflag) base()->memory->grow(base()->orient, nmax, base()->orientflag, "rigid/small:orient");
     if (base()->dorientflag) base()->memory->grow(base()->dorient, nmax, 3, "rigid/small:dorient");
   }
@@ -2287,12 +2285,6 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_forward_comm_kokkos(
   auto l_body = k_body.template view<DeviceType>();
   auto l_bodyown = k_bodyown.template view<DeviceType>();
 
-  if(!base()->setupflag) {
-    k_body.modify_host();
-    k_bodyown.modify_host();
-    k_body.sync_device();
-    k_bodyown.sync_device();
-  }
   base()->copymode = 1;
   if (base()->commflag == INITIAL) {
     Kokkos::parallel_scan(

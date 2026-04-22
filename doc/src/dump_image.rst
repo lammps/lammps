@@ -344,23 +344,17 @@ prefixed by "c\_", "f\_", or "v\_", respectively.  Note that the
 *diameter* setting can be overridden with a numeric value applied to all
 atoms by the optional *adiam* keyword.
 
-.. versionchanged:: 11Feb2026
+.. versionchanged:: TBD
 
-   Replaced colors "aqua" and "cyan" with "cyan" and "magenta"
+   Extended list of colors from 6 to 16
 
 If *type* is specified for the *color* setting, then the color of each
-atom is determined by its atom type.  By default the mapping of types
-to colors is as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types :math:`> 6`.  This mapping can be changed by the
-"dump_modify acolor" command, as described below.
+atom is determined by its atom type.  By default the mapping of atom
+types to colors is: red, green, blue, yellow, cyan, magenta, silver,
+orange, chartreuse, gray, darkred, darkgreen, darkblue, darkcyan,
+darkmagenta, and darkgray for the first 16 atom types and repeats itself
+after that.  This mapping can be changed by the "dump_modify acolor"
+command, as described below.
 
 If *type* is specified for the *diameter* setting then the diameter of
 each atom is determined by its atom type.  By default all types have
@@ -369,11 +363,12 @@ command, as described below.
 
 If *element* is specified for the *color* and/or *diameter* setting,
 then the color and/or diameter of each atom is determined by which
-element it is, which in turn is specified by the element-to-type
-mapping specified by the "dump_modify element" command, as described
-below.  By default every atom type is C (carbon).  Every element has a
-color and diameter associated with it, which is the same as the colors
-and sizes used by the `AtomEye <atomeye_>`_ visualization package.
+element it is, which in turn is specified by the element-to-type mapping
+specified by the "dump_modify element" command, as described below.  By
+default the element for every atom type is set to C (carbon).  Every
+element has a color and diameter associated with it, which is the same
+as the colors and sizes used by the `AtomEye <atomeye_>`_ visualization
+package.
 
 .. _atomeye: http://li.mit.edu/Archive/Graphics/A/
 
@@ -455,23 +450,17 @@ If *atom* is specified for the bond *color* value, then each bond is
 drawn in 2 halves, with the color of each half being the color of the
 atom at that end of the bond.
 
+.. versionchanged:: TBD
+
+   Extended list of default colors from 6 to 16
+
 If *type* is specified for the *color* value, then the color of each
 bond is determined by its bond type.  By default the mapping of bond
-types to colors is as follows:
-
-.. versionchanged:: 11Feb2026
-
-   Replaced colors "aqua" and "cyan" with "cyan" and "magenta"
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for bond types > 6.  This mapping can be changed by
-the "dump_modify bcolor" command, as described below.
+types to colors is: red, green, blue, yellow, cyan, magenta, silver,
+orange, chartreuse, gray, darkred, darkgreen, darkblue, darkcyan,
+darkmagenta, and darkgray for the first 16 bond types and repeats itself
+after that.  This mapping can be changed by the "dump_modify bcolor"
+command, as described below.
 
 The bond *width* value can be a numeric value or *atom* or *type* (or
 *none* as indicated above).
@@ -506,21 +495,11 @@ particles will be colored according to the atom type of the particle.
 With the *index* setting, colors from the list of available per-atom
 type colors are assigned to the line particles in a non-deterministic
 round-robin fashion.  With the *atom* setting, the color follows the
-coloring selected for coloring atoms (including using color maps).  The
-list of atom type colors is by default as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types > 6.  This list can by changed with the
-:doc:`dump_modify acolor <dump_image>` command.  If more different
-colors than atom types are desired, the *number of atom types* must be
-*increased* correspondingly when using either the :doc:`create_box
-<create_box>` or the :doc:`read_data <read_data>` command.
+coloring selected for coloring atoms (including using color maps).  If
+more different colors than atom types are desired, the *number of atom
+types* must be *increased* correspondingly when using either the
+:doc:`create_box <create_box>` or the :doc:`read_data <read_data>`
+command.
 
 The line *width* can only be a numeric value, which specifies that all
 lines will be drawn as cylinders with that diameter, e.g. 1.0, which
@@ -546,21 +525,11 @@ be colored according to the atom type of the particle.  With the *index*
 setting, colors from the list of available per-atom type colors are
 assigned to the triangulated particles in a non-deterministic
 round-robin fashion.  With the *atom* setting, the color follows the
-coloring selected for coloring atoms (including using color maps).  The
-list of atom type colors is by default as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types > 6.  This list can by changed with the
-:doc:`dump_modify acolor <dump_image>` command.  If more different
-colors than atom types are desired, the *number of atom types* must be
-*increased* correspondingly when using either the :doc:`create_box
-<create_box>` or the :doc:`read_data <read_data>` command.
+coloring selected for coloring atoms (including using color maps). If
+more different colors than atom types are desired, the *number of atom
+types* must be *increased* correspondingly when using either the
+:doc:`create_box <create_box>` or the :doc:`read_data <read_data>`
+command.
 
 ----------
 
@@ -589,21 +558,11 @@ be colored according to the atom type of the particle.  With the *index*
 setting, colors from the list of available per-atom type colors are
 assigned to the ellipsoid particles in a non-deterministic round-robin
 fashion.  With the *atom* setting, the color follows the coloring
-selected for coloring atoms (including using color maps).  The list of
-atom type colors is by default as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types > 6.  This list can by changed with the
-:doc:`dump_modify acolor <dump_image>` command.  If more different
-colors than atom types are desired, the *number of atom types* must be
-*increased* correspondingly when using either the :doc:`create_box
-<create_box>` or the :doc:`read_data <read_data>` command.
+selected for coloring atoms (including using color maps).  If more
+different colors than atom types are desired, the *number of atom types*
+must be *increased* correspondingly when using either the
+:doc:`create_box <create_box>` or the :doc:`read_data <read_data>`
+command.
 
 .. versionchanged:: 30Mar2026
 
@@ -660,18 +619,7 @@ the coloring selected for coloring atoms (including using color maps).
 With the *type* setting the body particles will be colored according to
 the atom type of the particle.  With the *index* setting, colors from
 the list of available per-atom type colors are assigned to the body
-particles in a non-deterministic round-robin fashion.  The list of atom
-type colors is by default as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types > 6.  This list can by changed with the
-:doc:`dump_modify acolor <dump_image>` command.  If more different
+particles in a non-deterministic round-robin fashion.  If more different
 colors than atom types are desired, the *number of atom types* must be
 *increased* correspondingly when using either the :doc:`create_box
 <create_box>` or the :doc:`read_data <read_data>` command.
@@ -1187,23 +1135,19 @@ dump_modify color option.
 
    add support for entering colors in hexadecimal
 
-The *color* keyword allows definition of a new color name, in addition
-to the 140-predefined colors (see below), and associates three
-red/green/blue RGB values with that color name.  The color name can
-then be used with any other dump_modify keyword that takes a color
-name as a value.  The RGB values should be either specified as three
-floating point values between 0.0 and 1.0 inclusive or as a single
-24-bit hexadecimal number. The following two commands are equivalent.
+The *color* keyword allows defining new named colors or changing the
+definition of the 140-predefined colors (see below).  Three
+red/green/blue RGB values are associated with each color name.  The
+color name can then be used with any other *dump_modify* keyword that
+takes a color name as a value.  The RGB values should be either
+specified as three floating point values between 0.0 and 1.0 inclusive
+or as a single 24-bit hexadecimal number. The following two commands are
+equivalent.
 
 .. code-block:: LAMMPS
 
    dump_modify 1 color mygray 0.431 0.498 0.502
    dump_modify 1 color mygray 0x6e7f80
-
-When a color name is converted to RGB values, the user-defined color
-names are searched first, then the 140 pre-defined color names.  This
-means you can also use the *color* keyword to overwrite one of the
-pre-defined color names with new RGB values.
 
 ----------
 
@@ -1351,13 +1295,13 @@ The defaults for the dump image and dump movie keywords are as follows:
 
 The defaults for the dump_modify keywords specific to dump image and dump movie are as follows:
 
-* acolor = \* red/green/blue/yellow/cyan/magenta
+* acolor = \* red/green/blue/yellow/cyan/magenta/silver/orange/chartreuse/gray/darkred/darkgreen/darkblue/darkcyan/darkmagenta/darkgray
 * adiam = \* 1.0
 * amap = min max cf 0.0 2 min blue max red
 * atrans = 1.0
 * backcolor = black
 * backcolor2 = none
-* bcolor = \* red/green/blue/yellow/cyan/magenta
+* bcolor = \* red/green/blue/yellow/cyan/magenta/silver/orange/chartreuse/gray/darkred/darkgreen/darkblue/darkcyan/darkmagenta/darkgray
 * bdiam = \* 0.5
 * btrans = 1.0
 * boxcolor = yellow

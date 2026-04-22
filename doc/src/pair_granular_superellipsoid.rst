@@ -343,9 +343,7 @@ The relative tangential velocity at the point of contact is given by
 (R_i\boldsymbol{\Omega}_i + R_j\boldsymbol{\Omega}_j) \times
 \mathbf{n}`, where :math:`\mathbf{v}_{t} = \mathbf{v}_r -
 \mathbf{v}_r\cdot\mathbf{n}\ \mathbf{n}`, :math:`\mathbf{v}_r =
-\mathbf{v}_j - \mathbf{v}_i` .  The direction of the applied force is
-:math:`\mathbf{t} = \mathbf{v_{t,rel}}/\|\mathbf{v_{t,rel}}\|` .
-
+\mathbf{v}_j - \mathbf{v}_i` .
 The normal force value :math:`F_{n0}` used to compute the critical force
 depends on the form of the contact model.  It is given by the magnitude
 of the normal force:
@@ -364,9 +362,15 @@ For *tangential linear_history*, the tangential force is given by:
 
 .. math::
 
-   \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
+   \mathbf{F}_t =  \min(\mu_t F_{n0}, \|-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
-Here, :math:`\mathbf{\xi}` is the tangential displacement accumulated
+Here, :math:`\mathbf{t}` is the direction of the tangential force given by:
+
+.. math::
+
+   \mathbf{t} = \frac{-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}}{\|-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|}
+
+and, :math:`\mathbf{\xi}` is the tangential displacement accumulated
 during the entire duration of the contact:
 
 .. math::

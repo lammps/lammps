@@ -75,6 +75,11 @@ enum { NO = 0, YES = 1, AUTO = 2 };
 enum { FILLED, FRAME, POINTS, TRANSPARENT };
 enum { OFF = 0, CENTER, LOWERLEFT, LOWERRIGHT, UPPERLEFT, UPPERRIGHT };
 
+const std::vector<std::string> default_colors{"darkgray",  "red",        "green",    "blue",
+                                              "yellow",    "cyan",       "magenta",  "silver",
+                                              "orange",    "chartreuse", "gray",     "darkred",
+                                              "darkgreen", "darkblue",   "darkcyan", "darkmagenta"};
+
 //  convenience functions to change and restore lighting, assuming uncolored light
 
 struct savedColors {
@@ -633,15 +638,11 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   colorelement = new double*[ntypes+1];
   aopacity = new double[ntypes+1];
 
+  const int num_default_colors = default_colors.size();
   for (int i = 1; i <= ntypes; i++) {
     diamtype[i] = 1.0;
     aopacity[i] = 1.0;
-    if (i % 6 == 1) colortype[i] = image->color2rgb("red");
-    else if (i % 6 == 2) colortype[i] = image->color2rgb("green");
-    else if (i % 6 == 3) colortype[i] = image->color2rgb("blue");
-    else if (i % 6 == 4) colortype[i] = image->color2rgb("yellow");
-    else if (i % 6 == 5) colortype[i] = image->color2rgb("cyan");
-    else if (i % 6 == 0) colortype[i] = image->color2rgb("magenta");
+    colortype[i] = image->color2rgb(default_colors[i % num_default_colors]);
   }
 
   if (bondflag == YES) {
@@ -651,12 +652,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 1; i <= atom->nbondtypes; i++) {
       bdiamtype[i] = 0.5;
       bopacity[i] = 1.0;
-      if (i % 6 == 1) bcolortype[i] = image->color2rgb("red");
-      else if (i % 6 == 2) bcolortype[i] = image->color2rgb("green");
-      else if (i % 6 == 3) bcolortype[i] = image->color2rgb("blue");
-      else if (i % 6 == 4) bcolortype[i] = image->color2rgb("yellow");
-      else if (i % 6 == 5) bcolortype[i] = image->color2rgb("cyan");
-      else if (i % 6 == 0) bcolortype[i] = image->color2rgb("magenta");
+      bcolortype[i] = image->color2rgb(default_colors[i % num_default_colors]);
     }
   }
 

@@ -37,6 +37,7 @@ class ElectrodeVector : public Fix {
   void setup_eta(int);
   void compute_pot(double *);
   int igroup, source_group;
+  bool buffers_stale; // for ElVecIntel
 
  protected: // for ElectrodeVectorIntel
   virtual void get_fix_intel() {}

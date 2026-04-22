@@ -38,8 +38,10 @@
 #include "pair.h"
 #include "pppm_intel.h"
 #include "remap_wrap.h"
+#include "slab_dipole.h"
 #include "slab_dipole_intel.h"
 #include "update.h"
+#include "wire_dipole.h"
 #include "wire_dipole_intel.h"
 
 #include <algorithm>
@@ -120,12 +122,15 @@ void PPPMElectrodeIntel::init()
   // must put here to get initialized intelFix
   if (slabflag == 1) {
     // EW3Dc dipole correction
-    boundcorr = new SlabDipoleIntel(lmp, fix);
+    // boundcorr = new SlabDipoleIntel(lmp, fix);
+    boundcorr = new SlabDipole(lmp);
   } else if (wireflag == 1) {
     // EW3Dc wire correction
-    boundcorr = new WireDipoleIntel(lmp, fix);
+    // boundcorr = new WireDipoleIntel(lmp, fix);
+    boundcorr = new WireDipole(lmp);
   } else {
     // dummy BoundaryCorrection for ffield
+    // boundcorr = new BoundaryCorrection(lmp);
     boundcorr = new BoundaryCorrection(lmp);
   }
 }
@@ -338,7 +343,8 @@ void PPPMElectrodeIntel::compute_vector(double *vec, int sensor_grpbit, int sour
   // electrolyte density (without writing an additional function)
   FFT_SCALAR ***density_brick_real = density_brick;
   FFT_SCALAR *density_fft_real = density_fft;
-  if (neighbor->ago != 0) pack_buffers();    // since midstep positions may be outdated
+  // if (neighbor->ago != 0) 
+  if (_use_lrt) pack_buffers();    // since midstep positions may be outdated
   switch (fix->precision()) {
     case FixIntel::PREC_MODE_MIXED:
       make_rho_in_brick<float, double>(fix->get_mixed_buffers(), source_grpbit,

@@ -100,6 +100,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   thermo_time = 0.;
 
   top_group = 0;
+  // intelflag = false;
   intelflag = (bool) utils::strmatch(style, "/intel");
   tfflag = false;
   etapropflag = enflag = hardnessflag = false;
@@ -702,9 +703,7 @@ void FixElectrodeConp::setup_pre_reverse(int eflag, int vflag)
     error->warning(FLERR, "Computation of virials in fix {} is incompatible with TALLY package",
                    style);
   // correct forces for initial timestep
-  ev_init(eflag, vflag);
-  gausscorr(eflag, vflag, true);
-  self_energy(eflag);
+  pre_reverse(eflag, vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -744,6 +743,8 @@ void FixElectrodeConp::pre_reverse(int eflag, int vflag)
   ev_init(eflag, vflag);
   gausscorr(eflag, vflag, true);
   self_energy(eflag);
+  elyt_vector->buffers_stale = true;
+  if (need_elec_vector) elec_vector->buffers_stale = true;
 }
 
 /* ---------------------------------------------------------------------- */

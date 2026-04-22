@@ -86,6 +86,7 @@ int ElectrodeVector::setmask()
 void ElectrodeVector::setup_general(Pair *fix_pair, class NeighList *fix_neighlist, bool pairflag,
                                     bool timer_flag)
 {
+  buffers_stale = true;
   get_fix_intel();
   Pair *pair = fix_pair;
   cutsq = pair->cutsq;

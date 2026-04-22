@@ -48,9 +48,8 @@ class FixElectrodeConpIntel : public FixElectrodeConp {
         dynamic_cast<PPPMElectrodeIntel *>(force->kspace_match("pppm/electrode/intel", 0));
     if (_intel_kspace == nullptr)
       error->all(FLERR, "pppm/electrode/intel is required by fix electrode/conp/intel");
-
-    intelflag = true;
     FixElectrodeConp::init();
+    intelflag = true;
   }
   inline void intel_pack_buffers() final override { _intel_kspace->pack_buffers_q(); }
 

@@ -52,35 +52,35 @@ void ElectrodeVectorIntel::pair_contribution(IntelBuffers<flt_t,acc_t> *buffers,
 {
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
-  const int host_start = fix->host_start_pair();
-  const int offload_end = fix->offload_end_pair();
   const int ago = neighbor->ago;
+  const int nall = atom->nlocal + atom->nghost;
 
-  if (_lrt == 0 && ago != 0 && fix->separate_buffers() == 0) {
-    fix->start_watch(TIME_PACK);
-    int packthreads;
-    if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
-    else packthreads = 1;
-    #if defined(_OPENMP)
-    #pragma omp parallel if (packthreads > 1)
-    #endif
-    {
-      int ifrom, ito, tid;
-      IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost,
-                                packthreads, sizeof(ATOM_T));
-      buffers->thr_pack(ifrom,ito,ago);
+  if (buffers_stale) {
+    if (_lrt == 0 && ago != 0 && fix->separate_buffers() == 0) {
+      fix->start_watch(TIME_PACK);
+      int packthreads;
+      if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
+      else packthreads = 1;
+      #if defined(_OPENMP)
+      #pragma omp parallel shared(packthreads) if (packthreads > 1)
+      #endif
+      {
+        int ifrom, ito, tid;
+        IP_PRE_omp_range_id_align(ifrom, ito, tid, nall,
+                                  packthreads, sizeof(ATOM_T));
+        buffers->thr_pack(ifrom,ito,ago);
+      }
+      fix->stop_watch(TIME_PACK);
     }
-    fix->stop_watch(TIME_PACK);
+    buffers_stale = false;
   }
 
   ATOM_T *_noalias const x = buffers->get_x(0);
   flt_t *_noalias const q = buffers->get_q(0);
   int nlocal = atom->nlocal;
   int nthr;
-  if (_lrt)
-    nthr = 1;
-  else
-    nthr = comm->nthreads;
+  if (nthreads > INTEL_HTHREADS) nthr = nthreads;
+  else nthr = 1;
   int *mask = atom->mask;
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;

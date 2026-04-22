@@ -175,9 +175,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::post_constructor_base()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType, class FixRigidBase>
-void FixRigidBaseKokkos<DeviceType,FixRigidBase>::init()
+void FixRigidBaseKokkos<DeviceType,FixRigidBase>::init_base()
 {
-  FixRigidBase::init();
+  base()->FixRigidBase::init();
   atomKK->k_mass.modify_host();
   atomKK->k_mass.template sync<DeviceType>();
 #ifdef LMP_KOKKOS_DEBUG_RNG
@@ -200,7 +200,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_pre_neighbor_base()
   k_displace.sync_host();
   if (base()->extended) k_eflags.sync_host();
 
-  FixRigidBase::setup_pre_neighbor();
+  base()->FixRigidBase::setup_pre_neighbor();
 
   atomKK->modified(Host, X_MASK | IMAGE_MASK);
   k_body.modify_host();

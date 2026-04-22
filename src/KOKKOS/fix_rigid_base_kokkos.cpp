@@ -150,7 +150,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::post_constructor_base()
   }
   k_body = TransformView<BodyKokkos*, Body*, Kokkos::LayoutRight, DeviceType>("rigid/small:body", base()->nmax_body);
   if (base()->nmax_body > 0 && base()->body != nullptr) {
-    base()->memcpy(k_body.view_host().data(), base()->body, (bigint) base()->nmax_body * sizeof(Body));
+    memcpy(k_body.view_host().data(), base()->body, (bigint) base()->nmax_body * sizeof(Body));
     base()->memory->sfree(base()->body);
     base()->body = k_body.view_host().data();
     k_body.modify_host();
@@ -167,7 +167,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::post_constructor_base()
 
 /* ---------------------------------------------------------------------- */
 
-/*
 template<class DeviceType, class FixRigidBase>
 void FixRigidBaseKokkos<DeviceType,FixRigidBase>::init()
 {
@@ -178,21 +177,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::init()
   rand_pool.init(random,seed + comm->me);
 #endif
 }
-
-template<class DeviceType, class FixRigidBase>
-void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup(int vflag)
-{
-  if (langflag && (nlocal_body > maxlang)) {
-    maxlang = nlocal_body + nghost_body;
-    memoryKK->destroy_kokkos(k_langextra, langextra);
-    memoryKK->create_kokkos(k_langextra, langextra, 6, "rigid/small:langextra");
-  }
-  atomKK->sync(Host, ALL_MASK);
-  FixRigidBase::setup(vflag);
-  atomKK->modified(Host, X_MASK | V_MASK);
-}
-
-*/
 
 /* ---------------------------------------------------------------------- */
 
@@ -333,7 +317,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
 
 
 /* ---------------------------------------------------------------------- */
-
 
 template<class DeviceType, class FixRigidBase>
 void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate_base(int vflag)
@@ -477,7 +460,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate_base(int vfl
   base()->comm->forward_comm(this, 29);
 
   // virial setup
-  v_init(base()->vflag);
+  base()->v_init(vflag);
   if (base()->vflag_atom) {
     if (atomKK->nmax > (int) d_vatom.extent(0)) {
       base()->memoryKK->destroy_kokkos(k_vatom, base()->vatom);
@@ -603,7 +586,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::final_integrate_base()
   base()->comm->forward_comm(this, 10);
 
   if (base()->vflag_atom) k_vatom.template sync<DeviceType>();
-
 
   if (base()->evflag) set_v_base<true>();
   else set_v_base<false>();
@@ -780,7 +762,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::zero_rotation_base()
    PROTECTED METHODS
 ------------------------------------------------------------------------- */
 
-/*
+#if false
 template<class DeviceType, class FixRigidBase>
 template<bool NH, bool TSTAT, bool PSTAT>
 void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
@@ -822,11 +804,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
     MPI_Allreduce(&flag,&extended,1,MPI_INT,MPI_MAX,world);
   }
 
-  if (extended) {
-    error->all(FLERR, Error::NOLASTLINE,
-               "Fix {}: extended particles not implemented in KOKKOS", style);
-  }
-
   // extended = 1 if using molecule template with finite-size particles
   // require all molecules in template to have consistent radiusflag
 
@@ -839,6 +816,12 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
     }
     if (radiusflag) extended = 1;
   }
+
+  if (extended) {
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix {}: extended particles not implemented in KOKKOS", style);
+  }
+
 
   // grow extended arrays and set extended flags for each particle
   // orientflag = 4 if any particle stores ellipsoid or tri orientation or quat
@@ -859,7 +842,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
   // acquire ghost bodies via forward comm
   // set atom2body for ghost atoms via forward comm
   // set atom2body for other owned atoms via reset_atom2body()
-
   base()->nghost_body = 0;
   base()->commflag = FULL_BODY;
   base()->comm->forward_comm(this);
@@ -1122,39 +1104,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
                                 delta,displace[i]);
 
     if (extended) {
-      if (atom->quat_flag) {
-        quatatom = atom->quat[i];
-        MathExtra::qconjugate(b->quat,qc);
-        MathExtra::quatquat(qc,quatatom,orient[i]);
-        MathExtra::qnormalize(orient[i]);
-      } else if (eflags[i] & ELLIPSOID) {
-        quatatom = ebonus[ellipsoid[i]].quat;
-        MathExtra::qconjugate(b->quat,qc);
-        MathExtra::quatquat(qc,quatatom,orient[i]);
-        MathExtra::qnormalize(orient[i]);
-      } else if (eflags[i] & LINE) {
-        if (b->quat[3] >= 0.0) theta_body = 2.0*acos(b->quat[0]);
-        else theta_body = -2.0*acos(b->quat[0]);
-        orient[i][0] = lbonus[line[i]].theta - theta_body;
-        while (orient[i][0] <= -MY_PI) orient[i][0] += MY_2PI;
-        while (orient[i][0] > MY_PI) orient[i][0] -= MY_2PI;
-        if (orientflag == 4) orient[i][1] = orient[i][2] = orient[i][3] = 0.0;
-      } else if (eflags[i] & TRIANGLE) {
-        quatatom = tbonus[tri[i]].quat;
-        MathExtra::qconjugate(b->quat,qc);
-        MathExtra::quatquat(qc,quatatom,orient[i]);
-        MathExtra::qnormalize(orient[i]);
-      } else if (orientflag == 4) {
-        orient[i][0] = orient[i][1] = orient[i][2] = orient[i][3] = 0.0;
-      } else if (orientflag == 1)
-        orient[i][0] = 0.0;
-
-      if (eflags[i] & DIPOLE) {
-        MathExtra::transpose_matvec(b->ex_space,b->ey_space,b->ez_space,
-                                    mu[i],dorient[i]);
-        MathExtra::snormalize3(mu[i][3],dorient[i],dorient[i]);
-      } else if (dorientflag)
-        dorient[i][0] = dorient[i][1] = dorient[i][2] = 0.0;
+      // not implemented
     }
   }
 
@@ -1236,7 +1186,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
   if (base()->inpfile) memory->destroy(base()->inbody);
 }
 
-*/
+#endif
 
 /* ---------------------------------------------------------------------- */
 
@@ -1506,7 +1456,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
           const KK_ACC_FLOAT vd02 = x0*fc2;
           const KK_ACC_FLOAT vd12 = x1*fc2;
 
-          if constexpr (l_vflag_global) {
+          if (l_vflag_global) {
             ev.v[0] += vd00;
             ev.v[1] += vd11;
             ev.v[2] += vd22;
@@ -1514,7 +1464,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
             ev.v[4] += vd02;
             ev.v[5] += vd12;
           }
-          if constexpr (l_vflag_atom) {
+          if (l_vflag_atom) {
             auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,
               decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom, ndup_vatom);
             auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -1803,7 +1753,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_v_base()
           Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
     }
     EV_FLOAT ev{};
-    if (base()->neighflag == HALF) {
+    if (neighflag == HALF) {
       // TagRigidSetV<TRICLINIC,HALF>>(0, nlocal),
       if (base()->triclinic) {
         Kokkos::parallel_reduce(
@@ -1993,9 +1943,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::image_shift_base()
   k_xcmimage.template sync<DeviceType>();
   k_body.sync_device();
   auto l_image = atomKK->k_image.template view<DeviceType>();
-  auto l_atom2body = d_atom2body;
-  auto l_xcmimage = d_xcmimage;
-  auto l_body = k_body.template view<DeviceType>();;
+  auto l_atom2body = l_atom2body.template view<DeviceType>();
+  auto l_xcmimage = l_xcmimage.template view<DeviceType>();
+  auto l_body = k_body.template view<DeviceType>();
   Kokkos::parallel_for(
     Kokkos::RangePolicy<DeviceType>(0, atomKK->nlocal),
     KOKKOS_LAMBDA(const int &i) {
@@ -2023,11 +1973,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::image_shift_base()
 template<class DeviceType, class FixRigidBase>
 void FixRigidBaseKokkos<DeviceType,FixRigidBase>::reset_atom2body_base()
 {
-  // reset atom2body for all owned atoms
-  // do this via bodyown of atom that owns the body the owned atom is in
-  // atom2body values can point to original body or any image of the body
   base()->copymode = 1;
   map_style = atomKK->map_style;
+  
   if (map_style == Atom::MAP_ARRAY) {
     k_map_array = atomKK->k_map_array;
     k_map_array.template sync<DeviceType>();
@@ -2035,6 +1983,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::reset_atom2body_base()
     k_map_hash = atomKK->k_map_hash;
     k_map_hash.template sync<DeviceType>();
   }
+  
   atomKK->sync(execution_space, TAG_MASK);
   k_atom2body.template sync<DeviceType>();
   k_bodytag.template sync<DeviceType>();
@@ -2687,3 +2636,4 @@ template class FixRigidBaseKokkos<LMPDeviceType, FixRigidSmall>;
 //template class FixRigidBaseKokkos<LMPHostType, FixRigidNHSmall>;
 #endif
 }
+

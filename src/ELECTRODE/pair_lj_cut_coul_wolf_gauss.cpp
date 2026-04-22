@@ -432,8 +432,8 @@ void PairLJCutCoulWolfGauss::compute_vector(double *vec, int groupbit, int sourc
   int *type = atom->type;
   int *mask = atom->mask;
   double *special_coul = force->special_coul;
-  int const nlocal = atom->nlocal;
-  int const inum = list->inum;
+  const int nlocal = atom->nlocal;
+  const int inum = list->inum;
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
@@ -442,19 +442,19 @@ void PairLJCutCoulWolfGauss::compute_vector(double *vec, int groupbit, int sourc
   double const e_shift = ElectrodeMath::safe_erfc(alpha * cut_coul) / cut_coul;
 
   for (int ii = 0; ii < inum; ii++) {
-    int const i = ilist[ii];
+    const int i = ilist[ii];
     bool const i_in_sensor = (mask[i] & groupbit);
     bool const i_in_source = !!(mask[i] & source_grpbit) != inv;
     if (!(i_in_sensor || i_in_source)) continue;
     double const xtmp = x[i][0];
     double const ytmp = x[i][1];
     double const ztmp = x[i][2];
-    int const itype = type[i];
+    const int itype = type[i];
     bool const ipoint = !!ispoint[itype];
     int *jlist = firstneigh[i];
     int jnum = numneigh[i];
     for (int jj = 0; jj < jnum; jj++) {
-      int const j = jlist[jj] & NEIGHMASK;
+      const int j = jlist[jj] & NEIGHMASK;
       bool const j_in_sensor = (mask[j] & groupbit);
       bool const j_in_source = !!(mask[j] & source_grpbit) != inv;
       bool const compute_ij = i_in_sensor && j_in_source;
@@ -490,7 +490,7 @@ void PairLJCutCoulWolfGauss::compute_vector_self(double *vec, int groupbit, int 
                                                  bool inv)
 {
   point_in_sensor_warning(groupbit);
-  int const inum = list->inum;
+  const int inum = list->inum;
   int *mask = atom->mask;
   int *type = atom->type;
   int *ilist = list->ilist;
@@ -501,9 +501,9 @@ void PairLJCutCoulWolfGauss::compute_vector_self(double *vec, int groupbit, int 
   double const pre_wolf = ElectrodeMath::safe_erfc(alpha * cut_coul) / cut_coul;
 
   for (int ii = 0; ii < inum; ii++) {
-    int const i = ilist[ii];
+    const int i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
-    int const itype = type[i];
+    const int itype = type[i];
     bool const i_in_source = !!(mask[i] & source_grpbit) != inv;
     if (i_in_source) {
       vec[i] -= (selfint + pre_wolf) * q[i];
@@ -536,11 +536,11 @@ void PairLJCutCoulWolfGauss::compute_matrix(bigint *mpos, double **array, int gr
   double const e_shift = ElectrodeMath::safe_erfc(alpha * cut_coul) / cut_coul;
 
   for (int ii = 0; ii < inum; ii++) {
-    int const i = ilist[ii];
+    const int i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
-    int const itype = type[i];
+    const int itype = type[i];
     bool const ipoint = !!ispoint[itype];
-    bigint const ipos = mpos[i];
+    const bigint ipos = mpos[i];
     double const xtmp = x[i][0];
     double const ytmp = x[i][1];
     double const ztmp = x[i][2];
@@ -557,7 +557,7 @@ void PairLJCutCoulWolfGauss::compute_matrix(bigint *mpos, double **array, int gr
       double const dely = ytmp - x[j][1];
       double const delz = ztmp - x[j][2];
       double const rsq = delx * delx + dely * dely + delz * delz;
-      int const jtype = type[j];
+      const int jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
         double const factor_coul = special_coul[sbmask(j)];
@@ -598,7 +598,7 @@ void PairLJCutCoulWolfGauss::compute_matrix_self(bigint *mpos, double **array, i
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      int const itype = type[i];
+      const int itype = type[i];
       array[mpos[i]][mpos[i]] -= selfint + pre_wolf;
       if (!ispoint[itype])
         array[mpos[i]][mpos[i]] += pre_eta * eta[itype][itype] + eshift_eta[itype][itype];

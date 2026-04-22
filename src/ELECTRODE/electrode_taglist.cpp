@@ -30,10 +30,10 @@ using namespace LAMMPS_NS;
 
 ElectrodeTaglist::ElectrodeTaglist(LAMMPS *lmp, std::vector<int> group_bits) : Pointers(lmp)
 {
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   int *mask = atom->mask;
   tagint *tag = atom->tag;
-  int const nprocs = comm->nprocs;
+  const int nprocs = comm->nprocs;
   int *recvcounts = new int[nprocs];
   int *displs = new int[nprocs];
 
@@ -49,7 +49,7 @@ ElectrodeTaglist::ElectrodeTaglist(LAMMPS *lmp, std::vector<int> group_bits) : P
     MPI_Allgather(&gnum_local, 1, MPI_INT, recvcounts, 1, MPI_INT, world);
     displs[0] = 0;
     for (int i = 1; i < nprocs; i++) { displs[i] = displs[i - 1] + recvcounts[i - 1]; }
-    int const gnum = displs[nprocs - 1] + recvcounts[nprocs - 1];
+    const int gnum = displs[nprocs - 1] + recvcounts[nprocs - 1];
     std::vector<tagint> taglist_all(gnum);
     MPI_Allgatherv(taglist_local_group.data(), gnum_local, MPI_LMP_TAGINT, taglist_all.data(),
                    recvcounts, displs, MPI_LMP_TAGINT, world);
@@ -122,7 +122,7 @@ std::vector<std::vector<double>> ElectrodeTaglist::sort_by_group(double **mat)
 {
   std::vector<std::vector<double>> ordered_mat(n, std::vector<double>(n));
   for (std::size_t i = 0; i < n; i++) {
-    bigint const gi = group_idx[i];
+    const bigint gi = group_idx[i];
     assert(gi < n);
     for (std::size_t j = 0; j < n; j++) ordered_mat[gi][group_idx[j]] = mat[i][j];
   }
@@ -177,7 +177,7 @@ void ElectrodeTaglist::read_from_file(const std::string &input_file, double **ar
     }
     if (idx.size() != n) error->all(FLERR, "Read tags do not match taglist of fix electrode");
     for (std::size_t i = 0; i < n; i++) {
-      bigint const ii = idx[i];
+      const bigint ii = idx[i];
       for (std::size_t j = 0; j < n; j++) array[i][j] = matrix[ii][idx[j]];
     }
   }

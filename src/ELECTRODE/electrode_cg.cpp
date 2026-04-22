@@ -216,11 +216,11 @@ void ElectrodeCG::predict_q()
   if (!predictor_count) {    // predict with current charges
     for (int i = 0; i < nele; i++) q_ele[i] = q[atom->map(taglist[i])];
   } else {    // ASPC method, cf. Kolafa 2003
-    int const k = predictor_count - 1;
+    const int k = predictor_count - 1;
     double **qold = atom->darray[predictor_index];
     auto weights = predictor_weights[k];    // weights[0] = B_1, ...
     for (int i = 0; i < nele; i++) {
-      int const ii = atom->map(taglist[i]);
+      const int ii = atom->map(taglist[i]);
       double qi = weights[0] * q[ii];
       for (int j = 1; j <= k + 1; j++) qi += weights[j] * qold[ii][j - 1];
       q_ele[i] = qi;
@@ -229,7 +229,7 @@ void ElectrodeCG::predict_q()
 
   // move current charges to predictor array for following steps
   if (predictor_cols) {
-    int const nlocal = atom->nlocal;
+    const int nlocal = atom->nlocal;
     double **qold = atom->darray[predictor_index];
     for (int i = predictor_count; i > 0; i--) {
       if (i == predictor_cols) continue;    // forget last column
@@ -313,12 +313,12 @@ std::vector<double> ElectrodeCG::constraint_projection(std::vector<double> x, bo
       return x;
     }
     case ChargeConstraint::GROUP: {
-      int const n = x.size();
-      int const ngroups = qtotal_group.size();
+      const int n = x.size();
+      const int ngroups = qtotal_group.size();
       auto counts = std::vector<int>(ngroups, 0);
       auto sums = std::vector<double>(ngroups, 0);
       for (int i = 0; i < n; i++) {
-        int const g = iele_to_group[i];
+        const int g = iele_to_group[i];
         sums[g] += x[i];
         counts[g]++;
       }
@@ -342,7 +342,7 @@ int ElectrodeCG::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag
 {
   int m = 0;
   for (int i = 0; i < n; i++) {
-    int const j = list[i];
+    const int j = list[i];
     buf[m++] = atom->q[j];
   }
   return m;
@@ -352,7 +352,7 @@ int ElectrodeCG::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag
 
 void ElectrodeCG::unpack_forward_comm(int n, int first, double *buf)
 {
-  int const last = first + n;
+  const int last = first + n;
   for (int i = first, m = 0; i < last; i++) atom->q[i] = buf[m++];
 }
 

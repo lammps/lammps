@@ -81,7 +81,7 @@ namespace ElectrodeMath {
 
   static constexpr double ERFCMAX = 5.8;    // erfc(ERFCMAX) < machine epsilon(double)
 
-  static double safe_erfc(double x)
+  inline double safe_erfc(double x)
   {
     if (x > ERFCMAX) return 0.0;
     double expm2 = exp(-x * x);
@@ -89,7 +89,7 @@ namespace ElectrodeMath {
     return t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
   }
 
-  static double safe_derfcr(double x, double &erfc)
+  inline double safe_derfcr(double x, double &erfc)
   {
     if (x > ERFCMAX) {
       erfc = 0.0;

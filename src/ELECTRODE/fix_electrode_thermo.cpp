@@ -78,7 +78,7 @@ void FixElectrodeThermo::update_psi_set_constraint()
   assert(v_old.size() == NUM_GROUPS);
 
   // sums of group charges
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   int *mask = atom->mask;
   double *q = atom->q;
   auto group_q_old = std::vector<double>(NUM_GROUPS, 0.);

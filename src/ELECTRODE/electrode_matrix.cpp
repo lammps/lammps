@@ -110,8 +110,8 @@ void ElectrodeMatrix::compute_array(double **array, bool timer_flag)
 
   update_mpos();
   if (pairflag) {
-    electrode_pair->compute_matrix(&mpos[0], array, groupbit);
-    electrode_pair->compute_matrix_self(&mpos[0], array, groupbit);
+    electrode_pair->compute_matrix(mpos.data(), array, groupbit);
+    electrode_pair->compute_matrix_self(mpos.data(), array, groupbit);
   } else {
     pair_contribution(array);
     self_contribution(array);
@@ -166,7 +166,7 @@ void ElectrodeMatrix::pair_contribution(double **array)
     // skip if atom I is not in either group
     if (!(mask[i] & groupbit)) continue;
 
-    bigint const ipos = mpos[i];
+    const bigint ipos = mpos[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -257,7 +257,7 @@ void ElectrodeMatrix::hardness_contribution(double **array)
 
 void ElectrodeMatrix::update_mpos()
 {
-  int const nall = atom->nlocal + atom->nghost;
+  const int nall = atom->nlocal + atom->nghost;
   tagint *tag = atom->tag;
   int *mask = atom->mask;
   mpos = std::vector<bigint>(nall, -1);

@@ -47,6 +47,7 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
+#include <iterator>
 #include <memory>
 #include <utility>
 
@@ -419,7 +420,7 @@ int FixElectrodeConp::modify_param(int narg, char **arg)
     tfflag = true;
     // read atom type, Thomas-Fermi length, and voronoi volume (reciprocal
     // number density)
-    int const type = utils::inumeric(FLERR, arg[1], false, lmp);
+    const int type = utils::inumeric(FLERR, arg[1], false, lmp);
     double const len = utils::numeric(FLERR, arg[2], false, lmp);
     double const voronoi = utils::numeric(FLERR, arg[3], false, lmp);
     // check type exists and is completely in electrode
@@ -492,11 +493,11 @@ void FixElectrodeConp::init()
     error->all(FLERR, "More than one fix electrode");
 
   // make sure electrode atoms are not integrated if a matrix is used for electrode-electrode interaction
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   int *mask = atom->mask;
   if (matrix_algo) {
     std::vector<Fix *> integrate_fixes;
-    for (auto fix : modify->get_fix_list()) {
+    for (auto *fix : modify->get_fix_list()) {
       if (fix->time_integrate == 0) continue;
       int electrode_mover = 0;
       int fix_groupbit = fix->groupbit;
@@ -506,7 +507,7 @@ void FixElectrodeConp::init()
       if (electrode_mover && comm->me == 0) integrate_fixes.push_back(fix);
     }
     if (comm->me == 0)
-      for (const auto fix : integrate_fixes)
+      for (auto *const fix : integrate_fixes)
         error->warning(FLERR,
                        "Electrode atoms are integrated by fix {} {}, but fix electrode is using a "
                        "matrix method. For mobile electrodes use the conjugate gradient algorithm "
@@ -518,7 +519,7 @@ void FixElectrodeConp::init()
   if (etypes_neighlists)
     request_etypes_neighlists();
   else {
-    auto Req = neighbor->add_request(this);
+    auto *Req = neighbor->add_request(this);
     if (intelflag) Req->enable_intel();
   }
 }
@@ -540,7 +541,7 @@ void FixElectrodeConp::init_list(int id, NeighList *ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void FixElectrodeConp::post_constructor()    // TODO move to solver?
+void FixElectrodeConp::post_constructor()
 {
   if (!ffield) return;
   // ffield: test conditions and set up efield
@@ -570,7 +571,7 @@ void FixElectrodeConp::post_constructor()    // TODO move to solver?
 
 void FixElectrodeConp::setup_post_neighbor()
 {
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   int *mask = atom->mask;
 
   // if Thomas-Fermi, make sure all electrode atoms have parameters
@@ -854,7 +855,7 @@ double FixElectrodeConp::potential_energy()
   auto psi = std::vector<double>(num_of_groups);
   for (int i = 0; i < num_of_groups; i++) psi[i] = charge_solver->get_potential(i);
   double const qqrd2e = force->qqrd2e;
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   int *mask = atom->mask;
   double *q = atom->q;
   double energy = 0;
@@ -875,7 +876,7 @@ double FixElectrodeConp::self_energy(int eflag)
   // corrections to energy due to self interaction
   double energy = 0.;
   double const qqrd2e = force->qqrd2e;
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   int *mask = atom->mask;
   int *type = atom->type;
   double *q = atom->q;
@@ -920,7 +921,7 @@ double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
   // correction to short range interaction due to eta
   if (pairflag) return 0.;
   double const qqrd2e = force->qqrd2e;
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   int *mask = atom->mask;
   double *q = atom->q;
   double **x = atom->x;
@@ -945,7 +946,7 @@ double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
     int jnum = numneigh[i];
 
     for (int jj = 0; jj < jnum; jj++) {
-      int const j = jlist[jj] & NEIGHMASK;
+      const int j = jlist[jj] & NEIGHMASK;
       bool j_in_ele = groupbit & mask[j];
       if (!(i_in_ele || j_in_ele)) continue;
 
@@ -1039,7 +1040,7 @@ int FixElectrodeConp::setmask()
 
 void FixElectrodeConp::request_etypes_neighlists()
 {
-  int const ntypes = atom->ntypes;
+  const int ntypes = atom->ntypes;
   // construct etypes
   int *mask = atom->mask;
   int *type = atom->type;
@@ -1084,19 +1085,19 @@ void FixElectrodeConp::request_etypes_neighlists()
   for (int itype = 1; itype <= ntypes; ++itype) {
     for (int jtype = 1; jtype <= ntypes; ++jtype) {
       bool ele_and_sol = (iskip_mat[itype] != iskip_mat[jtype]);
-      ijskip_vec[itype][jtype] = (ele_and_sol) ? 0 : 1;
+      ijskip_vec[itype][jtype] = ele_and_sol ? 0 : 1;
       bool ele = !iskip_mat[itype] || !iskip_mat[jtype];    // skip only electrolyte-electrolyte
       ijskip_force[itype][jtype] = (ele) ? 0 : 1;
     }
   }
 
   if (need_array_compute) {
-    auto matReq = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+    auto *matReq = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
     matReq->set_skip(iskip_mat, ijskip_mat);
     matReq->set_id(1);
     if (intelflag) matReq->enable_intel();
   } else if (need_elec_vector) {
-    auto matReq = neighbor->add_request(this);
+    auto *matReq = neighbor->add_request(this);
     matReq->set_skip(iskip_mat, ijskip_mat);
     matReq->set_id(1);
     if (intelflag) matReq->enable_intel();
@@ -1105,12 +1106,12 @@ void FixElectrodeConp::request_etypes_neighlists()
     memory->destroy(ijskip_mat);
   }
 
-  auto vecReq = neighbor->add_request(this);
+  auto *vecReq = neighbor->add_request(this);
   vecReq->set_skip(iskip_vec, ijskip_vec);
   vecReq->set_id(2);
   if (intelflag) vecReq->enable_intel();
 
-  auto forceReq = neighbor->add_request(this);
+  auto *forceReq = neighbor->add_request(this);
   forceReq->set_skip(iskip_force, ijskip_force);
   forceReq->set_id(3);
 }
@@ -1148,12 +1149,12 @@ void FixElectrodeConp::gather_list_iele()
 
   int *mask = atom->mask;
   tagint *tag = atom->tag;
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   taglist_local.clear();
   iele_to_group_local.clear();
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      tagint const t = tag[i];
+      const tagint t = tag[i];
       taglist_local.push_back(t);
       for (int g = 0; g < num_of_groups; g++)
         if (mask[i] & group_bits[g]) iele_to_group_local.push_back(g);
@@ -1170,7 +1171,7 @@ void FixElectrodeConp::gather_list_iele()
 
 double FixElectrodeConp::memory_usage()
 {
-  int const nmax = atom->nmax;
+  const int nmax = atom->nmax;
   double bytes = 0.0;
   if (taglist_constructed) bytes += electrode_taglist->memory_usage();
   if (charge_solver != nullptr) bytes += charge_solver->memory_use();
@@ -1187,7 +1188,7 @@ int FixElectrodeConp::pack_forward_comm(int n, int *list, double *buf, int /*pbc
 {
   int m = 0;
   for (int i = 0; i < n; i++) {
-    int const j = list[i];
+    const int j = list[i];
     buf[m++] = atom->q[j];
   }
   return m;
@@ -1197,7 +1198,7 @@ int FixElectrodeConp::pack_forward_comm(int n, int *list, double *buf, int /*pbc
 
 void FixElectrodeConp::unpack_forward_comm(int n, int first, double *buf)
 {
-  int const last = first + n;
+  const int last = first + n;
   for (int i = first, m = 0; i < last; i++) atom->q[i] = buf[m++];
 }
 

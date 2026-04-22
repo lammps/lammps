@@ -42,7 +42,7 @@ ElectrodeInv::ElectrodeInv(LAMMPS *lmp) : Pointers(lmp), ChargeSolver()
   setup = cap_set = vac_cap_computed = false;
   nmax = 0;
   memory->create(potential_i, nmax, "ElectrodeInv:potential_i");
-  int const nprocs = comm->nprocs;
+  const int nprocs = comm->nprocs;
   recvcounts = new int[nprocs];
   displs = new int[nprocs];
   elyt_step = -1;
@@ -91,7 +91,7 @@ void ElectrodeInv::set_elastance(int nele_world, double **elastance)
   //if (timer_flag && (comm->me == 0)) utils::logmesg(lmp, "CONP inverting matrix\n");
   int m = nele_world, n = nele_world, lda = nele_world;
   std::vector<int> ipiv(nele_world);
-  int const lwork = nele_world * nele_world;
+  const int lwork = nele_world * nele_world;
   std::vector<double> work(lwork);
 
   int info_rf, info_ri;
@@ -126,7 +126,7 @@ void ElectrodeInv::setup_solver(int groupbit, std::unordered_map<tagint, int> ta
   memory->create(iele_gathered, nele_world, "ElectrodeInv:iele_gathered");
   memory->create(buf_gathered, nele_world, "ElectrodeInv:buf_gathered");
   memory->create(potential_iele, nele_world, "ElectrodeInv:potential_iele");
-  int const nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   ngroups = group_bits.size();
   group_pot = std::vector<double>(ngroups, 0.);
   int *mask = atom->mask;
@@ -154,7 +154,7 @@ void ElectrodeInv::update_solver(std::vector<tagint> taglist_local,
   assert(setup);
   nlocalele = taglist_local.size();
   this->taglist_local = taglist_local;
-  int const nprocs = comm->nprocs;
+  const int nprocs = comm->nprocs;
   qvec = std::vector<double>(nlocalele);
   delete[] recvcounts;
   delete[] displs;
@@ -184,7 +184,7 @@ void ElectrodeInv::set_elyt_pot(double *b_nall)
   double mult_start = MPI_Wtime();
   for (int i = 0; i < nlocalele; i++) {
     double q_tmp = 0.;
-    int const iele = iele_local[i];
+    const int iele = iele_local[i];
     double *_noalias caprow = capacitance[iele];
     for (int j = 0; j < nele_world; j++) { q_tmp -= caprow[j] * potential_iele[j]; }
     sb_charges[iele_to_group[iele]] += q_tmp;
@@ -381,7 +381,7 @@ void ElectrodeInv::compute_sd_vectors_ffield(std::vector<int> group_bits)
   double zprd = domain->prd[2];
   for (int i = 0; i < atom->nlocal; i++) {
     if (mask[i] & groupbit) {
-      int const i_iele = tag_to_iele[tag[i]];
+      const int i_iele = tag_to_iele[tag[i]];
       double const zprd_offset = (mask[i] & group_bits[top_group]) ? 0.0 : 1.0;
       double const evscale_elez = evscale * (x[i][2] / zprd + zprd_offset);
       for (int g = 0; g < ngroups; g++) {
@@ -401,7 +401,7 @@ void ElectrodeInv::compute_sd_vectors_ffield(std::vector<int> group_bits)
 
 int ElectrodeInv::get_top_group(std::vector<int> group_bits)
 {
-  double *zmax = new double[ngroups];
+  auto *zmax = new double[ngroups];
   double **x = atom->x;
   for (int g = 0; g < ngroups; g++) { zmax[g] = domain->boxlo[2]; }
   int *mask = atom->mask;
@@ -461,7 +461,7 @@ void ElectrodeInv::compute_macro_matrices(bool symm)
       int m = ngroups;
       int n = m, lda = m;
       std::vector<int> ipiv(m);
-      int const lwork = m * m;
+      const int lwork = m * m;
       std::vector<double> work(lwork);
       std::vector<double> tmp(lwork);
       for (int i = 0; i < ngroups; i++) {

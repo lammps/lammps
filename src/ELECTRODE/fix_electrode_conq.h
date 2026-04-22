@@ -28,12 +28,13 @@ FixStyle(electrode/conq, FixElectrodeConq);
 
 #include "fix_electrode_conp.h"
 
-
 namespace LAMMPS_NS {
 
 class FixElectrodeConq : public FixElectrodeConp {
  public:
   FixElectrodeConq(class LAMMPS *, int, char **);
+
+ protected:
   virtual void update_psi_set_constraint() override;
 
  private:

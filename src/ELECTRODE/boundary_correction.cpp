@@ -35,7 +35,7 @@ double BoundaryCorrection::get_volume()
 
 std::vector<int> BoundaryCorrection::gather_recvcounts(int n)
 {
-  int const nprocs = comm->nprocs;
+  const int nprocs = comm->nprocs;
   std::vector<int> recvcounts = std::vector<int>(nprocs);
   MPI_Allgather(&n, 1, MPI_INT, recvcounts.data(), 1, MPI_INT, world);
   return recvcounts;
@@ -43,7 +43,7 @@ std::vector<int> BoundaryCorrection::gather_recvcounts(int n)
 
 std::vector<int> BoundaryCorrection::gather_displs(const std::vector<int> &recvcounts)
 {
-  int const nprocs = comm->nprocs;
+  const int nprocs = comm->nprocs;
   std::vector<int> displs = std::vector<int>(nprocs);
   displs[0] = 0;
   for (int i = 1; i < nprocs; i++) displs[i] = displs[i - 1] + recvcounts[i - 1];

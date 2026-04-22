@@ -55,7 +55,7 @@ class FixElectrodeConp : public Fix {
   double compute_array(int, int) override;
   int modify_param(int, char **) override;
   int modify_param(const std::string &);
-  virtual void init() override;
+  void init() override;
   void init_list(int, NeighList *) override;
   void post_constructor() override;    // used by ffield to set up fix efield
   double memory_usage() override;

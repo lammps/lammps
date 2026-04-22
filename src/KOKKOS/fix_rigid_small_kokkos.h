@@ -35,6 +35,7 @@ class FixRigidSmallKokkos : public FixRigidSmall, public FixRigidBaseKokkos<Devi
   FixRigidSmallKokkos(class LAMMPS *, int, char **);
   ~FixRigidSmallKokkos() override;
 
+  void post_constructor() override;
   void init() override;
   void setup(int) override;
   void initial_integrate(int) override;

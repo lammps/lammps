@@ -44,6 +44,7 @@ class FixRigidBaseKokkos : public KokkosBase {
 protected:
 
   // fix methods
+  void post_constructor_base();
   void setup_base(int);
   void setup_pre_neighbor_base();
   void initial_integrate_base(int);

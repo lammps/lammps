@@ -50,16 +50,61 @@ using MathExtraKokkos::transpose_matvec;
 template<class DeviceType, class FixRigidBase>
 FixRigidBaseKokkos<DeviceType,FixRigidBase>::FixRigidBaseKokkos(Atom* atom, Domain* domain) :
     KokkosBase(),
-    atomKK(static_cast<AtomKokkos*>(atom)), domainKK(static_cast<DomainKokkos*>(domain)),
-#ifdef LMP_KOKKOS_DEBUG_RNG
-  rand_pool(base()->seed + base()->comm->me, base()->lmp)
-#else
-  rand_pool(base()->seed + base()->comm->me)
-#endif
+    atomKK(static_cast<AtomKokkos*>(atom)), domainKK(static_cast<DomainKokkos*>(domain))
 {
 
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
+
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType, class FixRigidBase>
+FixRigidBaseKokkos<DeviceType,FixRigidBase>::~FixRigidBaseKokkos()
+{
+  if (base()->copymode) return;
+  base()->memoryKK->destroy_kokkos(k_bodyown, base()->bodyown);
+  base()->memoryKK->destroy_kokkos(k_bodytag, base()->bodytag);
+  base()->memoryKK->destroy_kokkos(k_atom2body, base()->atom2body);
+  base()->memoryKK->destroy_kokkos(k_xcmimage, base()->xcmimage);
+  if (base()->displace) {
+    base()->memory->sfree(base()->displace);
+    base()->displace = nullptr;
+  }
+  base()->memoryKK->destroy_kokkos(k_displace);
+  if (base()->extended) base()->memoryKK->destroy_kokkos(k_eflags, base()->eflags);
+  base()->body = nullptr;
+  base()->bodyown = nullptr;
+  base()->bodytag = nullptr;
+  base()->atom2body = nullptr;
+  base()->xcmimage = nullptr;
+  base()->eflags = nullptr;
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool.destroy();
+#endif
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ----------------------------------------------------------------------
+   FIX METHODS
+------------------------------------------------------------------------- */
+
+template<class DeviceType, class FixRigidBase>
+void FixRigidBaseKokkos<DeviceType,FixRigidBase>::post_constructor_base()
+{
   const int nmax = atomKK->nmax;
   const int nlocal = atomKK->nlocal;
   // save bodytag and bodyown filled by the base constructor's create_bodies()
@@ -111,50 +156,14 @@ FixRigidBaseKokkos<DeviceType,FixRigidBase>::FixRigidBaseKokkos(Atom* atom, Doma
     k_body.modify_host();
     k_body.sync_device();
   }
-}
 
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType, class FixRigidBase>
-FixRigidBaseKokkos<DeviceType,FixRigidBase>::~FixRigidBaseKokkos()
-{
-  if (base()->copymode) return;
-  base()->memoryKK->destroy_kokkos(k_bodyown, base()->bodyown);
-  base()->memoryKK->destroy_kokkos(k_bodytag, base()->bodytag);
-  base()->memoryKK->destroy_kokkos(k_atom2body, base()->atom2body);
-  base()->memoryKK->destroy_kokkos(k_xcmimage, base()->xcmimage);
-  if (base()->displace) {
-    base()->memory->sfree(base()->displace);
-    base()->displace = nullptr;
-  }
-  base()->memoryKK->destroy_kokkos(k_displace);
-  if (base()->extended) base()->memoryKK->destroy_kokkos(k_eflags, base()->eflags);
-  base()->body = nullptr;
-  base()->bodyown = nullptr;
-  base()->bodytag = nullptr;
-  base()->atom2body = nullptr;
-  base()->xcmimage = nullptr;
-  base()->eflags = nullptr;
 #ifdef LMP_KOKKOS_DEBUG_RNG
-  rand_pool.destroy();
+  this->rand_pool = Kokkos::Random_XorShift64_Pool<DeviceType>(base()->seed + base()->comm->me, lmp);
+#else
+  this->rand_pool = Kokkos::Random_XorShift64_Pool<DeviceType>(base()->seed + base()->comm->me);
 #endif
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ----------------------------------------------------------------------
-   FIX METHODS
-------------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------- */
 

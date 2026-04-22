@@ -100,7 +100,6 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   thermo_time = 0.;
 
   top_group = 0;
-  // intelflag = false;
   intelflag = (bool) utils::strmatch(style, "/intel");
   tfflag = false;
   etapropflag = enflag = hardnessflag = false;

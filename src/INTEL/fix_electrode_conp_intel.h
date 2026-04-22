@@ -49,7 +49,6 @@ class FixElectrodeConpIntel : public FixElectrodeConp {
     if (_intel_kspace == nullptr)
       error->all(FLERR, "pppm/electrode/intel is required by fix electrode/conp/intel");
     FixElectrodeConp::init();
-    intelflag = true;
   }
   inline void intel_pack_buffers() final override { _intel_kspace->pack_buffers_q(); }
 

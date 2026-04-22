@@ -38,10 +38,8 @@
 #include "pair.h"
 #include "pppm_intel.h"
 #include "remap_wrap.h"
-#include "slab_dipole.h"
 #include "slab_dipole_intel.h"
 #include "update.h"
-#include "wire_dipole.h"
 #include "wire_dipole_intel.h"
 
 #include <algorithm>
@@ -122,15 +120,12 @@ void PPPMElectrodeIntel::init()
   // must put here to get initialized intelFix
   if (slabflag == 1) {
     // EW3Dc dipole correction
-    // boundcorr = new SlabDipoleIntel(lmp, fix);
-    boundcorr = new SlabDipole(lmp);
+    boundcorr = new SlabDipoleIntel(lmp, fix);
   } else if (wireflag == 1) {
     // EW3Dc wire correction
-    // boundcorr = new WireDipoleIntel(lmp, fix);
-    boundcorr = new WireDipole(lmp);
+    boundcorr = new WireDipoleIntel(lmp, fix);
   } else {
     // dummy BoundaryCorrection for ffield
-    // boundcorr = new BoundaryCorrection(lmp);
     boundcorr = new BoundaryCorrection(lmp);
   }
 }

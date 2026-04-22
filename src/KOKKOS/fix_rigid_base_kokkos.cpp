@@ -326,9 +326,10 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType, class FixRigidBase>
-void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate_base(int vflag)
+void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_base(int vflag)
 {
 
+  const int nlocal = atomKK->nlocal;
 
   // error if maxextent > comm->cutghost
   // NOTE: could just warn if an override flag set
@@ -659,6 +660,15 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate_base(int vfl
   if (base()->extended) {
     // not implemented
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType, class FixRigidBase>
+void FixRigidBaseKokkos<DeviceType,FixRigidBase>::post_force_base()
+{
+  if (base()->langflag) apply_langevin_thermostat_base();
+  if (base()->earlyflag) compute_forces_and_torques_base();
 }
 
 /* ---------------------------------------------------------------------- */

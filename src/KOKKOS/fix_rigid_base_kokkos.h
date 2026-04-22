@@ -29,9 +29,6 @@ struct TagRigidResetAtom2Body {};
 template<class DeviceType, class FixRigidBase>
 class FixRigidBaseKokkos : public KokkosBase {
  public:
-  typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
-  typedef EV_FLOAT value_type;
 
   FixRigidBaseKokkos(Atom*, Domain*);
   ~FixRigidBaseKokkos();
@@ -43,16 +40,23 @@ class FixRigidBaseKokkos : public KokkosBase {
 
 protected:
 
+  class AtomKokkos *atomKK;
+  class DomainKokkos *domainKK;
+  ExecutionSpace execution_space;
+
   // fix methods
   void post_constructor_base();
+  void init_base();
   void setup_base(int);
   void setup_pre_neighbor_base();
   void initial_integrate_base(int);
   void pre_neighbor_base();
+  void post_force_base();
   void final_integrate_base();
   void zero_momentum_base();
   void zero_rotation_base();
   double compute_scalar_base();
+  void grow_arrays_base(int);
   void deform_base(int);
 
 /*
@@ -161,11 +165,10 @@ protected:
 */
 
 
-  // protected methods
+  // fix rigid protected methods
   void compute_forces_and_torques_base();
   void enforce2d_base();
   void remap_base();
-  void grow_arrays_base(int);
   void grow_body_base();
   void image_shift_base();
   void reset_atom2body_base();
@@ -186,9 +189,10 @@ protected:
 
   int nbody_total() { return base()->nlocal_body + base()->nghost_body; }
 
-  class AtomKokkos *atomKK;
-  class DomainKokkos *domainKK;
-  ExecutionSpace execution_space;
+  // kokkos views
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+  typedef EV_FLOAT value_type;
 
   DAT::tdual_int_1d k_atom2body, k_bodyown, k_eflags;
   DAT::tdual_tagint_1d k_bodytag;

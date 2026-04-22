@@ -1668,14 +1668,16 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
     if (base()->triclinic) {
       Kokkos::parallel_for(
         Kokkos::RangePolicy<DeviceType>(0, nlocal),
-        KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
+        KOKKOS_LAMBDA(const int &i) {
+          EV_FLOAT ev;
           lambda.template operator()<true,HALF>(i, ev);
         }
       );
     } else {
       Kokkos::parallel_for(
         Kokkos::RangePolicy<DeviceType>(0, nlocal),
-        KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
+        KOKKOS_LAMBDA(const int &i) {
+          EV_FLOAT ev;
           lambda.template operator()<false,HALF>(i, ev);
         }
       );
@@ -1705,16 +1707,16 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
       if (base()->triclinic) {
         Kokkos::parallel_reduce(
           Kokkos::RangePolicy<DeviceType>(0, nlocal),
-          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
-            lambda.template operator()<true,HALF>(i, ev);
-          }
+          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev_) {
+            lambda.template operator()<true,HALF>(i, ev_);
+          }, ev
         );
       } else {
         Kokkos::parallel_reduce(
           Kokkos::RangePolicy<DeviceType>(0, nlocal),
-          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
-            lambda.template operator()<false,HALF>(i, ev);
-          }
+          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev_) {
+            lambda.template operator()<false,HALF>(i, ev_);
+          }, ev
         );
       }
     } else {
@@ -1722,16 +1724,16 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
       if (base()->triclinic) {
         Kokkos::parallel_reduce(
           Kokkos::RangePolicy<DeviceType>(0, nlocal),
-          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
-            lambda.template operator()<true,HALFTHREAD>(i, ev);
-          }
+          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev_) {
+            lambda.template operator()<true,HALFTHREAD>(i, ev_);
+          }, ev
         );
       } else {
         Kokkos::parallel_reduce(
           Kokkos::RangePolicy<DeviceType>(0, nlocal),
-          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
-            lambda.template operator()<false,HALFTHREAD>(i, ev);
-          }
+          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev_) {
+            lambda.template operator()<false,HALFTHREAD>(i, ev_);
+          }, ev
         );
       }
     }
@@ -1892,18 +1894,19 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_v_base()
   base()->copymode = 1;
   if constexpr (!EVFLAG) {
     // TagRigidSetV<TRICLINIC,HALF,0>>(0, nlocal),
-    EV_FLOAT ev;
     if (base()->triclinic) {
       Kokkos::parallel_for(
         Kokkos::RangePolicy<DeviceType>(0, nlocal),
-        KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
+        KOKKOS_LAMBDA(const int &i) {
+          EV_FLOAT ev;
           lambda.template operator()<true,HALF>(i, ev);
         }
       );
     } else {
       Kokkos::parallel_for(
         Kokkos::RangePolicy<DeviceType>(0, nlocal),
-        KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
+        KOKKOS_LAMBDA(const int &i) {
+          EV_FLOAT ev;
           lambda.template operator()<false,HALF>(i, ev);
         }
       );
@@ -1933,16 +1936,16 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_v_base()
       if (base()->triclinic) {
         Kokkos::parallel_reduce(
           Kokkos::RangePolicy<DeviceType>(0, nlocal),
-          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
-            lambda.template operator()<true,HALF>(i, ev);
-          }
+          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev_) {
+            lambda.template operator()<true,HALF>(i, ev_);
+          }, ev
         );
       } else {
         Kokkos::parallel_reduce(
           Kokkos::RangePolicy<DeviceType>(0, nlocal),
-          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
-            lambda.template operator()<false,HALF>(i, ev);
-          }
+          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev_) {
+            lambda.template operator()<false,HALF>(i, ev_);
+          }, ev
         );
       }
     } else {
@@ -1950,16 +1953,16 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_v_base()
       if (base()->triclinic) {
         Kokkos::parallel_reduce(
           Kokkos::RangePolicy<DeviceType>(0, nlocal),
-          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
-            lambda.template operator()<true,HALFTHREAD>(i, ev);
-          }
+          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev_) {
+            lambda.template operator()<true,HALFTHREAD>(i, ev_);
+          }, ev
         );
       } else {
         Kokkos::parallel_reduce(
           Kokkos::RangePolicy<DeviceType>(0, nlocal),
-          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev) {
-            lambda.template operator()<false,HALFTHREAD>(i, ev);
-          }
+          KOKKOS_LAMBDA(const int &i, EV_FLOAT &ev_) {
+            lambda.template operator()<false,HALFTHREAD>(i, ev_);
+          }, ev
         );
       }
     }

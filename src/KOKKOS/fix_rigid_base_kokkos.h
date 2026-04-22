@@ -24,19 +24,12 @@ namespace LAMMPS_NS {
 
 using Kokkos::fma;
 
-struct TagRigidResetAtom2Body {};
-
 template<class DeviceType, class FixRigidBase>
 class FixRigidBaseKokkos : public KokkosBase {
  public:
 
   FixRigidBaseKokkos(Atom*, Domain*);
   ~FixRigidBaseKokkos();
-
-  // templated tagged operators
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagRigidResetAtom2Body, const int &i) const;
 
 protected:
 
@@ -208,9 +201,6 @@ protected:
   int comm_me;
   bigint ntimestep;
 
-  typename AT::t_kkfloat_1d_3_lr d_x;
-  typename AT::t_kkfloat_1d_3 d_v;
-  typename AT::t_kkacc_1d_3 d_f;
   typename AT::t_kkfloat_1d d_rmass, d_mass;
   typename AT::t_int_1d d_type, d_mask, d_atom2body, d_bodyown, d_eflags;
   typename AT::t_tagint_1d d_tag, d_bodytag;

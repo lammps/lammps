@@ -2185,16 +2185,38 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::reset_atom2body_base()
   k_atom2body.template sync<DeviceType>();
   k_bodytag.template sync<DeviceType>();
   k_bodyown.template sync<DeviceType>();
-  d_tag = atomKK->k_tag.template view<DeviceType>();
-  d_atom2body = k_atom2body.template view<DeviceType>();
-  d_bodytag = k_bodytag.template view<DeviceType>();
-  d_bodyown = k_bodyown.template view<DeviceType>();
-  comm_me = base()->comm->me;
-  ntimestep = base()->update->ntimestep;
+
+  // Create local copies of views and variables for the lambda to capture
+  auto l_tag = atomKK->k_tag.template view<DeviceType>();
+  auto l_atom2body = k_atom2body.template view<DeviceType>();
+  auto l_bodytag = k_bodytag.template view<DeviceType>();
+  auto l_bodyown = k_bodyown.template view<DeviceType>();
+  
+  auto l_map_style = map_style;
+  auto l_map_array = k_map_array;
+  auto l_map_hash = k_map_hash;
+  auto l_comm_me = base()->comm->me;
+  auto l_ntimestep = base()->update->ntimestep;
+
   Kokkos::parallel_for(
-    Kokkos::RangePolicy<DeviceType, TagRigidResetAtom2Body>(0, atomKK->nlocal),
-    *this
+    Kokkos::RangePolicy<DeviceType>(0, atomKK->nlocal),
+    KOKKOS_LAMBDA(const int &i) {
+      l_atom2body(i) = -1;
+      if (l_bodytag(i)) {
+        const int iowner = AtomKokkos::map_kokkos<DeviceType>(
+          l_bodytag(i), l_map_style, l_map_array, l_map_hash);
+        
+        if (iowner == -1) {
+          Kokkos::printf("Rigid body atoms %lld %lld missing on proc %d at step %lld\n",
+                         (long long) l_tag(i), (long long) l_bodytag(i),
+                         l_comm_me, (long long) l_ntimestep);
+          Kokkos::abort("Rigid body atom missing");
+        }
+        l_atom2body(i) = l_bodyown(iowner);
+      }
+    }
   );
+  
   k_atom2body.modify_device();
   base()->copymode = 0;
 }

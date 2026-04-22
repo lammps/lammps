@@ -189,21 +189,7 @@ protected:
   DAT::tdual_int_1d k_atom2body, k_bodyown, k_eflags;
   DAT::tdual_tagint_1d k_bodytag;
   DAT::tdual_imageint_1d k_xcmimage;
-  
   TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_displace;
-  typename AT::t_kkfloat_2d d_displace;
-
-  int map_style;
-  DAT::tdual_int_1d k_map_array;
-  dual_hash_type k_map_hash;
-
-  int comm_me;
-  bigint ntimestep;
-
-  typename AT::t_kkfloat_1d d_rmass, d_mass;
-  typename AT::t_int_1d d_type, d_mask, d_atom2body, d_bodyown, d_eflags;
-  typename AT::t_tagint_1d d_tag, d_bodytag;
-  typename AT::t_imageint_1d d_image, d_xcmimage;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
@@ -383,7 +369,6 @@ protected:
   }; // struct BodyKokkos
 
   TransformView<BodyKokkos*, Body*, Kokkos::LayoutRight, DeviceType> k_body;
-  Kokkos::View <BodyKokkos*,        Kokkos::LayoutRight, DeviceType> d_body;
 
   template<typename To, typename From>
   struct Transform {

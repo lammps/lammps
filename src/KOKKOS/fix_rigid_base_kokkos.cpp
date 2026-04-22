@@ -323,16 +323,173 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate_base(int vfl
 {
 
 
-  auto maclaurin = [&](KK_FLOAT x) -> KK_FLOAT {
-    const KK_FLOAT y = x * x;
-    static constexpr KK_FLOAT c1 = KK_FLOAT(1.0 / 6.0);
-    static constexpr KK_FLOAT c2 = KK_FLOAT(1.0 / 120.0);
-    static constexpr KK_FLOAT c3 = KK_FLOAT(1.0 / 5040.0);
-    static constexpr KK_FLOAT c4 = KK_FLOAT(1.0 / 362880.0);
-    // horner form with fused multiply add
-    // P(y) = 1 + y (1/6 + y(1/120 + y(1/5040 + y(1/362880))))
-    return fma(y, fma(y, fma(y, fma(y, c4, c3), c2), c1), 1.0);
-  };
+  // error if maxextent > comm->cutghost
+  // NOTE: could just warn if an override flag set
+  // NOTE: this could fail for comm multi mode if user sets a wrong cutoff
+  //       for atom types in rigid bodies - need a more careful test
+  // must check here, not in init, b/c neigh/comm values set after fix init
+
+  double cutghost = MAX(base()->neighbor->cutneighmax, base()->comm->cutghostuser);
+  if (base()->maxextent > cutghost)
+    base()->error->all(FLERR, Error::NOLASTLINE,
+               "Rigid body extent {} > ghost atom cutoff - use comm_modify cutoff", base()->maxextent);
+
+  if (base()->langflag && (base()->nlocal_body > base()->maxlang)) {
+    base()->memoryKK->destroy_kokkos(k_langextra, base()->langextra);
+    base()->maxlang = nbody_total();
+    base()->memoryKK->create_kokkos(k_langextra, base()->langextra, 6, "rigid/small:langextra");
+  }
+
+  compute_forces_and_torques_base();
+  // enforce 2d body forces and torques
+  if (domainKK->dimension == 2) enforce2d_base();
+
+  // virial setup before call to set_v
+  base()->v_init(vflag);
+
+  // compute and forward communicate vcm and omega of all bodies
+  base()->copymode = 1;
+  k_body.sync_device();
+  auto l_body = k_body.template view<DeviceType>();
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, base()->nlocal_body),
+    KOKKOS_LAMBDA(const int &ibody) {
+      BodyKokkos &bk = l_body(ibody);
+      angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
+                                       bk.ez_space, bk.inertia, bk.omega);
+    }
+  );
+  k_body.modify_device();
+  base()->copymode = 0;
+
+  base()->commflag = FINAL;
+  base()->comm->forward_comm(base(),10);
+
+  // set velocity/rotation of atoms in rigid bodues
+  if (base()->evflag) set_v_base<true>();
+  else set_v_base<false>();
+
+  // guesstimate virial as 2x the set_v contribution
+  if (base()->vflag_global) {
+    for (int n = 0; n < 6; n++) base()->virial[n] *= 2.0;
+  }
+  if (base()->vflag_atom) {
+    for (int i = 0; i < nlocal; i++) {
+      for (int n = 0; n < 6; n++) base()->vatom[i][n] *= 2.0;
+    }
+  }
+
+  if constexpr(is_nh) {
+
+
+  base()->compute_dof();
+
+  base()->copymode = 1;
+  k_body.sync_device();
+  //auto l_body = k_body.template view<DeviceType>();
+  auto l_tstat_flag = nh_base()->tstat_flag;
+  auto l_pstat_flag = nh_base()->pstat_flag;
+  KK_ACC_FLOAT ke[2], keall[2];
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<DeviceType>(0, nh_base()->nlocal_body),
+    KOKKOS_LAMBDA(const int &ibody, KK_ACC_FLOAT &l_akin_t, KK_ACC_FLOAT &l_akin_r ) {
+      BodyKokkos &bk = l_body(ibody);
+      KK_FLOAT mbody[3];
+      transpose_matvec(bk.ex_space, bk.ey_space, bk.ez_space,
+                                        bk.angmom, mbody);
+      quatvec(bk.quat, mbody, bk.conjqm);
+      bk.conjqm[0] *= 2.0;
+      bk.conjqm[1] *= 2.0;
+      bk.conjqm[2] *= 2.0;
+      bk.conjqm[3] *= 2.0;
+      if (l_tstat_flag || l_pstat_flag) {
+        l_akin_t += bk.mass * (bk.vcm[0] * bk.vcm[0] + bk.vcm[1] * bk.vcm[1]
+                               + bk.vcm[2] * bk.vcm[2]);
+        l_akin_r += bk.angmom[0] * bk.omega[0] + bk.angmom[1] * bk.omega[1]
+                    + bk.angmom[2] * bk.omega[2];
+      }
+    }, ke[0], ke[1]
+  );
+  base()->copymode = 0;
+  k_body.modify_device();
+  if (l_tstat_flag || l_pstat_flag) {
+    MPI_Allreduce(ke, keall, 2, MPI_KK_ACC_FLOAT, MPI_SUM, base()->world);
+    nh_base()->akin_t = keall[0];
+    nh_base()->akin_r = keall[1];
+  }
+  auto temperature = nh_base()->temperature;
+  if (nh_base()->tstat_flag) nh_base()->compute_temp_target();
+  else if (nh_base()->pstat_flag) {
+    auto pressure = nh_base()->pressure;
+    nh_base()->t0 = temperature->compute_scalar();
+    if (nh_base()->t0 == 0.0) {
+      if (strcmp(base()->update->unit_style, "lj") == 0) nh_base()->t0 = 1.0;
+      else nh_base()->t0 = 300.0;
+    }
+    nh_base()->t_target = nh_base()->t0;
+    nh_base()->compute_press_target();
+    if (nh_base()->pstyle == ISO) {
+      temperature->compute_scalar();
+      pressure->compute_scalar();
+    } else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
+    nh_base()->couple();
+    pressure->addstep(base()->update->ntimestep+1);
+  }
+  double t_mass, tb_mass;
+  const double kt = nh_base()->boltz * nh_base()->t_target;
+  if (nh_base()->tstat_flag) {
+    t_mass = kt / (nh_base()->t_freq * nh_base()->t_freq);
+    nh_base()->q_t[0] = nh_base()->nf_t * t_mass;
+    nh_base()->q_r[0] = nh_base()->nf_r * t_mass;
+    for (int i = 1; i < nh_base()->t_chain; i++)
+      nh_base()->q_t[i] = nh_base()->q_r[i] = t_mass;
+    for (int i = 1; i < nh_base()->t_chain; i++) {
+      nh_base()->f_eta_t[i] = (nh_base()->q_t[i-1] * nh_base()->eta_dot_t[i-1] * nh_base()->eta_dot_t[i-1] - kt)/nh_base()->q_t[i];
+      nh_base()->f_eta_r[i] = (nh_base()->q_r[i-1] * nh_base()->eta_dot_r[i-1] * nh_base()->eta_dot_r[i-1] - kt)/nh_base()->q_r[i];
+    }
+  }
+  const int dimension = domainKK->dimension;
+  if (nh_base()->pstat_flag) {
+    for (int i = 0; i < 3; i++)
+      if (nh_base()->p_flag[i]) {
+        const auto p_freq_i_sq = (nh_base()->p_freq[i]) * (nh_base()->p_freq[i]);
+        nh_base()->epsilon_mass[i] = (nh_base()->g_f + dimension) * kt / p_freq_i_sq;
+        nh_base()->epsilon[i] = log(nh_base()->vol0)/dimension;
+      }
+    tb_mass = kt / (nh_base()->p_freq_max * nh_base()->p_freq_max);
+    nh_base()->q_b[0] = dimension * dimension * tb_mass;
+    for (int i = 1; i < nh_base()->p_chain; i++) {
+      nh_base()->q_b[i] = tb_mass;
+      const auto eta_dot_sq = (nh_base()->eta_dot_b[i-1]) * (nh_base()->eta_dot_b[i-1]);
+      nh_base()->f_eta_b[i] = (nh_base()->q_b[i] * eta_dot_sq - kt)/nh_base()->q_b[i];
+    }
+  }
+  if (nh_base()->tstat_flag || nh_base()->pstat_flag) {
+    for (int i = 0; i < nh_base()->t_order; i++) {
+      nh_base()->wdti1[i] = nh_base()->w[i] * nh_base()->dtv / nh_base()->t_iter;
+      nh_base()->wdti2[i] = nh_base()->wdti1[i] / 2.0;
+      nh_base()->wdti4[i] = nh_base()->wdti1[i] / 4.0;
+    }
+  }
+  if (nh_base()->pstat_flag) {
+    nh_base()->compute_press_target();
+    nh_base()->nh_epsilon_dot();
+  }
+
+  }
+  //*** k_body.modify_host();
+  atomKK->modified(Host, X_MASK | V_MASK);
+}
+
+/* ---------------------------------------------------------------------- */
+
+
+template<class DeviceType, class FixRigidBase>
+void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate_base(int vflag)
+{
 
   auto lambda = [&]<bool NH, bool TSTAT, bool PSTAT>() {
 
@@ -353,22 +510,34 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate_base(int vfl
       l_scale_v0 = l_scale_v1 = l_scale_v2 = KK_FLOAT(1.0);
       l_scale_r = KK_FLOAT(1.0);
       if constexpr(TSTAT) {
-        tmp = exp(-l_dtq * static_cast<KK_FLOAT>(base()->eta_dot_t[0]));
+        tmp = exp(-l_dtq * static_cast<KK_FLOAT>(nh_base()->eta_dot_t[0]));
         l_scale_t0 = l_scale_t1 = l_scale_t2 = tmp;
-        tmp = exp(-l_dtq * static_cast<KK_FLOAT>(base()->eta_dot_r[0]));
+        tmp = exp(-l_dtq * static_cast<KK_FLOAT>(nh_base()->eta_dot_r[0]));
         l_scale_r = tmp;
       }
       if (PSTAT) {
-        KK_FLOAT mtk_term2 = static_cast<KK_FLOAT>(base()->mtk_term2);
-        l_scale_t0 *= exp(-l_dtq * (static_cast<KK_FLOAT>(base()->epsilon_dot[0]) + mtk_term2));
-        l_scale_t1 *= exp(-l_dtq * (static_cast<KK_FLOAT>(base()->epsilon_dot[1]) + mtk_term2));
-        l_scale_t2 *= exp(-l_dtq * (static_cast<KK_FLOAT>(base()->epsilon_dot[2]) + mtk_term2));
-        l_scale_r *= exp(-l_dtq * (static_cast<KK_FLOAT>(base()->pdim) * mtk_term2));
-        tmp = l_dtq * static_cast<KK_FLOAT>(base()->epsilon_dot[0]);
+
+        auto maclaurin = [&](KK_FLOAT x) -> KK_FLOAT {
+    const KK_FLOAT y = x * x;
+    static constexpr KK_FLOAT c1 = KK_FLOAT(1.0 / 6.0);
+    static constexpr KK_FLOAT c2 = KK_FLOAT(1.0 / 120.0);
+    static constexpr KK_FLOAT c3 = KK_FLOAT(1.0 / 5040.0);
+    static constexpr KK_FLOAT c4 = KK_FLOAT(1.0 / 362880.0);
+    // horner form with fused multiply add
+    // P(y) = 1 + y (1/6 + y(1/120 + y(1/5040 + y(1/362880))))
+    return fma(y, fma(y, fma(y, fma(y, c4, c3), c2), c1), 1.0);
+  };
+
+        KK_FLOAT mtk_term2 = static_cast<KK_FLOAT>(nh_base()->mtk_term2);
+        l_scale_t0 *= exp(-l_dtq * (static_cast<KK_FLOAT>(nh_base()->epsilon_dot[0]) + mtk_term2));
+        l_scale_t1 *= exp(-l_dtq * (static_cast<KK_FLOAT>(nh_base()->epsilon_dot[1]) + mtk_term2));
+        l_scale_t2 *= exp(-l_dtq * (static_cast<KK_FLOAT>(nh_base()->epsilon_dot[2]) + mtk_term2));
+        l_scale_r *= exp(-l_dtq * (static_cast<KK_FLOAT>(nh_base()->pdim) * mtk_term2));
+        tmp = l_dtq * static_cast<KK_FLOAT>(nh_base()->epsilon_dot[0]);
         l_scale_v0 = l_dtv * exp(tmp) * maclaurin(tmp);
-        tmp = l_dtq * static_cast<KK_FLOAT>(base()->epsilon_dot[1]);
+        tmp = l_dtq * static_cast<KK_FLOAT>(nh_base()->epsilon_dot[1]);
         l_scale_v1 = l_dtv * exp(tmp) * maclaurin(tmp);
-        tmp = l_dtq * static_cast<KK_FLOAT>(base()->epsilon_dot[2]);
+        tmp = l_dtq * static_cast<KK_FLOAT>(nh_base()->epsilon_dot[2]);
         l_scale_v2 = l_dtv * exp(tmp) * maclaurin(tmp);
       }
     }
@@ -506,16 +675,16 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::final_integrate_base()
       KK_FLOAT l_dtq = static_cast<KK_FLOAT>(base()->dtq);
       l_scale_t0 = l_scale_t1 = l_scale_t2 = l_scale_r = KK_FLOAT(1.0);
       if constexpr (TSTAT) {
-        const KK_FLOAT tmp = exp(-1.0 * l_dtq * static_cast<KK_FLOAT>(base()->eta_dot_t[0]));
+        const KK_FLOAT tmp = exp(-1.0 * l_dtq * static_cast<KK_FLOAT>(nh_base()->eta_dot_t[0]));
         l_scale_t0 = l_scale_t1 = l_scale_t2 = tmp;
-        l_scale_r = exp(-1.0 * l_dtq * static_cast<KK_FLOAT>(base()->eta_dot_r[0]));
+        l_scale_r = exp(-1.0 * l_dtq * static_cast<KK_FLOAT>(nh_base()->eta_dot_r[0]));
       }
       if constexpr (PSTAT) {
-        KK_FLOAT mtk_term2 = static_cast<KK_FLOAT>(base()->mtk_term2);
-        l_scale_t0 *= exp(-l_dtq * (static_cast<KK_FLOAT>(base()->epsilon_dot[0]) + mtk_term2));
-        l_scale_t1 *= exp(-l_dtq * (static_cast<KK_FLOAT>(base()->epsilon_dot[1]) + mtk_term2));
-        l_scale_t2 *= exp(-l_dtq * (static_cast<KK_FLOAT>(base()->epsilon_dot[2]) + mtk_term2));
-        l_scale_r *= exp(-l_dtq * (static_cast<KK_FLOAT>(base()->pdim) * mtk_term2));
+        KK_FLOAT mtk_term2 = static_cast<KK_FLOAT>(nh_base()->mtk_term2);
+        l_scale_t0 *= exp(-l_dtq * (static_cast<KK_FLOAT>(nh_base()->epsilon_dot[0]) + mtk_term2));
+        l_scale_t1 *= exp(-l_dtq * (static_cast<KK_FLOAT>(nh_base()->epsilon_dot[1]) + mtk_term2));
+        l_scale_t2 *= exp(-l_dtq * (static_cast<KK_FLOAT>(nh_base()->epsilon_dot[2]) + mtk_term2));
+        l_scale_r *= exp(-l_dtq * (static_cast<KK_FLOAT>(nh_base()->pdim) * mtk_term2));
       }
 
     }
@@ -599,43 +768,39 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::final_integrate_base()
     k_vatom.sync_host();
   }
 
-  if constexpr (!is_nh) return;
-
-  auto temperature = base()->temperature;
-
-  // compute temperature
-  if (base()->tcomputeflag) {
-    atomKK->sync(temperature->execution_space, temperature->datamask_read);
-    base()->t_current = temperature->compute_scalar();
-    atomKK->modified(temperature->execution_space, temperature->datamask_modify);
-    atomKK->sync(execution_space, temperature->datamask_modify);
-  }
-  // pressure
-  if (base()->pstat_flag) {
-
-    auto pressure = base()->pressure;
-
-    // accumulate kinetic energies for pstat
-    base()->copymode = 1;
-    k_body.sync_device();
-    auto l_body = d_body;
-    KK_ACC_FLOAT ke[2], keall[2];
-    Kokkos::parallel_reduce(
-      Kokkos::RangePolicy<DeviceType>(0, base()->nlocal_body),
-      KOKKOS_LAMBDA(const int ibody, KK_ACC_FLOAT &l_akin_t, KK_ACC_FLOAT &l_akin_r ) {
-        BodyKokkos &bk = l_body(ibody);
-        l_akin_t += bk.mass*(bk.vcm[0]*bk.vcm[0] + bk.vcm[1]*bk.vcm[1] +
+  if constexpr (is_nh) {
+    auto temperature = nh_base()->temperature;
+    // compute temperature
+    if (nh_base()->tcomputeflag) {
+      atomKK->sync(temperature->execution_space, temperature->datamask_read);
+      base()->t_current = temperature->compute_scalar();
+      atomKK->modified(temperature->execution_space, temperature->datamask_modify);
+      atomKK->sync(execution_space, temperature->datamask_modify);
+    }
+    // pressure
+    if (base()->pstat_flag) {
+      auto pressure = base()->pressure;
+      // accumulate kinetic energies for pstat
+      base()->copymode = 1;
+      k_body.sync_device();
+      auto l_body = d_body;
+      KK_ACC_FLOAT ke[2], keall[2];
+      Kokkos::parallel_reduce(
+        Kokkos::RangePolicy<DeviceType>(0, base()->nlocal_body),
+        KOKKOS_LAMBDA(const int ibody, KK_ACC_FLOAT &l_akin_t, KK_ACC_FLOAT &l_akin_r ) {
+          BodyKokkos &bk = l_body(ibody);
+          l_akin_t += bk.mass*(bk.vcm[0]*bk.vcm[0] + bk.vcm[1]*bk.vcm[1] +
                     bk.vcm[2]*bk.vcm[2]);
-        l_akin_r += bk.angmom[0]*bk.omega[0] + bk.angmom[1]*bk.omega[1] +
+          l_akin_r += bk.angmom[0]*bk.omega[0] + bk.angmom[1]*bk.omega[1] +
                     bk.angmom[2]*bk.omega[2];
-      }, ke[0], ke[1]
-    );
+        }, ke[0], ke[1]
+      );
     base()->copymode = 0;
     MPI_Allreduce(ke, keall, 2, MPI_KK_ACC_FLOAT, MPI_SUM, base()->world);
-    base()->akin_t = keall[0];
-    base()->akin_r = keall[1];
+    nh_base()->akin_t = keall[0];
+    nh_base()->akin_r = keall[1];
 
-    if (base()->pstyle == ISO) {
+    if (nh_base()->pstyle == ISO) {
       atomKK->sync(temperature->execution_space, temperature->datamask_read);
       temperature->compute_scalar();
       atomKK->modified(temperature->execution_space, temperature->datamask_modify);
@@ -646,10 +811,11 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::final_integrate_base()
       atomKK->modified(temperature->execution_space, temperature->datamask_modify);
       pressure->compute_vector();
     }
-    base()->couple();
+    nh_base()->couple();
     pressure->addstep(base()->update->ntimestep+1);
-    base()->compute_press_target();
-    base()->nh_epsilon_dot();
+    nh_base()->compute_press_target();
+    nh_base()->nh_epsilon_dot();
+  }
   }
 }
 
@@ -1270,20 +1436,21 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::apply_langevin_thermostat_base
 template<class DeviceType, class FixRigidBase>
 void FixRigidBaseKokkos<DeviceType,FixRigidBase>::remap_base()
 {
+  if constexpr (is_nh) {
   int nlocal = atomKK->nlocal;
   // epsilon is not used, except for book-keeping
-  for (int i = 0; i < 3; i++) base()->epsilon[i] += base()->dtq * base()->epsilon_dot[i];
+  for (int i = 0; i < 3; i++) nh_base()->epsilon[i] += base()->dtq * nh_base()->epsilon_dot[i];
   // convert pertinent atoms and rigid bodies to lamda coords
   if (base()->allremap) domainKK->x2lamda(nlocal);
   else domainKK->x2lamda(nlocal, base()->dilate_group_bit);
-  for (auto &ifix : base()->rfix) ifix->deform_base(0);
+  for (auto &ifix : nh_base()->rfix) ifix->deform_base(0);
   // reset global and local box to new size/shape
   for (int i = 0; i < 3; i++) {
     if (base()->p_flag[i]) {
       const double oldlo = domainKK->boxlo[i];
       const double oldhi = domainKK->boxhi[i];
       const double ctr = 0.5 * (oldlo + oldhi);
-      const double expfac = exp(base()->dtq * base()->epsilon_dot[i]);
+      const double expfac = exp(base()->dtq * nh_base()->epsilon_dot[i]);
       domainKK->boxlo[i] = (oldlo-ctr)*expfac + ctr;
       domainKK->boxhi[i] = (oldhi-ctr)*expfac + ctr;
     }
@@ -1293,7 +1460,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::remap_base()
   // convert pertinent atoms and rigid bodies back to box coords
   if (base()->allremap) domainKK->lamda2x(nlocal);
   else domainKK->lamda2x(nlocal, base()->dilate_group_bit);
-  for (auto &ifix : base()->rfix) ifix->deform_base(1);
+  for (auto &ifix : nh_base()->rfix) ifix->deform_base(1);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2630,7 +2798,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::sync_device_base()
 
 namespace LAMMPS_NS {
 template class FixRigidBaseKokkos<LMPDeviceType, FixRigidSmall>;
-//template class FixRigidBaseKokkos<LMPDeviceType, FixRigidNHSmall>;
+template class FixRigidBaseKokkos<LMPDeviceType, FixRigidNHSmall>;
 #ifdef LMP_KOKKOS_GPU
 //template class FixRigidBaseKokkos<LMPHostType, FixRigidSmall>;
 //template class FixRigidBaseKokkos<LMPHostType, FixRigidNHSmall>;

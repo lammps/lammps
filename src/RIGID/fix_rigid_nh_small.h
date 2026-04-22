@@ -19,6 +19,10 @@
 namespace LAMMPS_NS {
 
 class FixRigidNHSmall : public FixRigidSmall {
+
+  template<class, class>
+  friend class FixRigidBaseKokkos;
+
  public:
   FixRigidNHSmall(class LAMMPS *, int, char **);
   ~FixRigidNHSmall() override;

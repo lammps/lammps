@@ -25,7 +25,11 @@ FixStyle(rigid/small,FixRigidSmall);
 namespace LAMMPS_NS {
 
 class FixRigidSmall : public Fix {
+
   friend class ComputeRigidLocal;
+
+  template<class, class>
+  friend class FixRigidBaseKokkos;
 
  public:
   FixRigidSmall(class LAMMPS *, int, char **);

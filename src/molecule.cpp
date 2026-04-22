@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "read_data.h"
 #include "improper.h"
 #include "json.h"
 #include "label_map.h"
@@ -28,11 +29,13 @@
 #include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
+#include "pair.h"
 #include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <exception>
 
@@ -43,6 +46,7 @@ static constexpr int MAXLINE = 1024;
 static constexpr double EPSILON = 1.0e-7;
 static constexpr double BIG = 1.0e20;
 
+static constexpr int DELTA = 4;       // must be 2 or larger
 static constexpr double SINERTIA = 0.4;    // moment of inertia prefactor for sphere
 
 /* ---------------------------------------------------------------------- */
@@ -57,7 +61,7 @@ Molecule::Molecule(LAMMPS *lmp) :
     improper_atom2(nullptr), improper_atom3(nullptr), improper_atom4(nullptr), nspecial(nullptr),
     special(nullptr), shake_flag(nullptr), shake_atom(nullptr), shake_type(nullptr),
     avec_body(nullptr), ibodyparams(nullptr), dbodyparams(nullptr), fragmentmask(nullptr),
-    dx(nullptr), dxcom(nullptr), dxbody(nullptr), quat_external(nullptr), count(nullptr)
+    dx(nullptr), dxcom(nullptr), dxbody(nullptr), quat_external(nullptr), count(nullptr), coeffarg(nullptr)
 {
   // parse args until reach unknown arg (next file)
 
@@ -2602,6 +2606,11 @@ void Molecule::read(int flag)
       else
         skip_lines(natoms, line, keyword);
 
+    } else if (keyword == "Per-Type Masses") {
+      if (flag)
+        pertype_masses(line);
+      else
+        skip_lines(natoms, line, keyword);
     } else if (keyword == "Bonds") {
       if (nbonds == 0)
         error->all(FLERR, fileiarg, "Found Bonds section but no nbonds setting in header");
@@ -2671,7 +2680,17 @@ void Molecule::read(int flag)
         error->all(FLERR, fileiarg, "Found Body Doubles section but no setting in header");
       dbodyflag = 1;
       body(flag, 1, line);
-    } else if ((keyword == "Atoms") || (keyword == "Velocities") || (keyword == "Pair Coeffs") ||
+    } else if (keyword == "Pair Coeffs") {
+        if (force->pair == nullptr)
+          error->all(FLERR, Error::ARGZERO, "Must define pair_style before Pair Coeffs");
+        if (flag) {
+          if (comm->me == 0 && !atom->style_match(force->pair_style))
+            error->warning(
+                FLERR, "Pair style {} in molecule file differs from currently defined pair style {}",
+                atom->get_style(), force->pair_style);
+          paircoeffs();
+        } else skip_lines(natoms, line, keyword);
+    } else if ((keyword == "Atoms") || (keyword == "Velocities") ||
                (keyword == "Bond Coeffs") || (keyword == "Angle Coeffs") ||
                (keyword == "Dihedral Coeffs") || (keyword == "Improper Coeffs")) {
       error->all(FLERR, fileiarg, "Found data file section '{}' in molecule file\n", keyword);
@@ -2832,7 +2851,8 @@ void Molecule::types(char *line)
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid atom type {} in {}: {}", typestr, location,
                      utils::trim(line));
-        type[iatom] = atom->lmap->find_type(typestr, Atom::ATOM);
+        // type[iatom] = atom->lmap->find_type(typestr, Atom::ATOM);
+        type[iatom] = atom->lmap->find_or_create(typestr, atom->lmap->typelabel, atom->lmap->typelabel_map);
         if (type[iatom] == -1)
           error->all(FLERR, fileiarg, "Unknown atom type {} in {}: {}", typestr, location,
                      utils::trim(line));
@@ -3064,6 +3084,44 @@ void Molecule::masses(char *line)
     if (rmass[i] <= 0.0)
       error->all(FLERR, fileiarg, "Invalid atom mass {} for atom {} in molecule file", rmass[i] / sizescale / sizescale
     / sizescale, i + 1);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   read per-type masses from file
+------------------------------------------------------------------------- */
+
+void Molecule::pertype_masses(char *line)
+{
+  int tlabelflag = atom->labelmapflag;
+  if (tlabelflag && !atom->lmap->is_complete(Atom::ATOM))
+    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
+
+  double mass;
+  int iatom, itype;
+
+  try {
+    for (int i = 0; i < natoms; i++) {
+      readline(line);
+
+      ValueTokenizer values(utils::trim_comment(line));
+      if (values.count() != 2)
+        error->all(FLERR, fileiarg, "Invalid line in Per-Type Masses section of molecule file: {}", line);
+
+      iatom = values.next_int() - 1;
+      if (iatom < 0 || iatom >= natoms)
+        error->all(FLERR, fileiarg, "Invalid atom index in Per-Type Masses section of molecule file");
+
+      itype = type[iatom];
+      if (atom->mass_setflag[itype])
+        error->warning(FLERR, "Overwriting mass for type {}.", itype);
+
+      mass = values.next_double();
+      atom->mass[itype] = mass;
+      atom->mass_setflag[itype] = 1;
+    }
+  } catch (TokenizerException &e) {
+    error->all(FLERR, fileiarg, "Invalid line in Per-Type Masses section of molecule file: {}\n{}", e.what(), line);
   }
 }
 
@@ -4281,6 +4339,88 @@ void Molecule::body(int flag, int pflag, char *line)
 }
 
 /* ----------------------------------------------------------------------
+   read pair coeffs from molecule template 
+------------------------------------------------------------------------- */
+
+void Molecule::paircoeffs()
+{
+  char *next;
+  auto *buf = new char[natoms * MAXLINE];
+
+  int eof = utils::read_lines_from_file(fp, natoms, MAXLINE, buf, comm->me, world);
+  if (eof) error->all(FLERR, "Unexpected end of data file");
+
+  int tlabelflag = atom->labelmapflag;
+  if (tlabelflag && !atom->lmap->is_complete(Atom::ATOM))
+    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
+
+  for (int i = 0; i < natoms; i++) {
+    next = strchr(buf, '\n');
+    *next = '\0';
+    parse_coeffs(buf, nullptr, 1, 2, toffset);
+    if (ncoeffarg == 0)
+      error->all(FLERR, "Unexpected empty line in PairCoeffs section. Expected {} lines.", natoms);
+    force->pair->coeff(ncoeffarg, coeffarg);
+    buf = next + 1;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   parse a line of coeffs into words, storing them in ncoeffarg,coeffarg
+   trim anything from '#' onward
+   word strings remain in line, are not copied
+   if addstr != nullptr, add addstr as extra arg for class2 angle/dihedral/improper
+     if 2nd word starts with letter, then is hybrid style, add addstr after it
+     else add addstr before 2nd word
+   if dupflag, duplicate 1st word, so pair_coeff "2" becomes "2 2"
+   if noffset, add offset to first noffset args, which are atom/bond/etc types
+   if labelflag, use ilabel to find the correct remapping of numeric type
+------------------------------------------------------------------------- */
+
+void Molecule::parse_coeffs(char *line, const char *addstr, int dupflag, int noffset, int offset)
+{
+  char *ptr;
+  if ((ptr = strchr(line, '#'))) *ptr = '\0';
+
+  ncoeffarg = 0;
+  char *word = line;
+  char *end = line + strlen(line) + 1;
+
+  while (word < end) {
+    word += strspn(word, " \t\r\n\f");
+    word[strcspn(word, " \t\r\n\f")] = '\0';
+    if (strlen(word) == 0) break;
+    if (ncoeffarg == maxcoeffarg) {
+      maxcoeffarg += DELTA;
+      coeffarg =
+          (char **) memory->srealloc(coeffarg, maxcoeffarg * sizeof(char *), "molecule:coeffarg");
+    }
+    if (addstr && ncoeffarg == 1 && !islower(word[0])) coeffarg[ncoeffarg++] = (char *) addstr;
+    coeffarg[ncoeffarg++] = word;
+    if (addstr && ncoeffarg == 2 && islower(word[0])) coeffarg[ncoeffarg++] = (char *) addstr;
+    if (dupflag && ncoeffarg == 1) coeffarg[ncoeffarg++] = word;
+    word += strlen(word) + 1;
+  }
+
+  // to avoid segfaults on empty lines
+
+  if (ncoeffarg == 0) return;
+
+  if (noffset) {
+    int value = utils::inumeric(FLERR, coeffarg[0], false, lmp);
+    value = type[value - 1];
+    argoffset1 = std::to_string(value + offset);
+    coeffarg[0] = (char *) argoffset1.c_str();
+    if (noffset == 2) {
+      value = utils::inumeric(FLERR, coeffarg[1], false, lmp);
+      value = type[value - 1];
+      argoffset2 = std::to_string(value + offset);
+      coeffarg[1] = (char *) argoffset2.c_str();
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    return fragment index if name matches existing fragment, -1 if no such fragment
 ------------------------------------------------------------------------- */
 
@@ -4380,6 +4520,8 @@ void Molecule::initialize()
   centerflag = massflag = comflag = inertiaflag = 0;
   massflag_user = comflag_user = inertiaflag_user = specialflag_user = 0;
   tag_require = 0;
+
+  ncoeffarg = maxcoeffarg = 0;
 
   x = nullptr;
   type = nullptr;
@@ -4552,6 +4694,8 @@ void Molecule::deallocate()
 
   memory->destroy(ibodyparams);
   memory->destroy(dbodyparams);
+
+  memory->sfree(coeffarg);
 }
 
 /* ----------------------------------------------------------------------

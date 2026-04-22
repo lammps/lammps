@@ -1591,13 +1591,13 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
 
     KK_FLOAT deltax, deltay;
     if constexpr(TRICLINIC) {
-      deltax = fma(xbox, l_prd0, fma(ybox, l_h5, fma(zbox, l_h4, l_x(i,0))));
-      deltay = fma(ybox, l_prd1, fma(zbox, l_h3, l_x(i,1)));
+      deltax = fma(xbox, l_prd0, fma(ybox, l_h5, zbox * l_h4));
+      deltay = fma(ybox, l_prd1, zbox * l_h3);
     } else {
-      deltax = fma(xbox, l_prd0, l_x(i,0));
-      deltay = fma(ybox, l_prd1, l_x(i,1));
+      deltax = xbox * l_prd0;
+      deltay = ybox * l_prd1;
     }
-    const KK_FLOAT deltaz = fma(zbox, l_prd2, l_x(i,2));
+    const KK_FLOAT deltaz = zbox * l_prd2;
 
     KK_FLOAT x0 = 0.0, x1 = 0.0, x2 = 0.0, vx = 0.0, vy = 0.0, vz = 0.0;
     if constexpr (EVFLAG) {

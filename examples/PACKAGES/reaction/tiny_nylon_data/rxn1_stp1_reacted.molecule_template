@@ -1,8 +1,9 @@
 this is a molecule template for: initial nylon crosslink, post-reacting
 
      18 atoms
-     1 types
+     1 atom types
      17 bonds
+     3 bond types
      31 angles
      39 dihedrals
       0 impropers
@@ -173,4 +174,10 @@ Per-Type Masses
 Pair Coeffs # lj/class2/coul/long
 
     n 0.106 4.07
+
+Bond Coeffs # class2
+
+    n-c2  1.452 327.166 -547.899 526.5
+    n-hn  1.01 462.75 -1053.63 1545.76
+    n-c_1 1.416 359.159 -558.473 1146.38
 

@@ -3,7 +3,7 @@ LAMMPS data file via write_data, version 27 Jun 2024, timestep = 0, units = real
 44 atoms
 10 atom types
 42 bonds
-13 bond types
+10 bond types
 74 angles
 26 angle types
 100 dihedrals
@@ -38,11 +38,8 @@ Bond Type Labels
 6  o-ho
 7  na-c2
 8  na-hn
-9  n-c2
-10 n-hn
-11 n-c_1
-12 c2-na
-13 hw-o*
+9 c2-na
+10 hw-o*
 
 Angle Type Labels
 
@@ -153,11 +150,8 @@ Bond Coeffs # class2
 6 0.965 532.506 -1282.9 2004.77
 7  1.457 365.805 -699.637 998.484
 8  1.006 466.74 -1073.6 1251.11
-9  1.452 327.166 -547.899 526.5
-10 1.01 462.75 -1053.63 1545.76
-11 1.416 359.159 -558.473 1146.38
-12 1.457 365.805 -699.637 998.484
-13 0.97 563.28 -1428.22 1902.12
+9 1.457 365.805 -699.637 998.484
+10 0.97 563.28 -1428.22 1902.12
 
 Angle Coeffs # class2
 

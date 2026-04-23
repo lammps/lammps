@@ -39,6 +39,7 @@ class Molecule : protected Pointers {
   int ntypes, nmolecules, nfragments, natomtypes;
   int nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
   int nibody, ndbody;
+  int nbondcoefftypes;
 
   // max bond,angle,etc per atom
 

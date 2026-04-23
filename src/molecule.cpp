@@ -2460,15 +2460,18 @@ void Molecule::read(int flag)
         natoms = values.next_int();
         nwant = 2;
         has_atoms = true;
-      } else if (values.matches(R"(^\s*\d+\s+types\s*$)")) {
+      } else if (values.matches(R"(^\s*\d+\s+atom\s+types\s*$)")) {
         natomtypes = values.next_int();
-        nwant = 2;
+        nwant = 3;
       } else if (values.matches(R"(^\s*\d+\s+angles\s*$)")) {
         nangles = values.next_int();
         nwant = 2;
       } else if (values.matches(R"(^\s*\d+\s+bonds\s*$)")) {
         nbonds = values.next_int();
         nwant = 2;
+      } else if (values.matches(R"(^\s*\d+\s+bond\s+types\s*$)")) {
+        nbondcoefftypes = values.next_int();
+        nwant = 3;
       } else if (values.matches(R"(^\s*\d+\s+angles\s*$)")) {
         nangles = values.next_int();
         nwant = 2;
@@ -2520,8 +2523,8 @@ void Molecule::read(int flag)
         nibody = values.next_int();
         ndbody = values.next_int();
         nwant = 3;
-      // } else if (values.matches(R"(^\s*\d+\s+\S+\s+types\s*$)")) {
-      //   error->all(FLERR, fileiarg, "Found data file header keyword '{}' in molecule file", text);
+      } else if (values.matches(R"(^\s*\d+\s+\S+\s+types\s*$)")) {
+        error->all(FLERR, fileiarg, "Found data file header keyword '{}' in molecule file", text);
       } else if (values.matches(R"(^\s*\f+\s+\f+\s+[xyz]lo\s+[xyz]hi\s*$)")) {
         error->all(FLERR, fileiarg, "Found data file header keyword '{}' in molecule file", text);
       } else {
@@ -2707,7 +2710,7 @@ void Molecule::read(int flag)
                 FLERR, "Bond style {} in data file differs from currently defined bond style {}",
                 atom->get_style(), force->bond_style);
           bondcoeffs();
-        } else skip_lines(nbonds, line, keyword);
+        } else skip_lines(nbondcoefftypes, line, keyword);
     } else if ((keyword == "Atoms") || (keyword == "Velocities") ||
                (keyword == "Angle Coeffs") || (keyword == "Dihedral Coeffs") || (keyword == "Improper Coeffs")) {
       error->all(FLERR, fileiarg, "Found data file section '{}' in molecule file\n", keyword);
@@ -3167,6 +3170,8 @@ void Molecule::bonds(int flag, char *line)
         itype = atom->lmap->find_or_create(typestr, atom->lmap->btypelabel, atom->lmap->btypelabel_map);
         if (itype == -1)
           error->all(FLERR, fileiarg, "Unknown bond type {} in {}: {}", typestr, location, utils::trim(line));
+
+        atom->lmap->create_lmap2lmap(atom->lmap, Atom::BOND);
         break;
       }
       default:    // invalid
@@ -4368,9 +4373,9 @@ void Molecule::paircoeffs()
 void Molecule::bondcoeffs()
 {
   char *next;
-  auto *buf = new char[nbonds * MAXLINE];
+  auto *buf = new char[nbondcoefftypes * MAXLINE];
 
-  int eof = utils::read_lines_from_file(fp, nbonds, MAXLINE, buf, comm->me, world);
+  int eof = utils::read_lines_from_file(fp, nbondcoefftypes, MAXLINE, buf, comm->me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
   int blabelflag = atom->labelmapflag;
@@ -4378,13 +4383,13 @@ void Molecule::bondcoeffs()
     error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
 
   char *original = buf;
-  for (int i = 0; i < nbonds; i++) {
+  for (int i = 0; i < nbondcoefftypes; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
     parse_coeffs(buf, nullptr, 0, 1, boffset, Atom::BOND);
     if (ncoeffarg == 0)
       error->all(FLERR, "Unexpected empty line in BondCoeffs section. Expected {} lines.",
-                 nbonds);
+                 nbondcoefftypes);
     force->bond->coeff(ncoeffarg, coeffarg);
     buf = next + 1;
   }

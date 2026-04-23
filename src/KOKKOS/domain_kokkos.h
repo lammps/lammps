@@ -95,9 +95,9 @@ KOKKOS_INLINE_FUNCTION
 Few<T,3> DomainKokkos::unmap(Few<T,3> prd, Few<T,6> h, int triclinic,
                              Few<T,3> x, imageint image)
 {
-  int xbox = (image & IMGMASK) - IMGMAX;
-  int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;
-  int zbox = (image >> IMG2BITS) - IMGMAX;
+  const T xbox = static_cast<T>((image & IMGMASK) - IMGMAX);
+  const T ybox = static_cast<T>((image >> IMGBITS & IMGMASK) - IMGMAX);
+  const T zbox = static_cast<T>((image >> IMG2BITS) - IMGMAX);
   Few<T,3> y;
   if (triclinic == 0) {
     y[0] = fma(xbox, prd[0], x[0]);

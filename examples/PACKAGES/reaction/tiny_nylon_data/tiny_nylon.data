@@ -127,7 +127,7 @@ Masses
 6 15.9994
 7 14.0067
 8 1.00797
-9 14.0067
+9 1.00797
 10 15.9994
 
 Pair Coeffs # lj/class2/coul/long
@@ -140,7 +140,7 @@ Pair Coeffs # lj/class2/coul/long
 6 0.267 3.3
 7 0.065 4.07
 8 0.013 1.098
-9 0.106 4.07
+9 0.013 1.098
 10 0.26 3.61
 
 Bond Coeffs # class2

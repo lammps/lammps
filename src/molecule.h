@@ -36,7 +36,7 @@ class Molecule : protected Pointers {
 
   int natoms;
   int nbonds, nangles, ndihedrals, nimpropers;
-  int ntypes, nmolecules, nfragments;
+  int ntypes, nmolecules, nfragments, natomtypes;
   int nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
   int nibody, ndbody;
 
@@ -183,8 +183,10 @@ class Molecule : protected Pointers {
   void shakeatom_read(char *);
   void shaketype_read(char *);
   void body(int, int, char *);
+
   void paircoeffs();
-  void parse_coeffs(char *, const char *, int, int, int);
+  void bondcoeffs();
+  void parse_coeffs(char *, const char *, int, int, int, int);
 
   void initialize();
   void allocate();

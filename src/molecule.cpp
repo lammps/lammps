@@ -17,11 +17,11 @@
 #include "atom_vec.h"
 #include "atom_vec_body.h"
 #include "body.h"
+#include "bond.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "read_data.h"
 #include "improper.h"
 #include "json.h"
 #include "label_map.h"
@@ -2460,6 +2460,12 @@ void Molecule::read(int flag)
         natoms = values.next_int();
         nwant = 2;
         has_atoms = true;
+      } else if (values.matches(R"(^\s*\d+\s+types\s*$)")) {
+        natomtypes = values.next_int();
+        nwant = 2;
+      } else if (values.matches(R"(^\s*\d+\s+angles\s*$)")) {
+        nangles = values.next_int();
+        nwant = 2;
       } else if (values.matches(R"(^\s*\d+\s+bonds\s*$)")) {
         nbonds = values.next_int();
         nwant = 2;
@@ -2514,8 +2520,8 @@ void Molecule::read(int flag)
         nibody = values.next_int();
         ndbody = values.next_int();
         nwant = 3;
-      } else if (values.matches(R"(^\s*\d+\s+\S+\s+types\s*$)")) {
-        error->all(FLERR, fileiarg, "Found data file header keyword '{}' in molecule file", text);
+      // } else if (values.matches(R"(^\s*\d+\s+\S+\s+types\s*$)")) {
+      //   error->all(FLERR, fileiarg, "Found data file header keyword '{}' in molecule file", text);
       } else if (values.matches(R"(^\s*\f+\s+\f+\s+[xyz]lo\s+[xyz]hi\s*$)")) {
         error->all(FLERR, fileiarg, "Found data file header keyword '{}' in molecule file", text);
       } else {
@@ -2610,7 +2616,7 @@ void Molecule::read(int flag)
       if (flag)
         pertype_masses(line);
       else
-        skip_lines(natoms, line, keyword);
+        skip_lines(natomtypes, line, keyword);
     } else if (keyword == "Bonds") {
       if (nbonds == 0)
         error->all(FLERR, fileiarg, "Found Bonds section but no nbonds setting in header");
@@ -2689,10 +2695,21 @@ void Molecule::read(int flag)
                 FLERR, "Pair style {} in molecule file differs from currently defined pair style {}",
                 atom->get_style(), force->pair_style);
           paircoeffs();
-        } else skip_lines(natoms, line, keyword);
+        } else skip_lines(natomtypes, line, keyword);
+      } else if (keyword == "Bond Coeffs") {
+        if (atom->avec->bonds_allow == 0)
+          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Bond Coeffs");
+        if (force->bond == nullptr)
+          error->all(FLERR, Error::ARGZERO, "Must define bond_style before Bond Coeffs");
+        if (flag) {
+          if (comm->me == 0 && !atom->style_match(force->bond_style))
+            error->warning(
+                FLERR, "Bond style {} in data file differs from currently defined bond style {}",
+                atom->get_style(), force->bond_style);
+          bondcoeffs();
+        } else skip_lines(nbonds, line, keyword);
     } else if ((keyword == "Atoms") || (keyword == "Velocities") ||
-               (keyword == "Bond Coeffs") || (keyword == "Angle Coeffs") ||
-               (keyword == "Dihedral Coeffs") || (keyword == "Improper Coeffs")) {
+               (keyword == "Angle Coeffs") || (keyword == "Dihedral Coeffs") || (keyword == "Improper Coeffs")) {
       error->all(FLERR, fileiarg, "Found data file section '{}' in molecule file\n", keyword);
     } else {
 
@@ -2851,11 +2868,12 @@ void Molecule::types(char *line)
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid atom type {} in {}: {}", typestr, location,
                      utils::trim(line));
-        // type[iatom] = atom->lmap->find_type(typestr, Atom::ATOM);
         type[iatom] = atom->lmap->find_or_create(typestr, atom->lmap->typelabel, atom->lmap->typelabel_map);
         if (type[iatom] == -1)
           error->all(FLERR, fileiarg, "Unknown atom type {} in {}: {}", typestr, location,
                      utils::trim(line));
+
+        atom->lmap->create_lmap2lmap(atom->lmap, Atom::ATOM);
         break;
       }
       default:    // invalid
@@ -3097,31 +3115,9 @@ void Molecule::pertype_masses(char *line)
   if (tlabelflag && !atom->lmap->is_complete(Atom::ATOM))
     error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
 
-  double mass;
-  int iatom, itype;
-
-  try {
-    for (int i = 0; i < natoms; i++) {
-      readline(line);
-
-      ValueTokenizer values(utils::trim_comment(line));
-      if (values.count() != 2)
-        error->all(FLERR, fileiarg, "Invalid line in Per-Type Masses section of molecule file: {}", line);
-
-      iatom = values.next_int() - 1;
-      if (iatom < 0 || iatom >= natoms)
-        error->all(FLERR, fileiarg, "Invalid atom index in Per-Type Masses section of molecule file");
-
-      itype = type[iatom];
-      if (atom->mass_setflag[itype])
-        error->warning(FLERR, "Overwriting mass for type {}.", itype);
-
-      mass = values.next_double();
-      atom->mass[itype] = mass;
-      atom->mass_setflag[itype] = 1;
-    }
-  } catch (TokenizerException &e) {
-    error->all(FLERR, fileiarg, "Invalid line in Per-Type Masses section of molecule file: {}\n{}", e.what(), line);
+  for (int i = 0; i < natomtypes; i++) {
+    readline(line);
+    atom->set_mass(FLERR, line, toffset, tlabelflag, atom->lmap->lmap2lmap.atom);
   }
 }
 
@@ -3168,7 +3164,7 @@ void Molecule::bonds(int flag, char *line)
       case 1: {    // type label
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid bond type {} in {}: {}", typestr, location, utils::trim(line));
-        itype = atom->lmap->find_type(typestr, Atom::BOND);
+        itype = atom->lmap->find_or_create(typestr, atom->lmap->btypelabel, atom->lmap->btypelabel_map);
         if (itype == -1)
           error->all(FLERR, fileiarg, "Unknown bond type {} in {}: {}", typestr, location, utils::trim(line));
         break;
@@ -4345,24 +4341,54 @@ void Molecule::body(int flag, int pflag, char *line)
 void Molecule::paircoeffs()
 {
   char *next;
-  auto *buf = new char[natoms * MAXLINE];
+  auto *buf = new char[natomtypes * MAXLINE];
 
-  int eof = utils::read_lines_from_file(fp, natoms, MAXLINE, buf, comm->me, world);
+  int eof = utils::read_lines_from_file(fp, natomtypes, MAXLINE, buf, comm->me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
   int tlabelflag = atom->labelmapflag;
   if (tlabelflag && !atom->lmap->is_complete(Atom::ATOM))
     error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
 
-  for (int i = 0; i < natoms; i++) {
+  for (int i = 0; i < natomtypes; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
-    parse_coeffs(buf, nullptr, 1, 2, toffset);
+    parse_coeffs(buf, nullptr, 1, 2, toffset, Atom::ATOM);
     if (ncoeffarg == 0)
-      error->all(FLERR, "Unexpected empty line in PairCoeffs section. Expected {} lines.", natoms);
+      error->all(FLERR, "Unexpected empty line in PairCoeffs section. Expected {} lines.", natomtypes);
     force->pair->coeff(ncoeffarg, coeffarg);
     buf = next + 1;
   }
+}
+
+/* ----------------------------------------------------------------------
+   read bond coeffs from molecule template 
+------------------------------------------------------------------------- */
+
+void Molecule::bondcoeffs()
+{
+  char *next;
+  auto *buf = new char[nbonds * MAXLINE];
+
+  int eof = utils::read_lines_from_file(fp, nbonds, MAXLINE, buf, comm->me, world);
+  if (eof) error->all(FLERR, "Unexpected end of data file");
+
+  int blabelflag = atom->labelmapflag;
+  if (blabelflag && !atom->lmap->is_complete(Atom::BOND))
+    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
+
+  char *original = buf;
+  for (int i = 0; i < nbonds; i++) {
+    next = strchr(buf, '\n');
+    *next = '\0';
+    parse_coeffs(buf, nullptr, 0, 1, boffset, Atom::BOND);
+    if (ncoeffarg == 0)
+      error->all(FLERR, "Unexpected empty line in BondCoeffs section. Expected {} lines.",
+                 nbonds);
+    force->bond->coeff(ncoeffarg, coeffarg);
+    buf = next + 1;
+  }
+  delete[] original;
 }
 
 /* ----------------------------------------------------------------------
@@ -4374,10 +4400,10 @@ void Molecule::paircoeffs()
      else add addstr before 2nd word
    if dupflag, duplicate 1st word, so pair_coeff "2" becomes "2 2"
    if noffset, add offset to first noffset args, which are atom/bond/etc types
-   if labelflag, use ilabel to find the correct remapping of numeric type
 ------------------------------------------------------------------------- */
 
-void Molecule::parse_coeffs(char *line, const char *addstr, int dupflag, int noffset, int offset)
+void Molecule::parse_coeffs(char *line, const char *addstr, int dupflag, int noffset, int offset,
+                            int labelmode)
 {
   char *ptr;
   if ((ptr = strchr(line, '#'))) *ptr = '\0';
@@ -4407,13 +4433,11 @@ void Molecule::parse_coeffs(char *line, const char *addstr, int dupflag, int nof
   if (ncoeffarg == 0) return;
 
   if (noffset) {
-    int value = utils::inumeric(FLERR, coeffarg[0], false, lmp);
-    value = type[value - 1];
+    int value = atom->lmap->find_type(coeffarg[0], labelmode);
     argoffset1 = std::to_string(value + offset);
     coeffarg[0] = (char *) argoffset1.c_str();
     if (noffset == 2) {
-      value = utils::inumeric(FLERR, coeffarg[1], false, lmp);
-      value = type[value - 1];
+      value = atom->lmap->find_type(coeffarg[1], labelmode);
       argoffset2 = std::to_string(value + offset);
       coeffarg[1] = (char *) argoffset2.c_str();
     }

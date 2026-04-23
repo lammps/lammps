@@ -1342,6 +1342,117 @@ l_displace(i,2)
 
 #endif
 
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType, class FixRigidBase>
+void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_dynamic_base()
+{
+
+  // sum vcm, angmom across all rigid bodies
+  // vcm = velocity of COM
+  // angmom = angular momentum around COM
+
+  atomKK->sync(execution_space, X_MASK | V_MASK | F_MASK | RMASS_MASK | TYPE_MASK );
+  k_atom2body.template sync<DeviceType>();
+  k_body.template sync<DeviceType>();
+  k_xcmimage.template sync<DeviceType>();
+  auto l_x = atomKK->k_x.template view<DeviceType>();
+  auto l_v = atomKK->k_v.template view<DeviceType>();
+  auto l_f = atomKK->k_f.template view<DeviceType>();
+  auto l_rmass = atomKK->k_rmass.template view<DeviceType>();
+  auto l_type = atomKK->k_type.template view<DeviceType>();
+
+  // FIXME: what *_MASK to sync for k_mass ???
+  auto l_mass = atomKK->k_mass.template view<DeviceType>();
+
+  auto l_atom2body = k_atom2body.template view<DeviceType>();
+  auto l_body = k_body.template view<DeviceType>();
+  auto l_xcmimage = k_xcmimage.template view<DeviceType>();
+  auto l_prd = Few<KK_FLOAT,3>(domainKK->prd);
+  auto l_h = Few<KK_FLOAT,6>(domainKK->h);
+  auto l_triclinic = base()->triclinic;
+
+  base()->copymode = 1;
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, nbody_total()),
+    KOKKOS_LAMBDA(const int &ibody) {
+      BodyKokkos &bk = l_body(ibody);
+      bk.vcm[0] = bk.vcm[1] = bk.vcm[2] = 0.0;
+      bk.angmom[0] = bk.angmom[1] = bk.angmom[2] = 0.0;
+    }
+  );
+
+  auto lambda = [&]<bool RMASS>(const int &i) {
+    const int ibody = l_atom2body(i);
+    if (ibody < 0) return;
+    BodyKokkos &bk = l_body(ibody);
+    KK_FLOAT massone;
+    if constexpr (RMASS) massone = l_rmass(i);
+    else massone = l_mass(l_type(i));
+    bk.vcm[0] += l_v(i,0) * massone;
+    bk.vcm[1] += l_v(i,1) * massone;
+    bk.vcm[2] += l_v(i,2) * massone;
+    Few<KK_FLOAT,3> x_i;
+    x_i[0] = l_x(i,0); x_i[1] = l_x(i,1); x_i[2] = l_x(i,2);
+    Few<KK_FLOAT,3> unwrap = DomainKokkos::unmap(l_prd, l_h, l_triclinic, x_i, l_xcmimage(i));
+    const KK_FLOAT dx = unwrap[0] - bk.xcm[0];
+    const KK_FLOAT dy = unwrap[1] - bk.xcm[1];
+    const KK_FLOAT dz = unwrap[2] - bk.xcm[2];
+    Kokkos::atomic_add(&bk.angmom[0], massone * (dy * l_v(i,2) - dz * l_v(i,1)));
+    Kokkos::atomic_add(&bk.angmom[1], massone * (dz * l_v(i,0) - dx * l_v(i,2)));
+    Kokkos::atomic_add(&bk.angmom[2], massone * (dx * l_v(i,1) - dy * l_v(i,0)));
+  };
+  auto policy = Kokkos::RangePolicy<DeviceType>(0, atomKK->nlocal);
+  if (l_rmass.data()) {
+    Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const int i) {
+      lambda.template operator()<true>(i);
+    });
+  } else {
+    Kokkos::parallel_for(policy, KOKKOS_LAMBDA(const int i) {
+      lambda.template operator()<false>(i);
+    });
+  }
+  base()->copymode = 0;
+  k_body.modify_device();
+
+  // extended particles add their rotation to angmom of body
+  if (base()->extended) {
+    // not implemented
+  }
+
+  // reverse communicate vcm, angmom of all bodies
+  base()->commflag = VCM_ANGMOM;
+  base()->comm->reverse_comm(base(),6);
+
+  // normalize velocity of COM
+  k_body.template sync<DeviceType>();
+  base()->copymode = 1;
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, base()->nlocal_body),
+    KOKKOS_LAMBDA(const int &ibody) {
+      BodyKokkos &bk = l_body(ibody);
+      bk.vcm[0] /= bk.mass;
+      bk.vcm[1] /= bk.mass;
+      bk.vcm[2] /= bk.mass;
+    }
+  );
+  base()->copymode = 0;
+  k_body.modify_device();
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType, class FixRigidBase>

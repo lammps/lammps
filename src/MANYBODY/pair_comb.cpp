@@ -796,7 +796,7 @@ void PairComb::repulsive(Param *param, double rsq, double &fforce,
     else if (cor_flag) {
       rslp = ((arr1-r)/(arr1-arr2));
       rslp2 = rslp * rslp; rslp4 = rslp2 * rslp2;
-      vrcs = fc2j * fc3j * romi * ((50.0*rslp4-30.0*rslp2+4.50))/8.0;
+      vrcs = fc2j * fc3j * romi * (50.0*rslp4-30.0*rslp2+4.50)/8.0;
       fvrcs = fcp2j*fcp3j*romi*rslp*(-25.0*rslp2+7.50)/(arr1-arr2);
     }
     fforce_tmp = fforce*vrcs - (tmp_fc * bigA * tmp_exp * fvrcs);
@@ -1817,7 +1817,7 @@ void PairComb::qfo_short(Param *param, int i, int j, double rsq,
     else if (cor_flag) {
       rslp = ((arr1-r)/(arr1-arr2));
       rslp2 = rslp * rslp; rslp4 = rslp2 * rslp2;
-      vrcs = fc2j * fc3j * romi * ((50.0*rslp4-30.0*rslp2+4.50))/8.0;
+      vrcs = fc2j * fc3j * romi * (50.0*rslp4-30.0*rslp2+4.50)/8.0;
     }
   }
 

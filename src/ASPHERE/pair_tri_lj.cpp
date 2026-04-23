@@ -273,7 +273,7 @@ void PairTriLJ::compute(int eflag, int vflag)
           ti[0] = dyi*fi[2] - dzi*fi[1];
           ti[1] = dzi*fi[0] - dxi*fi[2];
           ti[2] = dxi*fi[1] - dyi*fi[0];
-          torque[i][2] += ti[0];
+          torque[i][0] += ti[0];
           torque[i][1] += ti[1];
           torque[i][2] += ti[2];
 

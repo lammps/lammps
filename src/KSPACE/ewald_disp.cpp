@@ -901,23 +901,23 @@ void EwaldDisp::compute_force()
         }
       }
       if (func[3]) {                                        // dipole
-        double im = *(ke)*(zc.im*cek->re+
+        double im = (*ke)*(zc.im*cek->re+
             cek->im*zc.re)*(mui[0]*h->x+mui[1]*h->y+mui[2]*h->z);
-        double im2 = *(ke)*(zc.re*cek->re-
+        double im2 = (*ke)*(zc.re*cek->re-
             cek->im*zc.im);
         mysum[9][0] += h->x*im; mysum[9][1] += h->y*im; mysum[9][2] += h->z*im;
         t[0] += -mui[1]*h->z*im2 + mui[2]*h->y*im2;        // torque
         t[1] += -mui[2]*h->x*im2 + mui[0]*h->z*im2;
         t[2] += -mui[0]*h->y*im2 + mui[1]*h->x*im2;
         if (func[0]) {                                      // charge-dipole
-          double qi = *(q)*c[0];
-          im = - *(ke)*(zc.re*cek_coul->re -
+          double qi = (*q)*c[0];
+          im = - (*ke)*(zc.re*cek_coul->re -
               cek_coul->im*zc.im)*(mui[0]*h->x+mui[1]*h->y+mui[2]*h->z);
-          im += *(ke)*(zc.re*cek->re - cek->im*zc.im)*qi;
+          im += (*ke)*(zc.re*cek->re - cek->im*zc.im)*qi;
           mysum[9][0] += h->x*im; mysum[9][1] += h->y*im; mysum[9][2] += h->z*im;
 
-          im2 =  *(ke)*(zc.re*cek_coul->im + cek_coul->re*zc.im);
-          im2 += -*(ke)*(zc.re*cek->im - cek->im*zc.re);
+          im2 =  (*ke)*(zc.re*cek_coul->im + cek_coul->re*zc.im);
+          im2 += -(*ke)*(zc.re*cek->im - cek->im*zc.re);
           t[0] += -mui[1]*h->z*im2 + mui[2]*h->y*im2;        // torque
           t[1] += -mui[2]*h->x*im2 + mui[0]*h->z*im2;
           t[2] += -mui[0]*h->y*im2 + mui[1]*h->x*im2;
@@ -1023,9 +1023,9 @@ void EwaldDisp::compute_energy()
       mysum[2] += *(ke++)*r;
     }
     if (func[3]) {                                        // dipole
-      mysum[3] += *(ke)*(cek->re*cek->re+cek->im*cek->im);
+      mysum[3] += (*ke)*(cek->re*cek->re+cek->im*cek->im);
       if (func[0]) {                                      // charge-dipole
-        mysum[3] += *(ke)*2.0*(cek->re*cek_coul->im - cek->im*cek_coul->re);
+        mysum[3] += (*ke)*2.0*(cek->re*cek_coul->im - cek->im*cek_coul->re);
       }
       ke++;
       ++cek;
@@ -1092,11 +1092,11 @@ void EwaldDisp::compute_energy_peratom()
       }
       if (func[3]) {                                        // dipole
         double muk = (mui[0]*h->x+mui[1]*h->y+mui[2]*h->z);
-        mysum[9] += *(ke)*(cek->re*zc.re - cek->im*zc.im)*muk;
+        mysum[9] += (*ke)*(cek->re*zc.re - cek->im*zc.im)*muk;
         if (func[0]) {                                      // charge-dipole
-          double qj = *(q)*c[0];
-          mysum[9] += *(ke)*(cek_coul->im*zc.re + cek_coul->re*zc.im)*muk;
-          mysum[9] -= *(ke)*(cek->re*zc.im + cek->im*zc.re)*qj;
+          double qj = (*q)*c[0];
+          mysum[9] += (*ke)*(cek_coul->im*zc.re + cek_coul->re*zc.im)*muk;
+          mysum[9] -= (*ke)*(cek->re*zc.im + cek->im*zc.re)*qj;
         }
         ++cek;
         ke++;
@@ -1251,9 +1251,9 @@ void EwaldDisp::compute_virial_dipole()
         }
       }
       if (func[3]) {                                        // dipole
-        im = *(ke)*(zc.re*cek->re - cek->im*zc.im);
+        im = (*ke)*(zc.re*cek->re - cek->im*zc.im);
         if (func[0]) {                                      // charge-dipole
-          im += *(ke)*(zc.im*cek_coul->re + cek_coul->im*zc.re);
+          im += (*ke)*(zc.im*cek_coul->re + cek_coul->im*zc.re);
         }
         mysum[0] -= mui[0]*h->x*im;
         mysum[1] -= mui[1]*h->y*im;
@@ -1372,7 +1372,7 @@ void EwaldDisp::compute_virial_peratom()
          mysum[9][5] += *(kv++)*r;
          if (func[0]) {                                      // charge-dipole
            kv -= 6;
-           double qj = *(q)*c[0];
+           double qj = (*q)*c[0];
            r = (cek_coul->im*zc.re + cek_coul->re*zc.im)*muk;
            r += -(cek->re*zc.im + cek->im*zc.re)*qj;
            mysum[9][0] += *(kv++)*r; mysum[9][1] += *(kv++)*r; mysum[9][2] += *(kv++)*r;

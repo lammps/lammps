@@ -503,7 +503,7 @@ void ComputeStressMop::compute_pairs()
           fi[1] = atom->f[i][1];
           fi[2] = atom->f[i][2];
 
-          const double imass = (rmass) ? rmass[i] : mass[itype];
+          const double imass = rmass ? rmass[i] : mass[itype];
           const double iterm = 0.5 / imass * dt * ftm2v;
 
           // coordinates at t-dt (based on Velocity-Verlet alg.)

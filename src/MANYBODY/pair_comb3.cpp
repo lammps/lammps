@@ -3533,7 +3533,7 @@ void PairComb3::dipole_init(Param *parami, Param *paramj, double fac11,
 
   r = sqrt(rsq);
   r3 = r * rsq;
-  rcd = 1.0/(r3);
+  rcd = 1.0/r3;
   rct = 3.0*rcd/rsq;
   alfdpi = 0.4/MY_PIS;
   esucon = force->qqr2e;

@@ -417,7 +417,7 @@ void FixPIMDLangevin::init()
   masstotal = group->mass(igroup);
 
   double planck = sp * force->hplanck;
-  hbar = planck / (MY_2PI);
+  hbar = planck / MY_2PI;
   beta = 1.0 / (force->boltz * temp);
   double _fbond = 1.0 * np * np / (beta * beta * hbar * hbar);
 
@@ -1244,9 +1244,9 @@ void FixPIMDLangevin::spring_force()
       double dy = dely1 + dely2;
       double dz = delz1 + delz2;
 
-      f[i][0] += (dx) *ff;
-      f[i][1] += (dy) *ff;
-      f[i][2] += (dz) *ff;
+      f[i][0] += dx*ff;
+      f[i][1] += dy*ff;
+      f[i][2] += dz*ff;
 
       spring_energy += 0.5 * ff * (delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
     }

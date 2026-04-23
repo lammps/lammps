@@ -44,14 +44,16 @@ using LAMMPS_NS::utils::uppercase;
 using LAMMPS_NS::EOFException;
 using LAMMPS_NS::ValueTokenizer;
 
-namespace ReaxFF {
+namespace {
+class ffield_parser_error : public std::exception {
+  std::string message;
+public:
+  explicit ffield_parser_error(const std::string &mesg) { message = mesg; }
+  [[nodiscard]] const char *what() const noexcept override { return message.c_str(); }
+};
+}
 
-  class ffield_parser_error : public std::exception {
-    std::string message;
-  public:
-    explicit ffield_parser_error(const std::string &mesg) { message = mesg; }
-    [[nodiscard]] const char *what() const noexcept override { return message.c_str(); }
-  };
+namespace ReaxFF {
 
   void Read_Force_Field(const char *filename, reax_interaction *reax,
                         control_params *control, MPI_Comm world)

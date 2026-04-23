@@ -127,7 +127,7 @@ int plugin_load(const char *file, LAMMPS *lmp)
   // to the LAMMPS instance, the DSO handle (for reference counting)
   // and plugin registration function pointer
 
-  (*(lammpsplugin_initfunc) (initfunc))((void *) lmp, dso, (void *) &plugin_register);
+  (*(lammpsplugin_initfunc) initfunc)((void *) lmp, dso, (void *) &plugin_register);
   return 1;
 #endif
 }

@@ -98,8 +98,6 @@ class Region : protected Pointers {
   // track translation and rotation
   void forward_transform(double &, double &, double &);
 
-protected:
-
   // implemented by each region, generally not called by other classes
 
   virtual int inside(double, double, double) = 0;
@@ -112,6 +110,7 @@ protected:
   virtual void set_velocity_shape() {}
   virtual void velocity_contact_shape(double *, double *) {}
 
+ protected:
   void add_contact(int, double *, double, double, double);
   void options(int, char **);
   void point_on_line_segment(double *, double *, double *, double *);

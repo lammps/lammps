@@ -38,9 +38,7 @@ class PairMesoCNTViscous : public PairMesoCNT {
  protected:
   double fvisc_max, kvisc, vvisc, fvisc_shift;
 
-  inline double weight(const double *, const double *, const double *, const double *);
-  inline void weight(const double *, const double *, const double *, const double *, double &,
-                     double *, double *, double *, double *);
+  double weight2(const double *, const double *, const double *, const double *);
 };
 
 }    // namespace LAMMPS_NS

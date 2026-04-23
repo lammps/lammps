@@ -183,7 +183,7 @@ void Fingerprint_bond::generate_exp_cut_table() {
   expcuttable = new double[(res+buf)*(kmax)];
   dfctable = new double[res+buf];
   for (m=0;m<(res+buf);m++) {
-    r1 = cutmax*cutmax*(double)(m)/(double)(res);
+    r1 = cutmax*cutmax*(double)m/(double)res;
     for (n=0;n<(kmax);n++) {
       expcuttable[n+m*(kmax)] = exp(-alpha_k[n]/re*sqrt(r1))*cutofffunction(sqrt(r1),rc,dr);
     }

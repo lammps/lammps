@@ -31,7 +31,7 @@
 using namespace LAMMPS_NS;
 using namespace PairZBLConstants;
 
-namespace Lepton {
+namespace {
 class DerivativeException : public std::exception {
   std::string message;
 
@@ -45,7 +45,7 @@ class DerivativeException : public std::exception {
   }
   [[nodiscard]] const char *what() const noexcept override { return message.c_str(); }
 };
-}    // namespace Lepton
+}    // namespace
 
 double Lepton::ZBLFunction::evaluate(const double *args) const
 {
@@ -82,7 +82,7 @@ double Lepton::ZBLFunction::evaluateDerivative(const double *args, const int *or
   return 0.0;
 }
 
-namespace LeptonUtils {
+namespace {
 class VariableException : public std::exception {
   std::string message;
 
@@ -96,7 +96,7 @@ class VariableException : public std::exception {
   }
   [[nodiscard]] const char *what() const noexcept override { return message.c_str(); }
 };
-}    // namespace LeptonUtils
+}    // namespace
 
 /// remove whitespace and quotes from expression string
 std::string LeptonUtils::condense(const std::string &in)

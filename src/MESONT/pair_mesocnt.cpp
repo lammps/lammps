@@ -2177,9 +2177,9 @@ void PairMesoCNT::geometry(const double *r1, const double *r2, const double *p1,
    computes gradients with respect to positions
 ------------------------------------------------------------------------- */
 
-inline void PairMesoCNT::weight(const double *r1, const double *r2, const double *p1,
-                                const double *p2, double &w, double *dr1_w, double *dr2_w,
-                                double *dp1_w, double *dp2_w)
+void PairMesoCNT::weight(const double *r1, const double *r2, const double *p1,
+                         const double *p2, double &w, double *dr1_w, double *dr2_w,
+                         double *dp1_w, double *dp2_w)
 {
   double dr, dp, rhoc, rhomin, rho, frac, arg, factor;
   double r[3], p[3];

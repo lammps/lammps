@@ -52,18 +52,14 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-static constexpr int VARDELTA = 4;
-static constexpr int MAXLEVEL = 4;
-static constexpr int MAXLINE = 256;
-static constexpr int CHUNK = 1024;
-static constexpr int MAXFUNCARG = 6;
+namespace {
+constexpr int VARDELTA = 4;
+constexpr int MAXLEVEL = 4;
+constexpr int MAXLINE = 256;
+constexpr int CHUNK = 1024;
+constexpr int MAXFUNCARG = 6;
 
-// must match enumerator in variable.h
-const std::vector<std::string> Variable::varstyles = {
-    "index",  "loop",  "world", "universe", "uloop",  "string", "getenv",   "file",     "atomfile",
-    "format", "equal", "atom",  "vector",   "python", "timer",  "internal", "(unknown)"};
-
-static inline double MYROUND(double a)
+inline double MYROUND(double a)
 {
   return ((a - floor(a)) >= 0.5) ? ceil(a) : floor(a);
 }
@@ -88,23 +84,30 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
 
 enum { SUM, XMIN, XMAX, AVE, TRAP, SLOPE, SORT, RSORT, NOVECTOR };
 
-static constexpr double BIG = 1.0e20;
+constexpr double BIG = 1.0e20;
 
 // INT64_MAX cannot be represented with a double. reduce to avoid overflow when casting back
 
 #if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
-static constexpr double MAXBIGINT_DOUBLE = (double) (MAXBIGINT - 512);
+constexpr double MAXBIGINT_DOUBLE = (double) (MAXBIGINT - 512);
 #else
-static constexpr double MAXBIGINT_DOUBLE = (double) MAXBIGINT;
+constexpr double MAXBIGINT_DOUBLE = (double) MAXBIGINT;
 #endif
 
+// NOLINTBEGIN
 // constants for variable expressions. customize by adding new items.
 // if needed (cf. 'version') initialize in Variable class constructor.
 
-static std::unordered_map<std::string, double> constants = {
+std::unordered_map<std::string, double> constants = {
     {"PI", MY_PI}, {"version", -1}, {"yes", 1},  {"no", 0},
     {"on", 1},     {"off", 0},      {"true", 1}, {"false", 0}};
+}
 
+// must match enumerator in variable.h
+const std::vector<std::string> Variable::varstyles = {
+    "index",  "loop",  "world", "universe", "uloop",  "string", "getenv",   "file",     "atomfile",
+    "format", "equal", "atom",  "vector",   "python", "timer",  "internal", "(unknown)"};
+// NOLINTEND
 /* ---------------------------------------------------------------------- */
 
 Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
@@ -4500,11 +4503,15 @@ Region *Variable::region_function(char *id, int ivar)
 
 // to simplify finding matches and assigning constants for functions operating on vectors
 
-static const std::unordered_map<std::string,int> special_function_map = {
+namespace {
+// NOLINTBEGIN
+const std::unordered_map<std::string,int> special_function_map = {
   {"sum", SUM}, {"min", XMIN}, {"max", XMAX}, {"ave", AVE}, {"trap", TRAP}, {"slope", SLOPE},
   {"sort", SORT}, {"rsort", RSORT}, {"gmask", NOVECTOR}, {"rmask", NOVECTOR}, {"grmask", NOVECTOR},
   {"next", NOVECTOR}, {"is_file", NOVECTOR}, {"is_os", NOVECTOR}, {"extract_setting", NOVECTOR},
   {"label2type", NOVECTOR}, {"is_typelabel", NOVECTOR}, {"is_timeout", NOVECTOR} };
+// NOLINTEND
+}
 
 int Variable::special_function(const std::string &word, char *contents, Tree **tree,
                                Tree **treestack, int &ntreestack, double *argstack,

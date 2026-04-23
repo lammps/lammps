@@ -1441,7 +1441,7 @@ void EAPOD::base_descriptors(double *basedesc, double *x,
       peratombase_descriptors(bd, bdd, rij, &tmpmem[3*Nj], tj, Nj);
 
       for (int m=0; m<Mdesc; m++) {
-        basedesc[i + natom*(m)] = bd[m];
+        basedesc[i + natom*m] = bd[m];
       }
 
     }
@@ -1484,7 +1484,7 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *x,
       peratombase_descriptors(bd, bdd, rij, &tmpmem[3*Nj], tj, Nj);
 
       for (int m=0; m<Mdesc; m++) {
-        basedesc[i + natom*(m)] = bd[m];
+        basedesc[i + natom*m] = bd[m];
         int k = nCoeffPerElement*(ti[0]-1) + nl1 + m; // increment by nl1 because of the one-body descriptor
         gd[k] += bd[m];
         for (int n=0; n<Nj; n++) {
@@ -1544,9 +1544,9 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *probd
       peratomenvironment_descriptors(pd, pdd, bd, bdd, tmpmem, ti[0] - 1,  Nj);
 
       for (int j = 0; j < nClusters; j++) {
-        probdesc[i + natom*(j)] = pd[j];
+        probdesc[i + natom*j] = pd[j];
         for (int m=0; m<Mdesc; m++) {
-          basedesc[i + natom*(m)] = bd[m];
+          basedesc[i + natom*m] = bd[m];
           int k = nCoeffPerElement*(ti[0]-1) + nl1 + m + j*Mdesc; // increment by nl1 because of the one-body descriptor
           gd[k] += pd[j]*bd[m];
           for (int n=0; n<Nj; n++) {
@@ -1964,7 +1964,7 @@ void EAPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz, d
     if (nbesselpars==1) {
       for (int i=0; i<besseldegree; i++) {
         double a = (i+1)*MY_PI;
-        double b = (sqrt(2.0/(rmax))/(i+1));
+        double b = (sqrt(2.0/rmax)/(i+1));
         double af1 = a*f1;
 
         double sinax = sin(a*x0);
@@ -1986,7 +1986,7 @@ void EAPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz, d
       double dx1 = (alpha/rmax)*t2/t1;
       for (int i=0; i<besseldegree; i++) {
         double a = (i+1)*MY_PI;
-        double b = (sqrt(2.0/(rmax))/(i+1));
+        double b = (sqrt(2.0/rmax)/(i+1));
         double af1 = a*f1;
 
         double sinax = sin(a*x0);
@@ -2023,7 +2023,7 @@ void EAPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz, d
       double dx2 = (alpha/rmax)*t2/t1;
       for (int i=0; i<besseldegree; i++) {
         double a = (i+1)*MY_PI;
-        double b = (sqrt(2.0/(rmax))/(i+1));
+        double b = (sqrt(2.0/rmax)/(i+1));
         double af1 = a*f1;
 
         double sinax = sin(a*x0);
@@ -2337,7 +2337,7 @@ void EAPOD::snapshots(double *rbf, double *xij, int N)
       // Loop over all Bessel degrees
       for (int i=0; i<besseldegree; i++) {
         double a = (i+1)*MY_PI;
-        double b = (sqrt(2.0/(rmax))/(i+1));
+        double b = (sqrt(2.0/rmax)/(i+1));
         int nij = n + N*i + N*besseldegree*j;
 
         // Compute the RBF

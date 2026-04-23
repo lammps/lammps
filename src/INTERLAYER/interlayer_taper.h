@@ -39,7 +39,7 @@ namespace LAMMPS_NS::InterLayer {
       Tap = Tap * r + Tap_coeff[0];
     }
 
-    return (Tap);
+    return Tap;
   }
 
   /* ----Calculate the derivatives of long-range cutoff term */
@@ -60,7 +60,7 @@ namespace LAMMPS_NS::InterLayer {
       dTap = dTap / Rcut;
     }
 
-    return (dTap);
+    return dTap;
   }
 } // namespace LAMMPS_NS::InterLayer
 

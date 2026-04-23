@@ -28,9 +28,13 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NOBIAS,BIAS};
+namespace {
+enum{NOBIAS, BIAS};
 
-using dbl3_t = struct { double x,y,z; };
+using dbl3_t = struct {
+  double x,y,z;
+};
+}
 
 /* ---------------------------------------------------------------------- */
 

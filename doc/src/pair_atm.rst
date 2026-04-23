@@ -1,7 +1,10 @@
 .. index:: pair_style atm
+.. index:: pair_style atm/omp
 
 pair_style atm command
 ======================
+
+Accelerator Variant: *atm/omp*
 
 Syntax
 """"""
@@ -137,6 +140,10 @@ specified, then there will be no 3-body ATM interactions for that
 combination and all its permutations.  However, as with all pair
 styles, it is required to specify a pair_coeff command for all :math:`I,J`
 combinations, else an error will result.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

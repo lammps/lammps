@@ -44,9 +44,11 @@ using MathConst::MY_ISPI4;
 using MathConst::THIRD;
 using MathSpecial::powint;
 
+namespace {
 enum { NONE, RLINEAR, RSQ, BMP };
-static const std::string mixing_rule_names[Pair::SIXTHPOWER + 1] = {"geometric", "arithmetic",
-                                                                    "sixthpower"};
+// NOLINTNEXTLINE
+const std::vector<std::string> mixing_rule_names{"geometric", "arithmetic", "sixthpower"};
+}    // namespace
 
 // allocate space for static class instance variable and initialize it
 
@@ -1894,7 +1896,7 @@ void Pair::write_file(int narg, char **arg)
 
   Pair *epair = force->pair_match("^eam",0);
   if (epair) epair->swap_eam(eamfp, &eamfp_hold);
-  if ((comm->me == 0) && (epair))
+  if ((comm->me == 0) && epair)
     error->warning(FLERR,"EAM pair style. Table will not include embedding term");
 
   // if atom style defines charge, swap in dummy q vec
@@ -2005,9 +2007,9 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
 
   union_int_float_t rsq_lookup;
   rsq_lookup.f = outer*outer;
-  maskhi = rsq_lookup.i & ~(nmask);
+  maskhi = rsq_lookup.i & ~nmask;
   rsq_lookup.f = inner*inner;
-  masklo = rsq_lookup.i & ~(nmask);
+  masklo = rsq_lookup.i & ~nmask;
 }
 
 /* ---------------------------------------------------------------------- */

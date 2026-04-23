@@ -213,7 +213,7 @@ int MinHFTN::iterate(int)
                                   dFinalFnorm2);
   modify->min_clearstore();
 
-  return( nStopCode );
+  return nStopCode;
 }
 
 /* ----------------------------------------------------------------------
@@ -242,7 +242,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
   dFinalForce2 = dInitialForce2;
 
   if (dInitialForce2 < update->ftol)
-    return( STOP_FORCE_TOL );
+    return STOP_FORCE_TOL;
 
   //---- SAVE ATOM POSITIONS BEFORE AN ITERATION.
   fix_minimize->store_box();
@@ -290,7 +290,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
   for (niter = 0; niter < update->nsteps; niter++) {
 
     if (timer->check_timeout(niter))
-      return(Min::TIMEOUT);
+      return Min::TIMEOUT;
 
     (update->ntimestep)++;
 
@@ -330,7 +330,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
       dFinalEnergy = energy_force (0);
       neval++;
       dFinalForce2 = sqrt (fnorm_sqr());
-      return( STOP_ERROR );
+      return STOP_ERROR;
     }
 
     //---- STOP IF THE CURRENT POSITION WAS FOUND TO BE ALREADY GOOD ENOUGH.
@@ -342,7 +342,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
                           0.0, 0.0);
       dFinalEnergy = dNewEnergy;
       dFinalForce2 = dNewForce2;
-      return( STOP_FORCE_TOL );
+      return STOP_FORCE_TOL;
     }
 
     //---- COMPUTE THE DIRECTIONAL DERIVATIVE H(x_k) p.
@@ -389,7 +389,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
       //---- (IMPLICITLY ACCEPT THE LAST STEP TO THE NEW POINT.)
       dFinalEnergy = dNewEnergy;
       dFinalForce2 = dNewForce2;
-      return( STOP_FORCE_TOL );
+      return STOP_FORCE_TOL;
     }
 
     //---- STOP IF THE ACTUAL ENERGY REDUCTION IS TINY.
@@ -406,7 +406,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
         //---- (IMPLICITLY ACCEPT THE LAST STEP TO THE NEW POINT.)
         dFinalEnergy = dNewEnergy;
         dFinalForce2 = dNewForce2;
-        return( STOP_ENERGY_TOL );
+        return STOP_ENERGY_TOL;
       }
     }
 
@@ -520,7 +520,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
              || (dTrustRadius <= MACHINE_EPS * MAX (1.0, dXInf))) {
         dFinalEnergy = dCurrentEnergy;
         dFinalForce2 = dCurrentForce2;
-        return( STOP_TR_TOO_SMALL );
+        return STOP_TR_TOO_SMALL;
       }
     }
 
@@ -542,14 +542,14 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
     if (neval >= update->max_eval) {
       dFinalEnergy = dCurrentEnergy;
       dFinalForce2 = dCurrentForce2;
-      return( STOP_MAX_FORCE_EVALS );
+      return STOP_MAX_FORCE_EVALS;
     }
 
   }     //-- END for LOOP OVER niter
 
   dFinalEnergy = dCurrentEnergy;
   dFinalForce2 = dCurrentForce2;
-  return( STOP_MAX_ITER );
+  return STOP_MAX_ITER;
 }
 
 /* ----------------------------------------------------------------------
@@ -638,7 +638,7 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
     nStepType = NO_CGSTEP_BECAUSE_F_TOL_SATISFIED;
     dStepLength2 = 0.0;
     dStepLengthInf = 0.0;
-    return( true );
+    return true;
   }
 
   //---- r_0 = -grad  (FIRST SEARCH DIRECTION IS STEEPEST DESCENT)
@@ -755,7 +755,7 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
 
       nStepType = CGSTEP_NEGATIVE_CURVATURE;
       calc_plengths_using_mpi_ (dStepLength2, dStepLengthInf);
-      return( true );
+      return true;
     }
 
     //---- COMPUTE THE OPTIMAL STEP LENGTH BASED ON THE QUADRATIC CG MODEL.
@@ -811,7 +811,7 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
     }
     if ((nStepType == CGSTEP_TO_TR) || (nStepType == CGSTEP_TO_DMAX)) {
       calc_plengths_using_mpi_ (dStepLength2, dStepLengthInf);
-      return( true );
+      return true;
     }
 
     dStepLength2 = sqrt (dPnewDotPnew);
@@ -840,7 +840,7 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
     if (sqrt (dRnewDotRnew) < dForceTol * dR0norm2) {
       nStepType = CGSTEP_NEWTON;
       calc_plengths_using_mpi_ (dStepLength2, dStepLengthInf);
-      return( true );
+      return true;
     }
 
     //---- beta = r_i+1^T r_i+1 / r_i^T r_i
@@ -872,7 +872,7 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
 
   nStepType = CGSTEP_MAX_INNER_ITERS;
   calc_plengths_using_mpi_ (dStepLength2, dStepLengthInf);
-  return( true );
+  return true;
 }
 
 /* ----------------------------------------------------------------------
@@ -902,7 +902,7 @@ double MinHFTN::calc_xinf_using_mpi_() const
     }
   }
 
-  return( dXInf );
+  return dXInf;
 }
 
 
@@ -937,7 +937,7 @@ double MinHFTN::calc_dot_prod_using_mpi_(const int  nIx1,
     }
   }
 
-  return( dDot );
+  return dDot;
 }
 
 /* ----------------------------------------------------------------------
@@ -972,7 +972,7 @@ double MinHFTN::calc_grad_dot_v_using_mpi_(const int  nIx) const
     }
   }
 
-  return( dGradDotV );
+  return dGradDotV;
 }
 
 /* ----------------------------------------------------------------------
@@ -1125,12 +1125,12 @@ bool MinHFTN::step_exceeds_TR_(const double    dTrustRadius,
   if (dPnewNorm2 > dTrustRadius) {
     dTau = compute_to_tr_ (dPP, dPD, dDD, dTrustRadius,
                            false, 0.0, 0.0, 0.0);
-    return( true );
+    return true;
   }
 
   //---- STEP LENGTH IS NOT TOO LONG.
   dTau = 0.0;
-  return( false );
+  return false;
 }
 
 /* ----------------------------------------------------------------------
@@ -1153,7 +1153,7 @@ bool MinHFTN::step_exceeds_DMAX_() const
   double  dPInf;
   MPI_Allreduce (&dPInfLocal, &dPInf, 1, MPI_DOUBLE, MPI_MAX, world);
   if (dPInf > dmax)
-    return( true );
+    return true;
   if (dPInf > MACHINE_EPS)
     dAlpha = MIN (dAlpha, dmax / dPInf);
 
@@ -1166,7 +1166,7 @@ bool MinHFTN::step_exceeds_DMAX_() const
         dPInfLocal = MAX (dPInfLocal, fabs (pAtom[i]));
       MPI_Allreduce (&dPInfLocal, &dPInf, 1, MPI_DOUBLE, MPI_MAX, world);
       if (dPInf > extra_max[m])
-        return( true );
+        return true;
       if (dPInf > MACHINE_EPS)
         dAlpha = MIN (dAlpha, extra_max[m] / dPInf);
     }
@@ -1178,11 +1178,11 @@ bool MinHFTN::step_exceeds_DMAX_() const
     //---- IS TOO LONG.  PROPOSED DISTANCE IS ESTIMATED BY |P|_INF.
     double  dAlphaExtra = modify->max_alpha (_daExtraGlobal[VEC_CG_P]);
     if (dAlphaExtra < dAlpha)
-      return( true );
+      return true;
   }
 
   //---- STEP LENGTH IS NOT TOO LONG.
-  return( false );
+  return false;
 }
 
 /* ----------------------------------------------------------------------
@@ -1250,7 +1250,7 @@ double MinHFTN::compute_to_tr_(const double  dPP,
   if (   (dDD <= 0.0) || (dPP < 0.0) || (dTrustRadius < 0.0)
          || (dTrustRadius * dTrustRadius < dPP)) {
     printf ("HFTN internal error - bad data given to compute_to_tr_()\n");
-    return( 0.0 );
+    return 0.0;
   }
 
   double  dTRsqrd = dTrustRadius * dTrustRadius;
@@ -1262,7 +1262,7 @@ double MinHFTN::compute_to_tr_(const double  dPP,
   double  dRootNeg = (-dPD - dDiscr) / dDD;
 
   if (!bConsiderBothRoots)
-    return( dRootPos );
+    return dRootPos;
 
   //---- EVALUATE THE CG OBJECTIVE FUNCTION FOR EACH ROOT.
   double  dTmpTerm = dGradDotD + dPdotHD;
@@ -1270,9 +1270,9 @@ double MinHFTN::compute_to_tr_(const double  dPP,
   double  dCgRedNeg = (dRootNeg * dTmpTerm) + (0.5 * dRootNeg*dRootNeg * dDHD);
 
   if ((-dCgRedPos) > (-dCgRedNeg))
-    return( dRootPos );
+    return dRootPos;
   else
-    return( dRootNeg );
+    return dRootNeg;
 }
 
 /* ----------------------------------------------------------------------

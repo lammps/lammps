@@ -29,12 +29,16 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NOBIAS,BIAS};
-enum{ISO,ANISO,TRICLINIC};
+namespace {
+enum{NOBIAS, BIAS};
+enum{ISO, ANISO, TRICLINIC};
 
-static constexpr double TILTMAX = 1.5;
+constexpr double TILTMAX = 1.5;
 
-using dbl3_t = struct { double x,y,z; };
+using dbl3_t = struct {
+  double x,y,z;
+};
+}
 
 /* ----------------------------------------------------------------------
    change box size
@@ -79,7 +83,7 @@ void FixNHOMP::remap()
   // h_dot = omega_dot * h
   //
   // where h_dot, omega_dot and h are all upper-triangular
-  // 3x3 tensors. In Voigt notation, the elements of the
+  // 3x3 tensors. In Voigt ordering, the elements of the
   // RHS product tensor are:
   // h_dot = [0*0, 1*1, 2*2, 1*3+3*2, 0*4+5*3+4*2, 0*5+5*1]
   //
@@ -122,16 +126,14 @@ void FixNHOMP::remap()
     }
   }
 
-  if (isochoric) isofac = vol_start;
-
   // scale diagonal components
   // scale tilt factors with cell, if set
+  if (isochoric) isofac = vol_start;
 
   if (p_flag[0]) {
     oldlo = domain->boxlo[0];
     oldhi = domain->boxhi[0];
     expfac = exp(dto*omega_dot[0]);
-    isofac /= expfac;
     domain->boxlo[0] = (oldlo-fixedpoint[0])*expfac + fixedpoint[0];
     domain->boxhi[0] = (oldhi-fixedpoint[0])*expfac + fixedpoint[0];
     if (isochoric) isofac /= domain->boxhi[0] - domain->boxlo[0];
@@ -141,7 +143,6 @@ void FixNHOMP::remap()
     oldlo = domain->boxlo[1];
     oldhi = domain->boxhi[1];
     expfac = exp(dto*omega_dot[1]);
-    isofac /= expfac;
     domain->boxlo[1] = (oldlo-fixedpoint[1])*expfac + fixedpoint[1];
     domain->boxhi[1] = (oldhi-fixedpoint[1])*expfac + fixedpoint[1];
     if (isochoric) isofac /= domain->boxhi[1] - domain->boxlo[1];
@@ -152,7 +153,6 @@ void FixNHOMP::remap()
     oldlo = domain->boxlo[2];
     oldhi = domain->boxhi[2];
     expfac = exp(dto*omega_dot[2]);
-    isofac /= expfac;
     domain->boxlo[2] = (oldlo-fixedpoint[2])*expfac + fixedpoint[2];
     domain->boxhi[2] = (oldhi-fixedpoint[2])*expfac + fixedpoint[2];
     if (isochoric) isofac /= domain->boxhi[2] - domain->boxlo[2];
@@ -161,20 +161,22 @@ void FixNHOMP::remap()
   }
 
   if (isochoric) {
+
+    // We remove remaining dimensions so that only scale factors are left
+    // in isofac
     for (int i = 0; i < 3; i++) {
       if (p_isoch[i] || !p_flag[i]) isofac /= (domain->boxhi[i]-domain->boxlo[i]);
     }
     int iso_sum = p_isoch[0] + p_isoch[1] + p_isoch[2];
     if (iso_sum == 2) isofac = sqrt(isofac);
+
     if (p_isoch[0]) {
-      // Scale x
       oldlo = domain->boxlo[0];
       oldhi = domain->boxhi[0];
       domain->boxlo[0] = (oldlo-fixedpoint[0])*isofac + fixedpoint[0];
       domain->boxhi[0] = (oldhi-fixedpoint[0])*isofac + fixedpoint[0];
     }
     if (p_isoch[1]) {
-      // Scale y
       oldlo = domain->boxlo[1];
       oldhi = domain->boxhi[1];
       domain->boxlo[1] = (oldlo-fixedpoint[1])*isofac + fixedpoint[1];

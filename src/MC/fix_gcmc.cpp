@@ -2410,7 +2410,7 @@ double FixGCMC::energy_full()
 int FixGCMC::pick_random_gas_atom()
 {
   int i = -1;
-  int iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
+  int iwhichglobal = static_cast<int>(ngas*random_equal->uniform());
   if ((iwhichglobal >= ngas_before) &&
       (iwhichglobal < ngas_before + ngas_local)) {
     int iwhichlocal = iwhichglobal - ngas_before;
@@ -2425,7 +2425,7 @@ int FixGCMC::pick_random_gas_atom()
 
 tagint FixGCMC::pick_random_gas_molecule()
 {
-  int iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
+  int iwhichglobal = static_cast<int>(ngas*random_equal->uniform());
   tagint gas_molecule_id = 0;
   if ((iwhichglobal >= ngas_before) &&
       (iwhichglobal < ngas_before + ngas_local)) {
@@ -2614,7 +2614,7 @@ void FixGCMC::write_restart(FILE *fp)
   if (comm->me == 0) {
     int size =  ntotalvals * sizeof(double);
     fwrite(&size, sizeof(int), 1, fp);
-    fwrite(&list[0], sizeof(double), ntotalvals, fp);
+    fwrite(list.data(), sizeof(double), ntotalvals, fp);
   }
 }
 
@@ -2627,7 +2627,7 @@ void FixGCMC::restart(char *buf)
   int n = 0;
   auto *list = (double *) buf;
 
-  seed = static_cast<int> (list[n++]);
+  seed = static_cast<int>(list[n++]);
   random_equal->reset(seed);
 
   next_reneighbor = (bigint) ubuf(list[n++]).i;
@@ -2648,9 +2648,9 @@ void FixGCMC::restart(char *buf)
   // read stored state of RNG unique to this process
   // if nprocs changed, use state of proc 0
 
-  int nlocalvals = list[n++];
+  auto nlocalvals = (int) list[n++];
   if (nlocalvals == comm->nprocs) n += comm->me;
-  seed = static_cast<int> (list[n]);
+  seed = static_cast<int>(list[n]);
   random_unequal->reset(seed);
 }
 

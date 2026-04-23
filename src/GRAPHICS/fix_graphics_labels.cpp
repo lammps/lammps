@@ -277,8 +277,8 @@ unsigned char *read_image(FILE *fp, int &width, int &height, const std::string &
         if (len < 128) {
           ++len;
           for (int j = 0; j < len; ++j) {
-            int y = (fromtop) ? (height - 1 - i / (3 * width)) : i / (3 * width);
-            int x = (right2left) ? (width - 1 - (i - 3 * y * width) / 3) : (i - 3 * y * width) / 3;
+            int y = fromtop ? (height - 1 - i / (3 * width)) : i / (3 * width);
+            int x = right2left ? (width - 1 - (i - 3 * y * width) / 3) : (i - 3 * y * width) / 3;
             if (fread(pix, sizeof(unsigned char), 3, fp) != 3) {
               delete[] pixmap;
               info = "Short TGA file";
@@ -297,8 +297,8 @@ unsigned char *read_image(FILE *fp, int &width, int &height, const std::string &
             return nullptr;
           }
           for (int j = 0; j < len; ++j) {
-            int y = (fromtop) ? (height - 1 - i / (3 * width)) : i / (3 * width);
-            int x = (right2left) ? (width - 1 - (i - 3 * y * width) / 3) : (i - 3 * y * width) / 3;
+            int y = fromtop ? (height - 1 - i / (3 * width)) : i / (3 * width);
+            int x = right2left ? (width - 1 - (i - 3 * y * width) / 3) : (i - 3 * y * width) / 3;
             pixmap[y * 3 * width + 3 * x] = pix[2];
             pixmap[y * 3 * width + 3 * x + 1] = pix[1];
             pixmap[y * 3 * width + 3 * x + 2] = pix[0];

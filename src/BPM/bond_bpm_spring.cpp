@@ -428,17 +428,18 @@ void BondBPMSpring::settings(int narg, char **arg)
   for (std::size_t i = 0; i < leftover_iarg.size(); i++) {
     iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "smooth") == 0) {
-      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for smooth");
+      if (iarg + 1 >= narg)
+        utils::missing_cmd_args(FLERR, "bond_style bpm/spring smooth", error);
       smooth_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       i += 1;
     } else if (strcmp(arg[iarg], "normalize") == 0) {
-      if (iarg + 1 > narg)
-        error->all(FLERR, "Illegal bond bpm command, missing option for normalize");
+      if (iarg + 1 >= narg)
+        utils::missing_cmd_args(FLERR, "bond_style bpm/spring normalize", error);
       normalize_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       i += 1;
     } else if (strcmp(arg[iarg], "volume/factor") == 0) {
-      if (iarg + 1 > narg)
-        error->all(FLERR, "Illegal bond bpm command, missing option for volume/factor");
+      if (iarg + 1 >= narg)
+        utils::missing_cmd_args(FLERR, "bond_style bpm/spring volume/factor", error);
       volume_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
 
       if (volume_flag) {

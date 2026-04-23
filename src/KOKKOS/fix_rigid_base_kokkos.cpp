@@ -1033,9 +1033,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
       KK_FLOAT massone;
       if (rmass) massone = l_rmass(i);
       else massone = l_mass(l_type(i));
-      Few<KK_FLOAT,3> x_i;
-      x_i[0] = l_x(i,0); x_i[1] = l_x(i,1); x_i[2] = l_x(i,2);
-      Few<KK_FLOAT,3> unwrap = DomainKokkos::unmap(l_prd, l_h, l_triclinic, x_i, l_xcmimage(i));
+      auto unwrap = DomainKokkos::unmap(l_prd, l_h, l_triclinic, &l_x(i,0), l_xcmimage(i));
       Kokkos::atomic_add(&bk.xcm[0], unwrap[0] * massone);
       Kokkos::atomic_add(&bk.xcm[1], unwrap[1] * massone);
       Kokkos::atomic_add(&bk.xcm[2], unwrap[2] * massone);
@@ -1393,9 +1391,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_dynamic_base()
     bk.vcm[0] += l_v(i,0) * massone;
     bk.vcm[1] += l_v(i,1) * massone;
     bk.vcm[2] += l_v(i,2) * massone;
-    Few<KK_FLOAT,3> x_i;
-    x_i[0] = l_x(i,0); x_i[1] = l_x(i,1); x_i[2] = l_x(i,2);
-    Few<KK_FLOAT,3> unwrap = DomainKokkos::unmap(l_prd, l_h, l_triclinic, x_i, l_xcmimage(i));
+    auto unwrap = DomainKokkos::unmap(l_prd, l_h, l_triclinic, &l_x(i,0), l_xcmimage(i));
     const KK_FLOAT dx = unwrap[0] - bk.xcm[0];
     const KK_FLOAT dy = unwrap[1] - bk.xcm[1];
     const KK_FLOAT dz = unwrap[2] - bk.xcm[2];
@@ -2119,9 +2115,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::compute_forces_and_torques_bas
       Kokkos::atomic_add(&bk.fcm[0], l_f(i,0));
       Kokkos::atomic_add(&bk.fcm[1], l_f(i,1));
       Kokkos::atomic_add(&bk.fcm[2], l_f(i,2));
-      Few<KK_FLOAT,3> x_i;
-      x_i[0] = l_x(i,0); x_i[1] = l_x(i,1); x_i[2] = l_x(i,2);
-      Few<KK_FLOAT,3> unwrap = DomainKokkos::unmap(l_prd, l_h, l_triclinic, x_i, l_xcmimage(i));
+      auto unwrap = DomainKokkos::unmap(l_prd, l_h, l_triclinic, &l_x(i,0), l_xcmimage(i));
       const KK_FLOAT dx = unwrap[0] - bk.xcm[0];
       const KK_FLOAT dy = unwrap[1] - bk.xcm[1];
       const KK_FLOAT dz = unwrap[2] - bk.xcm[2];

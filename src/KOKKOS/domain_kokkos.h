@@ -89,11 +89,19 @@ class DomainKokkos : public Domain {
   ArrayTypes<LMPDeviceType>::t_int_1d mask;
 };
 
+// T2 can be Few<T,3> or anything with [] operator for convenience, eg. float*
+// BEFORE
+//  Few<KK_FLOAT,3> x_i;
+//  x_i[0] = l_x(i,0); x_i[1] = l_x(i,1); x_i[2] = l_x(i,2);
+//  Few<KK_FLOAT,3> unwrap = DomainKokkos::unmap(l_prd, l_h, l_triclinic, x_i, l_image(i));
+// AFTER
+//  auto unwrap = DomainKokkos::unmap(l_prd, l_h, l_triclinic, &l_x(i,0), l_image(i));
+
 // NOLINTNEXTLINE
-template <typename T>
+template <typename T, class T2>
 KOKKOS_INLINE_FUNCTION
 Few<T,3> DomainKokkos::unmap(Few<T,3> prd, Few<T,6> h, int triclinic,
-                             Few<T,3> x, imageint image)
+                             const T2 &x, imageint image)
 {
   const T xbox = static_cast<T>((image & IMGMASK) - IMGMAX);
   const T ybox = static_cast<T>((image >> IMGBITS & IMGMASK) - IMGMAX);

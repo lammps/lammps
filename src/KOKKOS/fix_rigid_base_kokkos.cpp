@@ -299,8 +299,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
   base()->nghost_body = 0;
   base()->commflag = FULL_BODY;
   base()->comm->forward_comm(fix_base());
-  //k_body.modify_host();
-  //k_body.sync_device();
+  k_body.modify_host();
+  k_body.sync_device();
 
   reset_atom2body_base();
   image_shift_base();
@@ -373,12 +373,11 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_base(int vflag)
 
   if constexpr(is_nh) {
 
-
+  // FIXME
   base()->compute_dof();
 
   base()->copymode = 1;
   k_body.sync_device();
-  //auto l_body = k_body.template view<DeviceType>();
   auto l_tstat_flag = nh_base()->tstat_flag;
   auto l_pstat_flag = nh_base()->pstat_flag;
   KK_ACC_FLOAT ke[2], keall[2];
@@ -472,7 +471,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_base(int vflag)
   }
 
   }
-  //*** k_body.modify_host();
+  k_body.modify_host();
   atomKK->modified(Host, X_MASK | V_MASK);
 }
 
@@ -1333,8 +1332,6 @@ l_displace(i,2)
   }
 
   // clean up
-
-  memory->destroy(itensor);
   if (base()->inpfile) memory->destroy(base()->inbody);
 }
 
@@ -2348,7 +2345,7 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_forward_comm_kokkos(
     k_bodyown.sync_host();
     int *list = k_sendlist.view_host().data();
     double *buf = k_buf.view_host().data();
-    return base()->pack_forward_comm(n, list, buf, pbc_flag, pbc);
+    return base()->FixRigidBase::pack_forward_comm(n, list, buf, pbc_flag, pbc);
   }
 
   int result = 0;
@@ -2438,7 +2435,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_forward_comm_kokkos(
   if (base()->commflag == FULL_BODY) {
     // punt to base class
     double *buf = k_buf.view_host().data();
-    base()->unpack_forward_comm(n, first, buf);
+    base()->FixRigidBase::unpack_forward_comm(n, first, buf);
     k_body.modify_host();
     k_bodyown.modify_host();
     k_body.sync_device();
@@ -2451,7 +2448,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_forward_comm_kokkos(
   auto l_body = k_body.template view<DeviceType>();
   auto l_bodyown = k_bodyown.template view<DeviceType>();
 
-  if(!base()->setupflag) k_bodyown.sync_host();
 
   base()->copymode = 1;
   if (base()->commflag == INITIAL) {
@@ -2522,7 +2518,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_forward_comm_kokkos(
   }
   base()->copymode = 0;
   k_body.modify_device();
-  if(!base()->setupflag) k_body.sync_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2563,7 +2558,7 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_reverse_comm_kokkos(
   k_body.sync_host();
   k_bodyown.sync_host();
   double *buf = k_buf.view_host().data();
-  return base()->pack_reverse_comm(n, first, buf);
+  return base()->FixRigidBase::pack_reverse_comm(n, first, buf);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2603,7 +2598,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_reverse_comm_kokkos(
     // punt the rest to base class
     int *list = k_sendlist.view_host().data();
     double *buf = k_buf.view_host().data();
-    base()->unpack_reverse_comm(n, list, buf);
+    base()->FixRigidBase::unpack_reverse_comm(n, list, buf);
     k_body.modify_host();
     k_body.sync_device();
   }

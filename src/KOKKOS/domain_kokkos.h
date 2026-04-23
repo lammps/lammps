@@ -21,6 +21,8 @@
 
 namespace LAMMPS_NS {
 
+using Kokkos::fma;
+
 struct TagDomain_remap_all{};
 struct TagDomain_image_flip{};
 struct TagDomain_lamda2x{};
@@ -98,16 +100,16 @@ Few<T,3> DomainKokkos::unmap(Few<T,3> prd, Few<T,6> h, int triclinic,
   int zbox = (image >> IMG2BITS) - IMGMAX;
   Few<T,3> y;
   if (triclinic == 0) {
-    y[0] = Kokkos::fma(xbox, prd[0], x[0]);
-    y[1] = Kokkos::fma(ybox, prd[1], x[1]);
-    y[2] = Kokkos::fma(zbox, prd[2], x[2]);
+    y[0] = fma(xbox, prd[0], x[0]);
+    y[1] = fma(ybox, prd[1], x[1]);
+    y[2] = fma(zbox, prd[2], x[2]);
   } else {
     // x[0] + h[0]*xbox + h[5]*ybox + h[4]*zbox
-    y[0] = Kokkos::fma(h[5], ybox, Kokkos::fma(h[4], zbox, Kokkos::fma(h[0], xbox, x[0])));
+    y[0] = fma(h[5], ybox, fma(h[4], zbox, fma(h[0], xbox, x[0])));
     // x[1] + h[1]*ybox + h[3]*zbox
-    y[1] = Kokkos::fma(h[3], zbox, Kokkos::fma(h[1], ybox, x[1]));
+    y[1] = fma(h[3], zbox, fma(h[1], ybox, x[1]));
     // h[2]*zbox
-    y[2] = Kokkos::fma(h[2], zbox, x[2]);
+    y[2] = fma(h[2], zbox, x[2]);
   }
   return y;
 }

@@ -23,7 +23,8 @@
 // This is temporary to support current atom_vec_ellipsoid_kokkos bonus struct
 // which still uses double for shape and quat and doesn't (yet) support KK_FLOAT.
 //
-// UPDATE [2026/04 alphataubio]: functions now templated for double/KK_FLOAT
+// UPDATE [2026/04 alphataubio]:
+// functions now templated for T = KK_FLOAT / float / double / ...
 
 namespace MathExtraKokkos {
 
@@ -142,7 +143,7 @@ namespace MathExtraKokkos {
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::norm3(KK_FLOAT *v)
 {
-  KK_FLOAT scale = 1.0/sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+  const KK_FLOAT scale = 1.0/sqrt(MathExtraKokkos::len3(v));
   v[0] *= scale;
   v[1] *= scale;
   v[2] *= scale;
@@ -155,7 +156,7 @@ void MathExtraKokkos::norm3(KK_FLOAT *v)
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::normalize3(const KK_FLOAT *v, KK_FLOAT *ans)
 {
-  KK_FLOAT scale = 1.0/sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+  const KK_FLOAT scale = 1.0/MathExtraKokkos::len3(v);
   ans[0] = v[0]*scale;
   ans[1] = v[1]*scale;
   ans[2] = v[2]*scale;
@@ -168,7 +169,7 @@ void MathExtraKokkos::normalize3(const KK_FLOAT *v, KK_FLOAT *ans)
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::snormalize3(const KK_FLOAT length, const KK_FLOAT *v, KK_FLOAT *ans)
 {
-  KK_FLOAT scale = length/sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+  const KK_FLOAT scale = length/MathExtraKokkos::len3(v);
   ans[0] = v[0]*scale;
   ans[1] = v[1]*scale;
   ans[2] = v[2]*scale;

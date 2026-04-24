@@ -33,19 +33,18 @@ Syntax
 
   .. parsed-literal::
 
-       *electrode/conp* args = potential eta
-       *electrode/conq* args = charge eta
-       *electrode/thermo* args = potential eta *temp* values
+       *electrode/conp* args = potential
+       *electrode/conq* args = charge
+       *electrode/thermo* args = potential *temp* values
             potential = electrode potential
             charge = electrode charge
-            eta = reciprocal width of electrode charge smearing (can be NULL if eta keyword is used)
             *temp* values = T_v tau_v rng_v
                 T_v = temperature of thermo-potentiostat
                 tau_v = time constant of thermo-potentiostat
                 rng_v = integer used to initialize random number generator
 
 * zero or more keyword/value pairs may be appended
-* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv* or *qtotal* or *eta*
+* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv* or *qtotal* or *eta* or *hardness* or *electronegativity* or *pair*
 
 .. parsed-literal::
 
@@ -70,17 +69,25 @@ Syntax
         filename = file from which to read inverted matrix
     *qtotal* value = number or *v_* equal-style variable
         add overall potential so that all electrode charges add up to *qtotal*
-    *eta* value = d_propname
+    *eta* value = number or d_propname
         d_propname = a custom double vector defined via fix property/atom
+    *hardness* value = d_propname
+        d_propname = a custom double vector defined via fix property/atom
+    *electronegativity* value = d_propname
+        d_propname = a custom double vector defined via fix property/atom
+    *pair* value = pair style name
+    *predictor* value = number of prior charges used by predictor
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix fxconp bot electrode/conp -1.0 1.805 couple top 1.0 couple ref 0.0 write_inv inv.csv symm on
-   fix fxconp electrodes electrode/conq 0.0 1.805 algo cg 1e-5
-   fix fxconp bot electrode/thermo -1.0 1.805 temp 298 100 couple top 1.0
+   fix fxconp bot electrode/conp -1.0 couple top 1.0 couple ref 0.0 write_inv inv.csv symm on pair lj/cut/coul/long/gauss
+   fix fxconp electrodes electrode/conq 0.0 eta 1.805 algo cg 1e-5
+   fix fxconp bot electrode/thermo -1.0 eta  1.805 temp 298 100 couple top 1.0
+   fix fxconq elec electrode/conq -1.0 eta d_etavector
+   fix fxqeq all electrode/conp 0.0 algo cg 1e-5 pair lj/cut/coul/wolf/gauss hardness d_hardness electronegativity d_chi qtotal 0
 
 Description
 """""""""""
@@ -126,8 +133,7 @@ those charges.  From basic electrostatics, this is equivalent to making
 each group conductive, or imposing an equal electrostatic potential on
 every particle in the same group (hence the name CPM).  The charges are
 usually modelled as a Gaussian distribution to make the charge-charge
-interaction matrix invertible (:ref:`Gingrich <Gingrich>`).  The keyword
-*eta* specifies the distribution's width in units of inverse length.
+interaction matrix invertible (:ref:`Gingrich <Gingrich>`).
 
 .. versionadded:: 22Dec2022
 
@@ -267,12 +273,42 @@ and since *symm on* constrains the total charge of all electrodes to be
 zero, either option is incompatible with the *qtotal* keyword (even if
 *qtotal* is set to zero).
 
-.. versionadded:: 17Apr2024
+.. versionchanged:: TBD
 
-The keyword *eta* takes the name of a custom double vector defined via
-fix property/atom.  The values will be used instead of the standard eta
-value.  The property/atom fix must be for vector of double values and
-use the *ghost on* option.
+The keyword *eta* specifies the reciprocal width of electrode charge smearing in
+units of inverse length. The argument takes a single value or the name of a
+custom double vector defined via fix property/atom. The property/atom fix must
+be for vector of double values and use the *ghost on* option.
+
+.. versionadded:: TBD
+
+The keyword *pair* must be followed by the name of a pair style which
+implements ELECTRODE pair methods (see :doc:`pair_electrode <pair_electrode>`).
+Energy corrections, force corrections, and pair interaction quantities used
+in CPM will then be calculated by the supplied pair style; *fix electrode*
+will then purely update charges and not apply Gaussian-based energy or
+force corrections, and the eta parameter specified in the input of this
+fix will be ignored.
+
+.. versionadded:: TBD
+
+The keywords *hardness* and *electronegativity* must be followed by the name of
+a custom double vector defined via fix property/atom. The units of hardness are
+energy units per charge^2 and the units of electronegativity are energy units
+per charge. The terms add quadratic and linear terms to the energy,
+respectively. The two keywords enable simulations with charge equilibration
+(:ref:`Rappe <Rappe>`).
+
+.. versionadded:: TBD
+
+The keyword *predictor* sets the number of prior charges used by the predictor
+of the conjugate gradient algorithm. An atom/property array will be
+automatically created to store atom charges of previous time steps which are
+then used to extrapolate the current charges. The extrapolation is used as
+starting point for the conjugate gradient algorithm, to reduce the number of
+minimization steps. If the predictor value is set to zero, no atom/property
+array will be created. This keyword is not compatible with the matrix inversion
+algorithm.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -409,7 +445,7 @@ Default
 """""""
 
 The default keyword-option settings are *algo mat_inv*, *symm off*,
-*etypes off* and *ffield off*.
+*etypes off*, *ffield off* and *predictor 1*.
 
 ----------
 
@@ -448,6 +484,10 @@ The default keyword-option settings are *algo mat_inv*, *symm off*,
 .. _Tee:
 
 **(Tee)** Tee and Searles, J. Chem. Phys. 156, 184101 (2022).
+
+.. _Rappe:
+
+**(Rappe)** Rappe and Goddard, J. Phys. Chem., 95, 3358 (1991).
 
 .. _Scalfi:
 

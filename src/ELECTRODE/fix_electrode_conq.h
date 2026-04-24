@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
@@ -35,10 +35,7 @@ class FixElectrodeConq : public FixElectrodeConp {
   FixElectrodeConq(class LAMMPS *, int, char **);
 
  protected:
-  void update_psi() override;
-  void recompute_potential(const std::vector<double> &, const std::vector<double> &) override;
-  std::vector<double> constraint_projection(std::vector<double>) override;
-  std::vector<double> constraint_correction(std::vector<double>) override;
+  void update_psi_set_constraint() override;
 
  private:
   std::vector<double> group_q;

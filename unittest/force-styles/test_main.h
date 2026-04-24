@@ -50,5 +50,7 @@ void EXPECT_VELOCITIES(const std::string &name, LAMMPS_NS::Atom *atom,
                        const std::vector<coord_t> &v_ref, double epsilon);
 void EXPECT_TORQUES(const std::string &name, LAMMPS_NS::Atom *atom,
                     const std::vector<coord_t> &t_ref, double epsilon);
+void EXPECT_CHARGES(const std::string &name, LAMMPS_NS::Atom *atom,
+                   const std::vector<double> &q_ref, double epsilon);
 
 #endif

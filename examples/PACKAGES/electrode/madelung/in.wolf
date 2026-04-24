@@ -1,0 +1,9 @@
+boundary p p f
+
+include "settings_wolf.mod" # styles, computes, groups and fixes
+
+thermo_style custom step pe c_qbot c_qtop
+fix conp bot electrode/conp 0 NULL couple top 1 symm on write_inv inv.csv write_vec vec.csv pair lj/cut/coul/wolf/gauss
+
+run 0
+

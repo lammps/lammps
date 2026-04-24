@@ -83,7 +83,8 @@ FixMSEVB::FixMSEVB(LAMMPS *lmp, int narg, char **arg) :
     coupling_a(0.0), coupling_b(0.0), coupling_taper(0.0), coupling_enabled(0),
     temp_compute(nullptr), press_compute(nullptr), enumerate_product_states(0),
     fermi_dirac_enabled(0), fd_temperature(0.0), fd_RT(0.0), max_shells(1), output_every(0),
-    output_fp(nullptr), reactive_group_bit(0), scf_topology(false), scf_max_iter(10)
+    output_fp(nullptr), reactive_group_bit(0), scf_topology(false), scf_max_iter(10),
+    min_terminate(false)
 {
   force_reneighbor = 1;
 
@@ -513,6 +514,7 @@ int FixMSEVB::setmask()
   mask |= POST_FORCE;
   mask |= MIN_PRE_FORCE;
   mask |= MIN_POST_FORCE;
+  mask |= POST_RUN;
   return mask;
 }
 
@@ -889,6 +891,17 @@ void FixMSEVB::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixMSEVB::min_setup(int vflag)
+{
+  // Called by modify->setup() during minimization (whichflag==2) instead of
+  // setup().  Forces have already been computed by the minimizer setup; run
+  // the EVB post-force pass so that epot_ground is set, forces are EVB-mixed,
+  // and the step-0 thermo output shows the correct ground-state energy.
+  post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
 int FixMSEVB::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int m = 0;
@@ -979,6 +992,22 @@ void FixMSEVB::pre_force(int /*vflag*/)
 
 void FixMSEVB::min_pre_force(int vflag)
 {
+  // If we already received a stop signal, skip everything — forces remain
+  // zeroed (force_clear() ran before this hook) and pair/bond will overwrite
+  // them, but min_post_force will zero them again so CG sees zero gradient.
+  if (min_terminate) return;
+
+  // Symmetric stop handshake: each running partition sends 1, a finished
+  // partition sends 0 from post_run(). MPI_MIN == 0 means at least one
+  // partition is done — all should stop. This works regardless of which
+  // partition finishes first.
+  int local = 1, result = 1;
+  MPI_Allreduce(&local, &result, 1, MPI_INT, MPI_MIN, samerank);
+  if (result == 0) {
+    min_terminate = true;
+    return;
+  }
+
   // During minimization there is no post_integrate, so site detection and
   // per-partition topology changes are handled here instead.
   check_consistency_atoms();
@@ -1005,7 +1034,31 @@ void FixMSEVB::min_pre_force(int vflag)
 
 void FixMSEVB::min_post_force(int vflag)
 {
+  if (min_terminate) {
+    // pair/bond set forces on stale topology — zero them so CG sees zero
+    // gradient and exits cleanly via FTOL on the next iteration check.
+    double **f = atom->f;
+    const int nlocal = atom->nlocal;
+    for (int i = 0; i < nlocal; i++) f[i][0] = f[i][1] = f[i][2] = 0.0;
+    return;
+  }
   post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMSEVB::post_run()
+{
+  // During minimization (whichflag==2), partitions may finish at different
+  // steps.  The first to finish sends 0 here to match the Allreduce in
+  // min_pre_force on any still-running partition, causing it to terminate.
+  // If min_terminate is already set, this partition was stopped by another
+  // partition's signal — skip the Allreduce (no partner is waiting for us).
+  if (update->whichflag == 2 && !min_terminate) {
+    int local = 0, result = 0;
+    MPI_Allreduce(&local, &result, 1, MPI_INT, MPI_MIN, samerank);
+  }
+  min_terminate = false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1488,6 +1541,7 @@ void FixMSEVB::sync_before_neighbor_build() {}
 
 double FixMSEVB::compute_scalar()
 {
+  if (min_terminate) return 0.0;
   // Return PE correction: E_mixed - E_partition0
   // When fix_modify energy yes is set, compute_pe adds this to the raw
   // partition PE, giving the correct EVB-mixed potential energy.

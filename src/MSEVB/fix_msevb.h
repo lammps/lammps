@@ -36,12 +36,14 @@ class FixMSEVB : public Fix {
   void init() override;
   void init_list(int, class NeighList *) override;
   void setup(int) override;
+  void min_setup(int) override;
   void post_integrate() override;
   void setup_pre_force(int) override;
   void pre_force(int) override;
   void post_force(int) override;
   void min_pre_force(int) override;
   void min_post_force(int) override;
+  void post_run() override;
   double compute_scalar() override;
   double compute_vector(int) override;
   void *extract(const char *, int &) override;
@@ -300,6 +302,9 @@ class FixMSEVB : public Fix {
   // ---- SCF topology minimisation --------------------------------------
   bool scf_topology;    // default: true — re-evaluate EVB until no more transfers
   int scf_max_iter;     // max SCF iterations per step (default: 10)
+
+  // ---- Minimization termination handshake ----------------------------
+  bool min_terminate;    // set on non-zero partitions when P0 sends stop signal
 
   // ---- Misc -----------------------------------------------------------
   bool partition_warning{false};

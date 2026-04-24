@@ -125,6 +125,10 @@ namespace MathExtraKokkos {
                                               const KK_FLOAT *ey, const KK_FLOAT *ez,
                                               const KK_FLOAT *idiag, KK_FLOAT *m);
 
+  template <typename T>
+  KOKKOS_INLINE_FUNCTION
+  int sym3x3_eigen(const T A[3][3], T evals[3], T evecs[3][3], int sort = 1) noexcept;
+
   using Kokkos::fma;
 
 }
@@ -812,5 +816,263 @@ void MathExtraKokkos::omega_to_angmom(const KK_FLOAT *w, const KK_FLOAT *ex,
   m[1] = mbody[0]*ex[1] + mbody[1]*ey[1] + mbody[2]*ez[1];
   m[2] = mbody[0]*ex[2] + mbody[1]*ey[2] + mbody[2]*ez[2];
 }
+
+
+
+
+//
+// Device-compatible 3×3 real symmetric eigensolver, templated on scalar type T.
+//
+// Mixed-precision strategy:
+//   T            — storage precision (float or double); input tensor + output
+//   KK_ACC_FLOAT — accumulation precision; always double in LAMMPS Kokkos builds
+//                  regardless of T, matching the convention used in pair styles.
+//                  All intermediate Cardano arithmetic, norms, and trig run at
+//                  this precision; results are cast back to T on write-out.
+//
+// Algorithm:
+//   Eigenvalues  — Cardano trigonometric (Kopp 2008, arXiv:physics/0610206)
+//   Eigenvectors — cross-product of (A-λI) rows; degenerate cases handled via
+//                  analytic orthonormal complement (Hughes & Möller 1999)
+//
+// API is drop-in compatible with MathEigen::jacobi3:
+//   sym3x3_eigen(tensor, evals, evecs, 1)   ascending sort
+//   Always returns 0 (kept for parity).
+//
+// Convention (same as jacobi3):
+//   evecs[i][0..2] = components of i-th eigenvector
+//   evals[i]       = eigenvalue paired with evecs[i]
+
+// ── Accumulation-precision helpers ──────────────────────────────────────────
+// All geometry is done in KK_ACC_FLOAT regardless of T so that cross products
+// and norms don't lose significance when T == float.
+
+// Two orthonormal vectors spanning the plane perpendicular to unit vector u.
+// Uses the "most orthogonal axis" trick to avoid cancellation (Hughes & Möller).
+KOKKOS_INLINE_FUNCTION
+void orthonormal_complement(const KK_ACC_FLOAT u[3],
+                                  KK_ACC_FLOAT v[3],
+                                  KK_ACC_FLOAT w[3]) noexcept
+{
+  if (Kokkos::fabs(u[0]) > Kokkos::fabs(u[2])) {
+    const KK_ACC_FLOAT inv =
+        static_cast<KK_ACC_FLOAT>(1.0) /
+        Kokkos::sqrt(u[0]*u[0] + u[1]*u[1]);
+    v[0] = -u[1]*inv;  v[1] = u[0]*inv;  v[2] = static_cast<KK_ACC_FLOAT>(0);
+  } else {
+    const KK_ACC_FLOAT inv =
+        static_cast<KK_ACC_FLOAT>(1.0) /
+        Kokkos::sqrt(u[1]*u[1] + u[2]*u[2]);
+    v[0] = static_cast<KK_ACC_FLOAT>(0);
+    v[1] = -u[2]*inv;
+    v[2] =  u[1]*inv;
+  }
+  MathExtraKokkos::cross3(u, v, w);
+}
+
+// Compute the eigenvector for eigenvalue lam as the cross product of the pair
+// of rows of (A - lam·I) with the largest combined norm.
+// Returns squared norm of the winning cross product.
+// All six matrix entries are passed as KK_ACC_FLOAT (already upcast at call site).
+KOKKOS_INLINE_FUNCTION
+KK_ACC_FLOAT evec_from_eval(const KK_ACC_FLOAT a00,
+                             const KK_ACC_FLOAT a11,
+                             const KK_ACC_FLOAT a22,
+                             const KK_ACC_FLOAT a01,
+                             const KK_ACC_FLOAT a02,
+                             const KK_ACC_FLOAT a12,
+                             const KK_ACC_FLOAT lam,
+                                   KK_ACC_FLOAT ev[3]) noexcept
+{
+  const KK_ACC_FLOAT r0[3] = { a00-lam, a01,     a02     };
+  const KK_ACC_FLOAT r1[3] = { a01,     a11-lam, a12     };
+  const KK_ACC_FLOAT r2[3] = { a02,     a12,     a22-lam };
+
+  KK_ACC_FLOAT c01[3], c02[3], c12[3];
+  MathExtraKokkos::cross3(r0, r1, c01);
+  MathExtraKokkos::cross3(r0, r2, c02);
+  MathExtraKokkos::cross3(r1, r2, c12);
+
+  const KK_ACC_FLOAT n01 = MathExtraKokkos::dot3(c01, c01);
+  const KK_ACC_FLOAT n02 = MathExtraKokkos::dot3(c02, c02);
+  const KK_ACC_FLOAT n12 = MathExtraKokkos::dot3(c12, c12);
+
+  KK_ACC_FLOAT best_n;
+  if (n01 >= n02 && n01 >= n12) {
+    ev[0]=c01[0]; ev[1]=c01[1]; ev[2]=c01[2]; best_n=n01;
+  } else if (n02 >= n12) {
+    ev[0]=c02[0]; ev[1]=c02[1]; ev[2]=c02[2]; best_n=n02;
+  } else {
+    ev[0]=c12[0]; ev[1]=c12[1]; ev[2]=c12[2]; best_n=n12;
+  }
+  return best_n;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  sym3x3_eigen<T>
+//
+//  T       storage type  — float or double; controls input/output arrays
+//  A       [in]   3×3 symmetric matrix (upper = lower, as the caller sets up)
+//  evals   [out]  3 eigenvalues in type T
+//  evecs   [out]  evecs[i][j] = j-th component of i-th eigenvector, in type T
+//  sort    [in]   1 → ascending by eigenvalue (matches jacobi3 behaviour)
+//
+//  Returns 0 always (parity with MathEigen::jacobi3 error code).
+// ─────────────────────────────────────────────────────────────────────────────
+template <typename T>
+KOKKOS_INLINE_FUNCTION
+int MathExtraKokkos::sym3x3_eigen(const T A[3][3], T evals[3], T evecs[3][3], int sort) noexcept
+{
+  using acc_t = KK_ACC_FLOAT;   // accumulation type alias for readability
+
+  // ── Upcast matrix entries to accumulation precision once ──────────────────
+  const acc_t a00 = static_cast<acc_t>(A[0][0]);
+  const acc_t a11 = static_cast<acc_t>(A[1][1]);
+  const acc_t a22 = static_cast<acc_t>(A[2][2]);
+  const acc_t a01 = static_cast<acc_t>(A[0][1]);
+  const acc_t a02 = static_cast<acc_t>(A[0][2]);
+  const acc_t a12 = static_cast<acc_t>(A[1][2]);
+
+  // Working eigenvalues and eigenvector rows in accumulation precision.
+  // Cast to T only on final write-out.
+  acc_t ev[3];
+  acc_t ew[3][3];
+
+  // ── 1. Eigenvalues (Cardano) ──────────────────────────────────────────────
+
+  // Off-diagonal Frobenius norm squared; if zero, A is already diagonal.
+  const acc_t p1 = a01*a01 + a02*a02 + a12*a12;
+
+  constexpr acc_t ZERO  = static_cast<acc_t>(0);
+  constexpr acc_t ONE   = static_cast<acc_t>(1);
+  constexpr acc_t TWO   = static_cast<acc_t>(2);
+  constexpr acc_t THREE = static_cast<acc_t>(3);
+  constexpr acc_t SIXTH = ONE / static_cast<acc_t>(6);
+
+  // 2π/3 in accumulation precision
+  constexpr acc_t TWO_PI_3 = static_cast<acc_t>(2.09439510239319550457);
+
+  if (p1 < static_cast<acc_t>(1.0e-280)) {
+    // Diagonal: trivial
+    ev[0] = a00;  ev[1] = a11;  ev[2] = a22;
+    ew[0][0]=ONE;  ew[0][1]=ZERO; ew[0][2]=ZERO;
+    ew[1][0]=ZERO; ew[1][1]=ONE;  ew[1][2]=ZERO;
+    ew[2][0]=ZERO; ew[2][1]=ZERO; ew[2][2]=ONE;
+
+  } else {
+    // Shift to trace-zero: B = A - q·I
+    const acc_t q  = (a00 + a11 + a22) * (ONE/THREE);
+    const acc_t b0 = a00 - q,  b1 = a11 - q,  b2 = a22 - q;
+
+    // p = ||B||_F / sqrt(6)
+    const acc_t p2 = (b0*b0 + b1*b1 + b2*b2 + TWO*p1) * SIXTH;
+    const acc_t p  = Kokkos::sqrt(p2);
+    const acc_t ip = ONE / p;
+
+    // Scaled deviatoric matrix C = B/p
+    const acc_t C00=b0*ip, C11=b1*ip, C22=b2*ip;
+    const acc_t C01=a01*ip, C02=a02*ip, C12=a12*ip;
+
+    // r = det(C)/2, clamped to [-1,1]
+    acc_t r = static_cast<acc_t>(0.5) *
+              (  C00*(C11*C22 - C12*C12)
+               - C01*(C01*C22 - C12*C02)
+               + C02*(C01*C12 - C11*C02) );
+    r = (r < -ONE) ? -ONE : ((r > ONE) ? ONE : r);
+
+    // Three roots via Cardano trig formula
+    //   k=0 → middle, k=1 → largest, k=2 → smallest
+    const acc_t phi = Kokkos::acos(r) * (ONE/THREE);
+    ev[2] = q + TWO*p*Kokkos::cos(phi);
+    ev[0] = q + TWO*p*Kokkos::cos(phi + TWO_PI_3);
+    ev[1] = THREE*q - ev[0] - ev[2];  // trace residual: more stable than 3rd cos
+
+    // ── 2. Eigenvectors ───────────────────────────────────────────────────
+    const acc_t tol = static_cast<acc_t>(1.0e-8) *
+                      (Kokkos::fabs(ev[2]) + Kokkos::fabs(ev[0]));
+    const bool deg01 = (ev[1] - ev[0]) < tol;
+    const bool deg12 = (ev[2] - ev[1]) < tol;
+
+    if (deg01 && deg12) {
+      // Triple degeneracy: any orthonormal frame
+      ew[0][0]=ONE;  ew[0][1]=ZERO; ew[0][2]=ZERO;
+      ew[1][0]=ZERO; ew[1][1]=ONE;  ew[1][2]=ZERO;
+      ew[2][0]=ZERO; ew[2][1]=ZERO; ew[2][2]=ONE;
+
+    } else if (deg01) {
+      // ev[0] and ev[1] coalesce: compute distinct ev[2] then complement
+      evec_from_eval(a00,a11,a22,a01,a02,a12, ev[2], ew[2]);
+      MathExtraKokkos::norm3(ew[2]);
+      orthonormal_complement(ew[2], ew[0], ew[1]);
+
+    } else if (deg12) {
+      // ev[1] and ev[2] coalesce: compute distinct ev[0] then complement
+      evec_from_eval(a00,a11,a22,a01,a02,a12, ev[0], ew[0]);
+      MathExtraKokkos::norm3(ew[0]);
+      orthonormal_complement(ew[0], ew[1], ew[2]);
+
+    } else {
+      // All distinct: cross-product method for each
+      for (int k = 0; k < 3; ++k) {
+        evec_from_eval(a00,a11,a22,a01,a02,a12, ev[k], ew[k]);
+        MathExtraKokkos::norm3(ew[k]);
+      }
+    }
+  }
+
+  // ── 3. Ascending sort by eigenvalue (insertion, N=3) ─────────────────────
+  // Cardano already delivers ev[0] ≤ ev[1] ≤ ev[2] in exact arithmetic;
+  // this mops up any floating-point inversions.
+  if (sort) {
+    for (int i = 1; i < 3; ++i) {
+      const acc_t key_e  = ev[i];
+      const acc_t key_v0 = ew[i][0];
+      const acc_t key_v1 = ew[i][1];
+      const acc_t key_v2 = ew[i][2];
+      int j = i - 1;
+      while (j >= 0 && ev[j] > key_e) {
+        ev[j+1]    = ev[j];
+        ew[j+1][0] = ew[j][0];
+        ew[j+1][1] = ew[j][1];
+        ew[j+1][2] = ew[j][2];
+        --j;
+      }
+      ev[j+1]    = key_e;
+      ew[j+1][0] = key_v0;
+      ew[j+1][1] = key_v1;
+      ew[j+1][2] = key_v2;
+    }
+  }
+
+  // ── 4. Downcast to storage precision T and write out ─────────────────────
+  for (int i = 0; i < 3; ++i) {
+    evals[i] = static_cast<T>(ev[i]);
+    evecs[i][0] = static_cast<T>(ew[i][0]);
+    evecs[i][1] = static_cast<T>(ew[i][1]);
+    evecs[i][2] = static_cast<T>(ew[i][2]);
+  }
+
+  return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif // !LMP_MATH_EXTRA_KOKKOS_H

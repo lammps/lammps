@@ -28,6 +28,13 @@ class Few {
     }
   }
 // NOLINTNEXTLINE
+  template<typename... Args,
+           typename = std::enable_if_t<sizeof...(Args) == n>>
+  KOKKOS_INLINE_FUNCTION Few(Args... args) {
+    T tmp[n] = { T(args)... };
+    for (std::size_t i = 0; i < n; ++i) new (data() + i) T(tmp[i]);
+  }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION Few() {
     for (std::size_t i = 0; i < n; ++i) new (data() + i) T();
   }

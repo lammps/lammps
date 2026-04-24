@@ -249,7 +249,7 @@ was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
 Not all pair styles can be evaluated in a pairwise mode as required by
-this compute.  Currently, only the *heat/flux/virial/tally* compute supports many-body interactions, and up to date only the :doc:`Tersoff <pair_tersoff>` and :doc:`Stillinger-Weber <pair_sw>` many-body potentials have been implemented. For all other computes, pair styles with many-body interactions
+this compute.  Currently, only the *heat/flux/virial/tally* compute supports many-body interactions, and to date only the :doc:`Tersoff <pair_tersoff>` and :doc:`Stillinger-Weber <pair_sw>` many-body potentials have been implemented. For all other computes, pair styles with many-body interactions
 cannot be used. :doc:`EAM <pair_eam>` potentials only include the pair
 potential portion of the EAM interaction when used by this compute, not
 the embedding term.  Also bonded or Kspace interactions do not

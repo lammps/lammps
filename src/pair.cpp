@@ -1113,31 +1113,31 @@ void Pair::ev_tally(int i, int j, int nlocal, int newton_pair,
       }
     }
     
-/***************************  CENTROID ADDITION  ************************ */
-if (cvflag_atom){
-  if (newton_pair || i < nlocal) {
-    cvatom[i][0] += 0.5*v[0];
-    cvatom[i][1] += 0.5*v[1];
-    cvatom[i][2] += 0.5*v[2];
-    cvatom[i][3] += 0.5*v[3];
-    cvatom[i][4] += 0.5*v[4];
-    cvatom[i][5] += 0.5*v[5];
-    cvatom[i][6] += 0.5*v[3];  // Symmetric for pair potentials
-    cvatom[i][7] += 0.5*v[4];  // Symmetric for pair potentials
-    cvatom[i][8] += 0.5*v[5];  // Symmetric for pair potentials
-  }
-  if (newton_pair || j < nlocal) {
-    cvatom[j][0] += 0.5*v[0];
-    cvatom[j][1] += 0.5*v[1];
-    cvatom[j][2] += 0.5*v[2];
-    cvatom[j][3] += 0.5*v[3];
-    cvatom[j][4] += 0.5*v[4];
-    cvatom[j][5] += 0.5*v[5];
-    cvatom[j][6] += 0.5*v[3];  // Symmetric for pair potentials
-    cvatom[j][7] += 0.5*v[4];  // Symmetric for pair potentials
-    cvatom[j][8] += 0.5*v[5];  // Symmetric for pair potentials
-  }
-}
+    /***************************  CENTROID ADDITION  ************************ */
+    if (cvflag_atom){
+      if (newton_pair || i < nlocal) {
+        cvatom[i][0] += 0.5*v[0];
+        cvatom[i][1] += 0.5*v[1];
+        cvatom[i][2] += 0.5*v[2];
+        cvatom[i][3] += 0.5*v[3];
+        cvatom[i][4] += 0.5*v[4];
+        cvatom[i][5] += 0.5*v[5];
+        cvatom[i][6] += 0.5*v[3];  // Symmetric for pair potentials
+        cvatom[i][7] += 0.5*v[4];  // Symmetric for pair potentials
+        cvatom[i][8] += 0.5*v[5];  // Symmetric for pair potentials
+      }
+      if (newton_pair || j < nlocal) {
+        cvatom[j][0] += 0.5*v[0];
+        cvatom[j][1] += 0.5*v[1];
+        cvatom[j][2] += 0.5*v[2];
+        cvatom[j][3] += 0.5*v[3];
+        cvatom[j][4] += 0.5*v[4];
+        cvatom[j][5] += 0.5*v[5];
+        cvatom[j][6] += 0.5*v[3];  // Symmetric for pair potentials
+        cvatom[j][7] += 0.5*v[4];  // Symmetric for pair potentials
+        cvatom[j][8] += 0.5*v[5];  // Symmetric for pair potentials
+      }
+    }
 /***************************  CENTROID ADDITION  ************************ */
   }
 
@@ -1906,8 +1906,8 @@ void Pair::cv_tally4(int i, int j, int k, int l, double *fi, double *fj, double 
     cvatom[l][8] += rl0[2] * fl[1];
   }
     
-    /* Callbacks to the Compute::pair_cv_tally4_callback() function */
-    if (num_tally_compute > 0) {
+  /* Callbacks to the Compute::pair_cv_tally4_callback() function */
+  if (num_tally_compute > 0) {
     did_tally_flag = 1;
     for (int m=0; m < num_tally_compute; ++m) {
       Compute *c = list_tally_compute[m];

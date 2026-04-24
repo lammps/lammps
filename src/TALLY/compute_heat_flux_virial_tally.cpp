@@ -88,9 +88,8 @@ ComputeHeatFluxVirialTally::ComputeHeatFluxVirialTally(LAMMPS *lmp, int narg, ch
       iarg++;
     }
   }
-  if (lmp->citeme) {
-  if(force->pair->manybody_flag) lmp->citeme->add(cite_tally_pair_manybody);
-  }
+  if (lmp->citeme && force && force->pair && force->pair->manybody_flag)
+    lmp->citeme->add(cite_tally_pair_manybody);
 }
 
 /* ---------------------------------------------------------------------- */

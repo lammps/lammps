@@ -13,6 +13,7 @@
 
 #include "molecule.h"
 
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"
@@ -2472,6 +2473,9 @@ void Molecule::read(int flag)
       } else if (values.matches(R"(^\s*\d+\s+bond\s+types\s*$)")) {
         nbondcoefftypes = values.next_int();
         nwant = 3;
+      } else if (values.matches(R"(^\s*\d+\s+angle\s+types\s*$)")) {
+        nanglecoefftypes = values.next_int();
+        nwant = 3;
       } else if (values.matches(R"(^\s*\d+\s+angles\s*$)")) {
         nangles = values.next_int();
         nwant = 2;
@@ -2690,29 +2694,55 @@ void Molecule::read(int flag)
       dbodyflag = 1;
       body(flag, 1, line);
     } else if (keyword == "Pair Coeffs") {
-        if (force->pair == nullptr)
-          error->all(FLERR, Error::ARGZERO, "Must define pair_style before Pair Coeffs");
-        if (flag) {
-          if (comm->me == 0 && !atom->style_match(force->pair_style))
-            error->warning(
-                FLERR, "Pair style {} in molecule file differs from currently defined pair style {}",
-                atom->get_style(), force->pair_style);
-          paircoeffs();
-        } else skip_lines(natomtypes, line, keyword);
-      } else if (keyword == "Bond Coeffs") {
-        if (atom->avec->bonds_allow == 0)
-          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Bond Coeffs");
-        if (force->bond == nullptr)
-          error->all(FLERR, Error::ARGZERO, "Must define bond_style before Bond Coeffs");
-        if (flag) {
-          if (comm->me == 0 && !atom->style_match(force->bond_style))
-            error->warning(
-                FLERR, "Bond style {} in data file differs from currently defined bond style {}",
-                atom->get_style(), force->bond_style);
-          bondcoeffs();
-        } else skip_lines(nbondcoefftypes, line, keyword);
+      if (force->pair == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define pair_style before Pair Coeffs");
+      if (flag) {
+        if (comm->me == 0 && !atom->style_match(force->pair_style))
+          error->warning(
+              FLERR, "Pair style {} in molecule file differs from currently defined pair style {}",
+              atom->get_style(), force->pair_style);
+        paircoeffs();
+      } else skip_lines(natomtypes, line, keyword);
+    } else if (keyword == "Bond Coeffs") {
+      if (atom->avec->bonds_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Bond Coeffs");
+      if (force->bond == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define bond_style before Bond Coeffs");
+      if (flag) {
+        if (comm->me == 0 && !atom->style_match(force->bond_style))
+          error->warning(
+              FLERR, "Bond style {} in data file differs from currently defined bond style {}",
+              atom->get_style(), force->bond_style);
+        bondcoeffs();
+      } else skip_lines(nbondcoefftypes, line, keyword);
+    } else if (keyword == "Angle Coeffs") {
+      if (atom->avec->angles_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid data file section: Angle Coeffs");
+      if (force->angle == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define angle_style before Angle Coeffs");
+      if (flag) {
+        if (comm->me == 0 && !atom->style_match(force->angle_style))
+          error->warning(
+              FLERR, "Angle style {} in data file differs from currently defined angle style {}",
+              atom->get_style(), force->angle_style);
+        anglecoeffs(0);
+      } else skip_lines(nanglecoefftypes, line, keyword);
+    } else if (keyword == "BondBond Coeffs") {
+      if (atom->avec->angles_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid data file section: BondBond Coeffs");
+      if (force->angle == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondBond Coeffs");
+      if (flag) anglecoeffs(1);
+      else skip_lines(nanglecoefftypes, line, keyword);
+    } else if (keyword == "BondAngle Coeffs") {
+      if (atom->avec->angles_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid data file section: BondAngle Coeffs");
+      if (force->angle == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondAngle Coeffs");
+      if (flag) anglecoeffs(2);
+      else skip_lines(nanglecoefftypes, line, keyword);
     } else if ((keyword == "Atoms") || (keyword == "Velocities") ||
-               (keyword == "Angle Coeffs") || (keyword == "Dihedral Coeffs") || (keyword == "Improper Coeffs")) {
+               (keyword == "Dihedral Coeffs") || (keyword == "Improper Coeffs")) {
       error->all(FLERR, fileiarg, "Found data file section '{}' in molecule file\n", keyword);
     } else {
 
@@ -3255,9 +3285,10 @@ void Molecule::angles(int flag, char *line)
       case 1: {    // type label
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid angle type {} in {}: {}", typestr, location, utils::trim(line));
-        itype = atom->lmap->find_type(typestr, Atom::ANGLE);
+        itype = atom->lmap->find_or_create(typestr, atom->lmap->atypelabel, atom->lmap->atypelabel_map);
         if (itype == -1)
           error->all(FLERR, fileiarg, "Unknown angle type {} in {}: {}", typestr, location, utils::trim(line));
+        atom->lmap->create_lmap2lmap(atom->lmap, Atom::ANGLE);
         break;
       }
       default:    // invalid
@@ -4397,6 +4428,44 @@ void Molecule::bondcoeffs()
 }
 
 /* ----------------------------------------------------------------------
+   read angle coeffs from molecule template 
+------------------------------------------------------------------------- */
+
+void Molecule::anglecoeffs(int which)
+{
+  if (!nanglecoefftypes) return;
+
+  char *next;
+  auto *buf = new char[nanglecoefftypes * MAXLINE];
+
+  int eof = utils::read_lines_from_file(fp, nanglecoefftypes, MAXLINE, buf, comm->me, world);
+  if (eof) error->all(FLERR, "Unexpected end of data file");
+
+  int alabelflag = atom->labelmapflag;
+  if (alabelflag && !atom->lmap->is_complete(Atom::ANGLE))
+    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
+
+  char *original = buf;
+  for (int i = 0; i < nanglecoefftypes; i++) {
+    next = strchr(buf, '\n');
+    *next = '\0';
+    if (which == 0)
+      parse_coeffs(buf, nullptr, 0, 1, aoffset, Atom::ANGLE);
+    else if (which == 1)
+      parse_coeffs(buf, "bb", 0, 1, aoffset, Atom::ANGLE);
+    else if (which == 2)
+      parse_coeffs(buf, "ba", 0, 1, aoffset, Atom::ANGLE);
+    else if (which == 3)
+      parse_coeffs(buf, "ub", 0, 1, aoffset, Atom::ANGLE);
+    if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in AngleCoeffs section");
+    force->angle->coeff(ncoeffarg, coeffarg);
+    buf = next + 1;
+  }
+  delete[] original;
+}
+
+
+/* ----------------------------------------------------------------------
    parse a line of coeffs into words, storing them in ncoeffarg,coeffarg
    trim anything from '#' onward
    word strings remain in line, are not copied
@@ -4524,6 +4593,7 @@ void Molecule::initialize()
   ntypes = 0;
   nmolecules = 1;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
+  nbondcoefftypes = nanglecoefftypes = 0;
   nibody = ndbody = 0;
   nfragments = 0;
   masstotal = 0.0;

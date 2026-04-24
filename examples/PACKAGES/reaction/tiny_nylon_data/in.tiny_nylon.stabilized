@@ -25,6 +25,7 @@ pair_modify tail yes mix sixthpower
 read_data tiny_nylon.data &
   extra/atom/types 1 &
   extra/bond/types 3 &
+  extra/angle/types 9 &
   extra/bond/per/atom 5  &
   extra/angle/per/atom 15 &
   extra/dihedral/per/atom 15 &

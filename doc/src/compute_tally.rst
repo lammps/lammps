@@ -113,7 +113,7 @@ where :math:`k` runs over all :math:`K_N` many-body potential energy terms that 
 
 The :code:`two_body`, :code:`three_body` and :code:`four_body` keywords are only available for the *heat/flux/virial/tally* compute and function as flags controlling the inclusion of 2-body, 3-body and 4-body interactions terms in the calculation of :math:`\mathbf{F}^{2 \rightarrow 1}_i`.
 
-The *heat/flux/virial/tally* compute can also be used to easily obtain the spectral decomposition of the heat current with many-body interactions, as described in :ref:`(Poulos2026)  <Poulos1>`. 
+The *heat/flux/virial/tally* compute can also be used to easily obtain the spectral decomposition of the heat current with many-body interactions, as described in :ref:`(Poulos2026)  <Poulos1_tally>`. 
 
 .. math::
 
@@ -280,6 +280,6 @@ By default, the compute includes contributions from all many-body interactions, 
 
 ----------
 
-.. _Poulos1:
+.. _Poulos1_tally:
 
 **(Poulos2026)** Poulos, Surblys, Termentzidis, Phys Rev B, 113, 045414 (2026).

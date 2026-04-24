@@ -103,6 +103,9 @@ namespace MathExtraKokkos {
   KOKKOS_INLINE_FUNCTION void quat_to_mat(const T *quat, T mat[3][3]);
 
   template <typename T>
+  KOKKOS_INLINE_FUNCTION void exyz_to_q(const T *q, const T *ex, const T *ey, T *ez);
+
+  template <typename T>
   KOKKOS_INLINE_FUNCTION void q_to_exyz(const T *q, T *ex, T *ey, T *ez);
 
   template <typename T>
@@ -638,6 +641,47 @@ void MathExtraKokkos::mq_to_omega(KK_FLOAT *m, T *q, KK_FLOAT *moments, KK_FLOAT
   if (moments[2] == 0.0) wbody[2] = 0.0;
   else wbody[2] /= moments[2];
   MathExtraKokkos::matvec(rot,wbody,w);
+}
+
+/* ----------------------------------------------------------------------
+   create unit quaternion from space-frame ex,ey,ez
+   ex,ey,ez are columns of a rotation matrix
+------------------------------------------------------------------------- */
+
+template <typename T>
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::exyz_to_q(const T *ex, const T *ey, const T *ez, T *q)
+{
+  // squares of quaternion components
+  T q0sq = 0.25 * (ex[0] + ey[1] + ez[2] + 1.0);
+  T q1sq = q0sq - 0.5 * (ey[1] + ez[2]);
+  T q2sq = q0sq - 0.5 * (ex[0] + ez[2]);
+  T q3sq = q0sq - 0.5 * (ex[0] + ey[1]);
+
+  // some component must be greater than 1/4 since they sum to 1
+  // compute other components from it
+  if (q0sq >= 0.25) {
+    q[0] = sqrt(q0sq);
+    q[1] = (ey[2] - ez[1]) / (4.0*q[0]);
+    q[2] = (ez[0] - ex[2]) / (4.0*q[0]);
+    q[3] = (ex[1] - ey[0]) / (4.0*q[0]);
+  } else if (q1sq >= 0.25) {
+    q[1] = sqrt(q1sq);
+    q[0] = (ey[2] - ez[1]) / (4.0*q[1]);
+    q[2] = (ey[0] + ex[1]) / (4.0*q[1]);
+    q[3] = (ex[2] + ez[0]) / (4.0*q[1]);
+  } else if (q2sq >= 0.25) {
+    q[2] = sqrt(q2sq);
+    q[0] = (ez[0] - ex[2]) / (4.0*q[2]);
+    q[1] = (ey[0] + ex[1]) / (4.0*q[2]);
+    q[3] = (ez[1] + ey[2]) / (4.0*q[2]);
+  } else if (q3sq >= 0.25) {
+    q[3] = sqrt(q3sq);
+    q[0] = (ex[1] - ey[0]) / (4.0*q[3]);
+    q[1] = (ez[0] + ex[2]) / (4.0*q[3]);
+    q[2] = (ez[1] + ey[2]) / (4.0*q[3]);
+  }
+  qnormalize(q);
 }
 
 /* ----------------------------------------------------------------------

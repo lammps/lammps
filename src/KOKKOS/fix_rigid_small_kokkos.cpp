@@ -36,10 +36,10 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
   FixRigidBaseKokkos<DeviceType, FixRigidSmall>(atom, domain)
 {
   kokkosable = 1;
-  forward_comm_device = 1;
-  reverse_comm_device = 1;
-  exchange_comm_device = 1;
-  sort_device = 1;
+  forward_comm_device = 0;
+  reverse_comm_device = 0;
+  exchange_comm_device = 0;
+  sort_device = 0;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 }

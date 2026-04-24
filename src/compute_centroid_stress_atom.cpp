@@ -161,7 +161,8 @@ ComputeCentroidStressAtom::ComputeCentroidStressAtom(LAMMPS *lmp, int narg, char
     if (angleflag || dihedralflag || improperflag)
       lmp->citeme->add(cite_centroid_angle_improper_dihedral);
     if (fixflag) lmp->citeme->add(cite_centroid_shake_rigid);
-    if(force->pair->manybody_flag) lmp->citeme->add(cite_centroid_pair_manybody);
+    if (pairflag && force->pair && force->pair->manybody_flag)
+      lmp->citeme->add(cite_centroid_pair_manybody);
   }
 }
 

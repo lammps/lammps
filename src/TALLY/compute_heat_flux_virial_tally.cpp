@@ -198,7 +198,7 @@ void ComputeHeatFluxVirialTally::pair_tally_callback(int i, int j, int nlocal, i
 /*
 The H_ij is equal to (H(x_i-x_cs) - H(x_j-x_cs)) where H is the Heaviside step function and x_cs is the control surface coordinate. (Torii 2008)
 
-- H_ij = 1 if i in group1 and j in group2  
+- H_ij = 1 if i in group1 and j in group2
 - H_ij = -1 if i in group2 and j in group1 (even if i and j belong to both groups; this is a problem of incorrect simulation setup, not of our implementation)
 - H_ij = 0 otherwise (i.e if i and j are both in group1 or both in group2)
 

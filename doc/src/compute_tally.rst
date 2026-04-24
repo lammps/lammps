@@ -34,7 +34,7 @@ Syntax
 * style = *force/tally* or *heat/flux/tally* or *heat/flux/virial/tally* or *pe/tally* or *pe/mol/tally* or *stress/tally*
 * group2-ID = group ID of second (or same) group
 * zero or more keywords may be appended
-* keyword = :code:`two_body` and/or :code:`three_body` and/or :code:`four_body` 
+* keyword = :code:`two_body` and/or :code:`three_body` and/or :code:`four_body`
 
 Examples
 """"""""
@@ -89,14 +89,14 @@ with the second group. For pairwise interactions, it is given by:
 .. math::
 
    Q^{\text{virial}}_{2 \rightarrow 1} = \frac{1}{2} \sum_{i \in \text{group 1}} \sum_{j \in \text{group 2}} \mathbf{F}_{ij} \cdot \left(\mathbf{v}_i + \mathbf{v}_j \right)
- 
+
 .. versionchanged:: TBD
 
 For many-body-interactions, the above expression needs to be modified. Details of this derivation can be found in :ref:`(Poulos2026)  <Poulos1>`. The resulting expression for the virial heat flow is given by:
 
 .. math::
 
-  Q^{\text{virial}}_{2 \rightarrow 1} = \sum_i \mathbf{F}^{2 \rightarrow 1}_i \cdot \mathbf{v}_i 
+  Q^{\text{virial}}_{2 \rightarrow 1} = \sum_i \mathbf{F}^{2 \rightarrow 1}_i \cdot \mathbf{v}_i
 
 
 where now :math:`i` runs over all atoms in both groups. The many-body force term :math:`\mathbf{F}^{2 \rightarrow 1}_i` is defined as
@@ -113,17 +113,17 @@ where :math:`k` runs over all :math:`K_N` many-body potential energy terms that 
 
 The :code:`two_body`, :code:`three_body` and :code:`four_body` keywords are only available for the *heat/flux/virial/tally* compute and function as flags controlling the inclusion of 2-body, 3-body and 4-body interactions terms in the calculation of :math:`\mathbf{F}^{2 \rightarrow 1}_i`.
 
-The *heat/flux/virial/tally* compute can also be used to easily obtain the spectral decomposition of the heat current with many-body interactions, as described in :ref:`(Poulos2026)  <Poulos1_tally>`. 
+The *heat/flux/virial/tally* compute can also be used to easily obtain the spectral decomposition of the heat current with many-body interactions, as described in :ref:`(Poulos2026)  <Poulos1_tally>`.
 
 .. math::
 
-  Q^{\text{virial}}_{2 \rightarrow 1}(\omega) = \frac{2}{\tau_{total}}\sum_i Re\{\langle \hat{\mathbf{F}}^{2 \rightarrow 1}_i(\omega) \cdot \hat{\mathbf{v}}^*_i(\omega) \rangle \} 
+  Q^{\text{virial}}_{2 \rightarrow 1}(\omega) = \frac{2}{\tau_{total}}\sum_i Re\{\langle \hat{\mathbf{F}}^{2 \rightarrow 1}_i(\omega) \cdot \hat{\mathbf{v}}^*_i(\omega) \rangle \}
 
 where :math:`\hat{A}(\omega)` is the Fourier transforms of the time-dependent property :math:`A(t)`, :math:`*` denotes complex conjugate and :math:`\tau_{total}` is the total simulation time. Below is an example of how to obtain :math:`Q^{\text{virial}}_{2 \rightarrow 1}(\omega)` through LAMMPS using the *heat/flux/virial/tally* compute:
 
 .. code-block:: LAMMPS
 
-   # Calculate the heat flow from group G_B to G_A, 
+   # Calculate the heat flow from group G_B to G_A,
    # and its spectral decomposition.
    # Group 'Interface' contains the interacting atoms from both groups.
 
@@ -142,9 +142,9 @@ where :math:`\hat{A}(\omega)` is the Fourier transforms of the time-dependent pr
    thermo_style   custom step temp etotal f_ave_heat
    dump     data  Interface custom ${N_force} Virial.dat id c_force_mb[1] c_force_mb[2] c_force_mb[3] vx vy vz
 
-The :code:`f_ave_heat` variable then gives the instantaneous heat current, while the Fourier transforms of the :code:`c_force_mb` vector and the atomic velocities :code:`vx`, :code:`vy`, :code:`vz` can be used to compute the spectral decomposition :math:`Q(\omega)` as detailed above. 
+The :code:`f_ave_heat` variable then gives the instantaneous heat current, while the Fourier transforms of the :code:`c_force_mb` vector and the atomic velocities :code:`vx`, :code:`vy`, :code:`vz` can be used to compute the spectral decomposition :math:`Q(\omega)` as detailed above.
 
-The *heat/flux/virial/tally* compute enables the calculation of both the instantaneous heat flow as well as its spectral decomposition across any arbitrary control surface defined as the physical boundary between the two groups. This thus enables the study of heat flow across interfaces of any arbitrary geometry and not necessarily planar ones. 
+The *heat/flux/virial/tally* compute enables the calculation of both the instantaneous heat flow as well as its spectral decomposition across any arbitrary control surface defined as the physical boundary between the two groups. This thus enables the study of heat flow across interfaces of any arbitrary geometry and not necessarily planar ones.
 
 Although, the *heat/flux/virial/tally* compute
 does not include the convective term,
@@ -276,7 +276,7 @@ Related commands
 Default
 """""""
 
-By default, the compute includes contributions from all many-body interactions, that is, the keywords :code:`two_body`, :code:`three_body` and :code:`four_body` are all activated by default. 
+By default, the compute includes contributions from all many-body interactions, that is, the keywords :code:`two_body`, :code:`three_body` and :code:`four_body` are all activated by default.
 
 ----------
 

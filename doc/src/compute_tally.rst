@@ -96,7 +96,7 @@ For many-body-interactions, the above expression needs to be modified. Details o
 
 .. math::
 
-  Q^{\text{virial}}_{2 \rightarrow 1} = \sum_i \mathbf{F}^{1 \rightarrow 2}_i \cdot \mathbf{v}_i 
+  Q^{\text{virial}}_{2 \rightarrow 1} = \sum_i \mathbf{F}^{2 \rightarrow 1}_i \cdot \mathbf{v}_i 
 
 
 where now :math:`i` runs over all atoms in both groups. The many-body force term :math:`\mathbf{F}^{2 \rightarrow 1}_i` is defined as

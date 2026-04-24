@@ -149,6 +149,8 @@ boundaries so that the cluster of atoms is close together.  The total
 contribution for the cluster interaction is divided evenly among those
 atoms.
 
+.. versionchanged:: TBD
+
 Details of how compute *centroid/stress/atom* obtains the virial for
 individual atoms are given in :ref:`(Poulos2026) <Poulos1>`, :ref:`(Surblys2019) <Surblys1>` and
 :ref:`(Surblys2021) <Surblys2>`. The main idea is that the virial of the atom :math:`I` is the sum over all many-body interaction terms where atom :math:`I` participates, of the force :math:`\mathbf{F}_I` on the atom due to the specific interaction term and

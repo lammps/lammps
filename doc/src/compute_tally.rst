@@ -68,7 +68,7 @@ the base classes of LAMMPS.
 
 ----------
 
-Compute *heat/flux/tally* obtains the heat flux
+For pairwise interactions, compute *heat/flux/tally* obtains the heat flux
 (strictly speaking, heat flow) inside the first group,
 which is the sum of the convective contribution
 due to atoms in the first group and the virial contribution, strictly due to pairwise non-bonded interactions between the first and second groups:
@@ -90,6 +90,7 @@ with the second group. For pairwise interactions, it is given by:
 
    Q^{\text{virial}}_{2 \rightarrow 1} = \frac{1}{2} \sum_{i \in \text{group 1}} \sum_{j \in \text{group 2}} \mathbf{F}_{ij} \cdot \left(\mathbf{v}_i + \mathbf{v}_j \right)
  
+.. versionchanged:: TBD
 
 For many-body-interactions, the above expression needs to be modified. Details of this derivation can be found in :ref:`(Poulos2026)  <Poulos1>`. The resulting expression for the virial heat flow is given by:
 

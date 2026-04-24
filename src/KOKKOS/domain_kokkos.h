@@ -75,10 +75,15 @@ class DomainKokkos : public Domain {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_x2lamda_group, const int&) const;
 
+  template <typename T, class T2>
 // NOLINTNEXTLINE
-  template <typename T>
   static KOKKOS_INLINE_FUNCTION
-  Few<T,3> unmap(Few<T,3> prd, Few<T,6> h, int triclinic, Few<T,3> x, imageint image);
+  Few<T,3> unmap(Few<T,3> prd, Few<T,6> h, int triclinic, const T2 &x, imageint image);
+
+  template <typename T, bool TRICLINIC>
+// NOLINTNEXTLINE
+  static KOKKOS_INLINE_FUNCTION
+  void minimum_image_big(Few<bool,3> periodic, Few<T,3> prd, Few<T,3> invprd, T &dx, T &dy, T &dz, T &l_absmax);
 
  private:
   int groupbit;
@@ -88,6 +93,11 @@ class DomainKokkos : public Domain {
   ArrayTypes<LMPDeviceType>::t_imageint_1d image;
   ArrayTypes<LMPDeviceType>::t_int_1d mask;
 };
+
+
+/* ----------------------------------------------------------------------
+   static methods
+------------------------------------------------------------------------- */
 
 // T2 can be Few<T,3> or anything with [] operator for convenience, eg. float*
 // BEFORE
@@ -120,6 +130,52 @@ Few<T,3> DomainKokkos::unmap(Few<T,3> prd, Few<T,6> h, int triclinic,
     y[2] = fma(h[2], zbox, x[2]);
   }
   return y;
+}
+
+/* ----------------------------------------------------------------------
+   minimum image convention in periodic dimensions
+   use 1/2 of box size as test
+   for triclinic, also add/subtract tilt factors in other dims as needed
+   allow multiple box lengths to enable distance to
+     far-away ghost atom returned by atom->map() to be wrapped back into box
+     could be problem for looking up atom IDs when cutoff > boxsize
+   this should be used when there is a large image count difference possible
+     this applies for example to fix rigid/small
+
+  my friend claude said about cpu version...
+  "This ancient code smells like late 90s / early 2000s HPC. Very Sandia.
+  Very “don’t trust libm.” 😄
+------------------------------------------------------------------------- */
+
+template <typename T, bool TRICLINIC>
+KOKKOS_INLINE_FUNCTION
+void DomainKokkos::minimum_image_big(Few<bool,3> periodic, Few<T,3> prd, Few<T,3> invprd, T &dx, T &dy, T &dz, T &l_absmax)
+{
+  auto periodic_shift = [](const T d, const T invp, T &l_absmax) -> T {
+    const T dfactor = Kokkos::round(d * invp);
+    if (Kokkos::abs(dfactor) > MAXSMALLINT) {
+      l_absmax = Kokkos::max(l_absmax, Kokkos::abs(d));
+      return static_cast<T>(MAXSMALLINT + 1);
+    }
+    return dfactor;
+  };
+  if constexpr (TRICLINIC) {
+    if (periodic[2]) {
+      const T fd = periodic_shift(dz, invprd[2]);
+      dz = fma(-prd[2], fd, dz);
+      // FIXME dy = fma(-yz, fd, dy);
+      // FIXME dx = fma(-xz, fd, dx);
+    }
+    if (periodic[1]) {
+      const T fd = periodic_shift(dy, invprd[1]);
+      dy = fma(-prd[1], fd, dy);
+      // FIXME dx = fma(-xy, fd, dx);
+    }
+  } else {
+    if (periodic[2]) dz = fma(-prd[2], periodic_shift(dz, invprd[2]), dz);
+    if (periodic[1]) dy = fma(-prd[1], periodic_shift(dy, invprd[1]), dy);
+  }
+  if (periodic[0]) dx = fma(-prd[0], periodic_shift(dx, invprd[0]), dx);
 }
 
 }

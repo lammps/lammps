@@ -66,6 +66,38 @@ class Few {
   KOKKOS_INLINE_FUNCTION T const& operator[](std::size_t i) const {
     return data()[i];
   }
+
+/* ----------------------------------------------------------------------
+  convenience operators
+------------------------------------------------------------------------- */
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION Few<T, n>& operator+=(Few<T, n> const& rhs) {
+    for (std::size_t i = 0; i < n; ++i) data()[i] += rhs[i];
+    return *this;
+  }
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION Few<T, n>& operator-=(Few<T, n> const& rhs) {
+    for (std::size_t i = 0; i < n; ++i) data()[i] -= rhs[i];
+    return *this;
+  }
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION Few<T, n> operator+(Few<T, n> const& rhs) const {
+    Few<T, n> res(*this); // Calls the copy constructor
+    res += rhs;
+    return res;
+  }
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION Few<T, n> operator-(Few<T, n> const& rhs) const {
+    Few<T, n> res(*this); // Calls the copy constructor
+    res -= rhs;
+    return res;
+  }
+
+
 };
 
 #endif

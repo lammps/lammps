@@ -159,6 +159,7 @@ protected:
 
 
   // fix rigid protected methods
+  void setup_bodies_static_base();
   void setup_bodies_dynamic_base();
   void compute_forces_and_torques_base();
   void enforce2d_base();

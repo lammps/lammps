@@ -78,12 +78,12 @@ class DomainKokkos : public Domain {
   template <typename T, class T2>
 // NOLINTNEXTLINE
   static KOKKOS_INLINE_FUNCTION
-  Few<T,3> unmap(Few<T,3> prd, Few<T,6> h, int triclinic, const T2 &x, imageint image);
+  Few<T,3> unmap(Few<T,3>, Few<T,6>, int, const T2&, imageint);
 
-  template <typename T, bool TRICLINIC>
+  template <bool TRICLINIC, typename T>
 // NOLINTNEXTLINE
   static KOKKOS_INLINE_FUNCTION
-  void minimum_image_big(Few<bool,3> periodic, Few<T,3> prd, Few<T,3> invprd, T &dx, T &dy, T &dz, T &l_absmax);
+  void minimum_image_big(const Few<bool,3>&, const Few<T,3>&, const Few<T,3>&, const Few<T,6>&, Few<T,3>&, T&);
 
  private:
   int groupbit;
@@ -147,35 +147,44 @@ Few<T,3> DomainKokkos::unmap(Few<T,3> prd, Few<T,6> h, int triclinic,
   Very “don’t trust libm.” 😄
 ------------------------------------------------------------------------- */
 
-template <typename T, bool TRICLINIC>
+template <bool TRICLINIC, typename T>
 KOKKOS_INLINE_FUNCTION
-void DomainKokkos::minimum_image_big(Few<bool,3> periodic, Few<T,3> prd, Few<T,3> invprd, T &dx, T &dy, T &dz, T &l_absmax)
+void DomainKokkos::minimum_image_big(
+  const Few<bool,3>& periodic,
+  const Few<T,3>& prd,
+  const Few<T,3>& invprd,
+  const Few<T,6>& h,
+  Few<T,3>& delta,
+  T& dflag)
 {
-  auto periodic_shift = [](const T d, const T invp, T &l_absmax) -> T {
+  auto periodic_shift = [](const T d, const T invp, T &l_dflag) -> T {
     const T dfactor = Kokkos::round(d * invp);
     if (Kokkos::abs(dfactor) > MAXSMALLINT) {
-      l_absmax = Kokkos::max(l_absmax, Kokkos::abs(d));
+      l_dflag = d;
       return static_cast<T>(MAXSMALLINT + 1);
     }
     return dfactor;
   };
   if constexpr (TRICLINIC) {
     if (periodic[2]) {
-      const T fd = periodic_shift(dz, invprd[2]);
-      dz = fma(-prd[2], fd, dz);
       // FIXME dy = fma(-yz, fd, dy);
       // FIXME dx = fma(-xz, fd, dx);
+      const T fd = periodic_shift(delta[2], invprd[2], dflag);
+      delta[2] = fma(-prd[2], fd, delta[2]);
     }
     if (periodic[1]) {
-      const T fd = periodic_shift(dy, invprd[1]);
-      dy = fma(-prd[1], fd, dy);
       // FIXME dx = fma(-xy, fd, dx);
+      const T fd = periodic_shift(delta[1], invprd[1], dflag);
+      delta[1] = fma(-prd[1], fd, delta[1]);
     }
   } else {
-    if (periodic[2]) dz = fma(-prd[2], periodic_shift(dz, invprd[2]), dz);
-    if (periodic[1]) dy = fma(-prd[1], periodic_shift(dy, invprd[1]), dy);
+    if (periodic[2])
+      delta[2] = fma(-prd[2], periodic_shift(delta[2], invprd[2], dflag), delta[2]);
+    if (periodic[1])
+      delta[1] = fma(-prd[1], periodic_shift(delta[1], invprd[1], dflag), delta[1]);
   }
-  if (periodic[0]) dx = fma(-prd[0], periodic_shift(dx, invprd[0]), dx);
+  if (periodic[0])
+    delta[0] = fma(-prd[0], periodic_shift(delta[0], invprd[0], dflag), delta[0]);
 }
 
 }

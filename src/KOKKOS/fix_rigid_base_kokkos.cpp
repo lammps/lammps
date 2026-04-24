@@ -174,34 +174,11 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::init_base()
 template<class DeviceType, class FixRigidBase>
 void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_pre_neighbor_base()
 {
-  base()->setupflag = 0;
-  atomKK->sync(Host, ALL_MASK);
-  k_body.sync_host();
-  k_bodyown.sync_host();
-  k_bodytag.sync_host();
-  k_atom2body.sync_host();
-  k_xcmimage.sync_host();
-  k_displace.sync_host();
-  if (base()->extended) k_eflags.sync_host();
-
-  base()->FixRigidBase::setup_pre_neighbor();
-
-  atomKK->modified(Host, X_MASK | IMAGE_MASK);
-  k_body.modify_host();
-  k_bodyown.modify_host();
-  k_bodytag.modify_host();
-  k_atom2body.modify_host();
-  k_xcmimage.modify_host();
-  k_displace.modify_host();
-  if (base()->extended) k_eflags.modify_host();
-  atomKK->sync(Device, X_MASK | IMAGE_MASK);
-  k_body.sync_device();
-  k_bodyown.sync_device();
-  k_bodytag.sync_device();
-  k_atom2body.sync_device();
-  k_xcmimage.sync_device();
-  k_displace.sync_device();
-  if (base()->extended) k_eflags.sync_device();
+  if (base()->reinitflag || !base()->setupflag) setup_bodies_static_base();
+  else pre_neighbor_base();
+  if ((base()->reinitflag || !base()->setupflag) && !base()->inpfile)
+    setup_bodies_dynamic_base();
+  base()->setupflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

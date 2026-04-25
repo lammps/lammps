@@ -161,21 +161,21 @@ void DomainKokkos::minimum_image_big(
     const T dfactor = Kokkos::round(d * invp);
     if (Kokkos::abs(dfactor) > MAXSMALLINT) {
       l_dflag = d;
-      return static_cast<T>(MAXSMALLINT + 1);
+      return static_cast<T>(MAXSMALLINT);
     }
     return dfactor;
   };
   if constexpr (TRICLINIC) {
     if (periodic[2]) {
-      // FIXME dy = fma(-yz, fd, dy);
-      // FIXME dx = fma(-xz, fd, dx);
       const T fd = periodic_shift(delta[2], invprd[2], dflag);
       delta[2] = fma(-prd[2], fd, delta[2]);
+      delta[1] = fma(-h[5], fd, delta[1]);
+      delta[0] = fma(-h[4], fd, delta[0]);
     }
     if (periodic[1]) {
-      // FIXME dx = fma(-xy, fd, dx);
       const T fd = periodic_shift(delta[1], invprd[1], dflag);
       delta[1] = fma(-prd[1], fd, delta[1]);
+      delta[0] = fma(-h[3], fd, delta[0]);
     }
   } else {
     if (periodic[2])

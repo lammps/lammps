@@ -163,6 +163,7 @@ protected:
   void setup_bodies_dynamic_base();
   void compute_forces_and_torques_base();
   void enforce2d_base();
+  bigint dof_base(int);
   void remap_base();
   void grow_body_base();
   void image_shift_base();
@@ -189,6 +190,7 @@ protected:
   typedef EV_FLOAT value_type;
 
   DAT::tdual_int_1d k_atom2body, k_bodyown, k_eflags;
+  DAT::tdual_int_2d k_counts;
   DAT::tdual_tagint_1d k_bodytag;
   DAT::tdual_imageint_1d k_xcmimage;
   DAT::ttransform_kkfloat_2d k_displace, k_itensor;

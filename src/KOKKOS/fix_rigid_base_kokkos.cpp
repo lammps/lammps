@@ -35,6 +35,7 @@
 #include "domain_kokkos.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "math_extra_kokkos.h"
 #include "memory_kokkos.h"
 #include "modify.h"
@@ -2195,6 +2196,132 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::enforce2d_base()
   );
   base()->copymode = 0;
   k_body.modify_device();
+}
+
+/* ----------------------------------------------------------------------
+   count # of DOF removed by rigid bodies for atoms in igroup
+   return total count of DOF
+------------------------------------------------------------------------- */
+
+template<class DeviceType, class FixRigidBase>
+bigint FixRigidBaseKokkos<DeviceType,FixRigidBase>::dof_base(int tgroup)
+{
+
+  // cannot count DOF correctly unless setup_bodies_static() has been called
+  if (!base()->setupflag) {
+    if (base()->comm->me == 0)
+      base()->error->warning(FLERR,"Cannot count rigid body degrees-of-freedom "
+                     "before bodies are fully initialized");
+    return 0;
+  }
+
+  // kokkos views
+
+  atomKK->sync(execution_space, MASK_MASK);
+  auto l_mask = atomKK->k_mask.template view<DeviceType>();
+
+  k_body.template sync<DeviceType>();
+  auto l_body = k_body.template view<DeviceType>();
+
+  k_atom2body.template sync<DeviceType>();
+  auto l_atom2body = k_atom2body.template view<DeviceType>();
+
+  k_eflags.template sync<DeviceType>();
+  auto l_eflags = k_eflags.template view<DeviceType>();
+
+  // counts = 3 values per rigid body I own
+  // 0 = # of point particles in rigid body and in temperature group
+  // 1 = # of finite-size particles in rigid body and in temperature group
+  // 2 = # of particles in rigid body, disregarding temperature group
+
+  k_counts = DAT::tdual_int_2d("rigid/small:counts", nbody_total(), 3);
+  auto l_counts = k_counts.template view<DeviceType>();
+  deep_copy(k_counts.view_device(), 0);
+
+  // tally counts from my owned atoms
+  // 0 = # of point particles in rigid body and in temperature group
+  // 1 = # of finite-size particles in rigid body and in temperature group
+  // 2 = # of particles in rigid body, disregarding temperature group
+
+  int l_tgroupbit = base()->group->bitmask[tgroup];
+  auto l_extended = base()->extended;
+
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, nlocal()),
+    KOKKOS_LAMBDA(const int i) {
+      const int ibody = l_atom2body(i);
+      if (ibody < 0) return;
+      Kokkos::atomic_inc(&l_counts(ibody,2));
+      if (l_mask(i) & l_tgroupbit) {
+      if (l_extended && (l_eflags(i) & ~(POINT | DIPOLE)))
+        Kokkos::atomic_inc(&l_counts(ibody,1));
+      else
+        Kokkos::atomic_inc(&l_counts(ibody,0));
+    }
+  });
+  k_counts.modify_device();
+
+  base()->commflag = DOF;
+  base()->comm->reverse_comm(fix_base(), 3);
+
+  // nall = count0 = # of point particles in each rigid body
+  // mall = count1 = # of finite-size particles in each rigid body
+  // warn if nall+mall != nrigid for any body included in temperature group
+
+  int flag = 0;
+  Kokkos::parallel_reduce(
+    Kokkos::RangePolicy<DeviceType>(0, nlocal_body()),
+    KOKKOS_LAMBDA(const int ibody, int &l_flag) {
+      const int l_counts01 = l_counts(ibody,0) + l_counts(ibody,1);
+      if (l_counts01 > 0 && l_counts01 != l_counts(ibody,2)) l_flag = 1;
+    }, Kokkos::Max<int>(flag)
+  );
+  int flag_all;
+  MPI_Allreduce(&flag, &flag_all, 1, MPI_INT, MPI_MAX, world());
+  if (flag_all && base()->comm->me == 0)
+    base()->error->warning(FLERR,"Computing temperature of portions of rigid bodies");
+
+  // remove appropriate DOFs for each rigid body wholly in temperature group
+  // N = # of point particles in body
+  // M = # of finite-size particles in body
+  // 3d body has 3N + 6M dof to start with
+  // 2d body has 2N + 3M dof to start with
+  // 3d point-particle body with all non-zero I should have 6 dof, remove 3N-6
+  // 3d point-particle body (linear) with a 0 I should have 5 dof, remove 3N-5
+  // 2d point-particle body should have 3 dof, remove 2N-3
+  // 3d body with any finite-size M should have 6 dof, remove (3N+6M) - 6
+  // 2d body with any finite-size M should have 3 dof, remove (2N+3M) - 3
+
+  bigint n = 0;
+  base()->nlinear = 0;
+  if (domainKK->dimension == 3) {
+    Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<DeviceType>(0, nlocal_body()),
+      KOKKOS_LAMBDA(const int ibody, bigint &l_n, int &l_nlinear) {
+        if (l_counts(ibody,0) + l_counts(ibody,1) == l_counts(ibody,2)) {
+          l_n += 3*l_counts(ibody,0) + 6*l_counts(ibody,1) - 6;
+          auto inertia = l_body(ibody).inertia;
+          if (inertia[0] == 0.0 || inertia[1] == 0.0 || inertia[2] == 0.0) {
+            l_n++;
+            l_nlinear++;
+          }
+        }
+      }, n, base()->nlinear
+    );
+  } else if (domainKK->dimension == 2) {
+    Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<DeviceType>(0, nlocal_body()),
+      KOKKOS_LAMBDA(const int ibody, bigint &l_n) {
+        if (l_counts(ibody,0) + l_counts(ibody,1) == l_counts(ibody,2)) {
+          l_n += 2*l_counts(ibody,0) + 3*l_counts(ibody,1) - 3;
+        }
+      }, n
+    );
+  }
+
+  bigint n_all;
+  MPI_Allreduce(&n, &n_all, 1, MPI_LMP_BIGINT, MPI_SUM, base()->world);
+  return n_all;
 }
 
 /* ---------------------------------------------------------------------- */

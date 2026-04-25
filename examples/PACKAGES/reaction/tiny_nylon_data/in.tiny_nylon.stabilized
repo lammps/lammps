@@ -23,9 +23,9 @@ special_bonds lj/coul 0 0 1
 pair_modify tail yes mix sixthpower
 
 read_data tiny_nylon.data &
-  extra/atom/types 1 &
-  extra/bond/types 3 &
-  extra/angle/types 9 &
+  extra/atom/types 3 &
+  extra/bond/types 4 &
+  extra/angle/types 10 &
   extra/dihedral/types 15 &
   extra/improper/types 1 &
   extra/bond/per/atom 5  &

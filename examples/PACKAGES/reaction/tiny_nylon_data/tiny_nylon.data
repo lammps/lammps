@@ -1,15 +1,15 @@
 LAMMPS data file via write_data, version 27 Jun 2024, timestep = 0, units = real
 
-44 atoms
-10 atom types
-42 bonds
-10 bond types
-74 angles
-17 angle types
-100 dihedrals
-18 dihedral types
-16 impropers
-4 improper types
+44   atoms
+8    atom types
+42   bonds
+9    bond types
+74   angles
+16   angle types
+100  dihedrals
+18   dihedral types
+16   impropers
+4    improper types
 
 -25 25 xlo xhi
 -25 25 ylo yhi
@@ -25,8 +25,6 @@ Atom Type Labels
 6 o_1
 7 na
 8 hn
-9 hw
-10 o*
 
 Bond Type Labels
 
@@ -39,7 +37,6 @@ Bond Type Labels
 7  na-c2
 8  na-hn
 9  c2-na
-10 hw-o*
 
 Angle Type Labels
 
@@ -59,7 +56,6 @@ Angle Type Labels
 14  hc-c2-c_1
 15  o_1-c_1-o
 16  na-c2-c2
-17  hw-o*-hw
 
 Dihedral Type Labels
 
@@ -91,29 +87,25 @@ Improper Type Labels
 
 Masses
 
-1   12.0112
-2   12.0112
-3   15.9994
-4   1.00797
-5   1.00797
-6   15.9994
-7   14.0067
-8   1.00797
-9   1.00797
-10  15.9994
+1  12.0112
+2  12.0112
+3  15.9994
+4  1.00797
+5  1.00797
+6  15.9994
+7  14.0067
+8  1.00797
 
 Pair Coeffs # lj/class2/coul/long
 
-1   0.054  4.01
-2   0.12   3.81
-3   0.24   3.535
-4   0.02   2.7
-5   0.013  1.098
-6   0.267  3.3
-7   0.065  4.07
-8   0.013  1.098
-9   0.013  1.098
-10  0.26   3.61
+1  0.054  4.01
+2  0.12   3.81
+3  0.24   3.535
+4  0.02   2.7
+5  0.013  1.098
+6  0.267  3.3
+7  0.065  4.07
+8  0.013  1.098
 
 Bond Coeffs # class2
 
@@ -126,7 +118,6 @@ Bond Coeffs # class2
 7   1.457   365.805  -699.637  998.484
 8   1.006   466.74   -1073.6   1251.11
 9   1.457   365.805  -699.637  998.484
-10  0.97    563.28   -1428.22  1902.12
 
 Angle Coeffs # class2
 
@@ -146,7 +137,6 @@ Angle Coeffs # class2
 14  107.734  40.6099  -28.8121  0
 15  118.986  98.6813  -22.2485  10.3673
 16  111.91   60.7147  -13.3366  -13.0785
-17  103.7    49.84    -11.6     -8
 
 BondBond Coeffs
 
@@ -166,7 +156,6 @@ BondBond Coeffs
 14  0.7115   1.101   1.5202
 15  0        1.202   1.3649
 16  4.6217   1.457   1.53
-17  -9.5     0.97    0.97
 
 BondAngle Coeffs
 
@@ -186,7 +175,6 @@ BondAngle Coeffs
 14  9.1765   12.4632  1.101   1.5202
 15  0        0        1.202   1.3649
 16  16.5702  6.0876   1.457   1.53
-17  22.35    22.35    0.97    0.97
 
 Dihedral Coeffs # class2
 

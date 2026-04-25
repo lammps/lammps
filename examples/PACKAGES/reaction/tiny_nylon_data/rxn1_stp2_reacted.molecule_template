@@ -1,8 +1,11 @@
 this is a molecule template for: water condensation, post-reacting
 
      15 atoms
+      2 atom types
      13 bonds
+      1 bond types
      19 angles
+      1 angle types
      16 dihedrals
       2 impropers
       1 improper types
@@ -140,6 +143,32 @@ Impropers
 
     1  c2-n-hn-c_1   2  1   5  10
     2  n-c_1-c2-o_1  1  10  9  11
+
+Per-Type Masses
+
+    hw  1.00797
+    o*  15.9994
+
+Pair Coeffs # lj/class2/coul/long
+
+    hw  0.013  1.098
+    o*  0.26   3.61
+
+Bond Coeffs # class2
+
+    hw-o*  0.97  563.28  -1428.22  1902.12
+
+Angle Coeffs # class2
+
+    hw-o*-hw  103.7  49.84  -11.6  -8
+
+BondBond Coeffs
+
+    hw-o*-hw  -9.5  0.97  0.97
+
+BondAngle Coeffs
+
+    hw-o*-hw  22.35  22.35  0.97  0.97
 
 Improper Coeffs # class2
 

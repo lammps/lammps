@@ -182,7 +182,11 @@ protected:
   FixRigidNHSmall* nh_base() { return dynamic_cast<FixRigidNHSmall*>(this); }
   static constexpr bool is_nh    = std::is_base_of_v<FixRigidNH,    FixRigidBase>;
   static constexpr bool is_small = std::is_base_of_v<FixRigidSmall, FixRigidBase>;
+  int nlocal() { return base()->atom->nlocal; }
+  int nlocal_body() { return base()->nlocal_body; }
   int nbody_total() { return base()->nlocal_body + base()->nghost_body; }
+  int nmax_body() { return base()->nmax_body; }
+  MPI_Comm world() { return base()->world; }
 
   // kokkos views
   typedef DeviceType device_type;

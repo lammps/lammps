@@ -1065,9 +1065,9 @@ int MathExtraKokkos::sym3x3_eigen(const T A[3][3], T evals[3], T evecs[3][3], in
     }
   }
 
-  // ── 3. Ascending sort by eigenvalue (insertion, N=3) ─────────────────────
-  // Cardano already delivers ev[0] ≤ ev[1] ≤ ev[2] in exact arithmetic;
-  // this mops up any floating-point inversions.
+  // ── 3. DESCENDING sort by eigenvalue (largest to smallest) ───────────────
+  // Standard LAMMPS jacobi() sorts descending. Cardano outputs ascending, 
+  // so we reverse the insertion sort check.
   if (sort) {
     for (int i = 1; i < 3; ++i) {
       const acc_t key_e  = ev[i];
@@ -1075,7 +1075,8 @@ int MathExtraKokkos::sym3x3_eigen(const T A[3][3], T evals[3], T evecs[3][3], in
       const acc_t key_v1 = ew[i][1];
       const acc_t key_v2 = ew[i][2];
       int j = i - 1;
-      while (j >= 0 && ev[j] > key_e) {
+      // FIX: Changed > to < to sort in DESCENDING order
+      while (j >= 0 && ev[j] < key_e) { 
         ev[j+1]    = ev[j];
         ew[j+1][0] = ew[j][0];
         ew[j+1][1] = ew[j][1];
@@ -1089,13 +1090,30 @@ int MathExtraKokkos::sym3x3_eigen(const T A[3][3], T evals[3], T evecs[3][3], in
     }
   }
 
-  // ── 4. Downcast to storage precision T and write out ─────────────────────
+  // ── 3.5 Enforce Right-Handed Coordinate System ───────────────────────────
+  // jacobi() guarantees a right-handed system because it uses continuous rotations.
+  // Analytic roots do not. We must ensure ew[0] x ew[1] \cdot ew[2] > 0
+  const acc_t cross0 = ew[0][1]*ew[1][2] - ew[0][2]*ew[1][1];
+  const acc_t cross1 = ew[0][2]*ew[1][0] - ew[0][0]*ew[1][2];
+  const acc_t cross2 = ew[0][0]*ew[1][1] - ew[0][1]*ew[1][0];
+  const acc_t dot = cross0*ew[2][0] + cross1*ew[2][1] + cross2*ew[2][2];
+  
+  if (dot < ZERO) {
+    ew[2][0] = -ew[2][0];
+    ew[2][1] = -ew[2][1];
+    ew[2][2] = -ew[2][2];
+  }
+
+  // ── 4. Downcast to storage precision T and write out as COLUMNS ──────────
+  // FIX: jacobi() stores the i-th eigenvector in the i-th COLUMN, not row.
   for (int i = 0; i < 3; ++i) {
     evals[i] = static_cast<T>(ev[i]);
-    evecs[i][0] = static_cast<T>(ew[i][0]);
-    evecs[i][1] = static_cast<T>(ew[i][1]);
-    evecs[i][2] = static_cast<T>(ew[i][2]);
+    evecs[0][i] = static_cast<T>(ew[i][0]);
+    evecs[1][i] = static_cast<T>(ew[i][1]);
+    evecs[2][i] = static_cast<T>(ew[i][2]);
   }
+
+  return 0;
 
   return 0;
 }

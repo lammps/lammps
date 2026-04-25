@@ -166,6 +166,7 @@ protected:
   bigint dof_base(int);
   void remap_base();
   void grow_body_base();
+  void grow_body_base(int);
   void image_shift_base();
   void reset_atom2body_base();
 

@@ -9,7 +9,7 @@ LAMMPS data file via write_data, version 27 Jun 2024, timestep = 0, units = real
 100 dihedrals
 18 dihedral types
 16 impropers
-5 improper types
+4 improper types
 
 -25 25 xlo xhi
 -25 25 ylo yhi
@@ -88,7 +88,6 @@ Improper Type Labels
 2 c2-na-hn-hn
 3 c2-c_1-o_1-o
 4 c2-n-hn-c_1
-5 n-c_1-c2-o_1
 
 Masses
 
@@ -321,15 +320,13 @@ Improper Coeffs # class2
 2  0        0
 3  0        0
 4  0        0
-5  24.3329  0
 
 AngleAngle Coeffs
 
-1  0        0        0       0        118.985  123.145
-2  0.2738   -0.4825  0.2738  110.77   107.66   110.77
-3  -1.3199  -1.3199  0.1184  112.67   110.77   110.77
-4  2.0403   -1.8202  1.0827  108.53   107.734  110.77
-5  0        0        0       116.926  123.145  125.542
+1  0        0        0       0       118.985  123.145
+2  0.2738   -0.4825  0.2738  110.77  107.66   110.77
+3  -1.3199  -1.3199  0.1184  112.67  110.77   110.77
+4  2.0403   -1.8202  1.0827  108.53  107.734  110.77
 
 Atoms # full
 

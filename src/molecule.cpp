@@ -2489,6 +2489,9 @@ void Molecule::read(int flag)
       } else if (values.matches(R"(^\s*\d+\s+dihedral\s+types\s*$)")) {
         ndihedralcoefftypes = values.next_int();
         nwant = 3;
+      } else if (values.matches(R"(^\s*\d+\s+improper\s+types\s*$)")) {
+        nimpropercoefftypes = values.next_int();
+        nwant = 3;
       } else if (values.matches(R"(^\s*\d+\s+fragments\s*$)")) {
         nfragments = values.next_int();
         nwant = 2;
@@ -2797,7 +2800,27 @@ void Molecule::read(int flag)
         error->all(FLERR, Error::ARGZERO, "Must define dihedral_style before BondBond13 Coeffs");
       if (flag) dihedralcoeffs(5);
       else skip_lines(ndihedralcoefftypes, line, keyword);
-    } else if ((keyword == "Atoms") || (keyword == "Velocities") || (keyword == "Improper Coeffs")) {
+    } else if (keyword == "Improper Coeffs") {
+      if (atom->avec->impropers_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Improper Coeffs");
+      if (force->improper == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define improper_style before Improper Coeffs");
+      if (flag) {
+        if (comm->me == 0 && !atom->style_match(force->improper_style))
+          error->warning(
+              FLERR,
+              "Improper style {} in molecule template file differs from currently defined improper style {}",
+              atom->get_style(), force->improper_style);
+        impropercoeffs(0);
+      } else skip_lines(nimpropercoefftypes, line, keyword);
+    } else if (keyword == "AngleAngle Coeffs") {
+      if (atom->avec->impropers_allow == 0)
+        error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleAngle Coeffs");
+      if (force->improper == nullptr)
+        error->all(FLERR, Error::ARGZERO, "Must define improper_style before AngleAngle Coeffs");
+      if (flag) impropercoeffs(1);
+      else skip_lines(nimpropercoefftypes, line, keyword);
+    } else if ((keyword == "Atoms") || (keyword == "Velocities")) {
       error->all(FLERR, fileiarg, "Found data file section '{}' in molecule file\n", keyword);
     } else {
 
@@ -3556,9 +3579,10 @@ void Molecule::impropers(int flag, char *line)
       case 1: {    // type label
         if (!atom->labelmapflag)
           error->all(FLERR, fileiarg, "Invalid improper type {} in {}: {}", typestr, location, utils::trim(line));
-        itype = atom->lmap->find_type(typestr, Atom::IMPROPER);
+        itype = atom->lmap->find_or_create(typestr, atom->lmap->itypelabel, atom->lmap->itypelabel_map);
         if (itype == -1)
           error->all(FLERR, fileiarg, "Unknown improper type {} in {}: {}", typestr, location, utils::trim(line));
+        atom->lmap->create_lmap2lmap(atom->lmap, Atom::IMPROPER);
         break;
       }
       default:    // invalid
@@ -4560,6 +4584,41 @@ void Molecule::dihedralcoeffs(int which)
 }
 
 /* ----------------------------------------------------------------------
+   read improper coeffs sections from molecule template 
+------------------------------------------------------------------------- */
+
+void Molecule::impropercoeffs(int which)
+{
+  if (!nimpropercoefftypes) return;
+
+  char *next;
+  auto *buf = new char[nimpropercoefftypes * MAXLINE];
+
+  int eof = utils::read_lines_from_file(fp, nimpropercoefftypes, MAXLINE, buf, comm->me, world);
+  if (eof) error->all(FLERR, "Unexpected end of molecule template file");
+
+  int ilabelflag = atom->labelmapflag;
+  if (ilabelflag && !atom->lmap->is_complete(Atom::IMPROPER))
+    error->all(FLERR,
+               "Label map is incomplete: "
+               "all types must be assigned a unique type label");
+
+  char *original = buf;
+  for (int i = 0; i < nimpropercoefftypes; i++) {
+    next = strchr(buf, '\n');
+    *next = '\0';
+    if (which == 0)
+      parse_coeffs(buf, nullptr, 0, 1, ioffset, Atom::IMPROPER); 
+    else if (which == 1)
+      parse_coeffs(buf, "aa", 0, 1, ioffset, Atom::IMPROPER);
+    if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in ImproperCoeffs section");
+    force->improper->coeff(ncoeffarg, coeffarg);
+    buf = next + 1;
+  }
+  delete[] original;
+}
+
+/* ----------------------------------------------------------------------
    parse a line of coeffs into words, storing them in ncoeffarg,coeffarg
    trim anything from '#' onward
    word strings remain in line, are not copied
@@ -4691,7 +4750,7 @@ void Molecule::initialize()
   ntypes = 0;
   nmolecules = 1;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
-  nbondcoefftypes = nanglecoefftypes = ndihedralcoefftypes = 0;
+  nbondcoefftypes = nanglecoefftypes = ndihedralcoefftypes = nimpropercoefftypes = 0;
   nibody = ndbody = 0;
   nfragments = 0;
   masstotal = 0.0;

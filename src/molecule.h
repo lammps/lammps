@@ -67,8 +67,6 @@ class Molecule : protected Pointers {
 
   int tag_require;
 
-  int ncoeffarg, maxcoeffarg;
-
   // attributes
 
   double **x;          // displacement of each atom from origin
@@ -101,8 +99,6 @@ class Molecule : protected Pointers {
   int *shake_flag;
   tagint **shake_atom;
   int **shake_type;
-
-  char **coeffarg;
 
   class AtomVecBody *avec_body;
   int *ibodyparams;    // integer and double body params
@@ -155,10 +151,13 @@ class Molecule : protected Pointers {
   SafeFilePtr fp;
   int *count;
   int toffset, boffset, aoffset, doffset, ioffset;
-  std::string argoffset1, argoffset2;
   int json_format;
   int check_which_labels[4];
   double sizescale;
+
+  int ncoeffarg, maxcoeffarg;
+  char **coeffarg;
+  std::string argoffset1, argoffset2;
 
   void read(int);
   void coords(char *);

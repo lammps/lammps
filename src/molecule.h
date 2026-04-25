@@ -39,7 +39,7 @@ class Molecule : protected Pointers {
   int ntypes, nmolecules, nfragments, natomtypes;
   int nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
   int nibody, ndbody;
-  int nbondcoefftypes, nanglecoefftypes;
+  int nbondcoefftypes, nanglecoefftypes, ndihedralcoefftypes;
 
   // max bond,angle,etc per atom
 
@@ -188,6 +188,7 @@ class Molecule : protected Pointers {
   void paircoeffs();
   void bondcoeffs();
   void anglecoeffs(int);
+  void dihedralcoeffs(int);
   void parse_coeffs(char *, const char *, int, int, int, int);
 
   void initialize();

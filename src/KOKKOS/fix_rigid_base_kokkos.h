@@ -191,7 +191,7 @@ protected:
   DAT::tdual_int_1d k_atom2body, k_bodyown, k_eflags;
   DAT::tdual_tagint_1d k_bodytag;
   DAT::tdual_imageint_1d k_xcmimage;
-  TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_displace;
+  DAT::ttransform_kkfloat_2d k_displace, k_itensor;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 

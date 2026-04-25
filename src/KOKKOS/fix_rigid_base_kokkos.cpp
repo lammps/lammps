@@ -191,9 +191,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_pre_neighbor_base()
 template<class DeviceType, class FixRigidBase>
 void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
 {
-  base()->copymode = 1;
-  auto l_body = k_body.template view<DeviceType>();
   k_body.sync_device();
+  auto l_body = k_body.template view<DeviceType>();
   auto l_xperiodic = domainKK->xperiodic;
   auto l_yperiodic = domainKK->yperiodic;
   auto l_zperiodic = domainKK->zperiodic;
@@ -207,10 +206,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
   auto l_prd1 = static_cast<KK_FLOAT>(domainKK->prd[1]);
   auto l_prd2 = static_cast<KK_FLOAT>(domainKK->prd[2]);
 
-  utils::logmesg(base()->lmp, "*** pre_neighbor() {} {} {}\n{} {} {}\n{} {} {}\n{} {} {}\n",
-    l_xperiodic, l_yperiodic, l_zperiodic, l_lo0,l_lo1,l_lo2,l_hi0,l_hi1,l_hi2,l_prd0,l_prd1,l_prd2
-  );
+  utils::logmesg(base()->lmp, "*** pre_neighbor() {} {} {}\n{} {} {}\n{} {} {}\n{} {} {}\n", l_xperiodic, l_yperiodic, l_zperiodic, l_lo0, l_lo1, l_lo2, l_hi0, l_hi1, l_hi2,l_prd0, l_prd1, l_prd2);
 
+  base()->copymode = 1;
   Kokkos::parallel_for(
     Kokkos::RangePolicy<DeviceType>(0, base()->nlocal_body),
     KOKKOS_LAMBDA(const int &ibody) {
@@ -224,6 +222,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
           idim--;
           idim &= IMGMASK;
           bk.image = otherdims | idim;
+          Kokkos::printf("*** bk.xcm[0] %f l_prd0 %f bk.image %i\n", bk.xcm[0], l_prd0, bk.image);
         }
         while (bk.xcm[0] >= l_hi0) {
           bk.xcm[0] -= l_prd0;
@@ -232,6 +231,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
           idim++;
           idim &= IMGMASK;
           bk.image = otherdims | idim;
+          Kokkos::printf("*** bk.xcm[0] %f l_prd0 %f bk.image %i\n", bk.xcm[0], l_prd0, bk.image);
         }
         bk.xcm[0] = MAX(bk.xcm[0], l_lo0);
       }
@@ -275,11 +275,12 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::pre_neighbor_base()
       }
     }
   );
-  k_body.modify_device();
   base()->copymode = 0;
+  k_body.modify_device();
 
   base()->nghost_body = 0;
   base()->commflag = FULL_BODY;
+  k_body.sync_host();
   base()->comm->forward_comm(fix_base());
   k_body.modify_host();
   k_body.sync_device();
@@ -337,7 +338,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_base(int vflag)
   base()->copymode = 0;
 
   base()->commflag = FINAL;
-  base()->comm->forward_comm(base(),10);
+  base()->comm->forward_comm(fix_base(),10);
 
   // set velocity/rotation of atoms in rigid bodues
   if (base()->evflag) set_v_base<true>();
@@ -453,8 +454,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_base(int vflag)
   }
 
   }
-  k_body.modify_host();
-  atomKK->modified(Host, X_MASK | V_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -488,7 +487,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate_base(int vfl
         tmp = exp(-l_dtq * static_cast<KK_FLOAT>(nh_base()->eta_dot_r[0]));
         l_scale_r = tmp;
       }
-      if (PSTAT) {
+      if constexpr (PSTAT) {
 
         auto maclaurin = [&](KK_FLOAT x) -> KK_FLOAT {
     const KK_FLOAT y = x * x;
@@ -586,6 +585,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate_base(int vfl
         }
       }
     );
+    k_body.modify_device();
   };
 
   base()->copymode = 1;
@@ -645,7 +645,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::final_integrate_base()
   if (!base()->earlyflag) compute_forces_and_torques_base();
   if (domainKK->dimension == 2) enforce2d_base();
 
-  k_body.sync_device();
   auto l_body = k_body.template view<DeviceType>();
 
   auto lambda = [&]<bool NH, bool TSTAT, bool PSTAT>() {
@@ -975,6 +974,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
   auto l_xcmimage = k_xcmimage.template view<DeviceType>();
   auto l_displace = k_displace.template view<DeviceType>();
 
+  k_atom2body.template sync<DeviceType>();
   k_body.template sync<DeviceType>();
   k_bodytag.template sync<DeviceType>();
   k_xcmimage.template sync<DeviceType>();
@@ -1009,10 +1009,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
   base()->commflag = FULL_BODY;
   base()->comm->forward_comm(fix_base());
   reset_atom2body_base();
-  k_itensor.modify_host();
-  k_itensor.sync_device();
 
   // compute mass & center-of-mass of each rigid body
+  k_body.sync_device();
   base()->copymode = 1;
   Kokkos::parallel_for(policy_nbody_total, KOKKOS_LAMBDA(const int &ibody) {
     BodyKokkos &bk = l_body(ibody);
@@ -1048,14 +1047,11 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
     });
   }
   base()->copymode = 0;
+  k_body.modify_device();
 
   // reverse communicate xcm, mass of all bodies
-  k_itensor.modify_device();
-  k_itensor.sync_host();
   base()->commflag = XCM_MASS;
   base()->comm->reverse_comm(fix_base(),8);
-  k_itensor.modify_host();
-  k_itensor.sync_device();
 
   base()->copymode = 1;
   Kokkos::parallel_for(policy_nlocal_body, KOKKOS_LAMBDA(const int &ibody) {
@@ -1077,10 +1073,12 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
                ((imageint) IMGMAX << IMGBITS) | IMGMAX;
   });
   base()->copymode = 0;
+  k_body.modify_device();
 
   // overwrite masstotal, center-of-mass, image flags with file values
   // inbody[i] = 0/1 if Ith rigid body is initialized by file
   DAT::tdual_int_1d k_inbody("rigid/small:inbody", nlocal_body);
+  deep_copy(k_inbody.view_host(), 0);
 
   auto l_inbody = k_inbody.view_device();
   if (base()->inpfile) {
@@ -1098,9 +1096,10 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
   // compute 6 moments of inertia of each body in Cartesian reference frame
   // dx,dy,dz = coords relative to center-of-mass
   // symmetric 3x3 inertia tensor stored in Voigt notation as 6-vector
-  TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_itensor;
-  base()->memory->create(base()->itensor, nbody_total(), 6, "rigid/small:itensor");
+  //base()->memory->create(base()->itensor, nbody_total(), 6, "rigid/small:itensor");
   base()->memoryKK->create_kokkos(k_itensor, base()->itensor, nbody_total(), 6, "rigid/small:itensor");
+
+  deep_copy(k_itensor.view_device(), KK_FLOAT(0.0));
 
   auto l_itensor = k_itensor.view_device();
   auto lambda_itensor = [&]<bool RMASS, bool UNWRAP>(const int &i) {
@@ -1110,7 +1109,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
     KK_FLOAT massone;
     if constexpr (RMASS) massone = l_rmass(i);
     else massone = l_mass(l_type(i));
-
     KK_FLOAT dx, dy, dz;
     if constexpr (UNWRAP) {
       auto unwrap = DomainKokkos::unmap(l_prd, l_h, l_triclinic, &l_x(i,0), l_xcmimage(i));
@@ -1146,24 +1144,20 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
     // not implemented
   }
 
-
   // reverse communicate inertia tensor of all bodies
-  k_itensor.modify_device();
-  k_itensor.sync_host();
   base()->commflag = ITENSOR;
   base()->comm->reverse_comm(fix_base(),6);
-  k_itensor.modify_host();
-  k_itensor.sync_device();
 
   // overwrite Cartesian inertia tensor with file values
-  k_itensor.sync_host();
-  k_inbody.sync_host();
-  if (base()->inpfile)
+  if (base()->inpfile) {
+    k_itensor.sync_host();
+    k_inbody.sync_host();
     base()->readfile(1, base()->itensor, k_inbody.view_host().data());
-  k_itensor.modify_host();
-  k_inbody.modify_host();
-  k_itensor.sync_device();
-  k_inbody.sync_device();
+    k_itensor.modify_host();
+    k_inbody.modify_host();
+    k_itensor.sync_device();
+    k_inbody.sync_device();
+  }
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
@@ -1239,14 +1233,14 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
     } else {
       Kokkos::parallel_reduce(policy_nlocal_body,
         KOKKOS_LAMBDA(const int ibody, KK_FLOAT &l_dflag) {
-        lambda_initial.template operator()<false,false>(ibody, l_dflag);
+        lambda_initial.template operator()<true,false>(ibody, l_dflag);
       }, Kokkos::Max<KK_FLOAT>(dflag));
     }
   } else {
     if (l_triclinic) {
       Kokkos::parallel_reduce(policy_nlocal_body,
         KOKKOS_LAMBDA(const int ibody, KK_FLOAT &l_dflag) {
-        lambda_initial.template operator()<true,true>(ibody, l_dflag);
+        lambda_initial.template operator()<false,true>(ibody, l_dflag);
       }, Kokkos::Max<KK_FLOAT>(dflag));
     } else {
       Kokkos::parallel_reduce(policy_nlocal_body,
@@ -1274,9 +1268,11 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
       return;
     }
     BodyKokkos &bk = l_body(ibody);
+    //Kokkos::printf("*** ex %f %f %f ey %f %f %f ez %f %f %f\n", bk.ex_space[0], bk.ex_space[1], bk.ex_space[2], bk.ey_space[0], bk.ey_space[1], bk.ey_space[2], bk.ez_space[0], bk.ez_space[1], bk.ez_space[2]);
     auto unwrap = DomainKokkos::unmap(l_prd, l_h, l_triclinic, &l_x(i,0), l_xcmimage(i));
     auto delta3 = unwrap - Few<KK_FLOAT,3>(bk.xcm);
     transpose_matvec(bk.ex_space,bk.ey_space,bk.ez_space, delta3.data(), &l_displace(i,0));
+    //Kokkos::printf("*** unwrap %f %f %f delta3 %f %f %f l_displace(%i) %f %f %f\n", unwrap[0], unwrap[1], unwrap[2], delta3[0], delta3[1], delta3[2], i, l_displace(i,0), l_displace(i,1), l_displace(i,2));
     if constexpr (EXTENDED) {
       // not implemented
     }
@@ -1291,13 +1287,14 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
       lambda_displace.template operator()<false>(i);
     });
   }
+  k_displace.modify_device();
 
   // test for valid principal moments & axes
   // recompute moments of inertia around new axes
   // 3 diagonal moments should equal principal moments
   // 3 off-diagonal moments should be 0.0
   // extended particles may contribute extra terms to moments of inertia
-  deep_copy(l_itensor, KK_FLOAT(0.0));
+  deep_copy(k_itensor.view_device(), KK_FLOAT(0.0));
   if (l_rmass.data()) {
     Kokkos::parallel_for(policy_nlocal, KOKKOS_LAMBDA(const int i) {
       lambda_itensor.template operator()<true,false>(i);
@@ -1307,18 +1304,15 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
       lambda_itensor.template operator()<false,false>(i);
     });
   }
+  k_itensor.modify_device();
   if (base()->extended) {
     // not implemented
   }
   base()->copymode = 0;
 
   // reverse communicate inertia tensor of all bodies
-  k_itensor.modify_device();
-  k_itensor.sync_host();
   base()->commflag = ITENSOR;
   base()->comm->reverse_comm(fix_base(),6);
-  k_itensor.modify_host();
-  k_itensor.sync_device();
 
   // error check that re-computed moments of inertia match diagonalized ones
   // do not do test for bodies with params read from inpfile
@@ -1331,26 +1325,29 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
     if (l_inpfile && l_inbody(ibody)) return;
     BodyKokkos &bk = l_body(ibody);
     KK_FLOAT norm = KK_FLOAT(0.0);
+    l_flag = 0;
     for( int i=0; i<3 ; i++ ) {
       const auto a = bk.inertia[i];
       const auto b = l_itensor(ibody,i);
+      //Kokkos::printf("*** ibody %i a %.16g b %.16g TOLERANCE %g l_flag %i\n", ibody, a, b, TOLERANCE, l_flag);
       if (a == 0.0 && Kokkos::fabs(b) > TOLERANCE) l_flag = 1;
       if (a != 0.0 && Kokkos::fabs((b-a)/a) > TOLERANCE) l_flag = 1;
-      if (l_flag) Kokkos::printf("*** ibody %i a %f b %f\n", ibody, a, b);
+      //if (l_flag) Kokkos::printf("*** ibody %i a %f b %f\n", ibody, a, b);
       norm += a;
     }
     norm *= KK_FLOAT(1.0/3.0);
     if (Kokkos::fabs(l_itensor(ibody,3) / norm) > TOLERANCE ||
         Kokkos::fabs(l_itensor(ibody,4) / norm) > TOLERANCE ||
-        Kokkos::fabs(l_itensor(ibody,5) / norm) > TOLERANCE)
-      l_flag = 1;
+        Kokkos::fabs(l_itensor(ibody,5) / norm) > TOLERANCE) {
+          l_flag = 1;
+          //Kokkos::printf("*** ibody %i l_itensor(ibody,3,4,5) %f %f %f norm %f\n", ibody, l_itensor(ibody,3), l_itensor(ibody,4), l_itensor(ibody,5), norm);
+      }
   }, Kokkos::Max<int>(flag));
   base()->copymode = 0;
   if (flag) base()->error->all(FLERR, Error::NOLASTLINE, "Fix {}: Bad principal moments", base()->style);
 
   // cleanup
-  base()->memoryKK->destroy_kokkos(k_itensor);
-  base()->memory->destroy(base()->itensor);
+  base()->memoryKK->destroy_kokkos(k_itensor, base()->itensor);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1449,17 +1446,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_dynamic_base()
   k_body.modify_device();
 
 }
-
-
-
-
-
-
-
-
-
-
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -2354,16 +2340,18 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_forward_comm_kokkos(
     int pbc_flag, int *pbc)
 {
 
+  int result = 0;
   if (base()->commflag == FULL_BODY) {
     // punt to base class
     k_body.sync_host();
     k_bodyown.sync_host();
     int *list = k_sendlist.view_host().data();
     double *buf = k_buf.view_host().data();
-    return base()->FixRigidBase::pack_forward_comm(n, list, buf, pbc_flag, pbc);
+    result = base()->FixRigidBase::pack_forward_comm(n, list, buf, pbc_flag, pbc);
+    k_buf.modify_host();
+    return result;
   }
 
-  int result = 0;
   auto l_sendlist = k_sendlist.view<DeviceType>();
   auto l_buf = k_buf.view<DeviceType>();
   auto l_body = k_body.template view<DeviceType>();
@@ -2437,6 +2425,7 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_forward_comm_kokkos(
     );
   }
   base()->copymode = 0;
+  k_buf.modify_device();
   return result;
 }
 
@@ -2463,7 +2452,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_forward_comm_kokkos(
   auto l_body = k_body.template view<DeviceType>();
   auto l_bodyown = k_bodyown.template view<DeviceType>();
 
-  utils::logmesg(base()->lmp, "*** unpack_forward_comm_kokkos() commflag {}\n", base()->commflag);
+  //utils::logmesg(base()->lmp, "*** unpack_forward_comm_kokkos() commflag {}\n", base()->commflag);
 
   base()->copymode = 1;
   if (base()->commflag == INITIAL) {
@@ -2542,12 +2531,12 @@ template<class DeviceType, class FixRigidBase>
 int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_reverse_comm_kokkos(
     int n, int first, DAT::tdual_double_1d &k_buf)
 {
+  int result = 0;
+  base()->copymode = 1;
   if (base()->commflag == FORCE_TORQUE) {
-    int result = 0;
     auto l_buf = k_buf.view<DeviceType>();
     auto l_body = k_body.template view<DeviceType>();
     auto l_bodyown = k_bodyown.template view<DeviceType>();
-    base()->copymode = 1;
     Kokkos::parallel_scan(
       Kokkos::RangePolicy<DeviceType>(first, first+n),
       KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
@@ -2566,15 +2555,77 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_reverse_comm_kokkos(
         l_buf[m++] = static_cast<double>(bk.torque[2]);
       }, result
     );
-    base()->copymode = 0;
-    return result;
+  } else if (base()->commflag == VCM_ANGMOM) {
+    auto l_buf = k_buf.view<DeviceType>();
+    auto l_body = k_body.template view<DeviceType>();
+    auto l_bodyown = k_bodyown.template view<DeviceType>();
+    Kokkos::parallel_scan(
+      Kokkos::RangePolicy<DeviceType>(first, first+n),
+      KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
+        const int ibody = l_bodyown(i);
+        if (ibody < 0) return;
+        if (!final) {
+          m += 6;
+          return;
+        }
+        const BodyKokkos &bk = l_body(ibody);
+        l_buf[m++] = static_cast<double>(bk.vcm[0]);
+        l_buf[m++] = static_cast<double>(bk.vcm[1]);
+        l_buf[m++] = static_cast<double>(bk.vcm[2]);
+        l_buf[m++] = static_cast<double>(bk.angmom[0]);
+        l_buf[m++] = static_cast<double>(bk.angmom[1]);
+        l_buf[m++] = static_cast<double>(bk.angmom[2]);
+      }, result
+    );
+  } else if (base()->commflag == XCM_MASS) {
+    auto l_buf = k_buf.view<DeviceType>();
+    auto l_body = k_body.template view<DeviceType>();
+    auto l_bodyown = k_bodyown.template view<DeviceType>();
+    Kokkos::parallel_scan(
+      Kokkos::RangePolicy<DeviceType>(first, first+n),
+      KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
+        const int ibody = l_bodyown(i);
+        if (ibody < 0) return;
+        if (!final) {
+          m += 8;
+          return;
+        }
+        const BodyKokkos &bk = l_body(ibody);
+        l_buf[m++] = static_cast<double>(bk.xcm[0]);
+        l_buf[m++] = static_cast<double>(bk.xcm[1]);
+        l_buf[m++] = static_cast<double>(bk.xcm[2]);
+        l_buf[m++] = static_cast<double>(bk.xgc[0]);
+        l_buf[m++] = static_cast<double>(bk.xgc[1]);
+        l_buf[m++] = static_cast<double>(bk.xgc[2]);
+        l_buf[m++] = static_cast<double>(bk.mass);
+        l_buf[m++] = d_ubuf(bk.natoms).d;
+      }, result
+    );
+  } else if (base()->commflag == ITENSOR) {
+    auto l_buf = k_buf.view<DeviceType>();
+    auto l_itensor = k_itensor.template view<DeviceType>();
+    auto l_bodyown = k_bodyown.template view<DeviceType>();
+    Kokkos::parallel_scan(
+      Kokkos::RangePolicy<DeviceType>(first, first+n),
+      KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
+        const int ibody = l_bodyown(i);
+        if (ibody < 0) return;
+        if (!final) {
+          m += 6;
+          return;
+        }
+        l_buf[m++] = static_cast<double>(l_itensor(ibody,0));
+        l_buf[m++] = static_cast<double>(l_itensor(ibody,1));
+        l_buf[m++] = static_cast<double>(l_itensor(ibody,2));
+        l_buf[m++] = static_cast<double>(l_itensor(ibody,3));
+        l_buf[m++] = static_cast<double>(l_itensor(ibody,4));
+        l_buf[m++] = static_cast<double>(l_itensor(ibody,5));
+      }, result
+    );
   }
-  // only FORCE_TORQUE needed in KOKKOS version
-  // punt the rest to base class
-  k_body.sync_host();
-  k_bodyown.sync_host();
-  double *buf = k_buf.view_host().data();
-  return base()->FixRigidBase::pack_reverse_comm(n, first, buf);
+  base()->copymode = 0;
+  k_buf.modify_device();
+  return result;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2584,14 +2635,14 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_reverse_comm_kokkos(
     int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_double_1d &k_buf)
 {
 
-  utils::logmesg(base()->lmp, "*** unpack_reverse_comm_kokkos() commflag {}\n", base()->commflag);
+  //utils::logmesg(base()->lmp, "*** unpack_reverse_comm_kokkos() commflag {}\n", base()->commflag);
 
+  base()->copymode = 1;
   if (base()->commflag == FORCE_TORQUE) {
     auto l_sendlist = k_sendlist.view<DeviceType>();
     auto l_buf = k_buf.view<DeviceType>();
     auto l_body = k_body.template view<DeviceType>();
     auto l_bodyown = k_bodyown.template view<DeviceType>();
-    base()->copymode = 1;
     Kokkos::parallel_scan(
       Kokkos::RangePolicy<DeviceType>(0, n),
       KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
@@ -2610,17 +2661,82 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_reverse_comm_kokkos(
         Kokkos::atomic_add(&bk.torque[2], static_cast<KK_FLOAT>(l_buf[m++]));
       }
     );
-    base()->copymode = 0;
     k_body.modify_device();
-  } else {
-    // only FORCE_TORQUE needed in KOKKOS version
-    // punt the rest to base class
-    int *list = k_sendlist.view_host().data();
-    double *buf = k_buf.view_host().data();
-    base()->FixRigidBase::unpack_reverse_comm(n, list, buf);
-    k_body.modify_host();
-    k_body.sync_device();
+  } else if (base()->commflag == VCM_ANGMOM) {
+    auto l_sendlist = k_sendlist.view<DeviceType>();
+    auto l_buf = k_buf.view<DeviceType>();
+    auto l_body = k_body.template view<DeviceType>();
+    auto l_bodyown = k_bodyown.template view<DeviceType>();
+    Kokkos::parallel_scan(
+      Kokkos::RangePolicy<DeviceType>(0, n),
+      KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
+        const int ibody = l_bodyown(l_sendlist(i));
+        if (ibody < 0) return;
+        if (!final) {
+          m += 6;
+          return;
+        }
+        BodyKokkos &bk = l_body(ibody);
+        Kokkos::atomic_add(&bk.vcm[0], static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&bk.vcm[1], static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&bk.vcm[2], static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&bk.angmom[0], static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&bk.angmom[1], static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&bk.angmom[2], static_cast<KK_FLOAT>(l_buf[m++]));
+      }
+    );
+    k_body.modify_device();
+  } else if (base()->commflag == XCM_MASS) {
+    auto l_sendlist = k_sendlist.view<DeviceType>();
+    auto l_buf = k_buf.view<DeviceType>();
+    auto l_body = k_body.template view<DeviceType>();
+    auto l_bodyown = k_bodyown.template view<DeviceType>();
+    Kokkos::parallel_scan(
+      Kokkos::RangePolicy<DeviceType>(0, n),
+      KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
+        const int ibody = l_bodyown(l_sendlist(i));
+        if (ibody < 0) return;
+        if (!final) {
+          m += 8;
+          return;
+        }
+        BodyKokkos &bk = l_body(ibody);
+        Kokkos::atomic_add(&bk.xcm[0], static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&bk.xcm[1], static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&bk.xcm[2], static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&bk.xgc[0], static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&bk.xgc[1], static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&bk.xgc[2], static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&bk.mass, static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&bk.natoms, d_ubuf(l_buf[m++]).i);
+      }
+    );
+    k_body.modify_device();
+  } else if (base()->commflag == ITENSOR) {
+    auto l_sendlist = k_sendlist.view<DeviceType>();
+    auto l_buf = k_buf.view<DeviceType>();
+    auto l_itensor = k_itensor.template view<DeviceType>();
+    auto l_bodyown = k_bodyown.template view<DeviceType>();
+    Kokkos::parallel_scan(
+      Kokkos::RangePolicy<DeviceType>(0, n),
+      KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
+        const int ibody = l_bodyown(l_sendlist(i));
+        if (ibody < 0) return;
+        if (!final) {
+          m += 6;
+          return;
+        }
+        Kokkos::atomic_add(&l_itensor(ibody,0), static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&l_itensor(ibody,1), static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&l_itensor(ibody,2), static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&l_itensor(ibody,3), static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&l_itensor(ibody,4), static_cast<KK_FLOAT>(l_buf[m++]));
+        Kokkos::atomic_add(&l_itensor(ibody,5), static_cast<KK_FLOAT>(l_buf[m++]));
+      }
+    );
+    k_itensor.modify_device();
   }
+  base()->copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2653,12 +2769,20 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_exchange_kokkos(
     Kokkos::RangePolicy<DeviceType>(0, nsend),
     KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
       const int local_idx = l_sendlist(i);
-      l_buf(0) = d_ubuf(l_bodytag(local_idx)).d;
-      l_buf(1) = d_ubuf(l_xcmimage(local_idx)).d;
-      l_buf(2) = l_displace(local_idx, 0);
-      l_buf(3) = l_displace(local_idx, 1);
-      l_buf(4) = l_displace(local_idx, 2);
-      m += 5;
+        if (!final) {
+          m += 5;
+          if (l_bodytag(local_idx)) {
+            if (l_vflag_atom) m += 6;
+            m += 1;
+            if (l_bodyown(local_idx) >= 0) m += l_bodysize_kk;
+        }
+        return;
+      }
+      l_buf(m++) = d_ubuf(l_bodytag(local_idx)).d;
+      l_buf(m++) = d_ubuf(l_xcmimage(local_idx)).d;
+      l_buf(m++) = l_displace(local_idx, 0);
+      l_buf(m++) = l_displace(local_idx, 1);
+      l_buf(m++) = l_displace(local_idx, 2);
 
       /*
       // extended attribute info
@@ -2695,6 +2819,8 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_exchange_kokkos(
       m += l_bodysize_kk;
     }, result
   );
+  base()->copymode = 0;
+  k_buf.modify_device();
   return result;
 }
 

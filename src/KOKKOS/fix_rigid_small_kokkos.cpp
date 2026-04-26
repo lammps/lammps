@@ -101,6 +101,11 @@ void FixRigidSmallKokkos<DeviceType>::grow_arrays(int nmax) {
 }
 
 template<class DeviceType>
+bigint FixRigidSmallKokkos<DeviceType>::dof(int tgroup) {
+  return this->dof_base(tgroup);
+}
+
+template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::zero_momentum() {
   this->zero_momentum_base();
 }

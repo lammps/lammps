@@ -56,6 +56,7 @@ class FixRigidSmallKokkos : public FixRigidSmall, public FixRigidBaseKokkos<Devi
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
 
+  bigint dof(int) override;
   void zero_momentum() override;
   void zero_rotation() override;
   double compute_scalar() override;

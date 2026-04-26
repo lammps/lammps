@@ -50,6 +50,7 @@ protected:
   void zero_rotation_base();
   double compute_scalar_base();
   void grow_arrays_base(int);
+  bigint dof_base(int);
   void deform_base(int);
 
 /*
@@ -163,7 +164,6 @@ protected:
   void setup_bodies_dynamic_base();
   void compute_forces_and_torques_base();
   void enforce2d_base();
-  bigint dof_base(int);
   void remap_base();
   void grow_body_base();
   void grow_body_base(int);

@@ -903,7 +903,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::zero_rotation_base()
 }
 
 /* ----------------------------------------------------------------------
-   PROTECTED METHODS
+   FixRigidSmall PROTECTED METHODS
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, class FixRigidBase>
@@ -986,9 +986,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
 
   k_atom2body.template sync<DeviceType>();
   auto l_atom2body = k_atom2body.template view<DeviceType>();
-
-  k_body.template sync<DeviceType>();
-  auto l_body = k_body.template view<DeviceType>();
 
   k_bodytag.template sync<DeviceType>();
   auto l_bodytag = k_bodytag.template view<DeviceType>();

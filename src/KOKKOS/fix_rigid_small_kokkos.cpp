@@ -57,13 +57,13 @@ FixRigidSmallKokkos<DeviceType>::~FixRigidSmallKokkos()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::init() {
-  this->init_base();
+void FixRigidSmallKokkos<DeviceType>::post_constructor() {
+  this->post_constructor_base();
 }
 
 template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::post_constructor() {
-  this->post_constructor_base();
+void FixRigidSmallKokkos<DeviceType>::init() {
+  this->init_base();
 }
 
 template<class DeviceType>
@@ -82,7 +82,8 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor() {
 }
 
 template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::initial_integrate(int vflag) { this->initial_integrate_base(vflag);
+void FixRigidSmallKokkos<DeviceType>::initial_integrate(int vflag) {
+  this->initial_integrate_base(vflag);
 }
 
 template<class DeviceType>

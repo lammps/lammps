@@ -890,6 +890,8 @@ void MathExtraKokkos::omega_to_angmom(const KK_FLOAT *w, const KK_FLOAT *ex,
 // All geometry is done in KK_ACC_FLOAT regardless of T so that cross products
 // and norms don't lose significance when T == float.
 
+namespace impl {
+
 // Two orthonormal vectors spanning the plane perpendicular to unit vector u.
 // Uses the "most orthogonal axis" trick to avoid cancellation (Hughes & Möller).
 KOKKOS_INLINE_FUNCTION
@@ -912,6 +914,7 @@ void orthonormal_complement(const KK_ACC_FLOAT u[3],
   }
   MathExtraKokkos::cross3(u, v, w);
 }
+
 
 // Compute the eigenvector for eigenvalue lam as the cross product of the pair
 // of rows of (A - lam·I) with the largest combined norm.
@@ -950,6 +953,8 @@ KK_ACC_FLOAT evec_from_eval(const KK_ACC_FLOAT a00,
   }
   return best_n;
 }
+
+} // !namespace impl
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  sym3x3_eigen<T>
@@ -1044,20 +1049,20 @@ int MathExtraKokkos::sym3x3_eigen(const T A[3][3], T evals[3], T evecs[3][3], in
 
     } else if (deg01) {
       // ev[0] and ev[1] coalesce: compute distinct ev[2] then complement
-      evec_from_eval(a00,a11,a22,a01,a02,a12, ev[2], ew[2]);
+      impl::evec_from_eval(a00,a11,a22,a01,a02,a12, ev[2], ew[2]);
       MathExtraKokkos::norm3(ew[2]);
-      orthonormal_complement(ew[2], ew[0], ew[1]);
+      impl::orthonormal_complement(ew[2], ew[0], ew[1]);
 
     } else if (deg12) {
       // ev[1] and ev[2] coalesce: compute distinct ev[0] then complement
-      evec_from_eval(a00,a11,a22,a01,a02,a12, ev[0], ew[0]);
+      impl::evec_from_eval(a00,a11,a22,a01,a02,a12, ev[0], ew[0]);
       MathExtraKokkos::norm3(ew[0]);
-      orthonormal_complement(ew[0], ew[1], ew[2]);
+      impl::orthonormal_complement(ew[0], ew[1], ew[2]);
 
     } else {
       // All distinct: cross-product method for each
       for (int k = 0; k < 3; ++k) {
-        evec_from_eval(a00,a11,a22,a01,a02,a12, ev[k], ew[k]);
+        impl::evec_from_eval(a00,a11,a22,a01,a02,a12, ev[k], ew[k]);
         MathExtraKokkos::norm3(ew[k]);
       }
     }
@@ -1113,27 +1118,6 @@ int MathExtraKokkos::sym3x3_eigen(const T A[3][3], T evals[3], T evecs[3][3], in
 
   return 0;
 
-  return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif // !LMP_MATH_EXTRA_KOKKOS_H

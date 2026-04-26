@@ -406,6 +406,11 @@ protected:
 
 }; // class FixRigidBaseKokkos
 
+static const std::string commflag_string(int commflag_) { return std::vector<std::string>({
+    "FULL_BODY", "INITIAL", "FINAL", "FORCE_TORQUE", "VCM_ANGMOM", "XCM_MASS", "ITENSOR", "DOF"
+    })[commflag_];
+  }
+  
 }    // namespace LAMMPS_NS
 
 #endif // !LMP_FIX_RIGID_BASE_KOKKOS_H

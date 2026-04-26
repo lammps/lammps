@@ -2535,6 +2535,76 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::grow_body_base(int nmax_body)
 }
 
 /* ----------------------------------------------------------------------
+  HOST COMM
+------------------------------------------------------------------------- */
+
+template<class DeviceType, class FixRigidBase>
+int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_forward_comm_base(int n, int *list,
+                                                       double *buf, int pbc_flag, int *pbc)
+{
+
+  Kokkos::printf("*** pack_forward_comm %s\n", commflag_string(commflag()).c_str());
+  
+  k_bodyown.template sync<DeviceType>();
+  k_body.template sync<DeviceType>();
+  return base()->FixRigidBase::pack_forward_comm(n, list, buf, pbc_flag, pbc);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType, class FixRigidBase>
+void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_forward_comm_base( int n, int first, double *buf)
+{
+
+  k_bodyown.template sync<LMPHostType>();
+  k_body.template sync<LMPHostType>();
+
+  base()->FixRigidBase::unpack_forward_comm(n, first, buf);
+
+  if (commflag() == FULL_BODY) k_bodyown.template sync<LMPHostType>();
+  k_body.template sync<LMPHostType>();
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType, class FixRigidBase>
+int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_reverse_comm_base(int n, int first, double *buf)
+{
+
+  Kokkos::printf("*** pack_reverse_comm %s\n", commflag_string(commflag()).c_str());
+
+  k_bodyown.template sync<LMPHostType>();
+  if (commflag() == FORCE_TORQUE || commflag() == VCM_ANGMOM || commflag() == XCM_MASS )
+    k_body.template sync<LMPHostType>();
+  else if (commflag() == ITENSOR) k_itensor.template sync<LMPHostType>();
+
+  return base()->FixRigidBase::pack_reverse_comm(n, first, buf);
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType, class FixRigidBase>
+void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_reverse_comm_base(int n, int *list, double *buf)
+{
+
+  k_bodyown.template sync<LMPHostType>();
+  if (commflag() == FORCE_TORQUE || commflag() == VCM_ANGMOM || commflag() == XCM_MASS )
+    k_body.template sync<LMPHostType>();
+  else if (commflag() == ITENSOR) k_itensor.template sync<LMPHostType>();
+
+  base()->FixRigidBase::unpack_reverse_comm(n, list, buf);
+
+  k_bodyown.template modify<LMPHostType>();
+  if (commflag() == FORCE_TORQUE || commflag() == VCM_ANGMOM || commflag() == XCM_MASS )
+    k_body.template modify<LMPHostType>();
+  else if (commflag() == ITENSOR) k_itensor.template modify<LMPHostType>();
+
+}
+
+
+/* ----------------------------------------------------------------------
   KOKKOS BASE
 ------------------------------------------------------------------------- */
 

@@ -236,6 +236,15 @@ protected:
   TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_langextra;
   void apply_langevin_thermostat_base();
 
+  // HOST COMM
+
+  int pack_exchange_base(int, double *);
+  int unpack_exchange_base(int, double *);
+  int pack_forward_comm_base(int, int *, double *, int, int *);
+  void unpack_forward_comm_base(int, int, double *);
+  int pack_reverse_comm_base(int, int, double *);
+  void unpack_reverse_comm_base(int, int *, double *);
+
   // KOKKOS BASE
 
   int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d &,

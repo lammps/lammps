@@ -174,28 +174,23 @@ int FixRigidSmallKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf) {
 }
 
 template<class DeviceType>
-int FixRigidSmallKokkos<DeviceType>::pack_forward_comm(int n, int *list,
-                                                          double *buf, int pbc_flag, int *pbc) {
-  this->sync_host_base();
-  return FixRigidSmall::pack_forward_comm(n, list, buf, pbc_flag, pbc);
+int FixRigidSmallKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc) {
+  return this->pack_forward_comm_base(n, list, buf, pbc_flag, pbc);
 }
 
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf) {
-  FixRigidSmall::unpack_forward_comm(n, first, buf);
-  this->modify_host_base();
+  this->unpack_forward_comm_base(n, first, buf);
 }
 
 template<class DeviceType>
 int FixRigidSmallKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf) {
-  this->sync_host_base();
-  return FixRigidSmall::pack_reverse_comm(n, first, buf);
+  return this->pack_reverse_comm_base(n, first, buf);
 }
 
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf) {
-  FixRigidSmall::unpack_reverse_comm(n, list, buf);
-  this->modify_host_base();
+  this->unpack_reverse_comm_base(n, list, buf);
 }
 
 /* ---------------------------------------------------------------------- */

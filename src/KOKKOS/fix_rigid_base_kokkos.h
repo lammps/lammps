@@ -176,7 +176,7 @@ protected:
   template<bool EVFLAG>
   void set_v_base();
 
-  // CRTP
+  // Curiously Repeating Template Pattern (CRTP)
   Fix* fix_base() { return static_cast<Fix*>(base()); }
   FixRigidBase* base() { return dynamic_cast<FixRigidBase*>(this); }
   FixRigidBase* base_ptr;
@@ -184,9 +184,14 @@ protected:
   static constexpr bool is_nh    = std::is_base_of_v<FixRigidNH,    FixRigidBase>;
   static constexpr bool is_small = std::is_base_of_v<FixRigidSmall, FixRigidBase>;
   int nlocal() { return base()->atom->nlocal; }
-  int nlocal_body() { return base()->nlocal_body; }
+  int& nlocal_body() { return base()->nlocal_body; }
   int nbody_total() { return base()->nlocal_body + base()->nghost_body; }
   int nmax_body() { return base()->nmax_body; }
+  int& copymode() { return base()->copymode; }
+  int triclinic() { return base()->triclinic; }
+  int& commflag() { return base()->commflag; }
+  int& extended() { return base()->extended; }
+  Comm *comm() { return base()->comm; }
   MPI_Comm world() { return base()->world; }
 
   // kokkos views

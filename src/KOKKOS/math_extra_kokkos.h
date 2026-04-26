@@ -22,9 +22,13 @@
 // which still uses double for shape and quat and doesn't (yet) support KK_FLOAT.
 //
 // UPDATE [2026/04 alphataubio]:
-// many functions now templated for T = KK_FLOAT / float / double / ...
+// - many functions now templated for T = KK_FLOAT / float / double / ...
+// - backward and forward compatibility no longer a concern
+// - sym3x3_eigen needs KK_ACC_FLOAT == double when KK_FLOAT == float
 
 namespace MathExtraKokkos {
+
+  using Kokkos::fma;
 
   // 3 vector operations
 
@@ -83,10 +87,9 @@ namespace MathExtraKokkos {
 
   // quaternion operations
 
-  template <typename T>
-  KOKKOS_INLINE_FUNCTION void qnormalize(T *q);
-
-  KOKKOS_INLINE_FUNCTION void qconjugate(KK_FLOAT *q, KK_FLOAT *qc);
+  template <typename T> KOKKOS_INLINE_FUNCTION T qnorm(const T*);
+  template <typename T> KOKKOS_INLINE_FUNCTION void qnormalize(T*);
+  template <typename T> KOKKOS_INLINE_FUNCTION void qconjugate(const T*, T*);
 
   template <typename T>
   KOKKOS_INLINE_FUNCTION void vecquat(KK_FLOAT *a, T *b, KK_FLOAT *c);
@@ -127,11 +130,39 @@ namespace MathExtraKokkos {
                                               const KK_FLOAT *ey, const KK_FLOAT *ez,
                                               const KK_FLOAT *idiag, KK_FLOAT *m);
 
+/* ----------------------------------------------------------------------
+  sym3x3_eigen() Device-compatible branchless 3×3 real symmetric
+                 eigensolver, templated on scalar type T
+
+  Mixed-precision strategy:
+    - T storage precision (float or double); input + output
+    - KK_ACC_FLOAT accumulation precision; always double in LAMMPS Kokkos
+      builds regardless of T, matching the convention used in pair styles.
+      All intermediate Cardano arithmetic, norms, and trig run at this
+      precision; results are cast back to T on write-out.
+
+  Algorithm:
+    - Eigenvalues: Cardano trigonometric (Kopp 2008, arXiv:physics/0610206)
+    - Eigenvectors: cross-product of (A-λI) rows; degenerate cases via
+      analytic orthonormal complement (Hughes & Möller 1999)
+
+  API is drop-in compatible with MathEigen::jacobi3():
+    - sym3x3_eigen(tensor, evals, evecs, 1) ascending sort
+    - evecs[i][0..2] = components of i-th eigenvector
+    - evals[i]       = eigenvalue paired with evecs[i]
+    - Always returns 0 (kept for parity).
+
+  Accumulation-precision helpers:
+    All geometry is done in KK_ACC_FLOAT regardless of T so that cross
+    products and norms don't lose significance when T == float.
+
+  Contributing author:
+    Gemini 3 Pro (prompted, reviewed, tested by alphataubio)
+------------------------------------------------------------------------- */
+
   template <typename T>
   KOKKOS_INLINE_FUNCTION
   int sym3x3_eigen(const T A[3][3], T evals[3], T evecs[3][3], int sort = 1) noexcept;
-
-  using Kokkos::fma;
 
 }
 
@@ -156,7 +187,7 @@ template <typename T>
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::normalize3(const T* v, T* ans)
 {
-  const T scale = KK_FLOAT(1.0) / MathExtraKokkos::len3(v);
+  const T scale = T(1.0) / MathExtraKokkos::len3(v);
   ans[0] = v[0]*scale;
   ans[1] = v[1]*scale;
   ans[2] = v[2]*scale;
@@ -283,9 +314,9 @@ template <typename T>
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::cross3(const T* v1, const T* v2, T* ans)
 {
-  ans[0] = v1[1]*v2[2] - v1[2]*v2[1];
-  ans[1] = v1[2]*v2[0] - v1[0]*v2[2];
-  ans[2] = v1[0]*v2[1] - v1[1]*v2[0];
+  ans[0] = fma(v1[1], v2[2], -v1[2]*v2[1]);
+  ans[1] = fma(v1[2], v2[0], -v1[0]*v2[2]);
+  ans[2] = fma(v1[0], v2[1], -v1[1]*v2[0]);
 }
 
 /* ----------------------------------------------------------------------
@@ -427,9 +458,9 @@ template <typename T>
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::matvec(const T m[3][3], const T *v, T *ans)
 {
-  ans[0] = m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2];
-  ans[1] = m[1][0]*v[0] + m[1][1]*v[1] + m[1][2]*v[2];
-  ans[2] = m[2][0]*v[0] + m[2][1]*v[1] + m[2][2]*v[2];
+  ans[0] = dot3(m[0], v);
+  ans[1] = dot3(m[1], v);
+  ans[2] = dot3(m[2], v);
 }
 
 /* ----------------------------------------------------------------------
@@ -531,19 +562,19 @@ void MathExtraKokkos::richardson(T *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *momen
   MathExtraKokkos::vecquat(w,q,wq);
 
   T qfull[4];
-  qfull[0] = q[0] + dtq * wq[0];
-  qfull[1] = q[1] + dtq * wq[1];
-  qfull[2] = q[2] + dtq * wq[2];
-  qfull[3] = q[3] + dtq * wq[3];
+  qfull[0] = fma(dtq, wq[0], q[0]);
+  qfull[1] = fma(dtq, wq[1], q[1]);
+  qfull[2] = fma(dtq, wq[2], q[2]);
+  qfull[3] = fma(dtq, wq[3], q[3]);
   MathExtraKokkos::qnormalize(qfull);
 
   // 1st half update from dq/dt = 1/2 w q
 
   T qhalf[4];
-  qhalf[0] = q[0] + 0.5*dtq * wq[0];
-  qhalf[1] = q[1] + 0.5*dtq * wq[1];
-  qhalf[2] = q[2] + 0.5*dtq * wq[2];
-  qhalf[3] = q[3] + 0.5*dtq * wq[3];
+  qhalf[0] = fma(0.5*dtq, wq[0], q[0]);
+  qhalf[1] = fma(0.5*dtq, wq[1], q[1]);
+  qhalf[2] = fma(0.5*dtq, wq[2], q[2]);
+  qhalf[3] = fma(0.5*dtq, wq[3], q[3]);
   MathExtraKokkos::qnormalize(qhalf);
 
   // re-compute omega at 1/2 step from m at 1/2 step and q at 1/2 step
@@ -554,10 +585,10 @@ void MathExtraKokkos::richardson(T *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *momen
 
   // 2nd half update from dq/dt = 1/2 w q
 
-  qhalf[0] += 0.5*dtq * wq[0];
-  qhalf[1] += 0.5*dtq * wq[1];
-  qhalf[2] += 0.5*dtq * wq[2];
-  qhalf[3] += 0.5*dtq * wq[3];
+  qhalf[0] = fma(0.5*dtq, wq[0], qhalf[0]);
+  qhalf[1] = fma(0.5*dtq, wq[1], qhalf[1]);
+  qhalf[2] = fma(0.5*dtq, wq[2], qhalf[2]);
+  qhalf[3] = fma(0.5*dtq, wq[3], qhalf[3]);
   MathExtraKokkos::qnormalize(qhalf);
 
   // corrected Richardson update
@@ -570,25 +601,38 @@ void MathExtraKokkos::richardson(T *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *momen
 }
 
 /* ----------------------------------------------------------------------
+   norm of a quaternion
+------------------------------------------------------------------------- */
+template <typename T>
+KOKKOS_INLINE_FUNCTION
+T MathExtraKokkos::qnorm(const T *q)
+{
+  const T norm_sq =
+    fma(q[0], q[0], fma(q[1], q[1], fma(q[2], q[2], q[3] * q[3])));
+  return Kokkos::sqrt(norm_sq);
+}
+
+/* ----------------------------------------------------------------------
    normalize a quaternion
 ------------------------------------------------------------------------- */
 template <typename T>
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::qnormalize(T *q)
 {
-  const T norm = 1.0 / Kokkos::sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]);
-  q[0] *= norm;
-  q[1] *= norm;
-  q[2] *= norm;
-  q[3] *= norm;
+  const T norm_inv = T(1.0) / MathExtraKokkos::qnorm(q);
+  q[0] *= norm_inv;
+  q[1] *= norm_inv;
+  q[2] *= norm_inv;
+  q[3] *= norm_inv;
 }
 
 /* ----------------------------------------------------------------------
    conjugate of a quaternion: qc = conjugate of q
    assume q is of unit length
 ------------------------------------------------------------------------- */
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::qconjugate(KK_FLOAT *q, KK_FLOAT *qc)
+void MathExtraKokkos::qconjugate(const T* q, T* qc)
 {
   qc[0] = q[0];
   qc[1] = -q[1];
@@ -751,12 +795,16 @@ void MathExtraKokkos::q_to_exyz(const T *q, T *ex, T *ey, T *ez)
 ------------------------------------------------------------------------- */
 template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::quatvec(const T *a, const T *b, T *c)
+void MathExtraKokkos::quatvec(const T* a, const T* b, T* c)
 {
-  c[0] = -a[1]*b[0] - a[2]*b[1] - a[3]*b[2];
-  c[1] =  a[0]*b[0] + a[2]*b[2] - a[3]*b[1];
-  c[2] =  a[0]*b[1] + a[3]*b[0] - a[1]*b[2];
-  c[3] =  a[0]*b[2] + a[1]*b[1] - a[2]*b[0];
+  //c[0] = -a[1]*b[0] - a[2]*b[1] - a[3]*b[2];
+  c[0] = fma(-a[3], b[2], fma(-a[2], b[1], -a[1] * b[0]));
+  //c[1] =  a[0]*b[0] + a[2]*b[2] - a[3]*b[1];
+  c[1] = fma(-a[3], b[1], fma( a[2], b[2], a[0] * b[0]));
+  //c[2] =  a[0]*b[1] + a[3]*b[0] - a[1]*b[2];
+  c[2] = fma(-a[1], b[2], fma( a[3], b[0], a[0] * b[1]));
+  //c[3] =  a[0]*b[2] + a[1]*b[1] - a[2]*b[0];
+  c[3] = fma(-a[2], b[0], fma( a[1], b[1], a[0] * b[2]));
 }
 
 /* ----------------------------------------------------------------------
@@ -767,11 +815,13 @@ template <typename T>
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::invquatvec(const T *a, const KK_FLOAT *b, KK_FLOAT *c)
 {
-  c[0] = -a[1]*b[0] + a[0]*b[1] + a[3]*b[2] - a[2]*b[3];
-  c[1] = -a[2]*b[0] - a[3]*b[1] + a[0]*b[2] + a[1]*b[3];
-  c[2] = -a[3]*b[0] + a[2]*b[1] - a[1]*b[2] + a[0]*b[3];
+  //c[0] = -a[1]*b[0] + a[0]*b[1] + a[3]*b[2] - a[2]*b[3];
+  c[0] = fma(-a[2], b[3], fma( a[3], b[2], fma( a[0], b[1], -a[1] * b[0])));
+  //c[1] = -a[2]*b[0] - a[3]*b[1] + a[0]*b[2] + a[1]*b[3];
+  c[1] = fma( a[1], b[3], fma( a[0], b[2], fma(-a[3], b[1], -a[2] * b[0])));
+  //c[2] = -a[3]*b[0] + a[2]*b[1] - a[1]*b[2] + a[0]*b[3];
+  c[2] = fma( a[0], b[3], fma(-a[1], b[2], fma( a[2], b[1], -a[3] * b[0])));
 }
-
 /* ----------------------------------------------------------------------
    quaternion-quaternion multiply: c = a*b
 ------------------------------------------------------------------------- */
@@ -871,35 +921,9 @@ void MathExtraKokkos::omega_to_angmom(const KK_FLOAT *w, const KK_FLOAT *ex,
   m[2] = mbody[0]*ex[2] + mbody[1]*ey[2] + mbody[2]*ez[2];
 }
 
-
-
-
-//
-// Device-compatible 3×3 real symmetric eigensolver, templated on scalar type T.
-//
-// Mixed-precision strategy:
-//   T            — storage precision (float or double); input tensor + output
-//   KK_ACC_FLOAT — accumulation precision; always double in LAMMPS Kokkos builds
-//                  regardless of T, matching the convention used in pair styles.
-//                  All intermediate Cardano arithmetic, norms, and trig run at
-//                  this precision; results are cast back to T on write-out.
-//
-// Algorithm:
-//   Eigenvalues  — Cardano trigonometric (Kopp 2008, arXiv:physics/0610206)
-//   Eigenvectors — cross-product of (A-λI) rows; degenerate cases handled via
-//                  analytic orthonormal complement (Hughes & Möller 1999)
-//
-// API is drop-in compatible with MathEigen::jacobi3:
-//   sym3x3_eigen(tensor, evals, evecs, 1)   ascending sort
-//   Always returns 0 (kept for parity).
-//
-// Convention (same as jacobi3):
-//   evecs[i][0..2] = components of i-th eigenvector
-//   evals[i]       = eigenvalue paired with evecs[i]
-
-// ── Accumulation-precision helpers ──────────────────────────────────────────
-// All geometry is done in KK_ACC_FLOAT regardless of T so that cross products
-// and norms don't lose significance when T == float.
+/* ----------------------------------------------------------------------
+  sym3x3_eigen() header-only implementation
+------------------------------------------------------------------------- */
 
 namespace impl {
 

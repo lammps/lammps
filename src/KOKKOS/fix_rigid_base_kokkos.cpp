@@ -2525,12 +2525,10 @@ template<class DeviceType, class FixRigidBase>
 void FixRigidBaseKokkos<DeviceType,FixRigidBase>::grow_body_base(int nmax_body)
 {
   base()->nmax_body = nmax_body;
+  k_body.sync_host();
   k_body.resize(nmax_body);
-  memcpy(k_body.view_host().data(), base()->body, (bigint) nmax_body * sizeof(Body));
-  base()->memory->sfree(base()->body);
   base()->body = k_body.view_host().data();
   k_body.modify_host();
-  k_body.sync_device();
 }
 
 /* ----------------------------------------------------------------------

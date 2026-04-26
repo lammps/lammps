@@ -1027,10 +1027,13 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
   // acquire ghost bodies via forward comm
   // set atom2body for ghost atoms via forward comm
   // set atom2body for other owned atoms via reset_atom2body()
-  base()->nghost_body = 0;
-  base()->commflag = FULL_BODY;
-  base()->comm->forward_comm(fix_base());
   reset_atom2body_base();
+  base()->nghost_body = 0;
+  commflag() = FULL_BODY;
+  comm()->forward_comm(fix_base());
+
+  k_body.template sync<DeviceType>();
+  auto l_body = k_body.template view<DeviceType>();
 
   // compute mass & center-of-mass of each rigid body
   k_body.sync_device();

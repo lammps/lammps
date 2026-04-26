@@ -22,24 +22,24 @@
 // which still uses double for shape and quat and doesn't (yet) support KK_FLOAT.
 //
 // UPDATE [2026/04 alphataubio]:
-// functions now templated for T = KK_FLOAT / float / double / ...
+// many functions now templated for T = KK_FLOAT / float / double / ...
 
 namespace MathExtraKokkos {
 
   // 3 vector operations
 
-  KOKKOS_INLINE_FUNCTION void norm3(KK_FLOAT *v);
-  KOKKOS_INLINE_FUNCTION void normalize3(const KK_FLOAT *v, KK_FLOAT *ans);
-  KOKKOS_INLINE_FUNCTION void snormalize3(const KK_FLOAT, const KK_FLOAT *v, KK_FLOAT *ans);
-  KOKKOS_INLINE_FUNCTION void negate3(KK_FLOAT *v);
-  KOKKOS_INLINE_FUNCTION void scale3(KK_FLOAT s, KK_FLOAT *v);
-  KOKKOS_INLINE_FUNCTION void scale3(KK_FLOAT s, const KK_FLOAT *v, KK_FLOAT *ans);
-  KOKKOS_INLINE_FUNCTION void add3(const KK_FLOAT *v1, const KK_FLOAT *v2, KK_FLOAT *ans);
-  KOKKOS_INLINE_FUNCTION void sub3(const KK_FLOAT *v1, const KK_FLOAT *v2, KK_FLOAT *ans);
-  KOKKOS_INLINE_FUNCTION KK_FLOAT len3(const KK_FLOAT *v);
-  KOKKOS_INLINE_FUNCTION KK_FLOAT lensq3(const KK_FLOAT *v);
-  KOKKOS_INLINE_FUNCTION KK_FLOAT dot3(const KK_FLOAT *v1, const KK_FLOAT *v2);
-  KOKKOS_INLINE_FUNCTION void cross3(const KK_FLOAT *v1, const KK_FLOAT *v2, KK_FLOAT *ans);
+  template <typename T> KOKKOS_INLINE_FUNCTION void norm3(T*);
+  template <typename T> KOKKOS_INLINE_FUNCTION void normalize3(const T*, T*);
+  template <typename T> KOKKOS_INLINE_FUNCTION void snormalize3(const T, const T*, T*);
+  template <typename T> KOKKOS_INLINE_FUNCTION void negate3(T*);
+  template <typename T> KOKKOS_INLINE_FUNCTION void scale3(T, T*);
+  template <typename T> KOKKOS_INLINE_FUNCTION void scale3(T, const T*, T*);
+  template <typename T> KOKKOS_INLINE_FUNCTION void add3(const T*, const T*, T*);
+  template <typename T> KOKKOS_INLINE_FUNCTION void sub3(const T*, const T*, T*);
+  template <typename T> KOKKOS_INLINE_FUNCTION T len3(const T*);
+  template <typename T> KOKKOS_INLINE_FUNCTION T lensq3(const T*);
+  template <typename T> KOKKOS_INLINE_FUNCTION T dot3(const T*, const T*);
+  template <typename T> KOKKOS_INLINE_FUNCTION void cross3(const T*, const T*, T*);
 
   // 3x3 matrix operations
 
@@ -138,10 +138,11 @@ namespace MathExtraKokkos {
 /* ----------------------------------------------------------------------
    normalize a vector in place
 ------------------------------------------------------------------------- */
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::norm3(KK_FLOAT *v)
+void MathExtraKokkos::norm3(T* v)
 {
-  const KK_FLOAT scale = KK_FLOAT(1.0) / MathExtraKokkos::len3(v);
+  const T scale = T(1.0) / MathExtraKokkos::len3(v);
   v[0] *= scale;
   v[1] *= scale;
   v[2] *= scale;
@@ -151,10 +152,11 @@ void MathExtraKokkos::norm3(KK_FLOAT *v)
    normalize a vector, return in ans
 ------------------------------------------------------------------------- */
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::normalize3(const KK_FLOAT *v, KK_FLOAT *ans)
+void MathExtraKokkos::normalize3(const T* v, T* ans)
 {
-  const KK_FLOAT scale = KK_FLOAT(1.0) / MathExtraKokkos::len3(v);
+  const T scale = KK_FLOAT(1.0) / MathExtraKokkos::len3(v);
   ans[0] = v[0]*scale;
   ans[1] = v[1]*scale;
   ans[2] = v[2]*scale;
@@ -164,10 +166,11 @@ void MathExtraKokkos::normalize3(const KK_FLOAT *v, KK_FLOAT *ans)
    scale a vector to length
 ------------------------------------------------------------------------- */
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::snormalize3(const KK_FLOAT length, const KK_FLOAT *v, KK_FLOAT *ans)
+void MathExtraKokkos::snormalize3(const T length, const T* v, T* ans)
 {
-  const KK_FLOAT scale = length / MathExtraKokkos::len3(v);
+  const T scale = length / MathExtraKokkos::len3(v);
   ans[0] = v[0]*scale;
   ans[1] = v[1]*scale;
   ans[2] = v[2]*scale;
@@ -177,8 +180,9 @@ void MathExtraKokkos::snormalize3(const KK_FLOAT length, const KK_FLOAT *v, KK_F
    negate vector v in place
 ------------------------------------------------------------------------- */
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::negate3(KK_FLOAT *v)
+void MathExtraKokkos::negate3(T* v)
 {
   v[0] = -v[0];
   v[1] = -v[1];
@@ -189,8 +193,9 @@ void MathExtraKokkos::negate3(KK_FLOAT *v)
    scale vector v by s in place
 ------------------------------------------------------------------------- */
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::scale3(KK_FLOAT s, KK_FLOAT *v)
+void MathExtraKokkos::scale3(T s, T* v)
 {
   v[0] *= s;
   v[1] *= s;
@@ -201,8 +206,9 @@ void MathExtraKokkos::scale3(KK_FLOAT s, KK_FLOAT *v)
    scale vector v by s, return in ans
 ------------------------------------------------------------------------- */
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::scale3(KK_FLOAT s, const KK_FLOAT *v, KK_FLOAT *ans)
+void MathExtraKokkos::scale3(T s, const T* v, T* ans)
 {
   ans[0] = s*v[0];
   ans[1] = s*v[1];
@@ -213,8 +219,9 @@ void MathExtraKokkos::scale3(KK_FLOAT s, const KK_FLOAT *v, KK_FLOAT *ans)
    ans = v1 + v2
 ------------------------------------------------------------------------- */
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::add3(const KK_FLOAT *v1, const KK_FLOAT *v2, KK_FLOAT *ans)
+void MathExtraKokkos::add3(const T* v1, const T* v2, T* ans)
 {
   ans[0] = v1[0] + v2[0];
   ans[1] = v1[1] + v2[1];
@@ -225,8 +232,9 @@ void MathExtraKokkos::add3(const KK_FLOAT *v1, const KK_FLOAT *v2, KK_FLOAT *ans
    ans = v1 - v2
 ------------------------------------------------------------------------- */
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::sub3(const KK_FLOAT *v1, const KK_FLOAT *v2, KK_FLOAT *ans)
+void MathExtraKokkos::sub3(const T* v1, const T* v2, T* ans)
 {
   ans[0] = v1[0] - v2[0];
   ans[1] = v1[1] - v2[1];
@@ -237,8 +245,9 @@ void MathExtraKokkos::sub3(const KK_FLOAT *v1, const KK_FLOAT *v2, KK_FLOAT *ans
    length of vector v
 ------------------------------------------------------------------------- */
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT MathExtraKokkos::len3(const KK_FLOAT *v)
+T MathExtraKokkos::len3(const T* v)
 {
   return Kokkos::sqrt(lensq3(v));
 }
@@ -247,19 +256,20 @@ KK_FLOAT MathExtraKokkos::len3(const KK_FLOAT *v)
    squared length of vector v, or dot product of v with itself
 ------------------------------------------------------------------------- */
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT MathExtraKokkos::lensq3(const KK_FLOAT *v)
+T MathExtraKokkos::lensq3(const T* v)
 {
-  // v0^2 + v1^2 + v2^2
-  return fma(v[0], v[0], fma(v[1], v[1], v[2]*v[2]));
+  return dot3(v,v);
 }
 
 /* ----------------------------------------------------------------------
    dot product of 2 vectors
 ------------------------------------------------------------------------- */
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT MathExtraKokkos::dot3(const KK_FLOAT *v1, const KK_FLOAT *v2)
+T MathExtraKokkos::dot3(const T* v1, const T* v2)
 {
   // v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2];
   return fma(v1[0], v2[0], fma(v1[1], v2[1], v1[2]*v2[2]));
@@ -269,8 +279,9 @@ KK_FLOAT MathExtraKokkos::dot3(const KK_FLOAT *v1, const KK_FLOAT *v2)
    cross product of 2 vectors
 ------------------------------------------------------------------------- */
 
+template <typename T>
 KOKKOS_INLINE_FUNCTION
-void MathExtraKokkos::cross3(const KK_FLOAT *v1, const KK_FLOAT *v2, KK_FLOAT *ans)
+void MathExtraKokkos::cross3(const T* v1, const T* v2, T* ans)
 {
   ans[0] = v1[1]*v2[2] - v1[2]*v2[1];
   ans[1] = v1[2]*v2[0] - v1[0]*v2[2];

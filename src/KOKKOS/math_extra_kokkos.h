@@ -15,8 +15,6 @@
 #ifndef LMP_MATH_EXTRA_KOKKOS_H
 #define LMP_MATH_EXTRA_KOKKOS_H
 
-#include <cmath>
-
 #include "kokkos_type.h"
 
 // NOTE: 'double' is still used in various quaternion related functions below.
@@ -242,7 +240,7 @@ void MathExtraKokkos::sub3(const KK_FLOAT *v1, const KK_FLOAT *v2, KK_FLOAT *ans
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT MathExtraKokkos::len3(const KK_FLOAT *v)
 {
-  return sqrt(lensq3(v));
+  return Kokkos::sqrt(lensq3(v));
 }
 
 /* ----------------------------------------------------------------------
@@ -567,7 +565,7 @@ template <typename T>
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::qnormalize(T *q)
 {
-  const T norm = 1.0 / sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]);
+  const T norm = 1.0 / Kokkos::sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]);
   q[0] *= norm;
   q[1] *= norm;
   q[2] *= norm;
@@ -609,8 +607,8 @@ void MathExtraKokkos::axisangle_to_quat(const KK_FLOAT *v, const KK_FLOAT angle,
                                   KK_FLOAT *quat)
 {
   KK_FLOAT halfa = 0.5*angle;
-  KK_FLOAT sina = sin(halfa);
-  quat[0] = cos(halfa);
+  KK_FLOAT sina = Kokkos::sin(halfa);
+  quat[0] = Kokkos::cos(halfa);
   quat[1] = v[0]*sina;
   quat[2] = v[1]*sina;
   quat[3] = v[2]*sina;
@@ -662,22 +660,22 @@ void MathExtraKokkos::exyz_to_q(const T *ex, const T *ey, const T *ez, T *q)
   // some component must be greater than 1/4 since they sum to 1
   // compute other components from it
   if (q0sq >= 0.25) {
-    q[0] = sqrt(q0sq);
+    q[0] = Kokkos::sqrt(q0sq);
     q[1] = (ey[2] - ez[1]) / (4.0*q[0]);
     q[2] = (ez[0] - ex[2]) / (4.0*q[0]);
     q[3] = (ex[1] - ey[0]) / (4.0*q[0]);
   } else if (q1sq >= 0.25) {
-    q[1] = sqrt(q1sq);
+    q[1] = Kokkos::sqrt(q1sq);
     q[0] = (ey[2] - ez[1]) / (4.0*q[1]);
     q[2] = (ey[0] + ex[1]) / (4.0*q[1]);
     q[3] = (ex[2] + ez[0]) / (4.0*q[1]);
   } else if (q2sq >= 0.25) {
-    q[2] = sqrt(q2sq);
+    q[2] = Kokkos::sqrt(q2sq);
     q[0] = (ez[0] - ex[2]) / (4.0*q[2]);
     q[1] = (ey[0] + ex[1]) / (4.0*q[2]);
     q[3] = (ez[1] + ey[2]) / (4.0*q[2]);
   } else if (q3sq >= 0.25) {
-    q[3] = sqrt(q3sq);
+    q[3] = Kokkos::sqrt(q3sq);
     q[0] = (ex[1] - ey[0]) / (4.0*q[3]);
     q[1] = (ez[0] + ex[2]) / (4.0*q[3]);
     q[2] = (ez[1] + ey[2]) / (4.0*q[3]);
@@ -807,8 +805,8 @@ void MathExtraKokkos::no_squish_rotate(int k, T *p, T *q,
   phi = p[0]*kq[0] + p[1]*kq[1] + p[2]*kq[2] + p[3]*kq[3];
   if (inertia[k-1] == 0.0) phi = 0.0;
   else phi /= 4.0 * inertia[k-1];
-  c_phi = cos(dt * phi);
-  s_phi = sin(dt * phi);
+  c_phi = Kokkos::cos(dt * phi);
+  s_phi = Kokkos::sin(dt * phi);
 
   p[0] = fma(c_phi, p[0], s_phi*kp[0]);
   p[1] = fma(c_phi, p[1], s_phi*kp[1]);

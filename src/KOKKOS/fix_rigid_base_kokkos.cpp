@@ -1780,6 +1780,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
           l_x(i,1) = xnew[1] + bk.xcm[1] - deltay;
           l_x(i,2) = xnew[2] + bk.xcm[2] - deltaz;
         }
+        auto tmp = DomainKokkos::image_flags(l_xcmimage(i));
+        Kokkos::printf("*** set_xv i %i ibody %i l_xcmimage %i %i %i l_displace %f %f %f xnew %f %f %f xcm %f %f %f x %f %f %f v %f %f %f\nex %f %f %f ey %f %f %f ez %f %f %f\n", i, ibody, tmp[0], tmp[1], tmp[2], l_displace(i,0), l_displace(i,1), l_displace(i,2), xnew[0], xnew[1], xnew[2], bk.xcm[0], bk.xcm[1], bk.xcm[2], l_x(i,0), l_x(i,1), l_x(i,2), l_v(i,0), l_v(i,1), l_v(i,2), bk.ex_space[0], bk.ex_space[1], bk.ex_space[2], bk.ey_space[0], bk.ey_space[1], bk.ey_space[2], bk.ez_space[0], bk.ez_space[1], bk.ez_space[2]);
       };
 
   const int nlocal = atomKK->nlocal;
@@ -2395,7 +2397,10 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::image_shift_base()
       bdim = bk.image >> IMG2BITS;
       const imageint xdim2 = IMGMAX + tdim - bdim;
       l_xcmimage(i) = (xdim2 << IMG2BITS) | (xdim1 << IMGBITS) | xdim0;
-      Kokkos::printf("*** ibody %i l_image(%i) %i bk.image %i l_xcmimage(%i) %i\n", ibody, i, l_image(i), bk.image, i, l_xcmimage(i));
+      auto tmp1 = DomainKokkos::image_flags(l_image(i));
+      auto tmp2 = DomainKokkos::image_flags(bk.image);
+      auto tmp3 = DomainKokkos::image_flags(l_xcmimage(i));
+      Kokkos::printf("*** image_shift i %i ibody %i l_image %i %i %i bk.image %i %i %i l_xcmimage %i %i %i\n", i, ibody, tmp1[0], tmp1[1], tmp1[2], tmp2[0], tmp2[1], tmp2[2], tmp3[0], tmp3[1], tmp3[2]);
     }
   );
   k_xcmimage.template modify<DeviceType>();

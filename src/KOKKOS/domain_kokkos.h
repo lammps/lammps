@@ -80,6 +80,10 @@ class DomainKokkos : public Domain {
   static KOKKOS_INLINE_FUNCTION
   Few<T,3> unmap(Few<T,3>, Few<T,6>, int, const T2&, imageint);
 
+  // NOLINTNEXTLINE
+  static KOKKOS_INLINE_FUNCTION
+  Few<int,3> image_flags(imageint image);
+
   template <bool TRICLINIC, typename T>
 // NOLINTNEXTLINE
   static KOKKOS_INLINE_FUNCTION
@@ -186,6 +190,23 @@ void DomainKokkos::minimum_image_big(
   if (periodic[0])
     delta[0] = fma(-prd[0], periodic_shift(delta[0], invprd[0], dflag), delta[0]);
 }
+
+
+/* ----------------------------------------------------------------------
+   return ix iy iz image flags
+   convenience function for printf debugging
+------------------------------------------------------------------------- */
+
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+Few<int,3> DomainKokkos::image_flags(imageint image) {
+  return Few<int,3>(
+    (image & IMGMASK) - IMGMAX,
+    (image >> IMGBITS & IMGMASK) - IMGMAX,
+    (image >> IMG2BITS) - IMGMAX
+  );
+}
+
 
 }
 

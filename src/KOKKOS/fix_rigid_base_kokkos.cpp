@@ -2538,24 +2538,26 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_forward_comm_kokkos(
   k_body.template sync<DeviceType>();
   auto l_body = k_body.template view<DeviceType>();
 
+  auto l_comm_me = base()->comm->me;
   int result = 0;
   base()->copymode = 1;
   if (base()->commflag == FULL_BODY) {
     Kokkos::parallel_scan(
       Kokkos::RangePolicy<DeviceType>(0, n),
-      KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
+      KOKKOS_LAMBDA(const int &i, int &offset, const bool &final) {
         const int ibody = l_bodyown(l_sendlist(i));
         if (!final) {
-          if (ibody < 0) m++;
-          else m += 48;
+          if (ibody >= 0) offset += 47;
           return;
         }
         if (ibody < 0) {
-          l_buf[m++] = d_ubuf(0).d; // flag
+          l_buf[i] = d_ubuf(0).d; // flag
           return;
         }
+        l_buf[i] = d_ubuf(1).d; // flag
+        int m = n + offset;
+        offset += 47;
         const BodyKokkos &bk = l_body(ibody);
-        l_buf[m++] = d_ubuf(1).d; // flag
         l_buf[m++] = d_ubuf(bk.natoms).d;
         l_buf[m++] = static_cast<double>(bk.mass);
         l_buf[m++] = static_cast<double>(bk.xcm[0]);
@@ -2603,8 +2605,12 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_forward_comm_kokkos(
         l_buf[m++] = static_cast<double>(bk.conjqm[2]);
         l_buf[m++] = static_cast<double>(bk.conjqm[3]);
         l_buf[m++] = d_ubuf(bk.image).d;
+
+        Kokkos::printf("*** [%i] pack_forward_comm_kokkos i %i offset %i mass %f natoms %i xcm %f %f %f\n", l_comm_me, i, offset, bk.mass, bk.natoms, bk.xcm[0], bk.xcm[1], bk.xcm[2]);
+
       }, result
     );
+    return n + result;
   } else if (base()->commflag == INITIAL) {
     Kokkos::parallel_scan(
       Kokkos::RangePolicy<DeviceType>(0, n),
@@ -2703,25 +2709,26 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_forward_comm_kokkos(
   base()->copymode = 1;
   if (base()->commflag == FULL_BODY) {
 
+    auto l_comm_me = base()->comm->me;
     auto l_nlocal_body = nlocal_body();
-    Few<int,2> recv(0,0);
+    int nbody_recv;
 
     Kokkos::parallel_scan(
-      Kokkos::RangePolicy<DeviceType>(first, first+n),
-      KOKKOS_LAMBDA(const int &i, Few<int,2> &l_recv, const bool &final) {
-        const int flag = d_ubuf(l_buf[l_recv[0]++]).i;
+      Kokkos::RangePolicy<DeviceType>(0, n),
+      KOKKOS_LAMBDA(const int &i, int &l_nbody_recv, const bool &final) {
+        const int flag = d_ubuf(l_buf[i]).i;
         if (!final) {
-          if (flag == 1) { l_recv[0] += 47; l_recv[1]++; }
+          if( flag == 1 ) l_nbody_recv++;
           return;
         }
-        if (flag == 0) {
-          l_bodyown(i) = -1;
+        if( flag == 0 ) {
+          l_bodyown(first + i) = -1;
           return;
         }
-        const int j = l_nlocal_body + (l_recv[1]++);
-        int m = l_recv[0];
-        l_body(j).ilocal = i;
-        l_bodyown(i) = j;
+        const int j = l_nlocal_body + l_nbody_recv;
+        int m = n + l_nbody_recv * 47;
+        l_body(j).ilocal = first + i;
+        l_bodyown(first + i) = j;
         BodyKokkos &bk = l_body(j);
         bk.natoms = d_ubuf(l_buf[m++]).i;
         bk.mass = static_cast<KK_FLOAT>(l_buf[m++]);
@@ -2770,14 +2777,15 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_forward_comm_kokkos(
         bk.conjqm[2] = static_cast<KK_FLOAT>(l_buf[m++]);
         bk.conjqm[3] = static_cast<KK_FLOAT>(l_buf[m++]);
         bk.image = d_ubuf(l_buf[m++]).i;
-        l_recv[0] += 47;
 
-        Kokkos::printf("*** unpack_forward_comm_kokkos i %i j %i mass %f natoms %i xcm %f %f %f\n", i, j, bk.mass, bk.natoms, bk.xcm[0], bk.xcm[1], bk.xcm[2]);
+        Kokkos::printf("*** [%i] unpack_forward_comm_kokkos i %i l_nbody_recv %i mass %f natoms %i xcm %f %f %f\n", l_comm_me, i, l_nbody_recv, bk.mass, bk.natoms, bk.xcm[0], bk.xcm[1], bk.xcm[2]);
 
-      }, recv
+        l_nbody_recv++;
+
+      }, nbody_recv
     );
 
-    base()->nghost_body += recv[1];
+    base()->nghost_body += nbody_recv;
     k_bodyown.modify_device();
 
   } else if (base()->commflag == INITIAL) {
@@ -2856,6 +2864,8 @@ template<class DeviceType, class FixRigidBase>
 int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_reverse_comm_kokkos(
     int n, int first, DAT::tdual_double_1d &k_buf)
 {
+
+  Kokkos::printf("*** pack_reverse_comm_kokkos %s\n", commflag_string(base()->commflag).c_str());
 
   // kokkos views
 

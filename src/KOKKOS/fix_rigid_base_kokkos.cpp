@@ -44,6 +44,8 @@
 #include "rigid_const.h"
 #include "update.h"
 
+#include <type_traits>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace RigidConst;
@@ -2806,6 +2808,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_reverse_comm_base(int n
 /* ----------------------------------------------------------------------
   KOKKOS BASE
 ------------------------------------------------------------------------- */
+
+inline constexpr bool is_kk_fp32 = std::is_same_v<KK_FLOAT, float>;
 
 template<class DeviceType, class FixRigidBase>
 int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_forward_comm_kokkos(

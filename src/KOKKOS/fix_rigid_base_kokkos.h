@@ -271,6 +271,42 @@ protected:
 
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &) override;
 
+  // SOA REFACTOR
+
+  DAT::tdual_int_2d k_body_natoms, k_body_ilocal;
+
+
+
+
+/*
+
+    KK_FLOAT mass, xcm[3], xgc[3], vcm[3], fcm[3], torque[3], quat[4], inertia[3];
+    KK_FLOAT ex_space[3], ey_space[3], ez_space[3];
+    KK_FLOAT xgc_body[3], angmom[3], omega[3], conjqm[4];
+    
+
+  DAT::tdual_int_2d k_counts;
+  DAT::tdual_tagint_1d k_bodytag;
+  DAT::tdual_imageint_1d k_xcmimage;
+  DAT::ttransform_kkfloat_2d k_displace, k_itensor;
+  
+typedef TransformView<KK_ACC_FLOAT*, double*, LMPDeviceLayout> ttransform_kkacc_1d;
+typedef TransformView<int**, int**, LMPDeviceLayout> ttransform_int_2d;
+typedef TransformView<LAMMPS_NS::tagint**, LAMMPS_NS::tagint**, LMPDeviceLayout> ttransform_tagint_2d;
+typedef TransformView<KK_FLOAT**, double**, LMPDeviceLayout> ttransform_kkfloat_2d;
+typedef TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight> ttransform_kkfloat_2d_lr;
+typedef TransformView<KK_FLOAT*[2], double*[2], LMPDeviceLayout> ttransform_kkfloat_1d_2;
+typedef TransformView<KK_FLOAT*[3], double*[3], LMPDeviceLayout> ttransform_kkfloat_1d_3;
+typedef TransformView<KK_FLOAT*[3], double*[3], Kokkos::LayoutRight> ttransform_kkfloat_1d_3_lr;
+typedef TransformView<KK_ACC_FLOAT*[3], double*[3], LMPDeviceLayout> ttransform_kkacc_1d_3;
+typedef TransformView<KK_FLOAT*[4], double*[4], LMPDeviceLayout> ttransform_kkfloat_1d_4;
+typedef TransformView<KK_FLOAT*[6], double*[6], LMPDeviceLayout> ttransform_kkfloat_1d_6;
+typedef TransformView<KK_ACC_FLOAT*[6], double*[6], LMPDeviceLayout> ttransform_kkacc_1d_6;
+typedef TransformView<KK_ACC_FLOAT*[9], double*[9], LMPDeviceLayout> ttransform_kkacc_1d_9;
+*/
+
+  
+
   // BODY KOKKOS
 
   using Body = FixRigidSmall::Body;

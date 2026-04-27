@@ -1183,7 +1183,8 @@ unsigned char *ScalableFont::create_colorscale(const std::string &text, int &wid
   free(g);
 
   double lo, hi;
-  image->map_info(mapidx, lo, hi);
+  bool addone;
+  image->map_info(mapidx, lo, hi, addone);
   auto newtext = fmt::format("{:3.3}  {}  {:3.3}", lo, text, hi);
 
   // dry run to determine size of pixmap
@@ -1271,6 +1272,7 @@ unsigned char *ScalableFont::create_colorscale(const std::string &text, int &wid
   }
 
   // draw colormap
+  if (addone) hi += 1.0;
   double delta = (hi - lo) / (width - 2 * xspace);
   int ticinc = tics ? (width - 2 * xspace) / (tics + 1) : 1 << 31;
   int ticmin = ticinc + xspace + 1;

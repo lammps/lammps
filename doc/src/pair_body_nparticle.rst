@@ -1,7 +1,10 @@
 .. index:: pair_style body/nparticle
+.. index:: pair_style body/nparticle/omp
 
 pair_style body/nparticle command
 =================================
+
+Accelerator Variant: *body/nparticle/omp*
 
 Syntax
 """"""
@@ -86,6 +89,10 @@ commands:
 
 The last coefficient is optional.  If not specified, the global cutoff
 is used.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

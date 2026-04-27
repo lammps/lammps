@@ -1,7 +1,10 @@
 .. index:: pair_style local/density
+.. index:: pair_style local/density/omp
 
 pair_style local/density command
 ================================
+
+Accelerator Variants: *local/density/omp*
 
 Syntax
 """"""
@@ -195,6 +198,10 @@ Lines 5 to 9+N_rho constitute the first block. Thus the input file is separated
 (by blank lines) into N_LD blocks each representing a separate LD potential and
 each specifying its own upper and lower cutoffs, central and neighbor atoms,
 and potential.  In general, blank lines anywhere are ignored.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

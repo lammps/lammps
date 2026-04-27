@@ -449,10 +449,13 @@ Related commands
 
 :doc:`fix print <fix_print>`,
 :doc:`fix graphics/arrows <fix_graphics_arrows>`,
+:doc:`fix graphics/chunk <fix_graphics_chunk>`,
 :doc:`fix graphics/isosurface <fix_graphics_isosurface>`,
 :doc:`fix graphics/lines <fix_graphics_lines>`,
 :doc:`fix graphics/objects <fix_graphics_objects>`,
-:doc:`fix graphics/periodic <fix_graphics_periodic>`
+:doc:`fix graphics/periodic <fix_graphics_periodic>`,
+:doc:`fix graphics/replica <fix_graphics_replica>`,
+:doc:`dump image <dump_image>`
 
 Default
 """""""

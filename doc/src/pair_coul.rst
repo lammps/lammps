@@ -21,6 +21,7 @@
 .. index:: pair_style coul/msm
 .. index:: pair_style coul/msm/omp
 .. index:: pair_style coul/streitz
+.. index:: pair_style coul/streitz/omp
 .. index:: pair_style coul/wolf
 .. index:: pair_style coul/wolf/kk
 .. index:: pair_style coul/wolf/omp
@@ -67,6 +68,8 @@ Accelerator Variants: *coul/msm/omp*
 
 pair_style coul/streitz command
 ===============================
+
+Accelerator Variants: *coul/streitz/omp*
 
 pair_style coul/wolf command
 ============================

@@ -51,8 +51,6 @@ using MathConst::MY_PI4;
 
 // clang-format on
 namespace {
-constexpr int NCOLORS = 140;
-constexpr int NELEMENTS = 109;
 constexpr double EPSILON = 1.0e-6;
 constexpr double TRANS_DELTA = 0.01;
 
@@ -370,16 +368,8 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
 
   // colors
 
-  boxcolor = color2rgb("yellow");
   background[0] = background[1] = background[2] = 0.0;
   background2[0] = background2[1] = background2[2] = -1.0;
-
-  // define nmap colormaps, all with default settings
-
-  nmap = nmap_caller;
-  maps = new ColorMap*[nmap];
-  for (int i = 0; i < nmap; i++)
-    maps[i] = new ColorMap(lmp,this);
 
   // static parameters
 
@@ -437,7 +427,7 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
     {"darkkhaki", {189 / 255.0, 183 / 255.0, 107 / 255.0}},
     {"darkmagenta", {139 / 255.0, 0 / 255.0, 139 / 255.0}},
     {"darkolivegreen", {85 / 255.0, 107 / 255.0, 47 / 255.0}},
-    {"darkorange", {255 / 255.0, 140 / 255.0, 0 / 255.0}},
+    {"darkorange", {139 / 255.0, 69 / 255.0, 0 / 255.0}},
     {"darkorchid", {153 / 255.0, 50 / 255.0, 204 / 255.0}},
     {"darkred", {139 / 255.0, 0 / 255.0, 0 / 255.0}},
     {"darksalmon", {233 / 255.0, 150 / 255.0, 122 / 255.0}},
@@ -459,7 +449,7 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
     {"gold", {255 / 255.0, 215 / 255.0, 0 / 255.0}},
     {"goldenrod", {218 / 255.0, 165 / 255.0, 32 / 255.0}},
     {"gray", {128 / 255.0, 128 / 255.0, 128 / 255.0}},
-    {"green", {0 / 255.0, 128 / 255.0, 0 / 255.0}},
+    {"green", {0 / 255.0, 255.0 / 255.0, 0 / 255.0}},
     {"greenyellow", {173 / 255.0, 255 / 255.0, 47 / 255.0}},
     {"honeydew", {240 / 255.0, 255 / 255.0, 240 / 255.0}},
     {"hotpink", {255 / 255.0, 105 / 255.0, 180 / 255.0}},
@@ -507,8 +497,8 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
     {"oldlace", {253 / 255.0, 245 / 255.0, 230 / 255.0}},
     {"olive", {128 / 255.0, 128 / 255.0, 0 / 255.0}},
     {"olivedrab", {107 / 255.0, 142 / 255.0, 35 / 255.0}},
-    {"orange", {255 / 255.0, 165 / 255.0, 0 / 255.0}},
-    {"orangered", {255 / 255.0, 69 / 255.0, 0 / 255.0}},
+    {"orange", {255 / 255.0, 128 / 255.0, 0 / 255.0}},
+    {"orangered", {255 / 255.0, 64 / 255.0, 0 / 255.0}},
     {"orchid", {218 / 255.0, 112 / 255.0, 214 / 255.0}},
     {"palegoldenrod", {238 / 255.0, 232 / 255.0, 170 / 255.0}},
     {"palegreen", {152 / 255.0, 251 / 255.0, 152 / 255.0}},
@@ -661,6 +651,15 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
     {"Bh", {{0.6431372549, 0.6666666667, 0.6784313725}, 1.0}},
     {"Hs", {{0.6431372549, 0.6666666667, 0.6784313725}, 1.0}},
     {"Mt", {{0.6431372549, 0.6666666667, 0.6784313725}, 1.0}}};
+
+  boxcolor = color2rgb("yellow");
+
+  // define requested color maps with default values. must come after defining color names
+
+  nmap = nmap_caller;
+  maps = new ColorMap*[nmap];
+  for (int i = 0; i < nmap; i++)
+    maps[i] = new ColorMap(lmp,this);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2170,9 +2169,9 @@ int Image::map_minmax(int index, double mindynamic, double maxdynamic)
    get min/max bounds of dynamic color map index and return 1 if dynamic
 ------------------------------------------------------------------------- */
 
-int Image::map_info(int index, double &min, double &max)
+int Image::map_info(int index, double &min, double &max, bool &sequential)
 {
-  return maps[index]->info(min, max);
+  return maps[index]->info(min, max, sequential);
 }
 
 /* ----------------------------------------------------------------------
@@ -2271,7 +2270,7 @@ ColorMap::ColorMap(LAMMPS *lmp, Image *caller) : Pointers(lmp)
 
 ColorMap::~ColorMap()
 {
-  delete [] mentry;
+  delete[] mentry;
 }
 
 /* ----------------------------------------------------------------------
@@ -2317,7 +2316,7 @@ int ColorMap::reset(int narg, char **arg)
 
   nentry = utils::inumeric(FLERR,arg[4],false,lmp);
   if (nentry < 1) return 5;
-  delete [] mentry;
+  delete[] mentry;
   mentry = new MapEntry[nentry];
   mentry[0].svalue = 0.0;
 
@@ -2432,10 +2431,13 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
   return 0;
 }
 
-int ColorMap::info(double &min, double &max)
+// clang-format on
+
+int ColorMap::info(double &min, double &max, bool &sequential)
 {
   min = locurrent;
   max = hicurrent;
+  sequential = mstyle == SEQUENTIAL;
   return dynamic;
 }
 
@@ -2446,14 +2448,16 @@ int ColorMap::info(double &min, double &max)
 
 double *ColorMap::value2color(double value)
 {
-  double lo;//,hi;
+  double lo;    //,hi;
 
-  value = MAX(value,locurrent);
-  value = MIN(value,hicurrent);
+  value = MAX(value, locurrent);
+  value = MIN(value, hicurrent);
 
   if (mrange == FRACTIONAL) {
-    if (locurrent == hicurrent) value = 0.0;
-    else value = (value-locurrent) / (hicurrent-locurrent);
+    if (locurrent == hicurrent)
+      value = 0.0;
+    else
+      value = (value - locurrent) / (hicurrent - locurrent);
     lo = 0.0;
     //hi = 1.0;
   } else {
@@ -2462,25 +2466,27 @@ double *ColorMap::value2color(double value)
   }
 
   if (mstyle == CONTINUOUS) {
-    for (int i = 0; i < nentry-1; i++)
-      if (value >= mentry[i].svalue && value <= mentry[i+1].svalue) {
-        double fraction = (value-mentry[i].svalue) /
-          (mentry[i+1].svalue-mentry[i].svalue);
-        interpolate[0] = mentry[i].color[0] +
-          fraction*(mentry[i+1].color[0]-mentry[i].color[0]);
-        interpolate[1] = mentry[i].color[1] +
-          fraction*(mentry[i+1].color[1]-mentry[i].color[1]);
-        interpolate[2] = mentry[i].color[2] +
-          fraction*(mentry[i+1].color[2]-mentry[i].color[2]);
+    for (int i = 0; i < nentry - 1; i++)
+      if (value >= mentry[i].svalue && value <= mentry[i + 1].svalue) {
+        if (mentry[i].color) {
+          double fraction = (value - mentry[i].svalue) / (mentry[i + 1].svalue - mentry[i].svalue);
+          interpolate[0] =
+              mentry[i].color[0] + fraction * (mentry[i + 1].color[0] - mentry[i].color[0]);
+          interpolate[1] =
+              mentry[i].color[1] + fraction * (mentry[i + 1].color[1] - mentry[i].color[1]);
+          interpolate[2] =
+              mentry[i].color[2] + fraction * (mentry[i + 1].color[2] - mentry[i].color[2]);
+        } else {
+          interpolate[0] = interpolate[1] = interpolate[2] = 1.0;
+        }
         return interpolate;
       }
   } else if (mstyle == DISCRETE) {
     for (int i = 0; i < nentry; i++)
-      if (value >= mentry[i].lvalue && value <= mentry[i].hvalue)
-        return mentry[i].color;
+      if (value >= mentry[i].lvalue && value <= mentry[i].hvalue) return mentry[i].color;
   } else {
-    int ibin = static_cast<int>((value-lo) * mbinsizeinv);
-    return mentry[ibin%nentry].color;
+    int ibin = static_cast<int>((value - lo) * mbinsizeinv);
+    return mentry[ibin % nentry].color;
   }
 
   // always return a non-NULL pointer

@@ -799,7 +799,8 @@ void FixGraphicsLabels::init()
       error->all(FLERR, Error::NOLASTLINE, "Could not extract color scale info from dump {}",
                  scale.dumpid);
     double lo, hi;
-    if (image->map_info(0, lo, hi) && (comm->me == 0))
+    bool seqmap;
+    if (image->map_info(0, lo, hi, seqmap) && (comm->me == 0))
       error->warning(FLERR,
                      "Dump {} uses a dynamic color map. "
                      "Color scale can only use data from previous dump output\n",

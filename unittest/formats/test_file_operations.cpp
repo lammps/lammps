@@ -291,13 +291,15 @@ TEST_F(FileOperationsTest, error_all_one)
     TEST_FAILURE(".*ERROR: exit \\(testme.cpp:10\\).*", lmp->error->all("testme.cpp", 10, "exit"););
     TEST_FAILURE(".*ERROR: exit too \\(testme.cpp:10\\).*",
                  lmp->error->all("testme.cpp", 10, "exit {}", "too"););
-    TEST_FAILURE(".*ERROR: argument not found \\(testme.cpp:10\\).*",
+    // NOTE: we can only make a very generic check for an error, since the actual error
+    // message depends on whether we use fmt::format() or std::format() and which compiler we use
+    TEST_FAILURE(".*ERROR:.*\\(testme.cpp:10\\).*",
                  lmp->error->all("testme.cpp", 10, "exit {} {}", "too"););
     TEST_FAILURE(".*ERROR on proc 0: exit \\(testme.cpp:10\\).*",
                  lmp->error->one("testme.cpp", 10, "exit"););
     TEST_FAILURE(".*ERROR on proc 0: exit too \\(testme.cpp:10\\).*",
                  lmp->error->one("testme.cpp", 10, "exit {}", "too"););
-    TEST_FAILURE(".*ERROR on proc 0: argument not found \\(testme.cpp:10\\).*",
+    TEST_FAILURE(".*ERROR on proc 0:.*\\(testme.cpp:10\\).*",
                  lmp->error->one("testme.cpp", 10, "exit {} {}", "too"););
 }
 

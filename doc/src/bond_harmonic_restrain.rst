@@ -1,7 +1,10 @@
 .. index:: bond_style harmonic/restrain
+.. index:: bond_style harmonic/restrain/omp
 
 bond_style harmonic/restrain command
 ====================================
+
+Accelerator Variant: *harmonic/restrain/omp*
 
 Syntax
 """"""
@@ -57,6 +60,12 @@ Restart info
 This bond style supports the :doc:`write_restart <write_restart>` and
 :doc:`read_restart <read_restart>` commands. The state of the initial
 bond lengths is stored with restart files and read back.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

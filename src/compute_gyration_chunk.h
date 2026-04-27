@@ -43,6 +43,8 @@ class ComputeGyrationChunk : public ComputeChunk {
   double **rgt, **rgtall;
 
   void com_chunk();
+
+ protected:
   void allocate() override;
 };
 

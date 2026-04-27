@@ -11,5 +11,7 @@ details are provided for writing code for LAMMPS.
    :maxdepth: 1
 
    Developer_write_pair
+   Developer_write_bond
    Developer_write_fix
+   Developer_write_compute
    Developer_write_command

@@ -561,6 +561,7 @@ void PairGranularSuperellipsoid::init_style()
   // grow history for contact models, right now this is superfluous and is just a placeholder
 
   int size_history_tangential = 0;
+  size_history = default_hist_size;
   for (int itype = 1; itype <= atom->ntypes; itype++)
     for (int jtype = 1; jtype <= atom->ntypes; jtype++)
       if (tangential_model[itype][jtype] == CLASSIC ||

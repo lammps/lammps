@@ -1,7 +1,10 @@
 .. index:: pair_style momb
+.. index:: pair_style momb/omp
 
 pair_style momb command
 =======================
+
+Accelerator Variants: *momb/omp*
 
 Syntax
 """"""
@@ -49,6 +52,10 @@ read by the :doc:`read_data <read_data>` as described below:
 * :math:`r_0` (distance units)
 * :math:`C_6` (energy\*distance\^6 units)
 * :math:`R_r` (distance units, typically sum of atomic vdW radii)
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

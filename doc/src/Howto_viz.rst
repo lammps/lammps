@@ -812,13 +812,16 @@ and fix styles:
 .. table_from_list::
    :columns: 4
 
+   * :doc:`compute chunk/atom <compute_chunk_atom>`
    * :doc:`compute hbond/local <compute_hbond_local>`
    * :doc:`fix graphics/arrows <fix_graphics_arrows>`
+   * :doc:`fix graphics/chunk <fix_graphics_chunk>`
    * :doc:`fix graphics/isosurface <fix_graphics_isosurface>`
    * :doc:`fix graphics/labels <fix_graphics_labels>`
    * :doc:`fix graphics/lines <fix_graphics_lines>`
    * :doc:`fix graphics/objects <fix_graphics_objects>`
    * :doc:`fix graphics/periodic <fix_graphics_periodic>`
+   * :doc:`fix graphics/replica <fix_graphics_replica>`
    * :doc:`fix atom/swap <fix_atom_swap>`
    * :doc:`fix bond/break <fix_bond_break>`
    * :doc:`fix bond/create <fix_bond_create>`
@@ -984,14 +987,9 @@ and a transparent white triangle surface to represent those molecules.
           fcolor membrane darkgreen ftrans membrane 1.0 ftrans water 0.5 &
           element H H H H H H H H H C C C C C C C C C C C C C N N N N N N N O O O O S S &
                   H H H H H C C C C C C N O O O P Cl Na H H H N C C C C C C C C C C C &
-          adiam 1 1.92 adiam 2 1.92 adiam 3 1.92 adiam 5 1.92 adiam 6 1.92 adiam 7 1.92 adiam 8 1.92 &
-          adiam 9 1.92 adiam 10 2.72 adiam 11 2.72 adiam 12 2.72 adiam 13 2.72 adiam 14 2.72 &
-          adiam 15 2.72 adiam 16 2.72 adiam 17 2.72 adiam 18 2.72 adiam 19 2.72 adiam 20 2.72 &
-          adiam 21 2.72 adiam 22 2.72 adiam 23 2.48 adiam 24 2.48 adiam 25 2.48 adiam 26 2.48 &
-          adiam 27 2.48 adiam 28 2.48 adiam 29 2.48 adiam 30 2.432 adiam 31 2.432 adiam 32 2.432 &
-          adiam 34 2.88 adiam 35 2.88 adiam 52 3.632 adiam 53 2.176 adiam 54 1.92 adiam 55 1.92 &
-          adiam 56 1.92 adiam 57 2.48 adiam 58 2.72 adiam 59 2.72 adiam 60 2.72 adiam 61 2.72 &
-          adiam 62 2.72 adiam 63 2.72 adiam 64 2.72 adiam 65 2.72 adiam 66 2.72 adiam 67 2.72 adiam 68 2.72
+          adiam 1*9 1.92 adiam 10*22 2.72 adiam 23*29 2.48 adiam 30*33 2.432 adiam 34*35 2.88 &
+          adiam 36*40 1.92 adiam 41*46 2.72 adiam 47 2.48 adiam 48*50 2.432 adiam 51 2.88 &
+          adiam 52 3.632 adiam 53 2.176 adiam 54*56 1.92 adiam 57 2.48 adiam 58*68 2.72
 
 .. |isosurface1| image:: img/rhodo-all.png
    :width: 49%

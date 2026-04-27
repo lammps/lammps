@@ -1,8 +1,10 @@
 .. index:: dihedral_style cosine/squared/restricted
+.. index:: dihedral_style cosine/squared/restricted/omp
 
 dihedral_style cosine/squared/restricted command
 ================================================
 
+Accelerator Variant: *cosine/squared/restricted/omp*
 
 Syntax
 """"""
@@ -43,6 +45,10 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`\phi_0` (degrees)
 
 :math:`\phi_0` is specified in degrees, but LAMMPS converts it to radians internally.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

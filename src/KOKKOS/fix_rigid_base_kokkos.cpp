@@ -2866,40 +2866,38 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_forward_comm_kokkos(
       KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
         const int ibody = l_bodyown(l_sendlist(i));
         if (ibody < 0) return;
-        if (!final) {
-          m += 29;
-          return;
-        }
-        const BodyKokkos &bk = l_body(ibody);
-        l_buf[m++] = static_cast<double>(bk.xcm[0]);
-        l_buf[m++] = static_cast<double>(bk.xcm[1]);
-        l_buf[m++] = static_cast<double>(bk.xcm[2]);
-        l_buf[m++] = static_cast<double>(bk.xgc[0]);
-        l_buf[m++] = static_cast<double>(bk.xgc[1]);
-        l_buf[m++] = static_cast<double>(bk.xgc[2]);
-        l_buf[m++] = static_cast<double>(bk.vcm[0]);
-        l_buf[m++] = static_cast<double>(bk.vcm[1]);
-        l_buf[m++] = static_cast<double>(bk.vcm[2]);
-        l_buf[m++] = static_cast<double>(bk.quat[0]);
-        l_buf[m++] = static_cast<double>(bk.quat[1]);
-        l_buf[m++] = static_cast<double>(bk.quat[2]);
-        l_buf[m++] = static_cast<double>(bk.quat[3]);
-        l_buf[m++] = static_cast<double>(bk.omega[0]);
-        l_buf[m++] = static_cast<double>(bk.omega[1]);
-        l_buf[m++] = static_cast<double>(bk.omega[2]);
-        l_buf[m++] = static_cast<double>(bk.ex_space[0]);
-        l_buf[m++] = static_cast<double>(bk.ex_space[1]);
-        l_buf[m++] = static_cast<double>(bk.ex_space[2]);
-        l_buf[m++] = static_cast<double>(bk.ey_space[0]);
-        l_buf[m++] = static_cast<double>(bk.ey_space[1]);
-        l_buf[m++] = static_cast<double>(bk.ey_space[2]);
-        l_buf[m++] = static_cast<double>(bk.ez_space[0]);
-        l_buf[m++] = static_cast<double>(bk.ez_space[1]);
-        l_buf[m++] = static_cast<double>(bk.ez_space[2]);
-        l_buf[m++] = static_cast<double>(bk.conjqm[0]);
-        l_buf[m++] = static_cast<double>(bk.conjqm[1]);
-        l_buf[m++] = static_cast<double>(bk.conjqm[2]);
-        l_buf[m++] = static_cast<double>(bk.conjqm[3]);
+        if (final) {
+          const BodyKokkos &bk = l_body(ibody);
+          l_buf[m++] = static_cast<double>(bk.xcm[0]);
+          l_buf[m++] = static_cast<double>(bk.xcm[1]);
+          l_buf[m++] = static_cast<double>(bk.xcm[2]);
+          l_buf[m++] = static_cast<double>(bk.xgc[0]);
+          l_buf[m++] = static_cast<double>(bk.xgc[1]);
+          l_buf[m++] = static_cast<double>(bk.xgc[2]);
+          l_buf[m++] = static_cast<double>(bk.vcm[0]);
+          l_buf[m++] = static_cast<double>(bk.vcm[1]);
+          l_buf[m++] = static_cast<double>(bk.vcm[2]);
+          l_buf[m++] = static_cast<double>(bk.quat[0]);
+          l_buf[m++] = static_cast<double>(bk.quat[1]);
+          l_buf[m++] = static_cast<double>(bk.quat[2]);
+          l_buf[m++] = static_cast<double>(bk.quat[3]);
+          l_buf[m++] = static_cast<double>(bk.omega[0]);
+          l_buf[m++] = static_cast<double>(bk.omega[1]);
+          l_buf[m++] = static_cast<double>(bk.omega[2]);
+          l_buf[m++] = static_cast<double>(bk.ex_space[0]);
+          l_buf[m++] = static_cast<double>(bk.ex_space[1]);
+          l_buf[m++] = static_cast<double>(bk.ex_space[2]);
+          l_buf[m++] = static_cast<double>(bk.ey_space[0]);
+          l_buf[m++] = static_cast<double>(bk.ey_space[1]);
+          l_buf[m++] = static_cast<double>(bk.ey_space[2]);
+          l_buf[m++] = static_cast<double>(bk.ez_space[0]);
+          l_buf[m++] = static_cast<double>(bk.ez_space[1]);
+          l_buf[m++] = static_cast<double>(bk.ez_space[2]);
+          l_buf[m++] = static_cast<double>(bk.conjqm[0]);
+          l_buf[m++] = static_cast<double>(bk.conjqm[1]);
+          l_buf[m++] = static_cast<double>(bk.conjqm[2]);
+          l_buf[m++] = static_cast<double>(bk.conjqm[3]);
+        } else m += 29;
       }, result
     );
   } else if (commflag() == FINAL) {
@@ -2908,21 +2906,19 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_forward_comm_kokkos(
       KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
         const int ibody = l_bodyown(l_sendlist(i));
         if (ibody < 0) return;
-        if (!final) {
-          m += 10;
-          return;
-        }
-        const BodyKokkos &bk = l_body(ibody);
-        l_buf[m++] = static_cast<double>(bk.vcm[0]);
-        l_buf[m++] = static_cast<double>(bk.vcm[1]);
-        l_buf[m++] = static_cast<double>(bk.vcm[2]);
-        l_buf[m++] = static_cast<double>(bk.omega[0]);
-        l_buf[m++] = static_cast<double>(bk.omega[1]);
-        l_buf[m++] = static_cast<double>(bk.omega[2]);
-        l_buf[m++] = static_cast<double>(bk.conjqm[0]);
-        l_buf[m++] = static_cast<double>(bk.conjqm[1]);
-        l_buf[m++] = static_cast<double>(bk.conjqm[2]);
-        l_buf[m++] = static_cast<double>(bk.conjqm[3]);
+        if (final) {
+          const BodyKokkos &bk = l_body(ibody);
+          l_buf[m++] = static_cast<double>(bk.vcm[0]);
+          l_buf[m++] = static_cast<double>(bk.vcm[1]);
+          l_buf[m++] = static_cast<double>(bk.vcm[2]);
+          l_buf[m++] = static_cast<double>(bk.omega[0]);
+          l_buf[m++] = static_cast<double>(bk.omega[1]);
+          l_buf[m++] = static_cast<double>(bk.omega[2]);
+          l_buf[m++] = static_cast<double>(bk.conjqm[0]);
+          l_buf[m++] = static_cast<double>(bk.conjqm[1]);
+          l_buf[m++] = static_cast<double>(bk.conjqm[2]);
+          l_buf[m++] = static_cast<double>(bk.conjqm[3]);
+        } else m += 10;
       }, result
     );
   }
@@ -3042,40 +3038,38 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_forward_comm_kokkos(
       KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
         const int ibody = l_bodyown(i);
         if (ibody < 0) return;
-        if (!final) {
-          m += 29;
-          return;
-        }
-        BodyKokkos &bk = l_body(ibody);
-        bk.xcm[0] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.xcm[1] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.xcm[2] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.xgc[0] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.xgc[1] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.xgc[2] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.vcm[0] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.vcm[1] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.vcm[2] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.quat[0] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.quat[1] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.quat[2] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.quat[3] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.omega[0] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.omega[1] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.omega[2] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.ex_space[0] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.ex_space[1] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.ex_space[2] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.ey_space[0] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.ey_space[1] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.ey_space[2] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.ez_space[0] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.ez_space[1] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.ez_space[2] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.conjqm[0] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.conjqm[1] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.conjqm[2] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.conjqm[3] = static_cast<KK_FLOAT>(l_buf[m++]);
+        if (final) {
+          BodyKokkos &bk = l_body(ibody);
+          bk.xcm[0] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.xcm[1] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.xcm[2] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.xgc[0] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.xgc[1] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.xgc[2] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.vcm[0] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.vcm[1] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.vcm[2] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.quat[0] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.quat[1] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.quat[2] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.quat[3] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.omega[0] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.omega[1] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.omega[2] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.ex_space[0] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.ex_space[1] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.ex_space[2] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.ey_space[0] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.ey_space[1] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.ey_space[2] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.ez_space[0] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.ez_space[1] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.ez_space[2] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.conjqm[0] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.conjqm[1] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.conjqm[2] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.conjqm[3] = static_cast<KK_FLOAT>(l_buf[m++]);
+        } else m += 29;
       }
     );
   } else if (commflag() == FINAL) {
@@ -3084,21 +3078,19 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_forward_comm_kokkos(
       KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
         const int ibody = l_bodyown(i);
         if (ibody < 0) return;
-        if (!final) {
-          m += 10;
-          return;
-        }
-        BodyKokkos &bk = l_body(ibody);
-        bk.vcm[0] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.vcm[1] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.vcm[2] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.omega[0] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.omega[1] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.omega[2] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.conjqm[0] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.conjqm[1] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.conjqm[2] = static_cast<KK_FLOAT>(l_buf[m++]);
-        bk.conjqm[3] = static_cast<KK_FLOAT>(l_buf[m++]);
+        if (final) {
+          BodyKokkos &bk = l_body(ibody);
+          bk.vcm[0] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.vcm[1] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.vcm[2] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.omega[0] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.omega[1] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.omega[2] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.conjqm[0] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.conjqm[1] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.conjqm[2] = static_cast<KK_FLOAT>(l_buf[m++]);
+          bk.conjqm[3] = static_cast<KK_FLOAT>(l_buf[m++]);
+        } else m += 10;
       }
     );
   }
@@ -3136,17 +3128,15 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_reverse_comm_kokkos(
       KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
         const int ibody = l_bodyown(i);
         if (ibody < 0) return;
-        if (!final) {
-          m += 6;
-          return;
-        }
-        const BodyKokkos &bk = l_body(ibody);
-        l_buf[m++] = static_cast<double>(bk.fcm[0]);
-        l_buf[m++] = static_cast<double>(bk.fcm[1]);
-        l_buf[m++] = static_cast<double>(bk.fcm[2]);
-        l_buf[m++] = static_cast<double>(bk.torque[0]);
-        l_buf[m++] = static_cast<double>(bk.torque[1]);
-        l_buf[m++] = static_cast<double>(bk.torque[2]);
+        if (final) {
+          const BodyKokkos &bk = l_body(ibody);
+          l_buf[m++] = static_cast<double>(bk.fcm[0]);
+          l_buf[m++] = static_cast<double>(bk.fcm[1]);
+          l_buf[m++] = static_cast<double>(bk.fcm[2]);
+          l_buf[m++] = static_cast<double>(bk.torque[0]);
+          l_buf[m++] = static_cast<double>(bk.torque[1]);
+          l_buf[m++] = static_cast<double>(bk.torque[2]);
+        } else m += 6;
       }, result
     );
 
@@ -3161,17 +3151,15 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_reverse_comm_kokkos(
       KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
         const int ibody = l_bodyown(i);
         if (ibody < 0) return;
-        if (!final) {
-          m += 6;
-          return;
-        }
-        const BodyKokkos &bk = l_body(ibody);
-        l_buf[m++] = static_cast<double>(bk.vcm[0]);
-        l_buf[m++] = static_cast<double>(bk.vcm[1]);
-        l_buf[m++] = static_cast<double>(bk.vcm[2]);
-        l_buf[m++] = static_cast<double>(bk.angmom[0]);
-        l_buf[m++] = static_cast<double>(bk.angmom[1]);
-        l_buf[m++] = static_cast<double>(bk.angmom[2]);
+        if (final) {
+          const BodyKokkos &bk = l_body(ibody);
+          l_buf[m++] = static_cast<double>(bk.vcm[0]);
+          l_buf[m++] = static_cast<double>(bk.vcm[1]);
+          l_buf[m++] = static_cast<double>(bk.vcm[2]);
+          l_buf[m++] = static_cast<double>(bk.angmom[0]);
+          l_buf[m++] = static_cast<double>(bk.angmom[1]);
+          l_buf[m++] = static_cast<double>(bk.angmom[2]);
+        } else m += 6;
       }, result
     );
 
@@ -3186,20 +3174,18 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_reverse_comm_kokkos(
       KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
         const int ibody = l_bodyown(i);
         if (ibody < 0) return;
-        if (!final) {
-          m += 8;
-          return;
-        }
-        const BodyKokkos &bk = l_body(ibody);
-        l_buf[m++] = static_cast<double>(bk.xcm[0]);
-        l_buf[m++] = static_cast<double>(bk.xcm[1]);
-        l_buf[m++] = static_cast<double>(bk.xcm[2]);
-        l_buf[m++] = static_cast<double>(bk.xgc[0]);
-        l_buf[m++] = static_cast<double>(bk.xgc[1]);
-        l_buf[m++] = static_cast<double>(bk.xgc[2]);
-        l_buf[m++] = static_cast<double>(bk.mass);
-        l_buf[m++] = static_cast<double>(bk.natoms);
-        Kokkos::printf("*** pack_reverse_comm_kokkos i %i ibody %i bk.xcm %f %f %f natoms %i\n", i, ibody, bk.xcm[0], bk.xcm[1], bk.xcm[2], bk.natoms);
+        if (final) {
+          const BodyKokkos &bk = l_body(ibody);
+          l_buf[m++] = static_cast<double>(bk.xcm[0]);
+          l_buf[m++] = static_cast<double>(bk.xcm[1]);
+          l_buf[m++] = static_cast<double>(bk.xcm[2]);
+          l_buf[m++] = static_cast<double>(bk.xgc[0]);
+          l_buf[m++] = static_cast<double>(bk.xgc[1]);
+          l_buf[m++] = static_cast<double>(bk.xgc[2]);
+          l_buf[m++] = static_cast<double>(bk.mass);
+          l_buf[m++] = static_cast<double>(bk.natoms);
+          //Kokkos::printf("*** pack_reverse_comm_kokkos i %i ibody %i bk.xcm %f %f %f natoms %i\n", i, ibody, bk.xcm[0], bk.xcm[1], bk.xcm[2], bk.natoms);
+        } else m += 8;
       }, result
     );
 
@@ -3214,16 +3200,33 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_reverse_comm_kokkos(
       KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
         const int ibody = l_bodyown(i);
         if (ibody < 0) return;
-        if (!final) {
-          m += 6;
-          return;
-        }
-        l_buf[m++] = static_cast<double>(l_itensor(ibody,0));
-        l_buf[m++] = static_cast<double>(l_itensor(ibody,1));
-        l_buf[m++] = static_cast<double>(l_itensor(ibody,2));
-        l_buf[m++] = static_cast<double>(l_itensor(ibody,3));
-        l_buf[m++] = static_cast<double>(l_itensor(ibody,4));
-        l_buf[m++] = static_cast<double>(l_itensor(ibody,5));
+        if (final) {
+          l_buf[m++] = static_cast<double>(l_itensor(ibody,0));
+          l_buf[m++] = static_cast<double>(l_itensor(ibody,1));
+          l_buf[m++] = static_cast<double>(l_itensor(ibody,2));
+          l_buf[m++] = static_cast<double>(l_itensor(ibody,3));
+          l_buf[m++] = static_cast<double>(l_itensor(ibody,4));
+          l_buf[m++] = static_cast<double>(l_itensor(ibody,5));
+        } else m += 6;
+      }, result
+    );
+
+  } else if (commflag() == DOF) {
+
+    // kokkos views
+    k_counts.template sync<DeviceType>();
+    auto l_counts = k_counts.template view<DeviceType>();
+
+    Kokkos::parallel_scan("rigid/small:pack_reverse_dof",
+      Kokkos::RangePolicy<DeviceType>(first, first+n),
+      KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
+        const int ibody = l_bodyown(i);
+        if (ibody < 0) return;
+        if (final) {
+          l_buf[m++] = static_cast<double>(l_counts(ibody,0));
+          l_buf[m++] = static_cast<double>(l_counts(ibody,1));
+          l_buf[m++] = static_cast<double>(l_counts(ibody,2));
+        } else m += 3;
       }, result
     );
 
@@ -3267,17 +3270,15 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_reverse_comm_kokkos(
       KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
         const int ibody = l_bodyown(l_sendlist(i));
         if (ibody < 0) return;
-        if (!final) {
-          m += 6;
-          return;
-        }
-        BodyKokkos &bk = l_body(ibody);
-        Kokkos::atomic_add(&bk.fcm[0], static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&bk.fcm[1], static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&bk.fcm[2], static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&bk.torque[0], static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&bk.torque[1], static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&bk.torque[2], static_cast<KK_FLOAT>(l_buf[m++]));
+        if (final) {
+          BodyKokkos &bk = l_body(ibody);
+          Kokkos::atomic_add(&bk.fcm[0], static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&bk.fcm[1], static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&bk.fcm[2], static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&bk.torque[0], static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&bk.torque[1], static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&bk.torque[2], static_cast<KK_FLOAT>(l_buf[m++]));
+        } else m += 6;
       }
     );
     k_body.modify_device();
@@ -3306,7 +3307,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_reverse_comm_kokkos(
         Kokkos::atomic_add(&bk.angmom[2], static_cast<KK_FLOAT>(l_buf[m++]));
       }
     );
-    k_body.modify_device();
+    k_body.template modify<DeviceType>();
+
   } else if (commflag() == XCM_MASS) {
 
     // kokkos views
@@ -3318,20 +3320,18 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_reverse_comm_kokkos(
       KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
         const int ibody = l_bodyown(l_sendlist(i));
         if (ibody < 0) return;
-        if (!final) {
-          m += 8;
-          return;
-        }
-        BodyKokkos &bk = l_body(ibody);
-        Kokkos::atomic_add(&bk.xcm[0], static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&bk.xcm[1], static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&bk.xcm[2], static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&bk.xgc[0], static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&bk.xgc[1], static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&bk.xgc[2], static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&bk.mass, static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&bk.natoms, static_cast<int>(l_buf[m++]));
-        Kokkos::printf("*** unpack_reverse_comm_kokkos i %i ibody %i mass %f natoms %i xcm %f %f %f\n", i, ibody, bk.mass, bk.natoms, bk.xcm[0], bk.xcm[1], bk.xcm[2]);
+        if (final) {
+          BodyKokkos &bk = l_body(ibody);
+          Kokkos::atomic_add(&bk.xcm[0], static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&bk.xcm[1], static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&bk.xcm[2], static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&bk.xgc[0], static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&bk.xgc[1], static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&bk.xgc[2], static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&bk.mass, static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&bk.natoms, static_cast<int>(l_buf[m++]));
+          //Kokkos::printf("*** unpack_reverse_comm_kokkos i %i ibody %i mass %f natoms %i xcm %f %f %f\n", i, ibody, bk.mass, bk.natoms, bk.xcm[0], bk.xcm[1], bk.xcm[2]);
+        } else m += 8;
       }
     );
     k_body.modify_device();
@@ -3347,19 +3347,37 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_reverse_comm_kokkos(
       KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
         const int ibody = l_bodyown(l_sendlist(i));
         if (ibody < 0) return;
-        if (!final) {
-          m += 6;
-          return;
-        }
-        Kokkos::atomic_add(&l_itensor(ibody,0), static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&l_itensor(ibody,1), static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&l_itensor(ibody,2), static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&l_itensor(ibody,3), static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&l_itensor(ibody,4), static_cast<KK_FLOAT>(l_buf[m++]));
-        Kokkos::atomic_add(&l_itensor(ibody,5), static_cast<KK_FLOAT>(l_buf[m++]));
+        if (final) {
+          Kokkos::atomic_add(&l_itensor(ibody,0), static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&l_itensor(ibody,1), static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&l_itensor(ibody,2), static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&l_itensor(ibody,3), static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&l_itensor(ibody,4), static_cast<KK_FLOAT>(l_buf[m++]));
+          Kokkos::atomic_add(&l_itensor(ibody,5), static_cast<KK_FLOAT>(l_buf[m++]));
+        } else m += 6;
       }
     );
-    k_itensor.modify_device();
+    k_itensor.template modify<DeviceType>();
+
+  } else if (commflag() == DOF) {
+
+    // kokkos views
+    k_counts.template sync<DeviceType>();
+    auto l_counts = k_counts.template view<DeviceType>();
+
+    Kokkos::parallel_scan("rigid/small:unpack_reverse_dof",
+      Kokkos::RangePolicy<DeviceType>(0, n),
+      KOKKOS_LAMBDA(const int &i, int &m, const bool &final) {
+        const int ibody = l_bodyown(l_sendlist(i));
+        if (ibody < 0) return;
+        if (final) {
+          Kokkos::atomic_add(&l_counts(ibody,0), static_cast<int>(l_buf[m++]));
+          Kokkos::atomic_add(&l_counts(ibody,1), static_cast<int>(l_buf[m++]));
+          Kokkos::atomic_add(&l_counts(ibody,2), static_cast<int>(l_buf[m++]));
+        } else m += 3;
+      }
+    );
+    k_counts.template modify<DeviceType>();
 
   }
   copymode() = 0;

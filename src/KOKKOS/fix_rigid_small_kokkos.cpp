@@ -168,15 +168,12 @@ void FixRigidSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagpre
 
 template<class DeviceType>
 int FixRigidSmallKokkos<DeviceType>::pack_exchange(int i, double *buf) {
-  this->sync_host_base();
-  return FixRigidSmall::pack_exchange(i, buf);
+  return this->pack_exchange_base(i, buf);
 }
 
 template<class DeviceType>
 int FixRigidSmallKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf) {
-  int result = FixRigidSmall::unpack_exchange(nlocal, buf);
-  this->modify_host_base();
-  return result;
+  return this->unpack_exchange_base(nlocal, buf);
 }
 
 template<class DeviceType>

@@ -198,50 +198,33 @@ void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::set_molecule(int nlocalprev,
 
 template<class DeviceType, bool TSTAT, bool PSTAT>
 int FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::pack_exchange(int i, double *buf) {
-  this->sync_host_base();
-  return FixRigidSmall::pack_exchange(i, buf);
+  return this->pack_exchange_base(i, buf);
 }
 
 template<class DeviceType, bool TSTAT, bool PSTAT>
 int FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::unpack_exchange(int nlocal, double *buf) {
-  int result = FixRigidSmall::unpack_exchange(nlocal, buf);
-  this->modify_host_base();
-  return result;
+  return this->unpack_exchange_base(nlocal, buf);
 }
 
 template<class DeviceType, bool TSTAT, bool PSTAT>
 int FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::pack_forward_comm(int n, int *list,
                                                           double *buf, int pbc_flag, int *pbc) {
-
-  utils::logmesg(lmp, "*** pack_forward_comm() commflag {}\n", commflag);
-
-
-  this->k_body.sync_host();
-  this->k_bodyown.sync_host();
-  return FixRigidSmall::pack_forward_comm(n, list, buf, pbc_flag, pbc);
+  return this->pack_forward_comm_base(n, list, buf, pbc_flag, pbc);
 }
 
 template<class DeviceType, bool TSTAT, bool PSTAT>
 void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::unpack_forward_comm(int n, int first, double *buf) {
-  FixRigidSmall::unpack_forward_comm(n, first, buf);
-  this->k_body.modify_host();
-  this->k_bodyown.modify_host();
+  this->unpack_forward_comm_base(n, first, buf);
 }
 
 template<class DeviceType, bool TSTAT, bool PSTAT>
 int FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::pack_reverse_comm(int n, int first, double *buf) {
-  utils::logmesg(lmp, "*** pack_reverse_comm() commflag {}\n", commflag);
-  this->k_body.sync_host();
-  this->k_bodyown.sync_host();
-  return FixRigidSmall::pack_reverse_comm(n, first, buf);
+  return this->pack_reverse_comm_base(n, first, buf);
 }
 
 template<class DeviceType, bool TSTAT, bool PSTAT>
 void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::unpack_reverse_comm(int n, int *list, double *buf) {
-  FixRigidSmall::unpack_reverse_comm(n, list, buf);
-  this->k_body.modify_host();
-  this->k_bodyown.modify_host();
-  this->k_body.sync_device();
+  this->unpack_reverse_comm_base(n, list, buf);
 }
 
 /* ---------------------------------------------------------------------- */

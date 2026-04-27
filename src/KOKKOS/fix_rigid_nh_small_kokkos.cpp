@@ -127,6 +127,11 @@ void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::final_integrate() {
 }
 
 template<class DeviceType, bool TSTAT, bool PSTAT>
+bigint FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::dof(int tgroup) {
+  return this->dof_base(tgroup);
+}
+
+template<class DeviceType, bool TSTAT, bool PSTAT>
 void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::grow_arrays(int nmax) {
   this->grow_arrays_base(nmax);
 }

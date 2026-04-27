@@ -164,6 +164,7 @@ protected:
   void setup_bodies_dynamic_base();
   void compute_forces_and_torques_base();
   void enforce2d_base();
+  void compute_dof_base();
   void remap_base();
   void grow_body_base();
   void grow_body_base(int);

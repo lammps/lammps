@@ -155,7 +155,6 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/comm_tiled_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_kokkos.cpp
-                       ${KOKKOS_PKG_SOURCES_DIR}/fix_rigid_base_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/min_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/min_linesearch_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp
@@ -252,6 +251,15 @@ endif()
 if(PKG_PHONON)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/dynamical_matrix_kokkos.cpp)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/third_order_kokkos.cpp)
+endif()
+
+if(PKG_RIGID)
+  list(APPEND KOKKOS_PKG_SOURCES
+    ${KOKKOS_PKG_SOURCES_DIR}/fix_rigid_base_kokkos.cpp
+    ${KOKKOS_PKG_SOURCES_DIR}/fix_rigid_nh_small_kokkos.cpp
+  )
+  # consolidate fix rigid/*/small/kk into .h/.cpp instead of 8 redundant thin wrappers
+  RegisterFixStyle(${KOKKOS_PKG_SOURCES_DIR}/fix_rigid_nh_small_kokkos.h)
 endif()
 
 set_property(GLOBAL PROPERTY "KOKKOS_PKG_SOURCES" "${KOKKOS_PKG_SOURCES}")

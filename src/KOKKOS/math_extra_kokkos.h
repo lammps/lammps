@@ -1103,23 +1103,30 @@ int MathExtraKokkos::sym3x3_eigen(const T A[3][3], T evals[3], T evecs[3][3], in
     }
   }
 
-  // ── 3. DESCENDING sort by eigenvalue (largest to smallest) ───────────────
-  // Standard LAMMPS jacobi() sorts descending. Cardano outputs ascending, 
-  // so we reverse the insertion sort check.
-  if (sort) {
+  // ── 3. Sort by eigenvalue ────────────────────────────────────────────────
+  // Cardano natively outputs in ascending order (ev[0] <= ev[1] <= ev[2]).
+  // We apply insertion sort to handle user requests for descending (-1) 
+  // or explicit ascending (1) to guarantee order against FP fuzziness.
+  if (sort != 0) {
     for (int i = 1; i < 3; ++i) {
       const acc_t key_e  = ev[i];
       const acc_t key_v0 = ew[i][0];
       const acc_t key_v1 = ew[i][1];
       const acc_t key_v2 = ew[i][2];
       int j = i - 1;
-      // FIX: Changed > to < to sort in DESCENDING order
-      while (j >= 0 && ev[j] < key_e) { 
-        ev[j+1]    = ev[j];
-        ew[j+1][0] = ew[j][0];
-        ew[j+1][1] = ew[j][1];
-        ew[j+1][2] = ew[j][2];
-        --j;
+      
+      if (sort == -1) {
+        // Descending (largest first)
+        while (j >= 0 && ev[j] < key_e) { 
+          ev[j+1] = ev[j]; ew[j+1][0] = ew[j][0]; ew[j+1][1] = ew[j][1]; ew[j+1][2] = ew[j][2];
+          --j;
+        }
+      } else if (sort == 1) {
+        // Ascending (smallest first)
+        while (j >= 0 && ev[j] > key_e) { 
+          ev[j+1] = ev[j]; ew[j+1][0] = ew[j][0]; ew[j+1][1] = ew[j][1]; ew[j+1][2] = ew[j][2];
+          --j;
+        }
       }
       ev[j+1]    = key_e;
       ew[j+1][0] = key_v0;

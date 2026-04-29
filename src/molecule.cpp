@@ -1082,11 +1082,13 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
 
     for (int i = 0; i < natomtypes; i++) {
       const auto &item = moldata["per-type-masses"]["data"][i];
-      std::string type = item[0];
-      int itype = atom->lmap->find_type(type, Atom::ATOM);
+      std::string typestr = item[0];
+      int itype = atom->lmap->find_type(typestr, Atom::ATOM);
       if (itype == -1)
-        error->all(FLERR, fileiarg, "Unknown type {} in per-type-masses JSON data", type);
+        error->all(FLERR, fileiarg, "Unknown type {} in per-type-masses JSON data", typestr);
       double value = item[1];
+      if (atom->mass_setflag[itype])
+        error->warning(FLERR, "Overwriting mass for type {} in per-type-masses section.", typestr);
       atom->set_mass(FLERR, itype, value);
     }
   }
@@ -3722,6 +3724,15 @@ void Molecule::pertype_masses(char *line)
 
   for (int i = 0; i < natomtypes; i++) {
     readline(line);
+    auto values = Tokenizer(utils::trim(line)).as_vector();
+
+    std::string typestr = utils::utf8_subst(values[0]);
+    int itype = atom->lmap->find_type(typestr, Atom::ATOM);
+    if (itype == -1)
+      error->all(FLERR, fileiarg, "Unknown type {} in per-type-masses JSON data", typestr);
+
+    if (atom->mass_setflag[itype])
+      error->warning(FLERR, "Overwriting mass for type {} in Per-Type Masses section.", typestr);
     atom->set_mass(FLERR, line, toffset, tlabelflag, atom->lmap->lmap2lmap.atom);
   }
 }

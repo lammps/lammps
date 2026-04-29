@@ -177,7 +177,8 @@
     "per-type-masses": {
         "format": ["atom-type", "mass"],
         "data": [
-            ["n", 14.0067]
+            ["n", 14.0067],
+            ["c2", 12.0112]
         ]
     },
     "coeffs": {

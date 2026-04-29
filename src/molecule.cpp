@@ -405,7 +405,6 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   JSON_INIT_FIELD(dihedrals, ndihedrals, dihedralflag, false, 0);
   JSON_INIT_FIELD(impropers, nimpropers, improperflag, false, 0);
   JSON_INIT_FIELD(per-type-masses, natomtypes, pertype_massflag, false, 0);
-  JSON_INIT_FIELD(coeffs, dummyvar, coeffflag, false, 0);
 
 #undef JSON_INIT_FIELD
   // special is nested
@@ -1085,6 +1084,8 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
       const auto &item = moldata["per-type-masses"]["data"][i];
       std::string type = item[0];
       int itype = atom->lmap->find_type(type, Atom::ATOM);
+      if (itype == -1)
+        error->all(FLERR, fileiarg, "Unknown type {} in per-type-masses JSON data", type);
       double value = item[1];
       atom->set_mass(FLERR, itype, value);
     }
@@ -1633,6 +1634,48 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                  "Molecule template {}: Expected \"special:bonds\" format "
                  "[\"atom-id\",\"atom-id-list\"] but found [\"{}\",\"{}\"]",
                  id, secfmt[0], secfmt[1]);
+    }
+  }
+
+  // coeffs is nested
+
+  if (moldata.contains("coeffs")) {
+    const auto &coeffsdata = moldata["coeffs"];
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning per-type masses.");
+
+    if (coeffsdata.contains("pair")) {
+      if (!coeffsdata["pair"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"coeffs:pair\"",
+                   id);
+      if (coeffsdata["pair"].contains("data")) {
+        if (force->pair == nullptr)
+          error->all(FLERR, Error::ARGZERO, "Must define pair_style before Pair Coeffs");
+        if (comm->me == 0 && !atom->style_match(force->pair_style))
+          error->warning(
+              FLERR, "Pair style {} in molecule JSON differs from currently defined pair style {}",
+              atom->get_style(), force->pair_style);
+
+        for (auto pairdata : coeffsdata["pair"]["data"]) {
+          std::string type = pairdata[0];
+          double coeff1 = pairdata[1];
+          double coeff2 = pairdata[2];
+          char buf[MAXLINE];
+          snprintf(buf, MAXLINE, "%s %f %f\n", type.c_str(), coeff1, coeff2);
+          parse_coeffs(buf, nullptr, 1, 2, toffset, Atom::ATOM);
+          if (ncoeffarg == 0)
+            error->all(FLERR, "Unexpected empty line in PairCoeffs section. Expected {} lines.", natomtypes);
+          force->pair->coeff(ncoeffarg, coeffarg);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"coeffs:pair\"",
+                   id);
+      }
     }
   }
 
@@ -4807,7 +4850,6 @@ void Molecule::initialize()
   shakeflag = shakeflagflag = shakeatomflag = shaketypeflag = 0;
   bodyflag = ibodyflag = dbodyflag = 0;
   pertype_massflag = 0;
-  coeffflag = 0;
 
   centerflag = massflag = comflag = inertiaflag = 0;
   massflag_user = comflag_user = inertiaflag_user = specialflag_user = 0;

@@ -733,7 +733,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         type[iatom] = atom->lmap->find_or_create(typestr, atom->lmap->typelabel, atom->lmap->typelabel_map);
         if (type[iatom] == -1)
           error->all(FLERR, Error::NOLASTLINE,
-                     "Molecule template {}: Unknown atom type {} in \"types\" JSON section", id,
+                     "Molecule template {}: Unable to find or create atom type {} in \"types\" JSON section", id,
                      typestr);
       }
       count[iatom]++;
@@ -1135,7 +1135,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
             itype = atom->lmap->find_or_create(typestr, atom->lmap->btypelabel, atom->lmap->btypelabel_map);
             if (itype == -1)
               error->all(FLERR, Error::NOLASTLINE,
-                         "Molecule template {}: Unknown bond type {} in \"bonds\" JSON section", id,
+                         "Molecule template {}: Unable to find or create bond type {} in \"bonds\" JSON section", id,
                          typestr);
           }
 
@@ -1227,7 +1227,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
             itype = atom->lmap->find_or_create(typestr, atom->lmap->atypelabel, atom->lmap->atypelabel_map);
             if (itype == -1)
               error->all(FLERR, Error::NOLASTLINE,
-                         "Molecule template {}: Unknown angle type {} in \"angles\" JSON section",
+                         "Molecule template {}: Unable to find or create angle type {} in \"angles\" JSON section",
                          id, typestr);
           }
 
@@ -1339,7 +1339,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
             if (itype == -1)
               error->all(
                   FLERR, Error::NOLASTLINE,
-                  "Molecule template {}: Unknown dihedral type {} in \"dihedrals\" JSON section",
+                  "Molecule template {}: Unable to find or create dihedral type {} in \"dihedrals\" JSON section",
                   id, typestr);
           }
 
@@ -1464,7 +1464,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
             if (itype == -1)
               error->all(
                   FLERR, Error::NOLASTLINE,
-                  "Molecule template {}: Unknown improper type {} in \"impropers\" JSON section",
+                  "Molecule template {}: Unable to find or create improper type {} in \"impropers\" JSON section",
                   id, typestr);
           }
 
@@ -3771,7 +3771,7 @@ void Molecule::bonds(int flag, char *line)
           error->all(FLERR, fileiarg, "Invalid bond type {} in {}: {}", typestr, location, utils::trim(line));
         itype = atom->lmap->find_or_create(typestr, atom->lmap->btypelabel, atom->lmap->btypelabel_map);
         if (itype == -1)
-          error->all(FLERR, fileiarg, "Unknown bond type {} in {}: {}", typestr, location, utils::trim(line));
+          error->all(FLERR, fileiarg, "Unable to find or create bond type {} in {}: {}", typestr, location, utils::trim(line));
         break;
       }
       default:    // invalid
@@ -3857,7 +3857,7 @@ void Molecule::angles(int flag, char *line)
           error->all(FLERR, fileiarg, "Invalid angle type {} in {}: {}", typestr, location, utils::trim(line));
         itype = atom->lmap->find_or_create(typestr, atom->lmap->atypelabel, atom->lmap->atypelabel_map);
         if (itype == -1)
-          error->all(FLERR, fileiarg, "Unknown angle type {} in {}: {}", typestr, location, utils::trim(line));
+          error->all(FLERR, fileiarg, "Unable to find or create angle type {} in {}: {}", typestr, location, utils::trim(line));
         break;
       }
       default:    // invalid
@@ -3958,7 +3958,7 @@ void Molecule::dihedrals(int flag, char *line)
           error->all(FLERR, fileiarg, "Invalid dihedral type {} in {}: {}", typestr, location, utils::trim(line));
         itype = atom->lmap->find_or_create(typestr, atom->lmap->dtypelabel, atom->lmap->dtypelabel_map);
         if (itype == -1)
-          error->all(FLERR, fileiarg, "Unknown dihedral type {} in {}: {}", typestr, location, utils::trim(line));
+          error->all(FLERR, fileiarg, "Unable to find or create edihedral type {} in {}: {}", typestr, location, utils::trim(line));
         break;
       }
       default:    // invalid
@@ -4073,7 +4073,7 @@ void Molecule::impropers(int flag, char *line)
           error->all(FLERR, fileiarg, "Invalid improper type {} in {}: {}", typestr, location, utils::trim(line));
         itype = atom->lmap->find_or_create(typestr, atom->lmap->itypelabel, atom->lmap->itypelabel_map);
         if (itype == -1)
-          error->all(FLERR, fileiarg, "Unknown improper type {} in {}: {}", typestr, location, utils::trim(line));
+          error->all(FLERR, fileiarg, "Unable to find or create improper type {} in {}: {}", typestr, location, utils::trim(line));
         break;
       }
       default:    // invalid

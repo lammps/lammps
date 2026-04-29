@@ -206,7 +206,7 @@ in any order after the four required *reaction* arguments.
 *raiteri2011*
 
   Geometry-dependent coupling based on the asymmetric proton-transfer
-  coordinate :cite:p:`Raiteri2011`:
+  coordinate :ref:`(Raiteri2011) <msevb-Raiteri2011>`:
 
   .. math::
 
@@ -220,7 +220,7 @@ in any order after the four required *reaction* arguments.
 
   Geometry-dependent coupling based on the donor-acceptor distance and the
   position of H relative to the midpoint of X and Y
-  :cite:p:`Vuilleumier1998`:
+  :ref:`(Vuilleumier1998) <msevb-Vuilleumier1998>`:
 
   .. math::
 
@@ -232,7 +232,7 @@ in any order after the four required *reaction* arguments.
 *grimme2015*
 
   Energy-dependent coupling based on the potential energy difference between
-  the parent and child EVB states :cite:p:`Hartke2015`:
+  the parent and child EVB states :ref:`(Hartke2015) <msevb-Hartke2015>`:
 
   .. math::
 
@@ -389,3 +389,17 @@ The default values are *shells* = 1, *scf_topology* = no,
 *scf_max_iter* = 10, and *fermi_dirac* disabled.
 No global coupling is set; every *reaction* block must provide its own
 if no global *coupling* keyword is given.
+
+----------
+
+.. _msevb-Raiteri2011:
+
+**(Raiteri2011)** Raiteri P, Gale JD, Bussi G. Reactive force field simulation of proton diffusion in BaZrO3 using an empirical valence bond approach. Journal of Physics: Condensed Matter. 2011 Aug 24;23(33):334213.
+
+.. _msevb-Vuilleumier1998:
+
+**(Vuilleumier1998)** Vuilleumier R, Borgis D. An extended empirical valence bond model for describing proton transfer in H+ (H2O) n clusters and liquid water. Chemical physics letters. 1998 Feb 20;284(1-2):71-7.
+
+.. _msevb-Hartke2015:
+
+**(Hartke2015)** Hartke B, Grimme S. Reactive force fields made simple. Physical Chemistry Chemical Physics. 2015;17(26):16715-8.

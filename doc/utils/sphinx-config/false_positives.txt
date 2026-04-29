@@ -385,6 +385,7 @@ Bonomi
 boolean
 boostostat
 boostostatting
+Borgis
 Boresch
 borophene
 bosonic
@@ -1042,6 +1043,7 @@ eigensolvers
 eigenvalue
 eigenvalues
 eigenvector
+eigenstates
 eigenvectors
 eij
 Eij
@@ -1531,6 +1533,7 @@ haptic
 Haque
 Hara
 Harpertown
+Hartke
 Harting
 Hartree
 Hartrees
@@ -1551,6 +1554,7 @@ hdnnp
 HDNNP
 Hearn
 Heaviside
+Hellmann
 heatconduction
 heatflow
 Hebbeker
@@ -2516,6 +2520,8 @@ Mryglod
 mscg
 MSCG
 msd
+msevb
+MSEVB
 msi
 MSI
 msm
@@ -2883,6 +2889,8 @@ nz
 Nz
 nzlo
 obabo
+occupancies
+Occupancies
 ochre
 ocl
 octahedral
@@ -3141,6 +3149,8 @@ Podhorszki
 Poiseuille
 poisson
 Polak
+polaron
+polarons
 polarizabilities
 polarizability
 polarizable
@@ -3329,9 +3339,11 @@ radialscreenedspin
 radialspin
 radian
 radians
+radicalisation
 radiative
 radj
 Rafferty
+Raiteri
 rahman
 Rahman
 Rajamanickam
@@ -3403,6 +3415,7 @@ reneighbor
 reneighboring
 Reneighboring
 reneighborings
+renderer
 Rensselaer
 reparameterizing
 repo

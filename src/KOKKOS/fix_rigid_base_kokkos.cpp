@@ -1710,9 +1710,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_dynamic_base()
     KK_FLOAT massone;
     if constexpr (RMASS) massone = l_rmass(i);
     else massone = l_mass(l_type(i));
-    bk.vcm[0] += l_v(i,0) * massone;
-    bk.vcm[1] += l_v(i,1) * massone;
-    bk.vcm[2] += l_v(i,2) * massone;
+    Kokkos::atomic_add(&bk.vcm[0], l_v(i,0) * massone);
+    Kokkos::atomic_add(&bk.vcm[1], l_v(i,1) * massone);
+    Kokkos::atomic_add(&bk.vcm[2], l_v(i,2) * massone);
     auto unwrap = DomainKokkos::unmap(l_prd, l_h, l_triclinic, &l_x(i,0), l_xcmimage(i));
     const KK_FLOAT dx = unwrap[0] - bk.xcm[0];
     const KK_FLOAT dy = unwrap[1] - bk.xcm[1];

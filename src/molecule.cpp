@@ -3006,7 +3006,6 @@ void Molecule::types(char *line)
         if (type[iatom] == -1)
           error->all(FLERR, fileiarg, "Unknown atom type {} in {}: {}", typestr, location,
                      utils::trim(line));
-        atom->lmap->create_lmap2lmap(atom->lmap, Atom::ATOM);
         break;
       }
       default:    // invalid
@@ -3300,7 +3299,6 @@ void Molecule::bonds(int flag, char *line)
         itype = atom->lmap->find_or_create(typestr, atom->lmap->btypelabel, atom->lmap->btypelabel_map);
         if (itype == -1)
           error->all(FLERR, fileiarg, "Unknown bond type {} in {}: {}", typestr, location, utils::trim(line));
-        atom->lmap->create_lmap2lmap(atom->lmap, Atom::BOND);
         break;
       }
       default:    // invalid
@@ -3387,7 +3385,6 @@ void Molecule::angles(int flag, char *line)
         itype = atom->lmap->find_or_create(typestr, atom->lmap->atypelabel, atom->lmap->atypelabel_map);
         if (itype == -1)
           error->all(FLERR, fileiarg, "Unknown angle type {} in {}: {}", typestr, location, utils::trim(line));
-        atom->lmap->create_lmap2lmap(atom->lmap, Atom::ANGLE);
         break;
       }
       default:    // invalid
@@ -3489,7 +3486,6 @@ void Molecule::dihedrals(int flag, char *line)
         itype = atom->lmap->find_or_create(typestr, atom->lmap->dtypelabel, atom->lmap->dtypelabel_map);
         if (itype == -1)
           error->all(FLERR, fileiarg, "Unknown dihedral type {} in {}: {}", typestr, location, utils::trim(line));
-        atom->lmap->create_lmap2lmap(atom->lmap, Atom::DIHEDRAL);
         break;
       }
       default:    // invalid
@@ -3605,7 +3601,6 @@ void Molecule::impropers(int flag, char *line)
         itype = atom->lmap->find_or_create(typestr, atom->lmap->itypelabel, atom->lmap->itypelabel_map);
         if (itype == -1)
           error->all(FLERR, fileiarg, "Unknown improper type {} in {}: {}", typestr, location, utils::trim(line));
-        atom->lmap->create_lmap2lmap(atom->lmap, Atom::IMPROPER);
         break;
       }
       default:    // invalid

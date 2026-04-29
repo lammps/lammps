@@ -931,6 +931,7 @@ bigint FixRigidBaseKokkos<DeviceType,FixRigidBase>::dof_base(int tgroup)
     KOKKOS_LAMBDA(const int ibody, int &l_flag) {
       const int l_counts01 = l_counts(ibody,0) + l_counts(ibody,1);
       if (l_counts01 > 0 && l_counts01 != l_counts(ibody,2)) l_flag = 1;
+      else l_flag = 0;
     }, Kokkos::Max<int>(flag)
   );
   int flag_all;

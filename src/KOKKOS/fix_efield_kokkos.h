@@ -13,9 +13,15 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(efield/kk,FixEfieldKokkos<LMPDeviceType>);
-FixStyle(efield/kk/device,FixEfieldKokkos<LMPDeviceType>);
-FixStyle(efield/kk/host,FixEfieldKokkos<LMPHostType>);
+
+FixStyle(efield/kk,        FixEfieldPlainKokkos<LMPDeviceType>);
+FixStyle(efield/kk/device, FixEfieldPlainKokkos<LMPDeviceType>);
+FixStyle(efield/kk/host,   FixEfieldPlainKokkos<LMPHostType>);
+
+FixStyle(efield/tip4p/kk,        FixEfieldTIP4PKokkos<LMPDeviceType>);
+FixStyle(efield/tip4p/kk/device, FixEfieldTIP4PKokkos<LMPDeviceType>);
+FixStyle(efield/tip4p/kk/host,   FixEfieldTIP4PKokkos<LMPHostType>);
+
 // clang-format on
 #else
 
@@ -35,7 +41,7 @@ struct TagFixEfieldConstant{};
 template<int QFLAG, int MUFLAG>
 struct TagFixEfieldNonConstant{};
 
-template<class DeviceType>
+template<class DeviceType, bool TIP4P>
 class FixEfieldKokkos : public FixEfield {
  public:
   typedef DeviceType device_type;
@@ -84,8 +90,15 @@ class FixEfieldKokkos : public FixEfield {
   void v_tally(value_type, int, KK_FLOAT*) const;
 };
 
-}
 
-#endif
+template <class DeviceType>
+using FixEfieldPlainKokkos = FixEfieldKokkos<DeviceType, false>;
+
+template <class DeviceType>
+using FixEfieldTIP4PKokkos = FixEfieldKokkos<DeviceType, true>;
+
+} // namespace LAMMPS_NS
+
+#endif // !LMP_FIX_EFIELD_KOKKOS_H
 #endif
 

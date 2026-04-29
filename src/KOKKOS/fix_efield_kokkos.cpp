@@ -38,8 +38,8 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixEfieldKokkos<DeviceType>::FixEfieldKokkos(LAMMPS *lmp, int narg, char **arg) :
+template<class DeviceType, bool TIP4P>
+FixEfieldKokkos<DeviceType,TIP4P>::FixEfieldKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixEfield(lmp, narg, arg)
 {
   kokkosable = 1;
@@ -55,8 +55,8 @@ FixEfieldKokkos<DeviceType>::FixEfieldKokkos(LAMMPS *lmp, int narg, char **arg) 
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-FixEfieldKokkos<DeviceType>::~FixEfieldKokkos()
+template<class DeviceType, bool TIP4P>
+FixEfieldKokkos<DeviceType,TIP4P>::~FixEfieldKokkos()
 {
   if (copymode) return;
 
@@ -66,8 +66,8 @@ FixEfieldKokkos<DeviceType>::~FixEfieldKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixEfieldKokkos<DeviceType>::init()
+template<class DeviceType, bool TIP4P>
+void FixEfieldKokkos<DeviceType,TIP4P>::init()
 {
   FixEfield::init();
 
@@ -77,8 +77,8 @@ void FixEfieldKokkos<DeviceType>::init()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void FixEfieldKokkos<DeviceType>::post_force(int vflag)
+template<class DeviceType, bool TIP4P>
+void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
 {
   atomKK->sync(execution_space, datamask_read);
 
@@ -196,11 +196,11 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
   }
 }
 
-template<class DeviceType>
+template<class DeviceType, bool TIP4P>
 template<int QFLAG, int MUFLAG>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant<QFLAG,MUFLAG>, const int &i, value_type result) const {
+void FixEfieldKokkos<DeviceType,TIP4P>::operator()(TagFixEfieldConstant<QFLAG,MUFLAG>, const int &i, value_type result) const {
   if ( QFLAG && (d_mask(i) & groupbit)) {
     if (region && !d_match[i]) return;
 
@@ -242,11 +242,11 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant<QFLAG,MUFLAG>,
   }
 }
 
-template<class DeviceType>
+template<class DeviceType, bool TIP4P>
 template<int QFLAG, int MUFLAG>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldNonConstant<QFLAG,MUFLAG>, const int &i, value_type result) const {
+void FixEfieldKokkos<DeviceType,TIP4P>::operator()(TagFixEfieldNonConstant<QFLAG,MUFLAG>, const int &i, value_type result) const {
   if ( QFLAG && (d_mask(i) & groupbit)) {
     if (region && !d_match[i]) return;
 
@@ -290,10 +290,10 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldNonConstant<QFLAG,MUFLA
      e.g. fix wall/lj93: compute virial only on owned atoms
 ------------------------------------------------------------------------- */
 
-template <class DeviceType>
+template <class DeviceType, bool TIP4P>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void FixEfieldKokkos<DeviceType>::v_tally(value_type result, int i, KK_FLOAT *v) const
+void FixEfieldKokkos<DeviceType,TIP4P>::v_tally(value_type result, int i, KK_FLOAT *v) const
 {
   if (vflag_global) {
     result[4] += v[0];
@@ -315,8 +315,9 @@ void FixEfieldKokkos<DeviceType>::v_tally(value_type result, int i, KK_FLOAT *v)
 }
 
 namespace LAMMPS_NS {
-template class FixEfieldKokkos<LMPDeviceType>;
+template class FixEfieldKokkos<LMPDeviceType,false>;
+template class FixEfieldKokkos<LMPDeviceType,true>;
 #ifdef LMP_KOKKOS_GPU
-template class FixEfieldKokkos<LMPHostType>;
+//template class FixEfieldKokkos<LMPHostType>;
 #endif
 }

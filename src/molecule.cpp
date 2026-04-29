@@ -1809,6 +1809,212 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                    id);
       }
     }
+
+    // dihedral coeffs
+    if (coeffsdata.contains("dihedral")) {
+      if (!coeffsdata["dihedral"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"coeffs:dihedral\"",
+                   id);
+      if (coeffsdata["dihedral"].contains("data")) {
+        if (atom->avec->dihedrals_allow == 0)
+          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Dihedral Coeffs");
+        if (force->dihedral == nullptr)
+          error->all(FLERR, Error::ARGZERO, "Must define dihedral_style before Dihedral Coeffs");
+
+        for (auto dihedraldata : coeffsdata["dihedral"]["data"]) {
+          std::string type = dihedraldata[0];
+          double coeff1 = dihedraldata[1];
+          double coeff2 = dihedraldata[2];
+          double coeff3 = dihedraldata[3];
+          double coeff4 = dihedraldata[4];
+          double coeff5 = dihedraldata[5];
+          double coeff6 = dihedraldata[6];
+          char buf[MAXLINE];
+          snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4, coeff5, coeff6);
+          parse_coeffs(buf, nullptr, 0, 1, doffset, Atom::DIHEDRAL);
+          force->dihedral->coeff(ncoeffarg, coeffarg);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"coeffs:dihedral\"",
+                   id);
+      }
+    }
+
+    // middlebondtorsion coeffs
+    if (coeffsdata.contains("middlebondtorsion")) {
+      if (!coeffsdata["middlebondtorsion"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"coeffs:middlebondtorsion\"",
+                   id);
+      if (coeffsdata["middlebondtorsion"].contains("data")) {
+        if (atom->avec->dihedrals_allow == 0)
+          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: MiddleBondTorsion Coeffs");
+        if (force->dihedral == nullptr)
+          error->all(FLERR, Error::ARGZERO,
+                     "Must define dihedral_style before MiddleBondTorsion Coeffs");
+
+        for (auto middlebondtorsiondata : coeffsdata["middlebondtorsion"]["data"]) {
+          std::string type = middlebondtorsiondata[0];
+          double coeff1 = middlebondtorsiondata[1];
+          double coeff2 = middlebondtorsiondata[2];
+          double coeff3 = middlebondtorsiondata[3];
+          double coeff4 = middlebondtorsiondata[4];
+          char buf[MAXLINE];
+          snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
+          parse_coeffs(buf, "mbt", 0, 1, doffset, Atom::DIHEDRAL);
+          force->dihedral->coeff(ncoeffarg, coeffarg);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"coeffs:middlebondtorsion\"",
+                   id);
+      }
+    }
+
+    // endbondtorsion coeffs
+    if (coeffsdata.contains("endbondtorsion")) {
+      if (!coeffsdata["endbondtorsion"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"coeffs:endbondtorsion\"",
+                   id);
+      if (coeffsdata["endbondtorsion"].contains("data")) {
+        if (atom->avec->dihedrals_allow == 0)
+          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: EndBondTorsion Coeffs");
+        if (force->dihedral == nullptr)
+          error->all(FLERR, Error::ARGZERO,
+                     "Must define dihedral_style before EndBondTorsion Coeffs");
+
+        for (auto endbondtorsiondata : coeffsdata["endbondtorsion"]["data"]) {
+          std::string type = endbondtorsiondata[0];
+          double coeff1 = endbondtorsiondata[1];
+          double coeff2 = endbondtorsiondata[2];
+          double coeff3 = endbondtorsiondata[3];
+          double coeff4 = endbondtorsiondata[4];
+          double coeff5 = endbondtorsiondata[5];
+          double coeff6 = endbondtorsiondata[6];
+          double coeff7 = endbondtorsiondata[7];
+          double coeff8 = endbondtorsiondata[8];
+          char buf[MAXLINE];
+          snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f %f %f\n", type.c_str(),
+              coeff1, coeff2, coeff3, coeff4, coeff5, coeff6, coeff7, coeff8);
+          parse_coeffs(buf, "ebt", 0, 1, doffset, Atom::DIHEDRAL);
+          force->dihedral->coeff(ncoeffarg, coeffarg);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"coeffs:endbondtorsion\"",
+                   id);
+      }
+    }
+
+    // angletorsion coeffs
+    if (coeffsdata.contains("angletorsion")) {
+      if (!coeffsdata["angletorsion"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"coeffs:angletorsion\"",
+                   id);
+      if (coeffsdata["angletorsion"].contains("data")) {
+        if (atom->avec->dihedrals_allow == 0)
+          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: angleTorsion Coeffs");
+        if (force->dihedral == nullptr)
+          error->all(FLERR, Error::ARGZERO,
+                     "Must define dihedral_style before angleTorsion Coeffs");
+
+        for (auto angletorsiondata : coeffsdata["angletorsion"]["data"]) {
+          std::string type = angletorsiondata[0];
+          double coeff1 = angletorsiondata[1];
+          double coeff2 = angletorsiondata[2];
+          double coeff3 = angletorsiondata[3];
+          double coeff4 = angletorsiondata[4];
+          double coeff5 = angletorsiondata[5];
+          double coeff6 = angletorsiondata[6];
+          double coeff7 = angletorsiondata[7];
+          double coeff8 = angletorsiondata[8];
+          char buf[MAXLINE];
+          snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f %f %f\n", type.c_str(),
+              coeff1, coeff2, coeff3, coeff4, coeff5, coeff6, coeff7, coeff8);
+          parse_coeffs(buf, "at", 0, 1, doffset, Atom::DIHEDRAL); 
+          force->dihedral->coeff(ncoeffarg, coeffarg);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"coeffs:angletorsion\"",
+                   id);
+      }
+    }
+
+    // angleangletorsion coeffs
+    if (coeffsdata.contains("angleangletorsion")) {
+      if (!coeffsdata["angleangletorsion"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"coeffs:angleangletorsion\"",
+                   id);
+      if (coeffsdata["angleangletorsion"].contains("data")) {
+        if (atom->avec->dihedrals_allow == 0)
+          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleTorsion Coeffs");
+        if (force->dihedral == nullptr)
+          error->all(FLERR, Error::ARGZERO,
+                     "Must define dihedral_style before AngleTorsion Coeffs");
+
+        for (auto angleangletorsiondata : coeffsdata["angleangletorsion"]["data"]) {
+          std::string type = angleangletorsiondata[0];
+          double coeff1 = angleangletorsiondata[1];
+          double coeff2 = angleangletorsiondata[2];
+          double coeff3 = angleangletorsiondata[3];
+          char buf[MAXLINE];
+          snprintf(buf, MAXLINE, "%s %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3);
+          parse_coeffs(buf, "aat", 0, 1, doffset, Atom::DIHEDRAL);
+          force->dihedral->coeff(ncoeffarg, coeffarg);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"coeffs:angleangletorsion\"",
+                   id);
+      }
+    }
+
+    // bondbond13 coeffs
+    if (coeffsdata.contains("bondbond13")) {
+      if (!coeffsdata["bondbond13"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"coeffs:bondbond13\"",
+                   id);
+      if (coeffsdata["bondbond13"].contains("data")) {
+        if (atom->avec->dihedrals_allow == 0)
+          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondBond13 Coeffs");
+        if (force->dihedral == nullptr)
+          error->all(FLERR, Error::ARGZERO, "Must define dihedral_style before BondBond13 Coeffs");
+
+        for (auto bondbond13data : coeffsdata["bondbond13"]["data"]) {
+          std::string type = bondbond13data[0];
+          double coeff1 = bondbond13data[1];
+          double coeff2 = bondbond13data[2];
+          double coeff3 = bondbond13data[3];
+          char buf[MAXLINE];
+          snprintf(buf, MAXLINE, "%s %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3);
+          parse_coeffs(buf, "bb13", 0, 1, doffset, Atom::DIHEDRAL);
+          force->dihedral->coeff(ncoeffarg, coeffarg);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"coeffs:bondbond13\"",
+                   id);
+      }
+    }
   }
 
   // shake settings

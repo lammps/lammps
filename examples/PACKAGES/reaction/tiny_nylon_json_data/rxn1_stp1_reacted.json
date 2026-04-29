@@ -182,13 +182,13 @@
     },
     "coeffs": {
         "pair": {
-            "format": ["atom-type", "coeff"],
+            "format": ["atom-type", "coeff1", "coeff2"],
             "data": [
                 ["n", 0.106, 4.07]
             ]
         },
         "bond": {
-            "format": ["bond-type", "coeff1", "coeff2"],
+            "format": ["bond-type", "coeff1", "coeff2", "coeff3", "coeff4"],
             "data": [
                 ["n-c2", 1.452, 327.166, -547.899, 526.5],
                 ["n-hn", 1.01, 462.75, -1053.63, 1545.76],

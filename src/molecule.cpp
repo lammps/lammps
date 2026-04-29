@@ -1645,6 +1645,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning per-type masses.");
 
+    // pair coeffs
     if (coeffsdata.contains("pair")) {
       if (!coeffsdata["pair"].contains("format"))
         error->all(FLERR, Error::NOLASTLINE,
@@ -1666,14 +1667,46 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
           char buf[MAXLINE];
           snprintf(buf, MAXLINE, "%s %f %f\n", type.c_str(), coeff1, coeff2);
           parse_coeffs(buf, nullptr, 1, 2, toffset, Atom::ATOM);
-          if (ncoeffarg == 0)
-            error->all(FLERR, "Unexpected empty line in PairCoeffs section. Expected {} lines.", natomtypes);
           force->pair->coeff(ncoeffarg, coeffarg);
         }
       } else {
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: JSON molecule data does not contain required \"data\" "
                    "field for \"coeffs:pair\"",
+                   id);
+      }
+    }
+
+    // bond coeffs
+    if (coeffsdata.contains("bond")) {
+      if (!coeffsdata["bond"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"coeffs:bond\"",
+                   id);
+      if (coeffsdata["bond"].contains("data")) {
+        if (force->bond == nullptr)
+          error->all(FLERR, Error::ARGZERO, "Must define bond_style before bond Coeffs");
+        if (comm->me == 0 && !atom->style_match(force->bond_style))
+          error->warning(
+              FLERR, "bond style {} in molecule JSON differs from currently defined bond style {}",
+              atom->get_style(), force->bond_style);
+
+        for (auto bonddata : coeffsdata["bond"]["data"]) {
+          std::string type = bonddata[0];
+          double coeff1 = bonddata[1];
+          double coeff2 = bonddata[2];
+          double coeff3 = bonddata[3];
+          double coeff4 = bonddata[4];
+          char buf[MAXLINE];
+          snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
+          parse_coeffs(buf, nullptr, 0, 1, boffset, Atom::BOND);
+          force->bond->coeff(ncoeffarg, coeffarg);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"coeffs:bond\"",
                    id);
       }
     }

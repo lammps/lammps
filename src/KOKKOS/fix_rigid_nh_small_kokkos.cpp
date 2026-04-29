@@ -151,6 +151,11 @@ double FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::compute_scalar() {
   return this->compute_scalar_base();
 }
 
+template<class DeviceType, bool TSTAT, bool PSTAT>
+void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::deform(int flag) {
+  this->deform_base(flag);
+}
+
 /* ----------------------------------------------------------------------
    FixRigidSmall PROTECTED METHODS
 ------------------------------------------------------------------------- */

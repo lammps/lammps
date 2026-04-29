@@ -73,6 +73,7 @@ class FixRigidNHSmallKokkos : public FixRigidNHSmall, public FixRigidBaseKokkos<
   void zero_momentum() override;
   void zero_rotation() override;
   double compute_scalar() override;
+  void deform(int) override;
 
  protected:
 

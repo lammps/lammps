@@ -32,6 +32,7 @@
 #include "kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
+#include "compute.h"
 #include "domain_kokkos.h"
 #include "error.h"
 #include "force.h"
@@ -398,13 +399,15 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_base(int vflag)
   auto temperature = nh_base()->temperature;
   if (l_tstat_flag) nh_base()->compute_temp_target();
   else if (l_pstat_flag) {
-    auto pressure = nh_base()->pressure;
     nh_base()->t0 = temperature->compute_scalar();
     if (nh_base()->t0 == 0.0) {
       if (strcmp(base()->update->unit_style, "lj") == 0) nh_base()->t0 = 1.0;
       else nh_base()->t0 = 300.0;
     }
     nh_base()->t_target = nh_base()->t0;
+  }
+  if (l_pstat_flag) {
+    auto pressure = nh_base()->pressure;
     nh_base()->compute_press_target();
     if (nh_base()->pstyle == ISO) {
       temperature->compute_scalar();
@@ -1084,7 +1087,7 @@ double FixRigidBaseKokkos<DeviceType,FixRigidBase>::compute_scalar_base()
       double vol = domainKK->xprd * domainKK->yprd;
       if (domainKK->dimension == 3) vol *= domainKK->zprd;
       double p0 = (nh_base()->p_target[0] + nh_base()->p_target[1] + nh_base()->p_target[2]) / 3.0;
-      energy += p0 * nh_base()->vol / nh_base()->nktv2p;
+      energy += p0 * vol / nh_base()->nktv2p;
       for (int i = 0;  i < nh_base()->p_chain; i++) {
         energy += kt * nh_base()->eta_b[i];
         energy += 0.5 * nh_base()->q_b[i] * (nh_base()->eta_dot_b[i] * nh_base()->eta_dot_b[i]);
@@ -1850,10 +1853,10 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::remap_base()
   // convert pertinent atoms and rigid bodies to lamda coords
   if (base()->allremap) domainKK->x2lamda(nlocal);
   else domainKK->x2lamda(nlocal, base()->dilate_group_bit);
-  for (auto &ifix : nh_base()->rfix) ifix->deform_base(0);
+  for (auto &ifix : nh_base()->rfix) ifix->deform(0);
   // reset global and local box to new size/shape
   for (int i = 0; i < 3; i++) {
-    if (base()->p_flag[i]) {
+    if (nh_base()->p_flag[i]) {
       const double oldlo = domainKK->boxlo[i];
       const double oldhi = domainKK->boxhi[i];
       const double ctr = 0.5 * (oldlo + oldhi);
@@ -1867,7 +1870,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::remap_base()
   // convert pertinent atoms and rigid bodies back to box coords
   if (base()->allremap) domainKK->lamda2x(nlocal);
   else domainKK->lamda2x(nlocal, base()->dilate_group_bit);
-  for (auto &ifix : nh_base()->rfix) ifix->deform_base(1);
+  for (auto &ifix : nh_base()->rfix) ifix->deform(1);
   }
 }
 

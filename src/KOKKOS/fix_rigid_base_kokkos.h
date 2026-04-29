@@ -182,7 +182,8 @@ protected:
   FixRigidBase* base() { return dynamic_cast<FixRigidBase*>(this); }
   FixRigidBase* base_ptr;
   FixRigidNHSmall* nh_base() { return dynamic_cast<FixRigidNHSmall*>(this); }
-  static constexpr bool is_nh    = std::is_base_of_v<FixRigidNH,    FixRigidBase>;
+  static constexpr bool is_nh    = std::is_base_of_v<FixRigidNH,    FixRigidBase> ||
+                                   std::is_base_of_v<FixRigidNHSmall, FixRigidBase>;
   static constexpr bool is_small = std::is_base_of_v<FixRigidSmall, FixRigidBase>;
   int nlocal() { return base()->atom->nlocal; }
   int& nlocal_body() { return base()->nlocal_body; }

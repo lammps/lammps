@@ -54,6 +54,8 @@ class Molecule : protected Pointers {
   int nspecialflag, specialflag;
   int shakeflag, shakeflagflag, shakeatomflag, shaketypeflag;
   int bodyflag, ibodyflag, dbodyflag;
+  int pertype_massflag;
+  int coeffflag;
 
   // 1 if attribute defined or computed, 0 if not
 

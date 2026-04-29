@@ -404,6 +404,8 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   JSON_INIT_FIELD(angles, nangles, angleflag, false, 0);
   JSON_INIT_FIELD(dihedrals, ndihedrals, dihedralflag, false, 0);
   JSON_INIT_FIELD(impropers, nimpropers, improperflag, false, 0);
+  JSON_INIT_FIELD(per-type-masses, natomtypes, pertype_massflag, false, 0);
+  JSON_INIT_FIELD(coeffs, dummyvar, coeffflag, false, 0);
 
 #undef JSON_INIT_FIELD
   // special is nested
@@ -729,7 +731,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
           error->all(FLERR, Error::NOLASTLINE,
                      "Molecule template {}: invalid atom type in \"types\" JSON section", id,
                      typestr);
-        type[iatom] = atom->lmap->find_type(typestr, Atom::ATOM);
+        type[iatom] = atom->lmap->find_or_create(typestr, atom->lmap->typelabel, atom->lmap->typelabel_map);
         if (type[iatom] == -1)
           error->all(FLERR, Error::NOLASTLINE,
                      "Molecule template {}: Unknown atom type {} in \"types\" JSON section", id,
@@ -1073,6 +1075,21 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     }
   }
 
+  // per-type masses
+  if (pertype_massflag) {
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning per-type masses.");
+
+    for (int i = 0; i < natomtypes; i++) {
+      const auto &item = moldata["per-type-masses"]["data"][i];
+      std::string type = item[0];
+      int itype = atom->lmap->find_type(type, Atom::ATOM);
+      double value = item[1];
+      atom->set_mass(FLERR, itype, value);
+    }
+  }
+
   // bonds
 
   if (bondflag) {
@@ -1114,7 +1131,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
               error->all(FLERR, Error::NOLASTLINE,
                          "Molecule template {}: invalid bond type in \"bonds\" JSON section", id,
                          typestr);
-            itype = atom->lmap->find_type(typestr, Atom::BOND);
+            itype = atom->lmap->find_or_create(typestr, atom->lmap->btypelabel, atom->lmap->btypelabel_map);
             if (itype == -1)
               error->all(FLERR, Error::NOLASTLINE,
                          "Molecule template {}: Unknown bond type {} in \"bonds\" JSON section", id,
@@ -1206,7 +1223,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
               error->all(FLERR, Error::NOLASTLINE,
                          "Molecule template {}: invalid angle type in \"angles\" JSON section", id,
                          typestr);
-            itype = atom->lmap->find_type(typestr, Atom::ANGLE);
+            itype = atom->lmap->find_or_create(typestr, atom->lmap->atypelabel, atom->lmap->atypelabel_map);
             if (itype == -1)
               error->all(FLERR, Error::NOLASTLINE,
                          "Molecule template {}: Unknown angle type {} in \"angles\" JSON section",
@@ -1317,7 +1334,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                   FLERR, Error::NOLASTLINE,
                   "Molecule template {}: invalid dihedral type in \"dihedrals\" JSON section", id,
                   typestr);
-            itype = atom->lmap->find_type(typestr, Atom::DIHEDRAL);
+            itype = atom->lmap->find_or_create(typestr, atom->lmap->dtypelabel, atom->lmap->dtypelabel_map);
             if (itype == -1)
               error->all(
                   FLERR, Error::NOLASTLINE,
@@ -1442,7 +1459,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                   FLERR, Error::NOLASTLINE,
                   "Molecule template {}: invalid improper type in \"impropers\" JSON section", id,
                   typestr);
-            itype = atom->lmap->find_type(typestr, Atom::IMPROPER);
+            itype = atom->lmap->find_or_create(typestr, atom->lmap->itypelabel, atom->lmap->itypelabel_map);
             if (itype == -1)
               error->all(
                   FLERR, Error::NOLASTLINE,
@@ -2626,6 +2643,7 @@ void Molecule::read(int flag)
       else
         skip_lines(natoms, line, keyword);
     } else if (keyword == "Per-Type Masses") {
+      pertype_massflag = 1;
       if (flag)
         pertype_masses(line);
       else
@@ -4788,6 +4806,8 @@ void Molecule::initialize()
   nspecialflag = specialflag = 0;
   shakeflag = shakeflagflag = shakeatomflag = shaketypeflag = 0;
   bodyflag = ibodyflag = dbodyflag = 0;
+  pertype_massflag = 0;
+  coeffflag = 0;
 
   centerflag = massflag = comflag = inertiaflag = 0;
   massflag_user = comflag_user = inertiaflag_user = specialflag_user = 0;

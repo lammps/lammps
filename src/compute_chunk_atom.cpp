@@ -22,6 +22,7 @@
 #include "error.h"
 #include "fix.h"
 #include "fix_store_atom.h"
+#include "graphics.h"
 #include "group.h"
 #include "input.h"
 #include "lattice.h"
@@ -54,11 +55,13 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), chunk_volume_vec(nullptr), coord(nullptr), ichunk(nullptr),
     chunkID(nullptr), cfvid(nullptr), idregion(nullptr), region(nullptr), cchunk(nullptr),
     fchunk(nullptr), varatom(nullptr), fixstore(nullptr), lockfix(nullptr), chunk(nullptr),
-    exclude(nullptr)
+    exclude(nullptr), imgobjs(nullptr), imgparms(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "compute chunk/atom", error);
 
+  numobjs = 0;
   peratom_flag = 1;
+  image_flag = 1;
   scalar_flag = 1;
   extscalar = 0;
   size_peratom_cols = 0;
@@ -495,6 +498,8 @@ ComputeChunkAtom::~ComputeChunkAtom()
   delete[] cfvid;
 
   memory->destroy(varatom);
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -625,6 +630,159 @@ void ComputeChunkAtom::compute_peratom()
   for (int i = 0; i < nlocal; i++) chunk[i] = ichunk[i];
 }
 
+/* ---------------------------------------------------------------------- */
+
+int ComputeChunkAtom::compute_image(int *&objs, double **&parms)
+{
+  if (invoked_image != update->ntimestep) {
+    invoked_image = update->ntimestep;
+
+    if (which != ArgInfo::BIN1D && which != ArgInfo::BIN2D && which != ArgInfo::BIN3D) {
+      numobjs = 0;
+    } else {
+      if (invoked_setup != update->ntimestep) setup_chunks();
+
+      int nwalls = 0;
+      for (int m = 0; m < ndim; m++) nwalls += nlayers[m] + 1;
+
+      if (domain->dimension == 2) numobjs = nwalls;
+      else if (which == ArgInfo::BIN3D) numobjs = nwalls * 4;
+      else numobjs = nwalls * 2;
+
+      memory->destroy(imgobjs);
+      memory->destroy(imgparms);
+      memory->create(imgobjs, numobjs, "chunk/atom:imgobjs");
+      memory->create(imgparms, numobjs, 10, "chunk/atom:imgparms");
+
+      double binlo[3], binhi[3];
+      if (scaleflag == REDUCED) {
+        binlo[0] = binlo[1] = binlo[2] = 0.0;
+        binhi[0] = binhi[1] = binhi[2] = 1.0;
+      } else {
+        binlo[0] = domain->boxlo[0];
+        binlo[1] = domain->boxlo[1];
+        binlo[2] = domain->boxlo[2];
+        binhi[0] = domain->boxhi[0];
+        binhi[1] = domain->boxhi[1];
+        binhi[2] = domain->boxhi[2];
+      }
+
+      if (minflag[0] == COORD) binlo[0] = minvalue[0];
+      if (minflag[1] == COORD) binlo[1] = minvalue[1];
+      if (minflag[2] == COORD) binlo[2] = minvalue[2];
+      if (maxflag[0] == COORD) binhi[0] = maxvalue[0];
+      if (maxflag[1] == COORD) binhi[1] = maxvalue[1];
+      if (maxflag[2] == COORD) binhi[2] = maxvalue[2];
+
+      int n = 0;
+      for (int m = 0; m < ndim; m++) {
+        int idim = dim[m];
+        int idim1 = (idim + 1) % 3;
+        int idim2 = (idim + 2) % 3;
+        for (int i = 0; i <= nlayers[m]; i++) {
+          double c = offset[m] + i * delta[m];
+
+          if (domain->dimension == 2) {
+            double p1[3], p2[3];
+            p1[idim] = p2[idim] = c;
+            int other = 1 - idim;
+            p1[other] = binlo[other];
+            p1[2] = 1.0;
+            p2[other] = binhi[other];
+            p2[2] = 1.0;
+
+            if (scaleflag == REDUCED) {
+              domain->lamda2x(p1, p1);
+              domain->lamda2x(p2, p2);
+            }
+
+            imgobjs[n] = Graphics::CYLINDER;
+            imgparms[n][0] = 1.0;
+            imgparms[n][1] = p1[0];
+            imgparms[n][2] = p1[1];
+            imgparms[n][3] = p1[2];
+            imgparms[n][4] = p2[0];
+            imgparms[n][5] = p2[1];
+            imgparms[n][6] = p2[2];
+            imgparms[n][7] = 0.0;
+            n++;
+          } else if (which == ArgInfo::BIN3D) {
+            double p[4][3];
+            for (int j = 0; j < 4; j++) p[j][idim] = c;
+            p[0][idim1] = binlo[idim1]; p[0][idim2] = binlo[idim2];
+            p[1][idim1] = binhi[idim1]; p[1][idim2] = binlo[idim2];
+            p[2][idim1] = binhi[idim1]; p[2][idim2] = binhi[idim2];
+            p[3][idim1] = binlo[idim1]; p[3][idim2] = binhi[idim2];
+
+            if (scaleflag == REDUCED) {
+              for (int j = 0; j < 4; j++) domain->lamda2x(p[j], p[j]);
+            }
+
+            for (int j = 0; j < 4; j++) {
+              imgobjs[n] = Graphics::CYLINDER;
+              imgparms[n][0] = 1.0;
+              imgparms[n][1] = p[j][0];
+              imgparms[n][2] = p[j][1];
+              imgparms[n][3] = p[j][2];
+              int next = (j + 1) % 4;
+              imgparms[n][4] = p[next][0];
+              imgparms[n][5] = p[next][1];
+              imgparms[n][6] = p[next][2];
+              imgparms[n][7] = 0.0;
+              n++;
+            }
+          } else {
+            double p1[3], p2[3], p3[3], p4[3];
+            p1[idim] = p2[idim] = p3[idim] = p4[idim] = c;
+            p1[idim1] = binlo[idim1];
+            p1[idim2] = binlo[idim2];
+            p2[idim1] = binhi[idim1];
+            p2[idim2] = binlo[idim2];
+            p3[idim1] = binhi[idim1];
+            p3[idim2] = binhi[idim2];
+            p4[idim1] = binlo[idim1];
+            p4[idim2] = binhi[idim2];
+
+            if (scaleflag == REDUCED) {
+              domain->lamda2x(p1, p1);
+              domain->lamda2x(p2, p2);
+              domain->lamda2x(p3, p3);
+              domain->lamda2x(p4, p4);
+            }
+
+            imgobjs[n] = Graphics::TRIANGLE;
+            imgparms[n][0] = 1.0;
+            imgparms[n][1] = p1[0];
+            imgparms[n][2] = p1[1];
+            imgparms[n][3] = p1[2];
+            imgparms[n][4] = p2[0];
+            imgparms[n][5] = p2[1];
+            imgparms[n][6] = p2[2];
+            imgparms[n][7] = p3[0];
+            imgparms[n][8] = p3[1];
+            imgparms[n][9] = p3[2];
+            n++;
+            imgobjs[n] = Graphics::TRIANGLE;
+            imgparms[n][0] = 1.0;
+            imgparms[n][1] = p1[0];
+            imgparms[n][2] = p1[1];
+            imgparms[n][3] = p1[2];
+            imgparms[n][4] = p3[0];
+            imgparms[n][5] = p3[1];
+            imgparms[n][6] = p3[2];
+            imgparms[n][7] = p4[0];
+            imgparms[n][8] = p4[1];
+            imgparms[n][9] = p4[2];
+            n++;
+          }
+        }
+      }
+    }
+  }
+  objs = imgobjs;
+  parms = imgparms;
+  return numobjs;
+}
 /* ----------------------------------------------------------------------
    to return the number of chunks, we first need to make certain
    that compute_peratom() has been called.
@@ -2049,5 +2207,7 @@ double ComputeChunkAtom::memory_usage()
   bytes += (double) nmax * sizeof(double);                 // chunk
   bytes += (double) ncoord * nchunk * sizeof(double);      // coord
   if (compress) bytes += (double) nchunk * sizeof(int);    // chunkID
+  bytes += (double) numobjs * sizeof(int);                 // imgobjs
+  bytes += (double) numobjs * 10 * sizeof(double);         // imgparms
   return bytes;
 }

@@ -42,14 +42,13 @@ class PairBodyRoundedPolygonOMP : public PairBodyRoundedPolygon, public ThrOMP {
   void eval(int ifrom, int ito, ThrData *const thr);
 
   void sphere_against_sphere_thr(int i, int j, double delx, double dely, double delz, double rsq,
-                                 double k_n, double k_na, const double *const *x,
-                                 const double *const *v, dbl3_t *f, ThrData *thr);
+                                 double k_n, double k_na, const double *const *v, dbl3_t *f,
+                                 ThrData *thr);
 
   int vertex_against_edge_thr(int i, int j, double k_n, double k_na, const double *const *x,
-                               dbl3_t *f, dbl3_t *torque, const tagint *tag,
-                               Contact *contact_list, int &num_contacts, double &evdwl,
-                               double *facc, double *vforce_thr, double *eforce_thr,
-                               ThrData *thr);
+                              dbl3_t *f, dbl3_t *torque, const tagint *tag, Contact *contact_list,
+                              int &num_contacts, double &evdwl, double *facc, double *vforce_thr,
+                              double *eforce_thr, ThrData *thr);
 
   void contact_forces_thr(Contact &contact, double j_a, const double *const *x,
                           const double *const *v, const double *const *angmom, dbl3_t *f,

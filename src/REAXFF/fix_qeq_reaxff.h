@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -11,6 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+// clang-format off
 
 /* ----------------------------------------------------------------------
    Contributing author: Hasan Metin Aktulga, Purdue University
@@ -63,7 +63,7 @@ class FixQEqReaxFF : public Fix {
   int n_cap, nmax, m_cap;
   int pack_flag;
   int nlevels_respa;
-  int matrix_free;     // kokkos backend; whether or not to use the matrix-free form
+  int matrix_free;    // kokkos backend; whether or not to use the matrix-free form
   class NeighList *list;
   class PairReaxFF *reaxff;
   class FixEfield *efield;
@@ -122,6 +122,7 @@ class FixQEqReaxFF : public Fix {
   virtual int CG(double *, double *);
   virtual void sparse_matvec(sparse_matrix *, double *, double *);
 
+ public:
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
@@ -132,6 +133,7 @@ class FixQEqReaxFF : public Fix {
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
 
+ protected:
   virtual double parallel_norm(double *, int);
   virtual double parallel_dot(double *, double *, int);
   virtual double parallel_vector_acc(double *, int);

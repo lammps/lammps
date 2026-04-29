@@ -127,7 +127,6 @@ void PairCoulStreitzOMP::eval(int iifrom, int iito, ThrData *const thr)
         const double qj = q[j];
         const double zej = params[iparam_j].zeta;
         const double zj = params[iparam_j].zcore;
-        const double factor_coul = special_coul[sbmask(j)];
 
         double delr[3];
         delr[0] = xtmp - x[j].x;

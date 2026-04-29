@@ -84,7 +84,6 @@ void PairThreebodyTableOMP::eval(int iifrom, int iito, ThrData * const thr)
   auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const tagint * _noalias const tag = atom->tag;
   const int * _noalias const type = atom->type;
-  const int nlocal = atom->nlocal;
 
   ilist = list->ilist;
   numneigh = list->numneigh;

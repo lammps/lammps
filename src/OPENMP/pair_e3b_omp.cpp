@@ -68,7 +68,7 @@ void PairE3BOMP::compute(int eflag, int vflag)
   // SERIAL: first pass - build pair lists, accumulate sumExp, compute 2-body
 
   double fixx, fiyy, fizz, fxtmp, fytmp, fztmp;
-  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair, rsq, tmpexp;
+  double xtmp, ytmp, ztmp, delx, dely, delz, fpair, rsq, tmpexp;
   double delxh, delyh, delzh, rsqh, tmpr;
   double scFact1, scFact2, scEng, scDer;
   bool addedH;
@@ -207,7 +207,6 @@ void PairE3BOMP::eval(int iifrom, int iito, ThrData *const thr, int /*npair*/)
 {
   double **f_thr = thr->get_f();
   tagint *tag = atom->tag;
-  int *type = atom->type;
   const int nlocal = atom->nlocal;
   const int newton_pair = force->newton_pair;
 

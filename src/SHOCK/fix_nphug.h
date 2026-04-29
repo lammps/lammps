@@ -33,18 +33,10 @@ class FixNPHug : public FixNH {
   int modify_param(int, char **) override;
   int pack_restart_data(double *) override;    // pack restart data
   void restart(char *) override;
+  double compute_vector(int) override;
 
  private:
   class Compute *pe;    // PE compute pointer
-
-  void compute_temp_target() override;
-  double compute_vector(int) override;
-  double compute_etotal();
-  double compute_vol();
-  double compute_hugoniot();
-  double compute_us();
-  double compute_up();
-
   char *id_pe;
   int peflag;
   int v0_set, p0_set, e0_set;
@@ -52,6 +44,15 @@ class FixNPHug : public FixNH {
   int idir;
   int uniaxial;
 
+
+  double compute_etotal();
+  double compute_vol();
+  double compute_hugoniot();
+  double compute_us();
+  double compute_up();
+
+ protected:
+  void compute_temp_target() override;
   int size_restart_global() override;
 };
 

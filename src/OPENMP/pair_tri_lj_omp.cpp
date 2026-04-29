@@ -50,7 +50,6 @@ void PairTriLJOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
   AtomVecTri::Bonus *bonus = avec->bonus;
-  double **x = atom->x;
   int *tri = atom->tri;
   int *type = atom->type;
 

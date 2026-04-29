@@ -63,6 +63,7 @@ OPT.
    * :doc:`coul/cut/dielectric <pair_dielectric>`
    * :doc:`coul/cut/global (o) <pair_coul>`
    * :doc:`coul/cut/soft (o) <pair_fep_soft>`
+   * :doc:`coul/cut/soft/gapsys <pair_fep_soft>`
    * :doc:`coul/debye (gko) <pair_coul>`
    * :doc:`coul/diel (o) <pair_coul_diel>`
    * :doc:`coul/dsf (gko) <pair_coul>`

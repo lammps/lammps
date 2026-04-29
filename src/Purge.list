@@ -66,6 +66,8 @@ dump_movie.cpp
 dump_movie.h
 fix_graphics_arrows.cpp
 fix_graphics_arrows.h
+fix_graphics_chunk.cpp
+fix_graphics_chunk.h
 fix_graphics_isosurface.cpp
 fix_graphics_isosurface.h
 fix_graphics_labels.cpp

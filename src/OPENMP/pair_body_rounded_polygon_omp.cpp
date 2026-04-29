@@ -31,12 +31,13 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr int DELTA = 10000;
-static constexpr double EPSILON = 1.0e-3;
-static constexpr int MAX_CONTACTS = 4;
-static constexpr int EFF_CONTACTS = 2;
+namespace {
+constexpr double EPSILON = 1.0e-3;
+constexpr int MAX_CONTACTS = 4;
+constexpr int EFF_CONTACTS = 2;
 
 enum { INVALID=0, NONE=1, VERTEXI=2, VERTEXJ=3, EDGE=4 };
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -200,8 +201,7 @@ void PairBodyRoundedPolygonOMP::eval(int iifrom, int iito, ThrData * const thr)
       if (r > radi + radj + cut_inner) continue;
 
       if (npi == 1 && npj == 1) {
-        sphere_against_sphere_thr(i, j, delx, dely, delz, rsq,
-                                  k_nij, k_naij, x, v, f, thr);
+        sphere_against_sphere_thr(i, j, delx, dely, delz, rsq, k_nij, k_naij, v, f, thr);
         continue;
       }
 
@@ -295,7 +295,6 @@ void PairBodyRoundedPolygonOMP::eval(int iifrom, int iito, ThrData * const thr)
 void PairBodyRoundedPolygonOMP::sphere_against_sphere_thr(int i, int j,
                                 double delx, double dely, double delz,
                                 double rsq, double k_n, double k_na,
-                                const double * const * x,
                                 const double * const * v, dbl3_t *f, ThrData *thr)
 {
   double rradi, rradj;

@@ -24,5 +24,12 @@ Here is a list of the inputs and which graphics features they demonstrate
                             overlay graphics from image without background
                             https://youtube.com/shorts/Q6KBE08AG8c
 
+- in.rhodo-delauney:        transmembrane protein where most atoms are
+                            not shown but rather a triangulated surface
+                            is shown. Also, the surface is truncated
+                            for parts of the system to a region that
+                            includes only part of the simulation cell.
+                            https://youtube.com/shorts/qywdSfw7z_Q
+
 - in.obstacle-lines         trajectory lines with obstacle flow example
                             https://youtu.be/9HEsGaOsdik

@@ -73,7 +73,7 @@ class Image : protected Pointers {
   int map_dynamic(int);
   int map_reset(int, int, char **);
   int map_minmax(int, double, double);
-  int map_info(int, double &, double &);
+  int map_info(int, double &, double &, bool &);
   double *map_value2color(int, double);
 
   int addcolor(const std::string &, double, double, double);
@@ -174,7 +174,7 @@ class ColorMap : protected Pointers {
   ~ColorMap() override;
   int reset(int, char **);
   int minmax(double, double);
-  int info(double &, double &);
+  int info(double &, double &, bool &);
   double *value2color(double);
 
  private:

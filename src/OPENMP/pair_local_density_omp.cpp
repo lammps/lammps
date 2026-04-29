@@ -221,7 +221,7 @@ void PairLocalDensityOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,k,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  double rsqinv,phi,dphi,fpair;
+  double rsqinv,dphi,fpair;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   const double * _noalias const * _noalias const x = atom->x;

@@ -47,7 +47,6 @@ void PairLineLJOMP::compute(int eflag, int vflag)
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
-  double **x = atom->x;
   int *line = atom->line;
   int *type = atom->type;
 

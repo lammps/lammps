@@ -167,7 +167,7 @@ constexpr char draw_ellipsoid_function[] =
     "   }\n"
     "   return $gid\n"
     "}\n\n";
-}
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 

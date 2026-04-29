@@ -17,6 +17,7 @@ Applied Physics/Theory of Polymers and Soft Matter,
 Eindhoven University of Technology (TU/e), The Netherlands
 Contact him in case of problems with this pair style.
 
-Pair styles lj/class2/soft were contributed by Evangelos Voyiatzis at
-Technical University of Darmstadt (e.voyiatzis at theo.chemie.tu-darmstadt.de)
+Pair styles lj/class2/soft and coul/cut/soft/gapsys were contributed by
+Evangelos Voyiatzis at Technical University of Darmstadt and at
+National Technical University of Athens (evoyiatzis at gmail.com)
 Contact him in case of problems with these pair styles.

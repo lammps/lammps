@@ -38,14 +38,14 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-static constexpr int DELTA = 10000;
-static constexpr double EPSILON = 1.0e-3;
-static constexpr int MAX_FACE_SIZE = 4;
-static constexpr int MAX_CONTACTS = 32;
+namespace {
+constexpr double EPSILON = 1.0e-3;
+constexpr int MAX_CONTACTS = 32;
 
 enum {EE_INVALID=0,EE_NONE,EE_INTERACT};
 enum {EF_INVALID=0,EF_NONE,EF_PARALLEL,EF_SAME_SIDE_OF_FACE,
       EF_INTERSECT_INSIDE,EF_INTERSECT_OUTSIDE};
+}
 
 /* ---------------------------------------------------------------------- */
 

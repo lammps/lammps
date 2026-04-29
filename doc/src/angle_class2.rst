@@ -2,6 +2,7 @@
 .. index:: angle_style class2/kk
 .. index:: angle_style class2/omp
 .. index:: angle_style class2xe
+.. index:: angle_style class2xe/omp
 .. index:: angle_style class2/p6
 
 angle_style class2 command
@@ -11,6 +12,8 @@ Accelerator Variants: *class2/kk*, *class2/omp*
 
 angle_style class2xe command
 ============================
+
+Accelerator Variants: *class2xe/omp*
 
 angle_style class2/p6 command
 =============================

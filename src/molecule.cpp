@@ -1710,6 +1710,105 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
                    id);
       }
     }
+
+    // angle coeffs
+    if (coeffsdata.contains("angle")) {
+      if (!coeffsdata["angle"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"coeffs:angle\"",
+                   id);
+      if (coeffsdata["angle"].contains("data")) {
+        if (atom->avec->angles_allow == 0)
+          error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON section: coeffs: angle");
+        if (force->angle == nullptr)
+          error->all(FLERR, Error::ARGZERO, "Must define angle_style before angle coeffs");
+        if (comm->me == 0 && !atom->style_match(force->angle_style))
+          error->warning(
+              FLERR, "Angle style {} in molecule template file differs from currently defined angle style {}",
+              atom->get_style(), force->angle_style);
+
+        for (auto angledata : coeffsdata["angle"]["data"]) {
+          std::string type = angledata[0];
+          double coeff1 = angledata[1];
+          double coeff2 = angledata[2];
+          double coeff3 = angledata[3];
+          double coeff4 = angledata[4];
+          char buf[MAXLINE];
+          snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
+          parse_coeffs(buf, nullptr, 0, 1, aoffset, Atom::ANGLE);
+          force->angle->coeff(ncoeffarg, coeffarg);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"coeffs:angle\"",
+                   id);
+      }
+    }
+
+    // bondbond coeffs
+    if (coeffsdata.contains("bondbond")) {
+      if (!coeffsdata["bondbond"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"coeffs:bondbond\"",
+                   id);
+      if (coeffsdata["bondbond"].contains("data")) {
+        if (atom->avec->angles_allow == 0)
+          error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON section: coeffs: bondbond");
+        if (force->angle == nullptr)
+          error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondBond Coeffs");
+
+        for (auto bondbonddata : coeffsdata["bondbond"]["data"]) {
+          std::string type = bondbonddata[0];
+          double coeff1 = bondbonddata[1];
+          double coeff2 = bondbonddata[2];
+          double coeff3 = bondbonddata[3];
+          char buf[MAXLINE];
+          snprintf(buf, MAXLINE, "%s %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3);
+          parse_coeffs(buf, "bb", 0, 1, aoffset, Atom::ANGLE);
+          force->angle->coeff(ncoeffarg, coeffarg);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"coeffs:bondbond\"",
+                   id);
+      }
+    }
+
+    // bondangle coeffs
+    if (coeffsdata.contains("bondangle")) {
+      if (!coeffsdata["bondangle"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"coeffs:bondangle\"",
+                   id);
+      if (coeffsdata["bondangle"].contains("data")) {
+        if (atom->avec->angles_allow == 0)
+          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondAngle Coeffs");
+        if (force->angle == nullptr)
+          error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondAngle Coeffs");
+
+        for (auto bondangledata : coeffsdata["bondangle"]["data"]) {
+          std::string type = bondangledata[0];
+          double coeff1 = bondangledata[1];
+          double coeff2 = bondangledata[2];
+          double coeff3 = bondangledata[3];
+          double coeff4 = bondangledata[4];
+          char buf[MAXLINE];
+          snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
+          parse_coeffs(buf, "ba", 0, 1, aoffset, Atom::ANGLE);
+          force->angle->coeff(ncoeffarg, coeffarg);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"coeffs:bondangle\"",
+                   id);
+      }
+    }
   }
 
   // shake settings

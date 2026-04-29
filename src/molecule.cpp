@@ -1916,6 +1916,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     }
 
     // angletorsion coeffs
+
     if (coeffsdata.contains("angletorsion")) {
       if (!coeffsdata["angletorsion"].contains("format"))
         error->all(FLERR, Error::NOLASTLINE,
@@ -1954,6 +1955,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     }
 
     // angleangletorsion coeffs
+
     if (coeffsdata.contains("angleangletorsion")) {
       if (!coeffsdata["angleangletorsion"].contains("format"))
         error->all(FLERR, Error::NOLASTLINE,
@@ -1986,6 +1988,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     }
 
     // bondbond13 coeffs
+
     if (coeffsdata.contains("bondbond13")) {
       if (!coeffsdata["bondbond13"].contains("format"))
         error->all(FLERR, Error::NOLASTLINE,
@@ -2012,6 +2015,77 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: JSON molecule data does not contain required \"data\" "
                    "field for \"coeffs:bondbond13\"",
+                   id);
+      }
+    }
+
+    // improper coeffs
+
+    if (coeffsdata.contains("improper")) {
+      if (!coeffsdata["improper"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"coeffs:improper\"",
+                   id);
+      if (coeffsdata["improper"].contains("data")) {
+        if (atom->avec->impropers_allow == 0)
+          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Improper Coeffs");
+        if (force->improper == nullptr)
+          error->all(FLERR, Error::ARGZERO, "Must define improper_style before Improper Coeffs");
+        if (comm->me == 0 && !atom->style_match(force->improper_style))
+          error->warning(
+              FLERR,
+              "Improper style {} in molecule template file differs from currently defined improper style {}",
+              atom->get_style(), force->improper_style);
+
+        for (auto improperdata : coeffsdata["improper"]["data"]) {
+          std::string type = improperdata[0];
+          double coeff1 = improperdata[1];
+          double coeff2 = improperdata[2];
+          char buf[MAXLINE];
+          snprintf(buf, MAXLINE, "%s %f %f\n", type.c_str(), coeff1, coeff2);
+          parse_coeffs(buf, nullptr, 0, 1, ioffset, Atom::IMPROPER); 
+          force->improper->coeff(ncoeffarg, coeffarg);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"coeffs:improper\"",
+                   id);
+      }
+    }
+
+    // angleangle coeffs
+
+    if (coeffsdata.contains("angleangle")) {
+      if (!coeffsdata["angleangle"].contains("format"))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
+                   "field for \"coeffs:angleangle\"",
+                   id);
+      if (coeffsdata["angleangle"].contains("data")) {
+        if (atom->avec->impropers_allow == 0)
+          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleAngle Coeffs");
+        if (force->improper == nullptr)
+          error->all(FLERR, Error::ARGZERO, "Must define improper_style before AngleAngle Coeffs");
+
+        for (auto angleangledata : coeffsdata["angleangle"]["data"]) {
+          std::string type = angleangledata[0];
+          double coeff1 = angleangledata[1];
+          double coeff2 = angleangledata[2];
+          double coeff3 = angleangledata[3];
+          double coeff4 = angleangledata[4];
+          double coeff5 = angleangledata[5];
+          double coeff6 = angleangledata[6];
+          char buf[MAXLINE];
+          snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4, coeff5, coeff6);
+          parse_coeffs(buf, "aa", 0, 1, ioffset, Atom::IMPROPER);
+          force->improper->coeff(ncoeffarg, coeffarg);
+        }
+      } else {
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
+                   "field for \"coeffs:angleangle\"",
                    id);
       }
     }
@@ -3403,7 +3477,7 @@ void Molecule::types(char *line)
                      utils::trim(line));
         type[iatom] = atom->lmap->find_or_create(typestr, atom->lmap->typelabel, atom->lmap->typelabel_map);
         if (type[iatom] == -1)
-          error->all(FLERR, fileiarg, "Unknown atom type {} in {}: {}", typestr, location,
+          error->all(FLERR, fileiarg, "Unable to find or create atom type {} in {}: {}", typestr, location,
                      utils::trim(line));
         break;
       }

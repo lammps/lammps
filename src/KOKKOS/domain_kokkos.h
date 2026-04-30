@@ -163,7 +163,7 @@ void DomainKokkos::minimum_image_big(
 {
   auto periodic_shift = [](const T d, const T invp, T &l_dflag) -> T {
     const T dfactor = Kokkos::round(d * invp);
-    if (Kokkos::abs(dfactor) > MAXSMALLINT) {
+    if (Kokkos::abs(dfactor) > static_cast<T>(MAXSMALLINT)) {
       l_dflag = d;
       return static_cast<T>(MAXSMALLINT);
     }

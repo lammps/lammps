@@ -1224,10 +1224,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
 
   // kokkos views
 
-  //atomKK->sync(execution_space, X_MASK | F_MASK | IMAGE_MASK | RMASS_MASK | TYPE_MASK );
-  atomKK->sync(execution_space, ALL_MASK );
+  atomKK->sync(execution_space, X_MASK | IMAGE_MASK | RMASS_MASK | TYPE_MASK );
   auto l_x = atomKK->k_x.template view<DeviceType>();
-  auto l_f = atomKK->k_f.template view<DeviceType>();
   auto l_image = atomKK->k_image.template view<DeviceType>();
   auto l_rmass = atomKK->k_rmass.template view<DeviceType>();
   auto l_type = atomKK->k_type.template view<DeviceType>();
@@ -2398,8 +2396,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::compute_forces_and_torques_bas
 
   // kokkos views
 
-  //atomKK->sync(execution_space, X_MASK | F_MASK );
-  atomKK->sync(execution_space, ALL_MASK );
+  atomKK->sync(execution_space, X_MASK | F_MASK );
   auto l_x = atomKK->k_x.template view<DeviceType>();
   auto l_f = atomKK->k_f.template view<DeviceType>();
 

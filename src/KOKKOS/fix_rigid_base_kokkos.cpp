@@ -1959,7 +1959,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
   auto l_prd1 = static_cast<KK_FLOAT>(domainKK->prd[1]);
   auto l_prd2 = static_cast<KK_FLOAT>(domainKK->prd[2]);
 
-  KK_FLOAT l_dtf = static_cast<KK_FLOAT>(base()->dtf);
+  KK_ACC_FLOAT l_half_dt = static_cast<KK_ACC_FLOAT>(0.5 / base()->dtf);
   auto l_vflag_global = base()->vflag_global;
   auto l_vflag_atom = base()->vflag_atom;
 
@@ -1998,29 +1998,32 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv_base()
     if constexpr (EVFLAG) {
       // Compute v_new in KK_ACC_FLOAT before truncating to KK_FLOAT for storage,
       // so the pre-truncation value can be used for the constraint-force virial.
-      const KK_ACC_FLOAT vnew0 = fma(KK_ACC_FLOAT(bk.omega[1]), KK_ACC_FLOAT(xnew[2]),
+      const KK_ACC_FLOAT vx = fma(KK_ACC_FLOAT(bk.omega[1]), KK_ACC_FLOAT(xnew[2]),
                                fma(KK_ACC_FLOAT(-bk.omega[2]), KK_ACC_FLOAT(xnew[1]),
                                KK_ACC_FLOAT(bk.vcm[0])));
-          const KK_ACC_FLOAT vnew1 = fma(KK_ACC_FLOAT(bk.omega[2]), KK_ACC_FLOAT(xnew[0]),
+          const KK_ACC_FLOAT vy = fma(KK_ACC_FLOAT(bk.omega[2]), KK_ACC_FLOAT(xnew[0]),
                                fma(KK_ACC_FLOAT(-bk.omega[0]), KK_ACC_FLOAT(xnew[2]),
                                KK_ACC_FLOAT(bk.vcm[1])));
-          const KK_ACC_FLOAT vnew2 = fma(KK_ACC_FLOAT(bk.omega[0]), KK_ACC_FLOAT(xnew[1]),
+          const KK_ACC_FLOAT vz = fma(KK_ACC_FLOAT(bk.omega[0]), KK_ACC_FLOAT(xnew[1]),
                                fma(KK_ACC_FLOAT(-bk.omega[1]), KK_ACC_FLOAT(xnew[0]),
                                KK_ACC_FLOAT(bk.vcm[2])));
-          l_v(i,0) = KK_FLOAT(vnew0);
-          l_v(i,1) = KK_FLOAT(vnew1);
-          l_v(i,2) = KK_FLOAT(vnew2);
+          const KK_ACC_FLOAT dvx = vx - KK_ACC_FLOAT(l_v(i,0));
+          const KK_ACC_FLOAT dvy = vy - KK_ACC_FLOAT(l_v(i,1));
+          const KK_ACC_FLOAT dvz = vz - KK_ACC_FLOAT(l_v(i,2));
+          l_v(i,0) = KK_FLOAT(vx);
+          l_v(i,1) = KK_FLOAT(vy);
+          l_v(i,2) = KK_FLOAT(vz);
           l_x(i,0) = xnew[0] + bk.xcm[0] - deltax;
           l_x(i,1) = xnew[1] + bk.xcm[1] - deltay;
           l_x(i,2) = xnew[2] + bk.xcm[2] - deltaz;
 
-          double massone;
+          KK_ACC_FLOAT massone;
           if (l_rmass.data()) massone = l_rmass(i);
           else massone = l_mass(l_type(i));
-          const double half_m_dt = 0.5 * massone / l_dtf;
-          const KK_ACC_FLOAT fc0 = fma(half_m_dt, vnew0 - vx, -0.5*l_f(i,0));
-          const KK_ACC_FLOAT fc1 = fma(half_m_dt, vnew1 - vy, -0.5*l_f(i,1));
-          const KK_ACC_FLOAT fc2 = fma(half_m_dt, vnew2 - vz, -0.5*l_f(i,2));
+          const KK_ACC_FLOAT half_m_dt = l_half_dt * massone;
+          const KK_ACC_FLOAT fc0 = fma(half_m_dt, dvx, KK_ACC_FLOAT(-0.5)*KK_ACC_FLOAT(l_f(i,0)));
+          const KK_ACC_FLOAT fc1 = fma(half_m_dt, dvy, KK_ACC_FLOAT(-0.5)*KK_ACC_FLOAT(l_f(i,1)));
+          const KK_ACC_FLOAT fc2 = fma(half_m_dt, dvz, KK_ACC_FLOAT(-0.5)*KK_ACC_FLOAT(l_f(i,2)));
 
           const KK_ACC_FLOAT vd00 = x0*fc0;
           const KK_ACC_FLOAT vd11 = x1*fc1;
@@ -2203,7 +2206,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_v_base()
   auto l_prd1 = static_cast<KK_FLOAT>(domainKK->prd[1]);
   auto l_prd2 = static_cast<KK_FLOAT>(domainKK->prd[2]);
 
-  KK_FLOAT l_dtf = static_cast<KK_FLOAT>(base()->dtf);
+  KK_ACC_FLOAT l_half_dt = static_cast<KK_ACC_FLOAT>(0.5 / base()->dtf);
   auto l_vflag_global = base()->vflag_global;
   auto l_vflag_atom = base()->vflag_atom;
 
@@ -2216,30 +2219,30 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_v_base()
     matvec(bk.ex_space, bk.ey_space, bk.ez_space, &l_displace(i, 0), delta);
 
     if constexpr (EVFLAG) {
-      const double vx = l_v(i,0);
-      const double vy = l_v(i,1);
-      const double vz = l_v(i,2);
       // Compute v_new in KK_ACC_FLOAT before truncating to KK_FLOAT for storage,
       // so the pre-truncation value can be used for the constraint-force virial.
-      const KK_ACC_FLOAT vnew0 = fma(KK_ACC_FLOAT(bk.omega[1]), KK_ACC_FLOAT(delta[2]),
+      const KK_ACC_FLOAT vx = fma(KK_ACC_FLOAT(bk.omega[1]), KK_ACC_FLOAT(delta[2]),
                                fma(KK_ACC_FLOAT(-bk.omega[2]), KK_ACC_FLOAT(delta[1]),
                                KK_ACC_FLOAT(bk.vcm[0])));
-      const KK_ACC_FLOAT vnew1 = fma(KK_ACC_FLOAT(bk.omega[2]), KK_ACC_FLOAT(delta[0]),
+      const KK_ACC_FLOAT vy = fma(KK_ACC_FLOAT(bk.omega[2]), KK_ACC_FLOAT(delta[0]),
                                fma(KK_ACC_FLOAT(-bk.omega[0]), KK_ACC_FLOAT(delta[2]),
                                KK_ACC_FLOAT(bk.vcm[1])));
-      const KK_ACC_FLOAT vnew2 = fma(KK_ACC_FLOAT(bk.omega[0]), KK_ACC_FLOAT(delta[1]),
+      const KK_ACC_FLOAT vz = fma(KK_ACC_FLOAT(bk.omega[0]), KK_ACC_FLOAT(delta[1]),
                                fma(KK_ACC_FLOAT(-bk.omega[1]), KK_ACC_FLOAT(delta[0]),
                                KK_ACC_FLOAT(bk.vcm[2])));
-      l_v(i,0) = KK_FLOAT(vnew0);
-      l_v(i,1) = KK_FLOAT(vnew1);
-      l_v(i,2) = KK_FLOAT(vnew2);
-      double massone;
+      const KK_ACC_FLOAT dvx = vx - KK_ACC_FLOAT(l_v(i,0));
+      const KK_ACC_FLOAT dvy = vy - KK_ACC_FLOAT(l_v(i,1));
+      const KK_ACC_FLOAT dvz = vz - KK_ACC_FLOAT(l_v(i,2));
+      l_v(i,0) = KK_FLOAT(vx);
+      l_v(i,1) = KK_FLOAT(vy);
+      l_v(i,2) = KK_FLOAT(vz);
+      KK_ACC_FLOAT massone;
       if (l_rmass.data()) massone = l_rmass(i);
       else massone = l_mass(l_type(i));
-      const double half_m_dt = 0.5 * massone / l_dtf;
-      const KK_ACC_FLOAT fc0 = fma(half_m_dt, vnew0 - vx, -0.5*l_f(i,0));
-      const KK_ACC_FLOAT fc1 = fma(half_m_dt, vnew1 - vy, -0.5*l_f(i,1));
-      const KK_ACC_FLOAT fc2 = fma(half_m_dt, vnew2 - vz, -0.5*l_f(i,2));
+      const KK_ACC_FLOAT half_m_dt = l_half_dt * massone;
+      const KK_ACC_FLOAT fc0 = fma(half_m_dt, dvx, KK_ACC_FLOAT(-0.5)*KK_ACC_FLOAT(l_f(i,0)));
+      const KK_ACC_FLOAT fc1 = fma(half_m_dt, dvy, KK_ACC_FLOAT(-0.5)*KK_ACC_FLOAT(l_f(i,1)));
+      const KK_ACC_FLOAT fc2 = fma(half_m_dt, dvz, KK_ACC_FLOAT(-0.5)*KK_ACC_FLOAT(l_f(i,2)));
 
       const KK_FLOAT xbox = static_cast<KK_FLOAT>((l_xcmimage(i) & IMGMASK) - IMGMAX);
       const KK_FLOAT ybox = static_cast<KK_FLOAT>((l_xcmimage(i) >> IMGBITS & IMGMASK) - IMGMAX);

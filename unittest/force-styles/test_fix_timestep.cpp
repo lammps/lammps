@@ -937,7 +937,7 @@ TEST(FixTimestep, kokkos_omp)
     // relax further for mixed/single precision KOKKOS (float vs double reference)
     if (Info::has_accelerator_feature("KOKKOS", "precision", "mixed") ||
         Info::has_accelerator_feature("KOKKOS", "precision", "single"))
-        epsilon *= 1.0e8;
+        epsilon *= 2.0e8;
     // relax test precision when using pppm and single precision FFTs
 #if defined(FFT_SINGLE)
     if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;

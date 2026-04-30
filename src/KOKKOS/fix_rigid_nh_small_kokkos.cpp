@@ -18,6 +18,7 @@
 
 #include "fix_rigid_nh_small_kokkos.h"
 
+#include "atom_masks.h"
 #include "error.h"
 #include "modify.h"
 
@@ -35,6 +36,8 @@ FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::FixRigidNHSmallKokkos(LAMMPS *lmp
   reverse_comm_device = 1;
   exchange_comm_device = 1;
   sort_device = 1;
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
 
   if constexpr (TSTAT || PSTAT) {
     this->restart_global = 1;

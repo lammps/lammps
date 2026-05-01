@@ -53,14 +53,10 @@ KSpace::KSpace(LAMMPS *lmp) :
   overlap_allowed = 1;
   fftbench = 0;
 
-  // default to using MPI collectives for FFT/remap only on IBM BlueGene
-
-#ifdef __bg__
-  collective_flag = 1;
-#else
+  // by default, we use point-to-point comms
   collective_flag = 0;
-#endif
   nonblocking_flag = 0;
+  selfcopy_flag = 2;
 
   kewaldflag = 0;
 
@@ -554,8 +550,20 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"collective") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify collective", error);
-      collective_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
-      if (collective_flag) nonblocking_flag = 0;
+      if (utils::logical(FLERR,arg[iarg+1],false,lmp)) {
+        collective_flag = 1;
+        nonblocking_flag = 0;
+      } else {
+        collective_flag = 0;
+      }
+      status = true;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"collective/self/copy") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify collective/self/copy", error);
+      if (strcmp(arg[iarg+1],"no") == 0) selfcopy_flag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) selfcopy_flag = 1;
+      else if (strcmp(arg[iarg+1],"onerank") == 0) selfcopy_flag = 2;
+      else error->all(FLERR, iarg+1, "Unknown kspace_modify collective/self/copy flag {}", arg[iarg+1]);
       status = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"nonblocking") == 0) {
@@ -623,11 +631,19 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += n;
     }
   }
+
+  // Encode the self-copy mode into `collective_flag`
+  if (collective_flag) collective_flag = selfcopy_flag + 1;
+
   if (status) {
     std::string mesg = "Updated KSpace settings:\n";
     mesg += fmt::format("  KSpace computation is turned:    {}\n", compute_flag ? "ON" : "OFF");
     mesg += fmt::format("  Use MPI collective operations:   {}\n", collective_flag ? "ON" : "OFF");
     mesg += fmt::format("  Use MPI non-blocking operations: {}\n", nonblocking_flag ? "ON" : "OFF");
+    if (collective_flag) {
+      const char *sc = (selfcopy_flag == 0) ? "no" : (selfcopy_flag == 1) ? "yes" : "onerank";
+      mesg += fmt::format("  Collective self-copy mode:       {}\n", sc);
+    }
     if (gewaldflag) {
       mesg += fmt::format("  Gewald manually set to:          {}\n", g_ewald);
     } else {

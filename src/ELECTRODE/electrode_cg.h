@@ -21,14 +21,16 @@
 #include "charge_solver.h"
 #include "electrode_vector.h"
 #include "fix.h"
-class ElectrodeVector;
+#include <vector>
 
 namespace LAMMPS_NS {
+
+class FixElectrodeConp; // forward decl
 
 class ElectrodeCG : public Fix, public ChargeSolver {
  public:
   // ChargeSolver methods
-  ElectrodeCG(class LAMMPS *);
+  ElectrodeCG(class LAMMPS *, class FixElectrodeConp * = nullptr);
   ~ElectrodeCG() noexcept;    // TODO why do we need noexcept here
   void update_solver(std::vector<tagint>, std::vector<int>) override;
   void set_elyt_pot(double *) override;
@@ -56,6 +58,7 @@ class ElectrodeCG : public Fix, public ChargeSolver {
   int nele, nele_world;
   virtual void setup_cg(double, int);
   virtual std::vector<double> ele_ele_interaction(const std::vector<double> &);
+  FixElectrodeConp *fix;
 
  private:
   int nmax;
@@ -74,7 +77,6 @@ class ElectrodeCG : public Fix, public ChargeSolver {
 
   void predict_q();
   std::vector<double> pot_to_vector(double *);
-  void set_charges(std::vector<double>);
   std::vector<double> constraint_projection(std::vector<double>, bool);
   double dot_product(const std::vector<double> &, const std::vector<double> &);
 };
@@ -82,4 +84,3 @@ class ElectrodeCG : public Fix, public ChargeSolver {
 }    // namespace LAMMPS_NS
 
 #endif
-

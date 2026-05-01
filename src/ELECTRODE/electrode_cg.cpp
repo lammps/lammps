@@ -20,6 +20,7 @@
 #include "comm.h"
 #include "electrode_math.h"
 #include "error.h"
+#include "fix_electrode_conp.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
@@ -31,7 +32,7 @@
 using namespace LAMMPS_NS;
 using namespace ElectrodeMath;
 
-ElectrodeCG::ElectrodeCG(LAMMPS *lmp) :
+ElectrodeCG::ElectrodeCG(LAMMPS *lmp, FixElectrodeConp *fix) :
     Fix(lmp, 0,
         std::vector<char *>{(char *) "fix_electrode_cg", (char *) "all", (char *) "electrode/cg"}
             .data()),
@@ -45,6 +46,7 @@ ElectrodeCG::ElectrodeCG(LAMMPS *lmp) :
   elyt_step = -1;
   predictor_cols = predictor_count = 0;
   predictor_index = -1;
+  this->fix = fix;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -249,7 +251,7 @@ std::vector<double> ElectrodeCG::ele_ele_interaction(const std::vector<double> &
 {
   MPI_Barrier(world);
   double mult_start = MPI_Wtime();
-  set_charges(q_vec);
+  fix->set_charges(q_vec);
   if (atom->nmax > nmax) {
     memory->destroy(potential_i);
     nmax = atom->nmax;
@@ -270,16 +272,6 @@ std::vector<double> ElectrodeCG::pot_to_vector(double *pot)
   auto vec = std::vector<double>(nele, 0.);
   for (int i = 0; i < nele; i++) vec[i] = pot[atom->map(taglist[i])];
   return vec;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ElectrodeCG::set_charges(std::vector<double> q_vec)
-{
-  double *q = atom->q;
-  for (int i = 0; i < nele; i++) q[atom->map(taglist[i])] = q_vec[i];
-  comm->forward_comm(this);
-  //intel_pack_buffers(); // TODO
 }
 
 /* ---------------------------------------------------------------------- */

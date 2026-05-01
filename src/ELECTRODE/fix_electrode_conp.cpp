@@ -406,7 +406,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = 0;
 
-  if (!intelflag) { // so /intel makes ElectrodeVectorIntel instead
+  if (!intelflag) {    // so /intel makes ElectrodeVectorIntel instead
     elyt_vector = new ElectrodeVector(lmp, 0, arg, igroup, igroup, eta, true);
     if (need_elec_vector) {
       elec_vector = new ElectrodeVector(lmp, 0, arg, igroup, igroup, eta, false);
@@ -669,7 +669,7 @@ void FixElectrodeConp::setup_post_neighbor()
       break;
     }
     case Algo::CG: {
-      ElectrodeCG *cg = new ElectrodeCG(lmp);
+      ElectrodeCG *cg = new ElectrodeCG(lmp, this);
       cg->setup_solver(cg_threshold, elec_vector, predictor_cols);
       charge_solver = cg;
       break;
@@ -731,9 +731,7 @@ void FixElectrodeConp::setup_pre_exchange()
 /* ---------------------------------------------------------------------- */
 
 void FixElectrodeConp::pre_force(int)
-{
-  update_charges();
-}
+{ update_charges(); }
 
 /* ---------------------------------------------------------------------- */
 
@@ -823,16 +821,12 @@ void FixElectrodeConp::update_psi_set_constraint()
 /* ---------------------------------------------------------------------- */
 
 double FixElectrodeConp::compute_scalar()
-{
-  return potential_energy();
-}
+{ return potential_energy(); }
 
 /* ---------------------------------------------------------------------- */
 
 double FixElectrodeConp::compute_vector(int i)
-{
-  return charge_solver->get_potential(i);
-}
+{ return charge_solver->get_potential(i); }
 
 /* ---------------------------------------------------------------------- */
 

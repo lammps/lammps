@@ -59,6 +59,7 @@ class FixElectrodeConp : public Fix {
   void init_list(int, NeighList *) override;
   void post_constructor() override;    // used by ffield to set up fix efield
   double memory_usage() override;
+  virtual void set_charges(std::vector<double>); // used by ElectrodeCG
 
   // atomvec-based tracking of electrode atoms
   int pack_exchange(int, double *) override;
@@ -128,7 +129,6 @@ class FixElectrodeConp : public Fix {
   std::string pair_str;
   bool timer_flag;
   std::map<int, double> tf_types;
-  void set_charges(std::vector<double>);
   int predictor_cols;
 
   // fix-specific electrode ID storage system:

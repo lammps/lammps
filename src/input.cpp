@@ -47,6 +47,7 @@
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
+#include "variable_kokkos.h"
 
 #include <cstring>
 #include <cerrno>
@@ -128,7 +129,8 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) :
     inlines = new int[LMP_MAXFILE];
   }
 
-  variable = new Variable(lmp);
+  if (lmp->kokkos) variable = new VariableKokkos(lmp);
+  else variable = new Variable(lmp);
 
   // fill map with commands listed in style_command.h
 

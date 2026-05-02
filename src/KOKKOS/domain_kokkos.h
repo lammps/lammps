@@ -49,8 +49,6 @@ class DomainKokkos : public Domain {
     Domain::x2lamda(a,b,c,d);
   }
 
-  int closest_image(const int, int) const;
-
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDomain_remap_all, const int&) const;
@@ -88,6 +86,14 @@ class DomainKokkos : public Domain {
 // NOLINTNEXTLINE
   static KOKKOS_INLINE_FUNCTION
   void minimum_image_big(const Few<bool,3>&, const Few<T,3>&, const Few<T,3>&, const Few<T,6>&, Few<T,3>&, T&);
+
+  using x_t = typename DAT::t_kkfloat_1d_3_lr_randomread;
+  using sametag_t = typename DAT::t_int_1d;
+
+// NOLINTNEXTLINE
+  static KOKKOS_INLINE_FUNCTION
+  int closest_image( x_t x, sametag_t sametag, const int, int);
+
 
  private:
   int groupbit;
@@ -207,6 +213,37 @@ Few<int,3> DomainKokkos::image_flags(imageint image) {
   );
 }
 
+/* ----------------------------------------------------------------------
+   return local index of atom J or any of its images that is closest to atom I
+   if J is not a valid index like -1, just return it
+------------------------------------------------------------------------- */
+
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+int DomainKokkos::closest_image(x_t x, sametag_t sametag, const int i, int j) 
+{
+  if (j < 0) return j;
+  int closest = j;
+  const KK_FLOAT xi0 = x(i,0);
+  const KK_FLOAT xi1 = x(i,1);
+  const KK_FLOAT xi2 = x(i,2);
+  KK_FLOAT delx = xi0 - x(j,0);
+  KK_FLOAT dely = xi1 - x(j,1);
+  KK_FLOAT delz = xi2 - x(j,2);
+  KK_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
+  while (sametag(j) >= 0) {
+    j = sametag(j);
+    delx = xi0 - x(j,0);
+    dely = xi1 - x(j,1);
+    delz = xi2 - x(j,2);
+    const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+    if (rsq < rsqmin) {
+      rsqmin = rsq;
+      closest = j;
+    }
+  }
+  return closest;
+}
 
 }
 

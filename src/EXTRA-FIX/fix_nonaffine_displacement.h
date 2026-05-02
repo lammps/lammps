@@ -40,6 +40,7 @@ class FixNonaffineDisplacement : public Fix {
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
+  void grow_arrays(int) override;
 
  private:
   double dtv;
@@ -61,7 +62,6 @@ class FixNonaffineDisplacement : public Fix {
   void calculate_D2Min();
   void save_reference_state();
   void minimum_image0(double *);
-  void grow_arrays(int) override;
 };
 
 }    // namespace LAMMPS_NS

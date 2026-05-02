@@ -21,7 +21,7 @@ KSpaceStyle(pppm,PPPM);
 #define LMP_PPPM_H
 
 #include "kspace.h"
-#include "lmpfftsettings.h" // IWYU pragma: export
+#include "lmpfftsettings.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -140,6 +140,7 @@ class PPPM : public KSpace {
   void compute_rho_coeff();
   virtual void slabcorr();
 
+ public:
   // grid communication
 
   void pack_forward_grid(int, void *, int, int *) override;
@@ -147,6 +148,7 @@ class PPPM : public KSpace {
   void pack_reverse_grid(int, void *, int, int *) override;
   void unpack_reverse_grid(int, void *, int, int *) override;
 
+ protected:
   // triclinic
 
   int triclinic;    // domain settings, orthog or triclinic
@@ -175,7 +177,7 @@ class PPPM : public KSpace {
    gf_b = denominator expansion coeffs
 ------------------------------------------------------------------------- */
 
-  inline double gf_denom(const double &x, const double &y, const double &z) const
+  [[nodiscard]] double gf_denom(const double &x, const double &y, const double &z) const
   {
     double sx, sy, sz;
     sz = sy = sx = 0.0;

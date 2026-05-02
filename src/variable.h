@@ -15,6 +15,7 @@
 #define LMP_VARIABLE_H
 
 #include "pointers.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 class Region;
@@ -176,7 +177,7 @@ class VarReader : protected Pointers {
 
  private:
   int me, style;
-  FILE *fp;
+  SafeFilePtr fp;
   char *buffer;
 };
 

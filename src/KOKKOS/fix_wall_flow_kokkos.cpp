@@ -68,6 +68,7 @@ template <class DeviceType> void FixWallFlowKokkos<DeviceType>::init()
 }
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowInit,
                                                                       const int &i) const
 {
@@ -102,6 +103,7 @@ template <class DeviceType> void FixWallFlowKokkos<DeviceType>::end_of_step()
 
 template <class DeviceType>
 template <class MTag>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowEndOfStep<MTag>,
                                                                       const int &atom_i) const
 {
@@ -115,6 +117,7 @@ KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWall
 
 template <class DeviceType>
 template <class MTag>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::generate_velocity_kk(int atom_i) const
 {
   const int newton_iteration_count = 10;
@@ -157,6 +160,7 @@ KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::generate_velocity_kk(
 }
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION int
 FixWallFlowKokkos<DeviceType>::compute_current_segment_kk(KK_FLOAT pos) const
 {
@@ -208,6 +212,7 @@ template <class DeviceType> int FixWallFlowKokkos<DeviceType>::pack_exchange(int
 }
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowPackExchange,
                                                                       const int &mysend) const
 {
@@ -260,6 +265,7 @@ template <class DeviceType> int FixWallFlowKokkos<DeviceType>::unpack_exchange(i
 }
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowUnpackExchange,
                                                                       const int &i) const
 {

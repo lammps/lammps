@@ -22,6 +22,7 @@ install(
 
 kokkos_add_library(
   kokkosalgorithms
+  STATIC # MSVC can't deal with empty shared libraries
   HEADERS
   ${ALGO_HEADERS}
   MODULE_INTERFACE

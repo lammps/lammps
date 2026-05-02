@@ -34,28 +34,29 @@
 #include <string>
 #include <unordered_set>
 
-namespace ReaxFF {
-  static std::unordered_set<std::string> inactive_keywords = {
-    "ensemble_type", "nsteps", "dt", "proc_by_dim", "random_vel",
-    "restart_format", "restart_freq", "reposition_atoms",
-    "restrict_bonds", "remove_CoM_vel", "debug_level", "reneighbor",
-    "vlist_buffer", "ghost_cutoff", "qeq_freq", "q_err", "ilu_refactor",
-    "ilu_droptol", "temp_init", "temp_final", "t_mass", "t_mode", "t_rate",
-    "t_freq", "pressure", "p_mass", "pt_mass", "compress", "press_mode",
-    "geo_format", "traj_compress", "traj_method", "molecular_analysis",
-    "ignore", "dipole_anal", "freq_dipole_anal", "diffusion_coef",
-    "freq_diffusion_coef", "restrict_type", "traj_title", "simulation_name",
-    "energy_update_freq", "atom_info", "atom_velocities", "atom_forces",
-    "bond_info", "angle_info" };
+namespace {
+std::unordered_set<std::string> inactive_keywords = {
+  "ensemble_type", "nsteps", "dt", "proc_by_dim", "random_vel", "restart_format", "restart_freq",
+  "reposition_atoms", "restrict_bonds", "remove_CoM_vel", "debug_level", "reneighbor",
+  "vlist_buffer", "ghost_cutoff", "qeq_freq", "q_err", "ilu_refactor", "ilu_droptol", "temp_init",
+  "temp_final", "t_mass", "t_mode", "t_rate", "t_freq", "pressure", "p_mass", "pt_mass",
+  "compress", "press_mode", "geo_format", "traj_compress", "traj_method", "molecular_analysis",
+  "ignore", "dipole_anal", "freq_dipole_anal", "diffusion_coef", "freq_diffusion_coef",
+  "restrict_type", "traj_title", "simulation_name", "energy_update_freq", "atom_info",
+  "atom_velocities", "atom_forces", "bond_info", "angle_info"
+};
 
-  class control_parser_error : public std::exception {
-    std::string message;
-  public:
-    explicit control_parser_error(const std::string &format, const std::string &keyword) {
-      message = fmt::format(fmt::runtime(format), keyword);
-    }
-    const char *what() const noexcept override { return message.c_str(); }
-  };
+class control_parser_error : public std::exception {
+  std::string message;
+public:
+  explicit control_parser_error(const std::string &msg) {
+    message = msg;
+  }
+  [[nodiscard]] const char *what() const noexcept override { return message.c_str(); }
+};
+}    // namespace
+
+namespace ReaxFF {
 
   // NOTE: this function is run on MPI rank 0 only
 
@@ -86,11 +87,11 @@ namespace ReaxFF {
         auto keyword = values.next_string();
 
         if (!values.has_next())
-          throw control_parser_error("No value(s) for control parameter: {}\n", keyword);
+          throw control_parser_error(fmt::format("No value(s) for control parameter: {}\n",
+                                                 keyword));
 
         if (inactive_keywords.find(keyword) != inactive_keywords.end()) {
-          error->warning(FLERR, fmt::format(fmt::runtime("Ignoring inactive control parameter: {}"),
-                                            keyword));
+          error->warning(FLERR, "Ignoring inactive control parameter: {}", keyword);
         } else if (keyword == "nbrhood_cutoff") {
           control->bond_cut = values.next_double();
         } else if (keyword == "bond_graph_cutoff") {
@@ -108,7 +109,7 @@ namespace ReaxFF {
             error->warning(FLERR,"Support for writing native trajectories has "
                            "been removed after LAMMPS version 8 April 2021");
         } else {
-          throw control_parser_error("Unknown parameter {} in control file", keyword);
+          throw control_parser_error(fmt::format("Unknown parameter {} in control file", keyword));
         }
       }
     } catch (LAMMPS_NS::EOFException &) {

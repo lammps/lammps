@@ -2,6 +2,7 @@ Removed commands and packages
 =============================
 
 .. contents::
+   :local:
 
 ------
 
@@ -12,17 +13,28 @@ stop LAMMPS and print a suitable error message in most cases, when a
 style/command is used that has been removed or will replace the command
 with the direct alternative (if available) and print a warning.
 
+amber2lmp tools
+---------------
+
+.. deprecated:: 11Feb2026
+
+The tools in the ``tools/amber2lmp`` folder have been removed because
+they were unmaintained for a long time and required Python 2 which has
+been obsolete for a long time.  Instead the external `AMBER2LAMMPS tool
+<https://github.com/askforarun/AMBER2LAMMPS>`_ can be used for the same
+purpose.  There is an `Howto_amber2lammps` included in this manual.
+
+
 ATC, AWPMD, and POEMS packages
 ------------------------------
 
 .. deprecated:: 10Sep2025
 
-The ATC, AWPMD, and POEMS packages are removed.because there were
+The ATC, AWPMD, and POEMS packages are removed because they were
 unmaintained for a long time and their legacy C++ programming style
-started to create problems with modern C++ compilers.  LAMMPS version
-22 July 2025 is the last version that contains them.  You have to
-download and compile this version, if you want to use any of these
-packages.
+started to create problems with modern C++ compilers.  LAMMPS version 22
+July 2025 is the last version that contains them.  You have to download
+and compile this version, if you want to use any of these packages.
 
 .. toctree::
    :maxdepth: 0

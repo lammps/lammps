@@ -1,24 +1,20 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <sstream>
 #include <iostream>
 #include <limits>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
+#include <Kokkos_TypeInfo.hpp>
+
+#include <cmath>
+#include <random>
 
 namespace Test {
 
@@ -38,9 +34,6 @@ class ReduceFunctor {
 
   KOKKOS_INLINE_FUNCTION
   ReduceFunctor(const size_type& arg_nwork) : nwork(arg_nwork) {}
-
-  KOKKOS_INLINE_FUNCTION
-  ReduceFunctor(const ReduceFunctor& rhs) : nwork(rhs.nwork) {}
 
   /*
     KOKKOS_INLINE_FUNCTION
@@ -238,10 +231,6 @@ class CombinedReduceFunctorSameType {
   constexpr explicit CombinedReduceFunctorSameType(const size_type& arg_nwork)
       : nwork(arg_nwork) {}
 
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr CombinedReduceFunctorSameType(
-      const CombinedReduceFunctorSameType& rhs) = default;
-
   KOKKOS_INLINE_FUNCTION
   void operator()(size_type iwork, ValueType& dst1, ValueType& dst2,
                   ValueType& dst3) const {
@@ -260,6 +249,35 @@ class CombinedReduceFunctorSameType {
   }
 };
 
+template <class ValueType, class DeviceType>
+class CombinedReduceFunctorManySameType {
+ public:
+  using size_type = int64_t;
+
+  const size_type nwork;
+
+  KOKKOS_INLINE_FUNCTION
+  constexpr explicit CombinedReduceFunctorManySameType(
+      const size_type& arg_nwork)
+      : nwork(arg_nwork) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(size_type iwork, ValueType& dst1, ValueType& dst2,
+                  ValueType& dst3, ValueType& dst4, ValueType& dst5,
+                  ValueType& dst6, ValueType& dst7, ValueType& dst8,
+                  ValueType& dst9) const {
+    dst1 += 1;
+    dst2 += 2;
+    dst3 += 3;
+    dst4 += -1;
+    dst5 += -2;
+    dst6 += -3;
+    dst7 += iwork + 1;
+    dst8 += nwork - iwork;
+    dst9 += 0;
+  }
+};
+
 namespace {
 
 template <typename ScalarType, class DeviceType>
@@ -271,7 +289,10 @@ class TestReduce {
   TestReduce(const size_type& nwork) {
     run_test(nwork);
     run_test_final(nwork);
+// FIXME_OPENACC: Not yet implemented.
+#ifndef KOKKOS_ENABLE_OPENACC
     run_test_final_tag(nwork);
+#endif
   }
 
   void run_test(const size_type& nwork) {
@@ -479,7 +500,7 @@ class TestReduceDynamicView {
         Test::RuntimeReduceFunctor<ScalarType, execution_space>;
 
     using result_type      = Kokkos::View<ScalarType*, DeviceType>;
-    using result_host_type = typename result_type::HostMirror;
+    using result_host_type = typename result_type::host_mirror_type;
 
     const unsigned CountLimit = 23;
 
@@ -512,11 +533,7 @@ class TestReduceDynamicView {
 }  // namespace
 
 // FIXME_SYCL
-// FIXME_OPENMPTARGET : The feature works with LLVM/13 on NVIDIA
-// architectures. The jenkins currently tests with LLVM/12.
-#if !defined(KOKKOS_ENABLE_SYCL) &&          \
-    (!defined(KOKKOS_ENABLE_OPENMPTARGET) || \
-     defined(KOKKOS_COMPILER_CLANG) && (KOKKOS_COMPILER_CLANG >= 1300))
+#if !defined(KOKKOS_ENABLE_SYCL)
 TEST(TEST_CATEGORY, int64_t_reduce) {
   TestReduce<int64_t, TEST_EXECSPACE>(0);
   TestReduce<int64_t, TEST_EXECSPACE>(1000000);
@@ -527,6 +544,8 @@ TEST(TEST_CATEGORY, double_reduce) {
   TestReduce<double, TEST_EXECSPACE>(1000000);
 }
 
+// FIXME_OPENACC: Not yet implemented.
+#ifndef KOKKOS_ENABLE_OPENACC
 TEST(TEST_CATEGORY, int64_t_reduce_dynamic) {
   TestReduceDynamic<int64_t, TEST_EXECSPACE>(0);
   TestReduceDynamic<int64_t, TEST_EXECSPACE>(1000000);
@@ -542,11 +561,29 @@ TEST(TEST_CATEGORY, int64_t_reduce_dynamic_view) {
   TestReduceDynamicView<int64_t, TEST_EXECSPACE>(1000000);
 }
 #endif
+#endif
 
-// FIXME_OPENMPTARGET: Not yet implemented.
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
 // FIXME_OPENACC: Not yet implemented.
 #ifndef KOKKOS_ENABLE_OPENACC
+TEST(TEST_CATEGORY, int16_combined_reduce) {
+  using functor_type = CombinedReduceFunctorSameType<int16_t, TEST_EXECSPACE>;
+  constexpr uint64_t nw = 10;
+
+  uint64_t nsum = (nw / 2) * (nw + 1);
+
+  int16_t result1 = 0;
+  int16_t result2 = 0;
+  int16_t result3 = 0;
+
+  Kokkos::parallel_reduce("int16_combined_reduce",
+                          Kokkos::RangePolicy<TEST_EXECSPACE>(0, nw),
+                          functor_type(nw), result1, result2, result3);
+
+  ASSERT_EQ(nw, uint64_t(result1));
+  ASSERT_EQ(nsum, uint64_t(result2));
+  ASSERT_EQ(nsum, uint64_t(result3));
+}
+
 TEST(TEST_CATEGORY, int_combined_reduce) {
   using functor_type = CombinedReduceFunctorSameType<int64_t, TEST_EXECSPACE>;
   constexpr uint64_t nw = 1000;
@@ -564,6 +601,72 @@ TEST(TEST_CATEGORY, int_combined_reduce) {
   ASSERT_EQ(nw, uint64_t(result1));
   ASSERT_EQ(nsum, uint64_t(result2));
   ASSERT_EQ(nsum, uint64_t(result3));
+}
+
+TEST(TEST_CATEGORY, many_int8_combined_reduce) {
+  using functor_type =
+      CombinedReduceFunctorManySameType<int8_t, TEST_EXECSPACE>;
+  constexpr int64_t nw = 10;
+
+  int64_t nsum = (nw / 2) * (nw + 1);
+
+  int8_t result1 = 0;
+  int8_t result2 = 0;
+  int8_t result3 = 0;
+  int8_t result4 = 0;
+  int8_t result5 = 0;
+  int8_t result6 = 0;
+  int8_t result7 = 0;
+  int8_t result8 = 0;
+  int8_t result9 = 0;
+
+  Kokkos::parallel_reduce("many_int8_combined_reduce",
+                          Kokkos::RangePolicy<TEST_EXECSPACE>(0, nw),
+                          functor_type(nw), result1, result2, result3, result4,
+                          result5, result6, result7, result8, result9);
+
+  ASSERT_EQ(nw, int64_t(result1));
+  ASSERT_EQ(2 * nw, int64_t(result2));
+  ASSERT_EQ(3 * nw, int64_t(result3));
+  ASSERT_EQ(-nw, int64_t(result4));
+  ASSERT_EQ(-2 * nw, int64_t(result5));
+  ASSERT_EQ(-3 * nw, int64_t(result6));
+  ASSERT_EQ(nsum, int64_t(result7));
+  ASSERT_EQ(nsum, int64_t(result8));
+  ASSERT_EQ(0, int64_t(result9));
+}
+
+TEST(TEST_CATEGORY, many_int16_combined_reduce) {
+  using functor_type =
+      CombinedReduceFunctorManySameType<int16_t, TEST_EXECSPACE>;
+  constexpr int64_t nw = 10;
+
+  int64_t nsum = (nw / 2) * (nw + 1);
+
+  int16_t result1 = 0;
+  int16_t result2 = 0;
+  int16_t result3 = 0;
+  int16_t result4 = 0;
+  int16_t result5 = 0;
+  int16_t result6 = 0;
+  int16_t result7 = 0;
+  int16_t result8 = 0;
+  int16_t result9 = 0;
+
+  Kokkos::parallel_reduce("many_int16_combined_reduce",
+                          Kokkos::RangePolicy<TEST_EXECSPACE>(0, nw),
+                          functor_type(nw), result1, result2, result3, result4,
+                          result5, result6, result7, result8, result9);
+
+  ASSERT_EQ(nw, int64_t(result1));
+  ASSERT_EQ(2 * nw, int64_t(result2));
+  ASSERT_EQ(3 * nw, int64_t(result3));
+  ASSERT_EQ(-nw, int64_t(result4));
+  ASSERT_EQ(-2 * nw, int64_t(result5));
+  ASSERT_EQ(-3 * nw, int64_t(result6));
+  ASSERT_EQ(nsum, int64_t(result7));
+  ASSERT_EQ(nsum, int64_t(result8));
+  ASSERT_EQ(0, int64_t(result9));
 }
 
 TEST(TEST_CATEGORY, mdrange_combined_reduce) {
@@ -641,7 +744,6 @@ TEST(TEST_CATEGORY, int_combined_reduce_mixed) {
   }
 }
 #endif
-#endif
 
 #if defined(NDEBUG)
 // the following test was made for:
@@ -654,10 +756,6 @@ struct FunctorReductionWithLargeIterationCount {
 };
 
 TEST(TEST_CATEGORY, reduction_with_large_iteration_count) {
-  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
-#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
-  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
-#endif
   if constexpr (std::is_same_v<typename TEST_EXECSPACE::memory_space,
                                Kokkos::HostSpace>) {
     GTEST_SKIP() << "Disabling for host backends";
@@ -671,5 +769,116 @@ TEST(TEST_CATEGORY, reduction_with_large_iteration_count) {
   ASSERT_DOUBLE_EQ(nu, double(N));
 }
 #endif
+
+/* Test that searching the Max of a View containing only -inf returns -inf and
+   the Min of a View containing only +inf returns +inf. */
+template <typename ScalarType>
+class TestReductionOverInfiniteFloat {
+ public:
+  TestReductionOverInfiniteFloat() { runTest(); }
+
+  void runTest() {
+    const unsigned int N = 10;
+
+    ScalarType inf = Kokkos::Experimental::infinity_v<ScalarType>;
+    // Ensure that inf correctly correspond to infinity for type `ScalarType`
+    EXPECT_TRUE((inf == inf * inf) && (inf == inf + 1));
+
+    Kokkos::View<ScalarType*> view("view", N);
+
+    Kokkos::deep_copy(view, inf);
+    ScalarType min;
+    Kokkos::parallel_reduce(
+        N,
+        KOKKOS_LAMBDA(const int i, ScalarType& partial_min) {
+          if (view[i] < partial_min) {
+            partial_min = view[i];
+          }
+        },
+        Kokkos::Min<ScalarType>(min));
+    EXPECT_EQ(inf, min) << "For type "
+                        << Kokkos::Impl::TypeInfo<ScalarType>::name() << '\n';
+
+    Kokkos::deep_copy(view, -inf);
+    ScalarType max;
+    Kokkos::parallel_reduce(
+        N,
+        KOKKOS_LAMBDA(const int i, ScalarType& partial_max) {
+          if (view[i] > partial_max) {
+            partial_max = view[i];
+          }
+        },
+        Kokkos::Max<ScalarType>(max));
+    EXPECT_EQ(-inf, max) << "For type "
+                         << Kokkos::Impl::TypeInfo<ScalarType>::name() << '\n';
+  }
+};
+
+KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_PUSH()
+TEST(TEST_CATEGORY, reduction_identity_min_max_floating_point_types) {
+#if __FINITE_MATH_ONLY__
+  GTEST_SKIP() << "skipping when compiling with -ffinite-math-only";
+#endif
+// FIXME_OPENACC nvhpc on device doesn't use the correct neutral value for the
+// min and max reducers
+#if defined(KOKKOS_COMPILER_NVHPC) && defined(KOKKOS_ENABLE_OPENACC)
+  GTEST_SKIP() << "skipping for NVHPC and OPENACC due to wrong neutral value";
+#endif
+
+  // FIXME_CUDA cuda-clang 17 cannot compile the max parallel_reduce for half_t
+  // and bhalf_t. The min parallel_reduce works correctly.
+#if !defined(KOKKOS_ENABLE_CUDA) || !defined(KOKKOS_COMPILER_CLANG)
+  TestReductionOverInfiniteFloat<Kokkos::Experimental::half_t>();
+  TestReductionOverInfiniteFloat<Kokkos::Experimental::bhalf_t>();
+#endif
+  TestReductionOverInfiniteFloat<float>();
+  TestReductionOverInfiniteFloat<double>();
+
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
+    !defined(KOKKOS_ENABLE_SYCL) && !defined(KOKKOS_ENABLE_OPENACC)
+  TestReductionOverInfiniteFloat<long double>();
+#endif
+}
+KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_POP()
+
+template <typename ScalarType>
+class TestReductionIdentityBitwiseAndOr {
+ public:
+  TestReductionIdentityBitwiseAndOr() { runTest(); }
+
+  void runTest() {
+    const int N = 100;
+
+    std::random_device r;
+
+    std::default_random_engine e(r());
+    std::uniform_int_distribution<ScalarType> uniform_dist(
+        std::numeric_limits<ScalarType>::min(),
+        std::numeric_limits<ScalarType>::max());
+
+    ScalarType bor_identity = Kokkos::reduction_identity<ScalarType>::bor();
+    for (int i = 0; i < N; ++i) {
+      ScalarType value = uniform_dist(e);
+      EXPECT_EQ(value | bor_identity, value);
+    }
+
+    ScalarType band_identity = Kokkos::reduction_identity<ScalarType>::band();
+    for (int i = 0; i < N; ++i) {
+      ScalarType value = uniform_dist(e);
+      EXPECT_EQ(value & band_identity, value);
+    }
+  }
+};
+
+TEST(TEST_CATEGORY, reduction_identity_bitwise_and_or_integral_types) {
+  TestReductionIdentityBitwiseAndOr<short>();
+  TestReductionIdentityBitwiseAndOr<unsigned short>();
+  TestReductionIdentityBitwiseAndOr<int>();
+  TestReductionIdentityBitwiseAndOr<unsigned int>();
+  TestReductionIdentityBitwiseAndOr<long>();
+  TestReductionIdentityBitwiseAndOr<unsigned long>();
+  TestReductionIdentityBitwiseAndOr<long long>();
+  TestReductionIdentityBitwiseAndOr<unsigned long long>();
+}
 
 }  // namespace Test

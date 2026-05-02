@@ -1,22 +1,15 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 namespace {
 
@@ -42,10 +35,6 @@ void test_run_time_parameters() {
       4 < ExecutionSpace().concurrency() ? 4 : ExecutionSpace().concurrency();
 #ifdef KOKKOS_ENABLE_HPX
   team_size = 1;
-#endif
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same<ExecutionSpace, Kokkos::Experimental::OpenMPTarget>::value)
-    team_size = 32;
 #endif
   int chunk_size         = 4;
   int per_team_scratch   = 1024;
@@ -167,6 +156,112 @@ TEST(TEST_CATEGORY, team_policy_runtime_parameters) {
   test_run_time_parameters<Kokkos::TeamPolicy<LongIndex,       TestExecSpace,   DynamicSchedule         >>();
   test_run_time_parameters<Kokkos::TeamPolicy<DynamicSchedule, LongIndex,       TestExecSpace,   SomeTag>>();
   // clang-format on
+}
+
+// The execution space is defaulted if not given to the constructor.
+TEST(TEST_CATEGORY, team_policy_default_space) {
+  using policy_t = Kokkos::TeamPolicy<TEST_EXECSPACE>;
+
+  policy_t defaulted(42, Kokkos::AUTO);
+
+  ASSERT_EQ(defaulted.space(), TEST_EXECSPACE{});
+}
+
+// The execution space instance can be updated.
+TEST(TEST_CATEGORY, team_policy_impl_set_space) {
+  using policy_t = Kokkos::TeamPolicy<TEST_EXECSPACE>;
+
+  const auto [exec_old, exec_new] =
+      Kokkos::Experimental::partition_space(TEST_EXECSPACE{}, 1, 1);
+
+  const policy_t policy_old(exec_old, 42, Kokkos::AUTO);
+  ASSERT_EQ(policy_old.space(), exec_old);
+
+  const policy_t policy_new(Kokkos::Impl::PolicyUpdate{}, policy_old, exec_new);
+
+  ASSERT_EQ(policy_new.space(), exec_new);
+  ASSERT_EQ(policy_new.league_size(), 42);
+}
+
+TEST(TEST_CATEGORY_DEATH, team_policy_invalid_league_size) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+
+  EXPECT_DEATH(Kokkos::TeamPolicy<TEST_EXECSPACE>(-1, 1),
+               "Kokkos::TeamPolicy error: league_size \\(-1\\) must be greater "
+               "than or equal to 0");
+
+  EXPECT_DEATH(Kokkos::TeamPolicy<TEST_EXECSPACE>(-2, Kokkos::AUTO),
+               "Kokkos::TeamPolicy error: league_size \\(-2\\) must be greater "
+               "than or equal to 0");
+
+  EXPECT_DEATH(Kokkos::TeamPolicy<TEST_EXECSPACE>(-3, 1, 1),
+               "Kokkos::TeamPolicy error: league_size \\(-3\\) must be greater "
+               "than or equal to 0");
+
+  EXPECT_DEATH(Kokkos::TeamPolicy<TEST_EXECSPACE>(-4, Kokkos::AUTO, 1),
+               "Kokkos::TeamPolicy error: league_size \\(-4\\) must be greater "
+               "than or equal to 0");
+
+  EXPECT_DEATH(Kokkos::TeamPolicy<TEST_EXECSPACE>(-5, 1, Kokkos::AUTO),
+               "Kokkos::TeamPolicy error: league_size \\(-5\\) must be greater "
+               "than or equal to 0");
+
+  EXPECT_DEATH(
+      Kokkos::TeamPolicy<TEST_EXECSPACE>(-6, Kokkos::AUTO, Kokkos::AUTO),
+      "Kokkos::TeamPolicy error: league_size \\(-6\\) must be greater than or "
+      "equal to 0");
+}
+
+TEST(TEST_CATEGORY_DEATH, team_policy_invalid_team_size) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+
+  EXPECT_DEATH(Kokkos::TeamPolicy<TEST_EXECSPACE>(1, 0),
+               "Kokkos::TeamPolicy error: team_size \\(0\\) must be greater "
+               "than or equal to 1");
+
+  EXPECT_DEATH(Kokkos::TeamPolicy<TEST_EXECSPACE>(1, -1, 1),
+               "Kokkos::TeamPolicy error: team_size \\(-1\\) must be greater "
+               "than or equal to 1");
+
+  EXPECT_DEATH(Kokkos::TeamPolicy<TEST_EXECSPACE>(1, -2, Kokkos::AUTO),
+               "Kokkos::TeamPolicy error: team_size \\(-2\\) must be greater "
+               "than or equal to 1");
+}
+
+TEST(TEST_CATEGORY_DEATH, team_policy_invalid_vector_length) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+
+  EXPECT_DEATH(Kokkos::TeamPolicy<TEST_EXECSPACE>(1, 1, -1),
+               "Kokkos::TeamPolicy error: vector_length \\(-1\\) must be "
+               "greater than or equal to 1");
+
+  EXPECT_DEATH(Kokkos::TeamPolicy<TEST_EXECSPACE>(1, Kokkos::AUTO, -2),
+               "Kokkos::TeamPolicy error: vector_length \\(-2\\) must be "
+               "greater than or equal to 1");
+
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_5
+  auto const max_allowed =
+      Kokkos::TeamPolicy<TEST_EXECSPACE>::vector_length_max();
+  EXPECT_DEATH(Kokkos::TeamPolicy<TEST_EXECSPACE>(1, 1, max_allowed + 1),
+               std::string("Kokkos::TeamPolicy error: vector_length \\(") +
+                   std::to_string(max_allowed + 1) +
+                   "\\) exceeds the maximum allowed \\(" +
+                   std::to_string(max_allowed) + "\\)");
+  EXPECT_DEATH(
+      Kokkos::TeamPolicy<TEST_EXECSPACE>(1, Kokkos::AUTO, max_allowed + 2),
+      std::string("Kokkos::TeamPolicy error: vector_length \\(") +
+          std::to_string(max_allowed + 2) +
+          "\\) exceeds the maximum allowed \\(" + std::to_string(max_allowed) +
+          "\\)");
+
+  EXPECT_DEATH(
+      Kokkos::TeamPolicy<TEST_EXECSPACE>(1, 1, 3),
+      "Kokkos::TeamPolicy error: vector_length \\(3\\) must be a power of 2");
+
+  EXPECT_DEATH(
+      Kokkos::TeamPolicy<TEST_EXECSPACE>(1, Kokkos::AUTO, 5),
+      "Kokkos::TeamPolicy error: vector_length \\(5\\) must be a power of 2");
+#endif
 }
 
 }  // namespace

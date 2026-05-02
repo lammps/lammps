@@ -18,9 +18,9 @@
 #include <cmath>
 #include "kokkos_type.h"
 
-namespace LAMMPS_NS {
 
-namespace MathSpecialKokkos {
+
+namespace LAMMPS_NS::MathSpecialKokkos {
 
   /*! Fast tabulated factorial function
    *
@@ -71,6 +71,7 @@ namespace MathSpecialKokkos {
    *  \param   x argument
    *  \return  value of 2^x as double precision number */
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static double exp2_x86(double x)
   {
@@ -123,6 +124,7 @@ namespace MathSpecialKokkos {
    *  \param   x argument
    *  \return  value of e^x as double precision number */
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static double fm_exp(double x)
   {
@@ -185,6 +187,7 @@ namespace MathSpecialKokkos {
    *  \param   x argument
    *  \return  x*x */
   template<typename T>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static T square(const T &x) { return x * x; }
 
@@ -193,6 +196,7 @@ namespace MathSpecialKokkos {
    *  \param   x argument
    *  \return  x*x */
   template<typename T>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static T cube(const T &x) { return x * x * x; }
 
@@ -201,6 +205,7 @@ namespace MathSpecialKokkos {
    *  \param   n argument (integer)
    *  \return  -1 if n is odd, 1.0 if n is even */
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static KK_FLOAT powsign(const int n) { return (n & 1) ? static_cast<KK_FLOAT>(-1.0) : static_cast<KK_FLOAT>(1.0); }
 
@@ -213,6 +218,7 @@ namespace MathSpecialKokkos {
    *  \return  value of x^n */
 
   template<typename T>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static T powint(const T &x, const int n)
   {
@@ -236,6 +242,7 @@ namespace MathSpecialKokkos {
    *  \return  value of (sin(x)/x)^n */
 
   template<typename T>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static T powsinxx(const T &x, int n)
   {
@@ -256,6 +263,7 @@ namespace MathSpecialKokkos {
   ------------------------------------------------------------------------- */
 
   template<typename T>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void sub3(const T *v1, const T *v2, T *ans)
   {
@@ -269,13 +277,14 @@ namespace MathSpecialKokkos {
   ------------------------------------------------------------------------- */
 
   template<typename T>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static T dot3(const T *v1, const T *v2)
   {
     return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
   }
 
-}    // namespace MathSpecialKokkos
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::MathSpecialKokkos
+
 
 #endif

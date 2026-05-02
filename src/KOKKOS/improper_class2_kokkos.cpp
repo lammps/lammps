@@ -41,7 +41,7 @@ ImproperClass2Kokkos<DeviceType>::ImproperClass2Kokkos(LAMMPS *lmp) : ImproperCl
   datamask_read = X_MASK | F_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
-  k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
+  k_warning_flag = DAT::tdual_int_scalar("Improper:warning_flag");
   d_warning_flag = k_warning_flag.view<DeviceType>();
   h_warning_flag = k_warning_flag.view_host();
 
@@ -147,7 +147,7 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.sync_host();
   if (h_warning_flag())
-    error->warning(FLERR,"Improper problem");
+    error->warning(FLERR,"ImproperClass2 problem");
 
   // Angle-Angle energy/force
 
@@ -192,6 +192,7 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
@@ -631,6 +632,7 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
@@ -641,6 +643,7 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2AngleAngle<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
@@ -839,6 +842,7 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2AngleAngle<NE
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2AngleAngle<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
@@ -851,16 +855,6 @@ template<class DeviceType>
 void ImproperClass2Kokkos<DeviceType>::allocate()
 {
   ImproperClass2::allocate();
-}
-
-/* ----------------------------------------------------------------------
-   set coeffs for one type
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void ImproperClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
-{
-  ImproperClass2::coeff(narg, arg);
 
   int n = atom->nimpropertypes;
   k_k0 = DAT::tdual_kkfloat_1d("ImproperClass2::k0",n+1);
@@ -887,7 +881,22 @@ void ImproperClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   d_setflag_i = k_setflag_i.template view<DeviceType>();
   d_setflag_aa = k_setflag_aa.template view<DeviceType>();
 
-  for (int i = 1; i <= n; i++) {
+
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one type
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void ImproperClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
+{
+  ImproperClass2::coeff(narg, arg);
+
+  int ilo,ihi;
+  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
+
+  for (int i = ilo; i <= ihi; i++) {
     k_k0.view_host()[i] = k0[i];
     k_chi0.view_host()[i] = chi0[i];
     k_aa_k1.view_host()[i] = aa_k1[i];
@@ -984,6 +993,7 @@ void ImproperClass2Kokkos<DeviceType>::read_restart(FILE *fp)
 
 template<class DeviceType>
 //template<int NEWTON_BOND>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ImproperClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, const int i2, const int i3, const int i4,
                         KK_FLOAT &eimproper, KK_FLOAT *f1, KK_FLOAT *f3, KK_FLOAT *f4,

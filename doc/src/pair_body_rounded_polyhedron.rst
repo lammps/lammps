@@ -1,7 +1,10 @@
 .. index:: pair_style body/rounded/polyhedron
+.. index:: pair_style body/rounded/polyhedron/omp
 
 pair_style body/rounded/polyhedron command
 ==========================================
+
+Accelerator Variant: *body/rounded/polyhedron/omp*
 
 Syntax
 """"""
@@ -109,6 +112,12 @@ or in the data file read by the :doc:`read_data <read_data>` command:
 Effectively, :math:`k_n` and :math:`k_{na}` are the slopes of the red lines in the plot
 above for force versus surface separation, for :math:`\delta_n` < 0 and
 :math:`0 < \delta_n < r_c` respectively.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

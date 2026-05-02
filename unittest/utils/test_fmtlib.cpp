@@ -125,6 +125,8 @@ TEST(FmtLib, insert_neg_double)
     ASSERT_THAT(text, Eq("word -1.5"));
 }
 
+// can check for runtime errors only with the real {fmt} lib
+#if (__cplusplus < 202002L)
 TEST(FmtLib, int_for_double)
 {
     const double val = -1.5;
@@ -148,3 +150,4 @@ TEST(FmtLib, int_for_string)
     ASSERT_THROW(auto text = fmt::format(fmt::runtime("word {:d}"), "I am not a number"),
                  std::exception);
 }
+#endif

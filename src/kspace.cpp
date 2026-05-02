@@ -53,13 +53,10 @@ KSpace::KSpace(LAMMPS *lmp) :
   overlap_allowed = 1;
   fftbench = 0;
 
-  // default to using MPI collectives for FFT/remap only on IBM BlueGene
-
-#ifdef __bg__
-  collective_flag = 1;
-#else
+  // by default, we use point-to-point comms
   collective_flag = 0;
-#endif
+  nonblocking_flag = 0;
+  selfcopy_flag = 2;
 
   kewaldflag = 0;
 
@@ -179,7 +176,8 @@ void KSpace::two_charge()
 void KSpace::triclinic_check()
 {
   if (domain->triclinic && triclinic_support != 1)
-    error->all(FLERR,"KSpace style does not yet support triclinic geometries");
+    error->all(FLERR, Error::NOLASTLINE,
+               "KSpace style {} does not yet support triclinic geometries", force->kspace_style);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -196,27 +194,24 @@ void KSpace::compute_dummy(int eflag, int vflag, int alloc)
 void KSpace::pair_check()
 {
   if (force->pair == nullptr)
-    error->all(FLERR,"KSpace solver requires a pair style");
+    error->all(FLERR, Error::NOLASTLINE,
+               "KSpace style {} requires a pair style", force->kspace_style);
 
-  if (ewaldflag && !force->pair->ewaldflag)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (pppmflag && !force->pair->pppmflag)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (msmflag && !force->pair->msmflag)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (dispersionflag && !force->pair->dispersionflag)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (dipoleflag && !force->pair->dipoleflag)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (spinflag && !force->pair->spinflag)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (tip4pflag && !force->pair->tip4pflag)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  bool compatible = true;
+  if (ewaldflag && !force->pair->ewaldflag) compatible = false;
+  if (pppmflag && !force->pair->pppmflag) compatible = false;
+  if (msmflag && !force->pair->msmflag) compatible = false;
+  if (dispersionflag && !force->pair->dispersionflag) compatible = false;
+  if (dipoleflag && !force->pair->dipoleflag) compatible = false;
+  if (spinflag && !force->pair->spinflag) compatible = false;
+  if (tip4pflag && !force->pair->tip4pflag) compatible = false;
+  if (force->pair->dispersionflag && !dispersionflag) compatible = false;
+  if (force->pair->tip4pflag && !tip4pflag) compatible = false;
 
-  if (force->pair->dispersionflag && !dispersionflag)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
-  if (force->pair->tip4pflag && !tip4pflag)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
+  if (!compatible)
+    error->all(FLERR, Error::NOLASTLINE,
+               "KSpace style {} is incompatible with Pair style {}",
+               force->kspace_style, force->pair_style);
 }
 
 /* ----------------------------------------------------------------------
@@ -224,11 +219,12 @@ void KSpace::pair_check()
    see integrate::ev_set() for bitwise settings of eflag/vflag
    set the following flags, values are otherwise set to 0:
      evflag       != 0 if any bits of eflag or vflag are set
-     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
-     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag is set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag is set
      eflag_either != 0 if eflag_global or eflag_atom is set
-     vflag_global != 0 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
-     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set
+     eflag_only   != 0 if ENERGY_GLOBAL and ENERGY_ONLY bits of eflag are set
+     vflag_global != 0 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag is set
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag is set
                        no current support for centroid stress
      vflag_either != 0 if vflag_global or vflag_atom is set
      evflag_atom  != 0 if eflag_atom or vflag_atom is set
@@ -240,9 +236,10 @@ void KSpace::ev_setup(int eflag, int vflag, int alloc)
 
   evflag = 1;
 
-  eflag_either = eflag;
+  eflag_either = eflag & (ENERGY_GLOBAL | ENERGY_ATOM);
   eflag_global = eflag & ENERGY_GLOBAL;
   eflag_atom = eflag & ENERGY_ATOM;
+  eflag_only = eflag_global ? (eflag & ENERGY_ONLY) : 0;
 
   vflag_either = vflag;
   vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
@@ -438,66 +435,71 @@ void KSpace::lamda2xvector(double *lamda, double *v)
 
 void KSpace::modify_params(int narg, char **arg)
 {
+  bool status = false;
   int iarg = 0;
   while (iarg < narg) {
+    // argument index for first argument for error pointer. Needed because iarg may be zero.
+    int erridx = iarg ? Error::ARGZERO : iarg;
     if (strcmp(arg[iarg],"mesh") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"kspace_modify mesh", error);
       nx_pppm = nx_msm_max = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       ny_pppm = ny_msm_max = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       nz_pppm = nz_msm_max = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
-      if (nx_pppm == 0 && ny_pppm == 0 && nz_pppm == 0)
+      if ((nx_pppm == 0) && (ny_pppm == 0) && (nz_pppm == 0)) {
         gridflag = 0;
-      else if (nx_pppm <= 0 || ny_pppm <= 0 || nz_pppm <= 0)
-        error->all(FLERR,"Kspace_modify mesh parameters must be all "
-                   "zero or all positive");
-      else gridflag = 1;
+      } else if ((nx_pppm <= 0) || (ny_pppm <= 0) || (nz_pppm <= 0)) {
+        error->all(FLERR, erridx, "Kspace_modify mesh parameters must be all zero or all positive");
+      } else gridflag = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"mesh/disp") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"kspace_modify mesh/disp", error);
       nx_pppm_6 = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       ny_pppm_6 = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       nz_pppm_6 = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
-      if (nx_pppm_6 == 0 && ny_pppm_6 == 0 && nz_pppm_6 == 0)
+      if ((nx_pppm_6 == 0) && (ny_pppm_6 == 0) && (nz_pppm_6 == 0)) {
         gridflag_6 = 0;
-      else if (nx_pppm_6 <= 0 || ny_pppm_6 <= 0 || nz_pppm_6 == 0)
-        error->all(FLERR,"Kspace_modify mesh/disp parameters must be all zero or all positive");
-      else gridflag_6 = 1;
+      } else if (nx_pppm_6 <= 0 || ny_pppm_6 <= 0 || nz_pppm_6 == 0) {
+        error->all(FLERR, erridx,
+                   "Kspace_modify mesh/disp parameters must be all zero or all positive");
+      } else gridflag_6 = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"order") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify order", error);
       order = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"order/disp") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify order/disp", error);
       order_6 = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"minorder") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify minorder", error);
       minorder = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (minorder < 2) error->all(FLERR,"Illegal kspace_modify command");
+      if (minorder < 2) error->all(FLERR, iarg+1, "Kspace_modify minorder must be at least 2");
       iarg += 2;
     } else if (strcmp(arg[iarg],"overlap") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify overlap", error);
       overlap_allowed = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"force") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify force", error);
       accuracy_absolute = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"gewald") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify gewald", error);
       g_ewald = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (g_ewald == 0.0) gewaldflag = 0;
       else gewaldflag = 1;
+      status = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"gewald/disp") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify gewald/disp", error);
       g_ewald_6 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (g_ewald_6 == 0.0) gewaldflag_6 = 0;
       else gewaldflag_6 = 1;
+      status = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"slab") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify slab", error);
       if (strcmp(arg[iarg+1],"nozforce") == 0) {
         slabflag = 2;
       } else if (strcmp(arg[iarg+1],"ew2d") == 0) {
@@ -506,108 +508,155 @@ void KSpace::modify_params(int narg, char **arg)
         slabflag = 1;
         slab_volfactor = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (slab_volfactor <= 1.0)
-          error->all(FLERR,"Bad kspace_modify slab parameter");
+          error->all(FLERR, iarg + 1, "Bad kspace_modify slab parameter");
         if (slab_volfactor < 2.0 && comm->me == 0)
-          error->warning(FLERR,"Kspace_modify slab param < 2.0 may "
-                         "cause unphysical behavior");
+          error->warning(FLERR,"Kspace_modify slab param < 2.0 may cause unphysical behavior");
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"wire") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify wire", error);
       if (strcmp(arg[iarg+1],"noxyforce") == 0) {
         wireflag = 2;
       } else {
         wireflag = 1;
         wire_volfactor = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (wire_volfactor <= 1.0)
-          error->all(FLERR,"Bad kspace_modify slab parameter");
+          error->all(FLERR, iarg + 1, "Bad kspace_modify wire parameter");
         if (wire_volfactor < 2.0 && comm->me == 0)
-          error->warning(FLERR,"Kspace_modify slab param < 2.0 may "
-                         "cause unphysical behavior");
+          error->warning(FLERR,"Kspace_modify wire param < 2.0 may cause unphysical behavior");
       }
-      warn_nonneutral = 0; // can't use wire correction with non-neutral system
+      warn_nonneutral = 0; // can use wire correction with non-neutral system
       iarg += 2;
-    }
-    else if (strcmp(arg[iarg], "amat") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal kspace_modify command");
-      if (!pppmflag) error->all(FLERR, "Illegal kspace_modify command 'amat'"
-                                      "available for pppm/conp, only");
+    } else if (strcmp(arg[iarg], "amat") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify amat", error);
+      if (!pppmflag)
+        error->all(FLERR, "Illegal kspace_modify command 'amat' available for pppm/conp, only");
       if (strcmp(arg[iarg + 1], "twostep") == 0) {
         conp_one_step = false;
       } else if (strcmp(arg[iarg + 1], "onestep") == 0) {
         conp_one_step = true;
       } else {
-        error->all(FLERR, "Illegal kspace_modify command");
+        error->all(FLERR, iarg + 1, "Unknown kspace_modify amat flag {}", arg[iarg + 1]);
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"compute") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify compute", error);
       compute_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      status = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"fftbench") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify fftbench", error);
       fftbench = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"collective") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      collective_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify collective", error);
+      if (utils::logical(FLERR,arg[iarg+1],false,lmp)) {
+        collective_flag = 1;
+        nonblocking_flag = 0;
+      } else {
+        collective_flag = 0;
+      }
+      status = true;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"collective/self/copy") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify collective/self/copy", error);
+      if (strcmp(arg[iarg+1],"no") == 0) selfcopy_flag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) selfcopy_flag = 1;
+      else if (strcmp(arg[iarg+1],"onerank") == 0) selfcopy_flag = 2;
+      else error->all(FLERR, iarg+1, "Unknown kspace_modify collective/self/copy flag {}", arg[iarg+1]);
+      status = true;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"nonblocking") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify nonblocking", error);
+      nonblocking_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (nonblocking_flag) collective_flag = 0;
+      status = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"diff") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify diff", error);
       if (strcmp(arg[iarg+1],"ad") == 0) differentiation_flag = 1;
       else if (strcmp(arg[iarg+1],"ik") == 0) differentiation_flag = 0;
-      else error->all(FLERR, "Illegal kspace_modify command");
+      else error->all(FLERR, iarg+1, "Unknown kspace_modify diff flag {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff/adjust") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify cutoff/adjust", error);
       adjust_cutoff_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"kmax/ewald") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"kspace_modify kmax/ewald", error);
       kx_ewald = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       ky_ewald = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       kz_ewald = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
-      if (kx_ewald < 0 || ky_ewald < 0 || kz_ewald < 0)
-        error->all(FLERR,"Bad kspace_modify kmax/ewald parameter");
+      if ((kx_ewald < 0) || (ky_ewald < 0) || (kz_ewald < 0))
+        error->all(FLERR, "Bad kspace_modify kmax/ewald parameter");
       if (kx_ewald > 0 && ky_ewald > 0 && kz_ewald > 0)
         kewaldflag = 1;
       else
         kewaldflag = 0;
       iarg += 4;
     } else if (strcmp(arg[iarg],"mix/disp") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify mix/disp", error);
       if (strcmp(arg[iarg+1],"pair") == 0) mixflag = 0;
       else if (strcmp(arg[iarg+1],"geom") == 0) mixflag = 1;
       else if (strcmp(arg[iarg+1],"none") == 0) mixflag = 2;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      else error->all(FLERR, iarg+1, "Unknown kspace_modify mix/disp flag {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"force/disp/real") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify force/disp/real", error);
       accuracy_real_6 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"force/disp/kspace") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify force/disp/kspace", error);
       accuracy_kspace_6 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"eigtol") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+    } else if ((strcmp(arg[iarg],"splittol") == 0) || (strcmp(arg[iarg],"eigtol") == 0)) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify splittol", error);
       splittol = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (splittol >= 1.0)
-        error->all(FLERR,"Kspace_modify eigtol must be smaller than one");
+        error->all(FLERR, iarg+1, "Kspace_modify splittol value must be smaller than one");
       iarg += 2;
     } else if (strcmp(arg[iarg],"pressure/scalar") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify pressure/scalar", error);
       scalar_pressure_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"disp/auto") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify disp/auto", error);
       auto_disp_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);
-      if (n == 0) error->all(FLERR,"Illegal kspace_modify command");
+      if (n == 0)
+        error->all(FLERR, iarg,
+                   "Illegal kspace_modify command for kspace style {}", force->kspace_style);
       iarg += n;
     }
+  }
+
+  // Encode the self-copy mode into `collective_flag`
+  if (collective_flag) collective_flag = selfcopy_flag + 1;
+
+  if (status) {
+    std::string mesg = "Updated KSpace settings:\n";
+    mesg += fmt::format("  KSpace computation is turned:    {}\n", compute_flag ? "ON" : "OFF");
+    mesg += fmt::format("  Use MPI collective operations:   {}\n", collective_flag ? "ON" : "OFF");
+    mesg += fmt::format("  Use MPI non-blocking operations: {}\n", nonblocking_flag ? "ON" : "OFF");
+    if (collective_flag) {
+      const char *sc = (selfcopy_flag == 0) ? "no" : (selfcopy_flag == 1) ? "yes" : "onerank";
+      mesg += fmt::format("  Collective self-copy mode:       {}\n", sc);
+    }
+    if (gewaldflag) {
+      mesg += fmt::format("  Gewald manually set to:          {}\n", g_ewald);
+    } else {
+      mesg += "  Gewald is determined automatically\n";
+    }
+    if (dispersionflag) {
+      if (gewaldflag_6) {
+        mesg += fmt::format("  Gewald/disp manually set to:     {}\n", g_ewald_6);
+      } else {
+        mesg += "  Gewald/disp is determined automatically\n";
+      }
+    }
+    if (comm->me == 0) utils::logmesg(lmp, mesg, false);
   }
 }
 

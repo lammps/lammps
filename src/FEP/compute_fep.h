@@ -41,7 +41,6 @@ class ComputeFEP : public Compute {
   int chgflag;
   int tailflag, volumeflag;
   int fepinitflag;
-  int eflag, vflag;
   double temp_fep;
 
   int nmax;

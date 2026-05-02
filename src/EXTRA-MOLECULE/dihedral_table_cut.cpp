@@ -156,7 +156,7 @@ void DihedralTableCut::compute(int eflag, int vflag)
   double r1mag2,r1,r2mag2,r2,r3mag2,r3;
   double sb1,rb1,sb2,rb2,sb3,rb3,c0,r12c1;
   double r12c2,costh12,costh13,costh23,sc1,sc2,s1,s2,c;
-  double phi,sinphi,a11,a22,a33,a12,a13,a23,sx1,sx2;
+  double sinphi,a11,a22,a33,a12,a13,a23,sx1,sx2;
   double sx12,sy1,sy2,sy12,sz1,sz2,sz12;
   double t1,t2,t3,t4;
   double da1,da2;
@@ -254,7 +254,6 @@ void DihedralTableCut::compute(int eflag, int vflag)
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
     double phil = acos(c);
-    phi = acos(c);
 
     sinphi = sqrt(1.0 - c*c);
     sinphi = MAX(sinphi,SMALL);
@@ -267,7 +266,6 @@ void DihedralTableCut::compute(int eflag, int vflag)
     double n123_dot_vb3 = n123x*vb3x + n123y*vb3y + n123z*vb3z;
     if (n123_dot_vb3 > 0.0) {
       phil = -phil;
-      phi = -phi;
       sinphi = -sinphi;
     }
 

@@ -22,6 +22,7 @@
 #include "force.h"
 #include "group.h"
 #include "input.h"
+#include "math_extra_kokkos.h"
 #include "memory_kokkos.h"
 #include "modify.h"
 #include "update.h"
@@ -34,6 +35,8 @@ using namespace FixConst;
 
 enum { NOBIAS, BIAS };
 enum { CONSTANT, EQUAL, ATOM };
+
+static constexpr double EINERTIA = 0.2;    // moment of inertia prefactor for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 
@@ -107,8 +110,9 @@ void FixLangevinKokkos<DeviceType>::init()
   FixLangevin::init();
   if (oflag)
     error->all(FLERR,"Fix langevin omega is not yet implemented with kokkos");
-  if (ascale)
-    error->all(FLERR,"Fix langevin angmom is not yet implemented with kokkos");
+  if (ascale != 0.0) {
+    avecEllipKK = dynamic_cast<AtomVecEllipsoidKokkos *>(atom->style_match("ellipsoid"));
+  }
 
   // prefactors are modified in the init
   k_gfactor1.modify_host();
@@ -162,7 +166,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   dt = update->dt;
   mvv2e = force->mvv2e;
   ftm2v = force->ftm2v;
-  fran_prop_const = sqrt(2.0*boltz/t_period/dt/mvv2e);
+  fran_prop_const = sqrt(24.0*boltz/t_period/dt/mvv2e);
 
   compute_target(); // modifies tforce vector, hence sync here
   k_tforce.template sync<DeviceType>();
@@ -382,7 +386,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
 
   // thermostat omega and angmom
   //  if (oflag) omega_thermostat();
-  //  if (ascale) angmom_thermostat();
+  if (ascale != 0.0) angmom_thermostat();
 
 }
 
@@ -390,6 +394,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
 
 template<class DeviceType>
 template<int Tp_TSTYLEATOM, int Tp_TALLY, int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
 {
@@ -405,7 +410,7 @@ FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
     if (Tp_RMASS) {
       gamma1 = -rmass[i] / t_period / ftm2v;
       gamma2 = sqrt(rmass[i]) * fran_prop_const / ftm2v;
-      gamma1 *= 1.0/ratio[type[i]];
+      gamma1 *= 1.0/d_ratio[type[i]];
       gamma2 *= 1.0/sqrt(d_ratio[type[i]]) * tsqrt_t;
     } else {
       gamma1 = d_gfactor1[type[i]];
@@ -453,6 +458,7 @@ FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixLangevinKokkos<DeviceType>::zero_force_item(int i) const
 {
@@ -510,6 +516,72 @@ void FixLangevinKokkos<DeviceType>::compute_target()
   }
 }
 
+/* ----------------------------------------------------------------------
+   thermostat rotational dof via angmom
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixLangevinKokkos<DeviceType>::angmom_thermostat()
+{
+  // Only need to sync: bonus, angmom, torque, ellipsoid views.
+  // The others where already synced in post_force.
+  atomKK->sync(execution_space,BONUS_MASK|TORQUE_MASK|ANGMOM_MASK|ELLIPSOID_MASK);
+  bonus = avecEllipKK->k_bonus.template view<DeviceType>();
+  angmom = atomKK->k_angmom.template view<DeviceType>();
+  torque = atomKK->k_torque.template view<DeviceType>();
+  ellipsoid = atomKK->k_ellipsoid.template view<DeviceType>();
+
+  int nlocal = atomKK->nlocal;
+
+  FixLangevinKokkosAngmomThermostatFunctor<DeviceType> angmom_functor(this);
+  Kokkos::parallel_for(nlocal,angmom_functor);
+
+  atomKK->modified(execution_space,TORQUE_MASK);
+}
+
+/* ---------------------------------------------------------------------- */
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void FixLangevinKokkos<DeviceType>::angmom_thermostat_item(int i) const
+{
+  KK_FLOAT gamma1,gamma2;
+
+  KK_FLOAT inertia[3],omega[3],tran[3];
+  double *shape, *quat;
+  KK_FLOAT angm[3]; // local angmom vector to pass into mq_to_omega
+
+  KK_FLOAT tsqrt_t = tsqrt;
+
+  if (mask[i] & groupbit) {
+    rand_type rand_gen = rand_pool.get_state();
+
+    shape = bonus(ellipsoid(i)).shape;
+    inertia[0] = EINERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
+    inertia[1] = EINERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
+    inertia[2] = EINERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+    quat = bonus(ellipsoid(i)).quat;
+    angm[0] = angmom(i,0);
+    angm[1] = angmom(i,1);
+    angm[2] = angmom(i,2);
+    MathExtraKokkos::mq_to_omega(angm,quat,inertia,omega);
+
+    if (tstyle == ATOM) tsqrt_t = sqrt(d_tforce[i]);
+    gamma1 = -ascale / t_period / ftm2v;
+    gamma2 = sqrt(ascale*24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+    gamma1 *= 1.0/d_ratio[type[i]];
+    gamma2 *= 1.0/sqrt(d_ratio[type[i]]) * tsqrt_t;
+    tran[0] = sqrt(inertia[0])*gamma2*(rand_gen.drand()-0.5);
+    tran[1] = sqrt(inertia[1])*gamma2*(rand_gen.drand()-0.5);
+    tran[2] = sqrt(inertia[2])*gamma2*(rand_gen.drand()-0.5);
+    torque(i,0) += inertia[0]*gamma1*omega[0] + tran[0];
+    torque(i,1) += inertia[1]*gamma1*omega[1] + tran[1];
+    torque(i,2) += inertia[2]*gamma1*omega[2] + tran[2];
+
+    rand_pool.free_state(rand_gen);
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -559,6 +631,7 @@ double FixLangevinKokkos<DeviceType>::compute_scalar()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT FixLangevinKokkos<DeviceType>::compute_energy_item(int i) const
 {
@@ -604,6 +677,7 @@ void FixLangevinKokkos<DeviceType>::end_of_step()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixLangevinKokkos<DeviceType>::end_of_step_item(int i) const {
   KK_FLOAT tmp[3];
@@ -624,6 +698,7 @@ void FixLangevinKokkos<DeviceType>::end_of_step_item(int i) const {
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixLangevinKokkos<DeviceType>::end_of_step_rmass_item(int i) const
 {

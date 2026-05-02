@@ -41,6 +41,7 @@
 #include "pair.h"
 #include "random_park.h"
 #include "region.h"
+#include "suffix.h"
 #include "update.h"
 
 #include <cmath>
@@ -281,6 +282,9 @@ int FixWidom::setmask()
 
 void FixWidom::init()
 {
+  if (force->pair && (force->pair->suffix_flag & Suffix::INTEL))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
+
   if (!atom->mass) error->all(FLERR, Error::NOLASTLINE, "Fix widom requires per atom type masses");
   if (atom->rmass_flag && (comm->me == 0))
     error->warning(FLERR, "Fix widom will use per atom type masses for velocity initialization");
@@ -1051,8 +1055,10 @@ double FixWidom::energy_full()
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   if (modify->n_pre_neighbor) modify->pre_neighbor();
   neighbor->build(1);
-  int eflag = 1;
-  int vflag = 0;
+
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
 
   // clear forces so they don't accumulate over multiple
   // calls within fix widom timestep

@@ -91,7 +91,7 @@ The :doc:`units <units>` for output values depend on the body style.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

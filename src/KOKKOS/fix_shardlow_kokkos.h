@@ -31,6 +31,8 @@ FixStyle(shardlow/kk/host,FixShardlowKokkos<LMPHostType>);
 #endif
 #include "pair_dpd_fdt_energy_kokkos.h"
 
+#include <cfloat>
+
 namespace LAMMPS_NS {
 
 template<bool STACKPARAMS>
@@ -63,18 +65,22 @@ class FixShardlowKokkos : public FixShardlow {
   void unpack_forward_comm(int , int , double *);
 
   struct params_ssa {
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_ssa() {cutinv=FLT_MAX;halfsigma=0;kappa=0;alpha=0;};
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_ssa(int /*i*/) {cutinv=FLT_MAX;halfsigma=0;kappa=0;alpha=0;};
     KK_FLOAT cutinv,halfsigma,kappa,alpha;
   };
 
   template<bool STACKPARAMS>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixShardlowSSAUpdateDPDE<STACKPARAMS>, const int&) const;
 
   template<bool STACKPARAMS>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixShardlowSSAUpdateDPDEGhost<STACKPARAMS>, const int&) const;
 
@@ -139,10 +145,12 @@ class FixShardlowKokkos : public FixShardlow {
 
 #ifdef ENABLE_KOKKOS_DPD_CONSTANT_TEMPERATURE
   template<bool STACKPARAMS>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ssa_update_dpd(int, int, int) const;  // Constant Temperature
 #endif
   template<bool STACKPARAMS>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ssa_update_dpde(int, int, int) const; // Constant Energy
 

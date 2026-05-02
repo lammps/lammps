@@ -41,6 +41,7 @@
 #include "neighbor.h"
 #include "pair.h"
 #include "random_park.h"
+#include "suffix.h"
 #include "update.h"
 #include "variable.h"
 
@@ -196,6 +197,9 @@ void FixChargeRegulation::init() {
   if (atom->rmass_flag && (comm->me == 0))
     error->warning(FLERR, "Fix charge/regulation will use per atom type masses for "
                    "velocity initialization");
+
+  if (force->pair && (force->pair->suffix_flag & Suffix::INTEL))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
 
   triclinic = domain->triclinic;
   int ipe = modify->find_compute("thermo_pe");
@@ -1121,6 +1125,11 @@ int FixChargeRegulation::get_random_particle(int ptype, double charge, double rd
 /* ---------------------------------------------------------------------- */
 
 double FixChargeRegulation::energy_full() {
+
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
+
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   comm->exchange();
@@ -1129,8 +1138,7 @@ double FixChargeRegulation::energy_full() {
   if (triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
   if (modify->n_pre_neighbor) modify->pre_neighbor();
   neighbor->build(1);
-  int eflag = 1;
-  int vflag = 0;
+
   if (overlap_flag) {
     int overlaptestall;
     int overlaptest = 0;

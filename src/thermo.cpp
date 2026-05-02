@@ -694,6 +694,9 @@ void Thermo::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg + 1], "default") == 0) {
         for (auto &item : keyword_user) item.clear();
         iarg += 2;
+      } else if (strcmp(arg[iarg + 1], "auto") == 0) {
+        colname_auto();
+        iarg += 2;
       } else {
         if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "thermo_modify colname", error);
         int icol = -1;
@@ -742,7 +745,7 @@ void Thermo::modify_params(int narg, char **arg)
             format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
       } else if (strcmp(arg[iarg + 1], "float") == 0) {
         format_float_user = arg[iarg + 2];
-      } else if (utils::strmatch(arg[iarg + 1], "^\\d*\\*\\d*$")) {
+      } else if (utils::strmatch(arg[iarg + 1], R"(^\d*\*\d*$)")) {
         // handles cases such as 2*6; currently doesn't allow negatives
         int nlo, nhi;
         utils::bounds(FLERR, arg[iarg + 1], 1, nfield_initial, nlo, nhi, error);
@@ -1202,6 +1205,28 @@ void Thermo::parse_fields(const std::string &str)
   }
   field_data.clear();
   field_data.resize(nfield);
+}
+
+/* ----------------------------------------------------------------------
+   update auto-generated column names for computes, fixes
+------------------------------------------------------------------------- */
+
+void Thermo::colname_auto()
+{
+  for (ifield = 0; ifield < nfield; ifield++) {
+    std::string word = keyword[ifield];
+    ArgInfo argi(word);
+    if (argi.get_type() == ArgInfo::COMPUTE) {
+      auto *icompute = modify->get_compute_by_id(argi.get_name());
+      if (icompute->thermo_modify_colname)
+        keyword_user[ifield] = icompute->get_thermo_colname(argindex1[ifield]-1);
+    }
+    if (argi.get_type() == ArgInfo::FIX) {
+      auto *ifix = modify->get_fix_by_id(argi.get_name());
+      if (ifix->thermo_modify_colname)
+        keyword_user[ifield] = ifix->get_thermo_colname(argindex1[ifield]-1);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

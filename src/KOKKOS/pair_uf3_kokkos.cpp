@@ -546,6 +546,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
 
 template <class DeviceType>
 template <int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void PairUF3Kokkos<DeviceType>::twobody(const int itype, const int jtype,
                                                                const KK_FLOAT r, KK_FLOAT &evdwl,
                                                                KK_FLOAT &fpair) const
@@ -597,6 +598,7 @@ KOKKOS_INLINE_FUNCTION void PairUF3Kokkos<DeviceType>::twobody(const int itype, 
 
 template <class DeviceType>
 template <int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void PairUF3Kokkos<DeviceType>::threebody(
     const int itype, const int jtype, const int ktype, const KK_FLOAT value_rij,
     const KK_FLOAT value_rik, const KK_FLOAT value_rjk, KK_FLOAT &evdwl, KK_FLOAT (&fforce)[3]) const
@@ -833,6 +835,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::compute(int eflag_in
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeShortNeigh,
                                                                   const int &ii) const
 {
@@ -867,6 +870,7 @@ KOKKOS_INLINE_FUNCTION void PairUF3Kokkos<DeviceType>::operator()(TagPairUF3Comp
 
 template <class DeviceType>
 template <int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void
 PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>, const int &ii,
                                       EV_FLOAT &ev) const
@@ -1080,6 +1084,7 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
 
 template <class DeviceType>
 template <int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void
 PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
                                       const int &ii) const
@@ -1092,6 +1097,7 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
 
 template <class DeviceType>
 template <int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void
 PairUF3Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j, const KK_FLOAT &epair,
                                     const KK_FLOAT &fpair, const KK_FLOAT &delx, const KK_FLOAT &dely,
@@ -1175,6 +1181,7 @@ PairUF3Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j, co
 
 template <class DeviceType>
 template <int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void
 PairUF3Kokkos<DeviceType>::ev_tally3(EV_FLOAT &ev, const int &i, const int &j, int &k,
                                      const KK_FLOAT &evdwl, const KK_FLOAT &ecoul, KK_ACC_FLOAT *fj,

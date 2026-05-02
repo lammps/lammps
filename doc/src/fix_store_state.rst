@@ -64,7 +64,7 @@ Syntax
        *com* value = *yes* or *no*
        *thresh* args = variable operator value
          variable = equal style or compatible variable reference
-         operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "!^"
+         operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "\|^"
          value = numeric value to compare to
 
 
@@ -111,10 +111,10 @@ If the *com* keyword is set to *yes* then the *xu*, *yu*, and *zu*
 inputs store the position of each atom relative to the center-of-mass
 of the group of atoms, instead of storing the absolute position.
 
-.. versionadded:: TBD
+.. versionadded:: 10Dec2025
 
 If the *thresh* keyword is used, data is only stored on steps where also
-the the threshold condition following the keyword is met.  The first
+the threshold condition following the keyword is met.  The first
 argument *must* be a :doc:`variable <variable>` reference to an
 equal-style or compatible variable.  The second argument is a logical
 operator and the third argument is a number.  The choice of operators
@@ -125,9 +125,9 @@ non-zero, then the result is "true" and the threshold criterion is met.
 Otherwise it is not met.
 
 The *thresh* keyword may be used *exactly once*.  If a more complex
-threshold condition on is needed or access to data from computes, fixes,
-or similar, this can be realized within the expression used when
-defining the referenced variable.
+threshold condition is needed or access to data from computes, fixes, or
+similar, this can be realized within the expression used when defining
+the referenced variable.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -163,7 +163,7 @@ the :doc:`run <run>` command.  This fix is not invoked during
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

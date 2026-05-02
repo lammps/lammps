@@ -16,8 +16,8 @@
 #ifndef LMP_INTERLAYER_TAPER_H
 #define LMP_INTERLAYER_TAPER_H
 
-namespace LAMMPS_NS {
-namespace InterLayer {
+
+namespace LAMMPS_NS::InterLayer {
 
   static constexpr double Tap_coeff[8] = {1.0, 0.0, 0.0, 0.0, -35.0, 84.0, -70.0, 20.0};
 
@@ -39,7 +39,7 @@ namespace InterLayer {
       Tap = Tap * r + Tap_coeff[0];
     }
 
-    return (Tap);
+    return Tap;
   }
 
   /* ----Calculate the derivatives of long-range cutoff term */
@@ -60,8 +60,8 @@ namespace InterLayer {
       dTap = dTap / Rcut;
     }
 
-    return (dTap);
+    return dTap;
   }
-}    // namespace InterLayer
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::InterLayer
+
 #endif

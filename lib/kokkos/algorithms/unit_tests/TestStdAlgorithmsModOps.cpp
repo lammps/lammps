@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 
@@ -29,12 +16,17 @@ struct MyMovableType {
   int m_value = 11;
 
   MyMovableType() = default;
+
+  MyMovableType(const MyMovableType&) = delete;
+
   MyMovableType(MyMovableType&& other) {
     if (this != &other) {
       m_value       = other.m_value;
       other.m_value = -2;
     }
   }
+
+  MyMovableType& operator=(const MyMovableType&) = delete;
 
   MyMovableType& operator=(MyMovableType&& other) {
     if (this != &other) {
@@ -43,6 +35,8 @@ struct MyMovableType {
     }
     return *this;
   }
+
+  ~MyMovableType() = default;
 };
 
 TEST(std_algorithms_mod_ops_test, move) {

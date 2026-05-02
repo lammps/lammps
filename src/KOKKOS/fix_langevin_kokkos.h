@@ -23,6 +23,7 @@ FixStyle(langevin/kk/host,FixLangevinKokkos<LMPHostType>);
 #ifndef LMP_FIX_LANGEVIN_KOKKOS_H
 #define LMP_FIX_LANGEVIN_KOKKOS_H
 
+#include "atom_vec_ellipsoid_kokkos.h"
 #include "fix_langevin.h"
 #include "kokkos_type.h"
 #include "kokkos_base.h"
@@ -33,10 +34,12 @@ namespace LAMMPS_NS {
 
   struct s_FSUM {
     double fx, fy, fz;
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     s_FSUM() {
       fx = fy = fz = 0.0;
     }
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     s_FSUM& operator+=(const s_FSUM &rhs) {
       fx += rhs.fx;
@@ -77,20 +80,29 @@ namespace LAMMPS_NS {
     void end_of_step() override;
 
     template<int Tp_TSTYLEATOM, int Tp_TALLY, int Tp_BIAS, int Tp_RMASS, int Tp_ZERO>
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       FSUM post_force_item(int) const;
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
       void zero_force_item(int) const;
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
       KK_FLOAT compute_energy_item(int) const;
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
       void end_of_step_item(int) const;
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
       void end_of_step_rmass_item(int) const;
+
+// NOLINTNEXTLINE
+    KOKKOS_INLINE_FUNCTION
+      void angmom_thermostat_item(int i) const;
 
   private:
     typename AT::t_kkfloat_1d rmass;
@@ -129,6 +141,13 @@ namespace LAMMPS_NS {
     KK_FLOAT boltz,dt,mvv2e,ftm2v,fran_prop_const;
 
     void compute_target();
+    // For angmom thermostat
+    class AtomVecEllipsoidKokkos *avecEllipKK;
+    typename AtomVecEllipsoidKokkosBonusArray<DeviceType>::t_bonus_1d bonus;
+    typename ArrayTypes<DeviceType>::t_kkacc_1d_3 torque;
+    typename ArrayTypes<DeviceType>::t_kkfloat_1d_3 angmom;
+    typename ArrayTypes<DeviceType>::t_int_1d ellipsoid;
+    void angmom_thermostat();
 
 #ifndef LMP_KOKKOS_DEBUG_RNG
     Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
@@ -154,23 +173,27 @@ namespace LAMMPS_NS {
       c(*c_ptr) {}
       ~FixLangevinKokkosPostForceFunctor() {c.set_copymode(1);}
 
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i) const {
         c.template post_force_item<Tp_TSTYLEATOM,Tp_TALLY,Tp_BIAS,Tp_RMASS,Tp_ZERO>(i);
       }
 
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i, value_type &fsum) const {
 
         fsum += c.template post_force_item<Tp_TSTYLEATOM,Tp_TALLY,Tp_BIAS,Tp_RMASS,Tp_ZERO>(i);
       }
 
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       static void init(value_type &update) {
         update.fx = 0.0;
         update.fy = 0.0;
         update.fz = 0.0;
       }
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       static void join(value_type &update,
                        const value_type &source) {
@@ -188,6 +211,7 @@ namespace LAMMPS_NS {
     FixLangevinKokkosZeroForceFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
       c(*c_ptr) {c.set_copymode(1);}
 
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i) const {
         c.zero_force_item(i);
@@ -202,14 +226,17 @@ namespace LAMMPS_NS {
     FixLangevinKokkosTallyEnergyFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
       c(*c_ptr) {c.set_copymode(1);}
 
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i, value_type &energy) const {
         energy += c.compute_energy_item(i);
       }
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       static void init(value_type &update) {
         update = 0.0;
       }
+// NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       static void join(value_type &update,
                        const value_type &source) {
@@ -225,10 +252,26 @@ namespace LAMMPS_NS {
     FixLangevinKokkosEndOfStepFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
       c(*c_ptr) {c.set_copymode(1);}
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     void operator()(const int i) const {
       if (RMass) c.end_of_step_rmass_item(i);
       else c.end_of_step_item(i);
+    }
+  };
+
+  // angmom thermostat functor
+  template<class DeviceType>
+  struct FixLangevinKokkosAngmomThermostatFunctor {
+    typedef DeviceType device_type;
+    FixLangevinKokkos<DeviceType> c;
+    FixLangevinKokkosAngmomThermostatFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
+      c(*c_ptr) {c.set_copymode(1);}
+
+// NOLINTNEXTLINE
+    KOKKOS_INLINE_FUNCTION
+    void operator()(const int i) const {
+      c.angmom_thermostat_item(i);
     }
   };
 }

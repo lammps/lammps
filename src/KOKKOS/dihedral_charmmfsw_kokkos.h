@@ -47,14 +47,17 @@ class DihedralCharmmfswKokkos : public DihedralCharmmfsw {
   void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDihedralCharmmfswCompute<NEWTON_BOND,EVFLAG>, const int&, EVM_FLOAT&) const;
 
   template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDihedralCharmmfswCompute<NEWTON_BOND,EVFLAG>, const int&) const;
 
   //template<int NEWTON_BOND>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EVM_FLOAT &evm, const int i1, const int i2, const int i3, const int i4,
                           KK_FLOAT &edihedral, KK_FLOAT *f1, KK_FLOAT *f3, KK_FLOAT *f4,
@@ -62,6 +65,7 @@ class DihedralCharmmfswKokkos : public DihedralCharmmfsw {
                           const KK_FLOAT &vb2x, const KK_FLOAT &vb2y, const KK_FLOAT &vb2z,
                           const KK_FLOAT &vb3x, const KK_FLOAT &vb3y, const KK_FLOAT &vb3z) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EVM_FLOAT &evm, const int i, const int j,
         const KK_FLOAT &evdwl, const KK_FLOAT &ecoul, const KK_FLOAT &fpair, const KK_FLOAT &delx,
@@ -101,6 +105,13 @@ class DihedralCharmmfswKokkos : public DihedralCharmmfsw {
   typename AT::t_kkfloat_2d d_lj14_2;
   typename AT::t_kkfloat_2d d_lj14_3;
   typename AT::t_kkfloat_2d d_lj14_4;
+
+  DAT::tdual_kkfloat_1d k_k;
+  DAT::tdual_kkfloat_1d k_multiplicity;
+  DAT::tdual_kkfloat_1d k_shift;
+  DAT::tdual_kkfloat_1d k_sin_shift;
+  DAT::tdual_kkfloat_1d k_cos_shift;
+  DAT::tdual_kkfloat_1d k_weight;
 
   typename AT::t_kkfloat_1d d_k;
   typename AT::t_kkfloat_1d d_multiplicity;

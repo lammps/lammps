@@ -1,23 +1,15 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_STD_ALGORITHMS_TRANSFORM_REDUCE_IMPL_HPP
 #define KOKKOS_STD_ALGORITHMS_TRANSFORM_REDUCE_IMPL_HPP
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include "Kokkos_Constraints.hpp"
 #include "Kokkos_HelperPredicates.hpp"
 #include <std_algorithms/Kokkos_Distance.hpp>
@@ -122,7 +114,6 @@ ValueType transform_reduce_custom_functors_exespace_impl(
     UnaryTransformerType transformer) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
-  Impl::static_assert_is_not_openmptarget(ex);
   Impl::expect_valid_range(first, last);
 
   if (first == last) {
@@ -161,7 +152,6 @@ ValueType transform_reduce_custom_functors_exespace_impl(
     JoinerType joiner, BinaryTransformerType transformer) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first1, first2);
-  Impl::static_assert_is_not_openmptarget(ex);
   Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
   Impl::expect_valid_range(first1, last1);
 
@@ -200,7 +190,6 @@ ValueType transform_reduce_default_functors_exespace_impl(
     IteratorType1 last1, IteratorType2 first2, ValueType init_reduction_value) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first1, first2);
-  Impl::static_assert_is_not_openmptarget(ex);
   Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
   Impl::expect_valid_range(first1, last1);
 
@@ -226,7 +215,6 @@ KOKKOS_FUNCTION ValueType transform_reduce_custom_functors_team_impl(
     UnaryTransformerType transformer) {
   // checks
   Impl::static_assert_random_access_and_accessible(teamHandle, first);
-  Impl::static_assert_is_not_openmptarget(teamHandle);
   Impl::expect_valid_range(first, last);
 
   if (first == last) {
@@ -264,7 +252,6 @@ KOKKOS_FUNCTION ValueType transform_reduce_custom_functors_team_impl(
     BinaryTransformerType transformer) {
   // checks
   Impl::static_assert_random_access_and_accessible(teamHandle, first1, first2);
-  Impl::static_assert_is_not_openmptarget(teamHandle);
   Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
   Impl::expect_valid_range(first1, last1);
 
@@ -304,7 +291,6 @@ KOKKOS_FUNCTION ValueType transform_reduce_default_functors_team_impl(
     IteratorType2 first2, ValueType init_reduction_value) {
   // checks
   Impl::static_assert_random_access_and_accessible(teamHandle, first1, first2);
-  Impl::static_assert_is_not_openmptarget(teamHandle);
   Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
   Impl::expect_valid_range(first1, last1);
 

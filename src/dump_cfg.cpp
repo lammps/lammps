@@ -236,14 +236,6 @@ void DumpCFG::write_data(int n, double *mybuf)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpCFG::write_string(int n, double *mybuf)
-{
-  if (mybuf)
-    fwrite(mybuf,sizeof(char),n,fp);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void DumpCFG::write_lines(int n, double *mybuf)
 {
   int i,j,m;

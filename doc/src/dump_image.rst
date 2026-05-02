@@ -24,7 +24,7 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao*
+* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *ellipsoid* or *body* or *compute* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao*
 
   .. parsed-literal::
 
@@ -44,18 +44,27 @@ Syntax
            f_ID = per-grid vector calculated by a fix with ID
            f_ID[I] = Ith column of per-grid array calculated by a fix with ID
        *line* = color width
-         color = *type*
+         color = *type* or *index* or *atom*
          width = numeric value for line width (distance units)
        *tri* = color tflag width
-         color = *type*
+         color = *type* or *index* or *atom*
          tflag = 1 for just triangle, 2 for just tri edges, 3 for both
-         width = numeric value for tringle edge width (distance units)
+         width = numeric value for triangle edge width (distance units)
+       *ellipsoid* = color eflag level width
+         color = *type* or *index* or *atom*
+         eflag = 1 for triangles, 2 for wireframe
+         level = mesh refinement level, value between 1 (low resolution) and 6 (ultra high resolution)
+         width = diameter of wireframe edges (distance units) (ignored for triangles)
        *body* = color bflag1 bflag2
-         color = *type*
+         color = *type* or *index* or *atom*
          bflag1,bflag2 = 2 numeric flags to affect how bodies are drawn
+       *compute* = computeID color cflag1 cflag2
+         computeID = ID of computes that generates objects to draw
+         color = *type* or *element* or *const*
+         cflag1,cflag2 = 2 numeric flags to affect how compute objects are drawn
        *fix* = fixID color fflag1 fflag2
          fixID = ID of fix that generates objects to draw
-         color = *type*
+         color = *type* or *element* or *const*
          fflag1,fflag2 = 2 numeric flags to affect how fix objects are drawn
        *size* values = width height = size of images
          width = width of image in # of pixels
@@ -78,17 +87,21 @@ Syntax
          yes/no = do or do not draw simulation box lines
          diam = diameter of box lines as fraction of shortest box length
        *axes* values = axes length diam = draw xyz axes
-         axes = *yes* or *no* = do or do not draw xyz axes lines next to simulation box
+         axes = *yes* or *no* or *center* or *lowerleft* or *lowerright* or *upperleft* or *upperright* = do or do not draw xyz axes arrows and select location
          length = length of axes lines as fraction of respective box lengths
          diam = diameter of axes lines as fraction of shortest box length
-       *region* values = region-ID color drawstyle [npoints (optional) diameter (optional)]
+       *region* values = region-ID color drawstyle [opacity (optional) npoints (optional) diameter (optional)] [hull_points npoints (optional)]
          region-ID = ID of the region to render
          color = color name for region graphics
-         drawstyle = *filled* or *frame* or *points*
+         drawstyle = *filled* or *transparent* or *frame* or *points*
            *filled* = render region as a filled object, with optional open faces
+           *transparent* = same as *filled* but has selectable opacity
            *frame* = render region as a wireframe (like box or subbox)
+           *points* = fill region with spheres at random locations
+         opacity  = level of opacity (from 0.0 to 1.0, only for drawstyle *transparent*)
          npoints  = number of attempted points (only for drawstyle *points*)
          diameter = diameter of wireframe or points (only for drawstyles *frame* and *points*)
+         hull_points npoints = set number of points for creating a Delaunay triangulation (optional)
        *subbox* values = lines diam = draw outline of processor subdomains
          lines = *yes* or *no* = do or do not draw subdomain lines
          diam = diameter of subdomain lines as fraction of shortest box length
@@ -114,7 +127,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *backcolor* or *bcolor* or *bdiam* or *bitrate* or *boxcolor* or *color* or *framerate* or *gmap*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -145,21 +158,50 @@ Syntax
            color = name of color used for that subset of values
          entry = color (for sequential style)
            color = name of color used for a bin of values
+       *atrans* args = type transparency
+         type = atom type (numeric or type label) or range of numeric types (see below)
+         transparency = transparency of atoms of that type (value between 0 (invisible) and 1 (fully opaque))
        *backcolor* arg = color
          color = name of color for background
+       *backcolor2* arg = color
+         color = name of second color for vertical background gradient. "none" to disable gradient
        *bcolor* args = type color
          type = bond type (numeric or type label) or range of numeric types (see below)
          color = name of color or color1/color2/...
        *bdiam* args = type diam
          type = bond type (numeric or type label) or range of numeric types (see below)
          diam = diameter of bonds of that type (distance units)
-       *bitrate* arg = rate
-         rate = target bitrate for movie in kbps
+       *btrans* args = type transparency
+         type = bond type (numeric or type label) or range of numeric types (see below)
+         transparency = transparency of bonds of that type (value between 0 (invisible) and 1 (fully opaque))
+       *axestrans* arg = transparency
+         transparency = transparency for axes lines (value between 0 (invisible) and 1 (fully opaque))
+       *boxtrans* arg = transparency
+         transparency = transparency for simulation box lines (value between 0 (invisible) and 1 (fully opaque))
        *boxcolor* arg = color
          color = name of color for simulation box lines and processor subdomain lines
-       *color* args = name R G B
+       *subboxtrans* arg = transparency
+         transparency = transparency for simulation subbox lines (value between 0 (invisible) and 1 (fully opaque))
+       *color* args = name R G B *or* name hex
          name = name of color
          R,G,B = red/green/blue numeric values from 0.0 to 1.0
+         hex = 24-bit RGB color in hexadecimal
+       *lights* args = ambient key fill back
+         ambient key fill back = set light intensity value from 0.0 to 1.0
+       *ccolor* args = computeID color
+         computeID = ID of the compute
+         color = name of color for image objects provided by this compute when using "const" color style
+       *ctrans* args = computeID transparency
+         computeID = ID of the compute
+         transparency = transparency for image objects provided by this compute
+       *fcolor* args = fixID color
+         fixID = ID of the fix
+         color = name of color for image objects provided by this fix when using "const" color style
+       *ftrans* args = fixID transparency
+         fixID = ID of the fix
+         transparency = transparency for image objects provided by this fix
+       *bitrate* arg = rate
+         rate = target bitrate for movie in kbps
        *framerate* arg = fps
          fps = frames per second for movie
        *gmap* args = identical to *amap* args
@@ -180,17 +222,18 @@ Examples
 
    labelmap atom 1 C 2 H 3 O 4 N
    dump_modify 1 acolor C gray acolor H white acolor O red acolor N blue
+   dump_modify 1 color gray80 0.8 0.8 0.8 color gray20 0x333333
 
 Description
 """""""""""
 
-Dump a high-quality rendered image of the atom configuration every :math:`N`
-timesteps and save the images either as a sequence of JPEG or PNG or
-PPM files, or as a single movie file.  The options for this command as
-well as the :doc:`dump_modify <dump_modify>` command control what is
-included in the image or movie and how it appears.  A series of such
-images can easily be manually converted into an animated movie of your
-simulation or the process can be automated without writing the
+Dump a high-quality rendered image of the atom configuration every
+:math:`N` timesteps and save the images either as a sequence of JPEG,
+PNG, TGA, or PPM files, or as a single movie file.  The options for this
+command as well as the :doc:`dump_modify <dump_modify>` command control
+what is included in the image or movie and how it appears.  A series of
+such images can easily be manually converted into an animated movie of
+your simulation or the process can be automated without writing the
 intermediate files using the dump movie style; see further details
 below.  Other dump styles store snapshots of numerical data associated
 with atoms in various formats, as discussed on the :doc:`dump <dump>`
@@ -201,36 +244,52 @@ has been run, using the :doc:`rerun <rerun>` command to read snapshots
 from an existing dump file, and using these dump commands in the rerun
 script to generate the images/movie.
 
-Here are two sample images, rendered as :math:`1024\times 1024` JPEG files.
-
 .. |dump1| image:: img/dump1.jpg
-   :width: 48%
-.. |dump2| image:: img/dump2.jpg
-   :width: 48%
+   :width: 19%
+.. |dump2| image:: img/dump2.png
+   :width: 19%
+.. |dump3| image:: img/dump3.png
+   :width: 19%
+.. |dump4| image:: img/dump4.png
+   :width: 19%
+.. |dump5| image:: img/dump5.png
+   :width: 21.3%
 
-|dump1|  |dump2|
+Here are five sample images, rendered as JPEG or PNG files.
+
+|dump1|  |dump2|  |dump4|  |dump5|  |dump3|
 
 .. raw:: html
 
-   Click to see the full-size images:
+   <center>(Click to see the full-size images)</center>
+
+A detailed discussion of advanced graphics settings and workflows
+with examples is provided in the :doc:`Howto_viz` howto.
+
+.. versionadded:: 11Feb2026
+
+   support for writing compressed TGA files
 
 Only atoms in the specified group are rendered in the image.  The
 :doc:`dump_modify region and thresh <dump_modify>` commands can also
-alter what atoms are included in the image.
-The filename suffix determines whether a JPEG, PNG, or PPM file is
-created with the *image* dump style.  If the suffix is ".jpg" or
-".jpeg", then a `JPEG format <jpeg_format_>`_ file is created, if the
-suffix is ".png", then a `PNG format <png_format_>`_ is created, else
-a `PPM (aka NETPBM) format <ppm_format_>`_ file is created.
-The JPEG and PNG files are binary; PPM has a text mode header followed
-by binary data. JPEG images have lossy compression, PNG has lossless
-compression, and PPM files are uncompressed but can be compressed with
-gzip, if LAMMPS has been compiled with -DLAMMPS_GZIP and a ".gz" suffix
+alter what atoms are included in the image.  The filename suffix
+determines whether a JPEG, PNG, TGA, or PPM file is created with the
+*image* dump style.  If the suffix is ".jpg" or ".jpeg", then a `JPEG
+format <jpeg_format_>`_ file is created, if the suffix is ".png", then a
+`PNG format <png_format_>`_ file is created, if the suffix is ".tga",
+then a compressed 24-bit RGB `TGA or TARGA format <tga_format_>`_
+file is created, else a `PPM (aka NETPBM) format <ppm_format_>`_ file is
+created.  The JPEG, PNG, and TGA files are binary; PPM has a text mode
+header followed by binary data. JPEG images have lossy compression, PNG
+and TGA have lossless compression, and PPM files are uncompressed but can
+be compressed with a supported compression program, if LAMMPS has been
+compiled with :ref:`compression support <gzip>` and a supported suffix
 is used.
 
 .. _jpeg_format: https://jpeg.org/jpeg/
 .. _png_format: https://en.wikipedia.org/wiki/Portable_Network_Graphics
 .. _ppm_format: https://en.wikipedia.org/wiki/Netpbm
+.. _tga_format: https://en.wikipedia.org/wiki/Truevision_TGA
 
 Similarly, the format of the resulting movie is chosen with the *movie*
 dump style. This is handled by the underlying FFmpeg converter and thus
@@ -242,7 +301,7 @@ described below.
 
 To write out JPEG and PNG format files, you must build LAMMPS with
 support for the corresponding JPEG or PNG library.  To convert images
-into movies, LAMMPS has to be compiled with the -DLAMMPS_FFMPEG
+into movies, LAMMPS has to be compiled with the ``-DLAMMPS_FFMPEG``
 flag. See the :doc:`Build settings <Build_settings>` page for
 details.
 
@@ -288,19 +347,17 @@ prefixed by "c\_", "f\_", or "v\_", respectively.  Note that the
 *diameter* setting can be overridden with a numeric value applied to all
 atoms by the optional *adiam* keyword.
 
+.. versionchanged:: TBD
+
+   Extended list of colors from 6 to 16
+
 If *type* is specified for the *color* setting, then the color of each
-atom is determined by its atom type.  By default the mapping of types
-to colors is as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = aqua
-* type 6 = cyan
-
-and repeats itself for types :math:`> 6`.  This mapping can be changed by the
-"dump_modify acolor" command, as described below.
+atom is determined by its atom type.  By default the mapping of atom
+types to colors is: red, green, blue, yellow, cyan, magenta, silver,
+orange, chartreuse, gray, darkred, darkgreen, darkblue, darkcyan,
+darkmagenta, and darkgray for the first 16 atom types and repeats itself
+after that.  This mapping can be changed by the "dump_modify acolor"
+command, as described below.
 
 If *type* is specified for the *diameter* setting then the diameter of
 each atom is determined by its atom type.  By default all types have
@@ -309,11 +366,12 @@ command, as described below.
 
 If *element* is specified for the *color* and/or *diameter* setting,
 then the color and/or diameter of each atom is determined by which
-element it is, which in turn is specified by the element-to-type
-mapping specified by the "dump_modify element" command, as described
-below.  By default every atom type is C (carbon).  Every element has a
-color and diameter associated with it, which is the same as the colors
-and sizes used by the `AtomEye <atomeye_>`_ visualization package.
+element it is, which in turn is specified by the element-to-type mapping
+specified by the "dump_modify element" command, as described below.  By
+default the element for every atom type is set to C (carbon).  Every
+element has a color and diameter associated with it, which is the same
+as the colors and sizes used by the `AtomEye <atomeye_>`_ visualization
+package.
 
 .. _atomeye: http://li.mit.edu/Archive/Graphics/A/
 
@@ -333,7 +391,7 @@ discretely so that the value of -3.2 is "orange".
 
 If "vx", for example, is used as the *diameter* setting, then the atom
 will be rendered using the x-component of its velocity as the
-diameter.  If the per-atom value <= 0.0, them the atom will not be
+diameter.  If the per-atom value <= 0.0, then the atom will not be
 drawn.  Note that finite-size spherical particles, as defined by
 :doc:`atom_style sphere <atom_style>` define a per-particle radius or
 diameter, which can be used as the *diameter* setting.
@@ -352,7 +410,7 @@ The *atom* keyword allow you to turn off the drawing of all atoms, if
 the specified value is *no*\ .  Note that this will not turn off the
 drawing of particles that are represented as lines, triangles, or
 bodies, as discussed below.  These particles can be drawn separately
-if the *line*, *tri*, or *body* keywords are used.
+if the *line*, *tri*, *ellipsoid*, or *body* keywords are used.
 
 The *adiam* keyword allows you to override the *diameter* setting to
 set a single numeric *size*\ .  All atoms will be drawn with that
@@ -376,35 +434,36 @@ the mass of both atoms of a pair within the bond cutoff is lower than 3
 atomic mass units, a bond is **not** drawn; this prohibits displaying
 unwanted hydrogen-hydrogen bonds for alkyl or alcohol groups or for
 water with typical cutoffs suitable for displaying covalent bonds.
+For ReaxFF it is also possible to visualize bonds as they are computed
+through using :doc:`fix reaxff/bonds <fix_reaxff_bonds>` with the
+*fix* keyword (see below).
 
 ----------
 
 The *bond* keyword allows to you to alter how bonds are drawn.  A bond
-is only drawn if both atoms in the bond are being drawn due to being
-in the specified group and due to other selection criteria
-(e.g. region, threshold settings of the
-:doc:`dump_modify <dump_modify>` command).  By default, bonds are drawn
-if they are defined in the input data file as read by the
-:doc:`read_data <read_data>` command.  Using *none* for both the bond
-*color* and *width* value will turn off the drawing of all bonds.
+is only drawn if both atoms in the bond are being drawn due to being in
+the specified group and due to other selection criteria (e.g. region,
+threshold settings of the :doc:`dump_modify <dump_modify>` command).  By
+default, bonds are drawn if they are defined in the input data file as
+read by the :doc:`read_data <read_data>` command.  Using *none* for both
+the bond *color* and *width* value will turn off the drawing of all
+bonds.
 
 If *atom* is specified for the bond *color* value, then each bond is
 drawn in 2 halves, with the color of each half being the color of the
 atom at that end of the bond.
 
+.. versionchanged:: TBD
+
+   Extended list of default colors from 6 to 16
+
 If *type* is specified for the *color* value, then the color of each
 bond is determined by its bond type.  By default the mapping of bond
-types to colors is as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = aqua
-* type 6 = cyan
-
-and repeats itself for bond types > 6.  This mapping can be changed by
-the "dump_modify bcolor" command, as described below.
+types to colors is: red, green, blue, yellow, cyan, magenta, silver,
+orange, chartreuse, gray, darkred, darkgreen, darkblue, darkcyan,
+darkmagenta, and darkgray for the first 16 bond types and repeats itself
+after that.  This mapping can be changed by the "dump_modify bcolor"
+command, as described below.
 
 The bond *width* value can be a numeric value or *atom* or *type* (or
 *none* as indicated above).
@@ -427,20 +486,23 @@ as described below.
 The *line* keyword can be used when :doc:`atom_style line <atom_style>`
 is used to define particles as line segments, and will draw them as
 lines.  If this keyword is not used, such particles will be drawn as
-spheres, the same as if they were regular atoms.  The only setting
-currently allowed for the *color* value is *type*, which will color
-the lines according to the atom type of the particle.  By default the
-mapping of types to colors is as follows:
+spheres, the same as if they were regular atoms.
 
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = aqua
-* type 6 = cyan
+.. versionchanged:: 30Mar2026
 
-and repeats itself for types > 6.  There is not yet an option to
-change this via the dump_modify command.
+   added *index* and *atom* color styles
+
+There are currently three supported settings for the *color* value:
+*type*, *index*, or *atom*.  With the *type* setting the line segment
+particles will be colored according to the atom type of the particle.
+With the *index* setting, colors from the list of available per-atom
+type colors are assigned to the line particles in a non-deterministic
+round-robin fashion.  With the *atom* setting, the color follows the
+coloring selected for coloring atoms (including using color maps).  If
+more different colors than atom types are desired, the *number of atom
+types* must be *increased* correspondingly when using either the
+:doc:`create_box <create_box>` or the :doc:`read_data <read_data>`
+command.
 
 The line *width* can only be a numeric value, which specifies that all
 lines will be drawn as cylinders with that diameter, e.g. 1.0, which
@@ -454,20 +516,78 @@ used to define particles as triangles, and will draw them as triangles
 or edges (3 lines) or both, depending on the setting for *tflag*\ .  If
 edges are drawn, the *width* setting determines the diameters of the
 line segments.  If this keyword is not used, triangle particles will
-be drawn as spheres, the same as if they were regular atoms.  The only
-setting currently allowed for the *color* value is *type*, which will
-color the triangles according to the atom type of the particle.  By
-default the mapping of types to colors is as follows:
+be drawn as spheres, the same as if they were regular atoms.
 
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = aqua
-* type 6 = cyan
+.. versionchanged:: 30Mar2026
 
-and repeats itself for types > 6.  There is not yet an option to
-change this via the dump_modify command.
+   added *index* and *atom* color styles
+
+There are currently three supported settings for the *color* value:
+*type*, *index*, or *atom*.  With the *type* setting the triangles will
+be colored according to the atom type of the particle.  With the *index*
+setting, colors from the list of available per-atom type colors are
+assigned to the triangulated particles in a non-deterministic
+round-robin fashion.  With the *atom* setting, the color follows the
+coloring selected for coloring atoms (including using color maps). If
+more different colors than atom types are desired, the *number of atom
+types* must be *increased* correspondingly when using either the
+:doc:`create_box <create_box>` or the :doc:`read_data <read_data>`
+command.
+
+----------
+
+.. versionadded:: 11Feb2026
+
+.. versionchanged:: 30Mar2026
+
+   Now uses rounded triangles
+
+The *ellipsoid* keyword can be used when :doc:`atom_style ellipsoid
+<atom_style>` is used to define particles as ellipsoids, and will draw
+them as a mesh of rounded triangles or edges, depending on the setting
+for *eflag*\ (1 for rounded triangles, 2 for edges, other values are
+accepted for backward compatibility but select rounded triangles).
+If edges are drawn, the *width* setting determines the diameters of the
+line segments.  If this keyword is not used, ellipsoid particles will be
+drawn as spheres, the same as if they were regular atoms.
+
+.. versionchanged:: 30Mar2026
+
+   added *index* and *atom* color styles
+
+There are currently three supported settings for the *color* value:
+*type*, *index*, or *atom*.  With the *type* setting the ellipsoids will
+be colored according to the atom type of the particle.  With the *index*
+setting, colors from the list of available per-atom type colors are
+assigned to the ellipsoid particles in a non-deterministic round-robin
+fashion.  With the *atom* setting, the color follows the coloring
+selected for coloring atoms (including using color maps).  If more
+different colors than atom types are desired, the *number of atom types*
+must be *increased* correspondingly when using either the
+:doc:`create_box <create_box>` or the :doc:`read_data <read_data>`
+command.
+
+.. versionchanged:: 30Mar2026
+
+   changed initial geometry to icosahedron and use rounded triangles
+
+The *level* setting determines the number of triangles in the mesh of
+triangles and thus the resolution of the representation of the
+ellipsoid.  At level 1 the ellipsoid is represented by an icosahedron
+that is stretched according to the ellipsoid's shape parameters.  For
+each higher level, a refinement iteration is performed where any of the
+triangles are replaced by four triangles and their edges are shifted to
+be on the surface of the ellipsoid.  The maximum allowed refinement
+level is 6 (corresponding to 12288 triangles per ellipsoid).
+
+.. admonition:: Image quality versus rendering speed
+   :class: Hint
+
+   Since the rendered ellipsoids are constructed from iteratively
+   refined triangle meshes as explained above, the image quality
+   increases with each refinement level, but so does the computational
+   effort to render the image.  This becomes more pronounced when FSAA
+   or SSAO or both are enabled.
 
 ----------
 
@@ -477,73 +597,113 @@ is used to define body particles with internal state
 body style.  If this keyword is not used, such particles will be drawn
 as spheres, the same as if they were regular atoms.
 
-The :doc:`Howto body <Howto_body>` page describes the body styles
-LAMMPS currently supports, and provides more details as to the kind of
-body particles they represent and how they are drawn by this dump
-image command.  For all the body styles, individual atoms can be
-either a body particle or a usual point (non-body) particle.  Non-body
-particles will be drawn the same way they would be as a regular atom.
-The *bflag1* and *bflag2* settings are numerical values which are
-passed to the body style to affect how the drawing of a body particle
-is done.  See the :doc:`Howto body <Howto_body>` page for a
-description of what these parameters mean for each body style.
+The :doc:`Howto body <Howto_body>` page describes the body styles LAMMPS
+currently supports, and provides more details as to the kind of body
+particles they represent and how they are drawn by this dump image
+command.  For all the body styles, individual atoms can be either a body
+particle or a usual point (non-body) particle.  Non-body particles will
+be drawn the same way they would be as a regular atom.  The *bflag1* and
+*bflag2* settings are numerical values which are passed to the body
+style to affect how the drawing of a body particle is done.  See the
+:doc:`Howto body <Howto_body>` page for a description of what these
+parameters mean for each body style.
 
-The only setting currently allowed for the *color* value is *type*,
-which will color the body particles according to the atom type of the
-particle.  By default the mapping of types to colors is as follows:
+.. versionchanged:: 11Feb2026
 
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = aqua
-* type 6 = cyan
+   added *index* color style
 
-and repeats itself for types > 6.  There is not yet an option to
-change this via the dump_modify command.
+.. versionchanged:: 30Mar2026
+
+   added *atom* color style
+
+There are currently three supported settings for the *color* value:
+*type*, *index*, or *atom*.  With the *atom* setting, the color follows
+the coloring selected for coloring atoms (including using color maps).
+With the *type* setting the body particles will be colored according to
+the atom type of the particle.  With the *index* setting, colors from
+the list of available per-atom type colors are assigned to the body
+particles in a non-deterministic round-robin fashion.  If more different
+colors than atom types are desired, the *number of atom types* must be
+*increased* correspondingly when using either the :doc:`create_box
+<create_box>` or the :doc:`read_data <read_data>` command.
 
 ----------
 
-The *fix* keyword can be used with a :doc:`fix <fix>` that produces
-objects to be drawn.
+.. versionchanged:: 11Feb2026
 
-The *fflag1* and *fflag2* settings are numerical values which are
-passed to the fix to affect how the drawing of its objects is done.
-See the individual fix page for a description of what these
-parameters mean for a particular fix.
+   Support for computes and several fix styles added and more flexible color selection
 
-The only setting currently allowed for the *color* value is *type*,
-which will color the fix objects according to their type.  By default
-the mapping of types to colors is as follows:
+The *compute* keyword can be used with a :doc:`compute style <compute>`
+that produces information about objects to be drawn. Similarly, the
+*fix* keyword can be used with a :doc:`fix style <fix>` that produces
+information about objects to be drawn.  The compute or fix keywords may
+be used multiple times to include visualizations of graphics objects
+from multiple computes and fixes.  The *compute* keyword is followed by
+the :doc:`compute ID <compute>` of the compute, the color style setting
+and two numerical values *cflag1* and *cflag2*.  The *fix* keyword is
+followed by the :doc:`fix ID <fix>` of the fix, the color style setting
+and two numerical values *fflag1* and *fflag2*.
 
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = aqua
-* type 6 = cyan
+The color style may be either *type*, *element*, or *const*.  The first
+two will use the same color as assigned to the corresponding atom type
+and thus it depends on the implementation of the compute or fix which
+atom type it associates with any object.  Often this will be atom
+type 1.  For the *const* type a constant color will be used that can be
+changed with a *dump_modify ccolor* or *dump_modify fcolor* command (see
+below).  By default the constant color will be "white".
 
-and repeats itself for types > 6.  There is not yet an option to
-change this via the dump_modify command.
+The *cflag1* and *cflag2* or *fflag1* and *fflag2* settings are
+numerical values which are used by *dump image* to adjust how the
+drawing of the objects communicated by the fix is done.  See the
+documentation of the individual computes and fixes for a description of
+what these parameters mean for the graphics objects provided by those
+fixes.
+
+More details and some examples for including graphics objects from compute
+and fix commands are in the :doc:`Howto_viz` howto.
 
 ----------
 
 .. versionadded:: 10Sep2025
 
+.. versionchanged:: 11Feb2026
+
+   draw style *transparent* was added
+
+.. versionchanged:: TBD
+
+   draw triangulated hull from random points for region style *intersect* or *union*
+
 The *region* keyword can be used to create a graphical representation of
 a :doc:`region <region>`.  This can be helpful in debugging the location
 and extent of regions, especially when those have parameters controlled
-by variables.  Three styles of representing a region are available:
-*filled*, *frame*, and *points*.  With style *filled* the surface of the
-region is drawn.  For region styles that support open faces, surfaces
-are not drawn for such open faces.  Draw style *frame* represents the
-region with a mesh of "wires".  The diameter of these "wires" can be
-set.  Unlike with the *filled* style, you can see what is *inside* the
-region with this draw style.  The third draw style *points* generates a
-random point cloud inside the simulation box and draws only those points
-that are within the region.  Draw styles *filled* and *frame* support
-only "primitive" region style (no unions or intersections), but the
-*points* draw style supports all region styles.
+by variables.  The sequence of arguments to the *region* are: the
+region-ID, the color for drawing the region, the draw style, and
+possible additional arguments as required by the draw style.
+
+Four draw styles of representing a region are available: *filled*\,
+*transparent*\, *frame*\, and *points*.  With draw style *filled* the
+surface of the region is triangulated and drawn.  For region styles that
+support open faces, surfaces for such open faces are skipped.  The style
+*transparent* is like *filled* but takes an additional parameter in the
+range of 0.0 to 1.0 that defines the opacity and thus allows to see what
+is inside the region for values < 1.  Draw style *frame* represents the
+region with a mesh of "wires".  The diameter of these "wires" are set
+with the following argument.  Unlike with the *filled* style and similar
+to the *transparent* style, you can see what is *inside* the region with
+this draw style.  The fourth draw style, *points*\, generates a random
+point cloud inside the simulation box and draws only those points that
+are within the region.  This uses the same test than what is used to
+determine if an atom is inside the region but ignores any open faces
+(which would match *all* positions as "inside").  When using draw styles
+*filled*\, *transparent*\, or *frame* with unions or intersections of
+multiple regions an enclosing hull is first created from a point cloud
+that is generated the same way as in the *points* draw style.  The
+number of points used for the hull approximation (default is 100000) can
+be set by the optional *hull_points* keyword.
+
+Recommended transparency values are 0.25, 0.5, or 0.75 when used in
+combination with *fsaa on*.
 
 ----------
 
@@ -556,15 +716,14 @@ The *view*, *center*, *up*, and *zoom* values determine how
 3d simulation space is mapped to the 2d plane of the image.  Basically
 they control how the simulation box appears in the image.
 
-All of the *view*, *center*, *up*, and *zoom* values can be
-specified as numeric quantities, whose meaning is explained below.
-Any of them can also be specified as an :doc:`equal-style variable <variable>`,
-by using v_name as the value, where "name" is
-the variable name.  In this case the variable will be evaluated on the
-timestep each image is created to create a new value.  If the
-equal-style variable is time-dependent, this is a means of changing
-the way the simulation box appears from image to image, effectively
-doing a pan or fly-by view of your simulation.
+All of the *view*, *center*, *up*, and *zoom* values can be specified as
+numeric quantities, whose meaning is explained below.  Any of them can
+also be specified as an :doc:`equal-style variable <variable>`, by using
+v_name as the value, where "name" is the variable name.  In this case
+the variable will be evaluated on the timestep each image is created to
+create a new value.  If the equal-style variable is time-dependent, this
+is a means of changing the way the simulation box appears from image to
+image, effectively doing a pan or fly-by view of your simulation.
 
 The *view* keyword determines the viewpoint from which the simulation
 box is viewed, looking towards the *center* point.  The *theta* value
@@ -592,7 +751,7 @@ center point in simulation space.
 The *up* keyword determines what direction in simulation space will be
 "up" in the image.  Internally it is stored as a vector that is in the
 plane perpendicular to the view vector implied by the *theta* and
-*pni* values, and which is also in the plane defined by the view
+*phi* values, and which is also in the plane defined by the view
 vector and user-specified up vector.  Thus this internal vector is
 computed from the user-specified *up* vector as
 
@@ -620,16 +779,23 @@ is a fraction of the shortest box length in x,y,z (for 3d) or x,y (for
 2d).  The color of the box boundaries can be set with the "dump_modify
 boxcolor" command.
 
+.. versionchanged:: 11Feb2026
+
 The *axes* keyword determines if and how the coordinate axes are
-rendered as thin cylinders in the image.  If *no* is set, then the
-axes are not drawn and the *length* and *diam* settings are ignored.
-If *yes* is set, 3 thin cylinders are drawn to represent the x,y,z
-axes in colors red,green,blue.  The origin of these cylinders will be
-offset from the lower left corner of the box by 10%.  The *length*
-setting determines how long the cylinders will be as a fraction of the
-respective box lengths.  The *diam* setting determines their thickness
-as a fraction of the shortest box length in x,y,z (for 3d) or x,y (for
-2d).
+rendered in the image as arrows with the letters 'X', 'Y', and 'Z' to
+indicate the direction.  If *no* is set, then the axes are not drawn and
+the *length* and *diam* settings are ignored.  If *yes* or *lowerleft*
+is set, 3 arrows are drawn to represent the x,y,z axes in colors red,
+green, and blue, respectively.  The origin of these arrows will be
+offset from the lower left corner of the box by 10%.  If *center* is set
+the origin of the arrows will be in the center of the box. If
+*lowerright* is set, the origin of the arrows will be offset by 20% of
+the lower right corner of the box. If *upperleft* or *upperright* are
+set the origin of the arrows will be placed similar to the lower corner
+arrows, but offset by 20% from the top.  The *length* setting determines
+how long the cylinders will be as a fraction of the respective box
+lengths.  The *diam* setting determines their thickness as a fraction of
+the shortest box length in x,y,z (for 3d) or x,y (for 2d).
 
 The *subbox* keyword determines if and how processor subdomain
 boundaries are rendered as thin cylinders in the image.  If *no* is
@@ -665,110 +831,9 @@ parameter.  If *no* is set, no depth shading is performed.  The
 calculation of this effect can increase the cost of computing the image
 substantially by 5x or more, especially with larger images.  When used
 in combination with the *fsaa* keyword the computational cost of depth
-shading is particularly large.
-
-----------
-
-Image Quality Settings
-""""""""""""""""""""""
-
-The two keywords *fsaa* and *ssao* can be used to improve the image
-quality at the expense of additional computational cost to render the
-images. The images below show from left to right the same render with
-default settings, with *fsaa* added, with *ssao* added, and with both
-keywords added.
-
-.. |imagequality1| image:: JPG/image.default.png
-   :width: 24%
-.. |imagequality2| image:: JPG/image.fsaa.png
-   :width: 24%
-.. |imagequality3| image:: JPG/image.ssao.png
-   :width: 24%
-.. |imagequality4| image:: JPG/image.both.png
-   :width: 24%
-
-|imagequality1|  |imagequality2|  |imagequality3|  |imagequality4|
-
-----------
-
-A series of JPEG, PNG, or PPM images can be converted into a movie
-file and then played as a movie using commonly available tools. Using
-dump style *movie* automates this step and avoids the intermediate
-step of writing (many) image snapshot file. But LAMMPS has to be
-compiled with -DLAMMPS_FFMPEG and an FFmpeg executable have to be
-installed.
-
-To manually convert JPEG, PNG or PPM files into an animated GIF or
-MPEG or other movie file you can use:
-
-* a) Use the ImageMagick convert program.
-
-  .. code-block:: bash
-
-     convert *.jpg foo.gif
-     convert -loop 1 *.ppm foo.mpg
-
-  Animated GIF files from ImageMagick are not optimized. You can use
-  a program like gifsicle to optimize and thus massively shrink them.
-  MPEG files created by ImageMagick are in MPEG-1 format with a rather
-  inefficient compression and low quality compared to more modern
-  compression styles like MPEG-4, H.264, VP8, VP9, H.265 and so on.
-
-* b) Use QuickTime.
-
-  Select "Open Image Sequence" under the File menu Load the images into
-  QuickTime to animate them Select "Export" under the File menu Save the
-  movie as a QuickTime movie (\*.mov) or in another format.  QuickTime
-  can generate very high quality and efficiently compressed movie
-  files. Some of the supported formats require to buy a license and some
-  are not readable on all platforms until specific runtime libraries are
-  installed.
-
-* c) Use FFmpeg
-
-  FFmpeg is a command-line tool that is available on many platforms and
-  allows extremely flexible encoding and decoding of movies.
-
-  .. code-block:: bash
-
-     cat snap.*.jpg | ffmpeg -y -f image2pipe -c:v mjpeg -i - -b:v 2000k movie.m4v
-     cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi
-
-  Front ends for FFmpeg exist for multiple platforms. For more
-  information see the `FFmpeg homepage <https://ffmpeg.org/>`_
-
-----------
-
-Play the movie:
-
-* a) Use your browser to view an animated GIF movie.
-
-  Select "Open File" under the File menu
-  Load the animated GIF file
-
-* b) Use the freely available mplayer or ffplay tool to view a
-  movie. Both are available for multiple OSes and support a large
-  variety of file formats and decoders.
-
-  .. code-block:: bash
-
-     mplayer foo.mpg
-     ffplay bar.avi
-
-* c) Use the `Pizza.py <https://lammps.github.io/pizza/>`_
-  `animate tool <https://lammps.github.io/pizza/doc/animate.html>`_,
-  which works directly on a series of image files.
-
-  .. code-block:: python
-
-     a = animate("foo*.jpg")
-
-* d) QuickTime and other Windows- or macOS-based media players can
-  obviously play movie files directly. Similarly for corresponding tools
-  bundled with Linux desktop environments.  However, due to licensing
-  issues with some file formats, the formats may require installing
-  additional libraries, purchasing a license, or may not be
-  supported.
+shading is particularly large.  In case LAMMPS has been :doc:`compiled
+with OpenMP support <Build_basics>`, the SSAO processing is distributed
+across multiple threads.
 
 ----------
 
@@ -825,15 +890,16 @@ color map.  The color map is used to assign a specific RGB
 based on the atom's attribute, which is a numeric value, e.g. its
 x-component of velocity if the atom-attribute "vx" was specified.
 
-The basic idea of a color map is that the atom-attribute will be
-within a range of values, and that range is associated with a series
-of colors (e.g. red, blue, green).  An atom's specific value (vx =
--3.2) can then mapped to the series of colors (e.g. halfway between
-red and blue), and a specific color is determined via an interpolation
-procedure.
+The basic idea of a color map is that the atom-attribute will be within
+a range of values, and that range is associated with a series of colors
+(e.g. red, blue, green).  An atom's specific value (vx = -3.2) can then
+mapped to the series of colors (e.g. halfway between red and blue), and
+a specific color is determined via an interpolation procedure.  There
+are some example command lines and resulting images at the end of this
+paragraph.
 
-There are many possible options for the color map, enabled by the
-*amap* keyword.  Here are the details.
+There are many possible options for the color map, enabled by the *amap*
+keyword.  Here are the details.
 
 The *lo* and *hi* settings determine the range of values allowed for
 the atom attribute.  If numeric values are used for *lo* and/or *hi*,
@@ -927,29 +993,88 @@ green.  The color of the atom is the color of its bin.  Note that the
 sequential color map is really a shorthand way of defining a discrete
 color map without having to specify where all the bin boundaries are.
 
-Here is an example of using a sequential color map to color all the
-atoms in individual molecules with a different color.  See the
-examples/pour/in.pour.2d.molecule input script for an example of how
-this is used.
+Here is an example for using a sequential color map to color all the
+atoms in individual molecules with a different color.  See below for how
+this can be used in the ``examples/pour/in.pour.2d.molecule`` input
+script.
 
 .. code-block:: LAMMPS
 
-   variable        colors string &
-                   "red green blue yellow white &
-                   purple pink orange lime gray"
-   variable        mol atom mol%10
-   dump            1 all image 250 image.*.jpg v_mol type &
-                   zoom 1.6 adiam 1.5
-   dump_modify     1 pad 5 amap 0 10 sa 1 10 ${colors}
+   variable    colors string "red green blue yellow white purple pink orange lime gray"
+   variable    mol2 atom mol%10
+   dump        2 all image 250 image.*.png v_mol2 type region slab black frame 0.25 &
+                               zoom 3.5 adiam 1.4 size 1200 600 fsaa yes shiny 0.2
+   dump_modify 2 pad 5 amap 0 10 sa 1 10 ${colors} backcolor darkgray boxcolor silver
 
-In this case, 10 colors are defined, and molecule IDs are
-mapped to one of the colors, even if there are 1000s of molecules.
+In this case, 10 colors are defined, and molecule IDs are mapped to one
+of the colors, even if there are 1000s of molecules.
+
+Here is an example for coloring the atoms in the "melt" example by their
+velocity with a custom continuous color map and using :doc:`fix
+graphics/labels <fix_graphics_labels>` to generate a colormap legend:
+
+.. code-block:: LAMMPS
+
+   # compute atom velocity
+   variable vel atom sqrt(vx*vx+vy*vy+vz*vz)
+
+   # overlay the top of the image with a horizontal color scale legend
+   fix obj all graphics/labels 100 colorscale "viz" "Atom Velocity (sigma/tau)" 300.0 560.0 0.0 size 24 &
+               transcolor none framecolor darkgray backcolor darkgray length 800
+
+   # output images and set atom color by the value of the variable "vel"
+   dump viz all image 100 melt-*.png v_vel type size 600 600 zoom 1.4 shiny 0.2 view 85 -5 &
+                          fsaa yes box yes 0.025 center s 0.5 0.5 0.6 fix obj const 1 0
+   dump_modify viz pad 6 boxcolor lightskyblue backcolor darkgray backcolor2 silver adiam * 1.2
+
+   # customize the color map using a continuous map with fractions
+   dump_modify viz amap 0.0 8 cf 0.0 6 min red 0.2 orange 0.4 green 0.6 darkcyan 0.8 blue max purple
+
+This is an altered *dump_modify* command line to generate a sequential color map:
+
+.. code-block:: LAMMPS
+
+   dump_modify viz amap 0.5 5.5 sf 0.167 6 red orange green darkcyan blue purple
+
+And another altered *dump_modify* command line to generate a discrete color map using absolute values:
+
+.. code-block:: LAMMPS
+
+   dump_modify viz amap 0.5 5.5 da 0.0 6 min 1.0 red 1.0 2.0 orange 2.0 3.0 green 3.0 4.0 darkcyan
+
+.. |amap1| image:: img/amap1.png
+   :width: 38%
+.. |amap2| image:: img/amap2.png
+   :width: 19%
+.. |amap3| image:: img/amap3.png
+   :width: 19%
+.. |amap4| image:: img/amap4.png
+   :width: 19%
+
+Here are images of the examples from above.
+
+|amap1|  |amap2|  |amap3|  |amap4|
+
+.. raw:: html
+
+   <center>(Click to see the full-size images)</center>
 
 ----------
 
 The *backcolor* sets the background color of the images.  The color
 name can be any of the 140 pre-defined colors (see below) or a color
 name defined by the dump_modify color option.
+
+.. versionadded:: 11Feb2026
+
+The *backcolor2* sets a second background color of the images to create
+a vertical background gradient.  The regular background color is the
+color at the bottom and *backcolor2* sets the background color at the
+top.  The color in between is a linear interpolation between those two
+colors.  The color name can be any of the 140 pre-defined colors (see
+below) or a color name defined by the dump_modify color option.  Using a
+color name of "none" will disable the background gradient feature (this
+is the default).
 
 ----------
 
@@ -1015,17 +1140,61 @@ dump_modify color option.
 
 ----------
 
-The *color* keyword allows definition of a new color name, in addition
-to the 140-predefined colors (see below), and associates three
-red/green/blue RGB values with that color name.  The color name can
-then be used with any other dump_modify keyword that takes a color
-name as a value.  The RGB values should each be floating point values
-between 0.0 and 1.0 inclusive.
+.. versionchanged:: 30Mar2026
 
-When a color name is converted to RGB values, the user-defined color
-names are searched first, then the 140 pre-defined color names.  This
-means you can also use the *color* keyword to overwrite one of the
-pre-defined color names with new RBG values.
+   add support for entering colors in hexadecimal
+
+The *color* keyword allows defining new named colors or changing the
+definition of the 140-predefined colors (see below).  Three
+red/green/blue RGB values are associated with each color name.  The
+color name can then be used with any other *dump_modify* keyword that
+takes a color name as a value.  The RGB values should be either
+specified as three floating point values between 0.0 and 1.0 inclusive
+or as a single 24-bit hexadecimal number. The following two commands are
+equivalent.
+
+.. code-block:: LAMMPS
+
+   dump_modify 1 color mygray 0.431 0.498 0.502
+   dump_modify 1 color mygray 0x6e7f80
+
+----------
+
+**Transparency settings for atoms bonds and standard visualization objects**
+
+.. versionadded:: 11Feb2026
+
+Various graphical objects in *dump image* output can be rendered in a
+transparent fashion using the so-called screen-door transparency method.
+This means that only a subset of pixels for a graphical object are
+written to the image.  This can be controlled with various
+*dump\_modify* settings: *atrans* for atoms, *btrans* for bonds,
+*axestrans* for axes lines, *boxtrans* for the simulation box, and
+*subboxtrans* for the subdomain box lines.  The transparency value
+must be between 0.0 (invisible) and 1.0 (fully opaque).  The default
+setting for all is 1.0.
+
+Recommended transparency values are 0.25, 0.5, or 0.75 when used in
+combination with *fsaa on*.
+
+----------
+
+.. versionadded:: 11Feb2026
+
+The *fcolor* keyword sets the color of any image objects created by a
+fix when using the color style "const".  The first argument is the fix ID
+used with the *dump image fix* command and the second argument is the
+color name.  The color name can be any of the 140 pre-defined colors
+(see below) or a color name defined by the *dump_modify color* option.
+
+The *ftrans* keyword sets the transparency of any image objects created
+by a fix when using the color style "const".  The first argument is the
+fix ID used with the *dump image fix* command and the second argument is
+the transparency value.  The transparency value must be between 0.0
+(invisible) and 1.0 (fully opaque).  The default setting is 1.0.
+
+Recommended transparency values are 0.25, 0.5, or 0.75 when used in
+combination with *fsaa on*.
 
 ----------
 
@@ -1054,20 +1223,40 @@ The arguments for the *gmap* keyword are identical to those for the
 
 ----------
 
+.. versionadded:: TBD
+
+The *lights* keyword can be used to set the relative intensities of the
+four light sources used to illuminate the scene: *ambient*, *key*,
+*fill*, and *back*.  Each value must be between 0.0 and 1.0.
+
+.. code-block:: LAMMPS
+
+   dump_modify 1 lights 0.3 0.7 0.4 0.2
+
+The *ambient* light provides base-level illumination from all
+directions. The *key* light is the primary light source and creates
+the main highlights. The *fill* light is a secondary light source that
+softens shadows created by the key light. The *back* light illuminates
+the scene from behind the camera to provide depth.
+
+----------
+
 Restrictions
 """"""""""""
 
-To write JPEG images, you must use the -DLAMMPS_JPEG switch when
-building LAMMPS and link with a JPEG library. To write PNG images, you
-must use the -DLAMMPS_PNG switch when building LAMMPS and link with a
-PNG library.
+The *dump image* and *dump movie* commands are part of the GRAPHICS
+package.  They are only enabled if LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` page for more info.
+
+To write JPEG or PNG format images, support for the corresponding
+graphics libraries must have been compiled and linked into LAMMPS.
+Please see the :ref:`instructions for building LAMMPS with the
+GRAPHICS package <graphics>` for more information on how to do that.
 
 To write *movie* dumps, you must use the -DLAMMPS_FFMPEG switch when
 building LAMMPS and have the FFmpeg executable available on the
 machine where LAMMPS is being run.  Typically its name is lowercase
 (i.e., "ffmpeg").
-
-See the :doc:`Build settings <Build_settings>` page for details.
 
 Note that since FFmpeg is run as an external program via a pipe,
 LAMMPS has limited control over its execution and no knowledge about
@@ -1099,7 +1288,12 @@ FFmpeg and which does not have this limitation (e.g., .avi, .mkv, mp4).
 Related commands
 """"""""""""""""
 
-:doc:`dump <dump>`, :doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`
+:doc:`dump <dump>`, :doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`,
+:doc:`fix graphics/arrows <fix_graphics_arrows>`,
+:doc:`fix graphics/isosurface <fix_graphics_isosurface>`,
+:doc:`fix graphics/labels <fix_graphics_labels>`,
+:doc:`fix graphics/objects <fix_graphics_objects>`,
+:doc:`fix graphics/periodic <fix_graphics_periodic>`
 
 Default
 """""""
@@ -1119,25 +1313,32 @@ The defaults for the dump image and dump movie keywords are as follows:
 * zoom = 1.0
 * box = yes 0.02
 * axes = no 0.0 0.0
-* subbox no 0.0
+* subbox = no 0.0
 * shiny = 1.0
 * ssao = no
+* fsaa = no
 
 ----------
 
 The defaults for the dump_modify keywords specific to dump image and dump movie are as follows:
 
-* acolor = \* red/green/blue/yellow/aqua/cyan
+* acolor = \* red/green/blue/yellow/cyan/magenta/silver/orange/chartreuse/gray/darkred/darkgreen/darkblue/darkcyan/darkmagenta/darkgray
 * adiam = \* 1.0
 * amap = min max cf 0.0 2 min blue max red
+* atrans = 1.0
 * backcolor = black
-* bcolor = \* red/green/blue/yellow/aqua/cyan
+* backcolor2 = none
+* bcolor = \* red/green/blue/yellow/cyan/magenta/silver/orange/chartreuse/gray/darkred/darkgreen/darkblue/darkcyan/darkmagenta/darkgray
 * bdiam = \* 0.5
-* bitrate = 2000
+* btrans = 1.0
 * boxcolor = yellow
+* axestrans = 1.0
+* boxtrans = 1.0
+* subboxtrans = 1.0
 * color = 140 color names are pre-defined as listed below
+* lights = 0.0 0.9 0.45 0.9
+* bitrate = 2000
 * framerate = 24
-* fsaa = no
 * gmap = min max cf 0.0 2 min blue max red
 
 ----------
@@ -1176,7 +1377,7 @@ equivalent 0.0 to 1.0 value.
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
 | cyan = 0, 255, 255            | darkblue = 0, 0, 139                 | darkcyan = 0, 139, 139          | darkgoldenrod = 184, 134, 11   | darkgray = 169, 169, 169       |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| darkgreen = 0, 100, 0         | darkkhaki = 189, 183, 107            | darkmagenta = 139, 0, 139       | darkolivegreen = 85, 107, 47   | darkorange = 255, 140, 0       |
+| darkgreen = 0, 100, 0         | darkkhaki = 189, 183, 107            | darkmagenta = 139, 0, 139       | darkolivegreen = 85, 107, 47   | darkorange = 139, 69, 0        |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
 | darkorchid = 153, 50, 204     | darkred = 139, 0, 0                  | darksalmon = 233, 150, 122      | darkseagreen = 143, 188, 143   | darkslateblue = 72, 61, 139    |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
@@ -1186,7 +1387,7 @@ equivalent 0.0 to 1.0 value.
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
 | fuchsia = 255, 0, 255         | gainsboro = 220, 220, 220            | ghostwhite = 248, 248, 255      | gold = 255, 215, 0             | goldenrod = 218, 165, 32       |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| gray = 128, 128, 128          | green = 0, 128, 0                    | greenyellow = 173, 255, 47      | honeydew = 240, 255, 240       | hotpink = 255, 105, 180        |
+| gray = 128, 128, 128          | green = 0, 255, 0                    | greenyellow = 173, 255, 47      | honeydew = 240, 255, 240       | hotpink = 255, 105, 180        |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
 | indianred = 205, 92, 92       | indigo = 75, 0, 130                  | ivory = 255, 240, 240           | khaki = 240, 230, 140          | lavender = 230, 230, 250       |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
@@ -1204,9 +1405,9 @@ equivalent 0.0 to 1.0 value.
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
 | midnightblue = 25, 25, 112    | mintcream = 245, 255, 250            | mistyrose = 255, 228, 225       | moccasin = 255, 228, 181       | navajowhite = 255, 222, 173    |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| navy = 0, 0, 128              | oldlace = 253, 245, 230              | olive = 128, 128, 0             | olivedrab = 107, 142, 35       | orange = 255, 165, 0           |
+| navy = 0, 0, 128              | oldlace = 253, 245, 230              | olive = 128, 128, 0             | olivedrab = 107, 142, 35       | orange = 255, 128, 0           |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| orangered = 255, 69, 0        | orchid = 218, 112, 214               | palegoldenrod = 238, 232, 170   | palegreen = 152, 251, 152      | paleturquoise = 175, 238, 238  |
+| orangered = 255, 64, 0        | orchid = 218, 112, 214               | palegoldenrod = 238, 232, 170   | palegreen = 152, 251, 152      | paleturquoise = 175, 238, 238  |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
 | palevioletred = 219, 112, 147 | papayawhip = 255, 239, 213           | peachpuff = 255, 239, 213       | peru = 205, 133, 63            | pink = 255, 192, 203           |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+

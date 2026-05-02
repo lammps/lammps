@@ -44,14 +44,16 @@ using LAMMPS_NS::utils::uppercase;
 using LAMMPS_NS::EOFException;
 using LAMMPS_NS::ValueTokenizer;
 
-namespace ReaxFF {
+namespace {
+class ffield_parser_error : public std::exception {
+  std::string message;
+public:
+  explicit ffield_parser_error(const std::string &mesg) { message = mesg; }
+  [[nodiscard]] const char *what() const noexcept override { return message.c_str(); }
+};
+}
 
-  class ffield_parser_error : public std::exception {
-    std::string message;
-  public:
-    explicit ffield_parser_error(const std::string &mesg) { message = mesg; }
-    const char *what() const noexcept override { return message.c_str(); }
-  };
+namespace ReaxFF {
 
   void Read_Force_Field(const char *filename, reax_interaction *reax,
                         control_params *control, MPI_Comm world)
@@ -85,7 +87,7 @@ namespace ReaxFF {
         // check if header comment line is present
 
         auto *line = reader.next_line();
-        if (strmatch(line, "^\\s*[0-9]+\\s+!.*general parameters.*"))
+        if (strmatch(line, R"(^\s*[0-9]+\s+!.*general parameters.*)"))
           THROW_ERROR("First line of ReaxFF potential file must be a comment or empty");
         ++lineno;
 
@@ -237,7 +239,7 @@ namespace ReaxFF {
 
             // if line does not start with a floating point number, i.e. is the start
             // of the data for the next element, the file does not support lgflag != 0
-            if (!values.matches("^\\s*\\f+\\s*"))
+            if (!values.matches(R"(^\s*\f+\s*)"))
               THROW_ERROR("ReaxFF potential file is not compatible with 'lgvdw yes'");
 
             CHECK_COLUMNS(2);

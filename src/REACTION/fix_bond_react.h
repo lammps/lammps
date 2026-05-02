@@ -53,7 +53,14 @@ class FixBondReact : public Fix {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   double compute_vector(int) override;
+  std::string get_thermo_colname(int) override;
+  int modify_param(int, char **) override;
   double memory_usage() override;
+
+  void write_restart(FILE *) override;
+  void restart(char *buf) override;
+
+  int image(int *&, double **&) override;
 
  private:
   static constexpr double BIG = 1.0e20;
@@ -114,6 +121,7 @@ class FixBondReact : public Fix {
     struct ReactionAtomFlags {
       int edge;                                            // true if atom in molecule template has incorrect valency
       int landlocked;                                      // true if atom is at least three bonds away from edge atoms
+      bool wildcard;                                       // true if atom type contains a wildcard
       int recharged;                                       // true if atom whose charge should be updated
       int deleted;                                         // true if atom in pre-reacted template to delete
       int created;                                         // true if atom in post-reacted template to create
@@ -201,6 +209,13 @@ class FixBondReact : public Fix {
   int ghostly_num_mega;                                    // num of ghostly reaction instances
   int global_megasize;                                     // num of reaction instances in global_mega_glove
 
+  // arrays for dump image rendering
+
+  int *imgobjs;
+  double **imgparms;
+  std::map<tagint, int> vizatoms;  // maps atom IDs to number of steps they have been highlighted
+  int vizsteps;                    // number of steps to highlight atoms in reactions
+
   void validate_variable_keyword(const char *, int);
   void read_map_file(Reaction &);
   void EdgeIDs(char *, Reaction &, int);
@@ -209,6 +224,7 @@ class FixBondReact : public Fix {
   void CreateAtoms(char *, Reaction &, int);
   void CustomCharges(int, Reaction &);
   void ChiralCenters(char *, Reaction &, int);
+  void ReadWildcards(char *, Reaction &, int);
   void ReadConstraints(char *, Reaction &);
   void readID(char *, Reaction::Constraint &, Reaction &, int);
 
@@ -218,6 +234,7 @@ class FixBondReact : public Fix {
   void check_a_neighbor(Superimpose &, Reaction &);
   void crosscheck_the_neighbor(Superimpose &, Reaction &);
   void inner_crosscheck_loop(Superimpose &, Reaction &);
+  bool compare_atomtype(int, Reaction &, int);
   int ring_check(Reaction &, std::vector<tagint> &);
   int check_constraints(Reaction &, std::vector<tagint> &);
   void get_IDcoords(Reaction::Constraint::IDType, int, double *, Molecule *, std::vector<tagint> &);
@@ -242,8 +259,6 @@ class FixBondReact : public Fix {
   int insert_atoms_setup(tagint **, int, Reaction &);
   void unlimit_bond();                                     // removes atoms from stabilization, and other post-reaction every-step operations
   void dedup_mega_gloves(Dedup_Modes);                     // dedup global mega_glove
-  void write_restart(FILE *) override;
-  void restart(char *buf) override;
 
   // store restart data
   struct Set {

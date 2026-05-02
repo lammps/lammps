@@ -87,8 +87,8 @@ class Output : protected Pointers {
   Dump *add_dump(int, char **);                       // add a Dump to Dump list
   void modify_dump(int, char **);                     // modify a Dump
   void delete_dump(const std::string &);              // delete a Dump from Dump list
-  Dump *get_dump_by_id(const std::string &) const;    // find a Dump by ID
-  Dump *get_dump_by_index(int idx) const              // find a Dump by index in Dump list
+  [[nodiscard]] Dump *get_dump_by_id(const std::string &) const;    // find a Dump by ID
+  [[nodiscard]] Dump *get_dump_by_index(int idx) const              // find a Dump by index in Dump list
   {
     return ((idx >= 0) && (idx < ndump)) ? dump[idx] : nullptr;
   }

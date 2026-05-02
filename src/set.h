@@ -93,6 +93,7 @@ class Set : public Command {
   void process_angle(int &, int, char **, Action *);
   void process_angmom(int &, int, char **, Action *);
   void process_apip_lambda(int &, int, char **, Action *);
+  void process_block(int &, int, char **, Action *);
   void process_bond(int &, int, char **, Action *);
   void process_cc(int &, int, char **, Action *);
   void process_charge(int &, int, char **, Action *);
@@ -147,6 +148,7 @@ class Set : public Command {
   void invoke_angle(Action *);
   void invoke_angmom(Action *);
   void invoke_apip_lambda(Action *);
+  void invoke_block(Action *);
   void invoke_bond(Action *);
   void invoke_cc(Action *);
   void invoke_charge(Action *);

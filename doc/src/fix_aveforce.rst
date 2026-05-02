@@ -97,7 +97,7 @@ the iteration count during the minimization.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

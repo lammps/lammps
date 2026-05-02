@@ -28,7 +28,7 @@ class FixBondCreateAngle : public FixBondCreate {
  public:
   FixBondCreateAngle(LAMMPS *_lmp, int narg, char **arg) : FixBondCreate(_lmp, narg, arg) {}
 
- private:
+ protected:
   int constrain(int, int, double, double) override;
 };
 

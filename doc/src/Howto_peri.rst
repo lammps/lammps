@@ -186,7 +186,7 @@ Linear Peridynamic Solid (LPS) Model
 We summarize the linear peridynamic solid (LPS) material model. For more
 on this model, the reader is referred to :ref:`(Silling 2007)
 <Silling2007_2>`.  This model is a nonlocal analogue to a classical
-linear elastic isotropic material. The elastic properties of a a
+linear elastic isotropic material. The elastic properties of a
 classical linear elastic isotropic material are determined by (for
 example) the bulk and shear moduli. For the LPS model, the elastic
 properties are analogously determined by the bulk and shear moduli,
@@ -558,7 +558,7 @@ both the position and velocity of the particle are stored
 explicitly. The velocity-Verlet scheme is generally expressed in three
 steps. In :ref:`Algorithm 1 <algvelverlet>`, :math:`\rho_i` denotes the
 mass density of a particle and :math:`\widetilde{\textbf{f}}_i^n`
-denotes the the net force density on particle :math:`i` at timestep
+denotes the net force density on particle :math:`i` at timestep
 :math:`n`. The LAMMPS command :doc:`fix nve <fix_nve>` performs a
 velocity-Verlet integration.
 
@@ -818,7 +818,7 @@ the LAMMPS :doc:`boundary <boundary>` command has been set. If a
 particle drifts outside the simulation box during the course of a
 simulation, it is called *lost*.
 
-As an option of the :doc:`themo_modify <thermo_modify>` command of
+As an option of the :doc:`thermo_modify <thermo_modify>` command of
 LAMMPS, the lost keyword determines whether LAMMPS checks for lost atoms
 each time it computes thermodynamics and what it does if atoms are
 lost. If the value is *ignore*, LAMMPS does not check for lost atoms. If

@@ -46,7 +46,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   peratom_freq = 1;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery < 0) error->all(FLERR,"Invalid fix store/state nevery value {}", nevery);
+  if (nevery < 0) error->all(FLERR, 3, "Invalid fix store/state nevery value {}", nevery);
 
   // parse values
   // customize a new keyword by adding to if statement
@@ -68,7 +68,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       val.pack_choice = &FixStoreState::pack_id;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_molecule;
     } else if (strcmp(arg[iarg],"type") == 0) {
@@ -141,83 +141,83 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_q;
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_mux;
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_muy;
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_muz;
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_mu;
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_radius;
     } else if (strcmp(arg[iarg],"diameter") == 0) {
       if (!atom->radius_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_diameter;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_omegax;
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_omegay;
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_omegaz;
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_angmomx;
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_angmomy;
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_angmomz;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_tqx;
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_tqy;
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR, "Cannot use fix store/state {} for atom style {}",
+        error->all(FLERR, iarg, "Cannot use fix store/state {} for atom style {}",
                    arg[iarg], atom->get_style());
       val.pack_choice = &FixStoreState::pack_tqz;
 
@@ -233,7 +233,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
       if (val.which == ArgInfo::NONE) break;
       if ((val.which == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
-        error->all(FLERR,"Illegal fix store/state argument: {}", arg[iarg]);
+        error->all(FLERR, iarg, "Illegal fix store/state argument: {}", arg[iarg]);
     }
     values.push_back(std::move(val));
     iarg++;
@@ -422,29 +422,34 @@ void FixStoreState::init()
     if (val.which == ArgInfo::COMPUTE) {
       val.val.c = modify->get_compute_by_id(val.id);
       if (!val.val.c)
-        error->all(FLERR,"Compute ID {} for fix store/state does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Compute ID {} for fix store/state does not exist", val.id);
 
     } else if (val.which == ArgInfo::FIX) {
       val.val.f = modify->get_fix_by_id(val.id);
       if (!val.val.f)
-        error->all(FLERR,"Fix ID {} for fix store/state does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Fix ID {} for fix store/state does not exist", val.id);
 
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());
       if (val.val.v < 0)
-        error->all(FLERR,"Variable name {} for fix store/state does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Variable name {} for fix store/state does not exist", val.id);
 
     } else if (val.which == ArgInfo::DNAME) {
       int iflag,cols;
       val.val.d = atom->find_custom(val.id.c_str(), iflag, cols);
       if (val.val.d < 0)
-        error->all(FLERR,"Custom vector/array {} for fix store/state does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Custom vector/array {} for fix store/state does not exist", val.id);
 
     } else if (val.which == ArgInfo::INAME) {
       int iflag,cols;
       val.val.i = atom->find_custom(val.id.c_str(), iflag, cols);
       if (val.val.i < 0)
-        error->all(FLERR,"Custom vector/array {} for fix store/state does not exist", val.id);
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Custom vector/array {} for fix store/state does not exist", val.id);
     }
   }
 
@@ -480,7 +485,7 @@ void FixStoreState::setup(int /*vflag*/)
 
 void FixStoreState::end_of_step()
 {
-  // skip storing data is threshold condition is not met
+  // skip storing data if threshold condition is not met
 
   if (threshflag) {
     auto val = input->variable->compute_equal(thresh_idx);

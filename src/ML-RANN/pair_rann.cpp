@@ -38,6 +38,7 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 #include "update.h"
 
@@ -349,7 +350,7 @@ void PairRANN::coeff(int narg, char **arg)
 
 void PairRANN::read_file(char *filename)
 {
-  FILE *fp;
+  SafeFilePtr fp;
   int eof = 0;
   std::string line,line1;
   const int longline = 4096;
@@ -373,7 +374,6 @@ void PairRANN::read_file(char *filename)
     ptr=fgets(linetemp,longline,fp);
     linenum++;
     if (ptr == nullptr) {
-      fclose(fp);
       if (check_potential()) {
         error->one(FLERR,"Invalid syntax in potential file, values are inconsistent or missing");
       }
@@ -438,7 +438,7 @@ void PairRANN::read_atom_types(std::vector<std::string> line,char *filename,int 
 void PairRANN::read_mass(const std::vector<std::string> &line1, const std::vector<std::string> &line2, const char *filename,int linenum) {
   if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before mass in potential file.");
   for (int i=0;i<nelements;i++) {
-    if (line1[1].compare(elements[i])==0) {
+    if (line1[1] == elements[i]) {
       mass[i]=utils::numeric(filename,linenum,line2[0],true,lmp);
       return;
     }
@@ -450,7 +450,7 @@ void PairRANN::read_fpe(std::vector<std::string> line,std::vector<std::string> l
   int i;
   if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before fingerprints per element in potential file.");
   for (i=0;i<nelementsp;i++) {
-    if (line[1].compare(elementsp[i])==0) {
+    if (line[1] == elementsp[i]) {
       fingerprintperelement[i] = utils::inumeric(filename,linenum,line1[0],true,lmp);
       fingerprints[i] = new RANN::Fingerprint *[fingerprintperelement[i]];
       for (int j=0;j<fingerprintperelement[i];j++) {
@@ -472,7 +472,7 @@ void PairRANN::read_fingerprints(std::vector<std::string> line,std::vector<std::
   for (i=1;i<nwords;i++) {
     found = false;
     for (j=0;j<nelementsp;j++) {
-      if (line[i].compare(elementsp[j])==0) {
+      if (line[i] == elementsp[j]) {
         atomtypes[i-1]=j;
         found = true;
         break;
@@ -506,7 +506,7 @@ void PairRANN::read_fingerprint_constants(std::vector<std::string> line,std::vec
   for (i=1;i<=n_body_type;i++) {
     found = false;
     for (j=0;j<nelementsp;j++) {
-      if (line[i].compare(elementsp[j])==0) {
+      if (line[i] == elementsp[j]) {
         atomtypes[i-1]=j;
         found = true;
         break;
@@ -522,7 +522,8 @@ void PairRANN::read_fingerprint_constants(std::vector<std::string> line,std::vec
     for (j=0;j<n_body_type;j++) {
       if (fingerprints[i][k]->atomtypes[j]!=atomtypes[j]) {break;}
       if (j==n_body_type-1) {
-        if (line[nwords-3].compare(fingerprints[i][k]->style)==0 && utils::inumeric(filename,linenum,line[nwords-2],true,lmp)==fingerprints[i][k]->id) {
+        if ((line[nwords-3] == fingerprints[i][k]->style) &&
+            (utils::inumeric(filename,linenum,line[nwords-2],true,lmp)==fingerprints[i][k]->id)) {
           found=true;
           i1 = k;
           break;
@@ -540,7 +541,7 @@ void PairRANN::read_network_layers(std::vector<std::string> line,std::vector<std
   int i,j;
   if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before network layers in potential file.");
   for (i=0;i<nelements;i++) {
-    if (line[1].compare(elements[i])==0) {
+    if (line[1] == elements[i]) {
       net[i].layers = utils::inumeric(filename,linenum,line1[0],true,lmp);
       if (net[i].layers < 1)error->one(filename,linenum,"invalid number of network layers");
       delete[] net[i].dimensions;
@@ -567,8 +568,9 @@ void PairRANN::read_network_layers(std::vector<std::string> line,std::vector<std
 void PairRANN::read_layer_size(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
   int i;
   for (i=0;i<nelements;i++) {
-    if (line[1].compare(elements[i])==0) {
-      if (net[i].layers==0)error->one(filename,linenum-1,"networklayers for each atom type must be defined before the corresponding layer sizes.");
+    if (line[1] == elements[i]) {
+      if (net[i].layers == 0)
+        error->one(filename,linenum-1,"networklayers for each atom type must be defined before the corresponding layer sizes.");
       int j = utils::inumeric(filename,linenum,line[2],true,lmp);
       if (j>=net[i].layers || j<0) {error->one(filename,linenum,"invalid layer in layer size definition");};
       net[i].dimensions[j]= utils::inumeric(filename,linenum,line1[0],true,lmp);
@@ -584,7 +586,7 @@ void PairRANN::read_weight(std::vector<std::string> line,std::vector<std::string
   const int longline = 4096;
   char linetemp [longline];
   for (l=0;l<nelements;l++) {
-    if (line[1].compare(elements[l])==0) {
+    if (line[1] == elements[l]) {
       if (net[l].layers==0)error->one(filename,*linenum-1,"networklayers must be defined before weights.");
       i=utils::inumeric(filename,*linenum,line[2],true,lmp);
       if (i>=net[l].layers || i<0)error->one(filename,*linenum-1,"invalid weight layer");
@@ -619,7 +621,7 @@ void PairRANN::read_bias(std::vector<std::string> line,std::vector<std::string> 
   char linetemp[MAXLINE] = {'\0'};
   char *ptr;
   for (l=0;l<nelements;l++) {
-    if (line[1].compare(elements[l])==0) {
+    if (line[1] == elements[l]) {
       if (net[l].layers==0)error->one(filename,*linenum-1,"networklayers must be defined before biases.");
       i=utils::inumeric(filename,*linenum,line[2],true,lmp);
       if (i>=net[l].layers || i<0)error->one(filename,*linenum-1,"invalid bias layer");
@@ -644,7 +646,7 @@ void PairRANN::read_bias(std::vector<std::string> line,std::vector<std::string> 
 void PairRANN::read_activation_functions(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
   int i,l;
   for (l=0;l<nelements;l++) {
-    if (line[1].compare(elements[l])==0) {
+    if (line[1] == elements[l]) {
       if (net[l].layers==0)error->one(filename,linenum-1,"networklayers must be defined before activation functions.");
       i = strtol(line[2].c_str(),nullptr,10);
       if (i>=net[l].layers || i<0)error->one(filename,linenum-1,"invalid activation layer");
@@ -660,14 +662,15 @@ void PairRANN::read_screening(std::vector<std::string> line,std::vector<std::str
   int i,j,k,*atomtypes;
   bool found;
   int nwords = line.size();
-  if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before fingerprints in potential file.");
+  if (nelements == -1)
+    error->one(filename,linenum-1,"atom types must be defined before fingerprints in potential file.");
   if (nwords!=5)error->one(filename,linenum-1,"invalid screening command");
   int n_body_type = 3;
   atomtypes = new int[n_body_type];
   for (i=1;i<=n_body_type;i++) {
     found = false;
     for (j=0;j<nelementsp;j++) {
-      if (line[i].compare(elementsp[j])==0) {
+      if (line[i] == elementsp[j]) {
         atomtypes[i-1]=j;
         found = true;
         break;
@@ -679,10 +682,10 @@ void PairRANN::read_screening(std::vector<std::string> line,std::vector<std::str
   j = atomtypes[1];
   k = atomtypes[2];
   int index = i*nelements*nelements+j*nelements+k;
-  if (line[4].compare("Cmin")==0)  {
+  if (line[4] == "Cmin")  {
     screening_min[index] = utils::numeric(filename,linenum,line1[0],true,lmp);
   }
-  else if (line[4].compare("Cmax")==0) {
+  else if (line[4] == "Cmax") {
     screening_max[index] = utils::numeric(filename,linenum,line1[0],true,lmp);
   }
   else error->one(filename,linenum-1,"unrecognized screening keyword");

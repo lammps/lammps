@@ -377,7 +377,7 @@ void FixTTMThermal::end_of_step()
                (safe_effective_kappa(k_e_grid[zright][iy][ix],k_e_grid[iz][iy][ix]))*
                (T_electron_old[zright][iy][ix]-T_electron_old[iz][iy][ix])/dz/dz*up
 
-               -(net_energy_transfer_all[iz][iy][ix])/(del_vol)
+               -(net_energy_transfer_all[iz][iy][ix])/del_vol
                +(inductive_power*inductive_response_grid[iz][iy][ix]));
           }
         }
@@ -474,8 +474,6 @@ double FixTTMThermal::compute_vector(int n)
   if (outflag == 0) {
     e_energy = 0.0;
     transfer_energy = 0.0;
-
-    int ix,iy,iz;
 
     double dx = domain->xprd/nxgrid;
     double dy = domain->yprd/nygrid;

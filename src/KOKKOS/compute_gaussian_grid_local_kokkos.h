@@ -54,6 +54,7 @@ template <class DeviceType> class ComputeGaussianGridLocalKokkos : public Comput
   template<class TagStyle>
   void check_team_size_for(int, int&, int);
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagComputeGaussianGridLocalNeigh, const typename Kokkos::TeamPolicy<DeviceType, TagComputeGaussianGridLocalNeigh>::member_type& team) const;
 

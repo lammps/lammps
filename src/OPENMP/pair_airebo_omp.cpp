@@ -1595,9 +1595,9 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
                 Etmp += ((1.0-square(om1234))*w21*w34) *
                   (1.0-tspjik)*(1.0-tspijl);
 
-                dt1dik = (rik2i)-(dctik*sink2i*cos321);
+                dt1dik = rik2i-(dctik*sink2i*cos321);
                 dt1djk = (-dctjk*sink2i*cos321);
-                dt1djl = (rjl2i)-(dctjl*sinl2i*cos234);
+                dt1djl = rjl2i-(dctjl*sinl2i*cos234);
                 dt1dil = (-dctil*sinl2i*cos234);
                 dt1dij = (2.0/(r23mag*r23mag))-(dctij*sink2i*cos321) -
                   (dctji*sinl2i*cos234);
@@ -1664,7 +1664,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
 
                 // coordination forces
 
-                tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
+                tmp2 = VA*Tij*(1.0-(om1234*om1234)) *
                   (1.0-tspjik)*(1.0-tspijl)*dw21*w34/r21mag;
                 f2[0] -= tmp2*r21[0];
                 f2[1] -= tmp2*r21[1];
@@ -1673,7 +1673,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
                 f1[1] += tmp2*r21[1];
                 f1[2] += tmp2*r21[2];
 
-                tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
+                tmp2 = VA*Tij*(1.0-(om1234*om1234)) *
                   (1.0-tspjik)*(1.0-tspijl)*w21*dw34/r34mag;
                 f3[0] -= tmp2*r34[0];
                 f3[1] -= tmp2*r34[1];
@@ -2544,9 +2544,9 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double /* rij_mod */[3], dou
                   om1234 = cwnum/cwnom;
                   cw = om1234;
 
-                  dt1dik = (rik2i)-(dctik*sink2i*cos321);
+                  dt1dik = rik2i-(dctik*sink2i*cos321);
                   dt1djk = (-dctjk*sink2i*cos321);
-                  dt1djl = (rjl2i)-(dctjl*sinl2i*cos234);
+                  dt1djl = rjl2i-(dctjl*sinl2i*cos234);
                   dt1dil = (-dctil*sinl2i*cos234);
                   dt1dij = (2.0/(r23mag*r23mag))-(dctij*sink2i*cos321) -
                     (dctji*sinl2i*cos234);
@@ -2613,7 +2613,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double /* rij_mod */[3], dou
 
                   // coordination forces
 
-                  tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
+                  tmp2 = VA*Tij*(1.0-(om1234*om1234)) *
                     (1.0-tspjik)*(1.0-tspijl)*dw21*w34/r21mag;
                   f2[0] -= tmp2*r21[0];
                   f2[1] -= tmp2*r21[1];
@@ -2622,7 +2622,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double /* rij_mod */[3], dou
                   f1[1] += tmp2*r21[1];
                   f1[2] += tmp2*r21[2];
 
-                  tmp2 = VA*Tij*((1.0-(om1234*om1234))) *
+                  tmp2 = VA*Tij*(1.0-(om1234*om1234)) *
                     (1.0-tspjik)*(1.0-tspijl)*w21*dw34/r34mag;
                   f3[0] -= tmp2*r34[0];
                   f3[1] -= tmp2*r34[1];

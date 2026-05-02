@@ -33,6 +33,7 @@ using namespace MathSpecialKokkos;
 // -5 => G = +-sqrt(abs(1+gamma))
 //
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT MEAMKokkos<DeviceType>::G_gam(const KK_FLOAT gamma, const int ibar, int &errorflag) const
 {
@@ -76,6 +77,7 @@ KK_FLOAT MEAMKokkos<DeviceType>::G_gam(const KK_FLOAT gamma, const int ibar, int
 // -5 => G = +-sqrt(abs(1+gamma))
 //
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT MEAMKokkos<DeviceType>::dG_gam(const KK_FLOAT gamma, const int ibar, KK_FLOAT& dG) const
 {
@@ -126,6 +128,7 @@ KK_FLOAT MEAMKokkos<DeviceType>::dG_gam(const KK_FLOAT gamma, const int ibar, KK
 // Compute ZBL potential
 //
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT MEAMKokkos<DeviceType>::zbl(const KK_FLOAT r, const int z1, const int z2) const
 {
@@ -151,6 +154,7 @@ KK_FLOAT MEAMKokkos<DeviceType>::zbl(const KK_FLOAT r, const int z1, const int z
 // Compute embedding function F(rhobar) and derivative F'(rhobar), eqn I.5
 //
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT MEAMKokkos<DeviceType>::embedding(const KK_FLOAT A, const KK_FLOAT Ec, const KK_FLOAT rhobar, KK_FLOAT& dF) const
 {
@@ -175,6 +179,7 @@ KK_FLOAT MEAMKokkos<DeviceType>::embedding(const KK_FLOAT A, const KK_FLOAT Ec, 
 // Compute Rose energy function, I.16
 //
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT MEAMKokkos<DeviceType>::erose(const KK_FLOAT r, const KK_FLOAT re, const KK_FLOAT alpha, const KK_FLOAT Ec, const KK_FLOAT repuls,
             const KK_FLOAT attrac, const int form) const
@@ -204,6 +209,7 @@ KK_FLOAT MEAMKokkos<DeviceType>::erose(const KK_FLOAT r, const KK_FLOAT re, cons
 // Shape factors for various configurations
 //
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void MEAMKokkos<DeviceType>::get_shpfcn(const lattice_t latt, const KK_FLOAT sthe, const KK_FLOAT cthe, KK_FLOAT (&s)[3]) const
 {
@@ -257,6 +263,7 @@ void MEAMKokkos<DeviceType>::get_shpfcn(const lattice_t latt, const KK_FLOAT sth
 // Number of neighbors for the reference structure
 //
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int MEAMKokkos<DeviceType>::get_Zij(const lattice_t latt) const
 {

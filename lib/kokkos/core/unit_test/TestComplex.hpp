@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <Kokkos_Macros.hpp>
 
@@ -31,7 +18,13 @@
 #endif
 #endif
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
+#include <complex>
 #include <sstream>
 
 namespace {
@@ -46,7 +39,7 @@ namespace Test {
 template <class ExecSpace>
 struct TestComplexConstruction {
   Kokkos::View<Kokkos::complex<double> *, ExecSpace> d_results;
-  typename Kokkos::View<Kokkos::complex<double> *, ExecSpace>::HostMirror
+  typename Kokkos::View<Kokkos::complex<double> *, ExecSpace>::host_mirror_type
       h_results;
 
   void testit() {
@@ -127,7 +120,7 @@ TEST(TEST_CATEGORY, complex_construction) {
 template <class ExecSpace>
 struct TestComplexBasicMath {
   Kokkos::View<Kokkos::complex<double> *, ExecSpace> d_results;
-  typename Kokkos::View<Kokkos::complex<double> *, ExecSpace>::HostMirror
+  typename Kokkos::View<Kokkos::complex<double> *, ExecSpace>::host_mirror_type
       h_results;
 
   void testit() {
@@ -156,10 +149,8 @@ struct TestComplexBasicMath {
     ASSERT_FLOAT_EQ(h_results(2).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(2).imag(), r.imag());
     r = a / b;
-#ifndef KOKKOS_WORKAROUND_OPENMPTARGET_CLANG
     ASSERT_FLOAT_EQ(h_results(3).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(3).imag(), r.imag());
-#endif
     r = d + a;
     ASSERT_FLOAT_EQ(h_results(4).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(4).imag(), r.imag());
@@ -206,11 +197,8 @@ struct TestComplexBasicMath {
     ASSERT_FLOAT_EQ(h_results(18).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(18).imag(), r.imag());
     r = c / a;
-#ifndef KOKKOS_WORKAROUND_OPENMPTARGET_CLANG
     ASSERT_FLOAT_EQ(h_results(19).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(19).imag(), r.imag());
-#endif
-
     r = a;
     /* r = a+e; */ ASSERT_FLOAT_EQ(h_results(20).real(), r.real() + e);
     ASSERT_FLOAT_EQ(h_results(20).imag(), r.imag());
@@ -279,7 +267,7 @@ TEST(TEST_CATEGORY, complex_basic_math) {
 template <class ExecSpace>
 struct TestComplexSpecialFunctions {
   Kokkos::View<Kokkos::complex<double> *, ExecSpace> d_results;
-  typename Kokkos::View<Kokkos::complex<double> *, ExecSpace>::HostMirror
+  typename Kokkos::View<Kokkos::complex<double> *, ExecSpace>::host_mirror_type
       h_results;
 
   void testit() {
@@ -313,7 +301,6 @@ struct TestComplexSpecialFunctions {
     r = Kokkos::exp(a);
     ASSERT_FLOAT_EQ(h_results(4).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(4).imag(), r.imag());
-#ifndef KOKKOS_WORKAROUND_OPENMPTARGET_CLANG
     r = std::log(a);
     ASSERT_FLOAT_EQ(h_results(5).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(5).imag(), r.imag());
@@ -342,8 +329,7 @@ struct TestComplexSpecialFunctions {
     ASSERT_FLOAT_EQ(h_results(13).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(13).imag(), r.imag());
     // atanh
-    // Work around a bug in gcc 5.3.1 where the compiler cannot compute atanh
-    r = {0.163481616851666003, 1.27679502502111284};
+    r = std::atanh(a);
     ASSERT_FLOAT_EQ(h_results(14).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(14).imag(), r.imag());
     r = std::asin(a);
@@ -353,15 +339,17 @@ struct TestComplexSpecialFunctions {
     ASSERT_FLOAT_EQ(h_results(16).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(16).imag(), r.imag());
     // atan
-    // Work around a bug in gcc 5.3.1 where the compiler cannot compute atan
-    r = {1.380543138238714, 0.2925178131625636};
+    r = std::atan(a);
     ASSERT_FLOAT_EQ(h_results(17).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(17).imag(), r.imag());
     // log10
     r = std::log10(a);
     ASSERT_FLOAT_EQ(h_results(18).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(18).imag(), r.imag());
-#endif
+    // norm
+    r = std::norm(a);
+    ASSERT_FLOAT_EQ(h_results(19).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(19).imag(), r.imag());
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -388,6 +376,7 @@ struct TestComplexSpecialFunctions {
     d_results(16) = Kokkos::acos(a);
     d_results(17) = Kokkos::atan(a);
     d_results(18) = Kokkos::log10(a);
+    d_results(19) = Kokkos::norm(a);
   }
 };
 
@@ -414,15 +403,12 @@ TEST(TEST_CATEGORY, complex_special_funtions) {
 
 TEST(TEST_CATEGORY, complex_io) { testComplexIO(); }
 
-TEST(TEST_CATEGORY, complex_trivially_copyable) {
-  // Kokkos::complex<RealType> is trivially copyable when RealType is
-  // trivially copyable
-  using RealType = double;
-  // clang claims compatibility with gcc 4.2.1 but all versions tested know
-  // about std::is_trivially_copyable.
-  ASSERT_TRUE(std::is_trivially_copyable_v<Kokkos::complex<RealType>> ||
-              !std::is_trivially_copyable_v<RealType>);
-}
+static_assert(std::is_trivially_copyable_v<Kokkos::complex<float>>);
+static_assert(std::is_trivially_copyable_v<Kokkos::complex<double>>);
+#ifndef KOKKOS_IMPL_32BIT  // FIXME_32BIT
+// error: requested alignment '24' is not a positive power of 2
+static_assert(std::is_trivially_copyable_v<Kokkos::complex<long double>>);
+#endif
 
 template <class ExecSpace>
 struct TestBugPowAndLogComplex {
@@ -456,62 +442,6 @@ TEST(TEST_CATEGORY, complex_issue_3865) {
   TestBugPowAndLogComplex<TEST_EXECSPACE>();
 }
 
-#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
-TEST(TEST_CATEGORY, complex_issue_3867) {
-  ASSERT_EQ(Kokkos::pow(Kokkos::complex<double>(2., 1.), 3.),
-            Kokkos::pow(Kokkos::complex<double>(2., 1.), 3));
-  ASSERT_EQ(
-      Kokkos::pow(Kokkos::complex<double>(2., 1.), 3.),
-      Kokkos::pow(Kokkos::complex<double>(2., 1.), Kokkos::complex<double>(3)));
-
-  auto x = Kokkos::pow(Kokkos::complex<double>(2, 1),
-                       Kokkos::complex<double>(-3, 4));
-  auto y = Kokkos::complex<double>(
-      std::pow(std::complex<double>(2, 1), std::complex<double>(-3, 4)));
-  ASSERT_FLOAT_EQ(x.real(), y.real());
-  ASSERT_FLOAT_EQ(x.imag(), y.imag());
-
-#define CHECK_POW_COMPLEX_PROMOTION(ARGTYPE1, ARGTYPE2, RETURNTYPE)          \
-  static_assert(                                                             \
-      std::is_same<RETURNTYPE,                                               \
-                   decltype(Kokkos::pow(std::declval<ARGTYPE1>(),            \
-                                        std::declval<ARGTYPE2>()))>::value); \
-  static_assert(                                                             \
-      std::is_same<RETURNTYPE,                                               \
-                   decltype(Kokkos::pow(std::declval<ARGTYPE2>(),            \
-                                        std::declval<ARGTYPE1>()))>::value);
-
-  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<long double>, long double,
-                              Kokkos::complex<long double>);
-  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<long double>, double,
-                              Kokkos::complex<long double>);
-  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<long double>, float,
-                              Kokkos::complex<long double>);
-  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<long double>, int,
-                              Kokkos::complex<long double>);
-
-  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<double>, long double,
-                              Kokkos::complex<long double>);
-  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<double>, double,
-                              Kokkos::complex<double>);
-  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<double>, float,
-                              Kokkos::complex<double>);
-  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<double>, int,
-                              Kokkos::complex<double>);
-
-  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<float>, long double,
-                              Kokkos::complex<long double>);
-  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<float>, double,
-                              Kokkos::complex<double>);
-  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<float>, float,
-                              Kokkos::complex<float>);
-  CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<float>, int,
-                              Kokkos::complex<double>);
-
-#undef CHECK_POW_COMPLEX_PROMOTION
-}
-#endif
-
 TEST(TEST_CATEGORY, complex_operations_arithmetic_types_overloads) {
   static_assert(Kokkos::real(1) == 1.);
   static_assert(Kokkos::real(2.f) == 2.f);
@@ -531,14 +461,13 @@ TEST(TEST_CATEGORY, complex_operations_arithmetic_types_overloads) {
   static_assert((std::is_same_v<decltype(Kokkos::imag(3.)), double>));
   static_assert((std::is_same_v<decltype(Kokkos::real(4.l)), long double>));
 
-  // FIXME in principle could be checked at compile time too
-  ASSERT_EQ(Kokkos::conj(1), Kokkos::complex<double>(1));
-  ASSERT_EQ(Kokkos::conj(2.f), Kokkos::complex<float>(2.f));
-  ASSERT_EQ(Kokkos::conj(3.), Kokkos::complex<double>(3.));
+  static_assert(Kokkos::conj(1) == Kokkos::complex<double>(1));
+  static_assert(Kokkos::conj(2.f) == Kokkos::complex<float>(2.f));
+  static_assert(Kokkos::conj(3.) == Kokkos::complex<double>(3.));
 // long double has size 12 but Kokkos::complex requires 2*sizeof(T) to be a
 // power of two.
 #ifndef KOKKOS_IMPL_32BIT
-  ASSERT_EQ(Kokkos::conj(4.l), Kokkos::complex<long double>(4.l));
+  static_assert(Kokkos::conj(4.l) == Kokkos::complex<long double>(4.l));
   static_assert(
       (std::is_same_v<decltype(Kokkos::conj(1)), Kokkos::complex<double>>));
 #endif
@@ -556,7 +485,7 @@ struct TestComplexStructuredBindings {
   using value_type       = double;
   using complex_type     = Kokkos::complex<double>;
   using device_view_type = Kokkos::View<complex_type *, exec_space>;
-  using host_view_type   = typename device_view_type::HostMirror;
+  using host_view_type   = typename device_view_type::host_mirror_type;
 
   device_view_type d_results;
   host_view_type h_results;
@@ -743,6 +672,37 @@ constexpr bool comparison_in_constant_expression() {
 }
 
 static_assert(comparison_in_constant_expression());
+
+constexpr bool test_complex_norm() {
+  return Kokkos::norm(Kokkos::complex<double>{4., 2.}) == 20.;
+}
+static_assert(test_complex_norm());
+
+constexpr bool test_overload_norm() {
+  constexpr auto res_int = Kokkos::norm(int(100000));
+  static_assert(std::same_as<decltype(res_int), const double>);
+  static_assert(res_int == 1e10);
+
+  constexpr auto res_float = Kokkos::norm(float(666.));
+  static_assert(std::same_as<decltype(res_float), const float>);
+  static_assert(res_float == 666. * 666.);
+
+  return true;
+}
+static_assert(test_overload_norm());
+
+constexpr bool test_complex_conj() {
+  static_assert(Kokkos::conj(Kokkos::complex<double>{1., 1.}) ==
+                Kokkos::complex<double>{1., -1.});
+  static_assert(Kokkos::conj(Kokkos::complex<double>{1., -1.}) ==
+                Kokkos::complex<double>{1., 1.});
+  static_assert(Kokkos::conj(Kokkos::complex<double>{-1., 1.}) ==
+                Kokkos::complex<double>{-1., -1.});
+  static_assert(Kokkos::conj(Kokkos::complex<double>{-1., -1.}) ==
+                Kokkos::complex<double>{-1., 1.});
+  return true;
+}
+static_assert(test_complex_conj());
 
 }  // namespace Test
 

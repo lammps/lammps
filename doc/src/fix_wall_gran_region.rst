@@ -282,6 +282,14 @@ No parameter of this fix can be used with the *start/stop* keywords of the
 :doc:`run <run>` command. This fix is not invoked during :doc:`energy
 minimization <minimize>`.
 
+Dump image info
+"""""""""""""""
+
+This fix does **not** support the *fix* keyword of the :doc:`dump image
+<dump_image>` command.  Instead the region used by the fix can be
+visualized using the *region* keyword of *dump image*.
+
+
 Restrictions
 """"""""""""
 

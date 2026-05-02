@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 /*--------------------------------------------------------------------------*/
 
@@ -21,6 +8,7 @@
 
 #include <HIP/Kokkos_HIP_Space.hpp>
 #include <HIP/Kokkos_HIP_Error.hpp>
+#include <impl/Kokkos_HostSharedPtr.hpp>
 
 #include <hip/hip_runtime_api.h>
 
@@ -33,17 +21,20 @@ namespace Kokkos {
 namespace Impl {
 
 struct HIPTraits {
-#if defined(KOKKOS_ARCH_AMD_GFX906) || defined(KOKKOS_ARCH_AMD_GFX908) || \
-    defined(KOKKOS_ARCH_AMD_GFX90A) || defined(KOKKOS_ARCH_AMD_GFX940) || \
-    defined(KOKKOS_ARCH_AMD_GFX942) || defined(KOKKOS_ARCH_AMD_GFX942_APU)
+#if defined(KOKKOS_ARCH_AMD_GFX906) || defined(KOKKOS_ARCH_AMD_GFX908) ||     \
+    defined(KOKKOS_ARCH_AMD_GFX90A) || defined(KOKKOS_ARCH_AMD_GFX940) ||     \
+    defined(KOKKOS_ARCH_AMD_GFX942) || defined(KOKKOS_ARCH_AMD_GFX942_APU) || \
+    defined(KOKKOS_ARCH_AMD_GFX950)
   static constexpr int WarpSize       = 64;
   static constexpr int WarpIndexMask  = 0x003f; /* hexadecimal for 63 */
   static constexpr int WarpIndexShift = 6;      /* WarpSize == 1 << WarpShift*/
 #elif defined(KOKKOS_ARCH_AMD_GFX1030) || defined(KOKKOS_ARCH_AMD_GFX1100) || \
-    defined(KOKKOS_ARCH_AMD_GFX1103)
+    defined(KOKKOS_ARCH_AMD_GFX1103) || defined(KOKKOS_ARCH_AMD_GFX1201)
   static constexpr int WarpSize       = 32;
   static constexpr int WarpIndexMask  = 0x001f; /* hexadecimal for 31 */
   static constexpr int WarpIndexShift = 5;      /* WarpSize == 1 << WarpShift*/
+#else
+#error "Unexpected AMD GFX architecture!"
 #endif
   static constexpr int ConservativeThreadsPerBlock =
       256;  // conservative fallback blocksize in case of spills
@@ -55,8 +46,6 @@ struct HIPTraits {
 };
 
 //----------------------------------------------------------------------------
-
-HIP::size_type hip_internal_multiprocessor_count();
 
 HIP::size_type *hip_internal_scratch_space(const HIP &instance,
                                            const std::size_t size);
@@ -120,6 +109,7 @@ struct SharedResourceLock {
   SharedResourceLock(SharedResourceLock &&other)                 = delete;
   SharedResourceLock &operator=(SharedResourceLock const &other) = delete;
   SharedResourceLock &operator=(SharedResourceLock &&other)      = delete;
+  ~SharedResourceLock()                                          = default;
 
   // Acquire the right to use the shared resource. The instance is locked first.
   [[nodiscard]] auto acquire() {
@@ -156,15 +146,13 @@ struct SharedResourceLock {
 };
 
 class HIPInternal {
- private:
-  HIPInternal(const HIPInternal &);
-  HIPInternal &operator=(const HIPInternal &);
-
  public:
   using size_type = ::Kokkos::HIP::size_type;
 
   int m_hipDev = -1;
   static int m_maxThreadsPerSM;
+
+  static HostSharedPtr<HIPInternal> default_instance;
 
   static hipDeviceProp_t m_deviceProp;
 
@@ -194,31 +182,21 @@ class HIPInternal {
   int32_t *m_scratch_locks                        = nullptr;
   size_t m_num_scratch_locks                      = 0;
 
-  bool was_finalized = false;
-
   static std::set<int> hip_devices;
   static std::map<int, unsigned long *> constantMemHostStaging;
   static std::map<int, SharedResourceLock> constantMemReusable;
 
-  static HIPInternal &singleton();
-
   int verify_is_initialized(const char *const label) const;
 
-  int is_initialized() const {
-    return nullptr != m_scratchSpace && nullptr != m_scratchFlags;
-  }
-
-  void initialize(hipStream_t stream);
-  void finalize();
+  HIPInternal(hipStream_t stream);
+  ~HIPInternal();
+  HIPInternal(const HIPInternal &)            = delete;
+  HIPInternal &operator=(const HIPInternal &) = delete;
 
   void print_configuration(std::ostream &) const;
 
   void fence() const;
   void fence(const std::string &) const;
-
-  ~HIPInternal();
-
-  HIPInternal() = default;
 
   // Using HIP API function/objects will be w.r.t. device 0 unless
   // hipSetDevice(device_id) is called with the correct device_id.

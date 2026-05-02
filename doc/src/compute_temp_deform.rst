@@ -11,10 +11,16 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID temp/deform
+   compute ID group-ID temp/deform keyword value ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * temp/deform = style name of this compute command
+* zero or more keyword/value pairs may be appended
+* keyword = *temp*
+
+  .. parsed-literal::
+
+     *temp* value = compute ID that calculates a temperature
 
 Examples
 """"""""
@@ -46,6 +52,35 @@ large *x* velocity.  This position-dependent streaming velocity is
 subtracted from each atom's actual velocity to yield a thermal
 velocity, which is then used to compute the temperature.
 
+.. versionchanged:: 11Feb2026
+
+The method for calculating temperature once the streaming velocity
+has been removed depends on the internal temperature compute.
+By default if the *temp* keyword is omitted,
+:doc:`compute temp <compute_temp>` is used, and the internal
+temperature compute is created automatically as if the following command
+had been issued:
+
+.. code-block:: LAMMPS
+
+   compute compute-ID_temp group-ID temp
+
+The *temp* keyword allows an alternative internal temperature compute to be
+specified.  For example, this can be used to exclude some directions with
+:doc:`compute temp/partial <compute_temp_partial>`, or account for
+additional bias beyond that due to deformation by using
+:doc:`compute temp/profile <compute_temp_profile>`.  The group ID of
+compute temp/deform and the internal temperature compute must match.
+The internal temperature compute can be changed with the
+:doc:`compute_modify <compute_modify>` command.
+
+.. note::
+
+   If the internal temperature compute is evaluated directly,
+   e.g. with "c_compute-ID_temp" or "c_compute-ID_temp[*]", then
+   the streaming component of the velocity will NOT be removed for
+   that calculation.
+
 .. note::
 
    :doc:`Fix deform <fix_deform>` has an option for remapping either
@@ -58,10 +93,14 @@ velocity, which is then used to compute the temperature.
    move with the box but their velocity is not changed, and thus they do
    NOT have the streaming velocity assumed by this compute.  LAMMPS will
    warn you if fix deform is defined and its remap setting is not
-   consistent with this compute.
+   consistent with this compute.  A similar situation arises if
+   :doc:`fix nvt/sllod <fix_nvt_sllod>` is used with the "peculiar yes"
+   option.
 
-After the streaming velocity has been subtracted from each atom, the
-temperature is calculated by the formula
+After the streaming velocity has been subtracted from each atom,
+the temperature is calculated as specified by the internal temperature
+compute.  With :doc:`compute temp <compute_temp>` as the internal temperature
+compute (the default), the temperature is calculated by the formula
 
 .. math::
 
@@ -71,23 +110,36 @@ where KE is the total kinetic energy of the group of atoms (sum of
 :math:`\frac12 m v^2`, dim = 2 or 3 is the dimensionality of the
 simulation, :math:`N` is the number of atoms in the group, :math:`k_B`
 is the Boltzmann constant, and :math:`T` is the temperature.  Note that
-:math:`v` in the kinetic energy formula is the atom's velocity.
+:math:`v` in the kinetic energy formula is the atom's velocity with the
+streaming component removed.
 
 A symmetric tensor, stored as a six-element vector, is also calculated
 by this compute for use in the computation of a pressure tensor by the
 :doc:`compute pressue <compute_pressure>` command.  The formula for
-the components of the tensor is the same as the above expression for
-:math:`E_\mathrm{kin}`, except that the 1/2 factor is NOT included and
-the :math:`v_i^2` is replaced by :math:`v_{i,x} v_{i,y}` for the
-:math:`xy` component, and so on.  Note that because it lacks the 1/2
-factor, these tensor components are twice those of the traditional
+the components of the tensor is also dictated by the internal temperature
+compute. With :doc:`compute temp <compute_temp>` it is the same as the
+above expression for :math:`E_\mathrm{kin}`, except that the 1/2 factor
+is NOT included and the :math:`v_i^2` is replaced by :math:`v_{i,x} v_{i,y}`
+for the :math:`xy` component, and so on.  Note that because it lacks
+the 1/2 factor, these tensor components are twice those of the traditional
 kinetic energy tensor.  The six components of the vector are ordered
 :math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`,
 :math:`yz`.
 
 The number of atoms contributing to the temperature is assumed to be
-constant for the duration of the run; use the *dynamic* option of the
+constant for the duration of the run; use the *dynamic/dof* option of the
 :doc:`compute_modify <compute_modify>` command if this is not the case.
+This will also flag the internal temperature compute to treat the number
+of atoms as dynamic as if the following command had been issued:
+
+.. code-block:: LAMMPS
+
+   compute_modify internal-tcompute-ID dynamic/dof value
+
+.. warning::
+
+   Setting the dynamic/dof flag of the internal temperature compute
+   but not compute temp/deform may lead to incorrect results.
 
 The removal of the box deformation velocity component by this fix is
 essentially computing the temperature after a "bias" has been removed
@@ -98,14 +150,20 @@ be performed, and the bias will be added back in.  Thermostatting
 fixes that work in this way include :doc:`fix nvt <fix_nh>`,
 :doc:`fix temp/rescale <fix_temp_rescale>`,
 :doc:`fix temp/berendsen <fix_temp_berendsen>`, and
-:doc:`fix langevin <fix_langevin>`.
+:doc:`fix langevin <fix_langevin>`.  If the internal
+temperature compute also subtracts a bias, then it will be calculated
+and subtracted after the box deformation component has been removed,
+and the velocity after both biases have been subtracted is the one
+to which the thermostat will be applied.
 
 .. note::
 
-   The temperature calculated by this compute is only accurate if
-   the atoms are indeed moving with a stream velocity profile that
-   matches the box deformation.  If not, then the compute will subtract
-   off an incorrect stream velocity, yielding a bogus thermal
+   With compute temp as the internal temperature compute, or other
+   temperature computes which don't calculate an additional bias from
+   the atom velocities, the temperature calculated by this compute is
+   only accurate if the atoms are indeed moving with a stream velocity
+   profile that matches the box deformation.  If not, then the compute
+   will subtract off an incorrect stream velocity, yielding a bogus thermal
    temperature.  You should **not** assume that your atoms are streaming at
    the same rate the box is deforming.  Rather, you should monitor their
    velocity profiles (e.g., via the :doc:`fix ave/chunk <fix_ave_chunk>`
@@ -117,12 +175,17 @@ fixes that work in this way include :doc:`fix nvt <fix_nh>`,
    command for more details on ways to get atoms to stream consistently with
    the box deformation.
 
-This compute subtracts out degrees-of-freedom due to fixes that
-constrain molecular motion, such as :doc:`fix shake <fix_shake>` and
-:doc:`fix rigid <fix_rigid>`.  This means the temperature of groups of
-atoms that include these constraints will be computed correctly.  If
-needed, the subtracted degrees-of-freedom can be altered using the
-*extra* option of the :doc:`compute_modify <compute_modify>` command.
+Subtracting out degrees-of-freedom due to fixes that constrain molecular
+motion, such as :doc:`fix shake <fix_shake>` and :doc:`fix rigid <fix_rigid>`
+is handled by the internal temperature compute.  This means the temperature of
+groups of atoms that include these constraints will be computed correctly.  If
+needed, the subtracted degrees-of-freedom can be altered using the *extra/dof*
+option of the :doc:`compute_modify <compute_modify>` command, which will
+have the same effect as if the following command were issued:
+
+.. code-block:: LAMMPS
+
+   compute_modify internal-tcompute-ID extra/dof value
 
 See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
@@ -152,7 +215,7 @@ values are in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

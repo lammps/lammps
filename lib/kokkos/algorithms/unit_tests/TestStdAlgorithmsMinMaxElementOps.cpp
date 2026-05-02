@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 
@@ -310,7 +297,6 @@ void std_algorithms_min_max_element_test::test_minmax_element_non_trivial_data(
   }
 }
 
-#if !defined KOKKOS_ENABLE_OPENMPTARGET
 template <class ViewType>
 void std_algorithms_min_max_element_test::
     test_max_element_non_trivial_data_custom_comp(ViewType view) {
@@ -391,7 +377,6 @@ void std_algorithms_min_max_element_test::
     }
   }
 }
-#endif
 
 // trivial case
 TEST_F(std_algorithms_min_max_element_test, min_element_empty_range) {
@@ -419,7 +404,6 @@ TEST_F(std_algorithms_min_max_element_test, max_element_non_trivial_data) {
   test_max_element_non_trivial_data(m_strided_view);
 }
 
-#if !defined KOKKOS_ENABLE_OPENMPTARGET
 // non-trivial data, custom comp
 TEST_F(std_algorithms_min_max_element_test,
        min_element_non_trivial_data_custom_comp) {
@@ -434,10 +418,7 @@ TEST_F(std_algorithms_min_max_element_test,
   test_max_element_non_trivial_data_custom_comp(m_dynamic_view);
   test_max_element_non_trivial_data_custom_comp(m_strided_view);
 }
-#endif
 
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_COMPILER_CLANG) && \
-    (KOKKOS_COMPILER_CLANG >= 1300)
 TEST_F(std_algorithms_min_max_element_test, minmax_element_empty_range) {
   test_minmax_element_empty_range(m_static_view);
   test_minmax_element_empty_range(m_dynamic_view);
@@ -449,17 +430,13 @@ TEST_F(std_algorithms_min_max_element_test, minmax_element_non_trivial_data) {
   test_minmax_element_non_trivial_data(m_dynamic_view);
   test_minmax_element_non_trivial_data(m_strided_view);
 }
-#endif
 
-#if !defined KOKKOS_ENABLE_OPENMPTARGET
-// OpenMPTarget does not yet support custom comparator
 TEST_F(std_algorithms_min_max_element_test,
        minmax_element_non_trivial_data_custom_comp) {
   test_minmax_element_non_trivial_data_custom_comp(m_static_view);
   test_minmax_element_non_trivial_data_custom_comp(m_dynamic_view);
   test_minmax_element_non_trivial_data_custom_comp(m_strided_view);
 }
-#endif
 
 }  // namespace stdalgos
 }  // namespace Test

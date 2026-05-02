@@ -55,7 +55,7 @@ available:
      - Tests for ``ArgInfo`` class used by LAMMPS
    * - ``test_fmtlib.cpp``
      - FmtLib
-     - Tests for ``fmtlib::`` functions used by LAMMPS
+     - Tests for ``{fmt}`` or ``std::format`` functions used by LAMMPS
    * - ``test_math_eigen_impl.cpp``
      - MathEigen
      - Tests for ``MathEigen::`` classes and functions
@@ -147,7 +147,7 @@ additional tests.
 FFT Testing Infrastructure
 """"""""""""""""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 10Dec2025
 
 The FFT tests (``test_fft3d.cpp`` and ``test_fft3d_kokkos.cpp``)
 validate the LAMMPS FFT wrapper implementations for both standard (CPU)

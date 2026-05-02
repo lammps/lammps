@@ -244,7 +244,7 @@ support for bosonic normal modes.
    (:math:`\sum_{i=1}^P \frac{1}{2}m\omega_P^2(q_i - q_{i+1})^2`, :math:`m` is always the
    actual mass of the particles).
 
-.. versionchanged:: TBD
+.. versionchanged:: 10Dec2025
 
    *sp* keyword added to *fix pimd/langevin*
 

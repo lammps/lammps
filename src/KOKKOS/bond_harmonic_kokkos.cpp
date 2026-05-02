@@ -134,6 +134,7 @@ void BondHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void BondHarmonicKokkos<DeviceType>::operator()(TagBondHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
@@ -178,6 +179,7 @@ void BondHarmonicKokkos<DeviceType>::operator()(TagBondHarmonicCompute<NEWTON_BO
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void BondHarmonicKokkos<DeviceType>::operator()(TagBondHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
@@ -190,6 +192,13 @@ template<class DeviceType>
 void BondHarmonicKokkos<DeviceType>::allocate()
 {
   BondHarmonic::allocate();
+
+  int n = atom->nbondtypes;
+  k_k = DAT::tdual_kkfloat_1d("BondHarmonic::k",n+1);
+  k_r0 = DAT::tdual_kkfloat_1d("BondHarmonic::r0",n+1);
+
+  d_k = k_k.template view<DeviceType>();
+  d_r0 = k_r0.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -201,14 +210,10 @@ void BondHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   BondHarmonic::coeff(narg, arg);
 
-  int n = atom->nbondtypes;
-  DAT::tdual_kkfloat_1d k_k("BondHarmonic::k",n+1);
-  DAT::tdual_kkfloat_1d k_r0("BondHarmonic::r0",n+1);
+  int ilo,ihi;
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  d_k = k_k.template view<DeviceType>();
-  d_r0 = k_r0.template view<DeviceType>();
-
-  for (int i = 1; i <= n; i++) {
+  for (int i = ilo; i <= ihi; i++) {
     k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
     k_r0.view_host()[i] = static_cast<KK_FLOAT>(r0[i]);
   }
@@ -252,6 +257,7 @@ void BondHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
 
 template<class DeviceType>
 //template<int NEWTON_BOND>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void BondHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &ebond, const KK_FLOAT &fbond, const KK_FLOAT &delx,

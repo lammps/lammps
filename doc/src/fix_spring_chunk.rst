@@ -93,7 +93,7 @@ invoked by the :doc:`minimize <minimize>` command.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <utility>
@@ -184,59 +171,6 @@ auto create_seq(ViewType data_view, std::size_t seq_extent) {
   return seq_view;
 }
 
-// search is only avai from c++17, so I have to put it here
-template <class ForwardIt1, class ForwardIt2, class BinaryPredicate>
-ForwardIt1 my_std_search(ForwardIt1 first, ForwardIt1 last, ForwardIt2 s_first,
-                         ForwardIt2 s_last, BinaryPredicate p) {
-  for (;; ++first) {
-    ForwardIt1 it = first;
-    for (ForwardIt2 s_it = s_first;; ++it, ++s_it) {
-      if (s_it == s_last) {
-        return first;
-      }
-      if (it == last) {
-        return last;
-      }
-      if (!p(*it, *s_it)) {
-        break;
-      }
-    }
-  }
-}
-
-// only avai from c++17, so I have to put it here
-template <class ForwardIt1, class ForwardIt2, class BinaryPredicate>
-ForwardIt1 my_std_find_end(ForwardIt1 first, ForwardIt1 last,
-                           ForwardIt2 s_first, ForwardIt2 s_last,
-                           BinaryPredicate p) {
-  if (s_first == s_last) {
-    return last;
-  }
-
-  ForwardIt1 result = last;
-  while (true) {
-    ForwardIt1 new_result = my_std_search(first, last, s_first, s_last, p);
-    if (new_result == last) {
-      break;
-    } else {
-      result = new_result;
-      first  = result;
-      ++first;
-    }
-  }
-  return result;
-}
-
-template <class ForwardIt1, class ForwardIt2>
-ForwardIt1 my_std_find_end(ForwardIt1 first, ForwardIt1 last,
-                           ForwardIt2 s_first, ForwardIt2 s_last) {
-  using value_type1 = typename ForwardIt1::value_type;
-  using value_type2 = typename ForwardIt2::value_type;
-
-  using pred_t = IsEqualFunctor<value_type1, value_type2>;
-  return my_std_find_end(first, last, s_first, s_last, pred_t());
-}
-
 std::string value_type_to_string(int) { return "int"; }
 std::string value_type_to_string(double) { return "double"; }
 
@@ -273,8 +207,8 @@ void run_single_scenario(const InfoType& scenario_info, std::size_t seq_ext,
   auto view_h   = create_host_space_copy(view);
   auto s_view_h = create_host_space_copy(s_view);
   auto stdrit =
-      my_std_find_end(KE::cbegin(view_h), KE::cend(view_h),
-                      KE::cbegin(s_view_h), KE::cend(s_view_h), args...);
+      std::find_end(KE::cbegin(view_h), KE::cend(view_h), KE::cbegin(s_view_h),
+                    KE::cend(s_view_h), args...);
 
   {
     auto myrit = KE::find_end(exespace(), KE::cbegin(view), KE::cend(view),

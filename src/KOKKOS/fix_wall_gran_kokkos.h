@@ -52,12 +52,15 @@ class FixWallGranKokkos : public FixWallGranOld, public KokkosBase {
   int unpack_exchange(int, double *) override;
 
   template <int WallStyle>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixWallGranHookeHistory<WallStyle>, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixWallGranPackExchange, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixWallGranUnpackExchange, const int&) const;
 

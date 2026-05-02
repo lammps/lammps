@@ -123,7 +123,7 @@ expensive computationally than fix *ttm* because it treats the thermal
 diffusion equation as non-linear.  More details on fix *ttm/mod* are
 given below.
 
-.. versionadded:: TBD
+.. versionadded:: 10Dec2025
 
 Fix *ttm/thermal* allows for electronic properties to be assigned
 independently to each TTM grid point and supports external heat sources
@@ -372,7 +372,7 @@ ignored. The lines with the even numbers are treated as follows:
    I_0, energy/(time\*length\^2) units
    lsurface, electron grid units (positive integer)
    rsurface, electron grid units (positive integer)
-   l_skin, length units
+   l_skin, electron grid units (positive integer)
    tau, time units
    B, dimensionless
    lambda, length units

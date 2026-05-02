@@ -38,6 +38,7 @@ struct ForceAdder {
   ViewA a;
   ViewB b;
   ForceAdder(const ViewA& a_, const ViewB& b_):a(a_),b(b_) {}
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
     a(i,0) += b(i,0);
@@ -52,6 +53,7 @@ template<class View>
 struct Zero {
   View v;
   Zero(const View &v_):v(v_) {}
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int &i) const {
     v(i,0) = 0;

@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "graphics.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -45,7 +46,8 @@ enum { OFF, INTER, INTRA };
 FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   bondcount(nullptr), partner(nullptr), finalpartner(nullptr), distsq(nullptr),
-  probability(nullptr), created(nullptr), copy(nullptr), random(nullptr), list(nullptr)
+  probability(nullptr), created(nullptr), copy(nullptr), random(nullptr), list(nullptr),
+  imgobjs(nullptr), imgparms(nullptr)
 {
   std::string fixname = fmt::format("fix {}", style);
   if (narg < 8) utils::missing_cmd_args(FLERR, fixname, error);
@@ -60,6 +62,8 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 2;
   global_freq = 1;
   extvector = 0;
+
+  vizsteps = 1000;
 
   iatomtype = utils::expand_type_int(FLERR, arg[4], Atom::ATOM, lmp);
   jatomtype = utils::expand_type_int(FLERR, arg[5], Atom::ATOM, lmp);
@@ -225,6 +229,21 @@ FixBondCreate::~FixBondCreate()
   memory->destroy(distsq);
   memory->destroy(created);
   delete [] copy;
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixBondCreate::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"vizsteps") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify bond/create", error);
+    vizsteps = utils::inumeric(FLERR, arg[1], false, lmp);
+    return 2;
+  }
+
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -587,6 +606,12 @@ void FixBondCreate::post_integrate()
     finalpartner[i] = tag[j];
     finalpartner[j] = tag[i];
     if (tag[i] < tag[j]) ncreate++;
+
+    // record atoms involved in created bond
+    if (vizsteps > 0) {
+      vizatoms[tag[i]] = vizsteps;
+      vizatoms[tag[j]] = vizsteps;
+    }
   }
 
   // tally stats
@@ -634,6 +659,20 @@ void FixBondCreate::post_integrate()
   // also add angles/dihedrals/impropers induced by created bonds
 
   update_topology();
+
+  // if visualization support is enabled, age vizatoms and remove expired ones
+  if (vizsteps > 0) {
+    std::vector<tagint> eraseme;
+    for (const auto &[key, value] : vizatoms) {
+      int idx = atom->map(key);
+      if ((idx < 0) || (value < 0)) {
+        eraseme.push_back(key);
+        continue;
+      }
+      vizatoms[key] = value - nevery;
+    }
+    for (const auto &key : eraseme) vizatoms.erase(key);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1443,4 +1482,40 @@ double FixBondCreate::memory_usage()
   bytes += 2*nmax * sizeof(tagint);
   bytes += (double)nmax * sizeof(double);
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   provide graphics information to dump image to render spheres
+   at the location of atoms that were involved in a reaction
+------------------------------------------------------------------------- */
+
+int FixBondCreate::image(int *&objs, double **&parms)
+{
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
+
+  int numobjs = vizatoms.size();
+  int n = 0;
+  if (numobjs > 0) {
+    memory->create(imgobjs, numobjs, "bond/create:imgobjs");
+    memory->create(imgparms, numobjs, 5, "bond/create:imgparms");
+
+    int idx;
+    const auto *const type = atom->type;
+    const auto *const *const x = atom->x;
+    for (const auto &[key, value] : vizatoms) {
+      idx = atom->map(key);
+      if (idx < 0) continue;
+      imgobjs[n] = Graphics::SPHERE;
+      imgparms[n][0] = type[idx];
+      imgparms[n][1] = x[idx][0];
+      imgparms[n][2] = x[idx][1];
+      imgparms[n][3] = x[idx][2];
+      imgparms[n][4] = 0.0;     // radius is set with fflag2 in dump image
+      ++n;
+    }
+  }
+  objs = imgobjs;
+  parms = imgparms;
+  return n;
 }

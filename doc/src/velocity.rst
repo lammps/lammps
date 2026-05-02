@@ -186,35 +186,37 @@ specifying the ID of a :doc:`compute temp/ramp <compute_temp_ramp>` or
 
 The *loop* keyword is used by *create* in the following ways.
 
-If loop = all, then each processor loops over all atoms in the
-simulation to create velocities, but only stores velocities for atoms
-it owns.  This can be a slow loop for a large simulation.  If atoms
-were read from a data file, the velocity assigned to a particular atom
-will be the same, independent of how many processors are being used.
-This will not be the case if atoms were created using the
-:doc:`create_atoms <create_atoms>` command, since atom IDs will likely
-be assigned to atoms differently.
+If *loop = all*, then each processor loops over all atoms in the
+simulation to create velocities, but only stores velocities for atoms it
+owns.  This can be a slow loop for a large simulation.  If atoms were
+read from a data file, the velocity assigned to a particular atom will
+be the same, independent of how many MPI processes are being used.  This
+will not be the case if atoms were created using the :doc:`create_atoms
+<create_atoms>` command, since atom IDs will likely be assigned to atoms
+differently.
 
-If loop = local, then each processor loops over only its atoms to
+If *loop = local*, then each processor loops over only its atoms to
 produce velocities.  The random number seed is adjusted to give a
-different set of velocities on each processor.  This is a fast loop,
-but the velocity assigned to a particular atom will depend on which
+different set of velocities on each processor.  This is a fast loop, but
+the velocity assigned to a particular atom will depend on which
 processor owns it.  Thus the results will always be different when a
-simulation is run on a different number of processors.
+simulation is run on a different number of MPI processes.
 
-If loop = geom, then each processor loops over only its atoms.  For
+If *loop = geom*, then each processor loops over only its atoms.  For
 each atom a unique random number seed is created, based on the atom's
 xyz coordinates.  A velocity is generated using that seed.  This is a
 fast loop and the velocity assigned to a particular atom will be the
-same, independent of how many processors are used.  However, the set
+same, independent of how many MPI processes are used.  However, the set
 of generated velocities may be more correlated than if the *all* or
 *local* keywords are used.
 
-Note that the *loop geom* keyword will not necessarily assign
-identical velocities for two simulations run on different machines.
-This is because the computations based on xyz coordinates are
-sensitive to tiny differences in the double-precision value for a
-coordinate as stored on a particular machine.
+.. note::
+
+   The *loop geom* keyword will not necessarily assign identical
+   velocities for two simulations run on different machines.  This is
+   because the computations based on xyz coordinates are sensitive to
+   tiny differences in the double-precision value for a coordinate as
+   stored on a particular machine.
 
 ----------
 

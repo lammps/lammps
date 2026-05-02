@@ -143,27 +143,27 @@ void ImproperSQDistHarm::compute(int eflag, int vflag)
 
     if (eflag) eimproper = domega;
 
-    f1[0] = a*( -xna);
-    f1[1] = a*( -yna);
-    f1[2] = a*( -zna);
-    f4[0] = a*(  xna);
-    f4[1] = a*(  yna);
-    f4[2] = a*(  zna);
+    f1[0] = -a*xna;
+    f1[1] = -a*yna;
+    f1[2] = -a*zna;
+    f4[0] = a*xna;
+    f4[1] = a*yna;
+    f4[2] = a*zna;
 
-    f2[0] =  a*( yad*zcd - zad*ycd )*rna + a*da*rna*( yna*zcd - zna*ycd);
-    f2[1] =  a*( zad*xcd - xad*zcd )*rna + a*da*rna*( zna*xcd - xna*zcd);
-    f2[2] =  a*( xad*ycd - yad*xcd )*rna + a*da*rna*( xna*ycd - yna*xcd);
+    f2[0] =  a*(yad*zcd - zad*ycd)*rna + a*da*rna*(yna*zcd - zna*ycd);
+    f2[1] =  a*(zad*xcd - xad*zcd)*rna + a*da*rna*(zna*xcd - xna*zcd);
+    f2[2] =  a*(xad*ycd - yad*xcd)*rna + a*da*rna*(xna*ycd - yna*xcd);
 
-    f3[0] = - a*( yad*zcd - zad*ycd )*rna - a*da*rna*( yna*zcd - zna*ycd);
-    f3[1] = - a*( zad*xcd - xad*zcd )*rna - a*da*rna*( zna*xcd - xna*zcd);
-    f3[2] = - a*( xad*ycd - yad*xcd )*rna - a*da*rna*( xna*ycd - yna*xcd);
+    f3[0] = - a*(yad*zcd - zad*ycd)*rna - a*da*rna*(yna*zcd - zna*ycd);
+    f3[1] = - a*(zad*xcd - xad*zcd)*rna - a*da*rna*(zna*xcd - xna*zcd);
+    f3[2] = - a*(xad*ycd - yad*xcd)*rna - a*da*rna*(xna*ycd - yna*xcd);
 
-    f3[0] +=  -a*( yad*zbc - zad*ybc )*rna - a*da*rna*( yna*zbc - zna*ybc);
-    f3[1] +=  -a*( zad*xbc - xad*zbc )*rna - a*da*rna*( zna*xbc - xna*zbc);
-    f3[2] +=  -a*( xad*ybc - yad*xbc )*rna - a*da*rna*( xna*ybc - yna*xbc);
-    f4[0] += a*( yad*zbc - zad*ybc )*rna + a*da*rna*( yna*zbc - zna*ybc);
-    f4[1] += a*( zad*xbc - xad*zbc )*rna + a*da*rna*( zna*xbc - xna*zbc);
-    f4[2] += a*( xad*ybc - yad*xbc )*rna + a*da*rna*( xna*ybc - yna*xbc);
+    f3[0] +=  -a*(yad*zbc - zad*ybc)*rna - a*da*rna*(yna*zbc - zna*ybc);
+    f3[1] +=  -a*(zad*xbc - xad*zbc)*rna - a*da*rna*(zna*xbc - xna*zbc);
+    f3[2] +=  -a*(xad*ybc - yad*xbc)*rna - a*da*rna*(xna*ybc - yna*xbc);
+    f4[0] += a*(yad*zbc - zad*ybc)*rna + a*da*rna*(yna*zbc - zna*ybc);
+    f4[1] += a*(zad*xbc - xad*zbc)*rna + a*da*rna*(zna*xbc - xna*zbc);
+    f4[2] += a*(xad*ybc - yad*xbc)*rna + a*da*rna*(xna*ybc - yna*xbc);
 
 
     // apply force to each of 4 atoms

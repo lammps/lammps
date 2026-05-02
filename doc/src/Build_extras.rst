@@ -41,6 +41,7 @@ This is the list of packages that may require additional steps.
    * :ref:`COLVARS <colvar>`
    * :ref:`COMPRESS <compress>`
    * :ref:`ELECTRODE <electrode>`
+   * :ref:`GRAPHICS <graphics>`
    * :ref:`GPU <gpu>`
    * :ref:`H5MD <h5md>`
    * :ref:`INTEL <intel>`
@@ -48,6 +49,7 @@ This is the list of packages that may require additional steps.
    * :ref:`KOKKOS <kokkos>`
    * :ref:`LEPTON <lepton>`
    * :ref:`MACHDYN <machdyn>`
+   * :ref:`MBX <mbx>`
    * :ref:`MDI <mdi>`
    * :ref:`MISC <misc>`
    * :ref:`ML-HDNNP <ml-hdnnp>`
@@ -105,8 +107,85 @@ versions use an incompatible API and thus LAMMPS will fail to compile.
 
       .. versionchanged:: 10Sep2025
 
-      The COMPRESS package no longer supports the the traditional make build.
+      The COMPRESS package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
+
+----------
+
+.. _graphics:
+
+GRAPHICS package
+----------------
+
+.. versionadded:: 11Feb2026
+
+   *dump image*\ , *dump_movie* and supporting classes were moved to form
+   the new GRAPHICS package together with several *fix graphics/...* styles.
+
+The :doc:`dump image <dump_image>` command has options to output JPEG or
+PNG image files in addition to the default PPM format, and the :doc:`fix
+graphics/labels <fix_graphics_labels>` can read images in JPEG or PNG
+format in addition to PPM format files.  Likewise, the :doc:`dump movie
+<dump_image>` command outputs movie files in a variety of movie formats.
+Using these additional options requires the following settings:
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D WITH_JPEG=value    # yes or no
+                               # default = yes if CMake finds JPEG development files, else no
+         -D WITH_PNG=value     # yes or no
+                               # default = yes if CMake finds PNG and ZLIB development files,
+                               # else no
+         -D WITH_FFMPEG=value  # yes or no
+                               # default = yes if CMake can find ffmpeg, else no
+
+      Usually these settings are all that is needed.  If CMake cannot
+      find the graphics header, library, executable files, you can set
+      these variables:
+
+      .. code-block:: bash
+
+         -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
+         -D JPEG_LIBRARY=path        # path to libjpeg.a (.so) file
+         -D PNG_INCLUDE_DIR=path     # path to png.h header file
+         -D PNG_LIBRARY=path         # path to libpng.a (.so) file
+         -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
+         -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
+         -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
+
+   .. tab:: Traditional make
+
+      .. code-block:: make
+
+         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG  <other LMP_INC settings>
+
+         JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h headers
+                                          # if make cannot find them
+         JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so)
+                                          # files if make cannot find them
+         JPG_LIB = -ljpeg -lpng -lz       # library names
+
+      As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
+      if make can find the graphics header and library files in their
+      default system locations.  You must specify ``JPG_LIB`` with a
+      list of graphics libraries to include in the link.  You must make
+      certain that the ffmpeg executable (or ffmpeg.exe on Windows) is
+      in a directory where LAMMPS can find it at runtime; that is
+      usually a directory list in your ``PATH`` environment variable.
+
+Using ``ffmpeg`` to output movie files requires that your machine
+supports the "popen" function in the standard runtime library.
+
+.. note::
+
+   On some clusters with high-speed networks, using the fork()
+   library call (required by popen()) can interfere with the fast
+   communication library and lead to simulations using ffmpeg to hang or
+   crash.
 
 ----------
 
@@ -214,7 +293,11 @@ compiling LAMMPS on the head node of a GPU cluster, this library may not
 be installed, so you may need to copy it over from one of the compute
 nodes (best into this directory).  Recent versions of the CUDA toolkit
 starting from CUDA 9 provide a dummy ``libcuda.so`` library (typically
-under ``$(CUDA_HOME)/lib64/stubs``), that can be used for linking.
+under ``$(CUDA_HOME)/lib64/stubs``), that can be used for linking.  If
+you are compiling LAMMPS with the ``-D BUILD_SHARED_LIBS=ON`` setting,
+you may get to see ``ld: warning: libcuda.so.1, needed by
+liblammps.so.0, not found``.  This may be worked around by also setting:
+``-DCMAKE_EXE_LINKER_FLAGS=-Wl,--unresolved-symbols=ignore-in-shared-libs``.
 
 To support the CUDA multi-process server (MPS) you can set the define
 ``-DCUDA_MPS_SUPPORT``.  Please note that in this case you must **not**
@@ -242,8 +325,7 @@ necessary for ``hipcc`` and the linker to work correctly.
 
 When compiling for HIP ROCm, GPU sorting with ``-D
 HIP_USE_DEVICE_SORT=on`` requires installing the ``hipcub`` library
-(https://github.com/ROCmSoftwarePlatform/hipCUB).  The HIP CUDA-backend
-additionally requires CUB (https://nvidia.github.io/cccl/cub/).  Setting
+(https://github.com/ROCmSoftwarePlatform/hipCUB).  Setting
 ``-DDOWNLOAD_CUB=yes`` will download and compile CUB.
 
 The GPU library has some multi-thread support using OpenMP.  If LAMMPS
@@ -303,9 +385,12 @@ option in preparations to run on Aurora system at Argonne.
 KIM package
 ---------------------
 
-To build with this package, the KIM library with API v2 must be downloaded
-and built on your system. It must include the KIM models that you want to
-use with LAMMPS.
+To build with this package, the KIM API v2.0+ must be downloaded
+and built on your system. See
+`Obtaining KIM Models <https://openkim.org/doc/usage/obtaining-models>`_ to
+learn how to install the KIM API, as well as how to install any models you
+wish to use afterward.
+See the list of all KIM models here: https://openkim.org/browse/models
 
 If you would like to use the :doc:`kim query <kim_commands>`
 command, you also need to have libcurl installed with the matching
@@ -320,16 +405,6 @@ done using *pip* as ``pip install kim-property``, or from the *conda-forge*
 channel as ``conda install kim-property`` if LAMMPS is built in Conda. More
 detailed information is available at:
 `kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
-
-In addition to installing the KIM API, it is also necessary to install the
-library of KIM models (interatomic potentials).
-See `Obtaining KIM Models <https://openkim.org/doc/usage/obtaining-models>`_ to
-learn how to install a pre-build binary of the OpenKIM Repository of Models.
-See the list of all KIM models here: https://openkim.org/browse/models
-
-(Also note that when downloading and installing from source
-the KIM API library with all its models, may take a long time (tens of
-minutes to hours) to build.  Of course you only need to do that once.)
 
 .. tabs::
 
@@ -347,11 +422,15 @@ minutes to hours) to build.  Of course you only need to do that once.)
                                          # value = no (default) or yes
 
       If ``DOWNLOAD_KIM`` is set to ``yes`` (or ``on``), the KIM API library
-      will be downloaded and built inside the CMake build directory.  If
+      will be downloaded and built inside the CMake build directory.  Note that
+      in most cases it is recommended that you do not use this option, and instead
+      provide a KIM API installation yourself before building LAMMPS.  If
       the KIM library is already installed on your system (in a location
       where CMake cannot find it), you may need to set the
       ``PKG_CONFIG_PATH`` environment variable so that libkim-api can be
-      found, or run the command ``source kim-api-activate``.
+      found, or run the command ``source kim-api-activate``.  If CMake cannot find
+      the KIM API when configuring for the first time (or after clearing the
+      CMake cache), the default value of the ``DOWNLOAD_KIM`` option will be ``yes``.
 
       Extra unit tests can only be available if they are explicitly requested
       (``KIM_EXTRA_UNITTESTS`` is set to ``yes`` (or ``on``)) and the prerequisites
@@ -362,7 +441,7 @@ minutes to hours) to build.  Of course you only need to do that once.)
 
       .. versionchanged:: 10Sep2025
 
-      The KIM package no longer supports the the traditional make build.
+      The KIM package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 Debugging OpenKIM web queries in LAMMPS
@@ -412,9 +491,9 @@ Enabling the extra unit tests have some requirements,
   `kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
 * It is also necessary to install the following KIM models:
 
-  * ``EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000``
-  * ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005``
-  * ``LennardJones612_UniversalShifted__MO_959249795837_003``
+  * ``EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_001``
+  * ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_006``
+  * ``LennardJones612_UniversalShifted__MO_959249795837_003`` (this model is an example model automatically built with the API unless explicitly disabled)
 
   See `Obtaining KIM Models <https://openkim.org/doc/usage/obtaining-models>`_
   to learn how to install a pre-built binary of the OpenKIM Repository of
@@ -611,9 +690,15 @@ They must be specified in uppercase.
    *  - BLACKWELL100
       - GPU
       - NVIDIA Blackwell generation CC 10.0
+   *  - BLACKWELL103
+      - GPU
+      - NVIDIA Blackwell generation CC 10.3
    *  - BLACKWELL120
       - GPU
       - NVIDIA Blackwell generation CC 12.0
+   *  - BLACKWELL121
+      - GPU
+      - NVIDIA Blackwell generation CC 12.1
    *  - AMD_GFX906
       - GPU
       - AMD GPU MI50/60
@@ -632,6 +717,9 @@ They must be specified in uppercase.
    *  - AMD_GFX942_APU
       - GPU
       - AMD APU MI300A
+   *  - AMD_GFX950
+      - GPU
+      - AMD GPU MI350
    *  - AMD_GFX1030
       - GPU
       - AMD GPU V620/W6800
@@ -666,7 +754,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU DG2
 
-This list was last updated for version 4.7.1 of the Kokkos library.
+This list was last updated for version 5.1.0 of the Kokkos library.
 
 .. tabs::
 
@@ -756,77 +844,10 @@ This list was last updated for version 4.7.1 of the Kokkos library.
 
    .. tab:: Basic traditional make settings:
 
-      Choose which hardware to support in ``Makefile.machine`` via
-      ``KOKKOS_DEVICES`` and ``KOKKOS_ARCH`` settings.  See the
-      ``src/MAKE/OPTIONS/Makefile.kokkos*`` files for examples.
+      .. versionchanged:: 11Feb2026
 
-      For multicore CPUs using OpenMP:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = OpenMP
-         KOKKOS_ARCH = HOSTARCH          # HOSTARCH = HOST from list above
-
-      For Intel KNLs using OpenMP:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = OpenMP
-         KOKKOS_ARCH = KNL
-
-      For NVIDIA GPUs using CUDA:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = Cuda
-         KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is
-                                         #            hosting the GPU
-                                         # GPUARCH = GPU from list above
-         KOKKOS_CUDA_OPTIONS = "enable_lambda"
-         FFT_INC = -DFFT_CUFFT           # enable use of cuFFT (optional)
-         FFT_LIB = -lcufft               # link to cuFFT library
-
-      For GPUs, you also need the following lines in your
-      ``Makefile.machine`` before the CC line is defined.  They tell
-      ``mpicxx`` to use an ``nvcc`` compiler wrapper, which will use
-      ``nvcc`` for compiling CUDA files and a C++ compiler for
-      non-Kokkos, non-CUDA files.
-
-      .. code-block:: make
-
-         # For OpenMPI
-         KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
-         export OMPI_CXX = $(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
-         CC = mpicxx
-
-      .. code-block:: make
-
-         # For MPICH and derivatives
-         KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
-         CC = mpicxx -cxx=$(KOKKOS_ABSOLUTE_PATH)/config/nvcc_wrapper
-
-      For AMD or NVIDIA GPUs using HIP:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = HIP
-         KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is
-                                         #            hosting the GPU
-                                         # GPUARCH = GPU from list above
-         FFT_INC = -DFFT_HIPFFT          # enable use of hipFFT (optional)
-         FFT_LIB = -lhipfft              # link to hipFFT library
-
-      For Intel GPUs using SYCL:
-
-      .. code-block:: make
-
-         KOKKOS_DEVICES = SYCL
-         KOKKOS_ARCH = HOSTARCH,GPUARCH  # HOSTARCH = HOST from list above that is
-                                         #            hosting the GPU
-                                         # GPUARCH = GPU from list above
-         FFT_INC = -DFFT_KOKKOS_MKL_GPU  # enable use of oneMKL for Intel GPUs (optional)
-                                         # link to oneMKL FFT library
-         FFT_LIB = -lmkl_sycl_dft -lmkl_intel_ilp64 -lmkl_tbb_thread -mkl_core -ltbb
+      The KOKKOS package no longer supports the traditional make build.
+      You need to build LAMMPS with CMake.
 
 Advanced KOKKOS compilation settings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -838,54 +859,43 @@ the full list (which keeps changing as the Kokkos package itself evolves),
 please consult the Kokkos library documentation.
 
 As alternative to using multi-threading via OpenMP
-(``-DKokkos_ENABLE_OPENMP=on`` or ``KOKKOS_DEVICES=OpenMP``) it is also
-possible to use Posix threads directly (``-DKokkos_ENABLE_PTHREAD=on``
-or ``KOKKOS_DEVICES=Pthread``).  While binding of threads to individual
-or groups of CPU cores is managed in OpenMP with environment variables,
-you need assistance from either the "hwloc" or "libnuma" library for the
-Pthread thread parallelization option. To enable use with CMake:
-``-DKokkos_ENABLE_HWLOC=on`` or ``-DKokkos_ENABLE_LIBNUMA=on``; and with
-conventional make: ``KOKKOS_USE_TPLS=hwloc`` or
-``KOKKOS_USE_TPLS=libnuma``.
+(``-DKokkos_ENABLE_OPENMP=on``) it is also possible to use Posix threads
+directly (``-DKokkos_ENABLE_PTHREAD=on``).  While binding of threads to
+individual or groups of CPU cores is managed in OpenMP with environment
+variables, you need assistance from either the "hwloc" or "libnuma"
+library for the Pthread thread parallelization option. To enable use
+with CMake: ``-DKokkos_ENABLE_HWLOC=on`` or
+``-DKokkos_ENABLE_LIBNUMA=on``.
 
-The CMake option ``-DKokkos_ENABLE_LIBRT=on`` or the makefile setting
-``KOKKOS_USE_TPLS=librt`` enables the use of a more accurate timer
-mechanism on many Unix-like platforms for internal profiling.
+The CMake option ``-DKokkos_ENABLE_LIBRT=on`` enables the use of a more
+accurate timer mechanism on many Unix-like platforms for internal
+profiling.
 
-The CMake option ``-DKokkos_ENABLE_DEBUG=on`` or the makefile setting
-``KOKKOS_DEBUG=yes`` enables printing of run-time
-debugging information that can be useful. It also enables runtime
-bounds checking on Kokkos data structures.  As to be expected, enabling
-this option will negatively impact the performance and thus is only
-recommended when developing a Kokkos-enabled style in LAMMPS.
+The CMake option ``-DKokkos_ENABLE_DEBUG=on`` enables printing of
+run-time debugging information that can be useful. It also enables
+runtime bounds checking on Kokkos data structures.  As to be expected,
+enabling this option will negatively impact the performance and thus is
+only recommended when developing a Kokkos-enabled style in LAMMPS.
 
-The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` or the makefile
-setting ``KOKKOS_CUDA_OPTIONS=enable_lambda,force_uvm`` enables the
-use of CUDA "Unified Virtual Memory" (UVM) in Kokkos.  UVM allows to
-transparently use RAM on the host to supplement the memory used on the
-GPU (with some performance penalty) and thus enables running larger
-problems that would otherwise not fit into the RAM on the GPU.
+The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` enables the use of CUDA
+"Unified Virtual Memory" (UVM) in Kokkos.  UVM allows to transparently
+use RAM on the host to supplement the memory used on the GPU (with some
+performance penalty) and thus enables running larger problems that would
+otherwise not fit into the RAM on the GPU.
 
 The CMake option ``-D KOKKOS_PREC=value`` sets the floating point
-precision of the calculations, where ``value`` can be one of:
-``double`` (FP64, default) or ``mixed`` (FP64 for accumulation of
-forces, energy, and virial, FP32 otherwise) or ``single`` (FP32).
-Similarly the makefile settings ``-DLMP_KOKKOS_DOUBLE_DOUBLE``
-(default), ``-DLMP_KOKKOS_SINGLE_DOUBLE``, and
-``-DLMP_KOKKOS_SINGLE_SINGLE`` set double, mixed, single precision
-respectively. When using reduced precision (single or mixed), the
-simulation should be carefully checked to ensure it is stable and that
-energy is acceptably conserved.
+precision of the calculations, where ``value`` can be one of: ``double``
+(FP64, default) or ``mixed`` (FP64 for accumulation of forces, energy,
+and virial, FP32 otherwise) or ``single`` (FP32).  When using reduced
+precision (single or mixed), the simulation should be carefully checked
+to ensure it is stable and that energy is acceptably conserved.
 
 The CMake option ``-D KOKKOS_LAYOUT=value`` sets the array layout of
 Kokkos views (e.g. forces, velocities, etc.) on GPUs, where ``value``
 can be one of: ``legacy`` (mostly LayoutRight, default) or ``default``
-(mostly LayoutLeft). Similarly the makefile settings
-``-DLMP_KOKKOS_LAYOUT_LEGACY`` (default) and
-``-DLMP_KOKKOS_LAYOUT_DEFAULT`` set legacy or default layouts
-respectively. Using the default layout (LayoutLeft) can give speedup
-on GPUs for some models, but a slowdown for others. LayoutRight is
-always used for positions on GPUs since it has been found to be
+(mostly LayoutLeft).  Using the default layout (LayoutLeft) can give
+speedup on GPUs for some models, but a slowdown for others. LayoutRight
+is always used for positions on GPUs since it has been found to be
 faster, and when compiling exclusively for CPUs.
 
 ----------
@@ -915,7 +925,7 @@ included in the LAMMPS source distribution in the ``lib/lepton`` folder.
 
       .. versionchanged:: 10Sep2025
 
-      The LEPTON package no longer supports the the traditional make build.
+      The LEPTON package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -948,7 +958,7 @@ Eigen3 is a template library, so you do not need to build it.
 
       .. versionchanged:: 10Sep2025
 
-      The MACHDYN package no longer supports the the traditional make build.
+      The MACHDYN package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1053,7 +1063,7 @@ for additional details.
 
       .. versionchanged:: 10Sep2025
 
-      The PYTHON package no longer supports the the traditional make build.
+      The PYTHON package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1092,7 +1102,7 @@ binary package provided by your operating system.
 
       .. versionchanged:: 10Sep2025
 
-      The VORONOI package no longer supports the the traditional make build.
+      The VORONOI package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1162,7 +1172,7 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
 
       .. versionchanged:: 10Sep2025
 
-      The APIP package no longer supports the the traditional make
+      The APIP package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1194,7 +1204,7 @@ module included in the LAMMPS source distribution.
 
       .. versionchanged:: 10Sep2025
 
-      The COLVARS package no longer supports the the traditional make build.
+      The COLVARS package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1228,8 +1238,54 @@ This package depends on the KSPACE package.
 
    .. tab:: Traditional make
 
-      The ELECTRODE package no longer supports the the traditional make
+      The ELECTRODE package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
+
+----------
+
+.. _mbx:
+
+MBX package
+-----------
+
+.. versionadded:: 11Feb2026
+
+This package requires the MBX library that can be downloaded and built
+either before LAMMPS is built or as part of the LAMMPS compilation.  The
+code for the library can be found at:
+`https://github.com/paesanilab/MBX/
+<https://github.com/paesanilab/MBX/>`_
+
+Instead of including the MBX package directly into LAMMPS, it is also
+possible to skip this step and build the MBX package as a plugin using
+the CMake script files in the ``examples/PACKAGE/mbx/plugin`` folder and
+then load this plugin at runtime with the :doc:`plugin command
+<plugin>`.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. versionchanged:: 30Mar2026
+
+         Replaced MD5 checksums with SHA-256
+
+      By default the MBX library will be downloaded from the git
+      repository and built automatically when the MBX package is enabled
+      with ``-D PKG_MBX=yes``.  The location for the sources may be
+      customized by setting the variable ``MBXLIB_URL`` when configuring
+      with CMake (e.g. to use a local archive on machines without
+      internet access).  Since CMake checks the validity of the archive
+      using a SHA-256 checksum you may also need to set the
+      ``MBXLIB_SHA256`` variable to the corresponding checksum
+      (e.g. computed with ``sha256sum``) if you provide a different
+      library version than what is downloaded automatically.
+
+
+   .. tab:: Traditional make
+
+      The MBX package does not support the traditional make
+      build.  You need to build LAMMPS with CMake to use it.
 
 ----------
 
@@ -1252,22 +1308,26 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
 
    .. tab:: CMake build
 
+      .. versionchanged:: 30Mar2026
+
+         Replaced MD5 checksums with SHA-256
+
       By default the library will be downloaded from the git repository
       and built automatically when the ML-PACE package is enabled with
       ``-D PKG_ML-PACE=yes``.  The location for the sources may be
       customized by setting the variable ``PACELIB_URL`` when
       configuring with CMake (e.g. to use a local archive on machines
-      without internet access).  Since CMake checks the validity of the
-      archive with ``md5sum`` you may also need to set ``PACELIB_MD5``
-      if you provide a different library version than what is downloaded
-      automatically.
-
+      without internet access).    Since CMake checks the validity of the archive
+      using a SHA-256 checksum you may also need to set the
+      ``PACELIB_SHA256`` variable to the corresponding checksum
+      (e.g. computed with ``sha256sum``) if you provide a different
+      library version than what is downloaded automatically.
 
    .. tab:: Traditional make
 
       .. versionchanged:: 10Sep2025
 
-      The ML-PACE package no longer supports the the traditional make
+      The ML-PACE package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1287,7 +1347,7 @@ ML-POD package
 
       .. versionchanged:: 10Sep2025
 
-      The ML-POD package no longer supports the the traditional make
+      The ML-POD package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1336,7 +1396,7 @@ within CMake will download the non-commercial use version.
 
       .. versionchanged:: 10Sep2025
 
-      The ML-QUIP package no longer supports the the traditional make
+      The ML-QUIP package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1431,7 +1491,7 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
 
       .. versionchanged:: 10Sep2025
 
-      The PLUMED package no longer supports the the traditional make
+      The PLUMED package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1461,7 +1521,7 @@ the HDF5 library.
 
       .. versionchanged:: 10Sep2025
 
-      The H5MD package no longer supports the the traditional make
+      The H5MD package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1516,7 +1576,7 @@ details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
 
       .. versionchanged:: 10Sep2025
 
-      The ML-HDNNP package no longer supports the the traditional make
+      The ML-HDNNP package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1609,7 +1669,7 @@ MDI package
 
       .. versionchanged:: 10Sep2025
 
-      The MDI package no longer supports the the traditional make build.
+      The MDI package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1672,7 +1732,7 @@ MOLFILE package
 
       .. versionchanged:: 10Sep2025
 
-      The MOLFILE package no longer supports the the traditional make
+      The MOLFILE package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
 
 ----------
@@ -1702,7 +1762,7 @@ on your system.
 
       .. versionchanged:: 10Sep2025
 
-      The NETCDF package no longer supports the the traditional make build.
+      The NETCDF package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1801,7 +1861,7 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
 
       .. versionchanged:: 10Sep2025
 
-      The QMMM package no longer supports the the traditional make build.
+      The QMMM package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1838,7 +1898,7 @@ This package depends on the BPM package.
 
       .. versionchanged:: 10Sep2025
 
-      The RHEO package no longer supports the the traditional make build.
+      The RHEO package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1873,7 +1933,7 @@ To build with this package, you must download and build the
 
       .. versionchanged:: 10Sep2025
 
-      The SCAFACOS package no longer supports the the traditional make build.
+      The SCAFACOS package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
 
 ----------
@@ -1902,5 +1962,5 @@ your system.
 
       .. versionchanged:: 10Sep2025
 
-      The VTK package no longer supports the the traditional make build.
+      The VTK package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.

@@ -1,3 +1,4 @@
+
 .. index:: fix gcmc
 
 fix gcmc command
@@ -24,7 +25,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *mol*, *region*, *maxangle*, *pressure*, *fugacity_coeff*, *full_energy*, *charge*, *group*, *grouptype*, *intra_energy*, *tfac_insert*, or *overlap_cutoff*
+     keyword = *mol* or *mcmoves* or *rigid* or *shake* or *region* or *maxangle* or *pressure* or *fugacity_coeff* or *full_energy* or *charge* or *group* or *grouptype* or *intra_energy* or *tfac_insert* or *overlap_cutoff* or *max* or *min*
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
        *mcmoves* values = Patomtrans Pmoltrans Pmolrotate
@@ -80,22 +81,30 @@ isotherms in microporous materials, or computing vapor-liquid
 coexistence curves.
 
 Every *N* timesteps the fix attempts both GCMC exchanges (insertions or
-deletions) and MC moves of gas atoms or molecules.  On those timesteps,
-the average number of attempted GCMC exchanges is *X*, while the average
-number of attempted MC moves is *M*.  For GCMC exchanges of either
-molecular or atomic gasses, these exchanges can be either deletions or
-insertions, with equal probability.
+deletions) and MC moves of gas atoms or molecules.  On those timesteps, the
+average number of attempted GCMC exchanges is *X*, while the average number
+of attempted MC moves is *M*.  For GCMC exchanges of either molecular or
+atomic gasses, these exchanges can be either deletions or insertions, with
+equal probability.
 
-The possible choices for MC moves are translation of an atom,
-translation of a molecule, and rotation of a molecule.  The relative
-amounts of each are determined by the optional *mcmoves* keyword (see
-below).  The default behavior is as follows.  If the *mol* keyword is
-used, only molecule translations and molecule rotations are performed
-with equal probability.  Conversely, if the *mol* keyword is not used,
-only atom translations are performed.  *M* should typically be chosen to
-be approximately equal to the expected number of gas atoms or molecules
-of the given type within the simulation cell or region, which will
-result in roughly one MC move per atom or molecule per MC cycle.
+.. note::
+
+   To run an MC-only simulation (no MD), you should define no
+   time-integration fix, set the :doc:`thermo <thermo>` command to 1,
+   set *N* to 1, and set *X+M* small enough to see the MC evolution of
+   the system.  But if *X+M* is too small, the overhead at the start
+   and stop of MC moves each timestep will slow down the simulation.
+
+The possible choices for MC moves are translation of an atom, translation
+of a molecule, and rotation of a molecule.  The relative amounts of each are
+determined by the optional *mcmoves* keyword (see below).  The default
+behavior is as follows. If the *mol* keyword is used, only molecule
+translations and molecule rotations are performed with equal probability.
+Conversely, if the *mol* keyword is not used, only atom translations are
+performed.  *M* should typically be chosen to be approximately equal to the
+expected number of gas atoms or molecules of the given type within the
+simulation cell or region, which will result in roughly one MC move per
+atom or molecule per MC cycle.
 
 All inserted particles are always added to two groups: the default group
 "all" and the fix group specified in the fix command.  In addition,
@@ -393,7 +402,10 @@ Restart, fix_modify, output, run start/stop, minimize info
 This fix writes the state of the fix to :doc:`binary restart files
 <restart>`.  This includes information about the random number
 generator seed, the next timestep for MC exchanges, the number of MC
-step attempts and successes etc.  See the :doc:`read_restart
+step attempts and successes etc. This ensures that the
+sequence of Monte Carlo moves generated after reading from a restart
+file are exactly the same as those that are generated in the original
+run. See the :doc:`read_restart
 <read_restart>` command for info on how to re-specify a fix in an
 input script that reads a restart file, so that the operation of the
 fix continues in an uninterrupted fashion.

@@ -432,7 +432,7 @@ void EwaldDipole::compute(int eflag, int vflag)
 
       // taking im of struct_fact x exp(i*k*ri) (for force calc.)
 
-      partial = (mudotk)*(expim*sfacrl_all[k] - exprl*sfacim_all[k]);
+      partial = mudotk*(expim*sfacrl_all[k] - exprl*sfacim_all[k]);
       ek[i][0] += partial * eg[k][0];
       ek[i][1] += partial * eg[k][1];
       ek[i][2] += partial * eg[k][2];

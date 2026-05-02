@@ -210,6 +210,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NBinSSAKokkos<DeviceType>::binAtomsItem(const int &i) const
 {
@@ -219,6 +220,7 @@ void NBinSSAKokkos<DeviceType>::binAtomsItem(const int &i) const
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NBinSSAKokkos<DeviceType>::binIDAtomsItem(const int &i, int &update) const
 {
@@ -239,6 +241,7 @@ void NBinSSAKokkos<DeviceType>::binIDAtomsItem(const int &i, int &update) const
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NBinSSAKokkos<DeviceType>::binIDGhostsItem(const int &i, int &update) const
 {
@@ -252,6 +255,7 @@ void NBinSSAKokkos<DeviceType>::binIDGhostsItem(const int &i, int &update) const
 
 // An implementation of heapsort without recursion
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NBinSSAKokkos<DeviceType>::sortBin(
       typename AT::t_int_1d gbincount,

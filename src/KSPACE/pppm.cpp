@@ -837,17 +837,17 @@ void PPPM::allocate()
   fft1 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                   0,0,&tmp,collective_flag);
+                   0,0,&tmp,collective_flag,nonblocking_flag);
 
   fft2 = new FFT3d(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                   0,0,&tmp,collective_flag);
+                   0,0,&tmp,collective_flag,nonblocking_flag);
 
   remap = new Remap(lmp,world,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                    1,0,0,FFT_PRECISION,collective_flag);
+                    1,0,0,FFT_PRECISION,collective_flag,nonblocking_flag);
 }
 
 /* ----------------------------------------------------------------------
@@ -1724,21 +1724,21 @@ void PPPM::compute_sf_precoeff()
 
           qx0 = MY_2PI*(kper+nx_pppm*(i-2));
           qx1 = MY_2PI*(kper+nx_pppm*(i-1));
-          qx2 = MY_2PI*(kper+nx_pppm*(i  ));
+          qx2 = MY_2PI*(kper+nx_pppm*i);
           wx0[i] = powsinxx(0.5*qx0/nx_pppm,order);
           wx1[i] = powsinxx(0.5*qx1/nx_pppm,order);
           wx2[i] = powsinxx(0.5*qx2/nx_pppm,order);
 
           qy0 = MY_2PI*(lper+ny_pppm*(i-2));
           qy1 = MY_2PI*(lper+ny_pppm*(i-1));
-          qy2 = MY_2PI*(lper+ny_pppm*(i  ));
+          qy2 = MY_2PI*(lper+ny_pppm*i);
           wy0[i] = powsinxx(0.5*qy0/ny_pppm,order);
           wy1[i] = powsinxx(0.5*qy1/ny_pppm,order);
           wy2[i] = powsinxx(0.5*qy2/ny_pppm,order);
 
           qz0 = MY_2PI*(mper+nz_pppm*(i-2));
           qz1 = MY_2PI*(mper+nz_pppm*(i-1));
-          qz2 = MY_2PI*(mper+nz_pppm*(i  ));
+          qz2 = MY_2PI*(mper+nz_pppm*i);
 
           wz0[i] = powsinxx(0.5*qz0/nz_pppm,order);
           wz1[i] = powsinxx(0.5*qz1/nz_pppm,order);

@@ -33,8 +33,8 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 
 #include "rann_fingerprint.h"
 
-namespace LAMMPS_NS {
-namespace RANN {
+
+namespace LAMMPS_NS::RANN {
 
   class Fingerprint_radial : public Fingerprint {
    public:
@@ -57,7 +57,7 @@ namespace RANN {
     int omin;    //lowest term
   };
 
-}    // namespace RANN
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::RANN
+
 
 #endif /* FINGERPRINT_RADIAL_H */

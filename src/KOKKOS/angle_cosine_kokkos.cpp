@@ -138,6 +138,7 @@ void AngleCosineKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void AngleCosineKokkos<DeviceType>::operator()(TagAngleCosineCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
@@ -224,6 +225,7 @@ void AngleCosineKokkos<DeviceType>::operator()(TagAngleCosineCompute<NEWTON_BOND
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void AngleCosineKokkos<DeviceType>::operator()(TagAngleCosineCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
@@ -251,8 +253,10 @@ void AngleCosineKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   AngleCosine::coeff(narg, arg);
 
-  int n = atom->nangletypes;
-  for (int i = 1; i <= n; i++)
+  int ilo,ihi;
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
+
+  for (int i = ilo; i <= ihi; i++)
     k_k.view_host()[i] = k[i];
 
   k_k.modify_host();
@@ -281,6 +285,7 @@ void AngleCosineKokkos<DeviceType>::read_restart(FILE *fp)
 
 template<class DeviceType>
 //template<int NEWTON_BOND>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void AngleCosineKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const int j, const int k,
                      KK_FLOAT &eangle, KK_FLOAT *f1, KK_FLOAT *f3,

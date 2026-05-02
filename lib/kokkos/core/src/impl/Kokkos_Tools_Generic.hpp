@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_KOKKOS_TOOLS_GENERIC_HPP
 #define KOKKOS_IMPL_KOKKOS_TOOLS_GENERIC_HPP
@@ -93,9 +80,21 @@ struct SimpleTeamSizeCalculator {
   int get_max_team_size(const Policy& policy,
                         const FunctorReducer& functor_reducer,
                         const Kokkos::ParallelReduceTag tag) {
-    auto max = policy.team_size_max(functor_reducer.get_functor(),
-                                    functor_reducer.get_reducer(), tag);
-    return max;
+    if constexpr (false
+#ifdef KOKKOS_ENABLE_CUDA
+                  ||
+                  std::is_same_v<typename Policy::execution_space, Kokkos::Cuda>
+#endif
+#ifdef KOKKOS_ENABLE_HIP
+                  ||
+                  std::is_same_v<typename Policy::execution_space, Kokkos::HIP>
+#endif
+    )
+      return policy.team_size_max_internal(functor_reducer.get_functor(),
+                                           functor_reducer.get_reducer(), tag);
+    else
+      return policy.team_size_max(functor_reducer.get_functor(),
+                                  functor_reducer.get_reducer(), tag);
   }
   template <typename Policy, typename Functor, typename Tag>
   int get_recommended_team_size(const Policy& policy, const Functor& functor,
@@ -132,15 +131,41 @@ struct ComplexReducerSizeCalculator {
   template <typename Policy, typename FunctorReducer, typename Tag>
   int get_max_team_size(const Policy& policy,
                         const FunctorReducer& functor_reducer, const Tag tag) {
-    return policy.team_size_max(functor_reducer.get_functor(),
-                                functor_reducer.get_reducer(), tag);
+    if constexpr (false
+#ifdef KOKKOS_ENABLE_CUDA
+                  ||
+                  std::is_same_v<typename Policy::execution_space, Kokkos::Cuda>
+#endif
+#ifdef KOKKOS_ENABLE_HIP
+                  ||
+                  std::is_same_v<typename Policy::execution_space, Kokkos::HIP>
+#endif
+    )
+      return policy.team_size_max_internal(functor_reducer.get_functor(),
+                                           functor_reducer.get_reducer(), tag);
+    else
+      return policy.team_size_max(functor_reducer.get_functor(),
+                                  functor_reducer.get_reducer(), tag);
   }
   template <typename Policy, typename FunctorReducer, typename Tag>
   int get_recommended_team_size(const Policy& policy,
                                 const FunctorReducer& functor_reducer,
                                 const Tag tag) {
-    return policy.team_size_recommended(functor_reducer.get_functor(),
-                                        functor_reducer.get_reducer(), tag);
+    if constexpr (false
+#ifdef KOKKOS_ENABLE_CUDA
+                  ||
+                  std::is_same_v<typename Policy::execution_space, Kokkos::Cuda>
+#endif
+#ifdef KOKKOS_ENABLE_HIP
+                  ||
+                  std::is_same_v<typename Policy::execution_space, Kokkos::HIP>
+#endif
+    )
+      return policy.team_size_recommended_internal(
+          functor_reducer.get_functor(), functor_reducer.get_reducer(), tag);
+    else
+      return policy.team_size_recommended(functor_reducer.get_functor(),
+                                          functor_reducer.get_reducer(), tag);
   }
   template <typename Policy, typename FunctorReducer>
   int get_mdrange_max_tile_size_product(const Policy& policy,

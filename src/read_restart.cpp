@@ -50,10 +50,12 @@ ReadRestart::ReadRestart(LAMMPS *lmp) : Command(lmp) {}
 
 void ReadRestart::command(int narg, char **arg)
 {
-  if (narg != 1 && narg != 2) error->all(FLERR,"Illegal read_restart command");
+  if (narg != 1 && narg != 2)
+    error->all(FLERR, Error::COMMAND, "Read_restart must have one or two arguments");
 
   if (domain->box_exist)
-    error->all(FLERR,"Cannot read_restart after simulation box is defined" + utils::errorurl(34));
+    error->all(FLERR, Error::COMMAND, "Cannot use read_restart after simulation box is defined"
+               + utils::errorurl(34));
 
   MPI_Barrier(world);
   double time1 = platform::walltime();
@@ -67,7 +69,7 @@ void ReadRestart::command(int narg, char **arg)
   if (narg == 2) {
     if (strcmp(arg[1],"noremap") == 0) remapflag = 0;
     else if (strcmp(arg[1],"remap") == 0) remapflag = 1; // for backward compatibility
-    else error->all(FLERR,"Illegal read_restart command");
+    else error->all(FLERR, 1, "Unknown read_restart keyword {}", arg[1]);
   }
 
   // if filename contains "*", search dir for latest restart file
@@ -89,8 +91,8 @@ void ReadRestart::command(int narg, char **arg)
 
   if (strchr(arg[0],'%')) multiproc = 1;
   else multiproc = 0;
-  if (utils::strmatch(arg[0],"\\.mpiio"))
-    error->all(FLERR,"MPI-IO files are no longer supported by LAMMPS");
+  if (utils::strmatch(arg[0],R"(\.mpiio)"))
+    error->all(FLERR, Error::ARGZERO, "MPI-IO restart files are no longer supported by LAMMPS");
 
   // open single restart file or base file for multiproc case
 
@@ -102,7 +104,8 @@ void ReadRestart::command(int narg, char **arg)
     }
     fp = fopen(hfile.c_str(),"rb");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open restart file {}: {}", hfile, utils::getsyserror());
+      error->one(FLERR, Error::ARGZERO, "Cannot open restart file {}: {}", hfile,
+                 utils::getsyserror());
   }
 
   // read magic string, endian flag, format revision
@@ -162,8 +165,7 @@ void ReadRestart::command(int narg, char **arg)
   // close header file if in multiproc mode
 
   if (multiproc && me == 0) {
-    fclose(fp);
-    fp = nullptr;
+    fp = nullptr;               // implicitly closes the file
   }
 
   // read per-proc info
@@ -197,7 +199,7 @@ void ReadRestart::command(int narg, char **arg)
 
     for (int iproc = 0; iproc < nprocs_file; iproc++) {
       if (read_int() != PERPROC)
-        error->all(FLERR,"Invalid flag in peratom section of restart file");
+        error->all(FLERR, 1, "Invalid flag in peratom section of restart file");
 
       n = read_int();
       if (n > maxbuf) {
@@ -227,11 +229,6 @@ void ReadRestart::command(int narg, char **arg)
         } else m += static_cast<int> (buf[m]);
       }
     }
-
-    if (me == 0) {
-      fclose(fp);
-      fp = nullptr;
-    }
   }
 
   // input of multiple native files with procs <= files
@@ -246,18 +243,17 @@ void ReadRestart::command(int narg, char **arg)
       procfile.replace(procfile.find('%'),1,fmt::format("{}",iproc));
       fp = fopen(procfile.c_str(),"rb");
       if (fp == nullptr)
-        error->one(FLERR,"Cannot open restart file {}: {}",
-                                     procfile, utils::getsyserror());
+        error->one(FLERR, 1, "Cannot open restart file {}: {}",procfile, utils::getsyserror());
       utils::sfread(FLERR,&flag,sizeof(int),1,fp,nullptr,error);
       if (flag != PROCSPERFILE)
-        error->one(FLERR,"Invalid flag in peratom section of restart file");
+        error->one(FLERR, 1, "Invalid flag in peratom section of restart file");
       int procsperfile;
       utils::sfread(FLERR,&procsperfile,sizeof(int),1,fp,nullptr,error);
 
       for (int i = 0; i < procsperfile; i++) {
         utils::sfread(FLERR,&flag,sizeof(int),1,fp,nullptr,error);
         if (flag != PERPROC)
-          error->one(FLERR,"Invalid flag in peratom section of restart file");
+          error->one(FLERR, 1, "Invalid flag in peratom section of restart file");
 
         utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
         if (n > maxbuf) {
@@ -270,9 +266,6 @@ void ReadRestart::command(int narg, char **arg)
         m = 0;
         while (m < n) m += avec->unpack_restart(&buf[m]);
       }
-
-      fclose(fp);
-      fp = nullptr;
     }
   }
 
@@ -310,7 +303,7 @@ void ReadRestart::command(int narg, char **arg)
       procfile.replace(procfile.find('%'),1,fmt::format("{}",icluster));
       fp = fopen(procfile.c_str(),"rb");
       if (fp == nullptr)
-        error->one(FLERR,"Cannot open restart file {}: {}", procfile, utils::getsyserror());
+        error->one(FLERR, 1, "Cannot open restart file {}: {}", procfile, utils::getsyserror());
     }
 
     int procsperfile;
@@ -318,7 +311,7 @@ void ReadRestart::command(int narg, char **arg)
     if (filereader) {
       utils::sfread(FLERR,&flag,sizeof(int),1,fp,nullptr,error);
       if (flag != PROCSPERFILE)
-        error->one(FLERR,"Invalid flag in peratom section of restart file");
+        error->one(FLERR, 1, "Invalid flag in peratom section of restart file");
       utils::sfread(FLERR,&procsperfile,sizeof(int),1,fp,nullptr,error);
     }
     MPI_Bcast(&procsperfile,1,MPI_INT,0,clustercomm);
@@ -330,7 +323,7 @@ void ReadRestart::command(int narg, char **arg)
       if (filereader) {
         utils::sfread(FLERR,&flag,sizeof(int),1,fp,nullptr,error);
         if (flag != PERPROC)
-          error->one(FLERR,"Invalid flag in peratom section of restart file");
+          error->one(FLERR, 1, "Invalid flag in peratom section of restart file");
 
         utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
         if (n > maxbuf) {
@@ -365,10 +358,6 @@ void ReadRestart::command(int narg, char **arg)
       }
     }
 
-    if (filereader && fp != nullptr) {
-      fclose(fp);
-      fp = nullptr;
-    }
     MPI_Comm_free(&clustercomm);
   }
 
@@ -377,7 +366,7 @@ void ReadRestart::command(int narg, char **arg)
   delete[] file;
   memory->destroy(buf);
 
-  // for multiproc or MPI-IO files:
+  // for multiproc files:
   // perform irregular comm to migrate atoms to correct procs
 
   if (multiproc) {
@@ -531,21 +520,21 @@ std::string ReadRestart::file_search(const std::string &inpfile)
     // the regex matcher in utils::strmatch() only checks the first 256 characters.
     // a 64-bit integer timestep will consume 20 characters, so 236 chars is the cutoff.
     if (loc > 236)
-      error->one(FLERR, "Filename part before '*' is too long to find restart with largest step");
+      error->one(FLERR, 1, "Filename part before '*' is too long to find restart with largest step");
 
     // convert pattern to equivalent regexp
-    pattern.replace(loc,1,"\\d+");
+    pattern.replace(loc,1,R"(\d+)");
 
     if (!std::filesystem::is_directory(dirname))
-      error->one(FLERR,"Cannot open directory {} to search for restart file: {}",dirname);
+      error->one(FLERR, 1, "Cannot open directory {} to search for restart file: {}",dirname);
 
     for (const auto &candidate : platform::list_directory(dirname)) {
       if (utils::strmatch(candidate,pattern)) {
-        auto num = (bigint) std::stoll(utils::strfind(candidate.substr(loc),"\\d+"));
+        auto num = (bigint) std::stoll(utils::strfind(candidate.substr(loc),R"(\d+)"));
         if (num > maxnum) maxnum = num;
       }
     }
-    if (maxnum < 0) error->one(FLERR,"Found no restart file matching pattern");
+    if (maxnum < 0) error->one(FLERR, 1, "Found no restart file matching pattern");
     filename.replace(filename.find('*'),1,std::to_string(maxnum));
   }
   return platform::path_join(dirname,filename);
@@ -577,7 +566,7 @@ void ReadRestart::header()
       // we have no forward compatibility, thus exit with error
 
       if (revision > FORMAT_REVISION)
-        error->all(FLERR,"Restart file format revision incompatible with current LAMMPS version");
+        error->all(FLERR, 1, "Restart file format revision incompatible with current LAMMPS version");
 
       // warn when attempting to read older format revision
 
@@ -1097,9 +1086,10 @@ char *ReadRestart::read_string()
 {
   int n = read_int();
   if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
-  auto *value = new char[n];
+  auto *value = new char[n+1];
   if (me == 0) utils::sfread(FLERR,value,sizeof(char),n,fp,nullptr,error);
-  MPI_Bcast(value,n,MPI_CHAR,0,world);
+  value[n] = '\0';
+  MPI_Bcast(value,n+1,MPI_CHAR,0,world);
   return value;
 }
 

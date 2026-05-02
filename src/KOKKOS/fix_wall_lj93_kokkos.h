@@ -33,6 +33,8 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef double value_type[];
+  const int value_count = 13;
 
   FixWallLJ93Kokkos(class LAMMPS *, int, char **);
   ~FixWallLJ93Kokkos() override;
@@ -42,9 +44,7 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
 
   int m;
 
-  typedef double value_type[];
-  const int value_count = 13;
-
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int&, value_type) const;
 
@@ -62,6 +62,7 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
   DAT::ttransform_kkfloat_1d k_cutoff,k_coeff1,k_coeff2,k_coeff3,k_coeff4,k_offset;
   typename AT::t_kkfloat_1d d_cutoff,d_coeff1,d_coeff2,d_coeff3,d_coeff4,d_offset;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally(value_type, int, int, KK_FLOAT) const;
 };

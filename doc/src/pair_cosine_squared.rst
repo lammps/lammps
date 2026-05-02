@@ -1,7 +1,10 @@
 .. index:: pair_style cosine/squared
+.. index:: pair_style cosine/squared/omp
 
 pair_style cosine/squared command
 =================================
+
+Accelerator Variants: *cosine/squared/omp*
 
 Syntax
 """"""
@@ -85,6 +88,10 @@ in the graphs below:
 
 .. image:: JPG/pair_cosine_squared_graphs.jpg
    :align: center
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

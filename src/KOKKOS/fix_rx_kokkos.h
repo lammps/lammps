@@ -47,9 +47,11 @@ struct s_CounterType
 {
   int nSteps, nIters, nFuncs, nFails;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   s_CounterType() : nSteps(0), nIters(0), nFuncs(0), nFails(0) {};
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   s_CounterType& operator+=(const s_CounterType &rhs)
   {
@@ -79,21 +81,26 @@ class FixRxKokkos : public FixRX {
   // Define a value_type here for the reduction operator on CounterType.
   typedef CounterType value_type;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(Tag_FixRxKokkos_zeroCounterViews, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(Tag_FixRxKokkos_zeroTemperatureViews, const int&) const;
 
   template <int WT_FLAG, bool NEWTON_PAIR, int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(Tag_FixRxKokkos_firstPairOperator<WT_FLAG,NEWTON_PAIR,NEIGHFLAG>, const int&) const;
 
   template <int WT_FLAG, int LOCAL_TEMP_FLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(Tag_FixRxKokkos_2ndPairOperator<WT_FLAG,LOCAL_TEMP_FLAG>, const int&) const;
 
   template <bool ZERO_RATES>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES>, const int&, CounterType&) const;
 
@@ -112,14 +119,20 @@ class FixRxKokkos : public FixRX {
 
     value_type *m_data;
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     StridedArrayType() : m_data(nullptr) {}
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     StridedArrayType(value_type *ptr) : m_data(ptr) {}
 
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION       value_type& operator()(const int idx)       { return m_data[Stride*idx]; }
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION const value_type& operator()(const int idx) const { return m_data[Stride*idx]; }
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION       value_type& operator[](const int idx)       { return m_data[Stride*idx]; }
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION const value_type& operator[](const int idx) const { return m_data[Stride*idx]; }
   };
 
@@ -137,14 +150,17 @@ class FixRxKokkos : public FixRX {
   int rhs_sparse(double, const double *, double *, void *) const;
 
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   int k_rhs       (double, const VectorType&, VectorType&, UserDataType& ) const;
 
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   int k_rhs_dense (double, const VectorType&, VectorType&, UserDataType& ) const;
 
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   int k_rhs_sparse(double, const VectorType&, VectorType&, UserDataType& ) const;
 
@@ -165,22 +181,26 @@ class FixRxKokkos : public FixRX {
 
   //!< Classic Runge-Kutta 4th-order stepper.
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   void k_rk4(const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData) const;
 
   //!< Runge-Kutta-Fehlberg ODE Solver.
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   void k_rkf45(const int neq, const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData, CounterType& counter) const;
 
   //!< Runge-Kutta-Fehlberg ODE stepper function.
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   void k_rkf45_step (const int neq, const double h, VectorType& y, VectorType& y_out,
                      VectorType& rwk, UserDataType& userData) const;
 
   //!< Initial step size estimation for the Runge-Kutta-Fehlberg ODE solver.
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
   int k_rkf45_h0 (const int neq, const double t, const double t_stop,
                   const double hmin, const double hmax,

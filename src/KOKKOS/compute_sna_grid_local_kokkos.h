@@ -143,66 +143,86 @@ class ComputeSNAGridLocalKokkos : public ComputeSNAGridLocal {
   template<class TagStyle>
   void check_team_size_reduce(int, int&);
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagComputeSNAGridLocalLoop, const int& ) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagComputeSNAGridLocalLoopCPU, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalComputeNeigh,const typename Kokkos::TeamPolicy<DeviceType, TagCSNAGridLocalComputeNeigh>::member_type& team) const;
 
   // 3D case - used by parallel_for
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeSNAGridLocal3D, const int& iz, const int& iy, const int& ix) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalComputeCayleyKlein, const int iatom_mod, const int jnbor, const int iatom_div) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalPreUi, const int& iatom_mod, const int& j, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalPreUi, const int& iatom, const int& j) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalPreUi, const int& iatom) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalComputeUiSmall<chemsnap>,
     const typename Kokkos::TeamPolicy<DeviceType, TagCSNAGridLocalComputeUiSmall<chemsnap>>::member_type& team) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalComputeUiLarge<chemsnap>,
     const typename Kokkos::TeamPolicy<DeviceType, TagCSNAGridLocalComputeUiLarge<chemsnap>>::member_type& team) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalTransformUi, const int& iatom_mod, const int& idxu, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalTransformUi, const int& iatom, const int& idxu) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalTransformUi, const int& iatom) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalComputeZi<chemsnap>, const int& iatom_mod, const int& idxz, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalComputeZi<chemsnap>, const int& iatom, const int& idxz) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalComputeZi<chemsnap>, const int& iatom) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalComputeBi<chemsnap>, const int& iatom_mod, const int& idxb, const int& iatom_div) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalComputeBi<chemsnap>, const int& iatom, const int& idxb) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocalComputeBi<chemsnap>, const int& iatom) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagCSNAGridLocal2Fill,const int& ii) const;
 

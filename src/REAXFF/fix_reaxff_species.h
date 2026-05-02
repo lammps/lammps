@@ -40,6 +40,11 @@ class FixReaxFFSpecies : public Fix {
   void init_list(int, class NeighList *) override;
   void setup(int) override;
   void post_integrate() override;
+
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+
+  double memory_usage() override;
   double compute_vector(int) override;
 
  protected:
@@ -59,6 +64,8 @@ class FixReaxFFSpecies : public Fix {
   int delflag, specieslistflag, masslimitflag;
   int deljson_init;
   int delete_Nlimit, delete_Nlimit_varid;
+  bool delete_subgroup;
+  int deligroupbit;
   std::string delete_Nlimit_varname;
   int delete_Nsteps, *delete_Tcount;
   double massmin, massmax;
@@ -79,11 +86,8 @@ class FixReaxFFSpecies : public Fix {
   int CheckExistence(int, int);
   void GetUniqueElements();
 
-  int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm(int, int, double *) override;
   void OpenPos();
   void WritePos(int, int);
-  double memory_usage() override;
 
   bigint nvalid;
 

@@ -160,7 +160,7 @@ void PairBornGauss::allocate()
 
 void PairBornGauss::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR, "Pair style bond/gauss must have exactly one argument");
+  if (narg != 1) error->all(FLERR, "Pair style born/gauss must have exactly one argument");
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
 
   // reset per-type pair cutoffs that have been explicitly set previously

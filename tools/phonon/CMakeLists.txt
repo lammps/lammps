@@ -81,9 +81,9 @@ endif()
 option(USE_SPGLIB "Download and use spglib for phonon DOS and other optional properties" ON)
 if(USE_SPGLIB)
   set(SPGLIB_URL "https://github.com/spglib/spglib/archive/refs/tags/v1.11.2.1.tar.gz" CACHE STRING "URL for spglib v1.x tarball")
-  set(SPGLIB_MD5 "3089782bc85b5034dd4765a18ee70bc7" CACHE STRING "MD5 checksum for spglib tarball")
+  set(SPGLIB_SHA256 "f6795523a04871e012e7f5f5ab97b249fa36657b73cdc9b4ea53ef023cfcaac4" CACHE STRING "SHA256 checksum for spglib tarball")
   mark_as_advanced(SPGLIB_URL)
-  mark_as_advanced(SPGLIB_MD5)
+  mark_as_advanced(SPGLIB_SHA256)
   include(LAMMPSUtils)
   GetFallbackURL(SPGLIB_URL SPGLIB_FALLBACK)
 
@@ -91,8 +91,9 @@ if(USE_SPGLIB)
   include(ExternalProject)
   ExternalProject_Add(spglib_build
     URL ${SPGLIB_URL} ${SPGLIB_FALLBACK}
-    URL_MD5 ${SPGLIB_MD5}
+    URL_HASH SHA256=${SPGLIB_SHA256}
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext
+    EXCLUDE_FROM_ALL TRUE
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -116,7 +117,7 @@ if(USE_SPGLIB)
     IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/lib/${CMAKE_STATIC_LIBRARY_PREFIX}symspg${CMAKE_STATIC_LIBRARY_SUFFIX}"
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/include
   )
-    
+
   target_compile_definitions(phana PRIVATE UseSPG)
   target_link_libraries(phana PRIVATE SPGLIB::SYMSPG)
 endif()

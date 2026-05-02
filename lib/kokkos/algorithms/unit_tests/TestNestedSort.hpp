@@ -1,23 +1,11 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_ALGORITHMS_UNITTESTS_TEST_NESTED_SORT_HPP
 #define KOKKOS_ALGORITHMS_UNITTESTS_TEST_NESTED_SORT_HPP
 
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <unordered_set>
 #include <random>
 #include <Kokkos_Macros.hpp>
@@ -391,11 +379,6 @@ void test_nested_sort_by_key(unsigned int N, KeyType minKey, KeyType maxKey,
 }  // namespace NestedSortImpl
 
 TEST(TEST_CATEGORY, NestedSort) {
-  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
-#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
-  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
-#endif
-
   using ExecutionSpace = TEST_EXECSPACE;
   NestedSortImpl::test_nested_sort<ExecutionSpace, unsigned>(171, 0U, UINT_MAX);
   NestedSortImpl::test_nested_sort<ExecutionSpace, float>(42, -1e6f, 1e6f);
@@ -404,11 +387,6 @@ TEST(TEST_CATEGORY, NestedSort) {
 }
 
 TEST(TEST_CATEGORY, NestedSortByKey) {
-  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
-#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
-  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
-#endif
-
   using ExecutionSpace = TEST_EXECSPACE;
 
   // Second/third template arguments are key and value respectively.

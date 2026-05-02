@@ -34,6 +34,8 @@ using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
 using ::testing::StrEq;
+using ::testing::DoubleNear;
+using ::testing::Eq;
 
 class KimCommandsTest : public LAMMPSTest {
 protected:
@@ -554,7 +556,7 @@ TEST_F(KimCommandsTest, kim_query)
                  "one or more comma-separated items.*",
                  command(squery););
 
-    squery = "kim query a0 get_lattice_constant_cubic crystal=[\"fcc\"] species=[\"Al\"]";
+    squery = R"(kim query a0 get_lattice_constant_cubic crystal=["fcc"] species=["Al"])";
     TEST_FAILURE(".*ERROR: Illegal query format.\nMust use 'kim init' before "
                  "'kim query' or must provide the model name after query "
                  "function with the format of 'model=\\[model_name\\]'.*",
@@ -577,14 +579,14 @@ TEST_F(KimCommandsTest, kim_query)
     command("clear");
     command("kim query latconst_1 get_lattice_constant_cubic "
             "crystal=[fcc] species=[Al] units=[angstrom] "
-            "model=[EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005]");
+            "model=[EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_006]");
     END_HIDE_OUTPUT();
 
-    ASSERT_THAT(variable->retrieve("latconst_1"), StrEq("4.032082033157349"));
+    ASSERT_THAT(std::stod(variable->retrieve("latconst_1")), DoubleNear(4.032082033157349, 1.e-2));
 
     BEGIN_HIDE_OUTPUT();
     command("clear");
-    command("kim init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal");
+    command("kim init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_006 metal");
     command("kim query latconst_1 get_lattice_constant_cubic crystal=[fcc] species=[Al] "
             "units=[angstrom]");
 
@@ -593,50 +595,53 @@ TEST_F(KimCommandsTest, kim_query)
             "model=[LennardJones612_UniversalShifted__MO_959249795837_003]");
     END_HIDE_OUTPUT();
 
-    ASSERT_THAT(variable->retrieve("latconst_1"), StrEq("4.032082033157349"));
-    ASSERT_THAT(variable->retrieve("latconst_2"), StrEq("3.328125931322575"));
+    ASSERT_THAT(std::stod(variable->retrieve("latconst_1")), DoubleNear(4.032082033157349, 1.e-2));
+    ASSERT_THAT(std::stod(variable->retrieve("latconst_2")), DoubleNear(3.328125931322575, 1.e-2));
 
     BEGIN_HIDE_OUTPUT();
     command("clear");
-    command("kim init EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000 metal");
+    command("kim init EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_001 metal");
 
     command("kim query latconst split get_lattice_constant_hexagonal crystal=[hcp] species=[Zr] "
             "units=[angstrom]");
     END_HIDE_OUTPUT();
 
-    ASSERT_THAT(variable->retrieve("latconst_1"), StrEq("3.234055244384789"));
-    ASSERT_THAT(variable->retrieve("latconst_2"), StrEq("5.167650199630013"));
+    ASSERT_THAT(std::stod(variable->retrieve("latconst_1")), DoubleNear(3.208725140430033, 1.e-2));
+    ASSERT_THAT(std::stod(variable->retrieve("latconst_2")), DoubleNear(5.239826212595919, 1.e-2));
 
     BEGIN_HIDE_OUTPUT();
     command("clear");
 
     command("kim query latconst index get_lattice_constant_hexagonal "
             "crystal=[hcp] species=[Zr] units=[angstrom] "
-            "model=[EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000]");
+            "model=[EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_001]");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(variable->retrieve("latconst"), StrEq("3.234055244384789"));
+    ASSERT_THAT(std::stod(variable->retrieve("latconst")), DoubleNear(3.208725140430033, 1.e-2));
 
     BEGIN_HIDE_OUTPUT();
     command("variable latconst delete");
     command("clear");
-    command("kim init EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000 metal");
+    command("kim init EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_001 metal");
 
     command("kim query latconst list get_lattice_constant_hexagonal crystal=[hcp] species=[Zr] "
             "units=[angstrom]");
     END_HIDE_OUTPUT();
 
-    ASSERT_THAT(variable->retrieve("latconst"), StrEq("3.234055244384789 5.167650199630013"));
+    std::vector<std::string> latconsts = utils::split_words(variable->retrieve("latconst"));
+    ASSERT_THAT(latconsts.size(), Eq(2));
+    ASSERT_THAT(std::stod(latconsts[0]), DoubleNear(3.208725140430033, 1.e-2));
+    ASSERT_THAT(std::stod(latconsts[1]), DoubleNear(5.239826212595919, 1.e-2));
 
     BEGIN_HIDE_OUTPUT();
     command("clear");
-    command("kim init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal");
+    command("kim init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_006 metal");
 
     command("kim query alpha get_linear_thermal_expansion_coefficient_cubic "
             "crystal=[fcc] species=[Al] units=[1/K] temperature=[293.15] "
             "temperature_units=[K]");
     END_HIDE_OUTPUT();
 
-    ASSERT_THAT(variable->retrieve("alpha"), StrEq("1.656579473023212e-05"));
+    ASSERT_THAT(std::stod(variable->retrieve("alpha")), DoubleNear(1.658279376744496e-05, 1e-7));
 
     BEGIN_HIDE_OUTPUT();
     command("clear");
@@ -645,7 +650,7 @@ TEST_F(KimCommandsTest, kim_query)
     END_HIDE_OUTPUT();
 
     std::string model_list = variable->retrieve("model_list");
-    auto n = model_list.find("EAM_Dynamo_LiuErcolessiAdams_2004_Al__MO_051157671505_000");
+    auto n = model_list.find("EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_006");
     ASSERT_TRUE(n != std::string::npos);
 
     BEGIN_HIDE_OUTPUT();

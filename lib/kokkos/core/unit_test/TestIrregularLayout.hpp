@@ -1,21 +1,13 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <sstream>
 #include <iostream>
 #define OFFSET_LIST_MAX_SIZE 100
@@ -66,6 +58,9 @@ struct LayoutSelective {
     assign(rhs.offset_list, rhs.list_size);
     return *this;
   }
+
+  KOKKOS_DEFAULTED_FUNCTION
+  ~LayoutSelective() = default;
 
   KOKKOS_INLINE_FUNCTION
   explicit LayoutSelective(const size_t ol_[], const size_t size_) {
@@ -138,9 +133,7 @@ struct ViewOffset<Dimension, Kokkos::LayoutSelective, void> {
   }
 
   //----------------------------------------
-  ViewOffset()                             = default;
-  ViewOffset(const ViewOffset&)            = default;
-  ViewOffset& operator=(const ViewOffset&) = default;
+  ViewOffset() = default;
 
   KOKKOS_INLINE_FUNCTION
   ViewOffset(std::integral_constant<unsigned, 0> const&,

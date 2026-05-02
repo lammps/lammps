@@ -43,6 +43,8 @@ void FixNHAsphere::init()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  if (atom->superellipsoid_flag) error->all(FLERR, "Fix {} does not support superellipsoids", style);
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)

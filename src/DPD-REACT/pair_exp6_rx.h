@@ -32,6 +32,7 @@ class PairExp6rx : public Pair {
   void settings(int, char **) override;
   void coeff(int, char **) override;
   double init_one(int, int) override;
+  void setup() override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   void write_restart_settings(FILE *) override;
@@ -62,7 +63,6 @@ class PairExp6rx : public Pair {
   int nspecies;
   virtual void read_file(char *);
   void read_file2(char *);
-  void setup() override;
 
   int isite1, isite2;
   char *site1, *site2;
@@ -76,8 +76,8 @@ class PairExp6rx : public Pair {
   double *coeffAlpha, *coeffEps, *coeffRm;
   bool fractionalWeighting;
 
-  inline double func_rin(const double &) const;
-  inline double expValue(const double) const;
+  [[nodiscard]] double func_rin(const double &) const;
+  [[nodiscard]] double expValue(const double) const;
 };
 
 }    // namespace LAMMPS_NS

@@ -12,7 +12,7 @@ Syntax
 
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
-* keyword = *bodyforces* or *dynamic/dof* or *energy* or *pad* or *press* or *respa* or *temp* or *virial*
+* keyword = *bodyforces* or *dynamic/dof* or *energy* or *pad* or *press* or *respa* or *temp* or *virial* or *kick*
 
   .. parsed-literal::
 
@@ -26,6 +26,8 @@ Syntax
        *respa* value = *1* to *max respa level* or *0* (for outermost level)
        *temp* value = compute ID that calculates a temperature
        *virial* value = *yes* or *no*
+       *vizsteps* value = number of MD steps that generated graphics objects should remain visible for fixes that support it
+       *kick* value = *yes* or *no*
 
 Examples
 """"""""
@@ -35,6 +37,7 @@ Examples
    fix_modify 3 temp myTemp press myPress
    fix_modify 1 energy yes
    fix_modify tether respa 2
+   fix_modify myrxns vizsteps 100
 
 Description
 """""""""""
@@ -179,6 +182,21 @@ is padded with leading zeroes so they are all the same length = *Nchar*\
 be useful so that post-processing programs can easily read the files in
 ascending timestep order.  Please see the documentation of the individual
 fix styles if this keyword is supported.
+
+.. versionadded:: 11Feb2026
+
+The *vizsteps* keyword only applies when a fix produces event based
+graphics objects, e.g. atoms that were involved in a reaction or a Monte
+Carlo swap, move, or insert.  It determines for how many time steps the
+graphics objects will remain visible in the corresponding :doc:`dump
+image output <dump_image>`.
+
+The *kick* keyword can only be used with :doc:`fix nvt/sllod <fix_nvt_sllod>`
+and :doc:`fix nvt/sllod/eff <fix_nvt_sllod_eff>`. If *kick* is *yes* and
+velocity is stored in the laboratory frame, the velocity profile consistent
+with :doc:`fix deform <fix_deform>` will be superimposed at the start of the
+next run.  If velocity is stored in the peculiar frame, the *kick* flag is
+ignored.
 
 Restrictions
 """"""""""""

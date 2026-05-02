@@ -1,25 +1,18 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
 
 #include <sstream>
 #include <iostream>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 /*--------------------------------------------------------------------------*/
 
@@ -207,9 +200,6 @@ TEST(TEST_CATEGORY, impl_shared_alloc) {
 #ifdef TEST_CATEGORY_NUMBER
 #if (TEST_CATEGORY_NUMBER < 4)  // serial threads openmp hpx
   test_shared_alloc<Kokkos::HostSpace, TEST_EXECSPACE>();
-#elif (TEST_CATEGORY_NUMBER == 4)  // openmptarget
-  test_shared_alloc<Kokkos::Experimental::OpenMPTargetSpace,
-                    Kokkos::DefaultHostExecutionSpace>();
 #elif (TEST_CATEGORY_NUMBER == 5)  // cuda
   test_shared_alloc<Kokkos::CudaSpace, Kokkos::DefaultHostExecutionSpace>();
 #elif (TEST_CATEGORY_NUMBER == 6)  // hip

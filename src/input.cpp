@@ -461,8 +461,8 @@ void Input::parse()
         error->all(FLERR,"Unmatched single quote in command: {}",line);
       ptr = ptrmatch + 1;
     } else if (*ptr == '"') {
-      if (strstr(ptr,"\"\"\"") == ptr) {
-        ptrmatch = strstr(ptr+3,"\"\"\"");
+      if (strstr(ptr,R"(""")") == ptr) {
+        ptrmatch = strstr(ptr+3,R"(""")");
         if (ptrmatch == nullptr)
           error->all(FLERR,"Unmatched triple quote in command: {}",line);
         ptr = ptrmatch + 3;
@@ -542,8 +542,8 @@ char *Input::nextword(char *str, char **next)
   //   stop = first whitespace char after start
   //   next = char after stop, or stop itself if stop is null char
 
-  if (strstr(start,"\"\"\"") == start) {
-    stop = strstr(&start[3],"\"\"\"");
+  if (strstr(start,R"(""")") == start) {
+    stop = strstr(&start[3],R"(""")");
     if (!stop) error->all(FLERR,"Unbalanced quotes in input line");
     start += 3;
     *next = stop+3;
@@ -599,9 +599,16 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 
   while (*ptr) {
 
+    // if this is not the first character and the character before ptr is a backslash
+    // do *not* expand as variable but overwrite the backslash with the $
+
+    if ((*ptr == '$') && (ptr > str) && (ptr[- 1] == '\\')) {
+
+      ptr2[-1] = *ptr++;
+
     // variable substitution
 
-    if (*ptr == '$') {
+    } else if (*ptr == '$') {
 
       // value = ptr to expanded variable
       // variable name between curly braces, e.g. ${a}
@@ -633,7 +640,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
           i++;
         }
 
-        if (var[i] == '\0') error->one(FLERR,"Invalid immediate variable");
+        if (var[i] == '\0') error->one(FLERR,"Invalid immediate variable {}", ptr);
         var[i] = '\0';
         beyond = ptr + strlen(var) + 3;
 
@@ -648,8 +655,8 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 
         // quick check for proper format string
 
-        if (!utils::strmatch(fmtstr,"%[0-9 ]*\\.[0-9]+[efgEFG]"))
-          error->all(FLERR,"Incorrect conversion in format string");
+        if (!utils::strmatch(fmtstr,R"(%[0-9 ]*\.[0-9]+[efgEFG])"))
+          error->all(FLERR,"Incorrect conversion in format string {}", fmtstr);
 
         snprintf(immediate,256,fmtstr,variable->compute_equal(var));
         value = immediate;
@@ -694,8 +701,8 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
       ptr += nchars;
       ptr2 += nchars;
     } else if (*ptr == '"') {
-      if (strstr(ptr,"\"\"\"") == ptr) {
-        ptrmatch = strstr(ptr+3,"\"\"\"");
+      if (strstr(ptr,R"(""")") == ptr) {
+        ptrmatch = strstr(ptr+3,R"(""")");
         if (ptrmatch == nullptr)
           error->all(FLERR,"Unmatched triple quote in command");
         nchars = ptrmatch+3 - ptr;
@@ -736,7 +743,7 @@ int Input::numtriple(char *line)
 {
   int count = 0;
   char *ptr = line;
-  while ((ptr = strstr(ptr,"\"\"\""))) {
+  while ((ptr = strstr(ptr,R"(""")"))) {
     ptr += 3;
     count++;
   }
@@ -938,7 +945,7 @@ void Input::ifthenelse()
   // bound "then" commands
 
   if (strcmp(arg[1],"then") != 0)
-    error->all(FLERR, 1, "Illegal if command: expected \"then\" but found \"{}\"", arg[1]);
+    error->all(FLERR, 1, R"(Illegal if command: expected "then" but found "{}")", arg[1]);
 
   int first = 2;
   int iarg = first;
@@ -1787,7 +1794,7 @@ void Input::pair_coeff()
   // if arg[1] < arg[0], and neither contain a wildcard, reorder
 
   int itype,jtype;
-  if (utils::strmatch(arg[0],"^\\d+$") && utils::strmatch(arg[1],"^\\d+$")) {
+  if (utils::strmatch(arg[0], R"(^\d+$)") && utils::strmatch(arg[1],R"(^\d+$)")) {
     itype = utils::inumeric(FLERR,arg[0],false,lmp);
     jtype = utils::inumeric(FLERR,arg[1],false,lmp);
     if (jtype < itype) {

@@ -47,21 +47,27 @@ class FixEOStableRXKokkos : public FixEOStableRX {
   void post_integrate() override;
   void end_of_step() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixEOStableRXInit, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixEOStableRXSetup, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixEOStableRXTemperatureLookup, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixEOStableRXTemperatureLookup2, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void energy_lookup(int, KK_FLOAT, KK_FLOAT &) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void temperature_lookup(int, KK_FLOAT, KK_FLOAT &) const;
 

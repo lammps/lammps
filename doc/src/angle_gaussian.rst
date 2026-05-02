@@ -1,7 +1,10 @@
 .. index:: angle_style gaussian
+.. index:: angle_style gaussian/omp
 
 angle_style gaussian command
-================================
+============================
+
+Accelerator Variant: *gaussian/omp*
 
 Syntax
 """"""
@@ -46,6 +49,11 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`w_n` (> 0, radians)
 * :math:`\theta_n` (degrees)
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

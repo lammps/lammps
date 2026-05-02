@@ -221,7 +221,7 @@ search could not reduce the energy.  Even if alpha is non-zero, if the
 then it is possible the last iteration effectively caused no atom
 movement and thus the evaluated energy did not change and the
 minimizer terminated.  Said another way, even with non-zero forces,
-it's possible the effect of those forces is to move atoms a distance
+it is possibly the effect of those forces to move atoms a distance
 less than machine precision, so that the energy cannot be further
 reduced.
 
@@ -278,7 +278,7 @@ commands to see which ones are relevant.  Current examples of fixes
 that can be used include:
 
 * :doc:`fix addforce <fix_addforce>`
-* :doc:`fix addtorque <fix_addtorque>`
+* :doc:`fix addtorque/group <fix_addtorque_group>`
 * :doc:`fix efield <fix_efield>`
 * :doc:`fix enforce2d <fix_enforce2d>`
 * :doc:`fix indent <fix_indent>`

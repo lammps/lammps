@@ -427,6 +427,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::num_neigh_item(int ii, bigint &totneigh) const
 {
@@ -552,6 +553,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::deallocate_array()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Zero, const int &ii) const
 {
@@ -573,6 +575,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Zero, const int &ii) 
 
 template<class DeviceType>
 template <int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_item(int ii, bigint &m_fill, const bool &final) const
 {
@@ -641,6 +644,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_item(int ii, bigint &m_fill, co
 
 template <class DeviceType>
 template <int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
     const typename Kokkos::TeamPolicy<DeviceType>::member_type &team,
@@ -708,7 +712,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
   // calculated by the current team will be stored in d_val
   bigint team_firstnbr_idx = 0;
   Kokkos::single(Kokkos::PerTeam(team),
-                 [=](bigint &val) {
+                 [&](bigint &val) {
                    int totalnbrs = s_firstnbr[lastatom - firstatom - 1] +
                                    s_numnbrs[lastatom - firstatom - 1];
                    val = Kokkos::atomic_fetch_add(&d_mfill_offset(), totalnbrs);
@@ -846,6 +850,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT FixACKS2ReaxFFKokkos<DeviceType>::calculate_H_k(const KK_FLOAT &r, const KK_FLOAT &shld) const
 {
@@ -869,6 +874,7 @@ KK_FLOAT FixACKS2ReaxFFKokkos<DeviceType>::calculate_H_k(const KK_FLOAT &r, cons
 
 template<class DeviceType>
 template <int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_item(int ii, bigint &m_fill, const bool &final) const
 {
@@ -945,6 +951,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_item(int ii, bigint &m_fill, co
 
 template <class DeviceType>
 template <int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
     const typename Kokkos::TeamPolicy<DeviceType>::member_type &team,
@@ -1016,7 +1023,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
   // calculated by the current team will be stored in d_val_X
   bigint team_firstnbr_idx = 0;
   Kokkos::single(Kokkos::PerTeam(team),
-                 [=](bigint &val) {
+                 [&](bigint &val) {
                    int totalnbrs = s_firstnbr[lastatom - firstatom - 1] +
                                    s_numnbrs[lastatom - firstatom - 1];
                    val = Kokkos::atomic_fetch_add(&d_mfill_offset(), totalnbrs);
@@ -1163,6 +1170,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT FixACKS2ReaxFFKokkos<DeviceType>::calculate_X_k( const KK_FLOAT &r, const KK_FLOAT &bcut) const
 {
@@ -1178,6 +1186,7 @@ KK_FLOAT FixACKS2ReaxFFKokkos<DeviceType>::calculate_X_k( const KK_FLOAT &r, con
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2InitMatvec, const int &ii) const
 {
@@ -1433,6 +1442,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::sparse_matvec_acks2(typename AT::t_kkfloa
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec1, const int &ii) const
 {
@@ -1447,6 +1457,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec1, const 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec2, const int &ii) const
 {
@@ -1461,6 +1472,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec2, const 
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec3_Half<NEIGHFLAG>, const int &ii) const
 {
@@ -1506,6 +1518,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec3_Half<NE
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec3_Full, const membertype &team) const
 {
@@ -1547,6 +1560,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec3_Full, c
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Norm1, const int &ii, double &lsum) const
 {
@@ -1572,6 +1586,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Norm1, const int &ii,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Norm2, const int &ii, double &lsum) const
 {
@@ -1591,6 +1606,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Norm2, const int &ii,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot1, const int &ii, double &lsum) const
 {
@@ -1610,6 +1626,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot1, const int &ii, 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon1A, const int &ii) const
 {
@@ -1641,6 +1658,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon1A, const int &
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon1B, const int &ii) const
 {
@@ -1666,6 +1684,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon1B, const int &
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot2, const int &ii, double &lsum) const
 {
@@ -1685,6 +1704,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot2, const int &ii, 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot3, const int &ii, double &lsum) const
 {
@@ -1710,6 +1730,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot3, const int &ii, 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot4, const int &ii, double &lsum) const
 {
@@ -1729,6 +1750,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot4, const int &ii, 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot5, const int &ii, double &lsum) const
 {
@@ -1748,6 +1770,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot5, const int &ii, 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Add, const int &ii) const
 {
@@ -1767,6 +1790,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Add, const int &ii) c
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon2, const int &ii) const
 {
@@ -1786,6 +1810,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon2, const int &i
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Norm3, const int &ii, double &lsum) const
 {
@@ -1823,6 +1848,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Norm3, const int &ii,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2CalculateQ, const int &i) const
 {
@@ -1843,11 +1869,13 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2CalculateQ, const int
 
   // last two rows
   if (last_rows_flag && i == 0) {
-    for (int i = 0; i < 2; ++i) {
-      for (int k = nprev-1; k > 0; --k)
-        d_s_hist_last(i,k) = d_s_hist_last(i,k-1);
-      d_s_hist_last(i,0) = d_s[2*NN+i];
+    /* backup s_hist_last */
+    for (int k = nprev-1; k > 0; --k) {
+      d_s_hist_last(0,k) = d_s_hist_last(0,k-1);
+      d_s_hist_last(1,k) = d_s_hist_last(1,k-1);
     }
+    d_s_hist_last(0,0) = d_s[2*NN];
+    d_s_hist_last(1,0) = d_s[2*NN+1];
   }
 }
 

@@ -1,7 +1,10 @@
 .. index:: pair_style coul/shield
+.. index:: pair_style coul/shield/omp
 
 pair_style coul/shield command
 ==============================
+
+Accelerator Variants: *coul/shield/omp*
 
 Syntax
 """"""
@@ -59,6 +62,10 @@ in the example above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` commands:
 
 The global cutoff (:math:`r_c`) specified in the pair_style command is used.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

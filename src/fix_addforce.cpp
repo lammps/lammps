@@ -50,6 +50,10 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
 
+  xstyle = ystyle = zstyle = NONE;
+  xvar = yvar = zvar = -1;
+  varflag = NONE;
+
   if (utils::strmatch(arg[3], "^v_")) {
     xstr = utils::strdup(arg[3] + 2);
   } else {

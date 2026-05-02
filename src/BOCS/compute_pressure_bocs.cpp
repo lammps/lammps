@@ -27,6 +27,7 @@
 #include "force.h"
 #include "improper.h"
 #include "kspace.h"
+#include "math_special.h"
 #include "modify.h"
 #include "pair.h"
 #include "update.h"
@@ -35,6 +36,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
@@ -194,8 +196,7 @@ double ComputePressureBocs::get_cg_p_corr(int N_basis, double *phi_coeff,
 {
   double correction = 0.0;
   for (int i = 1; i <= N_basis; ++i)
-    correction -= phi_coeff[i-1] * ( N_mol * i / vavg ) *
-      pow( ( 1 / vavg ) * ( vCG - vavg ),i-1);
+    correction -= phi_coeff[i-1] * (N_mol * i / vavg) * powint((1 / vavg) * (vCG - vavg), i - 1);
   return correction;
 }
 
@@ -230,9 +231,9 @@ double ComputePressureBocs::get_cg_p_corr(double ** grid, int basis_type,
   double deltax = vCG - grid[0][i];
 
   if (basis_type == BASIS_LINEAR_SPLINE)
-    return grid[1][i] + (deltax) * ( grid[1][i+1] - grid[1][i] ) / ( grid[0][i+1] - grid[0][i] );
+    return grid[1][i] + deltax * (grid[1][i+1] - grid[1][i]) / (grid[0][i+1] - grid[0][i]);
   else if (basis_type == BASIS_CUBIC_SPLINE)
-    return grid[1][i] + (grid[2][i] * deltax) + (grid[3][i] * pow(deltax,2)) + (grid[4][i] * pow(deltax,3));
+    return grid[1][i] + (grid[2][i] * deltax) + (grid[3][i] * powint(deltax,2)) + (grid[4][i] * powint(deltax,3));
   else error->all(FLERR, Error::NOLASTLINE, "bad spline type passed to get_cg_p_corr()");
   return 0.0;
 }
@@ -306,12 +307,9 @@ double ComputePressureBocs::compute_scalar()
     volume = (domain->xprd * domain->yprd * domain->zprd);
 
     /* MRD NJD if block */
-    if (p_basis_type == BASIS_ANALYTIC)
-    {
+    if (p_basis_type == BASIS_ANALYTIC) {
       correction = get_cg_p_corr(N_basis,phi_coeff,N_mol,vavg,volume);
-    }
-    else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE)
-    {
+    } else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE) {
       correction = get_cg_p_corr(splines, p_basis_type, volume);
     }
 
@@ -319,10 +317,10 @@ double ComputePressureBocs::compute_scalar()
     if (keflag)
       scalar = (temperature->dof * boltz * t +
                 virial[0] + virial[1] + virial[2]) / 3.0 *
-                inv_volume * nktv2p + (correction);
+                inv_volume * nktv2p + correction;
     else
       scalar = (virial[0] + virial[1] + virial[2]) / 3.0 *
-               inv_volume * nktv2p + (correction);
+               inv_volume * nktv2p + correction;
   } else {
     if (p_match_flag) {
       error->all(FLERR, Error::NOLASTLINE, "Pressure matching not implemented in 2-d.");

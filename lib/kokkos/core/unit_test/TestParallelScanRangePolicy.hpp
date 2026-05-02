@@ -1,22 +1,14 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <cstdio>
 
 // This test checks parallel_scan() calls which use RangePolicy.
@@ -32,20 +24,20 @@ struct TestParallelScanRangePolicy {
 
   using ViewType = Kokkos::View<ValueType*, execution_space>;
 
-  ViewType prefix_results;
-  ViewType postfix_results;
+  ViewType ex_scan_results;
+  ViewType in_scan_results;
 
   // Operator defining work done in parallel_scan.
   // Simple scan over [0,1,...,N-1].
-  // Compute both prefix and postfix scans.
+  // Compute both exclusive and inclusive scans.
   KOKKOS_INLINE_FUNCTION
   void operator()(const size_t i, ValueType& update, bool final_pass) const {
     if (final_pass) {
-      prefix_results(i) = update;
+      ex_scan_results(i) = update;
     }
     update += i;
     if (final_pass) {
-      postfix_results(i) = update;
+      in_scan_results(i) = update;
     }
   }
 
@@ -60,36 +52,62 @@ struct TestParallelScanRangePolicy {
   template <typename... Args>
   void test_scan(const size_t work_size) {
     // Reset member data based on work_size
-    prefix_results  = ViewType("prefix_results", work_size);
-    postfix_results = ViewType("postfix_results", work_size);
+    ex_scan_results = ViewType("ex_scan_results", work_size);
+    in_scan_results = ViewType("in_scan_results", work_size);
 
     // Lambda for checking errors from stored value at each index.
     auto check_scan_results = [&]() {
-      auto const prefix_h = Kokkos::create_mirror_view_and_copy(
-          Kokkos::HostSpace(), prefix_results);
-      auto const postfix_h = Kokkos::create_mirror_view_and_copy(
-          Kokkos::HostSpace(), postfix_results);
+      auto const ex_scan_h = Kokkos::create_mirror_view_and_copy(
+          Kokkos::HostSpace(), ex_scan_results);
+      auto const in_scan_h = Kokkos::create_mirror_view_and_copy(
+          Kokkos::HostSpace(), in_scan_results);
 
       for (size_t i = 0; i < work_size; ++i) {
-        // Check prefix sum
+        // Check exclusive scan sum
         ASSERT_EQ(
             static_cast<ValueType>((static_cast<ValueType>(i) * (i - 1)) / 2),
-            prefix_h(i));
+            ex_scan_h(i));
 
-        // Check postfix sum
+        // Check inclusive scan sum
         ASSERT_EQ(
             static_cast<ValueType>((static_cast<ValueType>(i) * (i + 1)) / 2),
-            postfix_h(i));
+            in_scan_h(i));
       }
 
       // Reset results
-      Kokkos::deep_copy(prefix_results, 0);
-      Kokkos::deep_copy(postfix_results, 0);
+      Kokkos::deep_copy(ex_scan_results, 0);
+      Kokkos::deep_copy(in_scan_results, 0);
+    };
+
+    // Lambda for checking errors from stored value at each index
+    // starting from 2.
+    auto check_scan_results_start2 = [&]() {
+      auto const ex_scan_h = Kokkos::create_mirror_view_and_copy(
+          Kokkos::HostSpace(), ex_scan_results);
+      auto const in_scan_h = Kokkos::create_mirror_view_and_copy(
+          Kokkos::HostSpace(), in_scan_results);
+
+      for (size_t i = 2; i < work_size; ++i) {
+        // Check exclusive scan sum
+        ASSERT_EQ(static_cast<ValueType>(
+                      (static_cast<ValueType>(i + 1) * (i - 2)) / 2),
+                  ex_scan_h(i));
+
+        // Check inclusive scan sum
+        ASSERT_EQ(static_cast<ValueType>(
+                      (static_cast<ValueType>(i + 2) * (i - 1)) / 2),
+                  in_scan_h(i));
+      }
+
+      // Reset results
+      Kokkos::deep_copy(ex_scan_results, 0);
+      Kokkos::deep_copy(in_scan_results, 0);
     };
 
     // If policy template args are not given, call parallel_scan()
     // with work_size input, if args are given, call
-    // parallel_scan() with RangePolicy<Args...>(0, work_size).
+    // parallel_scan() with RangePolicy<Args...>(0, work_size)
+    // and RangePolicy<Args...>(2, work_size).
     // For each case, call parallel_scan() with all possible
     // function signatures.
     if (sizeof...(Args) == 0) {
@@ -198,6 +216,78 @@ struct TestParallelScanRangePolicy {
         ASSERT_EQ(static_cast<ValueType>(static_cast<ValueType>(work_size) *
                                          (work_size - 1) / 2),
                   return_val);  // sum( 0 .. N-1 )
+      }
+
+      if (work_size >= 2) {
+        // Construct another RangePolicy for parallel_scan
+        // whose range starts from 2.
+        Kokkos::RangePolicy<execution_space, Args...> policy2(2, work_size);
+
+        // Input: label, work_count, functor
+        Kokkos::parallel_scan("TestWithStrArg5", policy2, *this);
+        check_scan_results_start2();
+
+        // Input: work_count, functor
+        Kokkos::parallel_scan(policy2, *this);
+        check_scan_results_start2();
+
+        {
+          // Input: label, work_count, functor
+          // Input/Output: return_value
+          ValueType return_val = 0;
+          Kokkos::parallel_scan("TestWithStrArg6", policy2, *this, return_val);
+          check_scan_results_start2();
+          ASSERT_EQ(
+              static_cast<ValueType>(static_cast<ValueType>(work_size + 1) *
+                                     (work_size - 2) / 2),
+              return_val);  // sum( 2 .. N-1 )
+        }
+
+        // Input: work_count, functor
+        // Input/Output: return_value
+        {
+          ValueType return_val = 0;
+          Kokkos::parallel_scan(policy2, *this, return_val);
+          check_scan_results_start2();
+          ASSERT_EQ(
+              static_cast<ValueType>(static_cast<ValueType>(work_size + 1) *
+                                     (work_size - 2) / 2),
+              return_val);  // sum( 2 .. N-1 )
+        }
+
+        // Input: work_count, functor
+        // Input/Output: return_view (Device)
+        {
+          Kokkos::View<ValueType, execution_space> return_view("return_view");
+          Kokkos::parallel_scan(policy2, *this, return_view);
+          check_scan_results_start2();
+
+          ValueType total;
+          Kokkos::deep_copy(total, return_view);
+          ASSERT_EQ(
+              static_cast<ValueType>(static_cast<ValueType>(work_size + 1) *
+                                     (work_size - 2) / 2),
+              total);  // sum( 2 .. N-1 )
+        }
+
+        // Check Kokkos::Experimental::require()
+        // for one of the signatures.
+        {
+          using Property =
+              Kokkos::Experimental::WorkItemProperty::HintLightWeight_t;
+          const auto policy_with_require2 =
+              Kokkos::Experimental::require(policy2, Property());
+
+          // Input: work_count, functor
+          // Input/Output: return_value
+          ValueType return_val = 0;
+          Kokkos::parallel_scan(policy_with_require2, *this, return_val);
+          check_scan_results_start2();
+          ASSERT_EQ(
+              static_cast<ValueType>(static_cast<ValueType>(work_size + 1) *
+                                     (work_size - 2) / 2),
+              return_val);  // sum( 2 .. N-1 )
+        }
       }
     }
   }

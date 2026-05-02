@@ -81,9 +81,9 @@ The manual is organized into three parts:
 
 .. _user_documentation:
 
-************
+**********
 User Guide
-************
+**********
 
 .. toctree::
    :maxdepth: 2
@@ -106,9 +106,9 @@ User Guide
 
 .. _programmer_documentation:
 
-******************
+****************
 Programmer Guide
-******************
+****************
 
 .. toctree::
    :maxdepth: 2

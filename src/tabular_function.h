@@ -45,8 +45,8 @@ class TabularFunction {
     if (ny1) y1 = (ys6[ks] * ps + ys5[ks]) * ps + ys4[ks];
   }
 
-  double get_xmax() const { return xmax; }
-  double get_xmaxsq() const { return xmaxsq; }
+  [[nodiscard]] double get_xmax() const { return xmax; }
+  [[nodiscard]] double get_xmaxsq() const { return xmaxsq; }
   double get_vmax() { return vmax; }
 };
 }    // namespace LAMMPS_NS

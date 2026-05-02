@@ -244,7 +244,13 @@ lammps/
 
 5. **Documentation:** All new commands or features must be documented. Put `.. versionadded:: TBD` or
    `.. versionchanged:: TBD` in front of paragraphs documenting the new or changed functionality.
+   The `.. versionadded:: TBD` directive should be used with new features or added keywords.
+   The `.. versionchanged:: TBD` directive should be used when the behavior of a keyword changes.
    The `TBD` will be manually replaced with the release version string during the release preparation.
+   This does not apply when the change is only adding an accelerated version of an existing style.
+   Instead the corresponding code letter should be added to the respective Commands_\*.rst file.
+   Also the documentation should pass running "make check" in the doc folder without any
+   output indicating non-ASCII characters, missing entries, or duplicate anchors.
 
 ### Testing
 
@@ -323,9 +329,7 @@ commands or added keywords to existing commands contains a
 `.. versionadded:: TBD` directive.  For any modified commands or
 keywords a `.. versionchanged:: TBD` directive should be included in the
 documentation. Check if any examples use the new or modified commands
-and check if they need updating. Ensure that building the documentation
-with "make html", "make pdf", and "make spelling" can complete and does
-*NOT* produce any *NEW* warnings or errors.
+and check if they need updating.
 
 When reviewing C++ code, ensure that no alternative tokens are used for
 logical operators.  That is, use `&&` instead of `and`, `||` instead of
@@ -335,6 +339,16 @@ US-English characters sets, but the LAMMPS sources code are *supposed*
 be in US-English 7-bit ASCII.  Using alternative tokens causes
 compilation failures with some compilers by default, most prominently
 Microsoft Visual C++.
+
+When new files are added to package directories in `src`, make sure
+they are added to the `src/.gitignore` file, so that the copies in
+`src` make by the traditional make build system are not accidentally
+added to the git repository.
+
+Whe files are renamed or removed from package directories in `src`,
+make sure the old file names are added the `src/Purge.list` file so
+their copies from the traditional make build system are properly
+removed with "make purge".
 
 ## Documentation Changes
 
@@ -349,6 +363,15 @@ make spelling      # Check spelling
 make anchor_check  # Check for duplicate anchors
 make style_check   # Verify style lists are complete
 ```
+
+Ensure that building the documentation with "make html" and "make pdf"
+can complete and does *NOT* produce any errors or warnings about sphinx
+or docutils syntax issues or incorrect references.
+
+Also make certain that "make spelling" does not report in any spelling
+issues; those need to be either remedied or exceptions (e.g. for code
+examples or author names of cited references) should be added to the
+file "doc/utils/sphinx-config/false-positives.txt".
 
 **Documentation conventions:**
 - Use reStructuredText format (`.rst` files)

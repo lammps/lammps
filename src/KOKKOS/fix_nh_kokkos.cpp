@@ -538,6 +538,7 @@ void FixNHKokkos<DeviceType>::nh_v_press()
 
 template<class DeviceType>
 template<int TRICLINIC_FLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNHKokkos<DeviceType>::operator()(TagFixNH_nh_v_press<TRICLINIC_FLAG>, const int &i) const {
   if (mask[i] & groupbit) {
@@ -584,6 +585,7 @@ void FixNHKokkos<DeviceType>::nve_v()
 
 template<class DeviceType>
 template<int RMASS>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNHKokkos<DeviceType>::operator()(TagFixNH_nve_v<RMASS>, const int &i) const {
   if (RMASS) {
@@ -627,6 +629,7 @@ void FixNHKokkos<DeviceType>::nve_x()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNHKokkos<DeviceType>::operator()(TagFixNH_nve_x, const int &i) const {
   if (mask[i] & groupbit) {
@@ -678,6 +681,7 @@ void FixNHKokkos<DeviceType>::nh_v_temp()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNHKokkos<DeviceType>::operator()(TagFixNH_nh_v_temp, const int &i) const {
   if (mask[i] & groupbit) {

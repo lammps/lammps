@@ -36,6 +36,7 @@
 #include "group.h"
 #include "memory.h"
 #include "modify.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 #include "update.h"
 
@@ -159,7 +160,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   for (int i = 1; i < nprocs; ++i) fft_disp[i] = fft_disp[i-1] + fft_cnts[i-1];
   delete []nx_loc;
 
-  fft = new FFT3d(lmp,world,nz,ny,nx,0,nz-1,0,ny-1,nxlo,nxhi,0,nz-1,0,ny-1,nxlo,nxhi,0,0,&mysize,0);
+  fft = new FFT3d(lmp,world,nz,ny,nx,0,nz-1,0,ny-1,nxlo,nxhi,0,nz-1,0,ny-1,nxlo,nxhi,0,0,&mysize,0,0);
   memory->create(fft_data, MAX(1,mynq)*2, "fix_phonon:fft_data");
 
   // allocate variables; MAX(1,... is used because a null buffer will result in error for MPI
@@ -556,7 +557,7 @@ void FixPhonon::readmap()
 
   // read from map file for others
   char line[MAXLINE] = {'\0'};
-  FILE *fp = fopen(mapfile, "r");
+  SafeFilePtr fp = fopen(mapfile, "r");
   if (fp == nullptr)
     error->all(FLERR,"Cannot open input map file {}: {}", mapfile, utils::getsyserror());
 
@@ -605,7 +606,6 @@ void FixPhonon::readmap()
   } catch (TokenizerException &e) {
     error->all(FLERR, "Incorrect map file format: {}", e.what());
   }
-  fclose(fp);
 
   if (tag2surf.size() != surf2tag.size() ||
       tag2surf.size() != static_cast<std::size_t>(ngroup) )
@@ -717,7 +717,7 @@ void FixPhonon::postprocess( )
     // write binary file, in fact, it is the force constants matrix that is written
     // Enforcement of ASR and the conversion of dynamical matrix is done in the postprocessing code
     auto fname = fmt::format("{}.bin.{}",prefix,update->ntimestep);
-    FILE *fp_bin = fopen(fname.c_str(),"wb");
+    SafeFilePtr fp_bin = fopen(fname.c_str(),"wb");
 
     fwrite(&sysdim, sizeof(int),    1, fp_bin);
     fwrite(&nx,     sizeof(int),    1, fp_bin);
@@ -734,7 +734,6 @@ void FixPhonon::postprocess( )
     fwrite(basetype,      sizeof(int),   nucell, fp_bin);
     fwrite(M_inv_sqrt,    sizeof(double),nucell, fp_bin);
 
-    fclose(fp_bin);
 
     // write log file, here however, it is the dynamical matrix that is written
     utils::print(flog,"############################################################\n");

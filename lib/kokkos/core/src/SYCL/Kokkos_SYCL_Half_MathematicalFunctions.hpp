@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SYCL_HALF_MATHEMATICAL_FUNCTIONS_HPP_
 #define KOKKOS_SYCL_HALF_MATHEMATICAL_FUNCTIONS_HPP_
@@ -37,6 +24,14 @@ namespace Impl {
                  Experimental::half_t::impl_type(y)));   \
   }
 
+#define KOKKOS_SYCL_HALF_TERNARY_INT_PTR_FUNCTION(OP)           \
+  KOKKOS_INLINE_FUNCTION Experimental::half_t impl_##OP(        \
+      Experimental::half_t x, Experimental::half_t y, int* z) { \
+    return static_cast<Experimental::half_t>(                   \
+        sycl::OP(Experimental::half_t::impl_type(x),            \
+                 Experimental::half_t::impl_type(y), z));       \
+  }
+
 #define KOKKOS_SYCL_HALF_UNARY_PREDICATE(OP)                      \
   KOKKOS_INLINE_FUNCTION bool impl_##OP(Experimental::half_t x) { \
     return sycl::OP(Experimental::half_t::impl_type(x));          \
@@ -55,6 +50,7 @@ KOKKOS_SYCL_HALF_BINARY_FUNCTION(remainder)
 KOKKOS_SYCL_HALF_BINARY_FUNCTION(fmax)
 KOKKOS_SYCL_HALF_BINARY_FUNCTION(fmin)
 KOKKOS_SYCL_HALF_BINARY_FUNCTION(fdim)
+KOKKOS_SYCL_HALF_TERNARY_INT_PTR_FUNCTION(remquo)
 // Exponential functions
 KOKKOS_SYCL_HALF_UNARY_FUNCTION(exp)
 KOKKOS_SYCL_HALF_UNARY_FUNCTION(exp2)
@@ -94,6 +90,7 @@ KOKKOS_SYCL_HALF_UNARY_FUNCTION(floor)
 KOKKOS_SYCL_HALF_UNARY_FUNCTION(trunc)
 KOKKOS_SYCL_HALF_UNARY_FUNCTION(round)
 // KOKKOS_SYCL_HALF_UNARY_FUNCTION(nearbyint)
+KOKKOS_SYCL_HALF_UNARY_FUNCTION(rint)
 KOKKOS_SYCL_HALF_UNARY_FUNCTION(logb)
 KOKKOS_SYCL_HALF_BINARY_FUNCTION(nextafter)
 KOKKOS_SYCL_HALF_BINARY_FUNCTION(copysign)
@@ -101,9 +98,12 @@ KOKKOS_SYCL_HALF_UNARY_PREDICATE(isfinite)
 KOKKOS_SYCL_HALF_UNARY_PREDICATE(isinf)
 KOKKOS_SYCL_HALF_UNARY_PREDICATE(isnan)
 KOKKOS_SYCL_HALF_UNARY_PREDICATE(signbit)
+// Non-standard functions
+KOKKOS_SYCL_HALF_UNARY_FUNCTION(rsqrt)
 
 #undef KOKKOS_SYCL_HALF_UNARY_FUNCTION
 #undef KOKKOS_SYCL_HALF_BINARY_FUNCTION
+#undef KOKKOS_SYCL_HALF_TERNARY_INT_PTR_FUNCTION
 #undef KOKKOS_SYCL_HALF_UNARY_PREDICATE
 
 #endif
@@ -142,6 +142,7 @@ KOKKOS_INLINE_FUNCTION Kokkos::Experimental::bhalf_t impl_test_fallback_bhalf(
 KOKKOS_SYCL_BHALF_UNARY_FUNCTION(fabs)
 // fmod
 // remainder
+// remquo
 KOKKOS_SYCL_BHALF_BINARY_FUNCTION(fmax)
 KOKKOS_SYCL_BHALF_BINARY_FUNCTION(fmin)
 // fdim
@@ -183,6 +184,7 @@ KOKKOS_SYCL_BHALF_UNARY_FUNCTION(ceil)
 KOKKOS_SYCL_BHALF_UNARY_FUNCTION(floor)
 KOKKOS_SYCL_BHALF_UNARY_FUNCTION(trunc)
 // round
+// rint
 // nearbyint
 // logb
 // nextafter
@@ -191,6 +193,9 @@ KOKKOS_SYCL_BHALF_UNARY_FUNCTION(trunc)
 // isinf
 KOKKOS_SYCL_BHALF_UNARY_PREDICATE(isnan)
 // signbit
+// Non-standard functions
+KOKKOS_SYCL_BHALF_UNARY_FUNCTION(rsqrt)
+// rcp
 
 #undef KOKKOS_SYCL_BHALF_UNARY_FUNCTION
 #undef KOKKOS_SYCL_BHALF_BINARY_FUNCTION

@@ -28,6 +28,7 @@
 #include "memory_kokkos.h"
 #include "neighbor_kokkos.h"
 #include "neigh_request.h"
+#include "safe_pointers.h"
 
 #include <cstring>
 #include <chrono>
@@ -171,6 +172,7 @@ struct FindMaxNumNeighs {
   FindMaxNumNeighs(NeighListKokkos<DeviceType>* nl): k_list(*nl) {}
   ~FindMaxNumNeighs() {k_list.copymode = 1;}
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& ii, int& max_neighs) const {
     const int i = k_list.d_ilist[ii];
@@ -1779,13 +1781,12 @@ void PairPODKokkos<DeviceType>::savematrix2binfile(std::string filename, t_pod_1
   auto A = Kokkos::create_mirror_view(d_A);
   Kokkos::deep_copy(A, d_A);
 
-  FILE *fp = fopen(filename.c_str(), "wb");
+  SafeFilePtr fp = fopen(filename.c_str(), "wb");
   double sz[2];
   sz[0] = (double) nrows;
   sz[1] = (double) ncols;
   fwrite( reinterpret_cast<char*>( sz ), sizeof(double) * (2), 1, fp);
   fwrite( reinterpret_cast<char*>( A.data() ), sizeof(double) * (nrows*ncols), 1, fp);
-  fclose(fp);
 }
 
 template<class DeviceType>
@@ -1794,13 +1795,12 @@ void PairPODKokkos<DeviceType>::saveintmatrix2binfile(std::string filename, t_po
   auto A = Kokkos::create_mirror_view(d_A);
   Kokkos::deep_copy(A, d_A);
 
-  FILE *fp = fopen(filename.c_str(), "wb");
+  SafeFilePtr fp = fopen(filename.c_str(), "wb");
   int sz[2];
   sz[0] = nrows;
   sz[1] = ncols;
   fwrite( reinterpret_cast<char*>( sz ), sizeof(int) * (2), 1, fp);
   fwrite( reinterpret_cast<char*>( A.data() ), sizeof(int) * (nrows*ncols), 1, fp);
-  fclose(fp);
 }
 
 template<class DeviceType>

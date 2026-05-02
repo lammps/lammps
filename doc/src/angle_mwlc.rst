@@ -1,7 +1,10 @@
 .. index:: angle_style mwlc
+.. index:: angle_style mwlc/omp
 
 angle_style mwlc command
-==========================
+========================
+
+Accelerator Variant: *mwlc/omp*
 
 Syntax
 """"""
@@ -65,6 +68,9 @@ or :doc:`read_restart <read_restart>` commands:
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

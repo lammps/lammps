@@ -115,7 +115,7 @@ represented by the formula above.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

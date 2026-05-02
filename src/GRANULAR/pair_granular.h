@@ -44,7 +44,8 @@ class PairGranular : public Pair {
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   double memory_usage() override;
-  int get_size_history() const { return size_history; }
+  void transfer_history(double *, double *, int, int) override;
+  [[nodiscard]] int get_size_history() const { return size_history; }
 
   // granular models
   class Granular_NS::GranularModel** models_list;
@@ -58,7 +59,6 @@ class PairGranular : public Pair {
   int neighprev;
   double *onerad_dynamic, *onerad_frozen;
   double *maxrad_dynamic, *maxrad_frozen;
-  double **cut;
 
   class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;
@@ -70,7 +70,6 @@ class PairGranular : public Pair {
   int nmax;                // allocated size of mass_rigid
 
   void allocate();
-  void transfer_history(double *, double *, int, int) override;
   void prune_models();
 
  private:

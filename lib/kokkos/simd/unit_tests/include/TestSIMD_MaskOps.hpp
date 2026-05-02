@@ -1,29 +1,23 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_TEST_SIMD_MASK_OPS_HPP
 #define KOKKOS_TEST_SIMD_MASK_OPS_HPP
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.simd;
+import kokkos.simd_impl;
+#else
 #include <Kokkos_SIMD.hpp>
+#endif
 #include <SIMDTesting_Utilities.hpp>
 
 template <typename Abi, typename DataType>
 inline void host_check_mask_ops() {
   if constexpr (is_simd_avail_v<DataType, Abi>) {
     using mask_type = Kokkos::Experimental::basic_simd_mask<DataType, Abi>;
+    using size_type = Kokkos::Experimental::Impl::simd_size_t;
 
     EXPECT_FALSE(none_of(mask_type(true)));
     EXPECT_TRUE(none_of(mask_type(false)));
@@ -32,8 +26,8 @@ inline void host_check_mask_ops() {
     EXPECT_TRUE(any_of(mask_type(true)));
     EXPECT_FALSE(any_of(mask_type(false)));
 
-    for (std::size_t i = 0; i < mask_type::size(); ++i) {
-      mask_type test_mask(KOKKOS_LAMBDA(std::size_t j) { return i == j; });
+    for (size_type i = 0; i < mask_type::size(); ++i) {
+      mask_type test_mask(KOKKOS_LAMBDA(size_type j) { return i == j; });
 
       EXPECT_TRUE(any_of(test_mask));
       EXPECT_FALSE(none_of(test_mask));
@@ -64,6 +58,8 @@ template <typename Abi, typename DataType>
 KOKKOS_INLINE_FUNCTION void device_check_mask_ops() {
   if constexpr (is_type_v<Kokkos::Experimental::basic_simd<DataType, Abi>>) {
     using mask_type = Kokkos::Experimental::basic_simd_mask<DataType, Abi>;
+    using size_type = Kokkos::Experimental::Impl::simd_size_t;
+
     kokkos_checker checker;
     checker.truth(!none_of(mask_type(true)));
     checker.truth(none_of(mask_type(false)));
@@ -72,8 +68,8 @@ KOKKOS_INLINE_FUNCTION void device_check_mask_ops() {
     checker.truth(any_of(mask_type(true)));
     checker.truth(!any_of(mask_type(false)));
 
-    for (std::size_t i = 0; i < mask_type::size(); ++i) {
-      mask_type test_mask(KOKKOS_LAMBDA(std::size_t j) { return i == j; });
+    for (size_type i = 0; i < mask_type::size(); ++i) {
+      mask_type test_mask(KOKKOS_LAMBDA(size_type j) { return i == j; });
 
       checker.truth(any_of(test_mask));
       checker.truth(!none_of(test_mask));
@@ -113,8 +109,8 @@ TEST(simd, host_mask_ops) {
 }
 
 TEST(simd, device_mask_ops) {
-  Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::IndexType<int>>(0, 1),
-                       simd_device_mask_ops_functor());
+  Kokkos::parallel_for(1, simd_device_mask_ops_functor());
+  Kokkos::fence();
 }
 
 #endif

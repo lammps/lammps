@@ -14,7 +14,7 @@ Accelerator Variants: *sw/gpu*, *sw/intel*, *sw/kk*, *sw/omp*
 pair_style sw/mod command
 =========================
 
-Accelerator Variants: *sw/mod/omp*
+Accelerator Variant: *sw/mod/omp*
 
 Syntax
 """"""

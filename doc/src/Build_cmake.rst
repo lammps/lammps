@@ -206,14 +206,14 @@ Configuration and build options
 
 The CMake commands have one mandatory argument: a folder containing a
 file called ``CMakeLists.txt`` (for LAMMPS it is located in the
-``cmake`` folder, in that case the current working directory becomes
-the build folder) or a build folder containing a file called
+``cmake`` folder, in that case the current working directory becomes the
+build folder) or a build folder containing a file called
 ``CMakeCache.txt``, which is generated at the end of the CMake
 configuration step.  The cache file contains all current CMake settings.
-This is a "legacy mode" or running CMake and thus often found
-when searching the web.  We recommend to use the ``-S`` and ``-B``
-folders to explicitly set the path to the folder containing the
-``CMakeLists.txt`` file and the build folder, respectively.
+This is a "legacy mode" of running CMake and thus often found when
+searching the web.  We recommend to use the ``-S`` and ``-B`` folders to
+explicitly set the path to the folder containing the ``CMakeLists.txt``
+file and the build folder, respectively.
 
 To modify settings, enable or disable features, you need to set
 *variables* with either the ``-D`` command-line flag (``-D
@@ -233,6 +233,44 @@ for IDEs like Eclipse, CodeBlocks, or Kate can be selected using the ``-G``
 command-line flag.  A list of available generator settings for your
 specific CMake version is given when running ``cmake --help``.
 
+.. _cmake_targets:
+
+Build targets
+^^^^^^^^^^^^^
+
+The LAMMPS CMake files are set up to have multiple "targets", one for
+each component that is set up to be built.  If you do not provide an
+explicit target when building, the target "all" is assumed.  This should
+build all configured targets and include re-running CMake to update the
+build files when files have changed or new files were added which could
+require updates in the build process.  The most important individual
+targets are "lammps" to build the LAMMPS library and "lmp" to build the
+LAMMPS executable.  If you want to selectively want to update only one
+of them you can use the command:
+
+.. code-block:: bash
+
+   cmake --build build --target lmp
+
+Especially, when programming LAMMPS and you are making only local
+changes, or only want to make certain that the code still compiles and
+links, you may want to skip many of the extra steps that are run by
+default and then append "/fast" to the target.  Example:
+
+.. code-block:: bash
+
+   cmake --build build --target lammps/fast
+
+Note that this speeds up the build by avoiding to re-run CMake and
+skipping a lot of checks for possible dependencies, so you may
+occasionally need to compile without the "/fast" suffix or use the "all"
+(= default) target to update everything.  This would be *required* when
+adding new files, additional dependencies, or making changes to the
+CMake scripts.
+
+Some custom targets, e.g. "install-python" are explicitly excluded
+from the "all" target and must be built individually.
+
 .. _cmake_multiconfig:
 
 Multi-configuration build systems
@@ -241,7 +279,7 @@ Multi-configuration build systems
 Throughout this manual, it is mostly assumed that LAMMPS is being built
 on a Unix-like operating system with "make" as the underlying "builder",
 since this is the most common case.  In this case the build
-"configuration" is chose using ``-D CMAKE_BUILD_TYPE=<configuration>``
+"configuration" is chosen using ``-D CMAKE_BUILD_TYPE=<configuration>``
 with ``<configuration>`` being one of "Release", "Debug",
 "RelWithDebInfo", or "MinSizeRel".  Some build tools, however, can also
 use or even require having a so-called multi-configuration build system

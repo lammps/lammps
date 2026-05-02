@@ -31,10 +31,10 @@ function(kokkos_set_cxx_standard_feature standard)
     if(KOKKOS_CXX_COMPILER_ID STREQUAL NVIDIA AND (KOKKOS_CXX_HOST_COMPILER_ID STREQUAL GNU
                                                    OR KOKKOS_CXX_HOST_COMPILER_ID STREQUAL Clang)
     )
-      if(${KOKKOS_CXX_COMPILER_VERSION} VERSION_LESS 12.0.0)
-        set(SUPPORTED_NVCC_FLAGS "-std=c++17")
+      if(${KOKKOS_CXX_COMPILER_VERSION} VERSION_LESS 13.0.0)
+        set(SUPPORTED_NVCC_FLAGS "-std=c++20")
       else()
-        set(SUPPORTED_NVCC_FLAGS "-std=c++17" "-std=c++20")
+        set(SUPPORTED_NVCC_FLAGS "-std=c++20")
       endif()
       if(NOT ${${STANDARD_NAME}} IN_LIST SUPPORTED_NVCC_FLAGS)
         message(
@@ -73,11 +73,7 @@ function(kokkos_set_cxx_standard_feature standard)
   endif()
 endfunction()
 
-if(KOKKOS_CXX_STANDARD STREQUAL "17")
-  kokkos_set_cxx_standard_feature(17)
-  set(KOKKOS_CXX_INTERMEDIATE_STANDARD "1Z")
-  set(KOKKOS_ENABLE_CXX17 ON)
-elseif(KOKKOS_CXX_STANDARD STREQUAL "20")
+if(KOKKOS_CXX_STANDARD STREQUAL "20")
   kokkos_set_cxx_standard_feature(20)
   set(KOKKOS_CXX_INTERMEDIATE_STANDARD "2A")
   set(KOKKOS_ENABLE_CXX20 ON)
@@ -90,31 +86,31 @@ elseif(KOKKOS_CXX_STANDARD STREQUAL "26")
   set(KOKKOS_CXX_INTERMEDIATE_STANDARD "2C")
   set(KOKKOS_ENABLE_CXX26 ON)
 else()
-  message(FATAL_ERROR "Kokkos requires C++17 or newer but requested ${KOKKOS_CXX_STANDARD}!")
+  message(FATAL_ERROR "Kokkos requires C++20 or newer but requested ${KOKKOS_CXX_STANDARD}!")
 endif()
 
-# Enforce that we can compile a simple C++17 program
+# Enforce that we can compile a simple C++20 program
 
 try_compile(
-  CAN_COMPILE_CPP17 ${KOKKOS_TOP_BUILD_DIR}/corner_cases ${KOKKOS_SOURCE_DIR}/cmake/compile_tests/cplusplus17.cpp
-  OUTPUT_VARIABLE ERROR_MESSAGE CXX_STANDARD 17
+  CAN_COMPILE_CPP20 ${KOKKOS_TOP_BUILD_DIR}/corner_cases ${KOKKOS_SOURCE_DIR}/cmake/compile_tests/cplusplus20.cpp
+  OUTPUT_VARIABLE ERROR_MESSAGE CXX_STANDARD 20
 )
-if(NOT CAN_COMPILE_CPP17)
-  unset(CAN_COMPILE_CPP17 CACHE) #make sure CMake always re-runs this
+if(NOT CAN_COMPILE_CPP20)
+  unset(CAN_COMPILE_CPP20 CACHE) #make sure CMake always re-runs this
   message(
     FATAL_ERROR
-      "C++${KOKKOS_CXX_STANDARD}-compliant compiler detected, but unable to compile C++17 or later program. Verify that ${CMAKE_CXX_COMPILER_ID}:${CMAKE_CXX_COMPILER_VERSION} is set up correctly (e.g., check that correct library headers are being used).\nFailing output:\n ${ERROR_MESSAGE}"
+      "C++${KOKKOS_CXX_STANDARD}-compliant compiler detected, but unable to compile C++20 or later program. Verify that ${CMAKE_CXX_COMPILER_ID}:${CMAKE_CXX_COMPILER_VERSION} is set up correctly (e.g., check that correct library headers are being used).\nFailing output:\n ${ERROR_MESSAGE}"
   )
 endif()
-unset(CAN_COMPILE_CPP17 CACHE) #make sure CMake always re-runs this
+unset(CAN_COMPILE_CPP20 CACHE) #make sure CMake always re-runs this
 
 # Enforce that extensions are turned off for nvcc_wrapper.
 # For compiling CUDA code using nvcc_wrapper, we will use the host compiler's
-# flags for turning on C++17.  Since for compiler ID and versioning purposes
+# flags for turning on C++20.  Since for compiler ID and versioning purposes
 # CMake recognizes the host compiler when calling nvcc_wrapper, this just
-# works.  Both NVCC and nvcc_wrapper only recognize '-std=c++17' which means
+# works.  Both NVCC and nvcc_wrapper only recognize '-std=c++20' which means
 # that we can only use host compilers for CUDA builds that use those flags.
-# It also means that extensions (gnu++17) can't be turned on for CUDA builds.
+# It also means that extensions (gnu++20) can't be turned on for CUDA builds.
 
 if(KOKKOS_CXX_COMPILER_ID STREQUAL NVIDIA)
   if(NOT DEFINED CMAKE_CXX_EXTENSIONS)
@@ -127,9 +123,6 @@ endif()
 if(KOKKOS_ENABLE_CUDA)
   # ENFORCE that the compiler can compile CUDA code.
   if(KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
-    if(KOKKOS_CXX_COMPILER_VERSION VERSION_LESS 4.0.0)
-      message(FATAL_ERROR "Compiling CUDA code directly with Clang requires version 4.0.0 or higher.")
-    endif()
     if(NOT DEFINED CMAKE_CXX_EXTENSIONS)
       set(CMAKE_CXX_EXTENSIONS OFF)
     elseif(CMAKE_CXX_EXTENSIONS)

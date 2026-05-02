@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_ALGORITHMS_UNITTESTS_TEST_RANDOM_HPP
 #define KOKKOS_ALGORITHMS_UNITTESTS_TEST_RANDOM_HPP
@@ -21,15 +8,18 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
-#include <Kokkos_DynRankView.hpp>
 #include <Kokkos_Timer.hpp>
-#include <Kokkos_Core.hpp>
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.dyn_rank_view;
 import kokkos.random;
 #else
+#include <Kokkos_Core.hpp>
+#include <Kokkos_DynRankView.hpp>
 #include <Kokkos_Random.hpp>
 #endif
+#include <impl/Kokkos_Half_FloatingPointWrapper.hpp>
 #include <cmath>
 #include <chrono>
 #include <vector>
@@ -80,16 +70,6 @@ struct RandomProperties {
     return *this;
   }
 };
-
-// FIXME_OPENMPTARGET: Need this for OpenMPTarget because contra to the standard
-// llvm requires the binary operator defined not just the +=
-KOKKOS_INLINE_FUNCTION
-RandomProperties operator+(const RandomProperties& org,
-                           const RandomProperties& add) {
-  RandomProperties val = org;
-  val += add;
-  return val;
-}
 
 template <class GeneratorPool, class Scalar>
 struct test_random_functor {
@@ -615,11 +595,6 @@ void test_async_initialization(Args... args) {
 }  // namespace AlgoRandomImpl
 
 TEST(TEST_CATEGORY, Random_XorShift64) {
-  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
-#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
-  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
-#endif
-
   using ExecutionSpace = TEST_EXECSPACE;
 
 #if defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_CUDA) || \
@@ -640,10 +615,6 @@ TEST(TEST_CATEGORY, Random_XorShift64) {
 
 TEST(TEST_CATEGORY, Random_XorShift1024_0) {
   using ExecutionSpace = TEST_EXECSPACE;
-  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
-#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
-  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
-#endif
 
 #if defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_CUDA) || \
     defined(KOKKOS_ENABLE_HIP)
@@ -663,13 +634,6 @@ TEST(TEST_CATEGORY, Random_XorShift1024_0) {
 
 TEST(TEST_CATEGORY, Multi_streams) {
   using ExecutionSpace = TEST_EXECSPACE;
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if constexpr (std::is_same_v<ExecutionSpace,
-                               Kokkos::Experimental::OpenMPTarget>) {
-    GTEST_SKIP() << "Libomptarget error";  // FIXME_OPENMPTARGET
-  }
-#endif
-
 #if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
   if constexpr (std::is_same_v<ExecutionSpace, Kokkos::SYCL>) {
     GTEST_SKIP() << "Failing on NVIDIA GPUs";  // FIXME_SYCL

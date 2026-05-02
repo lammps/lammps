@@ -33,7 +33,7 @@ the :doc:`jump <jump>` command.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

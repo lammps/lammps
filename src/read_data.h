@@ -21,6 +21,7 @@ CommandStyle(read_data,ReadData);
 #define LMP_READ_DATA_H
 
 #include "command.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 class Fix;
@@ -32,9 +33,9 @@ class ReadData : public Command {
   static bool is_data_section(const std::string &);
 
  private:
-  int me, compressed;
+  int me;
   char *line, *keyword, *buffer, *style;
-  FILE *fp;
+  SafeFilePtr fp;
   char **coeffarg;
   int ncoeffarg, maxcoeffarg;
   std::string argoffset1, argoffset2;

@@ -487,7 +487,7 @@ double PairYLZ::ylz_analytic(const int i, const int j, double a1[3][3], double a
 
     uA = -energy_well * t1 * cos_t;
     U = uA * phi;
-    dUdr = MY_PI * zt / (rcut - rmin) * (t1) *sin(t) * phi * energy_well;
+    dUdr = MY_PI * zt / (rcut - rmin) * t1 *sin(t) * phi * energy_well;
     dUdphi = uA;
   }
 

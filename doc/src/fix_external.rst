@@ -1,7 +1,10 @@
 .. index:: fix external
+.. index:: fix external/kk
 
 fix external command
 ====================
+
+Accelerator Variants: *external/kk*
 
 Syntax
 """"""
@@ -142,6 +145,10 @@ the caller code may want to communicate  to LAMMPS
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -196,7 +203,7 @@ invoked by the :doc:`minimize <minimize>` command.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

@@ -386,6 +386,7 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpd(
 ------------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
   int start_ii, int count, int id
@@ -592,7 +593,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
     es_init(serial_rand_state, pairDPDE->seed + comm->me);
 
     d_rand_state = es_RNGs_type("Kokkos::fix_shardlow::rand_state",maxWorkItemCt);
-    typename es_RNGs_type::HostMirror h_rand_state = create_mirror_view(d_rand_state);
+    typename es_RNGs_type::host_mirror_type h_rand_state = create_mirror_view(d_rand_state);
     for (int i = 0; i < maxWorkItemCt; ++i) {
       es_genNextParallelState(serial_rand_state, h_rand_state(i));
     }
@@ -688,6 +689,7 @@ fprintf(stdout, "\n%6d %6d,%6d %6d: "
 
 template<class DeviceType>
 template<bool STACKPARAMS>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShardlowKokkos<DeviceType>::operator()(TagFixShardlowSSAUpdateDPDE<STACKPARAMS>, const int &workItem) const {
   const int ct = ssa_itemLen(workPhase, workItem);
@@ -697,6 +699,7 @@ void FixShardlowKokkos<DeviceType>::operator()(TagFixShardlowSSAUpdateDPDE<STACK
 
 template<class DeviceType>
 template<bool STACKPARAMS>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixShardlowKokkos<DeviceType>::operator()(TagFixShardlowSSAUpdateDPDEGhost<STACKPARAMS>, const int &workItem) const {
   const int ct = ssa_gitemLen(workPhase, workItem);

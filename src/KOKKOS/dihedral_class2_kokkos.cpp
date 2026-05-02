@@ -195,6 +195,7 @@ void DihedralClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DihedralClass2Kokkos<DeviceType>::operator()(TagDihedralClass2Compute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
@@ -644,6 +645,7 @@ void DihedralClass2Kokkos<DeviceType>::operator()(TagDihedralClass2Compute<NEWTO
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DihedralClass2Kokkos<DeviceType>::operator()(TagDihedralClass2Compute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
@@ -656,16 +658,6 @@ template<class DeviceType>
 void DihedralClass2Kokkos<DeviceType>::allocate()
 {
   DihedralClass2::allocate();
-}
-
-/* ----------------------------------------------------------------------
-   set coeffs for one type
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void DihedralClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
-{
-  DihedralClass2::coeff(narg, arg);
 
   int n = atom->ndihedraltypes;
   k_k1 = DAT::tdual_kkfloat_1d("DihedralClass2::k1",n+1);
@@ -745,8 +737,21 @@ void DihedralClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   d_setflag_at = k_setflag_at.template view<DeviceType>();
   d_setflag_aat = k_setflag_aat.template view<DeviceType>();
   d_setflag_bb13t = k_setflag_bb13t.template view<DeviceType>();
+}
 
-  for (int i = 1; i <= n; i++) {
+/* ----------------------------------------------------------------------
+   set coeffs for one type
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void DihedralClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
+{
+  DihedralClass2::coeff(narg, arg);
+
+  int ilo,ihi;
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
+
+  for (int i = ilo; i <= ihi; i++) {
     k_k1.view_host()[i] = k1[i];
     k_k2.view_host()[i] = k2[i];
     k_k3.view_host()[i] = k3[i];
@@ -1006,6 +1011,7 @@ void DihedralClass2Kokkos<DeviceType>::read_restart(FILE *fp)
 
 template<class DeviceType>
 //template<int NEWTON_BOND>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void DihedralClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, const int i2, const int i3, const int i4,
                         KK_FLOAT &edihedral, KK_FLOAT *f1, KK_FLOAT *f3, KK_FLOAT *f4,

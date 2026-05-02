@@ -44,7 +44,7 @@ _texture( q_tex,int2);
 #define EPS_EWALD_SQR (acctyp)(1.0e-12)
 #else
 #define EPSILON (numtyp)(1.0e-7)
-#define EPS_EWALD (numtyp)(1.0e-6)
+#define EPS_EWALD (numtyp)(1.0e-4)
 #define EPS_EWALD_SQR (numtyp)(1.0e-8)
 #endif
 
@@ -144,6 +144,13 @@ __kernel void k_born_coul_long_cs(const __global numtyp4 *restrict x_,
             // Additionally r2inv needs to be accordingly modified since the later
             // scaling of the overall force shall be consistent
             r2inv = ucl_recip(rsq + EPS_EWALD_SQR);
+
+            #if defined(_SINGLE_SINGLE)
+            // in the single precision mode, any approximations used for 1/(r+EPS_EWALD)
+            // for prefactor and r2inv will be as good as setting forcecoul to zero
+            // bonded interaction is supposed to be dominated by the born term, and bonded interactions
+            if (r > EPSILON) forcecoul = (acctyp)0.0;
+            #endif
           } else {
             numtyp grij = g_ewald * r;
             numtyp expm2 = ucl_exp(-grij*grij);
@@ -292,6 +299,13 @@ __kernel void k_born_coul_long_cs_fast(const __global numtyp4 *restrict x_,
             // Additionally r2inv needs to be accordingly modified since the later
             // scaling of the overall force shall be consistent
             r2inv = ucl_recip(rsq + EPS_EWALD_SQR);
+
+            #if defined(_SINGLE_SINGLE)
+            // in the single precision mode, any approximations used for 1/(r+EPS_EWALD)
+            // for prefactor and r2inv will be as good as setting forcecoul to zero
+            // bonded interaction is supposed to be dominated by the born term, and bonded interactions
+            if (r > EPSILON) forcecoul = (acctyp)0.0;
+            #endif
           }
 
           else {

@@ -5,6 +5,7 @@ The build procedures in LAMMPS offers a few extra options which are
 useful during development, testing or debugging.
 
 .. contents::
+   :local:
 
 ----------
 
@@ -54,8 +55,8 @@ during CMake configuration.
    -D ENABLE_IWYU=value    # value = no (default) or yes
 
 This will check if the required binary (include-what-you-use or iwyu)
-and python script script (iwyu-tool or iwyu_tool or iwyu_tool.py) can
-be found in the path.  The analysis can then be started with:
+and python script (iwyu-tool or iwyu_tool or iwyu_tool.py) can be found
+in the path.  The analysis can then be started with:
 
 .. code-block:: bash
 

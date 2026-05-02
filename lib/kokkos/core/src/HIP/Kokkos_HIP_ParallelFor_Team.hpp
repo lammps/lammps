@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_HIP_PARALLEL_FOR_TEAM_HPP
 #define KOKKOS_HIP_PARALLEL_FOR_TEAM_HPP
@@ -71,9 +58,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>, HIP> {
   }
 
  public:
-  ParallelFor()                              = delete;
-  ParallelFor(ParallelFor const&)            = default;
-  ParallelFor& operator=(ParallelFor const&) = delete;
+  ParallelFor() = delete;
 
   __device__ inline void operator()() const {
     // Iterate this block through the league
@@ -112,19 +97,24 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>, HIP> {
         *this, grid, block, shmem_size_total,
         m_policy.space().impl_internal_space_instance(),
         true);  // copy to device and execute
+
+    if (m_scratch_pool_id >= 0) {
+      m_policy.space()
+          .impl_internal_space_instance()
+          ->release_team_scratch_space(m_scratch_pool_id);
+    }
   }
 
   ParallelFor(FunctorType const& arg_functor, Policy const& arg_policy)
       : m_functor(arg_functor),
         m_policy(arg_policy),
-        m_league_size(arg_policy.league_size()),
-        m_team_size(arg_policy.team_size()),
-        m_vector_size(arg_policy.impl_vector_length()) {
+        m_league_size(m_policy.league_size()),
+        m_team_size(m_policy.team_size()),
+        m_vector_size(m_policy.impl_vector_length()) {
     auto internal_space_instance =
         m_policy.space().impl_internal_space_instance();
     if (m_team_size < 0) {
-      m_team_size =
-          arg_policy.team_size_recommended(arg_functor, ParallelForTag());
+      m_team_size = m_policy.team_size_recommended(m_functor, ParallelForTag());
       if (m_team_size <= 0)
         Kokkos::Impl::throw_runtime_exception(
             "Kokkos::Impl::ParallelFor<HIP, TeamPolicy> could not find a "
@@ -157,24 +147,34 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>, HIP> {
     }
 
     unsigned int const shmem_size_total = m_shmem_begin + m_shmem_size;
-    if (internal_space_instance->m_deviceProp.sharedMemPerBlock <
-        shmem_size_total) {
-      Kokkos::Impl::throw_runtime_exception(std::string(
-          "Kokkos::Impl::ParallelFor< HIP > insufficient shared memory"));
+
+    auto maxShmemPerBlock =
+        internal_space_instance->m_deviceProp.sharedMemPerBlock;
+    if (maxShmemPerBlock < shmem_size_total) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<HIP>: Requested too much scratch memory "
+               "on level 0. Requested: "
+            << m_shmem_size
+            << ", Maximum: " << maxShmemPerBlock - m_shmem_begin;
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
     }
 
-    size_t max_size = arg_policy.team_size_max(arg_functor, ParallelForTag());
-    if (static_cast<int>(m_team_size) > static_cast<int>(max_size)) {
-      Kokkos::Impl::throw_runtime_exception(std::string(
-          "Kokkos::Impl::ParallelFor< HIP > requested too large team size."));
+    if (m_scratch_size[1] > static_cast<size_t>(m_policy.scratch_size_max(1))) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<HIP>: Requested too much scratch memory "
+               "on level 1. Requested: "
+            << m_scratch_size[1]
+            << ", Maximum: " << m_policy.scratch_size_max(1);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
     }
-  }
 
-  ~ParallelFor() {
-    if (m_scratch_pool_id >= 0) {
-      m_policy.space()
-          .impl_internal_space_instance()
-          ->release_team_scratch_space(m_scratch_pool_id);
+    int max_size = arg_policy.team_size_max(arg_functor, ParallelForTag());
+    if (m_team_size > max_size) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<HIP>: Requested too large team size. "
+               "Requested: "
+            << m_team_size << ", Maximum: " << max_size;
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
     }
   }
 };

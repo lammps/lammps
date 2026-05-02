@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_OPENMP_TEAM_HPP
 #define KOKKOS_OPENMP_TEAM_HPP
@@ -129,8 +116,13 @@ class TeamPolicyInternal<Kokkos::OpenMP, Properties...>
 
     m_league_size = league_size_request;
 
-    if (team_size_request > team_max)
-      Kokkos::abort("Kokkos::abort: Requested Team Size is too large!");
+    if (team_size_request > team_max) {
+      std::stringstream error;
+      error << "Kokkos::TeamPolicy<OpenMP>: Requested too large team size. "
+               "Requested: "
+            << team_size_request << ", Maximum: " << team_max;
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
     m_team_size = team_size_request < team_max ? team_size_request : team_max;
 
     // Round team size up to a multiple of 'team_gain'
@@ -262,6 +254,12 @@ class TeamPolicyInternal<Kokkos::OpenMP, Properties...>
         m_tune_team(true),
         m_tune_vector(true) {
     init(league_size_request, team_size_request);
+  }
+
+  TeamPolicyInternal(const PolicyUpdate, const TeamPolicyInternal& other,
+                     typename traits::execution_space space)
+      : TeamPolicyInternal(other) {
+    this->m_space = std::move(space);
   }
 
   inline int team_alloc() const { return m_team_alloc; }

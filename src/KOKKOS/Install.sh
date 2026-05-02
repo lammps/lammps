@@ -12,17 +12,6 @@ export LC_ALL
 action () {
   if (test $mode = 0) then
     rm -f ../$1
-  elif (! cmp -s $1 ../$1) then
-    if (test -z "$2" || test -e ../$2) then
-      cp $1 ..
-      if (test $mode = 2) then
-        echo "  updating src/$1"
-      fi
-    fi
-  elif (test -n "$2") then
-    if (test ! -e ../$2) then
-      rm -f ../$1
-    fi
   fi
 }
 
@@ -72,6 +61,8 @@ action atom_vec_dipole_kokkos.cpp atom_vec_dipole.cpp
 action atom_vec_dipole_kokkos.h atom_vec_dipole.h
 action atom_vec_dpd_kokkos.cpp atom_vec_dpd.cpp
 action atom_vec_dpd_kokkos.h atom_vec_dpd.h
+action atom_vec_ellipsoid_kokkos.cpp atom_vec_ellipsoid.cpp
+action atom_vec_ellipsoid_kokkos.h atom_vec_ellipsoid.h
 action atom_vec_full_kokkos.cpp atom_vec_full.cpp
 action atom_vec_full_kokkos.h atom_vec_full.h
 action atom_vec_hybrid_kokkos.cpp
@@ -100,6 +91,8 @@ action compute_ave_sphere_atom_kokkos.cpp compute_ave_sphere_atom.cpp
 action compute_ave_sphere_atom_kokkos.h compute_ave_sphere_atom.h
 action compute_coord_atom_kokkos.cpp
 action compute_coord_atom_kokkos.h
+action compute_erotate_asphere_kokkos.cpp compute_erotate_asphere.cpp
+action compute_erotate_asphere_kokkos.h compute_erotate_asphere.h
 action compute_erotate_sphere_kokkos.cpp
 action compute_erotate_sphere_kokkos.h
 action compute_composition_atom_kokkos.cpp compute_composition_atom.cpp
@@ -126,6 +119,8 @@ action dihedral_charmmfsw_kokkos.cpp dihedral_charmmfsw.cpp
 action dihedral_charmmfsw_kokkos.h dihedral_charmmfsw.h
 action dihedral_class2_kokkos.cpp dihedral_class2.cpp
 action dihedral_class2_kokkos.h dihedral_class2.h
+action dihedral_fourier_kokkos.cpp dihedral_fourier.cpp
+action dihedral_fourier_kokkos.h dihedral_fourier.h
 action dihedral_harmonic_kokkos.cpp dihedral_harmonic.cpp
 action dihedral_harmonic_kokkos.h dihedral_harmonic.h
 action dihedral_multi_harmonic_kokkos.cpp dihedral_multi_harmonic.cpp
@@ -143,6 +138,8 @@ action fft3d_kokkos.h fft3d.h
 action fftdata_kokkos.h fft3d.h
 action fix_acks2_reaxff_kokkos.cpp fix_acks2_reaxff.cpp
 action fix_acks2_reaxff_kokkos.h fix_acks2_reaxff.h
+action fix_addforce_kokkos.cpp
+action fix_addforce_kokkos.h
 action fix_cmap_kokkos.cpp fix_cmap.cpp
 action fix_cmap_kokkos.h fix_cmap.h
 action fix_colvars_kokkos.cpp fix_colvars.cpp
@@ -161,6 +158,8 @@ action fix_efield_kokkos.cpp
 action fix_efield_kokkos.h
 action fix_eos_table_rx_kokkos.cpp fix_eos_table_rx.cpp
 action fix_eos_table_rx_kokkos.h fix_eos_table_rx.h
+action fix_external_kokkos.cpp
+action fix_external_kokkos.h
 action fix_freeze_kokkos.cpp fix_freeze.cpp
 action fix_freeze_kokkos.h fix_freeze.h
 action fix_gravity_kokkos.cpp
@@ -185,6 +184,8 @@ action fix_nve_limit_kokkos.cpp
 action fix_nve_limit_kokkos.h
 action fix_nve_sphere_kokkos.cpp
 action fix_nve_sphere_kokkos.h
+action fix_nve_asphere_kokkos.cpp fix_nve_asphere.cpp
+action fix_nve_asphere_kokkos.h fix_nve_asphere.h
 action fix_nvt_kokkos.cpp
 action fix_nvt_kokkos.h
 action fix_nvt_sllod_kokkos.cpp
@@ -234,6 +235,8 @@ action grid3d_kokkos.h fft3d.h
 action group_kokkos.h
 action improper_class2_kokkos.cpp improper_class2.cpp
 action improper_class2_kokkos.h improper_class2.h
+action improper_cvff_kokkos.cpp improper_cvff.cpp
+action improper_cvff_kokkos.h improper_cvff.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp
 action improper_harmonic_kokkos.h improper_harmonic.h
 action improper_hybrid_kokkos.cpp improper_hybrid.cpp
@@ -245,6 +248,7 @@ action kokkos_few.h
 action kokkos_type.h
 action kokkos.cpp
 action kokkos.h
+action math_extra_kokkos.h
 action math_special_kokkos.cpp
 action math_special_kokkos.h
 action meam_dens_final_kokkos.h meam_dens_final.cpp
@@ -344,6 +348,8 @@ action pair_hybrid_kokkos.cpp
 action pair_hybrid_kokkos.h
 action pair_hybrid_overlay_kokkos.cpp
 action pair_hybrid_overlay_kokkos.h
+action pair_hybrid_scaled_kokkos.cpp
+action pair_hybrid_scaled_kokkos.h
 action pair_kokkos.h
 action pair_lj_charmm_coul_charmm_implicit_kokkos.cpp pair_lj_charmm_coul_charmm_implicit.cpp
 action pair_lj_charmm_coul_charmm_implicit_kokkos.h pair_lj_charmm_coul_charmm_implicit.h
@@ -452,40 +458,9 @@ action mliap_unified_couple_kokkos.pyx mliap_unified_couple.pyx
 
 # edit 2 Makefile.package files to include/exclude package info
 
-if (test $1 = 1) then
-
-  if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*kokkos[^ \t]* //g' ../Makefile.package
-    sed -i -e 's/[^ \t]*KOKKOS[^ \t]* //g' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_KOKKOS |' ../Makefile.package
-#    sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/kokkos\/core\/src |' ../Makefile.package
-    sed -i -e 's|^PKG_CPP_DEPENDS =[ \t]*|&$(KOKKOS_CPP_DEPENDS) |' ../Makefile.package
-    sed -i -e 's|^PKG_LIB =[ \t]*|&$(KOKKOS_LIBS) |' ../Makefile.package
-    sed -i -e 's|^PKG_LINK_DEPENDS =[ \t]*|&$(KOKKOS_LINK_DEPENDS) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(KOKKOS_LDFLAGS) |' ../Makefile.package
-#    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(kokkos_SYSPATH) |' ../Makefile.package
-  fi
-
-  if (test -e ../Makefile.package.settings) then
-    sed -i -e '/CXX\ =\ \$(CC)/d' ../Makefile.package.settings
-    sed -i -e '/^[ \t]*include.*kokkos.*$/d' ../Makefile.package.settings
-    # multiline form needed for BSD sed on Macs
-    sed -i -e '4 i \
-CXX = $(CC)
-' ../Makefile.package.settings
-    sed -i -e '5 i \
-include ..\/..\/lib\/kokkos\/Makefile.kokkos
-' ../Makefile.package.settings
-  fi
-
-  #  comb/omp triggers a persistent bug in nvcc. deleting it.
-  rm -f ../*_comb_omp.*
-
-elif (test $1 = 2) then
-
-  #  comb/omp triggers a persistent bug in nvcc. deleting it.
-  rm -f ../*_comb_omp.*
+if (test $1 = 1 || test $1 = 2) then
+  echo "The KOKKOS package no longer supports the legacy build system. Please build LAMMPS with CMake instead."
+  exit 1
 
 elif (test $1 = 0) then
 
@@ -499,27 +474,4 @@ elif (test $1 = 0) then
     sed -i -e '/^[ \t]*include.*kokkos.*$/d' ../Makefile.package.settings
   fi
 
-fi
-
-# Python cython stuff. Only need to convert/remove sources.
-# Package settings were already done in ML-IAP package Install.sh script.
-
-if (test $1 = 1) then
-  if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
-    cythonize -3 ../mliap_model_python_couple_kokkos.pyx
-    cythonize -3 ../mliap_unified_couple_kokkos.pyx
-  fi
-
-elif (test $1 = 0) then
-  rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
-  rm -f ../mliap_unified_couple_kokkos.cpp ../mliap_unified_couple_kokkos.h
-
-elif (test $1 = 2) then
-  if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
-    cythonize -3 ../mliap_model_python_couple_kokkos.pyx
-    cythonize -3 ../mliap_unified_couple_kokkos.pyx
-  else
-    rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
-    rm -f ../mliap_unified_couple_kokkos.cpp ../mliap_unified_couple_kokkos.h
-  fi
 fi

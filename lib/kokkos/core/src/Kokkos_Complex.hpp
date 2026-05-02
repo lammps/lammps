@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 #ifndef KOKKOS_COMPLEX_HPP
 #define KOKKOS_COMPLEX_HPP
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -61,13 +48,6 @@ class
   //! Default constructor (initializes both real and imaginary parts to zero).
   KOKKOS_DEFAULTED_FUNCTION
   complex() = default;
-
-  //! Copy constructor.
-  KOKKOS_DEFAULTED_FUNCTION
-  complex(const complex&) noexcept = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  complex& operator=(const complex&) noexcept = default;
 
   /// \brief Conversion constructor from compatible RType
   template <class RType,
@@ -263,171 +243,6 @@ class
 
   template <size_t I, typename RT>
   friend constexpr const RT&& get(const complex<RT>&&) noexcept;
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  //! Copy constructor from volatile.
-  template <class RType,
-            std::enable_if_t<std::is_convertible_v<RType, RealType>, int> = 0>
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION
-  complex(const volatile complex<RType>& src) noexcept
-      // Intentionally do the conversions implicitly here so that users don't
-      // get any warnings about narrowing, etc., that they would expect to get
-      // otherwise.
-      : re_(src.re_), im_(src.im_) {}
-
-  /// \brief Assignment operator, for volatile <tt>*this</tt> and
-  ///   nonvolatile input.
-  ///
-  /// \param src [in] Input; right-hand side of the assignment.
-  ///
-  /// This operator returns \c void instead of <tt>volatile
-  /// complex& </tt>.  See Kokkos Issue #177 for the
-  /// explanation.  In practice, this means that you should not chain
-  /// assignments with volatile lvalues.
-  //
-  // Templated, so as not to be a copy assignment operator (Kokkos issue #2577)
-  // Intended to behave as
-  //    void operator=(const complex&) volatile noexcept
-  //
-  // Use cases:
-  //    complex r;
-  //    const complex cr;
-  //    volatile complex vl;
-  //    vl = r;
-  //    vl = cr;
-  template <class Complex,
-            std::enable_if_t<std::is_same_v<Complex, complex>, int> = 0>
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION void operator=(
-      const Complex& src) volatile noexcept {
-    re_ = src.re_;
-    im_ = src.im_;
-    // We deliberately do not return anything here.  See explanation
-    // in public documentation above.
-  }
-
-  //! Assignment operator, volatile LHS and volatile RHS
-  // TODO Should this return void like the other volatile assignment operators?
-  //
-  // Templated, so as not to be a copy assignment operator (Kokkos issue #2577)
-  // Intended to behave as
-  //    volatile complex& operator=(const volatile complex&) volatile noexcept
-  //
-  // Use cases:
-  //    volatile complex vr;
-  //    const volatile complex cvr;
-  //    volatile complex vl;
-  //    vl = vr;
-  //    vl = cvr;
-  template <class Complex,
-            std::enable_if_t<std::is_same_v<Complex, complex>, int> = 0>
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION volatile complex& operator=(
-      const volatile Complex& src) volatile noexcept {
-    re_ = src.re_;
-    im_ = src.im_;
-    return *this;
-  }
-
-  //! Assignment operator, volatile RHS and non-volatile LHS
-  //
-  // Templated, so as not to be a copy assignment operator (Kokkos issue #2577)
-  // Intended to behave as
-  //    complex& operator=(const volatile complex&) noexcept
-  //
-  // Use cases:
-  //    volatile complex vr;
-  //    const volatile complex cvr;
-  //    complex l;
-  //    l = vr;
-  //    l = cvr;
-  //
-  template <class Complex,
-            std::enable_if_t<std::is_same_v<Complex, complex>, int> = 0>
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION complex& operator=(
-      const volatile Complex& src) noexcept {
-    re_ = src.re_;
-    im_ = src.im_;
-    return *this;
-  }
-
-  // Mirroring the behavior of the assignment operators from complex RHS in the
-  // RealType RHS versions.
-
-  //! Assignment operator (from a volatile real number).
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION void operator=(
-      const volatile RealType& val) noexcept {
-    re_ = val;
-    im_ = RealType(0);
-    // We deliberately do not return anything here.  See explanation
-    // in public documentation above.
-  }
-
-  //! Assignment operator volatile LHS and non-volatile RHS
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION complex& operator=(
-      const RealType& val) volatile noexcept {
-    re_ = val;
-    im_ = RealType(0);
-    return *this;
-  }
-
-  //! Assignment operator volatile LHS and volatile RHS
-  // TODO Should this return void like the other volatile assignment operators?
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION complex& operator=(
-      const volatile RealType& val) volatile noexcept {
-    re_ = val;
-    im_ = RealType(0);
-    return *this;
-  }
-
-  //! The imaginary part of this complex number (volatile overload).
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION volatile RealType&
-  imag() volatile noexcept {
-    return im_;
-  }
-
-  //! The real part of this complex number (volatile overload).
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION volatile RealType&
-  real() volatile noexcept {
-    return re_;
-  }
-
-  //! The imaginary part of this complex number (volatile overload).
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION RealType imag() const
-      volatile noexcept {
-    return im_;
-  }
-
-  //! The real part of this complex number (volatile overload).
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION RealType real() const
-      volatile noexcept {
-    return re_;
-  }
-
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION void operator+=(
-      const volatile complex<RealType>& src) volatile noexcept {
-    re_ += src.re_;
-    im_ += src.im_;
-  }
-
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION void operator+=(
-      const volatile RealType& src) volatile noexcept {
-    re_ += src;
-  }
-
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION void operator*=(
-      const volatile complex<RealType>& src) volatile noexcept {
-    const RealType realPart = re_ * src.re_ - im_ * src.im_;
-    const RealType imagPart = re_ * src.im_ + im_ * src.re_;
-
-    re_ = realPart;
-    im_ = imagPart;
-  }
-
-  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION void operator*=(
-      const volatile RealType& src) volatile noexcept {
-    re_ *= src;
-    im_ *= src;
-  }
-#endif  // KOKKOS_ENABLE_DEPRECATED_CODE_4
 };
 
 }  // namespace Kokkos
@@ -712,7 +527,8 @@ operator*(const complex<RealType1>& y, const RealType2& x) noexcept {
 
 //! Imaginary part of a complex number.
 template <class RealType>
-KOKKOS_INLINE_FUNCTION RealType imag(const complex<RealType>& x) noexcept {
+KOKKOS_INLINE_FUNCTION constexpr RealType imag(
+    const complex<RealType>& x) noexcept {
   return x.imag();
 }
 
@@ -724,7 +540,8 @@ KOKKOS_INLINE_FUNCTION constexpr Impl::promote_t<ArithmeticType> imag(
 
 //! Real part of a complex number.
 template <class RealType>
-KOKKOS_INLINE_FUNCTION RealType real(const complex<RealType>& x) noexcept {
+KOKKOS_INLINE_FUNCTION constexpr RealType real(
+    const complex<RealType>& x) noexcept {
   return x.real();
 }
 
@@ -809,9 +626,9 @@ KOKKOS_INLINE_FUNCTION Kokkos::complex<RealType> sqrt(
 
 //! Conjugate of a complex number.
 template <class RealType>
-KOKKOS_INLINE_FUNCTION complex<RealType> conj(
+KOKKOS_INLINE_FUNCTION constexpr complex<RealType> conj(
     const complex<RealType>& x) noexcept {
-  return complex<RealType>(real(x), -imag(x));
+  return {real(x), -imag(x)};
 }
 
 template <class ArithmeticType>
@@ -819,6 +636,18 @@ KOKKOS_INLINE_FUNCTION constexpr complex<Impl::promote_t<ArithmeticType>> conj(
     ArithmeticType x) {
   using type = Impl::promote_t<ArithmeticType>;
   return complex<type>(x, -type());
+}
+
+//! Norm of a complex number.
+template <class RealType>
+KOKKOS_INLINE_FUNCTION constexpr RealType norm(const complex<RealType>& x) {
+  return x.real() * x.real() + x.imag() * x.imag();
+}
+
+template <class ArithmeticType>
+KOKKOS_INLINE_FUNCTION constexpr Impl::promote_t<ArithmeticType> norm(
+    ArithmeticType x) {
+  return static_cast<Impl::promote_t<ArithmeticType>>(x) * x;
 }
 
 //! Exponential of a complex number.
@@ -1030,15 +859,8 @@ std::istream& operator>>(std::istream& is, complex<RealType>& x) {
 
 template <class T>
 struct reduction_identity<Kokkos::complex<T>> {
-  using t_red_ident = reduction_identity<T>;
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static Kokkos::complex<T>
-  sum() noexcept {
-    return Kokkos::complex<T>(t_red_ident::sum(), t_red_ident::sum());
-  }
-  KOKKOS_FORCEINLINE_FUNCTION constexpr static Kokkos::complex<T>
-  prod() noexcept {
-    return Kokkos::complex<T>(t_red_ident::prod(), t_red_ident::sum());
-  }
+  KOKKOS_FUNCTION static Kokkos::complex<T> sum() noexcept { return 0; }
+  KOKKOS_FUNCTION static Kokkos::complex<T> prod() noexcept { return 1; }
 };
 
 }  // namespace Kokkos

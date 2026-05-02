@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
 
@@ -28,24 +15,13 @@
 // Arbitrary value to denote that we don't know yet what device to use.
 int Kokkos::Experimental::Impl::OpenACCInternal::m_acc_device_num = -1;
 int Kokkos::Experimental::Impl::OpenACCInternal::m_concurrency    = -1;
+int Kokkos::Experimental::Impl::OpenACCInternal::m_next_async     = -1;
 
-Kokkos::Experimental::Impl::OpenACCInternal&
-Kokkos::Experimental::Impl::OpenACCInternal::singleton() {
-  static OpenACCInternal self;
-  return self;
-}
+Kokkos::Impl::HostSharedPtr<Kokkos::Experimental::Impl::OpenACCInternal>
+    Kokkos::Experimental::Impl::OpenACCInternal::default_instance;
 
-bool Kokkos::Experimental::Impl::OpenACCInternal::verify_is_initialized(
-    const char* const label) const {
-  if (!m_is_initialized) {
-    Kokkos::abort((std::string("Kokkos::Experimental::OpenACC::") + label +
-                   " : ERROR device not initialized\n")
-                      .c_str());
-  }
-  return m_is_initialized;
-}
-
-void Kokkos::Experimental::Impl::OpenACCInternal::initialize(int async_arg) {
+Kokkos::Experimental::Impl::OpenACCInternal::OpenACCInternal(int async_arg)
+    : m_async_arg(async_arg) {
   if ((async_arg < 0) && (async_arg != acc_async_sync) &&
       (async_arg != acc_async_noval)) {
     Kokkos::abort((std::string("Kokkos::Experimental::OpenACC::initialize()") +
@@ -53,16 +29,6 @@ void Kokkos::Experimental::Impl::OpenACCInternal::initialize(int async_arg) {
                    " unless being a special value defined in OpenACC\n")
                       .c_str());
   }
-  m_async_arg      = async_arg;
-  m_is_initialized = true;
-}
-
-void Kokkos::Experimental::Impl::OpenACCInternal::finalize() {
-  m_is_initialized = false;
-}
-
-bool Kokkos::Experimental::Impl::OpenACCInternal::is_initialized() const {
-  return m_is_initialized;
 }
 
 void Kokkos::Experimental::Impl::OpenACCInternal::print_configuration(
@@ -85,12 +51,6 @@ uint32_t Kokkos::Experimental::Impl::OpenACCInternal::instance_id()
       reinterpret_cast<uintptr_t>(this));
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-int Kokkos::Experimental::OpenACC::concurrency() {
-  return Impl::OpenACCInternal::m_concurrency;
-}
-#else
 int Kokkos::Experimental::OpenACC::concurrency() const {
   return Impl::OpenACCInternal::m_concurrency;
 }
-#endif

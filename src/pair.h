@@ -51,10 +51,10 @@ class Pair : protected Pointers {
   int comm_reverse;        // size of reverse communication (0 if none)
   int comm_reverse_off;    // size of reverse comm even if newton off
 
-  int single_enable;              // 1 if single() routine exists
-  int born_matrix_enable;         // 1 if born_matrix() routine exists
-  int single_hessian_enable;      // 1 if single_hessian() routine exists
-  int atomic_energy_enable;       // 1 if compute_atomic_energy() routine exists
+  int single_enable;            // 1 if single() routine exists
+  int born_matrix_enable;       // 1 if born_matrix() routine exists
+  int single_hessian_enable;    // 1 if single_hessian() routine exists
+  int atomic_energy_enable;     // 1 if compute_atomic_energy() routine exists
 
   int restartinfo;                // 1 if pair style writes restart info
   int respa_enable;               // 1 if inner/middle/outer rRESPA routines
@@ -66,6 +66,7 @@ class Pair : protected Pointers {
   int finitecutflag;              // 1 if cut depends on finite atom size
   int ghostneigh;                 // 1 if pair style needs neighbors of ghosts
   double **cutghost;              // cutoff for each ghost pair
+  int suffix_flag;                // suffix compatibility flag
 
   int ewaldflag;         // 1 if compatible with Ewald solver
   int pppmflag;          // 1 if compatible with PPPM solver
@@ -87,7 +88,7 @@ class Pair : protected Pointers {
   int trim_flag;    // pair_modify flag for trimming neigh list
 
   int evflag;    // energy,virial settings
-  int eflag_either, eflag_global, eflag_atom;
+  int eflag_either, eflag_global, eflag_atom, eflag_only;
   int vflag_either, vflag_global, vflag_atom, cvflag_atom;
 
   int ncoultablebits;    // size of Coulomb table, accessed by KSpace
@@ -238,12 +239,11 @@ class Pair : protected Pointers {
  public:
   virtual void add_tally_callback(class Compute *);
   virtual void del_tally_callback(class Compute *);
-  bool did_tally_callback() const { return did_tally_flag != 0; }
+  [[nodiscard]] bool did_tally_callback() const { return did_tally_flag != 0; }
 
  protected:
   int instance_me;      // which Pair class instantiation I am
   int special_lj[4];    // copied from force->special_lj for Kokkos
-  int suffix_flag;      // suffix compatibility flag
 
   // pair_modify settings
   int offset_flag, mix_flag;    // flags for offset and mixing
@@ -274,7 +274,7 @@ class Pair : protected Pointers {
 
   // Accessor for the INTEL package to determine virial calc for hybrid
 
-  inline int fdotr_is_set() const { return vflag_fdotr; }
+  [[nodiscard]] int fdotr_is_set() const { return vflag_fdotr; }
 
  protected:
   int vflag_fdotr;
@@ -303,7 +303,7 @@ class Pair : protected Pointers {
   void v_tally_tensor(int, int, int, int, double, double, double, double, double, double);
   void virial_fdotr_compute();
 
-  inline int sbmask(int j) const { return j >> SBBITS & 3; }
+  [[nodiscard]] int sbmask(int j) const { return j >> SBBITS & 3; }
 };
 
 }    // namespace LAMMPS_NS

@@ -278,10 +278,10 @@ I/O and output formatting
 C-style stdio versus C++ style iostreams
 ========================================
 
-LAMMPS uses the `stdio <https://en.cppreference.com/w/cpp/io/c.html>`
+LAMMPS uses the `stdio <https://cppreference.com/w/cpp/io/c.html>`
 library of the standard C library for reading from and writing to files
 and console instead of C++ `iostreams
-<https://en.cppreference.com/w/cpp/io.html>`_.  This is mainly motivated
+<https://cppreference.com/w/cpp/io.html>`_.  This is mainly motivated
 by better performance, better control over formatting, and less effort
 to achieve specific formatting.
 
@@ -294,36 +294,43 @@ Furthermore, output should generally only be done by MPI rank 0
 ``logfile`` should use the :cpp:func:`utils::logmesg() convenience
 function <LAMMPS_NS::utils::logmesg>`.
 
-We discourage the use of `stringstreams
-<https://en.cppreference.com/w/cpp/io/basic_stringstream.html>`_ because
-the bundled {fmt} library and the customized tokenizer classes provide
-the same functionality in a cleaner way with better performance.  This
-also helps maintain a consistent programming syntax with code from many
-different contributors.
+We strongly discourage the use of `stringstreams
+<https://cppreference.com/w/cpp/io/basic_stringstream.html>`_ because
+the bundled `{fmt} library <https://fmt.dev>`_ or the `C++ format
+library <https://cppreference.com/w/cpp/utility/format.html>`_ (for
+C++20 and later) and the customized tokenizer classes provide the same
+functionality in a cleaner way with better performance.  This also helps
+maintain a consistent programming syntax with code from many different
+contributors.
 
-Formatting with the {fmt} library
-===================================
+Formatting with the {fmt} library and std::format
+=================================================
 
-The LAMMPS source code includes a copy of the `{fmt} library
-<https://fmt.dev>`_, which is preferred over formatting with the
-"printf()" family of functions.  The primary reason is that it allows a
-typesafe default format for any type of supported data.  This is
-particularly useful for formatting integers of a given size (32-bit or
-64-bit) which may require different format strings depending on compile
-time settings or compilers/operating systems.  Furthermore, {fmt} gives
-better performance, has more functionality, a familiar formatting syntax
-that has similarities to ``format()`` in Python, and provides a facility
-that can be used to integrate format strings and a variable number of
+The LAMMPS source code currently includes a slightly modified copy of
+the `{fmt} library <https://fmt.dev>`_, which is preferred over
+formatting with the "printf()" family of functions.  When compiling for
+C++20 and later we switch to using the `C++ format library
+<https://cppreference.com/w/cpp/utility/format.html>`_.  The namespace
+prefix currently remains ``fmt::`` through a small wrapper.  In the
+future, this will be switched to ``std::`` when LAMMPS requires the
+C++20 standard as the minimum C++ standard.  Thus only functionality
+compatible with the C++ format library for C++20 is accepted.  Using
+``std::format`` requires a fully C++20 compatible compiler (e.g. GCC 13
+and later, Clang 14 and later, or MSVC 16.10 and later) and we `use the
+__cpp_lib_format feature test macro
+<https://cppreference.com/w/cpp/utility/feature_test.html>`_ to confirm
+the availability of ``std::format``.
+
+The primary reason for this choice is that it allows a typesafe default
+format for any type of supported data.  This is particularly useful for
+formatting integers of a given size (32-bit or 64-bit) which may require
+different format strings depending on compile time settings or
+compilers/operating systems.  Furthermore, {fmt} gives better
+performance, has more functionality, a familiar formatting syntax that
+has similarities to ``format()`` in Python, and provides a facility that
+can be used to integrate format strings and a variable number of
 arguments into custom functions in a much simpler way than the varargs
-mechanism of the C library.  Finally, {fmt} has been included into the
-C++20 language standard as ``std::format()``, so changes to adopt it are
-future-proof, for as long as they are not using any extensions that are
-not (yet) included into C++.
-
-The long-term plan is to switch to using ``std::format()`` instead of
-``fmt::format()`` when the minimum C++ standard required for LAMMPS will
-be set to C++20. See the :ref:`basic build instructions <compile>` for
-more details.
+mechanism of the C library.
 
 Formatted strings are frequently created by calling the
 ``fmt::format()`` function, which will return a string as a
@@ -334,15 +341,15 @@ choose the default format based on the data type of the argument.
 Otherwise, the :cpp:func:`utils::print() <LAMMPS_NS::utils::print>`
 function may be used instead of ``printf()`` or ``fprintf()``.  The
 equivalent `std::print() function
-<https://en.cppreference.com/w/cpp/io/print.html>`_ will become
+<https://cppreference.com/w/cpp/io/print.html>`_ will become
 available in C++ 23.  In addition, several LAMMPS output functions, that
 originally accepted a single string as argument have been overloaded to
 accept a format string with optional arguments as well (e.g.,
 ``Error::all()``, ``Error::one()``, :cpp:func:`utils::logmesg()
 <LAMMPS_NS::utils::logmesg>`).
 
-Summary of the {fmt} format syntax
-==================================
+Summary of the {fmt} format and std::format syntax
+==================================================
 
 The syntax of the format string is "{[<argument id>][:<format spec>]}",
 where either the argument id or the format spec (separated by a colon
@@ -404,11 +411,13 @@ value, for example "{:{}d}" will consume two integer arguments, the
 first will be the value shown and the second the minimum width.
 
 For more details and examples, please consult the `{fmt} syntax
-documentation <https://fmt.dev/latest/syntax/>`_ website.  Since we
-plan to eventually transition from {fmt} to using ``std::format()``
+documentation <https://fmt.dev/latest/syntax/>`_ website or the
+`corresponding C++ syntax reference
+<https://cppreference.com/w/cpp/utility/format/spec.html>`_.  Since
+we plan to eventually transition from {fmt} to using ``std::format()``
 of the C++ standard library, it is advisable to avoid using any
 extensions beyond what the `C++20 standard offers
-<https://en.cppreference.com/w/cpp/utility/format/format.html>`_.
+<https://cppreference.com/w/cpp/utility/format/format.html>`_.
 
 JSON format input and output
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

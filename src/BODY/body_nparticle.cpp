@@ -17,6 +17,7 @@
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "error.h"
+#include "graphics.h"
 #include "math_extra.h"
 #include "math_eigen.h"
 #include "memory.h"
@@ -27,7 +28,6 @@
 using namespace LAMMPS_NS;
 
 static constexpr double EPSILON = 1.0e-7;
-enum{SPHERE,LINE,TRI};           // also in DumpImage
 
 /* ---------------------------------------------------------------------- */
 
@@ -355,7 +355,7 @@ int BodyNparticle::image(int ibonus, double flag1, double /*flag2*/,
   int n = bonus->ivalue[0];
 
   for (int i = 0; i < n; i++) {
-    imflag[i] = SPHERE;
+    imflag[i] = Graphics::SPHERE;
     MathExtra::quat_to_mat(bonus->quat,p);
     MathExtra::matvec(p,&bonus->dvalue[3*i],imdata[i]);
 

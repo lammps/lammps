@@ -52,6 +52,15 @@ add_test(NAME Labelmap COMMAND test_labelmap)
 
 add_executable(test_variables test_variables.cpp)
 target_link_libraries(test_variables PRIVATE lammps GTest::GMock)
+if(PKG_KOKKOS)
+  target_link_libraries(test_variables PRIVATE Kokkos::kokkos)
+  target_compile_definitions(test_variables PRIVATE LMP_KOKKOS)
+  set_property(TARGET test_variables PROPERTY BUILD_RPATH "${CMAKE_BINARY_DIR}")
+  if(APPLE)
+    # Prefer in-tree liblammps over ~/.local when DYLD_LIBRARY_PATH is set globally
+    target_link_options(test_variables PRIVATE "LINKER:-rpath,@executable_path/..")
+  endif()
+endif()
 add_test(NAME Variables COMMAND test_variables)
 
 add_executable(test_kim_commands test_kim_commands.cpp)

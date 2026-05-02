@@ -21,12 +21,18 @@
 #include "math_const.h"
 #include "region.h"
 #include "variable.h"
+#if defined(LMP_KOKKOS)
+#include "variable_kokkos.h"
+#endif
 
 #include "../testing/core.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cstdlib>
+#include <exception>
 #include <cstring>
+#include <string>
 #include <vector>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -834,10 +840,160 @@ TEST_F(VariableTest, Set)
     variable->internal_set(variable->find("ten"), -2.5);
     ASSERT_THAT(variable->retrieve("ten"), StrEq("-2.5"));
 }
+
+#if defined(LMP_KOKKOS)
+class VariableKokkosTest : public LAMMPSTest {
+protected:
+    Group *group{};
+    Domain *domain{};
+    Variable *variable{};
+
+    void SetUp() override
+    {
+        testbinary = "VariableKokkosTest";
+        args       = {"-log", "none", "-echo", "screen", "-nocite", "-k", "on"};
+        LAMMPSTest::SetUp();
+        group    = lmp->group;
+        domain   = lmp->domain;
+        variable = lmp->input->variable;
+    }
+
+    void TearDown() override
+    {
+        LAMMPSTest::TearDown();
+        platform::unlink("test_variable.atomfile");
+    }
+
+    static bool kk_cpu_only_ok()
+    {
+        if (!Info::has_package("KOKKOS")) return false;
+        if (!Info::has_accelerator_feature("KOKKOS", "api", "serial") &&
+            !Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+            return false;
+        if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+            Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+            Info::has_accelerator_feature("KOKKOS", "api", "sycl"))
+            return false;
+        return true;
+    }
+
+    void kk_atomic_boxes()
+    {
+        HIDE_OUTPUT([&] {
+            command("atom_modify map array");
+            command("units real");
+            command("lattice sc 1.0 origin 0.125 0.125 0.125");
+            command("region box block -2 2 -2 2 -2 2");
+            command("create_box 8 box");
+            command("create_atoms 1 box");
+            command("mass * 1.0");
+        });
+    }
+};
+
+TEST_F(VariableKokkosTest, InputAllocates_VariableKokkos)
+{
+    if (!kk_cpu_only_ok()) GTEST_SKIP();
+    EXPECT_NE(dynamic_cast<VariableKokkos *>(lmp->input->variable), nullptr);
+}
+
+TEST_F(VariableKokkosTest, ComputeAtom_virtualAtomStyle)
+{
+    if (!kk_cpu_only_ok()) GTEST_SKIP();
+    kk_atomic_boxes();
+    BEGIN_HIDE_OUTPUT();
+    command("variable vk_x atom x");
+    command("variable vk_add atom sqrt(atan2(y,z))+(1>2)");
+    END_HIDE_OUTPUT();
+
+    ASSERT_NE(dynamic_cast<VariableKokkos *>(variable), nullptr);
+    const int ivx = variable->find("vk_x");
+    const int iva = variable->find("vk_add");
+    ASSERT_GE(ivx, 0);
+    ASSERT_GE(iva, 0);
+    const int nlocal = lmp->atom->nlocal;
+    const int igroup = group->find("all");
+    ASSERT_GE(igroup, 0);
+
+    std::vector<double> xout(nlocal), aout(nlocal);
+    variable->compute_atom(ivx, igroup, xout.data(), 1, 0);
+    variable->compute_atom(iva, igroup, aout.data(), 1, 0);
+    Atom *atoms = lmp->atom;
+    for (int i = 0; i < nlocal; ++i) EXPECT_NEAR(atoms->x[i][0], xout[i], 1.0e-10);
+
+    std::vector<double> acc(nlocal, 99.0);
+    variable->compute_atom(ivx, igroup, acc.data(), 1, 1);
+    for (int i = 0; i < nlocal; ++i) EXPECT_NEAR(acc[i], 99.0 + atoms->x[i][0], 1.0e-10);
+
+    variable->compute_atom(ivx, igroup, nullptr, 1, 0);
+    variable->compute_atom(-1, igroup, xout.data(), 1, 0);
+}
+
+TEST_F(VariableKokkosTest, AtomfileDelegatesTo_BaseClass)
+{
+    if (!kk_cpu_only_ok()) GTEST_SKIP();
+    FILE *fp = fopen("test_variable.atomfile", "w");
+    ASSERT_NE(fp, nullptr);
+    fputs("4\n4 0.5\n2 -0.5\n3 1.5\n1 -1.5\n2\n10 1.0\n13 1.0\n4\n1 4.0\n2 3.0\n3 2.0\n4 1.0\n#END\n",
+          fp);
+    fclose(fp);
+
+    kk_atomic_boxes();
+    BEGIN_HIDE_OUTPUT();
+    command("variable vk_af atomfile test_variable.atomfile");
+    END_HIDE_OUTPUT();
+
+    ASSERT_NE(dynamic_cast<VariableKokkos *>(variable), nullptr);
+    const int nl   = lmp->atom->nlocal;
+    const int ig   = group->find("all");
+    auto *vk       = dynamic_cast<VariableKokkos *>(variable);
+    std::vector<double> vals(nl);
+    ASSERT_NE(vk, nullptr);
+    vk->compute_atom(variable->find("vk_af"), ig, vals.data(), 1, 0);
+}
+
+TEST_F(VariableKokkosTest, DeepFormulaExceedsStackLimitThrows)
+{
+    if (!kk_cpu_only_ok()) GTEST_SKIP();
+    kk_atomic_boxes();
+    std::string expr = "type";
+    for (int i = 0; i < 82; ++i) expr = "ternary(type," + expr + ",0.0)";
+    BEGIN_HIDE_OUTPUT();
+    command("variable vk_deep atom \"" + expr + "\"");
+    END_HIDE_OUTPUT();
+
+    const int iv      = variable->find("vk_deep");
+    const int nl      = lmp->atom->nlocal;
+    const int igroup  = group->find("all");
+    std::vector<double> heap(nl > 0 ? nl : 1);
+    ::testing::internal::CaptureStdout();
+    ASSERT_THROW(variable->compute_atom(iv, igroup, heap.data(), 1, 0), LAMMPSException);
+    std::string errout = ::testing::internal::GetCapturedStdout();
+    ASSERT_THAT(errout, ContainsRegex(".*AST depth exceeding device stack allocation.*"));
+
+    BEGIN_HIDE_OUTPUT();
+    command("variable vk_ok atom \"type\"");
+    END_HIDE_OUTPUT();
+    const int iy = variable->find("vk_ok");
+    ASSERT_GE(iy, 0);
+    variable->compute_atom(iy, igroup, heap.data(), 1, 0);
+}
+
+#endif /* LMP_KOKKOS */
+
 } // namespace LAMMPS_NS
+
+// Kokkos OpenMP teardown on macOS can throw std::system_error from static
+// destructors after pthread teardown starts. Preserve the real gtest status.
+static int g_test_result = 1;
+static void kokkos_omp_teardown_terminate()
+{
+    _Exit(g_test_result);
+}
 
 int main(int argc, char **argv)
 {
+    std::set_terminate(kokkos_omp_teardown_terminate);
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
@@ -853,7 +1009,8 @@ int main(int argc, char **argv)
 
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
-    int rv = RUN_ALL_TESTS();
+    int rv        = RUN_ALL_TESTS();
+    g_test_result = rv;
     MPI_Finalize();
     return rv;
 }

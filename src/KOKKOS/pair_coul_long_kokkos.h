@@ -13,9 +13,26 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(coul/long/kk,PairCoulLongKokkos<LMPDeviceType>);
-PairStyle(coul/long/kk/device,PairCoulLongKokkos<LMPDeviceType>);
-PairStyle(coul/long/kk/host,PairCoulLongKokkos<LMPHostType>);
+
+PairStyle(coul/long/kk,        PairCoulLongKokkos<LMPDeviceType,false,false>);
+PairStyle(coul/long/kk/device, PairCoulLongKokkos<LMPDeviceType,false,false>);
+PairStyle(coul/long/kk/host,   PairCoulLongKokkos<LMPHostType,  false,false>);
+
+PairStyle(tip4p/long/kk,        PairCoulLongKokkos<LMPDeviceType,true,false>);
+PairStyle(tip4p/long/kk/device, PairCoulLongKokkos<LMPDeviceType,true,false>);
+PairStyle(tip4p/long/kk/host,   PairCoulLongKokkos<LMPHostType,  true,false>);
+
+/*
+PairStyle(coul/long/soft/kk,        PairCoulLongKokkos<LMPDeviceType,false,true>);
+PairStyle(coul/long/soft/kk/device, PairCoulLongKokkos<LMPDeviceType,false,true>);
+PairStyle(coul/long/soft/kk/host,   PairCoulLongKokkos<LMPHostType,  false,true>);
+
+
+PairStyle(tip4p/long/soft/kk,        PairCoulLongKokkos<LMPDeviceType,true,true>);
+PairStyle(tip4p/long/soft/kk/device, PairCoulLongKokkos<LMPDeviceType,true,true>);
+PairStyle(tip4p/long/soft/kk/host,   PairCoulLongKokkos<LMPHostType,  true,true>);
+*/
+
 // clang-format on
 #else
 
@@ -24,13 +41,29 @@ PairStyle(coul/long/kk/host,PairCoulLongKokkos<LMPHostType>);
 #define LMP_PAIR_COUL_LONG_KOKKOS_H
 
 #include "pair_kokkos.h"
-#include "pair_coul_long.h"
 #include "neigh_list_kokkos.h"
+#include "fix.h"
+
+#include "pair_coul_long.h"
+#include "pair_tip4p_long.h"
+#ifdef LMP_FEP
+  #include "pair_coul_long_soft.h"
+  #include "pair_tip4p_long_soft.h"
+#endif
 
 namespace LAMMPS_NS {
 
-template<class DeviceType>
-class PairCoulLongKokkos : public PairCoulLong {
+template<class DeviceType, bool TIP4P, bool SOFT>
+class PairCoulLongKokkos :
+#ifdef LMP_FEP
+  public std::conditional_t<TIP4P,
+    std::conditional_t<SOFT,PairTIP4PLongSoft,PairTIP4PLong>,
+    std::conditional_t<SOFT,PairCoulLongSoft,PairCoulLong>
+  >
+#else
+  public std::conditional_t<TIP4P,PairTIP4PLong,PairCoulLong>
+#endif
+{
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=1};
@@ -56,6 +89,70 @@ class PairCoulLongKokkos : public PairCoulLong {
   };
 
  protected:
+
+  using Pointers::atom;
+  using Pointers::atomKK;
+  using Pointers::error;
+  using Pointers::force;
+  using Pointers::lmp;
+  using Pointers::memory;
+  using Pointers::memoryKK;
+  using Pointers::neighbor;
+  using Pointers::update;
+
+  using Pair::copymode;
+  using Pair::execution_space;
+
+  using Pair::eatom;
+  using Pair::eflag_atom;
+  using Pair::vatom;
+  using Pair::cutsq;
+
+  using Pair::ncoulshiftbits;
+using Pair::vflag_atom;
+using Pair::vflag_fdotr;
+
+using Pair::vflag_global;
+using Pair::virial;
+using Pair::eng_vdwl;
+using Pair::eng_coul;
+
+using Pair::list;
+
+  using Pair::rtable;
+  using Pair::drtable;
+  using Pair::ftable;
+  using Pair::dftable;
+  using Pair::ctable;
+  using Pair::dctable;
+  using Pair::etable;
+  using Pair::detable;
+  using Pair::ptable;
+  using Pair::dptable;
+  using Pair::vtable;
+  using Pair::dvtable;
+
+  using Pair::ev_init;
+  using Pair::maxeatom;
+  using Pair::maxvatom;
+  using Pair::ncoultablebits;
+  using Pair::no_virial_fdotr_compute;
+using Pair::union_int_float_t;
+
+  using Pair::respa_enable;
+  using Pair::kokkosable;
+  using Pair::datamask_modify;
+  using Pair::datamask_read;
+  using Pair::allocated;
+  using PairCoulLong::cut_coulsq;
+  using PairCoulLong::g_ewald;
+
+  using Pair::ncoulmask;
+  using Pair::tabinnersq;
+
+
+
+
   template<bool STACKPARAMS, class Specialisation>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -153,6 +250,6 @@ class PairCoulLongKokkos : public PairCoulLong {
 
 }
 
-#endif
+#endif // !LMP_PAIR_COUL_LONG_KOKKOS_H
 #endif
 

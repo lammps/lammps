@@ -39,8 +39,8 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairCoulLongKokkos<DeviceType>::PairCoulLongKokkos(LAMMPS *lmp):PairCoulLong(lmp)
+template<class DeviceType, bool TIP4P, bool SOFT>
+PairCoulLongKokkos<DeviceType,TIP4P,SOFT>::PairCoulLongKokkos(LAMMPS *lmp):PairCoulLong(lmp)
 {
   respa_enable = 0;
 
@@ -53,8 +53,8 @@ PairCoulLongKokkos<DeviceType>::PairCoulLongKokkos(LAMMPS *lmp):PairCoulLong(lmp
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-PairCoulLongKokkos<DeviceType>::~PairCoulLongKokkos()
+template<class DeviceType, bool TIP4P, bool SOFT>
+PairCoulLongKokkos<DeviceType,TIP4P,SOFT>::~PairCoulLongKokkos()
 {
   if (copymode) return;
 
@@ -67,8 +67,8 @@ PairCoulLongKokkos<DeviceType>::~PairCoulLongKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+template<class DeviceType, bool TIP4P, bool SOFT>
+void PairCoulLongKokkos<DeviceType,TIP4P,SOFT>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -120,10 +120,10 @@ void PairCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev;
   if (ncoultablebits)
-    ev = pair_compute<PairCoulLongKokkos<DeviceType>,CoulLongTable<1> >
+    ev = pair_compute<PairCoulLongKokkos<DeviceType,TIP4P,SOFT>,CoulLongTable<1> >
       (this,(NeighListKokkos<DeviceType>*)list);
   else
-    ev = pair_compute<PairCoulLongKokkos<DeviceType>,CoulLongTable<0> >
+    ev = pair_compute<PairCoulLongKokkos<DeviceType,TIP4P,SOFT>,CoulLongTable<0> >
       (this,(NeighListKokkos<DeviceType>*)list);
 
 
@@ -159,11 +159,11 @@ void PairCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
    compute coulomb pair force between atoms i and j
    ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, bool TIP4P, bool SOFT>
 template<bool STACKPARAMS,  class Specialisation>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT PairCoulLongKokkos<DeviceType>::
+KK_FLOAT PairCoulLongKokkos<DeviceType,TIP4P,SOFT>::
 compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
@@ -199,11 +199,11 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
    compute coulomb pair potential energy between atoms i and j
    ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType, bool TIP4P, bool SOFT>
 template<bool STACKPARAMS, class Specialisation>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT PairCoulLongKokkos<DeviceType>::
+KK_FLOAT PairCoulLongKokkos<DeviceType,TIP4P,SOFT>::
 compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
@@ -237,8 +237,8 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairCoulLongKokkos<DeviceType>::allocate()
+template<class DeviceType, bool TIP4P, bool SOFT>
+void PairCoulLongKokkos<DeviceType,TIP4P,SOFT>::allocate()
 {
   PairCoulLong::allocate();
 
@@ -254,8 +254,8 @@ void PairCoulLongKokkos<DeviceType>::allocate()
   params = k_params.template view<DeviceType>();
 }
 
-template<class DeviceType>
-void PairCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cut_respa)
+template<class DeviceType, bool TIP4P, bool SOFT>
+void PairCoulLongKokkos<DeviceType,TIP4P,SOFT>::init_tables(double cut_coul, double *cut_respa)
 {
   Pair::init_tables(cut_coul,cut_respa);
 
@@ -268,92 +268,70 @@ void PairCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cut_re
 
   // Copy rtable and drtable
   {
-  host_table_type h_table("HostTable",ntable);
-  table_type d_table("DeviceTable",ntable);
-  for (int i = 0; i < ntable; i++) {
-    h_table(i) = rtable[i];
-  }
-  Kokkos::deep_copy(d_table,h_table);
-  d_rtable = d_table;
+    host_table_type h_table("HostTable",ntable);
+    table_type d_table("DeviceTable",ntable);
+    for (int i = 0; i < ntable; i++) h_table(i) = rtable[i];
+    Kokkos::deep_copy(d_table,h_table);
+    d_rtable = d_table;
   }
 
   {
-  host_table_type h_table("HostTable",ntable);
-  table_type d_table("DeviceTable",ntable);
-  for (int i = 0; i < ntable; i++) {
-    h_table(i) = drtable[i];
-  }
-  Kokkos::deep_copy(d_table,h_table);
-  d_drtable = d_table;
+    host_table_type h_table("HostTable",ntable);
+    table_type d_table("DeviceTable",ntable);
+    for (int i = 0; i < ntable; i++) h_table(i) = drtable[i];
+    Kokkos::deep_copy(d_table,h_table);
+    d_drtable = d_table;
   }
 
   {
-  host_table_type h_table("HostTable",ntable);
-  table_type d_table("DeviceTable",ntable);
-
-  // Copy ftable and dftable
-  for (int i = 0; i < ntable; i++) {
-    h_table(i) = ftable[i];
-  }
-  Kokkos::deep_copy(d_table,h_table);
-  d_ftable = d_table;
+    host_table_type h_table("HostTable",ntable);
+    table_type d_table("DeviceTable",ntable);
+    // Copy ftable and dftable
+    for (int i = 0; i < ntable; i++) h_table(i) = ftable[i];
+    Kokkos::deep_copy(d_table,h_table);
+    d_ftable = d_table;
   }
 
   {
-  host_table_type h_table("HostTable",ntable);
-  table_type d_table("DeviceTable",ntable);
-
-  for (int i = 0; i < ntable; i++) {
-    h_table(i) = dftable[i];
-  }
-  Kokkos::deep_copy(d_table,h_table);
-  d_dftable = d_table;
+    host_table_type h_table("HostTable",ntable);
+    table_type d_table("DeviceTable",ntable);
+    for (int i = 0; i < ntable; i++) h_table(i) = dftable[i];
+    Kokkos::deep_copy(d_table,h_table);
+    d_dftable = d_table;
   }
 
   {
-  host_table_type h_table("HostTable",ntable);
-  table_type d_table("DeviceTable",ntable);
-
-  // Copy ctable and dctable
-  for (int i = 0; i < ntable; i++) {
-    h_table(i) = ctable[i];
-  }
-  Kokkos::deep_copy(d_table,h_table);
-  d_ctable = d_table;
+    host_table_type h_table("HostTable",ntable);
+    table_type d_table("DeviceTable",ntable);
+    // Copy ctable and dctable
+    for (int i = 0; i < ntable; i++) h_table(i) = ctable[i];
+    Kokkos::deep_copy(d_table,h_table);
+    d_ctable = d_table;
   }
 
   {
-  host_table_type h_table("HostTable",ntable);
-  table_type d_table("DeviceTable",ntable);
-
-  for (int i = 0; i < ntable; i++) {
-    h_table(i) = dctable[i];
-  }
-  Kokkos::deep_copy(d_table,h_table);
-  d_dctable = d_table;
+    host_table_type h_table("HostTable",ntable);
+    table_type d_table("DeviceTable",ntable);
+    for (int i = 0; i < ntable; i++) h_table(i) = dctable[i];
+    Kokkos::deep_copy(d_table,h_table);
+    d_dctable = d_table;
   }
 
   {
-  host_table_type h_table("HostTable",ntable);
-  table_type d_table("DeviceTable",ntable);
-
-  // Copy etable and detable
-  for (int i = 0; i < ntable; i++) {
-    h_table(i) = etable[i];
-  }
-  Kokkos::deep_copy(d_table,h_table);
-  d_etable = d_table;
+    host_table_type h_table("HostTable",ntable);
+    table_type d_table("DeviceTable",ntable);
+    // Copy etable and detable
+    for (int i = 0; i < ntable; i++) h_table(i) = etable[i];
+    Kokkos::deep_copy(d_table,h_table);
+    d_etable = d_table;
   }
 
   {
-  host_table_type h_table("HostTable",ntable);
-  table_type d_table("DeviceTable",ntable);
-
-  for (int i = 0; i < ntable; i++) {
-    h_table(i) = detable[i];
-  }
-  Kokkos::deep_copy(d_table,h_table);
-  d_detable = d_table;
+    host_table_type h_table("HostTable",ntable);
+    table_type d_table("DeviceTable",ntable);
+    for (int i = 0; i < ntable; i++) h_table(i) = detable[i];
+    Kokkos::deep_copy(d_table,h_table);
+    d_detable = d_table;
   }
 }
 
@@ -361,8 +339,8 @@ void PairCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cut_re
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void PairCoulLongKokkos<DeviceType>::init_style()
+template<class DeviceType, bool TIP4P, bool SOFT>
+void PairCoulLongKokkos<DeviceType,TIP4P,SOFT>::init_style()
 {
   PairCoulLong::init_style();
 
@@ -393,8 +371,8 @@ void PairCoulLongKokkos<DeviceType>::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-double PairCoulLongKokkos<DeviceType>::init_one(int i, int j)
+template<class DeviceType, bool TIP4P, bool SOFT>
+double PairCoulLongKokkos<DeviceType,TIP4P,SOFT>::init_one(int i, int j)
 {
   double cutone = PairCoulLong::init_one(i,j);
 
@@ -416,9 +394,27 @@ double PairCoulLongKokkos<DeviceType>::init_one(int i, int j)
 }
 
 namespace LAMMPS_NS {
-template class PairCoulLongKokkos<LMPDeviceType>;
+
+// coul/long/kk
+template class PairCoulLongKokkos<LMPDeviceType,false,false>;
+
+// tip4p/long/kk
+template class PairCoulLongKokkos<LMPDeviceType,true,false>;
+
+#ifdef LMP_FEP
+
+  // coul/long/soft/kk
+  //template class PairCoulLongKokkos<LMPDeviceType,false,true>;
+
+  // tip4p/long/soft/kk
+  //template class PairCoulLongKokkos<LMPDeviceType,true,true>;
+
+#endif // LMP_FEP
+
 #ifdef LMP_KOKKOS_GPU
-template class PairCoulLongKokkos<LMPHostType>;
+//template class PairCoulLongKokkos<LMPHostType,TIP4P,SOFT>;
 #endif
 }
+
+
 

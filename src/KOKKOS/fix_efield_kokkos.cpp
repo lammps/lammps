@@ -50,7 +50,6 @@ FixEfieldKokkos<DeviceType,TIP4P>::FixEfieldKokkos(LAMMPS *lmp, int narg, char *
 
   memory->destroy(efield);
   memoryKK->create_kokkos(k_efield,efield,maxatom,4,"efield:efield");
-  d_efield = k_efield.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,16 +79,9 @@ void FixEfieldKokkos<DeviceType,TIP4P>::init()
 template<class DeviceType, bool TIP4P>
 void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
 {
-  atomKK->sync(execution_space, datamask_read);
 
-  d_x = atomKK->k_x.template view<DeviceType>();
-  d_f = atomKK->k_f.template view<DeviceType>();
-  d_q = atomKK->k_q.template view<DeviceType>();
-  d_mu = atomKK->k_mu.template view<DeviceType>();
-  d_torque = atomKK->k_torque.template view<DeviceType>();
-  d_image = atomKK->k_image.template view<DeviceType>();
-  d_mask = atomKK->k_mask.template view<DeviceType>();
-  int nlocal = atomKK->nlocal;
+  force_flag = 0;
+  const int nlocal = atomKK->nlocal;
 
   // virial setup
 
@@ -100,11 +92,11 @@ void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"efield:vatom");
-    d_vatom = k_vatom.template view<DeviceType>();
   }
 
   // update region if necessary
 
+  typename AT::t_int_1d l_match;
   if (region) {
     if (!(utils::strmatch(region->style, "^block") || utils::strmatch(region->style, "^sphere")))
       error->all(FLERR,"Cannot (yet) use {}-style region with fix efield/kk",region->style);
@@ -113,7 +105,7 @@ void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
     KokkosBase* regionKKBase = dynamic_cast<KokkosBase*>(region);
     regionKKBase->match_all_kokkos(groupbit,k_match);
     k_match.template sync<DeviceType>();
-    d_match = k_match.template view<DeviceType>();
+    l_match = k_match.template view<DeviceType>();
   }
 
   // reallocate sforce array if necessary
@@ -122,55 +114,149 @@ void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
     maxatom = atom->nmax;
     memoryKK->destroy_kokkos(k_efield,efield);
     memoryKK->create_kokkos(k_efield,efield,maxatom,4,"efield:efield");
-    d_efield = k_efield.view<DeviceType>();
   }
 
-  force_flag = 0;
-  double result[10] = {0.0};
+  // kokkos views
+
+  atomKK->sync(execution_space, datamask_read);
+  auto l_x = atomKK->k_x.template view<DeviceType>();
+  auto l_f = atomKK->k_f.template view<DeviceType>();
+  auto l_q = atomKK->k_q.template view<DeviceType>();
+  auto l_mu = atomKK->k_mu.template view<DeviceType>();
+  auto l_torque = atomKK->k_torque.template view<DeviceType>();
+  auto l_image = atomKK->k_image.template view<DeviceType>();
+  auto l_mask = atomKK->k_mask.template view<DeviceType>();
+  auto l_efield = k_efield.template view<DeviceType>();
+  auto l_vatom = k_vatom.template view<DeviceType>();
+
+  // domainKK
+
+  auto l_prd = Few<KK_FLOAT,3>(domain->prd);
+  auto l_h = Few<KK_FLOAT,6>(domain->h);
+  auto l_triclinic = domain->triclinic;
+
+  auto lambda = [&]<bool QFLAG, bool MUFLAG, bool CONSTANT_FLAG>(auto& result_) {
+
+    auto l_groupbit = groupbit;
+    auto l_region = region;
+    auto l_ex = static_cast<KK_FLOAT>(ex);
+    auto l_ey = static_cast<KK_FLOAT>(ey);
+    auto l_ez = static_cast<KK_FLOAT>(ez);
+    auto l_qe2f = static_cast<KK_FLOAT>(qe2f);
+    auto l_xstyle = xstyle;
+    auto l_ystyle = ystyle;
+    auto l_zstyle = zstyle;
+    auto l_pstyle = pstyle;
+    auto l_estyle = estyle;
+    auto l_evflag = evflag;
+    auto l_vflag_global = vflag_global;
+    auto l_vflag_atom = vflag_atom;
+
+    copymode = 1;
+    Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<DeviceType>(0, nlocal),
+      KOKKOS_LAMBDA(const int &i, auto& l_result) {
+
+        if( !(l_mask(i) & l_groupbit) || (l_region && !l_match(i))) return;
+
+        if constexpr (QFLAG) {
+          Few<KK_FLOAT,3> xi(l_x(i,0),l_x(i,1),l_x(i,2));
+          auto u = DomainKokkos::unmap(l_prd, l_h, l_triclinic, xi, l_image(i));
+          KK_FLOAT fx, fy, fz;
+
+          if constexpr (CONSTANT_FLAG) {
+            fx = l_q(i) * l_ex;
+            fy = l_q(i) * l_ey;
+            fz = l_q(i) * l_ez;
+          } else {
+            if (l_xstyle == ATOM) fx = l_qe2f * l_q(i) * l_efield(i,0);
+            else fx = l_q(i) * l_ex;
+            if (l_ystyle == ATOM) fy = l_qe2f * l_q(i) * l_efield(i,1);
+            else fy = l_q(i) * l_ey;
+            if (l_zstyle == ATOM) fz = l_qe2f * l_q(i) * l_efield(i,2);
+            else fz = l_q(i) * l_ez;
+          }
+
+          l_f(i,0) += fx;
+          l_f(i,1) += fy;
+          l_f(i,2) += fz;
+
+          if constexpr (CONSTANT_FLAG) {
+            l_result[0] -= fma(fx, u[0], fma(fy, u[1], fz * u[2]));
+          } else {
+            if (l_pstyle == ATOM) l_result[0] += l_qe2f * l_q(i) * l_efield(i,3);
+            else if (l_estyle == ATOM) l_result[0] += l_efield(i,3);
+          }
+
+          l_result[1] += fx;
+          l_result[2] += fy;
+          l_result[3] += fz;
+
+          if constexpr (CONSTANT_FLAG) {
+          if (l_evflag) {
+
+            // tally virial into global and per-atom accumulators
+            // only when field is CONSTANT
+            // i = local index of atom, v = total virial for the interaction
+            // this method can be used when fix computes forces in post_force()
+            // and the force depends on a distance to some external object
+            // eg. fix wall/lj93: compute virial only on owned atoms
+
+            KK_ACC_FLOAT v[6] = {fx*u[0], fy*u[1], fz*u[2], fx*u[1], fx*u[2], fy*u[2]};
+
+            if ( l_vflag_global ) {
+              // increment global virial by v
+              l_result[4] += v[0];
+              l_result[5] += v[1];
+              l_result[6] += v[2];
+              l_result[7] += v[3];
+              l_result[8] += v[4];
+              l_result[9] += v[5];
+            }
+
+            if (l_vflag_atom) {
+              // increment per-atom virial by v
+              Kokkos::atomic_add(&(l_vatom(i,0)), v[0]);
+              Kokkos::atomic_add(&(l_vatom(i,1)), v[1]);
+              Kokkos::atomic_add(&(l_vatom(i,2)), v[2]);
+              Kokkos::atomic_add(&(l_vatom(i,3)), v[3]);
+              Kokkos::atomic_add(&(l_vatom(i,4)), v[4]);
+              Kokkos::atomic_add(&(l_vatom(i,5)), v[5]);
+            }
+          }
+          }
+        }
+
+        if constexpr (MUFLAG) {
+          l_torque(i,0) += l_ez * l_mu(i,1) - l_ey * l_mu(i,2);
+          l_torque(i,1) += l_ex * l_mu(i,2) - l_ez * l_mu(i,0);
+          l_torque(i,2) += l_ey * l_mu(i,0) - l_ex * l_mu(i,1);
+          if constexpr (CONSTANT_FLAG)
+            l_result[0] -= l_mu(i,0) * l_ex + l_mu(i,1) * l_ey + l_mu(i,2) * l_ez;
+        }
+
+      }, result_
+    );
+    copymode = 0;
+  };
+
+  Few<KK_ACC_FLOAT, 10> result = {0.0};
 
   if (varflag == CONSTANT) {
 
-    prd = domain->prd;
-    h = domain->h;
-    triclinic = domain->triclinic;
-    copymode = 1;
-
-    if(qflag && muflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldConstant<1,1> >(0,nlocal),*this,result);
-    else if(qflag && !muflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldConstant<1,0> >(0,nlocal),*this,result);
-    else if(!qflag && muflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldConstant<0,1> >(0,nlocal),*this,result);
-    else
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldConstant<0,0> >(0,nlocal),*this,result);
-
-    copymode = 0;
-
-  // variable force, wrap with clear/add
+    if (qflag && muflag)      lambda.template operator()<true,true,true>(result);
+    else if(qflag && !muflag) lambda.template operator()<true,false,true>(result);
+    else if(!qflag && muflag) lambda.template operator()<false,true,true>(result);
+    else                      lambda.template operator()<false,false,true>(result);
 
   } else {
 
-    atomKK->sync(Host,ALL_MASK); // this can be removed when variable class is ported to Kokkos
+    update_efield_variables();
 
-    FixEfield::update_efield_variables();
-
-    if (varflag == ATOM) {  // this can be removed when variable class is ported to Kokkos
-      k_efield.modify_host();
-      k_efield.sync<DeviceType>();
-    }
-
-    copymode = 1;
-
-    if(qflag && muflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldNonConstant<1,1> >(0,nlocal),*this,result);
-    else if(qflag && !muflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldNonConstant<1,0> >(0,nlocal),*this,result);
-    else if(!qflag && muflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldNonConstant<0,1> >(0,nlocal),*this,result);
-    else
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldNonConstant<0,0> >(0,nlocal),*this,result);
-
-    copymode = 0;
+    if(qflag && muflag)       lambda.template operator()<true,true,false>(result);
+    else if(qflag && !muflag) lambda.template operator()<true,false,false>(result);
+    else if(!qflag && muflag) lambda.template operator()<false,true,false>(result);
+    else                      lambda.template operator()<false,false,false>(result);
 
   }
 
@@ -196,123 +282,6 @@ void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
   }
 }
 
-template<class DeviceType, bool TIP4P>
-template<int QFLAG, int MUFLAG>
-// NOLINTNEXTLINE
-KOKKOS_INLINE_FUNCTION
-void FixEfieldKokkos<DeviceType,TIP4P>::operator()(TagFixEfieldConstant<QFLAG,MUFLAG>, const int &i, value_type result) const {
-  if ( QFLAG && (d_mask(i) & groupbit)) {
-    if (region && !d_match[i]) return;
-
-    Few<double,3> x_i;
-    x_i[0] = d_x(i,0);
-    x_i[1] = d_x(i,1);
-    x_i[2] = d_x(i,2);
-    auto unwrapKK = DomainKokkos::unmap(prd,h,triclinic,x_i,d_image(i));
-    const KK_FLOAT fx = d_q(i) * ex;
-    const KK_FLOAT fy = d_q(i) * ey;
-    const KK_FLOAT fz = d_q(i) * ez;
-    d_f(i,0) += fx;
-    d_f(i,1) += fy;
-    d_f(i,2) += fz;
-    result[0] -= fx * unwrapKK[0] + fy * unwrapKK[1] + fz * unwrapKK[2];
-    result[1] += fx;
-    result[2] += fy;
-    result[3] += fz;
-
-    if (evflag) {
-      KK_FLOAT v[6];
-      v[0] = fx * unwrapKK[0];
-      v[1] = fy * unwrapKK[1];
-      v[2] = fz * unwrapKK[2];
-      v[3] = fx * unwrapKK[1];
-      v[4] = fx * unwrapKK[2];
-      v[5] = fy * unwrapKK[2];
-      v_tally(result, i, v);
-    }
-
-  }
-
-  if (MUFLAG && (d_mask(i) & groupbit)) {
-    if (region && !d_match[i]) return;
-    d_torque(i,0) += ez * d_mu(i,1) - ey * d_mu(i,2);
-    d_torque(i,1) += ex * d_mu(i,2) - ez * d_mu(i,0);
-    d_torque(i,2) += ey * d_mu(i,0) - ex * d_mu(i,1);
-    result[0] -= d_mu(i,0) * ex + d_mu(i,1) * ey + d_mu(i,2) * ez;
-  }
-}
-
-template<class DeviceType, bool TIP4P>
-template<int QFLAG, int MUFLAG>
-// NOLINTNEXTLINE
-KOKKOS_INLINE_FUNCTION
-void FixEfieldKokkos<DeviceType,TIP4P>::operator()(TagFixEfieldNonConstant<QFLAG,MUFLAG>, const int &i, value_type result) const {
-  if ( QFLAG && (d_mask(i) & groupbit)) {
-    if (region && !d_match[i]) return;
-
-    KK_FLOAT fx, fy, fz;
-
-    if (xstyle == ATOM) fx = qe2f * d_q(i) * d_efield(i,0);
-    else fx = d_q(i) * ex;
-    if (ystyle == ATOM) fy = qe2f * d_q(i) * d_efield(i,1);
-    else fy = d_q(i) * ey;
-    if (zstyle == ATOM) fz = qe2f * d_q(i) * d_efield(i,2);
-    else fz = d_q(i) * ez;
-
-    d_f(i,0) += fx;
-    d_f(i,1) += fy;
-    d_f(i,2) += fz;
-    result[1] += fx;
-    result[2] += fy;
-    result[3] += fz;
-
-    if (pstyle == ATOM) result[0] += qe2f * d_q(i) * d_efield(i,3);
-    else if (estyle == ATOM) result[0] += d_efield(i,3);
-  }
-
-  if (MUFLAG && (d_mask(i) & groupbit)) {
-    if (region && !d_match[i]) return;
-    d_torque(i,0) += ez * d_mu(i,1) - ey * d_mu(i,2);
-    d_torque(i,1) += ex * d_mu(i,2) - ez * d_mu(i,0);
-    d_torque(i,2) += ey * d_mu(i,0) - ex * d_mu(i,1);
-
-  }
-}
-
-/* ----------------------------------------------------------------------
-   tally virial into global and per-atom accumulators
-   i = local index of atom
-   v = total virial for the interaction
-   increment global virial by v
-   increment per-atom virial by v
-   this method can be used when fix computes forces in post_force()
-   and the force depends on a distance to some external object
-     e.g. fix wall/lj93: compute virial only on owned atoms
-------------------------------------------------------------------------- */
-
-template <class DeviceType, bool TIP4P>
-// NOLINTNEXTLINE
-KOKKOS_INLINE_FUNCTION
-void FixEfieldKokkos<DeviceType,TIP4P>::v_tally(value_type result, int i, KK_FLOAT *v) const
-{
-  if (vflag_global) {
-    result[4] += v[0];
-    result[5] += v[1];
-    result[6] += v[2];
-    result[7] += v[3];
-    result[8] += v[4];
-    result[9] += v[5];
-  }
-
-  if (vflag_atom) {
-    Kokkos::atomic_add(&(d_vatom(i,0)),v[0]);
-    Kokkos::atomic_add(&(d_vatom(i,1)),v[1]);
-    Kokkos::atomic_add(&(d_vatom(i,2)),v[2]);
-    Kokkos::atomic_add(&(d_vatom(i,3)),v[3]);
-    Kokkos::atomic_add(&(d_vatom(i,4)),v[4]);
-    Kokkos::atomic_add(&(d_vatom(i,5)),v[5]);
-  }
-}
 
 namespace LAMMPS_NS {
 template class FixEfieldKokkos<LMPDeviceType,false>;

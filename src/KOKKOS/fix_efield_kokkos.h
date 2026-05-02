@@ -14,13 +14,13 @@
 #ifdef FIX_CLASS
 // clang-format off
 
-FixStyle(efield/kk,        FixEfieldPlainKokkos<LMPDeviceType>);
-FixStyle(efield/kk/device, FixEfieldPlainKokkos<LMPDeviceType>);
-FixStyle(efield/kk/host,   FixEfieldPlainKokkos<LMPHostType>);
+FixStyle(efield/kk,        FixEfieldKokkos<LMPDeviceType,false>);
+FixStyle(efield/kk/device, FixEfieldKokkos<LMPDeviceType,false>);
+FixStyle(efield/kk/host,   FixEfieldKokkos<LMPHostType,false>);
 
-FixStyle(efield/tip4p/kk,        FixEfieldTIP4PKokkos<LMPDeviceType>);
-FixStyle(efield/tip4p/kk/device, FixEfieldTIP4PKokkos<LMPDeviceType>);
-FixStyle(efield/tip4p/kk/host,   FixEfieldTIP4PKokkos<LMPHostType>);
+FixStyle(efield/tip4p/kk,        FixEfieldKokkos<LMPDeviceType,true>);
+FixStyle(efield/tip4p/kk/device, FixEfieldKokkos<LMPDeviceType,true>);
+FixStyle(efield/tip4p/kk/host,   FixEfieldKokkos<LMPHostType,true>);
 
 // clang-format on
 #else
@@ -30,72 +30,45 @@ FixStyle(efield/tip4p/kk/host,   FixEfieldTIP4PKokkos<LMPHostType>);
 #define LMP_FIX_EFIELD_KOKKOS_H
 
 #include "fix_efield.h"
+#include "fix_efield_tip4p.h"
 #include "kokkos_type.h"
 #include "kokkos_few.h"
 
 namespace LAMMPS_NS {
 
-template<int QFLAG, int MUFLAG>
-struct TagFixEfieldConstant{};
-
-template<int QFLAG, int MUFLAG>
-struct TagFixEfieldNonConstant{};
-
 template<class DeviceType, bool TIP4P>
-class FixEfieldKokkos : public FixEfield {
+class FixEfieldKokkos :
+#ifdef LMP_EXTRA_FIX
+public std::conditional_t<TIP4P, FixEfieldTIP4P, FixEfield>
+#else
+public FixEfield
+#endif
+{
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  typedef double value_type[];
-  const int value_count = 10;
 
   FixEfieldKokkos(class LAMMPS *, int, char **);
   ~FixEfieldKokkos() override;
   void init() override;
   void post_force(int) override;
 
-  template<int QFLAG, int MUFLAG>
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixEfieldConstant<QFLAG,MUFLAG>, const int&, value_type) const;
-
-  template<int QFLAG, int MUFLAG>
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixEfieldNonConstant<QFLAG,MUFLAG>, const int&, value_type) const;
-
  private:
 
   DAT::ttransform_kkfloat_2d k_efield;
-  typename AT::t_kkfloat_2d_randomread d_efield;
-  typename AT::t_int_1d d_match;
-
-  typename AT::t_kkfloat_1d_3_lr_randomread d_x;
-  typename AT::t_kkfloat_1d_randomread d_q;
-  typename AT::t_kkfloat_1d_4_randomread d_mu;
-  typename AT::t_kkacc_1d_3 d_f;
-  typename AT::t_kkacc_1d_3 d_torque;
-  typename AT::t_imageint_1d_randomread d_image;
-  typename AT::t_int_1d_randomread d_mask;
-
-  Few<double,3> prd;
-  Few<double,6> h;
-  int triclinic;
 
   DAT::ttransform_kkacc_1d_6 k_vatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void v_tally(value_type, int, KK_FLOAT*) const;
+
 };
 
 
-template <class DeviceType>
-using FixEfieldPlainKokkos = FixEfieldKokkos<DeviceType, false>;
+//template <class DeviceType>
+//using FixEfieldPlainKokkos = FixEfieldKokkos<DeviceType, false>;
 
-template <class DeviceType>
-using FixEfieldTIP4PKokkos = FixEfieldKokkos<DeviceType, true>;
+//template <class DeviceType>
+//using FixEfieldTIP4PKokkos = FixEfieldKokkos<DeviceType, true>;
 
 } // namespace LAMMPS_NS
 

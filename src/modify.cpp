@@ -104,7 +104,7 @@ void _noopt Modify::create_factories()
   fix_map = new FixCreatorMap();
 
 #define FIX_CLASS
-#define FixStyle(key, Class) (*fix_map)[#key] = &style_creator<Fix, Class>;
+#define FixStyle(key, ...) (*fix_map)[#key] = &style_creator<Fix, __VA_ARGS__>;
 #include "style_fix.h"    // IWYU pragma: keep
 #undef FixStyle
 #undef FIX_CLASS

@@ -1097,7 +1097,7 @@ void _noopt LAMMPS::init_pkg_lists()
 #undef DumpStyle
 #undef DUMP_CLASS
 #define FIX_CLASS
-#define FixStyle(key,Class)                     \
+#define FixStyle(key,...)                     \
   pkg_lists->fix_styles[#key] = PACKAGE;
 #include "packages_fix.h"
 #undef FixStyle
@@ -1127,7 +1127,7 @@ void _noopt LAMMPS::init_pkg_lists()
 #undef MinimizeStyle
 #undef MINIMIZE_CLASS
 #define PAIR_CLASS
-#define PairStyle(key,Class)                    \
+#define PairStyle(key,...)                    \
   pkg_lists->pair_styles[#key] = PACKAGE;
 #include "packages_pair.h"
 #undef PairStyle
@@ -1308,7 +1308,7 @@ void _noopt LAMMPS::help()
   pos = 80;
   fprintf(fp,"* Pair styles:\n");
 #define PAIR_CLASS
-#define PairStyle(key,Class) print_style(fp,#key,pos);
+#define PairStyle(key,...) print_style(fp,#key,pos);
 #include "style_pair.h"  // IWYU pragma: keep
 #undef PAIR_CLASS
   fprintf(fp,"\n\n");
@@ -1356,7 +1356,7 @@ void _noopt LAMMPS::help()
   pos = 80;
   fprintf(fp,"* Fix styles\n");
 #define FIX_CLASS
-#define FixStyle(key,Class) print_style(fp,#key,pos);
+#define FixStyle(key,...) print_style(fp,#key,pos);
 #include "style_fix.h"  // IWYU pragma: keep
 #undef FIX_CLASS
   fprintf(fp,"\n\n");

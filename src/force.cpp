@@ -90,7 +90,7 @@ void _noopt Force::create_factories()
   pair_map = new PairCreatorMap();
 
 #define PAIR_CLASS
-#define PairStyle(key, Class) (*pair_map)[#key] = &style_creator<Pair, Class>;
+#define PairStyle(key, ...) (*pair_map)[#key] = &style_creator<Pair, __VA_ARGS__>;
 #include "style_pair.h"    // IWYU pragma: keep
 #undef PairStyle
 #undef PAIR_CLASS

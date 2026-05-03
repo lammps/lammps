@@ -30,15 +30,21 @@ template<class DeviceType, class PairBase, bool LJ, bool TIP4P, bool SOFT>
 class PairKokkos : public PairBase
 {
  public:
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
+  enum {COUL_FLAG=1};
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   PairKokkos(class LAMMPS *);
-  //~PairKokkos() override;
+  ~PairKokkos() override;
+
+  void compute(int, int) override;
 
   void init_tables(double cut_coul, double *cut_respa) override;
-
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
 
-  typedef ArrayTypes<DeviceType> AT;
 
   using Pointers::atom;
   using Pointers::atomKK;
@@ -54,15 +60,30 @@ class PairKokkos : public PairBase
   using Pair::execution_space;
   using Pair::datamask_read;
   using Pair::datamask_modify;
+
   using Pair::ncoulmask;
   using Pair::ncoulshiftbits;
-
   using Pair::union_int_float_t;
+  using Pair::eatom;
+  using Pair::eflag_atom;
+  using Pair::vatom;
+  using Pair::cutsq;
+  using Pair::vflag_atom;
+  using Pair::vflag_global;
+  using Pair::eng_vdwl;
+  using Pair::eng_coul;
+  using Pair::list;
+  using Pair::ev_init;
+  using Pair::maxeatom;
+  using Pair::maxvatom;
+  using Pair::ncoultablebits;
+  using Pair::no_virial_fdotr_compute;
+  using Pair::allocated;
+  using Pair::tabinnersq;
 
-  //using Pair::ptable;
-  //using Pair::dptable;
-  //using Pair::vtable;
-  //using Pair::dvtable;
+  using PairBase::cut_ljsq;
+  using PairBase::cut_coulsq;
+
 
   KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   typename AT::t_kkfloat_1d_3_lr_randomread x;
@@ -76,10 +97,13 @@ class PairKokkos : public PairBase
   typename AT::t_kkacc_1d d_eatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 
-  int newton_pair;
-
   DAT::ttransform_kkfloat_2d k_cutsq;
   typename AT::t_kkfloat_2d d_cutsq;
+
+  int newton_pair, neighflag, nlocal,nall,eflag,vflag;
+
+  void allocate() override;
+
 
 
   // -------- LJ --------
@@ -116,6 +140,16 @@ class PairKokkos : public PairBase
 
   KK_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   typename AT::t_kkfloat_2d d_cut_coulsq;
+
+  struct params_coul{
+// NOLINTNEXTLINE
+    KOKKOS_INLINE_FUNCTION
+    params_coul() {cut_coulsq=0;};
+// NOLINTNEXTLINE
+    KOKKOS_INLINE_FUNCTION
+    params_coul(int /*i*/) {cut_coulsq=0;};
+    KK_FLOAT cut_coulsq;
+  };
 
   using Pair::rtable;
   using Pair::drtable;
@@ -196,11 +230,11 @@ using namespace EwaldConst;
 /* ----------------------------------------------------------------------
    compute LJ 12-6 pair force between atoms i and j
    ---------------------------------------------------------------------- */
-template<class DeviceType>
+template<class DeviceType, class PairBase, bool LJ, bool TIP4P, bool SOFT>
 template<bool STACKPARAMS, class Specialisation>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT PairLJCutCoulLongKokkos<DeviceType>::
+KK_FLOAT PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::
 compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
@@ -218,11 +252,11 @@ compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
 /* ----------------------------------------------------------------------
    compute coulomb pair force between atoms i and j
    ---------------------------------------------------------------------- */
-template<class DeviceType>
-template<bool STACKPARAMS,  class Specialisation>
+template<class DeviceType, class PairBase, bool LJ, bool TIP4P, bool SOFT>
+template<bool STACKPARAMS, class Specialisation>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT PairLJCutCoulLongKokkos<DeviceType>::
+KK_FLOAT PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::
 compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
               const int& /*itype*/, const int& /*jtype*/, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
   if (Specialisation::DoTable && rsq > tabinnersq_kk) {
@@ -258,11 +292,11 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
 /* ----------------------------------------------------------------------
    compute LJ 12-6 pair potential energy between atoms i and j
    ---------------------------------------------------------------------- */
-template<class DeviceType>
+template<class DeviceType, class PairBase, bool LJ, bool TIP4P, bool SOFT>
 template<bool STACKPARAMS, class Specialisation>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT PairLJCutCoulLongKokkos<DeviceType>::
+KK_FLOAT PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::
 compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
@@ -278,11 +312,11 @@ compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
 /* ----------------------------------------------------------------------
    compute coulomb pair potential energy between atoms i and j
    ---------------------------------------------------------------------- */
-template<class DeviceType>
+template<class DeviceType, class PairBase, bool LJ, bool TIP4P, bool SOFT>
 template<bool STACKPARAMS, class Specialisation>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-KK_FLOAT PairLJCutCoulLongKokkos<DeviceType>::
+KK_FLOAT PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::
 compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {

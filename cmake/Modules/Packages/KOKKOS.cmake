@@ -164,6 +164,8 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/pair_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/pair_coul_long_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/rand_pool_wrap_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/variable_kokkos.cpp)
 

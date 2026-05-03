@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_cut_tip4p_long_kokkos.h"
+#include "pair_kokkos.h"
 
 #include "atom.h"
 #include "atom_kokkos.h"
@@ -29,6 +29,22 @@
 #include "respa.h"
 #include "update.h"
 
+#if defined(LMP_FEP)
+  #include "pair_lj_cut_tip4p_long_soft.h"
+  #include "pair_tip4p_long_soft.h"
+#endif
+#include "pair_coul_long.h"
+#include "pair_tip4p_long.h"
+#if defined(LMP_KSPACE)
+  #include "pair_lj_long_tip4p_long.h"
+  #include "pair_lj_cut_tip4p_long.h"
+#endif
+#if defined(LMP_MOLECULE)
+  #include "pair_lj_cut_tip4p_cut.h"
+  #include "pair_tip4p_cut.h"
+#endif
+
+
 #include <cmath>
 #include <cstring>
 
@@ -36,44 +52,65 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace EwaldConst;
 
-namespace LAMMPS_NS {
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION int tip4p_closest_image(
-    int i, int j,
-    const typename ArrayTypes<DeviceType>::t_kkfloat_1d_3_lr_randomread &x,
-    const typename ArrayTypes<DeviceType>::t_int_1d_randomread &sametag)
+template<class DeviceType, class PairBase, bool TIP4P, bool SOFT>
+PairKokkos<DeviceType,PairBase,TIP4P,SOFT>::PairKokkos(LAMMPS *lmp):
+  PairBase(lmp)
 {
-  if (j < 0) return j;
+  Pair::respa_enable = 0;
+  Pair::kokkosable = 1;
+  
+  atomKK = (AtomKokkos *) atom;
+  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
-  const KK_FLOAT xi0 = x(i, 0);
-  const KK_FLOAT xi1 = x(i, 1);
-  const KK_FLOAT xi2 = x(i, 2);
-
-  int closest = j;
-  KK_FLOAT delx = xi0 - x(j, 0);
-  KK_FLOAT dely = xi1 - x(j, 1);
-  KK_FLOAT delz = xi2 - x(j, 2);
-  KK_FLOAT rsqmin = delx * delx + dely * dely + delz * delz;
-  KK_FLOAT rsq;
-
-  int jj = j;
-  while (sametag(jj) >= 0) {
-    jj = sametag(jj);
-    delx = xi0 - x(jj, 0);
-    dely = xi1 - x(jj, 1);
-    delz = xi2 - x(jj, 2);
-    rsq = delx * delx + dely * dely + delz * delz;
-    if (rsq < rsqmin) {
-      rsqmin = rsq;
-      closest = jj;
-    }
-  }
-
-  return closest;
 }
 
-template<class DeviceType>
+
+
+
+template<class DeviceType, class PairBase, bool TIP4P, bool SOFT>
+void PairKokkos<DeviceType,PairBase,TIP4P,SOFT>::init_tables(double cut_coul, double *cut_respa)
+{
+  Pair::init_tables(cut_coul,cut_respa);
+
+  int ntable = 1;
+  for (int i = 0; i < Pair::ncoultablebits; i++) ntable *= 2;
+
+  tabinnersq_kk = static_cast<KK_FLOAT>(Pair::tabinnersq);
+
+  auto transform_copy = [&](auto& d_view, const auto& h_array) {
+    HAT::t_kkfloat_1d h_table("HostTable",ntable);
+    typename AT::t_kkfloat_1d d_table("DeviceTable",ntable);
+    for (int i = 0; i < ntable; i++)
+      h_table(i) = static_cast<KK_FLOAT>(h_array[i]);
+    Kokkos::deep_copy(d_table, h_table);
+    d_view = d_table;
+  };
+  transform_copy(d_rtable, rtable);
+  transform_copy(d_drtable, drtable);
+  transform_copy(d_ftable, ftable);
+  transform_copy(d_dftable, dftable);
+  transform_copy(d_ctable, ctable);
+  transform_copy(d_dctable, dctable);
+  transform_copy(d_etable, etable);
+  transform_copy(d_detable, detable);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+template<class DeviceType, class PairBase, bool TIP4P, bool SOFT>
 KOKKOS_INLINE_FUNCTION void tip4p_newsite(const KK_FLOAT *xO, const KK_FLOAT *xH1, const KK_FLOAT *xH2,
                                           KK_FLOAT *xM, const KK_FLOAT alpha)
 {
@@ -100,7 +137,6 @@ struct PairTIP4PPreprocess {
   int map_style;
   DAT::tdual_int_1d k_map_array;
   dual_hash_type map_hash;
-  KK_FLOAT alpha;
 
   KOKKOS_INLINE_FUNCTION void operator()(const int i) const
   {
@@ -662,8 +698,6 @@ EV_FLOAT pair_compute_tip4p(PairLJCutTIP4PLongKokkos<DeviceType> *fpair,
 
 }    // namespace LAMMPS_NS
 
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType>
 PairLJCutTIP4PLongKokkos<DeviceType>::PairLJCutTIP4PLongKokkos(LAMMPS *lmp) :
     PairLJCutTIP4PLong(lmp), nmax_tip4p(0), kokkos_ntypes(0)
@@ -675,8 +709,6 @@ PairLJCutTIP4PLongKokkos<DeviceType>::PairLJCutTIP4PLongKokkos(LAMMPS *lmp) :
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK | TAG_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 }
-
-/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 PairLJCutTIP4PLongKokkos<DeviceType>::~PairLJCutTIP4PLongKokkos()
@@ -690,7 +722,6 @@ PairLJCutTIP4PLongKokkos<DeviceType>::~PairLJCutTIP4PLongKokkos()
   }
 }
 
-/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 double PairLJCutTIP4PLongKokkos<DeviceType>::memory_usage()
@@ -702,8 +733,6 @@ double PairLJCutTIP4PLongKokkos<DeviceType>::memory_usage()
   }
   return bytes;
 }
-
-/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void PairLJCutTIP4PLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
@@ -833,8 +862,6 @@ void PairLJCutTIP4PLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 }
 
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION KK_FLOAT PairLJCutTIP4PLongKokkos<DeviceType>::eval_fpair(bool stack,
                                                                                  const KK_FLOAT &rsq,
@@ -939,8 +966,6 @@ KOKKOS_INLINE_FUNCTION KK_FLOAT PairLJCutTIP4PLongKokkos<DeviceType>::eval_ecoul
     return ecoul;
   }
 }
-
-/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void PairLJCutTIP4PLongKokkos<DeviceType>::allocate()
@@ -1087,9 +1112,18 @@ double PairLJCutTIP4PLongKokkos<DeviceType>::init_one(int i, int j)
   return cutone;
 }
 
+*/
+
+
 namespace LAMMPS_NS {
-template class PairLJCutTIP4PLongKokkos<LMPDeviceType>;
+
+template class PairKokkos<LMPDeviceType,PairCoulLong,false,false>;
+template class PairKokkos<LMPDeviceType,PairTIP4PLong,true,false>;
+
+
 #ifdef LMP_KOKKOS_GPU
-template class PairLJCutTIP4PLongKokkos<LMPHostType>;
+//template class PairLJCutTIP4PLongKokkos<LMPHostType>;
 #endif
+
 }    // namespace LAMMPS_NS
+

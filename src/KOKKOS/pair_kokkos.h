@@ -14,8 +14,8 @@
 #ifndef LMP_PAIR_KOKKOS_H
 #define LMP_PAIR_KOKKOS_H
 
-#include "ewald_const.h"
 #include "pair.h"               // IWYU pragma: export
+#include "ewald_const.h"
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "math_special.h"
@@ -258,6 +258,13 @@ static constexpr KK_FLOAT KK_TWO = static_cast<KK_FLOAT>(2.0);
 static constexpr KK_FLOAT KK_HALF = static_cast<KK_FLOAT>(0.5);
 
 using namespace EwaldConst;
+static constexpr KK_FLOAT KK_EWALD_F = static_cast<KK_FLOAT>(EWALD_F);
+static constexpr KK_FLOAT KK_EWALD_P = static_cast<KK_FLOAT>(EWALD_P);
+static constexpr KK_FLOAT KK_A1 = static_cast<KK_FLOAT>(A1);
+static constexpr KK_FLOAT KK_A2 = static_cast<KK_FLOAT>(A2);
+static constexpr KK_FLOAT KK_A3 = static_cast<KK_FLOAT>(A3);
+static constexpr KK_FLOAT KK_A4 = static_cast<KK_FLOAT>(A4);
+static constexpr KK_FLOAT KK_A5 = static_cast<KK_FLOAT>(A5);
 
 
 /* ----------------------------------------------------------------------
@@ -305,13 +312,13 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
     const KK_FLOAT r = sqrt(rsq);
     const KK_FLOAT grij = g_ewald_kk * r;
     const KK_FLOAT expm2 = exp(-grij*grij);
-    const KK_FLOAT t = KK_ONE / (KK_ONE + static_cast<KK_FLOAT>(EWALD_P)*grij);
+    const KK_FLOAT t = KK_ONE / (KK_ONE + KK_EWALD_P * grij);
     const KK_FLOAT rinv = KK_ONE / r;
     const KK_FLOAT erfc =
       t * fma(t, fma(t, fma(t, fma(t, KK_A5, KK_A4), KK_A3), KK_A2), KK_A1) * expm2;
 
     const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]*rinv;
-    KK_FLOAT forcecoul = prefactor * (erfc + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2);
+    KK_FLOAT forcecoul = prefactor * (erfc + KK_EWALD_F * grij*expm2);
     if (factor_coul < KK_ONE) forcecoul -= (KK_ONE - factor_coul) * prefactor;
 
     return forcecoul*rinv*rinv;
@@ -364,10 +371,10 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
     const KK_FLOAT r = sqrt(rsq);
     const KK_FLOAT grij = g_ewald_kk * r;
     const KK_FLOAT expm2 = exp(-grij*grij);
-    const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
-                          t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
-                          t * static_cast<KK_FLOAT>(A5))))) * expm2;
-    const KK_FLOAT t = KK_ONE / (KK_ONE + static_cast<KK_FLOAT>(EWALD_P)*grij);
+    const KK_FLOAT t = KK_ONE / (KK_ONE + KK_EWALD_P * grij);
+    const KK_FLOAT erfc =
+      t * fma(t, fma(t, fma(t, fma(t, KK_A5, KK_A4), KK_A3), KK_A2), KK_A1) * expm2;
+
     const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]/r;
     KK_FLOAT ecoul = prefactor * erfc;
     if (factor_coul < KK_ONE) ecoul -= (KK_ONE - factor_coul) * prefactor;

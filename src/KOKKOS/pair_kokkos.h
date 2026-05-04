@@ -43,14 +43,17 @@ class PairKokkos : public PairBase
   void init_style() override;
   double init_one(int, int) override;
 
+  using Pointers::atom;
+  using Pointers::atomKK;
+  using Pointers::lmp;
+
  protected:
 
 
-  using Pointers::atom;
-  using Pointers::atomKK;
+
   using Pointers::error;
   using Pointers::force;
-  using Pointers::lmp;
+
   using Pointers::memory;
   using Pointers::memoryKK;
   using Pointers::neighbor;
@@ -81,7 +84,6 @@ class PairKokkos : public PairBase
   using Pair::allocated;
   using Pair::tabinnersq;
 
-  using PairBase::cut_ljsq;
   using PairBase::cut_coulsq;
 
 
@@ -196,6 +198,27 @@ class PairKokkos : public PairBase
 
 
 
+  // -------- friends --------
+
+  template<class, int, bool, int, class>
+  friend struct PairComputeFunctor;
+
+  // 1. Friend the "real" version
+template<class PStyle, unsigned NFLAG, int ZFLAG, class Spec>
+requires ((NFLAG & PStyle::EnabledNeighFlags) != 0)
+friend EV_FLOAT pair_compute_neighlist(PStyle* fpair, NeighListKokkos<typename PStyle::device_type>* list);
+
+// 2. Friend the "dummy" version
+template<class PStyle, unsigned NFLAG, int ZFLAG, class Spec>
+requires (!((NFLAG & PStyle::EnabledNeighFlags) != 0))
+friend EV_FLOAT pair_compute_neighlist(PStyle* fpair, NeighListKokkos<typename PStyle::device_type>* list);
+
+
+template<class PStyle, class Spec>
+friend EV_FLOAT pair_compute(PStyle* fpair, NeighListKokkos<typename PStyle::device_type>* list);
+
+template<class A>
+friend void pair_virial_fdotr_compute(A*);
 
 }; // PairKokkos
 
@@ -1240,7 +1263,11 @@ struct PairComputeFunctor  {
 // or the real one further below
 
 template<class PairStyle, unsigned NEIGHFLAG, int ZEROFLAG = 0, class Specialisation = void>
-EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<!((NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0), NeighListKokkos<typename PairStyle::device_type>*> list) {
+requires (!((NEIGHFLAG & PairStyle::EnabledNeighFlags) != 0))
+EV_FLOAT pair_compute_neighlist (
+  PairStyle* fpair,
+  NeighListKokkos<typename PairStyle::device_type>* list)
+{
   EV_FLOAT ev;
   (void) fpair;
   (void) list;
@@ -1277,7 +1304,11 @@ void GetMaxTeamSize(FunctorStyle& functor, int inum,
 
 // Submit ParallelFor for NEIGHFLAG=HALF,HALFTHREAD,FULL
 template<class PairStyle, unsigned NEIGHFLAG, int ZEROFLAG = 0, class Specialisation = void>
-EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0, NeighListKokkos<typename PairStyle::device_type>*> list) {
+requires ((NEIGHFLAG & PairStyle::EnabledNeighFlags) != 0)
+EV_FLOAT pair_compute_neighlist (
+  PairStyle* fpair,
+  NeighListKokkos<typename PairStyle::device_type>* list)
+{
   EV_FLOAT ev;
 
   const int inum = list->inum;

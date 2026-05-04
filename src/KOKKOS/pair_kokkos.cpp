@@ -267,30 +267,34 @@ template<class DeviceType, class PairBase, bool LJ, bool TIP4P, bool SOFT>
 double PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::init_one(int i, int j)
 {
   double cutone = PairBase::init_one(i,j);
-  double cut_ljsqm = PairBase::cut_ljsq[i][j];
 
-  k_params.view_host()(i,j).lj1 = static_cast<KK_FLOAT>(lj1[i][j]);
-  k_params.view_host()(i,j).lj2 = static_cast<KK_FLOAT>(lj2[i][j]);
-  k_params.view_host()(i,j).lj3 = static_cast<KK_FLOAT>(lj3[i][j]);
-  k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(lj4[i][j]);
-  k_params.view_host()(i,j).offset = static_cast<KK_FLOAT>(offset[i][j]);
-  k_params.view_host()(i,j).cut_ljsq = static_cast<KK_FLOAT>(PairBase::cut_ljsqm);
+  // LJ
+  if constexpr(LJ) {
+    double cut_ljsqm = PairBase::cut_ljsq[i][j];
+    k_params.view_host()(i,j).lj1 = static_cast<KK_FLOAT>(PairBase::lj1[i][j]);
+    k_params.view_host()(i,j).lj2 = static_cast<KK_FLOAT>(PairBase::lj2[i][j]);
+    k_params.view_host()(i,j).lj3 = static_cast<KK_FLOAT>(PairBase::lj3[i][j]);
+    k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(PairBase::lj4[i][j]);
+    k_params.view_host()(i,j).offset = static_cast<KK_FLOAT>(PairBase::offset[i][j]);
+    k_params.view_host()(i,j).cut_ljsq = static_cast<KK_FLOAT>(cut_ljsqm);
+    if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1)
+      m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = static_cast<KK_FLOAT>(cut_ljsqm);
+    k_cut_ljsq.view_host()(i,j) = k_cut_ljsq.view_host()(j,i) = cut_ljsqm;
+    k_cut_ljsq.modify_host();
+  }
+
+  // COUL
   k_params.view_host()(i,j).cut_coulsq = static_cast<KK_FLOAT>(cut_coulsq);
-
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
-    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = static_cast<KK_FLOAT>(cut_ljsqm);
     m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(cut_coulsq);
   }
-
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
   k_cutsq.modify_host();
-  k_cut_ljsq.view_host()(i,j) = k_cut_ljsq.view_host()(j,i) = cut_ljsqm;
-  k_cut_ljsq.modify_host();
-  k_params.modify_host();
 
+  k_params.modify_host();
   return cutone;
 }
 

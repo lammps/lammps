@@ -32,6 +32,13 @@
 #include "respa.h"
 #include "update.h"
 
+#include "pair_coul_long.h"
+#include "pair_tip4p_long.h"
+#ifdef LMP_FEP
+  #include "pair_coul_long_soft.h"
+  #include "pair_tip4p_long_soft.h"
+#endif
+
 #include <cmath>
 #include <cstring>
 
@@ -47,80 +54,6 @@ PairCoulLongKokkos<DeviceType,PairCoulLongBase,TIP4P,SOFT>::PairCoulLongKokkos(L
 
 
 }
-
-/*
-
-
-template<class DeviceType, class PairCoulLongBase, bool TIP4P, bool SOFT>
-void PairCoulLongKokkos<DeviceType,PairCoulLongBase,TIP4P,SOFT>::allocate()
-{
-  PairCoulLong::allocate();
-
-  int n = atom->ntypes;
-
-  memory->destroy(cutsq);
-  memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
-  d_cutsq = k_cutsq.template view<DeviceType>();
-
-  d_cut_coulsq = typename AT::t_kkfloat_2d("pair:cut_coulsq",n+1,n+1);
-
-  k_params = Kokkos::DualView<params_coul**,Kokkos::LayoutRight,DeviceType>("PairCoulLong::params",n+1,n+1);
-  params = k_params.template view<DeviceType>();
-}
-
-
-
-template<class DeviceType, class PairCoulLongBase, bool TIP4P, bool SOFT>
-void PairCoulLongKokkos<DeviceType,PairCoulLongBase,TIP4P,SOFT>::init_style()
-{
-  PairCoulLong::init_style();
-
-  Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
-  Kokkos::deep_copy(d_cut_ljsq,cut_coulsq);
-
-  // error if rRESPA with inner levels
-
-  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
-    int respa = 0;
-    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-    if (respa)
-      error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
-  }
-
-  // adjust neighbor list request for KOKKOS
-
-  neighflag = lmp->kokkos->neighflag;
-  auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
-                           !std::is_same_v<DeviceType,LMPDeviceType>);
-  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
-  if (neighflag == FULL) request->enable_full();
-}
-
-template<class DeviceType, class PairCoulLongBase, bool TIP4P, bool SOFT>
-double PairCoulLongKokkos<DeviceType,PairCoulLongBase,TIP4P,SOFT>::init_one(int i, int j)
-{
-  double cutone = PairCoulLong::init_one(i,j);
-
-  k_params.view_host()(i,j).cut_coulsq = cut_coulsq;
-
-  k_params.view_host()(j,i) = k_params.view_host()(i,j);
-  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
-    m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
-    m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
-    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsq;
-    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_coulsq;
-  }
-
-  k_cutsq.view_host()(i,j) = cutone*cutone;
-  k_cutsq.modify_host();
-  k_params.modify_host();
-
-  return cutone;
-}
-
-*/
 
 namespace LAMMPS_NS {
 

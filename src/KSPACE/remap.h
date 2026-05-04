@@ -58,6 +58,9 @@ struct remap_plan_3d {
   int *rcvcnts;                       // # of elements in recv buffer for each rank
   int *sdispls;                       // extraction location in send buffer for each rank
   int *rdispls;                       // extraction location in recv buffer for each rank
+  int selfcommringloc;                // self rank's index in commringlist
+  int selfnsendloc;                   // self rank's index in send lists
+  int selfnrecvloc;                   // self rank's index in recv lists
 };
 
 // collision between 2 regions

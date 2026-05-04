@@ -32,7 +32,7 @@ class Fix : public Restartable {
   int restart_peratom;     // 1 if Fix saves peratom state, 0 if not
   int restart_file;        // 1 if Fix writes own restart file, 0 if not
   int force_reneighbor;    // 1 if Fix forces reneighboring, 0 if not
-  
+
   int box_change;    // >0 if Fix changes box size, shape, or sub-domains, 0 if not
   // clang-format off
   enum {

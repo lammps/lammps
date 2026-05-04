@@ -149,7 +149,7 @@ void Restartable::read_restart(BufferReaderRootFile& br) {
     br.seek_offset(BRERR, offset);
     return;
   }
-  
+
   // only important for read_restart(char*)
   if (write_restart_size_prefix) br.read<int>(BRERR);
 
@@ -175,9 +175,9 @@ void Restartable::read_restart(BufferReaderRootFile& br) {
       MPI_Scatterv(MPI_IN_PLACE, counts.data(), displs.data(), MPI_CHAR,
                    bytes.data(), counts[comm->me], MPI_CHAR, 0, world);
     }
-    
+
     this->read_restart_local(BufferReader(bytes.data(), nper, error));
-    
+
     if (comm->nprocs < nprocs) {
       if (comm->me == 0) {
         int n_extra_procs = nprocs - comm->nprocs;

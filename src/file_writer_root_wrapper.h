@@ -26,7 +26,7 @@ class FileWriterRootWrapper : public FileWriter {
   ~FileWriterRootWrapper() = default;
   FileWriterRootWrapper() : FileWriterRootWrapper(-1, nullptr) {}
   FileWriterRootWrapper(int m_rank, FILE *file) : rank(m_rank), fp(file) {}
-  
+
   [[nodiscard]] FILE* get_fp() const override { return fp; }
 
   size_t write(const void *buffer, size_t length) final {

@@ -41,7 +41,7 @@ class BufferReaderRootFile : public BufferReaderFile {
 
   // Quick helper to maintain global state but not read data on non-root ranks
   void read_raw_buf_root_only(const ErrInfo& e, char* b, bigint count);
- 
+
  private:
   MPI_Comm m_comm = MPI_COMM_SELF;
   int m_rank = rank(m_comm);

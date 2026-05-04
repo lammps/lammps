@@ -1717,7 +1717,7 @@ void Modify::restart_deallocate(int flag)
         }
       }
     }
-    
+
     for (int i = 0; i < nfix_restart_local; i++) {
       delete[] id_restart_local[i];
       delete[] style_restart_local[i];

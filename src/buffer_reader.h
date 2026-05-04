@@ -57,7 +57,7 @@ class BufferReader {
   bigint pos() const { return position; }
   bigint remaining() const { return length - position; }
   explicit operator bool() const { return get_fp() || buffer; }
-  
+
  protected:
   BufferReader(Error* e) : error(e), length(0), buffer(nullptr) {}
 

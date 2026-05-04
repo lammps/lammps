@@ -39,7 +39,7 @@ class FileWriter {
 
   [[nodiscard]] virtual bool isopen() const = 0;
   [[nodiscard]] virtual bool issizer() const;
-  
+
   explicit operator bool() const { return isopen(); }
 
   virtual size_t write_restart_global_size(const Restartable*);
@@ -63,7 +63,7 @@ class FileWriter {
     }
   }
 };
-  
+
 template<> size_t FileWriter::writev<std::string>(const std::string& str);
 template<> size_t FileWriter::writev<char*>(char* const& str);
 

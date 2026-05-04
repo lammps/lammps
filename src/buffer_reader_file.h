@@ -34,9 +34,9 @@ class BufferReaderFile : public BufferReader {
   BufferReader sub_buf(const ErrInfo& e, bigint len) override;
   FILE* get_fp() const override { return fp; }
   void seek(const ErrInfo& e, bigint len) override;
-  
+
   const std::string fname;
- 
+
  protected:
   void read_raw_buf(const ErrInfo& e, char* b, bigint count) override;
   char* get_raw_buf(const ErrInfo& e, bigint count) override;

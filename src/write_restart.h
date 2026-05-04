@@ -46,7 +46,7 @@ class WriteRestart : public Command {
     WRITE_RESTART_GLOBAL,
     WRITE_RESTART_LOCAL
   } mode;
-  
+
   bigint natoms;    // natoms (sum of nlocal) to write into file
   int noinit;
 
@@ -66,7 +66,7 @@ class WriteRestart : public Command {
 
   bool is_restartable(const Restartable *);
   void write_restartable(FileWriter&, Restartable *);
-  
+
   void magic_string(FileWriter&);
 
   template<typename T>

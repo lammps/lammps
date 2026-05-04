@@ -257,6 +257,17 @@ void PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::init_style()
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
+
+  // TIP4P
+
+  if constexpr (TIP4P) {
+    const double cut_coulplus = PairBase::cut_coul + 2.0 * PairBase::qdist;
+    tip4p_kk.cut_coulsqplus = static_cast<KK_FLOAT>(cut_coulplus * cut_coulplus);
+    tip4p_kk.typeO = PairBase::typeO;
+    tip4p_kk.typeH = PairBase::typeH;
+    tip4p_kk.tip4p_half_alpha = static_cast<KK_FLOAT>(0.5 * PairBase::alpha);
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -586,18 +597,18 @@ struct PairTIP4PLongComputeFunctor {
     }
 
     const bool stack = c.kokkos_ntypes <= MAX_TYPES_STACKPARAMS;
-    const int typeO = c.tip4p_typeO;
-    const int typeH = c.tip4p_typeH;
-    const KK_FLOAT alpha = c.tip4p_alpha;
+    const int typeO = c.tip4p_kk.typeO;
+    const int typeH = c.tip4p_kk.typeH;
+    const KK_FLOAT alpha = c.tip4p_kk.alpha;
 
     int iH1 = 0, iH2 = 0;
     KK_FLOAT x1[3];
     if (itype == typeO) {
-      iH1 = c.d_tip4p_hneigh(i, 0);
-      iH2 = c.d_tip4p_hneigh(i, 1);
-      x1[0] = c.d_tip4p_newsite(i, 0);
-      x1[1] = c.d_tip4p_newsite(i, 1);
-      x1[2] = c.d_tip4p_newsite(i, 2);
+      iH1 = c.d_tip4p_kk.hneigh(i, 0);
+      iH2 = c.d_tip4p_kk.hneigh(i, 1);
+      x1[0] = c.d_tip4p_kk.newsite(i, 0);
+      x1[1] = c.d_tip4p_kk.newsite(i, 1);
+      x1[2] = c.d_tip4p_kk.newsite(i, 2);
     } else {
       x1[0] = xtmp;
       x1[1] = ytmp;

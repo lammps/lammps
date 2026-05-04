@@ -181,7 +181,7 @@ class PairKokkos : public PairBase
   struct tip4p_kk_t {
 
     int tip4p_nmax, tip4p_typeO, tip4p_typeH;
-    KK_FLOAT tip4p_cut_coulsqplus, tip4p_alpha;
+    KK_FLOAT tip4p_cut_coulsqplus, tip4p_half_alpha;
 
     DAT::tdual_int_2d k_tip4p_hneigh; // H neighbors
     DAT::tdual_kkfloat_2d k_tip4p_newsite; // charge sites

@@ -15,6 +15,9 @@
 #include "file_writer.h"
 #include "file_writer_sizer.h"
 
+#include <string>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 bool FileWriter::issizer() const { return false; }

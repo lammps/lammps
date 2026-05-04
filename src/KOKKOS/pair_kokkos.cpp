@@ -237,7 +237,7 @@ void PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::init_style()
 {
   PairBase::init_style();
 
-  Kokkos::deep_copy(d_cut_coulsq,static_cast<KK_FLOAT>(cut_coulsq));
+  Kokkos::deep_copy(d_cut_coulsq,static_cast<KK_FLOAT>(PairBase::cut_coulsq));
 
   // error if rRESPA with inner levels
 
@@ -284,12 +284,12 @@ double PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::init_one(int i, int j)
   }
 
   // COUL
-  k_params.view_host()(i,j).cut_coulsq = static_cast<KK_FLOAT>(cut_coulsq);
+  k_params.view_host()(i,j).cut_coulsq = static_cast<KK_FLOAT>(PairBase::cut_coulsq);
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
-    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(cut_coulsq);
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(PairBase::cut_coulsq);
   }
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
   k_cutsq.modify_host();
@@ -297,6 +297,8 @@ double PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::init_one(int i, int j)
   k_params.modify_host();
   return cutone;
 }
+
+
 
 
 
@@ -1129,98 +1131,6 @@ KOKKOS_INLINE_FUNCTION KK_FLOAT PairLJCutTIP4PLongKokkos<DeviceType>::eval_ecoul
     if (factor_coul < static_cast<KK_FLOAT>(1.0))
       ecoul -= (static_cast<KK_FLOAT>(1.0) - factor_coul) * prefactor;
     return ecoul;
-  }
-}
-
-template<class DeviceType>
-void PairLJCutTIP4PLongKokkos<DeviceType>::allocate()
-{
-  PairLJCutTIP4PLong::allocate();
-
-  int n = atom->ntypes;
-  memory->destroy(cutsq);
-  memoryKK->create_kokkos(k_cutsq, cutsq, n + 1, n + 1, "pair:cutsq");
-  d_cutsq = k_cutsq.template view<DeviceType>();
-
-  memory->destroy(cut_ljsq);
-  memoryKK->create_kokkos(k_cut_ljsq, cut_ljsq, n + 1, n + 1, "pair:cut_ljsq");
-  d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
-
-  d_cut_coulsq = typename AT::t_kkfloat_2d("pair:cut_coulsq", n + 1, n + 1);
-
-  k_params = Kokkos::DualView<params_lj_coul **, Kokkos::LayoutRight, DeviceType>(
-      "PairLJCutTIP4PLongKokkos::params", n + 1, n + 1);
-  params = k_params.template view<DeviceType>();
-}
-
-template<class DeviceType>
-void PairLJCutTIP4PLongKokkos<DeviceType>::init_tables(double cut_coul, double *cut_respa)
-{
-  Pair::init_tables(cut_coul, cut_respa);
-
-  typedef typename AT::t_kkfloat_1d table_type;
-  typedef HAT::t_kkfloat_1d host_table_type;
-
-  int ntable = 1;
-  for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
-
-  tabinnersq_kk = static_cast<KK_FLOAT>(tabinnersq);
-
-  {
-    host_table_type h_table("HostTable", ntable);
-    table_type d_table("DeviceTable", ntable);
-    for (int i = 0; i < ntable; i++) h_table(i) = static_cast<KK_FLOAT>(rtable[i]);
-    Kokkos::deep_copy(d_table, h_table);
-    d_rtable = d_table;
-  }
-  {
-    host_table_type h_table("HostTable", ntable);
-    table_type d_table("DeviceTable", ntable);
-    for (int i = 0; i < ntable; i++) h_table(i) = static_cast<KK_FLOAT>(drtable[i]);
-    Kokkos::deep_copy(d_table, h_table);
-    d_drtable = d_table;
-  }
-  {
-    host_table_type h_table("HostTable", ntable);
-    table_type d_table("DeviceTable", ntable);
-    for (int i = 0; i < ntable; i++) h_table(i) = static_cast<KK_FLOAT>(ftable[i]);
-    Kokkos::deep_copy(d_table, h_table);
-    d_ftable = d_table;
-  }
-  {
-    host_table_type h_table("HostTable", ntable);
-    table_type d_table("DeviceTable", ntable);
-    for (int i = 0; i < ntable; i++) h_table(i) = static_cast<KK_FLOAT>(dftable[i]);
-    Kokkos::deep_copy(d_table, h_table);
-    d_dftable = d_table;
-  }
-  {
-    host_table_type h_table("HostTable", ntable);
-    table_type d_table("DeviceTable", ntable);
-    for (int i = 0; i < ntable; i++) h_table(i) = static_cast<KK_FLOAT>(ctable[i]);
-    Kokkos::deep_copy(d_table, h_table);
-    d_ctable = d_table;
-  }
-  {
-    host_table_type h_table("HostTable", ntable);
-    table_type d_table("DeviceTable", ntable);
-    for (int i = 0; i < ntable; i++) h_table(i) = static_cast<KK_FLOAT>(dctable[i]);
-    Kokkos::deep_copy(d_table, h_table);
-    d_dctable = d_table;
-  }
-  {
-    host_table_type h_table("HostTable", ntable);
-    table_type d_table("DeviceTable", ntable);
-    for (int i = 0; i < ntable; i++) h_table(i) = static_cast<KK_FLOAT>(etable[i]);
-    Kokkos::deep_copy(d_table, h_table);
-    d_etable = d_table;
-  }
-  {
-    host_table_type h_table("HostTable", ntable);
-    table_type d_table("DeviceTable", ntable);
-    for (int i = 0; i < ntable; i++) h_table(i) = static_cast<KK_FLOAT>(detable[i]);
-    Kokkos::deep_copy(d_table, h_table);
-    d_detable = d_table;
   }
 }
 

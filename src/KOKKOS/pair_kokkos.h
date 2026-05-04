@@ -86,7 +86,7 @@ class PairKokkos : public PairBase
 
   KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   typename AT::t_kkfloat_1d_3_lr_randomread x;
-  typename AT::t_kkfloat_1d_3_lr c_x;
+  // DEPRECATED typename AT::t_kkfloat_1d_3_lr c_x;
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_kkfloat_1d_randomread q;
@@ -99,7 +99,7 @@ class PairKokkos : public PairBase
   DAT::ttransform_kkfloat_2d k_cutsq;
   typename AT::t_kkfloat_2d d_cutsq;
 
-  int newton_pair, neighflag, nlocal,nall,eflag,vflag;
+  int newton_pair, neighflag, nlocal, nall, eflag, vflag;
 
   void allocate() override;
 
@@ -272,13 +272,9 @@ compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
   const KK_FLOAT r2inv = KK_ONE / rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
-  KK_FLOAT forcelj;
-
-  forcelj = r6inv *
-    ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
-     (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
-
-  return forcelj*r2inv;
+  const KK_FLOAT lj1 = STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1;
+  const KK_FLOAT lj2 = STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2;
+  return r6inv * (lj1*r6inv - lj2) * r2inv;
 }
 
 
@@ -334,12 +330,10 @@ compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
   const KK_FLOAT r2inv = KK_ONE / rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
-
-  return r6inv*
-    ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv
-     - (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4))
-    -  (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
-
+  const KK_FLOAT lj3 = STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3;
+  const KK_FLOAT lj4 = STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4;
+  const KK_FLOAT offset = STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset;
+  return r6inv * (lj3*r6inv - lj4) - offset;
 }
 
 /* ----------------------------------------------------------------------
@@ -879,16 +873,10 @@ struct PairComputeFunctor  {
                 fev_tmp.ecoul += static_cast<KK_ACC_FLOAT>(factor * ecoul);
               }
             }
-
-
             if (c.eflag_atom) {
-              const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * (evdwl + ecoul));
-
-              if (I_CONTRIB)
-                a_eatom[i] += epairhalf;
-
-              if (J_CONTRIB)
-                a_eatom[j] += epairhalf;
+              const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(KK_HALF * (evdwl + ecoul));
+              if (I_CONTRIB) a_eatom[i] += epairhalf;
+              if (J_CONTRIB) a_eatom[j] += epairhalf;
             }
           }
 
@@ -920,27 +908,18 @@ struct PairComputeFunctor  {
       },fev);
 
       Kokkos::single(Kokkos::PerThread(team), [&] () {
-        for (int n = 0; n < 3; n++)
-          a_f(i,n) += fev.f[n];
-
+        for (int n = 0; n < 3; n++) a_f(i,n) += fev.f[n];
         if (c.eflag_global) {
           ev.evdwl += fev.evdwl;
           ev.ecoul += fev.ecoul;
         }
-
         if (c.vflag_global) {
-          for (int n = 0; n < 6; n++)
-            ev.v[n] += fev.v[n];
+          for (int n = 0; n < 6; n++) ev.v[n] += fev.v[n];
         }
-
         if (NEIGHFLAG == FULL) {
-
-          if (c.eflag_atom)
-            a_eatom(i) += fev.evdwl + fev.ecoul;
-
+          if (c.eflag_atom) a_eatom(i) += fev.evdwl + fev.ecoul;
           if (c.vflag_atom) {
-            for (int n = 0; n < 6; n++)
-              a_vatom(i,n) += fev.v[n];
+            for (int n = 0; n < 6; n++) a_vatom(i,n) += fev.v[n];
           }
         }
       });
@@ -993,28 +972,23 @@ struct PairComputeFunctor  {
               ev.v[n] += static_cast<KK_ACC_FLOAT>(2) * v_acc[n];
           } else {
             if (i < c.nlocal) {
-              for (int n = 0; n < 6; n++)
-                ev.v[n] += v_acc[n];
+              for (int n = 0; n < 6; n++) ev.v[n] += v_acc[n];
             }
             if (j < c.nlocal) {
-              for (int n = 0; n < 6; n++)
-                ev.v[n] += v_acc[n];
+              for (int n = 0; n < 6; n++) ev.v[n] += v_acc[n];
             }
           }
         } else {
-          for (int n = 0; n < 6; n++)
-            ev.v[n] += v_acc[n];
+          for (int n = 0; n < 6; n++) ev.v[n] += v_acc[n];
         }
       }
 
       if (c.vflag_atom) {
         if (NEWTON_PAIR || i < c.nlocal) {
-          for (int n = 0; n < 6; n++)
-            a_vatom(i,n) += v_acc[n];
+          for (int n = 0; n < 6; n++) a_vatom(i,n) += v_acc[n];
         }
         if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) {
-          for (int n = 0; n < 6; n++)
-            a_vatom(j,n) += v_acc[n];
+          for (int n = 0; n < 6; n++) a_vatom(j,n) += v_acc[n];
         }
       }
     }

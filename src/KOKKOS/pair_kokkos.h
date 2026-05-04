@@ -246,6 +246,9 @@ friend void pair_virial_fdotr_compute(A*);
    ---------------------------------------------------------------------- */
 
 
+static constexpr KK_FLOAT KK_ONE = static_cast<KK_FLOAT>(1.0);
+static constexpr KK_FLOAT KK_TWO = static_cast<KK_FLOAT>(2.0);
+static constexpr KK_FLOAT KK_HALF = static_cast<KK_FLOAT>(0.5);
 
 using namespace EwaldConst;
 
@@ -260,7 +263,7 @@ KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::
 compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
-  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
+  const KK_FLOAT r2inv = KK_ONE / rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
   KK_FLOAT forcelj;
 
@@ -289,24 +292,24 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
     const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
     const KK_FLOAT table = d_ftable[itable] + fraction*d_dftable[itable];
     KK_FLOAT forcecoul = qtmp*q[j] * table;
-    if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
+    if (factor_coul < KK_ONE) {
       const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
       const KK_FLOAT prefactor = qtmp*q[j] * table;
-      forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+      forcecoul -= (KK_ONE-factor_coul)*prefactor;
     }
     return forcecoul/rsq;
   } else {
     const KK_FLOAT r = sqrt(rsq);
     const KK_FLOAT grij = g_ewald_kk * r;
     const KK_FLOAT expm2 = exp(-grij*grij);
-    const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
-    const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
-    const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
-                          t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
-                          t * static_cast<KK_FLOAT>(A5))))) * expm2;
+    const KK_FLOAT t = KK_ONE / (KK_ONE + static_cast<KK_FLOAT>(EWALD_P)*grij);
+    const KK_FLOAT rinv = KK_ONE / r;
+    const KK_FLOAT erfc =
+      t * fma(t, fma(t, fma(t, fma(t, KK_A5, KK_A4), KK_A3), KK_A2), KK_A1) * expm2;
+
     const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]*rinv;
     KK_FLOAT forcecoul = prefactor * (erfc + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2);
-    if (factor_coul < static_cast<KK_FLOAT>(1.0)) forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+    if (factor_coul < KK_ONE) forcecoul -= (KK_ONE - factor_coul) * prefactor;
 
     return forcecoul*rinv*rinv;
   }
@@ -322,7 +325,7 @@ KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::
 compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
-  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
+  const KK_FLOAT r2inv = KK_ONE / rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
 
   return r6inv*
@@ -350,23 +353,23 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
     const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
     const KK_FLOAT table = d_etable[itable] + fraction*d_detable[itable];
     KK_FLOAT ecoul = qtmp*q[j] * table;
-    if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
+    if (factor_coul < KK_ONE) {
       const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
       const KK_FLOAT prefactor = qtmp*q[j] * table;
-      ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+      ecoul -= (KK_ONE-factor_coul)*prefactor;
     }
     return ecoul;
   } else {
     const KK_FLOAT r = sqrt(rsq);
     const KK_FLOAT grij = g_ewald_kk * r;
     const KK_FLOAT expm2 = exp(-grij*grij);
-    const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
     const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
                           t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
                           t * static_cast<KK_FLOAT>(A5))))) * expm2;
+    const KK_FLOAT t = KK_ONE / (KK_ONE + static_cast<KK_FLOAT>(EWALD_P)*grij);
     const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]/r;
     KK_FLOAT ecoul = prefactor * erfc;
-    if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+    if (factor_coul < KK_ONE) ecoul -= (KK_ONE - factor_coul) * prefactor;
     return ecoul;
   }
 }
@@ -671,12 +674,12 @@ struct PairComputeFunctor  {
           if (c.eflag_either) {
             if (rsq < (STACKPARAMS?c.m_cut_ljsq[itype][jtype]:c.d_cut_ljsq(itype,jtype))) {
               evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-              const auto scale = (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5));
+              const auto scale = (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?KK_ONE:KK_HALF);
               ev.evdwl += static_cast<KK_ACC_FLOAT>(scale * evdwl);
             }
             if (rsq < (STACKPARAMS?c.m_cut_coulsq[itype][jtype]:c.d_cut_coulsq(itype,jtype))) {
               ecoul = c.template compute_ecoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
-              const auto scale = (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5));
+              const auto scale = (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?KK_ONE:KK_HALF);
               ev.ecoul += static_cast<KK_ACC_FLOAT>(scale * ecoul);
             }
           }
@@ -916,7 +919,7 @@ struct PairComputeFunctor  {
 
           const int I_CONTRIB = (NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD);
           const int J_CONTRIB = ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal);
-          const KK_FLOAT factor = J_CONTRIB?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5);
+          const KK_FLOAT factor = J_CONTRIB?KK_ONE:KK_HALF;
 
           if (J_CONTRIB) {
             a_f(j,0) -= static_cast<KK_ACC_FLOAT>(fx);
@@ -1098,13 +1101,14 @@ struct PairComputeFunctor  {
           }
 
           if (c.vflag_either) {
-            const KK_FLOAT v_acc[6] = { delx*delx*fpair,
+            const KK_FLOAT v_acc[6] = {
+              delx*delx*fpair,
               dely*dely*fpair,
               delz*delz*fpair,
               delx*dely*fpair,
               delx*delz*fpair,
-              dely*delz*fpair };
-            const auto one_half = static_cast<KK_FLOAT>(0.5);
+              dely*delz*fpair
+            };
 
             for (int n = 0; n < 6; n++)
               fev_tmp.v[n] += static_cast<KK_ACC_FLOAT>(factor * v_acc[n]);
@@ -1112,11 +1116,11 @@ struct PairComputeFunctor  {
             if (c.vflag_atom) {
               if (I_CONTRIB) {
                 for (int n = 0; n < 6; n++)
-                  a_vatom(i,n) += static_cast<KK_ACC_FLOAT>(one_half * v_acc[n]);
+                  a_vatom(i,n) += static_cast<KK_ACC_FLOAT>(KK_HALF * v_acc[n]);
               }
               if (J_CONTRIB) {
                 for (int n = 0; n < 6; n++)
-                  a_vatom(j,n) += static_cast<KK_ACC_FLOAT>(one_half * v_acc[n]);
+                  a_vatom(j,n) += static_cast<KK_ACC_FLOAT>(KK_HALF * v_acc[n]);
               }
             }
           }
@@ -1167,7 +1171,7 @@ struct PairComputeFunctor  {
 
     if (EFLAG) {
       if (c.eflag_atom) {
-        const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * epair);
+        const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(KK_HALF * epair);
         if (NEWTON_PAIR || i < c.nlocal) a_eatom[i] += epairhalf;
         if ((NEWTON_PAIR || j < c.nlocal) && NEIGHFLAG != FULL) a_eatom[j] += epairhalf;
       }
@@ -1180,14 +1184,15 @@ struct PairComputeFunctor  {
       const KK_FLOAT v3 = delx*dely*fpair;
       const KK_FLOAT v4 = delx*delz*fpair;
       const KK_FLOAT v5 = dely*delz*fpair;
-      const auto one_half = static_cast<KK_FLOAT>(0.5);
 
-      const KK_ACC_FLOAT v_acc[6] = { static_cast<KK_ACC_FLOAT>(one_half*v0),
-        static_cast<KK_ACC_FLOAT>(one_half*v1),
-        static_cast<KK_ACC_FLOAT>(one_half*v2),
-        static_cast<KK_ACC_FLOAT>(one_half*v3),
-        static_cast<KK_ACC_FLOAT>(one_half*v4),
-        static_cast<KK_ACC_FLOAT>(one_half*v5) };
+      const KK_ACC_FLOAT v_acc[6] = {
+        static_cast<KK_ACC_FLOAT>(KK_HALF*v0),
+        static_cast<KK_ACC_FLOAT>(KK_HALF*v1),
+        static_cast<KK_ACC_FLOAT>(KK_HALF*v2),
+        static_cast<KK_ACC_FLOAT>(KK_HALF*v3),
+        static_cast<KK_ACC_FLOAT>(KK_HALF*v4),
+        static_cast<KK_ACC_FLOAT>(KK_HALF*v5)
+      };
 
       if (c.vflag_global) {
         if (NEIGHFLAG != FULL) {

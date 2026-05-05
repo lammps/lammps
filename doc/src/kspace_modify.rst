@@ -11,11 +11,12 @@ Syntax
    kspace_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
-* keyword = *collective* or *nonblocking* or *compute* or *cutoff/adjust* or *diff* or *disp/auto* or *fftbench* or *force/disp/kspace* or *force/disp/real* or *force* or *gewald/disp* or *gewald* or *kmax/ewald* or *mesh* or *minorder* or *mix/disp* or *order/disp* or *order* or *overlap* or *scafacos* or *slab* or *splittol* or *wire*
+* keyword = *collective* or *collective/self/copy* or *nonblocking* or *compute* or *cutoff/adjust* or *diff* or *disp/auto* or *fftbench* or *force/disp/kspace* or *force/disp/real* or *force* or *gewald/disp* or *gewald* or *kmax/ewald* or *mesh* or *minorder* or *mix/disp* or *order/disp* or *order* or *overlap* or *scafacos* or *slab* or *splittol* or *wire*
 
   .. parsed-literal::
 
        *collective* value = *yes* or *no*
+       *collective/self/copy* value = *yes* or *no* or *onerank*
        *nonblocking* value = *yes* or *no*
        *compute* value = *yes* or *no*
        *cutoff/adjust* value = *yes* or *no*
@@ -78,12 +79,26 @@ relevant to all kspace styles.
 ----------
 
 The *collective* keyword applies only to PPPM.  It is set to *no* by
-default, except on IBM BlueGene machines.  If this option is set to
-*yes*, LAMMPS will use MPI collective operations to remap data for
-3d-FFT operations instead of the default point-to-point communication.
-This is faster on IBM BlueGene machines, and may also be faster on
-other machines if they have an efficient implementation of MPI
-collective operations and adequate hardware.
+default, If this option is set to *yes*, LAMMPS will use MPI collective
+operations to remap data for 3d-FFT operations instead of the default
+point-to-point communication.  This is faster on machines that have an
+efficient implementation of MPI collective operations *and* adequate
+hardware.
+
+----------
+
+.. versionadded:: TBD
+
+The *collective/self/copy* keyword applies only to PPPM and only when
+*collective* is set to *yes*.  It controls whether data remapped to the
+same MPI rank (the "self" contribution) is handled via a direct
+pack/unpack rather than being included in the ``MPI_Alltoallv``
+collective.  If set to *yes*, LAMMPS always handles the self
+contribution with a direct copy.  If set to *no*, the self contribution
+is included in the ``MPI_Alltoallv`` along with data destined for other
+ranks.  If set to *onerank*, the direct copy is used only when running
+on a single MPI rank, which avoids unnecessary collective overhead when
+all data maps to the same rank.
 
 ----------
 
@@ -457,6 +472,9 @@ The *collective* and *nonblocking* keywords cannot both be enabled
 at the same time.  Whichever of the two keywords is enabled last will
 disable the other.
 
+The *collective/self/copy* keyword has no effect unless *collective*
+is set to *yes*.
+
 Related commands
 """"""""""""""""
 
@@ -468,6 +486,7 @@ Default
 The option defaults are as follows:
 
 * collective = no
+* collective/self/copy = onerank
 * nonblocking = no
 * compute = yes
 * cutoff/adjust = yes (MSM)

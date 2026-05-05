@@ -30,8 +30,8 @@
 #  define FFT_KOKKOS_FFTW3
 # endif
 # ifdef FFT_KOKKOS_FFTW_THREADS
-#  if !defined(FFT_KOKKOS_FFTW3)
-#   error "Must use -DFFT_KOKKOS_FFTW3 with -DFFT_KOKKOS_FFTW_THREADS"
+#  if !defined(FFT_KOKKOS_FFTW3) && !defined(FFT_KOKKOS_NVPL)
+#   error "Must use -DFFT_KOKKOS_FFTW3 or -DFFT_KOKKOS_NVPL with -DFFT_KOKKOS_FFTW_THREADS"
 #  endif
 # endif
 #endif

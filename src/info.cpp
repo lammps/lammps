@@ -1287,7 +1287,11 @@ std::string Info::get_fft_info()
 #elif defined(FFT_MKL_GPU)
   fft_info += "FFT library = MKL GPU\n";
 #elif defined(FFT_NVPL)
+#if defined(FFT_FFTW_THREADS)
+  fft_info += "FFT library = NVPL with threads\n";
+#else
   fft_info += "FFT library = NVPL\n";
+#endif
 #elif defined(FFT_FFTW3)
 #if defined(FFT_FFTW_THREADS)
   fft_info += "FFT library = FFTW3 with threads\n";

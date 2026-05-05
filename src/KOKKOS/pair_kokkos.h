@@ -569,12 +569,41 @@ struct PairComputeFunctor  {
       f(i,2) = 0;
     }
 
+    if constexpr(COUL_FLAG == COUL_TIP4P) {
+
+      Kokkos::printf("*** compute_item()\n");
+      const bool stack = c.kokkos_ntypes <= MAX_TYPES_STACKPARAMS;
+      const int typeO = c.tip4p_kk.typeO;
+      const int typeH = c.tip4p_kk.typeH;
+      const KK_FLOAT alpha = c.tip4p_kk.alpha;
+
+      int iH1 = 0, iH2 = 0;
+      KK_FLOAT x1[3];
+      if (itype == typeO) {
+        iH1 = c.tip4p_kk.d_hneigh(i,0);
+        iH2 = c.tip4p_kk.d_hneigh(i,1);
+        x1[0] = c.tip4p_kk.d_newsite(i,0);
+        x1[1] = c.tip4p_kk.d_newsite(i,1);
+        x1[2] = c.tip4p_kk.d_newsite(i,2);
+      } else {
+        x1[0] = xtmp;
+        x1[1] = ytmp;
+        x1[2] = ztmp;
+      }
+
+    }
+
+
     for (int jj = 0; jj < jnum; jj++) {
       int j = neighbors_i(jj);
       const KK_FLOAT factor_lj = c.special_lj[sbmask(j)];
       KK_FLOAT factor_coul = KK_ZERO;
       if constexpr(COUL_FLAG) factor_coul = c.special_coul[sbmask(j)];
       j &= NEIGHMASK;
+      const int jflag =
+          ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && (NEWTON_PAIR || (j < c.nlocal)));
+
+
       const KK_FLOAT delx = xtmp - c.x(j,0);
       const KK_FLOAT dely = ytmp - c.x(j,1);
       const KK_FLOAT delz = ztmp - c.x(j,2);
@@ -583,7 +612,12 @@ struct PairComputeFunctor  {
 
       // cutoffs
       KK_FLOAT cutsq, cut_ljsq, cut_coulsq;
-      if constexpr(COUL_FLAG) {
+      if constexpr(COUL_FLAG == NO_COUL) {
+        if constexpr(STACKPARAMS)
+          cutsq = cut_ljsq = c.m_cutsq[itype][jtype];
+        else
+          cutsq = cut_ljsq = c.d_cutsq(itype,jtype);
+      } else if constexpr(COUL_FLAG = COUL_LONG) {
         if constexpr(STACKPARAMS) {
           cutsq = c.m_cutsq[itype][jtype];
           cut_ljsq = c.m_cut_ljsq[itype][jtype];
@@ -593,30 +627,135 @@ struct PairComputeFunctor  {
           cut_ljsq = c.d_cut_ljsq(itype,jtype);
           cut_coulsq = c.d_cut_coulsq(itype,jtype);
         }
-      } else {
-        if constexpr(STACKPARAMS)
-          cutsq = cut_ljsq = c.m_cutsq[itype][jtype];
-        else
-          cutsq = cut_ljsq = c.d_cutsq(itype,jtype);
       }
 
       if (rsq < cutsq) {
 
         KK_FLOAT fpair = KK_FLOAT();
 
-        if (rsq < cut_ljsq)
+        if constexpr(COUL_FLAG == NO_COUL) {
           fpair+=factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+        } else if constexpr(COUL_FLAG == COUL_LONG) {
 
-        if constexpr(COUL_FLAG) {
+          if (rsq < cut_ljsq)
+            fpair+=factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+
           if (rsq < cut_coulsq)
             fpair+=c.template compute_fcoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
+
+        } else if constexpr(COUL_FLAG == COUL_TIP4P) {
+          const KK_FLOAT cforce = c.eval_fcoul(stack, rsq, j, factor_coul, qtmp);
+
+          int key = 0;
+          int vlist[6];
+          int n = 0;
+          KK_FLOAT v[6] = {0, 0, 0, 0, 0, 0};
+          KK_FLOAT fO[3], fH[3], fd[3];
+
+          if (itype != typeO) {
+            fxtmp += static_cast<KK_ACC_FLOAT>(delx * cforce);
+            fytmp += static_cast<KK_ACC_FLOAT>(dely * cforce);
+            fztmp += static_cast<KK_ACC_FLOAT>(delz * cforce);
+            if (EVFLAG && c.vflag_either) {
+              v[0] = c.x(i,0) * delx * cforce;
+              v[1] = c.x(i,1) * dely * cforce;
+              v[2] = c.x(i,2) * delz * cforce;
+              v[3] = c.x(i,0) * dely * cforce;
+              v[4] = c.x(i,0) * delz * cforce;
+              v[5] = c.x(i,1) * delz * cforce;
+            }
+            vlist[n++] = i;
+          } else {
+            key++;
+            fd[0] = delx * cforce;
+            fd[1] = dely * cforce;
+            fd[2] = delz * cforce;
+            fO[0] = fd[0] * (1 - alpha);
+            fO[1] = fd[1] * (1 - alpha);
+            fO[2] = fd[2] * (1 - alpha);
+            fH[0] = static_cast<KK_FLOAT>(0.5) * alpha * fd[0];
+            fH[1] = static_cast<KK_FLOAT>(0.5) * alpha * fd[1];
+            fH[2] = static_cast<KK_FLOAT>(0.5) * alpha * fd[2];
+            fxtmp += static_cast<KK_ACC_FLOAT>(fO[0]);
+            fytmp += static_cast<KK_ACC_FLOAT>(fO[1]);
+            fztmp += static_cast<KK_ACC_FLOAT>(fO[2]);
+            a_f(iH1,0) += static_cast<KK_ACC_FLOAT>(fH[0]);
+            a_f(iH1,1) += static_cast<KK_ACC_FLOAT>(fH[1]);
+            a_f(iH1,2) += static_cast<KK_ACC_FLOAT>(fH[2]);
+            a_f(iH2,0) += static_cast<KK_ACC_FLOAT>(fH[0]);
+            a_f(iH2,1) += static_cast<KK_ACC_FLOAT>(fH[1]);
+            a_f(iH2,2) += static_cast<KK_ACC_FLOAT>(fH[2]);
+            if (EVFLAG && c.vflag_either) {
+              v[0] = c.x(i,0) * fO[0] + c.x(iH1,0) * fH[0] + c.x(iH2,0) * fH[0];
+              v[1] = c.x(i,1) * fO[1] + c.x(iH1,1) * fH[1] + c.x(iH2,1) * fH[1];
+              v[2] = c.x(i,2) * fO[2] + c.x(iH1,2) * fH[2] + c.x(iH2,2) * fH[2];
+              v[3] = c.x(i,0) * fO[1] + c.x(iH1,0) * fH[1] + c.x(iH2,0) * fH[1];
+              v[4] = c.x(i,0) * fO[2] + c.x(iH1,0) * fH[2] + c.x(iH2,0) * fH[2];
+              v[5] = c.x(i,1) * fO[2] + c.x(iH1,1) * fH[2] + c.x(iH2,1) * fH[2];
+            }
+            vlist[n++] = i;
+            vlist[n++] = iH1;
+            vlist[n++] = iH2;
+          }
+
+          if (jtype != typeO) {
+            if (jhalf) {
+              a_f(j,0) -= static_cast<KK_ACC_FLOAT>(delx * cforce);
+              a_f(j,1) -= static_cast<KK_ACC_FLOAT>(dely * cforce);
+              a_f(j,2) -= static_cast<KK_ACC_FLOAT>(delz * cforce);
+            }
+            if (EVFLAG && c.vflag_either) {
+              v[0] -= c.x(j,0) * delx * cforce;
+              v[1] -= c.x(j,1) * dely * cforce;
+              v[2] -= c.x(j,2) * delz * cforce;
+              v[3] -= c.x(j,0) * dely * cforce;
+              v[4] -= c.x(j,0) * delz * cforce;
+              v[5] -= c.x(j,1) * delz * cforce;
+            }
+            vlist[n++] = j;
+          } else {
+            key += 2;
+            fd[0] = -delx * cforce;
+            fd[1] = -dely * cforce;
+            fd[2] = -delz * cforce;
+            fO[0] = fd[0] * (1 - alpha);
+            fO[1] = fd[1] * (1 - alpha);
+            fO[2] = fd[2] * (1 - alpha);
+            fH[0] = static_cast<KK_FLOAT>(0.5) * alpha * fd[0];
+            fH[1] = static_cast<KK_FLOAT>(0.5) * alpha * fd[1];
+            fH[2] = static_cast<KK_FLOAT>(0.5) * alpha * fd[2];
+            if (jflag) {
+              a_f(j, 0) += static_cast<KK_ACC_FLOAT>(fO[0]);
+              a_f(j, 1) += static_cast<KK_ACC_FLOAT>(fO[1]);
+              a_f(j, 2) += static_cast<KK_ACC_FLOAT>(fO[2]);
+              a_f(jH1, 0) += static_cast<KK_ACC_FLOAT>(fH[0]);
+              a_f(jH1, 1) += static_cast<KK_ACC_FLOAT>(fH[1]);
+              a_f(jH1, 2) += static_cast<KK_ACC_FLOAT>(fH[2]);
+              a_f(jH2, 0) += static_cast<KK_ACC_FLOAT>(fH[0]);
+              a_f(jH2, 1) += static_cast<KK_ACC_FLOAT>(fH[1]);
+              a_f(jH2, 2) += static_cast<KK_ACC_FLOAT>(fH[2]);
+            }
+            if (EVFLAG && c.vflag_either) {
+              v[0] += c.x(j, 0) * fO[0] + c.x(jH1, 0) * fH[0] + c.x(jH2, 0) * fH[0];
+              v[1] += c.x(j, 1) * fO[1] + c.x(jH1, 1) * fH[1] + c.x(jH2, 1) * fH[1];
+              v[2] += c.x(j, 2) * fO[2] + c.x(jH1, 2) * fH[2] + c.x(jH2, 2) * fH[2];
+              v[3] += c.x(j, 0) * fO[1] + c.x(jH1, 0) * fH[1] + c.x(jH2, 0) * fH[1];
+              v[4] += c.x(j, 0) * fO[2] + c.x(jH1, 0) * fH[2] + c.x(jH2, 0) * fH[2];
+              v[5] += c.x(j, 1) * fO[2] + c.x(jH1, 1) * fH[2] + c.x(jH2, 1) * fH[2];
+            }
+            vlist[n++] = j;
+            vlist[n++] = jH1;
+            vlist[n++] = jH2;
+          }
+
+
         }
-        
+
         fxtmp += static_cast<KK_ACC_FLOAT>(delx*fpair);
         fytmp += static_cast<KK_ACC_FLOAT>(dely*fpair);
         fztmp += static_cast<KK_ACC_FLOAT>(delz*fpair);
 
-        if ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && (NEWTON_PAIR || j < c.nlocal)) {
+        if (jflag) {
           a_f(j,0) -= static_cast<KK_ACC_FLOAT>(delx*fpair);
           a_f(j,1) -= static_cast<KK_ACC_FLOAT>(dely*fpair);
           a_f(j,2) -= static_cast<KK_ACC_FLOAT>(delz*fpair);
@@ -625,11 +764,11 @@ struct PairComputeFunctor  {
         if (EVFLAG) {
           KK_FLOAT evdwl = 0.0;
           KK_FLOAT ecoul = 0.0;
+          const auto scale = (jflag ? KK_ONE : KK_HALF);
           if (c.eflag_either) {
             // LJ
             if (rsq < cut_ljsq) {
               evdwl = factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-              const auto scale = (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?KK_ONE:KK_HALF);
               ev.evdwl += static_cast<KK_ACC_FLOAT>(scale * evdwl);
             }
 
@@ -637,15 +776,30 @@ struct PairComputeFunctor  {
             if constexpr(COUL_FLAG) {
               if (rsq < cut_coulsq) {
                 ecoul = c.template compute_ecoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,factor_coul,qtmp);
-                const auto scale = (((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD)&&(NEWTON_PAIR||(j<c.nlocal)))?KK_ONE:KK_HALF);
                 ev.ecoul += static_cast<KK_ACC_FLOAT>(scale * ecoul);
               }
             }
           }
 
-          if (c.vflag_either || c.eflag_atom) ev_tally(ev,i,j,evdwl+ecoul,fpair,delx,dely,delz);
+          if (c.vflag_either || c.eflag_atom) {
+
+            if constexpr(COUL_FLAG == NO_COUL) {
+              ev_tally(ev,i,j,evdwl,fpair,delx,dely,delz);
+            if constexpr(COUL_FLAG == COUL_LONG) {
+              ev_tally(ev,i,j,evdwl+ecoul,fpair,delx,dely,delz);
+            } else if constexpr(COUL_FLAG == COUL_TIP4P) {
+              ev_tally_tip4p(ev, key, vlist, v, ecoul, alpha, a_eatom, a_vatom, c.eflag_atom,
+                                 c.vflag_global, c.vflag_atom, c.eflag_global, scale);
+            }
+
+          }
         }
       }
+
+    }
+
+
+
     }
 
     a_f(i,0) += static_cast<KK_ACC_FLOAT>(fxtmp);
@@ -1001,6 +1155,80 @@ struct PairComputeFunctor  {
     }
   }
 
+
+template<typename EatAccess, typename VatAccess>
+KOKKOS_INLINE_FUNCTION void tip4p_ev_tally_tip4p(
+    EV_FLOAT &ev, const int key, const int *vlist, const KK_FLOAT v[6], const KK_FLOAT ecoul,
+    const KK_FLOAT alpha, const EatAccess &a_eatom, const VatAccess &a_vatom, const int eflag_atom,
+    const int vflag_global, const int vflag_atom, const int eflag_global, const KK_FLOAT scale)
+{
+  const KK_ACC_FLOAT z = static_cast<KK_ACC_FLOAT>(scale);
+  const KK_FLOAT a = alpha;
+  const KK_ACC_FLOAT fourth = static_cast<KK_ACC_FLOAT>(0.25);
+
+  if (eflag_global) ev.ecoul += static_cast<KK_ACC_FLOAT>(ecoul) * z;
+
+  if (eflag_atom) {
+    if (key == 0) {
+      a_eatom[vlist[0]] += z * KK_HALF * static_cast<KK_ACC_FLOAT>(ecoul);
+      a_eatom[vlist[1]] += z * KK_HALF * static_cast<KK_ACC_FLOAT>(ecoul);
+    } else if (key == 1) {
+      a_eatom[vlist[0]] += z * KK_HALF * static_cast<KK_ACC_FLOAT>(ecoul * (1.0 - a));
+      a_eatom[vlist[1]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
+      a_eatom[vlist[2]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
+      a_eatom[vlist[3]] += z * KK_HALF * static_cast<KK_ACC_FLOAT>(ecoul);
+    } else if (key == 2) {
+      a_eatom[vlist[0]] += z * KK_HALF * static_cast<KK_ACC_FLOAT>(ecoul);
+      a_eatom[vlist[1]] += z * KK_HALF * static_cast<KK_ACC_FLOAT>(ecoul * (1.0 - a));
+      a_eatom[vlist[2]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
+      a_eatom[vlist[3]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
+    } else {
+      a_eatom[vlist[0]] += z * KK_HALF * static_cast<KK_ACC_FLOAT>(ecoul * (1.0 - a));
+      a_eatom[vlist[1]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
+      a_eatom[vlist[2]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
+      a_eatom[vlist[3]] += z * KK_HALF * static_cast<KK_ACC_FLOAT>(ecoul * (1.0 - a));
+      a_eatom[vlist[4]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
+      a_eatom[vlist[5]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
+    }
+  }
+
+  if (vflag_global) {
+    for (int n = 0; n < 6; n++) ev.v[n] += static_cast<KK_ACC_FLOAT>(v[n]) * z;
+  }
+
+  if (vflag_atom) {
+    if (key == 0) {
+      for (int n = 0; n < 6; n++) {
+        const KK_ACC_FLOAT t = z * half * static_cast<KK_ACC_FLOAT>(v[n]);
+        a_vatom(vlist[0], n) += t;
+        a_vatom(vlist[1], n) += t;
+      }
+    } else if (key == 1) {
+      for (int n = 0; n < 6; n++) {
+        a_vatom(vlist[0], n) += z * KK_HALF * static_cast<KK_ACC_FLOAT>(v[n] * (1.0 - a));
+        a_vatom(vlist[1], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
+        a_vatom(vlist[2], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
+        a_vatom(vlist[3], n) += z * KK_HALF * static_cast<KK_ACC_FLOAT>(v[n]);
+      }
+    } else if (key == 2) {
+      for (int n = 0; n < 6; n++) {
+        a_vatom(vlist[0], n) += z * KK_HALF * static_cast<KK_ACC_FLOAT>(v[n]);
+        a_vatom(vlist[1], n) += z * KK_HALF * static_cast<KK_ACC_FLOAT>(v[n] * (1.0 - a));
+        a_vatom(vlist[2], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
+        a_vatom(vlist[3], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
+      }
+    } else {
+      for (int n = 0; n < 6; n++) {
+        a_vatom(vlist[0], n) += z * KK_HALF * static_cast<KK_ACC_FLOAT>(v[n] * (1.0 - a));
+        a_vatom(vlist[1], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
+        a_vatom(vlist[2], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
+        a_vatom(vlist[3], n) += z * KK_HALF * static_cast<KK_ACC_FLOAT>(v[n] * (1.0 - a));
+        a_vatom(vlist[4], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
+        a_vatom(vlist[5], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
+      }
+    }
+  }
+}
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

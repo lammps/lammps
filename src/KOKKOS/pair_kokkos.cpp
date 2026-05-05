@@ -131,8 +131,52 @@ void PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::compute(int eflag_in, int vf
   special_coul[3] = static_cast<KK_FLOAT>(force->special_coul[3]);
   qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
   newton_pair = force->newton_pair;
-
   g_ewald_kk = static_cast<KK_FLOAT>(PairBase::g_ewald);
+
+  // ---------------------------------
+  {
+  auto l_map_style = atomKK->map_style;
+  auto l_map_array = atomKK->k_map_array;
+  auto l_map_hash = atomKK->k_map_hash;
+  if (l_map_style == Atom::MAP_ARRAY) l_map_array.template sync<DeviceType>();
+  else if (l_map_style == Atom::MAP_HASH) l_map_hash.template sync<DeviceType>();
+
+  atomKK->sync(execution_space, TAG_MASK);
+  k_atom2body.template sync<DeviceType>();
+  k_bodytag.template sync<DeviceType>();
+  k_bodyown.template sync<DeviceType>();
+  auto l_tag = atomKK->k_tag.template view<DeviceType>();
+  auto l_atom2body = k_atom2body.template view<DeviceType>();
+  auto l_bodytag = k_bodytag.template view<DeviceType>();
+  auto l_bodyown = k_bodyown.template view<DeviceType>();
+  auto l_comm_me = comm()->me;
+  auto l_ntimestep = base()->update->ntimestep;
+
+  copymode() = 1;
+  Kokkos::parallel_for("rigid/small:reset_atom2body",
+    Kokkos::RangePolicy<DeviceType>(0, atomKK->nlocal),
+    KOKKOS_LAMBDA(const int &i) {
+      l_atom2body(i) = -1;
+      if (l_bodytag(i)) {
+        const int iowner = AtomKokkos::map_kokkos<DeviceType>(
+          l_bodytag(i), l_map_style, l_map_array, l_map_hash);
+        if (iowner == -1) {
+          Kokkos::printf("Rigid body atoms %lld %lld missing on proc %d at step %lld\n",
+                         (long long) l_tag(i), (long long) l_bodytag(i),
+                         l_comm_me, (long long) l_ntimestep);
+          Kokkos::abort("Rigid body atom missing");
+        }
+        l_atom2body(i) = l_bodyown(iowner);
+      }
+    }
+  );
+  copymode() = 0;
+  k_atom2body.modify_device();
+}
+
+  // ---------------------------------
+
+
 
   // loop over neighbors of my atoms
 
@@ -381,80 +425,6 @@ struct PairTIP4PPreprocess {
   }
 };
 
-template<typename EatAccess, typename VatAccess>
-KOKKOS_INLINE_FUNCTION void tip4p_ev_tally_tip4p(
-    EV_FLOAT &ev, const int key, const int *vlist, const KK_FLOAT v[6], const KK_FLOAT ecoul,
-    const KK_FLOAT alpha, const EatAccess &a_eatom, const VatAccess &a_vatom, const int eflag_atom,
-    const int vflag_global, const int vflag_atom, const int eflag_global, const KK_FLOAT scale)
-{
-  const KK_ACC_FLOAT z = static_cast<KK_ACC_FLOAT>(scale);
-  const KK_FLOAT a = alpha;
-  const KK_ACC_FLOAT half = static_cast<KK_ACC_FLOAT>(0.5);
-  const KK_ACC_FLOAT fourth = static_cast<KK_ACC_FLOAT>(0.25);
-
-  if (eflag_global) ev.ecoul += static_cast<KK_ACC_FLOAT>(ecoul) * z;
-
-  if (eflag_atom) {
-    if (key == 0) {
-      a_eatom[vlist[0]] += z * half * static_cast<KK_ACC_FLOAT>(ecoul);
-      a_eatom[vlist[1]] += z * half * static_cast<KK_ACC_FLOAT>(ecoul);
-    } else if (key == 1) {
-      a_eatom[vlist[0]] += z * half * static_cast<KK_ACC_FLOAT>(ecoul * (1.0 - a));
-      a_eatom[vlist[1]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
-      a_eatom[vlist[2]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
-      a_eatom[vlist[3]] += z * half * static_cast<KK_ACC_FLOAT>(ecoul);
-    } else if (key == 2) {
-      a_eatom[vlist[0]] += z * half * static_cast<KK_ACC_FLOAT>(ecoul);
-      a_eatom[vlist[1]] += z * half * static_cast<KK_ACC_FLOAT>(ecoul * (1.0 - a));
-      a_eatom[vlist[2]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
-      a_eatom[vlist[3]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
-    } else {
-      a_eatom[vlist[0]] += z * half * static_cast<KK_ACC_FLOAT>(ecoul * (1.0 - a));
-      a_eatom[vlist[1]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
-      a_eatom[vlist[2]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
-      a_eatom[vlist[3]] += z * half * static_cast<KK_ACC_FLOAT>(ecoul * (1.0 - a));
-      a_eatom[vlist[4]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
-      a_eatom[vlist[5]] += z * fourth * static_cast<KK_ACC_FLOAT>(ecoul * a);
-    }
-  }
-
-  if (vflag_global) {
-    for (int n = 0; n < 6; n++) ev.v[n] += static_cast<KK_ACC_FLOAT>(v[n]) * z;
-  }
-
-  if (vflag_atom) {
-    if (key == 0) {
-      for (int n = 0; n < 6; n++) {
-        const KK_ACC_FLOAT t = z * half * static_cast<KK_ACC_FLOAT>(v[n]);
-        a_vatom(vlist[0], n) += t;
-        a_vatom(vlist[1], n) += t;
-      }
-    } else if (key == 1) {
-      for (int n = 0; n < 6; n++) {
-        a_vatom(vlist[0], n) += z * half * static_cast<KK_ACC_FLOAT>(v[n] * (1.0 - a));
-        a_vatom(vlist[1], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
-        a_vatom(vlist[2], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
-        a_vatom(vlist[3], n) += z * half * static_cast<KK_ACC_FLOAT>(v[n]);
-      }
-    } else if (key == 2) {
-      for (int n = 0; n < 6; n++) {
-        a_vatom(vlist[0], n) += z * half * static_cast<KK_ACC_FLOAT>(v[n]);
-        a_vatom(vlist[1], n) += z * half * static_cast<KK_ACC_FLOAT>(v[n] * (1.0 - a));
-        a_vatom(vlist[2], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
-        a_vatom(vlist[3], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
-      }
-    } else {
-      for (int n = 0; n < 6; n++) {
-        a_vatom(vlist[0], n) += z * half * static_cast<KK_ACC_FLOAT>(v[n] * (1.0 - a));
-        a_vatom(vlist[1], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
-        a_vatom(vlist[2], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
-        a_vatom(vlist[3], n) += z * half * static_cast<KK_ACC_FLOAT>(v[n] * (1.0 - a));
-        a_vatom(vlist[4], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
-        a_vatom(vlist[5], n) += z * fourth * static_cast<KK_ACC_FLOAT>(v[n] * a);
-      }
-    }
-  }
-}
 
 template<class DeviceType, unsigned NEIGHFLAG, int ZEROFLAG>
 struct PairTIP4PLongComputeFunctor {
@@ -470,45 +440,6 @@ struct PairTIP4PLongComputeFunctor {
   typename AT::t_kkacc_1d_6 d_vatom;
   int inum;
 
-  KKScatterView<KK_ACC_FLOAT *[3], typename DAT::t_kkacc_1d_3::array_layout, KKDeviceType, KKScatterSum,
-                DUP>
-      dup_f;
-  KKScatterView<KK_ACC_FLOAT *, typename DAT::t_kkacc_1d::array_layout, KKDeviceType, KKScatterSum, DUP>
-      dup_eatom;
-  KKScatterView<KK_ACC_FLOAT *[6], typename DAT::t_kkacc_1d_6::array_layout, KKDeviceType, KKScatterSum,
-                DUP>
-      dup_vatom;
-
-  PairTIP4PLongComputeFunctor(PairLJCutTIP4PLongKokkos<DeviceType> *c_ptr,
-                              NeighListKokkos<DeviceType> *list_ptr) :
-      c(*c_ptr), list(*list_ptr)
-  {
-    f = c.f;
-    d_eatom = c.d_eatom;
-    d_vatom = c.d_vatom;
-    dup_f = Kokkos::Experimental::create_scatter_view<KKScatterSum, DUP>(c.f);
-    dup_eatom = Kokkos::Experimental::create_scatter_view<KKScatterSum, DUP>(c.d_eatom);
-    dup_vatom = Kokkos::Experimental::create_scatter_view<KKScatterSum, DUP>(c.d_vatom);
-    inum = list.inum;
-  }
-
-  ~PairTIP4PLongComputeFunctor()
-  {
-    c.copymode = 1;
-    list.copymode = 1;
-  }
-
-  KOKKOS_INLINE_FUNCTION int sbmask(const int &j) const { return j >> SBBITS & 3; }
-
-  void contribute()
-  {
-    const int need_dup = std::is_same_v<DUP, Kokkos::Experimental::ScatterDuplicated>;
-    if (need_dup) {
-      Kokkos::Experimental::contribute(c.f, dup_f);
-      if (c.eflag_atom) Kokkos::Experimental::contribute(c.d_eatom, dup_eatom);
-      if (c.vflag_atom) Kokkos::Experimental::contribute(c.d_vatom, dup_vatom);
-    }
-  }
 
   template<int EVFLAG, int NEWTON_PAIR>
   KOKKOS_FUNCTION void ev_tally_lj(EV_FLOAT &ev, const int &i, const int &j, const KK_FLOAT &evdwl,
@@ -814,99 +745,8 @@ struct PairTIP4PLongComputeFunctor {
     return ev;
   }
 
-  KOKKOS_FUNCTION void operator()(const int i) const
-  {
-    if (c.newton_pair)
-      compute_item<0, 1>(i, list);
-    else
-      compute_item<0, 0>(i, list);
-  }
-
-  KOKKOS_FUNCTION void operator()(const int i, EV_FLOAT &energy_virial) const
-  {
-    if (c.newton_pair)
-      energy_virial += compute_item<1, 1>(i, list);
-    else
-      energy_virial += compute_item<1, 0>(i, list);
-  }
 };
 
-template<class DeviceType>
-EV_FLOAT pair_compute_tip4p(PairLJCutTIP4PLongKokkos<DeviceType> *fpair,
-                            NeighListKokkos<DeviceType> *list)
-{
-  EV_FLOAT ev;
-  const int inum = list->inum;
-
-  // RangePolicy path only (no TeamPolicy): functor implements the same neighbor
-  // loop pattern as PairComputeFunctor::operator()(int).
-  if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
-    if (fpair->neighflag == FULL) {
-      if (fpair->fuse_force_clear_flag) {
-        PairTIP4PLongComputeFunctor<DeviceType, FULL, 1> ff(fpair, list);
-        if (fpair->eflag || fpair->vflag)
-          Kokkos::parallel_reduce(inum, ff, ev);
-        else
-          Kokkos::parallel_for(inum, ff);
-        ff.contribute();
-      } else {
-        PairTIP4PLongComputeFunctor<DeviceType, FULL, 0> ff(fpair, list);
-        if (fpair->eflag || fpair->vflag)
-          Kokkos::parallel_reduce(inum, ff, ev);
-        else
-          Kokkos::parallel_for(inum, ff);
-        ff.contribute();
-      }
-    } else if (fpair->neighflag == HALFTHREAD) {
-      PairTIP4PLongComputeFunctor<DeviceType, HALFTHREAD, 0> ff(fpair, list);
-      if (fpair->eflag || fpair->vflag)
-        Kokkos::parallel_reduce(inum, ff, ev);
-      else
-        Kokkos::parallel_for(inum, ff);
-      ff.contribute();
-    } else {
-      PairTIP4PLongComputeFunctor<DeviceType, HALF, 0> ff(fpair, list);
-      if (fpair->eflag || fpair->vflag)
-        Kokkos::parallel_reduce(inum, ff, ev);
-      else
-        Kokkos::parallel_for(inum, ff);
-      ff.contribute();
-    }
-  } else {
-    if (fpair->neighflag == FULL) {
-      if (fpair->fuse_force_clear_flag) {
-        PairTIP4PLongComputeFunctor<DeviceType, FULL, 1> ff(fpair, list);
-        if (fpair->eflag || fpair->vflag)
-          Kokkos::parallel_reduce(inum, ff, ev);
-        else
-          Kokkos::parallel_for(inum, ff);
-        ff.contribute();
-      } else {
-        PairTIP4PLongComputeFunctor<DeviceType, FULL, 0> ff(fpair, list);
-        if (fpair->eflag || fpair->vflag)
-          Kokkos::parallel_reduce(inum, ff, ev);
-        else
-          Kokkos::parallel_for(inum, ff);
-        ff.contribute();
-      }
-    } else if (fpair->neighflag == HALFTHREAD) {
-      PairTIP4PLongComputeFunctor<DeviceType, HALFTHREAD, 0> ff(fpair, list);
-      if (fpair->eflag || fpair->vflag)
-        Kokkos::parallel_reduce(inum, ff, ev);
-      else
-        Kokkos::parallel_for(inum, ff);
-      ff.contribute();
-    } else {
-      PairTIP4PLongComputeFunctor<DeviceType, HALF, 0> ff(fpair, list);
-      if (fpair->eflag || fpair->vflag)
-        Kokkos::parallel_reduce(inum, ff, ev);
-      else
-        Kokkos::parallel_for(inum, ff);
-      ff.contribute();
-    }
-  }
-  return ev;
-}
 
 }    // namespace LAMMPS_NS
 

@@ -4,7 +4,7 @@
 pair_style body/rounded/polygon command
 =======================================
 
-Accelerator Variant: *body/rounded/polygon/omp*
+Accelerator Variants: *body/rounded/polygon/omp*
 
 Syntax
 """"""

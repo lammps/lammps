@@ -1244,6 +1244,7 @@ ffplay
 fft
 fftbench
 fftMPI
+FFTs
 fftw
 fgets
 fhg
@@ -3182,6 +3183,7 @@ ppme
 ppn
 pppm
 pppmflag
+pragmas
 Prakash
 Praprotnik
 prd
@@ -3941,6 +3943,7 @@ Technol
 Telsa
 tempCorrCoeff
 templated
+templating
 Templeton
 Tencer
 Tequil

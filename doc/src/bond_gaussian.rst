@@ -1,7 +1,7 @@
 .. index:: bond_style gaussian
 
 bond_style gaussian command
-================================
+===========================
 
 Syntax
 """"""

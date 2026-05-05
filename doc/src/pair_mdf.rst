@@ -8,17 +8,17 @@
 pair_style lj/mdf command
 =========================
 
-Accelerator Variant: *lj/mdf/omp*
+Accelerator Variants: *lj/mdf/omp*
 
 pair_style buck/mdf command
 ===========================
 
-Accelerator Variant: *buck/mdf/omp*
+Accelerator Variants: *buck/mdf/omp*
 
 pair_style lennard/mdf command
 ==============================
 
-Accelerator Variant: *lennard/mdf/omp*
+Accelerator Variants: *lennard/mdf/omp*
 
 Syntax
 """"""

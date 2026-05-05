@@ -6,7 +6,6 @@ pair_style pedone command
 
 Accelerator Variants: *pedone/omp*
 
-
 Syntax
 """"""
 

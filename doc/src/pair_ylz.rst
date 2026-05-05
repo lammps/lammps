@@ -2,7 +2,7 @@
 .. index:: pair_style ylz/omp
 
 pair_style ylz command
-===========================
+======================
 
 Accelerator Variants: *ylz/omp*
 

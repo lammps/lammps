@@ -405,6 +405,19 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   JSON_INIT_FIELD(dihedrals, ndihedrals, dihedralflag, false, 0);
   JSON_INIT_FIELD(impropers, nimpropers, improperflag, false, 0);
   JSON_INIT_FIELD(atom_type_masses, natomtypes, typemassflag, false, 0);
+  JSON_INIT_FIELD(pair_coeffs, natomtypes, paircoeffsflag, false, 0);
+  JSON_INIT_FIELD(bond_coeffs, nbondcoefftypes, bondcoeffsflag, false, 0);
+  JSON_INIT_FIELD(angle_coeffs, nanglecoefftypes, anglecoeffsflag, false, 0);
+  JSON_INIT_FIELD(dihedral_coeffs, ndihedralcoefftypes, dihedralcoeffsflag, false, 0);
+  JSON_INIT_FIELD(improper_coeffs, nimpropercoefftypes, impropercoeffsflag, false, 0);
+  JSON_INIT_FIELD(bondbond_coeffs, nanglecoefftypes, bondbondcoeffsflag, false, 0);
+  JSON_INIT_FIELD(bondangle_coeffs, nanglecoefftypes, bondanglecoeffsflag, false, 0);
+  JSON_INIT_FIELD(middlebondtorsion_coeffs, ndihedralcoefftypes, middlebondtorsioncoeffsflag, false, 0);
+  JSON_INIT_FIELD(endbondtorsion_coeffs, ndihedralcoefftypes, endbondtorsioncoeffsflag, false, 0);
+  JSON_INIT_FIELD(angletorsion_coeffs, ndihedralcoefftypes, angletorsioncoeffsflag, false, 0);
+  JSON_INIT_FIELD(angleangletorsion_coeffs, ndihedralcoefftypes, angleangletorsioncoeffsflag, false, 0);
+  JSON_INIT_FIELD(bondbond13_coeffs, ndihedralcoefftypes, bondbond13coeffsflag, false, 0);
+  JSON_INIT_FIELD(angleangle_coeffs, nimpropercoefftypes, angleanglecoeffsflag, false, 0);
 
 #undef JSON_INIT_FIELD
   // special is nested
@@ -1639,457 +1652,376 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     }
   }
 
-  // coeffs is nested
+  // pair coeffs
 
-  if (moldata.contains("coeffs")) {
-    const auto &coeffsdata = moldata["coeffs"];
+  if (paircoeffsflag) {
+    const auto &paircoeffs = moldata["pair_coeffs"]["data"];
+    secfmt.clear();
+
     int tlabelflag = atom->labelmapflag;
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (force->pair == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define pair_style before Pair Coeffs");
+    if (comm->me == 0 && !atom->style_match(force->pair_style))
+      error->warning(
+          FLERR, "Pair style {} in molecule JSON differs from currently defined pair style {}",
+          atom->get_style(), force->pair_style);
 
-    // pair coeffs
-    if (coeffsdata.contains("pair")) {
-      if (!coeffsdata["pair"].contains("format"))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
-                   "field for \"coeffs:pair\"",
-                   id);
-      if (coeffsdata["pair"].contains("data")) {
-        if (force->pair == nullptr)
-          error->all(FLERR, Error::ARGZERO, "Must define pair_style before Pair Coeffs");
-        if (comm->me == 0 && !atom->style_match(force->pair_style))
-          error->warning(
-              FLERR, "Pair style {} in molecule JSON differs from currently defined pair style {}",
-              atom->get_style(), force->pair_style);
-
-        for (auto pairdata : coeffsdata["pair"]["data"]) {
-          std::string type = pairdata[0];
-          double coeff1 = pairdata[1];
-          double coeff2 = pairdata[2];
-          char buf[MAXLINE];
-          snprintf(buf, MAXLINE, "%s %f %f\n", type.c_str(), coeff1, coeff2);
-          parse_coeffs(buf, nullptr, 1, 2, toffset, Atom::ATOM);
-          force->pair->coeff(ncoeffarg, coeffarg);
-        }
-      } else {
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
-                   "field for \"coeffs:pair\"",
-                   id);
-      }
+    for (auto item : paircoeffs) {
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f\n", type.c_str(), coeff1, coeff2);
+      parse_coeffs(buf, nullptr, 1, 2, toffset, Atom::ATOM);
+      force->pair->coeff(ncoeffarg, coeffarg);
     }
+  }
 
-    // bond coeffs
-    if (coeffsdata.contains("bond")) {
-      if (!coeffsdata["bond"].contains("format"))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
-                   "field for \"coeffs:bond\"",
-                   id);
-      if (coeffsdata["bond"].contains("data")) {
-        if (force->bond == nullptr)
-          error->all(FLERR, Error::ARGZERO, "Must define bond_style before bond Coeffs");
-        if (comm->me == 0 && !atom->style_match(force->bond_style))
-          error->warning(
-              FLERR, "bond style {} in molecule JSON differs from currently defined bond style {}",
-              atom->get_style(), force->bond_style);
+  // bond coeffs
 
-        for (auto bonddata : coeffsdata["bond"]["data"]) {
-          std::string type = bonddata[0];
-          double coeff1 = bonddata[1];
-          double coeff2 = bonddata[2];
-          double coeff3 = bonddata[3];
-          double coeff4 = bonddata[4];
-          char buf[MAXLINE];
-          snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
-          parse_coeffs(buf, nullptr, 0, 1, boffset, Atom::BOND);
-          force->bond->coeff(ncoeffarg, coeffarg);
-        }
-      } else {
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
-                   "field for \"coeffs:bond\"",
-                   id);
-      }
+  if (bondcoeffsflag) {
+    const auto &bondcoeffs = moldata["bond_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (comm->me == 0 && !atom->style_match(force->bond_style))
+      error->warning(
+          FLERR, "bond style {} in molecule JSON differs from currently defined bond style {}",
+          atom->get_style(), force->bond_style);
+
+    for (auto item : bondcoeffs) {
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
+      parse_coeffs(buf, nullptr, 0, 1, boffset, Atom::BOND);
+      force->bond->coeff(ncoeffarg, coeffarg);
     }
+  }
 
-    // angle coeffs
-    if (coeffsdata.contains("angle")) {
-      if (!coeffsdata["angle"].contains("format"))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
-                   "field for \"coeffs:angle\"",
-                   id);
-      if (coeffsdata["angle"].contains("data")) {
-        if (atom->avec->angles_allow == 0)
-          error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON section: coeffs: angle");
-        if (force->angle == nullptr)
-          error->all(FLERR, Error::ARGZERO, "Must define angle_style before angle coeffs");
-        if (comm->me == 0 && !atom->style_match(force->angle_style))
-          error->warning(
-              FLERR, "Angle style {} in molecule template file differs from currently defined angle style {}",
-              atom->get_style(), force->angle_style);
+  // angle coeffs
 
-        for (auto angledata : coeffsdata["angle"]["data"]) {
-          std::string type = angledata[0];
-          double coeff1 = angledata[1];
-          double coeff2 = angledata[2];
-          double coeff3 = angledata[3];
-          double coeff4 = angledata[4];
-          char buf[MAXLINE];
-          snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
-          parse_coeffs(buf, nullptr, 0, 1, aoffset, Atom::ANGLE);
-          force->angle->coeff(ncoeffarg, coeffarg);
-        }
-      } else {
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
-                   "field for \"coeffs:angle\"",
-                   id);
-      }
+  if (anglecoeffsflag) {
+    const auto &anglecoeffs = moldata["angle_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->angles_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON section: coeffs: angle");
+    if (force->angle == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define angle_style before angle coeffs");
+    if (comm->me == 0 && !atom->style_match(force->angle_style))
+      error->warning(
+          FLERR, "Angle style {} in molecule template file differs from currently defined angle style {}",
+          atom->get_style(), force->angle_style);
+
+    for (auto item : anglecoeffs) {
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
+      parse_coeffs(buf, nullptr, 0, 1, aoffset, Atom::ANGLE);
+      force->angle->coeff(ncoeffarg, coeffarg);
     }
+  }
 
-    // bondbond coeffs
-    if (coeffsdata.contains("bondbond")) {
-      if (!coeffsdata["bondbond"].contains("format"))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
-                   "field for \"coeffs:bondbond\"",
-                   id);
-      if (coeffsdata["bondbond"].contains("data")) {
-        if (atom->avec->angles_allow == 0)
-          error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON section: coeffs: bondbond");
-        if (force->angle == nullptr)
-          error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondBond Coeffs");
+  // bondbond coeffs
 
-        for (auto bondbonddata : coeffsdata["bondbond"]["data"]) {
-          std::string type = bondbonddata[0];
-          double coeff1 = bondbonddata[1];
-          double coeff2 = bondbonddata[2];
-          double coeff3 = bondbonddata[3];
-          char buf[MAXLINE];
-          snprintf(buf, MAXLINE, "%s %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3);
-          parse_coeffs(buf, "bb", 0, 1, aoffset, Atom::ANGLE);
-          force->angle->coeff(ncoeffarg, coeffarg);
-        }
-      } else {
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
-                   "field for \"coeffs:bondbond\"",
-                   id);
-      }
+  if (bondbondcoeffsflag) {
+    const auto &bondbondcoeffs = moldata["bondbond_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->angles_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON section: coeffs: bondbond");
+    if (force->angle == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondBond Coeffs");
+
+    for (auto item : bondbondcoeffs) {
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3);
+      parse_coeffs(buf, "bb", 0, 1, aoffset, Atom::ANGLE);
+      force->angle->coeff(ncoeffarg, coeffarg);
     }
+  }
 
-    // bondangle coeffs
-    if (coeffsdata.contains("bondangle")) {
-      if (!coeffsdata["bondangle"].contains("format"))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
-                   "field for \"coeffs:bondangle\"",
-                   id);
-      if (coeffsdata["bondangle"].contains("data")) {
-        if (atom->avec->angles_allow == 0)
-          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondAngle Coeffs");
-        if (force->angle == nullptr)
-          error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondAngle Coeffs");
+  // bondangle coeffs
 
-        for (auto bondangledata : coeffsdata["bondangle"]["data"]) {
-          std::string type = bondangledata[0];
-          double coeff1 = bondangledata[1];
-          double coeff2 = bondangledata[2];
-          double coeff3 = bondangledata[3];
-          double coeff4 = bondangledata[4];
-          char buf[MAXLINE];
-          snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
-          parse_coeffs(buf, "ba", 0, 1, aoffset, Atom::ANGLE);
-          force->angle->coeff(ncoeffarg, coeffarg);
-        }
-      } else {
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
-                   "field for \"coeffs:bondangle\"",
-                   id);
-      }
+  if (bondanglecoeffsflag) {
+    const auto &bondanglecoeffs = moldata["bondangle_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->angles_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondAngle Coeffs");
+    if (force->angle == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondAngle Coeffs");
+
+    for (auto item : bondanglecoeffs) {
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
+      parse_coeffs(buf, "ba", 0, 1, aoffset, Atom::ANGLE);
+      force->angle->coeff(ncoeffarg, coeffarg);
     }
+  }
 
-    // dihedral coeffs
-    if (coeffsdata.contains("dihedral")) {
-      if (!coeffsdata["dihedral"].contains("format"))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
-                   "field for \"coeffs:dihedral\"",
-                   id);
-      if (coeffsdata["dihedral"].contains("data")) {
-        if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Dihedral Coeffs");
-        if (force->dihedral == nullptr)
-          error->all(FLERR, Error::ARGZERO, "Must define dihedral_style before Dihedral Coeffs");
+  // dihedral coeffs
 
-        for (auto dihedraldata : coeffsdata["dihedral"]["data"]) {
-          std::string type = dihedraldata[0];
-          double coeff1 = dihedraldata[1];
-          double coeff2 = dihedraldata[2];
-          double coeff3 = dihedraldata[3];
-          double coeff4 = dihedraldata[4];
-          double coeff5 = dihedraldata[5];
-          double coeff6 = dihedraldata[6];
-          char buf[MAXLINE];
-          snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4, coeff5, coeff6);
-          parse_coeffs(buf, nullptr, 0, 1, doffset, Atom::DIHEDRAL);
-          force->dihedral->coeff(ncoeffarg, coeffarg);
-        }
-      } else {
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
-                   "field for \"coeffs:dihedral\"",
-                   id);
-      }
+  if (dihedralcoeffsflag) {
+    const auto &dihedralcoeffs = moldata["dihedral_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Dihedral Coeffs");
+    if (force->dihedral == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define dihedral_style before Dihedral Coeffs");
+
+    for (auto item : dihedralcoeffs) {
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      double coeff5 = item[5];
+      double coeff6 = item[6];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4, coeff5, coeff6);
+      parse_coeffs(buf, nullptr, 0, 1, doffset, Atom::DIHEDRAL);
+      force->dihedral->coeff(ncoeffarg, coeffarg);
     }
+  }
 
-    // middlebondtorsion coeffs
-    if (coeffsdata.contains("middlebondtorsion")) {
-      if (!coeffsdata["middlebondtorsion"].contains("format"))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
-                   "field for \"coeffs:middlebondtorsion\"",
-                   id);
-      if (coeffsdata["middlebondtorsion"].contains("data")) {
-        if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: MiddleBondTorsion Coeffs");
-        if (force->dihedral == nullptr)
-          error->all(FLERR, Error::ARGZERO,
-                     "Must define dihedral_style before MiddleBondTorsion Coeffs");
+  // middlebondtorsion coeffs
 
-        for (auto middlebondtorsiondata : coeffsdata["middlebondtorsion"]["data"]) {
-          std::string type = middlebondtorsiondata[0];
-          double coeff1 = middlebondtorsiondata[1];
-          double coeff2 = middlebondtorsiondata[2];
-          double coeff3 = middlebondtorsiondata[3];
-          double coeff4 = middlebondtorsiondata[4];
-          char buf[MAXLINE];
-          snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
-          parse_coeffs(buf, "mbt", 0, 1, doffset, Atom::DIHEDRAL);
-          force->dihedral->coeff(ncoeffarg, coeffarg);
-        }
-      } else {
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
-                   "field for \"coeffs:middlebondtorsion\"",
-                   id);
-      }
+  if (middlebondtorsioncoeffsflag) {
+    const auto &middlebondtorsioncoeffs = moldata["middlebondtorsion_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: MiddleBondTorsion Coeffs");
+    if (force->dihedral == nullptr)
+      error->all(FLERR, Error::ARGZERO,
+                 "Must define dihedral_style before MiddleBondTorsion Coeffs");
+
+    for (auto item : middlebondtorsioncoeffs) {
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4);
+      parse_coeffs(buf, "mbt", 0, 1, doffset, Atom::DIHEDRAL);
+      force->dihedral->coeff(ncoeffarg, coeffarg);
     }
+  }
 
-    // endbondtorsion coeffs
-    if (coeffsdata.contains("endbondtorsion")) {
-      if (!coeffsdata["endbondtorsion"].contains("format"))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
-                   "field for \"coeffs:endbondtorsion\"",
-                   id);
-      if (coeffsdata["endbondtorsion"].contains("data")) {
-        if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: EndBondTorsion Coeffs");
-        if (force->dihedral == nullptr)
-          error->all(FLERR, Error::ARGZERO,
-                     "Must define dihedral_style before EndBondTorsion Coeffs");
+  // endbondtorsion coeffs
 
-        for (auto endbondtorsiondata : coeffsdata["endbondtorsion"]["data"]) {
-          std::string type = endbondtorsiondata[0];
-          double coeff1 = endbondtorsiondata[1];
-          double coeff2 = endbondtorsiondata[2];
-          double coeff3 = endbondtorsiondata[3];
-          double coeff4 = endbondtorsiondata[4];
-          double coeff5 = endbondtorsiondata[5];
-          double coeff6 = endbondtorsiondata[6];
-          double coeff7 = endbondtorsiondata[7];
-          double coeff8 = endbondtorsiondata[8];
-          char buf[MAXLINE];
-          snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f %f %f\n", type.c_str(),
-              coeff1, coeff2, coeff3, coeff4, coeff5, coeff6, coeff7, coeff8);
-          parse_coeffs(buf, "ebt", 0, 1, doffset, Atom::DIHEDRAL);
-          force->dihedral->coeff(ncoeffarg, coeffarg);
-        }
-      } else {
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
-                   "field for \"coeffs:endbondtorsion\"",
-                   id);
-      }
+  if (endbondtorsioncoeffsflag) {
+    const auto &endbondtorsioncoeffs = moldata["endbondtorsion_coeffs"]["data"];
+    secfmt.clear();
+
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: EndBondTorsion Coeffs");
+    if (force->dihedral == nullptr)
+      error->all(FLERR, Error::ARGZERO,
+                 "Must define dihedral_style before EndBondTorsion Coeffs");
+
+    for (auto item : endbondtorsioncoeffs) {
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      double coeff5 = item[5];
+      double coeff6 = item[6];
+      double coeff7 = item[7];
+      double coeff8 = item[8];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f %f %f\n", type.c_str(),
+          coeff1, coeff2, coeff3, coeff4, coeff5, coeff6, coeff7, coeff8);
+      parse_coeffs(buf, "ebt", 0, 1, doffset, Atom::DIHEDRAL);
+      force->dihedral->coeff(ncoeffarg, coeffarg);
     }
+  }
 
-    // angletorsion coeffs
+  // angletorsion coeffs
 
-    if (coeffsdata.contains("angletorsion")) {
-      if (!coeffsdata["angletorsion"].contains("format"))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
-                   "field for \"coeffs:angletorsion\"",
-                   id);
-      if (coeffsdata["angletorsion"].contains("data")) {
-        if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: angleTorsion Coeffs");
-        if (force->dihedral == nullptr)
-          error->all(FLERR, Error::ARGZERO,
-                     "Must define dihedral_style before angleTorsion Coeffs");
+  if (angletorsioncoeffsflag) {
+    const auto &angletorsioncoeffs = moldata["angletorsion_coeffs"]["data"];
+    secfmt.clear();
 
-        for (auto angletorsiondata : coeffsdata["angletorsion"]["data"]) {
-          std::string type = angletorsiondata[0];
-          double coeff1 = angletorsiondata[1];
-          double coeff2 = angletorsiondata[2];
-          double coeff3 = angletorsiondata[3];
-          double coeff4 = angletorsiondata[4];
-          double coeff5 = angletorsiondata[5];
-          double coeff6 = angletorsiondata[6];
-          double coeff7 = angletorsiondata[7];
-          double coeff8 = angletorsiondata[8];
-          char buf[MAXLINE];
-          snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f %f %f\n", type.c_str(),
-              coeff1, coeff2, coeff3, coeff4, coeff5, coeff6, coeff7, coeff8);
-          parse_coeffs(buf, "at", 0, 1, doffset, Atom::DIHEDRAL); 
-          force->dihedral->coeff(ncoeffarg, coeffarg);
-        }
-      } else {
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
-                   "field for \"coeffs:angletorsion\"",
-                   id);
-      }
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: angleTorsion Coeffs");
+    if (force->dihedral == nullptr)
+      error->all(FLERR, Error::ARGZERO,
+                 "Must define dihedral_style before angleTorsion Coeffs");
+
+    for (auto item : angletorsioncoeffs) {
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      double coeff5 = item[5];
+      double coeff6 = item[6];
+      double coeff7 = item[7];
+      double coeff8 = item[8];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f %f %f\n", type.c_str(),
+          coeff1, coeff2, coeff3, coeff4, coeff5, coeff6, coeff7, coeff8);
+      parse_coeffs(buf, "at", 0, 1, doffset, Atom::DIHEDRAL); 
+      force->dihedral->coeff(ncoeffarg, coeffarg);
     }
+  }
 
-    // angleangletorsion coeffs
+  // angleangletorsion coeffs
 
-    if (coeffsdata.contains("angleangletorsion")) {
-      if (!coeffsdata["angleangletorsion"].contains("format"))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
-                   "field for \"coeffs:angleangletorsion\"",
-                   id);
-      if (coeffsdata["angleangletorsion"].contains("data")) {
-        if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleTorsion Coeffs");
-        if (force->dihedral == nullptr)
-          error->all(FLERR, Error::ARGZERO,
-                     "Must define dihedral_style before AngleTorsion Coeffs");
+  if (angleangletorsioncoeffsflag) {
+    const auto &angleangletorsioncoeffs = moldata["angleangletorsion_coeffs"]["data"];
+    secfmt.clear();
 
-        for (auto angleangletorsiondata : coeffsdata["angleangletorsion"]["data"]) {
-          std::string type = angleangletorsiondata[0];
-          double coeff1 = angleangletorsiondata[1];
-          double coeff2 = angleangletorsiondata[2];
-          double coeff3 = angleangletorsiondata[3];
-          char buf[MAXLINE];
-          snprintf(buf, MAXLINE, "%s %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3);
-          parse_coeffs(buf, "aat", 0, 1, doffset, Atom::DIHEDRAL);
-          force->dihedral->coeff(ncoeffarg, coeffarg);
-        }
-      } else {
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
-                   "field for \"coeffs:angleangletorsion\"",
-                   id);
-      }
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleTorsion Coeffs");
+    if (force->dihedral == nullptr)
+      error->all(FLERR, Error::ARGZERO,
+                 "Must define dihedral_style before AngleTorsion Coeffs");
+
+    for (auto item : angleangletorsioncoeffs) {
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3);
+      parse_coeffs(buf, "aat", 0, 1, doffset, Atom::DIHEDRAL);
+      force->dihedral->coeff(ncoeffarg, coeffarg);
     }
+  }
 
-    // bondbond13 coeffs
+  // bondbond13 coeffs
 
-    if (coeffsdata.contains("bondbond13")) {
-      if (!coeffsdata["bondbond13"].contains("format"))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
-                   "field for \"coeffs:bondbond13\"",
-                   id);
-      if (coeffsdata["bondbond13"].contains("data")) {
-        if (atom->avec->dihedrals_allow == 0)
-          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondBond13 Coeffs");
-        if (force->dihedral == nullptr)
-          error->all(FLERR, Error::ARGZERO, "Must define dihedral_style before BondBond13 Coeffs");
+  if (bondbond13coeffsflag) {
+    const auto &bondbond13coeffs = moldata["bondbond13_coeffs"]["data"];
+    secfmt.clear();
 
-        for (auto bondbond13data : coeffsdata["bondbond13"]["data"]) {
-          std::string type = bondbond13data[0];
-          double coeff1 = bondbond13data[1];
-          double coeff2 = bondbond13data[2];
-          double coeff3 = bondbond13data[3];
-          char buf[MAXLINE];
-          snprintf(buf, MAXLINE, "%s %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3);
-          parse_coeffs(buf, "bb13", 0, 1, doffset, Atom::DIHEDRAL);
-          force->dihedral->coeff(ncoeffarg, coeffarg);
-        }
-      } else {
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
-                   "field for \"coeffs:bondbond13\"",
-                   id);
-      }
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->dihedrals_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondBond13 Coeffs");
+    if (force->dihedral == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define dihedral_style before BondBond13 Coeffs");
+
+    for (auto item : bondbond13coeffs) {
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3);
+      parse_coeffs(buf, "bb13", 0, 1, doffset, Atom::DIHEDRAL);
+      force->dihedral->coeff(ncoeffarg, coeffarg);
     }
+  }
 
-    // improper coeffs
+  // improper coeffs
 
-    if (coeffsdata.contains("improper")) {
-      if (!coeffsdata["improper"].contains("format"))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
-                   "field for \"coeffs:improper\"",
-                   id);
-      if (coeffsdata["improper"].contains("data")) {
-        if (atom->avec->impropers_allow == 0)
-          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Improper Coeffs");
-        if (force->improper == nullptr)
-          error->all(FLERR, Error::ARGZERO, "Must define improper_style before Improper Coeffs");
-        if (comm->me == 0 && !atom->style_match(force->improper_style))
-          error->warning(
-              FLERR,
-              "Improper style {} in molecule template file differs from currently defined improper style {}",
-              atom->get_style(), force->improper_style);
+  if (impropercoeffsflag) {
+    const auto &impropercoeffs = moldata["improper_coeffs"]["data"];
+    secfmt.clear();
 
-        for (auto improperdata : coeffsdata["improper"]["data"]) {
-          std::string type = improperdata[0];
-          double coeff1 = improperdata[1];
-          double coeff2 = improperdata[2];
-          char buf[MAXLINE];
-          snprintf(buf, MAXLINE, "%s %f %f\n", type.c_str(), coeff1, coeff2);
-          parse_coeffs(buf, nullptr, 0, 1, ioffset, Atom::IMPROPER); 
-          force->improper->coeff(ncoeffarg, coeffarg);
-        }
-      } else {
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
-                   "field for \"coeffs:improper\"",
-                   id);
-      }
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->impropers_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Improper Coeffs");
+    if (force->improper == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define improper_style before Improper Coeffs");
+    if (comm->me == 0 && !atom->style_match(force->improper_style))
+      error->warning(
+          FLERR,
+          "Improper style {} in molecule template file differs from currently defined improper style {}",
+          atom->get_style(), force->improper_style);
+
+    for (auto item : impropercoeffs) {
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f\n", type.c_str(), coeff1, coeff2);
+      parse_coeffs(buf, nullptr, 0, 1, ioffset, Atom::IMPROPER); 
+      force->improper->coeff(ncoeffarg, coeffarg);
     }
+  }
 
-    // angleangle coeffs
+  // angleangle coeffs
 
-    if (coeffsdata.contains("angleangle")) {
-      if (!coeffsdata["angleangle"].contains("format"))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"format\" "
-                   "field for \"coeffs:angleangle\"",
-                   id);
-      if (coeffsdata["angleangle"].contains("data")) {
-        if (atom->avec->impropers_allow == 0)
-          error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleAngle Coeffs");
-        if (force->improper == nullptr)
-          error->all(FLERR, Error::ARGZERO, "Must define improper_style before AngleAngle Coeffs");
+  if (angleanglecoeffsflag) {
+    const auto &angleanglecoeffs = moldata["angleangle_coeffs"]["data"];
+    secfmt.clear();
 
-        for (auto angleangledata : coeffsdata["angleangle"]["data"]) {
-          std::string type = angleangledata[0];
-          double coeff1 = angleangledata[1];
-          double coeff2 = angleangledata[2];
-          double coeff3 = angleangledata[3];
-          double coeff4 = angleangledata[4];
-          double coeff5 = angleangledata[5];
-          double coeff6 = angleangledata[6];
-          char buf[MAXLINE];
-          snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4, coeff5, coeff6);
-          parse_coeffs(buf, "aa", 0, 1, ioffset, Atom::IMPROPER);
-          force->improper->coeff(ncoeffarg, coeffarg);
-        }
-      } else {
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Molecule template {}: JSON molecule data does not contain required \"data\" "
-                   "field for \"coeffs:angleangle\"",
-                   id);
-      }
+    int tlabelflag = atom->labelmapflag;
+    if (!tlabelflag)
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
+    if (atom->avec->impropers_allow == 0)
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleAngle Coeffs");
+    if (force->improper == nullptr)
+      error->all(FLERR, Error::ARGZERO, "Must define improper_style before AngleAngle Coeffs");
+
+    for (auto item : angleanglecoeffs) {
+      std::string type = item[0];
+      double coeff1 = item[1];
+      double coeff2 = item[2];
+      double coeff3 = item[3];
+      double coeff4 = item[4];
+      double coeff5 = item[5];
+      double coeff6 = item[6];
+      char buf[MAXLINE];
+      snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f\n", type.c_str(), coeff1, coeff2, coeff3, coeff4, coeff5, coeff6);
+      parse_coeffs(buf, "aa", 0, 1, ioffset, Atom::IMPROPER);
+      force->improper->coeff(ncoeffarg, coeffarg);
     }
   }
 
@@ -5279,6 +5211,12 @@ void Molecule::initialize()
   centerflag = massflag = comflag = inertiaflag = 0;
   massflag_user = comflag_user = inertiaflag_user = specialflag_user = 0;
   tag_require = 0;
+
+  paircoeffsflag = bondcoeffsflag = anglecoeffsflag = dihedralcoeffsflag = impropercoeffsflag = 0;
+  bondbondcoeffsflag = bondanglecoeffsflag = 0;
+  middlebondtorsioncoeffsflag = endbondtorsioncoeffsflag = angletorsioncoeffsflag = 0;
+  angleangletorsioncoeffsflag = bondbond13coeffsflag = 0;
+  angleanglecoeffsflag = 0;
 
   ncoeffarg = maxcoeffarg = 0;
 

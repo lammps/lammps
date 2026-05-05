@@ -68,6 +68,14 @@ class Molecule : protected Pointers {
 
   int tag_require;
 
+  // 1 if molecule fields defined in JSON file, 0 if not
+
+  int paircoeffsflag, bondcoeffsflag, anglecoeffsflag, dihedralcoeffsflag, impropercoeffsflag;
+  int bondbondcoeffsflag, bondanglecoeffsflag;
+  int middlebondtorsioncoeffsflag, endbondtorsioncoeffsflag, angletorsioncoeffsflag;
+  int angleangletorsioncoeffsflag, bondbond13coeffsflag;
+  int angleanglecoeffsflag;
+
   // attributes
 
   double **x;          // displacement of each atom from origin

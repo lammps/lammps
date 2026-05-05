@@ -1088,6 +1088,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   }
 
   // atom type masses
+
   if (typemassflag) {
     int tlabelflag = atom->labelmapflag;
     if (!tlabelflag)
@@ -1099,6 +1100,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
       int itype = atom->lmap->find_type(typestr, Atom::ATOM);
       if (itype == -1)
         error->all(FLERR, fileiarg, "Unknown type {} in atom_type_masses JSON data", typestr);
+
       double value = item[1];
       if (atom->mass_setflag[itype])
         error->warning(FLERR, "Overwriting mass for type {} in atom_type_masses section.", typestr);
@@ -1669,6 +1671,10 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
           atom->get_style(), force->pair_style);
 
     for (auto item : paircoeffs) {
+      if (item.size() != 3)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for pair_coeff {}.",
+                   id, to_string(item));
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1694,6 +1700,10 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
           atom->get_style(), force->bond_style);
 
     for (auto item : bondcoeffs) {
+      if (item.size() != 5)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for bond_coeff {}.",
+                   id, to_string(item));
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1716,15 +1726,19 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
     if (atom->avec->angles_allow == 0)
-      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON section: coeffs: angle");
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON section: angle_coeffs");
     if (force->angle == nullptr)
       error->all(FLERR, Error::ARGZERO, "Must define angle_style before angle coeffs");
     if (comm->me == 0 && !atom->style_match(force->angle_style))
       error->warning(
-          FLERR, "Angle style {} in molecule template file differs from currently defined angle style {}",
+          FLERR, "Angle style {} in molecule template JSON file differs from currently defined angle style {}",
           atom->get_style(), force->angle_style);
 
     for (auto item : anglecoeffs) {
+      if (item.size() != 5)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for angle_coeff {}.",
+                   id, to_string(item));
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1747,11 +1761,15 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
     if (atom->avec->angles_allow == 0)
-      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON section: coeffs: bondbond");
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON section: bondbond_coeffs");
     if (force->angle == nullptr)
       error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondBond Coeffs");
 
     for (auto item : bondbondcoeffs) {
+      if (item.size() != 4)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for bondbond_coeff {}.",
+                   id, to_string(item));
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1773,11 +1791,15 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
     if (atom->avec->angles_allow == 0)
-      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondAngle Coeffs");
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: bondangle_coeffs");
     if (force->angle == nullptr)
       error->all(FLERR, Error::ARGZERO, "Must define angle_style before BondAngle Coeffs");
 
     for (auto item : bondanglecoeffs) {
+      if (item.size() != 5)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for bondangle_coeff {}.",
+                   id, to_string(item));
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1800,11 +1822,15 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
     if (atom->avec->dihedrals_allow == 0)
-      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Dihedral Coeffs");
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: dihedral_coeffs");
     if (force->dihedral == nullptr)
       error->all(FLERR, Error::ARGZERO, "Must define dihedral_style before Dihedral Coeffs");
 
     for (auto item : dihedralcoeffs) {
+      if (item.size() != 7)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for dihedral_coeff {}.",
+                   id, to_string(item));
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1829,12 +1855,16 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
     if (atom->avec->dihedrals_allow == 0)
-      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: MiddleBondTorsion Coeffs");
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: middlebondtorsion_coeffs");
     if (force->dihedral == nullptr)
       error->all(FLERR, Error::ARGZERO,
                  "Must define dihedral_style before MiddleBondTorsion Coeffs");
 
     for (auto item : middlebondtorsioncoeffs) {
+      if (item.size() != 5)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for middlebondtorsion_coeff {}.",
+                   id, to_string(item));
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1857,12 +1887,16 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
     if (atom->avec->dihedrals_allow == 0)
-      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: EndBondTorsion Coeffs");
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: endbondtorsion_coeffs");
     if (force->dihedral == nullptr)
       error->all(FLERR, Error::ARGZERO,
                  "Must define dihedral_style before EndBondTorsion Coeffs");
 
     for (auto item : endbondtorsioncoeffs) {
+      if (item.size() != 9)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for endbondtorsion_coeff {}.",
+                   id, to_string(item));
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1890,12 +1924,16 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
     if (atom->avec->dihedrals_allow == 0)
-      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: angleTorsion Coeffs");
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: angletorsion_coeffs");
     if (force->dihedral == nullptr)
       error->all(FLERR, Error::ARGZERO,
                  "Must define dihedral_style before angleTorsion Coeffs");
 
     for (auto item : angletorsioncoeffs) {
+      if (item.size() != 9)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for angletorsion_coeff {}.",
+                   id, to_string(item));
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1923,12 +1961,16 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
     if (atom->avec->dihedrals_allow == 0)
-      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleTorsion Coeffs");
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file JSON section: angleangletorsion_coeffs");
     if (force->dihedral == nullptr)
       error->all(FLERR, Error::ARGZERO,
                  "Must define dihedral_style before AngleTorsion Coeffs");
 
     for (auto item : angleangletorsioncoeffs) {
+      if (item.size() != 4)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for angleangletorsion_coeff {}.",
+                   id, to_string(item));
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1950,11 +1992,15 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
     if (atom->avec->dihedrals_allow == 0)
-      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondBond13 Coeffs");
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: bondbond13_coeffs");
     if (force->dihedral == nullptr)
       error->all(FLERR, Error::ARGZERO, "Must define dihedral_style before BondBond13 Coeffs");
 
     for (auto item : bondbond13coeffs) {
+      if (item.size() != 4)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for bondbond13_coeff {}.",
+                   id, to_string(item));
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1976,7 +2022,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
     if (atom->avec->impropers_allow == 0)
-      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Improper Coeffs");
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: improper_coeffs");
     if (force->improper == nullptr)
       error->all(FLERR, Error::ARGZERO, "Must define improper_style before Improper Coeffs");
     if (comm->me == 0 && !atom->style_match(force->improper_style))
@@ -1986,6 +2032,10 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
           atom->get_style(), force->improper_style);
 
     for (auto item : impropercoeffs) {
+      if (item.size() != 3)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for improper_coeff {}.",
+                   id, to_string(item));
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -2006,11 +2056,15 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
     if (atom->avec->impropers_allow == 0)
-      error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleAngle Coeffs");
+      error->all(FLERR, Error::ARGZERO, "Invalid molecule template JSON file section: angleangle_coeffs");
     if (force->improper == nullptr)
       error->all(FLERR, Error::ARGZERO, "Must define improper_style before AngleAngle Coeffs");
 
     for (auto item : angleanglecoeffs) {
+      if (item.size() != 7)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Molecule template {}: invalid format of JSON data for angleangle_coeff {}.",
+                   id, to_string(item));
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];

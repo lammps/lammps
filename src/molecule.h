@@ -54,7 +54,7 @@ class Molecule : protected Pointers {
   int nspecialflag, specialflag;
   int shakeflag, shakeflagflag, shakeatomflag, shaketypeflag;
   int bodyflag, ibodyflag, dbodyflag;
-  int pertype_massflag;
+  int typemassflag;
 
   // 1 if attribute defined or computed, 0 if not
 
@@ -169,7 +169,7 @@ class Molecule : protected Pointers {
   void diameters(char *);
   void dipoles(char *);
   void masses(char *);
-  void pertype_masses(char *);
+  void type_masses(char *);
   void bonds(int, char *);
   void angles(int, char *);
   void dihedrals(int, char *);

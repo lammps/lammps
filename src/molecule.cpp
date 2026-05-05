@@ -404,7 +404,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   JSON_INIT_FIELD(angles, nangles, angleflag, false, 0);
   JSON_INIT_FIELD(dihedrals, ndihedrals, dihedralflag, false, 0);
   JSON_INIT_FIELD(impropers, nimpropers, improperflag, false, 0);
-  JSON_INIT_FIELD(per-type-masses, natomtypes, pertype_massflag, false, 0);
+  JSON_INIT_FIELD(atom-type-masses, natomtypes, typemassflag, false, 0);
 
 #undef JSON_INIT_FIELD
   // special is nested
@@ -1074,21 +1074,21 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     }
   }
 
-  // per-type masses
-  if (pertype_massflag) {
+  // atom type masses
+  if (typemassflag) {
     int tlabelflag = atom->labelmapflag;
     if (!tlabelflag)
-      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning per-type masses.");
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning atom-type masses.");
 
     for (int i = 0; i < natomtypes; i++) {
-      const auto &item = moldata["per-type-masses"]["data"][i];
+      const auto &item = moldata["atom-type-masses"]["data"][i];
       std::string typestr = item[0];
       int itype = atom->lmap->find_type(typestr, Atom::ATOM);
       if (itype == -1)
-        error->all(FLERR, fileiarg, "Unknown type {} in per-type-masses JSON data", typestr);
+        error->all(FLERR, fileiarg, "Unknown type {} in atom-type-masses JSON data", typestr);
       double value = item[1];
       if (atom->mass_setflag[itype])
-        error->warning(FLERR, "Overwriting mass for type {} in per-type-masses section.", typestr);
+        error->warning(FLERR, "Overwriting mass for type {} in atom-type-masses section.", typestr);
       atom->set_mass(FLERR, itype, value);
     }
   }
@@ -1645,7 +1645,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     const auto &coeffsdata = moldata["coeffs"];
     int tlabelflag = atom->labelmapflag;
     if (!tlabelflag)
-      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning per-type masses.");
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning coeffs.");
 
     // pair coeffs
     if (coeffsdata.contains("pair")) {
@@ -3099,10 +3099,10 @@ void Molecule::read(int flag)
         masses(line);
       else
         skip_lines(natoms, line, keyword);
-    } else if (keyword == "Per-Type Masses") {
-      pertype_massflag = 1;
+    } else if (keyword == "Atom Type Masses") {
+      typemassflag = 1;
       if (flag)
-        pertype_masses(line);
+        type_masses(line);
       else
         skip_lines(natomtypes, line, keyword);
 
@@ -3713,14 +3713,16 @@ void Molecule::masses(char *line)
 }
 
 /* ----------------------------------------------------------------------
-   read per-type masses from file
+   read atom type masses from file
 ------------------------------------------------------------------------- */
 
-void Molecule::pertype_masses(char *line)
+void Molecule::type_masses(char *line)
 {
+  const std::string location = "Atom Type Masses section of molecule file";
+
   int tlabelflag = atom->labelmapflag;
   if (!tlabelflag)
-    error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning per-type masses.");
+    error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning atom type masses.");
 
   for (int i = 0; i < natomtypes; i++) {
     readline(line);
@@ -3729,10 +3731,10 @@ void Molecule::pertype_masses(char *line)
     std::string typestr = utils::utf8_subst(values[0]);
     int itype = atom->lmap->find_type(typestr, Atom::ATOM);
     if (itype == -1)
-      error->all(FLERR, fileiarg, "Unknown type {} in per-type-masses JSON data", typestr);
+      error->all(FLERR, fileiarg, "Unknown type {} in {}.", typestr, location);
 
     if (atom->mass_setflag[itype])
-      error->warning(FLERR, "Overwriting mass for type {} in Per-Type Masses section.", typestr);
+      error->warning(FLERR, "Overwriting mass for type {} in {}.", typestr, location);
     atom->set_mass(FLERR, line, toffset, tlabelflag, atom->lmap->lmap2lmap.atom);
   }
 }
@@ -5272,7 +5274,7 @@ void Molecule::initialize()
   nspecialflag = specialflag = 0;
   shakeflag = shakeflagflag = shakeatomflag = shaketypeflag = 0;
   bodyflag = ibodyflag = dbodyflag = 0;
-  pertype_massflag = 0;
+  typemassflag = 0;
 
   centerflag = massflag = comflag = inertiaflag = 0;
   massflag_user = comflag_user = inertiaflag_user = specialflag_user = 0;

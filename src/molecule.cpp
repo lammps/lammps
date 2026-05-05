@@ -404,20 +404,20 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   JSON_INIT_FIELD(angles, nangles, angleflag, false, 0);
   JSON_INIT_FIELD(dihedrals, ndihedrals, dihedralflag, false, 0);
   JSON_INIT_FIELD(impropers, nimpropers, improperflag, false, 0);
-  JSON_INIT_FIELD(atom_type_masses, natomtypes, typemassflag, false, 0);
-  JSON_INIT_FIELD(pair_coeffs, natomtypes, paircoeffsflag, false, 0);
-  JSON_INIT_FIELD(bond_coeffs, nbondcoefftypes, bondcoeffsflag, false, 0);
-  JSON_INIT_FIELD(angle_coeffs, nanglecoefftypes, anglecoeffsflag, false, 0);
-  JSON_INIT_FIELD(dihedral_coeffs, ndihedralcoefftypes, dihedralcoeffsflag, false, 0);
-  JSON_INIT_FIELD(improper_coeffs, nimpropercoefftypes, impropercoeffsflag, false, 0);
-  JSON_INIT_FIELD(bondbond_coeffs, nanglecoefftypes, bondbondcoeffsflag, false, 0);
-  JSON_INIT_FIELD(bondangle_coeffs, nanglecoefftypes, bondanglecoeffsflag, false, 0);
-  JSON_INIT_FIELD(middlebondtorsion_coeffs, ndihedralcoefftypes, middlebondtorsioncoeffsflag, false, 0);
-  JSON_INIT_FIELD(endbondtorsion_coeffs, ndihedralcoefftypes, endbondtorsioncoeffsflag, false, 0);
-  JSON_INIT_FIELD(angletorsion_coeffs, ndihedralcoefftypes, angletorsioncoeffsflag, false, 0);
-  JSON_INIT_FIELD(angleangletorsion_coeffs, ndihedralcoefftypes, angleangletorsioncoeffsflag, false, 0);
-  JSON_INIT_FIELD(bondbond13_coeffs, ndihedralcoefftypes, bondbond13coeffsflag, false, 0);
-  JSON_INIT_FIELD(angleangle_coeffs, nimpropercoefftypes, angleanglecoeffsflag, false, 0);
+  JSON_INIT_FIELD(atom_type_masses, npaircoeffs, typemassflag, false, 0);
+  JSON_INIT_FIELD(pair_coeffs, npaircoeffs, paircoeffsflag, false, 0);
+  JSON_INIT_FIELD(bond_coeffs, nbondcoeffs, bondcoeffsflag, false, 0);
+  JSON_INIT_FIELD(angle_coeffs, nanglecoeffs, anglecoeffsflag, false, 0);
+  JSON_INIT_FIELD(dihedral_coeffs, ndihedralcoeffs, dihedralcoeffsflag, false, 0);
+  JSON_INIT_FIELD(improper_coeffs, nimpropercoeffs, impropercoeffsflag, false, 0);
+  JSON_INIT_FIELD(bondbond_coeffs, nanglecoeffs, bondbondcoeffsflag, false, 0);
+  JSON_INIT_FIELD(bondangle_coeffs, nanglecoeffs, bondanglecoeffsflag, false, 0);
+  JSON_INIT_FIELD(middlebondtorsion_coeffs, ndihedralcoeffs, middlebondtorsioncoeffsflag, false, 0);
+  JSON_INIT_FIELD(endbondtorsion_coeffs, ndihedralcoeffs, endbondtorsioncoeffsflag, false, 0);
+  JSON_INIT_FIELD(angletorsion_coeffs, ndihedralcoeffs, angletorsioncoeffsflag, false, 0);
+  JSON_INIT_FIELD(angleangletorsion_coeffs, ndihedralcoeffs, angleangletorsioncoeffsflag, false, 0);
+  JSON_INIT_FIELD(bondbond13_coeffs, ndihedralcoeffs, bondbond13coeffsflag, false, 0);
+  JSON_INIT_FIELD(angleangle_coeffs, nimpropercoeffs, angleanglecoeffsflag, false, 0);
 
 #undef JSON_INIT_FIELD
   // special is nested
@@ -1094,7 +1094,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
     if (!tlabelflag)
       error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning atom type masses.");
 
-    for (int i = 0; i < natomtypes; i++) {
+    for (int i = 0; i < npaircoeffs; i++) {
       const auto &item = moldata["atom_type_masses"]["data"][i];
       std::string typestr = item[0];
       int itype = atom->lmap->find_type(typestr, Atom::ATOM);
@@ -2937,20 +2937,20 @@ void Molecule::read(int flag)
       } else if (values.matches(R"(^\s*\d+\s+impropers\s*$)")) {
         nimpropers = values.next_int();
         nwant = 2;
-      } else if (values.matches(R"(^\s*\d+\s+atom\s+types\s*$)")) {
-        natomtypes = values.next_int();
+      } else if (values.matches(R"(^\s*\d+\s+pair\s+coeffs\s*$)")) {
+        npaircoeffs = values.next_int();
         nwant = 3;
-      } else if (values.matches(R"(^\s*\d+\s+bond\s+types\s*$)")) {
-        nbondcoefftypes = values.next_int();
+      } else if (values.matches(R"(^\s*\d+\s+bond\s+coeffs\s*$)")) {
+        nbondcoeffs = values.next_int();
         nwant = 3;
-      } else if (values.matches(R"(^\s*\d+\s+angle\s+types\s*$)")) {
-        nanglecoefftypes = values.next_int();
+      } else if (values.matches(R"(^\s*\d+\s+angle\s+coeffs\s*$)")) {
+        nanglecoeffs = values.next_int();
         nwant = 3;
-      } else if (values.matches(R"(^\s*\d+\s+dihedral\s+types\s*$)")) {
-        ndihedralcoefftypes = values.next_int();
+      } else if (values.matches(R"(^\s*\d+\s+dihedral\s+coeffs\s*$)")) {
+        ndihedralcoeffs = values.next_int();
         nwant = 3;
-      } else if (values.matches(R"(^\s*\d+\s+improper\s+types\s*$)")) {
-        nimpropercoefftypes = values.next_int();
+      } else if (values.matches(R"(^\s*\d+\s+improper\s+coeffs\s*$)")) {
+        nimpropercoeffs = values.next_int();
         nwant = 3;
       } else if (values.matches(R"(^\s*\d+\s+fragments\s*$)")) {
         nfragments = values.next_int();
@@ -3090,7 +3090,7 @@ void Molecule::read(int flag)
       if (flag)
         type_masses(line);
       else
-        skip_lines(natomtypes, line, keyword);
+        skip_lines(npaircoeffs, line, keyword);
 
     } else if (keyword == "Bonds") {
       if (nbonds == 0)
@@ -3172,7 +3172,7 @@ void Molecule::read(int flag)
               atom->get_style(), force->pair_style);
         paircoeffs();
       } else
-        skip_lines(natomtypes, line, keyword);
+        skip_lines(npaircoeffs, line, keyword);
     } else if (keyword == "Bond Coeffs") {
       if (atom->avec->bonds_allow == 0)
         error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Bond Coeffs");
@@ -3185,7 +3185,7 @@ void Molecule::read(int flag)
               atom->get_style(), force->bond_style);
         bondcoeffs();
       } else
-        skip_lines(nbondcoefftypes, line, keyword);
+        skip_lines(nbondcoeffs, line, keyword);
     } else if (keyword == "Angle Coeffs") {
       if (atom->avec->angles_allow == 0)
         error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Angle Coeffs");
@@ -3198,7 +3198,7 @@ void Molecule::read(int flag)
               atom->get_style(), force->angle_style);
         anglecoeffs(0);
       } else
-        skip_lines(nanglecoefftypes, line, keyword);
+        skip_lines(nanglecoeffs, line, keyword);
     } else if (keyword == "BondBond Coeffs") {
       if (atom->avec->angles_allow == 0)
         error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondBond Coeffs");
@@ -3207,7 +3207,7 @@ void Molecule::read(int flag)
       if (flag)
         anglecoeffs(1);
       else
-        skip_lines(nanglecoefftypes, line, keyword);
+        skip_lines(nanglecoeffs, line, keyword);
     } else if (keyword == "BondAngle Coeffs") {
       if (atom->avec->angles_allow == 0)
         error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondAngle Coeffs");
@@ -3216,7 +3216,7 @@ void Molecule::read(int flag)
       if (flag)
         anglecoeffs(2);
       else
-        skip_lines(nanglecoefftypes, line, keyword);
+        skip_lines(nanglecoeffs, line, keyword);
     } else if (keyword == "Dihedral Coeffs") {
       if (atom->avec->dihedrals_allow == 0)
         error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Dihedral Coeffs");
@@ -3230,7 +3230,7 @@ void Molecule::read(int flag)
               atom->get_style(), force->dihedral_style);
         dihedralcoeffs(0);
       } else
-        skip_lines(ndihedralcoefftypes, line, keyword);
+        skip_lines(ndihedralcoeffs, line, keyword);
     } else if (keyword == "MiddleBondTorsion Coeffs") {
       if (atom->avec->dihedrals_allow == 0)
         error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: MiddleBondTorsion Coeffs");
@@ -3240,7 +3240,7 @@ void Molecule::read(int flag)
       if (flag)
         dihedralcoeffs(1);
       else
-        skip_lines(ndihedralcoefftypes, line, keyword);
+        skip_lines(ndihedralcoeffs, line, keyword);
     } else if (keyword == "EndBondTorsion Coeffs") {
       if (atom->avec->dihedrals_allow == 0)
         error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: EndBondTorsion Coeffs");
@@ -3250,7 +3250,7 @@ void Molecule::read(int flag)
       if (flag)
         dihedralcoeffs(2);
       else
-        skip_lines(ndihedralcoefftypes, line, keyword);
+        skip_lines(ndihedralcoeffs, line, keyword);
     } else if (keyword == "AngleTorsion Coeffs") {
       if (atom->avec->dihedrals_allow == 0)
         error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleTorsion Coeffs");
@@ -3260,7 +3260,7 @@ void Molecule::read(int flag)
       if (flag)
         dihedralcoeffs(3);
       else
-        skip_lines(ndihedralcoefftypes, line, keyword);
+        skip_lines(ndihedralcoeffs, line, keyword);
     } else if (keyword == "AngleAngleTorsion Coeffs") {
       if (atom->avec->dihedrals_allow == 0)
         error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleAngleTorsion Coeffs");
@@ -3270,7 +3270,7 @@ void Molecule::read(int flag)
       if (flag)
         dihedralcoeffs(4);
       else
-        skip_lines(ndihedralcoefftypes, line, keyword);
+        skip_lines(ndihedralcoeffs, line, keyword);
     } else if (keyword == "BondBond13 Coeffs") {
       if (atom->avec->dihedrals_allow == 0)
         error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: BondBond13 Coeffs");
@@ -3279,7 +3279,7 @@ void Molecule::read(int flag)
       if (flag)
         dihedralcoeffs(5);
       else
-        skip_lines(ndihedralcoefftypes, line, keyword);
+        skip_lines(ndihedralcoeffs, line, keyword);
     } else if (keyword == "Improper Coeffs") {
       if (atom->avec->impropers_allow == 0)
         error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: Improper Coeffs");
@@ -3293,7 +3293,7 @@ void Molecule::read(int flag)
               atom->get_style(), force->improper_style);
         impropercoeffs(0);
       } else
-        skip_lines(nimpropercoefftypes, line, keyword);
+        skip_lines(nimpropercoeffs, line, keyword);
     } else if (keyword == "AngleAngle Coeffs") {
       if (atom->avec->impropers_allow == 0)
         error->all(FLERR, Error::ARGZERO, "Invalid molecule template file section: AngleAngle Coeffs");
@@ -3302,7 +3302,7 @@ void Molecule::read(int flag)
       if (flag)
         impropercoeffs(1);
       else
-        skip_lines(nimpropercoefftypes, line, keyword);
+        skip_lines(nimpropercoeffs, line, keyword);
 
     } else if ((keyword == "Atoms") || (keyword == "Velocities")) {
       error->all(FLERR, fileiarg, "Found data file section '{}' in molecule file\n", keyword);
@@ -3710,7 +3710,7 @@ void Molecule::type_masses(char *line)
   if (!tlabelflag)
     error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning atom type masses.");
 
-  for (int i = 0; i < natomtypes; i++) {
+  for (int i = 0; i < npaircoeffs; i++) {
     readline(line);
     auto values = Tokenizer(utils::trim(line)).as_vector();
 
@@ -4945,21 +4945,21 @@ void Molecule::body(int flag, int pflag, char *line)
 void Molecule::paircoeffs()
 {
   char *next;
-  auto *buf = new char[natomtypes * MAXLINE];
+  auto *buf = new char[npaircoeffs * MAXLINE];
 
-  int eof = utils::read_lines_from_file(fp, natomtypes, MAXLINE, buf, comm->me, world);
+  int eof = utils::read_lines_from_file(fp, npaircoeffs, MAXLINE, buf, comm->me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
   int tlabelflag = atom->labelmapflag;
   if (!tlabelflag)
     error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning pair coeffs.");
 
-  for (int i = 0; i < natomtypes; i++) {
+  for (int i = 0; i < npaircoeffs; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
     parse_coeffs(buf, nullptr, 1, 2, toffset, Atom::ATOM);
     if (ncoeffarg == 0)
-      error->all(FLERR, "Unexpected empty line in PairCoeffs section. Expected {} lines.", natomtypes);
+      error->all(FLERR, "Unexpected empty line in PairCoeffs section. Expected {} lines.", npaircoeffs);
     force->pair->coeff(ncoeffarg, coeffarg);
     buf = next + 1;
   }
@@ -4972,9 +4972,9 @@ void Molecule::paircoeffs()
 void Molecule::bondcoeffs()
 {
   char *next;
-  auto *buf = new char[nbondcoefftypes * MAXLINE];
+  auto *buf = new char[nbondcoeffs * MAXLINE];
 
-  int eof = utils::read_lines_from_file(fp, nbondcoefftypes, MAXLINE, buf, comm->me, world);
+  int eof = utils::read_lines_from_file(fp, nbondcoeffs, MAXLINE, buf, comm->me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
   int tlabelflag = atom->labelmapflag;
@@ -4982,13 +4982,13 @@ void Molecule::bondcoeffs()
     error->all(FLERR, "Label map is not enabled: bond type labels must be defined before assigning bond coeffs.");
 
   char *original = buf;
-  for (int i = 0; i < nbondcoefftypes; i++) {
+  for (int i = 0; i < nbondcoeffs; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
     parse_coeffs(buf, nullptr, 0, 1, boffset, Atom::BOND);
     if (ncoeffarg == 0)
       error->all(FLERR, "Unexpected empty line in BondCoeffs section. Expected {} lines.",
-                 nbondcoefftypes);
+                 nbondcoeffs);
     force->bond->coeff(ncoeffarg, coeffarg);
     buf = next + 1;
   }
@@ -5001,12 +5001,12 @@ void Molecule::bondcoeffs()
 
 void Molecule::anglecoeffs(int which)
 {
-  if (!nanglecoefftypes) return;
+  if (!nanglecoeffs) return;
 
   char *next;
-  auto *buf = new char[nanglecoefftypes * MAXLINE];
+  auto *buf = new char[nanglecoeffs * MAXLINE];
 
-  int eof = utils::read_lines_from_file(fp, nanglecoefftypes, MAXLINE, buf, comm->me, world);
+  int eof = utils::read_lines_from_file(fp, nanglecoeffs, MAXLINE, buf, comm->me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
   int tlabelflag = atom->labelmapflag;
@@ -5014,7 +5014,7 @@ void Molecule::anglecoeffs(int which)
     error->all(FLERR, "Label map is not enabled: angle type labels must be defined before assigning angle coeffs.");
 
   char *original = buf;
-  for (int i = 0; i < nanglecoefftypes; i++) {
+  for (int i = 0; i < nanglecoeffs; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
     if (which == 0)
@@ -5038,12 +5038,12 @@ void Molecule::anglecoeffs(int which)
 
 void Molecule::dihedralcoeffs(int which)
 {
-  if (!ndihedralcoefftypes) return;
+  if (!ndihedralcoeffs) return;
 
   char *next;
-  auto *buf = new char[ndihedralcoefftypes * MAXLINE];
+  auto *buf = new char[ndihedralcoeffs * MAXLINE];
 
-  int eof = utils::read_lines_from_file(fp, ndihedralcoefftypes, MAXLINE, buf, comm->me, world);
+  int eof = utils::read_lines_from_file(fp, ndihedralcoeffs, MAXLINE, buf, comm->me, world);
   if (eof) error->all(FLERR, "Unexpected end of molecule template file");
 
   int tlabelflag = atom->labelmapflag;
@@ -5051,7 +5051,7 @@ void Molecule::dihedralcoeffs(int which)
     error->all(FLERR, "Label map is not enabled: dihedral type labels must be defined before assigning dihedral coeffs.");
 
   char *original = buf;
-  for (int i = 0; i < ndihedralcoefftypes; i++) {
+  for (int i = 0; i < ndihedralcoeffs; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
     if (which == 0)
@@ -5079,12 +5079,12 @@ void Molecule::dihedralcoeffs(int which)
 
 void Molecule::impropercoeffs(int which)
 {
-  if (!nimpropercoefftypes) return;
+  if (!nimpropercoeffs) return;
 
   char *next;
-  auto *buf = new char[nimpropercoefftypes * MAXLINE];
+  auto *buf = new char[nimpropercoeffs * MAXLINE];
 
-  int eof = utils::read_lines_from_file(fp, nimpropercoefftypes, MAXLINE, buf, comm->me, world);
+  int eof = utils::read_lines_from_file(fp, nimpropercoeffs, MAXLINE, buf, comm->me, world);
   if (eof) error->all(FLERR, "Unexpected end of molecule template file");
 
   int tlabelflag = atom->labelmapflag;
@@ -5092,7 +5092,7 @@ void Molecule::impropercoeffs(int which)
     error->all(FLERR, "Label map is not enabled: improper type labels must be defined before assigning improper coeffs.");
 
   char *original = buf;
-  for (int i = 0; i < nimpropercoefftypes; i++) {
+  for (int i = 0; i < nimpropercoeffs; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
     if (which == 0)
@@ -5238,7 +5238,7 @@ void Molecule::initialize()
   ntypes = 0;
   nmolecules = 1;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
-  nbondcoefftypes = nanglecoefftypes = ndihedralcoefftypes = nimpropercoefftypes = 0;
+  nbondcoeffs = nanglecoeffs = ndihedralcoeffs = nimpropercoeffs = 0;
   nibody = ndbody = 0;
   nfragments = 0;
   masstotal = 0.0;

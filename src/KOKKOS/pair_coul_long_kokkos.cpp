@@ -57,25 +57,16 @@ PairCoulLongKokkos<DeviceType,PairCoulLongBase,TIP4P,SOFT>::PairCoulLongKokkos(L
 
 namespace LAMMPS_NS {
 
-// coul/long/kk
-template class PairCoulLongKokkos<LMPDeviceType,PairCoulLong,false,false>;
+  // coul/long/kk
+  template class PairCoulLongKokkos<LMPDeviceType,PairCoulLong,false,false>;
 
-// tip4p/long/kk
-//template class PairCoulLongKokkos<LMPDeviceType,PairTIP4PLong,true,false>;
+  // tip4p/long/kk
+  template class PairCoulLongKokkos<LMPDeviceType,PairTIP4PLong,true,false>;
 
-#ifdef LMP_FEP
-
-  // coul/long/soft/kk
-  //template class PairCoulLongKokkos<LMPDeviceType,false,true>;
-
-  // tip4p/long/soft/kk
-  //template class PairCoulLongKokkos<LMPDeviceType,true,true>;
-
-#endif // LMP_FEP
-
-#ifdef LMP_KOKKOS_GPU
-//template class PairCoulLongKokkos<LMPHostType,TIP4P,SOFT>;
-#endif
+  #ifdef LMP_KOKKOS_GPU
+    //template class PairCoulLongKokkos<LMPHostType,TIP4P,SOFT>;
+  #endif
+  
 }
 
 

@@ -18,12 +18,12 @@ PairStyle(coul/long/kk,        PairCoulLongKokkos<LMPDeviceType,PairCoulLong,fal
 PairStyle(coul/long/kk/device, PairCoulLongKokkos<LMPDeviceType,PairCoulLong,false,false>);
 PairStyle(coul/long/kk/host,   PairCoulLongKokkos<LMPHostType,  PairCoulLong,false,false>);
 
-/*
+
 PairStyle(tip4p/long/kk,        PairCoulLongKokkos<LMPDeviceType,PairTIP4PLong,true,false>);
 PairStyle(tip4p/long/kk/device, PairCoulLongKokkos<LMPDeviceType,PairTIP4PLong,true,false>);
 PairStyle(tip4p/long/kk/host,   PairCoulLongKokkos<LMPHostType,  PairTIP4PLong,true,false>);
 
-
+/*
 PairStyle(coul/long/soft/kk,        PairCoulLongKokkos<LMPDeviceType,PairCoulLongSoft,false,true>);
 PairStyle(coul/long/soft/kk/device, PairCoulLongKokkos<LMPDeviceType,PairCoulLongSoft,false,true>);
 PairStyle(coul/long/soft/kk/host,   PairCoulLongKokkos<LMPHostType,  PairCoulLongSoft,false,true>);
@@ -42,8 +42,6 @@ PairStyle(tip4p/long/soft/kk/host,   PairCoulLongKokkos<LMPHostType,  PairTIP4PL
 #define LMP_PAIR_COUL_LONG_KOKKOS_H
 
 #include "pair_kokkos.h"
-#include "neigh_list_kokkos.h"
-#include "fix.h"
 
 namespace LAMMPS_NS {
 
@@ -51,7 +49,8 @@ template<class DeviceType, class PairCoulLongBase, bool TIP4P, bool SOFT>
 class PairCoulLongKokkos : public PairKokkos<DeviceType,PairCoulLongBase,false,TIP4P,SOFT>
 {
  public:
-
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
+  enum {COUL_FLAG=1};
   PairCoulLongKokkos(class LAMMPS *);
 
 };

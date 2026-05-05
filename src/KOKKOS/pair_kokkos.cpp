@@ -30,19 +30,10 @@
 #include "respa.h"
 #include "update.h"
 
-//#if defined(LMP_FEP)
-//  #include "pair_tip4p_long_soft.h"
-//#endif
-
 #include "pair_coul_long.h"
 #include "pair_tip4p_long.h"
-
-//#if defined(LMP_KSPACE)
-  #include "pair_lj_cut_coul_long.h"
-  #include "pair_lj_cut_tip4p_long.h"
-//#endif
-
-
+#include "pair_lj_cut_coul_long.h"
+#include "pair_lj_cut_tip4p_long.h"
 
 #include <cmath>
 #include <cstring>

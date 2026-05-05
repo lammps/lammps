@@ -404,7 +404,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   JSON_INIT_FIELD(angles, nangles, angleflag, false, 0);
   JSON_INIT_FIELD(dihedrals, ndihedrals, dihedralflag, false, 0);
   JSON_INIT_FIELD(impropers, nimpropers, improperflag, false, 0);
-  JSON_INIT_FIELD(atom-type-masses, natomtypes, typemassflag, false, 0);
+  JSON_INIT_FIELD(atom_type_masses, natomtypes, typemassflag, false, 0);
 
 #undef JSON_INIT_FIELD
   // special is nested
@@ -1078,17 +1078,17 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
   if (typemassflag) {
     int tlabelflag = atom->labelmapflag;
     if (!tlabelflag)
-      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning atom-type masses.");
+      error->all(FLERR, "Label map is not enabled: atom type labels must be defined before assigning atom type masses.");
 
     for (int i = 0; i < natomtypes; i++) {
-      const auto &item = moldata["atom-type-masses"]["data"][i];
+      const auto &item = moldata["atom_type_masses"]["data"][i];
       std::string typestr = item[0];
       int itype = atom->lmap->find_type(typestr, Atom::ATOM);
       if (itype == -1)
-        error->all(FLERR, fileiarg, "Unknown type {} in atom-type-masses JSON data", typestr);
+        error->all(FLERR, fileiarg, "Unknown type {} in atom_type_masses JSON data", typestr);
       double value = item[1];
       if (atom->mass_setflag[itype])
-        error->warning(FLERR, "Overwriting mass for type {} in atom-type-masses section.", typestr);
+        error->warning(FLERR, "Overwriting mass for type {} in atom_type_masses section.", typestr);
       atom->set_mass(FLERR, itype, value);
     }
   }

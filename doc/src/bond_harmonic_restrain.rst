@@ -4,7 +4,7 @@
 bond_style harmonic/restrain command
 ====================================
 
-Accelerator Variant: *harmonic/restrain/omp*
+Accelerator Variants: *harmonic/restrain/omp*
 
 Syntax
 """"""

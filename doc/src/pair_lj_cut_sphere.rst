@@ -4,7 +4,7 @@
 pair_style lj/cut/sphere command
 ================================
 
-Accelerator Variant: *lj/cut/sphere/omp*
+Accelerator Variants: *lj/cut/sphere/omp*
 
 Syntax
 """"""

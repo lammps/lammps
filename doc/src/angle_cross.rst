@@ -1,7 +1,10 @@
 .. index:: angle_style cross
+.. index:: angle_style cross/omp
 
 angle_style cross command
 =========================
+
+Accelerator Variants: *cross/omp*
 
 Syntax
 """"""
@@ -49,6 +52,12 @@ or :doc:`read_restart <read_restart>` commands:
 :math:`\theta_0` is specified in degrees, but LAMMPS converts it to
 radians internally; hence the :math:`K_{BS0}` and :math:`K_{BS1}` are
 effectively energy/distance per radian.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

@@ -18,17 +18,17 @@ Accelerator Variants: *hybrid/kk*, *hybrid/omp*
 pair_style hybrid/molecular command
 ===================================
 
-Accelerator Variant: *hybrid/molecular/omp*
+Accelerator Variants: *hybrid/molecular/omp*
 
 pair_style hybrid/overlay command
 =================================
 
-Accelerator Variants: *hybrid/overlay/kk*, *hybrid/overlay/omp*
+Accelerator Variants: *hybrid/overlay/omp*, *hybrid/overlay/kk*
 
 pair_style hybrid/scaled command
-==================================
+================================
 
-Accelerator Variant: *hybrid/overlay/kk*, *hybrid/scaled/omp*
+Accelerator Variants: *hybrid/scaled/kk*, *hybrid/scaled/omp*
 
 Syntax
 """"""

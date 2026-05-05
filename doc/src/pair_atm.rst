@@ -4,7 +4,7 @@
 pair_style atm command
 ======================
 
-Accelerator Variant: *atm/omp*
+Accelerator Variants: *atm/omp*
 
 Syntax
 """"""

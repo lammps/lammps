@@ -2,7 +2,7 @@
 .. index:: pair_style pod/kk
 
 pair_style pod command
-========================
+======================
 
 Accelerator Variants: *pod/kk*
 

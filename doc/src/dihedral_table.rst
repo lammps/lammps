@@ -6,12 +6,12 @@
 dihedral_style table command
 ============================
 
-Accelerator Variant: *table/omp*
+Accelerator Variants: *table/omp*
 
 dihedral_style table/cut command
 ================================
 
-Accelerator Variant: *table/cut/omp*
+Accelerator Variants: *table/cut/omp*
 
 Syntax
 """"""

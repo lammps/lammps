@@ -4,7 +4,7 @@
 angle_style gaussian command
 ============================
 
-Accelerator Variant: *gaussian/omp*
+Accelerator Variants: *gaussian/omp*
 
 Syntax
 """"""

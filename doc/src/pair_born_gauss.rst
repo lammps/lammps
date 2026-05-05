@@ -4,7 +4,7 @@
 pair_style born/gauss command
 =============================
 
-Accelerator Variant: *born/gauss/omp*
+Accelerator Variants: *born/gauss/omp*
 
 Syntax
 """"""

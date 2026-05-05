@@ -39,10 +39,10 @@ pair_style eam/cd/old command
 pair_style eam/fs command
 =========================
 
+Accelerator Variants: *eam/fs/gpu*, *eam/fs/intel*, *eam/fs/kk*, *eam/fs/omp*, *eam/fs/opt*
+
 pair_style eam/he command
 =========================
-
-Accelerator Variants: *eam/fs/gpu*, *eam/fs/intel*, *eam/fs/kk*, *eam/fs/omp*, *eam/fs/opt*
 
 Syntax
 """"""

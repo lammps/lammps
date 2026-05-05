@@ -38,7 +38,7 @@ Accelerator Variants: *coul/cut/gpu*, *coul/cut/kk*, *coul/cut/omp*
 pair_style coul/cut/global command
 ==================================
 
-Accelerator Variants: *coul/cut/omp*
+Accelerator Variants: *coul/cut/global/omp*
 
 pair_style coul/ctip command
 ============================

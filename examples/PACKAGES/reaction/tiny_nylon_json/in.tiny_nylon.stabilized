@@ -23,19 +23,23 @@ special_bonds lj/coul 0 0 1
 pair_modify tail yes mix sixthpower
 
 read_data tiny_nylon.data &
+  extra/atom/types 3 &
+  extra/bond/types 4 &
+  extra/angle/types 10 &
+  extra/dihedral/types 15 &
+  extra/improper/types 1 &
   extra/bond/per/atom 5  &
   extra/angle/per/atom 15 &
   extra/dihedral/per/atom 15 &
   extra/improper/per/atom 25 &
   extra/special/per/atom 25
 
-velocity all create 300.0 4928459 dist gaussian
-
 molecule mol1 rxn1_stp1_unreacted.json
 molecule mol2 rxn1_stp1_reacted.json
 molecule mol3 rxn1_stp2_unreacted.json
 molecule mol4 rxn1_stp2_reacted.json
 
+velocity all create 300.0 4928459 dist gaussian
 thermo 50
 
 # dump 1 all xyz 1 test_vis.xyz
@@ -59,4 +63,4 @@ thermo_modify colname auto
 run 10000
 
 # write_restart restart_longrun
-# write_data restart_longrun.data
+# write_data restart_longrun.data nofix

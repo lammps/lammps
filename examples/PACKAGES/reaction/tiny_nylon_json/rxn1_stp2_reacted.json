@@ -152,5 +152,55 @@
             ["c2-n-hn-c_1", 2, 1, 5, 10],
             ["n-c_1-c2-o_1", 1, 10, 9, 11]
         ]
+    },
+    "atom_type_masses": {
+        "format": ["atom-type", "mass"],
+        "data": [
+            ["hw", 1.00797],
+            ["o*", 15.9994]
+        ]
+    },
+    "pair_coeffs": {
+        "format": ["atom-type", "coeff1", "coeff2"],
+        "data": [
+            ["hw", 0.013, 1.098],
+            ["o*", 0.26, 3.61]
+        ]
+    },
+    "bond_coeffs": {
+        "format": ["bond-type", "coeff1", "coeff2", "coeff3", "coeff4"],
+        "data": [
+            ["hw-o*", 0.97, 563.28, -1428.22, 1902.12]
+        ]
+    },
+    "angle_coeffs": {
+        "format": ["angle-type", "coeff1", "coeff2", "coeff3", "coeff4"],
+        "data": [
+            ["hw-o*-hw", 103.7, 49.84, -11.6, -8]
+        ]
+    },
+    "bondbond_coeffs": {
+        "format": ["angle-type", "coeff1", "coeff2", "coeff3"],
+        "data": [
+            ["hw-o*-hw", -9.5, 0.97, 0.97]
+        ]
+    },
+    "bondangle_coeffs": {
+        "format": ["angle-type", "coeff1", "coeff2", "coeff3", "coeff4"],
+        "data": [
+            ["hw-o*-hw", 22.35, 22.35, 0.97, 0.97]
+        ]
+    },
+    "improper_coeffs": {
+        "format": ["improper-type", "coeff1", "coeff2"],
+        "data": [
+            ["n-c_1-c2-o_1", 24.3329, 0]
+        ]
+    },
+    "angleangle_coeffs": {
+        "format": ["improper-type", "coeff1", "coeff2", "coeff3", "coeff4", "coeff5", "coeff6"],
+        "data": [
+            ["n-c_1-c2-o_1", 0, 0, 0, 116.926, 123.145, 125.542]
+        ]
     }
 }

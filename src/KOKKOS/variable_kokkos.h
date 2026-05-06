@@ -64,7 +64,7 @@ class VariableKokkos : public Variable {
   // Compiles the Tree AST into a flat RPN bytecode array
   void compile_tree(Tree *tree, CodeInfo &info);
   void flatten_ast(Tree *tree, CodeInfo &info, int &current_stack, int &max_stack);
-  
+
   // Identifies which atom array a raw pointer from the base Variable class corresponds to
   int map_atom_array(double *ptr);
   int map_int_array(int *ptr);

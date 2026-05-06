@@ -102,7 +102,7 @@ void VariableKokkos::flatten_ast(Tree *tree, CodeInfo &info, int &current_stack,
   if (tree->type == VALUE) {
     op.value = tree->value;
     current_stack++;
-  }
+  } 
   else if (tree->type == ATOMARRAY) {
     int mapped_op = map_atom_array(tree->array);
     if (mapped_op >= 0) {
@@ -117,7 +117,7 @@ void VariableKokkos::flatten_ast(Tree *tree, CodeInfo &info, int &current_stack,
       info.aux_nstride.push_back(str);
     }
     current_stack++;
-  }
+  } 
   else if (tree->type == TYPEARRAY) {
     int mapped_op = map_atom_array(tree->array);
     if (mapped_op >= 0) op.opcode = mapped_op;
@@ -163,10 +163,8 @@ void VariableKokkos::compile_tree(Tree *tree, CodeInfo &info)
 
   // Resize device view and deep copy the compiled bytecode
   Kokkos::resize(info.d_code, info.length);
-  Kokkos::deep_copy(
-    Kokkos::subview(info.d_code, std::make_pair(0, info.length)),
-    Kokkos::subview(info.h_code, std::make_pair(0, info.length))
-  );
+  Kokkos::deep_copy(Kokkos::subview(info.d_code, std::make_pair(0, info.length)), 
+                    Kokkos::subview(info.h_code, std::make_pair(0, info.length)));
 }
 
 /* ----------------------------------------------------------------------
@@ -271,10 +269,10 @@ struct EvalAtomVarFunctor {
 
     for (int pc = 0; pc < code_len; ++pc) {
       const VarOpcode& op = code(pc);
-
+      
       switch (op.opcode) {
         case VALUE: stack[sp++] = op.value; break;
-
+        
         // Kokkos Mapped Arrays
         case OP_KOKKOS_X: stack[sp++] = x(i, 0); break;
         case OP_KOKKOS_Y: stack[sp++] = x(i, 1); break;
@@ -297,94 +295,51 @@ struct EvalAtomVarFunctor {
 
         // Binary Math
         case ADD: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = a + b;
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = a + b; break;
         }
         case SUBTRACT: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = a - b;
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = a - b; break;
         }
         case MULTIPLY: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = a * b;
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = a * b; break;
         }
         case DIVIDE: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = a / b;
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = a / b; break;
         }
         case MODULO: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = fmod(a, b);
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = fmod(a, b); break;
         }
         case CARAT: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = pow(a, b);
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = pow(a, b); break;
         }
 
         // Logic
         case EQ: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = (a == b) ? 1.0 : 0.0;
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = (a == b) ? 1.0 : 0.0; break;
         }
         case NE: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = (a != b) ? 1.0 : 0.0;
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = (a != b) ? 1.0 : 0.0; break;
         }
         case LT: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = (a < b) ? 1.0 : 0.0;
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = (a < b) ? 1.0 : 0.0; break;
         }
         case LE: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = (a <= b) ? 1.0 : 0.0;
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = (a <= b) ? 1.0 : 0.0; break;
         }
         case GT: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = (a > b) ? 1.0 : 0.0;
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = (a > b) ? 1.0 : 0.0; break;
         }
         case GE: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = (a >= b) ? 1.0 : 0.0;
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = (a >= b) ? 1.0 : 0.0; break;
         }
         case AND: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = (a != 0.0 && b != 0.0) ? 1.0 : 0.0;
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = (a != 0.0 && b != 0.0) ? 1.0 : 0.0; break;
         }
         case OR: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = (a != 0.0 || b != 0.0) ? 1.0 : 0.0;
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = (a != 0.0 || b != 0.0) ? 1.0 : 0.0; break;
         }
         case XOR: {
-          double b = stack[--sp];
-          double a = stack[--sp];
+          double b = stack[--sp]; double a = stack[--sp];
           stack[sp++] =
               ((a == 0.0 && b != 0.0) || (a != 0.0 && b == 0.0)) ? 1.0 : 0.0;
           break;
@@ -404,18 +359,13 @@ struct EvalAtomVarFunctor {
         case ASIN: stack[sp-1] = asin(stack[sp-1]); break;
         case ACOS: stack[sp-1] = acos(stack[sp-1]); break;
         case ATAN: stack[sp-1] = atan(stack[sp-1]); break;
-
+        
         // Complex / Multi-pop
         case ATAN2: {
-          double b = stack[--sp];
-          double a = stack[--sp];
-          stack[sp++] = atan2(a, b);
-          break;
+          double b = stack[--sp]; double a = stack[--sp]; stack[sp++] = atan2(a, b); break;
         }
         case TERNARY: {
-          double extra = stack[--sp];
-          double b = stack[--sp];
-          double a = stack[--sp];
+          double extra = stack[--sp]; double b = stack[--sp]; double a = stack[--sp];
           stack[sp++] = (a != 0.0) ? b : extra;
           break;
         }

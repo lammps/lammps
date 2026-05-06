@@ -28,17 +28,12 @@
 #include "respa.h"
 #include "update.h"
 
-#include "pair_coul_long.h"
-#include "pair_tip4p_long.h"
 #include "pair_lj_cut_coul_long.h"
 #include "pair_lj_cut_tip4p_long.h"
-
-#include <cmath>
-#include <cstring>
+#include "pair_lj_cut_coul_long_soft.h"
+#include "pair_lj_cut_tip4p_long_soft.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
-using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -58,6 +53,12 @@ namespace LAMMPS_NS {
 
   // lj/cut/tip4p/long/kk
   template class PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutTIP4PLong,true,false>;
+
+  // lj/cut/coul/long/soft/kk
+  template class PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutCoulLongSoft,false,true>;
+
+  // lj/cut/tip4p/long/soft/kk
+  template class PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutTIP4PLongSoft,true,true>;
 
   #ifdef LMP_KOKKOS_GPU
     //template class PairLJCutCoulLongKokkos<LMPHostType>;

@@ -35,6 +35,13 @@
 #include "pair_lj_cut_coul_long.h"
 #include "pair_lj_cut_tip4p_long.h"
 
+#ifdef LMP_FEP
+#include "pair_coul_long_soft.h"
+#include "pair_tip4p_long_soft.h"
+#include "pair_lj_cut_coul_long_soft.h"
+#include "pair_lj_cut_tip4p_long_soft.h"
+#endif
+
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -280,11 +287,19 @@ double PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::init_one(int i, int j)
     k_params.view_host()(i,j).lj3 = static_cast<KK_FLOAT>(PairBase::lj3[i][j]);
     k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(PairBase::lj4[i][j]);
     k_params.view_host()(i,j).offset = static_cast<KK_FLOAT>(PairBase::offset[i][j]);
+    if constexpr(SOFT)
+      k_params.view_host()(i,j).epsilon = static_cast<KK_FLOAT>(PairBase::epsilon[i][j]);
     k_params.view_host()(i,j).cut_ljsq = static_cast<KK_FLOAT>(cut_ljsqm);
     if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1)
       m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = static_cast<KK_FLOAT>(cut_ljsqm);
     k_cut_ljsq.view_host()(i,j) = k_cut_ljsq.view_host()(j,i) = cut_ljsqm;
     k_cut_ljsq.modify_host();
+  }
+
+  // SOFT Coulomb-only: map lam1->lj1, lam2->lj4 for use in compute_fcoul/ecoul
+  if constexpr(SOFT && !LJ) {
+    k_params.view_host()(i,j).lj1 = static_cast<KK_FLOAT>(PairBase::lam1[i][j]);
+    k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(PairBase::lam2[i][j]);
   }
 
   // COUL
@@ -429,6 +444,20 @@ namespace LAMMPS_NS {
 
   // lj/cut/tip4p/long/kk
   template class PairKokkos<LMPDeviceType,PairLJCutTIP4PLong,true,true,false>;
+
+  // coul/long/soft/kk
+#ifdef LMP_FEP
+  template class PairKokkos<LMPDeviceType,PairCoulLongSoft,false,false,true>;
+
+  // coul/tip4p/soft/kk
+  template class PairKokkos<LMPDeviceType,PairTIP4PLongSoft,false,true,true>;
+
+  // lj/cut/coul/long/soft/kk
+  template class PairKokkos<LMPDeviceType,PairLJCutCoulLongSoft,true,false,true>;
+
+  // lj/cut/tip4p/long/soft/kk
+  template class PairKokkos<LMPDeviceType,PairLJCutTIP4PLongSoft,true,true,true>;
+#endif
 
 
   #ifdef LMP_KOKKOS_GPU

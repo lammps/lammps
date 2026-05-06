@@ -192,6 +192,19 @@ class PairKokkos : public PairBase
 
 
   // -------- SOFT --------
+  // Soft-core FEP parameters reuse the params_lj_coul fields as follows:
+  //
+  // For LJ=true (PairLJCutCoulLongSoft / PairLJCutTIP4PLongSoft):
+  //   lj1    = pow(lambda, nlambda)          (lambda scaling factor)
+  //   lj2    = pow(sigma, 6)                 (sigma^6)
+  //   lj3    = alphalj*(1-lambda)^2          (soft LJ denominator term)
+  //   lj4    = alphac *(1-lambda)^2          (soft Coul denominator term)
+  //   epsilon = epsilon                      (LJ well depth, stored separately)
+  //   offset  = LJ energy offset
+  //
+  // For LJ=false (PairCoulLongSoft / PairTIP4PLongSoft):
+  //   lj1    = lam1 = pow(lambda, nlambda)   (lambda scaling factor)
+  //   lj4    = lam2 = alphac*(1-lambda)^2    (soft Coul denominator term)
 
 
 
@@ -277,11 +290,23 @@ KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::
 compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
-  const KK_FLOAT r2inv = KK_ONE / rsq;
-  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
-  const KK_FLOAT lj1 = STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1;
-  const KK_FLOAT lj2 = STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2;
-  return r6inv * (lj1*r6inv - lj2) * r2inv;
+  if constexpr (SOFT) {
+    // Soft-core LJ: lj1=lambda^n, lj2=sigma^6, lj3=alphalj*(1-lam)^2, epsilon
+    const KK_FLOAT lj1 = STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1;
+    const KK_FLOAT lj2 = STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2;
+    const KK_FLOAT lj3 = STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3;
+    const KK_FLOAT eps = STACKPARAMS?m_params[itype][jtype].epsilon:params(itype,jtype).epsilon;
+    const KK_FLOAT r4sig6 = rsq*rsq / lj2;
+    const KK_FLOAT denlj  = lj3 + rsq*r4sig6;
+    return lj1 * eps * (static_cast<KK_FLOAT>(48.0)*r4sig6/(denlj*denlj*denlj)
+                       - static_cast<KK_FLOAT>(24.0)*r4sig6/(denlj*denlj));
+  } else {
+    const KK_FLOAT r2inv = KK_ONE / rsq;
+    const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+    const KK_FLOAT lj1 = STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1;
+    const KK_FLOAT lj2 = STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2;
+    return r6inv * (lj1*r6inv - lj2) * r2inv;
+  }
 }
 
 
@@ -294,34 +319,53 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::
 compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
-              const int& /*itype*/, const int& /*jtype*/, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
-  if (Specialisation::DoTable && rsq > tabinnersq_kk) {
-    union_int_float_t rsq_lookup;
-    rsq_lookup.f = rsq;
-    const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
-    const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
-    const KK_FLOAT table = d_ftable[itable] + fraction*d_dftable[itable];
-    KK_FLOAT forcecoul = qtmp*q[j] * table;
-    if (factor_coul < KK_ONE) {
-      const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
-      const KK_FLOAT prefactor = qtmp*q[j] * table;
-      forcecoul -= (KK_ONE-factor_coul)*prefactor;
-    }
-    return forcecoul/rsq;
-  } else {
+              const int& itype, const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
+  if constexpr (SOFT) {
+    // Soft-core Coulomb: lj1=lambda^n, lj4=alphac*(1-lam)^2
+    // Always use direct Ewald sum (no table lookup for soft-core)
     const KK_FLOAT r = sqrt(rsq);
     const KK_FLOAT grij = g_ewald_kk * r;
     const KK_FLOAT expm2 = exp(-grij*grij);
     const KK_FLOAT t = KK_ONE / (KK_ONE + KK_EWALD_P * grij);
-    const KK_FLOAT rinv = KK_ONE / r;
     const KK_FLOAT erfc =
       t * fma(t, fma(t, fma(t, fma(t, KK_A5, KK_A4), KK_A3), KK_A2), KK_A1) * expm2;
-
-    const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]*rinv;
-    KK_FLOAT forcecoul = prefactor * (erfc + KK_EWALD_F * grij*expm2);
+    const KK_FLOAT lj1 = STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1;
+    const KK_FLOAT lj4 = STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4;
+    const KK_FLOAT denc = sqrt(lj4 + rsq);
+    const KK_FLOAT prefactor = qqrd2e * lj1 * qtmp*q[j] / (denc*denc*denc);
+    KK_FLOAT forcecoul = prefactor * (erfc + KK_EWALD_F * grij * expm2);
     if (factor_coul < KK_ONE) forcecoul -= (KK_ONE - factor_coul) * prefactor;
+    // Return forcecoul directly (soft-core denc^3 denominator already gives fpair convention)
+    return forcecoul;
+  } else {
+    if (Specialisation::DoTable && rsq > tabinnersq_kk) {
+      union_int_float_t rsq_lookup;
+      rsq_lookup.f = rsq;
+      const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
+      const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+      const KK_FLOAT table = d_ftable[itable] + fraction*d_dftable[itable];
+      KK_FLOAT forcecoul = qtmp*q[j] * table;
+      if (factor_coul < KK_ONE) {
+        const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
+        const KK_FLOAT prefactor = qtmp*q[j] * table;
+        forcecoul -= (KK_ONE-factor_coul)*prefactor;
+      }
+      return forcecoul/rsq;
+    } else {
+      const KK_FLOAT r = sqrt(rsq);
+      const KK_FLOAT grij = g_ewald_kk * r;
+      const KK_FLOAT expm2 = exp(-grij*grij);
+      const KK_FLOAT t = KK_ONE / (KK_ONE + KK_EWALD_P * grij);
+      const KK_FLOAT rinv = KK_ONE / r;
+      const KK_FLOAT erfc =
+        t * fma(t, fma(t, fma(t, fma(t, KK_A5, KK_A4), KK_A3), KK_A2), KK_A1) * expm2;
 
-    return forcecoul*rinv*rinv;
+      const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]*rinv;
+      KK_FLOAT forcecoul = prefactor * (erfc + KK_EWALD_F * grij*expm2);
+      if (factor_coul < KK_ONE) forcecoul -= (KK_ONE - factor_coul) * prefactor;
+
+      return forcecoul*rinv*rinv;
+    }
   }
 }
 
@@ -335,12 +379,25 @@ KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::
 compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
-  const KK_FLOAT r2inv = KK_ONE / rsq;
-  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
-  const KK_FLOAT lj3 = STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3;
-  const KK_FLOAT lj4 = STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4;
-  const KK_FLOAT offset = STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset;
-  return r6inv * (lj3*r6inv - lj4) - offset;
+  if constexpr (SOFT) {
+    // Soft-core LJ energy: lj1=lambda^n, lj2=sigma^6, lj3=alphalj*(1-lam)^2, epsilon
+    const KK_FLOAT lj1 = STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1;
+    const KK_FLOAT lj2 = STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2;
+    const KK_FLOAT lj3 = STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3;
+    const KK_FLOAT eps = STACKPARAMS?m_params[itype][jtype].epsilon:params(itype,jtype).epsilon;
+    const KK_FLOAT offset = STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset;
+    const KK_FLOAT r4sig6 = rsq*rsq / lj2;
+    const KK_FLOAT denlj  = lj3 + rsq*r4sig6;
+    return lj1 * static_cast<KK_FLOAT>(4.0) * eps
+           * (KK_ONE/(denlj*denlj) - KK_ONE/denlj) - offset;
+  } else {
+    const KK_FLOAT r2inv = KK_ONE / rsq;
+    const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+    const KK_FLOAT lj3 = STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3;
+    const KK_FLOAT lj4 = STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4;
+    const KK_FLOAT offset = STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset;
+    return r6inv * (lj3*r6inv - lj4) - offset;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -352,33 +409,50 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::
 compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
-              const int& /*itype*/, const int& /*jtype*/,
+              const int& itype, const int& jtype,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
-  if (Specialisation::DoTable && rsq > tabinnersq_kk) {
-    union_int_float_t rsq_lookup;
-    rsq_lookup.f = rsq;
-    const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
-    const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
-    const KK_FLOAT table = d_etable[itable] + fraction*d_detable[itable];
-    KK_FLOAT ecoul = qtmp*q[j] * table;
-    if (factor_coul < KK_ONE) {
-      const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
-      const KK_FLOAT prefactor = qtmp*q[j] * table;
-      ecoul -= (KK_ONE-factor_coul)*prefactor;
-    }
-    return ecoul;
-  } else {
+  if constexpr (SOFT) {
+    // Soft-core Coulomb energy: lj1=lambda^n, lj4=alphac*(1-lam)^2
     const KK_FLOAT r = sqrt(rsq);
     const KK_FLOAT grij = g_ewald_kk * r;
     const KK_FLOAT expm2 = exp(-grij*grij);
     const KK_FLOAT t = KK_ONE / (KK_ONE + KK_EWALD_P * grij);
     const KK_FLOAT erfc =
       t * fma(t, fma(t, fma(t, fma(t, KK_A5, KK_A4), KK_A3), KK_A2), KK_A1) * expm2;
-
-    const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]/r;
+    const KK_FLOAT lj1 = STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1;
+    const KK_FLOAT lj4 = STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4;
+    const KK_FLOAT denc = sqrt(lj4 + rsq);
+    const KK_FLOAT prefactor = qqrd2e * lj1 * qtmp*q[j] / denc;
     KK_FLOAT ecoul = prefactor * erfc;
     if (factor_coul < KK_ONE) ecoul -= (KK_ONE - factor_coul) * prefactor;
     return ecoul;
+  } else {
+    if (Specialisation::DoTable && rsq > tabinnersq_kk) {
+      union_int_float_t rsq_lookup;
+      rsq_lookup.f = rsq;
+      const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
+      const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+      const KK_FLOAT table = d_etable[itable] + fraction*d_detable[itable];
+      KK_FLOAT ecoul = qtmp*q[j] * table;
+      if (factor_coul < KK_ONE) {
+        const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
+        const KK_FLOAT prefactor = qtmp*q[j] * table;
+        ecoul -= (KK_ONE-factor_coul)*prefactor;
+      }
+      return ecoul;
+    } else {
+      const KK_FLOAT r = sqrt(rsq);
+      const KK_FLOAT grij = g_ewald_kk * r;
+      const KK_FLOAT expm2 = exp(-grij*grij);
+      const KK_FLOAT t = KK_ONE / (KK_ONE + KK_EWALD_P * grij);
+      const KK_FLOAT erfc =
+        t * fma(t, fma(t, fma(t, fma(t, KK_A5, KK_A4), KK_A3), KK_A2), KK_A1) * expm2;
+
+      const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]/r;
+      KK_FLOAT ecoul = prefactor * erfc;
+      if (factor_coul < KK_ONE) ecoul -= (KK_ONE - factor_coul) * prefactor;
+      return ecoul;
+    }
   }
 }
 

@@ -18,21 +18,17 @@ PairStyle(coul/long/kk,        PairCoulLongKokkos<LMPDeviceType,PairCoulLong,fal
 PairStyle(coul/long/kk/device, PairCoulLongKokkos<LMPDeviceType,PairCoulLong,false,false>);
 PairStyle(coul/long/kk/host,   PairCoulLongKokkos<LMPHostType,  PairCoulLong,false,false>);
 
-
 PairStyle(tip4p/long/kk,        PairCoulLongKokkos<LMPDeviceType,PairTIP4PLong,true,false>);
 PairStyle(tip4p/long/kk/device, PairCoulLongKokkos<LMPDeviceType,PairTIP4PLong,true,false>);
 PairStyle(tip4p/long/kk/host,   PairCoulLongKokkos<LMPHostType,  PairTIP4PLong,true,false>);
 
-/*
 PairStyle(coul/long/soft/kk,        PairCoulLongKokkos<LMPDeviceType,PairCoulLongSoft,false,true>);
 PairStyle(coul/long/soft/kk/device, PairCoulLongKokkos<LMPDeviceType,PairCoulLongSoft,false,true>);
 PairStyle(coul/long/soft/kk/host,   PairCoulLongKokkos<LMPHostType,  PairCoulLongSoft,false,true>);
 
-
 PairStyle(tip4p/long/soft/kk,        PairCoulLongKokkos<LMPDeviceType,PairTIP4PLongSoft,true,true>);
 PairStyle(tip4p/long/soft/kk/device, PairCoulLongKokkos<LMPDeviceType,PairTIP4PLongSoft,true,true>);
 PairStyle(tip4p/long/soft/kk/host,   PairCoulLongKokkos<LMPHostType,  PairTIP4PLongSoft,true,true>);
-*/
 
 // clang-format on
 #else

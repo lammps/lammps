@@ -34,16 +34,10 @@
 
 #include "pair_coul_long.h"
 #include "pair_tip4p_long.h"
-#ifdef LMP_FEP
-  #include "pair_coul_long_soft.h"
-  #include "pair_tip4p_long_soft.h"
-#endif
-
-#include <cmath>
-#include <cstring>
+#include "pair_coul_long_soft.h"
+#include "pair_tip4p_long_soft.h"
 
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -63,9 +57,27 @@ namespace LAMMPS_NS {
   // tip4p/long/kk
   template class PairCoulLongKokkos<LMPDeviceType,PairTIP4PLong,true,false>;
 
+  // coul/long/soft/kk
+  template class PairCoulLongKokkos<LMPDeviceType,PairCoulLongSoft,false,true>;
+
+  // tip4p/long/soft/kk
+  template class PairCoulLongKokkos<LMPDeviceType,PairTIP4PLongSoft,true,true>;
+
   #ifdef LMP_KOKKOS_GPU
-    //template class PairCoulLongKokkos<LMPHostType,TIP4P,SOFT>;
-  #endif
+
+    // coul/long/kk
+    template class PairCoulLongKokkos<LMPHostType,PairCoulLong,false,false>;
+
+    // tip4p/long/kk
+    template class PairCoulLongKokkos<LMPHostType,PairTIP4PLong,true,false>;
+
+    // coul/long/soft/kk
+    template class PairCoulLongKokkos<LMPHostType,PairCoulLongSoft,false,true>;
+
+    // tip4p/long/soft/kk
+    template class PairCoulLongKokkos<LMPHostType,PairTIP4PLongSoft,true,true>;
+
+  #endif // LMP_KOKKOS_GPU
   
 }
 

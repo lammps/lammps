@@ -35,12 +35,12 @@
 #include "pair_lj_cut_coul_long.h"
 #include "pair_lj_cut_tip4p_long.h"
 
-#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace EwaldConst;
+
 
 template<class DeviceType, class PairBase, bool LJ, bool TIP4P, bool SOFT>
 PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::PairKokkos(LAMMPS *lmp):
@@ -106,10 +106,10 @@ void PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::compute(int eflag_in, int vf
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
 
-  x = atomKK->k_x.view<DeviceType>();
-  f = atomKK->k_f.view<DeviceType>();
-  q = atomKK->k_q.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
+  x = atomKK->k_x.template view<DeviceType>();
+  f = atomKK->k_f.template view<DeviceType>();
+  q = atomKK->k_q.template view<DeviceType>();
+  type = atomKK->k_type.template view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
 
@@ -338,13 +338,20 @@ void PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::tip4p_precompute() requires 
   tip4p_kk.d_hneigh = tip4p_kk.k_hneigh.template view<DeviceType>();
   tip4p_kk.d_newsite = tip4p_kk.k_newsite.template view<DeviceType>();
 
-  atomKK->map_set();
+  // Sync atom map structures to device (map was already built by neighbor infrastructure)
+  atomKK->k_tag.template sync<DeviceType>();
+  if (atom->map_style == Atom::MAP_ARRAY)
+    atomKK->k_map_array.template sync<DeviceType>();
+  else
+    atomKK->k_map_hash.template sync<DeviceType>();
+  atomKK->k_sametag.template sync<DeviceType>();
+
   auto l_map_style = atom->map_style;
   auto l_map_array = atomKK->k_map_array;
   auto l_map_hash = atomKK->k_map_hash;
 
   auto l_tag = atomKK->k_tag.template view<DeviceType>();
-  auto l_x = atomKK->k_x.template view<DeviceType>();
+  auto l_x = x;
   auto l_type = atomKK->k_type.template view<DeviceType>();
   auto l_sametag = atomKK->k_sametag.template view<DeviceType>();
 
@@ -352,9 +359,10 @@ void PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::tip4p_precompute() requires 
   int flag_missing, flag_incorrect;
 
   auto l_tip4p_kk = tip4p_kk;
+  auto l_nall = atomKK->nlocal + atomKK->nghost;
 
   Kokkos::parallel_reduce(
-    Kokkos::RangePolicy<DeviceType>(0, atom->nlocal + atom->nghost),
+    Kokkos::RangePolicy<DeviceType>(0, l_nall),
     KOKKOS_LAMBDA (const int i, int& l_flag_missing, int& l_flag_incorrect) {
 
       if (l_ago_zero) l_tip4p_kk.d_hneigh(i,0) = -1;
@@ -365,7 +373,8 @@ void PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::tip4p_precompute() requires 
       int iH1 = AtomKokkos::map_kokkos<DeviceType>(ti + 1, l_map_style, l_map_array, l_map_hash);
       int iH2 = AtomKokkos::map_kokkos<DeviceType>(ti + 2, l_map_style, l_map_array, l_map_hash);
 
-      l_flag_missing = l_flag_incorrect = 0;
+      l_flag_missing = Kokkos::max(l_flag_missing, 0);
+      l_flag_incorrect = Kokkos::max(l_flag_incorrect, 0);
       if (iH1 < 0 || iH2 < 0) {
         l_flag_missing = 1;
         return;
@@ -393,9 +402,9 @@ void PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::tip4p_precompute() requires 
       const KK_FLOAT dely2 = l_x(iH2,1) - yO;
       const KK_FLOAT delz2 = l_x(iH2,2) - zO;
 
-      l_tip4p_kk.d_newsite(i,0) = xO + l_tip4p_kk.half_alpha * (delx1 + delx2);
-      l_tip4p_kk.d_newsite(i,1) = yO + l_tip4p_kk.half_alpha * (dely1 + dely2);
-      l_tip4p_kk.d_newsite(i,2) = zO + l_tip4p_kk.half_alpha * (delz1 + delz2);
+      l_tip4p_kk.d_newsite(i,0) = Kokkos::fma(l_tip4p_kk.half_alpha, delx1 + delx2, xO);
+      l_tip4p_kk.d_newsite(i,1) = Kokkos::fma(l_tip4p_kk.half_alpha, dely1 + dely2, yO);
+      l_tip4p_kk.d_newsite(i,2) = Kokkos::fma(l_tip4p_kk.half_alpha, delz1 + delz2, zO);
 
     }, Kokkos::Max<int>(flag_missing), Kokkos::Max<int>(flag_incorrect)
   );

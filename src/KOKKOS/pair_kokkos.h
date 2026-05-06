@@ -18,7 +18,6 @@
 #include "ewald_const.h"
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
-#include "math_special.h"
 #include "force.h"
 #include "update.h"
 #include "Kokkos_Macros.hpp"
@@ -31,7 +30,7 @@ class PairKokkos : public PairBase
 {
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
-  enum {COUL_FLAG=1};
+  enum {COUL_FLAG = TIP4P ? 2 : 1};  // 2=COUL_TIP4P, 1=COUL_LONG
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairKokkos(class LAMMPS *);
@@ -84,7 +83,6 @@ class PairKokkos : public PairBase
 
   KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   typename AT::t_kkfloat_1d_3_lr_randomread x;
-  // DEPRECATED typename AT::t_kkfloat_1d_3_lr c_x;
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_kkfloat_1d_randomread q;
@@ -177,7 +175,7 @@ class PairKokkos : public PairBase
 
   struct tip4p_kk_t {
 
-    int nmax, typeO, typeH;
+    int nmax = 0, typeO = 0, typeH = 0;
     KK_FLOAT cut_coulsqplus, alpha, half_alpha;
 
     DAT::tdual_int_2d k_hneigh;
@@ -1254,7 +1252,7 @@ template<typename EatAccess, typename VatAccess>
 KOKKOS_INLINE_FUNCTION void ev_tally_tip4p(
     EV_FLOAT &ev, const int key, const int *vlist, const KK_FLOAT v[6], const KK_FLOAT ecoul,
     const KK_FLOAT alpha, const EatAccess &a_eatom, const VatAccess &a_vatom, const int eflag_atom,
-    const int vflag_global, const int vflag_atom, const int eflag_global, const KK_FLOAT scale)
+    const int vflag_global, const int vflag_atom, const int eflag_global, const KK_FLOAT scale) const
 {
   const KK_ACC_FLOAT z = static_cast<KK_ACC_FLOAT>(scale);
   const KK_FLOAT a = alpha;

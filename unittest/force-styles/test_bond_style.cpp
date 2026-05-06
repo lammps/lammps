@@ -586,6 +586,11 @@ TEST(BondStyle, kokkos_omp)
     // relax error a bit for KOKKOS package
     double epsilon = 5.0 * test_config.epsilon;
 
+    // relax further for mixed/single precision KOKKOS (float vs double reference)
+    if (Info::has_accelerator_feature("KOKKOS", "precision", "mixed") ||
+        Info::has_accelerator_feature("KOKKOS", "precision", "single"))
+        epsilon *= 2.0e8;
+
     ErrorStats stats;
     auto bond = lmp->force->bond;
 

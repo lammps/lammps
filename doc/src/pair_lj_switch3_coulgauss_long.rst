@@ -1,11 +1,17 @@
 .. index:: pair_style lj/switch3/coulgauss/long
+.. index:: pair_style lj/switch3/coulgauss/long/omp
 .. index:: pair_style mm3/switch3/coulgauss/long
+.. index:: pair_style mm3/switch3/coulgauss/long/omp
 
 pair_style lj/switch3/coulgauss/long command
 ============================================
 
+Accelerator Variants: *lj/switch3/coulgauss/long/omp*
+
 pair_style mm3/switch3/coulgauss/long command
 =============================================
+
+Accelerator Variants: *mm3/switch3/coulgauss/long/omp*
 
 Syntax
 """"""
@@ -103,6 +109,10 @@ commands:
 * :math:`\epsilon` (energy)
 * :math:`\sigma` (distance)
 * :math:`\gamma` (distance)
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

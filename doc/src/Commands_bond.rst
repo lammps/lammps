@@ -36,7 +36,7 @@ OPT.
    * :doc:`harmonic/shift/cut (o) <bond_harmonic_shift_cut>`
    * :doc:`lepton (o) <bond_lepton>`
    * :doc:`mesocnt <bond_mesocnt>`
-   * :doc:`mm3 <bond_mm3>`
+   * :doc:`mm3 (o) <bond_mm3>`
    * :doc:`morse (o) <bond_morse>`
    * :doc:`nonlinear (o) <bond_nonlinear>`
    * :doc:`oxdna/fene <bond_oxdna>`
@@ -73,7 +73,7 @@ OPT.
    * :doc:`amoeba <angle_amoeba>`
    * :doc:`charmm (iko) <angle_charmm>`
    * :doc:`class2 (ko) <angle_class2>`
-   * :doc:`class2/p6 <angle_class2>`
+   * :doc:`class2/p6 (o) <angle_class2>`
    * :doc:`class2xe (o) <angle_class2>`
    * :doc:`cosine (ko) <angle_cosine>`
    * :doc:`cosine/buck6d <angle_cosine_buck6d>`
@@ -83,7 +83,7 @@ OPT.
    * :doc:`cosine/shift/exp (o) <angle_cosine_shift_exp>`
    * :doc:`cosine/squared (o) <angle_cosine_squared>`
    * :doc:`cosine/squared/restricted (o) <angle_cosine_squared_restricted>`
-   * :doc:`cross <angle_cross>`
+   * :doc:`cross (o) <angle_cross>`
    * :doc:`dipole (o) <angle_dipole>`
    * :doc:`fourier (o) <angle_fourier>`
    * :doc:`fourier/simple (o) <angle_fourier_simple>`
@@ -91,7 +91,7 @@ OPT.
    * :doc:`harmonic (iko) <angle_harmonic>`
    * :doc:`lepton (o) <angle_lepton>`
    * :doc:`mesocnt <angle_mesocnt>`
-   * :doc:`mm3 <angle_mm3>`
+   * :doc:`mm3 (o) <angle_mm3>`
    * :doc:`mwlc (o) <angle_mwlc>`
    * :doc:`quartic (o) <angle_quartic>`
    * :doc:`spica (ko) <angle_spica>`
@@ -166,10 +166,10 @@ OPT.
    * :doc:`cossq (o) <improper_cossq>`
    * :doc:`cvff (iko) <improper_cvff>`
    * :doc:`distance (o) <improper_distance>`
-   * :doc:`distharm <improper_distharm>`
+   * :doc:`distharm (o) <improper_distharm>`
    * :doc:`fourier (o) <improper_fourier>`
    * :doc:`harmonic (iko) <improper_harmonic>`
-   * :doc:`inversion/harmonic <improper_inversion_harmonic>`
+   * :doc:`inversion/harmonic (o) <improper_inversion_harmonic>`
    * :doc:`ring (o) <improper_ring>`
-   * :doc:`sqdistharm <improper_sqdistharm>`
+   * :doc:`sqdistharm (o) <improper_sqdistharm>`
    * :doc:`umbrella (o) <improper_umbrella>`

@@ -4,7 +4,7 @@
 pair_style body/rounded/polyhedron command
 ==========================================
 
-Accelerator Variant: *body/rounded/polyhedron/omp*
+Accelerator Variants: *body/rounded/polyhedron/omp*
 
 Syntax
 """"""

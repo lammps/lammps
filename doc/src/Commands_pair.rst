@@ -52,8 +52,8 @@ OPT.
    * :doc:`buck/coul/msm (o) <pair_buck>`
    * :doc:`buck/long/coul/long (o) <pair_buck_long>`
    * :doc:`buck/mdf (o) <pair_mdf>`
-   * :doc:`buck6d/coul/gauss/dsf <pair_buck6d_coul_gauss>`
-   * :doc:`buck6d/coul/gauss/long <pair_buck6d_coul_gauss>`
+   * :doc:`buck6d/coul/gauss/dsf (o) <pair_buck6d_coul_gauss>`
+   * :doc:`buck6d/coul/gauss/long (o) <pair_buck6d_coul_gauss>`
    * :doc:`colloid (go) <pair_colloid>`
    * :doc:`comb (o) <pair_comb>`
    * :doc:`comb3 <pair_comb>`
@@ -130,7 +130,7 @@ OPT.
    * :doc:`lambda/input/apip <pair_lambda_input_apip>`
    * :doc:`lambda/input/csp/apip <pair_lambda_input_apip>`
    * :doc:`lambda/zone/apip <pair_lambda_zone_apip>`
-   * :doc:`lcbop <pair_lcbop>`
+   * :doc:`lcbop (o) <pair_lcbop>`
    * :doc:`lebedeva/z <pair_lebedeva_z>`
    * :doc:`lennard/mdf (o) <pair_mdf>`
    * :doc:`lepton (o) <pair_lepton>`
@@ -193,7 +193,7 @@ OPT.
    * :doc:`lj/sf/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/smooth (go) <pair_lj_smooth>`
    * :doc:`lj/smooth/linear (o) <pair_lj_smooth_linear>`
-   * :doc:`lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
+   * :doc:`lj/switch3/coulgauss/long (o) <pair_lj_switch3_coulgauss_long>`
    * :doc:`lj96/cut (gko) <pair_lj96>`
    * :doc:`local/density (o) <pair_local_density>`
    * :doc:`lubricate (o) <pair_lubricate>`
@@ -212,7 +212,7 @@ OPT.
    * :doc:`mgpt <pair_mgpt>`
    * :doc:`mie/cut (go) <pair_mie>`
    * :doc:`mliap (k) <pair_mliap>`
-   * :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
+   * :doc:`mm3/switch3/coulgauss/long (o) <pair_lj_switch3_coulgauss_long>`
    * :doc:`momb (o) <pair_momb>`
    * :doc:`morse (gkot) <pair_morse>`
    * :doc:`morse/smooth/linear (o) <pair_morse>`

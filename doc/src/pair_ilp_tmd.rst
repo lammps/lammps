@@ -2,9 +2,9 @@
 .. index:: pair_style ilp/tmd/opt
 
 pair_style ilp/tmd command
-===================================
+==========================
 
-Accelerator Variant: *ilp/tmd/opt*
+Accelerator Variants: *ilp/tmd/opt*
 
 Syntax
 """"""

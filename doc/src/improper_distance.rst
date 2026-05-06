@@ -4,7 +4,7 @@
 improper_style distance command
 ===============================
 
-Accelerator Variant: *distance/omp*
+Accelerator Variants: *distance/omp*
 
 Syntax
 """"""

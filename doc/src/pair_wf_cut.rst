@@ -2,7 +2,7 @@
 .. index:: pair_style wf/cut/omp
 
 pair_style wf/cut command
-===========================
+=========================
 
 Accelerator Variants: *wf/cut/omp*
 

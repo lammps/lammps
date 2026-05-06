@@ -4,7 +4,7 @@
 dihedral_style cosine/squared/restricted command
 ================================================
 
-Accelerator Variant: *cosine/squared/restricted/omp*
+Accelerator Variants: *cosine/squared/restricted/omp*
 
 Syntax
 """"""

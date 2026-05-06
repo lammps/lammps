@@ -3712,16 +3712,20 @@ void Molecule::type_masses(char *line)
 
   for (int i = 0; i < npaircoeffs; i++) {
     readline(line);
-    auto values = Tokenizer(utils::trim(line)).as_vector();
+    ValueTokenizer values(utils::trim_comment(line));
+    if (values.count() != 2)
+      error->all(FLERR, fileiarg, "Invalid line in Atom Type Masses section of molecule file: {}", line);
 
-    std::string typestr = utils::utf8_subst(values[0]);
+    std::string typestr = values.next_string();
+    double value = values.next_double();
+
     int itype = atom->lmap->find_type(typestr, Atom::ATOM);
     if (itype == -1)
       error->all(FLERR, fileiarg, "Unknown type {} in {}.", typestr, location);
 
     if (atom->mass_setflag[itype])
       error->warning(FLERR, "Overwriting mass for type {} in {}.", typestr, location);
-    atom->set_mass(FLERR, line, toffset, tlabelflag, atom->lmap->lmap2lmap.atom);
+    atom->set_mass(FLERR, itype, value);
   }
 }
 

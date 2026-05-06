@@ -34,6 +34,7 @@
 #include "pair.h"
 #include "tokenizer.h"
 #include "update.h"
+#include "utils.h"
 
 #include <cmath>
 #include <cstdint>
@@ -1096,6 +1097,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
 
     for (int i = 0; i < npaircoeffs; i++) {
       const auto &item = moldata["atom_type_masses"]["data"][i];
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in atom_type_masses section of JSON file: {}", to_string(item));
+
       std::string typestr = item[0];
       int itype = atom->lmap->find_type(typestr, Atom::ATOM);
       if (itype == -1)
@@ -1675,6 +1679,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: invalid format of JSON data for pair_coeff {}.",
                    id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in pair_coeffs section of JSON file: {}", to_string(item));
+
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1704,6 +1711,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: invalid format of JSON data for bond_coeff {}.",
                    id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in bond_coeffs section of JSON file: {}", to_string(item));
+
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1739,6 +1749,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: invalid format of JSON data for angle_coeff {}.",
                    id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in angle_coeffs section of JSON file: {}", to_string(item));
+
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1770,6 +1783,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: invalid format of JSON data for bondbond_coeff {}.",
                    id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in bondbond_coeffs section of JSON file: {}", to_string(item));
+
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1800,6 +1816,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: invalid format of JSON data for bondangle_coeff {}.",
                    id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in bondangle_coeffs section of JSON file: {}", to_string(item));
+
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1831,6 +1850,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: invalid format of JSON data for dihedral_coeff {}.",
                    id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in dihedral_coeffs section of JSON file: {}", to_string(item));
+
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1865,6 +1887,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: invalid format of JSON data for middlebondtorsion_coeff {}.",
                    id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in middlebondtorsion_coeffs section of JSON file: {}", to_string(item));
+
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1897,6 +1922,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: invalid format of JSON data for endbondtorsion_coeff {}.",
                    id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in endbondtorsion_coeffs section of JSON file: {}", to_string(item));
+
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1934,6 +1962,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: invalid format of JSON data for angletorsion_coeff {}.",
                    id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in angletorsion_coeffs section of JSON file: {}", to_string(item));
+
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -1971,6 +2002,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: invalid format of JSON data for angleangletorsion_coeff {}.",
                    id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in angleangletorsion_coeffs section of JSON file: {}", to_string(item));
+
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -2001,6 +2035,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: invalid format of JSON data for bondbond13_coeff {}.",
                    id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in bondbond13_coeffs section of JSON file: {}", to_string(item));
+
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -2036,6 +2073,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: invalid format of JSON data for improper_coeff {}.",
                    id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in improper_coeffs section of JSON file: {}", to_string(item));
+
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -2065,6 +2105,9 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
         error->all(FLERR, Error::NOLASTLINE,
                    "Molecule template {}: invalid format of JSON data for angleangle_coeff {}.",
                    id, to_string(item));
+      if (item[0].is_number_integer())    // numeric type, invalid
+        error->all(FLERR, fileiarg, "Invalid line in angleangle_coeffs section of JSON file: {}", to_string(item));
+
       std::string type = item[0];
       double coeff1 = item[1];
       double coeff2 = item[2];
@@ -3705,6 +3748,7 @@ void Molecule::masses(char *line)
 void Molecule::type_masses(char *line)
 {
   const std::string location = "Atom Type Masses section of molecule file";
+  std::string typestr;
 
   int tlabelflag = atom->labelmapflag;
   if (!tlabelflag)
@@ -3712,20 +3756,27 @@ void Molecule::type_masses(char *line)
 
   for (int i = 0; i < npaircoeffs; i++) {
     readline(line);
-    ValueTokenizer values(utils::trim_comment(line));
-    if (values.count() != 2)
-      error->all(FLERR, fileiarg, "Invalid line in Atom Type Masses section of molecule file: {}", line);
+    auto values = Tokenizer(utils::trim(line)).as_vector();
+    if (values.size() != 2)
+      error->all(FLERR, fileiarg, "Invalid line in {}: {}", location, line);
 
-    std::string typestr = values.next_string();
-    double value = values.next_double();
+    typestr = utils::utf8_subst(values[0]);
+    switch (utils::is_type(typestr)) {
+      case 1: {    // type label
+        int itype = atom->lmap->find_type(typestr, Atom::ATOM);
+        if (itype == -1)
+          error->all(FLERR, fileiarg, "Unknown type {} in {}.", typestr, location);
 
-    int itype = atom->lmap->find_type(typestr, Atom::ATOM);
-    if (itype == -1)
-      error->all(FLERR, fileiarg, "Unknown type {} in {}.", typestr, location);
-
-    if (atom->mass_setflag[itype])
-      error->warning(FLERR, "Overwriting mass for type {} in {}.", typestr, location);
-    atom->set_mass(FLERR, itype, value);
+        double value = utils::numeric(FLERR, values[1], false, lmp);
+        if (atom->mass_setflag[itype])
+          error->warning(FLERR, "Overwriting mass for type {} in {}.", typestr, location);
+        atom->set_mass(FLERR, itype, value);
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, fileiarg, "Invalid format in {}: {}", location, utils::trim(line));
+        break;
+    }
   }
 }
 
@@ -4948,8 +4999,12 @@ void Molecule::body(int flag, int pflag, char *line)
 
 void Molecule::paircoeffs()
 {
+  if (!npaircoeffs) return;
+
+  const char* location = "Pair Coeffs section in molecule template file";
   char *next;
   auto *buf = new char[npaircoeffs * MAXLINE];
+  std::string typestr;
 
   int eof = utils::read_lines_from_file(fp, npaircoeffs, MAXLINE, buf, comm->me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
@@ -4961,11 +5016,24 @@ void Molecule::paircoeffs()
   for (int i = 0; i < npaircoeffs; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
-    parse_coeffs(buf, nullptr, 1, 2, toffset, Atom::ATOM);
-    if (ncoeffarg == 0)
-      error->all(FLERR, "Unexpected empty line in PairCoeffs section. Expected {} lines.", npaircoeffs);
-    force->pair->coeff(ncoeffarg, coeffarg);
-    buf = next + 1;
+    auto values = Tokenizer(utils::trim(buf)).as_vector();
+    if (values.size() != 3)
+      error->all(FLERR, fileiarg, "Invalid line in {}: {}", location, buf);
+
+    typestr = utils::utf8_subst(values[0]);
+    switch (utils::is_type(typestr)) {
+      case 1: {    // type label
+        parse_coeffs(buf, nullptr, 1, 2, toffset, Atom::ATOM);
+        if (ncoeffarg == 0)
+          error->all(FLERR, "Unexpected empty line in PairCoeffs section. Expected {} lines.", npaircoeffs);
+        force->pair->coeff(ncoeffarg, coeffarg);
+        buf = next + 1;
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, fileiarg, "Invalid format in {}: {}", location, utils::trim(buf));
+        break;
+    }
   }
 }
 
@@ -4975,8 +5043,12 @@ void Molecule::paircoeffs()
 
 void Molecule::bondcoeffs()
 {
+  if (!nbondcoeffs) return;
+
+  const char* location = "Bond Coeffs section in molecule template file";
   char *next;
   auto *buf = new char[nbondcoeffs * MAXLINE];
+  std::string typestr;
 
   int eof = utils::read_lines_from_file(fp, nbondcoeffs, MAXLINE, buf, comm->me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
@@ -4989,12 +5061,25 @@ void Molecule::bondcoeffs()
   for (int i = 0; i < nbondcoeffs; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
-    parse_coeffs(buf, nullptr, 0, 1, boffset, Atom::BOND);
-    if (ncoeffarg == 0)
-      error->all(FLERR, "Unexpected empty line in BondCoeffs section. Expected {} lines.",
-                 nbondcoeffs);
-    force->bond->coeff(ncoeffarg, coeffarg);
-    buf = next + 1;
+    auto values = Tokenizer(utils::trim(buf)).as_vector();
+    if (values.size() != 5)
+      error->all(FLERR, fileiarg, "Invalid line in {}: {}", location, buf);
+
+    typestr = utils::utf8_subst(values[0]);
+    switch (utils::is_type(typestr)) {
+      case 1: {    // type label
+        parse_coeffs(buf, nullptr, 0, 1, boffset, Atom::BOND);
+        if (ncoeffarg == 0)
+          error->all(FLERR, "Unexpected empty line in BondCoeffs section. Expected {} lines.",
+                     nbondcoeffs);
+        force->bond->coeff(ncoeffarg, coeffarg);
+        buf = next + 1;
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, fileiarg, "Invalid format in {}: {}", location, utils::trim(buf));
+        break;
+    }
   }
   delete[] original;
 }
@@ -5007,8 +5092,10 @@ void Molecule::anglecoeffs(int which)
 {
   if (!nanglecoeffs) return;
 
+  const char* location = "Angle Coeffs section in molecule template file";
   char *next;
   auto *buf = new char[nanglecoeffs * MAXLINE];
+  std::string typestr;
 
   int eof = utils::read_lines_from_file(fp, nanglecoeffs, MAXLINE, buf, comm->me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
@@ -5021,17 +5108,28 @@ void Molecule::anglecoeffs(int which)
   for (int i = 0; i < nanglecoeffs; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
-    if (which == 0)
-      parse_coeffs(buf, nullptr, 0, 1, aoffset, Atom::ANGLE);
-    else if (which == 1)
-      parse_coeffs(buf, "bb", 0, 1, aoffset, Atom::ANGLE);
-    else if (which == 2)
-      parse_coeffs(buf, "ba", 0, 1, aoffset, Atom::ANGLE);
-    else if (which == 3)
-      parse_coeffs(buf, "ub", 0, 1, aoffset, Atom::ANGLE);
-    if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in AngleCoeffs section");
-    force->angle->coeff(ncoeffarg, coeffarg);
-    buf = next + 1;
+    auto values = Tokenizer(utils::trim(buf)).as_vector();
+
+    typestr = utils::utf8_subst(values[0]);
+    switch (utils::is_type(typestr)) {
+      case 1: {    // type label
+        if (which == 0)
+          parse_coeffs(buf, nullptr, 0, 1, aoffset, Atom::ANGLE);
+        else if (which == 1)
+          parse_coeffs(buf, "bb", 0, 1, aoffset, Atom::ANGLE);
+        else if (which == 2)
+          parse_coeffs(buf, "ba", 0, 1, aoffset, Atom::ANGLE);
+        else if (which == 3)
+          parse_coeffs(buf, "ub", 0, 1, aoffset, Atom::ANGLE);
+        if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in AngleCoeffs section");
+        force->angle->coeff(ncoeffarg, coeffarg);
+        buf = next + 1;
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, fileiarg, "Invalid format in {}: {}", location, utils::trim(buf));
+        break;
+    }
   }
   delete[] original;
 }
@@ -5044,8 +5142,10 @@ void Molecule::dihedralcoeffs(int which)
 {
   if (!ndihedralcoeffs) return;
 
+  const char* location = "Dihedral Coeffs section in molecule template file";
   char *next;
   auto *buf = new char[ndihedralcoeffs * MAXLINE];
+  std::string typestr;
 
   int eof = utils::read_lines_from_file(fp, ndihedralcoeffs, MAXLINE, buf, comm->me, world);
   if (eof) error->all(FLERR, "Unexpected end of molecule template file");
@@ -5058,21 +5158,32 @@ void Molecule::dihedralcoeffs(int which)
   for (int i = 0; i < ndihedralcoeffs; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
-    if (which == 0)
-      parse_coeffs(buf, nullptr, 0, 1, doffset, Atom::DIHEDRAL);
-    else if (which == 1)
-      parse_coeffs(buf, "mbt", 0, 1, doffset, Atom::DIHEDRAL);
-    else if (which == 2)
-      parse_coeffs(buf, "ebt", 0, 1, doffset, Atom::DIHEDRAL);
-    else if (which == 3)
-      parse_coeffs(buf, "at", 0, 1, doffset, Atom::DIHEDRAL); 
-    else if (which == 4)
-      parse_coeffs(buf, "aat", 0, 1, doffset, Atom::DIHEDRAL);
-    else if (which == 5)
-      parse_coeffs(buf, "bb13", 0, 1, doffset, Atom::DIHEDRAL);
-    if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in DihedralCoeffs section");
-    force->dihedral->coeff(ncoeffarg, coeffarg);
-    buf = next + 1;
+    auto values = Tokenizer(utils::trim(buf)).as_vector();
+
+    typestr = utils::utf8_subst(values[0]);
+    switch (utils::is_type(typestr)) {
+      case 1: {    // type label
+        if (which == 0)
+          parse_coeffs(buf, nullptr, 0, 1, doffset, Atom::DIHEDRAL);
+        else if (which == 1)
+          parse_coeffs(buf, "mbt", 0, 1, doffset, Atom::DIHEDRAL);
+        else if (which == 2)
+          parse_coeffs(buf, "ebt", 0, 1, doffset, Atom::DIHEDRAL);
+        else if (which == 3)
+          parse_coeffs(buf, "at", 0, 1, doffset, Atom::DIHEDRAL); 
+        else if (which == 4)
+          parse_coeffs(buf, "aat", 0, 1, doffset, Atom::DIHEDRAL);
+        else if (which == 5)
+          parse_coeffs(buf, "bb13", 0, 1, doffset, Atom::DIHEDRAL);
+        if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in DihedralCoeffs section");
+        force->dihedral->coeff(ncoeffarg, coeffarg);
+        buf = next + 1;
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, fileiarg, "Invalid format in {}: {}", location, utils::trim(buf));
+        break;
+    }
   }
   delete[] original;
 }
@@ -5085,8 +5196,10 @@ void Molecule::impropercoeffs(int which)
 {
   if (!nimpropercoeffs) return;
 
+  const char* location = "Improper Coeffs section in molecule template file";
   char *next;
   auto *buf = new char[nimpropercoeffs * MAXLINE];
+  std::string typestr;
 
   int eof = utils::read_lines_from_file(fp, nimpropercoeffs, MAXLINE, buf, comm->me, world);
   if (eof) error->all(FLERR, "Unexpected end of molecule template file");
@@ -5099,13 +5212,24 @@ void Molecule::impropercoeffs(int which)
   for (int i = 0; i < nimpropercoeffs; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
-    if (which == 0)
-      parse_coeffs(buf, nullptr, 0, 1, ioffset, Atom::IMPROPER); 
-    else if (which == 1)
-      parse_coeffs(buf, "aa", 0, 1, ioffset, Atom::IMPROPER);
-    if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in ImproperCoeffs section");
-    force->improper->coeff(ncoeffarg, coeffarg);
-    buf = next + 1;
+    auto values = Tokenizer(utils::trim(buf)).as_vector();
+
+    typestr = utils::utf8_subst(values[0]);
+    switch (utils::is_type(typestr)) {
+      case 1: {    // type label
+        if (which == 0)
+          parse_coeffs(buf, nullptr, 0, 1, ioffset, Atom::IMPROPER); 
+        else if (which == 1)
+          parse_coeffs(buf, "aa", 0, 1, ioffset, Atom::IMPROPER);
+        if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in ImproperCoeffs section");
+        force->improper->coeff(ncoeffarg, coeffarg);
+        buf = next + 1;
+        break;
+      }
+      default:    // invalid
+        error->one(FLERR, fileiarg, "Invalid format in {}: {}", location, utils::trim(buf));
+        break;
+    }
   }
   delete[] original;
 }

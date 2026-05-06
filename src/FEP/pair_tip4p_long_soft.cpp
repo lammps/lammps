@@ -60,6 +60,9 @@ PairTIP4PLongSoft::PairTIP4PLongSoft(LAMMPS *lmp) : PairCoulLongSoft(lmp)
 
 PairTIP4PLongSoft::~PairTIP4PLongSoft()
 {
+
+  if (copymode) return;
+
   memory->destroy(hneigh);
   memory->destroy(newsite);
 }

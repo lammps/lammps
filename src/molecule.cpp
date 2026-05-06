@@ -1975,7 +1975,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
       char buf[MAXLINE];
       snprintf(buf, MAXLINE, "%s %f %f %f %f %f %f %f %f\n", type.c_str(),
           coeff1, coeff2, coeff3, coeff4, coeff5, coeff6, coeff7, coeff8);
-      parse_coeffs(buf, "at", 0, 1, doffset, Atom::DIHEDRAL); 
+      parse_coeffs(buf, "at", 0, 1, doffset, Atom::DIHEDRAL);
       force->dihedral->coeff(ncoeffarg, coeffarg);
     }
   }
@@ -2079,7 +2079,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
       double coeff2 = item[2];
       char buf[MAXLINE];
       snprintf(buf, MAXLINE, "%s %f %f\n", type.c_str(), coeff1, coeff2);
-      parse_coeffs(buf, nullptr, 0, 1, ioffset, Atom::IMPROPER); 
+      parse_coeffs(buf, nullptr, 0, 1, ioffset, Atom::IMPROPER);
       force->improper->coeff(ncoeffarg, coeffarg);
     }
   }
@@ -4992,7 +4992,7 @@ void Molecule::body(int flag, int pflag, char *line)
 }
 
 /* ----------------------------------------------------------------------
-   read pair coeffs from molecule template 
+   read pair coeffs from molecule template
 ------------------------------------------------------------------------- */
 
 void Molecule::paircoeffs()
@@ -5036,7 +5036,7 @@ void Molecule::paircoeffs()
 }
 
 /* ----------------------------------------------------------------------
-   read bond coeffs sections from molecule template 
+   read bond coeffs sections from molecule template
 ------------------------------------------------------------------------- */
 
 void Molecule::bondcoeffs()
@@ -5083,7 +5083,7 @@ void Molecule::bondcoeffs()
 }
 
 /* ----------------------------------------------------------------------
-   read angle coeffs sections from molecule template 
+   read angle coeffs sections from molecule template
 ------------------------------------------------------------------------- */
 
 void Molecule::anglecoeffs(int which)
@@ -5133,7 +5133,7 @@ void Molecule::anglecoeffs(int which)
 }
 
 /* ----------------------------------------------------------------------
-   read dihedral coeffs sections from molecule template 
+   read dihedral coeffs sections from molecule template
 ------------------------------------------------------------------------- */
 
 void Molecule::dihedralcoeffs(int which)
@@ -5168,7 +5168,7 @@ void Molecule::dihedralcoeffs(int which)
         else if (which == 2)
           parse_coeffs(buf, "ebt", 0, 1, doffset, Atom::DIHEDRAL);
         else if (which == 3)
-          parse_coeffs(buf, "at", 0, 1, doffset, Atom::DIHEDRAL); 
+          parse_coeffs(buf, "at", 0, 1, doffset, Atom::DIHEDRAL);
         else if (which == 4)
           parse_coeffs(buf, "aat", 0, 1, doffset, Atom::DIHEDRAL);
         else if (which == 5)
@@ -5187,7 +5187,7 @@ void Molecule::dihedralcoeffs(int which)
 }
 
 /* ----------------------------------------------------------------------
-   read improper coeffs sections from molecule template 
+   read improper coeffs sections from molecule template
 ------------------------------------------------------------------------- */
 
 void Molecule::impropercoeffs(int which)
@@ -5216,7 +5216,7 @@ void Molecule::impropercoeffs(int which)
     switch (utils::is_type(typestr)) {
       case 1: {    // type label
         if (which == 0)
-          parse_coeffs(buf, nullptr, 0, 1, ioffset, Atom::IMPROPER); 
+          parse_coeffs(buf, nullptr, 0, 1, ioffset, Atom::IMPROPER);
         else if (which == 1)
           parse_coeffs(buf, "aa", 0, 1, ioffset, Atom::IMPROPER);
         if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in ImproperCoeffs section");

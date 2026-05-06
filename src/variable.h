@@ -47,7 +47,7 @@ class Variable : protected Pointers {
   char *retrieve(const char *);
   double compute_equal(int);
   double compute_equal(const std::string &);
-  virtual void compute_atom(int, int, double *, int, int);
+  void compute_atom(int, int, double *, int, int);
   int compute_vector(int, double **);
   void internal_set(int, double);
   int internal_create(char *, double);
@@ -82,7 +82,7 @@ class Variable : protected Pointers {
   static constexpr int VALUELENGTH = 64;
   static const std::vector<std::string> varstyles;
 
- protected: // needed by VariableKokkos
+ private:
   int me;
   int maxvar;                  // max # of variables following lists can hold
   int *style;                  // style of each variable

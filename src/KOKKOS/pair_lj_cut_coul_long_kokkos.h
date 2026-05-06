@@ -30,7 +30,7 @@ PairStyle(lj/cut/coul/long/soft/kk/host,   PairLJCutCoulLongKokkos<LMPHostType, 
 PairStyle(lj/cut/tip4p/long/soft/kk,        PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutTIP4PLongSoft,true,true>);
 PairStyle(lj/cut/tip4p/long/soft/kk/device, PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutTIP4PLongSoft,true,true>);
 PairStyle(lj/cut/tip4p/long/soft/kk/host,   PairLJCutCoulLongKokkos<LMPHostType,  PairLJCutTIP4PLongSoft,true,true>);
-#endif
+#endif // LMP_FEP
 
 // clang-format on
 #else

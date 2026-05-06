@@ -35,12 +35,10 @@
 #include "pair_lj_cut_coul_long.h"
 #include "pair_lj_cut_tip4p_long.h"
 
-#ifdef LMP_FEP
 #include "pair_coul_long_soft.h"
 #include "pair_tip4p_long_soft.h"
 #include "pair_lj_cut_coul_long_soft.h"
 #include "pair_lj_cut_tip4p_long_soft.h"
-#endif
 
 #include <cstring>
 
@@ -429,8 +427,6 @@ void PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::tip4p_precompute() requires 
 
 }
 
-
-
 namespace LAMMPS_NS {
 
   // coul/long/kk
@@ -446,7 +442,6 @@ namespace LAMMPS_NS {
   template class PairKokkos<LMPDeviceType,PairLJCutTIP4PLong,true,true,false>;
 
   // coul/long/soft/kk
-#ifdef LMP_FEP
   template class PairKokkos<LMPDeviceType,PairCoulLongSoft,false,false,true>;
 
   // coul/tip4p/soft/kk
@@ -457,12 +452,35 @@ namespace LAMMPS_NS {
 
   // lj/cut/tip4p/long/soft/kk
   template class PairKokkos<LMPDeviceType,PairLJCutTIP4PLongSoft,true,true,true>;
-#endif
-
 
   #ifdef LMP_KOKKOS_GPU
     //template class PairLJCutTIP4PLongKokkos<LMPHostType>;
-  #endif
+
+    // coul/long/kk/host
+    template class PairKokkos<LMPHostType,PairCoulLong,false,false,false>;
+
+    // coul/tip4p/kk/host
+    template class PairKokkos<LMPHostType,PairTIP4PLong,false,true,false>;
+
+    // lj/cut/coul/long/kk/host
+    template class PairKokkos<LMPHostType,PairLJCutCoulLong,true,false,false>;
+
+    // lj/cut/tip4p/long/kk/host
+    template class PairKokkos<LMPHostType,PairLJCutTIP4PLong,true,true,false>;
+
+    // coul/long/soft/kk/host
+    template class PairKokkos<LMPHostType,PairCoulLongSoft,false,false,true>;
+
+    // coul/tip4p/soft/kk/host
+    template class PairKokkos<LMPHostType,PairTIP4PLongSoft,false,true,true>;
+
+    // lj/cut/coul/long/soft/kk/host
+    template class PairKokkos<LMPHostType,PairLJCutCoulLongSoft,true,false,true>;
+
+    // lj/cut/tip4p/long/soft/kk/host
+    template class PairKokkos<LMPHostType,PairLJCutTIP4PLongSoft,true,true,true>;
+
+  #endif // LMP_KOKKOS_GPU
 
 }    // namespace LAMMPS_NS
 

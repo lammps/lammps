@@ -65,16 +65,16 @@ namespace LAMMPS_NS {
 
   #ifdef LMP_KOKKOS_GPU
 
-    // coul/long/kk
+    // coul/long/kk/host
     template class PairCoulLongKokkos<LMPHostType,PairCoulLong,false,false>;
 
-    // tip4p/long/kk
+    // tip4p/long/kk/host
     template class PairCoulLongKokkos<LMPHostType,PairTIP4PLong,true,false>;
 
-    // coul/long/soft/kk
+    // coul/long/soft/kk/host
     template class PairCoulLongKokkos<LMPHostType,PairCoulLongSoft,false,true>;
 
-    // tip4p/long/soft/kk
+    // tip4p/long/soft/kk/host
     template class PairCoulLongKokkos<LMPHostType,PairTIP4PLongSoft,true,true>;
 
   #endif // LMP_KOKKOS_GPU

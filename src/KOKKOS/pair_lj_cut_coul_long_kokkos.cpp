@@ -61,8 +61,20 @@ namespace LAMMPS_NS {
   template class PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutTIP4PLongSoft,true,true>;
 
   #ifdef LMP_KOKKOS_GPU
-    //template class PairLJCutCoulLongKokkos<LMPHostType>;
-  #endif
+
+    // lj/cut/coul/long/kk/host
+    template class PairLJCutCoulLongKokkos<LMPHostType,PairLJCutCoulLong,false,false>;
+
+    // lj/cut/tip4p/long/kk/host
+    template class PairLJCutCoulLongKokkos<LMPHostType,PairLJCutTIP4PLong,true,false>;
+
+    // lj/cut/coul/long/soft/kk/host
+    template class PairLJCutCoulLongKokkos<LMPHostType,PairLJCutCoulLongSoft,false,true>;
+
+    // lj/cut/tip4p/long/soft/kk/host
+    template class PairLJCutCoulLongKokkos<LMPHostType,PairLJCutTIP4PLongSoft,true,true>;
+
+  #endif // LMP_KOKKOS_GPU
 
 }
 

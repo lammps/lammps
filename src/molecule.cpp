@@ -34,11 +34,9 @@
 #include "pair.h"
 #include "tokenizer.h"
 #include "update.h"
-#include "utils.h"
 
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 #include <exception>
 

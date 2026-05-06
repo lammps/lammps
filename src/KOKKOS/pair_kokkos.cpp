@@ -46,6 +46,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace EwaldConst;
 
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType, class PairBase, bool LJ, bool TIP4P, bool SOFT>
 PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::PairKokkos(LAMMPS *lmp):
@@ -60,7 +61,6 @@ PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::PairKokkos(LAMMPS *lmp):
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
 }
-
 
 /* ---------------------------------------------------------------------- */
 

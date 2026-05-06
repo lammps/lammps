@@ -49,7 +49,7 @@ class PairLJCutCoulLongKokkos : public PairKokkos<DeviceType,PairBase,true,TIP4P
 {
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
-  enum {COUL_FLAG = TIP4P ? 2 : 1};  // 2=COUL_TIP4P, 1=COUL_LONG
+  enum {COUL_FLAG = TIP4P ? COUL_TIP4P : COUL_LONG};
   PairLJCutCoulLongKokkos(class LAMMPS *);
 
 };

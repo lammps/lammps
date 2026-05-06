@@ -46,7 +46,7 @@ class PairCoulLongKokkos : public PairKokkos<DeviceType,PairCoulLongBase,false,T
 {
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
-  enum {COUL_FLAG = TIP4P ? 2 : 1};  // 2=COUL_TIP4P, 1=COUL_LONG
+  enum {COUL_FLAG = TIP4P ? COUL_TIP4P : COUL_LONG};
   PairCoulLongKokkos(class LAMMPS *);
 
 };

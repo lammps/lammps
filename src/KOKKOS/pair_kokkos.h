@@ -19,18 +19,32 @@
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "force.h"
+#include "math_special.h"
 #include "update.h"
 #include "Kokkos_Macros.hpp"
 #include "Kokkos_ScatterView.hpp"
 
 namespace LAMMPS_NS {
 
+// Tags for doing coulomb calculations or not
+// They facilitate function overloading, since
+// partial template specialization of member functions is not allowed
+
+enum {
+  NO_COUL=0, COUL_LONG=1, // "the classics", backwards-compatible
+  COUL_TIP4P=2,           // "the new kid on the block"
+  COUL_CUT=3,             // (reserved for future use)
+  COUL_DEBYE=4,           // (reserved for future use)
+  COUL_DSF=5,             // (reserved for future use)
+  COUL_WOLF=6             // (reserved for future use)
+};
+
 template<class DeviceType, class PairBase, bool LJ, bool TIP4P, bool SOFT>
 class PairKokkos : public PairBase
 {
  public:
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
-  enum {COUL_FLAG = TIP4P ? 2 : 1};  // 2=COUL_TIP4P, 1=COUL_LONG
+  enum {COUL_FLAG = TIP4P ? COUL_TIP4P : COUL_LONG};
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairKokkos(class LAMMPS *);
@@ -524,19 +538,6 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
 template<int Table>
 struct CoulLongTable {
   enum {DoTable = Table};
-};
-
-// Tags for doing coulomb calculations or not
-// They facilitate function overloading, since
-// partial template specialization of member functions is not allowed
-
-enum {
-  NO_COUL=0, COUL_LONG=1, // "the classics", backwards-compatible
-  COUL_TIP4P=2,           // "the new kid on the block"
-  COUL_CUT=3,             // (reserved for future use)
-  COUL_DEBYE=4,           // (reserved for future use)
-  COUL_DSF=5,             // (reserved for future use)
-  COUL_WOLF=6             // (reserved for future use)
 };
 
 //Specialisation for Neighborlist types Half, HalfThread, Full

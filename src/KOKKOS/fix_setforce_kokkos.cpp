@@ -114,8 +114,6 @@ void FixSetForceKokkos<DeviceType>::post_force(int /*vflag*/)
 
   } else {
 
-    atomKK->sync(Host,ALL_MASK); // this can be removed when variable class is ported to Kokkos
-
     modify->clearstep_compute();
 
     if (xstyle == EQUAL) xvalue = input->variable->compute_equal(xvar);
@@ -129,11 +127,6 @@ void FixSetForceKokkos<DeviceType>::post_force(int /*vflag*/)
       input->variable->compute_atom(zvar,igroup,&sforce[0][2],3,0);
 
     modify->addstep_compute(update->ntimestep + 1);
-
-    if (varflag == ATOM) {  // this can be removed when variable class is ported to Kokkos
-      k_sforce.modify_host();
-      k_sforce.sync<DeviceType>();
-    }
 
     copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixSetForceNonConstant>(0,nlocal),*this,foriginal_kk);

@@ -220,7 +220,7 @@ Few<int,3> DomainKokkos::image_flags(imageint image) {
 
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-int DomainKokkos::closest_image(x_t x, sametag_t sametag, const int i, int j) 
+int DomainKokkos::closest_image(x_t x, sametag_t sametag, const int i, int j)
 {
   if (j < 0) return j;
   int closest = j;

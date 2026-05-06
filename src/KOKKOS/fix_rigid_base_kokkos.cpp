@@ -21,7 +21,7 @@
 #include "fix.h"
 #include "fix_rigid.h"
 #include "fix_rigid_small.h"
-#include "fix_rigid_nh.h"        
+#include "fix_rigid_nh.h"
 #include "fix_rigid_nh_small.h"
 #include "fix_rigid_small_kokkos.h"
 
@@ -1160,7 +1160,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static_base()
 {
 
   // FIXME: -------- setup_bodies_static_base() --------
-  
+
   // extended = 1 if any particle in a rigid body is finite size
   //              or has a dipole moment
 
@@ -2806,10 +2806,10 @@ int FixRigidBaseKokkos<DeviceType,FixRigidBase>::pack_forward_comm_kokkos(
 
   k_sendlist.template sync<DeviceType>();
   auto l_sendlist = k_sendlist.template view<DeviceType>();
-  
+
   k_buf.template sync<DeviceType>();
   auto l_buf = k_buf.template view<DeviceType>();
-  
+
   k_bodyown.template sync<DeviceType>();
   auto l_bodyown = k_bodyown.template view<DeviceType>();
 
@@ -2969,7 +2969,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::unpack_forward_comm_kokkos(
 
   k_buf.template sync<DeviceType>();
   auto l_buf = k_buf.template view<DeviceType>();
-  
+
   k_bodyown.template sync<DeviceType>();
   auto l_bodyown = k_bodyown.template view<DeviceType>();
 

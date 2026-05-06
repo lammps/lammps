@@ -170,7 +170,6 @@ class PairKokkos : public PairBase
   KK_FLOAT compute_ecoul(const KK_FLOAT&, const int&, const int&, const int&,
                          const int&, const KK_FLOAT&, const KK_FLOAT&) const;
 
-
   // -------- TIP4P --------
 
   struct tip4p_kk_t {
@@ -182,7 +181,7 @@ class PairKokkos : public PairBase
     typename AT::t_int_2d d_hneigh;
 
     DAT::tdual_kkfloat_2d k_newsite;
-    typename AT::t_kkfloat_2d d_newsite; 
+    typename AT::t_kkfloat_2d d_newsite;
 
   };
 

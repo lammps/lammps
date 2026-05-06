@@ -78,7 +78,7 @@ namespace LAMMPS_NS {
     template class PairCoulLongKokkos<LMPHostType,PairTIP4PLongSoft,true,true>;
 
   #endif // LMP_KOKKOS_GPU
-  
+
 }
 
 

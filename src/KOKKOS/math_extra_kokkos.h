@@ -1105,7 +1105,7 @@ int MathExtraKokkos::sym3x3_eigen(const T A[3][3], T evals[3], T evecs[3][3], in
 
   // ── 3. Sort by eigenvalue ────────────────────────────────────────────────
   // Cardano natively outputs in ascending order (ev[0] <= ev[1] <= ev[2]).
-  // We apply insertion sort to handle user requests for descending (-1) 
+  // We apply insertion sort to handle user requests for descending (-1)
   // or explicit ascending (1) to guarantee order against FP fuzziness.
   if (sort != 0) {
     for (int i = 1; i < 3; ++i) {
@@ -1114,16 +1114,16 @@ int MathExtraKokkos::sym3x3_eigen(const T A[3][3], T evals[3], T evecs[3][3], in
       const acc_t key_v1 = ew[i][1];
       const acc_t key_v2 = ew[i][2];
       int j = i - 1;
-      
+
       if (sort == -1) {
         // Descending (largest first)
-        while (j >= 0 && ev[j] < key_e) { 
+        while (j >= 0 && ev[j] < key_e) {
           ev[j+1] = ev[j]; ew[j+1][0] = ew[j][0]; ew[j+1][1] = ew[j][1]; ew[j+1][2] = ew[j][2];
           --j;
         }
       } else if (sort == 1) {
         // Ascending (smallest first)
-        while (j >= 0 && ev[j] > key_e) { 
+        while (j >= 0 && ev[j] > key_e) {
           ev[j+1] = ev[j]; ew[j+1][0] = ew[j][0]; ew[j+1][1] = ew[j][1]; ew[j+1][2] = ew[j][2];
           --j;
         }
@@ -1142,7 +1142,7 @@ int MathExtraKokkos::sym3x3_eigen(const T A[3][3], T evals[3], T evecs[3][3], in
   const acc_t cross1 = ew[0][2]*ew[1][0] - ew[0][0]*ew[1][2];
   const acc_t cross2 = ew[0][0]*ew[1][1] - ew[0][1]*ew[1][0];
   const acc_t dot = cross0*ew[2][0] + cross1*ew[2][1] + cross2*ew[2][2];
-  
+
   if (dot < ZERO) {
     ew[2][0] = -ew[2][0];
     ew[2][1] = -ew[2][1];

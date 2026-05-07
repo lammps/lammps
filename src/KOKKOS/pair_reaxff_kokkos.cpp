@@ -2340,7 +2340,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   CEover2 = d_sum_ovun(i,1) * DlpVi * inv_exp_ovun2 *
     (1.0 - Delta_lpcorr * (DlpVi + p_ovun2 * exp_ovun2 * inv_exp_ovun2));
   CEover3 = CEover2 * (1.0 - dfvl * d_dDelta_lp[i] * inv_exp_ovun1);
-  CEover4 = CEover2 * (dfvl * d_Delta_lp_temp[i]) * p_ovun4 * exp_ovun1 * SQR(inv_exp_ovun1);
+  // exp_ovun1 * SQR(inv_exp_ovun1) = inv_exp_ovun1 * (1 - inv_exp_ovun1)
+  // Use this stable form to avoid inf*0=NaN when exp_ovun1 overflows in float
+  CEover4 = CEover2 * (dfvl * d_Delta_lp_temp[i]) * p_ovun4 * inv_exp_ovun1 * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun1);
 
   // under coordination
 
@@ -2363,7 +2365,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   CEunder2 = -e_un * p_ovun8 * exp_ovun8 * inv_exp_ovun8;
   CEunder3 = CEunder1 * (1.0 - dfvl * d_dDelta_lp[i] * inv_exp_ovun1);
   CEunder4 = CEunder1 * (dfvl * d_Delta_lp_temp[i]) *
-      p_ovun4 * exp_ovun1 * inv_exp_ovun1 * inv_exp_ovun1 + CEunder2;
+      p_ovun4 * inv_exp_ovun1 * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun1) + CEunder2;
 
   const KK_FLOAT eng_tmp = e_lp + e_ov + e_un;
   if (eflag_atom) this->template e_tally_single<NEIGHFLAG>(ev,i,eng_tmp);

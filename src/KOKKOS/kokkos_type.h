@@ -408,6 +408,16 @@ typedef double KK_ACC_FLOAT;
 const MPI_Datatype MPI_KK_ACC_FLOAT = MPI_DOUBLE;
 #endif
 
+// KK_* convenience literals
+static constexpr KK_FLOAT KK_ZERO = static_cast<KK_FLOAT>(0.0);
+static constexpr KK_FLOAT KK_ONE = static_cast<KK_FLOAT>(1.0);
+static constexpr KK_FLOAT KK_TWO = static_cast<KK_FLOAT>(2.0);
+static constexpr KK_FLOAT KK_THREE = static_cast<KK_FLOAT>(3.0);
+static constexpr KK_FLOAT KK_FOUR = static_cast<KK_FLOAT>(4.0);
+static constexpr KK_FLOAT KK_HALF = static_cast<KK_FLOAT>(0.5);
+static constexpr KK_FLOAT KK_THIRD = static_cast<KK_FLOAT>(1.0/3.0);
+static constexpr KK_FLOAT KK_FOURTH = static_cast<KK_FLOAT>(0.25);
+
 struct s_EV_FLOAT {
   KK_ACC_FLOAT evdwl;
   KK_ACC_FLOAT ecoul;

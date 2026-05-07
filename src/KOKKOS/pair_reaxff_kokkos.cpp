@@ -3569,8 +3569,12 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
         const KK_FLOAT exphu = exp(-gp[7] * SQR(BO_i - 2.50));
         const KK_FLOAT exphua1 = exp(-gp[3] * (d_total_bo[i]-BO_i));
         const KK_FLOAT exphub1 = exp(-gp[3] * (d_total_bo[j]-BO_i));
-        const KK_FLOAT exphuov = exp(gp[4] * (d_Delta[i] + d_Delta[j]));
+        const KK_FLOAT exphuov_arg = gp[4] * (d_Delta[i] + d_Delta[j]);
+        const KK_FLOAT exphuov = exp(exphuov_arg);
         const KK_FLOAT hulpov = 1.0 / (1.0 + 25.0 * exphuov);
+        // exphuov*hulpov = exp(x)/(1+25*exp(x)) = 1/(exp(-x)+25)
+        // Use this stable form to avoid inf*0=NaN when exphuov overflows in float
+        const KK_FLOAT exphuov_hulpov = static_cast<KK_FLOAT>(1.0) / (exp(-exphuov_arg) + static_cast<KK_FLOAT>(25.0));
         estriph = gp[10] * exphu * hulpov * (exphua1 + exphub1);
 
         if (EFLAG && eflag_global) ev.evdwl += estriph;
@@ -3580,9 +3584,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
         const KK_FLOAT decobdbo = gp[10] * exphu * hulpov * (exphua1 + exphub1) *
             (gp[3] - 2.0 * gp[7] * (BO_i-2.50));
         const KK_FLOAT decobdboua = -gp[10] * exphu * hulpov *
-            (gp[3]*exphua1 + 25.0*gp[4]*exphuov*hulpov*(exphua1+exphub1));
+            (gp[3]*exphua1 + 25.0*gp[4]*exphuov_hulpov*(exphua1+exphub1));
         const KK_FLOAT decobdboub = -gp[10] * exphu * hulpov *
-            (gp[3]*exphub1 + 25.0*gp[4]*exphuov*hulpov*(exphua1+exphub1));
+            (gp[3]*exphub1 + 25.0*gp[4]*exphuov_hulpov*(exphua1+exphub1));
 
         d_Cdbo(i,j_index) += decobdbo;
         CdDelta_i += decobdboua;

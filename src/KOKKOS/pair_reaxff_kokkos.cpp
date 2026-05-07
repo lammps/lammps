@@ -2385,7 +2385,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
     const KK_FLOAT De_s = paramstwbp(itype,jtype).De_s;
 
     // multibody lone pair: correction for C2
-    if (p_lp3 > 0.001 && imass == 12.0 && jmass == 12.0) {
+    if (p_lp3 > 0.001 && mass_equal(imass, 12.0000) && mass_equal(jmass, 12.0000)) {
       const KK_FLOAT Di = d_Delta[i];
       const KK_FLOAT vov3 = d_BO(i,j_index) - Di - 0.040*pow(Di,4.0);
       if (vov3 > 3.0) {
@@ -3563,8 +3563,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
     KK_FLOAT estriph = 0.0;
 
     if (BO_i >= 1.00) {
-      if (gp[37] == 2 || (imass == 12.0000 && jmass == 15.9990) ||
-                         (jmass == 12.0000 && imass == 15.9990)) {
+      if (gp[37] == 2 ||
+          (mass_equal(imass, 12.0000) && mass_equal(jmass, 15.9990)) ||
+          (mass_equal(jmass, 12.0000) && mass_equal(imass, 15.9990))) {
         const KK_FLOAT exphu = exp(-gp[7] * SQR(BO_i - 2.50));
         const KK_FLOAT exphua1 = exp(-gp[3] * (d_total_bo[i]-BO_i));
         const KK_FLOAT exphub1 = exp(-gp[3] * (d_total_bo[j]-BO_i));
@@ -4395,6 +4396,13 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxFindBondSpecies, const 
       if (nj > MAXSPECBOND) k_error_flag.view<DeviceType>()() = 1;
     }
   }
+}
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+bool PairReaxFFKokkos<DeviceType>::mass_equal(const KK_FLOAT m1, const KK_FLOAT m2) const {
+  return (Kokkos::abs(m1-m2) < KK_FLOAT(.0001));
 }
 
 template class PairReaxFFKokkos<LMPDeviceType>;

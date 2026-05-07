@@ -39,7 +39,6 @@ namespace ReaxFF {
     int type_i, type_j;
     double ebond, pow_BOs_be2, exp_be12, CEbo;
     double gp3, gp4, gp7, gp10, gp37;
-    double exphu, exphua1, exphub1, exphuov, hulpov, estriph;
     double decobdbo, decobdboua, decobdboub;
     single_body_parameters *sbp_i, *sbp_j;
     two_body_parameters *twbp;
@@ -106,23 +105,28 @@ namespace ReaxFF {
         /* Stabilisation terminal triple bond */
         if (bo_ij->BO >= 1.00) {
           if (gp37 == 2 ||
-               (sbp_i->mass == 12.0000 && sbp_j->mass == 15.9990) ||
-               (sbp_j->mass == 12.0000 && sbp_i->mass == 15.9990)) {
-            exphu = exp(-gp7 * SQR(bo_ij->BO - 2.50));
-            exphua1 = exp(-gp3 * (workspace->total_bond_order[i]-bo_ij->BO));
-            exphub1 = exp(-gp3 * (workspace->total_bond_order[j]-bo_ij->BO));
-            exphuov = exp(gp4 * (workspace->Delta[i] + workspace->Delta[j]));
-            hulpov = 1.0 / (1.0 + 25.0 * exphuov);
+               (mass_equal(sbp_i->mass, 12.0000) && mass_equal(sbp_j->mass, 15.9990)) ||
+               (mass_equal(sbp_j->mass, 12.0000) && mass_equal(sbp_i->mass, 15.9990))) {
+            const double exphu = exp(-gp7 * SQR(bo_ij->BO - 2.50));
+            const double exphua1 = exp(-gp3 * (workspace->total_bond_order[i]-bo_ij->BO));
+            const double exphub1 = exp(-gp3 * (workspace->total_bond_order[j]-bo_ij->BO));
+            const double exphuov_arg = gp4 * (workspace->Delta[i] + workspace->Delta[j]);
+            const double exphuov = exp(exphuov_arg);
+            const double hulpov = 1.0 / (1.0 + 25.0 * exphuov);
 
-            estriph = gp10 * exphu * hulpov * (exphua1 + exphub1);
+            // exphuov*hulpov = exp(x)/(1+25*exp(x)) = 1/(exp(-x)+25)
+            // Use this stable form to prevent numerically unstable unit test
+            const double exphuov_hulpov = 1.0 / (exp(-exphuov_arg) + 25.0);
+
+            const double estriph = gp10 * exphu * hulpov * (exphua1 + exphub1);
             data->my_en.e_bond += estriph;
 
             decobdbo = gp10 * exphu * hulpov * (exphua1 + exphub1) *
               (gp3 - 2.0 * gp7 * (bo_ij->BO-2.50));
             decobdboua = -gp10 * exphu * hulpov *
-              (gp3*exphua1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
+              (gp3*exphua1 + 25.0 * gp4 * exphuov_hulpov * (exphua1+exphub1));
             decobdboub = -gp10 * exphu * hulpov *
-              (gp3*exphub1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
+              (gp3*exphub1 + 25.0 * gp4 * exphuov_hulpov * (exphua1+exphub1));
 
             /* tally energy into global or per-atom energy accumulators */
             if (system->pair_ptr->eflag_either)

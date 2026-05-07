@@ -348,7 +348,7 @@ If the tangential force exceeds the static critical force while the contact
 is *static*, i.e. :math:`F_t > F_{t,crit,static}`, the contact state is changed
 to *dynamic*. 
 
-Conversely, while the contact is designated as *dynamics*, the critical force 
+Conversely, while the contact is designated as *dynamic*, the critical force 
 is given by :math:`F_{t,crit} = F_{t,crit,dynamic}`.
 If the tangential force drops below the dynamic critical force while the contact
 is *dynamic*, i.e. :math:`F_t < F_{t,crit,dynamic}`, the contact state is changed

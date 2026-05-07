@@ -242,12 +242,46 @@ radius in the *mdr* model, the keyword/arg pair *cutoff radius* must be specifie
 ----------------------
 
 The *epa_linear* model is the linear elastic-plastic-adhesive model proposed
-by :ref:`(Luding) <Luding2008>` model, where the force is computed according to 
+by :ref:`(Luding) <Luding2008>` model, where the force is computed according to: 
 
 .. math::
 
-   \mathbf{F}_{ne} = 
+   F_{ne}(\delta) = \begin{cases}
+    k_1\delta & \text{if } k_2(\delta-\delta_0) \ge k_1\delta \\
+    k_2(\delta-\delta_0) & \text{if } k_1\delta \gt k_2(\delta-\delta_0) \gt -k_c\delta \\
+    -k_c\delta & \text{if } -k_c\delta \ge k_2(\delta-\delta_0)
+   \end{cases}
 
+where
+
+.. math::
+
+   k_2(\delta_{\text{max}}) = \begin{cases}
+    \hat{k_2} & \text{if } \delta_\text{max} \ge \delta_\text{max}^* \\
+    k_1 + (\hat{k_2}-k_1)\frac{\delta_\text{max}}{\delta_{\text{max}}^*} & \ \text{if } \delta_\text{max} \lt \delta_\text{max}^*
+   \end{cases}
+
+and
+
+.. math::
+
+   \delta_\text{max}^* = \frac{\hat{k_2}}{\hat{k_2}-k_1}\phi_f \frac{2R_1R_2}{R_1+R_2}
+
+Initial loading proceeds along the elastic branch with stiffness :math:`k_1`. The maximum overlap
+:math:`\delta_\text{max}` is stored and updated throughout the duration of 
+the contact. Unloading takes place with stiffness :math:`k_2`, which increases with
+the maximum overlap :math:`\delta_\text{max}`, up to a maximum value of :math:`\hat{k_2}`.
+Re-loading proceeds along the same line of slope :math:`k_2`, until the overlap :math:`\delta_\text{max}`
+is reached, at which point further loading takes place with slope :math:`k_1`. Unloading below
+:math:`\delta_\text{min} = (k_2-k_1)\delta_\text{max}(k_2+k_c)` leads to the adhesive branch, where
+unloading proceeds with stiffness :math:`k_c`. A constant cohesive force :math:`f_0` can optionally also
+be specified. The overlap at which :math:`k_2` reaches its maximum value :math:`\hat{k_2}` is determined
+by a plastic overlap range, specified as a user input :math:`\phi_f`, with typical values :math:`0<\phi_f<1`.
+
+
+
+.. image:: img/epa_linear.png
+   :width: 90%
 
 .. _epa_nonlinear_normal_model:
 
@@ -257,7 +291,27 @@ by :ref:`(Luding) <Luding2008>` model, where the force is computed according to
 The *epa_nonlinear* model is very similar to the nonlinear elastic-plastic-adhesive model proposed
 by :ref:`(Thakur et al) <Thakur2014>` model, where the force is computed according to:
 
+.. math::
 
+   F_{ne}(\delta) =
+   \begin{cases}
+   -f_0+k_1\delta^m & \text{if } k_2(\delta^m-\delta_p^m) \ge k_1\delta^m \\
+   -f_0+k_2(\delta^m-\delta_p^m) & \text{if } k_1\delta^m > k_2(\delta^m-\delta_p^m) > -k_c\delta^m \\
+   -f0-k_c\delta^m & \text{if } -k_c\delta^m \ge k_2(\delta^m-\delta_p^m)
+   \end{cases}
+
+where
+.. math::
+   k_1 = \frac{4E_\text{eff}a}{3}R_\text{eff}^{2-m}
+
+Initial loading proceeds along the :math:`k_1\delta^m` branch. The maximum overlap
+:math:`\delta_\text{max}` is stored and updated throughout the duration of 
+the contact. Unloading proceeds along :math:`k_2(\delta^m-\delta_p^m)`, and 
+re-loading proceeds along the same branch, until :math:`\delta_\text{max}` is 
+reached, at which point further loading proceeds along :math:`k_1\delta^m` again.
+
+.. image:: img/epa_nonlinear.png
+   :width: 90%
 
 -------------
 

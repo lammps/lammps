@@ -234,11 +234,8 @@ void BondHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
   BondHarmonic::read_restart(fp);
 
   int n = atom->nbondtypes;
-  
-  // FIX: Removed "DAT::tdual_kkfloat_1d" to use the class members 
-  // instead of creating local shadowed variables.
-  k_k = DAT::tdual_kkfloat_1d("BondHarmonic::k", n+1);
-  k_r0 = DAT::tdual_kkfloat_1d("BondHarmonic::r0", n+1);
+  DAT::tdual_kkfloat_1d k_k("BondHarmonic::k",n+1);
+  DAT::tdual_kkfloat_1d k_r0("BondHarmonic::r0",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_r0 = k_r0.template view<DeviceType>();

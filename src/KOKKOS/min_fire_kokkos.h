@@ -40,7 +40,6 @@ private:
   KK_FLOAT dt, dtmax, dtmin, alpha;
   bigint last_negative, ntimestep_start;
   int vdotf_negatif;
-  MPI_Comm mpi_comm;
 
 };
 

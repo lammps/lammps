@@ -2367,7 +2367,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   //   exp_ovun2n * inv_exp_ovun2n = 1 - inv_exp_ovun2n  (stable)
   // Similarly CEunder2: e_un contains inv_exp_ovun8, so e_un*exp_ovun8 = 0*inf = NaN
   //   exp_ovun8 * inv_exp_ovun8 = 1 - inv_exp_ovun8  (stable)
-  const KK_FLOAT e_un_base = p_ovun5 * (KK_ONE - exp_ovun6) * inv_exp_ovun8;  // = -e_un/inv_exp_ovun2n
+  // e_un_base = -e_un/inv_exp_ovun2n; must be zero when e_un is zero (no bonds)
+  const KK_FLOAT e_un_base = (numbonds > 0 || enobondsflag) ?
+      p_ovun5 * (KK_ONE - exp_ovun6) * inv_exp_ovun8 : KK_ZERO;
   CEunder1 = inv_exp_ovun2n *
     (p_ovun5 * p_ovun6 * exp_ovun6 * inv_exp_ovun8
      - p_ovun2 * e_un_base * (KK_ONE - inv_exp_ovun2n));
@@ -2887,7 +2889,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
 
   CEcoa1 = -2 * p_coa4 * (BOA_ij - 1.5) * e_coa;
   CEcoa2 = -2 * p_coa4 * (BOA_ik - 1.5) * e_coa;
-  CEcoa3 = -p_coa2 * exp_coa2 * e_coa / (1 + exp_coa2);
+  // exp_coa2 * e_coa / (1+exp_coa2): e_coa contains 1/(1+exp_coa2), so when
+  // exp_coa2 overflows to inf, e_coa→0 and exp_coa2*e_coa = inf*0 = NaN.
+  // Stable form: exp_coa2/(1+exp_coa2) = 1 - 1/(1+exp_coa2)
+  CEcoa3 = -p_coa2 * (KK_ONE - KK_ONE/(KK_ONE + exp_coa2)) * e_coa;
   CEcoa4 = -2 * p_coa3 * (d_total_bo[j]-BOA_ij) * e_coa;
   CEcoa5 = -2 * p_coa3 * (d_total_bo[k]-BOA_ik) * e_coa;
 

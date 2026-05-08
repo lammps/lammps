@@ -26,6 +26,7 @@
 #include "timer.h"
 #include "universe.h"
 #include "update.h"
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -137,29 +138,20 @@ int MinFireKokkos::run_iterate(int maxiter) {
     niter++;
 
     KK_ACC_FLOAT vdotf_local, vdotf_all;
-    Kokkos::parallel_reduce("min_fire/vdotf", nlocal, LAMMPS_LAMBDA(const int i, KK_ACC_FLOAT &l_vdf) {
-      // vdf += v0*f0 + v1*f1 + v2*f2
-      l_vdf = Kokkos::fma(l_v(i,0), l_f(i,0),
-              Kokkos::fma(l_v(i,1), l_f(i,1),
-              Kokkos::fma(l_v(i,2), l_f(i,2), l_vdf)));
+    Kokkos::parallel_reduce("min_fire/vdotf", nlocal, LAMMPS_LAMBDA(const int i, KK_ACC_FLOAT &vdf) {
+      vdf += l_v(i,0)*l_f(i,0) + l_v(i,1)*l_f(i,1) + l_v(i,2)*l_f(i,2);
     }, vdotf_local);
     // bugfix for multiprocess replicas
     MPI_Allreduce(&vdotf_local, &vdotf_all, 1, MPI_KK_ACC_FLOAT, MPI_SUM, mpi_comm);
 
     if (vdotf_all > 0.0) {
       KK_ACC_FLOAT vdotv_local, fdotf_local, vdotv_all, fdotf_all;
-      Kokkos::parallel_reduce("min_fire/norms", nlocal, LAMMPS_LAMBDA(const int i, KK_ACC_FLOAT &l_vv) {
-        // vv += v0*v0 + v1*v1 + v2*v2
-        l_vv = Kokkos::fma(l_v(i,0), l_v(i,0),
-               Kokkos::fma(l_v(i,1), l_v(i,1),
-               Kokkos::fma(l_v(i,2), l_v(i,2), l_vv)));
+      Kokkos::parallel_reduce("min_fire/norms", nlocal, LAMMPS_LAMBDA(const int i, KK_ACC_FLOAT &vv) {
+        vv += l_v(i,0)*l_v(i,0) + l_v(i,1)*l_v(i,1) + l_v(i,2)*l_v(i,2);
       }, vdotv_local);
 
-      Kokkos::parallel_reduce("min_fire/fnorms", nlocal, LAMMPS_LAMBDA(const int i, KK_ACC_FLOAT &l_ff) {
-        // ff += f0*f0 + f1*f1 + f2*f2
-        l_ff = Kokkos::fma(l_f(i,0), l_f(i,0),
-               Kokkos::fma(l_f(i,1), l_f(i,1),
-               Kokkos::fma(l_f(i,2), l_f(i,2), l_ff)));
+      Kokkos::parallel_reduce("min_fire/fnorms", nlocal, LAMMPS_LAMBDA(const int i, KK_ACC_FLOAT &ff) {
+        ff += l_f(i,0)*l_f(i,0) + l_f(i,1)*l_f(i,1) + l_f(i,2)*l_f(i,2);
       }, fdotf_local);
 
       // bugfix for multiprocess replicas

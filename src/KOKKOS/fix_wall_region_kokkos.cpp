@@ -264,7 +264,7 @@ KK_FLOAT FixWallRegionKokkos<DeviceType>::morse(KK_FLOAT r, KK_FLOAT& fwallKK) c
   KK_FLOAT dr = r - sigma;
   KK_FLOAT dexp = exp(-alpha * dr);
   fwallKK = coeff1 * (dexp * dexp - dexp);
-  return epsilon * (dexp * dexp - 2.0 * dexp) - offset;
+  return epsilon * (dexp * dexp - KK_TWO * dexp) - offset;
 }
 
 /* ----------------------------------------------------------------------
@@ -278,7 +278,7 @@ KOKKOS_INLINE_FUNCTION
 KK_FLOAT FixWallRegionKokkos<DeviceType>::colloid(KK_FLOAT r, KK_FLOAT rad, KK_FLOAT& fwallKK) const
 {
   KK_FLOAT new_coeff2 = coeff2 * rad * rad * rad;
-  KK_FLOAT diam = 2.0 * rad;
+  KK_FLOAT diam = KK_TWO * rad;
 
   KK_FLOAT rad2 = rad * rad;
   KK_FLOAT rad4 = rad2 * rad2;
@@ -298,8 +298,8 @@ KK_FLOAT FixWallRegionKokkos<DeviceType>::colloid(KK_FLOAT r, KK_FLOAT rad, KK_F
   KK_FLOAT rinv2 = 1.0 / r2;
   KK_FLOAT r2inv2 = rinv2 * rinv2;
   KK_FLOAT r4inv2 = r2inv2 * r2inv2;
-  KK_FLOAT r3 = r + 0.5 * diam;
-  KK_FLOAT rinv3 = 1.0 / r3;
+  KK_FLOAT r3 = r + KK_HALF * diam;
+  KK_FLOAT rinv3 = KK_ONE / r3;
   KK_FLOAT r2inv3 = rinv3 * rinv3;
   KK_FLOAT r4inv3 = r2inv3 * r2inv3;
   return coeff3 *

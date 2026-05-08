@@ -95,7 +95,7 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
   // eflag is used to track whether wall energies have been communicated
 
   eflag = 0;
-  double result[10];
+  KK_ACC_FLOAT result[10];
   copymode = 1;
 
   if(auto *regionKK = dynamic_cast<RegBlockKokkos<DeviceType>*>(region)) {
@@ -140,9 +140,10 @@ KOKKOS_INLINE_FUNCTION
 void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, value_type result) const {
   if (d_mask(i) & groupbit) {
 
-    if (!regionKK->match_kokkos(d_x(i,0), d_x(i,1), d_x(i,2))) Kokkos::abort("Particle outside surface of region used in fix wall/region");
+    if (!regionKK->match_kokkos(d_x(i,0), d_x(i,1), d_x(i,2)))
+      Kokkos::abort("Particle outside surface of region used in fix wall/region");
 
-    KK_FLOAT rinv, tooclose;
+    KK_ACC_FLOAT rinv, tooclose;
 
     if (style == COLLOID)
       tooclose = d_radius(i);
@@ -173,9 +174,10 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, val
       else if (style == COLLOID) engKK = colloid(r,d_radius(i),fwallKK);
       else engKK = harmonic(r,fwallKK);
 
-      KK_FLOAT fx = fwallKK * delx * rinv;
-      KK_FLOAT fy = fwallKK * dely * rinv;
-      KK_FLOAT fz = fwallKK * delz * rinv;
+      // extra sprinkle of mixed precision to pass unit tests
+      KK_ACC_FLOAT fx = static_cast<KK_ACC_FLOAT>(fwallKK * delx * rinv);
+      KK_ACC_FLOAT fy = static_cast<KK_ACC_FLOAT>(fwallKK * dely * rinv);
+      KK_ACC_FLOAT fz = static_cast<KK_ACC_FLOAT>(fwallKK * delz * rinv);
       d_f(i,0) += fx;
       d_f(i,1) += fy;
       d_f(i,2) += fz;
@@ -184,7 +186,7 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, val
       result[3] -= fz;
       result[0] += engKK;
       if (evflag) {
-        KK_FLOAT v[6] = {
+        KK_ACC_FLOAT v[6] = {
           fx * delx,
           fy * dely,
           fz * delz,
@@ -337,7 +339,7 @@ KK_FLOAT FixWallRegionKokkos<DeviceType>::harmonic(KK_FLOAT r, KK_FLOAT& fwallKK
 template <class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void FixWallRegionKokkos<DeviceType>::v_tally(value_type result, int i, KK_FLOAT *v) const
+void FixWallRegionKokkos<DeviceType>::v_tally(value_type result, int i, KK_ACC_FLOAT *v) const
 {
   if (vflag_global) {
     result[4] += v[0];

@@ -27,7 +27,7 @@ RegionStyle(sphere/kk/host,RegSphereKokkos<LMPHostType>);
 
 #include "kokkos_base.h"
 #include "kokkos_type.h"
-#include "region_block_kokkos.h" 
+#include "region_block_kokkos.h"
 
 namespace LAMMPS_NS {
 

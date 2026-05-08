@@ -27,17 +27,10 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType, bool TSTAT, bool PSTAT>
-FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::FixRigidNHSmallKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixRigidNHSmall(lmp, narg, arg),
-  FixRigidBaseKokkos<DeviceType, FixRigidNHSmall>(atom, domain)
+FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::
+  FixRigidNHSmallKokkos(LAMMPS *lmp, int narg, char **arg) :
+    FixRigidBaseKokkos<DeviceType, FixRigidNHSmall>(lmp, narg, arg)
 {
-  kokkosable = 1;
-  forward_comm_device = 1;
-  reverse_comm_device = 1;
-  exchange_comm_device = 1;
-  sort_device = 1;
-  datamask_read = EMPTY_MASK;
-  datamask_modify = EMPTY_MASK;
 
   if constexpr (TSTAT || PSTAT) {
     this->restart_global = 1;
@@ -86,89 +79,8 @@ FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::FixRigidNHSmallKokkos(LAMMPS *lmp
 }
 
 /* ----------------------------------------------------------------------
-   FIX METHODS
-------------------------------------------------------------------------- */
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::post_constructor() {
-  this->post_constructor_base();
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::init() {
-  this->init_base();
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::setup_pre_neighbor() {
-  return this->setup_pre_neighbor_base();
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::setup(int vflag) {
-  this->setup_base(vflag);
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::pre_neighbor() {
-  this->pre_neighbor_base();
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::initial_integrate(int vflag) {
-  this->initial_integrate_base(vflag);
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::post_force(int /*vflag*/) {
-  this->post_force_base();
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::final_integrate() {
-  this->final_integrate_base();
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-bigint FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::dof(int tgroup) {
-  return this->dof_base(tgroup);
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::grow_arrays(int nmax) {
-  this->grow_arrays_base(nmax);
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::zero_momentum() {
-  this->zero_momentum_base();
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::zero_rotation() {
-  this->zero_rotation_base();
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-double FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::compute_scalar() {
-  return this->compute_scalar_base();
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::deform(int flag) {
-  this->deform_base(flag);
-}
-
-/* ----------------------------------------------------------------------
    FixRigidSmall PROTECTED METHODS
 ------------------------------------------------------------------------- */
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::grow_body() {
-  this->grow_body_base();
-}
-
-/* ---------------------------------------------------------------------- */
 
 template<class DeviceType, bool TSTAT, bool PSTAT>
 void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::copy_arrays(int i, int j, int delflag)
@@ -198,41 +110,6 @@ void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::set_molecule(int nlocalprev,
   this->sync_host_base();
   FixRigidSmall::set_molecule(nlocalprev, tagprev, imol, xgeom, vcm, quat);
   this->modify_host_base();
-}
-
-/* ----------------------------------------------------------------------
-   HOST COMM METHODS
-------------------------------------------------------------------------- */
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-int FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::pack_exchange(int i, double *buf) {
-  return this->pack_exchange_base(i, buf);
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-int FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::unpack_exchange(int nlocal, double *buf) {
-  return this->unpack_exchange_base(nlocal, buf);
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-int FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::pack_forward_comm(int n, int *list,
-                                                          double *buf, int pbc_flag, int *pbc) {
-  return this->pack_forward_comm_base(n, list, buf, pbc_flag, pbc);
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::unpack_forward_comm(int n, int first, double *buf) {
-  this->unpack_forward_comm_base(n, first, buf);
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-int FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::pack_reverse_comm(int n, int first, double *buf) {
-  return this->pack_reverse_comm_base(n, first, buf);
-}
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::unpack_reverse_comm(int n, int *list, double *buf) {
-  this->unpack_reverse_comm_base(n, list, buf);
 }
 
 /* ---------------------------------------------------------------------- */

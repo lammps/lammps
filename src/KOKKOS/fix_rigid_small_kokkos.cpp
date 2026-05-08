@@ -32,105 +32,14 @@ using namespace LAMMPS_NS;
 
 template<class DeviceType>
 FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixRigidSmall(lmp, narg, arg),
-  FixRigidBaseKokkos<DeviceType, FixRigidSmall>(atom, domain)
+  FixRigidBaseKokkos<DeviceType, FixRigidSmall>(lmp, narg, arg)
 {
-  kokkosable = 1;
-  forward_comm_device = 1;
-  reverse_comm_device = 1;
-  exchange_comm_device = 1;
-  sort_device = 1;
-  datamask_read = EMPTY_MASK;
-  datamask_modify = EMPTY_MASK;
-}
 
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-FixRigidSmallKokkos<DeviceType>::~FixRigidSmallKokkos()
-{
-  if (copymode) return;
-}
-
-/* ----------------------------------------------------------------------
-   FIX METHODS
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::post_constructor() {
-  this->post_constructor_base();
-}
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::init() {
-  this->init_base();
-}
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor() {
-  return this->setup_pre_neighbor_base();
-}
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::setup(int vflag) {
-  this->setup_base(vflag);
-}
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::pre_neighbor() {
-  this->pre_neighbor_base();
-}
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::initial_integrate(int vflag) {
-  this->initial_integrate_base(vflag);
-}
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::post_force(int /*vflag*/) {
-  this->post_force_base();
-}
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::final_integrate() {
-  this->final_integrate_base();
-}
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::grow_arrays(int nmax) {
-  this->grow_arrays_base(nmax);
-}
-
-template<class DeviceType>
-bigint FixRigidSmallKokkos<DeviceType>::dof(int tgroup) {
-  return this->dof_base(tgroup);
-}
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::zero_momentum() {
-  this->zero_momentum_base();
-}
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::zero_rotation() {
-  this->zero_rotation_base();
-}
-
-template<class DeviceType>
-double FixRigidSmallKokkos<DeviceType>::compute_scalar() {
-  return this->compute_scalar_base();
 }
 
 /* ----------------------------------------------------------------------
    FixRigidSmall PROTECTED METHODS
 ------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::grow_body() {
-  this->grow_body_base();
-}
-
-/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
@@ -160,40 +69,6 @@ void FixRigidSmallKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagpre
   this->sync_host_base();
   FixRigidSmall::set_molecule(nlocalprev, tagprev, imol, xgeom, vcm, quat);
   this->modify_host_base();
-}
-
-/* ----------------------------------------------------------------------
-   HOST COMM METHODS
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-int FixRigidSmallKokkos<DeviceType>::pack_exchange(int i, double *buf) {
-  return this->pack_exchange_base(i, buf);
-}
-
-template<class DeviceType>
-int FixRigidSmallKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf) {
-  return this->unpack_exchange_base(nlocal, buf);
-}
-
-template<class DeviceType>
-int FixRigidSmallKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc) {
-  return this->pack_forward_comm_base(n, list, buf, pbc_flag, pbc);
-}
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf) {
-  this->unpack_forward_comm_base(n, first, buf);
-}
-
-template<class DeviceType>
-int FixRigidSmallKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf) {
-  return this->pack_reverse_comm_base(n, first, buf);
-}
-
-template<class DeviceType>
-void FixRigidSmallKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf) {
-  this->unpack_reverse_comm_base(n, list, buf);
 }
 
 /* ---------------------------------------------------------------------- */

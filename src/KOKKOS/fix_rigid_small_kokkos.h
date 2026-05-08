@@ -26,46 +26,12 @@ FixStyle(rigid/small/kk/host,FixRigidSmallKokkos<LMPHostType>);
 #include "fix_rigid_small.h"
 #include "fix_rigid_base_kokkos.h"
 
-
 namespace LAMMPS_NS {
 
 template<class DeviceType>
-class FixRigidSmallKokkos : public FixRigidSmall, public FixRigidBaseKokkos<DeviceType, FixRigidSmall> {
+class FixRigidSmallKokkos : public FixRigidBaseKokkos<DeviceType, FixRigidSmall> {
  public:
   FixRigidSmallKokkos(class LAMMPS *, int, char **);
-  ~FixRigidSmallKokkos() override;
-
-  void post_constructor() override;
-  void init() override;
-  void setup(int) override;
-  void initial_integrate(int) override;
-  void post_force(int) override;
-  void final_integrate() override;
-  void setup_pre_neighbor() override;
-  void pre_neighbor() override;
-
-  void grow_arrays(int) override;
-  void copy_arrays(int, int, int) override;
-  void set_arrays(int) override;
-  void set_molecule(int, tagint, int, double *, double *, double *) override;
-
-  int pack_exchange(int, double *) override;
-  int unpack_exchange(int, double *) override;
-  int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm(int, int, double *) override;
-  int pack_reverse_comm(int, int, double *) override;
-  void unpack_reverse_comm(int, int *, double *) override;
-
-  bigint dof(int) override;
-  void zero_momentum() override;
-  void zero_rotation() override;
-  double compute_scalar() override;
-
- protected:
-  class AtomKokkos *atomKK;
-  ExecutionSpace execution_space;
-
-  void grow_body() override;
 
 };
 

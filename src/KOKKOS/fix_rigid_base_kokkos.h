@@ -25,70 +25,111 @@ namespace LAMMPS_NS {
 using Kokkos::fma;
 
 template<class DeviceType, class FixRigidBase>
-class FixRigidBaseKokkos : public KokkosBase {
+class FixRigidBaseKokkos : public FixRigidBase, KokkosBase {
  public:
 
-  FixRigidBaseKokkos(Atom*, Domain*);
+  FixRigidBaseKokkos(class LAMMPS *, int, char **);
   ~FixRigidBaseKokkos();
 
 protected:
 
-  class AtomKokkos *atomKK;
+  using Pointers::atom;
+  using Pointers::atomKK;
+  using Pointers::comm;
+  using Pointers::error;
+  using Pointers::force;
+  using Pointers::memory;
+  using Pointers::memoryKK;
+  using Pointers::neighbor;
+  using Pointers::update;
+  using Pointers::world;
+
+  // should be in Pointers but im not willing to die on that hill
   class DomainKokkos *domainKK;
-  ExecutionSpace execution_space;
+
+  using Fix::copymode;
+  using Fix::execution_space;
+  using Fix::datamask_read;
+  using Fix::datamask_modify;
+  using Fix::eflags;
+  using Fix::style;
+
+  using FixRigidBase::commflag;
+  using FixRigidBase::extended;
+
+  using FixRigidBase::body;
+  using FixRigidBase::atom2body;
+  using FixRigidBase::xcmimage;
+
+  using FixRigidBase::triclinic;
+
+  using FixRigidBase::t_start;
+  using FixRigidBase::t_stop;
+  using FixRigidBase::langextra;
+  using FixRigidBase::t_period;
+  using FixRigidBase::nlocal_body;
+  using FixRigidBase::nbody_total;
+  using FixRigidBase::epsilon;
+  using FixRigidBase::dtq;
+  using FixRigidBase::epsilon_dot;
+  using FixRigidBase::allremap;
+  using FixRigidBase::p_flag;
+  using FixRigidBase::t_flag;
+  using FixRigidBase::itensor;
+  using FixRigidBase::inpfile;
+  using FixRigidBase::readfile;
+
+  using FixRigidBase::nmol;
+
+  using FixRigidBase::onemols;
+
+  using FixRigidBase::p_start;
+  using FixRigidBase::p_stop;
+  using FixRigidBase::p_freq;
+  using FixRigidBase::displace;
+
 
   // fix methods
-  void post_constructor_base();
-  void init_base();
-  void setup_base(int);
-  void setup_pre_neighbor_base();
-  void initial_integrate_base(int);
-  void pre_neighbor_base();
-  void post_force_base();
-  void final_integrate_base();
-  void zero_momentum_base();
-  void zero_rotation_base();
-  double compute_scalar_base();
-  void grow_arrays_base(int);
-  bigint dof_base(int);
-  void deform_base(int);
+  void post_constructor() override;
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void pre_neighbor() override;
+  void final_integrate() override;
+  void zero_momentum() override;
+  void zero_rotation() override;
+  double compute_scalar() override;
+  void grow_arrays(int) override;
+  bigint dof(int) override;
+  void deform(int) override;
 
   // fix rigid protected methods
-  void setup_bodies_static_base();
-  void setup_bodies_dynamic_base();
-  void compute_forces_and_torques_base();
-  void enforce2d_base();
-  void compute_dof_base();
-  void remap_base();
-  void grow_body_base();
-  void grow_body_base(int);
-  void image_shift_base();
-  void reset_atom2body_base();
+  void setup_bodies_static() override;
+  void setup_bodies_dynamic() override;
+  void compute_forces_and_torques() override;
+  void enforce2d() override;
+  void compute_dof() override;
+  void remap() override;
+  void grow_body() override;
+  void grow_body(int);
+  void image_shift() override;
+  void reset_atom2body() override;
 
   template<bool EVFLAG>
-  void set_xv_base();
+  void set_xv();
 
   template<bool EVFLAG>
-  void set_v_base();
+  void set_v();
 
   // Curiously Repeating Template Pattern (CRTP)
-  Fix* fix_base() { return static_cast<Fix*>(base()); }
-  FixRigidBase* base() { return dynamic_cast<FixRigidBase*>(this); }
-  FixRigidBase* base_ptr;
-  FixRigidNHSmall* nh_base() { return dynamic_cast<FixRigidNHSmall*>(this); }
-  static constexpr bool is_nh    = std::is_base_of_v<FixRigidNH,    FixRigidBase> ||
-                                   std::is_base_of_v<FixRigidNHSmall, FixRigidBase>;
-  static constexpr bool is_small = std::is_base_of_v<FixRigidSmall, FixRigidBase>;
-  int nlocal() { return base()->atom->nlocal; }
+  static constexpr bool is_nh = std::is_base_of_v<FixRigidNHSmall, FixRigidBase>;
+
+  int nlocal() { return atomKK->nlocal; }
+/*
   int& nlocal_body() { return base()->nlocal_body; }
   int nbody_total() { return base()->nlocal_body + base()->nghost_body; }
   int nmax_body() { return base()->nmax_body; }
-  int& copymode() { return base()->copymode; }
-  int triclinic() { return base()->triclinic; }
-  int& commflag() { return base()->commflag; }
-  int& extended() { return base()->extended; }
-  Comm *comm() { return base()->comm; }
-  MPI_Comm world() { return base()->world; }
+*/
 
   // kokkos views
   typedef DeviceType device_type;
@@ -119,11 +160,6 @@ protected:
   typename AT::t_kkacc_1d d_eatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 
-  void modify_host_base();
-  void modify_device_base();
-  void sync_host_base();
-  void sync_device_base();
-
   // LANGFLAG
 
 #ifndef LMP_KOKKOS_DEBUG_RNG
@@ -135,16 +171,16 @@ protected:
 #endif
 
   TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_langextra;
-  void apply_langevin_thermostat_base();
+  void apply_langevin_thermostat() override;
 
   // HOST COMM
 
-  int pack_exchange_base(int, double *);
-  int unpack_exchange_base(int, double *);
-  int pack_forward_comm_base(int, int *, double *, int, int *);
-  void unpack_forward_comm_base(int, int, double *);
-  int pack_reverse_comm_base(int, int, double *);
-  void unpack_reverse_comm_base(int, int *, double *);
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
   // KOKKOS BASE
 

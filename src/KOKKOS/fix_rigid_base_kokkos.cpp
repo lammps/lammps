@@ -478,9 +478,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate(int vflag)
       l_scale_v0 = l_scale_v1 = l_scale_v2 = KK_FLOAT(1.0);
       l_scale_r = KK_FLOAT(1.0);
       if constexpr(TSTAT) {
-        tmp = exp(-l_dtq * static_cast<KK_FLOAT>(FixRigidBase::eta_dot_t[0]));
+        tmp = exp(-l_dtq * static_cast<KK_FLOAT>(nh()->eta_dot_t[0]));
         l_scale_t0 = l_scale_t1 = l_scale_t2 = tmp;
-        tmp = exp(-l_dtq * static_cast<KK_FLOAT>(FixRigidBase::eta_dot_r[0]));
+        tmp = exp(-l_dtq * static_cast<KK_FLOAT>(nh()->eta_dot_r[0]));
         l_scale_r = tmp;
       }
       if constexpr (PSTAT) {
@@ -496,16 +496,17 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate(int vflag)
           return fma(y, fma(y, fma(y, fma(y, c4, c3), c2), c1), 1.0);
         };
 
-        KK_FLOAT l_mtk_term2 = static_cast<KK_FLOAT>(FixRigidBase::mtk_term2);
-        l_scale_t0 *= exp(-l_dtq * (static_cast<KK_FLOAT>(FixRigidBase::epsilon_dot[0]) + l_mtk_term2));
-        l_scale_t1 *= exp(-l_dtq * (static_cast<KK_FLOAT>(FixRigidBase::epsilon_dot[1]) + l_mtk_term2));
-        l_scale_t2 *= exp(-l_dtq * (static_cast<KK_FLOAT>(FixRigidBase::epsilon_dot[2]) + l_mtk_term2));
-        l_scale_r *= exp(-l_dtq * (static_cast<KK_FLOAT>(FixRigidBase::pdim) * l_mtk_term2));
-        tmp = l_dtq * static_cast<KK_FLOAT>(FixRigidBase::epsilon_dot[0]);
+        auto epsilon_dot = nh()->epsilon_dot;
+        KK_FLOAT l_mtk_term2 = static_cast<KK_FLOAT>(nh()->mtk_term2);
+        l_scale_t0 *= exp(-l_dtq * (static_cast<KK_FLOAT>(epsilon_dot[0]) + l_mtk_term2));
+        l_scale_t1 *= exp(-l_dtq * (static_cast<KK_FLOAT>(epsilon_dot[1]) + l_mtk_term2));
+        l_scale_t2 *= exp(-l_dtq * (static_cast<KK_FLOAT>(epsilon_dot[2]) + l_mtk_term2));
+        l_scale_r *= exp(-l_dtq * (static_cast<KK_FLOAT>(nh()->pdim) * l_mtk_term2));
+        tmp = l_dtq * static_cast<KK_FLOAT>(epsilon_dot[0]);
         l_scale_v0 = l_dtv * exp(tmp) * maclaurin(tmp);
-        tmp = l_dtq * static_cast<KK_FLOAT>(FixRigidBase::epsilon_dot[1]);
+        tmp = l_dtq * static_cast<KK_FLOAT>(epsilon_dot[1]);
         l_scale_v1 = l_dtv * exp(tmp) * maclaurin(tmp);
-        tmp = l_dtq * static_cast<KK_FLOAT>(FixRigidBase::epsilon_dot[2]);
+        tmp = l_dtq * static_cast<KK_FLOAT>(epsilon_dot[2]);
         l_scale_v2 = l_dtv * exp(tmp) * maclaurin(tmp);
       }
     }
@@ -619,8 +620,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate(int vflag)
       }, ke[0], ke[1]);
     copymode = 0;
     MPI_Allreduce(ke, keall, 2, MPI_KK_ACC_FLOAT, MPI_SUM, world);
-    FixRigidBase::akin_t = keall[0];
-    FixRigidBase::akin_r = keall[1];
+    nh()->akin_t = keall[0];
+    nh()->akin_r = keall[1];
   }
   if (tstat_flag) {
     FixRigidBase::compute_temp_target();
@@ -662,7 +663,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate(int vflag)
     // remap again + kspace
     if (pstat_flag) {
       remap();
-      if (FixRigidBase::kspace_flag) {
+      if (nh()->kspace_flag) {
         atomKK->sync(Host, X_MASK | V_MASK);
         force->kspace->setup();
       }
@@ -693,16 +694,17 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::final_integrate()
       KK_FLOAT l_dtq = static_cast<KK_FLOAT>(dtq);
       l_scale_t0 = l_scale_t1 = l_scale_t2 = l_scale_r = KK_FLOAT(1.0);
       if constexpr (TSTAT) {
-        const KK_FLOAT tmp = exp(-1.0 * l_dtq * static_cast<KK_FLOAT>(FixRigidBase::eta_dot_t[0]));
+        const KK_FLOAT tmp = exp(-1.0 * l_dtq * static_cast<KK_FLOAT>(nh()->eta_dot_t[0]));
         l_scale_t0 = l_scale_t1 = l_scale_t2 = tmp;
-        l_scale_r = exp(-1.0 * l_dtq * static_cast<KK_FLOAT>(FixRigidBase::eta_dot_r[0]));
+        l_scale_r = exp(-1.0 * l_dtq * static_cast<KK_FLOAT>(nh()->eta_dot_r[0]));
       }
       if constexpr (PSTAT) {
-        KK_FLOAT l_mtk_term2 = static_cast<KK_FLOAT>(FixRigidBase::mtk_term2);
-        l_scale_t0 *= exp(-l_dtq * (static_cast<KK_FLOAT>(FixRigidBase::epsilon_dot[0]) + l_mtk_term2));
-        l_scale_t1 *= exp(-l_dtq * (static_cast<KK_FLOAT>(FixRigidBase::epsilon_dot[1]) + l_mtk_term2));
-        l_scale_t2 *= exp(-l_dtq * (static_cast<KK_FLOAT>(FixRigidBase::epsilon_dot[2]) + l_mtk_term2));
-        l_scale_r *= exp(-l_dtq * (static_cast<KK_FLOAT>(FixRigidBase::pdim) * l_mtk_term2));
+        auto epsilon_dot = nh()->epsilon_dot;
+        KK_FLOAT l_mtk_term2 = static_cast<KK_FLOAT>(nh()->mtk_term2);
+        l_scale_t0 *= exp(-l_dtq * (static_cast<KK_FLOAT>(epsilon_dot[0]) + l_mtk_term2));
+        l_scale_t1 *= exp(-l_dtq * (static_cast<KK_FLOAT>(epsilon_dot[1]) + l_mtk_term2));
+        l_scale_t2 *= exp(-l_dtq * (static_cast<KK_FLOAT>(epsilon_dot[2]) + l_mtk_term2));
+        l_scale_r *= exp(-l_dtq * (static_cast<KK_FLOAT>(nh()->pdim) * l_mtk_term2));
       }
     }
 
@@ -784,17 +786,17 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::final_integrate()
   }
 
   if constexpr (is_nh) {
-    auto *temperature = FixRigidBase::temperature;
+    auto *temperature = nh()->temperature;
     // compute temperature
     if (FixRigidBase::tcomputeflag) {
       atomKK->sync(temperature->execution_space, temperature->datamask_read);
-      FixRigidBase::t_current = temperature->compute_scalar();
+      nh()->t_current = temperature->compute_scalar();
       atomKK->modified(temperature->execution_space, temperature->datamask_modify);
       atomKK->sync(execution_space, temperature->datamask_modify);
     }
     // pressure
     if (pstat_flag) {
-      auto *pressure = FixRigidBase::pressure;
+      auto *pressure = nh()->pressure;
       // accumulate kinetic energies for pstat
       copymode = 1;
       k_body.sync_device();
@@ -811,8 +813,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::final_integrate()
       );
     copymode = 0;
     MPI_Allreduce(ke, keall, 2, MPI_KK_ACC_FLOAT, MPI_SUM, world);
-    FixRigidBase::akin_t = keall[0];
-    FixRigidBase::akin_r = keall[1];
+    nh()->akin_t = keall[0];
+    nh()->akin_r = keall[1];
 
     if (pstyle == ISO) {
       atomKK->sync(temperature->execution_space, temperature->datamask_read);
@@ -1044,15 +1046,15 @@ double FixRigidBaseKokkos<DeviceType,FixRigidBase>::compute_scalar()
     // compute the kinetic parts of H_NVE in Kameraj et al (JCP 2005, pp 224114)
     // translational and rotational kinetic energy
     KK_ACC_FLOAT energy = ke_all * FixRigidBase::mvv2e;
-    KK_ACC_FLOAT kt = FixRigidBase::boltz * t_target;
+    KK_ACC_FLOAT kt = force->boltz * nh()->t_target;
     if (tstat_flag) {
       // thermostat chain energy: from equation 12 in Kameraj et al (JCP 2005)
-      energy += kt * (nf_t * eta_t[0] + nf_r * eta_r[0]);
+      energy += kt * (nh()->nf_t * nh()->eta_t[0] + nh()->nf_r * nh()->eta_r[0]);
       for (int i = 1; i < t_chain; i++)
-        energy += kt * (eta_t[i] + eta_r[i]);
+        energy += kt * (nh()->eta_t[i] + nh()->eta_r[i]);
       for (int i = 0; i < t_chain; i++) {
-        energy += 0.5 * q_t[i] * (eta_dot_t[i] * eta_dot_t[i]);
-        energy += 0.5 * q_r[i] * (eta_dot_r[i] * eta_dot_r[i]);
+        energy += 0.5 * nh()->q_t[i] * (nh()->eta_dot_t[i] * nh()->eta_dot_t[i]);
+        energy += 0.5 * nh()->q_r[i] * (nh()->eta_dot_r[i] * nh()->eta_dot_r[i]);
       }
     }
     if (pstat_flag) {
@@ -1060,16 +1062,16 @@ double FixRigidBaseKokkos<DeviceType,FixRigidBase>::compute_scalar()
       KK_ACC_FLOAT e = KK_ACC_FLOAT(0.0);
       for (int i = 0; i < 3; i++) {
         if (p_flag[i])
-          e += epsilon_mass[i] * epsilon_dot[i] * epsilon_dot[i];
+          e += nh()->epsilon_mass[i] * nh()->epsilon_dot[i] * nh()->epsilon_dot[i];
       }
-      energy += e*(0.5/pdim);
+      energy += e*(0.5/nh()->pdim);
       double vol = domainKK->xprd * domainKK->yprd;
       if (domainKK->dimension == 3) vol *= domainKK->zprd;
-      double p0 = (p_target[0] + p_target[1] + p_target[2]) / 3.0;
-      energy += p0 * vol / nktv2p;
+      double p0 = (nh()->p_target[0] + nh()->p_target[1] + nh()->p_target[2]) / 3.0;
+      energy += p0 * vol / nh()->nktv2p;
       for (int i = 0;  i < p_chain; i++) {
-        energy += kt * eta_b[i];
-        energy += 0.5 * q_b[i] * (eta_dot_b[i] * eta_dot_b[i]);
+        energy += kt * nh()->eta_b[i];
+        energy += 0.5 * nh()->q_b[i] * (nh()->eta_dot_b[i] * nh()->eta_dot_b[i]);
       }
     }
     return energy;
@@ -1818,18 +1820,18 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::remap()
   if constexpr (is_nh) {
   int nlocal = atomKK->nlocal;
   // epsilon is not used, except for book-keeping
-  for (int i = 0; i < 3; i++) epsilon[i] += dtq * epsilon_dot[i];
+  for (int i = 0; i < 3; i++) nh()->epsilon[i] += dtq * nh()->epsilon_dot[i];
   // convert pertinent atoms and rigid bodies to lamda coords
   if (allremap) domainKK->x2lamda(nlocal);
   else domainKK->x2lamda(nlocal, dilate_group_bit);
-  for (auto &ifix : rfix) ifix->deform(0);
+  for (auto &ifix : nh()->rfix) ifix->deform(0);
   // reset global and local box to new size/shape
   for (int i = 0; i < 3; i++) {
     if (p_flag[i]) {
       const double oldlo = domainKK->boxlo[i];
       const double oldhi = domainKK->boxhi[i];
       const double ctr = 0.5 * (oldlo + oldhi);
-      const double expfac = exp(dtq * epsilon_dot[i]);
+      const double expfac = exp(dtq * nh()->epsilon_dot[i]);
       domainKK->boxlo[i] = (oldlo-ctr)*expfac + ctr;
       domainKK->boxhi[i] = (oldhi-ctr)*expfac + ctr;
     }
@@ -1839,7 +1841,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::remap()
   // convert pertinent atoms and rigid bodies back to box coords
   if (allremap) domainKK->lamda2x(nlocal);
   else domainKK->lamda2x(nlocal, dilate_group_bit);
-  for (auto &ifix : rfix) ifix->deform(1);
+  for (auto &ifix : nh()->rfix) ifix->deform(1);
   }
 }
 
@@ -1896,9 +1898,6 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::deform(int flag)
   copymode = 0;
   k_body.modify_device();
 }
-
-
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -2610,9 +2609,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::compute_dof()
 
   double nf_all[2];
   MPI_Allreduce(nf, nf_all, 2, MPI_DOUBLE, MPI_SUM, world);
-  FixRigidBase::nf_t = static_cast<int>(nf_all[0]);
-  FixRigidBase::nf_r = static_cast<int>(nf_all[1]);
-  FixRigidBase::g_f = FixRigidBase::nf_t + FixRigidBase::nf_r;
+  nh()->nf_t = static_cast<int>(nf_all[0]);
+  nh()->nf_r = static_cast<int>(nf_all[1]);
+  nh()->g_f = nh()->nf_t + nh()->nf_r;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2670,6 +2669,38 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::grow_body(int nmax_body)
   k_body.resize(nmax_body);
   body = k_body.view_host().data();
   k_body.modify_host();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType, class FixRigidBase>
+void FixRigidBaseKokkos<DeviceType,FixRigidBase>::copy_arrays(int i, int j, int delflag)
+{
+  sync_host();
+  FixRigidBase::copy_arrays(i, j, delflag);
+  modify_host();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType, class FixRigidBase>
+void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_arrays(int i)
+{
+  sync_host();
+  FixRigidBase::set_arrays(i);
+  modify_host();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType, class FixRigidBase>
+void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_molecule(int nlocalprev, tagint tagprev,
+                                                    int imol, double *xgeom,
+                                                    double *vcm, double *quat)
+{
+  sync_host();
+  FixRigidBase::set_molecule(nlocalprev, tagprev, imol, xgeom, vcm, quat);
+  modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -3614,15 +3645,15 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::modify_host()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType, class FixRigidBase>
-void FixRigidBaseKokkos<DeviceType,FixRigidBase>::modify_device()
+void FixRigidBaseKokkos<DeviceType,FixRigidBase>::sync_host()
 {
-  k_body.modify_device();
-  k_bodyown.modify_device();
-  k_bodytag.modify_device();
-  k_atom2body.modify_device();
-  k_xcmimage.modify_device();
-  k_displace.modify_device();
-  if (extended) k_eflags.modify_device();
+  k_body.sync_host();
+  k_bodyown.sync_host();
+  k_bodytag.sync_host();
+  k_atom2body.sync_host();
+  k_xcmimage.sync_host();
+  k_displace.sync_host();
+  if (extended) k_eflags.sync_host();
 }
 
 /* ---------------------------------------------------------------------- */

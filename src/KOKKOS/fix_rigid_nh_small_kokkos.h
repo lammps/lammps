@@ -40,7 +40,6 @@ FixStyle(rigid/npt/small/kk/host,   FixRigidNPTSmallKokkos<LMPHostType>);
 #include "fix_rigid_nh_small.h"
 #include "fix_rigid_base_kokkos.h"
 
-
 namespace LAMMPS_NS {
 
 template<class DeviceType, bool TSTAT, bool PSTAT>

@@ -213,8 +213,8 @@ class FixRigidSmall : public Fix {
   virtual void grow_body();
   virtual void reset_atom2body();
 
-  virtual void remap();
-  virtual void compute_dof();
+  virtual void remap() {};
+  virtual void compute_dof() {};
 
   // callback function for rendezvous communication
 

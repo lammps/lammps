@@ -78,40 +78,6 @@ FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::
 
 }
 
-/* ----------------------------------------------------------------------
-   FixRigidSmall PROTECTED METHODS
-------------------------------------------------------------------------- */
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::copy_arrays(int i, int j, int delflag)
-{
-  this->sync_host_base();
-  FixRigidSmall::copy_arrays(i, j, delflag);
-  this->modify_host_base();
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::set_arrays(int i)
-{
-  this->sync_host_base();
-  FixRigidSmall::set_arrays(i);
-  this->modify_host_base();
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType, bool TSTAT, bool PSTAT>
-void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::set_molecule(int nlocalprev, tagint tagprev,
-                                                    int imol, double *xgeom,
-                                                    double *vcm, double *quat)
-{
-  this->sync_host_base();
-  FixRigidSmall::set_molecule(nlocalprev, tagprev, imol, xgeom, vcm, quat);
-  this->modify_host_base();
-}
-
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {

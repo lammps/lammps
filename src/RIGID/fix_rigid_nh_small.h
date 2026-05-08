@@ -72,14 +72,15 @@ class FixRigidNHSmall : public FixRigidSmall {
   int tcomputeflag, pcomputeflag;    // 1 = compute was created by fix. 0 = external
 
   void couple();
-  virtual void remap();
   void nhc_temp_integrate();
   void nhc_press_integrate();
 
   virtual void compute_temp_target();
   void compute_press_target();
   void nh_epsilon_dot();
-  void compute_dof();
+
+  void remap() override;
+  void compute_dof() override;
 
   void allocate_chain();
   void allocate_order();

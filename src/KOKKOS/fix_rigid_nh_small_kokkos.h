@@ -48,6 +48,24 @@ class FixRigidNHSmallKokkos : public FixRigidBaseKokkos<DeviceType, FixRigidNHSm
  public:
   FixRigidNHSmallKokkos(class LAMMPS *, int, char **);
 
+ protected:
+
+  using Pointers::error;
+
+  using Fix::style;
+
+  using FixRigidNHSmall::tstat_flag;
+  using FixRigidNHSmall::t_start;
+  using FixRigidNHSmall::t_stop;
+  using FixRigidNHSmall::t_period;
+  using FixRigidNHSmall::pstat_flag;
+  using FixRigidNHSmall::p_start;
+  using FixRigidNHSmall::p_stop;
+  using FixRigidNHSmall::p_flag;
+  using FixRigidNHSmall::p_freq;
+  using FixRigidNHSmall::p_period;
+
+
 };
 
 template<class DeviceType>

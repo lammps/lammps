@@ -62,10 +62,10 @@ FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::
     if (p_start[0] < 0.0 || p_start[1] < 0.0 || p_start[2] < 0.0 ||
         p_stop[0] < 0.0  || p_stop[1] < 0.0  || p_stop[2] < 0.0)
       error->all(FLERR,"Target pressure for fix {} cannot be 0.0", style);
-    p_freq[0] = this->p_freq[1] = this->p_freq[2] = 0.0;
-    if (this->p_flag[0]) this->p_freq[0] = 1.0 / this->p_period[0];
-    if (this->p_flag[1]) this->p_freq[1] = 1.0 / this->p_period[1];
-    if (this->p_flag[2]) this->p_freq[2] = 1.0 / this->p_period[2];
+    p_freq[0] = p_freq[1] = p_freq[2] = 0.0;
+    if (p_flag[0]) p_freq[0] = 1.0 / p_period[0];
+    if (p_flag[1]) p_freq[1] = 1.0 / p_period[1];
+    if (p_flag[2]) p_freq[2] = 1.0 / p_period[2];
     this->id_temp = utils::strdup(std::string(this->id)+"_temp");
     this->modify->add_compute(fmt::format("{} all temp",this->id_temp));
   this->tcomputeflag = 1;
@@ -115,10 +115,12 @@ void FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::set_molecule(int nlocalprev,
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
+
 template class FixRigidNHSmallKokkos<LMPDeviceType,false,false>; // NVE
 template class FixRigidNHSmallKokkos<LMPDeviceType,true,false>;  // NVT
 template class FixRigidNHSmallKokkos<LMPDeviceType,false,true>;  // NPH
 template class FixRigidNHSmallKokkos<LMPDeviceType,true,true>;   // NPT
+
 #ifdef LMP_KOKKOS_GPU
 //template class FixRigidSmallKokkos<LMPHostType>;
 #endif

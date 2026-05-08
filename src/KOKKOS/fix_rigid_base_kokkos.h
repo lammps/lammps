@@ -11,6 +11,7 @@
 #include "fix_rigid_small.h"
 #include "fix_rigid_nh_small.h"
 
+#include "atom_kokkos.h"
 #include "kokkos.h"
 #include "kokkos_base.h"
 #include "kokkos_few.h"
@@ -36,8 +37,11 @@ protected:
   using Pointers::atom;
   using Pointers::atomKK;
   using Pointers::comm;
+  using Pointers::domain;
   using Pointers::error;
   using Pointers::force;
+  using Pointers::group;
+  using Pointers::lmp;
   using Pointers::memory;
   using Pointers::memoryKK;
   using Pointers::neighbor;
@@ -47,14 +51,19 @@ protected:
   // should be in Pointers but im not willing to die on that hill
   class DomainKokkos *domainKK;
 
+  using Fix::style;
+  using Fix::kokkosable;
   using Fix::copymode;
   using Fix::execution_space;
   using Fix::datamask_read;
   using Fix::datamask_modify;
-  using Fix::eflags;
-  using Fix::style;
+  using Fix::forward_comm_device;
+  using Fix::reverse_comm_device;
+  using Fix::exchange_comm_device;
+  using Fix::sort_device;
 
   using FixRigidBase::commflag;
+  using FixRigidBase::eflags;
   using FixRigidBase::extended;
 
   using FixRigidBase::body;
@@ -68,13 +77,10 @@ protected:
   using FixRigidBase::langextra;
   using FixRigidBase::t_period;
   using FixRigidBase::nlocal_body;
-  using FixRigidBase::nbody_total;
-  using FixRigidBase::epsilon;
+  // nbody_total defined below as a method (not in FixRigidSmall)
   using FixRigidBase::dtq;
-  using FixRigidBase::epsilon_dot;
   using FixRigidBase::allremap;
   using FixRigidBase::p_flag;
-  using FixRigidBase::t_flag;
   using FixRigidBase::itensor;
   using FixRigidBase::inpfile;
   using FixRigidBase::readfile;
@@ -87,6 +93,53 @@ protected:
   using FixRigidBase::p_stop;
   using FixRigidBase::p_freq;
   using FixRigidBase::displace;
+  using FixRigidBase::counts;
+
+  // FixRigidSmall protected members
+  using FixRigidBase::bodyown;
+  using FixRigidBase::bodytag;
+  using FixRigidBase::nmax_body;
+  using FixRigidBase::nghost_body;
+  using FixRigidBase::seed;
+  using FixRigidBase::maxextent;
+  using FixRigidBase::langflag;
+  using FixRigidBase::id_gravity;
+  using FixRigidBase::gvec;
+  using FixRigidBase::maxlang;
+  using FixRigidBase::orientflag;
+  using FixRigidBase::dorientflag;
+  using FixRigidBase::orient;
+  using FixRigidBase::dorient;
+  using FixRigidBase::avec_ellipsoid;
+  using FixRigidBase::avec_line;
+  using FixRigidBase::avec_tri;
+  using FixRigidBase::dilate_group_bit;
+  using FixRigidBase::setupflag;
+  using FixRigidBase::earlyflag;
+  using FixRigidBase::nlinear;
+  using FixRigidBase::dtv;
+  using FixRigidBase::dtf;
+  using FixRigidBase::nbody;
+  using FixRigidBase::tstat_flag;
+  using FixRigidBase::pstat_flag;
+  using FixRigidBase::t_chain;
+  using FixRigidBase::t_iter;
+  using FixRigidBase::t_order;
+  using FixRigidBase::pstyle;
+  using FixRigidBase::p_chain;
+
+  // Fix protected members
+  using Fix::evflag;
+  using Fix::vflag_global;
+  using Fix::vflag_atom;
+  using Fix::virial;
+  using Fix::vatom;
+  using Fix::maxvatom;
+  using Fix::v_init;
+  using Fix::dynamic;
+
+  // nbody_total helper (nlocal_body + nghost_body; not a member of FixRigidSmall)
+  int nbody_total() const { return FixRigidBase::nlocal_body + FixRigidBase::nghost_body; }
 
 
   // fix methods
@@ -125,11 +178,6 @@ protected:
   static constexpr bool is_nh = std::is_base_of_v<FixRigidNHSmall, FixRigidBase>;
 
   int nlocal() { return atomKK->nlocal; }
-/*
-  int& nlocal_body() { return base()->nlocal_body; }
-  int nbody_total() { return base()->nlocal_body + base()->nghost_body; }
-  int nmax_body() { return base()->nmax_body; }
-*/
 
   // kokkos views
   typedef DeviceType device_type;
@@ -172,6 +220,14 @@ protected:
 
   TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight, DeviceType> k_langextra;
   void apply_langevin_thermostat() override;
+
+  // KOKKOS sync helpers called from subclass copy_arrays/set_arrays/set_molecule
+  void sync_host_base();
+  void modify_host_base();
+
+  // body dual-view sync
+  void modify_host();
+  void modify_device();
 
   // HOST COMM
 

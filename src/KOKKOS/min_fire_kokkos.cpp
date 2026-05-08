@@ -320,12 +320,14 @@ int MinFireKokkos::run_iterate(int maxiter) {
     neval++;
 
     if constexpr (INTEGRATOR == VERLET) {
+      atomKK->sync(Device, V_MASK | F_MASK);
       Kokkos::parallel_for("min_fire/verlet_v_final", nlocal, LAMMPS_LAMBDA(const int i) {
         const KK_FLOAT dtfm_half = dtf_half / (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
         l_v(i,0) += dtfm_half * l_f(i,0);
         l_v(i,1) += dtfm_half * l_f(i,1);
         l_v(i,2) += dtfm_half * l_f(i,2);
       });
+      atomKK->modified(Device, V_MASK);
     }
     flagv0 = 0;
 

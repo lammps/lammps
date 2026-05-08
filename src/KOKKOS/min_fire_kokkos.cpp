@@ -125,7 +125,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
     neval++;
     KK_FLOAT dtf = -0.5 * dt * static_cast<KK_FLOAT>(force->ftm2v);
     Kokkos::parallel_for("min_fire/leapfrog_init", atom->nlocal, LAMMPS_LAMBDA(const int i) {
-      const KK_FLOAT dtfm = dtf / (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
+      KK_FLOAT dtfm = dtf / (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
       l_v(i,0) = dtfm * l_f(i,0);
       l_v(i,1) = dtfm * l_f(i,1);
       l_v(i,2) = dtfm * l_f(i,2);
@@ -170,7 +170,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
 
       if constexpr (ABCFLAG) {
         if (alpha < 1e-10) alpha = 1e-10;
-        const KK_FLOAT abc = (1.0 - pow(1.0 - alpha, (KK_FLOAT)(ntimestep - last_negative)));
+        KK_FLOAT abc = (1.0 - pow(1.0 - alpha, (KK_FLOAT)(ntimestep - last_negative)));
         scale1 = (1.0 - alpha) / abc;
         scale2 = (fdotf_all <= 1e-20) ? 0.0 : (alpha * sqrt(vdotv_all / fdotf_all)) / abc;
       } else {
@@ -217,9 +217,9 @@ int MinFireKokkos::run_iterate(int maxiter) {
       energy_force(0); // ghost position/vel might change on host during legacy comm
       atomKK->sync(Device, X_MASK | V_MASK);
       neval++;
-      const KK_FLOAT dtf_init = dt * force->ftm2v;
+      double dtf_init = dt * force->ftm2v;
       Kokkos::parallel_for("min_fire/v_init", nlocal, LAMMPS_LAMBDA(const int i) {
-        const KK_FLOAT dtfm = dtf_init / (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
+        KK_FLOAT dtfm = dtf_init / (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
         l_v(i,0) = dtfm * l_f(i,0);
         l_v(i,1) = dtfm * l_f(i,1);
         l_v(i,2) = dtfm * l_f(i,2);
@@ -249,11 +249,12 @@ int MinFireKokkos::run_iterate(int maxiter) {
       });
     }
 
-    const KK_FLOAT dtf_final = dtv * force->ftm2v;
-    const KK_FLOAT dtf_half = 0.5 * dtf_final;
+    KK_FLOAT dtf_final = dtv * force->ftm2v;
+    KK_FLOAT dtf_half = 0.5 * dtf_final;
     Kokkos::parallel_for("min_fire/integrate", nlocal, LAMMPS_LAMBDA(const int i) {
-      const KK_FLOAT mass_val = (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
-      const KK_FLOAT dtfm = dtf_final / mass_val;
+      KK_FLOAT mass_val = (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
+      KK_FLOAT dtfm = dtf_final / mass_val;
+      KK_FLOAT dtfm_half = dtf_half / mass_val;
       if (INTEGRATOR == EULERIMPLICIT || INTEGRATOR == LEAPFROG) {
         l_v(i,0) += dtfm * l_f(i,0);
         l_v(i,1) += dtfm * l_f(i,1);
@@ -273,7 +274,6 @@ int MinFireKokkos::run_iterate(int maxiter) {
         l_x(i,1) += dtv * l_v(i,1);
         l_x(i,2) += dtv * l_v(i,2);
       } else if (INTEGRATOR == VERLET) {
-        const KK_FLOAT dtfm_half = dtf_half / mass_val;
         l_v(i,0) += dtfm_half * l_f(i,0);
         l_v(i,1) += dtfm_half * l_f(i,1);
         l_v(i,2) += dtfm_half * l_f(i,2);
@@ -322,7 +322,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
     if constexpr (INTEGRATOR == VERLET) {
       atomKK->sync(Device, V_MASK | F_MASK);
       Kokkos::parallel_for("min_fire/verlet_v_final", nlocal, LAMMPS_LAMBDA(const int i) {
-        const KK_FLOAT dtfm_half = dtf_half / (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
+        KK_FLOAT dtfm_half = dtf_half / (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
         l_v(i,0) += dtfm_half * l_f(i,0);
         l_v(i,1) += dtfm_half * l_f(i,1);
         l_v(i,2) += dtfm_half * l_f(i,2);
@@ -354,7 +354,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
     // Corrected FTOL Check
     // -------------------------------------------------
     if (update->ftol > 0.0) {
-      const KK_FLOAT fdotf = (normstyle == MAX) ? fnorm_max() : (normstyle == INF ? fnorm_inf() : fnorm_sqr());
+      KK_FLOAT fdotf = (normstyle == MAX) ? fnorm_max() : (normstyle == INF ? fnorm_inf() : fnorm_sqr());
       bool local_converged = (fdotf < update->ftol * update->ftol);
 
       if (update->multireplica == 0) {

@@ -121,8 +121,6 @@ int MinFireKokkos::run_iterate(int maxiter) {
   int nlocal = atom->nlocal;
 
   if constexpr (INTEGRATOR == LEAPFROG) {
-    // ghost position/vel might change on host during legacy comm
-    // but already just synced top of run_iterate()
     energy_force(0);
     neval++;
     double dtf = -0.5 * dt * force->ftm2v;
@@ -215,10 +213,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
     }
 
     if (!ABCFLAG && flagv0) {
-      atomKK->modified(Device, X_MASK | V_MASK);
-      atomKK->sync(Host, X_MASK | V_MASK);
-      energy_force(0); // ghost position/vel might change on host during legacy comm
-      atomKK->sync(Device, X_MASK | V_MASK);
+      energy_force(0);
       neval++;
       double dtf_init = dt * force->ftm2v;
       Kokkos::parallel_for("min_fire/v_init", nlocal, LAMMPS_LAMBDA(const int i) {
@@ -316,11 +311,9 @@ int MinFireKokkos::run_iterate(int maxiter) {
       }
     });
 
-    eprevious = ecurrent;
     atomKK->modified(Device, X_MASK | V_MASK);
-    atomKK->sync(Host, X_MASK | V_MASK);
-    ecurrent = energy_force(0); // ghost position/vel might change on host during legacy comm
-    atomKK->sync(Device, X_MASK | V_MASK);
+    eprevious = ecurrent;
+    ecurrent = energy_force(0);
     neval++;
 
     if constexpr (INTEGRATOR == VERLET) {
@@ -378,6 +371,6 @@ int MinFireKokkos::run_iterate(int maxiter) {
       timer->stamp(Timer::OUTPUT);
     }
   }
-  atomKK->modified(Device, X_MASK | V_MASK);
+  atomKK->modified(Device, X_MASK | V_MASK | F_MASK);
   return MAXITER;
 }

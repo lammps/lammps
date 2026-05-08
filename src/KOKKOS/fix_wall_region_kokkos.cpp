@@ -149,14 +149,15 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, val
     else
       tooclose = 0.0;
 
-    int n = regionKK->surface_kokkos(d_x(i,0), d_x(i,1), d_x(i,2), cutoff);
+    c_t contacts;
+    int n = regionKK->surface_kokkos(d_x(i,0), d_x(i,1), d_x(i,2), cutoff, contacts);
 
     for ( int m = 0; m < n; m++) {
 
-      KK_FLOAT r = regionKK->d_contact[m].r;
-      KK_FLOAT delx = regionKK->d_contact[m].delx;
-      KK_FLOAT dely = regionKK->d_contact[m].dely;
-      KK_FLOAT delz = regionKK->d_contact[m].delz;
+      KK_FLOAT r = contacts[m].r;
+      KK_FLOAT delx = contacts[m].delx;
+      KK_FLOAT dely = contacts[m].dely;
+      KK_FLOAT delz = contacts[m].delz;
 
       if (r <= tooclose)
         Kokkos::abort("Particle outside surface of region used in fix wall/region");

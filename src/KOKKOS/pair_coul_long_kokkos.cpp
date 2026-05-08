@@ -34,8 +34,11 @@
 
 #include "pair_coul_long.h"
 #include "pair_tip4p_long.h"
-#include "pair_coul_long_soft.h"
-#include "pair_tip4p_long_soft.h"
+
+#ifdef LMP_FEP
+  #include "pair_coul_long_soft.h"
+  #include "pair_tip4p_long_soft.h"
+#endif // LMP_FEP
 
 using namespace LAMMPS_NS;
 
@@ -57,11 +60,15 @@ namespace LAMMPS_NS {
   // tip4p/long/kk
   template class PairCoulLongKokkos<LMPDeviceType,PairTIP4PLong,true,false>;
 
-  // coul/long/soft/kk
-  template class PairCoulLongKokkos<LMPDeviceType,PairCoulLongSoft,false,true>;
+  #ifdef LMP_FEP
 
-  // tip4p/long/soft/kk
-  template class PairCoulLongKokkos<LMPDeviceType,PairTIP4PLongSoft,true,true>;
+    // coul/long/soft/kk
+    template class PairCoulLongKokkos<LMPDeviceType,PairCoulLongSoft,false,true>;
+
+    // tip4p/long/soft/kk
+    template class PairCoulLongKokkos<LMPDeviceType,PairTIP4PLongSoft,true,true>;
+
+  #endif // LMP_FEP
 
   #ifdef LMP_KOKKOS_GPU
 
@@ -71,11 +78,15 @@ namespace LAMMPS_NS {
     // tip4p/long/kk/host
     template class PairCoulLongKokkos<LMPHostType,PairTIP4PLong,true,false>;
 
-    // coul/long/soft/kk/host
-    template class PairCoulLongKokkos<LMPHostType,PairCoulLongSoft,false,true>;
+    #ifdef LMP_FEP
 
-    // tip4p/long/soft/kk/host
-    template class PairCoulLongKokkos<LMPHostType,PairTIP4PLongSoft,true,true>;
+      // coul/long/soft/kk/host
+      template class PairCoulLongKokkos<LMPHostType,PairCoulLongSoft,false,true>;
+
+      // tip4p/long/soft/kk/host
+      template class PairCoulLongKokkos<LMPHostType,PairTIP4PLongSoft,true,true>;
+
+    #endif // LMP_FEP
 
   #endif // LMP_KOKKOS_GPU
 

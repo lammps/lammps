@@ -23,13 +23,15 @@ PairStyle(lj/cut/tip4p/long/kk/device, PairLJCutCoulLongKokkos<LMPDeviceType,Pai
 PairStyle(lj/cut/tip4p/long/kk/host,   PairLJCutCoulLongKokkos<LMPHostType,  PairLJCutTIP4PLong,true,false>);
 
 #ifdef LMP_FEP
-PairStyle(lj/cut/coul/long/soft/kk,        PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutCoulLongSoft,false,true>);
-PairStyle(lj/cut/coul/long/soft/kk/device, PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutCoulLongSoft,false,true>);
-PairStyle(lj/cut/coul/long/soft/kk/host,   PairLJCutCoulLongKokkos<LMPHostType,  PairLJCutCoulLongSoft,false,true>);
 
-PairStyle(lj/cut/tip4p/long/soft/kk,        PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutTIP4PLongSoft,true,true>);
-PairStyle(lj/cut/tip4p/long/soft/kk/device, PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutTIP4PLongSoft,true,true>);
-PairStyle(lj/cut/tip4p/long/soft/kk/host,   PairLJCutCoulLongKokkos<LMPHostType,  PairLJCutTIP4PLongSoft,true,true>);
+  PairStyle(lj/cut/coul/long/soft/kk,        PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutCoulLongSoft,false,true>);
+  PairStyle(lj/cut/coul/long/soft/kk/device, PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutCoulLongSoft,false,true>);
+  PairStyle(lj/cut/coul/long/soft/kk/host,   PairLJCutCoulLongKokkos<LMPHostType,  PairLJCutCoulLongSoft,false,true>);
+
+  PairStyle(lj/cut/tip4p/long/soft/kk,        PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutTIP4PLongSoft,true,true>);
+  PairStyle(lj/cut/tip4p/long/soft/kk/device, PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutTIP4PLongSoft,true,true>);
+  PairStyle(lj/cut/tip4p/long/soft/kk/host,   PairLJCutCoulLongKokkos<LMPHostType,  PairLJCutTIP4PLongSoft,true,true>);
+
 #endif // LMP_FEP
 
 // clang-format on

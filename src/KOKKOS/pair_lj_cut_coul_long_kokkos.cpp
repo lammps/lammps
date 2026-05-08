@@ -30,8 +30,12 @@
 
 #include "pair_lj_cut_coul_long.h"
 #include "pair_lj_cut_tip4p_long.h"
-#include "pair_lj_cut_coul_long_soft.h"
-#include "pair_lj_cut_tip4p_long_soft.h"
+
+#ifdef LMP_FEP
+  #include "pair_lj_cut_coul_long_soft.h"
+  #include "pair_lj_cut_tip4p_long_soft.h"
+#endif // LMP_FEP
+
 
 using namespace LAMMPS_NS;
 
@@ -41,8 +45,6 @@ template<class DeviceType, class PairBase, bool TIP4P, bool SOFT>
 PairLJCutCoulLongKokkos<DeviceType,PairBase,TIP4P,SOFT>::PairLJCutCoulLongKokkos(LAMMPS *lmp):
   PairKokkos<DeviceType,PairBase,true,TIP4P,SOFT>(lmp)
 {
-
-
 
 }
 
@@ -54,11 +56,15 @@ namespace LAMMPS_NS {
   // lj/cut/tip4p/long/kk
   template class PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutTIP4PLong,true,false>;
 
-  // lj/cut/coul/long/soft/kk
-  template class PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutCoulLongSoft,false,true>;
+  #ifdef LMP_FEP
 
-  // lj/cut/tip4p/long/soft/kk
-  template class PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutTIP4PLongSoft,true,true>;
+    // lj/cut/coul/long/soft/kk
+    template class PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutCoulLongSoft,false,true>;
+
+    // lj/cut/tip4p/long/soft/kk
+    template class PairLJCutCoulLongKokkos<LMPDeviceType,PairLJCutTIP4PLongSoft,true,true>;
+
+  #endif // LMP_FEP
 
   #ifdef LMP_KOKKOS_GPU
 
@@ -68,11 +74,15 @@ namespace LAMMPS_NS {
     // lj/cut/tip4p/long/kk/host
     template class PairLJCutCoulLongKokkos<LMPHostType,PairLJCutTIP4PLong,true,false>;
 
-    // lj/cut/coul/long/soft/kk/host
-    template class PairLJCutCoulLongKokkos<LMPHostType,PairLJCutCoulLongSoft,false,true>;
+    #ifdef LMP_FEP
 
-    // lj/cut/tip4p/long/soft/kk/host
-    template class PairLJCutCoulLongKokkos<LMPHostType,PairLJCutTIP4PLongSoft,true,true>;
+      // lj/cut/coul/long/soft/kk/host
+      template class PairLJCutCoulLongKokkos<LMPHostType,PairLJCutCoulLongSoft,false,true>;
+
+      // lj/cut/tip4p/long/soft/kk/host
+      template class PairLJCutCoulLongKokkos<LMPHostType,PairLJCutTIP4PLongSoft,true,true>;
+
+    #endif // LMP_FEP
 
   #endif // LMP_KOKKOS_GPU
 

@@ -148,8 +148,8 @@ compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
     lj2 = params(itype,jtype).lj2;
   }
 
-  const KK_FLOAT forcelj = r6inv *(lj1*r6inv - lj2);
-  return forcelj*r2inv;
+  return r6inv * Kokkos::fma(lj1, r6inv, -lj2) * r2inv;
+
 }
 
 template<class DeviceType>
@@ -173,7 +173,8 @@ compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
     offset = params(itype,jtype).offset;
   }
 
-  return r6inv*(lj3*r6inv - lj4) - offset;
+  return Kokkos::fma(r6inv, Kokkos::fma(lj3, r6inv, -lj4), -offset);
+
 }
 
 /* ----------------------------------------------------------------------

@@ -82,12 +82,12 @@ void FixNVEKokkos<DeviceType>::initial_integrate_item(int i) const
 {
   if (mask[i] & groupbit) {
     const KK_FLOAT dtfm = dtf / mass[type[i]];
-    v(i,0) += dtfm * f(i,0);
-    v(i,1) += dtfm * f(i,1);
-    v(i,2) += dtfm * f(i,2);
-    x(i,0) += dtv * v(i,0);
-    x(i,1) += dtv * v(i,1);
-    x(i,2) += dtv * v(i,2);
+    v(i,0) = Kokkos::fma(dtfm, f(i,0), v(i,0));
+    v(i,1) = Kokkos::fma(dtfm, f(i,1), v(i,1));
+    v(i,2) = Kokkos::fma(dtfm, f(i,2), v(i,2));
+    x(i,0) = Kokkos::fma(dtv, v(i,0), x(i,0));
+    x(i,1) = Kokkos::fma(dtv, v(i,1), x(i,1));
+    x(i,2) = Kokkos::fma(dtv, v(i,2), x(i,2));
   }
 }
 
@@ -98,12 +98,12 @@ void FixNVEKokkos<DeviceType>::initial_integrate_rmass_item(int i) const
 {
   if (mask[i] & groupbit) {
     const KK_FLOAT dtfm = dtf / rmass[i];
-    v(i,0) += dtfm * f(i,0);
-    v(i,1) += dtfm * f(i,1);
-    v(i,2) += dtfm * f(i,2);
-    x(i,0) += dtv * v(i,0);
-    x(i,1) += dtv * v(i,1);
-    x(i,2) += dtv * v(i,2);
+    v(i,0) = Kokkos::fma(dtfm, f(i,0), v(i,0));
+    v(i,1) = Kokkos::fma(dtfm, f(i,1), v(i,1));
+    v(i,2) = Kokkos::fma(dtfm, f(i,2), v(i,2));
+    x(i,0) = Kokkos::fma(dtv, v(i,0), x(i,0));
+    x(i,1) = Kokkos::fma(dtv, v(i,1), x(i,1));
+    x(i,2) = Kokkos::fma(dtv, v(i,2), x(i,2));
   }
 }
 
@@ -143,9 +143,9 @@ void FixNVEKokkos<DeviceType>::final_integrate_item(int i) const
 {
   if (mask[i] & groupbit) {
     const KK_FLOAT dtfm = dtf / mass[type[i]];
-    v(i,0) += dtfm * f(i,0);
-    v(i,1) += dtfm * f(i,1);
-    v(i,2) += dtfm * f(i,2);
+    v(i,0) = Kokkos::fma(dtfm, f(i,0), v(i,0));
+    v(i,1) = Kokkos::fma(dtfm, f(i,1), v(i,1));
+    v(i,2) = Kokkos::fma(dtfm, f(i,2), v(i,2));
   }
 }
 
@@ -156,9 +156,9 @@ void FixNVEKokkos<DeviceType>::final_integrate_rmass_item(int i) const
 {
   if (mask[i] & groupbit) {
     const KK_FLOAT dtfm = dtf / rmass[i];
-    v(i,0) += dtfm * f(i,0);
-    v(i,1) += dtfm * f(i,1);
-    v(i,2) += dtfm * f(i,2);
+    v(i,0) = Kokkos::fma(dtfm, f(i,0), v(i,0));
+    v(i,1) = Kokkos::fma(dtfm, f(i,1), v(i,1));
+    v(i,2) = Kokkos::fma(dtfm, f(i,2), v(i,2));
   }
 }
 
@@ -199,12 +199,12 @@ void FixNVEKokkos<DeviceType>::fused_integrate_item(int i) const
 {
   if (mask[i] & groupbit) {
     const KK_FLOAT dtfm = 2.0 * dtf / mass[type[i]];
-    v(i,0) += dtfm * f(i,0);
-    v(i,1) += dtfm * f(i,1);
-    v(i,2) += dtfm * f(i,2);
-    x(i,0) += dtv * v(i,0);
-    x(i,1) += dtv * v(i,1);
-    x(i,2) += dtv * v(i,2);
+    v(i,0) = Kokkos::fma(dtfm, f(i,0), v(i,0));
+    v(i,1) = Kokkos::fma(dtfm, f(i,1), v(i,1));
+    v(i,2) = Kokkos::fma(dtfm, f(i,2), v(i,2));
+    x(i,0) = Kokkos::fma(dtv, v(i,0), x(i,0));
+    x(i,1) = Kokkos::fma(dtv, v(i,1), x(i,1));
+    x(i,2) = Kokkos::fma(dtv, v(i,2), x(i,2));
   }
 }
 
@@ -215,12 +215,12 @@ void FixNVEKokkos<DeviceType>::fused_integrate_rmass_item(int i) const
 {
   if (mask[i] & groupbit) {
     const KK_FLOAT dtfm = 2.0 * dtf / rmass[i];
-    v(i,0) += dtfm * f(i,0);
-    v(i,1) += dtfm * f(i,1);
-    v(i,2) += dtfm * f(i,2);
-    x(i,0) += dtv * v(i,0);
-    x(i,1) += dtv * v(i,1);
-    x(i,2) += dtv * v(i,2);
+    v(i,0) = Kokkos::fma(dtfm, f(i,0), v(i,0));
+    v(i,1) = Kokkos::fma(dtfm, f(i,1), v(i,1));
+    v(i,2) = Kokkos::fma(dtfm, f(i,2), v(i,2));
+    x(i,0) = Kokkos::fma(dtv, v(i,0), x(i,0));
+    x(i,1) = Kokkos::fma(dtv, v(i,1), x(i,1));
+    x(i,2) = Kokkos::fma(dtv, v(i,2), x(i,2));
   }
 }
 

@@ -82,12 +82,16 @@ FixRigidNHSmallKokkos<DeviceType,TSTAT,PSTAT>::
 
 namespace LAMMPS_NS {
 
-template class FixRigidNHSmallKokkos<LMPDeviceType,false,false>; // NVE
-template class FixRigidNHSmallKokkos<LMPDeviceType,true,false>;  // NVT
-template class FixRigidNHSmallKokkos<LMPDeviceType,false,true>;  // NPH
-template class FixRigidNHSmallKokkos<LMPDeviceType,true,true>;   // NPT
+  template class FixRigidNHSmallKokkos<LMPDeviceType,false,false>; // NVE
+  template class FixRigidNHSmallKokkos<LMPDeviceType,true,false>;  // NVT
+  template class FixRigidNHSmallKokkos<LMPDeviceType,false,true>;  // NPH
+  template class FixRigidNHSmallKokkos<LMPDeviceType,true,true>;   // NPT
 
-#ifdef LMP_KOKKOS_GPU
-//template class FixRigidSmallKokkos<LMPHostType>;
-#endif
+  #ifdef LMP_KOKKOS_GPU
+    template class FixRigidNHSmallKokkos<LMPHostType,false,false>; // NVE
+    template class FixRigidNHSmallKokkos<LMPHostType,true,false>;  // NVT
+    template class FixRigidNHSmallKokkos<LMPHostType,false,true>;  // NPH
+    template class FixRigidNHSmallKokkos<LMPHostType,true,true>;   // NPT
+  #endif // LMP_KOKKOS_GPU
+
 }

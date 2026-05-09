@@ -32,8 +32,11 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
-template class FixRigidSmallKokkos<LMPDeviceType>;
-#ifdef LMP_KOKKOS_GPU
-//template class FixRigidSmallKokkos<LMPHostType>;
-#endif
+
+  template class FixRigidSmallKokkos<LMPDeviceType>;
+
+  #ifdef LMP_KOKKOS_GPU
+    template class FixRigidSmallKokkos<LMPHostType>;
+  #endif
+
 }

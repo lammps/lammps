@@ -3660,11 +3660,22 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::sync_host()
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
-template class FixRigidBaseKokkos<LMPDeviceType, FixRigidSmall>;
-template class FixRigidBaseKokkos<LMPDeviceType, FixRigidNHSmall>;
+
+  // fix rigid/small/kk
+  template class FixRigidBaseKokkos<LMPDeviceType, FixRigidSmall>;
+
+  // fix rigid/(nve|nvt|nph|npt)/small/kk
+  template class FixRigidBaseKokkos<LMPDeviceType, FixRigidNHSmall>;
+
 #ifdef LMP_KOKKOS_GPU
-//template class FixRigidBaseKokkos<LMPHostType, FixRigidSmall>;
-//template class FixRigidBaseKokkos<LMPHostType, FixRigidNHSmall>;
-#endif
+
+    // fix rigid/small/kk/host
+    template class FixRigidBaseKokkos<LMPHostType, FixRigidSmall>;
+
+    // fix rigid/(nve|nvt|nph|npt)/small/kk/host
+    template class FixRigidBaseKokkos<LMPHostType, FixRigidNHSmall>;
+
+  #endif // LMP_KOKKOS_GPU
+
 }
 

@@ -77,7 +77,6 @@ class PairKokkos : public PairBase
 
   using Pair::ncoulmask;
   using Pair::ncoulshiftbits;
-  using Pair::union_int_float_t;
   using Pair::eatom;
   using Pair::eflag_atom;
   using Pair::vatom;
@@ -94,6 +93,8 @@ class PairKokkos : public PairBase
   using Pair::no_virial_fdotr_compute;
   using Pair::allocated;
   using Pair::tabinnersq;
+
+  using typename PairBase::union_int_float_t;
 
   KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   typename AT::t_kkfloat_1d_3_lr_randomread x;

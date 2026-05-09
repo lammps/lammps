@@ -148,10 +148,25 @@ TEST_F(VariableTest, CreateDelete)
     command("variable islin  equal     is_os(^Linux)");
     END_HIDE_OUTPUT();
     ASSERT_EQ(variable->nvar, 22);
+    int idummy = variable->find("dummy");
+    ASSERT_EQ(idummy, 18);
     BEGIN_HIDE_OUTPUT();
     command("variable dummy  delete");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 21);
+    // deleted variables are not removed from the list
+    ASSERT_EQ(variable->nvar, 22);
+    ASSERT_EQ(variable->find("dummy"), -1);
+    BEGIN_HIDE_OUTPUT();
+    command("variable newdummy  index 0");
+    command("variable seconddummy  index 0");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(variable->nvar, 23);
+    idummy = variable->find("newdummy");
+    // id of deleted variable get recycled
+    ASSERT_EQ(idummy, 18);
+    idummy = variable->find("seconddummy");
+    ASSERT_EQ(idummy, 22);
+
     ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
     variable->set_string("three", "four");
     ASSERT_THAT(variable->retrieve("three"), StrEq("four"));

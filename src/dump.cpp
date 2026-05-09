@@ -14,6 +14,10 @@
 #include "dump.h"
 
 #include "atom.h"
+#if defined(LMP_KOKKOS)
+#include "atom_kokkos.h"
+#endif
+#include "atom_masks.h"
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
@@ -27,6 +31,7 @@
 #include "update.h"
 #include "variable.h"
 
+#include <cstdio>
 #include <cstring>
 #include <stdexcept>
 
@@ -401,6 +406,15 @@ void Dump::write()
 
   if (pbcflag) {
     int nlocal = atom->nlocal;
+#if defined(LMP_KOKKOS)
+    // Kokkos: canonical coords live on device; refresh host before memcpy.
+    // While atom->x points at xpbc, DomainKokkos::x2lamda/pbc/lamda2x still
+    // transform k_x on device (#4923, #4940). Use Domain::* on host buffers.
+    if (lmp->kokkos) {
+      if (auto *atomkk = dynamic_cast<AtomKokkos *>(atom))
+        atomkk->sync(Host, X_MASK | V_MASK | IMAGE_MASK);
+    }
+#endif
     if (nlocal > maxpbc) pbc_allocate();
     if (nlocal) {
       memcpy(&xpbc[0][0],&atom->x[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
@@ -416,9 +430,19 @@ void Dump::write()
 
     // for triclinic, PBC is applied in lamda coordinates
 
-    if (domain->triclinic) domain->x2lamda(nlocal);
-    domain->pbc();
-    if (domain->triclinic) domain->lamda2x(nlocal);
+#if defined(LMP_KOKKOS)
+    if (lmp->kokkos) {
+      if (domain->triclinic) domain->Domain::x2lamda(nlocal);
+      domain->Domain::pbc();
+      if (domain->triclinic) domain->Domain::lamda2x(nlocal);
+    } else {
+#endif
+      if (domain->triclinic) domain->x2lamda(nlocal);
+      domain->pbc();
+      if (domain->triclinic) domain->lamda2x(nlocal);
+#if defined(LMP_KOKKOS)
+    }
+#endif
   }
 
   // pack my data into buf

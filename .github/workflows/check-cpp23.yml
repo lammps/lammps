@@ -100,5 +100,6 @@ jobs:
               -D PKG_QTB=on \
               -D PKG_SMTBQ=on \
               -G Ninja
-        cmake --build build
+        cmake --build build -- -k 0
         ccache -s
+

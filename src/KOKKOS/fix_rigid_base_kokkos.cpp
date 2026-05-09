@@ -465,7 +465,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate(int vflag)
     auto l_body = k_body.template view<DeviceType>();
 
     KK_FLOAT l_dtf = static_cast<KK_FLOAT>(dtf);
-    KK_FLOAT l_dtf2 = l_dtf * KK_FLOAT(2.0);
+    KK_FLOAT l_dtf2 = l_dtf * KK_TWO;
     KK_FLOAT l_dtv = static_cast<KK_FLOAT>(dtv);
     KK_FLOAT l_dtq = static_cast<KK_FLOAT>(dtq);
 
@@ -474,9 +474,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate(int vflag)
 
     if constexpr (NH) {
       KK_FLOAT tmp;
-      l_scale_t0 = l_scale_t1 = l_scale_t2 = KK_FLOAT(1.0);
-      l_scale_v0 = l_scale_v1 = l_scale_v2 = KK_FLOAT(1.0);
-      l_scale_r = KK_FLOAT(1.0);
+      l_scale_t0 = l_scale_t1 = l_scale_t2 = KK_ONE;
+      l_scale_v0 = l_scale_v1 = l_scale_v2 = KK_ONE;
+      l_scale_r = KK_ONE;
       if constexpr(TSTAT) {
         tmp = exp(-l_dtq * static_cast<KK_FLOAT>(nh()->eta_dot_t[0]));
         l_scale_t0 = l_scale_t1 = l_scale_t2 = tmp;
@@ -493,7 +493,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate(int vflag)
           static constexpr KK_FLOAT c4 = KK_FLOAT(1.0 / 362880.0);
           // horner form with fused multiply add
           // P(y) = 1 + y (1/6 + y(1/120 + y(1/5040 + y(1/362880))))
-          return fma(y, fma(y, fma(y, fma(y, c4, c3), c2), c1), 1.0);
+          return fma(y, fma(y, fma(y, fma(y, c4, c3), c2), c1), KK_ONE);
         };
 
         auto epsilon_dot = nh()->epsilon_dot;
@@ -546,7 +546,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate(int vflag)
           // update ex,ey,ez to reflect new quaternion
           angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
                           bk.ez_space, bk.inertia, bk.omega);
-          richardson(bk.quat,bk.angmom,bk.omega,bk.inertia,l_dtq);
+          richardson(bk.quat, bk.angmom, bk.omega, bk.inertia, l_dtq);
           q_to_exyz(bk.quat, bk.ex_space, bk.ey_space, bk.ez_space);
         } else {
           // apply torque to quaternion momentum
@@ -574,9 +574,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::initial_integrate(int vflag)
           q_to_exyz(bk.quat, bk.ex_space, bk.ey_space, bk.ez_space);
           invquatvec(bk.quat, bk.conjqm, mbody);
           matvec(bk.ex_space, bk.ey_space, bk.ez_space, mbody, bk.angmom);
-          bk.angmom[0] *= 0.5;
-          bk.angmom[1] *= 0.5;
-          bk.angmom[2] *= 0.5;
+          bk.angmom[0] *= KK_HALF;
+          bk.angmom[1] *= KK_HALF;
+          bk.angmom[2] *= KK_HALF;
           angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
                           bk.ez_space, bk.inertia, bk.omega);
         }
@@ -688,15 +688,15 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::final_integrate()
 
   auto lambda = [&]<bool NH, bool TSTAT, bool PSTAT>() {
     KK_FLOAT l_dtf = static_cast<KK_FLOAT>(dtf);
-    KK_FLOAT l_dtf2 = l_dtf * KK_FLOAT(2.0);
+    KK_FLOAT l_dtf2 = l_dtf * KK_TWO;
     KK_FLOAT l_scale_t0, l_scale_t1, l_scale_t2, l_scale_r;
     if constexpr (NH) {
-      KK_FLOAT l_dtq = static_cast<KK_FLOAT>(dtq);
-      l_scale_t0 = l_scale_t1 = l_scale_t2 = l_scale_r = KK_FLOAT(1.0);
+      KK_FLOAT l_dtq = static_cast<KK_FLOAT>(nh()->dtq);
+      l_scale_t0 = l_scale_t1 = l_scale_t2 = l_scale_r = KK_ONE;
       if constexpr (TSTAT) {
-        const KK_FLOAT tmp = exp(-1.0 * l_dtq * static_cast<KK_FLOAT>(nh()->eta_dot_t[0]));
+        const KK_FLOAT tmp = exp(-KK_ONE * l_dtq * static_cast<KK_FLOAT>(nh()->eta_dot_t[0]));
         l_scale_t0 = l_scale_t1 = l_scale_t2 = tmp;
-        l_scale_r = exp(-1.0 * l_dtq * static_cast<KK_FLOAT>(nh()->eta_dot_r[0]));
+        l_scale_r = exp(-KK_ONE * l_dtq * static_cast<KK_FLOAT>(nh()->eta_dot_r[0]));
       }
       if constexpr (PSTAT) {
         auto epsilon_dot = nh()->epsilon_dot;
@@ -748,9 +748,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::final_integrate()
           }
           invquatvec(bk.quat, bk.conjqm, mbody);
           matvec(bk.ex_space, bk.ey_space, bk.ez_space, mbody, bk.angmom);
-          bk.angmom[0] *= 0.5;
-          bk.angmom[1] *= 0.5;
-          bk.angmom[2] *= 0.5;
+          bk.angmom[0] *= KK_HALF;
+          bk.angmom[1] *= KK_HALF;
+          bk.angmom[2] *= KK_HALF;
           angmom_to_omega(bk.angmom, bk.ex_space, bk.ey_space,
                                    bk.ez_space, bk.inertia, bk.omega);
         }
@@ -939,7 +939,7 @@ bigint FixRigidBaseKokkos<DeviceType,FixRigidBase>::dof(int tgroup)
         if (l_counts(ibody,0) + l_counts(ibody,1) == l_counts(ibody,2)) {
           l_n += 3*l_counts(ibody,0) + 6*l_counts(ibody,1) - 6;
           auto inertia = l_body(ibody).inertia;
-          if (inertia[0] == 0.0 || inertia[1] == 0.0 || inertia[2] == 0.0) {
+          if (inertia[0] == KK_ZERO || inertia[1] == KK_ZERO || inertia[2] == KK_ZERO) {
             l_n++;
             l_nlinear++;
           }
@@ -983,11 +983,11 @@ double FixRigidBaseKokkos<DeviceType,FixRigidBase>::compute_scalar()
       KK_FLOAT wbody[3], rot[3][3];
       quat_to_mat(bk.quat, rot);
       transpose_matvec(rot, bk.angmom, wbody);
-      if (bk.inertia[0] == 0.0) wbody[0] = 0.0;
+      if (bk.inertia[0] == KK_ZERO) wbody[0] = KK_ZERO;
       else wbody[0] /= bk.inertia[0];
-      if (bk.inertia[1] == 0.0) wbody[1] = 0.0;
+      if (bk.inertia[1] == KK_ZERO) wbody[1] = KK_ZERO;
       else wbody[1] /= bk.inertia[1];
-      if (bk.inertia[2] == 0.0) wbody[2] = 0.0;
+      if (bk.inertia[2] == KK_ZERO) wbody[2] = KK_ZERO;
       else wbody[2] /= bk.inertia[2];
       l_ke += fma(bk.inertia[0] , wbody[0] * wbody[0],
               fma(bk.inertia[1] , wbody[1] * wbody[1],
@@ -1093,7 +1093,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::zero_momentum()
     Kokkos::RangePolicy<DeviceType>(0, nbody_total()),
     KOKKOS_LAMBDA(const int &ibody) {
       BodyKokkos &bk = l_body(ibody);
-      bk.vcm[0] = bk.vcm[1] = bk.vcm[2] = 0.0;
+      bk.vcm[0] = bk.vcm[1] = bk.vcm[2] = KK_ZERO;
     }
   );
   copymode = 0;
@@ -1121,8 +1121,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::zero_rotation()
     Kokkos::RangePolicy<DeviceType>(0, nbody_total()),
     KOKKOS_LAMBDA(const int &ibody) {
       BodyKokkos &bk = l_body(ibody);
-      bk.angmom[0] = bk.angmom[1] = bk.angmom[2] = 0.0;
-      bk.omega[0] = bk.omega[1] = bk.omega[2] = 0.0;
+      bk.angmom[0] = bk.angmom[1] = bk.angmom[2] = KK_ZERO;
+      bk.omega[0] = bk.omega[1] = bk.omega[2] = KK_ZERO;
     }
   );
   copymode = 0;
@@ -1236,9 +1236,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static()
   auto l_prd = Few<KK_FLOAT,3>(domainKK->prd);
   auto l_h = Few<KK_FLOAT,6>(domainKK->h);
   auto l_invprd = Few<KK_FLOAT,3>(
-    KK_FLOAT(1.0) / domainKK->prd[0],
-    KK_FLOAT(1.0) / domainKK->prd[1],
-    KK_FLOAT(1.0) / domainKK->prd[2]
+    KK_ONE / domainKK->prd[0],
+    KK_ONE / domainKK->prd[1],
+    KK_ONE / domainKK->prd[2]
   );
 
   // set body xcmimage flags = true image flags
@@ -1271,9 +1271,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static()
     Kokkos::RangePolicy<DeviceType>(0, nbody_total()),
     KOKKOS_LAMBDA(const int &ibody) {
       BodyKokkos &bk = l_body(ibody);
-      bk.xcm[0] = bk.xcm[1] = bk.xcm[2] = KK_FLOAT(0.0);
-      bk.xgc[0] = bk.xgc[1] = bk.xgc[2] = KK_FLOAT(0.0);
-      bk.mass = KK_FLOAT(0.0);
+      bk.xcm[0] = bk.xcm[1] = bk.xcm[2] = KK_ZERO;
+      bk.xgc[0] = bk.xgc[1] = bk.xgc[2] = KK_ZERO;
+      bk.mass = KK_ZERO;
       bk.natoms = 0;
     }
   );
@@ -1330,8 +1330,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static()
     // and doesn't overwrite all body's values
     // since setup_bodies_dynamic() will not be called
     // set rigid body image flags to default values
-    bk.vcm[0] = bk.vcm[1] = bk.vcm[2] = 0.0;
-    bk.angmom[0] = bk.angmom[1] = bk.angmom[2] = 0.0;
+    bk.vcm[0] = bk.vcm[1] = bk.vcm[2] = KK_ZERO;
+    bk.angmom[0] = bk.angmom[1] = bk.angmom[2] = KK_ZERO;
     // set rigid body image flags to default values
     bk.image = ((imageint) IMGMAX << IMG2BITS) |
                ((imageint) IMGMAX << IMGBITS) | IMGMAX;
@@ -1363,7 +1363,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static()
   // symmetric 3x3 inertia tensor stored in Voigt notation as 6-vector
   //base()->memory->create(base()->itensor, nbody_total(), 6, "rigid/small:itensor");
   memoryKK->create_kokkos(k_itensor, itensor, nbody_total(), 6, "rigid/small:itensor");
-  deep_copy(k_itensor.view_device(), KK_FLOAT(0.0));
+  deep_copy(k_itensor.view_device(), KK_ZERO);
 
   auto l_itensor = k_itensor.template view<DeviceType>();
   auto lambda_itensor = [&]<bool RMASS, bool UNWRAP>(const int &i) {
@@ -1466,9 +1466,9 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static()
     }
     // if any principal moment < scaled EPSILON, set to 0.0
     const KK_FLOAT max = Kokkos::max({bk.inertia[0], bk.inertia[1], bk.inertia[2]});
-    if (bk.inertia[0] < EPSILON*max) bk.inertia[0] = 0.0;
-    if (bk.inertia[1] < EPSILON*max) bk.inertia[1] = 0.0;
-    if (bk.inertia[2] < EPSILON*max) bk.inertia[2] = 0.0;
+    if (bk.inertia[0] < EPSILON*max) bk.inertia[0] = KK_ZERO;
+    if (bk.inertia[1] < EPSILON*max) bk.inertia[1] = KK_ZERO;
+    if (bk.inertia[2] < EPSILON*max) bk.inertia[2] = KK_ZERO;
     // enforce 3 evectors as a right-handed coordinate system
     // flip 3rd vector if needed
     KK_FLOAT cross[3];
@@ -1493,7 +1493,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static()
   k_itensor.template sync<DeviceType>();
   k_body.template sync<DeviceType>();
   copymode = 1;
-  KK_FLOAT dflag = KK_FLOAT(0.0);
+  KK_FLOAT dflag = KK_ZERO;
   if (domainKK->dimension == 2) {
     if (l_triclinic) {
       Kokkos::parallel_reduce("rigid/small:setup_bodies_static_diagonalize_2d_triclinic",
@@ -1526,7 +1526,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static()
   copymode = 0;
   k_body.template modify<DeviceType>();
 
-  if( dflag > KK_FLOAT(0.0))
+  if( dflag > KK_ZERO)
     error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dflag);
 
   // forward communicate updated info of all bodies
@@ -1540,7 +1540,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static()
   auto lambda_displace = [&]<bool EXTENDED>(const int i) {
     const int ibody = l_atom2body(i);
     if (ibody < 0) {
-      l_displace(i,0) = l_displace(i,1) = l_displace(i,2) = 0.0;
+      l_displace(i,0) = l_displace(i,1) = l_displace(i,2) = KK_ZERO;
       return;
     }
     BodyKokkos &bk = l_body(ibody);
@@ -1575,7 +1575,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static()
   // 3 diagonal moments should equal principal moments
   // 3 off-diagonal moments should be 0.0
   // extended particles may contribute extra terms to moments of inertia
-  deep_copy(k_itensor.view_device(), KK_FLOAT(0.0));
+  deep_copy(k_itensor.view_device(), KK_ZERO);
   if (l_rmass.data()) {
     Kokkos::parallel_for("rigid/small:setup_bodies_static_itensor_rmass",
     Kokkos::RangePolicy<DeviceType>(0, nlocal()),
@@ -1611,7 +1611,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static()
   KOKKOS_LAMBDA(const int ibody, int& l_flag) {
     if (l_inpfile && l_inbody(ibody)) return;
     const BodyKokkos &bk = l_body(ibody);
-    KK_FLOAT norm = KK_FLOAT(0.0);
+    KK_FLOAT norm = KK_ZERO;
     l_flag = 0;
     for( int i=0; i<3 ; i++ ) {
       const auto a = bk.inertia[i];
@@ -1620,7 +1620,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_static()
       if (a != 0.0 && Kokkos::fabs((b-a)/a) > TOLERANCE) l_flag = 1;
       norm += a;
     }
-    norm *= KK_FLOAT(1.0/3.0);
+    norm *= KK_THIRD;
     if (Kokkos::fabs(l_itensor(ibody,3) / norm) > TOLERANCE ||
         Kokkos::fabs(l_itensor(ibody,4) / norm) > TOLERANCE ||
         Kokkos::fabs(l_itensor(ibody,5) / norm) > TOLERANCE) {
@@ -1674,8 +1674,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::setup_bodies_dynamic()
     Kokkos::RangePolicy<DeviceType>(0, nbody_total()),
     KOKKOS_LAMBDA(const int &ibody) {
       BodyKokkos &bk = l_body(ibody);
-      bk.vcm[0] = bk.vcm[1] = bk.vcm[2] = 0.0;
-      bk.angmom[0] = bk.angmom[1] = bk.angmom[2] = 0.0;
+      bk.vcm[0] = bk.vcm[1] = bk.vcm[2] = KK_ZERO;
+      bk.angmom[0] = bk.angmom[1] = bk.angmom[2] = KK_ZERO;
     }
   );
 
@@ -1772,12 +1772,12 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::apply_langevin_thermostat()
 
       rand_type rand_gen = l_rand_pool.get_state();
 #if defined (LMP_KOKKOS_SINGLE_SINGLE) || defined (LMP_KOKKOS_SINGLE_DOUBLE)
-      const float rnd1 = rand_gen.frand() - 0.5;
-      const float rnd2 = rand_gen.frand() - 0.5;
-      const float rnd3 = rand_gen.frand() - 0.5;
-      const float rnd4 = rand_gen.frand() - 0.5;
-      const float rnd5 = rand_gen.frand() - 0.5;
-      const float rnd6 = rand_gen.frand() - 0.5;
+      const float rnd1 = rand_gen.frand() - 0.5f;
+      const float rnd2 = rand_gen.frand() - 0.5f;
+      const float rnd3 = rand_gen.frand() - 0.5f;
+      const float rnd4 = rand_gen.frand() - 0.5f;
+      const float rnd5 = rand_gen.frand() - 0.5f;
+      const float rnd6 = rand_gen.frand() - 0.5f;
 #elif defined (LMP_KOKKOS_DOUBLE_DOUBLE)
       const double rnd1 = rand_gen.drand() - 0.5;
       const double rnd2 = rand_gen.drand() - 0.5;
@@ -1791,7 +1791,7 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::apply_langevin_thermostat()
       l_langextra(ibody, 0) = gamma1 * bk.vcm[0] + gamma2 * rnd1;
       l_langextra(ibody, 1) = gamma1 * bk.vcm[1] + gamma2 * rnd2;
       l_langextra(ibody, 2) = gamma1 * bk.vcm[2] + gamma2 * rnd3;
-      gamma1 = -1.0 / l_t_period / l_ftm2v;
+      gamma1 = -KK_ONE / l_t_period / l_ftm2v;
       gamma2 = l_tsqrt * l_langfactor;
       KK_FLOAT wbody[3], tbody[3];
       // convert omega from space frame to body frame
@@ -1963,7 +1963,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::set_xv()
     }
     const KK_FLOAT deltaz = zbox * l_prd2;
 
-    KK_FLOAT x0 = 0.0, x1 = 0.0, x2 = 0.0, vx = 0.0, vy = 0.0, vz = 0.0;
+    KK_FLOAT x0 = KK_ZERO, x1 = KK_ZERO, x2 = KK_ZERO;
+    KK_FLOAT vx = KK_ZERO, vy = KK_ZERO, vz = KK_ZERO;
     if constexpr (EVFLAG) {
       x0 = l_x(i,0) + deltax;
       x1 = l_x(i,1) + deltay;
@@ -2404,8 +2405,8 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::compute_forces_and_torques()
     Kokkos::RangePolicy<DeviceType>(0, nbody_total()),
     KOKKOS_LAMBDA(const int &ibody) {
       BodyKokkos &bk = l_body(ibody);
-      bk.fcm[0] = bk.fcm[1] = bk.fcm[2] = KK_FLOAT(0.0);
-      bk.torque[0] = bk.torque[1] = bk.torque[2] = KK_FLOAT(0.0);
+      bk.fcm[0] = bk.fcm[1] = bk.fcm[2] = KK_ZERO;
+      bk.torque[0] = bk.torque[1] = bk.torque[2] = KK_ZERO;
     }
   );
   Kokkos::parallel_for("rigid/small:compute_forces_and_torques",
@@ -2488,10 +2489,10 @@ void FixRigidBaseKokkos<DeviceType,FixRigidBase>::enforce2d()
     Kokkos::RangePolicy<DeviceType>(0, nlocal_body),
     KOKKOS_LAMBDA(const int &ibody) {
       BodyKokkos &bk = l_body(ibody);
-      bk.xcm[2] = bk.vcm[2] = bk.fcm[2] = bk.xgc[2] = 0.0;
-      bk.torque[0] = bk.torque[1] = 0.0;
-      bk.angmom[0] = bk.angmom[1] = 0.0;
-      bk.omega[0] = bk.omega[1] = 0.0;
+      bk.xcm[2] = bk.vcm[2] = bk.fcm[2] = bk.xgc[2] = KK_ZERO;
+      bk.torque[0] = bk.torque[1] = KK_ZERO;
+      bk.angmom[0] = bk.angmom[1] = KK_ZERO;
+      bk.omega[0] = bk.omega[1] = KK_ZERO;
     }
   );
   copymode = 0;

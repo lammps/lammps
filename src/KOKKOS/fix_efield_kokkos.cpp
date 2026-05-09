@@ -148,18 +148,20 @@ void FixEfieldKokkos<DeviceType,FixEfieldBase>::post_force(int vflag)
   typename AT::t_int_1d l_sametag;
   typename AT::t_int_1d l_type;
   typename AT::t_tagint_1d l_tag;
-  KK_FLOAT l_alpha = 0;
+  KK_FLOAT l_half_alpha = KK_ZERO;
+  KK_FLOAT l_one_minus_alpha = KK_ZERO;
   int l_typeO = 0, l_typeH = 0;
   if constexpr (TIP4P) {
     l_map_style = atom->map_style;
     l_map_array = atomKK->k_map_array;
-    l_map_hash  = atomKK->k_map_hash;
-    l_sametag   = atomKK->k_sametag.template view<DeviceType>();
-    l_type      = atomKK->k_type.template view<DeviceType>();
-    l_tag       = atomKK->k_tag.template view<DeviceType>();
-    l_alpha     = static_cast<KK_FLOAT>(this->alpha);
-    l_typeO     = this->typeO;
-    l_typeH     = this->typeH;
+    l_map_hash = atomKK->k_map_hash;
+    l_sametag = atomKK->k_sametag.template view<DeviceType>();
+    l_type = atomKK->k_type.template view<DeviceType>();
+    l_tag = atomKK->k_tag.template view<DeviceType>();
+    l_half_alpha = static_cast<KK_FLOAT>(0.5 * this->alpha);
+    l_one_minus_alpha = static_cast<KK_FLOAT>(1.0 - this->alpha);
+    l_typeO = this->typeO;
+    l_typeH = this->typeH;
   }
 
   // domainKK
@@ -229,13 +231,18 @@ void FixEfieldKokkos<DeviceType,FixEfieldBase>::post_force(int vflag)
             if (!l_region || l_match(i)) {
 
               // find_M inline: xM = xO + alpha/2 * ((xH1-xO) + (xH2-xO))
-              KK_FLOAT xO0 = l_x(iO_loc,0), xO1 = l_x(iO_loc,1), xO2 = l_x(iO_loc,2);
-              KK_FLOAT xM0 = xO0 + l_alpha * KK_FLOAT(0.5) * ((l_x(iH1_loc,0)-xO0) + (l_x(iH2_loc,0)-xO0));
-              KK_FLOAT xM1 = xO1 + l_alpha * KK_FLOAT(0.5) * ((l_x(iH1_loc,1)-xO1) + (l_x(iH2_loc,1)-xO1));
-              KK_FLOAT xM2 = xO2 + l_alpha * KK_FLOAT(0.5) * ((l_x(iH1_loc,2)-xO2) + (l_x(iH2_loc,2)-xO2));
+              const KK_FLOAT xO0 = l_x(iO_loc,0);
+              const KK_FLOAT xO1 = l_x(iO_loc,1);
+              const KK_FLOAT xO2 = l_x(iO_loc,2);
+              const KK_FLOAT dx = fma(-KK_TWO, xO0, l_x(iH1_loc,0) + l_x(iH2_loc,0));
+              const KK_FLOAT dy = fma(-KK_TWO, xO1, l_x(iH1_loc,1) + l_x(iH2_loc,1));
+              const KK_FLOAT dz = fma(-KK_TWO, xO2, l_x(iH1_loc,2) + l_x(iH2_loc,2));
+              const KK_FLOAT xM0 = fma(l_half_alpha, dx, xO0);
+              const KK_FLOAT xM1 = fma(l_half_alpha, dy, xO1);
+              const KK_FLOAT xM2 = fma(l_half_alpha, dz, xO2);
 
-              KK_FLOAT q_O = l_q(iO_loc);
-              KK_FLOAT fx_M, fy_M, fz_M;
+              const KK_FLOAT q_O = l_q(iO_loc);
+              KK_ACC_FLOAT fx_M, fy_M, fz_M;
               if constexpr (CONSTANT_FLAG) {
                 fx_M = q_O * l_ex;
                 fy_M = q_O * l_ey;
@@ -248,18 +255,18 @@ void FixEfieldKokkos<DeviceType,FixEfieldBase>::post_force(int vflag)
 
               if (type_i == l_typeO) {
                 // O is local: apply (1-alpha) to O, alpha/2 to local H atoms
-                l_f(iO_loc,0) += fx_M * (1 - l_alpha);
-                l_f(iO_loc,1) += fy_M * (1 - l_alpha);
-                l_f(iO_loc,2) += fz_M * (1 - l_alpha);
+                l_f(iO_loc,0) = fma(l_one_minus_alpha, fx_M, l_f(iO_loc,0));
+                l_f(iO_loc,1) = fma(l_one_minus_alpha, fy_M, l_f(iO_loc,1));
+                l_f(iO_loc,2) = fma(l_one_minus_alpha, fz_M, l_f(iO_loc,2));
                 if (iH1_loc < l_nlocal) {
-                  Kokkos::atomic_add(&l_f(iH1_loc,0), KK_FLOAT(0.5) * l_alpha * fx_M);
-                  Kokkos::atomic_add(&l_f(iH1_loc,1), KK_FLOAT(0.5) * l_alpha * fy_M);
-                  Kokkos::atomic_add(&l_f(iH1_loc,2), KK_FLOAT(0.5) * l_alpha * fz_M);
+                  Kokkos::atomic_add(&l_f(iH1_loc,0), l_half_alpha * fx_M);
+                  Kokkos::atomic_add(&l_f(iH1_loc,1), l_half_alpha * fy_M);
+                  Kokkos::atomic_add(&l_f(iH1_loc,2), l_half_alpha * fz_M);
                 }
                 if (iH2_loc < l_nlocal) {
-                  Kokkos::atomic_add(&l_f(iH2_loc,0), KK_FLOAT(0.5) * l_alpha * fx_M);
-                  Kokkos::atomic_add(&l_f(iH2_loc,1), KK_FLOAT(0.5) * l_alpha * fy_M);
-                  Kokkos::atomic_add(&l_f(iH2_loc,2), KK_FLOAT(0.5) * l_alpha * fz_M);
+                  Kokkos::atomic_add(&l_f(iH2_loc,0), l_half_alpha * fx_M);
+                  Kokkos::atomic_add(&l_f(iH2_loc,1), l_half_alpha * fy_M);
+                  Kokkos::atomic_add(&l_f(iH2_loc,2), l_half_alpha * fz_M);
                 }
 
                 // Energy and global-force accumulation for M-site
@@ -291,17 +298,17 @@ void FixEfieldKokkos<DeviceType,FixEfieldBase>::post_force(int vflag)
               } else {
                 // H is local, O is ghost: apply alpha/2 to this H only
                 if (iO_loc >= l_nlocal) {
-                  Kokkos::atomic_add(&l_f(i,0), KK_FLOAT(0.5) * l_alpha * fx_M);
-                  Kokkos::atomic_add(&l_f(i,1), KK_FLOAT(0.5) * l_alpha * fy_M);
-                  Kokkos::atomic_add(&l_f(i,2), KK_FLOAT(0.5) * l_alpha * fz_M);
+                  Kokkos::atomic_add(&l_f(i,0), l_half_alpha * fx_M);
+                  Kokkos::atomic_add(&l_f(i,1), l_half_alpha * fy_M);
+                  Kokkos::atomic_add(&l_f(i,2), l_half_alpha * fz_M);
                 }
               }
             } // M-site region
 
             // ---- Direct H-site force ----
             if (type_i == l_typeH && (!l_region || l_match(i))) {
-              KK_FLOAT q_H = l_q(i);
-              KK_FLOAT fx_H, fy_H, fz_H;
+              const KK_FLOAT q_H = l_q(i);
+              KK_ACC_FLOAT fx_H, fy_H, fz_H;
               if constexpr (CONSTANT_FLAG) {
                 fx_H = q_H * l_ex;
                 fy_H = q_H * l_ey;
@@ -354,7 +361,7 @@ void FixEfieldKokkos<DeviceType,FixEfieldBase>::post_force(int vflag)
         if constexpr (QFLAG) {
           Few<KK_FLOAT,3> xi(l_x(i,0),l_x(i,1),l_x(i,2));
           auto u = DomainKokkos::unmap(l_prd, l_h, l_triclinic, xi, l_image(i));
-          KK_FLOAT fx, fy, fz;
+          KK_ACC_FLOAT fx, fy, fz;
 
           if constexpr (CONSTANT_FLAG) {
             fx = l_q(i) * l_ex;

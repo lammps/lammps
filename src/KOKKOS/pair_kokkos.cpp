@@ -317,26 +317,6 @@ double PairKokkos<DeviceType,PairBase,LJ,TIP4P,SOFT>::init_one(int i, int j)
   return cutone;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* ----------------------------------------------------------------------
    PROTECTED METHODS
 ------------------------------------------------------------------------- */

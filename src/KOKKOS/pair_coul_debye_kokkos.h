@@ -55,6 +55,9 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   };
 
  protected:
+
+  PAIR_KOKKOS_FRIEND;
+
   template<bool STACKPARAMS, class Specialisation>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -117,15 +120,6 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   KK_FLOAT qqrd2e;
 
   void allocate() override;
-  friend struct PairComputeFunctor<PairCoulDebyeKokkos,FULL,true,0>;
-  friend struct PairComputeFunctor<PairCoulDebyeKokkos,FULL,true,1>;
-  friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALF,true>;
-  friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairCoulDebyeKokkos,FULL,false,0>;
-  friend struct PairComputeFunctor<PairCoulDebyeKokkos,FULL,false,1>;
-  friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALF,false>;
-  friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALFTHREAD,false>;
-  friend void pair_virial_fdotr_compute<PairCoulDebyeKokkos>(PairCoulDebyeKokkos*);
 
 };
 

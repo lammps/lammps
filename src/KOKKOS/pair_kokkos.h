@@ -39,6 +39,19 @@ enum {
   COUL_WOLF=6             // (reserved for future use)
 };
 
+#define PAIR_KOKKOS_FRIEND \
+  template<class, int, bool, int, class> \
+  friend struct PairComputeFunctor; \
+  \
+  template<class P, unsigned, int, class> \
+  friend EV_FLOAT pair_compute_neighlist(P*, NeighListKokkos<typename P::device_type>*); \
+  \
+  template<class P, class> \
+  friend EV_FLOAT pair_compute(P*, NeighListKokkos<typename P::device_type>*); \
+  \
+  template<class P> \
+  friend void pair_virial_fdotr_compute(P*)
+
 template<class DeviceType, class PairBase, bool LJ, bool TIP4P, bool SOFT>
 class PairKokkos : public PairBase
 {
@@ -61,6 +74,8 @@ class PairKokkos : public PairBase
   using Pointers::lmp;
 
  protected:
+
+  PAIR_KOKKOS_FRIEND;
 
   using Pointers::error;
   using Pointers::force;
@@ -218,37 +233,6 @@ class PairKokkos : public PairBase
   //   lj1    = lam1 = pow(lambda, nlambda)   (lambda scaling factor)
   //   lj4    = lam2 = alphac*(1-lambda)^2    (soft Coul denominator term)
   //
-
-  // -------- FRIENDS --------
-
-  template<class, int, bool, int, class>
-  friend struct PairComputeFunctor;
-
-  // 1. Friend the "real" version
-  template<class PairStyle, unsigned NFLAG, int ZFLAG, class Spec>
-  requires ((NFLAG & PairStyle::EnabledNeighFlags) != 0)
-  friend EV_FLOAT pair_compute_neighlist(
-    PairStyle* fpair,
-    NeighListKokkos<typename PairStyle::device_type>* list
-  );
-
-  // 2. Friend the "dummy" version
-  template<class PairStyle, unsigned NFLAG, int ZFLAG, class Spec>
-  requires (!((NFLAG & PairStyle::EnabledNeighFlags) != 0))
-  friend EV_FLOAT pair_compute_neighlist(
-    PairStyle* fpair,
-    NeighListKokkos<typename PairStyle::device_type>* list
-  );
-
-  template<class PairStyle, class Spec>
-  friend EV_FLOAT pair_compute(
-    PairStyle* fpair,
-    NeighListKokkos<typename PairStyle::device_type>* list
-  );
-
-  template<class A>
-  friend void pair_virial_fdotr_compute(A*);
-
 
 }; // PairKokkos
 
@@ -1142,7 +1126,6 @@ struct PairComputeFunctor  {
       }
     }
   }
-
 
 template<typename EatAccess, typename VatAccess>
 KOKKOS_INLINE_FUNCTION void ev_tally_tip4p(

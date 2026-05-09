@@ -1245,29 +1245,7 @@ KOKKOS_INLINE_FUNCTION void ev_tally_tip4p(
   void operator()(const typename Kokkos::TeamPolicy<device_type>::member_type& team, value_type &energy_virial) const {
     energy_virial += compute_item_team<PairStyle::COUL_FLAG,true>(team,list);
   }
-};
-
-
-// Filter out Neighflags which are not supported for PairStyle
-// The enable_if clause will invalidate the last parameter of the function, so that
-// a match is only achieved, if PairStyle supports the specific neighborlist variant.
-// This uses the fact that failure to match template parameters is not an error.
-// By having the enable_if with a ! and without it, exactly one of the functions
-// pair_compute_neighlist will match - either the dummy version
-// or the real one further below
-
-template<class PairStyle, unsigned NEIGHFLAG, int ZEROFLAG = 0, class Specialisation = void>
-requires (!((NEIGHFLAG & PairStyle::EnabledNeighFlags) != 0))
-EV_FLOAT pair_compute_neighlist (
-  PairStyle* fpair,
-  NeighListKokkos<typename PairStyle::device_type>* list)
-{
-  EV_FLOAT ev;
-  (void) fpair;
-  (void) list;
-  printf("ERROR: calling pair_compute with invalid neighbor list style: requested %i  available %i \n",NEIGHFLAG,PairStyle::EnabledNeighFlags);
-  return ev;
-}
+}; // PairComputeFunctor
 
 template<class NeighStyle>
 int GetMaxNeighs(NeighStyle* list)
@@ -1298,12 +1276,18 @@ void GetMaxTeamSize(FunctorStyle& functor, int inum,
 
 // Submit ParallelFor for NEIGHFLAG=HALF,HALFTHREAD,FULL
 template<class PairStyle, unsigned NEIGHFLAG, int ZEROFLAG = 0, class Specialisation = void>
-requires ((NEIGHFLAG & PairStyle::EnabledNeighFlags) != 0)
 EV_FLOAT pair_compute_neighlist (
   PairStyle* fpair,
   NeighListKokkos<typename PairStyle::device_type>* list)
 {
   EV_FLOAT ev;
+
+  if constexpr(!((NEIGHFLAG & PairStyle::EnabledNeighFlags) != 0)) {
+    (void) fpair;
+    (void) list;
+    printf("ERROR: calling pair_compute with invalid neighbor list style: requested %i available %i \n",NEIGHFLAG,PairStyle::EnabledNeighFlags);
+    return ev;
+  }
 
   const int inum = list->inum;
 

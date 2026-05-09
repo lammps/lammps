@@ -125,12 +125,6 @@ class PairCoulDebyeKokkos : public PairCoulDebye {
   friend struct PairComputeFunctor<PairCoulDebyeKokkos,FULL,false,1>;
   friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALF,false>;
   friend struct PairComputeFunctor<PairCoulDebyeKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairCoulDebyeKokkos,FULL,0>(PairCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairCoulDebyeKokkos,FULL,1>(PairCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairCoulDebyeKokkos,HALF>(PairCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairCoulDebyeKokkos,HALFTHREAD>(PairCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairCoulDebyeKokkos,void>(PairCoulDebyeKokkos*,
-                                                            NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairCoulDebyeKokkos>(PairCoulDebyeKokkos*);
 
 };

@@ -37,71 +37,81 @@
 #include <ctime>
 #include <stdexcept>
 
-/*! \file utils.cpp */
-
-/*
- * Mini regex-module adapted from https://github.com/kokke/tiny-regex-c
- * which is in the public domain.
- *
- * Supports:
- * ---------
- *   '.'        Dot, matches any character
- *   '^'        Start anchor, matches beginning of string
- *   '$'        End anchor, matches end of string
- *   '*'        Asterisk, match zero or more (greedy)
- *   '+'        Plus, match one or more (greedy)
- *   '?'        Question, match zero or one (non-greedy)
- *   '[abc]'    Character class, match if one of {'a', 'b', 'c'}
- *   '[a-zA-Z]' Character ranges, the character set of the ranges { a-z | A-Z }
- *   '\s'       Whitespace, \t \f \r \n \v and spaces
- *   '\S'       Non-whitespace
- *   '\w'       Alphanumeric, [a-zA-Z0-9_]
- *   '\W'       Non-alphanumeric
- *   '\d'       Digits, [0-9]
- *   '\D'       Non-digits
- *   '\i'       Integer chars, [0-9], '+' and '-'
- *   '\I'       Non-integers
- *   '\f'       Floating point number chars, [0-9], '.', 'e', 'E', '+' and '-'
- *   '\F'       Non-floats
- *
- * *NOT* supported:
- *   '[^abc]'   Inverted class
- *   'a|b'      Branches
- *   '(abc)+'   Groups
- */
-
-extern "C" {
+namespace {
 /** Match text against a (simplified) regular expression
    * (regexp will be compiled automatically). */
-static int re_match(const char *text, const char *pattern);
+int re_match(const char *text, const char *pattern);
 
-/** Match find substring that matches a (simplified) regular expression
+/** Find sub-string that matches a (simplified) regular expression
    * (regexp will be compiled automatically). */
-static int re_find(const char *text, const char *pattern, int *matchlen);
-}
+int re_find(const char *text, const char *pattern, int *matchlen);
 
 ////////////////////////////////////////////////////////////////////////
 // Merge sort support functions
 
-static void do_merge(int *idx, int *buf, int llo, int lhi, int rlo, int rhi, void *ptr,
-                     int (*comp)(int, int, void *));
-static void insertion_sort(int *index, int num, void *ptr, int (*comp)(int, int, void *));
+void do_merge(int *idx, int *buf, int llo, int lhi, int rlo, int rhi, void *ptr,
+              int (*comp)(int, int, void *));
+void insertion_sort(int *index, int num, void *ptr, int (*comp)(int, int, void *));
 
 ////////////////////////////////////////////////////////////////////////
+}    // namespace
 
 using namespace LAMMPS_NS;
 
-/** More flexible and specific matching of a string against a pattern.
- *  This function is supposed to be a more safe, more specific and
- *  simple to use API to find pattern matches. The purpose is to replace
- *  uses of either strncmp() or strstr() in the code base to find
- *  sub-strings safely. With strncmp() finding prefixes, the number of
- *  characters to match must be counted, which can lead to errors,
- *  while using "^pattern" will do the same with less problems.
+/** This function provides flexible and specific matching of a string
+ *  against a pattern using a simplified regular expression.  It is supposed
+ *  to be a safe, more specific and simple to use API to find pattern
+ *  matches that is compatible with both, C-style strings and C++ strings.
+ *  The purpose is to replace uses of either strncmp() or strstr() in the
+ *  code which are more complex to use and may have incorrect matches.
+ *  sub-strings safely. With strncmp() for finding prefixes, the number
+ *  of characters to match must be counted, which can lead to errors,
+ *  while using "^pattern" will do the same by just adding the '^' prefix.
  *  Matching for suffixes using strstr() is not as specific as 'pattern$',
  *  and complex matches, e.g. "^rigid.*\/small.*", to match all small
  *  body optimized rigid fixes require only one test.
  *
+\verbatim embed:rst
+
+This function uses a mini regex-module adapted and customized from
+https://github.com/kokke/tiny-regex-c which is in the public domain.
+The `regular expressions <https://en.wikipedia.org/wiki/Regular_expression>`_
+support the following standard and custom regex elements:
+
+.. parsed-literal::
+
+      '.'        Dot, matches any character
+      '^'        Start anchor, matches beginning of string
+      '$'        End anchor, matches end of string
+      '*'        Asterisk, match zero or more (greedy)
+      '+'        Plus, match one or more (greedy)
+      '?'        Question, match zero or one (non-greedy)
+      '[abc]'    Character class, match if one of {'a', 'b', 'c'}
+      '[a-zA-Z]' Character ranges, the character set of the ranges { a-z | A-Z }
+      '\\s'       Whitespace, \\t \\f \\r \\n \\v and spaces
+      '\\S'       Non-whitespace
+      '\\w'       Alphanumeric, [a-zA-Z_0-9]
+      '\\W'       Non-alphanumeric
+      '\\d'       Digits, [0-9]
+      '\\D'       Non-digits
+      '\\i'       Integer chars, [0-9], '+' and '-'
+      '\\I'       Non-integers
+      '\\f'       Floating point number chars, [0-9], '.', 'e', 'E', '+' and '-'
+      '\\F'       Non-floats
+
+They do **not** support:
+
+.. parsed-literal::
+
+   '[^abc]'   Inverted class
+   'a|b'      Branches
+   '(abc)+'   Groups
+
+Please note that regular expressions are different from
+`globbing <https://en.wikipedia.org/wiki/Glob_(programming)>`_.
+
+\endverbatim
+*
  *  The use of std::string arguments allows for simple concatenation
  *  even with char * type variables.
  *  Example: utils::strmatch(text, std::string("^") + charptr)
@@ -1630,7 +1640,8 @@ std::string utils::join<char *>(const std::vector<char *> &values, const std::st
 }
 
 template <>
-std::string utils::join<const char *>(const std::vector<const char *> &values, const std::string &sep)
+std::string utils::join<const char *>(const std::vector<const char *> &values,
+                                      const std::string &sep)
 {
   return join_impl<const char *>(values, sep);
 }
@@ -2135,6 +2146,8 @@ void utils::merge_sort(int *index, int num, void *ptr, int (*comp)(int, int, voi
 
 /* ------------------------------------------------------------------ */
 
+namespace {
+
 /* ----------------------------------------------------------------------
  * Merge sort part 2: Insertion sort for pre-sorting of small chunks
 ------------------------------------------------------------------------- */
@@ -2160,8 +2173,8 @@ void insertion_sort(int *index, int num, void *ptr, int (*comp)(int, int, void *
  * Merge sort part 3: Merge two sublists
 ------------------------------------------------------------------------- */
 
-static void do_merge(int *idx, int *buf, int llo, int lhi, int rlo, int rhi, void *ptr,
-                     int (*comp)(int, int, void *))
+void do_merge(int *idx, int *buf, int llo, int lhi, int rlo, int rhi, void *ptr,
+              int (*comp)(int, int, void *))
 {
   int i = llo;
   int l = llo;
@@ -2179,17 +2192,15 @@ static void do_merge(int *idx, int *buf, int llo, int lhi, int rlo, int rhi, voi
 
 /* ------------------------------------------------------------------ */
 
-extern "C" {
-
 /* Typedef'd pointer to get abstract datatype. */
 typedef struct regex_t *re_t;                // NOLINT
 typedef struct regex_context_t *re_ctx_t;    // NOLINT
 
 /* Compile regex string pattern to a regex_t-array. */
-static re_t re_compile(re_ctx_t context, const char *pattern);
+re_t re_compile(re_ctx_t context, const char *pattern);
 
 /* Find matches of the compiled pattern inside text. */
-static int re_matchp(const char *text, re_t pattern, int *matchlen);
+int re_matchp(const char *text, re_t pattern, int *matchlen);
 
 /* Definitions: */
 
@@ -2250,20 +2261,20 @@ int re_find(const char *text, const char *pattern, int *matchlen)
 }
 
 /* Private function declarations: */
-static int matchpattern(regex_t *pattern, const char *text, int *matchlen);
-static int matchcharclass(char c, const char *str);
-static int matchstar(regex_t p, regex_t *pattern, const char *text, int *matchlen);
-static int matchplus(regex_t p, regex_t *pattern, const char *text, int *matchlen);
-static int matchone(regex_t p, char c);
-static int matchdigit(char c);
-static int matchint(char c);
-static int matchfloat(char c);
-static int matchalpha(char c);
-static int matchwhitespace(char c);
-static int matchmetachar(char c, const char *str);
-static int matchrange(char c, const char *str);
-static int matchdot(char c);
-static int ismetachar(char c);
+int matchpattern(regex_t *pattern, const char *text, int *matchlen);
+int matchcharclass(char c, const char *str);
+int matchstar(regex_t p, regex_t *pattern, const char *text, int *matchlen);
+int matchplus(regex_t p, regex_t *pattern, const char *text, int *matchlen);
+int matchone(regex_t p, char c);
+int matchdigit(char c);
+int matchint(char c);
+int matchfloat(char c);
+int matchalpha(char c);
+int matchwhitespace(char c);
+int matchmetachar(char c, const char *str);
+int matchrange(char c, const char *str);
+int matchdot(char c);
+int ismetachar(char c);
 
 /* Semi-public functions: */
 int re_matchp(const char *text, re_t pattern, int *matchlen)
@@ -2433,43 +2444,43 @@ re_t re_compile(re_ctx_t context, const char *pattern)
 }
 
 /* Private functions: */
-static int matchdigit(char c)
+int matchdigit(char c)
 {
   return isdigit(c);
 }
 
-static int matchint(char c)
+int matchint(char c)
 {
   return (matchdigit(c) || (c == '-') || (c == '+'));
 }
 
-static int matchfloat(char c)
+int matchfloat(char c)
 {
   return (matchint(c) || (c == '.') || (c == 'e') || (c == 'E'));
 }
 
-static int matchalpha(char c)
+int matchalpha(char c)
 {
   return isalpha(c);
 }
 
-static int matchwhitespace(char c)
+int matchwhitespace(char c)
 {
   return isspace(c);
 }
 
-static int matchalphanum(char c)
+int matchalphanum(char c)
 {
   return ((c == '_') || matchalpha(c) || matchdigit(c));
 }
 
-static int matchrange(char c, const char *str)
+int matchrange(char c, const char *str)
 {
   return ((c != '-') && (str[0] != '\0') && (str[0] != '-') && (str[1] == '-') &&
           (str[1] != '\0') && (str[2] != '\0') && ((c >= str[0]) && (c <= str[2])));
 }
 
-static int matchdot(char c)
+int matchdot(char c)
 {
 #if defined(RE_DOT_MATCHES_NEWLINE) && (RE_DOT_MATCHES_NEWLINE == 1)
   (void) c;
@@ -2479,12 +2490,12 @@ static int matchdot(char c)
 #endif
 }
 
-static int ismetachar(char c)
+int ismetachar(char c)
 {
   return ((c == 's') || (c == 'S') || (c == 'w') || (c == 'W') || (c == 'd') || (c == 'D'));
 }
 
-static int matchmetachar(char c, const char *str)
+int matchmetachar(char c, const char *str)
 {
   switch (str[0]) {
     case 'd':
@@ -2512,7 +2523,7 @@ static int matchmetachar(char c, const char *str)
   }
 }
 
-static int matchcharclass(char c, const char *str)
+int matchcharclass(char c, const char *str)
 {
   do {
     if (matchrange(c, str)) {
@@ -2537,7 +2548,7 @@ static int matchcharclass(char c, const char *str)
   return 0;
 }
 
-static int matchone(regex_t p, char c)
+int matchone(regex_t p, char c)
 {
   switch (p.type) {
     case RX_DOT:
@@ -2571,7 +2582,7 @@ static int matchone(regex_t p, char c)
   }
 }
 
-static int matchstar(regex_t p, regex_t *pattern, const char *text, int *matchlen)
+int matchstar(regex_t p, regex_t *pattern, const char *text, int *matchlen)
 {
   int prelen = *matchlen;
   const char *prepos = text;
@@ -2588,7 +2599,7 @@ static int matchstar(regex_t p, regex_t *pattern, const char *text, int *matchle
   return 0;
 }
 
-static int matchplus(regex_t p, regex_t *pattern, const char *text, int *matchlen)
+int matchplus(regex_t p, regex_t *pattern, const char *text, int *matchlen)
 {
   const char *prepos = text;
   while ((text[0] != '\0') && matchone(p, *text)) {
@@ -2602,7 +2613,7 @@ static int matchplus(regex_t p, regex_t *pattern, const char *text, int *matchle
   return 0;
 }
 
-static int matchquestion(regex_t p, regex_t *pattern, const char *text, int *matchlen)
+int matchquestion(regex_t p, regex_t *pattern, const char *text, int *matchlen)
 {
   if (p.type == RX_UNUSED) return 1;
   if (matchpattern(pattern, text, matchlen)) return 1;
@@ -2616,7 +2627,7 @@ static int matchquestion(regex_t p, regex_t *pattern, const char *text, int *mat
 }
 
 /* Iterative matching */
-static int matchpattern(regex_t *pattern, const char *text, int *matchlen)
+int matchpattern(regex_t *pattern, const char *text, int *matchlen)
 {
   int pre = *matchlen;
   do {
@@ -2635,4 +2646,4 @@ static int matchpattern(regex_t *pattern, const char *text, int *matchlen)
   *matchlen = pre;
   return 0;
 }
-}
+}    // namespace

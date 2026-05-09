@@ -54,7 +54,7 @@ modern multi-core hardware and at high node counts:
   By shifting the parallelization to OpenMP, the subdomains per MPI
   rank become larger and load balancing is usually more effective then.
 - **Capability Computing**: Hybrid MPI+OpenMP is often essential for
-  achieving optimal performance on large supercomputing systems.
+  achieving optimal performance on large HPC clusters or supercomputers.
 
 .. _openmp_design:
 

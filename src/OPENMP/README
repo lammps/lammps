@@ -4,7 +4,7 @@ styles.
 
 See this section of the manual to get started:
 
-doc/Section_accelerate.html, sub-section 5.2
+doc/Speed_omp.html
 
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.

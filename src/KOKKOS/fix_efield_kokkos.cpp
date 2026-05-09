@@ -71,8 +71,8 @@ FixEfieldKokkos<DeviceType,FixEfieldBase>::~FixEfieldKokkos()
 template<class DeviceType, class FixEfieldBase>
 void FixEfieldKokkos<DeviceType,FixEfieldBase>::init()
 {
-  FixEfieldBase::init();  // resolves to FixEfield::init() or FixEfieldTIP4P::init() (CRTP)
-
+  // resolves to FixEfield::init() or FixEfieldTIP4P::init() (CRTP)
+  FixEfieldBase::init();
   if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot (yet) use respa with Kokkos");
 }
@@ -124,9 +124,12 @@ void FixEfieldKokkos<DeviceType,FixEfieldBase>::post_force(int vflag)
   atomKK->sync(execution_space, datamask_read);
 
   if constexpr (TIP4P) {
-    if (atom->map_style != Atom::MAP_ARRAY)
-      error->all(FLERR,"fix efield/tip4p/kk requires atom map array style");
-    atomKK->k_map_array.template sync<DeviceType>();
+    auto l_map_style = atom->map_style;
+    if (l_map_style == Atom::MAP_ARRAY)
+      atomKK->k_map_array.template sync<DeviceType>();
+    else
+      atomKK->k_map_hash.template sync<DeviceType>();
+    atomKK->k_sametag.template sync<DeviceType>();
   }
   auto l_x = atomKK->k_x.template view<DeviceType>();
   auto l_f = atomKK->k_f.template view<DeviceType>();
@@ -138,15 +141,22 @@ void FixEfieldKokkos<DeviceType,FixEfieldBase>::post_force(int vflag)
   auto l_efield = k_efield.template view<DeviceType>();
   auto l_vatom = k_vatom.template view<DeviceType>();
 
-  // TIP4P device views (empty/zero when TIP4P=false, compiled out by if constexpr)
-  typename AT::t_int_1d l_type, l_map_array;
+  // TIP4P device views (compiled out by if constexpr when TIP4P=false)
+  int l_map_style = 0;
+  DAT::tdual_int_1d l_map_array;
+  dual_hash_type l_map_hash;
+  typename AT::t_int_1d l_sametag;
+  typename AT::t_int_1d l_type;
   typename AT::t_tagint_1d l_tag;
   KK_FLOAT l_alpha = 0;
   int l_typeO = 0, l_typeH = 0;
   if constexpr (TIP4P) {
+    l_map_style = atom->map_style;
+    l_map_array = atomKK->k_map_array;
+    l_map_hash  = atomKK->k_map_hash;
+    l_sametag   = atomKK->k_sametag.template view<DeviceType>();
     l_type      = atomKK->k_type.template view<DeviceType>();
     l_tag       = atomKK->k_tag.template view<DeviceType>();
-    l_map_array = atomKK->k_map_array.template view<DeviceType>();
     l_alpha     = static_cast<KK_FLOAT>(this->alpha);
     l_typeO     = this->typeO;
     l_typeH     = this->typeH;
@@ -188,27 +198,31 @@ void FixEfieldKokkos<DeviceType,FixEfieldBase>::post_force(int vflag)
           int type_i = l_type(i);
           if (type_i == l_typeO || type_i == l_typeH) {
 
-            // Resolve molecule indices iO, iH1, iH2 via tag map
+            // Resolve molecule indices iO, iH1, iH2 via atom map (handles MAP_ARRAY and MAP_HASH)
             tagint tag_i = l_tag(i);
             int iO_loc, iH1_loc, iH2_loc;
             if (type_i == l_typeO) {
               iO_loc  = i;
-              iH1_loc = l_map_array(tag_i + 1);
-              iH2_loc = l_map_array(tag_i + 2);
+              iH1_loc = AtomKokkos::map_kokkos<DeviceType>(tag_i + 1, l_map_style, l_map_array, l_map_hash);
+              iH2_loc = AtomKokkos::map_kokkos<DeviceType>(tag_i + 2, l_map_style, l_map_array, l_map_hash);
             } else {
-              iO_loc = l_map_array(tag_i - 1);
+              iO_loc = AtomKokkos::map_kokkos<DeviceType>(tag_i - 1, l_map_style, l_map_array, l_map_hash);
               if (iO_loc != -1 && l_type(iO_loc) == l_typeO) {
                 iH1_loc = i;
-                iH2_loc = l_map_array(tag_i + 1);
+                iH2_loc = AtomKokkos::map_kokkos<DeviceType>(tag_i + 1, l_map_style, l_map_array, l_map_hash);
               } else {
-                iO_loc  = l_map_array(tag_i - 2);
-                iH1_loc = l_map_array(tag_i - 1);
+                iO_loc  = AtomKokkos::map_kokkos<DeviceType>(tag_i - 2, l_map_style, l_map_array, l_map_hash);
+                iH1_loc = AtomKokkos::map_kokkos<DeviceType>(tag_i - 1, l_map_style, l_map_array, l_map_hash);
                 iH2_loc = i;
               }
             }
 
-            // Guard against missing partners (would indicate a setup error)
+            // Guard against missing partners
             if (iO_loc < 0 || iH1_loc < 0 || iH2_loc < 0) return;
+
+            // Apply closest_image to get H positions near O (handles PBC)
+            iH1_loc = DomainKokkos::closest_image(l_x, l_sametag, iO_loc, iH1_loc);
+            iH2_loc = DomainKokkos::closest_image(l_x, l_sametag, iO_loc, iH2_loc);
 
             // ---- M-site contribution (from O charge) ----
             // Region check: use this atom's match as proxy for xM (xM ≈ xO)

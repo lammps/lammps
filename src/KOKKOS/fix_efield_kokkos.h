@@ -58,6 +58,7 @@ class FixEfieldKokkos : public FixEfieldBase
 
   using Pointers::atom;
   using Pointers::atomKK;
+  using Pointers::lmp;
   using Pointers::memory;
   using Pointers::memoryKK;
   using Pointers::update;

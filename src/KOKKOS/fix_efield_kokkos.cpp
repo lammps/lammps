@@ -38,9 +38,9 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, bool TIP4P>
-FixEfieldKokkos<DeviceType,TIP4P>::FixEfieldKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixEfield(lmp, narg, arg)
+template<class DeviceType, class FixEfieldBase>
+FixEfieldKokkos<DeviceType,FixEfieldBase>::FixEfieldKokkos(LAMMPS *lmp, int narg, char **arg) :
+  FixEfieldBase(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -57,8 +57,8 @@ FixEfieldKokkos<DeviceType,TIP4P>::FixEfieldKokkos(LAMMPS *lmp, int narg, char *
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, bool TIP4P>
-FixEfieldKokkos<DeviceType,TIP4P>::~FixEfieldKokkos()
+template<class DeviceType, class FixEfieldBase>
+FixEfieldKokkos<DeviceType,FixEfieldBase>::~FixEfieldKokkos()
 {
   if (copymode) return;
 
@@ -68,13 +68,10 @@ FixEfieldKokkos<DeviceType,TIP4P>::~FixEfieldKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, bool TIP4P>
-void FixEfieldKokkos<DeviceType,TIP4P>::init()
+template<class DeviceType, class FixEfieldBase>
+void FixEfieldKokkos<DeviceType,FixEfieldBase>::init()
 {
-  if constexpr (TIP4P)
-    FixEfieldTIP4P::init();  // sets alpha, typeO, typeH; also calls FixEfield::init()
-  else
-    FixEfield::init();
+  FixEfieldBase::init();  // resolves to FixEfield::init() or FixEfieldTIP4P::init() (CRTP)
 
   if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot (yet) use respa with Kokkos");
@@ -82,8 +79,8 @@ void FixEfieldKokkos<DeviceType,TIP4P>::init()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, bool TIP4P>
-void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
+template<class DeviceType, class FixEfieldBase>
+void FixEfieldKokkos<DeviceType,FixEfieldBase>::post_force(int vflag)
 {
 
   force_flag = 0;
@@ -150,9 +147,9 @@ void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
     l_type      = atomKK->k_type.template view<DeviceType>();
     l_tag       = atomKK->k_tag.template view<DeviceType>();
     l_map_array = atomKK->k_map_array.template view<DeviceType>();
-    l_alpha     = static_cast<KK_FLOAT>(alpha);
-    l_typeO     = typeO;
-    l_typeH     = typeH;
+    l_alpha     = static_cast<KK_FLOAT>(this->alpha);
+    l_typeO     = this->typeO;
+    l_typeH     = this->typeH;
   }
 
   // domainKK
@@ -467,18 +464,18 @@ void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
 namespace LAMMPS_NS {
 
   // fix efield/kk
-  template class FixEfieldKokkos<LMPDeviceType,false>;
+  template class FixEfieldKokkos<LMPDeviceType, FixEfield>;
 
   // fix efield/tip4p/kk
-  template class FixEfieldKokkos<LMPDeviceType,true>;
+  template class FixEfieldKokkos<LMPDeviceType, FixEfieldTIP4P>;
 
   #ifdef LMP_KOKKOS_GPU
 
-    // fix efield/kk
-    template class FixEfieldKokkos<LMPHostType,false>;
+    // fix efield/kk/host
+    template class FixEfieldKokkos<LMPHostType, FixEfield>;
 
-    // fix efield/tip4p/kk
-    template class FixEfieldKokkos<LMPHostType,true>;
+    // fix efield/tip4p/kk/host
+    template class FixEfieldKokkos<LMPHostType, FixEfieldTIP4P>;
 
   #endif // LMP_KOKKOS_GPU
 

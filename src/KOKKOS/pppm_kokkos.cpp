@@ -1352,17 +1352,6 @@ void PPPMKokkos<DeviceType>::make_rho()
 template<class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_make_rho_zero, const int &ii) const
-{
-  int iz = ii/(numy_out*numx_out);
-  int iy = (ii - iz*numy_out*numx_out) / numx_out;
-  int ix = ii - iz*numy_out*numx_out - iy*numx_out;
-  d_density_brick(iz,iy,ix) = 0;
-}
-
-template<class DeviceType>
-// NOLINTNEXTLINE
-KOKKOS_INLINE_FUNCTION
 void PPPMKokkos<DeviceType>::operator()(TagPPPM_make_rho_atomic, const int &i) const
 {
   // The density_brick array is atomic for Half/Thread neighbor style
@@ -2507,34 +2496,6 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_unpack_reverse, const int &i) co
   const int iy = static_cast<int>((dlist - iz*nx*ny)/nx);
   const int ix = d_list_index[i] - iz*nx*ny - iy*nx;
   d_density_brick(iz,iy,ix) += d_buf[i + unpack_offset];
-}
-
-/* ----------------------------------------------------------------------
-   charge assignment into rho1d
-   dx,dy,dz = distance of particle from "lower left" grid point
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-// NOLINTNEXTLINE
-KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::compute_rho1d(const int i, const FFT_SCALAR &dx, const FFT_SCALAR &dy,
-                         const FFT_SCALAR &dz) const
-{
-  int k,l;
-  FFT_SCALAR r1,r2,r3;
-
-  for (k = (1-order)/2; k <= order/2; k++) {
-    r1 = r2 = r3 = 0;
-
-    for (l = order-1; l >= 0; l--) {
-      r1 = d_rho_coeff(l,k-(1-order)/2) + r1*dx;
-      r2 = d_rho_coeff(l,k-(1-order)/2) + r2*dy;
-      r3 = d_rho_coeff(l,k-(1-order)/2) + r3*dz;
-    }
-    d_rho1d(i,k+order/2,0) = r1;
-    d_rho1d(i,k+order/2,1) = r2;
-    d_rho1d(i,k+order/2,2) = r3;
-  }
 }
 
 /* ----------------------------------------------------------------------

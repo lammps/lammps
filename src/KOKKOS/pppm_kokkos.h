@@ -167,10 +167,6 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPPPM_make_rho_zero, const int&) const;
-
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
   void operator()(TagPPPM_make_rho_atomic, const int&) const;
 
 // NOLINTNEXTLINE
@@ -354,6 +350,15 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   //KOKKOS_INLINE_FUNCTION
   //void operator()(TagPPPMKernelA<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPPPM_make_rho_zero, const int &ii) const {
+    const int iz = ii/(numy_out*numx_out);
+    const int iy = (ii - iz*numy_out*numx_out) / numx_out;
+    const int ix = ii - iz*numy_out*numx_out - iy*numx_out;
+    d_density_brick(iz,iy,ix) = 0;
+  }
+
  protected:
   double unitkx,unitky,unitkz;
   double scaleinv,s2;
@@ -471,10 +476,6 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   void poisson_peratom() override;
   void fieldforce_peratom() override;
 
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void compute_rho1d(const int i, const FFT_SCALAR &, const FFT_SCALAR &,
-                     const FFT_SCALAR &) const;
   void compute_rho_coeff();
   void slabcorr() override;
 
@@ -492,6 +493,32 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   void setup_triclinic();
   void compute_gf_ik_triclinic();
   void poisson_ik_triclinic();
+
+/* ----------------------------------------------------------------------
+   charge assignment into rho1d
+   dx,dy,dz = distance of particle from "lower left" grid point
+------------------------------------------------------------------------- */
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void compute_rho1d(const int i, const FFT_SCALAR& dx, const FFT_SCALAR& dy,
+                     const FFT_SCALAR& dz) const {
+
+    FFT_SCALAR r1,r2,r3;
+
+    for ( int k = (1-order)/2; k <= order/2; k++) {
+      r1 = r2 = r3 = 0;
+
+      for (int l = order-1; l >= 0; l--) {
+        r1 = d_rho_coeff(l,k-(1-order)/2) + r1*dx;
+        r2 = d_rho_coeff(l,k-(1-order)/2) + r2*dy;
+        r3 = d_rho_coeff(l,k-(1-order)/2) + r3*dz;
+      }
+      d_rho1d(i,k+order/2,0) = r1;
+      d_rho1d(i,k+order/2,1) = r2;
+      d_rho1d(i,k+order/2,2) = r3;
+    }
+  }
 
 /* ----------------------------------------------------------------------
    denominator for Hockney-Eastwood Green's function
@@ -519,11 +546,12 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
     double s = sx*sy*sz;
     return s*s;
   };
+
 };
 
 }
 
-#endif
+#endif // !LMP_PPPM_KOKKOS_H
 #endif
 
 

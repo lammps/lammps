@@ -127,5 +127,5 @@ class PPPMTIP4PKokkos : public PPPMKokkos<DeviceType> {
 
 }    // namespace LAMMPS_NS
 
-#endif
+#endif // !LMP_PPPM_TIP4P_KOKKOS_H
 #endif

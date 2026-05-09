@@ -481,22 +481,29 @@ void FixEfieldKokkos<DeviceType,FixEfieldBase>::post_force(int vflag)
   }
 }
 
-
 namespace LAMMPS_NS {
 
   // fix efield/kk
   template class FixEfieldKokkos<LMPDeviceType, FixEfield>;
 
-  // fix efield/tip4p/kk
-  template class FixEfieldKokkos<LMPDeviceType, FixEfieldTIP4P>;
+  #ifdef LMP_EXTRA_FIX
+
+    // fix efield/tip4p/kk
+    template class FixEfieldKokkos<LMPDeviceType, FixEfieldTIP4P>;
+
+  #endif // LMP_EXTRA_FIX
 
   #ifdef LMP_KOKKOS_GPU
 
     // fix efield/kk/host
     template class FixEfieldKokkos<LMPHostType, FixEfield>;
 
-    // fix efield/tip4p/kk/host
-    template class FixEfieldKokkos<LMPHostType, FixEfieldTIP4P>;
+    #ifdef LMP_EXTRA_FIX
+
+      // fix efield/tip4p/kk/host
+      template class FixEfieldKokkos<LMPHostType, FixEfieldTIP4P>;
+
+    #endif // LMP_EXTRA_FIX
 
   #endif // LMP_KOKKOS_GPU
 

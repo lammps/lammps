@@ -18,9 +18,13 @@ FixStyle(efield/kk,        FixEfieldKokkos<LMPDeviceType,FixEfield>);
 FixStyle(efield/kk/device, FixEfieldKokkos<LMPDeviceType,FixEfield>);
 FixStyle(efield/kk/host,   FixEfieldKokkos<LMPHostType,FixEfield>);
 
+#ifdef LMP_EXTRA_FIX
+
   FixStyle(efield/tip4p/kk,        FixEfieldKokkos<LMPDeviceType,FixEfieldTIP4P>);
   FixStyle(efield/tip4p/kk/device, FixEfieldKokkos<LMPDeviceType,FixEfieldTIP4P>);
   FixStyle(efield/tip4p/kk/host,   FixEfieldKokkos<LMPHostType,FixEfieldTIP4P>);
+
+#endif // LMP_EXTRA_FIX
 
 // clang-format on
 #else
@@ -30,7 +34,10 @@ FixStyle(efield/kk/host,   FixEfieldKokkos<LMPHostType,FixEfield>);
 #define LMP_FIX_EFIELD_KOKKOS_H
 
 #include "fix_efield.h"
-#include "fix_efield_tip4p.h"
+#ifdef LMP_EXTRA_FIX
+  #include "fix_efield_tip4p.h"
+#endif // LMP_EXTRA_FIX
+
 #include "kokkos_type.h"
 #include "kokkos_few.h"
 
@@ -52,7 +59,11 @@ class FixEfieldKokkos : public FixEfieldBase
   void init() override;
   void post_force(int) override;
 
+#ifdef LMP_EXTRA_FIX
   static constexpr bool TIP4P = std::is_base_of_v<FixEfieldTIP4P, FixEfieldBase>;
+#else
+  static constexpr bool TIP4P = false;
+#endif // LMP_EXTRA_FIX
 
  protected:
 

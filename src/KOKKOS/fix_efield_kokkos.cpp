@@ -48,6 +48,9 @@ FixEfieldKokkos<DeviceType,TIP4P>::FixEfieldKokkos(LAMMPS *lmp, int narg, char *
   datamask_read = X_MASK | F_MASK | TORQUE_MASK | Q_MASK | MU_MASK | IMAGE_MASK | MASK_MASK;
   datamask_modify = F_MASK | TORQUE_MASK;
 
+  if constexpr (TIP4P)
+    datamask_read |= TYPE_MASK | TAG_MASK;
+
   memory->destroy(efield);
   memoryKK->create_kokkos(k_efield,efield,maxatom,4,"efield:efield");
 }
@@ -68,7 +71,10 @@ FixEfieldKokkos<DeviceType,TIP4P>::~FixEfieldKokkos()
 template<class DeviceType, bool TIP4P>
 void FixEfieldKokkos<DeviceType,TIP4P>::init()
 {
-  FixEfield::init();
+  if constexpr (TIP4P)
+    FixEfieldTIP4P::init();  // sets alpha, typeO, typeH; also calls FixEfield::init()
+  else
+    FixEfield::init();
 
   if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot (yet) use respa with Kokkos");
@@ -119,6 +125,12 @@ void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
   // kokkos views
 
   atomKK->sync(execution_space, datamask_read);
+
+  if constexpr (TIP4P) {
+    if (atom->map_style != Atom::MAP_ARRAY)
+      error->all(FLERR,"fix efield/tip4p/kk requires atom map array style");
+    atomKK->k_map_array.template sync<DeviceType>();
+  }
   auto l_x = atomKK->k_x.template view<DeviceType>();
   auto l_f = atomKK->k_f.template view<DeviceType>();
   auto l_q = atomKK->k_q.template view<DeviceType>();
@@ -129,6 +141,20 @@ void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
   auto l_efield = k_efield.template view<DeviceType>();
   auto l_vatom = k_vatom.template view<DeviceType>();
 
+  // TIP4P device views (empty/zero when TIP4P=false, compiled out by if constexpr)
+  typename AT::t_int_1d l_type, l_map_array;
+  typename AT::t_tagint_1d l_tag;
+  KK_FLOAT l_alpha = 0;
+  int l_typeO = 0, l_typeH = 0;
+  if constexpr (TIP4P) {
+    l_type      = atomKK->k_type.template view<DeviceType>();
+    l_tag       = atomKK->k_tag.template view<DeviceType>();
+    l_map_array = atomKK->k_map_array.template view<DeviceType>();
+    l_alpha     = static_cast<KK_FLOAT>(alpha);
+    l_typeO     = typeO;
+    l_typeH     = typeH;
+  }
+
   // domainKK
 
   auto l_prd = Few<KK_FLOAT,3>(domain->prd);
@@ -137,6 +163,7 @@ void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
 
   auto lambda = [&]<bool QFLAG, bool MUFLAG, bool CONSTANT_FLAG>(auto& result_) {
 
+    auto l_nlocal = nlocal;
     auto l_groupbit = groupbit;
     auto l_region = region;
     auto l_ex = static_cast<KK_FLOAT>(ex);
@@ -157,7 +184,161 @@ void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
       Kokkos::RangePolicy<DeviceType>(0, nlocal),
       KOKKOS_LAMBDA(const int &i, auto& l_result) {
 
-        if( !(l_mask(i) & l_groupbit) || (l_region && !l_match(i))) return;
+        if (!(l_mask(i) & l_groupbit)) return;
+
+        // ---------- TIP4P block ----------
+        if constexpr (TIP4P && QFLAG) {
+          int type_i = l_type(i);
+          if (type_i == l_typeO || type_i == l_typeH) {
+
+            // Resolve molecule indices iO, iH1, iH2 via tag map
+            tagint tag_i = l_tag(i);
+            int iO_loc, iH1_loc, iH2_loc;
+            if (type_i == l_typeO) {
+              iO_loc  = i;
+              iH1_loc = l_map_array(tag_i + 1);
+              iH2_loc = l_map_array(tag_i + 2);
+            } else {
+              iO_loc = l_map_array(tag_i - 1);
+              if (iO_loc != -1 && l_type(iO_loc) == l_typeO) {
+                iH1_loc = i;
+                iH2_loc = l_map_array(tag_i + 1);
+              } else {
+                iO_loc  = l_map_array(tag_i - 2);
+                iH1_loc = l_map_array(tag_i - 1);
+                iH2_loc = i;
+              }
+            }
+
+            // Guard against missing partners (would indicate a setup error)
+            if (iO_loc < 0 || iH1_loc < 0 || iH2_loc < 0) return;
+
+            // ---- M-site contribution (from O charge) ----
+            // Region check: use this atom's match as proxy for xM (xM ≈ xO)
+            if (!l_region || l_match(i)) {
+
+              // find_M inline: xM = xO + alpha/2 * ((xH1-xO) + (xH2-xO))
+              KK_FLOAT xO0 = l_x(iO_loc,0), xO1 = l_x(iO_loc,1), xO2 = l_x(iO_loc,2);
+              KK_FLOAT xM0 = xO0 + l_alpha * KK_FLOAT(0.5) * ((l_x(iH1_loc,0)-xO0) + (l_x(iH2_loc,0)-xO0));
+              KK_FLOAT xM1 = xO1 + l_alpha * KK_FLOAT(0.5) * ((l_x(iH1_loc,1)-xO1) + (l_x(iH2_loc,1)-xO1));
+              KK_FLOAT xM2 = xO2 + l_alpha * KK_FLOAT(0.5) * ((l_x(iH1_loc,2)-xO2) + (l_x(iH2_loc,2)-xO2));
+
+              KK_FLOAT q_O = l_q(iO_loc);
+              KK_FLOAT fx_M, fy_M, fz_M;
+              if constexpr (CONSTANT_FLAG) {
+                fx_M = q_O * l_ex;
+                fy_M = q_O * l_ey;
+                fz_M = q_O * l_ez;
+              } else {
+                fx_M = (l_xstyle == ATOM) ? l_qe2f * q_O * l_efield(iO_loc,0) : q_O * l_ex;
+                fy_M = (l_ystyle == ATOM) ? l_qe2f * q_O * l_efield(iO_loc,1) : q_O * l_ey;
+                fz_M = (l_zstyle == ATOM) ? l_qe2f * q_O * l_efield(iO_loc,2) : q_O * l_ez;
+              }
+
+              if (type_i == l_typeO) {
+                // O is local: apply (1-alpha) to O, alpha/2 to local H atoms
+                l_f(iO_loc,0) += fx_M * (1 - l_alpha);
+                l_f(iO_loc,1) += fy_M * (1 - l_alpha);
+                l_f(iO_loc,2) += fz_M * (1 - l_alpha);
+                if (iH1_loc < l_nlocal) {
+                  Kokkos::atomic_add(&l_f(iH1_loc,0), KK_FLOAT(0.5) * l_alpha * fx_M);
+                  Kokkos::atomic_add(&l_f(iH1_loc,1), KK_FLOAT(0.5) * l_alpha * fy_M);
+                  Kokkos::atomic_add(&l_f(iH1_loc,2), KK_FLOAT(0.5) * l_alpha * fz_M);
+                }
+                if (iH2_loc < l_nlocal) {
+                  Kokkos::atomic_add(&l_f(iH2_loc,0), KK_FLOAT(0.5) * l_alpha * fx_M);
+                  Kokkos::atomic_add(&l_f(iH2_loc,1), KK_FLOAT(0.5) * l_alpha * fy_M);
+                  Kokkos::atomic_add(&l_f(iH2_loc,2), KK_FLOAT(0.5) * l_alpha * fz_M);
+                }
+
+                // Energy and global-force accumulation for M-site
+                Few<KK_FLOAT,3> xMv(xM0,xM1,xM2);
+                auto uM = DomainKokkos::unmap(l_prd, l_h, l_triclinic, xMv, l_image(iO_loc));
+                if constexpr (CONSTANT_FLAG) {
+                  l_result[0] -= fma(fx_M, uM[0], fma(fy_M, uM[1], fz_M * uM[2]));
+                } else {
+                  if (l_pstyle == ATOM) l_result[0] += l_qe2f * q_O * l_efield(iO_loc,3);
+                  else if (l_estyle == ATOM) l_result[0] += l_efield(iO_loc,3);
+                }
+                l_result[1] += fx_M;
+                l_result[2] += fy_M;
+                l_result[3] += fz_M;
+
+                if constexpr (CONSTANT_FLAG) {
+                  if (l_evflag) {
+                    KK_ACC_FLOAT v[6] = {fx_M*uM[0], fy_M*uM[1], fz_M*uM[2],
+                                         fx_M*uM[1], fx_M*uM[2], fy_M*uM[2]};
+                    if (l_vflag_global) {
+                      l_result[4]+=v[0]; l_result[5]+=v[1]; l_result[6]+=v[2];
+                      l_result[7]+=v[3]; l_result[8]+=v[4]; l_result[9]+=v[5];
+                    }
+                    if (l_vflag_atom)
+                      for (int k=0; k<6; k++) Kokkos::atomic_add(&l_vatom(iO_loc,k), v[k]);
+                  }
+                }
+
+              } else {
+                // H is local, O is ghost: apply alpha/2 to this H only
+                if (iO_loc >= l_nlocal) {
+                  Kokkos::atomic_add(&l_f(i,0), KK_FLOAT(0.5) * l_alpha * fx_M);
+                  Kokkos::atomic_add(&l_f(i,1), KK_FLOAT(0.5) * l_alpha * fy_M);
+                  Kokkos::atomic_add(&l_f(i,2), KK_FLOAT(0.5) * l_alpha * fz_M);
+                }
+              }
+            } // M-site region
+
+            // ---- Direct H-site force ----
+            if (type_i == l_typeH && (!l_region || l_match(i))) {
+              KK_FLOAT q_H = l_q(i);
+              KK_FLOAT fx_H, fy_H, fz_H;
+              if constexpr (CONSTANT_FLAG) {
+                fx_H = q_H * l_ex;
+                fy_H = q_H * l_ey;
+                fz_H = q_H * l_ez;
+              } else {
+                fx_H = (l_xstyle == ATOM) ? l_qe2f * q_H * l_efield(i,0) : q_H * l_ex;
+                fy_H = (l_ystyle == ATOM) ? l_qe2f * q_H * l_efield(i,1) : q_H * l_ey;
+                fz_H = (l_zstyle == ATOM) ? l_qe2f * q_H * l_efield(i,2) : q_H * l_ez;
+              }
+
+              // atomic_add because O-thread may simultaneously add alpha/2 to this H
+              Kokkos::atomic_add(&l_f(i,0), fx_H);
+              Kokkos::atomic_add(&l_f(i,1), fy_H);
+              Kokkos::atomic_add(&l_f(i,2), fz_H);
+
+              Few<KK_FLOAT,3> xi(l_x(i,0),l_x(i,1),l_x(i,2));
+              auto u = DomainKokkos::unmap(l_prd, l_h, l_triclinic, xi, l_image(i));
+              if constexpr (CONSTANT_FLAG) {
+                l_result[0] -= fma(fx_H, u[0], fma(fy_H, u[1], fz_H * u[2]));
+              } else {
+                if (l_pstyle == ATOM) l_result[0] += l_qe2f * q_H * l_efield(i,3);
+                else if (l_estyle == ATOM) l_result[0] += l_efield(i,3);
+              }
+              l_result[1] += fx_H;
+              l_result[2] += fy_H;
+              l_result[3] += fz_H;
+
+              if constexpr (CONSTANT_FLAG) {
+                if (l_evflag) {
+                  KK_ACC_FLOAT v[6] = {fx_H*u[0], fy_H*u[1], fz_H*u[2],
+                                       fx_H*u[1], fx_H*u[2], fy_H*u[2]};
+                  if (l_vflag_global) {
+                    l_result[4]+=v[0]; l_result[5]+=v[1]; l_result[6]+=v[2];
+                    l_result[7]+=v[3]; l_result[8]+=v[4]; l_result[9]+=v[5];
+                  }
+                  if (l_vflag_atom)
+                    for (int k=0; k<6; k++) Kokkos::atomic_add(&l_vatom(i,k), v[k]);
+                }
+              }
+            } // H direct force
+
+            return; // TIP4P O/H fully handled — skip generic q/mu code below
+          }
+        }
+        // ---------- end TIP4P block ----------
+
+        // non-TIP4P atoms (or TIP4P=false): per-atom region check
+        if (l_region && !l_match(i)) return;
 
         if constexpr (QFLAG) {
           Few<KK_FLOAT,3> xi(l_x(i,0),l_x(i,1),l_x(i,2));
@@ -284,9 +465,21 @@ void FixEfieldKokkos<DeviceType,TIP4P>::post_force(int vflag)
 
 
 namespace LAMMPS_NS {
-template class FixEfieldKokkos<LMPDeviceType,false>;
-template class FixEfieldKokkos<LMPDeviceType,true>;
-#ifdef LMP_KOKKOS_GPU
-//template class FixEfieldKokkos<LMPHostType>;
-#endif
+
+  // fix efield/kk
+  template class FixEfieldKokkos<LMPDeviceType,false>;
+
+  // fix efield/tip4p/kk
+  template class FixEfieldKokkos<LMPDeviceType,true>;
+
+  #ifdef LMP_KOKKOS_GPU
+
+    // fix efield/kk
+    template class FixEfieldKokkos<LMPHostType,false>;
+
+    // fix efield/tip4p/kk
+    template class FixEfieldKokkos<LMPHostType,true>;
+
+  #endif // LMP_KOKKOS_GPU
+
 }

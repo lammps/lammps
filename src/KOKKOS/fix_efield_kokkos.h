@@ -63,13 +63,6 @@ public FixEfield
 
 };
 
-
-//template <class DeviceType>
-//using FixEfieldPlainKokkos = FixEfieldKokkos<DeviceType, false>;
-
-//template <class DeviceType>
-//using FixEfieldTIP4PKokkos = FixEfieldKokkos<DeviceType, true>;
-
 } // namespace LAMMPS_NS
 
 #endif // !LMP_FIX_EFIELD_KOKKOS_H

@@ -64,7 +64,6 @@ class PairKokkos : public PairBase
 
   using Pointers::error;
   using Pointers::force;
-
   using Pointers::memory;
   using Pointers::memoryKK;
   using Pointers::neighbor;
@@ -113,7 +112,6 @@ class PairKokkos : public PairBase
   int newton_pair, neighflag, nlocal, nall, eflag, vflag;
 
   void allocate() override;
-
 
   // -------- LJ --------
 
@@ -204,8 +202,8 @@ class PairKokkos : public PairBase
 
   void tip4p_precompute() requires (TIP4P);
 
-
   // -------- SOFT --------
+  //
   // Soft-core FEP parameters reuse the params_lj_coul fields as follows:
   //
   // For LJ=true (PairLJCutCoulLongSoft / PairLJCutTIP4PLongSoft):
@@ -219,10 +217,9 @@ class PairKokkos : public PairBase
   // For LJ=false (PairCoulLongSoft / PairTIP4PLongSoft):
   //   lj1    = lam1 = pow(lambda, nlambda)   (lambda scaling factor)
   //   lj4    = lam2 = alphac*(1-lambda)^2    (soft Coul denominator term)
+  //
 
-
-
-  // -------- friends --------
+  // -------- FRIENDS --------
 
   template<class, int, bool, int, class>
   friend struct PairComputeFunctor;
@@ -255,10 +252,6 @@ class PairKokkos : public PairBase
 
 }; // PairKokkos
 
-
-
-
-
 /* ----------------------------------------------------------------------
 
   NOTE: KOKKOS_INLINE_FUNCTION implementations must remain in header
@@ -277,7 +270,6 @@ class PairKokkos : public PairBase
      and linker errors.
 
    ---------------------------------------------------------------------- */
-
 
 static constexpr KK_FLOAT KK_ZERO = static_cast<KK_FLOAT>(0.0);
 static constexpr KK_FLOAT KK_ONE = static_cast<KK_FLOAT>(1.0);
@@ -470,71 +462,7 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// -------- PairComputeFunctor --------
 
 template<int Table>
 struct CoulLongTable {
@@ -1506,7 +1434,7 @@ struct PairVirialFDotRCompute {
     energy_virial.v[4] += f(i,2)*static_cast<KK_ACC_FLOAT>(x(i,0));
     energy_virial.v[5] += f(i,2)*static_cast<KK_ACC_FLOAT>(x(i,1));
   }
-};
+}; // PairVirialFDotRCompute
 
 template<class PairStyle>
 void pair_virial_fdotr_compute(PairStyle* fpair) {
@@ -1525,7 +1453,7 @@ void pair_virial_fdotr_compute(PairStyle* fpair) {
     fpair->virial[n] = static_cast<double>(virial.v[n]);
 }
 
-}
+} // LAMMPS_NS
 
 #endif // !LMP_PAIR_KOKKOS_H
 

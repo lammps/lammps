@@ -388,25 +388,15 @@ protected:
   template<typename To, typename From>
   struct Transform {
     static constexpr bool is_identity = std::is_same_v<To, From>;
-    KOKKOS_INLINE_FUNCTION
-    static To transform(const From &x) { return x; }
-  };
 
-  template<>
-  struct Transform<BodyKokkos, Body> {
-    static constexpr bool is_identity = false;
     KOKKOS_INLINE_FUNCTION
-    static BodyKokkos transform(const Body &b) {
-      return BodyKokkos(b);
-    }
-  };
-
-  template<>
-  struct Transform<Body, BodyKokkos> {
-    static constexpr bool is_identity = false;
-    KOKKOS_INLINE_FUNCTION
-    static Body transform(const BodyKokkos &bk) {
-      return static_cast<Body>(bk);
+    static To transform(const From &x) {
+      if constexpr (std::is_same_v<To, From>)
+        return x;
+      else if constexpr (std::is_same_v<To, BodyKokkos> && std::is_same_v<From, Body>)
+        return BodyKokkos(x);
+      else if constexpr (std::is_same_v<To, Body> && std::is_same_v<From, BodyKokkos>)
+        return static_cast<Body>(x);
     }
   };
 

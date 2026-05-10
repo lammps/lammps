@@ -559,7 +559,7 @@ void FixRX::initSparse()
         }
       }
       if (comm->me == 0 && Verbosity > 1 && screen)
-        fprintf(screen,"rx%3d: %s %s %s\n", i, rstr.c_str(), /*reversible[i]*/ (false) ? "<=>" : "=", pstr.c_str());
+        fprintf(screen,"rx%3d: %s %s %s\n", i, rstr.c_str(), /*reversible[i]*/ false ? "<=>" : "=", pstr.c_str());
     }
     // end for nreactions
   }

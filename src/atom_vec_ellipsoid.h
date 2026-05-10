@@ -62,6 +62,7 @@ class AtomVecEllipsoid : virtual public AtomVec {
   int unpack_restart_bonus(int, double *) override;
   void data_atom_bonus(int, const std::vector<std::string> &) override;
   double memory_usage_bonus() override;
+  void process_args(int, char **) override;
 
   void create_atom_post(int) override;
   void data_atom_post(int) override;
@@ -100,7 +101,6 @@ class AtomVecEllipsoid : virtual public AtomVec {
   static void inertia_ellipsoid_principal(double *, double, double *,
                                    double *block, BlockType);
 
-
   template <bool is_super>
   int pack_comm_bonus_templated(int, int *, double *);
 
@@ -112,12 +112,7 @@ class AtomVecEllipsoid : virtual public AtomVec {
 
   template <bool is_super>
   int unpack_border_bonus_templated(int, int, double *);
-
-  void process_args(int, char **) override;
-
-
 };
-
 }    // namespace LAMMPS_NS
 
 #endif

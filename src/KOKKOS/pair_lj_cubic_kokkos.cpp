@@ -24,14 +24,10 @@
 #include "force.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "respa.h"
 #include "update.h"
-
-#include <cmath>
-#include <cstring>
 
 #include "pair_lj_cubic_const.h"
 
@@ -48,7 +44,7 @@ PairLJCubicKokkos<DeviceType>::PairLJCubicKokkos(LAMMPS *lmp):PairLJCubic(lmp)
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 }
 
@@ -63,8 +59,6 @@ PairLJCubicKokkos<DeviceType>::~PairLJCubicKokkos()
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->destroy_kokkos(k_cutsq,cutsq);
-    memoryKK->destroy_kokkos(k_cut_inner,cut_inner);
-    memoryKK->destroy_kokkos(k_cut_inner_sq,cut_inner_sq);
   }
 }
 
@@ -95,8 +89,6 @@ void PairLJCubicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   atomKK->sync(execution_space,datamask_read);
   k_cutsq.template sync<DeviceType>();
-  k_cut_inner.template sync<DeviceType>();
-  k_cut_inner_sq.template sync<DeviceType>();
   k_params.template sync<DeviceType>();
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
@@ -104,7 +96,6 @@ void PairLJCubicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   x = atomKK->k_x.view<DeviceType>();
   c_x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
-  q = atomKK->k_q.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
@@ -150,6 +141,7 @@ void PairLJCubicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
    ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairLJCubicKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
@@ -164,7 +156,8 @@ compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
        (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
   } else {
     const KK_FLOAT r = sqrt(rsq);
-    const KK_FLOAT rmin = (STACKPARAMS?m_params[itype][jtype].sigma:params(itype,jtype).sigma) * RT6TWO;
+    const KK_FLOAT rmin = (STACKPARAMS?m_params[itype][jtype].sigma:params(itype,jtype).sigma) *
+      static_cast<KK_FLOAT>(RT6TWO);
     const KK_FLOAT t = (r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner)) / rmin;
     forcelj = (STACKPARAMS?m_params[itype][jtype].epsilon:params(itype,jtype).epsilon) *
       (static_cast<KK_FLOAT>(-DPHIDS) + static_cast<KK_FLOAT>(A3) * t * t / static_cast<KK_FLOAT>(2.0)) * r / rmin;
@@ -177,27 +170,27 @@ compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
    ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairLJCubicKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
-  KK_FLOAT englj;
-
-  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
 
   if (rsq <= (STACKPARAMS?m_params[itype][jtype].cut_inner_sq:params(itype,jtype).cut_inner_sq)) {
     const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
-    englj = r6inv *
+    return r6inv *
       ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
        (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
   } else {
     const KK_FLOAT r = sqrt(rsq);
-    const KK_FLOAT rmin = (STACKPARAMS?m_params[itype][jtype].sigma:params(itype,jtype).sigma) * RT6TWO;
+    const KK_FLOAT rmin = (STACKPARAMS?m_params[itype][jtype].sigma:params(itype,jtype).sigma) *
+      static_cast<KK_FLOAT>(RT6TWO);
     const KK_FLOAT t = (r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner)) / rmin;
-    englj = (STACKPARAMS?m_params[itype][jtype].epsilon:params(itype,jtype).epsilon) *
-      (static_cast<KK_FLOAT>(PHIS) + static_cast<KK_FLOAT>(DPHIDS) * t - static_cast<KK_FLOAT>(A3) * t * t * t/ static_cast<KK_FLOAT>(6.0));
+    return (STACKPARAMS?m_params[itype][jtype].epsilon:params(itype,jtype).epsilon) *
+      (static_cast<KK_FLOAT>(PHIS) + static_cast<KK_FLOAT>(DPHIDS) * t -
+       static_cast<KK_FLOAT>(A3) * t * t * t / static_cast<KK_FLOAT>(6.0));
   }
-  return englj;
 }
 
 /* ----------------------------------------------------------------------
@@ -214,14 +207,6 @@ void PairLJCubicKokkos<DeviceType>::allocate()
   memory->destroy(cutsq);
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
-
-  memory->destroy(cut_inner);
-  memoryKK->create_kokkos(k_cut_inner,cut_inner,n+1,n+1,"pair:cut_inner");
-  d_cut_inner = k_cut_inner.template view<DeviceType>();
-
-  memory->destroy(cut_inner_sq);
-  memoryKK->create_kokkos(k_cut_inner_sq,cut_inner_sq,n+1,n+1,"pair:cut_inner_sq");
-  d_cut_inner_sq = k_cut_inner_sq.template view<DeviceType>();
 
   k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJCubic::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
@@ -264,13 +249,12 @@ template<class DeviceType>
 double PairLJCubicKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairLJCubic::init_one(i,j);
-  double cut_inner_sqm = cut_inner_sq[i][j];
 
   k_params.view_host()(i,j).lj1 = static_cast<KK_FLOAT>(lj1[i][j]);
   k_params.view_host()(i,j).lj2 = static_cast<KK_FLOAT>(lj2[i][j]);
   k_params.view_host()(i,j).lj3 = static_cast<KK_FLOAT>(lj3[i][j]);
   k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(lj4[i][j]);
-  k_params.view_host()(i,j).cut_inner_sq = cut_inner_sqm;
+  k_params.view_host()(i,j).cut_inner_sq = static_cast<KK_FLOAT>(cut_inner_sq[i][j]);
   k_params.view_host()(i,j).cut_inner = static_cast<KK_FLOAT>(cut_inner[i][j]);
   k_params.view_host()(i,j).epsilon = static_cast<KK_FLOAT>(epsilon[i][j]);
   k_params.view_host()(i,j).sigma = static_cast<KK_FLOAT>(sigma[i][j]);
@@ -279,13 +263,10 @@ double PairLJCubicKokkos<DeviceType>::init_one(int i, int j)
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
-    m_cut_inner_sq[j][i] = m_cut_inner_sq[i][j] = cut_inner_sqm;
   }
 
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = static_cast<KK_FLOAT>(cutone*cutone);
   k_cutsq.modify_host();
-  k_cut_inner_sq.view_host()(i,j) = k_cut_inner_sq.view_host()(j,i) = cut_inner_sqm;
-  k_cut_inner_sq.modify_host();
   k_params.modify_host();
 
   return cutone;

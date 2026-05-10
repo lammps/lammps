@@ -73,8 +73,9 @@ class FixTTMGrid : public FixTTM {
   double *grid_buf1, *grid_buf2;
 
   double ***T_electron_read;
-  int nxlo_out_previous,nylo_out_previous,nzlo_out_previous;
+  int nxlo_out_previous, nylo_out_previous, nzlo_out_previous;
 
+ protected:
   void allocate_grid() override;
   void deallocate_grid() override;
   void read_electron_temperatures(const std::string &) override;

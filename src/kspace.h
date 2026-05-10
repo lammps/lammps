@@ -132,6 +132,10 @@ class KSpace : protected Pointers {
   int fftbench;            // 0 if skip FFT timing
   int collective_flag;     // 1 if use MPI collectives for FFT/remap
   int nonblocking_flag;    // 1 if use MPI_Isend for FFT/remap
+  int selfcopy_flag;       // collective self-copy mode
+                           // 0 if no self-copy
+                           // 1 if always self-copy
+                           // 2 if only use self-copy for one rank runs
   int stagger_flag;        // 1 if using staggered PPPM grids
 
   double splittol;    // tolerance for when to truncate splitting

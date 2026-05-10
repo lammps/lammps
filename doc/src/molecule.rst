@@ -83,7 +83,7 @@ contains multiple molecules.  The :doc:`atom_style template
 system with more than one templated molecule.
 
 The molecule file can be either in a *native* format or in `JSON format
-<https://www.json.org/>`_.  JSON formal filenames **must** have the
+<https://www.json.org/>`_.  JSON format filenames **must** have the
 extension ".json".  Files with any other name will be assumed to be in
 the "native" format.  The details of the two formats are described
 below.  When referencing multiple molecule files in a single *molecule*

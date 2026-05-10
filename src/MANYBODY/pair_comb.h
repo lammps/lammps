@@ -137,12 +137,14 @@ class PairComb : public Pair {
   void qfo_field(Param *, double, double, double, double &, double &);
   void qsolve(double *);
   void Over_cor(Param *, double, int, double &, double &);
+
+  void Short_neigh();
+
+ public:
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
-
-  void Short_neigh();
 };
 
 }    // namespace LAMMPS_NS

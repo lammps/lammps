@@ -1340,6 +1340,7 @@ TEST_F(NeighborListsNsq, one_atomic_half_list_nonewton_exclude)
 
 TEST_F(NeighborListsNsq, one_atomic_full)
 {
+    if (!lammps_config_has_package("MANYBODY")) GTEST_SKIP() << "Missing MANYBODY package for test";
     create_system("atomic", "metal", "on");
     BEGIN_CAPTURE_OUTPUT();
     command("pair_style sw");

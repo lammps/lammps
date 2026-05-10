@@ -90,7 +90,7 @@ Syntax
          axes = *yes* or *no* or *center* or *lowerleft* or *lowerright* or *upperleft* or *upperright* = do or do not draw xyz axes arrows and select location
          length = length of axes lines as fraction of respective box lengths
          diam = diameter of axes lines as fraction of shortest box length
-       *region* values = region-ID color drawstyle [opacity (optional) npoints (optional) diameter (optional)]
+       *region* values = region-ID color drawstyle [opacity (optional) npoints (optional) diameter (optional)] [hull_points npoints (optional)]
          region-ID = ID of the region to render
          color = color name for region graphics
          drawstyle = *filled* or *transparent* or *frame* or *points*
@@ -101,6 +101,7 @@ Syntax
          opacity  = level of opacity (from 0.0 to 1.0, only for drawstyle *transparent*)
          npoints  = number of attempted points (only for drawstyle *points*)
          diameter = diameter of wireframe or points (only for drawstyles *frame* and *points*)
+         hull_points npoints = set number of points for creating a Delaunay triangulation (optional)
        *subbox* values = lines diam = draw outline of processor subdomains
          lines = *yes* or *no* = do or do not draw subdomain lines
          diam = diameter of subdomain lines as fraction of shortest box length
@@ -185,6 +186,8 @@ Syntax
          name = name of color
          R,G,B = red/green/blue numeric values from 0.0 to 1.0
          hex = 24-bit RGB color in hexadecimal
+       *lights* args = ambient key fill back
+         ambient key fill back = set light intensity value from 0.0 to 1.0
        *ccolor* args = computeID color
          computeID = ID of the compute
          color = name of color for image objects provided by this compute when using "const" color style
@@ -344,23 +347,17 @@ prefixed by "c\_", "f\_", or "v\_", respectively.  Note that the
 *diameter* setting can be overridden with a numeric value applied to all
 atoms by the optional *adiam* keyword.
 
-.. versionchanged:: 11Feb2026
+.. versionchanged:: TBD
 
-   Replaced colors "aqua" and "cyan" with "cyan" and "magenta"
+   Extended list of colors from 6 to 16
 
 If *type* is specified for the *color* setting, then the color of each
-atom is determined by its atom type.  By default the mapping of types
-to colors is as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types :math:`> 6`.  This mapping can be changed by the
-"dump_modify acolor" command, as described below.
+atom is determined by its atom type.  By default the mapping of atom
+types to colors is: red, green, blue, yellow, cyan, magenta, silver,
+orange, chartreuse, gray, darkred, darkgreen, darkblue, darkcyan,
+darkmagenta, and darkgray for the first 16 atom types and repeats itself
+after that.  This mapping can be changed by the "dump_modify acolor"
+command, as described below.
 
 If *type* is specified for the *diameter* setting then the diameter of
 each atom is determined by its atom type.  By default all types have
@@ -369,11 +366,12 @@ command, as described below.
 
 If *element* is specified for the *color* and/or *diameter* setting,
 then the color and/or diameter of each atom is determined by which
-element it is, which in turn is specified by the element-to-type
-mapping specified by the "dump_modify element" command, as described
-below.  By default every atom type is C (carbon).  Every element has a
-color and diameter associated with it, which is the same as the colors
-and sizes used by the `AtomEye <atomeye_>`_ visualization package.
+element it is, which in turn is specified by the element-to-type mapping
+specified by the "dump_modify element" command, as described below.  By
+default the element for every atom type is set to C (carbon).  Every
+element has a color and diameter associated with it, which is the same
+as the colors and sizes used by the `AtomEye <atomeye_>`_ visualization
+package.
 
 .. _atomeye: http://li.mit.edu/Archive/Graphics/A/
 
@@ -455,23 +453,17 @@ If *atom* is specified for the bond *color* value, then each bond is
 drawn in 2 halves, with the color of each half being the color of the
 atom at that end of the bond.
 
+.. versionchanged:: TBD
+
+   Extended list of default colors from 6 to 16
+
 If *type* is specified for the *color* value, then the color of each
 bond is determined by its bond type.  By default the mapping of bond
-types to colors is as follows:
-
-.. versionchanged:: 11Feb2026
-
-   Replaced colors "aqua" and "cyan" with "cyan" and "magenta"
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for bond types > 6.  This mapping can be changed by
-the "dump_modify bcolor" command, as described below.
+types to colors is: red, green, blue, yellow, cyan, magenta, silver,
+orange, chartreuse, gray, darkred, darkgreen, darkblue, darkcyan,
+darkmagenta, and darkgray for the first 16 bond types and repeats itself
+after that.  This mapping can be changed by the "dump_modify bcolor"
+command, as described below.
 
 The bond *width* value can be a numeric value or *atom* or *type* (or
 *none* as indicated above).
@@ -506,21 +498,11 @@ particles will be colored according to the atom type of the particle.
 With the *index* setting, colors from the list of available per-atom
 type colors are assigned to the line particles in a non-deterministic
 round-robin fashion.  With the *atom* setting, the color follows the
-coloring selected for coloring atoms (including using color maps).  The
-list of atom type colors is by default as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types > 6.  This list can by changed with the
-:doc:`dump_modify acolor <dump_image>` command.  If more different
-colors than atom types are desired, the *number of atom types* must be
-*increased* correspondingly when using either the :doc:`create_box
-<create_box>` or the :doc:`read_data <read_data>` command.
+coloring selected for coloring atoms (including using color maps).  If
+more different colors than atom types are desired, the *number of atom
+types* must be *increased* correspondingly when using either the
+:doc:`create_box <create_box>` or the :doc:`read_data <read_data>`
+command.
 
 The line *width* can only be a numeric value, which specifies that all
 lines will be drawn as cylinders with that diameter, e.g. 1.0, which
@@ -546,21 +528,11 @@ be colored according to the atom type of the particle.  With the *index*
 setting, colors from the list of available per-atom type colors are
 assigned to the triangulated particles in a non-deterministic
 round-robin fashion.  With the *atom* setting, the color follows the
-coloring selected for coloring atoms (including using color maps).  The
-list of atom type colors is by default as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types > 6.  This list can by changed with the
-:doc:`dump_modify acolor <dump_image>` command.  If more different
-colors than atom types are desired, the *number of atom types* must be
-*increased* correspondingly when using either the :doc:`create_box
-<create_box>` or the :doc:`read_data <read_data>` command.
+coloring selected for coloring atoms (including using color maps). If
+more different colors than atom types are desired, the *number of atom
+types* must be *increased* correspondingly when using either the
+:doc:`create_box <create_box>` or the :doc:`read_data <read_data>`
+command.
 
 ----------
 
@@ -589,21 +561,11 @@ be colored according to the atom type of the particle.  With the *index*
 setting, colors from the list of available per-atom type colors are
 assigned to the ellipsoid particles in a non-deterministic round-robin
 fashion.  With the *atom* setting, the color follows the coloring
-selected for coloring atoms (including using color maps).  The list of
-atom type colors is by default as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types > 6.  This list can by changed with the
-:doc:`dump_modify acolor <dump_image>` command.  If more different
-colors than atom types are desired, the *number of atom types* must be
-*increased* correspondingly when using either the :doc:`create_box
-<create_box>` or the :doc:`read_data <read_data>` command.
+selected for coloring atoms (including using color maps).  If more
+different colors than atom types are desired, the *number of atom types*
+must be *increased* correspondingly when using either the
+:doc:`create_box <create_box>` or the :doc:`read_data <read_data>`
+command.
 
 .. versionchanged:: 30Mar2026
 
@@ -660,18 +622,7 @@ the coloring selected for coloring atoms (including using color maps).
 With the *type* setting the body particles will be colored according to
 the atom type of the particle.  With the *index* setting, colors from
 the list of available per-atom type colors are assigned to the body
-particles in a non-deterministic round-robin fashion.  The list of atom
-type colors is by default as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types > 6.  This list can by changed with the
-:doc:`dump_modify acolor <dump_image>` command.  If more different
+particles in a non-deterministic round-robin fashion.  If more different
 colors than atom types are desired, the *number of atom types* must be
 *increased* correspondingly when using either the :doc:`create_box
 <create_box>` or the :doc:`read_data <read_data>` command.
@@ -719,6 +670,10 @@ and fix commands are in the :doc:`Howto_viz` howto.
 
    draw style *transparent* was added
 
+.. versionchanged:: TBD
+
+   draw triangulated hull from random points for region style *intersect* or *union*
+
 The *region* keyword can be used to create a graphical representation of
 a :doc:`region <region>`.  This can be helpful in debugging the location
 and extent of regions, especially when those have parameters controlled
@@ -740,10 +695,12 @@ this draw style.  The fourth draw style, *points*\, generates a random
 point cloud inside the simulation box and draws only those points that
 are within the region.  This uses the same test than what is used to
 determine if an atom is inside the region but ignores any open faces
-(which would match *all* positions as "inside").  Draw styles *filled*\,
-*transparent*\, and *frame* support only "primitive" region styles (no
-unions or intersections of multiple regions), but the *points* draw
-style supports *all* region styles.
+(which would match *all* positions as "inside").  When using draw styles
+*filled*\, *transparent*\, or *frame* with unions or intersections of
+multiple regions an enclosing hull is first created from a point cloud
+that is generated the same way as in the *points* draw style.  The
+number of points used for the hull approximation (default is 100000) can
+be set by the optional *hull_points* keyword.
 
 Recommended transparency values are 0.25, 0.5, or 0.75 when used in
 combination with *fsaa on*.
@@ -1187,23 +1144,19 @@ dump_modify color option.
 
    add support for entering colors in hexadecimal
 
-The *color* keyword allows definition of a new color name, in addition
-to the 140-predefined colors (see below), and associates three
-red/green/blue RGB values with that color name.  The color name can
-then be used with any other dump_modify keyword that takes a color
-name as a value.  The RGB values should be either specified as three
-floating point values between 0.0 and 1.0 inclusive or as a single
-24-bit hexadecimal number. The following two commands are equivalent.
+The *color* keyword allows defining new named colors or changing the
+definition of the 140-predefined colors (see below).  Three
+red/green/blue RGB values are associated with each color name.  The
+color name can then be used with any other *dump_modify* keyword that
+takes a color name as a value.  The RGB values should be either
+specified as three floating point values between 0.0 and 1.0 inclusive
+or as a single 24-bit hexadecimal number. The following two commands are
+equivalent.
 
 .. code-block:: LAMMPS
 
    dump_modify 1 color mygray 0.431 0.498 0.502
    dump_modify 1 color mygray 0x6e7f80
-
-When a color name is converted to RGB values, the user-defined color
-names are searched first, then the 140 pre-defined color names.  This
-means you can also use the *color* keyword to overwrite one of the
-pre-defined color names with new RGB values.
 
 ----------
 
@@ -1267,6 +1220,24 @@ quantity specified with the *grid* keyword.
 
 The arguments for the *gmap* keyword are identical to those for the
 *amap* keyword (for atom coloring) described above.
+
+----------
+
+.. versionadded:: TBD
+
+The *lights* keyword can be used to set the relative intensities of the
+four light sources used to illuminate the scene: *ambient*, *key*,
+*fill*, and *back*.  Each value must be between 0.0 and 1.0.
+
+.. code-block:: LAMMPS
+
+   dump_modify 1 lights 0.3 0.7 0.4 0.2
+
+The *ambient* light provides base-level illumination from all
+directions. The *key* light is the primary light source and creates
+the main highlights. The *fill* light is a secondary light source that
+softens shadows created by the key light. The *back* light illuminates
+the scene from behind the camera to provide depth.
 
 ----------
 
@@ -1351,13 +1322,13 @@ The defaults for the dump image and dump movie keywords are as follows:
 
 The defaults for the dump_modify keywords specific to dump image and dump movie are as follows:
 
-* acolor = \* red/green/blue/yellow/cyan/magenta
+* acolor = \* red/green/blue/yellow/cyan/magenta/silver/orange/chartreuse/gray/darkred/darkgreen/darkblue/darkcyan/darkmagenta/darkgray
 * adiam = \* 1.0
 * amap = min max cf 0.0 2 min blue max red
 * atrans = 1.0
 * backcolor = black
 * backcolor2 = none
-* bcolor = \* red/green/blue/yellow/cyan/magenta
+* bcolor = \* red/green/blue/yellow/cyan/magenta/silver/orange/chartreuse/gray/darkred/darkgreen/darkblue/darkcyan/darkmagenta/darkgray
 * bdiam = \* 0.5
 * btrans = 1.0
 * boxcolor = yellow
@@ -1365,6 +1336,7 @@ The defaults for the dump_modify keywords specific to dump image and dump movie 
 * boxtrans = 1.0
 * subboxtrans = 1.0
 * color = 140 color names are pre-defined as listed below
+* lights = 0.0 0.9 0.45 0.9
 * bitrate = 2000
 * framerate = 24
 * gmap = min max cf 0.0 2 min blue max red
@@ -1405,7 +1377,7 @@ equivalent 0.0 to 1.0 value.
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
 | cyan = 0, 255, 255            | darkblue = 0, 0, 139                 | darkcyan = 0, 139, 139          | darkgoldenrod = 184, 134, 11   | darkgray = 169, 169, 169       |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| darkgreen = 0, 100, 0         | darkkhaki = 189, 183, 107            | darkmagenta = 139, 0, 139       | darkolivegreen = 85, 107, 47   | darkorange = 255, 140, 0       |
+| darkgreen = 0, 100, 0         | darkkhaki = 189, 183, 107            | darkmagenta = 139, 0, 139       | darkolivegreen = 85, 107, 47   | darkorange = 139, 69, 0        |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
 | darkorchid = 153, 50, 204     | darkred = 139, 0, 0                  | darksalmon = 233, 150, 122      | darkseagreen = 143, 188, 143   | darkslateblue = 72, 61, 139    |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
@@ -1415,7 +1387,7 @@ equivalent 0.0 to 1.0 value.
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
 | fuchsia = 255, 0, 255         | gainsboro = 220, 220, 220            | ghostwhite = 248, 248, 255      | gold = 255, 215, 0             | goldenrod = 218, 165, 32       |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| gray = 128, 128, 128          | green = 0, 128, 0                    | greenyellow = 173, 255, 47      | honeydew = 240, 255, 240       | hotpink = 255, 105, 180        |
+| gray = 128, 128, 128          | green = 0, 255, 0                    | greenyellow = 173, 255, 47      | honeydew = 240, 255, 240       | hotpink = 255, 105, 180        |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
 | indianred = 205, 92, 92       | indigo = 75, 0, 130                  | ivory = 255, 240, 240           | khaki = 240, 230, 140          | lavender = 230, 230, 250       |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
@@ -1433,9 +1405,9 @@ equivalent 0.0 to 1.0 value.
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
 | midnightblue = 25, 25, 112    | mintcream = 245, 255, 250            | mistyrose = 255, 228, 225       | moccasin = 255, 228, 181       | navajowhite = 255, 222, 173    |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| navy = 0, 0, 128              | oldlace = 253, 245, 230              | olive = 128, 128, 0             | olivedrab = 107, 142, 35       | orange = 255, 165, 0           |
+| navy = 0, 0, 128              | oldlace = 253, 245, 230              | olive = 128, 128, 0             | olivedrab = 107, 142, 35       | orange = 255, 128, 0           |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| orangered = 255, 69, 0        | orchid = 218, 112, 214               | palegoldenrod = 238, 232, 170   | palegreen = 152, 251, 152      | paleturquoise = 175, 238, 238  |
+| orangered = 255, 64, 0        | orchid = 218, 112, 214               | palegoldenrod = 238, 232, 170   | palegreen = 152, 251, 152      | paleturquoise = 175, 238, 238  |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
 | palevioletred = 219, 112, 147 | papayawhip = 255, 239, 213           | peachpuff = 255, 239, 213       | peru = 205, 133, 63            | pink = 255, 192, 203           |
 +-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+

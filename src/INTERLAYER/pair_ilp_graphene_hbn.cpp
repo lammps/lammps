@@ -40,10 +40,11 @@
 using namespace LAMMPS_NS;
 using namespace InterLayer;
 
-static constexpr int DELTA = 4;
-static constexpr int PGDELTA = 1;
+namespace {
+constexpr int DELTA = 4;
+constexpr int PGDELTA = 1;
 
-static const char cite_ilp[] =
+constexpr char cite_ilp[] =
     "ilp/graphene/hbn potential: https://doi.org/10.1021/acs.nanolett.8b02848\n\n"
     "@Article{Ouyang2018\n"
     " author = {W. Ouyang and D. Mandelli and M. Urbakh and O. Hod},\n"
@@ -54,7 +55,7 @@ static const char cite_ilp[] =
     " year =    2018,\n"
     "}\n\n";
 
-namespace {
+// NOLINTBEGIN
 // to indicate which potential style was used in outputs
 std::map<int, const std::string> variant_map = {
     {PairILPGrapheneHBN::ILP_GrhBN, "ilp/graphene/hbn"},
@@ -62,7 +63,8 @@ std::map<int, const std::string> variant_map = {
     {PairILPGrapheneHBN::AIP_WATER_2DM, "aip/water/2dm"},
     {PairILPGrapheneHBN::SAIP_METAL, "saip/metal"},
     {PairILPGrapheneHBN::SAIP_METAL_TMD, "saip/metal/tmd"}};
-}
+// NOLINTEND
+}    // namespace
 /* ---------------------------------------------------------------------- */
 
 PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp), variant(ILP_GrhBN)
@@ -628,7 +630,7 @@ void PairILPGrapheneHBN::calc_FRep(int eflag, int /* vflag */)
           ev_tally_xyz(i, j, nlocal, newton_pair, evdwl, 0.0, fkcx, fkcy, fkcz, delx, dely, delz);
       }
     }    // loop over jj
-  }      // loop over ii
+  }    // loop over ii
 }
 
 /* ----------------------------------------------------------------------
@@ -698,7 +700,9 @@ void PairILPGrapheneHBN::ILP_neigh()
                  "There are too many neighbors for some atoms, please check your configuration");
 
     ipage->vgot(n);
-    if (ipage->status()) error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
+    if (ipage->status())
+      error->one(FLERR, Error::NOLASTLINE,
+                 "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
   }
 }
 
@@ -837,7 +841,8 @@ void PairILPGrapheneHBN::calc_normal()
       // the magnitude of the normal vector
       nn2 = n1[0] * n1[0] + n1[1] * n1[1] + n1[2] * n1[2];
       nn = sqrt(nn2);
-      if (nn == 0) error->one(FLERR, Error::NOLASTLINE, "The magnitude of the normal vector is zero");
+      if (nn == 0)
+        error->one(FLERR, Error::NOLASTLINE, "The magnitude of the normal vector is zero");
       // the unit normal vector
       normal[i][0] = n1[0] / nn;
       normal[i][1] = n1[1] / nn;
@@ -972,7 +977,8 @@ void PairILPGrapheneHBN::calc_normal()
       // the magnitude of the normal vector
       nn2 = n1[0] * n1[0] + n1[1] * n1[1] + n1[2] * n1[2];
       nn = sqrt(nn2);
-      if (nn == 0) error->one(FLERR, Error::NOLASTLINE, "The magnitude of the normal vector is zero");
+      if (nn == 0)
+        error->one(FLERR, Error::NOLASTLINE, "The magnitude of the normal vector is zero");
       // the unit normal vector
       normal[i][0] = n1[0] / nn;
       normal[i][1] = n1[1] / nn;

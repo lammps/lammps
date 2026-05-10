@@ -48,6 +48,7 @@ static constexpr double MY_EPSILON = 10.0*2.220446049250313e-16;
 #define exp6PotentialType (1)
 #define isExp6PotentialType(_type) ( (_type) == exp6PotentialType )
 
+namespace {
 // Create a structure to hold the parameter data for all
 // local and neighbor particles. Pack inside this struct
 // to avoid any name clashes.
@@ -67,6 +68,7 @@ struct PairExp6ParamDataType
               epsilonOld2(nullptr), alphaOld2(nullptr), rmOld2(nullptr), mixWtSite2old(nullptr)
    {}
 };
+}
 
 /* ---------------------------------------------------------------------- */
 

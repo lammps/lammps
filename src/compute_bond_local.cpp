@@ -372,7 +372,7 @@ int ComputeBondLocal::compute_bonds(int flag)
             mass2 = mass[type[atom2]];
           }
           masstotal = mass1 + mass2;
-          invmasstotal = 1.0 / (masstotal);
+          invmasstotal = 1.0 / masstotal;
           xcm[0] = (mass1 * x[atom1][0] + mass2 * x[atom2][0]) * invmasstotal;
           xcm[1] = (mass1 * x[atom1][1] + mass2 * x[atom2][1]) * invmasstotal;
           xcm[2] = (mass1 * x[atom1][2] + mass2 * x[atom2][2]) * invmasstotal;

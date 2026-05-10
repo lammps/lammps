@@ -325,8 +325,7 @@ necessary for ``hipcc`` and the linker to work correctly.
 
 When compiling for HIP ROCm, GPU sorting with ``-D
 HIP_USE_DEVICE_SORT=on`` requires installing the ``hipcub`` library
-(https://github.com/ROCmSoftwarePlatform/hipCUB).  The HIP CUDA-backend
-additionally requires CUB (https://nvidia.github.io/cccl/cub/).  Setting
+(https://github.com/ROCmSoftwarePlatform/hipCUB).  Setting
 ``-DDOWNLOAD_CUB=yes`` will download and compile CUB.
 
 The GPU library has some multi-thread support using OpenMP.  If LAMMPS
@@ -884,12 +883,21 @@ use RAM on the host to supplement the memory used on the GPU (with some
 performance penalty) and thus enables running larger problems that would
 otherwise not fit into the RAM on the GPU.
 
+.. versionadded:: 10Sep2025
+
 The CMake option ``-D KOKKOS_PREC=value`` sets the floating point
 precision of the calculations, where ``value`` can be one of: ``double``
 (FP64, default) or ``mixed`` (FP64 for accumulation of forces, energy,
 and virial, FP32 otherwise) or ``single`` (FP32).  When using reduced
-precision (single or mixed), the simulation should be carefully checked
-to ensure it is stable and that energy is acceptably conserved.
+precision (single or mixed), the simulation and its results should be
+carefully checked to ensure it is stable and that, for example, energy
+is sufficiently well conserved.  Using a lower floating point precision
+works best when simulating homogeneous bulk systems because those have
+the best error cancellation.  Using ``mixed`` precision provides most of
+the performance advantages of using single precision while performing
+the steps most relevant for accuracy in double precision.
+
+.. versionadded:: 10Sep2025
 
 The CMake option ``-D KOKKOS_LAYOUT=value`` sets the array layout of
 Kokkos views (e.g. forces, velocities, etc.) on GPUs, where ``value``

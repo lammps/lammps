@@ -593,9 +593,9 @@ void FixPIMDNVT::spring_force()
     double dy = dely1 + dely2;
     double dz = delz1 + delz2;
 
-    f[i][0] -= (dx) *ff;
-    f[i][1] -= (dy) *ff;
-    f[i][2] -= (dz) *ff;
+    f[i][0] -= dx*ff;
+    f[i][1] -= dy*ff;
+    f[i][2] -= dz*ff;
 
     spring_energy += -0.5 * ff * (delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
   }
@@ -687,7 +687,7 @@ void FixPIMDNVT::comm_exec(double **ptr)
 
     int nsend;
 
-    MPI_Sendrecv(&(nlocal), 1, MPI_INT, plan_send[iplan], 0, &(nsend), 1, MPI_INT, plan_recv[iplan],
+    MPI_Sendrecv(&nlocal, 1, MPI_INT, plan_send[iplan], 0, &nsend, 1, MPI_INT, plan_recv[iplan],
                  0, universe->uworld, MPI_STATUS_IGNORE);
 
     // allocate arrays

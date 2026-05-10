@@ -37,12 +37,12 @@ class FixRX : public Fix {
   void setup_pre_force(int) override;
   void pre_force(int) override;
 
- protected:
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
 
+ protected:
   class NeighList *list;
 
   double tmpArg;

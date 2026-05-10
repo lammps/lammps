@@ -1,7 +1,10 @@
 .. index:: improper_style sqdistharm
+.. index:: improper_style sqdistharm/omp
 
 improper_style sqdistharm command
 =================================
+
+Accelerator Variants: *sqdistharm/omp*
 
 Syntax
 """"""
@@ -53,6 +56,12 @@ atom of symmetry; all other atoms are considered interchangeable.  This
 convention is relevant for operations that require knowledge of how atoms
 are ordered, such as automatic assignment of new improper types by
 :doc:`fix bond/react <fix_bond_react>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

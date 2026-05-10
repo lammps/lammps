@@ -1220,7 +1220,7 @@ void FixRigidNHSmall::write_restart(FILE *fp)
   }
 
   if (comm->me == 0) {
-    int size = (nsize)*sizeof(double);
+    int size = nsize*sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
     fwrite(list,sizeof(double),nsize,fp);
   }

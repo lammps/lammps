@@ -234,7 +234,7 @@ void PPPMDispOMP::compute_gf_6()
     double rtpi = sqrt(MY_PI);
     int nnfrom, nnto, tid;
 
-    numerator = -MY_PI*rtpi*g_ewald_6*g_ewald_6*g_ewald_6/(3.0);
+    numerator = -MY_PI*rtpi*g_ewald_6*g_ewald_6*g_ewald_6/3.0;
 
     const int nnx = nxhi_fft_6-nxlo_fft_6+1;
     const int nny = nyhi_fft_6-nylo_fft_6+1;

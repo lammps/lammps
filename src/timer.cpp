@@ -215,8 +215,10 @@ double Timer::get_timeout_remain()
    modify parameters of the Timer class
 ------------------------------------------------------------------------- */
 namespace {
+// NOLINTBEGIN
 const std::array<const std::string, Timer::NUMLVL> timer_style = {"off", "loop", "normal", "full"};
 const std::array<const std::string, 3> timer_mode = {"nosync", "(dummy)", "sync"};
+// NOLINTEND
 }    // namespace
 
 void Timer::modify_params(int narg, char **arg)

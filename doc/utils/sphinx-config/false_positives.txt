@@ -278,6 +278,7 @@ batoms
 Batra
 Bayly
 bb
+bbox
 bcc
 bcolor
 bdiam
@@ -496,6 +497,7 @@ centerline
 centro
 centroid
 Centroid
+centroidstressflag
 centrosymmetry
 Cercignani
 cercignanilampis
@@ -589,6 +591,7 @@ Coeff
 CoefficientN
 coeffs
 Coeffs
+COH
 cohesionless
 Coker
 Colberg
@@ -596,13 +599,13 @@ coleman
 Colliex
 collinear
 collisional
+colname
 colorbar
 colormap
 colorscale
 Columic
 colvars
 Colvars
-COH
 COLVARS
 comID
 Commun
@@ -634,6 +637,7 @@ coord
 Coord
 CoordN
 coords
+copymode
 coreshell
 cornflowerblue
 cornsilk
@@ -1240,6 +1244,7 @@ ffplay
 fft
 fftbench
 fftMPI
+FFTs
 fftw
 fgets
 fhg
@@ -1301,6 +1306,7 @@ Fn
 fname
 fncychap
 fno
+fnorm
 Fnudge
 foces
 Fock
@@ -1353,6 +1359,7 @@ functionalities
 functionals
 funroll
 Furuholt
+fvec
 fx
 fy
 fz
@@ -1365,11 +1372,13 @@ gammaA
 gammaFactor
 gammaR
 gamR
+gapsys
 Gan
 GaN
 ganzenmueller
 Ganzenmuller
 Gao
+Gapsys
 Gathert
 Gaus
 gauss
@@ -2298,6 +2307,7 @@ Maxfoo
 maxima
 maxit
 maxiter
+maxreplace
 maxsize
 maxspecial
 maxSteps
@@ -2401,6 +2411,7 @@ Milano
 Militzer
 Minary
 mincap
+mindist
 Mindlin
 mingw
 minhbonds
@@ -2910,6 +2921,7 @@ oneAPI
 onebody
 onelevel
 oneMKL
+onerank
 oneway
 onlysalt
 ons
@@ -2917,6 +2929,7 @@ Onufriev
 OO
 Oord
 opencl
+openfile
 openKIM
 openmp
 OpenMP
@@ -3171,6 +3184,7 @@ ppme
 ppn
 pppm
 pppmflag
+pragmas
 Prakash
 Praprotnik
 prd
@@ -3283,6 +3297,8 @@ qoverride
 qqr
 qqrd
 Qsb
+qsq
+qsum
 qtb
 qtpie
 quadratically
@@ -3558,6 +3574,7 @@ Sandia
 sandybrown
 sanitizer
 Sano
+Santangelo
 Sanyal
 Sanz
 Sarath
@@ -3605,6 +3622,7 @@ Secor
 sectoring
 sed
 Seddon
+Seeliger
 segmental
 Seibold
 Seifert
@@ -3758,6 +3776,7 @@ springgreen
 spx
 spz
 sqdistharm
+sqr
 sqrt
 src
 srd
@@ -3925,6 +3944,7 @@ Technol
 Telsa
 tempCorrCoeff
 templated
+templating
 Templeton
 Tencer
 Tequil
@@ -4432,6 +4452,7 @@ xsu
 xtc
 xu
 Xu
+xvec
 xxt
 xxxxx
 xy

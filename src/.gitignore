@@ -86,6 +86,8 @@
 /dump_movie.h
 /fix_graphics_arrows.cpp
 /fix_graphics_arrows.h
+/fix_graphics_chunk.cpp
+/fix_graphics_chunk.h
 /fix_graphics_isosurface.cpp
 /fix_graphics_isosurface.h
 /fix_graphics_labels.cpp
@@ -542,6 +544,8 @@
 /angle_class2.h
 /angle_class2_p6.cpp
 /angle_class2_p6.h
+/angle_class2xe.cpp
+/angle_class2xe.h
 /angle_cosine_buck6d.cpp
 /angle_cosine_buck6d.h
 /angle_cosine.cpp
@@ -778,6 +782,8 @@
 /dihedral_charmm.h
 /dihedral_class2.cpp
 /dihedral_class2.h
+/dihedral_class2xe.cpp
+/dihedral_class2xe.h
 /dihedral_cosine_shift_exp.cpp
 /dihedral_cosine_shift_exp.h
 /dihedral_cosine_squared_restricted.cpp
@@ -1409,6 +1415,8 @@
 /pair_lj_coul.h
 /pair_coul_cut_soft.cpp
 /pair_coul_cut_soft.h
+/pair_coul_cut_soft_gapsys.cpp
+/pair_coul_cut_soft_gapsys.h
 /pair_coul_long_soft.cpp
 /pair_coul_long_soft.h
 /pair_lj_cut_coul_cut_soft.cpp
@@ -1733,6 +1741,8 @@
 /fix_drude.h
 /fix_drude_transform.cpp
 /fix_drude_transform.h
+/fix_graphics_replica.cpp
+/fix_graphics_replica.h
 /fix_langevin_drude.cpp
 /fix_langevin_drude.h
 /fix_mol_swap.cpp

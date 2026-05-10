@@ -1,7 +1,10 @@
 .. index:: pair_style e3b
+.. index:: pair_style e3b/omp
 
 pair_style e3b command
 ======================
+
+Accelerator Variants: *e3b/omp*
 
 Syntax
 """"""
@@ -148,6 +151,10 @@ correspond to the terms in the first equation above: the E2 term, the Ea
 term, the Eb term, and the Ec term.
 
 See the examples/PACKAGES/e3b directory for a complete example script.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

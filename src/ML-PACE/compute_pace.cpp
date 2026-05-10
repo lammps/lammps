@@ -224,15 +224,15 @@ void ComputePACE::compute_array()
         pace[bik_rows + ((atom->tag[i]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][2] = 2;
         // dBi/dRj tags
         for (int j=0; j<natoms; j++) {
-          pace[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 0][0] = atom->tag[i]-1;
-          pace[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 0][1] = j;
-          pace[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 0][2] = 0;
-          pace[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 1][0] = atom->tag[i]-1;
-          pace[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 1][1] = j;
-          pace[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 1][2] = 1;
-          pace[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 2][0] = atom->tag[i]-1;
-          pace[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 2][1] = j;
-          pace[bik_rows + ((j)*3*natoms) + 3*(atom->tag[i]-1) + 2][2] = 2;
+          pace[bik_rows + (j*3*natoms) + 3*(atom->tag[i]-1) + 0][0] = atom->tag[i]-1;
+          pace[bik_rows + (j*3*natoms) + 3*(atom->tag[i]-1) + 0][1] = j;
+          pace[bik_rows + (j*3*natoms) + 3*(atom->tag[i]-1) + 0][2] = 0;
+          pace[bik_rows + (j*3*natoms) + 3*(atom->tag[i]-1) + 1][0] = atom->tag[i]-1;
+          pace[bik_rows + (j*3*natoms) + 3*(atom->tag[i]-1) + 1][1] = j;
+          pace[bik_rows + (j*3*natoms) + 3*(atom->tag[i]-1) + 1][2] = 1;
+          pace[bik_rows + (j*3*natoms) + 3*(atom->tag[i]-1) + 2][0] = atom->tag[i]-1;
+          pace[bik_rows + (j*3*natoms) + 3*(atom->tag[i]-1) + 2][1] = j;
+          pace[bik_rows + (j*3*natoms) + 3*(atom->tag[i]-1) + 2][2] = 2;
         }
       }
 

@@ -28,8 +28,8 @@ Syntax
        *numa_nodes* arg = Nn
              Nn = number of numa domains per node
        *map* arg = *cart* or *cart/reorder* or *xyz* or *xzy* or *yxz* or *yzx* or *zxy* or *zyx*
-          cart = use MPI_Cart() methods to map MPI processes to 3d grid with reorder = 0
-          cart/reorder = use MPI_Cart() methods to map MPI processes to 3d grid with reorder = 1
+          cart = use MPI_Cart_xxx() methods to map MPI processes to 3d grid with reorder = 0
+          cart/reorder = use MPI_Cart_xxx() methods to map MPI processes to 3d grid with reorder = 1
           xyz,xzy,yxz,yzx,zxy,zyx = map MPI processes to 3d grid in IJK ordering
        *part* args = Psend Precv cstyle
          Psend = partition # (1 to Np) which will send its processor layout
@@ -270,13 +270,11 @@ simulation domain will be:
 Note that, in principle, an MPI implementation on a particular machine
 should be aware of both the machine's network topology and the specific
 subset of processors and nodes that were assigned to your simulation.
-Thus its `MPI_Cart()
-<https://docs.open-mpi.org/en/main/man-openmpi/man3/MPI_Cart.3.html>`_
-calls can optimize the assignment of MPI processes to the 3d grid to
-minimize communication costs.  In practice, however, few if any MPI
-implementations actually do this.  So it is likely that the *cart* and
-*cart/reorder* styles simply give the same result as one of the *IJK*
-styles.
+Thus its ``MPI_Cart_xxx()`` calls can optimize the assignment of MPI
+processes to the 3d grid to minimize communication costs.  In practice,
+however, few if any MPI implementations actually do this.  So it is
+likely that the *cart* and *cart/reorder* styles simply give the same
+result as one of the *IJK* styles.
 
 Also note, that for the *twolevel* grid style, the *map* setting is
 used to first map the nodes to the 3d grid, then again to the cores

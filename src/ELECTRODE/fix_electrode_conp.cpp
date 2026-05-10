@@ -1464,7 +1464,7 @@ void FixElectrodeConp::request_etypes_neighlists()
   for (int itype = 1; itype <= ntypes; ++itype) {
     for (int jtype = 1; jtype <= ntypes; ++jtype) {
       bool ele_and_sol = (iskip_mat[itype] != iskip_mat[jtype]);
-      ijskip_vec[itype][jtype] = (ele_and_sol) ? 0 : 1;
+      ijskip_vec[itype][jtype] = ele_and_sol ? 0 : 1;
     }
   }
 

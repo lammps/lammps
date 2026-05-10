@@ -138,9 +138,9 @@ void ImproperDistance::compute(int eflag, int vflag)
 
     if (eflag) eimproper = domega;
 
-    f1[0] = a*( xna);
-    f1[1] = a*( yna);
-    f1[2] = a*( zna);
+    f1[0] = a * xna;
+    f1[1] = a * yna;
+    f1[2] = a * zna;
 
     f2[0] = a*( -xna               -yab*(zbd-zbc)*rna +zab*(ybd-ybc)*rna -da*( -yna*(zbd-zbc) + zna*(ybd-ybc) )*rna);
     f2[1] = a*( +xab*(zbd-zbc)*rna -yna               +zab*(xbc-xbd)*rna -da*( +xna*(zbd-zbc) + zna*(xbc-xbd) )*rna);

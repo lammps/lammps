@@ -31,11 +31,13 @@ class PairMBX : public Pair {
 
  public:
   PairMBX(class LAMMPS *);
-  virtual ~PairMBX();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
+  ~PairMBX() override;
+
+  void compute(int, int) override;
+
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
 
  protected:
   double cut_global;

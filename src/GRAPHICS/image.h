@@ -15,7 +15,10 @@
 #define LMP_IMAGE_H
 
 #include "pointers.h"
+
+#include <array>
 #include <cmath>
+#include <unordered_map>
 
 namespace LAMMPS_NS {
 
@@ -70,14 +73,13 @@ class Image : protected Pointers {
   int map_dynamic(int);
   int map_reset(int, int, char **);
   int map_minmax(int, double, double);
-  int map_info(int, double &, double &);
+  int map_info(int, double &, double &, bool &);
   double *map_value2color(int, double);
 
-  int addcolor(char *, double, double, double);
-  double *element2color(char *);
-  double element2diam(char *);
-  double *color2rgb(const char *, int index = 0);
-  int default_colors();
+  int addcolor(const std::string &, double, double, double);
+  double *element2color(const std::string &);
+  double element2diam(const std::string &);
+  double *color2rgb(const std::string &);
 
  private:
   int me, nprocs;
@@ -85,6 +87,14 @@ class Image : protected Pointers {
 
   class ColorMap **maps;
   int nmap;
+
+  std::unordered_map<std::string, std::array<double, 3>> rgbcolors;
+
+  struct elementInfo {
+    double rgb[3];
+    double diam;
+  };
+  std::unordered_map<std::string, elementInfo> elementdata;
 
   double *depthBuffer, *surfaceBuffer;
   double *depthcopy, *surfacecopy;
@@ -126,12 +136,6 @@ class Image : protected Pointers {
   double keyLightDir[3], fillLightDir[3], backLightDir[3];
   double keyHalfDir[3];
 
-  // color values
-
-  int ncolors;
-  char **username;
-  double **userrgb;
-
   // SSAO RNG
 
   class RanMars *random;
@@ -170,7 +174,7 @@ class ColorMap : protected Pointers {
   ~ColorMap() override;
   int reset(int, char **);
   int minmax(double, double);
-  int info(double &, double &);
+  int info(double &, double &, bool &);
   double *value2color(double);
 
  private:

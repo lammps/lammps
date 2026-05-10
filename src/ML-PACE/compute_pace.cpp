@@ -102,6 +102,8 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   ndims_force = 3;
   ndims_virial = 6;
   bik_rows = 1;
+  yoffset = ncoeff;
+  zoffset = 2*ncoeff;
   natoms = atom->natoms;
   if (bikflag) bik_rows = natoms;
   dgrad_rows = ndims_force*natoms;
@@ -112,9 +114,13 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
     if (comm->me == 0) error->warning(FLERR,"dgradflag=1 creates a N^2 array, beware of large systems.");
   } else size_array_cols = ncoeff + 1;
   lastcol = size_array_cols-1;
-  
-  //fprintf(stderr, "*** ncoeff %i size_peratom %i size_array_rows %i size_array_cols %i\n", ncoeff, size_peratom, size_array_rows, size_array_cols);
 
+  size_peratom = ndims_force*ncoeff;
+  
+  fprintf(stderr, "*** ncoeff %i size_peratom %i size_array_rows %i size_array_cols %i\n", ncoeff, size_peratom, size_array_rows, size_array_cols);
+
+
+  nmax = 0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1,10 +1,5 @@
 # -*- CMake -*- file for testing the Fortran interface to LAMMPS
 
-if(NOT BUILD_FORTRAN)
-  message(STATUS "Skipping Tests for the LAMMPS Fortran Module: BUILD_FORTRAN is OFF")
-  return()
-endif()
-
 include(CheckGeneratorSupport)
 if(NOT CMAKE_GENERATOR_SUPPORT_FORTRAN)
   message(STATUS "Skipping Tests for the LAMMPS Fortran Module: no Fortran support in build tool")

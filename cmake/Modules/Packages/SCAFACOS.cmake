@@ -1,6 +1,3 @@
-if(NOT BUILD_FORTRAN)
-  message(FATAL_ERROR "SCAFACOS requires Fortran. Set BUILD_FORTRAN=ON or disable PKG_SCAFACOS.")
-endif()
 enable_language(Fortran)
 enable_language(C)
 

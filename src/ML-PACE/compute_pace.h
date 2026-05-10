@@ -49,8 +49,10 @@ class ComputePACE : public Compute {
   Compute *c_virial;
   std::string id_virial;
   
-  struct ACECimpl *acecimpl;
   std::vector<int> number_of_functions, type_offsets;
+
+  void dbdotr_compute();
+  struct ACECimpl *acecimpl;
 };
 
 }    // namespace LAMMPS_NS

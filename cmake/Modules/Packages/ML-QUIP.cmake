@@ -1,3 +1,6 @@
+if(NOT BUILD_FORTRAN)
+  message(FATAL_ERROR "ML-QUIP requires Fortran. Set BUILD_FORTRAN=ON or disable PKG_ML-QUIP.")
+endif()
 enable_language(Fortran)
 find_package(QUIP QUIET)
 

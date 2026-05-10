@@ -234,6 +234,7 @@ option(BUILD_SHARED_LIBS "Build shared library" OFF)
 option(CMAKE_POSITION_INDEPENDENT_CODE "Create object compatible with shared libraries" ON)
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
 option(BUILD_LAMMPS_GUI "Build and install the LAMMPS GUI" OFF)
+option(BUILD_FORTRAN "Enable Fortran language support (Fortran tools, Fortran unit tests, ML-QUIP, SCAFACOS, DOWNLOAD_KIM). Set OFF to avoid Fortran; incompatible enabled packages will error at configure time." ON)
 
 file(GLOB ALL_SOURCES CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
 file(GLOB MAIN_SOURCES CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/main.cpp)

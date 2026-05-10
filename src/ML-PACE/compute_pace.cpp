@@ -48,6 +48,7 @@ using namespace LAMMPS_NS;
 enum { SCALAR, VECTOR, ARRAY };
 ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), pace(nullptr), paceall(nullptr),
+    map(nullptr), c_pe(nullptr), c_virial(nullptr), acecimpl(nullptr)
 {
   array_flag = 1;
   extarray = 0;
@@ -64,6 +65,8 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   dgradflag = utils::inumeric(FLERR, arg[5], false, lmp);
   if (dgradflag && !bikflag)
     error->all(FLERR,"Illegal compute pace command: dgradflag=1 requires bikflag=1");
+
+  memory->create(map,ntypes+1,"pace:map");
 
   //read in file with CG coefficients or c_tilde coefficients
 
@@ -113,6 +116,7 @@ ComputePACE::~ComputePACE()
   memory->destroy(pace);
   memory->destroy(paceall);
   memory->destroy(cutsq);
+  memory->destroy(map);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -439,5 +443,7 @@ double ComputePACE::memory_usage()
 {
   double bytes = (double)size_array_rows*size_array_cols*sizeof(double); // pace
   bytes += (double)size_array_rows*size_array_cols*sizeof(double);       // paceall
+  int n = atom->ntypes+1;
+  bytes += (double)n*sizeof(int);        // map
   return bytes;
 }

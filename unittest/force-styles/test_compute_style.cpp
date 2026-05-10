@@ -41,7 +41,6 @@
 #include "variable.h"
 
 #include <cctype>
-#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -158,20 +157,6 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     return lmp;
 }
 
-double chop(double value) {
-
-  // WORKAROUND LAMMPS BUG #4257 (EXPECT_FP_LE_WITH_EPS false negative)
-  // "the desired fix at the moment is to round the reference
-  //  data to zero, if numbers are small" [@akohlmey]
-  // https://github.com/lammps/lammps/issues/4257
-
-  if( std::abs(value) < 1e-30 )
-      return 0.0;
-  else
-      return value;
-
-}
-
 // re-generate yaml file with current settings.
 
 void generate_yaml_file(const char *outfile, const TestConfig &config)
@@ -228,7 +213,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         // global scalar
         if (icompute->scalar_flag) {
             double value = icompute->compute_scalar();
-            writer.emit("global_scalar", chop(value));
+            writer.emit("global_scalar", value);
         }
 
         // global vector
@@ -237,7 +222,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
             block   = std::to_string(num);
             icompute->compute_vector();
             for (int i = 0; i < num; ++i)
-                block += fmt::format(" {}", chop(icompute->vector[i]));
+                block += fmt::format(" {}", icompute->vector[i]);
             writer.emit_block("global_vector", block);
         }
 
@@ -249,7 +234,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
             block = fmt::format("{} {}\n", nrows, ncols);
             for (int i = 0; i < nrows; ++i) {
                 for (int j = 0; j < ncols; ++j)
-                    block += fmt::format(" {}", chop(icompute->array[i][j]));
+                    block += fmt::format(" {}", icompute->array[i][j]);
                 block += "\n";
             }
             writer.emit_block("global_array", block);
@@ -262,7 +247,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
             for (int i = 1; i <= natoms; ++i) {
                 const int j = lmp->atom->map(i);
                 if (j >= 0 && j < lmp->atom->nlocal)
-                    block += fmt::format(" {} {}\n", i, chop(icompute->vector_atom[j]));
+                    block += fmt::format(" {} {}\n", i, icompute->vector_atom[j]);
             }
             writer.emit_block("peratom_vector", block);
         }
@@ -276,7 +261,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
                 if (j >= 0 && j < lmp->atom->nlocal) {
                     block += fmt::format(" {}", i);
                     for (int k = 0; k < icompute->size_peratom_cols; ++k)
-                        block += fmt::format(" {}", chop(icompute->array_atom[j][k]));
+                        block += fmt::format(" {}", icompute->array_atom[j][k]);
                     block += "\n";
                 }
             }
@@ -289,7 +274,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
             int nrows = icompute->size_local_rows;
             block = fmt::format("{}\n", nrows);
             for (int i = 0; i < nrows; ++i)
-                block += fmt::format(" {}", chop(icompute->vector_local[i]));
+                block += fmt::format(" {}", icompute->vector_local[i]);
             writer.emit_block("local_vector", block);
         }
 
@@ -301,7 +286,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
             block = fmt::format("{} {}\n", nrows, ncols);
             for (int i = 0; i < nrows; ++i) {
                 for (int j = 0; j < ncols; ++j)
-                    block += fmt::format(" {}", chop(icompute->array_local[i][j]));
+                    block += fmt::format(" {}", icompute->array_local[i][j]);
                 block += "\n";
             }
             writer.emit_block("local_array", block);
@@ -329,7 +314,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
                 for (int iz = nzlo; iz <= nzhi; iz++)
                     for (int iy = nylo; iy <= nyhi; iy++)
                         for (int ix = nxlo; ix <= nxhi; ix++)
-                            block += fmt::format(" {}\n", chop(vec3d[iz][iy][ix]));
+                            block += fmt::format(" {}\n", vec3d[iz][iy][ix]);
                 writer.emit_block("pergrid_vector", block);
             } else {
                 block = fmt::format("{} {} {} {} {}\n", dimension, nx, ny, nz, ncol);
@@ -338,7 +323,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
                     for (int iy = nylo; iy <= nyhi; iy++)
                         for (int ix = nxlo; ix <= nxhi; ix++) {
                             for (int n = 0; n < ncol; n++)
-                                block += fmt::format(" {}", chop(array3d[iz][iy][ix][n]));
+                                block += fmt::format(" {}", array3d[iz][iy][ix][n]);
                             block += "\n";
                         }
                 writer.emit_block("pergrid_array", block);
@@ -405,7 +390,7 @@ TEST(ComputeStyle, plain)
         // global scalar
         if (icompute->scalar_flag) {
             double value = icompute->compute_scalar();
-            EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, chop(value), epsilon);
+            EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
         }
 
         // global vector
@@ -416,7 +401,7 @@ TEST(ComputeStyle, plain)
             icompute->compute_vector();
 
             for (int i = 0; i < num; ++i)
-                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], chop(icompute->vector[i]),
+                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], icompute->vector[i],
                                       epsilon);
         }
 
@@ -427,10 +412,16 @@ TEST(ComputeStyle, plain)
             int ncols = icompute->size_array_cols;
             ASSERT_EQ(test_config.global_array.size(), nrows);
             for (int i = 0; i < nrows; ++i) {
-                const auto values = test_config.global_array[i];
+            const auto values = test_config.global_array[i];
                 ASSERT_EQ(values.size(), ncols);
-                for (int j = 0; j < ncols; ++j)
-                    EXPECT_FP_LE_WITH_EPS(values[j], chop(icompute->array[i][j]), epsilon);
+                for (int j = 0; j < ncols; ++j) {
+
+                    fprintf(stderr, "*** values[%i] %.16g icompute->array[%i][%i] %.16g abs %.16g\n",
+                            j, values[j], i, j, icompute->array[i][j], std::abs(values[j] - icompute->array[i][j]));
+
+                    EXPECT_FP_LE_WITH_EPS(values[j], icompute->array[i][j], epsilon);
+
+                }
             }
         }
 
@@ -442,7 +433,7 @@ TEST(ComputeStyle, plain)
                 double value = entry.second;
                 int j = lmp->atom->map(index);
                 if (j >= 0 && j < lmp->atom->nlocal) {
-                    EXPECT_FP_LE_WITH_EPS(value, chop(icompute->vector_atom[j]), epsilon);
+                    EXPECT_FP_LE_WITH_EPS(value, icompute->vector_atom[j], epsilon);
                 }
             }
         }
@@ -458,7 +449,7 @@ TEST(ComputeStyle, plain)
                 if (j >= 0 && j < lmp->atom->nlocal) {
                     ASSERT_EQ(values.size(), ncols);
                     for (int k = 0; k < ncols; ++k) {
-                        EXPECT_FP_LE_WITH_EPS(values[k], chop(icompute->array_atom[j][k]), epsilon);
+                        EXPECT_FP_LE_WITH_EPS(values[k], icompute->array_atom[j][k], epsilon);
                     }
                 }
             }
@@ -470,7 +461,7 @@ TEST(ComputeStyle, plain)
             int nrows = icompute->size_local_rows;
             ASSERT_EQ(test_config.local_vector.size(), nrows);
             for (int i = 0; i < nrows; ++i)
-                EXPECT_FP_LE_WITH_EPS(test_config.local_vector[i], chop(icompute->vector_local[i]), epsilon);
+                EXPECT_FP_LE_WITH_EPS(test_config.local_vector[i], icompute->vector_local[i], epsilon);
         }
 
         // local array
@@ -483,7 +474,7 @@ TEST(ComputeStyle, plain)
                 const auto values = test_config.local_array[i];
                 ASSERT_EQ(values.size(), ncols);
                 for (int j = 0; j < ncols; ++j) {
-                    EXPECT_FP_LE_WITH_EPS(values[j], chop(icompute->array_local[i][j]), epsilon);
+                    EXPECT_FP_LE_WITH_EPS(values[j], icompute->array_local[i][j], epsilon);
                 }
             }
         }
@@ -508,7 +499,7 @@ TEST(ComputeStyle, plain)
                         for (int ix = nxlo; ix <= nxhi; ix++)
                           EXPECT_FP_LE_WITH_EPS(
                             test_config.pergrid_vector[(iz*ny + iy)*nx + ix],
-                            chop(vec3d[iz][iy][ix]), epsilon );
+                            vec3d[iz][iy][ix], epsilon );
             } else {
                 double ****array3d = static_cast<double ****>(icompute->get_griddata_by_index(index));
                 for (int iz = nzlo; iz <= nzhi; iz++)
@@ -517,7 +508,7 @@ TEST(ComputeStyle, plain)
                             for (int n = 0; n < ncol; n++)
                                 EXPECT_FP_LE_WITH_EPS(
                                     test_config.pergrid_array[(iz*ny + iy)*nx + ix][n],
-                                    chop(array3d[iz][iy][ix][n]), epsilon );
+                                    array3d[iz][iy][ix][n], epsilon );
                         }
             }
         }

@@ -35,14 +35,14 @@ class SlabDipoleIntel : public BoundaryCorrection {
 
  private:
   template <class flt_t, class acc_t>
-  void vector_corr(IntelBuffers<flt_t, acc_t> *buffers, 
-		  double *, int, int, bool);
+  void vector_corr(IntelBuffers<flt_t, acc_t> *buffers,
+                  double *, int, int, bool);
   template <class flt_t, class acc_t>
-  void matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, 
-		  bigint *, double **);
+  void matrix_corr(IntelBuffers<flt_t, acc_t> *buffers,
+                  bigint *, double **);
   template <class flt_t, class acc_t>
-  void compute_corr(IntelBuffers<flt_t, acc_t> *buffers, 
-		  double, int, int, double &, double *);
+  void compute_corr(IntelBuffers<flt_t, acc_t> *buffers,
+                  double, int, int, double &, double *);
 
   FixIntel* fix;
   int _use_lrt;

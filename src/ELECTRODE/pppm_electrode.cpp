@@ -973,7 +973,7 @@ void PPPMElectrode::allocate()
     // dummy BoundaryCorrection for ffield
     boundcorr = new BoundaryCorrection(lmp);
   }
-  
+
   // ----------------------------------------------------------------------
   // code from PPPM::allocate(), altered to use different Grid3d constructor
   // ----------------------------------------------------------------------

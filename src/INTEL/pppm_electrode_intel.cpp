@@ -338,7 +338,7 @@ void PPPMElectrodeIntel::compute_vector(double *vec, int sensor_grpbit, int sour
   // electrolyte density (without writing an additional function)
   FFT_SCALAR ***density_brick_real = density_brick;
   FFT_SCALAR *density_fft_real = density_fft;
-  // if (neighbor->ago != 0) 
+  // if (neighbor->ago != 0)
   if (_use_lrt) pack_buffers();    // since midstep positions may be outdated
   switch (fix->precision()) {
     case FixIntel::PREC_MODE_MIXED:

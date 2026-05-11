@@ -429,7 +429,6 @@ TEST(FixElectrode, plain)
 
 TEST(FixElectrode, intel)
 {
-    GTEST_SKIP(); // skip until pppm/electrode/intel is fixed
     if (!Info::has_package("INTEL")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 

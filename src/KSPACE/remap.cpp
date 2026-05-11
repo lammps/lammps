@@ -63,8 +63,7 @@
    plan         plan returned by previous call to remap_3d_create_plan
 ------------------------------------------------------------------------- */
 
-void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
-              struct remap_plan_3d *plan)
+void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf, remap_plan_3d *plan)
 {
   int me;
   MPI_Comm_rank(plan->comm,&me);
@@ -218,7 +217,7 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
    usenonblocking       whether to use non-blocking or blocking MPI point-to-point
 ------------------------------------------------------------------------- */
 
-struct remap_plan_3d *remap_3d_create_plan(
+remap_plan_3d *remap_3d_create_plan(
   MPI_Comm comm,
   int in_ilo, int in_ihi, int in_jlo, int in_jhi,
   int in_klo, int in_khi,
@@ -228,9 +227,9 @@ struct remap_plan_3d *remap_3d_create_plan(
 
 {
 
-  struct remap_plan_3d *plan;
-  struct extent_3d *inarray, *outarray;
-  struct extent_3d in,out,overlap;
+  remap_plan_3d *plan;
+  extent_3d *inarray, *outarray;
+  extent_3d in,out,overlap;
   int i,j,iproc,nsend,nrecv,ibuf,size,me,nprocs;
 
   // query MPI info
@@ -274,13 +273,13 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   // combine output extents across all procs
 
-  inarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
+  inarray = (extent_3d *) malloc(nprocs*sizeof(extent_3d));
   if (inarray == nullptr) {
     delete plan;
     return nullptr;
   }
 
-  outarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
+  outarray = (extent_3d *) malloc(nprocs*sizeof(extent_3d));
   if (outarray == nullptr) {
     free(inarray);
     delete plan;
@@ -289,10 +288,10 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   // combine input & output extents across all procs
 
-  MPI_Allgather(&in,sizeof(struct extent_3d),MPI_BYTE,
-                inarray,sizeof(struct extent_3d),MPI_BYTE,comm);
-  MPI_Allgather(&out,sizeof(struct extent_3d),MPI_BYTE,
-                outarray,sizeof(struct extent_3d),MPI_BYTE,comm);
+  MPI_Allgather(&in,sizeof(extent_3d),MPI_BYTE,
+                inarray,sizeof(extent_3d),MPI_BYTE,comm);
+  MPI_Allgather(&out,sizeof(extent_3d),MPI_BYTE,
+                outarray,sizeof(extent_3d),MPI_BYTE,comm);
 
   // for efficiency, handle collective & non-collective setup separately
 
@@ -313,7 +312,7 @@ struct remap_plan_3d *remap_3d_create_plan(
       plan->send_offset = (int *) malloc(nsend*sizeof(int));
       plan->send_size = (int *) malloc(nsend*sizeof(int));
       plan->send_proc = (int *) malloc(nsend*sizeof(int));
-      plan->packplan = (struct pack_plan_3d *) malloc(nsend*sizeof(struct pack_plan_3d));
+      plan->packplan = (pack_plan_3d *) malloc(nsend*sizeof(pack_plan_3d));
 
       if (plan->usenonblocking)
         plan->isend_reqs = (MPI_Request *) malloc(nsend*sizeof(MPI_Request));
@@ -337,8 +336,7 @@ struct remap_plan_3d *remap_3d_create_plan(
           plan->unpack = unpack_3d_permute1_2;
         else
           plan->unpack = unpack_3d_permute1_n;
-      }
-      else if (permute == 2) {
+      } else if (permute == 2) {
         if (nqty == 1)
           plan->unpack = unpack_3d_permute2_1;
         else if (nqty == 2)
@@ -352,7 +350,7 @@ struct remap_plan_3d *remap_3d_create_plan(
       plan->recv_proc = (int *) malloc(nrecv*sizeof(int));
       plan->recv_bufloc = (int *) malloc(nrecv*sizeof(int));
       plan->request = (MPI_Request *) malloc(nrecv*sizeof(MPI_Request));
-      plan->unpackplan = (struct pack_plan_3d *) malloc(nrecv*sizeof(struct pack_plan_3d));
+      plan->unpackplan = (pack_plan_3d *) malloc(nrecv*sizeof(pack_plan_3d));
 
       if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
           plan->recv_proc == nullptr || plan->recv_bufloc == nullptr ||
@@ -416,8 +414,7 @@ struct remap_plan_3d *remap_3d_create_plan(
           plan->unpackplan[nrecv].nstride_line = nqty*out.isize;
           plan->unpackplan[nrecv].nstride_plane = nqty*out.jsize*out.isize;
           plan->unpackplan[nrecv].nqty = nqty;
-        }
-        else if (permute == 1) {
+        } else if (permute == 1) {
           plan->recv_offset[nrecv] = nqty *
             ((overlap.ilo-out.ilo)*out.ksize*out.jsize +
             (overlap.klo-out.klo)*out.jsize + (overlap.jlo-out.jlo));
@@ -427,8 +424,7 @@ struct remap_plan_3d *remap_3d_create_plan(
           plan->unpackplan[nrecv].nstride_line = nqty*out.jsize;
           plan->unpackplan[nrecv].nstride_plane = nqty*out.ksize*out.jsize;
           plan->unpackplan[nrecv].nqty = nqty;
-        }
-        else {
+        } else {
           plan->recv_offset[nrecv] = nqty *
             ((overlap.jlo-out.jlo)*out.isize*out.ksize +
             (overlap.ilo-out.ilo)*out.ksize + (overlap.klo-out.klo));
@@ -574,8 +570,8 @@ struct remap_plan_3d *remap_3d_create_plan(
 
       // only used when sendcnt > 0
 
-      plan->packplan = (struct pack_plan_3d *)
-        malloc(nsend*sizeof(struct pack_plan_3d));
+      plan->packplan = (pack_plan_3d *)
+        malloc(nsend*sizeof(pack_plan_3d));
 
       if (plan->send_offset == nullptr || plan->send_size == nullptr ||
           plan->sendcnts == nullptr || plan->sdispls == nullptr ||
@@ -597,8 +593,7 @@ struct remap_plan_3d *remap_3d_create_plan(
           plan->unpack = unpack_3d_permute1_2;
         else
           plan->unpack = unpack_3d_permute1_n;
-      }
-      else if (permute == 2) {
+      } else if (permute == 2) {
         if (nqty == 1)
           plan->unpack = unpack_3d_permute2_1;
         else if (nqty == 2)
@@ -615,8 +610,8 @@ struct remap_plan_3d *remap_3d_create_plan(
 
       // only used when recvcnt > 0
 
-      plan->unpackplan = (struct pack_plan_3d *)
-        malloc(nrecv*sizeof(struct pack_plan_3d));
+      plan->unpackplan = (pack_plan_3d *)
+        malloc(nrecv*sizeof(pack_plan_3d));
 
       if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
           plan->rcvcnts == nullptr || plan->rdispls == nullptr ||
@@ -692,8 +687,7 @@ struct remap_plan_3d *remap_3d_create_plan(
           plan->unpackplan[nrecv].nstride_line = nqty*out.isize;
           plan->unpackplan[nrecv].nstride_plane = nqty*out.jsize*out.isize;
           plan->unpackplan[nrecv].nqty = nqty;
-        }
-        else if (permute == 1) {
+        } else if (permute == 1) {
           plan->recv_offset[nrecv] = nqty *
             ((overlap.ilo-out.ilo)*out.ksize*out.jsize +
               (overlap.klo-out.klo)*out.jsize + (overlap.jlo-out.jlo));
@@ -703,8 +697,7 @@ struct remap_plan_3d *remap_3d_create_plan(
           plan->unpackplan[nrecv].nstride_line = nqty*out.jsize;
           plan->unpackplan[nrecv].nstride_plane = nqty*out.ksize*out.jsize;
           plan->unpackplan[nrecv].nqty = nqty;
-        }
-        else {
+        } else {
           plan->recv_offset[nrecv] = nqty *
             ((overlap.jlo-out.jlo)*out.isize*out.ksize +
               (overlap.ilo-out.ilo)*out.ksize + (overlap.klo-out.klo));
@@ -757,7 +750,7 @@ struct remap_plan_3d *remap_3d_create_plan(
 
     if (memory == 1) {
       if (nrecv > 0) {
-        plan->scratch = (FFT_SCALAR*) malloc(nqty*out.isize*out.jsize*out.ksize*sizeof(FFT_SCALAR));
+        plan->scratch = (FFT_SCALAR*) malloc(sizeof(FFT_SCALAR)*nqty*out.isize*out.jsize*out.ksize);
         if (plan->scratch == nullptr) {
           delete plan;
           return nullptr;
@@ -798,7 +791,7 @@ struct remap_plan_3d *remap_3d_create_plan(
    Destroy a 3d remap plan
 ------------------------------------------------------------------------- */
 
-void remap_3d_destroy_plan(struct remap_plan_3d *plan)
+void remap_3d_destroy_plan(remap_plan_3d *plan)
 {
   if (plan == nullptr) return;
 
@@ -819,8 +812,8 @@ void remap_3d_destroy_plan(struct remap_plan_3d *plan)
    return 0 if they do not overlap
 ------------------------------------------------------------------------- */
 
-int remap_3d_collide(struct extent_3d *block1, struct extent_3d *block2,
-                     struct extent_3d *overlap)
+int remap_3d_collide(extent_3d *block1, extent_3d *block2,
+                     extent_3d *overlap)
 
 {
   overlap->ilo = MAX(block1->ilo,block2->ilo);
@@ -853,7 +846,8 @@ remap_plan_3d::remap_plan_3d(int _usecollective, int _usenonblocking) :
 {
   usecollective = _usecollective;
   usenonblocking = _usenonblocking;
-  nrecv = nsend = self = memory = usecollective = usenonblocking = commringlen = 0;
+  nrecv = nsend = self = memory = commringlen = 0;
+  selfcommringloc = selfnsendloc = selfnrecvloc = -1;
   comm = MPI_COMM_NULL;
 }
 

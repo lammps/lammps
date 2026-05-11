@@ -444,7 +444,16 @@ TEST(ComputeStyle, plain)
                 if (j >= 0 && j < lmp->atom->nlocal) {
                     ASSERT_EQ(values.size(), ncols);
                     for (int k = 0; k < ncols; ++k) {
-                        EXPECT_FP_LE_WITH_EPS(values[k], icompute->array_atom[j][k], epsilon);
+
+                      double diff = std::abs(values[k] - icompute->array_atom[j][k]);
+                      double div  = std::min(std::abs(values[k]), std::abs(icompute->array_atom[j][k]));
+                      double err  = (div == 0.0) ? diff : diff / div;
+                      if (err > test_config.epsilon)
+                        fprintf(stderr, "*** atom %d col %d: ref=%.16g actual=%.16g err=%.4e\n",
+                          i, k, values[k], icompute->array_atom[j][k], err);
+
+                      EXPECT_FP_LE_WITH_EPS(values[k], icompute->array_atom[j][k], epsilon);
+
                     }
                 }
             }

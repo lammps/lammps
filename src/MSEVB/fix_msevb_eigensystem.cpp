@@ -1393,12 +1393,16 @@ void FixMSEVB::weight_based_hellmann_feynman_forces()
 
 void FixMSEVB::fermi_dirac_occupancies(double *evals, int ns, double *occ)
 {
-  double mu = (ns > 1) ? 0.5 * (evals[0] + evals[1]) : evals[0];
+  // Shift eigenvalues by evals[0] so all values are small (0 to range).
+  // Occupancies depend only on differences (evals[i] - mu), so this shift
+  // is exact but eliminates catastrophic cancellation when |evals| >> fd_RT.
+  const double e0 = evals[0];
+  double mu = (ns > 1) ? 0.5 * (evals[1] - e0) : 0.0;
 
   for (int iter = 0; iter < 150; iter++) {
     double sumq = 0.0, dsumq = 0.0;
     for (int i = 0; i < ns; i++) {
-      double x = (evals[i] - mu) / fd_RT;
+      double x = ((evals[i] - e0) - mu) / fd_RT;
       double f, df;
       if (x < -100.0) {
         f = 1.0;

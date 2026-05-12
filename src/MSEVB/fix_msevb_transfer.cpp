@@ -152,13 +152,27 @@ bool FixMSEVB::do_permanent_transfer(int &out_max_state, double &out_max_amp)
   out_max_amp = max_amp;
 
   if (universe->me == 0) {
-    const ReactionDef &rxn = rxndefs[sites[sk].rxn_idx];
-    auto msg = fmt::format("MSEVB: reaction {} -> {} at step {}"
-                           " between atom IDs {} and {},"
-                           " amplitude {:.4f}\n",
-                           rxn.pre_mol_id, rxn.post_mol_id, update->ntimestep, sites[sk].tag_H,
-                           sites[sk].tag_Y, max_amp);
-    utils::logmesg(lmp, msg);
+    if (sites[sk].n_components > 0) {
+      auto msg = fmt::format("MSEVB: product-state reaction at step {} (amplitude {:.4f}):\n",
+                             update->ntimestep, max_amp);
+      for (int ci = 0; ci < sites[sk].n_components; ci++) {
+        int comp = sites[sk].components[ci];
+        const ReactionDef &rxn_c = rxndefs[chain_rxn_flat[comp * max_shells + 0]];
+        tagint tH = chain_H_flat[comp * max_shells + 0];
+        tagint tY = chain_Y_flat[comp * max_shells + 0];
+        msg += fmt::format("  reaction {}: {} -> {} between atom IDs {} and {}\n",
+                           ci + 1, rxn_c.pre_mol_id, rxn_c.post_mol_id, tH, tY);
+      }
+      utils::logmesg(lmp, msg);
+    } else {
+      const ReactionDef &rxn = rxndefs[sites[sk].rxn_idx];
+      auto msg = fmt::format("MSEVB: reaction {} -> {} at step {}"
+                             " between atom IDs {} and {},"
+                             " amplitude {:.4f}\n",
+                             rxn.pre_mol_id, rxn.post_mol_id, update->ntimestep, sites[sk].tag_H,
+                             sites[sk].tag_Y, max_amp);
+      utils::logmesg(lmp, msg);
+    }
   }
 
   // Partition 0 now has the new reference topology (apply_state_change

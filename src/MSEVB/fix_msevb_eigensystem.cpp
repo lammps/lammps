@@ -342,15 +342,15 @@ void FixMSEVB::compute_excess_states()
               double tfH[3], tfY[3];
               if (gidx_H >= 0 && gidx_Y >= 0)
                 Grimme2015::compute_scalar_tapered(rxn_cpl.coupling_a, rxn_cpl.coupling_b,
-                                                   epot[par_i], epot[b_state], atom->x[gidx_H],
+                                                   hamiltonian[par_i * ns + par_i], hamiltonian[b_state * ns + b_state], atom->x[gidx_H],
                                                    atom->x[gidx_Y], domain, rxn_cpl.coupling_taper,
                                                    std::sqrt(rxn_cpl.cutoff_sq), V, g, tfH, tfY);
               else
-                Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[par_i],
-                                           epot[b_state], V, g);
+                Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, hamiltonian[par_i * ns + par_i],
+                                           hamiltonian[b_state * ns + b_state], V, g);
             } else {
-              Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[par_i],
-                                         epot[b_state], V, g);
+              Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, hamiltonian[par_i * ns + par_i],
+                                         hamiltonian[b_state * ns + b_state], V, g);
             }
             hamiltonian[par_i * ns + b_state] = V;
             hamiltonian[b_state * ns + par_i] = V;
@@ -408,15 +408,15 @@ void FixMSEVB::compute_excess_states()
             double tfH[3], tfY[3];
             if (gidx_H >= 0 && gidx_Y >= 0)
               Grimme2015::compute_scalar_tapered(rxn_cpl.coupling_a, rxn_cpl.coupling_b,
-                                                 epot[parent], epot[b_state], atom->x[gidx_H],
+                                                 hamiltonian[parent * ns + parent], hamiltonian[b_state * ns + b_state], atom->x[gidx_H],
                                                  atom->x[gidx_Y], domain, rxn_cpl.coupling_taper,
                                                  std::sqrt(rxn_cpl.cutoff_sq), V, g, tfH, tfY);
             else
-              Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[parent],
-                                         epot[b_state], V, g);
+              Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, hamiltonian[parent * ns + parent],
+                                         hamiltonian[b_state * ns + b_state], V, g);
           } else {
-            Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[parent],
-                                       epot[b_state], V, g);
+            Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, hamiltonian[parent * ns + parent],
+                                       hamiltonian[b_state * ns + b_state], V, g);
           }
           hamiltonian[parent * ns + b_state] = V;
           hamiltonian[b_state * ns + parent] = V;
@@ -684,15 +684,15 @@ void FixMSEVB::compute_excess_energies()
               double tfH[3], tfY[3];
               if (gidx_H >= 0 && gidx_Y >= 0)
                 Grimme2015::compute_scalar_tapered(rxn_cpl.coupling_a, rxn_cpl.coupling_b,
-                                                   epot[par_i], epot[b_state], atom->x[gidx_H],
+                                                   hamiltonian[par_i * ns + par_i], hamiltonian[b_state * ns + b_state], atom->x[gidx_H],
                                                    atom->x[gidx_Y], domain, rxn_cpl.coupling_taper,
                                                    std::sqrt(rxn_cpl.cutoff_sq), V, g, tfH, tfY);
               else
-                Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[par_i],
-                                           epot[b_state], V, g);
+                Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, hamiltonian[par_i * ns + par_i],
+                                           hamiltonian[b_state * ns + b_state], V, g);
             } else {
-              Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[par_i],
-                                         epot[b_state], V, g);
+              Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, hamiltonian[par_i * ns + par_i],
+                                         hamiltonian[b_state * ns + b_state], V, g);
             }
             hamiltonian[par_i * ns + b_state] = V;
             hamiltonian[b_state * ns + par_i] = V;
@@ -750,15 +750,15 @@ void FixMSEVB::compute_excess_energies()
             double tfH[3], tfY[3];
             if (gidx_H >= 0 && gidx_Y >= 0)
               Grimme2015::compute_scalar_tapered(rxn_cpl.coupling_a, rxn_cpl.coupling_b,
-                                                 epot[parent], epot[b_state], atom->x[gidx_H],
+                                                 hamiltonian[parent * ns + parent], hamiltonian[b_state * ns + b_state], atom->x[gidx_H],
                                                  atom->x[gidx_Y], domain, rxn_cpl.coupling_taper,
                                                  std::sqrt(rxn_cpl.cutoff_sq), V, g, tfH, tfY);
             else
-              Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[parent],
-                                         epot[b_state], V, g);
+              Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, hamiltonian[parent * ns + parent],
+                                         hamiltonian[b_state * ns + b_state], V, g);
           } else {
-            Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, epot[parent],
-                                       epot[b_state], V, g);
+            Grimme2015::compute_scalar(rxn_cpl.coupling_a, rxn_cpl.coupling_b, hamiltonian[parent * ns + parent],
+                                       hamiltonian[b_state * ns + b_state], V, g);
           }
           hamiltonian[parent * ns + b_state] = V;
           hamiltonian[b_state * ns + parent] = V;
@@ -1102,7 +1102,7 @@ void FixMSEVB::compute_coupling_values()
     const ReactionDef &rxn = rxndefs[site.rxn_idx];
     if (rxn.coupling_type == COUPLING_NONE) return;
 
-    auto cr = evaluate_coupling(rxn, epot[parent], epot[child], site.tag_H, site.tag_X, site.tag_Y);
+    auto cr = evaluate_coupling(rxn, hamiltonian[parent * ns + parent], hamiltonian[child * ns + child], site.tag_H, site.tag_X, site.tag_Y);
 
     if (cr.is_grimme) {
       // Grimme: all ranks compute identically from synced energies
@@ -1239,7 +1239,7 @@ void FixMSEVB::compute_mixing_weights()
 
     double rho_pc = rho[parent * ns + child];
 
-    auto cr = evaluate_coupling(rxn, epot[parent], epot[child], site.tag_H, site.tag_X, site.tag_Y);
+    auto cr = evaluate_coupling(rxn, hamiltonian[parent * ns + parent], hamiltonian[child * ns + child], site.tag_H, site.tag_X, site.tag_Y);
 
     // Grimme weight adjustment: -2*rho_pc*g to parent, +2*rho_pc*g to child
     if (cr.is_grimme) {

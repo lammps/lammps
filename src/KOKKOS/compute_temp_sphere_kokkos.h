@@ -65,10 +65,10 @@ class ComputeTempSphereKokkos : public ComputeTempSphere {
 
  protected:
   class AtomKokkos *atomKK;
-  typename AT::t_v_array v;
-  typename AT::t_v_array omega;
-  typename AT::t_float_1d radius;
-  typename AT::t_float_1d rmass;
+  typename AT::t_kkfloat_1d_3 v;
+  typename AT::t_kkfloat_1d_3 omega;
+  typename AT::t_kkfloat_1d radius;
+  typename AT::t_kkfloat_1d rmass;
   typename AT::t_int_1d mask;
 };
 

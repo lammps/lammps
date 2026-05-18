@@ -85,6 +85,8 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempSphere::~ComputeTempSphere()
 {
+  if (copymode) return;
+
   delete[] id_bias;
   delete[] vector;
 }

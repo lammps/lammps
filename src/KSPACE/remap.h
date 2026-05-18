@@ -73,8 +73,8 @@ struct extent_3d {
 
 // function prototypes
 
-void remap_3d(FFT_SCALAR *, FFT_SCALAR *, FFT_SCALAR *, struct remap_plan_3d *);
-struct remap_plan_3d *remap_3d_create_plan(MPI_Comm, int, int, int, int, int, int, int, int, int,
+void remap_3d(FFT_SCALAR *, FFT_SCALAR *, FFT_SCALAR *, remap_plan_3d *);
+remap_plan_3d *remap_3d_create_plan(MPI_Comm, int, int, int, int, int, int, int, int, int,
                                            int, int, int, int, int, int, int, int, int);
-void remap_3d_destroy_plan(struct remap_plan_3d *);
-int remap_3d_collide(struct extent_3d *, struct extent_3d *, struct extent_3d *);
+void remap_3d_destroy_plan(remap_plan_3d *);
+int remap_3d_collide(extent_3d *, extent_3d *, extent_3d *);

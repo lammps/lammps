@@ -255,6 +255,7 @@ Balatsky
 Ballenegger
 Bammann
 Banna
+baoab
 Barashev
 Barbosa
 barnes
@@ -1244,6 +1245,7 @@ ffplay
 fft
 fftbench
 fftMPI
+FFTs
 fftw
 fgets
 fhg
@@ -2274,6 +2276,7 @@ Marroquin
 Marsaglia
 Marseille
 Martyna
+Maruyama
 mary
 marys
 Masaglia
@@ -2920,6 +2923,7 @@ oneAPI
 onebody
 onelevel
 oneMKL
+onerank
 oneway
 onlysalt
 ons
@@ -3182,6 +3186,7 @@ ppme
 ppn
 pppm
 pppmflag
+pragmas
 Prakash
 Praprotnik
 prd
@@ -3941,6 +3946,7 @@ Technol
 Telsa
 tempCorrCoeff
 templated
+templating
 Templeton
 Tencer
 Tequil

@@ -4,7 +4,7 @@
 .. index:: pair_style meam/ms/kk
 
 pair_style meam command
-=========================
+=======================
 
 Accelerator Variants: *meam/kk*
 

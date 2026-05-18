@@ -27,7 +27,6 @@ pair_style hbond/dreiding/morse/angleoffset command
 
 Accelerator Variants: *hbond/dreiding/morse/angleoffset/omp*
 
-
 Syntax
 """"""
 

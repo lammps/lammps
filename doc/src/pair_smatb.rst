@@ -2,7 +2,7 @@
 .. index:: pair_style smatb/single
 
 pair_style smatb command
-=========================
+========================
 
 pair_style smatb/single command
 ===============================

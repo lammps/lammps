@@ -1,11 +1,17 @@
 .. index:: pair_style buck6d/coul/gauss/dsf
+.. index:: pair_style buck6d/coul/gauss/dsf/omp
 .. index:: pair_style buck6d/coul/gauss/long
+.. index:: pair_style buck6d/coul/gauss/long/omp
 
 pair_style buck6d/coul/gauss/dsf command
 ========================================
 
+Accelerator Variants: *buck6d/coul/gauss/dsf/omp*
+
 pair_style buck6d/coul/gauss/long command
 =========================================
+
+Accelerator Variants: *buck6d/coul/gauss/long/omp*
 
 Syntax
 """"""
@@ -116,6 +122,10 @@ commands:
 The second coefficient, :math:`\rho`, must be greater than zero. The
 latter coefficient is optional.  If not specified, the global vdW cutoff
 is used.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

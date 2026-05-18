@@ -1,4 +1,4 @@
-Sphinx >= 6, < 8.3.0
+Sphinx >= 6, < 9.2.0
 sphinxcontrib-spelling
 sphinxcontrib-jquery
 sphinx-design

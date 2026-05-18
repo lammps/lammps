@@ -1064,7 +1064,7 @@ void ConvexHullObj::build_hull(const std::vector<vec3> &points, bool smooth, dou
 
   {
     constexpr double PERT_SCALE = 1.0e-5;
-    constexpr double GOLD = 0.6180339887498949;     // golden ratio conjugate
+    constexpr double GOLD = 0.6180339887498949;    // golden ratio conjugate
     constexpr double SQRT2 = 1.4142135623730951;
     constexpr double SQRT3 = 1.7320508075688772;
     double mag = PERT_SCALE * std::max(maxext, SMALL);
@@ -1272,7 +1272,7 @@ void ConvexHullObj::build_hull(const std::vector<vec3> &points, bool smooth, dou
       ny = std::min(ny, MAX_CELLS);
       nz = std::min(nz, MAX_CELLS);
 
-      std::vector<std::vector<int>> grid(nx * ny * nz);
+      std::vector<std::vector<int>> grid((size_t) nx * ny * nz);
       for (int i = 0; i < npts; ++i) {
         int cx = std::min(static_cast<int>((points[i][0] - bbmin[0]) / cell_size), nx - 1);
         int cy = std::min(static_cast<int>((points[i][1] - bbmin[1]) / cell_size), ny - 1);

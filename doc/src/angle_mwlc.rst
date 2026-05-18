@@ -4,7 +4,7 @@
 angle_style mwlc command
 ========================
 
-Accelerator Variant: *mwlc/omp*
+Accelerator Variants: *mwlc/omp*
 
 Syntax
 """"""

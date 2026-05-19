@@ -44,7 +44,9 @@ AngleMWLC::AngleMWLC(LAMMPS *_lmp) : Angle(_lmp)
 
 AngleMWLC::~AngleMWLC()
 {
-  if (allocated && !copymode) {
+  if (copymode) return;
+
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k1);
     memory->destroy(k2);

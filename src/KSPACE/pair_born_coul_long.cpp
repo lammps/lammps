@@ -51,6 +51,8 @@ PairBornCoulLong::PairBornCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairBornCoulLong::~PairBornCoulLong()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

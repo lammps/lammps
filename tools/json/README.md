@@ -12,6 +12,7 @@ The following files are currently available.
 
 - `molecule-schema.json`  Schema file for JSON-format molecule files.
 - `dump-molecules-schema.json`  Schema file for the 'dump' format in the 'molecules' style.
+- `color-schema.json` Schema file for the colors and lights file used by 'dump image/movie' and in LAMMPS-GUI
 
 These files provide a concise description of the hierarchy and supported fields
 in JSON file formats.  Thus they provide a detailed documentation and can also

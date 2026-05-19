@@ -35,6 +35,9 @@ class FixLineForce : public Fix {
   void min_post_force(int) override;
 
  private:
+  // empty
+
+ protected:
   double xdir, ydir, zdir;
 };
 

@@ -28,8 +28,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum { NONE, CONSTANT, EQUAL };
-
 /* ---------------------------------------------------------------------- */
 
 FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
@@ -96,6 +94,7 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveForce::~FixAveForce()
 {
+  if (copymode) return;
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;

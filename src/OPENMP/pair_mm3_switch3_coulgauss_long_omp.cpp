@@ -91,7 +91,7 @@ void PairMM3Switch3CoulGaussLongOMP::eval(int iifrom, int iito, ThrData * const 
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
   double r,rsq,r2inv,r6inv,forcecoul,forcecoul2,forcelj,factor_coul,factor_lj,tr,ftr,trx;
-  double grij,expm2,prefactor,prefactor2,t,erfc1,erfc2,rrij,expn2,expb;
+  double grij,expm2,prefactor,prefactor2,t,erfc1,erfc2,rrij,expb;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
@@ -175,12 +175,11 @@ void PairMM3Switch3CoulGaussLongOMP::eval(int iifrom, int iito, ThrData * const 
           forcelj -= 6.0*lj4[itype][jtype]*r6inv;
           // Correction for Gaussian radii
           if (lj2[itype][jtype]==0.0) {
-            expn2 = 0.0;
             erfc2 = 0.0;
             prefactor2 = 0.0;
           } else {
             rrij = lj2[itype][jtype]*r;
-            expn2 = exp(-rrij*rrij);
+            double expn2 = exp(-rrij*rrij);
             erfc2 = erfc(rrij);
             prefactor2 = -qqrd2e*qtmp*q[j]/r;
             forcecoul2 = prefactor2*(erfc2+EWALD_F*rrij*expn2);

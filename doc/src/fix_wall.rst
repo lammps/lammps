@@ -1,12 +1,16 @@
 .. index:: fix wall/lj93
 .. index:: fix wall/lj93/kk
 .. index:: fix wall/lj126
+.. index:: fix wall/lj126/kk
 .. index:: fix wall/lj1043
+.. index:: fix wall/lj1043/kk
 .. index:: fix wall/colloid
 .. index:: fix wall/harmonic
+.. index:: fix wall/harmonic/kk
 .. index:: fix wall/harmonic/outside
 .. index:: fix wall/lepton
 .. index:: fix wall/morse
+.. index:: fix wall/morse/kk
 .. index:: fix wall/table
 
 fix wall/lj93 command
@@ -17,14 +21,20 @@ Accelerator Variants: *wall/lj93/kk*
 fix wall/lj126 command
 ======================
 
+Accelerator Variants: *wall/lj126/kk*
+
 fix wall/lj1043 command
 =======================
+
+Accelerator Variants: *wall/lj1043/kk*
 
 fix wall/colloid command
 ========================
 
 fix wall/harmonic command
 =========================
+
+Accelerator Variants: *wall/harmonic/kk*
 
 fix wall/harmonic/outside command
 =================================
@@ -34,6 +44,8 @@ fix wall/lepton command
 
 fix wall/morse command
 ======================
+
+Accelerator Variants: *wall/morse/kk*
 
 fix wall/table command
 =========================

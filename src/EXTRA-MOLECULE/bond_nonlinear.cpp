@@ -37,6 +37,7 @@ BondNonlinear::BondNonlinear(LAMMPS *lmp) : Bond(lmp)
 
 BondNonlinear::~BondNonlinear()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(epsilon);

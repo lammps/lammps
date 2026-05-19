@@ -1,10 +1,11 @@
 .. index:: pair_style lj/cut/sphere
+.. index:: pair_style lj/cut/sphere/kk
 .. index:: pair_style lj/cut/sphere/omp
 
 pair_style lj/cut/sphere command
 ================================
 
-Accelerator Variants: *lj/cut/sphere/omp*
+Accelerator Variants: *lj/cut/sphere/kk*, *lj/cut/sphere/omp*
 
 Syntax
 """"""

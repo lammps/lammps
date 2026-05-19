@@ -214,6 +214,7 @@ accelerated styles exist.
 * :doc:`ave/time <fix_ave_time>` - compute/output global time-averaged quantities
 * :doc:`aveforce <fix_aveforce>` - add an averaged force to each atom
 * :doc:`balance <fix_balance>` - perform dynamic load-balancing
+* :doc:`baoab <fix_baoab>` -  BAOAB Langevin dynamics integrator
 * :doc:`brownian <fix_brownian>` - overdamped translational brownian motion
 * :doc:`brownian/asphere <fix_brownian>` - overdamped translational and rotational brownian motion for ellipsoids
 * :doc:`brownian/sphere <fix_brownian>` - overdamped translational and rotational brownian motion for spheres

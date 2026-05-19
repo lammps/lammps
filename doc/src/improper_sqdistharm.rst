@@ -1,10 +1,11 @@
 .. index:: improper_style sqdistharm
+.. index:: improper_style sqdistharm/kk
 .. index:: improper_style sqdistharm/omp
 
 improper_style sqdistharm command
 =================================
 
-Accelerator Variants: *sqdistharm/omp*
+Accelerator Variants: *sqdistharm/kk*, *sqdistharm/omp*
 
 Syntax
 """"""

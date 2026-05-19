@@ -174,7 +174,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`temp/region <compute_temp_region>`
    * :doc:`temp/region/eff <compute_temp_region_eff>`
    * :doc:`temp/rotate <compute_temp_rotate>`
-   * :doc:`temp/sphere <compute_temp_sphere>`
+   * :doc:`temp/sphere (k) <compute_temp_sphere>`
    * :doc:`temp/uef <compute_temp_uef>`
    * :doc:`ti <compute_ti>`
    * :doc:`torque/chunk <compute_torque_chunk>`

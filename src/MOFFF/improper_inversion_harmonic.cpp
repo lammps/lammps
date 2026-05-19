@@ -51,6 +51,8 @@ ImproperInversionHarmonic::ImproperInversionHarmonic(LAMMPS *lmp) : Improper(lmp
 
 ImproperInversionHarmonic::~ImproperInversionHarmonic()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(kw);

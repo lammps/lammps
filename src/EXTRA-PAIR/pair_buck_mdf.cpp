@@ -39,6 +39,8 @@ PairBuckMDF::PairBuckMDF(LAMMPS *lmp) : Pair(lmp) {}
 
 PairBuckMDF::~PairBuckMDF()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

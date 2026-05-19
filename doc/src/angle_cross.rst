@@ -1,10 +1,11 @@
 .. index:: angle_style cross
+.. index:: angle_style cross/kk
 .. index:: angle_style cross/omp
 
 angle_style cross command
 =========================
 
-Accelerator Variants: *cross/omp*
+Accelerator Variants: *cross/kk*, *cross/omp*
 
 Syntax
 """"""

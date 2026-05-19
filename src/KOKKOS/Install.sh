@@ -172,6 +172,8 @@ action fix_freeze_kokkos.cpp fix_freeze.cpp
 action fix_freeze_kokkos.h fix_freeze.h
 action fix_gravity_kokkos.cpp
 action fix_gravity_kokkos.h
+action fix_gjf_kokkos.cpp fix_gjf.cpp
+action fix_gjf_kokkos.h fix_gjf.h
 action fix_langevin_kokkos.cpp
 action fix_langevin_kokkos.h
 action fix_lineforce_kokkos.cpp
@@ -214,6 +216,10 @@ action fix_oneway_kokkos.cpp fix_oneway.cpp
 action fix_oneway_kokkos.h fix_oneway.h
 action fix_planeforce_kokkos.cpp
 action fix_planeforce_kokkos.h
+action fix_press_berendsen_kokkos.cpp
+action fix_press_berendsen_kokkos.h
+action fix_press_langevin_kokkos.cpp
+action fix_press_langevin_kokkos.h
 action fix_property_atom_kokkos.cpp
 action fix_property_atom_kokkos.h
 action fix_qeq_reaxff_kokkos.cpp fix_qeq_reaxff.cpp
@@ -242,6 +248,10 @@ action fix_spring_self_kokkos.cpp
 action fix_spring_self_kokkos.h
 action fix_temp_berendsen_kokkos.cpp
 action fix_temp_berendsen_kokkos.h
+action fix_temp_csld_kokkos.cpp fix_temp_csld.cpp
+action fix_temp_csld_kokkos.h fix_temp_csld.h
+action fix_temp_csvr_kokkos.cpp fix_temp_csvr.cpp
+action fix_temp_csvr_kokkos.h fix_temp_csvr.h
 action fix_temp_rescale_kokkos.cpp
 action fix_temp_rescale_kokkos.h
 action fix_ti_spring_kokkos.cpp fix_ti_spring.cpp

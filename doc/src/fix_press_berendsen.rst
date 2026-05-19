@@ -1,7 +1,10 @@
 .. index:: fix press/berendsen
+.. index:: fix press/berendsen/kk
 
 fix press/berendsen command
 ===========================
+
+Accelerator Variants: *press/berendsen/kk*
 
 Syntax
 """"""

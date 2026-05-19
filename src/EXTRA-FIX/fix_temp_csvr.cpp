@@ -95,6 +95,8 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
 
 FixTempCSVR::~FixTempCSVR()
 {
+  if (copymode) return;
+
   delete[] tstr;
 
   // delete temperature if fix created it

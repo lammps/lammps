@@ -1,7 +1,10 @@
 .. index:: fix gjf
+.. index:: fix gjf/kk
 
 fix gjf command
 ========================
+
+Accelerator Variants: *gjf/kk*
 
 Syntax
 """"""

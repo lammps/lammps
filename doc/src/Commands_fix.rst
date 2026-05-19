@@ -81,7 +81,7 @@ OPT.
    * :doc:`flow/gauss <fix_flow_gauss>`
    * :doc:`freeze (k) <fix_freeze>`
    * :doc:`gcmc <fix_gcmc>`
-   * :doc:`gjf <fix_gjf>`
+   * :doc:`gjf (k) <fix_gjf>`
    * :doc:`gld <fix_gld>`
    * :doc:`gle <fix_gle>`
    * :doc:`graphics/arrows <fix_graphics_arrows>`
@@ -188,8 +188,8 @@ OPT.
    * :doc:`polarize/functional <fix_polarize>`
    * :doc:`pour <fix_pour>`
    * :doc:`precession/spin <fix_precession_spin>`
-   * :doc:`press/berendsen <fix_press_berendsen>`
-   * :doc:`press/langevin <fix_press_langevin>`
+   * :doc:`press/berendsen (k) <fix_press_berendsen>`
+   * :doc:`press/langevin (k) <fix_press_langevin>`
    * :doc:`print <fix_print>`
    * :doc:`propel/self <fix_propel_self>`
    * :doc:`property/atom (k) <fix_property_atom>`
@@ -257,8 +257,8 @@ OPT.
    * :doc:`store/state <fix_store_state>`
    * :doc:`tdpd/source <fix_dpd_source>`
    * :doc:`temp/berendsen (k) <fix_temp_berendsen>`
-   * :doc:`temp/csld <fix_temp_csvr>`
-   * :doc:`temp/csvr <fix_temp_csvr>`
+   * :doc:`temp/csld (k) <fix_temp_csvr>`
+   * :doc:`temp/csvr (k) <fix_temp_csvr>`
    * :doc:`temp/rescale (k) <fix_temp_rescale>`
    * :doc:`temp/rescale/eff <fix_temp_rescale_eff>`
    * :doc:`tfmc <fix_tfmc>`

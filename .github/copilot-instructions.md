@@ -1398,7 +1398,7 @@ Use `fix_spring_self_kokkos` as the primary template.
 
 ---
 
-## Group E — Thermostat/barostat coupling with global statistics ✓ DONE
+## Group E — Thermostat/barostat coupling with global statistics
 
 **Complexity:** Moderate.  These fixes compute a global temperature or pressure,
 then rescale velocities/forces.  They call `Temperature->compute()` or
@@ -1407,27 +1407,27 @@ Pattern: `fix_temp_rescale_kokkos`, `fix_temp_berendsen_kokkos`.
 
 | Fix style | Package | Coupling type | Notes | Status |
 |---|---|---|---|---|
-| `press/berendsen` | `src/` | Isotropic/anisotropic box rescaling | Sync-to-host delegate | **done** |
-| `press/langevin` | `EXTRA-FIX` | Stochastic pressure coupling | Sync-to-host delegate | **done** |
-| `temp/csvr` | `EXTRA-FIX` | Canonical sampling; velocity rescaling | Sync V+MASK to host | **done** |
-| `temp/csld` | `EXTRA-FIX` | Canonical sampling; Lowe-Denbigh-Andersen | Sync V+MASK to host | **done** |
+| `press/berendsen` | `src/` | Isotropic/anisotropic box rescaling | Needs full porting | open |
+| `press/langevin` | `EXTRA-FIX` | Stochastic pressure coupling | Needs full porting | open |
+| `temp/csvr` | `EXTRA-FIX` | Canonical sampling; velocity rescaling | Needs full porting | open |
+| `temp/csld` | `EXTRA-FIX` | Canonical sampling; Lowe-Denbigh-Andersen | Needs full porting | **done** |
 | `gjf` | `EXTRA-FIX` | Gronbech-Jensen/Farago Langevin integrator | Full device kernel; KokkosBase; `RandPoolWrap` | **done** |
 
 ---
 
-## Group F — Moderate complexity: geometry/indenter/move/restraints ✓ DONE
+## Group F — Moderate complexity: geometry/indenter/move/restraints
 
 **Complexity:** Moderate-to-high.  These styles have variable run-time geometry,
-tabulated data, or complex per-atom logic.  All are ported using the
-**sync-to-host delegation** pattern (see Lessons Learned from Group F).
+tabulated data, or complex per-atom logic and probably need some utility functions
+in the Group or Variable class ported to KOKKOS first.
 
 | Fix style | Package | Operation | Notes | Status |
 |---|---|---|---|---|
-| `heat` | `src/` | Add kinetic energy to groups | `end_of_step()`: group KE/vcm (host MPI) then v-scaling | **done** |
-| `indent` | `src/` | Force from sphere/cylinder/plane indenter | `post_force()`: variable eval + per-atom loop on host | **done** |
-| `move` | `src/` | Prescribe atom trajectories (linear/wiggle/rotate/variable) | `initial_integrate` + `final_integrate` on host; xoriginal is CPU array | **done** |
-| `restrain` | `src/` | Harmonic restraints on bonds/angles/dihedrals | `post_force()`: per-restraint ghost-atom lookup on host | **done** |
-| `deform/pressure` | `EXTRA-FIX` | Deformation with pressure control | Inherits `FixDeformPressure`; mirrors `fix_deform_kokkos` pattern | **done** |
+| `heat` | `src/` | Add kinetic energy to groups | Needs full porting | open |
+| `indent` | `src/` | Force from sphere/cylinder/plane indenter | Needs full porting | open |
+| `move` | `src/` | Prescribe atom trajectories (linear/wiggle/rotate/variable) | Needs full porting | open |
+| `restrain` | `src/` | Harmonic restraints on bonds/angles/dihedrals | Needs full porting | open |
+| `deform/pressure` | `EXTRA-FIX` | Deformation with pressure control | Needs full porting | open |
 
 ---
 
@@ -1712,32 +1712,15 @@ without falling back to host memory, preserving GPU locality.
 
 ## Lessons Learned from Group E (thermostat/barostat coupling)
 
-### Sync-to-host delegation: the standard pattern for fixes with host-only logic
-
-Many fix styles use LAMMPS infrastructure that cannot run on GPU:
+Some fix styles use LAMMPS infrastructure that cannot yet run on the GPU:
 - MPI global reductions via `group->ke()`, `group->vcm()`, `group->mass()`
 - LAMMPS `Compute` and `Variable` objects (temperature, pressure)
 - Stochastic sampling functions (`RanMars`, `FixCSVRKernel`)
 
-The correct Kokkos port for these fixes is the **sync-to-host delegation pattern**:
-
-```cpp
-void FixXxxKokkos<DeviceType>::end_of_step() {
-  atomKK->sync(Host, V_MASK | X_MASK | MASK_MASK);
-  FixXxx::end_of_step();   // base class runs entirely on host
-  atomKK->modified(Host, V_MASK);
-}
-```
-
-This pattern was used for `press/berendsen/kk`, `press/langevin/kk`,
-`temp/csvr/kk`, and `temp/csld/kk`.  The `kokkosable = 1` flag in the
-constructor ensures that LAMMPS knows the fix is Kokkos-aware and will not
-force unnecessary syncs from outside.
-
 ### `gjf/kk`: RandPoolWrap for device-portable random numbers
 
 `fix/gjf` integrates Langevin dynamics with per-atom half-step velocities.
-It is the only Group E style requiring a full device kernel.  It uses:
+It is the only Group E style with a full device kernel.  It uses:
 
 - `KokkosBase` mixin for per-atom `lv` (half-step velocity) dual views.
 - `Kokkos::Random_XorShift64_Pool<DeviceType>` for device-side random numbers.

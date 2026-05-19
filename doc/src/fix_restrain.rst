@@ -1,10 +1,7 @@
 .. index:: fix restrain
-.. index:: fix restrain/kk
 
 fix restrain command
 ====================
-
-Accelerator Variants: *restrain/kk*
 
 Syntax
 """"""

@@ -52,7 +52,7 @@ OPT.
    * :doc:`controller <fix_controller>`
    * :doc:`damping/cundall <fix_damping_cundall>`
    * :doc:`deform (k) <fix_deform>`
-   * :doc:`deform/pressure (k) <fix_deform_pressure>`
+   * :doc:`deform/pressure <fix_deform_pressure>`
    * :doc:`deposit <fix_deposit>`
    * :doc:`dpd/energy (k) <fix_dpd_energy>`
    * :doc:`drag (k) <fix_drag>`
@@ -95,13 +95,13 @@ OPT.
    * :doc:`gravity (ko) <fix_gravity>`
    * :doc:`grem <fix_grem>`
    * :doc:`halt <fix_halt>`
-   * :doc:`heat (k) <fix_heat>`
+   * :doc:`heat <fix_heat>`
    * :doc:`heat/flow <fix_heat_flow>`
    * :doc:`hmc <fix_hmc>`
    * :doc:`hyper/global <fix_hyper_global>`
    * :doc:`hyper/local <fix_hyper_local>`
    * :doc:`imd <fix_imd>`
-   * :doc:`indent (k) <fix_indent>`
+   * :doc:`indent <fix_indent>`
    * :doc:`ipi <fix_ipi>`
    * :doc:`lambda/apip <fix_lambda_apip>`
    * :doc:`lambda/la/csp/apip <fix_lambda_la_csp_apip>`
@@ -121,7 +121,7 @@ OPT.
    * :doc:`mol/swap <fix_mol_swap>`
    * :doc:`momentum (k) <fix_momentum>`
    * :doc:`momentum/chunk <fix_momentum>`
-   * :doc:`move (k) <fix_move>`
+   * :doc:`move <fix_move>`
    * :doc:`msst <fix_msst>`
    * :doc:`mvv/dpd <fix_mvv_dpd>`
    * :doc:`mvv/edpd <fix_mvv_dpd>`
@@ -188,8 +188,8 @@ OPT.
    * :doc:`polarize/functional <fix_polarize>`
    * :doc:`pour <fix_pour>`
    * :doc:`precession/spin <fix_precession_spin>`
-   * :doc:`press/berendsen (k) <fix_press_berendsen>`
-   * :doc:`press/langevin (k) <fix_press_langevin>`
+   * :doc:`press/berendsen <fix_press_berendsen>`
+   * :doc:`press/langevin <fix_press_langevin>`
    * :doc:`print <fix_print>`
    * :doc:`propel/self <fix_propel_self>`
    * :doc:`property/atom (k) <fix_property_atom>`
@@ -212,7 +212,7 @@ OPT.
    * :doc:`reaxff/bonds (k) <fix_reaxff_bonds>`
    * :doc:`reaxff/species (k) <fix_reaxff_species>`
    * :doc:`recenter (k) <fix_recenter>`
-   * :doc:`restrain (k) <fix_restrain>`
+   * :doc:`restrain <fix_restrain>`
    * :doc:`rheo <fix_rheo>`
    * :doc:`rheo/oxidation <fix_rheo_oxidation>`
    * :doc:`rheo/pressure <fix_rheo_pressure>`
@@ -257,8 +257,8 @@ OPT.
    * :doc:`store/state <fix_store_state>`
    * :doc:`tdpd/source <fix_dpd_source>`
    * :doc:`temp/berendsen (k) <fix_temp_berendsen>`
-   * :doc:`temp/csld (k) <fix_temp_csvr>`
-   * :doc:`temp/csvr (k) <fix_temp_csvr>`
+   * :doc:`temp/csld <fix_temp_csvr>`
+   * :doc:`temp/csvr <fix_temp_csvr>`
    * :doc:`temp/rescale (k) <fix_temp_rescale>`
    * :doc:`temp/rescale/eff <fix_temp_rescale_eff>`
    * :doc:`tfmc <fix_tfmc>`

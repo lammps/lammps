@@ -143,6 +143,10 @@ The keyword *method* selects one of the eight GJ-methods implemented in LAMMPS.
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

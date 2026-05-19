@@ -1,10 +1,7 @@
 .. index:: fix press/langevin
-.. index:: fix press/langevin/kk
 
 fix press/langevin command
 ===========================
-
-Accelerator Variants: *press/langevin/kk*
 
 Syntax
 """"""

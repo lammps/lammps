@@ -1,10 +1,7 @@
 .. index:: fix indent
-.. index:: fix indent/kk
 
 fix indent command
 ==================
-
-Accelerator Variants: *indent/kk*
 
 Syntax
 """"""

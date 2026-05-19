@@ -48,6 +48,8 @@ ImproperFourier::ImproperFourier(LAMMPS *lmp) : Improper(lmp)
 
 ImproperFourier::~ImproperFourier()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

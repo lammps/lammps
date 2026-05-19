@@ -1,17 +1,19 @@
 .. index:: pair_style lj/switch3/coulgauss/long
+.. index:: pair_style lj/switch3/coulgauss/long/kk
 .. index:: pair_style lj/switch3/coulgauss/long/omp
 .. index:: pair_style mm3/switch3/coulgauss/long
+.. index:: pair_style mm3/switch3/coulgauss/long/kk
 .. index:: pair_style mm3/switch3/coulgauss/long/omp
 
 pair_style lj/switch3/coulgauss/long command
 ============================================
 
-Accelerator Variants: *lj/switch3/coulgauss/long/omp*
+Accelerator Variants: *lj/switch3/coulgauss/long/kk*, *lj/switch3/coulgauss/long/omp*
 
 pair_style mm3/switch3/coulgauss/long command
 =============================================
 
-Accelerator Variants: *mm3/switch3/coulgauss/long/omp*
+Accelerator Variants: *mm3/switch3/coulgauss/long/kk*, *mm3/switch3/coulgauss/long/omp*
 
 Syntax
 """"""

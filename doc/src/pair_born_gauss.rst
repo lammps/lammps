@@ -1,10 +1,11 @@
 .. index:: pair_style born/gauss
+.. index:: pair_style born/gauss/kk
 .. index:: pair_style born/gauss/omp
 
 pair_style born/gauss command
 =============================
 
-Accelerator Variants: *born/gauss/omp*
+Accelerator Variants: *born/gauss/kk*, *born/gauss/omp*
 
 Syntax
 """"""

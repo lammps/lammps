@@ -48,7 +48,7 @@ class PairLennardMDF : public Pair {
   double **aparm, **bparm;
   double **lj1, **lj2, **lj3, **lj4;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

@@ -1,10 +1,11 @@
 .. index:: dihedral_style spherical
+.. index:: dihedral_style spherical/kk
 .. index:: dihedral_style spherical/omp
 
 dihedral_style spherical command
 ================================
 
-Accelerator Variants: *spherical/omp*
+Accelerator Variants: *spherical/kk*, *spherical/omp*
 
 Syntax
 """"""

@@ -70,6 +70,8 @@ ImproperRing::ImproperRing(LAMMPS *lmp) : Improper(lmp)
 
 ImproperRing::~ImproperRing()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

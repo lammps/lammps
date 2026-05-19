@@ -1,10 +1,11 @@
 .. index:: pair_style momb
 .. index:: pair_style momb/omp
+.. index:: pair_style momb/kk
 
 pair_style momb command
 =======================
 
-Accelerator Variants: *momb/omp*
+Accelerator Variants: *momb/omp*, *momb/kk*
 
 Syntax
 """"""

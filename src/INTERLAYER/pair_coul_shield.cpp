@@ -46,6 +46,8 @@ PairCoulShield::PairCoulShield(LAMMPS *lmp) : Pair(lmp)
 
 PairCoulShield::~PairCoulShield()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(sigmae);

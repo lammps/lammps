@@ -525,8 +525,8 @@ void DihedralClass2xe::compute(int eflag, int vflag)
       dr2 = r3 - bb13t_r30[type];
       bb13_ralpha1 = exp(-bb13t_alpha[type]*dr1);
       bb13_ralpha2 = exp(-bb13t_alpha[type]*dr2);
-      tk1 = -bb13t_d0[type]*bb13t_alpha[type]*bb13_ralpha1*(1 - bb13_ralpha2)/r3;
-      tk2 = -bb13t_d0[type]*bb13t_alpha[type]*bb13_ralpha2*(1 - bb13_ralpha1)/r1;
+      tk1 = -bb13t_d0[type]*bb13t_alpha[type]*bb13_ralpha2*(1 - bb13_ralpha1)/r3;
+      tk2 = -bb13t_d0[type]*bb13t_alpha[type]*bb13_ralpha1*(1 - bb13_ralpha2)/r1;
 
       if (eflag) edihedral += bb13t_d0[type]*(1 - bb13_ralpha1)*(1 - bb13_ralpha2);
 
@@ -918,6 +918,7 @@ void DihedralClass2xe::read_restart(FILE *fp)
   MPI_Bcast(&phi2[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&phi3[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
 
+  MPI_Bcast(&mbt_alpha2[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&mbt_f1[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&mbt_f2[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&mbt_f3[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
@@ -995,4 +996,20 @@ void DihedralClass2xe::write_data(FILE *fp)
             at_f1_2[i],at_f2_2[i],at_f3_2[i],
             at_theta0_1[i]*180.0/MY_PI,at_theta0_2[i]*180.0/MY_PI);
 }
+
+/* ----------------------------------------------------------------------
+    return ptr to internal members upon request
+ ------------------------------------------------------------------------ */
+
+ void *DihedralClass2xe::extract(const char *str, int &dim)
+ {
+   dim = 1;
+   if (strcmp(str, "k1") == 0) return (void *) k1;
+   if (strcmp(str, "k2") == 0) return (void *) k2;
+   if (strcmp(str, "k3") == 0) return (void *) k3;
+   if (strcmp(str, "phi1") == 0) return (void *) phi1;
+   if (strcmp(str, "phi2") == 0) return (void *) phi2;
+   if (strcmp(str, "phi3") == 0) return (void *) phi3;
+   return nullptr;
+ }
 

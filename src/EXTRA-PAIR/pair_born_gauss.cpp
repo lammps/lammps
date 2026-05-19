@@ -45,6 +45,8 @@ PairBornGauss::PairBornGauss(LAMMPS *lmp) :
 
 PairBornGauss::~PairBornGauss()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

@@ -37,6 +37,8 @@ PairCoulDiel::PairCoulDiel(LAMMPS *lmp) : Pair(lmp) {}
 
 PairCoulDiel::~PairCoulDiel()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(sigmae);

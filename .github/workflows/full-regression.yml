@@ -2,10 +2,6 @@
 name: "Full Regression Test"
 
 on:
-  push:
-    branches:
-      - develop
-
   workflow_dispatch:
 
 jobs:

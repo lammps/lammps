@@ -626,6 +626,8 @@
 /bond_gaussian.h
 /bond_gromos.cpp
 /bond_gromos.h
+/bond_gromos_kokkos.cpp
+/bond_gromos_kokkos.h
 /bond_harmonic.cpp
 /bond_harmonic.h
 /bond_harmonic_restrain.cpp
@@ -881,6 +883,8 @@
 /fix_atc.h
 /fix_ave_correlate_long.cpp
 /fix_ave_correlate_long.h
+/fix_baoab.cpp
+/fix_baoab.h
 /fix_bocs.cpp
 /fix_bocs.h
 /fix_bond_break.cpp

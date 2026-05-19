@@ -7252,7 +7252,7 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
       return 1;
     }
   } else if (strcmp(category,"variable") == 0) {
-    if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
+    if ((idx >= 0) && (idx < lmp->input->variable->nvar) && lmp->input->variable->names[idx]) {
       strncpy(buffer, lmp->input->variable->names[idx], buf_size);
       return 1;
     }

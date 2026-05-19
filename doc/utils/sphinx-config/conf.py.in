@@ -313,7 +313,7 @@ else:
 
 # use relative path for mathjax, so it is looked for in the
 # html tree and the manual becomes readable when offline
-mathjax_path = 'mathjax/es5/tex-mml-chtml.js'
+mathjax_path = 'mathjax/tex-mml-chtml.js'
 
 # hack to enable use of \AA in :math:
 # add :lammps: role for inline LAMMPS code highlight

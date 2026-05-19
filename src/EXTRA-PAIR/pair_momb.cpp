@@ -59,6 +59,8 @@ PairMomb::PairMomb(LAMMPS *lmp) : Pair(lmp)
 
 PairMomb::~PairMomb()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

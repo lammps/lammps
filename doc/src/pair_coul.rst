@@ -3,6 +3,7 @@
 .. index:: pair_style coul/cut/kk
 .. index:: pair_style coul/cut/omp
 .. index:: pair_style coul/cut/global
+.. index:: pair_style coul/cut/global/kk
 .. index:: pair_style coul/cut/global/omp
 .. index:: pair_style coul/ctip
 .. index:: pair_style coul/debye
@@ -38,7 +39,7 @@ Accelerator Variants: *coul/cut/gpu*, *coul/cut/kk*, *coul/cut/omp*
 pair_style coul/cut/global command
 ==================================
 
-Accelerator Variants: *coul/cut/global/omp*
+Accelerator Variants: *coul/cut/global/kk*, *coul/cut/global/omp*
 
 pair_style coul/ctip command
 ============================

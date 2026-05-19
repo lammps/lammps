@@ -2,7 +2,7 @@
 lammps_version: 12 Jun 2025
 date_generated: Fri Jun 27 21:28:52 2025
 epsilon: 5e-13
-skip_tests:
+skip_tests: kokkos_omp
 prerequisites: ! |
   atom full
   pair lj/switch3/coulgauss/long

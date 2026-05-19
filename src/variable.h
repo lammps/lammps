@@ -77,6 +77,7 @@ class Variable : protected Pointers {
     PYTHON,
     TIMER,
     INTERNAL,
+    UNASSIGNED,
     UNKNOWN
   };
   static constexpr int VALUELENGTH = 64;
@@ -139,6 +140,8 @@ class Variable : protected Pointers {
 
   int compute_python(int);
   void remove(int);
+  int recycle();
+
   void grow();
   void copy(int, char **, char **);
   double evaluate(char *, Tree **, int);

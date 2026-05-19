@@ -43,7 +43,7 @@ class AngleCosineShift : public Angle {
   double *ksint;
   double *kcost;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

@@ -45,6 +45,7 @@ PairNMCut::PairNMCut(LAMMPS *lmp) : Pair(lmp)
 
 PairNMCut::~PairNMCut()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

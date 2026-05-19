@@ -324,10 +324,14 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
   //   computed on current nlocal atoms to remove bias
 
   if (nondeformbias) {
-    atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
-    this->temperature->compute_scalar();
-    atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
-    atomKK->sync(this->execution_space,this->temperature->datamask_modify);
+    if (this->temperature->kokkosable)
+      this->temperature->compute_scalar();
+    else {
+      atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
+      this->temperature->compute_scalar();
+      atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
+      atomKK->sync(this->execution_space,this->temperature->datamask_modify);
+    }
   }
 
   v = atomKK->k_v.view<DeviceType>();

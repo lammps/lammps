@@ -42,10 +42,13 @@ FixPressBerendsenKokkos<DeviceType>::FixPressBerendsenKokkos(LAMMPS *lmp, int na
 template<class DeviceType>
 void FixPressBerendsenKokkos<DeviceType>::end_of_step()
 {
-  // sync atom data for temperature and pressure computes
+  // sync atom data for temperature and pressure computes;
+  // skip the sync for kokkosable computes since they handle syncing internally
 
-  atomKK->sync(temperature->execution_space, temperature->datamask_read);
-  atomKK->sync(pressure->execution_space, pressure->datamask_read);
+  if (!temperature->kokkosable)
+    atomKK->sync(temperature->execution_space, temperature->datamask_read);
+  if (!pressure->kokkosable)
+    atomKK->sync(pressure->execution_space, pressure->datamask_read);
 
   // call base class: computes T and P, couples, dilates, calls remap()
   // remap() calls domain->x2lamda(N) and domain->lamda2x(N), which are

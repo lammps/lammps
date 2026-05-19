@@ -80,10 +80,14 @@ void FixNHKokkos<DeviceType>::setup(int /*vflag*/)
 {
   // tdof needed by compute_temp_target()
 
-  atomKK->sync(temperature->execution_space,temperature->datamask_read);
-  t_current = temperature->compute_scalar();
-  atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-  atomKK->sync(execution_space,temperature->datamask_modify);
+  if (temperature->kokkosable)
+    t_current = temperature->compute_scalar();
+  else {
+    atomKK->sync(temperature->execution_space,temperature->datamask_read);
+    t_current = temperature->compute_scalar();
+    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+    atomKK->sync(execution_space,temperature->datamask_modify);
+  }
 
   tdof = temperature->dof;
 
@@ -106,10 +110,14 @@ void FixNHKokkos<DeviceType>::setup(int /*vflag*/)
       if (p_temp_flag) {
         t0 = p_temp;
       } else {
-        atomKK->sync(temperature->execution_space,temperature->datamask_read);
-        t0 = temperature->compute_scalar();
-        atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-        atomKK->sync(execution_space,temperature->datamask_modify);
+        if (temperature->kokkosable)
+          t0 = temperature->compute_scalar();
+        else {
+          atomKK->sync(temperature->execution_space,temperature->datamask_read);
+          t0 = temperature->compute_scalar();
+          atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+          atomKK->sync(execution_space,temperature->datamask_modify);
+        }
         if (t0 < EPSILON)
           error->all(FLERR,"Current temperature too close to zero, consider using ptemp keyword");
       }
@@ -119,10 +127,14 @@ void FixNHKokkos<DeviceType>::setup(int /*vflag*/)
 
   if (pstat_flag) compute_press_target();
 
-  atomKK->sync(temperature->execution_space,temperature->datamask_read);
-  t_current = temperature->compute_scalar();
-  atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-  atomKK->sync(execution_space,temperature->datamask_modify);
+  if (temperature->kokkosable)
+    t_current = temperature->compute_scalar();
+  else {
+    atomKK->sync(temperature->execution_space,temperature->datamask_read);
+    t_current = temperature->compute_scalar();
+    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+    atomKK->sync(execution_space,temperature->datamask_modify);
+  }
 
   tdof = temperature->dof;
 
@@ -200,8 +212,10 @@ void FixNHKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   // compute appropriately coupled elements of mvv_current
 
   if (pstat_flag) {
-    atomKK->sync(temperature->execution_space,temperature->datamask_read);
-    atomKK->sync(pressure->execution_space,pressure->datamask_read);
+    if (!temperature->kokkosable)
+      atomKK->sync(temperature->execution_space,temperature->datamask_read);
+    if (!pressure->kokkosable)
+      atomKK->sync(pressure->execution_space,pressure->datamask_read);
     if (pstyle == ISO) {
       temperature->compute_scalar();
       pressure->compute_scalar();
@@ -209,10 +223,14 @@ void FixNHKokkos<DeviceType>::initial_integrate(int /*vflag*/)
       temperature->compute_vector();
       pressure->compute_vector();
     }
-    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-    atomKK->modified(pressure->execution_space,pressure->datamask_modify);
-    atomKK->sync(execution_space,temperature->datamask_modify);
-    atomKK->sync(execution_space,pressure->datamask_modify);
+    if (!temperature->kokkosable) {
+      atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+      atomKK->sync(execution_space,temperature->datamask_modify);
+    }
+    if (!pressure->kokkosable) {
+      atomKK->modified(pressure->execution_space,pressure->datamask_modify);
+      atomKK->sync(execution_space,pressure->datamask_modify);
+    }
     couple();
     pressure->addstep(update->ntimestep+1);
   }
@@ -256,10 +274,14 @@ void FixNHKokkos<DeviceType>::final_integrate()
   //     since temp->compute() in initial_integrate()
 
   if (which == BIAS && neighbor->ago == 0) {
-    atomKK->sync(temperature->execution_space,temperature->datamask_read);
-    t_current = temperature->compute_scalar();
-    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-    atomKK->sync(execution_space,temperature->datamask_modify);
+    if (temperature->kokkosable)
+      t_current = temperature->compute_scalar();
+    else {
+      atomKK->sync(temperature->execution_space,temperature->datamask_read);
+      t_current = temperature->compute_scalar();
+      atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+      atomKK->sync(execution_space,temperature->datamask_modify);
+    }
   }
 
   if (pstat_flag) nh_v_press();
@@ -267,27 +289,40 @@ void FixNHKokkos<DeviceType>::final_integrate()
   // compute new T,P after velocities rescaled by nh_v_press()
   // compute appropriately coupled elements of mvv_current
 
-  atomKK->sync(temperature->execution_space,temperature->datamask_read);
-  t_current = temperature->compute_scalar();
-  atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-  atomKK->sync(execution_space,temperature->datamask_modify);
+  if (temperature->kokkosable)
+    t_current = temperature->compute_scalar();
+  else {
+    atomKK->sync(temperature->execution_space,temperature->datamask_read);
+    t_current = temperature->compute_scalar();
+    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+    atomKK->sync(execution_space,temperature->datamask_modify);
+  }
   tdof = temperature->dof;
 
   if (pstat_flag) {
     if (pstyle == ISO) {
-      atomKK->sync(pressure->execution_space,pressure->datamask_read);
+      if (!pressure->kokkosable)
+        atomKK->sync(pressure->execution_space,pressure->datamask_read);
       pressure->compute_scalar();
-      atomKK->modified(pressure->execution_space,pressure->datamask_modify);
-      atomKK->sync(execution_space,pressure->datamask_modify);
+      if (!pressure->kokkosable) {
+        atomKK->modified(pressure->execution_space,pressure->datamask_modify);
+        atomKK->sync(execution_space,pressure->datamask_modify);
+      }
     } else {
-      atomKK->sync(temperature->execution_space,temperature->datamask_read);
-      atomKK->sync(pressure->execution_space,pressure->datamask_read);
+      if (!temperature->kokkosable)
+        atomKK->sync(temperature->execution_space,temperature->datamask_read);
+      if (!pressure->kokkosable)
+        atomKK->sync(pressure->execution_space,pressure->datamask_read);
       temperature->compute_vector();
       pressure->compute_vector();
-      atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-      atomKK->modified(pressure->execution_space,pressure->datamask_modify);
-      atomKK->sync(execution_space,temperature->datamask_modify);
-      atomKK->sync(execution_space,pressure->datamask_modify);
+      if (!temperature->kokkosable) {
+        atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+        atomKK->sync(execution_space,temperature->datamask_modify);
+      }
+      if (!pressure->kokkosable) {
+        atomKK->modified(pressure->execution_space,pressure->datamask_modify);
+        atomKK->sync(execution_space,pressure->datamask_modify);
+      }
     }
     couple();
     pressure->addstep(update->ntimestep+1);

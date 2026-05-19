@@ -51,10 +51,15 @@ FixTempBerendsenKokkos<DeviceType>::FixTempBerendsenKokkos(LAMMPS *lmp, int narg
 template<class DeviceType>
 void FixTempBerendsenKokkos<DeviceType>::end_of_step()
 {
-  atomKK->sync(temperature->execution_space,temperature->datamask_read);
-  double t_current = temperature->compute_scalar();
-  atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-  atomKK->sync(execution_space,temperature->datamask_modify);
+  double t_current;
+  if (temperature->kokkosable)
+    t_current = temperature->compute_scalar();
+  else {
+    atomKK->sync(temperature->execution_space,temperature->datamask_read);
+    t_current = temperature->compute_scalar();
+    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+    atomKK->sync(execution_space,temperature->datamask_modify);
+  }
 
   double tdof = temperature->dof;
 

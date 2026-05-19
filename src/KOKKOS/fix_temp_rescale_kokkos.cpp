@@ -51,10 +51,15 @@ FixTempRescaleKokkos<DeviceType>::FixTempRescaleKokkos(LAMMPS *lmp, int narg, ch
 template<class DeviceType>
 void FixTempRescaleKokkos<DeviceType>::end_of_step()
 {
-  atomKK->sync(temperature->execution_space,temperature->datamask_read);
-  double t_current = temperature->compute_scalar();
-  atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-  atomKK->sync(execution_space,temperature->datamask_modify);
+  double t_current;
+  if (temperature->kokkosable)
+    t_current = temperature->compute_scalar();
+  else {
+    atomKK->sync(temperature->execution_space,temperature->datamask_read);
+    t_current = temperature->compute_scalar();
+    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+    atomKK->sync(execution_space,temperature->datamask_modify);
+  }
 
   // there is nothing to do, if there are no degrees of freedom
 

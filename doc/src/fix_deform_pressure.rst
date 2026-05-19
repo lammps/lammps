@@ -1,7 +1,10 @@
 .. index:: fix deform/pressure
+.. index:: fix deform/pressure/kk
 
 fix deform/pressure command
 ===========================
+
+Accelerator Variants: *deform/pressure/kk*
 
 Syntax
 """"""

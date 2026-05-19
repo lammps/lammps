@@ -1398,36 +1398,36 @@ Use `fix_spring_self_kokkos` as the primary template.
 
 ---
 
-## Group E — Thermostat/barostat coupling with global statistics
+## Group E — Thermostat/barostat coupling with global statistics ✓ DONE
 
 **Complexity:** Moderate.  These fixes compute a global temperature or pressure,
 then rescale velocities/forces.  They call `Temperature->compute()` or
 `Pressure->compute()` on the CPU, then launch a Kokkos kernel to rescale.
 Pattern: `fix_temp_rescale_kokkos`, `fix_temp_berendsen_kokkos`.
 
-| Fix style | Package | Coupling type | Notes |
-|---|---|---|---|
-| `press/berendsen` | `src/` | Isotropic/anisotropic box rescaling | Temperature + pressure compute → box + velocity rescale |
-| `press/langevin` | `EXTRA-FIX` | Stochastic pressure coupling | Similar to `press/berendsen` with random term |
-| `temp/csvr` | `EXTRA-FIX` | Canonical sampling; velocity rescaling | Stochastic factor; needs host-side random then device rescale |
-| `temp/csld` | `EXTRA-FIX` | Canonical sampling; Lowe-Denbigh-Andersen | Per-pair velocity reassignment; moderate complexity |
-| `gjf` | `EXTRA-FIX` | Grønbech-Jensen/Farago Langevin integrator | Has per-atom `vhalf[nmax][3]`; inherits Langevin structure (`fix_langevin_kokkos` pattern) |
+| Fix style | Package | Coupling type | Notes | Status |
+|---|---|---|---|---|
+| `press/berendsen` | `src/` | Isotropic/anisotropic box rescaling | Sync-to-host delegate | **done** |
+| `press/langevin` | `EXTRA-FIX` | Stochastic pressure coupling | Sync-to-host delegate | **done** |
+| `temp/csvr` | `EXTRA-FIX` | Canonical sampling; velocity rescaling | Sync V+MASK to host | **done** |
+| `temp/csld` | `EXTRA-FIX` | Canonical sampling; Lowe-Denbigh-Andersen | Sync V+MASK to host | **done** |
+| `gjf` | `EXTRA-FIX` | Gronbech-Jensen/Farago Langevin integrator | Full device kernel; KokkosBase; `RandPoolWrap` | **done** |
 
 ---
 
-## Group F — Moderate complexity: geometry/indenter/move/restraints
+## Group F — Moderate complexity: geometry/indenter/move/restraints ✓ DONE
 
 **Complexity:** Moderate-to-high.  These styles have variable run-time geometry,
-tabulated data, or complex per-atom logic that requires careful structuring of
-device kernels.
+tabulated data, or complex per-atom logic.  All are ported using the
+**sync-to-host delegation** pattern (see Lessons Learned from Group F).
 
-| Fix style | Package | Operation | Notes |
-|---|---|---|---|
-| `indent` | `src/` | Force from sphere/cylinder/plane indenter | Runtime shape dispatch; evaluate distance from shape |
-| `move` | `src/` | Prescribe atom trajectories (linear/wiggle/rotate/variable) | Four motion modes; complex per-atom state; `initial_integrate` |
-| `heat` | `src/` | Add kinetic energy to two groups | Needs two-group velocity scale; similar to `temp/rescale` |
-| `restrain` | `src/` | Harmonic restraints on bonds/angles/dihedrals | Needs per-restraint neighbor lookup; moderate loop |
-| `deform/pressure` | `EXTRA-FIX` | Deformation with pressure control | Extends `fix_deform_kokkos` (ported); adds pressure coupling |
+| Fix style | Package | Operation | Notes | Status |
+|---|---|---|---|---|
+| `heat` | `src/` | Add kinetic energy to groups | `end_of_step()`: group KE/vcm (host MPI) then v-scaling | **done** |
+| `indent` | `src/` | Force from sphere/cylinder/plane indenter | `post_force()`: variable eval + per-atom loop on host | **done** |
+| `move` | `src/` | Prescribe atom trajectories (linear/wiggle/rotate/variable) | `initial_integrate` + `final_integrate` on host; xoriginal is CPU array | **done** |
+| `restrain` | `src/` | Harmonic restraints on bonds/angles/dihedrals | `post_force()`: per-restraint ghost-atom lookup on host | **done** |
+| `deform/pressure` | `EXTRA-FIX` | Deformation with pressure control | Inherits `FixDeformPressure`; mirrors `fix_deform_kokkos` pattern | **done** |
 
 ---
 
@@ -1707,6 +1707,102 @@ When a fix stores per-atom data that migrates with atoms (`grow_arrays` /
 `Kokkos::DualView` members and inherit from `KokkosBase`.  The
 `pack_exchange_kokkos` override packs atoms directly from the device view
 without falling back to host memory, preserving GPU locality.
+
+---
+
+## Lessons Learned from Group E (thermostat/barostat coupling)
+
+### Sync-to-host delegation: the standard pattern for fixes with host-only logic
+
+Many fix styles use LAMMPS infrastructure that cannot run on GPU:
+- MPI global reductions via `group->ke()`, `group->vcm()`, `group->mass()`
+- LAMMPS `Compute` and `Variable` objects (temperature, pressure)
+- Stochastic sampling functions (`RanMars`, `FixCSVRKernel`)
+
+The correct Kokkos port for these fixes is the **sync-to-host delegation pattern**:
+
+```cpp
+void FixXxxKokkos<DeviceType>::end_of_step() {
+  atomKK->sync(Host, V_MASK | X_MASK | MASK_MASK);
+  FixXxx::end_of_step();   // base class runs entirely on host
+  atomKK->modified(Host, V_MASK);
+}
+```
+
+This pattern was used for `press/berendsen/kk`, `press/langevin/kk`,
+`temp/csvr/kk`, and `temp/csld/kk`.  The `kokkosable = 1` flag in the
+constructor ensures that LAMMPS knows the fix is Kokkos-aware and will not
+force unnecessary syncs from outside.
+
+### `gjf/kk`: RandPoolWrap for device-portable random numbers
+
+`fix/gjf` integrates Langevin dynamics with per-atom half-step velocities.
+It is the only Group E style requiring a full device kernel.  It uses:
+
+- `KokkosBase` mixin for per-atom `lv` (half-step velocity) dual views.
+- `Kokkos::Random_XorShift64_Pool<DeviceType>` for device-side random numbers.
+  In debug builds, `RandPoolWrap` / `RandWrap` provide a deterministic wrapper.
+- `#ifndef LMP_KOKKOS_DEBUG_RNG` / `#else` guards select the appropriate pool.
+
+The `RandPoolWrap` class (in `src/KOKKOS/rand_pool_wrap_kokkos.h`) wraps
+`RanMars` to match the `Kokkos::Random_XorShift64_Pool` API.  Use it when
+you need repeatable debug output.  For production, prefer the Kokkos pool
+directly so device threads draw independent random numbers without host round-trips.
+
+```cpp
+// normal usage in a Kokkos functor:
+rand_type rand_gen = rand_pool.get_state();
+KK_FLOAT r = rand_gen.normal();   // Gaussian deviate
+rand_pool.free_state(rand_gen);
+```
+
+### Press/Langevin: sync F_MASK as well
+
+`press/langevin` reads forces when computing the instantaneous kinetic energy
+before Langevin damping.  The `datamask_read` for this style must therefore
+include `F_MASK` in addition to `V_MASK | X_MASK | MASK_MASK`.
+
+---
+
+## Lessons Learned from Group F (geometry/indenter/move/restraints)
+
+### Sync-to-host delegation is correct for LAMMPS-variable-dependent fixes
+
+`fix indent` evaluates LAMMPS variables for the indenter center/radius every
+step.  Variable evaluation requires host-side infrastructure (`Input`,
+`Variable`).  The sync-to-host delegation pattern is the correct and complete
+port — no per-atom kernel is needed when the bottleneck is the variable
+evaluation rather than the force loop.
+
+### `fix move`: xoriginal is a plain CPU array; delegation is necessary
+
+`fix move` maintains `xoriginal[nmax][3]` as a plain `double **` allocated
+with `memory->create`.  The `initial_integrate` loop references `xoriginal`
+directly.  The sync-to-host delegation pattern is therefore the correct port:
+sync X, V, F to host, call the base class, mark X and V modified.
+
+If a future full device-kernel port of `fix move` is required, `xoriginal`
+would need to be replaced with a `Kokkos::DualView`, following the
+`fix_spring_self_kokkos` pattern.
+
+### `fix restrain`: needs X for ghost atoms; use `X_MASK | F_MASK | MASK_MASK`
+
+`fix restrain` calls `atom->map(ids[m][k])` to find atoms by global tag,
+and then reads their positions (which may be on ghost atoms).  The sync must
+include `X_MASK` to bring ghost positions to the host.  Mark `F_MASK`
+modified after the call (forces are only updated on local atoms).
+
+### `fix deform/pressure/kk`: inherit from FixDeformPressure, not FixDeformKokkos
+
+`FixDeformKokkos` inherits from `FixDeform`.  `FixDeformPressure` also
+inherits from `FixDeform`.  Since C++ has no multiple inheritance here,
+`FixDeformPressureKokkos` must inherit from `FixDeformPressure` (the more
+specific base) and replicate the Kokkos overrides (`pre_exchange`,
+`update_box`) from `FixDeformKokkos` — they are short sync-to-host wrappers.
+
+`FixDeformPressureKokkos` does **not** have a `<DeviceType>` template
+parameter; it matches the non-templated pattern of `FixDeformKokkos` because
+the box-deformation logic does not benefit from device kernels.
 
 ## Trust These Instructions
 

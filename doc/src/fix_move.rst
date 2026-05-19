@@ -1,7 +1,10 @@
 .. index:: fix move
+.. index:: fix move/kk
 
 fix move command
 ================
+
+Accelerator Variants: *move/kk*
 
 Syntax
 """"""

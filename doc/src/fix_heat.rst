@@ -1,7 +1,10 @@
 .. index:: fix heat
+.. index:: fix heat/kk
 
 fix heat command
 ================
+
+Accelerator Variants: *heat/kk*
 
 Syntax
 """"""

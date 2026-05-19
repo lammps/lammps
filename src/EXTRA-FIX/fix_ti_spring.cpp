@@ -118,6 +118,8 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
 
 FixTISpring::~FixTISpring()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
   atom->delete_callback(id,Atom::GROW);
   atom->delete_callback(id,Atom::RESTART);

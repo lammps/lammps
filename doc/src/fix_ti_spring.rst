@@ -1,7 +1,10 @@
 .. index:: fix ti/spring
+.. index:: fix ti/spring/kk
 
 fix ti/spring command
 =====================
+
+Accelerator Variant: *ti/spring/kk*
 
 Syntax
 """"""
@@ -166,6 +169,12 @@ Related commands
 """"""""""""""""
 
 :doc:`fix spring <fix_spring>`, :doc:`fix adapt <fix_adapt>`
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

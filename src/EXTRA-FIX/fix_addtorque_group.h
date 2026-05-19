@@ -39,7 +39,7 @@ class FixAddTorqueGroup : public Fix {
   double compute_scalar() override;
   double compute_vector(int) override;
 
- private:
+ protected:
   double xvalue, yvalue, zvalue;
   int varflag;
   char *xstr, *ystr, *zstr;

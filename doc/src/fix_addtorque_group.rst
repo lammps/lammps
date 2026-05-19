@@ -1,7 +1,10 @@
 .. index:: fix addtorque/group
+.. index:: fix addtorque/group/kk
 
 fix addtorque/group command
 ===========================
+
+Accelerator Variant: *addtorque/group/kk*
 
 Syntax
 """"""
@@ -107,6 +110,12 @@ invoked by the :doc:`minimize <minimize>` command.
    time-dependence for use with a minimizer, since the minimizer
    increments the timestep as the iteration count during the
    minimization.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

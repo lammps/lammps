@@ -16,7 +16,7 @@ OPT.
    * :doc:`addforce (k) <fix_addforce>`
    * :doc:`add/heat <fix_add_heat>`
    * :doc:`addtorque/atom <fix_addtorque_atom>`
-   * :doc:`addtorque/group <fix_addtorque_group>`
+   * :doc:`addtorque/group (k) <fix_addtorque_group>`
    * :doc:`alchemy <fix_alchemy>`
    * :doc:`align/self <fix_align_self>`
    * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
@@ -250,7 +250,7 @@ OPT.
    * :doc:`sph/stationary <fix_sph_stationary>`
    * :doc:`spring (k) <fix_spring>`
    * :doc:`spring/chunk <fix_spring_chunk>`
-   * :doc:`spring/rg <fix_spring_rg>`
+   * :doc:`spring/rg (k) <fix_spring_rg>`
    * :doc:`spring/self (k) <fix_spring_self>`
    * :doc:`srd <fix_srd>`
    * :doc:`store/force <fix_store_force>`
@@ -265,7 +265,7 @@ OPT.
    * :doc:`tgnpt/drude <fix_tgnh_drude>`
    * :doc:`tgnvt/drude <fix_tgnh_drude>`
    * :doc:`thermal/conductivity <fix_thermal_conductivity>`
-   * :doc:`ti/spring <fix_ti_spring>`
+   * :doc:`ti/spring (k) <fix_ti_spring>`
    * :doc:`tmd <fix_tmd>`
    * :doc:`ttm <fix_ttm>`
    * :doc:`ttm/grid <fix_ttm>`

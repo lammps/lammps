@@ -142,6 +142,8 @@ action fix_acks2_reaxff_kokkos.cpp fix_acks2_reaxff.cpp
 action fix_acks2_reaxff_kokkos.h fix_acks2_reaxff.h
 action fix_addforce_kokkos.cpp
 action fix_addforce_kokkos.h
+action fix_addtorque_group_kokkos.cpp fix_addtorque_group.cpp
+action fix_addtorque_group_kokkos.h fix_addtorque_group.h
 action fix_aveforce_kokkos.cpp
 action fix_aveforce_kokkos.h
 action fix_cmap_kokkos.cpp fix_cmap.cpp
@@ -234,12 +236,16 @@ action fix_shardlow_kokkos.cpp fix_shardlow.cpp
 action fix_shardlow_kokkos.h fix_shardlow.h
 action fix_spring_kokkos.cpp
 action fix_spring_kokkos.h
+action fix_spring_rg_kokkos.cpp fix_spring_rg.cpp
+action fix_spring_rg_kokkos.h fix_spring_rg.h
 action fix_spring_self_kokkos.cpp
 action fix_spring_self_kokkos.h
 action fix_temp_berendsen_kokkos.cpp
 action fix_temp_berendsen_kokkos.h
 action fix_temp_rescale_kokkos.cpp
 action fix_temp_rescale_kokkos.h
+action fix_ti_spring_kokkos.cpp fix_ti_spring.cpp
+action fix_ti_spring_kokkos.h fix_ti_spring.h
 action fix_viscous_kokkos.cpp
 action fix_viscous_kokkos.h
 action fix_viscous_sphere_kokkos.cpp fix_viscous_sphere.cpp

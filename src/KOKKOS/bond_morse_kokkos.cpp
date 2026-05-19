@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Stan Moore (SNL)
+   Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "bond_morse_kokkos.h"
@@ -95,6 +95,8 @@ void BondMorseKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 1;
 
+  // loop over neighbors of my atoms
+
   EV_FLOAT ev;
 
   if (evflag) {
@@ -153,14 +155,19 @@ void BondMorseKokkos<DeviceType>::operator()(TagBondMorseCompute<NEWTON_BOND,EVF
   const KK_FLOAT dr = r - d_r0[type];
   const KK_FLOAT ralpha = exp(-d_alpha[type] * dr);
 
-  KK_FLOAT fbond = static_cast<KK_FLOAT>(0.0);
-  if (r > static_cast<KK_FLOAT>(0.0))
+  // force & energy
+
+  KK_FLOAT fbond = 0.0;
+  if (r > 0.0)
     fbond = -static_cast<KK_FLOAT>(2.0) * d_d0[type] * d_alpha[type] *
         (static_cast<KK_FLOAT>(1.0) - ralpha) * ralpha / r;
 
-  KK_FLOAT ebond = static_cast<KK_FLOAT>(0.0);
+  KK_FLOAT ebond = 0.0;
   if (eflag)
-    ebond = d_d0[type] * (static_cast<KK_FLOAT>(1.0) - ralpha) * (static_cast<KK_FLOAT>(1.0) - ralpha);
+    ebond = d_d0[type] * (static_cast<KK_FLOAT>(1.0) - ralpha) *
+        (static_cast<KK_FLOAT>(1.0) - ralpha);
+
+  // apply force to each of 2 atoms
 
   if (NEWTON_BOND || i1 < nlocal) {
     f(i1,0) += static_cast<KK_ACC_FLOAT>(delx*fbond);
@@ -194,9 +201,9 @@ void BondMorseKokkos<DeviceType>::allocate()
   BondMorse::allocate();
 
   int n = atom->nbondtypes;
-  k_d0 = DAT::tdual_kkfloat_1d("BondMorse::k_d0",n+1);
-  k_alpha = DAT::tdual_kkfloat_1d("BondMorse::k_alpha",n+1);
-  k_r0 = DAT::tdual_kkfloat_1d("BondMorse::k_r0",n+1);
+  k_d0 = DAT::tdual_kkfloat_1d("BondMorse::d0",n+1);
+  k_alpha = DAT::tdual_kkfloat_1d("BondMorse::alpha",n+1);
+  k_r0 = DAT::tdual_kkfloat_1d("BondMorse::r0",n+1);
 
   d_d0 = k_d0.template view<DeviceType>();
   d_alpha = k_alpha.template view<DeviceType>();

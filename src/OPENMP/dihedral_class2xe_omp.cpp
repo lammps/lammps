@@ -484,8 +484,8 @@ void DihedralClass2xeOMP::eval(int nfrom, int nto, ThrData * const thr)
       dr2 = r3 - bb13t_r30[type];
       bb13_ralpha1 = exp(-bb13t_alpha[type]*dr1);
       bb13_ralpha2 = exp(-bb13t_alpha[type]*dr2);
-      tk1 = -bb13t_d0[type]*bb13t_alpha[type]*bb13_ralpha1*(1 - bb13_ralpha2)/r3;
-      tk2 = -bb13t_d0[type]*bb13t_alpha[type]*bb13_ralpha2*(1 - bb13_ralpha1)/r1;
+      tk1 = -bb13t_d0[type]*bb13t_alpha[type]*bb13_ralpha2*(1 - bb13_ralpha1)/r3;
+      tk2 = -bb13t_d0[type]*bb13t_alpha[type]*bb13_ralpha1*(1 - bb13_ralpha2)/r1;
 
       if (EFLAG) edihedral += bb13t_d0[type]*(1 - bb13_ralpha1)*(1 - bb13_ralpha2);
 

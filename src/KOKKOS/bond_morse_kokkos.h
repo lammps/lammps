@@ -33,7 +33,6 @@ struct TagBondMorseCompute{};
 
 template<class DeviceType>
 class BondMorseKokkos : public BondMorse {
-
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -59,7 +58,7 @@ class BondMorseKokkos : public BondMorse {
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &ebond, const KK_FLOAT &fbond, const KK_FLOAT &delx,
-                const KK_FLOAT &dely, const KK_FLOAT &delz) const;
+                  const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
  protected:
 
@@ -91,5 +90,5 @@ class BondMorseKokkos : public BondMorse {
 
 }
 
-#endif // !LMP_BOND_MORSE_KOKKOS_H
+#endif
 #endif

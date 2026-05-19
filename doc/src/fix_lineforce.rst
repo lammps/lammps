@@ -1,7 +1,10 @@
 .. index:: fix lineforce
+.. index:: fix lineforce/kk
 
 fix lineforce command
 =====================
+
+Accelerator Variant: *lineforce/kk*
 
 Syntax
 """"""
@@ -43,6 +46,12 @@ the :doc:`run <run>` command.
 
 The forces due to this fix are imposed during an energy minimization,
 invoked by the :doc:`minimize <minimize>` command.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

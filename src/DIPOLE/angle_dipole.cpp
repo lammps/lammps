@@ -46,6 +46,8 @@ AngleDipole::AngleDipole(LAMMPS *lmp) : Angle(lmp)
 
 AngleDipole::~AngleDipole()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

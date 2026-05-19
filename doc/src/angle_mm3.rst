@@ -1,10 +1,11 @@
 .. index:: angle_style mm3
+.. index:: angle_style mm3/kk
 .. index:: angle_style mm3/omp
 
 angle_style mm3 command
 =======================
 
-Accelerator Variants: *mm3/omp*
+Accelerator Variants: *mm3/kk*, *mm3/omp*
 
 Syntax
 """"""

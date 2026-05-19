@@ -1,7 +1,10 @@
 .. index:: fix planeforce
+.. index:: fix planeforce/kk
 
 fix planeforce command
 ======================
+
+Accelerator Variant: *planeforce/kk*
 
 Syntax
 """"""
@@ -43,6 +46,12 @@ the :doc:`run <run>` command.
 
 The forces due to this fix are imposed during an energy minimization,
 invoked by the :doc:`minimize <minimize>` command.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

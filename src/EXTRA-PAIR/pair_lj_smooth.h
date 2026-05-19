@@ -49,7 +49,7 @@ class PairLJSmooth : public Pair {
   double **ljsw0, **ljsw1, **ljsw2, **ljsw3, **ljsw4;
   double **offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

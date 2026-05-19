@@ -37,7 +37,7 @@ class ImproperCossq : public Improper {
 
  protected:
   double *k, *chi;
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

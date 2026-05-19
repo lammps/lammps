@@ -38,6 +38,8 @@ PairMorseSmoothLinear::PairMorseSmoothLinear(LAMMPS *lmp) : Pair(lmp)
 
 PairMorseSmoothLinear::~PairMorseSmoothLinear()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

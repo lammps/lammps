@@ -108,8 +108,14 @@ template<class DeviceType>
 void FixLangevinKokkos<DeviceType>::init()
 {
   FixLangevin::init();
-  if (oflag)
-    error->all(FLERR,"Fix langevin omega is not yet implemented with kokkos");
+
+  if (oflag) {
+    // oflag thermostats rotational dof via omega on finite-size spheres.
+    // Extend datamasks so torque / omega / radius are synced to/from device.
+    datamask_read  |= TORQUE_MASK | OMEGA_MASK | RADIUS_MASK | RMASS_MASK | TYPE_MASK;
+    datamask_modify |= TORQUE_MASK;
+  }
+
   if (ascale != 0.0) {
     avecEllipKK = dynamic_cast<AtomVecEllipsoidKokkos *>(atom->style_match("ellipsoid"));
   }
@@ -385,7 +391,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   atomKK->modified(execution_space,datamask_modify);
 
   // thermostat omega and angmom
-  //  if (oflag) omega_thermostat();
+  if (oflag) omega_thermostat();
   if (ascale != 0.0) angmom_thermostat();
 
 }
@@ -513,6 +519,84 @@ void FixLangevinKokkos<DeviceType>::compute_target()
                        "Fix langevin variable returned negative temperature");
     }
     modify->addstep_compute(update->ntimestep + 1);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   thermostat rotational dof via omega
+------------------------------------------------------------------------- */
+template<class DeviceType>
+void FixLangevinKokkos<DeviceType>::omega_thermostat_kokkos()
+{
+  atomKK->sync(execution_space,
+               TORQUE_MASK | OMEGA_MASK | RADIUS_MASK |
+               RMASS_MASK | MASK_MASK | TYPE_MASK);
+
+  d_torque = atomKK->k_torque.template view<DeviceType>();
+  d_omega  = atomKK->k_omega.template view<DeviceType>();
+  d_radius = atomKK->k_radius.template view<DeviceType>();
+  rmass    = atomKK->k_rmass.template view<DeviceType>();
+  mask     = atomKK->k_mask.template view<DeviceType>();
+  type     = atomKK->k_type.template view<DeviceType>();
+
+  int nlocal = atomKK->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  // Launch the rotational kernel
+  if (tstyle == ATOM) {
+    FixLangevinKokkosOmegaFunctor<DeviceType,1> functor(this);
+    Kokkos::parallel_for(nlocal, functor);
+  } else {
+    FixLangevinKokkosOmegaFunctor<DeviceType,0> functor(this);
+    Kokkos::parallel_for(nlocal, functor);
+  }
+
+  atomKK->modified(execution_space, TORQUE_MASK);
+}
+
+/* ----------------------------------------------------------------------
+   The device kernel logic for omega thermostatting
+------------------------------------------------------------------------- */
+template<class DeviceType>
+template<int Tp_TSTYLEATOM>
+KOKKOS_INLINE_FUNCTION
+void FixLangevinKokkos<DeviceType>::omega_thermostat_item(int i) const
+{
+  // Prefactors to give correct rotational diffusivity for spheres
+  constexpr double SINERTIA = 0.4;        // sphere: I = 2/5 m r^2
+  constexpr double tendivthree = 10.0/3.0;
+
+  if ((mask(i) & groupbit) && (d_radius(i) > 0.0)) {
+    rand_type rand_gen = rand_pool.get_state();
+
+    double tsqrt_t = tsqrt;
+    if (Tp_TSTYLEATOM) tsqrt_t = sqrt(d_tforce[i]);
+
+    // Calculate moment of inertia: I = 0.4 * r^2 * m
+    double inertiaone = SINERTIA * d_radius(i) * d_radius(i) * rmass(i);
+
+    // Drag prefactor gamma1
+    double gamma1 = -tendivthree * inertiaone / t_period / ftm2v;
+
+    // Random force prefactor gamma2
+    // Uses 80.0 to match the CPU version's rotational fluctuation-dissipation
+    double gamma2 = sqrt(inertiaone) *
+                    sqrt(80.0 * boltz / t_period / dt / mvv2e) / ftm2v;
+
+    gamma1 *= 1.0 / d_ratio(type(i));
+    gamma2 *= 1.0 / sqrt(d_ratio(type(i))) * tsqrt_t;
+
+    // Generate random torque components
+    double tran0 = gamma2 * (rand_gen.drand() - 0.5);
+    double tran1 = gamma2 * (rand_gen.drand() - 0.5);
+    double tran2 = gamma2 * (rand_gen.drand() - 0.5);
+
+    // Apply updates to torque
+    d_torque(i,0) += gamma1 * d_omega(i,0) + tran0;
+    d_torque(i,1) += gamma1 * d_omega(i,1) + tran1;
+    d_torque(i,2) += gamma1 * d_omega(i,2) + tran2;
+
+    rand_pool.free_state(rand_gen);
   }
 }
 

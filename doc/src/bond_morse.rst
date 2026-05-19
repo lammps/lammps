@@ -7,10 +7,6 @@ bond_style morse command
 
 Accelerator Variants: *morse/kk*, *morse/omp*
 
-.. versionadded:: TBD
-
-   Kokkos accelerated styles *morse/kk*\ , *morse/kk/device*\ , and *morse/kk/host*
-
 Syntax
 """"""
 

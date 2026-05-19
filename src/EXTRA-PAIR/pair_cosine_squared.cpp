@@ -42,6 +42,7 @@ PairCosineSquared::PairCosineSquared(LAMMPS *lmp) : Pair(lmp)
 
 PairCosineSquared::~PairCosineSquared()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

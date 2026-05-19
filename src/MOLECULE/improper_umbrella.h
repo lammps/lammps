@@ -38,7 +38,7 @@ class ImproperUmbrella : public Improper {
  protected:
   double *kw, *w0, *C;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

@@ -19,17 +19,17 @@
 
 #include "angle_class2_p6.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,6 +44,8 @@ AngleClass2P6::AngleClass2P6(LAMMPS *lmp) : Angle(lmp) {}
 
 AngleClass2P6::~AngleClass2P6()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(setflag_a);

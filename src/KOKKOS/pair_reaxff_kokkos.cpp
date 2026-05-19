@@ -129,7 +129,7 @@ void PairReaxFFKokkos<DeviceType>::deallocate_views_of_views()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairReaxFFKokkos<DeviceType>::allocate()
+void PairReaxFFKokkos<DeviceType>::allocate_kokkos()
 {
   int n = atom->ntypes;
 
@@ -196,7 +196,7 @@ void PairReaxFFKokkos<DeviceType>::init_style()
 
   need_dup = lmp->kokkos->need_dup<DeviceType>();
 
-  allocate();
+  allocate_kokkos();
   setup();
   init_md();
 }
@@ -4128,7 +4128,7 @@ double PairReaxFFKokkos<DeviceType>::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairReaxFFKokkos<DeviceType>::FindBond(int &numbonds, int groupbit)
+void PairReaxFFKokkos<DeviceType>::FindBond_kokkos(int &numbonds, int groupbit)
 {
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxFindBondZero>(0,nmax),*this);

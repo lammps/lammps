@@ -4,6 +4,8 @@
 #ifndef KOKKOS_EXPERIMENTAL_IMPL_VIEW_CTOR_PROP_HPP
 #define KOKKOS_EXPERIMENTAL_IMPL_VIEW_CTOR_PROP_HPP
 
+#include "impl/Kokkos_Traits.hpp"
+
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
@@ -56,6 +58,9 @@ struct is_view_label<const char[N]> : public std::true_type {};
 
 template <typename T>
 constexpr bool is_view_label_v = is_view_label<T>::value;
+
+template <typename T>
+concept ViewLabel = is_view_label_v<T>;
 
 //----------------------------------------------------------------------------
 

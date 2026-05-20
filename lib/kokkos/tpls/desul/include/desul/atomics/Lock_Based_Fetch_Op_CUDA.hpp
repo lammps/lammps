@@ -12,6 +12,7 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #include <desul/atomics/Common.hpp>
 #include <desul/atomics/Compare_Exchange_CUDA.hpp>
 #include <desul/atomics/Lock_Array_CUDA.hpp>
+#include <desul/atomics/Operator_Function_Objects.hpp>
 #include <desul/atomics/Thread_Fence_CUDA.hpp>
 #include <type_traits>
 
@@ -29,7 +30,7 @@ __device__ T device_atomic_fetch_oper(const Oper& op,
                                       MemoryOrder /*order*/,
                                       MemoryScope scope) {
   // This is a way to avoid deadlock in a warp or wave front
-  T return_val;
+  T return_val{};
   int done = 0;
   unsigned int mask = __activemask();
   unsigned int active = __ballot_sync(mask, 1);
@@ -38,7 +39,8 @@ __device__ T device_atomic_fetch_oper(const Oper& op,
     if (!done) {
       if (lock_address_cuda((void*)dest, scope)) {
         device_atomic_thread_fence(MemoryOrderAcquire(), scope);
-        return_val = *dest;
+        if constexpr (!std::is_same_v<Oper, _store_fetch_operator<T, const T>>)
+          return_val = *dest;
         *dest = op.apply(return_val, val);
         device_atomic_thread_fence(MemoryOrderRelease(), scope);
         unlock_address_cuda((void*)dest, scope);

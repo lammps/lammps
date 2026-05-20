@@ -66,11 +66,34 @@ struct ViewFill<ViewType, Layout, ExecSpace, 0, iType> {
   void operator()(const iType&) const { a() = val; }
 };
 
+// Increasing the number of elements per thread improves throughput for
+// configurations that support StaticBatchSize. The values were found
+// empirically.
+template <class ExecutionSpace, int size>
+struct ViewFillStaticBatchSize {
+  static constexpr int value = 1;
+};
+#ifdef KOKKOS_ENABLE_CUDA
+template <int size>
+struct ViewFillStaticBatchSize<Kokkos::Cuda, size> {
+  static constexpr int value = 16;
+};
+#endif
+#ifdef KOKKOS_ENABLE_HIP
+template <int size>
+struct ViewFillStaticBatchSize<Kokkos::HIP, size> {
+  static constexpr int value = size < 4 ? 8 : 4;
+};
+#endif
+
 template <class ViewType, class Layout, class ExecSpace, typename iType>
 struct ViewFill<ViewType, Layout, ExecSpace, 1, iType> {
   ViewType a;
   typename ViewType::const_value_type val;
-  using policy_type = Kokkos::RangePolicy<ExecSpace, Kokkos::IndexType<iType>>;
+  using policy_type = Kokkos::RangePolicy<
+      ExecSpace, Kokkos::IndexType<iType>,
+      Kokkos::Experimental::StaticBatchSize<ViewFillStaticBatchSize<
+          ExecSpace, sizeof(typename ViewType::value_type)>::value>>;
 
   ViewFill(const ViewType& a_, typename ViewType::const_value_type& val_,
            const ExecSpace& space)
@@ -3118,10 +3141,6 @@ inline auto create_mirror(const Kokkos::View<T, P...>& src,
     return dst_type(prop_copy, src.layout());
 #endif
   }
-#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-    !defined(KOKKOS_COMPILER_MSVC)
-  __builtin_unreachable();
-#endif
 }
 }  // namespace Impl
 
@@ -3228,11 +3247,6 @@ inline auto choose_create_mirror(
       return create_mirror(arg_prop, src);
     }
   }
-
-#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-    !defined(KOKKOS_COMPILER_MSVC)
-  __builtin_unreachable();
-#endif
 }
 
 // create a mirror view
@@ -3266,10 +3280,6 @@ inline auto create_mirror_view(
       return Kokkos::Impl::choose_create_mirror(src, arg_prop);
     }
   }
-#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-    !defined(KOKKOS_COMPILER_MSVC)
-  __builtin_unreachable();
-#endif
 }
 }  // namespace Impl
 
@@ -3375,10 +3385,6 @@ auto create_mirror_view_and_copy(
       deep_copy(mirror, src);
     return mirror;
   }
-#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-    !defined(KOKKOS_COMPILER_MSVC)
-  __builtin_unreachable();
-#endif
 }
 
 // Previously when using auto here, the intel compiler 19.3 would

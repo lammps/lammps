@@ -6,10 +6,6 @@
 namespace Test {
 KOKKOS_IMPL_DISABLE_UNREACHABLE_WARNINGS_PUSH()
 TEST(TEST_CATEGORY, atomic_operations_int16) {
-  // FIXME_OPENMPTARGET - causes runtime failure with CrayClang compiler
-#if defined(KOKKOS_COMPILER_CRAY_LLVM) && defined(KOKKOS_ENABLE_OPENMPTARGET)
-  GTEST_SKIP() << "known to fail with OpenMPTarget+Cray LLVM";
-#endif
   // FIXME_OPENACC - does not support atomic operations on int16_t data
 #if defined(KOKKOS_ENABLE_OPENACC) && defined(KOKKOS_COMPILER_NVHPC)
   GTEST_SKIP() << "unsupported atomic data type for OpenACC+NVHPC";

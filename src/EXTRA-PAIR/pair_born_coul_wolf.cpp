@@ -46,6 +46,8 @@ PairBornCoulWolf::PairBornCoulWolf(LAMMPS *lmp) : Pair(lmp)
 
 PairBornCoulWolf::~PairBornCoulWolf()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

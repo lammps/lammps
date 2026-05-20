@@ -28,8 +28,6 @@ OutputIteratorType transform_inclusive_scan(const ExecutionSpace& ex,
                                             OutputIteratorType first_dest,
                                             BinaryOpType binary_op,
                                             UnaryOpType unary_op) {
-  Impl::static_assert_is_not_openmptarget(ex);
-
   return Impl::transform_inclusive_scan_exespace_impl(
       "Kokkos::transform_inclusive_scan_custom_functors_iterator_api", ex,
       first, last, first_dest, binary_op, unary_op);
@@ -46,8 +44,6 @@ OutputIteratorType transform_inclusive_scan(
     const std::string& label, const ExecutionSpace& ex, InputIteratorType first,
     InputIteratorType last, OutputIteratorType first_dest,
     BinaryOpType binary_op, UnaryOpType unary_op) {
-  Impl::static_assert_is_not_openmptarget(ex);
-
   return Impl::transform_inclusive_scan_exespace_impl(
       label, ex, first, last, first_dest, binary_op, unary_op);
 }
@@ -62,7 +58,6 @@ auto transform_inclusive_scan(
     const ::Kokkos::View<DataType1, Properties1...>& view_from,
     const ::Kokkos::View<DataType2, Properties2...>& view_dest,
     BinaryOpType binary_op, UnaryOpType unary_op) {
-  Impl::static_assert_is_not_openmptarget(ex);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
   namespace KE = ::Kokkos::Experimental;
@@ -82,7 +77,6 @@ auto transform_inclusive_scan(
     const ::Kokkos::View<DataType1, Properties1...>& view_from,
     const ::Kokkos::View<DataType2, Properties2...>& view_dest,
     BinaryOpType binary_op, UnaryOpType unary_op) {
-  Impl::static_assert_is_not_openmptarget(ex);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
   namespace KE = ::Kokkos::Experimental;
@@ -104,7 +98,6 @@ OutputIteratorType transform_inclusive_scan(
     const ExecutionSpace& ex, InputIteratorType first, InputIteratorType last,
     OutputIteratorType first_dest, BinaryOpType binary_op, UnaryOpType unary_op,
     ValueType init_value) {
-  Impl::static_assert_is_not_openmptarget(ex);
   static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
@@ -125,7 +118,6 @@ OutputIteratorType transform_inclusive_scan(
     const std::string& label, const ExecutionSpace& ex, InputIteratorType first,
     InputIteratorType last, OutputIteratorType first_dest,
     BinaryOpType binary_op, UnaryOpType unary_op, ValueType init_value) {
-  Impl::static_assert_is_not_openmptarget(ex);
   static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
@@ -144,7 +136,6 @@ auto transform_inclusive_scan(
     const ::Kokkos::View<DataType1, Properties1...>& view_from,
     const ::Kokkos::View<DataType2, Properties2...>& view_dest,
     BinaryOpType binary_op, UnaryOpType unary_op, ValueType init_value) {
-  Impl::static_assert_is_not_openmptarget(ex);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
   static_assert(std::is_move_constructible_v<ValueType>,
@@ -167,7 +158,6 @@ auto transform_inclusive_scan(
     const ::Kokkos::View<DataType1, Properties1...>& view_from,
     const ::Kokkos::View<DataType2, Properties2...>& view_dest,
     BinaryOpType binary_op, UnaryOpType unary_op, ValueType init_value) {
-  Impl::static_assert_is_not_openmptarget(ex);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
   static_assert(std::is_move_constructible_v<ValueType>,
@@ -197,8 +187,6 @@ KOKKOS_FUNCTION OutputIteratorType transform_inclusive_scan(
     const TeamHandleType& teamHandle, InputIteratorType first,
     InputIteratorType last, OutputIteratorType first_dest,
     BinaryOpType binary_op, UnaryOpType unary_op) {
-  Impl::static_assert_is_not_openmptarget(teamHandle);
-
   return Impl::transform_inclusive_scan_team_impl(
       teamHandle, first, last, first_dest, binary_op, unary_op);
 }
@@ -212,7 +200,6 @@ KOKKOS_FUNCTION auto transform_inclusive_scan(
     const ::Kokkos::View<DataType1, Properties1...>& view_from,
     const ::Kokkos::View<DataType2, Properties2...>& view_dest,
     BinaryOpType binary_op, UnaryOpType unary_op) {
-  Impl::static_assert_is_not_openmptarget(teamHandle);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
   namespace KE = ::Kokkos::Experimental;
@@ -233,7 +220,6 @@ KOKKOS_FUNCTION OutputIteratorType transform_inclusive_scan(
     const TeamHandleType& teamHandle, InputIteratorType first,
     InputIteratorType last, OutputIteratorType first_dest,
     BinaryOpType binary_op, UnaryOpType unary_op, ValueType init_value) {
-  Impl::static_assert_is_not_openmptarget(teamHandle);
   static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
 
@@ -251,7 +237,6 @@ KOKKOS_FUNCTION auto transform_inclusive_scan(
     const ::Kokkos::View<DataType1, Properties1...>& view_from,
     const ::Kokkos::View<DataType2, Properties2...>& view_dest,
     BinaryOpType binary_op, UnaryOpType unary_op, ValueType init_value) {
-  Impl::static_assert_is_not_openmptarget(teamHandle);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
   static_assert(std::is_move_constructible_v<ValueType>,

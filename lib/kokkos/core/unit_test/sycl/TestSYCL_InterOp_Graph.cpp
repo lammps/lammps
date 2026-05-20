@@ -60,7 +60,8 @@ TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
 
   view_t data(Kokkos::view_alloc(exec, "witness"));
 
-  Kokkos::Experimental::Graph graph{exec};
+  Kokkos::Experimental::Graph graph{
+      Kokkos::Experimental::get_device_handle(exec)};
 
   graph.root_node().then_parallel_for(1, Increment<view_t>{data});
 
@@ -101,7 +102,8 @@ TEST(TEST_CATEGORY, graph_construct_from_native) {
   native_graph_t native_graph(exec.sycl_queue().get_context(),
                               exec.sycl_queue().get_device());
 
-  Kokkos::Experimental::Graph graph_from_native(exec, std::move(native_graph));
+  Kokkos::Experimental::Graph graph_from_native(
+      Kokkos::Experimental::get_device_handle(exec), std::move(native_graph));
 
   const view_t data(Kokkos::view_alloc(exec, "witness"));
 

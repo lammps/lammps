@@ -28,7 +28,6 @@ class PairEAMHE : public PairEAMFS {
  public:
   PairEAMHE(class LAMMPS *);
 
- protected:
   void compute(int, int) override;
 };
 

@@ -82,7 +82,6 @@ ValueType reduce_custom_functors_exespace_impl(
     IteratorType last, ValueType init_reduction_value, JoinerType joiner) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
-  Impl::static_assert_is_not_openmptarget(ex);
   Impl::expect_valid_range(first, last);
 
   if (first == last) {
@@ -113,7 +112,6 @@ ValueType reduce_default_functors_exespace_impl(
     IteratorType last, ValueType init_reduction_value) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
-  Impl::static_assert_is_not_openmptarget(ex);
   Impl::expect_valid_range(first, last);
 
   using value_type = std::remove_cvref_t<ValueType>;
@@ -157,7 +155,6 @@ KOKKOS_FUNCTION ValueType reduce_custom_functors_team_impl(
     ValueType init_reduction_value, JoinerType joiner) {
   // checks
   Impl::static_assert_random_access_and_accessible(teamHandle, first);
-  Impl::static_assert_is_not_openmptarget(teamHandle);
   Impl::expect_valid_range(first, last);
 
   if (first == last) {
@@ -188,7 +185,6 @@ KOKKOS_FUNCTION ValueType reduce_default_functors_team_impl(
     ValueType init_reduction_value) {
   // checks
   Impl::static_assert_random_access_and_accessible(teamHandle, first);
-  Impl::static_assert_is_not_openmptarget(teamHandle);
   Impl::expect_valid_range(first, last);
 
   using value_type = std::remove_cvref_t<ValueType>;

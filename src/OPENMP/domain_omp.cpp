@@ -24,9 +24,11 @@
 
 using namespace LAMMPS_NS;
 
+namespace {
 using dbl3_t = struct {
   double x, y, z;
 };
+}    // namespace
 
 /* ----------------------------------------------------------------------
    enforce PBC and modify box image flags for each atom
@@ -55,8 +57,9 @@ void DomainOMP::pbc()
 #endif    // clang-format on
   for (int i = 0; i < n3; i++)
     if (!std::isfinite(coord[i])) flag = 1;
-  if (flag) error->one(FLERR, Error::NOLASTLINE,
-                       "Non-numeric atom coords - simulation unstable" + utils::errorurl(6));
+  if (flag)
+    error->one(FLERR, Error::NOLASTLINE,
+               "Non-numeric atom coords - simulation unstable" + utils::errorurl(6));
 
   auto *_noalias const x = (dbl3_t *) atom->x[0];
   auto *_noalias const v = (dbl3_t *) atom->v[0];

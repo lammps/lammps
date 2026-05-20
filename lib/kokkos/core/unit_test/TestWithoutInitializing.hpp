@@ -64,19 +64,6 @@ TEST(TEST_CATEGORY, resize_realloc_no_alloc) {
 }
 
 TEST(TEST_CATEGORY, realloc_exec_space) {
-#ifdef KOKKOS_ENABLE_CUDA
-  if (std::is_same_v<typename TEST_EXECSPACE::memory_space,
-                     Kokkos::CudaUVMSpace>)
-    GTEST_SKIP() << "skipping since CudaUVMSpace requires additional fences";
-#endif
-// FIXME_OPENMPTARGET The OpenMPTarget backend doesn't implement allocate taking
-// an execution space instance properly so it needs another fence
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>::value)
-    GTEST_SKIP() << "skipping since the OpenMPTarget backend doesn't implement "
-                    "allocate taking an execution space instance properly";
-#endif
-
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableFences());
   using view_type = Kokkos::View<int*, TEST_EXECSPACE>;
@@ -105,6 +92,7 @@ TEST(TEST_CATEGORY, realloc_exec_space) {
 }
 
 namespace {
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 struct NonTriviallyCopyable {
   KOKKOS_FUNCTION NonTriviallyCopyable() {}
   KOKKOS_FUNCTION NonTriviallyCopyable(const NonTriviallyCopyable&) {}
@@ -196,12 +184,6 @@ TEST(TEST_CATEGORY, view_alloc_exec_space_int) {
 }
 
 TEST(TEST_CATEGORY, deep_copy_zero_memset) {
-// FIXME_OPENMPTARGET The OpenMPTarget backend doesn't implement ZeroMemset
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>::value)
-    GTEST_SKIP() << "skipping since the OpenMPTarget backend doesn't implement "
-                    "ZeroMemset";
-#endif
 // FIXME_OPENACC: The OpenACC backend doesn't implement ZeroMemset
 #ifdef KOKKOS_ENABLE_OPENACC
   if (std::is_same<TEST_EXECSPACE, Kokkos::Experimental::OpenACC>::value)
@@ -284,12 +266,6 @@ TEST(TEST_CATEGORY, resize_exec_space) {
 }
 
 TEST(TEST_CATEGORY, view_allocation_int) {
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>::value)
-    GTEST_SKIP() << "skipping since the OpenMPTarget has unexpected fences";
-#endif
-
   using ExecutionSpace = TEST_EXECSPACE;
   if (Kokkos::SpaceAccessibility<
           /*AccessSpace=*/Kokkos::HostSpace,
@@ -319,17 +295,6 @@ TEST(TEST_CATEGORY, view_allocation_int) {
 }
 
 TEST(TEST_CATEGORY, view_allocation_exec_space_int) {
-#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
-  if (std::is_same<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>::value)
-    GTEST_SKIP() << "skipping since the OpenMPTarget has unexpected fences";
-#endif
-
-#ifdef KOKKOS_ENABLE_CUDA
-  if (std::is_same_v<TEST_EXECSPACE::memory_space, Kokkos::CudaUVMSpace>)
-    GTEST_SKIP()
-        << "skipping since the CudaUVMSpace requires additiional fences";
-#endif
-
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::EnableAll());
   using view_type = Kokkos::View<int*, TEST_EXECSPACE>;

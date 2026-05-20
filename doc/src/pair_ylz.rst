@@ -1,7 +1,11 @@
 .. index:: pair_style ylz
+.. index:: pair_style ylz/omp
+.. index:: pair_style ylz/kk
 
 pair_style ylz command
-===========================
+======================
+
+Accelerator Variants: *ylz/omp*, *ylz/kk*
 
 Syntax
 """"""
@@ -89,6 +93,10 @@ mixing as described below:
 
 The last coefficient is optional.  If not specified, the global
 cutoff specified in the pair_style command is used.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

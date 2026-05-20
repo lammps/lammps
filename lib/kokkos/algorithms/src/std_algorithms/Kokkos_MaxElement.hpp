@@ -36,8 +36,6 @@ template <
     std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto max_element(const ExecutionSpace& ex, IteratorType first,
                  IteratorType last, ComparatorType comp) {
-  Impl::static_assert_is_not_openmptarget(ex);
-
   return Impl::min_or_max_element_exespace_impl<MaxFirstLocCustomComparator>(
       "Kokkos::max_element_iterator_api_default", ex, first, last,
       std::move(comp));
@@ -48,8 +46,6 @@ template <
     std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto max_element(const std::string& label, const ExecutionSpace& ex,
                  IteratorType first, IteratorType last, ComparatorType comp) {
-  Impl::static_assert_is_not_openmptarget(ex);
-
   return Impl::min_or_max_element_exespace_impl<MaxFirstLocCustomComparator>(
       label, ex, first, last, std::move(comp));
 }
@@ -84,7 +80,6 @@ auto max_element(const ExecutionSpace& ex,
                  const ::Kokkos::View<DataType, Properties...>& v,
                  ComparatorType comp) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(v);
-  Impl::static_assert_is_not_openmptarget(ex);
 
   return Impl::min_or_max_element_exespace_impl<MaxFirstLocCustomComparator>(
       "Kokkos::max_element_view_api_default", ex, begin(v), end(v),
@@ -99,7 +94,6 @@ auto max_element(const std::string& label, const ExecutionSpace& ex,
                  const ::Kokkos::View<DataType, Properties...>& v,
                  ComparatorType comp) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(v);
-  Impl::static_assert_is_not_openmptarget(ex);
 
   return Impl::min_or_max_element_exespace_impl<MaxFirstLocCustomComparator>(
       label, ex, begin(v), end(v), std::move(comp));
@@ -135,7 +129,6 @@ template <typename TeamHandleType, typename IteratorType,
 KOKKOS_FUNCTION auto max_element(const TeamHandleType& teamHandle,
                                  IteratorType first, IteratorType last,
                                  ComparatorType comp) {
-  Impl::static_assert_is_not_openmptarget(teamHandle);
   return Impl::min_or_max_element_team_impl<MaxFirstLocCustomComparator>(
       teamHandle, first, last, std::move(comp));
 }
@@ -147,7 +140,6 @@ KOKKOS_FUNCTION auto max_element(
     const TeamHandleType& teamHandle,
     const ::Kokkos::View<DataType, Properties...>& v, ComparatorType comp) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(v);
-  Impl::static_assert_is_not_openmptarget(teamHandle);
   return Impl::min_or_max_element_team_impl<MaxFirstLocCustomComparator>(
       teamHandle, begin(v), end(v), std::move(comp));
 }

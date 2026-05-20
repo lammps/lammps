@@ -18,6 +18,7 @@
 #include "platform.h"
 
 #include "fmt/format.h"
+#include "safe_pointers.h"
 #include "text_file_reader.h"
 #include "utils.h"
 
@@ -973,11 +974,8 @@ std::string platform::path_join(const std::string &a, const std::string &b)
 
 bool platform::file_is_readable(const std::string &path)
 {
-  FILE *fp = fopen(path.c_str(), "r");
-  if (fp) {
-    fclose(fp);
-    return true;
-  }
+  SafeFilePtr fp = fopen(path.c_str(), "r");
+  if (fp) return true;
   return false;
 }
 
@@ -989,21 +987,40 @@ bool platform::file_is_writable(const std::string &path)
 {
   // if the file exists, try to append and don't delete
 
+  SafeFilePtr fp;
   if (file_is_readable(path)) {
-    FILE *fp = fopen(path.c_str(), "a");
-    if (fp) {
-      fclose(fp);
-      return true;
-    }
+    fp = fopen(path.c_str(), "a");
+    if (fp) return true;
   } else {
-    FILE *fp = fopen(path.c_str(), "w");
+    fp = fopen(path.c_str(), "w");
     if (fp) {
-      fclose(fp);
+      fp = nullptr;
       unlink(path);
       return true;
     }
   }
   return false;
+}
+
+/* ----------------------------------------------------------------------
+   read first line of file to see if it is a redirect file of a git checkout
+   on a file system without symlinks
+------------------------------------------------------------------------- */
+
+std::string platform::file_redirect(const std::string &path)
+{
+#if defined(_WIN32)
+  // read the first (and only) line and see if it is a valid path
+  SafeFilePtr fp = fopen(path.c_str(), "r");
+  if (fp) {
+    char buffer[1024];
+    if (fgets(buffer, 1024, fp)) {
+      auto target = utils::trim(buffer);
+      if (platform::file_is_readable(target)) return target;
+    }
+  }
+#endif
+  return path;
 }
 
 /* ----------------------------------------------------------------------

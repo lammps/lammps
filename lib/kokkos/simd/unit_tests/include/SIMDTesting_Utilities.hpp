@@ -56,9 +56,9 @@ template <class T, class Abi>
 inline void host_check_equality(
     Kokkos::Experimental::basic_simd<T, Abi> const& expected_result,
     Kokkos::Experimental::basic_simd<T, Abi> const& computed_result,
-    std::size_t nlanes) {
+    Kokkos::Experimental::Impl::simd_size_t nlanes) {
   gtest_checker checker;
-  for (std::size_t i = 0; i < nlanes; ++i) {
+  for (Kokkos::Experimental::Impl::simd_size_t i = 0; i < nlanes; ++i) {
     checker.equality(expected_result[i], computed_result[i]);
   }
 }
@@ -67,9 +67,9 @@ template <class T, class Abi>
 KOKKOS_INLINE_FUNCTION void device_check_equality(
     Kokkos::Experimental::basic_simd<T, Abi> const& expected_result,
     Kokkos::Experimental::basic_simd<T, Abi> const& computed_result,
-    std::size_t nlanes) {
+    Kokkos::Experimental::Impl::simd_size_t nlanes) {
   kokkos_checker checker;
-  for (std::size_t i = 0; i < nlanes; ++i) {
+  for (Kokkos::Experimental::Impl::simd_size_t i = 0; i < nlanes; ++i) {
     checker.equality(expected_result[i], computed_result[i]);
   }
 }
@@ -78,17 +78,41 @@ template <typename T, typename Abi>
 KOKKOS_INLINE_FUNCTION void check_equality(
     Kokkos::Experimental::basic_simd<T, Abi> const& expected_result,
     Kokkos::Experimental::basic_simd<T, Abi> const& computed_result,
-    std::size_t nlanes) {
+    Kokkos::Experimental::Impl::simd_size_t nlanes) {
   KOKKOS_IF_ON_HOST(
       (host_check_equality(expected_result, computed_result, nlanes);))
   KOKKOS_IF_ON_DEVICE(
       (device_check_equality(expected_result, computed_result, nlanes);))
 }
 
+template <class T, class Abi>
+inline void host_check_mask_equality(
+    Kokkos::Experimental::basic_simd_mask<T, Abi> const& expected_result,
+    Kokkos::Experimental::basic_simd_mask<T, Abi> const& computed_result,
+    Kokkos::Experimental::Impl::simd_size_t nlanes =
+        Kokkos::Experimental::basic_simd_mask<T, Abi>::size()) {
+  gtest_checker checker;
+  for (Kokkos::Experimental::Impl::simd_size_t i = 0; i < nlanes; ++i) {
+    checker.equality(expected_result[i], computed_result[i]);
+  }
+}
+
+template <class T, class Abi>
+KOKKOS_INLINE_FUNCTION void device_check_mask_equality(
+    Kokkos::Experimental::basic_simd_mask<T, Abi> const& expected_result,
+    Kokkos::Experimental::basic_simd_mask<T, Abi> const& computed_result,
+    Kokkos::Experimental::Impl::simd_size_t nlanes =
+        Kokkos::Experimental::basic_simd_mask<T, Abi>::size()) {
+  kokkos_checker checker;
+  for (Kokkos::Experimental::Impl::simd_size_t i = 0; i < nlanes; ++i) {
+    checker.equality(expected_result[i], computed_result[i]);
+  }
+}
+
 class load_element_aligned {
  public:
   template <class T, class Abi>
-  bool host_load(T const* mem, std::size_t n,
+  bool host_load(T const* mem, Kokkos::Experimental::Impl::simd_size_t n,
                  Kokkos::Experimental::basic_simd<T, Abi>& result) const {
     if (n < result.size()) return false;
     using simd_type = Kokkos::Experimental::basic_simd<T, Abi>;
@@ -98,7 +122,7 @@ class load_element_aligned {
   }
   template <class T, class Abi>
   KOKKOS_INLINE_FUNCTION bool device_load(
-      T const* mem, std::size_t n,
+      T const* mem, Kokkos::Experimental::Impl::simd_size_t n,
       Kokkos::Experimental::basic_simd<T, Abi>& result) const {
     if (n < result.size()) return false;
     using simd_type = Kokkos::Experimental::basic_simd<T, Abi>;
@@ -111,7 +135,7 @@ class load_element_aligned {
 class load_vector_aligned {
  public:
   template <class T, class Abi>
-  bool host_load(T const* mem, std::size_t n,
+  bool host_load(T const* mem, Kokkos::Experimental::Impl::simd_size_t n,
                  Kokkos::Experimental::basic_simd<T, Abi>& result) const {
     if (n < result.size()) return false;
     using simd_type = Kokkos::Experimental::basic_simd<T, Abi>;
@@ -121,7 +145,7 @@ class load_vector_aligned {
   }
   template <class T, class Abi>
   KOKKOS_INLINE_FUNCTION bool device_load(
-      T const* mem, std::size_t n,
+      T const* mem, Kokkos::Experimental::Impl::simd_size_t n,
       Kokkos::Experimental::basic_simd<T, Abi>& result) const {
     if (n < result.size()) return false;
     using simd_type = Kokkos::Experimental::basic_simd<T, Abi>;
@@ -134,22 +158,26 @@ class load_vector_aligned {
 class load_masked {
  public:
   template <class T, class Abi>
-  bool host_load(T const* mem, std::size_t n,
+  bool host_load(T const* mem, Kokkos::Experimental::Impl::simd_size_t n,
                  Kokkos::Experimental::basic_simd<T, Abi>& result) const {
     using mask_type =
         typename Kokkos::Experimental::basic_simd<T, Abi>::mask_type;
-    mask_type mask(KOKKOS_LAMBDA(std::size_t i) { return i < n; });
+    mask_type mask(KOKKOS_LAMBDA(Kokkos::Experimental::Impl::simd_size_t i) {
+      return i < n;
+    });
     result =
         simd_partial_load(mem, mask, Kokkos::Experimental::simd_flag_default);
     return true;
   }
   template <class T, class Abi>
   KOKKOS_INLINE_FUNCTION bool device_load(
-      T const* mem, std::size_t n,
+      T const* mem, Kokkos::Experimental::Impl::simd_size_t n,
       Kokkos::Experimental::basic_simd<T, Abi>& result) const {
     using mask_type =
         typename Kokkos::Experimental::basic_simd<T, Abi>::mask_type;
-    mask_type mask(KOKKOS_LAMBDA(std::size_t i) { return i < n; });
+    mask_type mask(KOKKOS_LAMBDA(Kokkos::Experimental::Impl::simd_size_t i) {
+      return i < n;
+    });
     result =
         simd_partial_load(mem, mask, Kokkos::Experimental::simd_flag_default);
     return true;
@@ -159,20 +187,24 @@ class load_masked {
 class load_as_scalars {
  public:
   template <class T, class Abi>
-  bool host_load(T const* mem, std::size_t n,
+  bool host_load(T const* mem, Kokkos::Experimental::Impl::simd_size_t n,
                  Kokkos::Experimental::basic_simd<T, Abi>& result) const {
     Kokkos::Experimental::basic_simd<T, Abi> init(
-        KOKKOS_LAMBDA(std::size_t i) { return (i < n) ? mem[i] : T(0); });
+        KOKKOS_LAMBDA(Kokkos::Experimental::Impl::simd_size_t i) {
+          return (i < n) ? mem[i] : T(0);
+        });
     result = init;
 
     return true;
   }
   template <class T, class Abi>
   KOKKOS_INLINE_FUNCTION bool device_load(
-      T const* mem, std::size_t n,
+      T const* mem, Kokkos::Experimental::Impl::simd_size_t n,
       Kokkos::Experimental::basic_simd<T, Abi>& result) const {
     Kokkos::Experimental::basic_simd<T, Abi> init(
-        KOKKOS_LAMBDA(std::size_t i) { return (i < n) ? mem[i] : T(0); });
+        KOKKOS_LAMBDA(Kokkos::Experimental::Impl::simd_size_t i) {
+          return (i < n) ? mem[i] : T(0);
+        });
 
     result = init;
     return true;

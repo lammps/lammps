@@ -238,6 +238,11 @@ void FixLangevin::init()
         if (ellipsoid[i] < 0) error->one(FLERR, "Fix langevin angmom requires extended particles");
   }
 
+  // check that superellipsoids are not used
+
+  if (atom->superellipsoid_flag)
+    error->all(FLERR, "Fix langevin does not support superellipsoids");
+
   // set force prefactors
 
   if (!atom->rmass) {

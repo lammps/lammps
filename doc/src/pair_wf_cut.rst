@@ -1,7 +1,11 @@
 .. index:: pair_style wf/cut
+.. index:: pair_style wf/cut/omp
+.. index:: pair_style wf/cut/kk
 
 pair_style wf/cut command
-===========================
+=========================
+
+Accelerator Variants: *wf/cut/omp*, *wf/cut/kk*
 
 Syntax
 """"""
@@ -76,6 +80,10 @@ given in the pair_style command is used.  The exponents :math:`\nu` and
 :math:`\mu` are positive integers, usually set to 1. There is usually
 little to be gained by choosing other values of :math:`\nu` and
 :math:`\mu` (See discussion in :ref:`Wang2020 <Wang2020>`)
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

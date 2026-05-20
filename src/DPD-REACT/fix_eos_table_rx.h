@@ -68,15 +68,15 @@ class FixEOStableRX : public Fix {
   void read_file(char *);
 
   double *dHf, *energyCorr, *tempCorrCoeff, *moleculeCorrCoeff;
+  int *eosSpecies;
+  int ncolumn;
+  bool rx_flag;
 
+ public:
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
-
-  int *eosSpecies;
-  int ncolumn;
-  bool rx_flag;
 };
 }    // namespace LAMMPS_NS
 

@@ -57,6 +57,9 @@ class FixBondReact : public Fix {
   int modify_param(int, char **) override;
   double memory_usage() override;
 
+  void write_restart(FILE *) override;
+  void restart(char *buf) override;
+
   int image(int *&, double **&) override;
 
  private:
@@ -256,8 +259,6 @@ class FixBondReact : public Fix {
   int insert_atoms_setup(tagint **, int, Reaction &);
   void unlimit_bond();                                     // removes atoms from stabilization, and other post-reaction every-step operations
   void dedup_mega_gloves(Dedup_Modes);                     // dedup global mega_glove
-  void write_restart(FILE *) override;
-  void restart(char *buf) override;
 
   // store restart data
   struct Set {

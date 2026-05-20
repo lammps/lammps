@@ -42,6 +42,8 @@ PairGauss::PairGauss(LAMMPS *lmp) : Pair(lmp)
 
 PairGauss::~PairGauss()
 {
+  if (copymode) return;
+
   delete[] pvector;
 
   if (allocated) {

@@ -11,7 +11,6 @@ foreach(Tag Threads;Serial;OpenMP;HPX;Cuda;HIP;SYCL)
     set(UnitTestSources UnitTestMain.cpp)
     set(dir ${CMAKE_CURRENT_BINARY_DIR}/${dir})
     file(MAKE_DIRECTORY ${dir})
-    set(DeprecatedTests Vector StaticCrsGraph)
     foreach(
       Name
       Bitset
@@ -27,15 +26,10 @@ foreach(Tag Threads;Serial;OpenMP;HPX;Cuda;HIP;SYCL)
       ErrorReporter
       OffsetView
       ScatterView
-      StaticCrsGraph
       WithoutInitializing
       UnorderedMap
-      Vector
       ViewCtorPropEmbeddedDim
     )
-      if(NOT Kokkos_ENABLE_DEPRECATED_CODE_4 AND Name IN_LIST DeprecatedTests)
-        continue() # skip tests for deprecated features if deprecated code 4 is not enabled
-      endif()
       # Write to a temporary intermediate file and call configure_file to avoid
       # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
       set(file ${dir}/Test${Tag}_${Name}.cpp)

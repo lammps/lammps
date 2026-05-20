@@ -10,6 +10,7 @@ import kokkos.core;
 #include <Kokkos_Core.hpp>
 #endif
 
+#include <new>
 #include <gtest/gtest.h>
 
 using Kokkos::Impl::HostSharedPtr;
@@ -103,8 +104,6 @@ TEST(TEST_CATEGORY, host_shared_ptr_dereference_on_device) {
   check_access_stored_pointer_and_dereference_on_device(device_ptr);
 }
 
-// FIXME_OPENMPTARGET
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
 TEST(TEST_CATEGORY, host_shared_ptr_special_members_on_device) {
   using T = Data;
 
@@ -116,10 +115,7 @@ TEST(TEST_CATEGORY, host_shared_ptr_special_members_on_device) {
 
   check_special_members_on_device(device_ptr);
 }
-#endif
 
-// FIXME_OPENMPTARGET
-#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
 namespace {
 
 struct Bar {
@@ -247,5 +243,3 @@ TEST(TEST_CATEGORY, host_shared_ptr_tracking) {
   }
 #endif
 }
-
-#endif

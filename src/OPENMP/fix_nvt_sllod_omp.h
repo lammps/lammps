@@ -29,16 +29,18 @@ class FixNVTSllodOMP : public FixNHOMP {
   FixNVTSllodOMP(class LAMMPS *, int, char **);
   void init() override;
 
- private:
+ protected:
   int nondeformbias;
-  int psllod_flag;     // 0 for SLLOD, 1 for p-SLLOD
-  int peculiar_flag;   // 0 for lab frame, 1 for peculiar
-  int kick_flag;       // 0 for no initial velocity kick, 1 for kick
-  enum {REVERSIBLE, LEGACY} integrator;
+  int psllod_flag;      // 0 for SLLOD, 1 for p-SLLOD
+  int peculiar_flag;    // 0 for lab frame, 1 for peculiar
+  int kick_flag;        // 0 for no initial velocity kick, 1 for kick
+  enum { REVERSIBLE, LEGACY } integrator;
 
   void nh_v_temp() override;
   void nve_x() override;
   int size_restart_global() override;
+
+ public:
   int pack_restart_data(double *list) override;
   void restart(char *buf) override;
   int modify_param(int narg, char **arg) override;

@@ -152,6 +152,7 @@ class HostBarrier {
 
   HostBarrier(const HostBarrier&)            = delete;
   HostBarrier& operator=(const HostBarrier&) = delete;
+  ~HostBarrier()                             = default;
 
  private:
   KOKKOS_INLINE_FUNCTION

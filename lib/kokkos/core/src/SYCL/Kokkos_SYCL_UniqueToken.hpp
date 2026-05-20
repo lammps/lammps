@@ -32,18 +32,6 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
   explicit UniqueToken(execution_space const& = execution_space())
       : m_locks(Kokkos::Impl::sycl_global_unique_token_locks()) {}
 
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken(const UniqueToken&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken(UniqueToken&&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken& operator=(const UniqueToken&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken& operator=(UniqueToken&&) = default;
-
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
   KOKKOS_INLINE_FUNCTION
   size_type size() const noexcept { return m_locks.extent(0); }

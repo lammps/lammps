@@ -3,8 +3,6 @@
 
 #include <TestStdAlgorithmsCommon.hpp>
 
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
-
 namespace Test {
 namespace stdalgos {
 namespace TeamTransformInclusiveScan {
@@ -256,5 +254,3 @@ TEST(std_algorithms_transform_inclusive_scan_team_test, test) {
 }  // namespace TeamTransformInclusiveScan
 }  // namespace stdalgos
 }  // namespace Test
-
-#endif

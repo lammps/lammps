@@ -1,8 +1,8 @@
 This directory has 2 scripts that compute the diffusion coefficient of
-a 2d Lennard-Jones fluid using 2 different methods.  See the
-discussion in Section 6.22 of the manual for an overview of the
-methods and pointers to doc pages for the commands which implement
-them. 
+a 2d Lennard-Jones fluid using 2 different methods.  See the discussion
+in the Howto document on calculating diffusion coefficients of the
+LAMMPS manual for an overview of the methods and pointers to doc pages
+for the commands which implement them.
 
 These scripts are provided for illustration purposes.  No guarantee is
 made that the systems are fully equilibrated or that the runs are long

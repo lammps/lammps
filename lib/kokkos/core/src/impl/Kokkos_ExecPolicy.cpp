@@ -29,7 +29,9 @@ Impl::PerThreadValue PerThread(const size_t& arg) {
   return Impl::PerThreadValue(arg);
 }
 
-void team_policy_check_valid_storage_level_argument(int level) {
+}  // namespace Kokkos
+
+void Kokkos::Impl::team_policy_check_valid_storage_level_argument(int level) {
   if (!(level == 0 || level == 1)) {
     std::stringstream ss;
     ss << "TeamPolicy::set_scratch_size(/*level*/ " << level
@@ -37,5 +39,3 @@ void team_policy_check_valid_storage_level_argument(int level) {
     abort(ss.str().c_str());
   }
 }
-
-}  // namespace Kokkos

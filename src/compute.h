@@ -111,6 +111,7 @@ class Compute : protected Pointers {
   uint64_t datamask_read, datamask_modify;
 
   int copymode, kokkosable;
+  int forward_comm_device;    // 1 if forward comm on Device
 
   Compute(class LAMMPS *, int, char **);
   ~Compute() override;

@@ -49,6 +49,7 @@ DihedralHelix::DihedralHelix(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralHelix::~DihedralHelix()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(aphi);

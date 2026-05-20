@@ -47,16 +47,18 @@ TEST(TEST_CATEGORY, graph_lock_based_atomic_op) {
   Kokkos::View<Kokkos::complex<double>, TEST_EXECSPACE> result(
       Kokkos::view_alloc(Kokkos::WithoutInitializing));
 
-  auto graph = Kokkos::Experimental::create_graph(ex, [&](const auto& root) {
-    root.then_parallel_for(
-            Kokkos::RangePolicy<TEST_EXECSPACE, InitTag>(0, 1),
-            TestFunctor<Kokkos::View<Kokkos::complex<double>, TEST_EXECSPACE>>{
-                result})
-        .then_parallel_for(
-            Kokkos::RangePolicy<TEST_EXECSPACE, WorkTag>(0, 100),
-            TestFunctor<Kokkos::View<Kokkos::complex<double>, TEST_EXECSPACE>>{
-                result});
-  });
+  using functor_t =
+      TestFunctor<Kokkos::View<Kokkos::complex<double>, TEST_EXECSPACE>>;
+
+  auto graph = Kokkos::Experimental::create_graph(
+      Kokkos::Experimental::get_device_handle(ex), [&](const auto& root) {
+        root.then_parallel_for(
+                Kokkos::RangePolicy<TEST_EXECSPACE, InitTag>(0, 1),
+                functor_t{result})
+            .then_parallel_for(
+                Kokkos::RangePolicy<TEST_EXECSPACE, WorkTag>(0, 100),
+                functor_t{result});
+      });
 
   graph.submit(ex);
 

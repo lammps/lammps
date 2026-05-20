@@ -13,7 +13,7 @@ libraries with experimental research software, that are not validated
 and tested by the LAMMPS developers, so it is easy to import bad
 behavior from calling functions in one of those libraries.
 
-Thus is is quite easy to crash LAMMPS through malicious input and do all
+Thus it is quite easy to crash LAMMPS through malicious input and do all
 kinds of file system manipulations.  And because of that LAMMPS should
 **NEVER** be compiled or **run** as superuser, either from a "root" or
 "administrator" account directly or indirectly via "sudo" or "su".

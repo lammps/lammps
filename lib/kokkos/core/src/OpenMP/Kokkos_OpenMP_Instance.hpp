@@ -40,28 +40,10 @@ struct OpenMPTraits {
 
 class OpenMPInternal {
  private:
-  OpenMPInternal(int arg_pool_size)
-      : m_pool_size{arg_pool_size}, m_level{omp_get_level()}, m_pool() {
-    // guard pushing to all_instances
-    {
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
-      if (omp_get_level() != 0)
-        Kokkos::abort(
-            "Kokkos::OpenMP instances can only be created outside OpenMP "
-            "regions!");
-#endif
-      std::scoped_lock lock(all_instances_mutex);
-      all_instances.push_back(this);
-    }
-  }
-
-  OpenMPInternal()                                 = delete;
   OpenMPInternal(const OpenMPInternal&)            = delete;
   OpenMPInternal& operator=(const OpenMPInternal&) = delete;
 
   static int get_current_max_threads() noexcept;
-
-  bool m_initialized = false;
 
   int m_pool_size;
   int m_level;
@@ -71,11 +53,10 @@ class OpenMPInternal {
  public:
   friend class Kokkos::OpenMP;
 
-  static OpenMPInternal& singleton();
+  OpenMPInternal(int arg_pool_size);
+  ~OpenMPInternal();
 
-  void initialize(int thread_cound);
-
-  void finalize();
+  void fence(const std::string&);
 
   void clear_thread_data();
 
@@ -96,16 +77,15 @@ class OpenMPInternal {
 
   int get_level() const { return m_level; }
 
-  bool is_initialized() const { return m_initialized; }
-
-  bool verify_is_initialized(const char* const label) const;
-
   void print_configuration(std::ostream& s) const;
 
   std::mutex m_instance_mutex;
 
+  static HostSharedPtr<OpenMPInternal> default_instance;
+
   static std::vector<OpenMPInternal*> all_instances;
   static std::mutex all_instances_mutex;
+  static int hardware_max_threads;
 };
 
 inline bool execute_in_serial(OpenMP const& space = OpenMP()) {

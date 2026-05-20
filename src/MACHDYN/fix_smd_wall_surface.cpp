@@ -24,6 +24,7 @@
 #include "error.h"
 #include "graphics.h"
 #include "memory.h"
+#include "safe_pointers.h"
 #include "text_file_reader.h"
 
 #include <Eigen/Eigen>
@@ -188,7 +189,7 @@ void FixSMDWallSurface::read_triangles(int pass)
   vert = new Vector3d[3];
   Vector3d normal, center;
 
-  FILE *fp = fopen(filename, "r");
+  SafeFilePtr fp = fopen(filename, "r");
   if (fp == nullptr) error->one(FLERR, "Cannot open file {}: {}", filename, utils::getsyserror());
 
   if (comm->me == 0) {
@@ -331,7 +332,6 @@ void FixSMDWallSurface::read_triangles(int pass)
   }
 
   delete[] vert;
-  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

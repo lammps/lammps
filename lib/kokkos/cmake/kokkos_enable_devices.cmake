@@ -69,23 +69,6 @@ if(KOKKOS_ENABLE_OPENACC)
     -Wno-unknown-cuda-version
     -Wno-pass-failed
   )
-  compiler_specific_defs(Clang KOKKOS_WORKAROUND_OPENMPTARGET_CLANG)
-endif()
-
-kokkos_device_option(OPENMPTARGET OFF DEVICE "Whether to build the OpenMP target backend")
-if(KOKKOS_ENABLE_OPENMPTARGET)
-  set(ClangOpenMPFlag -fopenmp=libomp)
-
-  compiler_specific_flags(
-    Clang
-    ${ClangOpenMPFlag}
-    -Wno-openmp-mapping
-    -Wno-unknown-cuda-version
-    -Wno-pass-failed
-    DEFAULT
-    -fopenmp
-  )
-  compiler_specific_defs(Clang KOKKOS_WORKAROUND_OPENMPTARGET_CLANG)
 endif()
 
 if(Trilinos_ENABLE_Kokkos AND TPL_ENABLE_CUDA)

@@ -90,7 +90,7 @@ bool ReadData::is_data_section(const std::string &keyword)
 }
 
 /* ---------------------------------------------------------------------- */
-ReadData::ReadData(LAMMPS *_lmp) : Command(_lmp), fp(nullptr), coeffarg(nullptr), lmap(nullptr)
+ReadData::ReadData(LAMMPS *_lmp) : Command(_lmp), coeffarg(nullptr), lmap(nullptr)
 {
   MPI_Comm_rank(world, &me);
   line = new char[MAXLINE];
@@ -525,8 +525,7 @@ void ReadData::command(int narg, char **arg)
     if (me == 0) {
       if (firstpass) utils::logmesg(lmp, "Reading data file ...\n");
       open(arg[0]);
-    } else
-      fp = nullptr;
+    }
 
     // read header info
 
@@ -1055,16 +1054,6 @@ void ReadData::command(int narg, char **arg)
 
     if (natoms > 0 && atomflag == 0)
       error->all(FLERR, Error::ARGZERO, "No valid atoms found in data file");
-
-    // close file
-
-    if (me == 0) {
-      if (compressed)
-        platform::pclose(fp);
-      else
-        fclose(fp);
-      fp = nullptr;
-    }
 
     // done if this was 2nd pass
 
@@ -2461,18 +2450,19 @@ int ReadData::reallocate(int **pcount, int cmax, int amax)
 
 /* ----------------------------------------------------------------------
    proc 0 opens data file
-   test if compressed
+   test if compressed and thus need to close with pclose() instead of fclose()
 ------------------------------------------------------------------------- */
 
 void ReadData::open(const std::string &file)
 {
-  if (platform::has_compress_extension(file)) {
-    compressed = 1;
-    fp = platform::compressed_read(file);
+  // file may be a redirect, e.g. on a git checkout on Windows in lieu of a symbolic link
+  auto path = platform::file_redirect(file);
+  if (platform::has_compress_extension(path)) {
+    fp.set_pclose();
+    fp = platform::compressed_read(path);
     if (!fp) error->one(FLERR, "Cannot open compressed file {}", file);
   } else {
-    compressed = 0;
-    fp = fopen(file.c_str(), "r");
+    fp = fopen(path.c_str(), "r");
     if (!fp) error->one(FLERR, "Cannot open file {}: {}", file, utils::getsyserror());
   }
 }

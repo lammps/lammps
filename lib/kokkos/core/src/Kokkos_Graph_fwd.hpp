@@ -8,7 +8,7 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_GRAPH_FWD
 #endif
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Concepts.hpp>
 
 namespace Kokkos {
 namespace Experimental {
@@ -18,7 +18,7 @@ struct TypeErasedTag {};
 template <class ExecutionSpace>
 struct Graph;
 
-template <class ExecutionSpace, class Kernel = TypeErasedTag,
+template <Kokkos::ExecutionSpace ExecutionSpace, class Kernel = TypeErasedTag,
           class Predecessor = TypeErasedTag>
 class GraphNodeRef;
 

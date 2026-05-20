@@ -15,6 +15,7 @@
 #define LMP_VARIABLE_H
 
 #include "pointers.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 class Region;
@@ -76,6 +77,7 @@ class Variable : protected Pointers {
     PYTHON,
     TIMER,
     INTERNAL,
+    UNASSIGNED,
     UNKNOWN
   };
   static constexpr int VALUELENGTH = 64;
@@ -138,6 +140,8 @@ class Variable : protected Pointers {
 
   int compute_python(int);
   void remove(int);
+  int recycle();
+
   void grow();
   void copy(int, char **, char **);
   double evaluate(char *, Tree **, int);
@@ -176,7 +180,7 @@ class VarReader : protected Pointers {
 
  private:
   int me, style;
-  FILE *fp;
+  SafeFilePtr fp;
   char *buffer;
 };
 

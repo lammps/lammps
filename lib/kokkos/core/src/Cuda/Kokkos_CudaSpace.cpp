@@ -34,25 +34,18 @@ cudaStream_t Kokkos::Impl::cuda_get_deep_copy_stream() {
   static cudaStream_t s = nullptr;
   if (s == nullptr) {
     KOKKOS_IMPL_CUDA_SAFE_CALL(
-        (CudaInternal::singleton().cuda_stream_create_wrapper(&s)));
+        (CudaInternal::default_instance->cuda_stream_create_wrapper(&s)));
   }
   return s;
-}
-
-const std::unique_ptr<Kokkos::Cuda> &Kokkos::Impl::cuda_get_deep_copy_space(
-    bool initialize) {
-  static std::unique_ptr<Cuda> space = nullptr;
-  if (!space && initialize)
-    space = std::make_unique<Cuda>(Kokkos::Impl::cuda_get_deep_copy_stream());
-  return space;
 }
 
 namespace Kokkos {
 namespace Impl {
 
 void DeepCopyCuda(void *dst, const void *src, size_t n) {
-  KOKKOS_IMPL_CUDA_SAFE_CALL((CudaInternal::singleton().cuda_memcpy_wrapper(
-      dst, src, n, cudaMemcpyDefault)));
+  KOKKOS_IMPL_CUDA_SAFE_CALL(
+      (CudaInternal::default_instance->cuda_memcpy_wrapper(dst, src, n,
+                                                           cudaMemcpyDefault)));
 }
 
 void DeepCopyAsyncCuda(const Cuda &instance, void *dst, const void *src,
@@ -80,12 +73,6 @@ void DeepCopyAsyncCuda(void *dst, const void *src, size_t n) {
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-bool CudaUVMSpace::available() { return true; }
-#endif
-
-/*--------------------------------------------------------------------------*/
 
 #ifdef KOKKOS_IMPL_DEBUG_CUDA_PIN_UVM_TO_HOST
 // The purpose of the following variable is to allow a state-based choice
@@ -440,23 +427,28 @@ void CudaHostPinnedSpace::impl_deallocate(
 namespace Kokkos {
 namespace Impl {
 
-void cuda_prefetch_pointer(const Cuda &space, const void *ptr, size_t bytes,
+void cuda_prefetch_pointer(cudaStream_t stream, const void *ptr, size_t bytes,
                            bool to_device) {
   if ((ptr == nullptr) || (bytes == 0)) return;
   cudaPointerAttributes attr;
-  KOKKOS_IMPL_CUDA_SAFE_CALL((
-      space.impl_internal_space_instance()->cuda_pointer_get_attributes_wrapper(
-          &attr, ptr)));
+  KOKKOS_IMPL_CUDA_SAFE_CALL((cudaPointerGetAttributes(&attr, ptr)));
   // I measured this and it turns out prefetching towards the host slows
   // DualView syncs down. Probably because the latency is not too bad in the
-  // first place for the pull down. If we want to change that provde
+  // first place for the pull down. If we want to change that provide
   // cudaCpuDeviceId as the device if to_device is false
   bool is_managed = attr.type == cudaMemoryTypeManaged;
+  Cuda default_instance;
   if (to_device && is_managed &&
-      space.cuda_device_prop().concurrentManagedAccess) {
+      default_instance.cuda_device_prop().concurrentManagedAccess) {
+    const int dstDevice = default_instance.cuda_device();
+#if CUDART_VERSION >= 13000
+    cudaMemLocation loc = {cudaMemLocationTypeDevice, dstDevice};
     KOKKOS_IMPL_CUDA_SAFE_CALL(
-        (space.impl_internal_space_instance()->cuda_mem_prefetch_async_wrapper(
-            ptr, bytes, space.cuda_device())));
+        (cudaMemPrefetchAsync(ptr, bytes, loc, /*flags=*/0, stream)));
+#else
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        (cudaMemPrefetchAsync(ptr, bytes, dstDevice, stream)));
+#endif
   }
 }
 

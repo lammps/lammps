@@ -17,7 +17,7 @@ Syntax
 * cut_lo = radius below which the weighting function for the local averaging is 1 (distance units)
 * cut_hi = radius above which the weighting function for the local averaging is 0 (distance units)
 * lattice = *fcc* or *bcc* or N = # of neighbors per atom to include in the CSP calculation
-* zero or one keyword/args pairs may be appended
+* zero or more keyword/args pairs may be appended
 * keyword = *csp_cut* or *csp_mode* or *forces* or *lambda_non_group* or *store_peratom*
 
   .. parsed-literal::
@@ -48,7 +48,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 30Mar2026
 
 The potential energy :math:`E_i` of an atom :math:`i` according to an
 adaptive-precision potential is given by :ref:`(Immel2025) <Immel2025_8>`

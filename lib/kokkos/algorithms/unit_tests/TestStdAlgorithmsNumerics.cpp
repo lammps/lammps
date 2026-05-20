@@ -117,8 +117,6 @@ struct std_algorithms_numerics_test : public ::testing::Test {
   }
 };
 
-#if !defined KOKKOS_ENABLE_OPENMPTARGET
-
 // -------------------------------------------------------------------
 // test default case of transform_reduce
 //
@@ -582,8 +580,6 @@ TEST_F(std_algorithms_numerics_test,
   run_and_check_reduce_overloadC<exespace>(m_strided_view_cs, gold, init,
                                            joiner_type());
 }
-
-#endif  // not defined KOKKOS_ENABLE_OPENMPTARGET
 
 }  // namespace stdalgos
 }  // namespace Test

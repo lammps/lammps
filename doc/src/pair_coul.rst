@@ -3,6 +3,7 @@
 .. index:: pair_style coul/cut/kk
 .. index:: pair_style coul/cut/omp
 .. index:: pair_style coul/cut/global
+.. index:: pair_style coul/cut/global/kk
 .. index:: pair_style coul/cut/global/omp
 .. index:: pair_style coul/ctip
 .. index:: pair_style coul/debye
@@ -21,6 +22,7 @@
 .. index:: pair_style coul/msm
 .. index:: pair_style coul/msm/omp
 .. index:: pair_style coul/streitz
+.. index:: pair_style coul/streitz/omp
 .. index:: pair_style coul/wolf
 .. index:: pair_style coul/wolf/kk
 .. index:: pair_style coul/wolf/omp
@@ -37,7 +39,7 @@ Accelerator Variants: *coul/cut/gpu*, *coul/cut/kk*, *coul/cut/omp*
 pair_style coul/cut/global command
 ==================================
 
-Accelerator Variants: *coul/cut/omp*
+Accelerator Variants: *coul/cut/global/kk*, *coul/cut/global/omp*
 
 pair_style coul/ctip command
 ============================
@@ -67,6 +69,8 @@ Accelerator Variants: *coul/msm/omp*
 
 pair_style coul/streitz command
 ===============================
+
+Accelerator Variants: *coul/streitz/omp*
 
 pair_style coul/wolf command
 ============================

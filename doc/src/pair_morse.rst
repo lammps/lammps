@@ -4,6 +4,7 @@
 .. index:: pair_style morse/opt
 .. index:: pair_style morse/smooth/linear
 .. index:: pair_style morse/smooth/linear/omp
+.. index:: pair_style morse/smooth/linear/kk
 .. index:: pair_style morse/kk
 
 pair_style morse command
@@ -14,7 +15,7 @@ Accelerator Variants: *morse/gpu*, *morse/omp*, *morse/opt*, *morse/kk*
 pair_style morse/smooth/linear command
 ======================================
 
-Accelerator Variants: *morse/smooth/linear/omp*
+Accelerator Variants: *morse/smooth/linear/omp*, *morse/smooth/linear/kk*
 
 Syntax
 """"""

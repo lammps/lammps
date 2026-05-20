@@ -47,7 +47,7 @@ enum { ASCEND, DESCEND };
 Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) :
     Pointers(lmp), multiname(nullptr), idrefresh(nullptr), irefresh(nullptr), skipvar(nullptr),
     format(nullptr), format_default(nullptr), format_line_user(nullptr), format_float_user(nullptr),
-    format_int_user(nullptr), format_bigint_user(nullptr), format_column_user(nullptr), fp(nullptr),
+    format_int_user(nullptr), format_bigint_user(nullptr), format_column_user(nullptr),
     nameslist(nullptr), buf(nullptr), sbuf(nullptr), ids(nullptr), bufsort(nullptr),
     idsort(nullptr), index(nullptr), proclist(nullptr), xpbc(nullptr), vpbc(nullptr),
     imagepbc(nullptr), irregular(nullptr)
@@ -182,17 +182,6 @@ Dump::~Dump()
   if (maxfiles > 0) {
     for (int idx = 0; idx < numfiles; ++idx) delete[] nameslist[idx];
     delete[] nameslist;
-  }
-
-  // XTC style sets fp to a null pointer since it closes file in its destructor
-
-  if (multifile == 0 && fp != nullptr) {
-    if (compressed) {
-      if (filewriter) platform::pclose(fp);
-    } else {
-      if (filewriter) fclose(fp);
-    }
-    fp = nullptr;
   }
 }
 
@@ -544,16 +533,9 @@ void Dump::write()
   if (fp && ferror(fp))
     error->one(FLERR, Error::NOLASTLINE, "Error writing dump {}: {}", id, utils::getsyserror());
 
-  // if file per timestep, close file if I am filewriter
+  // if file per timestep, close open files
 
-  if (multifile) {
-    if (compressed) {
-      if (filewriter && fp != nullptr) platform::pclose(fp);
-    } else {
-      if (filewriter && fp != nullptr) fclose(fp);
-    }
-    fp = nullptr;
-  }
+  if (multifile) fp = nullptr;  // implicitly closes file
 }
 
 /* ----------------------------------------------------------------------
@@ -595,6 +577,7 @@ void Dump::openfile()
 
   if (filewriter) {
     if (compressed) {
+      fp.set_pclose();
       fp = platform::compressed_write(filecurrent);
     } else if (binary) {
       fp = fopen(filecurrent,"wb");
@@ -604,10 +587,11 @@ void Dump::openfile()
       fp = fopen(filecurrent,"w");
     }
 
-    if (fp == nullptr)
-      error->one(FLERR, Error::NOLASTLINE, "Cannot open dump file {}:{}",
+    if (fp == nullptr) {
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open dump file {}: {}",
                  filecurrent, utils::getsyserror());
-  } else fp = nullptr;
+    }
+  }
 
   // delete string with timestep replaced
 

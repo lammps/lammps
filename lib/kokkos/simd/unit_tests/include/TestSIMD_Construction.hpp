@@ -87,21 +87,24 @@ inline void host_test_simd_alias() {
 
 template <typename /*Abi*/, typename DataType>
 inline void host_test_simd_default_abi() {
-#if defined(KOKKOS_ENABLE_HPX) || defined(KOKKOS_ENABLE_OPENMPTARGET) || \
-    defined(KOKKOS_ENABLE_OPENACC) || defined(KOKKOS_ENABLE_CUDA) ||     \
-    defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL)
-  constexpr int expected_size = 1;
+#if defined(KOKKOS_ENABLE_HPX) || defined(KOKKOS_ENABLE_OPENACC) || \
+    defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) ||    \
+    defined(KOKKOS_ENABLE_SYCL)
+  constexpr Kokkos::Experimental::Impl::simd_size_t expected_size = 1;
 #elif defined(KOKKOS_ARCH_AVX512XEON)
-  constexpr int expected_size = 512 / (CHAR_BIT * sizeof(DataType));
+  constexpr Kokkos::Experimental::Impl::simd_size_t expected_size =
+      512 / (CHAR_BIT * sizeof(DataType));
 #elif defined(KOKKOS_ARCH_AVX2)
-  constexpr int expected_size = 256 / (CHAR_BIT * sizeof(DataType));
+  constexpr Kokkos::Experimental::Impl::simd_size_t expected_size =
+      256 / (CHAR_BIT * sizeof(DataType));
 #elif defined(KOKKOS_ARCH_ARM_SVE)
-  constexpr int expected_size =
+  constexpr Kokkos::Experimental::Impl::simd_size_t expected_size =
       __ARM_FEATURE_SVE_BITS / (CHAR_BIT * sizeof(DataType));
 #elif defined(KOKKOS_ARCH_ARM_NEON)
-  constexpr int expected_size = 128 / (CHAR_BIT * sizeof(DataType));
+  constexpr Kokkos::Experimental::Impl::simd_size_t expected_size =
+      128 / (CHAR_BIT * sizeof(DataType));
 #else
-  constexpr int expected_size = 1;
+  constexpr Kokkos::Experimental::Impl::simd_size_t expected_size = 1;
 #endif
 
   using simd_type      = Kokkos::Experimental::simd<DataType>;
@@ -199,8 +202,8 @@ TEST(simd, host_construction) {
 }
 
 TEST(simd, device_construction) {
-  Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::IndexType<int>>(0, 1),
-                       simd_device_construction_functor());
+  Kokkos::parallel_for(1, simd_device_construction_functor());
+  Kokkos::fence();
 }
 
 #endif

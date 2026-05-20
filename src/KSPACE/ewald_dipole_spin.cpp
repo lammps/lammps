@@ -448,7 +448,7 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
     if (slabflag != 2) f[i][2] += spscale * ek[i][2];
     fm_long[i][0] += spscale2 * tk[i][0];
     fm_long[i][1] += spscale2 * tk[i][1];
-    if (slabflag != 2) fm_long[i][2] += spscale2 * tk[i][3];
+    if (slabflag != 2) fm_long[i][2] += spscale2 * tk[i][2];
   }
 
   // sum global energy across Kspace vevs and add in volume-dependent term

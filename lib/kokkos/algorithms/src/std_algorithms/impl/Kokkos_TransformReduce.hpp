@@ -114,7 +114,6 @@ ValueType transform_reduce_custom_functors_exespace_impl(
     UnaryTransformerType transformer) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
-  Impl::static_assert_is_not_openmptarget(ex);
   Impl::expect_valid_range(first, last);
 
   if (first == last) {
@@ -153,7 +152,6 @@ ValueType transform_reduce_custom_functors_exespace_impl(
     JoinerType joiner, BinaryTransformerType transformer) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first1, first2);
-  Impl::static_assert_is_not_openmptarget(ex);
   Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
   Impl::expect_valid_range(first1, last1);
 
@@ -192,7 +190,6 @@ ValueType transform_reduce_default_functors_exespace_impl(
     IteratorType1 last1, IteratorType2 first2, ValueType init_reduction_value) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first1, first2);
-  Impl::static_assert_is_not_openmptarget(ex);
   Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
   Impl::expect_valid_range(first1, last1);
 
@@ -218,7 +215,6 @@ KOKKOS_FUNCTION ValueType transform_reduce_custom_functors_team_impl(
     UnaryTransformerType transformer) {
   // checks
   Impl::static_assert_random_access_and_accessible(teamHandle, first);
-  Impl::static_assert_is_not_openmptarget(teamHandle);
   Impl::expect_valid_range(first, last);
 
   if (first == last) {
@@ -256,7 +252,6 @@ KOKKOS_FUNCTION ValueType transform_reduce_custom_functors_team_impl(
     BinaryTransformerType transformer) {
   // checks
   Impl::static_assert_random_access_and_accessible(teamHandle, first1, first2);
-  Impl::static_assert_is_not_openmptarget(teamHandle);
   Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
   Impl::expect_valid_range(first1, last1);
 
@@ -296,7 +291,6 @@ KOKKOS_FUNCTION ValueType transform_reduce_default_functors_team_impl(
     IteratorType2 first2, ValueType init_reduction_value) {
   // checks
   Impl::static_assert_random_access_and_accessible(teamHandle, first1, first2);
-  Impl::static_assert_is_not_openmptarget(teamHandle);
   Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
   Impl::expect_valid_range(first1, last1);
 

@@ -26,6 +26,7 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "fix.h"
+#include "safe_pointers.h"
 #include "atom_masks.h"
 #include "neigh_request.h"
 #include "atom_kokkos.h"
@@ -1697,8 +1698,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
 
   // open file on proc 0
 
-  FILE *fp;
-  fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     fp = utils::open_potential(file,lmp,nullptr);
     if (fp == nullptr) {
@@ -1721,7 +1721,6 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fp);
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);

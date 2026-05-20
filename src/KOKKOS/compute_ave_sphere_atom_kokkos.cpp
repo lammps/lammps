@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "force.h"
+#include "kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor_kokkos.h"
@@ -36,6 +37,8 @@ ComputeAveSphereAtomKokkos<DeviceType>::ComputeAveSphereAtomKokkos(LAMMPS *lmp, 
   ComputeAveSphereAtom(lmp, narg, arg)
 {
   kokkosable = 1;
+  forward_comm_device = 1;
+
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
@@ -72,6 +75,9 @@ void ComputeAveSphereAtomKokkos<DeviceType>::init()
 template<class DeviceType>
 void ComputeAveSphereAtomKokkos<DeviceType>::compute_peratom()
 {
+  int prev_auto_sync = lmp->kokkos->auto_sync;
+  lmp->kokkos->auto_sync = 0;
+
   invoked_peratom = update->ntimestep;
 
   // grow result array if necessary
@@ -86,9 +92,7 @@ void ComputeAveSphereAtomKokkos<DeviceType>::compute_peratom()
 
   // need velocities of ghost atoms
 
-  atomKK->sync(Host,V_MASK);
   comm->forward_comm(this);
-  atomKK->modified(Host,V_MASK);
 
   // invoke full neighbor list (will copy or build if necessary)
 
@@ -125,7 +129,12 @@ void ComputeAveSphereAtomKokkos<DeviceType>::compute_peratom()
 
   k_result.modify<DeviceType>();
   k_result.sync_host();
+  atomKK->k_v.clear_sync_state();
+
+  lmp->kokkos->auto_sync = prev_auto_sync;
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 // NOLINTNEXTLINE
@@ -208,6 +217,91 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
     d_result(i,1) = temp;
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int ComputeAveSphereAtomKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                                                         DAT::tdual_double_1d &k_buf,
+                                                         int pbc_flag, int* pbc)
+{
+  d_sendlist = k_sendlist.view<DeviceType>();
+  d_buf = k_buf.view<DeviceType>();
+
+  atomKK->sync(execution_space,V_MASK);
+  v = atomKK->k_v.view<DeviceType>();
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagComputeAveSphereAtomPackForwardComm>(0,n),*this);
+  copymode = 0;
+
+  return n*3;
+}
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtomPackForwardComm, const int &i) const {
+  const int j = d_sendlist(i);
+
+  d_buf[3*i] = static_cast<double>(v(j,0));
+  d_buf[3*i+1] = static_cast<double>(v(j,1));
+  d_buf[3*i+2] = static_cast<double>(v(j,2));
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void ComputeAveSphereAtomKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_double_1d &buf)
+{
+  first = first_in;
+  d_buf = buf.view<DeviceType>();
+
+  atomKK->sync(execution_space,V_MASK);
+  v = atomKK->k_v.view<DeviceType>();
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagComputeAveSphereAtomUnpackForwardComm>(0,n),*this);
+  copymode = 0;
+
+  atomKK->modified(execution_space,V_MASK);
+}
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtomUnpackForwardComm, const int &i) const {
+  v(i + first,0) = static_cast<KK_FLOAT>(d_buf[3*i]);
+  v(i + first,1) = static_cast<KK_FLOAT>(d_buf[3*i+1]);
+  v(i + first,2) = static_cast<KK_FLOAT>(d_buf[3*i+2]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int ComputeAveSphereAtomKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
+                                int pbc_flag, int *pbc)
+{
+  atomKK->sync(Host,V_MASK);
+
+  int m = ComputeAveSphereAtom::pack_forward_comm(n,list,buf,pbc_flag,pbc);
+
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void ComputeAveSphereAtomKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
+{
+  atomKK->sync(Host,V_MASK);
+
+  ComputeAveSphereAtom::unpack_forward_comm(n,first,buf);
+
+  atomKK->modified(Host,V_MASK);
+}
+
+/* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
 template class ComputeAveSphereAtomKokkos<LMPDeviceType>;

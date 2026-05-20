@@ -40,12 +40,11 @@ jobs:
         choco install ccache ninja -y
 
     - name: Set up ccache
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ${{ env.CCACHE_DIR }}
         key: win-unit-ccache-${{ github.sha }}
         restore-keys: win-unit-ccache-
-
     - name: Select Python version
       uses: actions/setup-python@v5
       with:

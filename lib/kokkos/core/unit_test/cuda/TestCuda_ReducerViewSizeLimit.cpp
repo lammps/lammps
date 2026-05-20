@@ -121,7 +121,7 @@ struct ReduceViewSizeLimitTester {
       Kokkos::deep_copy(matrix, initValue);
 
       auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>(
-          {0, 0}, {nGlobalEntries, nGlobalEntries});
+          {0, 0}, {nGlobalEntries, nGlobalEntries}, {16, 2});
       auto functor = MDArrayReduceFunctor(matrix);
 
       if (sumInitShmemSize < expectedInitShmemLimit) {

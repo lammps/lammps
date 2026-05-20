@@ -69,7 +69,8 @@ namespace LAMMPS_NS::MathSpecial {
 
   extern double erfcx_y100(const double y100);
 
-  /*! Fast scaled error function complement exp(x*x)*erfc(x) for coul/long styles
+
+ /*! Fast scaled error function complement exp(x*x)*erfc(x) for coul/long styles
    *
    *  This is a portable fast implementation of exp(x*x)*erfc(x) that can be used
    *  in coul/long pair styles as a replacement for the polynomial expansion that
@@ -183,7 +184,7 @@ namespace LAMMPS_NS::MathSpecial {
 
     return yy;
   }
-} // namespace LAMMPS_NS::MathSpecial
+}    // namespace LAMMPS_NS::MathSpecial
 
 
 #endif

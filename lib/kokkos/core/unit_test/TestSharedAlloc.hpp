@@ -200,9 +200,6 @@ TEST(TEST_CATEGORY, impl_shared_alloc) {
 #ifdef TEST_CATEGORY_NUMBER
 #if (TEST_CATEGORY_NUMBER < 4)  // serial threads openmp hpx
   test_shared_alloc<Kokkos::HostSpace, TEST_EXECSPACE>();
-#elif (TEST_CATEGORY_NUMBER == 4)  // openmptarget
-  test_shared_alloc<Kokkos::Experimental::OpenMPTargetSpace,
-                    Kokkos::DefaultHostExecutionSpace>();
 #elif (TEST_CATEGORY_NUMBER == 5)  // cuda
   test_shared_alloc<Kokkos::CudaSpace, Kokkos::DefaultHostExecutionSpace>();
 #elif (TEST_CATEGORY_NUMBER == 6)  // hip

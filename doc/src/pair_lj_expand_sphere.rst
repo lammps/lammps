@@ -4,7 +4,7 @@
 pair_style lj/expand/sphere command
 ===================================
 
-Accelerator Variant: *lj/expand/sphere/omp*
+Accelerator Variants: *lj/expand/sphere/omp*
 
 Syntax
 """"""

@@ -149,6 +149,9 @@ class ParallelScanHIPBase {
     } else if (0 == threadIdx.y) {
       final_reducer.init(reinterpret_cast<pointer_type>(shared_accum));
     }
+    // FIXME_HIP below __syncthreads() is added to handle MI300A.
+    // Likely compiler optimization bug.
+    __syncthreads();
 
     const WorkRange range(m_policy, blockIdx.x, gridDim.x);
 
@@ -156,8 +159,10 @@ class ParallelScanHIPBase {
          iwork_base < range.end(); iwork_base += blockDim.y) {
       const typename Policy::member_type iwork = iwork_base + threadIdx.y;
 
-      __syncthreads();  // Don't overwrite previous iteration values until they
-                        // are used
+      // FIXME_HIP: we encountered something believed to be a compiler bug on
+      // MI300A: instead of syncing here, we need to sync before the loop
+      // and at the very end of the loop.
+      //__syncthreads();
 
       final_reducer.init(
           reinterpret_cast<pointer_type>(shared_prefix + word_count.value));
@@ -205,6 +210,9 @@ class ParallelScanHIPBase {
       if (iwork + 1 == m_policy.end() && m_policy.end() == range.end() &&
           m_result_ptr_device_accessible)
         *m_result_ptr = *reinterpret_cast<pointer_type>(shared_prefix);
+      // FIXME_HIP below __syncthreads() is moved from the beginning of this
+      // loop to here to handle issues on MI300A. Likely compiler bug.
+      __syncthreads();
     }
   }
 

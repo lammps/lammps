@@ -10,6 +10,7 @@
 #include <HIP/Kokkos_HIP_DeepCopy.hpp>
 #include <HIP/Kokkos_HIP_Half_Impl_Type.hpp>
 #include <HIP/Kokkos_HIP_Half_Conversion.hpp>
+#include <HIP/Kokkos_HIP_Half_MathematicalFunctions.hpp>
 #include <HIP/Kokkos_HIP_Instance.hpp>
 #include <HIP/Kokkos_HIP_MDRangePolicy.hpp>
 #include <HIP/Kokkos_HIP_ParallelFor_Range.hpp>

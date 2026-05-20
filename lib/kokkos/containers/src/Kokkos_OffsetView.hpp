@@ -1318,10 +1318,6 @@ inline auto create_mirror(const Kokkos::Experimental::OffsetView<T, P...>& src,
     return typename Kokkos::Experimental::OffsetView<T, P...>::host_mirror_type(
         Kokkos::create_mirror(arg_prop, src.view()), src.begins());
   }
-#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-    !defined(KOKKOS_COMPILER_MSVC)
-  __builtin_unreachable();
-#endif
 }
 
 }  // namespace Impl
@@ -1415,10 +1411,6 @@ inline auto create_mirror_view(
       return Kokkos::Impl::choose_create_mirror(src, arg_prop);
     }
   }
-#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
-    !defined(KOKKOS_COMPILER_MSVC)
-  __builtin_unreachable();
-#endif
 }
 
 }  // namespace Impl

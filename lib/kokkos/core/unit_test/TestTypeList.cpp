@@ -33,6 +33,44 @@ using FilterTypeList223NoVoid =
 static_assert(std::is_same_v<TypeList223NoVoid, FilterTypeList223NoVoid>,
               "filter_type_list with predicate value==false failed");
 
+constexpr bool test_concat_type_list() {
+  using Kokkos::Impl::concat_type_list_t;
+  using Kokkos::Impl::type_list;
+
+  static_assert(
+      std::same_as<concat_type_list_t<type_list_empty_t>, type_list_empty_t>);
+  static_assert(
+      std::same_as<concat_type_list_t<type_list_empty_t, type_list_empty_t>,
+                   type_list_empty_t>);
+
+  static_assert(std::same_as<
+                concat_type_list_t<type_list<int, int>, type_list<char, bool>>,
+                type_list<int, int, char, bool>>);
+
+  return true;
+}
+static_assert(test_concat_type_list());
+
+constexpr bool test_filter_type_list() {
+  using Kokkos::Impl::filter_type_list_t;
+  using Kokkos::Impl::type_list;
+
+  static_assert(
+      std::same_as<filter_type_list_t<std::is_integral, type_list_empty_t>,
+                   type_list_empty_t>);
+
+  static_assert(
+      std::same_as<filter_type_list_t<std::is_integral,
+                                      type_list<int, double, float, bool, int>>,
+                   type_list<int, bool, int>>);
+  static_assert(std::same_as<
+                filter_type_list_t<std::is_integral, type_list<double, float>>,
+                type_list_empty_t>);
+
+  return true;
+}
+static_assert(test_filter_type_list());
+
 constexpr bool test_type_list_any() {
   using Kokkos::Impl::type_list;
   using Kokkos::Impl::type_list_any_v;

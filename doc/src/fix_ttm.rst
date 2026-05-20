@@ -372,7 +372,7 @@ ignored. The lines with the even numbers are treated as follows:
    I_0, energy/(time\*length\^2) units
    lsurface, electron grid units (positive integer)
    rsurface, electron grid units (positive integer)
-   l_skin, length units
+   l_skin, electron grid units (positive integer)
    tau, time units
    B, dimensionless
    lambda, length units

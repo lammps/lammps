@@ -27,13 +27,13 @@ import kokkos.unordered_impl;
 
 namespace Performance {
 
-TEST(TEST_CATEGORY, dynrankview_perf) {
+TEST(cuda, dynrankview_perf) {
   std::cout << "Cuda" << std::endl;
   std::cout << " DynRankView vs View: Initialization Only " << std::endl;
   test_dynrankview_op_perf<Kokkos::Cuda>(40960);
 }
 
-TEST(TEST_CATEGORY, global_2_local) {
+TEST(cuda, global_2_local) {
   std::cout << "Cuda" << std::endl;
   std::cout << "size, create, generate, fill, find" << std::endl;
   for (unsigned i = Performance::begin_id_size; i <= Performance::end_id_size;
@@ -41,11 +41,11 @@ TEST(TEST_CATEGORY, global_2_local) {
     test_global_to_local_ids<Kokkos::Cuda>(i);
 }
 
-TEST(TEST_CATEGORY, unordered_map_performance_near) {
+TEST(cuda, unordered_map_performance_near) {
   Perf::run_performance_tests<Kokkos::Cuda, true>("cuda-near");
 }
 
-TEST(TEST_CATEGORY, unordered_map_performance_far) {
+TEST(cuda, unordered_map_performance_far) {
   Perf::run_performance_tests<Kokkos::Cuda, false>("cuda-far");
 }
 

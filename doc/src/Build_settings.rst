@@ -254,8 +254,8 @@ use and parallel communication costs for transposing 3d FFT data.
 When using ``-DFFT_SINGLE`` with FFTW3, you may need to ensure that
 the FFTW3 installation includes support for single-precision.
 
-When compiler FFTW3 from source, you can do the following, which should
-produce the additional libraries ``libfftw3f.a`` and/or ``libfftw3f.so``\ .
+When compiling FFTW3 from source, you can do the following, which should
+produce the additional libraries ``libfftw3f.a`` and ``libfftw3f.so``\ .
 
 .. code-block:: bash
 

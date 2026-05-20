@@ -42,6 +42,8 @@ PairUFM::PairUFM(LAMMPS *lmp) : Pair(lmp)
 
 PairUFM::~PairUFM()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

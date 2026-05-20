@@ -132,14 +132,14 @@ class AtomVecEllipsoidKokkos : public AtomVecKokkos, public AtomVecEllipsoid {
 
   DAT::t_kkfloat_1d_3_lr d_x;
   DAT::t_kkfloat_1d_3 d_v;
-  DAT::t_kkfloat_1d_3 d_f;
+  DAT::t_kkacc_1d_3 d_f;
 
   DAT::t_kkfloat_1d d_rmass;
   HAT::t_kkfloat_1d h_rmass;
   DAT::t_kkfloat_1d_3 d_angmom;
   HAT::t_kkfloat_1d_3 h_angmom;
-  DAT::t_kkfloat_1d_3 d_torque;
-  HAT::t_kkfloat_1d_3 h_torque;
+  DAT::t_kkacc_1d_3 d_torque;
+  HAT::t_kkacc_1d_3 h_torque;
   DAT::t_int_1d d_ellipsoid;
   HAT::t_int_1d h_ellipsoid;
 

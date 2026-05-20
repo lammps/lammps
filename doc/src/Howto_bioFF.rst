@@ -1,5 +1,5 @@
-CHARMM, AMBER, COMPASS, DREIDING, and OPLS force fields
-=======================================================
+CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields
+===================================================================
 
 Here we only discuss formulas implemented in LAMMPS that correspond to
 formulas commonly used in the CHARMM, AMBER, COMPASS, and DREIDING force
@@ -50,17 +50,17 @@ The interaction styles listed below compute force field formulas that
 are consistent with common options in CHARMM or AMBER.  See each
 command's documentation for the formula it computes.
 
-* :doc:`bond_style <bond_harmonic>` harmonic
-* :doc:`angle_style <angle_charmm>` charmm
-* :doc:`dihedral_style <dihedral_charmm>` charmmfsh
-* :doc:`dihedral_style <dihedral_charmm>` charmm
-* :doc:`pair_style <pair_charmm>` lj/charmmfsw/coul/charmmfsh
-* :doc:`pair_style <pair_charmm>` lj/charmmfsw/coul/long
-* :doc:`pair_style <pair_charmm>` lj/charmm/coul/charmm
-* :doc:`pair_style <pair_charmm>` lj/charmm/coul/charmm/implicit
-* :doc:`pair_style <pair_charmm>` lj/charmm/coul/long
-* :doc:`special_bonds <special_bonds>` charmm
-* :doc:`special_bonds <special_bonds>` amber
+* :doc:`bond_style harmonic <bond_harmonic>`
+* :doc:`angle_style charmm <angle_charmm>`
+* :doc:`dihedral_style charmmfsh <dihedral_charmm>`
+* :doc:`dihedral_style charmm <dihedral_charmm>`
+* :doc:`pair_style lj/charmmfsw/coul/charmmfsh <pair_charmm>`
+* :doc:`pair_style lj/charmmfsw/coul/long <pair_charmm>`
+* :doc:`pair_style lj/charmm/coul/charmm <pair_charmm>`
+* :doc:`pair_style lj/charmm/coul/charmm/implicit <pair_charmm>`
+* :doc:`pair_style lj/charmm/coul/long <pair_charmm>`
+* :doc:`special_bonds charmm <special_bonds>`
+* :doc:`special_bonds amber <special_bonds>`
 
 The pair styles compute Lennard Jones (LJ) and Coulombic interactions
 with additional switching or shifting functions that ramp the energy
@@ -174,16 +174,104 @@ These interaction styles listed below compute force field formulas that
 are consistent with the COMPASS force field.  See each command's
 documentation for the formula it computes.
 
-* :doc:`bond_style <bond_class2>` class2
-* :doc:`angle_style <angle_class2>` class2
-* :doc:`dihedral_style <dihedral_class2>` class2
-* :doc:`improper_style <improper_class2>` class2
+* :doc:`bond_style class2 <bond_class2>`
+* :doc:`angle_style class2 <angle_class2>`
+* :doc:`dihedral_style class2 <dihedral_class2>`
+* :doc:`improper_style class2 <improper_class2>`
 
-* :doc:`pair_style <pair_class2>` lj/class2
-* :doc:`pair_style <pair_class2>` lj/class2/coul/cut
-* :doc:`pair_style <pair_class2>` lj/class2/coul/long
+* :doc:`pair_style lj/class2 <pair_class2>`
+* :doc:`pair_style lj/class2/coul/cut <pair_class2>`
+* :doc:`pair_style  lj/class2/coul/long<pair_class2>`
 
-* :doc:`special_bonds <special_bonds>` lj/coul 0 0 1
+* :doc:`special_bonds lj/coul 0 0 1 <special_bonds>`
+
+ClassII-xe
+----------
+
+.. versionadded:: 30Mar2026
+
+The computationally efficient simulation of condensed-phase materials
+such as metals, polymers, and composites can be achieved with fixed-bond
+force fields.  Two popular fixed-bond force fields for such materials
+are COMPASS :ref:`(Sun) <howto-Sun>` and PCFF :ref:`(Maple)
+<howto-Maple>`.  Both use a Class II-based functional form that
+incorporates anharmonic vibrational modes via the quartic Taylor-series
+expansion of the Hamiltonian.  In addition, Class II-based force fields
+add intermolecular coupling via cross-term interactions that also
+account for more complex vibrational modes.  The underlying harmonic
+bonds and harmonic cross-terms can limit the reliability of the physics,
+e.g., when calculating mechanical properties.  To overcome the harmonic
+bonding limitations, a Morse bond :ref:`(Morse) <howto-Morse>` can be
+used in place of the quartic bond, but this improvement when modeling
+bond dissociation is limited when the cross-terms remain harmonic.  To
+improve the physicality of the response of the cross-terms that couple
+bond stretch to other higher-order interactions (angles, dihedrals, and
+impropers), those respective cross-terms also need to be modified.
+
+The cross-term potentials that model bond stretch coupling to
+higher-order interactions are similar in functional form to the harmonic
+bonding potential.  Thus, the exponential function that :ref:`(Morse)
+<howto-Morse>` derived for converting a harmonic bonding potential to a
+bonding potential that accommodates larger bond stretches and can model
+bond dissociation, can also be implemented into the cross-terms.  This
+defines the naming convention for the ClassII-xe functional form, where
+x refers to cross-term and e refers to an exponential function, and
+defines the purpose of the ClassII-xe functional form.  The purpose is
+to allow bond dissociation in a ClassII-based force field via a
+consistent definition of bond dissociation via the Morse bonding
+potential and the higher-order cross-term coupling potentials.  See
+:ref:`(Kemppainen) <howto-Kemppainen>` for a description of the
+ClassII-xe functional form.  The interaction styles listed below compute
+the force field formulas for the ClassII-xe functional form:
+
+* :doc:`bond_style morse <bond_morse>`
+* :doc:`angle_style class2xe <angle_class2>`
+* :doc:`dihedral_style class2xe <dihedral_class2>`
+* :doc:`improper_style class2 <improper_class2>`
+
+* :doc:`pair_style lj/class2 <pair_class2>`
+* :doc:`pair_style lj/class2/coul/cut <pair_class2>`
+* :doc:`pair_style lj/class2/coul/long <pair_class2>`
+
+* :doc:`special_bonds lj/coul 0 0 1 <special_bonds>`
+
+Since both COMPASS and PCFF are Class II-based, their parameters can be
+converted into the ClassII-xe functional form.  The conversion from
+ClassII to ClassII-xe functional form requires reparameterizing the
+cross-terms, which can be accomplished via the LUNAR tool, for which a
+link is provided on the `Pre/Post processing
+<https://www.lammps.org/prepost.html>`_ page.  LUNAR can be used to
+build a model from scratch in either COMPASS or PCFF (using its
+'atom_typing' and 'all2lmp' modules) and then convert that model to
+COMPASS-xe or PCFF-xe (using its 'auto_morse_bond_update' module).  To
+establish a consistent naming convention for the new ClassII-xe
+functional form when converting from a parent force field, the -xe
+suffix should be added to the parent force field name (e.g. PCFF
+vs. PCFF-xe).
+
+The usage of the ClassII-xe functional form can only let a bond
+dissociate; however, to disconnect the dissociated bond and remove the
+higher-order interactions, other LAMMPS commands are required, such as
+:doc:`fix bond/react <fix_bond_react>` or :doc:`fix bond/break
+<fix_bond_break>`.  It was demonstrated that PCFF-xe (without :doc:`fix
+bond/react <fix_bond_react>` or :doc:`fix bond/break <fix_bond_break>`)
+can model a material up to fracture :ref:`(Kemppainen)
+<howto-Kemppainen>`, allowing for calculation of mechanical properties
+such such as tensile and shear modulus, tensile and shear yield
+strength, Poisson's ratio, etc.  However, the simulation may crash after
+fracture if bonds beyond than the processor communication cutoff
+distance.  Thus, post-fracture phenomena cannot be simulated without the
+usage of :doc:`fix bond/react <fix_bond_react>` or :doc:`fix bond/break
+<fix_bond_break>`.  Note that using :doc:`fix bond/break
+<fix_bond_break>` can cause instabilities and crashes because a
+discontinuity is introduced to the energy landscape when a bond is
+removed.  On the other hand, :doc:`fix bond/react <fix_bond_react>` can
+relax high-energy configurations via the ``stabilization`` keyword,
+whereby a small local group of atoms involved in the discontinuity are
+integrated with :doc:`fix nve/limit <fix_nve_limit>`.  `LUNAR
+<https://www.lammps.org/prepost.html>`_ can also be used to assist with
+setting up simulations that include :doc:`fix bond/react
+<fix_bond_react>`.
 
 DREIDING
 --------
@@ -209,28 +297,28 @@ The interaction styles listed below compute force field formulas that
 are consistent with the DREIDING force field.  See each command's
 documentation for the formula it computes.
 
-* :doc:`bond_style <bond_harmonic>` harmonic
-* :doc:`bond_style <bond_morse>` morse
+* :doc:`bond_style harmonic <bond_harmonic>`
+* :doc:`bond_style morse <bond_morse>`
 
-* :doc:`angle_style <angle_cosine_squared>` cosine/squared
-* :doc:`angle_style <angle_harmonic>` harmonic
-* :doc:`angle_style <angle_cosine>` cosine
-* :doc:`angle_style <angle_cosine_periodic>` cosine/periodic
+* :doc:`angle_style cosine/squared <angle_cosine_squared>`
+* :doc:`angle_style harmonic <angle_harmonic>`
+* :doc:`angle_style cosine <angle_cosine>`
+* :doc:`angle_style cosine/periodic <angle_cosine_periodic>`
 
-* :doc:`dihedral_style <dihedral_charmm>` charmm
-* :doc:`improper_style <improper_umbrella>` umbrella
+* :doc:`dihedral_style charmm <dihedral_charmm>`
+* :doc:`improper_style umbrella <improper_umbrella>`
 
-* :doc:`pair_style <pair_buck>` buck
-* :doc:`pair_style <pair_buck>` buck/coul/cut
-* :doc:`pair_style <pair_buck>` buck/coul/long
-* :doc:`pair_style <pair_lj>` lj/cut
-* :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/cut
-* :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/long
+* :doc:`pair_style buck <pair_buck>`
+* :doc:`pair_style buck/coul/cut <pair_buck>`
+* :doc:`pair_style buck/coul/long <pair_buck>`
+* :doc:`pair_style lj/cut <pair_lj>`
+* :doc:`pair_style lj/cut/coul/cut <pair_lj_cut_coul>`
+* :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`
 
-* :doc:`pair_style <pair_hbond_dreiding>` hbond/dreiding/lj
-* :doc:`pair_style <pair_hbond_dreiding>` hbond/dreiding/morse
+* :doc:`pair_style hbond/dreiding/lj <pair_hbond_dreiding>`
+* :doc:`pair_style hbond/dreiding/morse <pair_hbond_dreiding>`
 
-* :doc:`special_bonds <special_bonds>` dreiding
+* :doc:`special_bonds dreiding <special_bonds>`
 
 OPLS
 ----
@@ -248,23 +336,23 @@ groups in organic and biological molecules.  Each atom includes a
 static, partial atomic charge reflecting the oxidation state of the
 element derived from its bonded neighbors :ref:`(Jorgensen)
 <howto-jorgensen>` and computed based on increments determined by the
-atom type of the atoms bond to it.
+atom type of the atoms bonded to it.
 
 The interaction styles listed below compute force field formulas that
 are fully or in part consistent with the OPLS style force fields.  See
 each command's documentation for the formula it computes.  Some are only
 compatible with a subset of OPLS interactions.
 
-* :doc:`bond_style <bond_harmonic>` harmonic
-* :doc:`angle_style <angle_harmonic>` harmonic
-* :doc:`dihedral_style <dihedral_opls>` opls
-* :doc:`improper_style <improper_cvff>` cvff
-* :doc:`improper_style <improper_fourier>` fourier
-* :doc:`improper_style <improper_harmonic>` harmonic
-* :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/cut
-* :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/long
-* :doc:`pair_modify <pair_modify>` geometric
-* :doc:`special_bonds <special_bonds>` lj/coul 0.0 0.0 0.5
+* :doc:`bond_style harmonic <bond_harmonic>`
+* :doc:`angle_style harmonic <angle_harmonic>`
+* :doc:`dihedral_style opls <dihedral_opls>`
+* :doc:`improper_style cvff <improper_cvff>`
+* :doc:`improper_style fourier <improper_fourier>`
+* :doc:`improper_style harmonic <improper_harmonic>`
+* :doc:`pair_style lj/cut/coul/cut <pair_lj_cut_coul>`
+* :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`
+* :doc:`pair_modify geometric <pair_modify>`
+* :doc:`special_bonds lj/coul 0.0 0.0 0.5 <special_bonds>`
 
 ----------
 
@@ -295,3 +383,15 @@ compatible with a subset of OPLS interactions.
 .. _howto-Jorgensen:
 
 **(Jorgensen)** Jorgensen, Tirado-Rives (1988). J Am Chem Soc, 110, 1657-1666. https://doi.org/10.1021/ja00214a001
+
+.. _howto-Maple:
+
+**(Maple)** Maple, Journal of Computational Chemistry, 15, 162-182 (1994). https://doi.org/10.1002/jcc.540150207
+
+.. _howto-Morse:
+
+**(Morse)** Morse, Physical review, 34, 57 (1929). https://doi.org/10.1103/PhysRev.34.57
+
+.. _howto-Kemppainen:
+
+**(Kemppainen)** Kemppainen, npj Computational Materials 11, 341 (2025). https://doi.org/10.1038/s41524-025-01838-5

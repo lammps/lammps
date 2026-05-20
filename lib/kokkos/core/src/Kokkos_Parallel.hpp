@@ -13,7 +13,6 @@ static_assert(false,
 #define KOKKOS_PARALLEL_HPP
 
 #include <Kokkos_Core_fwd.hpp>
-#include <Kokkos_CheckUsage.hpp>
 #include <Kokkos_DetectionIdiom.hpp>
 #include <Kokkos_ExecPolicy.hpp>
 #include <Kokkos_View.hpp>
@@ -21,8 +20,9 @@ static_assert(false,
 #include <impl/Kokkos_Tools.hpp>
 #include <impl/Kokkos_Tools_Generic.hpp>
 
-#include <impl/Kokkos_Traits.hpp>
+#include <impl/Kokkos_CheckUsage.hpp>
 #include <impl/Kokkos_FunctorAnalysis.hpp>
+#include <impl/Kokkos_Traits.hpp>
 
 #include <cstddef>
 #include <type_traits>
@@ -115,9 +115,7 @@ namespace Kokkos {
  * This compares to a single iteration \c iwork of a \c for loop.
  * If \c execution_space is not defined DefaultExecutionSpace will be used.
  */
-template <
-    class ExecPolicy, class FunctorType,
-    class Enable = std::enable_if_t<is_execution_policy<ExecPolicy>::value>>
+template <Kokkos::ExecutionPolicy ExecPolicy, class FunctorType>
 inline void parallel_for(const std::string& str, const ExecPolicy& policy,
                          const FunctorType& functor) {
   /** Enforce correct use **/
@@ -139,10 +137,8 @@ inline void parallel_for(const std::string& str, const ExecPolicy& policy,
   Kokkos::Tools::Impl::end_parallel_for(inner_policy, functor, str, kpID);
 }
 
-template <class ExecPolicy, class FunctorType>
-inline void parallel_for(
-    const ExecPolicy& policy, const FunctorType& functor,
-    std::enable_if_t<is_execution_policy<ExecPolicy>::value>* = nullptr) {
+template <Kokkos::ExecutionPolicy ExecPolicy, class FunctorType>
+inline void parallel_for(const ExecPolicy& policy, const FunctorType& functor) {
   /** Enforce correct use **/
   Impl::CheckUsage<Impl::UsageRequires::insideExecEnv>::check("parallel_for",
                                                               policy);
@@ -347,9 +343,7 @@ namespace Kokkos {
 /// };
 /// \endcode
 ///
-template <class ExecutionPolicy, class FunctorType,
-          class Enable =
-              std::enable_if_t<is_execution_policy<ExecutionPolicy>::value>>
+template <Kokkos::ExecutionPolicy ExecutionPolicy, class FunctorType>
 inline void parallel_scan(const std::string& str, const ExecutionPolicy& policy,
                           const FunctorType& functor) {
   /** Enforce correct use **/
@@ -372,10 +366,9 @@ inline void parallel_scan(const std::string& str, const ExecutionPolicy& policy,
   Kokkos::Tools::Impl::end_parallel_scan(inner_policy, functor, str, kpID);
 }
 
-template <class ExecutionPolicy, class FunctorType>
-inline void parallel_scan(
-    const ExecutionPolicy& policy, const FunctorType& functor,
-    std::enable_if_t<is_execution_policy<ExecutionPolicy>::value>* = nullptr) {
+template <Kokkos::ExecutionPolicy ExecutionPolicy, class FunctorType>
+inline void parallel_scan(const ExecutionPolicy& policy,
+                          const FunctorType& functor) {
   /** Enforce correct use **/
   Impl::CheckUsage<Impl::UsageRequires::insideExecEnv>::check("parallel_scan",
                                                               policy);
@@ -409,9 +402,8 @@ inline void parallel_scan(const size_t work_count, const FunctorType& functor) {
   ::Kokkos::parallel_scan("", work_count, functor);
 }
 
-template <class ExecutionPolicy, class FunctorType, class ReturnType,
-          class Enable =
-              std::enable_if_t<is_execution_policy<ExecutionPolicy>::value>>
+template <Kokkos::ExecutionPolicy ExecutionPolicy, class FunctorType,
+          class ReturnType>
 inline void parallel_scan(const std::string& str, const ExecutionPolicy& policy,
                           const FunctorType& functor,
                           ReturnType& return_value) {
@@ -447,11 +439,11 @@ inline void parallel_scan(const std::string& str, const ExecutionPolicy& policy,
         "Kokkos::parallel_scan: fence due to result being a value, not a view");
 }
 
-template <class ExecutionPolicy, class FunctorType, class ReturnType>
-inline void parallel_scan(
-    const ExecutionPolicy& policy, const FunctorType& functor,
-    ReturnType& return_value,
-    std::enable_if_t<is_execution_policy<ExecutionPolicy>::value>* = nullptr) {
+template <Kokkos::ExecutionPolicy ExecutionPolicy, class FunctorType,
+          class ReturnType>
+inline void parallel_scan(const ExecutionPolicy& policy,
+                          const FunctorType& functor,
+                          ReturnType& return_value) {
   /** Enforce correct use **/
   Impl::CheckUsage<Impl::UsageRequires::insideExecEnv>::check("parallel_scan",
                                                               policy);

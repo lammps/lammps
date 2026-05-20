@@ -24,6 +24,7 @@
 #include "modify.h"
 #include "output.h"
 #include "respa.h"
+#include "safe_pointers.h"
 #include "text_file_reader.h"
 #include "tokenizer.h"
 #include "update.h"
@@ -276,8 +277,8 @@ unsigned char *read_image(FILE *fp, int &width, int &height, const std::string &
         if (len < 128) {
           ++len;
           for (int j = 0; j < len; ++j) {
-            int y = (fromtop) ? (height - 1 - i / (3 * width)) : i / (3 * width);
-            int x = (right2left) ? (width - 1 - (i - 3 * y * width) / 3) : (i - 3 * y * width) / 3;
+            int y = fromtop ? (height - 1 - i / (3 * width)) : i / (3 * width);
+            int x = right2left ? (width - 1 - (i - 3 * y * width) / 3) : (i - 3 * y * width) / 3;
             if (fread(pix, sizeof(unsigned char), 3, fp) != 3) {
               delete[] pixmap;
               info = "Short TGA file";
@@ -296,8 +297,8 @@ unsigned char *read_image(FILE *fp, int &width, int &height, const std::string &
             return nullptr;
           }
           for (int j = 0; j < len; ++j) {
-            int y = (fromtop) ? (height - 1 - i / (3 * width)) : i / (3 * width);
-            int x = (right2left) ? (width - 1 - (i - 3 * y * width) / 3) : (i - 3 * y * width) / 3;
+            int y = fromtop ? (height - 1 - i / (3 * width)) : i / (3 * width);
+            int x = right2left ? (width - 1 - (i - 3 * y * width) / 3) : (i - 3 * y * width) / 3;
             pixmap[y * 3 * width + 3 * x] = pix[2];
             pixmap[y * 3 * width + 3 * x + 1] = pix[1];
             pixmap[y * 3 * width + 3 * x + 2] = pix[0];
@@ -438,14 +439,13 @@ FixGraphicsLabels::FixGraphicsLabels(LAMMPS *lmp, int narg, char **arg) :
       // must always open in binary mode to avoid data corruption on Windows
       if (comm->me == 0) {
         pix.filename = arg[iarg + 1];
-        FILE *fp = fopen(pix.filename.c_str(), "rb");
+        SafeFilePtr fp = fopen(pix.filename.c_str(), "rb");
         if (!fp)
           error->one(FLERR, iarg + 1, "Cannot open fix graphics/labels image file {}: {}",
                      pix.filename, utils::getsyserror());
         pix.timestamp = platform::file_write_time(pix.filename);
         std::string info;
         pix.pixmap = read_image(fp, pix.width, pix.height, pix.filename, info);
-        fclose(fp);
         if (!pix.pixmap)
           error->one(FLERR, iarg + 1, "Reading fix graphics/labels image file {} failed: {}",
                      pix.filename, info);
@@ -799,7 +799,8 @@ void FixGraphicsLabels::init()
       error->all(FLERR, Error::NOLASTLINE, "Could not extract color scale info from dump {}",
                  scale.dumpid);
     double lo, hi;
-    if (image->map_info(0, lo, hi) && (comm->me == 0))
+    bool seqmap;
+    if (image->map_info(0, lo, hi, seqmap) && (comm->me == 0))
       error->warning(FLERR,
                      "Dump {} uses a dynamic color map. "
                      "Color scale can only use data from previous dump output\n",
@@ -845,13 +846,12 @@ void FixGraphicsLabels::end_of_step()
       if (pix.timestamp != timestamp) {
         pix.timestamp = timestamp;
 
-        FILE *fp = fopen(pix.filename.c_str(), "rb");
+        SafeFilePtr fp = fopen(pix.filename.c_str(), "rb");
         if (!fp)
           error->one(FLERR, Error::NOLASTLINE, "Cannot open fix graphics/labels image file {}: {}",
                      pix.filename, utils::getsyserror());
         std::string info;
         pix.pixmap = read_image(fp, pix.width, pix.height, pix.filename, info);
-        fclose(fp);
         if (!pix.pixmap)
           error->one(FLERR, Error::NOLASTLINE,
                      "Reading fix graphics/labels image file {} failed: {}", pix.filename, info);

@@ -292,7 +292,6 @@ void run_exclusive_scan_all_scenarios() {
     run_single_scenario_inplace<Tag, ValueType>(it, ValueType{0});
     run_single_scenario_inplace<Tag, ValueType>(it, ValueType{-2});
 
-#if !defined KOKKOS_ENABLE_OPENMPTARGET
     // custom multiply op is only run for small views otherwise it overflows
     if (it.first == "small-a" || it.first == "small-b") {
       using custom_bop_t = MultiplyFunctor<ValueType>;
@@ -317,7 +316,6 @@ void run_exclusive_scan_all_scenarios() {
                                                 custom_bop_t());
     run_single_scenario_inplace<Tag, ValueType>(it, ValueType{-2},
                                                 custom_bop_t());
-#endif
   }
 }
 

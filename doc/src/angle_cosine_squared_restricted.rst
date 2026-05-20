@@ -1,10 +1,11 @@
 .. index:: angle_style cosine/squared/restricted
+.. index:: angle_style cosine/squared/restricted/kk
 .. index:: angle_style cosine/squared/restricted/omp
 
 angle_style cosine/squared/restricted command
 =============================================
 
-Accelerator Variants: *cosine/squared/restricted/omp*
+Accelerator Variants: *cosine/squared/restricted/kk*, *cosine/squared/restricted/omp*
 
 Syntax
 """"""

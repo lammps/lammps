@@ -104,10 +104,15 @@ class ComputePropertyAtom : public Compute {
   void pack_shapex(int);
   void pack_shapey(int);
   void pack_shapez(int);
+  void pack_block1(int);
+  void pack_block2(int);
   void pack_quatw(int);
   void pack_quati(int);
   void pack_quatj(int);
   void pack_quatk(int);
+  void pack_inertiax(int);
+  void pack_inertiay(int);
+  void pack_inertiaz(int);
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);

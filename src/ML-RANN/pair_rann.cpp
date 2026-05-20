@@ -38,6 +38,7 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 #include "update.h"
 
@@ -349,7 +350,7 @@ void PairRANN::coeff(int narg, char **arg)
 
 void PairRANN::read_file(char *filename)
 {
-  FILE *fp;
+  SafeFilePtr fp;
   int eof = 0;
   std::string line,line1;
   const int longline = 4096;
@@ -373,7 +374,6 @@ void PairRANN::read_file(char *filename)
     ptr=fgets(linetemp,longline,fp);
     linenum++;
     if (ptr == nullptr) {
-      fclose(fp);
       if (check_potential()) {
         error->one(FLERR,"Invalid syntax in potential file, values are inconsistent or missing");
       }

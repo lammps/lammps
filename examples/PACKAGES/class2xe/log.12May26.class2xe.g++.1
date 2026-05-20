@@ -1,0 +1,182 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-488-g0172a643c2)
+  using 1 OpenMP thread(s) per MPI task
+#
+# LAMMPS example script to call the class2-xe potential
+#
+#------------Input_variables------------
+variable        pseed  equal  12345
+variable        myid   string detda_class2xe_test
+
+
+#------------Initialization------------
+units           real
+dimension       3
+boundary        p p p
+newton          on
+
+
+#------------Force Field------------
+atom_style      full
+bond_style      morse
+angle_style     class2xe
+dihedral_style  class2xe
+improper_style  class2
+special_bonds   lj/coul 0 0 1
+
+kspace_style    pppm 1.0e-4
+pair_style      lj/class2/coul/long 12.0
+pair_modify     mix sixthpower
+
+neighbor        2.0 bin
+neigh_modify    delay 0 every 1 check yes one 5000 page 100000
+
+read_data       detda_PCFF-2xe.data
+Reading data file ...
+  orthogonal box = (-10 -10 -10) to (10 10 10)
+  1 by 1 by 1 MPI processor grid
+  reading atom labelmap ...
+  reading bond labelmap ...
+  reading angle labelmap ...
+  reading dihedral labelmap ...
+  reading improper labelmap ...
+  reading atoms ...
+  31 atoms
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  15 = max dihedrals/atom
+  scanning impropers ...
+  4 = max impropers/atom
+  orthogonal box = (-10 -10 -10) to (10 10 10)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  31 bonds
+  reading angles ...
+  54 angles
+  reading dihedrals ...
+  68 dihedrals
+  reading impropers ...
+  28 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        1       
+  special bond factors coul:  0        0        1       
+     4 = max # of 1-2 neighbors
+     7 = max # of 1-3 neighbors
+    10 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.005 seconds
+
+
+#------------Thermosettings------------
+timestep        1.0
+thermo          10
+thermo_style    custom step temp press density ke pe etotal evdwl ecoul epair ebond eangle edihed eimp
+# restart         10 rst1.a.${myid} rst2.a.${myid}
+
+
+#------------Run some dynamics------------
+velocity        all create 300 ${pseed} rot yes mom yes
+velocity        all create 300 12345 rot yes mom yes
+fix             1 all nvt temp 300 300 $(100*dt)
+fix             1 all nvt temp 300 300 100
+
+run             100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- ClassII-xe Style: https://doi.org/10.1038/s41524-025-01838-5
+
+@Article{Kemppainen 2025,
+ author = {J. Kemppainen and H. Heinz and G. M. Odegard},
+ title = {Integrating complete bond dissociation in Class II force fields},
+ journal = {npj Computational Materials},
+ year =    2025,
+ volume =  11,
+ pages =   {341}
+}
+
+- Type Label Framework: https://doi.org/10.1021/acs.jpcb.3c08419
+
+@Article{Gissinger24,
+ author = {Jacob R. Gissinger, Ilia Nikiforov, Yaser Afshar, Brendon Waters, Moon-ki Choi, Daniel S. Karls, Alexander Stukowski, Wonpil Im, Hendrik Heinz, Axel Kohlmeyer, and Ellad B. Tadmor},
+ title = {Type Label Framework for Bonded Force Fields in LAMMPS},
+ journal = {J. Phys. Chem. B},
+ year =    2024,
+ volume =  128,
+ number =  13,
+ pages =   {3282--3297}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.17877424
+  grid = 5 5 5
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00601225
+  estimated relative force accuracy = 1.8105712e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 1000 125
+Generated 15 of 15 mixed pair_coeff terms from sixthpower/sixthpower mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 5000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/class2/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 14.98 | 14.98 | 14.98 Mbytes
+   Step          Temp          Press         Density         KinEng         PotEng         TotEng         E_vdwl         E_coul         E_pair         E_bond        E_angle        E_dihed        E_impro    
+         0   300            1741.4958      0.037005008    26.82729       50.795577      77.622867      20.655036      47.173946      31.194238      41.590973      15.446336     -37.451902      0.015931822  
+        10   398.43045      26.299176      0.037005008    35.629364      41.707411      77.336775      19.754649      46.598847      29.687006      23.547155      19.888293     -32.218841      0.80379755   
+        20   352.94716     -1734.867       0.037005008    31.562053      45.154317      76.71637       14.245039      45.87839       23.456089      18.72029       14.071913     -11.118049      0.02407395   
+        30   392.80787     -1196.405       0.037005008    35.12657       41.350019      76.476589      14.962869      45.823332      24.085736      24.26758       8.8272519     -16.303829      0.47328096   
+        40   339.88151      903.14798      0.037005008    30.393667      46.103889      76.497556      17.316749      45.855194      26.473781      29.605314      22.31523      -32.39761       0.10717452   
+        50   287.06914      2305.1159      0.037005008    25.670957      50.895508      76.566465      19.034534      46.201953      28.536869      35.871308      15.042434     -28.812147      0.25704359   
+        60   325.50614      1344.6195      0.037005008    29.108159      46.078385      75.186544      18.060612      46.652429      28.051561      24.220423      23.073789     -29.475416      0.20802723   
+        70   379.89934     -389.60771      0.037005008    33.972233      40.232394      74.204626      15.626442      46.329617      25.313319      10.567396      18.121241     -14.10484       0.33527782   
+        80   385.56057     -413.55677      0.037005008    34.478484      39.095744      73.574229      16.036286      45.996047      25.487484      29.010518      12.628236     -28.188472      0.15797811   
+        90   279.88401     -827.70994      0.037005008    25.028432      47.816918      72.845349      17.292797      46.275215      26.924814      16.633585      26.368047     -22.26377       0.15424112   
+       100   290.62366     -344.16351      0.037005008    25.988818      45.981404      71.970222      18.664368      46.888876      28.930784      24.470642      18.852207     -26.482296      0.21006709   
+Loop time of 0.00461416 on 1 procs for 100 steps with 31 atoms
+
+Performance: 1872.496 ns/day, 0.013 hours/ns, 21672.403 timesteps/s, 671.844 katom-step/s
+90.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.00043487 | 0.00043487 | 0.00043487 |   0.0 |  9.42
+Bond    | 0.0024341  | 0.0024341  | 0.0024341  |   0.0 | 52.75
+Kspace  | 0.0014104  | 0.0014104  | 0.0014104  |   0.0 | 30.57
+Neigh   | 4.4315e-05 | 4.4315e-05 | 4.4315e-05 |   0.0 |  0.96
+Comm    | 0.0001462  | 0.0001462  | 0.0001462  |   0.0 |  3.17
+Output  | 5.5647e-05 | 5.5647e-05 | 5.5647e-05 |   0.0 |  1.21
+Modify  | 5.3093e-05 | 5.3093e-05 | 5.3093e-05 |   0.0 |  1.15
+Other   |            | 3.562e-05  |            |       |  0.77
+
+Nlocal:             31 ave          31 max          31 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            788 ave         788 max         788 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:            512 ave         512 max         512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 512
+Ave neighs/atom = 16.516129
+Ave special neighs/atom = 5.483871
+Neighbor list builds = 1
+Dangerous builds = 0
+# write_data      ${myid}.data
+
+Total wall time: 0:00:00

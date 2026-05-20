@@ -186,7 +186,7 @@ void Fix::modify_params(int narg, char **arg)
   }
 }
 
-void::Fix::set_molecule(int, tagint, int, double *, double *, double *)
+void Fix::set_molecule(int, tagint, int, double *, double *, double *)
 {
   error->all(FLERR,"Molecule update not implemented for fix {}", style);
 }
@@ -198,6 +198,9 @@ void::Fix::set_molecule(int, tagint, int, double *, double *, double *)
    if thermo_energy is not set, energy tallying is disabled
    if thermo_virial is not set, virial tallying is disabled
    global energy is tallied separately, output by compute_scalar() method
+   ENERGY_ONLY flag should only be set manually and may be ignored
+   it is meant to be used for cases where computation of only the
+   energy is *much* faster.
 ------------------------------------------------------------------------- */
 
 void Fix::ev_setup(int eflag, int vflag)
@@ -206,11 +209,12 @@ void Fix::ev_setup(int eflag, int vflag)
 
   evflag = 1;
 
-  if (!thermo_energy) eflag_either = eflag_global = eflag_atom = 0;
+  if (!thermo_energy) eflag_either = eflag_global = eflag_atom = eflag_only = 0;
   else {
-    eflag_either = eflag;
+    eflag_either = eflag & (ENERGY_GLOBAL | ENERGY_ATOM);
     eflag_global = eflag & ENERGY_GLOBAL;
     eflag_atom = eflag & ENERGY_ATOM;
+    eflag_only = eflag_global ? (eflag & ENERGY_ONLY) : 0;
   }
 
   if (!thermo_virial) vflag_either = vflag_global = vflag_atom = 0;

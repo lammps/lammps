@@ -1575,7 +1575,7 @@ void Grid2d::write_file_style(T *ptr, int which,
   // ping each proc for its grid data
   // call back to caller with each proc's grid data
 
-  int tmp;
+  int tmp = 0;
   int bounds[4];
 
   if (me == 0) {

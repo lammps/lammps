@@ -1908,9 +1908,6 @@ TEST(TEST_CATEGORY, mathspecialfunc_expint1) {
   test.testit();
 }
 
-// FIXME_OPENMPTARGET: This unit test fails with a misaligned address error at
-// runtime with LLVM/13.
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
 TEST(TEST_CATEGORY, mathspecialfunc_errorfunc) {
 #if __FINITE_MATH_ONLY__
   GTEST_SKIP() << "skipping when compiling with -ffinite-math-only";
@@ -1918,7 +1915,6 @@ TEST(TEST_CATEGORY, mathspecialfunc_errorfunc) {
   TestComplexErrorFunction<TEST_EXECSPACE> test;
   test.testit();
 }
-#endif
 
 TEST(TEST_CATEGORY, mathspecialfunc_cbesselj0y0) {
 #if __FINITE_MATH_ONLY__

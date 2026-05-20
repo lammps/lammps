@@ -23,20 +23,10 @@ kokkos_cfg_depends(OPTIONS COMPILER_ID)
 kokkos_deprecated_list(OPTIONS ENABLE)
 
 kokkos_enable_option(CUDA_RELOCATABLE_DEVICE_CODE OFF "Whether to enable relocatable device code (RDC) for CUDA")
-kokkos_enable_option(CUDA_UVM OFF "Whether to use unified memory (UM) for CUDA by default")
-kokkos_enable_option(CUDA_LDG_INTRINSIC OFF "Whether to use CUDA LDG intrinsics")
-# In contrast to other CUDA-dependent, options CUDA_LAMBDA is ON by default.
-# That is problematic when CUDA is not enabled because this not only yields a
-# bogus warning, but also exports the Kokkos_ENABLE_CUDA_LAMBDA variable and
-# sets it to ON.
-kokkos_enable_option(
-  CUDA_LAMBDA ${KOKKOS_ENABLE_CUDA} "Whether to allow lambda expressions on the device with NVCC **DEPRECATED**"
-)
 
 # As of 09/2024, cudaMallocAsync causes issues with ICP and older version of UCX
 # as MPI communication layer.
 kokkos_enable_option(IMPL_CUDA_MALLOC_ASYNC OFF "Whether to enable CudaMallocAsync (requires CUDA Toolkit 11.2)")
-kokkos_enable_option(IMPL_NVHPC_AS_DEVICE_COMPILER OFF "Whether to allow nvc++ as Cuda device compiler")
 kokkos_enable_option(IMPL_CUDA_UNIFIED_MEMORY OFF "Whether to leverage unified memory architectures for CUDA")
 
 kokkos_enable_option(DEPRECATED_CODE_4 OFF "Whether code deprecated in major release 4 is available")
@@ -59,6 +49,9 @@ kokkos_enable_option(IMPL_SYCL_OUT_OF_ORDER_QUEUES OFF "Whether to make Kokkos u
 kokkos_enable_option(TESTS OFF "Whether to build the unit tests")
 kokkos_enable_option(BENCHMARKS OFF "Whether to build the benchmarks")
 kokkos_enable_option(EXAMPLES OFF "Whether to build the examples")
+if(Kokkos_ENABLE_BENCHMARKS)
+  kokkos_enable_option(BENCHMARKS_HEAVY OFF "Whether to build and run the long benchmarks")
+endif()
 string(TOUPPER "${CMAKE_BUILD_TYPE}" UPPERCASE_CMAKE_BUILD_TYPE)
 if(UPPERCASE_CMAKE_BUILD_TYPE STREQUAL "DEBUG")
   set(DEBUG_DEFAULT ON)
@@ -223,11 +216,8 @@ check_device_specific_options(
   DEVICE
   CUDA
   OPTIONS
-  CUDA_UVM
   CUDA_RELOCATABLE_DEVICE_CODE
-  CUDA_LAMBDA
   CUDA_CONSTEXPR
-  CUDA_LDG_INTRINSIC
   IMPL_CUDA_MALLOC_ASYNC
   IMPL_CUDA_UNIFIED_MEMORY
 )
@@ -277,26 +267,6 @@ if((KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE OR KOKKOS_ENABLE_HIP_RELOCATABLE_
     OR KOKKOS_ENABLE_SYCL_RELOCATABLE_DEVICE_CODE) AND BUILD_SHARED_LIBS
 )
   message(FATAL_ERROR "Relocatable device code requires static libraries.")
-endif()
-
-if(Kokkos_ENABLE_CUDA_LDG_INTRINSIC)
-  if(KOKKOS_ENABLE_DEPRECATED_CODE_4)
-    message(DEPRECATION "Setting Kokkos_ENABLE_CUDA_LDG_INTRINSIC is deprecated. LDG intrinsics are always enabled.")
-  else()
-    message(FATAL_ERROR "Kokkos_ENABLE_CUDA_LDG_INTRINSIC has been removed. LDG intrinsics are always enabled.")
-  endif()
-endif()
-if(Kokkos_ENABLE_CUDA AND NOT Kokkos_ENABLE_CUDA_LAMBDA)
-  if(KOKKOS_ENABLE_DEPRECATED_CODE_4)
-    message(
-      DEPRECATION
-        "Setting Kokkos_ENABLE_CUDA_LAMBDA is deprecated. Lambda expressions in device code are always enabled. Forcing -DKokkos_ENABLE_CUDA_LAMBDA=ON"
-    )
-    set(Kokkos_ENABLE_CUDA_LAMBDA ON CACHE BOOL "Kokkos turned Cuda lambda support ON!" FORCE)
-    set(KOKKOS_ENABLE_CUDA_LAMBDA ON)
-  else()
-    message(FATAL_ERROR "Kokkos_ENABLE_CUDA_LAMBDA has been removed. Lambda expressions in device code always enabled.")
-  endif()
 endif()
 
 if(DEFINED Kokkos_ENABLE_IMPL_DESUL_ATOMICS)

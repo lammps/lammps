@@ -160,8 +160,9 @@ struct concat_type_list<type_list<T...>> {
 
 // combine consecutive type_lists
 template <typename... T, typename... U, typename... Tail>
-struct concat_type_list<type_list<T...>, type_list<U...>, Tail...>
-    : concat_type_list<type_list<T..., U...>, Tail...> {};
+struct concat_type_list<type_list<T...>, type_list<U...>, Tail...> {
+  using type = concat_type_list_t<type_list<T..., U...>, Tail...>;
+};
 // </editor-fold> end concat_type_list }}}2
 //------------------------------------------------------------------------------
 
@@ -175,10 +176,16 @@ template <template <typename> class PredicateT, typename TypeListT,
 struct filter_type_list;
 
 template <template <typename> class PredicateT, typename... T, bool ValueT>
+  requires(sizeof...(T) > 0)
 struct filter_type_list<PredicateT, type_list<T...>, ValueT> {
   using type =
       concat_type_list_t<std::conditional_t<PredicateT<T>::value == ValueT,
                                             type_list<T>, type_list<>>...>;
+};
+
+template <template <typename> class PredicateT, bool ValueT>
+struct filter_type_list<PredicateT, type_list<>, ValueT> {
+  using type = type_list<>;
 };
 
 template <template <typename> class PredicateT, typename T, bool ValueT = true>

@@ -128,11 +128,15 @@ class KSpace : protected Pointers {
   uint64_t datamask_read, datamask_modify;
   int copymode;
 
-  int compute_flag;       // 0 if skip compute()
-  int fftbench;           // 0 if skip FFT timing
-  int collective_flag;    // 1 if use MPI collectives for FFT/remap
-  int nonblocking_flag;   // 1 if use MPI_Isend for FFT/remap
-  int stagger_flag;       // 1 if using staggered PPPM grids
+  int compute_flag;        // 0 if skip compute()
+  int fftbench;            // 0 if skip FFT timing
+  int collective_flag;     // 1 if use MPI collectives for FFT/remap
+  int nonblocking_flag;    // 1 if use MPI_Isend for FFT/remap
+  int selfcopy_flag;       // collective self-copy mode
+                           // 0 if no self-copy
+                           // 1 if always self-copy
+                           // 2 if only use self-copy for one rank runs
+  int stagger_flag;        // 1 if using staggered PPPM grids
 
   double splittol;    // tolerance for when to truncate splitting
 
@@ -232,7 +236,7 @@ class KSpace : protected Pointers {
   double **gcons, **dgcons;    // accumulated per-atom energy/virial
 
   int evflag, evflag_atom;
-  int eflag_either, eflag_global, eflag_atom;
+  int eflag_either, eflag_global, eflag_atom, eflag_only;
   int vflag_either, vflag_global, vflag_atom;
   int maxeatom, maxvatom;
 
@@ -245,7 +249,7 @@ class KSpace : protected Pointers {
     if (eflag || vflag)
       ev_setup(eflag, vflag, alloc);
     else
-      evflag = evflag_atom = eflag_either = eflag_global = eflag_atom = vflag_either =
+      evflag = evflag_atom = eflag_either = eflag_global = eflag_atom = eflag_only = vflag_either =
           vflag_global = vflag_atom = 0;
   }
   void ev_setup(int, int, int alloc = 1);

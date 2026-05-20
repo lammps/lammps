@@ -552,8 +552,7 @@ void PairLCBOP::FMij( int i, int j, double factor, double **f) {
       double rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
       double df_c_ik;
       double f_c_ik = f_c( rikmag, r_1, r_2, &df_c_ik );
-      double Nki = N[k]-(f_c_ik);
-//      double Mij = M[i] - f_c_ij*( 1-f_c(Nji, 2,3,&dummy) );
+      double Nki = N[k]-f_c_ik;
       double dF=0;
       double Fx = 1-f_c_LR(Nki, 2,3,&dF);
       dF = -dF;
@@ -601,15 +600,14 @@ double PairLCBOP::bondorder(int i, int j, double rij[3],double rijmag, double VA
     double dummy;
 
     double df_c_ij;
-    double f_c_ij = f_c( rijmag, r_1, r_2, &df_c_ij );
-    double Nij = MIN( 3, N[i]-(f_c_ij) );
-    double Nji = MIN( 3, N[j]-(f_c_ij) );
+    double f_c_ij = f_c(rijmag, r_1, r_2, &df_c_ij);
+    double Nij = MIN(3,N[i]-f_c_ij);
+    double Nji = MIN(3,N[j]-f_c_ij);
 
-    // F(xij) = 1-f_c(Nji, 2,3,&dummy)
-    double Mij = M[i] - f_c_ij*( 1-f_c(Nji, 2,3,&dummy) );
-    double Mji = M[j] - f_c_ij*( 1-f_c(Nij, 2,3,&dummy) );
-    Mij = MIN( Mij, 3 );
-    Mji = MIN( Mji, 3 );
+    double Mij = M[i] - f_c_ij*(1-f_c(Nji,2,3,&dummy));
+    double Mji = M[j] - f_c_ij*(1-f_c(Nij,2,3,&dummy));
+    Mij = MIN(Mij,3);
+    Mji = MIN(Mji,3);
 
     double Nij_el, dNij_el_dNij, dNij_el_dMij;
     double Nji_el, dNji_el_dNji, dNji_el_dMji;
@@ -622,8 +620,8 @@ double PairLCBOP::bondorder(int i, int j, double rij[3],double rijmag, double VA
       Nji_el = num_Nji_el / den_Nji_el;
       dNij_el_dNij = -Nij_el/den_Nij_el;
       dNji_el_dNji = -Nji_el/den_Nji_el;
-      dNij_el_dMij = ( -1 + Nij_el ) /den_Nij_el;
-      dNji_el_dMji = ( -1 + Nji_el ) /den_Nji_el;
+      dNij_el_dMij = (-1 + Nij_el) /den_Nij_el;
+      dNji_el_dMji = (-1 + Nji_el) /den_Nji_el;
     }
 
     double Nconj;

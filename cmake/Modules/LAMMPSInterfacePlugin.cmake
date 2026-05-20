@@ -149,15 +149,15 @@ if(BUILD_MPI)
   if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
     message(STATUS "Downloading and configuring MS-MPI 10.1 for Windows cross-compilation")
     set(MPICH2_WIN64_DEVEL_URL "${LAMMPS_THIRDPARTY_URL}/msmpi-win64-devel.tar.gz" CACHE STRING "URL for MS-MPI (win64) tarball")
-    set(MPICH2_WIN64_DEVEL_MD5 "86314daf1bffb809f1fcbefb8a547490" CACHE STRING "MD5 checksum of MS-MPI (win64) tarball")
+    set(MPICH2_WIN64_DEVEL_SHA256 "939f5bad74311a84839196ca9140549189ef00785b0ef8e94ad6a180014ccb7f" CACHE STRING "SHA256 checksum of MS-MPI (win64) tarball")
     mark_as_advanced(MPICH2_WIN64_DEVEL_URL)
-    mark_as_advanced(MPICH2_WIN64_DEVEL_MD5)
+    mark_as_advanced(MPICH2_WIN64_DEVEL_SHA256)
 
     include(ExternalProject)
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
       ExternalProject_Add(mpi4win_build
         URL     ${MPICH2_WIN64_DEVEL_URL}
-        URL_MD5 ${MPICH2_WIN64_DEVEL_MD5}
+        URL_HASH SHA256=${MPICH2_WIN64_DEVEL_SHA256}
         CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
         BUILD_BYPRODUCTS <SOURCE_DIR>/lib/libmsmpi.a)
     else()

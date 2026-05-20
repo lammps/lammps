@@ -16,6 +16,8 @@ struct dummy {
   dummy() { ++dummy_count; }
   dummy(dummy &&) { ++dummy_count; }
   dummy(dummy const &) { ++dummy_count; }
+  dummy &operator=(dummy &&) { return *this; }
+  dummy &operator=(dummy const &) { return *this; }
   ~dummy() { --dummy_count; }
   void f() const {}
 };

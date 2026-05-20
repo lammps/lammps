@@ -1,16 +1,22 @@
 # Contributing to Kokkos
 
-## Pull Requests
-We actively welcome pull requests.
-1. Fork the repo and create your branch from `develop`.
-2. If you've added code that should be tested, add tests.
-3. If you've changed APIs, update the documentation.
-4. Ensure the test suite passes.
+Thank you for your interest in contributing to Kokkos! There are many ways to
+contribute, and we appreciate all of them.
 
-Before sending your patch for review, please try to ensure that it is formatted properly. We use clang-format version 16 for this.
+## Getting Started
 
-## Issues
-We use GitHub issues to track public bugs. Please ensure your description is clear and has sufficient instructions to be able to reproduce the issue.
+To get started, please refer to our [Contributing to
+Kokkos](https://kokkos.org/kokkos-core-wiki/contributing.html) guide. It
+provides detailed instructions on:
+* How to get involved with the community.
+* The process for raising issues.
+* Guidelines for submitting and formatting patches.
 
 ## License
-By contributing to Kokkos, you agree that your contributions will be licensed under the LICENSE file in the root directory of this source tree.
+
+By contributing to Kokkos, you agree that your contributions will be licensed
+under the terms of the LICENSE file found in the root directory of the Kokkos
+repository.
+
+For your convenience, a copy of the license is also available at
+https://kokkos.org/LICENSE/.

@@ -14,15 +14,18 @@ import kokkos.simd_impl;
 #include <SIMDTesting_Utilities.hpp>
 
 template <class Abi, class Loader, class TernaryOp, class T>
-void host_check_math_op_one_loader(TernaryOp ternary_op, std::size_t n,
+void host_check_math_op_one_loader(TernaryOp ternary_op,
+                                   Kokkos::Experimental::Impl::simd_size_t n,
                                    T const* first_args, T const* second_args,
                                    T const* third_args) {
   Loader loader;
-  using simd_type             = Kokkos::Experimental::basic_simd<T, Abi>;
-  constexpr std::size_t width = simd_type::size();
-  for (std::size_t i = 0; i < n; i += width) {
-    std::size_t const nremaining = n - i;
-    std::size_t const nlanes     = Kokkos::min(nremaining, width);
+  using simd_type = Kokkos::Experimental::basic_simd<T, Abi>;
+  using size_type = Kokkos::Experimental::Impl::simd_size_t;
+
+  constexpr size_type width = simd_type::size();
+  for (size_type i = 0; i < n; i += width) {
+    const size_type nremaining = n - i;
+    const size_type nlanes     = Kokkos::min(nremaining, width);
     simd_type first_arg;
     bool const loaded_first_arg =
         loader.host_load(first_args + i, nlanes, first_arg);
@@ -35,7 +38,7 @@ void host_check_math_op_one_loader(TernaryOp ternary_op, std::size_t n,
     if (!(loaded_first_arg && loaded_second_arg && loaded_third_arg)) continue;
 
     T expected_val[width];
-    for (std::size_t lane = 0; lane < width; ++lane) {
+    for (size_type lane = 0; lane < width; ++lane) {
       expected_val[lane] = ternary_op.on_host(
           T(first_arg[lane]), T(second_arg[lane]), T(third_arg[lane]));
     }
@@ -51,14 +54,17 @@ void host_check_math_op_one_loader(TernaryOp ternary_op, std::size_t n,
 }
 
 template <class Abi, class Loader, class BinaryOp, class T>
-void host_check_math_op_one_loader(BinaryOp binary_op, std::size_t n,
+void host_check_math_op_one_loader(BinaryOp binary_op,
+                                   Kokkos::Experimental::Impl::simd_size_t n,
                                    T const* first_args, T const* second_args) {
   Loader loader;
-  using simd_type             = Kokkos::Experimental::basic_simd<T, Abi>;
-  constexpr std::size_t width = simd_type::size();
-  for (std::size_t i = 0; i < n; i += width) {
-    std::size_t const nremaining = n - i;
-    std::size_t const nlanes     = Kokkos::min(nremaining, width);
+  using simd_type = Kokkos::Experimental::basic_simd<T, Abi>;
+  using size_type = Kokkos::Experimental::Impl::simd_size_t;
+
+  constexpr size_type width = simd_type::size();
+  for (size_type i = 0; i < n; i += width) {
+    const size_type nremaining = n - i;
+    const size_type nlanes     = Kokkos::min(nremaining, width);
     if ((std::is_same_v<BinaryOp, divides> ||
          std::is_same_v<BinaryOp, divides_eq>)&&nremaining < width)
       continue;
@@ -77,7 +83,7 @@ void host_check_math_op_one_loader(BinaryOp binary_op, std::size_t n,
     }
 
     T expected_val[width];
-    for (std::size_t lane = 0; lane < width; ++lane) {
+    for (size_type lane = 0; lane < width; ++lane) {
       expected_val[lane] =
           binary_op.on_host(T(first_arg[lane]), T(second_arg[lane]));
     }
@@ -91,15 +97,17 @@ void host_check_math_op_one_loader(BinaryOp binary_op, std::size_t n,
 }
 
 template <class Abi, class Loader, class UnaryOp, class T>
-void host_check_math_op_one_loader(UnaryOp unary_op, std::size_t n,
+void host_check_math_op_one_loader(UnaryOp unary_op,
+                                   Kokkos::Experimental::Impl::simd_size_t n,
                                    T const* args) {
   Loader loader;
   using simd_type = Kokkos::Experimental::basic_simd<T, Abi>;
+  using size_type = Kokkos::Experimental::Impl::simd_size_t;
 
-  constexpr std::size_t width = simd_type::size();
-  for (std::size_t i = 0; i < n; i += width) {
-    std::size_t const nremaining = n - i;
-    std::size_t const nlanes     = Kokkos::min(nremaining, width);
+  constexpr size_type width = simd_type::size();
+  for (size_type i = 0; i < n; i += width) {
+    const size_type nremaining = n - i;
+    const size_type nlanes     = Kokkos::min(nremaining, width);
     simd_type arg;
     bool const loaded_arg = loader.host_load(args + i, nlanes, arg);
     if (!loaded_arg) continue;
@@ -132,7 +140,7 @@ void host_check_math_op_one_loader(UnaryOp unary_op, std::size_t n,
     using result_simd_type = decltype(unary_op_result);
 
     typename result_simd_type::value_type expected_val[width];
-    for (std::size_t lane = 0; lane < width; ++lane) {
+    for (size_type lane = 0; lane < width; ++lane) {
       expected_val[lane] = unary_op.on_host_serial(T(arg[lane]));
     }
 
@@ -145,8 +153,8 @@ void host_check_math_op_one_loader(UnaryOp unary_op, std::size_t n,
 }
 
 template <class Abi, class Op, class... T>
-inline void host_check_math_op_all_loaders(Op op, std::size_t n,
-                                           T const*... args) {
+inline void host_check_math_op_all_loaders(
+    Op op, Kokkos::Experimental::Impl::simd_size_t n, T const*... args) {
   host_check_math_op_one_loader<Abi, load_element_aligned>(op, n, args...);
   host_check_math_op_one_loader<Abi, load_masked>(op, n, args...);
   host_check_math_op_one_loader<Abi, load_as_scalars>(op, n, args...);
@@ -280,14 +288,16 @@ inline void host_check_math_ops_all_abis(
 
 template <typename Abi, typename Loader, typename TernaryOp, typename T>
 KOKKOS_INLINE_FUNCTION void device_check_math_op_one_loader(
-    TernaryOp ternary_op, std::size_t n, T const* first_args,
-    T const* second_args, T const* third_args) {
+    TernaryOp ternary_op, Kokkos::Experimental::Impl::simd_size_t n,
+    T const* first_args, T const* second_args, T const* third_args) {
   Loader loader;
-  using simd_type             = Kokkos::Experimental::basic_simd<T, Abi>;
-  constexpr std::size_t width = simd_type::size();
-  for (std::size_t i = 0; i < n; i += width) {
-    std::size_t const nremaining = n - i;
-    std::size_t const nlanes     = Kokkos::min(nremaining, width);
+  using simd_type = Kokkos::Experimental::basic_simd<T, Abi>;
+  using size_type = Kokkos::Experimental::Impl::simd_size_t;
+
+  constexpr size_type width = simd_type::size();
+  for (size_type i = 0; i < n; i += width) {
+    const size_type nremaining = n - i;
+    const size_type nlanes     = Kokkos::min(nremaining, width);
     simd_type first_arg;
     bool const loaded_first_arg =
         loader.device_load(first_args + i, nlanes, first_arg);
@@ -299,7 +309,7 @@ KOKKOS_INLINE_FUNCTION void device_check_math_op_one_loader(
         loader.device_load(third_args + i, nlanes, third_arg);
     if (!(loaded_first_arg && loaded_second_arg && loaded_third_arg)) continue;
 
-    simd_type expected_result(KOKKOS_LAMBDA(std::size_t lane) {
+    simd_type expected_result(KOKKOS_LAMBDA(size_type lane) {
       return ternary_op.on_device(first_arg[lane], second_arg[lane],
                                   third_arg[lane]);
     });
@@ -312,14 +322,15 @@ KOKKOS_INLINE_FUNCTION void device_check_math_op_one_loader(
 
 template <typename Abi, typename Loader, typename BinaryOp, typename T>
 KOKKOS_INLINE_FUNCTION void device_check_math_op_one_loader(
-    BinaryOp binary_op, std::size_t n, T const* first_args,
-    T const* second_args) {
+    BinaryOp binary_op, Kokkos::Experimental::Impl::simd_size_t n,
+    T const* first_args, T const* second_args) {
   Loader loader;
-  using simd_type             = Kokkos::Experimental::basic_simd<T, Abi>;
-  constexpr std::size_t width = simd_type::size();
-  for (std::size_t i = 0; i < n; i += width) {
-    std::size_t const nremaining = n - i;
-    std::size_t const nlanes     = Kokkos::min(nremaining, width);
+  using simd_type           = Kokkos::Experimental::basic_simd<T, Abi>;
+  using size_type           = Kokkos::Experimental::Impl::simd_size_t;
+  constexpr size_type width = simd_type::size();
+  for (size_type i = 0; i < n; i += width) {
+    const size_type nremaining = n - i;
+    const size_type nlanes     = Kokkos::min(nremaining, width);
     if ((std::is_same_v<BinaryOp, divides> ||
          std::is_same_v<BinaryOp, divides_eq>)&&nremaining < width)
       continue;
@@ -337,7 +348,7 @@ KOKKOS_INLINE_FUNCTION void device_check_math_op_one_loader(
       second_arg = Kokkos::round(Kokkos::abs(second_arg));
     }
 
-    simd_type expected_result(KOKKOS_LAMBDA(std::size_t lane) {
+    simd_type expected_result(KOKKOS_LAMBDA(size_type lane) {
       return binary_op.on_device(first_arg[lane], second_arg[lane]);
     });
 
@@ -348,15 +359,16 @@ KOKKOS_INLINE_FUNCTION void device_check_math_op_one_loader(
 }
 
 template <typename Abi, typename Loader, typename UnaryOp, typename T>
-KOKKOS_INLINE_FUNCTION void device_check_math_op_one_loader(UnaryOp unary_op,
-                                                            std::size_t n,
-                                                            T const* args) {
+KOKKOS_INLINE_FUNCTION void device_check_math_op_one_loader(
+    UnaryOp unary_op, Kokkos::Experimental::Impl::simd_size_t n,
+    T const* args) {
   Loader loader;
-  using simd_type             = Kokkos::Experimental::basic_simd<T, Abi>;
-  constexpr std::size_t width = simd_type::size();
-  for (std::size_t i = 0; i < n; i += width) {
-    std::size_t const nremaining = n - i;
-    std::size_t const nlanes     = Kokkos::min(nremaining, width);
+  using simd_type           = Kokkos::Experimental::basic_simd<T, Abi>;
+  using size_type           = Kokkos::Experimental::Impl::simd_size_t;
+  constexpr size_type width = simd_type::size();
+  for (size_type i = 0; i < n; i += width) {
+    const size_type nremaining = n - i;
+    const size_type nlanes     = Kokkos::min(nremaining, width);
     simd_type arg;
     bool const loaded_arg = loader.device_load(args + i, nlanes, arg);
     if (!loaded_arg) continue;
@@ -387,7 +399,7 @@ KOKKOS_INLINE_FUNCTION void device_check_math_op_one_loader(UnaryOp unary_op,
 
     auto computed_result = unary_op.on_device(arg);
 
-    decltype(computed_result) expected_result(KOKKOS_LAMBDA(std::size_t lane) {
+    decltype(computed_result) expected_result(KOKKOS_LAMBDA(size_type lane) {
       return unary_op.on_device_serial(arg[lane]);
     });
 
@@ -396,9 +408,8 @@ KOKKOS_INLINE_FUNCTION void device_check_math_op_one_loader(UnaryOp unary_op,
 }
 
 template <typename Abi, typename Op, typename... T>
-KOKKOS_INLINE_FUNCTION void device_check_math_op_all_loaders(Op op,
-                                                             std::size_t n,
-                                                             T const*... args) {
+KOKKOS_INLINE_FUNCTION void device_check_math_op_all_loaders(
+    Op op, Kokkos::Experimental::Impl::simd_size_t n, T const*... args) {
   device_check_math_op_one_loader<Abi, load_element_aligned>(op, n, args...);
   device_check_math_op_one_loader<Abi, load_masked>(op, n, args...);
   device_check_math_op_one_loader<Abi, load_as_scalars>(op, n, args...);
@@ -542,11 +553,12 @@ TEST(simd, host_math_ops) {
 }
 
 TEST(simd, device_math_ops) {
-#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
+#if defined(KOKKOS_IMPL_32BIT)
+  // FIXME_GCC: Floating point comparisons fail in a 32-bit build
+  // See https://github.com/kokkos/kokkos/pull/7912#issuecomment-2747713935
   GTEST_SKIP()
-      << "skipping because of a non-deterministic failure reporting: "
-         "Failure to synchronize stream (nil): Error in "
-         "cuStreamSynchronize: an illegal memory access was encountered";
+      << "skipping due to a GCC bug associated with the computation of "
+         "floating-point values in a 32-bit build.";
 #endif
 #if defined(KOKKOS_ENABLE_OPENACC) && \
     defined(KOKKOS_COMPILER_CLANG)  // FIXME_CLACC
@@ -556,6 +568,7 @@ TEST(simd, device_math_ops) {
          "cuStreamSynchronize: an illegal memory access was encountered";
 #endif
   Kokkos::parallel_for(1, simd_device_math_ops_functor());
+  Kokkos::fence();
 }
 
 #endif

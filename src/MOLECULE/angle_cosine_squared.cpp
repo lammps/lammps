@@ -46,6 +46,8 @@ AngleCosineSquared::AngleCosineSquared(LAMMPS *_lmp) : Angle(_lmp)
 
 AngleCosineSquared::~AngleCosineSquared()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

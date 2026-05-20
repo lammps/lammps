@@ -567,7 +567,7 @@ parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
  *  less than N) and a scan operation is performed. The last call to closure has
  *  final == true.
  */
-// This is the same code as in CUDA and largely the same as in OpenMPTarget
+// This is the same code as in CUDA.
 template <typename iType, typename FunctorType, typename ValueType>
 KOKKOS_INLINE_FUNCTION void parallel_scan(
     const Impl::TeamThreadRangeBoundariesStruct<iType, Impl::HIPTeamMember>&

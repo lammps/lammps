@@ -26,6 +26,8 @@ Syntax
                              temperature, heatflow,
                              angmomx, angmomy, angmomz,
                              shapex, shapey, shapez,
+                             block1, block2,
+                             inertiax, inertiay, inertiaz,
                              quatw, quati, quatj, quatk, tqx, tqy, tqz,
                              end1x, end1y, end1z, end2x, end2y, end2z,
                              corner1x, corner1y, corner1z,
@@ -64,6 +66,8 @@ Syntax
            *heatflow* = internal heat flow of spherical particle
            *angmomx,angmomy,angmomz* = angular momentum of aspherical particle
            *shapex,shapey,shapez* = 3 diameters of aspherical particle
+           *block1,block2* = 2 blockiness exponents of aspherical (superellipsoid) particle
+           *inertiax,inertiay,inertiaz* = 3 principal moments of inertia of aspherical (superellipsoid) particle
            *quatw,quati,quatj,quatk* = quaternion components for aspherical or body particles
            *tqx,tqy,tqz* = torque on finite-size particles
            *end12x, end12y, end12z* = end points of line segment
@@ -163,6 +167,20 @@ If :doc:`newton bond off <newton>` is set, it will be tallied with both atom
 The quantities *shapex*, *shapey*, and *shapez* are defined for ellipsoidal
 particles and define the 3d shape of each particle.
 
+.. versionadded:: 30Mar2026
+
+The quantities *block1*, and *block2*, are defined for superellipsoidal
+particles and define the blockiness of each superellipsoid particle.
+See the :doc:`set <set>` command for an explanation of the blockiness.
+
+.. versionadded:: 30Mar2026
+
+The quantities *inertiax*, *inertiay*, and *inertiaz* are defined for
+superellipsoidal particles and define the 3 principal moments of inertia
+of each particle.  These are with respect to the particle's center of
+mass and in a reference system aligned with the particle's principal
+axes.
+
 The quantities *quatw*, *quati*, *quatj*, and *quatk* are defined for
 ellipsoidal particles and body particles and store the 4-vector quaternion
 representing the orientation of each particle.  See the :doc:`set <set>`
@@ -183,7 +201,7 @@ the energies of a
 fast (*apip_e_fast*) and a precise (*apip_e_precise*) potential into an
 adaptive-precision energy.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Mar2026
 
 Alternatively, the switching parameter can be calculated from a
 locally averaged descriptor (*apip_la_avg*) to obtain a conservative

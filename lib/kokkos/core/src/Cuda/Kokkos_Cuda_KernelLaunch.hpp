@@ -529,7 +529,8 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
       KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_instance->cuda_memcpy_async_wrapper(
           driver_ptr, &driver, sizeof(DriverType), cudaMemcpyDefault)));
 
-      void const* args[] = {&driver_ptr};
+      // NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)
+      void* args[] = {&driver_ptr};
 
       cudaKernelNodeParams params = {};
 
@@ -538,7 +539,7 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
       params.sharedMemBytes = shmem;
       // Casting a function pointer to a data pointer...
       params.func         = reinterpret_cast<void*>(base_t::get_kernel_func());
-      params.kernelParams = const_cast<void**>(args);
+      params.kernelParams = args;
       params.extra        = nullptr;
 
       KOKKOS_IMPL_CUDA_SAFE_CALL(

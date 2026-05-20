@@ -357,7 +357,7 @@ class SYCLTeamMember {
   KOKKOS_INLINE_FUNCTION
   SYCLTeamMember(sycl::local_ptr<void> shared, const std::size_t shared_begin,
                  const std::size_t shared_size,
-                 sycl_device_ptr<void> scratch_level_1_ptr,
+                 sycl::global_ptr<void> scratch_level_1_ptr,
                  const std::size_t scratch_level_1_size,
                  const sycl::nd_item<2> item, const int arg_league_rank,
                  const int arg_league_size)
@@ -611,7 +611,7 @@ parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
  *  less than N) and a scan operation is performed. The last call to closure has
  *  final == true.
  */
-// This is the same code as in CUDA and largely the same as in OpenMPTarget
+// This is the same code as in CUDA.
 template <typename iType, typename FunctorType, typename ValueType>
 KOKKOS_INLINE_FUNCTION void parallel_scan(
     const Impl::TeamThreadRangeBoundariesStruct<iType, Impl::SYCLTeamMember>&

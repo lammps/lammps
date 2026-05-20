@@ -143,7 +143,7 @@ TEST(TEST_CATEGORY, SortWithCustomComparator) {
 
 }  // namespace SortWithComp
 }  // namespace anonym
- 
+
 #undef KOKKOS_IMPL_ONEDPL_VERSION
 #undef KOKKOS_IMPL_ONEDPL_VERSION_GREATER_EQUAL
 

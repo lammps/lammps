@@ -20,6 +20,7 @@ template <class T>
 using copy_assign_t = decltype(std::declval<T&>() = std::declval<const T&>());
 
 struct Meow {};
+// NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 struct Purr {
   void operator=(const Purr&) = delete;
 };

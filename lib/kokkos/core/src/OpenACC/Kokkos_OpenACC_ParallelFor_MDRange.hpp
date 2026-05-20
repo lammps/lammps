@@ -856,6 +856,10 @@ class Kokkos::Impl::ParallelFor<Functor, Kokkos::MDRangePolicy<Traits...>,
   ParallelFor(Functor const& functor, Policy const& policy)
       : m_functor(functor), m_policy(policy) {}
 
+  static int max_tile_size_product(const Policy&, const Functor&) {
+    return 512;
+  }
+
   void execute() const {
     static_assert(1 < Policy::rank && Policy::rank < 7);
     static_assert(Policy::inner_direction == Iterate::Left ||

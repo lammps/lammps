@@ -1,7 +1,11 @@
 .. index:: dihedral_style spherical
+.. index:: dihedral_style spherical/kk
+.. index:: dihedral_style spherical/omp
 
 dihedral_style spherical command
 ================================
+
+Accelerator Variants: *spherical/kk*, *spherical/omp*
 
 Syntax
 """"""
@@ -82,6 +86,10 @@ the Dihedral Coeffs section of a data file read by the
 * :math:`M_n` (typically an integer)
 * :math:`c_n` (degrees, typically 0.0 or 90.0)
 * :math:`w_n` (typically 0.0 or 1.0)
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

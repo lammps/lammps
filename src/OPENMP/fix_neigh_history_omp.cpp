@@ -567,13 +567,23 @@ void FixNeighHistoryOMP::post_neighbor()
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-        rflag = histmask(j);
+
+        if (use_bit_flag) {
+          rflag = histmask(j) | pair->beyond_contact;
+          j &= HISTMASK;
+          jlist[jj] = j;
+        } else {
+          rflag = 1;
+        }
+
         j &= NEIGHMASK;
         jlist[jj] = j;
 
         // rflag = 1 if r < radsum in npair_size() method
         // preserve neigh history info if tag[j] is in old-neigh partner list
         // this test could be more geometrically precise for two sphere/line/tri
+        // if use_bit_flag is turned off, always record data since not all npair classes
+        // apply a mask for history (and they could use the bits for special bonds)
 
         if (rflag) {
           jtag = tag[j];

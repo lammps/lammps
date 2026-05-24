@@ -730,6 +730,13 @@ void FixIlves::gather_global_topology()
   // -----------------------------------------------------------------
   // angles: pack (atom1_tag, atom2_tag, atom3_tag, |type|) for each
   // locally-stored angle.  atom2 = middle atom.
+  //
+  // Pre-filter by angle_flag[at]: every consumer of ga_* (the angle
+  // distance computation in init() and the virtual A-C constraint scan
+  // in build_constraint_list) immediately discards entries with a
+  // non-selected type, so gathering them is wasted MPI bandwidth and
+  // memory.  Skipping them at the source keeps ga_* down to only the
+  // angle types we will actually constrain.
   // -----------------------------------------------------------------
   std::vector<tagint> senda;
   for (int i = 0; i < nlocal_now; ++i) {
@@ -737,6 +744,7 @@ void FixIlves::gather_global_topology()
       int at = na_type[i][m];
       if (at == 0) continue;
       if (at < 0) at = -at;
+      if (at > atom->nangletypes || !angle_flag[at]) continue;
       // dedupe: only middle atom owner packs the angle entry to avoid
       // duplicates from newton-off triple storage.
       if (na_atom2[i][m] != tag[i]) continue;
@@ -832,7 +840,7 @@ void FixIlves::gather_global_topology()
     if (tag_cluster[t] >= 0) tag_cluster[t] = find(t);
 
   if (comm->me == 0)
-    utils::logmesg(lmp, "Fix ilves: gathered global topology with {} bonds and {} angles\n",
+    utils::logmesg(lmp, "Fix ilves: gathered global topology with {} bonds and {} selected angles\n",
                    gb_a.size(), ga1.size());
 
   global_topology_ready = true;

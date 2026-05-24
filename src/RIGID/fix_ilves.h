@@ -150,6 +150,11 @@ class FixIlves : public Fix {
   // selector for pack_forward_comm: 0 = pack xshake, 1 = pack atom->v
   int comm_mode;
 
+  // if false (local variant), stats() counts every constraint in the list
+  // without deduplication; if true (global variant), it deduplicates by
+  // lower-tag ownership because the same constraint lives on multiple ranks.
+  bool stats_dedup;
+
   // counters incremented per cluster-solve; reported on rank 0 when
   // output_every > 0 so the user sees how often we fall back to LU.
   bigint chol_calls, chol_fallbacks;

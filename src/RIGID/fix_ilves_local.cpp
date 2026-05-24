@@ -57,6 +57,9 @@ FixIlvesLocal::FixIlvesLocal(LAMMPS *lmp, int narg, char **arg) :
   // 3 doubles per atom for reverse_comm of force / velocity contributions
   comm_reverse = 3;
   grow_rbuf(atom->nmax);
+  // every constraint lives on exactly one rank in the local variant,
+  // so stats() must not dedup by lower-tag ownership
+  stats_dedup = false;
 }
 
 FixIlvesLocal::~FixIlvesLocal()

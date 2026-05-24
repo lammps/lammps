@@ -114,6 +114,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   lu_alloc = 0;
   largest_cluster = 0;
   comm_mode = 0;
+  stats_dedup = true;
   energy_global_flag = energy_peratom_flag = 1;
   virial_global_flag = virial_peratom_flag = 1;
   thermo_energy = thermo_virial = 1;
@@ -1955,11 +1956,15 @@ void FixIlves::stats()
     int b = c_atom2[k];
     tagint ta = tag[a], tb = tag[b];
 
-    // global dedup: only the rank owning the lower-tag atom locally
-    // accounts for this constraint in stats
-    tagint t_lower = (ta < tb) ? ta : tb;
-    int lower_local = atom->map(t_lower);
-    if (lower_local < 0 || lower_local >= nlocal_now) continue;
+    // dedup: only count this constraint on the rank that owns the lower-tag
+    // endpoint locally.  Not needed for the local variant (each constraint
+    // lives on exactly one rank), but required for the global variant where
+    // the same constraint is solved redundantly on multiple ranks.
+    if (stats_dedup) {
+      tagint t_lower = (ta < tb) ? ta : tb;
+      int lower_local = atom->map(t_lower);
+      if (lower_local < 0 || lower_local >= nlocal_now) continue;
+    }
 
     double dx = atom->x[a][0] - atom->x[b][0];
     double dy = atom->x[a][1] - atom->x[b][1];

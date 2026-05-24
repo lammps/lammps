@@ -193,6 +193,16 @@ class FixIlves : public Fix {
   // solver
   void grow_lu_workspace(int n);
   int lu_factor_solve(int n);    // 0 = success, !=0 = singular
+  // Cholesky factor + solve for symmetric positive-definite A.  Used for the
+  // ILVES_FAST position-constraint matrix (truly symmetric: r_k.r_l off-
+  // diagonals) and for the RATTLE-style velocity-projection matrix (also
+  // symmetric).  Returns 0 on success, 1 if a non-positive pivot is found
+  // (matrix is not SPD -- typically a degenerate constraint cluster); the
+  // caller falls back to lu_factor_solve in that case.
+  int chol_factor_solve(int n);
+  // counters incremented per cluster-solve; reported on rank 0 when
+  // output_every > 0 so the user sees how often we fall back to LU.
+  bigint chol_calls, chol_fallbacks;
   bool solve_constraints();
   void apply_constraint_forces(int vflag);
   void correct_coordinates(int vflag);

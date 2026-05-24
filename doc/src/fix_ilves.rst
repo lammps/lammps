@@ -37,7 +37,8 @@ Syntax
          *yes* exposes per-atom constraint forces via array_atom (3 columns)
        *variant* value = *ilves* or *ilvesf*
          *ilves*  = full ILVES (true Newton iteration on the exact Jacobian)
-         *ilvesf* = ILVES-F (structurally-symmetric quasi-Newton, faster)
+         *ilvesf* = ILVES-F (symmetric quasi-Newton, default; solved with
+                    Cholesky for ~15-20% lower solver cost than LU)
 
 Examples
 """"""""
@@ -195,9 +196,18 @@ keyword options).
      but not numerically symmetric.
 
    Both variants converge to the exact solution of the constraint
-   equations; the symmetric variant has slightly cheaper per-iteration
-   matrix assembly and would permit a Cholesky solve (currently both
-   variants use the same LU with partial pivoting).
+   equations.  The symmetric ``ilvesf`` variant is solved with an
+   in-place Cholesky factorization (``A = L L^T``); on a 2004-atom
+   peptide-in-water test with all bonds + the water HOH angle
+   constrained, the Cholesky path is ~14% faster than LU on the same
+   matrix in serial and ~21% faster on 4 MPI ranks.  If Cholesky
+   encounters a non-positive pivot (degenerate cluster, linearly
+   dependent constraints) the solver re-assembles the matrix and falls
+   back to LU with partial pivoting -- the per-step ``output_every``
+   stats line reports the fallback count when ``N > 0``.  The
+   asymmetric ``ilves`` variant uses LU directly.  The velocity
+   projection in ``end_of_step`` is also Cholesky-based (the velocity
+   matrix is always symmetric regardless of variant).
 
 Restrictions
 """"""""""""

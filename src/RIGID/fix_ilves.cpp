@@ -129,6 +129,8 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   ebond = 0.0;
   has_angle = false;
   variant = ILVES_FAST;
+  chol_calls = 0;
+  chol_fallbacks = 0;
 
   store_flag = peratom_flag = 0;
   maxstore = -1;
@@ -1333,6 +1335,61 @@ int FixIlves::lu_factor_solve(int n)
 }
 
 /* ----------------------------------------------------------------------
+   In-place Cholesky factorization A = L L^T (lower triangular) followed
+   by forward + back substitution to solve A x = b.  Requires A to be
+   symmetric positive definite; reads only the lower triangle (i >= j) of
+   the assembled matrix and overwrites it with L.  The upper triangle
+   (i < j) is left untouched.
+
+   Returns 0 on success, 1 if the running diagonal becomes non-positive
+   (matrix is not SPD).  In that case the caller should fall back to
+   lu_factor_solve, which can handle indefinite or asymmetric A.
+
+   This is the workhorse for the symmetric ILVES_FAST position Jacobian
+   and for the (always-symmetric) velocity-projection matrix.  Asymptotic
+   cost is ~n^3/6 flops vs ~n^3/3 for the LU above.
+------------------------------------------------------------------------- */
+
+int FixIlves::chol_factor_solve(int n)
+{
+  constexpr double TINY = 1.0e-30;
+
+  // Factor in-place.  L is stored in the lower triangle of lu_A (including
+  // the diagonal); the upper triangle is left as-is.
+  for (int k = 0; k < n; ++k) {
+    double diag = lu_A[k*n + k];
+    for (int j = 0; j < k; ++j) {
+      double Lkj = lu_A[k*n + j];
+      diag -= Lkj * Lkj;
+    }
+    if (diag < TINY) return 1;     // not SPD
+    double Lkk = sqrt(diag);
+    lu_A[k*n + k] = Lkk;
+    double inv_Lkk = 1.0 / Lkk;
+    for (int i = k + 1; i < n; ++i) {
+      double t = lu_A[i*n + k];
+      for (int j = 0; j < k; ++j) t -= lu_A[i*n + j] * lu_A[k*n + j];
+      lu_A[i*n + k] = t * inv_Lkk;
+    }
+  }
+
+  // Forward substitution: L y = b  (overwrite lu_b with y).
+  for (int i = 0; i < n; ++i) {
+    double s = lu_b[i];
+    for (int j = 0; j < i; ++j) s -= lu_A[i*n + j] * lu_b[j];
+    lu_b[i] = s / lu_A[i*n + i];
+  }
+  // Back substitution: L^T x = y.  L^T entry at (j, i) is lu_A[j*n + i]
+  // for j > i (lower-triangle storage of L).
+  for (int i = n - 1; i >= 0; --i) {
+    double s = lu_b[i];
+    for (int j = i + 1; j < n; ++j) s -= lu_A[j*n + i] * lu_b[j];
+    lu_b[i] = s / lu_A[i*n + i];
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    Solve all constraints by ILVES Newton iteration.  For each cluster c:
      - assemble the local n_c x n_c Jacobian A_c (structurally symmetric,
        numerically asymmetric -- equals the exact Newton Jacobian)
@@ -1471,8 +1528,63 @@ bool FixIlves::solve_constraints()
         }
       }
 
-      // solve A * d-lambda = lu_b (= -g)
-      int info = lu_factor_solve(n_c);
+      // Solve A * d-lambda = lu_b (= -g).
+      // For ILVES_FAST the matrix is genuinely symmetric (r_k.r_l in the
+      // off-diagonals) and SPD for non-degenerate constraint geometries:
+      // use Cholesky.  If the Cholesky pivot goes non-positive (degenerate
+      // cluster: collapsed constraint geometry, linearly dependent
+      // constraints, etc.), the assembled lower triangle has been
+      // overwritten with a partial L -- the lu_factor_solve fallback would
+      // therefore see junk.  Re-assemble the matrix by re-running the
+      // diagonal+off-diagonal loops; we do that by jumping back to a
+      // cleanup-and-redo path.  In practice fallbacks are rare; the cost
+      // of one extra assembly is dwarfed by avoiding LU on the happy path.
+      //
+      // ILVES_FULL has an asymmetric Jacobian (s_k.r_l in off-diagonals)
+      // and goes straight through LU.
+      int info;
+      if (variant == ILVES_FAST) {
+        ++chol_calls;
+        info = chol_factor_solve(n_c);
+        if (info) {
+          ++chol_fallbacks;
+          // re-zero and re-assemble before falling back to LU
+          for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
+          for (int s = 0; s < n_c; ++s) {
+            int k = c_perm[beg + s];
+            lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
+            double ssq = cl_sx[s]*cl_sx[s] + cl_sy[s]*cl_sy[s] + cl_sz[s]*cl_sz[s];
+            double gk = 0.5 * (ssq - c_dist[k]*c_dist[k]);
+            lu_b[s] = -gk;
+          }
+          for (int s = 0; s < n_c; ++s) {
+            int k = c_perm[beg + s];
+            tagint tag_ak = atom->tag[c_atom1[k]];
+            tagint tag_bk = atom->tag[c_atom2[k]];
+            double invma_k = c_invma[k];
+            double invmb_k = c_invmb[k];
+            for (int t = s + 1; t < n_c; ++t) {
+              int l = c_perm[beg + t];
+              tagint tag_al = atom->tag[c_atom1[l]];
+              tagint tag_bl = atom->tag[c_atom2[l]];
+              int sig_k = 0, sig_l = 0;
+              double invm_p = 0.0;
+              if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
+              else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
+              else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
+              else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
+              else continue;
+              double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
+              double val = sig_k * sig_l * rkrl * invm_p;
+              lu_A[s*n_c + t] = val;
+              lu_A[t*n_c + s] = val;
+            }
+          }
+          info = lu_factor_solve(n_c);
+        }
+      } else {
+        info = lu_factor_solve(n_c);
+      }
       if (info) {
         error->one(FLERR,
                    "Fix ilves: singular Jacobian in cluster {} (size {}, iter {}). "
@@ -1774,7 +1886,49 @@ void FixIlves::correct_velocities()
       }
     }
 
-    int info = lu_factor_solve(n_c);
+    // Velocity-projection matrix is always symmetric (r_k.r_l off-diagonals)
+    // regardless of variant -- always SPD for non-degenerate clusters.
+    ++chol_calls;
+    int info = chol_factor_solve(n_c);
+    if (info) {
+      ++chol_fallbacks;
+      // re-zero and re-assemble for the LU fallback (Cholesky overwrote L)
+      for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
+      for (int s = 0; s < n_c; ++s) {
+        int k = c_perm[beg + s];
+        int a = c_atom1[k];
+        int b = c_atom2[k];
+        lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
+        double vxd = v[a][0] - v[b][0];
+        double vyd = v[a][1] - v[b][1];
+        double vzd = v[a][2] - v[b][2];
+        lu_b[s] = vxd*c_rx[k] + vyd*c_ry[k] + vzd*c_rz[k];
+      }
+      for (int s = 0; s < n_c; ++s) {
+        int k = c_perm[beg + s];
+        double invma_k = c_invma[k];
+        double invmb_k = c_invmb[k];
+        tagint tag_ak = atom->tag[c_atom1[k]];
+        tagint tag_bk = atom->tag[c_atom2[k]];
+        for (int t = s + 1; t < n_c; ++t) {
+          int l = c_perm[beg + t];
+          tagint tag_al = atom->tag[c_atom1[l]];
+          tagint tag_bl = atom->tag[c_atom2[l]];
+          int sig_k = 0, sig_l = 0;
+          double invm_p = 0.0;
+          if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
+          else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
+          else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
+          else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
+          else continue;
+          double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
+          double val = sig_k * sig_l * rkrl * invm_p;
+          lu_A[s*n_c + t] = val;
+          lu_A[t*n_c + s] = val;
+        }
+      }
+      info = lu_factor_solve(n_c);
+    }
     if (info)
       error->one(FLERR, "Fix ilves: singular velocity-correction matrix in cluster {} "
                  "(size {}).  Check for degenerate constraint topology.", c, n_c);
@@ -2224,6 +2378,10 @@ void FixIlves::stats()
                             i, a_ave_all[i] / a_count_all[i],
                             a_max_all[i] - a_min_all[i], a_count_all[i]);
     }
+    if (chol_calls > 0)
+      mesg += fmt::format("Cholesky: {} calls, {} LU fallbacks ({:.4}%)\n",
+                          chol_calls, chol_fallbacks,
+                          100.0 * (double) chol_fallbacks / (double) chol_calls);
     utils::logmesg(lmp, mesg);
   }
 

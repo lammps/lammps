@@ -1,0 +1,2199 @@
+// clang-format off
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   ILVES bond/angle constraint solver
+
+   Reference:
+     P. Garcia-Risueno et al., J. Chem. Theory Comput. (2026)
+     DOI: 10.1021/acs.jctc.5c01376
+     reference GROMACS implementation:
+     https://github.com/LorienLV/_PAPER_ILVES
+
+   Compared to fix shake/rattle the user-interface follows the same b/a/t/m
+   selectors (constrain by bond type, angle type, atom type, atom mass) and
+   the same in-group requirement: a bond is constrained only when both atoms
+   are in the fix group; an angle (i.e. the A-C "virtual" distance derived
+   from A-B and B-C bonds) is constrained only when all three atoms are
+   in the fix group AND the two flanking bonds are themselves selected by
+   one of the above criteria.
+
+   Unlike SHAKE, the constraint topology is not limited to small clusters
+   (1+1, 1+2, 1+3 atoms or one 3-atom angle).  Constraints are stored as a
+   flat list of (a, b) pairs with target distance d_k, so connected
+   constraint networks of arbitrary size (e.g. all C-C backbone bonds in a
+   protein) are admissible.
+
+   PHASE 1 (this file): UI parser, per-atom flags, constraint-list builder,
+   connected-component labelling, ghost communication of xshake.  The
+   Newton-style solver, the angle (A-C) constraints, MPI residual reduction,
+   minimization restraints and restart support will be added in subsequent
+   phases.
+------------------------------------------------------------------------- */
+
+#include "fix_ilves.h"
+
+#include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "label_map.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <vector>
+
+using namespace LAMMPS_NS;
+using namespace FixConst;
+using namespace MathConst;
+
+static constexpr double BIG = 1.0e20;
+static constexpr double MASSDELTA = 0.1;
+static constexpr int DELTA_CONSTR = 256;
+
+/* ---------------------------------------------------------------------- */
+
+FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr), type_flag(nullptr),
+    mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr),
+    fstore(nullptr), ilves_flag(nullptr), xshake(nullptr),
+    c_atom1(nullptr), c_atom2(nullptr), c_type(nullptr),
+    c_dist(nullptr), c_lambda(nullptr), c_cluster(nullptr),
+    c_rx(nullptr), c_ry(nullptr), c_rz(nullptr), c_rsq(nullptr),
+    c_invma(nullptr), c_invmb(nullptr),
+    cluster_offset(nullptr), c_perm(nullptr), c_slot(nullptr),
+    lu_A(nullptr), lu_b(nullptr), lu_pivot(nullptr),
+    cl_sx(nullptr), cl_sy(nullptr), cl_sz(nullptr),
+    x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr), type(nullptr),
+    b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr), b_min(nullptr),
+    b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr),
+    a_count(nullptr), a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr),
+    a_ave_all(nullptr), a_max_all(nullptr), a_min_all(nullptr)
+{
+  lu_alloc = 0;
+  largest_cluster = 0;
+  comm_mode = 0;
+  global_topology_ready = false;
+  energy_global_flag = energy_peratom_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
+  thermo_energy = thermo_virial = 1;
+  create_attribute = 1;
+  dof_flag = 1;
+  scalar_flag = 1;
+  extscalar = 1;
+  stores_ids = 1;
+  next_output = -1;
+
+  vflag_post_force = 0;
+  eflag_pre_reverse = 0;
+  ebond = 0.0;
+  has_angle = false;
+  variant = 0;       // default: full ILVES (symmetric matrix)
+
+  store_flag = peratom_flag = 0;
+  maxstore = -1;
+
+  n_constr = 0;
+  max_constr = 0;
+  n_clusters = 0;
+
+  // error checks
+
+  if (atom->molecular != Atom::MOLECULAR)
+    error->all(FLERR, "Fix ilves requires a molecular system (atom_style with bonds)");
+
+  // perform initial allocation of atom-based per-atom arrays
+  FixIlves::grow_arrays(atom->nmax);
+  atom->add_callback(Atom::GROW);
+
+  // forward-comm payload: 3 doubles (xshake)
+  comm_forward = 3;
+
+  // -----------------------------------------------------------------
+  // parse arguments: tol  iter  output_every  <b|a|t|m> ids ... [opt]
+  // mirrors fix shake's UI
+  // -----------------------------------------------------------------
+
+  if (narg < 8) utils::missing_cmd_args(FLERR, "fix ilves", error);
+
+  tolerance    = utils::numeric(FLERR, arg[3], false, lmp);
+  max_iter     = utils::inumeric(FLERR, arg[4], false, lmp);
+  output_every = utils::inumeric(FLERR, arg[5], false, lmp);
+
+  if (tolerance <= 0.0) error->all(FLERR, 3, "Fix ilves tolerance must be > 0");
+  if (max_iter <= 0)    error->all(FLERR, 4, "Fix ilves max_iter must be > 0");
+  if (output_every < 0) error->all(FLERR, 5, "Fix ilves output_every must be >= 0");
+
+  // check typelabel/keyword conflicts (b/a/t/m vs typelabels)
+  bool allow_typelabels = (atom->labelmapflag != 0);
+  if (allow_typelabels) {
+    for (int i = Atom::ATOM; i < Atom::DIHEDRAL; ++i) {
+      if ((atom->lmap->find_type("b", i) >= 0) ||
+          (atom->lmap->find_type("a", i) >= 0) ||
+          (atom->lmap->find_type("t", i) >= 0) ||
+          (atom->lmap->find_type("m", i) >= 0)) allow_typelabels = false;
+    }
+    if (!allow_typelabels && (comm->me == 0))
+      error->warning(FLERR, "At least one typelabel conflicts with a fix ilves option: "
+                     "support for typelabels is disabled.");
+  }
+
+  bond_flag  = new int[atom->nbondtypes  + 1]{};
+  angle_flag = new int[atom->nangletypes + 1]{};
+  type_flag  = new int[atom->ntypes      + 1]{};
+  mass_list  = new double[atom->ntypes];
+  nmass = 0;
+
+  char mode = '\0';
+  int next = 6;
+  while (next < narg) {
+    int i = -1;
+    if      (strcmp(arg[next], "b") == 0) mode = 'b';
+    else if (strcmp(arg[next], "a") == 0) mode = 'a';
+    else if (strcmp(arg[next], "t") == 0) mode = 't';
+    else if (strcmp(arg[next], "m") == 0) { mode = 'm'; atom->check_mass(FLERR); }
+
+    // break on known optional-keyword start
+    else if ((strcmp(arg[next], "kbond")   == 0) ||
+             (strcmp(arg[next], "store")   == 0) ||
+             (strcmp(arg[next], "variant") == 0)) {
+      break;
+
+    } else if (mode == 'b') {
+      if (allow_typelabels) i = utils::expand_type_int(FLERR, arg[next], Atom::BOND, lmp);
+      else                  i = utils::inumeric(FLERR, arg[next], false, lmp);
+      if (i < 1 || i > atom->nbondtypes)
+        error->all(FLERR, next, "Invalid bond type {} for fix ilves", arg[next]);
+      bond_flag[i] = 1;
+
+    } else if (mode == 'a') {
+      if (allow_typelabels) i = utils::expand_type_int(FLERR, arg[next], Atom::ANGLE, lmp);
+      else                  i = utils::inumeric(FLERR, arg[next], false, lmp);
+      if (i < 1 || i > atom->nangletypes)
+        error->all(FLERR, next, "Invalid angle type {} for fix ilves", arg[next]);
+      angle_flag[i] = 1;
+      has_angle = true;
+
+    } else if (mode == 't') {
+      if (allow_typelabels) i = utils::expand_type_int(FLERR, arg[next], Atom::ATOM, lmp);
+      else                  i = utils::inumeric(FLERR, arg[next], false, lmp);
+      if (i < 1 || i > atom->ntypes)
+        error->all(FLERR, next, "Invalid atom type {} for fix ilves", arg[next]);
+      type_flag[i] = 1;
+
+    } else if (mode == 'm') {
+      double m1 = utils::numeric(FLERR, arg[next], false, lmp);
+      if (m1 <= 0.0) error->all(FLERR, next, "Invalid atom mass {} for fix ilves", arg[next]);
+      if (nmass == atom->ntypes)
+        error->all(FLERR, "Too many mass entries for fix ilves");
+      mass_list[nmass++] = m1;
+
+    } else {
+      error->all(FLERR, "Unknown fix ilves command option: {}", arg[next]);
+    }
+    next++;
+  }
+
+  // optional args: kbond <v>, store <yes|no>, variant <ilves|ilvesf>
+  kbond = 1.0e9 * force->boltz;
+
+  while (next < narg) {
+    if (strcmp(arg[next], "kbond") == 0) {
+      if (next + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves kbond", error);
+      kbond = utils::numeric(FLERR, arg[next + 1], false, lmp);
+      if (kbond <= 0.0) error->all(FLERR, next + 1, "Fix ilves kbond must be > 0");
+      next += 2;
+
+    } else if (strcmp(arg[next], "store") == 0) {
+      if (next + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves store", error);
+      store_flag = utils::logical(FLERR, arg[next + 1], false, lmp);
+      if (store_flag) {
+        peratom_flag = 1;
+        size_peratom_cols = 3;
+        peratom_freq = 1;
+      }
+      next += 2;
+
+    } else if (strcmp(arg[next], "variant") == 0) {
+      if (next + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves variant", error);
+      if      (strcmp(arg[next + 1], "ilves")  == 0) variant = 0;
+      else if (strcmp(arg[next + 1], "ilvesf") == 0) variant = 1;
+      else error->all(FLERR, next + 1, "Unknown fix ilves variant {}", arg[next + 1]);
+      next += 2;
+
+    } else {
+      error->all(FLERR, "Unknown fix ilves command option: {}", arg[next]);
+    }
+  }
+
+  // allocate distance arrays (filled by init())
+  bond_distance  = new double[atom->nbondtypes  + 1]{};
+  angle_distance = new double[atom->nangletypes + 1]{};
+
+  if (output_every) {
+    const int nb = atom->nbondtypes  + 1;
+    const int na = atom->nangletypes + 1;
+    b_count = new bigint[nb]{};  b_count_all = new bigint[nb]{};
+    b_ave   = new double[nb]{};  b_ave_all   = new double[nb]{};
+    b_max   = new double[nb]{};  b_max_all   = new double[nb]{};
+    b_min   = new double[nb];    b_min_all   = new double[nb];
+    for (int i = 0; i < nb; ++i) b_min[i] = b_min_all[i] = BIG;
+    a_count = new bigint[na]{};  a_count_all = new bigint[na]{};
+    a_ave   = new double[na]{};  a_ave_all   = new double[na]{};
+    a_max   = new double[na]{};  a_max_all   = new double[na]{};
+    a_min   = new double[na];    a_min_all   = new double[na];
+    for (int i = 0; i < na; ++i) a_min[i] = a_min_all[i] = BIG;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixIlves::~FixIlves()
+{
+  if (modify->get_fix_by_id(id)) atom->delete_callback(id, Atom::GROW);
+
+  delete[] bond_flag;
+  delete[] angle_flag;
+  delete[] type_flag;
+  delete[] mass_list;
+  delete[] bond_distance;
+  delete[] angle_distance;
+
+  delete[] b_count;     delete[] b_count_all;
+  delete[] b_ave;       delete[] b_ave_all;
+  delete[] b_max;       delete[] b_max_all;
+  delete[] b_min;       delete[] b_min_all;
+  delete[] a_count;     delete[] a_count_all;
+  delete[] a_ave;       delete[] a_ave_all;
+  delete[] a_max;       delete[] a_max_all;
+  delete[] a_min;       delete[] a_min_all;
+
+  memory->destroy(ilves_flag);
+  memory->destroy(xshake);
+  memory->destroy(fstore);
+
+  memory->destroy(c_atom1);
+  memory->destroy(c_atom2);
+  memory->destroy(c_type);
+  memory->destroy(c_dist);
+  memory->destroy(c_lambda);
+  memory->destroy(c_cluster);
+  memory->destroy(c_rx);
+  memory->destroy(c_ry);
+  memory->destroy(c_rz);
+  memory->destroy(c_rsq);
+  memory->destroy(c_invma);
+  memory->destroy(c_invmb);
+  memory->destroy(cluster_offset);
+  memory->destroy(c_perm);
+  memory->destroy(c_slot);
+  memory->destroy(lu_A);
+  memory->destroy(lu_b);
+  memory->destroy(lu_pivot);
+  memory->destroy(cl_sx);
+  memory->destroy(cl_sy);
+  memory->destroy(cl_sz);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixIlves::setmask()
+{
+  int mask = 0;
+  mask |= PRE_NEIGHBOR;
+  mask |= POST_NEIGHBOR;
+  mask |= POST_FORCE;
+  mask |= END_OF_STEP;
+  mask |= MIN_PRE_REVERSE;
+  mask |= MIN_POST_FORCE;
+  return mask;
+}
+
+/* ----------------------------------------------------------------------
+   set bond/angle equilibrium distances from the active bond/angle styles
+------------------------------------------------------------------------- */
+
+void FixIlves::init()
+{
+  // only one fix ilves instance allowed
+  if (modify->get_fix_by_style("^ilves").size() > 1)
+    error->all(FLERR, "More than one fix ilves instance");
+
+  // forbid box-changing fixes between fix ilves and integration?  we don't
+  // care about the order strictly, but fix shake does this check and we
+  // mirror it for consistency.
+  bool boxflag = false;
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (boxflag && utils::strmatch(ifix->style, "^ilves"))
+      error->all(FLERR, "Fix ilves must come before any box-changing fix");
+    if (ifix->box_change) boxflag = true;
+  }
+
+  // need a bond style
+  if (force->bond == nullptr)
+    error->all(FLERR, "Bond style must be defined for fix ilves");
+
+  for (int i = 1; i <= atom->nbondtypes; ++i)
+    bond_distance[i] = force->bond->equilibrium_distance(i);
+
+  // Gather global bond/angle topology so every rank knows the full set of
+  // bonds and angles regardless of which rank stores them (handles both
+  // newton on and newton off symmetrically).  This is the foundation for
+  // correct MPI behaviour with cross-rank clusters.
+  gather_global_topology();
+
+  // angle distances: for each constrained angle type, scan the global
+  // angle table for the bond types of its flanking bonds.  Computing this
+  // from the global table avoids problems where a given rank's local
+  // angle is of a different angle type or where the relevant bond is
+  // stored on a remote rank with newton_bond=on.
+  if (has_angle) {
+    if (force->angle == nullptr)
+      error->all(FLERR, "Angle style must be defined for fix ilves with angle constraints");
+
+    for (int at = 1; at <= atom->nangletypes; ++at) {
+      if (!angle_flag[at]) { angle_distance[at] = 0.0; continue; }
+
+      int b1 = 0, b2 = 0;
+      int conflict = 0;
+      const int na = (int) ga1.size();
+      for (int gi = 0; gi < na; ++gi) {
+        if (ga_type[gi] != at) continue;
+        // look up flanking bond types via the global bond table
+        tagint tA = ga1[gi];
+        tagint tB = ga2[gi];     // middle atom
+        tagint tC = ga3[gi];
+        // bond_type lookup helper: search gb_*/gb_b sorted table
+        auto lookup_bt = [&](tagint t1, tagint t2) -> int {
+          tagint lo_t = MIN(t1, t2), hi_t = MAX(t1, t2);
+          int lo = 0, hi = (int) gb_a.size();
+          while (lo < hi) {
+            int mid = (lo + hi) / 2;
+            if (gb_a[mid] < lo_t || (gb_a[mid] == lo_t && gb_b[mid] < hi_t)) lo = mid + 1;
+            else hi = mid;
+          }
+          if (lo == (int) gb_a.size() || gb_a[lo] != lo_t || gb_b[lo] != hi_t) return 0;
+          return gb_type[lo];
+        };
+        int bt1 = lookup_bt(tA, tB);
+        int bt2 = lookup_bt(tB, tC);
+        if (bt1 == 0 || bt2 == 0) continue;
+        int bmin = MIN(bt1, bt2);
+        int bmax = MAX(bt1, bt2);
+        if (b1 == 0) { b1 = bmin; b2 = bmax; }
+        else if (bmin != b1 || bmax != b2) { conflict = 1; break; }
+      }
+      if (conflict)
+        error->all(FLERR, "Fix ilves: angle type {} spans bonds of mixed types", at);
+      if (b1 == 0) { angle_distance[at] = 0.0; continue; }
+      const double theta0 = force->angle->equilibrium_angle(at);
+      const double r1 = bond_distance[b1];
+      const double r2 = bond_distance[b2];
+      angle_distance[at] = sqrt(r1*r1 + r2*r2 - 2.0*r1*r2*cos(theta0));
+    }
+  }
+
+  // warn (don't error) on minimization use, since we will substitute strong
+  // harmonic restraints in min_post_force.
+  if ((comm->me == 0) && (update->whichflag == 2))
+    error->warning(FLERR,
+                   "Using fix ilves with minimization: substituting constraints with harmonic "
+                   "restraint forces (kbond = {:.6g})", kbond);
+
+  // negate bond_type / angle_type for every interaction that we are going
+  // to constrain.  This makes the corresponding bond/angle style skip the
+  // potential and force contribution for those interactions (it tests for
+  // bondtype <= 0 / angletype <= 0).  Without this, the bonded forces and
+  // our constraint forces would double up, injecting energy each step.
+  negate_constrained_topology();
+}
+
+/* ----------------------------------------------------------------------
+   For every bond and angle that our selectors will eventually constrain,
+   flip the stored bond_type / angle_type to its negative.  Bond / angle
+   styles in LAMMPS skip interactions with non-positive type, which is
+   exactly the behaviour we want for constrained interactions.
+
+   Idempotent: only flips a positive type, never a negative one.
+
+   This is called once from init() before any time stepping, mirroring
+   fix shake's find_clusters / bondtype_findset pattern.
+------------------------------------------------------------------------- */
+
+void FixIlves::negate_constrained_topology()
+{
+  int nlocal_now    = atom->nlocal;
+  int **nb_type     = atom->bond_type;
+  tagint **nb_atom  = atom->bond_atom;
+  int *num_bond     = atom->num_bond;
+  int **na_type     = atom->angle_type;
+  tagint **na_atom1 = atom->angle_atom1;
+  tagint **na_atom2 = atom->angle_atom2;
+  tagint **na_atom3 = atom->angle_atom3;
+  int *num_angle    = atom->num_angle;
+  int *mask         = atom->mask;
+  tagint *tag       = atom->tag;
+  int *type         = atom->type;
+  double *mass      = atom->mass;
+  double *rmass     = atom->rmass;
+
+  // bond pass
+  for (int i = 0; i < nlocal_now; ++i) {
+    if (!(mask[i] & groupbit)) continue;
+    for (int b = 0; b < num_bond[i]; ++b) {
+      int bt = nb_type[i][b];
+      if (bt <= 0) continue;       // already negated (or disabled)
+      if (bt > atom->nbondtypes) continue;
+      tagint tj = nb_atom[i][b];
+      int j = atom->map(tj);
+      if (j < 0) continue;
+      if (!(mask[j] & groupbit)) continue;
+
+      bool selected = false;
+      if (bond_flag[bt]) selected = true;
+      else if (type_flag[type[i]] || type_flag[type[j]]) selected = true;
+      else if (nmass) {
+        double mi = rmass ? rmass[i] : mass[type[i]];
+        double mj = rmass ? rmass[j] : mass[type[j]];
+        if (masscheck(mi) || masscheck(mj)) selected = true;
+      }
+      if (!selected) continue;
+
+      // negate the storage on this rank (the partner rank handles its own
+      // copy when newton_bond=0; with newton_bond=on only one rank holds
+      // the bond, and the negate happens there).
+      nb_type[i][b] = -bt;
+    }
+  }
+
+  // angle pass: negate the angle type when both flanking bonds are
+  // themselves constrained (matching the build_constraint_list filter)
+  if (has_angle) {
+    for (int i = 0; i < nlocal_now; ++i) {
+      if (!(mask[i] & groupbit)) continue;
+      for (int m = 0; m < num_angle[i]; ++m) {
+        int at = na_type[i][m];
+        if (at <= 0) continue;
+        if (at > atom->nangletypes) continue;
+        if (!angle_flag[at]) continue;
+        if (na_atom2[i][m] != tag[i]) continue;
+
+        tagint t1 = na_atom1[i][m];
+        tagint t3 = na_atom3[i][m];
+        int ia1 = atom->map(t1);
+        int ia3 = atom->map(t3);
+        if (ia1 < 0 || ia3 < 0) continue;
+        if (!(mask[ia1] & groupbit) || !(mask[ia3] & groupbit)) continue;
+
+        // both flanking bonds (i-ia1 and i-ia3) must themselves be
+        // constrained, including the case where they are stored on a
+        // remote rank.  bond_is_constrained_global() uses the global
+        // bond table to decide independently of local bond storage.
+        if (!bond_is_constrained_global(tag[i], t1)) continue;
+        if (!bond_is_constrained_global(tag[i], t3)) continue;
+
+        na_type[i][m] = -at;
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIlves::setup(int vflag)
+{
+  // refresh pointers, build initial constraint list
+  pre_neighbor();
+  post_neighbor();
+
+  dtv = update->dt;
+
+  if (comm->me == 0)
+    utils::logmesg(lmp, "Fix ilves: {} constraints in {} clusters "
+                   "(largest = {} constraints)\n",
+                   n_constr, n_clusters, largest_cluster);
+
+  // At setup we need a different dtfsq convention than during normal stepping:
+  //
+  //   normal post_force(t): force change propagates through TWO half-steps
+  //     (final_integrate at t  +  initial_integrate at t+dt), so position
+  //     correction = dt^2/m * f_c -> dtfsq = dt^2.
+  //
+  //   setup post_force: force change propagates through only ONE half-step
+  //     (the very first initial_integrate), so position correction is
+  //     0.5*dt^2/m * f_c -> dtfsq = 0.5*dt^2.
+  //
+  // We mirror fix shake's correct_coordinates / correct_velocities /
+  // shake_end_of_step pattern: project x onto the constraint surface
+  // directly, remove velocity components along constraints, and add
+  // constraint forces for the first integration step.
+
+  dtfsq = 0.5 * update->dt * update->dt * force->ftm2v;
+  correct_coordinates(vflag);
+  post_force(vflag);
+  dtfsq = update->dt * update->dt * force->ftm2v;
+
+  if (output_every) {
+    bigint nt = update->ntimestep;
+    next_output = nt + output_every;
+    if (nt % output_every != 0)
+      next_output = (nt/output_every) * output_every + output_every;
+    stats();
+  } else next_output = -1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIlves::min_setup(int vflag)
+{
+  pre_neighbor();
+  post_neighbor();
+  min_post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIlves::pre_neighbor()
+{
+  // refresh atom-class pointers; needed because reneighbor can change them
+  x = atom->x;
+  v = atom->v;
+  f = atom->f;
+  mass  = atom->mass;
+  rmass = atom->rmass;
+  type  = atom->type;
+  nlocal = atom->nlocal;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIlves::post_neighbor()
+{
+  // rebuild the flat constraint list after each reneighbor
+  build_constraint_list();
+}
+
+/* ----------------------------------------------------------------------
+   build the flat constraint list from atom->bond_atom and angle topology
+   - bond constraints: pair (i, partner) for every bond where:
+       both atoms are in fix group
+       AND bond type is in bond_flag, OR
+           either atom type is in type_flag, OR
+           either atom mass matches mass_list
+   - angle "virtual" A-C constraints: derived from angle entries where
+       angle type is in angle_flag
+       AND both flanking bonds (A-B, B-C) are also selected (per above)
+       AND all three atoms are in the fix group
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Gather global bond and angle topology onto every rank via MPI_Allgatherv.
+   We store (lower_tag, higher_tag, type) for bonds and
+   (atom1_tag, middle_tag, atom3_tag, type) for angles -- deduplicated.
+
+   This is called once at init and the result lives in the gb_ and ga_
+   member arrays.  The topology of bonds and angles is treated as fixed
+   for the lifetime of the fix; commands that change topology mid-run
+   (e.g. fix bond/create) are not currently supported by fix ilves.
+
+   The global topology enables a uniform constraint-list build that does
+   not depend on which rank stores a given bond (newton_bond on vs off).
+   Every rank that owns at least one atom of a given bond or angle will
+   add the corresponding constraint to its local list and apply the
+   constraint force to its local atoms only.  Both ranks of a cross-rank
+   constraint thus compute the same Lagrange multiplier from synchronized
+   positions and apply equal-and-opposite forces to the two atoms.
+------------------------------------------------------------------------- */
+
+void FixIlves::gather_global_topology()
+{
+  tagint *tag       = atom->tag;
+  int **nb_type     = atom->bond_type;
+  tagint **nb_atom  = atom->bond_atom;
+  int *num_bond     = atom->num_bond;
+  int **na_type     = atom->angle_type;
+  tagint **na_atom1 = atom->angle_atom1;
+  tagint **na_atom2 = atom->angle_atom2;
+  tagint **na_atom3 = atom->angle_atom3;
+  int *num_angle    = atom->num_angle;
+  const int nlocal_now = atom->nlocal;
+
+  // -----------------------------------------------------------------
+  // bonds: pack (min_tag, max_tag, |type|) for each locally-stored bond
+  // -----------------------------------------------------------------
+  std::vector<tagint> sendb;
+  sendb.reserve(3 * nlocal_now);     // approximate
+  for (int i = 0; i < nlocal_now; ++i) {
+    tagint ti = tag[i];
+    for (int b = 0; b < num_bond[i]; ++b) {
+      int bt = nb_type[i][b];
+      if (bt == 0) continue;
+      if (bt < 0) bt = -bt;
+      tagint tj = nb_atom[i][b];
+      sendb.push_back(MIN(ti, tj));
+      sendb.push_back(MAX(ti, tj));
+      sendb.push_back((tagint) bt);
+    }
+  }
+  int my_b = (int) sendb.size();
+  std::vector<int> cb(comm->nprocs), db(comm->nprocs);
+  MPI_Allgather(&my_b, 1, MPI_INT, cb.data(), 1, MPI_INT, world);
+  int totb = 0;
+  for (int p = 0; p < comm->nprocs; ++p) { db[p] = totb; totb += cb[p]; }
+  std::vector<tagint> recvb(totb);
+  MPI_Allgatherv(sendb.data(), my_b, MPI_LMP_TAGINT,
+                 recvb.data(), cb.data(), db.data(), MPI_LMP_TAGINT, world);
+
+  // -----------------------------------------------------------------
+  // dedup bonds: sort by (min_tag, max_tag), keep unique
+  // -----------------------------------------------------------------
+  struct BondEntry { tagint a, b; int type; };
+  std::vector<BondEntry> bonds;
+  bonds.reserve(totb / 3);
+  for (int i = 0; i < totb; i += 3) {
+    bonds.push_back({recvb[i], recvb[i+1], (int) recvb[i+2]});
+  }
+  std::sort(bonds.begin(), bonds.end(),
+            [](const BondEntry &x, const BondEntry &y) {
+              if (x.a != y.a) return x.a < y.a;
+              if (x.b != y.b) return x.b < y.b;
+              return x.type < y.type;
+            });
+  // unique by (a, b) -- the type is consistent across ranks for a given bond
+  auto last_b = std::unique(bonds.begin(), bonds.end(),
+                            [](const BondEntry &x, const BondEntry &y) {
+                              return x.a == y.a && x.b == y.b;
+                            });
+  bonds.erase(last_b, bonds.end());
+
+  gb_a.clear(); gb_b.clear(); gb_type.clear();
+  gb_a.reserve(bonds.size()); gb_b.reserve(bonds.size()); gb_type.reserve(bonds.size());
+  for (auto &e : bonds) { gb_a.push_back(e.a); gb_b.push_back(e.b); gb_type.push_back(e.type); }
+
+  // -----------------------------------------------------------------
+  // angles: pack (atom1_tag, atom2_tag, atom3_tag, |type|) for each
+  // locally-stored angle.  atom2 = middle atom.
+  // -----------------------------------------------------------------
+  std::vector<tagint> senda;
+  for (int i = 0; i < nlocal_now; ++i) {
+    for (int m = 0; m < num_angle[i]; ++m) {
+      int at = na_type[i][m];
+      if (at == 0) continue;
+      if (at < 0) at = -at;
+      // dedupe: only middle atom owner packs the angle entry to avoid
+      // duplicates from newton-off triple storage.
+      if (na_atom2[i][m] != tag[i]) continue;
+      // canonical order: outer atoms by tag ordering so dedup works.
+      tagint o1 = na_atom1[i][m];
+      tagint o3 = na_atom3[i][m];
+      tagint t1 = MIN(o1, o3);
+      tagint t3 = MAX(o1, o3);
+      senda.push_back(t1);
+      senda.push_back(na_atom2[i][m]);
+      senda.push_back(t3);
+      senda.push_back((tagint) at);
+    }
+  }
+  int my_a = (int) senda.size();
+  std::vector<int> ca(comm->nprocs), da(comm->nprocs);
+  MPI_Allgather(&my_a, 1, MPI_INT, ca.data(), 1, MPI_INT, world);
+  int tota = 0;
+  for (int p = 0; p < comm->nprocs; ++p) { da[p] = tota; tota += ca[p]; }
+  std::vector<tagint> recva(tota);
+  MPI_Allgatherv(senda.data(), my_a, MPI_LMP_TAGINT,
+                 recva.data(), ca.data(), da.data(), MPI_LMP_TAGINT, world);
+
+  struct AngleEntry { tagint a, b, c; int type; };
+  std::vector<AngleEntry> angles;
+  angles.reserve(tota / 4);
+  for (int i = 0; i < tota; i += 4) {
+    angles.push_back({recva[i], recva[i+1], recva[i+2], (int) recva[i+3]});
+  }
+  std::sort(angles.begin(), angles.end(),
+            [](const AngleEntry &x, const AngleEntry &y) {
+              if (x.b != y.b) return x.b < y.b;
+              if (x.a != y.a) return x.a < y.a;
+              if (x.c != y.c) return x.c < y.c;
+              return x.type < y.type;
+            });
+  auto last_a = std::unique(angles.begin(), angles.end(),
+                            [](const AngleEntry &x, const AngleEntry &y) {
+                              return x.a == y.a && x.b == y.b && x.c == y.c;
+                            });
+  angles.erase(last_a, angles.end());
+
+  ga1.clear(); ga2.clear(); ga3.clear(); ga_type.clear();
+  ga1.reserve(angles.size()); ga2.reserve(angles.size());
+  ga3.reserve(angles.size()); ga_type.reserve(angles.size());
+  for (auto &e : angles) {
+    ga1.push_back(e.a); ga2.push_back(e.b); ga3.push_back(e.c);
+    ga_type.push_back(e.type);
+  }
+
+  // -----------------------------------------------------------------
+  // Build a global cluster-id table.  Run union-find over all tags
+  // involved in any bond or angle (linked via bonds: a-b in a bond, and
+  // a-b, b-c in an angle).  After this, tag_cluster[t] gives the
+  // representative tag of the cluster that tag t belongs to.
+  //
+  // We index by global tag (1..natoms).  Tags not in any bond/angle get
+  // tag_cluster[t] = -1.
+  // -----------------------------------------------------------------
+  const tagint natoms = atom->natoms;
+  tag_cluster.assign(natoms + 1, -1);
+
+  // initialize: every involved tag is its own parent
+  for (size_t i = 0; i < gb_a.size(); ++i) {
+    if (tag_cluster[gb_a[i]] < 0) tag_cluster[gb_a[i]] = gb_a[i];
+    if (tag_cluster[gb_b[i]] < 0) tag_cluster[gb_b[i]] = gb_b[i];
+  }
+  for (size_t i = 0; i < ga1.size(); ++i) {
+    if (tag_cluster[ga1[i]] < 0) tag_cluster[ga1[i]] = ga1[i];
+    if (tag_cluster[ga2[i]] < 0) tag_cluster[ga2[i]] = ga2[i];
+    if (tag_cluster[ga3[i]] < 0) tag_cluster[ga3[i]] = ga3[i];
+  }
+
+  auto find = [&](tagint t) {
+    while (tag_cluster[t] != t) {
+      tag_cluster[t] = tag_cluster[tag_cluster[t]];     // path compression
+      t = tag_cluster[t];
+    }
+    return t;
+  };
+  auto unite = [&](tagint a, tagint b) {
+    tagint ra = find(a), rb = find(b);
+    if (ra != rb) tag_cluster[ra] = rb;
+  };
+
+  for (size_t i = 0; i < gb_a.size(); ++i) unite(gb_a[i], gb_b[i]);
+  for (size_t i = 0; i < ga1.size(); ++i) {
+    unite(ga1[i], ga2[i]);
+    unite(ga2[i], ga3[i]);
+  }
+  // flatten: tag_cluster[t] is now the cluster's representative tag
+  for (tagint t = 1; t <= natoms; ++t)
+    if (tag_cluster[t] >= 0) tag_cluster[t] = find(t);
+
+  if (comm->me == 0)
+    utils::logmesg(lmp, "Fix ilves: gathered global topology with {} bonds and {} angles\n",
+                   gb_a.size(), ga1.size());
+
+  global_topology_ready = true;
+}
+
+/* ----------------------------------------------------------------------
+   Helper: is a bond between atoms with tags ta and tb selected by the
+   current b/t/m criteria?  Uses local atom data; both atoms must be at
+   least locally accessible (own copy or ghost).
+------------------------------------------------------------------------- */
+
+bool FixIlves::bond_selected_for_atoms(int ia, int ib, int bt)
+{
+  if (bond_flag[bt]) return true;
+  if (type_flag[type[ia]] || type_flag[type[ib]]) return true;
+  if (nmass) {
+    double mia = rmass ? rmass[ia] : mass[type[ia]];
+    double mib = rmass ? rmass[ib] : mass[type[ib]];
+    if (masscheck(mia) || masscheck(mib)) return true;
+  }
+  return false;
+}
+
+/* ----------------------------------------------------------------------
+   Helper: given two tags, return true if the (ta, tb) bond is selected
+   for constraint.  Looks up the bond type via the global topology table.
+   Both atoms must be either local or available as ghosts on this rank
+   for the type/mass selectors to work.  Returns false otherwise.
+------------------------------------------------------------------------- */
+
+bool FixIlves::bond_is_constrained_global(tagint ta, tagint tb)
+{
+  tagint tmin = MIN(ta, tb);
+  tagint tmax = MAX(ta, tb);
+  // binary search in gb_a/gb_b (sorted by (a, b))
+  int lo = 0, hi = (int) gb_a.size();
+  while (lo < hi) {
+    int mid = (lo + hi) / 2;
+    if (gb_a[mid] < tmin || (gb_a[mid] == tmin && gb_b[mid] < tmax)) lo = mid + 1;
+    else hi = mid;
+  }
+  if (lo == (int) gb_a.size() || gb_a[lo] != tmin || gb_b[lo] != tmax) return false;
+
+  int ia = atom->map(ta);
+  int ib = atom->map(tb);
+  if (ia < 0 || ib < 0) return false;     // can't check selectors without atoms
+  return bond_selected_for_atoms(ia, ib, gb_type[lo]);
+}
+
+void FixIlves::build_constraint_list()
+{
+  const int nlocal_now = atom->nlocal;
+  int *mask = atom->mask;
+  tagint *tag = atom->tag;
+
+  // mark per-atom flags as we go (zero first)
+  for (int i = 0; i < atom->nmax; ++i) ilves_flag[i] = 0;
+  n_constr = 0;
+
+  // Lazy gather of global topology on first build.
+  if (!global_topology_ready) gather_global_topology();
+
+  // -----------------------------------------------------------------
+  // Identify clusters whose atoms intersect my local atoms.  For each
+  // cluster representative tag in this set, I will include EVERY
+  // constraint in that cluster, even constraints between two ghost
+  // atoms.  This is essential for correct cluster-local solves when
+  // a cluster spans multiple ranks (e.g. a water HOH where O is on one
+  // rank and H1, H2 on others -- every participating rank needs the
+  // full 3-constraint cluster to compute the same Lagrange multipliers).
+  // -----------------------------------------------------------------
+  std::vector<unsigned char> my_cluster(atom->natoms + 1, 0);
+  for (int i = 0; i < nlocal_now; ++i) {
+    tagint t = tag[i];
+    if (t >= 1 && t <= atom->natoms && tag_cluster[t] >= 0)
+      my_cluster[tag_cluster[t]] = 1;
+  }
+
+  // helper to test whether a tag is in any of my clusters
+  auto in_my_cluster = [&](tagint t) -> bool {
+    if (t < 1 || t > atom->natoms) return false;
+    tagint c = tag_cluster[t];
+    return (c >= 0 && my_cluster[c]);
+  };
+
+  // helper: pick c_atom1 and c_atom2 indices given that at least one of
+  // (ta, tb) is in my cluster.  Returns false if neither atom is even
+  // available as a ghost on this rank (constraint cannot be processed).
+  // The chosen c_atom1 is always a local atom if any local atom is in
+  // the pair; otherwise it's a ghost.  c_atom2 is the partner, with
+  // PBC closest-image relative to c_atom1.
+  auto pick_atoms = [&](tagint ta, tagint tb, int &a_out, int &b_out) -> bool {
+    int ja = atom->map(ta);
+    int jb = atom->map(tb);
+    if (ja < 0 || jb < 0) return false;
+    bool ja_local = (ja < nlocal_now);
+    bool jb_local = (jb < nlocal_now);
+    if (ja_local && jb_local) {
+      if (tag[ja] < tag[jb]) { a_out = ja; b_out = jb; }
+      else                   { a_out = jb; b_out = ja; }
+    } else if (ja_local) {
+      a_out = ja; b_out = jb;
+    } else if (jb_local) {
+      a_out = jb; b_out = ja;
+    } else {
+      // neither local -- pick whichever has lower tag as c_atom1.  This
+      // is a "ghost-only" constraint that this rank includes solely for
+      // cluster completeness.  Forces will not be applied to either
+      // atom by this rank (apply_constraint_forces tests < nlocal).
+      if (tag[ja] < tag[jb]) { a_out = ja; b_out = jb; }
+      else                   { a_out = jb; b_out = ja; }
+    }
+    b_out = domain->closest_image(a_out, b_out);
+    return true;
+  };
+
+  // -----------------------------------------------------------------
+  // Phase A: bond constraints from clusters I'm in
+  // -----------------------------------------------------------------
+  const int nb_global = (int) gb_a.size();
+  for (int gi = 0; gi < nb_global; ++gi) {
+    int bt = gb_type[gi];
+    if (bt <= 0 || bt > atom->nbondtypes) continue;
+    tagint ta = gb_a[gi];
+    tagint tb = gb_b[gi];
+
+    if (!in_my_cluster(ta) && !in_my_cluster(tb)) continue;
+
+    int a_idx, b_idx;
+    if (!pick_atoms(ta, tb, a_idx, b_idx)) continue;
+
+    // group + selector checks
+    if (!(mask[a_idx] & groupbit) || !(mask[b_idx] & groupbit)) continue;
+    if (!bond_selected_for_atoms(a_idx, b_idx, bt)) continue;
+
+    add_constraint(a_idx, b_idx, bt, bond_distance[bt]);
+    ilves_flag[a_idx] = 1;
+    ilves_flag[b_idx] = 1;
+  }
+
+  // -----------------------------------------------------------------
+  // Phase B: angle (A-C "virtual") constraints from clusters I'm in
+  // -----------------------------------------------------------------
+  if (has_angle) {
+    const int na_global = (int) ga1.size();
+    for (int gi = 0; gi < na_global; ++gi) {
+      int at = ga_type[gi];
+      if (at <= 0 || at > atom->nangletypes) continue;
+      if (!angle_flag[at]) continue;
+
+      tagint t1 = ga1[gi];     // outer atoms canonical (sorted)
+      tagint t2 = ga2[gi];     // middle
+      tagint t3 = ga3[gi];
+
+      if (!in_my_cluster(t1) && !in_my_cluster(t2) && !in_my_cluster(t3)) continue;
+
+      int i1 = atom->map(t1);
+      int i2 = atom->map(t2);
+      int i3 = atom->map(t3);
+      if (i1 < 0 || i2 < 0 || i3 < 0) continue;
+
+      // require all three atoms in the fix group
+      if (!(mask[i1] & groupbit)) continue;
+      if (!(mask[i2] & groupbit)) continue;
+      if (!(mask[i3] & groupbit)) continue;
+
+      // both flanking bonds (i2-i1 and i2-i3) must be themselves selected
+      if (!bond_is_constrained_global(t2, t1)) continue;
+      if (!bond_is_constrained_global(t2, t3)) continue;
+
+      int a_idx, b_idx;
+      if (!pick_atoms(t1, t3, a_idx, b_idx)) continue;
+
+      add_constraint(a_idx, b_idx, -at, angle_distance[at]);
+      ilves_flag[a_idx] = 1;
+      ilves_flag[b_idx] = 1;
+      ilves_flag[i2]    = 1;
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // connected-component labelling and cluster grouping
+  // -----------------------------------------------------------------
+  group_by_cluster();
+
+  // -----------------------------------------------------------------
+  // precompute reference vectors, |r|^2, and inverse masses
+  // -----------------------------------------------------------------
+  precompute_constraint_data();
+}
+
+/* ----------------------------------------------------------------------
+   Union-find over the constraint graph, then sort constraints so that
+   constraints belonging to the same cluster are contiguous in c_perm/c_slot.
+   For cluster-ID purposes we canonicalize ghost periodic images via
+   atom->map(atom->tag[idx]) so that the same physical atom always maps
+   to the same index in the union-find.
+------------------------------------------------------------------------- */
+
+void FixIlves::group_by_cluster()
+{
+  n_clusters = 0;
+
+  if (n_constr == 0) {
+    if (!cluster_offset) memory->create(cluster_offset, 1, "ilves:cluster_offset");
+    cluster_offset[0] = 0;
+    return;
+  }
+
+  const int nmax = atom->nmax;
+  int *parent = nullptr;
+  memory->create(parent, nmax, "ilves:uf_parent");
+  for (int i = 0; i < nmax; ++i) parent[i] = i;
+
+  auto find_root = [&](int a) {
+    while (parent[a] != a) { parent[a] = parent[parent[a]]; a = parent[a]; }
+    return a;
+  };
+
+  tagint *tag = atom->tag;
+
+  // canonicalize: collapse periodic-image ghosts of locally-owned atoms to
+  // their local index, so that union-find sees the same physical atom as
+  // one node.  True MPI ghosts (atoms not owned locally at all) keep their
+  // ghost index.
+  for (int k = 0; k < n_constr; ++k) {
+    int a = c_atom1[k];                          // c_atom1 is always local
+    int b_raw = c_atom2[k];
+    int b_canon = atom->map(tag[b_raw]);
+    if (b_canon < 0) b_canon = b_raw;            // shouldn't happen normally
+    int ra = find_root(a);
+    int rb = find_root(b_canon);
+    if (ra != rb) parent[ra] = rb;
+  }
+
+  int *atomlabel = nullptr;
+  memory->create(atomlabel, nmax, "ilves:uf_label");
+  for (int i = 0; i < nmax; ++i) atomlabel[i] = -1;
+
+  for (int k = 0; k < n_constr; ++k) {
+    int r = find_root(c_atom1[k]);
+    if (atomlabel[r] < 0) atomlabel[r] = n_clusters++;
+    c_cluster[k] = atomlabel[r];
+  }
+
+  // build cluster_offset[] via counting sort on c_cluster
+  memory->grow(cluster_offset, n_clusters + 1, "ilves:cluster_offset");
+  for (int c = 0; c <= n_clusters; ++c) cluster_offset[c] = 0;
+  for (int k = 0; k < n_constr; ++k) cluster_offset[c_cluster[k] + 1]++;
+  for (int c = 0; c < n_clusters; ++c) cluster_offset[c + 1] += cluster_offset[c];
+
+  // place each constraint into its slot
+  int *cursor = nullptr;
+  memory->create(cursor, n_clusters, "ilves:cursor");
+  for (int c = 0; c < n_clusters; ++c) cursor[c] = cluster_offset[c];
+  for (int k = 0; k < n_constr; ++k) {
+    int c = c_cluster[k];
+    int s = cursor[c]++;
+    c_perm[s] = k;
+    c_slot[k] = s;
+  }
+
+  // track largest cluster size for workspace sizing
+  largest_cluster = 0;
+  for (int c = 0; c < n_clusters; ++c) {
+    int sz = cluster_offset[c + 1] - cluster_offset[c];
+    if (sz > largest_cluster) largest_cluster = sz;
+  }
+
+  memory->destroy(cursor);
+  memory->destroy(parent);
+  memory->destroy(atomlabel);
+}
+
+/* ----------------------------------------------------------------------
+   Precompute per-constraint reference vector r_k = x[a]-x[b] (closest
+   periodic image), |r_k|^2, and inverse masses.  These are constant
+   throughout the constraint solve (they use x at the start of the step).
+------------------------------------------------------------------------- */
+
+void FixIlves::precompute_constraint_data()
+{
+  for (int k = 0; k < n_constr; ++k) {
+    int a = c_atom1[k];
+    int b = c_atom2[k];
+    // Apply minimum_image to the raw vector x[a]-x[b].  closest_image
+    // can return inconsistent ghost copies for atoms that span PBC with
+    // different image flags (e.g. neighbouring atoms in the same molecule
+    // stored in different periodic cells), giving a wrong "bond vector".
+    // minimum_image directly wraps the displacement to the closest
+    // periodic image, independent of which storage index was returned.
+    double rx = atom->x[a][0] - atom->x[b][0];
+    double ry = atom->x[a][1] - atom->x[b][1];
+    double rz = atom->x[a][2] - atom->x[b][2];
+    domain->minimum_image(FLERR, rx, ry, rz);
+    c_rx[k] = rx;
+    c_ry[k] = ry;
+    c_rz[k] = rz;
+    c_rsq[k] = rx*rx + ry*ry + rz*rz;
+    c_invma[k] = rmass ? 1.0 / rmass[a] : 1.0 / mass[type[a]];
+    c_invmb[k] = rmass ? 1.0 / rmass[b] : 1.0 / mass[type[b]];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIlves::add_constraint(int a, int b, int btype, double dist)
+{
+  if (n_constr == max_constr) grow_constraint_list(max_constr + DELTA_CONSTR);
+  c_atom1[n_constr]   = a;
+  c_atom2[n_constr]   = b;
+  c_type[n_constr]    = btype;
+  c_dist[n_constr]    = dist;
+  c_lambda[n_constr]  = 0.0;
+  c_cluster[n_constr] = -1;
+  n_constr++;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIlves::grow_constraint_list(int newcap)
+{
+  max_constr = newcap;
+  memory->grow(c_atom1,   max_constr, "ilves:c_atom1");
+  memory->grow(c_atom2,   max_constr, "ilves:c_atom2");
+  memory->grow(c_type,    max_constr, "ilves:c_type");
+  memory->grow(c_dist,    max_constr, "ilves:c_dist");
+  memory->grow(c_lambda,  max_constr, "ilves:c_lambda");
+  memory->grow(c_cluster, max_constr, "ilves:c_cluster");
+  memory->grow(c_rx,      max_constr, "ilves:c_rx");
+  memory->grow(c_ry,      max_constr, "ilves:c_ry");
+  memory->grow(c_rz,      max_constr, "ilves:c_rz");
+  memory->grow(c_rsq,     max_constr, "ilves:c_rsq");
+  memory->grow(c_invma,   max_constr, "ilves:c_invma");
+  memory->grow(c_invmb,   max_constr, "ilves:c_invmb");
+  memory->grow(c_perm,    max_constr, "ilves:c_perm");
+  memory->grow(c_slot,    max_constr, "ilves:c_slot");
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixIlves::masscheck(double m1)
+{
+  for (int i = 0; i < nmass; ++i)
+    if (fabs(m1 - mass_list[i]) <= MASSDELTA) return 1;
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIlves::unconstrained_update()
+{
+  // do this for all atoms (not just constrained ones) so that ghost
+  // forward_comm of xshake delivers correct values even for atoms that
+  // are not directly constrained on this rank but are partners of
+  // constraints owned by neighbouring ranks.
+  if (rmass) {
+    for (int i = 0; i < nlocal; ++i) {
+      double dtfm = dtfsq / rmass[i];
+      xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfm*f[i][0];
+      xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfm*f[i][1];
+      xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfm*f[i][2];
+    }
+  } else {
+    for (int i = 0; i < nlocal; ++i) {
+      double dtfm = dtfsq / mass[type[i]];
+      xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfm*f[i][0];
+      xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfm*f[i][1];
+      xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfm*f[i][2];
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIlves::post_force(int vflag)
+{
+  if (update->ntimestep == next_output) stats();
+
+  // refresh atom pointers in case they moved
+  x = atom->x;
+  v = atom->v;
+  f = atom->f;
+  mass  = atom->mass;
+  rmass = atom->rmass;
+  type  = atom->type;
+  nlocal = atom->nlocal;
+
+  // recompute reference vectors r_k via minimum-image of x[a]-x[b]
+  for (int k = 0; k < n_constr; ++k) {
+    int a = c_atom1[k];
+    int b = c_atom2[k];
+    double rx = x[a][0] - x[b][0];
+    double ry = x[a][1] - x[b][1];
+    double rz = x[a][2] - x[b][2];
+    domain->minimum_image(FLERR, rx, ry, rz);
+    c_rx[k]  = rx;
+    c_ry[k]  = ry;
+    c_rz[k]  = rz;
+    c_rsq[k] = rx*rx + ry*ry + rz*rz;
+  }
+
+  // predict unconstrained move xshake, then share with ghosts
+  unconstrained_update();
+  comm->forward_comm(this);
+
+  ev_init(eflag_pre_reverse, vflag);
+  ebond = 0.0;
+
+  // run Newton iteration; converged xshake satisfies all distance constraints
+  solve_constraints();
+
+  // convert accumulated Lagrange multipliers into atom forces (so that the
+  // next initial_integrate produces the constrained positions)
+  apply_constraint_forces(vflag);
+
+  vflag_post_force = vflag;
+}
+
+/* ----------------------------------------------------------------------
+   Grow the per-cluster dense-LU workspace to handle clusters of size n
+------------------------------------------------------------------------- */
+
+void FixIlves::grow_lu_workspace(int n)
+{
+  if (n <= lu_alloc) return;
+  lu_alloc = n;
+  memory->grow(lu_A,     lu_alloc * lu_alloc, "ilves:lu_A");
+  memory->grow(lu_b,     lu_alloc,            "ilves:lu_b");
+  memory->grow(lu_pivot, lu_alloc,            "ilves:lu_pivot");
+  memory->grow(cl_sx,    lu_alloc,            "ilves:cl_sx");
+  memory->grow(cl_sy,    lu_alloc,            "ilves:cl_sy");
+  memory->grow(cl_sz,    lu_alloc,            "ilves:cl_sz");
+}
+
+/* ----------------------------------------------------------------------
+   In-place LU factorization with partial pivoting + forward/back solve.
+   lu_A is row-major n x n; lu_b is the rhs in/out.  Returns 0 on success,
+   nonzero if the pivot is below tolerance (matrix is singular).
+------------------------------------------------------------------------- */
+
+int FixIlves::lu_factor_solve(int n)
+{
+  constexpr double TINY = 1.0e-30;
+
+  // factorization with row pivoting
+  for (int i = 0; i < n; ++i) lu_pivot[i] = i;
+
+  for (int k = 0; k < n; ++k) {
+    // find pivot in column k from row k onward
+    double pmax = fabs(lu_A[k*n + k]);
+    int pidx = k;
+    for (int i = k + 1; i < n; ++i) {
+      double v = fabs(lu_A[i*n + k]);
+      if (v > pmax) { pmax = v; pidx = i; }
+    }
+    if (pmax < TINY) return 1;     // singular
+
+    if (pidx != k) {
+      // swap rows k and pidx (full rows of A, and pivot record)
+      for (int j = 0; j < n; ++j) {
+        double t = lu_A[k*n + j];
+        lu_A[k*n + j] = lu_A[pidx*n + j];
+        lu_A[pidx*n + j] = t;
+      }
+      int t = lu_pivot[k]; lu_pivot[k] = lu_pivot[pidx]; lu_pivot[pidx] = t;
+    }
+
+    // eliminate
+    double diag_inv = 1.0 / lu_A[k*n + k];
+    for (int i = k + 1; i < n; ++i) {
+      double factor = lu_A[i*n + k] * diag_inv;
+      lu_A[i*n + k] = factor;       // store L in lower triangle
+      for (int j = k + 1; j < n; ++j) {
+        lu_A[i*n + j] -= factor * lu_A[k*n + j];
+      }
+    }
+  }
+
+  // permute b according to pivot
+  // lu_pivot[k] = original row index now sitting in slot k
+  // apply permutation P to b: b_new[k] = b_old[ lu_pivot[k] ]
+  // (using cl_sx as scratch since it's at least lu_alloc long)
+  for (int k = 0; k < n; ++k) cl_sx[k] = lu_b[lu_pivot[k]];
+  for (int k = 0; k < n; ++k) lu_b[k] = cl_sx[k];
+
+  // forward substitution L y = b (L has unit diagonal, stored below diag)
+  for (int i = 1; i < n; ++i) {
+    double s = lu_b[i];
+    for (int j = 0; j < i; ++j) s -= lu_A[i*n + j] * lu_b[j];
+    lu_b[i] = s;
+  }
+  // back substitution U x = y
+  for (int i = n - 1; i >= 0; --i) {
+    double s = lu_b[i];
+    for (int j = i + 1; j < n; ++j) s -= lu_A[i*n + j] * lu_b[j];
+    lu_b[i] = s / lu_A[i*n + i];
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   Solve all constraints by ILVES Newton iteration.  For each cluster c:
+     - assemble the local n_c x n_c Jacobian A_c (structurally symmetric,
+       numerically asymmetric -- equals the exact Newton Jacobian)
+     - assemble the rhs as the current constraint residuals g_k
+     - LU-solve A_c * d-lambda = -g_c
+     - update xshake using d-lambda
+     - accumulate c_lambda[k] += d-lambda[k]
+   Iterate until max relative bond-length violation falls below tolerance
+   or max_iter is reached.
+
+   Returns true if converged.  Phase 2 implementation is serial-only; for
+   MPI the inter-cluster reduction will be added in Phase 4.
+------------------------------------------------------------------------- */
+
+bool FixIlves::solve_constraints()
+{
+  if (n_constr == 0) return true;
+
+  grow_lu_workspace(largest_cluster);
+
+  // zero accumulated Lagrange multipliers at start of step
+  for (int k = 0; k < n_constr; ++k) c_lambda[k] = 0.0;
+
+  // tolerance is on relative bond-length violation: |s_k|/d_k - 1.
+  // g_k = 0.5*(|s_k|^2 - d_k^2); for small violation,
+  // g_k / d_k^2 ~ (|s_k|/d_k - 1).  Use that as the residual measure.
+  const double tol_g = tolerance;
+
+  bool converged = false;
+
+  for (int iter = 0; iter < max_iter; ++iter) {
+    double max_relres = 0.0;
+
+    for (int c = 0; c < n_clusters; ++c) {
+      const int beg = cluster_offset[c];
+      const int end = cluster_offset[c + 1];
+      const int n_c = end - beg;
+
+      // cache s_k = xshake[a_k] - xshake[b_k] for each constraint, applying
+      // minimum_image so that PBC-image inconsistencies don't poison the
+      // bond vector (must match the convention used when c_rx is built)
+      for (int s = 0; s < n_c; ++s) {
+        int k = c_perm[beg + s];
+        int a = c_atom1[k];
+        int b = c_atom2[k];
+        double sx = xshake[a][0] - xshake[b][0];
+        double sy = xshake[a][1] - xshake[b][1];
+        double sz = xshake[a][2] - xshake[b][2];
+        domain->minimum_image(FLERR, sx, sy, sz);
+        cl_sx[s] = sx;
+        cl_sy[s] = sy;
+        cl_sz[s] = sz;
+      }
+
+      // assemble A (row-major n_c x n_c) and rhs lu_b
+      for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
+
+      for (int s = 0; s < n_c; ++s) {
+        int k = c_perm[beg + s];
+
+        // residual (same for both variants): g_k = 0.5*(|s_k|^2 - d_k^2)
+        double ssq = cl_sx[s]*cl_sx[s] + cl_sy[s]*cl_sy[s] + cl_sz[s]*cl_sz[s];
+        double gk = 0.5 * (ssq - c_dist[k]*c_dist[k]);
+        lu_b[s] = -gk;
+
+        double relres = fabs(gk) / (c_dist[k]*c_dist[k]);
+        if (relres > max_relres) max_relres = relres;
+
+        // diagonal:
+        //   variant = 0 (ilves, symmetric Jacobian):
+        //       A_kk = (1/m_a + 1/m_b) * |r_k|^2
+        //       Off-diagonals use r_k . r_l (truly symmetric matrix).
+        //       This is a quasi-Newton step; it converges to the exact
+        //       constraint solution but uses an approximate Jacobian.
+        //   variant = 1 (ilvesf, structurally-symmetric exact Jacobian):
+        //       A_kk = (1/m_a + 1/m_b) * (s_k . r_k)
+        //       Off-diagonals use s_k . r_l.
+        //       This is the true Newton Jacobian -- quadratic convergence.
+        if (variant == 0) {
+          lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
+        } else {
+          double sr = cl_sx[s]*c_rx[k] + cl_sy[s]*c_ry[k] + cl_sz[s]*c_rz[k];
+          lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * sr;
+        }
+      }
+
+      // off-diagonals: scan all pairs in cluster and add contributions from
+      // shared atoms.  For small clusters this O(n_c^2) scan is cheap.
+      for (int s = 0; s < n_c; ++s) {
+        int k = c_perm[beg + s];
+        int ak = c_atom1[k];
+        int bk = c_atom2[k];
+        double invma_k = c_invma[k];
+        double invmb_k = c_invmb[k];
+        // canonical tags for the two atoms of k (so periodic ghost images
+        // compare equal to the local index)
+        tagint tag_ak = atom->tag[ak];
+        tagint tag_bk = atom->tag[bk];
+
+        // for symmetric variant we only need to assemble s < t and copy;
+        // for asymmetric we assemble both.  Keep code uniform but skip
+        // duplicate work for the symmetric case.
+        const int t_start = (variant == 0) ? s + 1 : 0;
+        for (int t = t_start; t < n_c; ++t) {
+          if (t == s) continue;
+          int l = c_perm[beg + t];
+          int al = c_atom1[l];
+          int bl = c_atom2[l];
+          tagint tag_al = atom->tag[al];
+          tagint tag_bl = atom->tag[bl];
+
+          // determine shared atom (if any) by tag comparison
+          // sigma_k^p = +1 if shared atom is a_k, -1 if b_k
+          // sigma_l^p = +1 if shared atom is a_l, -1 if b_l
+          int sig_k = 0, sig_l = 0;
+          double invm_p = 0.0;
+          if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
+          else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
+          else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
+          else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
+          else continue;     // no shared atom
+
+          double val;
+          if (variant == 0) {
+            // symmetric: r_k . r_l (commutative -> matrix is symmetric)
+            double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
+            val = sig_k * sig_l * rkrl * invm_p;
+            lu_A[s*n_c + t] += val;
+            lu_A[t*n_c + s] += val;
+          } else {
+            // exact Newton Jacobian: s_k . r_l (asymmetric in k, l)
+            double srl = cl_sx[s]*c_rx[l] + cl_sy[s]*c_ry[l] + cl_sz[s]*c_rz[l];
+            val = sig_k * sig_l * srl * invm_p;
+            lu_A[s*n_c + t] += val;
+          }
+        }
+      }
+
+      // solve A * d-lambda = lu_b (= -g)
+      int info = lu_factor_solve(n_c);
+      if (info) {
+        error->one(FLERR,
+                   "Fix ilves: singular Jacobian in cluster {} (size {}, iter {}). "
+                   "This usually indicates a degenerate or overdetermined "
+                   "constraint topology.", c, n_c, iter);
+      }
+
+      // apply d-lambda to xshake and accumulate c_lambda.  Route partner
+      // updates to the LOCAL owner via atom->map(tag).  For a true MPI
+      // ghost (owner on another rank), atom->map returns the ghost index
+      // -- skip the partner update locally; the partner rank holds the
+      // same constraint and will update its local atom, and forward_comm
+      // at the end of the iteration brings the corrected ghost position
+      // back to this rank.
+      for (int s = 0; s < n_c; ++s) {
+        int k = c_perm[beg + s];
+        double dl = lu_b[s];
+        c_lambda[k] += dl;
+        double cax = dl * c_invma[k] * c_rx[k];
+        double cay = dl * c_invma[k] * c_ry[k];
+        double caz = dl * c_invma[k] * c_rz[k];
+        double cbx = dl * c_invmb[k] * c_rx[k];
+        double cby = dl * c_invmb[k] * c_ry[k];
+        double cbz = dl * c_invmb[k] * c_rz[k];
+        int a = c_atom1[k];
+        int b = c_atom2[k];
+        // c_atom1 / c_atom2 may now point to ghosts (cluster-completion
+        // constraints between two ghost atoms can occur when the cluster
+        // spans multiple ranks).  Route each side's update to its local
+        // owner via atom->map(tag); skip if neither rank owns that atom
+        // (a partner rank will update its local copy).
+        int a_local = atom->map(atom->tag[a]);
+        int b_local = atom->map(atom->tag[b]);
+        if (a_local >= 0 && a_local < nlocal) {
+          xshake[a_local][0] += cax;
+          xshake[a_local][1] += cay;
+          xshake[a_local][2] += caz;
+        }
+        if (b_local >= 0 && b_local < nlocal) {
+          xshake[b_local][0] -= cbx;
+          xshake[b_local][1] -= cby;
+          xshake[b_local][2] -= cbz;
+        }
+      }
+    }
+
+    // refresh ghost xshake from the (just-updated) local owners so the
+    // next iteration's matrix sees consistent values everywhere.
+    comm->forward_comm(this);
+
+    // synchronize convergence across MPI ranks: without this, ranks
+    // with different residuals would exit the Newton loop at different
+    // iterations and then deadlock on the next forward_comm call.
+    double global_relres = max_relres;
+    if (comm->nprocs > 1)
+      MPI_Allreduce(&max_relres, &global_relres, 1, MPI_DOUBLE, MPI_MAX, world);
+    if (global_relres < tol_g) { converged = true; break; }
+  }
+
+  if (!converged && (comm->me == 0)) {
+    error->warning(FLERR,
+                   "Fix ilves: max_iter ({}) reached without reaching tol={} at step {}",
+                   max_iter, tolerance, update->ntimestep);
+  }
+  return converged;
+}
+
+/* ----------------------------------------------------------------------
+   Convert the accumulated Lagrange multipliers into constraint forces
+   added to atom->f, so that the next initial_integrate puts the atoms at
+   the constrained xshake positions.
+
+   For each constraint k = (a, b):
+     f[a] += (lambda_k / dtfsq) * r_k
+     f[b] -= (lambda_k / dtfsq) * r_k
+   Forces are applied only to atoms that are local (< nlocal).  For ghost
+   partners (MPI cross-rank bonds), the partner's owner rank applies its
+   own copy of the force; Phase 4 will add reverse_comm for newton_bond=1
+   cases where only one rank holds the constraint.
+------------------------------------------------------------------------- */
+
+void FixIlves::apply_constraint_forces(int vflag)
+{
+  if (n_constr == 0) return;
+  const double inv_dtfsq = 1.0 / dtfsq;
+  int *mask = atom->mask;
+  double bond_v[6];
+
+  if (store_flag) {
+    if (maxstore < atom->nmax) {
+      maxstore = atom->nmax;
+      memory->destroy(fstore);
+      memory->create(fstore, maxstore, 3, "ilves:fstore");
+    }
+    for (int i = 0; i < maxstore; ++i)
+      fstore[i][0] = fstore[i][1] = fstore[i][2] = 0.0;
+    array_atom = fstore;
+  }
+
+  for (int k = 0; k < n_constr; ++k) {
+    double scale = c_lambda[k] * inv_dtfsq;
+    double fx = scale * c_rx[k];
+    double fy = scale * c_ry[k];
+    double fz = scale * c_rz[k];
+    int a = c_atom1[k];
+    int b = c_atom2[k];
+
+    // Route each endpoint's force to its local owner (atom->map(tag)
+    // collapses PBC ghosts to local indices).  c_atom1 and c_atom2 may
+    // both be ghosts for cluster-completion constraints in MPI; in that
+    // case neither side applies any force from this rank, and the
+    // owning ranks handle their atoms.
+    int a_local = atom->map(atom->tag[a]);
+    int b_local = atom->map(atom->tag[b]);
+
+    if (a_local >= 0 && a_local < nlocal) {
+      f[a_local][0] += fx; f[a_local][1] += fy; f[a_local][2] += fz;
+      if (store_flag) { fstore[a_local][0] += fx; fstore[a_local][1] += fy; fstore[a_local][2] += fz; }
+    }
+    if (b_local >= 0 && b_local < nlocal) {
+      f[b_local][0] -= fx; f[b_local][1] -= fy; f[b_local][2] -= fz;
+      if (store_flag) { fstore[b_local][0] -= fx; fstore[b_local][1] -= fy; fstore[b_local][2] -= fz; }
+    }
+
+    if (evflag) {
+      int atomlist[2];
+      int count = 0;
+      if (a_local >= 0 && a_local < nlocal) atomlist[count++] = a_local;
+      if (b_local >= 0 && b_local < nlocal) atomlist[count++] = b_local;
+      bond_v[0] = scale * c_rx[k]*c_rx[k];
+      bond_v[1] = scale * c_ry[k]*c_ry[k];
+      bond_v[2] = scale * c_rz[k]*c_rz[k];
+      bond_v[3] = scale * c_rx[k]*c_ry[k];
+      bond_v[4] = scale * c_rx[k]*c_rz[k];
+      bond_v[5] = scale * c_ry[k]*c_rz[k];
+      double fpair[1] = {scale};
+      double dellist[1][3] = {{c_rx[k], c_ry[k], c_rz[k]}};
+      int pairlist[1][2] = {{a_local, b_local}};
+      v_tally(count, atomlist, 2.0, bond_v, nlocal, 1, pairlist, fpair, dellist);
+    }
+  }
+  (void) mask;
+  (void) vflag;
+}
+
+/* ----------------------------------------------------------------------
+   Project atom positions onto the constraint surface at setup time.
+   The trick (borrowed from fix shake's correct_coordinates): temporarily
+   zero atom->f and atom->v, run the Newton solver to find constraint
+   forces, then apply those forces directly to atom->x as position
+   corrections (x -> x + dtfsq/m * f) and restore the saved f and v.
+
+   This must be called with dtfsq = 0.5*dt^2*ftm2v.
+------------------------------------------------------------------------- */
+
+void FixIlves::correct_coordinates(int vflag)
+{
+  if (n_constr == 0) return;
+
+  // save current f and v, then zero them so unconstrained_update reduces
+  // to xshake = x (the current positions)
+  double **f_save = nullptr;
+  double **v_save = nullptr;
+  memory->create(f_save, nlocal, 3, "ilves:fsave");
+  memory->create(v_save, nlocal, 3, "ilves:vsave");
+  for (int i = 0; i < nlocal; ++i) {
+    f_save[i][0] = f[i][0]; f_save[i][1] = f[i][1]; f_save[i][2] = f[i][2];
+    v_save[i][0] = v[i][0]; v_save[i][1] = v[i][1]; v_save[i][2] = v[i][2];
+    f[i][0] = f[i][1] = f[i][2] = 0.0;
+    v[i][0] = v[i][1] = v[i][2] = 0.0;
+  }
+
+  // run the Newton solver as in post_force.  xshake will be initialized
+  // to x by unconstrained_update (since v = f = 0), and the solve finds
+  // the constraint forces (added to atom->f) needed to project x to the
+  // constraint surface via a single integration half-step.
+  unconstrained_update();
+  comm->forward_comm(this);
+  solve_constraints();
+  apply_constraint_forces(vflag);
+
+  // project: x_new = x + dtfsq/m * f_c (where f is currently only f_c
+  // because we zeroed f before solving)
+  if (rmass) {
+    for (int i = 0; i < nlocal; ++i) {
+      double dfm = dtfsq / rmass[i];
+      x[i][0] += dfm * f[i][0];
+      x[i][1] += dfm * f[i][1];
+      x[i][2] += dfm * f[i][2];
+    }
+  } else {
+    for (int i = 0; i < nlocal; ++i) {
+      double dfm = dtfsq / mass[type[i]];
+      x[i][0] += dfm * f[i][0];
+      x[i][1] += dfm * f[i][1];
+      x[i][2] += dfm * f[i][2];
+    }
+  }
+
+  // restore f and v
+  for (int i = 0; i < nlocal; ++i) {
+    f[i][0] = f_save[i][0]; f[i][1] = f_save[i][1]; f[i][2] = f_save[i][2];
+    v[i][0] = v_save[i][0]; v[i][1] = v_save[i][1]; v[i][2] = v_save[i][2];
+  }
+  memory->destroy(f_save);
+  memory->destroy(v_save);
+
+  // updated x must be propagated to ghost atoms for the velocity correction
+  // and subsequent force computation; xshake forward-comm is a convenient
+  // way to do this since we already have the pack/unpack for xshake.
+  // (positions stored in atom->x are also communicated by LAMMPS's normal
+  //  flow, so this isn't strictly required here, but matches fix shake.)
+  double **xtmp = xshake;
+  xshake = x;
+  comm->forward_comm(this);
+  xshake = xtmp;
+
+  // re-precompute reference vectors r_k = x[a]-x[b] now that x has been
+  // updated -- subsequent solves (e.g. the post_force call following this
+  // function) must use the corrected positions
+  precompute_constraint_data();
+}
+
+/* ----------------------------------------------------------------------
+   Remove velocity components along constrained directions so that
+   d/dt(|x[a]-x[b]|^2) = 0 (i.e. (v[a]-v[b]) . r_k = 0) for every
+   constraint k.  This is the velocity-RATTLE step.  At setup, the
+   initial velocities from the data file (or velocity command) are
+   generally not constraint-consistent; this routine projects them
+   onto the constrained-velocity manifold while conserving linear
+   momentum within each cluster.
+
+   For each cluster:
+     - assemble symmetric positive-definite matrix
+         A_kl = sum_p sigma_k^p sigma_l^p (r_k . r_l) / m_p
+       (the same shared-atom pattern as the position solve, but with
+        s_k replaced by r_k -- the matrix is genuinely symmetric here)
+     - rhs g_k = (v[a_k] - v[b_k]) . r_k
+     - solve A * mu = g (note: rhs in lu_b will be +g, dlambda is -mu)
+     - subtract mu_k from velocities:
+         v[a] -= mu_k / m_a * r_k
+         v[b] += mu_k / m_b * r_k
+
+   Linear system -- a single solve is exact (no iteration needed).
+------------------------------------------------------------------------- */
+
+void FixIlves::correct_velocities()
+{
+  if (n_constr == 0) return;
+  grow_lu_workspace(largest_cluster);
+
+  for (int c = 0; c < n_clusters; ++c) {
+    const int beg = cluster_offset[c];
+    const int end = cluster_offset[c + 1];
+    const int n_c = end - beg;
+
+    // assemble symmetric A and rhs g
+    for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
+
+    for (int s = 0; s < n_c; ++s) {
+      int k = c_perm[beg + s];
+      int a = c_atom1[k];
+      int b = c_atom2[k];
+      // diagonal A_kk = (1/m_a + 1/m_b) * (r_k . r_k)
+      lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
+      // rhs: g_k = (v[a] - v[b]) . r_k
+      double vxd = v[a][0] - v[b][0];
+      double vyd = v[a][1] - v[b][1];
+      double vzd = v[a][2] - v[b][2];
+      lu_b[s] = vxd*c_rx[k] + vyd*c_ry[k] + vzd*c_rz[k];
+    }
+
+    // off-diagonals: same shared-atom logic as the position solve, but
+    // with (r_k . r_l) -- which is symmetric in k,l, so we only need s < t
+    for (int s = 0; s < n_c; ++s) {
+      int k = c_perm[beg + s];
+      double invma_k = c_invma[k];
+      double invmb_k = c_invmb[k];
+      tagint tag_ak = atom->tag[c_atom1[k]];
+      tagint tag_bk = atom->tag[c_atom2[k]];
+
+      for (int t = s + 1; t < n_c; ++t) {
+        int l = c_perm[beg + t];
+        tagint tag_al = atom->tag[c_atom1[l]];
+        tagint tag_bl = atom->tag[c_atom2[l]];
+
+        int sig_k = 0, sig_l = 0;
+        double invm_p = 0.0;
+        if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
+        else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
+        else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
+        else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
+        else continue;
+
+        double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
+        double val = sig_k * sig_l * rkrl * invm_p;
+        lu_A[s*n_c + t] = val;
+        lu_A[t*n_c + s] = val;     // symmetric
+      }
+    }
+
+    int info = lu_factor_solve(n_c);
+    if (info)
+      error->one(FLERR, "Fix ilves: singular velocity-correction matrix in cluster {} "
+                 "(size {}).  Check for degenerate constraint topology.", c, n_c);
+
+    // apply: v[a] -= mu_k/m_a * r_k, v[b] += mu_k/m_b * r_k.
+    // Both c_atom1 and c_atom2 may be ghosts for cluster-completion
+    // constraints; route to local owner via atom->map(tag).
+    for (int s = 0; s < n_c; ++s) {
+      int k = c_perm[beg + s];
+      double mu = lu_b[s];
+      int a = c_atom1[k];
+      int b = c_atom2[k];
+      int a_local = atom->map(atom->tag[a]);
+      int b_local = atom->map(atom->tag[b]);
+      double da = mu * c_invma[k];
+      double db = mu * c_invmb[k];
+      if (a_local >= 0 && a_local < nlocal) {
+        v[a_local][0] -= da * c_rx[k];
+        v[a_local][1] -= da * c_ry[k];
+        v[a_local][2] -= da * c_rz[k];
+      }
+      if (b_local >= 0 && b_local < nlocal) {
+        v[b_local][0] += db * c_rx[k];
+        v[b_local][1] += db * c_ry[k];
+        v[b_local][2] += db * c_rz[k];
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   RATTLE-style velocity correction at the END_OF_STEP hook.  At this
+   point the integrator has already advanced v to v(t+dt) using both
+   half-steps -- we project v onto the constrained-velocity manifold so
+   the dynamics stays on the constraint surface step-by-step instead of
+   gradually redistributing KE/PE between bonded and non-bonded modes.
+
+   c_rx/c_ry/c_rz/c_rsq are recomputed first because the bond vectors
+   have rotated since post_force ran on this step.
+------------------------------------------------------------------------- */
+
+void FixIlves::end_of_step()
+{
+  x = atom->x;
+  v = atom->v;
+  f = atom->f;
+  mass  = atom->mass;
+  rmass = atom->rmass;
+  type  = atom->type;
+  nlocal = atom->nlocal;
+
+  for (int k = 0; k < n_constr; ++k) {
+    int a = c_atom1[k];
+    int b = c_atom2[k];
+    double rx = x[a][0] - x[b][0];
+    double ry = x[a][1] - x[b][1];
+    double rz = x[a][2] - x[b][2];
+    domain->minimum_image(FLERR, rx, ry, rz);
+    c_rx[k]  = rx;
+    c_ry[k]  = ry;
+    c_rz[k]  = rz;
+    c_rsq[k] = rx*rx + ry*ry + rz*rz;
+  }
+
+  // forward-communicate atom->v so ghost velocities reflect the values
+  // just-set on the owning rank's final_integrate.  Without this, ghost
+  // v is stale (last value before exchange), and the cross-rank velocity
+  // projection in correct_velocities computes inconsistent multipliers
+  // on partner ranks, injecting energy step by step.
+  if (comm->nprocs > 1) {
+    comm_mode = 1;
+    comm->forward_comm(this);
+    comm_mode = 0;
+  }
+
+  correct_velocities();
+}
+
+void FixIlves::min_pre_reverse(int eflag, int /*vflag*/)
+{
+  eflag_pre_reverse = eflag;
+}
+
+/* ----------------------------------------------------------------------
+   during minimization, the SHAKE/RATTLE machinery (which works through
+   the integrator) is inert -- there are no velocities or time steps to
+   step through.  We substitute the constraints with strong harmonic
+   restraint potentials V_k = 0.5 * kbond * (|r_k| - d_k)^2, where kbond
+   defaults to 1e9 * boltz (same as fix shake).  Energy and force are
+   contributed to the minimizer just like a bond potential.
+------------------------------------------------------------------------- */
+
+void FixIlves::min_post_force(int vflag)
+{
+  // refresh atom pointers (allocation may have moved on reneighbor)
+  x = atom->x;
+  v = atom->v;
+  f = atom->f;
+  mass  = atom->mass;
+  rmass = atom->rmass;
+  type  = atom->type;
+  nlocal = atom->nlocal;
+
+  ev_init(eflag_pre_reverse, vflag);
+  ebond = 0.0;
+
+  // statistics accumulators
+  const int nb = atom->nbondtypes  + 1;
+  const int na = atom->nangletypes + 1;
+  if (output_every) {
+    for (int i = 0; i < nb; ++i) { b_count[i] = 0; b_ave[i] = b_max[i] = 0.0; b_min[i] = BIG; }
+    for (int i = 0; i < na; ++i) { a_count[i] = 0; a_ave[i] = a_max[i] = 0.0; a_min[i] = BIG; }
+  }
+
+  // allocate / reset per-atom constraint-force storage
+  if (store_flag) {
+    if (maxstore < atom->nmax) {
+      maxstore = atom->nmax;
+      memory->destroy(fstore);
+      memory->create(fstore, maxstore, 3, "ilves:fstore");
+    }
+    for (int i = 0; i < maxstore; ++i)
+      fstore[i][0] = fstore[i][1] = fstore[i][2] = 0.0;
+    array_atom = fstore;
+  }
+
+  tagint *tag = atom->tag;
+  double bond_v[6];
+
+  for (int k = 0; k < n_constr; ++k) {
+    int a = c_atom1[k];
+    int b = c_atom2[k];
+    tagint ta = tag[a], tb = tag[b];
+
+    // global dedup: only the rank locally owning the lower-tag atom of
+    // the constraint accounts for it (otherwise both ranks of a mirrored
+    // cross-rank cluster would double-count this constraint's harmonic
+    // restraint energy and the minimizer would see double its strength)
+    tagint t_lower = (ta < tb) ? ta : tb;
+    int lower_local = atom->map(t_lower);
+    if (lower_local < 0 || lower_local >= nlocal) continue;
+
+    int a_local = atom->map(ta);
+    int b_local = atom->map(tb);
+
+    double dx = x[a][0] - x[b][0];
+    double dy = x[a][1] - x[b][1];
+    double dz = x[a][2] - x[b][2];
+    domain->minimum_image(FLERR, dx, dy, dz);
+    double r = sqrt(dx*dx + dy*dy + dz*dz);
+    double dr = r - c_dist[k];
+    double rk = kbond * dr;
+    double fbond = (r > 0.0) ? -2.0 * rk / r : 0.0;
+    double eb = rk * dr;
+
+    int atomlist[2];
+    int count = 0;
+    if (a_local >= 0 && a_local < nlocal) {
+      f[a_local][0] += dx * fbond; f[a_local][1] += dy * fbond; f[a_local][2] += dz * fbond;
+      if (store_flag) {
+        fstore[a_local][0] += dx * fbond;
+        fstore[a_local][1] += dy * fbond;
+        fstore[a_local][2] += dz * fbond;
+      }
+      atomlist[count++] = a_local;
+      ebond += 0.5 * eb;
+    }
+    if (b_local >= 0 && b_local < nlocal) {
+      f[b_local][0] -= dx * fbond;
+      f[b_local][1] -= dy * fbond;
+      f[b_local][2] -= dz * fbond;
+      if (store_flag) {
+        fstore[b_local][0] -= dx * fbond;
+        fstore[b_local][1] -= dy * fbond;
+        fstore[b_local][2] -= dz * fbond;
+      }
+      atomlist[count++] = b_local;
+      ebond += 0.5 * eb;
+    }
+    if (evflag) {
+      bond_v[0] = 0.5 * dx*dx * fbond;
+      bond_v[1] = 0.5 * dy*dy * fbond;
+      bond_v[2] = 0.5 * dz*dz * fbond;
+      bond_v[3] = 0.5 * dx*dy * fbond;
+      bond_v[4] = 0.5 * dx*dz * fbond;
+      bond_v[5] = 0.5 * dy*dz * fbond;
+      ev_tally(count, atomlist, 2.0, eb, bond_v);
+    }
+
+    // statistics
+    if (output_every) {
+      int t = c_type[k];
+      if (t > 0) {
+        b_count[t]++;
+        b_ave[t] += r;
+        if (r > b_max[t]) b_max[t] = r;
+        if (r < b_min[t]) b_min[t] = r;
+      } else {
+        int at = -t;
+        a_count[at]++;
+        a_ave[at] += r;
+        if (r > a_max[at]) a_max[at] = r;
+        if (r < a_min[at]) a_min[at] = r;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   per-atom array lifecycle
+------------------------------------------------------------------------- */
+
+double FixIlves::memory_usage()
+{
+  double bytes = 0.0;
+  bytes += (double) atom->nmax * sizeof(int);          // ilves_flag
+  bytes += (double) atom->nmax * 3 * sizeof(double);   // xshake
+  if (store_flag) bytes += (double) maxstore * 3 * sizeof(double);
+  bytes += (double) max_constr * (4*sizeof(int) + 2*sizeof(double));
+  return bytes;
+}
+
+void FixIlves::grow_arrays(int nmax)
+{
+  memory->grow(ilves_flag, nmax, "ilves:ilves_flag");
+  memory->destroy(xshake);
+  memory->create(xshake, nmax, 3, "ilves:xshake");
+}
+
+void FixIlves::copy_arrays(int i, int j, int /*delflag*/)
+{
+  ilves_flag[j] = ilves_flag[i];
+  // xshake is a transient working buffer rebuilt each step; no need to copy.
+}
+
+void FixIlves::set_arrays(int i)
+{
+  ilves_flag[i] = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixIlves::pack_exchange(int i, double *buf)
+{
+  buf[0] = (double) ilves_flag[i];
+  return 1;
+}
+
+int FixIlves::unpack_exchange(int nlocal_in, double *buf)
+{
+  ilves_flag[nlocal_in] = (int) buf[0];
+  return 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixIlves::pack_forward_comm(int n, int *list, double *buf,
+                                int pbc_flag, int *pbc)
+{
+  int m = 0;
+  // comm_mode == 1 means pack atom->v (no PBC shift needed for velocities)
+  if (comm_mode == 1) {
+    for (int i = 0; i < n; ++i) {
+      int j = list[i];
+      buf[m++] = atom->v[j][0];
+      buf[m++] = atom->v[j][1];
+      buf[m++] = atom->v[j][2];
+    }
+    return m;
+  }
+  // default (comm_mode == 0): pack xshake with PBC shift applied
+  if (pbc_flag == 0) {
+    for (int i = 0; i < n; ++i) {
+      int j = list[i];
+      buf[m++] = xshake[j][0];
+      buf[m++] = xshake[j][1];
+      buf[m++] = xshake[j][2];
+    }
+  } else {
+    double dx, dy, dz;
+    if (domain->triclinic == 0) {
+      dx = pbc[0]*domain->xprd;
+      dy = pbc[1]*domain->yprd;
+      dz = pbc[2]*domain->zprd;
+    } else {
+      dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+      dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+      dz = pbc[2]*domain->zprd;
+    }
+    for (int i = 0; i < n; ++i) {
+      int j = list[i];
+      buf[m++] = xshake[j][0] + dx;
+      buf[m++] = xshake[j][1] + dy;
+      buf[m++] = xshake[j][2] + dz;
+    }
+  }
+  return m;
+}
+
+void FixIlves::unpack_forward_comm(int n, int first, double *buf)
+{
+  int m = 0;
+  int last = first + n;
+  if (comm_mode == 1) {
+    for (int i = first; i < last; ++i) {
+      atom->v[i][0] = buf[m++];
+      atom->v[i][1] = buf[m++];
+      atom->v[i][2] = buf[m++];
+    }
+    return;
+  }
+  for (int i = first; i < last; ++i) {
+    xshake[i][0] = buf[m++];
+    xshake[i][1] = buf[m++];
+    xshake[i][2] = buf[m++];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   count DOFs removed: every constraint subtracts one (across all ranks)
+   the global sum is what the integrator uses for temperature normalization
+------------------------------------------------------------------------- */
+
+bigint FixIlves::dof(int igroup)
+{
+  // each constraint k contributes 1 dof iff both atoms are in igroup.
+  // With cross-rank cluster mirroring (newton on or off) each constraint
+  // can appear on multiple ranks.  Dedupe by counting a constraint only
+  // on the rank that locally owns its LOWER-TAG atom.  This way every
+  // constraint contributes exactly one dof globally.
+  int gbit = group->bitmask[igroup];
+  int *mask = atom->mask;
+  tagint *tag = atom->tag;
+  const int nlocal_now = atom->nlocal;
+  bigint n = 0;
+  for (int k = 0; k < n_constr; ++k) {
+    int a = c_atom1[k];
+    int b = c_atom2[k];
+    tagint ta = tag[a], tb = tag[b];
+    tagint t_lower = (ta < tb) ? ta : tb;
+    int lower_local = atom->map(t_lower);
+    if (lower_local < 0 || lower_local >= nlocal_now) continue;     // partner rank counts it
+
+    // group filter: need both atoms in group.  Use whichever local copies
+    // are available (ghost mask is valid too via comm shells).
+    int a_local = atom->map(ta);
+    int b_local = atom->map(tb);
+    if (a_local < 0 || b_local < 0) continue;
+    if (!(mask[a_local] & gbit)) continue;
+    if (!(mask[b_local] & gbit)) continue;
+    ++n;
+  }
+  bigint nall;
+  MPI_Allreduce(&n, &nall, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+  return nall;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIlves::reset_dt()
+{
+  dtv   = update->dt;
+  dtfsq = update->dt * update->dt * force->ftm2v;
+}
+
+/* ----------------------------------------------------------------------
+   compute_scalar: total restraint energy (only nonzero during minimization;
+   Phase 5 will fill this with sum_k 0.5*kbond*(|r_ab|-d_k)^2)
+------------------------------------------------------------------------- */
+
+double FixIlves::compute_scalar()
+{
+  double e_all;
+  MPI_Allreduce(&ebond, &e_all, 1, MPI_DOUBLE, MPI_SUM, world);
+  return e_all;
+}
+
+/* ----------------------------------------------------------------------
+   bond/angle statistics (current bond length distribution per type)
+------------------------------------------------------------------------- */
+
+void FixIlves::stats()
+{
+  if (!output_every) return;
+
+  const int nb = atom->nbondtypes  + 1;
+  const int na = atom->nangletypes + 1;
+
+  for (int i = 0; i < nb; ++i) { b_count[i] = 0; b_ave[i] = b_max[i] = 0.0; b_min[i] = BIG; }
+  for (int i = 0; i < na; ++i) { a_count[i] = 0; a_ave[i] = a_max[i] = 0.0; a_min[i] = BIG; }
+
+  const int nlocal_now = atom->nlocal;
+  tagint *tag = atom->tag;
+  for (int k = 0; k < n_constr; ++k) {
+    int a = c_atom1[k];
+    int b = c_atom2[k];
+    tagint ta = tag[a], tb = tag[b];
+
+    // global dedup: only the rank owning the lower-tag atom locally
+    // accounts for this constraint in stats
+    tagint t_lower = (ta < tb) ? ta : tb;
+    int lower_local = atom->map(t_lower);
+    if (lower_local < 0 || lower_local >= nlocal_now) continue;
+
+    double dx = atom->x[a][0] - atom->x[b][0];
+    double dy = atom->x[a][1] - atom->x[b][1];
+    double dz = atom->x[a][2] - atom->x[b][2];
+    domain->minimum_image(FLERR, dx, dy, dz);
+    double r = sqrt(dx*dx + dy*dy + dz*dz);
+    int t = c_type[k];
+    if (t > 0) {
+      b_count[t]++;
+      b_ave[t] += r;
+      if (r > b_max[t]) b_max[t] = r;
+      if (r < b_min[t]) b_min[t] = r;
+    } else {
+      int at = -t;
+      a_count[at]++;
+      a_ave[at] += r;
+      if (r > a_max[at]) a_max[at] = r;
+      if (r < a_min[at]) a_min[at] = r;
+    }
+  }
+
+  MPI_Allreduce(b_count, b_count_all, nb, MPI_LMP_BIGINT, MPI_SUM, world);
+  MPI_Allreduce(b_ave,   b_ave_all,   nb, MPI_DOUBLE,     MPI_SUM, world);
+  MPI_Allreduce(b_max,   b_max_all,   nb, MPI_DOUBLE,     MPI_MAX, world);
+  MPI_Allreduce(b_min,   b_min_all,   nb, MPI_DOUBLE,     MPI_MIN, world);
+  MPI_Allreduce(a_count, a_count_all, na, MPI_LMP_BIGINT, MPI_SUM, world);
+  MPI_Allreduce(a_ave,   a_ave_all,   na, MPI_DOUBLE,     MPI_SUM, world);
+  MPI_Allreduce(a_max,   a_max_all,   na, MPI_DOUBLE,     MPI_MAX, world);
+  MPI_Allreduce(a_min,   a_min_all,   na, MPI_DOUBLE,     MPI_MIN, world);
+
+  if (comm->me == 0) {
+    auto mesg = fmt::format("ILVES stats (type/ave/delta/count) on step {}\n", update->ntimestep);
+    for (int i = 1; i < nb; ++i) {
+      if (b_count_all[i])
+        mesg += fmt::format("Bond:  {:>4d}   {:<9.6} {:<11.6} {:>8d}\n",
+                            i, b_ave_all[i] / b_count_all[i],
+                            b_max_all[i] - b_min_all[i], b_count_all[i]);
+    }
+    for (int i = 1; i < na; ++i) {
+      if (a_count_all[i])
+        mesg += fmt::format("Angle: {:>4d}   {:<9.6} {:<11.6} {:>8d}\n",
+                            i, a_ave_all[i] / a_count_all[i],
+                            a_max_all[i] - a_min_all[i], a_count_all[i]);
+    }
+    utils::logmesg(lmp, mesg);
+  }
+
+  bigint nt = update->ntimestep;
+  next_output = nt + output_every;
+  if (nt % output_every != 0)
+    next_output = (nt / output_every) * output_every + output_every;
+}

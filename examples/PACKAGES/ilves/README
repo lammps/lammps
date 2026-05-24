@@ -1,0 +1,38 @@
+Examples for the ILVES bond/angle constraint solver (fix ilves).
+
+These inputs mirror the standard examples/peptide setup but use
+fix ilves instead of fix shake to apply rigid bond / virtual-angle
+constraints.  The same selectors (b/a/t/m) are accepted, so the
+fix shake usage:
+
+    fix cstr all shake 1.0e-4 25 0 b 4 6 8 10 12 14 18 a 31
+
+becomes:
+
+    fix cstr all ilves 1.0e-4 25 0 b 4 6 8 10 12 14 18 a 31
+
+Unlike fix shake, fix ilves handles arbitrarily large connected
+constraint clusters (e.g. all C-C backbone bonds of a long polymer
+chain in a single cluster), not just small clusters of up to 4 atoms.
+
+fix ilves works correctly across MPI ranks for both newton on and
+newton off settings -- the constraint topology is gathered globally
+at init, and cross-rank clusters are fully replicated on every
+participating rank so that all ranks compute the same Lagrange
+multipliers and each applies the constraint force to its local
+atoms only.
+
+Two solver variants are available via the *variant* keyword:
+  * variant = ilves  (default): symmetric Jacobian using r_k.r_l in
+    off-diagonals; the matrix is true-symmetric (could in principle
+    be solved with Cholesky for a constant-factor speedup)
+  * variant = ilvesf : the structurally-symmetric exact Newton
+    Jacobian using s_k.r_l in off-diagonals
+
+Both variants converge to the exact solution of the constraint
+equations; ilves uses a quasi-Newton step that is slightly cheaper
+to assemble per iteration.
+
+Files:
+  in.peptide-ilves       -- peptide-in-water test, mirrors
+                            examples/peptide/in.peptide

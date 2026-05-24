@@ -56,6 +56,7 @@ Agilio
 agni
 Agnolin
 agroup
+Aguado
 ahi
 Ahrens
 Ai
@@ -164,6 +165,7 @@ arrhenius
 Artrith
 Arun
 arXiv
+Asikainen
 asin
 Askari
 askoose
@@ -291,6 +293,7 @@ Becton
 Behler
 Belak
 Bellott
+Beltran
 bem
 benchmarking
 Bennet
@@ -546,6 +549,7 @@ chirality
 Cho
 Chodera
 Choi
+Cholesky
 ChooseOffset
 chris
 Christoph
@@ -1556,6 +1560,10 @@ hbond
 hcp
 hdnnp
 HDNNP
+ilves
+jctc
+redeclare
+Risueno
 runner
 RUNNER
 Hearn
@@ -4260,6 +4268,7 @@ Varshney
 vashishta
 Vashishta
 vasp
+Vazquez
 vcm
 Vcm
 vdfmax

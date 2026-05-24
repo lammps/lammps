@@ -306,19 +306,77 @@ Only one ``fix ilves`` instance may be defined at a time.  ``fix ilves``
 and :doc:`fix shake <fix_shake>` must not be used together for
 overlapping sets of constrained bonds.
 
-The replicated bond / angle topology is gathered onto every MPI rank
-at init.  For very large simulations (tens of millions of atoms or
-more) at high rank counts the replicated storage of the *selected*
-subset can become significant; prefer :doc:`fix shake <fix_shake>` for
-strictly-local cluster topologies (water HOH, methyl groups, isolated
-bonds) at very large scale.
-
 For exactly-180-degree symmetric angle constraints (e.g. rigid linear
 triatomics like CO2 with bond_length(O-C) = bond_length(C-O)) the
 Jacobian is irreducibly rank-deficient regardless of the constraint
 topology.  ``fix ilves`` runs in that regime with the ``Lmin`` clamp
 adding a small constraint bias, but :doc:`fix rigid <fix_rigid>` is
 the recommended approach.
+
+Memory requirements
+^^^^^^^^^^^^^^^^^^^
+
+The replicated bond / angle topology is gathered onto every MPI rank
+at init.  The full table is stored on **every** rank, so the
+per-rank memory cost does **not** decrease as the rank count grows;
+on the contrary, the aggregate (Nranks * this) is what the host
+machine must accommodate.
+
+At init time the fix prints a line such as::
+
+   Fix ilves: gathered global topology with NB bonds, NA selected angles, NT involved atoms
+   Fix ilves: replicated topology storage ~ X bytes/rank (X.XX MB)
+
+where the printed estimate is the sum of:
+
+* bond table (``gb_a``, ``gb_b``, ``gb_type``): ``2*NB*sizeof(tagint) + NB*sizeof(int)``
+* angle table (``ga1/2/3``, ``ga_type``): ``3*NA*sizeof(tagint) + NA*sizeof(int)``
+* the ``tag_cluster`` map: roughly ``48*NT`` bytes (per-entry overhead
+  for ``std::unordered_map`` -- node + bucket + allocator overhead,
+  measured against libstdc++; libc++ and MSVC implementations are
+  similar to within ~30%)
+
+For the default ``-DLAMMPS_SMALLBIG`` build (32-bit ``tagint``,
+32-bit ``int``) this works out to:
+
+* ~12 bytes per selected bond
+* ~16 bytes per selected angle
+* ~48 bytes per atom involved in some selected bond / angle
+
+So a system with one constraint per bonded hydrogen (~3 per heavy
+atom typical for proteins) and 100M atoms would store roughly:
+
+* bonds:   3 * 100M * 12 B   = 3.6 GB / rank
+* angles:  1 * 100M * 16 B   = 1.6 GB / rank
+* tags:    4 * 100M * 48 B   = 19.2 GB / rank
+* total: ~24 GB / rank
+
+Far too large for typical compute nodes.  An all-bond-constrained
+system at that scale would also blow up.  Rules of thumb:
+
+* **< 10M selected bonds total**: fits comfortably in a few hundred
+  MB / rank; no concerns.
+* **10M -- 100M selected bonds**: the storage is hundreds of MB to a
+  few GB per rank.  Check ``Fix ilves: replicated topology storage``
+  against your host's per-rank memory budget before committing to a
+  long run.
+* **> 100M selected bonds**: ``fix ilves`` in its current
+  implementation is likely not viable.  If the constraint clusters
+  are small and strictly local (water HOH, methyl groups, isolated
+  C-H bonds), use :doc:`fix shake <fix_shake>` -- its per-rank
+  memory scales with the local atom count, not the global atom count.
+  If the clusters span the whole simulation cell (e.g. a polymer
+  backbone connected across all subdomains), the current
+  implementation has no escape hatch and is the wrong tool at this
+  scale.
+
+The per-rank ``memory_usage`` reported by ``info memory`` and
+``thermo_style custom ... memory`` includes the replicated topology
+plus the per-rank constraint-list arrays (rebuilt each reneighbor)
+and the per-cluster Cholesky factor cache (``variant fast`` only).
+For dynamic-load-balanced or non-uniform systems, the cluster
+factor cache size on each rank depends on how many cluster atoms
+that rank touches; consult ``info fixes`` for the breakdown.
 
 Related commands
 """"""""""""""""

@@ -1,0 +1,79 @@
+# Coarse-grain polymer chain with near-linear backbone angles.
+#
+# Demonstrates the *linearangle* keyword of fix ilves: a CG polymer
+# backbone where the backbone angles approach 180 deg.  The standard
+# {AB, BC, AC} constraint set used for an angle becomes rank-deficient
+# at exactly 180 deg and ill-conditioned nearby.  The linearangle
+# keyword switches to a {AB, AC, B-M} set (with B-M = bond from the
+# central atom to the midpoint of A-C) that stays well-conditioned
+# at near-180 deg.
+#
+# To see how the standard set struggles in this regime, change
+#     ... linearangle 165
+# to
+#     ... linearangle 180
+# (the latter disables the linearangle handling).  The constraint
+# solver will hit max_iter warnings as the Newton iteration fights the
+# near-singular Jacobian, and bond / angle deltas grow accordingly.
+
+units           lj
+atom_style      molecular
+boundary        p p p
+
+region          box block 0 20 0 20 0 20
+create_box      1 box bond/types 1 angle/types 1 &
+                extra/bond/per/atom 2 &
+                extra/angle/per/atom 1 &
+                extra/special/per/atom 2
+
+# 8-bead chain placed along x with a small y-zigzag (~178 deg backbone
+# angle).  The zigzag matters: a perfectly straight initial chain
+# would have |B-M| = 0 for every backbone angle, the Jacobian row
+# for the B-M constraint would vanish identically, and even with the
+# Lmin clamp the solver would have to push atoms off-axis from zero --
+# a slow startup transient that this initial offset avoids.
+create_atoms    1 single  6.0 10.00 10.0
+create_atoms    1 single  7.0 10.05 10.0
+create_atoms    1 single  8.0 10.00 10.0
+create_atoms    1 single  9.0 10.05 10.0
+create_atoms    1 single 10.0 10.00 10.0
+create_atoms    1 single 11.0 10.05 10.0
+create_atoms    1 single 12.0 10.00 10.0
+create_atoms    1 single 13.0 10.05 10.0
+
+mass            1 1.0
+
+create_bonds    single/bond 1 1 2
+create_bonds    single/bond 1 2 3
+create_bonds    single/bond 1 3 4
+create_bonds    single/bond 1 4 5
+create_bonds    single/bond 1 5 6
+create_bonds    single/bond 1 6 7
+create_bonds    single/bond 1 7 8
+
+create_bonds    single/angle 1 1 2 3
+create_bonds    single/angle 1 2 3 4
+create_bonds    single/angle 1 3 4 5
+create_bonds    single/angle 1 4 5 6
+create_bonds    single/angle 1 5 6 7
+create_bonds    single/angle 1 6 7 8
+
+bond_style      harmonic
+angle_style     harmonic
+bond_coeff      1 100.0 1.0
+angle_coeff     1 50.0  178.0
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+
+velocity        all create 1.0 12345 mom yes rot yes
+neighbor        0.5 bin
+neigh_modify    every 1 delay 0 check yes
+timestep        0.005
+thermo          100
+thermo_style    custom step temp press pe ke etotal
+
+fix             1    all nve
+fix             cstr all ilves 1.0e-6 30 100 b 1 a 1 variant fast linearangle 165
+
+run             2000

@@ -55,3 +55,6 @@ Example input files:
   in.rhodo-allbonds   -- rhodopsin with all bonds + water angle
   in.bulk_co2         -- bulk CO2 fluid (rigid linear; see comments for
                          caveats on exactly-180 deg symmetric angles)
+  in.cg-polymer       -- coarse-grain polymer chain with near-180 deg
+                         backbone angles; demonstrates the *linearangle*
+                         keyword in its intended regime

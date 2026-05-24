@@ -2400,6 +2400,15 @@ double FixIlves::memory_usage()
   bytes += (double) atom->nmax * 3 * sizeof(double);   // xshake
   if (store_flag) bytes += (double) maxstore * 3 * sizeof(double);
   bytes += (double) max_constr * (5*sizeof(int) + 3*sizeof(double));
+  // Replicated global topology: see gather_global_topology() for the
+  // component breakdown.  These bytes are present on every MPI rank.
+  bytes += 2.0 * (double) gb_a.size()    * sizeof(tagint);
+  bytes +=       (double) gb_type.size() * sizeof(int);
+  bytes += 3.0 * (double) ga1.size()     * sizeof(tagint);
+  bytes +=       (double) ga_type.size() * sizeof(int);
+  bytes += 48.0 * (double) tag_cluster.size();
+  // Cholesky factor cache (only allocated for the "fast" variant).
+  bytes += (double) chol_pool_alloc * sizeof(double);
   return bytes;
 }
 
@@ -2917,9 +2926,32 @@ void FixIlves::gather_global_topology()
   }
   for (auto &kv : tag_cluster) kv.second = find(kv.first);
 
-  if (comm->me == 0)
-    utils::logmesg(lmp, "Fix ilves: gathered global topology with {} bonds and {} selected angles\n",
-                   gb_a.size(), ga1.size());
+  if (comm->me == 0) {
+    // Estimate the bytes held by the replicated global topology tables.
+    // These are duplicated on every MPI rank, so the total fix-ilves
+    // memory at high rank counts can be (Nranks * this) -- the
+    // dominant cost for very large systems.  Components:
+    //   gb_a, gb_b   : 2 * nbonds * sizeof(tagint)
+    //   gb_type      : nbonds * sizeof(int)
+    //   ga1, ga2, ga3: 3 * nangles * sizeof(tagint)
+    //   ga_type      : nangles * sizeof(int)
+    //   tag_cluster  : ~48 bytes per involved tag (libstdc++ unordered_map
+    //                  node + bucket; an over-estimate for libc++)
+    const bigint sz_tagint = (bigint) sizeof(tagint);
+    const bigint sz_int    = (bigint) sizeof(int);
+    bigint bytes = 2 * (bigint) gb_a.size() * sz_tagint
+                 +     (bigint) gb_type.size() * sz_int
+                 + 3 * (bigint) ga1.size() * sz_tagint
+                 +     (bigint) ga_type.size() * sz_int
+                 + 48 * (bigint) tag_cluster.size();
+    utils::logmesg(lmp,
+                   "Fix ilves: gathered global topology with {} bonds, {} selected "
+                   "angles, {} involved atoms\n"
+                   "Fix ilves: replicated topology storage ~ {} bytes/rank "
+                   "({:.2f} MB)\n",
+                   gb_a.size(), ga1.size(), tag_cluster.size(),
+                   bytes, (double) bytes / (1024.0 * 1024.0));
+  }
 
   global_topology_ready = true;
 }

@@ -126,6 +126,30 @@ class FixIlves : public Fix {
   double *cl_sx, *cl_sy, *cl_sz; // s_k cache for the current cluster
   int largest_cluster;           // size of the largest cluster (informational)
 
+  // Per-cluster Cholesky factor cache (ILVES_FAST only).  The cluster
+  // Jacobian in ILVES_FAST is built entirely from r_k, c_rsq, and inverse
+  // masses -- all step-constant within solve_constraints() -- so its
+  // Cholesky factor can be computed once at the first Newton iteration
+  // and reused (forward+back substitution only) on subsequent iterations.
+  //
+  // Storage is banded: cluster_bw[c] is the bandwidth of cluster c's
+  // matrix after the RCM reordering applied at constraint-list build time
+  // (smaller is faster).  The lower-band-packed L for cluster c lives at
+  // chol_pool[chol_pool_offset[c] ..] with n_c rows of (bw_c + 1) entries
+  // each, row-major.  L[i][j] (j <= i) is at offset i*(bw_c+1) + (i-j);
+  // the diagonal lives at offset 0 of each row.  cluster_cached[c] is 1
+  // when slot c holds a valid factor for the current step (cleared at
+  // start of every solve_constraints and on Cholesky fallback to LU).
+  double *chol_pool;
+  bigint chol_pool_alloc;        // current allocation in doubles
+  bigint *chol_pool_offset;      // size n_clusters+1
+  int chol_offset_alloc;
+  int *cluster_bw;               // bandwidth per cluster (after RCM)
+  int cluster_bw_alloc;
+  char *cluster_cached;          // size n_clusters
+  int cluster_cached_alloc;
+  int largest_bw;                // max bw across all clusters
+
   // pointers to atom-class quantities, refreshed at pre_neighbor / post_force
   double **x, **v, **f;
   double *mass, *rmass;
@@ -208,6 +232,33 @@ class FixIlves : public Fix {
   // (matrix is not SPD -- typically a degenerate constraint cluster); the
   // caller falls back to lu_factor_solve in that case.
   int chol_factor_solve(int n);
+  // Split variants used by the cached-factor path in solve_constraints():
+  // chol_factor does the in-place A = L L^T factorization on a caller-
+  // supplied buffer; chol_solve does the forward+back substitution given
+  // an already-computed L.  The merged chol_factor_solve above remains for
+  // the velocity-projection path which has no factor to reuse.
+  int chol_factor(int n, double *A);
+  void chol_solve(int n, const double *L, double *b);
+
+  // Banded Cholesky on the lower-band packed storage layout described at
+  // the chol_pool member: rows of (bw+1) entries; row i column j (j <= i)
+  // lives at AB[i*(bw+1) + (i-j)].  Diagonal at column-offset 0.  These
+  // operate in-place on AB (factor) or on b (solve).  Cost: O(n*bw^2/2)
+  // for factor, O(n*bw) for solve.
+  int band_chol_factor(int n, int bw, double *AB);
+  void band_chol_solve(int n, int bw, const double *AB, double *b);
+
+  // Resize the per-cluster banded Cholesky factor cache.  Called from
+  // precompute_constraint_data() once cluster_bw[] is filled.  Only
+  // meaningful for ILVES_FAST; the dense LU path uses lu_A directly.
+  void grow_factor_cache();
+
+  // Run per-cluster reverse Cuthill-McKee on the constraint-adjacency
+  // graph (constraints share an edge iff they share an atom), and apply
+  // the resulting permutation to c_perm and c_slot.  Fills cluster_bw[]
+  // with the post-RCM bandwidth of each cluster.  Called from
+  // precompute_constraint_data() before grow_factor_cache().
+  void rcm_reorder_clusters();
   bool solve_constraints();
   virtual void apply_constraint_forces(int vflag);
   virtual void correct_coordinates(int vflag);

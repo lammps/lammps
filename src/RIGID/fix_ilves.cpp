@@ -61,6 +61,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <unordered_map>
 #include <vector>
 
 using namespace LAMMPS_NS;
@@ -105,7 +106,10 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     c_dist(nullptr), c_lambda(nullptr), c_cluster(nullptr), c_rx(nullptr), c_ry(nullptr),
     c_rz(nullptr), c_rsq(nullptr), c_invma(nullptr), c_invmb(nullptr), cluster_offset(nullptr),
     c_perm(nullptr), c_slot(nullptr), lu_A(nullptr), lu_b(nullptr), lu_pivot(nullptr),
-    cl_sx(nullptr), cl_sy(nullptr), cl_sz(nullptr), x(nullptr), v(nullptr), f(nullptr),
+    cl_sx(nullptr), cl_sy(nullptr), cl_sz(nullptr),
+    chol_pool(nullptr), chol_pool_offset(nullptr), cluster_bw(nullptr),
+    cluster_cached(nullptr),
+    x(nullptr), v(nullptr), f(nullptr),
     mass(nullptr), rmass(nullptr), type(nullptr), b_count(nullptr), b_count_all(nullptr),
     b_ave(nullptr), b_max(nullptr), b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr),
     b_min_all(nullptr), a_count(nullptr), a_count_all(nullptr), a_ave(nullptr), a_max(nullptr),
@@ -115,6 +119,11 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   largest_cluster = 0;
   comm_mode = 0;
   stats_dedup = true;
+  chol_pool_alloc = 0;
+  chol_offset_alloc = 0;
+  cluster_bw_alloc = 0;
+  cluster_cached_alloc = 0;
+  largest_bw = 0;
   energy_global_flag = energy_peratom_flag = 1;
   virial_global_flag = virial_peratom_flag = 1;
   thermo_energy = thermo_virial = 1;
@@ -343,6 +352,10 @@ FixIlves::~FixIlves()
   memory->destroy(cl_sx);
   memory->destroy(cl_sy);
   memory->destroy(cl_sz);
+  memory->destroy(chol_pool);
+  memory->destroy(chol_pool_offset);
+  memory->destroy(cluster_bw);
+  memory->destroy(cluster_cached);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -730,6 +743,165 @@ void FixIlves::precompute_constraint_data()
     c_invma[k] = rmass ? 1.0 / rmass[a] : 1.0 / mass[type[a]];
     c_invmb[k] = rmass ? 1.0 / rmass[b] : 1.0 / mass[type[b]];
   }
+
+  // Per-cluster RCM reorder + bandwidth compute, then size the banded
+  // Cholesky factor cache.  RCM must run before grow_factor_cache because
+  // the pool size depends on cluster_bw[].
+  rcm_reorder_clusters();
+  grow_factor_cache();
+}
+
+/* ----------------------------------------------------------------------
+   Per-cluster reverse Cuthill-McKee on the constraint-adjacency graph
+   (two constraints share a graph edge iff they share an atom).  Applies
+   the resulting permutation in-place to c_perm and c_slot, then computes
+   each cluster's bandwidth (max over edges (k,l) with k<l of slot_l-slot_k
+   in the new ordering) and stores it in cluster_bw[].
+
+   The natural cluster ordering (insertion order from group_by_cluster)
+   often has bandwidth close to n_c for large connected clusters such as
+   protein backbones.  RCM typically reduces it to O(sqrt(n_c)) or
+   smaller, which is what makes banded Cholesky competitive with full
+   sparse direct factorization for these particular matrices.
+
+   Cost: O(sum_c (n_c + nnz_c)) per call, where nnz_c is the number of
+   shared-atom adjacencies in cluster c.  Runs only at reneighbor steps.
+------------------------------------------------------------------------- */
+
+void FixIlves::rcm_reorder_clusters()
+{
+  if (n_clusters == 0) {
+    largest_bw = 0;
+    return;
+  }
+
+  if (n_clusters > cluster_bw_alloc) {
+    cluster_bw_alloc = n_clusters;
+    memory->grow(cluster_bw, cluster_bw_alloc, "ilves:cluster_bw");
+  }
+
+  // adjacency list in slot space (per cluster, slot indices are 0..n_c-1).
+  // Built by grouping constraints under their two atom tags: every pair of
+  // constraints sharing an atom yields a (slot_a, slot_b) adjacency.
+  std::unordered_map<tagint, std::vector<int>> atom_slots;
+  std::vector<std::vector<int>> adj;
+  std::vector<int> rcm_order;
+  std::vector<int> deg;
+  std::vector<int> bfs_queue;
+  std::vector<char> visited;
+  std::vector<int> level_start;
+  std::vector<int> old_to_new;
+  std::vector<int> old_perm;
+
+  largest_bw = 0;
+
+  for (int c = 0; c < n_clusters; ++c) {
+    const int beg = cluster_offset[c];
+    const int end = cluster_offset[c + 1];
+    const int n_c = end - beg;
+    if (n_c <= 1) {
+      cluster_bw[c] = 0;
+      continue;
+    }
+
+    // collect (atom tag) -> list of slots (relative to beg)
+    atom_slots.clear();
+    for (int s = 0; s < n_c; ++s) {
+      int k = c_perm[beg + s];
+      atom_slots[atom->tag[c_atom1[k]]].push_back(s);
+      atom_slots[atom->tag[c_atom2[k]]].push_back(s);
+    }
+
+    // build adjacency list: for each atom shared by m constraints, the m
+    // slots are pairwise adjacent.  Symmetric, deduplicated below.
+    adj.assign(n_c, {});
+    for (auto &kv : atom_slots) {
+      const auto &vec = kv.second;
+      for (size_t i = 0; i + 1 < vec.size(); ++i)
+        for (size_t j = i + 1; j < vec.size(); ++j) {
+          adj[vec[i]].push_back(vec[j]);
+          adj[vec[j]].push_back(vec[i]);
+        }
+    }
+    for (int s = 0; s < n_c; ++s) {
+      std::sort(adj[s].begin(), adj[s].end());
+      adj[s].erase(std::unique(adj[s].begin(), adj[s].end()), adj[s].end());
+    }
+
+    // node degrees
+    deg.assign(n_c, 0);
+    for (int s = 0; s < n_c; ++s) deg[s] = (int) adj[s].size();
+
+    // RCM: BFS starting from a low-degree vertex.  For each level, sort
+    // newly-visited neighbours by increasing degree (the standard CM
+    // tie-breaker).  Reverse the final order at the end.
+    visited.assign(n_c, 0);
+    rcm_order.clear();
+    rcm_order.reserve(n_c);
+
+    int start = 0;
+    for (int s = 1; s < n_c; ++s) if (deg[s] < deg[start]) start = s;
+
+    // A cluster is by definition a connected component, but RCM handles
+    // disjoint pieces too via the outer "while unvisited remain" loop.
+    while ((int) rcm_order.size() < n_c) {
+      if (visited[start]) {
+        // find the next unvisited low-degree vertex
+        start = -1;
+        for (int s = 0; s < n_c; ++s) {
+          if (!visited[s] && (start < 0 || deg[s] < deg[start])) start = s;
+        }
+        if (start < 0) break;
+      }
+      bfs_queue.clear();
+      bfs_queue.push_back(start);
+      visited[start] = 1;
+      size_t head = 0;
+      while (head < bfs_queue.size()) {
+        int v = bfs_queue[head++];
+        rcm_order.push_back(v);
+        // enqueue unvisited neighbours, sorted by degree
+        int nbeg = (int) bfs_queue.size();
+        for (int u : adj[v]) {
+          if (!visited[u]) {
+            visited[u] = 1;
+            bfs_queue.push_back(u);
+          }
+        }
+        std::sort(bfs_queue.begin() + nbeg, bfs_queue.end(),
+                  [&](int a, int b) { return deg[a] < deg[b]; });
+      }
+    }
+    // reverse
+    std::reverse(rcm_order.begin(), rcm_order.end());
+
+    // old_to_new[old_slot] = new_slot
+    old_to_new.assign(n_c, -1);
+    for (int s = 0; s < n_c; ++s) old_to_new[rcm_order[s]] = s;
+
+    // apply permutation to c_perm[beg..end) and update c_slot[]
+    old_perm.assign(n_c, 0);
+    for (int s = 0; s < n_c; ++s) old_perm[s] = c_perm[beg + s];
+    for (int s = 0; s < n_c; ++s) {
+      int new_slot_for_old_s = old_to_new[s];
+      c_perm[beg + new_slot_for_old_s] = old_perm[s];
+    }
+    for (int s = 0; s < n_c; ++s) c_slot[c_perm[beg + s]] = beg + s;
+
+    // bandwidth in the new ordering
+    int bw_c = 0;
+    for (int s_old = 0; s_old < n_c; ++s_old) {
+      int s_new = old_to_new[s_old];
+      for (int u_old : adj[s_old]) {
+        int u_new = old_to_new[u_old];
+        int d = u_new - s_new;
+        if (d < 0) d = -d;
+        if (d > bw_c) bw_c = d;
+      }
+    }
+    cluster_bw[c] = bw_c;
+    if (bw_c > largest_bw) largest_bw = bw_c;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -947,41 +1119,185 @@ int FixIlves::lu_factor_solve(int n)
 
 int FixIlves::chol_factor_solve(int n)
 {
+  int info = chol_factor(n, lu_A);
+  if (info) return info;
+  chol_solve(n, lu_A, lu_b);
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   In-place Cholesky factor of symmetric positive-definite A (row-major,
+   n x n).  Reads only the lower triangle (i >= j); the upper triangle is
+   ignored.  Writes L into the lower triangle (including the diagonal).
+   Returns 0 on success or 1 if a running diagonal becomes non-positive
+   (matrix is not SPD).  Cost: ~n^3/6 flops.
+------------------------------------------------------------------------- */
+
+int FixIlves::chol_factor(int n, double *A)
+{
   constexpr double TINY = 1.0e-30;
 
-  // Factor in-place.  L is stored in the lower triangle of lu_A (including
-  // the diagonal); the upper triangle is left as-is.
   for (int k = 0; k < n; ++k) {
-    double diag = lu_A[k*n + k];
+    double diag = A[k*n + k];
     for (int j = 0; j < k; ++j) {
-      double Lkj = lu_A[k*n + j];
+      double Lkj = A[k*n + j];
       diag -= Lkj * Lkj;
     }
     if (diag < TINY) return 1;     // not SPD
     double Lkk = sqrt(diag);
-    lu_A[k*n + k] = Lkk;
+    A[k*n + k] = Lkk;
     double inv_Lkk = 1.0 / Lkk;
     for (int i = k + 1; i < n; ++i) {
-      double t = lu_A[i*n + k];
-      for (int j = 0; j < k; ++j) t -= lu_A[i*n + j] * lu_A[k*n + j];
-      lu_A[i*n + k] = t * inv_Lkk;
+      double t = A[i*n + k];
+      for (int j = 0; j < k; ++j) t -= A[i*n + j] * A[k*n + j];
+      A[i*n + k] = t * inv_Lkk;
     }
   }
+  return 0;
+}
 
-  // Forward substitution: L y = b  (overwrite lu_b with y).
+/* ----------------------------------------------------------------------
+   Forward + back substitution to solve L L^T x = b given a factor L that
+   was produced by chol_factor.  Operates in-place on b.  L is read from
+   the lower triangle of the n x n matrix at L[].  Cost: ~n^2 flops --
+   much cheaper than chol_factor's ~n^3/6, which is why caching the
+   factor across Newton iterations is worth the extra storage.
+------------------------------------------------------------------------- */
+
+void FixIlves::chol_solve(int n, const double *L, double *b)
+{
+  // Forward substitution: L y = b  (overwrite b with y).
   for (int i = 0; i < n; ++i) {
-    double s = lu_b[i];
-    for (int j = 0; j < i; ++j) s -= lu_A[i*n + j] * lu_b[j];
-    lu_b[i] = s / lu_A[i*n + i];
+    double s = b[i];
+    for (int j = 0; j < i; ++j) s -= L[i*n + j] * b[j];
+    b[i] = s / L[i*n + i];
   }
-  // Back substitution: L^T x = y.  L^T entry at (j, i) is lu_A[j*n + i]
+  // Back substitution: L^T x = y.  L^T entry at (j, i) is L[j*n + i]
   // for j > i (lower-triangle storage of L).
   for (int i = n - 1; i >= 0; --i) {
-    double s = lu_b[i];
-    for (int j = i + 1; j < n; ++j) s -= lu_A[j*n + i] * lu_b[j];
-    lu_b[i] = s / lu_A[i*n + i];
+    double s = b[i];
+    for (int j = i + 1; j < n; ++j) s -= L[j*n + i] * b[j];
+    b[i] = s / L[i*n + i];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Banded Cholesky factor of symmetric positive-definite A stored in
+   lower-band packed row-major form: AB[i*(bw+1) + (i-j)] holds A[i][j]
+   for j in [max(0, i-bw), i].  AB[i*(bw+1) + 0] is the diagonal, AB[i*
+   (bw+1) + d] is the d'th sub-diagonal entry of row i.
+
+   Entries (i, j) with j > i are not stored (upper triangle implicit by
+   symmetry); the band Cholesky factor inherits the same bandwidth as A
+   (no fill outside the band).  Returns 0 on success, 1 if any pivot is
+   non-positive.  Cost: ~n*(bw+1)^2/2 flops -- vs ~n^3/6 for dense.
+
+   For bw = 0 the routine reduces to scaling the diagonal by 1/sqrt(.).
+------------------------------------------------------------------------- */
+
+int FixIlves::band_chol_factor(int n, int bw, double *AB)
+{
+  constexpr double TINY = 1.0e-30;
+  const int row_stride = bw + 1;
+
+  for (int k = 0; k < n; ++k) {
+    double diag = AB[k*row_stride + 0];
+    // diag -= sum_{j=max(0,k-bw)}^{k-1} L[k][j]^2
+    const int jlo = (k - bw > 0) ? (k - bw) : 0;
+    for (int j = jlo; j < k; ++j) {
+      double Lkj = AB[k*row_stride + (k - j)];
+      diag -= Lkj * Lkj;
+    }
+    if (diag < TINY) return 1;
+    double Lkk = sqrt(diag);
+    AB[k*row_stride + 0] = Lkk;
+    double inv_Lkk = 1.0 / Lkk;
+
+    // update L[i][k] for i in (k, min(n-1, k+bw)]
+    int ihi = (k + bw < n - 1) ? (k + bw) : (n - 1);
+    for (int i = k + 1; i <= ihi; ++i) {
+      // d_ik = i - k in [1, bw], so L[i][k] is at AB[i*stride + (i-k)]
+      double t = AB[i*row_stride + (i - k)];
+      // subtract sum_j L[i][j] * L[k][j] where both rows have a non-zero
+      // entry at column j.  L[i][j] is zero (and not stored) for j < i-bw,
+      // so j must satisfy j >= i-bw.  L[k][j] is also zero for j < k-bw,
+      // but i > k so i-bw > k-bw -- the binding constraint is j >= i-bw.
+      const int jlo2 = (i - bw > 0) ? (i - bw) : 0;
+      for (int j = jlo2; j < k; ++j) {
+        t -= AB[i*row_stride + (i - j)] * AB[k*row_stride + (k - j)];
+      }
+      AB[i*row_stride + (i - k)] = t * inv_Lkk;
+    }
   }
   return 0;
+}
+
+/* ----------------------------------------------------------------------
+   Forward + back substitution to solve L L^T x = b given a lower-band
+   packed L produced by band_chol_factor.  Operates in-place on b.
+   Cost: ~n*(bw+1) flops per pass, so ~2*n*(bw+1) total.
+------------------------------------------------------------------------- */
+
+void FixIlves::band_chol_solve(int n, int bw, const double *AB, double *b)
+{
+  const int row_stride = bw + 1;
+
+  // Forward substitution: L y = b
+  for (int i = 0; i < n; ++i) {
+    double s = b[i];
+    const int jlo = (i - bw > 0) ? (i - bw) : 0;
+    for (int j = jlo; j < i; ++j) {
+      s -= AB[i*row_stride + (i - j)] * b[j];
+    }
+    b[i] = s / AB[i*row_stride + 0];
+  }
+  // Back substitution: L^T x = y.  L[j][i] for j > i is at row j, sub-
+  // diagonal offset (j - i).
+  for (int i = n - 1; i >= 0; --i) {
+    double s = b[i];
+    int jhi = (i + bw < n - 1) ? (i + bw) : (n - 1);
+    for (int j = i + 1; j <= jhi; ++j) {
+      s -= AB[j*row_stride + (j - i)] * b[j];
+    }
+    b[i] = s / AB[i*row_stride + 0];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Allocate / grow the per-cluster Cholesky factor cache.  Called from
+   precompute_constraint_data() after cluster_offset[] is final.  Pool
+   total size is sum_c n_c^2 doubles.  For variant != ILVES_FAST we do
+   not allocate the pool at all (the solver doesn't reuse the factor).
+------------------------------------------------------------------------- */
+
+void FixIlves::grow_factor_cache()
+{
+  if (variant != ILVES_FAST) return;
+
+  if (n_clusters + 1 > chol_offset_alloc) {
+    chol_offset_alloc = n_clusters + 1;
+    memory->grow(chol_pool_offset, chol_offset_alloc, "ilves:chol_pool_offset");
+  }
+  if (n_clusters > cluster_cached_alloc) {
+    cluster_cached_alloc = n_clusters;
+    memory->grow(cluster_cached, cluster_cached_alloc, "ilves:cluster_cached");
+  }
+
+  // CSR-style offsets in doubles.  Each cluster c stores its lower band-
+  // packed L matrix as n_c rows of (cluster_bw[c] + 1) doubles each.
+  chol_pool_offset[0] = 0;
+  for (int c = 0; c < n_clusters; ++c) {
+    int n_c = cluster_offset[c + 1] - cluster_offset[c];
+    int bw_c = cluster_bw ? cluster_bw[c] : 0;
+    chol_pool_offset[c + 1] = chol_pool_offset[c]
+                            + (bigint) n_c * (bw_c + 1);
+  }
+  bigint need = chol_pool_offset[n_clusters];
+  if (need > chol_pool_alloc) {
+    bigint newcap = need + need / 4 + 16;
+    memory->grow(chol_pool, newcap, "ilves:chol_pool");
+    chol_pool_alloc = newcap;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1008,6 +1324,13 @@ bool FixIlves::solve_constraints()
   // zero accumulated Lagrange multipliers at start of step
   for (int k = 0; k < n_constr; ++k) c_lambda[k] = 0.0;
 
+  // invalidate the per-cluster Cholesky factor cache: c_rx/c_ry/c_rz and
+  // c_rsq were just recomputed in post_force, so every factor from the
+  // previous step is stale.  Cache is repopulated lazily at iter == 0 of
+  // each cluster (see below).  Only meaningful for ILVES_FAST.
+  if (variant == ILVES_FAST && cluster_cached)
+    for (int c = 0; c < n_clusters; ++c) cluster_cached[c] = 0;
+
   // tolerance is on relative bond-length violation: |s_k|/d_k - 1.
   // g_k = 0.5*(|s_k|^2 - d_k^2); for small violation,
   // g_k / d_k^2 ~ (|s_k|/d_k - 1).  Use that as the residual measure.
@@ -1023,9 +1346,18 @@ bool FixIlves::solve_constraints()
       const int end = cluster_offset[c + 1];
       const int n_c = end - beg;
 
-      // cache s_k = xshake[a_k] - xshake[b_k] for each constraint, applying
-      // minimum_image so that PBC-image inconsistencies don't poison the
-      // bond vector (must match the convention used when c_rx is built)
+      // For ILVES_FAST the matrix entries depend only on c_invma/c_invmb/
+      // c_rsq/c_r{x,y,z} -- all step-constant.  After we factor a cluster
+      // once at iter == 0 we keep the L matrix in chol_pool[c] and only
+      // re-do the cheap O(n_c^2) forward+back substitution on subsequent
+      // iterations.  ILVES_FULL has an s_k-dependent Jacobian that must be
+      // reassembled every Newton iter, so it doesn't benefit from caching.
+      const bool can_reuse = (variant == ILVES_FAST) && cluster_cached
+                          && cluster_cached[c];
+
+      // s_k = xshake[a_k] - xshake[b_k] (PBC minimum-image), rhs g_k, and
+      // the residual indicator are always recomputed -- they depend on
+      // xshake which changes between iterations.
       for (int s = 0; s < n_c; ++s) {
         int k = c_perm[beg + s];
         int a = c_atom1[k];
@@ -1037,128 +1369,104 @@ bool FixIlves::solve_constraints()
         cl_sx[s] = sx;
         cl_sy[s] = sy;
         cl_sz[s] = sz;
-      }
-
-      // assemble A (row-major n_c x n_c) and rhs lu_b
-      for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
-
-      for (int s = 0; s < n_c; ++s) {
-        int k = c_perm[beg + s];
 
         // residual (same for both variants): g_k = 0.5*(|s_k|^2 - d_k^2)
-        double ssq = cl_sx[s]*cl_sx[s] + cl_sy[s]*cl_sy[s] + cl_sz[s]*cl_sz[s];
+        double ssq = sx*sx + sy*sy + sz*sz;
         double gk = 0.5 * (ssq - c_dist[k]*c_dist[k]);
         lu_b[s] = -gk;
 
         double relres = fabs(gk) / (c_dist[k]*c_dist[k]);
         if (relres > max_relres) max_relres = relres;
-
-        // diagonal:
-        //   variant = ILVES_FAST (ilvesf, symmetric Jacobian):
-        //       A_kk = (1/m_a + 1/m_b) * |r_k|^2
-        //       Off-diagonals use r_k . r_l (truly symmetric matrix).
-        //       This is a quasi-Newton step; it converges to the exact
-        //       constraint solution but uses an approximate Jacobian.
-        //   variant = ILVES_FULL (ilves, structurally-symmetric exact Jacobian):
-        //       A_kk = (1/m_a + 1/m_b) * (s_k . r_k)
-        //       Off-diagonals use s_k . r_l.
-        //       This is the true Newton Jacobian -- quadratic convergence.
-        if (variant == ILVES_FAST) {
-          lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
-        } else {
-          double sr = cl_sx[s]*c_rx[k] + cl_sy[s]*c_ry[k] + cl_sz[s]*c_rz[k];
-          lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * sr;
-        }
       }
 
-      // off-diagonals: scan all pairs in cluster and add contributions from
-      // shared atoms.  For small clusters this O(n_c^2) scan is cheap.
-      for (int s = 0; s < n_c; ++s) {
-        int k = c_perm[beg + s];
-        int ak = c_atom1[k];
-        int bk = c_atom2[k];
-        double invma_k = c_invma[k];
-        double invmb_k = c_invmb[k];
-        // canonical tags for the two atoms of k (so periodic ghost images
-        // compare equal to the local index)
-        tagint tag_ak = atom->tag[ak];
-        tagint tag_bk = atom->tag[bk];
+      int info = 0;
 
-        // for symmetric variant we only need to assemble s < t and copy;
-        // for asymmetric we assemble both.  Keep code uniform but skip
-        // duplicate work for the symmetric case.
-        const int t_start = (variant == ILVES_FAST) ? s + 1 : 0;
-        for (int t = t_start; t < n_c; ++t) {
-          if (t == s) continue;
-          int l = c_perm[beg + t];
-          int al = c_atom1[l];
-          int bl = c_atom2[l];
-          tagint tag_al = atom->tag[al];
-          tagint tag_bl = atom->tag[bl];
+      if (can_reuse) {
+        // Reuse the cached L (band format): only the cheap forward+back
+        // substitution -- O(n_c*bw) work instead of O(n_c*bw^2) for a
+        // re-factor or O(n_c^3) for dense.
+        const int bw_c = cluster_bw[c];
+        double *Lptr = chol_pool + chol_pool_offset[c];
+        band_chol_solve(n_c, bw_c, Lptr, lu_b);
+      } else if (variant == ILVES_FAST) {
+        // ILVES_FAST: assemble symmetric A into the cluster's banded slot
+        // in chol_pool, factor in-place (band Cholesky), and solve.  On
+        // success the cached factor is reused on subsequent Newton iters.
+        const int bw_c = cluster_bw[c];
+        const int row_stride = bw_c + 1;
+        double *Aptr = chol_pool + chol_pool_offset[c];
 
-          // determine shared atom (if any) by tag comparison
-          // sigma_k^p = +1 if shared atom is a_k, -1 if b_k
-          // sigma_l^p = +1 if shared atom is a_l, -1 if b_l
-          int sig_k = 0, sig_l = 0;
-          double invm_p = 0.0;
-          if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
-          else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
-          else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
-          else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
-          else continue;     // no shared atom
+        // zero the cluster's band storage (n_c rows of (bw_c+1) doubles)
+        for (int i = 0; i < n_c * row_stride; ++i) Aptr[i] = 0.0;
 
-          double val;
-          if (variant == ILVES_FAST) {
-            // symmetric: r_k . r_l (commutative -> matrix is symmetric)
+        // diagonal A_kk = (1/m_a + 1/m_b) * |r_k|^2, stored at band slot 0
+        for (int s = 0; s < n_c; ++s) {
+          int k = c_perm[beg + s];
+          Aptr[s*row_stride + 0] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
+        }
+
+        // off-diagonals: scan all pairs (s, t) with s < t in the cluster,
+        // add A[t][s] += sig_k*sig_l*(r_k.r_l)/m_p for each shared atom.
+        // After RCM the pairs that actually share an atom satisfy
+        // |t-s| <= bw_c, so the band slot Aptr[t*stride + (t-s)] always
+        // exists.  Pairs further apart silently contribute zero by
+        // construction (no shared atom -> no contribution).
+        for (int s = 0; s < n_c; ++s) {
+          int k = c_perm[beg + s];
+          int ak = c_atom1[k];
+          int bk = c_atom2[k];
+          double invma_k = c_invma[k];
+          double invmb_k = c_invmb[k];
+          tagint tag_ak = atom->tag[ak];
+          tagint tag_bk = atom->tag[bk];
+
+          // No need to scan beyond t = s + bw_c: any further pair cannot
+          // share an atom (by the bandwidth bound) so all contributions
+          // would be zero.  Saves substantial work for large clusters.
+          int t_end = s + bw_c + 1;
+          if (t_end > n_c) t_end = n_c;
+          for (int t = s + 1; t < t_end; ++t) {
+            int l = c_perm[beg + t];
+            tagint tag_al = atom->tag[c_atom1[l]];
+            tagint tag_bl = atom->tag[c_atom2[l]];
+
+            int sig_k = 0, sig_l = 0;
+            double invm_p = 0.0;
+            if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
+            else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
+            else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
+            else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
+            else continue;
+
             double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
-            val = sig_k * sig_l * rkrl * invm_p;
-            lu_A[s*n_c + t] += val;
-            lu_A[t*n_c + s] += val;
-          } else {
-            // exact Newton Jacobian: s_k . r_l (asymmetric in k, l)
-            double srl = cl_sx[s]*c_rx[l] + cl_sy[s]*c_ry[l] + cl_sz[s]*c_rz[l];
-            val = sig_k * sig_l * srl * invm_p;
-            lu_A[s*n_c + t] += val;
+            double val = sig_k * sig_l * rkrl * invm_p;
+            Aptr[t*row_stride + (t - s)] = val;
           }
         }
-      }
 
-      // Solve A * d-lambda = lu_b (= -g).
-      // For ILVES_FAST the matrix is genuinely symmetric (r_k.r_l in the
-      // off-diagonals) and SPD for non-degenerate constraint geometries:
-      // use Cholesky.  If the Cholesky pivot goes non-positive (degenerate
-      // cluster: collapsed constraint geometry, linearly dependent
-      // constraints, etc.), the assembled lower triangle has been
-      // overwritten with a partial L -- the lu_factor_solve fallback would
-      // therefore see junk.  Re-assemble the matrix by re-running the
-      // diagonal+off-diagonal loops; we do that by jumping back to a
-      // cleanup-and-redo path.  In practice fallbacks are rare; the cost
-      // of one extra assembly is dwarfed by avoiding LU on the happy path.
-      //
-      // ILVES_FULL has an asymmetric Jacobian (s_k.r_l in off-diagonals)
-      // and goes straight through LU.
-      int info;
-      if (variant == ILVES_FAST) {
         ++chol_calls;
-        info = chol_factor_solve(n_c);
-        if (info) {
+        info = band_chol_factor(n_c, bw_c, Aptr);
+        if (info == 0) {
+          cluster_cached[c] = 1;
+          band_chol_solve(n_c, bw_c, Aptr, lu_b);
+        } else {
           ++chol_fallbacks;
-          // re-zero and re-assemble before falling back to LU
+          cluster_cached[c] = 0;
+          // band-Cholesky failed (matrix not SPD).  Re-assemble densely
+          // into lu_A and run LU.  rhs lu_b was not touched by the failed
+          // factor so we don't need to rebuild it.
           for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
-          for (int s = 0; s < n_c; ++s) {
-            int k = c_perm[beg + s];
-            lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
-            double ssq = cl_sx[s]*cl_sx[s] + cl_sy[s]*cl_sy[s] + cl_sz[s]*cl_sz[s];
-            double gk = 0.5 * (ssq - c_dist[k]*c_dist[k]);
-            lu_b[s] = -gk;
+          for (int s2 = 0; s2 < n_c; ++s2) {
+            int k = c_perm[beg + s2];
+            lu_A[s2*n_c + s2] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
           }
-          for (int s = 0; s < n_c; ++s) {
-            int k = c_perm[beg + s];
+          for (int s2 = 0; s2 < n_c; ++s2) {
+            int k = c_perm[beg + s2];
             tagint tag_ak = atom->tag[c_atom1[k]];
             tagint tag_bk = atom->tag[c_atom2[k]];
             double invma_k = c_invma[k];
             double invmb_k = c_invmb[k];
-            for (int t = s + 1; t < n_c; ++t) {
+            for (int t = s2 + 1; t < n_c; ++t) {
               int l = c_perm[beg + t];
               tagint tag_al = atom->tag[c_atom1[l]];
               tagint tag_bl = atom->tag[c_atom2[l]];
@@ -1171,15 +1479,49 @@ bool FixIlves::solve_constraints()
               else continue;
               double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
               double val = sig_k * sig_l * rkrl * invm_p;
-              lu_A[s*n_c + t] = val;
-              lu_A[t*n_c + s] = val;
+              lu_A[s2*n_c + t] = val;
+              lu_A[t*n_c + s2] = val;
             }
           }
           info = lu_factor_solve(n_c);
         }
       } else {
+        // ILVES_FULL: assemble the exact-Jacobian asymmetric matrix into
+        // dense lu_A (cl_s* was already filled above with current s_k) and
+        // solve with LU.  No caching: the matrix depends on s_k and so
+        // changes every Newton iteration.
+        for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
+        for (int s = 0; s < n_c; ++s) {
+          int k = c_perm[beg + s];
+          double sr = cl_sx[s]*c_rx[k] + cl_sy[s]*c_ry[k] + cl_sz[s]*c_rz[k];
+          lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * sr;
+        }
+        for (int s = 0; s < n_c; ++s) {
+          int k = c_perm[beg + s];
+          tagint tag_ak = atom->tag[c_atom1[k]];
+          tagint tag_bk = atom->tag[c_atom2[k]];
+          double invma_k = c_invma[k];
+          double invmb_k = c_invmb[k];
+          for (int t = 0; t < n_c; ++t) {
+            if (t == s) continue;
+            int l = c_perm[beg + t];
+            tagint tag_al = atom->tag[c_atom1[l]];
+            tagint tag_bl = atom->tag[c_atom2[l]];
+            int sig_k = 0, sig_l = 0;
+            double invm_p = 0.0;
+            if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
+            else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
+            else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
+            else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
+            else continue;
+            double srl = cl_sx[s]*c_rx[l] + cl_sy[s]*c_ry[l] + cl_sz[s]*c_rz[l];
+            double val = sig_k * sig_l * srl * invm_p;
+            lu_A[s*n_c + t] += val;
+          }
+        }
         info = lu_factor_solve(n_c);
       }
+
       if (info) {
         error->one(FLERR,
                    "Fix ilves: singular Jacobian in cluster {} (size {}, iter {}). "

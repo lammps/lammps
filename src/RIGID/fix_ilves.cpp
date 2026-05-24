@@ -99,7 +99,8 @@ const char cite_fix_ilves[] =
 
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr), type_flag(nullptr),
-    mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr), fstore(nullptr),
+    mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr), angle_r1(nullptr),
+    angle_r2(nullptr), fstore(nullptr),
     ilves_flag(nullptr), xshake(nullptr), c_atom1(nullptr), c_atom2(nullptr), c_type(nullptr),
     c_dist(nullptr), c_lambda(nullptr), c_cluster(nullptr), c_rx(nullptr), c_ry(nullptr),
     c_rz(nullptr), c_rsq(nullptr), c_invma(nullptr), c_invmb(nullptr), cluster_offset(nullptr),
@@ -273,6 +274,8 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   // allocate distance arrays (filled by init())
   bond_distance  = new double[atom->nbondtypes  + 1]{};
   angle_distance = new double[atom->nangletypes + 1]{};
+  angle_r1       = new double[atom->nangletypes + 1]{};
+  angle_r2       = new double[atom->nangletypes + 1]{};
 
   if (output_every) {
     const int nb = atom->nbondtypes  + 1;
@@ -302,6 +305,8 @@ FixIlves::~FixIlves()
   delete[] mass_list;
   delete[] bond_distance;
   delete[] angle_distance;
+  delete[] angle_r1;
+  delete[] angle_r2;
 
   delete[] b_count;     delete[] b_count_all;
   delete[] b_ave;       delete[] b_ave_all;
@@ -1986,7 +1991,9 @@ void FixIlves::stats()
   MPI_Allreduce(a_min,   a_min_all,   na, MPI_DOUBLE,     MPI_MIN, world);
 
   if (comm->me == 0) {
-    auto mesg = fmt::format("ILVES stats (type/ave/delta/count) on step {}\n", update->ntimestep);
+    auto mesg = fmt::format("ILVES stats on step {} (type / ave / delta / count)\n"
+                            "  bonds: length (Angstrom); angles: value (degrees)\n",
+                            update->ntimestep);
     for (int i = 1; i < nb; ++i) {
       if (b_count_all[i])
         mesg += fmt::format("Bond:  {:>4d}   {:<9.6} {:<11.6} {:>8d}\n",
@@ -1994,10 +2001,29 @@ void FixIlves::stats()
                             b_max_all[i] - b_min_all[i], b_count_all[i]);
     }
     for (int i = 1; i < na; ++i) {
-      if (a_count_all[i])
-        mesg += fmt::format("Angle: {:>4d}   {:<9.6} {:<11.6} {:>8d}\n",
-                            i, a_ave_all[i] / a_count_all[i],
-                            a_max_all[i] - a_min_all[i], a_count_all[i]);
+      if (a_count_all[i]) {
+        double r1 = angle_r1[i], r2 = angle_r2[i];
+        if (r1 > 0.0 && r2 > 0.0) {
+          // convert end-to-end distances to angles (degrees) via law of cosines
+          double inv2r1r2 = 1.0 / (2.0 * r1 * r2);
+          double r1sq_r2sq = r1 * r1 + r2 * r2;
+          auto dist_to_deg = [&](double r) {
+            double c = (r1sq_r2sq - r * r) * inv2r1r2;
+            if (c > 1.0) c = 1.0;
+            if (c < -1.0) c = -1.0;
+            return acos(c) * (180.0 / MY_PI);
+          };
+          double theta_ave = dist_to_deg(a_ave_all[i] / a_count_all[i]);
+          double theta_min = dist_to_deg(a_min_all[i]);
+          double theta_max = dist_to_deg(a_max_all[i]);
+          mesg += fmt::format("Angle: {:>4d}   {:<9.4f} {:<11.6} {:>8d}\n",
+                              i, theta_ave, theta_max - theta_min, a_count_all[i]);
+        } else {
+          mesg += fmt::format("Angle: {:>4d}   {:<9.6} {:<11.6} {:>8d}\n",
+                              i, a_ave_all[i] / a_count_all[i],
+                              a_max_all[i] - a_min_all[i], a_count_all[i]);
+        }
+      }
     }
     if (chol_calls > 0)
       mesg += fmt::format("Cholesky: {} calls, {} LU fallbacks ({:.4}%)\n",

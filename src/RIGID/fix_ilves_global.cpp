@@ -95,6 +95,8 @@ void FixIlvesGlobal::init_topology()
       const double theta0 = force->angle->equilibrium_angle(at);
       const double r1 = bond_distance[b1];
       const double r2 = bond_distance[b2];
+      angle_r1[at] = r1;
+      angle_r2[at] = r2;
       angle_distance[at] = sqrt(r1*r1 + r2*r2 - 2.0*r1*r2*cos(theta0));
     }
   }

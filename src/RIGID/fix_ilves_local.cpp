@@ -538,6 +538,8 @@ void FixIlvesLocal::compute_angle_distances_local()
     const double theta0 = force->angle->equilibrium_angle(at);
     const double r1 = bond_distance[bmin_max];
     const double r2 = bond_distance[bmax_max];
+    angle_r1[at] = r1;
+    angle_r2[at] = r2;
     angle_distance[at] = sqrt(r1*r1 + r2*r2 - 2.0*r1*r2*cos(theta0));
   }
 }

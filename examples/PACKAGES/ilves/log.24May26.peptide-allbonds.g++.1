@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1029-g3f3deedff6-modified)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1036-g520490cc60-modified)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # Solvated 5-mer peptide -- ILVES constraint solver
@@ -48,7 +48,7 @@ Finding 1-2 1-3 1-4 neighbors ...
     14 = max # of 1-4 neighbors
     18 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.011 seconds
+  read_data CPU = 0.012 seconds
 
 neighbor        2.0 bin
 neigh_modify    delay 5
@@ -65,7 +65,7 @@ group           peptide type <= 12
 group           waters  type > 12
 1920 atoms in group waters
 
-fix             cstr all ilves 0.00001 20 100 b 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 a 31
+fix             cstr all ilves/global 0.00001 20 100 b 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 a 31
 
 run             300
 
@@ -102,7 +102,7 @@ PPPM initialization ...
   using double precision KISS FFT
   3d grid and FFT values/proc = 10648 3375
 Generated 91 of 91 mixed pair_coeff terms from arithmetic mixing rule
-Fix ilves: gathered global topology with 1365 bonds and 786 angles
+Fix ilves/global: gathered global topology with 1365 bonds and 640 selected angles
 Neighbor list info ...
   update: every = 1 steps, delay = 5 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -120,7 +120,8 @@ Fix ilves info:
   2005 constraints/proc
   641 clusters/proc
   85 max. constraints/cluster
-ILVES stats (type/ave/delta/count) on step 0
+ILVES stats on step 0 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
 Bond:     1   1.49      3.46944e-08        6
 Bond:     2   1.23      2.54374e-09        6
 Bond:     3   1.345     2.91083e-08        6
@@ -139,7 +140,7 @@ Bond:    15   1.53      0                  1
 Bond:    16   1.818     0                  1
 Bond:    17   1.816     0                  1
 Bond:    18   0.9572    7.39409e-14     1280
-Angle:   31   1.5139    9.72555e-14      640
+Angle:   31   104.5200  9.50706e-12      640
 Cholesky: 5769 calls, 0 LU fallbacks (0%)
 Per MPI rank memory allocation (min/avg/max) = 18.65 | 18.65 | 18.65 Mbytes
 ------------ Step              0 ----- CPU =            0 (sec) -------------
@@ -147,12 +148,13 @@ TotEng   =     -5254.0151 KinEng   =      1134.9186 Temp     =       190.0857
 PotEng   =     -6388.9337 E_bond   =         0.0000 E_angle  =        36.3726 
 E_dihed  =        15.5190 E_impro  =         1.9426 E_vdwl   =       692.8945 
 E_coul   =     26772.2647 E_long   =    -33907.9271 Press    =        -3.0106
------------- Step             50 ----- CPU =    0.4466292 (sec) -------------
+------------ Step             50 ----- CPU =    0.4503077 (sec) -------------
 TotEng   =     -4864.6369 KinEng   =      1355.7718 Temp     =       227.0761 
 PotEng   =     -6220.4087 E_bond   =         0.0000 E_angle  =        38.7898 
 E_dihed  =        20.2501 E_impro  =         3.0808 E_vdwl   =       698.1842 
 E_coul   =     26924.9941 E_long   =    -33905.7078 Press    =      -155.6623
-ILVES stats (type/ave/delta/count) on step 100
+ILVES stats on step 100 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
 Bond:     1   1.49      8.28369e-05        6
 Bond:     2   1.22999   9.27556e-05        6
 Bond:     3   1.345     7.89079e-05        6
@@ -171,19 +173,20 @@ Bond:    15   1.52998   0                  1
 Bond:    16   1.81799   0                  1
 Bond:    17   1.816     0                  1
 Bond:    18   0.95716   0.0430228       1280
-Angle:   31   1.5138    0.101325         640
+Angle:   31   104.5098  9.87485          640
 Cholesky: 380754 calls, 0 LU fallbacks (0%)
------------- Step            100 ----- CPU =    0.9219929 (sec) -------------
+------------ Step            100 ----- CPU =    0.9178401 (sec) -------------
 TotEng   =     -3810.9104 KinEng   =      1877.4035 Temp     =       314.4433 
 PotEng   =     -5688.3139 E_bond   =         0.0000 E_angle  =        70.8667 
 E_dihed  =        21.2702 E_impro  =         1.1781 E_vdwl   =       757.7312 
 E_coul   =     27358.2699 E_long   =    -33897.6300 Press    =      3336.9403
------------- Step            150 ----- CPU =     1.419553 (sec) -------------
+------------ Step            150 ----- CPU =     1.429986 (sec) -------------
 TotEng   =     -2977.4460 KinEng   =      2208.2007 Temp     =       369.8480 
 PotEng   =     -5185.6467 E_bond   =         0.0000 E_angle  =        73.3274 
 E_dihed  =        24.6811 E_impro  =         5.0547 E_vdwl   =       632.1067 
 E_coul   =     27970.8178 E_long   =    -33891.6344 Press    =      3688.1029
-ILVES stats (type/ave/delta/count) on step 200
+ILVES stats on step 200 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
 Bond:     1   1.49      8.3381e-05         6
 Bond:     2   1.23002   6.71362e-05        6
 Bond:     3   1.34502   0.000135352        6
@@ -202,19 +205,20 @@ Bond:    15   1.52999   0                  1
 Bond:    16   1.818     0                  1
 Bond:    17   1.81599   0                  1
 Bond:    18   0.957156  0.0412727       1280
-Angle:   31   1.51416   0.0970373        640
+Angle:   31   104.5451  9.47063          640
 Cholesky: 765354 calls, 0 LU fallbacks (0%)
------------- Step            200 ----- CPU =     1.898316 (sec) -------------
+------------ Step            200 ----- CPU =     1.906177 (sec) -------------
 TotEng   =     -3322.4287 KinEng   =      1909.9211 Temp     =       319.8896 
 PotEng   =     -5232.3498 E_bond   =         0.0000 E_angle  =        55.9263 
 E_dihed  =        26.1632 E_impro  =         1.3778 E_vdwl   =       527.4302 
 E_coul   =     28052.4939 E_long   =    -33895.7412 Press    =      2613.2008
------------- Step            250 ----- CPU =     2.386627 (sec) -------------
+------------ Step            250 ----- CPU =     2.390765 (sec) -------------
 TotEng   =     -4011.6259 KinEng   =      1530.4203 Temp     =       256.3277 
 PotEng   =     -5542.0462 E_bond   =         0.0000 E_angle  =        50.2826 
 E_dihed  =        19.1786 E_impro  =         2.9152 E_vdwl   =       440.0852 
 E_coul   =     27839.2666 E_long   =    -33893.7744 Press    =       -75.8315
-ILVES stats (type/ave/delta/count) on step 300
+ILVES stats on step 300 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
 Bond:     1   1.48999   4.31811e-05        6
 Bond:     2   1.22999   4.04193e-05        6
 Bond:     3   1.34499   7.86939e-05        6
@@ -233,29 +237,29 @@ Bond:    15   1.52999   0                  1
 Bond:    16   1.818     0                  1
 Bond:    17   1.816     0                  1
 Bond:    18   0.957213  0.0428459       1280
-Angle:   31   1.5138    0.0656363        640
+Angle:   31   104.5103  6.45421          640
 Cholesky: 1142903 calls, 0 LU fallbacks (0%)
------------- Step            300 ----- CPU =     2.874561 (sec) -------------
+------------ Step            300 ----- CPU =     2.873983 (sec) -------------
 TotEng   =     -4394.8286 KinEng   =      1341.3907 Temp     =       224.6674 
 PotEng   =     -5736.2193 E_bond   =         0.0000 E_angle  =        52.2327 
 E_dihed  =        22.4468 E_impro  =         2.9918 E_vdwl   =       489.0217 
 E_coul   =     27594.7918 E_long   =    -33897.7042 Press    =      -633.2304
-Loop time of 2.87458 on 1 procs for 300 steps with 2004 atoms
+Loop time of 2.87401 on 1 procs for 300 steps with 2004 atoms
 
-Performance: 18.034 ns/day, 1.331 hours/ns, 104.363 timesteps/s, 209.144 katom-step/s
+Performance: 18.038 ns/day, 1.331 hours/ns, 104.384 timesteps/s, 209.185 katom-step/s
 99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.0917     | 2.0917     | 2.0917     |   0.0 | 72.76
-Bond    | 0.0037806  | 0.0037806  | 0.0037806  |   0.0 |  0.13
-Kspace  | 0.1625     | 0.1625     | 0.1625     |   0.0 |  5.65
-Neigh   | 0.34124    | 0.34124    | 0.34124    |   0.0 | 11.87
-Comm    | 0.0097425  | 0.0097425  | 0.0097425  |   0.0 |  0.34
-Output  | 0.00014566 | 0.00014566 | 0.00014566 |   0.0 |  0.01
-Modify  | 0.26395    | 0.26395    | 0.26395    |   0.0 |  9.18
-Other   |            | 0.001559   |            |       |  0.05
+Pair    | 2.0953     | 2.0953     | 2.0953     |   0.0 | 72.91
+Bond    | 0.003705   | 0.003705   | 0.003705   |   0.0 |  0.13
+Kspace  | 0.16393    | 0.16393    | 0.16393    |   0.0 |  5.70
+Neigh   | 0.33149    | 0.33149    | 0.33149    |   0.0 | 11.53
+Comm    | 0.0098402  | 0.0098402  | 0.0098402  |   0.0 |  0.34
+Output  | 0.00016973 | 0.00016973 | 0.00016973 |   0.0 |  0.01
+Modify  | 0.26781    | 0.26781    | 0.26781    |   0.0 |  9.32
+Other   |            | 0.001732   |            |       |  0.06
 
 Nlocal:           2004 ave        2004 max        2004 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

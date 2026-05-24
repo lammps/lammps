@@ -75,6 +75,8 @@ class FixIlves : public Fix {
   double *angle_distance;    // angle_distance[at]  = end-to-end distance for
                              //   angle type at (computed from the two flanking
                              //   bond types + angle, like fix shake)
+  double *angle_r1;          // flanking bond equilibrium lengths for angle type at
+  double *angle_r2;          //   (r_AB and r_BC); stored so stats() can invert d_AC -> angle
   bool has_angle;            // true if any angle type is selected
 
   // restraint mode (minimization)

@@ -209,6 +209,24 @@ keyword options).
    projection in ``end_of_step`` is also Cholesky-based (the velocity
    matrix is always symmetric regardless of variant).
 
+.. warning::
+
+   **Memory scaling.**  Because the constrained-bond and constrained-angle
+   topology is replicated on every MPI rank, the per-rank memory footprint
+   of ``fix ilves`` grows with the total number of constrained bonds and
+   angles in the system, not with the number of constraints local to each
+   rank.  In addition, the cluster-tag lookup table is currently sized to
+   ``atom->natoms+1`` entries.  For very large simulations (tens of
+   millions of atoms or more) this replication can become the dominant
+   memory cost of the fix and may exceed available memory at high rank
+   counts.  For systems in that size range, prefer
+   :doc:`fix shake <fix_shake>` -- which only ever stores constraint data
+   for atoms (and their immediate neighbors) owned by each rank -- unless
+   the constraint clusters are too large for SHAKE to handle (e.g. an
+   entire long polymer backbone constrained in a single cluster).  A
+   ghost-atom-scoped distribution that removes this limitation is
+   planned for a future revision.
+
 Restrictions
 """"""""""""
 

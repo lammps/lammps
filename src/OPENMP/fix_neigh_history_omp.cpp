@@ -193,6 +193,7 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
 void FixNeighHistoryOMP::pre_exchange_newton()
 {
   const int nthreads = comm->nthreads;
+  int *type = atom->type;
   maxpartner = 0;
   for (int i = 0; i < nall_neigh; i++) npartner[i] = 0;
 
@@ -321,7 +322,10 @@ void FixNeighHistoryOMP::pre_exchange_newton()
             m = npartner[j]++;
             partner[j][m] = tag[i];
             jvalues = &valuepartner[j][dnum * m];
-            for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
+            if (pair->nondefault_history_transfer)
+              pair->transfer_history(onevalues, jvalues, type[i], type[j]);
+            else
+              for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
           }
         }
       }
@@ -369,6 +373,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
 void FixNeighHistoryOMP::pre_exchange_no_newton()
 {
   const int nthreads = comm->nthreads;
+  int *type = atom->type;
   maxpartner = 0;
 
 #if defined(_OPENMP)
@@ -473,7 +478,10 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
             m = npartner[j]++;
             partner[j][m] = tag[i];
             jvalues = &valuepartner[j][dnum * m];
-            for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
+            if (pair->nondefault_history_transfer)
+              pair->transfer_history(onevalues, jvalues, type  [i], type[j]);
+            else
+              for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
           }
         }
       }

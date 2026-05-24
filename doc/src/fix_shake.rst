@@ -308,8 +308,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix rigid <fix_rigid>`, :doc:`fix ehex <fix_ehex>`,
-:doc:`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
-
+:doc:`fix ilves <fix_ilves>`, :doc:`fix restrain <fix_restrain>`
 
 Default
 """""""

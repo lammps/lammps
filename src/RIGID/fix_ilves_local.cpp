@@ -45,6 +45,8 @@
 #include "update.h"
 
 #include <cmath>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 using namespace LAMMPS_NS;
@@ -189,16 +191,27 @@ void FixIlvesLocal::apply_constraint_forces(int vflag)
     double fz = scale * c_rz[k];
     int a = c_atom1[k];
     int b = c_atom2[k];
+    int cc = c_atom3[k];
+    const double w_a = 1.0;
+    const double w_b = (cc < 0) ? -1.0 : -0.5;
+    const double w_c = -0.5;          // used only when cc >= 0
 
     int a_route = atom->map(atom->tag[a]);
     int b_route = atom->map(atom->tag[b]);
+    int c_route = (cc >= 0) ? atom->map(atom->tag[cc]) : -1;
     if (a_route < 0) a_route = a;
     if (b_route < 0) b_route = b;
+    if (cc >= 0 && c_route < 0) c_route = cc;
 
-    rbuf[a_route][0] += fx; rbuf[a_route][1] += fy; rbuf[a_route][2] += fz;
-    rbuf[b_route][0] -= fx; rbuf[b_route][1] -= fy; rbuf[b_route][2] -= fz;
+    rbuf[a_route][0] += w_a*fx; rbuf[a_route][1] += w_a*fy; rbuf[a_route][2] += w_a*fz;
+    rbuf[b_route][0] += w_b*fx; rbuf[b_route][1] += w_b*fy; rbuf[b_route][2] += w_b*fz;
+    if (cc >= 0) {
+      rbuf[c_route][0] += w_c*fx; rbuf[c_route][1] += w_c*fy; rbuf[c_route][2] += w_c*fz;
+    }
 
-    if (evflag) {
+    if (evflag && cc < 0) {
+      // 2-atom virial tally only.  3-atom B-M force sums to zero across
+      // atoms and isn't a pairwise bond, so no per-pair virial is tallied.
       int atomlist[2];
       int count = 0;
       if (a_route < nlocal) atomlist[count++] = a_route;
@@ -253,6 +266,68 @@ void FixIlvesLocal::correct_velocities()
   for (int i = 0; i < atom->nmax; ++i)
     rbuf[i][0] = rbuf[i][1] = rbuf[i][2] = 0.0;
 
+  // 3-atom-aware helpers (mirror those in FixIlves::correct_velocities).
+  auto diag_factor = [&](int k) -> double {
+    if (c_atom3[k] < 0)
+      return c_invma[k] + c_invmb[k];
+    return c_invma[k] + 0.25*(c_invmb[k] + c_invmc[k]);
+  };
+  auto offdiag = [&](int k, int l, double dot) -> double {
+    int ck = c_atom3[k];
+    int cl = c_atom3[l];
+    tagint tag_ak = atom->tag[c_atom1[k]];
+    tagint tag_bk = atom->tag[c_atom2[k]];
+    tagint tag_al = atom->tag[c_atom1[l]];
+    tagint tag_bl = atom->tag[c_atom2[l]];
+    double invma_k = c_invma[k];
+    double invmb_k = c_invmb[k];
+    if (ck < 0 && cl < 0) {
+      if (tag_ak == tag_al) return  invma_k * dot;
+      if (tag_ak == tag_bl) return -invma_k * dot;
+      if (tag_bk == tag_al) return -invmb_k * dot;
+      if (tag_bk == tag_bl) return  invmb_k * dot;
+      return 0.0;
+    }
+    double wka = 1.0;
+    double wkb = (ck < 0) ? -1.0 : -0.5;
+    double wkc = (ck < 0) ?  0.0 : -0.5;
+    double wla = 1.0;
+    double wlb = (cl < 0) ? -1.0 : -0.5;
+    double wlc = (cl < 0) ?  0.0 : -0.5;
+    double invmc_k = c_invmc[k];
+    tagint tag_ck = (ck >= 0) ? atom->tag[ck] : 0;
+    tagint tag_cl = (cl >= 0) ? atom->tag[cl] : 0;
+    double val = 0.0;
+    if (tag_ak == tag_al)              val += wka * wla * invma_k * dot;
+    if (tag_ak == tag_bl)              val += wka * wlb * invma_k * dot;
+    if (cl >= 0 && tag_ak == tag_cl)   val += wka * wlc * invma_k * dot;
+    if (tag_bk == tag_al)              val += wkb * wla * invmb_k * dot;
+    if (tag_bk == tag_bl)              val += wkb * wlb * invmb_k * dot;
+    if (cl >= 0 && tag_bk == tag_cl)   val += wkb * wlc * invmb_k * dot;
+    if (ck >= 0) {
+      if (tag_ck == tag_al)            val += wkc * wla * invmc_k * dot;
+      if (tag_ck == tag_bl)            val += wkc * wlb * invmc_k * dot;
+      if (cl >= 0 && tag_ck == tag_cl) val += wkc * wlc * invmc_k * dot;
+    }
+    return val;
+  };
+  auto velocity_rhs = [&](int k) -> double {
+    int a = c_atom1[k];
+    int b = c_atom2[k];
+    int cc = c_atom3[k];
+    double vxd, vyd, vzd;
+    if (cc < 0) {
+      vxd = v[a][0] - v[b][0];
+      vyd = v[a][1] - v[b][1];
+      vzd = v[a][2] - v[b][2];
+    } else {
+      vxd = v[a][0] - 0.5*(v[b][0] + v[cc][0]);
+      vyd = v[a][1] - 0.5*(v[b][1] + v[cc][1]);
+      vzd = v[a][2] - 0.5*(v[b][2] + v[cc][2]);
+    }
+    return vxd*c_rx[k] + vyd*c_ry[k] + vzd*c_rz[k];
+  };
+
   for (int c = 0; c < n_clusters; ++c) {
     const int beg = cluster_offset[c];
     const int end = cluster_offset[c + 1];
@@ -262,35 +337,19 @@ void FixIlvesLocal::correct_velocities()
     for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
     for (int s = 0; s < n_c; ++s) {
       int k = c_perm[beg + s];
-      int a = c_atom1[k];
-      int b = c_atom2[k];
-      lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
-      double vxd = v[a][0] - v[b][0];
-      double vyd = v[a][1] - v[b][1];
-      double vzd = v[a][2] - v[b][2];
-      lu_b[s] = vxd*c_rx[k] + vyd*c_ry[k] + vzd*c_rz[k];
+      lu_A[s*n_c + s] = diag_factor(k) * c_rsq[k];
+      lu_b[s] = velocity_rhs(k);
     }
     for (int s = 0; s < n_c; ++s) {
       int k = c_perm[beg + s];
-      double invma_k = c_invma[k];
-      double invmb_k = c_invmb[k];
-      tagint tag_ak = atom->tag[c_atom1[k]];
-      tagint tag_bk = atom->tag[c_atom2[k]];
       for (int t = s + 1; t < n_c; ++t) {
         int l = c_perm[beg + t];
-        tagint tag_al = atom->tag[c_atom1[l]];
-        tagint tag_bl = atom->tag[c_atom2[l]];
-        int sig_k = 0, sig_l = 0;
-        double invm_p = 0.0;
-        if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
-        else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
-        else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
-        else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
-        else continue;
         double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
-        double val = sig_k * sig_l * rkrl * invm_p;
-        lu_A[s*n_c + t] = val;
-        lu_A[t*n_c + s] = val;
+        double val = offdiag(k, l, rkrl);
+        if (val != 0.0) {
+          lu_A[s*n_c + t] = val;
+          lu_A[t*n_c + s] = val;
+        }
       }
     }
 
@@ -302,35 +361,19 @@ void FixIlvesLocal::correct_velocities()
       for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
       for (int s = 0; s < n_c; ++s) {
         int k = c_perm[beg + s];
-        int a = c_atom1[k];
-        int b = c_atom2[k];
-        lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
-        double vxd = v[a][0] - v[b][0];
-        double vyd = v[a][1] - v[b][1];
-        double vzd = v[a][2] - v[b][2];
-        lu_b[s] = vxd*c_rx[k] + vyd*c_ry[k] + vzd*c_rz[k];
+        lu_A[s*n_c + s] = diag_factor(k) * c_rsq[k];
+        lu_b[s] = velocity_rhs(k);
       }
       for (int s = 0; s < n_c; ++s) {
         int k = c_perm[beg + s];
-        double invma_k = c_invma[k];
-        double invmb_k = c_invmb[k];
-        tagint tag_ak = atom->tag[c_atom1[k]];
-        tagint tag_bk = atom->tag[c_atom2[k]];
         for (int t = s + 1; t < n_c; ++t) {
           int l = c_perm[beg + t];
-          tagint tag_al = atom->tag[c_atom1[l]];
-          tagint tag_bl = atom->tag[c_atom2[l]];
-          int sig_k = 0, sig_l = 0;
-          double invm_p = 0.0;
-          if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
-          else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
-          else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
-          else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
-          else continue;
           double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
-          double val = sig_k * sig_l * rkrl * invm_p;
-          lu_A[s*n_c + t] = val;
-          lu_A[t*n_c + s] = val;
+          double val = offdiag(k, l, rkrl);
+          if (val != 0.0) {
+            lu_A[s*n_c + t] = val;
+            lu_A[t*n_c + s] = val;
+          }
         }
       }
       info = lu_factor_solve(n_c);
@@ -339,24 +382,38 @@ void FixIlvesLocal::correct_velocities()
       error->one(FLERR, "Fix ilves/local: singular velocity-correction matrix in cluster {} "
                  "(size {}).  Check for degenerate constraint topology.", c, n_c);
 
-    // accumulate velocity deltas into rbuf at routed indices
+    // accumulate velocity deltas into rbuf at routed indices.  Sign
+    // convention matches FixIlves::correct_velocities: dv_p = -w_p *
+    // mu * (1/m_p) * r_k.
     for (int s = 0; s < n_c; ++s) {
       int k = c_perm[beg + s];
       double mu = lu_b[s];
       int a = c_atom1[k];
       int b = c_atom2[k];
+      int cc = c_atom3[k];
+      const double w_a = 1.0;
+      const double w_b = (cc < 0) ? -1.0 : -0.5;
+      const double w_c = -0.5;
       int a_route = atom->map(atom->tag[a]);
       int b_route = atom->map(atom->tag[b]);
+      int c_route = (cc >= 0) ? atom->map(atom->tag[cc]) : -1;
       if (a_route < 0) a_route = a;
       if (b_route < 0) b_route = b;
+      if (cc >= 0 && c_route < 0) c_route = cc;
       double da = mu * c_invma[k];
       double db = mu * c_invmb[k];
-      rbuf[a_route][0] -= da * c_rx[k];
-      rbuf[a_route][1] -= da * c_ry[k];
-      rbuf[a_route][2] -= da * c_rz[k];
-      rbuf[b_route][0] += db * c_rx[k];
-      rbuf[b_route][1] += db * c_ry[k];
-      rbuf[b_route][2] += db * c_rz[k];
+      double dc = (cc >= 0) ? mu * c_invmc[k] : 0.0;
+      rbuf[a_route][0] -= w_a * da * c_rx[k];
+      rbuf[a_route][1] -= w_a * da * c_ry[k];
+      rbuf[a_route][2] -= w_a * da * c_rz[k];
+      rbuf[b_route][0] -= w_b * db * c_rx[k];
+      rbuf[b_route][1] -= w_b * db * c_ry[k];
+      rbuf[b_route][2] -= w_b * db * c_rz[k];
+      if (cc >= 0) {
+        rbuf[c_route][0] -= w_c * dc * c_rx[k];
+        rbuf[c_route][1] -= w_c * dc * c_ry[k];
+        rbuf[c_route][2] -= w_c * dc * c_rz[k];
+      }
     }
   }
 
@@ -690,10 +747,51 @@ void FixIlvesLocal::build_constraint_list()
     }
   }
 
+  // Build the drop set for near-linear angles (see fix_ilves_global.cpp
+  // for the rationale).  In the local variant, every star cluster is
+  // owned by its center, so all of the cluster's angles are stored at
+  // local atoms when na_atom2 == tag[i].  Scanning local atoms is
+  // sufficient: any angle we'd consider dropping is centered at a local
+  // atom (the star center).
+  struct PairHash {
+    size_t operator()(const std::pair<tagint,tagint> &p) const noexcept {
+      return std::hash<tagint>()(p.first) ^ (std::hash<tagint>()(p.second) << 1);
+    }
+  };
+  std::unordered_set<std::pair<tagint,tagint>, PairHash> dropped_bonds;
+  if (has_angle) {
+    for (int i = 0; i < nlocal_now; ++i) {
+      if (!(mask[i] & groupbit)) continue;
+      for (int m = 0; m < num_angle[i]; ++m) {
+        int at = na_type[i][m];
+        if (at == 0) continue;
+        if (at < 0) at = -at;
+        if (at > atom->nangletypes) continue;
+        if (!angle_flag[at] || !angle_linear[at]) continue;
+        if (na_atom2[i][m] != tag[i]) continue;
+        tagint t1 = na_atom1[i][m];
+        tagint t3 = na_atom3[i][m];
+        // sort endpoints
+        tagint lo_end = (t1 < t3) ? t1 : t3;
+        tagint hi_end = (t1 < t3) ? t3 : t1;
+        if (!bond_is_constrained(tag[i], lo_end)) continue;
+        if (!bond_is_constrained(tag[i], hi_end)) continue;
+        // drop the bond to the higher-tag endpoint
+        tagint lo = (tag[i] < hi_end) ? tag[i] : hi_end;
+        tagint hi = (tag[i] < hi_end) ? hi_end : tag[i];
+        dropped_bonds.emplace(lo, hi);
+      }
+    }
+  }
+
   for (int i = 0; i < nlocal_now; ++i) {
     if (!(mask[i] & groupbit)) continue;
 
-    // collect i's constrained bonds (partner index + bond type)
+    // collect i's constrained bonds (partner index + bond type).  Note:
+    // we DO NOT filter the drop set here -- we need the original kc
+    // (count of constrained bonds at i) to drive the star/leaf
+    // classification below.  The drop set is applied inside the kc > 1
+    // branch when bonds are actually emitted.
     struct LocBond { int p; int bt; };
     std::vector<LocBond> bonds_i;
     bonds_i.reserve(num_bond[i]);
@@ -716,6 +814,17 @@ void FixIlvesLocal::build_constraint_list()
       // i is a star center -- this rank owns the cluster
       for (auto &lb : bonds_i) {
         int j = domain->closest_image(i, lb.p);
+        // skip bonds dropped for near-linear angles (their B-M virtual
+        // constraint, emitted in the angle pass below, makes |i-j|
+        // geometrically determined by the other constraints; keeping
+        // both would over-determine the system at near-180 deg).
+        if (!dropped_bonds.empty()) {
+          tagint ti = tag[i];
+          tagint tj = tag[j];
+          tagint lo = (ti < tj) ? ti : tj;
+          tagint hi = (ti < tj) ? tj : ti;
+          if (dropped_bonds.count({lo, hi})) continue;
+        }
         add_constraint(i, j, lb.bt, bond_distance[lb.bt]);
         ilves_flag[i] = 1;
         ilves_flag[j] = 1;
@@ -767,6 +876,23 @@ void FixIlvesLocal::build_constraint_list()
           ilves_flag[a_out] = 1;
           ilves_flag[b_out] = 1;
           ilves_flag[i]     = 1;
+
+          // near-linear angle: emit 3-atom B-M virtual constraint
+          // c_atom1 = B (= i, the local star center), c_atom2 = A
+          // (lower-tag endpoint), c_atom3 = C (higher-tag endpoint).
+          // Use closest_image relative to B (= i) for both endpoints
+          // so x[A], x[C] are PBC-consistent with x[B] when forming
+          // the midpoint M = (x[A]+x[C])/2.
+          if (angle_linear[at]) {
+            // sort endpoints by tag (the global variant uses (lo, hi))
+            int iA, iC;
+            if (tag[a_idx] < tag[b_idx]) { iA = a_idx; iC = b_idx; }
+            else                         { iA = b_idx; iC = a_idx; }
+            add_constraint(i, iA, iC, -at, angle_dBM[at]);
+            ilves_flag[i]  = 1;
+            ilves_flag[iA] = 1;
+            ilves_flag[iC] = 1;
+          }
         }
       }
     } else {

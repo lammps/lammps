@@ -101,10 +101,14 @@ const char cite_fix_ilves[] =
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr), type_flag(nullptr),
     mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr), angle_r1(nullptr),
-    angle_r2(nullptr), fstore(nullptr),
-    ilves_flag(nullptr), xshake(nullptr), c_atom1(nullptr), c_atom2(nullptr), c_type(nullptr),
+    angle_r2(nullptr),
+    angle_linear(nullptr), angle_dBM(nullptr),
+    fstore(nullptr),
+    ilves_flag(nullptr), xshake(nullptr), c_atom1(nullptr), c_atom2(nullptr),
+    c_atom3(nullptr), c_type(nullptr),
     c_dist(nullptr), c_lambda(nullptr), c_cluster(nullptr), c_rx(nullptr), c_ry(nullptr),
-    c_rz(nullptr), c_rsq(nullptr), c_invma(nullptr), c_invmb(nullptr), cluster_offset(nullptr),
+    c_rz(nullptr), c_rsq(nullptr), c_invma(nullptr), c_invmb(nullptr), c_invmc(nullptr),
+    cluster_offset(nullptr),
     c_perm(nullptr), c_slot(nullptr), lu_A(nullptr), lu_b(nullptr), lu_pivot(nullptr),
     cl_sx(nullptr), cl_sy(nullptr), cl_sz(nullptr),
     chol_pool(nullptr), chol_pool_offset(nullptr), cluster_bw(nullptr),
@@ -141,6 +145,8 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   variant = ILVES_FAST;
   chol_calls = 0;
   chol_fallbacks = 0;
+  linear_threshold = 165.0;
+  linear_Lmin      = 0.01;
 
   store_flag = peratom_flag = 0;
   maxstore = -1;
@@ -209,9 +215,10 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[next], "m") == 0) { mode = 'm'; atom->check_mass(FLERR); }
 
     // break on known optional keyword
-    else if ((strcmp(arg[next], "kbond")   == 0) ||
-             (strcmp(arg[next], "store")   == 0) ||
-             (strcmp(arg[next], "variant") == 0)) {
+    else if ((strcmp(arg[next], "kbond")       == 0) ||
+             (strcmp(arg[next], "store")       == 0) ||
+             (strcmp(arg[next], "variant")     == 0) ||
+             (strcmp(arg[next], "linearangle") == 0)) {
       break;
 
     } else if (mode == 'b') {
@@ -276,6 +283,30 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR, next + 1, "Unknown fix ilves variant {}", arg[next + 1]);
       next += 2;
 
+    } else if (strcmp(arg[next], "linearangle") == 0) {
+      if (next + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves linearangle", error);
+      linear_threshold = utils::numeric(FLERR, arg[next + 1], false, lmp);
+      if (linear_threshold <= 0.0 || linear_threshold > 180.0)
+        error->all(FLERR, next + 1,
+                   "Fix ilves linearangle must be in (0, 180] degrees, got {}",
+                   linear_threshold);
+      next += 2;
+      // optional second numeric: minimum |B-M| target length (in units of
+      // length, i.e. Angstrom for 'units real').  For exactly 180 deg
+      // with equal flanking bond lengths, the natural |B-M| = 0, which
+      // makes the B-M constraint Jacobian row identically zero.  Clamp
+      // up to this floor in that case to keep the system well-posed.
+      if (next < narg) {
+        char *endp = nullptr;
+        double v = strtod(arg[next], &endp);
+        if (endp != arg[next] && *endp == '\0') {
+          if (v < 0.0)
+            error->all(FLERR, next, "Fix ilves linearangle Lmin must be >= 0");
+          linear_Lmin = v;
+          ++next;
+        }
+      }
+
     } else {
       error->all(FLERR, "Unknown fix ilves command option: {}", arg[next]);
     }
@@ -286,6 +317,10 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   angle_distance = new double[atom->nangletypes + 1]{};
   angle_r1       = new double[atom->nangletypes + 1]{};
   angle_r2       = new double[atom->nangletypes + 1]{};
+  // Near-linear angle flag and B-M target length (filled by init_topology
+  // after equilibrium_angle/_distance are available).
+  angle_linear   = new int[atom->nangletypes + 1]{};
+  angle_dBM      = new double[atom->nangletypes + 1]{};
 
   if (output_every) {
     const int nb = atom->nbondtypes  + 1;
@@ -317,6 +352,8 @@ FixIlves::~FixIlves()
   delete[] angle_distance;
   delete[] angle_r1;
   delete[] angle_r2;
+  delete[] angle_linear;
+  delete[] angle_dBM;
 
   delete[] b_count;     delete[] b_count_all;
   delete[] b_ave;       delete[] b_ave_all;
@@ -333,6 +370,7 @@ FixIlves::~FixIlves()
 
   memory->destroy(c_atom1);
   memory->destroy(c_atom2);
+  memory->destroy(c_atom3);
   memory->destroy(c_type);
   memory->destroy(c_dist);
   memory->destroy(c_lambda);
@@ -343,6 +381,7 @@ FixIlves::~FixIlves()
   memory->destroy(c_rsq);
   memory->destroy(c_invma);
   memory->destroy(c_invmb);
+  memory->destroy(c_invmc);
   memory->destroy(cluster_offset);
   memory->destroy(c_perm);
   memory->destroy(c_slot);
@@ -410,6 +449,67 @@ void FixIlves::init()
   // reach; the global variant does an MPI_Allgatherv over all bonds and
   // angles.  Both fill angle_distance[] for the angle types selected.
   init_topology();
+
+  // Identify near-linear angle types using the equilibrium geometry now
+  // available in angle_r1/angle_r2/angle_distance.  The angle theta_0
+  // is recovered via the law of cosines from r1, r2, d:
+  //     cos(theta) = (r1^2 + r2^2 - d^2) / (2 r1 r2)
+  // If the result corresponds to theta >= linear_threshold, mark the
+  // type as near-linear and precompute the median target length
+  //     |B-M| = sqrt( (r1^2 + r2^2) / 2 - d^2 / 4 )
+  // (this is the formula for a triangle median to the AC side).
+  // If equilibrium_angle was not provided by the angle style, theta_0
+  // defaults to 0 and angle_distance reduces to |r1 - r2|, which gives
+  // a derived theta of 0 -- correctly skipping this angle type.
+  if (has_angle && linear_threshold < 180.0) {
+    const double cos_threshold = cos(linear_threshold * MY_PI / 180.0);
+    int n_linear = 0;
+    int n_clamped = 0;
+    for (int at = 1; at <= atom->nangletypes; ++at) {
+      angle_linear[at] = 0;
+      angle_dBM[at]    = 0.0;
+      if (!angle_flag[at]) continue;
+      const double r1 = angle_r1[at];
+      const double r2 = angle_r2[at];
+      const double d  = angle_distance[at];
+      if (r1 <= 0.0 || r2 <= 0.0 || d <= 0.0) continue;
+      double cos_theta = (r1*r1 + r2*r2 - d*d) / (2.0 * r1 * r2);
+      if (cos_theta < -1.0) cos_theta = -1.0;
+      if (cos_theta >  1.0) cos_theta =  1.0;
+      if (cos_theta > cos_threshold) continue;     // theta < threshold
+      // theta >= threshold -- treat as near-linear
+      double L2 = 0.5*(r1*r1 + r2*r2) - 0.25*d*d;
+      if (L2 < 0.0) L2 = 0.0;
+      double L = sqrt(L2);
+      // Clamp to linear_Lmin: with L = 0 the B-M Jacobian row is zero
+      // (gradients vanish at the solution), making the matrix singular.
+      // Clamping bends the angle by O(L_min / r) radians off 180 deg --
+      // well below thermal-fluctuation amplitude for typical bond
+      // lengths but enough to keep the linear solve well-posed.
+      if (L < linear_Lmin) {
+        L = linear_Lmin;
+        ++n_clamped;
+      }
+      angle_linear[at] = 1;
+      angle_dBM[at]    = L;
+      ++n_linear;
+    }
+    if (n_linear && comm->me == 0) {
+      utils::logmesg(lmp,
+                     "Fix ilves: using B-M virtual constraint for {} near-linear angle "
+                     "type(s) (theta_0 >= {} deg)\n", n_linear, linear_threshold);
+      if (n_clamped)
+        utils::logmesg(lmp,
+                       "Fix ilves: clamped |B-M| target to {} for {} angle type(s) (near-symmetric "
+                       "180 deg geometry would otherwise give a degenerate Jacobian)\n",
+                       linear_Lmin, n_clamped);
+    }
+  } else {
+    for (int at = 1; at <= atom->nangletypes; ++at) {
+      angle_linear[at] = 0;
+      angle_dBM[at]    = 0.0;
+    }
+  }
 
   // warn (don't error) on minimization use, since we will substitute strong
   // harmonic restraints in min_post_force.
@@ -667,13 +767,21 @@ void FixIlves::group_by_cluster()
   // one node.  True MPI ghosts (atoms not owned locally at all) keep their
   // ghost index.
   for (int k = 0; k < n_constr; ++k) {
-    int a = c_atom1[k];                          // c_atom1 is always local
+    int a = c_atom1[k];                          // typically local
     int b_raw = c_atom2[k];
     int b_canon = atom->map(tag[b_raw]);
     if (b_canon < 0) b_canon = b_raw;            // shouldn't happen normally
     int ra = find_root(a);
     int rb = find_root(b_canon);
     if (ra != rb) parent[ra] = rb;
+    if (c_atom3[k] >= 0) {
+      int c_raw = c_atom3[k];
+      int c_canon = atom->map(tag[c_raw]);
+      if (c_canon < 0) c_canon = c_raw;
+      int rc = find_root(c_canon);
+      ra = find_root(a);
+      if (ra != rc) parent[ra] = rc;
+    }
   }
 
   int *atomlabel = nullptr;
@@ -726,15 +834,24 @@ void FixIlves::precompute_constraint_data()
   for (int k = 0; k < n_constr; ++k) {
     int a = c_atom1[k];
     int b = c_atom2[k];
-    // Apply minimum_image to the raw vector x[a]-x[b].  closest_image
-    // can return inconsistent ghost copies for atoms that span PBC with
-    // different image flags (e.g. neighbouring atoms in the same molecule
-    // stored in different periodic cells), giving a wrong "bond vector".
-    // minimum_image directly wraps the displacement to the closest
+    int c = c_atom3[k];
+    // Apply minimum_image to the raw vector.  For 2-atom constraints
+    // r_k = x[a]-x[b]; for 3-atom B-M constraints r_k = x[a] - (x[b]+x[c])/2.
+    // closest_image can return inconsistent ghost copies for atoms that span
+    // PBC with different image flags (e.g. neighbouring atoms in the same
+    // molecule stored in different periodic cells), giving a wrong "bond
+    // vector".  minimum_image directly wraps the displacement to the closest
     // periodic image, independent of which storage index was returned.
-    double rx = atom->x[a][0] - atom->x[b][0];
-    double ry = atom->x[a][1] - atom->x[b][1];
-    double rz = atom->x[a][2] - atom->x[b][2];
+    double rx, ry, rz;
+    if (c < 0) {
+      rx = atom->x[a][0] - atom->x[b][0];
+      ry = atom->x[a][1] - atom->x[b][1];
+      rz = atom->x[a][2] - atom->x[b][2];
+    } else {
+      rx = atom->x[a][0] - 0.5*(atom->x[b][0] + atom->x[c][0]);
+      ry = atom->x[a][1] - 0.5*(atom->x[b][1] + atom->x[c][1]);
+      rz = atom->x[a][2] - 0.5*(atom->x[b][2] + atom->x[c][2]);
+    }
     domain->minimum_image(FLERR, rx, ry, rz);
     c_rx[k] = rx;
     c_ry[k] = ry;
@@ -742,6 +859,8 @@ void FixIlves::precompute_constraint_data()
     c_rsq[k] = rx*rx + ry*ry + rz*rz;
     c_invma[k] = rmass ? 1.0 / rmass[a] : 1.0 / mass[type[a]];
     c_invmb[k] = rmass ? 1.0 / rmass[b] : 1.0 / mass[type[b]];
+    c_invmc[k] = (c < 0) ? 0.0
+                         : (rmass ? 1.0 / rmass[c] : 1.0 / mass[type[c]]);
   }
 
   // Per-cluster RCM reorder + bandwidth compute, then size the banded
@@ -810,6 +929,8 @@ void FixIlves::rcm_reorder_clusters()
       int k = c_perm[beg + s];
       atom_slots[atom->tag[c_atom1[k]]].push_back(s);
       atom_slots[atom->tag[c_atom2[k]]].push_back(s);
+      if (c_atom3[k] >= 0)
+        atom_slots[atom->tag[c_atom3[k]]].push_back(s);
     }
 
     // build adjacency list: for each atom shared by m constraints, the m
@@ -911,6 +1032,26 @@ void FixIlves::add_constraint(int a, int b, int btype, double dist)
   if (n_constr == max_constr) grow_constraint_list(max_constr + DELTA_CONSTR);
   c_atom1[n_constr]   = a;
   c_atom2[n_constr]   = b;
+  c_atom3[n_constr]   = -1;        // 2-atom: third slot unused
+  c_type[n_constr]    = btype;
+  c_dist[n_constr]    = dist;
+  c_lambda[n_constr]  = 0.0;
+  c_cluster[n_constr] = -1;
+  n_constr++;
+}
+
+/* ----------------------------------------------------------------------
+   3-atom B-M virtual constraint (near-linear angle handling).
+   a = B (central, gradient weight +1), b, c = A, C (endpoints, weight -1/2)
+   r_k = x[B] - (x[A] + x[C])/2, target |r_k| = dist (the median length).
+------------------------------------------------------------------------- */
+
+void FixIlves::add_constraint(int a, int b, int c, int btype, double dist)
+{
+  if (n_constr == max_constr) grow_constraint_list(max_constr + DELTA_CONSTR);
+  c_atom1[n_constr]   = a;
+  c_atom2[n_constr]   = b;
+  c_atom3[n_constr]   = c;
   c_type[n_constr]    = btype;
   c_dist[n_constr]    = dist;
   c_lambda[n_constr]  = 0.0;
@@ -925,6 +1066,7 @@ void FixIlves::grow_constraint_list(int newcap)
   max_constr = newcap;
   memory->grow(c_atom1,   max_constr, "ilves:c_atom1");
   memory->grow(c_atom2,   max_constr, "ilves:c_atom2");
+  memory->grow(c_atom3,   max_constr, "ilves:c_atom3");
   memory->grow(c_type,    max_constr, "ilves:c_type");
   memory->grow(c_dist,    max_constr, "ilves:c_dist");
   memory->grow(c_lambda,  max_constr, "ilves:c_lambda");
@@ -935,6 +1077,7 @@ void FixIlves::grow_constraint_list(int newcap)
   memory->grow(c_rsq,     max_constr, "ilves:c_rsq");
   memory->grow(c_invma,   max_constr, "ilves:c_invma");
   memory->grow(c_invmb,   max_constr, "ilves:c_invmb");
+  memory->grow(c_invmc,   max_constr, "ilves:c_invmc");
   memory->grow(c_perm,    max_constr, "ilves:c_perm");
   memory->grow(c_slot,    max_constr, "ilves:c_slot");
 }
@@ -988,13 +1131,22 @@ void FixIlves::post_force(int vflag)
   type  = atom->type;
   nlocal = atom->nlocal;
 
-  // recompute reference vectors r_k via minimum-image of x[a]-x[b]
+  // recompute reference vectors r_k via minimum-image.  For 2-atom
+  // constraints r_k = x[a]-x[b]; for 3-atom B-M r_k = x[a]-(x[b]+x[c])/2.
   for (int k = 0; k < n_constr; ++k) {
     int a = c_atom1[k];
     int b = c_atom2[k];
-    double rx = x[a][0] - x[b][0];
-    double ry = x[a][1] - x[b][1];
-    double rz = x[a][2] - x[b][2];
+    int c = c_atom3[k];
+    double rx, ry, rz;
+    if (c < 0) {
+      rx = x[a][0] - x[b][0];
+      ry = x[a][1] - x[b][1];
+      rz = x[a][2] - x[b][2];
+    } else {
+      rx = x[a][0] - 0.5*(x[b][0] + x[c][0]);
+      ry = x[a][1] - 0.5*(x[b][1] + x[c][1]);
+      rz = x[a][2] - 0.5*(x[b][2] + x[c][2]);
+    }
     domain->minimum_image(FLERR, rx, ry, rz);
     c_rx[k]  = rx;
     c_ry[k]  = ry;
@@ -1338,6 +1490,69 @@ bool FixIlves::solve_constraints()
 
   bool converged = false;
 
+  // -----------------------------------------------------------------
+  // Helpers for handling the 3-atom B-M virtual constraints alongside
+  // ordinary 2-atom bond constraints.  For 2-atom k = (a, b) the
+  // gradient is +r_k at a and -r_k at b.  For 3-atom k = (B, A, C) the
+  // gradient is +r_k at B and -r_k/2 at each of A, C (so the diagonal
+  // weight (sum w_p^2/m_p) becomes 1/m_B + 1/(4 m_A) + 1/(4 m_C)).
+  // -----------------------------------------------------------------
+  auto diag_factor = [&](int k) -> double {
+    if (c_atom3[k] < 0)
+      return c_invma[k] + c_invmb[k];
+    return c_invma[k] + 0.25*(c_invmb[k] + c_invmc[k]);
+  };
+
+  // Off-diagonal A_kl contribution: sum over shared atoms p of
+  //   w_k_p * w_l_p * (1/m_p) * dot
+  // where 'dot' is the precomputed inner product (vec1 . r_l) -- either
+  // r_k.r_l for ILVES_FAST / velocity solve, or s_k.r_l for ILVES_FULL.
+  // Returns 0 if k and l share no atom.  The fast path for 2-atom x
+  // 2-atom is kept as an early-return else-if chain identical to the
+  // pre-change code; the 3-atom paths accumulate up to 9 contributions
+  // (at most a handful of which are nonzero in practice).
+  auto offdiag = [&](int k, int l, double dot) -> double {
+    int ck = c_atom3[k];
+    int cl = c_atom3[l];
+    tagint tag_ak = atom->tag[c_atom1[k]];
+    tagint tag_bk = atom->tag[c_atom2[k]];
+    tagint tag_al = atom->tag[c_atom1[l]];
+    tagint tag_bl = atom->tag[c_atom2[l]];
+    double invma_k = c_invma[k];
+    double invmb_k = c_invmb[k];
+    if (ck < 0 && cl < 0) {
+      // hot path: 2-atom x 2-atom -- at most one shared atom
+      if (tag_ak == tag_al) return  invma_k * dot;
+      if (tag_ak == tag_bl) return -invma_k * dot;
+      if (tag_bk == tag_al) return -invmb_k * dot;
+      if (tag_bk == tag_bl) return  invmb_k * dot;
+      return 0.0;
+    }
+    // general case: weights are (+1, -1/2, -1/2) for 3-atom, (+1, -1, 0) for 2-atom
+    double wka = 1.0;
+    double wkb = (ck < 0) ? -1.0 : -0.5;
+    double wkc = (ck < 0) ?  0.0 : -0.5;
+    double wla = 1.0;
+    double wlb = (cl < 0) ? -1.0 : -0.5;
+    double wlc = (cl < 0) ?  0.0 : -0.5;
+    double invmc_k = c_invmc[k];
+    tagint tag_ck = (ck >= 0) ? atom->tag[ck] : 0;
+    tagint tag_cl = (cl >= 0) ? atom->tag[cl] : 0;
+    double val = 0.0;
+    if (tag_ak == tag_al)              val += wka * wla * invma_k * dot;
+    if (tag_ak == tag_bl)              val += wka * wlb * invma_k * dot;
+    if (cl >= 0 && tag_ak == tag_cl)   val += wka * wlc * invma_k * dot;
+    if (tag_bk == tag_al)              val += wkb * wla * invmb_k * dot;
+    if (tag_bk == tag_bl)              val += wkb * wlb * invmb_k * dot;
+    if (cl >= 0 && tag_bk == tag_cl)   val += wkb * wlc * invmb_k * dot;
+    if (ck >= 0) {
+      if (tag_ck == tag_al)            val += wkc * wla * invmc_k * dot;
+      if (tag_ck == tag_bl)            val += wkc * wlb * invmc_k * dot;
+      if (cl >= 0 && tag_ck == tag_cl) val += wkc * wlc * invmc_k * dot;
+    }
+    return val;
+  };
+
   for (int iter = 0; iter < max_iter; ++iter) {
     double max_relres = 0.0;
 
@@ -1355,16 +1570,26 @@ bool FixIlves::solve_constraints()
       const bool can_reuse = (variant == ILVES_FAST) && cluster_cached
                           && cluster_cached[c];
 
-      // s_k = xshake[a_k] - xshake[b_k] (PBC minimum-image), rhs g_k, and
-      // the residual indicator are always recomputed -- they depend on
-      // xshake which changes between iterations.
+      // s_k = (current iter's "bond" vector) under PBC minimum-image, rhs
+      // g_k, and the residual indicator are always recomputed -- they
+      // depend on xshake which changes between iterations.  For 2-atom
+      // s_k = xshake[a] - xshake[b]; for 3-atom B-M s_k = xshake[B] -
+      // (xshake[A]+xshake[C])/2.
       for (int s = 0; s < n_c; ++s) {
         int k = c_perm[beg + s];
         int a = c_atom1[k];
         int b = c_atom2[k];
-        double sx = xshake[a][0] - xshake[b][0];
-        double sy = xshake[a][1] - xshake[b][1];
-        double sz = xshake[a][2] - xshake[b][2];
+        int cc = c_atom3[k];
+        double sx, sy, sz;
+        if (cc < 0) {
+          sx = xshake[a][0] - xshake[b][0];
+          sy = xshake[a][1] - xshake[b][1];
+          sz = xshake[a][2] - xshake[b][2];
+        } else {
+          sx = xshake[a][0] - 0.5*(xshake[b][0] + xshake[cc][0]);
+          sy = xshake[a][1] - 0.5*(xshake[b][1] + xshake[cc][1]);
+          sz = xshake[a][2] - 0.5*(xshake[b][2] + xshake[cc][2]);
+        }
         domain->minimum_image(FLERR, sx, sy, sz);
         cl_sx[s] = sx;
         cl_sy[s] = sy;
@@ -1399,48 +1624,29 @@ bool FixIlves::solve_constraints()
         // zero the cluster's band storage (n_c rows of (bw_c+1) doubles)
         for (int i = 0; i < n_c * row_stride; ++i) Aptr[i] = 0.0;
 
-        // diagonal A_kk = (1/m_a + 1/m_b) * |r_k|^2, stored at band slot 0
+        // diagonal A_kk = (sum w_p^2/m_p) * |r_k|^2 -- diag_factor()
+        // collapses to (1/m_a + 1/m_b) for 2-atom and
+        // 1/m_B + 1/(4 m_A) + 1/(4 m_C) for 3-atom B-M.
         for (int s = 0; s < n_c; ++s) {
           int k = c_perm[beg + s];
-          Aptr[s*row_stride + 0] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
+          Aptr[s*row_stride + 0] = diag_factor(k) * c_rsq[k];
         }
 
         // off-diagonals: scan all pairs (s, t) with s < t in the cluster,
-        // add A[t][s] += sig_k*sig_l*(r_k.r_l)/m_p for each shared atom.
+        // add A[t][s] = sum_shared_atom w_k_p * w_l_p * (r_k.r_l) / m_p.
         // After RCM the pairs that actually share an atom satisfy
         // |t-s| <= bw_c, so the band slot Aptr[t*stride + (t-s)] always
         // exists.  Pairs further apart silently contribute zero by
         // construction (no shared atom -> no contribution).
         for (int s = 0; s < n_c; ++s) {
           int k = c_perm[beg + s];
-          int ak = c_atom1[k];
-          int bk = c_atom2[k];
-          double invma_k = c_invma[k];
-          double invmb_k = c_invmb[k];
-          tagint tag_ak = atom->tag[ak];
-          tagint tag_bk = atom->tag[bk];
-
-          // No need to scan beyond t = s + bw_c: any further pair cannot
-          // share an atom (by the bandwidth bound) so all contributions
-          // would be zero.  Saves substantial work for large clusters.
           int t_end = s + bw_c + 1;
           if (t_end > n_c) t_end = n_c;
           for (int t = s + 1; t < t_end; ++t) {
             int l = c_perm[beg + t];
-            tagint tag_al = atom->tag[c_atom1[l]];
-            tagint tag_bl = atom->tag[c_atom2[l]];
-
-            int sig_k = 0, sig_l = 0;
-            double invm_p = 0.0;
-            if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
-            else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
-            else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
-            else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
-            else continue;
-
             double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
-            double val = sig_k * sig_l * rkrl * invm_p;
-            Aptr[t*row_stride + (t - s)] = val;
+            double val = offdiag(k, l, rkrl);
+            if (val != 0.0) Aptr[t*row_stride + (t - s)] = val;
           }
         }
 
@@ -1458,29 +1664,18 @@ bool FixIlves::solve_constraints()
           for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
           for (int s2 = 0; s2 < n_c; ++s2) {
             int k = c_perm[beg + s2];
-            lu_A[s2*n_c + s2] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
+            lu_A[s2*n_c + s2] = diag_factor(k) * c_rsq[k];
           }
           for (int s2 = 0; s2 < n_c; ++s2) {
             int k = c_perm[beg + s2];
-            tagint tag_ak = atom->tag[c_atom1[k]];
-            tagint tag_bk = atom->tag[c_atom2[k]];
-            double invma_k = c_invma[k];
-            double invmb_k = c_invmb[k];
             for (int t = s2 + 1; t < n_c; ++t) {
               int l = c_perm[beg + t];
-              tagint tag_al = atom->tag[c_atom1[l]];
-              tagint tag_bl = atom->tag[c_atom2[l]];
-              int sig_k = 0, sig_l = 0;
-              double invm_p = 0.0;
-              if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
-              else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
-              else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
-              else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
-              else continue;
               double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
-              double val = sig_k * sig_l * rkrl * invm_p;
-              lu_A[s2*n_c + t] = val;
-              lu_A[t*n_c + s2] = val;
+              double val = offdiag(k, l, rkrl);
+              if (val != 0.0) {
+                lu_A[s2*n_c + t] = val;
+                lu_A[t*n_c + s2] = val;
+              }
             }
           }
           info = lu_factor_solve(n_c);
@@ -1489,34 +1684,22 @@ bool FixIlves::solve_constraints()
         // ILVES_FULL: assemble the exact-Jacobian asymmetric matrix into
         // dense lu_A (cl_s* was already filled above with current s_k) and
         // solve with LU.  No caching: the matrix depends on s_k and so
-        // changes every Newton iteration.
+        // changes every Newton iteration.  Diagonal uses s_k.r_k; off-
+        // diagonal uses s_k.r_l (asymmetric: A_kl != A_lk in general).
         for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
         for (int s = 0; s < n_c; ++s) {
           int k = c_perm[beg + s];
           double sr = cl_sx[s]*c_rx[k] + cl_sy[s]*c_ry[k] + cl_sz[s]*c_rz[k];
-          lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * sr;
+          lu_A[s*n_c + s] = diag_factor(k) * sr;
         }
         for (int s = 0; s < n_c; ++s) {
           int k = c_perm[beg + s];
-          tagint tag_ak = atom->tag[c_atom1[k]];
-          tagint tag_bk = atom->tag[c_atom2[k]];
-          double invma_k = c_invma[k];
-          double invmb_k = c_invmb[k];
           for (int t = 0; t < n_c; ++t) {
             if (t == s) continue;
             int l = c_perm[beg + t];
-            tagint tag_al = atom->tag[c_atom1[l]];
-            tagint tag_bl = atom->tag[c_atom2[l]];
-            int sig_k = 0, sig_l = 0;
-            double invm_p = 0.0;
-            if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
-            else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
-            else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
-            else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
-            else continue;
             double srl = cl_sx[s]*c_rx[l] + cl_sy[s]*c_ry[l] + cl_sz[s]*c_rz[l];
-            double val = sig_k * sig_l * srl * invm_p;
-            lu_A[s*n_c + t] += val;
+            double val = offdiag(k, l, srl);
+            if (val != 0.0) lu_A[s*n_c + t] += val;
           }
         }
         info = lu_factor_solve(n_c);
@@ -1540,47 +1723,68 @@ bool FixIlves::solve_constraints()
         int k = c_perm[beg + s];
         double dl = lu_b[s];
         c_lambda[k] += dl;
-        double cax = dl * c_invma[k] * c_rx[k];
-        double cay = dl * c_invma[k] * c_ry[k];
-        double caz = dl * c_invma[k] * c_rz[k];
-        double cbx = dl * c_invmb[k] * c_rx[k];
-        double cby = dl * c_invmb[k] * c_ry[k];
-        double cbz = dl * c_invmb[k] * c_rz[k];
-        int a = c_atom1[k];
-        int b = c_atom2[k];
+        const int a = c_atom1[k];
+        const int b = c_atom2[k];
+        const int cc = c_atom3[k];
+
+        // Per-atom delta = w_p * dl * (1/m_p) * r_k (sign follows the
+        // gradient weight w_p).  2-atom: +1 at a, -1 at b.  3-atom B-M:
+        // +1 at a (= B), -1/2 at b (= A), -1/2 at cc (= C).
+        const double rx = c_rx[k];
+        const double ry = c_ry[k];
+        const double rz = c_rz[k];
+        const double dl_a  = dl * c_invma[k];
+        const double dl_b  = dl * c_invmb[k];
+        const double dl_c  = (cc >= 0) ? dl * c_invmc[k] : 0.0;
+        const double w_a   = 1.0;
+        const double w_b   = (cc < 0) ? -1.0 : -0.5;
+        const double w_c   = -0.5;             // only used for cc >= 0
+
         const bool ghosts_too = update_ghost_xshake();
         if (ghosts_too) {
           // Local variant: write directly to the constraint's stored
-          // indices so that read (xshake[c_atom1/2] in the s_k cache at
+          // indices so that read (xshake[c_atom*] in the s_k cache at
           // the next iteration) and write are at the same slot.  This
           // matters when closest_image during build_constraint_list
           // chose a different ghost copy than atom->map would return
           // (e.g. PBC self-images on the same rank when subdomains span
           // the full box in a dimension).
-          xshake[a][0] += cax;
-          xshake[a][1] += cay;
-          xshake[a][2] += caz;
-          xshake[b][0] -= cbx;
-          xshake[b][1] -= cby;
-          xshake[b][2] -= cbz;
+          xshake[a][0] += w_a * dl_a * rx;
+          xshake[a][1] += w_a * dl_a * ry;
+          xshake[a][2] += w_a * dl_a * rz;
+          xshake[b][0] += w_b * dl_b * rx;
+          xshake[b][1] += w_b * dl_b * ry;
+          xshake[b][2] += w_b * dl_b * rz;
+          if (cc >= 0) {
+            xshake[cc][0] += w_c * dl_c * rx;
+            xshake[cc][1] += w_c * dl_c * ry;
+            xshake[cc][2] += w_c * dl_c * rz;
+          }
         } else {
           // Global variant: route to the local owner of each endpoint.
-          // c_atom1 may be a ghost only for cluster-completion entries
-          // when both endpoints are ghosts; updates to xshake[ghost]
-          // on this rank would be overwritten by the end-of-iter
-          // forward_comm anyway, so skip them.  PBC self-images route
-          // to their local owner so the forward_comm picks them up.
+          // c_atom* may be a ghost; updates to xshake[ghost] would be
+          // overwritten by the end-of-iter forward_comm anyway, so skip
+          // those.  PBC self-images route to their local owner via
+          // atom->map so the forward_comm picks them up.
           int a_local = atom->map(atom->tag[a]);
           int b_local = atom->map(atom->tag[b]);
           if (a_local >= 0 && a_local < nlocal) {
-            xshake[a_local][0] += cax;
-            xshake[a_local][1] += cay;
-            xshake[a_local][2] += caz;
+            xshake[a_local][0] += w_a * dl_a * rx;
+            xshake[a_local][1] += w_a * dl_a * ry;
+            xshake[a_local][2] += w_a * dl_a * rz;
           }
           if (b_local >= 0 && b_local < nlocal) {
-            xshake[b_local][0] -= cbx;
-            xshake[b_local][1] -= cby;
-            xshake[b_local][2] -= cbz;
+            xshake[b_local][0] += w_b * dl_b * rx;
+            xshake[b_local][1] += w_b * dl_b * ry;
+            xshake[b_local][2] += w_b * dl_b * rz;
+          }
+          if (cc >= 0) {
+            int c_local = atom->map(atom->tag[cc]);
+            if (c_local >= 0 && c_local < nlocal) {
+              xshake[c_local][0] += w_c * dl_c * rx;
+              xshake[c_local][1] += w_c * dl_c * ry;
+              xshake[c_local][2] += w_c * dl_c * rz;
+            }
           }
         }
       }
@@ -1660,25 +1864,45 @@ void FixIlves::apply_constraint_forces(int vflag)
     double fz = scale * c_rz[k];
     int a = c_atom1[k];
     int b = c_atom2[k];
+    int cc = c_atom3[k];
+    // Gradient weights w_p: 2-atom => (+1, -1); 3-atom B-M => (+1, -1/2, -1/2).
+    const double w_a = 1.0;
+    const double w_b = (cc < 0) ? -1.0 : -0.5;
+    const double w_c = -0.5;     // used only when cc >= 0
 
     // Route each endpoint's force to its local owner (atom->map(tag)
-    // collapses PBC ghosts to local indices).  c_atom1 and c_atom2 may
-    // both be ghosts for cluster-completion constraints in MPI; in that
-    // case neither side applies any force from this rank, and the
-    // owning ranks handle their atoms.
+    // collapses PBC ghosts to local indices).  Any c_atom* may be a
+    // ghost for cluster-completion constraints in MPI; that rank does
+    // not apply the force locally -- the owning rank handles its own
+    // atoms.
     int a_local = atom->map(atom->tag[a]);
     int b_local = atom->map(atom->tag[b]);
+    int c_local = (cc >= 0) ? atom->map(atom->tag[cc]) : -1;
 
     if (a_local >= 0 && a_local < nlocal) {
-      f[a_local][0] += fx; f[a_local][1] += fy; f[a_local][2] += fz;
-      if (store_flag) { fstore[a_local][0] += fx; fstore[a_local][1] += fy; fstore[a_local][2] += fz; }
+      f[a_local][0] += w_a*fx; f[a_local][1] += w_a*fy; f[a_local][2] += w_a*fz;
+      if (store_flag) {
+        fstore[a_local][0] += w_a*fx; fstore[a_local][1] += w_a*fy; fstore[a_local][2] += w_a*fz;
+      }
     }
     if (b_local >= 0 && b_local < nlocal) {
-      f[b_local][0] -= fx; f[b_local][1] -= fy; f[b_local][2] -= fz;
-      if (store_flag) { fstore[b_local][0] -= fx; fstore[b_local][1] -= fy; fstore[b_local][2] -= fz; }
+      f[b_local][0] += w_b*fx; f[b_local][1] += w_b*fy; f[b_local][2] += w_b*fz;
+      if (store_flag) {
+        fstore[b_local][0] += w_b*fx; fstore[b_local][1] += w_b*fy; fstore[b_local][2] += w_b*fz;
+      }
+    }
+    if (cc >= 0 && c_local >= 0 && c_local < nlocal) {
+      f[c_local][0] += w_c*fx; f[c_local][1] += w_c*fy; f[c_local][2] += w_c*fz;
+      if (store_flag) {
+        fstore[c_local][0] += w_c*fx; fstore[c_local][1] += w_c*fy; fstore[c_local][2] += w_c*fz;
+      }
     }
 
-    if (evflag) {
+    if (evflag && cc < 0) {
+      // 2-atom virial tally as before.  For 3-atom B-M we skip: the
+      // constraint force sums to zero across the three atoms (sum w_p
+      // = 0), so it adds no center-of-mass bias to the box pressure,
+      // and there is no "bond" to attribute a per-pair virial to.
       int atomlist[2];
       int count = 0;
       if (a_local >= 0 && a_local < nlocal) atomlist[count++] = a_local;
@@ -1805,6 +2029,72 @@ void FixIlves::correct_velocities()
   if (n_constr == 0) return;
   grow_lu_workspace(largest_cluster);
 
+  // 3-atom-aware helpers (mirror the ones in solve_constraints).
+  auto diag_factor = [&](int k) -> double {
+    if (c_atom3[k] < 0)
+      return c_invma[k] + c_invmb[k];
+    return c_invma[k] + 0.25*(c_invmb[k] + c_invmc[k]);
+  };
+  auto offdiag = [&](int k, int l, double dot) -> double {
+    int ck = c_atom3[k];
+    int cl = c_atom3[l];
+    tagint tag_ak = atom->tag[c_atom1[k]];
+    tagint tag_bk = atom->tag[c_atom2[k]];
+    tagint tag_al = atom->tag[c_atom1[l]];
+    tagint tag_bl = atom->tag[c_atom2[l]];
+    double invma_k = c_invma[k];
+    double invmb_k = c_invmb[k];
+    if (ck < 0 && cl < 0) {
+      if (tag_ak == tag_al) return  invma_k * dot;
+      if (tag_ak == tag_bl) return -invma_k * dot;
+      if (tag_bk == tag_al) return -invmb_k * dot;
+      if (tag_bk == tag_bl) return  invmb_k * dot;
+      return 0.0;
+    }
+    double wka = 1.0;
+    double wkb = (ck < 0) ? -1.0 : -0.5;
+    double wkc = (ck < 0) ?  0.0 : -0.5;
+    double wla = 1.0;
+    double wlb = (cl < 0) ? -1.0 : -0.5;
+    double wlc = (cl < 0) ?  0.0 : -0.5;
+    double invmc_k = c_invmc[k];
+    tagint tag_ck = (ck >= 0) ? atom->tag[ck] : 0;
+    tagint tag_cl = (cl >= 0) ? atom->tag[cl] : 0;
+    double val = 0.0;
+    if (tag_ak == tag_al)              val += wka * wla * invma_k * dot;
+    if (tag_ak == tag_bl)              val += wka * wlb * invma_k * dot;
+    if (cl >= 0 && tag_ak == tag_cl)   val += wka * wlc * invma_k * dot;
+    if (tag_bk == tag_al)              val += wkb * wla * invmb_k * dot;
+    if (tag_bk == tag_bl)              val += wkb * wlb * invmb_k * dot;
+    if (cl >= 0 && tag_bk == tag_cl)   val += wkb * wlc * invmb_k * dot;
+    if (ck >= 0) {
+      if (tag_ck == tag_al)            val += wkc * wla * invmc_k * dot;
+      if (tag_ck == tag_bl)            val += wkc * wlb * invmc_k * dot;
+      if (cl >= 0 && tag_ck == tag_cl) val += wkc * wlc * invmc_k * dot;
+    }
+    return val;
+  };
+
+  // rhs for constraint k: g_k = sum_p w_p * v[p] . r_k -- the time
+  // derivative of the constraint.  For 2-atom this is (v[a]-v[b]) . r_k.
+  // For 3-atom B-M this is (v[B] - (v[A]+v[C])/2) . r_k.
+  auto velocity_rhs = [&](int k) -> double {
+    int a = c_atom1[k];
+    int b = c_atom2[k];
+    int cc = c_atom3[k];
+    double vxd, vyd, vzd;
+    if (cc < 0) {
+      vxd = v[a][0] - v[b][0];
+      vyd = v[a][1] - v[b][1];
+      vzd = v[a][2] - v[b][2];
+    } else {
+      vxd = v[a][0] - 0.5*(v[b][0] + v[cc][0]);
+      vyd = v[a][1] - 0.5*(v[b][1] + v[cc][1]);
+      vzd = v[a][2] - 0.5*(v[b][2] + v[cc][2]);
+    }
+    return vxd*c_rx[k] + vyd*c_ry[k] + vzd*c_rz[k];
+  };
+
   for (int c = 0; c < n_clusters; ++c) {
     const int beg = cluster_offset[c];
     const int end = cluster_offset[c + 1];
@@ -1815,43 +2105,22 @@ void FixIlves::correct_velocities()
 
     for (int s = 0; s < n_c; ++s) {
       int k = c_perm[beg + s];
-      int a = c_atom1[k];
-      int b = c_atom2[k];
-      // diagonal A_kk = (1/m_a + 1/m_b) * (r_k . r_k)
-      lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
-      // rhs: g_k = (v[a] - v[b]) . r_k
-      double vxd = v[a][0] - v[b][0];
-      double vyd = v[a][1] - v[b][1];
-      double vzd = v[a][2] - v[b][2];
-      lu_b[s] = vxd*c_rx[k] + vyd*c_ry[k] + vzd*c_rz[k];
+      lu_A[s*n_c + s] = diag_factor(k) * c_rsq[k];
+      lu_b[s] = velocity_rhs(k);
     }
 
-    // off-diagonals: same shared-atom logic as the position solve, but
-    // with (r_k . r_l) -- which is symmetric in k,l, so we only need s < t
+    // off-diagonals: same shared-atom logic as the position solve, with
+    // (r_k . r_l) -- symmetric in k,l so we only need s < t
     for (int s = 0; s < n_c; ++s) {
       int k = c_perm[beg + s];
-      double invma_k = c_invma[k];
-      double invmb_k = c_invmb[k];
-      tagint tag_ak = atom->tag[c_atom1[k]];
-      tagint tag_bk = atom->tag[c_atom2[k]];
-
       for (int t = s + 1; t < n_c; ++t) {
         int l = c_perm[beg + t];
-        tagint tag_al = atom->tag[c_atom1[l]];
-        tagint tag_bl = atom->tag[c_atom2[l]];
-
-        int sig_k = 0, sig_l = 0;
-        double invm_p = 0.0;
-        if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
-        else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
-        else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
-        else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
-        else continue;
-
         double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
-        double val = sig_k * sig_l * rkrl * invm_p;
-        lu_A[s*n_c + t] = val;
-        lu_A[t*n_c + s] = val;     // symmetric
+        double val = offdiag(k, l, rkrl);
+        if (val != 0.0) {
+          lu_A[s*n_c + t] = val;
+          lu_A[t*n_c + s] = val;     // symmetric
+        }
       }
     }
 
@@ -1865,35 +2134,19 @@ void FixIlves::correct_velocities()
       for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
       for (int s = 0; s < n_c; ++s) {
         int k = c_perm[beg + s];
-        int a = c_atom1[k];
-        int b = c_atom2[k];
-        lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
-        double vxd = v[a][0] - v[b][0];
-        double vyd = v[a][1] - v[b][1];
-        double vzd = v[a][2] - v[b][2];
-        lu_b[s] = vxd*c_rx[k] + vyd*c_ry[k] + vzd*c_rz[k];
+        lu_A[s*n_c + s] = diag_factor(k) * c_rsq[k];
+        lu_b[s] = velocity_rhs(k);
       }
       for (int s = 0; s < n_c; ++s) {
         int k = c_perm[beg + s];
-        double invma_k = c_invma[k];
-        double invmb_k = c_invmb[k];
-        tagint tag_ak = atom->tag[c_atom1[k]];
-        tagint tag_bk = atom->tag[c_atom2[k]];
         for (int t = s + 1; t < n_c; ++t) {
           int l = c_perm[beg + t];
-          tagint tag_al = atom->tag[c_atom1[l]];
-          tagint tag_bl = atom->tag[c_atom2[l]];
-          int sig_k = 0, sig_l = 0;
-          double invm_p = 0.0;
-          if      (tag_ak == tag_al) { sig_k = +1; sig_l = +1; invm_p = invma_k; }
-          else if (tag_ak == tag_bl) { sig_k = +1; sig_l = -1; invm_p = invma_k; }
-          else if (tag_bk == tag_al) { sig_k = -1; sig_l = +1; invm_p = invmb_k; }
-          else if (tag_bk == tag_bl) { sig_k = -1; sig_l = -1; invm_p = invmb_k; }
-          else continue;
           double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
-          double val = sig_k * sig_l * rkrl * invm_p;
-          lu_A[s*n_c + t] = val;
-          lu_A[t*n_c + s] = val;
+          double val = offdiag(k, l, rkrl);
+          if (val != 0.0) {
+            lu_A[s*n_c + t] = val;
+            lu_A[t*n_c + s] = val;
+          }
         }
       }
       info = lu_factor_solve(n_c);
@@ -1902,27 +2155,42 @@ void FixIlves::correct_velocities()
       error->one(FLERR, "Fix ilves: singular velocity-correction matrix in cluster {} "
                  "(size {}).  Check for degenerate constraint topology.", c, n_c);
 
-    // apply: v[a] -= mu_k/m_a * r_k, v[b] += mu_k/m_b * r_k.
-    // Both c_atom1 and c_atom2 may be ghosts for cluster-completion
-    // constraints; route to local owner via atom->map(tag).
+    // apply: v[p] += w_p * mu_k * (1/m_p) * (-r_k) for each participating
+    // atom.  Note the OVERALL sign flips relative to the position solve:
+    // the velocity rhs g_k uses +r_k for the v-dot-r convention, while
+    // the constraint Jacobian is the same as for the position update.
+    // Net effect for atom_p: dv = -w_p * mu_k / m_p * r_k.  For 2-atom
+    // this reduces to v[a] -= mu * (1/m_a) * r_k and v[b] += mu *
+    // (1/m_b) * r_k as in the original code.
     for (int s = 0; s < n_c; ++s) {
       int k = c_perm[beg + s];
       double mu = lu_b[s];
       int a = c_atom1[k];
       int b = c_atom2[k];
+      int cc = c_atom3[k];
+      const double w_a = 1.0;
+      const double w_b = (cc < 0) ? -1.0 : -0.5;
+      const double w_c = -0.5;
       int a_local = atom->map(atom->tag[a]);
       int b_local = atom->map(atom->tag[b]);
+      int c_local = (cc >= 0) ? atom->map(atom->tag[cc]) : -1;
       double da = mu * c_invma[k];
       double db = mu * c_invmb[k];
+      double dc = (cc >= 0) ? mu * c_invmc[k] : 0.0;
       if (a_local >= 0 && a_local < nlocal) {
-        v[a_local][0] -= da * c_rx[k];
-        v[a_local][1] -= da * c_ry[k];
-        v[a_local][2] -= da * c_rz[k];
+        v[a_local][0] -= w_a * da * c_rx[k];
+        v[a_local][1] -= w_a * da * c_ry[k];
+        v[a_local][2] -= w_a * da * c_rz[k];
       }
       if (b_local >= 0 && b_local < nlocal) {
-        v[b_local][0] += db * c_rx[k];
-        v[b_local][1] += db * c_ry[k];
-        v[b_local][2] += db * c_rz[k];
+        v[b_local][0] -= w_b * db * c_rx[k];
+        v[b_local][1] -= w_b * db * c_ry[k];
+        v[b_local][2] -= w_b * db * c_rz[k];
+      }
+      if (cc >= 0 && c_local >= 0 && c_local < nlocal) {
+        v[c_local][0] -= w_c * dc * c_rx[k];
+        v[c_local][1] -= w_c * dc * c_ry[k];
+        v[c_local][2] -= w_c * dc * c_rz[k];
       }
     }
   }
@@ -1954,9 +2222,17 @@ void FixIlves::end_of_step()
   for (int k = 0; k < n_constr; ++k) {
     int a = c_atom1[k];
     int b = c_atom2[k];
-    double rx = x[a][0] - x[b][0];
-    double ry = x[a][1] - x[b][1];
-    double rz = x[a][2] - x[b][2];
+    int c = c_atom3[k];
+    double rx, ry, rz;
+    if (c < 0) {
+      rx = x[a][0] - x[b][0];
+      ry = x[a][1] - x[b][1];
+      rz = x[a][2] - x[b][2];
+    } else {
+      rx = x[a][0] - 0.5*(x[b][0] + x[c][0]);
+      ry = x[a][1] - 0.5*(x[b][1] + x[c][1]);
+      rz = x[a][2] - 0.5*(x[b][2] + x[c][2]);
+    }
     domain->minimum_image(FLERR, rx, ry, rz);
     c_rx[k]  = rx;
     c_ry[k]  = ry;
@@ -2032,54 +2308,92 @@ void FixIlves::min_post_force(int vflag)
   for (int k = 0; k < n_constr; ++k) {
     int a = c_atom1[k];
     int b = c_atom2[k];
+    int cc = c_atom3[k];
     tagint ta = tag[a], tb = tag[b];
+    tagint tc = (cc >= 0) ? tag[cc] : 0;
 
-    // global dedup: only the rank locally owning the lower-tag atom of
+    // global dedup: only the rank locally owning the lowest-tag atom of
     // the constraint accounts for it (otherwise both ranks of a mirrored
     // cross-rank cluster would double-count this constraint's harmonic
-    // restraint energy and the minimizer would see double its strength)
+    // restraint energy and the minimizer would see double its strength).
+    // 3-atom B-M extends the test to the lowest of all three tags.
     tagint t_lower = (ta < tb) ? ta : tb;
+    if (cc >= 0 && tc < t_lower) t_lower = tc;
     int lower_local = atom->map(t_lower);
     if (lower_local < 0 || lower_local >= nlocal) continue;
 
     int a_local = atom->map(ta);
     int b_local = atom->map(tb);
+    int c_local = (cc >= 0) ? atom->map(tc) : -1;
 
-    double dx = x[a][0] - x[b][0];
-    double dy = x[a][1] - x[b][1];
-    double dz = x[a][2] - x[b][2];
+    // r_k = (x[a]-x[b]) for 2-atom or (x[B] - (x[A]+x[C])/2) for 3-atom
+    double dx, dy, dz;
+    if (cc < 0) {
+      dx = x[a][0] - x[b][0];
+      dy = x[a][1] - x[b][1];
+      dz = x[a][2] - x[b][2];
+    } else {
+      dx = x[a][0] - 0.5*(x[b][0] + x[cc][0]);
+      dy = x[a][1] - 0.5*(x[b][1] + x[cc][1]);
+      dz = x[a][2] - 0.5*(x[b][2] + x[cc][2]);
+    }
     domain->minimum_image(FLERR, dx, dy, dz);
     double r = sqrt(dx*dx + dy*dy + dz*dz);
     double dr = r - c_dist[k];
     double rk = kbond * dr;
     double fbond = (r > 0.0) ? -2.0 * rk / r : 0.0;
     double eb = rk * dr;
+    // gradient weights at each atom (sum is zero, so the harmonic force
+    // exerts no net momentum on the trio).
+    const double w_a = 1.0;
+    const double w_b = (cc < 0) ? -1.0 : -0.5;
+    const double w_c = -0.5;
+    // energy share per local atom: 1/n_atoms when all are local.  Matches
+    // the 2-atom half-half split when cc < 0.
+    const double e_share = (cc < 0) ? 0.5 : (1.0/3.0);
 
-    int atomlist[2];
+    int atomlist[3];
     int count = 0;
     if (a_local >= 0 && a_local < nlocal) {
-      f[a_local][0] += dx * fbond; f[a_local][1] += dy * fbond; f[a_local][2] += dz * fbond;
+      f[a_local][0] += w_a * dx * fbond;
+      f[a_local][1] += w_a * dy * fbond;
+      f[a_local][2] += w_a * dz * fbond;
       if (store_flag) {
-        fstore[a_local][0] += dx * fbond;
-        fstore[a_local][1] += dy * fbond;
-        fstore[a_local][2] += dz * fbond;
+        fstore[a_local][0] += w_a * dx * fbond;
+        fstore[a_local][1] += w_a * dy * fbond;
+        fstore[a_local][2] += w_a * dz * fbond;
       }
       atomlist[count++] = a_local;
-      ebond += 0.5 * eb;
+      ebond += e_share * eb;
     }
     if (b_local >= 0 && b_local < nlocal) {
-      f[b_local][0] -= dx * fbond;
-      f[b_local][1] -= dy * fbond;
-      f[b_local][2] -= dz * fbond;
+      f[b_local][0] += w_b * dx * fbond;
+      f[b_local][1] += w_b * dy * fbond;
+      f[b_local][2] += w_b * dz * fbond;
       if (store_flag) {
-        fstore[b_local][0] -= dx * fbond;
-        fstore[b_local][1] -= dy * fbond;
-        fstore[b_local][2] -= dz * fbond;
+        fstore[b_local][0] += w_b * dx * fbond;
+        fstore[b_local][1] += w_b * dy * fbond;
+        fstore[b_local][2] += w_b * dz * fbond;
       }
       atomlist[count++] = b_local;
-      ebond += 0.5 * eb;
+      ebond += e_share * eb;
     }
-    if (evflag) {
+    if (cc >= 0 && c_local >= 0 && c_local < nlocal) {
+      f[c_local][0] += w_c * dx * fbond;
+      f[c_local][1] += w_c * dy * fbond;
+      f[c_local][2] += w_c * dz * fbond;
+      if (store_flag) {
+        fstore[c_local][0] += w_c * dx * fbond;
+        fstore[c_local][1] += w_c * dy * fbond;
+        fstore[c_local][2] += w_c * dz * fbond;
+      }
+      atomlist[count++] = c_local;
+      ebond += e_share * eb;
+    }
+    if (evflag && cc < 0) {
+      // 2-atom virial tally only.  Skipping 3-atom B-M here is
+      // consistent with apply_constraint_forces(): the constraint has
+      // no canonical "pair" virial form and the net force vanishes.
       bond_v[0] = 0.5 * dx*dx * fbond;
       bond_v[1] = 0.5 * dy*dy * fbond;
       bond_v[2] = 0.5 * dz*dz * fbond;
@@ -2089,8 +2403,9 @@ void FixIlves::min_post_force(int vflag)
       ev_tally(count, atomlist, 2.0, eb, bond_v);
     }
 
-    // statistics
-    if (output_every) {
+    // statistics.  For 3-atom B-M we do not pollute the per-type angle
+    // stats (which report the A-C virtual distance for that angle type).
+    if (output_every && cc < 0) {
       int t = c_type[k];
       if (t > 0) {
         b_count[t]++;
@@ -2118,7 +2433,7 @@ double FixIlves::memory_usage()
   bytes += (double) atom->nmax * sizeof(int);          // ilves_flag
   bytes += (double) atom->nmax * 3 * sizeof(double);   // xshake
   if (store_flag) bytes += (double) maxstore * 3 * sizeof(double);
-  bytes += (double) max_constr * (4*sizeof(int) + 2*sizeof(double));
+  bytes += (double) max_constr * (5*sizeof(int) + 3*sizeof(double));
   return bytes;
 }
 
@@ -2238,18 +2553,24 @@ bigint FixIlves::dof(int igroup)
   for (int k = 0; k < n_constr; ++k) {
     int a = c_atom1[k];
     int b = c_atom2[k];
+    int cc = c_atom3[k];
     tagint ta = tag[a], tb = tag[b];
+    tagint tc = (cc >= 0) ? tag[cc] : 0;
     tagint t_lower = (ta < tb) ? ta : tb;
+    if (cc >= 0 && tc < t_lower) t_lower = tc;
     int lower_local = atom->map(t_lower);
     if (lower_local < 0 || lower_local >= nlocal_now) continue;     // partner rank counts it
 
-    // group filter: need both atoms in group.  Use whichever local copies
-    // are available (ghost mask is valid too via comm shells).
+    // group filter: need all participating atoms in group.  Use whichever
+    // local copies are available (ghost mask is valid too via comm shells).
     int a_local = atom->map(ta);
     int b_local = atom->map(tb);
+    int c_local = (cc >= 0) ? atom->map(tc) : 0;
     if (a_local < 0 || b_local < 0) continue;
+    if (cc >= 0 && c_local < 0) continue;
     if (!(mask[a_local] & gbit)) continue;
     if (!(mask[b_local] & gbit)) continue;
+    if (cc >= 0 && !(mask[c_local] & gbit)) continue;
     ++n;
   }
   bigint nall;
@@ -2294,6 +2615,13 @@ void FixIlves::stats()
   const int nlocal_now = atom->nlocal;
   tagint *tag = atom->tag;
   for (int k = 0; k < n_constr; ++k) {
+    // Skip 3-atom B-M virtual constraints from per-type stats.  Their
+    // length (|B-M|, the median to A-C) is geometrically different from
+    // the angle's reported A-C virtual distance; mixing them would make
+    // the per-angle-type stats line meaningless.  The A-C virtual entry
+    // for the same angle is still counted via its 2-atom path.
+    if (c_atom3[k] >= 0) continue;
+
     int a = c_atom1[k];
     int b = c_atom2[k];
     tagint ta = tag[a], tb = tag[b];

@@ -32,6 +32,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <unordered_set>
 #include <vector>
 
 using namespace LAMMPS_NS;
@@ -422,6 +423,49 @@ void FixIlvesGlobal::build_constraint_list()
   };
 
   // -----------------------------------------------------------------
+  // Pre-phase: for near-linear angle types, identify the bond legs we
+  // will SKIP in Phase A (the one between B and the higher-tag endpoint
+  // of {A,C}).  We do this here, before the bond loop, so Phase A can
+  // cheaply test each candidate bond against the drop set.
+  //
+  // Stored as (lo_tag, hi_tag) keys with lo < hi to match the canonical
+  // ordering of gb_a / gb_b.  Only bonds whose flanking angle has
+  // angle_linear[at]==1 AND whose other flanking bond is constrained
+  // get a slot here -- mirroring the conditions Phase B uses below.
+  // -----------------------------------------------------------------
+  struct PairHash {
+    size_t operator()(const std::pair<tagint,tagint> &p) const noexcept {
+      return std::hash<tagint>()(p.first) ^ (std::hash<tagint>()(p.second) << 1);
+    }
+  };
+  std::unordered_set<std::pair<tagint,tagint>, PairHash> dropped_bonds;
+  if (has_angle) {
+    const int na_global_pre = (int) ga1.size();
+    for (int gi = 0; gi < na_global_pre; ++gi) {
+      int at = ga_type[gi];
+      if (at <= 0 || at > atom->nangletypes) continue;
+      if (!angle_flag[at]) continue;
+      if (!angle_linear[at]) continue;
+
+      tagint t1 = ga1[gi];     // lower-tag endpoint
+      tagint t2 = ga2[gi];     // middle (B)
+      tagint t3 = ga3[gi];     // higher-tag endpoint
+
+      // Both flanking bonds must be constrained for the angle to be
+      // emitted -- otherwise Phase B wouldn't touch it and the drop set
+      // would silently disable a wanted bond.
+      if (!bond_is_constrained(t2, t1)) continue;
+      if (!bond_is_constrained(t2, t3)) continue;
+
+      // Drop the bond to the higher-tag endpoint (t3).  In gb_a/gb_b
+      // canonical order, lo = min(t2, t3), hi = max(t2, t3).
+      tagint lo = (t2 < t3) ? t2 : t3;
+      tagint hi = (t2 < t3) ? t3 : t2;
+      dropped_bonds.emplace(lo, hi);
+    }
+  }
+
+  // -----------------------------------------------------------------
   // Phase A: bond constraints from clusters I'm in
   // -----------------------------------------------------------------
   const int nb_global = (int) gb_a.size();
@@ -432,6 +476,13 @@ void FixIlvesGlobal::build_constraint_list()
     tagint tb = gb_b[gi];
 
     if (!in_my_cluster(ta) && !in_my_cluster(tb)) continue;
+
+    // Drop the redundant leg of any near-linear angle that touches both
+    // ends of this bond.  The B-M virtual constraint (emitted in Phase
+    // B) plus the retained A-B leg and A-C virtual together determine
+    // |B-C| geometrically, so adding the B-C bond again would make the
+    // Jacobian rank-deficient (the very condition we're trying to fix).
+    if (!dropped_bonds.empty() && dropped_bonds.count({ta, tb})) continue;
 
     int a_idx, b_idx;
     if (!pick_atoms(ta, tb, a_idx, b_idx)) continue;
@@ -446,7 +497,10 @@ void FixIlvesGlobal::build_constraint_list()
   }
 
   // -----------------------------------------------------------------
-  // Phase B: angle (A-C "virtual") constraints from clusters I'm in
+  // Phase B: angle (A-C "virtual") constraints from clusters I'm in.
+  // For near-linear angle types we additionally emit a 3-atom B-M
+  // virtual constraint (handled by the alternate add_constraint signature)
+  // so that the Jacobian stays well-conditioned at theta near 180 deg.
   // -----------------------------------------------------------------
   if (has_angle) {
     const int na_global = (int) ga1.size();
@@ -482,6 +536,30 @@ void FixIlvesGlobal::build_constraint_list()
       ilves_flag[a_idx] = 1;
       ilves_flag[b_idx] = 1;
       ilves_flag[i2]    = 1;
+
+      if (angle_linear[at]) {
+        // 3-atom B-M virtual constraint.  c_atom1 = B (central),
+        // c_atom2 = A (lower tag), c_atom3 = C (higher tag).  Use
+        // closest_image so A and C are PBC-consistent with B's copy.
+        int iB = i2;
+        int iA = atom->map(t1);
+        int iC = atom->map(t3);
+        // Route ownership to a local copy of B if available so the
+        // constraint's c_atom1 is local (consistent with the 2-atom
+        // ownership rule); if B is ghost-only, fall back to its ghost.
+        // This rank still owns the constraint matrix entry for cluster
+        // completion in the redundant-solve global variant.
+        int iB_local = atom->map(t2);
+        if (iB_local >= 0) iB = iB_local;
+        // Canonicalize ghost images of A and C relative to B's copy so
+        // x[A], x[C] are in the same periodic image as x[B].
+        iA = domain->closest_image(iB, iA);
+        iC = domain->closest_image(iB, iC);
+        add_constraint(iB, iA, iC, -at, angle_dBM[at]);
+        ilves_flag[iB] = 1;
+        ilves_flag[iA] = 1;
+        ilves_flag[iC] = 1;
+      }
     }
   }
 

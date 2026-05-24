@@ -22,6 +22,8 @@ PairStyle(tracker,PairTracker);
 
 #include "pair.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
 
 class PairTracker : public Pair {
@@ -59,10 +61,11 @@ class PairTracker : public Pair {
   int **type_filter;
   double tmin;
 
-  int nvalues, ncount;
+  int nvalues, nvalues_restart;
   double *output_data;
   using FnPtrPack = void (PairTracker::*)(int, int, int, double *);
   FnPtrPack *pack_choice;    // ptrs to pack functions
+  std::vector<int> saved_choices;
 
   void pack_id1(int, int, int, double *);
   void pack_id2(int, int, int, double *);

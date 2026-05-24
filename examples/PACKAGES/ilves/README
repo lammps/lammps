@@ -33,6 +33,10 @@ Both variants converge to the exact solution of the constraint
 equations; ilves uses a quasi-Newton step that is slightly cheaper
 to assemble per iteration.
 
-Files:
-  in.peptide-ilves       -- peptide-in-water test, mirrors
-                            examples/peptide/in.peptide
+Example input files:
+  in.peptide-ilves    -- peptide-in-water test with ILVES solver, mirrors examples/peptide/in.peptide
+  in.peptide-ilvesf   -- peptide-in-water test with ILVES-F solver, mirrors examples/peptide/in.peptide
+  in.peptide-mix      -- peptide-in-water test with ILVES and SHAKE for water, mirrors examples/peptide/in.peptide
+  in.peptide-shake    -- peptide-in-water test with SHAKE for comparison with same settings
+  in.peptide-rattle   -- peptide-in-water test with RATTLE for comparison with same settings
+  in.peptide-allbonds -- peptide-in-water test with ILVES solver, *all* bonds are constrained

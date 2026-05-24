@@ -1,5 +1,4 @@
-# Solvated 5-mer peptide -- ILVES constraint solver
-# (mirror of examples/peptide/in.peptide using fix ilves)
+# Solvated 5-mer peptide -- RATTLE constraint solver, for comparison
 
 units           real
 atom_style      full
@@ -26,6 +25,6 @@ fix             1 all nvt temp 275.0 275.0 100.0 tchain 1
 group           peptide type <= 12
 group           waters  type > 12
 
-fix             cstr all ilves 0.00001 20 100 b 4 6 8 10 12 14 18 a 31 variant ilves
+fix             cstr all rattle 0.00001 20 100 b 4 6 8 10 12 14 18 a 31
 
 run             300

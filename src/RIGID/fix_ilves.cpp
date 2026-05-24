@@ -842,15 +842,23 @@ void FixIlves::gather_global_topology()
    Helper: is a bond between atoms with tags ta and tb selected by the
    current b/t/m criteria?  Uses local atom data; both atoms must be at
    least locally accessible (own copy or ghost).
+
+   Reads atom->type / atom->mass / atom->rmass directly rather than the
+   cached member pointers because this is also called from init() (via
+   negate_constrained_topology -> bond_is_constrained_global) where the
+   member pointers have not yet been refreshed.
 ------------------------------------------------------------------------- */
 
 bool FixIlves::bond_selected_for_atoms(int ia, int ib, int bt)
 {
   if (bond_flag[bt]) return true;
-  if (type_flag[type[ia]] || type_flag[type[ib]]) return true;
+  int *atype     = atom->type;
+  double *amass  = atom->mass;
+  double *armass = atom->rmass;
+  if (type_flag[atype[ia]] || type_flag[atype[ib]]) return true;
   if (nmass) {
-    double mia = rmass ? rmass[ia] : mass[type[ia]];
-    double mib = rmass ? rmass[ib] : mass[type[ib]];
+    double mia = armass ? armass[ia] : amass[atype[ia]];
+    double mib = armass ? armass[ib] : amass[atype[ib]];
     if (masscheck(mia) || masscheck(mib)) return true;
   }
   return false;

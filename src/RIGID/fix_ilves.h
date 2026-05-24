@@ -11,20 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
-// clang-format off
-FixStyle(ilves,FixIlves);
-// clang-format on
-#else
-
 #ifndef LMP_FIX_ILVES_H
 #define LMP_FIX_ILVES_H
 
 #include "fix.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
+
+// Abstract base class for the ILVES bond/angle constraint solver.
+// Concrete subclasses (FixIlvesLocal, FixIlvesGlobal) supply the
+// constraint-discovery strategy via the three protected pure-virtual
+// hooks (init_topology, build_constraint_list, bond_is_constrained).
+// The base owns the flat per-rank constraint list plus all solver,
+// communication, and bookkeeping code.
 
 class FixIlves : public Fix {
 
@@ -91,7 +90,7 @@ class FixIlves : public Fix {
   int *ilves_flag;    // 1 if atom participates in any constrained bond/angle
   double **xshake;    // working buffer for unconstrained-then-projected coords
 
-  // flat constraint list (rebuilt each reneighbor)
+  // flat constraint list (rebuilt each reneighbor by the derived class)
   // c_atom1[k] is always a local atom (< nlocal) for ownership uniqueness
   // c_atom2[k] is local or ghost
   int n_constr;
@@ -113,7 +112,7 @@ class FixIlves : public Fix {
   double *c_invma, *c_invmb;     // inverse masses of a_k, b_k
 
   // cluster grouping (built alongside connected components in build_constraint_list)
-  int *cluster_offset;           // size n_clusters+1, CSR-style ranges into c_perm[]
+  int *cluster_offset;           // size n_clusters+1, CSR-style ranges into c_perm
   int *c_perm;                   // size n_constr; c_perm[s] = global constraint id at slot s
   int *c_slot;                   // size n_constr; inverse map: c_slot[k] = slot of constraint k
 
@@ -142,48 +141,50 @@ class FixIlves : public Fix {
   double *a_ave, *a_max, *a_min;
   double *a_ave_all, *a_max_all, *a_min_all;
 
-  // remember vflag from post_force for end-of-step bookkeeping (Phase 2+)
+  // remember vflag from post_force for end-of-step bookkeeping
   int vflag_post_force;
   int eflag_pre_reverse;
 
   // selector for pack_forward_comm: 0 = pack xshake, 1 = pack atom->v
   int comm_mode;
 
-  // Global bond / angle topology, gathered once at init.  Used to build the
-  // local constraint list so that every rank with at least one atom of a
-  // bond / angle picks it up -- this makes the solver correct under MPI
-  // for both newton on and newton off, even when bond storage is one-sided.
-  // Encoded as (lower-tag, higher-tag, type) for bonds and as
-  // (atom1_tag, mid_tag, atom3_tag, type) for angles, sorted and deduplicated.
-  std::vector<tagint> gb_a, gb_b;
-  std::vector<int> gb_type;
-  std::vector<tagint> ga1, ga2, ga3;
-  std::vector<int> ga_type;
-  bool global_topology_ready;
+  // counters incremented per cluster-solve; reported on rank 0 when
+  // output_every > 0 so the user sees how often we fall back to LU.
+  bigint chol_calls, chol_fallbacks;
 
-  // global cluster-ID for every tag involved in any bond/angle.
-  // tag_to_cluster_tag[i] = representative tag of the cluster that
-  // global tag (i+1) belongs to.  Tags that don't belong to any cluster
-  // get -1.  Sized to atom->natoms+1 (indexed 1..natoms).
-  // This lets every rank quickly find which clusters intersect its
-  // local atoms, and pull in ALL constraints from those clusters --
-  // including constraints between two ghosts (needed for cluster
-  // completeness when the cluster spans multiple ranks).
-  std::vector<tagint> tag_cluster;     // size natoms+1; -1 if no cluster
+  // ---- pure virtual hooks (variant-specific) ----
 
-  // helpers
-  void gather_global_topology();
-  void build_constraint_list();
-  void group_by_cluster();
-  void precompute_constraint_data();
+  // Variant-specific one-time topology setup at init.  The local variant
+  // performs a local sanity scan and computes angle_distance from local
+  // angle storage; the global variant gathers the full bond/angle table
+  // and computes angle_distance from it.  Called once from FixIlves::init()
+  // after bond_distance[] has been filled.
+  virtual void init_topology() = 0;
+
+  // Variant-specific construction of the per-rank flat constraint list
+  // (c_atom1/c_atom2/c_type/c_dist).  Called from post_neighbor.  The
+  // implementation is expected to call grow_constraint_list / add_constraint
+  // and then group_by_cluster + precompute_constraint_data at the end.
+  virtual void build_constraint_list() = 0;
+
+  // Variant-specific query: is the bond between global tags (ta, tb)
+  // selected for constraint?  Used by negate_constrained_topology to
+  // decide which angle entries to negate (both flanking bonds must be
+  // themselves constrained).  Implementations may assume both atoms are
+  // reachable locally (own or ghost).
+  virtual bool bond_is_constrained(tagint ta, tagint tb) = 0;
+
+  // ---- shared helpers used by derived classes ----
+
   void grow_constraint_list(int);
   void add_constraint(int a, int b, int btype, double dist);
+  void group_by_cluster();
+  void precompute_constraint_data();
   int masscheck(double massone);
-  void negate_constrained_topology();
-  int bondtype_findset(int i, tagint n1, tagint n2, int setflag);
-  int angletype_findset(int i, tagint n1, tagint n2, int setflag);
   bool bond_selected_for_atoms(int ia, int ib, int bt);
-  bool bond_is_constrained_global(tagint ta, tagint tb);
+
+  void negate_constrained_topology();
+
   // ilves variant: 0 = symmetric (use r.r in off-diagonals -> approx Jacobian)
   //                1 = structurally-symmetric (use s.r -> exact Newton)
   // Both converge to the exact solution of the constraint equations.
@@ -200,16 +201,28 @@ class FixIlves : public Fix {
   // (matrix is not SPD -- typically a degenerate constraint cluster); the
   // caller falls back to lu_factor_solve in that case.
   int chol_factor_solve(int n);
-  // counters incremented per cluster-solve; reported on rank 0 when
-  // output_every > 0 so the user sees how often we fall back to LU.
-  bigint chol_calls, chol_fallbacks;
   bool solve_constraints();
-  void apply_constraint_forces(int vflag);
-  void correct_coordinates(int vflag);
-  void correct_velocities();
+  virtual void apply_constraint_forces(int vflag);
+  virtual void correct_coordinates(int vflag);
+  virtual void correct_velocities();
+
+  // Per-iteration xshake sync hook inside solve_constraints.  The global
+  // variant calls comm->forward_comm to keep ghost xshake in sync across
+  // ranks doing redundant cluster solves; the local variant (which uses
+  // single-rank cluster ownership) overrides this to a no-op, because
+  // each owner maintains the ghost xshake locally and the leaves' owners
+  // don't need to be updated.
+  virtual void sync_xshake();
+
+  // Should the cluster owner update ghost atoms' xshake during Newton
+  // iteration?  True for the local variant (single-rank cluster
+  // ownership: the owner maintains the cluster's ghost positions
+  // locally because the ghost-owners don't process the cluster).
+  // False for the global variant (redundant solve: ghost xshake gets
+  // overwritten by forward_comm anyway).
+  virtual bool update_ghost_xshake() const { return false; }
 };
 
 }    // namespace LAMMPS_NS
 
-#endif
 #endif

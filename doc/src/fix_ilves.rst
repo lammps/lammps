@@ -1,17 +1,21 @@
-.. index:: fix ilves
+.. index:: fix ilves/local
+.. index:: fix ilves/global
 
-fix ilves command
-=================
+fix ilves/local command
+=======================
+
+fix ilves/global command
+========================
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID ilves tol iter N selectors ... [keyword args ...]
+   fix ID group-ID style tol iter N selectors ... [keyword args ...]
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* ilves = style name of this fix command
+* style = *ilves/local* or *ilves/global*
 * tol = convergence tolerance on relative bond-length error
   (``|g_k| / d_k^2`` where ``g_k = 0.5*(|s_k|^2 - d_k^2)``)
 * iter = maximum number of Newton iterations per time step
@@ -45,9 +49,9 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all ilves 1.0e-4 25 100 b 4 6 8 10 12 14 18 a 31
-   fix 2 wat ilves 1.0e-6 30 1000 t 1 m 1.008 store yes
-   fix 3 all ilves 1.0e-5 20 0 b 1 a 1 variant ilves
+   fix 1 all ilves/global 1.0e-4 25 100 b 4 6 8 10 12 14 18 a 31
+   fix 2 wat ilves/local  1.0e-6 30 1000 t 1 m 1.008 store yes
+   fix 3 all ilves/global 1.0e-5 20 0 b 1 a 1 variant ilves
 
 Description
 """""""""""
@@ -62,10 +66,32 @@ equations.  Unlike :doc:`fix shake <fix_shake>`, ILVES handles arbitrarily
 large connected constraint clusters --- including the full set of C-C
 backbone bonds of a long polymer or protein chain --- in a single solve.
 
+Two variants are provided that differ in how each MPI rank discovers
+the constraint topology:
+
+* ``ilves/local`` builds the constraint list from each rank's own
+  bond/angle storage only.  Per-rank memory scales with the local atom
+  count, not with the total system size.  Every constraint cluster
+  must fit within a single subdomain plus the communication cutoff
+  (the atoms of the cluster must be either local or available as
+  ghosts on the rank that owns the cluster's center).  Suitable for
+  water HOH constraints, methyl/methane groups, isolated C-H bonds ---
+  any star or 1+1 topology where each cluster is short-ranged in
+  space.  Requires ``newton off bond`` (see the
+  :doc:`newton <newton>` command).
+* ``ilves/global`` gathers the complete bond / angle topology onto
+  every MPI rank at init via ``MPI_Allgatherv``.  Per-rank memory
+  therefore grows with the total system size, but the variant
+  supports constraint clusters of any topology and any spatial extent
+  --- including a polymer backbone constrained across many subdomains.
+  Use this variant when ``ilves/local`` reports a cluster larger than
+  the communication cutoff or a non-star (multi-center) cluster.
+
 User interface
 ^^^^^^^^^^^^^^
 
-The user interface follows :doc:`fix shake <fix_shake>` closely:
+The user interface follows :doc:`fix shake <fix_shake>` closely and is
+identical for both variants:
 
 * The first three arguments are the convergence tolerance, the maximum
   Newton iteration count, and the statistics-print interval.
@@ -97,8 +123,8 @@ Algorithm
 ^^^^^^^^^
 
 At each time step, after the integrator has updated positions and forces
-but before the velocity half-step finalizes, ``fix ilves`` runs the
-following sequence:
+but before the velocity half-step finalizes, the fix runs the following
+sequence:
 
 1. Predict the unconstrained position ``xshake_i = x_i + dt*v_i + dt^2/m_i * f_i``
    for every atom.
@@ -115,17 +141,26 @@ following sequence:
    ``sigma_k^p`` is +1 if atom *p* is the first atom of constraint *k*,
    -1 otherwise.  Both vectors are minimum-image-corrected for PBC.
 3. Solve ``A * dlambda = -g`` (where ``g_k = 0.5*(|s_k|^2 - d_k^2)``) by
-   dense LU decomposition with partial pivoting.
+   dense LU decomposition with partial pivoting (or Cholesky for the
+   *ilvesf* variant -- see below).
 4. Apply ``dlambda``: ``xshake[a] += dlambda/m_a * r_k``,
    ``xshake[b] -= dlambda/m_b * r_k``, accumulate the Lagrange multipliers.
-5. Forward-comm ``xshake`` to neighboring ranks; iterate steps 2-5
-   until the global max relative residual falls below ``tol`` (or
-   ``iter`` is reached).
+5. ``ilves/global``: forward-comm ``xshake`` to neighboring ranks after each
+   iteration so the redundant cluster solves on multiple participating
+   ranks stay in sync; iterate steps 2-5 until the global max relative
+   residual falls below ``tol``.
+
+   ``ilves/local``: each cluster is owned by a single rank (the rank
+   holding the cluster's star center, or the lower-tag endpoint of a
+   1+1 pair).  The owner runs Newton iteration using the local plus
+   ghost-cell view; no per-iteration ``forward_comm`` is needed.
 6. Convert the accumulated multipliers into per-atom forces
    ``f[a] += lambda/dt^2 * r_k``, ``f[b] -= lambda/dt^2 * r_k`` so that
    the next initial_integrate produces the constrained positions.
+   ``ilves/local`` runs ``reverse_comm`` to deliver the constraint
+   contributions on ghost atoms back to their owners' local atom.
 
-After the integrator's final_integrate step, ``end_of_step`` runs the
+After the integrator's ``final_integrate`` step, ``end_of_step`` runs the
 RATTLE-style velocity projection: solve a similar (symmetric) linear
 system to remove the component of relative atom velocity along each
 constrained bond direction.
@@ -164,83 +199,113 @@ virial, and the per-atom energy / per-atom virial of the system.
 No information about this fix is written to :doc:`binary restart files
 <restart>` because the constraint topology is rebuilt from
 ``atom->bond_atom`` / ``atom->angle_atom`` at the first reneighbor after
-restart.  If you redeclare the same ``fix ilves`` command after
-``read_restart``, the constraints are restored automatically (the
-negated bond/angle types are preserved in the restart file).
+restart.  If you redeclare the same ``fix ilves/local`` or
+``fix ilves/global`` command after ``read_restart``, the constraints are
+restored automatically (the negated bond/angle types are preserved in the
+restart file).
 
 This fix is not invoked during :doc:`energy minimization <minimize>` via
 the constraint solver; instead, strong harmonic-restraint forces
 substitute for the constraints, with spring constant ``kbond`` (see
 keyword options).
 
+Solver variants
+^^^^^^^^^^^^^^^
+
+Two solver variants are available via the ``variant`` keyword (both
+work with either ``ilves/local`` or ``ilves/global``):
+
+* ``ilvesf`` (default): symmetric Jacobian using
+  :math:`(r_k\cdot r_l)/m_p` in the off-diagonals -- a quasi-Newton
+  step that uses reference (start-of-step) bond vectors in the
+  coupling terms.  The matrix is genuinely symmetric.
+* ``ilves``: the exact Newton Jacobian using
+  :math:`(s_k\cdot r_l)/m_p` in the off-diagonals -- structurally
+  but not numerically symmetric.
+
+Both variants converge to the exact solution of the constraint
+equations.  The symmetric ``ilvesf`` variant is solved with an
+in-place Cholesky factorization (``A = L L^T``); on a 2004-atom
+peptide-in-water test with all bonds + the water HOH angle
+constrained, the Cholesky path is ~14% faster than LU on the same
+matrix in serial and ~21% faster on 4 MPI ranks.  If Cholesky
+encounters a non-positive pivot (degenerate cluster, linearly
+dependent constraints) the solver re-assembles the matrix and falls
+back to LU with partial pivoting -- the per-step ``output_every``
+stats line reports the fallback count when ``N > 0``.  The
+asymmetric ``ilves`` variant uses LU directly.  The velocity
+projection in ``end_of_step`` is also Cholesky-based (the velocity
+matrix is always symmetric regardless of variant).
+
+Choosing between ``ilves/local`` and ``ilves/global``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Prefer ``ilves/local`` whenever the constraint topology consists of
+small clusters that each fit within a single subdomain plus the
+communication cutoff:
+
+* Water HOH (2 O-H bonds + 1 H-O-H angle = 3-atom star).
+* Methyl / methane groups (C with 3 or 4 H bonds = 4/5-atom star).
+* Isolated C-H / N-H / O-H bond constraints (1+1 pairs).
+
+For these cases, ``ilves/local``:
+
+* Avoids the ``MPI_Allgatherv`` of the global topology at init.
+* Stores no ``natoms``-sized cluster-tag table.
+* Uses single-rank cluster ownership, eliminating redundant per-cluster
+  Newton solves on neighboring ranks.
+
+Choose ``ilves/global`` when:
+
+* A cluster is genuinely large -- e.g., constraining every backbone
+  C-C bond of a polymer or protein, so the cluster's atoms span
+  multiple subdomains.
+* You want to constrain non-star cluster topologies (rare; most
+  hydrogen-only constraints form stars).
+* Convenience: the global variant does not require
+  ``newton off bond`` and handles arbitrary cluster topologies
+  without preconditions on the simulation setup.
+
 .. note::
 
-   The implementation gathers the complete bond/angle topology onto
-   every MPI rank at init (one ``MPI_Allgatherv`` for bonds and one
-   for angles), then on each rank includes every constraint that
-   belongs to a cluster intersecting at least one local atom -- even
-   constraints between two ghost atoms.  This ensures all participating
-   ranks of a cross-rank cluster compute the same Lagrange multipliers
-   from synchronized positions, and each rank applies the constraint
-   force only to its local atoms.  Both ``newton on`` and ``newton off``
-   are supported without loss of accuracy.
-
-   Two solver variants are available via the ``variant`` keyword:
-
-   * ``ilvesf`` (default): symmetric Jacobian using
-     :math:`(r_k\cdot r_l)/m_p` in the off-diagonals -- a quasi-Newton
-     step that uses reference (start-of-step) bond vectors in the
-     coupling terms.  The matrix is genuinely symmetric.
-   * ``ilves``: the exact Newton Jacobian using
-     :math:`(s_k\cdot r_l)/m_p` in the off-diagonals -- structurally
-     but not numerically symmetric.
-
-   Both variants converge to the exact solution of the constraint
-   equations.  The symmetric ``ilvesf`` variant is solved with an
-   in-place Cholesky factorization (``A = L L^T``); on a 2004-atom
-   peptide-in-water test with all bonds + the water HOH angle
-   constrained, the Cholesky path is ~14% faster than LU on the same
-   matrix in serial and ~21% faster on 4 MPI ranks.  If Cholesky
-   encounters a non-positive pivot (degenerate cluster, linearly
-   dependent constraints) the solver re-assembles the matrix and falls
-   back to LU with partial pivoting -- the per-step ``output_every``
-   stats line reports the fallback count when ``N > 0``.  The
-   asymmetric ``ilves`` variant uses LU directly.  The velocity
-   projection in ``end_of_step`` is also Cholesky-based (the velocity
-   matrix is always symmetric regardless of variant).
-
-.. warning::
-
-   **Memory scaling.**  Because the constrained-bond and constrained-angle
-   topology is replicated on every MPI rank, the per-rank memory footprint
-   of ``fix ilves`` grows with the total number of constrained bonds and
-   angles in the system, not with the number of constraints local to each
-   rank.  In addition, the cluster-tag lookup table is currently sized to
-   ``atom->natoms+1`` entries.  For very large simulations (tens of
-   millions of atoms or more) this replication can become the dominant
-   memory cost of the fix and may exceed available memory at high rank
-   counts.  For systems in that size range, prefer
-   :doc:`fix shake <fix_shake>` -- which only ever stores constraint data
-   for atoms (and their immediate neighbors) owned by each rank -- unless
-   the constraint clusters are too large for SHAKE to handle (e.g. an
-   entire long polymer backbone constrained in a single cluster).  A
-   ghost-atom-scoped distribution that removes this limitation is
-   planned for a future revision.
+   Each rank in ``ilves/global`` gathers the complete bond / angle
+   topology and stores it in replicated tables.  In addition, a
+   cluster-tag lookup table of size ``atom->natoms+1`` is allocated.
+   For very large simulations (tens of millions of atoms or more)
+   this replication can exceed available memory at high rank counts.
+   Prefer ``ilves/local`` or :doc:`fix shake <fix_shake>` in that
+   regime unless the cluster topology really requires the global
+   variant.
 
 Restrictions
 """"""""""""
 
-This fix is part of the RIGID package.  It is only enabled if LAMMPS was
-built with that package.  See the :doc:`Build package <Build_package>`
-doc page for more info.
+These fixes are part of the RIGID package.  They are only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 The molecular topology (bonds, optionally angles) must be defined; an
 :doc:`atom_style <atom_style>` such as *full*, *molecular*, or *bond* is
 required.
 
-Only one ``fix ilves`` instance may be defined.  ``fix ilves`` and
-:doc:`fix shake <fix_shake>` must not be used together for overlapping
-sets of constrained bonds.
+Only one ``fix ilves/*`` instance may be defined at a time
+(``ilves/local`` and ``ilves/global`` may not be combined).
+``fix ilves/*`` and :doc:`fix shake <fix_shake>` must not be used
+together for overlapping sets of constrained bonds.
+
+``fix ilves/local`` additionally requires:
+
+* ``newton off bond`` (use the :doc:`newton <newton>` command).
+* Every constraint cluster must fit within this rank's local subdomain
+  plus the communication cutoff.  Cluster atoms unreachable as either
+  a local atom or a ghost trigger a hard error at the first neighbor
+  build; switch to ``ilves/global`` or enlarge the cutoff via
+  ``comm_modify cutoff <value>``.
+* Cluster topology must be a star (one central atom with k bonds to
+  leaves, k >= 1) or a 1+1 pair (single bond).  Multi-center clusters
+  (e.g. constraining an interior C-C bond of a polymer chain with
+  multiple branching points) are rejected with an error message
+  recommending ``ilves/global``.
 
 Related commands
 """"""""""""""""

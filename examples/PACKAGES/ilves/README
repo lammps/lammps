@@ -1,42 +1,47 @@
-Examples for the ILVES bond/angle constraint solver (fix ilves).
+Examples for the ILVES bond/angle constraint solver.
 
-These inputs mirror the standard examples/peptide setup but use
-fix ilves instead of fix shake to apply rigid bond / virtual-angle
-constraints.  The same selectors (b/a/t/m) are accepted, so the
-fix shake usage:
+The ILVES solver comes in two variants:
+
+  * fix ilves/global -- gathers the complete bond/angle topology onto
+    every MPI rank at init.  Per-rank memory scales with the total
+    system size, but the variant handles arbitrarily large connected
+    constraint clusters (e.g. all C-C backbone bonds of a long polymer
+    chain in a single cluster).
+
+  * fix ilves/local  -- builds the constraint list from each rank's
+    own bond/angle storage only; no global topology gather, no
+    natoms-sized cluster table.  Every constraint cluster must fit
+    within a single subdomain plus the communication cutoff, and the
+    cluster topology must be star-shaped (one central atom with k
+    leaves) or a 1+1 pair.  Requires "newton off bond".  Suitable for
+    water HOH constraints, methyl / methane groups, isolated C-H bonds
+    -- the common ILVES use cases.
+
+Both variants accept the same selectors (b/a/t/m) and keywords
+(kbond, store, variant) as fix shake.  So the fix shake usage:
 
     fix cstr all shake 1.0e-4 25 0 b 4 6 8 10 12 14 18 a 31
 
-becomes:
+becomes either:
 
-    fix cstr all ilves 1.0e-4 25 0 b 4 6 8 10 12 14 18 a 31
-
-Unlike fix shake, fix ilves handles arbitrarily large connected
-constraint clusters (e.g. all C-C backbone bonds of a long polymer
-chain in a single cluster), not just small clusters of up to 4 atoms.
-
-fix ilves works correctly across MPI ranks for both newton on and
-newton off settings -- the constraint topology is gathered globally
-at init, and cross-rank clusters are fully replicated on every
-participating rank so that all ranks compute the same Lagrange
-multipliers and each applies the constraint force to its local
-atoms only.
+    fix cstr all ilves/global 1.0e-4 25 0 b 4 6 8 10 12 14 18 a 31
+    fix cstr all ilves/local  1.0e-4 25 0 b 4 6 8 10 12 14 18 a 31
 
 Two solver variants are available via the *variant* keyword:
-  * variant = ilves  (default): symmetric Jacobian using r_k.r_l in
-    off-diagonals; the matrix is true-symmetric (could in principle
-    be solved with Cholesky for a constant-factor speedup)
-  * variant = ilvesf : the structurally-symmetric exact Newton
-    Jacobian using s_k.r_l in off-diagonals
+  * variant = ilvesf (default): symmetric Jacobian using r_k.r_l in
+    off-diagonals; solved with in-place Cholesky.
+  * variant = ilves : the structurally-symmetric exact Newton
+    Jacobian using s_k.r_l in off-diagonals; solved with LU.
 
-Both variants converge to the exact solution of the constraint
-equations; ilves uses a quasi-Newton step that is slightly cheaper
-to assemble per iteration.
+Both converge to the exact solution of the constraint equations.
 
 Example input files:
-  in.peptide-ilves    -- peptide-in-water test with ILVES solver, mirrors examples/peptide/in.peptide
-  in.peptide-ilvesf   -- peptide-in-water test with ILVES-F solver, mirrors examples/peptide/in.peptide
-  in.peptide-mix      -- peptide-in-water test with ILVES and SHAKE for water, mirrors examples/peptide/in.peptide
-  in.peptide-shake    -- peptide-in-water test with SHAKE for comparison with same settings
-  in.peptide-rattle   -- peptide-in-water test with RATTLE for comparison with same settings
-  in.peptide-allbonds -- peptide-in-water test with ILVES solver, *all* bonds are constrained
+  in.peptide-ilves    -- peptide + water with ilves/global, exact-Newton variant
+  in.peptide-ilvesf   -- peptide + water with ilves/global, symmetric variant
+  in.peptide-local    -- peptide + water with ilves/local (newton off bond)
+  in.peptide-mix      -- peptide groups via ilves/global, water via fix shake
+  in.peptide-allbonds -- ilves/global constraining ALL bonds, demonstrating
+                         arbitrarily-large cluster support (not feasible with
+                         ilves/local, since the backbone forms a multi-hop chain)
+  in.peptide-shake    -- baseline using fix shake for comparison
+  in.peptide-rattle   -- baseline using fix rattle for comparison

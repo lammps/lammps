@@ -100,7 +100,8 @@ OPT.
    * :doc:`hmc <fix_hmc>`
    * :doc:`hyper/global <fix_hyper_global>`
    * :doc:`hyper/local <fix_hyper_local>`
-   * :doc:`ilves <fix_ilves>`
+   * :doc:`ilves/global <fix_ilves>`
+   * :doc:`ilves/local <fix_ilves>`
    * :doc:`imd <fix_imd>`
    * :doc:`indent <fix_indent>`
    * :doc:`ipi <fix_ipi>`

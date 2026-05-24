@@ -11,19 +11,30 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef FIX_CLASS
+// clang-format off
+FixStyle(ilves,FixIlves);
+// clang-format on
+#else
+
 #ifndef LMP_FIX_ILVES_H
 #define LMP_FIX_ILVES_H
 
 #include "fix.h"
 
+#include <unordered_map>
+#include <vector>
+
 namespace LAMMPS_NS {
 
-// Abstract base class for the ILVES bond/angle constraint solver.
-// Concrete subclasses (FixIlvesLocal, FixIlvesGlobal) supply the
-// constraint-discovery strategy via the three protected pure-virtual
-// hooks (init_topology, build_constraint_list, bond_is_constrained).
-// The base owns the flat per-rank constraint list plus all solver,
-// communication, and bookkeeping code.
+// ILVES bond/angle constraint solver.  Gathers the complete bond/angle
+// topology onto every MPI rank once at init via MPI_Allgatherv, then
+// builds a per-rank constraint list that includes every constraint
+// cluster intersecting at least one local atom -- even constraints
+// between two ghost atoms.  Supports arbitrary cluster topologies and
+// any spatial extent (clusters spanning many subdomains, e.g. an
+// all-backbone-constrained polymer).  The replicated topology is the
+// memory price for this generality.
 
 class FixIlves : public Fix {
 
@@ -60,7 +71,8 @@ class FixIlves : public Fix {
   double tolerance;      // convergence tolerance
   int max_iter;          // max Newton iterations
   int output_every;      // statistics print interval (0 = never)
-  int variant;           // 0 = ilves (symmetric), 1 = ilvesf (struct. symmetric)
+  int variant;           // 0 = full (asymmetric Newton, LU)
+                         // 1 = fast (symmetric quasi-Newton, banded Cholesky)
   bigint next_output;
 
   // Near-linear angle handling.  When an angle's equilibrium theta_0 is
@@ -117,9 +129,10 @@ class FixIlves : public Fix {
   int *ilves_flag;    // 1 if atom participates in any constrained bond/angle
   double **xshake;    // working buffer for unconstrained-then-projected coords
 
-  // flat constraint list (rebuilt each reneighbor by the derived class)
-  // c_atom1[k] is always a local atom (< nlocal) for ownership uniqueness
-  // c_atom2[k] is local or ghost
+  // flat constraint list (rebuilt each reneighbor)
+  // c_atom1[k] is normally a local atom (< nlocal) for ownership uniqueness;
+  // it may be a ghost for "cluster completion" entries where every atom of
+  // the constraint is a ghost on this rank.
   //
   // c_atom3[k] = -1 for ordinary 2-atom constraints.  For "B-M virtual"
   // constraints (added for near-linear angles, see linear_threshold), it
@@ -165,10 +178,10 @@ class FixIlves : public Fix {
   double *cl_sx, *cl_sy, *cl_sz; // s_k cache for the current cluster
   int largest_cluster;           // size of the largest cluster (informational)
 
-  // Per-cluster Cholesky factor cache (ILVES_FAST only).  The cluster
-  // Jacobian in ILVES_FAST is built entirely from r_k, c_rsq, and inverse
-  // masses -- all step-constant within solve_constraints() -- so its
-  // Cholesky factor can be computed once at the first Newton iteration
+  // Per-cluster Cholesky factor cache (variant "fast" only).  The cluster
+  // Jacobian in the "fast" variant is built entirely from r_k, c_rsq, and
+  // inverse masses -- all step-constant within solve_constraints() -- so
+  // its Cholesky factor can be computed once at the first Newton iteration
   // and reused (forward+back substitution only) on subsequent iterations.
   //
   // Storage is banded: cluster_bw[c] is the bandwidth of cluster c's
@@ -213,39 +226,31 @@ class FixIlves : public Fix {
   // selector for pack_forward_comm: 0 = pack xshake, 1 = pack atom->v
   int comm_mode;
 
-  // if false (local variant), stats() counts every constraint in the list
-  // without deduplication; if true (global variant), it deduplicates by
-  // lower-tag ownership because the same constraint lives on multiple ranks.
-  bool stats_dedup;
-
   // counters incremented per cluster-solve; reported on rank 0 when
   // output_every > 0 so the user sees how often we fall back to LU.
   bigint chol_calls, chol_fallbacks;
 
-  // ---- pure virtual hooks (variant-specific) ----
+  // -----------------------------------------------------------------
+  // Replicated global bond / angle topology (gathered once at init via
+  // MPI_Allgatherv).  Bonds: (lower-tag, higher-tag, type), sorted by
+  // (a, b) and deduped.  Angles: (atom1, mid, atom3, type), sorted by
+  // middle then outer atoms; only angle types listed in angle_flag[]
+  // are gathered.
+  std::vector<tagint> gb_a, gb_b;
+  std::vector<int> gb_type;
+  std::vector<tagint> ga1, ga2, ga3;
+  std::vector<int> ga_type;
+  bool global_topology_ready;
 
-  // Variant-specific one-time topology setup at init.  The local variant
-  // performs a local sanity scan and computes angle_distance from local
-  // angle storage; the global variant gathers the full bond/angle table
-  // and computes angle_distance from it.  Called once from FixIlves::init()
-  // after bond_distance[] has been filled.
-  virtual void init_topology() = 0;
+  // Global cluster-ID for every tag involved in any bond/angle.  Maps
+  // a tag to its cluster's representative tag.  Sparse: only tags that
+  // participate in at least one constrained bond or angle appear in the
+  // map.  Per-rank size is ~24-40 bytes per involved tag (unordered_map
+  // overhead), keeping memory tractable for partial-constraint systems.
+  std::unordered_map<tagint, tagint> tag_cluster;
 
-  // Variant-specific construction of the per-rank flat constraint list
-  // (c_atom1/c_atom2/c_type/c_dist).  Called from post_neighbor.  The
-  // implementation is expected to call grow_constraint_list / add_constraint
-  // and then group_by_cluster + precompute_constraint_data at the end.
-  virtual void build_constraint_list() = 0;
-
-  // Variant-specific query: is the bond between global tags (ta, tb)
-  // selected for constraint?  Used by negate_constrained_topology to
-  // decide which angle entries to negate (both flanking bonds must be
-  // themselves constrained).  Implementations may assume both atoms are
-  // reachable locally (own or ghost).
-  virtual bool bond_is_constrained(tagint ta, tagint tb) = 0;
-
-  // ---- shared helpers used by derived classes ----
-
+  // -----------------------------------------------------------------
+  // build helpers
   void grow_constraint_list(int);
   void add_constraint(int a, int b, int btype, double dist);
   // 3-atom variant: a = B (central), b = A, c = C; constraint vector is
@@ -259,21 +264,24 @@ class FixIlves : public Fix {
 
   void negate_constrained_topology();
 
-  // ilves variant: 0 = symmetric (use r.r in off-diagonals -> approx Jacobian)
-  //                1 = structurally-symmetric (use s.r -> exact Newton)
-  // Both converge to the exact solution of the constraint equations.
-  virtual void unconstrained_update();
-  virtual void stats();
+  // global topology setup
+  void init_topology();
+  void gather_global_topology();
+  void build_constraint_list();
+  bool bond_is_constrained(tagint ta, tagint tb);
+
+  void unconstrained_update();
+  void stats();
 
   // solver
   void grow_lu_workspace(int n);
   int lu_factor_solve(int n);    // 0 = success, !=0 = singular
-  // Cholesky factor + solve for symmetric positive-definite A.  Used for the
-  // ILVES_FAST position-constraint matrix (truly symmetric: r_k.r_l off-
-  // diagonals) and for the RATTLE-style velocity-projection matrix (also
-  // symmetric).  Returns 0 on success, 1 if a non-positive pivot is found
-  // (matrix is not SPD -- typically a degenerate constraint cluster); the
-  // caller falls back to lu_factor_solve in that case.
+  // Cholesky factor + solve for symmetric positive-definite A.  Used for
+  // the "fast" position-constraint matrix (truly symmetric: r_k.r_l
+  // off-diagonals) and for the RATTLE-style velocity-projection matrix
+  // (also symmetric).  Returns 0 on success, 1 if a non-positive pivot
+  // is found (matrix is not SPD -- typically a degenerate constraint
+  // cluster); the caller falls back to lu_factor_solve in that case.
   int chol_factor_solve(int n);
   // Split variants used by the cached-factor path in solve_constraints():
   // chol_factor does the in-place A = L L^T factorization on a caller-
@@ -293,7 +301,7 @@ class FixIlves : public Fix {
 
   // Resize the per-cluster banded Cholesky factor cache.  Called from
   // precompute_constraint_data() once cluster_bw[] is filled.  Only
-  // meaningful for ILVES_FAST; the dense LU path uses lu_A directly.
+  // meaningful for the "fast" variant; the dense LU path uses lu_A directly.
   void grow_factor_cache();
 
   // Run per-cluster reverse Cuthill-McKee on the constraint-adjacency
@@ -303,27 +311,12 @@ class FixIlves : public Fix {
   // precompute_constraint_data() before grow_factor_cache().
   void rcm_reorder_clusters();
   bool solve_constraints();
-  virtual void apply_constraint_forces(int vflag);
-  virtual void correct_coordinates(int vflag);
-  virtual void correct_velocities();
-
-  // Per-iteration xshake sync hook inside solve_constraints.  The global
-  // variant calls comm->forward_comm to keep ghost xshake in sync across
-  // ranks doing redundant cluster solves; the local variant (which uses
-  // single-rank cluster ownership) overrides this to a no-op, because
-  // each owner maintains the ghost xshake locally and the leaves' owners
-  // don't need to be updated.
-  virtual void sync_xshake();
-
-  // Should the cluster owner update ghost atoms' xshake during Newton
-  // iteration?  True for the local variant (single-rank cluster
-  // ownership: the owner maintains the cluster's ghost positions
-  // locally because the ghost-owners don't process the cluster).
-  // False for the global variant (redundant solve: ghost xshake gets
-  // overwritten by forward_comm anyway).
-  virtual bool update_ghost_xshake() const { return false; }
+  void apply_constraint_forces(int vflag);
+  void correct_coordinates(int vflag);
+  void correct_velocities();
 };
 
 }    // namespace LAMMPS_NS
 
+#endif
 #endif

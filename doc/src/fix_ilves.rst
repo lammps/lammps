@@ -1,21 +1,16 @@
-.. index:: fix ilves/local
-.. index:: fix ilves/global
+.. index:: fix ilves
 
-fix ilves/local command
-=======================
-
-fix ilves/global command
-========================
+fix ilves command
+=================
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style tol iter N selectors ... [keyword args ...]
+   fix ID group-ID ilves tol iter N selectors ... [keyword args ...]
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style = *ilves/local* or *ilves/global*
 * tol = convergence tolerance on relative bond-length error
   (``|g_k| / d_k^2`` where ``g_k = 0.5*(|s_k|^2 - d_k^2)``)
 * iter = maximum number of Newton iterations per time step
@@ -39,19 +34,22 @@ Syntax
              constraints with harmonic restraints during minimization
        *store* value = *yes* or *no*
          *yes* exposes per-atom constraint forces via array_atom (3 columns)
-       *variant* value = *ilves* or *ilvesf*
-         *ilves*  = full ILVES (true Newton iteration on the exact Jacobian)
-         *ilvesf* = ILVES-F (symmetric quasi-Newton, default; solved with
-                    Cholesky for ~15-20% lower solver cost than LU)
+       *variant* value = *full* or *fast*
+         *fast* = symmetric quasi-Newton with banded Cholesky (default)
+         *full* = exact-Newton (asymmetric) with LU decomposition
+       *linearangle* value = theta_deg [Lmin]
+         theta_deg = threshold in degrees (default 165)
+         Lmin      = minimum |B-M| target length (default 0.01 in length units)
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix 1 all ilves/global 1.0e-4 25 100 b 4 6 8 10 12 14 18 a 31
-   fix 2 wat ilves/local  1.0e-6 30 1000 t 1 m 1.008 store yes
-   fix 3 all ilves/global 1.0e-5 20 0 b 1 a 1 variant ilves
+   fix 1 all ilves 1.0e-4 25 100 b 4 6 8 10 12 14 18 a 31
+   fix 2 wat ilves 1.0e-6 30 1000 t 1 m 1.008 store yes
+   fix 3 all ilves 1.0e-5 20 0 b 1 a 1 variant full
+   fix 4 all ilves 1.0e-6 30 100 b 1 a 1 variant fast linearangle 170
 
 Description
 """""""""""
@@ -66,32 +64,20 @@ equations.  Unlike :doc:`fix shake <fix_shake>`, ILVES handles arbitrarily
 large connected constraint clusters --- including the full set of C-C
 backbone bonds of a long polymer or protein chain --- in a single solve.
 
-Two variants are provided that differ in how each MPI rank discovers
-the constraint topology:
-
-* ``ilves/local`` builds the constraint list from each rank's own
-  bond/angle storage only.  Per-rank memory scales with the local atom
-  count, not with the total system size.  Every constraint cluster
-  must fit within a single subdomain plus the communication cutoff
-  (the atoms of the cluster must be either local or available as
-  ghosts on the rank that owns the cluster's center).  Suitable for
-  water HOH constraints, methyl/methane groups, isolated C-H bonds ---
-  any star or 1+1 topology where each cluster is short-ranged in
-  space.  Requires ``newton off bond`` (see the
-  :doc:`newton <newton>` command).
-* ``ilves/global`` gathers the complete bond / angle topology onto
-  every MPI rank at init via ``MPI_Allgatherv``.  Per-rank memory
-  therefore grows with the total system size, but the variant
-  supports constraint clusters of any topology and any spatial extent
-  --- including a polymer backbone constrained across many subdomains.
-  Use this variant when ``ilves/local`` reports a cluster larger than
-  the communication cutoff or a non-star (multi-center) cluster.
+The fix gathers the complete bond / angle topology onto every MPI rank
+at init via ``MPI_Allgatherv`` and builds a per-rank constraint list
+that includes every cluster intersecting the rank's local atoms.  Each
+participating rank solves intersecting clusters redundantly so that the
+same Lagrange multipliers are computed from synchronized positions; the
+constraint force is applied locally to each rank's owned atoms only.
+Per-rank topology storage is sparse --- only tags involved in at least
+one selected bond or angle are kept, so the memory cost scales with the
+constrained subset rather than with ``natoms``.
 
 User interface
 ^^^^^^^^^^^^^^
 
-The user interface follows :doc:`fix shake <fix_shake>` closely and is
-identical for both variants:
+The user interface follows :doc:`fix shake <fix_shake>` closely:
 
 * The first three arguments are the convergence tolerance, the maximum
   Newton iteration count, and the statistics-print interval.
@@ -128,48 +114,142 @@ sequence:
 
 1. Predict the unconstrained position ``xshake_i = x_i + dt*v_i + dt^2/m_i * f_i``
    for every atom.
-2. For each connected constraint cluster, assemble the structurally
-   symmetric Jacobian
-
-   .. parsed-literal::
-
-       A_kk = (1/m_a + 1/m_b) * (s_k . r_k)
-       A_kl = sigma_k^p * sigma_l^p * (s_k . r_l) / m_p   (k != l, sharing atom p)
-
-   where ``r_k = x[a]-x[b]`` is the bond vector at the start of the step,
-   ``s_k = xshake[a]-xshake[b]`` is the current Newton iterate, and
-   ``sigma_k^p`` is +1 if atom *p* is the first atom of constraint *k*,
-   -1 otherwise.  Both vectors are minimum-image-corrected for PBC.
+2. For each connected constraint cluster, assemble the Jacobian and
+   compute its banded Cholesky factor (``A = L L^T``).  The clusters
+   are pre-permuted by reverse Cuthill-McKee at constraint-list build
+   time so that the band is as narrow as possible.  Storage cost is
+   ``O(n_c * bw_c)`` per cluster rather than ``O(n_c^2)`` for the dense
+   form.
 3. Solve ``A * dlambda = -g`` (where ``g_k = 0.5*(|s_k|^2 - d_k^2)``) by
-   dense LU decomposition with partial pivoting (or Cholesky for the
-   *ilvesf* variant -- see below).
-4. Apply ``dlambda``: ``xshake[a] += dlambda/m_a * r_k``,
-   ``xshake[b] -= dlambda/m_b * r_k``, accumulate the Lagrange multipliers.
-5. ``ilves/global``: forward-comm ``xshake`` to neighboring ranks after each
-   iteration so the redundant cluster solves on multiple participating
-   ranks stay in sync; iterate steps 2-5 until the global max relative
-   residual falls below ``tol``.
-
-   ``ilves/local``: each cluster is owned by a single rank (the rank
-   holding the cluster's star center, or the lower-tag endpoint of a
-   1+1 pair).  The owner runs Newton iteration using the local plus
-   ghost-cell view; no per-iteration ``forward_comm`` is needed.
+   forward and back substitution against the cached Cholesky factor.
+4. Apply ``dlambda`` to ``xshake`` and accumulate the Lagrange
+   multipliers.
+5. ``forward_comm`` ``xshake`` so the redundantly-solving ranks stay in
+   sync, and iterate steps 2-5 until the global max relative residual
+   falls below ``tol``.  Within a step, only the right-hand side ``g``
+   and the Newton iterate ``s_k = xshake[a] - xshake[b]`` change; the
+   Jacobian is step-constant for ``variant fast`` and is factored only
+   once per step per cluster.
 6. Convert the accumulated multipliers into per-atom forces
    ``f[a] += lambda/dt^2 * r_k``, ``f[b] -= lambda/dt^2 * r_k`` so that
-   the next initial_integrate produces the constrained positions.
-   ``ilves/local`` runs ``reverse_comm`` to deliver the constraint
-   contributions on ghost atoms back to their owners' local atom.
+   the next ``initial_integrate`` produces the constrained positions.
 
-After the integrator's ``final_integrate`` step, ``end_of_step`` runs the
-RATTLE-style velocity projection: solve a similar (symmetric) linear
-system to remove the component of relative atom velocity along each
-constrained bond direction.
+After ``final_integrate``, ``end_of_step`` runs the RATTLE-style
+velocity projection: solve a similar (symmetric) linear system to remove
+the component of relative atom velocity along each constrained bond
+direction.
 
 During minimization, the standard integration-based machinery cannot
 apply --- there are no velocities or time steps.  Instead, every
 constraint *k* is replaced by a strong harmonic potential
 ``V_k = 0.5 * kbond * (|r_k| - d_k)^2``, contributed to the minimizer
 just like a bond.
+
+Solver variants
+^^^^^^^^^^^^^^^
+
+Two solver variants are available via the ``variant`` keyword:
+
+* ``fast`` (default): the structurally-symmetric Jacobian using
+  :math:`(r_k\cdot r_l)/m_p` in the off-diagonals -- a quasi-Newton
+  step that uses reference (start-of-step) bond vectors in the
+  coupling terms.  The matrix is genuinely symmetric and is solved
+  with an in-place **banded Cholesky** factorization that is cached
+  and reused across all Newton iterations within a step.  Combined
+  with the RCM band reduction, this is up to ~5x faster than the
+  ``full`` variant on the all-backbone polymer / protein benchmark.
+  If the Cholesky path encounters a non-positive pivot (a degenerate
+  cluster --- typically a co-linear angle), the solver falls back to
+  LU with partial pivoting for that cluster; the ``output_every``
+  stats line reports the fallback count.
+
+* ``full``: the exact Newton Jacobian using
+  :math:`(s_k\cdot r_l)/m_p` in the off-diagonals -- structurally
+  but not numerically symmetric (changes each iteration), solved
+  with LU on the dense matrix.  Use when ``fast`` repeatedly falls
+  back to LU on the same clusters (degenerate constraint topology
+  not handled by Cholesky) and you want to skip the factor-attempt
+  overhead.
+
+Both variants converge to the same solution of the constraint
+equations.
+
+The velocity projection in ``end_of_step`` always uses dense Cholesky
+(the velocity matrix is genuinely symmetric regardless of variant).
+
+Near-linear angles
+^^^^^^^^^^^^^^^^^^
+
+For an angle A-B-C with equilibrium :math:`\theta_0` close to
+180 degrees (common in coarse-grain polymer backbones), constraining
+the three legs :math:`\{|AB|, |BC|, |AC|\}` makes the constraint
+Jacobian rank-deficient: the triangle inequality saturates
+(:math:`|AC| = |AB| + |BC|`), so the three constraints become linearly
+dependent at exactly 180 degrees and very ill-conditioned nearby.
+
+To handle this regime, the ``linearangle`` keyword switches the
+constraint topology for affected angle types.  An angle type is
+classified as near-linear when its equilibrium angle (recovered from
+the bond and A-C virtual distances via the law of cosines) is at or
+above the user-supplied threshold.  For those angles:
+
+* The real bond between B and the **higher-tag endpoint** of {A, C}
+  is dropped.
+* The A-C virtual bond is kept unchanged.
+* A 3-atom **B-M virtual constraint** is added with target
+
+  .. math::
+
+     |B - M|^2 = \tfrac{1}{2}(|AB|^2 + |BC|^2) - \tfrac{1}{4}|AC|^2
+
+  where :math:`M = (A + C) / 2` is the midpoint of the A-C virtual
+  bond.  The retained set keeps :math:`|B-C|` within solver tolerance
+  via the triangle geometry while remaining well-conditioned at
+  :math:`\theta` near 180 degrees.
+
+For an exactly-180-degree symmetric angle (:math:`|AB| = |BC|`,
+:math:`\theta_0 = 180^\circ`) the natural :math:`|B-M|` target is
+zero and the constraint Jacobian row vanishes.  The ``Lmin`` argument
+to ``linearangle`` clamps the target up from zero in that limit; the
+default value of 0.01 length units bends the angle by less than
+1 degree off 180 degrees for typical bond lengths, well below thermal
+fluctuation amplitudes.
+
+Set ``linearangle 180`` to disable near-linear handling entirely (the
+default threshold is 165 degrees).
+
+.. note::
+
+   The ``linearangle`` feature is a **workaround**, not a full
+   solution.  At :math:`\theta` near 180 degrees the constraint
+   manifold is geometrically nearly singular and any iterative
+   distance-constraint solver (SHAKE, RATTLE, P-SHAKE, ILVES) is
+   ill-conditioned there.  ``linearangle`` widens the regime in which
+   the iterative solver still converges, but it does so by
+   substituting an approximate constraint -- the :math:`|B-M|` clamp
+   biases the equilibrium angle slightly off 180 degrees (by an angle
+   that increases with ``Lmin``) and only constrains the median
+   length, not the bond :math:`|B-C|` directly (which is determined
+   only indirectly through the other three legs).
+
+   This feature is most useful for large systems with a **small
+   fraction** of near-linear angles -- e.g. a coarse-grain polymer or
+   protein system where most angles are well-behaved (tetrahedral,
+   sp2 trigonal, water-like) and only a handful of backbone or
+   special-purpose angles approach 180 degrees.  In that regime the
+   small error from the ``Lmin`` clamp on a few constraints is
+   negligible compared to the thermal fluctuations that would
+   otherwise unconstrain the rest of the system.
+
+   For the simulation of intrinsically rigid linear molecules
+   (e.g. CO\ :sub:`2`, CS\ :sub:`2`, HCN, C\ :sub:`2`\ H\ :sub:`2`),
+   :doc:`fix rigid/small <fix_rigid>` is the recommended approach.
+   It treats each molecule as a rigid body and has no iterative
+   convergence problems at the 180 degree singularity.  The ILVES
+   ``linearangle`` workaround should not be used as a substitute for
+   ``fix rigid/small`` in those cases -- the angle bias from the
+   ``Lmin`` clamp and the larger iteration counts both make ILVES the
+   wrong tool for that workload.
 
 Output info
 ^^^^^^^^^^^
@@ -186,7 +266,10 @@ accessible as ``f_<ID>[1]``, ``f_<ID>[2]``, ``f_<ID>[3]``.
 
 When ``N > 0``, every ``N`` time steps the fix prints a summary line
 per constrained bond type and angle type giving the average distance,
-its spread (max - min) across constraints, and the count.
+its spread (max - min) across constraints, and the count.  3-atom B-M
+virtual constraints are not included in the per-type angle stats
+because their length (the median to the A-C side) is geometrically
+distinct from the A-C virtual length reported for the angle.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -199,119 +282,49 @@ virial, and the per-atom energy / per-atom virial of the system.
 No information about this fix is written to :doc:`binary restart files
 <restart>` because the constraint topology is rebuilt from
 ``atom->bond_atom`` / ``atom->angle_atom`` at the first reneighbor after
-restart.  If you redeclare the same ``fix ilves/local`` or
-``fix ilves/global`` command after ``read_restart``, the constraints are
-restored automatically (the negated bond/angle types are preserved in the
-restart file).
+restart.  If you redeclare the same ``fix ilves`` command after
+``read_restart``, the constraints are restored automatically (the
+negated bond/angle types are preserved in the restart file).
 
 This fix is not invoked during :doc:`energy minimization <minimize>` via
 the constraint solver; instead, strong harmonic-restraint forces
 substitute for the constraints, with spring constant ``kbond`` (see
 keyword options).
 
-Solver variants
-^^^^^^^^^^^^^^^
-
-Two solver variants are available via the ``variant`` keyword (both
-work with either ``ilves/local`` or ``ilves/global``):
-
-* ``ilvesf`` (default): symmetric Jacobian using
-  :math:`(r_k\cdot r_l)/m_p` in the off-diagonals -- a quasi-Newton
-  step that uses reference (start-of-step) bond vectors in the
-  coupling terms.  The matrix is genuinely symmetric.
-* ``ilves``: the exact Newton Jacobian using
-  :math:`(s_k\cdot r_l)/m_p` in the off-diagonals -- structurally
-  but not numerically symmetric.
-
-Both variants converge to the exact solution of the constraint
-equations.  The symmetric ``ilvesf`` variant is solved with an
-in-place Cholesky factorization (``A = L L^T``); on a 2004-atom
-peptide-in-water test with all bonds + the water HOH angle
-constrained, the Cholesky path is ~14% faster than LU on the same
-matrix in serial and ~21% faster on 4 MPI ranks.  If Cholesky
-encounters a non-positive pivot (degenerate cluster, linearly
-dependent constraints) the solver re-assembles the matrix and falls
-back to LU with partial pivoting -- the per-step ``output_every``
-stats line reports the fallback count when ``N > 0``.  The
-asymmetric ``ilves`` variant uses LU directly.  The velocity
-projection in ``end_of_step`` is also Cholesky-based (the velocity
-matrix is always symmetric regardless of variant).
-
-Choosing between ``ilves/local`` and ``ilves/global``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Prefer ``ilves/local`` whenever the constraint topology consists of
-small clusters that each fit within a single subdomain plus the
-communication cutoff:
-
-* Water HOH (2 O-H bonds + 1 H-O-H angle = 3-atom star).
-* Methyl / methane groups (C with 3 or 4 H bonds = 4/5-atom star).
-* Isolated C-H / N-H / O-H bond constraints (1+1 pairs).
-
-For these cases, ``ilves/local``:
-
-* Avoids the ``MPI_Allgatherv`` of the global topology at init.
-* Stores no ``natoms``-sized cluster-tag table.
-* Uses single-rank cluster ownership, eliminating redundant per-cluster
-  Newton solves on neighboring ranks.
-
-Choose ``ilves/global`` when:
-
-* A cluster is genuinely large -- e.g., constraining every backbone
-  C-C bond of a polymer or protein, so the cluster's atoms span
-  multiple subdomains.
-* You want to constrain non-star cluster topologies (rare; most
-  hydrogen-only constraints form stars).
-* Convenience: the global variant does not require
-  ``newton off bond`` and handles arbitrary cluster topologies
-  without preconditions on the simulation setup.
-
-.. note::
-
-   Each rank in ``ilves/global`` gathers the complete bond / angle
-   topology and stores it in replicated tables.  In addition, a
-   cluster-tag lookup table of size ``atom->natoms+1`` is allocated.
-   For very large simulations (tens of millions of atoms or more)
-   this replication can exceed available memory at high rank counts.
-   Prefer ``ilves/local`` or :doc:`fix shake <fix_shake>` in that
-   regime unless the cluster topology really requires the global
-   variant.
-
 Restrictions
 """"""""""""
 
-These fixes are part of the RIGID package.  They are only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package
+This fix is part of the RIGID package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
 <Build_package>` doc page for more info.
 
 The molecular topology (bonds, optionally angles) must be defined; an
 :doc:`atom_style <atom_style>` such as *full*, *molecular*, or *bond* is
 required.
 
-Only one ``fix ilves/*`` instance may be defined at a time
-(``ilves/local`` and ``ilves/global`` may not be combined).
-``fix ilves/*`` and :doc:`fix shake <fix_shake>` must not be used
-together for overlapping sets of constrained bonds.
+Only one ``fix ilves`` instance may be defined at a time.  ``fix ilves``
+and :doc:`fix shake <fix_shake>` must not be used together for
+overlapping sets of constrained bonds.
 
-``fix ilves/local`` additionally requires:
+The replicated bond / angle topology is gathered onto every MPI rank
+at init.  For very large simulations (tens of millions of atoms or
+more) at high rank counts the replicated storage of the *selected*
+subset can become significant; prefer :doc:`fix shake <fix_shake>` for
+strictly-local cluster topologies (water HOH, methyl groups, isolated
+bonds) at very large scale.
 
-* ``newton off bond`` (use the :doc:`newton <newton>` command).
-* Every constraint cluster must fit within this rank's local subdomain
-  plus the communication cutoff.  Cluster atoms unreachable as either
-  a local atom or a ghost trigger a hard error at the first neighbor
-  build; switch to ``ilves/global`` or enlarge the cutoff via
-  ``comm_modify cutoff <value>``.
-* Cluster topology must be a star (one central atom with k bonds to
-  leaves, k >= 1) or a 1+1 pair (single bond).  Multi-center clusters
-  (e.g. constraining an interior C-C bond of a polymer chain with
-  multiple branching points) are rejected with an error message
-  recommending ``ilves/global``.
+For exactly-180-degree symmetric angle constraints (e.g. rigid linear
+triatomics like CO2 with bond_length(O-C) = bond_length(C-O)) the
+Jacobian is irreducibly rank-deficient regardless of the constraint
+topology.  ``fix ilves`` runs in that regime with the ``Lmin`` clamp
+adding a small constraint bias, but :doc:`fix rigid <fix_rigid>` is
+the recommended approach.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix shake <fix_shake>`, :doc:`fix restrain <fix_restrain>`,
-:doc:`fix rigid <fix_rigid>`, :doc:`fix ehex <fix_ehex>`
+:doc:`fix shake <fix_shake>`, :doc:`fix rattle <fix_shake>`,
+:doc:`fix restrain <fix_restrain>`, :doc:`fix rigid <fix_rigid>`
 
 Default
 """""""
@@ -320,7 +333,8 @@ The keyword defaults are:
 
 * *kbond* = ``1.0e9 * boltz`` (same default as :doc:`fix shake <fix_shake>`)
 * *store* = *no*
-* *variant* = *ilvesf*
+* *variant* = *fast*
+* *linearangle* = ``165`` degrees with ``Lmin = 0.01`` length units
 
 ----------
 

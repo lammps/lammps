@@ -62,6 +62,8 @@
 #include <cmath>
 #include <cstring>
 #include <unordered_map>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 using namespace LAMMPS_NS;
@@ -122,7 +124,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   lu_alloc = 0;
   largest_cluster = 0;
   comm_mode = 0;
-  stats_dedup = true;
+  global_topology_ready = false;
   chol_pool_alloc = 0;
   chol_offset_alloc = 0;
   cluster_bw_alloc = 0;
@@ -256,7 +258,8 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     next++;
   }
 
-  // optional args: kbond <v>, store <yes|no>, variant <ilves|ilvesf>
+  // optional args: kbond <v>, store <yes|no>, variant <full|fast>,
+  //                linearangle <theta_deg> [Lmin]
   kbond = 1.0e9 * force->boltz;
 
   while (next < narg) {
@@ -278,8 +281,8 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[next], "variant") == 0) {
       if (next + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves variant", error);
-      if      (strcmp(arg[next + 1], "ilves")  == 0) variant = ILVES_FULL;
-      else if (strcmp(arg[next + 1], "ilvesf") == 0) variant = ILVES_FAST;
+      if      (strcmp(arg[next + 1], "full") == 0) variant = ILVES_FULL;
+      else if (strcmp(arg[next + 1], "fast") == 0) variant = ILVES_FAST;
       else error->all(FLERR, next + 1, "Unknown fix ilves variant {}", arg[next + 1]);
       next += 2;
 
@@ -641,7 +644,7 @@ void FixIlves::setup(int vflag)
                    "  {} constraints/proc\n"
                    "  {} clusters/proc\n"
                    "  {} max. constraints/cluster\n",
-                   (variant == ILVES_FULL) ? "ILVES" : "ILVES-FAST",
+                   (variant == ILVES_FULL) ? "ILVES (full, LU)" : "ILVES (fast, banded Cholesky)",
                    n_info_all[0], n_info_all[1], n_max_all);
 
   // At setup we need a different dtfsq convention than during normal stepping:
@@ -1740,61 +1743,36 @@ bool FixIlves::solve_constraints()
         const double w_b   = (cc < 0) ? -1.0 : -0.5;
         const double w_c   = -0.5;             // only used for cc >= 0
 
-        const bool ghosts_too = update_ghost_xshake();
-        if (ghosts_too) {
-          // Local variant: write directly to the constraint's stored
-          // indices so that read (xshake[c_atom*] in the s_k cache at
-          // the next iteration) and write are at the same slot.  This
-          // matters when closest_image during build_constraint_list
-          // chose a different ghost copy than atom->map would return
-          // (e.g. PBC self-images on the same rank when subdomains span
-          // the full box in a dimension).
-          xshake[a][0] += w_a * dl_a * rx;
-          xshake[a][1] += w_a * dl_a * ry;
-          xshake[a][2] += w_a * dl_a * rz;
-          xshake[b][0] += w_b * dl_b * rx;
-          xshake[b][1] += w_b * dl_b * ry;
-          xshake[b][2] += w_b * dl_b * rz;
-          if (cc >= 0) {
-            xshake[cc][0] += w_c * dl_c * rx;
-            xshake[cc][1] += w_c * dl_c * ry;
-            xshake[cc][2] += w_c * dl_c * rz;
-          }
-        } else {
-          // Global variant: route to the local owner of each endpoint.
-          // c_atom* may be a ghost; updates to xshake[ghost] would be
-          // overwritten by the end-of-iter forward_comm anyway, so skip
-          // those.  PBC self-images route to their local owner via
-          // atom->map so the forward_comm picks them up.
-          int a_local = atom->map(atom->tag[a]);
-          int b_local = atom->map(atom->tag[b]);
-          if (a_local >= 0 && a_local < nlocal) {
-            xshake[a_local][0] += w_a * dl_a * rx;
-            xshake[a_local][1] += w_a * dl_a * ry;
-            xshake[a_local][2] += w_a * dl_a * rz;
-          }
-          if (b_local >= 0 && b_local < nlocal) {
-            xshake[b_local][0] += w_b * dl_b * rx;
-            xshake[b_local][1] += w_b * dl_b * ry;
-            xshake[b_local][2] += w_b * dl_b * rz;
-          }
-          if (cc >= 0) {
-            int c_local = atom->map(atom->tag[cc]);
-            if (c_local >= 0 && c_local < nlocal) {
-              xshake[c_local][0] += w_c * dl_c * rx;
-              xshake[c_local][1] += w_c * dl_c * ry;
-              xshake[c_local][2] += w_c * dl_c * rz;
-            }
+        // Route each atom's update to its local owner (atom->map(tag)
+        // collapses PBC ghosts to local indices).  Updates to xshake[ghost]
+        // would be overwritten by the end-of-iter forward_comm anyway, so
+        // skip those.  PBC self-images route to their local owner via
+        // atom->map so the forward_comm picks them up.
+        int a_local = atom->map(atom->tag[a]);
+        int b_local = atom->map(atom->tag[b]);
+        if (a_local >= 0 && a_local < nlocal) {
+          xshake[a_local][0] += w_a * dl_a * rx;
+          xshake[a_local][1] += w_a * dl_a * ry;
+          xshake[a_local][2] += w_a * dl_a * rz;
+        }
+        if (b_local >= 0 && b_local < nlocal) {
+          xshake[b_local][0] += w_b * dl_b * rx;
+          xshake[b_local][1] += w_b * dl_b * ry;
+          xshake[b_local][2] += w_b * dl_b * rz;
+        }
+        if (cc >= 0) {
+          int c_local = atom->map(atom->tag[cc]);
+          if (c_local >= 0 && c_local < nlocal) {
+            xshake[c_local][0] += w_c * dl_c * rx;
+            xshake[c_local][1] += w_c * dl_c * ry;
+            xshake[c_local][2] += w_c * dl_c * rz;
           }
         }
       }
     }
 
-    // refresh ghost xshake -- variant-specific hook.  Global variant
-    // does forward_comm to keep redundantly-solving ranks in sync.
-    // Local variant (single-rank cluster ownership) maintains its ghost
-    // xshake locally and overrides this to a no-op.
-    sync_xshake();
+    // refresh ghost xshake: keep redundantly-solving ranks in sync.
+    comm->forward_comm(this);
 
     // synchronize convergence across MPI ranks: without this, ranks
     // with different residuals would exit the Newton loop at different
@@ -1811,18 +1789,6 @@ bool FixIlves::solve_constraints()
                    max_iter, tolerance, update->ntimestep);
   }
   return converged;
-}
-
-/* ----------------------------------------------------------------------
-   Default xshake synchronization hook: forward_comm to ghosts.  Used by
-   the global variant whose redundant cluster solves on multiple ranks
-   need consistent ghost xshake at every Newton iteration boundary.  The
-   local variant overrides this to a no-op.
-------------------------------------------------------------------------- */
-
-void FixIlves::sync_xshake()
-{
-  comm->forward_comm(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -2627,10 +2593,10 @@ void FixIlves::stats()
     tagint ta = tag[a], tb = tag[b];
 
     // dedup: only count this constraint on the rank that owns the lower-tag
-    // endpoint locally.  Not needed for the local variant (each constraint
-    // lives on exactly one rank), but required for the global variant where
-    // the same constraint is solved redundantly on multiple ranks.
-    if (stats_dedup) {
+    // endpoint locally.  Required because the same constraint can live on
+    // multiple ranks when its cluster spans subdomains (we solve them
+    // redundantly).
+    {
       tagint t_lower = (ta < tb) ? ta : tb;
       int lower_local = atom->map(t_lower);
       if (lower_local < 0 || lower_local >= nlocal_now) continue;
@@ -2711,4 +2677,461 @@ void FixIlves::stats()
   next_output = nt + output_every;
   if (nt % output_every != 0)
     next_output = (nt / output_every) * output_every + output_every;
+}
+
+/* ----------------------------------------------------------------------
+   init_topology: gather the global bond/angle table, build the
+   tag-to-cluster map, and fill angle_distance[] for selected angle types
+   using the replicated angle table.  Runs once from FixIlves::init().
+------------------------------------------------------------------------- */
+
+void FixIlves::init_topology()
+{
+  gather_global_topology();
+
+  // angle distances: for each constrained angle type, scan the global
+  // angle table for the bond types of its flanking bonds.  Computing this
+  // from the global table avoids problems where a given rank's local
+  // angle is of a different angle type or where the relevant bond is
+  // stored on a remote rank with newton_bond=on.
+  if (has_angle) {
+    for (int at = 1; at <= atom->nangletypes; ++at) {
+      if (!angle_flag[at]) { angle_distance[at] = 0.0; continue; }
+
+      int b1 = 0, b2 = 0;
+      int conflict = 0;
+      const int na = (int) ga1.size();
+      for (int gi = 0; gi < na; ++gi) {
+        if (ga_type[gi] != at) continue;
+        tagint tA = ga1[gi];
+        tagint tB = ga2[gi];     // middle atom
+        tagint tC = ga3[gi];
+        auto lookup_bt = [&](tagint t1, tagint t2) -> int {
+          tagint lo_t = MIN(t1, t2), hi_t = MAX(t1, t2);
+          int lo = 0, hi = (int) gb_a.size();
+          while (lo < hi) {
+            int mid = (lo + hi) / 2;
+            if (gb_a[mid] < lo_t || (gb_a[mid] == lo_t && gb_b[mid] < hi_t)) lo = mid + 1;
+            else hi = mid;
+          }
+          if (lo == (int) gb_a.size() || gb_a[lo] != lo_t || gb_b[lo] != hi_t) return 0;
+          return gb_type[lo];
+        };
+        int bt1 = lookup_bt(tA, tB);
+        int bt2 = lookup_bt(tB, tC);
+        if (bt1 == 0 || bt2 == 0) continue;
+        int bmin = MIN(bt1, bt2);
+        int bmax = MAX(bt1, bt2);
+        if (b1 == 0) { b1 = bmin; b2 = bmax; }
+        else if (bmin != b1 || bmax != b2) { conflict = 1; break; }
+      }
+      if (conflict)
+        error->all(FLERR, "Fix ilves: angle type {} spans bonds of mixed types", at);
+      if (b1 == 0) { angle_distance[at] = 0.0; continue; }
+      const double theta0 = force->angle->equilibrium_angle(at);
+      const double r1 = bond_distance[b1];
+      const double r2 = bond_distance[b2];
+      angle_r1[at] = r1;
+      angle_r2[at] = r2;
+      angle_distance[at] = sqrt(r1*r1 + r2*r2 - 2.0*r1*r2*cos(theta0));
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Gather global bond and angle topology onto every rank via MPI_Allgatherv.
+   We store (lower_tag, higher_tag, type) for bonds and
+   (atom1_tag, middle_tag, atom3_tag, type) for angles -- deduplicated.
+
+   This is called once at init and the result lives in the gb_ and ga_
+   member arrays.  The topology of bonds and angles is treated as fixed
+   for the lifetime of the fix; commands that change topology mid-run
+   (e.g. fix bond/create) are not currently supported by fix ilves.
+
+   The global topology enables a uniform constraint-list build that does
+   not depend on which rank stores a given bond (newton_bond on vs off).
+   Every rank that owns at least one atom of a given bond or angle will
+   add the corresponding constraint to its local list and apply the
+   constraint force to its local atoms only.  Both ranks of a cross-rank
+   constraint thus compute the same Lagrange multiplier from synchronized
+   positions and apply equal-and-opposite forces to the two atoms.
+------------------------------------------------------------------------- */
+
+void FixIlves::gather_global_topology()
+{
+  tagint *tag       = atom->tag;
+  int **nb_type     = atom->bond_type;
+  tagint **nb_atom  = atom->bond_atom;
+  int *num_bond     = atom->num_bond;
+  int **na_type     = atom->angle_type;
+  tagint **na_atom1 = atom->angle_atom1;
+  tagint **na_atom2 = atom->angle_atom2;
+  tagint **na_atom3 = atom->angle_atom3;
+  int *num_angle    = atom->num_angle;
+  const int nlocal_now = atom->nlocal;
+
+  // -----------------------------------------------------------------
+  // bonds: pack (min_tag, max_tag, |type|) for each locally-stored bond
+  // -----------------------------------------------------------------
+  std::vector<tagint> sendb;
+  sendb.reserve(3 * nlocal_now);
+  for (int i = 0; i < nlocal_now; ++i) {
+    tagint ti = tag[i];
+    for (int b = 0; b < num_bond[i]; ++b) {
+      int bt = nb_type[i][b];
+      if (bt == 0) continue;
+      if (bt < 0) bt = -bt;
+      tagint tj = nb_atom[i][b];
+      sendb.push_back(MIN(ti, tj));
+      sendb.push_back(MAX(ti, tj));
+      sendb.push_back((tagint) bt);
+    }
+  }
+  int my_b = (int) sendb.size();
+  std::vector<int> cb(comm->nprocs), db(comm->nprocs);
+  MPI_Allgather(&my_b, 1, MPI_INT, cb.data(), 1, MPI_INT, world);
+  int totb = 0;
+  for (int p = 0; p < comm->nprocs; ++p) { db[p] = totb; totb += cb[p]; }
+  std::vector<tagint> recvb(totb);
+  MPI_Allgatherv(sendb.data(), my_b, MPI_LMP_TAGINT,
+                 recvb.data(), cb.data(), db.data(), MPI_LMP_TAGINT, world);
+
+  // dedup bonds: sort by (min_tag, max_tag), keep unique
+  struct BondEntry { tagint a, b; int type; };
+  std::vector<BondEntry> bonds;
+  bonds.reserve(totb / 3);
+  for (int i = 0; i < totb; i += 3) {
+    bonds.push_back({recvb[i], recvb[i+1], (int) recvb[i+2]});
+  }
+  std::sort(bonds.begin(), bonds.end(),
+            [](const BondEntry &x, const BondEntry &y) {
+              if (x.a != y.a) return x.a < y.a;
+              if (x.b != y.b) return x.b < y.b;
+              return x.type < y.type;
+            });
+  auto last_b = std::unique(bonds.begin(), bonds.end(),
+                            [](const BondEntry &x, const BondEntry &y) {
+                              return x.a == y.a && x.b == y.b;
+                            });
+  bonds.erase(last_b, bonds.end());
+
+  gb_a.clear(); gb_b.clear(); gb_type.clear();
+  gb_a.reserve(bonds.size()); gb_b.reserve(bonds.size()); gb_type.reserve(bonds.size());
+  for (auto &e : bonds) { gb_a.push_back(e.a); gb_b.push_back(e.b); gb_type.push_back(e.type); }
+
+  // -----------------------------------------------------------------
+  // angles: pack (atom1_tag, atom2_tag, atom3_tag, |type|) for each
+  // locally-stored angle.  atom2 = middle atom.  Pre-filter by angle_flag
+  // to keep ga_ down to only the angle types we will constrain.
+  // -----------------------------------------------------------------
+  std::vector<tagint> senda;
+  for (int i = 0; i < nlocal_now; ++i) {
+    for (int m = 0; m < num_angle[i]; ++m) {
+      int at = na_type[i][m];
+      if (at == 0) continue;
+      if (at < 0) at = -at;
+      if (at > atom->nangletypes || !angle_flag[at]) continue;
+      // dedupe: only middle atom owner packs the angle entry
+      if (na_atom2[i][m] != tag[i]) continue;
+      tagint o1 = na_atom1[i][m];
+      tagint o3 = na_atom3[i][m];
+      tagint t1 = MIN(o1, o3);
+      tagint t3 = MAX(o1, o3);
+      senda.push_back(t1);
+      senda.push_back(na_atom2[i][m]);
+      senda.push_back(t3);
+      senda.push_back((tagint) at);
+    }
+  }
+  int my_a = (int) senda.size();
+  std::vector<int> ca(comm->nprocs), da(comm->nprocs);
+  MPI_Allgather(&my_a, 1, MPI_INT, ca.data(), 1, MPI_INT, world);
+  int tota = 0;
+  for (int p = 0; p < comm->nprocs; ++p) { da[p] = tota; tota += ca[p]; }
+  std::vector<tagint> recva(tota);
+  MPI_Allgatherv(senda.data(), my_a, MPI_LMP_TAGINT,
+                 recva.data(), ca.data(), da.data(), MPI_LMP_TAGINT, world);
+
+  struct AngleEntry { tagint a, b, c; int type; };
+  std::vector<AngleEntry> angles;
+  angles.reserve(tota / 4);
+  for (int i = 0; i < tota; i += 4) {
+    angles.push_back({recva[i], recva[i+1], recva[i+2], (int) recva[i+3]});
+  }
+  std::sort(angles.begin(), angles.end(),
+            [](const AngleEntry &x, const AngleEntry &y) {
+              if (x.b != y.b) return x.b < y.b;
+              if (x.a != y.a) return x.a < y.a;
+              if (x.c != y.c) return x.c < y.c;
+              return x.type < y.type;
+            });
+  auto last_a = std::unique(angles.begin(), angles.end(),
+                            [](const AngleEntry &x, const AngleEntry &y) {
+                              return x.a == y.a && x.b == y.b && x.c == y.c;
+                            });
+  angles.erase(last_a, angles.end());
+
+  ga1.clear(); ga2.clear(); ga3.clear(); ga_type.clear();
+  ga1.reserve(angles.size()); ga2.reserve(angles.size());
+  ga3.reserve(angles.size()); ga_type.reserve(angles.size());
+  for (auto &e : angles) {
+    ga1.push_back(e.a); ga2.push_back(e.b); ga3.push_back(e.c);
+    ga_type.push_back(e.type);
+  }
+
+  // -----------------------------------------------------------------
+  // Build a global cluster-id table via union-find over all involved
+  // tags (linked: bond a-b, and angle legs a-b, b-c).
+  // -----------------------------------------------------------------
+  tag_cluster.clear();
+  tag_cluster.reserve(gb_a.size() * 2 + ga1.size() * 3);
+  for (size_t i = 0; i < gb_a.size(); ++i) {
+    tag_cluster.try_emplace(gb_a[i], gb_a[i]);
+    tag_cluster.try_emplace(gb_b[i], gb_b[i]);
+  }
+  for (size_t i = 0; i < ga1.size(); ++i) {
+    tag_cluster.try_emplace(ga1[i], ga1[i]);
+    tag_cluster.try_emplace(ga2[i], ga2[i]);
+    tag_cluster.try_emplace(ga3[i], ga3[i]);
+  }
+
+  auto find = [&](tagint t) {
+    auto it = tag_cluster.find(t);
+    while (it->second != t) {
+      auto pit = tag_cluster.find(it->second);
+      it->second = pit->second;
+      t = it->second;
+      it = pit;
+    }
+    return t;
+  };
+  auto unite = [&](tagint a, tagint b) {
+    tagint ra = find(a), rb = find(b);
+    if (ra != rb) tag_cluster[ra] = rb;
+  };
+
+  for (size_t i = 0; i < gb_a.size(); ++i) unite(gb_a[i], gb_b[i]);
+  for (size_t i = 0; i < ga1.size(); ++i) {
+    unite(ga1[i], ga2[i]);
+    unite(ga2[i], ga3[i]);
+  }
+  for (auto &kv : tag_cluster) kv.second = find(kv.first);
+
+  if (comm->me == 0)
+    utils::logmesg(lmp, "Fix ilves: gathered global topology with {} bonds and {} selected angles\n",
+                   gb_a.size(), ga1.size());
+
+  global_topology_ready = true;
+}
+
+/* ----------------------------------------------------------------------
+   Helper: given two tags, return true if the (ta, tb) bond is selected
+   for constraint.  Looks up the bond type via the global topology table.
+   Both atoms must be either local or available as ghosts on this rank
+   for the type/mass selectors to work.  Returns false otherwise.
+------------------------------------------------------------------------- */
+
+bool FixIlves::bond_is_constrained(tagint ta, tagint tb)
+{
+  tagint tmin = MIN(ta, tb);
+  tagint tmax = MAX(ta, tb);
+  int lo = 0, hi = (int) gb_a.size();
+  while (lo < hi) {
+    int mid = (lo + hi) / 2;
+    if (gb_a[mid] < tmin || (gb_a[mid] == tmin && gb_b[mid] < tmax)) lo = mid + 1;
+    else hi = mid;
+  }
+  if (lo == (int) gb_a.size() || gb_a[lo] != tmin || gb_b[lo] != tmax) return false;
+
+  int ia = atom->map(ta);
+  int ib = atom->map(tb);
+  if (ia < 0 || ib < 0) return false;
+  return bond_selected_for_atoms(ia, ib, gb_type[lo]);
+}
+
+/* ----------------------------------------------------------------------
+   Build the flat constraint list from the replicated bond/angle tables.
+
+   - bond constraints: pair (i, partner) for every bond where:
+       both atoms are in fix group
+       AND bond type is in bond_flag, OR
+           either atom type is in type_flag, OR
+           either atom mass matches mass_list
+   - angle "virtual" A-C constraints: derived from angle entries where
+       angle type is in angle_flag
+       AND both flanking bonds (A-B, B-C) are also selected (per above)
+       AND all three atoms are in the fix group
+   - additionally, for near-linear angle types (theta_0 >= linear_threshold),
+     a 3-atom B-M virtual constraint is emitted and the bond between B
+     and the higher-tag endpoint of {A, C} is dropped.
+------------------------------------------------------------------------- */
+
+void FixIlves::build_constraint_list()
+{
+  const int nlocal_now = atom->nlocal;
+  int *mask = atom->mask;
+  tagint *tag = atom->tag;
+
+  // mark per-atom flags as we go (zero first)
+  for (int i = 0; i < atom->nmax; ++i) ilves_flag[i] = 0;
+  n_constr = 0;
+
+  // Lazy gather (in case init_topology was bypassed; normally already done)
+  if (!global_topology_ready) gather_global_topology();
+
+  // Identify clusters whose atoms intersect my local atoms.  Each
+  // participating rank includes EVERY constraint in any intersecting
+  // cluster, even constraints between two ghost atoms, so that all
+  // ranks running the redundant cluster solve compute the same
+  // Lagrange multipliers from synchronized positions.
+  std::unordered_map<tagint, char> my_cluster;
+  my_cluster.reserve(nlocal_now);
+  for (int i = 0; i < nlocal_now; ++i) {
+    tagint t = tag[i];
+    auto it = tag_cluster.find(t);
+    if (it != tag_cluster.end()) my_cluster[it->second] = 1;
+  }
+
+  auto in_my_cluster = [&](tagint t) -> bool {
+    auto it = tag_cluster.find(t);
+    if (it == tag_cluster.end()) return false;
+    return my_cluster.count(it->second) > 0;
+  };
+
+  // Pick c_atom1 and c_atom2 indices for a (ta, tb) pair.  c_atom1 is
+  // preferentially the locally-owned copy when one of the two is local;
+  // ties go to lower tag.  b_out is closest-image to a_out for PBC
+  // consistency.
+  auto pick_atoms = [&](tagint ta, tagint tb, int &a_out, int &b_out) -> bool {
+    int ja = atom->map(ta);
+    int jb = atom->map(tb);
+    if (ja < 0 || jb < 0) return false;
+    bool ja_local = (ja < nlocal_now);
+    bool jb_local = (jb < nlocal_now);
+    if (ja_local && jb_local) {
+      if (tag[ja] < tag[jb]) { a_out = ja; b_out = jb; }
+      else                   { a_out = jb; b_out = ja; }
+    } else if (ja_local) {
+      a_out = ja; b_out = jb;
+    } else if (jb_local) {
+      a_out = jb; b_out = ja;
+    } else {
+      // both ghost: include for cluster completion; this rank does not
+      // apply force to either atom (apply_constraint_forces tests < nlocal).
+      if (tag[ja] < tag[jb]) { a_out = ja; b_out = jb; }
+      else                   { a_out = jb; b_out = ja; }
+    }
+    b_out = domain->closest_image(a_out, b_out);
+    return true;
+  };
+
+  // -----------------------------------------------------------------
+  // Pre-phase: identify bond legs to skip for near-linear angles.
+  // -----------------------------------------------------------------
+  struct PairHash {
+    size_t operator()(const std::pair<tagint,tagint> &p) const noexcept {
+      return std::hash<tagint>()(p.first) ^ (std::hash<tagint>()(p.second) << 1);
+    }
+  };
+  std::unordered_set<std::pair<tagint,tagint>, PairHash> dropped_bonds;
+  if (has_angle) {
+    const int na_global_pre = (int) ga1.size();
+    for (int gi = 0; gi < na_global_pre; ++gi) {
+      int at = ga_type[gi];
+      if (at <= 0 || at > atom->nangletypes) continue;
+      if (!angle_flag[at]) continue;
+      if (!angle_linear[at]) continue;
+
+      tagint t1 = ga1[gi];     // lower-tag endpoint
+      tagint t2 = ga2[gi];     // middle (B)
+      tagint t3 = ga3[gi];     // higher-tag endpoint
+
+      if (!bond_is_constrained(t2, t1)) continue;
+      if (!bond_is_constrained(t2, t3)) continue;
+
+      tagint lo = (t2 < t3) ? t2 : t3;
+      tagint hi = (t2 < t3) ? t3 : t2;
+      dropped_bonds.emplace(lo, hi);
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Phase A: bond constraints from clusters I'm in
+  // -----------------------------------------------------------------
+  const int nb_global = (int) gb_a.size();
+  for (int gi = 0; gi < nb_global; ++gi) {
+    int bt = gb_type[gi];
+    if (bt <= 0 || bt > atom->nbondtypes) continue;
+    tagint ta = gb_a[gi];
+    tagint tb = gb_b[gi];
+
+    if (!in_my_cluster(ta) && !in_my_cluster(tb)) continue;
+
+    if (!dropped_bonds.empty() && dropped_bonds.count({ta, tb})) continue;
+
+    int a_idx, b_idx;
+    if (!pick_atoms(ta, tb, a_idx, b_idx)) continue;
+
+    if (!(mask[a_idx] & groupbit) || !(mask[b_idx] & groupbit)) continue;
+    if (!bond_selected_for_atoms(a_idx, b_idx, bt)) continue;
+
+    add_constraint(a_idx, b_idx, bt, bond_distance[bt]);
+    ilves_flag[a_idx] = 1;
+    ilves_flag[b_idx] = 1;
+  }
+
+  // -----------------------------------------------------------------
+  // Phase B: angle virtual A-C constraints (and B-M when near-linear)
+  // -----------------------------------------------------------------
+  if (has_angle) {
+    const int na_global = (int) ga1.size();
+    for (int gi = 0; gi < na_global; ++gi) {
+      int at = ga_type[gi];
+      if (at <= 0 || at > atom->nangletypes) continue;
+      if (!angle_flag[at]) continue;
+
+      tagint t1 = ga1[gi];
+      tagint t2 = ga2[gi];
+      tagint t3 = ga3[gi];
+
+      if (!in_my_cluster(t1) && !in_my_cluster(t2) && !in_my_cluster(t3)) continue;
+
+      int i1 = atom->map(t1);
+      int i2 = atom->map(t2);
+      int i3 = atom->map(t3);
+      if (i1 < 0 || i2 < 0 || i3 < 0) continue;
+
+      if (!(mask[i1] & groupbit)) continue;
+      if (!(mask[i2] & groupbit)) continue;
+      if (!(mask[i3] & groupbit)) continue;
+
+      if (!bond_is_constrained(t2, t1)) continue;
+      if (!bond_is_constrained(t2, t3)) continue;
+
+      int a_idx, b_idx;
+      if (!pick_atoms(t1, t3, a_idx, b_idx)) continue;
+
+      add_constraint(a_idx, b_idx, -at, angle_distance[at]);
+      ilves_flag[a_idx] = 1;
+      ilves_flag[b_idx] = 1;
+      ilves_flag[i2]    = 1;
+
+      if (angle_linear[at]) {
+        // 3-atom B-M virtual constraint.  c_atom1 = B (central),
+        // c_atom2 = A (lower tag), c_atom3 = C (higher tag).
+        int iB_local = atom->map(t2);
+        int iB = (iB_local >= 0) ? iB_local : i2;
+        int iA = domain->closest_image(iB, atom->map(t1));
+        int iC = domain->closest_image(iB, atom->map(t3));
+        add_constraint(iB, iA, iC, -at, angle_dBM[at]);
+        ilves_flag[iB] = 1;
+        ilves_flag[iA] = 1;
+        ilves_flag[iC] = 1;
+      }
+    }
+  }
+
+  // connected-component labelling and cluster grouping
+  group_by_cluster();
+  precompute_constraint_data();
 }

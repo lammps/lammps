@@ -37,24 +37,16 @@ Syntax
          *yes* exposes per-atom constraint forces via array_atom (3 columns)
        *variant* value = *ilves* or *ilvesf*
          *ilves*  = full ILVES (true Newton iteration on the exact Jacobian)
-         *ilvesf* = ILVES-F (structurally-symmetric quasi-Newton, ~2x faster)
+         *ilvesf* = ILVES-F (structurally-symmetric quasi-Newton, faster)
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   # constrain all hydrogen-containing bonds + the water HOH angle of
-   # examples/peptide/data.peptide (mirrors examples/peptide/in.peptide
-   # but using ILVES instead of SHAKE)
    fix 1 all ilves 1.0e-4 25 100 b 4 6 8 10 12 14 18 a 31
-
-   # constrain all bonds involving hydrogen (by atom type or mass),
-   # report stats every 1000 steps, expose per-atom constraint forces
    fix 2 wat ilves 1.0e-6 30 1000 t 1 m 1.008 store yes
-
-   # use the structurally-symmetric quasi-Newton variant
-   fix 3 all ilves 1.0e-5 20 0 b 1 a 1 variant ilvesf
+   fix 3 all ilves 1.0e-5 20 0 b 1 a 1 variant ilves
 
 Description
 """""""""""
@@ -194,11 +186,11 @@ keyword options).
 
    Two solver variants are available via the ``variant`` keyword:
 
-   * ``ilves`` (default): symmetric Jacobian using
+   * ``ilvesf`` (default): symmetric Jacobian using
      :math:`(r_k\cdot r_l)/m_p` in the off-diagonals -- a quasi-Newton
      step that uses reference (start-of-step) bond vectors in the
      coupling terms.  The matrix is genuinely symmetric.
-   * ``ilvesf``: the exact Newton Jacobian using
+   * ``ilves``: the exact Newton Jacobian using
      :math:`(s_k\cdot r_l)/m_p` in the off-diagonals -- structurally
      but not numerically symmetric.
 
@@ -225,8 +217,8 @@ sets of constrained bonds.
 Related commands
 """"""""""""""""
 
-:doc:`fix shake <fix_shake>`, :doc:`fix rattle <fix_shake>`,
-:doc:`fix restrain <fix_restrain>`
+:doc:`fix shake <fix_shake>`, :doc:`fix restrain <fix_restrain>`,
+:doc:`fix rigid <fix_rigid>`, :doc:`fix ehex <fix_ehex>`
 
 Default
 """""""
@@ -235,7 +227,7 @@ The keyword defaults are:
 
 * *kbond* = ``1.0e9 * boltz`` (same default as :doc:`fix shake <fix_shake>`)
 * *store* = *no*
-* *variant* = *ilves*
+* *variant* = *ilvesf*
 
 ----------
 

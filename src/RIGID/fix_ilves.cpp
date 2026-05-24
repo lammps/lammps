@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -21,7 +20,7 @@
      reference GROMACS implementation:
      https://github.com/LorienLV/_PAPER_ILVES
 
-   Compared to fix shake/rattle the user-interface follows the same b/a/t/m
+   Follows the user-interface interface of fix shake using the same b/a/t/m
    selectors (constrain by bond type, angle type, atom type, atom mass) and
    the same in-group requirement: a bond is constrained only when both atoms
    are in the fix group; an angle (i.e. the A-C "virtual" distance derived
@@ -35,11 +34,11 @@
    constraint networks of arbitrary size (e.g. all C-C backbone bonds in a
    protein) are admissible.
 
-   PHASE 1 (this file): UI parser, per-atom flags, constraint-list builder,
-   connected-component labelling, ghost communication of xshake.  The
-   Newton-style solver, the angle (A-C) constraints, MPI residual reduction,
-   minimization restraints and restart support will be added in subsequent
-   phases.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+   Created using Claude Code with Opus 4.7
 ------------------------------------------------------------------------- */
 
 #include "fix_ilves.h"
@@ -47,6 +46,7 @@
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -67,28 +67,48 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-static constexpr double BIG = 1.0e20;
-static constexpr double MASSDELTA = 0.1;
-static constexpr int DELTA_CONSTR = 256;
+namespace {
+enum { ILVES_FULL, ILVES_FAST };
+constexpr double BIG = 1.0e20;
+constexpr double MASSDELTA = 0.1;
+constexpr int DELTA_CONSTR = 256;
+
+const char cite_fix_ilves[] =
+    "fix ilves command: https://doi.org/10.1021/acs.jctc.5c01376\n\n"
+    "@Article{LpezVillellas2025,\n"
+    "author = {López-Villellas,  Lorién and Mikkelsen,  Carl Christian Kjelgaard "
+    "and Galano-Frutos,  Juan José and Marco-Sola,  Santiago and Alastruey-Benedé,  Jesús "
+    "and Ibáñez,  Pablo and Echenique,  Pablo and Moretó,  Miquel and De Rosa,  Maria Cristina "
+    "and García-Risueño,  Pablo},\n"
+    "title = {ILVES: Accurate and Efficient Bond Length and Angle Constraints in Molecular "
+    "Dynamics},\n"
+    "volume = {21},\n"
+    "ISSN = {1549-9626},\n"
+    "url = {http://dx.doi.org/10.1021/acs.jctc.5c01376},\n"
+    "DOI = {10.1021/acs.jctc.5c01376},\n"
+    "number = {18},\n"
+    "journal = {Journal of Chemical Theory and Computation},\n"
+    "publisher = {American Chemical Society (ACS)},\n"
+    "year = {2025},\n"
+    "month = sep,\n"
+    "pages = {8711–8719}\n"
+    "}\n\n";
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr), type_flag(nullptr),
-    mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr),
-    fstore(nullptr), ilves_flag(nullptr), xshake(nullptr),
-    c_atom1(nullptr), c_atom2(nullptr), c_type(nullptr),
-    c_dist(nullptr), c_lambda(nullptr), c_cluster(nullptr),
-    c_rx(nullptr), c_ry(nullptr), c_rz(nullptr), c_rsq(nullptr),
-    c_invma(nullptr), c_invmb(nullptr),
-    cluster_offset(nullptr), c_perm(nullptr), c_slot(nullptr),
-    lu_A(nullptr), lu_b(nullptr), lu_pivot(nullptr),
-    cl_sx(nullptr), cl_sy(nullptr), cl_sz(nullptr),
-    x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr), type(nullptr),
-    b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr), b_min(nullptr),
-    b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr),
-    a_count(nullptr), a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr),
-    a_ave_all(nullptr), a_max_all(nullptr), a_min_all(nullptr)
+    mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr), fstore(nullptr),
+    ilves_flag(nullptr), xshake(nullptr), c_atom1(nullptr), c_atom2(nullptr), c_type(nullptr),
+    c_dist(nullptr), c_lambda(nullptr), c_cluster(nullptr), c_rx(nullptr), c_ry(nullptr),
+    c_rz(nullptr), c_rsq(nullptr), c_invma(nullptr), c_invmb(nullptr), cluster_offset(nullptr),
+    c_perm(nullptr), c_slot(nullptr), lu_A(nullptr), lu_b(nullptr), lu_pivot(nullptr),
+    cl_sx(nullptr), cl_sy(nullptr), cl_sz(nullptr), x(nullptr), v(nullptr), f(nullptr),
+    mass(nullptr), rmass(nullptr), type(nullptr), b_count(nullptr), b_count_all(nullptr),
+    b_ave(nullptr), b_max(nullptr), b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr),
+    b_min_all(nullptr), a_count(nullptr), a_count_all(nullptr), a_ave(nullptr), a_max(nullptr),
+    a_min(nullptr), a_ave_all(nullptr), a_max_all(nullptr), a_min_all(nullptr)
 {
   lu_alloc = 0;
   largest_cluster = 0;
@@ -108,7 +128,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   eflag_pre_reverse = 0;
   ebond = 0.0;
   has_angle = false;
-  variant = 0;       // default: full ILVES (symmetric matrix)
+  variant = ILVES_FAST;
 
   store_flag = peratom_flag = 0;
   maxstore = -1;
@@ -116,6 +136,8 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   n_constr = 0;
   max_constr = 0;
   n_clusters = 0;
+
+  if (lmp->citeme) lmp->citeme->add(cite_fix_ilves);
 
   // error checks
 
@@ -129,6 +151,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   // forward-comm payload: 3 doubles (xshake)
   comm_forward = 3;
 
+  // clang-format off
   // -----------------------------------------------------------------
   // parse arguments: tol  iter  output_every  <b|a|t|m> ids ... [opt]
   // mirrors fix shake's UI
@@ -173,7 +196,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[next], "t") == 0) mode = 't';
     else if (strcmp(arg[next], "m") == 0) { mode = 'm'; atom->check_mass(FLERR); }
 
-    // break on known optional-keyword start
+    // break on known optional keyword
     else if ((strcmp(arg[next], "kbond")   == 0) ||
              (strcmp(arg[next], "store")   == 0) ||
              (strcmp(arg[next], "variant") == 0)) {
@@ -236,8 +259,8 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[next], "variant") == 0) {
       if (next + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves variant", error);
-      if      (strcmp(arg[next + 1], "ilves")  == 0) variant = 0;
-      else if (strcmp(arg[next + 1], "ilvesf") == 0) variant = 1;
+      if      (strcmp(arg[next + 1], "ilves")  == 0) variant = ILVES_FULL;
+      else if (strcmp(arg[next + 1], "ilvesf") == 0) variant = ILVES_FAST;
       else error->all(FLERR, next + 1, "Unknown fix ilves variant {}", arg[next + 1]);
       next += 2;
 
@@ -528,10 +551,22 @@ void FixIlves::setup(int vflag)
 
   dtv = update->dt;
 
+  int n_info[2] = {n_constr, n_clusters};
+  int n_info_all[2];
+  int n_max_all;
+  MPI_Reduce(n_info, n_info_all, 2, MPI_INT, MPI_SUM, 0, world);
+  n_info_all[0] /= comm->nprocs;
+  n_info_all[1] /= comm->nprocs;
+  MPI_Reduce(&largest_cluster, &n_max_all, 1, MPI_INT, MPI_MAX, 0, world);
+
   if (comm->me == 0)
-    utils::logmesg(lmp, "Fix ilves: {} constraints in {} clusters "
-                   "(largest = {} constraints)\n",
-                   n_constr, n_clusters, largest_cluster);
+    utils::logmesg(lmp, "Fix ilves info:\n"
+                   "  {} algorithm\n"
+                   "  {} constraints/proc\n"
+                   "  {} clusters/proc\n"
+                   "  {} max. constraints/cluster\n",
+                   (variant == ILVES_FULL) ? "ILVES" : "ILVES-FAST",
+                   n_info_all[0], n_info_all[1], n_max_all);
 
   // At setup we need a different dtfsq convention than during normal stepping:
   //
@@ -1367,16 +1402,16 @@ bool FixIlves::solve_constraints()
         if (relres > max_relres) max_relres = relres;
 
         // diagonal:
-        //   variant = 0 (ilves, symmetric Jacobian):
+        //   variant = ILVES_FAST (ilvesf, symmetric Jacobian):
         //       A_kk = (1/m_a + 1/m_b) * |r_k|^2
         //       Off-diagonals use r_k . r_l (truly symmetric matrix).
         //       This is a quasi-Newton step; it converges to the exact
         //       constraint solution but uses an approximate Jacobian.
-        //   variant = 1 (ilvesf, structurally-symmetric exact Jacobian):
+        //   variant = ILVES_FULL (ilves, structurally-symmetric exact Jacobian):
         //       A_kk = (1/m_a + 1/m_b) * (s_k . r_k)
         //       Off-diagonals use s_k . r_l.
         //       This is the true Newton Jacobian -- quadratic convergence.
-        if (variant == 0) {
+        if (variant == ILVES_FAST) {
           lu_A[s*n_c + s] = (c_invma[k] + c_invmb[k]) * c_rsq[k];
         } else {
           double sr = cl_sx[s]*c_rx[k] + cl_sy[s]*c_ry[k] + cl_sz[s]*c_rz[k];
@@ -1400,7 +1435,7 @@ bool FixIlves::solve_constraints()
         // for symmetric variant we only need to assemble s < t and copy;
         // for asymmetric we assemble both.  Keep code uniform but skip
         // duplicate work for the symmetric case.
-        const int t_start = (variant == 0) ? s + 1 : 0;
+        const int t_start = (variant == ILVES_FAST) ? s + 1 : 0;
         for (int t = t_start; t < n_c; ++t) {
           if (t == s) continue;
           int l = c_perm[beg + t];
@@ -1421,7 +1456,7 @@ bool FixIlves::solve_constraints()
           else continue;     // no shared atom
 
           double val;
-          if (variant == 0) {
+          if (variant == ILVES_FAST) {
             // symmetric: r_k . r_l (commutative -> matrix is symmetric)
             double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
             val = sig_k * sig_l * rkrl * invm_p;

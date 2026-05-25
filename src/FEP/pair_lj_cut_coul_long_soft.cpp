@@ -22,7 +22,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
@@ -37,7 +37,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace EwaldConst;
+using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
@@ -77,7 +77,7 @@ void PairLJCutCoulLongSoft::compute(int eflag, int vflag)
   int i,ii,j,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double r,rsq,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,erfc;
   double denc, denlj, r4sig6;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -128,14 +128,13 @@ void PairLJCutCoulLongSoft::compute(int eflag, int vflag)
         if (rsq < cut_coulsq) {
           r = sqrt(rsq);
           grij = g_ewald * r;
-          expm2 = exp(-grij*grij);
-          t = 1.0 / (1.0 + EWALD_P*grij);
-          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+          expm2 = expmsq(grij);
+          erfc = my_erfcx(grij) * expm2;
 
           denc = sqrt(lj4[itype][jtype] + rsq);
           prefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
 
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         } else forcecoul = 0.0;
 
@@ -375,7 +374,7 @@ void PairLJCutCoulLongSoft::compute_outer(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double r,rsq,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,fprefactor,eprefactor,t,erfc;
+  double grij,expm2,fprefactor,eprefactor,erfc;
   double rsw;
   double denc, denlj, r4sig6;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -434,14 +433,13 @@ void PairLJCutCoulLongSoft::compute_outer(int eflag, int vflag)
         if (rsq < cut_coulsq) {
           r = sqrt(rsq);
           grij = g_ewald * r;
-          expm2 = exp(-grij*grij);
-          t = 1.0 / (1.0 + EWALD_P*grij);
-          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+          expm2 = expmsq(grij);
+          erfc = my_erfcx(grij) * expm2;
 
           denc = sqrt(lj4[itype][jtype] + rsq);
           fprefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
 
-          forcecoul = fprefactor * (erfc + EWALD_F*grij*expm2 - 1.0);
+          forcecoul = fprefactor * (erfc + MY_ISPI4*grij*expm2 - 1.0);
 
           if (rsq > cut_in_off_sq) {
             if (rsq < cut_in_on_sq) {
@@ -498,7 +496,7 @@ void PairLJCutCoulLongSoft::compute_outer(int eflag, int vflag)
 
         if (vflag) {
           if (rsq < cut_coulsq) {
-            forcecoul = fprefactor * (erfc + EWALD_F*grij*expm2);
+            forcecoul = fprefactor * (erfc + MY_ISPI4*grij*expm2);
             if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*fprefactor;
           } else forcecoul = 0.0;
 
@@ -854,22 +852,21 @@ double PairLJCutCoulLongSoft::single(int i, int j, int itype, int jtype,
                                  double factor_coul, double factor_lj,
                                  double &fforce)
 {
-  double r,grij,expm2,t,erfc,prefactor;
+  double r,grij,expm2,erfc,prefactor;
   double forcecoul,forcelj,phicoul,philj;
   double denc, denlj, r4sig6;
 
   if (rsq < cut_coulsq) {
     r = sqrt(rsq);
     grij = g_ewald * r;
-    expm2 = exp(-grij*grij);
-    t = 1.0 / (1.0 + EWALD_P*grij);
-    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+    expm2 = expmsq(grij);
+    erfc = my_erfcx(grij) * expm2;
 
     denc = sqrt(lj4[itype][jtype] + rsq);
     prefactor = force->qqrd2e * lj1[itype][jtype] * atom->q[i]*atom->q[j] /
       (denc*denc*denc);
 
-    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+    forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
     if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
   } else forcecoul = 0.0;
 

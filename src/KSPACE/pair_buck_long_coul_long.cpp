@@ -21,11 +21,12 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "ewald_const.h"
 #include "force.h"
 #include "info.h"
 #include "kspace.h"
+#include "math_const.h"
 #include "math_extra.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -36,8 +37,9 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 using namespace MathExtra;
-using namespace EwaldConst;
+using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
@@ -497,16 +499,15 @@ void PairBuckLongCoulLong::compute(int eflag, int vflag)
       if (order1 && (rsq < cut_coulsq)) {                // coulombic
         if (!ncoultablebits || rsq <= tabinnersq) {        // series real space
           double x1 = g_ewald*r;
-          double s = qri*q[j], t = 1.0/(1.0+EWALD_P*x1);
+          double expm2 = expmsq(x1), erfcv = my_erfcx(x1)*expm2;
+          double s = qri*q[j];
           if (ni == 0) {
-            s *= g_ewald*exp(-x1*x1);
-            force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x1)+EWALD_F*s;
-            if (eflag) ecoul = t;
+            force_coul = s*(erfcv + MY_ISPI4*x1*expm2)/r;
+            if (eflag) ecoul = s*erfcv/r;
           } else {                                        // special case
             double fc = s*(1.0-special_coul[ni])/r;
-            s *= g_ewald*exp(-x1*x1);
-            force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x1)+EWALD_F*s-fc;
-            if (eflag) ecoul = t-fc;
+            force_coul = s*(erfcv + MY_ISPI4*x1*expm2)/r - fc;
+            if (eflag) ecoul = s*erfcv/r - fc;
           }
         } else {                                             // table real space
           union_int_float_t t;
@@ -840,15 +841,15 @@ void PairBuckLongCoulLong::compute_outer(int eflag, int vflag)
           double s = qri*q[j];
           if (respa_flag)                                // correct for respa
             respa_coul = ni == 0 ? frespa*s/r : frespa*s/r*special_coul[ni];
-          double x = g_ewald*r, t = 1.0/(1.0+EWALD_P*x);
+          double x = g_ewald*r;
+          double expm2 = expmsq(x), erfcv = my_erfcx(x)*expm2;
           if (ni == 0) {
-            s *= g_ewald*exp(-x*x);
-            force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-respa_coul;
-            if (eflag) ecoul = t;
+            force_coul = s*(erfcv + MY_ISPI4*x*expm2)/r - respa_coul;
+            if (eflag) ecoul = s*erfcv/r;
           } else {                                        // correct for special
-            double ri = s*(1.0-special_coul[ni])/r; s *= g_ewald*exp(-x*x);
-            force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-ri-respa_coul;
-            if (eflag) ecoul = t-ri;
+            double ri = s*(1.0-special_coul[ni])/r;
+            force_coul = s*(erfcv + MY_ISPI4*x*expm2)/r - ri - respa_coul;
+            if (eflag) ecoul = s*erfcv/r - ri;
           }
         } else {                                         // table real space
           if (respa_flag) {
@@ -961,10 +962,11 @@ double PairBuckLongCoulLong::single(int i, int j, int itype, int jtype,
   if ((ewald_order&2) && (rsq < cut_coulsq)) {                // coulombic
     if (!ncoultablebits || rsq <= tabinnersq) {                // series real space
       double x = g_ewald*r;
-      double s = force->qqrd2e*q[i]*q[j], t = 1.0/(1.0+EWALD_P*x);
-      f = s*(1.0-factor_coul)/r; s *= g_ewald*exp(-x*x);
-      force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-f;
-      eng += t-f;
+      double s = force->qqrd2e*q[i]*q[j];
+      double expm2 = expmsq(x), erfcv = my_erfcx(x)*expm2;
+      f = s*(1.0-factor_coul)/r;
+      force_coul = s*(erfcv + MY_ISPI4*x*expm2)/r - f;
+      eng += s*erfcv/r - f;
     } else {                                                // table real space
       union_int_float_t t;
       t.f = rsq;

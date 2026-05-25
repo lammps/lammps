@@ -20,7 +20,7 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
 #include "force.h"
 #include "gpu_extra.h"
 #include "kspace.h"
@@ -35,7 +35,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace EwaldConst;
+using namespace MathSpecial;
 
 // External functions from cuda library for atom decomposition
 
@@ -199,7 +199,7 @@ void PairLJCutDipoleLongGPU::cpu_compute(int start, int inum, int eflag, int vfl
   double tixcoul, tiycoul, tizcoul;
   double fx, fy, fz, fdx, fdy, fdz, fax, fay, faz;
   double pdotp, pidotr, pjdotr, pre1, pre2, pre3;
-  double grij, expm2, t, erfc;
+  double grij, expm2, erfc;
   double g0, g1, g2, b0, b1, b2, b3, d0, d1, d2, d3;
   double zdix, zdiy, zdiz, zaix, zaiy, zaiz;
   double g0b1_g1b2_g2b3, g0d1_g1d2_g2d3;
@@ -255,9 +255,8 @@ void PairLJCutDipoleLongGPU::cpu_compute(int start, int inum, int eflag, int vfl
         if (rsq < cut_coulsq) {
           r = sqrt(rsq);
           grij = g_ewald * r;
-          expm2 = exp(-grij * grij);
-          t = 1.0 / (1.0 + EWALD_P * grij);
-          erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+          expm2 = expmsq(grij);
+          erfc = my_erfcx(grij) * expm2;
 
           pdotp = mu[i][0] * mu[j][0] + mu[i][1] * mu[j][1] + mu[i][2] * mu[j][2];
           pidotr = mu[i][0] * delx + mu[i][1] * dely + mu[i][2] * delz;

@@ -20,7 +20,7 @@
 #include "atom.h"
 #include "atom_vec_dielectric.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
@@ -31,7 +31,8 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
+using namespace MathConst;
+using namespace MathSpecial;
 using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
@@ -59,7 +60,7 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
   double fpair_i;
   double fraction, table;
   double r, rsq, r2inv, forcecoul, factor_coul;
-  double grij, expm2, prefactor, t, erfc, prefactorE, efield_i;
+  double grij, expm2, prefactor, erfc, prefactorE, efield_i;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   if (atom->nmax > nmax) {
@@ -128,15 +129,14 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
         if (!ncoultablebits || rsq <= tabinnersq) {
           r = sqrt(rsq);
           grij = g_ewald * r;
-          expm2 = exp(-grij * grij);
-          t = 1.0 / (1.0 + EWALD_P * grij);
-          erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+          expm2 = expmsq(grij);
+          erfc = my_erfcx(grij) * expm2;
           prefactor = qqrd2e * scale[itype][jtype] * qtmp * q[j] / r;
-          forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
+          forcecoul = prefactor * (erfc + MY_ISPI4 * grij * expm2);
           if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
 
           prefactorE = qqrd2e * scale[itype][jtype] * q[j] / r;
-          efield_i = prefactorE * (erfc + EWALD_F * grij * expm2);
+          efield_i = prefactorE * (erfc + MY_ISPI4 * grij * expm2);
           if (factor_coul < 1.0) efield_i -= (1.0 - factor_coul) * prefactorE;
 
         } else {

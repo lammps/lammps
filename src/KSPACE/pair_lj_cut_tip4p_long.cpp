@@ -29,13 +29,15 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
+#include "math_const.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
+using namespace MathConst;
+using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
@@ -78,7 +80,7 @@ void PairLJCutTIP4PLong::compute(int eflag, int vflag)
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcelj,cforce;
   double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,erfc;
   double fO[3],fH[3],fd[3],v[6];
   double *x1,*x2,*xH1,*xH2;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -250,11 +252,10 @@ void PairLJCutTIP4PLong::compute(int eflag, int vflag)
           if (!ncoultablebits || rsq <= tabinnersq) {
             r = sqrt(rsq);
             grij = g_ewald * r;
-            expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            expm2 = expmsq(grij);
+            erfc = my_erfcx(grij) * expm2;
             prefactor = qqrd2e * qtmp*q[j]/r;
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
             if (factor_coul < 1.0) {
               forcecoul -= (1.0-factor_coul)*prefactor;
             }

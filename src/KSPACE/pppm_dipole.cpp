@@ -949,19 +949,19 @@ double PPPMDipole::compute_qopt_dipole()
 
           for (nx = -nbx; nx <= nbx; nx++) {
             qx = unitkx*(kper+nx_pppm*nx);
-            sx = exp(-0.25*square(qx/g_ewald));
+            sx = expmsq(0.5*qx/g_ewald);
             argx = 0.5*qx*xprd/nx_pppm;
             wx = powsinxx(argx,twoorder);
 
             for (ny = -nby; ny <= nby; ny++) {
               qy = unitky*(lper+ny_pppm*ny);
-              sy = exp(-0.25*square(qy/g_ewald));
+              sy = expmsq(0.5*qy/g_ewald);
               argy = 0.5*qy*yprd/ny_pppm;
               wy = powsinxx(argy,twoorder);
 
               for (nz = -nbz; nz <= nbz; nz++) {
                 qz = unitkz*(mper+nz_pppm*nz);
-                sz = exp(-0.25*square(qz/g_ewald));
+                sz = expmsq(0.5*qz/g_ewald);
                 argz = 0.5*qz*zprd_slab/nz_pppm;
                 wz = powsinxx(argz,twoorder);
 
@@ -1044,19 +1044,19 @@ void PPPMDipole::compute_gf_dipole()
 
           for (nx = -nbx; nx <= nbx; nx++) {
             qx = unitkx*(kper+nx_pppm*nx);
-            sx = exp(-0.25*square(qx/g_ewald));
+            sx = expmsq(0.5*qx/g_ewald);
             argx = 0.5*qx*xprd/nx_pppm;
             wx = powsinxx(argx,twoorder);
 
             for (ny = -nby; ny <= nby; ny++) {
               qy = unitky*(lper+ny_pppm*ny);
-              sy = exp(-0.25*square(qy/g_ewald));
+              sy = expmsq(0.5*qy/g_ewald);
               argy = 0.5*qy*yprd/ny_pppm;
               wy = powsinxx(argy,twoorder);
 
               for (nz = -nbz; nz <= nbz; nz++) {
                 qz = unitkz*(mper+nz_pppm*nz);
-                sz = exp(-0.25*square(qz/g_ewald));
+                sz = expmsq(0.5*qz/g_ewald);
                 argz = 0.5*qz*zprd_slab/nz_pppm;
                 wz = powsinxx(argz,twoorder);
 

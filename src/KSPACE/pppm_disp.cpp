@@ -29,6 +29,7 @@
 #include "force.h"
 #include "grid3d.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -39,6 +40,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 static constexpr int MAXORDER =   7;
 static constexpr int OFFSET = 16384;
@@ -2833,7 +2835,7 @@ double PPPMDisp::f()
   double zprd_slab = zprd*slab_volfactor;
   bigint natoms = atom->natoms;
 
-  df_rspace = 2.0*q2*exp(-g_ewald*g_ewald*cutoff*cutoff) /
+  df_rspace = 2.0*q2*expmsq(g_ewald*cutoff) /
        sqrt(natoms*cutoff*xprd*yprd*zprd);
 
   double qopt = compute_qopt();
@@ -2876,7 +2878,7 @@ double PPPMDisp::final_accuracy()
   double zprd = domain->zprd;
   double zprd_slab = zprd*slab_volfactor;
   bigint natoms = atom->natoms;
-  df_rspace = 2.0*q2 * exp(-g_ewald*g_ewald*cutoff*cutoff) /
+  df_rspace = 2.0*q2 * expmsq(g_ewald*cutoff) /
              sqrt(natoms*cutoff*xprd*yprd*zprd);
 
   double qopt = compute_qopt();
@@ -2988,21 +2990,21 @@ double PPPMDisp::compute_qopt_ik()
 
     for (nx = -nbx; nx <= nbx; nx++) {
       qx = unitkx*(kper+nx_pppm*nx);
-      sx = exp(-0.25*pow(qx/g_ewald,2.0));
+      sx = expmsq(0.5*qx/g_ewald);
       wx = 1.0;
       argx = 0.5*qx*xprd/nx_pppm;
       if (argx != 0.0) wx = pow(sin(argx)/argx,order);
 
       for (ny = -nby; ny <= nby; ny++) {
         qy = unitky*(lper+ny_pppm*ny);
-        sy = exp(-0.25*pow(qy/g_ewald,2.0));
+        sy = expmsq(0.5*qy/g_ewald);
         wy = 1.0;
         argy = 0.5*qy*yprd/ny_pppm;
         if (argy != 0.0) wy = pow(sin(argy)/argy,order);
 
         for (nz = -nbz; nz <= nbz; nz++) {
           qz = unitkz*(mper+nz_pppm*nz);
-          sz = exp(-0.25*pow(qz/g_ewald,2.0));
+          sz = expmsq(0.5*qz/g_ewald);
           wz = 1.0;
           argz = 0.5*qz*zprd_slab/nz_pppm;
           if (argz != 0.0) wz = pow(sin(argz)/argz,order);
@@ -3079,21 +3081,21 @@ double PPPMDisp::compute_qopt_ad()
 
     for (nx = -nbx; nx <= nbx; nx++) {
       qx = unitkx*(kper+nx_pppm*nx);
-      sx = exp(-0.25*pow(qx/g_ewald,2.0));
+      sx = expmsq(0.5*qx/g_ewald);
       wx = 1.0;
       argx = 0.5*qx*xprd/nx_pppm;
       if (argx != 0.0) wx = pow(sin(argx)/argx,order);
 
       for (ny = -nby; ny <= nby; ny++) {
         qy = unitky*(lper+ny_pppm*ny);
-        sy = exp(-0.25*pow(qy/g_ewald,2.0));
+        sy = expmsq(0.5*qy/g_ewald);
         wy = 1.0;
         argy = 0.5*qy*yprd/ny_pppm;
         if (argy != 0.0) wy = pow(sin(argy)/argy,order);
 
         for (nz = -nbz; nz <= nbz; nz++) {
           qz = unitkz*(mper+nz_pppm*nz);
-          sz = exp(-0.25*pow(qz/g_ewald,2.0));
+          sz = expmsq(0.5*qz/g_ewald);
           wz = 1.0;
           argz = 0.5*qz*zprd_slab/nz_pppm;
           if (argz != 0.0) wz = pow(sin(argz)/argz,order);
@@ -3698,7 +3700,7 @@ void PPPMDisp::compute_gf()
     qz = unitkz*mper;
     snz = sin(0.5*qz*zprd_slab/nz_pppm);
     snz2 = snz*snz;
-    sz = exp(-0.25*pow(qz/g_ewald,2.0));
+    sz = expmsq(0.5*qz/g_ewald);
     wz = 1.0;
     argz = 0.5*qz*zprd_slab/nz_pppm;
     if (argz != 0.0) wz = pow(sin(argz)/argz,order);
@@ -3709,7 +3711,7 @@ void PPPMDisp::compute_gf()
       qy = unitky*lper;
       sny = sin(0.5*qy*yprd/ny_pppm);
       sny2 = sny*sny;
-      sy = exp(-0.25*pow(qy/g_ewald,2.0));
+      sy = expmsq(0.5*qy/g_ewald);
       wy = 1.0;
       argy = 0.5*qy*yprd/ny_pppm;
       if (argy != 0.0) wy = pow(sin(argy)/argy,order);
@@ -3720,7 +3722,7 @@ void PPPMDisp::compute_gf()
         qx = unitkx*kper;
         snx = sin(0.5*qx*xprd/nx_pppm);
         snx2 = snx*snx;
-        sx = exp(-0.25*pow(qx/g_ewald,2.0));
+        sx = expmsq(0.5*qx/g_ewald);
         wx = 1.0;
         argx = 0.5*qx*xprd/nx_pppm;
         if (argx != 0.0) wx = pow(sin(argx)/argx,order);

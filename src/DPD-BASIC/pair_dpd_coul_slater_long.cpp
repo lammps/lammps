@@ -29,14 +29,16 @@
 #include "random_mars.h"
 #include "update.h"
 
-#include "ewald_const.h"
+#include "math_special.h"
+#include "math_const.h"
 #include "kspace.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
+using namespace MathConst;
+using namespace MathSpecial;
 
 static constexpr double EPSILON = 1.0e-10;
 
@@ -83,7 +85,7 @@ void PairDPDCoulSlaterLong::compute(int eflag, int vflag)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
   double r2inv,forcedpd,forcecoul,factor_coul;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,erfc;
   double rsq,r,rinv,dot,wd,randnum,factor_dpd,factor_sqrt;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double slater_term;
@@ -180,12 +182,11 @@ void PairDPDCoulSlaterLong::compute(int eflag, int vflag)
         if (rsq < cut_slatersq[itype][jtype]){
           r2inv = 1.0/rsq;
           grij = g_ewald * r;
-          expm2 = exp(-grij*grij);
-          t = 1.0 / (1.0 + EWALD_P*grij);
-          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+          expm2 = expmsq(grij);
+          erfc = my_erfcx(grij) * expm2;
           slater_term = exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
           prefactor = qqrd2e * qtmp*q[j]/r;
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
+          forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2 - slater_term);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor*(1-slater_term);
           forcecoul *= r2inv;
 
@@ -498,7 +499,7 @@ double PairDPDCoulSlaterLong::single(int i, int j, int itype, int jtype, double 
                                      double factor_coul, double factor_dpd, double &fforce)
 {
   double r,rinv,wd,phi;
-  double r2inv,grij,expm2,t,erfc,prefactor;
+  double r2inv,grij,expm2,erfc,prefactor;
   double slater_term;
   double forcecoul,phicoul;
 
@@ -521,12 +522,11 @@ double PairDPDCoulSlaterLong::single(int i, int j, int itype, int jtype, double 
   if (atom->q[i]*atom->q[j] != 0.0 && rsq < cut_slatersq[itype][jtype]) {
     r2inv = 1.0/rsq;
     grij = g_ewald * r;
-    expm2 = exp(-grij*grij);
-    t = 1.0 / (1.0 + EWALD_P*grij);
-    erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+    expm2 = expmsq(grij);
+    erfc = my_erfcx(grij) * expm2;
     slater_term = exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
     prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
-    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
+    forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2 - slater_term);
     if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
     fforce += forcecoul * r2inv;
     phicoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));

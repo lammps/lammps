@@ -19,7 +19,8 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
+#include "math_const.h"
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -31,7 +32,8 @@
 #include "omp_compat.h"
 
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
+using namespace MathConst;
+using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
@@ -138,7 +140,7 @@ void PairTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   double fraction,table;
   double r,rsq,r2inv,forcecoul,cforce;
   double factor_coul;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,erfc;
   double v[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
   dbl3_t x1,x2,xH1,xH2;
@@ -276,11 +278,10 @@ void PairTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           if (CTABLE || rsq <= tabinnersq) {
             r = sqrt(rsq);
             grij = g_ewald * r;
-            expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            expm2 = expmsq(grij);
+            erfc = my_erfcx(grij) * expm2;
             prefactor = qqrd2e * qtmp*q[j]/r;
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
             if (factor_coul < 1.0) {
               forcecoul -= (1.0-factor_coul)*prefactor;
             }

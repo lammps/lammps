@@ -22,18 +22,14 @@
 #include "force.h"
 #include "neigh_list.h"
 
+#include "math_const.h"
+#include "math_special.h"
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace MathSpecial;
+using namespace MathConst;
 
-static constexpr double EWALD_F =  1.12837917;
-static constexpr double EWALD_P =  9.95473818e-1;
-static constexpr double B0      = -0.1335096380159268;
-static constexpr double B1      = -2.57839507e-1;
-static constexpr double B2      = -1.37203639e-1;
-static constexpr double B3      = -8.88822059e-3;
-static constexpr double B4      = -5.80844129e-3;
-static constexpr double B5      =  1.14652755e-1;
 
 static constexpr double EPSILON = 1.0e-20;
 static constexpr double EPS_EWALD = 1.0e-6;
@@ -57,7 +53,7 @@ void PairBornCoulLongCS::compute(int eflag, int vflag)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
   double rsq,r2inv,r6inv,forcecoul,forceborn,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc,u;
+  double grij,expm2,prefactor,erfc;
   double r,rexp;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -115,23 +111,19 @@ void PairBornCoulLongCS::compute(int eflag, int vflag)
               // has to be added to the prefactor and erfc in order to make the
               // used approximation functions valid
               grij = g_ewald * (r+EPS_EWALD);
-              expm2 = exp(-grij*grij);
-              t = 1.0 / (1.0 + EWALD_P*grij);
-              u = 1.0 - t;
-              erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+              expm2 = expmsq(grij);
+              erfc = my_erfcx(grij) * expm2;
               prefactor /= (r+EPS_EWALD);
-              forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - (1.0-factor_coul));
+              forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2 - (1.0-factor_coul));
               // Additionally r2inv needs to be accordingly modified since the later
               // scaling of the overall force shall be consistent
               r2inv = 1.0/(rsq + EPS_EWALD_SQR);
             } else {
               grij = g_ewald * r;
-              expm2 = exp(-grij*grij);
-              t = 1.0 / (1.0 + EWALD_P*grij);
-              u = 1.0 - t;
-              erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+              expm2 = expmsq(grij);
+              erfc = my_erfcx(grij) * expm2;
               prefactor /= r;
-              forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+              forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
             }
           } else {
             union_int_float_t rsq_lookup;

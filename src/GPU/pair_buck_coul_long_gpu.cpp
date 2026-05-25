@@ -20,7 +20,8 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
+#include "math_const.h"
 #include "force.h"
 #include "gpu_extra.h"
 #include "kspace.h"
@@ -31,7 +32,8 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
+using namespace MathConst;
+using namespace MathSpecial;
 
 // External functions from cuda library for atom decomposition
 
@@ -187,7 +189,7 @@ void PairBuckCoulLongGPU::cpu_compute(int start, int inum, int eflag, int /* vfl
   int i, j, ii, jj, jnum, itype, jtype;
   double qtmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
   double r, rexp, r2inv, r6inv, forcecoul, forcebuck, factor_coul, factor_lj;
-  double grij, expm2, prefactor, t, erfc;
+  double grij, expm2, prefactor, erfc;
   int *jlist;
   double rsq;
 
@@ -230,11 +232,10 @@ void PairBuckCoulLongGPU::cpu_compute(int start, int inum, int eflag, int /* vfl
         r = sqrt(rsq);
         if (rsq < cut_coulsq) {
           grij = g_ewald * r;
-          expm2 = exp(-grij * grij);
-          t = 1.0 / (1.0 + EWALD_P * grij);
-          erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+          expm2 = expmsq(grij);
+          erfc = my_erfcx(grij) * expm2;
           prefactor = qqrd2e * qtmp * q[j] / r;
-          forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
+          forcecoul = prefactor * (erfc + MY_ISPI4 * grij * expm2);
           if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
         } else
           forcecoul = 0.0;

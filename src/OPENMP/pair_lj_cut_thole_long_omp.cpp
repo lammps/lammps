@@ -24,6 +24,7 @@
 #include "error.h"
 #include "fix_drude.h"
 #include "force.h"
+#include "math_special.h"
 #include "math_const.h"
 #include "neigh_list.h"
 #include "suffix.h"
@@ -33,15 +34,8 @@
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
-static constexpr double EWALD_F =  1.12837917;
-static constexpr double EWALD_P =  9.95473818e-1;
-static constexpr double B0      = -0.1335096380159268;
-static constexpr double B1      = -2.57839507e-1;
-static constexpr double B2      = -1.37203639e-1;
-static constexpr double B3      = -8.88822059e-3;
-static constexpr double B4      = -5.80844129e-3;
-static constexpr double B5      =  1.14652755e-1;
 
 static constexpr double EPSILON = 1.0e-20;
 static constexpr double EPS_EWALD = 1.0e-6;
@@ -118,7 +112,7 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   double ecoul,fpair,evdwl;
   double r,rsq,r2inv,forcecoul,factor_coul,forcelj,factor_lj,r6inv;
   double fraction,table;
-  double grij,expm2,prefactor,t,erfc,u;
+  double grij,expm2,prefactor,erfc;
   double factor_f,factor_e;
   int di,dj;
   double qj,dqi,dqj,dcoul,asr,exp_asr;
@@ -179,12 +173,10 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
           if (!ncoultablebits || rsq <= tabinnersq) {
             grij = g_ewald * (r + EPS_EWALD);
-            expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            u = 1. - t;
-            erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+            expm2 = expmsq(grij);
+            erfc = my_erfcx(grij) * expm2;
             prefactor = qqrd2e * qi*qj/(r + EPS_EWALD);
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
             if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
             r2inv = 1.0/(rsq + EPS_EWALD_SQR);
           } else {

@@ -17,7 +17,7 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "ewald_const.h"
+#include "math_special.h"
 #include "force.h"
 #include "math_const.h"
 #include "neigh_list.h"
@@ -28,7 +28,8 @@
 #include "omp_compat.h"
 
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
+using namespace MathConst;
+using namespace MathSpecial;
 using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
@@ -87,7 +88,7 @@ void PairLJCutCoulDSFOMP::eval(int iifrom, int iito, ThrData * const thr)
   int i,j,ii,jj,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double prefactor,erfcc,erfcd,t;
+  double prefactor,erfcc,erfcd;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
@@ -148,9 +149,8 @@ void PairLJCutCoulDSFOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (rsq < cut_coulsq) {
           r = sqrt(rsq);
           prefactor = qqrd2e*qtmp*q[j]/r;
-          erfcd = exp(-alpha*alpha*r*r);
-          t = 1.0 / (1.0 + EWALD_P*alpha*r);
-          erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
+          erfcd = expmsq(alpha*r);
+          erfcc = my_erfcx(alpha*r) * erfcd;
           forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
                                    r*f_shift) * r;
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;

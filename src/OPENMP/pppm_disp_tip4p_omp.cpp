@@ -24,6 +24,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "suffix.h"
 
 #include <cstring>
@@ -36,6 +37,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 static constexpr FFT_SCALAR ZEROF = 0.0;
 static constexpr int OFFSET = 16384;
@@ -145,7 +147,7 @@ void PPPMDispTIP4POMP::compute_gf()
       qz = unitkz*mper;
       snz = sin(0.5*qz*zprd_slab/nz_pppm);
       snz2 = snz*snz;
-      sz = exp(-0.25*pow(qz/g_ewald,2.0));
+      sz = expmsq(0.5*qz/g_ewald);
       wz = 1.0;
       argz = 0.5*qz*zprd_slab/nz_pppm;
       if (argz != 0.0) wz = pow(sin(argz)/argz,order);
@@ -156,7 +158,7 @@ void PPPMDispTIP4POMP::compute_gf()
         qy = unitky*lper;
         sny = sin(0.5*qy*yprd/ny_pppm);
         sny2 = sny*sny;
-        sy = exp(-0.25*pow(qy/g_ewald,2.0));
+        sy = expmsq(0.5*qy/g_ewald);
         wy = 1.0;
         argy = 0.5*qy*yprd/ny_pppm;
         if (argy != 0.0) wy = pow(sin(argy)/argy,order);
@@ -172,7 +174,7 @@ void PPPMDispTIP4POMP::compute_gf()
           qx = unitkx*kper;
           snx = sin(0.5*qx*xprd/nx_pppm);
           snx2 = snx*snx;
-          sx = exp(-0.25*pow(qx/g_ewald,2.0));
+          sx = expmsq(0.5*qx/g_ewald);
           wx = 1.0;
           argx = 0.5*qx*xprd/nx_pppm;
           if (argx != 0.0) wx = pow(sin(argx)/argx,order);

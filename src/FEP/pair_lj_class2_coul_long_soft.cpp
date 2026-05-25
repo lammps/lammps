@@ -17,7 +17,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
@@ -30,7 +30,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace EwaldConst;
+using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
@@ -70,7 +70,7 @@ void PairLJClass2CoulLongSoft::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double rsq,r,forcecoul,forcelj;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,erfc;
   double factor_coul,factor_lj;
   double denc, denlj, r4sig6;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -122,12 +122,11 @@ void PairLJClass2CoulLongSoft::compute(int eflag, int vflag)
         if (rsq < cut_coulsq) {
           r = sqrt(rsq);
           grij = g_ewald * r;
-          expm2 = exp(-grij*grij);
-          t = 1.0 / (1.0 + EWALD_P*grij);
-          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+          expm2 = expmsq(grij);
+          erfc = my_erfcx(grij) * expm2;
           denc = sqrt(lj4[itype][jtype] + rsq);
           prefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         } else forcecoul = 0.0;
 
@@ -482,19 +481,18 @@ double PairLJClass2CoulLongSoft::single(int i, int j, int itype, int jtype,
                                     double factor_coul, double factor_lj,
                                     double &fforce)
 {
-  double denc,r,denlj,r4sig6,grij,expm2,t,erfc,prefactor;
+  double denc,r,denlj,r4sig6,grij,expm2,erfc,prefactor;
   double forcecoul,forcelj,phicoul,philj;
 
   if (rsq < cut_coulsq) {
       r = sqrt(rsq);
       grij = g_ewald * r;
-      expm2 = exp(-grij*grij);
-      t = 1.0 / (1.0 + EWALD_P*grij);
-      erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+      expm2 = expmsq(grij);
+      erfc = my_erfcx(grij) * expm2;
       denc = sqrt(lj4[itype][jtype] + rsq);
       prefactor = force->qqrd2e * lj1[itype][jtype] * atom->q[i]*atom->q[j] /
         (denc*denc*denc);
-      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+      forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
       if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
   } else forcecoul = 0.0;
   if (rsq < cut_ljsq[itype][jtype]) {

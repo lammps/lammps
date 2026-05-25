@@ -20,7 +20,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
@@ -33,7 +33,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace EwaldConst;
+using namespace MathSpecial;
 
 static constexpr int DELTA = 4;
 
@@ -89,7 +89,7 @@ void PairCoulCTIP::compute(int eflag, int vflag)
   int iparam_i, jparam_j;
   double qtmp, xtmp, ytmp, ztmp, delx, dely, delz, ecoul, fpair;
   double r, rsq, reff, reffsq, reff4, forcecoul, factor_coul;
-  double prefactor, erfcc, erfcd, t;
+  double prefactor, erfcc, erfcd;
   double selfion;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
@@ -105,10 +105,9 @@ void PairCoulCTIP::compute(int eflag, int vflag)
   double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
-  double erfcd_cut, t_cut, erfcc_cut;
-  erfcd_cut = exp(-alpha * alpha * cut_coulsq);
-  t_cut = 1.0 / (1.0 + EWALD_P * alpha * cut_coul);
-  erfcc_cut = t_cut * (A1 + t_cut * (A2 + t_cut * (A3 + t_cut * (A4 + t_cut * A5)))) * erfcd_cut;
+  double erfcd_cut, erfcc_cut;
+  erfcd_cut = expmsq(alpha*cut_coul);
+  erfcc_cut = my_erfcx(alpha*cut_coul) * erfcd_cut;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -155,9 +154,8 @@ void PairCoulCTIP::compute(int eflag, int vflag)
         reffsq = reff * reff;
         reff4 = reffsq * reffsq;
         prefactor = qqrd2e * qtmp * q[j] / r;
-        erfcd = exp(-alpha * alpha * rsq);
-        t = 1.0 / (1.0 + EWALD_P * alpha * r);
-        erfcc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * erfcd;
+        erfcd = expmsq(alpha*r);
+        erfcc = my_erfcx(alpha*r) * erfcd;
 
         forcecoul = prefactor *
             (erfcc / r + 2.0 * alpha / MY_PIS * erfcd + rsq * r / reff4 - 1 / r -
@@ -297,13 +295,12 @@ void PairCoulCTIP::init_style()
   memory->create(self_factor, nelements, nelements, "pair:self_factor");
 
   double qqrd2e = force->qqrd2e;
-  double cut_coulcu, cut_coul4, alphacu, erfcd_cut, t_cut, erfcc_cut;
+  double cut_coulcu, cut_coul4, alphacu, erfcd_cut, erfcc_cut;
   cut_coulcu = cut_coulsq * cut_coul;
   cut_coul4 = cut_coulsq * cut_coulsq;
   alphacu = alpha * alpha * alpha;
-  erfcd_cut = exp(-alpha * alpha * cut_coulsq);
-  t_cut = 1.0 / (1.0 + EWALD_P * alpha * cut_coul);
-  erfcc_cut = t_cut * (A1 + t_cut * (A2 + t_cut * (A3 + t_cut * (A4 + t_cut * A5)))) * erfcd_cut;
+  erfcd_cut = expmsq(alpha*cut_coul);
+  erfcc_cut = my_erfcx(alpha*cut_coul) * erfcd_cut;
 
   for (int elt1 = 0; elt1 < nelements; elt1++) {
     for (int elt2 = 0; elt2 < nelements; elt2++) {

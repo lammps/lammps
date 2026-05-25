@@ -21,11 +21,11 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "ewald_const.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "math_extra.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -37,7 +37,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathExtra;
-using namespace EwaldConst;
+using namespace MathSpecial;
 
 // ----------------------------------------------------------------------
 
@@ -457,10 +457,9 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
         {                                               // series real space
           double r = sqrt(rsq);
           double x = g_ewald*r;
-          double f = exp(-x*x)*qqrd2e;
+          double f = expmsq(x)*qqrd2e;
 
-          B0 = 1.0/(1.0+EWALD_P*x);                     // eqn 2.8
-          B0 *= ((((A5*B0+A4)*B0+A3)*B0+A2)*B0+A1)*f/r;
+          B0 = my_erfcx(x)*f/r;                          // eqn 2.8
           B1 = (B0 + C1 * f) * r2inv;
           B2 = (3.0*B1 + C2 * f) * r2inv;
           B3 = (5.0*B2 + C3 * f) * r2inv;
@@ -597,10 +596,9 @@ double PairLJLongDipoleLong::single(int i, int j, int itype, int jtype,
     {                                                   // series real space
       double r = sqrt(rsq);
       double x = g_ewald*r;
-      double f = exp(-x*x)*qqrd2e;
+      double f = expmsq(x)*qqrd2e;
 
-      B0 = 1.0/(1.0+EWALD_P*x);                 // eqn 2.8
-      B0 *= ((((A5*B0+A4)*B0+A3)*B0+A2)*B0+A1)*f/r;
+      B0 = my_erfcx(x)*f/r;                      // eqn 2.8
       B1 = (B0 + C1 * f) * r2inv;
       B2 = (3.0*B1 + C2 * f) * r2inv;
       B3 = (5.0*B2 + C3 * f) * r2inv;

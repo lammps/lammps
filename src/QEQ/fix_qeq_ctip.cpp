@@ -21,7 +21,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
@@ -35,7 +35,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
+using namespace MathSpecial;
 using namespace MathConst;
 using namespace FixConst;
 
@@ -116,10 +116,8 @@ void FixQEqCTIP::init()
   double rsq = r * r;
   double r6 = rsq * rsq * rsq;
 
-  double erfcd_cut = exp(-cdamp * cdamp * rsq);
-  double t_cut = 1.0 / (1.0 + EWALD_P * cdamp * r);
-  double erfcc_cut =
-      (t_cut * (A1 + t_cut * (A2 + t_cut * (A3 + t_cut * (A4 + t_cut * A5)))) * erfcd_cut) / r;
+  double erfcd_cut = expmsq(cdamp*r);
+  double erfcc_cut = my_erfcx(cdamp*r) * erfcd_cut / r;
 
   for (int elt1 = 0; elt1 < ntypes; elt1++) {
     reff[elt1] = cbrt(rsq * r + 1.0 / (gamma[elt1 + 1] * gamma[elt1 + 1] * gamma[elt1 + 1]));
@@ -279,7 +277,7 @@ void FixQEqCTIP::compute_H()
   int inum, jnum, *ilist, *jlist, *numneigh, **firstneigh;
   int i, j, ii, jj;
   double dx, dy, dz, r_sqr, r, reff;
-  double erfcc, erfcd, t;
+  double erfcc, erfcd;
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -312,9 +310,8 @@ void FixQEqCTIP::compute_H()
           H.jlist[m_fill] = j;
           r = sqrt(r_sqr);
           reff = cbrt(r_sqr * r + 1 / shieldcu[type[i]-1][type[j]-1]);
-          erfcd = exp(-cdamp * cdamp * r_sqr);
-          t = 1.0 / (1.0 + EWALD_P * cdamp * r);
-          erfcc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * erfcd;
+          erfcd = expmsq(cdamp*r);
+          erfcc = my_erfcx(cdamp*r) * erfcd;
           H.val[m_fill] = 0.5*force->qqr2e*(erfcc/r+1/reff-1/r-e_shift[type[i]-1][type[j]-1]+f_shift[type[i]-1][type[j]-1]*(r-cutoff)-s2d_shift[type[i]-1][type[j]-1]*0.5*(r-cutoff)*(r-cutoff));
           m_fill++;
         }

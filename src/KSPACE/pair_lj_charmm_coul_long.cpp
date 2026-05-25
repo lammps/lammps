@@ -21,7 +21,8 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
+#include "math_const.h"
 #include "force.h"
 #include "kspace.h"
 #include "memory.h"
@@ -34,7 +35,8 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
+using namespace MathConst;
+using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
@@ -84,7 +86,7 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,erfc;
   double philj,switch1,switch2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
@@ -137,11 +139,10 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
           if (!ncoultablebits || rsq <= tabinnersq) {
             r = sqrt(rsq);
             grij = g_ewald * r;
-            expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            expm2 = expmsq(grij);
+            erfc = my_erfcx(grij) * expm2;
             prefactor = qqrd2e * qtmp*q[j]/r;
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
             if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
           } else {
             union_int_float_t rsq_lookup;
@@ -390,7 +391,7 @@ void PairLJCharmmCoulLong::compute_outer(int eflag, int vflag)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,erfc;
   double philj,switch1,switch2;
   double rsw;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -445,11 +446,10 @@ void PairLJCharmmCoulLong::compute_outer(int eflag, int vflag)
           if (!ncoultablebits || rsq <= tabinnersq) {
             r = sqrt(rsq);
             grij = g_ewald * r;
-            expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            expm2 = expmsq(grij);
+            erfc = my_erfcx(grij) * expm2;
             prefactor = qqrd2e * qtmp*q[j]/r;
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - 1.0);
+            forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2 - 1.0);
             if (rsq > cut_in_off_sq) {
               if (rsq < cut_in_on_sq) {
                 rsw = (r - cut_in_off)/cut_in_diff;
@@ -538,7 +538,7 @@ void PairLJCharmmCoulLong::compute_outer(int eflag, int vflag)
         if (vflag) {
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq) {
-              forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+              forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
               if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
             } else {
               table = vtable[itable] + fraction*dvtable[itable];
@@ -899,7 +899,7 @@ double PairLJCharmmCoulLong::single(int i, int j, int itype, int jtype,
                                     double factor_coul, double factor_lj,
                                     double &fforce)
 {
-  double r2inv,r6inv,r,grij,expm2,t,erfc,prefactor;
+  double r2inv,r6inv,r,grij,expm2,erfc,prefactor;
   double switch1,switch2,fraction,table,forcecoul,forcelj,phicoul,philj;
   int itable;
 
@@ -908,11 +908,10 @@ double PairLJCharmmCoulLong::single(int i, int j, int itype, int jtype,
     if (!ncoultablebits || rsq <= tabinnersq) {
       r = sqrt(rsq);
       grij = g_ewald * r;
-      expm2 = exp(-grij*grij);
-      t = 1.0 / (1.0 + EWALD_P*grij);
-      erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+      expm2 = expmsq(grij);
+      erfc = my_erfcx(grij) * expm2;
       prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
-      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+      forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
       if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
     } else {
       union_int_float_t rsq_lookup;

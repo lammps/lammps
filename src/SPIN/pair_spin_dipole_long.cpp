@@ -22,7 +22,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
 #include "force.h"
 #include "info.h"
 #include "kspace.h"
@@ -35,7 +35,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace EwaldConst;
+using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
@@ -181,7 +181,7 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double r,rinv,r2inv,rsq;
-  double grij,expm2,t,erfc;
+  double grij,expm2,erfc;
   double evdwl,ecoul;
   double bij[4];
   double xi[3],rij[3],eij[3];
@@ -269,9 +269,8 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
 
         r = sqrt(rsq);
         grij = g_ewald * r;
-        expm2 = exp(-grij*grij);
-        t = 1.0 / (1.0 + EWALD_P*grij);
-        erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+        expm2 = expmsq(grij);
+        erfc = my_erfcx(grij) * expm2;
 
         bij[0] = erfc * rinv;
         bij[1] = (bij[0] + pre1*expm2) * r2inv;
@@ -321,7 +320,7 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
   int j,jj,jnum,itype,jtype,ntypes;
   int k,locflag;
   int *jlist,*numneigh,**firstneigh;
-  double r,rinv,r2inv,rsq,grij,expm2,t,erfc;
+  double r,rinv,r2inv,rsq,grij,expm2,erfc;
   double local_cut2,pre1,pre2,pre3;
   double bij[4],xi[3],rij[3],eij[3],spi[4],spj[4];
 
@@ -406,9 +405,8 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
 
         r = sqrt(rsq);
         grij = g_ewald * r;
-        expm2 = exp(-grij*grij);
-        t = 1.0 / (1.0 + EWALD_P*grij);
-        erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+        expm2 = expmsq(grij);
+        erfc = my_erfcx(grij) * expm2;
 
         bij[0] = erfc * rinv;
         bij[1] = (bij[0] + pre1*expm2) * r2inv;

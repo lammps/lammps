@@ -20,7 +20,7 @@
 #include "atom.h"
 #include "atom_vec_dielectric.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
 #include "force.h"
 #include "math_const.h"
 #include "math_extra.h"
@@ -32,7 +32,8 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
+using namespace MathConst;
+using namespace MathSpecial;
 using MathConst::MY_PIS;
 using namespace MathExtra;
 
@@ -109,7 +110,7 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
   double fpair_i;
   double fraction, table;
   double *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
-  double grij, expm2, prefactor, t, erfc, prefactorE, efield_i, epot_i;
+  double grij, expm2, prefactor, erfc, prefactorE, efield_i, epot_i;
   double r, rsq, r2inv, force_coul, force_lj, factor_coul;
   double g2 = g_ewald_6 * g_ewald_6, g6 = g2 * g2 * g2, g8 = g6 * g2;
   double xi[3];
@@ -167,15 +168,14 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
         if (!ncoultablebits || rsq <= tabinnersq) {
 
           grij = g_ewald * r;
-          expm2 = exp(-grij * grij);
-          t = 1.0 / (1.0 + EWALD_P * grij);
-          erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+          expm2 = expmsq(grij);
+          erfc = my_erfcx(grij) * expm2;
           prefactor = qqrd2e * qtmp * q[j] / r;
-          force_coul = prefactor * (erfc + EWALD_F * grij * expm2);
+          force_coul = prefactor * (erfc + MY_ISPI4 * grij * expm2);
           if (factor_coul < 1.0) force_coul -= (1.0 - factor_coul) * prefactor;
 
           prefactorE = q[j] / r;
-          efield_i = prefactorE * (erfc + EWALD_F * grij * expm2);
+          efield_i = prefactorE * (erfc + MY_ISPI4 * grij * expm2);
           if (factor_coul < 1.0) efield_i -= (1.0 - factor_coul) * prefactorE;
           epot_i = efield_i;
         } else {
@@ -310,11 +310,11 @@ double PairLJLongCoulLongDielectric::single(int i, int j, int itype, int jtype, 
   if ((ewald_order & 2) && (rsq < cut_coulsq)) {    // coulombic
     if (!ncoultablebits || rsq <= tabinnersq) {     // series real space
       double r = sqrt(rsq), x = g_ewald * r;
-      double s = force->qqrd2e * q[i] * q[j], t = 1.0 / (1.0 + EWALD_P * x);
-      r = s * (1.0 - factor_coul) / r;
-      s *= g_ewald * exp(-x * x);
-      force_coul = (t *= ((((t * A5 + A4) * t + A3) * t + A2) * t + A1) * s / x) + EWALD_F * s - r;
-      eng += (t - r) * (ei + ej) * 0.5;
+      double s = force->qqrd2e * q[i] * q[j];
+      double expm2 = expmsq(x), erfcv = my_erfcx(x)*expm2;
+      double adj = s * (1.0 - factor_coul) / r;
+      force_coul = s*(erfcv + MY_ISPI4*x*expm2)/r - adj;
+      eng += (s*erfcv/r - adj) * (ei + ej) * 0.5;
     } else {    // table real space
       union_int_float_t t;
       t.f = rsq;

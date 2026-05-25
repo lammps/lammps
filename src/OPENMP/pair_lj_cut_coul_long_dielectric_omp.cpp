@@ -19,7 +19,7 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "ewald_const.h"
+#include "math_special.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
@@ -30,7 +30,8 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
+using namespace MathConst;
+using namespace MathSpecial;
 using MathConst::MY_PIS;
 
 static constexpr double EPSILON = 1.0e-6;
@@ -96,7 +97,7 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair_i;
   double fraction, table;
   double r, rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
-  double grij, expm2, prefactor, t, erfc, prefactorE, efield_i, epot_i;
+  double grij, expm2, prefactor, erfc, prefactorE, efield_i, epot_i;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = ecoul = 0.0;
@@ -168,15 +169,14 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
           if (!ncoultablebits || rsq <= tabinnersq) {
 
             grij = g_ewald * r;
-            expm2 = exp(-grij * grij);
-            t = 1.0 / (1.0 + EWALD_P * grij);
-            erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
+            expm2 = expmsq(grij);
+            erfc = my_erfcx(grij) * expm2;
             prefactor = qqrd2e * qtmp * q[j] / r;
-            forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
+            forcecoul = prefactor * (erfc + MY_ISPI4 * grij * expm2);
             if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
 
             prefactorE = qqrd2e * q[j] / r;
-            efield_i = prefactorE * (erfc + EWALD_F * grij * expm2);
+            efield_i = prefactorE * (erfc + MY_ISPI4 * grij * expm2);
             if (factor_coul < 1.0) efield_i -= (1.0 - factor_coul) * prefactorE;
             epot_i = efield_i;
           } else {

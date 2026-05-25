@@ -19,7 +19,8 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
+#include "math_const.h"
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -31,7 +32,8 @@
 #include "omp_compat.h"
 
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
+using namespace MathConst;
+using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
@@ -125,7 +127,7 @@ void PairLJCutTIP4PLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double r,rsq,forcecoul,forcelj,cforce;
   double factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,erfc;
   double denc, denlj, r4sig6;
   double v[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
@@ -291,14 +293,13 @@ void PairLJCutTIP4PLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (rsq < cut_coulsq) {
           r = sqrt(rsq);
           grij = g_ewald * r;
-          expm2 = exp(-grij*grij);
-          t = 1.0 / (1.0 + EWALD_P*grij);
-          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+          expm2 = expmsq(grij);
+          erfc = my_erfcx(grij) * expm2;
 
           denc = sqrt(lj4[itype][jtype] + rsq);
           prefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
 
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
           if (factor_coul < 1.0) {
             forcecoul -= (1.0-factor_coul)*prefactor;
           }

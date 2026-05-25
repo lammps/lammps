@@ -19,7 +19,8 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "ewald_const.h"
+#include "math_special.h"
+#include "math_const.h"
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -31,7 +32,8 @@
 #include "omp_compat.h"
 
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
+using namespace MathConst;
+using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
@@ -733,7 +735,7 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   double fraction,table;
   double r,r2inv,forcecoul,forcelj,cforce;
   double factor_coul;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,erfc;
   double fOx,fOy,fOz,fHx,fHy,fHz,fdx,fdy,fdz,v[6];
   dbl3_t x1,x2,xH1,xH2;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -905,11 +907,10 @@ void PairLJLongTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           if (!CTABLE || rsq <= tabinnersq) {
             r = sqrt(rsq);
             grij = g_ewald * r;
-            expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            expm2 = expmsq(grij);
+            erfc = my_erfcx(grij) * expm2;
             prefactor = qqrd2e * qtmp*q[j]/r;
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
             if (factor_coul < 1.0) {
               forcecoul -= (1.0-factor_coul)*prefactor;
             }
@@ -1825,15 +1826,15 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
             double r = sqrt(rsq), s = qri*q[j];
             if (respa_flag)                                // correct for respa
               respa_coul = ni == 0 ? frespa*s/r : frespa*s/r*special_coul[ni];
-            double x = g_ewald*r, t = 1.0/(1.0+EWALD_P*x);
+            double x = g_ewald*r;
+            double expm2 = expmsq(x), erfcv = my_erfcx(x)*expm2;
             if (ni == 0) {
-              s *= g_ewald*exp(-x*x);
-              forcecoul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-respa_coul;
-              if (EFLAG) ecoul = t;
+              forcecoul = s*(erfcv + MY_ISPI4*x*expm2)/r - respa_coul;
+              if (EFLAG) ecoul = s*erfcv/r;
             } else {                                        // correct for special
-              r = s*(1.0-special_coul[ni])/r; s *= g_ewald*exp(-x*x);
-              forcecoul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-r-respa_coul;
-              if (EFLAG) ecoul = t-r;
+              double adj = s*(1.0-special_coul[ni])/r;
+              forcecoul = s*(erfcv + MY_ISPI4*x*expm2)/r - adj - respa_coul;
+              if (EFLAG) ecoul = s*erfcv/r - adj;
             }
           } else {                                             // table real space
             if (respa_flag) {

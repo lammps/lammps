@@ -20,10 +20,10 @@
      reference GROMACS implementation:
      https://github.com/LorienLV/_PAPER_ILVES
 
-   Follows the user-interface interface of fix shake using the same b/a/t/m
-   selectors (constrain by bond type, angle type, atom type, atom mass) and
-   the same in-group requirement: a bond is constrained only when both atoms
-   are in the fix group; an angle (i.e. the A-C "virtual" distance derived
+   Follows the user-interface of fix shake using the same b/a/t/m selectors
+   (constrain by bond type, angle type, atom type, atom mass) and the same
+   in-group requirement: a bond is constrained only when both atoms are
+   in the fix group; an angle (i.e. the A-C "virtual" distance derived
    from A-B and B-C bonds) is constrained only when all three atoms are
    in the fix group AND the two flanking bonds are themselves selected by
    one of the above criteria.
@@ -78,11 +78,12 @@ constexpr int DELTA_CONSTR = 256;
 
 const char cite_fix_ilves[] =
     "fix ilves command: https://doi.org/10.1021/acs.jctc.5c01376\n\n"
-    "@Article{LpezVillellas2025,\n"
-    "author = {López-Villellas,  Lorién and Mikkelsen,  Carl Christian Kjelgaard "
-    "and Galano-Frutos,  Juan José and Marco-Sola,  Santiago and Alastruey-Benedé,  Jesús "
-    "and Ibáñez,  Pablo and Echenique,  Pablo and Moretó,  Miquel and De Rosa,  Maria Cristina "
-    "and García-Risueño,  Pablo},\n"
+    "@Article{LopezVillellas2025,\n"
+    "author = {L{\'o}pez-Villellas,  Lori{\'e}n and Mikkelsen,  Carl Christian Kjelgaard "
+    "and Galano-Frutos,  Juan Jos{\'e} and Marco-Sola,  Santiago and "
+    "Alastruey-Bened{\'e},  Jes{\'u}s and Ib{\'a}{\~n}ez,  Pablo and "
+    "Echenique,  Pablo and Moret{\'o},  Miquel and {De Rosa},  Maria Cristina and "
+    "Garc{\'i}a-Risue{\~n}o,  Pablo},\n"
     "title = {ILVES: Accurate and Efficient Bond Length and Angle Constraints in Molecular "
     "Dynamics},\n"
     "volume = {21},\n"
@@ -94,7 +95,7 @@ const char cite_fix_ilves[] =
     "publisher = {American Chemical Society (ACS)},\n"
     "year = {2025},\n"
     "month = sep,\n"
-    "pages = {8711–8719}\n"
+    "pages = {8711-8719}\n"
     "}\n\n";
 }    // namespace
 
@@ -283,9 +284,9 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[next], "linearangle") == 0) {
       if (next + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves linearangle", error);
       linear_threshold = utils::numeric(FLERR, arg[next + 1], false, lmp);
-      if (linear_threshold <= 0.0 || linear_threshold > 180.0)
+      if ((linear_threshold < 150.0) || (linear_threshold > 180.0))
         error->all(FLERR, next + 1,
-                   "Fix ilves linearangle must be in (0, 180] degrees, got {}",
+                   "Fix ilves linearangle must be in the [150, 180] degrees range, got {}",
                    linear_threshold);
       next += 2;
       // optional second numeric: minimum |B-M| target length (in units of

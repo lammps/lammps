@@ -208,48 +208,48 @@ above the user-supplied threshold.  For those angles:
   :math:`\theta` near 180 degrees.
 
 For an exactly-180-degree symmetric angle (:math:`|AB| = |BC|`,
-:math:`\theta_0 = 180^\circ`) the natural :math:`|B-M|` target is
-zero and the constraint Jacobian row vanishes.  The ``Lmin`` argument
-to ``linearangle`` clamps the target up from zero in that limit; the
-default value of 0.01 length units bends the angle by less than
-1 degree off 180 degrees for typical bond lengths, well below thermal
-fluctuation amplitudes.
+:math:`\theta_0 = 180^\circ`) the natural :math:`|B-M|` target is zero
+and the constraint Jacobian row vanishes.  The ``Lmin`` argument to
+``linearangle`` clamps the target up from zero in that limit; the
+default value of 0.01 length units bends the angle by less than 1 degree
+off 180 degrees for typical bond lengths, well below thermal fluctuation
+amplitudes.
 
-Set ``linearangle 180`` to disable near-linear handling entirely (the
-default threshold is 165 degrees).
+Set *linearangle* to 180 to disable near-linear handling entirely.  The
+default threshold is 165 degrees and the smallest allowed threshold is
+150 degrees.
 
 .. note::
 
-   The ``linearangle`` feature is a **workaround**, not a full
-   solution.  At :math:`\theta` near 180 degrees the constraint
-   manifold is geometrically nearly singular and any iterative
-   distance-constraint solver (SHAKE, RATTLE, P-SHAKE, ILVES) is
-   ill-conditioned there.  ``linearangle`` widens the regime in which
-   the iterative solver still converges, but it does so by
-   substituting an approximate constraint -- the :math:`|B-M|` clamp
-   biases the equilibrium angle slightly off 180 degrees (by an angle
-   that increases with ``Lmin``) and only constrains the median
-   length, not the bond :math:`|B-C|` directly (which is determined
-   only indirectly through the other three legs).
+   The ``linearangle`` feature is a **workaround**, not a full solution.
+   At :math:`\theta` near 180 degrees the constraint manifold is
+   geometrically nearly singular and any iterative distance-constraint
+   solver (SHAKE, RATTLE, P-SHAKE, ILVES) is ill-conditioned there.
+   ``linearangle`` widens the regime in which the iterative solver still
+   converges, but it does so by substituting an approximate constraint
+   -- the :math:`|B-M|` clamp biases the equilibrium angle slightly off
+   180 degrees (by an angle that increases with ``Lmin``) and only
+   constrains the median length, not the bond :math:`|B-C|` directly
+   (which is determined only indirectly through the other three legs).
 
    This feature is most useful for large systems with a **small
    fraction** of near-linear angles -- e.g. a coarse-grain polymer or
-   protein system where most angles are well-behaved (tetrahedral,
-   sp2 trigonal, water-like) and only a handful of backbone or
+   protein system where most angles are well-behaved (tetrahedral, sp2
+   trigonal, water-like) and only a handful of backbone or
    special-purpose angles approach 180 degrees.  In that regime the
    small error from the ``Lmin`` clamp on a few constraints is
-   negligible compared to the thermal fluctuations that would
-   otherwise unconstrain the rest of the system.
+   negligible compared to the thermal fluctuations that would otherwise
+   unconstrain the rest of the system.
 
-   For the simulation of intrinsically rigid linear molecules
-   (e.g. CO\ :sub:`2`, CS\ :sub:`2`, HCN, C\ :sub:`2`\ H\ :sub:`2`),
-   :doc:`fix rigid/small <fix_rigid>` is the recommended approach.
-   It treats each molecule as a rigid body and has no iterative
-   convergence problems at the 180 degree singularity.  The ILVES
-   ``linearangle`` workaround should not be used as a substitute for
-   ``fix rigid/small`` in those cases -- the angle bias from the
-   ``Lmin`` clamp and the larger iteration counts both make ILVES the
-   wrong tool for that workload.
+   For the simulation of intrinsically rigid linear molecules (e.g. CO\
+   :sub:`2`, CS\ :sub:`2`, HCN, C\ :sub:`2`\ H\ :sub:`2`), :doc:`fix
+   rigid/small <fix_rigid>` is the recommended approach.  It treats each
+   molecule as a rigid body and has no iterative convergence problems at
+   the 180 degree singularity.  The ILVES ``linearangle`` workaround
+   should not be used as a substitute for ``fix rigid/small`` in those
+   cases -- the angle bias from the ``Lmin`` clamp and the larger
+   iteration counts both make ILVES the wrong tool for that kind of
+   workload.
 
 Output info
 ^^^^^^^^^^^
@@ -387,7 +387,7 @@ Default
 
 The keyword defaults are:
 
-* *kbond* = :math:`1.0^9 k_B` (same default as :doc:`fix shake <fix_shake>`)
+* *kbond* = 1.0e9*k_B (same default as :doc:`fix shake <fix_shake>`)
 * *store* = *no*
 * *variant* = *fast*
 * *linearangle* = 165 degrees with Lmin = 1/30 length units

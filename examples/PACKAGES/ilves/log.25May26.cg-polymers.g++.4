@@ -1,0 +1,191 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1100-g1125357c45-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Coarse-grain polymer chains with near-linear backbone angles.
+
+units           lj
+atom_style      molecular
+boundary        p p p
+
+pair_style      lj/cut 4.0
+bond_style      harmonic
+angle_style     harmonic
+read_data data.cg-polymers
+Reading data file ...
+  orthogonal box = (10.906314 17.324206 16.190251) to (21.093686 30.675794 27.809749)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  896 atoms
+  reading velocities ...
+  896 velocities
+  scanning bonds ...
+  1 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  orthogonal box = (10.906314 17.324206 16.190251) to (21.093686 30.675794 27.809749)
+  1 by 2 by 2 MPI processor grid
+  reading bonds ...
+  768 bonds
+  reading angles ...
+  640 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.008 seconds
+
+neighbor        0.5 bin
+neigh_modify    every 1 delay 0 check yes
+timestep        0.001
+thermo          100
+thermo_style    custom step temp press pe ke etotal
+
+fix             cstr all ilves 1.0e-6 30 500 b 1 2 # a 1 2 linearangle 160 0.2
+fix             move all npt temp 1.5 1.5 10.0 iso 1.0 1.0 100.0
+
+run             3000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix ilves command: https://doi.org/10.1021/acs.jctc.5c01376
+
+@Article{LopezVillellas2025,
+author = {L{'o}pez-Villellas,  Lori{'e}n and Mikkelsen,  Carl Christian Kjelgaard and Galano-Frutos,  Juan Jos{'e} and Marco-Sola,  Santiago and Alastruey-Bened{'e},  Jes{'u}s and Ib{'a}{~n}ez,  Pablo and Echenique,  Pablo and Moret{'o},  Miquel and {De Rosa},  Maria Cristina and Garc{'i}a-Risue{~n}o,  Pablo},
+title = {ILVES: Accurate and Efficient Bond Length and Angle Constraints in Molecular Dynamics},
+volume = {21},
+ISSN = {1549-9626},
+url = {http://dx.doi.org/10.1021/acs.jctc.5c01376},
+DOI = {10.1021/acs.jctc.5c01376},
+number = {18},
+journal = {Journal of Chemical Theory and Computation},
+publisher = {American Chemical Society (ACS)},
+year = {2025},
+month = sep,
+pages = {8711-8719}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+Fix ilves: gathered global topology info for 768 bonds, 0 angles, and 896 involved atoms
+  replicated topology storage ~ 52224 bytes/rank (0.05 MB)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.5
+  ghost atom cutoff = 4.5
+  binsize = 2.25, bins = 5 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Fix ilves info:
+  ILVES (fast, banded Cholesky) algorithm
+  387 constraints/proc
+  63 clusters/proc
+  7 max. constraints/cluster
+ILVES stats on step 0 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1         1.19587e-08      448
+Bond:     2   1.2       9.81397e-11      320
+Cholesky: 58 calls, 0 LU fallbacks (0%)
+Per MPI rank memory allocation (min/avg/max) = 7.223 | 7.223 | 7.224 Mbytes
+   Step          Temp          Press          PotEng         KinEng         TotEng    
+         0   1.6938621      2.0962602     -4.5956858      2.5379575     -2.0577283    
+       100   1.6718632      6.0676951     -4.5796069      2.5049959     -2.074611     
+       200   1.6894722      5.8090059     -4.6057208      2.5313799     -2.0743409    
+       300   1.6675436      6.1611316     -4.573991       2.4985238     -2.0754672    
+       400   1.6322484      6.6508289     -4.5213741      2.44564       -2.075734     
+ILVES stats on step 500 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1         1.40447e-06      448
+Bond:     2   1.2       4.63561e-07      320
+Cholesky: 124 calls, 0 LU fallbacks (0%)
+       500   1.6097879      6.1818935     -4.4895517      2.4119869     -2.0775649    
+       600   1.6027048      6.1470483     -4.4807492      2.401374      -2.0793752    
+       700   1.5705125      6.7874716     -4.4340763      2.3531396     -2.0809367    
+       800   1.6192536      5.9361046     -4.5099431      2.4261696     -2.0837735    
+       900   1.5844428      6.3592546     -4.4592419      2.3740117     -2.0852302    
+ILVES stats on step 1000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1         1.64644e-06      448
+Bond:     2   1.2       3.81954e-07      320
+Cholesky: 118 calls, 0 LU fallbacks (0%)
+      1000   1.6274425      5.9647315     -4.5254457      2.4384392     -2.0870065    
+      1100   1.5922451      5.8434664     -4.4759621      2.385702      -2.0902601    
+      1200   1.6541411      4.8903466     -4.571449       2.4784425     -2.0930065    
+      1300   1.6598986      4.3425887     -4.5824341      2.487069      -2.095365     
+      1400   1.6909445      4.1118285     -4.6319124      2.5335859     -2.0983264    
+ILVES stats on step 1500 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1         1.70076e-06      448
+Bond:     2   1.2       3.79273e-07      320
+Cholesky: 120 calls, 0 LU fallbacks (0%)
+      1500   1.6601506      4.2101502     -4.5896051      2.4874466     -2.1021585    
+      1600   1.5817246      5.350368      -4.4757294      2.369939      -2.1057904    
+      1700   1.6550722      4.5571263     -4.5897997      2.4798375     -2.1099622    
+      1800   1.6466832      4.3472948     -4.5812996      2.4672681     -2.1140315    
+      1900   1.6359088      4.5565462     -4.5689722      2.4511246     -2.1178476    
+ILVES stats on step 2000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1         1.8912e-06       448
+Bond:     2   1.2       3.88474e-07      320
+Cholesky: 120 calls, 0 LU fallbacks (0%)
+      2000   1.681387       3.8086041     -4.64071        2.5192657     -2.1214443    
+      2100   1.6338075      4.0332226     -4.5742567      2.447976      -2.1262807    
+      2200   1.6041531      4.1544093     -4.5342378      2.4035441     -2.1306936    
+      2300   1.6531437      2.9661576     -4.6123031      2.4769481     -2.135355     
+      2400   1.5513838      4.4792371     -4.4643891      2.3244785     -2.1399106    
+ILVES stats on step 2500 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1         2.36698e-06      448
+Bond:     2   1.2       5.12248e-07      320
+Cholesky: 114 calls, 0 LU fallbacks (0%)
+      2500   1.6891577      3.3091694     -4.6762505      2.5309087     -2.1453418    
+      2600   1.7067766      2.9701196     -4.7072734      2.5573076     -2.1499658    
+      2700   1.5408203      4.9388969     -4.463572       2.308651      -2.154921     
+      2800   1.6156372      4.1848323     -4.5814157      2.4207511     -2.1606646    
+      2900   1.6337777      3.5380018     -4.6145419      2.4479314     -2.1666105    
+ILVES stats on step 3000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1         1.77447e-06      448
+Bond:     2   1.20001   3.69532e-07      320
+Cholesky: 114 calls, 0 LU fallbacks (0%)
+      3000   1.5582105      4.1513796     -4.5068525      2.3347071     -2.1721454    
+Loop time of 0.725727 on 4 procs for 3000 steps with 896 atoms
+
+Performance: 357158.925 tau/day, 4133.784 timesteps/s, 3.704 Matom-step/s
+98.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.25402    | 0.27425    | 0.2925     |   2.6 | 37.79
+Bond    | 0.019205   | 0.020231   | 0.022087   |   0.8 |  2.79
+Neigh   | 0.033181   | 0.033198   | 0.033228   |   0.0 |  4.57
+Comm    | 0.050817   | 0.070627   | 0.091208   |   5.4 |  9.73
+Output  | 0.00023952 | 0.00029273 | 0.00038594 |   0.0 |  0.04
+Modify  | 0.3219     | 0.32252    | 0.32303    |   0.1 | 44.44
+Other   |            | 0.004606   |            |       |  0.63
+
+Nlocal:            224 ave         239 max         213 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+Nghost:        2280.25 ave        2298 max        2253 min
+Histogram: 1 0 0 0 0 0 1 1 0 1
+Neighs:        23422.2 ave       24757 max       20961 min
+Histogram: 1 0 0 0 0 0 0 1 1 1
+
+Total # of neighbors = 93689
+Ave neighs/atom = 104.56362
+Ave special neighs/atom = 4.2857143
+Neighbor list builds = 60
+Dangerous builds = 0
+Total wall time: 0:00:00

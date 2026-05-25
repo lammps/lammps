@@ -4,14 +4,6 @@
 # mixtures containing alkanes, carbon dioxide and
 # nitrogen AIChE J., 47,1676-1682 (2001)].
 #
-# Note: a near-linear (or exactly linear) triatomic like CO2 is a
-# challenging case for any iterative constraint solver because the
-# Jacobian is rank-deficient at theta = 180 deg.  We use the
-# linearangle handling and a moderately large |B-M| clamp (Lmin=0.1,
-# corresponding to ~9 deg off linear), plus an initial minimize, to
-# keep the solver stable.  For production simulations of truly rigid
-# linear molecules, fix rigid/small is the recommended approach.
-
 # variables available on command line
 
 variable        temp index 338.0

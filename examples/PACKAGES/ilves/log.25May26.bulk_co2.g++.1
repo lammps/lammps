@@ -1,0 +1,1011 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1100-g1125357c45-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Bulk CO2 molecular fluid, fix ilves
+# Rigid CO2 TraPPE model
+# [Potoff and J.I. Siepmann, Vapor-liquid equilibria of
+# mixtures containing alkanes, carbon dioxide and
+# nitrogen AIChE J., 47,1676-1682 (2001)].
+#
+# variables available on command line
+
+variable        temp index 338.0
+variable        lbox index 25.0
+variable        spacing index 5.0
+
+# global model settings
+
+units           real
+atom_style      full
+boundary        p p p
+pair_style      lj/cut/coul/long  14
+pair_modify     mix arithmetic tail yes
+kspace_style    pppm 0.00001
+bond_style      harmonic
+angle_style     harmonic
+
+# box, start molecules on simple cubic lattice
+
+lattice         sc ${spacing}
+lattice         sc 5.0
+Lattice spacing in x,y,z = 5 5 5
+region          box block 0 ${lbox} 0 ${lbox} 0 ${lbox} units box
+region          box block 0 25.0 0 ${lbox} 0 ${lbox} units box
+region          box block 0 25.0 0 25.0 0 ${lbox} units box
+region          box block 0 25.0 0 25.0 0 25.0 units box
+create_box      2 box                                       bond/types 1                                angle/types 1                               extra/bond/per/atom 2                       extra/angle/per/atom 1                      extra/special/per/atom 2
+Created orthogonal box = (0 0 0) to (25 25 25)
+  1 by 1 by 1 MPI processor grid
+molecule        co2mol CO2.txt
+Read molecule template co2mol:
+# CO2 molecule file. TraPPE model.
+  1 molecules
+  0 fragments
+  0 bodies
+  3 atoms with max type 2
+  2 bonds with max type 1
+  1 angles with max type 1
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+create_atoms    0 box mol co2mol 464563 units box
+Created 375 atoms
+  using box units in orthogonal box = (0 0 0) to (25 25 25)
+  create_atoms CPU = 0.001 seconds
+
+# CO2 TraPPE model
+
+pair_coeff      1   1  0.053649   2.8
+pair_coeff      2   2  0.156973   3.05
+bond_coeff      1       0       1.16
+angle_coeff     1       0       180
+
+# masses
+
+mass 1 12.0107
+mass 2 15.9994
+
+# MD settings
+
+group           co2 type 1 2
+375 atoms in group co2
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+velocity        all create ${temp} 54654
+velocity        all create 338.0 54654
+timestep        1.0
+
+# rigid constraints with thermostat
+
+fix             rigid all ilves 0.00001 25 1000 t 1 2 a 1 #linearangle 165 0.0333333
+fix             move  all nvt temp ${temp} ${temp} 100.0
+fix             move  all nvt temp 338.0 ${temp} 100.0
+fix             move  all nvt temp 338.0 338.0 100.0
+
+thermo_style    custom step temp press pe ke
+thermo          100
+
+# minimize first to relax initial lattice overlap.
+minimize 0.0 0.0 1000 10000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix ilves command: https://doi.org/10.1021/acs.jctc.5c01376
+
+@Article{LopezVillellas2025,
+author = {L{'o}pez-Villellas,  Lori{'e}n and Mikkelsen,  Carl Christian Kjelgaard and Galano-Frutos,  Juan Jos{'e} and Marco-Sola,  Santiago and Alastruey-Bened{'e},  Jes{'u}s and Ib{'a}{~n}ez,  Pablo and Echenique,  Pablo and Moret{'o},  Miquel and {De Rosa},  Maria Cristina and Garc{'i}a-Risue{~n}o,  Pablo},
+title = {ILVES: Accurate and Efficient Bond Length and Angle Constraints in Molecular Dynamics},
+volume = {21},
+ISSN = {1549-9626},
+url = {http://dx.doi.org/10.1021/acs.jctc.5c01376},
+DOI = {10.1021/acs.jctc.5c01376},
+number = {18},
+journal = {Journal of Chemical Theory and Computation},
+publisher = {American Chemical Society (ACS)},
+year = {2025},
+month = sep,
+pages = {8711-8719}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.20378779
+  grid = 12 12 12
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0027755062
+  estimated relative force accuracy = 8.3583544e-06
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 4913 1728
+Generated 1 of 1 mixed pair_coeff terms from arithmetic mixing rule
+Fix ilves: gathered global topology info for 250 bonds, 125 angles, and 375 involved atoms
+  replicated topology storage ~ 23000 bytes/rank (0.02 MB)
+Fix ilves: using B-M virtual constraint for 1 near-linear angle type(s) (theta_0 >= 165 deg)
+Fix ilves: clamped |B-M| target to 0.03333333333333333 for 1 angle type(s) (near-symmetric 180 deg geometry would otherwise give a degenerate Jacobian)
+WARNING: Using fix ilves with minimization: substituting constraints with harmonic restraint forces (kbond = 1.98721e+06) (src/RIGID/fix_ilves.cpp:520)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 16
+  ghost atom cutoff = 16
+  binsize = 8, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 9.302 | 9.302 | 9.302 Mbytes
+   Step          Temp          Press          PotEng         KinEng    
+         0   338            590.41842      275896.95      376.81016    
+       100   338           -662.82916     -108.95245      376.81016    
+       200   338            88.156218     -113.15467      376.81016    
+       300   338            491.68569     -118.85908      376.81016    
+       400   338            540.89427     -121.87553      376.81016    
+       435   338           -14044.54      -123.42214      376.81016    
+Loop time of 4.93029 on 1 procs for 435 steps with 375 atoms
+
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+      275896.953009133  -123.422137353542  -123.422137353542
+  Force two-norm initial, final = 1224997 2094.4825
+  Force max component initial, final = 132482.96 558.32736
+  Final line search alpha, max atom move = 8.2784241e-13 4.6220706e-10
+  Iterations, force evaluations = 435 4886
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.0013     | 4.0013     | 4.0013     |   0.0 | 81.16
+Bond    | 0.00069342 | 0.00069342 | 0.00069342 |   0.0 |  0.01
+Kspace  | 0.82634    | 0.82634    | 0.82634    |   0.0 | 16.76
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.045669   | 0.045669   | 0.045669   |   0.0 |  0.93
+Output  | 6.6377e-05 | 6.6377e-05 | 6.6377e-05 |   0.0 |  0.00
+Modify  | 0.042274   | 0.042274   | 0.042274   |   0.0 |  0.86
+Other   |            | 0.01394    |            |       |  0.28
+
+Nlocal:            375 ave         375 max         375 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           4675 ave        4675 max        4675 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          78544 ave       78544 max       78544 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 78544
+Ave neighs/atom = 209.45067
+Ave special neighs/atom = 2
+Neighbor list builds = 0
+Dangerous builds = 0
+reset_timestep 0
+
+
+run             50000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.20378779
+  grid = 12 12 12
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0027755062
+  estimated relative force accuracy = 8.3583544e-06
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 4913 1728
+Generated 1 of 1 mixed pair_coeff terms from arithmetic mixing rule
+Fix ilves: gathered global topology info for 250 bonds, 125 angles, and 375 involved atoms
+  replicated topology storage ~ 23000 bytes/rank (0.02 MB)
+Fix ilves: using B-M virtual constraint for 1 near-linear angle type(s) (theta_0 >= 165 deg)
+Fix ilves: clamped |B-M| target to 0.03333333333333333 for 1 angle type(s) (near-symmetric 180 deg geometry would otherwise give a degenerate Jacobian)
+Fix ilves info:
+  ILVES (fast, banded Cholesky) algorithm
+  375 constraints/proc
+  125 clusters/proc
+  3 max. constraints/cluster
+ILVES stats on step 0 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16      2.47891e-12      125
+Angle:    1   180.0000  8.18911e-06      125
+Cholesky: 125 calls, 0 LU fallbacks (0%)
+Per MPI rank memory allocation (min/avg/max) = 8.177 | 8.177 | 8.177 Mbytes
+   Step          Temp          Press          PotEng         KinEng    
+         0   507.67871     -4985.1115     -123.61127      376.81016    
+       100   347.18201     -708.54617     -130.36937      257.68602    
+       200   322.05499     -872.30206     -146.01392      239.0362     
+       300   323.9057      -1362.5997     -154.51799      240.40984    
+       400   341.97543     -153.32461     -157.25719      253.82159    
+       500   361.5489       322.7798      -169.6162       268.34944    
+       600   319.23473      619.49432     -171.60531      236.94294    
+       700   327.25504     -944.03788     -183.11774      242.8958     
+       800   324.29864     -314.91281     -167.7292       240.70149    
+       900   351.82767     -919.73902     -171.15827      261.13413    
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 914 (src/RIGID/fix_ilves.cpp:1791)
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 915 (src/RIGID/fix_ilves.cpp:1791)
+ILVES stats on step 1000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16008   0.0164806        125
+Angle:    1   180.0000  8.70178          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+      1000   349.55922     -720.60236     -185.83414      259.45044    
+      1100   329.4714       572.47884     -192.6481       244.54082    
+      1200   332.85987      112.97446     -190.9785       247.05582    
+      1300   340.62288      223.9921      -185.10533      252.81769    
+      1400   350.12489      32.252964     -189.45659      259.87029    
+      1500   323.69113      93.819006     -180.01422      240.25058    
+      1600   319.88784      735.50957     -188.84944      237.42769    
+      1700   337.44983      107.65109     -190.62855      250.46259    
+      1800   369.898        1508.9618     -192.8558       274.54632    
+      1900   329.49809      1107.2491     -184.38231      244.56064    
+ILVES stats on step 2000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16018   0.0170632        125
+Angle:    1   178.3878  10.596           125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+      2000   330.85006      2108.4429     -194.15603      245.56409    
+      2100   337.67215      1900.7114     -195.49577      250.6276     
+      2200   335.81427     -236.73348     -191.78024      249.24864    
+      2300   335.06175     -986.19985     -189.495        248.6901     
+      2400   338.64073     -1062.1169     -183.95724      251.3465     
+      2500   359.17663     -925.98612     -185.70573      266.58869    
+      2600   344.15812     -1863.9516     -187.55428      255.44162    
+      2700   324.04673     -1166.3828     -194.18974      240.51451    
+      2800   322.39604     -502.1857      -191.55915      239.28934    
+      2900   367.51217      411.70795     -199.6722       272.77551    
+ILVES stats on step 3000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16006   0.0129718        125
+Angle:    1   178.6067  9.81572          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+      3000   379.12775      1726.2615     -193.88881      281.39685    
+      3100   327.37441      1553.993      -185.96833      242.98439    
+      3200   319.77192      918.87774     -190.71012      237.34166    
+      3300   329.83569      341.63435     -181.95082      244.81121    
+      3400   360.89077     -351.79645     -188.62832      267.86096    
+      3500   330.14684     -398.37002     -176.80253      245.04215    
+      3600   333.86932     -512.62049     -183.10487      247.80505    
+      3700   351.5164      -252.32983     -195.84483      260.9031     
+      3800   338.84354     -531.49713     -195.65721      251.49703    
+      3900   337.53972     -463.70573     -198.99457      250.5293     
+ILVES stats on step 4000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15996   0.0158232        125
+Angle:    1   179.6772  7.63128          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+      4000   338.30727      500.11835     -193.09799      251.099      
+      4100   379.17337      352.37908     -196.23231      281.4307     
+      4200   351.57725      18.065602     -195.12719      260.94827    
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 4239 (src/RIGID/fix_ilves.cpp:1791)
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 4240 (src/RIGID/fix_ilves.cpp:1791)
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 4241 (src/RIGID/fix_ilves.cpp:1791)
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 4253 (src/RIGID/fix_ilves.cpp:1791)
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 4254 (src/RIGID/fix_ilves.cpp:1791)
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 4255 (src/RIGID/fix_ilves.cpp:1791)
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 4256 (src/RIGID/fix_ilves.cpp:1791)
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 4257 (src/RIGID/fix_ilves.cpp:1791)
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 4258 (src/RIGID/fix_ilves.cpp:1791)
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 4268 (src/RIGID/fix_ilves.cpp:1791)
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 4269 (src/RIGID/fix_ilves.cpp:1791)
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 4270 (src/RIGID/fix_ilves.cpp:1791)
+WARNING: Fix ilves: max_iter (25) reached without reaching tol=1e-05 at step 4271 (src/RIGID/fix_ilves.cpp:1791)
+      4300   323.42673     -316.78626     -194.83438      240.05433    
+      4400   329.79057     -592.95649     -196.23631      244.77772    
+      4500   359.26407     -544.1271      -198.91336      266.65359    
+      4600   354.54863     -262.19559     -195.88059      263.15369    
+      4700   315.03253     -415.95723     -199.48634      233.82398    
+      4800   327.15647      66.19409      -205.76861      242.82263    
+      4900   351.59906      467.2332      -211.60758      260.96445    
+ILVES stats on step 5000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16009   0.0155395        125
+Angle:    1   179.3530  6.95884          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+      5000   346.62852      342.90594     -209.11977      257.27521    
+      5100   301.72158      349.5897      -201.17845      223.9443     
+      5200   297.3045       1275.3776     -203.92309      220.66585    
+      5300   346.83769      1086.2082     -209.27815      257.43046    
+      5400   342.05185      690.12187     -199.21785      253.87831    
+      5500   338.53109      823.19948     -200.34597      251.26512    
+      5600   325.52941      323.5581      -199.13507      241.61499    
+      5700   331.34866      308.87193     -201.44176      245.93417    
+      5800   350.95754      640.64337     -193.0863       260.4883     
+      5900   365.11038     -827.25126     -195.12498      270.99285    
+ILVES stats on step 6000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15994   0.00404056       125
+Angle:    1   180.0000  6.04231          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+      6000   321.99489     -523.97543     -189.26638      238.9916     
+      6100   318.09845     -778.12431     -193.87004      236.09957    
+      6200   347.44667     -1062.3992     -197.40581      257.88246    
+      6300   363.60938     -159.78029     -202.58038      269.87877    
+      6400   296.88366     -9.8862536     -197.18438      220.3535     
+      6500   305.40087     -353.68098     -197.05624      226.67515    
+      6600   340.01943      799.57993     -190.21692      252.3698     
+      6700   354.25467      1233.7831     -188.76973      262.93551    
+      6800   336.75973     -270.10331     -193.66744      249.95038    
+      6900   323.02167     -268.94567     -195.86532      239.75369    
+ILVES stats on step 7000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15994   0.0134137        125
+Angle:    1   180.0000  5.13726          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+      7000   339.9318      -241.84385     -198.489        252.30476    
+      7100   383.41714     -643.46483     -203.84814      284.58052    
+      7200   356.23189      460.69594     -206.23958      264.40304    
+      7300   319.45345      363.81522     -202.41028      237.10528    
+      7400   340.06198      26.763948     -209.39674      252.40138    
+      7500   352.12428      78.94816      -203.90793      261.35428    
+      7600   351.58906      951.59107     -206.72274      260.95703    
+      7700   313.81447      981.19367     -206.07395      232.91991    
+      7800   319.55118      426.96951     -208.1659       237.17782    
+      7900   341.06414      735.73247     -199.97518      253.14521    
+ILVES stats on step 8000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16008   0.0181333        125
+Angle:    1   180.0000  7.50993          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+      8000   361.19792     -79.699061     -211.38724      268.08893    
+      8100   333.82999     -102.6454      -209.93888      247.77586    
+      8200   315.23171      515.86681     -206.6007       233.97182    
+      8300   343.49962      1473.8309     -207.11722      254.95287    
+      8400   359.27626      1006.6351     -203.78919      266.66264    
+      8500   352.19116     -92.309109     -207.90171      261.40392    
+      8600   333.7926       175.61668     -205.70935      247.74811    
+      8700   333.88884      570.18284     -202.69426      247.81954    
+      8800   356.92335      19.340712     -207.253        264.91626    
+      8900   360.14236     -328.59158     -205.63787      267.30548    
+ILVES stats on step 9000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15991   0.0156712        125
+Angle:    1   180.0000  6.715            125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+      9000   322.83303      143.8135      -202.70856      239.61368    
+      9100   322.35596      321.62277     -206.48958      239.25959    
+      9200   367.37404     -455.92346     -223.23961      272.67298    
+      9300   338.09192     -365.6401      -208.83623      250.93916    
+      9400   303.60457      275.26897     -208.37493      225.3419     
+      9500   319.55094     -24.496648     -209.15749      237.17764    
+      9600   339.20364     -249.12141     -202.69519      251.7643     
+      9700   349.83748      88.168407     -210.4836       259.65697    
+      9800   326.16239     -74.548748     -208.47651      242.08481    
+      9900   324.28763     -16.425822     -215.22893      240.69332    
+ILVES stats on step 10000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15993   0.00899742       125
+Angle:    1   179.4736  7.13671          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     10000   333.21172      293.62835     -209.22361      247.31697    
+     10100   359.69852     -366.06784     -196.77079      266.97605    
+     10200   357.14391     -162.82774     -206.01236      265.07996    
+     10300   317.1037       232.65303     -203.90957      235.36125    
+     10400   320.49319      1108.1491     -202.57982      237.877      
+     10500   353.35004     -140.56901     -215.94231      262.26407    
+     10600   334.43524      293.40775     -206.52587      248.22509    
+     10700   328.31604     -589.22211     -202.25251      243.68329    
+     10800   353.67047      269.53487     -208.00703      262.5019     
+     10900   352.32927      303.02702     -205.80089      261.50643    
+ILVES stats on step 11000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16004   0.0177724        125
+Angle:    1   179.6051  6.22415          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     11000   331.8495       344.48502     -212.12974      246.3059     
+     11100   316.15958      898.52522     -212.96169      234.6605     
+     11200   339.79157      584.41641     -207.24636      252.20067    
+     11300   377.86881      833.42707     -215.25766      280.46243    
+     11400   346.31635      495.64579     -209.94768      257.04351    
+     11500   332.84938      594.70552     -212.39296      247.04803    
+     11600   328.71866     -543.06078     -209.22139      243.98213    
+     11700   345.826       -51.916128     -202.05909      256.67956    
+     11800   377.17083     -449.40879     -204.06184      279.94438    
+     11900   329.61869      544.51325     -198.41289      244.65014    
+ILVES stats on step 12000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15994   0.0174197        125
+Angle:    1   179.6271  7.96616          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     12000   333.76486      117.30293     -210.87735      247.72752    
+     12100   334.30027      817.16171     -207.7192       248.12492    
+     12200   346.2547       1131.3338     -203.97384      256.99775    
+     12300   365.50884     -60.62483      -217.46371      271.28859    
+     12400   319.38153      269.92655     -214.86585      237.0519     
+     12500   327.66602      204.54895     -219.22331      243.20083    
+     12600   345.84924      1485.8611     -215.9413       256.69681    
+     12700   357.66098     -123.27061     -224.18312      265.46374    
+     12800   296.77299      582.30472     -215.79637      220.27136    
+     12900   311.96441      123.64995     -219.32799      231.54676    
+ILVES stats on step 13000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15997   0.0140399        125
+Angle:    1   179.5553  7.11809          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     13000   335.14278      304.96419     -216.26544      248.75025    
+     13100   350.70325      786.09459     -215.58744      260.29956    
+     13200   353.49263      167.54056     -222.8078       262.3699     
+     13300   316.03054     -546.12988     -222.69722      234.56473    
+     13400   329.13824      1088.4028     -228.95146      244.29354    
+     13500   341.15575      1052.3906     -231.03186      253.21321    
+     13600   330.14937      2099.9176     -218.83291      245.04403    
+     13700   352.94626      1436.8012     -223.90708      261.96438    
+     13800   354.34124      1497.5233     -221.13477      262.99976    
+     13900   317.56906      1218.2613     -213.42686      235.70665    
+ILVES stats on step 14000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16017   0.0152164        125
+Angle:    1   178.6937  6.87276          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     14000   315.47444      1402.1175     -213.52401      234.15198    
+     14100   356.01332      992.43936     -218.71666      264.24081    
+     14200   351.9411       517.65257     -210.5717       261.21833    
+     14300   324.50729     -355.17598     -202.95264      240.85635    
+     14400   308.73716     -291.03224     -208.14776      229.15142    
+     14500   322.80569      103.21724     -222.85849      239.59339    
+     14600   343.2706       619.49046     -217.35403      254.78289    
+     14700   363.01436      964.35836     -219.9808       269.43714    
+     14800   330.08016      1221.1128     -220.82282      244.99266    
+     14900   327.55585      1063.144      -227.90876      243.11906    
+ILVES stats on step 15000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16013   0.00439105       125
+Angle:    1   179.4824  5.41385          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     15000   331.39535      544.03503     -222.14243      245.96882    
+     15100   348.02586     -771.99737     -221.78099      258.31235    
+     15200   334.52378     -948.90196     -210.57067      248.29081    
+     15300   340.30268     -215.16786     -205.80377      252.58003    
+     15400   370.67756      38.918615     -213.71127      275.12493    
+     15500   335.6442       1638.4214     -217.17107      249.12241    
+     15600   323.72639      864.28475     -219.76409      240.27676    
+     15700   335.80814     -83.667269     -219.16932      249.24409    
+     15800   362.12292     -54.393915     -216.48036      268.77549    
+     15900   369.57029      561.40267     -213.15976      274.30309    
+ILVES stats on step 16000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16001   0.0151006        125
+Angle:    1   179.5049  6.07642          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     16000   328.35436      354.3054      -224.74043      243.71173    
+     16100   325.88638     -250.97672     -227.89784      241.87994    
+     16200   336.44998      265.27818     -224.31327      249.72048    
+     16300   365.4452      -126.60556     -229.57137      271.24136    
+     16400   334.51639     -830.63149     -224.81199      248.28532    
+     16500   309.08395     -926.64909     -223.11895      229.40881    
+     16600   336.98996      1102.8804     -224.71838      250.12126    
+     16700   344.88905      580.23606     -220.34573      255.98414    
+     16800   341.97232      1200.427      -219.85877      253.81927    
+     16900   339.46472      1854.7436     -223.45184      251.95808    
+ILVES stats on step 17000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.1601    0.0136363        125
+Angle:    1   179.1655  6.81568          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     17000   325.45185      797.36466     -223.62524      241.55742    
+     17100   321.77348     -35.390025     -230.94359      238.82726    
+     17200   329.72981     -473.91249     -228.58825      244.73262    
+     17300   358.15818     -883.61701     -223.8143       265.83277    
+     17400   351.40675     -1095.4152     -220.03037      260.82172    
+     17500   326.71585     -463.64658     -224.47743      242.4956     
+     17600   317.24258      13.787948     -225.12464      235.46433    
+     17700   335.11948      371.73198     -222.73328      248.73295    
+     17800   344.39971      342.72589     -227.20674      255.62094    
+     17900   331.10457      1284.6574     -220.68467      245.753      
+ILVES stats on step 18000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16003   0.0146775        125
+Angle:    1   178.8904  7.04935          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     18000   340.0372       961.43425     -223.59705      252.38299    
+     18100   353.30607      422.39565     -212.82772      262.23144    
+     18200   375.86469      542.19267     -215.30514      278.97493    
+     18300   338.21102     -185.26389     -222.93378      251.02756    
+     18400   333.13396     -69.521546     -229.79426      247.25925    
+     18500   339.76101     -487.38349     -235.12664      252.17799    
+     18600   338.18492      535.68715     -236.1306       251.00819    
+     18700   334.92336      825.4099      -230.22409      248.58738    
+     18800   357.58144      1582.7882     -229.77776      265.40471    
+     18900   355.38143      1264.8778     -235.93046      263.77181    
+ILVES stats on step 19000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16006   0.0106591        125
+Angle:    1   178.6727  7.90468          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     19000   317.13128      1508.3953     -237.1602       235.38172    
+     19100   319.83979      1164.8372     -232.19854      237.39203    
+     19200   344.80726      582.48802     -232.08321      255.92343    
+     19300   340.65377     -629.58379     -230.00598      252.84062    
+     19400   337.87946     -408.94267     -228.28982      250.78147    
+     19500   331.66125     -240.35199     -224.93071      246.16618    
+     19600   344.44846     -179.59608     -232.01807      255.65712    
+     19700   330.05065     -134.54148     -223.63448      244.97075    
+     19800   335.53985      135.14832     -222.49852      249.04496    
+     19900   356.43338     -43.1092       -224.50331      264.55259    
+ILVES stats on step 20000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15991   0.00856926       125
+Angle:    1   180.0000  7.41426          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     20000   341.86955     -184.57746     -226.78731      253.743      
+     20100   310.54028     -578.36726     -224.07543      230.48974    
+     20200   324.86508      145.28925     -221.9781       241.12191    
+     20300   346.56692      636.47804     -225.53703      257.22949    
+     20400   347.9797       1128.8821     -228.31247      258.27808    
+     20500   348.36165      1731.8108     -237.83051      258.56158    
+     20600   323.24894      138.8136      -235.273        239.92238    
+     20700   312.94137      34.901131     -231.93192      232.27188    
+     20800   353.28427     -628.19689     -226.94966      262.21525    
+     20900   363.04088     -921.19682     -231.03744      269.45682    
+ILVES stats on step 21000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15989   0.0156911        125
+Angle:    1   180.0000  5.7084           125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     21000   333.99221     -441.07085     -235.97679      247.89627    
+     21100   319.79189      198.80257     -233.49562      237.35648    
+     21200   333.3815       280.27663     -230.13078      247.44298    
+     21300   361.63104      269.88528     -231.44001      268.4104     
+     21400   347.69996      101.91369     -235.39738      258.07046    
+     21500   289.72096      128.91684     -227.58514      215.03718    
+     21600   306.00116      859.50295     -223.88421      227.1207     
+     21700   343.08667      640.21632     -220.91024      254.64637    
+     21800   363.97879      153.45838     -226.59674      270.15295    
+     21900   333.60895     -428.96441     -226.42955      247.6118     
+ILVES stats on step 22000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15995   0.0124709        125
+Angle:    1   180.0000  6.8499           125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     22000   319.4906      -578.62277     -229.83705      237.13285    
+     22100   338.0525      -318.05331     -229.68315      250.9099     
+     22200   372.67227     -1028.8453     -237.19836      276.60545    
+     22300   310.79825      240.8066      -222.28535      230.68121    
+     22400   311.63359     -400.70011     -229.10903      231.30122    
+     22500   345.83522     -759.36584     -232.05612      256.6864     
+     22600   349.33171     -662.18528     -228.93032      259.28158    
+     22700   343.41583      516.47047     -235.17231      254.89069    
+     22800   316.62344      1286.4789     -242.92879      235.00479    
+     22900   310.45419      1056.1947     -248.98975      230.42584    
+ILVES stats on step 23000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16004   0.0119867        125
+Angle:    1   178.9122  7.9799           125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     23000   344.58552      1174.3274     -235.72822      255.75885    
+     23100   352.76751      1032.5339     -232.21485      261.8317     
+     23200   333.93583     -40.008842     -232.19615      247.85442    
+     23300   318.71872      1095.2063     -230.53308      236.55995    
+     23400   344.91629      1311.7332     -235.81677      256.00436    
+     23500   365.98771      683.9595      -235.609        271.64402    
+     23600   333.07171      379.67779     -234.94806      247.21305    
+     23700   312.52081      826.36791     -237.83754      231.95973    
+     23800   336.72548      1927.1336     -240.6976       249.92496    
+     23900   354.73706     -162.9586      -247.23804      263.29355    
+ILVES stats on step 24000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16006   0.00679222       125
+Angle:    1   180.0000  7.59514          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     24000   333.49579      276.69021     -239.12724      247.52782    
+     24100   333.31391      274.63194     -245.52895      247.39282    
+     24200   307.64051     -386.51882     -239.65742      228.33746    
+     24300   337.67574      241.80522     -245.62391      250.63026    
+     24400   354.53051      429.54087     -240.05002      263.14024    
+     24500   335.92651      50.986824     -233.55263      249.33195    
+     24600   320.38404     -212.03595     -238.40756      237.79598    
+     24700   306.18583     -147.44372     -238.09803      227.25777    
+     24800   354.60948      266.15537     -244.98878      263.19886    
+     24900   358.97666     -4.7825426     -239.77679      266.44027    
+ILVES stats on step 25000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15998   0.0180609        125
+Angle:    1   179.7698  8.29509          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     25000   330.48777      403.77936     -242.58878      245.2952     
+     25100   320.98472      525.50367     -246.50823      238.24182    
+     25200   328.8665       637.4314      -244.17093      244.09186    
+     25300   343.59393     -90.973702     -241.20334      255.02287    
+     25400   345.90423     -755.54886     -244.34539      256.73763    
+     25500   331.81121     -1677.9068     -245.38251      246.27748    
+     25600   337.3559      -1808.5162     -249.0647       250.39287    
+     25700   335.08619     -70.978647     -246.335        248.70824    
+     25800   344.67124      505.39651     -246.5059       255.82247    
+     25900   354.81587      919.53755     -253.76602      263.35204    
+ILVES stats on step 26000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15992   0.0139229        125
+Angle:    1   179.7532  6.44058          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     26000   307.30686      113.79934     -251.76267      228.08982    
+     26100   311.65526      131.7811      -250.72756      231.3173     
+     26200   337.99737      151.57657     -248.22607      250.86898    
+     26300   349.31452      533.69941     -250.19659      259.26882    
+     26400   346.52717     -397.97681     -255.05086      257.19998    
+     26500   317.1304       303.8416      -258.1181       235.38107    
+     26600   310.34881      305.62347     -255.41324      230.34762    
+     26700   360.1177       864.02365     -249.46864      267.28718    
+     26800   351.45507      757.41956     -246.73728      260.85758    
+     26900   323.73047      56.47895      -246.52108      240.27978    
+ILVES stats on step 27000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15994   0.0142421        125
+Angle:    1   180.0000  5.81126          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     27000   320.14589     -721.17176     -247.21117      237.61922    
+     27100   360.79737      317.032       -250.65877      267.79164    
+     27200   363.87208      1099.421      -240.09676      270.07375    
+     27300   317.22669      381.69368     -238.34694      235.45254    
+     27400   320.23647      222.15423     -250.06095      237.68646    
+     27500   328.97689      1185.5855     -242.14521      244.17379    
+     27600   357.44904      901.89027     -251.14399      265.30643    
+     27700   333.0746       1224.5005     -248.69752      247.21519    
+     27800   308.55595      824.03359     -253.50667      229.01692    
+     27900   325.72439     -32.794795     -261.21611      241.75971    
+ILVES stats on step 28000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16004   0.0167862        125
+Angle:    1   180.0000  8.58058          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     28000   377.23003     -226.61922     -261.05287      279.98831    
+     28100   345.66078      3.1683527     -252.38351      256.55693    
+     28200   325.00342      698.35634     -256.354        241.22459    
+     28300   327.50924      532.95665     -252.45914      243.08446    
+     28400   354.02317      238.56638     -249.46452      262.76368    
+     28500   360.21051     -349.61576     -245.23416      267.35606    
+     28600   316.62924     -410.36462     -255.71053      235.0091     
+     28700   314.65398     -779.44007     -250.84226      233.54302    
+     28800   359.71848     -180.44496     -260.67208      266.99086    
+     28900   340.46126      281.2381      -249.50409      252.69773    
+ILVES stats on step 29000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15983   0.0119369        125
+Angle:    1   180.0000  6.63458          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     29000   333.45624     -653.27681     -264.05693      247.49846    
+     29100   301.67077     -168.84692     -259.0835       223.90659    
+     29200   347.66917      175.78631     -263.31163      258.0476     
+     29300   363.35768     -16.062177     -256.64361      269.69195    
+     29400   334.35553     -205.72556     -254.4113       248.16593    
+     29500   315.02962      125.73393     -250.53092      233.82182    
+     29600   347.25663     -468.79489     -260.94862      257.7414     
+     29700   375.4071      -357.11307     -258.48379      278.6353     
+     29800   340.71166      886.80865     -260.51275      252.88359    
+     29900   331.55249      1202.374      -272.51164      246.08546    
+ILVES stats on step 30000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16016   0.00791952       125
+Angle:    1   178.7846  7.56496          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     30000   328.12898      1368.8743     -264.77826      243.54445    
+     30100   346.36116      1035.0106     -262.18097      257.07677    
+     30200   360.87623      215.17777     -266.61043      267.85017    
+     30300   326.04828     -260.0954      -272.10828      242.00011    
+     30400   307.49799      367.90864     -263.984        228.23169    
+     30500   329.59533     -79.462442     -260.16838      244.6328     
+     30600   343.62303      269.3687      -260.45781      255.04447    
+     30700   345.86         1364.3644     -262.62323      256.70479    
+     30800   327.62194      1463.1408     -262.60303      243.16812    
+     30900   293.98238      889.79519     -262.30839      218.2001     
+ILVES stats on step 31000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16015   0.00814093       125
+Angle:    1   178.8042  7.00022          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     31000   318.95485      1310.0105     -254.90352      236.73521    
+     31100   348.25287      1876.5945     -255.36604      258.48083    
+     31200   349.76685      1035.1444     -262.24597      259.60455    
+     31300   317.20338      441.90258     -252.58616      235.43524    
+     31400   343.16199      983.37674     -264.01075      254.70227    
+     31500   366.3073       804.5743      -261.64284      271.88123    
+     31600   347.70015      710.17106     -267.54217      258.07059    
+     31700   307.61432      1126.2414     -260.34785      228.31802    
+     31800   332.40538      235.8689      -262.07063      246.71849    
+     31900   346.77935      68.932125     -254.58953      257.38716    
+ILVES stats on step 32000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16006   0.0111143        125
+Angle:    1   180.0000  8.85835          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     32000   350.90946     -300.35855     -260.04583      260.45262    
+     32100   316.98963     -142.94596     -256.79725      235.27658    
+     32200   306.42238      372.61772     -266.83308      227.43334    
+     32300   310.64441     -25.132916     -266.61019      230.56703    
+     32400   351.33268     -278.50627     -264.04578      260.76674    
+     32500   353.69793     -99.989294     -264.42659      262.52228    
+     32600   328.86226     -582.85637     -267.15912      244.08871    
+     32700   313.37529      268.18534     -264.06904      232.59394    
+     32800   364.44543     -323.00643     -272.4736       270.49931    
+     32900   363.79172      246.89003     -265.32124      270.01411    
+ILVES stats on step 33000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16009   0.00818468       125
+Angle:    1   178.8355  6.4299           125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     33000   345.83544      1170.6806     -269.31784      256.68657    
+     33100   332.50968      807.39566     -266.01565      246.7959     
+     33200   325.7093       637.53484     -257.97156      241.74851    
+     33300   358.54367     -28.781115     -261.06169      266.1189     
+     33400   361.50837      108.75791     -252.86032      268.31936    
+     33500   328.85919     -5.1908621     -261.29095      244.08643    
+     33600   313.08431      497.1264      -260.11379      232.37797    
+     33700   341.55345     -40.200464     -261.78257      253.50838    
+     33800   354.31975      194.78811     -259.32098      262.98381    
+     33900   339.42274     -69.01285      -261.69816      251.92692    
+ILVES stats on step 34000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16001   0.00526731       125
+Angle:    1   179.0152  7.10726          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     34000   310.56631      739.5624      -262.59565      230.50905    
+     34100   334.0563       837.64068     -266.76294      247.94384    
+     34200   363.73168      407.51816     -269.26548      269.96955    
+     34300   347.59402     -35.260737     -264.14188      257.99182    
+     34400   336.07604     -1093.8553     -266.38664      249.44293    
+     34500   329.6829      -921.14619     -270.76483      244.6978     
+     34600   341.47404      470.53474     -276.13718      253.44944    
+     34700   361.77909      686.25635     -274.11748      268.52029    
+     34800   360.63419      332.01514     -275.26155      267.67052    
+     34900   318.86467     -313.13857     -279.06218      236.66828    
+ILVES stats on step 35000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16004   0.0111965        125
+Angle:    1   180.0000  6.66055          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     35000   325.29719     -485.25843     -281.56663      241.44264    
+     35100   336.54929     -134.66772     -272.03169      249.79419    
+     35200   350.91718      1047.9884     -271.17382      260.45835    
+     35300   340.46052      641.00687     -269.79802      252.69719    
+     35400   344.5681      -278.15327     -280.06583      255.74592    
+     35500   341.55878      743.21952     -285.16436      253.51234    
+     35600   340.66853      672.00262     -292.00006      252.85158    
+     35700   331.06825      1215.3111     -294.97506      245.72604    
+     35800   310.49967      495.21415     -296.47827      230.45959    
+     35900   314.54578      975.70598     -297.91996      233.4627     
+ILVES stats on step 36000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15998   0.0106123        125
+Angle:    1   180.0000  6.24034          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     36000   349.22462     -65.264679     -293.09303      259.20209    
+     36100   353.73972     -321.33437     -292.1431       262.55329    
+     36200   333.34086     -326.3875      -290.31191      247.41282    
+     36300   319.76417     -851.89792     -288.7868       237.33591    
+     36400   327.67739      258.29794     -275.004        243.20927    
+     36500   361.72856      1554.3724     -272.84049      268.48279    
+     36600   345.41687      252.75849     -275.55805      256.3759     
+     36700   326.9385       287.711       -284.32103      242.66085    
+     36800   327.01594      185.48154     -284.32328      242.71833    
+     36900   350.70402      90.012027     -284.8374       260.30013    
+ILVES stats on step 37000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16005   0.014831         125
+Angle:    1   180.0000  6.7135           125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     37000   402.03446     -162.29678     -284.73521      298.3987     
+     37100   358.23304     -313.19642     -278.10591      265.88834    
+     37200   325.04426      467.2451      -277.77575      241.25491    
+     37300   338.95653      588.6653      -277.98756      251.58089    
+     37400   354.3406       915.10871     -271.98907      262.99928    
+     37500   345.26612      696.85347     -270.22966      256.26401    
+     37600   322.67244      846.98605     -280.78033      239.49449    
+     37700   317.7788       906.853       -282.34189      235.86233    
+     37800   333.64883      1193.8328     -278.40209      247.6414     
+     37900   346.95853      1166.8001     -279.9806       257.52015    
+ILVES stats on step 38000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16005   0.0128455        125
+Angle:    1   179.2041  5.92596          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     38000   340.72424      531.74787     -279.34147      252.89292    
+     38100   331.44619      864.50456     -281.30808      246.00656    
+     38200   321.58466      877.8822      -279.37757      238.68711    
+     38300   359.79682      467.52106     -290.3463       267.04901    
+     38400   351.04869     -803.85428     -280.59791      260.55596    
+     38500   311.99237     -551.04194     -265.01125      231.56751    
+     38600   331.9269       975.93567     -267.08451      246.36335    
+     38700   380.32814     -158.0997      -279.98547      282.2878     
+     38800   337.72695     -52.893453     -271.97934      250.66827    
+     38900   346.84432     -71.747705     -287.1739       257.43538    
+ILVES stats on step 39000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16012   0.0117712        125
+Angle:    1   180.0000  6.53804          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     39000   328.28887      15.095488     -288.22136      243.66312    
+     39100   327.62787     -1063.5612     -288.12742      243.17251    
+     39200   370.31675     -1677.6801     -288.78592      274.85713    
+     39300   368.78927     -1249.55       -281.01944      273.7234     
+     39400   339.05859     -1408.7415     -288.15496      251.65664    
+     39500   327.71362     -560.9963      -282.84966      243.23616    
+     39600   341.51624     -297.74114     -282.23632      253.48077    
+     39700   355.59854     -456.01727     -280.42085      263.93295    
+     39800   335.95312      290.497       -270.7454       249.3517     
+     39900   325.62842      373.56988     -276.47756      241.68848    
+ILVES stats on step 40000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16011   0.00792073       125
+Angle:    1   180.0000  7.12639          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     40000   328.07146      4.5053088     -280.14509      243.50176    
+     40100   353.22558      72.85341      -277.98287      262.17169    
+     40200   370.00026      23.097392     -283.77526      274.62222    
+     40300   316.63612      760.20833     -278.89986      235.0142     
+     40400   321.33789      173.78963     -280.7056       238.50395    
+     40500   353.43117     -435.25364     -287.85666      262.32428    
+     40600   339.79096      532.63469     -282.45638      252.20023    
+     40700   328.19509     -61.064381     -289.61881      243.59352    
+     40800   289.30264     -263.97767     -290.81924      214.7267     
+     40900   316.74486      61.856297     -295.52278      235.09491    
+ILVES stats on step 41000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15992   0.0084269        125
+Angle:    1   178.7835  8.48988          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     41000   347.00401      1263.389      -295.59979      257.55391    
+     41100   338.86771      1445.017      -292.37537      251.51497    
+     41200   330.94405      439.88773     -295.4513       245.63386    
+     41300   327.48799      262.11992     -293.13538      243.0687     
+     41400   360.3804      -215.83318     -291.51266      267.48215    
+     41500   360.46935     -109.74794     -292.18841      267.54817    
+     41600   319.56291     -566.33033     -298.55249      237.18652    
+     41700   319.28043     -68.599675     -295.98689      236.97686    
+     41800   340.14783      984.38882     -292.13695      252.4651     
+     41900   339.73319      363.95295     -278.97835      252.15735    
+ILVES stats on step 42000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15987   0.0076598        125
+Angle:    1   180.0000  4.42112          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     42000   357.7388      -274.90792     -290.58555      265.5215     
+     42100   312.22075     -163.88794     -290.27947      231.73702    
+     42200   319.75336     -436.78044     -299.95499      237.32788    
+     42300   333.85773      531.41571     -292.45866      247.79645    
+     42400   349.60829      215.36017     -291.12003      259.48686    
+     42500   344.03632     -343.11906     -293.0639       255.35122    
+     42600   301.09972      200.56178     -287.2603       223.48275    
+     42700   308.31461     -276.84625     -296.98642      228.83779    
+     42800   356.68528     -325.20453     -290.78107      264.73956    
+     42900   347.3771       445.49886     -288.92138      257.83082    
+ILVES stats on step 43000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15993   0.0150247        125
+Angle:    1   179.7524  6.40231          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     43000   325.5312       224.37219     -291.09963      241.61632    
+     43100   327.8349       1136.6679     -295.24521      243.32618    
+     43200   355.77261      1039.7471     -290.33215      264.06215    
+     43300   383.02713      1076.49       -292.06435      284.29105    
+     43400   334.77266      173.38186     -286.33143      248.47554    
+     43500   330.04987      370.95578     -287.50543      244.97018    
+     43600   336.89745      216.76468     -290.34929      250.0526     
+     43700   354.16243     -632.9813      -296.37583      262.86704    
+     43800   332.26499     -946.19816     -291.81937      246.61429    
+     43900   317.22634     -333.64871     -297.15256      235.45228    
+ILVES stats on step 44000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16001   0.0133755        125
+Angle:    1   180.0000  6.05677          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     44000   320.94727      131.64094     -293.40768      238.21403    
+     44100   365.18605     -318.27531     -296.61323      271.04902    
+     44200   345.27228      151.02997     -290.26558      256.26858    
+     44300   330.57199      117.74569     -290.3186       245.3577     
+     44400   329.41818      1036.3042     -292.17467      244.50133    
+     44500   363.68508      791.36482     -282.71239      269.93496    
+     44600   370.69319      677.14514     -282.9942       275.13653    
+     44700   333.99194      167.18619     -279.00728      247.89607    
+     44800   328.0359      -316.79171     -279.23626      243.47536    
+     44900   337.79865     -151.49747     -280.22366      250.72149    
+ILVES stats on step 45000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16012   0.00973316       125
+Angle:    1   178.9889  6.77995          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     45000   352.37676      1073.9688     -276.00555      261.54168    
+     45100   385.73308      1390.2466     -280.99043      286.29946    
+     45200   341.14486      836.81966     -282.1575       253.20512    
+     45300   324.39655      211.39707     -282.35461      240.77416    
+     45400   334.25405     -408.99515     -285.13695      248.09061    
+     45500   354.44626      112.70819     -287.02985      263.07771    
+     45600   357.29346      721.82615     -282.69078      265.19096    
+     45700   325.46488     -371.21958     -279.85215      241.5671     
+     45800   309.85483     -874.77282     -280.6099       229.98098    
+     45900   347.57563     -541.84779     -287.01873      257.97817    
+ILVES stats on step 46000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15988   0.0101296        125
+Angle:    1   180.0000  7.05637          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     46000   365.95718     -47.798078     -283.27582      271.62136    
+     46100   346.29639      686.53918     -281.16734      257.0287     
+     46200   342.47837      22.307014     -289.06168      254.19488    
+     46300   327.03246     -269.8651      -279.45875      242.73059    
+     46400   351.37391     -459.82685     -287.59744      260.79734    
+     46500   352.00568     -153.28524     -282.14127      261.26625    
+     46600   344.11944      119.5632      -291.78825      255.41292    
+     46700   318.37292      561.4612      -296.78938      236.30329    
+     46800   322.82589      227.74421     -292.00607      239.60839    
+     46900   341.90179      437.93997     -282.67656      253.76693    
+ILVES stats on step 47000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16001   0.0133462        125
+Angle:    1   178.9366  8.62196          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     47000   357.01268      962.57039     -292.07831      264.98256    
+     47100   339.43114      1172.1294     -293.43496      251.93316    
+     47200   327.60418      984.8336      -291.70034      243.15493    
+     47300   343.84695      858.59843     -294.21154      255.21067    
+     47400   394.21447      461.97814     -299.45209      292.59454    
+     47500   347.95456     -93.091621     -285.13519      258.25943    
+     47600   336.53387     -852.90379     -295.89568      249.78275    
+     47700   336.87251     -613.29761     -296.29423      250.03409    
+     47800   341.36317      156.49644     -306.55927      253.36715    
+     47900   311.89252     -29.935584     -298.3751       231.4934     
+ILVES stats on step 48000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16      0.0110928        125
+Angle:    1   179.6235  6.71977          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     48000   335.48349      320.85075     -301.92182      249.00313    
+     48100   370.48895      498.96651     -302.92014      274.98494    
+     48200   355.41908     -84.668924     -307.04311      263.79975    
+     48300   335.05915     -441.6358      -309.31053      248.68817    
+     48400   336.99182     -43.485831     -310.62914      250.12264    
+     48500   340.13803      43.98735      -314.36762      252.45783    
+     48600   314.50437      272.43522     -308.24981      233.43197    
+     48700   321.33         192.4512      -316.24764      238.4981     
+     48800   345.31481      856.21355     -313.48713      256.30015    
+     48900   370.47174      51.883874     -319.60211      274.97216    
+ILVES stats on step 49000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.16005   0.0123589        125
+Angle:    1   179.4205  6.38468          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     49000   324.08819      379.65243     -306.78099      240.54529    
+     49100   313.83066      393.64382     -300.95545      232.93192    
+     49200   371.70623     -360.52446     -304.51968      275.88843    
+     49300   359.69392     -751.00196     -301.44256      266.97264    
+     49400   336.45578     -397.78417     -306.57702      249.72478    
+     49500   326.03203     -325.6223      -314.59777      241.98805    
+     49600   332.92169      334.42218     -317.86227      247.1017     
+     49700   358.28996      1007.1544     -310.68648      265.93058    
+     49800   366.41298     -392.1972      -302.44974      271.95967    
+     49900   321.53539     -44.245028     -302.84583      238.65054    
+ILVES stats on step 50000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   1.15991   0.0128885        125
+Angle:    1   180.0000  8.31156          125
+Cholesky: 250 calls, 0 LU fallbacks (0%)
+     50000   320.40634     -130.75048     -308.15899      237.81254    
+Loop time of 48.5528 on 1 procs for 50000 steps with 375 atoms
+
+Performance: 88.975 ns/day, 0.270 hours/ns, 1029.808 timesteps/s, 386.178 katom-step/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 30.516     | 30.516     | 30.516     |   0.0 | 62.85
+Bond    | 0.0066539  | 0.0066539  | 0.0066539  |   0.0 |  0.01
+Kspace  | 8.5486     | 8.5486     | 8.5486     |   0.0 | 17.61
+Neigh   | 0.57798    | 0.57798    | 0.57798    |   0.0 |  1.19
+Comm    | 0.4171     | 0.4171     | 0.4171     |   0.0 |  0.86
+Output  | 0.0052142  | 0.0052142  | 0.0052142  |   0.0 |  0.01
+Modify  | 8.4063     | 8.4063     | 8.4063     |   0.0 | 17.31
+Other   |            | 0.07455    |            |       |  0.15
+
+Nlocal:            375 ave         375 max         375 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           3595 ave        3595 max        3595 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          80185 ave       80185 max       80185 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 80185
+Ave neighs/atom = 213.82667
+Ave special neighs/atom = 2
+Neighbor list builds = 567
+Dangerous builds = 0
+
+Total wall time: 0:00:53

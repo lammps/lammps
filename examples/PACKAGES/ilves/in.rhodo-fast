@@ -13,7 +13,7 @@ kspace_style    pppm 1e-4
 
 read_data       data.rhodo
 
-fix             1 all ilves 0.0001 5 10 m 1.0 a 232 variant fast
+fix             1 all ilves 0.0001 10 50 m 1.0 a 232 variant fast
 fix             2 all npt temp 300.0 300.0 100.0 &
                 z 0.0 0.0 1000.0 mtk no pchain 0 tchain 1
 

@@ -3078,9 +3078,14 @@ void FixIlves::build_constraint_list()
       tagint t2 = ga2[gi];     // middle (B)
       tagint t3 = ga3[gi];     // higher-tag endpoint
 
+      // Both flanking bonds must be constrained for the angle to be
+      // emitted -- otherwise Phase B wouldn't touch it and the drop set
+      // would silently disable a wanted bond.
       if (!bond_is_constrained(t2, t1)) continue;
       if (!bond_is_constrained(t2, t3)) continue;
 
+      // Drop the bond to the higher-tag endpoint (t3).  In gb_a/gb_b
+      // canonical order, lo = min(t2, t3), hi = max(t2, t3).
       tagint lo = (t2 < t3) ? t2 : t3;
       tagint hi = (t2 < t3) ? t3 : t2;
       dropped_bonds.emplace(lo, hi);

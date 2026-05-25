@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1038-g7252b69a90-modified)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1042-gf841aa9dd9)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # Solvated 5-mer peptide -- ILVES and SHAKE constraint solvers
@@ -65,7 +65,7 @@ group           peptide type <= 12
 group           waters  type > 12
 1920 atoms in group waters
 
-fix             s_rigid peptide ilves/global 0.00001 20 100 b 4 6 8 10 12 14
+fix             s_rigid peptide ilves 0.00001 20 100 b 4 6 8 10 12 14
 fix             w_rigid waters shake 0.00001 20 100 b 18 a 31
 Finding SHAKE clusters ...
        0 = # of size 2 clusters
@@ -109,7 +109,8 @@ PPPM initialization ...
   using double precision KISS FFT
   3d grid and FFT values/proc = 10648 3375
 Generated 91 of 91 mixed pair_coeff terms from arithmetic mixing rule
-Fix ilves/global: gathered global topology with 1365 bonds and 0 selected angles
+Fix ilves: gathered global topology with 1365 bonds, 0 selected angles, 2004 involved atoms
+Fix ilves: replicated topology storage ~ 112572 bytes/rank (0.11 MB)
 Neighbor list info ...
   update: every = 1 steps, delay = 5 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -123,7 +124,7 @@ Neighbor list info ...
       stencil: half/bin/3d
       bin: standard
 Fix ilves info:
-  ILVES-FAST algorithm
+  ILVES (fast, banded Cholesky) algorithm
   40 constraints/proc
   28 clusters/proc
   3 max. constraints/cluster
@@ -139,13 +140,13 @@ Cholesky: 56 calls, 0 LU fallbacks (0%)
 SHAKE stats (type/ave/delta/count) on step 0
 Bond:   18   0.957206  4.37979e-05     1280
 Angle:  31   104.519   0.00396029       640
-Per MPI rank memory allocation (min/avg/max) = 19.47 | 19.47 | 19.47 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 19.59 | 19.59 | 19.59 Mbytes
 ------------ Step              0 ----- CPU =            0 (sec) -------------
 TotEng   =     -5237.4580 KinEng   =      1134.9186 Temp     =       279.3409 
 PotEng   =     -6372.3765 E_bond   =        16.5572 E_angle  =        36.3726 
 E_dihed  =        15.5190 E_impro  =         1.9426 E_vdwl   =       692.8945 
 E_coul   =     26772.2647 E_long   =    -33907.9271 Press    =      -837.1000
------------- Step             50 ----- CPU =    0.4175729 (sec) -------------
+------------ Step             50 ----- CPU =    0.4175566 (sec) -------------
 TotEng   =     -5237.5661 KinEng   =      1138.2503 Temp     =       280.1610 
 PotEng   =     -6375.8165 E_bond   =        12.2416 E_angle  =        31.8515 
 E_dihed  =        18.8465 E_impro  =         2.3707 E_vdwl   =       658.9808 
@@ -162,12 +163,12 @@ Cholesky: 5600 calls, 0 LU fallbacks (0%)
 SHAKE stats (type/ave/delta/count) on step 100
 Bond:   18   0.9572    6.84291e-07     1280
 Angle:  31   104.52    6.09546e-05      640
------------- Step            100 ----- CPU =    0.8397612 (sec) -------------
+------------ Step            100 ----- CPU =    0.8421614 (sec) -------------
 TotEng   =     -5227.9913 KinEng   =      1093.3078 Temp     =       269.0991 
 PotEng   =     -6321.2991 E_bond   =        14.6461 E_angle  =        43.9247 
 E_dihed  =        15.3481 E_impro  =         2.3723 E_vdwl   =       708.7272 
 E_coul   =     26800.1478 E_long   =    -33906.4654 Press    =      -572.5287
------------- Step            150 ----- CPU =     1.277735 (sec) -------------
+------------ Step            150 ----- CPU =     1.282129 (sec) -------------
 TotEng   =     -5244.4967 KinEng   =      1114.0921 Temp     =       274.2148 
 PotEng   =     -6358.5887 E_bond   =        17.7739 E_angle  =        33.3411 
 E_dihed  =        15.3425 E_impro  =         1.6915 E_vdwl   =       735.1619 
@@ -184,12 +185,12 @@ Cholesky: 11200 calls, 0 LU fallbacks (0%)
 SHAKE stats (type/ave/delta/count) on step 200
 Bond:   18   0.9572    1.9231e-06      1280
 Angle:  31   104.52    0.00015158       640
------------- Step            200 ----- CPU =     1.708509 (sec) -------------
+------------ Step            200 ----- CPU =     1.713517 (sec) -------------
 TotEng   =     -5266.7607 KinEng   =      1104.3950 Temp     =       271.8281 
 PotEng   =     -6371.1557 E_bond   =        18.6363 E_angle  =        33.7645 
 E_dihed  =        17.0017 E_impro  =         2.6198 E_vdwl   =       687.5522 
 E_coul   =     26772.6050 E_long   =    -33903.3352 Press    =     -1315.5634
------------- Step            250 ----- CPU =     2.140222 (sec) -------------
+------------ Step            250 ----- CPU =     2.147015 (sec) -------------
 TotEng   =     -5256.4912 KinEng   =      1081.2550 Temp     =       266.1325 
 PotEng   =     -6337.7462 E_bond   =        14.1078 E_angle  =        39.8744 
 E_dihed  =        19.4124 E_impro  =         3.1725 E_vdwl   =       734.7833 
@@ -206,27 +207,27 @@ Cholesky: 16800 calls, 0 LU fallbacks (0%)
 SHAKE stats (type/ave/delta/count) on step 300
 Bond:   18   0.957201  7.20316e-06     1280
 Angle:  31   104.52    0.000678557      640
------------- Step            300 ----- CPU =     2.573396 (sec) -------------
+------------ Step            300 ----- CPU =     2.586199 (sec) -------------
 TotEng   =     -5208.5811 KinEng   =      1125.6240 Temp     =       277.0532 
 PotEng   =     -6334.2050 E_bond   =        14.9618 E_angle  =        41.6216 
 E_dihed  =        18.2583 E_impro  =         2.2641 E_vdwl   =       675.5956 
 E_coul   =     26818.6941 E_long   =    -33905.6006 Press    =      -854.6182
-Loop time of 2.57341 on 1 procs for 300 steps with 2004 atoms
+Loop time of 2.58622 on 1 procs for 300 steps with 2004 atoms
 
-Performance: 20.144 ns/day, 1.191 hours/ns, 116.577 timesteps/s, 233.620 katom-step/s
+Performance: 20.045 ns/day, 1.197 hours/ns, 116.000 timesteps/s, 232.463 katom-step/s
 99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.0724     | 2.0724     | 2.0724     |   0.0 | 80.53
-Bond    | 0.0036306  | 0.0036306  | 0.0036306  |   0.0 |  0.14
-Kspace  | 0.16122    | 0.16122    | 0.16122    |   0.0 |  6.26
-Neigh   | 0.27034    | 0.27034    | 0.27034    |   0.0 | 10.51
-Comm    | 0.0090726  | 0.0090726  | 0.0090726  |   0.0 |  0.35
-Output  | 0.00019059 | 0.00019059 | 0.00019059 |   0.0 |  0.01
-Modify  | 0.054884   | 0.054884   | 0.054884   |   0.0 |  2.13
-Other   |            | 0.001721   |            |       |  0.07
+Pair    | 2.0752     | 2.0752     | 2.0752     |   0.0 | 80.24
+Bond    | 0.0038312  | 0.0038312  | 0.0038312  |   0.0 |  0.15
+Kspace  | 0.17146    | 0.17146    | 0.17146    |   0.0 |  6.63
+Neigh   | 0.26935    | 0.26935    | 0.26935    |   0.0 | 10.41
+Comm    | 0.0091575  | 0.0091575  | 0.0091575  |   0.0 |  0.35
+Output  | 0.0001915  | 0.0001915  | 0.0001915  |   0.0 |  0.01
+Modify  | 0.055423   | 0.055423   | 0.055423   |   0.0 |  2.14
+Other   |            | 0.001625   |            |       |  0.06
 
 Nlocal:           2004 ave        2004 max        2004 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

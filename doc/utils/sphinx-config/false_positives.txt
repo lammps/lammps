@@ -726,6 +726,7 @@ customIDs
 cutbond
 cutghost
 cuthi
+Cuthill
 cutinner
 cutlo
 cutmax
@@ -2177,6 +2178,7 @@ lld
 LLVM
 lm
 lmap
+Lmin
 lmp
 lmpptr
 lmpqst
@@ -2831,6 +2833,7 @@ Nprocs
 npt
 nr
 Nr
+Nranks
 Nrecent
 Nrecompute
 Nrepeat
@@ -4098,6 +4101,7 @@ Tref
 Tretyakov
 tri
 triangleflag
+triatomics
 triaxial
 Tribello
 triclinic
@@ -4190,6 +4194,7 @@ uncomment
 uncommented
 uncompress
 uncompute
+unconstrain
 underdamped
 underprediction
 undump

@@ -332,9 +332,7 @@ where the printed estimate is the sum of:
 * bond table (``gb_a``, ``gb_b``, ``gb_type``): ``2*NB*sizeof(tagint) + NB*sizeof(int)``
 * angle table (``ga1/2/3``, ``ga_type``): ``3*NA*sizeof(tagint) + NA*sizeof(int)``
 * the ``tag_cluster`` map: roughly ``48*NT`` bytes (per-entry overhead
-  for ``std::unordered_map`` -- node + bucket + allocator overhead,
-  measured against libstdc++; libc++ and MSVC implementations are
-  similar to within ~30%)
+  for ``std::unordered_map`` -- node + bucket + allocator overhead
 
 For the default ``-DLAMMPS_SMALLBIG`` build (32-bit ``tagint``,
 32-bit ``int``) this works out to:

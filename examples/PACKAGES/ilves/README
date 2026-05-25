@@ -43,18 +43,18 @@ midpoint of the A-C virtual bond:
 Default threshold is 165 deg; set to 180 to disable.
 
 Example input files:
-  in.peptide-ilves    -- peptide + water with ilves, exact-Newton variant (full)
-  in.peptide-ilvesf   -- peptide + water with ilves, symmetric variant (fast)
+  in.peptide-fast     -- peptide + water with ilves, symmetric variant (fast)
+  in.peptide-full     -- peptide + water with ilves, exact-Newton variant (full)
   in.peptide-mix      -- peptide groups via ilves, water via fix shake
   in.peptide-allbonds -- ilves constraining ALL bonds, demonstrating
-                         arbitrarily-large cluster support
+                         arbitrarily-large connected bonds cluster support
   in.peptide-shake    -- baseline using fix shake for comparison
   in.peptide-rattle   -- baseline using fix rattle for comparison
-  in.rhodo-ilves      -- rhodopsin with C-H bonds + H-O-H water angle (full)
-  in.rhodo-ilvesf     -- rhodopsin with same constraints (fast)
+  in.rhodo-fast       -- rhodopsin with same constraints (fast)
+  in.rhodo-full       -- rhodopsin with C-H bonds + H-O-H water angle (full)
   in.rhodo-allbonds   -- rhodopsin with all bonds + water angle
-  in.bulk_co2         -- bulk CO2 fluid (rigid linear; see comments for
-                         caveats on exactly-180 deg symmetric angles)
+  in.bulk_co2         -- bulk CO2 fluid (rigid linear; see comments in manual
+                         for caveats on exactly-180 deg symmetric angles)
   in.cg-polymer       -- coarse-grain polymer chain with near-180 deg
                          backbone angles; demonstrates the *linearangle*
                          keyword in its intended regime

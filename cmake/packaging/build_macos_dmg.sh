@@ -28,9 +28,8 @@ mv ${APP_NAME}.app LAMMPS_GUI.app
 cd LAMMPS_GUI.app/Contents
 
 echo "Update rpath for LAMMPS to link to bundled liblammps.0.dylib"
-LIB_DIR=/Applications/LAMMPS_GUI.app/Contents/Frameworks
 install_name_tool -delete_rpath ${BUILD_DIR} bin/lmp
-install_name_tool -add_rpath ${LIB_DIR} bin/lmp
+install_name_tool -add_rpath '@executable_path/../Frameworks' bin/lmp
 
 echo "Attach icons to LAMMPS console and GUI executables"
 echo "read 'icns' (-16455) \"Resources/lammps.icns\";" > icon.rsrc

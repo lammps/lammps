@@ -1125,6 +1125,10 @@ void FixIlves::post_force(int vflag)
 {
   if (update->ntimestep == next_output) stats();
 
+  // reset Cholesky stats
+  chol_calls = 0;
+  chol_fallbacks = 0;
+
   // refresh atom pointers in case they moved
   x = atom->x;
   v = atom->v;

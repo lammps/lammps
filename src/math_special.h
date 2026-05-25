@@ -65,11 +65,6 @@ namespace LAMMPS_NS::MathSpecial {
 
   extern void mdftaper(double r, double rmin, double rmax, double &f, double &df);
 
-  // support function for scaled error function complement
-
-  extern double erfcx_y100(const double y100);
-
-
  /*! Fast scaled error function complement exp(x*x)*erfc(x) for coul/long styles
    *
    *  This is a portable fast implementation of exp(x*x)*erfc(x) that can be used
@@ -82,13 +77,7 @@ namespace LAMMPS_NS::MathSpecial {
    *  \param   x argument
    *  \return  value of e^(x*x)*erfc(x) */
 
-  static inline double my_erfcx(const double x)
-  {
-    if (x >= 0.0)
-      return erfcx_y100(400.0 / (4.0 + x));
-    else
-      return 2.0 * exp(x * x) - erfcx_y100(400.0 / (4.0 - x));
-  }
+  extern double my_erfcx(const double x);
 
   /*! Fast implementation of exp(-x*x) for little endian CPUs for coul/long styles
    *

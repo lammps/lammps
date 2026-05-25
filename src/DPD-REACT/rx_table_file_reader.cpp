@@ -14,11 +14,11 @@ RxTableFileReader::RxTableFileReader(LAMMPS *lmp, const std::string &keyword,
 
   if (comm->me != 0) { error->one(FLERR, "RxTableFileReader should only be called by proc 0!"); }
 
-  auto keyword_line = reader.find_section_start(keyword);
+  auto *keyword_line = reader.find_section_start(keyword);
 
   if (!keyword_line) { error->one(FLERR, "Did not find keyword '{}' in '{}'", keyword, filename); }
 
-  auto line = reader.next_line();
+  auto *line = reader.next_line();
   ValueTokenizer param_values(line);
   bool is_N_found = false;
 

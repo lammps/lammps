@@ -33,8 +33,9 @@ static constexpr double SMALL = 0.00001;
 /* ---------------------------------------------------------------------- */
 
 KSpace::KSpace(LAMMPS *lmp) :
-    Pointers(lmp), eatom(nullptr), vatom(nullptr), gcons(nullptr), dgcons(nullptr),
-    force_poly_coeff(nullptr), energy_poly_coeff(nullptr), fourier_split_poly_coeff(nullptr), fourier_spread_poly_coeff(nullptr)
+    Pointers(lmp), eatom(nullptr), vatom(nullptr), force_poly_coeff(nullptr),
+    energy_poly_coeff(nullptr), fourier_split_poly_coeff(nullptr),
+    fourier_spread_poly_coeff(nullptr), gcons(nullptr), dgcons(nullptr)
 {
   order_allocated = 0;
   energy = 0.0;

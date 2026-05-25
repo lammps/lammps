@@ -246,7 +246,7 @@ void FixRX::post_constructor()
     PotentialFileReader kineticsFileReader(lmp, kineticsFile, "rx");
     char * line;
 
-    while (line = kineticsFileReader.next_line()) {
+    while ((line = kineticsFileReader.next_line())) {
       try {
         ValueTokenizer values(line);
         int num_equal_signs_found = 0;

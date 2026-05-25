@@ -33,7 +33,7 @@
 #include "memory.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "pswf.h"
+#include "math_pswf.h"
 #include "remap_wrap.h"
 
 #include <cmath>
@@ -45,7 +45,6 @@ using namespace MathSpecial;
 
 static constexpr int MAXORDER = 32;
 static constexpr int OFFSET = 16384;
-static constexpr double LARGE = 10000.0;
 static constexpr double SMALL = 0.00001;
 static constexpr double EPS_HOC = 1.0e-7;
 static constexpr FFT_SCALAR ZEROF = 0.0;
@@ -150,15 +149,11 @@ ESP::~ESP()
 {
   if (copymode) return;
 
-  delete [] factors;
+  delete[] factors;
   ESP::deallocate();
   if (peratom_allocate_flag) ESP::deallocate_peratom();
   if (group_allocate_flag) ESP::deallocate_groups();
   memory->destroy(part2grid);
-  // memory->destroy(force_poly_coeff);
-  // memory->destroy(energy_poly_coeff);
-  // memory->destroy(fourier_split_poly_coeff);
-  // memory->destroy(fourier_spread_poly_coeff);
 }
 
 /* ----------------------------------------------------------------------
@@ -167,6 +162,7 @@ ESP::~ESP()
 
 void ESP::init()
 {
+  if (me == 0) utils::logmesg(lmp,"ESP initialization ...\n");
 
   // error check
 
@@ -206,27 +202,21 @@ void ESP::init()
   pair_check();
 
   int itmp = 0;
-  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
-    error->all(FLERR,"KSpace style is incompatible with Pair style");
+    error->all(FLERR, "KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
-
-  //std::cout<<"Before table"<<std::endl;
-  // Build Table for Real Space and Fourier Space Calulations
-  //std::cout<<"After table"<<std::endl;
-  // if kspace is TIP4P, extract TIP4P params from pair style
-  // bond/angle are not yet init(), so ensure equilibrium request is valid
 
   qdist = 0.0;
 
   if (tip4pflag) {
     if (me == 0) utils::logmesg(lmp,"  extracting TIP4P info from pair style\n");
 
-    auto p_qdist = (double *) force->pair->extract("qdist",itmp);
-    int *p_typeO = (int *) force->pair->extract("typeO",itmp);
-    int *p_typeH = (int *) force->pair->extract("typeH",itmp);
-    int *p_typeA = (int *) force->pair->extract("typeA",itmp);
-    int *p_typeB = (int *) force->pair->extract("typeB",itmp);
+    auto *p_qdist = (double *) force->pair->extract("qdist",itmp);
+    auto *p_typeO = (int *) force->pair->extract("typeO",itmp);
+    auto *p_typeH = (int *) force->pair->extract("typeH",itmp);
+    auto *p_typeA = (int *) force->pair->extract("typeA",itmp);
+    auto *p_typeB = (int *) force->pair->extract("typeB",itmp);
     if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
       error->all(FLERR,"Pair style is incompatible with TIP4P KSpace style");
     qdist = *p_qdist;
@@ -276,8 +266,8 @@ void ESP::init()
   gc = nullptr;
   int iteration = 0;
 
-  prolc180(accuracy_relative, select_c);
-  prolc180(spreading_accuracy, spreading_select_c);
+  MathPSWF::prolc180(accuracy_relative, select_c);
+  MathPSWF::prolc180(spreading_accuracy, spreading_select_c);
 
   // Here debug
   while (order >= minorder) {
@@ -322,7 +312,7 @@ void ESP::init()
 
   // pre-compute tables for splitting/spreading function
 
-  build_table(accuracy_relative, spreading_accuracy);
+  build_table(spreading_accuracy);
   if (differentiation_flag == 1) compute_sf_precoeff();
 
   // print stats
@@ -332,8 +322,8 @@ void ESP::init()
   MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
-    std::string mesg = fmt::format(" Spreading parameter c = {:.8g}\n",spreading_select_c);
-    mesg += fmt::format(" Splitting parameter c = {:.8g}\n",select_c);
+    std::string mesg = fmt::format("  Spreading parameter c = {:.8g}\n",spreading_select_c);
+    mesg += fmt::format("  Splitting parameter c = {:.8g}\n",select_c);
     mesg += fmt::format("  grid = {} {} {}\n",nx_pppm,ny_pppm,nz_pppm);
     mesg += fmt::format("  stencil order = {}\n",order);
     mesg += fmt::format("  estimated relative splitting force accuracy = {:.8g}\n",
@@ -567,8 +557,8 @@ void ESP::reset_grid()
   if (group_allocate_flag) deallocate_groups();
 
   // reset splitting/spreading c
-  prolc180(accuracy_relative, select_c);
-  prolc180(spreading_accuracy, spreading_select_c);
+  MathPSWF::prolc180(accuracy_relative, select_c);
+  MathPSWF::prolc180(spreading_accuracy, spreading_select_c);
 
   // reset portion of global grid that each proc owns
 
@@ -581,7 +571,7 @@ void ESP::reset_grid()
   allocate();
 
   ////
-  build_table(accuracy_relative, spreading_accuracy);
+  build_table(spreading_accuracy);
 
   if (!overlap_allowed && !gc->ghost_adjacent())
     error->all(FLERR,"ESP grid stencil extends beyond nearest neighbor processor");
@@ -1019,9 +1009,6 @@ void ESP::set_grid_global()
   // fluid-occupied volume used to estimate real-space error
   // zprd used rather than zprd_slab
 
-  double h;
-  bigint natoms = atom->natoms;
-
   // set optimal nx_pppm,ny_pppm,nz_pppm based on order and accuracy
   // nz_pppm uses extended zprd_slab instead of zprd
   // reduce it until accuracy target is met
@@ -1030,11 +1017,11 @@ void ESP::set_grid_global()
 
     if (differentiation_flag == 1) {
 
-      h = h_x = h_y = h_z = MY_PI * cutoff / select_c; // set initial h
+      h_x = h_y = h_z = MY_PI * cutoff / select_c; // set initial h
 
-      nx_pppm = static_cast<int> (ceil(xprd/h_x));
-      ny_pppm = static_cast<int> (ceil(yprd/h_y));
-      nz_pppm = static_cast<int> (ceil(zprd_slab/h_z));
+      nx_pppm = static_cast<int>(ceil(xprd/h_x));
+      ny_pppm = static_cast<int>(ceil(yprd/h_y));
+      nz_pppm = static_cast<int>(ceil(zprd_slab/h_z));
 
       if (nx_pppm <= 1) nx_pppm = 2;
       if (ny_pppm <= 1) ny_pppm = 2;
@@ -1042,11 +1029,11 @@ void ESP::set_grid_global()
 
     } else {
 
-      h = h_x = h_y = h_z = MY_PI * cutoff / select_c;
+      h_x = h_y = h_z = MY_PI * cutoff / select_c;
 
-      nx_pppm = static_cast<int> (xprd/h_x) + 1;
-      ny_pppm = static_cast<int> (yprd/h_y) + 1;
-      nz_pppm = static_cast<int> (zprd_slab/h_z) + 1;
+      nx_pppm = static_cast<int>(xprd/h_x) + 1;
+      ny_pppm = static_cast<int>(yprd/h_y) + 1;
+      nz_pppm = static_cast<int>(zprd_slab/h_z) + 1;
     }
 
     // scale grid for triclinic skew
@@ -1190,18 +1177,16 @@ void ESP::compute_gf_ik()
   const double unitkz = (MY_2PI/zprd_slab);
 
   double snx,sny,snz;
-  double argx,argy,argz,wx,wy,wz,qx,qy,qz;
+  double wx,wy,wz,qx,qy,qz;
   double sum1,dot1,dot2;
   double numerator,denominator;
   double sqk;
 
   int k,l,m,n,nx,ny,nz,kper,lper,mper;
 
-  const int nbx = static_cast<int> (select_c * xprd / (MY_2PI * cutoff * nx_pppm)) * pow(-log(EPS_HOC),0.25);
-  const int nby = static_cast<int> (select_c * yprd / (MY_2PI * cutoff * ny_pppm)) * pow(-log(EPS_HOC),0.25);
-  const int nbz = static_cast<int> (select_c * zprd / (MY_2PI * cutoff * nz_pppm)) * pow(-log(EPS_HOC),0.25);
-
-  const int twoorder = 2*order;
+  const int nbx = static_cast<int>(static_cast<int>(select_c * xprd / (MY_2PI * cutoff * nx_pppm)) * pow(-log(EPS_HOC),0.25));
+  const int nby = static_cast<int>(static_cast<int>(select_c * yprd / (MY_2PI * cutoff * ny_pppm)) * pow(-log(EPS_HOC),0.25));
+  const int nbz = static_cast<int>(static_cast<int>(select_c * zprd / (MY_2PI * cutoff * nz_pppm)) * pow(-log(EPS_HOC),0.25));
 
   n = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
@@ -1316,8 +1301,7 @@ void ESP::compute_gf_ik()
 
 void ESP::compute_gf_ik_triclinic()
 {
-  double snx,sny,snz;
-  double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
+  double wx,wy,wz,qx,qy,qz;
   double sum1,dot1,dot2;
   double numerator,denominator;
   double sqk;
@@ -1339,8 +1323,6 @@ void ESP::compute_gf_ik_triclinic()
   const int nbx = static_cast<int> (tmp[0]);
   const int nby = static_cast<int> (tmp[1]);
   const int nbz = static_cast<int> (tmp[2]);
-
-  const int twoorder = 2*order;
 
   n = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
@@ -1477,10 +1459,6 @@ void ESP::compute_gf_ad()
   const double unitkx = (MY_2PI / xprd);
   const double unitky = (MY_2PI / yprd);
   const double unitkz = (MY_2PI / zprd_slab);
-
-  const double hx = xprd / (double)nx_pppm;
-  const double hy = yprd / (double)ny_pppm;
-  const double hz_slab = zprd_slab / (double)nz_pppm;
 
   const double sqk_cut2 = (select_c / cutoff) * (select_c / cutoff);
 
@@ -2599,7 +2577,7 @@ void ESP::fieldforce_peratom()
 
 void ESP::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -2659,7 +2637,7 @@ void ESP::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void ESP::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -2719,7 +2697,7 @@ void ESP::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void ESP::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   if (flag == REVERSE_RHO) {
     FFT_SCALAR *src = &density_brick[nzlo_out][nylo_out][nxlo_out];
@@ -2734,7 +2712,7 @@ void ESP::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void ESP::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   if (flag == REVERSE_RHO) {
     FFT_SCALAR *dest = &density_brick[nzlo_out][nylo_out][nxlo_out];
@@ -2809,35 +2787,35 @@ int ESP::estimate_order(double accuracy)
    build table for ESP method
 ------------------------------------------------------------------------- */
 
-void ESP::build_table(double algorithm_accuracy, double spreading_accuracy)
+void ESP::build_table(double spreading_accuracy)
 {
   // force kernel
   std::vector<double> poly_coeff;
-  force_poly(accuracy_relative, 0.1*accuracy_relative, select_c, poly_coeff);
+  MathPSWF::force_poly(0.1*accuracy_relative, select_c, poly_coeff);
   num_of_force_poly = poly_coeff.size();
   memory->create(force_poly_coeff, num_of_force_poly, "ESP:force_poly_coeff");
   for (int i = 0; i < num_of_force_poly; i++) force_poly_coeff[i] = poly_coeff[i];
-  if (me == 0) utils::logmesg(lmp," force poly size: {}\n",num_of_force_poly);
+  if (me == 0) utils::logmesg(lmp,"  Force poly size: {}\n",num_of_force_poly);
 
   // energy kernel
   poly_coeff.clear();
-  energy_poly(accuracy_relative, 0.01*accuracy_relative, select_c, poly_coeff);
+  MathPSWF::energy_poly(0.01*accuracy_relative, select_c, poly_coeff);
   num_of_energy_poly = poly_coeff.size();
   memory->create(energy_poly_coeff, num_of_energy_poly, "ESP:energy_poly_coeff");
   for (int i = 0; i < num_of_energy_poly; i++) energy_poly_coeff[i] = poly_coeff[i];
-  if (me == 0) utils::logmesg(lmp," energy poly size: {}\n",num_of_energy_poly);
+  if (me == 0) utils::logmesg(lmp,"  Energy poly size: {}\n",num_of_energy_poly);
 
   // Fourier space kernel
   poly_coeff.clear();
-  fourier_poly(accuracy_relative, 0.1*accuracy_relative, select_c, Lambda_0, poly_coeff);
+  MathPSWF::fourier_poly(0.1*accuracy_relative, select_c, Lambda_0, poly_coeff);
   num_of_Fourier_poly = poly_coeff.size();
   memory->create(fourier_split_poly_coeff, num_of_Fourier_poly, "ESP:fourier_split_poly_coeff");
   for (int i = 0; i < num_of_Fourier_poly; i++) fourier_split_poly_coeff[i] = poly_coeff[i];
-  if (me == 0) utils::logmesg(lmp," Fourier poly size: {}\n",num_of_Fourier_poly);
+  if (me == 0) utils::logmesg(lmp,"  Fourier poly size: {}\n",num_of_Fourier_poly);
 
   // spreading kernel in real space - need to be consistent with the spreading accuracy
   poly_coeff.clear();
-  spread_real_poly(order, spreading_accuracy, 0.1*spreading_accuracy, spreading_select_c, poly_coeff);
+  MathPSWF::spread_real_poly(order, 0.1*spreading_accuracy, spreading_select_c, poly_coeff);
   poly_order = poly_coeff.size() / order;
 
   memory->create2d_offset(rho_coeff,poly_order,(1-order)/2,order/2,"esp:rho_coeff");
@@ -2853,15 +2831,15 @@ void ESP::build_table(double algorithm_accuracy, double spreading_accuracy)
         drho_coeff[l-1][m] = l*rho_coeff[l][m]; // Coefficients for l x^l-1 terms
     drho_coeff[poly_order-1][m] = 0.00;
   }
-  if (me == 0) utils::logmesg(lmp," spread real poly size: {}\n",poly_order);
+  if (me == 0) utils::logmesg(lmp,"  Spread real poly size: {}\n",poly_order);
 
   // spreading kernel in Fourier space
   poly_coeff.clear();
-  spread_fourier_poly(spreading_accuracy, 0.1*spreading_accuracy, spreading_select_c, spreading_Lambda_0, poly_coeff);
+  MathPSWF::spread_fourier_poly(0.1*spreading_accuracy, spreading_select_c, spreading_Lambda_0, poly_coeff);
   fourier_spreading_order = poly_coeff.size();
   memory->create(fourier_spread_poly_coeff, fourier_spreading_order, "ESP:fourier_spread_poly_coeff");
   for (int i = 0; i < fourier_spreading_order; i++) fourier_spread_poly_coeff[i] = poly_coeff[i];
-  if (me == 0) utils::logmesg(lmp," Fourier spreading poly size: {}\n",fourier_spreading_order);
+  if (me == 0) utils::logmesg(lmp,"  Fourier spreading poly size: {}\n",fourier_spreading_order);
 }
 
 

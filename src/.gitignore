@@ -851,6 +851,8 @@
 /dump_yaml.h
 /dynamical_matrix.cpp
 /dynamical_matrix.h
+/esp.cpp
+/esp.h
 /ewald.cpp
 /ewald.h
 /ewald_cg.cpp
@@ -1222,6 +1224,8 @@
 /math_complex.h
 /math_extra_superellipsoids.cpp
 /math_extra_superellipsoids.h
+/math_pswf.cpp
+/math_pswf.h
 /math_vector.h
 /message.cpp
 /message.h
@@ -1301,6 +1305,8 @@
 /pair_cosine_squared.h
 /pair_coul_diel.cpp
 /pair_coul_diel.h
+/pair_coul_esp.cpp
+/pair_coul_esp.h
 /pair_coul_exclude.cpp
 /pair_coul_exclude.h
 /pair_coul_long.cpp
@@ -1437,6 +1443,8 @@
 /pair_lj_cut_coul_cut_soft.h
 /pair_lj_cut_tip4p_cut.cpp
 /pair_lj_cut_tip4p_cut.h
+/pair_lj_cut_coul_esp.cpp
+/pair_lj_cut_coul_esp.h
 /pair_lj_cut_coul_long.cpp
 /pair_lj_cut_coul_long.h
 /pair_lj_cut_coul_long_soft.cpp

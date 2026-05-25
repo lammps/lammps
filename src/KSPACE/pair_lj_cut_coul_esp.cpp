@@ -80,9 +80,8 @@ void PairLJCutCoulEsp::compute(int eflag, int vflag)
 {
   int i,ii,j,jj,inum,jnum,itype,jtype,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double fraction,table;
+  double fraction,table,prefactor;
   double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
 
@@ -400,9 +399,8 @@ void PairLJCutCoulEsp::compute_outer(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double fraction,table;
+  double fraction,table,prefactor;
   double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
   double rsw;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
@@ -692,7 +690,7 @@ void PairLJCutCoulEsp::init_style()
   int list_style = NeighConst::REQ_DEFAULT;
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>(update->integrate);
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
     if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }
@@ -908,7 +906,7 @@ double PairLJCutCoulEsp::single(int i, int j, int itype, int jtype,
                                  double factor_coul, double factor_lj,
                                  double &fforce)
 {
-  double r2inv,r6inv,r,grij,expm2,t,erfc,prefactor;
+  double r2inv,r6inv,r,prefactor;
   double fraction,table,forcecoul,forcelj,phicoul,philj;
   int itable;
 

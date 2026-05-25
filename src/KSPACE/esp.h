@@ -44,9 +44,16 @@ class ESP : public KSpace {
   int timing_1d(int, double &) override;
   int timing_3d(int, double &) override;
   double memory_usage() override;
-  void build_table(double, double);
+  void build_table(double);
   int estimate_order(double);
   void compute_group_group(int, int, int) override;
+
+  // grid communication
+
+  void pack_forward_grid(int, void *, int, int *) override;
+  void unpack_forward_grid(int, void *, int, int *) override;
+  void pack_reverse_grid(int, void *, int, int *) override;
+  void unpack_reverse_grid(int, void *, int, int *) override;
 
  protected:
   int me, nprocs;
@@ -139,13 +146,6 @@ class ESP : public KSpace {
   void compute_rho_coeff();
   virtual void slabcorr();
 
-  // grid communication
-
-  void pack_forward_grid(int, void *, int, int *) override;
-  void unpack_forward_grid(int, void *, int, int *) override;
-  void pack_reverse_grid(int, void *, int, int *) override;
-  void unpack_reverse_grid(int, void *, int, int *) override;
-
   // triclinic
 
   int triclinic;    // domain settings, orthog or triclinic
@@ -182,7 +182,7 @@ class ESP : public KSpace {
     }
   }
 
-  double spreading_weight2_from_t(const double t) const
+  [[nodiscard]] double spreading_weight2_from_t(const double t) const
   {
     // t = (order * h / 2) * |q| / spreading_select_c
     // returns ( (order/2 * poly(2t-1))^2 ), or 0 if t>1
@@ -194,14 +194,15 @@ class ESP : public KSpace {
     return w * w;
   }
 
-  double spreading_weight2_from_abs_index(const int abs_index, const double scale) const
+  [[nodiscard]] double spreading_weight2_from_abs_index(const int abs_index,
+                                                        const double scale) const
   {
     // integer-form helper: t = scale * abs_index
     return spreading_weight2_from_t(scale * (double) abs_index);
   }
 
-  double gf_denom_psw(const double &kx, const double &ky, const double &kz, const double &hx,
-                      const double &hy, const double &hz) const
+  [[nodiscard]] double gf_denom_psw(const double &kx, const double &ky, const double &kz,
+                                    const double &hx, const double &hy, const double &hz) const
   {
     int Nmax = (differentiation_flag == 0) ? 2 : 0;
 

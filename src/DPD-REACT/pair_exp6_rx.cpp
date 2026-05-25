@@ -827,7 +827,7 @@ void PairExp6rx::read_file2(char *file)
     PotentialFileReader reader(lmp, file, "exp6/rx");
     char *line;
 
-    while (line = reader.next_line(coeffs_per_line+1)) {
+    while ((line = reader.next_line(coeffs_per_line+1))) {
       try {
         ValueTokenizer values(line);
 

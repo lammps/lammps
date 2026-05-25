@@ -112,7 +112,7 @@ int FixBAOAB::setmask()
 void FixBAOAB::init()
 {
   // fix baoab and fix shake/rattle cannot be used together
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if ((utils::strmatch(ifix->style, "^shake") || utils::strmatch(ifix->style, "^rattle")) &&
         (ifix->groupbit & groupbit))
       error->all(FLERR, Error::NOLASTLINE, "Fix baoab is not compatible with fix {} on group {}",

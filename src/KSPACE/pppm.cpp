@@ -185,7 +185,7 @@ PPPM::~PPPM()
 {
   if (copymode) return;
 
-  delete [] factors;
+  delete[] factors;
   PPPM::deallocate();
   if (peratom_allocate_flag) PPPM::deallocate_peratom();
   if (group_allocate_flag) PPPM::deallocate_groups();

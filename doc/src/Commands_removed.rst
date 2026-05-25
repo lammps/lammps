@@ -1,3 +1,7 @@
+.. raw:: latex
+
+   \clearpage
+
 Removed commands and packages
 =============================
 

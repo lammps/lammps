@@ -65,9 +65,8 @@ void PairCoulEsp::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itable, itype, jtype;
   double qtmp, xtmp, ytmp, ztmp, delx, dely, delz, ecoul, fpair;
-  double fraction, table;
+  double fraction, table, prefactor;
   double r, r2inv, forcecoul, factor_coul;
-  double grij, expm2, prefactor, t, erfc;
   int *ilist, *jlist, *numneigh, **firstneigh;
   double rsq;
 
@@ -346,7 +345,7 @@ void PairCoulEsp::read_restart_settings(FILE *fp)
 double PairCoulEsp::single(int i, int j, int /*itype*/, int /*jtype*/, double rsq,
                            double factor_coul, double /*factor_lj*/, double &fforce)
 {
-  double r2inv, r, grij, expm2, t, erfc, prefactor;
+  double r2inv, r, prefactor;
   double fraction, table, forcecoul, phicoul;
   int itable;
 

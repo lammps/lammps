@@ -376,6 +376,7 @@ Bogusz
 Bohrs
 boltz
 Bomont
+Bonato
 BondAngle
 BondBond
 bondchk
@@ -961,6 +962,7 @@ drsquared
 drude
 Drude
 DRUDE
+dsDNA
 dsf
 dsmc
 dt
@@ -1487,6 +1489,7 @@ granregion
 graphene
 Gravelle
 Greathouse
+Greengard
 greenyellow
 Greffet
 grem
@@ -1681,6 +1684,7 @@ iceblue
 ico
 icosahedral
 icosahedron
+idc
 idealgas
 IDR
 idx
@@ -2316,6 +2320,7 @@ matplotlib
 Matsubara
 Matteo
 Matteson
+Matthies
 Mattice
 Mattox
 Mattson
@@ -3233,6 +3238,8 @@ Proc
 procs
 procgrid
 progguide
+prolate
+Prolates
 Prony
 protonated
 ps
@@ -3816,6 +3823,7 @@ srp
 srun
 ss
 ssao
+ssDNA
 stamoor
 stamoore
 stanford
@@ -4229,6 +4237,7 @@ Unwin
 uparrow
 upenn
 upquote
+upsampling
 upto
 Urbakh
 Urbana

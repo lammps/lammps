@@ -34,8 +34,8 @@ jobs:
       if: steps.cache-coverity.outputs.cache-hit != 'true'
       working-directory: download
       run: |
-        wget -nv https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=LAMMPS" -O coverity_tool.tgz
-        wget -nv https://scan.coverity.com/download/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=LAMMPS&md5=1" -O coverity_tool.md5
+        wget -nv https://scan.coverity.com/download/cxx/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=LAMMPS" -O coverity_tool.tgz
+        wget -nv https://scan.coverity.com/download/cxx/linux64 --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=LAMMPS&md5=1" -O coverity_tool.md5
         echo " coverity_tool.tgz" >> coverity_tool.md5
         md5sum -c coverity_tool.md5
 

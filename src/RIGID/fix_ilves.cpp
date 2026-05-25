@@ -2707,29 +2707,71 @@ void FixIlves::init_topology()
   // from the global table avoids problems where a given rank's local
   // angle is of a different angle type or where the relevant bond is
   // stored on a remote rank with newton_bond=on.
+  //
+  // Filtering: an angle is constrained only when all three atoms are in
+  // the fix group AND both flanking bonds are themselves constrained
+  // (see build_constraint_list).  Angles that fail either test are
+  // irrelevant to the angle_distance computation and must not feed into
+  // the mixed-bond check below -- otherwise an angle type shared by both
+  // constrained and unconstrained instances (e.g. one with type-5 bonds
+  // selected by `b 5` and another with type-1 bonds outside the group)
+  // would trigger a spurious "mixed type bonds" error.
   if (has_angle) {
+    const int na = (int) ga1.size();
+
+    // Per-angle filter: 1 if this rank can verify the angle is constrained,
+    // 0 otherwise.  At init() time ghosts are not yet built, so atoms on
+    // remote ranks are not locally accessible (atom->map returns -1) and
+    // mask/type lookups are unavailable for them; an MPI_Allreduce(MAX)
+    // below combines per-rank determinations, so an angle is kept as long
+    // as some rank can confirm it.
+    std::vector<char> ang_constrain(na, 0);
+    int *mask_now = atom->mask;
+    for (int gi = 0; gi < na; ++gi) {
+      int at = ga_type[gi];
+      if (at <= 0 || at > atom->nangletypes) continue;
+      if (!angle_flag[at]) continue;
+      tagint t1 = ga1[gi];
+      tagint t2 = ga2[gi];
+      tagint t3 = ga3[gi];
+      int i1 = atom->map(t1);
+      int i2 = atom->map(t2);
+      int i3 = atom->map(t3);
+      if (i1 < 0 || i2 < 0 || i3 < 0) continue;
+      if (!(mask_now[i1] & groupbit)) continue;
+      if (!(mask_now[i2] & groupbit)) continue;
+      if (!(mask_now[i3] & groupbit)) continue;
+      if (!bond_is_constrained(t2, t1)) continue;
+      if (!bond_is_constrained(t2, t3)) continue;
+      ang_constrain[gi] = 1;
+    }
+    if ((comm->nprocs > 1) && (na > 0))
+      MPI_Allreduce(MPI_IN_PLACE, ang_constrain.data(), na,
+                    MPI_CHAR, MPI_MAX, world);
+
+    auto lookup_bt = [&](tagint t1, tagint t2) -> int {
+      tagint lo_t = MIN(t1, t2), hi_t = MAX(t1, t2);
+      int lo = 0, hi = (int) gb_a.size();
+      while (lo < hi) {
+        int mid = (lo + hi) / 2;
+        if (gb_a[mid] < lo_t || (gb_a[mid] == lo_t && gb_b[mid] < hi_t)) lo = mid + 1;
+        else hi = mid;
+      }
+      if (lo == (int) gb_a.size() || gb_a[lo] != lo_t || gb_b[lo] != hi_t) return 0;
+      return gb_type[lo];
+    };
+
     for (int at = 1; at <= atom->nangletypes; ++at) {
       if (!angle_flag[at]) { angle_distance[at] = 0.0; continue; }
 
       int b1 = 0, b2 = 0;
       int conflict = 0;
-      const int na = (int) ga1.size();
       for (int gi = 0; gi < na; ++gi) {
         if (ga_type[gi] != at) continue;
+        if (!ang_constrain[gi]) continue;
         tagint tA = ga1[gi];
         tagint tB = ga2[gi];     // middle atom
         tagint tC = ga3[gi];
-        auto lookup_bt = [&](tagint t1, tagint t2) -> int {
-          tagint lo_t = MIN(t1, t2), hi_t = MAX(t1, t2);
-          int lo = 0, hi = (int) gb_a.size();
-          while (lo < hi) {
-            int mid = (lo + hi) / 2;
-            if (gb_a[mid] < lo_t || (gb_a[mid] == lo_t && gb_b[mid] < hi_t)) lo = mid + 1;
-            else hi = mid;
-          }
-          if (lo == (int) gb_a.size() || gb_a[lo] != lo_t || gb_b[lo] != hi_t) return 0;
-          return gb_type[lo];
-        };
         int bt1 = lookup_bt(tA, tB);
         int bt2 = lookup_bt(tB, tC);
         if (bt1 == 0 || bt2 == 0) continue;
@@ -2949,10 +2991,9 @@ void FixIlves::gather_global_topology()
                  +     (bigint) ga_type.size() * sz_int
                  + 48 * (bigint) tag_cluster.size();
     utils::logmesg(lmp,
-                   "Fix ilves: gathered global topology with {} bonds, {} selected "
-                   "angles, {} involved atoms\n"
-                   "Fix ilves: replicated topology storage ~ {} bytes/rank "
-                   "({:.2f} MB)\n",
+                   "Fix ilves: gathered global topology info for {} bonds, {} angles, "
+                   "and {} involved atoms\n"
+                   "  replicated topology storage ~ {} bytes/rank ({:.2f} MB)\n",
                    gb_a.size(), ga1.size(), tag_cluster.size(),
                    bytes, (double) bytes / (1024.0 * 1024.0));
   }

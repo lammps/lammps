@@ -967,10 +967,6 @@
 /fix_hyper_local.h
 /fix_ilves.cpp
 /fix_ilves.h
-/fix_ilves_global.cpp
-/fix_ilves_global.h
-/fix_ilves_local.cpp
-/fix_ilves_local.h
 /fix_imd.cpp
 /fix_imd.h
 /fix_ipi.cpp

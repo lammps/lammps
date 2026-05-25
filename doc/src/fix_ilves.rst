@@ -38,8 +38,8 @@ Syntax
          *fast* = symmetric quasi-Newton with banded Cholesky (default)
          *full* = exact-Newton (asymmetric) with LU decomposition
        *linearangle* value = theta_deg [Lmin]
-         theta_deg = threshold in degrees (default 165)
-         Lmin      = minimum |B-M| target length (default 0.01 in length units)
+         theta_deg = threshold in degrees
+         Lmin      = minimum \|B-M\| target length
 
 Examples
 """"""""
@@ -49,7 +49,7 @@ Examples
    fix 1 all ilves 1.0e-4 25 100 b 4 6 8 10 12 14 18 a 31
    fix 2 wat ilves 1.0e-6 30 1000 t 1 m 1.008 store yes
    fix 3 all ilves 1.0e-5 20 0 b 1 a 1 variant full
-   fix 4 all ilves 1.0e-6 30 100 b 1 a 1 variant fast linearangle 170
+   fix 4 all ilves 1.0e-6 30 100 b 1 a 1 variant fast linearangle 170 0.05
 
 Description
 """""""""""
@@ -57,12 +57,12 @@ Description
 .. versionadded:: TBD
 
 Apply bond-length (and optionally end-to-end angle "virtual bond")
-constraints using the ILVES algorithm of
-:ref:`(Garcia-Risueno) <Garcia-Risueno2026>`.  ILVES enforces holonomic
-distance constraints using Newton's method on a sparse system of nonlinear
-equations.  Unlike :doc:`fix shake <fix_shake>`, ILVES handles arbitrarily
-large connected constraint clusters --- including the full set of C-C
-backbone bonds of a long polymer or protein chain --- in a single solve.
+constraints using the ILVES algorithm of :ref:`(Garcia-Risueno)
+<Garcia-Risueno2026>`.  ILVES enforces holonomic distance constraints
+using Newton's method on a sparse system of nonlinear equations.  Unlike
+:doc:`fix shake <fix_shake>`, ILVES handles arbitrarily large connected
+constraint clusters --- including the full set of C-C backbone bonds of
+a long polymer or protein chain --- in a single solve.
 
 The fix gathers the complete bond / angle topology onto every MPI rank
 at init via ``MPI_Allgatherv`` and builds a per-rank constraint list
@@ -389,10 +389,10 @@ Default
 
 The keyword defaults are:
 
-* *kbond* = ``1.0e9 * boltz`` (same default as :doc:`fix shake <fix_shake>`)
+* *kbond* = :math:`1.0^9 k_B` (same default as :doc:`fix shake <fix_shake>`)
 * *store* = *no*
 * *variant* = *fast*
-* *linearangle* = ``165`` degrees with ``Lmin = 0.01`` length units
+* *linearangle* = 165 degrees with Lmin = 1/30 length units
 
 ----------
 

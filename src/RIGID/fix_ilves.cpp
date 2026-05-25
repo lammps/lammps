@@ -103,23 +103,18 @@ const char cite_fix_ilves[] =
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr), type_flag(nullptr),
     mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr), angle_r1(nullptr),
-    angle_r2(nullptr),
-    angle_linear(nullptr), angle_dBM(nullptr),
-    fstore(nullptr),
-    ilves_flag(nullptr), xshake(nullptr), c_atom1(nullptr), c_atom2(nullptr),
-    c_atom3(nullptr), c_type(nullptr),
-    c_dist(nullptr), c_lambda(nullptr), c_cluster(nullptr), c_rx(nullptr), c_ry(nullptr),
-    c_rz(nullptr), c_rsq(nullptr), c_invma(nullptr), c_invmb(nullptr), c_invmc(nullptr),
-    cluster_offset(nullptr),
-    c_perm(nullptr), c_slot(nullptr), lu_A(nullptr), lu_b(nullptr), lu_pivot(nullptr),
-    cl_sx(nullptr), cl_sy(nullptr), cl_sz(nullptr),
-    chol_pool(nullptr), chol_pool_offset(nullptr), cluster_bw(nullptr),
-    cluster_cached(nullptr),
-    x(nullptr), v(nullptr), f(nullptr),
-    mass(nullptr), rmass(nullptr), type(nullptr), b_count(nullptr), b_count_all(nullptr),
-    b_ave(nullptr), b_max(nullptr), b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr),
-    b_min_all(nullptr), a_count(nullptr), a_count_all(nullptr), a_ave(nullptr), a_max(nullptr),
-    a_min(nullptr), a_ave_all(nullptr), a_max_all(nullptr), a_min_all(nullptr)
+    angle_r2(nullptr), angle_linear(nullptr), angle_dBM(nullptr), fstore(nullptr),
+    ilves_flag(nullptr), xshake(nullptr), c_atom1(nullptr), c_atom2(nullptr), c_atom3(nullptr),
+    c_type(nullptr), c_dist(nullptr), c_lambda(nullptr), c_cluster(nullptr), c_rx(nullptr),
+    c_ry(nullptr), c_rz(nullptr), c_rsq(nullptr), c_invma(nullptr), c_invmb(nullptr),
+    c_invmc(nullptr), cluster_offset(nullptr), c_perm(nullptr), c_slot(nullptr), lu_A(nullptr),
+    lu_b(nullptr), lu_pivot(nullptr), cl_sx(nullptr), cl_sy(nullptr), cl_sz(nullptr),
+    chol_pool(nullptr), chol_pool_offset(nullptr), cluster_bw(nullptr), cluster_cached(nullptr),
+    x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr), type(nullptr),
+    b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr), b_min(nullptr),
+    b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
+    a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
+    a_max_all(nullptr), a_min_all(nullptr)
 {
   lu_alloc = 0;
   largest_cluster = 0;
@@ -148,7 +143,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   chol_calls = 0;
   chol_fallbacks = 0;
   linear_threshold = 165.0;
-  linear_Lmin      = 0.01;
+  linear_Lmin = 1.0 / 30.0;
 
   store_flag = peratom_flag = 0;
   maxstore = -1;
@@ -162,7 +157,8 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   // error checks
 
   if (atom->molecular != Atom::MOLECULAR)
-    error->all(FLERR, "Fix ilves requires a molecular system (atom_style with bonds)");
+    error->all(FLERR, Error::COMMAND,
+               "Fix ilves requires a molecular system (atom_style with bonds)");
 
   // perform initial allocation of atom-based per-atom arrays
   FixIlves::grow_arrays(atom->nmax);
@@ -171,15 +167,13 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   // forward-comm payload: 3 doubles (xshake)
   comm_forward = 3;
 
-  // clang-format off
-  // -----------------------------------------------------------------
-  // parse arguments: tol  iter  output_every  <b|a|t|m> ids ... [opt]
-  // mirrors fix shake's UI
-  // -----------------------------------------------------------------
+  // parse arguments, same as for fix shake
 
   if (narg < 8) utils::missing_cmd_args(FLERR, "fix ilves", error);
 
-  tolerance    = utils::numeric(FLERR, arg[3], false, lmp);
+  // clang-format off
+
+  tolerance    = utils::numeric(FLERR,  arg[3], false, lmp);
   max_iter     = utils::inumeric(FLERR, arg[4], false, lmp);
   output_every = utils::inumeric(FLERR, arg[5], false, lmp);
 
@@ -204,7 +198,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   bond_flag  = new int[atom->nbondtypes  + 1]{};
   angle_flag = new int[atom->nangletypes + 1]{};
   type_flag  = new int[atom->ntypes      + 1]{};
-  mass_list  = new double[atom->ntypes];
+  mass_list  = new double[atom->ntypes]{};
   nmass = 0;
 
   char mode = '\0';
@@ -303,15 +297,15 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
         char *endp = nullptr;
         double v = strtod(arg[next], &endp);
         if (endp != arg[next] && *endp == '\0') {
-          if (v < 0.0)
-            error->all(FLERR, next, "Fix ilves linearangle Lmin must be >= 0");
+          if (v <= 0.0)
+            error->all(FLERR, next, "Fix ilves linearangle Lmin must be > 0.0");
           linear_Lmin = v;
           ++next;
         }
       }
 
     } else {
-      error->all(FLERR, "Unknown fix ilves command option: {}", arg[next]);
+      error->all(FLERR, next, "Unknown fix ilves command option: {}", arg[next]);
     }
   }
 
@@ -336,7 +330,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     a_count = new bigint[na]{};  a_count_all = new bigint[na]{};
     a_ave   = new double[na]{};  a_ave_all   = new double[na]{};
     a_max   = new double[na]{};  a_max_all   = new double[na]{};
-    a_min   = new double[na];    a_min_all   = new double[na];
+    a_min   = new double[na];   a_min_all   = new double[na];
     for (int i = 0; i < na; ++i) a_min[i] = a_min_all[i] = BIG;
   }
 }
@@ -422,7 +416,11 @@ void FixIlves::init()
 {
   // only one fix ilves instance allowed
   if (modify->get_fix_by_style("^ilves").size() > 1)
-    error->all(FLERR, "More than one fix ilves instance");
+    error->all(FLERR, Error::NOLASTLINE, "More than one fix ilves instance");
+
+  // we are not compatible with r-RESPA
+ if (utils::strmatch(update->integrate_style,"^respa"))
+   error->all(FLERR, Error::NOLASTLINE, "Fix ilves does not support r-RESPA");
 
   // forbid box-changing fixes between fix ilves and integration?  we don't
   // care about the order strictly, but fix shake does this check and we
@@ -430,13 +428,13 @@ void FixIlves::init()
   bool boxflag = false;
   for (const auto &ifix : modify->get_fix_list()) {
     if (boxflag && utils::strmatch(ifix->style, "^ilves"))
-      error->all(FLERR, "Fix ilves must come before any box-changing fix");
+      error->all(FLERR, Error::NOLASTLINE, "Fix ilves must come before any box-changing fix");
     if (ifix->box_change) boxflag = true;
   }
 
   // need a bond style
   if (force->bond == nullptr)
-    error->all(FLERR, "Bond style must be defined for fix ilves");
+    error->all(FLERR, Error::NOLASTLINE, "Bond style must be defined for fix ilves");
 
   for (int i = 1; i <= atom->nbondtypes; ++i)
     bond_distance[i] = force->bond->equilibrium_distance(i);
@@ -445,7 +443,8 @@ void FixIlves::init()
   // be defined (the variant-specific init_topology() below uses
   // force->angle->equilibrium_angle to compute angle_distance[]).
   if (has_angle && force->angle == nullptr)
-    error->all(FLERR, "Angle style must be defined for fix ilves with angle constraints");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Angle style must be defined for fix ilves with angle constraints");
 
   // Variant-specific topology setup: the local variant validates that
   // every constraint cluster fits within this rank's local-plus-ghost
@@ -1713,7 +1712,7 @@ bool FixIlves::solve_constraints()
       }
 
       if (info) {
-        error->one(FLERR,
+        error->one(FLERR, Error::NOLASTLINE,
                    "Fix ilves: singular Jacobian in cluster {} (size {}, iter {}). "
                    "This usually indicates a degenerate or overdetermined "
                    "constraint topology.", c, n_c, iter);
@@ -2122,8 +2121,8 @@ void FixIlves::correct_velocities()
       info = lu_factor_solve(n_c);
     }
     if (info)
-      error->one(FLERR, "Fix ilves: singular velocity-correction matrix in cluster {} "
-                 "(size {}).  Check for degenerate constraint topology.", c, n_c);
+      error->one(FLERR,  Error::NOLASTLINE, "Fix ilves: singular velocity-correction matrix "
+                 "in cluster {} (size {}).  Check for degenerate constraint topology.", c, n_c);
 
     // apply: v[p] += w_p * mu_k * (1/m_p) * (-r_k) for each participating
     // atom.  Note the OVERALL sign flips relative to the position solve:
@@ -2739,7 +2738,7 @@ void FixIlves::init_topology()
         else if (bmin != b1 || bmax != b2) { conflict = 1; break; }
       }
       if (conflict)
-        error->all(FLERR, "Fix ilves: angle type {} spans bonds of mixed types", at);
+        error->all(FLERR, Error::NOLASTLINE, "Fix ilves: angle type {} has mixed type bonds", at);
       if (b1 == 0) { angle_distance[at] = 0.0; continue; }
       const double theta0 = force->angle->equilibrium_angle(at);
       const double r1 = bond_distance[b1];

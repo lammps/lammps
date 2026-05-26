@@ -256,6 +256,19 @@ class FixIlves : public Fix {
   std::vector<int> ga_type;
   bool global_topology_ready;
 
+  // Topology-change safeguard.  Fix ilves gathers the bond/angle topology
+  // once at init() and assumes it is frozen for the duration of the run.
+  // To catch silent mismatch when a concurrent fix (e.g. fix bond/create,
+  // fix bond/break, delete_atoms) modifies the constrained topology, we
+  // record three globally-reduced counts at init and recheck them at every
+  // reneighbor; mismatch aborts with a clear error.  The bond/angle counts
+  // are raw "sum over local atoms of constrained-type slots" -- not
+  // deduplicated -- which is enough for change detection and matches
+  // what gather_global_topology() scans.
+  bigint natoms_at_init;
+  bigint nconstrbonds_sum_at_init;
+  bigint nconstrangles_sum_at_init;
+
   // Global cluster-ID for every tag involved in any bond/angle.  Maps
   // a tag to its cluster's representative tag.  Sparse: only tags that
   // participate in at least one constrained bond or angle appear in the
@@ -283,6 +296,19 @@ class FixIlves : public Fix {
   void gather_global_topology();
   void build_constraint_list();
   bool bond_is_constrained(tagint ta, tagint tb);
+
+  // Topology-change detection.  count_constrained_topology() walks local
+  // atoms once and MPI_Allreduces the constrained bond / angle slot counts
+  // (plus reports atom->natoms).  record_topology_baseline() saves the
+  // result into the *_at_init members.  check_topology_unchanged() compares
+  // a fresh recount against the baseline and aborts with error->all() on
+  // mismatch; it is called from pre_neighbor() so any change made by a
+  // sibling fix between two steps is caught at the next reneighbor.
+  void count_constrained_topology(bigint &natoms,
+                                  bigint &nconstrbonds,
+                                  bigint &nconstrangles) const;
+  void record_topology_baseline();
+  void check_topology_unchanged();
 
   void unconstrained_update();
   void unconstrained_update_respa(int ilevel);

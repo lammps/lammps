@@ -294,17 +294,28 @@ keyword options).
 Restrictions
 """"""""""""
 
-This fix is part of the RIGID package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+This fix is part of the RIGID package.  It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>`
+doc page for more info.
 
 The molecular topology (bonds, optionally angles) must be defined; an
-:doc:`atom_style <atom_style>` such as *full*, *molecular*, or *bond* is
-required.
+:doc:`atom_style <atom_style>` such as *full*, *molecular*, *bond*, or
+angle (or a hybrid atom style including them) is required.
 
 Only one ``fix ilves`` instance may be defined at a time.  ``fix ilves``
 and :doc:`fix shake <fix_shake>` must not be used together for
 overlapping sets of atoms participating in a constraint.
+
+``fix ilves`` does not support dynamic topology.  The bond and angle
+tables are gathered once at init and assumed to remain valid for the
+duration of the run.  Fixes or commands that mutate the molecular
+topology *during* a run -- for example :doc:`fix bond/create
+<fix_bond_create>`, :doc:`fix bond/break <fix_bond_break>`, :doc:`fix
+bond/react <fix_bond_react>`, :doc:`fix deposit <fix_deposit>` must not
+add, remove, or change any constrained atoms.  Any detected change
+aborts the run with an error message naming the most likely cause.
+Note, that this test does not detect rearrangements that keep the counts
+identical.
 
 For exactly-180-degree symmetric angle constraints (e.g. rigid linear
 triatomics like CO2 with bond_length(O-C) = bond_length(C-O)) the

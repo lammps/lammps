@@ -748,6 +748,12 @@ void FixIlves::pre_neighbor()
   rmass = atom->rmass;
   type  = atom->type;
   nlocal = atom->nlocal;
+
+  // Catch silent topology changes (fix bond/create, fix bond/break,
+  // delete_atoms, create_atoms, set type ...) that would invalidate the
+  // gathered global tables.  Skip on the first call (before init_topology
+  // has run; global_topology_ready is the flag set at end of init).
+  if (global_topology_ready) check_topology_unchanged();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2975,6 +2981,116 @@ void FixIlves::init_topology()
       angle_r2[at] = r2;
       angle_distance[at] = sqrt(r1*r1 + r2*r2 - 2.0*r1*r2*cos(theta0));
     }
+  }
+
+  record_topology_baseline();
+}
+
+/* ----------------------------------------------------------------------
+   Walk this rank's locally-stored bond and angle slots once, count those
+   of constrained types, and MPI_Allreduce to globals.  The bond/angle
+   counts are RAW per-slot sums -- not deduplicated for newton_bond -- so
+   under newton off they are 2x the unique-bond count.  That's fine: we
+   only ever compare these numbers against the at-init baseline, and the
+   newton mode doesn't change within a run, so the absolute scale is
+   irrelevant.  natoms is reported as-is (already a global value).
+------------------------------------------------------------------------- */
+
+void FixIlves::count_constrained_topology(bigint &natoms,
+                                          bigint &nconstrbonds,
+                                          bigint &nconstrangles) const
+{
+  int *num_bond_l    = atom->num_bond;
+  int **bond_type_l  = atom->bond_type;
+  int *num_angle_l   = atom->num_angle;
+  int **angle_type_l = atom->angle_type;
+  const int nlocal_now = atom->nlocal;
+  const int nbtypes = atom->nbondtypes;
+  const int natypes = atom->nangletypes;
+
+  bigint local_bonds = 0;
+  bigint local_angles = 0;
+
+  if (num_bond_l && bond_type_l) {
+    for (int i = 0; i < nlocal_now; ++i) {
+      const int nb = num_bond_l[i];
+      for (int b = 0; b < nb; ++b) {
+        int bt = bond_type_l[i][b];
+        if (bt == 0) continue;
+        if (bt < 0) bt = -bt;
+        if (bt <= nbtypes && bond_flag && bond_flag[bt]) ++local_bonds;
+      }
+    }
+  }
+
+  if (num_angle_l && angle_type_l) {
+    for (int i = 0; i < nlocal_now; ++i) {
+      const int na = num_angle_l[i];
+      for (int m = 0; m < na; ++m) {
+        int at = angle_type_l[i][m];
+        if (at == 0) continue;
+        if (at < 0) at = -at;
+        if (at <= natypes && angle_flag && angle_flag[at]) ++local_angles;
+      }
+    }
+  }
+
+  bigint locals[2] = {local_bonds, local_angles};
+  bigint globals[2];
+  MPI_Allreduce(locals, globals, 2, MPI_LMP_BIGINT, MPI_SUM, world);
+
+  natoms        = atom->natoms;
+  nconstrbonds  = globals[0];
+  nconstrangles = globals[1];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIlves::record_topology_baseline()
+{
+  count_constrained_topology(natoms_at_init,
+                             nconstrbonds_sum_at_init,
+                             nconstrangles_sum_at_init);
+}
+
+/* ----------------------------------------------------------------------
+   Compare the current constrained-topology counts against the baseline
+   recorded at init_topology() time.  Any mismatch indicates a sibling
+   fix (e.g. fix bond/create, fix bond/break, delete_atoms, create_atoms)
+   has modified atoms or constrained bond/angle slots during the run --
+   fix ilves does not support dynamic topology and would silently use
+   stale gathered tables, so we abort with a clear error.
+------------------------------------------------------------------------- */
+
+void FixIlves::check_topology_unchanged()
+{
+  bigint natoms_now, nbonds_now, nangles_now;
+  count_constrained_topology(natoms_now, nbonds_now, nangles_now);
+
+  if (natoms_now != natoms_at_init) {
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix ilves: total atom count changed from {} (at init) to {} "
+               "during the run.  Fix ilves does not support dynamic topology; "
+               "rerun with a fixed atom set or invoke a fresh run command "
+               "after the topology change so init() can re-gather.",
+               natoms_at_init, natoms_now);
+  }
+  if (nbonds_now != nconstrbonds_sum_at_init) {
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix ilves: number of constrained bond slots changed from {} "
+               "(at init) to {} during the run.  A sibling fix (fix bond/create, "
+               "fix bond/break, set type, ...) appears to have modified the "
+               "constrained topology.  Fix ilves does not support dynamic "
+               "topology; rerun with a fixed topology.",
+               nconstrbonds_sum_at_init, nbonds_now);
+  }
+  if (nangles_now != nconstrangles_sum_at_init) {
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix ilves: number of constrained angle slots changed from {} "
+               "(at init) to {} during the run.  A sibling fix has modified "
+               "the constrained topology.  Fix ilves does not support dynamic "
+               "topology; rerun with a fixed topology.",
+               nconstrangles_sum_at_init, nangles_now);
   }
 }
 

@@ -737,7 +737,7 @@ algorithm.
 * :doc:`pair_style mdpd <pair_mesodpd>`
 * :doc:`pair_style tdpd <pair_mesodpd>`
 * :doc:`fix mvv/dpd <fix_mvv_dpd>`
-* ``examples/PACKAGES/mesodpd``
+* ``examples/PACKAGES/dpd-meso``
 
 ----------
 
@@ -904,6 +904,7 @@ This package has :ref:`specific installation instructions <electrode>` on the
 * :doc:`fix electrode/conp <fix_electrode>`
 * :doc:`fix electrode/conq <fix_electrode>`
 * :doc:`fix electrode/thermo <fix_electrode>`
+* ``examples/PACKAGES/electrode``
 
 ----------
 
@@ -1105,6 +1106,7 @@ of regions as scripted graphics in VMD.
 * :doc:`fix graphics/objects <fix_graphics_objects>`,
 * :doc:`fix graphics/periodic <fix_graphics_periodic>`,
 * :doc:`region2vmd <region2vmd>`
+* ``examples/GRAPHICS``
 * https://www.youtube.com/watch?v=9HEsGaOsdik
 * https://www.youtube.com/watch?v=f4hfPs7aCmI
 * https://www.youtube.com/shorts/1QEjIITapwQ
@@ -1465,6 +1467,7 @@ the :doc:`Build extras <Build_extras>` page.
 * :doc:`bond_style lepton <bond_lepton>`
 * :doc:`angle_style lepton <angle_lepton>`
 * :doc:`dihedral_style lepton <dihedral_lepton>`
+* ``examples/LEPTON``
 
 ----------
 
@@ -1552,7 +1555,7 @@ A variety of many-body and bond-order potentials.  These include
 * :doc:`Pair style <Commands_pair>` page
 * ``examples/comb``
 * ``examples/eim``
-* ``examples/nb3d``
+* ``examples/nb3b``
 * ``examples/shear``
 * ``examples/streitz``
 * ``examples/vashishta``
@@ -1589,6 +1592,7 @@ This package has :ref:`specific installation instructions <mbx>` on the
 
 * ``src/MBX``: filenames -> commands
 * :doc:`pair_style mbx <pair_mbx>`
+* ``examples/PACKAGES/mbx``
 * https://mbxsimulations.com/
 
 ----------
@@ -1655,7 +1659,7 @@ the :doc:`Build extras <Build_extras>` page.
 * :doc:`Howto MDI <Howto_mdi>`
 * :doc:`mdi <mdi>`
 * :doc:`fix mdi/qm <fix_mdi_qm>`
-* ``examples/PACKAGES/mdi``
+* ``examples/mdi``
 
 ----------
 
@@ -2089,7 +2093,7 @@ Richard Hennig (University of Florida)
 
 * ``src/ML-UF3``: filenames -> commands
 * :doc:`pair_style uf3 <pair_uf3>`
-* ``examples/uf3``
+* ``examples/PACKAGES/uf3``
 * https://github.com/uf3/uf3
 
 .. _PKG-MOFFF:
@@ -2150,7 +2154,7 @@ force fields, and a TIP4P water model.
 * :doc:`Howto bioFF <Howto_bioFF>`
 * ``examples/cmap``
 * ``examples/dreiding``
-* ``examples/micelle,``
+* ``examples/micelle``
 * ``examples/peptide``
 * bench/in.chain
 * bench/in.rhodo
@@ -2342,6 +2346,7 @@ grain boundary migration.
 * :doc:`fix orient/bcc <fix_orient>`
 * :doc:`fix orient/fcc <fix_orient>`
 * :doc:`fix orient/eco <fix_orient_eco>`
+* ``examples/PACKAGES/orient_eco``
 
 ----------
 
@@ -2436,7 +2441,7 @@ try to load the contained plugins automatically at start-up.
 * ``src/PLUGIN``: filenames -> commands
 * :doc:`plugin command <plugin>`
 * :doc:`Information on writing plugins <Developer_plugins>`
-* ``examples/plugin``
+* ``examples/plugins``
 
 ----------
 
@@ -2490,6 +2495,7 @@ Matching methodology.
 * ``src/PTM``: filenames starting with ptm\_ -> supporting code
 * ``src/PTM/LICENSE``
 * :doc:`compute ptm/atom <compute_ptm_atom>`
+* ``examples/PACKAGES/ptm``
 
 ----------
 
@@ -3009,7 +3015,7 @@ supporting compute styles and an output option.
 * :doc:`compute pressure/uef <compute_pressure_uef>`
 * :doc:`compute temp/uef <compute_temp_uef>`
 * :doc:`dump cfg/uef <dump_cfg_uef>`
-* ``examples/uef``
+* ``examples/PACKAGES/uef``
 
 ----------
 
@@ -3076,6 +3082,7 @@ This package has :ref:`specific installation instructions <vtk>` on the :doc:`Bu
 * ``src/VTK/README``
 * ``lib/vtk/README``
 * :doc:`dump vtk <dump_vtk>`
+* ``examples/PACKAGES/vtk``
 
 ----------
 

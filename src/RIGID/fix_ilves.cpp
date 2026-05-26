@@ -50,12 +50,14 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_respa.h"
 #include "force.h"
 #include "group.h"
 #include "label_map.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
+#include "respa.h"
 #include "update.h"
 
 #include <algorithm>
@@ -152,6 +154,13 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   n_constr = 0;
   max_constr = 0;
   n_clusters = 0;
+
+  respa = 0;
+  nlevels_respa = 0;
+  loop_respa = nullptr;
+  step_respa = nullptr;
+  fix_respa = nullptr;
+  dtf_inner = 0.0;
 
   if (lmp->citeme) lmp->citeme->add(cite_fix_ilves);
 
@@ -403,6 +412,7 @@ int FixIlves::setmask()
   mask |= PRE_NEIGHBOR;
   mask |= POST_NEIGHBOR;
   mask |= POST_FORCE;
+  mask |= POST_FORCE_RESPA;
   mask |= END_OF_STEP;
   mask |= MIN_PRE_REVERSE;
   mask |= MIN_POST_FORCE;
@@ -419,9 +429,28 @@ void FixIlves::init()
   if (modify->get_fix_by_style("^ilves").size() > 1)
     error->all(FLERR, Error::NOLASTLINE, "More than one fix ilves instance");
 
-  // we are not compatible with r-RESPA
- if (utils::strmatch(update->integrate_style,"^respa"))
-   error->all(FLERR, Error::NOLASTLINE, "Fix ilves does not support r-RESPA");
+  // detect rRESPA and stash the per-level step/loop arrays and the
+  // FixRespa pointer (auto-created by run_style respa to hold f_level).
+  // No special handling beyond that: the multi-level path is engaged via
+  // post_force_respa() / unconstrained_update_respa().
+  respa = 0;
+  fix_respa = nullptr;
+  if (utils::strmatch(update->integrate_style, "^respa")) {
+    if (update->whichflag > 0) {
+      auto fixes = modify->get_fix_by_style("^RESPA");
+      if (fixes.size() > 0) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
+      else error->all(FLERR, Error::NOLASTLINE,
+                      "Run style respa did not create fix RESPA");
+    }
+    auto *respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    if (!respa_ptr)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Failure to access Respa style {}", update->integrate_style);
+    respa = 1;
+    nlevels_respa = respa_ptr->nlevels;
+    loop_respa = respa_ptr->loop;
+    step_respa = respa_ptr->step;
+  }
 
   // forbid box-changing fixes between fix ilves and integration?  we don't
   // care about the order strictly, but fix shake does this check and we
@@ -628,8 +657,6 @@ void FixIlves::setup(int vflag)
   pre_neighbor();
   post_neighbor();
 
-  dtv = update->dt;
-
   int n_info[2] = {n_constr, n_clusters};
   int n_info_all[2];
   int n_max_all;
@@ -661,11 +688,35 @@ void FixIlves::setup(int vflag)
   // shake_end_of_step pattern: project x onto the constraint surface
   // directly, remove velocity components along constraints, and add
   // constraint forces for the first integration step.
+  //
+  // For rRESPA, dtv = step_respa[0] (the outer step) and the constraint
+  // forces must be applied at every level so that the per-level forces
+  // saved in fix_respa->f_level reflect the constrained dynamics.
 
-  dtfsq = 0.5 * update->dt * update->dt * force->ftm2v;
-  correct_coordinates(vflag);
-  post_force(vflag);
-  dtfsq = update->dt * update->dt * force->ftm2v;
+  if (!respa) {
+    dtv = update->dt;
+    dtfsq = 0.5 * update->dt * update->dt * force->ftm2v;
+    correct_coordinates(vflag);
+    post_force(vflag);
+    dtfsq = update->dt * update->dt * force->ftm2v;
+  } else {
+    dtv = step_respa[0];
+    dtf_inner = 0.5 * step_respa[0] * force->ftm2v;
+    dtfsq = 0.5 * step_respa[0] * step_respa[0] * force->ftm2v;
+    correct_coordinates(vflag);
+    // apply constraint forces to every rRESPA level, mirroring
+    // FixShake::shake_end_of_step.  copy_flevel_f swaps atom->f with
+    // f_level[ilevel] so post_force_respa sees the per-level forces;
+    // copy_f_flevel swaps them back, capturing our added constraint
+    // contributions into the per-level store.
+    auto *respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    for (int ilevel = 0; ilevel < nlevels_respa; ++ilevel) {
+      respa_ptr->copy_flevel_f(ilevel);
+      post_force_respa(vflag, ilevel, loop_respa[ilevel] - 1);
+      respa_ptr->copy_f_flevel(ilevel);
+    }
+    dtf_inner = step_respa[0] * force->ftm2v;
+  }
 
   if (output_every) {
     bigint nt = update->ntimestep;
@@ -1173,6 +1224,125 @@ void FixIlves::post_force(int vflag)
 
   // convert accumulated Lagrange multipliers into atom forces (so that the
   // next initial_integrate produces the constrained positions)
+  apply_constraint_forces(vflag);
+
+  vflag_post_force = vflag;
+}
+
+/* ----------------------------------------------------------------------
+   rRESPA variant of unconstrained_update.  The unconstrained position
+   prediction at innermost-loop endpoint of level ilevel is
+
+     xshake = x + dt0*v + (dtN/m)*f
+                        + sum_{j<ilevel} 0.5*dt_j/m * f_level[i][j]
+
+   where dtN is the time step at level ilevel and f is the current force
+   (also at level ilevel since respa swaps atom->f with f_level on each
+   level entry).  dtfsq is set to dt0 * dtN so the solver's downstream
+   scaling produces a per-level Lagrange-force magnitude compatible with
+   that level's propagation.  See FixShake::unconstrained_update_respa
+   for the original derivation.
+------------------------------------------------------------------------- */
+
+void FixIlves::unconstrained_update_respa(int ilevel)
+{
+  const double dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
+  double ***f_level = fix_respa->f_level;
+  dtfsq = dtf_inner * step_respa[ilevel];
+
+  if (rmass) {
+    for (int i = 0; i < nlocal; ++i) {
+      const double invmass = 1.0 / rmass[i];
+      double dtfmsq = dtfsq * invmass;
+      xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
+      xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
+      xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
+      for (int jlevel = 0; jlevel < ilevel; ++jlevel) {
+        dtfmsq = dtf_innerhalf * step_respa[jlevel] * invmass;
+        xshake[i][0] += dtfmsq * f_level[i][jlevel][0];
+        xshake[i][1] += dtfmsq * f_level[i][jlevel][1];
+        xshake[i][2] += dtfmsq * f_level[i][jlevel][2];
+      }
+    }
+  } else {
+    for (int i = 0; i < nlocal; ++i) {
+      const double invmass = 1.0 / mass[type[i]];
+      double dtfmsq = dtfsq * invmass;
+      xshake[i][0] = x[i][0] + dtv*v[i][0] + dtfmsq*f[i][0];
+      xshake[i][1] = x[i][1] + dtv*v[i][1] + dtfmsq*f[i][1];
+      xshake[i][2] = x[i][2] + dtv*v[i][2] + dtfmsq*f[i][2];
+      for (int jlevel = 0; jlevel < ilevel; ++jlevel) {
+        dtfmsq = dtf_innerhalf * step_respa[jlevel] * invmass;
+        xshake[i][0] += dtfmsq * f_level[i][jlevel][0];
+        xshake[i][1] += dtfmsq * f_level[i][jlevel][1];
+        xshake[i][2] += dtfmsq * f_level[i][jlevel][2];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Enforce ILVES constraints from rRESPA.  Called once per (ilevel,iloop)
+   pair by the respa integrator.  The structural skeleton mirrors
+   FixShake::post_force_respa: stats() only fires at the outermost level;
+   v_init / evflag are activated on the last iteration of each level for
+   correct virial accumulation.  Coordinate prediction and constraint
+   solving use the per-level dtfsq computed inside
+   unconstrained_update_respa().
+------------------------------------------------------------------------- */
+
+void FixIlves::post_force_respa(int vflag, int ilevel, int iloop)
+{
+  if (ilevel == nlevels_respa - 1 && update->ntimestep == next_output) stats();
+
+  chol_calls = 0;
+  chol_fallbacks = 0;
+
+  x = atom->x;
+  v = atom->v;
+  f = atom->f;
+  mass  = atom->mass;
+  rmass = atom->rmass;
+  type  = atom->type;
+  nlocal = atom->nlocal;
+
+  // recompute reference vectors r_k via minimum-image (same as post_force).
+  for (int k = 0; k < n_constr; ++k) {
+    int a = c_atom1[k];
+    int b = c_atom2[k];
+    int c = c_atom3[k];
+    double rx, ry, rz;
+    if (c < 0) {
+      rx = x[a][0] - x[b][0];
+      ry = x[a][1] - x[b][1];
+      rz = x[a][2] - x[b][2];
+    } else {
+      rx = x[a][0] - 0.5*(x[b][0] + x[c][0]);
+      ry = x[a][1] - 0.5*(x[b][1] + x[c][1]);
+      rz = x[a][2] - 0.5*(x[b][2] + x[c][2]);
+    }
+    domain->minimum_image(FLERR, rx, ry, rz);
+    c_rx[k]  = rx;
+    c_ry[k]  = ry;
+    c_rz[k]  = rz;
+    c_rsq[k] = rx*rx + ry*ry + rz*rz;
+  }
+
+  // predict unconstrained move (sets dtfsq for the current level), then
+  // share xshake with ghosts.
+  unconstrained_update_respa(ilevel);
+  comm->forward_comm(this);
+
+  // virial init once per outer step at the innermost level's last loop;
+  // evflag = 1 on the last loop of each level (so constraint virial is
+  // accumulated once per level into the running totals; using ev_init
+  // here would zero the per-atom virial accumulated at other levels).
+  if (ilevel == 0 && iloop == loop_respa[ilevel] - 1 && vflag) v_init(vflag);
+  if (iloop == loop_respa[ilevel] - 1) evflag = 1;
+  else evflag = 0;
+  ebond = 0.0;
+
+  solve_constraints();
   apply_constraint_forces(vflag);
 
   vflag_post_force = vflag;
@@ -2561,8 +2731,23 @@ bigint FixIlves::dof(int igroup)
 
 void FixIlves::reset_dt()
 {
-  dtv   = update->dt;
-  dtfsq = update->dt * update->dt * force->ftm2v;
+  if (utils::strmatch(update->integrate_style, "^verlet")) {
+    dtv   = update->dt;
+    dtfsq = update->dt * update->dt * force->ftm2v;
+    respa = 0;
+  } else {
+    auto *respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    if (!respa_ptr)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Failure to access Respa style {}", update->integrate_style);
+    respa = 1;
+    nlevels_respa = respa_ptr->nlevels;
+    loop_respa = respa_ptr->loop;
+    step_respa = respa_ptr->step;
+    dtv = step_respa[0];
+    dtf_inner = step_respa[0] * force->ftm2v;
+    // dtfsq is recomputed each level inside unconstrained_update_respa
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -27,6 +27,8 @@ FixStyle(ilves,FixIlves);
 
 namespace LAMMPS_NS {
 
+class FixRespa;
+
 // ILVES bond/angle constraint solver.  Gathers the complete bond/angle
 // topology onto every MPI rank once at init via MPI_Allgatherv, then
 // builds a per-rank constraint list that includes every constraint
@@ -48,6 +50,7 @@ class FixIlves : public Fix {
   void pre_neighbor() override;
   void post_neighbor() override;
   void post_force(int) override;
+  void post_force_respa(int, int, int) override;
   void end_of_step() override;
   void min_pre_reverse(int, int) override;
   void min_post_force(int) override;
@@ -211,6 +214,17 @@ class FixIlves : public Fix {
   // step constants
   double dtv, dtfsq;
 
+  // rRESPA bookkeeping (mirrors fix shake).  respa=0 selects the Verlet
+  // path (dtfsq = dt^2*ftm2v); respa=1 selects the multi-level path where
+  // dtfsq is recomputed per level from step_respa[ilevel] and the saved
+  // per-level forces in fix_respa->f_level are folded into xshake.
+  int respa;
+  int nlevels_respa;
+  int *loop_respa;
+  double *step_respa;
+  class FixRespa *fix_respa;
+  double dtf_inner;
+
   // statistics, sized [nbondtypes+1] / [nangletypes+1]
   bigint *b_count, *b_count_all;
   double *b_ave, *b_max, *b_min;
@@ -271,6 +285,7 @@ class FixIlves : public Fix {
   bool bond_is_constrained(tagint ta, tagint tb);
 
   void unconstrained_update();
+  void unconstrained_update_respa(int ilevel);
   void stats();
 
   // solver

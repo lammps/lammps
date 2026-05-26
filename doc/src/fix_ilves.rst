@@ -304,7 +304,7 @@ required.
 
 Only one ``fix ilves`` instance may be defined at a time.  ``fix ilves``
 and :doc:`fix shake <fix_shake>` must not be used together for
-overlapping sets of constrained bonds.
+overlapping sets of atoms participating in a constraint.
 
 For exactly-180-degree symmetric angle constraints (e.g. rigid linear
 triatomics like CO2 with bond_length(O-C) = bond_length(C-O)) the

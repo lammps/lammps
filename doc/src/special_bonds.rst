@@ -40,8 +40,6 @@ Examples
    special_bonds lj/coul 0.0 0.0 0.5 angle yes dihedral yes
    special_bonds lj 0.0 0.0 0.5 coul 0.0 0.0 0.0 dihedral yes
 
-Example input scripts available: examples/COUPLE/multiple/in.chain, examples/python/in.pair_python_spce, examples/relres/in.22DMH.relres
-
 Description
 """""""""""
 

@@ -61,8 +61,6 @@ Examples
    run_style respa 4 2 2 2 bond 1 dihedral 2 inner 3 5.0 6.0 outer 4 kspace 4
    run_style respa 3 4 2 bond 1 hybrid 2 2 1 kspace 3
 
-Example input scripts available: examples/granular/in.sync_verlet, examples/nb3b/in.nb3b, examples/relres/in.22DMH.respa
-
 Description
 """""""""""
 

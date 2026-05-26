@@ -19,8 +19,6 @@ Examples
 
    dielectric 2.0
 
-Example input scripts available: examples/relres/in.22DMH.relres, examples/dreiding/in.dreiding, examples/relres/in.22DMH.respa
-
 Description
 """""""""""
 

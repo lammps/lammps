@@ -670,24 +670,44 @@ void FixMSEVB::detect_reactive_sites()
 
     // ---- Multi-shell guard ------------------------------------------
     // Without product_states: error if any multi-shell reaction sees more
-    // than one distinct donor (unsupported combination).
-    // With product_states: allow it but emit a one-time warning because
-    // multi-shell + multi-site product states are experimental.
+    // than one distinct donor molecule (unsupported combination).
+    // With product_states: allow it but emit a one-time warning.
+    //
+    // "Distinct donor molecule" is determined by glove membership: two shell-1
+    // sites belong to the same donor molecule if one site's tag_X appears in
+    // the other's glove.  This correctly handles molecules with multiple
+    // donatable atoms on different heavy atoms (e.g. imidazolium has two N-H
+    // bonds, giving different tag_X values that still belong to the same
+    // molecule), while still catching genuinely separate donor molecules.
     if (max_shells > 1 && nsites > 1) {
       for (size_t ri = 0; ri < rxndefs.size(); ri++) {
         if (rxndefs[ri].shells <= 1) continue;
         int n_distinct_donors = 0;
-        tagint seen_X[64];    // generous upper bound for distinct donors
+        static const int MAX_DONORS = 64;
+        tagint donor_X[MAX_DONORS];
+        const tagint *donor_glove[MAX_DONORS];
         for (int s = 0; s < nsites; s++) {
           if (sites[s].rxn_idx != (int) ri || sites[s].shell != 1) continue;
-          int dup = 0;
-          for (int d = 0; d < n_distinct_donors; d++)
-            if (seen_X[d] == sites[s].tag_X) {
-              dup = 1;
+          tagint tX = sites[s].tag_X;
+          const tagint *sg = glove_flat + s * GN;
+          int same_mol = 0;
+          for (int d = 0; d < n_distinct_donors && d < MAX_DONORS && !same_mol; d++) {
+            if (donor_X[d] == tX) {
+              same_mol = 1;
               break;
             }
-          if (!dup) {
-            if (n_distinct_donors < 64) seen_X[n_distinct_donors] = sites[s].tag_X;
+            // tX in the glove of donor d -> same molecule
+            for (int gi = 0; gi < GN && !same_mol; gi++)
+              if (donor_glove[d][gi] == tX) same_mol = 1;
+            // donor_X[d] in this site's glove -> same molecule
+            for (int gi = 0; gi < GN && !same_mol; gi++)
+              if (sg[gi] == donor_X[d]) same_mol = 1;
+          }
+          if (!same_mol) {
+            if (n_distinct_donors < MAX_DONORS) {
+              donor_X[n_distinct_donors] = tX;
+              donor_glove[n_distinct_donors] = sg;
+            }
             n_distinct_donors++;
           }
         }
@@ -695,16 +715,16 @@ void FixMSEVB::detect_reactive_sites()
           if (!enumerate_product_states) {
             error->one(FLERR,
                        fmt::format("Fix msevb: reaction {} has shells={} but {} distinct "
-                                   "donors (multi-shell + multi-site not supported; "
+                                   "donor molecules (multi-shell + multi-site not supported; "
                                    "add product_states keyword to use this combination)",
                                    ri, rxndefs[ri].shells, n_distinct_donors));
           } else if (!product_states_multishell_warning && universe->me == 0) {
             utils::logmesg(lmp,
                            fmt::format("WARNING: Fix msevb: reaction {} has shells={} and "
-                                       "{} distinct donors.  Combining multi-shell chains "
-                                       "with product_states is experimental and has not "
-                                       "been validated against a reference implementation. "
-                                       "Proceed with caution.\n",
+                                       "{} distinct donor molecules.  Combining multi-shell "
+                                       "chains with product_states is experimental and has "
+                                       "not been validated against a reference implementation."
+                                       "  Proceed with caution.\n",
                                        ri, rxndefs[ri].shells, n_distinct_donors));
             product_states_multishell_warning = true;
           }

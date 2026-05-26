@@ -23,6 +23,8 @@ Examples
 
    compute 1 all erotate/asphere
 
+Example input scripts available: examples/ASPHERE/line/in.line, examples/ASPHERE/superellipsoid_gran/in.drop_test, examples/ASPHERE/line/in.line.srd
+
 Description
 """""""""""
 

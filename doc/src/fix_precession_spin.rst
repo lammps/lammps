@@ -39,6 +39,8 @@ Examples
    fix 1 iron precession/spin cubic 0.001 0.0005 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0
    fix 1 all precession/spin zeeman 0.1 0.0 0.0 1.0 anisotropy 0.001 0.0 0.0 1.0
 
+Example input scripts available: examples/SPIN/read_restart/in.spin.read_data, examples/SPIN/gneb/skyrmion/in.gneb.skyrmion, examples/SPIN/read_restart/in.spin.restart
+
 Description
 """""""""""
 

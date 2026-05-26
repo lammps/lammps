@@ -24,6 +24,8 @@ Examples
 
    fix 3 flow temp/rescale/eff 10 1.0 100.0 0.02 1.0
 
+Example input scripts available: examples/PACKAGES/eff/Li-solid/in.Li.bohr, examples/PACKAGES/eff/H2/in.h2, examples/PACKAGES/eff/Li-solid/in.Li.ang
+
 Description
 """""""""""
 

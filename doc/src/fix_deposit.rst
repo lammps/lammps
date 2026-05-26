@@ -79,6 +79,8 @@ Examples
    labelmap atom 1 Au
    fix 4 sputter deposit 1000 Au 500 12235 region sphere vz -1.0 -1.0 target 5.0 5.0 0.0 units lattice
 
+Example input scripts available: examples/deposit
+
 Description
 """""""""""
 

@@ -51,6 +51,8 @@ Examples
    fix 1 particles rigid/meso molecule force 1*5 off off off force 6*10 off off on
    fix 2 spheres   rigid/meso group 3 sphere1 sphere2 sphere3 torque * off off off
 
+Example input scripts available: examples/PACKAGES/dpd-smooth/2d-diffusion/in.lammps, examples/PACKAGES/dpd-smooth/2d-diffusion-in-shear-flow/in.lammps
+
 Description
 """""""""""
 

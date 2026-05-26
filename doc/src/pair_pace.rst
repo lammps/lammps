@@ -48,6 +48,8 @@ Examples
    pair_style pace/extrapolation
    pair_coeff * * Cu.yaml Cu.asi Cu
 
+Example input scripts available: examples/PACKAGES/dispersion/in.d2, examples/PACKAGES/dispersion/in.d3, examples/PACKAGES/pace/in.pace.product
+
 Description
 """""""""""
 

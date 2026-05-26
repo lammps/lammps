@@ -32,6 +32,8 @@ Examples
    fix 5 all bond/break 10 2 1.2
    fix 5 polymer bond/break 1 1 2.0 prob 0.5 49829
 
+Example input scripts available: examples/PACKAGES/srp_react/in.srp_react
+
 Description
 """""""""""
 

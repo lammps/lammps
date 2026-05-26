@@ -21,6 +21,8 @@ Examples
    pair_style extep
    pair_coeff * * BN.extep B N
 
+Example input scripts available: examples/PACKAGES/extep/in.extep-bn
+
 Description
 """""""""""
 

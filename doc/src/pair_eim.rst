@@ -25,6 +25,8 @@ Examples
    pair_coeff * * Na Cl ffield.eim  Na Na Na Cl
    pair_coeff * * Na Cl ../potentials/ffield.eim Cl NULL Na
 
+Example input scripts available: examples/eim/in.eim
+
 Description
 """""""""""
 

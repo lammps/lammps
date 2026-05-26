@@ -27,6 +27,8 @@ Examples
    fix 2 all npt/asphere temp 300.0 300.0 100.0 x 5.0 5.0 1000.0 drag 0.2
    fix 2 water npt/asphere temp 300.0 300.0 100.0 aniso 0.0 0.0 1000.0 dilate partial
 
+Example input scripts available: examples/ellipse/in.ellipse.gayberne, examples/ellipse/in.ellipse.resquared
+
 Description
 """""""""""
 

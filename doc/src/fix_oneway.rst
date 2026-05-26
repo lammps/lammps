@@ -28,6 +28,8 @@ Examples
    fix 2 all oneway 1 left -z
    fix 3 all oneway 1 right z
 
+Example input scripts available: examples/mesh/in.marble_race, examples/mesh/in.mesh_box
+
 Description
 """""""""""
 

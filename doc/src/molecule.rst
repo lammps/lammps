@@ -55,6 +55,8 @@ Examples
    molecule objects file.1 scale 1.5 file.1 scale 2.0 file.2 scale 1.3
    molecule 1 mymol.txt auto ad
 
+Example input scripts available: examples/template/in.mol-restart-mix, examples/template/in.tmpl-restart-mix, examples/template/in.mol-data-mix
+
 Description
 """""""""""
 

@@ -41,6 +41,8 @@ Examples
    labelmap atom 1 Li
    fix 2 ion widom 1 50000 Li 19494 2.0
 
+Example input scripts available: examples/mc/in.widom.lj, examples/mc/in.widom.spce
+
 Description
 """""""""""
 

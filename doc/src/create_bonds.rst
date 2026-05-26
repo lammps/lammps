@@ -52,6 +52,8 @@ Examples
    create_bonds single/dihedral 2 4 19 27 101
    create_bonds single/improper 3 23 26 31 57
 
+Example input scripts available: examples/bpm/impact/in.bpm.impact.rotational, examples/bpm/impact/in.bpm.impact.spring, examples/balance/in.balance.bond.slow
+
 Description
 """""""""""
 

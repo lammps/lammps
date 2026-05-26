@@ -30,6 +30,8 @@ Examples
    fix 1 all thermal/conductivity 100 z 20
    fix 1 all thermal/conductivity 50 z 20 swap 2
 
+Example input scripts available: examples/KAPPA/in.mp
+
 Description
 """""""""""
 

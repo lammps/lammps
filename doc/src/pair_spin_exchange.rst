@@ -30,6 +30,8 @@ Examples
    pair_coeff * * biquadratic 4.0 0.05 0.03 1.48 0.05 0.03 1.48 offset no
    pair_coeff 1 2 biquadratic 6.0 -0.01 0.0 1.9 0.0 0.1 19
 
+Example input scripts available: examples/SPIN/read_restart/in.spin.read_data, examples/SPIN/gneb/skyrmion/in.gneb.skyrmion, examples/SPIN/read_restart/in.spin.restart
+
 Description
 """""""""""
 

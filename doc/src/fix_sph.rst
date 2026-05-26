@@ -20,6 +20,8 @@ Examples
 
    fix 1 all sph
 
+Example input scripts available: examples/grid/in.sph, examples/PACKAGES/dpd-smooth/equipartition-verification/in.lammps, examples/PACKAGES/dpd-smooth/2d-diffusion/in.lammps
+
 Description
 """""""""""
 

@@ -30,6 +30,8 @@ Examples
    compute 1 all property/chunk bin2d id count
    compute 1 all property/chunk myChunks id coord1
 
+Example input scripts available: examples/GRAPHICS/in.water-arrows
+
 Description
 """""""""""
 

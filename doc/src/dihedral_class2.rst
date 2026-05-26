@@ -35,6 +35,8 @@ Examples
    dihedral_coeff * aat -13.5271 110.2453 105.1270
    dihedral_coeff * bb13 0.0 1.0119 1.1010
 
+Example input scripts available: examples/replicate/in.replicate.cnt, examples/PACKAGES/class2xe/in.NVT_class2xe.script, examples/PACKAGES/reaction/create_atoms_polystyrene/in.grow_styrene
+
 Description
 """""""""""
 

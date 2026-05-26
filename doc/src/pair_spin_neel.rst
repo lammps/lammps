@@ -21,6 +21,8 @@ Examples
    pair_coeff * * neel 4.0 0.0048 0.234 1.168 2.6905 0.705 0.652
    pair_coeff 1 2 neel 4.0 0.0048 0.234 1.168 0.0 0.0 1.0
 
+Example input scripts available: examples/SPIN/test_problems/validation_nvt/in.spin.nvt_lattice, examples/SPIN/test_problems/validation_nvt/in.spin.nvt_spin
+
 Description
 """""""""""
 

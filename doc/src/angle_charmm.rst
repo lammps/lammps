@@ -23,6 +23,8 @@ Examples
    angle_style charmm
    angle_coeff 1 300.0 107.0 50.0 3.0
 
+Example input scripts available: examples/cmap/in.cmap, examples/peptide/in.peptide, examples/charmmfsw/in.charmmfsw
+
 Description
 """""""""""
 

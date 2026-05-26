@@ -23,6 +23,8 @@ Examples
    compute oxygen_c-s all temp/cs O_core O_shell
    compute core_shells all temp/cs cores shells
 
+Example input scripts available: examples/coreshell
+
 Description
 """""""""""
 

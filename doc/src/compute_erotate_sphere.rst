@@ -24,6 +24,8 @@ Examples
 
    compute 1 all erotate/sphere
 
+Example input scripts available: examples/dipole/in.dipole, examples/LEPTON/in.efield-lepton, examples/pour/in.pour
+
 Description
 """""""""""
 

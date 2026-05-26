@@ -66,6 +66,8 @@ Examples
    pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
+Example input scripts available: examples/replicate/in.replicate.cnt, examples/PACKAGES/class2xe/in.NVT_class2xe.script, examples/PACKAGES/reaction/create_atoms_polystyrene/in.grow_styrene
+
 Description
 """""""""""
 

@@ -28,6 +28,8 @@ Examples
 
    pair_coeff 1 2 momb 0.0 1.0 1.0 10.2847 2.361
 
+Example input scripts available: examples/PACKAGES/momb/in.system
+
 Description
 """""""""""
 

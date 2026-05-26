@@ -80,6 +80,8 @@ Examples
    pair_coeff * * 1.0 1.0
    pair_coeff 2 3 0.8 1.0 3.0
 
+Example input scripts available: examples/dipole/in.dipole
+
 Description
 """""""""""
 

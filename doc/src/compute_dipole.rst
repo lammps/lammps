@@ -27,6 +27,8 @@ Examples
    compute dw water dipole geometry
    compute dw water dipole/tip4p
 
+Example input scripts available: examples/GRAPHICS/in.water-arrows
+
 Description
 """""""""""
 

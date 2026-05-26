@@ -27,6 +27,8 @@ Examples
    fix var all spring/self v_kvar
    fix zrest  move spring/self 10.0 z
 
+Example input scripts available: examples/PACKAGES/pimd_bosonic/harmonic_trap_langevin/in.lmp, examples/PACKAGES/pimd_bosonic/harmonic_trap_nvt/in.lmp
+
 Description
 """""""""""
 

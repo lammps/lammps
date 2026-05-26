@@ -27,6 +27,8 @@ Examples
    compute 1 fluid dipole/chunk molchunk
    compute dw water dipole/chunk 1 geometry
 
+Example input scripts available: examples/GRAPHICS/in.water-arrows
+
 Description
 """""""""""
 

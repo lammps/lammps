@@ -21,6 +21,8 @@ Examples
    pair_coeff * * dmi 2.6 0.001 1.0 0.0 0.0
    pair_coeff 1 2 dmi 4.0 0.00109 0.0 0.0 1.0
 
+Example input scripts available: examples/SPIN/gneb/skyrmion/in.gneb.skyrmion, examples/SPIN/bfo/in.spin.bfo, examples/SPIN/spinmin/in.spin.bfo_min_cg
+
 Description
 """""""""""
 

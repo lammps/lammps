@@ -31,6 +31,8 @@ Examples
    variable prefactor equal ramp(0,30)
    fix 1 all adapt 1 pair soft a * * v_prefactor
 
+Example input scripts available: examples/micelle/in.micelle, examples/micelle/in.micelle-rigid, examples/ASPHERE/dimer/in.dimer
+
 Description
 """""""""""
 

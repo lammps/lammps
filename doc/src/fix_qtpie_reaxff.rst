@@ -34,6 +34,8 @@ Examples
    fix 1 all qtpie/reaxff 1 0.0 10.0 1.0e-6 reaxff exp.qtpie
    fix 1 all qtpie/reaxff 1 0.0 10.0 1.0e-6 params.qtpie exp.qtpie scale 1.5 maxiter 500 nowarn
 
+Example input scripts available: examples/reaxff/water/in.water.qtpie, examples/reaxff/water/in.water.qtpie.field
+
 Description
 """""""""""
 

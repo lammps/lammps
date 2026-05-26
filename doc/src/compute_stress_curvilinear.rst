@@ -41,6 +41,8 @@ Examples
    compute 1 all stress/cylinder -10.0 10.0 15.0 0.25 ke no
    compute 1 all stress/spherical 0 0 0 0.1 10
 
+Example input scripts available: examples/PACKAGES/stressprofile/in.cylinder, examples/PACKAGES/stressprofile/in.sphere
+
 Description
 """""""""""
 

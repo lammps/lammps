@@ -19,6 +19,8 @@ Examples
    bond_coeff 1 C 10 10 20.0
    bond_coeff 4 custom 800.0 10.0
 
+Example input scripts available: examples/PACKAGES/mesont/in.film_mesocnt
+
 Description
 """""""""""
 

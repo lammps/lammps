@@ -20,6 +20,8 @@ Examples
 
    compute 1 all edpd/temp/atom
 
+Example input scripts available: examples/PACKAGES/dpd-meso/edpd/in.edpd, examples/PACKAGES/dpd-meso/edpd/in.edpd-region
+
 Description
 """""""""""
 

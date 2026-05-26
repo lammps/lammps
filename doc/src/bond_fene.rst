@@ -35,6 +35,8 @@ Examples
    bond_style fene/nm
    bond_coeff 1 2.25344 1.5 1.0 1.12246 2 6
 
+Example input scripts available: examples/COUPLE/multiple/in.chain, examples/mc/in.mixed, examples/mc/in.pure
+
 Description
 """""""""""
 

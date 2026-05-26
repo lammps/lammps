@@ -54,6 +54,8 @@ Examples
     labelmap atom 1 H+ 2 OH-
     fix chareg all charge/regulation H+ OH- pIp 3 pIm 3 onlysalt yes 2 -1 seed 123 tag yes temp 1.0
 
+Example input scripts available: examples/PACKAGES/charge_regulation
+
 Description
 """""""""""
 

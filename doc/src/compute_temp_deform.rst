@@ -29,6 +29,8 @@ Examples
 
    compute myTemp all temp/deform
 
+Example input scripts available: examples/VISCOSITY/in.nemd.2d, examples/ASPHERE/line/in.line.srd, examples/ASPHERE/tri/in.tri.srd
+
 Description
 """""""""""
 

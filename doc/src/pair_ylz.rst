@@ -26,6 +26,8 @@ Examples
    pair_coeff   *  *  1.0  1.0  4  3  0.0  2.6
 
 
+Example input scripts available: examples/ASPHERE/vesicle/in.vesicle, examples/ASPHERE/flat_membrane/in.flat_membrane
+
 Description
 """""""""""
 

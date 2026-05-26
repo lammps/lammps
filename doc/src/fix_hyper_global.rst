@@ -24,6 +24,8 @@ Examples
 
    fix 1 all hyper/global 1.0 0.3 0.8 300.0
 
+Example input scripts available: examples/hyper/in.hyper.global
+
 Description
 """""""""""
 

@@ -22,6 +22,8 @@ Examples
    bond_style morse
    bond_coeff 5 1.0 2.0 1.2
 
+Example input scripts available: examples/nb3b/in.nb3b, examples/wall/in.wall.lepton, examples/wall/in.wall.table
+
 Description
 """""""""""
 

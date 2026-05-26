@@ -31,6 +31,8 @@ Examples
    fix active all align/self dipole 40.0
    fix active all align/self quat 15.7 qvector 1.0 0.0 0.0
 
+Example input scripts available: examples/PACKAGES/brownian/align_self/in.alignself_dipole, examples/PACKAGES/brownian/align_self/in.alignself_quat
+
 Description
 """""""""""
 

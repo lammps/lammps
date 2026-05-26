@@ -27,6 +27,8 @@ Examples
    pair_style bpm/spring anharmonic yes
    pair_coeff 1 1 1.0 1.0 1.0 50.0
 
+Example input scripts available: examples/bpm/impact/in.bpm.impact.spring, examples/bpm/poissons_ratio/in.bpm.poissons_ratio, examples/bpm/plasticity/in.bpm.plasticity
+
 Description
 """""""""""
 

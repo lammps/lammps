@@ -43,6 +43,8 @@ Examples
    fix 1 all gravity 10.0 spherical v_phi v_theta
    fix 1 all gravity 100.0 vector 1 1 0
 
+Example input scripts available: examples/granular/in.sync_verlet, examples/bpm/pour/in.bpm.pour, examples/ASPHERE/superellipsoid_gran/in.ellipsoid_gran
+
 Description
 """""""""""
 

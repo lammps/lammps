@@ -57,6 +57,8 @@ Examples
    fix 1 all rheo 3.0 RK1 10 shift exclude/type 2*4 scale/cross/type 0.05 0.02 0.5
    fix 1 all rheo 3.0 RK1 10 rhosum self/mass
 
+Example input scripts available: examples/rheo/taylor-green/in.rheo.taylor.green, examples/rheo/balloon/in.rheo.balloon, examples/rheo/poiseuille/in.rheo.poiseuille
+
 Description
 """""""""""
 

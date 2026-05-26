@@ -76,6 +76,8 @@ Examples
    fix 5 all wall/gran granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji heat 10 region myCone temperature 1.0
    fix 6 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0 contacts
 
+Example input scripts available: examples/granular/in.sync_verlet, examples/bpm/pour/in.bpm.pour, examples/pour/in.pour
+
 Description
 """""""""""
 

@@ -31,6 +31,8 @@ Examples
 
    compute 1 all fep/ta 298 xy 1.0005
 
+Example input scripts available: examples/PACKAGES/fep/ta/in.spce.lmp
+
 Description
 """""""""""
 

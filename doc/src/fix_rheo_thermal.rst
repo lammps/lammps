@@ -45,6 +45,8 @@ Examples
    fix 1 all rheo/thermal conductivity * constant 1.0 specific/heat * constant 1.0 Tfreeze * constant 1.0
    fix 1 all rheo/pressure conductivity 1*2 constant 1.0 conductivity 3*4 constant 2.0 specific/heat * constant 1.0
 
+Example input scripts available: examples/rheo/ice-cubes/in.rheo.ice.cubes, examples/rheo/oxidation/in.rheo.oxidation
+
 Description
 """""""""""
 

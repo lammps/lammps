@@ -61,6 +61,8 @@ Examples
    fix 1 all lb/fluid 1 1.0 1.0 dx 4.0 dm 10.0 dumpxdmf 500 fflow 0 pressurebcx 0.01 npits 2 20 40 5 0 wp 30
 
 
+Example input scripts available: examples/PACKAGES/latboltz/planewall/in.planewall, examples/PACKAGES/latboltz/confined_colloid/in.confined_colloids, examples/PACKAGES/latboltz/polymer/in.polymer
+
 Description
 """""""""""
 

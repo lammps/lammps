@@ -42,6 +42,8 @@ Examples
    pair_coeff  * * sw/mod tmd.sw.mod NULL  S Mo S
    pair_coeff  * * saip/metal/tmd    TMDAu.SAIP  Au S Mo S
 
+Example input scripts available: examples/PACKAGES/interlayer/saip_metal_tmd/in.au_mos2, examples/PACKAGES/interlayer/saip_metal/in.gold_gr
+
 Description
 """""""""""
 

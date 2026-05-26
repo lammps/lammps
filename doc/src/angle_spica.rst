@@ -24,6 +24,8 @@ Examples
    angle_style spica
    angle_coeff 1 300.0 107.0
 
+Example input scripts available: examples/PACKAGES/cgspica/sds-monolayer/in.sds-regular
+
 Description
 """""""""""
 

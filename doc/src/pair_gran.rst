@@ -64,6 +64,8 @@ Examples
    pair_style gran/hooke 200000.0 70000.0 50.0 30.0 0.5 0 limit_damping
 
 
+Example input scripts available: examples/bpm/pour/in.bpm.pour, examples/bpm/impact/in.bpm.impact.rotational, examples/pour/in.pour
+
 Description
 """""""""""
 

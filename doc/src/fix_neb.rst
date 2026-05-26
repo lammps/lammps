@@ -42,6 +42,8 @@ Examples
    fix 2 all neb 1.0 perp 1.0 end first 1.0 end last 1.0
    fix 1 all neb 1.0 parallel ideal end last/efirst 1
 
+Example input scripts available: examples/neb/in.neb.hop1.end, examples/neb/in.neb.hop1, examples/neb/in.neb.hop2
+
 Description
 """""""""""
 

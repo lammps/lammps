@@ -20,6 +20,8 @@ Examples
     pair_coeff * * Mg.rann Mg
     pair_coeff * * MgAlalloy.rann Mg Mg Al Mg
 
+Example input scripts available: examples/PACKAGES/rann/in.rann
+
 Description
 """""""""""
 

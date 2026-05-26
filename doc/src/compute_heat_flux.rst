@@ -23,6 +23,8 @@ Examples
 
    compute myFlux all heat/flux myKE myPE myStress
 
+Example input scripts available: examples/KAPPA/in.heatflux
+
 Description
 """""""""""
 

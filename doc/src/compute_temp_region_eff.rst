@@ -21,6 +21,8 @@ Examples
 
    compute mine flow temp/region/eff boundary
 
+Example input scripts available: examples/PACKAGES/eff/H2/in.h2
+
 Description
 """""""""""
 

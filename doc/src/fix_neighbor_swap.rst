@@ -43,6 +43,8 @@ Examples
    fix myFix all neighbor/swap 100 1 12345 298.0 3.0 voroN region my_swap_region types 5 6
    fix kmc all neighbor/swap 1 100 345 1.0 3.0 voroN diff 3 rates 3 1 6
 
+Example input scripts available: examples/PACKAGES/neighbor-swap/in.KMC_pulse_center, examples/PACKAGES/neighbor-swap/in.KMC_pulse_edge
+
 Description
 """""""""""
 

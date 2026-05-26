@@ -25,6 +25,8 @@ Examples
 
    fix 1 active neb/spin 1.0
 
+Example input scripts available: examples/SPIN/gneb/skyrmion/in.gneb.skyrmion, examples/SPIN/gneb/iron/in.gneb.iron
+
 Description
 """""""""""
 

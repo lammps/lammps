@@ -24,6 +24,8 @@ Examples
    pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.0 1.5 2.5
 
+Example input scripts available: examples/ASPHERE/tri/in.tri.srd
+
 Description
 """""""""""
 

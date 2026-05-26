@@ -22,6 +22,8 @@ Examples
    pair_coeff * * Ti.meam.spline Ti
    pair_coeff * * Ti.meam.spline Ti O
 
+Example input scripts available: examples/PACKAGES/meam_spline/in.meam-spline.Si, examples/PACKAGES/meam_spline/in.meam-spline.TiO2
+
 Description
 """""""""""
 

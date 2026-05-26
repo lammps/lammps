@@ -21,6 +21,8 @@ Examples
 
    compute 1 all tdpd/cc/atom 2
 
+Example input scripts available: examples/PACKAGES/dpd-meso/tdpd/in.tdpd, examples/PACKAGES/dpd-meso/tdpd/in.tdpd-region
+
 Description
 """""""""""
 

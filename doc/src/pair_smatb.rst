@@ -29,6 +29,8 @@ Examples
    pair_coeff 1 1 2.88 10.35 4.178 0.210 1.818 4.07293506 4.9883063257983666
 
 
+Example input scripts available: examples/PACKAGES/smtbq/in.smatbBulkFCC, examples/PACKAGES/smtbq/in.smatbAgCuPancake
+
 Description
 """""""""""
 

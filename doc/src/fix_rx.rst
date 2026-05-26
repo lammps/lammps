@@ -36,6 +36,8 @@ Examples
    fix 1 all rx kinetics.rx none dense rkf45 1 100 1e-6 1e-8
    fix 1 all rx kinetics.rx none dense rkf45 1 100 1e-6 1e-8 -1
 
+Example input scripts available: examples/PACKAGES/dpd-react/dpdrx-shardlow/in.dpdrx-shardlow
+
 Description
 """""""""""
 

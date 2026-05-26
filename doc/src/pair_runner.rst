@@ -78,6 +78,8 @@ Examples
    pair_style runner dir "./potential_files" committee_size 4 q_comm yes total_charge 0.0
    pair_coeff * * 8 12 79
 
+Example input scripts available: examples/PACKAGES/ml-runner/in.ml-runner.H2O
+
 Description
 -----------
 

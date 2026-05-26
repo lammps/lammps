@@ -46,6 +46,8 @@ Examples
    displace_atoms top move 0 -5 0 units box
    displace_atoms flow ramp x 0.0 5.0 y 2.0 20.5
 
+Example input scripts available: examples/vashishta/in.vashishta.sio2, examples/vashishta/in.vashishta.table.sio2, examples/mdi/in.series.alone
+
 Description
 """""""""""
 

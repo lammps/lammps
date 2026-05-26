@@ -22,6 +22,8 @@ Examples
 
    fix 1 all accelerate/cos 2.0e-7
 
+Example input scripts available: examples/VISCOSITY/in.cos.1000SPCE
+
 Description
 """""""""""
 

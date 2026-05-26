@@ -33,6 +33,8 @@ Examples
    fix 1 all eos/table/rx linear eos.table 10000 KEYWORD 1.5
    fix 1 all eos/table/rx linear eos.table 10000 KEYWORD 1.5 0.025 0.0
 
+Example input scripts available: examples/PACKAGES/dpd-react/dpdrx-shardlow/in.dpdrx-shardlow
+
 Description
 """""""""""
 

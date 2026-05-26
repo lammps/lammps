@@ -27,6 +27,8 @@ Examples
    temper/grem 100000 1000 ${lambda} fxgREM fxnvt 0 58728
    temper/grem 40000 100 ${lambda} fxgREM fxnpt 0 32285 ${walkers}
 
+Example input scripts available: examples/PACKAGES/grem/lj-temper/in.gREM-temper
+
 Description
 """""""""""
 

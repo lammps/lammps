@@ -44,6 +44,8 @@ Examples
    neb/spin 0.0 0.001 1000 500 50 each coords.initial.$i
    neb/spin 0.0 0.001 1000 500 50 none verbose
 
+Example input scripts available: examples/SPIN/gneb/skyrmion/in.gneb.skyrmion, examples/SPIN/gneb/iron/in.gneb.iron
+
 Description
 """""""""""
 

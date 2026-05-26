@@ -52,6 +52,8 @@ Examples
    pair_coeff 1 2 sw 2 mW_xL.sw mW xL
    pair_coeff 2 2 sw 2 mW_xL.sw mW xL
 
+Example input scripts available: examples/ELASTIC_T/BORN_MATRIX/Silicon/in.elastic, examples/ttm/in.ttm.mod, examples/threebody/in.mos2.sw.mod
+
 Description
 """""""""""
 

@@ -80,6 +80,8 @@ Examples
    labelmap atom 1 c1
    fix 1 all adapt 1 pair soft a c1 c1 v_prefactor
 
+Example input scripts available: examples/snap/in.snap.scale.Ni_Zuo_JCPA2020, examples/micelle/in.micelle, examples/micelle/in.micelle-rigid
+
 Description
 """""""""""
 

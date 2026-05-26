@@ -30,6 +30,8 @@ Examples
 
    compute 2nd middle temp/ramp vx 0 8 y 2 12 units lattice
 
+Example input scripts available: examples/VISCOSITY/in.wall.2d
+
 Description
 """""""""""
 

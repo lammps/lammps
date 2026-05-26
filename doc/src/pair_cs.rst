@@ -110,6 +110,8 @@ Examples
    pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
+Example input scripts available: examples/coreshell
+
 Description
 """""""""""
 

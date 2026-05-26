@@ -23,6 +23,8 @@ Examples
    pair_style dispersion/d3 original pbe 30.0 20.0
    pair_coeff * * C
 
+Example input scripts available: examples/PACKAGES/dispersion/in.d3
+
 Description
 """""""""""
 

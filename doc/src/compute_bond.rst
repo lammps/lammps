@@ -20,6 +20,8 @@ Examples
 
    compute 1 all bond
 
+Example input scripts available: examples/PACKAGES/cgdna/examples/lj_units/oxDNA3/duplex2/in.duplex2, examples/PACKAGES/cgdna/examples/real_units/oxDNA3/duplex2/in.duplex2, examples/PACKAGES/cgdna/examples/lj_units/oxDNA3/unique_bp/in.dsring2
+
 Description
 """""""""""
 

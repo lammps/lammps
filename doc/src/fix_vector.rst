@@ -41,6 +41,8 @@ Examples
    fix 1 all vector 5 c_myTemp v_integral
    fix 1 all vector 50 c_myTemp nmax 200
 
+Example input scripts available: examples/DIFFUSE/in.msd.2d, examples/DIFFUSE/in.vacf.2d, examples/ELASTIC_T/BORN_MATRIX/Argon/Analytical/in.ljcov
+
 Description
 """""""""""
 

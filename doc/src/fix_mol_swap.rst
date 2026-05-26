@@ -37,6 +37,8 @@ Examples
    labelmap atom 1 A 2 B
    fix mySwap fluid mol/swap 500 10 A B 482798 1.0
 
+Example input scripts available: examples/mc/in.mixed, examples/mc/in.pure
+
 Description
 """""""""""
 

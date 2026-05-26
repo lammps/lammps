@@ -18,6 +18,8 @@ Examples
    pair_style smd/tri_surface 1.0
    pair_coeff 1 1 <contact_stiffness>
 
+Example input scripts available: examples/PACKAGES/machdyn/funnel_flow/in.funnel_flow
+
 Description
 """""""""""
 

@@ -27,6 +27,8 @@ Examples
 
     compute mygrid all gaussian/grid/local grid 40 40 40 4.0 0.5 0.5 0.4 0.4
 
+Example input scripts available: examples/snap/in.gaussian.grid
+
 Description
 """""""""""
 

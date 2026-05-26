@@ -59,6 +59,8 @@ Examples
    fix 1 all indent 10.0 sphere v_x v_y 0.0 v_radius side in
    fix 2 flow indent 10.0 cylinder z 0.0 0.0 10.0 units box
 
+Example input scripts available: examples/peri/in.peri-pmb, examples/peri/in.peri.eps, examples/peri/in.peri.lps
+
 Description
 """""""""""
 

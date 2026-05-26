@@ -52,6 +52,8 @@ Examples
    compute 1 all rheo/property/atom phase surface/r surface/n/* pressure
    compute 2 all rheo/property/atom shift/v/x grad/v/xx stress/v/*
 
+Example input scripts available: examples/rheo/taylor-green/in.rheo.taylor.green, examples/rheo/balloon/in.rheo.balloon, examples/rheo/poiseuille/in.rheo.poiseuille
+
 Description
 """""""""""
 

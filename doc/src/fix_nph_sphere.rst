@@ -35,6 +35,8 @@ Examples
    fix 2 all nph/sphere x 5.0 5.0 1000.0 drag 0.2
    fix 2 water nph/sphere aniso 0.0 0.0 1000.0 dilate partial
 
+Example input scripts available: examples/multi/in.granular
+
 Description
 """""""""""
 

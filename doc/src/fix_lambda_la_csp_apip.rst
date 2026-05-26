@@ -45,6 +45,8 @@ Examples
    fix lambda_la all lambda/la/csp/apip 0.25 1.5 15.0 16.0 bcc
    fix lambda_la mobile lambda/la/csp/apip 0.24 1.5 11.0 12.0 bcc lambda_non_group fast
 
+Example input scripts available: examples/PACKAGES/apip
+
 Description
 """""""""""
 

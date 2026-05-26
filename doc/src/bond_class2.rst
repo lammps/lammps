@@ -22,6 +22,8 @@ Examples
    bond_style class2
    bond_coeff 1 1.0 100.0 80.0 80.0
 
+Example input scripts available: examples/replicate/in.replicate.cnt, examples/amoeba/in.water_box.amoeba, examples/amoeba/in.water_box.hippo
+
 Description
 """""""""""
 

@@ -55,6 +55,8 @@ Examples
    fix 1 all reaxff/species 1 100 100 species.out element Au O H position 1000 AuOH.pos
    fix 1 all reaxff/species 1 100 100 species.out delete species.del masslimit 0 50
 
+Example input scripts available: examples/reaxff/in.reaxff.tatb-shielded, examples/reaxff/in.reaxff.tatb
+
 Description
 """""""""""
 

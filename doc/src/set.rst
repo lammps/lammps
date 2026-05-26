@@ -190,6 +190,8 @@ Examples
    set atom * i_myVal 5
    set atom * d2_Sxyz[1] 6.4
 
+Example input scripts available: examples/COUPLE/lammps_spparks/in.spparks, examples/nemd/in.nemd, examples/dipole/in.dipole
+
 Description
 """""""""""
 

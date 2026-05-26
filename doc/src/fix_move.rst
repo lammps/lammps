@@ -52,6 +52,8 @@ Examples
    fix 2 boundary move variable v_myx v_myy NULL v_VX v_VY NULL
    fix 3 boundary move transrot 0.1 0.1 0.0 0.0 0.0 0.0 0.0 0.0 1.0 5.0 units box update dipole
 
+Example input scripts available: examples/mesh/in.mesh_box, examples/bpm/wires/in.bpm.wires, examples/stress_vcm/in.stress_vcm
+
 Description
 """""""""""
 

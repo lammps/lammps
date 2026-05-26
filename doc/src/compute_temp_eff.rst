@@ -21,6 +21,8 @@ Examples
    compute 1 all temp/eff
    compute myTemp mobile temp/eff
 
+Example input scripts available: examples/PACKAGES/eff/Be-solid/in.Be-solid.spe, examples/PACKAGES/eff/CH4/in.ch4.min, examples/PACKAGES/eff/H/in.h_atom.spe.bohr
+
 Description
 """""""""""
 

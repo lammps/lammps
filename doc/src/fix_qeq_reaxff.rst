@@ -38,6 +38,8 @@ Examples
    fix 1 all qeq/reaxff 1 0.0 10.0 1.0e-6 reaxff
    fix 1 all qeq/reaxff 1 0.0 10.0 1.0e-6 param.qeq maxiter 500
 
+Example input scripts available: examples/reaxff/water/in.water.qeq, examples/reaxff/water/in.water.qeq.field, examples/reaxff/in.reaxff.rdx
+
 Description
 """""""""""
 

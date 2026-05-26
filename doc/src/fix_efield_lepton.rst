@@ -37,6 +37,8 @@ Examples
    variable th equal 2*PI*ramp(0,1)
    fix erot all efield/lepton "-(x*cos(v_th)+y*sin(v_th))"
 
+Example input scripts available: examples/LEPTON/in.efield-lepton
+
 Description
 """""""""""
 

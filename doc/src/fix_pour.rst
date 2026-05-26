@@ -70,6 +70,8 @@ Examples
    fix 2 all pour 10000 1 19985583 region disk diam poly 2 0.7 0.4 1.5 0.6
    fix ins all pour 500 1 4767548 vol 0.8 10 region slab mol object rigid myRigid
 
+Example input scripts available: examples/pour/in.pour, examples/pour/in.pour.2d, examples/body/in.pour3d
+
 Description
 """""""""""
 

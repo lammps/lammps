@@ -29,6 +29,8 @@ Examples
    labelmap atom 1 C 2 H
    pair_write C H 500 r 1.0 10.0 table.txt LJ
 
+Example input scripts available: examples/python
+
 Description
 """""""""""
 

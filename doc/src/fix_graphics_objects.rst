@@ -61,6 +61,8 @@ Examples
    fix 1 all graphics/objects 1000 sphere 1 v_x v_y 0.0 v_radius cylinder 1 v_x v_y 0.0 v_x v_y 10.0 3.0
    fix 2 all graphics/objects 100 progbar 3 1 z 0.012 -0.012 0.0025 0.03 0.0003 v_prog 10
 
+Example input scripts available: examples/GRAPHICS
+
 Description
 """""""""""
 

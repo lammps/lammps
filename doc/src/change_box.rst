@@ -59,6 +59,8 @@ Examples
    change_box all xy final -2.0 z final 0.0 5.0 boundary p p f remap units box
    change_box all x scale 1.1 y volume z volume remap
 
+Example input scripts available: examples/multi/in.powerlaw, examples/multi/in.granular, examples/voronoi/in.voronoi.2d
+
 Description
 """""""""""
 

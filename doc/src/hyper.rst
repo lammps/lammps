@@ -38,6 +38,8 @@ Examples
    fix HG mobile hyper/global 3.0 0.3 0.4 800.0
    hyper 5000 100 HG event min 1.0e-6 1.0e-6 100 100 dump 1 dump 5
 
+Example input scripts available: examples/hyper/in.hyper.global, examples/hyper/in.hyper.local
+
 Description
 """""""""""
 

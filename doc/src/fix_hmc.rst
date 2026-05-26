@@ -33,6 +33,8 @@ Examples
    fix hmc_water all hmc 100 123 298.15 rigid 1
    fix 2 all hmc 10 12345 300 mom no resample yes
 
+Example input scripts available: examples/mc/in.hmc.flexible.melt, examples/mc/in.hmc.rigid
+
 Description
 """""""""""
 

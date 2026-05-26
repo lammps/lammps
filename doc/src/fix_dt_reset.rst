@@ -39,6 +39,8 @@ Examples
    fix 5 all dt/reset 10 0.01 2.0 0.2 units box
    fix 5 all dt/reset 5 NULL 0.001 0.5 emax 30 units box
 
+Example input scripts available: examples/PACKAGES/electron_stopping
+
 Description
 """""""""""
 

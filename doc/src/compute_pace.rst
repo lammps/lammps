@@ -33,6 +33,8 @@ Examples
    compute pace all pace coupling_coefficients.yace 0 1
    compute pace all pace coupling_coefficients.yace 1 1
 
+Example input scripts available: examples/PACKAGES/pace/compute/in.compute
+
 Description
 """""""""""
 

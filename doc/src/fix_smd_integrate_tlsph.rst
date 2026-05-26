@@ -28,6 +28,8 @@ Examples
    fix 1 all smd/integrate_tlsph
    fix 1 all smd/integrate_tlsph limit_velocity 1000
 
+Example input scripts available: examples/PACKAGES/machdyn/rubber_strip_pull/in.rubber_strip_pull, examples/PACKAGES/machdyn/rubber_rings_3d/in.rubber_rings_3d, examples/PACKAGES/machdyn/aluminum_strip_pull/in.aluminum_strip_pull
+
 Description
 """""""""""
 

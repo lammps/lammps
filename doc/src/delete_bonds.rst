@@ -46,6 +46,8 @@ Examples
    labelmap atom 4 hc
    delete_bonds all atom hc special
 
+Example input scripts available: examples/QUANTUM/PySCF/in.mixture.qmmm, examples/QUANTUM/PySCF/in.mixture.qmmm.plugin, examples/QUANTUM/PySCF/in.water.qmmm
+
 Description
 """""""""""
 

@@ -95,7 +95,7 @@ Validating your symmetry file
 -----------------------------
 
 The shipped JSON schema file tools/json/fix-symmetry-schema.json can
-be used to validates structure and types.
+be used to validate the symmetry file structure and types.
 
 In addition, `fix symmetry` performs four init-time checks that catch
 the most common setup errors before the integrator starts:

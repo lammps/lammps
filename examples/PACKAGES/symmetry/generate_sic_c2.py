@@ -23,7 +23,7 @@ that's the 8 Si atoms on the corner sublattice; everything else comes in
 no Wyckoff atoms under this rotation -- all C atoms come in pairs.
 
 The atom-type ordering (1 = C, 2 = Si) matches the convention of the
-SiC.tersoff parameter file used by in.lj_sic_c2.
+SiC.tersoff parameter file used by in.sic_c2.
 """
 
 import json

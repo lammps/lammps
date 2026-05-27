@@ -270,6 +270,6 @@ add_test(NAME TestPairList COMMAND test_pair_list)
 
 if(PKG_EXTRA-FIX)
   add_executable(test_fix_symmetry test_fix_symmetry.cpp)
-  target_link_libraries(test_fix_symmetry PRIVATE lammps GTest::GMock)
+  target_link_libraries(test_fix_symmetry PRIVATE lammps GTest::GMock GTest::GMockMain)
   add_test(NAME FixSymmetry COMMAND test_fix_symmetry)
 endif()

@@ -610,6 +610,7 @@ void FixSymmetry::build_orbit_map()
   std::vector<tagint> all_tags;
   all_tags.reserve(tag_info.size());
   for (const auto &kv : tag_info) all_tags.push_back(kv.first);
+  std::sort(all_tags.begin(), all_tags.end());
 
   std::unordered_map<tagint, size_t> tag_to_idx;
   for (size_t i = 0; i < all_tags.size(); ++i) tag_to_idx[all_tags[i]] = i;

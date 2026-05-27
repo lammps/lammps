@@ -1570,7 +1570,11 @@ void FixIlves::grow_factor_cache()
 
 bool FixIlves::solve_constraints()
 {
-  if (n_constr == 0) return true;
+  // NOTE: do NOT early-return on n_constr == 0.  Under the distributed-
+  // topology model (Strategy A) some ranks may have zero local constraints
+  // while others have many.  The forward_comm and MPI_Allreduce in the
+  // Newton iteration loop are collective, so all ranks must reach them in
+  // lockstep -- skipping the loop on empty ranks deadlocks the others.
 
   grow_lu_workspace(largest_cluster);
 
@@ -1920,7 +1924,9 @@ void FixIlves::apply_constraint_forces(int vflag)
 
 void FixIlves::correct_coordinates(int vflag)
 {
-  if (n_constr == 0) return;
+  // Do not early-return on n_constr == 0: this routine calls forward_comm
+  // and solve_constraints (which contain collective MPI calls).  Empty
+  // ranks must still participate or the others deadlock.
 
   // save current f and v, then zero them so unconstrained_update reduces
   // to xshake = x (the current positions)

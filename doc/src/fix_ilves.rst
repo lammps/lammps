@@ -50,6 +50,24 @@ Syntax
                      "cosine" form with no 1/sin singularity at
                      theta = 180.  K = 0 (default) leaves the
                      angle_style force in place.
+       *warmstart* value = *yes* or *no*
+         *yes* initializes the Lagrange multipliers of each Newton solve
+         from the converged values of the previous timestep (with the
+         corresponding ``xshake`` position correction).  Reduces Newton
+         iteration counts on multi-rank runs whose convergence is slowed
+         by additive-Schwarz iteration between subdomains.  Discarded
+         automatically on reneighbor (constraint indexing is invalidated).
+         Default is *no*, which preserves bit-for-bit equivalence with
+         the original cold-start path used by the unit-test references;
+         enabling produces ULP-level (~5e-11) trajectory differences
+         that compound chaotically over many steps.
+       *relax* value = omega
+         omega = Newton-update damping factor in (0, 1], default 1.0.
+         Each Newton iteration's ``dlambda`` is scaled by omega before
+         being applied.  Values below 1 damp Schwarz-iteration
+         oscillations between ranks at the cost of slower per-iteration
+         progress; in practice on well-conditioned clusters
+         ``relax = 1.0`` converges fastest.
 
 Examples
 """"""""

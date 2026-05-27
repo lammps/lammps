@@ -16,15 +16,15 @@ pair_coeff 2 2 1.2 1.5
 bond_coeff 1 100 1
 bond_coeff 2 150 1.2
 
-angle_coeff 1  500.0 180.0
-angle_coeff 2 1000.0 180.0
+angle_coeff 1  50.0 180.0
+angle_coeff 2 100.0 180.0
 
 neighbor        0.5 bin
 neigh_modify    every 1 delay 0 check yes
 thermo          100
 thermo_style    custom step temp press pe ke etotal
 
-fix             cstr all ilves 1.0e-6 30 5000 b 1 2 a 1 2 # angle constraint should be skipped
+fix             cstr all ilves 1.0e-6 75 500 b 1 2 a 1 2 linearangle 165 1000.0 # substitute stiff angle potential for constraint
 fix             move all nvt temp 1.5 1.5 0.5
 
 minimize 0 0 100 1000

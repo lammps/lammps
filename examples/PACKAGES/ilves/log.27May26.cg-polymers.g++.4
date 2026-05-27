@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1108-g89915a9210-modified)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1116-g878adc13f6-modified)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # Coarse-grain polymer chains with near-linear backbone angles.
@@ -14,7 +14,7 @@ angle_style     cosine/squared
 read_data data.cg-polymers
 Reading data file ...
   orthogonal box = (10.906314 17.324206 16.190251) to (21.093686 30.675794 27.809749)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   reading atoms ...
   896 atoms
   reading velocities ...
@@ -24,7 +24,7 @@ Reading data file ...
   scanning angles ...
   1 = max angles/atom
   orthogonal box = (10.906314 17.324206 16.190251) to (21.093686 30.675794 27.809749)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   reading bonds ...
   768 bonds
   reading angles ...
@@ -37,7 +37,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      4 = max # of 1-4 neighbors
      6 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.008 seconds
+  read_data CPU = 0.010 seconds
 
 pair_coeff 1 1 1.0 1.0
 pair_coeff 2 2 1.2 1.5
@@ -45,15 +45,15 @@ pair_coeff 2 2 1.2 1.5
 bond_coeff 1 100 1
 bond_coeff 2 150 1.2
 
-angle_coeff 1  500.0 180.0
-angle_coeff 2 1000.0 180.0
+angle_coeff 1  50.0 180.0
+angle_coeff 2 100.0 180.0
 
 neighbor        0.5 bin
 neigh_modify    every 1 delay 0 check yes
 thermo          100
 thermo_style    custom step temp press pe ke etotal
 
-fix             cstr all ilves 1.0e-6 30 5000 b 1 2 a 1 2 # angle constraint should be skipped
+fix             cstr all ilves 1.0e-6 75 500 b 1 2 a 1 2 linearangle 165 1000.0 # substitute stiff angle potential for constraint
 fix             move all nvt temp 1.5 1.5 0.5
 
 minimize 0 0 100 1000
@@ -82,10 +82,8 @@ pages = {8711-8719}
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
-Fix ilves: gathered global topology info for 768 bonds, 640 angles, and 896 involved atoms
-  replicated topology storage ~ 62464 bytes/rank (0.06 MB)
-Fix ilves: skipping AC virtual constraint for 2 near-linear angle type(s) (theta_0 >= 165 deg); the angle force-field term remains active for these angles
-WARNING: Using fix ilves with minimization: substituting constraints with harmonic restraint forces (kbond = 1e+09) (src/RIGID/fix_ilves.cpp:507)
+Fix ilves: skipping AC virtual constraint for 2 near-linear angle type(s) (theta_0 >= 165 deg); using a cosine/delta angle potential with K_theta = 1000 instead
+WARNING: Using fix ilves with minimization: substituting constraints with harmonic restraint forces (kbond = 1e+09) (src/RIGID/fix_ilves.cpp:601)
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -98,40 +96,40 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 8.479 | 8.479 | 8.479 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 8.316 | 8.316 | 8.317 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
-         0   1.6938621     -756.82909      572.45401      2.5379575      574.99197    
-       100   1.6938621     -39.950992     -4.627065       2.5379575     -2.0891075    
-Loop time of 0.752795 on 1 procs for 100 steps with 896 atoms
+         0   1.6938621      750.22301      431.14022      2.5379575      433.67817    
+        25   1.6938621     -96.913915     -5.678528       2.5379575     -3.1405705    
+Loop time of 0.0382312 on 4 procs for 25 steps with 896 atoms
 
-99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+99.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
-  Stopping criterion = max iterations
+  Stopping criterion = linesearch alpha is zero
   Energy initial, next-to-last, final = 
-      572.454009182652  -4.62656756079217  -4.62706501560875
-  Force two-norm initial, final = 64428642 31728.015
-  Force max component initial, final = 15742050 6647.2244
-  Final line search alpha, max atom move = 8.5422144e-07 0.0056782016
-  Iterations, force evaluations = 100 858
+      431.140215229586  -5.67852795587785  -5.67852795587785
+  Force two-norm initial, final = 55911203 258319.44
+  Force max component initial, final = 15742054 67535.332
+  Final line search alpha, max atom move = 3.1190546e-15 2.1064639e-10
+  Iterations, force evaluations = 25 208
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.71726    | 0.71726    | 0.71726    |   0.0 | 95.28
-Bond    | 0.012099   | 0.012099   | 0.012099   |   0.0 |  1.61
+Pair    | 0.027004   | 0.028492   | 0.031248   |   1.0 | 74.52
+Bond    | 0.00033475 | 0.00035926 | 0.00040219 |   0.0 |  0.94
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0067243  | 0.0067243  | 0.0067243  |   0.0 |  0.89
-Output  | 3.0659e-05 | 3.0659e-05 | 3.0659e-05 |   0.0 |  0.00
-Modify  | 0.012257   | 0.012257   | 0.012257   |   0.0 |  1.63
-Other   |            | 0.004423   |            |       |  0.59
+Comm    | 0.0045567  | 0.0073244  | 0.0088592  |   1.9 | 19.16
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0.0010005  | 0.0010818  | 0.0011671  |   0.2 |  2.83
+Other   |            | 0.0009739  |            |       |  2.55
 
-Nlocal:            896 ave         896 max         896 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:           4099 ave        4099 max        4099 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:          94577 ave       94577 max       94577 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:            224 ave         240 max         217 min
+Histogram: 2 1 0 0 0 0 0 0 0 1
+Nghost:        2270.25 ave        2292 max        2239 min
+Histogram: 1 0 0 0 0 1 0 1 0 1
+Neighs:        23644.2 ave       25241 max       21941 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
 
 Total # of neighbors = 94577
 Ave neighs/atom = 105.55469
@@ -146,9 +144,7 @@ reset_timestep 0
 
 run             1000
 Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
-Fix ilves: gathered global topology info for 768 bonds, 640 angles, and 896 involved atoms
-  replicated topology storage ~ 62464 bytes/rank (0.06 MB)
-Fix ilves: skipping AC virtual constraint for 2 near-linear angle type(s) (theta_0 >= 165 deg); the angle force-field term remains active for these angles
+Fix ilves: skipping AC virtual constraint for 2 near-linear angle type(s) (theta_0 >= 165 deg); using a cosine/delta angle potential with K_theta = 1000 instead
 Fix ilves info:
   ILVES (fast, banded Cholesky) algorithm
   768 constraints/proc
@@ -156,51 +152,64 @@ Fix ilves info:
   7 max. constraints/cluster
 ILVES stats on step 0 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
-Bond:     1   1         1.45439e-14      448
-Bond:     2   1.2       1.64313e-14      320
+Bond:     1   1         1.96843e-13      448
+Bond:     2   1.2       1.55431e-14      320
 Cholesky: 128 calls, 0 LU fallbacks (0%)
-Per MPI rank memory allocation (min/avg/max) = 7.354 | 7.354 | 7.354 Mbytes
+Newton iter: avg 3.0, max 4 (over 2 solves x 4 ranks)
+Per MPI rank memory allocation (min/avg/max) = 7.191 | 7.191 | 7.192 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
-         0   2.3724673      5.939554      -4.6277141      2.5379575     -2.0897566    
-       100   2.1550493      5.2293191     -4.9214614      2.3053736     -2.6160878    
-       200   1.8405276      5.989521      -5.1657181      1.9689126     -3.1968054    
-       300   1.60265        2.0681104     -5.34465        1.714442      -3.630208     
-       400   1.5102113      6.078125      -5.5362124      1.6155553     -3.9206571    
-       500   1.4114225      5.9852111     -5.5688998      1.5098755     -4.0590244    
-       600   1.3761251      6.0891023     -5.5341611      1.472116      -4.0620451    
-       700   1.4835544      4.9291602     -5.4891749      1.5870389     -3.902136     
-       800   1.5856429      3.7111702     -5.4582653      1.6962486     -3.7620167    
-       900   1.5027188      3.9022766     -5.4021171      1.6075402     -3.794577     
-      1000   1.4218626      6.8575573     -5.4759813      1.5210439     -3.9549375    
-Loop time of 1.04195 on 1 procs for 1000 steps with 896 atoms
+         0   2.3724673      1.0202035      19.434615      2.5379575      21.972572    
+       100   6.9685443      18.370652      3.0774567      7.4546314      10.532088    
+       200   4.0447909      14.659734     -0.083671393    4.3269331      4.2432617    
+       300   2.6454508      12.508907     -1.6735115      2.8299828      1.1564713    
+       400   1.9070088      11.90527      -2.5011298      2.0400312     -0.46109864   
+ILVES stats on step 500 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   0.99987   0.00078126       448
+Bond:     2   1.19992   0.000440496      320
+Cholesky: 256 calls, 0 LU fallbacks (0%)
+Newton iter: avg 3.3, max 5 (over 499 solves x 4 ranks)
+       500   1.5187291      11.237765     -2.975652       1.6246673     -1.3509847    
+       600   1.269389       11.229725     -3.1446273      1.3579346     -1.7866927    
+       700   1.3353125      10.788463     -3.2629928      1.4284565     -1.8345363    
+       800   1.5323609      11.20278      -3.2046938      1.6392499     -1.5654438    
+       900   1.5743661      11.808812     -2.9613247      1.6841852     -1.2771395    
+ILVES stats on step 1000 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     1   0.999877  0.000807011      448
+Bond:     2   1.19992   0.000460389      320
+Cholesky: 256 calls, 0 LU fallbacks (0%)
+Newton iter: avg 3.0, max 3 (over 500 solves x 4 ranks)
+      1000   1.6223188      11.212817     -3.0078055      1.7354828     -1.2723227    
+Loop time of 0.452547 on 4 procs for 1000 steps with 896 atoms
 
-Performance: 414608.410 tau/day, 959.742 timesteps/s, 859.929 katom-step/s
-99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 954596.704 tau/day, 2209.715 timesteps/s, 1.980 Matom-step/s
+99.1% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.66321    | 0.66321    | 0.66321    |   0.0 | 63.65
-Bond    | 0.01422    | 0.01422    | 0.01422    |   0.0 |  1.36
-Neigh   | 0.16331    | 0.16331    | 0.16331    |   0.0 | 15.67
-Comm    | 0.01079    | 0.01079    | 0.01079    |   0.0 |  1.04
-Output  | 0.00011453 | 0.00011453 | 0.00011453 |   0.0 |  0.01
-Modify  | 0.18787    | 0.18787    | 0.18787    |   0.0 | 18.03
-Other   |            | 0.002435   |            |       |  0.23
+Pair    | 0.11666    | 0.12461    | 0.12947    |   1.4 | 27.53
+Bond    | 0.00011639 | 0.00012487 | 0.00012935 |   0.0 |  0.03
+Neigh   | 0.051422   | 0.051424   | 0.051427   |   0.0 | 11.36
+Comm    | 0.030593   | 0.035194   | 0.043139   |   2.6 |  7.78
+Output  | 0.00013215 | 0.00014783 | 0.00018169 |   0.0 |  0.03
+Modify  | 0.23661    | 0.23717    | 0.23791    |   0.1 | 52.41
+Other   |            | 0.003883   |            |       |  0.86
 
-Nlocal:            896 ave         896 max         896 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:           4167 ave        4167 max        4167 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:          94679 ave       94679 max       94679 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:            224 ave         234 max         215 min
+Histogram: 1 0 1 0 0 0 1 0 0 1
+Nghost:        2284.25 ave        2310 max        2264 min
+Histogram: 1 1 0 0 0 1 0 0 0 1
+Neighs:        23644.2 ave       24494 max       22811 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
 
-Total # of neighbors = 94679
-Ave neighs/atom = 105.66853
+Total # of neighbors = 94577
+Ave neighs/atom = 105.55469
 Ave special neighs/atom = 4.2857143
-Neighbor list builds = 81
+Neighbor list builds = 87
 Dangerous builds = 0
 
 
 
-Total wall time: 0:00:01
+Total wall time: 0:00:00

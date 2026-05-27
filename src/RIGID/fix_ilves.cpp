@@ -126,6 +126,11 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   angle_btype1 = angle_btype2 = nullptr;
   lang_fbuf = nullptr;
   lang_fbuf_alloc = 0;
+  ilv_num_bond = nullptr;
+  ilv_bond_atom = nullptr;
+  ilv_bond_type = nullptr;
+  ilv_bond_per_atom = 0;
+  ilv_nmax_alloc = 0;
   // comm_forward = 3 for forward_comm of xshake or v (see pack_forward_comm).
   // comm_reverse = 3 for the stiff angle's reverse_comm of lang_fbuf (only
   // active when linearangle K > 0 && newton bond on, but set unconditionally
@@ -154,6 +159,12 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   variant = ILVES_FAST;
   chol_calls = 0;
   chol_fallbacks = 0;
+  newton_iter_sum = 0;
+  newton_iter_max = 0;
+  newton_solve_count = 0;
+  lambda_warm_valid = 0;
+  warmstart_enabled = 0;
+  newton_relax = 1.0;
   linear_threshold = 165.0;
   linear_angle_K   = 0.0;
 
@@ -183,8 +194,15 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   FixIlves::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
-  // forward-comm payload: 3 doubles (xshake)
-  comm_forward = 3;
+  // forward-comm payload size per atom.
+  //   Mode 0 (xshake) / mode 1 (atom->v): 3 doubles.
+  //   Mode 2 (ghost bond data refresh): 1 + 2*bond_per_atom values.
+  // bond_per_atom is set by the atom_style + read_data before the fix is
+  // created, so we know the size here.  Set comm_forward to the max of
+  // the two so LAMMPS allocates the comm buffer correctly at first use.
+  ilv_bond_per_atom = atom->bond_per_atom;
+  const int bond_data_payload = 1 + 2 * ilv_bond_per_atom;
+  comm_forward = (bond_data_payload > 3) ? bond_data_payload : 3;
 
   // parse arguments, same as for fix shake
 
@@ -233,7 +251,9 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     else if ((strcmp(arg[next], "kbond")       == 0) ||
              (strcmp(arg[next], "store")       == 0) ||
              (strcmp(arg[next], "variant")     == 0) ||
-             (strcmp(arg[next], "linearangle") == 0)) {
+             (strcmp(arg[next], "linearangle") == 0) ||
+             (strcmp(arg[next], "relax")       == 0) ||
+             (strcmp(arg[next], "warmstart")   == 0)) {
       break;
 
     } else if (mode == 'b') {
@@ -322,6 +342,19 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
         }
       }
 
+    } else if (strcmp(arg[next], "relax") == 0) {
+      if (next + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves relax", error);
+      newton_relax = utils::numeric(FLERR, arg[next + 1], false, lmp);
+      if (newton_relax <= 0.0 || newton_relax > 1.0)
+        error->all(FLERR, next + 1,
+                   "Fix ilves relax must be in (0, 1], got {}", newton_relax);
+      next += 2;
+
+    } else if (strcmp(arg[next], "warmstart") == 0) {
+      if (next + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves warmstart", error);
+      warmstart_enabled = utils::logical(FLERR, arg[next + 1], false, lmp);
+      next += 2;
+
     } else {
       error->all(FLERR, next, "Unknown fix ilves command option: {}", arg[next]);
     }
@@ -387,6 +420,9 @@ FixIlves::~FixIlves()
   memory->destroy(xshake);
   memory->destroy(fstore);
   memory->destroy(lang_fbuf);
+  memory->destroy(ilv_num_bond);
+  memory->destroy(ilv_bond_atom);
+  memory->destroy(ilv_bond_type);
 
   memory->destroy(c_atom1);
   memory->destroy(c_atom2);
@@ -494,6 +530,9 @@ void FixIlves::init()
   if (linear_angle_K > 0.0 && force->newton_bond != 0) {
     comm_reverse = 3;
   }
+
+  // ilv_bond_per_atom and comm_forward are set in the constructor; the
+  // Schwarz overlap ghost-bond-data forward_comm uses comm_mode == 2.
 
   for (int i = 1; i <= atom->nbondtypes; ++i)
     bond_distance[i] = force->bond->equilibrium_distance(i);
@@ -1621,8 +1660,50 @@ bool FixIlves::solve_constraints()
 
   grow_lu_workspace(largest_cluster);
 
-  // zero accumulated Lagrange multipliers at start of step
-  for (int k = 0; k < n_constr; ++k) c_lambda[k] = 0.0;
+  // Warm-start path.  If we have valid lambdas from the previous step
+  // (same constraint indexing -- no reneighbor since), use them as the
+  // initial guess and apply the implied position correction to xshake.
+  // Otherwise zero them.  Position correction matches the per-iter
+  // update used inside the Newton loop: xshake[a] += (lambda * c_invma * r),
+  // xshake[b] -= (lambda * c_invmb * r).  Skip 3-atom (angle) entries -- the
+  // angle Newton step has a different correction form and the warm-start
+  // bookkeeping for them is in solve_constraints_with_angle_pass().
+  if (warmstart_enabled && lambda_warm_valid) {
+    const int nlocal = atom->nlocal;
+    for (int k = 0; k < n_constr; ++k) {
+      if (c_type[k] < 0) {
+        // 3-atom virtual (angle midpoint): no simple gradient form here;
+        // best to start fresh.  (Pure-bond runs never hit this branch.)
+        c_lambda[k] = 0.0;
+        continue;
+      }
+      const double lam = c_lambda[k];
+      if (lam == 0.0) continue;
+      const int a = c_atom1[k];
+      const int b = c_atom2[k];
+      const double rx = c_rx[k];
+      const double ry = c_ry[k];
+      const double rz = c_rz[k];
+      const double dl_a = lam * c_invma[k];
+      const double dl_b = lam * c_invmb[k];
+      const int a_local = atom->map(atom->tag[a]);
+      const int b_local = atom->map(atom->tag[b]);
+      if (a_local >= 0 && a_local < nlocal) {
+        xshake[a_local][0] += dl_a * rx;
+        xshake[a_local][1] += dl_a * ry;
+        xshake[a_local][2] += dl_a * rz;
+      }
+      if (b_local >= 0 && b_local < nlocal) {
+        xshake[b_local][0] -= dl_b * rx;
+        xshake[b_local][1] -= dl_b * ry;
+        xshake[b_local][2] -= dl_b * rz;
+      }
+    }
+    // Sync ghost xshake so all ranks see the corrected initial guess
+    comm->forward_comm(this);
+  } else {
+    for (int k = 0; k < n_constr; ++k) c_lambda[k] = 0.0;
+  }
 
   // invalidate the per-cluster Cholesky factor cache: c_rx/c_ry/c_rz and
   // c_rsq were just recomputed in post_force, so every factor from the
@@ -1663,7 +1744,8 @@ bool FixIlves::solve_constraints()
     return 0.0;
   };
 
-  for (int iter = 0; iter < max_iter; ++iter) {
+  int iter = 0;
+  for (; iter < max_iter; ++iter) {
     double max_relres = 0.0;
 
     for (int c = 0; c < n_clusters; ++c) {
@@ -1818,10 +1900,11 @@ bool FixIlves::solve_constraints()
       // -- skip the partner update locally; the partner rank holds the
       // same constraint and will update its local atom, and forward_comm
       // at the end of the iteration brings the corrected ghost position
-      // back to this rank.
+      // back to this rank.  newton_relax (<= 1) damps the update to help
+      // Schwarz iterations converge across ranks; default 1.0.
       for (int s = 0; s < n_c; ++s) {
         int k = c_perm[beg + s];
-        double dl = lu_b[s];
+        double dl = lu_b[s] * newton_relax;
         c_lambda[k] += dl;
         const int a = c_atom1[k];
         const int b = c_atom2[k];
@@ -1864,6 +1947,20 @@ bool FixIlves::solve_constraints()
       MPI_Allreduce(&max_relres, &global_relres, 1, MPI_DOUBLE, MPI_MAX, world);
     if (global_relres < tol_g) { converged = true; break; }
   }
+
+  // Track Newton iteration counts for stats reporting.  iter is the loop
+  // counter at exit; convert to 1-based count (iter+1 if we broke out on
+  // convergence, max_iter if we hit the cap).
+  const bigint iters_used = (bigint)(converged ? iter + 1 : max_iter);
+  newton_iter_sum   += iters_used;
+  if (iters_used > newton_iter_max) newton_iter_max = iters_used;
+  newton_solve_count++;
+
+  // c_lambda now holds the converged multipliers; save as warm-start for
+  // the next step.  Discarded on the next reneighbor in build_constraint_list.
+  // Only meaningful when the warmstart keyword is enabled; otherwise the
+  // next call zeroes c_lambda regardless.
+  lambda_warm_valid = (warmstart_enabled && converged) ? 1 : 0;
 
   if (!converged && (comm->me == 0)) {
     error->warning(FLERR,
@@ -2146,6 +2243,82 @@ void FixIlves::grow_lang_fbuf(int nmax)
   if (nmax <= lang_fbuf_alloc) return;
   memory->grow(lang_fbuf, (bigint) nmax * 3, "ilves:lang_fbuf");
   lang_fbuf_alloc = nmax;
+}
+
+/* ----------------------------------------------------------------------
+   (Re)allocate ilv_bond_* per-fix bond storage to handle nmax atoms with
+   ilv_bond_per_atom columns each.  Called from refresh_ilv_bond_data.
+------------------------------------------------------------------------- */
+
+void FixIlves::grow_ilv_bond(int nmax)
+{
+  if (nmax <= ilv_nmax_alloc) return;
+  const bigint sz = (bigint) nmax * (bigint) ilv_bond_per_atom;
+  memory->grow(ilv_num_bond,  nmax, "ilves:ilv_num_bond");
+  memory->grow(ilv_bond_atom, sz,   "ilves:ilv_bond_atom");
+  memory->grow(ilv_bond_type, sz,   "ilves:ilv_bond_type");
+  ilv_nmax_alloc = nmax;
+}
+
+/* ----------------------------------------------------------------------
+   Refresh ilv_bond_* from atom->bond_* for local atoms, then forward_comm
+   to populate the ghost slots on neighbor ranks.  Called from
+   build_constraint_list at every reneighbor.  After this call, both local
+   and ghost atoms in [0, nmax) have their bond storage available via the
+   ilv_* arrays -- enabling Schwarz overlap in the constraint-list build.
+
+   Note: under newton on bond, atom->bond_* has each bond stored only at
+   the lower-tag endpoint.  Copying that as-is preserves the storage
+   convention; the constraint-list dedup (`if (ti > tj) continue;`)
+   then sees each unique bond exactly once globally regardless of how
+   many ranks have one of its endpoints in their halo.
+------------------------------------------------------------------------- */
+
+void FixIlves::refresh_ilv_bond_data()
+{
+  const int nmax = atom->nmax;
+  const int nlocal_now = atom->nlocal;
+  const int bpa = ilv_bond_per_atom;
+  if (bpa <= 0) return;            // no bonds in this atom_style
+
+  grow_ilv_bond(nmax);
+
+  int *num_bond = atom->num_bond;
+  tagint **bond_atom = atom->bond_atom;
+  int **bond_type = atom->bond_type;
+
+  for (int i = 0; i < nlocal_now; ++i) {
+    const int nb = num_bond[i];
+    ilv_num_bond[i] = nb;
+    const bigint base = (bigint) i * (bigint) bpa;
+    for (int b = 0; b < nb && b < bpa; ++b) {
+      ilv_bond_atom[base + b] = bond_atom[i][b];
+      // store the absolute type (positive); fix_ilves may have negated
+      // atom->bond_type[][] via negate_constrained_topology, but for the
+      // type lookup we want the underlying bond type, always positive.
+      int bt = bond_type[i][b];
+      ilv_bond_type[base + b] = (bt < 0) ? -bt : bt;
+    }
+    // pad unused slots with sentinels so ghost reads of those slots are safe
+    for (int b = nb; b < bpa; ++b) {
+      ilv_bond_atom[base + b] = 0;
+      ilv_bond_type[base + b] = 0;
+    }
+  }
+  // ghost slots will be filled by forward_comm below; initialize to 0
+  for (int i = nlocal_now; i < nmax; ++i) {
+    ilv_num_bond[i] = 0;
+    const bigint base = (bigint) i * (bigint) bpa;
+    for (int b = 0; b < bpa; ++b) {
+      ilv_bond_atom[base + b] = 0;
+      ilv_bond_type[base + b] = 0;
+    }
+  }
+
+  // forward_comm to populate ghosts
+  comm_mode = 2;
+  comm->forward_comm(this);
+  comm_mode = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -2625,6 +2798,18 @@ int FixIlves::pack_forward_comm(int n, int *list, double *buf,
     }
     return m;
   }
+  // comm_mode == 2: pack ilv_bond_* (num_bond + bpa partner tags + bpa types)
+  if (comm_mode == 2) {
+    const int bpa = ilv_bond_per_atom;
+    for (int i = 0; i < n; ++i) {
+      int j = list[i];
+      buf[m++] = (double) ilv_num_bond[j];
+      const bigint base = (bigint) j * (bigint) bpa;
+      for (int b = 0; b < bpa; ++b) buf[m++] = (double) ilv_bond_atom[base + b];
+      for (int b = 0; b < bpa; ++b) buf[m++] = (double) ilv_bond_type[base + b];
+    }
+    return m;
+  }
   // default (comm_mode == 0): pack xshake with PBC shift applied
   if (pbc_flag == 0) {
     for (int i = 0; i < n; ++i) {
@@ -2663,6 +2848,16 @@ void FixIlves::unpack_forward_comm(int n, int first, double *buf)
       atom->v[i][0] = buf[m++];
       atom->v[i][1] = buf[m++];
       atom->v[i][2] = buf[m++];
+    }
+    return;
+  }
+  if (comm_mode == 2) {
+    const int bpa = ilv_bond_per_atom;
+    for (int i = first; i < last; ++i) {
+      ilv_num_bond[i] = (int) buf[m++];
+      const bigint base = (bigint) i * (bigint) bpa;
+      for (int b = 0; b < bpa; ++b) ilv_bond_atom[base + b] = (tagint) buf[m++];
+      for (int b = 0; b < bpa; ++b) ilv_bond_type[base + b] = (int) buf[m++];
     }
     return;
   }
@@ -2837,6 +3032,15 @@ void FixIlves::stats()
   MPI_Allreduce(a_max,   a_max_all,   na, MPI_DOUBLE,     MPI_MAX, world);
   MPI_Allreduce(a_min,   a_min_all,   na, MPI_DOUBLE,     MPI_MIN, world);
 
+  // Newton iter stats: combine across ranks BEFORE the rank-0 print
+  // (Allreduce is collective; must be called on every rank).
+  bigint newton_nsum = newton_iter_sum;
+  bigint newton_nmax = newton_iter_max;
+  if (newton_solve_count > 0 && comm->nprocs > 1) {
+    MPI_Allreduce(MPI_IN_PLACE, &newton_nsum, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+    MPI_Allreduce(MPI_IN_PLACE, &newton_nmax, 1, MPI_LMP_BIGINT, MPI_MAX, world);
+  }
+
   if (comm->me == 0) {
     auto mesg = fmt::format("ILVES stats on step {} (type / ave / delta / count)\n"
                             "  bonds: length (Angstrom); angles: value (degrees)\n",
@@ -2876,8 +3080,25 @@ void FixIlves::stats()
       mesg += fmt::format("Cholesky: {} calls, {} LU fallbacks ({:.4}%)\n",
                           chol_calls, chol_fallbacks,
                           100.0 * (double) chol_fallbacks / (double) chol_calls);
+    // Newton iteration counts: averaged across calls in this stats window,
+    // plus the max single-call iter count.  MPI_Allreduce to combine across
+    // ranks: sum (then divide by solve-count which is identical on all
+    // ranks), and max.
+    if (newton_solve_count > 0) {
+      // newton_nsum across ranks; each rank does the same number of solves,
+      // so divide by (nprocs * solve_count) for the per-call average.
+      const double n_avg = (double) newton_nsum /
+                           (double) (comm->nprocs * (double) newton_solve_count);
+      mesg += fmt::format("Newton iter: avg {:.1f}, max {} (over {} solves x {} ranks)\n",
+                          n_avg, newton_nmax, newton_solve_count, comm->nprocs);
+    }
     utils::logmesg(lmp, mesg);
   }
+
+  // Reset stats accumulators for the next window.
+  newton_iter_sum = 0;
+  newton_iter_max = 0;
+  newton_solve_count = 0;
 
   bigint nt = update->ntimestep;
   next_output = nt + output_every;
@@ -3159,6 +3380,32 @@ void FixIlves::check_topology_unchanged()
 
 int FixIlves::lookup_local_bond_type(tagint ta, tagint tb)
 {
+  // Use the per-fix ilv_bond_* arrays (refreshed at every reneighbor by
+  // refresh_ilv_bond_data) which include ghost-side bond storage too.
+  // Falls back to atom->bond_* if ilv_* hasn't been populated yet
+  // (e.g. on the very first build_constraint_list before reneighbor).
+  const int bpa = ilv_bond_per_atom;
+  if (bpa > 0 && ilv_num_bond) {
+    int ia = atom->map(ta);
+    if (ia >= 0 && ia < ilv_nmax_alloc) {
+      const int nb = ilv_num_bond[ia];
+      const bigint base = (bigint) ia * (bigint) bpa;
+      for (int b = 0; b < nb && b < bpa; ++b) {
+        if (ilv_bond_atom[base + b] == tb) return ilv_bond_type[base + b];
+      }
+    }
+    int ib = atom->map(tb);
+    if (ib >= 0 && ib < ilv_nmax_alloc) {
+      const int nb = ilv_num_bond[ib];
+      const bigint base = (bigint) ib * (bigint) bpa;
+      for (int b = 0; b < nb && b < bpa; ++b) {
+        if (ilv_bond_atom[base + b] == ta) return ilv_bond_type[base + b];
+      }
+    }
+    return 0;
+  }
+
+  // Pre-refresh fallback: scan atom->bond_* directly (local only).
   const int nlocal_now = atom->nlocal;
   int *num_bond     = atom->num_bond;
   int **nb_type     = atom->bond_type;
@@ -3232,43 +3479,55 @@ bool FixIlves::bond_is_constrained(tagint ta, tagint tb)
 void FixIlves::build_constraint_list()
 {
   const int nlocal_now = atom->nlocal;
+  const int nmax       = atom->nmax;
   int *mask = atom->mask;
   tagint *tag = atom->tag;
-  int *num_bond     = atom->num_bond;
-  int **nb_type     = atom->bond_type;
-  tagint **nb_atom  = atom->bond_atom;
   int *num_angle    = atom->num_angle;
   int **na_type     = atom->angle_type;
   tagint **na_atom1 = atom->angle_atom1;
   tagint **na_atom2 = atom->angle_atom2;
   tagint **na_atom3 = atom->angle_atom3;
 
+  // Schwarz overlap: refresh per-fix ilv_bond_* (local + ghost) so we
+  // can walk the full halo's bond storage in the bond loop below.
+  refresh_ilv_bond_data();
+
+  // Constraint indexing is about to change; the saved c_lambda from the
+  // previous step is no longer interpretable by index.  Discard.
+  lambda_warm_valid = 0;
+
   // mark per-atom flags as we go (zero first)
-  for (int i = 0; i < atom->nmax; ++i) ilves_flag[i] = 0;
+  for (int i = 0; i < nmax; ++i) ilves_flag[i] = 0;
   n_constr = 0;
 
   // ------------------------------------------------------------------
-  // Phase A: bond constraints from local bond storage.  Dedup rule:
-  //   - both endpoints local on this rank -> only the lower-tag atom adds
-  //   - partner is a ghost (cross-rank bond) -> always add; the partner's
-  //     rank will independently add the constraint to its own local atom.
-  //     Both ranks then compute the same Lagrange multiplier from their
-  //     shared view of x (via forward_comm of xshake).
+  // Phase A: bond constraints with Schwarz overlap.  We walk EVERY atom
+  // in this rank's halo (local + ghost) using the per-fix ilv_bond_*
+  // arrays.  Dedup by `ti < tj` (lower-tag atom adds the constraint);
+  // this works because each bond is canonically stored at its lower-tag
+  // endpoint regardless of newton flag, plus the refresh has populated
+  // ghost-side storage so we can see ghost-ghost bonds visible in the
+  // halo.  Iteration via atom indices visits each unique tag once
+  // (filter by `atom->map(ti) == i` to skip non-canonical PBC ghost
+  // copies of the same tag).
   // ------------------------------------------------------------------
-  for (int i = 0; i < nlocal_now; ++i) {
-    if (!(mask[i] & groupbit)) continue;
+  const int bpa = ilv_bond_per_atom;
+  const int halo_end = nlocal_now + atom->nghost;
+  for (int i = 0; i < halo_end; ++i) {
     const tagint ti = tag[i];
-    const int nb = num_bond[i];
-    for (int b = 0; b < nb; ++b) {
-      int bt = nb_type[i][b];
-      if (bt == 0) continue;
-      if (bt < 0) bt = -bt;
-      if (bt > atom->nbondtypes) continue;
-      const tagint tj = nb_atom[i][b];
+    if (ti <= 0) continue;
+    if (atom->map(ti) != i) continue;       // skip non-canonical PBC copies
+    if (!(mask[i] & groupbit)) continue;
+
+    const int nb = (i < ilv_nmax_alloc) ? ilv_num_bond[i] : 0;
+    const bigint base = (bigint) i * (bigint) bpa;
+    for (int b = 0; b < nb && b < bpa; ++b) {
+      int bt = ilv_bond_type[base + b];
+      if (bt <= 0 || bt > atom->nbondtypes) continue;
+      const tagint tj = ilv_bond_atom[base + b];
+      if (ti > tj) continue;                // dedup: lower-tag adds
       int j = atom->map(tj);
-      if (j < 0) continue;                                 // partner outside halo
-      const bool partner_local = (j < nlocal_now);
-      if (partner_local && ti > tj) continue;              // dedup local-local
+      if (j < 0) continue;                  // partner outside halo
       if (!(mask[j] & groupbit)) continue;
       if (!bond_selected_for_atoms(i, j, bt)) continue;
 

@@ -56,7 +56,7 @@ timestep        1.0
 
 # rigid constraints with thermostat
 
-fix             rigid all ilves 0.00001 25 1000 t 1 2 a 1 #linearangle 165 0.0333333
+fix             rigid all ilves 0.00001 200 1000 t 1 2 a 1 #linearangle 165 10.0
 fix             move  all nvt temp ${temp} ${temp} 100.0
 
 thermo_style    custom step temp press pe ke
@@ -67,5 +67,5 @@ minimize 0.0 0.0 1000 10000
 reset_timestep 0
 
 
-run             50000
+run             5000
 

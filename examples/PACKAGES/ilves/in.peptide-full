@@ -26,6 +26,6 @@ fix             1 all nvt temp 275.0 275.0 100.0 tchain 1
 group           peptide type <= 12
 group           waters  type > 12
 
-fix             cstr all ilves 0.00001 20 100 b 4 6 8 10 12 14 18 a 31 variant full
+fix             cstr all ilves 0.00001 150 100 b 4 6 8 10 12 14 18 a 31 variant full
 
 run             300

@@ -1,0 +1,276 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1116-g878adc13f6-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Rhodopsin model
+
+units           real
+neigh_modify    delay 5 every 1
+atom_style      full
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+pair_style      lj/charmm/coul/long 8.0 10.0
+pair_modify     mix arithmetic
+kspace_style    pppm 1e-4
+
+read_data       data.rhodo
+Reading data file ...
+  orthogonal box = (-27.5 -38.5 -36.3646) to (27.5 38.5 36.3615)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  32000 atoms
+  reading velocities ...
+  32000 velocities
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  8 = max angles/atom
+  scanning dihedrals ...
+  18 = max dihedrals/atom
+  scanning impropers ...
+  2 = max impropers/atom
+  orthogonal box = (-27.5 -38.5 -36.3646) to (27.5 38.5 36.3615)
+  1 by 2 by 2 MPI processor grid
+  reading bonds ...
+  27723 bonds
+  reading angles ...
+  40467 angles
+  reading dihedrals ...
+  56829 dihedrals
+  reading impropers ...
+  1034 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+    12 = max # of 1-3 neighbors
+    24 = max # of 1-4 neighbors
+    26 = max # of special neighbors
+  special bonds CPU = 0.004 seconds
+  read_data CPU = 0.237 seconds
+
+fix             1 all ilves 0.0001 100 50 m 1.0 12 15 16 a 232 variant fast
+fix             2 all npt temp 300.0 300.0 100.0                 z 0.0 0.0 1000.0 mtk no pchain 0 tchain 1
+
+special_bonds   charmm
+
+thermo          50
+thermo_style    multi
+timestep        2.0
+
+run             100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix ilves command: https://doi.org/10.1021/acs.jctc.5c01376
+
+@Article{LopezVillellas2025,
+author = {L{\'o}pez-Villellas,  Lori{\'e}n and Mikkelsen,  Carl Christian Kjelgaard and Galano-Frutos,  Juan Jos{\'e} and Marco-Sola,  Santiago and Alastruey-Bened{\'e},  Jes{\'u}s and Ib{\'a}{\~n}ez,  Pablo and Echenique,  Pablo and Moret{\'o},  Miquel and {De Rosa},  Maria Cristina and Garc{\'i}a-Risue{\~n}o,  Pablo},
+title = {ILVES: Accurate and Efficient Bond Length and Angle Constraints in Molecular Dynamics},
+volume = {21},
+ISSN = {1549-9626},
+url = {http://dx.doi.org/10.1021/acs.jctc.5c01376},
+DOI = {10.1021/acs.jctc.5c01376},
+number = {18},
+journal = {Journal of Chemical Theory and Computation},
+publisher = {American Chemical Society (ACS)},
+year = {2025},
+month = sep,
+pages = {8711-8719}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.24883488
+  grid = 25 32 32
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.035547797
+  estimated relative force accuracy = 0.00010705113
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 13230 6400
+Generated 2278 of 2278 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 5 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 10 13 13
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/charmm/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Fix ilves info:
+  ILVES (fast, banded Cholesky) algorithm
+  17702 constraints/proc
+  4113 clusters/proc
+  113 max. constraints/cluster
+ILVES stats on step 0 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     4   1.3       2.92733e-06       20
+Bond:     5   1.365     4.01927e-08        7
+Bond:     6   1.345     1.61635e-06      327
+Bond:     7   1.23      2.77847e-07       15
+Bond:     8   1.375     1.23114e-06       72
+Bond:     9   1.368     2.26431e-08        5
+Bond:    12   1.08      3.18617e-07      252
+Bond:    18   1.23      1.26656e-07       27
+Bond:    19   1.26      1.47182e-07       24
+Bond:    20   1.34      2.56244e-06      198
+Bond:    21   1.502     2.98308e-06      396
+Bond:    22   1.1       2.43431e-07      396
+Bond:    23   1.522     2.80283e-06      200
+Bond:    24   1.22      2.93062e-06      200
+Bond:    25   1.334     2.98532e-06      198
+Bond:    26   1.818     4.29325e-08        2
+Bond:    27   1.527     5.28805e-07       20
+Bond:    29   1.434     3.44647e-07       20
+Bond:    30   1.537     1.3612e-07        20
+Bond:    34   1.455     2.38773e-07       20
+Bond:    35   1.36      3.76324e-08        6
+Bond:    37   1.083     8.41711e-09        6
+Bond:    39   1.07      1.61022e-09        6
+Bond:    40   1.32      6.38955e-09        6
+Bond:    41   1.4       4.0092e-08         5
+Bond:    43   1.375     3.06663e-08        5
+Bond:    46   1.081     0                  1
+Bond:    48   1.081     0                  1
+Bond:    50   1.081     0                  1
+Bond:    52   1.493     0                  1
+Bond:    54   1.081     0                  1
+Bond:    55   1.081     0                  1
+Bond:    59   1.5125    0                  1
+Bond:    63   1.081     0                  1
+Bond:    65   1.081     0                  1
+Bond:    66   1.4909    0                  1
+Bond:    70   1.111     9.76996e-15      108
+Bond:    71   1.08      5.19941e-07      305
+Bond:    72   1.43      1.09176e-06      304
+Bond:    73   1.48      0                  1
+Bond:    78   1.111     1.70974e-14      626
+Bond:    79   1.08      2.3779e-08        46
+Bond:    82   1.43      5.22326e-08       23
+Bond:    87   1.53      6.55131e-09        2
+Bond:    88   1.111     7.66572e-08      717
+Bond:    90   1.538     1.98473e-06      198
+Bond:    91   1.111     5.4797e-07        99
+Bond:    92   1.43      1.8864e-06        99
+Bond:    93   1.53      7.95231e-06     2501
+Bond:    94   1.528     1.37224e-06      200
+Bond:    95   1.111     2.79073e-06     6194
+Bond:    96   1.08      1.00206e-06      198
+Bond:    97   1.51      1.85605e-06       99
+Bond:    98   1.43      2.09869e-06      198
+Bond:    99   1.111     4.41657e-07      600
+Bond:   100   1.08      1.19653e-06      891
+Bond:   101   1.51      2.49625e-06      297
+Bond:   102   0.997     2.65091e-07      327
+Bond:   103   1         9.76996e-15       54
+Bond:   104   1         1.42663e-09       12
+Bond:   105   0.976     4.8113e-09         5
+Bond:   106   0.96      1.0103e-14        60
+Bond:   107   1         9.8576e-09        35
+Bond:   108   1.04      2.08722e-14       30
+Bond:   109   1.013     0                  1
+Bond:   110   1.325     2.44249e-15        6
+Bond:   112   0.9572    4.71094e-06     8466
+Bond:   113   1.48      5.84147e-07      198
+Bond:   114   1.6       5.49167e-06       99
+Angle:  232   104.5200  0.000987584     4115
+Cholesky: 4116 calls, 0 LU fallbacks (0%)
+Newton iter: avg 36.5, max 69 (over 2 solves x 4 ranks)
+Per MPI rank memory allocation (min/avg/max) = 49.83 | 49.96 | 50.24 Mbytes
+------------ Step              0 ----- CPU =            0 (sec) -------------
+TotEng   =    -27813.6128 KinEng   =     21444.8313 Temp     =       224.8288 
+PotEng   =    -49258.4441 E_bond   =        80.5869 E_angle  =     10921.3743 
+E_dihed  =      5211.7865 E_impro  =       213.5116 E_vdwl   =     -2307.8634 
+E_coul   =    207025.8934 E_long   =   -270403.7333 Press    =       934.8496 
+Volume   =    307995.0335
+ILVES stats on step 50 (type / ave / delta / count)
+  bonds: length (Angstrom); angles: value (degrees)
+Bond:     4   1.30011   0.000487494       20
+Bond:     5   1.36512   0.000318346        7
+Bond:     6   1.34514   0.0125357        327
+Bond:     7   1.23023   0.000390189       15
+Bond:     8   1.37512   0.000525815       72
+Bond:     9   1.36833   0.000261066        5
+Bond:    12   1.0801    0.00260591       252
+Bond:    18   1.23012   0.000430746       27
+Bond:    19   1.26009   0.000456887       24
+Bond:    20   1.34024   0.000515154      198
+Bond:    21   1.50218   0.000553302      396
+Bond:    22   1.10008   0.00281043       396
+Bond:    23   1.52223   0.000555222      200
+Bond:    24   1.22009   0.00047469       200
+Bond:    25   1.3341    0.000462642      198
+Bond:    26   1.81804   5.86722e-05        2
+Bond:    27   1.52716   0.000500898       20
+Bond:    29   1.43419   0.0004195         20
+Bond:    30   1.53727   0.000578352       20
+Bond:    34   1.45524   0.000411253       20
+Bond:    35   1.3601    0.000455519        6
+Bond:    37   1.08328   0.000759176        6
+Bond:    39   1.07028   0.000622014        6
+Bond:    40   1.32018   0.000407679        6
+Bond:    41   1.40015   0.000454396        5
+Bond:    43   1.37532   0.000373741        5
+Bond:    46   1.08111   0                  1
+Bond:    48   1.08119   0                  1
+Bond:    50   1.08129   0                  1
+Bond:    52   1.49312   0                  1
+Bond:    54   1.08111   0                  1
+Bond:    55   1.08097   0                  1
+Bond:    59   1.51251   0                  1
+Bond:    63   1.08102   0                  1
+Bond:    65   1.0809    0                  1
+Bond:    66   1.491     0                  1
+Bond:    70   1.11118   0.00211736       108
+Bond:    71   1.08012   0.00259123       305
+Bond:    72   1.43014   0.000843833      304
+Bond:    73   1.48011   0                  1
+Bond:    78   1.11114   0.00228407       626
+Bond:    79   1.08017   0.0015131         46
+Bond:    82   1.43013   0.000496704       23
+Bond:    87   1.53019   0.000338104        2
+Bond:    88   1.11111   0.0028027        717
+Bond:    90   1.53821   0.000551314      198
+Bond:    91   1.11108   0.0017479         99
+Bond:    92   1.43018   0.00046428        99
+Bond:    93   1.53022   0.000613614     2501
+Bond:    94   1.52819   0.000584361      200
+Bond:    95   1.11109   0.00371687      6194
+Bond:    96   1.0801    0.00193302       198
+Bond:    97   1.51022   0.000517892       99
+Bond:    98   1.43018   0.000505959      198
+Bond:    99   1.11113   0.00286441       600
+Bond:   100   1.08013   0.00266685       891
+Bond:   101   1.51015   0.000548781      297
+Bond:   102   0.997196  0.00334249       327
+Bond:   103   1.0001    0.00139145        54
+Bond:   104   0.999978  0.00124541        12
+Bond:   105   0.975843  0.000839593        5
+Bond:   106   0.960133  0.00161935        60
+Bond:   107   1.0001    0.001896          35
+Bond:   108   1.04009   0.00105997        30
+Bond:   109   1.01343   0                  1
+Bond:   110   1.32526   0.000193843        6
+Bond:   112   0.95732   0.0100223       8466
+Bond:   113   1.48012   0.000508613      198
+Bond:   114   1.60034   0.00053259        99
+Angle:  232   104.5378  0.853406        4184
+Cholesky: 8210 calls, 0 LU fallbacks (0%)
+Newton iter: avg 72.7, max 89 (over 49 solves x 4 ranks)
+------------ Step             50 ----- CPU =     5.608609 (sec) -------------
+TotEng   =    -15056.2726 KinEng   =     30074.5611 Temp     =       315.3034 
+PotEng   =    -45130.8337 E_bond   =        23.3504 E_angle  =     12305.0068 
+E_dihed  =      5444.7735 E_impro  =       449.9732 E_vdwl   =      -830.6253 
+E_coul   =    207800.9805 E_long   =   -270324.2928 Press    =      4423.2944 
+Volume   =    308606.1834
+ERROR on proc 0: Out of range atoms - cannot compute PPPM
+For more information see https://docs.lammps.org/err0004 (src/KSPACE/pppm.cpp:1893)

@@ -229,6 +229,13 @@ class FixIlves : public Fix {
   // output_every > 0 so the user sees how often we fall back to LU.
   bigint chol_calls, chol_fallbacks;
 
+  // Newton iteration count diagnostics, accumulated between stats() calls.
+  // newton_iter_sum = sum of iterations across all solve_constraints calls
+  // newton_iter_max = max iterations in any single solve
+  // newton_solve_count = number of solve_constraints calls
+  // The next stats() prints (ave, max) over this interval and resets.
+  bigint newton_iter_sum, newton_iter_max, newton_solve_count;
+
   // Topology-change safeguard.  Fix ilves builds the constraint list
   // from local bond/angle storage at init() and assumes it is frozen for
   // the duration of the run.  To catch silent mismatch when a concurrent
@@ -268,12 +275,56 @@ class FixIlves : public Fix {
   bool bond_is_constrained(tagint ta, tagint tb);
   int  lookup_local_bond_type(tagint ta, tagint tb);
 
+  // Refresh ilv_bond_* per-fix arrays from atom->bond_* and forward_comm
+  // the ghost-side entries.  Called from build_constraint_list at every
+  // reneighbor (cheap once-per-reneighbor cost, not per Newton iter).
+  void refresh_ilv_bond_data();
+
   // Optional stiff angle force applied to near-linear constrained angle
   // types when linear_angle_K > 0.  Uses E = K*(1 + cos(theta)), the
   // standard "cosine" angle form -- no 1/sin singularity at theta=180.
   // Replaces the user's angle_style for these angle types (the
   // angle_type is negated so angle_style->compute skips them).
   void apply_linear_angle_forces(int vflag);
+
+  // Schwarz overlap: ghost-side bond storage.  Without overlap each rank's
+  // local Jacobian misses off-diagonal couplings to constraints stored at
+  // remote endpoints, so Newton degenerates to slow Schwarz iteration on
+  // cross-rank clusters.  We refresh these arrays at every reneighbor by
+  // copying from atom->bond_* for local atoms and forward_comming to the
+  // ghost copies.  build_constraint_list then walks ALL atoms in halo
+  // (local + ghost) via these arrays, so each rank's constraint list
+  // includes bonds fully inside its halo (even ghost-only bonds) -- the
+  // Jacobian Schwarz subdomain overlaps by one ghost-shell layer with
+  // neighbor ranks.
+  int    *ilv_num_bond;        // per-atom bond count for local + ghosts
+  tagint *ilv_bond_atom;       // [nmax * ilv_bond_per_atom] partner tags
+  int    *ilv_bond_type;       // [nmax * ilv_bond_per_atom] bond types
+  int     ilv_bond_per_atom;   // size of inner dimension
+  int     ilv_nmax_alloc;      // current outer (nmax) allocation
+  void grow_ilv_bond(int nmax);
+
+  // Warm-start of c_lambda from the previous step.  Constraint indexing
+  // is stable between reneighbor calls, so storing c_lambda by index is
+  // safe within a reneighbor window.  build_constraint_list() resets
+  // lambda_warm_valid to 0 on reneighbor; solve_constraints() sets it to
+  // 1 after a successful Newton convergence.  When valid, the next call
+  // initializes c_lambda from the saved values (skip the zeroing) and
+  // applies the corresponding xshake correction before the Newton loop.
+  //
+  // Off by default (preserves bit-reproducibility against the YAML
+  // reference set).  Enable with 'warmstart yes' in the fix command:
+  // changes the iteration path and produces ULP-level (~5e-11) trajectory
+  // differences vs cold-start over 100 steps, but cuts iter counts in
+  // multi-rank Schwarz runs.
+  int lambda_warm_valid;
+  int warmstart_enabled;
+
+  // Newton-update damping factor.  Default 1.0 (no damping).  Lower
+  // values reduce |dlambda| applied per iteration -- useful when
+  // Schwarz iterations between ranks oscillate.  Set via the optional
+  // 'relax' keyword in the fix command.
+  double newton_relax;
 
   // Per-fix force buffer used by the stiff angle path under newton on
   // bond.  Sized to nmax * 3.  In apply_linear_angle_forces we write the

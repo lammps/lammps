@@ -540,11 +540,18 @@ void FixIlves::init()
       angle_linear[at] = 1;
       ++n_linear;
     }
-    if (n_linear && comm->me == 0)
-      utils::logmesg(lmp,
-                     "Fix ilves: skipping AC virtual constraint for {} near-linear angle "
-                     "type(s) (theta_0 >= {} deg); the angle force-field term remains active "
-                     "for these angles\n", n_linear, linear_threshold);
+    if (n_linear && (comm->me == 0)) {
+      if (linear_angle_K > 0.0)
+        utils::logmesg(lmp,
+                       "Fix ilves: skipping AC virtual constraint for {} near-linear angle "
+                       "type(s) (theta_0 >= {} deg); using a cosine/delta angle potential with "
+                       "K_theta = {} instead\n", n_linear, linear_threshold, linear_angle_K);
+      else
+        utils::logmesg(lmp,
+                       "Fix ilves: skipping AC virtual constraint for {} near-linear angle "
+                       "type(s) (theta_0 >= {} deg); the original angle force-field term "
+                       "remains active for these angles\n", n_linear, linear_threshold);
+    }
   } else {
     for (int at = 1; at <= atom->nangletypes; ++at) angle_linear[at] = 0;
   }

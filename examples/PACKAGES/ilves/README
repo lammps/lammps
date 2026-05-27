@@ -20,8 +20,7 @@ Two solver variants are available via the *variant* keyword:
   * variant = fast (default): symmetric Jacobian using r_k.r_l in
     off-diagonals; solved with banded Cholesky on an RCM-permuted
     matrix, and the factor is cached and reused across Newton
-    iterations within a step.  Up to ~5x faster than the full variant
-    on the all-backbone polymer / protein benchmark.
+    iterations within a step.
   * variant = full: the structurally-symmetric exact Newton Jacobian
     using s_k.r_l in off-diagonals; solved with LU.  Required when
     the constraint geometry has degenerate clusters that the
@@ -55,5 +54,4 @@ Example input files:
   in.rhodo-allbonds   -- rhodopsin with all bonds + water angle
   in.bulk_co2         -- bulk CO2 fluid (rigid linear; see comments in manual
                          for caveats on exactly-180 deg symmetric angles)
-  in.cg-polymer       -- coarse-grain polymer chains with near-180 deg
-                         backbone angles
+  in.cg-polymer       -- coarse-grain polymer chains with 180 deg backbone angles

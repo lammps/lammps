@@ -9,7 +9,7 @@ boundary        p p p
 
 pair_style      lj/cut 4.0
 bond_style      harmonic
-angle_style     cosine
+angle_style     cosine/squared
 
 read_data data.cg-polymers
 Reading data file ...
@@ -38,6 +38,15 @@ Finding 1-2 1-3 1-4 neighbors ...
      6 = max # of special neighbors
   special bonds CPU = 0.000 seconds
   read_data CPU = 0.008 seconds
+
+pair_coeff 1 1 1.0 1.0
+pair_coeff 2 2 1.2 1.5
+
+bond_coeff 1 100 1
+bond_coeff 2 150 1.2
+
+angle_coeff 1  500.0 180.0
+angle_coeff 2 1000.0 180.0
 
 neighbor        0.5 bin
 neigh_modify    every 1 delay 0 check yes
@@ -91,31 +100,31 @@ Neighbor list info ...
       bin: standard
 Per MPI rank memory allocation (min/avg/max) = 8.479 | 8.479 | 8.479 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
-         0   1.6938621     -756.82909      590.92347      2.5379575      593.46143    
-       100   1.6938621      35.946795      12.625949      2.5379575      15.163906    
-Loop time of 0.56705 on 1 procs for 100 steps with 896 atoms
+         0   1.6938621     -756.82909      572.45401      2.5379575      574.99197    
+       100   1.6938621     -39.950992     -4.627065       2.5379575     -2.0891075    
+Loop time of 0.752795 on 1 procs for 100 steps with 896 atoms
 
 99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = max iterations
   Energy initial, next-to-last, final = 
-      590.923472251375   12.6260458804427   12.6259485809398
-  Force two-norm initial, final = 64428630 19722.926
-  Force max component initial, final = 15741922 3035.3597
-  Final line search alpha, max atom move = 6.6007714e-07 0.0020035716
-  Iterations, force evaluations = 100 649
+      572.454009182652  -4.62656756079217  -4.62706501560875
+  Force two-norm initial, final = 64428642 31728.015
+  Force max component initial, final = 15742050 6647.2244
+  Final line search alpha, max atom move = 8.5422144e-07 0.0056782016
+  Iterations, force evaluations = 100 858
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.54306    | 0.54306    | 0.54306    |   0.0 | 95.77
-Bond    | 0.0057787  | 0.0057787  | 0.0057787  |   0.0 |  1.02
+Pair    | 0.71726    | 0.71726    | 0.71726    |   0.0 | 95.28
+Bond    | 0.012099   | 0.012099   | 0.012099   |   0.0 |  1.61
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0050651  | 0.0050651  | 0.0050651  |   0.0 |  0.89
-Output  | 1.9096e-05 | 1.9096e-05 | 1.9096e-05 |   0.0 |  0.00
-Modify  | 0.0095246  | 0.0095246  | 0.0095246  |   0.0 |  1.68
-Other   |            | 0.003605   |            |       |  0.64
+Comm    | 0.0067243  | 0.0067243  | 0.0067243  |   0.0 |  0.89
+Output  | 3.0659e-05 | 3.0659e-05 | 3.0659e-05 |   0.0 |  0.00
+Modify  | 0.012257   | 0.012257   | 0.012257   |   0.0 |  1.63
+Other   |            | 0.004423   |            |       |  0.59
 
 Nlocal:            896 ave         896 max         896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -147,49 +156,49 @@ Fix ilves info:
   7 max. constraints/cluster
 ILVES stats on step 0 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
-Bond:     1   1         1.36557e-14      448
-Bond:     2   1.2       1.57652e-14      320
+Bond:     1   1         1.45439e-14      448
+Bond:     2   1.2       1.64313e-14      320
 Cholesky: 128 calls, 0 LU fallbacks (0%)
 Per MPI rank memory allocation (min/avg/max) = 7.354 | 7.354 | 7.354 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
-         0   2.3724673      43.352169      12.625843      2.5379575      15.1638      
-       100   6.0284718      23.518668      1.9625296      6.4489846      8.4115142    
-       200   3.8016988      10.716148     -0.50421216     4.0668843      3.5626721    
-       300   2.5461084      12.775948     -1.8638682      2.7237108      0.8598426    
-       400   1.9813731      9.1304667     -2.7863888      2.1195827     -0.66680604   
-       500   1.5494784      11.703469     -3.206686       1.6575615     -1.5491246    
-       600   1.4094521      5.8877779     -3.5249288      1.5077677     -2.0171611    
-       700   1.304785       8.4074037     -3.5556182      1.3957996     -2.1598185    
-       800   1.4458866      5.4221917     -3.5602645      1.5467437     -2.0135208    
-       900   1.5841978      10.613663     -3.4612237      1.6947027     -1.766521     
-      1000   1.6149551      6.086261      -3.4033025      1.7276054     -1.6756971    
-Loop time of 1.04795 on 1 procs for 1000 steps with 896 atoms
+         0   2.3724673      5.939554      -4.6277141      2.5379575     -2.0897566    
+       100   2.1550493      5.2293191     -4.9214614      2.3053736     -2.6160878    
+       200   1.8405276      5.989521      -5.1657181      1.9689126     -3.1968054    
+       300   1.60265        2.0681104     -5.34465        1.714442      -3.630208     
+       400   1.5102113      6.078125      -5.5362124      1.6155553     -3.9206571    
+       500   1.4114225      5.9852111     -5.5688998      1.5098755     -4.0590244    
+       600   1.3761251      6.0891023     -5.5341611      1.472116      -4.0620451    
+       700   1.4835544      4.9291602     -5.4891749      1.5870389     -3.902136     
+       800   1.5856429      3.7111702     -5.4582653      1.6962486     -3.7620167    
+       900   1.5027188      3.9022766     -5.4021171      1.6075402     -3.794577     
+      1000   1.4218626      6.8575573     -5.4759813      1.5210439     -3.9549375    
+Loop time of 1.04195 on 1 procs for 1000 steps with 896 atoms
 
-Performance: 412231.726 tau/day, 954.240 timesteps/s, 854.999 katom-step/s
+Performance: 414608.410 tau/day, 959.742 timesteps/s, 859.929 katom-step/s
 99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.66638    | 0.66638    | 0.66638    |   0.0 | 63.59
-Bond    | 0.0079256  | 0.0079256  | 0.0079256  |   0.0 |  0.76
-Neigh   | 0.18035    | 0.18035    | 0.18035    |   0.0 | 17.21
-Comm    | 0.011099   | 0.011099   | 0.011099   |   0.0 |  1.06
-Output  | 0.00010946 | 0.00010946 | 0.00010946 |   0.0 |  0.01
-Modify  | 0.17949    | 0.17949    | 0.17949    |   0.0 | 17.13
-Other   |            | 0.002596   |            |       |  0.25
+Pair    | 0.66321    | 0.66321    | 0.66321    |   0.0 | 63.65
+Bond    | 0.01422    | 0.01422    | 0.01422    |   0.0 |  1.36
+Neigh   | 0.16331    | 0.16331    | 0.16331    |   0.0 | 15.67
+Comm    | 0.01079    | 0.01079    | 0.01079    |   0.0 |  1.04
+Output  | 0.00011453 | 0.00011453 | 0.00011453 |   0.0 |  0.01
+Modify  | 0.18787    | 0.18787    | 0.18787    |   0.0 | 18.03
+Other   |            | 0.002435   |            |       |  0.23
 
 Nlocal:            896 ave         896 max         896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:           4156 ave        4156 max        4156 min
+Nghost:           4167 ave        4167 max        4167 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:          94497 ave       94497 max       94497 min
+Neighs:          94679 ave       94679 max       94679 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 94497
-Ave neighs/atom = 105.4654
+Total # of neighbors = 94679
+Ave neighs/atom = 105.66853
 Ave special neighs/atom = 4.2857143
-Neighbor list builds = 88
+Neighbor list builds = 81
 Dangerous builds = 0
 
 

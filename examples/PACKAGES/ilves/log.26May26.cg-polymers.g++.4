@@ -9,7 +9,7 @@ boundary        p p p
 
 pair_style      lj/cut 4.0
 bond_style      harmonic
-angle_style     cosine
+angle_style     cosine/squared
 
 read_data data.cg-polymers
 Reading data file ...
@@ -37,7 +37,16 @@ Finding 1-2 1-3 1-4 neighbors ...
      4 = max # of 1-4 neighbors
      6 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.009 seconds
+  read_data CPU = 0.008 seconds
+
+pair_coeff 1 1 1.0 1.0
+pair_coeff 2 2 1.2 1.5
+
+bond_coeff 1 100 1
+bond_coeff 2 150 1.2
+
+angle_coeff 1  500.0 180.0
+angle_coeff 2 1000.0 180.0
 
 neighbor        0.5 bin
 neigh_modify    every 1 delay 0 check yes
@@ -91,31 +100,31 @@ Neighbor list info ...
       bin: standard
 Per MPI rank memory allocation (min/avg/max) = 8.357 | 8.358 | 8.359 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
-         0   1.6938621      750.22301      450.77624      2.5379575      453.3142     
-        54   1.6938621      35.833061      13.92167       2.5379575      16.459627    
-Loop time of 0.0764628 on 4 procs for 54 steps with 896 atoms
+         0   1.6938621      750.22301      432.30677      2.5379575      434.84473    
+        65   1.6938621      38.430818     -4.5370988      2.5379575     -1.9991413    
+Loop time of 0.0944447 on 4 procs for 65 steps with 896 atoms
 
-99.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+99.0% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
   Energy initial, next-to-last, final = 
-      450.776237962729    13.921669795933    13.921669795933
-  Force two-norm initial, final = 55911201 90496.157
-  Force max component initial, final = 15741922 23389.076
-  Final line search alpha, max atom move = 8.5295304e-14 1.9949784e-09
-  Iterations, force evaluations = 54 468
+      432.306774894007  -4.53709878979316  -4.53709878979316
+  Force two-norm initial, final = 55911201 187936.68
+  Force max component initial, final = 15742050 72708.449
+  Final line search alpha, max atom move = 2.2915223e-16 1.6661303e-11
+  Iterations, force evaluations = 65 583
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.053515   | 0.057838   | 0.062479   |   1.3 | 75.64
-Bond    | 0.0011129  | 0.0011937  | 0.0012817  |   0.2 |  1.56
+Pair    | 0.064753   | 0.071568   | 0.07612    |   1.6 | 75.78
+Bond    | 0.0021472  | 0.0022595  | 0.0024556  |   0.3 |  2.39
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0090722  | 0.013689   | 0.017971   |   2.7 | 17.90
+Comm    | 0.011351   | 0.016072   | 0.022877   |   3.4 | 17.02
 Output  | 0          | 0          | 0          |   0.0 |  0.00
-Modify  | 0.0018951  | 0.0020237  | 0.0021301  |   0.2 |  2.65
-Other   |            | 0.001718   |            |       |  2.25
+Modify  | 0.0023603  | 0.0024746  | 0.0026815  |   0.3 |  2.62
+Other   |            | 0.00207    |            |       |  2.19
 
 Nlocal:            224 ave         240 max         217 min
 Histogram: 2 1 0 0 0 0 0 0 0 1
@@ -147,49 +156,49 @@ Fix ilves info:
   7 max. constraints/cluster
 ILVES stats on step 0 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
-Bond:     1   1         1.35447e-14      448
-Bond:     2   1.2       1.59872e-14      320
+Bond:     1   1         3.01981e-14      448
+Bond:     2   1.2       4.95159e-14      320
 Cholesky: 58 calls, 0 LU fallbacks (0%)
 Per MPI rank memory allocation (min/avg/max) = 7.232 | 7.233 | 7.234 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
-         0   2.3724673      47.520396      13.920642      2.5379575      16.458599    
-       100   6.2368125      17.732265      2.2593594      6.671858       8.9312175    
-       200   3.8164988      15.622126     -0.37877332     4.0827167      3.7039433    
-       300   2.6121612      12.592946     -1.9159838      2.7943711      0.8783873    
-       400   2.0083872      10.161402     -2.8598614      2.1484811     -0.71138032   
-       500   1.533376       10.27936      -3.2325748      1.6403359     -1.5922389    
-       600   1.3585177      9.4380295     -3.5146495      1.4532803     -2.0613692    
-       700   1.3385809      9.5688979     -3.6174239      1.4319529     -2.1854711    
-       800   1.3994699      9.3752547     -3.4856439      1.4970892     -1.9885547    
-       900   1.5935123      9.323345      -3.3579015      1.7046669     -1.6532346    
-      1000   1.6675221      10.048441     -3.2837139      1.7838392     -1.4998747    
-Loop time of 0.315096 on 4 procs for 1000 steps with 896 atoms
+         0   2.3724673      6.3890744     -4.5437037      2.5379575     -2.0057463    
+       100   2.1703234      5.9998671     -4.9029069      2.3217132     -2.5811937    
+       200   1.8324884      6.1311537     -5.1402945      1.9603127     -3.1799818    
+       300   1.5797266      5.6798996     -5.322098       1.6899196     -3.6321784    
+       400   1.5709468      4.3568599     -5.6009794      1.6805274     -3.920452     
+       500   1.398458       4.7200679     -5.5581485      1.4960067     -4.0621418    
+       600   1.4448477      4.571271      -5.5754154      1.5456322     -4.0297831    
+       700   1.4921161      4.6204569     -5.480631       1.5961978     -3.8844331    
+       800   1.5936346      4.4821897     -5.4857807      1.7047977     -3.780983     
+       900   1.544442       5.0112281     -5.4702692      1.6521737     -3.8180955    
+      1000   1.5049071      4.6903581     -5.5245901      1.6098811     -3.914709     
+Loop time of 0.309998 on 4 procs for 1000 steps with 896 atoms
 
-Performance: 1371012.705 tau/day, 3173.641 timesteps/s, 2.844 Matom-step/s
-99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 1393555.135 tau/day, 3225.822 timesteps/s, 2.890 Matom-step/s
+99.1% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.10557    | 0.11174    | 0.11663    |   1.2 | 35.46
-Bond    | 0.0019655  | 0.0021199  | 0.002263   |   0.3 |  0.67
-Neigh   | 0.048016   | 0.048018   | 0.048019   |   0.0 | 15.24
-Comm    | 0.020564   | 0.025308   | 0.031342   |   2.4 |  8.03
-Output  | 7.5944e-05 | 8.9599e-05 | 0.00011973 |   0.0 |  0.03
-Modify  | 0.12506    | 0.12544    | 0.12607    |   0.1 | 39.81
-Other   |            | 0.002377   |            |       |  0.75
+Pair    | 0.097563   | 0.10909    | 0.11709    |   2.2 | 35.19
+Bond    | 0.0034848  | 0.0037276  | 0.0040874  |   0.4 |  1.20
+Neigh   | 0.044868   | 0.044869   | 0.044871   |   0.0 | 14.47
+Comm    | 0.019958   | 0.028252   | 0.040118   |   4.4 |  9.11
+Output  | 8.353e-05  | 9.5366e-05 | 0.00011997 |   0.0 |  0.03
+Modify  | 0.12008    | 0.12136    | 0.12206    |   0.2 | 39.15
+Other   |            | 0.002607   |            |       |  0.84
 
-Nlocal:            224 ave         240 max         208 min
-Histogram: 1 0 0 0 1 1 0 0 0 1
-Nghost:         2285.5 ave        2306 max        2262 min
-Histogram: 1 0 0 0 0 1 1 0 0 1
-Neighs:        23628.8 ave       25372 max       22496 min
-Histogram: 1 1 0 0 1 0 0 0 0 1
+Nlocal:            224 ave         244 max         214 min
+Histogram: 1 1 1 0 0 0 0 0 0 1
+Nghost:         2296.5 ave        2333 max        2254 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+Neighs:        23613.5 ave       25887 max       21865 min
+Histogram: 1 0 0 2 0 0 0 0 0 1
 
-Total # of neighbors = 94515
-Ave neighs/atom = 105.48549
+Total # of neighbors = 94454
+Ave neighs/atom = 105.41741
 Ave special neighs/atom = 4.2857143
-Neighbor list builds = 87
+Neighbor list builds = 81
 Dangerous builds = 0
 
 

@@ -6,9 +6,18 @@ boundary        p p p
 
 pair_style      lj/cut 4.0
 bond_style      harmonic
-angle_style     cosine
+angle_style     cosine/squared
 
 read_data data.cg-polymers
+
+pair_coeff 1 1 1.0 1.0
+pair_coeff 2 2 1.2 1.5
+
+bond_coeff 1 100 1
+bond_coeff 2 150 1.2
+
+angle_coeff 1  500.0 180.0
+angle_coeff 2 1000.0 180.0
 
 neighbor        0.5 bin
 neigh_modify    every 1 delay 0 check yes

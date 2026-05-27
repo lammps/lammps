@@ -84,10 +84,24 @@ class FixSymmetryPython(unittest.TestCase):
             self.lmp.command(c)
 
     def _gather_positions(self):
-        """Return positions as a dict: {tag (1-based int): (x, y, z)}."""
+        """Return positions as a dict: {tag (1-based int): (x, y, z)}.
+
+        Uses extract_atom() rather than gather_atoms() so the test works
+        under -DLAMMPS_BIGBIG (where the C gather_atoms function aborts
+        because its tag buffer is sized for 4-byte ints). Tests are run
+        serial, so nlocal == natoms and one pass covers every atom.
+        """
         n = self.lmp.get_natoms()
-        flat = self.lmp.gather_atoms("x", 1, 3)  # gathered, sorted by tag
-        return {i + 1: (flat[3 * i], flat[3 * i + 1], flat[3 * i + 2]) for i in range(n)}
+        tag = self.lmp.extract_atom("id")
+        x = self.lmp.extract_atom("x", LAMMPS_DOUBLE_2D)
+        return {tag[i]: (x[i][0], x[i][1], x[i][2]) for i in range(n)}
+
+    def _gather_forces(self):
+        """Return forces as a dict: {tag (1-based int): (fx, fy, fz)}."""
+        n = self.lmp.get_natoms()
+        tag = self.lmp.extract_atom("id")
+        f = self.lmp.extract_atom("f", LAMMPS_DOUBLE_2D)
+        return {tag[i]: (f[i][0], f[i][1], f[i][2]) for i in range(n)}
 
     # --------------------------------------------------------------------
 
@@ -155,8 +169,7 @@ class FixSymmetryPython(unittest.TestCase):
         # run 0 still executes setup() which calls post_force/end_of_step
         self.lmp.command("run 0")
 
-        flat = self.lmp.gather_atoms("f", 1, 3)
-        f = {i + 1: (flat[3 * i], flat[3 * i + 1], flat[3 * i + 2]) for i in range(8)}
+        f = self._gather_forces()
         for asym in (1, 2, 3, 4):
             image = asym + 4
             for k in range(3):

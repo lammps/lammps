@@ -167,11 +167,10 @@ void SymmetryGroup::populate(const json &data)
         if (!jR[i].is_array() || jR[i].size() != 3)
           throw std::runtime_error("op " + std::to_string(o + 1) + ": R row must have 3 entries");
         for (int j = 0; j < 3; ++j) {
-          const auto rstr = std::to_string(jR[i][j].get<double>());
-          if (!utils::is_integer(rstr))
-            throw std::runtime_error(
-                "op " + std::to_string(o + 1) + ": R should be an integer but got " + rstr);
-          ops[o].R[i][j] = std::stod(rstr);
+          const auto rval = jR[i][j].get<double>();
+          if (std::fabs(rval - std::round(rval)) > R_INT_TOL)
+            throw std::runtime_error(fmt::format("op {}: R should be an integer but got {:.10g}", o + 1, rval));
+          ops[o].R[i][j] = rval;
         }
 
         ops[o].t[i] = get_t_value(jt[i]);

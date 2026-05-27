@@ -2585,15 +2585,16 @@ void FixIlves::end_of_step()
   }
 
   // forward-communicate atom->v so ghost velocities reflect the values
-  // just-set on the owning rank's final_integrate.  Without this, ghost
-  // v is stale (last value before exchange), and the cross-rank velocity
-  // projection in correct_velocities computes inconsistent multipliers
-  // on partner ranks, injecting energy step by step.
-  if (comm->nprocs > 1) {
-    comm_mode = 1;
-    comm->forward_comm(this);
-    comm_mode = 0;
-  }
+  // just-set on the owning rank's final_integrate.  Needed at every
+  // rank count -- not only for MPI ghosts but also for PBC self-images
+  // at np == 1.  Some constraints have c_atom2 pointing at a PBC ghost
+  // (closest_image returned a ghost index); without this, correct_velocities
+  // reads a stale v[ghost] from the last forward_comm of v (typically none
+  // since LAMMPS routinely forward_comms positions, not velocities) and
+  // the projection injects energy step by step.
+  comm_mode = 1;
+  comm->forward_comm(this);
+  comm_mode = 0;
 
   correct_velocities();
 }

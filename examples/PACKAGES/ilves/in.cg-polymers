@@ -6,16 +6,26 @@ boundary        p p p
 
 pair_style      lj/cut 4.0
 bond_style      harmonic
-angle_style     harmonic
+angle_style     cosine
+
 read_data data.cg-polymers
 
 neighbor        0.5 bin
 neigh_modify    every 1 delay 0 check yes
-timestep        0.001
 thermo          100
 thermo_style    custom step temp press pe ke etotal
 
-fix             cstr all ilves 1.0e-6 30 500 b 1 2 # a 1 2 linearangle 160 0.2
-fix             move all npt temp 1.5 1.5 10.0 iso 1.0 1.0 100.0
+fix             cstr all ilves 1.0e-6 30 5000 b 1 2 a 1 2 # angle constraint should be skipped
+fix             move all nvt temp 1.5 1.5 0.5
 
-run             3000
+minimize 0 0 100 1000
+reset_timestep 0
+
+#dump viz all image 1000 myimage-*.png type type size 600 600 zoom 1 shiny 0.6 fsaa no bond atom type view 60 30 box yes 0.025 subbox no 0.0 axes no 0.0 0.0 center s 0.5 0.5 0.5
+
+#dump_modify viz pad 9 color red 1 0 0 color forestgreen 0.133333 0.545098 0.133333 color blue 0 0 1 color gold 1 0.843137 0 color cyan 0 1 1 color magenta 1 0 1 color silver 0.431373 0.431373 0.431373 color orange 1 0.501961 0 color lime 0 1 0 color gray 0.501961 0.501961 0.501961 color darkred 0.545098 0 0 color darkgreen 0 0.392157 0 color darkblue 0 0 0.545098 color darkcyan 0 0.545098 0.545098 color darkmagenta 0.545098 0 0.545098 color darkgray 0.270588 0.270588 0.270588 acolor 1 red acolor 2 forestgreen boxcolor yellow backcolor black backcolor2 white axestrans 1 boxtrans 1 atrans * 1 lights 0 0.9 0.45 0.9 adiam 1 0.5 adiam 2 0.75 color map1 0.000 0.227 0.427 color map2 0.459 0.055 0.075 amap min max cf 0.0 3 min map1 0.5 white max map2
+
+run             1000
+
+
+

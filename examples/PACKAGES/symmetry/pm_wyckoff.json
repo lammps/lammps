@@ -1,0 +1,19 @@
+{
+  "_comment": "Space group Pm (No. 6): identity + y-mirror. Two orbits:",
+  "_comment2": "orbit 1 is a general-position pair (tags 1 and 2 are mirror images);",
+  "_comment3": "orbit 2 is a single atom (tag 3) sitting on the y=0 mirror plane,",
+  "_comment4": "declared via site_symmetry: [2] (op 2 fixes the asym atom).",
+
+  "group_name": "Pm",
+  "lattice":    "triclinic",
+
+  "ops": [
+    { "R": [[1, 0, 0], [0,  1, 0], [0, 0, 1]], "t": [0, 0, 0] },
+    { "R": [[1, 0, 0], [0, -1, 0], [0, 0, 1]], "t": [0, 0, 0] }
+  ],
+
+  "orbits": [
+    { "tags": [1, 2] },
+    { "tags": [3, 3], "site_symmetry": [2] }
+  ]
+}

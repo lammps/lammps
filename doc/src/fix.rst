@@ -434,6 +434,7 @@ accelerated styles exist.
 * :doc:`srd <fix_srd>` - stochastic rotation dynamics (SRD)
 * :doc:`store/force <fix_store_force>` - store force on each atom
 * :doc:`store/state <fix_store_state>` - store attributes for each atom
+* :doc:`symmetry <fix_symmetry>` - constrain MD to obey a chosen crystallographic space-group symmetry
 * :doc:`tdpd/source <fix_dpd_source>` - add external concentration source
 * :doc:`temp/berendsen <fix_temp_berendsen>` - temperature control by Berendsen thermostat
 * :doc:`temp/csld <fix_temp_csvr>` - canonical sampling thermostat with Langevin dynamics

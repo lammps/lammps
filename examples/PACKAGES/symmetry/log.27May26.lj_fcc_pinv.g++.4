@@ -1,0 +1,128 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1074-g7f680de296-modified)
+  using 1 OpenMP thread(s) per MPI task
+# Adapted from examples/melt/in.melt -- 256-atom LJ FCC crystal constrained
+# to P-1 (inversion through the cell origin) by fix symmetry. Demonstrates
+# the fix on a representative crystalline system, including 124 general
+# inversion pairs and 8 Wyckoff atoms sitting on inversion centers.
+#
+# The companion files data.fcc_pinv and fcc_pinv.json are produced by the
+# helper script generate_fcc_pinv.py. Re-run it to scale the system to
+# different (nx, ny, nz) or lattice parameter.
+
+units           lj
+atom_style      atomic
+atom_modify     map array
+
+read_data       data.fcc_pinv
+Reading data file ...
+  orthogonal box = (0 0 0) to (6.3496 6.3496 6.3496)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  256 atoms
+  read_data CPU = 0.001 seconds
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
+
+neighbor        0.3 bin
+neigh_modify    every 20 delay 0 check no
+
+velocity        all create 1.5 87287 loop geom
+
+fix             1 all nve
+fix             sym all symmetry fcc_pinv.json
+
+thermo          50
+thermo_style    custom step temp pe etotal press
+
+# Sanity check via two representative orbits: a general pair (tags 2 and
+# 62 are inversion-related per fcc_pinv.json) and a Wyckoff atom (tag 1
+# at the cell origin, fixed by the inversion).
+#
+# For each component k, (x_asym + x_image) / L must be an integer at every
+# step -- the integer captures the periodic image the user placed the pair
+# in initially. Drift away from an integer would indicate symmetry breaking.
+variable        modx  equal (x[2]+x[62])/lx-round((x[2]+x[62])/lx)
+variable        mody  equal (y[2]+y[62])/ly-round((y[2]+y[62])/ly)
+variable        modz  equal (z[2]+z[62])/lz-round((z[2]+z[62])/lz)
+variable        wy1x  equal x[1]
+variable        wy1y  equal y[1]
+variable        wy1z  equal z[1]
+
+print           "pre-run  pair residual=(${modx},${mody},${modz})  Wyckoff atom 1=(${wy1x},${wy1y},${wy1z})"
+pre-run  pair residual=(2.22044604925031e-16,2.22044604925031e-16,0)  Wyckoff atom 1=(0,0,0)
+run             250
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix symmetry: https://doi.org/10.1021/acs.jctc.2c00401
+
+@Article{WhiteCoxSymmetricMD,
+author = {Cox, Sam and White, Andrew D.},
+title = {Symmetric Molecular Dynamics},
+journal = {Journal of Chemical Theory and Computation},
+volume = {18},
+number = {7},
+pages = {4077-4081},
+year = {2022},
+doi = {10.1021/acs.jctc.2c00401},
+note ={PMID: 35699649},
+url = {https://doi.org/10.1021/acs.jctc.2c00401},
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 20 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.6 | 2.6 | 2.6 Mbytes
+   Step          Temp          PotEng         TotEng         Press     
+         0   0.76412777    -7.7615949     -6.6198805     -2.6323541    
+        50   0.41660738    -7.3264011     -6.7039311     -0.18126222   
+       100   0.36438509    -7.2481358     -6.7036933      0.18610876   
+       150   0.40363122    -7.3060329     -6.7029511     -0.11199759   
+       200   0.39013483    -7.2851276     -6.7022113     -0.019341176  
+       250   0.4006318     -7.303542      -6.7049418     -0.062015576  
+Loop time of 0.00957624 on 4 procs for 250 steps with 256 atoms
+
+Performance: 11277909.890 tau/day, 26106.273 timesteps/s, 6.683 Matom-step/s
+92.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0031737  | 0.0034293  | 0.0038852  |   0.5 | 35.81
+Neigh   | 0.00082317 | 0.00083363 | 0.00085578 |   0.0 |  8.71
+Comm    | 0.0026968  | 0.0032947  | 0.0037764  |   0.7 | 34.41
+Output  | 1.6261e-05 | 2.2115e-05 | 3.2653e-05 |   0.0 |  0.23
+Modify  | 0.0016769  | 0.0019106  | 0.0021026  |   0.4 | 19.95
+Other   |            | 8.585e-05  |            |       |  0.90
+
+Nlocal:             64 ave          70 max          58 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:            843 ave         849 max         837 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:           2705 ave        3002 max        2442 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+
+Total # of neighbors = 10820
+Ave neighs/atom = 42.265625
+Neighbor list builds = 12
+Dangerous builds not checked
+print           "post-run pair residual=(${modx},${mody},${modz})  Wyckoff atom 1=(${wy1x},${wy1y},${wy1z})"
+post-run pair residual=(0,0,2.22044604925031e-16)  Wyckoff atom 1=(0,0,0)
+print           "(residuals must be ~1e-12; Wyckoff atom 1 must stay at (0,0,0))"
+(residuals must be ~1e-12; Wyckoff atom 1 must stay at (0,0,0))
+Total wall time: 0:00:00

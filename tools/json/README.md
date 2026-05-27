@@ -13,6 +13,7 @@ The following files are currently available.
 - `molecule-schema.json`  Schema file for JSON-format molecule files.
 - `dump-molecules-schema.json`  Schema file for the 'dump' format in the 'molecules' style.
 - `color-schema.json` Schema file for the colors and lights file used by 'dump image/movie' and in LAMMPS-GUI
+- `fix-symmetry-schema.json` Schema file for the symmetry-data files consumed by 'fix symmetry'. Validates the lattice family, the list of affine operators, and the orbit / Wyckoff site declarations.
 
 These files provide a concise description of the hierarchy and supported fields
 in JSON file formats.  Thus they provide a detailed documentation and can also
@@ -34,6 +35,9 @@ pip install check-jsonschema
 
 # Validation of two molecule files "rxn1.json" and "twomols.json" with "molecule-schema.json"
 check-jsonschema --schemafile molecule-schema.json rxn1.json twomols.json
+
+# Validation of a fix-symmetry data file "p1.json" with "fix-symmetry-schema.json"
+check-jsonschema --schemafile fix-symmetry-schema.json p1.json
 ```
 
 If the files are conforming there should be the output:
@@ -60,4 +64,4 @@ g++ -I <path/to/lammps/src> -o reformat-json reformat-json.cpp
 
 -------
 
-updated by Axel Kohlmeyer, 2025-05-23
+updated by Axel Kohlmeyer, 2026-05-27

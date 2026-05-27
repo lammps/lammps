@@ -1,0 +1,78 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://download.lammps.org/json/fix-symmetry-schema.json",
+    "title": "JSON schema for LAMMPS fix symmetry data files",
+    "description": "Version 0.1; last updated 2026-05-27",
+    "type": "object",
+    "required": ["lattice", "ops", "orbits"],
+    "additionalProperties": true,
+    "properties": {
+        "group_name": {
+            "type": "string",
+            "description": "Optional descriptive name of the space group (e.g. 'P-1', 'Pm', 'Fm-3m'). Not interpreted by the fix."
+        },
+        "lattice": {
+            "description": "Bravais lattice family the simulation box must satisfy.",
+            "enum": ["triclinic", "monoclinic", "orthorhombic", "tetragonal", "hexagonal", "trigonal", "cubic"]
+        },
+        "ops": {
+            "description": "List of affine operators (R, t) acting on fractional coordinates: s' = R*s + t. The first entry must be the identity {R = I, t = 0}.",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": ["R", "t"],
+                "additionalProperties": false,
+                "properties": {
+                    "R": {
+                        "description": "3x3 integer-valued lattice matrix with |det R| == 1.",
+                        "type": "array",
+                        "minItems": 3,
+                        "maxItems": 3,
+                        "items": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": {"type": "integer"}
+                        }
+                    },
+                    "t": {
+                        "description": "Length-3 fractional translation. Each component may be a number (e.g. 0.5) or a rational string (e.g. \"1/2\").",
+                        "type": "array",
+                        "minItems": 3,
+                        "maxItems": 3,
+                        "items": {
+                            "oneOf": [
+                                {"type": "number"},
+                                {"type": "string", "pattern": "^-?[0-9]+(/[0-9]+)?(\\.[0-9]+)?$"}
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "orbits": {
+            "description": "List of symmetry orbits. Each orbit's 'tags' array is parallel to 'ops': tags[0] is the asymmetric representative; tags[k>=1] is the atom related to it by ops[k]. For atoms on Wyckoff special positions, repeat the asym tag in tags[k] for every k in the stabilizer and list those op indices (1-based, excluding op 1) in site_symmetry.",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["tags"],
+                "additionalProperties": false,
+                "properties": {
+                    "tags": {
+                        "description": "Atom tags forming this orbit; length must equal the number of operators.",
+                        "type": "array",
+                        "minItems": 1,
+                        "items": {"type": "integer", "minimum": 1}
+                    },
+                    "site_symmetry": {
+                        "description": "1-based op indices (excluding 1) that fix the asymmetric atom. Optional. For each declared k, tags[k] must equal tags[0].",
+                        "type": "array",
+                        "items": {"type": "integer", "minimum": 2},
+                        "uniqueItems": true
+                    }
+                }
+            }
+        }
+    }
+}

@@ -78,30 +78,21 @@ class FixIlves : public Fix {
                          // 1 = fast (symmetric quasi-Newton, banded Cholesky)
   bigint next_output;
 
-  // Near-linear angle handling.  When an angle's equilibrium theta_0 is
-  // close to 180 degrees, constraining the three legs {AB, BC, AC} of
-  // the angle's atom triple makes the constraint Jacobian rank-deficient
-  // (the triangle inequality saturates: |AC| = |AB|+|BC|, so the three
-  // constraints become linearly dependent at exactly 180 deg, and very
-  // ill-conditioned nearby).  For these angles we drop the bond between
-  // B and the higher-tag endpoint of {A, C}, and instead add a 3-atom
-  // "virtual" constraint |B - (A+C)/2|^2 = L^2 with L the median length
-  // sqrt((|AB|^2 + |BC|^2)/2 - |AC|^2/4).  The retained set
-  // {AB-or-BC, AC, B-M} keeps |B-C| within solver tolerance via the
-  // triangle geometry while remaining well-conditioned at near-180 deg.
-  // Controlled by the 'linearangle <deg>' keyword; default 165 deg.
-  // Set to >= 180 to disable.
+  // Near-linear angle handling.  Angle constraints are implemented via the
+  // law-of-cosines AC virtual-bond (|AC|^2 = r1^2 + r2^2 - 2 r1 r2 cos(theta_0)).
+  // When theta_0 approaches 180 deg the {AB, BC, AC} triplet becomes
+  // rank-deficient (|AC| -> |AB|+|BC|), so we silently DECLINE to add the
+  // AC constraint for angle types with theta_0 >= linear_threshold (default
+  // 165 deg) and leave the angle's force-field term in place (no sign
+  // negation of angle_type[i][m] for these types).  The two flanking bond
+  // constraints (AB, BC) are added normally when their bond types are
+  // selected via the 'b' selector.  Set linearangle 180 to disable the
+  // bailout; the AC constraint will then be added for every selected
+  // angle, including ill-conditioned ones, and may fail to converge.
   double linear_threshold;        // degrees; angle types with theta_0 >=
-                                  // this value use the alternate set
-  double linear_Lmin;             // minimum |B-M| target; the natural
-                                  // median length is clamped up to this
-                                  // floor when the geometry would give
-                                  // a near-zero target (symmetric ~180
-                                  // case).  Default: 0.01 (length units).
+                                  // this value get NO AC constraint
   int *angle_linear;              // angle_linear[at] = 1 if angle type at
                                   // is near-linear (size nangletypes+1)
-  double *angle_dBM;              // target |B-M| length for near-linear
-                                  // angle type at (size nangletypes+1)
 
   // selection flags (allocated 1..n)
   int *bond_flag;     // bond_flag[bt]   = 1 if bond  type bt is constrained
@@ -132,25 +123,17 @@ class FixIlves : public Fix {
   int *ilves_flag;    // 1 if atom participates in any constrained bond/angle
   double **xshake;    // working buffer for unconstrained-then-projected coords
 
-  // flat constraint list (rebuilt each reneighbor)
-  // c_atom1[k] is normally a local atom (< nlocal) for ownership uniqueness;
-  // it may be a ghost for "cluster completion" entries where every atom of
-  // the constraint is a ghost on this rank.
-  //
-  // c_atom3[k] = -1 for ordinary 2-atom constraints.  For "B-M virtual"
-  // constraints (added for near-linear angles, see linear_threshold), it
-  // holds the index of the third atom -- by convention c_atom1 = B (the
-  // central atom, gradient weight +1), and c_atom2, c_atom3 are A and C
-  // (the angle endpoints, gradient weight -1/2 each).  The constraint
-  // vector r_k is then x[B] - (x[A]+x[C])/2 (closest image) with
-  // |r_k|^2 = c_dist[k]^2 as the target.
+  // flat constraint list (rebuilt each reneighbor); all entries are
+  // 2-atom distance constraints.  c_atom1[k] is normally a local atom
+  // (< nlocal) for ownership uniqueness; it may be a ghost for "cluster
+  // completion" entries where every atom of the constraint is a ghost
+  // on this rank.
   int n_constr;
   int max_constr;
   int *c_atom1;
   int *c_atom2;
-  int *c_atom3;      // -1 for 2-atom constraints; third atom index for B-M
-  int *c_type;       // bond type for bond entries, or -atype for virtual
-                     // entries from an angle (A-C or B-M)
+  int *c_type;       // bond type for bond entries, or -atype for the
+                     // angle-derived AC virtual entry
   double *c_dist;    // target distance (not squared) for clarity
   double *c_lambda;  // accumulated Lagrange multiplier (Phase 2+)
 
@@ -159,14 +142,10 @@ class FixIlves : public Fix {
   int n_clusters;
 
   // precomputed per-constraint reference quantities (rebuilt each reneighbor)
-  // For 2-atom constraints (c_atom3 == -1): r_k = x[a1]-x[a2], c_invma/c_invmb
-  //   are 1/mass[a1] and 1/mass[a2], and c_invmc is unused.
-  // For 3-atom B-M constraints (c_atom3 >= 0): r_k = x[a1] - (x[a2]+x[a3])/2,
-  //   c_invma = 1/mass[a1] (the central atom B), c_invmb = 1/mass[a2] and
-  //   c_invmc = 1/mass[a3] (the endpoints A and C).
+  // r_k = x[a1]-x[a2]; c_invma/c_invmb = 1/mass[a1] and 1/mass[a2].
   double *c_rx, *c_ry, *c_rz;
   double *c_rsq;
-  double *c_invma, *c_invmb, *c_invmc;
+  double *c_invma, *c_invmb;
 
   // cluster grouping (built alongside connected components in build_constraint_list)
   int *cluster_offset;           // size n_clusters+1, CSR-style ranges into c_perm
@@ -280,10 +259,6 @@ class FixIlves : public Fix {
   // build helpers
   void grow_constraint_list(int);
   void add_constraint(int a, int b, int btype, double dist);
-  // 3-atom variant: a = B (central), b = A, c = C; constraint vector is
-  // x[B] - (x[A]+x[C])/2; btype is conventionally -atype (same as the
-  // angle-virtual A-C entry it accompanies).
-  void add_constraint(int a, int b, int c, int btype, double dist);
   void group_by_cluster();
   void precompute_constraint_data();
   int masscheck(double massone);

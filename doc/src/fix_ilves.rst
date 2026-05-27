@@ -37,9 +37,8 @@ Syntax
        *variant* value = *full* or *fast*
          *fast* = symmetric quasi-Newton with banded Cholesky (default)
          *full* = exact-Newton (asymmetric) with LU decomposition
-       *linearangle* value = theta_deg [Lmin]
-         theta_deg = threshold in degrees
-         Lmin      = minimum \|B-M\| target length
+       *linearangle* value = theta_deg
+         theta_deg = threshold in degrees above which an angle constraint is skipped
 
 Examples
 """"""""
@@ -49,7 +48,7 @@ Examples
    fix 1 all ilves 1.0e-4 25 100 b 4 6 8 10 12 14 18 a 31
    fix 2 wat ilves 1.0e-6 30 1000 t 1 m 1.008 store yes
    fix 3 all ilves 1.0e-5 20 0 b 1 a 1 variant full
-   fix 4 all ilves 1.0e-6 30 100 b 1 a 1 variant fast linearangle 170 0.05
+   fix 4 all ilves 1.0e-6 30 100 b 1 a 1 variant fast linearangle 170
 
 Description
 """""""""""
@@ -186,70 +185,30 @@ the three legs :math:`\{|AB|, |BC|, |AC|\}` makes the constraint
 Jacobian rank-deficient: the triangle inequality saturates
 (:math:`|AC| = |AB| + |BC|`), so the three constraints become linearly
 dependent at exactly 180 degrees and very ill-conditioned nearby.
+Newton iterations on such an ill-conditioned system produce large
+Lagrange multipliers that translate into excessive forces, often
+showing up as ``Atoms moved too far for minimum image`` errors a few
+steps later.
 
-To handle this regime, the ``linearangle`` keyword switches the
-constraint topology for affected angle types.  An angle type is
-classified as near-linear when its equilibrium angle (recovered from
-the bond and A-C virtual distances via the law of cosines) is at or
-above the user-supplied threshold.  For those angles:
+To avoid this regime, ``fix ilves`` classifies every selected angle
+type whose equilibrium :math:`\theta_0` (recovered from the bond and
+A-C virtual distances via the law of cosines) is at or above the
+``linearangle`` threshold as **near-linear**.  For those angle types:
 
-* The real bond between B and the **higher-tag endpoint** of {A, C}
-  is dropped.
-* The A-C virtual bond is kept unchanged.
-* A 3-atom **B-M virtual constraint** is added with target
+* The angle's A-C virtual bond constraint is **not added** to the
+  constraint list.
+* The angle's ``angle_type`` slot is **not negated**, so the standard
+  :doc:`angle_style <angle_style>` force-field term continues to act
+  on the angle and keeps it close to :math:`\theta_0`.
+* The two flanking bonds (A-B, B-C) are constrained as normal,
+  provided their bond types are themselves selected via the ``b``
+  selector.
 
-  .. math::
-
-     |B - M|^2 = \tfrac{1}{2}(|AB|^2 + |BC|^2) - \tfrac{1}{4}|AC|^2
-
-  where :math:`M = (A + C) / 2` is the midpoint of the A-C virtual
-  bond.  The retained set keeps :math:`|B-C|` within solver tolerance
-  via the triangle geometry while remaining well-conditioned at
-  :math:`\theta` near 180 degrees.
-
-For an exactly-180-degree symmetric angle (:math:`|AB| = |BC|`,
-:math:`\theta_0 = 180^\circ`) the natural :math:`|B-M|` target is zero
-and the constraint Jacobian row vanishes.  The ``Lmin`` argument to
-``linearangle`` clamps the target up from zero in that limit; the
-default value of 0.01 length units bends the angle by less than 1 degree
-off 180 degrees for typical bond lengths, well below thermal fluctuation
-amplitudes.
-
-Set *linearangle* to 180 to disable near-linear handling entirely.  The
-default threshold is 165 degrees and the smallest allowed threshold is
-150 degrees.
-
-.. note::
-
-   The ``linearangle`` feature is a **workaround**, not a full solution.
-   At :math:`\theta` near 180 degrees the constraint manifold is
-   geometrically nearly singular and any iterative distance-constraint
-   solver (SHAKE, RATTLE, P-SHAKE, ILVES) is ill-conditioned there.
-   ``linearangle`` widens the regime in which the iterative solver still
-   converges, but it does so by substituting an approximate constraint
-   -- the :math:`|B-M|` clamp biases the equilibrium angle slightly off
-   180 degrees (by an angle that increases with ``Lmin``) and only
-   constrains the median length, not the bond :math:`|B-C|` directly
-   (which is determined only indirectly through the other three legs).
-
-   This feature is most useful for large systems with a **small
-   fraction** of near-linear angles -- e.g. a coarse-grain polymer or
-   protein system where most angles are well-behaved (tetrahedral, sp2
-   trigonal, water-like) and only a handful of backbone or
-   special-purpose angles approach 180 degrees.  In that regime the
-   small error from the ``Lmin`` clamp on a few constraints is
-   negligible compared to the thermal fluctuations that would otherwise
-   unconstrain the rest of the system.
-
-   For the simulation of intrinsically rigid linear molecules (e.g. CO\
-   :sub:`2`, CS\ :sub:`2`, HCN, C\ :sub:`2`\ H\ :sub:`2`), :doc:`fix
-   rigid/small <fix_rigid>` is the recommended approach.  It treats each
-   molecule as a rigid body and has no iterative convergence problems at
-   the 180 degree singularity.  The ILVES ``linearangle`` workaround
-   should not be used as a substitute for ``fix rigid/small`` in those
-   cases -- the angle bias from the ``Lmin`` clamp and the larger
-   iteration counts both make ILVES the wrong tool for that kind of
-   workload.
+The default threshold is 165 degrees; the smallest allowed value is
+150 degrees.  Set *linearangle* to 180 to disable the bailout
+entirely, so that the A-C constraint is added for every selected
+angle including the ill-conditioned ones (likely to produce
+``max_iter`` warnings or atom-ejection failures).
 
 Output info
 ^^^^^^^^^^^
@@ -266,10 +225,7 @@ accessible as ``f_<ID>[1]``, ``f_<ID>[2]``, ``f_<ID>[3]``.
 
 When ``N > 0``, every ``N`` time steps the fix prints a summary line
 per constrained bond type and angle type giving the average distance,
-its spread (max - min) across constraints, and the count.  3-atom B-M
-virtual constraints are not included in the per-type angle stats
-because their length (the median to the A-C side) is geometrically
-distinct from the A-C virtual length reported for the angle.
+its spread (max - min) across constraints, and the count.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -317,12 +273,9 @@ aborts the run with an error message naming the most likely cause.
 Note, that this test does not detect rearrangements that keep the counts
 identical.
 
-For exactly-180-degree symmetric angle constraints (e.g. rigid linear
-triatomics like CO2 with bond_length(O-C) = bond_length(C-O)) the
-Jacobian is irreducibly rank-deficient regardless of the constraint
-topology.  ``fix ilves`` runs in that regime with the ``Lmin`` clamp
-adding a small constraint bias, but :doc:`fix rigid <fix_rigid>` is
-the recommended approach.
+Angle types whose equilibrium :math:`\theta_0` is at or above the
+``linearangle`` threshold (default 165 degrees) are silently skipped
+when building the constraint list.
 
 Memory requirements
 ^^^^^^^^^^^^^^^^^^^
@@ -401,7 +354,7 @@ The keyword defaults are:
 * *kbond* = 1.0e9*k_B (same default as :doc:`fix shake <fix_shake>`)
 * *store* = *no*
 * *variant* = *fast*
-* *linearangle* = 165 degrees with Lmin = 1/30 length units
+* *linearangle* = 165 degrees
 
 ----------
 

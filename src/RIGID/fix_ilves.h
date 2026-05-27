@@ -22,9 +22,6 @@ FixStyle(ilves,FixIlves);
 
 #include "fix.h"
 
-#include <unordered_map>
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class FixRespa;
@@ -223,37 +220,27 @@ class FixIlves : public Fix {
   // output_every > 0 so the user sees how often we fall back to LU.
   bigint chol_calls, chol_fallbacks;
 
-  // -----------------------------------------------------------------
-  // Replicated global bond / angle topology (gathered once at init via
-  // MPI_Allgatherv).  Bonds: (lower-tag, higher-tag, type), sorted by
-  // (a, b) and deduped.  Angles: (atom1, mid, atom3, type), sorted by
-  // middle then outer atoms; only angle types listed in angle_flag[]
-  // are gathered.
-  std::vector<tagint> gb_a, gb_b;
-  std::vector<int> gb_type;
-  std::vector<tagint> ga1, ga2, ga3;
-  std::vector<int> ga_type;
-  bool global_topology_ready;
-
-  // Topology-change safeguard.  Fix ilves gathers the bond/angle topology
-  // once at init() and assumes it is frozen for the duration of the run.
-  // To catch silent mismatch when a concurrent fix (e.g. fix bond/create,
-  // fix bond/break, delete_atoms) modifies the constrained topology, we
-  // record three globally-reduced counts at init and recheck them at every
-  // reneighbor; mismatch aborts with a clear error.  The bond/angle counts
-  // are raw "sum over local atoms of constrained-type slots" -- not
-  // deduplicated -- which is enough for change detection and matches
-  // what gather_global_topology() scans.
+  // Topology-change safeguard.  Fix ilves builds the constraint list
+  // from local bond/angle storage at init() and assumes it is frozen for
+  // the duration of the run.  To catch silent mismatch when a concurrent
+  // fix (e.g. fix bond/create, fix bond/break, delete_atoms) modifies the
+  // constrained topology, we record three globally-reduced counts at init
+  // and recheck them at every reneighbor; mismatch aborts with a clear
+  // error.  The bond/angle counts are raw "sum over local atoms of
+  // constrained-type slots" -- not deduplicated -- which is enough for
+  // change detection.
   bigint natoms_at_init;
   bigint nconstrbonds_sum_at_init;
   bigint nconstrangles_sum_at_init;
+  bool baseline_ready;
 
-  // Global cluster-ID for every tag involved in any bond/angle.  Maps
-  // a tag to its cluster's representative tag.  Sparse: only tags that
-  // participate in at least one constrained bond or angle appear in the
-  // map.  Per-rank size is ~24-40 bytes per involved tag (unordered_map
-  // overhead), keeping memory tractable for partial-constraint systems.
-  std::unordered_map<tagint, tagint> tag_cluster;
+  // Per-angle-type flanking bond types, populated at init.  Each angle of
+  // type at has flanking bond types (b1, b2) sorted so b1 <= b2.  Computed
+  // per-rank from local angles and consensus-checked via MPI_Allreduce so
+  // every rank agrees.  Used in build_constraint_list to verify that an
+  // angle's flanking bonds are themselves constrained without consulting a
+  // global table.
+  int *angle_btype1, *angle_btype2;     // size nangletypes+1
 
   // -----------------------------------------------------------------
   // build helpers
@@ -268,9 +255,9 @@ class FixIlves : public Fix {
 
   // global topology setup
   void init_topology();
-  void gather_global_topology();
   void build_constraint_list();
   bool bond_is_constrained(tagint ta, tagint tb);
+  int  lookup_local_bond_type(tagint ta, tagint tb);
 
   // Topology-change detection.  count_constrained_topology() walks local
   // atoms once and MPI_Allreduces the constrained bond / angle slot counts

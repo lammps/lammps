@@ -262,9 +262,22 @@ Only one ``fix ilves`` instance may be defined at a time.  ``fix ilves``
 and :doc:`fix shake <fix_shake>` must not be used together for
 overlapping sets of atoms participating in a constraint.
 
+``fix ilves`` requires :doc:`newton off bond <newton>` so that every
+bond and angle is stored at all of its endpoints.  Under newton on
+bond, only the lower-tag endpoint stores each bond -- the rank owning
+an angle's middle atom would not be able to look up the type of a
+flanking bond stored on a remote rank without an extra communication
+round.  An error is raised at init if newton bond is on.  Add a line
+like::
+
+   newton on off
+
+to your input deck before defining the fix.  (Pair newton can remain
+on; only bonded-storage newton needs to be off.)
+
 ``fix ilves`` does not support dynamic topology.  The bond and angle
-tables are gathered once at init and assumed to remain valid for the
-duration of the run.  Fixes or commands that mutate the molecular
+tables are read from local atom storage at init and assumed to remain
+valid for the duration of the run.  Fixes or commands that mutate the molecular
 topology *during* a run -- for example :doc:`fix bond/create
 <fix_bond_create>`, :doc:`fix bond/break <fix_bond_break>`, :doc:`fix
 bond/react <fix_bond_react>`, :doc:`fix deposit <fix_deposit>` must not
@@ -280,65 +293,40 @@ when building the constraint list.
 Memory requirements
 ^^^^^^^^^^^^^^^^^^^
 
-The replicated bond / angle topology is gathered onto every MPI rank
-at init.  The full table is stored on **every** rank, so the
-per-rank memory cost does **not** decrease as the rank count grows;
-on the contrary, the aggregate (Nranks * this) is what the host
-machine must accommodate.
+``fix ilves`` stores topology in **distributed** form: each MPI rank
+builds its constraint list from its own local atom storage
+(``atom->bond_*``, ``atom->angle_*``) plus ghost atoms in the standard
+communication shell.  No replicated global table is held, so per-rank
+memory shrinks roughly linearly with rank count for partial-constraint
+workloads (hydrogens-only, methyl, water) and approximately linearly
+for cluster-spanning workloads as long as clusters fit within the
+ghost shell.
 
-At init time the fix prints a line such as::
+A reference benchmark on the rhodopsin all-bonds case (~31k selected
+constraints total, single dominant cluster) shows per-rank memory:
 
-   Fix ilves: gathered global topology with NB bonds, NA selected angles, NT involved atoms
-   Fix ilves: replicated topology storage ~ X bytes/rank (X.XX MB)
-
-where the printed estimate is the sum of:
-
-* bond table (``gb_a``, ``gb_b``, ``gb_type``): ``2*NB*sizeof(tagint) + NB*sizeof(int)``
-* angle table (``ga1/2/3``, ``ga_type``): ``3*NA*sizeof(tagint) + NA*sizeof(int)``
-* the ``tag_cluster`` map: roughly ``48*NT`` bytes (per-entry overhead
-  for ``std::unordered_map`` -- node + bucket + allocator overhead
-
-For the default ``-DLAMMPS_SMALLBIG`` build (32-bit ``tagint``,
-32-bit ``int``) this works out to:
-
-* ~12 bytes per selected bond
-* ~16 bytes per selected angle
-* ~48 bytes per atom involved in some selected bond / angle
-
-So a system with one constraint per bonded hydrogen (~3 per heavy
-atom typical for proteins) and 100M atoms would store roughly:
-
-* bonds:   3 * 100M * 12 B   = 3.6 GB / rank
-* angles:  1 * 100M * 16 B   = 1.6 GB / rank
-* tags:    4 * 100M * 48 B   = 19.2 GB / rank
-* total: ~24 GB / rank
-
-Far too large for typical compute nodes.  An all-bond-constrained
-system at that scale would also blow up.  Rules of thumb:
-
-* **< 10M selected bonds total**: fits comfortably in a few hundred
-  MB / rank; no concerns.
-* **10M -- 100M selected bonds**: the storage is hundreds of MB to a
-  few GB per rank.  Check ``Fix ilves: replicated topology storage``
-  against your host's per-rank memory budget before committing to a
-  long run.
-* **> 100M selected bonds**: ``fix ilves`` in its current
-  implementation is likely not viable.  If the constraint clusters
-  are small and strictly local (water HOH, methyl groups, isolated
-  C-H bonds), use :doc:`fix shake <fix_shake>` -- its per-rank
-  memory scales with the local atom count, not the global atom count.
-  If the clusters span the whole simulation cell (e.g. a polymer
-  backbone connected across all subdomains), the current
-  implementation has no escape hatch and is the wrong tool at this
-  scale.
+============  =====================  ======================
+MPI ranks     ``info memory`` MB     constraints/proc
+============  =====================  ======================
+1             193                    31955
+2             137                    16200
+4              69                     8197
+8              61                     4172
+============  =====================  ======================
 
 The per-rank ``memory_usage`` reported by ``info memory`` and
-``thermo_style custom ... memory`` includes the replicated topology
-plus the per-rank constraint-list arrays (rebuilt each reneighbor)
-and the per-cluster Cholesky factor cache (``variant fast`` only).
-For dynamic-load-balanced or non-uniform systems, the cluster
-factor cache size on each rank depends on how many cluster atoms
-that rank touches; consult ``info fixes`` for the breakdown.
+``thermo_style custom ... memory`` includes the per-rank constraint-list
+arrays (rebuilt each reneighbor) and the per-cluster Cholesky factor
+cache (``variant fast`` only).  Both scale with this rank's own atoms.
+Consult ``info fixes`` for the per-fix breakdown.
+
+For clusters whose extent exceeds the standard LAMMPS ghost cutoff
+(e.g. a fully-bond-constrained polymer chain spanning a whole
+subdomain), the constraint solver still works -- each rank handles
+its local piece of the cluster, with Newton iteration converging via
+ghost-atom updates between iterations.  Newton iteration count may
+increase modestly for large spanning clusters compared to the prior
+redundant-solve model.
 
 Related commands
 """"""""""""""""

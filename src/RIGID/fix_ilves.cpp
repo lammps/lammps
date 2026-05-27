@@ -64,7 +64,6 @@
 #include <cmath>
 #include <cstring>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -3120,41 +3119,6 @@ void FixIlves::build_constraint_list()
   };
 
   // -----------------------------------------------------------------
-  // Pre-phase: identify bond legs to skip for near-linear angles.
-  // -----------------------------------------------------------------
-  struct PairHash {
-    size_t operator()(const std::pair<tagint,tagint> &p) const noexcept {
-      return std::hash<tagint>()(p.first) ^ (std::hash<tagint>()(p.second) << 1);
-    }
-  };
-  std::unordered_set<std::pair<tagint,tagint>, PairHash> dropped_bonds;
-  if (has_angle) {
-    const int na_global_pre = (int) ga1.size();
-    for (int gi = 0; gi < na_global_pre; ++gi) {
-      int at = ga_type[gi];
-      if (at <= 0 || at > atom->nangletypes) continue;
-      if (!angle_flag[at]) continue;
-      if (!angle_linear[at]) continue;
-
-      tagint t1 = ga1[gi];     // lower-tag endpoint
-      tagint t2 = ga2[gi];     // middle (B)
-      tagint t3 = ga3[gi];     // higher-tag endpoint
-
-      // Both flanking bonds must be constrained for the angle to be
-      // emitted -- otherwise Phase B wouldn't touch it and the drop set
-      // would silently disable a wanted bond.
-      if (!bond_is_constrained(t2, t1)) continue;
-      if (!bond_is_constrained(t2, t3)) continue;
-
-      // Drop the bond to the higher-tag endpoint (t3).  In gb_a/gb_b
-      // canonical order, lo = min(t2, t3), hi = max(t2, t3).
-      tagint lo = (t2 < t3) ? t2 : t3;
-      tagint hi = (t2 < t3) ? t3 : t2;
-      dropped_bonds.emplace(lo, hi);
-    }
-  }
-
-  // -----------------------------------------------------------------
   // Phase A: bond constraints from clusters I'm in
   // -----------------------------------------------------------------
   const int nb_global = (int) gb_a.size();
@@ -3165,8 +3129,6 @@ void FixIlves::build_constraint_list()
     tagint tb = gb_b[gi];
 
     if (!in_my_cluster(ta) && !in_my_cluster(tb)) continue;
-
-    if (!dropped_bonds.empty() && dropped_bonds.count({ta, tb})) continue;
 
     int a_idx, b_idx;
     if (!pick_atoms(ta, tb, a_idx, b_idx)) continue;

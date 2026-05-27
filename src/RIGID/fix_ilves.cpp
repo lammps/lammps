@@ -124,6 +124,14 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   baseline_ready = false;
   natoms_at_init = nconstrbonds_sum_at_init = nconstrangles_sum_at_init = 0;
   angle_btype1 = angle_btype2 = nullptr;
+  lang_fbuf = nullptr;
+  lang_fbuf_alloc = 0;
+  // comm_forward = 3 for forward_comm of xshake or v (see pack_forward_comm).
+  // comm_reverse = 3 for the stiff angle's reverse_comm of lang_fbuf (only
+  // active when linearangle K > 0 && newton bond on, but set unconditionally
+  // so LAMMPS sizes the comm buffer correctly).
+  comm_forward = 3;
+  comm_reverse = 3;
   chol_pool_alloc = 0;
   chol_offset_alloc = 0;
   cluster_bw_alloc = 0;
@@ -147,6 +155,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   chol_calls = 0;
   chol_fallbacks = 0;
   linear_threshold = 165.0;
+  linear_angle_K   = 0.0;
 
   store_flag = peratom_flag = 0;
   maxstore = -1;
@@ -298,6 +307,20 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
                    "Fix ilves linearangle must be in the [150, 180] degrees range, got {}",
                    linear_threshold);
       next += 2;
+      // optional K argument: when > 0, fix ilves applies a stiff angle
+      // potential E = K*(1 + cos(theta)) to near-linear angles, in place
+      // of the user's angle_style.  When 0 (default), near-linear angles
+      // are left to the user's angle_style.
+      if (next < narg) {
+        char *endp = nullptr;
+        double v = strtod(arg[next], &endp);
+        if (endp != arg[next] && *endp == '\0') {
+          if (v < 0.0)
+            error->all(FLERR, next, "Fix ilves linearangle K must be >= 0.0");
+          linear_angle_K = v;
+          ++next;
+        }
+      }
 
     } else {
       error->all(FLERR, next, "Unknown fix ilves command option: {}", arg[next]);
@@ -363,6 +386,7 @@ FixIlves::~FixIlves()
   memory->destroy(ilves_flag);
   memory->destroy(xshake);
   memory->destroy(fstore);
+  memory->destroy(lang_fbuf);
 
   memory->destroy(c_atom1);
   memory->destroy(c_atom2);
@@ -453,17 +477,23 @@ void FixIlves::init()
   if (force->bond == nullptr)
     error->all(FLERR, Error::NOLASTLINE, "Bond style must be defined for fix ilves");
 
-  // Strategy A (distributed topology) requires newton off for bonds: each
-  // bond must be stored at both of its endpoints so that this rank can look
-  // up the bond type from local bond storage when checking an angle's
-  // flanking bonds without an extra communication round.  See the note in
-  // doc/src/fix_ilves.rst under Restrictions.
-  if (force->newton_bond != 0)
-    error->all(FLERR, Error::NOLASTLINE,
-               "Fix ilves requires 'newton off bond' so each bond is stored at "
-               "both of its endpoints (needed for the distributed-topology "
-               "constraint-list build).  Add 'newton off bond' or 'newton off' "
-               "to your input deck before fix ilves is defined.");
+  // Newton on or off for bond is supported by the constraint solver.
+  // Under newton off bond, each bond is stored at both endpoints;
+  // lookup_local_bond_type can read the type from either side.  Under
+  // newton on bond, the bond is stored only at the lower-tag endpoint;
+  // when both endpoints are ghosts on this rank, lookup_local_bond_type
+  // returns 0 and the angle's flanking-bond check falls back to the
+  // angle_btype1/btype2 cache built by init_topology (which uses an
+  // MPI_Allreduce(MAX) and so works as long as ANY rank globally can
+  // resolve each angle type's flanking types).
+  //
+  // Stiff angle force (linearangle K > 0) supports newton on via a
+  // dedicated lang_fbuf force buffer + custom reverse_comm.  Set
+  // comm_reverse = 3 so LAMMPS's comm allocator sizes the buffer
+  // correctly for our pack_reverse_comm.
+  if (linear_angle_K > 0.0 && force->newton_bond != 0) {
+    comm_reverse = 3;
+  }
 
   for (int i = 1; i <= atom->nbondtypes; ++i)
     bond_distance[i] = force->bond->equilibrium_distance(i);
@@ -602,8 +632,10 @@ void FixIlves::negate_constrained_topology()
         if (at <= 0) continue;
         if (at > atom->nangletypes) continue;
         if (!angle_flag[at]) continue;
-        if (angle_linear[at]) continue;        // no AC constraint -- keep
-                                               // the angle force-field term
+        // Near-linear angle: only negate if the stiff angle force is
+        // active (linearangle K > 0).  When K == 0 we leave the angle
+        // positive so the user's angle_style still acts on it.
+        if (angle_linear[at] && linear_angle_K <= 0.0) continue;
         if (na_atom2[i][m] != tag[i]) continue;
 
         tagint t1 = na_atom1[i][m];
@@ -1158,6 +1190,9 @@ void FixIlves::post_force(int vflag)
   // next initial_integrate produces the constrained positions)
   apply_constraint_forces(vflag);
 
+  // optional stiff angle force for near-linear angles (when linearangle K > 0)
+  apply_linear_angle_forces(vflag);
+
   vflag_post_force = vflag;
 }
 
@@ -1268,6 +1303,7 @@ void FixIlves::post_force_respa(int vflag, int ilevel, int iloop)
 
   solve_constraints();
   apply_constraint_forces(vflag);
+  apply_linear_angle_forces(vflag);
 
   vflag_post_force = vflag;
 }
@@ -1913,6 +1949,199 @@ void FixIlves::apply_constraint_forces(int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   Apply a stiff angle force to angle types flagged as near-linear, using
+   the cosine form E = K*(1 + cos(theta)).  Force formula is identical to
+   LAMMPS's angle_style cosine (see angle_cosine.cpp); the 1/sin(theta)
+   factor that breaks angle_style harmonic at theta=180 deg cancels out
+   here because the energy is a polynomial in cos(theta), not theta.
+
+   Activated by `linearangle <theta_deg> <K>` with K > 0.  When active,
+   negate_constrained_topology() also negates the near-linear angle types
+   so the user's angle_style->compute skips them -- avoiding double
+   counting between the user's angle force and this one.
+
+   Iteration model under newton off bond: each local atom of the angle
+   has the angle in its storage.  We iterate every local atom and, for
+   each angle entry, compute the full force trio (f1, f2, f3) but apply
+   ONLY the share for the local atom -- duplicating the computation
+   three times globally but avoiding any reverse_comm.
+------------------------------------------------------------------------- */
+
+void FixIlves::apply_linear_angle_forces(int vflag)
+{
+  if (linear_angle_K <= 0.0) return;
+  if (!has_angle) return;
+
+  const int newton_bond = force->newton_bond;
+  const int nlocal_now = atom->nlocal;
+  const int nmax_now   = atom->nmax;
+  tagint *tag         = atom->tag;
+  int *mask           = atom->mask;
+  int *num_angle      = atom->num_angle;
+  int **na_type       = atom->angle_type;
+  tagint **na_atom1   = atom->angle_atom1;
+  tagint **na_atom2   = atom->angle_atom2;
+  tagint **na_atom3   = atom->angle_atom3;
+  double **xc         = atom->x;
+  double **fc         = atom->f;
+  const int natypes   = atom->nangletypes;
+
+  // Under newton on, accumulate force into our own per-atom buffer (sized
+  // nmax * 3) so we can reverse_comm ghost contributions to owners without
+  // disturbing atom->f's ghost values (which other code may rely on).
+  if (newton_bond) {
+    grow_lang_fbuf(nmax_now);
+    const bigint nb = 3 * (bigint) nmax_now;
+    for (bigint k = 0; k < nb; ++k) lang_fbuf[k] = 0.0;
+  }
+
+  for (int i = 0; i < nlocal_now; ++i) {
+    if (!(mask[i] & groupbit)) continue;
+    const tagint ti = tag[i];
+    const int nang = num_angle[i];
+    for (int m = 0; m < nang; ++m) {
+      int at = na_type[i][m];
+      if (at == 0) continue;
+      // The angle_type was negated for near-linear constrained angles
+      // (see negate_constrained_topology); accept either sign for the
+      // angle-type lookup.
+      const int at_abs = (at < 0) ? -at : at;
+      if (at_abs > natypes) continue;
+      if (!angle_flag[at_abs]) continue;
+      if (!angle_linear[at_abs]) continue;
+
+      // Endpoints and middle.  Resolve all three to local indices in
+      // this rank's halo.  Skip if any is not reachable.
+      const tagint t1 = na_atom1[i][m];
+      const tagint t2 = na_atom2[i][m];
+      const tagint t3 = na_atom3[i][m];
+      int i1 = atom->map(t1);
+      int i2 = atom->map(t2);
+      int i3 = atom->map(t3);
+      if (i1 < 0 || i2 < 0 || i3 < 0) continue;
+
+      // Cosine angle force (same math as LAMMPS angle_style cosine):
+      //   E = K * (1 + cos(theta))
+      //   c = cos(theta) = (r1 . r2) / (|r1| |r2|)
+      //   force on atom 1 (= ti) = -dE/dx1 expanded via chain rule
+      double dx1 = xc[i1][0] - xc[i2][0];
+      double dy1 = xc[i1][1] - xc[i2][1];
+      double dz1 = xc[i1][2] - xc[i2][2];
+      domain->minimum_image(FLERR, dx1, dy1, dz1);
+      const double rsq1 = dx1*dx1 + dy1*dy1 + dz1*dz1;
+      const double r1   = sqrt(rsq1);
+
+      double dx2 = xc[i3][0] - xc[i2][0];
+      double dy2 = xc[i3][1] - xc[i2][1];
+      double dz2 = xc[i3][2] - xc[i2][2];
+      domain->minimum_image(FLERR, dx2, dy2, dz2);
+      const double rsq2 = dx2*dx2 + dy2*dy2 + dz2*dz2;
+      const double r2   = sqrt(rsq2);
+
+      if (r1 <= 0.0 || r2 <= 0.0) continue;
+
+      double c = dx1*dx2 + dy1*dy2 + dz1*dz2;
+      c /= r1*r2;
+      if (c >  1.0) c =  1.0;
+      if (c < -1.0) c = -1.0;
+
+      const double a    = linear_angle_K;
+      const double a11  = a*c / rsq1;
+      const double a12  = -a / (r1*r2);
+      const double a22  = a*c / rsq2;
+
+      double f1[3], f3[3];
+      f1[0] = a11*dx1 + a12*dx2;
+      f1[1] = a11*dy1 + a12*dy2;
+      f1[2] = a11*dz1 + a12*dz2;
+      f3[0] = a22*dx2 + a12*dx1;
+      f3[1] = a22*dy2 + a12*dy1;
+      f3[2] = a22*dz2 + a12*dz1;
+
+      if (newton_bond) {
+        // newton on bond: angle stored only at middle.  Only the
+        // middle-owner processes; write force trio into lang_fbuf for
+        // ALL three atoms (some may be ghosts).  reverse_comm later
+        // sums ghost contributions into local owners.
+        if (ti != t2) continue;
+        lang_fbuf[3*i1+0] += f1[0]; lang_fbuf[3*i1+1] += f1[1]; lang_fbuf[3*i1+2] += f1[2];
+        lang_fbuf[3*i2+0] -= f1[0] + f3[0];
+        lang_fbuf[3*i2+1] -= f1[1] + f3[1];
+        lang_fbuf[3*i2+2] -= f1[2] + f3[2];
+        lang_fbuf[3*i3+0] += f3[0]; lang_fbuf[3*i3+1] += f3[1]; lang_fbuf[3*i3+2] += f3[2];
+      } else {
+        // newton off bond: angle stored at all three atoms.  Each rank
+        // with the angle locally stored applies only its own atom's
+        // share to atom->f directly (no reverse_comm needed).
+        if (ti == t1) {
+          fc[i1][0] += f1[0]; fc[i1][1] += f1[1]; fc[i1][2] += f1[2];
+        } else if (ti == t2) {
+          fc[i2][0] -= f1[0] + f3[0];
+          fc[i2][1] -= f1[1] + f3[1];
+          fc[i2][2] -= f1[2] + f3[2];
+        } else if (ti == t3) {
+          fc[i3][0] += f3[0]; fc[i3][1] += f3[1]; fc[i3][2] += f3[2];
+        }
+      }
+
+      // Energy and global virial tally.  Pattern follows Angle::ev_tally:
+      //   newton on bond:  only middle iterates (storage convention).
+      //     Middle's rank adds FULL energy/virial in one shot.
+      //   newton off bond: angle stored at all three atoms; each local
+      //     atom owner adds its 1/3 share.  Three ranks each add 1/3,
+      //     sum globally = full.
+      const double eangle = a * (1.0 + c);
+      double bond_v[6];
+      bond_v[0] = dx1*f1[0] + dx2*f3[0];
+      bond_v[1] = dy1*f1[1] + dy2*f3[1];
+      bond_v[2] = dz1*f1[2] + dz2*f3[2];
+      bond_v[3] = dx1*f1[1] + dx2*f3[1];
+      bond_v[4] = dx1*f1[2] + dx2*f3[2];
+      bond_v[5] = dy1*f1[2] + dy2*f3[2];
+      if (newton_bond) {
+        if (ti == t2) {
+          ebond += eangle;
+          if (evflag && vflag_global) {
+            for (int kk = 0; kk < 6; ++kk) virial[kk] += bond_v[kk];
+          }
+        }
+      } else {
+        ebond += eangle * (1.0 / 3.0);
+        if (evflag && vflag_global) {
+          for (int kk = 0; kk < 6; ++kk) virial[kk] += bond_v[kk] * (1.0 / 3.0);
+        }
+      }
+    }
+  }
+
+  if (newton_bond) {
+    // reverse_comm: sum ghost lang_fbuf contributions into the local
+    // entries on the owning ranks.  After this, lang_fbuf[i] for local
+    // i contains the full angle force contribution for atom i.
+    comm_mode = 3;
+    comm->reverse_comm(this);
+    comm_mode = 0;
+
+    // Apply lang_fbuf to atom->f for local atoms.
+    for (int i = 0; i < nlocal_now; ++i) {
+      fc[i][0] += lang_fbuf[3*i+0];
+      fc[i][1] += lang_fbuf[3*i+1];
+      fc[i][2] += lang_fbuf[3*i+2];
+    }
+  }
+  (void) vflag;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixIlves::grow_lang_fbuf(int nmax)
+{
+  if (nmax <= lang_fbuf_alloc) return;
+  memory->grow(lang_fbuf, (bigint) nmax * 3, "ilves:lang_fbuf");
+  lang_fbuf_alloc = nmax;
+}
+
+/* ----------------------------------------------------------------------
    Project atom positions onto the constraint surface at setup time.
    The trick (borrowed from fix shake's correct_coordinates): temporarily
    zero atom->f and atom->v, run the Newton solver to find constraint
@@ -2438,6 +2667,36 @@ void FixIlves::unpack_forward_comm(int n, int first, double *buf)
 }
 
 /* ----------------------------------------------------------------------
+   reverse_comm: pack ghost lang_fbuf entries (the per-atom stiff angle
+   force contribution from this rank's middle-owners writing into ghost
+   slots).  comm_mode == 3 is the only mode for now.  unpack adds the
+   received contributions into the owner rank's local lang_fbuf entries.
+------------------------------------------------------------------------- */
+
+int FixIlves::pack_reverse_comm(int n, int first, double *buf)
+{
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; ++i) {
+    buf[m++] = lang_fbuf[3*i+0];
+    buf[m++] = lang_fbuf[3*i+1];
+    buf[m++] = lang_fbuf[3*i+2];
+  }
+  return m;
+}
+
+void FixIlves::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  int m = 0;
+  for (int i = 0; i < n; ++i) {
+    const int j = list[i];
+    lang_fbuf[3*j+0] += buf[m++];
+    lang_fbuf[3*j+1] += buf[m++];
+    lang_fbuf[3*j+2] += buf[m++];
+  }
+}
+
+/* ----------------------------------------------------------------------
    count DOFs removed: every constraint subtracts one (across all ranks)
    the global sum is what the integrator uses for temperature normalization
 ------------------------------------------------------------------------- */
@@ -2659,20 +2918,15 @@ void FixIlves::init_topology()
   tagint **na_atom2 = atom->angle_atom2;
   tagint **na_atom3 = atom->angle_atom3;
 
-  // Look up the bond type of the local bond between atom i (local) and
-  // a partner with tag tj, by scanning i's bond storage.  With newton
-  // off, both endpoints store the bond, so any local atom i sees all
-  // its incident bonds.  Returns 0 if not found.
+  // Look up the bond type between atom i (local) and a partner with
+  // tag tj.  Uses the member lookup_local_bond_type which checks both
+  // endpoints' bond storage -- so it works under newton on (where the
+  // bond is at the lower-tag endpoint, which may or may not be local
+  // here) as long as either endpoint is local on this rank.  Returns 0
+  // if neither endpoint is local or the bond does not exist.
   auto lookup_local_btype = [&](int i, tagint tj) -> int {
     if (i < 0 || i >= nlocal_now) return 0;
-    const int nb = num_bond[i];
-    for (int b = 0; b < nb; ++b) {
-      if (nb_atom[i][b] != tj) continue;
-      int bt = nb_type[i][b];
-      if (bt < 0) bt = -bt;
-      return bt;
-    }
-    return 0;
+    return lookup_local_bond_type(tag[i], tj);
   };
 
   // Per-rank candidate (b1, b2) for each constrained angle type, plus
@@ -3076,16 +3330,31 @@ void FixIlves::build_constraint_list()
         if (!(mask[i2] & groupbit)) continue;
         if (!(mask[i3] & groupbit)) continue;
 
-        // Verify both flanking bonds are constrained.  bond_is_constrained
-        // returns false if neither endpoint of the bond is local.  Since
-        // we process at the smallest-tag-local atom, at least one of
-        // (t1, t2, t3) is local on this rank -- but the t2-t1 or t2-t3
-        // bond might have neither endpoint local.  Fall through to the
-        // partner rank in that case (it will see the bond locally and
-        // make the same decision; if the bond is selected, that rank's
-        // own angle iteration will also pick up the angle constraint).
-        if (!bond_is_constrained(t2, t1)) continue;
-        if (!bond_is_constrained(t2, t3)) continue;
+        // Verify both flanking bonds are constrained.  First try the
+        // local-bond-storage lookup (correct under newton off bond, and
+        // also under newton on whenever the bond's lower-tag endpoint is
+        // local on this rank).  If that lookup returns 0 (newton on bond
+        // with the lower-tag endpoint on a different rank), fall back to
+        // the per-angle-type cache built at init by init_topology: bond
+        // type is angle_btype1[at] or angle_btype2[at] for any angle of
+        // type at.  Apply selectors using the cached type + the angle's
+        // local atom data.
+        auto flank_constrained = [&](tagint tmid, int imid, tagint te, int ie) -> bool {
+          int bt = lookup_local_bond_type(tmid, te);
+          if (bt > 0) return bond_selected_for_atoms(imid, ie, bt);
+          // Fallback under newton on with both bond endpoints remote.
+          // The cache may have two candidates (angle_btype1/2); accept
+          // the bond if EITHER candidate's selectors fire.  Exact for
+          // symmetric angles (b1 == b2); slightly over-permissive for
+          // asymmetric angles where only one of b1, b2 is user-selected.
+          int b1 = angle_btype1[at];
+          int b2 = angle_btype2[at];
+          if (b1 > 0 && bond_selected_for_atoms(imid, ie, b1)) return true;
+          if (b2 > 0 && b2 != b1 && bond_selected_for_atoms(imid, ie, b2)) return true;
+          return false;
+        };
+        if (!flank_constrained(t2, i2, t1, i1)) continue;
+        if (!flank_constrained(t2, i2, t3, i3)) continue;
 
         // Pick a_idx/b_idx so the lower-tag endpoint is c_atom1.  Both
         // endpoints are locally addressable (i1, i3); apply PBC

@@ -61,6 +61,8 @@ class FixIlves : public Fix {
   int unpack_exchange(int, double *) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
   bigint dof(int) override;
   void reset_dt() override;
@@ -88,6 +90,13 @@ class FixIlves : public Fix {
   // angle, including ill-conditioned ones, and may fail to converge.
   double linear_threshold;        // degrees; angle types with theta_0 >=
                                   // this value get NO AC constraint
+  double linear_angle_K;          // force constant of the optional stiff
+                                  // angle potential applied to near-linear
+                                  // angles in place of the user's
+                                  // angle_style.  E = K*(1 + cos(theta));
+                                  // no 1/sin(theta) singularity at 180.
+                                  // Default 0 = disabled (angle_style
+                                  // continues to handle the angle).
   int *angle_linear;              // angle_linear[at] = 1 if angle type at
                                   // is near-linear (size nangletypes+1)
 
@@ -258,6 +267,25 @@ class FixIlves : public Fix {
   void build_constraint_list();
   bool bond_is_constrained(tagint ta, tagint tb);
   int  lookup_local_bond_type(tagint ta, tagint tb);
+
+  // Optional stiff angle force applied to near-linear constrained angle
+  // types when linear_angle_K > 0.  Uses E = K*(1 + cos(theta)), the
+  // standard "cosine" angle form -- no 1/sin singularity at theta=180.
+  // Replaces the user's angle_style for these angle types (the
+  // angle_type is negated so angle_style->compute skips them).
+  void apply_linear_angle_forces(int vflag);
+
+  // Per-fix force buffer used by the stiff angle path under newton on
+  // bond.  Sized to nmax * 3.  In apply_linear_angle_forces we write the
+  // angle force trio (for all three atoms, some of which may be ghosts)
+  // into this buffer, then reverse_comm to send ghost contributions to
+  // owner ranks (adding into the owner's local entries), and finally
+  // add the local-sum buffer into atom->f.  Avoids touching atom->f's
+  // ghost portion (which other code may rely on being zero after the
+  // standard force reverse_comm).
+  double *lang_fbuf;
+  int lang_fbuf_alloc;
+  void grow_lang_fbuf(int nmax);
 
   // Topology-change detection.  count_constrained_topology() walks local
   // atoms once and MPI_Allreduces the constrained bond / angle slot counts

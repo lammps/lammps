@@ -37,8 +37,19 @@ Syntax
        *variant* value = *full* or *fast*
          *fast* = symmetric quasi-Newton with banded Cholesky (default)
          *full* = exact-Newton (asymmetric) with LU decomposition
-       *linearangle* value = theta_deg
-         theta_deg = threshold in degrees above which an angle constraint is skipped
+       *linearangle* values = theta_deg [K]
+         theta_deg = threshold in degrees above which an angle constraint
+                     is skipped
+         K         = optional stiff angle force constant (energy units).
+                     When K > 0, near-linear angles are still tagged
+                     as "no AC constraint", but additionally the
+                     ``angle_type`` slot is negated (so the user's
+                     :doc:`angle_style <angle_style>` skips them) and
+                     ``fix ilves`` applies its own stiff angle force
+                     E = K * (1 + cos(theta)) -- the canonical
+                     "cosine" form with no 1/sin singularity at
+                     theta = 180.  K = 0 (default) leaves the
+                     angle_style force in place.
 
 Examples
 """"""""
@@ -210,6 +221,25 @@ entirely, so that the A-C constraint is added for every selected
 angle including the ill-conditioned ones (likely to produce
 ``max_iter`` warnings or atom-ejection failures).
 
+For near-linear angles you can also opt into a stiff angle restraint
+applied by ``fix ilves`` itself, in place of the user's
+:doc:`angle_style <angle_style>`.  Pass an optional ``K`` after the
+threshold:
+
+.. code-block:: LAMMPS
+
+   fix cstr all ilves 1.0e-6 30 0 b 1 2 a 1 variant fast linearangle 165 5.0
+
+With ``K > 0``, near-linear angle types have their ``angle_type`` slot
+negated (so the user's angle_style skips them, the same way it does
+for ordinary constrained angles), and ``fix ilves`` applies
+:math:`E = K \,(1 + \cos\theta)` -- the standard "cosine" angle form,
+identical to LAMMPS :doc:`angle_style cosine <angle_cosine>`.  This
+form has its minimum at :math:`\theta = 180^\circ` and a non-vanishing
+restoring curvature there, with no :math:`1/\sin(\theta)` singularity
+in the force.  Useful when the rest of the system uses harmonic angles
+(which would blow up at :math:`\theta = 180^\circ`).
+
 Output info
 ^^^^^^^^^^^
 
@@ -262,18 +292,17 @@ Only one ``fix ilves`` instance may be defined at a time.  ``fix ilves``
 and :doc:`fix shake <fix_shake>` must not be used together for
 overlapping sets of atoms participating in a constraint.
 
-``fix ilves`` requires :doc:`newton off bond <newton>` so that every
-bond and angle is stored at all of its endpoints.  Under newton on
-bond, only the lower-tag endpoint stores each bond -- the rank owning
-an angle's middle atom would not be able to look up the type of a
-flanking bond stored on a remote rank without an extra communication
-round.  An error is raised at init if newton bond is on.  Add a line
-like::
-
-   newton on off
-
-to your input deck before defining the fix.  (Pair newton can remain
-on; only bonded-storage newton needs to be off.)
+``fix ilves`` works under both :doc:`newton on bond <newton>` (the
+LAMMPS default) and ``newton off bond``.  Under newton off the
+constraint solver looks up bond types directly from local bond
+storage; under newton on it uses an MPI-reduced per-angle-type cache
+(``angle_btype1`` / ``angle_btype2``) built at init for the
+cross-rank lookup.  The optional stiff angle force
+(``linearangle <theta> <K>`` with ``K > 0``) works under both newton
+modes -- under newton on its per-angle force trio is accumulated into
+a fix-owned per-atom buffer at the middle-atom owner and reverse_comm
+sends ghost-side contributions back to owner ranks before being added
+to ``atom->f``.
 
 ``fix ilves`` does not support dynamic topology.  The bond and angle
 tables are read from local atom storage at init and assumed to remain

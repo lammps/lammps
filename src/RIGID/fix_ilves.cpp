@@ -2426,7 +2426,12 @@ void FixIlves::correct_coordinates(int vflag)
 
 void FixIlves::correct_velocities()
 {
-  if (n_constr == 0) return;
+  // NOTE: do NOT early-return on n_constr == 0.  Under the distributed-
+  // topology model, some ranks may have zero local constraints while
+  // others have many.  The forward_comm(v) and MPI_Allreduce inside the
+  // iteration loop below are collective; skipping the loop on empty
+  // ranks would deadlock the others (same as solve_constraints).
+
   grow_lu_workspace(largest_cluster);
 
   // 2-atom helpers (mirror solve_constraints).
@@ -2448,7 +2453,8 @@ void FixIlves::correct_velocities()
   };
 
   // rhs for constraint k: g_k = (v[a] - v[b]) . r_k (time derivative of
-  // the bond-length constraint).
+  // the bond-length constraint).  Ghost velocities are kept fresh between
+  // outer iterations by forward_comm(v) below.
   auto velocity_rhs = [&](int k) -> double {
     int a = c_atom1[k];
     int b = c_atom2[k];
@@ -2458,48 +2464,42 @@ void FixIlves::correct_velocities()
     return vxd*c_rx[k] + vyd*c_ry[k] + vzd*c_rz[k];
   };
 
-  for (int c = 0; c < n_clusters; ++c) {
-    const int beg = cluster_offset[c];
-    const int end = cluster_offset[c + 1];
-    const int n_c = end - beg;
+  // Schwarz iteration over the velocity projection: each rank solves its
+  // local per-cluster slice exactly, applies the update to its local
+  // atoms, then forward_comms v so partner ranks see the updates before
+  // re-evaluating their own rhs.  For clusters that fit on a single
+  // rank, the first iteration drives the residual to zero exactly and
+  // we exit.  For clusters that span ranks (e.g. all-bonds backbone),
+  // multiple iterations converge across the rank boundary.
+  //
+  // Tolerance is the relative bond-rate residual |gk|/c_rsq[k] (units
+  // 1/time).  Reuse the position-solve tolerance: the velocity-projection
+  // matrix is identical in structure to the position-solve matrix and
+  // converges in the same iter count.
+  const double tol_g = tolerance;
 
-    // assemble symmetric A and rhs g
-    for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
+  for (int iter = 0; iter < max_iter; ++iter) {
+    double max_relres = 0.0;
 
-    for (int s = 0; s < n_c; ++s) {
-      int k = c_perm[beg + s];
-      lu_A[s*n_c + s] = diag_factor(k) * c_rsq[k];
-      lu_b[s] = velocity_rhs(k);
-    }
+    for (int c = 0; c < n_clusters; ++c) {
+      const int beg = cluster_offset[c];
+      const int end = cluster_offset[c + 1];
+      const int n_c = end - beg;
 
-    // off-diagonals: same shared-atom logic as the position solve, with
-    // (r_k . r_l) -- symmetric in k,l so we only need s < t
-    for (int s = 0; s < n_c; ++s) {
-      int k = c_perm[beg + s];
-      for (int t = s + 1; t < n_c; ++t) {
-        int l = c_perm[beg + t];
-        double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
-        double val = offdiag(k, l, rkrl);
-        if (val != 0.0) {
-          lu_A[s*n_c + t] = val;
-          lu_A[t*n_c + s] = val;     // symmetric
-        }
-      }
-    }
-
-    // Velocity-projection matrix is always symmetric (r_k.r_l off-diagonals)
-    // regardless of variant -- always SPD for non-degenerate clusters.
-    ++chol_calls;
-    int info = chol_factor_solve(n_c);
-    if (info) {
-      ++chol_fallbacks;
-      // re-zero and re-assemble for the LU fallback (Cholesky overwrote L)
+      // assemble symmetric A and rhs g
       for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
+
       for (int s = 0; s < n_c; ++s) {
         int k = c_perm[beg + s];
         lu_A[s*n_c + s] = diag_factor(k) * c_rsq[k];
-        lu_b[s] = velocity_rhs(k);
+        double gk = velocity_rhs(k);
+        lu_b[s] = gk;
+        double relres = fabs(gk) / c_rsq[k];
+        if (relres > max_relres) max_relres = relres;
       }
+
+      // off-diagonals: same shared-atom logic as the position solve, with
+      // (r_k . r_l) -- symmetric in k,l so we only need s < t
       for (int s = 0; s < n_c; ++s) {
         int k = c_perm[beg + s];
         for (int t = s + 1; t < n_c; ++t) {
@@ -2508,43 +2508,79 @@ void FixIlves::correct_velocities()
           double val = offdiag(k, l, rkrl);
           if (val != 0.0) {
             lu_A[s*n_c + t] = val;
-            lu_A[t*n_c + s] = val;
+            lu_A[t*n_c + s] = val;     // symmetric
           }
         }
       }
-      info = lu_factor_solve(n_c);
-    }
-    if (info)
-      error->one(FLERR,  Error::NOLASTLINE, "Fix ilves: singular velocity-correction matrix "
-                 "in cluster {} (size {}).  Check for degenerate constraint topology.", c, n_c);
 
-    // apply: v[p] += w_p * mu_k * (1/m_p) * (-r_k) for each participating
-    // atom.  Note the OVERALL sign flips relative to the position solve:
-    // the velocity rhs g_k uses +r_k for the v-dot-r convention, while
-    // the constraint Jacobian is the same as for the position update.
-    // Net effect for atom_p: dv = -w_p * mu_k / m_p * r_k.  For 2-atom
-    // this reduces to v[a] -= mu * (1/m_a) * r_k and v[b] += mu *
-    // (1/m_b) * r_k as in the original code.
-    for (int s = 0; s < n_c; ++s) {
-      int k = c_perm[beg + s];
-      double mu = lu_b[s];
-      int a = c_atom1[k];
-      int b = c_atom2[k];
-      int a_local = atom->map(atom->tag[a]);
-      int b_local = atom->map(atom->tag[b]);
-      double da = mu * c_invma[k];
-      double db = mu * c_invmb[k];
-      if (a_local >= 0 && a_local < nlocal) {
-        v[a_local][0] -= da * c_rx[k];
-        v[a_local][1] -= da * c_ry[k];
-        v[a_local][2] -= da * c_rz[k];
+      // Velocity-projection matrix is always symmetric (r_k.r_l off-diagonals)
+      // regardless of variant -- always SPD for non-degenerate clusters.
+      ++chol_calls;
+      int info = chol_factor_solve(n_c);
+      if (info) {
+        ++chol_fallbacks;
+        // re-zero and re-assemble for the LU fallback (Cholesky overwrote L)
+        for (int i = 0; i < n_c * n_c; ++i) lu_A[i] = 0.0;
+        for (int s = 0; s < n_c; ++s) {
+          int k = c_perm[beg + s];
+          lu_A[s*n_c + s] = diag_factor(k) * c_rsq[k];
+          lu_b[s] = velocity_rhs(k);
+        }
+        for (int s = 0; s < n_c; ++s) {
+          int k = c_perm[beg + s];
+          for (int t = s + 1; t < n_c; ++t) {
+            int l = c_perm[beg + t];
+            double rkrl = c_rx[k]*c_rx[l] + c_ry[k]*c_ry[l] + c_rz[k]*c_rz[l];
+            double val = offdiag(k, l, rkrl);
+            if (val != 0.0) {
+              lu_A[s*n_c + t] = val;
+              lu_A[t*n_c + s] = val;
+            }
+          }
+        }
+        info = lu_factor_solve(n_c);
       }
-      if (b_local >= 0 && b_local < nlocal) {
-        v[b_local][0] += db * c_rx[k];
-        v[b_local][1] += db * c_ry[k];
-        v[b_local][2] += db * c_rz[k];
+      if (info)
+        error->one(FLERR,  Error::NOLASTLINE, "Fix ilves: singular velocity-correction matrix "
+                   "in cluster {} (size {}).  Check for degenerate constraint topology.", c, n_c);
+
+      // apply: v[p] += w_p * mu_k * (1/m_p) * (-r_k) for each participating
+      // atom.  Net effect for atom_p: dv = -w_p * mu_k / m_p * r_k.  For
+      // 2-atom this reduces to v[a] -= mu * (1/m_a) * r_k and v[b] +=
+      // mu * (1/m_b) * r_k as in the original code.
+      for (int s = 0; s < n_c; ++s) {
+        int k = c_perm[beg + s];
+        double mu = lu_b[s];
+        int a = c_atom1[k];
+        int b = c_atom2[k];
+        int a_local = atom->map(atom->tag[a]);
+        int b_local = atom->map(atom->tag[b]);
+        double da = mu * c_invma[k];
+        double db = mu * c_invmb[k];
+        if (a_local >= 0 && a_local < nlocal) {
+          v[a_local][0] -= da * c_rx[k];
+          v[a_local][1] -= da * c_ry[k];
+          v[a_local][2] -= da * c_rz[k];
+        }
+        if (b_local >= 0 && b_local < nlocal) {
+          v[b_local][0] += db * c_rx[k];
+          v[b_local][1] += db * c_ry[k];
+          v[b_local][2] += db * c_rz[k];
+        }
       }
     }
+
+    // forward_comm v so partner ranks (and PBC ghosts) see our updates
+    // before the next rhs evaluation.
+    comm_mode = 1;
+    comm->forward_comm(this);
+    comm_mode = 0;
+
+    // synchronize convergence across ranks (same pattern as solve_constraints)
+    double global_relres = max_relres;
+    if (comm->nprocs > 1)
+      MPI_Allreduce(&max_relres, &global_relres, 1, MPI_DOUBLE, MPI_MAX, world);
+    if (global_relres < tol_g) break;
   }
 }
 

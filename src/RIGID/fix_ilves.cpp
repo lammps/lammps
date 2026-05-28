@@ -135,10 +135,6 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   cluster_global_id = nullptr;
   cluster_owner_rank = nullptr;
   cluster_id_alloc = 0;
-  cluster_lat_off = nullptr;
-  cluster_lat_idx = nullptr;
-  cluster_lat_alloc_clusters = 0;
-  cluster_lat_alloc_idx = 0;
   owner_peers_off = nullptr;
   owner_peer_rank = nullptr;
   owner_peers_alloc_clusters = 0;
@@ -444,8 +440,6 @@ FixIlves::~FixIlves()
   memory->destroy(cluster_tag);
   memory->destroy(cluster_global_id);
   memory->destroy(cluster_owner_rank);
-  memory->destroy(cluster_lat_off);
-  memory->destroy(cluster_lat_idx);
   memory->destroy(owner_peers_off);
   memory->destroy(owner_peer_rank);
   memory->destroy(owned_aug_constr_off);
@@ -2618,33 +2612,31 @@ void FixIlves::identify_cluster_owners()
       }
     }
   }
+
+  // cluster_tag is only used inside this routine (the per-iteration
+  // forward_comm(comm_mode == 5) reads/writes it).  Release the
+  // nmax-sized buffer between reneighbors -- it gets grown back at the
+  // top of the next call.
+  memory->destroy(cluster_tag);
+  cluster_tag = nullptr;
+  cluster_tag_alloc = 0;
 }
 
 /* ----------------------------------------------------------------------
-   Build the per-cluster comm graph (single-rank cluster ownership,
-   Phase 2b).  Two outputs:
-
-     (a) cluster_lat_off[]/cluster_lat_idx[] -- CSR list of LOCAL atom
-         indices touched by each local cluster.  Each constraint
-         contributes c_atom1 and c_atom2; we route through atom->map to
-         canonicalize PBC self-images and skip pure ghosts.  Used by:
-           - PEER clusters: tells us which local atoms to ship to the
-             owner each step.
-           - OWNED clusters: tells us which local atoms WE see (the
-             rest come from peers via the per-step gather).
-
-     (b) owner_peers_off[]/owner_peer_rank[]/owner_peer_tag_off[] --
-         for each OWNED cluster, the list of peer ranks that hold atoms
-         locally, plus a running cumulative count of those atoms (the
-         tags themselves are not stored).
+   Build the per-cluster comm graph: for each OWNED cluster, the list
+   of peer ranks that hold atoms locally in this cluster (stored in
+   owner_peers_off / owner_peer_rank), and the augmented constraint
+   list contributed by peers (owned_aug_constr_*).
 
    Built via point-to-point exchange (MPI_Alltoallv): each peer rank
    sends to each owner rank a packed buffer of (global_id, n_tags,
-   tags...) entries -- one per peer cluster.  Owner unpacks, looks up
-   the local cluster index via the global_id, and records the peer.
+   tags..., n_constr, (ta, tb, type) triples) entries -- one per peer
+   cluster.  Owner unpacks, looks up the local cluster index via the
+   global_id, records the peer rank, and dedups the constraint triples
+   into the augmented pool.  Peer-reported atom tags are skipped over
+   (the owner no longer stores them).
 
-   This function is called from build_constraint_list after
-   identify_cluster_owners.
+   Called from build_constraint_list after identify_cluster_owners.
 ------------------------------------------------------------------------- */
 
 void FixIlves::build_comm_graph()
@@ -2658,20 +2650,15 @@ void FixIlves::build_comm_graph()
   const int nlocal_now = atom->nlocal;
   tagint *tag = atom->tag;
 
-  // ---------- (a) cluster_lat_off / cluster_lat_idx ----------
-  // Build per-local-cluster lists of unique LOCAL atom indices that the
-  // cluster touches.  Use a per-atom marker array to dedup within each
-  // cluster scan.  We over-allocate then trim.
+  // ---------- Per-cluster local-atom CSR ----------
+  // Built only to drive the PEER->OWNER send pack below; not retained.
+  // Each constraint contributes c_atom1 and c_atom2; we route through
+  // atom->map to canonicalize PBC self-images and skip pure ghosts.
 
   std::vector<int> mark(atom->nmax, -1);  // -1 = not yet seen in any cluster
-  // Two passes: first count, then fill.  Count uses the marker to
-  // count unique local atoms per cluster.
-  memory->grow(cluster_lat_off, n_clusters + 1, "ilves:cluster_lat_off");
-  cluster_lat_alloc_clusters = n_clusters;
-  for (int c = 0; c <= n_clusters; ++c) cluster_lat_off[c] = 0;
+  std::vector<int> cluster_lat_off(n_clusters + 1, 0);
 
-  // First pass: count unique local atoms per cluster.  cluster_lat_off[c+1]
-  // accumulates the count for cluster c (we shift to prefix-sum later).
+  // First pass: count unique local atoms per cluster.
   for (int k = 0; k < n_constr; ++k) {
     const int c = c_cluster[k];
     for (int side = 0; side < 2; ++side) {
@@ -2689,16 +2676,12 @@ void FixIlves::build_comm_graph()
     int n = cluster_lat_off[c + 1];
     cluster_lat_off[c + 1] = total_local + n;
     total_local += n;
-    if (c == 0) cluster_lat_off[0] = 0;
   }
-  cluster_lat_off[0] = 0;
 
-  memory->grow(cluster_lat_idx, total_local > 0 ? total_local : 1,
-               "ilves:cluster_lat_idx");
-  cluster_lat_alloc_idx = total_local;
+  std::vector<int> cluster_lat_idx(total_local > 0 ? total_local : 1);
 
   // Reset marker; second pass fills cluster_lat_idx.
-  for (int i = 0; i < atom->nmax; ++i) mark[i] = -1;
+  std::fill(mark.begin(), mark.end(), -1);
   std::vector<int> cursor(n_clusters, 0);
   for (int c = 0; c < n_clusters; ++c) cursor[c] = cluster_lat_off[c];
 
@@ -2714,7 +2697,7 @@ void FixIlves::build_comm_graph()
     }
   }
 
-  // ---------- (b) owner_peers via MPI_Alltoallv exchange ----------
+  // ---------- owner_peers via MPI_Alltoallv exchange ----------
   // Each PEER cluster contributes a message to its owner with this
   // layout (per cluster, packed back-to-back into one buffer per
   // destination rank):

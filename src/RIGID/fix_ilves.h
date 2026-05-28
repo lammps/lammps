@@ -361,24 +361,10 @@ class FixIlves : public Fix {
 
   // Per-cluster comm graph (built at reneighbor in build_comm_graph()).
   //
-  // For every local cluster c we record the local atom indices it
-  // touches, in CSR style: cluster_lat_off[c..c+1] is the slice in
-  // cluster_lat_idx[] of local atom indices in cluster c.
-  //
-  // For each OWNED cluster (cluster_owner_rank[c] == comm->me) we also
+  // For each OWNED cluster (cluster_owner_rank[c] == comm->me) we
   // record the list of peer ranks that hold atoms locally in this
   // cluster.  owner_peers_off[c..c+1] is the slice in owner_peer_rank[]
   // giving the peer-rank list for cluster c.
-  //
-  // For each PEER cluster (cluster_owner_rank[c] != comm->me) we
-  // record (owner_rank, list of local atoms to send to owner).  The
-  // owner_rank is cluster_owner_rank[c] itself.  The local atom list
-  // is the cluster_lat_idx slice above.
-  int  *cluster_lat_off;     // size n_clusters+1
-  int  *cluster_lat_idx;     // flat pool of local atom indices
-  int   cluster_lat_alloc_clusters;
-  int   cluster_lat_alloc_idx;
-
   int  *owner_peers_off;     // size n_clusters+1; slices owner_peer_rank[]
   int  *owner_peer_rank;     // peer rank for entry p
   int   owner_peers_alloc_clusters;

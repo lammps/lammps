@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1119-g5250327c00-modified)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1127-g8455f6b9c4-modified)
   using 1 OpenMP thread(s) per MPI task
 # Coarse-grain polymer chains with near-linear backbone angles.
 
@@ -36,7 +36,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      4 = max # of 1-4 neighbors
      6 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.009 seconds
+  read_data CPU = 0.011 seconds
 
 pair_coeff 1 1 1.0 1.0
 pair_coeff 2 2 1.2 1.5
@@ -82,7 +82,7 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
 Fix ilves: skipping AC virtual constraint for 2 near-linear angle type(s) (theta_0 >= 165 deg); using a cosine/delta angle potential with K_theta = 1000 instead
-WARNING: Using fix ilves with minimization: substituting constraints with harmonic restraint forces (kbond = 1e+09) (src/RIGID/fix_ilves.cpp:645)
+WARNING: Using fix ilves with minimization: substituting constraints with harmonic restraint forces (kbond = 1e+09) (src/RIGID/fix_ilves.cpp:609)
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -95,13 +95,13 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 8.316 | 8.316 | 8.317 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 8.253 | 8.254 | 8.255 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
          0   1.6938621      750.22301      431.14022      2.5379575      433.67817    
         25   1.6938621     -96.913915     -5.678528       2.5379575     -3.1405705    
-Loop time of 0.0389069 on 4 procs for 25 steps with 896 atoms
+Loop time of 0.0342453 on 4 procs for 25 steps with 896 atoms
 
-99.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
@@ -115,13 +115,13 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.02565    | 0.02869    | 0.030835   |   1.1 | 73.74
-Bond    | 0.0003479  | 0.00037543 | 0.00040504 |   0.0 |  0.96
+Pair    | 0.023988   | 0.026483   | 0.028478   |   1.0 | 77.33
+Bond    | 0.00030277 | 0.00033858 | 0.00036874 |   0.0 |  0.99
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0055369  | 0.0076999  | 0.010759   |   2.2 | 19.79
+Comm    | 0.0036267  | 0.0056154  | 0.0081596  |   2.2 | 16.40
 Output  | 0          | 0          | 0          |   0.0 |  0.00
-Modify  | 0.0011131  | 0.0011369  | 0.0011725  |   0.1 |  2.92
-Other   |            | 0.001004   |            |       |  2.58
+Modify  | 0.00099388 | 0.001029   | 0.0010797  |   0.1 |  3.00
+Other   |            | 0.0007795  |            |       |  2.28
 
 Nlocal:            224 ave         240 max         217 min
 Histogram: 2 1 0 0 0 0 0 0 0 1
@@ -150,15 +150,14 @@ Fix ilves info:
   128 clusters/proc
   7 max. constraints/cluster
   128 owned + 384 remote clusters (global)
-  384 owner-peer entries, 397 atom tags (global)
-  0 augmented atoms, 0 augmented constraints (global)
+  384 owner-peer entries, 0 augmented constraints (global)
 ILVES stats on step 0 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
 Bond:     1   1         1.96843e-13      448
 Bond:     2   1.2       1.55431e-14      320
 Cholesky: 128 calls, 0 LU fallbacks (0%)
 Newton iter: avg 3.0, max 4 (over 2 solves x 4 ranks)
-Per MPI rank memory allocation (min/avg/max) = 7.191 | 7.191 | 7.192 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 7.128 | 7.129 | 7.13 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
          0   2.3724673      1.0202035      19.434615      2.5379575      21.972572    
        100   6.9685443      18.370652      3.0774567      7.4546314      10.532088    
@@ -183,21 +182,21 @@ Bond:     2   1.19992   0.000460389      320
 Cholesky: 384 calls, 0 LU fallbacks (0%)
 Newton iter: avg 3.0, max 3 (over 500 solves x 4 ranks)
       1000   1.6223188      11.212817     -3.0078055      1.7354828     -1.2723227    
-Loop time of 0.515834 on 4 procs for 1000 steps with 896 atoms
+Loop time of 0.481056 on 4 procs for 1000 steps with 896 atoms
 
-Performance: 837478.160 tau/day, 1938.607 timesteps/s, 1.737 Matom-step/s
-98.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 898023.726 tau/day, 2078.759 timesteps/s, 1.863 Matom-step/s
+99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.12106    | 0.12542    | 0.12989    |   0.9 | 24.31
-Bond    | 0.00012854 | 0.00014465 | 0.00017228 |   0.0 |  0.03
-Neigh   | 0.051646   | 0.051648   | 0.05165    |   0.0 | 10.01
-Comm    | 0.029107   | 0.033504   | 0.037566   |   1.7 |  6.50
-Output  | 0.00013    | 0.00014207 | 0.00017763 |   0.0 |  0.03
-Modify  | 0.30181    | 0.30189    | 0.30211    |   0.0 | 58.52
-Other   |            | 0.003081   |            |       |  0.60
+Pair    | 0.11022    | 0.12046    | 0.12622    |   1.8 | 25.04
+Bond    | 0.00011188 | 0.00012075 | 0.00013068 |   0.0 |  0.03
+Neigh   | 0.048702   | 0.048704   | 0.048705   |   0.0 | 10.12
+Comm    | 0.021084   | 0.026692   | 0.037044   |   3.8 |  5.55
+Output  | 0.0001214  | 0.00013356 | 0.00016824 |   0.0 |  0.03
+Modify  | 0.28224    | 0.28236    | 0.2826     |   0.0 | 58.70
+Other   |            | 0.002591   |            |       |  0.54
 
 Nlocal:            224 ave         234 max         215 min
 Histogram: 1 0 1 0 0 0 1 0 0 1

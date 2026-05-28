@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1119-g5250327c00-modified)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1127-g8455f6b9c4-modified)
   using 1 OpenMP thread(s) per MPI task
 # Solvated 5-mer peptide -- ILVES constraint solver
 # (mirror of examples/peptide/in.peptide using fix ilves)
@@ -119,8 +119,7 @@ Fix ilves info:
   668 clusters/proc
   3 max. constraints/cluster
   668 owned + 2004 remote clusters (global)
-  2004 owner-peer entries, 87 atom tags (global)
-  0 augmented atoms, 0 augmented constraints (global)
+  2004 owner-peer entries, 0 augmented constraints (global)
 ILVES stats on step 0 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
 Bond:     4   1.111     1.26565e-14        9
@@ -132,17 +131,17 @@ Bond:    14   0.96      0                  1
 Bond:    18   0.9572    4.75175e-14     1280
 Angle:   31   104.5200  3.78009e-12      640
 Newton iter: avg 2.5, max 3 (over 2 solves x 4 ranks)
-Per MPI rank memory allocation (min/avg/max) = 15.66 | 15.87 | 16.06 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 15.6 | 15.8 | 15.99 Mbytes
 ------------ Step              0 ----- CPU =            0 (sec) -------------
 TotEng   =     -5237.4580 KinEng   =      1134.9186 Temp     =       190.0857 
 PotEng   =     -6372.3765 E_bond   =        16.5572 E_angle  =        36.3726 
 E_dihed  =        15.5190 E_impro  =         1.9426 E_vdwl   =       692.8945 
 E_coul   =     26772.2647 E_long   =    -33907.9271 Press    =      -837.1573
------------- Step             50 ----- CPU =    0.1528658 (sec) -------------
-TotEng   =     -4870.8975 KinEng   =      1356.5598 Temp     =       227.2080 
-PotEng   =     -6227.4572 E_bond   =        13.3712 E_angle  =        35.3441 
+------------ Step             50 ----- CPU =    0.1506905 (sec) -------------
+TotEng   =     -4870.8985 KinEng   =      1356.5598 Temp     =       227.2080 
+PotEng   =     -6227.4582 E_bond   =        13.3704 E_angle  =        35.3439 
 E_dihed  =        19.8940 E_impro  =         2.6713 E_vdwl   =       688.5547 
-E_coul   =     26918.4642 E_long   =    -33905.7567 Press    =       -91.2243
+E_coul   =     26918.4642 E_long   =    -33905.7567 Press    =       -91.2242
 ILVES stats on step 100 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
 Bond:     4   1.11085   0.00132468         9
@@ -155,81 +154,81 @@ Bond:    18   0.957214  0.0021902       1280
 Angle:   31   104.5217  0.202478         640
 Cholesky: 1336 calls, 0 LU fallbacks (0%)
 Newton iter: avg 3.0, max 3 (over 99 solves x 4 ranks)
------------- Step            100 ----- CPU =     0.311868 (sec) -------------
-TotEng   =     -3830.2093 KinEng   =      1880.5050 Temp     =       314.9628 
-PotEng   =     -5710.7143 E_bond   =        21.0320 E_angle  =        62.2586 
-E_dihed  =        18.6737 E_impro  =         4.3258 E_vdwl   =       749.5197 
-E_coul   =     27333.5566 E_long   =    -33900.0807 Press    =      3191.5672
------------- Step            150 ----- CPU =    0.4763828 (sec) -------------
-TotEng   =     -2999.5567 KinEng   =      2217.3508 Temp     =       371.3806 
-PotEng   =     -5216.9076 E_bond   =        26.6291 E_angle  =        54.8998 
-E_dihed  =        25.5728 E_impro  =         4.9834 E_vdwl   =       631.1538 
-E_coul   =     27937.0453 E_long   =    -33897.1917 Press    =      4661.2256
+------------ Step            100 ----- CPU =    0.3082877 (sec) -------------
+TotEng   =     -3830.2112 KinEng   =      1880.5050 Temp     =       314.9628 
+PotEng   =     -5710.7162 E_bond   =        21.0306 E_angle  =        62.2581 
+E_dihed  =        18.6737 E_impro  =         4.3258 E_vdwl   =       749.5198 
+E_coul   =     27333.5567 E_long   =    -33900.0807 Press    =      3191.5673
+------------ Step            150 ----- CPU =    0.4694032 (sec) -------------
+TotEng   =     -2999.5595 KinEng   =      2217.3510 Temp     =       371.3806 
+PotEng   =     -5216.9104 E_bond   =        26.6271 E_angle  =        54.8990 
+E_dihed  =        25.5728 E_impro  =         4.9834 E_vdwl   =       631.1537 
+E_coul   =     27937.0453 E_long   =    -33897.1917 Press    =      4661.2251
 ILVES stats on step 200 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
 Bond:     4   1.11103   0.00230944         9
 Bond:     6   0.997347  0.00121889         6
-Bond:     8   1.08002   0.000654318        7
+Bond:     8   1.08002   0.000654317        7
 Bond:    10   1.11124   0.00179914         8
 Bond:    12   1.0799    0.00162671         9
 Bond:    14   0.96001   0                  1
-Bond:    18   0.957202  0.00202281      1280
+Bond:    18   0.957202  0.00202285      1280
 Angle:   31   104.5207  0.192312         640
 Cholesky: 1336 calls, 0 LU fallbacks (0%)
 Newton iter: avg 3.0, max 4 (over 100 solves x 4 ranks)
------------- Step            200 ----- CPU =    0.6436875 (sec) -------------
-TotEng   =     -3344.0072 KinEng   =      1896.4841 Temp     =       317.6391 
-PotEng   =     -5240.4914 E_bond   =        29.5324 E_angle  =        48.7098 
-E_dihed  =        26.4997 E_impro  =         1.7278 E_vdwl   =       506.6991 
-E_coul   =     28039.4406 E_long   =    -33893.1007 Press    =      1772.3122
------------- Step            250 ----- CPU =    0.8062881 (sec) -------------
-TotEng   =     -4050.0632 KinEng   =      1466.3947 Temp     =       245.6041 
-PotEng   =     -5516.4579 E_bond   =        19.5840 E_angle  =        54.2171 
-E_dihed  =        24.7128 E_impro  =         1.9581 E_vdwl   =       449.4875 
-E_coul   =     27834.7508 E_long   =    -33901.1682 Press    =       -88.1737
+------------ Step            200 ----- CPU =    0.6353349 (sec) -------------
+TotEng   =     -3344.0106 KinEng   =      1896.4844 Temp     =       317.6391 
+PotEng   =     -5240.4950 E_bond   =        29.5298 E_angle  =        48.7093 
+E_dihed  =        26.4997 E_impro  =         1.7278 E_vdwl   =       506.6992 
+E_coul   =     28039.4402 E_long   =    -33893.1010 Press    =      1772.3129
+------------ Step            250 ----- CPU =    0.8018391 (sec) -------------
+TotEng   =     -4050.0644 KinEng   =      1466.3929 Temp     =       245.6038 
+PotEng   =     -5516.4573 E_bond   =        19.5821 E_angle  =        54.2168 
+E_dihed  =        24.7131 E_impro  =         1.9580 E_vdwl   =       449.4848 
+E_coul   =     27834.7564 E_long   =    -33901.1685 Press    =       -88.1693
 ILVES stats on step 300 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
-Bond:     4   1.11097   0.00234015         9
-Bond:     6   0.997014  0.000445228        6
-Bond:     8   1.08003   0.000563418        7
-Bond:    10   1.11105   0.00070391         8
-Bond:    12   1.07991   0.000752932        9
+Bond:     4   1.11097   0.00234029         9
+Bond:     6   0.997014  0.000445249        6
+Bond:     8   1.08003   0.000563474        7
+Bond:    10   1.11105   0.000703898        8
+Bond:    12   1.07991   0.000752956        9
 Bond:    14   0.959759  0                  1
-Bond:    18   0.957204  0.00186057      1280
-Angle:   31   104.5200  0.186672         640
+Bond:    18   0.957204  0.00186043      1280
+Angle:   31   104.5200  0.186723         640
 Cholesky: 1336 calls, 0 LU fallbacks (0%)
 Newton iter: avg 3.0, max 3 (over 100 solves x 4 ranks)
------------- Step            300 ----- CPU =    0.9693039 (sec) -------------
-TotEng   =     -4420.8606 KinEng   =      1395.5089 Temp     =       233.7316 
-PotEng   =     -5816.3696 E_bond   =        19.9893 E_angle  =        41.5553 
-E_dihed  =        24.8811 E_impro  =         2.5820 E_vdwl   =       553.4032 
-E_coul   =     27444.7839 E_long   =    -33903.5644 Press    =      -395.9883
-Loop time of 0.969328 on 4 procs for 300 steps with 2004 atoms
+------------ Step            300 ----- CPU =    0.9606106 (sec) -------------
+TotEng   =     -4420.8622 KinEng   =      1395.6029 Temp     =       233.7473 
+PotEng   =     -5816.4651 E_bond   =        19.9874 E_angle  =        41.5550 
+E_dihed  =        24.8817 E_impro  =         2.5822 E_vdwl   =       553.3978 
+E_coul   =     27444.7002 E_long   =    -33903.5694 Press    =      -396.6124
+Loop time of 0.960634 on 4 procs for 300 steps with 2004 atoms
 
-Performance: 53.480 ns/day, 0.449 hours/ns, 309.493 timesteps/s, 620.224 katom-step/s
-99.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 53.964 ns/day, 0.445 hours/ns, 312.294 timesteps/s, 625.836 katom-step/s
+99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.56024    | 0.56991    | 0.57714    |   0.9 | 58.79
-Bond    | 0.0010606  | 0.0020409  | 0.0030916  |   2.1 |  0.21
-Kspace  | 0.068651   | 0.074974   | 0.085267   |   2.4 |  7.73
-Neigh   | 0.091285   | 0.091286   | 0.091286   |   0.0 |  9.42
-Comm    | 0.017825   | 0.018048   | 0.018474   |   0.2 |  1.86
-Output  | 0.00015052 | 0.00015785 | 0.00017772 |   0.0 |  0.02
-Modify  | 0.2107     | 0.2108     | 0.21089    |   0.0 | 21.75
-Other   |            | 0.002114   |            |       |  0.22
+Pair    | 0.56199    | 0.56975    | 0.57527    |   0.7 | 59.31
+Bond    | 0.00064439 | 0.0015684  | 0.0025015  |   1.9 |  0.16
+Kspace  | 0.068925   | 0.07417    | 0.084285   |   2.2 |  7.72
+Neigh   | 0.090016   | 0.090017   | 0.090018   |   0.0 |  9.37
+Comm    | 0.016994   | 0.018199   | 0.018833   |   0.5 |  1.89
+Output  | 0.00015616 | 0.00016279 | 0.000181   |   0.0 |  0.02
+Modify  | 0.20497    | 0.20516    | 0.20527    |   0.0 | 21.36
+Other   |            | 0.001602   |            |       |  0.17
 
 Nlocal:            501 ave         514 max         492 min
 Histogram: 1 0 1 0 1 0 0 0 0 1
 Nghost:         6592.5 ave        6667 max        6496 min
 Histogram: 1 0 0 0 0 1 1 0 0 1
-Neighs:         177044 ave      181990 max      173744 min
+Neighs:         177043 ave      181992 max      173740 min
 Histogram: 1 1 0 0 1 0 0 0 0 1
 
-Total # of neighbors = 708176
-Ave neighs/atom = 353.38124
+Total # of neighbors = 708172
+Ave neighs/atom = 353.37924
 Ave special neighs/atom = 2.3403194
 Neighbor list builds = 32
 Dangerous builds = 0

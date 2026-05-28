@@ -1,4 +1,5 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1119-g5250327c00-modified)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1127-g8455f6b9c4-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # Rhodopsin model
 
@@ -46,13 +47,15 @@ Finding 1-2 1-3 1-4 neighbors ...
     12 = max # of 1-3 neighbors
     24 = max # of 1-4 neighbors
     26 = max # of special neighbors
-  special bonds CPU = 0.009 seconds
-  read_data CPU = 0.254 seconds
+  special bonds CPU = 0.010 seconds
+  read_data CPU = 0.251 seconds
 
 fix             1 all ilves 0.0001 100 50 m 1.0 a 232 variant full
 fix             2 all npt temp 300.0 300.0 100.0                 z 0.0 0.0 1000.0 mtk no pchain 0 tchain 1
 
 special_bonds   charmm
+
+if "$(extract_setting(world_size)) > 1" then "comm_modify cutoff 20"
 
 thermo          50
 thermo_style    multi
@@ -111,8 +114,7 @@ Fix ilves info:
   10149 clusters/proc
   3 max. constraints/cluster
   10149 owned + 0 remote clusters (global)
-  0 owner-peer entries, 0 atom tags (global)
-  0 augmented atoms, 0 augmented constraints (global)
+  0 owner-peer entries, 0 augmented constraints (global)
 ILVES stats on step 0 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
 Bond:    12   1.08      6.66134e-15      252
@@ -148,7 +150,7 @@ Bond:   110   1.325     1.77636e-15        6
 Bond:   112   0.9572    2.85327e-14     8466
 Angle:  232   104.5200  2.75691e-12     4233
 Newton iter: avg 2.5, max 3 (over 2 solves x 1 ranks)
-Per MPI rank memory allocation (min/avg/max) = 139.3 | 139.3 | 139.3 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 139 | 139 | 139 Mbytes
 ------------ Step              0 ----- CPU =            0 (sec) -------------
 TotEng   =    -25356.2057 KinEng   =     21444.8313 Temp     =       224.8288 
 PotEng   =    -46801.0370 E_bond   =      2537.9940 E_angle  =     10921.3742 
@@ -191,7 +193,7 @@ Bond:   112   0.957228  0.00227211      8466
 Angle:  232   104.5241  0.235205        4233
 Cholesky: 20298 calls, 0 LU fallbacks (0%)
 Newton iter: avg 3.0, max 3 (over 49 solves x 1 ranks)
------------- Step             50 ----- CPU =       7.8401 (sec) -------------
+------------ Step             50 ----- CPU =     7.741519 (sec) -------------
 TotEng   =    -19941.8009 KinEng   =     24450.9544 Temp     =       256.3452 
 PotEng   =    -44392.7553 E_bond   =      2712.4267 E_angle  =     11827.3488 
 E_dihed  =      5397.9846 E_impro  =       250.9109 E_vdwl   =     -1635.4335 
@@ -233,7 +235,7 @@ Bond:   112   0.957286  0.00317022      8466
 Angle:  232   104.5326  0.265405        4233
 Cholesky: 20298 calls, 0 LU fallbacks (0%)
 Newton iter: avg 3.0, max 3 (over 50 solves x 1 ranks)
------------- Step            100 ----- CPU =     16.22852 (sec) -------------
+------------ Step            100 ----- CPU =     16.03064 (sec) -------------
 TotEng   =     -5918.7173 KinEng   =     31476.9310 Temp     =       330.0059 
 PotEng   =    -37395.6484 E_bond   =      3449.0126 E_angle  =     14379.8764 
 E_dihed  =      5870.3356 E_impro  =       299.3846 E_vdwl   =     -1076.1644 
@@ -275,7 +277,7 @@ Bond:   112   0.957403  0.00395791      8466
 Angle:  232   104.5503  0.374626        4233
 Cholesky: 20298 calls, 0 LU fallbacks (0%)
 Newton iter: avg 3.0, max 3 (over 50 solves x 1 ranks)
------------- Step            150 ----- CPU =     24.82954 (sec) -------------
+------------ Step            150 ----- CPU =     24.35833 (sec) -------------
 TotEng   =      4831.5104 KinEng   =     35802.6537 Temp     =       375.3570 
 PotEng   =    -30971.1433 E_bond   =      4005.9049 E_angle  =     16387.9389 
 E_dihed  =      6464.9907 E_impro  =       330.5868 E_vdwl   =     -1308.3981 
@@ -317,28 +319,28 @@ Bond:   112   0.957432  0.00335968      8466
 Angle:  232   104.5564  0.336182        4233
 Cholesky: 20298 calls, 0 LU fallbacks (0%)
 Newton iter: avg 3.0, max 3 (over 50 solves x 1 ranks)
------------- Step            200 ----- CPU =     33.57282 (sec) -------------
+------------ Step            200 ----- CPU =      32.8723 (sec) -------------
 TotEng   =       155.3180 KinEng   =     32408.4211 Temp     =       339.7717 
 PotEng   =    -32253.1031 E_bond   =      3642.3624 E_angle  =     15809.0448 
 E_dihed  =      6376.9212 E_impro  =       325.2146 E_vdwl   =     -2431.6470 
 E_coul   =    214332.4732 E_long   =   -270307.4723 Press    =      1292.2525 
 Volume   =    314747.5401
-Loop time of 33.5728 on 1 procs for 200 steps with 32000 atoms
+Loop time of 32.8723 on 1 procs for 200 steps with 32000 atoms
 
-Performance: 1.029 ns/day, 23.314 hours/ns, 5.957 timesteps/s, 190.630 katom-step/s
-99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 1.051 ns/day, 22.828 hours/ns, 6.084 timesteps/s, 194.693 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 24.009     | 24.009     | 24.009     |   0.0 | 71.51
-Bond    | 0.79914    | 0.79914    | 0.79914    |   0.0 |  2.38
-Kspace  | 1.5175     | 1.5175     | 1.5175     |   0.0 |  4.52
-Neigh   | 5.3485     | 5.3485     | 5.3485     |   0.0 | 15.93
-Comm    | 0.055912   | 0.055912   | 0.055912   |   0.0 |  0.17
-Output  | 0.0004366  | 0.0004366  | 0.0004366  |   0.0 |  0.00
-Modify  | 1.8253     | 1.8253     | 1.8253     |   0.0 |  5.44
-Other   |            | 0.01671    |            |       |  0.05
+Pair    | 23.503     | 23.503     | 23.503     |   0.0 | 71.50
+Bond    | 0.77278    | 0.77278    | 0.77278    |   0.0 |  2.35
+Kspace  | 1.4821     | 1.4821     | 1.4821     |   0.0 |  4.51
+Neigh   | 5.2462     | 5.2462     | 5.2462     |   0.0 | 15.96
+Comm    | 0.051309   | 0.051309   | 0.051309   |   0.0 |  0.16
+Output  | 0.00045693 | 0.00045693 | 0.00045693 |   0.0 |  0.00
+Modify  | 1.8004     | 1.8004     | 1.8004     |   0.0 |  5.48
+Other   |            | 0.01625    |            |       |  0.05
 
 Nlocal:          32000 ave       32000 max       32000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -352,4 +354,4 @@ Ave neighs/atom = 368.20844
 Ave special neighs/atom = 7.431875
 Neighbor list builds = 27
 Dangerous builds = 0
-Total wall time: 0:00:34
+Total wall time: 0:00:33

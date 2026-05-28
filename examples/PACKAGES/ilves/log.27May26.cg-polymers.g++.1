@@ -1,4 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1119-g5250327c00-modified)
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1127-g8455f6b9c4-modified)
   using 1 OpenMP thread(s) per MPI task
 # Coarse-grain polymer chains with near-linear backbone angles.
 
@@ -82,7 +82,7 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
 Fix ilves: skipping AC virtual constraint for 2 near-linear angle type(s) (theta_0 >= 165 deg); using a cosine/delta angle potential with K_theta = 1000 instead
-WARNING: Using fix ilves with minimization: substituting constraints with harmonic restraint forces (kbond = 1e+09) (src/RIGID/fix_ilves.cpp:645)
+WARNING: Using fix ilves with minimization: substituting constraints with harmonic restraint forces (kbond = 1e+09) (src/RIGID/fix_ilves.cpp:609)
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -95,11 +95,11 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 8.42 | 8.42 | 8.42 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 8.357 | 8.357 | 8.357 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
          0   1.6938621     -756.82909      571.24701      2.5379575      573.78497    
        100   1.6938621     -0.82926228    -5.7439803      2.5379575     -3.2060228    
-Loop time of 0.727731 on 1 procs for 100 steps with 896 atoms
+Loop time of 0.707524 on 1 procs for 100 steps with 896 atoms
 
 99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
@@ -115,13 +115,13 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.70056    | 0.70056    | 0.70056    |   0.0 | 96.27
-Bond    | 0.00015312 | 0.00015312 | 0.00015312 |   0.0 |  0.02
+Pair    | 0.68423    | 0.68423    | 0.68423    |   0.0 | 96.71
+Bond    | 5.8908e-05 | 5.8908e-05 | 5.8908e-05 |   0.0 |  0.01
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0080244  | 0.0080244  | 0.0080244  |   0.0 |  1.10
-Output  | 2.9326e-05 | 2.9326e-05 | 2.9326e-05 |   0.0 |  0.00
-Modify  | 0.013453   | 0.013453   | 0.013453   |   0.0 |  1.85
-Other   |            | 0.005513   |            |       |  0.76
+Comm    | 0.0068227  | 0.0068227  | 0.0068227  |   0.0 |  0.96
+Output  | 1.9738e-05 | 1.9738e-05 | 1.9738e-05 |   0.0 |  0.00
+Modify  | 0.011923   | 0.011923   | 0.011923   |   0.0 |  1.69
+Other   |            | 0.004471   |            |       |  0.63
 
 Nlocal:            896 ave         896 max         896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -150,15 +150,14 @@ Fix ilves info:
   128 clusters/proc
   7 max. constraints/cluster
   128 owned + 0 remote clusters (global)
-  0 owner-peer entries, 0 atom tags (global)
-  0 augmented atoms, 0 augmented constraints (global)
+  0 owner-peer entries, 0 augmented constraints (global)
 ILVES stats on step 0 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
 Bond:     1   1         1.57652e-14      448
 Bond:     2   1.2       1.35447e-14      320
 Cholesky: 128 calls, 0 LU fallbacks (0%)
 Newton iter: avg 3.0, max 4 (over 2 solves x 1 ranks)
-Per MPI rank memory allocation (min/avg/max) = 7.295 | 7.295 | 7.295 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 7.232 | 7.232 | 7.232 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
          0   2.3724673      1.0348423      19.432757      2.5379575      21.970714    
        100   6.9668132      18.377261      3.0789522      7.4527795      10.531732    
@@ -183,21 +182,21 @@ Bond:     2   1.19993   0.00049927       320
 Cholesky: 384 calls, 0 LU fallbacks (0%)
 Newton iter: avg 3.0, max 3 (over 500 solves x 1 ranks)
       1000   1.6089702      11.331691     -3.0737723      1.7212031     -1.3525692    
-Loop time of 1.16505 on 1 procs for 1000 steps with 896 atoms
+Loop time of 1.14727 on 1 procs for 1000 steps with 896 atoms
 
-Performance: 370799.770 tau/day, 858.333 timesteps/s, 769.066 katom-step/s
+Performance: 376546.612 tau/day, 871.636 timesteps/s, 780.986 katom-step/s
 99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.68684    | 0.68684    | 0.68684    |   0.0 | 58.95
-Bond    | 0.00013644 | 0.00013644 | 0.00013644 |   0.0 |  0.01
-Neigh   | 0.17802    | 0.17802    | 0.17802    |   0.0 | 15.28
-Comm    | 0.012714   | 0.012714   | 0.012714   |   0.0 |  1.09
-Output  | 0.00017881 | 0.00017881 | 0.00017881 |   0.0 |  0.02
-Modify  | 0.28387    | 0.28387    | 0.28387    |   0.0 | 24.37
-Other   |            | 0.003288   |            |       |  0.28
+Pair    | 0.67884    | 0.67884    | 0.67884    |   0.0 | 59.17
+Bond    | 8.3215e-05 | 8.3215e-05 | 8.3215e-05 |   0.0 |  0.01
+Neigh   | 0.1787     | 0.1787     | 0.1787     |   0.0 | 15.58
+Comm    | 0.011898   | 0.011898   | 0.011898   |   0.0 |  1.04
+Output  | 0.00013337 | 0.00013337 | 0.00013337 |   0.0 |  0.01
+Modify  | 0.27489    | 0.27489    | 0.27489    |   0.0 | 23.96
+Other   |            | 0.002718   |            |       |  0.24
 
 Nlocal:            896 ave         896 max         896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

@@ -40,14 +40,15 @@ The inertia tensor is computed as
 where :math:`r_{\text{cm}}` is the center-of-mass position of the group,
 the sum is over all atoms in the group, and :math:`I_i` is the moment of
 inertia of atom :math:`i` about its own center.  For point particles
-:math:`I_i` is zero; for finite-size particles (finite-size spheres,
-ellipsoids, superellipsoids, line segments, triangles, and body particles)
-:math:`I_i` is the moment of inertia of the particle's shape, which is added
-using the parallel-axis theorem.  For finite spheres, ellipsoids, line
-segments, and triangles this matches the treatment used by the
-:doc:`fix rigid <fix_rigid>` command; for superellipsoids and body
-particles the per-particle moment of inertia stored with each particle is
-used (these are not supported by :doc:`fix rigid <fix_rigid>`).
+:math:`I_i` is zero; for :doc:`finite-size particles <Howto_spherical>`
+(finite-size spheres, ellipsoids, superellipsoids, line segments,
+triangles, and body particles) :math:`I_i` is the moment of inertia of
+the particle's shape, which is added using the parallel-axis theorem.
+For finite spheres, ellipsoids, line segments, and triangles this
+matches the treatment used by the :doc:`fix rigid <fix_rigid>` command;
+for superellipsoids and body particles the per-particle moment of
+inertia stored with each particle is used (these are not supported by
+:doc:`fix rigid <fix_rigid>`).
 
 .. note::
 

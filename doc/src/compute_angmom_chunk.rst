@@ -44,11 +44,12 @@ boundaries.
 
 .. versionchanged:: TBD
 
-For finite-size particles the intrinsic (spin) angular momentum of each
-particle is now added: sphere and line particles via their angular
-velocity (:math:`L = I\,\omega`), while ellipsoid, superellipsoid,
-triangle, and body particles add their stored per-particle angular
-momentum.  Previously all atoms were treated as point masses.
+For :doc:`finite-size particles <Howto_spherical>` the intrinsic (spin)
+angular momentum of each particle is now added: sphere and line
+particles via their angular velocity (:math:`L = I\,\omega`), while
+ellipsoid, superellipsoid, triangle, and body particles add their stored
+per-particle angular momentum.  Previously all atoms were treated as
+point masses.
 
 Note that only atoms in the specified group contribute to the
 calculation.  The :doc:`compute chunk/atom <compute_chunk_atom>` command

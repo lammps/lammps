@@ -45,9 +45,10 @@ includes all effects due to atoms passing through periodic boundaries.
 
 .. versionchanged:: TBD
 
-For finite-size particles both :math:`\mathrm{I}` and :math:`\vec L` now
-include each particle's own contribution (consistent with :doc:`compute
-inertia/chunk <compute_inertia_chunk>` and :doc:`compute angmom/chunk
+For :doc:`finite-size particles <Howto_spherical>` both
+:math:`\mathrm{I}` and :math:`\vec L` now include each particle's own
+contribution (consistent with :doc:`compute inertia/chunk
+<compute_inertia_chunk>` and :doc:`compute angmom/chunk
 <compute_angmom_chunk>`).  Previously all atoms were treated as point
 masses.
 

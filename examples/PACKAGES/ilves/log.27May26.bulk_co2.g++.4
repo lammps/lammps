@@ -1,5 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1116-g878adc13f6-modified)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1119-g5250327c00-modified)
   using 1 OpenMP thread(s) per MPI task
 # Bulk CO2 molecular fluid, fix ilves
 # Rigid CO2 TraPPE model
@@ -50,7 +49,7 @@ Read molecule template co2mol:
 create_atoms    0 box mol co2mol 464563 units box
 Created 375 atoms
   using box units in orthogonal box = (0 0 0) to (25 25 25)
-  create_atoms CPU = 0.003 seconds
+  create_atoms CPU = 0.001 seconds
 
 # CO2 TraPPE model
 
@@ -121,7 +120,7 @@ PPPM initialization ...
   3d grid and FFT values/proc = 2057 432
 Generated 1 of 1 mixed pair_coeff terms from arithmetic mixing rule
 Fix ilves: skipping AC virtual constraint for 1 near-linear angle type(s) (theta_0 >= 165 deg); the original angle force-field term remains active for these angles
-WARNING: Using fix ilves with minimization: substituting constraints with harmonic restraint forces (kbond = 1.98721e+06) (src/RIGID/fix_ilves.cpp:601)
+WARNING: Using fix ilves with minimization: substituting constraints with harmonic restraint forces (kbond = 1.98721e+06) (src/RIGID/fix_ilves.cpp:645)
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -138,9 +137,9 @@ Per MPI rank memory allocation (min/avg/max) = 8.888 | 8.888 | 8.888 Mbytes
    Step          Temp          Press          PotEng         KinEng    
          0   338            525.872       -108.44638      376.81016    
          3   338            703.16159     -108.44689      376.81016    
-Loop time of 0.0203019 on 4 procs for 3 steps with 375 atoms
+Loop time of 0.0195646 on 4 procs for 3 steps with 375 atoms
 
-97.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+98.8% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
@@ -154,14 +153,14 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.011968   | 0.012617   | 0.013499   |   0.6 | 62.15
-Bond    | 7.2166e-05 | 0.00010839 | 0.00015213 |   0.0 |  0.53
-Kspace  | 0.004686   | 0.0055593  | 0.0062104  |   0.8 | 27.38
+Pair    | 0.011804   | 0.012286   | 0.012813   |   0.4 | 62.80
+Bond    | 7.8082e-05 | 0.00010941 | 0.00014589 |   0.0 |  0.56
+Kspace  | 0.0046692  | 0.005149   | 0.0056321  |   0.6 | 26.32
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0015889  | 0.001625   | 0.0016602  |   0.1 |  8.00
+Comm    | 0.001578   | 0.0016103  | 0.0016504  |   0.1 |  8.23
 Output  | 0          | 0          | 0          |   0.0 |  0.00
-Modify  | 0.00010722 | 0.00013683 | 0.00017293 |   0.0 |  0.67
-Other   |            | 0.000255   |            |       |  1.26
+Modify  | 0.00010539 | 0.00013698 | 0.00017523 |   0.0 |  0.70
+Other   |            | 0.0002725  |            |       |  1.39
 
 Nlocal:          93.75 ave         108 max          83 min
 Histogram: 1 0 0 2 0 0 0 0 0 1
@@ -195,6 +194,9 @@ Fix ilves info:
   250 constraints/proc
   125 clusters/proc
   2 max. constraints/cluster
+  125 owned + 375 remote clusters (global)
+  375 owner-peer entries, 49 atom tags (global)
+  0 augmented atoms, 0 augmented constraints (global)
 ILVES stats on step 0 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
 Bond:     1   1.16      6.06803e-12      250
@@ -278,22 +280,22 @@ Bond:     1   1.16      9.82355e-06      250
 Cholesky: 250 calls, 0 LU fallbacks (0%)
 Newton iter: avg 2.0, max 2 (over 1000 solves x 4 ranks)
       5000   330.05411     -265.45064     -1375.8438      241.69389    
-Loop time of 1.86193 on 4 procs for 5000 steps with 375 atoms
+Loop time of 1.9449 on 4 procs for 5000 steps with 375 atoms
 
-Performance: 232.017 ns/day, 0.103 hours/ns, 2685.387 timesteps/s, 1.007 Matom-step/s
+Performance: 222.120 ns/day, 0.108 hours/ns, 2570.831 timesteps/s, 964.061 katom-step/s
 97.8% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.4689     | 0.59641    | 0.84084    |  19.6 | 32.03
-Bond    | 0.0051262  | 0.0067855  | 0.0088425  |   1.7 |  0.36
-Kspace  | 0.38887    | 0.61332    | 0.73028    |  17.8 | 32.94
-Neigh   | 0.023532   | 0.023533   | 0.023535   |   0.0 |  1.26
-Comm    | 0.12583    | 0.14462    | 0.15616    |   3.2 |  7.77
-Output  | 0.00060441 | 0.00065531 | 0.00079883 |   0.0 |  0.04
-Modify  | 0.46322    | 0.46565    | 0.46771    |   0.3 | 25.01
-Other   |            | 0.01096    |            |       |  0.59
+Pair    | 0.46099    | 0.59307    | 0.85575    |  20.9 | 30.49
+Bond    | 0.0051692  | 0.0069194  | 0.0091696  |   1.8 |  0.36
+Kspace  | 0.38757    | 0.6295     | 0.75322    |  18.7 | 32.37
+Neigh   | 0.02458    | 0.024583   | 0.024584   |   0.0 |  1.26
+Comm    | 0.12464    | 0.14425    | 0.15615    |   3.4 |  7.42
+Output  | 0.00058927 | 0.00065243 | 0.000826   |   0.0 |  0.03
+Modify  | 0.53387    | 0.53653    | 0.53907    |   0.3 | 27.59
+Other   |            | 0.009398   |            |       |  0.48
 
 Nlocal:          93.75 ave         178 max          45 min
 Histogram: 2 0 0 1 0 0 0 0 0 1

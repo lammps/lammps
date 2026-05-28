@@ -1,5 +1,4 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1116-g878adc13f6-modified)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1119-g5250327c00-modified)
   using 1 OpenMP thread(s) per MPI task
 # Coarse-grain polymer chains with near-linear backbone angles.
 
@@ -83,7 +82,7 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
 Fix ilves: skipping AC virtual constraint for 2 near-linear angle type(s) (theta_0 >= 165 deg); using a cosine/delta angle potential with K_theta = 1000 instead
-WARNING: Using fix ilves with minimization: substituting constraints with harmonic restraint forces (kbond = 1e+09) (src/RIGID/fix_ilves.cpp:601)
+WARNING: Using fix ilves with minimization: substituting constraints with harmonic restraint forces (kbond = 1e+09) (src/RIGID/fix_ilves.cpp:645)
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -100,9 +99,9 @@ Per MPI rank memory allocation (min/avg/max) = 8.42 | 8.42 | 8.42 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
          0   1.6938621     -756.82909      571.24701      2.5379575      573.78497    
        100   1.6938621     -0.82926228    -5.7439803      2.5379575     -3.2060228    
-Loop time of 0.699541 on 1 procs for 100 steps with 896 atoms
+Loop time of 0.727731 on 1 procs for 100 steps with 896 atoms
 
-99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = max iterations
@@ -116,13 +115,13 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.67719    | 0.67719    | 0.67719    |   0.0 | 96.81
-Bond    | 6.7721e-05 | 6.7721e-05 | 6.7721e-05 |   0.0 |  0.01
+Pair    | 0.70056    | 0.70056    | 0.70056    |   0.0 | 96.27
+Bond    | 0.00015312 | 0.00015312 | 0.00015312 |   0.0 |  0.02
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0064544  | 0.0064544  | 0.0064544  |   0.0 |  0.92
-Output  | 1.8044e-05 | 1.8044e-05 | 1.8044e-05 |   0.0 |  0.00
-Modify  | 0.01147    | 0.01147    | 0.01147    |   0.0 |  1.64
-Other   |            | 0.004338   |            |       |  0.62
+Comm    | 0.0080244  | 0.0080244  | 0.0080244  |   0.0 |  1.10
+Output  | 2.9326e-05 | 2.9326e-05 | 2.9326e-05 |   0.0 |  0.00
+Modify  | 0.013453   | 0.013453   | 0.013453   |   0.0 |  1.85
+Other   |            | 0.005513   |            |       |  0.76
 
 Nlocal:            896 ave         896 max         896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -150,6 +149,9 @@ Fix ilves info:
   768 constraints/proc
   128 clusters/proc
   7 max. constraints/cluster
+  128 owned + 0 remote clusters (global)
+  0 owner-peer entries, 0 atom tags (global)
+  0 augmented atoms, 0 augmented constraints (global)
 ILVES stats on step 0 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
 Bond:     1   1         1.57652e-14      448
@@ -159,55 +161,55 @@ Newton iter: avg 3.0, max 4 (over 2 solves x 1 ranks)
 Per MPI rank memory allocation (min/avg/max) = 7.295 | 7.295 | 7.295 Mbytes
    Step          Temp          Press          PotEng         KinEng         TotEng    
          0   2.3724673      1.0348423      19.432757      2.5379575      21.970714    
-       100   7.0057599      26.228385      3.1106441      7.494443       10.605087    
-       200   4.0624736      14.862431     -0.063132433    4.3458493      4.2827169    
-       300   2.6600875      15.661121     -1.6753444      2.8456405      1.1702961    
-       400   1.9697169      10.148308     -2.5555459      2.1071134     -0.44843244   
+       100   6.9668132      18.377261      3.0789522      7.4527795      10.531732    
+       200   4.0483488      14.694314     -0.08707396     4.3307392      4.2436652    
+       300   2.6544189      12.502518     -1.6840719      2.8395765      1.1555046    
+       400   1.9141804      11.893874     -2.5074086      2.0477031     -0.45970549   
 ILVES stats on step 500 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
-Bond:     1   0.999915  0.0227864        448
-Bond:     2   1.19996   0.0128673        320
-Cholesky: 256 calls, 0 LU fallbacks (0%)
-Newton iter: avg 3.6, max 5 (over 499 solves x 1 ranks)
-       500   1.535768       9.3408935     -2.9713296      1.6428946     -1.328435     
-       600   1.3055836      9.3352253     -3.1602715      1.3966539     -1.7636176    
-       700   1.3119732      8.5396406     -3.2283242      1.4034892     -1.824835     
-       800   1.4722791      10.766651     -3.1436309      1.5749772     -1.5686537    
-       900   1.6841299      8.0569019     -3.0982341      1.8016054     -1.2966287    
+Bond:     1   0.999871  0.000728442      448
+Bond:     2   1.19993   0.000469718      320
+Cholesky: 384 calls, 0 LU fallbacks (0%)
+Newton iter: avg 3.3, max 5 (over 499 solves x 1 ranks)
+       500   1.5162136      10.951485     -2.9740597      1.6219762     -1.3520835    
+       600   1.27524        11.223662     -3.1528066      1.3641936     -1.7886129    
+       700   1.3336895      10.745672     -3.2868091      1.4267203     -1.8600888    
+       800   1.5013901      11.389733     -3.2522804      1.6061188     -1.6461616    
+       900   1.5704854      11.347892     -3.0741885      1.6800338     -1.3941547    
 ILVES stats on step 1000 (type / ave / delta / count)
   bonds: length (Angstrom); angles: value (degrees)
-Bond:     1   1.00001   0.0137927        448
-Bond:     2   1.19995   0.0205077        320
-Cholesky: 256 calls, 0 LU fallbacks (0%)
-Newton iter: avg 3.3, max 4 (over 500 solves x 1 ranks)
-      1000   1.6126485      7.3005846     -3.1121664      1.7251379     -1.3870285    
-Loop time of 1.10287 on 1 procs for 1000 steps with 896 atoms
+Bond:     1   0.999877  0.000708747      448
+Bond:     2   1.19993   0.00049927       320
+Cholesky: 384 calls, 0 LU fallbacks (0%)
+Newton iter: avg 3.0, max 3 (over 500 solves x 1 ranks)
+      1000   1.6089702      11.331691     -3.0737723      1.7212031     -1.3525692    
+Loop time of 1.16505 on 1 procs for 1000 steps with 896 atoms
 
-Performance: 391705.580 tau/day, 906.726 timesteps/s, 812.426 katom-step/s
+Performance: 370799.770 tau/day, 858.333 timesteps/s, 769.066 katom-step/s
 99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.68193    | 0.68193    | 0.68193    |   0.0 | 61.83
-Bond    | 9.9433e-05 | 9.9433e-05 | 9.9433e-05 |   0.0 |  0.01
-Neigh   | 0.17734    | 0.17734    | 0.17734    |   0.0 | 16.08
-Comm    | 0.011424   | 0.011424   | 0.011424   |   0.0 |  1.04
-Output  | 0.00013527 | 0.00013527 | 0.00013527 |   0.0 |  0.01
-Modify  | 0.22936    | 0.22936    | 0.22936    |   0.0 | 20.80
-Other   |            | 0.002576   |            |       |  0.23
+Pair    | 0.68684    | 0.68684    | 0.68684    |   0.0 | 58.95
+Bond    | 0.00013644 | 0.00013644 | 0.00013644 |   0.0 |  0.01
+Neigh   | 0.17802    | 0.17802    | 0.17802    |   0.0 | 15.28
+Comm    | 0.012714   | 0.012714   | 0.012714   |   0.0 |  1.09
+Output  | 0.00017881 | 0.00017881 | 0.00017881 |   0.0 |  0.02
+Modify  | 0.28387    | 0.28387    | 0.28387    |   0.0 | 24.37
+Other   |            | 0.003288   |            |       |  0.28
 
 Nlocal:            896 ave         896 max         896 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:           4126 ave        4126 max        4126 min
+Nghost:           4113 ave        4113 max        4113 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:          94598 ave       94598 max       94598 min
+Neighs:          94638 ave       94638 max       94638 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 94598
-Ave neighs/atom = 105.57812
+Total # of neighbors = 94638
+Ave neighs/atom = 105.62277
 Ave special neighs/atom = 4.2857143
-Neighbor list builds = 87
+Neighbor list builds = 86
 Dangerous builds = 0
 
 

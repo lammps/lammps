@@ -44,6 +44,7 @@ class FixIlves : public Fix {
   void init() override;
   void setup(int) override;
   void min_setup(int) override;
+  void setup_pre_neighbor() override;
   void pre_neighbor() override;
   void post_neighbor() override;
   void post_force(int) override;
@@ -337,6 +338,104 @@ class FixIlves : public Fix {
   double *lang_fbuf;
   int lang_fbuf_alloc;
   void grow_lang_fbuf(int nmax);
+
+  // Per-fix per-atom virial buffer for the stiff angle path under
+  // newton on bond.  Sized nmax * 6.  Same pattern as lang_fbuf: write
+  // each atom's 1/3 share of the angle's virial tensor (for all three
+  // atoms, some of which may be ghosts), reverse_comm to deliver the
+  // ghost contributions to owners (additive), then add the local sum
+  // into the fix's vatom array.  Only allocated/used when vflag_atom
+  // is active (LAMMPS's compute stress/atom in use).
+  double *lang_vbuf;
+  int lang_vbuf_alloc;
+  void grow_lang_vbuf(int nmax);
+
+  // Global cluster identification across ranks (single-rank ownership
+  // groundwork).  cluster_tag[i] = smallest tag of any atom in atom i's
+  // constraint cluster, computed by iterating forward_comm + cross-rank
+  // merge until converged.  Atoms not in any constraint keep their own
+  // tag.  Per local cluster c, cluster_owner_rank[c] is the MPI rank
+  // that holds the atom with tag == cluster_global_id[c] locally;
+  // cluster_owner_rank[c] == comm->me means this rank owns cluster c.
+  tagint *cluster_tag;       // per-atom, size nmax
+  int     cluster_tag_alloc;
+  tagint *cluster_global_id; // per local-cluster, size n_clusters
+  int    *cluster_owner_rank;// per local-cluster, size n_clusters
+  int     cluster_id_alloc;  // current allocation for the two per-cluster arrays
+  void identify_cluster_owners();
+  void grow_cluster_tag(int nmax);
+  void grow_cluster_id(int n);
+
+  // Per-cluster comm graph (built at reneighbor in build_comm_graph()).
+  //
+  // For every local cluster c we record the local atom indices it
+  // touches, in CSR style: cluster_lat_off[c..c+1] is the slice in
+  // cluster_lat_idx[] of local atom indices in cluster c.
+  //
+  // For each OWNED cluster (cluster_owner_rank[c] == comm->me) we also
+  // record, per peer rank, the tags of atoms that peer holds locally
+  // in this cluster.  Owner_peers_off[c..c+1] is the slice in
+  // owner_peer_rank[]/owner_peer_tag_off[]/owner_peer_tag[] giving the
+  // peer-rank list for cluster c.  owner_peer_tag_off[p..p+1] slices
+  // owner_peer_tag[] for peer entry p.  (p indexes the global pool of
+  // (cluster, peer) entries.)
+  //
+  // For each PEER cluster (cluster_owner_rank[c] != comm->me) we
+  // record (owner_rank, list of local atoms to send to owner).  The
+  // owner_rank is cluster_owner_rank[c] itself.  The local atom list
+  // is the cluster_lat_idx slice above.
+  int  *cluster_lat_off;     // size n_clusters+1
+  int  *cluster_lat_idx;     // flat pool of local atom indices
+  int   cluster_lat_alloc_clusters;
+  int   cluster_lat_alloc_idx;
+
+  int  *owner_peers_off;     // size n_clusters+1; slices owner_peer_*[].
+  int  *owner_peer_rank;     // peer rank for entry p
+  int  *owner_peer_tag_off;  // size n_owner_peer_entries+1
+  tagint *owner_peer_tag;    // flat pool of atom tags from peers
+  int   owner_peers_alloc_clusters;
+  int   owner_peer_alloc_entries;
+  int   owner_peer_alloc_tags;
+  int   n_owner_peer_entries;
+
+  // Per-OWNED-cluster augmented data, populated by build_comm_graph
+  // from the peer messages.  Used by Phase 3's owner-only Newton solve.
+  //
+  // owned_aug_atom_off[c..c+1] slices owned_aug_atom_tag[] (the tags
+  // peers reported for this owned cluster).  These supplement the
+  // owner's locally-visible cluster atoms (which can be read directly
+  // from cluster_lat_idx for c and from c_atom1/c_atom2 of the
+  // owner's constraints).
+  //
+  // owned_aug_constr_off[c..c+1] slices the augmented constraint
+  // pool: owned_aug_constr_ta/tb/type/dist arrays carry the tag
+  // pairs, bond/angle type, and equilibrium distance for constraints
+  // contributed by peers (i.e., constraints whose c_atom1 is the
+  // peer's local atom and whose c_atom2 is also on the peer or is in
+  // the peer's halo but not in OUR halo).
+  int    *owned_aug_atom_off;
+  tagint *owned_aug_atom_tag;
+  int     owned_aug_atom_alloc;
+
+  int    *owned_aug_constr_off;
+  tagint *owned_aug_constr_ta;
+  tagint *owned_aug_constr_tb;
+  int    *owned_aug_constr_type;
+  double *owned_aug_constr_dist;
+  int     owned_aug_constr_alloc;
+
+  void build_comm_graph();
+  void free_comm_graph();
+
+  // Phase 2d: owner-to-peers broadcast of each owned cluster's FULL
+  // constraint set (owner's local + owned_aug_constr_*).  Each peer
+  // adds any constraints it doesn't already have (matched by tag
+  // pair).  This is the fix for cross-rank c_lambda inconsistency: it
+  // makes every participating rank's cluster view identical, so their
+  // per-cluster Newton matrices are identical, so they all produce
+  // the same c_lambda for every shared constraint.  Returns the
+  // number of constraints added locally on this rank.
+  int broadcast_full_clusters_to_peers();
 
   // Topology-change detection.  count_constrained_topology() walks local
   // atoms once and MPI_Allreduces the constrained bond / angle slot counts

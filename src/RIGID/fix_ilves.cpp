@@ -62,8 +62,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -126,17 +128,47 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   angle_btype1 = angle_btype2 = nullptr;
   lang_fbuf = nullptr;
   lang_fbuf_alloc = 0;
+  lang_vbuf = nullptr;
+  lang_vbuf_alloc = 0;
+  cluster_tag = nullptr;
+  cluster_tag_alloc = 0;
+  cluster_global_id = nullptr;
+  cluster_owner_rank = nullptr;
+  cluster_id_alloc = 0;
+  cluster_lat_off = nullptr;
+  cluster_lat_idx = nullptr;
+  cluster_lat_alloc_clusters = 0;
+  cluster_lat_alloc_idx = 0;
+  owner_peers_off = nullptr;
+  owner_peer_rank = nullptr;
+  owner_peer_tag_off = nullptr;
+  owner_peer_tag = nullptr;
+  owner_peers_alloc_clusters = 0;
+  owner_peer_alloc_entries = 0;
+  owner_peer_alloc_tags = 0;
+  n_owner_peer_entries = 0;
+  owned_aug_atom_off = nullptr;
+  owned_aug_atom_tag = nullptr;
+  owned_aug_atom_alloc = 0;
+  owned_aug_constr_off = nullptr;
+  owned_aug_constr_ta = nullptr;
+  owned_aug_constr_tb = nullptr;
+  owned_aug_constr_type = nullptr;
+  owned_aug_constr_dist = nullptr;
+  owned_aug_constr_alloc = 0;
   ilv_num_bond = nullptr;
   ilv_bond_atom = nullptr;
   ilv_bond_type = nullptr;
   ilv_bond_per_atom = 0;
   ilv_nmax_alloc = 0;
   // comm_forward = 3 for forward_comm of xshake or v (see pack_forward_comm).
-  // comm_reverse = 3 for the stiff angle's reverse_comm of lang_fbuf (only
+  // comm_reverse = 6 to accommodate the per-atom virial reverse_comm of
+  // lang_vbuf (6 doubles per atom).  The lang_fbuf force reverse_comm
+  // (3 doubles per atom) fits within the same buffer.  Only
   // active when linearangle K > 0 && newton bond on, but set unconditionally
   // so LAMMPS sizes the comm buffer correctly).
   comm_forward = 3;
-  comm_reverse = 3;
+  comm_reverse = 6;
   chol_pool_alloc = 0;
   chol_offset_alloc = 0;
   cluster_bw_alloc = 0;
@@ -420,6 +452,23 @@ FixIlves::~FixIlves()
   memory->destroy(xshake);
   memory->destroy(fstore);
   memory->destroy(lang_fbuf);
+  memory->destroy(lang_vbuf);
+  memory->destroy(cluster_tag);
+  memory->destroy(cluster_global_id);
+  memory->destroy(cluster_owner_rank);
+  memory->destroy(cluster_lat_off);
+  memory->destroy(cluster_lat_idx);
+  memory->destroy(owner_peers_off);
+  memory->destroy(owner_peer_rank);
+  memory->destroy(owner_peer_tag_off);
+  memory->destroy(owner_peer_tag);
+  memory->destroy(owned_aug_atom_off);
+  memory->destroy(owned_aug_atom_tag);
+  memory->destroy(owned_aug_constr_off);
+  memory->destroy(owned_aug_constr_ta);
+  memory->destroy(owned_aug_constr_tb);
+  memory->destroy(owned_aug_constr_type);
+  memory->destroy(owned_aug_constr_dist);
   memory->destroy(ilv_num_bond);
   memory->destroy(ilv_bond_atom);
   memory->destroy(ilv_bond_type);
@@ -524,11 +573,12 @@ void FixIlves::init()
   // resolve each angle type's flanking types).
   //
   // Stiff angle force (linearangle K > 0) supports newton on via a
-  // dedicated lang_fbuf force buffer + custom reverse_comm.  Set
-  // comm_reverse = 3 so LAMMPS's comm allocator sizes the buffer
-  // correctly for our pack_reverse_comm.
+  // dedicated lang_fbuf force buffer + custom reverse_comm, and
+  // lang_vbuf for per-atom virial when stress/atom is in use.  Set
+  // comm_reverse = 6 so LAMMPS's comm allocator sizes the buffer for
+  // the larger of the two payloads (lang_vbuf at 6 doubles/atom).
   if (linear_angle_K > 0.0 && force->newton_bond != 0) {
-    comm_reverse = 3;
+    comm_reverse = 6;
   }
 
   // ilv_bond_per_atom and comm_forward are set in the constructor; the
@@ -721,14 +771,41 @@ void FixIlves::setup(int vflag)
   n_info_all[1] /= comm->nprocs;
   MPI_Reduce(&largest_cluster, &n_max_all, 1, MPI_INT, MPI_MAX, 0, world);
 
+  // count how many local clusters this rank OWNS vs how many are
+  // remotely owned (single-rank cluster ownership groundwork).
+  int n_owned = 0, n_remote = 0;
+  for (int c = 0; c < n_clusters; ++c) {
+    if (cluster_owner_rank[c] == comm->me) ++n_owned;
+    else ++n_remote;
+  }
+  int owned_info[2] = {n_owned, n_remote};
+  int owned_info_all[2];
+  MPI_Reduce(owned_info, owned_info_all, 2, MPI_INT, MPI_SUM, 0, world);
+
+  // Phase 2b stats: per-cluster comm graph extent.
+  int my_peer_entries = n_owner_peer_entries;
+  int my_peer_tags = (n_owner_peer_entries > 0)
+                       ? owner_peer_tag_off[n_owner_peer_entries] : 0;
+  int my_aug_atoms = (n_clusters > 0) ? owned_aug_atom_off[n_clusters] : 0;
+  int my_aug_constr = (n_clusters > 0) ? owned_aug_constr_off[n_clusters] : 0;
+  int peer_info[4] = {my_peer_entries, my_peer_tags, my_aug_atoms, my_aug_constr};
+  int peer_info_all[4];
+  MPI_Reduce(peer_info, peer_info_all, 4, MPI_INT, MPI_SUM, 0, world);
+
   if (comm->me == 0)
     utils::logmesg(lmp, "Fix ilves info:\n"
                    "  {} algorithm\n"
                    "  {} constraints/proc\n"
                    "  {} clusters/proc\n"
-                   "  {} max. constraints/cluster\n",
+                   "  {} max. constraints/cluster\n"
+                   "  {} owned + {} remote clusters (global)\n"
+                   "  {} owner-peer entries, {} atom tags (global)\n"
+                   "  {} augmented atoms, {} augmented constraints (global)\n",
                    (variant == ILVES_FULL) ? "ILVES (full, LU)" : "ILVES (fast, banded Cholesky)",
-                   n_info_all[0], n_info_all[1], n_max_all);
+                   n_info_all[0], n_info_all[1], n_max_all,
+                   owned_info_all[0], owned_info_all[1],
+                   peer_info_all[0], peer_info_all[1],
+                   peer_info_all[2], peer_info_all[3]);
 
   // At setup we need a different dtfsq convention than during normal stepping:
   //
@@ -790,6 +867,26 @@ void FixIlves::min_setup(int vflag)
   pre_neighbor();
   post_neighbor();
   min_post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Re-run topology negation now that ghosts are populated.  The init()
+   call to negate_constrained_topology() runs before comm->borders, so
+   atom->map(partner) returns -1 for any cross-rank bond/angle partner
+   and that constraint's storage stays positive -- which leaks past the
+   PARTIAL bondlist filter and causes the user's bond/angle style to
+   double-count force at setup.  setup_pre_neighbor() runs after
+   comm->borders but before neighbor->build, so the bondlist that comes
+   out of this setup pass correctly excludes every constrained bond.
+   Idempotent: the bt <= 0 / at <= 0 guards inside the negate routine
+   skip entries already flipped by init().
+------------------------------------------------------------------------- */
+
+void FixIlves::setup_pre_neighbor()
+{
+  negate_constrained_topology();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1967,6 +2064,7 @@ bool FixIlves::solve_constraints()
                    "Fix ilves: max_iter ({}) reached without reaching tol={} at step {}",
                    max_iter, tolerance, update->ntimestep);
   }
+
   return converged;
 }
 
@@ -2002,7 +2100,38 @@ void FixIlves::apply_constraint_forces(int vflag)
     array_atom = fstore;
   }
 
-  for (int k = 0; k < n_constr; ++k) {
+  // Iterate in canonical (tag-pair-sorted) order so the per-atom
+  // floating-point accumulation in atom->f and vatom is bit-identical
+  // across MPI rank counts.  Different ranks may have stored a given
+  // constraint in different positions of c_atom1/c_atom2 (different
+  // add-order from the bond loop + Phase 2d broadcast); iterating
+  // simply `for k = 0..n_constr-1` mixes writes to the same atom's f
+  // and vatom in different orders, producing ULP-level diffs that
+  // propagate to ULP-level x_projected differences in
+  // correct_coordinates, then through Newton iteration to several
+  // percent c_lambda differences (small Lagrange multipliers are
+  // particularly sensitive).  Canonicalizing the iteration order
+  // eliminates the rank-dependence -- per-atom virial and force
+  // values now match np=1 bit-for-bit on owned atoms.
+  std::vector<int> apply_order(n_constr);
+  for (int k = 0; k < n_constr; ++k) apply_order[k] = k;
+  std::sort(apply_order.begin(), apply_order.end(), [&](int x, int y) {
+    tagint xa = atom->tag[c_atom1[x]];
+    tagint xb = atom->tag[c_atom2[x]];
+    tagint ya = atom->tag[c_atom1[y]];
+    tagint yb = atom->tag[c_atom2[y]];
+    if (xa > xb) std::swap(xa, xb);
+    if (ya > yb) std::swap(ya, yb);
+    if (xa != ya) return xa < ya;
+    if (xb != yb) return xb < yb;
+    // Same atom pair: tiebreak by type (positive for bonds, negative
+    // for angle-virtual A-C constraints) so any pair appearing as both
+    // a bond and an angle-virtual still has a deterministic order.
+    return c_type[x] < c_type[y];
+  });
+
+  for (int idx = 0; idx < n_constr; ++idx) {
+    const int k = apply_order[idx];
     double scale = c_lambda[k] * inv_dtfsq;
     double fx = scale * c_rx[k];
     double fy = scale * c_ry[k];
@@ -2093,10 +2222,18 @@ void FixIlves::apply_linear_angle_forces(int vflag)
   // Under newton on, accumulate force into our own per-atom buffer (sized
   // nmax * 3) so we can reverse_comm ghost contributions to owners without
   // disturbing atom->f's ghost values (which other code may rely on).
+  // When vflag_atom is active, also allocate and zero lang_vbuf for the
+  // per-atom virial reverse_comm.
+  const bool need_vatom = (vflag_atom && newton_bond);
   if (newton_bond) {
     grow_lang_fbuf(nmax_now);
     const bigint nb = 3 * (bigint) nmax_now;
     for (bigint k = 0; k < nb; ++k) lang_fbuf[k] = 0.0;
+  }
+  if (need_vatom) {
+    grow_lang_vbuf(nmax_now);
+    const bigint nbv = 6 * (bigint) nmax_now;
+    for (bigint k = 0; k < nbv; ++k) lang_vbuf[k] = 0.0;
   }
 
   for (int i = 0; i < nlocal_now; ++i) {
@@ -2208,11 +2345,53 @@ void FixIlves::apply_linear_angle_forces(int vflag)
           if (evflag && vflag_global) {
             for (int kk = 0; kk < 6; ++kk) virial[kk] += bond_v[kk];
           }
+          // Per-atom virial under newton on bond: the middle rank
+          // sees the angle's full virial; mirror Angle::ev_tally and
+          // write v/3 to each of i1, i2, i3 (some may be ghosts on
+          // this rank; reverse_comm of lang_vbuf below delivers
+          // ghost contributions to the owners).
+          if (evflag && vflag_atom) {
+            const double third = 1.0 / 3.0;
+            const double v0 = third * bond_v[0];
+            const double v1 = third * bond_v[1];
+            const double v2 = third * bond_v[2];
+            const double v3 = third * bond_v[3];
+            const double v4 = third * bond_v[4];
+            const double v5 = third * bond_v[5];
+            lang_vbuf[6*i1+0] += v0; lang_vbuf[6*i1+1] += v1;
+            lang_vbuf[6*i1+2] += v2; lang_vbuf[6*i1+3] += v3;
+            lang_vbuf[6*i1+4] += v4; lang_vbuf[6*i1+5] += v5;
+            lang_vbuf[6*i2+0] += v0; lang_vbuf[6*i2+1] += v1;
+            lang_vbuf[6*i2+2] += v2; lang_vbuf[6*i2+3] += v3;
+            lang_vbuf[6*i2+4] += v4; lang_vbuf[6*i2+5] += v5;
+            lang_vbuf[6*i3+0] += v0; lang_vbuf[6*i3+1] += v1;
+            lang_vbuf[6*i3+2] += v2; lang_vbuf[6*i3+3] += v3;
+            lang_vbuf[6*i3+4] += v4; lang_vbuf[6*i3+5] += v5;
+          }
         }
       } else {
         ebond += eangle * (1.0 / 3.0);
         if (evflag && vflag_global) {
           for (int kk = 0; kk < 6; ++kk) virial[kk] += bond_v[kk] * (1.0 / 3.0);
+        }
+        // Per-atom virial under newton off bond: each of the three
+        // ranks that has one of t1/t2/t3 locally processes the angle
+        // once (selected by `ti == tX` below) and writes v/3 to ITS
+        // OWN local atom's vatom.  Sum across the three ranks = v.
+        if (evflag && vflag_atom) {
+          int local_idx = -1;
+          if      (ti == t1) local_idx = i1;
+          else if (ti == t2) local_idx = i2;
+          else if (ti == t3) local_idx = i3;
+          if (local_idx >= 0 && local_idx < nlocal_now) {
+            const double third = 1.0 / 3.0;
+            vatom[local_idx][0] += third * bond_v[0];
+            vatom[local_idx][1] += third * bond_v[1];
+            vatom[local_idx][2] += third * bond_v[2];
+            vatom[local_idx][3] += third * bond_v[3];
+            vatom[local_idx][4] += third * bond_v[4];
+            vatom[local_idx][5] += third * bond_v[5];
+          }
         }
       }
     }
@@ -2232,6 +2411,24 @@ void FixIlves::apply_linear_angle_forces(int vflag)
       fc[i][1] += lang_fbuf[3*i+1];
       fc[i][2] += lang_fbuf[3*i+2];
     }
+
+    // Per-atom virial: deliver ghost-slot lang_vbuf contributions to
+    // their local owners and then accumulate into fix's vatom.  Each
+    // atom's per-angle share was already divided by 3 above; we just
+    // need to sum the ghost-side writes into the local atom.
+    if (need_vatom) {
+      comm_mode = 6;
+      comm->reverse_comm(this);
+      comm_mode = 0;
+      for (int i = 0; i < nlocal_now; ++i) {
+        vatom[i][0] += lang_vbuf[6*i+0];
+        vatom[i][1] += lang_vbuf[6*i+1];
+        vatom[i][2] += lang_vbuf[6*i+2];
+        vatom[i][3] += lang_vbuf[6*i+3];
+        vatom[i][4] += lang_vbuf[6*i+4];
+        vatom[i][5] += lang_vbuf[6*i+5];
+      }
+    }
   }
   (void) vflag;
 }
@@ -2243,6 +2440,833 @@ void FixIlves::grow_lang_fbuf(int nmax)
   if (nmax <= lang_fbuf_alloc) return;
   memory->grow(lang_fbuf, (bigint) nmax * 3, "ilves:lang_fbuf");
   lang_fbuf_alloc = nmax;
+}
+
+void FixIlves::grow_lang_vbuf(int nmax)
+{
+  if (nmax <= lang_vbuf_alloc) return;
+  memory->grow(lang_vbuf, (bigint) nmax * 6, "ilves:lang_vbuf");
+  lang_vbuf_alloc = nmax;
+}
+
+void FixIlves::grow_cluster_tag(int nmax)
+{
+  if (nmax <= cluster_tag_alloc) return;
+  memory->grow(cluster_tag, nmax, "ilves:cluster_tag");
+  cluster_tag_alloc = nmax;
+}
+
+void FixIlves::grow_cluster_id(int n)
+{
+  if (n <= cluster_id_alloc) return;
+  memory->grow(cluster_global_id, n, "ilves:cluster_global_id");
+  memory->grow(cluster_owner_rank, n, "ilves:cluster_owner_rank");
+  cluster_id_alloc = n;
+}
+
+/* ----------------------------------------------------------------------
+   Compute per-local-cluster global ID (= smallest tag of any atom in the
+   cluster across ALL ranks) and the cluster owner (rank holding that
+   smallest-tag atom locally).  Algorithm:
+
+     1) cluster_tag[i] = tag[i] for all atoms.  For atoms in any local
+        cluster, replace with the min tag seen in that cluster's local
+        view.
+     2) Iterate: forward_comm cluster_tag (comm_mode == 5) so ghost
+        atoms carry the OWNER rank's cluster_tag.  Walk local clusters;
+        for each, if any ghost atom in the cluster has lower
+        cluster_tag, lower the entire cluster's cluster_tag.  Repeat
+        until no rank made a change (Allreduce(MAX) on a dirty flag).
+     3) cluster_global_id[c] = cluster_tag at any atom of cluster c.
+        cluster_owner_rank[c] = comm->me if atom->map(global_id) is
+        local on this rank; otherwise we send a probe to discover the
+        owner.  (Initial impl: defer owner-rank lookup to a separate
+        pass via Allgather of "I locally own these cluster ids".)
+
+   This function is called once per reneighbor, from build_constraint_list
+   after group_by_cluster + the existing constraint-list machinery.
+
+   Phase 1 only -- the comm graph and per-step gather/scatter are added
+   in subsequent commits.
+------------------------------------------------------------------------- */
+
+void FixIlves::identify_cluster_owners()
+{
+  const int nmax = atom->nmax;
+  const int nlocal_now = atom->nlocal;
+  tagint *tag = atom->tag;
+
+  grow_cluster_tag(nmax);
+
+  // Initialize cluster_tag[i] = tag[i] (atoms not in any cluster keep
+  // their own tag).  For ghost slots we set to 0; forward_comm will
+  // refresh them.
+  for (int i = 0; i < nlocal_now; ++i) cluster_tag[i] = tag[i];
+  for (int i = nlocal_now; i < nmax; ++i) cluster_tag[i] = 0;
+
+  // For each local cluster c, compute the min tag across the atoms it
+  // touches (looking at c_atom1 and c_atom2 of every constraint).  Map
+  // atom_index -> cluster_idx via union-find result already in c_cluster.
+  if (n_clusters > 0) {
+    grow_cluster_id(n_clusters);
+    for (int c = 0; c < n_clusters; ++c) cluster_global_id[c] = MAXTAGINT;
+
+    // First pass: gather min tag per local cluster.
+    for (int k = 0; k < n_constr; ++k) {
+      const int c = c_cluster[k];
+      const tagint ta = tag[c_atom1[k]];
+      const tagint tb = tag[c_atom2[k]];
+      if (ta > 0 && ta < cluster_global_id[c]) cluster_global_id[c] = ta;
+      if (tb > 0 && tb < cluster_global_id[c]) cluster_global_id[c] = tb;
+    }
+
+    // Stamp cluster_tag at every CANONICAL atom slot touched by any
+    // constraint.  c_atom2[k] may be a NON-canonical PBC ghost slot
+    // (closest_image picks the spatially closest periodic image), but
+    // forward_comm propagates cluster_tag from the canonical local
+    // (or owner-local) slot.  If we stamp only the non-canonical
+    // ghost slot, the next forward_comm overwrites it with the
+    // canonical's unstamped value (= the atom's own tag), and the
+    // re-stamp loop below will keep oscillating.  Route both endpoint
+    // writes through atom->map(tag).
+    for (int k = 0; k < n_constr; ++k) {
+      const int c = c_cluster[k];
+      const tagint gid = cluster_global_id[c];
+      const int a_can = atom->map(atom->tag[c_atom1[k]]);
+      const int b_can = atom->map(atom->tag[c_atom2[k]]);
+      if (a_can >= 0 && (cluster_tag[a_can] == 0 || gid < cluster_tag[a_can]))
+        cluster_tag[a_can] = gid;
+      if (b_can >= 0 && (cluster_tag[b_can] == 0 || gid < cluster_tag[b_can]))
+        cluster_tag[b_can] = gid;
+    }
+  }
+
+  // Iterate: forward_comm cluster_tag so ghost atoms carry the owner's
+  // cluster_tag, then walk local clusters and reduce.
+  constexpr int max_passes = 10;
+  int pass = 0;
+  for (; pass < max_passes; ++pass) {
+    comm_mode = 5;
+    comm->forward_comm(this);
+    comm_mode = 0;
+
+    int dirty_local = 0;
+
+    if (n_clusters > 0) {
+      // For each cluster, scan its constraint atoms.  Read cluster_tag
+      // at the CANONICAL slot for each tag (atom->map) so we see
+      // owner-propagated values, not stale non-canonical PBC ghost
+      // slots that forward_comm may have left untouched.
+      for (int k = 0; k < n_constr; ++k) {
+        const int c = c_cluster[k];
+        const int a_can = atom->map(atom->tag[c_atom1[k]]);
+        const int b_can = atom->map(atom->tag[c_atom2[k]]);
+        const tagint ta = (a_can >= 0) ? cluster_tag[a_can] : 0;
+        const tagint tb = (b_can >= 0) ? cluster_tag[b_can] : 0;
+        tagint best = cluster_global_id[c];
+        if (ta > 0 && ta < best) best = ta;
+        if (tb > 0 && tb < best) best = tb;
+        if (best < cluster_global_id[c]) {
+          cluster_global_id[c] = best;
+          dirty_local = 1;
+        }
+      }
+      // Re-stamp cluster_tag at the CANONICAL local slot of every
+      // constraint endpoint.  Writing the canonical is what
+      // forward_comm later propagates to all of that tag's ghosts.
+      for (int k = 0; k < n_constr; ++k) {
+        const int c = c_cluster[k];
+        const tagint gid = cluster_global_id[c];
+        const int a_can = atom->map(atom->tag[c_atom1[k]]);
+        const int b_can = atom->map(atom->tag[c_atom2[k]]);
+        if (a_can >= 0 && cluster_tag[a_can] > gid) {
+          cluster_tag[a_can] = gid;
+          dirty_local = 1;
+        }
+        if (b_can >= 0 && cluster_tag[b_can] > gid) {
+          cluster_tag[b_can] = gid;
+          dirty_local = 1;
+        }
+      }
+    }
+
+    int dirty_global = 0;
+    if (comm->nprocs > 1)
+      MPI_Allreduce(&dirty_local, &dirty_global, 1, MPI_INT, MPI_MAX, world);
+    else
+      dirty_global = dirty_local;
+    if (!dirty_global) break;
+  }
+  if (pass == max_passes && comm->me == 0)
+    error->warning(FLERR,
+                   "Fix ilves: cluster-id propagation did not converge in {} passes",
+                   max_passes);
+
+  // Determine cluster owner.  For each local cluster c, the owner is
+  // the rank whose local atom has tag == cluster_global_id[c].  On this
+  // rank we own iff atom->map(global_id) returns a local index.
+  for (int c = 0; c < n_clusters; ++c) {
+    const tagint gid = cluster_global_id[c];
+    const int i = atom->map(gid);
+    if (i >= 0 && i < nlocal_now) cluster_owner_rank[c] = comm->me;
+    else                          cluster_owner_rank[c] = -1;  // peer, owner TBD
+  }
+
+  // Owner discovery for peer clusters: each rank Allgather's the list of
+  // global IDs it owns; every rank then knows the owner of every global
+  // cluster it participates in.  O(nprocs * n_clusters_owned) comm.
+  if (comm->nprocs > 1 && n_clusters > 0) {
+    std::vector<tagint> my_owned;
+    my_owned.reserve(n_clusters);
+    for (int c = 0; c < n_clusters; ++c)
+      if (cluster_owner_rank[c] == comm->me)
+        my_owned.push_back(cluster_global_id[c]);
+    int my_n = (int) my_owned.size();
+
+    std::vector<int> counts(comm->nprocs, 0), displs(comm->nprocs, 0);
+    MPI_Allgather(&my_n, 1, MPI_INT, counts.data(), 1, MPI_INT, world);
+    int total = 0;
+    for (int p = 0; p < comm->nprocs; ++p) {
+      displs[p] = total;
+      total += counts[p];
+    }
+
+    std::vector<tagint> all_ids(total > 0 ? total : 1);
+    MPI_Allgatherv(my_owned.data(), my_n, MPI_LMP_TAGINT,
+                   all_ids.data(), counts.data(), displs.data(),
+                   MPI_LMP_TAGINT, world);
+
+    // Build hash map global_id -> owner_rank from the gathered data.
+    std::unordered_map<tagint, int> id_to_owner;
+    id_to_owner.reserve((size_t) total);
+    int p = 0;
+    for (int i = 0; i < total; ++i) {
+      while (p + 1 < comm->nprocs && i >= displs[p + 1]) ++p;
+      id_to_owner[all_ids[i]] = p;
+    }
+
+    // Fill in cluster_owner_rank for our peer clusters.
+    for (int c = 0; c < n_clusters; ++c) {
+      if (cluster_owner_rank[c] == -1) {
+        auto it = id_to_owner.find(cluster_global_id[c]);
+        if (it != id_to_owner.end()) cluster_owner_rank[c] = it->second;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Build the per-cluster comm graph (single-rank cluster ownership,
+   Phase 2b).  Two outputs:
+
+     (a) cluster_lat_off[]/cluster_lat_idx[] -- CSR list of LOCAL atom
+         indices touched by each local cluster.  Each constraint
+         contributes c_atom1 and c_atom2; we route through atom->map to
+         canonicalize PBC self-images and skip pure ghosts.  Used by:
+           - PEER clusters: tells us which local atoms to ship to the
+             owner each step.
+           - OWNED clusters: tells us which local atoms WE see (the
+             rest come from peers via the per-step gather).
+
+     (b) owner_peers_off[]/owner_peer_rank[]/owner_peer_tag_off[]/
+         owner_peer_tag[] -- for each OWNED cluster, the list of peer
+         ranks that hold atoms locally, with the tags of those atoms.
+
+   Built via point-to-point exchange (MPI_Alltoallv): each peer rank
+   sends to each owner rank a packed buffer of (global_id, n_tags,
+   tags...) entries -- one per peer cluster.  Owner unpacks, looks up
+   the local cluster index via the global_id, and records the peer.
+
+   This function is called from build_constraint_list after
+   identify_cluster_owners.
+------------------------------------------------------------------------- */
+
+void FixIlves::build_comm_graph()
+{
+  // Free any prior allocations -- comm graph is rebuilt fresh at each
+  // reneighbor and the counts can change arbitrarily.
+  free_comm_graph();
+  if (n_clusters == 0) return;
+
+  const int me = comm->me;
+  const int nlocal_now = atom->nlocal;
+  tagint *tag = atom->tag;
+
+  // ---------- (a) cluster_lat_off / cluster_lat_idx ----------
+  // Build per-local-cluster lists of unique LOCAL atom indices that the
+  // cluster touches.  Use a per-atom marker array to dedup within each
+  // cluster scan.  We over-allocate then trim.
+
+  std::vector<int> mark(atom->nmax, -1);  // -1 = not yet seen in any cluster
+  // Two passes: first count, then fill.  Count uses the marker to
+  // count unique local atoms per cluster.
+  memory->grow(cluster_lat_off, n_clusters + 1, "ilves:cluster_lat_off");
+  cluster_lat_alloc_clusters = n_clusters;
+  for (int c = 0; c <= n_clusters; ++c) cluster_lat_off[c] = 0;
+
+  // First pass: count unique local atoms per cluster.  cluster_lat_off[c+1]
+  // accumulates the count for cluster c (we shift to prefix-sum later).
+  for (int k = 0; k < n_constr; ++k) {
+    const int c = c_cluster[k];
+    for (int side = 0; side < 2; ++side) {
+      const int raw = (side == 0) ? c_atom1[k] : c_atom2[k];
+      const int local_idx = atom->map(tag[raw]);
+      if (local_idx < 0 || local_idx >= nlocal_now) continue;
+      if (mark[local_idx] == c) continue;   // already counted for this cluster
+      mark[local_idx] = c;
+      ++cluster_lat_off[c + 1];
+    }
+  }
+
+  int total_local = 0;
+  for (int c = 0; c < n_clusters; ++c) {
+    int n = cluster_lat_off[c + 1];
+    cluster_lat_off[c + 1] = total_local + n;
+    total_local += n;
+    if (c == 0) cluster_lat_off[0] = 0;
+  }
+  cluster_lat_off[0] = 0;
+
+  memory->grow(cluster_lat_idx, total_local > 0 ? total_local : 1,
+               "ilves:cluster_lat_idx");
+  cluster_lat_alloc_idx = total_local;
+
+  // Reset marker; second pass fills cluster_lat_idx.
+  for (int i = 0; i < atom->nmax; ++i) mark[i] = -1;
+  std::vector<int> cursor(n_clusters, 0);
+  for (int c = 0; c < n_clusters; ++c) cursor[c] = cluster_lat_off[c];
+
+  for (int k = 0; k < n_constr; ++k) {
+    const int c = c_cluster[k];
+    for (int side = 0; side < 2; ++side) {
+      const int raw = (side == 0) ? c_atom1[k] : c_atom2[k];
+      const int local_idx = atom->map(tag[raw]);
+      if (local_idx < 0 || local_idx >= nlocal_now) continue;
+      if (mark[local_idx] == c) continue;
+      mark[local_idx] = c;
+      cluster_lat_idx[cursor[c]++] = local_idx;
+    }
+  }
+
+  // ---------- (b) owner_peers via MPI_Alltoallv exchange ----------
+  // Each PEER cluster contributes a message to its owner with this
+  // layout (per cluster, packed back-to-back into one buffer per
+  // destination rank):
+  //
+  //   [gid, n_atoms, tag_0..tag_{n-1},
+  //         n_constr, ca_0, cb_0, type_0, ..., ca_{m-1}, cb_{m-1}, type_{m-1}]
+  //
+  // tag_* are atom tags (peer's local atoms in this cluster).
+  // ca_i / cb_i are the constraint endpoints' tags; type_i is the
+  // constraint type (positive for bonds, negative for angle virtual
+  // constraints -- same encoding as c_type[]).  All values are
+  // tagint-sized; we cast constraint types to tagint for transport.
+  //
+  // The owner uses the atom list to know what peer atoms it must
+  // gather positions for each step, and uses the constraint list to
+  // augment its OWN visible constraint list so the per-cluster Newton
+  // matrix is complete (covers atoms beyond the owner's halo).
+
+  const int nprocs = comm->nprocs;
+  std::vector<std::vector<tagint> > send_bufs(nprocs);
+  for (int c = 0; c < n_clusters; ++c) {
+    if (cluster_owner_rank[c] == me) continue;       // owned cluster, no send
+    if (cluster_owner_rank[c] < 0) continue;         // no known owner (shouldn't happen)
+    const int dst = cluster_owner_rank[c];
+    const tagint gid = cluster_global_id[c];
+    const int lo = cluster_lat_off[c];
+    const int hi = cluster_lat_off[c + 1];
+    const int nlat = hi - lo;
+    std::vector<tagint> &buf = send_bufs[dst];
+    buf.push_back(gid);
+    buf.push_back((tagint) nlat);
+    for (int s = lo; s < hi; ++s)
+      buf.push_back(tag[cluster_lat_idx[s]]);
+
+    // Constraint defs for this peer cluster: walk cluster_offset[c]..
+    // cluster_offset[c+1] in c_perm and emit tag pairs + types.
+    const int kbeg = cluster_offset[c];
+    const int kend = cluster_offset[c + 1];
+    buf.push_back((tagint) (kend - kbeg));
+    for (int s = kbeg; s < kend; ++s) {
+      const int k = c_perm[s];
+      buf.push_back(tag[c_atom1[k]]);
+      buf.push_back(tag[c_atom2[k]]);
+      buf.push_back((tagint) c_type[k]);
+    }
+  }
+
+  std::vector<int> send_counts(nprocs, 0), send_displs(nprocs, 0);
+  for (int p = 0; p < nprocs; ++p) send_counts[p] = (int) send_bufs[p].size();
+
+  std::vector<int> recv_counts(nprocs, 0), recv_displs(nprocs, 0);
+  MPI_Alltoall(send_counts.data(), 1, MPI_INT,
+               recv_counts.data(), 1, MPI_INT, world);
+
+  // Prefix-sum displacements and flatten send buffer.
+  int send_total = 0, recv_total = 0;
+  for (int p = 0; p < nprocs; ++p) {
+    send_displs[p] = send_total;
+    send_total += send_counts[p];
+    recv_displs[p] = recv_total;
+    recv_total += recv_counts[p];
+  }
+
+  std::vector<tagint> send_flat(send_total > 0 ? send_total : 1);
+  for (int p = 0; p < nprocs; ++p) {
+    if (send_counts[p] == 0) continue;
+    std::copy(send_bufs[p].begin(), send_bufs[p].end(),
+              send_flat.begin() + send_displs[p]);
+  }
+  std::vector<tagint> recv_flat(recv_total > 0 ? recv_total : 1);
+
+  MPI_Alltoallv(send_flat.data(), send_counts.data(), send_displs.data(),
+                MPI_LMP_TAGINT,
+                recv_flat.data(), recv_counts.data(), recv_displs.data(),
+                MPI_LMP_TAGINT, world);
+
+  // ---------- Parse received messages and build owner_peer_* ----------
+  // Build global_id -> local-cluster-index map for our OWNED clusters
+  // so we can dispatch incoming entries.
+  std::unordered_map<tagint, int> owned_gid_to_c;
+  owned_gid_to_c.reserve((size_t) n_clusters);
+  for (int c = 0; c < n_clusters; ++c)
+    if (cluster_owner_rank[c] == me)
+      owned_gid_to_c[cluster_global_id[c]] = c;
+
+  // First pass: count peer entries per owned cluster and total tags.
+  memory->grow(owner_peers_off, n_clusters + 1, "ilves:owner_peers_off");
+  owner_peers_alloc_clusters = n_clusters;
+  for (int c = 0; c <= n_clusters; ++c) owner_peers_off[c] = 0;
+
+  // We'll buffer the parsed entries first so we can build CSR neatly.
+  // Each entry remembers where its tags and constraints are in
+  // recv_flat[] so the actual copy is deferred to the second pass.
+  struct PendingEntry {
+    int c;          // owned cluster index
+    int peer;       // source rank
+    int tag_start;  // offset in recv_flat[] for atom tags
+    int n_tags;
+    int constr_start; // offset in recv_flat[] for the (ta, tb, type) triples
+    int n_constr;
+  };
+  std::vector<PendingEntry> pending;
+  pending.reserve((size_t) recv_total / 7);  // rough estimate
+
+  int tag_pool_total = 0;
+  int constr_pool_total = 0;
+  for (int p = 0; p < nprocs; ++p) {
+    int pos = recv_displs[p];
+    const int end = pos + recv_counts[p];
+    while (pos < end) {
+      const tagint gid = recv_flat[pos++];
+      const int nlat = (int) recv_flat[pos++];
+      const int tag_pos = pos;
+      pos += nlat;
+      const int nconstr = (int) recv_flat[pos++];
+      const int constr_pos = pos;
+      pos += 3 * nconstr;
+      auto it = owned_gid_to_c.find(gid);
+      if (it != owned_gid_to_c.end()) {
+        PendingEntry e;
+        e.c = it->second;
+        e.peer = p;
+        e.tag_start = tag_pos;
+        e.n_tags = nlat;
+        e.constr_start = constr_pos;
+        e.n_constr = nconstr;
+        pending.push_back(e);
+        ++owner_peers_off[e.c + 1];
+        tag_pool_total += nlat;
+        constr_pool_total += nconstr;
+      }
+    }
+  }
+
+  // Prefix-sum owner_peers_off.
+  int total_peer_entries = 0;
+  for (int c = 0; c < n_clusters; ++c) {
+    int n = owner_peers_off[c + 1];
+    owner_peers_off[c + 1] = total_peer_entries + n;
+    total_peer_entries += n;
+  }
+  owner_peers_off[0] = 0;
+  n_owner_peer_entries = total_peer_entries;
+
+  memory->grow(owner_peer_rank,
+               total_peer_entries > 0 ? total_peer_entries : 1,
+               "ilves:owner_peer_rank");
+  memory->grow(owner_peer_tag_off,
+               total_peer_entries > 0 ? total_peer_entries + 1 : 1,
+               "ilves:owner_peer_tag_off");
+  owner_peer_alloc_entries = total_peer_entries;
+
+  memory->grow(owner_peer_tag,
+               tag_pool_total > 0 ? tag_pool_total : 1,
+               "ilves:owner_peer_tag");
+  owner_peer_alloc_tags = tag_pool_total;
+
+  // Second pass: place pending entries into CSR (atom tags only).
+  std::vector<int> ec_cursor(n_clusters, 0);
+  for (int c = 0; c < n_clusters; ++c) ec_cursor[c] = owner_peers_off[c];
+
+  int tag_cursor = 0;
+  for (const auto &e : pending) {
+    const int slot = ec_cursor[e.c]++;
+    owner_peer_rank[slot] = e.peer;
+    owner_peer_tag_off[slot] = tag_cursor;
+    for (int t = 0; t < e.n_tags; ++t)
+      owner_peer_tag[tag_cursor + t] = recv_flat[e.tag_start + t];
+    tag_cursor += e.n_tags;
+  }
+  owner_peer_tag_off[total_peer_entries] = tag_cursor;
+
+  // ---------- Build owned_aug_atom_* and owned_aug_constr_* ----------
+  // Per OWNED cluster, the augmented atom list contains peer-reported
+  // tags that the owner does NOT already see in its halo
+  // (atom->map(tag) < 0 means truly remote, beyond ghost shell).
+  // The augmented constraint list contains peer-reported constraints
+  // (by tag pair) that the owner does not already have in c_atom1/
+  // c_atom2 of its OWN constraints in the same cluster.
+
+  memory->grow(owned_aug_atom_off, n_clusters + 1, "ilves:owned_aug_atom_off");
+  memory->grow(owned_aug_constr_off, n_clusters + 1, "ilves:owned_aug_constr_off");
+  for (int c = 0; c <= n_clusters; ++c) {
+    owned_aug_atom_off[c] = 0;
+    owned_aug_constr_off[c] = 0;
+  }
+
+  // First pass: count augmented atoms/constraints per cluster (dedup).
+  // To dedup atoms, use a per-tag mark via a small hash set.  To dedup
+  // constraints, build a set of owner's already-present (ta, tb) pairs
+  // for each owned cluster (tag pair normalized as (min, max)).
+  // We do this cluster-by-cluster from pending.
+
+  // Group pending entries by cluster (already CSR-ordered).
+  std::vector<std::vector<int> > pending_by_c(n_clusters);
+  for (int i = 0; i < (int) pending.size(); ++i)
+    pending_by_c[pending[i].c].push_back(i);
+
+  // Pre-scan to size pools.
+  int aug_atom_total = 0;
+  int aug_constr_total = 0;
+  for (int c = 0; c < n_clusters; ++c) {
+    if (cluster_owner_rank[c] != me) continue;
+    if (pending_by_c[c].empty()) continue;
+
+    // Build seen-atom-tag set for this cluster (start with what owner
+    // already sees: atom->map(tag) returns a non-negative index).
+    std::unordered_set<tagint> seen_atoms;
+    // Build seen-constraint-pair set for owner's local constraints of
+    // this cluster.
+    auto pair_key = [](tagint a, tagint b) -> uint64_t {
+      uint64_t lo = (uint64_t)((a < b) ? a : b);
+      uint64_t hi = (uint64_t)((a < b) ? b : a);
+      return (lo << 32) ^ hi;
+    };
+    std::unordered_set<uint64_t> seen_constr;
+    const int kbeg = cluster_offset[c];
+    const int kend = cluster_offset[c + 1];
+    for (int s = kbeg; s < kend; ++s) {
+      const int k = c_perm[s];
+      seen_constr.insert(pair_key(tag[c_atom1[k]], tag[c_atom2[k]]));
+    }
+
+    int nau = 0, ncn = 0;
+    for (int idx : pending_by_c[c]) {
+      const auto &e = pending[idx];
+      // Atoms: count tags not already in halo (or already seen for
+      // this cluster).
+      for (int t = 0; t < e.n_tags; ++t) {
+        const tagint tg = recv_flat[e.tag_start + t];
+        if (seen_atoms.count(tg)) continue;
+        if (atom->map(tg) >= 0) continue;          // visible in halo
+        seen_atoms.insert(tg);
+        ++nau;
+      }
+      // Constraints: count new (ta, tb) pairs.
+      for (int t = 0; t < e.n_constr; ++t) {
+        const tagint ta = recv_flat[e.constr_start + 3*t + 0];
+        const tagint tb = recv_flat[e.constr_start + 3*t + 1];
+        const uint64_t key = pair_key(ta, tb);
+        if (seen_constr.count(key)) continue;
+        seen_constr.insert(key);
+        ++ncn;
+      }
+    }
+    owned_aug_atom_off[c + 1] = nau;
+    owned_aug_constr_off[c + 1] = ncn;
+    aug_atom_total += nau;
+    aug_constr_total += ncn;
+  }
+
+  // Prefix-sum.
+  for (int c = 0; c < n_clusters; ++c) {
+    owned_aug_atom_off[c + 1] += owned_aug_atom_off[c];
+    owned_aug_constr_off[c + 1] += owned_aug_constr_off[c];
+  }
+
+  memory->grow(owned_aug_atom_tag,
+               aug_atom_total > 0 ? aug_atom_total : 1,
+               "ilves:owned_aug_atom_tag");
+  owned_aug_atom_alloc = aug_atom_total;
+  memory->grow(owned_aug_constr_ta,
+               aug_constr_total > 0 ? aug_constr_total : 1,
+               "ilves:owned_aug_constr_ta");
+  memory->grow(owned_aug_constr_tb,
+               aug_constr_total > 0 ? aug_constr_total : 1,
+               "ilves:owned_aug_constr_tb");
+  memory->grow(owned_aug_constr_type,
+               aug_constr_total > 0 ? aug_constr_total : 1,
+               "ilves:owned_aug_constr_type");
+  memory->grow(owned_aug_constr_dist,
+               aug_constr_total > 0 ? aug_constr_total : 1,
+               "ilves:owned_aug_constr_dist");
+  owned_aug_constr_alloc = aug_constr_total;
+
+  // Second pass: fill the augmented pools.
+  std::vector<int> aug_atom_cursor(n_clusters, 0);
+  std::vector<int> aug_constr_cursor(n_clusters, 0);
+  for (int c = 0; c < n_clusters; ++c) {
+    aug_atom_cursor[c] = owned_aug_atom_off[c];
+    aug_constr_cursor[c] = owned_aug_constr_off[c];
+  }
+
+  for (int c = 0; c < n_clusters; ++c) {
+    if (cluster_owner_rank[c] != me) continue;
+    if (pending_by_c[c].empty()) continue;
+
+    std::unordered_set<tagint> seen_atoms;
+    auto pair_key = [](tagint a, tagint b) -> uint64_t {
+      uint64_t lo = (uint64_t)((a < b) ? a : b);
+      uint64_t hi = (uint64_t)((a < b) ? b : a);
+      return (lo << 32) ^ hi;
+    };
+    std::unordered_set<uint64_t> seen_constr;
+    const int kbeg = cluster_offset[c];
+    const int kend = cluster_offset[c + 1];
+    for (int s = kbeg; s < kend; ++s) {
+      const int k = c_perm[s];
+      seen_constr.insert(pair_key(tag[c_atom1[k]], tag[c_atom2[k]]));
+    }
+
+    for (int idx : pending_by_c[c]) {
+      const auto &e = pending[idx];
+      for (int t = 0; t < e.n_tags; ++t) {
+        const tagint tg = recv_flat[e.tag_start + t];
+        if (seen_atoms.count(tg)) continue;
+        if (atom->map(tg) >= 0) continue;
+        seen_atoms.insert(tg);
+        owned_aug_atom_tag[aug_atom_cursor[c]++] = tg;
+      }
+      for (int t = 0; t < e.n_constr; ++t) {
+        const tagint ta = recv_flat[e.constr_start + 3*t + 0];
+        const tagint tb = recv_flat[e.constr_start + 3*t + 1];
+        const int   ty = (int) recv_flat[e.constr_start + 3*t + 2];
+        const uint64_t key = pair_key(ta, tb);
+        if (seen_constr.count(key)) continue;
+        seen_constr.insert(key);
+        const int slot = aug_constr_cursor[c]++;
+        owned_aug_constr_ta[slot] = ta;
+        owned_aug_constr_tb[slot] = tb;
+        owned_aug_constr_type[slot] = ty;
+        // Look up equilibrium distance from the type tables.
+        // Positive ty -> bond type; negative -> angle virtual.
+        if (ty > 0) {
+          owned_aug_constr_dist[slot] = bond_distance[ty];
+        } else {
+          owned_aug_constr_dist[slot] = angle_distance[-ty];
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Phase 2d: owner-to-peers broadcast of full cluster constraint set.
+
+   For every OWNED cluster c (cluster_owner_rank[c] == comm->me) we
+   pack the FULL constraint set (owner's local constraints from
+   cluster_offset[c]..cluster_offset[c+1] PLUS the augmented entries
+   collected in build_comm_graph from peer reports) and ship it to
+   each peer rank for that cluster.  Each peer parses the messages,
+   looks up its corresponding local cluster by global ID, and ADDS any
+   constraint it doesn't already see (matched by tag pair).  After
+   the exchange, every participating rank's view of every shared
+   cluster has the same constraint set -- assuming both endpoint
+   atoms are visible in the peer's halo.  Newton then produces
+   identical c_lambda on every rank, and apply_constraint_forces
+   conserves momentum across ranks.
+
+   Constraints involving atoms NOT in the peer's halo cannot be added
+   (no local index to attach to); they remain a small Schwarz residual
+   but are typically rare given the augmented-count evidence.
+
+   Returns the number of constraints added on this rank.  When
+   non-zero, build_constraint_list re-runs group_by_cluster() so
+   cluster_offset / c_perm / c_slot reflect the augmented list.
+------------------------------------------------------------------------- */
+
+int FixIlves::broadcast_full_clusters_to_peers()
+{
+  const int me = comm->me;
+  const int nprocs = comm->nprocs;
+  if (nprocs <= 1) return 0;
+  if (n_clusters == 0) return 0;
+
+  tagint *tag = atom->tag;
+
+  // ---------- Owner packs full cluster constraint sets ----------
+  // Per peer, one message per owned cluster:
+  //   [gid, n_constr, ta0, tb0, type0, ta1, tb1, type1, ...]
+  std::vector<std::vector<tagint> > send_bufs(nprocs);
+  for (int c = 0; c < n_clusters; ++c) {
+    if (cluster_owner_rank[c] != me) continue;
+    const int n_peers_c = owner_peers_off[c + 1] - owner_peers_off[c];
+    if (n_peers_c == 0) continue;
+
+    const tagint gid = cluster_global_id[c];
+    const int own_n  = cluster_offset[c + 1] - cluster_offset[c];
+    const int aug_n  = owned_aug_constr_off[c + 1] - owned_aug_constr_off[c];
+    const int total_n = own_n + aug_n;
+
+    // Pack once, then copy into each peer's buffer.
+    std::vector<tagint> msg;
+    msg.reserve(2 + 3 * total_n);
+    msg.push_back(gid);
+    msg.push_back((tagint) total_n);
+    for (int s = cluster_offset[c]; s < cluster_offset[c + 1]; ++s) {
+      const int k = c_perm[s];
+      msg.push_back(tag[c_atom1[k]]);
+      msg.push_back(tag[c_atom2[k]]);
+      msg.push_back((tagint) c_type[k]);
+    }
+    for (int t = owned_aug_constr_off[c]; t < owned_aug_constr_off[c + 1]; ++t) {
+      msg.push_back(owned_aug_constr_ta[t]);
+      msg.push_back(owned_aug_constr_tb[t]);
+      msg.push_back((tagint) owned_aug_constr_type[t]);
+    }
+
+    for (int p = owner_peers_off[c]; p < owner_peers_off[c + 1]; ++p) {
+      const int dst = owner_peer_rank[p];
+      std::vector<tagint> &dst_buf = send_bufs[dst];
+      dst_buf.insert(dst_buf.end(), msg.begin(), msg.end());
+    }
+  }
+
+  // ---------- MPI_Alltoallv ----------
+  std::vector<int> send_counts(nprocs, 0), send_displs(nprocs, 0);
+  for (int p = 0; p < nprocs; ++p) send_counts[p] = (int) send_bufs[p].size();
+  std::vector<int> recv_counts(nprocs, 0), recv_displs(nprocs, 0);
+  MPI_Alltoall(send_counts.data(), 1, MPI_INT,
+               recv_counts.data(), 1, MPI_INT, world);
+
+  int send_total = 0, recv_total = 0;
+  for (int p = 0; p < nprocs; ++p) {
+    send_displs[p] = send_total;
+    send_total += send_counts[p];
+    recv_displs[p] = recv_total;
+    recv_total += recv_counts[p];
+  }
+
+  std::vector<tagint> send_flat(send_total > 0 ? send_total : 1);
+  for (int p = 0; p < nprocs; ++p) {
+    if (send_counts[p] == 0) continue;
+    std::copy(send_bufs[p].begin(), send_bufs[p].end(),
+              send_flat.begin() + send_displs[p]);
+  }
+  std::vector<tagint> recv_flat(recv_total > 0 ? recv_total : 1);
+
+  MPI_Alltoallv(send_flat.data(), send_counts.data(), send_displs.data(),
+                MPI_LMP_TAGINT,
+                recv_flat.data(), recv_counts.data(), recv_displs.data(),
+                MPI_LMP_TAGINT, world);
+
+  // ---------- Peer parses + augments local constraint list ----------
+  // Build peer's gid -> local cluster c map for PEER clusters.
+  std::unordered_map<tagint, int> peer_gid_to_c;
+  peer_gid_to_c.reserve((size_t) n_clusters);
+  for (int c = 0; c < n_clusters; ++c)
+    if (cluster_owner_rank[c] != me)
+      peer_gid_to_c[cluster_global_id[c]] = c;
+
+  auto pair_key = [](tagint a, tagint b) -> uint64_t {
+    uint64_t lo = (uint64_t)((a < b) ? a : b);
+    uint64_t hi = (uint64_t)((a < b) ? b : a);
+    return (lo << 32) ^ hi;
+  };
+
+  // Build a SINGLE global seen set across ALL constraints already on
+  // this rank (any cluster, owned or peer).  Per-cluster dedup is
+  // unsafe because peer can have multiple disjoint local clusters
+  // that all belong to the same global cluster -- a constraint
+  // present in peer-local-cluster X must not be added again to
+  // peer-local-cluster Y when both map to the same owner-side gid.
+  std::unordered_set<uint64_t> seen_global;
+  seen_global.reserve((size_t) n_constr);
+  for (int k = 0; k < n_constr; ++k) {
+    seen_global.insert(pair_key(tag[c_atom1[k]], tag[c_atom2[k]]));
+  }
+
+  int n_added = 0;
+  for (int p = 0; p < nprocs; ++p) {
+    int pos = recv_displs[p];
+    const int end = pos + recv_counts[p];
+    while (pos < end) {
+      const tagint gid = recv_flat[pos++];
+      const int nc = (int) recv_flat[pos++];
+      auto it = peer_gid_to_c.find(gid);
+      if (it == peer_gid_to_c.end()) {
+        pos += 3 * nc;  // skip; we don't have this cluster
+        continue;
+      }
+      const int c = it->second;
+
+      for (int t = 0; t < nc; ++t) {
+        const tagint ta = recv_flat[pos++];
+        const tagint tb = recv_flat[pos++];
+        const int   ty = (int) recv_flat[pos++];
+        const uint64_t key = pair_key(ta, tb);
+        if (seen_global.count(key)) continue;
+
+        // Atoms must be in our halo to add the constraint.
+        const int ia = atom->map(ta);
+        const int ib = atom->map(tb);
+        if (ia < 0 || ib < 0) continue;
+
+        // Build canonical (lower-tag, higher-tag) entry like the bond
+        // loop in build_constraint_list, then PBC-image c_atom2.
+        int a_idx, b_idx;
+        if (ta < tb) { a_idx = ia; b_idx = ib; }
+        else         { a_idx = ib; b_idx = ia; }
+        b_idx = domain->closest_image(a_idx, b_idx);
+
+        const double dist = (ty > 0) ? bond_distance[ty] : angle_distance[-ty];
+
+        add_constraint(a_idx, b_idx, ty, dist);
+        c_cluster[n_constr - 1] = c;  // join peer's existing cluster
+        ilves_flag[a_idx] = 1;
+        ilves_flag[b_idx] = 1;
+        seen_global.insert(key);
+        ++n_added;
+      }
+    }
+  }
+
+  return n_added;
+}
+
+/* ----------------------------------------------------------------------
+   Free comm-graph allocations.  Called at the start of every
+   build_comm_graph() and at destruction.
+------------------------------------------------------------------------- */
+
+void FixIlves::free_comm_graph()
+{
+  // The arrays are reallocated on next use via memory->grow, so just
+  // reset the count metadata to indicate "no live data" without
+  // actually destroying.  The destructor handles final teardown.
+  n_owner_peer_entries = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -2847,6 +3871,14 @@ int FixIlves::pack_forward_comm(int n, int *list, double *buf,
     }
     return m;
   }
+  // comm_mode == 5: pack cluster_tag (one tagint per atom, encoded as double).
+  if (comm_mode == 5) {
+    for (int i = 0; i < n; ++i) {
+      int j = list[i];
+      buf[m++] = (double) cluster_tag[j];
+    }
+    return m;
+  }
   // default (comm_mode == 0): pack xshake with PBC shift applied
   if (pbc_flag == 0) {
     for (int i = 0; i < n; ++i) {
@@ -2898,6 +3930,12 @@ void FixIlves::unpack_forward_comm(int n, int first, double *buf)
     }
     return;
   }
+  if (comm_mode == 5) {
+    for (int i = first; i < last; ++i) {
+      cluster_tag[i] = (tagint) buf[m++];
+    }
+    return;
+  }
   for (int i = first; i < last; ++i) {
     xshake[i][0] = buf[m++];
     xshake[i][1] = buf[m++];
@@ -2908,14 +3946,27 @@ void FixIlves::unpack_forward_comm(int n, int first, double *buf)
 /* ----------------------------------------------------------------------
    reverse_comm: pack ghost lang_fbuf entries (the per-atom stiff angle
    force contribution from this rank's middle-owners writing into ghost
-   slots).  comm_mode == 3 is the only mode for now.  unpack adds the
-   received contributions into the owner rank's local lang_fbuf entries.
+   slots).  comm_mode == 3 packs lang_fbuf (3 doubles per atom);
+   comm_mode == 6 packs lang_vbuf (6 doubles per atom, per-atom virial
+   tensor) for the stress/atom path.  unpack adds the received
+   contributions into the owner rank's local buffer entries.
 ------------------------------------------------------------------------- */
 
 int FixIlves::pack_reverse_comm(int n, int first, double *buf)
 {
   int m = 0;
   int last = first + n;
+  if (comm_mode == 6) {
+    for (int i = first; i < last; ++i) {
+      buf[m++] = lang_vbuf[6*i+0];
+      buf[m++] = lang_vbuf[6*i+1];
+      buf[m++] = lang_vbuf[6*i+2];
+      buf[m++] = lang_vbuf[6*i+3];
+      buf[m++] = lang_vbuf[6*i+4];
+      buf[m++] = lang_vbuf[6*i+5];
+    }
+    return m;
+  }
   for (int i = first; i < last; ++i) {
     buf[m++] = lang_fbuf[3*i+0];
     buf[m++] = lang_fbuf[3*i+1];
@@ -2927,6 +3978,18 @@ int FixIlves::pack_reverse_comm(int n, int first, double *buf)
 void FixIlves::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int m = 0;
+  if (comm_mode == 6) {
+    for (int i = 0; i < n; ++i) {
+      const int j = list[i];
+      lang_vbuf[6*j+0] += buf[m++];
+      lang_vbuf[6*j+1] += buf[m++];
+      lang_vbuf[6*j+2] += buf[m++];
+      lang_vbuf[6*j+3] += buf[m++];
+      lang_vbuf[6*j+4] += buf[m++];
+      lang_vbuf[6*j+5] += buf[m++];
+    }
+    return;
+  }
   for (int i = 0; i < n; ++i) {
     const int j = list[i];
     lang_fbuf[3*j+0] += buf[m++];
@@ -3677,5 +4740,28 @@ void FixIlves::build_constraint_list()
 
   // connected-component labelling and cluster grouping
   group_by_cluster();
+  // determine the global owner of each local cluster (rank with the
+  // lowest-tag atom of the cluster) -- groundwork for single-rank
+  // cluster ownership.
+  identify_cluster_owners();
+  // build the per-cluster MPI comm graph (Phase 2b) and broadcast the
+  // full cluster constraint set from owners to peers (Phase 2d) so
+  // every participating rank has the same cluster view.
+  build_comm_graph();
+  const int n_added = broadcast_full_clusters_to_peers();
+  if (n_added > 0) {
+    // Constraint list grew on this rank.  Re-run group_by_cluster to
+    // rebuild cluster_offset / c_perm / c_slot for the augmented
+    // list, then re-run identify_cluster_owners so cluster_global_id
+    // and cluster_owner_rank match the new local cluster indices
+    // (used by the setup() owned/remote-count stats line, and by any
+    // future per-step ownership tracking).  The Phase 2b
+    // owner_peers_* / owned_aug_* arrays remain indexed by the OLD
+    // cluster IDs and would be stale here, but they've already been
+    // consumed by Phase 2d's broadcast and are rebuilt fresh at the
+    // next reneighbor.
+    group_by_cluster();
+    identify_cluster_owners();
+  }
   precompute_constraint_data();
 }

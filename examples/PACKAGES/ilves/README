@@ -1,46 +1,4 @@
 Examples for the ILVES bond/angle constraint solver.
-
-ILVES is invoked via "fix ilves".  The fix gathers the complete bond /
-angle topology onto every MPI rank at init via MPI_Allgatherv and
-builds a per-rank constraint list including every cluster intersecting
-the rank's local atoms.  This supports arbitrarily large connected
-constraint clusters (e.g. all C-C backbone bonds of a long polymer
-chain held in a single cluster) and any cluster topology -- including
-chains, rings, branched stars, or fully connected meshes.
-
-Selectors and keywords mirror fix shake: the fix shake form
-
-    fix cstr all shake 1.0e-4 25 0 b 4 6 8 10 12 14 18 a 31
-
-becomes
-
-    fix cstr all ilves 1.0e-4 25 0 b 4 6 8 10 12 14 18 a 31
-
-Two solver variants are available via the *variant* keyword:
-  * variant = fast (default): symmetric Jacobian using r_k.r_l in
-    off-diagonals; solved with banded Cholesky on an RCM-permuted
-    matrix, and the factor is cached and reused across Newton
-    iterations within a step.
-  * variant = full: the structurally-symmetric exact Newton Jacobian
-    using s_k.r_l in off-diagonals; solved with LU.  Required when
-    the constraint geometry has degenerate clusters that the
-    Cholesky path cannot factor (the solver will fall back to LU per
-    cluster as needed, but starting in "full" mode skips the
-    fallback overhead).
-
-Both variants converge to the exact solution of the constraint
-equations.
-
-For near-linear angle constraints (theta_0 close to 180 deg, common
-in coarse-grain polymer backbones), use the *linearangle* keyword to
-switch the angle's constraint topology from {AB, BC, AC} (which is
-rank-deficient at exactly 180 deg) to {AB, AC, B-M} where M is the
-midpoint of the A-C virtual bond:
-
-    fix cstr all ilves 1.0e-5 30 0 b 1 a 1 variant fast linearangle 165
-
-Default threshold is 165 deg; set to 180 to disable.
-
 Example input files:
   in.peptide-fast     -- peptide + water with ilves, symmetric variant (fast)
   in.peptide-full     -- peptide + water with ilves, exact-Newton variant (full)
@@ -49,9 +7,9 @@ Example input files:
                          arbitrarily-large connected bonds cluster support
   in.peptide-shake    -- baseline using fix shake for comparison
   in.peptide-rattle   -- baseline using fix rattle for comparison
-  in.rhodo-fast       -- rhodopsin with same constraints (fast)
   in.rhodo-full       -- rhodopsin with C-H bonds + H-O-H water angle (full)
-  in.rhodo-allbonds   -- rhodopsin with all bonds + water angle
+  in.rhodo-fast       -- rhodopsin with same constraints (fast)
+  in.rhodo-allbonds   -- rhodopsin with all bonds + water angle increased comm cutoff
   in.bulk_co2         -- bulk CO2 fluid (rigid linear; see comments in manual
                          for caveats on exactly-180 deg symmetric angles)
-  in.cg-polymer       -- coarse-grain polymer chains with 180 deg backbone angles
+  in.cg-polymers      -- coarse-grain polymer chains with 180 deg backbone angles

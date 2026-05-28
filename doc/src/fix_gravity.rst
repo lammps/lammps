@@ -12,7 +12,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group gravity magnitude style args
+   fix fix-ID group gravity magnitude style args
 
 * ID, group are documented in :doc:`fix <fix>` command
 * gravity = style name of this fix command

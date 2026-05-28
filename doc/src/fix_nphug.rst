@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID nphug keyword value ...
+   fix fix-ID group-ID nphug keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 
   .. parsed-literal::
 

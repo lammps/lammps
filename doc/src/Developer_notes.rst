@@ -43,7 +43,7 @@ documentation on :ref:`File reader classes <file-reader-classes>`
 contains an example for a typical case.
 
 When reading per-atom data, the data on each line of the file usually
-needs to include an atom ID so it can be associated with a particular
+needs to include an atom-ID so it can be associated with a particular
 atom.  In that case the data can be read in multi-line chunks and
 broadcast to all MPI ranks with
 :cpp:func:`utils::read_lines_from_file()

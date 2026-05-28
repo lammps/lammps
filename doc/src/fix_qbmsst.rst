@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID qbmsst dir shockvel keyword value ...
+   fix fix-ID group-ID qbmsst dir shockvel keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * qbmsst = style name of this fix
 * dir = *x* or *y* or *z*
 * shockvel = shock velocity (strictly positive, velocity units)

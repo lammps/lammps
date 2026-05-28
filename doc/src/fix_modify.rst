@@ -22,9 +22,9 @@ Syntax
          yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
        *energy* value = *yes* or *no*
        *pad*    arg = Nchar = # of characters to convert timestep to
-       *press* value = compute ID that calculates a pressure
+       *press* value = compute-ID that calculates a pressure
        *respa* value = *1* to *max respa level* or *0* (for outermost level)
-       *temp* value = compute ID that calculates a temperature
+       *temp* value = compute-ID that calculates a temperature
        *virial* value = *yes* or *no*
        *vizsteps* value = number of MD steps that generated graphics objects should remain visible for fixes that support it
        *kick* value = *yes* or *no*
@@ -48,7 +48,7 @@ for individual fix commands for info on which ones support which
 fix_modify parameters.
 
 The *temp* keyword is used to determine how a fix computes
-temperature.  The specified compute ID must have been previously
+temperature.  The specified compute-ID must have been previously
 defined by the user via the :doc:`compute <compute>` command and it must
 be a style of compute that calculates a temperature.  All fixes that
 compute temperatures define their own compute by default, as described
@@ -56,7 +56,7 @@ in their documentation.  Thus this option allows the user to override
 the default method for computing T.
 
 The *press* keyword is used to determine how a fix computes pressure.
-The specified compute ID must have been previously defined by the user
+The specified compute-ID must have been previously defined by the user
 via the :doc:`compute <compute>` command and it must be a style of
 compute that calculates a pressure.  All fixes that compute pressures
 define their own compute by default, as described in their

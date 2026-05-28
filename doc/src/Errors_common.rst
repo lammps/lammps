@@ -38,7 +38,7 @@ sometimes be confusing or need additional explanations.
 
 - Similarly, the :doc:`create_atoms <create_atoms>` command generates a
   lattice of atoms.  For the same physical system, the ordering and
-  numbering of atoms by atom ID may be different depending on the number
+  numbering of atoms by atom-ID may be different depending on the number
   of processors.
 
 - Some commands use random number generators which may be setup to

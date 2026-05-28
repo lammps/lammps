@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID erotate/asphere
+   compute compute-ID group-ID erotate/asphere
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * erotate/asphere = style name of this compute command
 
 Examples

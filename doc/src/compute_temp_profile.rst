@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID temp/profile xflag yflag zflag binstyle args
+   compute compute-ID group-ID temp/profile xflag yflag zflag binstyle args
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * temp/profile = style name of this compute command
 * xflag,yflag,zflag = 0/1 for whether to exclude/include this dimension
 * binstyle = *x* or *y* or *z* or *xy* or *yz* or *xz* or *xyz*

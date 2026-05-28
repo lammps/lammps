@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID adf Nbin itype1 jtype1 ktype1 Rjinner1 Rjouter1 Rkinner1 Rkouter1 ...
+   compute compute-ID group-ID adf Nbin itype1 jtype1 ktype1 Rjinner1 Rjouter1 Rkinner1 Rkouter1 ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * adf = style name of this compute command
 * Nbin = number of ADF bins
 * itypeN = central atom type for Nth ADF histogram (see asterisk form below)

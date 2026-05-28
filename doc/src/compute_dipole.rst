@@ -12,9 +12,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID style arg
+   compute compute-ID group-ID style arg
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * style = *dipole* or *dipole/tip4p*
 * arg = *mass* or *geometry* = use COM or geometric center for charged chunk correction (optional)
 

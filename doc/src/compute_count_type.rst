@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID count/type mode
+   compute compute-ID group-ID count/type mode
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * count/type = style name of this compute command
 * mode = *atom* or *bond* or *angle* or *dihedral* or *improper*
 

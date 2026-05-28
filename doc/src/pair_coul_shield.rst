@@ -39,7 +39,7 @@ the pair style :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
    two different layers of hexagonal boron nitride. Therefore, to avoid
    interaction within the same layers, each layer should have a separate
    molecule id and is recommended to use the "full" atom style, so that
-   charge and molecule ID information is included.
+   charge and molecule-ID information is included.
 
 .. math::
 

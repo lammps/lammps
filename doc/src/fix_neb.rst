@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID neb Kspring keyword value
+   fix fix-ID group-ID neb Kspring keyword value
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * neb = style name of this fix command
 * Kspring = spring constant for parallel nudging force (force/distance units or force units, see parallel keyword)
 * zero or more keyword/value pairs may be appended

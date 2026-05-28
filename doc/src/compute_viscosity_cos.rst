@@ -9,9 +9,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID viscosity/cos
+   compute compute-ID group-ID viscosity/cos
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * viscosity/cos = style name of this compute command
 
 
@@ -101,7 +101,7 @@ kinetic energy tensor.  The six components of the vector are ordered
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
 :doc:`compute_modify <compute_modify>` command if this is not the case.
-However, in order to get meaningful results, the group ID of this compute should
+However, in order to get meaningful results, the group-ID of this compute should
 be all.
 
 The removal of the cosine-shaped velocity component by this command is

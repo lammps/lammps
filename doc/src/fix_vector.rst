@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID vector Nevery value1 value2 ... keyword args ...
+   fix fix-ID group-ID vector Nevery value1 value2 ... keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * vector = style name of this fix command
 * Nevery = use input values every this many timesteps
 * one or more input values can be listed
@@ -107,7 +107,7 @@ sufficient size.
 
 ----------
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c\_", a compute-ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the compute is used.  If a
 bracketed term is appended, the Ith element of the global vector
@@ -122,7 +122,7 @@ or other fixes such as :doc:`fix nvt <fix_nh>` or :doc:`fix temp/rescale
 the IDs of these computes.  Users can also write code for their own
 compute styles and :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f\_", a fix-ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the fix is used.  If a
 bracketed term is appended, the Ith element of the global vector

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID numdiff/virial Nevery delta
+   fix fix-ID group-ID numdiff/virial Nevery delta
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * numdiff/virial = style name of this fix command
 * Nevery = calculate virial by finite difference every this many timesteps
 * delta = magnitude of strain fields (dimensionless)

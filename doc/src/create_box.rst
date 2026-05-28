@@ -34,7 +34,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   # orthogonal or restricted triclinic box using regionID = mybox
+   # orthogonal or restricted triclinic box using region-ID = mybox
    create_box 2 mybox
    create_box 2 mybox bond/types 2 extra/bond/per/atom 1
 
@@ -76,7 +76,7 @@ The argument *N* is the number of atom types that will be used in the
 simulation.
 
 Orthogonal and restricted triclinic boxes are created by specifying a
-region ID previously defined by the :doc:`region <region>` command.
+region-ID previously defined by the :doc:`region <region>` command.
 General triclinic boxes are discussed below.
 
 If the region is not of style *prism*, then LAMMPS encloses the region

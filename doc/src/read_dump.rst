@@ -20,7 +20,7 @@ Syntax
        *x*,\ *y*,\ *z* = atom coordinates
        *vx*,\ *vy*,\ *vz* = velocity components
        *q* = charge
-       *mol* = molecule ID
+       *mol* = molecule-ID
        *ix*,\ *iy*,\ *iz* = image flags in each dimension
        *fx*,\ *fy*,\ *fz* = force components
        *apip_lambda* = switching parameter of an :doc:`adaptive-precision interatomic potential <Howto_apip>`
@@ -218,7 +218,7 @@ unwrapped) is explained on the :doc:`dump <dump>` command doc page.
 These labels are searched for in the list of column labels in the dump
 file, in order, until a match is found.
 
-The dump file must also contain atom IDs, with a column label of "id".
+The dump file must also contain atom-IDs, with a column label of "id".
 
 If the *add* keyword is specified with a value of *yes* or *keep*, as
 discussed below, the dump file must contain atom types, with a column
@@ -250,7 +250,7 @@ then a type map must be created using the :doc:`labelmap command
 <labelmap>`.  This map needs to associate each (numeric) atom type with
 a string label. The numeric atom type is stored internally.
 
-The xyz format dump file does not store atom IDs, so these are assigned
+The xyz format dump file does not store atom-IDs, so these are assigned
 consecutively to the atoms as they appear in the dump file, starting
 from 1.  Thus you should ensure that the order of atoms is consistent
 from snapshot to snapshot in the XYZ dump file.  See the
@@ -260,7 +260,7 @@ written by LAMMPS.
 For dump files in *molfile* format, the *x*, *y*, *z*, *vx*, *vy*, and
 *vz* fields can be specified.  However, not all molfile formats store
 velocities, or their respective plugins may not support reading of
-velocities.  The molfile dump files do not store atom IDs, so these are
+velocities.  The molfile dump files do not store atom-IDs, so these are
 assigned consecutively to the atoms as they appear in the dump file,
 starting from 1.  Thus you should ensure that the order of atoms are
 consistent from snapshot to snapshot in the molfile dump file.  See the
@@ -318,14 +318,14 @@ dump file atoms with IDs that are not in the current system are not
 added to the system.  They are simply ignored.
 
 If a *yes* value is specified, the atoms with new IDs are added to the
-system but their atom IDs are not preserved.  Instead, after all the
+system but their atom-IDs are not preserved.  Instead, after all the
 atoms are added, new IDs are assigned to them in the same manner as is
 described for the :doc:`create_atoms <create_atoms>` command.  Basically
-the largest existing atom ID in the system is identified, and all the
+the largest existing atom-ID in the system is identified, and all the
 added atoms are assigned IDs that consecutively follow the largest ID.
 
 If a *keep* value is specified, the atoms with new IDs are added to
-the system and their atom IDs are preserved.  This may lead to
+the system and their atom-IDs are preserved.  This may lead to
 non-contiguous IDs for the combined system.
 
 Note that atoms added via the *add* keyword will only have the

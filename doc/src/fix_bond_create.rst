@@ -12,9 +12,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style Nevery itype jtype Rmin bondtype keyword values ...
+   fix fix-ID group-ID style Nevery itype jtype Rmin bondtype keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *bond/create* or *bond/create/angle*
 * Nevery = attempt bond creation every this many steps
 * itype,jtype = atoms of itype can bond to atoms of jtype (1-Ntypes or type label)
@@ -128,7 +128,7 @@ actually created.  The *fraction* setting must be a value between 0.0
 and 1.0.  A uniform random number between 0.0 and 1.0 is generated and
 the eligible bond is only created if the random number is less than *fraction*.
 
-The *molecule* keyword can be used to force the reaction to be intermolecular, intramolecular or either. When the value is set to *off*, molecule IDs are not considered when searching for reactions (default). When the value is set to *inter*, atoms must have different molecule IDs in order to be considered for the reaction. When the value is set to *intra*, only atoms with the same molecule ID are considered for the reaction.
+The *molecule* keyword can be used to force the reaction to be intermolecular, intramolecular or either. When the value is set to *off*, molecule-IDs are not considered when searching for reactions (default). When the value is set to *inter*, atoms must have different molecule-IDs in order to be considered for the reaction. When the value is set to *intra*, only atoms with the same molecule-ID are considered for the reaction.
 
 The *aconstrain* keyword is only available with the fix
 bond/create/angle command.  It allows one to specify minimum and maximum
@@ -152,9 +152,9 @@ of new bonds, angles, etc.
 .. note::
 
    One data structure that is not updated when a bond breaks are
-   the molecule IDs stored by each atom.  Even though two molecules
+   the molecule-IDs stored by each atom.  Even though two molecules
    become one molecule due to the created bond, all atoms in the new
-   molecule retain their original molecule IDs.
+   molecule retain their original molecule-IDs.
 
 If the *atype* keyword is used and if an angle potential is defined
 via the :doc:`angle_style <angle_style>` command, then any new 3-body

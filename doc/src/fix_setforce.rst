@@ -15,9 +15,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID setforce fx fy fz keyword value ...
+   fix fix-ID group-ID setforce fx fy fz keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * setforce = style name of this fix command
 * fx,fy,fz = force component values
 * any of fx,fy,fz can be a variable (see below)

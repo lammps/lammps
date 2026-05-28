@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID temp/chunk chunkID value1 value2 ... keyword value ...
+   compute compute-ID group-ID temp/chunk chunkID value1 value2 ... keyword value ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * temp/chunk = style name of this compute command
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * zero or more values can be listed as value1,value2,etc.
@@ -163,11 +163,11 @@ calculating the temperature; fix ave/chunk does not.
 
    Only atoms in the specified group contribute to the calculations performed
    by this compute.  The :doc:`compute chunk/atom <compute_chunk_atom>`
-   command defines its own group; atoms will have a chunk ID = 0 if they are
+   command defines its own group; atoms will have a chunk-ID = 0 if they are
    not in that group, signifying they are not assigned to a chunk, and will
    thus also not contribute to this calculation.  You can specify the "all"
    group for this command if you simply want to include atoms with non-zero
-   chunk IDs.
+   chunk-IDs.
 
 The simplest way to output the per-chunk results of the compute
 temp/chunk calculation to a file is to use the

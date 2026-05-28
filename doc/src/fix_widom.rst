@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID widom N M type seed T keyword values ...
+   fix fix-ID group-ID widom N M type seed T keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * widom = style name of this fix command
 * N = invoke this fix every N steps
 * M = number of Widom insertions to attempt every N steps

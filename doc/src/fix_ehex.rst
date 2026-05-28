@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID ehex nevery F keyword value
+   fix fix-ID group-ID ehex nevery F keyword value
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * ehex  = style name of this fix command
 * nevery = add/subtract heat every this many timesteps
 * F = energy flux into the reservoir (energy/time units)

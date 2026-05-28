@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID nvt/sllod/eff keyword value ...
+   fix fix-ID group-ID nvt/sllod/eff keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * nvt/sllod/eff = style name of this fix command
 * zero or more keyword/value pairs may be appended
 

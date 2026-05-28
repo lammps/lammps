@@ -258,7 +258,7 @@ accesses.
 
    # access via ctypes directly
    atom_id = L.extract_atom("id")
-   print("Atom IDs", atom_id[0:nlocal])
+   print("Atom-IDs", atom_id[0:nlocal])
 
    # access through numpy wrapper
    atom_type = L.numpy.extract_atom("type")

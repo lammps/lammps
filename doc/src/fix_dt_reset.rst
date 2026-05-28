@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID dt/reset N Tmin Tmax Xmax keyword values ...
+   fix fix-ID group-ID dt/reset N Tmin Tmax Xmax keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * dt/reset = style name of this fix command
 * N = re-compute dt every N timesteps
 * Tmin = minimum dt allowed which can be NULL (time units)

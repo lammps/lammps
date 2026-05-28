@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID rheo/property/atom input1 input2 ...
+   compute compute-ID group-ID rheo/property/atom input1 input2 ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * rheo/property/atom = style name of this compute command
 * input = one or more atom attributes
 

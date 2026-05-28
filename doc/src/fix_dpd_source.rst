@@ -12,10 +12,10 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID edpd/source keyword values ...
-   fix ID group-ID tdpd/source cc_index keyword values ...
+   fix fix-ID group-ID edpd/source keyword values ...
+   fix fix-ID group-ID tdpd/source cc_index keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * edpd/source or tdpd/source = style name of this fix command
 * index (only specified for tdpd/source) = index of chemical species (1 to Nspecies)
 * keyword = *sphere* or *cuboid* or *region*

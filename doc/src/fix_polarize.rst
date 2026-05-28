@@ -16,9 +16,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style nevery tolerance
+   fix fix-ID group-ID style nevery tolerance
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *polarize/bem/gmres* or *polarize/bem/icc* or *polarize/functional*
 * nevery = this fixed is invoked every this many timesteps
 * tolerance = the relative tolerance for the iterative solver to stop

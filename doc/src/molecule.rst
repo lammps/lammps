@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   molecule ID file1 keyword values ... file2 keyword values ... fileN ...
+   molecule molecule-ID file1 keyword values ... file2 keyword values ... fileN ...
 
-* ID = user-assigned name for the molecule template
+* molecule-ID = user-assigned name for the molecule template
 * file1,file2,... = names of files containing molecule descriptions
 * zero or more keyword/value pairs may be appended after each file
 * keyword = *offset* or *toff* or *boff* or *aoff* or *doff* or *ioff* or *scale* or *check_labels* or *auto*
@@ -414,7 +414,7 @@ order.
 
 * one line per atom
 * line syntax: ID molecule-ID
-* molecule-ID = molecule ID of atom
+* molecule-ID = molecule-ID of atom
 
 ----------
 
@@ -425,7 +425,7 @@ order.
 * a,b,c,d,... = IDs of atoms in fragment
 
 The ID of a fragment can only contain alphanumeric characters and
-underscores.  The atom IDs should be values from 1 to Natoms, where
+underscores.  The atom-IDs should be values from 1 to Natoms, where
 Natoms = # of atoms in the molecule.
 
 ----------
@@ -568,7 +568,7 @@ A, b, c, d, etc are the IDs of the n1+n2+n3 atoms that are 1-2, 1-3,
 1-4 neighbors of this atom.  The IDs should be values from 1 to
 Natoms, where Natoms = # of atoms in the molecule.  The first N1
 values should be the 1-2 neighbors, the next N2 should be the 1-3
-neighbors, the last N3 should be the 1-4 neighbors.  No atom ID should
+neighbors, the last N3 should be the 1-4 neighbors.  No atom-ID should
 appear more than once.  See the :doc:`special_bonds <special_bonds>` doc
 page for more discussion of 1-2, 1-3, 1-4 neighbors.  If this section
 appears, the Special Bond Counts section must also appear.
@@ -610,7 +610,7 @@ This section is only needed when molecules created using the template
 will be constrained by SHAKE via the "fix shake" command.  The other
 two Shake sections must also appear in the file.
 
-The a,b,c,d values are atom IDs (from 1 to Natoms) for all the atoms
+The a,b,c,d values are atom-IDs (from 1 to Natoms) for all the atoms
 in the SHAKE cluster that this atom belongs to.  The number of values
 that must appear is determined by the shake flag for the atom (see the
 Shake Flags section above).  All atoms in a particular cluster should

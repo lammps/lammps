@@ -15,9 +15,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style tol iter N constraint values ... keyword value ...
+   fix fix-ID group-ID style tol iter N constraint values ... keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style = shake or rattle = style name of this fix command
 * tol = accuracy tolerance of SHAKE or RATTLE solution
 * iter = max # of iterations in each SHAKE or RATTLE solution

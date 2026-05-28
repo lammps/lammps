@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID ave/correlate/long Nevery Nfreq value1 value2 ... keyword args ...
+   fix fix-ID group-ID ave/correlate/long Nevery Nfreq value1 value2 ... keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * ave/correlate/long = style name of this fix command
 * Nevery = use input values every this many time steps
 * Nfreq = save state of the time correlation functions every this many time steps

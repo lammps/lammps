@@ -337,14 +337,14 @@ LAMMPS system size restrictions
    * - Total timesteps
      - :math:`2^{63}` steps (= :math:`9.223 \cdot 10^{18}`)
      - :math:`2^{63}` steps (= :math:`9.223 \cdot 10^{18}`)
-   * - Atom ID values
+   * - Atom-ID values
      - :math:`1 \le i \le 2^{31} (= 2.147 \cdot 10^9)`
      - :math:`1 \le i \le 2^{63} (= 9.223 \cdot 10^{18})`
    * - Image flag values
      - :math:`-512 \le i \le 511`
      - :math:`- 1\,048\,576 \le i \le 1\,048\,575`
 
-The "bigbig" setting increases the size of image flags and atom IDs over
+The "bigbig" setting increases the size of image flags and atom-IDs over
 the default "smallbig" setting.
 
 These are limits for the core of the LAMMPS code, specific features or
@@ -353,12 +353,12 @@ when using the library interface where some functions with known issues
 have been replaced by dummy calls printing a corresponding error message
 rather than crashing randomly or corrupting data.
 
-Atom IDs are not required for atomic systems which do not store bond
+Atom-IDs are not required for atomic systems which do not store bond
 topology information, though IDs are enabled by default.  The
 :doc:`atom_modify id no <atom_modify>` command will turn them off.  Atom
 IDs are required for molecular systems with bond topology (bonds,
 angles, dihedrals, etc).  Similarly, some force or compute or fix styles
-require atom IDs.  Thus, if you model a molecular system or use one of
+require atom-IDs.  Thus, if you model a molecular system or use one of
 those styles with more than 2 billion atoms, you need the "bigbig"
 setting.
 

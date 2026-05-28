@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID lambda/apip thr_lo thr_hi keyword args ...
+   fix fix-ID group-ID lambda/apip thr_lo thr_hi keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * lambda/apip = style name of this fix command
 * thr_lo = value below which :math:`\lambda_i^\text{input}` results in a switching parameter of 1
 * thr_hi = value above which :math:`\lambda_i^\text{input}` results in a switching parameter of 0

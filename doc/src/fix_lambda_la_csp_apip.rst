@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID lambda/la/csp/apip thr_lo thr_hi cut_lo cut_hi lattice keyword args ...
+   fix fix-ID group-ID lambda/la/csp/apip thr_lo thr_hi cut_lo cut_hi lattice keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * lambda/la/csp/apip = style name of this fix command
 * thr_lo = value below which the differentiable CSP results in a switching parameter of 1 (squared distance units)
 * thr_hi = value above which the differentiable CSP results in a switching parameter of 0 (squared distance units)

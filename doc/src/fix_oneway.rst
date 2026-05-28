@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID oneway N region-ID direction
+   fix fix-ID group-ID oneway N region-ID direction
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * oneway = style name of this fix command
 * N = apply this fix every this many timesteps
 * region-ID = ID of region where fix is active

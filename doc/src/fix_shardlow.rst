@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID shardlow
+   fix fix-ID group-ID shardlow
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * shardlow = style name of this fix command
 
 Examples

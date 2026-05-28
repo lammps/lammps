@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID balance Nfreq thresh style args keyword args ...
+   fix fix-ID group-ID balance Nfreq thresh style args keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * balance = style name of this fix command
 * Nfreq = perform dynamic load balancing every this many steps
 * thresh = imbalance threshold that must be exceeded to perform a re-balance
@@ -34,7 +34,7 @@ Syntax
          *style* = *group* or *neigh* or *time* or *var* or *store*
            *group* args = Ngroup group1 weight1 group2 weight2 ...
              Ngroup = number of groups with assigned weights
-             group1, group2, ... = group IDs
+             group1, group2, ... = group-IDs
              weight1, weight2, ...   = corresponding weight factors
            *neigh* factor = compute weight based on number of neighbors
              factor = scaling factor (> 0)

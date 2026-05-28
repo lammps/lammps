@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID addtorque/group Tx Ty Tz
+   fix fix-ID group-ID addtorque/group Tx Ty Tz
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * addtorque/group = style name of this fix command
 * Tx,Ty,Tz = torque component values (torque units)
 * any of Tx,Ty,Tz can be a variable (see below)

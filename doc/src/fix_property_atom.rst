@@ -11,15 +11,15 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID property/atom name1 name2 ... keyword value ...
+   fix fix-ID group-ID property/atom name1 name2 ... keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * property/atom = style name of this fix command
 * name1,name2,... = *mol* or *q* or *rmass* or i_name or d_name or i2_name or d2_name
 
   .. parsed-literal::
 
-       *mol* = molecule IDs
+       *mol* = molecule-IDs
        *q* = charge
        *rmass* = per-atom mass
        *temperature* = internal temperature of atom
@@ -61,12 +61,12 @@ these properties for each atom in the system when a data file is read.
 This fix augments the set of per-atom properties with new custom
 ones. This can be useful in several scenarios.
 
-If the atom style does not define molecule IDs, per-atom charge,
+If the atom style does not define molecule-IDs, per-atom charge,
 per-atom mass, internal temperature, or internal heat flow, they can
 be added using the *mol*\ , *q*, *rmass*, *temperature*, or *heatflow*
 keywords.  This could be useful to define "molecules" to use as rigid
 bodies with the :doc:`fix rigid <fix_rigid>` command, or to carry
-around an extra flag with atoms (stored as a molecule ID) that can be
+around an extra flag with atoms (stored as a molecule-ID) that can be
 used by various commands like :doc:`compute chunk/atom
 <compute_chunk_atom>` to group atoms without having to use the group
 command (which is limited to a total of 32 groups including *all*\ ).
@@ -81,7 +81,7 @@ below <isotopes>` for an example of simulating a mixture of light and
 heavy water with the TIP4P water potential.
 
 An alternative to using fix *property/atom* for these examples is to
-use an atom style that does define molecule IDs or charge or per-atom
+use an atom style that does define molecule-IDs or charge or per-atom
 mass (indirectly via diameter and density) or to use a hybrid atom
 style that combines two or more atom styles to provide the union of
 all their atom properties. However, this has two practical drawbacks:
@@ -128,7 +128,7 @@ new properties are also defined for the ghost atoms.
    If you use the *mol*\ , *q* or *rmass* names, you most likely want
    to set *ghost* yes, since these properties are stored with ghost
    atoms if you use an :doc:`atom_style <atom_style>` that defines
-   them.  Many LAMMPS operations that use molecule IDs or charge, such
+   them.  Many LAMMPS operations that use molecule-IDs or charge, such
    as neighbor lists and pair styles, will expect ghost atoms to have
    these values.  LAMMPS will issue a warning it you define those
    vectors but do not set *ghost* yes.
@@ -139,7 +139,7 @@ new properties are also defined for the ghost atoms.
    The specified properties for ghost atoms are not updated every
    timestep, but only once every few steps when neighbor lists are
    re-built.  Thus the *ghost* keyword is suitable for static
-   properties, like molecule IDs, but not for dynamic properties that
+   properties, like molecule-IDs, but not for dynamic properties that
    change every step.  For the latter, the code you add to LAMMPS to
    change the properties will also need to communicate their new
    values to/from ghost atoms, an operation that can be invoked from
@@ -193,7 +193,7 @@ command.
 
 Note that the the lines of per-atom properties can be listed in any
 order.  Also note that all the per-atom properties specified by the
-fix ID (prop in this case) must be included on each line in the
+fix-ID (prop in this case) must be included on each line in the
 specified data file section (Molecules in this case).
 
 Another way of initializing the new properties is via the :doc:`set
@@ -209,13 +209,13 @@ be used:
 
 The :doc:`atom-style variable <variable>` will create values for atoms
 with IDs 31,32,33,...40 that are 4.0,4.1,4.2,...,4.9.  When the
-:doc:`set <set>` commands assigns them to the molecule ID for each
+:doc:`set <set>` commands assigns them to the molecule-ID for each
 atom, they will be truncated to an integer value, so atoms 31-40 will
-all be assigned a molecule ID of 4.
+all be assigned a molecule-ID of 4.
 
 Note that :doc:`atomfile-style variables <variable>` can also be used
 in place of atom-style variables, which means in this case that the
-molecule IDs could be read-in from a separate file and assigned by the
+molecule-IDs could be read-in from a separate file and assigned by the
 :doc:`set <set>` command.  This allows you to initialize new per-atom
 properties in a completely general fashion.
 
@@ -314,7 +314,7 @@ uninterrupted fashion.
    specified **after** the *read_restart* command and **exactly** the
    same was in the input script that created the restart file.  LAMMPS
    will only check whether a fix is of the same style and has the same
-   fix ID and in case of a match will then try to initialize the fix
+   fix-ID and in case of a match will then try to initialize the fix
    with the data stored in the binary restart file.  If the names and
    associated date types in the new fix property/atom command do not
    match the old one exactly, data can be corrupted or LAMMPS may crash.

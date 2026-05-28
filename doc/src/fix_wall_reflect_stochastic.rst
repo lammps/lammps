@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID wall/reflect/stochastic rstyle seed face args ... keyword value ...
+   fix fix-ID group-ID wall/reflect/stochastic rstyle seed face args ... keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/reflect/stochastic = style name of this fix command
 * rstyle = diffusive or maxwell or ccl
 * seed = random seed for stochasticity (positive integer)

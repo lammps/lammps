@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID reaxff/species Nevery Nrepeat Nfreq filename keyword value ...
+   fix fix-ID group-ID reaxff/species Nevery Nrepeat Nfreq filename keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * reaxff/species = style name of this command
 * Nevery = sample bond-order every this many timesteps
 * Nrepeat = # of bond-order samples used for calculating averages
@@ -124,7 +124,7 @@ The first line contains information on timestep, total number of
 molecules, total number of distinct species, and box dimensions.  The
 second line is a header containing labels.  From the third line
 downward, each molecule writes a line of output containing the
-following information: molecule ID, number of atoms in this molecule,
+following information: molecule-ID, number of atoms in this molecule,
 chemical formula, total charge, and center-of-mass xyz positions of
 this molecule.  The xyz positions are in fractional coordinates
 relative to the box dimensions.
@@ -172,7 +172,7 @@ long as the molecule is fully contained with the overall fix group.
 The *delete* keyword can output information about the deleted molecules in
 either the legacy format or in JSON format.  The latter is activated when the
 *filedel* argument has a '.json' extension.  The legacy format lists how
-many of each species are deleted, while the JSON format provides the atom ID,
+many of each species are deleted, while the JSON format provides the atom-ID,
 atom type, and coordinates of deleted atoms within each molecule.  The
 format for legacy output changes depending on the keyword used.  When using
 the *specieslist* keyword and legacy format, the *filedel* file has the
@@ -233,7 +233,7 @@ objects in "timesteps" contains two keys, "timestep" and "molecules".  The
 "molecules" key is an array of :doc:`LAMMPS molecule JSON <molecule>`
 objects, one for each deleted molecule.  The "format" keys within molecule
 JSON objects are only listed once per output file, for brevity.  The
-"atom-id" values are atom IDs from the simulation, and the "type" values
+"atom-id" values are atom-IDs from the simulation, and the "type" values
 are atom types.  In the above example, the types were reported as strings
 corresponding to elements using :doc:`type labels <labelmap>`.
 
@@ -271,10 +271,10 @@ The 2 values in the global vector are as follows:
   #. total number of molecules
   #. total number of distinct species
 
-The per-atom vector stores the molecule ID for each atom as identified
+The per-atom vector stores the molecule-ID for each atom as identified
 by the fix.  If an atom is not in a molecule, its ID will be 0.
-For atoms in the same molecule, the molecule ID for all of them
-will be the same, and molecule IDs will range from 1 to the number
+For atoms in the same molecule, the molecule-ID for all of them
+will be the same, and molecule-IDs will range from 1 to the number
 of molecules.
 
 No parameter of this fix can be used with the *start/stop* keywords of

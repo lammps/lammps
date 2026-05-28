@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID chunk/atom style args keyword values ...
+   compute compute-ID group-ID chunk/atom style args keyword values ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * chunk/atom = style name of this compute command
 
   .. parsed-literal::
@@ -63,15 +63,15 @@ Syntax
          Nc max = limit number of chunks to be <= Nc
          Nc exact = set number of chunks to exactly Nc
        *ids* value = *once* or *nfreq* or *every*
-         once = assign chunk IDs to atoms only once, they persist thereafter
-         nfreq = assign chunk IDs to atoms only once every Nfreq steps (if invoked by :doc:`fix ave/chunk <fix_ave_chunk>` which sets Nfreq)
-         every = assign chunk IDs to atoms whenever invoked
+         once = assign chunk-IDs to atoms only once, they persist thereafter
+         nfreq = assign chunk-IDs to atoms only once every Nfreq steps (if invoked by :doc:`fix ave/chunk <fix_ave_chunk>` which sets Nfreq)
+         every = assign chunk-IDs to atoms whenever invoked
        *compress* value = *yes* or *no*
-         yes = compress chunk IDs to eliminate IDs with no atoms
-         no = do not compress chunk IDs even if some IDs have no atoms
+         yes = compress chunk-IDs to eliminate IDs with no atoms
+         no = do not compress chunk-IDs even if some IDs have no atoms
        *discard* value = *yes* or *no* or *mixed*
-         yes = discard atoms with out-of-range chunk IDs by assigning a chunk ID = 0
-         no = keep atoms with out-of-range chunk IDs by assigning a valid chunk ID
+         yes = discard atoms with out-of-range chunk-IDs by assigning a chunk-ID = 0
+         no = keep atoms with out-of-range chunk-IDs by assigning a valid chunk-ID
          mixed = keep or discard such atoms according to spatial binning rule
        *bound* values = x/y/z lo hi
          x/y/z = *x* or *y* or *z* to bound spatial bins in this dimension
@@ -97,11 +97,11 @@ Examples
 Description
 """""""""""
 
-Define a computation that calculates an integer chunk ID from 1 to
-Nchunk for each atom in the group.  Values of chunk IDs are determined
-by the *style* of chunk, which can be based on atom type or molecule
-ID or spatial binning or a per-atom property or value calculated by
-another :doc:`compute <compute>`, :doc:`fix <fix>`, or :doc:`atom-style variable <variable>`.  Per-atom chunk IDs can be used by other
+Define a computation that calculates an integer chunk-ID from 1 to
+Nchunk for each atom in the group.  Values of chunk-IDs are determined
+by the *style* of chunk, which can be based on atom type or
+molecule-ID or spatial binning or a per-atom property or value calculated by
+another :doc:`compute <compute>`, :doc:`fix <fix>`, or :doc:`atom-style variable <variable>`.  Per-atom chunk-IDs can be used by other
 computes with "chunk" in their style name, such as :doc:`compute com/chunk <compute_com_chunk>` or :doc:`compute msd/chunk <compute_msd_chunk>`.  Or they can be used by the :doc:`fix ave/chunk <fix_ave_chunk>` command to sum and time average a
 variety of per-atom properties over the atoms in each chunk.  Or they
 can simply be accessed by any command that uses per-atom values from a
@@ -116,20 +116,20 @@ script commands that can be used to calculate interesting properties.
 Conceptually it is important to realize that this compute does two
 simple things.  First, it sets the value of *Nchunk* = the number of
 chunks, which can be a constant value or change over time.  Second, it
-assigns each atom to a chunk via a chunk ID.  Chunk IDs range from 1
+assigns each atom to a chunk via a chunk-ID.  Chunk-IDs range from 1
 to *Nchunk* inclusive; some chunks may have no atoms assigned to them.
 Atoms that do not belong to any chunk are assigned a value of 0.  Note
 that the two operations are not always performed together.  For
 example, spatial bins can be setup once (which sets *Nchunk*\ ), and
 atoms assigned to those bins many times thereafter (setting their
-chunk IDs).
+chunk-IDs).
 
-All other commands in LAMMPS that use chunk IDs assume there are
+All other commands in LAMMPS that use chunk-IDs assume there are
 *Nchunk* number of chunks, and that every atom is assigned to one of
 those chunks, or not assigned to any chunk.
 
 There are many options for specifying for how and when *Nchunk* is
-calculated, and how and when chunk IDs are assigned to atoms.  The
+calculated, and how and when chunk-IDs are assigned to atoms.  The
 details depend on the chunk *style* and its *args*, as well as
 optional keyword settings.  They can also depend on whether a :doc:`fix ave/chunk <fix_ave_chunk>` command is using this compute, since
 that command requires *Nchunk* to remain static across windows of
@@ -140,14 +140,14 @@ The details are described below.
 ----------
 
 The different chunk styles operate as follows.  For each style, how it
-calculates *Nchunk* and assigns chunk IDs to atoms is explained.  Note
+calculates *Nchunk* and assigns chunk-IDs to atoms is explained.  Note
 that using the optional keywords can change both of those actions, as
 described further below where the keywords are discussed.
 
 ----------
 
 The *binning* styles perform a spatial binning of atoms, and assign an
-atom the chunk ID corresponding to the bin number it is in.  *Nchunk*
+atom the chunk-ID corresponding to the bin number it is in.  *Nchunk*
 is set to the number of bins, which can change if the simulation box
 size changes.  This also depends on the setting of the *units*
 keyword (e.g., for *reduced* units the number of chunks may not change
@@ -216,7 +216,7 @@ orthogonal or triclinic (i.e., the concentric circles are not tilted or
 scaled differently in the two different dimensions to transform them
 into ellipses).
 
-The created bins (and hence the chunk IDs) are numbered consecutively
+The created bins (and hence the chunk-IDs) are numbered consecutively
 from 1 to the number of bins = *Nchunk*\ . For *bin2d* and *bin3d*, the
 numbering varies fastest in the last dimension (which could be
 *x*, *y*, or *z*), slower in the second dimension, and slowest in the
@@ -234,54 +234,54 @@ atoms can move outside the current simulation box.  If the box is
 periodic (in that dimension) the atom is remapping into the periodic
 box for purposes of binning.  If the box in not periodic, the atom may
 have moved outside the bounds of all bins.  If an atom is not inside
-any bin, the *discard* keyword is used to determine how a chunk ID is
+any bin, the *discard* keyword is used to determine how a chunk-ID is
 assigned to the atom.
 
 ----------
 
-The *type* style uses the atom type as the chunk ID.  *Nchunk* is set
+The *type* style uses the atom type as the chunk-ID.  *Nchunk* is set
 to the number of atom types defined for the simulation (e.g., via the
 :doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands).
 
 ----------
 
-The *molecule* style uses the molecule ID of each atom as its chunk
-ID.  *Nchunk* is set to the largest chunk ID.  Note that this excludes
-molecule IDs for atoms which are not in the specified group or
+The *molecule* style uses the molecule-ID of each atom as its
+chunk-ID.  *Nchunk* is set to the largest chunk-ID.  Note that this excludes
+molecule-IDs for atoms which are not in the specified group or
 optional region.
 
 There is no requirement that all atoms in a particular molecule are
-assigned the same chunk ID (zero or non-zero), though you probably
+assigned the same chunk-ID (zero or non-zero), though you probably
 want that to be the case, if you wish to compute a per-molecule
 property.  LAMMPS will issue a warning if that is not the case, but
 only the first time that *Nchunk* is calculated.
 
-Note that atoms with a molecule ID = 0, which may be non-molecular
-solvent atoms, have an out-of-range chunk ID.  These atoms are
+Note that atoms with a molecule-ID = 0, which may be non-molecular
+solvent atoms, have an out-of-range chunk-ID.  These atoms are
 discarded (not assigned to any chunk) or assigned to *Nchunk*,
 depending on the value of the *discard* keyword.
 
 ----------
 
-The *compute/fix/variable* styles set the chunk ID of each atom based
+The *compute/fix/variable* styles set the chunk-ID of each atom based
 on a quantity calculated and stored by a compute, fix, or variable.
 In each case, it must be a per-atom quantity.  In each case the
-referenced floating point values are converted to an integer chunk ID
+referenced floating point values are converted to an integer chunk-ID
 as follows.  The floating point value is truncated (rounded down) to
-an integer value.  If the integer value is :math:`\le 0`, then a chunk ID of 0
+an integer value.  If the integer value is :math:`\le 0`, then a chunk-ID of 0
 is assigned to the atom.  If the integer value is :math:`> 0`, it becomes the
-chunk ID to the atom.  *Nchunk* is set to the largest chunk ID.  Note
+chunk-ID to the atom.  *Nchunk* is set to the largest chunk-ID.  Note
 that this excludes atoms which are not in the specified group or
 optional region.
 
-If the style begins with "c\_", a compute ID must follow which has been
+If the style begins with "c\_", a compute-ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
 calculated by the compute is used.  Users can also write code for
 their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 
-If the style begins with "f\_", a fix ID must follow which has been
+If the style begins with "f\_", a fix-ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the fix is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
@@ -296,7 +296,7 @@ previously defined in the input script.  Variables of style *atom* can
 reference thermodynamic keywords and various per-atom attributes, or
 invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of generating per-atom quantities to
-treat as a chunk ID.
+treat as a chunk-ID.
 
 ----------
 
@@ -337,7 +337,7 @@ must be in both the specified group and the specified geometric
 ----------
 
 The *nchunk* keyword applies to all chunk styles.  It specifies how
-often *Nchunk* is recalculated, which in turn can affect the chunk IDs
+often *Nchunk* is recalculated, which in turn can affect the chunk-IDs
 assigned to individual atoms.
 
 If *nchunk* is set to *once*, then *Nchunk* is only calculated once,
@@ -356,7 +356,7 @@ represent typical use cases for the various chunk styles.  The
 
 The *limit* keyword can be used to limit the calculated value of
 *Nchunk* = the number of chunks.  The limit is applied each time
-*Nchunk* is calculated, which also limits the chunk IDs assigned to
+*Nchunk* is calculated, which also limits the chunk-IDs assigned to
 any atom.  The *limit* keyword is used by all chunk styles except the
 *binning* styles, which ignore it.  This is because the number of bins
 can be tailored using the *bound* keyword (described below) which
@@ -378,7 +378,7 @@ First, here is what occurs if *compress yes* is not set.  If *limit*
 is set to *Nc max*, then *Nchunk* is reset to the smaller of *Nchunk*
 and *Nc*\ .  If *limit* is set to *Nc exact*, then *Nchunk* is reset to
 *Nc*, whether the original *Nchunk* was larger or smaller than *Nc*\ .
-If *Nchunk* shrank due to the *limit* setting, then atom chunk IDs :math:`>`
+If *Nchunk* shrank due to the *limit* setting, then atom chunk-IDs :math:`>`
 *Nchunk* will be reset to 0 or *Nchunk*, depending on the setting of
 the *discard* keyword.  If *Nchunk* grew, there will simply be some
 chunks with no atoms assigned to them.
@@ -388,7 +388,7 @@ If *compress yes* is set, and the *compress* keyword comes before the
 described below, which resets *Nchunk*\ .  The *limit* keyword is then
 applied to the new *Nchunk* value, exactly as described in the
 preceding paragraph.  Note that in this case, all atoms will end up
-with chunk IDs :math:`\le` *Nc*, but their original values (e.g., molecule ID
+with chunk-IDs :math:`\le` *Nc*, but their original values (e.g., molecule-ID
 or compute/fix/variable) may have been :math:`>` *Nc*, because of the
 compression operation.
 
@@ -396,28 +396,28 @@ If *compress yes* is set, and the *compress* keyword comes after the
 *limit* keyword, then the *limit* value of *Nc* is applied first to
 the uncompressed value of *Nchunk*, but only if *Nc* :math:`<` *Nchunk*
 (whether *Nc max* or *Nc exact* is used).  This effectively means all
-atoms with chunk IDs :math:`>` *Nc* have their chunk IDs reset to 0 or *Nc*,
+atoms with chunk-IDs :math:`>` *Nc* have their chunk-IDs reset to 0 or *Nc*,
 depending on the setting of the *discard* keyword.  The compression
 operation is then performed, which may shrink *Nchunk* further.  If
 the new *Nchunk* :math:`<` *Nc* and *limit* = *Nc exact* is specified, then
 *Nchunk* is reset to *Nc*, which results in extra chunks with no atoms
 assigned to them.  Note that in this case, all atoms will end up with
-chunk IDs :math:`\le` *Nc*, and their original values (e.g., molecule ID or
+chunk-IDs :math:`\le` *Nc*, and their original values (e.g., molecule-ID or
 compute/fix/variable value) will also have been :math:`\le` *Nc*\ .
 
 ----------
 
 The *ids* keyword applies to all chunk styles.  If the setting is
-*once* then the chunk IDs assigned to atoms the first time this
+*once* then the chunk-IDs assigned to atoms the first time this
 compute is invoked will be permanent, and never be re-computed.
 
 If the setting is *nfreq* and if a :doc:`fix ave/chunk <fix_ave_chunk>`
 command is using this compute, then in each of the *Nchunk* = constant
-time windows (discussed above), the chunk ID's assigned to atoms on
+time windows (discussed above), the chunk-ID's assigned to atoms on
 the first step of the time window will persist until the end of the
 time window.
 
-If the setting is *every*, which is the default, then chunk IDs are
+If the setting is *every*, which is the default, then chunk-IDs are
 re-calculated on any timestep this compute is invoked.
 
 .. note::
@@ -427,13 +427,13 @@ re-calculated on any timestep this compute is invoked.
    then you should use the same ID for this compute, as in the original
    run.  This is so that the fix this compute creates to store per-atom
    quantities will also have the same ID, and thus be initialized
-   correctly with chunk IDs from the restart file.
+   correctly with chunk-IDs from the restart file.
 
 ----------
 
 The *compress* keyword applies to all chunk styles and affects how
-*Nchunk* is calculated, which in turn affects the chunk IDs assigned
-to each atom.  It is useful for converting a "sparse" set of chunk IDs
+*Nchunk* is calculated, which in turn affects the chunk-IDs assigned
+to each atom.  It is useful for converting a "sparse" set of chunk-IDs
 (with many IDs that have no atoms assigned to them), into a "dense"
 set of IDs, where every chunk has one or more atoms assigned to it.
 
@@ -443,25 +443,25 @@ with no atoms.  If *compress* is set to *yes*, only bins with atoms
 will be contribute to *Nchunk*\ .  Likewise, the *molecule* or
 *compute/fix/variable* styles may produce large *Nchunk* values.  For
 example, the :doc:`compute cluster/atom <compute_cluster_atom>` command
-assigns every atom an atom ID for one of the atoms it is clustered
+assigns every atom an atom-ID for one of the atoms it is clustered
 with.  For a million-atom system with 5 clusters, there would only be
-5 unique chunk IDs, but the largest chunk ID might be 1 million,
+5 unique chunk-IDs, but the largest chunk-ID might be 1 million,
 resulting in *Nchunk* = 1 million.  If *compress* is set to *yes*,
 *Nchunk* will be reset to 5.
 
 If *compress* is set to *no*, which is the default, no compression is
-done.  If it is set to *yes*, all chunk IDs with no atoms are removed
-from the list of chunk IDs, and the list is sorted.  The remaining
-chunk IDs are renumbered from 1 to *Nchunk* where *Nchunk* is the new
-length of the list.  The chunk IDs assigned to each atom reflect
+done.  If it is set to *yes*, all chunk-IDs with no atoms are removed
+from the list of chunk-IDs, and the list is sorted.  The remaining
+chunk-IDs are renumbered from 1 to *Nchunk* where *Nchunk* is the new
+length of the list.  The chunk-IDs assigned to each atom reflect
 the new renumbering from 1 to *Nchunk*\ .
 
-The original chunk IDs (before renumbering) can be accessed by the
+The original chunk-IDs (before renumbering) can be accessed by the
 :doc:`compute property/chunk <compute_property_chunk>` command and its
 *id* keyword, or by the :doc:`fix ave/chunk <fix_ave_chunk>` command
 which outputs the original IDs as one of the columns in its global
 output array.  For example, using the "compute cluster/atom" command
-discussed above, the original 5 unique chunk IDs might be atom IDs
+discussed above, the original 5 unique chunk-IDs might be atom-IDs
 (27,4982,58374,857838,1000000).  After compression, these will be
 renumbered to (1,2,3,4,5).  The original values (27,...,1000000) can
 be output to a file by the :doc:`fix ave/chunk <fix_ave_chunk>` command,
@@ -471,12 +471,12 @@ conjunction with the :doc:`compute property/chunk <compute_property_chunk>` comm
 .. note::
 
    The compression operation requires global communication across
-   all processors to share their chunk ID values.  It can require large
+   all processors to share their chunk-ID values.  It can require large
    memory on every processor to store them, even after they are
-   compressed, if there are a large number of unique chunk IDs with
-   atoms assigned to them.  It uses a STL map to find unique chunk IDs
+   compressed, if there are a large number of unique chunk-IDs with
+   atoms assigned to them.  It uses a STL map to find unique chunk-IDs
    and store them in sorted order.  Each time an atom is assigned a
-   compressed chunk ID, it must access the STL map.  All of this means
+   compressed chunk-ID, it must access the STL map.  All of this means
    that compression can be expensive, both in memory and CPU time.  The
    use of the *limit* keyword in conjunction with the *compress* keyword
    can affect these costs, depending on which keyword is used first.  So
@@ -485,26 +485,26 @@ conjunction with the :doc:`compute property/chunk <compute_property_chunk>` comm
 ----------
 
 The *discard* keyword applies to all chunk styles.  It affects what
-chunk IDs are assigned to atoms that do not match one of the valid
-chunk IDs from 1 to *Nchunk*\ .  Note that it does not apply to atoms
+chunk-IDs are assigned to atoms that do not match one of the valid
+chunk-IDs from 1 to *Nchunk*\ .  Note that it does not apply to atoms
 that are not in the specified group or optionally specified region.
-Those atoms are always assigned a chunk ID = 0.
+Those atoms are always assigned a chunk-ID = 0.
 
-If the calculated chunk ID for an atom is not within the range 1 to
+If the calculated chunk-ID for an atom is not within the range 1 to
 *Nchunk* then it is a "discard" atom.  Note that *Nchunk* may have
 been shrunk by the *limit* keyword.  Or the *compress* keyword may
-have eliminated chunk IDs that were valid before the compression took
+have eliminated chunk-IDs that were valid before the compression took
 place, and are now not in the compressed list.  Also note that for the
 *molecule* chunk style, if new molecules are added to the system,
-their chunk IDs may exceed a previously calculated *Nchunk*\ .
+their chunk-IDs may exceed a previously calculated *Nchunk*\ .
 Likewise, evaluation of a compute/fix/variable on a later timestep may
-return chunk IDs that are invalid for the previously calculated
+return chunk-IDs that are invalid for the previously calculated
 *Nchunk*\ .
 
 All the chunk styles except the *binning* styles, must use *discard*
 set to either *yes* or *no*\ .  If *discard* is set to *yes*, which is
-the default, then every "discard" atom has its chunk ID set to 0.  If
-*discard* is set to *no*, every "discard" atom has its chunk ID set to
+the default, then every "discard" atom has its chunk-ID set to 0.  If
+*discard* is set to *no*, every "discard" atom has its chunk-ID set to
 *Nchunk*\ .  I.e. it becomes part of the last chunk.
 
 The *binning* styles use the *discard* keyword to decide whether to
@@ -513,49 +513,49 @@ them to the bin they are nearest to.
 
 For the *bin/1d*, *bin/2d*, *bin/3d* styles the details are as
 follows.  If *discard* is set to *yes*, an out-of-domain atom will
-have its chunk ID set to 0.  If *discard* is set to *no*, the atom
-will have its chunk ID set to the first or last bin in that dimension.
+have its chunk-ID set to 0.  If *discard* is set to *no*, the atom
+will have its chunk-ID set to the first or last bin in that dimension.
 If *discard* is set to *mixed*, which is the default, it will only
-have its chunk ID set to the first or last bin if bins extend to the
+have its chunk-ID set to the first or last bin if bins extend to the
 simulation box boundary in that dimension.  This is the case if the
 *bound* keyword settings are *lower* and *upper*, which is the
 default.  If the *bound* keyword settings are numeric values, then the
-atom will have its chunk ID set to 0 if it is outside the bounds of
+atom will have its chunk-ID set to 0 if it is outside the bounds of
 any bin.  Note that in this case, it is possible that the first or
 last bin extends beyond the numeric *bounds* settings, depending on
-the specified *origin*\ .  If this is the case, the chunk ID of the atom
+the specified *origin*\ .  If this is the case, the chunk-ID of the atom
 is only set to 0 if it is outside the first or last bin, not if it is
 simply outside the numeric *bounds* setting.
 
 For the *bin/sphere* style the details are as follows.  If *discard*
-is set to *yes*, an out-of-domain atom will have its chunk ID set to
+is set to *yes*, an out-of-domain atom will have its chunk-ID set to
 0.  If *discard* is set to *no* or *mixed*, the atom will have its
-chunk ID set to the first or last bin, i.e. the innermost or outermost
+chunk-ID set to the first or last bin, i.e. the innermost or outermost
 spherical shell.  If the distance of the atom from the origin is less
 than *rmin*, it will be assigned to the first bin.  If the distance of
 the atom from the origin is greater than *rmax*, it will be assigned
 to the last bin.
 
 For the *bin/cylinder* style the details are as follows.  If *discard*
-is set to *yes*, an out-of-domain atom will have its chunk ID set to
-0.  If *discard* is set to *no*, the atom will have its chunk ID set
+is set to *yes*, an out-of-domain atom will have its chunk-ID set to
+0.  If *discard* is set to *no*, the atom will have its chunk-ID set
 to the first or last bin in both the radial and axis dimensions.  If
 *discard* is set to *mixed*, which is the default, the radial
 dimension is treated the same as for *discard* = no.  But for the axis
-dimension, it will only have its chunk ID set to the first or last
+dimension, it will only have its chunk-ID set to the first or last
 bin if bins extend to the simulation box boundary in the axis
 dimension.  This is the case if the *bound* keyword settings are
 *lower* and *upper*, which is the default.  If the *bound* keyword
-settings are numeric values, then the atom will have its chunk ID set
+settings are numeric values, then the atom will have its chunk-ID set
 to 0 if it is outside the bounds of any bin.  Note that in this case,
 it is possible that the first or last bin extends beyond the numeric
 *bounds* settings, depending on the specified *origin*\ .  If this is
-the case, the chunk ID of the atom is only set to 0 if it is outside
+the case, the chunk-ID of the atom is only set to 0 if it is outside
 the first or last bin, not if it is simply outside the numeric
 *bounds* setting.
 
 If *discard* is set to *no* or *mixed*, the atom will have its
-chunk ID set to the first or last bin, i.e. the innermost or outermost
+chunk-ID set to the first or last bin, i.e. the innermost or outermost
 spherical shell.  If the distance of the atom from the origin is less
 than *rmin*, it will be assigned to the first bin.  If the distance of
 the atom from the origin is greater than *rmax*, it will be assigned
@@ -627,14 +627,14 @@ cylinder, *x* for a *y*-axis cylinder, and *x* for a *z*-axis cylinder).
 Output info
 """""""""""
 
-This compute calculates a per-atom vector (the chunk ID), which can
+This compute calculates a per-atom vector (the chunk-ID), which can
 be accessed by any command that uses per-atom values from a compute
 as input.  It also calculates a global scalar (the number of chunks),
 which can be similarly accessed everywhere outside of a per-atom context.
 See the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
-The per-atom vector values are unitless chunk IDs, ranging from 1 to
+The per-atom vector values are unitless chunk-IDs, ranging from 1 to
 *Nchunk* (inclusive) for atoms assigned to chunks, and 0 for atoms not
 belonging to a chunk.  The scalar contains the value of *Nchunk*.
 
@@ -688,7 +688,7 @@ For 3d systems with modes *bin/1d* and *bin/2d* the *cflag1* and
 Restrictions
 """"""""""""
 
-Even if the *nchunk* keyword is set to *once*, the chunk IDs assigned to
+Even if the *nchunk* keyword is set to *once*, the chunk-IDs assigned to
 each atom are not stored in restart files.  This means you cannot expect
 those assignments to persist in a restarted simulation.  Instead you
 must re-specify this command and assign atoms to chunks when the

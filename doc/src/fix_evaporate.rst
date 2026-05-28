@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID evaporate N M region-ID seed
+   fix fix-ID group-ID evaporate N M region-ID seed
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * evaporate = style name of this fix command
 * N = delete atoms every this many timesteps
 * M = number of atoms to delete each time
@@ -46,12 +46,12 @@ atoms are deleted.  In this case, you should ensure you do not delete
 only a portion of a molecule (only some of its atoms), or LAMMPS will
 soon generate an error when it tries to find those atoms.  LAMMPS will
 warn you if any of the atoms eligible for deletion have a non-zero
-molecule ID, but does not check for this at the time of deletion.
+molecule-ID, but does not check for this at the time of deletion.
 
 If the setting for the *molecule* keyword is *yes*, then when an atom
 is chosen for deletion, the entire molecule it is part of is deleted.
 The count of deleted atoms is incremented by the number of atoms in
-the molecule, which may make it exceed *M*\ .  If the molecule ID of the
+the molecule, which may make it exceed *M*\ .  If the molecule-ID of the
 chosen atom is 0, then it is assumed to not be part of a molecule, and
 just the single atom is deleted.
 

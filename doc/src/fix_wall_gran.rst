@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID wall/gran fstyle fstyle_params wallstyle args keyword values ...
+   fix fix-ID group-ID wall/gran fstyle fstyle_params wallstyle args keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/gran = style name of this fix command
 * fstyle = style of force interactions between particles and wall
 

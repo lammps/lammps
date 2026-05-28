@@ -16,9 +16,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style_name temp seed keyword args
+   fix fix-ID group-ID style_name temp seed keyword args
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style_name = *brownian* or *brownian/sphere* or *brownian/asphere*
 * temp = temperature
 * seed = random number generator seed

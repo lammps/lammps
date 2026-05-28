@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID temp/sphere keyword value ...
+   compute compute-ID group-ID temp/sphere keyword value ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * temp/sphere = style name of this compute command
 * zero or more keyword/value pairs may be appended
 * keyword = *bias* or *dof*

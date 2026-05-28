@@ -10,9 +10,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   region ID style args keyword arg ...
+   region region-ID style args keyword arg ...
 
-* ID = user-assigned name for the region
+* region-ID = user-assigned name for the region
 * style = *delete* or *block* or *cone* or *cylinder* or *ellipsoid* or *plane* or *prism* or *sphere* or *union* or *intersect*
 
   .. parsed-literal::

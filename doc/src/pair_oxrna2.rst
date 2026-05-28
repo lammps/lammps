@@ -246,7 +246,7 @@ Unique base pairing describes the restriction on the specific complementary
 nucleotide with which a particular base can pair. This can be used to prevent
 asymmetric base pairs or to simplify the free energy landscape. With unique
 base pairing enabled base pairs can only form between complementary nucleotides
-with specific atom IDs. This functionality draws on :doc:`fix property/atom <fix_property_atom>`
+with specific atom-IDs. This functionality draws on :doc:`fix property/atom <fix_property_atom>`
 and a modified :doc:`read_data <read_data>` command.
 
 To use unique base pairing, the data file of a system with N nucleotides must contain a section like
@@ -262,12 +262,12 @@ To use unique base pairing, the data file of a system with N nucleotides must co
    ...
    N idcN
 
-where idc is the non-negative atom ID of a complementary nucleotide that binds uniquely
-to the preceding atom ID.
+where idc is the non-negative atom-ID of a complementary nucleotide that binds uniquely
+to the preceding atom-ID.
 
 Unique base pairing can be combined with normal base pairing by setting a zero or negative value for idc.
-For instance, in a 4-mer with 8 nucleotides consisting of a ssDNA strand 3'-A-A-A-A-5' with atom IDs 3'-1-2-3-4-5'
-and a complementary strand 5'-T-T-T-T-3' with atom IDs 5'-8-7-6-5-3' set up as
+For instance, in a 4-mer with 8 nucleotides consisting of a ssDNA strand 3'-A-A-A-A-5' with atom-IDs 3'-1-2-3-4-5'
+and a complementary strand 5'-T-T-T-T-3' with atom-IDs 5'-8-7-6-5-3' set up as
 
 .. code-block:: LAMMPS
 

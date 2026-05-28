@@ -968,7 +968,7 @@ Omega() returns components of the angular velocity of the group of
 atoms around its center of mass.
 
 Region functions are specified exactly the same way as group functions
-except they take an extra final argument *IDR* which is the region ID.
+except they take an extra final argument *IDR* which is the region-ID.
 The function is computed for all atoms that are in both the group and
 the region.  If the group is "all", then the only criteria for atom
 inclusion is that it be in the region.
@@ -1031,16 +1031,16 @@ The sort(x) and rsort(x) functions sort the data of the input vector by
 their numeric value: sort(x) sorts in ascending order, rsort(x) sorts
 in descending order.
 
-The gmask(x) function takes 1 argument which is a group ID.  It
+The gmask(x) function takes 1 argument which is a group-ID.  It
 can only be used in atom-style variables.  It returns a 1 for
 atoms that are in the group, and a 0 for atoms that are not.
 
-The rmask(x) function takes 1 argument which is a region ID.  It can
+The rmask(x) function takes 1 argument which is a region-ID.  It can
 only be used in atom-style variables.  It returns a 1 for atoms that
 are in the geometric region, and a 0 for atoms that are not.
 
-The grmask(x,y) function takes 2 arguments.  The first is a group ID,
-and the second is a region ID.  It can only be used in atom-style
+The grmask(x,y) function takes 2 arguments.  The first is a group-ID,
+and the second is a region-ID.  It can only be used in atom-style
 variables.  It returns a 1 for atoms that are in both the group and
 region, and a 0 for atoms that are not in both.
 
@@ -1317,7 +1317,7 @@ cannot be used as the argument between the brackets, e.g. x[243+10]
 or x[v_myIndex+1] are not allowed.  To do this a single variable can
 be defined that contains the needed formula.
 
-Note that the 0 < atom-ID <= N, where N is the largest atom ID
+Note that the 0 < atom-ID <= N, where N is the largest atom-ID
 in the system.  If an ID is specified for an atom that does not
 currently exist, then the generated value is 0.0.
 
@@ -1326,9 +1326,9 @@ Atom vectors generate one value per atom, so that a reference like
 evaluating the variable.
 
 The meaning of the different atom values and vectors is mostly
-self-explanatory.  *Mol* refers to the molecule ID of an atom, and is
+self-explanatory.  *Mol* refers to the molecule-ID of an atom, and is
 only defined if an :doc:`atom_style <atom_style>` is being used that
-defines molecule IDs.
+defines molecule-IDs.
 
 Note that many other atom attributes can be used as inputs to a
 variable by using the :doc:`compute property/atom
@@ -1357,14 +1357,14 @@ custom atom properties are the same; just replace the leading "i" with
 "d".
 
 +--------+---------------+------------------------------------------+
-| equal  | i_name[I]     | element of per-atom vector (I = atom ID) |
+| equal  | i_name[I]     | element of per-atom vector (I = atom-ID) |
 +--------+---------------+------------------------------------------+
-| equal  | i2_name[I][J] | element of per-atom array (I = atom ID)  |
+| equal  | i2_name[I][J] | element of per-atom array (I = atom-ID)  |
 +--------+---------------+------------------------------------------+
 +--------+---------------+------------------------------------------+
-| vector | i_name[I]     | element of per-atom vector (I = atom ID) |
+| vector | i_name[I]     | element of per-atom vector (I = atom-ID) |
 +--------+---------------+------------------------------------------+
-| vector | i2_name[I][J] | element of per-atom array (I = atom ID)  |
+| vector | i2_name[I][J] | element of per-atom array (I = atom-ID)  |
 +--------+---------------+------------------------------------------+
 +--------+---------------+------------------------------------------+
 | atom   | i_name        | per-atom vector                          |
@@ -1416,9 +1416,9 @@ table:
 +--------+------------+------------------------------------------+
 | equal  | c_ID[I][J] | element of global array                  |
 +--------+------------+------------------------------------------+
-| equal  | C_ID[I]    | element of per-atom vector (I = atom ID) |
+| equal  | C_ID[I]    | element of per-atom vector (I = atom-ID) |
 +--------+------------+------------------------------------------+
-| equal  | C_ID[I][J] | element of per-atom array (I = atom ID)  |
+| equal  | C_ID[I][J] | element of per-atom array (I = atom-ID)  |
 +--------+------------+------------------------------------------+
 +--------+------------+------------------------------------------+
 | vector | c_ID       | global vector                            |
@@ -1488,9 +1488,9 @@ and atom-style variables are listed in the following table:
 +--------+------------+------------------------------------------+
 | equal  | f_ID[I][J] | element of global array                  |
 +--------+------------+------------------------------------------+
-| equal  | F_ID[I]    | element of per-atom vector (I = atom ID) |
+| equal  | F_ID[I]    | element of per-atom vector (I = atom-ID) |
 +--------+------------+------------------------------------------+
-| equal  | F_ID[I][J] | element of per-atom array (I = atom ID)  |
+| equal  | F_ID[I][J] | element of per-atom array (I = atom-ID)  |
 +--------+------------+------------------------------------------+
 +--------+------------+------------------------------------------+
 | vector | f_ID       | global vector                            |
@@ -1573,7 +1573,7 @@ per-atom vector.
 +--------+-----------+-----------------------------------------------------------------------------------+
 | equal  | v_name[I] | element of global vector from a vector-style variable                             |
 +--------+-----------+-----------------------------------------------------------------------------------+
-| equal  | v_name[I] | element of per-atom vector (I = atom ID) from an atom- or atomfile-style variable |
+| equal  | v_name[I] | element of per-atom vector (I = atom-ID) from an atom- or atomfile-style variable |
 +--------+-----------+-----------------------------------------------------------------------------------+
 +--------+-----------+-----------------------------------------------------------------------------------+
 | vector | v_name    | global scalar from an equal-style variable                                        |
@@ -1582,7 +1582,7 @@ per-atom vector.
 +--------+-----------+-----------------------------------------------------------------------------------+
 | vector | v_name[I] | element of global vector from a vector-style variable                             |
 +--------+-----------+-----------------------------------------------------------------------------------+
-| vector | v_name[I] | element of per-atom vector (I = atom ID) from an atom- or atomfile-style variable |
+| vector | v_name[I] | element of per-atom vector (I = atom-ID) from an atom- or atomfile-style variable |
 +--------+-----------+-----------------------------------------------------------------------------------+
 +--------+-----------+-----------------------------------------------------------------------------------+
 | atom   | v_name    | global scalar from an equal-style variable                                        |
@@ -1591,7 +1591,7 @@ per-atom vector.
 +--------+-----------+-----------------------------------------------------------------------------------+
 | atom   | v_name[I] | element of global vector from a vector-style variable                             |
 +--------+-----------+-----------------------------------------------------------------------------------+
-| atom   | v_name[I] | element of per-atom vector (I = atom ID) from an atom- or atomfile-style variable |
+| atom   | v_name[I] | element of per-atom vector (I = atom-ID) from an atom- or atomfile-style variable |
 +--------+-----------+-----------------------------------------------------------------------------------+
 
 For the I index, an integer can be specified or a variable name,
@@ -1786,7 +1786,7 @@ re-initialize) the temperature compute correctly.
 Restrictions
 """"""""""""
 
-Indexing any formula element by global atom ID, such as an atom value,
+Indexing any formula element by global atom-ID, such as an atom value,
 requires the :doc:`atom style <atom_style>` to use a global mapping in
 order to look up the vector indices.  By default, only atom styles
 with molecular information create global maps.  The :doc:`atom_modify

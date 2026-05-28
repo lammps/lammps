@@ -12,9 +12,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style keyword value ...
+   fix fix-ID group-ID style keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *drude/transform/direct* or *drude/transform/inverse*
 
 Examples

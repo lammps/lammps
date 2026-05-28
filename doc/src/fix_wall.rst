@@ -55,9 +55,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style [tabstyle] [N] face args ... keyword value ...
+   fix fix-ID group-ID style [tabstyle] [N] face args ... keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *wall/lj93* or *wall/lj126* or *wall/lj1043* or *wall/colloid* or *wall/harmonic* or *wall/harmonic/outside* or *wall/lepton* or *wall/morse* or *wall/table*
 * tabstyle = *linear* or *spline* = method of table interpolation (only applies to *wall/table*)
 * N = use N values in *linear* or *spline* interpolation (only applies to *wall/table*)

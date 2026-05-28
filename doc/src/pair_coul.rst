@@ -395,10 +395,10 @@ Coulombic solver (Ewald, ESP or PPPM).
 
 .. note::
 
-   For each TIP4P water molecule in your system, the atom IDs for
+   For each TIP4P water molecule in your system, the atom-IDs for
    the O and 2 H atoms must be consecutive, with the O atom first.  This
    is to enable LAMMPS to "find" the 2 H atoms associated with each O
-   atom.  For example, if the atom ID of an O atom in a TIP4P water
+   atom.  For example, if the atom-ID of an O atom in a TIP4P water
    molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
 .. note::

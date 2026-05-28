@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID ameoba/pitorsion
+   fix fix-ID group-ID ameoba/pitorsion
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * amoeba/pitorsion = style name of this fix command
 
 Examples
@@ -86,7 +86,7 @@ prefactor coefficient needed for each type.
 For PiTorsions, the first column is an index from 1 to :math:`N` to
 enumerate the pitorsion 6-atom tuples; it is ignored by LAMMPS.  The
 second column is the "type" of the interaction; it is an index into
-the PiTorsion Coeffs.  The remaining 6 columns are the atom IDs of the
+the PiTorsion Coeffs.  The remaining 6 columns are the atom-IDs of the
 atoms (in order) for the 6-tuple :math:`IJKLMN`, as described above.
 
 Note that the *pitorsion types* and *pitorsions* and *PiTorsion

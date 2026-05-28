@@ -7,9 +7,9 @@ Syntax
 """"""
 .. code-block:: LAMMPS
 
-   fix ID group-ID hmc N seed T keyword values ...
+   fix fix-ID group-ID hmc N seed T keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * hmc = style name of this fix command
 * N = invoke a Monte Carlo step every N steps
 * seed = random # seed (positive integer)

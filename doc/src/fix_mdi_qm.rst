@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID mdi/qm keyword value(s) keyword value(s) ...
+   fix fix-ID group-ID mdi/qm keyword value(s) keyword value(s) ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * mdi/qm = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keyword = *virial* or *add* or *every* or *connect* or *elements* or *mc*

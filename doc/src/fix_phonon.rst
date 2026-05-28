@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID phonon N Noutput Nwait map_file prefix keyword values ...
+   fix fix-ID group-ID phonon N Noutput Nwait map_file prefix keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * phonon = style name of this fix command
 * N = measure the Green's function every this many timesteps
 * Noutput = output the dynamical matrix every this many measurements
@@ -19,7 +19,7 @@ Syntax
 
   .. parsed-literal::
 
-       *file* is the file that contains the mapping info between atom ID and the lattice indices.
+       *file* is the file that contains the mapping info between atom-ID and the lattice indices.
 
   .. parsed-literal::
 
@@ -132,7 +132,7 @@ system whose unit cell has only one atom, *nasr* = 1 is sufficient;
 for other systems, *nasr* = 10 is typically sufficient.
 
 The *map_file* contains the mapping information between the lattice
-indices and the atom IDs, which tells the code which atom sits at
+indices and the atom-IDs, which tells the code which atom sits at
 which lattice point; the lattice indices start from 0. An auxiliary
 code, `latgen <https://code.google.com/archive/p/latgen>`_, can be employed to
 generate the compatible map file for various crystals.

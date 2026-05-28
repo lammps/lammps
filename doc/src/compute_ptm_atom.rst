@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID ptm/atom structures threshold group2-ID
+   compute compute-ID group-ID ptm/atom structures threshold group2-ID
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * ptm/atom = style name of this compute command
 * structures = *default* or *all* or any hyphen-separated combination of *fcc*, *hcp*, *bcc*, *ico*, *sc*, *dcub*, *dhex*, or *graphene* = structure types to search for
 * threshold = lattice distortion threshold (RMSD)

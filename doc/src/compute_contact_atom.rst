@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID contact/atom group2-ID
+   compute compute-ID group-ID contact/atom group2-ID
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * contact/atom = style name of this compute command
 * group2-ID = optional argument to restrict which atoms to consider for contacts (see below)
 

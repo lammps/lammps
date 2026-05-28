@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID rdf Nbin itype1 jtype1 itype2 jtype2 ... keyword/value ...
+   compute compute-ID group-ID rdf Nbin itype1 jtype1 itype2 jtype2 ... keyword/value ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * rdf = style name of this compute command
 * Nbin = number of RDF bins
 * itypeN = central atom type for Nth RDF histogram (integer, type label, or asterisk form)

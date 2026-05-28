@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID mliap ... keyword values ...
+   compute compute-ID group-ID mliap ... keyword values ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * mliap = style name of this compute command
 * two or more keyword/value pairs must be appended
 * keyword = *model* or *descriptor* or *gradgradflag*
@@ -164,7 +164,7 @@ in the following order:
 * 1 row: Derivatives of potential energy with respect to each parameter of each element.
 * :math:`3N` rows: Derivatives of force components; the *x*, *y*, and *z*
   components of the force on atom *i* appear in consecutive rows. The atoms are
-  sorted based on atom ID.
+  sorted based on atom-ID.
 * 6 rows: Derivatives of the virial stress tensor with respect to each
   parameter of each element. The ordering of the rows follows Voigt notation:
   *pxx*, *pyy*, *pzz*, *pyz*, *pxz*, *pxy*.

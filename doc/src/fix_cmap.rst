@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID cmap filename
+   fix fix-ID group-ID cmap filename
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * cmap = style name of this fix command
 * filename = force-field file with CMAP coefficients
 
@@ -72,7 +72,7 @@ have a section in the body of the data file like this with N lines:
 The first column is an index from 1 to N to enumerate the CMAP 5-atom
 tuples; it is ignored by LAMMPS.  The second column is the "type" of
 the interaction; it is an index into the CMAP force field file.  The
-remaining 5 columns are the atom IDs of the atoms in the two 4-atom
+remaining 5 columns are the atom-IDs of the atoms in the two 4-atom
 dihedrals that overlap to create the CMAP interaction.  Note that the
 "crossterm" and "CMAP" keywords for the header and body sections match
 those specified in the read_data command following the data file name;

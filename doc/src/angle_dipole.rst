@@ -94,14 +94,14 @@ page for more info.
 
 .. note::
 
-   In the "Angles" section of the data file, the atom ID :math:`j`
+   In the "Angles" section of the data file, the atom-ID :math:`j`
    defining the direction of the dipole vector to restrain must come
-   before the atom ID of the reference atom :math:`i`. A third atom ID :math:`k` must
+   before the atom-ID of the reference atom :math:`i`. A third atom-ID :math:`k` must
    also be provided to comply with the requirement of a valid angle
-   definition. This atom ID :math:`k` should be chosen to be that of an atom
+   definition. This atom-ID :math:`k` should be chosen to be that of an atom
    bonded to atom :math:`i` to avoid errors with "lost angle atoms" when running
    in parallel. Since the LAMMPS code checks for valid angle definitions,
-   cannot use the same atom ID of either :math:`i` or :math:`j` (this was allowed
+   cannot use the same atom-ID of either :math:`i` or :math:`j` (this was allowed
    and recommended with older LAMMPS versions).
 
 The :doc:`newton <newton>` command for intramolecular interactions must be "on"

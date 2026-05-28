@@ -28,11 +28,11 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID style group2-ID
+   compute compute-ID group-ID style group2-ID
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * style = *force/tally* or *heat/flux/tally* or *heat/flux/virial/tally* or *pe/tally* or *pe/mol/tally* or *stress/tally*
-* group2-ID = group ID of second (or same) group
+* group2-ID = group-ID of second (or same) group
 
 Examples
 """"""""
@@ -155,9 +155,9 @@ Output info
 - Compute *pe/mol/tally* calculates a global four-element vector containing
   (in this order): *evdwl* and *ecoul* for intramolecular pairs and
   *evdwl* and *ecoul* for intermolecular pairs. Since molecules are
-  identified by their molecule IDs, the partitioning does not have to be
+  identified by their molecule-IDs, the partitioning does not have to be
   related to molecules, but the energies are tallied into the respective
-  slots depending on whether the molecule IDs of a pair are the same or
+  slots depending on whether the molecule-IDs of a pair are the same or
   different.
 
 - Compute *force/tally* calculates a global scalar (the force magnitude)

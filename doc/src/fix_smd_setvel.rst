@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID smd/setvel vx vy vz keyword value ...
+   fix fix-ID group-ID smd/setvel vx vy vz keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * smd/setvel = style name of this fix command
 * vx,vy,vz = velocity component values
 * any of vx,vy,vz can be a variable (see below)

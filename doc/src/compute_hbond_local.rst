@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID hbond/local rcut acut dgroup-ID agroup-ID hgroup-ID value1 value2 ...
+   compute compute-ID group-ID hbond/local rcut acut dgroup-ID agroup-ID hgroup-ID value1 value2 ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * hbond/local = style name of this compute command
 * rcut = distance cutoff between hydrogen bond donor and acceptor (distance units)
 * acut = angle cutoff for the hydrogen - donor - acceptor angle (degrees)

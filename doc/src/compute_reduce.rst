@@ -12,9 +12,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID style arg mode input1 input2 ... keyword args ...
+   compute compute-ID group-ID style arg mode input1 input2 ... keyword args ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * style = *reduce* or *reduce/region*
 
   .. parsed-literal::
@@ -139,7 +139,7 @@ can be used as inputs to this fix by using the :doc:`compute
 property/atom <compute_property_atom>` command and then specifying an
 input value from that compute.
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c\_", a compute-ID must follow which has been
 previously defined in the input script.  Valid computes can generate
 per-atom or local quantities.  See the individual :doc:`compute
 <compute>` page for details.  If no bracketed integer is appended, the
@@ -150,7 +150,7 @@ used.  Users can also write code for their own compute styles and
 :math:`I` can be specified with a wildcard asterisk to effectively
 specify multiple values.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f\_", a fix-ID must follow which has been
 previously defined in the input script.  Valid fixes can generate
 per-atom or local quantities.  See the individual :doc:`fix <fix>`
 page for details.  Note that some fixes only produce their values on
@@ -197,10 +197,10 @@ with the IDs of the two atoms in each bond, using the
 :doc:`compute property/local <compute_property_local>` command.  The last input
 value is bond distance, using the
 :doc:`compute bond/local <compute_bond_local>` command.  Instead of taking the
-max of the two atom ID vectors, which does not yield useful
+max of the two atom-ID vectors, which does not yield useful
 information in this context, the *replace* keywords will extract the
-atom IDs for the two atoms in the bond of maximum stretch.  These atom
-IDs and the bond stretch will be printed with thermodynamic output.
+atom-IDs for the two atoms in the bond of maximum stretch.  These
+atom-IDs and the bond stretch will be printed with thermodynamic output.
 
 .. versionadded:: 21Nov2023
 
@@ -247,7 +247,7 @@ options.
 
 This compute supports automatically generated thermo column names when
 using :doc:`thermo_modify colname auto <thermo_modify>`.  The thermo column
-names are "c\_", followed by the compute ID, followed by a colon, followed
+names are "c\_", followed by the compute-ID, followed by a colon, followed
 by the reduction operation (*mode*), followed by the compute being operated
 on in parentheses.  E.g., for the first in-text example above, the first
 printed thermo column name would be "c\_2:min(c_myPress[1])", rather than

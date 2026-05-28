@@ -42,7 +42,7 @@ There may be multiple region visualizations stored in a single file.
 The visualization is implemented by creating a new (and empty) "VMD
 molecule" and then assigning a sequence of VMD graphics primitives to
 represent the region in VMD.  Each region will be stored in a separate
-"VMD molecule" with the name "LAMMPS region <region ID>".
+"VMD molecule" with the name "LAMMPS region <region-ID>".
 
 .. admonition:: Visualization of regions with *dump image*
    :class: Hint

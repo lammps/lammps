@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID hyper/local cutbond qfactor Vmax Tequil Dcut alpha Btarget
+   fix fix-ID group-ID hyper/local cutbond qfactor Vmax Tequil Dcut alpha Btarget
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * hyper/local = style name of this fix command
 * cutbond = max distance at which a pair of atoms is considered bonded (distance units)
 * qfactor = max strain at which bias potential goes to 0.0 (unitless)

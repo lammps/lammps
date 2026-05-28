@@ -8,7 +8,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID plasticity/atom
+   compute compute-ID group-ID plasticity/atom
 
 * ID, group-ID are documented in compute command
 * plasticity/atom = style name of this compute command

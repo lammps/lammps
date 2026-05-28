@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID gaussian/grid/local grid nx ny nz rcutfac  R_1 R_2 ... sigma_1 sigma_2
+   compute compute-ID group-ID gaussian/grid/local grid nx ny nz rcutfac  R_1 R_2 ... sigma_1 sigma_2
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * gaussian/grid/local = style name of this compute command
 * *grid* values = nx, ny, nz, number of grid points in x, y, and z directions (positive integer)
 * *rcutfac* = scale factor applied to all cutoff radii (positive real)

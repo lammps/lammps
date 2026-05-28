@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID manifoldforce manifold manifold-args ...
+   fix fix-ID group-ID manifoldforce manifold manifold-args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * manifold = name of the manifold
 * manifold-args = parameters for the manifold
 

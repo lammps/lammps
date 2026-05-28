@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID numdiff Nevery delta
+   fix fix-ID group-ID numdiff Nevery delta
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * numdiff = style name of this fix command
 * Nevery = calculate force by finite difference every this many timesteps
 * delta = size of atom displacements (distance units)

@@ -169,8 +169,8 @@ group* option turns off the interaction if one atom is in the first
 group and the other is the second.  Group1-ID can equal group2-ID.  The
 *exclude molecule/intra* option turns off the interaction if both atoms
 are in the specified group and in the same molecule, as determined by
-their molecule ID.  The *exclude molecule/inter* turns off the
-interaction between pairs of atoms that have different molecule IDs and
+their molecule-ID.  The *exclude molecule/inter* turns off the
+interaction between pairs of atoms that have different molecule-IDs and
 are both in the specified group.
 
 Each of the exclude options can be specified multiple times.  The
@@ -265,7 +265,7 @@ If the *delay* setting is non-zero, then it must be a multiple of the
 *every* setting.
 
 The *molecule/intra* and *molecule/inter* exclusion options can only
-be used with atom styles that define molecule IDs.
+be used with atom styles that define molecule-IDs.
 
 The value of the *page* setting must be at least 10x larger than the
 *one* setting.  This ensures neighbor pages are not mostly empty

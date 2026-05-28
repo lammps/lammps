@@ -6,7 +6,7 @@ fix orient/eco command
 
 .. parsed-literal::
 
-   fix ID group-ID orient/eco u0 eta cutoff orientationsFile
+   fix fix-ID group-ID orient/eco u0 eta cutoff orientationsFile
 
 
 * ID, group-ID are documented in fix command

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID graphics/labels Nevery mode keyword args ...
+   fix fix-ID group-ID graphics/labels Nevery mode keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * graphics/labels = style name of this fix command
 * Nevery = update graphics information every this many time steps
 * zero or more keyword/args groups may be appended

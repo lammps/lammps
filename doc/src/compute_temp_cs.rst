@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID temp/cs group1 group2
+   compute compute-ID group-ID temp/cs group1 group2
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * temp/cs = style name of this compute command
 * group1 = group-ID of either cores or shells
 * group2 = group-ID of either shells or cores
@@ -45,7 +45,7 @@ without a satellite particle if desired. The compute will consider the
 non-polarized ions according to the physical system.
 
 For this compute, core and shell particles are specified by two
-respective group IDs, which can be defined using the :doc:`group
+respective group-IDs, which can be defined using the :doc:`group
 <group>` command.  The number of atoms in the two groups must be the
 same and there should be one bond defined between a pair of atoms in the
 two groups.  Non-polarized ions which might also be included in the

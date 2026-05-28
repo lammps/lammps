@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID wall/flow axis vflow T seed N coords ... keyword value
+   fix fix-ID group-ID wall/flow axis vflow T seed N coords ... keyword value
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/flow = style name of this fix command
 * axis = flow axis (*x*, *y*, or *z*)
 * vflow = generated flow velocity in *axis* direction (velocity units)

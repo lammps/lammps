@@ -12,10 +12,10 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID orient/fcc nstats dir alat dE cutlo cuthi file0 file1
-   fix ID group-ID orient/bcc nstats dir alat dE cutlo cuthi file0 file1
+   fix fix-ID group-ID orient/fcc nstats dir alat dE cutlo cuthi file0 file1
+   fix fix-ID group-ID orient/bcc nstats dir alat dE cutlo cuthi file0 file1
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * nstats = print stats every this many steps, 0 = never
 * dir = 0/1 for which crystal is used as reference
 * alat = fcc/bcc cubic lattice constant (distance units)

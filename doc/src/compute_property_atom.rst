@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID property/atom input1 input2 ...
+   compute compute-ID group-ID property/atom input1 input2 ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * property/atom = style name of this compute command
 * input = one or more atom attributes
 
@@ -42,8 +42,8 @@ Syntax
 
   .. parsed-literal::
 
-           *id* = atom ID
-           *mol* = molecule ID
+           *id* = atom-ID
+           *mol* = molecule-ID
            *proc* = ID of processor that owns atom
            *type* = atom type
            *mass* = atom mass

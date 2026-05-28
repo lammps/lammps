@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID plumed keyword value ...
+   fix fix-ID group-ID plumed keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * plumed = style name of this fix command
 * keyword = *plumedfile* or *outfile*
 

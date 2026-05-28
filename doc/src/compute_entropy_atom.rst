@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID entropy/atom sigma cutoff keyword value ...
+   compute compute-ID group-ID entropy/atom sigma cutoff keyword value ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * entropy/atom = style name of this compute command
 * sigma = width of Gaussians used in the :math:`g(r)` smoothing
 * cutoff = cutoff for the :math:`g(r)` calculation

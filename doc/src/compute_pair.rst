@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID pair pstyle [nstyle] [evalue]
+   compute compute-ID group-ID pair pstyle [nstyle] [evalue]
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * pair = style name of this compute command
 * pstyle = style name of a pair style that calculates additional values
 * nsub = *n*\ -instance of a sub-style, if a pair style is used multiple times in a hybrid style

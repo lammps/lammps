@@ -536,7 +536,7 @@ Old:
 
    int idump = output->find_dump(arg[iarg+1]);
    if (idump < 0)
-     error->all(FLERR,"Dump ID in hyper command does not exist");
+     error->all(FLERR,"Dump-ID in hyper command does not exist");
    memory->grow(dumplist,ndump+1,"hyper:dumplist");
    dumplist[ndump++] = idump;
 
@@ -551,7 +551,7 @@ New:
 .. code-block:: c++
 
    auto idump = output->get_dump_by_id(arg[iarg+1]);
-   if (!idump) error->all(FLERR,"Dump ID {} in hyper command does not exist", arg[iarg+1]);
+   if (!idump) error->all(FLERR,"Dump-ID {} in hyper command does not exist", arg[iarg+1]);
    dumplist.emplace_back(idump);
 
    [...]

@@ -8,9 +8,9 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID rheo cut kstyle zmin keyword values...
+   fix fix-ID group-ID rheo cut kstyle zmin keyword values...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * rheo = style name of this fix command
 * cut = cutoff for the kernel (distance)
 * kstyle = *quintic* or *RK0* or *RK1* or *RK2*

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID style index input1 input2 ...
+   compute compute-ID group-ID style index input1 input2 ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * global/atom = style name of this compute command
 * index = c_ID, c_ID[N], f_ID, f_ID[N], v_name
 
@@ -64,7 +64,7 @@ atom is not in the specified group, or the index :math:`I < 1` or
 then an output value of 0.0 is assigned to the atom.
 
 An example of how this command is useful, is in the context of
-"chunks" which are static or dynamic subsets of atoms.  The :doc:`compute chunk/atom <compute_chunk_atom>` command assigns unique chunk IDs
+"chunks" which are static or dynamic subsets of atoms.  The :doc:`compute chunk/atom <compute_chunk_atom>` command assigns unique chunk-IDs
 to each atom.  Its output can be used as the *index* parameter for
 this command.  Various other computes with "chunk" in their style
 name, such as :doc:`compute com/chunk <compute_com_chunk>` or
@@ -136,7 +136,7 @@ simple rounded down to convert the value to integer indices.  The
 final values should range from 1 to :math:`N` (inclusive), since they are used
 to access values from :math:`N`-length vectors.
 
-If *index* begins with "c\_", a compute ID must follow which has been
+If *index* begins with "c\_", a compute-ID must follow which has been
 previously defined in the input script.  The compute must generate
 per-atom quantities.  See the individual :doc:`compute <compute>` doc
 page for details.  If no bracketed integer is appended, the per-atom
@@ -147,7 +147,7 @@ styles and :doc:`add them to LAMMPS <Modify>`.  See the
 discussion above for how I can be specified with a wildcard asterisk
 to effectively specify multiple values.
 
-If *index* begins with "f\_", a fix ID must follow which has been
+If *index* begins with "f\_", a fix-ID must follow which has been
 previously defined in the input script.  The Fix must generate
 per-atom quantities.  See the individual :doc:`fix <fix>` page for
 details.  Note that some fixes only produce their values on certain
@@ -174,7 +174,7 @@ This section explains the kinds of *input* values that can be used.
 Note that inputs reference global values, as contrasted with the
 *index* parameter which must reference per-atom values.
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c\_", a compute-ID must follow which has been
 previously defined in the input script.  The compute must generate a
 global vector or array.  See the individual :doc:`compute <compute>` doc
 page for details.  If no bracketed integer is appended, the vector
@@ -185,7 +185,7 @@ used.  Users can also write code for their own compute styles and
 I can be specified with a wildcard asterisk to effectively specify
 multiple values.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f\_", a fix-ID must follow which has been
 previously defined in the input script.  The fix must generate a
 global vector or array.  See the individual :doc:`fix <fix>` doc page
 for details.  Note that some fixes only produce their values on

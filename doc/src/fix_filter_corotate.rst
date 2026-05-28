@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID filter/corotate keyword value ...
+   fix fix-ID group-ID filter/corotate keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * one or more constraint/value pairs are appended
 * constraint = *b* or *a* or *t* or *m*
 

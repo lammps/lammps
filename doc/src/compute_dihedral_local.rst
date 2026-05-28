@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID dihedral/local value1 value2 ... keyword args ...
+   compute compute-ID group-ID dihedral/local value1 value2 ... keyword args ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * dihedral/local = style name of this compute command
 * one or more values may be appended
 * value = *phi* or *v_name*

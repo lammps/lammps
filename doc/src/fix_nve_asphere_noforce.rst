@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID nve/asphere/noforce
+   fix fix-ID group-ID nve/asphere/noforce
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * nve/asphere/noforce = style name of this fix command
 
 Examples

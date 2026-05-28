@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID neighbor/swap N X seed T R0 voro-ID keyword values ...
+   fix fix-ID group-ID neighbor/swap N X seed T R0 voro-ID keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * neighbor/swap = style name of this fix command
 * N = invoke this fix every N steps
 * X = number of swaps to attempt every N steps
@@ -90,7 +90,7 @@ The algorithm implemented by this fix is as follows:
      atom types specified by either the *types* or *diff* keywords.
    - One of *I*'s Voronoi neighbors *J* is selected using the
      distance-weighted probability for each neighbor detailed below.
-   - The *I,J* atom IDs are communicated to all processors so that a
+   - The *I,J* atom-IDs are communicated to all processors so that a
      global energy evaluation can be performed for the post-swap state
      of the system.
    - The swap is accepted or rejected based on the Metropolis criterion

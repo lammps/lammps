@@ -12,9 +12,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style Nevery Nrepeat Nfreq lo hi Nbin value1 value2 ... keyword args ...
+   fix fix-ID group-ID style Nevery Nrepeat Nfreq lo hi Nbin value1 value2 ... keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *ave/histo* or *ave/histo/weight* = style name of this fix command
 * Nevery = use input values every this many timesteps
 * Nrepeat = # of times to use input values for calculating histogram
@@ -200,7 +200,7 @@ inputs to this fix by using the
 :doc:`compute property/atom <compute_property_atom>` command and then
 specifying an input value from that compute.
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c\_", a compute-ID must follow which has been
 previously defined in the input script.  If *mode* = scalar, then if
 no bracketed term is appended, the global scalar calculated by the
 compute is used.  If a bracketed term is appended, the Ith element of
@@ -222,7 +222,7 @@ these commands which give the IDs of these computes.  Users can also
 write code for their own compute styles and
 :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f\_", a fix-ID must follow which has been
 previously defined in the input script.  If *mode* = scalar, then if
 no bracketed term is appended, the global scalar calculated by the fix
 is used.  If a bracketed term is appended, the Ith element of the
@@ -352,7 +352,7 @@ By default, these header lines are as follows:
 
 .. parsed-literal::
 
-   # Histogram for fix ID
+   # Histogram for fix-ID
    # TimeStep Number-of-bins Total-counts Missing-counts Min-value Max-value
    # Bin Coord Count Count/Total
 

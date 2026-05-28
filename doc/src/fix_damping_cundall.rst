@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID damping/cundall gamma_l gamma_a keyword values ...
+   fix fix-ID group-ID damping/cundall gamma_l gamma_a keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * damping/cundall = style name of this fix command
 * gamma_l = linear damping coefficient (dimensionless)
 * gamma_a = angular damping coefficient (dimensionless)

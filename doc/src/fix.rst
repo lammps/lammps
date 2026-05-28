@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style args
+   fix fix-ID group-ID style args
 
-* ID = user-assigned name for the fix
+* fix-ID = user-assigned name for the fix
 * group-ID = ID of the group of atoms to apply the fix to
 * style = one of a long list of possible style names (see below)
 * args = arguments used by a particular style

@@ -12,9 +12,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID qeq/reaxff Nevery cutlo cuthi tolerance params args
+   fix fix-ID group-ID qeq/reaxff Nevery cutlo cuthi tolerance params args
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * qeq/reaxff = style name of this fix command
 * Nevery = perform QEq every this many steps
 * cutlo,cuthi = lo and hi cutoff for Taper radius

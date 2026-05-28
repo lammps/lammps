@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID nve/manifold/rattle tol maxit manifold manifold-args keyword value ...
+   fix fix-ID group-ID nve/manifold/rattle tol maxit manifold manifold-args keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * nve/manifold/rattle = style name of this fix command
 * tol = tolerance to which Newton iteration must converge
 * maxit = maximum number of iterations to perform

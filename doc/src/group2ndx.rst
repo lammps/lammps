@@ -16,7 +16,7 @@ Syntax
    ndx2group file args
 
 * file = name of index file to write out or read in
-* args = zero or more group IDs may be appended
+* args = zero or more group-IDs may be appended
 
 Examples
 """"""""
@@ -32,12 +32,12 @@ Description
 """""""""""
 
 Write or read a Gromacs style index file in text format that associates
-atom IDs with the corresponding group definitions. This index file can be
+atom-IDs with the corresponding group definitions. This index file can be
 used with in combination with Gromacs analysis tools or to import group
 definitions into the :doc:`fix colvars <fix_colvars>` input file.
 
 It can also be used to save and restore group definitions for static groups
-using the individual atom IDs. This may be important if the original
+using the individual atom-IDs. This may be important if the original
 group definition depends on a region or otherwise on the geometry and thus
 cannot be easily recreated.
 
@@ -46,16 +46,16 @@ simulation into LAMMPS.  When translating Gromacs topology and geometry
 data to LAMMPS.
 
 The *group2ndx* command will write group definitions to an index file.
-Without specifying any group IDs, all groups will be written to the
-index file.  When specifying group IDs, only those groups will be
+Without specifying any group-IDs, all groups will be written to the
+index file.  When specifying group-IDs, only those groups will be
 written to the index file.  In order to follow the Gromacs conventions,
 the group *all* will be renamed to *System* in the index file.
 
 The *ndx2group* command will create or update group definitions from
-those stored in an index file.  Without specifying any group IDs, all
+those stored in an index file.  Without specifying any group-IDs, all
 groups except *System* will be read from the index file and the
 corresponding groups recreated.  If a group of the same name already
-exists, it will be completely reset.  When specifying group IDs, those
+exists, it will be completely reset.  When specifying group-IDs, those
 groups, if present, will be read from the index file and restored.
 
 File Format
@@ -88,7 +88,7 @@ latter happens to be the union of the first two.
 Restrictions
 """"""""""""
 
-These commands require that atoms have atom IDs, since this is the
+These commands require that atoms have atom-IDs, since this is the
 information that is written to the index file.
 
 These commands are part of the EXTRA-COMMAND package.  They are only

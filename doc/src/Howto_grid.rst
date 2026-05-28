@@ -59,7 +59,7 @@ grids:
 
 * :doc:`fix ttm/grid <fix_ttm>` - store electron temperature on grid
 * :doc:`fix ave/grid <fix_ave_grid>` - time average per-atom or per-grid values
-* :doc:`compute property/grid <compute_property_grid>` - generate grid IDs and coords
+* :doc:`compute property/grid <compute_property_grid>` - generate grid-IDs and coords
 * :doc:`dump grid <dump>` - output per-grid values in LAMMPS format
 * :doc:`dump grid/vtk <dump>` - output per-grid values in VTK format
 * :doc:`dump image grid <dump_image>` - include colored grid in output images

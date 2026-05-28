@@ -8,9 +8,9 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID rattlers/atom cutoff zmin ntries
+   compute compute-ID group-ID rattlers/atom cutoff zmin ntries
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * rattlers/atom = style name of this compute command
 * cutoff = *type* or *radius*
 

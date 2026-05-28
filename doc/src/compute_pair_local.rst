@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID pair/local value1 value2 ... keyword args ...
+   compute compute-ID group-ID pair/local value1 value2 ... keyword args ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * pair/local = style name of this compute command
 * one or more values may be appended
 * value = *dist* or *dx* or *dy* or *dz* or *eng* or *force* or *fx* or *fy* or *fz* or *p1* or *p2* or ...

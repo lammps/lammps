@@ -11,7 +11,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID colvars *configfile* keyword value ...
+   fix fix-ID group-ID colvars *configfile* keyword value ...
 
 * *ID*, *group-ID* are documented in :doc:`fix <fix>` command
 * "colvars" = style name of this fix command
@@ -22,7 +22,7 @@ Syntax
      *output* value = state filename/prefix for Colvars (default: "out")
      *input* value = input state filename/prefix for Colvars (optional, default: "NULL")
      *unwrap* value = "yes" or "no" (default: "yes")
-     *tstat* value = fix ID of thermostat applied to relevant atoms (default: "NULL")
+     *tstat* value = fix-ID of thermostat applied to relevant atoms (default: "NULL")
      *seed* value = seed for random number generator (default: 1966)
 
 Examples

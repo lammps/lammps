@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   group ID style args
+   group group-ID style args
 
-* ID = user-defined name of the group
+* group-ID = user-defined name of the group
 * style = *delete* or *clear* or *empty* or *region* or *type* or *id* or *molecule* or *variable* or *include* or *subtract* or *union* or *intersect* or *dynamic* or *static*
 
   .. parsed-literal::
@@ -20,22 +20,22 @@ Syntax
        *empty* = no args
        *region* args = region-ID
        *type* or *id* or *molecule*
-         args = list of one or more atom types (1-Ntypes or type label), atom IDs, or molecule IDs
+         args = list of one or more atom types (1-Ntypes or type label), atom-IDs, or molecule-IDs
            any numeric entry in list can be a sequence formatted as A:B or A:B:C where
            A = starting index, B = ending index,
            C = increment between indices, 1 if not specified
          args = logical value
            logical = "<" or "<=" or ">" or ">=" or "==" or "!="
-           value = an atom type (1-Ntypes or type label) or atom ID or molecule ID (depending on *style*\ )
+           value = an atom type (1-Ntypes or type label) or atom-ID or molecule-ID (depending on *style*\ )
          args = logical value1 value2
            logical = "<>"
-           value1,value2 = atom types or atom IDs or molecule IDs (depending on *style*\ )
+           value1,value2 = atom types or atom-IDs or molecule-IDs (depending on *style*\ )
        *variable* args = variable-name
        *include* args = molecule
-         molecule = add atoms to group with same molecule ID as atoms already in group
-       *subtract* args = two or more group IDs
-       *union* args = one or more group IDs
-       *intersect* args = two or more group IDs
+         molecule = add atoms to group with same molecule-ID as atoms already in group
+       *subtract* args = two or more group-IDs
+       *union* args = one or more group-IDs
+       *intersect* args = two or more group-IDs
        *dynamic* args = parent-ID keyword value ...
          one or more keyword/value pairs may be appended
          keyword = *region* or *var* or *property* or *every* or *exclude* or *include* or *within*
@@ -45,7 +45,7 @@ Syntax
            *every* value = N = update group every this many timesteps
            *exclude* value = group-ID = exclude atoms in this group from dynamic group
            *include* args = molecule
-             molecule = add atoms to the dynamic group with same molecule ID as atoms already selected for the dynamic group
+             molecule = add atoms to the dynamic group with same molecule-ID as atoms already selected for the dynamic group
            *within* value = cutoff = add atoms to the dynamic group that are within the given cutoff distance of the atoms already selected for the dynamic group
        *static* = no args
 
@@ -74,12 +74,12 @@ Examples
 Description
 """""""""""
 
-Identify a collection of atoms as belonging to a group.  The group ID
+Identify a collection of atoms as belonging to a group.  The group-ID
 can then be used in other commands such as :doc:`fix <fix>`,
 :doc:`compute <compute>`, :doc:`dump <dump>`, or :doc:`velocity <velocity>`
 to act on those atoms together.
 
-If the group ID already exists, the group command adds the specified
+If the group-ID already exists, the group command adds the specified
 atoms to the group.
 
 .. note::
@@ -120,7 +120,7 @@ assigned (or not assigned) to the group even if they later move out of
 the region volume.
 
 The *type*, *id*, and *molecule* styles put all atoms with the
-specified atom types, atom IDs, or molecule IDs into the group.  These
+specified atom types, atom-IDs, or molecule-IDs into the group.  These
 three styles can use arguments specified in one of two formats.
 
 The first format is a list of values (types or IDs).  For example, the
@@ -129,7 +129,7 @@ the group named *water*\ .  Each numeric entry in the list can be a
 colon-separated sequence ``A:B`` or ``A:B:C``, as in two of the examples
 above.  A "sequence" generates a sequence of values (types or IDs),
 with an optional increment.  The first example with ``500:1000`` has the
-default increment of 1 and would add all atom IDs from 500 to 1000
+default increment of 1 and would add all atom-IDs from 500 to 1000
 (inclusive) to the group sub, along with 10, 25, and 50 since they also
 appear in the list of values.  The second example with ``100:10000:10``
 uses an increment of 10 and would thus add atoms IDs
@@ -192,8 +192,8 @@ them to the screen.  See the "Variable Accuracy" section of the
 variables are current when they are evaluated between runs.
 
 The *include* style with its arg *molecule* adds atoms to a group that
-have the same molecule ID as atoms already in the group.  The molecule
-ID = 0 is ignored in this operation, since it is assumed to flag
+have the same molecule-ID as atoms already in the group.  The
+molecule-ID = 0 is ignored in this operation, since it is assumed to flag
 isolated atoms that are not part of molecules.  An example of where
 this operation is useful is if the *region* style has been used
 previously to add atoms to a group that are within a geometric region.
@@ -207,9 +207,9 @@ group.
 
    The *include molecule* operation is relatively expensive in a
    parallel sense.  This is because it requires communication of relevant
-   molecule IDs between all the processors and each processor to loop
+   molecule-IDs between all the processors and each processor to loop
    over its atoms once per processor, to compare its atoms to the list of
-   molecule IDs from every other processor.  Hence it scales as N, rather
+   molecule-IDs from every other processor.  Hence it scales as N, rather
    than N/P as most of the group operations do, where N is the number of
    atoms, and P is the number of processors.
 
@@ -267,7 +267,7 @@ the iterations of the minimizer.
 
 .. versionadded:: 30Mar2026
 
-The optional *exclude* keyword has a group ID as argument and after all
+The optional *exclude* keyword has a group-ID as argument and after all
 other atom selections for the dynamic group have been performed, it
 removes selected atoms that are in the specified group from the dynamic
 group.  This can for example be used to first select additional solvent
@@ -277,8 +277,8 @@ atoms up to a given distance from a group using the *within* keyword
 .. versionadded:: 11Feb2026
 
 The optional *include* keyword with its argument *molecule* adds atoms
-to a dynamic group that have the same molecule ID as atoms already in
-the group.  Atoms with the molecule ID = 0 are ignored in this
+to a dynamic group that have the same molecule-ID as atoms already in
+the group.  Atoms with the molecule-ID = 0 are ignored in this
 operation, since that ID is generally assumed to flag isolated atoms
 that are not part of molecules.  An example of where this operation is
 useful is if the dynamic group is defined using a *region*.  If
@@ -344,7 +344,7 @@ group and running further.
 
 .. note::
 
-   All fixes and computes take a group ID as an argument, but they do
+   All fixes and computes take a group-ID as an argument, but they do
    not all allow for use of a dynamic group.  If you get an error
    message that this is not allowed, but feel that it should be for the
    fix or compute in question, then please post your reasoning to the

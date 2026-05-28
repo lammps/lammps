@@ -12,10 +12,10 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID temp/csvr Tstart Tstop Tdamp seed
-   fix ID group-ID temp/csld Tstart Tstop Tdamp seed
+   fix fix-ID group-ID temp/csvr Tstart Tstop Tdamp seed
+   fix fix-ID group-ID temp/csld Tstart Tstop Tdamp seed
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * temp/csvr or temp/csld = style name of this fix command
 * Tstart,Tstop = desired temperature at start/end of run
 

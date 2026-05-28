@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID rigid/local rigidID input1 input2 ...
+   compute compute-ID group-ID rigid/local rigidID input1 input2 ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * rigid/local = style name of this compute command
 * rigidID = ID of fix rigid/small command or one of its variants
 * input = one or more rigid body attributes
@@ -28,8 +28,8 @@ Syntax
 
   .. parsed-literal::
 
-           id = atom ID of atom within body which owns body properties
-           mol = molecule ID used to define body in :doc:`fix rigid/small <fix_rigid>` command
+           id = atom-ID of atom within body which owns body properties
+           mol = molecule-ID used to define body in :doc:`fix rigid/small <fix_rigid>` command
            mass = total mass of body
            x,y,z = center of mass coords of body
            xu,yu,zu = unwrapped center of mass coords of body
@@ -102,8 +102,8 @@ This section explains the rigid body attributes that can be specified.
 The *id* attribute is the atom-ID of the atom which owns the rigid body, which is
 assigned by the :doc:`fix rigid/small <fix_rigid>` command.
 
-The *mol* attribute is the molecule ID of the rigid body.  It should
-be the molecule ID which all of the atoms in the body belong to, since
+The *mol* attribute is the molecule-ID of the rigid body.  It should
+be the molecule-ID which all of the atoms in the body belong to, since
 that is how the :doc:`fix rigid/small <fix_rigid>` command defines its
 rigid bodies.
 

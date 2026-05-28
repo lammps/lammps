@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID hexorder/atom keyword values ...
+   compute compute-ID group-ID hexorder/atom keyword values ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * hexorder/atom = style name of this compute command
 * one or more keyword/value pairs may be appended
 

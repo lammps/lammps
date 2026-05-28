@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID eos/table/rx style file1 N keyword ...
+   fix fix-ID group-ID eos/table/rx style file1 N keyword ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * eos/table/rx = style name of this fix command
 * style = *linear* = method of interpolation
 * file1 = filename containing the tabulated equation of state

@@ -30,8 +30,8 @@ Syntax
          ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
               *or* an integer range such as 2*6 (negative values are not allowed)
               *or* a thermo keyword or reference to compute, fix, property or variable.
-       *temp* value = compute ID that calculates a temperature
-       *press* value = compute ID that calculates a pressure
+       *temp* value = compute-ID that calculates a temperature
+       *press* value = compute-ID that calculates a pressure
        *triclinic/general* arg = *yes* or *no*
 
 
@@ -231,7 +231,7 @@ settings, reverting all values to their default format.
 The *temp* keyword is used to determine how thermodynamic temperature is
 calculated, which is used by all thermo quantities that require a
 temperature ("temp", "press", "ke", "etotal", "enthalpy", "pxx", etc).
-The specified compute ID must have been previously defined by the user
+The specified compute-ID must have been previously defined by the user
 via the :doc:`compute <compute>` command and it must be a style of
 compute that calculates a temperature.  As described in the
 :doc:`thermo_style <thermo_style>` command, thermo output uses a default
@@ -240,7 +240,7 @@ user to override the default.
 
 The *press* keyword is used to determine how thermodynamic pressure is
 calculated, which is used by all thermo quantities that require a
-pressure ("press", "enthalpy", "pxx", etc).  The specified compute ID
+pressure ("press", "enthalpy", "pxx", etc).  The specified compute-ID
 must have been previously defined by the user via the :doc:`compute
 <compute>` command and it must be a style of compute that calculates a
 pressure.  As described in the :doc:`thermo_style <thermo_style>`
@@ -287,7 +287,7 @@ Default
 
 The option defaults are lost = error, warn = 100, norm = yes for unit
 style of *lj*, norm = no for unit style of *real* and *metal*, flush =
-no, temp/press = compute IDs defined by thermo_style, and
+no, temp/press = compute-IDs defined by thermo_style, and
 triclinic/general = no.
 
 The defaults for the line and format options depend on the thermo style.

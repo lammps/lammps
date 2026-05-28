@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID npt/body keyword value ...
+   fix fix-ID group-ID npt/body keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * npt/body = style name of this fix command
 * additional thermostat and barostat related keyword/value pairs from the :doc:`fix npt <fix_nh>` command can be appended
 

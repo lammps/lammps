@@ -34,8 +34,8 @@ atoms with the option to select functional form and parameters for each
 individual pair.  Because the parameters are set in the list file, the
 pair_coeff command has no parameters (but still needs to be provided).
 The *check* and *nocheck* keywords enable/disable tests that checks
-whether all listed pairs of atom IDs were present and the interactions
-computed.  If *nocheck* is set and either atom ID is not present, the
+whether all listed pairs of atom-IDs were present and the interactions
+computed.  If *nocheck* is set and either atom-ID is not present, the
 interaction is skipped.
 
 This pair style can be thought of as a hybrid between bonded,
@@ -53,8 +53,8 @@ The format of the list file is as follows:
 
   .. parsed-literal::
 
-       ID1 = atom ID of first atom
-       ID2 = atom ID of second atom
+       ID1 = atom-ID of first atom
+       ID2 = atom-ID of second atom
        style = style of interaction
        coeffs = list of coeffs
        cutoff = cutoff for interaction (optional)

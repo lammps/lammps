@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID ave/time Nevery Nrepeat Nfreq value1 value2 ... keyword args ...
+   fix fix-ID group-ID ave/time Nevery Nrepeat Nfreq value1 value2 ... keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * ave/time = style name of this fix command
 * Nevery = use input values every this many time steps
 * Nrepeat = # of times to use input values for calculating averages
@@ -172,7 +172,7 @@ averaging is done; values are simply generated on time steps
 
 ----------
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c\_", a compute-ID must follow which has been
 previously defined in the input script.  If *mode* = scalar, then if
 no bracketed term is appended, the global scalar calculated by the
 compute is used.  If a bracketed term is appended, the Ith element of
@@ -193,7 +193,7 @@ these commands which give the IDs of these computes.  Users can also
 write code for their own compute styles and :doc:`add them to LAMMPS
 <Modify>`.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f\_", a fix-ID must follow which has been
 previously defined in the input script.  If *mode* = scalar, then if
 no bracketed term is appended, the global scalar calculated by the fix
 is used.  If a bracketed term is appended, the Ith element of the
@@ -316,7 +316,7 @@ By default, these header lines are as follows for *mode* = scalar:
 
 .. parsed-literal::
 
-   # Time-averaged data for fix ID
+   # Time-averaged data for fix-ID
    # TimeStep value1 value2 ...
 
 In the first line, ID is replaced with the fix-ID.  In the second line
@@ -328,7 +328,7 @@ By default, these header lines are as follows for *mode* = vector:
 
 .. parsed-literal::
 
-   # Time-averaged data for fix ID
+   # Time-averaged data for fix-ID
    # TimeStep Number-of-rows
    # Row value1 value2 ...
 

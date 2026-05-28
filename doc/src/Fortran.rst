@@ -1127,7 +1127,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
         - ``REAL(c_double), DIMENSION(:,:), POINTER``
         - Local array
 
-   :p character(len=\*) id: compute ID from which to extract data
+   :p character(len=\*) id: compute-ID from which to extract data
    :p integer(c_int) style: value indicating the style of data to extract
     (global, per-atom, or local)
    :p integer(c_int) type: value indicating the type of data to extract
@@ -1524,17 +1524,17 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    This function calls :cpp:func:`lammps_gather_atoms` to gather the named
    atom-based entity for all atoms on all processors and return it in the
-   vector *data*. The vector *data* will be ordered by atom
-   ID, which requires consecutive atom IDs (1 to *natoms*).
+   vector *data*. The vector *data* will be ordered by
+   atom-ID, which requires consecutive atom-IDs (1 to *natoms*).
 
    .. versionadded:: 3Nov2022
 
-   If you need a similar array but have non-consecutive atom IDs, see
+   If you need a similar array but have non-consecutive atom-IDs, see
    :f:func:`gather_atoms_concat`; for a similar array but for a subset
    of atoms, see :f:func:`gather_atoms_subset`.
 
-   The *data* array will be ordered in groups of *count* values, sorted by atom
-   ID (e.g., if *name* is *x* and *count* = 3, then *data* = [*x*\ (1,1),
+   The *data* array will be ordered in groups of *count* values, sorted by
+   atom-ID (e.g., if *name* is *x* and *count* = 3, then *data* = [*x*\ (1,1),
    *x*\ (2,1), *x*\ (3,1), *x*\ (1,2), *x*\ (2,2), *x*\ (3,2), *x*\ (1,3),
    :math:`\dots`]); *data* must be ``ALLOCATABLE`` and will be allocated to
    length (*count* :math:`\times` *natoms*), as queried by
@@ -1585,11 +1585,11 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: 3Nov2022
 
-   The vector *data* will not be ordered by atom ID, and there is no
+   The vector *data* will not be ordered by atom-ID, and there is no
    restriction on the IDs being consecutive. If you need the IDs, you can do
    another :f:func:`gather_atoms_concat` with *name* set to ``id``.
 
-   If you need a similar array but have consecutive atom IDs, see
+   If you need a similar array but have consecutive atom-IDs, see
    :f:func:`gather_atoms`; for a similar array but for a subset of atoms, see
    :f:func:`gather_atoms_subset`.
 
@@ -1619,13 +1619,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: 3Nov2022
 
-   This subroutine gathers data for the requested atom IDs and stores them in a
+   This subroutine gathers data for the requested atom-IDs and stores them in a
    one-dimensional allocatable array. The data will be ordered by
-   atom ID, but there is no requirement that the IDs be consecutive. If you
+   atom-ID, but there is no requirement that the IDs be consecutive. If you
    wish to return a similar array for *all* the atoms, use
    :f:func:`gather_atoms` or :f:func:`gather_atoms_concat`.
 
-   The *data* array will be in groups of *count* values, sorted by atom ID
+   The *data* array will be in groups of *count* values, sorted by atom-ID
    in the same order as the array *ids* (e.g., if *name* is *x*, *count* = 3,
    and *ids* is [100, 57, 210], then *data* might look like
    [*x*\ (1,100), *x*\ (2,100), *x*\ (3,100), *x*\ (1,57), *x*\ (2,57),
@@ -1640,7 +1640,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     (e.g., 1 for *type*, *mask*, or *charge*; 3 for *x*, *v*, or *f*). Use
     *count* = 3 with *image* if you want a single image flag unpacked into
     *x*/*y*/*z* components.
-   :p integer(c_int) ids [dimension(:)]: atom IDs corresponding to the atoms
+   :p integer(c_int) ids [dimension(:)]: atom-IDs corresponding to the atoms
     to be gathered
    :p data: array into which to store
     the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
@@ -1662,12 +1662,12 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    This subroutine takes data stored in a one-dimensional array supplied by the
    user and scatters them to all atoms on all processors. The data must be
-   ordered by atom ID, with the requirement that the IDs be consecutive.
+   ordered by atom-ID, with the requirement that the IDs be consecutive.
    Use :f:func:`scatter_atoms_subset` to scatter data for some (or all)
    atoms, in any order.
 
    The *data* array needs to be ordered in groups of *count* values, sorted by
-   atom ID (e.g., if *name* is *x* and *count* = 3, then
+   atom-ID (e.g., if *name* is *x* and *count* = 3, then
    *data* = [*x*\ (1,1), *x*\ (2,1), *x*\ (3,1), *x*\ (1,2), *x*\ (2,2),
    *x*\ (3,2), *x*\ (1,3), :math:`\dots`]); *data* must be of length *natoms*
    or 3\*\ *natoms*.
@@ -1693,7 +1693,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    This subroutine takes data stored in a one-dimensional array supplied by the
    user and scatters them to a subset of atoms on all processors. The array
-   *data* contains data associated with atom IDs, but there is no requirement
+   *data* contains data associated with atom-IDs, but there is no requirement
    that the IDs be consecutive, as they are provided in a separate array,
    *ids*. Use :f:func:`scatter_atoms` to scatter data for all atoms, in order.
 
@@ -1705,7 +1705,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    [1, 100, 57] and *name* would be *x*.
 
    :p character(len=\*) name: quantity to be scattered (e.g., *x* or *charge*)
-   :p integer(c_int) ids [dimension(:)]: atom IDs corresponding to the atoms
+   :p integer(c_int) ids [dimension(:)]: atom-IDs corresponding to the atoms
     being scattered
    :p data: per-atom values packed into a
     one-dimensional array containing the data to be scattered. This array must
@@ -1811,25 +1811,25 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 .. f:subroutine:: gather(self, name, count, data)
 
    Gather the named per-atom, per-atom fix, per-atom compute, or fix
-   property/atom-based entities from all processes, in order by atom ID.
+   property/atom-based entities from all processes, in order by atom-ID.
 
    .. versionadded:: 22Dec2022
 
    This subroutine gathers data from all processes and stores them in a
    one-dimensional allocatable array. The array *data* will be
-   ordered by atom ID, which requires consecutive IDs (1 to *natoms*\ ). If you
-   need a similar array but for non-consecutive atom IDs, see
+   ordered by atom-ID, which requires consecutive IDs (1 to *natoms*\ ). If you
+   need a similar array but for non-consecutive atom-IDs, see
    :cpp:func:`lammps_gather_concat`; for a similar array but for a subset of
    atoms, see :cpp:func:`lammps_gather_subset`.
 
-   The *data* array will be ordered in groups of *count* values, sorted by atom
-   ID (e.g., if *name* is *x*, then *data* is [x(1,1), x(2,1), x(3,1), x(1,2),
+   The *data* array will be ordered in groups of *count* values, sorted by
+   atom-ID (e.g., if *name* is *x*, then *data* is [x(1,1), x(2,1), x(3,1), x(1,2),
    x(2,2), x(3,2), x(1,3), :math:`\dots`]); *data* must be ``ALLOCATABLE`` and
    will be allocated to length (*count*\ :math:`{}\times{}`\ *natoms*), as
    queried by :f:func:`get_natoms`.
 
    This function will return an error if fix or compute data are requested and
-   the fix or compute ID given does not have per-atom data. See the note about
+   the fix or compute-ID given does not have per-atom data. See the note about
    re-interpreting the vector as a matrix at :f:subr:`gather_atoms`.
 
    This function is not compatible with ``-DLAMMPS_BIGBIG``.
@@ -1953,14 +1953,14 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    one-dimensional allocatable array. The data will be a
    concatenation of chunks from each processor's owned atoms, in whatever order
    the atoms are in on each processor. This process has no requirement that the
-   atom IDs be consecutive. If you need the ID of each atom, you can do another
+   atom-IDs be consecutive. If you need the ID of each atom, you can do another
    call to either :f:subr:`gather_atoms_concat` or :f:subr:`gather_concat` with
    *name* set to ``id``. If you have consecutive IDs and want the data to be in
    order, use :f:subr:`gather`; for a similar array but for a subset of
    atoms, use :f:subr:`gather_subset`.
 
    The *data* array will be in groups of *count* values, with *natoms* groups
-   total, but not in order by atom ID (e.g., if *name* is *x* and *count* is 3,
+   total, but not in order by atom-ID (e.g., if *name* is *x* and *count* is 3,
    then *data* might be something like [x(1,11), x(2,11), x(3,11), x(1,3),
    x(2,3), x(3,3), x(1,5), :math:`\dots`]); *data* must be ``ALLOCATABLE`` and
    will be allocated to length (*count* :math:`\times` *natoms*), as queried by
@@ -1995,13 +1995,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: 22Dec2022
 
-   This subroutine gathers data for the requested atom IDs and stores them in a
-   one-dimensional allocatable array. The data will be ordered by atom ID, but
+   This subroutine gathers data for the requested atom-IDs and stores them in a
+   one-dimensional allocatable array. The data will be ordered by atom-ID, but
    there is no requirement that the IDs be consecutive. If you wish to return a
    similar array for *all* the atoms, use :f:subr:`gather` or
    :f:subr:`gather_concat`.
 
-   The *data* array will be in groups of *count* values, sorted by atom ID in
+   The *data* array will be in groups of *count* values, sorted by atom-ID in
    the same order as the array *ids* (e.g., if *name* is *x*, *count* = 3, and
    *ids* is [100, 57, 210], then *data* might look like [*x*\ (1,100),
    *x*\ (2,100), *x*\ (3,100), *x*\ (1,57), *x*\ (2,57), *x*\ (3,57),
@@ -2014,7 +2014,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    :p character(len=\*) name: quantity to be scattered
 
-   :p integer(c_int) ids [dimension(:)]: atom IDs corresponding to the atoms
+   :p integer(c_int) ids [dimension(:)]: atom-IDs corresponding to the atoms
     being scattered (e.g., "x" or "f" for atom properties, "f_id" for per-atom
     fix data, "c_id" for per-atom compute data, "d_name" or "i_name" for fix
     property/atom vectors with *count* = 1, "d2_name" or "i2_name" for fix
@@ -2045,11 +2045,11 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    This subroutine takes data stored in a one-dimensional array supplied by the
    user and scatters them to all atoms on all processes. The data must be
-   ordered by atom ID, with the requirement that the IDs be consecutive. Use
+   ordered by atom-ID, with the requirement that the IDs be consecutive. Use
    :f:subr:`scatter_subset` to scatter data for some (or all) atoms, unordered.
 
    The *data* array needs to be ordered in groups of *count* values, sorted by
-   atom ID (e.g., if *name* is *x* and *count* = 3, then *data* = [*x*\ (1,1),
+   atom-ID (e.g., if *name* is *x* and *count* = 3, then *data* = [*x*\ (1,1),
    *x*\ (2,1), *x*\ (3,1), *x*\ (1,2), *x*\ (2,2), *x*\ (3,2), *x*\ (1,3),
    :math:`\dots`]); *data* must be of length (*count* :math:`\times` *natoms*).
 
@@ -2078,7 +2078,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    This subroutine takes data stored in a one-dimensional array supplied by the
    user and scatters them to a subset of atoms on all processes. The array
-   *data* contains data associated with atom IDs, but there is no requirement
+   *data* contains data associated with atom-IDs, but there is no requirement
    that the IDs be consecutive, as they are provided in a separate array.
    Use :f:subr:`scatter` to scatter data for all atoms, in order.
 
@@ -2094,7 +2094,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     "d_name" or "i_name" for fix property/atom vectors with *count* = 1,
     "d2_name" or "i2_name" for fix property/atom vectors with
     *count*\ :math:`{}> 1`)
-   :p integer(c_int) ids: list of atom IDs to scatter data for
+   :p integer(c_int) ids: list of atom-IDs to scatter data for
    :p polymorphic data [dimension(:)]: per-atom values packed in a
     one-dimensional array of length *size(ids)* \* *count*.
    :to: :cpp:func:`lammps_scatter_subset`
@@ -2105,7 +2105,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    This method calls :cpp:func:`lammps_create_atoms` to create additional atoms
    from a given list of coordinates and a list of atom types. Additionally,
-   the atom IDs, velocities, and image flags may be provided.
+   the atom-IDs, velocities, and image flags may be provided.
 
    .. versionadded:: 3Nov2022
 
@@ -2114,8 +2114,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p real(c_double) x [dimension(3N)]: vector of :math:`3N\ x/y/z` positions
     of the new atoms, arranged as :math:`[x_1,y_1,z_1,x_2,y_2,\dotsc]`
     (required/see note below)
-   :o integer(kind=\*) id [dimension(N),optional]: vector of :math:`N` atom
-    IDs; if absent, LAMMPS will generate them for you. \*The ``KIND`` parameter
+   :o integer(kind=\*) id [dimension(N),optional]: vector of :math:`N`
+    atom-IDs; if absent, LAMMPS will generate them for you. \*The ``KIND`` parameter
     should be ``c_int`` unless LAMMPS was compiled with ``-DLAMMPS_BIGBIG``, in
     which case it should be ``c_int64_t``.
    :o real(c_double) v [dimension(3N),optional]: vector of :math:`3N`
@@ -2210,7 +2210,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: 3Nov2022
 
-   The neighbor list request from a fix is identified by the fix ID and the
+   The neighbor list request from a fix is identified by the fix-ID and the
    request ID. The request ID is typically zero, but will be :math:`>0` for
    fixes with multiple neighbor list requests.
 
@@ -2230,7 +2230,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: 3Nov2022
 
-   The neighbor list request from a compute is identified by the compute ID and
+   The neighbor list request from a compute is identified by the compute-ID and
    the request ID.  The request ID is typically zero, but will be :math:`> 0`
    in case a compute has multiple neighbor list requests.
 
@@ -2957,7 +2957,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    information about how to use the fix and how to couple it with an external
    program.
 
-   :p character(len=*) id: fix ID of fix external instance
+   :p character(len=*) id: fix-ID of fix external instance
    :p real(c_double) eng:  total energy to be added to the global energy
    :to: :cpp:func:`lammps_fix_external_set_energy_global`
 
@@ -2988,7 +2988,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    more information about how to use the fix and how to couple it with an
    external code.
 
-   :p character(len=*) id: fix ID of fix external instance
+   :p character(len=*) id: fix-ID of fix external instance
    :p real(c_double) virial [dimension(6)]: the six global stress tensor
     components to be added to the global virial
    :to: :cpp:func:`lammps_fix_external_set_virial_global`
@@ -3021,7 +3021,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    more information about how to use the fix and how to couple it with an
    external code.
 
-   :p character(len=*) id: fix ID of the fix external instance
+   :p character(len=*) id: fix-ID of the fix external instance
    :p real(c_double) eng [dimension(:)]: array of length *nlocal* containing
     the energy to add to the per-atom energy
    :to: :cpp:func:`lammps_fix_external_set_energy_peratom`
@@ -3053,7 +3053,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    more information about how to use the fix and how to couple it with an
    external program.
 
-   :p character(len=*) id: fix ID of fix external instance
+   :p character(len=*) id: fix-ID of fix external instance
    :p real(c_double) virial [dimension(:,:)]: an array of :math:`6 \times{}`\
     *nlocal* components to be added to the per-atom virial
    :to: :cpp:func:`lammps_set_virial_peratom`
@@ -3081,7 +3081,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    more information about how to use the fix and how to couple it with an
    external program.
 
-   :p character(len=*) id: fix ID of fix external instance
+   :p character(len=*) id: fix-ID of fix external instance
    :p integer(c_int) length: length of the global vector to be stored with the
     fix
    :to: :cpp:func:`lammps_fix_external_set_vector_length`

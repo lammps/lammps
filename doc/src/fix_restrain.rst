@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID restrain keyword args ...
+   fix fix-ID group-ID restrain keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * restrain = style name of this fix command
 * one or more keyword/arg pairs may be appended
 * keyword = *bond* or *lbound* or *angle* or *dihedral*

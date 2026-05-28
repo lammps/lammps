@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID drude flag1 flag2 ... flagN
+   fix fix-ID group-ID drude flag1 flag2 ... flagN
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * drude = style name of this fix command
 * flag1 flag2 ... flagN = Drude flag for each atom type (1 to N) in the system
 

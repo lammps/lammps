@@ -12,9 +12,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID style args
+   compute compute-ID group-ID style args
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * style = stress/spherical or stress/cylinder
 * args = argument specific to the compute style
 

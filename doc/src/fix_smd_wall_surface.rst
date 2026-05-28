@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID smd/wall_surface arg type mol-ID
+   fix fix-ID group-ID smd/wall_surface arg type mol-ID
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * smd/wall_surface = style name of this fix command
 * arg = *file*
 
@@ -86,7 +86,7 @@ This fix is part of the MACHDYN package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
-The molecule ID given to the particles created by this fix have to be
+The molecule-ID given to the particles created by this fix have to be
 equal to or larger than 65535.
 
 Within each .STL file, only a single triangulated object must be

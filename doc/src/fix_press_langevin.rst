@@ -8,9 +8,9 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID press/langevin keyword value ...
+   fix fix-ID group-ID press/langevin keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * press/langevin = style name of this fix command
 
   .. parsed-literal::

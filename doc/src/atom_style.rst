@@ -234,7 +234,7 @@ the Additional Information section below.
 
 .. note::
 
-   It is possible to add some attributes, such as a molecule ID and
+   It is possible to add some attributes, such as a molecule-ID and
    charge, to atom styles that do not have them built in using the
    :doc:`fix property/atom <fix_property_atom>` command.  This command
    also allows new custom-named attributes consisting of extra integer

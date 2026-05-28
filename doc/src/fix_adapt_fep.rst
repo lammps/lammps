@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID adapt/fep N attribute args ... keyword value ...
+   fix fix-ID group-ID adapt/fep N attribute args ... keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * adapt/fep = style name of this fix command
 * N = adapt simulation settings every this many timesteps
 * one or more attribute/arg pairs may be appended

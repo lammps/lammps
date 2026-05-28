@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID deform N parameter style args ... keyword value ...
+   fix fix-ID group-ID deform N parameter style args ... keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * N = perform box deformation every this many timesteps
 * one or more parameter/args sequences may be appended
 

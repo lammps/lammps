@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID ave/atom Nevery Nrepeat Nfreq value1 value2 ...
+   fix fix-ID group-ID ave/atom Nevery Nrepeat Nfreq value1 value2 ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * ave/atom = style name of this fix command
 * Nevery = use input values every this many timesteps
 * Nrepeat = # of times to use input values for calculating averages
@@ -127,7 +127,7 @@ specifying an input value from that compute.
    :doc:`compute property/atom <compute_property_atom>`
    command via its *xu*, *yu*, and *zu* attributes.
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c\_", a compute-ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed term containing an index :math:`I` is appended, the
@@ -137,7 +137,7 @@ used.  Users can also write code for their own compute styles and
 :math:`I` can be specified with a wildcard asterisk to effectively specify
 multiple values.
 
-If a value begins with "f\_", a fix ID must follow which has been previously
+If a value begins with "f\_", a fix-ID must follow which has been previously
 defined in the input script.  If no bracketed term is appended, the per-atom
 vector calculated by the fix is used.  If a bracketed term containing an index
 :math:`I` is appended, the :math:`I^\text{th}` column of the per-atom array

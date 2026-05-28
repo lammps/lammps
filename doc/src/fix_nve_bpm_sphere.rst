@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID nve/bpm/sphere
+   fix fix-ID group-ID nve/bpm/sphere
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * nve/bpm/sphere = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keyword = *update* or *disc*

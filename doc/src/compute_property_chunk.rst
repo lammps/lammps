@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID property/chunk chunkID input1 input2 ...
+   compute compute-ID group-ID property/chunk chunkID input1 input2 ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * property/chunk = style name of this compute command
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command that defines the chunks
 * input1,etc = one or more attributes
@@ -19,7 +19,7 @@ Syntax
 
        attributes = count, id, coord1, coord2, coord3
          count = # of atoms in chunk
-         id = original chunk IDs before compression by :doc:`compute chunk/atom <compute_chunk_atom>`
+         id = original chunk-IDs before compression by :doc:`compute chunk/atom <compute_chunk_atom>`
          coord123 = coordinates for spatial bins calculated by :doc:`compute chunk/atom <compute_chunk_atom>`
 
 Examples
@@ -54,20 +54,20 @@ generate per-chunk data, such as :doc:`compute com/chunk
 Note that only atoms in the specified group contribute to the
 calculation of the *count* attribute.  The :doc:`compute chunk/atom
 <compute_chunk_atom>` command defines its own group; atoms will have a
-chunk ID = 0 if they are not in that group, signifying they are not
+chunk-ID = 0 if they are not in that group, signifying they are not
 assigned to a chunk, and will thus also not contribute to this
 calculation.  You can specify the "all" group for this command if you
-simply want to include atoms with non-zero chunk IDs.
+simply want to include atoms with non-zero chunk-IDs.
 
 The *count* attribute is the number of atoms in the chunk.
 
-The *id* attribute stores the original chunk ID for each chunk.  It
+The *id* attribute stores the original chunk-ID for each chunk.  It
 can only be used if the *compress* keyword was set to *yes* for the
 :doc:`compute chunk/atom <compute_chunk_atom>` command referenced by
-chunkID.  This means that the original chunk IDs (e.g., molecule IDs)
-will have been compressed to remove chunk IDs with no atoms assigned
-to them.  Thus a compressed chunk ID of 3 may correspond to an
-original chunk ID (molecule ID in this case) of 415.  The *id*
+chunkID.  This means that the original chunk-IDs (e.g., molecule-IDs)
+will have been compressed to remove chunk-IDs with no atoms assigned
+to them.  Thus a compressed chunk-ID of 3 may correspond to an
+original chunk-ID (molecule-ID in this case) of 415.  The *id*
 attribute will then be 415 for the third chunk.
 
 The *coordN* attributes can only be used if a *binning* style was used

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID lb/fluid nevery viscosity density keyword values ...
+   fix fix-ID group-ID lb/fluid nevery viscosity density keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * lb/fluid = style name of this fix command
 * nevery = update the lattice-Boltzmann fluid every this many timesteps (should normally be 1)
 * viscosity = the fluid viscosity (units of mass/(time\*length)).

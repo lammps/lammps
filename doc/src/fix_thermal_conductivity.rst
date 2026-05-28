@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID thermal/conductivity N edim Nbin keyword value ...
+   fix fix-ID group-ID thermal/conductivity N edim Nbin keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * thermal/conductivity = style name of this fix command
 * N = perform kinetic energy exchange every N steps
 * edim = *x* or *y* or *z* = direction of kinetic energy transfer

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID eos/cv cv
+   fix fix-ID group-ID eos/cv cv
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * eos/cv = style name of this fix command
 * cv = constant-volume heat capacity (energy/temperature units)
 

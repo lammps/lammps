@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID smd type values keyword values
+   fix fix-ID group-ID smd type values keyword values
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * smd  = style name of this fix command
 * mode = *cvel* or *cfor* to select constant velocity or constant force SMD
 

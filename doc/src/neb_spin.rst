@@ -282,7 +282,7 @@ lines contain the following information:
    ...
    IDN gN yN zN sxN syN szN
 
-The fields are the atom ID, the norm of the associated magnetic spin,
+The fields are the atom-ID, the norm of the associated magnetic spin,
 followed by the *x,y,z* coordinates and the *sx,sy,sz* spin coordinates.
 The lines can be listed in any order.  Additional trailing information on
 the line is OK, such as a comment.

@@ -20,12 +20,12 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID pod/atom param.pod coefficients.pod
-   compute ID group-ID podd/atom param.pod coefficients.pod
-   compute ID group-ID pod/local param.pod coefficients.pod
-   compute ID group-ID pod/global param.pod coefficients.pod
+   compute compute-ID group-ID pod/atom param.pod coefficients.pod
+   compute compute-ID group-ID podd/atom param.pod coefficients.pod
+   compute compute-ID group-ID pod/local param.pod coefficients.pod
+   compute compute-ID group-ID pod/global param.pod coefficients.pod
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * pod/atom = style name of this compute command
 * param.pod = the parameter file specifies parameters of the POD descriptors
 * coefficients.pod = the coefficient file specifies coefficients of the POD potential

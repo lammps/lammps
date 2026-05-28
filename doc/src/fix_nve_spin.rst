@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID nve/spin keyword values
+   fix fix-ID group-ID nve/spin keyword values
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * nve/spin = style name of this fix command
 * keyword = *lattice*
 

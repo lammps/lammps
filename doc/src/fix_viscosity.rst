@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID viscosity N vdim pdim Nbin keyword value ...
+   fix fix-ID group-ID viscosity N vdim pdim Nbin keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * viscosity = style name of this fix command
 * N = perform momentum exchange every N steps
 * vdim = *x* or *y* or *z* = which momentum component to exchange

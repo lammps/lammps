@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID smd/triangle/vertices
+   compute compute-ID group-ID smd/triangle/vertices
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * smd/triangle/vertices = style name of this compute command
 
 Examples

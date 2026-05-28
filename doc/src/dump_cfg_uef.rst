@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   dump ID group-ID cfg/uef N file mass type xs ys zs args
+   dump dump-ID group-ID cfg/uef N file mass type xs ys zs args
 
-* ID = user-assigned name for the dump
+* dump-ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
 * N = dump every this many timesteps
 * file = name of file to write dump info to

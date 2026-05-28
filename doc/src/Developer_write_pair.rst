@@ -1033,7 +1033,7 @@ are checked in the ``init_style()`` function.
    void PairTersoff::init_style()
    {
      if (atom->tag_enable == 0)
-       error->all(FLERR,"Pair style Tersoff requires atom IDs");
+       error->all(FLERR,"Pair style Tersoff requires atom-IDs");
      if (force->newton_pair == 0)
        error->all(FLERR,"Pair style Tersoff requires newton pair on");
 

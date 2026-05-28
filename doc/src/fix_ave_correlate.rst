@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID ave/correlate Nevery Nrepeat Nfreq value1 value2 ... keyword args ...
+   fix fix-ID group-ID ave/correlate Nevery Nrepeat Nfreq value1 value2 ... keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * ave/correlate = style name of this fix command
 * Nevery = use input values every this many timesteps
 * Nrepeat = # of correlation time windows to accumulate
@@ -189,7 +189,7 @@ Also, if the *ave* keyword is set to *one* which is the default, then
 
 ----------
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c\_", a compute-ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the compute is used.  If a
 bracketed term is appended, the :math:`I^\text{th}` element of the global
@@ -206,7 +206,7 @@ or :doc:`fix temp/rescale <fix_temp_rescale>`.  See the doc pages for
 these commands which give the IDs of these computes.  Users can also
 write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f\_", a fix-ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the fix is used.  If a
 bracketed term is appended, the :math:`I^\text{th}` element of the global
@@ -306,7 +306,7 @@ By default, these header lines are as follows:
 
 .. parsed-literal::
 
-   # Time-correlated data for fix ID
+   # Time-correlated data for fix-ID
    # TimeStep Number-of-time-windows
    # Index TimeDelta Ncount valueI\*valueJ valueI\*valueJ ...
 

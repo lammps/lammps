@@ -12,9 +12,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID style chunkID arg
+   compute compute-ID group-ID style chunkID arg
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * style = *dipole/chunk* or *dipole/tip4p/chunk*
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * arg = *mass* or *geometry* = use COM or geometric center for charged chunk correction (optional)
@@ -59,11 +59,11 @@ corresponding parameters are extracted from the pair style.
 
 Note that only atoms in the specified group contribute to the
 calculation.  The :doc:`compute chunk/atom <compute_chunk_atom>` command
-defines its own group; atoms will have a chunk ID = 0 if they are not in
+defines its own group; atoms will have a chunk-ID = 0 if they are not in
 that group, signifying they are not assigned to a chunk, and will thus
 also not contribute to this calculation.  You can specify the "all"
 group for this command if you simply want to include atoms with non-zero
-chunk IDs.
+chunk-IDs.
 
 .. note::
 

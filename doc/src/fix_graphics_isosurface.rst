@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID graphics/isosurface Nevery isovalue radius keyword args ...
+   fix fix-ID group-ID graphics/isosurface Nevery isovalue radius keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * graphics/isosurface = style name of this fix command
 * Nevery = update graphics information every this many time steps
 * isovalue = isovalue for the particle property isosurface selection
@@ -54,7 +54,7 @@ with :doc:`dump image <dump_image>` using the *fix* keyword and
 optionally to output the computed mesh as a series of STL format files
 for external processing.
 
-The *group-ID* sets the group ID of the atoms selected to be represented
+The *group-ID* sets the group-ID of the atoms selected to be represented
 by the isosurface.  This may be a dynamic group.
 
 The *Nevery* keyword determines how often the isosurface graphics data

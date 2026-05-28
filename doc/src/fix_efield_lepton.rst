@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID efield/lepton V ...
+   fix fix-ID group-ID efield/lepton V ...
 
-* ID, group-ID are documented in the :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in the :doc:`fix <fix>` command
 * style = *efield/lepton*
 * V = electric potential (electric field * distance units)
 * V must be a Lepton expression (see below)

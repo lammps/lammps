@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID meso/move style args keyword values ...
+   fix fix-ID group-ID meso/move style args keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * meso/move = style name of this fix command
 * style = *linear* or *wiggle* or *rotate* or *variable*
 

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID box/relax keyword value ...
+   fix fix-ID group-ID box/relax keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * box/relax = style name of this fix command
 
   .. parsed-literal::

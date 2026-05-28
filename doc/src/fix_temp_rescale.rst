@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID temp/rescale N Tstart Tstop window fraction
+   fix fix-ID group-ID temp/rescale N Tstart Tstop window fraction
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * temp/rescale = style name of this fix command
 * N = perform rescaling every N steps
 * Tstart,Tstop = desired temperature at start/end of run (temperature units)

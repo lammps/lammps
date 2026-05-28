@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID drag x y z fmag delta
+   fix fix-ID group-ID drag x y z fmag delta
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * drag = style name of this fix command
 * x,y,z = coord to drag atoms towards
 * fmag = magnitude of force to apply to each atom (force units)

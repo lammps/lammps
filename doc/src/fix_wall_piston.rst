@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID wall/piston face ... keyword value ...
+   fix fix-ID group-ID wall/piston face ... keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/piston = style name of this fix command
 * face = *zlo*
 * zero or more keyword/value pairs may be appended

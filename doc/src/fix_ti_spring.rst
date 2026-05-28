@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID ti/spring k t_s t_eq keyword value ...
+   fix fix-ID group-ID ti/spring k t_s t_eq keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * ti/spring = style name of this fix command
 * k = spring constant (force/distance units)
 * t_eq = number of steps for the equilibration procedure

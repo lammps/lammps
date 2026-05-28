@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID displace/atom
+   compute compute-ID group-ID displace/atom
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * displace/atom = style name of this compute command
 * zero or more keyword/arg pairs may be appended
 * keyword = *refresh*

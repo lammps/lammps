@@ -9,7 +9,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-    fix ID group-ID charge/regulation cation_type anion_type keyword value(s)
+    fix fix-ID group-ID charge/regulation cation_type anion_type keyword value(s)
 
 * ID, group-ID are documented in fix command
 * charge/regulation = style name of this fix command
@@ -31,7 +31,7 @@ Syntax
      *base_type*  = atom type of base groups (integer or type label)
      *lunit_nm* value = unit length used by LAMMPS (# in the units of nanometers)
      *temp* value = temperature
-     *tempfixid* value = fix ID of temperature thermostat
+     *tempfixid* value = fix-ID of temperature thermostat
      *nevery* value = invoke this fix every nevery steps
      *nmc* value = number of charge regulation MC moves to attempt every nevery steps
      *rxd* value = cutoff distance for acid/base reaction
@@ -160,7 +160,7 @@ RIGID. The acid and base particles can be part of larger molecules or
 rigid bodies. Free ions that are inserted to or deleted from the system
 must be defined as single particles (no bonded interactions allowed) and
 cannot be part of larger molecules or rigid bodies. If an atom style
-with molecule IDs is used, all inserted ions have a molecule ID equal to
+with molecule-IDs is used, all inserted ions have a molecule-ID equal to
 zero.
 
 Note that LAMMPS implicitly assumes a constant number of particles

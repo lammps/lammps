@@ -8,9 +8,9 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID rheo/oxidation cut btype rsurf
+   fix fix-ID group-ID rheo/oxidation cut btype rsurf
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * rheo/oxidation = style name of this fix command
 * cut = maximum bond length (distance units)
 * btype = type of bonds created

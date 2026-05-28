@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID ave/chunk Nevery Nrepeat Nfreq chunkID value1 value2 ... keyword args ...
+   fix fix-ID group-ID ave/chunk Nevery Nrepeat Nfreq chunkID value1 value2 ... keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * ave/chunk = style name of this fix command
 * Nevery = use input values every this many timesteps
 * Nrepeat = # of times to use input values for calculating averages
@@ -128,7 +128,7 @@ processors.
 Note that only atoms in the specified group contribute to the summing
 and averaging calculations.  The :doc:`compute chunk/atom
 <compute_chunk_atom>` command defines its own group as well as an
-optional region.  Atoms will have a chunk ID = 0, meaning they belong
+optional region.  Atoms will have a chunk-ID = 0, meaning they belong
 to no chunk, if they are not in that group or region.  Thus you can
 specify the "all" group for this command if you simply want to use the
 chunk definitions provided by chunkID.
@@ -227,7 +227,7 @@ settings, as discussed below.
    simulation.  This fix forces the chunk/atom compute specified by chunkID to
    hold :math:`N_\text{chunk}` constant for the appropriate time windows,
    by not allowing it to re-calculate :math:`N_\text{chunk}`, which can also
-   affect how it assigns chunk IDs to atoms.  This is particularly important to
+   affect how it assigns chunk-IDs to atoms.  This is particularly important to
    understand if the chunks defined by the :doc:`compute chunk/atom
    <compute_chunk_atom>` command are spatial bins.  If its *units*
    keyword is set to *box* or *lattice*, then the number of bins
@@ -302,7 +302,7 @@ together as one set of atoms to calculate their temperature.  The
 compute allows the center-of-mass velocity of each chunk to be
 subtracted before calculating the temperature; this fix does not.
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c\_", a compute-ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
@@ -311,7 +311,7 @@ their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 See the discussion above for how I can be specified with a wildcard
 asterisk to effectively specify multiple values.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f\_", a fix-ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the fix is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
@@ -444,7 +444,7 @@ If *append* is used, then the filename is appended to if it already
 exists, or created if it does not exist.  Every :math:`N_\text{freq}`
 timesteps, a section of chunk info will be written to a text file in the
 following format.  A line with the timestep and number of chunks is
-written.  Then one line per chunk is written, containing the chunk ID
+written.  Then one line per chunk is written, containing the chunk-ID
 :math:`(1-N_\text{chunk}),` an optional original ID value, optional
 coordinate values for chunks that represent spatial bins, the number of
 atoms in the chunk, and one or more calculated values.  More explanation
@@ -471,7 +471,7 @@ By default, these header lines are as follows:
 
 .. parsed-literal::
 
-   # Chunk-averaged data for fix ID and group name
+   # Chunk-averaged data for fix-ID and group name
    # Timestep Number-of-chunks
    # Chunk (OrigID) (Coord1) (Coord2) (Coord3) Ncount value1 value2 ...
 
@@ -485,10 +485,10 @@ chunk style specified for the :doc:`compute chunk/atom
 <compute_chunk_atom>` command supports them.  The OrigID column is
 only used if the *compress* keyword was set to *yes* for the
 :doc:`compute chunk/atom <compute_chunk_atom>` command.  This means
-that the original chunk IDs (e.g., molecule IDs) will have been
-compressed to remove chunk IDs with no atoms assigned to them.  Thus a
-compressed chunk ID of 3 may correspond to an original chunk ID or
-molecule ID of 415.  The OrigID column will list 415 for the third chunk.
+that the original chunk-IDs (e.g., molecule-IDs) will have been
+compressed to remove chunk-IDs with no atoms assigned to them.  Thus a
+compressed chunk-ID of 3 may correspond to an original chunk-ID or
+molecule-ID of 415.  The OrigID column will list 415 for the third chunk.
 
 The CoordN columns only appear if a *binning* style was used in the
 :doc:`compute chunk/atom <compute_chunk_atom>` command.  For *bin/1d*,

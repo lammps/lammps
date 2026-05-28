@@ -3,12 +3,12 @@ Use chunks to calculate system properties
 
 In LAMMPS, "chunks" are collections of atoms, as defined by the
 :doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns
-each atom to a chunk ID (or to no chunk at all).  The number of chunks
-and the assignment of chunk IDs to atoms can be static or change over
+each atom to a chunk-ID (or to no chunk at all).  The number of chunks
+and the assignment of chunk-IDs to atoms can be static or change over
 time.  Examples of "chunks" are molecules or spatial bins or atoms
 with similar values (e.g. coordination number or potential energy).
 
-The per-atom chunk IDs can be used as input to two other kinds of
+The per-atom chunk-IDs can be used as input to two other kinds of
 commands, to calculate various properties of a system:
 
 * :doc:`fix ave/chunk <fix_ave_chunk>`
@@ -26,24 +26,24 @@ in the specified group and optional specified region are assigned to a
 chunk.  Here are some possible chunk definitions:
 
 +---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| atoms in same molecule                                  | chunk ID = molecule ID                                                                                                          |
+| atoms in same molecule                                  | chunk-ID = molecule-ID                                                                                                          |
 +---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| atoms of same atom type                                 | chunk ID = atom type                                                                                                            |
+| atoms of same atom type                                 | chunk-ID = atom type                                                                                                            |
 +---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| all atoms with same atom property (charge, radius, etc) | chunk ID = output of compute property/atom                                                                                      |
+| all atoms with same atom property (charge, radius, etc) | chunk-ID = output of compute property/atom                                                                                      |
 +---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| atoms in same cluster                                   | chunk ID = output of :doc:`compute cluster/atom <compute_cluster_atom>` command                                                 |
+| atoms in same cluster                                   | chunk-ID = output of :doc:`compute cluster/atom <compute_cluster_atom>` command                                                 |
 +---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| atoms in same spatial bin                               | chunk ID = bin ID                                                                                                               |
+| atoms in same spatial bin                               | chunk-ID = bin ID                                                                                                               |
 +---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| atoms in same rigid body                                | chunk ID = molecule ID used to define rigid bodies                                                                              |
+| atoms in same rigid body                                | chunk-ID = molecule-ID used to define rigid bodies                                                                              |
 +---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| atoms with similar potential energy                     | chunk ID = output of :doc:`compute pe/atom <compute_pe_atom>`                                                                   |
+| atoms with similar potential energy                     | chunk-ID = output of :doc:`compute pe/atom <compute_pe_atom>`                                                                   |
 +---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
-| atoms with same local defect structure                  | chunk ID = output of :doc:`compute centro/atom <compute_centro_atom>` or :doc:`compute coord/atom <compute_coord_atom>` command |
+| atoms with same local defect structure                  | chunk-ID = output of :doc:`compute centro/atom <compute_centro_atom>` or :doc:`compute coord/atom <compute_coord_atom>` command |
 +---------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------+
 
-Note that chunk IDs are integer values, so for atom properties or
+Note that chunk-IDs are integer values, so for atom properties or
 computes that produce a floating point value, they will be truncated
 to an integer.  You could also use the compute in a variable that
 scales the floating point value to spread it across multiple integers.
@@ -54,17 +54,17 @@ pencils, 3d bins = boxes, spherical bins, cylindrical bins.
 This compute also calculates the number of chunks *Nchunk*, which is
 used by other commands to tally per-chunk data.  *Nchunk* can be a
 static value or change over time (e.g. the number of clusters).  The
-chunk ID for an individual atom can also be static (e.g. a molecule
-ID), or dynamic (e.g. what spatial bin an atom is in as it moves).
+chunk-ID for an individual atom can also be static (e.g. a
+molecule-ID), or dynamic (e.g. what spatial bin an atom is in as it moves).
 
 Note that this compute allows the per-atom output of other
 :doc:`computes <compute>`, :doc:`fixes <fix>`, and :doc:`variables
-<variable>` to be used to define chunk IDs for each atom.  This means
+<variable>` to be used to define chunk-IDs for each atom.  This means
 you can write your own compute or fix to output a per-atom quantity to
-use as chunk ID.  See the :doc:`Modify <Modify>` doc pages for info on
+use as chunk-ID.  See the :doc:`Modify <Modify>` doc pages for info on
 how to do this.  You can also define a :doc:`per-atom variable
-<variable>` in the input script that uses a formula to generate a chunk
-ID for each atom.
+<variable>` in the input script that uses a formula to generate a
+chunk-ID for each atom.
 
 Fix ave/chunk command:
 ----------------------

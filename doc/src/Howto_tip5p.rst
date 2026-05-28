@@ -84,7 +84,7 @@ TIP5P water with a molecule file.  Because of using :doc:`fix
 rigid/small <fix_rigid>` no bonds need to be defined and thus no extra
 storage needs to be reserved for them, but we need to either switch to
 atom style full or use :doc:`fix property/atom mol <fix_property_atom>`
-so that fix rigid/small can identify rigid bodies by their molecule ID.
+so that fix rigid/small can identify rigid bodies by their molecule-ID.
 Also a :doc:`neigh_modify exclude <neigh_modify>` command is added to
 exclude computing intramolecular non-bonded interactions, since those
 are removed by the rigid fix anyway.  For simplicity and speed the

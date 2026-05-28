@@ -13,9 +13,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style_name keyword values ...
+   fix fix-ID group-ID style_name keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style_name = *tgnvt/drude* or *tgnpt/drude*
 * one or more keyword/values pairs may be appended
 

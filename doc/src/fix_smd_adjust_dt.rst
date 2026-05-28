@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID smd/adjust_dt arg
+   fix fix-ID group-ID smd/adjust_dt arg
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * smd/adjust_dt = style name of this fix command
 * arg = *s_fact*
 

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID pressure/alchemy fix-ID
+   compute compute-ID group-ID pressure/alchemy fix-ID
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * pressure/alchemy = style name of this compute command
 * fix-ID = ID of :doc:`fix alchemy <fix_alchemy>` command
 

@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID wall/region region-ID style args ... cutoff
+   fix fix-ID group-ID wall/region region-ID style args ... cutoff
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/region = style name of this fix command
 * region-ID = region whose boundary will act as wall
 * style = *lj93* or *lj126* or *lj1043* or *colloid* or *harmonic* or *morse*

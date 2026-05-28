@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID store/state N input1 input2 ... keyword value ...
+   fix fix-ID group-ID store/state N input1 input2 ... keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * store/state = style name of this fix command
 * N = store atom attributes every N steps, N = 0 for initial store only
 * input = one or more atom attributes
@@ -28,8 +28,8 @@ Syntax
 
   .. parsed-literal::
 
-           id = atom ID
-           mol = molecule ID
+           id = atom-ID
+           mol = molecule-ID
            type = atom type
            mass = atom mass
            x,y,z = unscaled atom coordinates
@@ -143,7 +143,7 @@ uninterrupted fashion.
 
    When reading data from a restart file, this fix command has to be specified
    **exactly** the same way as before. LAMMPS will only check whether a
-   fix is of the same style and has the same fix ID and in case of a match
+   fix is of the same style and has the same fix-ID and in case of a match
    will then try to initialize the fix with the data stored in the binary
    restart file.  If the fix store/state command does not match exactly,
    data can be corrupted or LAMMPS may crash.

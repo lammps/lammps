@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID composition/atom keyword values ...
+   compute compute-ID group-ID composition/atom keyword values ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * composition/atom = style name of this compute command
 * one or more keyword/value pairs may be appended
 

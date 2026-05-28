@@ -307,28 +307,6 @@ class FixIlves : public Fix {
   int     ilv_nmax_alloc;      // current outer (nmax) allocation
   void grow_ilv_bond(int nmax);
 
-  // Warm-start of c_lambda from the previous step.  Constraint indexing
-  // is stable between reneighbor calls, so storing c_lambda by index is
-  // safe within a reneighbor window.  build_constraint_list() resets
-  // lambda_warm_valid to 0 on reneighbor; solve_constraints() sets it to
-  // 1 after a successful Newton convergence.  When valid, the next call
-  // initializes c_lambda from the saved values (skip the zeroing) and
-  // applies the corresponding xshake correction before the Newton loop.
-  //
-  // Off by default (preserves bit-reproducibility against the YAML
-  // reference set).  Enable with 'warmstart yes' in the fix command:
-  // changes the iteration path and produces ULP-level (~5e-11) trajectory
-  // differences vs cold-start over 100 steps, but cuts iter counts in
-  // multi-rank Schwarz runs.
-  int lambda_warm_valid;
-  int warmstart_enabled;
-
-  // Newton-update damping factor.  Default 1.0 (no damping).  Lower
-  // values reduce |dlambda| applied per iteration -- useful when
-  // Schwarz iterations between ranks oscillate.  Set via the optional
-  // 'relax' keyword in the fix command.
-  double newton_relax;
-
   // Per-fix force buffer used by the stiff angle path under newton on
   // bond.  Sized to nmax * 3.  In apply_linear_angle_forces we write the
   // angle force trio (for all three atoms, some of which may be ghosts)

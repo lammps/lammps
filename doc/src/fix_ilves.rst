@@ -39,34 +39,7 @@ Syntax
        *linearangle* values = theta_deg [K]
          theta_deg = threshold in degrees above which an angle constraint
                      is skipped
-         K         = optional stiff angle force constant (energy units).
-                     When K > 0, near-linear angles are still tagged
-                     as "no AC constraint", but additionally the
-                     ``angle_type`` slot is negated (so the user's
-                     :doc:`angle_style <angle_style>` skips them) and
-                     ``fix ilves`` applies its own stiff angle force
-                     E = K * (1 + cos(theta)) -- the canonical
-                     "cosine" form with no 1/sin singularity at
-                     theta = 180.  K = 0 (default) leaves the
-                     angle_style force in place.
-       *warmstart* value = *yes* or *no*
-         *yes* initializes the Lagrange multipliers of each Newton solve
-         from the converged values of the previous timestep (with the
-         corresponding ``xshake`` position correction).  Reduces Newton
-         iteration counts on multi-rank runs whose convergence is slowed
-         by additive-Schwarz iteration between subdomains.  Discarded
-         automatically on reneighbor (constraint indexing is invalidated).
-         Default is *no*, which preserves bit-for-bit equivalence with
-         the original cold-start path used by the unit-test references;
-         enabling produces ULP-level (~5e-11) trajectory differences
-         that compound chaotically over many steps.
-       *relax* value = omega
-         omega = Newton-update damping factor in (0, 1], default 1.0.
-         Each Newton iteration's ``dlambda`` is scaled by omega before
-         being applied.  Values below 1 damp Schwarz-iteration
-         oscillations between ranks at the cost of slower per-iteration
-         progress; in practice on well-conditioned clusters
-         ``relax = 1.0`` converges fastest.
+         K         = optional stiff angle force constant if > 0 (energy units).
 
 Examples
 """"""""
@@ -252,17 +225,17 @@ threshold:
 
 .. code-block:: LAMMPS
 
-   fix cstr all ilves 1.0e-6 30 0 b 1 2 a 1 variant fast linearangle 165 5.0
+   fix cstr all ilves 1.0e-6 30 0 b 1 2 a 1 variant fast linearangle 165 50.0
 
 With ``K > 0``, near-linear angle types have their ``angle_type`` slot
-negated (so the user's angle_style skips them, the same way it does
-for ordinary constrained angles), and ``fix ilves`` applies
-:math:`E = K \,(1 + \cos\theta)` -- the standard "cosine" angle form,
-identical to LAMMPS :doc:`angle_style cosine <angle_cosine>`.  This
-form has its minimum at :math:`\theta = 180^\circ` and a non-vanishing
-restoring curvature there, with no :math:`1/\sin(\theta)` singularity
-in the force.  Useful when the rest of the system uses harmonic angles
-(which would blow up at :math:`\theta = 180^\circ`).
+negated (so the user's angle_style skips them, the same way it does for
+ordinary constrained angles), and ``fix ilves`` applies :math:`E = K
+\,(1 + \cos\theta)` -- the standard "cosine" angle form, identical to
+LAMMPS :doc:`angle_style cosine <angle_cosine>`.  This form has its
+minimum at :math:`\theta = 180^\circ` and a non-vanishing restoring
+curvature there, with no :math:`1/\sin(\theta)` singularity in the
+force.  Useful when the rest of the system uses harmonic or similar
+angle potentials that would blow up at :math:`\theta = 180^\circ`.
 
 Output info
 ^^^^^^^^^^^

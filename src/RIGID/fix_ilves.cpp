@@ -178,9 +178,6 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   newton_iter_sum = 0;
   newton_iter_max = 0;
   newton_solve_count = 0;
-  lambda_warm_valid = 0;
-  warmstart_enabled = 0;
-  newton_relax = 1.0;
   linear_threshold = 165.0;
   linear_angle_K = 0.0;
 
@@ -267,22 +264,20 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     else if ((strcmp(arg[next], "kbond")       == 0) ||
              (strcmp(arg[next], "store")       == 0) ||
              (strcmp(arg[next], "variant")     == 0) ||
-             (strcmp(arg[next], "linearangle") == 0) ||
-             (strcmp(arg[next], "relax")       == 0) ||
-             (strcmp(arg[next], "warmstart")   == 0)) {
+             (strcmp(arg[next], "linearangle") == 0)) {
       break;
 
     } else if (mode == 'b') {
       if (allow_typelabels) i = utils::expand_type_int(FLERR, arg[next], Atom::BOND, lmp);
       else                  i = utils::inumeric(FLERR, arg[next], false, lmp);
-      if (i < 1 || i > atom->nbondtypes)
+      if ((i < 1) || (i > atom->nbondtypes))
         error->all(FLERR, next, "Invalid bond type {} for fix ilves", arg[next]);
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
       if (allow_typelabels) i = utils::expand_type_int(FLERR, arg[next], Atom::ANGLE, lmp);
       else                  i = utils::inumeric(FLERR, arg[next], false, lmp);
-      if (i < 1 || i > atom->nangletypes)
+      if ((i < 1) || (i > atom->nangletypes))
         error->all(FLERR, next, "Invalid angle type {} for fix ilves", arg[next]);
       angle_flag[i] = 1;
       has_angle = true;
@@ -290,7 +285,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     } else if (mode == 't') {
       if (allow_typelabels) i = utils::expand_type_int(FLERR, arg[next], Atom::ATOM, lmp);
       else                  i = utils::inumeric(FLERR, arg[next], false, lmp);
-      if (i < 1 || i > atom->ntypes)
+      if ((i < 1) || (i > atom->ntypes))
         error->all(FLERR, next, "Invalid atom type {} for fix ilves", arg[next]);
       type_flag[i] = 1;
 
@@ -357,19 +352,6 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
           ++next;
         }
       }
-
-    } else if (strcmp(arg[next], "relax") == 0) {
-      if (next + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves relax", error);
-      newton_relax = utils::numeric(FLERR, arg[next + 1], false, lmp);
-      if (newton_relax <= 0.0 || newton_relax > 1.0)
-        error->all(FLERR, next + 1,
-                   "Fix ilves relax must be in (0, 1], got {}", newton_relax);
-      next += 2;
-
-    } else if (strcmp(arg[next], "warmstart") == 0) {
-      if (next + 2 > narg) utils::missing_cmd_args(FLERR, "fix ilves warmstart", error);
-      warmstart_enabled = utils::logical(FLERR, arg[next + 1], false, lmp);
-      next += 2;
 
     } else {
       error->all(FLERR, next, "Unknown fix ilves command option: {}", arg[next]);
@@ -1740,50 +1722,9 @@ bool FixIlves::solve_constraints()
 
   grow_lu_workspace(largest_cluster);
 
-  // Warm-start path.  If we have valid lambdas from the previous step
-  // (same constraint indexing -- no reneighbor since), use them as the
-  // initial guess and apply the implied position correction to xshake.
-  // Otherwise zero them.  Position correction matches the per-iter
-  // update used inside the Newton loop: xshake[a] += (lambda * c_invma * r),
-  // xshake[b] -= (lambda * c_invmb * r).  Skip 3-atom (angle) entries -- the
-  // angle Newton step has a different correction form and the warm-start
-  // bookkeeping for them is in solve_constraints_with_angle_pass().
-  if (warmstart_enabled && lambda_warm_valid) {
-    const int nlocal = atom->nlocal;
-    for (int k = 0; k < n_constr; ++k) {
-      if (c_type[k] < 0) {
-        // 3-atom virtual (angle midpoint): no simple gradient form here;
-        // best to start fresh.  (Pure-bond runs never hit this branch.)
-        c_lambda[k] = 0.0;
-        continue;
-      }
-      const double lam = c_lambda[k];
-      if (lam == 0.0) continue;
-      const int a = c_atom1[k];
-      const int b = c_atom2[k];
-      const double rx = c_rx[k];
-      const double ry = c_ry[k];
-      const double rz = c_rz[k];
-      const double dl_a = lam * c_invma[k];
-      const double dl_b = lam * c_invmb[k];
-      const int a_local = atom->map(atom->tag[a]);
-      const int b_local = atom->map(atom->tag[b]);
-      if (a_local >= 0 && a_local < nlocal) {
-        xshake[a_local][0] += dl_a * rx;
-        xshake[a_local][1] += dl_a * ry;
-        xshake[a_local][2] += dl_a * rz;
-      }
-      if (b_local >= 0 && b_local < nlocal) {
-        xshake[b_local][0] -= dl_b * rx;
-        xshake[b_local][1] -= dl_b * ry;
-        xshake[b_local][2] -= dl_b * rz;
-      }
-    }
-    // Sync ghost xshake so all ranks see the corrected initial guess
-    comm->forward_comm(this);
-  } else {
-    for (int k = 0; k < n_constr; ++k) c_lambda[k] = 0.0;
-  }
+  // Cold-start: zero c_lambda for every constraint.  Per-iter updates
+  // inside the Newton loop accumulate into these.
+  for (int k = 0; k < n_constr; ++k) c_lambda[k] = 0.0;
 
   // invalidate the per-cluster Cholesky factor cache: c_rx/c_ry/c_rz and
   // c_rsq were just recomputed in post_force, so every factor from the
@@ -1976,15 +1917,14 @@ bool FixIlves::solve_constraints()
 
       // apply d-lambda to xshake and accumulate c_lambda.  Route partner
       // updates to the LOCAL owner via atom->map(tag).  For a true MPI
-      // ghost (owner on another rank), atom->map returns the ghost index
-      // -- skip the partner update locally; the partner rank holds the
-      // same constraint and will update its local atom, and forward_comm
-      // at the end of the iteration brings the corrected ghost position
-      // back to this rank.  newton_relax (<= 1) damps the update to help
-      // Schwarz iterations converge across ranks; default 1.0.
+      // ghost (owner on another rank), atom->map returns the ghost
+      // index -- skip the partner update locally; the partner rank
+      // holds the same constraint and will update its local atom, and
+      // forward_comm at the end of the iteration brings the corrected
+      // ghost position back to this rank.
       for (int s = 0; s < n_c; ++s) {
         int k = c_perm[beg + s];
-        double dl = lu_b[s] * newton_relax;
+        double dl = lu_b[s];
         c_lambda[k] += dl;
         const int a = c_atom1[k];
         const int b = c_atom2[k];
@@ -2035,12 +1975,6 @@ bool FixIlves::solve_constraints()
   newton_iter_sum   += iters_used;
   if (iters_used > newton_iter_max) newton_iter_max = iters_used;
   newton_solve_count++;
-
-  // c_lambda now holds the converged multipliers; save as warm-start for
-  // the next step.  Discarded on the next reneighbor in build_constraint_list.
-  // Only meaningful when the warmstart keyword is enabled; otherwise the
-  // next call zeroes c_lambda regardless.
-  lambda_warm_valid = (warmstart_enabled && converged) ? 1 : 0;
 
   if (!converged && (comm->me == 0)) {
     error->warning(FLERR,
@@ -4482,10 +4416,6 @@ void FixIlves::build_constraint_list()
   // Schwarz overlap: refresh per-fix ilv_bond_* (local + ghost) so we
   // can walk the full halo's bond storage in the bond loop below.
   refresh_ilv_bond_data();
-
-  // Constraint indexing is about to change; the saved c_lambda from the
-  // previous step is no longer interpretable by index.  Discard.
-  lambda_warm_valid = 0;
 
   n_constr = 0;
 

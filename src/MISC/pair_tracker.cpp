@@ -531,11 +531,12 @@ void PairTracker::write_restart_settings(FILE *fp)
     fwrite(&flag, sizeof(int), 1, fp);
   }
 
-  int nsaved = saved_choices.size();
-  fwrite(&nsaved, sizeof(int), 1, fp);
   int n = strlen(id_fix_store_local) + 1;
   fwrite(&n, sizeof(int), 1, fp);
   fwrite(id_fix_store_local, sizeof(char), n, fp);
+
+  int nsaved = saved_choices.size();
+  fwrite(&nsaved, sizeof(int), 1, fp);
   for (int i : saved_choices)
     fwrite(&i, sizeof(int), 1, fp);
 }
@@ -551,14 +552,14 @@ void PairTracker::read_restart_settings(FILE *fp)
     utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &tmin, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &finitecutflag, sizeof(int), 1, fp, nullptr, error);
-    utils::sfread(FLERR, &type_filter_flag, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &store_local_freq, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &type_filter_flag, sizeof(int), 1, fp, nullptr, error);
   }
   MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
   MPI_Bcast(&tmin, 1, MPI_INT, 0, world);
   MPI_Bcast(&finitecutflag, 1, MPI_INT, 0, world);
-  MPI_Bcast(&type_filter_flag, 1, MPI_INT, 0, world);
   MPI_Bcast(&store_local_freq, 1, MPI_INT, 0, world);
+  MPI_Bcast(&type_filter_flag, 1, MPI_INT, 0, world);
 
   if (type_filter_flag) {
     int flag;
@@ -578,10 +579,6 @@ void PairTracker::read_restart_settings(FILE *fp)
     }
   }
 
-  if (comm->me == 0)
-    utils::sfread(FLERR, &nvalues_restart, sizeof(int), 1, fp, nullptr, error);
-  MPI_Bcast(&nvalues_restart, 1, MPI_INT, 0, world);
-
   int n;
   if (comm->me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&n, 1, MPI_INT, 0, world);
@@ -590,9 +587,17 @@ void PairTracker::read_restart_settings(FILE *fp)
   if (comm->me == 0) utils::sfread(FLERR, id_fix_store_local, sizeof(char), n, fp, nullptr, error);
   MPI_Bcast(id_fix_store_local, n, MPI_CHAR, 0, world);
 
+  if (comm->me == 0)
+    utils::sfread(FLERR, &nvalues_restart, sizeof(int), 1, fp, nullptr, error);
+  MPI_Bcast(&nvalues_restart, 1, MPI_INT, 0, world);
+
   saved_choices.clear();
   delete[] pack_choice;
   pack_choice = new FnPtrPack[nvalues_restart];
+
+  // Create instance here so it can be found by any subsequent references in input script
+  fix_store_local = dynamic_cast<FixStoreLocal *>(modify->add_fix(
+        fmt::format("{} all STORE/LOCAL {} {}", id_fix_store_local, store_local_freq, nvalues_restart)));
 
   int choice;
   for (int i = 0; i < nvalues_restart; i++) {

@@ -572,10 +572,10 @@ void FixIlves::init()
     error->all(FLERR, Error::NOLASTLINE,
                "Angle style must be defined for fix ilves with angle constraints");
 
-  // Variant-specific topology setup: the local variant validates that
-  // every constraint cluster fits within this rank's local-plus-ghost
-  // reach; the global variant does an MPI_Allgatherv over all bonds and
-  // angles.  Both fill angle_distance[] for the angle types selected.
+  // Topology setup: compute equilibrium AC distance for every selected
+  // angle type and consensus-check its flanking bond types across ranks.
+  // No global bond/angle gather -- each rank walks its own local angle
+  // storage and reduces by MPI_Allreduce(MAX) over the per-type pair.
   init_topology();
 
   // Identify near-linear angle types using the equilibrium geometry now
@@ -1717,25 +1717,27 @@ void FixIlves::grow_factor_cache()
 
 /* ----------------------------------------------------------------------
    Solve all constraints by ILVES Newton iteration.  For each cluster c:
-     - assemble the local n_c x n_c Jacobian A_c (structurally symmetric,
-       numerically asymmetric -- equals the exact Newton Jacobian)
+     - assemble the local n_c x n_c Jacobian A_c (variant=full uses the
+       exact-Newton asymmetric form; variant=fast uses the symmetric
+       quasi-Newton form whose factor is cached across iterations)
      - assemble the rhs as the current constraint residuals g_k
-     - LU-solve A_c * d-lambda = -g_c
+     - solve A_c * d-lambda = -g_c
      - update xshake using d-lambda
      - accumulate c_lambda[k] += d-lambda[k]
-   Iterate until max relative bond-length violation falls below tolerance
-   or max_iter is reached.
-
-   Returns true if converged.  Phase 2 implementation is serial-only; for
-   MPI the inter-cluster reduction will be added in Phase 4.
+   Iterate until the globally-reduced max relative bond-length
+   violation falls below tolerance, or max_iter is reached.  At
+   multi-rank the per-iteration forward_comm(xshake) propagates
+   inter-cluster updates between owner and peer ranks; the
+   MPI_Allreduce(MAX) on the residual keeps every rank's loop in
+   lockstep.  Returns true if converged.
 ------------------------------------------------------------------------- */
 
 bool FixIlves::solve_constraints()
 {
-  // NOTE: do NOT early-return on n_constr == 0.  Under the distributed-
-  // topology model (Strategy A) some ranks may have zero local constraints
-  // while others have many.  The forward_comm and MPI_Allreduce in the
-  // Newton iteration loop are collective, so all ranks must reach them in
+  // NOTE: do NOT early-return on n_constr == 0.  Under distributed
+  // topology some ranks may have zero local constraints while others
+  // have many.  The forward_comm and MPI_Allreduce in the Newton
+  // iteration loop are collective, so all ranks must reach them in
   // lockstep -- skipping the loop on empty ranks deadlocks the others.
 
   grow_lu_workspace(largest_cluster);
@@ -2053,16 +2055,17 @@ bool FixIlves::solve_constraints()
 
 /* ----------------------------------------------------------------------
    Convert the accumulated Lagrange multipliers into constraint forces
-   added to atom->f, so that the next initial_integrate puts the atoms at
-   the constrained xshake positions.
+   added to atom->f, so that the next initial_integrate puts the atoms
+   at the constrained xshake positions.
 
    For each constraint k = (a, b):
      f[a] += (lambda_k / dtfsq) * r_k
      f[b] -= (lambda_k / dtfsq) * r_k
-   Forces are applied only to atoms that are local (< nlocal).  For ghost
-   partners (MPI cross-rank bonds), the partner's owner rank applies its
-   own copy of the force; Phase 4 will add reverse_comm for newton_bond=1
-   cases where only one rank holds the constraint.
+   Forces are applied only to atoms that are local (< nlocal).  Cross-
+   rank constraints are owned by every participating rank after the
+   owner-to-peers broadcast in build_constraint_list, so each rank's
+   apply pass writes Newton-3rd-law-symmetric contributions to its own
+   local atoms.
 ------------------------------------------------------------------------- */
 
 void FixIlves::apply_constraint_forces(int vflag)
@@ -2447,10 +2450,8 @@ void FixIlves::grow_cluster_id(int n)
         pass via Allgather of "I locally own these cluster ids".)
 
    This function is called once per reneighbor, from build_constraint_list
-   after group_by_cluster + the existing constraint-list machinery.
-
-   Phase 1 only -- the comm graph and per-step gather/scatter are added
-   in subsequent commits.
+   after group_by_cluster.  The owner/peer assignment it produces drives
+   build_comm_graph and the per-cluster Alltoallv exchanges that follow.
 ------------------------------------------------------------------------- */
 
 void FixIlves::identify_cluster_owners()
@@ -2955,7 +2956,7 @@ void FixIlves::build_comm_graph()
 }
 
 /* ----------------------------------------------------------------------
-   Phase 2d: owner-to-peers broadcast of full cluster constraint set.
+   Owner-to-peers broadcast of full cluster constraint set.
 
    For every OWNED cluster c (cluster_owner_rank[c] == comm->me) we
    pack the FULL constraint set (owner's local constraints from
@@ -3892,8 +3893,9 @@ void FixIlves::reset_dt()
 }
 
 /* ----------------------------------------------------------------------
-   compute_scalar: total restraint energy (only nonzero during minimization;
-   Phase 5 will fill this with sum_k 0.5*kbond*(|r_ab|-d_k)^2)
+   compute_scalar: total restraint energy.  Only nonzero during
+   minimization, where min_post_force accumulates the harmonic
+   restraint sum sum_k 0.5*kbond*(|r_ab|-d_k)^2 into ebond.
 ------------------------------------------------------------------------- */
 
 double FixIlves::compute_scalar()
@@ -4038,18 +4040,21 @@ void FixIlves::stats()
 }
 
 /* ----------------------------------------------------------------------
-   init_topology: under Strategy A (distributed topology) we do not gather
-   a global bond/angle table.  Each rank already has its local atom storage
+   init_topology: under the distributed-topology model we do not gather
+   a global bond/angle table.  Each rank uses its own local atom storage
    (atom->bond_*, atom->angle_*); cross-rank constraint atoms are reached
-   via the LAMMPS ghost shell.  The only init-time work here is computing
-   angle_distance[at] for each constrained angle type from a per-rank scan
-   of local angles, with an MPI_Allreduce to agree across ranks on the
-   canonical flanking bond types (b1, b2) per angle type.
+   via the LAMMPS ghost shell.  The only init-time work here is
+   computing angle_distance[at] for each constrained angle type from a
+   per-rank scan of local angles, with MPI_Allreduce(MAX) to agree on
+   the canonical (b1, b2) flanking bond types per angle type.
 
-   newton_bond must be off (checked in init()).  That guarantees both
-   flanking bonds of any local angle are visible in the middle atom's
-   local bond storage, so this rank can resolve their types without a
-   communication round.
+   Newton on or off bond is supported.  Under newton off both endpoints
+   store every bond, so any rank with a local middle atom resolves the
+   flanking types directly.  Under newton on a bond is stored only at
+   the lower-tag endpoint -- if that endpoint is remote on this rank,
+   the middle's flanking-bond lookup returns 0 and the angle_btype1/2
+   cache (filled here from whichever rank does have the storage) is
+   used as the fallback in build_constraint_list.
 ------------------------------------------------------------------------- */
 
 void FixIlves::init_topology()
@@ -4302,11 +4307,12 @@ void FixIlves::check_topology_unchanged()
 
 /* ----------------------------------------------------------------------
    Look up the type of the bond between tags ta and tb by scanning the
-   local bond storage of either endpoint.  newton_bond must be off (checked
-   in init()), so both endpoints store the bond -- if either tag resolves
-   to a local index on this rank, we can read the type.  Returns 0 if the
-   bond is not visible locally (neither atom is local) or if no such bond
-   exists.
+   bond storage of either endpoint.  Under newton off both endpoints
+   store the bond; under newton on only the lower-tag endpoint does.
+   The per-fix ilv_bond_* arrays (refreshed at reneighbor and
+   forward_commed to ghosts) carry storage for halo atoms too, so a
+   newton-on bond is found whenever the lower-tag endpoint is in this
+   rank's halo.  Returns 0 if no such bond is visible locally.
 ------------------------------------------------------------------------- */
 
 int FixIlves::lookup_local_bond_type(tagint ta, tagint tb)
@@ -4385,7 +4391,7 @@ bool FixIlves::bond_is_constrained(tagint ta, tagint tb)
 
 /* ----------------------------------------------------------------------
    Build the flat constraint list from this rank's local atom bond/angle
-   storage (Strategy A: distributed topology, no global Allgatherv).
+   storage (distributed topology, no global gather).
 
    Bond pass.  Walk each local atom's bond storage; for every bond
    (i, partner_tag) with tag[i] < partner_tag (dedup under newton off),
@@ -4429,15 +4435,14 @@ void FixIlves::build_constraint_list()
   n_constr = 0;
 
   // ------------------------------------------------------------------
-  // Phase A: bond constraints with Schwarz overlap.  We walk EVERY atom
-  // in this rank's halo (local + ghost) using the per-fix ilv_bond_*
-  // arrays.  Dedup by `ti < tj` (lower-tag atom adds the constraint);
-  // this works because each bond is canonically stored at its lower-tag
-  // endpoint regardless of newton flag, plus the refresh has populated
-  // ghost-side storage so we can see ghost-ghost bonds visible in the
-  // halo.  Iteration via atom indices visits each unique tag once
-  // (filter by `atom->map(ti) == i` to skip non-canonical PBC ghost
-  // copies of the same tag).
+  // Bond pass.  Walk EVERY atom in this rank's halo (local + ghost)
+  // using the per-fix ilv_bond_* arrays.  Dedup by `ti < tj` (lower-tag
+  // atom adds the constraint); this works because each bond is
+  // canonically stored at its lower-tag endpoint regardless of newton
+  // flag, plus the refresh has populated ghost-side storage so we can
+  // see ghost-ghost bonds visible in the halo.  Iteration via atom
+  // indices visits each unique tag once (filter by `atom->map(ti) == i`
+  // to skip non-canonical PBC ghost copies of the same tag).
   // ------------------------------------------------------------------
   const int bpa = ilv_bond_per_atom;
   const int halo_end = nlocal_now + atom->nghost;
@@ -4466,7 +4471,7 @@ void FixIlves::build_constraint_list()
   }
 
   // ------------------------------------------------------------------
-  // Phase B: angle A-C virtual constraints.  Near-linear angle types
+  // Angle pass: A-C virtual constraints.  Near-linear angle types
   // (angle_linear[at] == 1) are silently skipped -- the AC entry would
   // be rank-deficient against the two flanking bonds; the standard
   // angle_style force-field term continues to act on those angles
@@ -4563,26 +4568,23 @@ void FixIlves::build_constraint_list()
 
   // connected-component labelling and cluster grouping
   group_by_cluster();
-  // determine the global owner of each local cluster (rank with the
-  // lowest-tag atom of the cluster) -- groundwork for single-rank
-  // cluster ownership.
+  // determine the global owner of each local cluster (rank holding the
+  // lowest-tag atom of the cluster).
   identify_cluster_owners();
-  // build the per-cluster MPI comm graph (Phase 2b) and broadcast the
-  // full cluster constraint set from owners to peers (Phase 2d) so
-  // every participating rank has the same cluster view.
+  // build the per-cluster comm graph and broadcast the full cluster
+  // constraint set from owner to peers so every participating rank
+  // has the same cluster view.
   build_comm_graph();
   const int n_added = broadcast_full_clusters_to_peers();
   if (n_added > 0) {
     // Constraint list grew on this rank.  Re-run group_by_cluster to
     // rebuild cluster_offset / c_perm for the augmented list, then
-    // re-run identify_cluster_owners so cluster_global_id
-    // and cluster_owner_rank match the new local cluster indices
-    // (used by the setup() owned/remote-count stats line, and by any
-    // future per-step ownership tracking).  The Phase 2b
-    // owner_peers_* / owned_aug_* arrays remain indexed by the OLD
-    // cluster IDs and would be stale here, but they've already been
-    // consumed by Phase 2d's broadcast and are rebuilt fresh at the
-    // next reneighbor.
+    // re-run identify_cluster_owners so cluster_global_id and
+    // cluster_owner_rank match the new local cluster indices (used
+    // by the setup() owned/remote-count stats).  The owner_peers_*
+    // / owned_aug_* arrays remain indexed by the OLD cluster IDs and
+    // would be stale here, but they've already been consumed by the
+    // broadcast and are rebuilt fresh at the next reneighbor.
     group_by_cluster();
     identify_cluster_owners();
   }

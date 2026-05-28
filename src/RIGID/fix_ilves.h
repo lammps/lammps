@@ -26,14 +26,14 @@ namespace LAMMPS_NS {
 
 class FixRespa;
 
-// ILVES bond/angle constraint solver.  Gathers the complete bond/angle
-// topology onto every MPI rank once at init via MPI_Allgatherv, then
-// builds a per-rank constraint list that includes every constraint
-// cluster intersecting at least one local atom -- even constraints
-// between two ghost atoms.  Supports arbitrary cluster topologies and
-// any spatial extent (clusters spanning many subdomains, e.g. an
-// all-backbone-constrained polymer).  The replicated topology is the
-// memory price for this generality.
+// ILVES bond/angle constraint solver.  Each rank builds its constraint
+// list from local bond/angle storage (no global topology gather).  At
+// every reneighbor, MPI_Alltoallv reconciles every shared cluster
+// between owner and peers so participating ranks all see the same
+// constraint set and solve the same Newton matrix.  Supports
+// arbitrary cluster topologies and any spatial extent (clusters
+// spanning multiple subdomains, e.g. an all-backbone-constrained
+// polymer); per-rank memory scales with this rank's local atom count.
 
 class FixIlves : public Fix {
 
@@ -138,7 +138,7 @@ class FixIlves : public Fix {
   int *c_type;       // bond type for bond entries, or -atype for the
                      // angle-derived AC virtual entry
   double *c_dist;    // target distance (not squared) for clarity
-  double *c_lambda;  // accumulated Lagrange multiplier (Phase 2+)
+  double *c_lambda;  // accumulated Lagrange multiplier
 
   // connected-component label for each constraint
   int *c_cluster;
@@ -393,14 +393,14 @@ class FixIlves : public Fix {
   void build_comm_graph();
   void free_comm_graph();
 
-  // Phase 2d: owner-to-peers broadcast of each owned cluster's FULL
-  // constraint set (owner's local + owned_aug_constr_*).  Each peer
-  // adds any constraints it doesn't already have (matched by tag
-  // pair).  This is the fix for cross-rank c_lambda inconsistency: it
-  // makes every participating rank's cluster view identical, so their
-  // per-cluster Newton matrices are identical, so they all produce
-  // the same c_lambda for every shared constraint.  Returns the
-  // number of constraints added locally on this rank.
+  // Owner-to-peers broadcast of each owned cluster's FULL constraint
+  // set (owner's local + owned_aug_constr_*).  Each peer adds any
+  // constraints it doesn't already have (matched by tag pair).  This
+  // is what eliminates cross-rank c_lambda inconsistency: every
+  // participating rank's cluster view becomes identical, so their
+  // per-cluster Newton matrices are identical, so they produce the
+  // same c_lambda for every shared constraint.  Returns the number of
+  // constraints added locally on this rank.
   int broadcast_full_clusters_to_peers();
 
   // Topology-change detection.  count_constrained_topology() walks local

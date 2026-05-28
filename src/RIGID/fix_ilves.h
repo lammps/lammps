@@ -55,11 +55,7 @@ class FixIlves : public Fix {
 
   double memory_usage() override;
   void grow_arrays(int) override;
-  void copy_arrays(int, int, int) override;
-  void set_arrays(int) override;
 
-  int pack_exchange(int, double *) override;
-  int unpack_exchange(int, double *) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
@@ -126,9 +122,9 @@ class FixIlves : public Fix {
   int maxstore;
   double **fstore;
 
-  // per-atom data (migrates with atoms)
-  int *ilves_flag;    // 1 if atom participates in any constrained bond/angle
-  double **xshake;    // working buffer for unconstrained-then-projected coords
+  // per-atom working buffer (sized to atom->nmax via grow_arrays); transient,
+  // re-filled at the start of every step in unconstrained_update before use.
+  double **xshake;
 
   // flat constraint list (rebuilt each reneighbor); all entries are
   // 2-atom distance constraints.  c_atom1[k] is normally a local atom
@@ -157,7 +153,6 @@ class FixIlves : public Fix {
   // cluster grouping (built alongside connected components in build_constraint_list)
   int *cluster_offset;           // size n_clusters+1, CSR-style ranges into c_perm
   int *c_perm;                   // size n_constr; c_perm[s] = global constraint id at slot s
-  int *c_slot;                   // size n_constr; inverse map: c_slot[k] = slot of constraint k
 
   // Newton workspace (sized to largest cluster)
   int lu_alloc;
@@ -189,7 +184,6 @@ class FixIlves : public Fix {
   int cluster_bw_alloc;
   char *cluster_cached;          // size n_clusters
   int cluster_cached_alloc;
-  int largest_bw;                // max bw across all clusters
 
   // pointers to atom-class quantities, refreshed at pre_neighbor / post_force
   double **x, **v, **f;
@@ -219,8 +213,7 @@ class FixIlves : public Fix {
   double *a_ave, *a_max, *a_min;
   double *a_ave_all, *a_max_all, *a_min_all;
 
-  // remember vflag from post_force for end-of-step bookkeeping
-  int vflag_post_force;
+  // remember eflag from min_pre_reverse for use in min_post_force / post_force
   int eflag_pre_reverse;
 
   // selector for pack_forward_comm: 0 = pack xshake, 1 = pack atom->v
@@ -373,12 +366,9 @@ class FixIlves : public Fix {
   // cluster_lat_idx[] of local atom indices in cluster c.
   //
   // For each OWNED cluster (cluster_owner_rank[c] == comm->me) we also
-  // record, per peer rank, the tags of atoms that peer holds locally
-  // in this cluster.  Owner_peers_off[c..c+1] is the slice in
-  // owner_peer_rank[]/owner_peer_tag_off[]/owner_peer_tag[] giving the
-  // peer-rank list for cluster c.  owner_peer_tag_off[p..p+1] slices
-  // owner_peer_tag[] for peer entry p.  (p indexes the global pool of
-  // (cluster, peer) entries.)
+  // record the list of peer ranks that hold atoms locally in this
+  // cluster.  owner_peers_off[c..c+1] is the slice in owner_peer_rank[]
+  // giving the peer-rank list for cluster c.
   //
   // For each PEER cluster (cluster_owner_rank[c] != comm->me) we
   // record (owner_rank, list of local atoms to send to owner).  The
@@ -389,39 +379,20 @@ class FixIlves : public Fix {
   int   cluster_lat_alloc_clusters;
   int   cluster_lat_alloc_idx;
 
-  int  *owner_peers_off;     // size n_clusters+1; slices owner_peer_*[].
+  int  *owner_peers_off;     // size n_clusters+1; slices owner_peer_rank[]
   int  *owner_peer_rank;     // peer rank for entry p
-  int  *owner_peer_tag_off;  // size n_owner_peer_entries+1
-  tagint *owner_peer_tag;    // flat pool of atom tags from peers
   int   owner_peers_alloc_clusters;
   int   owner_peer_alloc_entries;
-  int   owner_peer_alloc_tags;
   int   n_owner_peer_entries;
 
-  // Per-OWNED-cluster augmented data, populated by build_comm_graph
-  // from the peer messages.  Used by Phase 3's owner-only Newton solve.
-  //
-  // owned_aug_atom_off[c..c+1] slices owned_aug_atom_tag[] (the tags
-  // peers reported for this owned cluster).  These supplement the
-  // owner's locally-visible cluster atoms (which can be read directly
-  // from cluster_lat_idx for c and from c_atom1/c_atom2 of the
-  // owner's constraints).
-  //
-  // owned_aug_constr_off[c..c+1] slices the augmented constraint
-  // pool: owned_aug_constr_ta/tb/type/dist arrays carry the tag
-  // pairs, bond/angle type, and equilibrium distance for constraints
-  // contributed by peers (i.e., constraints whose c_atom1 is the
-  // peer's local atom and whose c_atom2 is also on the peer or is in
-  // the peer's halo but not in OUR halo).
-  int    *owned_aug_atom_off;
-  tagint *owned_aug_atom_tag;
-  int     owned_aug_atom_alloc;
-
+  // Per-OWNED-cluster augmented constraint data, populated by
+  // build_comm_graph from the peer messages.  Owner uses
+  // owned_aug_constr_ta/tb/type to pack the broadcast back to peers in
+  // broadcast_full_clusters_to_peers.
   int    *owned_aug_constr_off;
   tagint *owned_aug_constr_ta;
   tagint *owned_aug_constr_tb;
   int    *owned_aug_constr_type;
-  double *owned_aug_constr_dist;
   int     owned_aug_constr_alloc;
 
   void build_comm_graph();
@@ -487,7 +458,7 @@ class FixIlves : public Fix {
 
   // Run per-cluster reverse Cuthill-McKee on the constraint-adjacency
   // graph (constraints share an edge iff they share an atom), and apply
-  // the resulting permutation to c_perm and c_slot.  Fills cluster_bw[]
+  // the resulting permutation to c_perm.  Fills cluster_bw[]
   // with the post-RCM bandwidth of each cluster.  Called from
   // precompute_constraint_data() before grow_factor_cache().
   void rcm_reorder_clusters();

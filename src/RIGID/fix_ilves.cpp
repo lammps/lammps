@@ -108,10 +108,10 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr), type_flag(nullptr),
     mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr), angle_r1(nullptr),
     angle_r2(nullptr), angle_linear(nullptr), fstore(nullptr),
-    ilves_flag(nullptr), xshake(nullptr), c_atom1(nullptr), c_atom2(nullptr),
+    xshake(nullptr), c_atom1(nullptr), c_atom2(nullptr),
     c_type(nullptr), c_dist(nullptr), c_lambda(nullptr), c_cluster(nullptr), c_rx(nullptr),
     c_ry(nullptr), c_rz(nullptr), c_rsq(nullptr), c_invma(nullptr), c_invmb(nullptr),
-    cluster_offset(nullptr), c_perm(nullptr), c_slot(nullptr), lu_A(nullptr),
+    cluster_offset(nullptr), c_perm(nullptr), lu_A(nullptr),
     lu_b(nullptr), lu_pivot(nullptr), cl_sx(nullptr), cl_sy(nullptr), cl_sz(nullptr),
     chol_pool(nullptr), chol_pool_offset(nullptr), cluster_bw(nullptr), cluster_cached(nullptr),
     x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr), type(nullptr),
@@ -141,20 +141,13 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   cluster_lat_alloc_idx = 0;
   owner_peers_off = nullptr;
   owner_peer_rank = nullptr;
-  owner_peer_tag_off = nullptr;
-  owner_peer_tag = nullptr;
   owner_peers_alloc_clusters = 0;
   owner_peer_alloc_entries = 0;
-  owner_peer_alloc_tags = 0;
   n_owner_peer_entries = 0;
-  owned_aug_atom_off = nullptr;
-  owned_aug_atom_tag = nullptr;
-  owned_aug_atom_alloc = 0;
   owned_aug_constr_off = nullptr;
   owned_aug_constr_ta = nullptr;
   owned_aug_constr_tb = nullptr;
   owned_aug_constr_type = nullptr;
-  owned_aug_constr_dist = nullptr;
   owned_aug_constr_alloc = 0;
   ilv_num_bond = nullptr;
   ilv_bond_atom = nullptr;
@@ -173,18 +166,14 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   chol_offset_alloc = 0;
   cluster_bw_alloc = 0;
   cluster_cached_alloc = 0;
-  largest_bw = 0;
   energy_global_flag = energy_peratom_flag = 1;
   virial_global_flag = virial_peratom_flag = 1;
   thermo_energy = thermo_virial = 1;
-  create_attribute = 1;
   dof_flag = 1;
   scalar_flag = 1;
   extscalar = 1;
-  stores_ids = 1;
   next_output = -1;
 
-  vflag_post_force = 0;
   eflag_pre_reverse = 0;
   ebond = 0.0;
   has_angle = false;
@@ -448,7 +437,6 @@ FixIlves::~FixIlves()
   delete[] a_max;       delete[] a_max_all;
   delete[] a_min;       delete[] a_min_all;
 
-  memory->destroy(ilves_flag);
   memory->destroy(xshake);
   memory->destroy(fstore);
   memory->destroy(lang_fbuf);
@@ -460,15 +448,10 @@ FixIlves::~FixIlves()
   memory->destroy(cluster_lat_idx);
   memory->destroy(owner_peers_off);
   memory->destroy(owner_peer_rank);
-  memory->destroy(owner_peer_tag_off);
-  memory->destroy(owner_peer_tag);
-  memory->destroy(owned_aug_atom_off);
-  memory->destroy(owned_aug_atom_tag);
   memory->destroy(owned_aug_constr_off);
   memory->destroy(owned_aug_constr_ta);
   memory->destroy(owned_aug_constr_tb);
   memory->destroy(owned_aug_constr_type);
-  memory->destroy(owned_aug_constr_dist);
   memory->destroy(ilv_num_bond);
   memory->destroy(ilv_bond_atom);
   memory->destroy(ilv_bond_type);
@@ -487,7 +470,6 @@ FixIlves::~FixIlves()
   memory->destroy(c_invmb);
   memory->destroy(cluster_offset);
   memory->destroy(c_perm);
-  memory->destroy(c_slot);
   memory->destroy(lu_A);
   memory->destroy(lu_b);
   memory->destroy(lu_pivot);
@@ -782,15 +764,13 @@ void FixIlves::setup(int vflag)
   int owned_info_all[2];
   MPI_Reduce(owned_info, owned_info_all, 2, MPI_INT, MPI_SUM, 0, world);
 
-  // Phase 2b stats: per-cluster comm graph extent.
+  // Comm-graph extent: number of (cluster, peer-rank) entries this rank
+  // owns plus the augmented-constraint count contributed by peers.
   int my_peer_entries = n_owner_peer_entries;
-  int my_peer_tags = (n_owner_peer_entries > 0)
-                       ? owner_peer_tag_off[n_owner_peer_entries] : 0;
-  int my_aug_atoms = (n_clusters > 0) ? owned_aug_atom_off[n_clusters] : 0;
   int my_aug_constr = (n_clusters > 0) ? owned_aug_constr_off[n_clusters] : 0;
-  int peer_info[4] = {my_peer_entries, my_peer_tags, my_aug_atoms, my_aug_constr};
-  int peer_info_all[4];
-  MPI_Reduce(peer_info, peer_info_all, 4, MPI_INT, MPI_SUM, 0, world);
+  int peer_info[2] = {my_peer_entries, my_aug_constr};
+  int peer_info_all[2];
+  MPI_Reduce(peer_info, peer_info_all, 2, MPI_INT, MPI_SUM, 0, world);
 
   if (comm->me == 0)
     utils::logmesg(lmp, "Fix ilves info:\n"
@@ -799,13 +779,11 @@ void FixIlves::setup(int vflag)
                    "  {} clusters/proc\n"
                    "  {} max. constraints/cluster\n"
                    "  {} owned + {} remote clusters (global)\n"
-                   "  {} owner-peer entries, {} atom tags (global)\n"
-                   "  {} augmented atoms, {} augmented constraints (global)\n",
+                   "  {} owner-peer entries, {} augmented constraints (global)\n",
                    (variant == ILVES_FULL) ? "ILVES (full, LU)" : "ILVES (fast, banded Cholesky)",
                    n_info_all[0], n_info_all[1], n_max_all,
                    owned_info_all[0], owned_info_all[1],
-                   peer_info_all[0], peer_info_all[1],
-                   peer_info_all[2], peer_info_all[3]);
+                   peer_info_all[0], peer_info_all[1]);
 
   // At setup we need a different dtfsq convention than during normal stepping:
   //
@@ -947,7 +925,7 @@ bool FixIlves::bond_selected_for_atoms(int ia, int ib, int bt)
 
 /* ----------------------------------------------------------------------
    Union-find over the constraint graph, then sort constraints so that
-   constraints belonging to the same cluster are contiguous in c_perm/c_slot.
+   constraints belonging to the same cluster are contiguous in c_perm.
    For cluster-ID purposes we canonicalize ghost periodic images via
    atom->map(atom->tag[idx]) so that the same physical atom always maps
    to the same index in the union-find.
@@ -1013,7 +991,6 @@ void FixIlves::group_by_cluster()
     int c = c_cluster[k];
     int s = cursor[c]++;
     c_perm[s] = k;
-    c_slot[k] = s;
   }
 
   // track largest cluster size for workspace sizing
@@ -1067,8 +1044,8 @@ void FixIlves::precompute_constraint_data()
 /* ----------------------------------------------------------------------
    Per-cluster reverse Cuthill-McKee on the constraint-adjacency graph
    (two constraints share a graph edge iff they share an atom).  Applies
-   the resulting permutation in-place to c_perm and c_slot, then computes
-   each cluster's bandwidth (max over edges (k,l) with k<l of slot_l-slot_k
+   the resulting permutation in-place to c_perm, then computes each
+   cluster's bandwidth (max over edges (k,l) with k<l of slot_l-slot_k
    in the new ordering) and stores it in cluster_bw[].
 
    The natural cluster ordering (insertion order from group_by_cluster)
@@ -1083,10 +1060,7 @@ void FixIlves::precompute_constraint_data()
 
 void FixIlves::rcm_reorder_clusters()
 {
-  if (n_clusters == 0) {
-    largest_bw = 0;
-    return;
-  }
+  if (n_clusters == 0) return;
 
   if (n_clusters > cluster_bw_alloc) {
     cluster_bw_alloc = n_clusters;
@@ -1105,8 +1079,6 @@ void FixIlves::rcm_reorder_clusters()
   std::vector<int> level_start;
   std::vector<int> old_to_new;
   std::vector<int> old_perm;
-
-  largest_bw = 0;
 
   for (int c = 0; c < n_clusters; ++c) {
     const int beg = cluster_offset[c];
@@ -1192,14 +1164,13 @@ void FixIlves::rcm_reorder_clusters()
     old_to_new.assign(n_c, -1);
     for (int s = 0; s < n_c; ++s) old_to_new[rcm_order[s]] = s;
 
-    // apply permutation to c_perm[beg..end) and update c_slot[]
+    // apply permutation to c_perm[beg..end)
     old_perm.assign(n_c, 0);
     for (int s = 0; s < n_c; ++s) old_perm[s] = c_perm[beg + s];
     for (int s = 0; s < n_c; ++s) {
       int new_slot_for_old_s = old_to_new[s];
       c_perm[beg + new_slot_for_old_s] = old_perm[s];
     }
-    for (int s = 0; s < n_c; ++s) c_slot[c_perm[beg + s]] = beg + s;
 
     // bandwidth in the new ordering
     int bw_c = 0;
@@ -1213,7 +1184,6 @@ void FixIlves::rcm_reorder_clusters()
       }
     }
     cluster_bw[c] = bw_c;
-    if (bw_c > largest_bw) largest_bw = bw_c;
   }
 }
 
@@ -1249,7 +1219,6 @@ void FixIlves::grow_constraint_list(int newcap)
   memory->grow(c_invma,   max_constr, "ilves:c_invma");
   memory->grow(c_invmb,   max_constr, "ilves:c_invmb");
   memory->grow(c_perm,    max_constr, "ilves:c_perm");
-  memory->grow(c_slot,    max_constr, "ilves:c_slot");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1335,8 +1304,6 @@ void FixIlves::post_force(int vflag)
 
   // optional stiff angle force for near-linear angles (when linearangle K > 0)
   apply_linear_angle_forces(vflag);
-
-  vflag_post_force = vflag;
 }
 
 /* ----------------------------------------------------------------------
@@ -1447,8 +1414,6 @@ void FixIlves::post_force_respa(int vflag, int ilevel, int iloop)
   solve_constraints();
   apply_constraint_forces(vflag);
   apply_linear_angle_forces(vflag);
-
-  vflag_post_force = vflag;
 }
 
 /* ----------------------------------------------------------------------
@@ -2668,9 +2633,10 @@ void FixIlves::identify_cluster_owners()
            - OWNED clusters: tells us which local atoms WE see (the
              rest come from peers via the per-step gather).
 
-     (b) owner_peers_off[]/owner_peer_rank[]/owner_peer_tag_off[]/
-         owner_peer_tag[] -- for each OWNED cluster, the list of peer
-         ranks that hold atoms locally, with the tags of those atoms.
+     (b) owner_peers_off[]/owner_peer_rank[]/owner_peer_tag_off[] --
+         for each OWNED cluster, the list of peer ranks that hold atoms
+         locally, plus a running cumulative count of those atoms (the
+         tags themselves are not stored).
 
    Built via point-to-point exchange (MPI_Alltoallv): each peer rank
    sends to each owner rank a packed buffer of (global_id, n_tags,
@@ -2834,35 +2800,32 @@ void FixIlves::build_comm_graph()
     if (cluster_owner_rank[c] == me)
       owned_gid_to_c[cluster_global_id[c]] = c;
 
-  // First pass: count peer entries per owned cluster and total tags.
+  // First pass: count peer entries per owned cluster.
   memory->grow(owner_peers_off, n_clusters + 1, "ilves:owner_peers_off");
   owner_peers_alloc_clusters = n_clusters;
   for (int c = 0; c <= n_clusters; ++c) owner_peers_off[c] = 0;
 
   // We'll buffer the parsed entries first so we can build CSR neatly.
-  // Each entry remembers where its tags and constraints are in
-  // recv_flat[] so the actual copy is deferred to the second pass.
+  // Each entry remembers where its constraints are in recv_flat[] so
+  // the actual copy is deferred to the second pass.  Peer-reported atom
+  // tags (the second wire-format field) are skipped over: we no longer
+  // store them on the owner side.
   struct PendingEntry {
-    int c;          // owned cluster index
-    int peer;       // source rank
-    int tag_start;  // offset in recv_flat[] for atom tags
-    int n_tags;
+    int c;            // owned cluster index
+    int peer;         // source rank
     int constr_start; // offset in recv_flat[] for the (ta, tb, type) triples
     int n_constr;
   };
   std::vector<PendingEntry> pending;
   pending.reserve((size_t) recv_total / 7);  // rough estimate
 
-  int tag_pool_total = 0;
-  int constr_pool_total = 0;
   for (int p = 0; p < nprocs; ++p) {
     int pos = recv_displs[p];
     const int end = pos + recv_counts[p];
     while (pos < end) {
       const tagint gid = recv_flat[pos++];
       const int nlat = (int) recv_flat[pos++];
-      const int tag_pos = pos;
-      pos += nlat;
+      pos += nlat;                       // skip peer's atom-tag list
       const int nconstr = (int) recv_flat[pos++];
       const int constr_pos = pos;
       pos += 3 * nconstr;
@@ -2871,14 +2834,10 @@ void FixIlves::build_comm_graph()
         PendingEntry e;
         e.c = it->second;
         e.peer = p;
-        e.tag_start = tag_pos;
-        e.n_tags = nlat;
         e.constr_start = constr_pos;
         e.n_constr = nconstr;
         pending.push_back(e);
         ++owner_peers_off[e.c + 1];
-        tag_pool_total += nlat;
-        constr_pool_total += nconstr;
       }
     }
   }
@@ -2896,74 +2855,44 @@ void FixIlves::build_comm_graph()
   memory->grow(owner_peer_rank,
                total_peer_entries > 0 ? total_peer_entries : 1,
                "ilves:owner_peer_rank");
-  memory->grow(owner_peer_tag_off,
-               total_peer_entries > 0 ? total_peer_entries + 1 : 1,
-               "ilves:owner_peer_tag_off");
   owner_peer_alloc_entries = total_peer_entries;
 
-  memory->grow(owner_peer_tag,
-               tag_pool_total > 0 ? tag_pool_total : 1,
-               "ilves:owner_peer_tag");
-  owner_peer_alloc_tags = tag_pool_total;
-
-  // Second pass: place pending entries into CSR (atom tags only).
+  // Second pass: record peer rank per entry.
   std::vector<int> ec_cursor(n_clusters, 0);
   for (int c = 0; c < n_clusters; ++c) ec_cursor[c] = owner_peers_off[c];
 
-  int tag_cursor = 0;
   for (const auto &e : pending) {
     const int slot = ec_cursor[e.c]++;
     owner_peer_rank[slot] = e.peer;
-    owner_peer_tag_off[slot] = tag_cursor;
-    for (int t = 0; t < e.n_tags; ++t)
-      owner_peer_tag[tag_cursor + t] = recv_flat[e.tag_start + t];
-    tag_cursor += e.n_tags;
   }
-  owner_peer_tag_off[total_peer_entries] = tag_cursor;
 
-  // ---------- Build owned_aug_atom_* and owned_aug_constr_* ----------
-  // Per OWNED cluster, the augmented atom list contains peer-reported
-  // tags that the owner does NOT already see in its halo
-  // (atom->map(tag) < 0 means truly remote, beyond ghost shell).
-  // The augmented constraint list contains peer-reported constraints
-  // (by tag pair) that the owner does not already have in c_atom1/
-  // c_atom2 of its OWN constraints in the same cluster.
+  // ---------- Build owned_aug_constr_* ----------
+  // Per OWNED cluster, the augmented constraint list contains peer-
+  // reported constraints (by tag pair) that the owner does not already
+  // have in c_atom1/c_atom2 of its OWN constraints in the same cluster.
 
-  memory->grow(owned_aug_atom_off, n_clusters + 1, "ilves:owned_aug_atom_off");
   memory->grow(owned_aug_constr_off, n_clusters + 1, "ilves:owned_aug_constr_off");
-  for (int c = 0; c <= n_clusters; ++c) {
-    owned_aug_atom_off[c] = 0;
-    owned_aug_constr_off[c] = 0;
-  }
+  for (int c = 0; c <= n_clusters; ++c) owned_aug_constr_off[c] = 0;
 
-  // First pass: count augmented atoms/constraints per cluster (dedup).
-  // To dedup atoms, use a per-tag mark via a small hash set.  To dedup
-  // constraints, build a set of owner's already-present (ta, tb) pairs
-  // for each owned cluster (tag pair normalized as (min, max)).
-  // We do this cluster-by-cluster from pending.
+  // First pass: count augmented constraints per cluster (dedup against
+  // owner's already-present (ta, tb) pairs in the same cluster).
 
   // Group pending entries by cluster (already CSR-ordered).
   std::vector<std::vector<int> > pending_by_c(n_clusters);
   for (int i = 0; i < (int) pending.size(); ++i)
     pending_by_c[pending[i].c].push_back(i);
 
-  // Pre-scan to size pools.
-  int aug_atom_total = 0;
+  auto pair_key = [](tagint a, tagint b) -> uint64_t {
+    uint64_t lo = (uint64_t)((a < b) ? a : b);
+    uint64_t hi = (uint64_t)((a < b) ? b : a);
+    return (lo << 32) ^ hi;
+  };
+
   int aug_constr_total = 0;
   for (int c = 0; c < n_clusters; ++c) {
     if (cluster_owner_rank[c] != me) continue;
     if (pending_by_c[c].empty()) continue;
 
-    // Build seen-atom-tag set for this cluster (start with what owner
-    // already sees: atom->map(tag) returns a non-negative index).
-    std::unordered_set<tagint> seen_atoms;
-    // Build seen-constraint-pair set for owner's local constraints of
-    // this cluster.
-    auto pair_key = [](tagint a, tagint b) -> uint64_t {
-      uint64_t lo = (uint64_t)((a < b) ? a : b);
-      uint64_t hi = (uint64_t)((a < b) ? b : a);
-      return (lo << 32) ^ hi;
-    };
     std::unordered_set<uint64_t> seen_constr;
     const int kbeg = cluster_offset[c];
     const int kend = cluster_offset[c + 1];
@@ -2972,19 +2901,9 @@ void FixIlves::build_comm_graph()
       seen_constr.insert(pair_key(tag[c_atom1[k]], tag[c_atom2[k]]));
     }
 
-    int nau = 0, ncn = 0;
+    int ncn = 0;
     for (int idx : pending_by_c[c]) {
       const auto &e = pending[idx];
-      // Atoms: count tags not already in halo (or already seen for
-      // this cluster).
-      for (int t = 0; t < e.n_tags; ++t) {
-        const tagint tg = recv_flat[e.tag_start + t];
-        if (seen_atoms.count(tg)) continue;
-        if (atom->map(tg) >= 0) continue;          // visible in halo
-        seen_atoms.insert(tg);
-        ++nau;
-      }
-      // Constraints: count new (ta, tb) pairs.
       for (int t = 0; t < e.n_constr; ++t) {
         const tagint ta = recv_flat[e.constr_start + 3*t + 0];
         const tagint tb = recv_flat[e.constr_start + 3*t + 1];
@@ -2994,22 +2913,14 @@ void FixIlves::build_comm_graph()
         ++ncn;
       }
     }
-    owned_aug_atom_off[c + 1] = nau;
     owned_aug_constr_off[c + 1] = ncn;
-    aug_atom_total += nau;
     aug_constr_total += ncn;
   }
 
   // Prefix-sum.
-  for (int c = 0; c < n_clusters; ++c) {
-    owned_aug_atom_off[c + 1] += owned_aug_atom_off[c];
+  for (int c = 0; c < n_clusters; ++c)
     owned_aug_constr_off[c + 1] += owned_aug_constr_off[c];
-  }
 
-  memory->grow(owned_aug_atom_tag,
-               aug_atom_total > 0 ? aug_atom_total : 1,
-               "ilves:owned_aug_atom_tag");
-  owned_aug_atom_alloc = aug_atom_total;
   memory->grow(owned_aug_constr_ta,
                aug_constr_total > 0 ? aug_constr_total : 1,
                "ilves:owned_aug_constr_ta");
@@ -3019,29 +2930,17 @@ void FixIlves::build_comm_graph()
   memory->grow(owned_aug_constr_type,
                aug_constr_total > 0 ? aug_constr_total : 1,
                "ilves:owned_aug_constr_type");
-  memory->grow(owned_aug_constr_dist,
-               aug_constr_total > 0 ? aug_constr_total : 1,
-               "ilves:owned_aug_constr_dist");
   owned_aug_constr_alloc = aug_constr_total;
 
-  // Second pass: fill the augmented pools.
-  std::vector<int> aug_atom_cursor(n_clusters, 0);
+  // Second pass: fill the augmented constraint pool.
   std::vector<int> aug_constr_cursor(n_clusters, 0);
-  for (int c = 0; c < n_clusters; ++c) {
-    aug_atom_cursor[c] = owned_aug_atom_off[c];
+  for (int c = 0; c < n_clusters; ++c)
     aug_constr_cursor[c] = owned_aug_constr_off[c];
-  }
 
   for (int c = 0; c < n_clusters; ++c) {
     if (cluster_owner_rank[c] != me) continue;
     if (pending_by_c[c].empty()) continue;
 
-    std::unordered_set<tagint> seen_atoms;
-    auto pair_key = [](tagint a, tagint b) -> uint64_t {
-      uint64_t lo = (uint64_t)((a < b) ? a : b);
-      uint64_t hi = (uint64_t)((a < b) ? b : a);
-      return (lo << 32) ^ hi;
-    };
     std::unordered_set<uint64_t> seen_constr;
     const int kbeg = cluster_offset[c];
     const int kend = cluster_offset[c + 1];
@@ -3052,13 +2951,6 @@ void FixIlves::build_comm_graph()
 
     for (int idx : pending_by_c[c]) {
       const auto &e = pending[idx];
-      for (int t = 0; t < e.n_tags; ++t) {
-        const tagint tg = recv_flat[e.tag_start + t];
-        if (seen_atoms.count(tg)) continue;
-        if (atom->map(tg) >= 0) continue;
-        seen_atoms.insert(tg);
-        owned_aug_atom_tag[aug_atom_cursor[c]++] = tg;
-      }
       for (int t = 0; t < e.n_constr; ++t) {
         const tagint ta = recv_flat[e.constr_start + 3*t + 0];
         const tagint tb = recv_flat[e.constr_start + 3*t + 1];
@@ -3070,13 +2962,6 @@ void FixIlves::build_comm_graph()
         owned_aug_constr_ta[slot] = ta;
         owned_aug_constr_tb[slot] = tb;
         owned_aug_constr_type[slot] = ty;
-        // Look up equilibrium distance from the type tables.
-        // Positive ty -> bond type; negative -> angle virtual.
-        if (ty > 0) {
-          owned_aug_constr_dist[slot] = bond_distance[ty];
-        } else {
-          owned_aug_constr_dist[slot] = angle_distance[-ty];
-        }
       }
     }
   }
@@ -3104,7 +2989,7 @@ void FixIlves::build_comm_graph()
 
    Returns the number of constraints added on this rank.  When
    non-zero, build_constraint_list re-runs group_by_cluster() so
-   cluster_offset / c_perm / c_slot reflect the augmented list.
+   cluster_offset / c_perm reflect the augmented list.
 ------------------------------------------------------------------------- */
 
 int FixIlves::broadcast_full_clusters_to_peers()
@@ -3245,8 +3130,6 @@ int FixIlves::broadcast_full_clusters_to_peers()
 
         add_constraint(a_idx, b_idx, ty, dist);
         c_cluster[n_constr - 1] = c;  // join peer's existing cluster
-        ilves_flag[a_idx] = 1;
-        ilves_flag[b_idx] = 1;
         seen_global.insert(key);
         ++n_added;
       }
@@ -3798,7 +3681,6 @@ void FixIlves::min_post_force(int vflag)
 double FixIlves::memory_usage()
 {
   double bytes = 0.0;
-  bytes += (double) atom->nmax * sizeof(int);          // ilves_flag
   bytes += (double) atom->nmax * 3 * sizeof(double);   // xshake
   if (store_flag) bytes += (double) maxstore * 3 * sizeof(double);
   bytes += (double) max_constr * (5*sizeof(int) + 3*sizeof(double));
@@ -3813,34 +3695,8 @@ double FixIlves::memory_usage()
 
 void FixIlves::grow_arrays(int nmax)
 {
-  memory->grow(ilves_flag, nmax, "ilves:ilves_flag");
   memory->destroy(xshake);
   memory->create(xshake, nmax, 3, "ilves:xshake");
-}
-
-void FixIlves::copy_arrays(int i, int j, int /*delflag*/)
-{
-  ilves_flag[j] = ilves_flag[i];
-  // xshake is a transient working buffer rebuilt each step; no need to copy.
-}
-
-void FixIlves::set_arrays(int i)
-{
-  ilves_flag[i] = 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixIlves::pack_exchange(int i, double *buf)
-{
-  buf[0] = (double) ilves_flag[i];
-  return 1;
-}
-
-int FixIlves::unpack_exchange(int nlocal_in, double *buf)
-{
-  ilves_flag[nlocal_in] = (int) buf[0];
-  return 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -4579,7 +4435,6 @@ bool FixIlves::bond_is_constrained(tagint ta, tagint tb)
 void FixIlves::build_constraint_list()
 {
   const int nlocal_now = atom->nlocal;
-  const int nmax       = atom->nmax;
   int *mask = atom->mask;
   tagint *tag = atom->tag;
   int *num_angle    = atom->num_angle;
@@ -4596,8 +4451,6 @@ void FixIlves::build_constraint_list()
   // previous step is no longer interpretable by index.  Discard.
   lambda_warm_valid = 0;
 
-  // mark per-atom flags as we go (zero first)
-  for (int i = 0; i < nmax; ++i) ilves_flag[i] = 0;
   n_constr = 0;
 
   // ------------------------------------------------------------------
@@ -4634,8 +4487,6 @@ void FixIlves::build_constraint_list()
       const int a_idx = i;
       int b_idx = domain->closest_image(a_idx, j);
       add_constraint(a_idx, b_idx, bt, bond_distance[bt]);
-      ilves_flag[a_idx] = 1;
-      ilves_flag[b_idx] = 1;
     }
   }
 
@@ -4731,9 +4582,6 @@ void FixIlves::build_constraint_list()
         b_idx = domain->closest_image(a_idx, b_idx);
 
         add_constraint(a_idx, b_idx, -at, angle_distance[at]);
-        ilves_flag[a_idx] = 1;
-        ilves_flag[b_idx] = 1;
-        if (i2 >= 0) ilves_flag[i2] = 1;
       }
     }
   }
@@ -4751,8 +4599,8 @@ void FixIlves::build_constraint_list()
   const int n_added = broadcast_full_clusters_to_peers();
   if (n_added > 0) {
     // Constraint list grew on this rank.  Re-run group_by_cluster to
-    // rebuild cluster_offset / c_perm / c_slot for the augmented
-    // list, then re-run identify_cluster_owners so cluster_global_id
+    // rebuild cluster_offset / c_perm for the augmented list, then
+    // re-run identify_cluster_owners so cluster_global_id
     // and cluster_owner_rank match the new local cluster indices
     // (used by the setup() owned/remote-count stats line, and by any
     // future per-step ownership tracking).  The Phase 2b

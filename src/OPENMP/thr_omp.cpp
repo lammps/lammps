@@ -114,7 +114,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
       if (nall > 0)
         memset(&(thr->vatom_angle[0][0]),0,nall*6*sizeof(double));
     }
-    if (vflag & VIRIAL_CENTROID) {
+    if ((vflag & VIRIAL_CENTROID) && cvatom) {
       thr->cvatom_angle = cvatom + tid*nall;
       if (nall > 0)
         memset(&(thr->cvatom_angle[0][0]),0,nall*9*sizeof(double));
@@ -132,7 +132,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
       if (nall > 0)
         memset(&(thr->vatom_dihed[0][0]),0,nall*6*sizeof(double));
     }
-    if (vflag & VIRIAL_CENTROID) {
+    if ((vflag & VIRIAL_CENTROID) && cvatom) {
       thr->cvatom_dihed = cvatom + tid*nall;
       if (nall > 0)
         memset(&(thr->cvatom_dihed[0][0]),0,nall*9*sizeof(double));
@@ -150,7 +150,7 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
       if (nall > 0)
         memset(&(thr->vatom_imprp[0][0]),0,nall*6*sizeof(double));
     }
-    if (vflag & VIRIAL_CENTROID) {
+    if ((vflag & VIRIAL_CENTROID) && cvatom) {
       thr->cvatom_imprp = cvatom + tid*nall;
       if (nall > 0)
         memset(&(thr->cvatom_imprp[0][0]),0,nall*9*sizeof(double));

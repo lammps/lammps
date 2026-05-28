@@ -202,9 +202,6 @@ class PairMEAMSpline : public Pair {
     /// Returns the cutoff radius of this function.
     [[nodiscard]] double cutoff() const { return X[N - 1]; }
 
-    /// Writes a Gnuplot script that plots the spline function.
-    void writeGnuplot(const char *filename, const char *title = nullptr) const;
-
     /// Broadcasts the spline function parameters to all processors.
     void communicate(MPI_Comm &world, int me);
 

@@ -16,21 +16,26 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna_excv.h"
+#include "constants_oxdna.h"
+#include "nucleotide_oxdna.h"
 
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "comm.h"
-#include "constants_oxdna.h"
 #include "error.h"
+#include "fix_oxdna_lrf.h"
 #include "force.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "mf_oxdna.h"
+#include "modify.h"
 #include "neigh_list.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
+#include <cassert>
 #include <exception>
 
 using namespace LAMMPS_NS;
@@ -38,13 +43,11 @@ using namespace MFOxdna;
 
 /* ---------------------------------------------------------------------- */
 
-PairOxdnaExcv::PairOxdnaExcv(LAMMPS *lmp) : Pair(lmp)
+PairOxdnaExcv::PairOxdnaExcv(LAMMPS *lmp) : Pair(lmp), fix_lrf(nullptr)
 {
   single_enable = 0;
-  writedata = 1;
+  writedata = 0;
 
-  // set comm size needed by this Pair
-  comm_forward = 9;
   trim_flag = 0;
 }
 
@@ -52,65 +55,74 @@ PairOxdnaExcv::PairOxdnaExcv(LAMMPS *lmp) : Pair(lmp)
 
 PairOxdnaExcv::~PairOxdnaExcv()
 {
-  if (allocated) {
 
-    memory->destroy(nx);
-    memory->destroy(ny);
-    memory->destroy(nz);
+  if (fix_lrf) modify->delete_fix(fix_lrf->id);
+
+  if (allocated) {
 
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
-    memory->destroy(epsilon_ss);
-    memory->destroy(sigma_ss);
-    memory->destroy(cut_ss_ast);
-    memory->destroy(b_ss);
-    memory->destroy(cut_ss_c);
-    memory->destroy(lj1_ss);
-    memory->destroy(lj2_ss);
-    memory->destroy(cutsq_ss_ast);
-    memory->destroy(cutsq_ss_c);
+    memory->destroy(epsilon_bkbk);
+    memory->destroy(sigma_bkbk);
+    memory->destroy(cut_bkbk_ast);
+    memory->destroy(b_bkbk);
+    memory->destroy(cut_bkbk_c);
+    memory->destroy(lj1_bkbk);
+    memory->destroy(lj2_bkbk);
+    memory->destroy(cutsq_bkbk_ast);
+    memory->destroy(cutsq_bkbk_c);
 
-    memory->destroy(epsilon_sb);
-    memory->destroy(sigma_sb);
-    memory->destroy(cut_sb_ast);
-    memory->destroy(b_sb);
-    memory->destroy(cut_sb_c);
-    memory->destroy(lj1_sb);
-    memory->destroy(lj2_sb);
-    memory->destroy(cutsq_sb_ast);
-    memory->destroy(cutsq_sb_c);
+    memory->destroy(epsilon_bkbs);
+    memory->destroy(sigma_bkbs);
+    memory->destroy(cut_bkbs_ast);
+    memory->destroy(b_bkbs);
+    memory->destroy(cut_bkbs_c);
+    memory->destroy(lj1_bkbs);
+    memory->destroy(lj2_bkbs);
+    memory->destroy(cutsq_bkbs_ast);
+    memory->destroy(cutsq_bkbs_c);
 
-    memory->destroy(epsilon_bb);
-    memory->destroy(sigma_bb);
-    memory->destroy(cut_bb_ast);
-    memory->destroy(b_bb);
-    memory->destroy(cut_bb_c);
-    memory->destroy(lj1_bb);
-    memory->destroy(lj2_bb);
-    memory->destroy(cutsq_bb_ast);
-    memory->destroy(cutsq_bb_c);
+    memory->destroy(epsilon_bsbs);
+    memory->destroy(sigma_bsbs);
+    memory->destroy(cut_bsbs_ast);
+    memory->destroy(b_bsbs);
+    memory->destroy(cut_bsbs_c);
+    memory->destroy(lj1_bsbs);
+    memory->destroy(lj2_bsbs);
+    memory->destroy(cutsq_bsbs_ast);
+    memory->destroy(cutsq_bsbs_c);
 
+    memory->destroy(sigma4_bsbs);
+    memory->destroy(cut4_bsbs_ast);
+    memory->destroy(b4_bsbs);
+    memory->destroy(cut4_bsbs_c);
+    memory->destroy(lj14_bsbs);
+    memory->destroy(lj24_bsbs);
+    memory->destroy(cut4sq_bsbs_ast);
+    memory->destroy(cut4sq_bsbs_c);
   }
 }
 
 /* ----------------------------------------------------------------------
-    compute vector COM-excluded volume interaction sites in oxDNA
+    compute vector COM-sugar-phosphate backbone interaction site in oxDNA
 ------------------------------------------------------------------------- */
-void PairOxdnaExcv::compute_interaction_sites(double e1[3], double /*e2*/[3],
-    double /*e3*/[3], double rs[3], double rb[3])
+inline void PairOxdnaExcv::compute_backbone_site(double e1[3], double /*e2*/[3],
+    double /*e3*/[3], double rbk[3]) const
 {
-  double d_cs = ConstantsOxdna::get_d_cs();
-  double d_cb = ConstantsOxdna::get_d_cb();
+  NucleotideOxdna1 oxdna1;
+  oxdna1.backbone_site(e1, nullptr, nullptr, rbk);
+}
 
-  rs[0] = d_cs*e1[0];
-  rs[1] = d_cs*e1[1];
-  rs[2] = d_cs*e1[2];
-
-  rb[0] = d_cb*e1[0];
-  rb[1] = d_cb*e1[1];
-  rb[2] = d_cb*e1[2];
-
+/* ---------------------------------------------------------------------
+    compute vector COM-base site in oxDNA/oxDNA2
+    identical templates for A=1, C=2, G=3, T=0
+------------------------------------------------------------------------ */
+inline void PairOxdnaExcv::compute_base_site(int /*type*/, double e1[3],
+  double /*e2*/[3], double /*e3*/[3], double rbs[3]) const
+{
+  NucleotideOxdna1 oxdna1;
+  oxdna1.base_site<0>(e1, nullptr, nullptr, rbs);
 }
 
 /* ----------------------------------------------------------------------
@@ -122,13 +134,13 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
 {
   double delf[3],delta[3],deltb[3]; // force, torque increment;
   double evdwl,fpair,factor_lj;
-  double rtmp_s[3],rtmp_b[3];
-  double delr_ss[3],rsq_ss,delr_sb[3],rsq_sb;
-  double delr_bs[3],rsq_bs,delr_bb[3],rsq_bb;
+  double rtmp_bk[3],rtmp_bs[3];
+  double delr_bkbk[3],rsq_bkbk,delr_bkbs[3],rsq_bkbs;
+  double delr_bsbk[3],rsq_bsbk,delr_bsbs[3],rsq_bsbs;
 
   // vectors COM-backbone site, COM-base site in lab frame
-  double ra_cs[3],ra_cb[3];
-  double rb_cs[3],rb_cb[3];
+  double ra_cbk[3],ra_cbs[3];
+  double rb_cbk[3],rb_cbs[3];
   // Cartesian unit vectors in lab frame
   double ax[3],ay[3],az[3];
   double bx[3],by[3],bz[3];
@@ -144,11 +156,10 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   int *alist,*blist,*numneigh,**firstneigh;
 
-  auto *avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
-  int *ellipsoid = atom->ellipsoid;
-
-  int a,b,in,ia,ib,anum,bnum,atype,btype;
+  int a,b,ia,ib,anum,bnum,atype,btype;
+  tagint *id3p = atom->id3p;
+  tagint *id5p = atom->id5p;
+  int _3ptype,_5ptype;
 
   evdwl = 0.0;
   ev_init(eflag,vflag);
@@ -158,28 +169,8 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // loop over all local atoms, calculation of local reference frame
-  for (in = 0; in < atom->nlocal; in++) {
-
-    int n = alist[in];
-    double *qn,nx_temp[3],ny_temp[3],nz_temp[3]; // quaternion and Cartesian unit vectors in lab frame
-
-    qn=bonus[ellipsoid[n]].quat;
-    MathExtra::q_to_exyz(qn,nx_temp,ny_temp,nz_temp);
-
-    nx[n][0] = nx_temp[0];
-    nx[n][1] = nx_temp[1];
-    nx[n][2] = nx_temp[2];
-    ny[n][0] = ny_temp[0];
-    ny[n][1] = ny_temp[1];
-    ny[n][2] = ny_temp[2];
-    nz[n][0] = nz_temp[0];
-    nz[n][1] = nz_temp[1];
-    nz[n][2] = nz_temp[2];
-
-  }
-
-  comm->forward_comm(this);
+  // nxyz_xtrct = extracted local unit vectors in lab frame from fix oxdna/lrf
+  nxyz_xtrct = fix_lrf->array_atom;
 
   // loop over pair interaction neighbors of my atoms
 
@@ -188,26 +179,29 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
     a = alist[ia];
     atype = type[a];
 
-    ax[0] = nx[a][0];
-    ax[1] = nx[a][1];
-    ax[2] = nx[a][2];
-    ay[0] = ny[a][0];
-    ay[1] = ny[a][1];
-    ay[2] = ny[a][2];
-    az[0] = nz[a][0];
-    az[1] = nz[a][1];
-    az[2] = nz[a][2];
+    ax[0] = nxyz_xtrct[a][0];
+    ax[1] = nxyz_xtrct[a][1];
+    ax[2] = nxyz_xtrct[a][2];
+    ay[0] = nxyz_xtrct[a][3];
+    ay[1] = nxyz_xtrct[a][4];
+    ay[2] = nxyz_xtrct[a][5];
+    az[0] = nxyz_xtrct[a][6];
+    az[1] = nxyz_xtrct[a][7];
+    az[2] = nxyz_xtrct[a][8];
 
-    // vector COM - backbone and base site a
-    compute_interaction_sites(ax,ay,az,ra_cs,ra_cb);
+    // vector COM - backbone site a
+    compute_backbone_site(ax,ay,az,ra_cbk);
 
-    rtmp_s[0] = x[a][0] + ra_cs[0];
-    rtmp_s[1] = x[a][1] + ra_cs[1];
-    rtmp_s[2] = x[a][2] + ra_cs[2];
+    // vector COM - base site a
+    compute_base_site(atype%4, ax,ay,az,ra_cbs);
 
-    rtmp_b[0] = x[a][0] + ra_cb[0];
-    rtmp_b[1] = x[a][1] + ra_cb[1];
-    rtmp_b[2] = x[a][2] + ra_cb[2];
+    rtmp_bk[0] = x[a][0] + ra_cbk[0];
+    rtmp_bk[1] = x[a][1] + ra_cbk[1];
+    rtmp_bk[2] = x[a][2] + ra_cbk[2];
+
+    rtmp_bs[0] = x[a][0] + ra_cbs[0];
+    rtmp_bs[1] = x[a][1] + ra_cbs[1];
+    rtmp_bs[2] = x[a][2] + ra_cbs[2];
 
     blist = firstneigh[a];
     bnum = numneigh[a];
@@ -220,58 +214,63 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
 
       btype = type[b];
 
-      bx[0] = nx[b][0];
-      bx[1] = nx[b][1];
-      bx[2] = nx[b][2];
-      by[0] = ny[b][0];
-      by[1] = ny[b][1];
-      by[2] = ny[b][2];
-      bz[0] = nz[b][0];
-      bz[1] = nz[b][1];
-      bz[2] = nz[b][2];
+      bx[0] = nxyz_xtrct[b][0];
+      bx[1] = nxyz_xtrct[b][1];
+      bx[2] = nxyz_xtrct[b][2];
+      by[0] = nxyz_xtrct[b][3];
+      by[1] = nxyz_xtrct[b][4];
+      by[2] = nxyz_xtrct[b][5];
+      bz[0] = nxyz_xtrct[b][6];
+      bz[1] = nxyz_xtrct[b][7];
+      bz[2] = nxyz_xtrct[b][8];
 
-      // vector COM - backbone and base site b
-      compute_interaction_sites(bx,by,bz,rb_cs,rb_cb);
+      // vector COM - backbone site b
+      compute_backbone_site(bx,by,bz,rb_cbk);
+
+      // vector COM - base site b
+      compute_base_site(btype%4, bx,by,bz,rb_cbs);
 
       // vector backbone site b to a
-      delr_ss[0] = rtmp_s[0] - (x[b][0] + rb_cs[0]);
-      delr_ss[1] = rtmp_s[1] - (x[b][1] + rb_cs[1]);
-      delr_ss[2] = rtmp_s[2] - (x[b][2] + rb_cs[2]);
-      rsq_ss = delr_ss[0]*delr_ss[0] + delr_ss[1]*delr_ss[1] + delr_ss[2]*delr_ss[2];
+      delr_bkbk[0] = rtmp_bk[0] - (x[b][0] + rb_cbk[0]);
+      delr_bkbk[1] = rtmp_bk[1] - (x[b][1] + rb_cbk[1]);
+      delr_bkbk[2] = rtmp_bk[2] - (x[b][2] + rb_cbk[2]);
+      rsq_bkbk = delr_bkbk[0]*delr_bkbk[0] + delr_bkbk[1]*delr_bkbk[1] + delr_bkbk[2]*delr_bkbk[2];
 
       // vector base site b to backbone site a
-      delr_sb[0] =  rtmp_s[0] - (x[b][0] + rb_cb[0]);
-      delr_sb[1] =  rtmp_s[1] - (x[b][1] + rb_cb[1]);
-      delr_sb[2] =  rtmp_s[2] - (x[b][2] + rb_cb[2]);
-      rsq_sb = delr_sb[0]*delr_sb[0] + delr_sb[1]*delr_sb[1] + delr_sb[2]*delr_sb[2];
+      delr_bkbs[0] =  rtmp_bk[0] - (x[b][0] + rb_cbs[0]);
+      delr_bkbs[1] =  rtmp_bk[1] - (x[b][1] + rb_cbs[1]);
+      delr_bkbs[2] =  rtmp_bk[2] - (x[b][2] + rb_cbs[2]);
+      rsq_bkbs = delr_bkbs[0]*delr_bkbs[0] + delr_bkbs[1]*delr_bkbs[1] + delr_bkbs[2]*delr_bkbs[2];
 
       // vector backbone site b to base site a
-      delr_bs[0] = rtmp_b[0] - (x[b][0] + rb_cs[0]);
-      delr_bs[1] = rtmp_b[1] - (x[b][1] + rb_cs[1]);
-      delr_bs[2] = rtmp_b[2] - (x[b][2] + rb_cs[2]);
-      rsq_bs = delr_bs[0]*delr_bs[0] + delr_bs[1]*delr_bs[1] + delr_bs[2]*delr_bs[2];
+      delr_bsbk[0] = rtmp_bs[0] - (x[b][0] + rb_cbk[0]);
+      delr_bsbk[1] = rtmp_bs[1] - (x[b][1] + rb_cbk[1]);
+      delr_bsbk[2] = rtmp_bs[2] - (x[b][2] + rb_cbk[2]);
+      rsq_bsbk = delr_bsbk[0]*delr_bsbk[0] + delr_bsbk[1]*delr_bsbk[1] + delr_bsbk[2]*delr_bsbk[2];
 
       // vector base site b to a
-      delr_bb[0] = rtmp_b[0] - (x[b][0] + rb_cb[0]);
-      delr_bb[1] = rtmp_b[1] - (x[b][1] + rb_cb[1]);
-      delr_bb[2] = rtmp_b[2] - (x[b][2] + rb_cb[2]);
-      rsq_bb = delr_bb[0]*delr_bb[0] + delr_bb[1]*delr_bb[1] + delr_bb[2]*delr_bb[2];
+      delr_bsbs[0] = rtmp_bs[0] - (x[b][0] + rb_cbs[0]);
+      delr_bsbs[1] = rtmp_bs[1] - (x[b][1] + rb_cbs[1]);
+      delr_bsbs[2] = rtmp_bs[2] - (x[b][2] + rb_cbs[2]);
+      rsq_bsbs = delr_bsbs[0]*delr_bsbs[0] + delr_bsbs[1]*delr_bsbs[1] + delr_bsbs[2]*delr_bsbs[2];
 
       // excluded volume interaction
 
       // backbone-backbone
-      if (rsq_ss < cutsq_ss_c[atype][btype]) {
 
-        evdwl = F3(rsq_ss,cutsq_ss_ast[atype][btype],cut_ss_c[atype][btype],lj1_ss[atype][btype],
-                        lj2_ss[atype][btype],epsilon_ss[atype][btype],b_ss[atype][btype],fpair);
+      // interaction coefficients depend on base step
+      if (rsq_bkbk < cutsq_bkbk_c[atype][btype]) {
 
-        // knock out nearest-neighbor interaction between ss
+        evdwl = F3(rsq_bkbk,cutsq_bkbk_ast[atype][btype],cut_bkbk_c[atype][btype],lj1_bkbk[atype][btype],
+                        lj2_bkbk[atype][btype],epsilon_bkbk[atype][btype],b_bkbk[atype][btype],fpair);
+
+        // knock out nearest-neighbor interaction between backbone sites on same strand
         fpair *= factor_lj;
         evdwl *= factor_lj;
 
-        delf[0] = delr_ss[0]*fpair;
-        delf[1] = delr_ss[1]*fpair;
-        delf[2] = delr_ss[2]*fpair;
+        delf[0] = delr_bkbk[0]*fpair;
+        delf[1] = delr_bkbk[1]*fpair;
+        delf[2] = delr_bkbk[2]*fpair;
 
         // increment energy and virial
         // NOTE: The virial is calculated on the 'molecular' basis.
@@ -284,7 +283,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
         f[a][1] += delf[1];
         f[a][2] += delf[2];
 
-        MathExtra::cross3(ra_cs,delf,delta);
+        MathExtra::cross3(ra_cbk,delf,delta);
 
         torque[a][0] += delta[0];
         torque[a][1] += delta[1];
@@ -296,25 +295,24 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
           f[b][1] -= delf[1];
           f[b][2] -= delf[2];
 
-          MathExtra::cross3(rb_cs,delf,deltb);
+          MathExtra::cross3(rb_cbk,delf,deltb);
 
           torque[b][0] -= deltb[0];
           torque[b][1] -= deltb[1];
           torque[b][2] -= deltb[2];
 
         }
-
       }
 
       // backbone-base
-      if (rsq_sb < cutsq_sb_c[atype][btype]) {
 
-        evdwl = F3(rsq_sb,cutsq_sb_ast[atype][btype],cut_sb_c[atype][btype],lj1_sb[atype][btype],
-                        lj2_sb[atype][btype],epsilon_sb[atype][btype],b_sb[atype][btype],fpair);
+      if (rsq_bkbs < cutsq_bkbs_c[atype][btype]) {
+        evdwl = F3(rsq_bkbs,cutsq_bkbs_ast[atype][btype],cut_bkbs_c[atype][btype],lj1_bkbs[atype][btype],
+                        lj2_bkbs[atype][btype],epsilon_bkbs[atype][btype],b_bkbs[atype][btype],fpair);
 
-        delf[0] = delr_sb[0]*fpair;
-        delf[1] = delr_sb[1]*fpair;
-        delf[2] = delr_sb[2]*fpair;
+        delf[0] = delr_bkbs[0]*fpair;
+        delf[1] = delr_bkbs[1]*fpair;
+        delf[2] = delr_bkbs[2]*fpair;
 
         // increment energy and virial
         if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
@@ -324,7 +322,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
         f[a][1] += delf[1];
         f[a][2] += delf[2];
 
-        MathExtra::cross3(ra_cs,delf,delta);
+        MathExtra::cross3(ra_cbk,delf,delta);
 
         torque[a][0] += delta[0];
         torque[a][1] += delta[1];
@@ -336,25 +334,24 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
           f[b][1] -= delf[1];
           f[b][2] -= delf[2];
 
-          MathExtra::cross3(rb_cb,delf,deltb);
+          MathExtra::cross3(rb_cbs,delf,deltb);
 
           torque[b][0] -= deltb[0];
           torque[b][1] -= deltb[1];
           torque[b][2] -= deltb[2];
 
         }
-
       }
 
       // base-backbone
-      if (rsq_bs < cutsq_sb_c[atype][btype]) {
 
-        evdwl = F3(rsq_bs,cutsq_sb_ast[atype][btype],cut_sb_c[atype][btype],lj1_sb[atype][btype],
-                        lj2_sb[atype][btype],epsilon_sb[atype][btype],b_sb[atype][btype],fpair);
+      if (rsq_bsbk < cutsq_bkbs_c[atype][btype]) {
+        evdwl = F3(rsq_bsbk,cutsq_bkbs_ast[atype][btype],cut_bkbs_c[atype][btype],lj1_bkbs[atype][btype],
+                       lj2_bkbs[atype][btype],epsilon_bkbs[atype][btype],b_bkbs[atype][btype],fpair);
 
-        delf[0] = delr_bs[0]*fpair;
-        delf[1] = delr_bs[1]*fpair;
-        delf[2] = delr_bs[2]*fpair;
+        delf[0] = delr_bsbk[0]*fpair;
+        delf[1] = delr_bsbk[1]*fpair;
+        delf[2] = delr_bsbk[2]*fpair;
 
         // increment energy and virial
         if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
@@ -364,7 +361,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
         f[a][1] += delf[1];
         f[a][2] += delf[2];
 
-        MathExtra::cross3(ra_cb,delf,delta);
+        MathExtra::cross3(ra_cbs,delf,delta);
 
         torque[a][0] += delta[0];
         torque[a][1] += delta[1];
@@ -376,25 +373,72 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
           f[b][1] -= delf[1];
           f[b][2] -= delf[2];
 
-          MathExtra::cross3(rb_cs,delf,deltb);
+          MathExtra::cross3(rb_cbk,delf,deltb);
 
           torque[b][0] -= deltb[0];
           torque[b][1] -= deltb[1];
           torque[b][2] -= deltb[2];
 
         }
-
       }
 
       // base-base
-      if (rsq_bb < cutsq_bb_c[atype][btype]) {
 
-        evdwl = F3(rsq_bb,cutsq_bb_ast[atype][btype],cut_bb_c[atype][btype],lj1_bb[atype][btype],
-                        lj2_bb[atype][btype],epsilon_bb[atype][btype],b_bb[atype][btype],fpair);
+      evdwl = 0.0;
 
-        delf[0] = delr_bb[0]*fpair;
-        delf[1] = delr_bb[1]*fpair;
-        delf[2] = delr_bb[2]*fpair;
+      // bond-topology: a-b nearest-neighbors on same strand, arguments depends on tetramer
+      if ((atom->tag[a] == id3p[b]) && (atom->tag[b] == id5p[a])) { // a -> b is 3' -> 5'
+
+        // determine type of 3'-partner of a and 5'-partner of b
+        if (id3p[a] != -1) {
+          _3ptype = type[atom->map(id3p[a])];
+        }
+        else _3ptype = 0;
+
+        if (id5p[b] != -1) {
+          _5ptype = type[atom->map(id5p[b])];
+        }
+        else _5ptype = 0;
+
+        if (rsq_bsbs < cut4sq_bsbs_c[_3ptype][atype][btype][_5ptype]) {
+          evdwl = F3(rsq_bsbs,cut4sq_bsbs_ast[_3ptype][atype][btype][_5ptype],cut4_bsbs_c[_3ptype][atype][btype][_5ptype],
+                          lj14_bsbs[_3ptype][atype][btype][_5ptype],lj24_bsbs[_3ptype][atype][btype][_5ptype],
+                          epsilon_bsbs[atype][btype],b4_bsbs[_3ptype][atype][btype][_5ptype],fpair);
+        }
+
+      }
+      // bond-topology: a-b nearest-neighbors on same strand, arguments depends on tetramer
+      else if ((atom->tag[a] == id5p[b]) && (atom->tag[b] == id3p[a])) { // b -> a is 3' -> 5'
+
+        // determine type of 3'-partner of b and 5'-partner of a
+        if (id3p[b] != -1) {
+          _3ptype = type[atom->map(id3p[b])];
+        }
+        else _3ptype = 0;
+
+        if (id5p[a] != -1) {
+          _5ptype = type[atom->map(id5p[a])];
+        }
+        else _5ptype = 0;
+
+        if (rsq_bsbs < cut4sq_bsbs_c[_3ptype][btype][atype][_5ptype]) {
+          evdwl = F3(rsq_bsbs,cut4sq_bsbs_ast[_3ptype][btype][atype][_5ptype],cut4_bsbs_c[_3ptype][btype][atype][_5ptype],
+                          lj14_bsbs[_3ptype][btype][atype][_5ptype],lj24_bsbs[_3ptype][btype][atype][_5ptype],
+                          epsilon_bsbs[btype][atype],b4_bsbs[_3ptype][btype][atype][_5ptype],fpair);
+        }
+      }
+      else {
+        if (rsq_bsbs < cutsq_bsbs_c[atype][btype]) {
+          evdwl = F3(rsq_bsbs,cutsq_bsbs_ast[atype][btype],cut_bsbs_c[atype][btype],lj1_bsbs[atype][btype],
+                          lj2_bsbs[atype][btype],epsilon_bsbs[atype][btype],b_bsbs[atype][btype],fpair);
+        }
+      }
+
+      if (evdwl != 0.0) {
+
+        delf[0] = delr_bsbs[0]*fpair;
+        delf[1] = delr_bsbs[1]*fpair;
+        delf[2] = delr_bsbs[2]*fpair;
 
         // increment energy and virial
         if (evflag) ev_tally_xyz(a,b,nlocal,newton_pair,evdwl,0.0,
@@ -404,7 +448,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
         f[a][1] += delf[1];
         f[a][2] += delf[2];
 
-        MathExtra::cross3(ra_cb,delf,delta);
+        MathExtra::cross3(ra_cbs,delf,delta);
 
         torque[a][0] += delta[0];
         torque[a][1] += delta[1];
@@ -416,7 +460,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
           f[b][1] -= delf[1];
           f[b][2] -= delf[2];
 
-          MathExtra::cross3(rb_cb,delf,deltb);
+          MathExtra::cross3(rb_cbs,delf,deltb);
 
           torque[b][0] -= deltb[0];
           torque[b][1] -= deltb[1];
@@ -448,42 +492,46 @@ void PairOxdnaExcv::allocate()
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  memory->create(nx,atom->nmax,3,"pair:nx");
-  memory->create(ny,atom->nmax,3,"pair:ny");
-  memory->create(nz,atom->nmax,3,"pair:nz");
-
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
-  memory->create(epsilon_ss,n+1,n+1,"pair:epsilon_ss");
-  memory->create(sigma_ss,n+1,n+1,"pair:sigma_ss");
-  memory->create(cut_ss_ast,n+1,n+1,"pair:cut_ss_ast");
-  memory->create(b_ss,n+1,n+1,"pair:b_ss");
-  memory->create(cut_ss_c,n+1,n+1,"pair:cut_ss_c");
-  memory->create(lj1_ss,n+1,n+1,"pair:lj1_ss");
-  memory->create(lj2_ss,n+1,n+1,"pair:lj2_ss");
-  memory->create(cutsq_ss_ast,n+1,n+1,"pair:cutsq_ss_ast");
-  memory->create(cutsq_ss_c,n+1,n+1,"pair:cutsq_ss_c");
+  memory->create(epsilon_bkbk,n+1,n+1,"pair:epsilon_bkbk");
+  memory->create(sigma_bkbk,n+1,n+1,"pair:sigma_bkbk");
+  memory->create(cut_bkbk_ast,n+1,n+1,"pair:cut_bkbk_ast");
+  memory->create(b_bkbk,n+1,n+1,"pair:b_bkbk");
+  memory->create(cut_bkbk_c,n+1,n+1,"pair:cut_bkbk_c");
+  memory->create(lj1_bkbk,n+1,n+1,"pair:lj1_bkbk");
+  memory->create(lj2_bkbk,n+1,n+1,"pair:lj2_bkbk");
+  memory->create(cutsq_bkbk_ast,n+1,n+1,"pair:cutsq_bkbk_ast");
+  memory->create(cutsq_bkbk_c,n+1,n+1,"pair:cutsq_bkbk_c");
 
-  memory->create(epsilon_sb,n+1,n+1,"pair:epsilon_sb");
-  memory->create(sigma_sb,n+1,n+1,"pair:sigma_sb");
-  memory->create(cut_sb_ast,n+1,n+1,"pair:cut_sb_ast");
-  memory->create(b_sb,n+1,n+1,"pair:b_sb");
-  memory->create(cut_sb_c,n+1,n+1,"pair:cut_sb_c");
-  memory->create(lj1_sb,n+1,n+1,"pair:lj1_sb");
-  memory->create(lj2_sb,n+1,n+1,"pair:lj2_sb");
-  memory->create(cutsq_sb_ast,n+1,n+1,"pair:cutsq_sb_ast");
-  memory->create(cutsq_sb_c,n+1,n+1,"pair:cutsq_sb_c");
+  memory->create(epsilon_bkbs,n+1,n+1,"pair:epsilon_bkbs");
+  memory->create(sigma_bkbs,n+1,n+1,"pair:sigma_bkbs");
+  memory->create(cut_bkbs_ast,n+1,n+1,"pair:cut_bkbs_ast");
+  memory->create(b_bkbs,n+1,n+1,"pair:b_bkbs");
+  memory->create(cut_bkbs_c,n+1,n+1,"pair:cut_bkbs_c");
+  memory->create(lj1_bkbs,n+1,n+1,"pair:lj1_bkbs");
+  memory->create(lj2_bkbs,n+1,n+1,"pair:lj2_bkbs");
+  memory->create(cutsq_bkbs_ast,n+1,n+1,"pair:cutsq_bkbs_ast");
+  memory->create(cutsq_bkbs_c,n+1,n+1,"pair:cutsq_bkbs_c");
 
-  memory->create(epsilon_bb,n+1,n+1,"pair:epsilon_bb");
-  memory->create(sigma_bb,n+1,n+1,"pair:sigma_bb");
-  memory->create(cut_bb_ast,n+1,n+1,"pair:cut_bb_ast");
-  memory->create(b_bb,n+1,n+1,"pair:b_bb");
-  memory->create(cut_bb_c,n+1,n+1,"pair:cut_bb_c");
-  memory->create(lj1_bb,n+1,n+1,"pair:lj1_bb");
-  memory->create(lj2_bb,n+1,n+1,"pair:lj2_bb");
-  memory->create(cutsq_bb_ast,n+1,n+1,"pair:cutsq_bb_ast");
-  memory->create(cutsq_bb_c,n+1,n+1,"pair:cutsq_bb_c");
+  memory->create(epsilon_bsbs,n+1,n+1,"pair:epsilon_bsbs");
+  memory->create(sigma_bsbs,n+1,n+1,"pair:sigma_bsbs");
+  memory->create(cut_bsbs_ast,n+1,n+1,"pair:cut_bsbs_ast");
+  memory->create(b_bsbs,n+1,n+1,"pair:b_bsbs");
+  memory->create(cut_bsbs_c,n+1,n+1,"pair:cut_bsbs_c");
+  memory->create(lj1_bsbs,n+1,n+1,"pair:lj1_bsbs");
+  memory->create(lj2_bsbs,n+1,n+1,"pair:lj2_bsbs");
+  memory->create(cutsq_bsbs_ast,n+1,n+1,"pair:cutsq_bsbs_ast");
+  memory->create(cutsq_bsbs_c,n+1,n+1,"pair:cutsq_bsbs_c");
 
+  memory->create(sigma4_bsbs,n+1,n+1,n+1,n+1,"pair:sigma4_bsbs");
+  memory->create(cut4_bsbs_ast,n+1,n+1,n+1,n+1,"pair:cut4_bsbs_ast");
+  memory->create(b4_bsbs,n+1,n+1,n+1,n+1,"pair:b4_bsbs");
+  memory->create(cut4_bsbs_c,n+1,n+1,n+1,n+1,"pair:cut4_bsbs_c");
+  memory->create(lj14_bsbs,n+1,n+1,n+1,n+1,"pair:lj14_bsbs");
+  memory->create(lj24_bsbs,n+1,n+1,n+1,n+1,"pair:lj24_bsbs");
+  memory->create(cut4sq_bsbs_ast,n+1,n+1,n+1,n+1,"pair:cut4sq_bsbs_ast");
+  memory->create(cut4sq_bsbs_c,n+1,n+1,n+1,n+1,"pair:cut4sq_bsbs_c");
 }
 
 /* ----------------------------------------------------------------------
@@ -507,38 +555,41 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
   if (narg != 3 && narg != 11) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv" + utils::errorurl(21));
   if (!allocated) allocate();
 
-  int ilo,ihi,jlo,jhi;
+  int ilo,ihi,jlo,jhi,nlo,nhi;
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  count = 0;
+  assert((ilo == jlo) & (ihi == jhi));
+  nlo = ilo;
+  nhi = ihi;
 
-  double epsilon_ss_one, sigma_ss_one;
-  double cut_ss_ast_one, cut_ss_c_one, b_ss_one;
+  double epsilon_bkbk_one, sigma_bkbk_one;
+  double cut_bkbk_ast_one, cut_bkbk_c_one, b_bkbk_one;
 
-  double epsilon_sb_one, sigma_sb_one;
-  double cut_sb_ast_one, cut_sb_c_one, b_sb_one;
+  double epsilon_bkbs_one, sigma_bkbs_one;
+  double cut_bkbs_ast_one, cut_bkbs_c_one, b_bkbs_one;
 
-  double epsilon_bb_one, sigma_bb_one;
-  double cut_bb_ast_one, cut_bb_c_one, b_bb_one;
+  double epsilon_bsbs_one, sigma_bsbs_one;
+  double cut_bsbs_ast_one, cut_bsbs_c_one, b_bsbs_one;
 
   if (narg == 11) {
     // Excluded volume interaction
     // LJ parameters
-    epsilon_ss_one = utils::numeric(FLERR,arg[2],false,lmp);
-    sigma_ss_one = utils::numeric(FLERR,arg[3],false,lmp);
-    cut_ss_ast_one = utils::numeric(FLERR,arg[4],false,lmp);
+    epsilon_bkbk_one = utils::numeric(FLERR,arg[2],false,lmp);
+    sigma_bkbk_one = utils::numeric(FLERR,arg[3],false,lmp);
+    cut_bkbk_ast_one = utils::numeric(FLERR,arg[4],false,lmp);
 
     // LJ parameters
-    epsilon_sb_one = utils::numeric(FLERR,arg[5],false,lmp);
-    sigma_sb_one = utils::numeric(FLERR,arg[6],false,lmp);
-    cut_sb_ast_one = utils::numeric(FLERR,arg[7],false,lmp);
+    epsilon_bkbs_one = utils::numeric(FLERR,arg[5],false,lmp);
+    sigma_bkbs_one = utils::numeric(FLERR,arg[6],false,lmp);
+    cut_bkbs_ast_one = utils::numeric(FLERR,arg[7],false,lmp);
 
     // LJ parameters
-    epsilon_bb_one = utils::numeric(FLERR,arg[8],false,lmp);
-    sigma_bb_one = utils::numeric(FLERR,arg[9],false,lmp);
-    cut_bb_ast_one = utils::numeric(FLERR,arg[10],false,lmp);
-  } else {
+    epsilon_bsbs_one = utils::numeric(FLERR,arg[8],false,lmp);
+    sigma_bsbs_one = utils::numeric(FLERR,arg[9],false,lmp);
+    cut_bsbs_ast_one = utils::numeric(FLERR,arg[10],false,lmp);
+  }
+  else {
     if (comm->me == 0) {
       PotentialFileReader reader(lmp, arg[2], "oxdna potential", " (excv)");
       char * line;
@@ -552,25 +603,25 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
           potential_name = values.next_string();
           if (iloc == arg[0] && jloc == arg[1] && potential_name == "excv") {
             // Excluded volume interaction
-            // LJ parameters
-            epsilon_ss_one = values.next_double();
-            sigma_ss_one = values.next_double();
-            cut_ss_ast_one = values.next_double();
+            // LJ backbone-backbone parameters
+            epsilon_bkbk_one = values.next_double();
+            sigma_bkbk_one = values.next_double();
+            cut_bkbk_ast_one = values.next_double();
 
-            // LJ parameters
-            epsilon_sb_one = values.next_double();
-            sigma_sb_one = values.next_double();
-            cut_sb_ast_one = values.next_double();
+            // LJ backbone-base parameters
+            epsilon_bkbs_one = values.next_double();
+            sigma_bkbs_one = values.next_double();
+            cut_bkbs_ast_one = values.next_double();
 
-            // LJ parameters
-            epsilon_bb_one = values.next_double();
-            sigma_bb_one = values.next_double();
-            cut_bb_ast_one = values.next_double();
+            // LJ base-base parameters
+            epsilon_bsbs_one = values.next_double();
+            sigma_bsbs_one = values.next_double();
+            cut_bsbs_ast_one = values.next_double();
 
             break;
           } else continue;
         } catch (std::exception &e) {
-          error->one(FLERR, "Problem parsing oxDNA potential file: {}", e.what());
+          error->one(FLERR, "Problem parsing oxdna potential file: {}", e.what());
         }
       }
       if ((iloc != arg[0]) || (jloc != arg[1]) || (potential_name != "excv"))
@@ -578,95 +629,148 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
                    arg[2], arg[0], arg[1]);
     }
 
-    MPI_Bcast(&epsilon_ss_one, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&sigma_ss_one, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&cut_ss_ast_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&epsilon_bkbk_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&sigma_bkbk_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_bkbk_ast_one, 1, MPI_DOUBLE, 0, world);
 
-    MPI_Bcast(&epsilon_sb_one, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&sigma_sb_one, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&cut_sb_ast_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&epsilon_bkbs_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&sigma_bkbs_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_bkbs_ast_one, 1, MPI_DOUBLE, 0, world);
 
-    MPI_Bcast(&epsilon_bb_one, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&sigma_bb_one, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&cut_bb_ast_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&epsilon_bsbs_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&sigma_bsbs_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_bsbs_ast_one, 1, MPI_DOUBLE, 0, world);
   }
 
-  // smoothing - determined through continuity and differentiability
-  b_ss_one = 4.0/sigma_ss_one
-      *(6.0*pow(sigma_ss_one/cut_ss_ast_one,7)-12.0*pow(sigma_ss_one/cut_ss_ast_one,13))
-      *4.0/sigma_ss_one*(6.0*pow(sigma_ss_one/cut_ss_ast_one,7)-12.0*pow(sigma_ss_one/cut_ss_ast_one,13))
-      /4.0/(4.0*(pow(sigma_ss_one/cut_ss_ast_one,12)-pow(sigma_ss_one/cut_ss_ast_one,6)));
-
-  cut_ss_c_one = cut_ss_ast_one
-      - 2.0*4.0*(pow(sigma_ss_one/cut_ss_ast_one,12)-pow(sigma_ss_one/cut_ss_ast_one,6))
-      /(4.0/sigma_ss_one*(6.0*pow(sigma_ss_one/cut_ss_ast_one,7)-12.0*pow(sigma_ss_one/cut_ss_ast_one,13)));
-
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
-      epsilon_ss[i][j] = epsilon_ss_one;
-      sigma_ss[i][j] = sigma_ss_one;
-      cut_ss_ast[i][j] = cut_ss_ast_one;
-      b_ss[i][j] = b_ss_one;
-      cut_ss_c[i][j] = cut_ss_c_one;
-      setflag[i][j] = 1;
-      count++;
-    }
-  }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv" + utils::errorurl(21));
-
+  // backbone-backbone
   count = 0;
 
   // smoothing - determined through continuity and differentiability
-  b_sb_one = 4.0/sigma_sb_one
-      *(6.0*pow(sigma_sb_one/cut_sb_ast_one,7)-12.0*pow(sigma_sb_one/cut_sb_ast_one,13))
-      *4.0/sigma_sb_one*(6.0*pow(sigma_sb_one/cut_sb_ast_one,7)-12.0*pow(sigma_sb_one/cut_sb_ast_one,13))
-      /4.0/(4.0*(pow(sigma_sb_one/cut_sb_ast_one,12)-pow(sigma_sb_one/cut_sb_ast_one,6)));
+  b_bkbk_one = 4.0/sigma_bkbk_one
+      *(6.0*pow(sigma_bkbk_one/cut_bkbk_ast_one,7)-12.0*pow(sigma_bkbk_one/cut_bkbk_ast_one,13))
+      *4.0/sigma_bkbk_one*(6.0*pow(sigma_bkbk_one/cut_bkbk_ast_one,7)-12.0*pow(sigma_bkbk_one/cut_bkbk_ast_one,13))
+      /4.0/(4.0*(pow(sigma_bkbk_one/cut_bkbk_ast_one,12)-pow(sigma_bkbk_one/cut_bkbk_ast_one,6)));
 
-  cut_sb_c_one = cut_sb_ast_one
-      - 2.0*4.0*(pow(sigma_sb_one/cut_sb_ast_one,12)-pow(sigma_sb_one/cut_sb_ast_one,6))
-      /(4.0/sigma_sb_one*(6.0*pow(sigma_sb_one/cut_sb_ast_one,7)-12.0*pow(sigma_sb_one/cut_sb_ast_one,13)));
+  cut_bkbk_c_one = cut_bkbk_ast_one
+      - 2.0*4.0*(pow(sigma_bkbk_one/cut_bkbk_ast_one,12)-pow(sigma_bkbk_one/cut_bkbk_ast_one,6))
+      /(4.0/sigma_bkbk_one*(6.0*pow(sigma_bkbk_one/cut_bkbk_ast_one,7)-12.0*pow(sigma_bkbk_one/cut_bkbk_ast_one,13)));
 
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
-      epsilon_sb[i][j] = epsilon_sb_one;
-      sigma_sb[i][j] = sigma_sb_one;
-      cut_sb_ast[i][j] = cut_sb_ast_one;
-      b_sb[i][j] = b_sb_one;
-      cut_sb_c[i][j] = cut_sb_c_one;
-      setflag[i][j] = 1;
+  // backbone-backbone parameters depending on base step
+  for (int i = nlo; i <= nhi; i++) {
+    for (int j = nlo; j <= nhi; j++) {
+      epsilon_bkbk[i][j] = epsilon_bkbk_one;
+      sigma_bkbk[i][j] = sigma_bkbk_one;
+      cut_bkbk_ast[i][j] = cut_bkbk_ast_one;
+      b_bkbk[i][j] = b_bkbk_one;
+      cut_bkbk_c[i][j] = cut_bkbk_c_one;
+      lj1_bkbk[i][j] = 4.0 * epsilon_bkbk[i][j] * pow(sigma_bkbk[i][j],12.0);
+      lj2_bkbk[i][j] = 4.0 * epsilon_bkbk[i][j] * pow(sigma_bkbk[i][j],6.0);
+      cutsq_bkbk_ast[i][j] = cut_bkbk_ast[i][j]*cut_bkbk_ast[i][j];
+      cutsq_bkbk_c[i][j]  = cut_bkbk_c[i][j]*cut_bkbk_c[i][j];
       count++;
     }
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv" + utils::errorurl(21));
 
+  // backbone-base
   count = 0;
 
   // smoothing - determined through continuity and differentiability
-  b_bb_one = 4.0/sigma_bb_one
-      *(6.0*pow(sigma_bb_one/cut_bb_ast_one,7)-12.0*pow(sigma_bb_one/cut_bb_ast_one,13))
-      *4.0/sigma_bb_one*(6.0*pow(sigma_bb_one/cut_bb_ast_one,7)-12.0*pow(sigma_bb_one/cut_bb_ast_one,13))
-      /4.0/(4.0*(pow(sigma_bb_one/cut_bb_ast_one,12)-pow(sigma_bb_one/cut_bb_ast_one,6)));
+  b_bkbs_one = 4.0/sigma_bkbs_one
+      *(6.0*pow(sigma_bkbs_one/cut_bkbs_ast_one,7)-12.0*pow(sigma_bkbs_one/cut_bkbs_ast_one,13))
+      *4.0/sigma_bkbs_one*(6.0*pow(sigma_bkbs_one/cut_bkbs_ast_one,7)-12.0*pow(sigma_bkbs_one/cut_bkbs_ast_one,13))
+      /4.0/(4.0*(pow(sigma_bkbs_one/cut_bkbs_ast_one,12)-pow(sigma_bkbs_one/cut_bkbs_ast_one,6)));
 
-  cut_bb_c_one = cut_bb_ast_one
-      - 2.0*4.0*(pow(sigma_bb_one/cut_bb_ast_one,12)-pow(sigma_bb_one/cut_bb_ast_one,6))
-      /(4.0/sigma_bb_one*(6.0*pow(sigma_bb_one/cut_bb_ast_one,7)-12.0*pow(sigma_bb_one/cut_bb_ast_one,13)));
+  cut_bkbs_c_one = cut_bkbs_ast_one
+      - 2.0*4.0*(pow(sigma_bkbs_one/cut_bkbs_ast_one,12)-pow(sigma_bkbs_one/cut_bkbs_ast_one,6))
+      /(4.0/sigma_bkbs_one*(6.0*pow(sigma_bkbs_one/cut_bkbs_ast_one,7)-12.0*pow(sigma_bkbs_one/cut_bkbs_ast_one,13)));
 
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
-      epsilon_bb[i][j] = epsilon_bb_one;
-      sigma_bb[i][j] = sigma_bb_one;
-      cut_bb_ast[i][j] = cut_bb_ast_one;
-      b_bb[i][j] = b_bb_one;
-      cut_bb_c[i][j] = cut_bb_c_one;
-      setflag[i][j] = 1;
+  // backbone-base parameters depending on base step
+  for (int i = nlo; i <= nhi; i++) {
+    for (int j = nlo; j <= nhi; j++) {
+      epsilon_bkbs[i][j] = epsilon_bkbs_one;
+      sigma_bkbs[i][j] = sigma_bkbs_one;
+      cut_bkbs_ast[i][j] = cut_bkbs_ast_one;
+      b_bkbs[i][j] = b_bkbs_one;
+      cut_bkbs_c[i][j] = cut_bkbs_c_one;
+      lj1_bkbs[i][j] = 4.0 * epsilon_bkbs[i][j] * pow(sigma_bkbs[i][j],12.0);
+      lj2_bkbs[i][j] = 4.0 * epsilon_bkbs[i][j] * pow(sigma_bkbs[i][j],6.0);
+      cutsq_bkbs_ast[i][j] = cut_bkbs_ast[i][j]*cut_bkbs_ast[i][j];
+      cutsq_bkbs_c[i][j]  = cut_bkbs_c[i][j]*cut_bkbs_c[i][j];
       count++;
     }
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv" + utils::errorurl(21));
 
+  // base-base
+  count = 0;
+
+  // smoothing - determined through continuity and differentiability
+  b_bsbs_one = 4.0/sigma_bsbs_one
+      *(6.0*pow(sigma_bsbs_one/cut_bsbs_ast_one,7)-12.0*pow(sigma_bsbs_one/cut_bsbs_ast_one,13))
+      *4.0/sigma_bsbs_one*(6.0*pow(sigma_bsbs_one/cut_bsbs_ast_one,7)-12.0*pow(sigma_bsbs_one/cut_bsbs_ast_one,13))
+      /4.0/(4.0*(pow(sigma_bsbs_one/cut_bsbs_ast_one,12)-pow(sigma_bsbs_one/cut_bsbs_ast_one,6)));
+
+  cut_bsbs_c_one = cut_bsbs_ast_one
+      - 2.0*4.0*(pow(sigma_bsbs_one/cut_bsbs_ast_one,12)-pow(sigma_bsbs_one/cut_bsbs_ast_one,6))
+      /(4.0/sigma_bsbs_one*(6.0*pow(sigma_bsbs_one/cut_bsbs_ast_one,7)-12.0*pow(sigma_bsbs_one/cut_bsbs_ast_one,13)));
+
+  // base-base parameters depending on base step
+  for (int i = nlo; i <= nhi; i++) {
+    for (int j = nlo; j <= nhi; j++) {
+      epsilon_bsbs[i][j] = epsilon_bsbs_one;
+      sigma_bsbs[i][j] = sigma_bsbs_one;
+      cut_bsbs_ast[i][j] = cut_bsbs_ast_one;
+      b_bsbs[i][j] = b_bsbs_one;
+      cut_bsbs_c[i][j] = cut_bsbs_c_one;
+      lj1_bsbs[i][j] = 4.0 * epsilon_bsbs[i][j] * pow(sigma_bsbs[i][j],12.0);
+      lj2_bsbs[i][j] = 4.0 * epsilon_bsbs[i][j] * pow(sigma_bsbs[i][j],6.0);
+      cutsq_bsbs_ast[i][j] = cut_bsbs_ast[i][j]*cut_bsbs_ast[i][j];
+      cutsq_bsbs_c[i][j]  = cut_bsbs_c[i][j]*cut_bsbs_c[i][j];
+      setflag[i][j] = 1;
+      count++;
+    }
+  }
+
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
+
+  // base-base parameters depending on tetramer
+  count = 0;
+
+  for (int i = 0; i <= nhi; i++) { // type 0 for terminal j
+    for (int j = nlo; j <= nhi; j++) {
+      for (int k = nlo; k <= nhi; k++) {
+        for (int l = 0; l <= nhi; l++) { // type 0 for terminal k
+          sigma4_bsbs[i][j][k][l] = sigma_bsbs_one;
+          cut4_bsbs_ast[i][j][k][l] = cut_bsbs_ast_one;
+          b4_bsbs[i][j][k][l] = b_bsbs_one;
+          cut4_bsbs_c[i][j][k][l] = cut_bsbs_c_one;
+          cut4sq_bsbs_ast[i][j][k][l] = cut4_bsbs_ast[i][j][k][l]*cut4_bsbs_ast[i][j][k][l];
+          cut4sq_bsbs_c[i][j][k][l]  = cut4_bsbs_c[i][j][k][l]*cut4_bsbs_c[i][j][k][l];
+          lj14_bsbs[i][j][k][l] = 4.0 * epsilon_bsbs[j][k] * pow(sigma4_bsbs[i][j][k][l],12.0);
+          lj24_bsbs[i][j][k][l] = 4.0 * epsilon_bsbs[j][k] * pow(sigma4_bsbs[i][j][k][l],6.0);
+          count++;
+       }
+      }
+    }
+  }
+
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
+
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+void PairOxdnaExcv::init_style()
+{
+  // ensure fix oxdna/lrf is added for backward-compatability
+  if (!fix_lrf)
+    fix_lrf = dynamic_cast<FixOxdnaLRF *>(modify->add_fix("lrf all OXDNA/LRF"));
+
+  neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 }
 
 /* ----------------------------------------------------------------------
@@ -689,70 +793,14 @@ double PairOxdnaExcv::init_one(int i, int j)
 {
 
   if (setflag[i][j] == 0) {
-    error->all(FLERR,"Coefficient mixing not defined in oxDNA");
+    error->all(FLERR,"Coefficient mixing not defined in oxdna");
   }
   if (offset_flag) {
-    error->all(FLERR,"Offset not supported in oxDNA");
+    error->all(FLERR,"Offset not supported in oxdna");
   }
 
-  epsilon_ss[j][i] = epsilon_ss[i][j];
-  sigma_ss[j][i] = sigma_ss[i][j];
-  cut_ss_ast[j][i] = cut_ss_ast[i][j];
-  cut_ss_c[j][i] = cut_ss_c[i][j];
-  b_ss[j][i] = b_ss[i][j];
-
-  epsilon_sb[j][i] = epsilon_sb[i][j];
-  sigma_sb[j][i] = sigma_sb[i][j];
-  cut_sb_ast[j][i] = cut_sb_ast[i][j];
-  cut_sb_c[j][i] = cut_sb_c[i][j];
-  b_sb[j][i] = b_sb[i][j];
-
-  epsilon_bb[j][i] = epsilon_bb[i][j];
-  sigma_bb[j][i] = sigma_bb[i][j];
-  cut_bb_ast[j][i] = cut_bb_ast[i][j];
-  cut_bb_c[j][i] = cut_bb_c[i][j];
-  b_bb[j][i] = b_bb[i][j];
-
-  // excluded volume auxiliary parameters
-
-  lj1_ss[i][j] = 4.0 * epsilon_ss[i][j] * pow(sigma_ss[i][j],12.0);
-  lj2_ss[i][j] = 4.0 * epsilon_ss[i][j] * pow(sigma_ss[i][j],6.0);
-
-  lj1_sb[i][j] = 4.0 * epsilon_sb[i][j] * pow(sigma_sb[i][j],12.0);
-  lj2_sb[i][j] = 4.0 * epsilon_sb[i][j] * pow(sigma_sb[i][j],6.0);
-
-  lj1_bb[i][j] = 4.0 * epsilon_bb[i][j] * pow(sigma_bb[i][j],12.0);
-  lj2_bb[i][j] = 4.0 * epsilon_bb[i][j] * pow(sigma_bb[i][j],6.0);
-
-  lj1_ss[j][i] = lj1_ss[i][j];
-  lj2_ss[j][i] = lj2_ss[i][j];
-
-  lj1_sb[j][i] = lj1_sb[i][j];
-  lj2_sb[j][i] = lj2_sb[i][j];
-
-  lj1_bb[j][i] = lj1_bb[i][j];
-  lj2_bb[j][i] = lj2_bb[i][j];
-
-  cutsq_ss_ast[i][j] = cut_ss_ast[i][j]*cut_ss_ast[i][j];
-  cutsq_ss_c[i][j]  = cut_ss_c[i][j]*cut_ss_c[i][j];
-
-  cutsq_sb_ast[i][j] = cut_sb_ast[i][j]*cut_sb_ast[i][j];
-  cutsq_sb_c[i][j]  = cut_sb_c[i][j]*cut_sb_c[i][j];
-
-  cutsq_bb_ast[i][j] = cut_bb_ast[i][j]*cut_bb_ast[i][j];
-  cutsq_bb_c[i][j]  = cut_bb_c[i][j]*cut_bb_c[i][j];
-
-  cutsq_ss_ast[j][i] = cutsq_ss_ast[i][j];
-  cutsq_ss_c[j][i]  = cutsq_ss_c[i][j];
-
-  cutsq_sb_ast[j][i] = cutsq_sb_ast[i][j];
-  cutsq_sb_c[j][i]  = cutsq_sb_c[i][j];
-
-  cutsq_bb_ast[j][i] = cutsq_bb_ast[i][j];
-  cutsq_bb_c[j][i]  = cutsq_bb_c[i][j];
-
   // set the master list distance cutoff
-  return cut_ss_c[i][j];
+  return cut_bkbk_c[i][j];
 
 }
 
@@ -770,21 +818,21 @@ void PairOxdnaExcv::write_restart(FILE *fp)
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
 
-        fwrite(&epsilon_ss[i][j],sizeof(double),1,fp);
-        fwrite(&sigma_ss[i][j],sizeof(double),1,fp);
-        fwrite(&cut_ss_ast[i][j],sizeof(double),1,fp);
-        fwrite(&b_ss[i][j],sizeof(double),1,fp);
-        fwrite(&cut_ss_c[i][j],sizeof(double),1,fp);
-        fwrite(&epsilon_sb[i][j],sizeof(double),1,fp);
-        fwrite(&sigma_sb[i][j],sizeof(double),1,fp);
-        fwrite(&cut_sb_ast[i][j],sizeof(double),1,fp);
-        fwrite(&b_sb[i][j],sizeof(double),1,fp);
-        fwrite(&cut_sb_c[i][j],sizeof(double),1,fp);
-        fwrite(&epsilon_bb[i][j],sizeof(double),1,fp);
-        fwrite(&sigma_bb[i][j],sizeof(double),1,fp);
-        fwrite(&cut_bb_ast[i][j],sizeof(double),1,fp);
-        fwrite(&b_bb[i][j],sizeof(double),1,fp);
-        fwrite(&cut_bb_c[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon_bkbk[i][j],sizeof(double),1,fp);
+        fwrite(&sigma_bkbk[i][j],sizeof(double),1,fp);
+        fwrite(&cut_bkbk_ast[i][j],sizeof(double),1,fp);
+        fwrite(&b_bkbk[i][j],sizeof(double),1,fp);
+        fwrite(&cut_bkbk_c[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon_bkbs[i][j],sizeof(double),1,fp);
+        fwrite(&sigma_bkbs[i][j],sizeof(double),1,fp);
+        fwrite(&cut_bkbs_ast[i][j],sizeof(double),1,fp);
+        fwrite(&b_bkbs[i][j],sizeof(double),1,fp);
+        fwrite(&cut_bkbs_c[i][j],sizeof(double),1,fp);
+        fwrite(&epsilon_bsbs[i][j],sizeof(double),1,fp);
+        fwrite(&sigma_bsbs[i][j],sizeof(double),1,fp);
+        fwrite(&cut_bsbs_ast[i][j],sizeof(double),1,fp);
+        fwrite(&b_bsbs[i][j],sizeof(double),1,fp);
+        fwrite(&cut_bsbs_c[i][j],sizeof(double),1,fp);
 
     }
   }
@@ -808,39 +856,39 @@ void PairOxdnaExcv::read_restart(FILE *fp)
       if (setflag[i][j]) {
         if (me == 0) {
 
-          utils::sfread(FLERR,&epsilon_ss[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&sigma_ss[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut_ss_ast[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&b_ss[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut_ss_c[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&epsilon_sb[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&sigma_sb[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut_sb_ast[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&b_sb[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut_sb_c[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&epsilon_bb[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&sigma_bb[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut_bb_ast[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&b_bb[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut_bb_c[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&epsilon_bkbk[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma_bkbk[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_bkbk_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_bkbk[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_bkbk_c[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&epsilon_bkbs[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma_bkbs[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_bkbs_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_bkbs[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_bkbs_c[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&epsilon_bsbs[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma_bsbs[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_bsbs_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_bsbs[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_bsbs_c[i][j],sizeof(double),1,fp,nullptr,error);
 
          }
 
-        MPI_Bcast(&epsilon_ss[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&sigma_ss[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_ss_ast[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&b_ss[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_ss_c[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&epsilon_sb[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&sigma_sb[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_sb_ast[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&b_sb[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_sb_c[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&epsilon_bb[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&sigma_bb[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_bb_ast[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&b_bb[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_bb_c[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&epsilon_bkbk[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma_bkbk[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_bkbk_ast[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&b_bkbk[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_bkbk_c[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&epsilon_bkbs[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma_bkbs[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_bkbs_ast[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&b_bkbs[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_bkbs_c[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&epsilon_bsbs[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&sigma_bsbs[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_bsbs_ast[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&b_bsbs[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&cut_bsbs_c[i][j],1,MPI_DOUBLE,0,world);
 
       }
     }
@@ -874,109 +922,30 @@ void PairOxdnaExcv::read_restart_settings(FILE *fp)
   MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
 }
 
-/* ----------------------------------------------------------------------
-   proc 0 writes to data file
-------------------------------------------------------------------------- */
-
-void PairOxdnaExcv::write_data(FILE *fp)
-{
-  for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d\
-         %g %g %g %g %g\
-         %g %g %g %g %g\
-         %g %g %g %g %g\
-         \n",i,
-        epsilon_ss[i][i],sigma_ss[i][i],cut_ss_ast[i][i],b_ss[i][i],cut_ss_c[i][i],
-        epsilon_sb[i][i],sigma_sb[i][i],cut_sb_ast[i][i],b_sb[i][i],cut_sb_c[i][i],
-        epsilon_bb[i][i],sigma_bb[i][i],cut_bb_ast[i][i],b_bb[i][i],cut_bb_c[i][i]);
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 writes all pairs to data file
-------------------------------------------------------------------------- */
-
-void PairOxdnaExcv::write_data_all(FILE *fp)
-{
-  for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d\
-         %g %g %g %g %g\
-         %g %g %g %g %g\
-         %g %g %g %g %g\
-         \n",i,j,
-        epsilon_ss[i][j],sigma_ss[i][j],cut_ss_ast[i][j],b_ss[i][j],cut_ss_c[i][j],
-        epsilon_sb[i][j],sigma_sb[i][j],cut_sb_ast[i][j],b_sb[i][j],cut_sb_c[i][j],
-        epsilon_bb[i][j],sigma_bb[i][j],cut_bb_ast[i][j],b_bb[i][j],cut_bb_c[i][j]);
-}
-
-/* ---------------------------------------------------------------------- */
-
-int PairOxdnaExcv::pack_forward_comm(int n, int *list, double *buf,
-                               int /*pbc_flag*/, int * /*pbc*/)
-{
-  int i,j,m;
-
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    buf[m++] = nx[j][0];
-    buf[m++] = nx[j][1];
-    buf[m++] = nx[j][2];
-    buf[m++] = ny[j][0];
-    buf[m++] = ny[j][1];
-    buf[m++] = ny[j][2];
-    buf[m++] = nz[j][0];
-    buf[m++] = nz[j][1];
-    buf[m++] = nz[j][2];
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairOxdnaExcv::unpack_forward_comm(int n, int first, double *buf)
-{
-  int i,m,last;
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    nx[i][0] = buf[m++];
-    nx[i][1] = buf[m++];
-    nx[i][2] = buf[m++];
-    ny[i][0] = buf[m++];
-    ny[i][1] = buf[m++];
-    ny[i][2] = buf[m++];
-    nz[i][0] = buf[m++];
-    nz[i][1] = buf[m++];
-    nz[i][2] = buf[m++];
-  }
-}
-
 /* ---------------------------------------------------------------------- */
 
 void *PairOxdnaExcv::extract(const char *str, int &dim)
 {
   dim = 2;
 
-  if (strcmp(str,"nx") == 0) return (void *) nx;
-  if (strcmp(str,"ny") == 0) return (void *) ny;
-  if (strcmp(str,"nz") == 0) return (void *) nz;
+  if (strcmp(str,"epsilon_bkbk") == 0) return (void *) epsilon_bkbk;
+  if (strcmp(str,"sigma_bkbk") == 0) return (void *) sigma_bkbk;
+  if (strcmp(str,"cut_bkbk_ast") == 0) return (void *) cut_bkbk_ast;
+  if (strcmp(str,"b_bkbk") == 0) return (void *) b_bkbk;
+  if (strcmp(str,"cut_bkbk_c") == 0) return (void *) cut_bkbk_c;
 
-  if (strcmp(str,"epsilon_ss") == 0) return (void *) epsilon_ss;
-  if (strcmp(str,"sigma_ss") == 0) return (void *) sigma_ss;
-  if (strcmp(str,"cut_ss_ast") == 0) return (void *) cut_ss_ast;
-  if (strcmp(str,"b_ss") == 0) return (void *) b_ss;
-  if (strcmp(str,"cut_ss_c") == 0) return (void *) cut_ss_c;
-  if (strcmp(str,"epsilon_sb") == 0) return (void *) epsilon_sb;
-  if (strcmp(str,"sigma_sb") == 0) return (void *) sigma_sb;
-  if (strcmp(str,"cut_sb_ast") == 0) return (void *) cut_sb_ast;
-  if (strcmp(str,"b_sb") == 0) return (void *) b_sb;
-  if (strcmp(str,"cut_sb_c") == 0) return (void *) cut_sb_c;
-  if (strcmp(str,"epsilon_bb") == 0) return (void *) epsilon_bb;
-  if (strcmp(str,"sigma_bb") == 0) return (void *) sigma_bb;
-  if (strcmp(str,"cut_bb_ast") == 0) return (void *) cut_bb_ast;
-  if (strcmp(str,"b_bb") == 0) return (void *) b_bb;
-  if (strcmp(str,"cut_bb_c") == 0) return (void *) cut_bb_c;
+  if (strcmp(str,"epsilon_bkbs") == 0) return (void *) epsilon_bkbs;
+  if (strcmp(str,"sigma_bkbs") == 0) return (void *) sigma_bkbs;
+  if (strcmp(str,"cut_bkbs_ast") == 0) return (void *) cut_bkbs_ast;
+  if (strcmp(str,"b_bkbs") == 0) return (void *) b_bkbs;
+  if (strcmp(str,"cut_bkbs_c") == 0) return (void *) cut_bkbs_c;
+  if (strcmp(str,"sigma4_bkbs") == 0) return (void *) sigma_bkbs;
+
+  if (strcmp(str,"epsilon_bsbs") == 0) return (void *) epsilon_bsbs;
+  if (strcmp(str,"sigma_bsbs") == 0) return (void *) sigma_bsbs;
+  if (strcmp(str,"cut_bsbs_ast") == 0) return (void *) cut_bsbs_ast;
+  if (strcmp(str,"b_bsbs") == 0) return (void *) b_bsbs;
+  if (strcmp(str,"cut_bsbs_c") == 0) return (void *) cut_bsbs_c;
 
   return nullptr;
 }

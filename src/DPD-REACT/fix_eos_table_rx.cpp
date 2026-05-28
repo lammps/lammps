@@ -25,11 +25,11 @@
 #include "memory.h"
 #include "modify.h"
 #include "safe_pointers.h"
+#include "potential_file_reader.h"
+#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
-
-static constexpr int MAXLINE = 1024;
 
 #ifdef DBL_EPSILON
 static constexpr double MY_EPSILON = 10.0*DBL_EPSILON;
@@ -300,87 +300,51 @@ void FixEOStableRX::end_of_step()
 
 void FixEOStableRX::read_file(char *file)
 {
-  int min_params_per_line = 2;
-  int max_params_per_line = 5;
-  auto *words = new char*[max_params_per_line+1];
+  const int min_params_per_line = 2;
 
-  // open file on proc 0
-
-  SafeFilePtr fp;
   if (comm->me == 0) {
-    fp = fopen(file,"r");
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open eos table/rx potential file %s",file);
-      error->one(FLERR,str);
-    }
-  }
+    PotentialFileReader reader(lmp, file, "eos/table/rx");
+    char * line;
 
-  // one set of params can span multiple lines
-  int n,nwords,ispecies;
-  char line[MAXLINE] = {'\0'};
-  char *ptr;
-  int eof = 0;
+    while ((line = reader.next_line(min_params_per_line))) {
+      try {
+        ValueTokenizer values(line);
 
-  while (true) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+        auto species = values.next_string();
 
-    // strip comment, skip line if blank
+        int ispecies;
+        for (ispecies = 0; ispecies < nspecies; ispecies++)
+          if (species == atom->dvname[ispecies]) break;
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+        if (ispecies < nspecies) {
+          dHf[ispecies] = values.next_double();
 
-    // concatenate additional lines until have params_per_line words
+          if (values.has_next()) {
+            energyCorr[ispecies] = values.next_double();
+            tempCorrCoeff[ispecies] = values.next_double();
+            moleculeCorrCoeff[ispecies] = values.next_double();
+          }
 
-    while (nwords < min_params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == nullptr) {
-          eof = 1;
-        } else n = strlen(line) + 1;
-      }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = utils::count_words(line);
-    }
+          if (values.has_next()) {
+            error->one(FLERR,
+                       "Misplaced characters at end of line in "
+                       "file {}. Full line: {}", file, line);
+          }
+        }
 
-    if (nwords != min_params_per_line && nwords != max_params_per_line)
-      error->all(FLERR,"Incorrect format in eos table/rx potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
-
-    for (ispecies = 0; ispecies < nspecies; ispecies++)
-      if (strcmp(words[0],&atom->dvname[ispecies][0]) == 0) break;
-
-    if (ispecies < nspecies) {
-      dHf[ispecies] = std::stod(words[1]);
-      if (nwords > min_params_per_line+1) {
-        energyCorr[ispecies] = std::stod(words[2]);
-        tempCorrCoeff[ispecies] = std::stod(words[3]);
-        moleculeCorrCoeff[ispecies] = std::stod(words[4]);
+      } catch (TokenizerException & e) {
+        error->one(FLERR, "{}. File: {} Full line: {}",
+                   e.what(), file, line);
       }
     }
+
   }
 
-  delete [] words;
+  MPI_Bcast(dHf, nspecies, MPI_DOUBLE, 0, world);
+  MPI_Bcast(energyCorr, nspecies, MPI_DOUBLE, 0, world);
+  MPI_Bcast(tempCorrCoeff, nspecies, MPI_DOUBLE, 0, world);
+  MPI_Bcast(moleculeCorrCoeff, nspecies, MPI_DOUBLE, 0, world);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -413,37 +377,9 @@ void FixEOStableRX::free_table(Table *tb)
 
 void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 {
-  char line[MAXLINE] = {'\0'};
+  RxTableFileReader reader(lmp, keyword, file, "eos/table/rx");
 
-  // open file
-
-  SafeFilePtr fp = fopen(file,"r");
-  if (fp == nullptr) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
-
-  // loop until section found with matching keyword
-
-  while (true) {
-    if (fgets(line,MAXLINE,fp) == nullptr)
-      error->one(FLERR,"Did not find keyword in table file");
-    if (strspn(line," \t\n\r") == strlen(line)) continue;    // blank line
-    if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);                         // no match, skip section
-    param_extract(tb,line);
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    for (int i = 0; i < tb->ninput; i++) utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  }
-
-  // read args on 2nd line of section
-  // allocate table arrays for file values
-
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  param_extract(tb,line);
+  param_extract(reader, tb);
   tb2->ninput = tb->ninput;
   memory->create(tb->rfile,tb->ninput,"eos:rfile");
   memory->create(tb->efile,tb->ninput,"eos:efile");
@@ -464,40 +400,38 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 
   // read r,e table values from file
 
-  double rtmp, tmpE;
-  int nwords;
-  char * word;
-  int ispecies;
-  int ninputs = tb->ninput;
+  reader.read_in_table_data([&](RxTableFileReader::TableIndex_t i,
+                                ValueTokenizer & values) {
 
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  for (int i = 0; i < ninputs; i++) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+                              values.next_int(); // throw away the index
+                              double rtmp = values.next_double();
 
-    nwords = utils::count_words(utils::trim_comment(line));
-    if (nwords != nspecies+2)
-      error->all(FLERR,"Illegal fix eos/table/rx command: nwords={} nspecies={}", nwords, nspecies);
+                              int icolumn = 0;
+                              while (values.has_next()) {
 
-    word = strtok(line," \t\n\r\f");
-    word = strtok(nullptr," \t\n\r\f");
-    rtmp = std::stod(word);
+                                if (icolumn >= nspecies) {
+                                  error->one(FLERR,
+                                             "Illegal fix eos/table/rx command: "
+                                             "In file {}, number of columns exceeds "
+                                             "the number of species {}", file, nspecies);
+                                }
 
-    for (int icolumn=0; icolumn < ncolumn; icolumn++) {
-      ispecies = eosSpecies[icolumn];
+                                int ispecies = eosSpecies[icolumn];
 
-      Table *tbl = &tables[ispecies];
-      Table *tbl2 = &tables2[ispecies];
+                                Table *tbl = &tables[ispecies];
+                                Table *tbl2 = &tables2[ispecies];
 
-      word = strtok(nullptr," \t\n\r\f");
-      tmpE = std::stod(word);
+                                double tmpE = values.next_double();
 
-      tbl->rfile[i] = rtmp;
-      tbl->efile[i] = tmpE;
+                                tbl->rfile[i] = rtmp;
+                                tbl->efile[i] = tmpE;
 
-      tbl2->rfile[i] = tmpE;
-      tbl2->efile[i] = rtmp;
-    }
-  }
+                                tbl2->rfile[i] = tmpE;
+                                tbl2->efile[i] = rtmp;
+
+                                icolumn++;
+                              }
+                            });
 }
 
 /* ----------------------------------------------------------------------
@@ -556,54 +490,49 @@ void FixEOStableRX::compute_table(Table *tb)
    N is required, other params are optional
 ------------------------------------------------------------------------- */
 
-void FixEOStableRX::param_extract(Table *tb, char *line)
+void FixEOStableRX::param_extract(RxTableFileReader & reader, Table *tb)
 {
   int ispecies;
-  ncolumn = 0;
+  int ncolumn = 0;
 
   if (!eosSpecies)
     eosSpecies = new int[nspecies];
   for (ispecies = 0; ispecies < nspecies; ispecies++)
     eosSpecies[ispecies] = -1;
 
-  tb->ninput = 0;
-
-  char *word = strtok(line," \t\n\r\f");
-  if (strcmp(word,"N") == 0) {
-    word = strtok(nullptr," \t\n\r\f");
-    tb->ninput = std::stoi(word);
-  } else
-    error->one(FLERR,"Invalid keyword in fix eos/table/rx parameters");
-  word = strtok(nullptr," \t\n\r\f");
+  tb->ninput = reader.get_num_table_entries();
 
   if (rx_flag) {
-    while (word) {
+    while (reader.has_next_param_token()) {
+      auto word = reader.next_param_token_as_string();
+
       for (ispecies = 0; ispecies < nspecies; ispecies++)
-        if (strcmp(word,&atom->dvname[ispecies][0]) == 0) {
+        if (word == atom->dvname[ispecies]) {
           eosSpecies[ncolumn] =  ispecies;
           ncolumn++;
           break;
         }
       if (ispecies == nspecies) {
-        printf("name=%s not found in species list\n",word);
-        error->one(FLERR,"Invalid keyword in fix eos/table/rx parameters");
+        error->one(FLERR, "name={} not found in species list\n"
+                   "Invalid keyword in fix eos/table/rx parameters",
+                   word);
       }
-      word = strtok(nullptr," \t\n\r\f");
     }
 
     for (int icolumn = 0; icolumn < ncolumn; icolumn++)
       if (eosSpecies[icolumn]==-1)
-        error->one(FLERR,"EOS data is missing from fix eos/table/rx tabe");
+        error->one(FLERR,"EOS data is missing from fix eos/table/rx table");
     if (ncolumn != nspecies) {
-      printf("ncolumns=%d nspecies=%d\n",ncolumn,nspecies);
-      error->one(FLERR,"The number of columns in fix eos/table/rx does not match the number of species");
+      error->one(FLERR,
+                 "ncolumns={} nspecies={}\n"
+                 "The number of columns in fix eos/table/rx "
+                 "does not match the number of species",
+                 ncolumn,nspecies);
     }
   } else {
     eosSpecies[0] = 0;
     ncolumn++;
   }
-
-  if (tb->ninput == 0) error->one(FLERR,"fix eos/table/rx parameters did not set N");
 
 }
 

@@ -1790,3 +1790,7 @@ compute_voronoi_atom.h
 compute_voronoi_atom.cpp
 dump_vtk.h
 dump_vtk.cpp
+bond_oxdna2_fene.cpp
+bond_oxrna2_fene.cpp
+pair_oxdna2_excv.cpp
+pair_oxrna2_excv.cpp 

@@ -975,13 +975,13 @@ parallel-axis theorem) and its intrinsic (spin) angular momentum.
 
 .. versionchanged:: TBD
 
-   The inertia(), angmom(), and omega() functions now include the
-   contributions of finite-size particles; previously all atoms were
-   treated as point masses.  This is independent of (and does not change)
-   the angular-momentum removal performed by :doc:`fix momentum
-   <fix_momentum>`, :doc:`velocity zero <velocity>`, and
-   :doc:`compute temp/rotate <compute_temp_rotate>`, which continue to act
-   on the point-mass (translational) angular momentum only.
+The inertia(), angmom(), and omega() functions now include the
+contributions of finite-size particles; previously all atoms were
+treated as point masses.  This is independent of (and does not change)
+the angular-momentum removal performed by :doc:`fix momentum
+<fix_momentum>`, :doc:`velocity zero <velocity>`, and :doc:`compute
+temp/rotate <compute_temp_rotate>`, which continue to act on the
+point-mass (translational) angular momentum only.
 
 Region functions are specified exactly the same way as group functions
 except they take an extra final argument *IDR* which is the region ID.

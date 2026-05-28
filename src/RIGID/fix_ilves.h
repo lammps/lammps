@@ -154,6 +154,13 @@ class FixIlves : public Fix {
   int *cluster_offset;           // size n_clusters+1, CSR-style ranges into c_perm
   int *c_perm;                   // size n_constr; c_perm[s] = global constraint id at slot s
 
+  // Cached tag-pair-sorted iteration order for apply_constraint_forces
+  // (sized n_constr).  Built once at reneighbor and reused every step,
+  // so the canonical floating-point accumulation order is independent
+  // of MPI rank count without redoing the sort each call.
+  int *apply_order;
+  int apply_order_alloc;
+
   // Newton workspace (sized to largest cluster)
   int lu_alloc;
   double *lu_A;                  // row-major (lu_alloc * lu_alloc)
@@ -258,6 +265,8 @@ class FixIlves : public Fix {
   void add_constraint(int a, int b, int btype, double dist);
   void group_by_cluster();
   void precompute_constraint_data();
+  void refresh_constraint_geometry();
+  void build_apply_order();
   int masscheck(double massone);
   bool bond_selected_for_atoms(int ia, int ib, int bt);
 

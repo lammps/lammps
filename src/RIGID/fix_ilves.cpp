@@ -111,7 +111,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     xshake(nullptr), c_atom1(nullptr), c_atom2(nullptr),
     c_type(nullptr), c_dist(nullptr), c_lambda(nullptr), c_cluster(nullptr), c_rx(nullptr),
     c_ry(nullptr), c_rz(nullptr), c_rsq(nullptr), c_invma(nullptr), c_invmb(nullptr),
-    cluster_offset(nullptr), c_perm(nullptr), lu_A(nullptr),
+    cluster_offset(nullptr), c_perm(nullptr), apply_order(nullptr), lu_A(nullptr),
     lu_b(nullptr), lu_pivot(nullptr), cl_sx(nullptr), cl_sy(nullptr), cl_sz(nullptr),
     chol_pool(nullptr), chol_pool_offset(nullptr), cluster_bw(nullptr), cluster_cached(nullptr),
     x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr), type(nullptr),
@@ -161,6 +161,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   chol_pool_alloc = 0;
   chol_offset_alloc = 0;
   cluster_bw_alloc = 0;
+  apply_order_alloc = 0;
   cluster_cached_alloc = 0;
   energy_global_flag = energy_peratom_flag = 1;
   virial_global_flag = virial_peratom_flag = 1;
@@ -464,6 +465,7 @@ FixIlves::~FixIlves()
   memory->destroy(c_invmb);
   memory->destroy(cluster_offset);
   memory->destroy(c_perm);
+  memory->destroy(apply_order);
   memory->destroy(lu_A);
   memory->destroy(lu_b);
   memory->destroy(lu_pivot);
@@ -1000,30 +1002,45 @@ void FixIlves::group_by_cluster()
 }
 
 /* ----------------------------------------------------------------------
-   Precompute per-constraint reference vector r_k = x[a]-x[b] (closest
-   periodic image), |r_k|^2, and inverse masses.  These are constant
-   throughout the constraint solve (they use x at the start of the step).
+   Refresh c_rx/c_ry/c_rz/c_rsq from the current positions in x[].  Uses
+   minimum_image to wrap the displacement to the closest periodic image
+   (closest_image can return inconsistent ghost copies for atoms whose
+   periodic images differ, so we operate on the difference directly).
+   Called at the top of every solver entry point (post_force,
+   post_force_respa, end_of_step) and from precompute_constraint_data
+   inside build_constraint_list.
 ------------------------------------------------------------------------- */
 
-void FixIlves::precompute_constraint_data()
+void FixIlves::refresh_constraint_geometry()
 {
   for (int k = 0; k < n_constr; ++k) {
-    int a = c_atom1[k];
-    int b = c_atom2[k];
-    // Apply minimum_image to the raw vector r_k = x[a]-x[b].  closest_image
-    // can return inconsistent ghost copies for atoms that span PBC with
-    // different image flags (e.g. neighbouring atoms in the same molecule
-    // stored in different periodic cells), giving a wrong "bond vector".
-    // minimum_image directly wraps the displacement to the closest periodic
-    // image, independent of which storage index was returned.
-    double rx = atom->x[a][0] - atom->x[b][0];
-    double ry = atom->x[a][1] - atom->x[b][1];
-    double rz = atom->x[a][2] - atom->x[b][2];
+    const int a = c_atom1[k];
+    const int b = c_atom2[k];
+    double rx = x[a][0] - x[b][0];
+    double ry = x[a][1] - x[b][1];
+    double rz = x[a][2] - x[b][2];
     domain->minimum_image(FLERR, rx, ry, rz);
     c_rx[k] = rx;
     c_ry[k] = ry;
     c_rz[k] = rz;
     c_rsq[k] = rx*rx + ry*ry + rz*rz;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Precompute per-constraint reference vectors, |r_k|^2, and inverse
+   masses.  Used by all subsequent solver entries until the next
+   reneighbor.  RCM reorder + factor cache sizing also run here since
+   the per-cluster bandwidths depend on the constraint list, which is
+   just-finalized at this point in build_constraint_list.
+------------------------------------------------------------------------- */
+
+void FixIlves::precompute_constraint_data()
+{
+  refresh_constraint_geometry();
+  for (int k = 0; k < n_constr; ++k) {
+    const int a = c_atom1[k];
+    const int b = c_atom2[k];
     c_invma[k] = rmass ? 1.0 / rmass[a] : 1.0 / mass[type[a]];
     c_invmb[k] = rmass ? 1.0 / rmass[b] : 1.0 / mass[type[b]];
   }
@@ -1033,6 +1050,37 @@ void FixIlves::precompute_constraint_data()
   // the pool size depends on cluster_bw[].
   rcm_reorder_clusters();
   grow_factor_cache();
+}
+
+/* ----------------------------------------------------------------------
+   Build the tag-pair-sorted apply order used by apply_constraint_forces.
+   Sorted by (min_tag, max_tag, type) so different MPI ranks accumulate
+   force / per-atom virial contributions in the same order on shared
+   atoms -- eliminates ULP-level rank-dependence in the per-atom output
+   (and the Newton iteration that follows from it).  The constraint list
+   is stable until the next reneighbor, so this runs once per neighbor
+   list build instead of every solve.
+------------------------------------------------------------------------- */
+
+void FixIlves::build_apply_order()
+{
+  if (n_constr > apply_order_alloc) {
+    apply_order_alloc = n_constr;
+    memory->grow(apply_order, apply_order_alloc, "ilves:apply_order");
+  }
+  for (int k = 0; k < n_constr; ++k) apply_order[k] = k;
+  tagint *tag = atom->tag;
+  std::sort(apply_order, apply_order + n_constr, [&](int x, int y) {
+    tagint xa = tag[c_atom1[x]];
+    tagint xb = tag[c_atom2[x]];
+    tagint ya = tag[c_atom1[y]];
+    tagint yb = tag[c_atom2[y]];
+    if (xa > xb) std::swap(xa, xb);
+    if (ya > yb) std::swap(ya, yb);
+    if (xa != ya) return xa < ya;
+    if (xb != yb) return xb < yb;
+    return c_type[x] < c_type[y];
+  });
 }
 
 /* ----------------------------------------------------------------------
@@ -1268,19 +1316,7 @@ void FixIlves::post_force(int vflag)
   type  = atom->type;
   nlocal = atom->nlocal;
 
-  // recompute reference vectors r_k = x[a]-x[b] (closest periodic image)
-  for (int k = 0; k < n_constr; ++k) {
-    int a = c_atom1[k];
-    int b = c_atom2[k];
-    double rx = x[a][0] - x[b][0];
-    double ry = x[a][1] - x[b][1];
-    double rz = x[a][2] - x[b][2];
-    domain->minimum_image(FLERR, rx, ry, rz);
-    c_rx[k]  = rx;
-    c_ry[k]  = ry;
-    c_rz[k]  = rz;
-    c_rsq[k] = rx*rx + ry*ry + rz*rz;
-  }
+  refresh_constraint_geometry();
 
   // predict unconstrained move xshake, then share with ghosts
   unconstrained_update();
@@ -1377,19 +1413,7 @@ void FixIlves::post_force_respa(int vflag, int ilevel, int iloop)
   type  = atom->type;
   nlocal = atom->nlocal;
 
-  // recompute reference vectors r_k = x[a]-x[b] (same as post_force)
-  for (int k = 0; k < n_constr; ++k) {
-    int a = c_atom1[k];
-    int b = c_atom2[k];
-    double rx = x[a][0] - x[b][0];
-    double ry = x[a][1] - x[b][1];
-    double rz = x[a][2] - x[b][2];
-    domain->minimum_image(FLERR, rx, ry, rz);
-    c_rx[k]  = rx;
-    c_ry[k]  = ry;
-    c_rz[k]  = rz;
-    c_rsq[k] = rx*rx + ry*ry + rz*rz;
-  }
+  refresh_constraint_geometry();
 
   // predict unconstrained move (sets dtfsq for the current level), then
   // share xshake with ghosts.
@@ -2059,36 +2083,16 @@ void FixIlves::apply_constraint_forces(int vflag)
     array_atom = fstore;
   }
 
-  // Iterate in canonical (tag-pair-sorted) order so the per-atom
-  // floating-point accumulation in atom->f and vatom is bit-identical
-  // across MPI rank counts.  Different ranks may have stored a given
-  // constraint in different positions of c_atom1/c_atom2 (different
-  // add-order from the bond loop + Phase 2d broadcast); iterating
-  // simply `for k = 0..n_constr-1` mixes writes to the same atom's f
-  // and vatom in different orders, producing ULP-level diffs that
+  // Iterate in canonical (tag-pair-sorted) apply_order built at the
+  // last reneighbor.  Different ranks may have stored a given shared
+  // constraint at different positions in c_atom1/c_atom2; iterating
+  // raw 0..n_constr-1 mixes writes to the same atom's f / vatom in
+  // different orders across ranks, producing ULP-level diffs that
   // propagate to ULP-level x_projected differences in
   // correct_coordinates, then through Newton iteration to several
-  // percent c_lambda differences (small Lagrange multipliers are
-  // particularly sensitive).  Canonicalizing the iteration order
-  // eliminates the rank-dependence -- per-atom virial and force
-  // values now match np=1 bit-for-bit on owned atoms.
-  std::vector<int> apply_order(n_constr);
-  for (int k = 0; k < n_constr; ++k) apply_order[k] = k;
-  std::sort(apply_order.begin(), apply_order.end(), [&](int x, int y) {
-    tagint xa = atom->tag[c_atom1[x]];
-    tagint xb = atom->tag[c_atom2[x]];
-    tagint ya = atom->tag[c_atom1[y]];
-    tagint yb = atom->tag[c_atom2[y]];
-    if (xa > xb) std::swap(xa, xb);
-    if (ya > yb) std::swap(ya, yb);
-    if (xa != ya) return xa < ya;
-    if (xb != yb) return xb < yb;
-    // Same atom pair: tiebreak by type (positive for bonds, negative
-    // for angle-virtual A-C constraints) so any pair appearing as both
-    // a bond and an angle-virtual still has a deterministic order.
-    return c_type[x] < c_type[y];
-  });
-
+  // percent c_lambda differences on small multipliers.  A stable
+  // canonical order eliminates the rank-dependence and lets per-atom
+  // virial match np=1 bit-for-bit on owned atoms.
   for (int idx = 0; idx < n_constr; ++idx) {
     const int k = apply_order[idx];
     double scale = c_lambda[k] * inv_dtfsq;
@@ -3228,14 +3232,15 @@ void FixIlves::correct_coordinates(int vflag)
   // ranks must still participate or the others deadlock.
 
   // save current f and v, then zero them so unconstrained_update reduces
-  // to xshake = x (the current positions)
-  double **f_save = nullptr;
-  double **v_save = nullptr;
-  memory->create(f_save, nlocal, 3, "ilves:fsave");
-  memory->create(v_save, nlocal, 3, "ilves:vsave");
+  // to xshake = x (the current positions).  Flat 3*nlocal-element
+  // scratch buffers; correct_coordinates runs at most a few times per
+  // run (setup only), so a local std::vector beats holding member
+  // buffers of nmax extent between calls.
+  std::vector<double> f_save(3 * nlocal);
+  std::vector<double> v_save(3 * nlocal);
   for (int i = 0; i < nlocal; ++i) {
-    f_save[i][0] = f[i][0]; f_save[i][1] = f[i][1]; f_save[i][2] = f[i][2];
-    v_save[i][0] = v[i][0]; v_save[i][1] = v[i][1]; v_save[i][2] = v[i][2];
+    f_save[3*i+0] = f[i][0]; f_save[3*i+1] = f[i][1]; f_save[3*i+2] = f[i][2];
+    v_save[3*i+0] = v[i][0]; v_save[3*i+1] = v[i][1]; v_save[3*i+2] = v[i][2];
     f[i][0] = f[i][1] = f[i][2] = 0.0;
     v[i][0] = v[i][1] = v[i][2] = 0.0;
   }
@@ -3269,11 +3274,9 @@ void FixIlves::correct_coordinates(int vflag)
 
   // restore f and v
   for (int i = 0; i < nlocal; ++i) {
-    f[i][0] = f_save[i][0]; f[i][1] = f_save[i][1]; f[i][2] = f_save[i][2];
-    v[i][0] = v_save[i][0]; v[i][1] = v_save[i][1]; v[i][2] = v_save[i][2];
+    f[i][0] = f_save[3*i+0]; f[i][1] = f_save[3*i+1]; f[i][2] = f_save[3*i+2];
+    v[i][0] = v_save[3*i+0]; v[i][1] = v_save[3*i+1]; v[i][2] = v_save[3*i+2];
   }
-  memory->destroy(f_save);
-  memory->destroy(v_save);
 
   // updated x must be propagated to ghost atoms for the velocity correction
   // and subsequent force computation; xshake forward-comm is a convenient
@@ -3497,18 +3500,7 @@ void FixIlves::end_of_step()
   type  = atom->type;
   nlocal = atom->nlocal;
 
-  for (int k = 0; k < n_constr; ++k) {
-    int a = c_atom1[k];
-    int b = c_atom2[k];
-    double rx = x[a][0] - x[b][0];
-    double ry = x[a][1] - x[b][1];
-    double rz = x[a][2] - x[b][2];
-    domain->minimum_image(FLERR, rx, ry, rz);
-    c_rx[k]  = rx;
-    c_ry[k]  = ry;
-    c_rz[k]  = rz;
-    c_rsq[k] = rx*rx + ry*ry + rz*rz;
-  }
+  refresh_constraint_geometry();
 
   // forward-communicate atom->v so ghost velocities reflect the values
   // just-set on the owning rank's final_integrate.  Needed at every
@@ -4595,4 +4587,5 @@ void FixIlves::build_constraint_list()
     identify_cluster_owners();
   }
   precompute_constraint_data();
+  build_apply_order();
 }

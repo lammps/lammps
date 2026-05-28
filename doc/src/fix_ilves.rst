@@ -12,7 +12,6 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * tol = convergence tolerance on relative bond-length error
-  (``|g_k| / d_k^2`` where ``g_k = 0.5*(|s_k|^2 - d_k^2)``)
 * iter = maximum number of Newton iterations per time step
 * N = print constraint statistics every this many time steps (0 = never)
 * selectors = one or more of *b*, *a*, *t*, *m*, each followed by one or
@@ -92,32 +91,24 @@ using Newton's method on a sparse system of nonlinear equations.  Unlike
 constraint clusters --- including the full set of C-C backbone bonds of
 a long polymer or protein chain --- in a single solve.
 
-The fix gathers the complete bond / angle topology onto every MPI rank
-at init via ``MPI_Allgatherv`` and builds a per-rank constraint list
-that includes every cluster intersecting the rank's local atoms.  Each
-participating rank solves intersecting clusters redundantly so that the
-same Lagrange multipliers are computed from synchronized positions; the
-constraint force is applied locally to each rank's owned atoms only.
-Per-rank topology storage is sparse --- only tags involved in at least
-one selected bond or angle are kept, so the memory cost scales with the
-constrained subset rather than with ``natoms``.
-
 User interface
 ^^^^^^^^^^^^^^
 
-The user interface follows :doc:`fix shake <fix_shake>` closely:
+The user interface of *fix ilves* follows that of :doc:`fix shake
+<fix_shake>`.  The three arguments after the *ilves* keyword are:
 
-* The first three arguments are the convergence tolerance, the maximum
-  Newton iteration count, and the statistics-print interval.
-* One or more groups of selectors (``b``, ``a``, ``t``, ``m`` lists)
-  pick which bonds/angles get constrained.
+- the tolerance (:math:`\frac{|g_k|}{d_k^2}` where :math:`g_k = 0.5*(|s_k|^2 - d_k^2)`)
+- the maximum # or Newton iterations
+- the frequency of statistics output (0 turns it off)
 
-A bond is constrained when **both** of its atoms are in the fix group
-AND at least one of the selectors matches:
+Then one or more groups of selectors (``b``, ``a``, ``t``, ``m`` lists)
+pick which bonds or angles get constrained.  A bond is constrained when
+**both** of its atoms are in the fix group AND at least one of the
+selectors matches:
 
 * the bond type is in the *b* list, or
 * either atom type is in the *t* list, or
-* either atom mass (within 0.1 mass units of any value in the *m* list).
+* either atom mass is within 0.1 mass units of any value in the *m* list.
 
 An angle of type *aa* listed via *a* contributes a "virtual" A-C distance
 constraint when **all three** atoms are in the fix group AND both flanking
@@ -126,19 +117,32 @@ A-C target distance is computed from the law of cosines using the two
 bond equilibrium distances and the angle equilibrium value, identical to
 the construction used by :doc:`fix shake <fix_shake>`.
 
-For each bond/angle that is selected, ``fix ilves`` sets the corresponding
-``bond_type`` / ``angle_type`` to its negative value so that the configured
-:doc:`bond_style <bond_style>` and :doc:`angle_style <angle_style>` skip
-the (now-rigid) interaction --- avoiding double-counting of bonded forces.
-This mirrors how :doc:`fix shake <fix_shake>` handles the same problem and
-is reversed automatically when the fix is destroyed.
+For each bond or angle that is selected, *fix ilves* sets the
+corresponding ``bond_type`` / ``angle_type`` to its negative value so
+that the configured :doc:`bond_style <bond_style>` and :doc:`angle_style
+<angle_style>` skip the (now-rigid) interaction and thus avoid
+double-counting of bonded forces.  This mirrors how :doc:`fix shake
+<fix_shake>` handles the same problem and is reversed automatically when
+the fix is destroyed.
 
 Algorithm
 ^^^^^^^^^
 
-At each time step, after the integrator has updated positions and forces
-but before the velocity half-step finalizes, the fix runs the following
-sequence:
+The constraint topology is distributed: each MPI rank builds its
+constraint list from its own local bond/angle storage plus the
+corresponding ghost atoms.  Per-rank memory scales with the rank's local
+atom count -- no replicated global topology table is held.  At every
+reneighbor a two-stage ``MPI_Alltoallv`` reconciles every shared
+cluster: peers ship their local atoms and constraints to the cluster
+owner, and the owner ships the union of all participating ranks'
+constraints back to every peer.  After that exchange every rank that
+touches a given shared cluster sees the same constraint set, so the
+per-cluster Newton matrix is identical on all participating ranks and
+produces the same Lagrange multipliers.  Each rank applies those
+multipliers only to its own local atoms.
+
+At each time step, after the force compute and before the final
+velocity half-step, the fix runs the following sequence:
 
 1. Predict the unconstrained position ``xshake_i = x_i + dt*v_i + dt^2/m_i * f_i``
    for every atom.
@@ -152,12 +156,14 @@ sequence:
    forward and back substitution against the cached Cholesky factor.
 4. Apply ``dlambda`` to ``xshake`` and accumulate the Lagrange
    multipliers.
-5. ``forward_comm`` ``xshake`` so the redundantly-solving ranks stay in
-   sync, and iterate steps 2-5 until the global max relative residual
-   falls below ``tol``.  Within a step, only the right-hand side ``g``
-   and the Newton iterate ``s_k = xshake[a] - xshake[b]`` change; the
-   Jacobian is step-constant for ``variant fast`` and is factored only
-   once per step per cluster.
+5. ``forward_comm`` ``xshake`` so ghost positions on participating
+   ranks reflect the local updates, and ``MPI_Allreduce`` the max
+   residual so every rank exits the Newton loop on the same iteration.
+   Iterate steps 2-5 until the global max relative residual falls below
+   ``tol``.  Within a step, only the right-hand side ``g`` and the
+   Newton iterate ``s_k = xshake[a] - xshake[b]`` change; the Jacobian
+   is step-constant for ``variant fast`` and is factored only once per
+   step per cluster.
 6. Convert the accumulated multipliers into per-atom forces
    ``f[a] += lambda/dt^2 * r_k``, ``f[b] -= lambda/dt^2 * r_k`` so that
    the next ``initial_integrate`` produces the constrained positions.
@@ -334,46 +340,23 @@ Note, that this test does not detect rearrangements that keep the counts
 identical.
 
 Angle types whose equilibrium :math:`\theta_0` is at or above the
-``linearangle`` threshold (default 165 degrees) are silently skipped
-when building the constraint list.
+``linearangle`` threshold (default 165 degrees) have their A-C virtual
+constraint dropped when building the constraint list; the count of
+such types is reported in the setup log so users notice when this
+fallback fires.  See the *linearangle* keyword for the optional stiff
+angle substitute.
 
 Memory requirements
 ^^^^^^^^^^^^^^^^^^^
 
-``fix ilves`` stores topology in **distributed** form: each MPI rank
-builds its constraint list from its own local atom storage
-(``atom->bond_*``, ``atom->angle_*``) plus ghost atoms in the standard
-communication shell.  No replicated global table is held, so per-rank
-memory shrinks roughly linearly with rank count for partial-constraint
-workloads (hydrogens-only, methyl, water) and approximately linearly
-for cluster-spanning workloads as long as clusters fit within the
-ghost shell.
+Fix ilves stores topology in *distributed* form: each MPI rank builds
+its constraint list from its own local atom storage (``atom->bond_*``,
+``atom->angle_*``) plus ghost atoms in the standard communication shell.
+No replicated global table is held, so per-rank memory shrinks roughly
+linearly with rank count for partial-constraint workloads
+(hydrogen-only, methyl, water) and approximately linearly for
+cluster-spanning workloads.
 
-A reference benchmark on the rhodopsin all-bonds case (~31k selected
-constraints total, single dominant cluster) shows per-rank memory:
-
-============  =====================  ======================
-MPI ranks     ``info memory`` MB     constraints/proc
-============  =====================  ======================
-1             193                    31955
-2             137                    16200
-4              69                     8197
-8              61                     4172
-============  =====================  ======================
-
-The per-rank ``memory_usage`` reported by ``info memory`` and
-``thermo_style custom ... memory`` includes the per-rank constraint-list
-arrays (rebuilt each reneighbor) and the per-cluster Cholesky factor
-cache (``variant fast`` only).  Both scale with this rank's own atoms.
-Consult ``info fixes`` for the per-fix breakdown.
-
-For clusters whose extent exceeds the standard LAMMPS ghost cutoff
-(e.g. a fully-bond-constrained polymer chain spanning a whole
-subdomain), the constraint solver still works -- each rank handles
-its local piece of the cluster, with Newton iteration converging via
-ghost-atom updates between iterations.  Newton iteration count may
-increase modestly for large spanning clusters compared to the prior
-redundant-solve model.
 
 Related commands
 """"""""""""""""

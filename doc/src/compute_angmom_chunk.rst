@@ -40,6 +40,14 @@ atoms in the chunk around the center-of-mass of the chunk.  The
 calculation includes all effects due to atoms passing through periodic
 boundaries.
 
+.. versionchanged:: TBD
+
+   For finite-size particles the intrinsic (spin) angular momentum of each
+   particle is now added: sphere and line particles via their angular
+   velocity (:math:`L = I\,\omega`), while ellipsoid, superellipsoid,
+   triangle, and body particles add their stored per-particle angular
+   momentum.  Previously all atoms were treated as point masses.
+
 Note that only atoms in the specified group contribute to the
 calculation.  The :doc:`compute chunk/atom <compute_chunk_atom>` command
 defines its own group; atoms will have a chunk ID = 0 if they are not

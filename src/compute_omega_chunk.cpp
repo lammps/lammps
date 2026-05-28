@@ -14,6 +14,10 @@
 #include "compute_omega_chunk.h"
 
 #include "atom.h"
+#include "atom_vec_body.h"
+#include "atom_vec_ellipsoid.h"
+#include "atom_vec_line.h"
+#include "atom_vec_tri.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
 #include "error.h"
@@ -24,6 +28,8 @@
 using namespace LAMMPS_NS;
 
 static constexpr double EPSILON = 1.0e-6;
+static constexpr double SINERTIA = 0.4;          // moment of inertia prefactor for sphere
+static constexpr double LINERTIA = 1.0 / 12.0;   // moment of inertia prefactor for line
 
 /* ---------------------------------------------------------------------- */
 
@@ -119,6 +125,21 @@ void ComputeOmegaChunk::compute_array()
     }
   }
 
+  // finite-size particles add their own moment of inertia and angular
+  // momentum (consistent with compute inertia/chunk and compute angmom/chunk)
+
+  auto *avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  auto *avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  auto *avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  auto *avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
+  double *radius = atom->radius;
+  double **omega_one = atom->omega;
+  double **angmom_one = atom->angmom;
+  int *ellipsoid = atom->ellipsoid;
+  int *line = atom->line;
+  int *tri = atom->tri;
+  int *body = atom->body;
+
   // compute inertia tensor for each chunk
 
   for (i = 0; i < nlocal; i++)
@@ -139,6 +160,33 @@ void ComputeOmegaChunk::compute_array()
       inertia[index][3] -= massone * dx * dy;
       inertia[index][4] -= massone * dy * dz;
       inertia[index][5] -= massone * dx * dz;
+
+      double ivec[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+      if (avec_ellipsoid && ellipsoid[i] >= 0) {
+        if (atom->superellipsoid_flag)
+          MathExtra::inertia_ellipsoid(avec_ellipsoid->bonus_super[ellipsoid[i]].inertia,
+                                       avec_ellipsoid->bonus_super[ellipsoid[i]].quat, ivec);
+        else
+          MathExtra::inertia_ellipsoid(avec_ellipsoid->bonus[ellipsoid[i]].shape,
+                                       avec_ellipsoid->bonus[ellipsoid[i]].quat, massone, ivec);
+      } else if (avec_line && line[i] >= 0) {
+        MathExtra::inertia_line(avec_line->bonus[line[i]].length, avec_line->bonus[line[i]].theta,
+                                massone, ivec);
+      } else if (avec_tri && tri[i] >= 0) {
+        MathExtra::inertia_triangle(avec_tri->bonus[tri[i]].inertia, avec_tri->bonus[tri[i]].quat,
+                                    massone, ivec);
+      } else if (avec_body && body[i] >= 0) {
+        MathExtra::inertia_ellipsoid(avec_body->bonus[body[i]].inertia,
+                                     avec_body->bonus[body[i]].quat, ivec);
+      } else if (radius && radius[i] > 0.0) {
+        ivec[0] = ivec[1] = ivec[2] = SINERTIA * massone * radius[i] * radius[i];
+      }
+      inertia[index][0] += ivec[0];
+      inertia[index][1] += ivec[1];
+      inertia[index][2] += ivec[2];
+      inertia[index][3] += ivec[5];
+      inertia[index][4] += ivec[3];
+      inertia[index][5] += ivec[4];
     }
 
   MPI_Allreduce(&inertia[0][0], &inertiaall[0][0], 6 * nchunk, MPI_DOUBLE, MPI_SUM, world);
@@ -163,6 +211,38 @@ void ComputeOmegaChunk::compute_array()
       angmom[index][0] += massone * (dy * vunwrap[2] - dz * vunwrap[1]);
       angmom[index][1] += massone * (dz * vunwrap[0] - dx * vunwrap[2]);
       angmom[index][2] += massone * (dx * vunwrap[1] - dy * vunwrap[0]);
+
+      if (avec_ellipsoid && ellipsoid[i] >= 0) {
+        if (angmom_one) {
+          angmom[index][0] += angmom_one[i][0];
+          angmom[index][1] += angmom_one[i][1];
+          angmom[index][2] += angmom_one[i][2];
+        }
+      } else if (avec_tri && tri[i] >= 0) {
+        if (angmom_one) {
+          angmom[index][0] += angmom_one[i][0];
+          angmom[index][1] += angmom_one[i][1];
+          angmom[index][2] += angmom_one[i][2];
+        }
+      } else if (avec_body && body[i] >= 0) {
+        if (angmom_one) {
+          angmom[index][0] += angmom_one[i][0];
+          angmom[index][1] += angmom_one[i][1];
+          angmom[index][2] += angmom_one[i][2];
+        }
+      } else if (avec_line && line[i] >= 0) {
+        if (omega_one) {
+          double length = avec_line->bonus[line[i]].length;
+          angmom[index][2] += LINERTIA * massone * length * length * omega_one[i][2];
+        }
+      } else if (radius && radius[i] > 0.0) {
+        if (omega_one) {
+          double sphere = SINERTIA * massone * radius[i] * radius[i];
+          angmom[index][0] += sphere * omega_one[i][0];
+          angmom[index][1] += sphere * omega_one[i][1];
+          angmom[index][2] += sphere * omega_one[i][2];
+        }
+      }
     }
 
   MPI_Allreduce(&angmom[0][0], &angmomall[0][0], 3 * nchunk, MPI_DOUBLE, MPI_SUM, world);

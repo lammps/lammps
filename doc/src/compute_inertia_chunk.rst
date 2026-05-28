@@ -43,6 +43,16 @@ tensor for each chunk, ordered
 The calculation includes all effects due to atoms passing through periodic
 boundaries.
 
+.. versionchanged:: TBD
+
+   For finite-size particles (finite-size spheres, ellipsoids,
+   superellipsoids, line segments, triangles, and body particles) the moment
+   of inertia of the particle's own shape is now added to each chunk via the
+   parallel-axis theorem.  Previously all atoms were treated as point masses.
+   For finite spheres, ellipsoids, lines, and triangles this matches the
+   :doc:`fix rigid <fix_rigid>` command; superellipsoids and body particles
+   use their stored per-particle moment of inertia.
+
 Note that only atoms in the specified group contribute to the
 calculation.  The :doc:`compute chunk/atom <compute_chunk_atom>` command
 defines its own group; atoms will have a chunk ID = 0 if they are not
@@ -94,6 +104,7 @@ none
 Related commands
 """"""""""""""""
 
+:doc:`compute inertia <compute_inertia>`,
 :doc:`variable inertia() function <variable>`
 
 Default

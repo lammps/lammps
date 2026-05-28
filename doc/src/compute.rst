@@ -252,6 +252,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`hma <compute_hma>` - harmonically mapped averaging for atomic crystals
 * :doc:`improper <compute_improper>` - energy of each improper sub-style
 * :doc:`improper/local <compute_improper_local>` - angle of each improper
+* :doc:`inertia <compute_inertia>` - inertia tensor of group of atoms
 * :doc:`inertia/chunk <compute_inertia_chunk>` - inertia tensor for each chunk
 * :doc:`ke <compute_ke>` - translational kinetic energy
 * :doc:`ke/atom <compute_ke_atom>` - kinetic energy for each atom

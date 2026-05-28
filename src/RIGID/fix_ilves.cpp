@@ -107,18 +107,16 @@ const char cite_fix_ilves[] =
 FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr), type_flag(nullptr),
     mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr), angle_r1(nullptr),
-    angle_r2(nullptr), angle_linear(nullptr), fstore(nullptr),
-    xshake(nullptr), c_atom1(nullptr), c_atom2(nullptr),
-    c_type(nullptr), c_dist(nullptr), c_lambda(nullptr), c_cluster(nullptr), c_rx(nullptr),
-    c_ry(nullptr), c_rz(nullptr), c_rsq(nullptr), c_invma(nullptr), c_invmb(nullptr),
-    cluster_offset(nullptr), c_perm(nullptr), apply_order(nullptr), lu_A(nullptr),
-    lu_b(nullptr), lu_pivot(nullptr), cl_sx(nullptr), cl_sy(nullptr), cl_sz(nullptr),
-    chol_pool(nullptr), chol_pool_offset(nullptr), cluster_bw(nullptr), cluster_cached(nullptr),
-    x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr), type(nullptr),
-    b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr), b_min(nullptr),
-    b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
-    a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
-    a_max_all(nullptr), a_min_all(nullptr)
+    angle_r2(nullptr), angle_linear(nullptr), fstore(nullptr), xshake(nullptr), c_atom1(nullptr),
+    c_atom2(nullptr), c_type(nullptr), c_dist(nullptr), c_lambda(nullptr), c_cluster(nullptr),
+    c_rx(nullptr), c_ry(nullptr), c_rz(nullptr), c_rsq(nullptr), c_invma(nullptr), c_invmb(nullptr),
+    cluster_offset(nullptr), c_perm(nullptr), apply_order(nullptr), lu_A(nullptr), lu_b(nullptr),
+    lu_pivot(nullptr), cl_sx(nullptr), cl_sy(nullptr), cl_sz(nullptr), chol_pool(nullptr),
+    chol_pool_offset(nullptr), cluster_bw(nullptr), cluster_cached(nullptr), x(nullptr), v(nullptr),
+    f(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), b_count(nullptr),
+    b_count_all(nullptr), b_ave(nullptr), b_max(nullptr), b_min(nullptr), b_ave_all(nullptr),
+    b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr), a_count_all(nullptr), a_ave(nullptr),
+    a_max(nullptr), a_min(nullptr), a_ave_all(nullptr), a_max_all(nullptr), a_min_all(nullptr)
 {
   lu_alloc = 0;
   largest_cluster = 0;
@@ -184,7 +182,7 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
   warmstart_enabled = 0;
   newton_relax = 1.0;
   linear_threshold = 165.0;
-  linear_angle_K   = 0.0;
+  linear_angle_K = 0.0;
 
   store_flag = peratom_flag = 0;
   maxstore = -1;
@@ -3082,6 +3080,7 @@ int FixIlves::broadcast_full_clusters_to_peers()
   }
 
   int n_added = 0;
+  int n_skipped = 0;
   for (int p = 0; p < nprocs; ++p) {
     int pos = recv_displs[p];
     const int end = pos + recv_counts[p];
@@ -3102,10 +3101,13 @@ int FixIlves::broadcast_full_clusters_to_peers()
         const uint64_t key = pair_key(ta, tb);
         if (seen_global.count(key)) continue;
 
-        // Atoms must be in our halo to add the constraint.
+        // Atoms must be in our halo to add the constraint.  If they
+        // aren't, this rank's view of the cluster will be incomplete
+        // and the cross-rank c_lambda agreement will break.  Count
+        // these and abort below if any occurred globally.
         const int ia = atom->map(ta);
         const int ib = atom->map(tb);
-        if (ia < 0 || ib < 0) continue;
+        if (ia < 0 || ib < 0) { ++n_skipped; continue; }
 
         // Build canonical (lower-tag, higher-tag) entry like the bond
         // loop in build_constraint_list, then PBC-image c_atom2.
@@ -3123,6 +3125,20 @@ int FixIlves::broadcast_full_clusters_to_peers()
       }
     }
   }
+
+  // Cluster atoms that exceed the peer's ghost-shell halo would
+  // silently leave the peer with an incomplete cluster matrix and
+  // re-introduce the cross-rank c_lambda divergence the broadcast is
+  // there to prevent.  Fail loudly so the user can widen the comm
+  // cutoff (`comm_modify cutoff <value>`) or refactor the topology.
+  int n_skipped_all = n_skipped;
+  if (nprocs > 1)
+    MPI_Allreduce(&n_skipped, &n_skipped_all, 1, MPI_INT, MPI_SUM, world);
+  if (n_skipped_all > 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix ilves: {} cluster constraints contain atoms outside the communication cutoff. "
+               "Increase the cutoff or remove constraints so clusters become smaller.",
+               n_skipped_all);
 
   return n_added;
 }
@@ -4175,7 +4191,21 @@ void FixIlves::init_topology()
       error->all(FLERR, Error::NOLASTLINE,
                  "Fix ilves: angle type {} has mixed type bonds", at);
 
-    if (!angle_flag[at] || global_b1[at] == 0) {
+    if (!angle_flag[at]) {
+      angle_distance[at] = 0.0;
+      angle_r1[at] = angle_r2[at] = 0.0;
+      angle_btype1[at] = angle_btype2[at] = 0;
+      continue;
+    }
+    if (global_b1[at] == 0) {
+      // User requested constraints on this angle type via `a`, but no
+      // rank found a constrained angle of that type whose flanking
+      // bonds it could resolve locally.  The AC virtual constraint
+      // gets silently dropped -- warn so the user notices.
+      if (comm->me == 0)
+        error->warning(FLERR,
+                       "Fix ilves: angle type {} was selected but could not determine its "
+                       "bond types; the angle's A-C virtual constraint is disabled", at);
       angle_distance[at] = 0.0;
       angle_r1[at] = angle_r2[at] = 0.0;
       angle_btype1[at] = angle_btype2[at] = 0;
@@ -4191,6 +4221,31 @@ void FixIlves::init_topology()
     angle_distance[at] = sqrt(r1*r1 + r2*r2 - 2.0*r1*r2*cos(theta0));
     angle_btype1[at] = b1;
     angle_btype2[at] = b2;
+  }
+
+  // Asymmetric angles + partial `b` selector under newton on bond.
+  // Under newton on, a bond is stored only at its lower-tag endpoint;
+  // when both endpoints of a flanking bond are remote on this rank,
+  // lookup_local_bond_type returns 0 and build_constraint_list falls
+  // back to accepting the angle if EITHER cached flanking type
+  // (b1 or b2) is user-selected.  For asymmetric types (b1 != b2)
+  // with only one of bond_flag[b1] / bond_flag[b2] set, that fallback
+  // is slightly over-permissive -- it may constrain an angle whose
+  // actual flanking type the user did not select.
+  if (force->newton_bond && comm->me == 0) {
+    for (int at = 1; at <= natypes; ++at) {
+      if (!angle_flag[at]) continue;
+      const int b1 = angle_btype1[at];
+      const int b2 = angle_btype2[at];
+      if (b1 == 0 || b2 == 0 || b1 == b2) continue;
+      const bool s1 = bond_flag[b1] != 0;
+      const bool s2 = bond_flag[b2] != 0;
+      if (s1 == s2) continue;
+      error->warning(FLERR,
+                     "Fix ilves: angle type {} has asymmetric bond types ({} and {}) and "
+                     "only one is selected for constraining via 'b'; "
+                     "this may lead to over-constraining", at, b1, b2);
+    }
   }
 
   record_topology_baseline();

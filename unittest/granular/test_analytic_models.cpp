@@ -250,6 +250,19 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         const double r = lmp->atom->radius[i];
         expect_rel(omega0 - (5.0 * mur * g) / (2.0 * r) * t, lmp->atom->omega[i][1], cfg.analytic_tol,
                    "rolling_decay omega_y");
+    } else if (cfg.analytic_model == "pulloff_dmt") {
+        // DMT cohesive contact held at (near-)zero overlap: the normal force on
+        // particle (tag 1) has magnitude equal to the pull-off force
+        //   F_pull = 4 pi gamma R_eff
+        // since the Hertzian part ~0 at delta~0.  gamma = variable 'coh',
+        // R_eff = variable 'reff' (= R for a wall, R/2 for two equal spheres).
+        const double coh  = var_or(vars, "coh", 0.0);
+        const double reff = var_or(vars, "reff", 0.0);
+        const int i       = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "pulloff_dmt: atom with tag 1 not found";
+        const double *f    = lmp->atom->f[i];
+        const double fmag  = std::sqrt(f[0] * f[0] + f[1] * f[1] + f[2] * f[2]);
+        expect_rel(4.0 * MathConst::MY_PI * coh * reff, fmag, cfg.analytic_tol, "pulloff_dmt force");
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

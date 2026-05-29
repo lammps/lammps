@@ -110,3 +110,8 @@ register_dem_tests(test_dem_06 dem06 DEM06)
 add_executable(test_dem_07 test_dem_07.cpp)
 target_link_libraries(test_dem_07 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_07 dem07 DEM07)
+
+# DEM-08: cohesive/adhesive contact (DMT/JKR pull-off force)
+add_executable(test_dem_08 test_dem_08.cpp)
+target_link_libraries(test_dem_08 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_08 dem08 DEM08)

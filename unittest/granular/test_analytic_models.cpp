@@ -215,6 +215,28 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         }
         expect_rel(0.5 * (vlo + vhi), -lmp->atom->v[i][2], cfg.analytic_tol,
                    "terminal_velocity_schiller_naumann");
+    } else if (cfg.analytic_model == "energy_dissipation") {
+        // For a frictional collision with no external forces (no gravity) the
+        // total mechanical (translational + rotational) kinetic energy of the
+        // sphere (tag 1) must not increase.  This guards against the
+        // grazing-impact energy-injection bug of the classic tangential model.
+        // Initial state: velocity (vx_in, 0, -vz_in) with no spin; sphere moment
+        // of inertia I = (2/5) m r^2.  analytic_tol is the (small) fractional
+        // excess over the initial energy that is tolerated.
+        const double vx_in = var_or(vars, "vx_in", 0.0);
+        const double vz_in = var_or(vars, "vz_in", 0.0);
+        const int i        = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "energy_dissipation: atom with tag 1 not found";
+        const double m  = lmp->atom->rmass[i];
+        const double r  = lmp->atom->radius[i];
+        const double *v = lmp->atom->v[i];
+        const double *w = lmp->atom->omega[i];
+        const double e_init  = 0.5 * m * (vx_in * vx_in + vz_in * vz_in);
+        const double ke_tr   = 0.5 * m * (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+        const double ke_rot  = 0.5 * (0.4 * m * r * r) * (w[0] * w[0] + w[1] * w[1] + w[2] * w[2]);
+        const double e_final = ke_tr + ke_rot;
+        EXPECT_LE(e_final, e_init * (1.0 + cfg.analytic_tol))
+            << "energy_dissipation: final energy " << e_final << " exceeds initial " << e_init;
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

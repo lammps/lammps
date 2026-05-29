@@ -319,11 +319,11 @@ int MinFireKokkos::run_iterate(int maxiter) {
     // loop bounds and device views can become stale and must be refreshed.
     atomKK->sync(Device, X_MASK | V_MASK | F_MASK | TYPE_MASK | RMASS_MASK);
     nlocal = atom->nlocal;
-    l_x = atomKK->k_x.view<DeviceType>();
-    l_v = atomKK->k_v.view<DeviceType>();
-    l_f = atomKK->k_f.view<DeviceType>();
-    l_type = atomKK->k_type.view<DeviceType>();
-    l_rmass = atomKK->k_rmass.view<DeviceType>();
+    l_x = atomKK->k_x.view_device();
+    l_v = atomKK->k_v.view_device();
+    l_f = atomKK->k_f.view_device();
+    l_type = atomKK->k_type.view_device();
+    l_rmass = atomKK->k_rmass.view_device();
     neval++;
 
     if constexpr (INTEGRATOR == VERLET) {

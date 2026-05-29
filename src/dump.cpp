@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #if defined(LMP_KOKKOS)
+#include "accelerator_kokkos.h"
 #include "atom_kokkos.h"
 #endif
 #include "atom_masks.h"
@@ -414,7 +415,7 @@ void Dump::write()
       if (auto *atomkk = dynamic_cast<AtomKokkos *>(atom))
         atomkk->sync(Host, X_MASK | V_MASK | IMAGE_MASK);
     }
-#endif
+#endif // defined(LMP_KOKKOS)
     if (nlocal > maxpbc) pbc_allocate();
     if (nlocal) {
       memcpy(&xpbc[0][0],&atom->x[0][0],(sizeof(double)*3*nlocal)&MEMCPYMASK);
@@ -436,7 +437,7 @@ void Dump::write()
       domain->Domain::pbc();
       if (domain->triclinic) domain->Domain::lamda2x(nlocal);
     } else {
-#endif
+#endif // defined(LMP_KOKKOS)
       if (domain->triclinic) domain->x2lamda(nlocal);
       domain->pbc();
       if (domain->triclinic) domain->lamda2x(nlocal);

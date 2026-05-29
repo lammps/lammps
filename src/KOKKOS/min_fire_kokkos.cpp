@@ -314,7 +314,16 @@ int MinFireKokkos::run_iterate(int maxiter) {
     atomKK->modified(Device, X_MASK | V_MASK);
     atomKK->sync(Host, X_MASK | V_MASK);
     ecurrent = energy_force(0); // ghost position/vel might change on host during legacy comm
-    atomKK->sync(Device, X_MASK | V_MASK);
+
+    // energy_force() may migrate atoms / rebuild atom storage, so any cached
+    // loop bounds and device views can become stale and must be refreshed.
+    atomKK->sync(Device, X_MASK | V_MASK | F_MASK | TYPE_MASK | RMASS_MASK);
+    nlocal = atom->nlocal;
+    l_x = atomKK->k_x.view<DeviceType>();
+    l_v = atomKK->k_v.view<DeviceType>();
+    l_f = atomKK->k_f.view<DeviceType>();
+    l_type = atomKK->k_type.view<DeviceType>();
+    l_rmass = atomKK->k_rmass.view<DeviceType>();
     neval++;
 
     if constexpr (INTEGRATOR == VERLET) {

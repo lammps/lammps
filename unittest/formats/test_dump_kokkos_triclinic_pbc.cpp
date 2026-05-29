@@ -131,19 +131,25 @@ TEST_F(DumpKokkosTriclinicPbcTest, pbc_yes_matches_reference_general_triclinic)
 // destructor after pthreads has partially cleaned up.  Intercept it here so
 // the test binary exits with the real Google-Test result code.
 // (Same workaround as unittest/force-styles/test_main.cpp.)
+#if defined(__APPLE__)
 static int g_test_result = 1;
 static void kokkos_omp_teardown_terminate()
 {
   _Exit(g_test_result);
 }
+#endif
 
 int main(int argc, char **argv)
 {
+#if defined(__APPLE__)
   std::set_terminate(kokkos_omp_teardown_terminate);
+#endif
   MPI_Init(&argc, &argv);
   ::testing::InitGoogleMock(&argc, argv);
   const int rv = RUN_ALL_TESTS();
+#if defined(__APPLE__)
   g_test_result = rv;
+#endif
   MPI_Finalize();
   return rv;
 }

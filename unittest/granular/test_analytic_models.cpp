@@ -87,6 +87,23 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         ASSERT_GE(i, 0) << "freefall: atom with tag 1 not found";
         expect_rel(z0 - 0.5 * g * t * t, lmp->atom->x[i][2], cfg.analytic_tol, "freefall z");
         expect_rel(-g * t, lmp->atom->v[i][2], cfg.analytic_tol, "freefall vz");
+    } else if (cfg.analytic_model == "bounce_height") {
+        // hard-sphere limit: the apex (center) height after the k-th bounce is
+        //   h_k = r + e^(2k) (h0 - r).
+        // Evaluated at a free-flight segment via energy conservation,
+        // apex = z + vz^2/(2g), so the segment need not end exactly at the apex.
+        // The match is approximate (soft-sphere, finite stiffness) -> loose tol.
+        const double g  = var_or(vars, "grav", 0.0);
+        const double e  = var_or(vars, "restitution", var_or(vars, "en", 1.0));
+        const double r  = var_or(vars, "radius", 0.0);
+        const double h0 = var_or(vars, "h0", 0.0);
+        const double k  = var_or(vars, "bounce_k", 1.0);
+        const int i     = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "bounce_height: atom with tag 1 not found";
+        const double z    = lmp->atom->x[i][2];
+        const double vz   = lmp->atom->v[i][2];
+        const double apex = z + vz * vz / (2.0 * g);
+        expect_rel(r + std::pow(e, 2.0 * k) * (h0 - r), apex, cfg.analytic_tol, "bounce_height apex");
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

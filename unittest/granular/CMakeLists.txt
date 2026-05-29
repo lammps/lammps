@@ -85,3 +85,8 @@ register_dem_tests(test_dem_01 dem01 DEM01)
 add_executable(test_dem_02 test_dem_02.cpp)
 target_link_libraries(test_dem_02 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_02 dem02 DEM02)
+
+# DEM-03: two stacked particles in continuous compression between two walls
+add_executable(test_dem_03 test_dem_03.cpp)
+target_link_libraries(test_dem_03 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_03 dem03 DEM03)

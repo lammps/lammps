@@ -2153,8 +2153,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
         f4f5 = f4 * f5;
 
         // f4 * exp_f4 = exp_f4/(1+exp_f4) = 1 - f4: stable form avoids inf*0=NaN in float
-        Cf45_ij = -(KK_ONE - f4);
-        Cf45_ji = -(KK_ONE - f5);
+        Cf45_ij = -(static_cast<KK_FLOAT>(1.0) - f4);
+        Cf45_ji = -(static_cast<KK_FLOAT>(1.0) - f5);
       } else {
         f4 = f5 = f4f5 = 1.0;
         Cf45_ij = Cf45_ji = 0.0;
@@ -2331,7 +2331,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   const KK_FLOAT inv_exp_ovun2 = 1.0 / (1.0 + exp_ovun2);
   // 1e-5 guard prevents division by zero; 1e-8 is below float epsilon near val_i~4
   // so 1e-5 is safer for mixed precision without affecting chemistry
-  const KK_FLOAT DlpVi = KK_ONE / (Delta_lpcorr + val_i + static_cast<KK_FLOAT>(1e-5));
+  const KK_FLOAT DlpVi = static_cast<KK_FLOAT>(1.0) / (Delta_lpcorr + val_i + static_cast<KK_FLOAT>(1e-5));
 
   CEover1 = Delta_lpcorr * DlpVi * inv_exp_ovun2;
   e_ov = d_sum_ovun(i,1) * CEover1;
@@ -2343,7 +2343,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   CEover2 = d_sum_ovun(i,1) * DlpVi * inv_exp_ovun2 *
     // exp_ovun2 * inv_exp_ovun2 = exp(x)/(1+exp(x)) = 1 - 1/(1+exp(x)) = 1 - inv_exp_ovun2
     // Use stable form to avoid inf*0=NaN when exp_ovun2 overflows in float
-    (1.0 - Delta_lpcorr * (DlpVi + p_ovun2 * (KK_ONE - inv_exp_ovun2)));
+    (1.0 - Delta_lpcorr * (DlpVi + p_ovun2 * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun2)));
   CEover3 = CEover2 * (1.0 - dfvl * d_dDelta_lp[i] * inv_exp_ovun1);
   // exp_ovun1 * SQR(inv_exp_ovun1) = inv_exp_ovun1 * (1 - inv_exp_ovun1)
   // Use this stable form to avoid inf*0=NaN when exp_ovun1 overflows in float
@@ -2372,11 +2372,11 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   //   exp_ovun8 * inv_exp_ovun8 = 1 - inv_exp_ovun8  (stable)
   // e_un_base = -e_un/inv_exp_ovun2n; must be zero when e_un is zero (no bonds)
   const KK_FLOAT e_un_base = (numbonds > 0 || enobondsflag) ?
-      p_ovun5 * (KK_ONE - exp_ovun6) * inv_exp_ovun8 : KK_ZERO;
+      p_ovun5 * (static_cast<KK_FLOAT>(1.0) - exp_ovun6) * inv_exp_ovun8 : KK_ZERO;
   CEunder1 = inv_exp_ovun2n *
     (p_ovun5 * p_ovun6 * exp_ovun6 * inv_exp_ovun8
-     - p_ovun2 * e_un_base * (KK_ONE - inv_exp_ovun2n));
-  CEunder2 = e_un_base * inv_exp_ovun2n * p_ovun8 * (KK_ONE - inv_exp_ovun8);
+     - p_ovun2 * e_un_base * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun2n));
+  CEunder2 = e_un_base * inv_exp_ovun2n * p_ovun8 * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun8);
   CEunder3 = CEunder1 * (1.0 - dfvl * d_dDelta_lp[i] * inv_exp_ovun1);
   CEunder4 = CEunder1 * (dfvl * d_Delta_lp_temp[i]) *
       p_ovun4 * inv_exp_ovun1 * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun1) + CEunder2;
@@ -2920,7 +2920,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   // exp_coa2 * e_coa / (1+exp_coa2): e_coa contains 1/(1+exp_coa2), so when
   // exp_coa2 overflows to inf, e_coa→0 and exp_coa2*e_coa = inf*0 = NaN.
   // Stable form: exp_coa2/(1+exp_coa2) = 1 - 1/(1+exp_coa2)
-  CEcoa3 = -p_coa2 * (KK_ONE - KK_ONE/(KK_ONE + exp_coa2)) * e_coa;
+  CEcoa3 = -p_coa2 * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(1.0) + exp_coa2)) * e_coa;
   CEcoa4 = -2 * p_coa3 * (d_total_bo[j]-BOA_ij) * e_coa;
   CEcoa5 = -2 * p_coa3 * (d_total_bo[k]-BOA_ik) * e_coa;
 
@@ -3198,7 +3198,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   // exp_tor4_DiDj * exp_tor34_inv = T4/(1+T3+T4). When T4 overflows to inf,
   // exp_tor34_inv→0 and T4*exp_tor34_inv = inf*0 = NaN.
   // Stable form: T4/(1+T3+T4) = 1 - (1+T3)*exp_tor34_inv
-  const KK_FLOAT T4_over_tot = KK_ONE - (KK_ONE + exp_tor3_DiDj) * exp_tor34_inv;
+  const KK_FLOAT T4_over_tot = static_cast<KK_FLOAT>(1.0) - (static_cast<KK_FLOAT>(1.0) + exp_tor3_DiDj) * exp_tor34_inv;
   dfn11 = (-p_tor3 * exp_tor3_DiDj * exp_tor34_inv
           + p_tor3 * exp_tor3_DiDj * (2.0 + exp_tor3_DiDj) * SQR(exp_tor34_inv)
           - p_tor4 * T4_over_tot * (2.0 + exp_tor3_DiDj) * exp_tor34_inv);

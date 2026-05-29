@@ -161,6 +161,7 @@ argv
 Armv
 armv
 arrhenius
+Artrith
 Arun
 arXiv
 asin
@@ -372,6 +373,7 @@ Bogusz
 Bohrs
 boltz
 Bomont
+Bonato
 BondAngle
 BondBond
 bondchk
@@ -955,6 +957,7 @@ drsquared
 drude
 Drude
 DRUDE
+dsDNA
 dsf
 dsmc
 dt
@@ -1267,6 +1270,7 @@ filesystems
 Fily
 Fincham
 Finkelstein
+Finkler
 Fint
 fingerprintconstants
 fingerprintsperelement
@@ -1452,6 +1456,7 @@ gname
 gneb
 GNEB
 Godehard
+Goedecker
 Goerigk
 Goga
 Goldfarb
@@ -1479,6 +1484,7 @@ granregion
 graphene
 Gravelle
 Greathouse
+Greengard
 greenyellow
 Greffet
 grem
@@ -1502,12 +1508,14 @@ Grueneisen
 gsmooth
 gstyle
 GTL
+Gubler
 Gubbins
 Guenole
 Guericke
 gui
 Guillope
 Gumbsch
+Gunnar
 Gunsteren
 Gunzenmuller
 Guo
@@ -1551,6 +1559,8 @@ hbond
 hcp
 hdnnp
 HDNNP
+runner
+RUNNER
 Hearn
 Heaviside
 heatconduction
@@ -1665,6 +1675,7 @@ iceblue
 ico
 icosahedral
 icosahedron
+idc
 idealgas
 IDR
 idx
@@ -1862,6 +1873,7 @@ jN
 Joanes
 Joannopoulos
 Jochim
+Joerg
 Johansson
 Jonsson
 Jorgensen
@@ -1960,6 +1972,7 @@ kmu
 Knizhnik
 knl
 kofke
+Ko
 Kofke
 Kohlmeyer
 Kohn
@@ -2054,6 +2067,7 @@ latourr
 lattce
 Laupretre
 Lauriat
+Lausch
 lavenderblush
 lawngreen
 layersize
@@ -2296,6 +2310,7 @@ matplotlib
 Matsubara
 Matteo
 Matteson
+Matthies
 Mattice
 Mattox
 Mattson
@@ -2488,6 +2503,7 @@ Morawietz
 Morefoo
 Morfill
 Mori
+Moritz
 Moriya
 morris
 Morriss
@@ -2713,6 +2729,7 @@ NiAlH
 Nicklas
 Nieto
 Niklasson
+Nikolas
 Nikolskiy
 nimproperlist
 nimpropers
@@ -3210,6 +3227,8 @@ Proc
 procs
 procgrid
 progguide
+prolate
+Prolates
 Prony
 protonated
 ps
@@ -3590,7 +3609,9 @@ scalexy
 scalexz
 scaleyz
 Scalfi
+Schaefer
 Schaik
+Scheffler
 Scheid
 Schilfgarde
 Schimansky
@@ -3598,6 +3619,7 @@ Schiotz
 Schlitter
 Schmerler
 Schmid
+Schmitz
 Schnieders
 Schoen
 Schotte
@@ -3790,6 +3812,7 @@ srp
 srun
 ss
 ssao
+ssDNA
 stamoor
 stamoore
 stanford
@@ -4024,6 +4047,7 @@ Tirrell
 Titer
 Tji
 Tk
+Tkatchenko
 Tkin
 tleap
 tloop
@@ -4200,6 +4224,7 @@ Unwin
 uparrow
 upenn
 upquote
+upsampling
 upto
 Urbakh
 Urbana

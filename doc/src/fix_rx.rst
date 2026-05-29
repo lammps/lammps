@@ -111,13 +111,15 @@ this file is described below.
 
 There is no restriction on the total number or reaction equations that
 are specified.  The species names are arbitrary string names that are
-associated with the species concentrations.  Each species in a given
-reaction must be preceded by its stoichiometric coefficient.  The
-only delimiters that are recognized between the species are either a
-*+* or *=* character.  The *=* character corresponds to an
-irreversible reaction.  After specifying the reaction, the reaction
-rate constant is determined through the temperature dependent
-Arrhenius equation:
+associated with the species concentrations, though the string names
+should be limited to what would be valid values for the names of
+:doc:`property/atom fixes <fix_property_atom>`. Each species in a
+given reaction must be preceded by its stoichiometric coefficient.
+The only delimiters that are recognized between the species are either
+a *+* or *=* character. Spaces around these delimiters are
+**required**.  The *=* character corresponds to an irreversible
+reaction.  After specifying the reaction, the reaction rate constant
+is determined through the temperature dependent Arrhenius equation:
 
 .. math::
 
@@ -167,7 +169,7 @@ parenthesized comments):
 
    # Rxn equations and parameters                                               (one or more comment or blank lines)
 
-   1.0 hcn + 1.0 no2 = 1.0  no + 0.5 n2  + 0.5 h2 + 1.0 co   2.49E+01 0.0 1.34  (rxn equation, A, n, Ea)
+   1.0 hcn + 1.0 no2 = 1.0  no + 0.5 n2  + 0.5 h2 + 1.0 co   2.49E+01 0.0 1.34 # (rxn equation, A, n, Ea)
    1.0 hcn + 1.0  no = 1.0  co + 1.0 n2  + 0.5 h2            2.16E+00 0.0 1.52
    ...
    1.0  no + 1.0  co = 0.5  n2 + 1.0 co2                     1.66E+06 0.0 0.69

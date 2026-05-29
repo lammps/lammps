@@ -44,8 +44,6 @@ using MathConst::MY_PI;
 
 enum{ NONE, RLINEAR, RSQ };
 
-static constexpr int MAXLINE = 1024;
-
 #define oneFluidParameter (-1)
 #define isOneFluid(_site) ( (_site) == oneFluidParameter )
 
@@ -480,34 +478,9 @@ double PairMultiLucyRX::init_one(int i, int j)
 
 void PairMultiLucyRX::read_table(Table *tb, char *file, char *keyword)
 {
-  char line[MAXLINE] = {'\0'};
+  RxTableFileReader reader(lmp, keyword, file, "multi/lucy/rx");
 
-  // open file
-
-  FILE *fp = utils::open_potential(file,lmp,nullptr);
-  if (fp == nullptr)
-    error->one(FLERR, "Cannot open file {}: {}",file,utils::getsyserror());
-
-  // loop until section found with matching keyword
-
-  while (true) {
-    if (fgets(line,MAXLINE,fp) == nullptr)
-      error->one(FLERR,"Did not find keyword in table file");
-    if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
-    if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);                         // no match, skip section
-    param_extract(tb,line);
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    for (int i = 0; i < tb->ninput; i++) utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  }
-
-  // read args on 2nd line of section
-  // allocate table arrays for file values
-
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  param_extract(tb,line);
+  param_extract(reader, tb);
   memory->create(tb->rfile,tb->ninput,"pair:rfile");
   memory->create(tb->efile,tb->ninput,"pair:efile");
   memory->create(tb->ffile,tb->ninput,"pair:ffile");
@@ -516,28 +489,25 @@ void PairMultiLucyRX::read_table(Table *tb, char *file, char *keyword)
   // if rflag set, compute r
   // if rflag not set, use r from file
 
-  int itmp;
-  double rtmp;
+  reader.read_in_table_data([&](RxTableFileReader::TableIndex_t i,
+                                ValueTokenizer & values) {
 
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  for (int i = 0; i < tb->ninput; i++) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    sscanf(line,"%d %lg %lg %lg",&itmp,&rtmp,&tb->efile[i],&tb->ffile[i]);
+                              values.next_int(); // ignore index
+                              double rtmp = values.next_double();
+                              tb->efile[i] = values.next_double();
+                              tb->ffile[i] = values.next_double();
 
-    if (tb->rflag == RLINEAR)
-      rtmp = tb->rlo + (tb->rhi - tb->rlo)*i/(tb->ninput-1);
-    else if (tb->rflag == RSQ) {
-      rtmp = tb->rlo*tb->rlo +
-        (tb->rhi*tb->rhi - tb->rlo*tb->rlo)*i/(tb->ninput-1);
-      rtmp = sqrt(rtmp);
-    }
+                              if (tb->rflag == RLINEAR)
+                                rtmp = tb->rlo + (tb->rhi - tb->rlo)*i/(tb->ninput-1);
+                              else if (tb->rflag == RSQ) {
+                                rtmp = tb->rlo*tb->rlo +
+                                  (tb->rhi*tb->rhi - tb->rlo*tb->rlo)*i/(tb->ninput-1);
+                                rtmp = sqrt(rtmp);
+                              }
 
-    tb->rfile[i] = rtmp;
-  }
+                              tb->rfile[i] = rtmp;
+                            });
 
-  // close file
-
-  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -605,38 +575,38 @@ void PairMultiLucyRX::spline_table(Table *tb)
    N is required, other params are optional
 ------------------------------------------------------------------------- */
 
-void PairMultiLucyRX::param_extract(Table *tb, char *line)
+void PairMultiLucyRX::param_extract(RxTableFileReader & reader, Table *tb)
 {
-  tb->ninput = 0;
+  tb->ninput = reader.get_num_table_entries();
   tb->rflag = NONE;
   tb->fpflag = 0;
 
-  char *word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (strcmp(word,"N") == 0) {
-      word = strtok(nullptr," \t\n\r\f");
-      tb->ninput = std::stoi(word);
-    } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0) {
-      if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
-      else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;
-      word = strtok(nullptr," \t\n\r\f");
-      tb->rlo = std::stod(word);
-      word = strtok(nullptr," \t\n\r\f");
-      tb->rhi = std::stod(word);
-    } else if (strcmp(word,"FP") == 0) {
-      tb->fpflag = 1;
-      word = strtok(nullptr," \t\n\r\f");
-      tb->fplo = std::stod(word);
-      word = strtok(nullptr," \t\n\r\f");
-      tb->fphi = std::stod(word);
-    } else {
-      printf("WORD: %s\n",word);
-      error->one(FLERR,"Invalid keyword in pair table parameters");
-    }
-    word = strtok(nullptr," \t\n\r\f");
-  }
+  while (reader.has_next_param_token()) {
+    auto param_name = reader.next_param_token_as_string();
 
-  if (tb->ninput == 0) error->one(FLERR,"Pair table parameters did not set N");
+    if (param_name[0] == 'R') {
+      if (param_name == "R") {
+        tb->rflag = RLINEAR;
+      } else if (param_name == "RSQ") {
+        tb->rflag = RSQ;
+      } else {
+        error->one(FLERR,
+                   "Invalid keyword in pair table parameters: {}",
+                   param_name);
+      }
+
+      tb->rlo = reader.next_param_token_as_double();
+      tb->rhi = reader.next_param_token_as_double();
+    } else if (param_name == "FP") {
+      tb->fpflag = 1;
+      tb->fplo = reader.next_param_token_as_double();
+      tb->fphi = reader.next_param_token_as_double();
+    } else {
+      error->one(FLERR,
+                 "Invalid keyword in pair table parameters: {}",
+                 param_name);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

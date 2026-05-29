@@ -10,6 +10,7 @@
 .. index:: pair_style lj/cut/coul/dsf/gpu
 .. index:: pair_style lj/cut/coul/dsf/kk
 .. index:: pair_style lj/cut/coul/dsf/omp
+.. index:: pair_style lj/cut/coul/esp
 .. index:: pair_style lj/cut/coul/long
 .. index:: pair_style lj/cut/coul/long/gpu
 .. index:: pair_style lj/cut/coul/long/kk
@@ -60,7 +61,7 @@ Syntax
 
    pair_style style args
 
-* style = *lj/cut/coul/cut* or *lj/cut/coul/debye* or *lj/cut/coul/dsf* or *lj/cut/coul/long* *lj/cut/coul/msm* or *lj/cut/coul/wolf*
+* style = *lj/cut/coul/cut* or *lj/cut/coul/debye* or *lj/cut/coul/dsf* or *lj/cut/coul/esp* or *lj/cut/coul/long* *lj/cut/coul/msm* or *lj/cut/coul/wolf*
 * args = list of arguments for a particular style
 
 .. parsed-literal::
@@ -76,6 +77,11 @@ Syntax
        alpha = damping parameter (inverse distance units)
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
        cutoff2 = global cutoff for Coulombic (distance units)
+
+.. versionadded:: TBD
+     *lj/cut/coul/esp* args = cutoff (cutoff2)
+       cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+       cutoff2 = global cutoff for Coulombic (optional) (distance units)
      *lj/cut/coul/long* args = cutoff (cutoff2)
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
        cutoff2 = global cutoff for Coulombic (optional) (distance units)
@@ -107,6 +113,11 @@ Examples
    pair_style lj/cut/coul/dsf 0.05 2.5 10.0
    pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.0 1.0 2.5
+
+   pair_style lj/cut/coul/esp 10.0
+   pair_style lj/cut/coul/esp 10.0 8.0
+   pair_coeff * * 100.0 3.0
+   pair_coeff 1 1 100.0 3.5 9.0
 
    pair_style lj/cut/coul/long 10.0
    pair_style lj/cut/coul/long 10.0 8.0
@@ -180,7 +191,7 @@ is enforced by shifting the potential through placement of image
 charges on the cutoff sphere. Convergence can often be improved by
 setting :math:`\alpha` to a small non-zero value.
 
-Styles *lj/cut/coul/long* and *lj/cut/coul/msm* compute the same
+Styles *lj/cut/coul/esp*, *lj/cut/coul/long* and *lj/cut/coul/msm* compute the same
 Coulombic interactions as style *lj/cut/coul/cut* except that an
 additional damping factor is applied to the Coulombic term so it can
 be used in conjunction with the :doc:`kspace_style <kspace_style>`
@@ -237,7 +248,7 @@ and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the LJ and Coulombic cutoffs for this
 type pair.
 
-For *lj/cut/coul/long* and *lj/cut/coul/msm* only the LJ cutoff can be
+For *lj/cut/coul/esp*, *lj/cut/coul/long* and *lj/cut/coul/msm* only the LJ cutoff can be
 specified since a Coulombic cutoff cannot be specified for an individual I,J
 type pair.  All type pairs use the same global Coulombic cutoff specified in
 the pair_style command.
@@ -266,7 +277,7 @@ All of the *lj/cut* pair styles support the
 :doc:`pair_modify <pair_modify>` shift option for the energy of the
 Lennard-Jones portion of the pair interaction.
 
-The *lj/cut/coul/long* pair styles support the
+The *lj/cut/coul/esp* and *lj/cut/coul/long* pair styles support the
 :doc:`pair_modify <pair_modify>` table option since they can tabulate
 the short-range portion of the long-range Coulombic interaction.
 
@@ -278,7 +289,7 @@ portion of the pair interaction.
 All of the *lj/cut* pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
-The *lj/cut/coul/long* pair styles support the use of the
+The *lj/cut/coul/esp* and *lj/cut/coul/long* pair styles support the use of the
 *inner*, *middle*, and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
 The other styles only support the *pair* keyword of run_style respa.
@@ -289,7 +300,7 @@ See the :doc:`run_style <run_style>` command for details.
 Restrictions
 """"""""""""
 
-The *lj/cut/coul/long* and *lj/cut/coul/msm* styles are part of the KSPACE package.
+The *lj/cut/coul/esp*, *lj/cut/coul/long* and *lj/cut/coul/msm* styles are part of the KSPACE package.
 
 The *lj/cut/coul/debye*, *lj/cut/coul/dsf*, and *lj/cut/coul/wolf* styles are part
 of the EXTRA-PAIR package.

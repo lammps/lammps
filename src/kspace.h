@@ -76,6 +76,7 @@ class KSpace : protected Pointers {
 
   int ewaldflag;         // 1 if a Ewald solver
   int pppmflag;          // 1 if a PPPM solver
+  int espflag;           // 1 if a ESP solver
   int msmflag;           // 1 if a MSM solver
   int dispersionflag;    // 1 if a LJ/dispersion solver
   int tip4pflag;         // 1 if a TIP4P solver
@@ -88,6 +89,7 @@ class KSpace : protected Pointers {
                             // for LJ coefficients
   bool conp_one_step;       // calculate A matrix in one step with pppm
   int slabflag, wireflag;
+  int slab_auto;
   int scalar_pressure_flag;    // 1 if using MSM fast scalar pressure
   double slab_volfactor, wire_volfactor;
 
@@ -111,6 +113,22 @@ class KSpace : protected Pointers {
                                // charges separated by 1 Angstrom
 
   double g_ewald, g_ewald_6;
+
+  // Parameters required for ESP methods (automatically determined based on the user-specified force accuracy)
+
+  double *force_poly_coeff, *energy_poly_coeff,
+      *fourier_split_poly_coeff;    // polynomial coefficients
+  int num_of_force_poly, num_of_energy_poly,
+      num_of_Fourier_poly;    // order of polynomial approximations
+  double select_c;            // the c value for ESP
+  double Lambda_0;            // the Lambda_0 value for ESP
+
+  double spreading_accuracy;    // using the pswf as the spreading function
+  double spreading_select_c;    // select the c value for the spreading step
+  double spreading_Lambda_0;    // select the Lambda_0 value for the spreading step
+  int poly_order, fourier_spreading_order;
+  double *fourier_spread_poly_coeff;
+
   int nx_pppm, ny_pppm, nz_pppm;          // global FFT grid for Coulombics
   int nx_pppm_6, ny_pppm_6, nz_pppm_6;    // global FFT grid for dispersion
   int nx_msm_max, ny_msm_max, nz_msm_max;

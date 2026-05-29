@@ -14,7 +14,7 @@
 #include "test_main.h"
 
 #include "atom.h"
-#include "../force-styles/error_stats.h"
+#include "error_stats.h"
 #include "pointers.h"
 #include "test_config.h"
 #include "test_config_reader.h"
@@ -113,6 +113,23 @@ void EXPECT_TORQUES(const std::string &name, Atom *atom, const std::vector<coord
         EXPECT_FP_LE_WITH_EPS(t[i][0], t_ref[tag[i]].x, epsilon);
         EXPECT_FP_LE_WITH_EPS(t[i][1], t_ref[tag[i]].y, epsilon);
         EXPECT_FP_LE_WITH_EPS(t[i][2], t_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
+}
+
+void EXPECT_OMEGA(const std::string &name, Atom *atom, const std::vector<coord_t> &w_ref,
+                  double epsilon)
+{
+    SCOPED_TRACE("EXPECT_OMEGA: " + name);
+    double **w       = atom->omega;
+    tagint *tag      = atom->tag;
+    const int nlocal = atom->nlocal;
+    ASSERT_EQ(nlocal + 1, w_ref.size());
+    ErrorStats stats;
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(w[i][0], w_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(w[i][1], w_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(w[i][2], w_ref[tag[i]].z, epsilon);
     }
     if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
 }

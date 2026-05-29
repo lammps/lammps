@@ -42,6 +42,13 @@ public:
     void run_pos(const yaml_event_t &event);
     void run_vel(const yaml_event_t &event);
     void run_torque(const yaml_event_t &event);
+    void run_omega(const yaml_event_t &event);
+    void variables(const yaml_event_t &event);
+    void run_segments(const yaml_event_t &event);
+    void analytic_enable(const yaml_event_t &event);
+    void analytic_model(const yaml_event_t &event);
+    void analytic_tol(const yaml_event_t &event);
+    void analytic_segment(const yaml_event_t &event);
     void pair_style(const yaml_event_t &event);
     void pair_coeff(const yaml_event_t &event);
     void bond_style(const yaml_event_t &event);

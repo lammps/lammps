@@ -1,0 +1,57 @@
+---
+lammps_version: 30 Mar 2026
+tags: granular
+date_generated: Fri May 29 15:51:19 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: ! |
+  atom sphere
+  pair gran/hooke
+pre_commands: ! |
+  units lj
+  dimension 2
+  boundary f f p
+  atom_style sphere
+  region box block -0.5 0.5 0.0 1.0 -0.1 0.1 units box
+  create_box 1 box
+  create_atoms 1 single 0.0 ${y0} 0.0 units box
+  set group all diameter ${diam} density ${dens}
+  comm_modify vel yes
+  neighbor 0.1 bin
+  timestep 0.001
+post_commands: ! |
+  fix grav all gravity ${grav} vector 0.0 -1.0 0.0
+  fix integr all nve/sphere disc
+  fix twod all enforce2d
+  fix ywall all wall/gran hooke ${knorm} NULL ${gnorm} NULL 0.0 0 yplane 0.0 NULL
+input_file:
+natoms: 1
+variables: ! |
+  knorm 1.0e4
+  gnorm 10.0
+  diam 0.2
+  dens 2600.0
+  grav 9.81
+  y0 0.5
+pair_style: gran/hooke ${knorm} NULL ${gnorm} NULL 0.0 0
+pair_coeff: ! |
+  * *
+run_segments: ! |-
+  250 150 300
+run_pos: ! |2
+    0   1  0.0000000000000000e+00  1.9343750000000071e-01  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  9.8142846897904992e-02  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00  9.6957624468093959e-02  0.0000000000000000e+00
+run_vel: ! |2
+    0   1  0.0000000000000000e+00 -2.4524999999999859e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  1.4883590261689112e+00  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00 -1.4364636856851367e+00  0.0000000000000000e+00
+run_torque: ! |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+run_omega: ! |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+...

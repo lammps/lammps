@@ -53,6 +53,14 @@ public:
     std::vector<std::string> improper_coeff;
     std::vector<double> equilibrium;
     std::vector<std::pair<std::string, int>> extract;
+    // granular/DEM specific: ${var} substitution and multi-segment runs
+    std::vector<std::pair<std::string, std::string>> variables;
+    std::vector<int> run_segments;
+    // optional analytic (closed-form) verification
+    bool analytic_enable;
+    std::string analytic_model;
+    double analytic_tol;
+    int analytic_segment;
     int natoms;
     double init_energy;
     double run_energy;
@@ -66,16 +74,17 @@ public:
     std::vector<double> global_vector;
     std::vector<coord_t> init_forces;
     std::vector<coord_t> run_forces;
-    std::vector<coord_t> run_pos;
-    std::vector<coord_t> restart_pos;
-    std::vector<coord_t> run_vel;
-    std::vector<coord_t> restart_vel;
-    std::vector<coord_t> run_torque;
+    // per-segment captured state, indexed [segment][tag]
+    std::vector<std::vector<coord_t>> seg_pos;
+    std::vector<std::vector<coord_t>> seg_vel;
+    std::vector<std::vector<coord_t>> seg_torque;
+    std::vector<std::vector<coord_t>> seg_omega;
 
     TestConfig() :
         lammps_version(""), date_generated(""), basename(""), epsilon(1.0e-14), input_file(""),
         pair_style("zero"), bond_style("zero"), angle_style("zero"), dihedral_style("zero"),
-        improper_style("zero"), kspace_style("none"), natoms(0), init_energy(0), run_energy(0),
+        improper_style("zero"), kspace_style("none"), analytic_enable(false), analytic_model(""),
+        analytic_tol(1.0e-2), analytic_segment(-1), natoms(0), init_energy(0), run_energy(0),
         init_vdwl(0), run_vdwl(0), init_coul(0), run_coul(0), init_stress({0, 0, 0, 0, 0, 0}),
         run_stress({0, 0, 0, 0, 0, 0}), global_scalar(0)
     {
@@ -89,13 +98,14 @@ public:
         dihedral_coeff.clear();
         improper_coeff.clear();
         extract.clear();
+        variables.clear();
+        run_segments.clear();
         init_forces.clear();
         run_forces.clear();
-        run_pos.clear();
-        restart_pos.clear();
-        run_vel.clear();
-        restart_vel.clear();
-        run_torque.clear();
+        seg_pos.clear();
+        seg_vel.clear();
+        seg_torque.clear();
+        seg_omega.clear();
         global_vector.clear();
     }
     TestConfig(const TestConfig &)            = delete;

@@ -18,6 +18,7 @@
 
 #include <cstdlib>
 
+#include <exception>
 #include <map>
 #include <set>
 #include <sstream>
@@ -47,6 +48,14 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["run_pos"]        = &TestConfigReader::run_pos;
     consumers["run_vel"]        = &TestConfigReader::run_vel;
     consumers["run_torque"]     = &TestConfigReader::run_torque;
+    consumers["run_omega"]      = &TestConfigReader::run_omega;
+
+    consumers["variables"]        = &TestConfigReader::variables;
+    consumers["run_segments"]     = &TestConfigReader::run_segments;
+    consumers["analytic_enable"]  = &TestConfigReader::analytic_enable;
+    consumers["analytic_model"]   = &TestConfigReader::analytic_model;
+    consumers["analytic_tol"]     = &TestConfigReader::analytic_tol;
+    consumers["analytic_segment"] = &TestConfigReader::analytic_segment;
 
     consumers["pair_style"] = &TestConfigReader::pair_style;
     consumers["pair_coeff"] = &TestConfigReader::pair_coeff;
@@ -197,49 +206,99 @@ void TestConfigReader::run_forces(const yaml_event_t &event)
     }
 }
 
-void TestConfigReader::run_pos(const yaml_event_t &event)
+// parse a multi-segment per-atom block.  Each line is "segment tag x y z";
+// rows are routed into target[segment][tag], growing the storage as needed.
+static void parse_segment_block(std::vector<std::vector<coord_t>> &target, const char *value)
 {
-    config.run_pos.clear();
-    config.run_pos.resize(config.natoms + 1);
-    std::stringstream data((char *)event.data.scalar.value);
+    target.clear();
+    std::stringstream data(value);
     std::string line;
 
     while (std::getline(data, line, '\n')) {
-        int tag;
-        coord_t xyz;
-        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
-        config.run_pos[tag] = xyz;
+        int seg = 0, tag = 0;
+        coord_t xyz{0.0, 0.0, 0.0};
+        if (sscanf(line.c_str(), "%d %d %lg %lg %lg", &seg, &tag, &xyz.x, &xyz.y, &xyz.z) != 5)
+            continue;
+        if ((seg < 0) || (tag < 0)) continue;
+        if ((int)target.size() <= seg) target.resize(seg + 1);
+        if ((int)target[seg].size() <= tag) target[seg].resize(tag + 1);
+        target[seg][tag] = xyz;
     }
+}
+
+void TestConfigReader::run_pos(const yaml_event_t &event)
+{
+    parse_segment_block(config.seg_pos, (const char *)event.data.scalar.value);
 }
 
 void TestConfigReader::run_vel(const yaml_event_t &event)
 {
-    config.run_vel.clear();
-    config.run_vel.resize(config.natoms + 1);
-    std::stringstream data((char *)event.data.scalar.value);
-    std::string line;
-
-    while (std::getline(data, line, '\n')) {
-        int tag;
-        coord_t xyz;
-        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
-        config.run_vel[tag] = xyz;
-    }
+    parse_segment_block(config.seg_vel, (const char *)event.data.scalar.value);
 }
 
 void TestConfigReader::run_torque(const yaml_event_t &event)
 {
-    config.run_torque.clear();
-    config.run_torque.resize(config.natoms + 1);
-    std::stringstream data((char *)event.data.scalar.value);
+    parse_segment_block(config.seg_torque, (const char *)event.data.scalar.value);
+}
+
+void TestConfigReader::run_omega(const yaml_event_t &event)
+{
+    parse_segment_block(config.seg_omega, (const char *)event.data.scalar.value);
+}
+
+void TestConfigReader::variables(const yaml_event_t &event)
+{
+    config.variables.clear();
+    std::stringstream data((const char *)event.data.scalar.value);
     std::string line;
 
     while (std::getline(data, line, '\n')) {
-        int tag;
-        coord_t xyz;
-        sscanf(line.c_str(), "%d %lg %lg %lg", &tag, &xyz.x, &xyz.y, &xyz.z);
-        config.run_torque[tag] = xyz;
+        std::stringstream parts(line);
+        std::string name, value;
+        parts >> name;
+        if (name.empty()) continue;
+        // the value is the remainder of the line (may contain spaces)
+        std::getline(parts, value);
+        value = trim(value);
+        config.variables.emplace_back(name, value);
     }
+}
+
+void TestConfigReader::run_segments(const yaml_event_t &event)
+{
+    config.run_segments.clear();
+    std::stringstream data((const char *)event.data.scalar.value);
+    std::string word;
+
+    while (data >> word) {
+        try {
+            config.run_segments.push_back(std::stoi(word));
+        } catch (std::exception &) {
+            // ignore non-integer tokens
+        }
+    }
+}
+
+void TestConfigReader::analytic_enable(const yaml_event_t &event)
+{
+    const std::string value = trim((const char *)event.data.scalar.value);
+    config.analytic_enable =
+        (value == "yes") || (value == "true") || (value == "on") || (value == "1");
+}
+
+void TestConfigReader::analytic_model(const yaml_event_t &event)
+{
+    config.analytic_model = trim((const char *)event.data.scalar.value);
+}
+
+void TestConfigReader::analytic_tol(const yaml_event_t &event)
+{
+    config.analytic_tol = atof((const char *)event.data.scalar.value);
+}
+
+void TestConfigReader::analytic_segment(const yaml_event_t &event)
+{
+    config.analytic_segment = atoi((const char *)event.data.scalar.value);
 }
 
 void TestConfigReader::pair_style(const yaml_event_t &event)

@@ -1135,7 +1135,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputePolar<NEIGHFLAG>
   const KK_FLOAT chi = paramssing(itype).chi;
   const KK_FLOAT eta = paramssing(itype).eta;
 
-  KK_FLOAT epol = static_cast<KK_FLOAT>(KCALpMOL_to_EV)*(chi*qi+(KK_HALF*eta)*qi*qi);
+  KK_FLOAT epol = static_cast<KK_FLOAT>(KCALpMOL_to_EV)*(chi*qi+(static_cast<KK_FLOAT>(0.5)*eta)*qi*qi);
 
   /* energy due to coupling with kinetic energy potential */
   if (acks2_flag)
@@ -1236,22 +1236,22 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
     // shielding
     if (vdwflag == 1 || vdwflag == 3) {
       KK_FLOAT tmp_var;
-      tmp_var = pow(rij,gp[28]-KK_TWO);
+      tmp_var = pow(rij,gp[28]-static_cast<KK_FLOAT>(2.0));
       powr_vdw = tmp_var*rij*rij;
-      powgi_vdw = pow(KK_ONE/gamma_w,gp[28]);
-      dfn13 = pow(powr_vdw+powgi_vdw,KK_ONE/gp[28]-KK_ONE);
+      powgi_vdw = pow(static_cast<KK_FLOAT>(1.0)/gamma_w,gp[28]);
+      dfn13 = pow(powr_vdw+powgi_vdw,static_cast<KK_FLOAT>(1.0)/gp[28]-static_cast<KK_FLOAT>(1.0));
       fn13  = dfn13*(powr_vdw+powgi_vdw);
       dfn13 = dfn13*tmp_var;
 
-      exp2 = exp(KK_HALF*alpha*(KK_ONE-fn13/r_vdw));
+      exp2 = exp(static_cast<KK_FLOAT>(0.5)*alpha*(static_cast<KK_FLOAT>(1.0)-fn13/r_vdw));
       exp1 = exp2*exp2;
-      etmp = epsilon*(exp1-KK_TWO*exp2);
+      etmp = epsilon*(exp1-static_cast<KK_FLOAT>(2.0)*exp2);
       evdwl = Tap*etmp;
       fvdwl = dTap*etmp-Tap*epsilon*(alpha/r_vdw)*(exp1-exp2)*dfn13;
     } else {
-      exp2 = exp(KK_HALF*alpha*(KK_ONE-rij/r_vdw));
+      exp2 = exp(static_cast<KK_FLOAT>(0.5)*alpha*(static_cast<KK_FLOAT>(1.0)-rij/r_vdw));
       exp1 = exp2*exp2;
-      etmp = epsilon*(exp1-KK_TWO*exp2);
+      etmp = epsilon*(exp1-static_cast<KK_FLOAT>(2.0)*exp2);
       evdwl = Tap*etmp;
       fvdwl = dTap*etmp-Tap*epsilon*(alpha/r_vdw)*(exp1-exp2)*rij;
     }
@@ -1260,7 +1260,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
       const KK_FLOAT ecore = paramstwbp(itype,jtype).ecore;
       const KK_FLOAT acore = paramstwbp(itype,jtype).acore;
       const KK_FLOAT rcore = paramstwbp(itype,jtype).rcore;
-      const KK_FLOAT e_core = ecore*exp(acore*(KK_ONE-(rij/rcore)));
+      const KK_FLOAT e_core = ecore*exp(acore*(static_cast<KK_FLOAT>(1.0)-(rij/rcore)));
       const KK_FLOAT de_core = -(acore/rcore)*e_core;
       evdwl += Tap*e_core;
       fvdwl += dTap*e_core+Tap*de_core/rij;
@@ -1272,7 +1272,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
         const KK_FLOAT rij6 = rij5*rij;
         const KK_FLOAT re6 = lgre*lgre*lgre*lgre*lgre*lgre;
         const KK_FLOAT elg = -lgcij/(rij6+re6);
-        const KK_FLOAT delg = -KK_SIX * elg * rij5 / (rij6+re6);
+        const KK_FLOAT delg = -static_cast<KK_FLOAT>(6.0)*elg*rij5/(rij6+re6);
         evdwl += Tap*elg;
         fvdwl += dTap*elg+Tap*delg/rij;
       }
@@ -1291,19 +1291,19 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
     if (acks2_flag) {
 
       /* kinetic energy terms */
-      KK_FLOAT xcut = KK_HALF * (paramssing(itype).bcut_acks2
+      KK_FLOAT xcut = static_cast<KK_FLOAT>(0.5) * (paramssing(itype).bcut_acks2
                           + paramssing(jtype).bcut_acks2);
 
       if (rij <= xcut) {
         const KK_FLOAT d = rij / xcut;
-        const KK_FLOAT bond_softness = gp[34] * pow( d, KK_THREE )
-                                    * pow( KK_ONE - d, KK_SIX );
+        const KK_FLOAT bond_softness = gp[34] * pow( d, static_cast<KK_FLOAT>(3.0) )
+                                    * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(6.0) );
 
-        if (bond_softness > KK_ZERO) {
+        if (bond_softness > static_cast<KK_FLOAT>(0.0)) {
           /* Coulombic energy contribution */
           const KK_FLOAT effpot_diff = d_s[NN + i]
                                     - d_s[NN + j];
-          const KK_FLOAT e_ele = -KK_HALF * static_cast<KK_FLOAT>(KCALpMOL_to_EV) * bond_softness
+          const KK_FLOAT e_ele = -static_cast<KK_FLOAT>(0.5) * static_cast<KK_FLOAT>(KCALpMOL_to_EV) * bond_softness
                                      * SQR( effpot_diff );
 
           ecoul += e_ele;
@@ -1311,9 +1311,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
           /* forces contribution */
           KK_FLOAT d_bond_softness;
           d_bond_softness = gp[34]
-                          * KK_THREE / xcut * pow( d, KK_TWO )
-                          * pow(KK_ONE - d, KK_FIVE) * (KK_ONE - KK_THREE * d);
-          d_bond_softness = -KK_HALF * d_bond_softness
+                          * static_cast<KK_FLOAT>(3.0) / xcut * pow( d, static_cast<KK_FLOAT>(2.0) )
+                          * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(5.0) ) * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(3.0) * d);
+          d_bond_softness = -static_cast<KK_FLOAT>(0.5) * d_bond_softness
                           * SQR( effpot_diff );
           d_bond_softness = static_cast<KK_FLOAT>(KCALpMOL_to_EV) * d_bond_softness
                           / rij;
@@ -1442,12 +1442,13 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
     if (acks2_flag) {
 
       /* kinetic energy terms */
-      KK_FLOAT xcut = KK_HALF * (paramssing(itype).bcut_acks2
+      KK_FLOAT xcut = static_cast<KK_FLOAT>(0.5) * (paramssing(itype).bcut_acks2
                           + paramssing(jtype).bcut_acks2);
 
       if (rij <= xcut) {
         const KK_FLOAT d = rij / xcut;
-        const KK_FLOAT bond_softness = gp[34] * pow(d, KK_THREE) * pow(KK_ONE - d, KK_SIX);
+        const KK_FLOAT bond_softness = gp[34] * pow( d, static_cast<KK_FLOAT>(3.0) )
+                                    * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(6.0) );
 
         if (bond_softness > 0) {
           /* Coulombic energy contribution */
@@ -1461,9 +1462,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
           /* forces contribution */
           KK_FLOAT d_bond_softness;
           d_bond_softness = gp[34]
-                          * KK_THREE / xcut * pow( d, KK_TWO )
-                          * pow(KK_ONE - d, KK_FIVE) * (KK_ONE - KK_THREE * d);
-          d_bond_softness = -KK_HALF * d_bond_softness
+                          * static_cast<KK_FLOAT>(3.0) / xcut * pow( d, static_cast<KK_FLOAT>(2.0) )
+                          * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(5.0) ) * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(3.0) * d);
+          d_bond_softness = -static_cast<KK_FLOAT>(0.5) * d_bond_softness
                           * SQR( effpot_diff );
           d_bond_softness = static_cast<KK_FLOAT>(KCALpMOL_to_EV) * d_bond_softness
                           / rij;
@@ -1696,7 +1697,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
         d_BO_pi(i,j_index) = BO_pi;
         d_BO_pi2(i,j_index) = BO_pi2;
 
-        KK_FLOAT rsq_inv = KK_ONE / rsq;
+        KK_FLOAT rsq_inv = static_cast<KK_FLOAT>(1.0) / rsq;
 
         KK_FLOAT Cln_BOp_s = p_bo2 * C12 * rsq_inv;
         KK_FLOAT Cln_BOp_pi = p_bo4 * C34 * rsq_inv;
@@ -1978,7 +1979,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsFull, const i
     delij[1] = x(j,1) - ytmp;
     delij[2] = x(j,2) - ztmp;
     const KK_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
-    const KK_FLOAT rsq_inv = KK_ONE / rsq;
+    const KK_FLOAT rsq_inv = static_cast<KK_FLOAT>(1.0) / rsq;
 
     // bond_list
     const KK_FLOAT rij = sqrt(rsq);
@@ -2041,17 +2042,17 @@ void PairReaxFFKokkos<DeviceType>::compute_bo(KK_FLOAT rij, int itype, int jtype
   const KK_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
 
   if (paramssing(itype).r_s > 0  && paramssing(jtype).r_s > 0) {
-    C12 = p_bo1 * ((p_bo2 != 0) ? (pow(rij/r_s,p_bo2)) : KK_ONE);
-    BO_s = (KK_ONE+bo_cut)*exp(C12);
+    C12 = p_bo1 * ((p_bo2 != 0) ? (pow(rij/r_s,p_bo2)) : static_cast<KK_FLOAT>(1.0));
+    BO_s = (static_cast<KK_FLOAT>(1.0)+bo_cut)*exp(C12);
   } else BO_s = C12 = 0;
 
   if (paramssing(itype).r_pi > 0  && paramssing(jtype).r_pi > 0) {
-    C34 = p_bo3 * ((p_bo4 != 0) ? (pow(rij/r_pi,p_bo4)) : KK_ONE);
+    C34 = p_bo3 * ((p_bo4 != 0) ? (pow(rij/r_pi,p_bo4)) : static_cast<KK_FLOAT>(1.0));
     BO_pi = exp(C34);
   } else BO_pi = C34 = 0;
 
   if (paramssing(itype).r_pi2 > 0  && paramssing(jtype).r_pi2 > 0) {
-    C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pi2,p_bo6)) : KK_ONE);
+    C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pi2,p_bo6)) : static_cast<KK_FLOAT>(1.0));
     BO_pi2 = exp(C56);
   } else BO_pi2 = C56 = 0;
 
@@ -2109,14 +2110,14 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
     const KK_FLOAT p_boc5 = paramstwbp(itype,jtype).p_boc5;
 
     if (ovc < static_cast<KK_FLOAT>(0.001) && v13cor < static_cast<KK_FLOAT>(0.001)) {
-      d_C1dbo(i,j_index) = KK_ONE;
+      d_C1dbo(i,j_index) = static_cast<KK_FLOAT>(1.0);
       d_C2dbo(i,j_index) = 0;
       d_C3dbo(i,j_index) = 0;
-      d_C1dbopi(i,j_index) = KK_ONE;
+      d_C1dbopi(i,j_index) = static_cast<KK_FLOAT>(1.0);
       d_C2dbopi(i,j_index) = 0;
       d_C3dbopi(i,j_index) = 0;
       d_C4dbopi(i,j_index) = 0;
-      d_C1dbopi2(i,j_index) = KK_ONE;
+      d_C1dbopi2(i,j_index) = static_cast<KK_FLOAT>(1.0);
       d_C2dbopi2(i,j_index) = 0;
       d_C3dbopi2(i,j_index) = 0;
       d_C4dbopi2(i,j_index) = 0;
@@ -2346,7 +2347,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   CEover3 = CEover2 * (1.0 - dfvl * d_dDelta_lp[i] * inv_exp_ovun1);
   // exp_ovun1 * SQR(inv_exp_ovun1) = inv_exp_ovun1 * (1 - inv_exp_ovun1)
   // Use this stable form to avoid inf*0=NaN when exp_ovun1 overflows in float
-  CEover4 = CEover2 * (dfvl * d_Delta_lp_temp[i]) * p_ovun4 * inv_exp_ovun1 * (KK_ONE - inv_exp_ovun1);
+  CEover4 = CEover2 * (dfvl * d_Delta_lp_temp[i]) * p_ovun4 * inv_exp_ovun1 * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun1);
 
   // under coordination
 
@@ -2378,7 +2379,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   CEunder2 = e_un_base * inv_exp_ovun2n * p_ovun8 * (KK_ONE - inv_exp_ovun8);
   CEunder3 = CEunder1 * (1.0 - dfvl * d_dDelta_lp[i] * inv_exp_ovun1);
   CEunder4 = CEunder1 * (dfvl * d_Delta_lp_temp[i]) *
-      p_ovun4 * inv_exp_ovun1 * (KK_ONE - inv_exp_ovun1) + CEunder2;
+      p_ovun4 * inv_exp_ovun1 * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun1) + CEunder2;
 
   const KK_FLOAT eng_tmp = e_lp + e_ov + e_un;
   if (eflag_atom) this->template e_tally_single<NEIGHFLAG>(ev,i,eng_tmp);
@@ -2515,9 +2516,9 @@ void PairReaxFFKokkos<DeviceType>::compute_angular_sbo(int i, int itype, int jnu
   KK_FLOAT vlpadj;
 
   const KK_FLOAT Delta_e = d_total_bo[i] - paramssing(itype).valency_e;
-  const KK_FLOAT vlpex = Delta_e - KK_TWO * (int)(Delta_e/KK_TWO);
-  const KK_FLOAT explp1 = exp(-gp[15] * SQR(KK_TWO + vlpex));
-  const KK_FLOAT nlp = explp1 - (int)(Delta_e / KK_TWO);
+  const KK_FLOAT vlpex = Delta_e - 2.0 * (int)(Delta_e/2.0);
+  const KK_FLOAT explp1 = exp(-gp[15] * SQR(2.0 + vlpex));
+  const KK_FLOAT nlp = explp1 - (int)(Delta_e / 2.0);
   if (vlpex >= 0.0) {
     vlpadj = 0.0;
     dSBO2 = prod_SBO - 1.0;
@@ -3622,7 +3623,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
         const KK_FLOAT hulpov = 1.0 / (1.0 + 25.0 * exphuov);
         // exphuov*hulpov = exp(x)/(1+25*exp(x)) = 1/(exp(-x)+25)
         // Use this stable form to avoid inf*0=NaN when exphuov overflows in float
-        const KK_FLOAT exphuov_hulpov = KK_ONE / (exp(-exphuov_arg) + static_cast<KK_FLOAT>(25.0));
+        const KK_FLOAT exphuov_hulpov = static_cast<KK_FLOAT>(1.0) / (exp(-exphuov_arg) + static_cast<KK_FLOAT>(25.0));
         estriph = gp[10] * exphu * hulpov * (exphua1 + exphub1);
 
         if (EFLAG && eflag_global) ev.evdwl += estriph;
@@ -3868,7 +3869,7 @@ void PairReaxFFKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, con
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   if (eflag_atom) {
-    const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(KK_HALF * epair);
+    const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * epair);
     a_eatom[i] += epairhalf;
     a_eatom[j] += epairhalf;
   }
@@ -3891,18 +3892,18 @@ void PairReaxFFKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, con
     }
 
     if (vflag_atom) {
-      a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(KK_HALF*v0);
-      a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(KK_HALF*v1);
-      a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(KK_HALF*v2);
-      a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(KK_HALF*v3);
-      a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(KK_HALF*v4);
-      a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(KK_HALF*v5);
-      a_vatom(j,0) += static_cast<KK_ACC_FLOAT>(KK_HALF*v0);
-      a_vatom(j,1) += static_cast<KK_ACC_FLOAT>(KK_HALF*v1);
-      a_vatom(j,2) += static_cast<KK_ACC_FLOAT>(KK_HALF*v2);
-      a_vatom(j,3) += static_cast<KK_ACC_FLOAT>(KK_HALF*v3);
-      a_vatom(j,4) += static_cast<KK_ACC_FLOAT>(KK_HALF*v4);
-      a_vatom(j,5) += static_cast<KK_ACC_FLOAT>(KK_HALF*v5);
+      a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+      a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+      a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+      a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+      a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+      a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
+      a_vatom(j,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+      a_vatom(j,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+      a_vatom(j,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+      a_vatom(j,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+      a_vatom(j,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+      a_vatom(j,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
     }
   }
 }
@@ -3921,7 +3922,7 @@ void PairReaxFFKokkos<DeviceType>::e_tally(EV_FLOAT_REAX & /*ev*/, const int &i,
   auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
   auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(KK_HALF * epair);
+  const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * epair);
   a_eatom[i] += epairhalf;
   a_eatom[j] += epairhalf;
 }
@@ -3954,12 +3955,14 @@ void PairReaxFFKokkos<DeviceType>::v_tally(EV_FLOAT_REAX &ev, const int &i,
 {
   KK_ACC_FLOAT v[6];
 
-  v[0] = static_cast<KK_ACC_FLOAT>(KK_HALF * drij[0])*fi[0];
-  v[1] = static_cast<KK_ACC_FLOAT>(KK_HALF * drij[1])*fi[1];
-  v[2] = static_cast<KK_ACC_FLOAT>(KK_HALF * drij[2])*fi[2];
-  v[3] = static_cast<KK_ACC_FLOAT>(KK_HALF * drij[0])*fi[1];
-  v[4] = static_cast<KK_ACC_FLOAT>(KK_HALF * drij[0])*fi[2];
-  v[5] = static_cast<KK_ACC_FLOAT>(KK_HALF * drij[1])*fi[2];
+  const KK_FLOAT half = static_cast<KK_FLOAT>(0.5);
+
+  v[0] = static_cast<KK_ACC_FLOAT>(half * drij[0])*fi[0];
+  v[1] = static_cast<KK_ACC_FLOAT>(half * drij[1])*fi[1];
+  v[2] = static_cast<KK_ACC_FLOAT>(half * drij[2])*fi[2];
+  v[3] = static_cast<KK_ACC_FLOAT>(half * drij[0])*fi[1];
+  v[4] = static_cast<KK_ACC_FLOAT>(half * drij[0])*fi[2];
+  v[5] = static_cast<KK_ACC_FLOAT>(half * drij[1])*fi[2];
 
   if (vflag_global) {
     ev.v[0] += v[0];

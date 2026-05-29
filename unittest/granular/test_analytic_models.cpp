@@ -237,6 +237,19 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         const double e_final = ke_tr + ke_rot;
         EXPECT_LE(e_final, e_init * (1.0 + cfg.analytic_tol))
             << "energy_dissipation: final energy " << e_final << " exceeds initial " << e_init;
+    } else if (cfg.analytic_model == "rolling_decay") {
+        // sphere (tag 1) spinning about +y on a flat wall, damped only by the
+        // rolling-resistance torque M = mu_r R N (N = m g).  In the gross-rolling
+        // (Coulomb-capped) regime the spin decays linearly:
+        //   omega_y(t) = omega0 - (5 mu_r g)/(2 R) t.
+        const double g      = var_or(vars, "grav", 0.0);
+        const double mur    = var_or(vars, "mur", 0.0);
+        const double omega0 = var_or(vars, "omega0", 0.0);
+        const int i         = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "rolling_decay: atom with tag 1 not found";
+        const double r = lmp->atom->radius[i];
+        expect_rel(omega0 - (5.0 * mur * g) / (2.0 * r) * t, lmp->atom->omega[i][1], cfg.analytic_tol,
+                   "rolling_decay omega_y");
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

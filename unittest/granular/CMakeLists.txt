@@ -105,3 +105,8 @@ register_dem_tests(test_dem_05 dem05 DEM05)
 add_executable(test_dem_06 test_dem_06.cpp)
 target_link_libraries(test_dem_06 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_06 dem06 DEM06)
+
+# DEM-07: spinning sphere damped by rolling resistance (rolling sds)
+add_executable(test_dem_07 test_dem_07.cpp)
+target_link_libraries(test_dem_07 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_07 dem07 DEM07)

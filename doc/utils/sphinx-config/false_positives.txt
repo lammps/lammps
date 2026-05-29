@@ -2641,6 +2641,7 @@ Natoms
 Natomtype
 Nattempt
 navajowhite
+Naumann
 Navier
 nb
 Nbin
@@ -3459,6 +3460,7 @@ rfile
 rflag
 rg
 Rg
+Reynolds
 Rhaphson
 Rhe
 rheo
@@ -3614,6 +3616,7 @@ Schaik
 Scheffler
 Scheid
 Schilfgarde
+Schiller
 Schimansky
 Schiotz
 Schlitter

@@ -2372,7 +2372,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   //   exp_ovun8 * inv_exp_ovun8 = 1 - inv_exp_ovun8  (stable)
   // e_un_base = -e_un/inv_exp_ovun2n; must be zero when e_un is zero (no bonds)
   const KK_FLOAT e_un_base = (numbonds > 0 || enobondsflag) ?
-      p_ovun5 * (static_cast<KK_FLOAT>(1.0) - exp_ovun6) * inv_exp_ovun8 : KK_ZERO;
+      p_ovun5 * (static_cast<KK_FLOAT>(1.0) - exp_ovun6) * inv_exp_ovun8 : static_cast<KK_FLOAT>(0.0);
   CEunder1 = inv_exp_ovun2n *
     (p_ovun5 * p_ovun6 * exp_ovun6 * inv_exp_ovun8
      - p_ovun2 * e_un_base * (static_cast<KK_FLOAT>(1.0) - inv_exp_ovun2n));

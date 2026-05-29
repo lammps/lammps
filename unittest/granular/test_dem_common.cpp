@@ -113,6 +113,7 @@ static void run_and_check(LAMMPS *lmp, const TestConfig &cfg, double epsilon,
 
     const bool has_torque = lmp->atom->torque_flag;
     const bool has_omega  = lmp->atom->omega_flag;
+    const bool has_angmom = lmp->atom->angmom_flag;
 
     for (std::size_t i = 0; i < cfg.run_segments.size(); ++i) {
         command("run " + std::to_string(cfg.run_segments[i]) + " post no");
@@ -126,6 +127,8 @@ static void run_and_check(LAMMPS *lmp, const TestConfig &cfg, double epsilon,
             EXPECT_TORQUES("run_torque (" + tag + ")", lmp->atom, cfg.seg_torque[i], epsilon);
         if (has_omega && (i < cfg.seg_omega.size()))
             EXPECT_OMEGA("run_omega (" + tag + ")", lmp->atom, cfg.seg_omega[i], epsilon);
+        if (has_angmom && (i < cfg.seg_angmom.size()))
+            EXPECT_ANGMOM("run_angmom (" + tag + ")", lmp->atom, cfg.seg_angmom[i], epsilon);
 
         check_analytic_model(cfg, lmp, (int) i);
     }
@@ -194,7 +197,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     const bool has_torque = lmp->atom->torque_flag;
     const bool has_omega  = lmp->atom->omega_flag;
-    std::string pos_block, vel_block, torque_block, omega_block;
+    const bool has_angmom = lmp->atom->angmom_flag;
+    std::string pos_block, vel_block, torque_block, omega_block, angmom_block;
 
     // iterate over local atoms by tag; granular/atomic systems have no atom map.
     // rows are keyed by (segment, tag), so the emission order is irrelevant.
@@ -204,6 +208,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         auto *v         = lmp->atom->v;
         auto *t         = lmp->atom->torque;
         auto *w         = lmp->atom->omega;
+        auto *angmom    = lmp->atom->angmom;
         tagint *tag     = lmp->atom->tag;
         const int local = lmp->atom->nlocal;
         for (int j = 0; j < local; ++j) {
@@ -218,12 +223,16 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
             if (has_omega)
                 omega_block += fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", i, id,
                                            w[j][0], w[j][1], w[j][2]);
+            if (has_angmom)
+                angmom_block += fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", i, id,
+                                            angmom[j][0], angmom[j][1], angmom[j][2]);
         }
     }
     writer.emit_block("run_pos", pos_block);
     writer.emit_block("run_vel", vel_block);
     if (has_torque) writer.emit_block("run_torque", torque_block);
     if (has_omega) writer.emit_block("run_omega", omega_block);
+    if (has_angmom) writer.emit_block("run_angmom", angmom_block);
 
     cleanup_lammps(lmp, config);
 }

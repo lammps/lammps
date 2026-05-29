@@ -43,6 +43,7 @@ public:
     void run_vel(const yaml_event_t &event);
     void run_torque(const yaml_event_t &event);
     void run_omega(const yaml_event_t &event);
+    void run_angmom(const yaml_event_t &event);
     void variables(const yaml_event_t &event);
     void run_segments(const yaml_event_t &event);
     void analytic_enable(const yaml_event_t &event);

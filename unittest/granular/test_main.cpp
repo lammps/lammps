@@ -134,6 +134,23 @@ void EXPECT_OMEGA(const std::string &name, Atom *atom, const std::vector<coord_t
     if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
 }
 
+void EXPECT_ANGMOM(const std::string &name, Atom *atom, const std::vector<coord_t> &l_ref,
+                   double epsilon)
+{
+    SCOPED_TRACE("EXPECT_ANGMOM: " + name);
+    double **angmom  = atom->angmom;
+    tagint *tag      = atom->tag;
+    const int nlocal = atom->nlocal;
+    ASSERT_EQ(nlocal + 1, l_ref.size());
+    ErrorStats stats;
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(angmom[i][0], l_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(angmom[i][1], l_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(angmom[i][2], l_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
+}
+
 // common read_yaml_file function
 bool read_yaml_file(const char *infile, TestConfig &config)
 {

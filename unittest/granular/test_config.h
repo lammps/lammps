@@ -79,6 +79,7 @@ public:
     std::vector<std::vector<coord_t>> seg_vel;
     std::vector<std::vector<coord_t>> seg_torque;
     std::vector<std::vector<coord_t>> seg_omega;
+    std::vector<std::vector<coord_t>> seg_angmom;
 
     TestConfig() :
         lammps_version(""), date_generated(""), basename(""), epsilon(1.0e-14), input_file(""),
@@ -106,6 +107,7 @@ public:
         seg_vel.clear();
         seg_torque.clear();
         seg_omega.clear();
+        seg_angmom.clear();
         global_vector.clear();
     }
     TestConfig(const TestConfig &)            = delete;

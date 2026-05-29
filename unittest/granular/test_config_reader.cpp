@@ -49,6 +49,7 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["run_vel"]        = &TestConfigReader::run_vel;
     consumers["run_torque"]     = &TestConfigReader::run_torque;
     consumers["run_omega"]      = &TestConfigReader::run_omega;
+    consumers["run_angmom"]     = &TestConfigReader::run_angmom;
 
     consumers["variables"]        = &TestConfigReader::variables;
     consumers["run_segments"]     = &TestConfigReader::run_segments;
@@ -244,6 +245,11 @@ void TestConfigReader::run_torque(const yaml_event_t &event)
 void TestConfigReader::run_omega(const yaml_event_t &event)
 {
     parse_segment_block(config.seg_omega, (const char *)event.data.scalar.value);
+}
+
+void TestConfigReader::run_angmom(const yaml_event_t &event)
+{
+    parse_segment_block(config.seg_angmom, (const char *)event.data.scalar.value);
 }
 
 void TestConfigReader::variables(const yaml_event_t &event)

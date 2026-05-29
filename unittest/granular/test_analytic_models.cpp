@@ -155,6 +155,24 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         const double u_final = 5.0 * u0 / 7.0;
         expect_rel(u_final, lmp->atom->v[i][0], cfg.analytic_tol, "slip_cessation vx");
         expect_rel(u_final / r, lmp->atom->omega[i][1], cfg.analytic_tol, "slip_cessation omega_y");
+    } else if (cfg.analytic_model == "oblique_impact") {
+        // grazing impact of sphere (tag 1) on a wall with normal +z, in the
+        // gross-sliding regime (tangential velocity never reverses during
+        // contact).  With approach velocity (vx_in, 0, -vz_in) and no spin:
+        //   vz_out = en vz_in,  vx_out = vx_in - mu(1+en) vz_in,
+        //   omega_y_out = (5/2) mu (1+en) vz_in / r.
+        // Evaluate at a free-flight segment after the rebound.
+        const double vx_in = var_or(vars, "vx_in", 0.0);
+        const double vz_in = var_or(vars, "vz_in", 0.0);
+        const double en    = var_or(vars, "en", 1.0);
+        const double mu    = var_or(vars, "xmu", 0.0);
+        const double r     = var_or(vars, "radius", 0.0);
+        const int i        = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "oblique_impact: atom with tag 1 not found";
+        const double dvt = mu * (1.0 + en) * vz_in;    // tangential velocity decrement
+        expect_rel(en * vz_in, lmp->atom->v[i][2], cfg.analytic_tol, "oblique_impact vz_out");
+        expect_rel(vx_in - dvt, lmp->atom->v[i][0], cfg.analytic_tol, "oblique_impact vx_out");
+        expect_rel(2.5 * dvt / r, lmp->atom->omega[i][1], cfg.analytic_tol, "oblique_impact omega_y");
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

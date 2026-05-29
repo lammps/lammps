@@ -95,3 +95,8 @@ register_dem_tests(test_dem_03 dem03 DEM03)
 add_executable(test_dem_04 test_dem_04.cpp)
 target_link_libraries(test_dem_04 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_04 dem04 DEM04)
+
+# DEM-05: oblique collision of a sphere with a flat wall
+add_executable(test_dem_05 test_dem_05.cpp)
+target_link_libraries(test_dem_05 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_05 dem05 DEM05)

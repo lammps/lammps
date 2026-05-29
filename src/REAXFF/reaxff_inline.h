@@ -23,6 +23,8 @@
 
 #include "accelerator_kokkos.h"    // for LAMMPS_INLINE
 
+#include <cmath>                   // for std::abs
+
 namespace ReaxFF {
 struct LR_data {
   double H;

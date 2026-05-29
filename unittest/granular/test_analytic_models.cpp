@@ -104,6 +104,45 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         const double vz   = lmp->atom->v[i][2];
         const double apex = z + vz * vz / (2.0 * g);
         expect_rel(r + std::pow(e, 2.0 * k) * (h0 - r), apex, cfg.analytic_tol, "bounce_height apex");
+    } else if (cfg.analytic_model == "stack_energy") {
+        // Two particles (tags 1 lower, 2 upper) stacked between a floor (ylo)
+        // and ceiling (yhi).  For the elastic (e=1) linear-spring case the total
+        // mechanical energy KE + gravitational PE + contact spring PE is
+        // conserved; compare it to the initial value (particles start at rest).
+        // Masses and radii are read from the live simulation so the comparison
+        // does not depend on reproducing LAMMPS' mass formula.
+        const double g    = var_or(vars, "grav", 0.0);
+        const double kn   = var_or(vars, "knorm", 0.0);
+        const double ylo  = var_or(vars, "ylo", 0.0);
+        const double yhi  = var_or(vars, "yhi", 0.0);
+        const double y1_0 = var_or(vars, "y1", 0.0);
+        const double y2_0 = var_or(vars, "y2", 0.0);
+        const int i1      = find_local(lmp, 1);
+        const int i2      = find_local(lmp, 2);
+        ASSERT_GE(i1, 0) << "stack_energy: atom with tag 1 not found";
+        ASSERT_GE(i2, 0) << "stack_energy: atom with tag 2 not found";
+        const double m1 = lmp->atom->rmass[i1];
+        const double m2 = lmp->atom->rmass[i2];
+        const double r1 = lmp->atom->radius[i1];
+        const double r2 = lmp->atom->radius[i2];
+
+        // linear-spring contact PE from the three possible overlaps:
+        // lower particle vs floor, the pair, upper particle vs ceiling
+        auto spring_pe = [&](double ya, double yb) {
+            const double df  = std::max(0.0, r1 - (ya - ylo));
+            const double dc  = std::max(0.0, (yb + r2) - yhi);
+            const double dpp = std::max(0.0, (r1 + r2) - (yb - ya));
+            return 0.5 * kn * (df * df + dc * dc + dpp * dpp);
+        };
+
+        const double e0 = (m1 * g * y1_0 + m2 * g * y2_0) + spring_pe(y1_0, y2_0);
+        const double ya = lmp->atom->x[i1][1];
+        const double yb = lmp->atom->x[i2][1];
+        const double va = lmp->atom->v[i1][1];
+        const double vb = lmp->atom->v[i2][1];
+        const double ec = 0.5 * m1 * va * va + 0.5 * m2 * vb * vb + (m1 * g * ya + m2 * g * yb) +
+                          spring_pe(ya, yb);
+        expect_rel(e0, ec, cfg.analytic_tol, "stack_energy total energy");
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

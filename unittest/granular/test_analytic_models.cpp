@@ -20,6 +20,7 @@
 
 #include "atom.h"
 #include "lammps.h"
+#include "math_const.h"
 #include "update.h"
 
 #include "gtest/gtest.h"
@@ -173,6 +174,47 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         expect_rel(en * vz_in, lmp->atom->v[i][2], cfg.analytic_tol, "oblique_impact vz_out");
         expect_rel(vx_in - dvt, lmp->atom->v[i][0], cfg.analytic_tol, "oblique_impact vx_out");
         expect_rel(2.5 * dvt / r, lmp->atom->omega[i][1], cfg.analytic_tol, "oblique_impact omega_y");
+    } else if (cfg.analytic_model == "terminal_velocity_linear") {
+        // particle (tag 1) falling under gravity g with linear (Stokes) drag
+        // F = -gamma v reaches terminal speed v_term = m g / gamma.
+        const double g     = var_or(vars, "grav", 0.0);
+        const double gamma = var_or(vars, "gamma", 0.0);
+        const int i        = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "terminal_velocity_linear: atom with tag 1 not found";
+        const double m = lmp->atom->rmass[i];
+        expect_rel(m * g / gamma, -lmp->atom->v[i][2], cfg.analytic_tol,
+                   "terminal_velocity_linear");
+    } else if (cfg.analytic_model == "terminal_velocity_schiller_naumann") {
+        // particle (tag 1) falling under gravity g with Schiller-Naumann drag
+        // (quiescent gas): terminal speed solves m g = 1/2 Cd rho_g pi r^2 v^2.
+        const double g   = var_or(vars, "grav", 0.0);
+        const double rho = var_or(vars, "rho_gas", 0.0);
+        const double mu  = var_or(vars, "mu_gas", 0.0);
+        const int i      = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "terminal_velocity_schiller_naumann: atom with tag 1 not found";
+        const double m    = lmp->atom->rmass[i];
+        const double r    = lmp->atom->radius[i];
+        const double area = MathConst::MY_PI * r * r;
+        const double mg   = m * g;
+        auto drag         = [&](double v) {
+            if (v <= 0.0) return 0.0;
+            const double re = rho * v * (2.0 * r) / mu;
+            const double cd = (24.0 / re) * (1.0 + 0.15 * std::pow(re, 0.687));
+            return 0.5 * cd * rho * area * v * v;
+        };
+        // bracket then bisect for the terminal speed (drag is monotone in v)
+        double vlo = 0.0, vhi = 1.0;
+        int guard = 0;
+        while ((drag(vhi) < mg) && (guard++ < 200)) vhi *= 2.0;
+        for (int it = 0; it < 100; ++it) {
+            const double vm = 0.5 * (vlo + vhi);
+            if (drag(vm) < mg)
+                vlo = vm;
+            else
+                vhi = vm;
+        }
+        expect_rel(0.5 * (vlo + vhi), -lmp->atom->v[i][2], cfg.analytic_tol,
+                   "terminal_velocity_schiller_naumann");
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

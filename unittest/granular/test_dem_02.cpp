@@ -11,9 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 01: freely falling particle bouncing off a wall.
-// Mirrors MFiX-DEM VVUQ case DEM-01.  All test logic is shared via
-// test_dem_common; the reference systems live in tests/dem01-*.yaml.
+// DEM verification test 02: a particle bouncing repeatedly off a wall, whose
+// successive rebound heights converge to the hard-sphere limit as the spring
+// stiffness increases.  Mirrors MFiX-DEM VVUQ case DEM-02.  All test logic is
+// shared via test_dem_common; the reference systems live in tests/dem02-*.yaml.
 
 #include "test_dem_common.h"
 #include "test_main.h"
@@ -24,14 +25,14 @@
 
 using namespace LAMMPS_NS;
 
-TEST(Dem01, newton_on)
+TEST(Dem02, newton_on)
 {
     if (!Info::has_package("GRANULAR")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
     run_dem_trajectory_test(true, "newton on");
 }
 
-TEST(Dem01, newton_off)
+TEST(Dem02, newton_off)
 {
     if (!Info::has_package("GRANULAR")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();

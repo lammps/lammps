@@ -18,6 +18,7 @@ add_library(granular_tests STATIC
   yaml_writer.cpp
   test_config_reader.cpp
   test_analytic_models.cpp
+  test_dem_common.cpp
   test_main.cpp)
 if(YAML_FOUND)
   target_compile_definitions(granular_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
@@ -79,3 +80,8 @@ endfunction()
 add_executable(test_dem_01 test_dem_01.cpp)
 target_link_libraries(test_dem_01 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_01 dem01 DEM01)
+
+# DEM-02: repeated bouncing particle (convergence to the hard-sphere limit)
+add_executable(test_dem_02 test_dem_02.cpp)
+target_link_libraries(test_dem_02 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_02 dem02 DEM02)

@@ -150,7 +150,7 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, val
     else
       tooclose = 0.0;
 
-    c_t contacts;
+    contacts_t contacts;
     int n = regionKK->surface_kokkos(d_x(i,0), d_x(i,1), d_x(i,2), cutoff, contacts);
 
     for ( int m = 0; m < n; m++) {

@@ -33,7 +33,7 @@ namespace LAMMPS_NS {
 
 using namespace MathSpecialKokkos;
 
-typedef Kokkos::Array<Region::Contact,6> c_t;
+typedef Kokkos::Array<Region::Contact,6> contacts_t;
 
 struct TagRegBlockMatchAll{};
 
@@ -65,7 +65,7 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int surface_kokkos(double x, double y, double z, double cutoff, c_t& contacts)
+  int surface_kokkos(double x, double y, double z, double cutoff, contacts_t& contacts)
   {
     int ncontact;
     double xs, ys, zs;
@@ -114,7 +114,7 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int surface_interior_kokkos(double *x, double cutoff, c_t& contacts )
+  int surface_interior_kokkos(double *x, double cutoff, contacts_t& contacts )
   {
     double delta;
 
@@ -188,7 +188,7 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int surface_exterior_kokkos(double *x, double cutoff, c_t& contacts)
+  int surface_exterior_kokkos(double *x, double cutoff, contacts_t& contacts)
   {
     double xp, yp, zp;
     double xc, yc, zc, dist, mindist;
@@ -242,7 +242,7 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void add_contact(int n, double *x, double xp, double yp, double zp, c_t& contacts)
+  void add_contact(int n, double *x, double xp, double yp, double zp, contacts_t& contacts)
   {
     double delx = x[0] - xp;
     double dely = x[1] - yp;

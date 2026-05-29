@@ -135,16 +135,17 @@ void VariableKokkos::flatten_ast(Tree *tree, CodeInfo &info, int &current_stack,
     if (mapped_op >= 0) op.opcode = mapped_op;
     else error->all(FLERR, "VariableKokkos encountered unmapped BIGINTARRAY");
     current_stack++;
+  } else {
+    const int operand_count = (tree->first ? 1 : 0) + (tree->second ? 1 : 0) + tree->nextra;
+
+    // All non-leaf operator/function nodes consume their operands and push
+    // a single result onto the RPN stack.
+    if (operand_count > 0) {
+      if (current_stack < operand_count)
+        error->all(FLERR, "VariableKokkos encountered invalid AST stack underflow");
+      current_stack += 1 - operand_count;
+    }
   }
-  // Binary operators pop 2, push 1 (net -1)
-  else if (tree->type >= ADD && tree->type <= XOR) {
-    current_stack -= 1;
-  }
-  // Ternary operators pop 3, push 1 (net -2)
-  else if (tree->type == TERNARY) {
-    current_stack -= 2;
-  }
-  // Unary operators (pop 1, push 1) leave stack depth unchanged.
 
   if (current_stack > max_stack) max_stack = current_stack;
 }

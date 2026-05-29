@@ -263,6 +263,24 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         const double *f    = lmp->atom->f[i];
         const double fmag  = std::sqrt(f[0] * f[0] + f[1] * f[1] + f[2] * f[2]);
         expect_rel(4.0 * MathConst::MY_PI * coh * reff, fmag, cfg.analytic_tol, "pulloff_dmt force");
+    } else if (cfg.analytic_model == "collision_restitution") {
+        // head-on collision of two equal spheres (tags 1,2) moving along x at
+        // +/- vin: the total x-momentum stays ~0 and the relative normal speed
+        // reverses with the coefficient of restitution e:
+        //   -(v1x - v2x)/(2 vin) = e.
+        const double en  = var_or(vars, "en", 1.0);
+        const double vin = var_or(vars, "vin", 0.0);
+        const int i1     = find_local(lmp, 1);
+        const int i2     = find_local(lmp, 2);
+        ASSERT_GE(i1, 0) << "collision_restitution: atom with tag 1 not found";
+        ASSERT_GE(i2, 0) << "collision_restitution: atom with tag 2 not found";
+        const double m1 = lmp->atom->rmass[i1];
+        const double m2 = lmp->atom->rmass[i2];
+        const double v1 = lmp->atom->v[i1][0];
+        const double v2 = lmp->atom->v[i2][0];
+        EXPECT_LE(std::fabs(m1 * v1 + m2 * v2), cfg.analytic_tol * (m1 + m2) * vin)
+            << "collision_restitution: total x-momentum not conserved";
+        expect_rel(en, -(v1 - v2) / (2.0 * vin), cfg.analytic_tol, "collision_restitution e");
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

@@ -1,10 +1,11 @@
 .. index:: pair_style wf/cut
 .. index:: pair_style wf/cut/omp
+.. index:: pair_style wf/cut/kk
 
 pair_style wf/cut command
-===========================
+=========================
 
-Accelerator Variants: *wf/cut/omp*
+Accelerator Variants: *wf/cut/omp*, *wf/cut/kk*
 
 Syntax
 """"""

@@ -33,6 +33,7 @@ class DihedralClass2xe : public Dihedral {
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double *k1, *k2, *k3;
@@ -47,7 +48,7 @@ class DihedralClass2xe : public Dihedral {
   int *setflag_d, *setflag_mbt, *setflag_ebt;
   int *setflag_at, *setflag_aat, *setflag_bb13t;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

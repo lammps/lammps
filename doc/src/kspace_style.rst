@@ -5,6 +5,7 @@
 .. index:: kspace_style ewald/disp/dipole
 .. index:: kspace_style ewald/omp
 .. index:: kspace_style ewald/electrode
+.. index:: kspace_style esp
 .. index:: kspace_style pppm
 .. index:: kspace_style pppm/kk
 .. index:: kspace_style pppm/omp
@@ -63,6 +64,9 @@ Syntax
          accuracy = desired relative error in forces
        *ewald/electrode* value = accuracy
          accuracy = desired relative error in forces
+       *esp* value1 value2 = splitting_accuracy spreading_accuracy
+          splitting_accuracy = desired relative error in forces from kernel splitting part
+          spreading_accuracy = desired relative error in forces from charge spreading part (optional)
        *pppm* value = accuracy
          accuracy = desired relative error in forces
        *pppm/cg* values = accuracy (smallq)
@@ -130,6 +134,7 @@ Examples
 
 .. code-block:: LAMMPS
 
+   kspace_style esp 1.0e-4
    kspace_style pppm 1.0e-4
    kspace_style pppm/cg 1.0e-5 1.0e-6
    kspace_style msm 1.0e-4
@@ -166,6 +171,8 @@ matching keyword to the name of the KSpace style, as in this table:
 +----------------------+-----------------------+
 | coul/long            | ewald or pppm         |
 +----------------------+-----------------------+
+| coul/esp             | esp                   |
++----------------------+-----------------------+
 | coul/msm             | msm                   |
 +----------------------+-----------------------+
 | lj/long or buck/long | disp (for dispersion) |
@@ -196,6 +203,27 @@ for dipole-dipole interactions, see :ref:`(Toukmaji) <Toukmaji>`.
 The *ewald/dipole/spin* style adds long-range standard Ewald
 summations for magnetic dipole-dipole interactions between
 magnetic spins.
+
+----------
+
+The *esp* style implements the Ewald Summation with Prolates (ESP) method
+:ref:`(Liang2025) <Liang2025>`, a fast Ewald-summation approach that can reduce
+the cost of long-range electrostatics compared to PPPM and PME. Without
+any loss of accuracy, ESP alters the fast Ewald pipeline in two places.
+First, for kernel splitting it uses prolate spheroidal wave functions (PSWFs)
+instead of Gaussians, which, thanks to the optimal concentration of PSWFs
+among band-limited functions, significantly reduces the required Fourier grid.
+With everything else equal, the FFT length drops by about a factor of two
+per dimension at high accuracy (:math:`\approx 8\times` in 3D). The residual
+kernel also vanishes at the real-space cutoff, eliminating any need for an
+"energy shift." Second, for particle-mesh operations ESP employs PSWFs in
+place of the B-splines used by PPPM. For comparable accuracy without k-space
+upsampling, PSWFs require fewer neighboring grid points (e.g., :math:`\approx 8` vs :math:`\approx 12`
+for five-digit accuracy). In contrast, PPPM solvers typically sets the spreading/interpolation
+order to order:math:`=5`, which forces substantial Fourier-space upsampling.
+Consequently, at the same cutoff radius, it often needs a much larger FFT grid, whereas ESP
+achieves similar accuracy with far shorter transforms, yielding roughly a sixfold
+reduction in FFT length when other parameters are held fixed.
 
 ----------
 
@@ -400,9 +428,16 @@ smaller than the reference force.
 
 The accuracy setting is used in conjunction with the pairwise cutoff
 to determine the number of K-space vectors for style *ewald* or the
-grid size for style *pppm* or *msm*\ .
+grid size for style *esp*, *pppm* or *msm*\ .
 
-Note that style *pppm* only computes the grid size at the beginning of
+For style *esp*, one accuracy value requests the overall relative
+force accuracy and is used as the PSWF kernel-splitting target.
+LAMMPS applies a tighter internal default to the PSWF
+spreading/interpolation target so that the automatically selected FFT
+grid and stencil order meet the requested accuracy.  A second value can
+be specified to set the spreading/interpolation target explicitly.
+
+Note that styles *esp* and *pppm* only computes the grid size at the beginning of
 a simulation, so if the length or triclinic tilt of the simulation
 cell increases dramatically during the course of the simulation, the
 accuracy of the simulation may degrade.  Likewise, if the
@@ -420,7 +455,7 @@ run.  Another way to ensure the described accuracy requirement is met
 is to run a short simulation at the maximum expected tilt or length,
 note the required grid size, and then use the
 :doc:`kspace_modify <kspace_modify>` *mesh* command to manually set the
-PPPM grid size to this value for the long run.  The simulation then
+ESP/PPPM grid size to this value for the long run.  The simulation then
 will be "too accurate" for some portion of the run.
 
 RMS force errors in real space for *ewald* and *pppm* are estimated
@@ -478,7 +513,7 @@ Note that the long-range electrostatic solvers in LAMMPS assume conducting
 metal (tinfoil) boundary conditions for both charge and dipole
 interactions. Vacuum boundary conditions are not currently supported.
 
-The *ewald/disp*, *ewald*, *pppm*, and *msm* styles support
+The *ewald/disp*, *ewald*, *esp*, *pppm*, and *msm* styles support
 non-orthogonal (triclinic symmetry) simulation boxes. However,
 triclinic simulation cells may not yet be supported by all suffix
 versions of these styles.
@@ -496,7 +531,7 @@ For MSM, a simulation must be 3d and one can use any combination of
 periodic, non-periodic, but not shrink-wrapped boundaries (specified
 using the :doc:`boundary <boundary>` command).
 
-For Ewald and PPPM, a simulation must be 3d and periodic in all
+For Ewald, ESP and PPPM, a simulation must be 3d and periodic in all
 dimensions.  The only exception is if the slab option is set with
 :doc:`kspace_modify <kspace_modify>`, in which case the xy dimensions
 must be periodic and the z dimension must be non-periodic.
@@ -517,7 +552,7 @@ virial, so this contribution is not included.
 Related commands
 """"""""""""""""
 
-:doc:`kspace_modify <kspace_modify>`, :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`, :doc:`pair_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair_style lj/long/coul/long <pair_lj_long>`, :doc:`pair_style buck/coul/long <pair_buck>`
+:doc:`kspace_modify <kspace_modify>`, :doc:`pair_style lj/cut/coul/esp <pair_lj_cut_coul>`, :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`, :doc:`pair_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair_style lj/long/coul/long <pair_lj_long>`, :doc:`pair_style buck/coul/long <pair_buck>`
 
 Default
 """""""
@@ -544,6 +579,10 @@ Adam Hilger, NY (1989).
 .. _Kolafa:
 
 **(Kolafa)** Kolafa and Perram, Molecular Simulation, 9, 351 (1992).
+
+.. _Liang2025:
+
+**(Liang2025)** Liang, Lu, Barnett, Greengard, Jiang, arXiv:2505.09727 (2025).
 
 .. _Petersen:
 

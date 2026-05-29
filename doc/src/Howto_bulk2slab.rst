@@ -58,7 +58,7 @@ system:
    change_box     all z final $(zlo-2.0*v_delta) $(zhi+2.0*v_delta) &
                       boundary p p f
    read_dump      rhodo-unwrap.lammpstrj 0 x y z box no replace yes
-   kspace_modify  slab 3.0
+   kspace_modify  slab auto
 
 Specifically, the :doc:`variable delta <variable>` (set to 10.0)
 represents a distance that determines the amount of vacuum added: we add
@@ -67,6 +67,11 @@ twice its value in each direction to the z-dimension; thus in total
 <reset_atoms>` command shall reset any image flags to become either 0 or
 :math:`\pm 1` and thus have the minimum distance from the center of the
 simulation box, but the correct relative distance for bonded atoms.
+
+Using ``kspace_modify slab auto`` lets the solver choose the near-optimal
+virtual vacuum used by the reciprocal-space slab correction from the
+current long-range accuracy target and box geometry.  A fixed value such
+as ``slab 3.0`` can still be used if a manual override is preferred.
 
 The :doc:`write_dump command <write_dump>` then writes out the resulting
 *unwrapped* coordinates of the system.  After expanding the box,

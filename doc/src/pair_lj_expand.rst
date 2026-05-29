@@ -14,7 +14,7 @@ Accelerator Variants: *lj/expand/gpu*, *lj/expand/kk*, *lj/expand/omp*
 pair_style lj/expand/coul/long command
 ======================================
 
-Accelerator Variants: *lj/expand/coul/long/gpu*, *lj/expand/coul/long/kk*
+Accelerator Variants: *lj/expand/coul/long/kk*, *lj/expand/coul/long/gpu*
 
 Syntax
 """"""

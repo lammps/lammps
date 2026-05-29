@@ -1,10 +1,11 @@
+.. include:: Commands_html.rst
+
 Fix styles
 ==========
 
 An alphabetic list of all LAMMPS :doc:`fix <fix>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
-OPT.
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
 
 .. table_from_list::
    :columns: 4
@@ -33,8 +34,9 @@ OPT.
    * :doc:`ave/histo/weight <fix_ave_histo>`
    * :doc:`ave/moments <fix_ave_moments>`
    * :doc:`ave/time <fix_ave_time>`
-   * :doc:`aveforce <fix_aveforce>`
+   * :doc:`aveforce (k) <fix_aveforce>`
    * :doc:`balance <fix_balance>`
+   * :doc:`baoab <fix_baoab>`
    * :doc:`bocs <fix_bocs>`
    * :doc:`bond/break <fix_bond_break>`
    * :doc:`bond/create <fix_bond_create>`
@@ -54,7 +56,7 @@ OPT.
    * :doc:`deform/pressure <fix_deform_pressure>`
    * :doc:`deposit <fix_deposit>`
    * :doc:`dpd/energy (k) <fix_dpd_energy>`
-   * :doc:`drag <fix_drag>`
+   * :doc:`drag (k) <fix_drag>`
    * :doc:`drude <fix_drude>`
    * :doc:`drude/transform/direct <fix_drude_transform>`
    * :doc:`drude/transform/inverse <fix_drude_transform>`
@@ -112,7 +114,7 @@ OPT.
    * :doc:`lb/fluid <fix_lb_fluid>`
    * :doc:`lb/momentum <fix_lb_momentum>`
    * :doc:`lb/viscous <fix_lb_viscous>`
-   * :doc:`lineforce <fix_lineforce>`
+   * :doc:`lineforce (k) <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
    * :doc:`mdi/qm <fix_mdi_qm>`
    * :doc:`mdi/qmmm <fix_mdi_qmmm>`
@@ -133,14 +135,14 @@ OPT.
    * :doc:`nph/asphere (o) <fix_nph_asphere>`
    * :doc:`nph/body <fix_nph_body>`
    * :doc:`nph/eff <fix_nh_eff>`
-   * :doc:`nph/sphere (o) <fix_nph_sphere>`
+   * :doc:`nph/sphere (ko) <fix_nph_sphere>`
    * :doc:`nphug <fix_nphug>`
    * :doc:`npt (giko) <fix_nh>`
    * :doc:`npt/asphere (o) <fix_npt_asphere>`
    * :doc:`npt/body <fix_npt_body>`
    * :doc:`npt/cauchy <fix_npt_cauchy>`
    * :doc:`npt/eff <fix_nh_eff>`
-   * :doc:`npt/sphere (o) <fix_npt_sphere>`
+   * :doc:`npt/sphere (ko) <fix_npt_sphere>`
    * :doc:`npt/uef <fix_nh_uef>`
    * :doc:`numdiff <fix_numdiff>`
    * :doc:`numdiff/virial <fix_numdiff_virial>`
@@ -154,7 +156,7 @@ OPT.
    * :doc:`nve/limit (k) <fix_nve_limit>`
    * :doc:`nve/line <fix_nve_line>`
    * :doc:`nve/manifold/rattle <fix_nve_manifold_rattle>`
-   * :doc:`nve/noforce <fix_nve_noforce>`
+   * :doc:`nve/noforce (k) <fix_nve_noforce>`
    * :doc:`nve/sphere (ko) <fix_nve_sphere>`
    * :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>`
    * :doc:`nve/spin <fix_nve_spin>`
@@ -167,9 +169,9 @@ OPT.
    * :doc:`nvt/manifold/rattle <fix_nvt_manifold_rattle>`
    * :doc:`nvt/sllod (iko) <fix_nvt_sllod>`
    * :doc:`nvt/sllod/eff <fix_nvt_sllod_eff>`
-   * :doc:`nvt/sphere (o) <fix_nvt_sphere>`
+   * :doc:`nvt/sphere (ko) <fix_nvt_sphere>`
    * :doc:`nvt/uef <fix_nh_uef>`
-   * :doc:`oneway <fix_oneway>`
+   * :doc:`oneway (k) <fix_oneway>`
    * :doc:`orient/bcc <fix_orient>`
    * :doc:`orient/fcc <fix_orient>`
    * :doc:`orient/eco <fix_orient_eco>`
@@ -180,7 +182,7 @@ OPT.
    * :doc:`pimd/nvt <fix_pimd>`
    * :doc:`pimd/langevin/bosonic <fix_pimd>`
    * :doc:`pimd/nvt/bosonic <fix_pimd>`
-   * :doc:`planeforce <fix_planeforce>`
+   * :doc:`planeforce (k) <fix_planeforce>`
    * :doc:`plumed <fix_plumed>`
    * :doc:`polarize/bem/gmres <fix_polarize>`
    * :doc:`polarize/bem/icc <fix_polarize>`
@@ -247,7 +249,7 @@ OPT.
    * :doc:`smd/wall_surface <fix_smd_wall_surface>`
    * :doc:`sph <fix_sph>`
    * :doc:`sph/stationary <fix_sph_stationary>`
-   * :doc:`spring <fix_spring>`
+   * :doc:`spring (k) <fix_spring>`
    * :doc:`spring/chunk <fix_spring_chunk>`
    * :doc:`spring/rg <fix_spring_rg>`
    * :doc:`spring/self (k) <fix_spring_self>`
@@ -274,7 +276,7 @@ OPT.
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
    * :doc:`viscous (k) <fix_viscous>`
-   * :doc:`viscous/sphere <fix_viscous_sphere>`
+   * :doc:`viscous/sphere (k) <fix_viscous_sphere>`
    * :doc:`wall/body/polygon <fix_wall_body_polygon>`
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`
    * :doc:`wall/colloid <fix_wall>`
@@ -282,13 +284,13 @@ OPT.
    * :doc:`wall/flow (k) <fix_wall_flow>`
    * :doc:`wall/gran (k) <fix_wall_gran>`
    * :doc:`wall/gran/region <fix_wall_gran_region>`
-   * :doc:`wall/harmonic <fix_wall>`
+   * :doc:`wall/harmonic (k) <fix_wall>`
    * :doc:`wall/harmonic/outside <fix_wall>`
-   * :doc:`wall/lj1043 <fix_wall>`
-   * :doc:`wall/lj126 <fix_wall>`
+   * :doc:`wall/lj1043 (k) <fix_wall>`
+   * :doc:`wall/lj126 (k) <fix_wall>`
    * :doc:`wall/lj93 (k) <fix_wall>`
    * :doc:`wall/lepton <fix_wall>`
-   * :doc:`wall/morse <fix_wall>`
+   * :doc:`wall/morse (k) <fix_wall>`
    * :doc:`wall/piston <fix_wall_piston>`
    * :doc:`wall/reflect (k) <fix_wall_reflect>`
    * :doc:`wall/reflect/stochastic <fix_wall_reflect_stochastic>`

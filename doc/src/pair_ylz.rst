@@ -1,10 +1,11 @@
 .. index:: pair_style ylz
 .. index:: pair_style ylz/omp
+.. index:: pair_style ylz/kk
 
 pair_style ylz command
-===========================
+======================
 
-Accelerator Variants: *ylz/omp*
+Accelerator Variants: *ylz/omp*, *ylz/kk*
 
 Syntax
 """"""

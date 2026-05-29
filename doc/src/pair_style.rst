@@ -159,6 +159,7 @@ accelerated styles exist.
 * :doc:`coul/debye <pair_coul>` - cutoff Coulomb potential with Debye screening
 * :doc:`coul/diel <pair_coul_diel>` - Coulomb potential with dielectric permittivity
 * :doc:`coul/dsf <pair_coul>` - Coulomb with damped-shifted-force model
+* :doc:`coul/esp <pair_coul>` - long-range Coulomb potential for ESP kspace solver
 * :doc:`coul/exclude <pair_coul>` - subtract Coulomb potential for excluded pairs
 * :doc:`coul/long <pair_coul>` - long-range Coulomb potential
 * :doc:`coul/long/cs <pair_cs>` - long-range Coulomb potential and core/shell
@@ -253,6 +254,7 @@ accelerated styles exist.
 * :doc:`lj/cut/coul/debye <pair_lj_cut_coul>` - LJ with Debye screening added to Coulomb
 * :doc:`lj/cut/coul/debye/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/dsf <pair_lj_cut_coul>` - LJ with Coulomb via damped shifted forces
+* :doc:`lj/cut/coul/esp <pair_lj_cut_coul>` - LJ with long-range Coulomb for ESP kspace solver
 * :doc:`lj/cut/coul/long <pair_lj_cut_coul>` - LJ with long-range Coulomb
 * :doc:`lj/cut/coul/long/cs <pair_cs>` - LJ with long-range Coulomb with core/shell adjustments
 * :doc:`lj/cut/coul/long/dielectric <pair_dielectric>` -
@@ -329,6 +331,12 @@ accelerated styles exist.
 * :doc:`oxdna2/hbond <pair_oxdna2>` -
 * :doc:`oxdna2/stk <pair_oxdna2>` -
 * :doc:`oxdna2/xstk <pair_oxdna2>` -
+* :doc:`oxdna3/coaxstk <pair_oxdna3>` -
+* :doc:`oxdna3/dh <pair_oxdna3>` -
+* :doc:`oxdna3/excv <pair_oxdna3>` -
+* :doc:`oxdna3/hbond <pair_oxdna3>` -
+* :doc:`oxdna3/stk <pair_oxdna3>` -
+* :doc:`oxdna3/xstk <pair_oxdna3>` -
 * :doc:`oxrna2/coaxstk <pair_oxrna2>` -
 * :doc:`oxrna2/dh <pair_oxrna2>` -
 * :doc:`oxrna2/excv <pair_oxrna2>` -
@@ -356,6 +364,7 @@ accelerated styles exist.
 * :doc:`rheo <pair_rheo>` - fluid interactions in RHEO package
 * :doc:`rheo/solid <pair_rheo_solid>` - solid interactions in RHEO package
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential
+* :doc:`runner <pair_runner>` - high-dimensional neural network potentials ML-RUNNER package
 * :doc:`saip/metal <pair_saip_metal>` - Interlayer potential for hetero-junctions formed with hexagonal 2D materials and metal surfaces
 * :doc:`saip/metal/tmd <pair_saip_metal>` - Interlayer potential for transition-metal dichalcogenide / metal interfaces
 * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - Smoothed dissipative particle dynamics for water at isothermal conditions

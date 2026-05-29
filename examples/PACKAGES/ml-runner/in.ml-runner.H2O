@@ -1,0 +1,28 @@
+variable temperature equal 300.0
+variable pressure equal 1.0
+variable seed equal 57382
+units metal
+
+boundary p p p
+atom_style atomic
+read_data "H2O.data"
+
+##########################
+#   ML-RUNNer Settings   #
+##########################
+pair_style runner dir 2G-H2O-HDNNP cflength 1.889726124626 cfenergy 0.036749322175655 &
+  check_extrap yes show_ew yes max_extrap -1
+pair_coeff * * 1 8
+
+timestep 0.0005
+#dump lammpstrj all custom 10 H2O.lammpstrj id element x y z fx fy fz
+#dump_modify lammpstrj first yes sort id element H O
+thermo 1
+
+thermo_style custom step temp epair etotal fmax fnorm press lx ly lz 
+thermo_modify format line "%8d %8.3f %15.5f %15.5f %9.4f %9.4f %9.2f %10.5f %10.5f %10.5f"
+
+fix int all nvt temp ${temperature} ${temperature} $(100.0*dt)
+velocity all create ${temperature} ${seed}
+
+run 10

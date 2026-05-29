@@ -159,6 +159,7 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/neigh_list_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/neigh_bond_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/fix_nh_sphere_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.cpp

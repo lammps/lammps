@@ -2,6 +2,7 @@
 .. index:: pair_style coul/slater/cut
 .. index:: pair_style coul/slater/long
 .. index:: pair_style coul/slater/long/gpu
+.. index:: pair_style coul/slater/long/kk
 
 pair_style coul/slater command
 ==============================
@@ -12,7 +13,7 @@ pair_style coul/slater/cut command
 pair_style coul/slater/long command
 ===================================
 
-Accelerator Variants: *coul/slater/long/gpu*
+Accelerator Variants: *coul/slater/long/gpu*, *coul/slater/long/kk*
 
 Syntax
 """"""

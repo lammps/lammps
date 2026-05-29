@@ -1,10 +1,11 @@
 .. index:: dihedral_style cosine/squared/restricted
+.. index:: dihedral_style cosine/squared/restricted/kk
 .. index:: dihedral_style cosine/squared/restricted/omp
 
 dihedral_style cosine/squared/restricted command
 ================================================
 
-Accelerator Variant: *cosine/squared/restricted/omp*
+Accelerator Variants: *cosine/squared/restricted/kk*, *cosine/squared/restricted/omp*
 
 Syntax
 """"""

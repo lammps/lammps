@@ -6,7 +6,7 @@
 pair_style gw command
 =====================
 
-Accelerator Variant: *gw/omp*
+Accelerator Variants: *gw/omp*
 
 pair_style gw/zbl command
 =========================

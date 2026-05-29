@@ -1,0 +1,97 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://download.lammps.org/json/color-schema.json",
+    "title": "JSON schema for LAMMPS default color and light definition for dump image",
+    "description": "Version 0.1; last updated 2026-04-25",
+    "type": "object",
+    "properties": {
+        "application": {
+            "type": "string",
+            "const": "LAMMPS"
+        },
+        "format": {
+            "type": "string",
+            "const": "colors"
+        },
+        "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1
+        },
+        "schema": {
+            "type": "string"
+        },
+        "title": {
+            "type": "string"
+        },
+        "colors": {
+            "type": "array",
+            "items": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "red": {
+                        "type": "number",
+                        "minimum": 0.0,
+                        "maximum": 1.0
+                    },
+                    "green": {
+                        "type": "number",
+                        "minimum": 0.0,
+                        "maximum": 1.0
+                    },
+                    "blue": {
+                        "type": "number",
+                        "minimum": 0.0,
+                        "maximum": 1.0
+                    }
+                },
+                "required": [
+                    "red",
+                    "green",
+                    "blue"
+                ]
+            },
+            "minItems": 1
+        },
+        "lights": {
+            "type": "object",
+            "properties": {
+                "ambient": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0
+                },
+                "key": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0
+                },
+                "fill": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0
+                },
+                "back": {
+                    "type": "number",
+                    "minimum": 0.0,
+                    "maximum": 1.0
+                }
+            },
+            "required": [
+                "ambient",
+                "key",
+                "fill",
+                "back"
+            ]
+        }
+    },
+    "required": [
+        "application",
+        "format",
+        "revision",
+        "colors",
+        "lights"
+    ]
+}

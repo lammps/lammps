@@ -45,6 +45,8 @@ ImproperDistHarm::ImproperDistHarm(LAMMPS *lmp) : Improper(lmp)
 
 ImproperDistHarm::~ImproperDistHarm()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

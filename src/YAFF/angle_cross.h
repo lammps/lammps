@@ -40,7 +40,7 @@ class AngleCross : public Angle {
  protected:
   double *kss, *kbs0, *kbs1, *r00, *r01, *theta0;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

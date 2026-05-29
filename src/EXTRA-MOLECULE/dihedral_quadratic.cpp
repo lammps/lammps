@@ -49,6 +49,7 @@ DihedralQuadratic::DihedralQuadratic(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralQuadratic::~DihedralQuadratic()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

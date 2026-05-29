@@ -1,0 +1,95 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-474-gc38c6dd02b-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+variable temperature equal 300.0
+variable pressure equal 1.0
+variable seed equal 57382
+units metal
+
+boundary p p p
+atom_style atomic
+read_data "H2O.data"
+Reading data file ...
+  orthogonal box = (0 0 0) to (12.417191 12.417191 12.417191)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  192 atoms
+  read_data CPU = 0.001 seconds
+
+##########################
+#   ML-RUNNer Settings   #
+##########################
+pair_style runner dir 2G-H2O-HDNNP cflength 1.889726124626 cfenergy 0.036749322175655   check_extrap yes show_ew yes max_extrap -1
+pair_coeff * * 1 8
+
+timestep 0.0005
+#dump lammpstrj all custom 10 H2O.lammpstrj id element x y z fx fy fz
+#dump_modify lammpstrj first yes sort id element H O
+thermo 1
+
+thermo_style custom step temp epair etotal fmax fnorm press lx ly lz
+thermo_modify format line "%8d %8.3f %15.5f %15.5f %9.4f %9.4f %9.2f %10.5f %10.5f %10.5f"
+
+fix int all nvt temp ${temperature} ${temperature} $(100.0*dt)
+fix int all nvt temp 300 ${temperature} $(100.0*dt)
+fix int all nvt temp 300 300 $(100.0*dt)
+fix int all nvt temp 300 300 0.050000000000000002776
+velocity all create ${temperature} ${seed}
+velocity all create 300 ${seed}
+velocity all create 300 57382
+
+run 10
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8
+  ghost atom cutoff = 8
+  binsize = 4, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair runner, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.121 | 3.123 | 3.124 Mbytes
+   Step          Temp          E_pair         TotEng          Fmax          Fnorm          Press            Lx             Ly             Lz      
+       0  300.000   -133340.23727   -133332.83066    1.7622   14.0625 -15330.89   12.41719   12.41719   12.41719
+       1  296.707   -133340.15550   -133332.83019    1.9652   14.3593 -14311.15   12.41719   12.41719   12.41719
+       2  294.180   -133340.09367   -133332.83076    2.0076   15.0643 -10062.62   12.41719   12.41719   12.41719
+       3  292.357   -133340.04822   -133332.83031    2.0848   16.2351  -3110.42   12.41719   12.41719   12.41719
+       4  291.759   -133340.03092   -133332.82778    2.5127   17.6502   5710.71   12.41719   12.41719   12.41719
+       5  293.930   -133340.08166   -133332.82492    2.7287   18.7693  15358.18   12.41719   12.41719   12.41719
+       6  300.384   -133340.24132   -133332.82524    2.7549   19.0426  24718.73   12.41719   12.41719   12.41719
+       7  310.722   -133340.50167   -133332.83036    2.5661   18.2908  32759.84   12.41719   12.41719   12.41719
+       8  321.837   -133340.78355   -133332.83782    2.1794   16.9033  38650.08   12.41719   12.41719   12.41719
+       9  329.352   -133340.97419   -133332.84291    2.6607   15.7292  41821.51   12.41719   12.41719   12.41719
+      10  330.295   -133340.99711   -133332.84256    2.9936   15.5480  41990.90   12.41719   12.41719   12.41719
+Loop time of 0.614231 on 4 procs for 10 steps with 192 atoms
+
+Performance: 0.703 ns/day, 34.124 hours/ns, 16.281 timesteps/s, 3.126 katom-step/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.61357    | 0.61358    | 0.61359    |   0.0 | 99.89
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00034384 | 0.00035843 | 0.0003734  |   0.0 |  0.06
+Output  | 0.00014733 | 0.00016077 | 0.00019785 |   0.0 |  0.03
+Modify  | 6.817e-05  | 7.024e-05  | 7.2039e-05 |   0.0 |  0.01
+Other   |            | 6.143e-05  |            |       |  0.01
+
+Nlocal:             48 ave          52 max          46 min
+Histogram: 1 2 0 0 0 0 0 0 0 1
+Nghost:        1337.25 ave        1386 max        1289 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:        10228 ave       11022 max        9819 min
+Histogram: 1 2 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 40912
+Ave neighs/atom = 213.08333
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

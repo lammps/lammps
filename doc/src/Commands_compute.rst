@@ -1,10 +1,12 @@
+.. include:: Commands_html.rst
+
 Compute styles
 ==============
 
 An alphabetic list of all LAMMPS :doc:`compute <compute>` commands.
-Some styles have accelerated versions.  This is indicated by
-additional letters in parenthesis: g = GPU, i = INTEL, k =
-KOKKOS, o = OPENMP, t = OPT.
+Some styles have accelerated versions.  This is indicated by additional
+letters in parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
+OPT.
 
 .. table_from_list::
    :columns: 4
@@ -174,7 +176,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`temp/region <compute_temp_region>`
    * :doc:`temp/region/eff <compute_temp_region_eff>`
    * :doc:`temp/rotate <compute_temp_rotate>`
-   * :doc:`temp/sphere <compute_temp_sphere>`
+   * :doc:`temp/sphere (k) <compute_temp_sphere>`
    * :doc:`temp/uef <compute_temp_uef>`
    * :doc:`ti <compute_ti>`
    * :doc:`torque/chunk <compute_torque_chunk>`

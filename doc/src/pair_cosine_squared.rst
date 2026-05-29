@@ -1,10 +1,11 @@
 .. index:: pair_style cosine/squared
+.. index:: pair_style cosine/squared/kk
 .. index:: pair_style cosine/squared/omp
 
 pair_style cosine/squared command
 =================================
 
-Accelerator Variants: *cosine/squared/omp*
+Accelerator Variants: *cosine/squared/kk*, *cosine/squared/omp*
 
 Syntax
 """"""

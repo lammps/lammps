@@ -101,9 +101,9 @@ def require_accel_include(path):
                 if intel.match(line): needs = True
                 if opt.match(line): needs = True
     if needs and not found:
-        print("Missing '.. include:: accel_style.rst' in file ", path)
+        print("Missing '.. include:: accel_styles.rst' in file ", path)
     if not needs and found:
-        print("Have '.. include:: accel_style.rst' without accelerated styles in file ", path)
+        print("Have '.. include:: accel_styles.rst' without accelerated styles in file ", path)
 
 def load_index_entries_in_file(path):
     entries = []

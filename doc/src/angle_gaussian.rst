@@ -1,10 +1,11 @@
 .. index:: angle_style gaussian
+.. index:: angle_style gaussian/kk
 .. index:: angle_style gaussian/omp
 
 angle_style gaussian command
 ============================
 
-Accelerator Variant: *gaussian/omp*
+Accelerator Variants: *gaussian/kk*, *gaussian/omp*
 
 Syntax
 """"""

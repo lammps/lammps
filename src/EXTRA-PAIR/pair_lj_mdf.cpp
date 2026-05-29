@@ -41,6 +41,8 @@ PairLJMDF::PairLJMDF(LAMMPS *lmp) : Pair(lmp) {
 
 PairLJMDF::~PairLJMDF()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

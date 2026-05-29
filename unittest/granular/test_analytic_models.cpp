@@ -143,6 +143,18 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         const double ec = 0.5 * m1 * va * va + 0.5 * m2 * vb * vb + (m1 * g * ya + m2 * g * yb) +
                           spring_pe(ya, yb);
         expect_rel(e0, ec, cfg.analytic_tol, "stack_energy total energy");
+    } else if (cfg.analytic_model == "slip_cessation") {
+        // sphere (tag 1) launched along +x with no spin on a rough floor (normal +z):
+        // kinetic friction decelerates u and spins it up about +y until the no-slip
+        // condition u = omega_y r is reached.  Thereafter u = 5 u0/7 and omega_y = u/r.
+        // Evaluate at a segment past the slip-cessation time t_s = 2 u0 / (7 mu g).
+        const double u0 = var_or(vars, "u0", 0.0);
+        const double r  = var_or(vars, "radius", 0.0);
+        const int i     = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "slip_cessation: atom with tag 1 not found";
+        const double u_final = 5.0 * u0 / 7.0;
+        expect_rel(u_final, lmp->atom->v[i][0], cfg.analytic_tol, "slip_cessation vx");
+        expect_rel(u_final / r, lmp->atom->omega[i][1], cfg.analytic_tol, "slip_cessation omega_y");
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

@@ -90,3 +90,8 @@ register_dem_tests(test_dem_02 dem02 DEM02)
 add_executable(test_dem_03 test_dem_03.cpp)
 target_link_libraries(test_dem_03 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_03 dem03 DEM03)
+
+# DEM-04: sphere sliding then rolling without slipping on a rough surface
+add_executable(test_dem_04 test_dem_04.cpp)
+target_link_libraries(test_dem_04 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_04 dem04 DEM04)

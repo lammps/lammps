@@ -61,6 +61,11 @@ public:
     std::string analytic_model;
     double analytic_tol;
     int analytic_segment;
+    // when true, record/compare only the analytic check (no per-atom regression).
+    // used for chaotic bulk tests (e.g. angle of repose) whose trajectories are not
+    // bit-reproducible across newton on/off or platforms -- only the bulk analytic
+    // observable is robust.  The generator then omits the run_pos/run_vel/... blocks.
+    bool analytic_only;
     int natoms;
     double init_energy;
     double run_energy;
@@ -85,7 +90,8 @@ public:
         lammps_version(""), date_generated(""), basename(""), epsilon(1.0e-14), input_file(""),
         pair_style("zero"), bond_style("zero"), angle_style("zero"), dihedral_style("zero"),
         improper_style("zero"), kspace_style("none"), analytic_enable(false), analytic_model(""),
-        analytic_tol(1.0e-2), analytic_segment(-1), natoms(0), init_energy(0), run_energy(0),
+        analytic_tol(1.0e-2), analytic_segment(-1), analytic_only(false), natoms(0), init_energy(0),
+        run_energy(0),
         init_vdwl(0), run_vdwl(0), init_coul(0), run_coul(0), init_stress({0, 0, 0, 0, 0, 0}),
         run_stress({0, 0, 0, 0, 0, 0}), global_scalar(0)
     {

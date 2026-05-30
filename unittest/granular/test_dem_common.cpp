@@ -189,11 +189,24 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         writer.emit("analytic_model", config.analytic_model);
         writer.emit("analytic_tol", config.analytic_tol);
         writer.emit("analytic_segment", (long) config.analytic_segment);
+        if (config.analytic_only) writer.emit("analytic_only", std::string("yes"));
     }
 
     auto command = [&](const std::string &line) {
         lmp->input->one(line);
     };
+
+    // For analytic-only (chaotic bulk) tests -- e.g. angle of repose -- the
+    // trajectory is not bit-reproducible across newton on/off or platforms, so
+    // we record no per-atom reference.  Only the bulk analytic observable is
+    // robust; it is checked live during the test (check_analytic_model).  We
+    // still execute the run segments so the reference reflects a completed run.
+    if (config.analytic_only) {
+        for (std::size_t i = 0; i < config.run_segments.size(); ++i)
+            command("run " + std::to_string(config.run_segments[i]) + " post no");
+        cleanup_lammps(lmp, config);
+        return;
+    }
 
     const bool has_torque = lmp->atom->torque_flag;
     const bool has_omega  = lmp->atom->omega_flag;

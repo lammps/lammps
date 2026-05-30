@@ -281,6 +281,35 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         EXPECT_LE(std::fabs(m1 * v1 + m2 * v2), cfg.analytic_tol * (m1 + m2) * vin)
             << "collision_restitution: total x-momentum not conserved";
         expect_rel(en, -(v1 - v2) / (2.0 * vin), cfg.analytic_tol, "collision_restitution e");
+    } else if (cfg.analytic_model == "angle_of_repose") {
+        // coarse, statistical estimate of a settled heap's angle of repose:
+        // atan(H / R), where H is the peak height above the floor and R is the
+        // largest horizontal distance from the (horizontal) centroid.  Asserted
+        // to lie within a band [aor_lo, aor_hi] degrees (variables).
+        const double floor = var_or(vars, "floor", 0.0);
+        const double lo    = var_or(vars, "aor_lo", 0.0);
+        const double hi    = var_or(vars, "aor_hi", 90.0);
+        double **x         = lmp->atom->x;
+        const int nlocal   = lmp->atom->nlocal;
+        ASSERT_GT(nlocal, 0) << "angle_of_repose: no atoms";
+        double xc = 0.0, yc = 0.0, zmax = -1.0e300;
+        for (int k = 0; k < nlocal; ++k) {
+            xc += x[k][0];
+            yc += x[k][1];
+            if (x[k][2] > zmax) zmax = x[k][2];
+        }
+        xc /= nlocal;
+        yc /= nlocal;
+        double rmax = 0.0;
+        for (int k = 0; k < nlocal; ++k) {
+            const double dx = x[k][0] - xc, dy = x[k][1] - yc;
+            const double rr = std::sqrt(dx * dx + dy * dy);
+            if (rr > rmax) rmax = rr;
+        }
+        const double angle =
+            (rmax > 0.0) ? std::atan((zmax - floor) / rmax) * 180.0 / MathConst::MY_PI : 90.0;
+        EXPECT_GE(angle, lo) << "angle_of_repose " << angle << " deg is below the band";
+        EXPECT_LE(angle, hi) << "angle_of_repose " << angle << " deg is above the band";
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

@@ -120,3 +120,8 @@ register_dem_tests(test_dem_08 dem08 DEM08)
 add_executable(test_dem_09 test_dem_09.cpp)
 target_link_libraries(test_dem_09 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_09 dem09 DEM09)
+
+# DEM-10: bulk angle of repose and multi-sphere rigid clumps
+add_executable(test_dem_10 test_dem_10.cpp)
+target_link_libraries(test_dem_10 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_10 dem10 DEM10)

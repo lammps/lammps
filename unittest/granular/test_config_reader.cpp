@@ -57,6 +57,7 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["analytic_model"]   = &TestConfigReader::analytic_model;
     consumers["analytic_tol"]     = &TestConfigReader::analytic_tol;
     consumers["analytic_segment"] = &TestConfigReader::analytic_segment;
+    consumers["analytic_only"]    = &TestConfigReader::analytic_only;
 
     consumers["pair_style"] = &TestConfigReader::pair_style;
     consumers["pair_coeff"] = &TestConfigReader::pair_coeff;
@@ -305,6 +306,13 @@ void TestConfigReader::analytic_tol(const yaml_event_t &event)
 void TestConfigReader::analytic_segment(const yaml_event_t &event)
 {
     config.analytic_segment = atoi((const char *)event.data.scalar.value);
+}
+
+void TestConfigReader::analytic_only(const yaml_event_t &event)
+{
+    const std::string value = trim((const char *)event.data.scalar.value);
+    config.analytic_only =
+        (value == "yes") || (value == "true") || (value == "on") || (value == "1");
 }
 
 void TestConfigReader::pair_style(const yaml_event_t &event)

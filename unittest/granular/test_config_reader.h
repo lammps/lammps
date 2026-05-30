@@ -50,6 +50,7 @@ public:
     void analytic_model(const yaml_event_t &event);
     void analytic_tol(const yaml_event_t &event);
     void analytic_segment(const yaml_event_t &event);
+    void analytic_only(const yaml_event_t &event);
     void pair_style(const yaml_event_t &event);
     void pair_coeff(const yaml_event_t &event);
     void bond_style(const yaml_event_t &event);

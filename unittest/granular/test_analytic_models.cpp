@@ -310,6 +310,47 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
             (rmax > 0.0) ? std::atan((zmax - floor) / rmax) * 180.0 / MathConst::MY_PI : 90.0;
         EXPECT_GE(angle, lo) << "angle_of_repose " << angle << " deg is below the band";
         EXPECT_LE(angle, hi) << "angle_of_repose " << angle << " deg is above the band";
+    } else if (cfg.analytic_model == "hertz_normal_impact") {
+        // Elastic Hertzian normal impact at peak compression (Chung & Ooi 2011,
+        // Tests 1 & 2).  This segment must be timed to land at peak compression,
+        // where the relative normal velocity is ~0 and all relative kinetic
+        // energy is stored as Hertzian elastic potential energy.  For a contact
+        // force F = K delta^{3/2}, that PE is (2/5) K delta^{5/2} = (2/5) F delta,
+        // so  (1/2) mu_red V_rela^2 = (2/5) P_max alpha_max.  The 2/5 factor is
+        // the signature of the 3/2 power law (a linear spring would give 1/2);
+        // the relation is independent of the stiffness convention.  mu_red is
+        // mred_factor * m (1/2 for two equal spheres, 1 for a sphere on a rigid
+        // wall) and V_rela is the relative approach speed (2*vin for two spheres,
+        // vin for a wall) -- both supplied via the variables block.
+        const double vrela = var_or(vars, "vrela", 0.0);
+        const double mredf = var_or(vars, "mred_factor", 1.0);
+        const double floor = var_or(vars, "floor", 0.0);
+        const int i        = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "hertz_normal_impact: atom with tag 1 not found";
+        const double m    = lmp->atom->rmass[i];
+        const double mred = mredf * m;
+        // peak overlap: two-sphere (tags 1,2) or sphere-on-wall (single atom)
+        double alpha;
+        if (lmp->atom->nlocal >= 2) {
+            const int j = find_local(lmp, 2);
+            ASSERT_GE(j, 0) << "hertz_normal_impact: atom with tag 2 not found";
+            const double dx = lmp->atom->x[i][0] - lmp->atom->x[j][0];
+            const double dy = lmp->atom->x[i][1] - lmp->atom->x[j][1];
+            const double dz = lmp->atom->x[i][2] - lmp->atom->x[j][2];
+            alpha = lmp->atom->radius[i] + lmp->atom->radius[j] -
+                std::sqrt(dx * dx + dy * dy + dz * dz);
+        } else {
+            alpha = lmp->atom->radius[i] - (lmp->atom->x[i][2] - floor);
+        }
+        ASSERT_GT(alpha, 0.0) << "hertz_normal_impact: atoms not in contact (segment "
+                                 "not timed at peak compression?)";
+        const double fx   = lmp->atom->f[i][0];
+        const double fy   = lmp->atom->f[i][1];
+        const double fz   = lmp->atom->f[i][2];
+        const double pmax = std::sqrt(fx * fx + fy * fy + fz * fz);
+        const double ke   = 0.5 * mred * vrela * vrela;
+        const double pe   = 0.4 * pmax * alpha;    // (2/5) P_max alpha_max
+        expect_rel(ke, pe, cfg.analytic_tol, "hertz_normal_impact peak energy balance");
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

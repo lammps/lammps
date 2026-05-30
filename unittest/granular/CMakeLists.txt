@@ -125,3 +125,8 @@ register_dem_tests(test_dem_09 dem09 DEM09)
 add_executable(test_dem_10 test_dem_10.cpp)
 target_link_libraries(test_dem_10 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_10 dem10 DEM10)
+
+# DEM-11: elastic Hertzian normal impact (peak contact mechanics)
+add_executable(test_dem_11 test_dem_11.cpp)
+target_link_libraries(test_dem_11 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_11 dem11 DEM11)

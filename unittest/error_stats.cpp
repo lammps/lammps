@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "../force-styles/error_stats.h"
+#include "error_stats.h"
 
 #include "fmt/format.h"
 #include <cmath>

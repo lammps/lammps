@@ -14,8 +14,8 @@ else()
   set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 endif()
 add_library(granular_tests STATIC
-  error_stats.cpp
-  yaml_writer.cpp
+  ../error_stats.cpp
+  ../yaml_writer.cpp
   test_config_reader.cpp
   test_analytic_models.cpp
   test_dem_common.cpp

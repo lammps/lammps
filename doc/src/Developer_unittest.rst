@@ -656,7 +656,7 @@ collisions (``test_dem_09``) and the elastic Hertzian normal impact
    * - ``test_dem_08``
      - cohesive/adhesive contact: the DMT and JKR pull-off force
    * - ``test_dem_09``
-     - two-sphere head-onelastic Hertzian normal impact (peak contact mechanics)
+     - two-sphere head-on, oblique (shear), and spinning-sphere collisions
    * - ``test_dem_10``
      - bulk behavior: a settling pile, the angle of repose, and a rigid clump
    * - ``test_dem_11``

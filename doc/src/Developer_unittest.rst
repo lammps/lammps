@@ -656,7 +656,7 @@ collisions (``test_dem_09``) and the elastic Hertzian normal impact
    * - ``test_dem_08``
      - cohesive/adhesive contact: the DMT and JKR pull-off force
    * - ``test_dem_09``
-     - two-sphere head-on and oblique (shear) collisions
+     - two-sphere head-onelastic Hertzian normal impact (peak contact mechanics)
    * - ``test_dem_10``
      - bulk behavior: a settling pile, the angle of repose, and a rigid clump
    * - ``test_dem_11``
@@ -805,6 +805,12 @@ currently implemented are:
      - two-sphere momentum conservation and restitution :math:`e = -(v_1'-v_2')/(v_1-v_2)`
    * - angle\_of\_repose
      - measured heap slope :math:`\arctan(z_{\max}/r_{\max})` lies within a ``[lo, hi]`` band
+   * - hertz\_normal\_impact
+     - Hertzian peak energy balance :math:`\tfrac{1}{2}\mu_{red} V_{rela}^2 = \tfrac{2}{5} P_{max}\alpha_{max}`
+   * - spin\_impact
+     - gross-sliding rebound of a spinning sphere: :math:`v_x' = \mu(1+e)v_n`, :math:`\omega_y' = \omega_0 - \tfrac{5}{2}\mu(1+e)v_n/r`
+   * - spin\_no\_friction
+     - counter-spinning spheres with zero contact slip keep their spin and gain no tangential velocity
 
 ``test_dem_06`` exercises both :doc:`fix viscous <fix_viscous>` (linear
 Stokes drag) and the :doc:`fix viscous/nonlinear <fix_viscous_nonlinear>`

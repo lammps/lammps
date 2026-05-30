@@ -623,12 +623,16 @@ trajectories of small granular systems.  The first six test programs,
 MFiX-DEM verification studies of :ref:`Garg et al. <dem_Garg2012>` (the
 individual cases are also described in the `MFiX-DEM manual
 <https://mfix.netl.doe.gov/doc/vvuq-manual/main/html/dem/index.html>`_).
-``test_dem_07`` through ``test_dem_10`` add coverage of benchmark cases
+``test_dem_07`` through ``test_dem_11`` add coverage of benchmark cases
 from the granular literature: rolling resistance, cohesion, and
 two-particle collisions follow the software-agnostic DEM benchmark of
 :ref:`Mohajeri et al. <dem_Mohajeri2024>`, and the bulk angle of repose
 and multi-sphere clump cases follow the round-robin study of
-:ref:`Saomoto et al. <dem_Saomoto2023>`.  The test programs are:
+:ref:`Saomoto et al. <dem_Saomoto2023>`.  The particle-impact-level cases
+-- oblique wall impact (``test_dem_05``), two-sphere and spinning-sphere
+collisions (``test_dem_09``) and the elastic Hertzian normal impact
+(``test_dem_11``) -- follow the benchmark of :ref:`Chung and Ooi
+<dem_Chung2011>`.  The test programs are:
 
 .. list-table::
    :header-rows: 1
@@ -882,6 +886,13 @@ https://doi.org/10.1016/j.powtec.2024.120136
 et al., Round robin test on angle of repose: DEM simulation results
 collected from 16 groups around the world, Soils and Foundations, 63,
 101272 (2023), https://doi.org/10.1016/j.sandf.2023.101272
+
+.. _dem_Chung2011:
+
+**(Chung and Ooi, 2011)** Y. C. Chung and J. Y. Ooi, Benchmark tests for
+verifying discrete element modelling codes at particle impact level,
+Granular Matter, 13, 643-656 (2011),
+https://doi.org/10.1007/s10035-011-0277-0
 
 
 Tests for programs in the tools folder

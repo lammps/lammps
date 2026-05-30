@@ -4,6 +4,8 @@ Adding tests for unit testing
 .. contents::
    :local:
 
+------------
+
 This section discusses adding or expanding tests for the unit test
 infrastructure included into the LAMMPS source code distribution.
 Unlike example inputs, unit tests focus on testing the "local" behavior
@@ -610,6 +612,8 @@ of the potentials and differences in compilers.
 
 Tests for granular (DEM) models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: TBD
 
 The ``unittest/granular`` folder contains a YAML-driven test suite for
 discrete element method (DEM) / granular models, built in the same spirit

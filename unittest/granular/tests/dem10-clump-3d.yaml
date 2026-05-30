@@ -6,6 +6,7 @@ epsilon: 5e-09
 skip_tests:
 prerequisites: ! |
   atom sphere
+  atom molecular
   pair granular
   fix rigid/small
 pre_commands: ! |

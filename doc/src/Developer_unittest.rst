@@ -659,6 +659,8 @@ collisions (``test_dem_09``) and the elastic Hertzian normal impact
      - two-sphere head-on and oblique (shear) collisions
    * - ``test_dem_10``
      - bulk behavior: a settling pile, the angle of repose, and a rigid clump
+   * - ``test_dem_11``
+     - elastic Hertzian normal impact (peak contact mechanics)
 
 Every test program shares the same driver logic, implemented in
 ``unittest/granular/test_dem_common.cpp`` and compiled into the

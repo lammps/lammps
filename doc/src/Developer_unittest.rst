@@ -611,10 +611,13 @@ Tests for granular (DEM) models
 The ``unittest/granular`` folder contains a YAML-driven test suite for
 discrete element method (DEM) / granular models, built in the same spirit
 as the force-style tests above but specialized for time-resolved
-trajectories of small granular systems.  There are six test programs,
-``test_dem_01`` through ``test_dem_06``, that reproduce the test surface of
+trajectories of small granular systems.  The first six test programs,
+``test_dem_01`` through ``test_dem_06``, reproduce the test surface of
 the `MFiX-DEM verification cases DEM-01 ... DEM-06
-<https://mfix.netl.doe.gov/doc/vvuq-manual/main/html/dem/dem-01.html>`_:
+<https://mfix.netl.doe.gov/doc/vvuq-manual/main/html/dem/dem-01.html>`_;
+``test_dem_07`` through ``test_dem_10`` add coverage of benchmark cases
+from the granular literature (rolling resistance, cohesion, two-particle
+collisions, and bulk behavior):
 
 .. list-table::
    :header-rows: 1
@@ -633,6 +636,14 @@ the `MFiX-DEM verification cases DEM-01 ... DEM-06
      - an oblique collision of a sphere (and a superellipsoid) with a wall
    * - ``test_dem_06``
      - a single particle settling to its terminal velocity under fluid drag
+   * - ``test_dem_07``
+     - a spinning sphere damped to rest by rolling resistance (``rolling sds``)
+   * - ``test_dem_08``
+     - cohesive/adhesive contact: the DMT and JKR pull-off force
+   * - ``test_dem_09``
+     - two-sphere head-on and oblique (shear) collisions
+   * - ``test_dem_10``
+     - bulk behavior: a settling pile, the angle of repose, and a rigid clump
 
 Every test program shares the same driver logic, implemented in
 ``unittest/granular/test_dem_common.cpp`` and compiled into the
@@ -730,6 +741,9 @@ The following table describes the available keys:
      - relative tolerance for the analytic assertion (looser than ``epsilon``)
    * - analytic_segment
      - run segment at which the analytic model is checked (``-1`` means the last)
+   * - analytic_only
+     - ``yes`` to record/check *only* the analytic model and skip the per-atom
+       regression (for chaotic bulk tests; see below)
 
 The per-atom reference blocks use a ``segment tag x y z`` row format, so a
 single block holds the data for all run segments and the row order does not
@@ -766,11 +780,33 @@ currently implemented are:
      - Stokes drag terminal velocity :math:`v_{term} = m g/\gamma`
    * - terminal_velocity_schiller_naumann
      - Schiller-Naumann terminal velocity from :math:`m g = \tfrac{1}{2} C_d \rho_g \pi r^2 v^2`
+   * - rolling_decay
+     - linear spin-down under rolling resistance: :math:`\omega = \omega_0 - \tfrac{5 \mu_r g}{2 r} t`
+   * - pulloff_dmt
+     - DMT pull-off force at contact :math:`|F| = 4 \pi \gamma R_{\mathrm{eff}}`
+   * - collision_restitution
+     - two-sphere momentum conservation and restitution :math:`e = -(v_1'-v_2')/(v_1-v_2)`
+   * - angle_of_repose
+     - measured heap slope :math:`\arctan(z_{\max}/r_{\max})` lies within a ``[lo, hi]`` band
 
 ``test_dem_06`` exercises both :doc:`fix viscous <fix_viscous>` (linear
 Stokes drag) and the :doc:`fix viscous/nonlinear <fix_viscous_nonlinear>`
 style that was added together with these tests for the Schiller-Naumann
 drag correlation.
+
+**Analytic-only (chaotic bulk) tests.**  Most tests are bit-for-bit
+regressions that reproduce identically under ``newton on`` and ``newton
+off``.  A few bulk scenarios -- notably the angle-of-repose pile in
+``test_dem_10`` -- are *chaotic*: a long pour-and-settle trajectory amplifies
+the round-off differences between summation orders, so the per-atom state is
+not reproducible across ``newton`` settings or platforms even though the bulk
+observable (the heap angle) is robust.  Such a YAML sets ``analytic_only:
+yes``; the generator then records no per-atom reference blocks, and the
+driver checks only the analytic model.  ``test_dem_10`` pairs this with a
+short, deterministic ``dem10-settle-*`` regression (a small lattice block
+relaxing into contact) and a deterministic ``dem10-clump-*`` case (a
+:doc:`fix rigid/small <fix_rigid>` tetrahedral clump bouncing on a granular
+wall) so the bit-for-bit code path is still covered.
 
 **Adding a new reference (YAML) file.**  Copy an existing ``dem0N-*.yaml``
 for a similar scenario, adjust the ``variables``, ``pre_commands``,

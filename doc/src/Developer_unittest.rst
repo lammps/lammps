@@ -1,6 +1,9 @@
 Adding tests for unit testing
 -----------------------------
 
+.. contents::
+   :local:
+
 This section discusses adding or expanding tests for the unit test
 infrastructure included into the LAMMPS source code distribution.
 Unlike example inputs, unit tests focus on testing the "local" behavior
@@ -612,12 +615,16 @@ The ``unittest/granular`` folder contains a YAML-driven test suite for
 discrete element method (DEM) / granular models, built in the same spirit
 as the force-style tests above but specialized for time-resolved
 trajectories of small granular systems.  The first six test programs,
-``test_dem_01`` through ``test_dem_06``, reproduce the test surface of
-the `MFiX-DEM verification cases DEM-01 ... DEM-06
-<https://mfix.netl.doe.gov/doc/vvuq-manual/main/html/dem/dem-01.html>`_;
+``test_dem_01`` through ``test_dem_06``, reproduce the test surface of the
+MFiX-DEM verification studies of :ref:`Garg et al. <dem_Garg2012>` (the
+individual cases are also described in the `MFiX-DEM VVUQ manual
+<https://mfix.netl.doe.gov/doc/vvuq-manual/main/html/dem/dem-01.html>`_).
 ``test_dem_07`` through ``test_dem_10`` add coverage of benchmark cases
-from the granular literature (rolling resistance, cohesion, two-particle
-collisions, and bulk behavior):
+from the granular literature: rolling resistance, cohesion, and
+two-particle collisions follow the software-agnostic DEM benchmark of
+:ref:`Mohajeri et al. <dem_Mohajeri2024>`, and the bulk angle of repose
+and multi-sphere clump cases follow the round-robin study of
+:ref:`Saomoto et al. <dem_Saomoto2023>`.  The test programs are:
 
 .. list-table::
    :header-rows: 1
@@ -786,7 +793,7 @@ currently implemented are:
      - DMT pull-off force at contact :math:`|F| = 4 \pi \gamma R_{\mathrm{eff}}`
    * - collision_restitution
      - two-sphere momentum conservation and restitution :math:`e = -(v_1'-v_2')/(v_1-v_2)`
-   * - angle_of_repose
+   * - angle\_of\_repose
      - measured heap slope :math:`\arctan(z_{\max}/r_{\max})` lies within a ``[lo, hi]`` band
 
 ``test_dem_06`` exercises both :doc:`fix viscous <fix_viscous>` (linear
@@ -794,7 +801,10 @@ Stokes drag) and the :doc:`fix viscous/nonlinear <fix_viscous_nonlinear>`
 style that was added together with these tests for the Schiller-Naumann
 drag correlation.
 
-**Analytic-only (chaotic bulk) tests.**  Most tests are bit-for-bit
+Analytic-only (chaotic bulk)
+""""""""""""""""""""""""""""
+
+Most tests are bit-for-bit
 regressions that reproduce identically under ``newton on`` and ``newton
 off``.  A few bulk scenarios -- notably the angle-of-repose pile in
 ``test_dem_10`` -- are *chaotic*: a long pour-and-settle trajectory amplifies
@@ -808,7 +818,10 @@ relaxing into contact) and a deterministic ``dem10-clump-*`` case (a
 :doc:`fix rigid/small <fix_rigid>` tetrahedral clump bouncing on a granular
 wall) so the bit-for-bit code path is still covered.
 
-**Adding a new reference (YAML) file.**  Copy an existing ``dem0N-*.yaml``
+Adding a new reference (YAML) file
+""""""""""""""""""""""""""""""""""
+
+Copy an existing ``dem0N-*.yaml``
 for a similar scenario, adjust the ``variables``, ``pre_commands``,
 ``pair_style``/``pair_coeff`` and ``post_commands`` for the new model, and
 give it a new name matching the ``dem0N-*.yaml`` pattern of the test program
@@ -828,15 +841,43 @@ registered, then verify it with ``ctest -V -R DEM0N:myvariant`` (the ``-s``
 option of the driver reports per-quantity error statistics, which helps when
 choosing ``epsilon`` and the analytic tolerance).
 
-**Adding a new test program.**  Create ``test_dem_0N.cpp`` as a thin copy of
-an existing one (only the GoogleTest suite name changes), add an
+Adding a new test program
+"""""""""""""""""""""""""
+
+Create ``test_dem_0N.cpp`` as a thin copy of an existing one (only the
+GoogleTest suite name changes), add an
 ``add_executable``/``register_dem_tests`` pair to
 ``unittest/granular/CMakeLists.txt``, and add the corresponding
-``dem0N-*.yaml`` reference files.  If the new scenario needs a closed-form
-check, add a named model to ``test_analytic_models.cpp`` that reads its
-parameters from the ``variables`` block (and reads masses, radii, etc. from
-the live LAMMPS instance to avoid depending on derived quantities) and
-assert it with ``EXPECT_LE`` on the relative error.
+``dem0N-*.yaml`` reference files.  If the new scenario needs a
+closed-form check, add a named model to ``test_analytic_models.cpp``
+that reads its parameters from the ``variables`` block (and reads
+masses, radii, etc. from the live LAMMPS instance to avoid depending on
+derived quantities) and assert it with ``EXPECT_LE`` on the relative
+error.
+
+References
+""""""""""
+
+.. _dem_Garg2012:
+
+**(Garg et al., 2012)** R. Garg, J. Galvin, T. Li, and S. Pannala,
+Open-source MFIX-DEM software for gas-solids flows: Part I -- Verification
+studies, Powder Technology, 220, 122-137 (2012),
+https://doi.org/10.1016/j.powtec.2011.09.019
+
+.. _dem_Mohajeri2024:
+
+**(Mohajeri et al., 2024)** M. J. Mohajeri, C. Coetzee, and D. L. Schott,
+A software-agnostic benchmark for DEM simulation of cohesive and
+non-cohesive materials, Powder Technology, 447, 120136 (2024),
+https://doi.org/10.1016/j.powtec.2024.120136
+
+.. _dem_Saomoto2023:
+
+**(Saomoto et al., 2023)** H. Saomoto, N. Kikkawa, S. Moriguchi, Y. Nakata,
+et al., Round robin test on angle of repose: DEM simulation results
+collected from 16 groups around the world, Soils and Foundations, 63,
+101272 (2023), https://doi.org/10.1016/j.sandf.2023.101272
 
 
 Tests for programs in the tools folder

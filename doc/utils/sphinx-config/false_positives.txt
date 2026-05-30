@@ -594,6 +594,7 @@ Coeff
 CoefficientN
 coeffs
 Coeffs
+Coetzee
 COH
 cohesionless
 Coker
@@ -700,6 +701,7 @@ cstring
 cstyle
 csvr
 ctest
+CTest
 ctilde
 ctip
 ctrl
@@ -1373,6 +1375,7 @@ Gabor
 Gahler
 gainsboro
 Galindo
+Galvin
 gamA
 gammaA
 gammaFactor
@@ -1385,6 +1388,7 @@ ganzenmueller
 Ganzenmuller
 Gao
 Gapsys
+Garg
 Gathert
 Gaus
 gauss
@@ -1955,6 +1959,7 @@ Khersonskii
 Khrapak
 Khvostov
 Ki
+Kikkawa
 Kikugawa
 kim
 kinetostats
@@ -2476,6 +2481,7 @@ modularity
 moduli
 mofff
 MOFFF
+Mohajeri
 Mohd
 Mohles
 mol
@@ -2505,6 +2511,7 @@ Morawietz
 Morefoo
 Morfill
 Mori
+Moriguchi
 Moritz
 Moriya
 morris
@@ -2607,6 +2614,7 @@ na
 nabla
 Nagaosa
 Nakano
+Nakata
 nall
 namedtuple
 namespace
@@ -3009,6 +3017,7 @@ palevioletred
 Panagiotopoulos
 Pande
 Pandit
+Pannala
 Papaconstantopoulos
 papayawhip
 paquay
@@ -3602,6 +3611,7 @@ Sano
 Santangelo
 Sanyal
 Sanz
+Saomoto
 Sarath
 sc
 scafacos
@@ -3627,6 +3637,7 @@ Schmid
 Schmitz
 Schnieders
 Schoen
+Schott
 Schotte
 Schratt
 Schulten

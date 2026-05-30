@@ -621,8 +621,8 @@ as the force-style tests above but specialized for time-resolved
 trajectories of small granular systems.  The first six test programs,
 ``test_dem_01`` through ``test_dem_06``, reproduce the test surface of the
 MFiX-DEM verification studies of :ref:`Garg et al. <dem_Garg2012>` (the
-individual cases are also described in the `MFiX-DEM VVUQ manual
-<https://mfix.netl.doe.gov/doc/vvuq-manual/main/html/dem/dem-01.html>`_).
+individual cases are also described in the `MFiX-DEM manual
+<https://mfix.netl.doe.gov/doc/vvuq-manual/main/html/dem/index.html>`_).
 ``test_dem_07`` through ``test_dem_10`` add coverage of benchmark cases
 from the granular literature: rolling resistance, cohesion, and
 two-particle collisions follow the software-agnostic DEM benchmark of

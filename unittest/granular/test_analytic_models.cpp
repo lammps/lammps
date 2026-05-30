@@ -351,6 +351,44 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         const double ke   = 0.5 * mred * vrela * vrela;
         const double pe   = 0.4 * pmax * alpha;    // (2/5) P_max alpha_max
         expect_rel(ke, pe, cfg.analytic_tol, "hertz_normal_impact peak energy balance");
+    } else if (cfg.analytic_model == "spin_impact") {
+        // A sphere (tag 1) impacts a much heavier/rigid partner -- a wall or a
+        // large dense sphere -- approaching normally in -z at speed vin while
+        // spinning about +y with omega0 (Chung & Ooi 2011, Tests 6 and 8).  The
+        // spin gives a contact-point tangential velocity ~r*omega0 along x; in
+        // the gross-sliding regime the Coulomb friction impulse mu(1+en) vin
+        // (per unit mass) acts throughout contact, so for the spinning sphere
+        //   vz_out = en vin (rebound),
+        //   vx_out = mu (1+en) vin,
+        //   omega_y_out = omega0 - (5/2) mu (1+en) vin / r.
+        // Evaluate at a free-flight segment after rebound (needs omega0 large
+        // enough that the contact never sticks).
+        const double vin = var_or(vars, "vin", 0.0);
+        const double w0  = var_or(vars, "omega0", 0.0);
+        const double en  = var_or(vars, "en", 1.0);
+        const double mu  = var_or(vars, "xmu", 0.0);
+        const double r   = var_or(vars, "radius", 0.0);
+        const int i      = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "spin_impact: atom with tag 1 not found";
+        const double dvt = mu * (1.0 + en) * vin;
+        expect_rel(en * vin, lmp->atom->v[i][2], cfg.analytic_tol, "spin_impact vz_out");
+        expect_rel(dvt, lmp->atom->v[i][0], cfg.analytic_tol, "spin_impact vx_out");
+        expect_rel(w0 - 2.5 * dvt / r, lmp->atom->omega[i][1], cfg.analytic_tol,
+                   "spin_impact omega_y");
+    } else if (cfg.analytic_model == "spin_no_friction") {
+        // Two identical spheres (tags 1,2) collide head-on along z while spinning
+        // about y with equal and opposite omega0, arranged so the relative
+        // tangential velocity at the contact point is zero (Chung & Ooi 2011,
+        // Test 7).  No tangential force should be generated: each sphere's spin
+        // is preserved and it gains no tangential (x,y) velocity.  This guards
+        // against a model spuriously creating friction from spin alone.
+        const double w0  = var_or(vars, "omega0", 0.0);
+        const double tol = cfg.analytic_tol;
+        const int i      = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "spin_no_friction: atom with tag 1 not found";
+        expect_rel(w0, lmp->atom->omega[i][1], tol, "spin_no_friction omega_y preserved");
+        EXPECT_LE(std::fabs(lmp->atom->v[i][0]), tol) << "spin_no_friction: spurious vx";
+        EXPECT_LE(std::fabs(lmp->atom->v[i][1]), tol) << "spin_no_friction: spurious vy";
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

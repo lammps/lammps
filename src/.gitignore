@@ -1070,6 +1070,10 @@
 /fix_poems.h
 /fix_pour.cpp
 /fix_pour.h
+/fix_press_berendsen_kokkos.cpp
+/fix_press_berendsen_kokkos.h
+/fix_press_langevin_kokkos.cpp
+/fix_press_langevin_kokkos.h
 /fix_qeq_comb.cpp
 /fix_qeq_comb.h
 /fix_qeq_ctip.cpp

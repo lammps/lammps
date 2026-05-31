@@ -189,8 +189,8 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`polarize/functional <fix_polarize>`
    * :doc:`pour <fix_pour>`
    * :doc:`precession/spin <fix_precession_spin>`
-   * :doc:`press/berendsen <fix_press_berendsen>`
-   * :doc:`press/langevin <fix_press_langevin>`
+   * :doc:`press/berendsen (k) <fix_press_berendsen>`
+   * :doc:`press/langevin (k) <fix_press_langevin>`
    * :doc:`print <fix_print>`
    * :doc:`propel/self <fix_propel_self>`
    * :doc:`property/atom (k) <fix_property_atom>`

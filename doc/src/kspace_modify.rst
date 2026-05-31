@@ -50,9 +50,11 @@ Syntax
            value = *energy* or *energy_rel* or *field* or *field_rel* or *potential* or *potential_rel*
          option = *fmm_tuning*
            value = *0* or *1*
-       *slab* value = volfactor or *nozforce*
+       *slab* value = volfactor or *auto* or *nozforce*
          volfactor = ratio of the total extended volume used in the
            2d approximation compared with the volume of the simulation domain
+         *auto* chooses the extended z dimension from the current
+           normalized force tolerance, lateral box dimensions, and G-ewald
          *nozforce* turns off kspace forces in the z direction
        *splittol* value = tol
          tol = relative size of two eigenvalues (see discussion below)
@@ -67,6 +69,7 @@ Examples
 
    kspace_modify mesh 24 24 30 order 6
    kspace_modify slab 3.0
+   kspace_modify slab auto
    kspace_modify scafacos tolerance energy
 
 Description
@@ -426,6 +429,28 @@ option is explained in the paper by :ref:`(Yeh) <Yeh>`.  The *slab*
 option is also extended to non-neutral systems :ref:`(Ballenegger)
 <Ballenegger>`.
 
+.. versionadded:: TBD
+
+As an alternative to specifying a fixed volfactor, the keyword
+*auto* can be used to determine the extended z dimension from the
+current normalized force tolerance, the lateral dimensions of the
+simulation cell, and the active Coulombic gewald parameter. This is
+useful for quasi-2D systems where the amount of extra vacuum required
+for the slab correction depends on both the requested tolerance and
+the box geometry.  Here the tolerance entering the formula is made
+dimensionless by dividing the current absolute force accuracy by the
+force between two unit charges separated by 1 Angstrom in the active
+unit style. The automatic choice is not artificially clamped
+above 1.0, so it can in principle approach the original box size if
+the formula permits. The quasi-2D error estimate used for the
+automatic choice is discussed in :ref:`(Gao2025) <Gao2025>` and
+:ref:`(Gan2025) <Gan2025>`.  For related error estimates and
+parameter-selection guidance in the more general dielectric-confined
+setting, see :ref:`(Gao2025) <Gao2025>`. The *auto* setting is
+currently supported by :doc:`kspace_style <kspace_style>` *ewald*, *pppm*,
+*pppm/cg*, *pppm/tip4p*, *pppm/stagger*, and the corresponding
+OpenMP/GPU/Intel variants that reuse the same slab-correction setup.
+
 An alternative slab option can be invoked with the *nozforce* keyword
 in lieu of the volfactor.  This turns off all kspace forces in the z
 direction.  The *nozforce* option is not supported by MSM. For MSM,
@@ -532,6 +557,16 @@ Adam Hilger, NY (1989).
 .. _Klapp:
 
 **(Klapp)** Klapp, Schoen, J Chem Phys, 117, 8050 (2002).
+
+.. _Gao2025:
+
+**(Gao2025)** Gao, Zhou, Gan, Liang, J Chem Theory Comput, 21,
+5890-5904 (2025). https://doi.org/10.1021/acs.jctc.5c00438
+
+.. _Gan2025:
+
+**(Gan2025)** Gan, Gao, Liang, Xu, SIAM J Sci Comput, 47,
+B846-B874 (2025). https://doi.org/10.1137/24M1655809
 
 .. _Hardy1:
 

@@ -1,3 +1,5 @@
+.. include:: Commands_html.rst
+
 .. _bond:
 
 Bond styles
@@ -5,8 +7,7 @@ Bond styles
 
 All LAMMPS :doc:`bond_style <bond_style>` commands.  Some styles have
 accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
-OPT.
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
 
 .. table_from_list::
    :columns: 5
@@ -41,6 +42,7 @@ OPT.
    * :doc:`nonlinear (ko) <bond_nonlinear>`
    * :doc:`oxdna/fene <bond_oxdna>`
    * :doc:`oxdna2/fene <bond_oxdna>`
+   * :doc:`oxdna3/fene <bond_oxdna>`
    * :doc:`oxrna2/fene <bond_oxdna>`
    * :doc:`quartic (ko) <bond_quartic>`
    * :doc:`rheo/shell <bond_rheo_shell>`

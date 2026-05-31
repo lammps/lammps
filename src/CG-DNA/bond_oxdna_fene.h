@@ -28,21 +28,21 @@ class BondOxdnaFene : public Bond {
  public:
   BondOxdnaFene(class LAMMPS *lmp) : Bond(lmp) {}
   ~BondOxdnaFene() override;
-  virtual void compute_interaction_sites(double *, double *, double *, double *) const;
+  virtual void compute_backbone_site(double *, double *, double *, double *) const;
   void compute(int, int) override;
   void coeff(int, char **) override;
   void init_style() override;
   double equilibrium_distance(int) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
-  void write_data(FILE *) override;
   double single(int, double, int, int, double &) override;
 
  protected:
-  double *k, *Delta, *r0;                       // FENE
-  double **nx_xtrct, **ny_xtrct, **nz_xtrct;    // per-atom arrays for local unit vectors
+  double *k, *****Delta, *****r0;    // FENE
+  double **nxyz_xtrct;               // per-atom arrays for local unit vectors
 
   void allocate();
+  class FixOxdnaLRF *fix_lrf;    // ptr to oxdna/lrf fix
 };
 
 }    // namespace LAMMPS_NS

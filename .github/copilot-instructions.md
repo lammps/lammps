@@ -1295,6 +1295,61 @@ variant**, rather than to ship a delegating one.  (This reverses the earlier
 "sync-to-host delegation is the correct and complete port" guidance, which was
 wrong and produced the deleted fakes.)
 
+### POLICY: internal helper computes/fixes must be KOKKOS too
+
+When a KOKKOS style creates an *internal* helper compute/fix (a thermostat's
+temperature, a barostat's pressure, a per-atom property fix, ...), that helper
+must itself be a KOKKOS style — otherwise it runs on the host and forces a
+host/device sync of the per-atom data it touches **every step**, silently
+defeating the port (correct results, lost performance).
+
+**The trap:** `Modify::add_compute`/`add_fix` only append the `/kk` suffix when
+`lmp->suffix_enable` is set, i.e. only under the `-sf kk` command-line switch.
+A style whose *base-class* constructor creates the helper with a bare name
+(e.g. `add_compute("<id> all temp")`) therefore gets a non-KOKKOS helper when
+the user requests the style with an explicit `/kk` suffix **without** `-sf kk`
+(and the same happens for any `fix_modify temp <a non-kk compute>`).
+
+**Two structural patterns:**
+- *Robust* (preferred): the KOKKOS class creates the helper itself with the
+  `/kk` name hardcoded, bypassing the base.  The nh-family does this by
+  inheriting from `FixNHKokkos` (not the CPU `FixNPT`) and building `temp/kk` /
+  `temp/sphere/kk` / `temp/deform/kk`; `compute temp/deform/kk` does it in
+  `post_constructor()`.
+- *Fragile*: the KOKKOS class inherits the CPU base, whose constructor creates a
+  bare helper, and does not override the creation.  This was the case for
+  `temp/berendsen/kk`, `temp/rescale/kk`, `press/berendsen/kk`.
+
+**Mitigation (apply to every new internal-helper-creating KOKKOS style):**
+1. **Recreate as `/kk` in the KOKKOS constructor (Part A).**  After the base ctor
+   ran, if the helper is not already kokkosable, delete and recreate it with the
+   `/kk` name (guard so it is a no-op when `-sf kk` already promoted it):
+   ```cpp
+   if (tflag) {                                   // base created the temp compute
+     Compute *c = modify->get_compute_by_id(id_temp);
+     if (c && !c->kokkosable) {                   // not promoted by -sf kk
+       modify->delete_compute(id_temp);
+       modify->add_compute(fmt::format("{} {} temp/kk", id_temp, group->names[igroup]));
+     }
+   }
+   ```
+   Match the group the base used (`group->names[igroup]` or `all`).  Only do this
+   for helpers that actually have a `/kk` variant — `pressure` has none, so leave
+   it alone (it carries no per-atom data: `EMPTY_MASK`).
+2. **Warn on a non-KOKKOS helper (Part C).**  In `init()` (after the base sets the
+   pointer), call the shared helper — it no-ops unless the compute is non-kk:
+   ```cpp
+   KokkosLMP::warn_nonkokkos_compute(lmp, style, temperature, "temperature");
+   ```
+   This catches the residual `fix_modify temp <non-kk>` case and any future
+   fragile style.  Implemented in `src/KOKKOS/kokkos.{h,cpp}`; detects via the
+   compute's `kokkosable` member; rank-0 only.
+
+All `_kk`-suffixed helper calls (`remove_bias_all_kk`, etc.) are already guarded
+with `if (helper->kokkosable) helper->foo_kk(); else { sync; foo(); ... }`, so a
+non-kk helper is *correct but slow* — never wrong.  Keep that guard discipline;
+the empty base `*_kk()` stubs do nothing if called on a non-kk compute.
+
 ### Key differences from pair-style porting
 
 1. **No `pair_kokkos.h` template** — fix styles have no equivalent of the

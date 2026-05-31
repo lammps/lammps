@@ -1261,6 +1261,40 @@ Unlike pair styles, fix styles implement a wide range of lifecycle hooks
 have very different complexity profiles.  The groups below are labeled **A through H**
 and ordered from simplest to most complex (or least to most GPU-unfriendly).
 
+### POLICY: full ports only — no sync-to-host "delegation" variants
+
+**We accept only FULL ports**: a `/kk` variant must do its per-atom work in a
+Kokkos device kernel so the computation runs on the GPU when a GPU backend is
+active.  A "port" that merely calls `atomKK->sync(...)`, then invokes the
+CPU base-class hook, then `atomKK->modified(...)` is a **fake port** and is
+NOT acceptable.
+
+This is not a style preference — it is a correctness/performance requirement.
+**The real win of porting a thermostat/barostat or forcing fix is keeping
+per-atom data RESIDENT ON THE DEVICE.**  A fix's own FLOPs (a velocity rescale,
+a drag force) are negligible; the cost that matters in an otherwise all-GPU run
+is the per-step host<->device transfer of `x`/`v`/`f`.  A fake/delegating `/kk`
+variant *forces a full download + upload of those arrays every step*, so it is
+**slower than having no `/kk` variant at all** (without one, the integrator can
+sometimes keep data on-device across the fix) and it misleads users into
+thinking the step is GPU-resident.
+
+In May 2026 nine such fake ports were committed and then deleted by the
+"remove fake KOKKOS ports" commit:
+`fix deform/pressure`, `heat`, `indent`, `move`, `press/berendsen`,
+`press/langevin`, `restrain`, `temp/csld`, `temp/csvr`.  They are listed as
+**open** below.  Do not recreate them as delegating wrappers; port them with
+real device kernels (see the strategic plan at the end of this section), or
+leave them unported.
+
+**When a fix genuinely cannot run its per-atom work on the device** (host-only
+LAMMPS variable evaluation every step, plain `double **` CPU arrays that never
+became DualViews such as `fix move`'s `xoriginal`, or coupling to an external
+library such as `colvars`), the correct decision is to **NOT create a `/kk`
+variant**, rather than to ship a delegating one.  (This reverses the earlier
+"sync-to-host delegation is the correct and complete port" guidance, which was
+wrong and produced the deleted fakes.)
+
 ### Key differences from pair-style porting
 
 1. **No `pair_kokkos.h` template** — fix styles have no equivalent of the
@@ -1407,11 +1441,15 @@ Pattern: `fix_temp_rescale_kokkos`, `fix_temp_berendsen_kokkos`.
 
 | Fix style | Package | Coupling type | Notes | Status |
 |---|---|---|---|---|
-| `press/berendsen` | `src/` | Isotropic/anisotropic box rescaling | Needs full porting | open |
-| `press/langevin` | `EXTRA-FIX` | Stochastic pressure coupling | Needs full porting | open |
-| `temp/csvr` | `EXTRA-FIX` | Canonical sampling; velocity rescaling | Needs full porting | open |
-| `temp/csld` | `EXTRA-FIX` | Canonical sampling; Lowe-Denbigh-Andersen | Needs full porting | **done** |
 | `gjf` | `EXTRA-FIX` | Gronbech-Jensen/Farago Langevin integrator | Full device kernel; KokkosBase; `RandPoolWrap` | **done** |
+| `temp/csvr` | `EXTRA-FIX` | Bussi canonical-sampling velocity rescaling | Full port feasible & HIGH priority (Tier 1) | open (fake removed) |
+| `temp/csld` | `EXTRA-FIX` | Canonical sampling Langevin dynamics | Per-atom RNG -> reuse `RandPoolWrap` (Tier 2) | open (fake removed) |
+| `press/berendsen` | `src/` | Isotropic/anisotropic box rescaling | Real full port: `temp/kk` (via suffix) + `DomainKokkos` remap; CPU/KK bit-identical | **done** |
+| `press/langevin` | `src/` | Stochastic (Langevin piston) pressure coupling | Real full port: device `remap()` + `pre_exchange()`; no temp compute (GJF uses NkT/V); CPU/KK bit-identical | **done** |
+
+**`gjf` is the only fully-ported Group E style.**  The other four were committed
+as sync-to-host fakes and deleted (see the full-ports-only policy above).  See
+the strategic plan at the end of this file for how to port them properly.
 
 ---
 
@@ -1421,13 +1459,20 @@ Pattern: `fix_temp_rescale_kokkos`, `fix_temp_berendsen_kokkos`.
 tabulated data, or complex per-atom logic and probably need some utility functions
 in the Group or Variable class ported to KOKKOS first.
 
+**All five of these were committed as fake (sync-to-host) ports and DELETED** by
+the "remove fake KOKKOS ports" commit.  `move`, `restrain`, and `deform/pressure`
+have no per-atom device work to offer (host-only variable eval, `atom->map()`
+ghost lookups, or plain `double **` arrays) and should be **left unported** per
+the policy above.  `heat` and `indent` DO have genuine per-atom kernels and are
+real Tier-4 targets (see the strategic plan).
+
 | Fix style | Package | Operation | Notes | Status |
 |---|---|---|---|---|
-| `heat` | `src/` | Add kinetic energy to groups | Needs full porting | open |
-| `indent` | `src/` | Force from sphere/cylinder/plane indenter | Needs full porting | open |
-| `move` | `src/` | Prescribe atom trajectories (linear/wiggle/rotate/variable) | Needs full porting | open |
-| `restrain` | `src/` | Harmonic restraints on bonds/angles/dihedrals | Needs full porting | open |
-| `deform/pressure` | `EXTRA-FIX` | Deformation with pressure control | Needs full porting | open |
+| `heat` | `src/` | Add/remove KE to a group (NEMD heat flux) | Real port: group-KE reduce + v-rescale kernel (Tier 4) | open (fake removed) |
+| `indent` | `src/` | Force from sphere/cylinder/plane indenter | Real port for constant/equal-style center (Tier 4) | open (fake removed) |
+| `move` | `src/` | Prescribe atom trajectories | `xoriginal` is a plain CPU array; **leave unported** | open (fake removed) |
+| `restrain` | `src/` | Harmonic restraints on bonds/angles/dihedrals | `atom->map()` ghost lookups host-side; **leave unported** | open (fake removed) |
+| `deform/pressure` | `EXTRA-FIX` | Deformation with pressure control | Box logic is host-side; **leave unported** | open (fake removed) |
 
 ---
 
@@ -1712,10 +1757,22 @@ without falling back to host memory, preserving GPU locality.
 
 ## Lessons Learned from Group E (thermostat/barostat coupling)
 
-Some fix styles use LAMMPS infrastructure that cannot yet run on the GPU:
-- MPI global reductions via `group->ke()`, `group->vcm()`, `group->mass()`
-- LAMMPS `Compute` and `Variable` objects (temperature, pressure)
-- Stochastic sampling functions (`RanMars`, `FixCSVRKernel`)
+A thermostat/barostat fix typically needs a global scalar (T, P, or a KE sum)
+and then rescales per-atom velocities or coordinates.  The correct full-port
+split is: **global scalar on the host, per-atom rescale on the device.**
+
+- The global reductions (`group->ke()`/`vcm()`/`mass()`, a `Compute`'s
+  `compute_scalar()`, a `RanMars` draw) are cheap and stay on the host — but
+  source the kinetic energy from a **kokkosable** temperature compute
+  (`temp/kk`, already ported) so the reduction itself runs on the GPU and only a
+  single scalar comes back.
+- The per-atom velocity/coordinate rescale is the part that MUST become a device
+  kernel.  Delegating it to the CPU base class is the fake-port trap that got
+  `temp/csvr`, `temp/csld`, `press/berendsen`, and `press/langevin` deleted.
+- Stochastic per-atom updates (`gjf`, `temp/csld`) draw random numbers on-device
+  via `RandPoolWrap`/`Kokkos::Random_XorShift64_Pool` (below).  Note `temp/csvr`
+  needs only a *handful* of host RNG draws for one global factor, so it does NOT
+  need a device RNG pool at all.
 
 ### `gjf/kk`: RandPoolWrap for device-portable random numbers
 
@@ -1749,43 +1806,159 @@ include `F_MASK` in addition to `V_MASK | X_MASK | MASK_MASK`.
 
 ## Lessons Learned from Group F (geometry/indenter/move/restraints)
 
-### Sync-to-host delegation is correct for LAMMPS-variable-dependent fixes
+**RETRACTED.**  The original Group F "lessons" claimed that *sync-to-host
+delegation is the correct and complete port* for `fix indent`, `move`,
+`restrain`, and `deform/pressure`.  That guidance was **wrong**.  All five
+delegating wrappers were deleted by the "remove fake KOKKOS ports" commit
+(see the full-ports-only policy near the top of the fix-porting section).
 
-`fix indent` evaluates LAMMPS variables for the indenter center/radius every
-step.  Variable evaluation requires host-side infrastructure (`Input`,
-`Variable`).  The sync-to-host delegation pattern is the correct and complete
-port — no per-atom kernel is needed when the bottleneck is the variable
-evaluation rather than the force loop.
+Corrected guidance:
 
-### `fix move`: xoriginal is a plain CPU array; delegation is necessary
+- **`fix indent`** — for a constant or `equal`-style indenter center the force
+  loop is a pure per-atom kernel and SHOULD be ported as a real device kernel
+  (Tier 4).  Only the host-side variable *evaluation* (a few scalars per step)
+  needs to stay on the CPU; broadcast those scalars into the kernel.  Do not
+  delegate the whole force loop.
+- **`fix move`** — `xoriginal[nmax][3]` is a plain `double **`.  A genuine port
+  requires converting it to a `Kokkos::DualView` (+ `KokkosBase`, like
+  `fix_spring_self_kokkos`).  Until someone does that work, **leave `fix move`
+  unported** rather than shipping a delegating wrapper.
+- **`fix restrain`** — resolves atoms by global tag with `atom->map()` and reads
+  ghost positions on the host; there is no clean per-atom device kernel.
+  **Leave unported.**
+- **`fix deform/pressure`** — the box-deformation logic is inherently host-side
+  scalar work.  **Leave unported.**
 
-`fix move` maintains `xoriginal[nmax][3]` as a plain `double **` allocated
-with `memory->create`.  The `initial_integrate` loop references `xoriginal`
-directly.  The sync-to-host delegation pattern is therefore the correct port:
-sync X, V, F to host, call the base class, mark X and V modified.
+## Strategic Plan: barostat/thermostat fixes + their computes (priority order)
 
-If a future full device-kernel port of `fix move` is required, `xoriginal`
-would need to be replaced with a `Kokkos::DualView`, following the
-`fix_spring_self_kokkos` pattern.
+Pair-style coverage is essentially complete (101 KK pair styles; every common
+style is done).  The remaining high-value frontier is **barostat/thermostat
+fixes and the computes they use internally**.  The guiding metric is
+**device residency** (see the policy): a missing/fake `/kk` fix forces a
+per-step `x`/`v`/`f` transfer that dominates an all-GPU run, so closing these
+gaps is worth far more than the fix's own FLOPs suggest.  **Project priority is
+NPT/barostatting** (reflected in the tier order below).
 
-### `fix restrain`: needs X for ghost atoms; use `X_MASK | F_MASK | MASK_MASK`
+Targets are scored on three axes: **frequency** (how often it appears in
+production inputs), **gain** (mostly transfer-elimination, sometimes real
+FLOPs), and **ease**.
 
-`fix restrain` calls `atom->map(ids[m][k])` to find atoms by global tag,
-and then reads their positions (which may be on ghost atoms).  The sync must
-include `X_MASK` to bring ghost positions to the host.  Mark `F_MASK`
-modified after the call (forces are only updated on local atoms).
+### Already done — do NOT re-port
 
-### `fix deform/pressure/kk`: inherit from FixDeformPressure, not FixDeformKokkos
+- **`fix npt/kk` and `nph/kk` are COMPLETE full ports.**  `fix_npt_kokkos` /
+  `fix_nph_kokkos` create a `temp/kk` temperature and a `pressure` compute that
+  *uses* it; every integrator hook (`nh_v_press`, `nve_v`, `nve_x`,
+  `nh_v_temp`) and `remap()` (via `DomainKokkos::x2lamda`/`lamda2x`) runs as a
+  device kernel, including the triclinic path.  Nothing remains to do on the
+  Nose-Hoover barostat itself.
+- **Do NOT port `compute pressure`.**  It has
+  `datamask_read = datamask_modify = EMPTY_MASK`: no per-atom loop at all — the
+  scalar/vector is the temperature scalar (already from `temp/kk`) plus the
+  global `virial[6]` arrays (already reduced on-device by the force styles).  The
+  `if (!pressure->kokkosable) atomKK->sync(...)` guard in `fix_nh_kokkos`
+  therefore syncs **nothing**.  A `pressure/kk` wrapper would eliminate a no-op
+  and add zero GPU work.  (Earlier drafts of this plan wrongly listed it as a
+  target — it is not.)
 
-`FixDeformKokkos` inherits from `FixDeform`.  `FixDeformPressure` also
-inherits from `FixDeform`.  Since C++ has no multiple inheritance here,
-`FixDeformPressureKokkos` must inherit from `FixDeformPressure` (the more
-specific base) and replicate the Kokkos overrides (`pre_exchange`,
-`update_box`) from `FixDeformKokkos` — they are short sync-to-host wrappers.
+### Tier 1 — barostat frontier (NPT-focused; do first)
 
-`FixDeformPressureKokkos` does **not** have a `<DeviceType>` template
-parameter; it matches the non-templated pattern of `FixDeformKokkos` because
-the box-deformation logic does not benefit from device kernels.
+| Target | Type | Why | Recipe |
+|---|---|---|---|
+| `pppm/tip4p/kk` + TIP4P pair group (Group 5: `lj/cut/tip4p/long`, `tip4p/long`, ...) | kspace + pair | **NPT of TIP4P water is a flagship use case that currently falls back to HOST kspace+pair every step** (only plain `pppm/kk` is ported).  This host fallback — not the barostat — is the real bottleneck for GPU NPT-of-water. | High value, high complexity (TIP4P virtual M-site geometry in the neighbor loop).  See pair Group 5. |
+| `press/berendsen/kk` | fix (src/) | Common weak-coupling barostat (equilibration, often with a CSVR thermostat) | **DONE** (May 2026).  See "Lessons Learned — press/berendsen/kk" below. |
+
+### Tier 2 — barostat-adjacent + enablers
+
+| Target | Type | Why | Recipe |
+|---|---|---|---|
+| `press/langevin/kk` | fix (src/) | Stochastic (Langevin piston) barostat | **DONE** (May 2026).  See "Lessons Learned — press/langevin/kk" below. |
+| `ewald/kk` | kspace | Long-range Coulomb for NPT of small/medium systems or non-PPPM workflows; only `pppm/kk` exists | Moderate-high complexity. |
+| `compute temp/partial/kk` | compute | Partial-DOF / anisotropic thermostatting frequently paired with NPT; most 2D runs; feeds `nvt`/`npt` via `fix_modify temp` | EASY: clone `compute_temp_kokkos`, add `xflag/yflag/zflag` to the KE reduction. |
+| `compute stress/atom/kk` | compute | Per-atom / local stress analysis used alongside barostats; a genuine per-atom virial loop | Moderate. |
+
+### Tier 3 — thermostats & misc (deprioritized given the NPT preference)
+
+| Target | Type | Why | Recipe |
+|---|---|---|---|
+| `temp/csvr/kk` | fix (EXTRA-FIX) | Bussi thermostat — very common in its own right, but the user prioritizes barostatting | EASY: KE from `temp/kk` (device reduce -> host scalar); resample factor on root with a handful of host RNG draws (NOT per-atom); broadcast; device `v *= lamda` kernel.  Simpler than `gjf` (no per-atom RNG). |
+| `temp/csld/kk` | fix (EXTRA-FIX) | Canonical-sampling Langevin thermostat | Per-atom stochastic update -> reuse `gjf`'s `RandPoolWrap` + device kernel. |
+| `compute temp/profile/kk`, `compute temp/region/kk` | compute | Profile-unbiased / region-restricted thermostats (NEMD, thermal gradients) | `temp/region/kk` is **gated on region coverage** — only `block`/`sphere` regions are ported; port the needed `region_*_kokkos` first. |
+| `fix heat/kk`, `fix indent/kk` | fix (src/) | NEMD heat flux / indenter — real per-atom kernels (were fake-removed; do properly) | `heat`: group-KE `parallel_reduce` + v-rescale kernel.  `indent`: per-atom force loop; host-evaluate only the few variable scalars. |
+| `fix box/relax/kk`, `compute pe/atom/kk`, `ke/atom/kk` | fix/compute | Minimization-time barostat; per-atom energy diagnostics | Lower frequency; real per-atom loops where applicable. |
+| Remaining pair Groups 5-9 | pair | gayberne/resquared, sw/mod, atm, h-bond, granular | Case-by-case; see the pair-style groups above. |
+
+### Lessons Learned — `press/berendsen/kk` (the barostat-fix port pattern)
+
+Done May 2026; the cleanest template for a "global scalar on host, per-atom work
+on device" barostat/thermostat fix.  Key points (reusable for `press/langevin/kk`):
+
+- **The internal `temp` compute is auto-promoted to `temp/kk` by the suffix.**
+  `Modify::add_compute(...)` defaults to `trysuffix=1`; with `-sf kk`
+  (`suffix_enable`) the base class's `add_compute("<id> all temp")` becomes
+  `temp/kk`.  So the KK fix does **not** recreate the temperature compute — it
+  just inherits the base constructor's computes.  This is why the fake's habit of
+  *not* ensuring a kk temperature was its only real flaw: a non-kk `temp` reads
+  `atom->v` on the host every `end_of_step`, forcing a per-step `v` download.
+- **`compute pressure` stays non-kk and is correct.**  It has `EMPTY_MASK`
+  datamask and reuses the already-invoked `temp/kk` scalar plus the global
+  `virial[6]`.  No `pressure/kk` is needed or wanted.
+- **`remap()` becomes device-resident for free via virtual dispatch.**  `domain`
+  is a `DomainKokkos` instance under the KOKKOS package, so the base
+  `domain->x2lamda(nlocal)` / `lamda2x(nlocal)` already run on the device (each
+  syncs `X` itself).  Override `remap()` only to swap the `dilate partial` host
+  loop (`for i: domain->x2lamda(x[i],x[i])`) for the device **group** variant
+  `domain->x2lamda(nlocal, groupbit)` / `lamda2x(nlocal, groupbit)`.  Make the
+  base `remap()` `virtual` (one-line base-class change).
+- **`end_of_step()` override** mirrors the base but guards the temperature
+  compute call: `if (temperature->kokkosable) temperature->compute_scalar();`
+  else do the explicit `atomKK->sync/modified` dance (handles a user
+  `fix_modify temp` with a non-kk compute).  `datamask_read = datamask_modify =
+  EMPTY_MASK` (the fix owns no per-atom kernel of its own).
+- **No new per-atom view members** -> no `typename AT::` concerns, no destructor
+  needed (base destructor already has `if (copymode) return;`).
+- **`Install.sh` entries already existed** as stale leftovers from the deleted
+  fake; recreating the source files was enough (CMake re-globs on reconfigure).
+- **Validation:** LJ melt + `fix press/berendsen iso` is **bit-identical** CPU vs
+  `-sf kk` over 300 steps, for both `dilate all` and `dilate partial`.
+
+### Lessons Learned — `press/langevin/kk`
+
+Done May 2026.  Even simpler than berendsen on the compute side, but adds the
+triclinic-flip path.  Key points:
+
+- **No temperature compute at all.**  The GJF barostat
+  (Gronbech-Jensen & Farago 2014) uses `NkT/V` for the kinetic pressure term
+  (added by the fix in `couple_kinetic()`), and creates its pressure compute as
+  `pressure NULL virial` (virial only).  So unlike berendsen there is no
+  `temp`/`temp/kk` involved; `pressure` has `EMPTY_MASK` datamask and needs no
+  per-atom sync.  Do not add `F_MASK` to `datamask_read` — an earlier draft of
+  this plan wrongly said so; the fix reads no per-atom forces.
+- **The 6 piston DOFs + random forces stay on the host.**  `couple_beta()` draws
+  at most 6 Gaussians on rank 0 and `MPI_Bcast`s them; `initial_integrate`,
+  `post_force`, and `end_of_step` operate only on those scalars + the global
+  pressure tensor.  None touch per-atom arrays, so **none are overridden**.
+- **Only `remap()` and `pre_exchange()` are overridden.**  `remap()` mirrors
+  berendsen (device `x2lamda`/`lamda2x`, group variant for `dilate partial`) plus
+  the triclinic tilt updates and the `TILTMAX` check, copied **verbatim** from the
+  base (including the base's `p_flag[3]->xy` / `[5]->yz` index mapping — replicate
+  exactly so CPU/KK stay identical; do not "fix" it in the port).
+- **`pre_exchange()` (box flips) mirrors `fix_nh_kokkos::pre_exchange`:**
+  `domainKK->image_flip()` + `domainKK->remap_all()` + `domainKK->x2lamda()` on
+  device, then `atomKK->sync(Host, ALL_MASK)` only around the intrinsically
+  host-side `irregular->migrate_atoms()`, then `lamda2x()`.  This hook is only in
+  `setmask()` when tilt flips can occur and fires rarely, so the one sync is not a
+  per-step cost.  Cache `domainKK = (DomainKokkos *) domain;` in the constructor.
+- **Validation:** LJ melt is **bit-identical** CPU vs `-sf kk` over 300 steps for
+  `iso`, `aniso`, `dilate partial`, and `tri` (triclinic, with the `pre_exchange`
+  hook active).
+
+### Anti-targets (do NOT port)
+
+- Any fix whose per-atom work cannot run on-device: `move`, `restrain`,
+  `deform/pressure` (see retraction above), and anything coupling to an external
+  library (`colvars`).  Leaving them unported is the correct outcome.
+- `fix ilves/omp` — per-cluster OpenMP threading was benchmarked and rejected
+  (net slowdown); see the constraint-solver notes in `CLAUDE.md`.
 
 ## Trust These Instructions
 

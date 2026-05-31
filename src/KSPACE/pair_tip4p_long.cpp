@@ -58,6 +58,8 @@ PairTIP4PLong::PairTIP4PLong(LAMMPS *lmp) : PairCoulLong(lmp)
 
 PairTIP4PLong::~PairTIP4PLong()
 {
+  if (copymode) return;
+
   memory->destroy(hneigh);
   memory->destroy(newsite);
 }

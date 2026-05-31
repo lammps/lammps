@@ -3,6 +3,7 @@
 .. index:: pair_style lj/cut/tip4p/cut/omp
 .. index:: pair_style lj/cut/tip4p/long
 .. index:: pair_style lj/cut/tip4p/long/gpu
+.. index:: pair_style lj/cut/tip4p/long/kk
 .. index:: pair_style lj/cut/tip4p/long/omp
 .. index:: pair_style lj/cut/tip4p/long/opt
 
@@ -14,7 +15,7 @@ Accelerator Variants: *lj/cut/tip4p/cut/kk*, *lj/cut/tip4p/cut/omp*
 pair_style lj/cut/tip4p/long command
 ====================================
 
-Accelerator Variants: *lj/cut/tip4p/long/gpu*, *lj/cut/tip4p/long/omp*, *lj/cut/tip4p/long/opt*
+Accelerator Variants: *lj/cut/tip4p/long/gpu*, *lj/cut/tip4p/long/kk*, *lj/cut/tip4p/long/omp*, *lj/cut/tip4p/long/opt*
 
 Syntax
 """"""

@@ -176,7 +176,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/cut/sphere (ko) <pair_lj_cut_sphere>`
    * :doc:`lj/cut/thole/long (o) <pair_thole>`
    * :doc:`lj/cut/tip4p/cut (ko) <pair_lj_cut_tip4p>`
-   * :doc:`lj/cut/tip4p/long (got) <pair_lj_cut_tip4p>`
+   * :doc:`lj/cut/tip4p/long (gkot) <pair_lj_cut_tip4p>`
    * :doc:`lj/cut/tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`lj/expand (gko) <pair_lj_expand>`
    * :doc:`lj/expand/coul/long (gk) <pair_lj_expand>`
@@ -314,7 +314,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`thole <pair_thole>`
    * :doc:`threebody/table (o) <pair_threebody_table>`
    * :doc:`tip4p/cut (ko) <pair_coul>`
-   * :doc:`tip4p/long (o) <pair_coul>`
+   * :doc:`tip4p/long (ko) <pair_coul>`
    * :doc:`tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`tri/lj (o) <pair_tri_lj>`
    * :doc:`ufm (gkot) <pair_ufm>`

@@ -445,6 +445,8 @@ action pair_lj_cut_coul_long_kokkos.cpp pair_lj_cut_coul_long.cpp
 action pair_lj_cut_coul_long_kokkos.h pair_lj_cut_coul_long.h
 action pair_lj_cut_tip4p_cut_kokkos.cpp pair_lj_cut_tip4p_cut.cpp
 action pair_lj_cut_tip4p_cut_kokkos.h pair_lj_cut_tip4p_cut.h
+action pair_lj_cut_tip4p_long_kokkos.cpp pair_lj_cut_tip4p_long.cpp
+action pair_lj_cut_tip4p_long_kokkos.h pair_lj_cut_tip4p_long.h
 action pair_lj_switch3_coulgauss_long_kokkos.cpp pair_lj_switch3_coulgauss_long.cpp
 action pair_lj_switch3_coulgauss_long_kokkos.h pair_lj_switch3_coulgauss_long.h
 action pair_lj_cut_dipole_cut_kokkos.cpp pair_lj_cut_dipole_cut.cpp
@@ -528,6 +530,8 @@ action pair_tersoff_zbl_kokkos.cpp pair_tersoff_zbl.cpp
 action pair_tersoff_zbl_kokkos.h pair_tersoff_zbl.h
 action pair_tip4p_cut_kokkos.cpp pair_tip4p_cut.cpp
 action pair_tip4p_cut_kokkos.h pair_tip4p_cut.h
+action pair_tip4p_long_kokkos.cpp pair_tip4p_long.cpp
+action pair_tip4p_long_kokkos.h pair_tip4p_long.h
 action pair_uf3_kokkos.cpp pair_uf3.cpp
 action pair_uf3_kokkos.h pair_uf3.h
 action pair_vashishta_kokkos.cpp pair_vashishta.cpp

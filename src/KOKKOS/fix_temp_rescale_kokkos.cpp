@@ -18,7 +18,9 @@
 #include "compute.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "input.h"
+#include "kokkos.h"
 #include "modify.h"
 #include "update.h"
 #include "variable.h"
@@ -44,6 +46,31 @@ FixTempRescaleKokkos<DeviceType>::FixTempRescaleKokkos(LAMMPS *lmp, int narg, ch
 
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
+
+  // the base class created the internal temperature compute relying on the
+  // command-line -sf kk suffix.  When this style is requested with an explicit
+  // /kk suffix but without -sf kk, that compute is not a KOKKOS style and would
+  // force a host/device sync every step.  Recreate it as temp/kk in that case.
+
+  if (tflag) {
+    Compute *c = modify->get_compute_by_id(id_temp);
+    if (c && !c->kokkosable) {
+      modify->delete_compute(id_temp);
+      modify->add_compute(fmt::format("{} {} temp/kk", id_temp, group->names[igroup]));
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   warn if the temperature compute is not a KOKKOS style (e.g. set via
+   fix_modify temp to a non-kk compute): correct but forces per-step syncs
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixTempRescaleKokkos<DeviceType>::init()
+{
+  FixTempRescale::init();
+  KokkosLMP::warn_nonkokkos_compute(lmp, style, temperature, "temperature");
 }
 
 /* ---------------------------------------------------------------------- */

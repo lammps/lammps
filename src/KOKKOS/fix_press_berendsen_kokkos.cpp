@@ -19,7 +19,9 @@
 #include "compute.h"
 #include "domain.h"
 #include "force.h"
+#include "kokkos.h"
 #include "kspace.h"
+#include "modify.h"
 #include "update.h"
 
 #include <cmath>
@@ -40,12 +42,37 @@ FixPressBerendsenKokkos<DeviceType>::FixPressBerendsenKokkos(LAMMPS *lmp, int na
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
   // this fix performs no per-atom kernel of its own: the kinetic energy is
-  // reduced on-device by the temperature compute (temp/kk, created via the
-  // -sf kk suffix on the internal "temp" compute), and the box remap runs on
-  // device via DomainKokkos::x2lamda / lamda2x (see remap() below).
+  // reduced on-device by the temperature compute (temp/kk), and the box remap
+  // runs on device via DomainKokkos::x2lamda / lamda2x (see remap() below).
 
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
+
+  // the base class created the internal "temp" compute relying on the -sf kk
+  // suffix.  When this style is requested with an explicit /kk suffix but
+  // without -sf kk, that compute is not a KOKKOS style and would force a
+  // host/device sync every step.  Recreate it as temp/kk in that case.
+
+  if (tflag) {
+    Compute *c = modify->get_compute_by_id(id_temp);
+    if (c && !c->kokkosable) {
+      modify->delete_compute(id_temp);
+      modify->add_compute(fmt::format("{} all temp/kk", id_temp));
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   warn if the temperature compute is not a KOKKOS style (e.g. set via
+   fix_modify temp to a non-kk compute): correct but forces per-step syncs.
+   (the pressure compute has no /kk variant, so it is not checked)
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixPressBerendsenKokkos<DeviceType>::init()
+{
+  FixPressBerendsen::init();
+  KokkosLMP::warn_nonkokkos_compute(lmp, style, temperature, "temperature");
 }
 
 /* ---------------------------------------------------------------------- */

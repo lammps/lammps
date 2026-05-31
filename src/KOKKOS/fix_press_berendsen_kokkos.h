@@ -35,6 +35,7 @@ class FixPressBerendsenKokkos : public FixPressBerendsen {
 
   FixPressBerendsenKokkos(class LAMMPS *, int, char **);
 
+  void init() override;
   void end_of_step() override;
 
  protected:

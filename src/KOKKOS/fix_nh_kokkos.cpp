@@ -26,6 +26,7 @@
 #include "error.h"
 #include "force.h"
 #include "irregular.h"
+#include "kokkos.h"
 #include "kspace.h"
 #include "neighbor.h"
 #include "update.h"
@@ -66,6 +67,12 @@ template<class DeviceType>
 void FixNHKokkos<DeviceType>::init()
 {
   FixNH::init();
+
+  // warn if the temperature compute is not a KOKKOS style (e.g. set via
+  // fix_modify temp to a non-kk compute): correct but forces per-step syncs.
+  // the pressure compute has no /kk variant, so it is not checked.
+
+  KokkosLMP::warn_nonkokkos_compute(lmp, style, temperature, "temperature");
 
   atomKK->k_mass.modify_host();
   atomKK->k_mass.sync<DeviceType>();

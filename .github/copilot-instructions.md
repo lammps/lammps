@@ -1936,11 +1936,11 @@ FLOPs), and **ease**.
 
 | Target | Type | Why | Recipe |
 |---|---|---|---|
-| `temp/csvr/kk` | fix (EXTRA-FIX) | Bussi thermostat — very common in its own right, but the user prioritizes barostatting | EASY: KE from `temp/kk` (device reduce -> host scalar); resample factor on root with a handful of host RNG draws (NOT per-atom); broadcast; device `v *= lamda` kernel.  Simpler than `gjf` (no per-atom RNG). |
-| `temp/csld/kk` | fix (EXTRA-FIX) | Canonical-sampling Langevin thermostat | Per-atom stochastic update -> reuse `gjf`'s `RandPoolWrap` + device kernel. |
+| `temp/csvr/kk` | fix (EXTRA-FIX) | Bussi thermostat — very common | **DONE** (May 2026).  See "Lessons Learned — temp/csvr/kk + temp/csld/kk" below. |
+| `temp/csld/kk` | fix (EXTRA-FIX) | Canonical-sampling Langevin thermostat | **DONE** (May 2026; device RNG, NOBIAS-only).  See below. |
 | `compute temp/profile/kk`, `compute temp/region/kk` | compute | Profile-unbiased / region-restricted thermostats (NEMD, thermal gradients) | `temp/region/kk` is **gated on region coverage** — only `block`/`sphere` regions are ported; port the needed `region_*_kokkos` first. |
 | `fix heat/kk`, `fix indent/kk` | fix (src/) | NEMD heat flux / indenter — real per-atom kernels (were fake-removed; do properly) | `heat`: group-KE `parallel_reduce` + v-rescale kernel.  `indent`: per-atom force loop; host-evaluate only the few variable scalars. |
-| `fix box/relax/kk`, `compute pe/atom/kk`, `ke/atom/kk` | fix/compute | Minimization-time barostat; per-atom energy diagnostics | Lower frequency; real per-atom loops where applicable. |
+| `fix box/relax/kk` | fix (src/) | Minimization-time barostat | Lower frequency. |
 | Remaining pair Groups 5-9 | pair | gayberne/resquared, sw/mod, atm, h-bond, granular | Case-by-case; see the pair-style groups above. |
 
 ### Lessons Learned — `press/berendsen/kk` (the barostat-fix port pattern)
@@ -2069,6 +2069,38 @@ is computed purely from per-atom data (no force-style aggregation, no comm):
   `compute_peratom()` and read on device via the captured functor.
 - Validated bit-identical CPU vs `-sf kk` (per-type mass and `rmass`, all-group
   and a sub-group exercising the out-of-group zeroing).
+
+### Lessons Learned — `temp/csvr/kk` + `temp/csld/kk` (stochastic thermostats)
+
+Done May 2026.  Two contrasting RNG strategies:
+
+- **`temp/csvr/kk` (Bussi) uses only HOST RNG -> bit-identical to CPU.**  The
+  velocity-rescale factor `lamda` is a *single global scalar* drawn on rank 0
+  (`resamplekin`, a handful of `RanMars` calls) and `MPI_Bcast`.  The KK port
+  reuses the base `resamplekin` on the host, then applies `v *= lamda` in a
+  device `LAMMPS_LAMBDA` (mirrors `temp/berendsen/kk`, incl. the
+  `remove_bias_all_kk`/`restore_bias_all` BIAS path).  Because the RNG stays on
+  the host and identical, CPU vs `-sf kk` is **bit-for-bit**.
+- **`temp/csld/kk` uses per-atom DEVICE RNG -> only statistically validatable.**
+  Each atom draws 3 Gaussians, so it needs a device pool
+  (`Kokkos::Random_XorShift64_Pool`, or `RandPoolWrap` under
+  `LMP_KOKKOS_DEBUG_RNG` -- mirror `gjf`'s `#ifndef` ctor/dtor guards).  The seed
+  is a *local* in the base ctor, so re-parse `arg[6]` in the KK member-init list
+  (`utils::inumeric(FLERR, arg[6], false, lmp) + comm->me`).  `vhold` is per-step
+  **scratch** (recomputed each step, not migrated) -> a plain
+  `typename AT::t_kkfloat_1d_3` resized on `nmax` growth; **no `KokkosBase`/
+  `pack_exchange`** needed (unlike `gjf`'s migrating `lv`).  Two device kernels
+  (save+randomize, then mix) bracket a `temperature->compute_scalar()` on the
+  random velocities.  Validate by checking T converges to the target (it won't
+  match CPU -- different RNG stream).
+- **CSLD BIAS is unsupported on device** (its bias path mixes the bias of the
+  *saved* velocities with fresh random ones, which does not map onto
+  `remove_bias_all_kk` over `atom->v`) -> `error->all` if `which == BIAS`
+  (same spirit as `gjf` erroring on `tbiasflag`).  CSVR BIAS *is* supported.
+- Both apply the internal-helper A+C mitigation (recreate `temp/kk`, warn in
+  `init`).  `fix langevin/kk` also got the Part-C warning, gated on
+  `tbiasflag == BIAS` (its temperature is an optional bias compute, not created
+  internally).
 
 ### Per-atom virial/energy aggregation (`stress/atom`, `pe/atom`, centroid) — DEFERRED
 

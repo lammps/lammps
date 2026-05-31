@@ -78,7 +78,7 @@ OPT.
    * :doc:`improper/local <compute_improper_local>`
    * :doc:`inertia/chunk <compute_inertia_chunk>`
    * :doc:`ke <compute_ke>`
-   * :doc:`ke/atom <compute_ke_atom>`
+   * :doc:`ke/atom (k) <compute_ke_atom>`
    * :doc:`ke/atom/eff <compute_ke_atom_eff>`
    * :doc:`ke/eff <compute_ke_eff>`
    * :doc:`ke/rigid <compute_ke_rigid>`

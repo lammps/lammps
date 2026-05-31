@@ -313,7 +313,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`tersoff/zbl (gko) <pair_tersoff_zbl>`
    * :doc:`thole <pair_thole>`
    * :doc:`threebody/table (o) <pair_threebody_table>`
-   * :doc:`tip4p/cut (o) <pair_coul>`
+   * :doc:`tip4p/cut (ko) <pair_coul>`
    * :doc:`tip4p/long (o) <pair_coul>`
    * :doc:`tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`tri/lj (o) <pair_tri_lj>`

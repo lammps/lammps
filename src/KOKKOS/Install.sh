@@ -524,6 +524,8 @@ action pair_tersoff_mod_kokkos.cpp pair_tersoff_mod.cpp
 action pair_tersoff_mod_kokkos.h pair_tersoff_mod.h
 action pair_tersoff_zbl_kokkos.cpp pair_tersoff_zbl.cpp
 action pair_tersoff_zbl_kokkos.h pair_tersoff_zbl.h
+action pair_tip4p_cut_kokkos.cpp pair_tip4p_cut.cpp
+action pair_tip4p_cut_kokkos.h pair_tip4p_cut.h
 action pair_uf3_kokkos.cpp pair_uf3.cpp
 action pair_uf3_kokkos.h pair_uf3.h
 action pair_vashishta_kokkos.cpp pair_vashishta.cpp

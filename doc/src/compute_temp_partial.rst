@@ -1,7 +1,10 @@
 .. index:: compute temp/partial
+.. index:: compute temp/partial/kk
 
 compute temp/partial command
 ============================
+
+Accelerator Variants: *temp/partial/kk*
 
 Syntax
 """"""

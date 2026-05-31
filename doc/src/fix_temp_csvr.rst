@@ -1,11 +1,17 @@
 .. index:: fix temp/csvr
+.. index:: fix temp/csvr/kk
 .. index:: fix temp/csld
+.. index:: fix temp/csld/kk
 
 fix temp/csvr command
 =====================
 
+Accelerator Variants: *temp/csvr/kk*
+
 fix temp/csld command
 =====================
+
+Accelerator Variants: *temp/csld/kk*
 
 Syntax
 """"""

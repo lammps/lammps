@@ -13,48 +13,30 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(temp/csvr,FixTempCSVR);
+FixStyle(temp/csvr/kk,FixTempCSVRKokkos<LMPDeviceType>);
+FixStyle(temp/csvr/kk/device,FixTempCSVRKokkos<LMPDeviceType>);
+FixStyle(temp/csvr/kk/host,FixTempCSVRKokkos<LMPHostType>);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_TEMP_CSVR_H
-#define LMP_FIX_TEMP_CSVR_H
+// clang-format off
+#ifndef LMP_FIX_TEMP_CSVR_KOKKOS_H
+#define LMP_FIX_TEMP_CSVR_KOKKOS_H
 
-#include "fix.h"
+#include "fix_temp_csvr.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class FixTempCSVR : public Fix {
+template<class DeviceType>
+class FixTempCSVRKokkos : public FixTempCSVR {
  public:
-  FixTempCSVR(class LAMMPS *, int, char **);
-  ~FixTempCSVR() override;
-  int setmask() override;
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+
+  FixTempCSVRKokkos(class LAMMPS *, int, char **);
   void init() override;
   void end_of_step() override;
-  int modify_param(int, char **) override;
-  void reset_target(double) override;
-  double compute_scalar() override;
-  void write_restart(FILE *) override;
-  void restart(char *buf) override;
-  void *extract(const char *, int &) override;
-
- protected:
-  double t_start, t_stop, t_period, t_target;
-  double energy;
-  int nmax, which;
-  int tstyle, tvar;
-  char *tstr;
-
-  char *id_temp;
-  class Compute *temperature;
-  int tflag;
-
-  class RanMars *random;
-
- protected:
-  double resamplekin(double, double);
-  double sumnoises(int);
-  double gamdev(int);
 };
 
 }    // namespace LAMMPS_NS

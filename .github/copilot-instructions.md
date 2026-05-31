@@ -1929,7 +1929,8 @@ FLOPs), and **ease**.
 | `press/langevin/kk` | fix (src/) | Stochastic (Langevin piston) barostat | **DONE** (May 2026).  See "Lessons Learned — press/langevin/kk" below. |
 | `ewald/kk` | kspace | Long-range Coulomb for NPT of small/medium systems or non-PPPM workflows; only `pppm/kk` exists | Moderate-high complexity. |
 | `compute temp/partial/kk` | compute | Partial-DOF / anisotropic thermostatting frequently paired with NPT; most 2D runs; feeds `nvt`/`npt` via `fix_modify temp` | **DONE** (May 2026).  See "Lessons Learned — compute temp/partial/kk" below. |
-| `compute stress/atom/kk` | compute | Per-atom / local stress analysis used alongside barostats; a genuine per-atom virial loop | Moderate. |
+| `compute ke/atom/kk` | compute | Per-atom kinetic energy; self-contained (pure v/mass), the clean per-atom diagnostic | **DONE** (May 2026).  See "Lessons Learned — per-atom-output computes" below. |
+| `compute stress/atom/kk`, `pe/atom/kk`, `centroid/stress/atom/kk` | compute | Per-atom virial/energy | **DEFERRED — not a clean full port.**  See "Per-atom virial/energy aggregation" below. |
 
 ### Tier 3 — thermostats & misc (deprioritized given the NPT preference)
 
@@ -2045,6 +2046,51 @@ per-atom terms.  Reusable rules for porting any `compute temp/*`:
 - **Validation:** bit-identical CPU vs `-sf kk` with `temp/partial 1 1 0` driving
   `fix nvt` (exercises scalar + bias remove/restore), and with `temp/partial 0 1 1`
   + `velocity ... bias yes` (exercises compute_vector + reapply_bias).
+
+### Lessons Learned — per-atom-output computes (`compute ke/atom/kk`)
+
+Done May 2026.  The template for a per-atom *vector*-output compute whose result
+is computed purely from per-atom data (no force-style aggregation, no comm):
+
+- **Output dual view.**  Keep the base `double *` output pointer (make the base
+  member `protected`) and add a `DAT::ttransform_kkfloat_1d k_<out>` +
+  `typename AT::t_kkfloat_1d d_<out>`.  The `ttransform_` view auto-converts
+  host double <-> device `KK_FLOAT` (so it works under `kk_fp32`).  Grow with
+  `memoryKK->destroy_kokkos/create_kokkos(k_<out>, <out>, nmax, ...)`, set
+  `vector_atom = <out>` (or `array_atom`), `d_<out> = k_<out>.view<DeviceType>()`.
+  After the kernel: `k_<out>.modify<DeviceType>(); k_<out>.sync_host();` so host
+  consumers (dumps, `compute reduce`, ...) see current data.  Pattern:
+  `compute_coord_atom_kokkos`.
+- **`copymode` guard in the base destructor** (the compute is a Kokkos functor;
+  added `if (copymode) return;` to `~ComputeKEAtom`), and `if (copymode) return;`
+  + `memoryKK->destroy_kokkos` in the KK destructor.  `destroy_kokkos` nulls the
+  pointer, so the base `memory->destroy` is then a safe no-op.
+- Scalars the kernel needs (e.g. `mvv2e`) are stored as plain members set in
+  `compute_peratom()` and read on device via the captured functor.
+- Validated bit-identical CPU vs `-sf kk` (per-type mass and `rmass`, all-group
+  and a sub-group exercising the out-of-group zeroing).
+
+### Per-atom virial/energy aggregation (`stress/atom`, `pe/atom`, centroid) — DEFERRED
+
+These are **not clean full ports** and were deliberately left unported:
+
+- They sum per-atom `vatom`/`eatom` from `pair`/`bond`/`angle`/`dihedral`/
+  `improper`/`kspace`/`fixes`.  In the base classes those are only `double **`
+  (host); the device dual views (`k_vatom`/`d_vatom`) live inside each individual
+  KOKKOS subclass with **no uniform accessor** -- a device kernel would need a new
+  virtual "give me your per-atom virial device view" across all seven force-style
+  hierarchies.
+- They reverse-comm the per-atom result (ghost->owner).  **No KOKKOS *compute*
+  does device reverse-comm today** (would need `KokkosBase` +
+  `pack/unpack_reverse_comm_kokkos` + `CommKokkos`).
+- Payoff is marginal anyway: the KOKKOS force styles already do
+  `k_vatom.sync_host()` **unconditionally** when per-atom virial is requested, so
+  the data is on the host every step regardless -- a device port saves nothing
+  unless that force-style sync is *also* made lazy (another cross-cutting change).
+
+If revisited, do the framework work first (uniform device per-atom-virial
+accessor + device compute reverse-comm + lazy `vatom` host-sync); do **not** ship
+a host-aggregation wrapper (that is a fake port).
 
 ### Anti-targets (do NOT port)
 

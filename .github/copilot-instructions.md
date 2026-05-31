@@ -1873,7 +1873,7 @@ FLOPs), and **ease**.
 |---|---|---|---|
 | `press/langevin/kk` | fix (src/) | Stochastic (Langevin piston) barostat | **DONE** (May 2026).  See "Lessons Learned — press/langevin/kk" below. |
 | `ewald/kk` | kspace | Long-range Coulomb for NPT of small/medium systems or non-PPPM workflows; only `pppm/kk` exists | Moderate-high complexity. |
-| `compute temp/partial/kk` | compute | Partial-DOF / anisotropic thermostatting frequently paired with NPT; most 2D runs; feeds `nvt`/`npt` via `fix_modify temp` | EASY: clone `compute_temp_kokkos`, add `xflag/yflag/zflag` to the KE reduction. |
+| `compute temp/partial/kk` | compute | Partial-DOF / anisotropic thermostatting frequently paired with NPT; most 2D runs; feeds `nvt`/`npt` via `fix_modify temp` | **DONE** (May 2026).  See "Lessons Learned — compute temp/partial/kk" below. |
 | `compute stress/atom/kk` | compute | Per-atom / local stress analysis used alongside barostats; a genuine per-atom virial loop | Moderate. |
 
 ### Tier 3 — thermostats & misc (deprioritized given the NPT preference)
@@ -1951,6 +1951,45 @@ triclinic-flip path.  Key points:
 - **Validation:** LJ melt is **bit-identical** CPU vs `-sf kk` over 300 steps for
   `iso`, `aniso`, `dilate partial`, and `tri` (triclinic, with the `pre_exchange`
   hook active).
+
+### Lessons Learned — `compute temp/partial/kk` (the temperature-compute port pattern)
+
+Done May 2026.  Mirrors `compute_temp_kokkos` for the `compute_scalar`/
+`compute_vector` reductions (a `parallel_reduce` into the `s_CTEMP` 6-component
+struct, templated on `RMASS`), with `xflag`/`yflag`/`zflag` folded into the
+per-atom terms.  Reusable rules for porting any `compute temp/*`:
+
+- **A biased temperature MUST implement the device bias methods.**  `temp/partial`
+  sets `tempbias = 1`.  `Compute::remove_bias_all_kk()` / `restore_bias_all_kk()`
+  are **empty stubs** in the base.  If you set `kokkosable = 1` but do not
+  override them, a KK thermostat (`FixNHKokkos`, `fix_temp_*_kokkos` call
+  `temperature->remove_bias_all_kk()`) silently skips bias removal -> wrong
+  results, no error.  Implement `remove_bias_all_kk` / `restore_bias_all_kk`
+  (device kernels) plus host-facing `remove_bias_all` / `restore_bias_all` that
+  call the `_kk` version then `atomKK->sync(Host, V_MASK)`, and override
+  `reapply_bias_all` (used by the `velocity ... bias yes` command).  Pattern:
+  `compute_temp_deform_kokkos`.
+- **Store the bias in a device view, not the base `double **vbiasall`.**  Declare
+  `typename AT::t_kkfloat_1d_3 vbiasall;` (shadows the base member, which stays
+  null), `maxbias = 0` in the ctor, and (re)allocate when `atom->nmax > maxbias`.
+- **The base destructor needs `if (copymode) return;`.**  The KK compute is copied
+  by value as a Kokkos functor (`copymode = 1` around each `parallel_*`); when that
+  copy is destroyed on a CPU backend its destructor chains to the base, so the base
+  dtor must guard `copymode` (e.g. `ComputeTemp` uses
+  `if (!copymode) delete[] vector;`).  Added the guard to `ComputeTempPartial`.
+- **`xflag`/`yflag`/`zflag` are read on device for free.**  They are plain `int`
+  base members copied with the functor object (like `groupbit`); just reference
+  them in the kernel.  No view needed.
+- **No `.gitignore` edit needed for KOKKOS files.**  `src/.gitignore` has wildcard
+  rules `/*_kokkos.cpp` and `/*_kokkos.h` (and `/*_kokkos_impl.h`) that already
+  cover any KK file copied into `src/` by the make build.  The per-file `.gitignore`
+  step in the checklists below is only required for NON-`_kokkos` package files.
+  (The explicit `press/*_kokkos` entries added earlier were redundant; harmless.)
+- **`dof_compute()` stays on the host** (cheap, infrequent), exactly as in
+  `compute_temp_kokkos`.
+- **Validation:** bit-identical CPU vs `-sf kk` with `temp/partial 1 1 0` driving
+  `fix nvt` (exercises scalar + bias remove/restore), and with `temp/partial 0 1 1`
+  + `velocity ... bias yes` (exercises compute_vector + reapply_bias).
 
 ### Anti-targets (do NOT port)
 

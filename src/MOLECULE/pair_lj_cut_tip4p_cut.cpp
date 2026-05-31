@@ -61,6 +61,8 @@ PairLJCutTIP4PCut::PairLJCutTIP4PCut(LAMMPS *lmp) :
 
 PairLJCutTIP4PCut::~PairLJCutTIP4PCut()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

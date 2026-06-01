@@ -45,6 +45,10 @@ LAMMPS output options.
 
 The per-atom vector values will be in energy :doc:`units <units>`.
 
+----------
+
+.. include:: accel_styles.rst
+
 Restrictions
 """"""""""""
 none

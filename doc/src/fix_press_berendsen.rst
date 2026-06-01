@@ -216,6 +216,10 @@ This fix can ramp its target pressure over multiple runs, using the
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
 
+----------
+
+.. include:: accel_styles.rst
+
 Restrictions
 """"""""""""
 

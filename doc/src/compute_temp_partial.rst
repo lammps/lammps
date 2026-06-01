@@ -101,6 +101,10 @@ vector values are "extensive".
 The scalar value is in temperature :doc:`units <units>`.  The vector
 values are in energy :doc:`units <units>`.
 
+----------
+
+.. include:: accel_styles.rst
+
 Restrictions
 """"""""""""
 none

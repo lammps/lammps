@@ -180,6 +180,10 @@ See the :doc:`run <run>` command for details of how to do this.
 
 These fixes are not invoked during :doc:`energy minimization <minimize>`.
 
+----------
+
+.. include:: accel_styles.rst
+
 Restrictions
 """"""""""""
 

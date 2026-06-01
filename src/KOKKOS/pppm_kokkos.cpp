@@ -18,8 +18,10 @@
 
 #include "pppm_kokkos.h"
 
+#include "angle.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "bond.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -186,8 +188,39 @@ void PPPMKokkos<DeviceType>::init()
 
   qdist = 0.0;
 
-  if (tip4pflag)
-      error->all(FLERR,"Cannot (yet) use PPPM Kokkos TIP4P");
+  // if kspace is TIP4P, extract TIP4P params from pair style
+  // bond/angle are not yet init(), so ensure equilibrium request is valid
+
+  if (tip4pflag) {
+    int itmp;
+    if (me == 0) utils::logmesg(lmp,"  extracting TIP4P info from pair style\n");
+
+    auto *p_qdist = (double *) force->pair->extract("qdist",itmp);
+    int *p_typeO = (int *) force->pair->extract("typeO",itmp);
+    int *p_typeH = (int *) force->pair->extract("typeH",itmp);
+    int *p_typeA = (int *) force->pair->extract("typeA",itmp);
+    int *p_typeB = (int *) force->pair->extract("typeB",itmp);
+    if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
+      error->all(FLERR,"Pair style is incompatible with TIP4P KSpace style");
+    qdist = *p_qdist;
+    typeO = *p_typeO;
+    typeH = *p_typeH;
+    int typeA = *p_typeA;
+    int typeB = *p_typeB;
+
+    if (force->angle == nullptr || force->bond == nullptr ||
+        force->angle->setflag == nullptr || force->bond->setflag == nullptr)
+      error->all(FLERR,"Bond and angle potentials must be defined for TIP4P");
+    if (typeA < 1 || typeA > atom->nangletypes ||
+        force->angle->setflag[typeA] == 0)
+      error->all(FLERR,"Bad TIP4P angle type for PPPM/TIP4P");
+    if (typeB < 1 || typeB > atom->nbondtypes ||
+        force->bond->setflag[typeB] == 0)
+      error->all(FLERR,"Bad TIP4P bond type for PPPM/TIP4P");
+    double theta = force->angle->equilibrium_angle(typeA);
+    double blen = force->bond->equilibrium_distance(typeB);
+    alpha = qdist / (cos(0.5*theta) * blen);
+  }
 
   // compute qsum & qsqsum and warn if not charge-neutral
 
@@ -694,6 +727,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   if (evflag_atom) {
     int nlocal = atomKK->nlocal;
     int ntotal = nlocal;
+    if (tip4pflag) ntotal += atomKK->nghost;
 
     // ensure all relevant _kk values are up to date
     g_ewald_kk = static_cast<KK_FLOAT>(g_ewald);
@@ -703,6 +737,14 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
       copymode = 1;
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_self1>(0,nlocal),*this);
       copymode = 0;
+
+      // TIP4P also tallies eatom on ghost H atoms; scale those (no self term)
+
+      if (ntotal > nlocal) {
+        copymode = 1;
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_self3>(nlocal,ntotal),*this);
+        copymode = 0;
+      }
     }
 
     if (vflag_atom) {
@@ -750,6 +792,14 @@ KOKKOS_INLINE_FUNCTION
 void PPPMKokkos<DeviceType>::operator()(TagPPPM_self2, const int &i) const
 {
   for (int j = 0; j < 6; j++) d_vatom(i,j) *= static_cast<KK_ACC_FLOAT>(0.5*qscale);
+}
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_self3, const int &i) const
+{
+  d_eatom[i] *= static_cast<KK_ACC_FLOAT>(0.5*qscale);
 }
 
 /* ----------------------------------------------------------------------

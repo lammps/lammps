@@ -549,6 +549,8 @@ action pair_zbl_kokkos.cpp
 action pair_zbl_kokkos.h
 action pppm_kokkos.cpp pppm.cpp
 action pppm_kokkos.h pppm.h
+action pppm_tip4p_kokkos.cpp pppm_tip4p.cpp
+action pppm_tip4p_kokkos.h pppm_tip4p.h
 action rand_pool_wrap_kokkos.cpp
 action rand_pool_wrap_kokkos.h
 action region_block_kokkos.cpp

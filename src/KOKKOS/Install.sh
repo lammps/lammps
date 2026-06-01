@@ -530,6 +530,7 @@ action pair_tersoff_zbl_kokkos.cpp pair_tersoff_zbl.cpp
 action pair_tersoff_zbl_kokkos.h pair_tersoff_zbl.h
 action pair_tip4p_cut_kokkos.cpp pair_tip4p_cut.cpp
 action pair_tip4p_cut_kokkos.h pair_tip4p_cut.h
+action pair_tip4p_kokkos.h
 action pair_tip4p_long_kokkos.cpp pair_tip4p_long.cpp
 action pair_tip4p_long_kokkos.h pair_tip4p_long.h
 action pair_uf3_kokkos.cpp pair_uf3.cpp

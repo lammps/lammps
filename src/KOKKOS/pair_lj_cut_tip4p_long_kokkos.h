@@ -24,100 +24,58 @@ PairStyle(lj/cut/tip4p/long/kk/host,PairLJCutTIP4PLongKokkos<LMPHostType>);
 #define LMP_PAIR_LJ_CUT_TIP4P_LONG_KOKKOS_H
 
 #include "pair_lj_cut_tip4p_long.h"
-#include "pair_kokkos.h"
-#include "neigh_list_kokkos.h"
-#include <Kokkos_UnorderedMap.hpp>
+#include "pair_tip4p_kokkos.h"
 
 namespace LAMMPS_NS {
-
-struct TagPairLJCutTIP4PLongNewsite{};
 
 template<int EVFLAG>
 struct TagPairLJCutTIP4PLongCompute{};
 
 template<class DeviceType>
-class PairLJCutTIP4PLongKokkos : public PairLJCutTIP4PLong {
+class PairLJCutTIP4PLongKokkos : public PairTIP4PKokkos<DeviceType,PairLJCutTIP4PLong> {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
+  typedef PairTIP4PKokkos<DeviceType,PairLJCutTIP4PLong> Base;
 
-  PairLJCutTIP4PLongKokkos(class LAMMPS *);
-  ~PairLJCutTIP4PLongKokkos() override;
+  PairLJCutTIP4PLongKokkos(class LAMMPS *lmp) : Base(lmp) {}
 
   void compute(int, int) override;
-  void init_style() override;
   void init_tables(double cut_coul, double *cut_respa) override;
 
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairLJCutTIP4PLongNewsite, const int&) const;
+  using Base::operator();
 
   template<int EVFLAG>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairLJCutTIP4PLongCompute<EVFLAG>, const int&, EV_FLOAT&) const;
 
-  template<int EVFLAG>
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairLJCutTIP4PLongCompute<EVFLAG>, const int&) const;
-
  protected:
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  int closest_image(const int, int) const;
-
+  // standard pairwise (LJ) energy/virial tally for a half neighbor list
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j, const KK_FLOAT &evdwl,
                 const KK_FLOAT &fpair, const KK_FLOAT &delx, const KK_FLOAT &dely,
                 const KK_FLOAT &delz) const;
 
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void ev_tally_tip4p(EV_FLOAT &ev, const int &key, const int (&vlist)[6],
-                      const KK_FLOAT (&v)[6], const KK_FLOAT &ecoul) const;
-
-  typename AT::t_kkfloat_1d_3_lr_randomread x;
-  typename AT::t_kkacc_1d_3 f;
-  typename AT::t_kkfloat_1d_randomread q;
-  typename AT::t_int_1d_randomread type;
-  typename AT::t_tagint_1d_randomread tag;
-  typename AT::t_int_1d d_sametag;
-
-  typename AT::t_kkfloat_1d_3 d_newsite;
-  typename AT::t_int_1d_3 d_hneigh;
-
+  // per-type-pair LJ coefficients (device)
   typename AT::t_kkfloat_2d d_lj1, d_lj2, d_lj3, d_lj4, d_offset, d_cut_ljsq;
 
-  typename AT::t_neighbors_2d d_neighbors;
-  typename AT::t_int_1d_randomread d_ilist;
-  typename AT::t_int_1d_randomread d_numneigh;
-
-  DAT::ttransform_kkacc_1d k_eatom;
-  DAT::ttransform_kkacc_1d_6 k_vatom;
-  typename AT::t_kkacc_1d d_eatom;
-  typename AT::t_kkacc_1d_6 d_vatom;
-
+  // Ewald real-space + optional coulomb interpolation tables (device)
   typename AT::t_kkfloat_1d d_rtable, d_drtable, d_ftable, d_dftable,
                             d_ctable, d_dctable, d_etable, d_detable;
   KK_FLOAT g_ewald_kk, tabinnersq_kk;
-
-  int map_style;
-  DAT::tdual_int_1d k_map_array;
-  dual_hash_type k_map_hash;
-
-  int newton_pair, neighflag;
-  int nlocal, nall, eflag, vflag;
-
-  KK_FLOAT special_coul[4];
-  KK_FLOAT special_lj[4];
-  KK_FLOAT qqrd2e;
-  KK_FLOAT m_alpha, m_qdist;
-  KK_FLOAT m_cut_coulsq, m_cut_coulsqplus;
-  int m_typeO, m_typeH;
   int m_ncoultablebits, m_ncoulmask, m_ncoulshiftbits;
+
+  using Base::x; using Base::f; using Base::q; using Base::type;
+  using Base::d_newsite; using Base::d_hneigh;
+  using Base::d_neighbors; using Base::d_numneigh; using Base::d_ilist;
+  using Base::d_eatom; using Base::d_vatom;
+  using Base::m_typeO; using Base::m_alpha;
+  using Base::m_cut_coulsq; using Base::m_cut_coulsqplus;
+  using Base::qqrd2e; using Base::special_coul; using Base::special_lj;
+  using Base::sbmask; using Base::ev_tally_tip4p;
 };
 
 }    // namespace LAMMPS_NS

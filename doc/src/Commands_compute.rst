@@ -171,7 +171,7 @@ OPT.
    * :doc:`temp/drude <compute_temp_drude>`
    * :doc:`temp/eff <compute_temp_eff>`
    * :doc:`temp/partial (k) <compute_temp_partial>`
-   * :doc:`temp/profile <compute_temp_profile>`
+   * :doc:`temp/profile (k) <compute_temp_profile>`
    * :doc:`temp/ramp <compute_temp_ramp>`
    * :doc:`temp/region <compute_temp_region>`
    * :doc:`temp/region/eff <compute_temp_region_eff>`

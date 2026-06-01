@@ -117,6 +117,8 @@ action compute_temp_kokkos.cpp
 action compute_temp_kokkos.h
 action compute_temp_partial_kokkos.cpp
 action compute_temp_partial_kokkos.h
+action compute_temp_profile_kokkos.cpp
+action compute_temp_profile_kokkos.h
 action compute_temp_sphere_kokkos.cpp
 action compute_temp_sphere_kokkos.h
 action dihedral_charmm_kokkos.cpp dihedral_charmm.cpp

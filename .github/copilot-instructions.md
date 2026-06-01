@@ -1938,7 +1938,8 @@ FLOPs), and **ease**.
 |---|---|---|---|
 | `temp/csvr/kk` | fix (EXTRA-FIX) | Bussi thermostat — very common | **DONE** (May 2026).  See "Lessons Learned — temp/csvr/kk + temp/csld/kk" below. |
 | `temp/csld/kk` | fix (EXTRA-FIX) | Canonical-sampling Langevin thermostat | **DONE** (May 2026; device RNG, NOBIAS-only).  See below. |
-| `compute temp/profile/kk`, `compute temp/region/kk` | compute | Profile-unbiased / region-restricted thermostats (NEMD, thermal gradients) | `temp/region/kk` is **gated on region coverage** — only `block`/`sphere` regions are ported; port the needed `region_*_kokkos` first. |
+| `compute temp/profile/kk` | compute | Profile-unbiased thermostat (NEMD, thermal gradients) | **DONE** (May 2026).  See "Lessons Learned — compute temp/profile/kk" below. |
+| `compute temp/region/kk` | compute | Region-restricted thermostat | **gated on region coverage** — only `block`/`sphere` regions are ported; port the needed `region_*_kokkos` first. |
 | `fix heat/kk`, `fix indent/kk` | fix (src/) | NEMD heat flux / indenter — real per-atom kernels (were fake-removed; do properly) | `heat`: group-KE `parallel_reduce` + v-rescale kernel.  `indent`: per-atom force loop; host-evaluate only the few variable scalars. |
 | `fix box/relax/kk` | fix (src/) | Minimization-time barostat | Lower frequency. |
 | Remaining pair Groups 5-9 | pair | gayberne/resquared, sw/mod, atm, h-bond, granular | Case-by-case; see the pair-style groups above. |
@@ -2101,6 +2102,47 @@ Done May 2026.  Two contrasting RNG strategies:
   `init`).  `fix langevin/kk` also got the Part-C warning, gated on
   `tbiasflag == BIAS` (its temperature is an optional bias compute, not created
   internally).
+
+### Lessons Learned — `compute temp/profile/kk` (binned biased thermostat temperature)
+
+`temp/profile` subtracts a per-bin streaming (COM) velocity before computing
+temperature; like `temp/partial` it is **biased** (`tempbias=1`), so the device
+bias methods `remove_bias_all_kk`/`restore_bias_all_kk` are mandatory (a KK
+thermostat calls them around the rescale; without them the streaming subtraction
+is silently skipped).  It does **not** override `reapply_bias_all` (neither does
+the CPU base), so the KK class doesn't either.
+
+- **Make base members `protected`.**  `ComputeTempProfile` had everything
+  `private` (`bin`, `binave`, `vbin`, `xflag/yflag/zflag`, `ivx/ivy/ivz`,
+  `nbins`, `ncount`, `nbinx/y/z`, `boxlo/boxhi/prd/invdelta/periodicity`,
+  `triclinic`, `box_change`, `bin_setup`, `bin_assign`).  Flip to `protected`
+  and add `if (copymode) return;` to the base destructor.  The host int/flag
+  members (`xflag`, `ivx`, `nbinx`, `nbins`, `ncount`, `triclinic`) are read
+  directly inside device kernels — they're captured by value in the functor
+  copy, so no duplication needed.  Only the **pointer** members
+  (`boxlo`/`prd`/`invdelta`/`periodicity`) must be copied into plain
+  device-friendly scalar arrays (`m_boxlo[3]`...), since host pointers can't be
+  dereferenced on device.
+- **The per-bin sum keeps an MPI host round-trip — by design.**  The CPU sums
+  mass-weighted v + mass + count into `vbin[nbins][ncount]`, `MPI_Allreduce`s to
+  `binave`, then divides.  On device: a scatter kernel does `atomic_add` into a
+  `t_kkfloat_2d` accumulator `d_vbin(nbins,ncount)`, then copy out to the base
+  `vbin`, run the *identical* host `MPI_Allreduce` + divide into `binave`, and
+  copy `binave` back to `d_binave`.  Doing the reduce on the host (not a device
+  reduction) is what makes the result **bit-identical** to the CPU (`nbins` is
+  small, so the round-trip is cheap and once per `compute_scalar`).  The
+  scalar/vector thermal reductions and the bias kernels then read
+  `d_binave(d_bin[i], iv*)` on device.
+- **`d_bin` (per-atom bin id) is computed on device for orthogonal boxes**
+  (no transform), but **triclinic falls back to the host `bin_assign()`** (it
+  needs lambda-space coords) with a copy into `d_bin` — rare for profile
+  thermostats, not worth a device lambda transform.  `compute_array`
+  (`out bin` per-bin temperature) is a diagnostic: sync host + delegate to the
+  base.
+- Validated CPU/KK **bit-identical to 15 sig figs** over a 200-step `nvt` run
+  driven by the profile thermostat (exercises `compute_scalar` +
+  `remove_bias_all` + `restore_bias_all`), plus the tensor (`compute_vector`)
+  and `out bin` (`compute_array`) paths.
 
 ### Per-atom virial/energy aggregation (`stress/atom`, `pe/atom`, centroid) — DEFERRED
 

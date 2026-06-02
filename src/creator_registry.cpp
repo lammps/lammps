@@ -27,6 +27,8 @@ void register_angle_styles();
 void register_dihedral_styles();
 void register_improper_styles();
 void register_kspace_styles();
+void register_fix_styles();
+void register_compute_styles();
 
 // fills the global package-style -> package-name map (package_registry.h)
 void register_package_styles();
@@ -48,6 +50,8 @@ void register_builtin_styles()
     register_dihedral_styles();
     register_improper_styles();
     register_kspace_styles();
+    register_fix_styles();
+    register_compute_styles();
 
     // style-keyword -> package-name map used for diagnostics
     register_package_styles();

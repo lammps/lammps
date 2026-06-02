@@ -282,6 +282,8 @@ function(GenerateStyleSources output_path)
     CreateStyleSource(${output_path} DIHEDRAL dihedral DihedralStyle Dihedral "Force::dihedral_styles" register_dihedral_styles TRUE "force.h;dihedral.h")
     CreateStyleSource(${output_path} IMPROPER improper ImproperStyle Improper "Force::improper_styles" register_improper_styles TRUE "force.h;improper.h")
     CreateStyleSource(${output_path} KSPACE   kspace   KSpaceStyle   KSpace   "Force::kspace_styles"   register_kspace_styles   TRUE "force.h;kspace.h")
+    CreateStyleSource(${output_path} FIX      fix      FixStyle      Fix      "Modify::fix_styles"     register_fix_styles      FALSE "modify.h;fix.h")
+    CreateStyleSource(${output_path} COMPUTE  compute  ComputeStyle  Compute  "Modify::compute_styles" register_compute_styles  FALSE "modify.h;compute.h")
 endfunction(GenerateStyleSources)
 
 function(DetectBuildSystemConflict lammps_src_dir)

@@ -30,6 +30,8 @@ style_angle.cpp
 style_dihedral.cpp
 style_improper.cpp
 style_kspace.cpp
+style_fix.cpp
+style_compute.cpp
 package_registry.cpp
 # auto-generated packages files
 packages_angle.h

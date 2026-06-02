@@ -218,21 +218,19 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     Force::kspace_styles().set_plugin(plugin->name, (Force::KSpaceCreator) plugin->creator.v1);
 
   } else if (pstyle == "compute") {
-    auto *compute_map = lmp->modify->compute_map;
-    if (compute_map->find(plugin->name) != compute_map->end()) {
+    if (Modify::compute_styles().has_builtin(plugin->name)) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in compute style {} from plugin",
                             plugin->name);
     }
-    (*compute_map)[plugin->name] = (Modify::ComputeCreator) plugin->creator.v2;
+    Modify::compute_styles().set_plugin(plugin->name, (Modify::ComputeCreator) plugin->creator.v2);
 
   } else if (pstyle == "fix") {
-    auto *fix_map = lmp->modify->fix_map;
-    if (fix_map->find(plugin->name) != fix_map->end()) {
+    if (Modify::fix_styles().has_builtin(plugin->name)) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in fix style {} from plugin", plugin->name);
     }
-    (*fix_map)[plugin->name] = (Modify::FixCreator) plugin->creator.v2;
+    Modify::fix_styles().set_plugin(plugin->name, (Modify::FixCreator) plugin->creator.v2);
 
   } else if (pstyle == "region") {
     auto *region_map = lmp->domain->region_map;
@@ -385,9 +383,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
     for (const auto &icompute : lmp->modify->get_compute_by_style(name))
       lmp->modify->delete_compute(icompute->id);
 
-    auto *compute_map = lmp->modify->compute_map;
-    auto found = compute_map->find(name);
-    if (found != compute_map->end()) compute_map->erase(name);
+    Modify::compute_styles().clear_plugin(name);
 
   } else if (pstyle == "fix") {
 
@@ -395,9 +391,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 
     for (const auto &ifix : lmp->modify->get_fix_by_style(name)) lmp->modify->delete_fix(ifix->id);
 
-    auto *fix_map = lmp->modify->fix_map;
-    auto found = fix_map->find(name);
-    if (found != fix_map->end()) fix_map->erase(name);
+    Modify::fix_styles().clear_plugin(name);
 
   } else if (pstyle == "region") {
 
@@ -478,21 +472,10 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       // kspace styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "compute") {
-      auto *compute_map = lmp->modify->compute_map;
-      if (compute_map->find(plugin.name) != compute_map->end()) {
-        if (warnflag && (lmp->comm->me == 0))
-          lmp->error->warning(FLERR, "Overriding built-in compute style {} from plugin",
-                              plugin.name);
-      }
-      (*compute_map)[plugin.name] = (Modify::ComputeCreator) plugin.creator.v2;
+      // compute styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "fix") {
-      auto *fix_map = lmp->modify->fix_map;
-      if (fix_map->find(plugin.name) != fix_map->end()) {
-        if (warnflag && (lmp->comm->me == 0))
-          lmp->error->warning(FLERR, "Overriding built-in fix style {} from plugin", plugin.name);
-      }
-      (*fix_map)[plugin.name] = (Modify::FixCreator) plugin.creator.v2;
+      // fix styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "region") {
       auto *region_map = lmp->domain->region_map;

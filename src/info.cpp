@@ -693,14 +693,14 @@ void Info::kspace_styles(FILE *out)
 void Info::fix_styles(FILE *out)
 {
   fputs("\nFix styles:\n",out);
-  print_columns(out, modify->fix_map);
+  print_columns(out, Modify::fix_styles());
   fputs("\n\n\n",out);
 }
 
 void Info::compute_styles(FILE *out)
 {
   fputs("\nCompute styles:\n",out);
-  print_columns(out, modify->compute_map);
+  print_columns(out, Modify::compute_styles());
   fputs("\n\n\n",out);
 }
 
@@ -882,9 +882,9 @@ bool Info::has_style(const std::string &category, const std::string &name)
   } else if (category == "kspace") {
     return find_style(lmp, Force::kspace_styles(), name, true);
   } else if (category == "fix") {
-    return find_style(lmp, modify->fix_map, name, true);
+    return find_style(lmp, Modify::fix_styles(), name, true);
   } else if (category == "compute") {
-    return find_style(lmp, modify->compute_map, name, true);
+    return find_style(lmp, Modify::compute_styles(), name, true);
   } else if (category == "region") {
     return find_style(lmp, domain->region_map, name, false);
   } else if (category == "dump") {
@@ -916,9 +916,9 @@ std::vector<std::string> Info::get_available_styles(const std::string &category)
   } else if (category == "kspace") {
     return get_style_names(Force::kspace_styles());
   } else if (category == "fix") {
-    return get_style_names(modify->fix_map);
+    return get_style_names(Modify::fix_styles());
   } else if (category == "compute") {
-    return get_style_names(modify->compute_map);
+    return get_style_names(Modify::compute_styles());
   } else if (category == "region") {
     return get_style_names(domain->region_map);
   } else if (category == "dump") {

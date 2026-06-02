@@ -181,46 +181,41 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     Force::pair_styles().set_plugin(plugin->name, (Force::PairCreator) plugin->creator.v1);
 
   } else if (pstyle == "bond") {
-    auto *bond_map = lmp->force->bond_map;
-    if (bond_map->find(plugin->name) != bond_map->end()) {
+    if (Force::bond_styles().has_builtin(plugin->name)) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in bond style {} from plugin", plugin->name);
     }
-    (*bond_map)[plugin->name] = (Force::BondCreator) plugin->creator.v1;
+    Force::bond_styles().set_plugin(plugin->name, (Force::BondCreator) plugin->creator.v1);
 
   } else if (pstyle == "angle") {
-    auto *angle_map = lmp->force->angle_map;
-    if (angle_map->find(plugin->name) != angle_map->end()) {
+    if (Force::angle_styles().has_builtin(plugin->name)) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in angle style {} from plugin", plugin->name);
     }
-    (*angle_map)[plugin->name] = (Force::AngleCreator) plugin->creator.v1;
+    Force::angle_styles().set_plugin(plugin->name, (Force::AngleCreator) plugin->creator.v1);
 
   } else if (pstyle == "dihedral") {
-    auto *dihedral_map = lmp->force->dihedral_map;
-    if (dihedral_map->find(plugin->name) != dihedral_map->end()) {
+    if (Force::dihedral_styles().has_builtin(plugin->name)) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in dihedral style {} from plugin",
                             plugin->name);
     }
-    (*dihedral_map)[plugin->name] = (Force::DihedralCreator) plugin->creator.v1;
+    Force::dihedral_styles().set_plugin(plugin->name, (Force::DihedralCreator) plugin->creator.v1);
 
   } else if (pstyle == "improper") {
-    auto *improper_map = lmp->force->improper_map;
-    if (improper_map->find(plugin->name) != improper_map->end()) {
+    if (Force::improper_styles().has_builtin(plugin->name)) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in improper style {} from plugin",
                             plugin->name);
     }
-    (*improper_map)[plugin->name] = (Force::ImproperCreator) plugin->creator.v1;
+    Force::improper_styles().set_plugin(plugin->name, (Force::ImproperCreator) plugin->creator.v1);
 
   } else if (pstyle == "kspace") {
-    auto *kspace_map = lmp->force->kspace_map;
-    if (kspace_map->find(plugin->name) != kspace_map->end()) {
+    if (Force::kspace_styles().has_builtin(plugin->name)) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in kspace style {} from plugin", plugin->name);
     }
-    (*kspace_map)[plugin->name] = (Force::KSpaceCreator) plugin->creator.v1;
+    Force::kspace_styles().set_plugin(plugin->name, (Force::KSpaceCreator) plugin->creator.v1);
 
   } else if (pstyle == "compute") {
     auto *compute_map = lmp->modify->compute_map;
@@ -345,8 +340,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
     if ((lmp->force->bond_style != nullptr) && (lmp->force->bond_match(name) != nullptr))
       lmp->force->create_bond("none", 0);
 
-    auto found = lmp->force->bond_map->find(name);
-    if (found != lmp->force->bond_map->end()) lmp->force->bond_map->erase(found);
+    Force::bond_styles().clear_plugin(name);
 
   } else if (pstyle == "angle") {
 
@@ -355,8 +349,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
     if ((lmp->force->angle_style != nullptr) && (lmp->force->angle_match(name) != nullptr))
       lmp->force->create_angle("none", 0);
 
-    auto found = lmp->force->angle_map->find(name);
-    if (found != lmp->force->angle_map->end()) lmp->force->angle_map->erase(found);
+    Force::angle_styles().clear_plugin(name);
 
   } else if (pstyle == "dihedral") {
 
@@ -365,8 +358,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
     if ((lmp->force->dihedral_style) && (lmp->force->dihedral_match(name) != nullptr))
       lmp->force->create_dihedral("none", 0);
 
-    auto found = lmp->force->dihedral_map->find(name);
-    if (found != lmp->force->dihedral_map->end()) lmp->force->dihedral_map->erase(found);
+    Force::dihedral_styles().clear_plugin(name);
 
   } else if (pstyle == "improper") {
 
@@ -375,8 +367,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
     if ((lmp->force->improper_style != nullptr) && (lmp->force->improper_match(name) != nullptr))
       lmp->force->create_improper("none", 0);
 
-    auto found = lmp->force->improper_map->find(name);
-    if (found != lmp->force->improper_map->end()) lmp->force->improper_map->erase(found);
+    Force::improper_styles().clear_plugin(name);
 
   } else if (pstyle == "kspace") {
 
@@ -385,9 +376,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
     if ((lmp->force->kspace_style != nullptr) && (lmp->force->kspace_match(name, 1) != nullptr))
       lmp->force->create_kspace("none", 0);
 
-    auto *kspace_map = lmp->force->kspace_map;
-    auto found = kspace_map->find(name);
-    if (found != kspace_map->end()) kspace_map->erase(name);
+    Force::kspace_styles().clear_plugin(name);
 
   } else if (pstyle == "compute") {
 
@@ -474,47 +463,19 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       // pair styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "bond") {
-      auto *bond_map = lmp->force->bond_map;
-      if (bond_map->find(plugin.name) != bond_map->end()) {
-        if (warnflag && (lmp->comm->me == 0))
-          lmp->error->warning(FLERR, "Overriding built-in bond style {} from plugin", plugin.name);
-      }
-      (*bond_map)[plugin.name] = (Force::BondCreator) plugin.creator.v1;
+      // bond styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "angle") {
-      auto *angle_map = lmp->force->angle_map;
-      if (angle_map->find(plugin.name) != angle_map->end()) {
-        if (warnflag && (lmp->comm->me == 0))
-          lmp->error->warning(FLERR, "Overriding built-in angle style {} from plugin", plugin.name);
-      }
-      (*angle_map)[plugin.name] = (Force::AngleCreator) plugin.creator.v1;
+      // angle styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "dihedral") {
-      auto *dihedral_map = lmp->force->dihedral_map;
-      if (dihedral_map->find(plugin.name) != dihedral_map->end()) {
-        if (warnflag && (lmp->comm->me == 0))
-          lmp->error->warning(FLERR, "Overriding built-in dihedral style {} from plugin",
-                              plugin.name);
-      }
-      (*dihedral_map)[plugin.name] = (Force::DihedralCreator) plugin.creator.v1;
+      // dihedral styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "improper") {
-      auto *improper_map = lmp->force->improper_map;
-      if (improper_map->find(plugin.name) != improper_map->end()) {
-        if (warnflag && (lmp->comm->me == 0))
-          lmp->error->warning(FLERR, "Overriding built-in improper style {} from plugin",
-                              plugin.name);
-      }
-      (*improper_map)[plugin.name] = (Force::ImproperCreator) plugin.creator.v1;
+      // improper styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "kspace") {
-      auto *kspace_map = lmp->force->kspace_map;
-      if (kspace_map->find(plugin.name) != kspace_map->end()) {
-        if (warnflag && (lmp->comm->me == 0))
-          lmp->error->warning(FLERR, "Overriding built-in kspace style {} from plugin",
-                              plugin.name);
-      }
-      (*kspace_map)[plugin.name] = (Force::KSpaceCreator) plugin.creator.v1;
+      // kspace styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "compute") {
       auto *compute_map = lmp->modify->compute_map;

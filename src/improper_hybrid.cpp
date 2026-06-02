@@ -232,7 +232,7 @@ void ImproperHybrid::settings(int narg, char **arg)
     // by looking for the next known improper style name.
 
     int jarg = i + 1;
-    while ((jarg < narg) && !force->improper_map->count(arg[jarg]) &&
+    while ((jarg < narg) && !Force::improper_styles().contains(arg[jarg]) &&
            !lmp->match_style("improper", arg[jarg]))
       jarg++;
 

@@ -238,7 +238,12 @@ fi
 
 if (test $cmd = "style") then
 
-  stylesource PAIR_CLASS pair_ pair PairStyle Pair Force::pair_styles register_pair_styles 1 "force.h pair.h"
+  stylesource PAIR_CLASS     pair_     pair     PairStyle     Pair     Force::pair_styles     register_pair_styles     1 "force.h pair.h"
+  stylesource BOND_CLASS     bond_     bond     BondStyle     Bond     Force::bond_styles     register_bond_styles     1 "force.h bond.h"
+  stylesource ANGLE_CLASS    angle_    angle    AngleStyle    Angle    Force::angle_styles    register_angle_styles    1 "force.h angle.h"
+  stylesource DIHEDRAL_CLASS dihedral_ dihedral DihedralStyle Dihedral Force::dihedral_styles register_dihedral_styles 1 "force.h dihedral.h"
+  stylesource IMPROPER_CLASS improper_ improper ImproperStyle Improper Force::improper_styles register_improper_styles 1 "force.h improper.h"
+  stylesource KSPACE_CLASS   ""        kspace   KSpaceStyle   KSpace   Force::kspace_styles   register_kspace_styles   1 "force.h kspace.h"
 
   packageregistry
 

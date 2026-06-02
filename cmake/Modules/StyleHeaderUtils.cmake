@@ -276,7 +276,12 @@ endfunction(CreateStyleSource)
 
 function(GenerateStyleSources output_path)
     message(STATUS "Generating style source files...")
-    CreateStyleSource(${output_path} PAIR pair PairStyle Pair "Force::pair_styles" register_pair_styles TRUE "force.h;pair.h")
+    CreateStyleSource(${output_path} PAIR     pair     PairStyle     Pair     "Force::pair_styles"     register_pair_styles     TRUE "force.h;pair.h")
+    CreateStyleSource(${output_path} BOND     bond     BondStyle     Bond     "Force::bond_styles"     register_bond_styles     TRUE "force.h;bond.h")
+    CreateStyleSource(${output_path} ANGLE    angle    AngleStyle    Angle    "Force::angle_styles"    register_angle_styles    TRUE "force.h;angle.h")
+    CreateStyleSource(${output_path} DIHEDRAL dihedral DihedralStyle Dihedral "Force::dihedral_styles" register_dihedral_styles TRUE "force.h;dihedral.h")
+    CreateStyleSource(${output_path} IMPROPER improper ImproperStyle Improper "Force::improper_styles" register_improper_styles TRUE "force.h;improper.h")
+    CreateStyleSource(${output_path} KSPACE   kspace   KSpaceStyle   KSpace   "Force::kspace_styles"   register_kspace_styles   TRUE "force.h;kspace.h")
 endfunction(GenerateStyleSources)
 
 function(DetectBuildSystemConflict lammps_src_dir)

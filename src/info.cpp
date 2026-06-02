@@ -658,35 +658,35 @@ void Info::pair_styles(FILE *out)
 void Info::bond_styles(FILE *out)
 {
   fputs("\nBond styles:\n",out);
-  print_columns(out, force->bond_map);
+  print_columns(out, Force::bond_styles());
   fputs("\n\n\n",out);
 }
 
 void Info::angle_styles(FILE *out)
 {
   fputs("\nAngle styles:\n",out);
-  print_columns(out, force->angle_map);
+  print_columns(out, Force::angle_styles());
   fputs("\n\n\n",out);
 }
 
 void Info::dihedral_styles(FILE *out)
 {
   fputs("\nDihedral styles:\n",out);
-  print_columns(out, force->dihedral_map);
+  print_columns(out, Force::dihedral_styles());
   fputs("\n\n\n",out);
 }
 
 void Info::improper_styles(FILE *out)
 {
   fputs("\nImproper styles:\n",out);
-  print_columns(out, force->improper_map);
+  print_columns(out, Force::improper_styles());
   fputs("\n\n\n",out);
 }
 
 void Info::kspace_styles(FILE *out)
 {
   fputs("\nKSpace styles:\n",out);
-  print_columns(out, force->kspace_map);
+  print_columns(out, Force::kspace_styles());
   fputs("\n\n\n",out);
 }
 
@@ -872,15 +872,15 @@ bool Info::has_style(const std::string &category, const std::string &name)
   } else if (category == "pair") {
     return find_style(lmp, Force::pair_styles(), name, true);
   } else if (category == "bond") {
-    return find_style(lmp, force->bond_map, name, true);
+    return find_style(lmp, Force::bond_styles(), name, true);
   } else if (category == "angle") {
-    return find_style(lmp, force->angle_map, name, true);
+    return find_style(lmp, Force::angle_styles(), name, true);
   } else if (category == "dihedral") {
-    return find_style(lmp, force->dihedral_map, name, true);
+    return find_style(lmp, Force::dihedral_styles(), name, true);
   } else if (category == "improper") {
-    return find_style(lmp, force->improper_map, name, true);
+    return find_style(lmp, Force::improper_styles(), name, true);
   } else if (category == "kspace") {
-    return find_style(lmp, force->kspace_map, name, true);
+    return find_style(lmp, Force::kspace_styles(), name, true);
   } else if (category == "fix") {
     return find_style(lmp, modify->fix_map, name, true);
   } else if (category == "compute") {
@@ -906,15 +906,15 @@ std::vector<std::string> Info::get_available_styles(const std::string &category)
   } else if (category == "pair") {
     return get_style_names(Force::pair_styles());
   } else if (category == "bond") {
-    return get_style_names(force->bond_map);
+    return get_style_names(Force::bond_styles());
   } else if (category == "angle") {
-    return get_style_names(force->angle_map);
+    return get_style_names(Force::angle_styles());
   } else if (category == "dihedral") {
-    return get_style_names(force->dihedral_map);
+    return get_style_names(Force::dihedral_styles());
   } else if (category == "improper") {
-    return get_style_names(force->improper_map);
+    return get_style_names(Force::improper_styles());
   } else if (category == "kspace") {
-    return get_style_names(force->kspace_map);
+    return get_style_names(Force::kspace_styles());
   } else if (category == "fix") {
     return get_style_names(modify->fix_map);
   } else if (category == "compute") {

@@ -104,20 +104,13 @@ class Force : protected Pointers {
   using ImproperCreator = Improper *(*)(LAMMPS *);
   using KSpaceCreator = KSpace *(*)(LAMMPS *);
 
-  using BondCreatorMap = std::map<std::string, BondCreator>;
-  using AngleCreatorMap = std::map<std::string, AngleCreator>;
-  using DihedralCreatorMap = std::map<std::string, DihedralCreator>;
-  using ImproperCreatorMap = std::map<std::string, ImproperCreator>;
-  using KSpaceCreatorMap = std::map<std::string, KSpaceCreator>;
-
-  // global registry of pair style factory functions (built-ins + plugins)
+  // global registries of style factory functions (built-ins + plugins)
   static CreatorRegistry<PairCreator> &pair_styles();
-
-  BondCreatorMap *bond_map;
-  AngleCreatorMap *angle_map;
-  DihedralCreatorMap *dihedral_map;
-  ImproperCreatorMap *improper_map;
-  KSpaceCreatorMap *kspace_map;
+  static CreatorRegistry<BondCreator> &bond_styles();
+  static CreatorRegistry<AngleCreator> &angle_styles();
+  static CreatorRegistry<DihedralCreator> &dihedral_styles();
+  static CreatorRegistry<ImproperCreator> &improper_styles();
+  static CreatorRegistry<KSpaceCreator> &kspace_styles();
 
   // index [0] is not used in these arrays
   double special_lj[4];      // 1-2, 1-3, 1-4 prefactors for LJ
@@ -164,8 +157,6 @@ class Force : protected Pointers {
 
   double memory_usage();
 
- private:
-  void create_factories();
 };
 
 }    // namespace LAMMPS_NS

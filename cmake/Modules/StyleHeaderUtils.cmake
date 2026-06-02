@@ -104,7 +104,6 @@ function(RegisterStyles search_path)
     FindStyleHeaders(${search_path} DIHEDRAL_CLASS     dihedral_     DIHEDRAL     ) # dihedral     ) # force
     FindStyleHeaders(${search_path} DUMP_CLASS         dump_         DUMP         ) # dump         ) # output    write_dump
     FindStyleHeaders(${search_path} FIX_CLASS          fix_          FIX          ) # fix          ) # modify
-    FindStyleHeaders(${search_path} GRAN_SUB_MOD_CLASS gran_sub_mod_ GRAN_SUB_MOD ) # gran_sub_mod ) # granular_model
     FindStyleHeaders(${search_path} IMPROPER_CLASS     improper_     IMPROPER     ) # improper     ) # force
     FindStyleHeaders(${search_path} INTEGRATE_CLASS    "[^.]"        INTEGRATE    ) # integrate    ) # update
     FindStyleHeaders(${search_path} KSPACE_CLASS       "[^.]"        KSPACE       ) # kspace       ) # force
@@ -128,7 +127,6 @@ function(RegisterStylesExt search_path extension sources)
     FindStyleHeadersExt(${search_path} DIHEDRAL_CLASS     ${extension}  DIHEDRAL     ${sources})
     FindStyleHeadersExt(${search_path} DUMP_CLASS         ${extension}  DUMP         ${sources})
     FindStyleHeadersExt(${search_path} FIX_CLASS          ${extension}  FIX          ${sources})
-    FindStyleHeadersExt(${search_path} GRAN_SUB_MOD_CLASS ${extension}  GRAN_SUB_MOD ${sources})
     FindStyleHeadersExt(${search_path} IMPROPER_CLASS     ${extension}  IMPROPER     ${sources})
     FindStyleHeadersExt(${search_path} INTEGRATE_CLASS    ${extension}  INTEGRATE    ${sources})
     FindStyleHeadersExt(${search_path} KSPACE_CLASS       ${extension}  KSPACE       ${sources})
@@ -148,7 +146,6 @@ function(GenerateStyleHeaders output_path)
     # at compile time need a style_*.h include list.  The name-keyed categories
     # are registered through the global registry from generated style_*.cpp and
     # no longer use style_*.h (see GenerateStyleSources).
-    GenerateStyleHeader(${output_path} GRAN_SUB_MOD gran_sub_mod ) # granular_model
     GenerateStyleHeader(${output_path} NBIN         nbin         ) # neighbor
     GenerateStyleHeader(${output_path} NPAIR        npair        ) # neighbor
     GenerateStyleHeader(${output_path} NSTENCIL     nstencil     ) # neighbor

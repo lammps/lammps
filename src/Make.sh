@@ -136,7 +136,6 @@ stylegen="$objdir/stylegen.exe"
 
 if (test $cmd = "style") then
 
-  $cmd GRAN_SUB_MOD_CLASS gran_sub_mod_  gran_sub_mod  granular_model
   $cmd NBIN_CLASS         nbin_          nbin          neighbor
   $cmd NPAIR_CLASS        npair_         npair         neighbor
   $cmd NSTENCIL_CLASS     nstencil_      nstencil      neighbor

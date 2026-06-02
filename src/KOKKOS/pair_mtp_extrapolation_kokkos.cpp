@@ -719,8 +719,7 @@ void PairMTPExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       // Mirror to buffer on host. Then copy to array. This handles doubles and floats.
       auto h_energy_ders_wrt_coeffs = Kokkos::create_mirror_view(d_energy_ders_wrt_coeffs);
       Kokkos::deep_copy(h_energy_ders_wrt_coeffs, d_energy_ders_wrt_coeffs);
-      for (int i = 0; i < alpha_scalar_count; i++)
-        energy_ders_wrt_coeffs[i] = h_energy_ders_wrt_coeffs[i];
+      for (int i = 0; i < coeff_count; i++) energy_ders_wrt_coeffs[i] = h_energy_ders_wrt_coeffs[i];
 
       PairMTPExtrapolation::compile_grades();
     }    // Normalize by atom count in CFG mode
@@ -1024,7 +1023,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPExtrapolationKokkos<DeviceType>::operator()(
 
   int offset = 0;
   // Traverse all edges in the alpha times compute graph. We need to do this in waves to ensure dependencies.
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < num_waves; i++) {
     const int wave_size = d_waves[i];
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, wave_size), [&](const int kk) {
       const int k = offset + kk;    // Offset for the wave

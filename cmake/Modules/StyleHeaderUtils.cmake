@@ -287,6 +287,8 @@ function(GenerateStyleSources output_path)
     CreateStyleSource(${output_path} INTEGRATE integrate IntegrateStyle Integrate "Update::integrate_styles" register_integrate_styles FALSE "update.h;integrate.h")
     CreateStyleSource(${output_path} MINIMIZE  minimize  MinimizeStyle  Min       "Update::minimize_styles"  register_minimize_styles  TRUE  "update.h;min.h")
     CreateStyleSource(${output_path} REGION    region    RegionStyle    Region    "Domain::region_styles"    register_region_styles    FALSE "domain.h;region.h")
+    CreateStyleSource(${output_path} DUMP      dump      DumpStyle      Dump      "Output::dump_styles"      register_dump_styles      FALSE "output.h;dump.h")
+    CreateStyleSource(${output_path} COMMAND   command   CommandStyle   Command   "Input::command_styles"    register_command_styles   TRUE  "input.h;command.h")
 endfunction(GenerateStyleSources)
 
 function(DetectBuildSystemConflict lammps_src_dir)

@@ -41,7 +41,6 @@
 #include "output.h"
 #include "pair.h"
 #include "special.h"
-#include "style_command.h"      // IWYU pragma: keep
 #include "thermo.h"
 #include "timer.h"
 #include "universe.h"
@@ -62,12 +61,16 @@ static constexpr int DELTA = 4;
 static constexpr int LMP_MAXFILE = 16;
 
 /* ----------------------------------------------------------------------
-   one instance per command in style_command.h
+   process-global registry of command style factory functions.  Shared by all
+   LAMMPS instances and persistent across the "clear" command.  Built-in styles
+   are registered once by the generated register_command_styles(); plugins
+   add/override entries at runtime.
 ------------------------------------------------------------------------- */
 
-template <typename T> static Command *command_creator(LAMMPS *lmp)
+CreatorRegistry<Input::CommandCreator> &Input::command_styles()
 {
-  return new T(lmp);
+  static CreatorRegistry<Input::CommandCreator> registry;
+  return registry;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,8 +107,7 @@ function executed, and finally the class instance is deleted.
  * \param  argv  argument vector  */
 
 Input::Input(LAMMPS *lmp, int argc, char **argv) :
-    Pointers(lmp), variable(nullptr), labelstr(nullptr), infiles(nullptr), inlines(nullptr),
-    command_map(nullptr)
+    Pointers(lmp), variable(nullptr), labelstr(nullptr), infiles(nullptr), inlines(nullptr)
 {
   MPI_Comm_rank(world, &me);
 
@@ -130,16 +132,6 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) :
 
   variable = new Variable(lmp);
 
-  // fill map with commands listed in style_command.h
-
-  command_map = new CommandCreatorMap();
-
-#define COMMAND_CLASS
-#define CommandStyle(key,Class) \
-  (*command_map)[#key] = &command_creator<Class>;
-#include "style_command.h"      // IWYU pragma: keep
-#undef CommandStyle
-#undef COMMAND_CLASS
 
   // process command-line args
   // check for args "-var" and "-echo"
@@ -179,8 +171,6 @@ Input::~Input()
   delete[] infiles;
   delete[] inlines;
   delete variable;
-
-  delete command_map;
 }
 
 /** Process all input from the ``FILE *`` pointer *infile*
@@ -863,16 +853,15 @@ int Input::execute_command()
 
   if (lmp->suffix_enable && lmp->non_pair_suffix()) {
     mycmd = command + std::string("/") + lmp->non_pair_suffix();
-    if (command_map->find(mycmd) == command_map->end()) {
+    if (!command_styles().contains(mycmd)) {
       if (lmp->suffix2) {
         mycmd = command + std::string("/") + lmp->suffix2;
-        if (command_map->find(mycmd) == command_map->end())
+        if (!command_styles().contains(mycmd))
           mycmd = command;
       } else mycmd = command;
     }
   }
-  if (command_map->find(mycmd) != command_map->end()) {
-    CommandCreator &command_creator = (*command_map)[mycmd];
+  if (CommandCreator command_creator = command_styles().find(mycmd)) {
     Command *cmd = command_creator(lmp);
     cmd->command(narg,arg);
     delete cmd;
@@ -2061,8 +2050,7 @@ void Input::units()
 int Input::meta(const std::string &prefix)
 {
   auto mycmd = fmt::format("{}_{}", utils::uppercase(prefix), utils::uppercase(arg[0]));
-  if (command_map->find(mycmd) != command_map->end()) {
-    CommandCreator &command_creator = (*command_map)[mycmd];
+  if (CommandCreator command_creator = command_styles().find(mycmd)) {
     Command *cmd = command_creator(lmp);
     cmd->command(narg-1,arg+1);
     delete cmd;

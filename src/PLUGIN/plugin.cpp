@@ -240,13 +240,12 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     Domain::region_styles().set_plugin(plugin->name, (Domain::RegionCreator) plugin->creator.v2);
 
   } else if (pstyle == "command") {
-    auto *command_map = lmp->input->command_map;
-    if (command_map->find(plugin->name) != command_map->end()) {
+    if (Input::command_styles().has_builtin(plugin->name)) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in command style {} from plugin",
                             plugin->name);
     }
-    (*command_map)[plugin->name] = (Input::CommandCreator) plugin->creator.v1;
+    Input::command_styles().set_plugin(plugin->name, (Input::CommandCreator) plugin->creator.v1);
 
   } else if (pstyle == "run") {
     if (Update::integrate_styles().has_builtin(plugin->name)) {
@@ -401,9 +400,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 
   } else if (pstyle == "command") {
 
-    auto *command_map = lmp->input->command_map;
-    auto found = command_map->find(name);
-    if (found != command_map->end()) command_map->erase(name);
+    Input::command_styles().clear_plugin(name);
 
   } else if (pstyle == "run") {
 
@@ -472,13 +469,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       // region styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "command") {
-      auto *command_map = lmp->input->command_map;
-      if (command_map->find(plugin.name) != command_map->end()) {
-        if (warnflag && (lmp->comm->me == 0))
-          lmp->error->warning(FLERR, "Overriding built-in command style {} from plugin",
-                              plugin.name);
-      }
-      (*command_map)[plugin.name] = (Input::CommandCreator) plugin.creator.v1;
+      // command styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "run") {
       // run/integrate styles live in the persistent global registry; nothing to restore

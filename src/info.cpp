@@ -714,14 +714,14 @@ void Info::region_styles(FILE *out)
 void Info::dump_styles(FILE *out)
 {
   fputs("\nDump styles:\n",out);
-  print_columns(out,output->dump_map);
+  print_columns(out,Output::dump_styles());
   fputs("\n\n\n",out);
 }
 
 void Info::command_styles(FILE *out)
 {
   fputs("\nCommand styles (add-on input script commands):\n",out);
-  print_columns(out, input->command_map);
+  print_columns(out, Input::command_styles());
   fputs("\n\n\n",out);
 }
 
@@ -888,9 +888,9 @@ bool Info::has_style(const std::string &category, const std::string &name)
   } else if (category == "region") {
     return find_style(lmp, Domain::region_styles(), name, false);
   } else if (category == "dump") {
-    return find_style(lmp, output->dump_map, name, false);
+    return find_style(lmp, Output::dump_styles(), name, false);
   } else if (category == "command") {
-    return find_style(lmp, input->command_map, name, false);
+    return find_style(lmp, Input::command_styles(), name, false);
   }
   return false;
 }
@@ -922,9 +922,9 @@ std::vector<std::string> Info::get_available_styles(const std::string &category)
   } else if (category == "region") {
     return get_style_names(Domain::region_styles());
   } else if (category == "dump") {
-    return get_style_names(output->dump_map);
+    return get_style_names(Output::dump_styles());
   } else if (category == "command") {
-    return get_style_names(input->command_map);
+    return get_style_names(Input::command_styles());
   }
   return {};
 }

@@ -249,6 +249,8 @@ if (test $cmd = "style") then
   stylesource INTEGRATE_CLASS ""        integrate IntegrateStyle Integrate Update::integrate_styles register_integrate_styles 0 "update.h integrate.h"
   stylesource MINIMIZE_CLASS  min_      minimize  MinimizeStyle  Min       Update::minimize_styles  register_minimize_styles  1 "update.h min.h"
   stylesource REGION_CLASS    region_   region    RegionStyle    Region    Domain::region_styles    register_region_styles    0 "domain.h region.h"
+  stylesource DUMP_CLASS      dump_     dump      DumpStyle      Dump      Output::dump_styles      register_dump_styles      0 "output.h dump.h"
+  stylesource COMMAND_CLASS   ""        command   CommandStyle   Command   Input::command_styles    register_command_styles   1 "input.h command.h"
 
   packageregistry
 

@@ -35,6 +35,8 @@ style_compute.cpp
 style_integrate.cpp
 style_minimize.cpp
 style_region.cpp
+style_dump.cpp
+style_command.cpp
 package_registry.cpp
 # auto-generated packages files
 packages_angle.h

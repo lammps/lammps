@@ -31,6 +31,13 @@ class PairBrownianPoly : public PairBrownian {
   void compute(int, int) override;
   double init_one(int, int) override;
   void init_style() override;
+
+ protected:
+  // deterministic, order- and MPI-rank-independent uniform random number for
+  // a pair, keyed on the unordered atom-tag pair, timestep, seed, and stream
+  // index.  Both halves of a pair draw the identical value so the pairwise
+  // Brownian force obeys Newton's 3rd law under "newton off".  See issue #2933.
+  static double pair_uniform(tagint, tagint, bigint, int, int);
 };
 
 }    // namespace LAMMPS_NS

@@ -591,6 +591,24 @@ std::string lowercase(const std::string &line);
 
 std::string uppercase(const std::string &line);
 
+/*! Arrange a list of words into aligned columns for terminal output
+ *
+ * The words are placed column-major (filled top to bottom) into as many
+ * columns as fit within the given line width, with each column sized
+ * independently to its widest entry plus a gap.  This produces a compact,
+ * left-aligned grid similar to the output of the "ls" command and is used,
+ * e.g., for the style listings of the :doc:`info` command and the ``-help``
+ * output.  The words are printed in the order given, so sort them first for
+ * an alphabetical listing.
+ *
+ * \param words  list of words to format
+ * \param width  maximum line width in characters
+ * \param gap    minimum number of blank spaces between columns
+ * \return multi-line string (each line terminated by a newline); the string
+ *         "(none)\n" is returned for an empty list */
+
+std::string columnize(const std::vector<std::string> &words, int width = 80, int gap = 2);
+
 /*! Trim leading and trailing whitespace. Like TRIM() in Fortran.
  *
  * \param line  string that should be trimmed

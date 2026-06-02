@@ -953,47 +953,19 @@ bool find_style(const LAMMPS *lmp, const CreatorRegistry<Creator> &styles,
 template<typename Creator>
 void print_columns(FILE *fp, const CreatorRegistry<Creator> &styles)
 {
-  auto names = styles.keys();
-  if (names.empty()) {
-    fprintf(fp, "\nNone");
-    return;
+  // collect visible style names (skip internal and redundant KOKKOS variants),
+  // sort them, and mark styles currently provided by a plugin with a "*"
+  std::vector<std::string> names;
+  for (const auto &name : styles.keys()) {
+    if (isupper(name[0]) || utils::strmatch(name,"/kk/host$")
+        || utils::strmatch(name,"/kk/device$")) continue;
+    names.push_back(name);
   }
   std::sort(names.begin(), names.end());
+  for (auto &name : names)
+    if (styles.has_plugin(name)) name += "*";
 
-  int pos = 80;
-  for (const auto &style_name : names) {
-
-    // skip "internal" styles
-    if (isupper(style_name[0]) || utils::strmatch(style_name,"/kk/host$")
-        || utils::strmatch(style_name,"/kk/device$")) continue;
-
-    // mark styles currently provided by a plugin with a trailing "*"
-    std::string display = style_name;
-    if (styles.has_plugin(style_name)) display += "*";
-
-    int len = display.length();
-    if (pos + len > 80) {
-      fprintf(fp,"\n");
-      pos = 0;
-    }
-
-    if (len < 16) {
-      fprintf(fp,"%-16s", display.c_str());
-      pos += 16;
-    } else if (len < 32) {
-      fprintf(fp,"%-32s", display.c_str());
-      pos += 32;
-    } else if (len < 48) {
-      fprintf(fp,"%-48s", display.c_str());
-      pos += 48;
-    } else if (len < 64) {
-      fprintf(fp,"%-64s", display.c_str());
-      pos += 64;
-    } else {
-      fprintf(fp,"%-80s", display.c_str());
-      pos += 80;
-    }
-  }
+  fputs(utils::columnize(names).c_str(), fp);
 }
 }
 

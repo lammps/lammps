@@ -59,24 +59,24 @@
 #define UPDATE_STRING ""
 #endif
 
-static void print_style(FILE *fp, const char *str, int &pos);
-
-// print the keywords of all styles in a global registry in columns, sorted,
-// appending "*" to styles provided by a plugin (used by LAMMPS::help)
+// list the keywords of all styles in a global registry in aligned columns,
+// sorted, with a trailing "*" on styles currently provided by a plugin
+// (used by LAMMPS::help)
 
 template <typename Creator>
-static void print_styles(FILE *fp, const LAMMPS_NS::CreatorRegistry<Creator> &reg, int &pos)
+static void print_styles(FILE *fp, const LAMMPS_NS::CreatorRegistry<Creator> &reg)
 {
-  auto names = reg.keys();
-  std::sort(names.begin(), names.end());
-  for (const auto &name : names) {
-    if (reg.has_plugin(name)) {
-      std::string marked = name + "*";
-      print_style(fp, marked.c_str(), pos);
-    } else {
-      print_style(fp, name.c_str(), pos);
-    }
+  std::vector<std::string> names;
+  for (const auto &name : reg.keys()) {
+    if (isupper(name[0]) || LAMMPS_NS::utils::strmatch(name, "/kk/host$")
+        || LAMMPS_NS::utils::strmatch(name, "/kk/device$"))
+      continue;
+    names.push_back(name);
   }
+  std::sort(names.begin(), names.end());
+  for (auto &name : names)
+    if (reg.has_plugin(name)) name += "*";
+  fputs(LAMMPS_NS::utils::columnize(names).c_str(), fp);
 }
 
 using namespace LAMMPS_NS;
@@ -1162,114 +1162,65 @@ void _noopt LAMMPS::help()
   fprintf(fp,"List of individual style options included in this LAMMPS executable\n");
   fprintf(fp,"(a trailing * marks a style currently provided by a plugin)\n\n");
 
-  int pos = 80;
   fprintf(fp,"* Atom styles:\n");
-  print_styles(fp, Atom::avec_styles(), pos);
+  print_styles(fp, Atom::avec_styles());
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Integrate styles:\n");
-  print_styles(fp, Update::integrate_styles(), pos);
+  print_styles(fp, Update::integrate_styles());
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Minimize styles:\n");
-  print_styles(fp, Update::minimize_styles(), pos);
+  print_styles(fp, Update::minimize_styles());
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Pair styles:\n");
-  print_styles(fp, Force::pair_styles(), pos);
+  print_styles(fp, Force::pair_styles());
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Bond styles:\n");
-  print_styles(fp, Force::bond_styles(), pos);
+  print_styles(fp, Force::bond_styles());
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Angle styles:\n");
-  print_styles(fp, Force::angle_styles(), pos);
+  print_styles(fp, Force::angle_styles());
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Dihedral styles:\n");
-  print_styles(fp, Force::dihedral_styles(), pos);
+  print_styles(fp, Force::dihedral_styles());
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Improper styles:\n");
-  print_styles(fp, Force::improper_styles(), pos);
+  print_styles(fp, Force::improper_styles());
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* KSpace styles:\n");
-  print_styles(fp, Force::kspace_styles(), pos);
+  print_styles(fp, Force::kspace_styles());
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Fix styles\n");
-  print_styles(fp, Modify::fix_styles(), pos);
+  print_styles(fp, Modify::fix_styles());
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Compute styles:\n");
-  print_styles(fp, Modify::compute_styles(), pos);
+  print_styles(fp, Modify::compute_styles());
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Region styles:\n");
-  print_styles(fp, Domain::region_styles(), pos);
+  print_styles(fp, Domain::region_styles());
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Dump styles:\n");
-  print_styles(fp, Output::dump_styles(), pos);
+  print_styles(fp, Output::dump_styles());
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Command styles\n");
-  print_styles(fp, Input::command_styles(), pos);
+  print_styles(fp, Input::command_styles());
   fprintf(fp,"\n\n");
 
   // close pipe to pager, if active
 
   if (pager != nullptr) platform::pclose(fp);
-}
-
-/* ----------------------------------------------------------------------
-   print style names in columns
-   skip any internal style that starts with an upper-case letter
-   also skip "redundant" KOKKOS styles ending in kk/host or kk/device
-------------------------------------------------------------------------- */
-
-void print_style(FILE *fp, const char *str, int &pos)
-{
-  if (isupper(str[0]) || utils::strmatch(str,"/kk/host$")
-      || utils::strmatch(str,"/kk/device$")) return;
-
-  int len = strlen(str);
-  if (pos+len > 80) {
-    fprintf(fp,"\n");
-    pos = 0;
-  }
-
-  if (len < 16) {
-    fprintf(fp,"%-16s",str);
-    pos += 16;
-  } else if (len < 32) {
-    fprintf(fp,"%-32s",str);
-    pos += 32;
-  } else if (len < 48) {
-    fprintf(fp,"%-48s",str);
-    pos += 48;
-  } else if (len < 64) {
-    fprintf(fp,"%-64s",str);
-    pos += 64;
-  } else {
-    fprintf(fp,"%-80s",str);
-    pos += 80;
-  }
 }
 
 void LAMMPS::print_config(FILE *fp)

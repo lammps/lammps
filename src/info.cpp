@@ -637,14 +637,14 @@ void Info::atom_styles(FILE *out)
 void Info::integrate_styles(FILE *out)
 {
   fputs("\nIntegrate styles:\n",out);
-  print_columns(out, update->integrate_map);
+  print_columns(out, Update::integrate_styles());
   fputs("\n\n\n",out);
 }
 
 void Info::minimize_styles(FILE *out)
 {
   fputs("\nMinimize styles:\n",out);
-  print_columns(out, update->minimize_map);
+  print_columns(out, Update::minimize_styles());
   fputs("\n\n\n",out);
 }
 
@@ -707,7 +707,7 @@ void Info::compute_styles(FILE *out)
 void Info::region_styles(FILE *out)
 {
   fputs("\nRegion styles:\n",out);
-  print_columns(out, domain->region_map);
+  print_columns(out, Domain::region_styles());
   fputs("\n\n\n",out);
 }
 
@@ -866,9 +866,9 @@ bool Info::has_style(const std::string &category, const std::string &name)
   if (category == "atom") {
     return find_style(lmp, atom->avec_map, name, false);
   } else if (category == "integrate") {
-    return find_style(lmp, update->integrate_map, name, true);
+    return find_style(lmp, Update::integrate_styles(), name, true);
   } else if (category == "minimize") {
-    return find_style(lmp, update->minimize_map, name, true);
+    return find_style(lmp, Update::minimize_styles(), name, true);
   } else if (category == "pair") {
     return find_style(lmp, Force::pair_styles(), name, true);
   } else if (category == "bond") {
@@ -886,7 +886,7 @@ bool Info::has_style(const std::string &category, const std::string &name)
   } else if (category == "compute") {
     return find_style(lmp, Modify::compute_styles(), name, true);
   } else if (category == "region") {
-    return find_style(lmp, domain->region_map, name, false);
+    return find_style(lmp, Domain::region_styles(), name, false);
   } else if (category == "dump") {
     return find_style(lmp, output->dump_map, name, false);
   } else if (category == "command") {
@@ -900,9 +900,9 @@ std::vector<std::string> Info::get_available_styles(const std::string &category)
   if (category == "atom") {
     return get_style_names(atom->avec_map);
   } else if (category == "integrate") {
-    return get_style_names(update->integrate_map);
+    return get_style_names(Update::integrate_styles());
   } else if (category == "minimize") {
-    return get_style_names(update->minimize_map);
+    return get_style_names(Update::minimize_styles());
   } else if (category == "pair") {
     return get_style_names(Force::pair_styles());
   } else if (category == "bond") {
@@ -920,7 +920,7 @@ std::vector<std::string> Info::get_available_styles(const std::string &category)
   } else if (category == "compute") {
     return get_style_names(Modify::compute_styles());
   } else if (category == "region") {
-    return get_style_names(domain->region_map);
+    return get_style_names(Domain::region_styles());
   } else if (category == "dump") {
     return get_style_names(output->dump_map);
   } else if (category == "command") {

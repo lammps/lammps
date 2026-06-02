@@ -244,8 +244,11 @@ if (test $cmd = "style") then
   stylesource DIHEDRAL_CLASS dihedral_ dihedral DihedralStyle Dihedral Force::dihedral_styles register_dihedral_styles 1 "force.h dihedral.h"
   stylesource IMPROPER_CLASS improper_ improper ImproperStyle Improper Force::improper_styles register_improper_styles 1 "force.h improper.h"
   stylesource KSPACE_CLASS   ""        kspace   KSpaceStyle   KSpace   Force::kspace_styles   register_kspace_styles   1 "force.h kspace.h"
-  stylesource FIX_CLASS      fix_      fix      FixStyle      Fix      Modify::fix_styles     register_fix_styles      0 "modify.h fix.h"
-  stylesource COMPUTE_CLASS  compute_  compute  ComputeStyle  Compute  Modify::compute_styles register_compute_styles  0 "modify.h compute.h"
+  stylesource FIX_CLASS       fix_      fix       FixStyle       Fix       Modify::fix_styles       register_fix_styles       0 "modify.h fix.h"
+  stylesource COMPUTE_CLASS   compute_  compute   ComputeStyle   Compute   Modify::compute_styles   register_compute_styles   0 "modify.h compute.h"
+  stylesource INTEGRATE_CLASS ""        integrate IntegrateStyle Integrate Update::integrate_styles register_integrate_styles 0 "update.h integrate.h"
+  stylesource MINIMIZE_CLASS  min_      minimize  MinimizeStyle  Min       Update::minimize_styles  register_minimize_styles  1 "update.h min.h"
+  stylesource REGION_CLASS    region_   region    RegionStyle    Region    Domain::region_styles    register_region_styles    0 "domain.h region.h"
 
   packageregistry
 

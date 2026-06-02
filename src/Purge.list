@@ -32,6 +32,9 @@ style_improper.cpp
 style_kspace.cpp
 style_fix.cpp
 style_compute.cpp
+style_integrate.cpp
+style_minimize.cpp
+style_region.cpp
 package_registry.cpp
 # auto-generated packages files
 packages_angle.h

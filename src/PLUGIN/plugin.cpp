@@ -233,12 +233,11 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     Modify::fix_styles().set_plugin(plugin->name, (Modify::FixCreator) plugin->creator.v2);
 
   } else if (pstyle == "region") {
-    auto *region_map = lmp->domain->region_map;
-    if (region_map->find(plugin->name) != region_map->end()) {
+    if (Domain::region_styles().has_builtin(plugin->name)) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in region style {} from plugin", plugin->name);
     }
-    (*region_map)[plugin->name] = (Domain::RegionCreator) plugin->creator.v2;
+    Domain::region_styles().set_plugin(plugin->name, (Domain::RegionCreator) plugin->creator.v2);
 
   } else if (pstyle == "command") {
     auto *command_map = lmp->input->command_map;
@@ -250,21 +249,19 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
     (*command_map)[plugin->name] = (Input::CommandCreator) plugin->creator.v1;
 
   } else if (pstyle == "run") {
-    auto *integrate_map = lmp->update->integrate_map;
-    if (integrate_map->find(plugin->name) != integrate_map->end()) {
+    if (Update::integrate_styles().has_builtin(plugin->name)) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in run style {} from plugin", plugin->name);
     }
-    (*integrate_map)[plugin->name] = (Update::IntegrateCreator) plugin->creator.v2;
+    Update::integrate_styles().set_plugin(plugin->name, (Update::IntegrateCreator) plugin->creator.v2);
 
   } else if (pstyle == "min") {
-    auto *minimize_map = lmp->update->minimize_map;
-    if (minimize_map->find(plugin->name) != minimize_map->end()) {
+    if (Update::minimize_styles().has_builtin(plugin->name)) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in minimize style {} from plugin",
                             plugin->name);
     }
-    (*minimize_map)[plugin->name] = (Update::MinimizeCreator) plugin->creator.v1;
+    Update::minimize_styles().set_plugin(plugin->name, (Update::MinimizeCreator) plugin->creator.v1);
 
   } else {
     utils::logmesg(lmp, "Loading plugins for {} styles not yet implemented\n", pstyle);
@@ -400,9 +397,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
     for (const auto &iregion : lmp->domain->get_region_by_style(name))
       lmp->domain->delete_region(iregion);
 
-    auto *region_map = lmp->domain->region_map;
-    auto found = region_map->find(name);
-    if (found != region_map->end()) region_map->erase(name);
+    Domain::region_styles().clear_plugin(name);
 
   } else if (pstyle == "command") {
 
@@ -418,9 +413,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
       char *str = (char *) "verlet";
       lmp->update->create_integrate(1, &str, 1);
     }
-    auto *integrate_map = lmp->update->integrate_map;
-    auto found = integrate_map->find(name);
-    if (found != integrate_map->end()) integrate_map->erase(name);
+    Update::integrate_styles().clear_plugin(name);
 
   } else if (pstyle == "min") {
 
@@ -430,9 +423,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
       char *str = (char *) "cg";
       lmp->update->create_minimize(1, &str, 1);
     }
-    auto *minimize_map = lmp->update->minimize_map;
-    auto found = minimize_map->find(name);
-    if (found != minimize_map->end()) minimize_map->erase(name);
+    Update::minimize_styles().clear_plugin(name);
   }
 
   // if reference count is down to zero, close DSO handle.
@@ -478,13 +469,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       // fix styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "region") {
-      auto *region_map = lmp->domain->region_map;
-      if (region_map->find(plugin.name) != region_map->end()) {
-        if (warnflag && (lmp->comm->me == 0))
-          lmp->error->warning(FLERR, "Overriding built-in region style {} from plugin",
-                              plugin.name);
-      }
-      (*region_map)[plugin.name] = (Domain::RegionCreator) plugin.creator.v2;
+      // region styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "command") {
       auto *command_map = lmp->input->command_map;
@@ -496,21 +481,10 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
       (*command_map)[plugin.name] = (Input::CommandCreator) plugin.creator.v1;
 
     } else if (pstyle == "run") {
-      auto *integrate_map = lmp->update->integrate_map;
-      if (integrate_map->find(plugin.name) != integrate_map->end()) {
-        if (warnflag && (lmp->comm->me == 0))
-          lmp->error->warning(FLERR, "Overriding built-in run style {} from plugin", plugin.name);
-      }
-      (*integrate_map)[plugin.name] = (Update::IntegrateCreator) plugin.creator.v2;
+      // run/integrate styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "min") {
-      auto *minimize_map = lmp->update->minimize_map;
-      if (minimize_map->find(plugin.name) != minimize_map->end()) {
-        if (warnflag && (lmp->comm->me == 0))
-          lmp->error->warning(FLERR, "Overriding built-in minimize style {} from plugin",
-                              plugin.name);
-      }
-      (*minimize_map)[plugin.name] = (Update::MinimizeCreator) plugin.creator.v1;
+      // minimize styles live in the persistent global registry; nothing to restore
     }
   }
 }

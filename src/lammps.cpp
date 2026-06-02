@@ -874,9 +874,9 @@ void LAMMPS::create()
 
   python = new Python(this);
 
-  // restore and auto-load plugins
+  // auto-load plugins; previously loaded plugins persist in the global style
+  // registry across "clear", so they do not need to be restored here
 #if defined(LMP_PLUGIN)
-  plugin_restore(this, true);
   plugin_auto_load(this);
 #endif
 }

@@ -266,18 +266,24 @@ having to re-compile or re-install all of LAMMPS.
 
 .. versionchanged:: 12Jun2025
 
-When using the :doc:`clear <clear>` command, plugins are not unloaded
-but restored to their respective style maps.  This also applies when
-multiple LAMMPS instances are created and deleted through the library
-interface.  The :doc:`plugin load <plugin>` load command may be issued
-again, but for existing plugins they will be skipped.  To replace
-plugins they must be explicitly unloaded with :doc:`plugin unload
-<plugin>`.  When multiple LAMMPS instances are created concurrently, any
-loaded plugins will be added to the global list of plugins, but are not
-immediately available to any LAMMPS instance that was created before
-loading the plugin.  To "import" such plugins, the :doc:`plugin restore
-<plugin>` may be used.  Plugins are only removed when they are explicitly
-unloaded or the LAMMPS interface is "finalized".
+When using the :doc:`clear <clear>` command, plugins are not unloaded.
+
+.. versionchanged:: TBD
+
+Style factory functions are stored in a process-global registry instead of in
+per-instance style maps.  As a result, a loaded plugin persists across the
+:doc:`clear <clear>` command, and a plugin loaded by any LAMMPS instance is
+immediately available to all other LAMMPS instances in the same process; no
+explicit restore step is needed (the :doc:`plugin restore <plugin>` command is
+retained only for backward compatibility and does nothing).  The :doc:`plugin
+load <plugin>` command may be issued again, but already-loaded plugins are
+skipped; to replace a plugin it must first be explicitly unloaded with
+:doc:`plugin unload <plugin>`.  Plugins are removed only when they are
+explicitly unloaded or the LAMMPS library interface is "finalized".  Concurrent
+plugin load and unload operations from multiple instances are serialized
+internally so that the shared plugin registry cannot be corrupted.  The
+:doc:`info styles <info>` command and the ``-help`` command-line output mark a
+style currently provided by a plugin with a trailing asterisk (``*``).
 
 Compiling plugins
 ^^^^^^^^^^^^^^^^^

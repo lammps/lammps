@@ -26,6 +26,7 @@
 #include <cstring>
 #include <list>
 #include <map>
+#include <mutex>
 
 namespace LAMMPS_NS {
 namespace {
@@ -34,6 +35,14 @@ namespace {
 
   // map for counting references to dso handles
   std::map<void *, int> dso_refcounter;
+
+  // serializes mutations of pluginlist / dso_refcounter so that concurrent
+  // LAMMPS instances can load or unload plugins at the same time.  Only the
+  // top-level entry points (plugin_register, plugin_unload) take this lock; the
+  // helpers they call (plugin_find, plugin_erase, plugin_get_info) assume it is
+  // already held.  RAII (std::lock_guard) guarantees the lock is released even
+  // if an error handler throws out of the critical section.
+  std::mutex plugin_mutex;
 
   bool verbose = true;
 }    // namespace
@@ -61,7 +70,11 @@ void Plugin::command(int narg, char **arg)
     plugin_clear(lmp);
 
   } else if (cmd == "restore") {
-    plugin_restore(lmp, false);
+    // loaded plugins now live in the process-global style registry and persist
+    // across the "clear" command, so there is nothing left to restore.
+    if (comm->me == 0)
+      utils::logmesg(lmp, "Loaded plugins persist across 'clear'; "
+                          "'plugin restore' is no longer needed\n");
 
   } else if (cmd == "list") {
     if (comm->me == 0) {
@@ -142,6 +155,7 @@ int plugin_load(const char *file, LAMMPS *lmp)
 void plugin_register(lammpsplugin_t *plugin, void *ptr)
 {
 #if defined(LMP_PLUGIN)
+  std::lock_guard<std::mutex> guard(plugin_mutex);
   auto *lmp = (LAMMPS *) ptr;
   int me = lmp->comm->me;
 
@@ -278,6 +292,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
 void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 {
 #if defined(LMP_PLUGIN)
+  std::lock_guard<std::mutex> guard(plugin_mutex);
   int me = lmp->comm->me;
 
   // ignore unload request from unsupported style categories
@@ -428,56 +443,6 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
   --dso_refcounter[handle];
   if (dso_refcounter[handle] == 0) { platform::dlclose(handle); }
 #endif
-}
-
-/* --------------------------------------------------------------------
-   restore previously loaded plugins
-     -------------------------------------------------------------------- */
-
-void plugin_restore(LAMMPS *lmp, bool warnflag)
-{
-  for (auto &plugin : pluginlist) {
-    if (lmp->comm->me == 0)
-      utils::logmesg(lmp, "Restoring plugin: {} by {}\n", plugin.info, plugin.author);
-
-    std::string pstyle = plugin.style;
-    if (pstyle == "pair") {
-      // pair styles live in the persistent global registry; nothing to restore
-
-    } else if (pstyle == "bond") {
-      // bond styles live in the persistent global registry; nothing to restore
-
-    } else if (pstyle == "angle") {
-      // angle styles live in the persistent global registry; nothing to restore
-
-    } else if (pstyle == "dihedral") {
-      // dihedral styles live in the persistent global registry; nothing to restore
-
-    } else if (pstyle == "improper") {
-      // improper styles live in the persistent global registry; nothing to restore
-
-    } else if (pstyle == "kspace") {
-      // kspace styles live in the persistent global registry; nothing to restore
-
-    } else if (pstyle == "compute") {
-      // compute styles live in the persistent global registry; nothing to restore
-
-    } else if (pstyle == "fix") {
-      // fix styles live in the persistent global registry; nothing to restore
-
-    } else if (pstyle == "region") {
-      // region styles live in the persistent global registry; nothing to restore
-
-    } else if (pstyle == "command") {
-      // command styles live in the persistent global registry; nothing to restore
-
-    } else if (pstyle == "run") {
-      // run/integrate styles live in the persistent global registry; nothing to restore
-
-    } else if (pstyle == "min") {
-      // minimize styles live in the persistent global registry; nothing to restore
-    }
-  }
 }
 
 /* --------------------------------------------------------------------

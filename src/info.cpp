@@ -44,6 +44,7 @@
 #include "update.h"
 #include "variable.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <cstring>
@@ -128,6 +129,18 @@ bool find_style(const LAMMPS *lmp, std::map<std::string, ValueType> *styles,
 
 template<typename ValueType>
 std::vector<std::string> get_style_names(std::map<std::string, ValueType> *styles);
+
+// overloads for the global style registries (CreatorRegistry)
+
+template<typename Creator>
+void print_columns(FILE *fp, const CreatorRegistry<Creator> &styles);
+
+template<typename Creator>
+bool find_style(const LAMMPS *lmp, const CreatorRegistry<Creator> &styles,
+                       const std::string &name, bool suffix_check);
+
+template<typename Creator>
+std::vector<std::string> get_style_names(const CreatorRegistry<Creator> &styles);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -638,7 +651,7 @@ void Info::minimize_styles(FILE *out)
 void Info::pair_styles(FILE *out)
 {
   fputs("\nPair styles:\n",out);
-  print_columns(out, force->pair_map);
+  print_columns(out, Force::pair_styles());
   fputs("\n\n\n",out);
 }
 
@@ -857,7 +870,7 @@ bool Info::has_style(const std::string &category, const std::string &name)
   } else if (category == "minimize") {
     return find_style(lmp, update->minimize_map, name, true);
   } else if (category == "pair") {
-    return find_style(lmp, force->pair_map, name, true);
+    return find_style(lmp, Force::pair_styles(), name, true);
   } else if (category == "bond") {
     return find_style(lmp, force->bond_map, name, true);
   } else if (category == "angle") {
@@ -891,7 +904,7 @@ std::vector<std::string> Info::get_available_styles(const std::string &category)
   } else if (category == "minimize") {
     return get_style_names(update->minimize_map);
   } else if (category == "pair") {
-    return get_style_names(force->pair_map);
+    return get_style_names(Force::pair_styles());
   } else if (category == "bond") {
     return get_style_names(force->bond_map);
   } else if (category == "angle") {
@@ -969,6 +982,80 @@ void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
   int pos = 80;
   for (auto it = styles->begin(); it != styles->end(); ++it) {
     const std::string &style_name = it->first;
+
+    // skip "internal" styles
+    if (isupper(style_name[0]) || utils::strmatch(style_name,"/kk/host$")
+        || utils::strmatch(style_name,"/kk/device$")) continue;
+
+    int len = style_name.length();
+    if (pos + len > 80) {
+      fprintf(fp,"\n");
+      pos = 0;
+    }
+
+    if (len < 16) {
+      fprintf(fp,"%-16s", style_name.c_str());
+      pos += 16;
+    } else if (len < 32) {
+      fprintf(fp,"%-32s", style_name.c_str());
+      pos += 32;
+    } else if (len < 48) {
+      fprintf(fp,"%-48s", style_name.c_str());
+      pos += 48;
+    } else if (len < 64) {
+      fprintf(fp,"%-64s", style_name.c_str());
+      pos += 64;
+    } else {
+      fprintf(fp,"%-80s", style_name.c_str());
+      pos += 80;
+    }
+  }
+}
+
+// --- overloads operating on the global style registries ---
+
+template<typename Creator>
+std::vector<std::string> get_style_names(const CreatorRegistry<Creator> &styles)
+{
+  std::vector<std::string> names;
+  for (const auto &key : styles.keys()) {
+    // skip "secret" styles
+    if (isupper(key[0])) continue;
+    names.push_back(key);
+  }
+  std::sort(names.begin(), names.end());
+  return names;
+}
+
+template<typename Creator>
+bool find_style(const LAMMPS *lmp, const CreatorRegistry<Creator> &styles,
+                       const std::string &name, bool suffix_check)
+{
+  if (styles.contains(name)) return true;
+
+  if (suffix_check && lmp->suffix_enable) {
+    if (lmp->suffix) {
+      if (find_style(lmp, styles, name + "/" + lmp->suffix, false)) return true;
+    }
+    if (lmp->suffix2) {
+      if (find_style(lmp, styles, name + "/" + lmp->suffix2, false)) return true;
+    }
+  }
+  return false;
+}
+
+template<typename Creator>
+void print_columns(FILE *fp, const CreatorRegistry<Creator> &styles)
+{
+  auto names = styles.keys();
+  if (names.empty()) {
+    fprintf(fp, "\nNone");
+    return;
+  }
+  std::sort(names.begin(), names.end());
+
+  int pos = 80;
+  for (const auto &style_name : names) {
 
     // skip "internal" styles
     if (isupper(style_name[0]) || utils::strmatch(style_name,"/kk/host$")

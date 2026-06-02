@@ -394,7 +394,7 @@ void PairHybridScaled::settings(int narg, char **arg)
     // by looking for the next known pair style name.
 
     jarg = iarg + 1;
-    while ((jarg < narg) && !force->pair_map->count(arg[jarg]) &&
+    while ((jarg < narg) && !Force::pair_styles().contains(arg[jarg]) &&
            !lmp->match_style("pair", arg[jarg]))
       jarg++;
 

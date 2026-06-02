@@ -44,6 +44,19 @@ template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
   return new T(lmp);
 }
 
+/* ----------------------------------------------------------------------
+   process-global registry of pair style factory functions.  Shared by all
+   LAMMPS instances and persistent across the "clear" command.  Built-in
+   styles are registered once by register_pair_styles() (generated file);
+   plugins add/override entries at runtime.
+------------------------------------------------------------------------- */
+
+CreatorRegistry<Force::PairCreator> &Force::pair_styles()
+{
+  static CreatorRegistry<Force::PairCreator> registry;
+  return registry;
+}
+
 /* ---------------------------------------------------------------------- */
 
 Force::Force(LAMMPS *lmp) :
@@ -85,15 +98,7 @@ Force::Force(LAMMPS *lmp) :
 
 void _noopt Force::create_factories()
 {
-  // fill pair map with pair styles listed in style_pair.h
-
-  pair_map = new PairCreatorMap();
-
-#define PAIR_CLASS
-#define PairStyle(key, Class) (*pair_map)[#key] = &style_creator<Pair, Class>;
-#include "style_pair.h"    // IWYU pragma: keep
-#undef PairStyle
-#undef PAIR_CLASS
+  // pair styles are registered in the global registry (see Force::pair_styles)
 
   bond_map = new BondCreatorMap();
 
@@ -163,7 +168,6 @@ Force::~Force()
   improper = nullptr;
   kspace = nullptr;
 
-  delete pair_map;
   delete bond_map;
   delete angle_map;
   delete dihedral_map;
@@ -254,27 +258,20 @@ Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
     if (lmp->suffix) {
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
-      if (pair_map->find(estyle) != pair_map->end()) {
-        PairCreator &pair_creator = (*pair_map)[estyle];
-        return pair_creator(lmp);
-      }
+      PairCreator pair_creator = pair_styles().find(estyle);
+      if (pair_creator) return pair_creator(lmp);
     }
     if (lmp->suffix2) {
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
-      if (pair_map->find(estyle) != pair_map->end()) {
-        PairCreator &pair_creator = (*pair_map)[estyle];
-        return pair_creator(lmp);
-      }
+      PairCreator pair_creator = pair_styles().find(estyle);
+      if (pair_creator) return pair_creator(lmp);
     }
   }
 
   sflag = 0;
   if (style == "none") return nullptr;
-  if (pair_map->find(style) != pair_map->end()) {
-    PairCreator &pair_creator = (*pair_map)[style];
-    return pair_creator(lmp);
-  }
+  if (PairCreator pair_creator = pair_styles().find(style)) return pair_creator(lmp);
 
   error->all(FLERR, utils::check_packages_for_style("pair", style, lmp));
 

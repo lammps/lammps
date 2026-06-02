@@ -174,12 +174,11 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
 
   std::string pstyle = plugin->style;
   if (pstyle == "pair") {
-    auto *pair_map = lmp->force->pair_map;
-    if (pair_map->find(plugin->name) != pair_map->end()) {
+    if (Force::pair_styles().has_builtin(plugin->name)) {
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in pair style {} from plugin", plugin->name);
     }
-    (*pair_map)[plugin->name] = (Force::PairCreator) plugin->creator.v1;
+    Force::pair_styles().set_plugin(plugin->name, (Force::PairCreator) plugin->creator.v1);
 
   } else if (pstyle == "bond") {
     auto *bond_map = lmp->force->bond_map;
@@ -337,8 +336,7 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
       }
     }
 
-    auto found = lmp->force->pair_map->find(name);
-    if (found != lmp->force->pair_map->end()) lmp->force->pair_map->erase(found);
+    Force::pair_styles().clear_plugin(name);
 
   } else if (pstyle == "bond") {
 
@@ -473,12 +471,7 @@ void plugin_restore(LAMMPS *lmp, bool warnflag)
 
     std::string pstyle = plugin.style;
     if (pstyle == "pair") {
-      auto *pair_map = lmp->force->pair_map;
-      if (pair_map->find(plugin.name) != pair_map->end()) {
-        if (warnflag && (lmp->comm->me == 0))
-          lmp->error->warning(FLERR, "Overriding built-in pair style {} from plugin", plugin.name);
-      }
-      (*pair_map)[plugin.name] = (Force::PairCreator) plugin.creator.v1;
+      // pair styles live in the persistent global registry; nothing to restore
 
     } else if (pstyle == "bond") {
       auto *bond_map = lmp->force->bond_map;

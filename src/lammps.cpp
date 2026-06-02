@@ -37,6 +37,7 @@
 #include "citeme.h"
 #include "comm.h"
 #include "comm_brick.h"
+#include "creator_registry.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -135,6 +136,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   modify(nullptr), group(nullptr), output(nullptr), timer(nullptr), kokkos(nullptr),
   atomKK(nullptr), memoryKK(nullptr), python(nullptr), citeme(nullptr)
 {
+  // register all built-in styles into their process-global registries.
+  // idempotent and thread-safe; runs only on the first LAMMPS instance.
+  register_builtin_styles();
+
   memory = new Memory(this);
   error = new Error(this);
   universe = new Universe(this,communicator);

@@ -385,7 +385,7 @@ clean:
 clean-all:
 	@$(MAKE) $(MFLAGS) warning
 	rm -rf Obj_*
-	rm -f style_*.h packages_*.h lmpgitversion.h lmpinstalledpkgs.h
+	rm -f style_*.h style_*.cpp packages_*.h lmpgitversion.h lmpinstalledpkgs.h
 
 clean-%:
 	@$(MAKE) $(MFLAGS) warning

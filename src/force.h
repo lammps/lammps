@@ -16,6 +16,8 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
+
 #include <map>
 
 namespace LAMMPS_NS {
@@ -102,14 +104,15 @@ class Force : protected Pointers {
   using ImproperCreator = Improper *(*)(LAMMPS *);
   using KSpaceCreator = KSpace *(*)(LAMMPS *);
 
-  using PairCreatorMap = std::map<std::string, PairCreator>;
   using BondCreatorMap = std::map<std::string, BondCreator>;
   using AngleCreatorMap = std::map<std::string, AngleCreator>;
   using DihedralCreatorMap = std::map<std::string, DihedralCreator>;
   using ImproperCreatorMap = std::map<std::string, ImproperCreator>;
   using KSpaceCreatorMap = std::map<std::string, KSpaceCreator>;
 
-  PairCreatorMap *pair_map;
+  // global registry of pair style factory functions (built-ins + plugins)
+  static CreatorRegistry<PairCreator> &pair_styles();
+
   BondCreatorMap *bond_map;
   AngleCreatorMap *angle_map;
   DihedralCreatorMap *dihedral_map;

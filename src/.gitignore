@@ -6,6 +6,7 @@
 /lmp_*
 
 /style_*.h
+/style_*.cpp
 /packages_*.h
 /lmpinstalledpkgs.h
 /lmpgitversion.h

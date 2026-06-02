@@ -970,7 +970,7 @@ void print_columns(FILE *fp, const CreatorRegistry<Creator> &styles)
   // width for files/pipes so logfile output stays reproducible
   int width = platform::terminal_width(fp);
   if (width < 1) width = 80;
-  fputs(utils::columnize(names, width).c_str(), fp);
+  utils::print(fp, utils::columnize(names, width));
 }
 }
 

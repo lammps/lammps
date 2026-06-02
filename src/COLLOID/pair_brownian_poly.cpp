@@ -75,6 +75,7 @@ double PairBrownianPoly::pair_uniform(tagint ti, tagint tj, bigint step, int see
 PairBrownianPoly::PairBrownianPoly(LAMMPS *lmp) : PairBrownian(lmp)
 {
   no_virial_fdotr_compute = 1;
+  rad = 0.0; // set to a default value
 }
 
 

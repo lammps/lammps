@@ -31,6 +31,7 @@ class PairBrownianPoly : public PairBrownian {
   void compute(int, int) override;
   double init_one(int, int) override;
   void init_style() override;
+  void settings(int, char **) override;
 
  protected:
   // deterministic, order- and MPI-rank-independent uniform random number for

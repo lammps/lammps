@@ -77,6 +77,21 @@ PairBrownianPoly::PairBrownianPoly(LAMMPS *lmp) : PairBrownian(lmp)
   no_virial_fdotr_compute = 1;
 }
 
+
+/* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+void PairBrownianPoly::settings(int narg, char **arg)
+{
+  PairBrownian::settings(narg, arg);
+  // NOTE: the code for volume fraction correction was copied from pair style brownian,
+  // which requires a uniform radius (stored in the variable rad). For a polydisperse
+  // system that is not correct and the variable rad unset. Thus we stop here with an error.
+  if (flagVF)
+    error->all(FLERR, "Pair style brownian/poly does not support volume fraction corrections");
+}
+
 /* ---------------------------------------------------------------------- */
 
 void PairBrownianPoly::compute(int eflag, int vflag)

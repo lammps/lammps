@@ -137,10 +137,11 @@ LAMMPS was built with that package.  See the :doc:`Build package
 Only spherical monodisperse particles are allowed for pair_style
 brownian.
 
-Only spherical particles are allowed for pair_style brownian/poly.
+Only spherical particles are allowed for pair_style brownian/poly.  The
+volume fraction correction is not supported by pair_style brownian/poly.
 
 These pair styles are only compatible with the following wall fixes:
-doc:`fix wall/lj93, fix wall/lj126, fix wall/lj1043, fix wall/colloid,
+:doc:`fix wall/lj93, fix wall/lj126, fix wall/lj1043, fix wall/colloid,
 fix wall/harmonic, fix wall/lepton, fix wall/morse, fix wall/table
 <fix_wall>`.
 

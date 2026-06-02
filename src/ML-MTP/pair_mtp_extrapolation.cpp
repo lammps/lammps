@@ -483,17 +483,6 @@ void PairMTPExtrapolation::settings(int narg, char **arg)
     break_threshold = utils::numeric(FLERR, arg[2], true, lmp);
   }
 
-  if (comm->me == 0)
-    if (mlip3_style)
-      utils::logmesg(lmp,
-                     "Extrapolation Scheme: {} mode, with a selection threshold of {} "
-                     "and break threshold of {}.\n",
-                     (configuration_mode ? "Configuration" : "Neighborhood"), select_threshold,
-                     break_threshold);
-    else
-      utils::logmesg(lmp, "Extrapolation Mode: {} mode.\n",
-                     (configuration_mode ? "Configuration" : "Neighborhood"));
-
   if (mlip3_style)
     if (comm->me == 0) preselected_file = std::fopen(arg[0], "w");
 }
@@ -513,6 +502,17 @@ void PairMTPExtrapolation::coeff(int narg, char **arg)
   FILE *mtp_file = utils::open_potential(arg[2], lmp, nullptr);
   PairMTPExtrapolation::read_file(mtp_file);
   fclose(mtp_file);
+
+  if (comm->me == 0)
+    if (mlip3_style)
+      utils::logmesg(lmp,
+                     "Extrapolation Scheme: {} mode, with a selection threshold of {} "
+                     "and break threshold of {}.\n",
+                     (configuration_mode ? "Configuration" : "Neighborhood"), select_threshold,
+                     break_threshold);
+    else
+      utils::logmesg(lmp, "Extrapolation Mode: {} mode.\n",
+                     (configuration_mode ? "Configuration" : "Neighborhood"));
 
   PairMTP::prepare_map(narg - 3, arg + 3);
 }

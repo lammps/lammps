@@ -247,7 +247,7 @@ style, info string, author string, pointer to factory function, and the
 DSO handle.  The registration function is called with a pointer to the address
 of this struct and the pointer of the LAMMPS class.  The registration function
 will then add the factory function of the plugin style to the respective
-style map under the provided name.  It will also make a copy of the struct
+process-global style registry under the provided name.  It will also make a copy of the struct
 in a global list of all loaded plugins and update the reference counter for
 loaded plugins from this specific DSO file.
 

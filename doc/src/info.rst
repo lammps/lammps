@@ -125,6 +125,11 @@ categories:
 * pair
 * region
 
+.. versionchanged:: TBD
+
+A style that is currently provided by a loaded :doc:`plugin <plugin>` is marked
+with a trailing asterisk (``*``) in the listing.
+
 The *time* category prints the accumulated CPU and wall time for the
 process that writes output (usually MPI rank 0).
 

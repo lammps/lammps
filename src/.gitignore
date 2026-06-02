@@ -11,6 +11,7 @@
 /package_registry.cpp
 /lmpinstalledpkgs.h
 /lmpgitversion.h
+/stylegen.exe
 
 /*_gpu.h
 /*_gpu.cpp

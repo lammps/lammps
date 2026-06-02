@@ -14,23 +14,6 @@
 
 #include "lammps.h"
 
-#include "style_angle.h"     // IWYU pragma: keep
-#include "style_atom.h"      // IWYU pragma: keep
-#include "style_body.h"      // IWYU pragma: keep
-#include "style_bond.h"      // IWYU pragma: keep
-#include "style_command.h"   // IWYU pragma: keep
-#include "style_compute.h"   // IWYU pragma: keep
-#include "style_dihedral.h"  // IWYU pragma: keep
-#include "style_dump.h"      // IWYU pragma: keep
-#include "style_fix.h"       // IWYU pragma: keep
-#include "style_improper.h"  // IWYU pragma: keep
-#include "style_integrate.h" // IWYU pragma: keep
-#include "style_kspace.h"    // IWYU pragma: keep
-#include "style_minimize.h"  // IWYU pragma: keep
-#include "style_pair.h"      // IWYU pragma: keep
-#include "style_reader.h"    // IWYU pragma: keep
-#include "style_region.h"    // IWYU pragma: keep
-
 #include "accelerator_kokkos.h"
 #include "accelerator_omp.h"
 #include "atom.h"
@@ -61,6 +44,7 @@
 #include "plugin.h"
 #endif
 
+#include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <cstring>
@@ -76,6 +60,24 @@
 #endif
 
 static void print_style(FILE *fp, const char *str, int &pos);
+
+// print the keywords of all styles in a global registry in columns, sorted,
+// appending "*" to styles provided by a plugin (used by LAMMPS::help)
+
+template <typename Creator>
+static void print_styles(FILE *fp, const LAMMPS_NS::CreatorRegistry<Creator> &reg, int &pos)
+{
+  auto names = reg.keys();
+  std::sort(names.begin(), names.end());
+  for (const auto &name : names) {
+    if (reg.has_plugin(name)) {
+      std::string marked = name + "*";
+      print_style(fp, marked.c_str(), pos);
+    } else {
+      print_style(fp, name.c_str(), pos);
+    }
+  }
+}
 
 using namespace LAMMPS_NS;
 
@@ -1157,118 +1159,77 @@ void _noopt LAMMPS::help()
           exename);
 
   print_config(fp);
-  fprintf(fp,"List of individual style options included in this LAMMPS executable\n\n");
+  fprintf(fp,"List of individual style options included in this LAMMPS executable\n");
+  fprintf(fp,"(a trailing * marks a style currently provided by a plugin)\n\n");
 
   int pos = 80;
   fprintf(fp,"* Atom styles:\n");
-#define ATOM_CLASS
-#define AtomStyle(key,Class) print_style(fp,#key,pos);
-#include "style_atom.h"  // IWYU pragma: keep
-#undef ATOM_CLASS
+  print_styles(fp, Atom::avec_styles(), pos);
   fprintf(fp,"\n\n");
 
   pos = 80;
   fprintf(fp,"* Integrate styles:\n");
-#define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) print_style(fp,#key,pos);
-#include "style_integrate.h"  // IWYU pragma: keep
-#undef INTEGRATE_CLASS
+  print_styles(fp, Update::integrate_styles(), pos);
   fprintf(fp,"\n\n");
 
   pos = 80;
   fprintf(fp,"* Minimize styles:\n");
-#define MINIMIZE_CLASS
-#define MinimizeStyle(key,Class) print_style(fp,#key,pos);
-#include "style_minimize.h"  // IWYU pragma: keep
-#undef MINIMIZE_CLASS
+  print_styles(fp, Update::minimize_styles(), pos);
   fprintf(fp,"\n\n");
 
   pos = 80;
   fprintf(fp,"* Pair styles:\n");
-#define PAIR_CLASS
-#define PairStyle(key,Class) print_style(fp,#key,pos);
-#include "style_pair.h"  // IWYU pragma: keep
-#undef PAIR_CLASS
+  print_styles(fp, Force::pair_styles(), pos);
   fprintf(fp,"\n\n");
 
   pos = 80;
   fprintf(fp,"* Bond styles:\n");
-#define BOND_CLASS
-#define BondStyle(key,Class) print_style(fp,#key,pos);
-#include "style_bond.h"  // IWYU pragma: keep
-#undef BOND_CLASS
+  print_styles(fp, Force::bond_styles(), pos);
   fprintf(fp,"\n\n");
 
   pos = 80;
   fprintf(fp,"* Angle styles:\n");
-#define ANGLE_CLASS
-#define AngleStyle(key,Class) print_style(fp,#key,pos);
-#include "style_angle.h"  // IWYU pragma: keep
-#undef ANGLE_CLASS
+  print_styles(fp, Force::angle_styles(), pos);
   fprintf(fp,"\n\n");
 
   pos = 80;
   fprintf(fp,"* Dihedral styles:\n");
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) print_style(fp,#key,pos);
-#include "style_dihedral.h"  // IWYU pragma: keep
-#undef DIHEDRAL_CLASS
+  print_styles(fp, Force::dihedral_styles(), pos);
   fprintf(fp,"\n\n");
 
   pos = 80;
   fprintf(fp,"* Improper styles:\n");
-#define IMPROPER_CLASS
-#define ImproperStyle(key,Class) print_style(fp,#key,pos);
-#include "style_improper.h"  // IWYU pragma: keep
-#undef IMPROPER_CLASS
+  print_styles(fp, Force::improper_styles(), pos);
   fprintf(fp,"\n\n");
 
   pos = 80;
   fprintf(fp,"* KSpace styles:\n");
-#define KSPACE_CLASS
-#define KSpaceStyle(key,Class) print_style(fp,#key,pos);
-#include "style_kspace.h"  // IWYU pragma: keep
-#undef KSPACE_CLASS
+  print_styles(fp, Force::kspace_styles(), pos);
   fprintf(fp,"\n\n");
 
   pos = 80;
   fprintf(fp,"* Fix styles\n");
-#define FIX_CLASS
-#define FixStyle(key,Class) print_style(fp,#key,pos);
-#include "style_fix.h"  // IWYU pragma: keep
-#undef FIX_CLASS
+  print_styles(fp, Modify::fix_styles(), pos);
   fprintf(fp,"\n\n");
 
   pos = 80;
   fprintf(fp,"* Compute styles:\n");
-#define COMPUTE_CLASS
-#define ComputeStyle(key,Class) print_style(fp,#key,pos);
-#include "style_compute.h"  // IWYU pragma: keep
-#undef COMPUTE_CLASS
+  print_styles(fp, Modify::compute_styles(), pos);
   fprintf(fp,"\n\n");
 
   pos = 80;
   fprintf(fp,"* Region styles:\n");
-#define REGION_CLASS
-#define RegionStyle(key,Class) print_style(fp,#key,pos);
-#include "style_region.h"  // IWYU pragma: keep
-#undef REGION_CLASS
+  print_styles(fp, Domain::region_styles(), pos);
   fprintf(fp,"\n\n");
 
   pos = 80;
   fprintf(fp,"* Dump styles:\n");
-#define DUMP_CLASS
-#define DumpStyle(key,Class) print_style(fp,#key,pos);
-#include "style_dump.h"  // IWYU pragma: keep
-#undef DUMP_CLASS
+  print_styles(fp, Output::dump_styles(), pos);
   fprintf(fp,"\n\n");
 
   pos = 80;
   fprintf(fp,"* Command styles\n");
-#define COMMAND_CLASS
-#define CommandStyle(key,Class) print_style(fp,#key,pos);
-#include "style_command.h"  // IWYU pragma: keep
-#undef COMMAND_CLASS
+  print_styles(fp, Input::command_styles(), pos);
   fprintf(fp,"\n\n");
 
   // close pipe to pager, if active

@@ -120,18 +120,6 @@ const char * const commlayout[] = { "uniform", "nonuniform", "irregular" };
 
 const char bstyles[] = "pfsm";
 
-template<typename ValueType>
-void print_columns(FILE *fp, std::map<std::string, ValueType> *styles);
-
-template<typename ValueType>
-bool find_style(const LAMMPS *lmp, std::map<std::string, ValueType> *styles,
-                       const std::string &name, bool suffix_check);
-
-template<typename ValueType>
-std::vector<std::string> get_style_names(std::map<std::string, ValueType> *styles);
-
-// overloads for the global style registries (CreatorRegistry)
-
 template<typename Creator>
 void print_columns(FILE *fp, const CreatorRegistry<Creator> &styles);
 
@@ -609,7 +597,7 @@ void Info::command(int narg, char **arg)
 void Info::available_styles(FILE * out, int flags)
 {
 
-  fputs("\nStyles information:\n",out);
+  fputs("\nStyles information (* = currently provided by a plugin):\n",out);
 
   if (flags & ATOM_STYLES)      atom_styles(out);
   if (flags & INTEGRATE_STYLES) integrate_styles(out);
@@ -930,88 +918,6 @@ std::vector<std::string> Info::get_available_styles(const std::string &category)
 }
 
 namespace {
-template<typename ValueType>
-std::vector<std::string> get_style_names(std::map<std::string, ValueType> *styles)
-{
-  std::vector<std::string> names;
-
-  names.reserve(styles->size());
-  for (auto const &kv : *styles) {
-    // skip "secret" styles
-    if (isupper(kv.first[0])) continue;
-    names.push_back(kv.first);
-  }
-
-  return names;
-}
-
-template<typename ValueType>
-bool find_style(const LAMMPS *lmp, std::map<std::string, ValueType> *styles,
-                       const std::string &name, bool suffix_check)
-{
-  if (styles->find(name) != styles->end()) {
-    return true;
-  }
-
-  if (suffix_check && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      std::string name_w_suffix = name + "/" + lmp->suffix;
-      if (find_style(lmp, styles, name_w_suffix, false)) {
-        return true;
-      }
-    }
-    if (lmp->suffix2) {
-      std::string name_w_suffix = name + "/" + lmp->suffix2;
-      if (find_style(lmp, styles, name_w_suffix, false)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-template<typename ValueType>
-void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
-{
-  if (styles->empty()) {
-    fprintf(fp, "\nNone");
-    return;
-  }
-
-  // std::map keys are already sorted
-  int pos = 80;
-  for (auto it = styles->begin(); it != styles->end(); ++it) {
-    const std::string &style_name = it->first;
-
-    // skip "internal" styles
-    if (isupper(style_name[0]) || utils::strmatch(style_name,"/kk/host$")
-        || utils::strmatch(style_name,"/kk/device$")) continue;
-
-    int len = style_name.length();
-    if (pos + len > 80) {
-      fprintf(fp,"\n");
-      pos = 0;
-    }
-
-    if (len < 16) {
-      fprintf(fp,"%-16s", style_name.c_str());
-      pos += 16;
-    } else if (len < 32) {
-      fprintf(fp,"%-32s", style_name.c_str());
-      pos += 32;
-    } else if (len < 48) {
-      fprintf(fp,"%-48s", style_name.c_str());
-      pos += 48;
-    } else if (len < 64) {
-      fprintf(fp,"%-64s", style_name.c_str());
-      pos += 64;
-    } else {
-      fprintf(fp,"%-80s", style_name.c_str());
-      pos += 80;
-    }
-  }
-}
-
 // --- overloads operating on the global style registries ---
 
 template<typename Creator>
@@ -1061,26 +967,30 @@ void print_columns(FILE *fp, const CreatorRegistry<Creator> &styles)
     if (isupper(style_name[0]) || utils::strmatch(style_name,"/kk/host$")
         || utils::strmatch(style_name,"/kk/device$")) continue;
 
-    int len = style_name.length();
+    // mark styles currently provided by a plugin with a trailing "*"
+    std::string display = style_name;
+    if (styles.has_plugin(style_name)) display += "*";
+
+    int len = display.length();
     if (pos + len > 80) {
       fprintf(fp,"\n");
       pos = 0;
     }
 
     if (len < 16) {
-      fprintf(fp,"%-16s", style_name.c_str());
+      fprintf(fp,"%-16s", display.c_str());
       pos += 16;
     } else if (len < 32) {
-      fprintf(fp,"%-32s", style_name.c_str());
+      fprintf(fp,"%-32s", display.c_str());
       pos += 32;
     } else if (len < 48) {
-      fprintf(fp,"%-48s", style_name.c_str());
+      fprintf(fp,"%-48s", display.c_str());
       pos += 48;
     } else if (len < 64) {
-      fprintf(fp,"%-64s", style_name.c_str());
+      fprintf(fp,"%-64s", display.c_str());
       pos += 64;
     } else {
-      fprintf(fp,"%-80s", style_name.c_str());
+      fprintf(fp,"%-80s", display.c_str());
       pos += 80;
     }
   }

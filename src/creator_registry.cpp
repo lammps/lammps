@@ -34,6 +34,9 @@ void register_minimize_styles();
 void register_region_styles();
 void register_dump_styles();
 void register_command_styles();
+void register_atom_styles();
+void register_body_styles();
+void register_reader_styles();
 
 // fills the global package-style -> package-name map (package_registry.h)
 void register_package_styles();
@@ -62,6 +65,9 @@ void register_builtin_styles()
     register_region_styles();
     register_dump_styles();
     register_command_styles();
+    register_atom_styles();
+    register_body_styles();
+    register_reader_styles();
 
     // style-keyword -> package-name map used for diagnostics
     register_package_styles();

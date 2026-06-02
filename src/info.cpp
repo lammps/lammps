@@ -630,7 +630,7 @@ void Info::available_styles(FILE * out, int flags)
 void Info::atom_styles(FILE *out)
 {
   fputs("\nAtom styles:\n",out);
-  print_columns(out, atom->avec_map);
+  print_columns(out, Atom::avec_styles());
   fputs("\n\n\n",out);
 }
 
@@ -864,7 +864,7 @@ bool Info::is_defined(const char *category, const char *name)
 bool Info::has_style(const std::string &category, const std::string &name)
 {
   if (category == "atom") {
-    return find_style(lmp, atom->avec_map, name, false);
+    return find_style(lmp, Atom::avec_styles(), name, false);
   } else if (category == "integrate") {
     return find_style(lmp, Update::integrate_styles(), name, true);
   } else if (category == "minimize") {
@@ -898,7 +898,7 @@ bool Info::has_style(const std::string &category, const std::string &name)
 std::vector<std::string> Info::get_available_styles(const std::string &category)
 {
   if (category == "atom") {
-    return get_style_names(atom->avec_map);
+    return get_style_names(Atom::avec_styles());
   } else if (category == "integrate") {
     return get_style_names(Update::integrate_styles());
   } else if (category == "minimize") {

@@ -251,6 +251,9 @@ if (test $cmd = "style") then
   stylesource REGION_CLASS    region_   region    RegionStyle    Region    Domain::region_styles    register_region_styles    0 "domain.h region.h"
   stylesource DUMP_CLASS      dump_     dump      DumpStyle      Dump      Output::dump_styles      register_dump_styles      0 "output.h dump.h"
   stylesource COMMAND_CLASS   ""        command   CommandStyle   Command   Input::command_styles    register_command_styles   1 "input.h command.h"
+  stylesource ATOM_CLASS      atom_vec_ atom      AtomStyle      AtomVec   Atom::avec_styles        register_atom_styles      1 "atom.h atom_vec.h"
+  stylesource BODY_CLASS      body_     body      BodyStyle      Body      AtomVecBody::body_styles register_body_styles      0 "atom_vec_body.h body.h"
+  stylesource READER_CLASS    reader_   reader    ReaderStyle    Reader    ReadDump::reader_styles  register_reader_styles    1 "read_dump.h reader.h"
 
   packageregistry
 

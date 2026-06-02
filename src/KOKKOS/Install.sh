@@ -487,6 +487,8 @@ action pair_morse_kokkos.cpp
 action pair_morse_kokkos.h
 action pair_morse_smooth_linear_kokkos.cpp pair_morse_smooth_linear.cpp
 action pair_morse_smooth_linear_kokkos.h pair_morse_smooth_linear.h
+action pair_mtp_extrapolation_kokkos.h pair_extrapolation_mtp.h
+action pair_mtp_extrapolation_kokkos.cpp pair_extrapolation_mtp.cpp
 action pair_mtp_kokkos.h pair_mtp.h
 action pair_mtp_kokkos.cpp pair_mtp.cpp
 action pair_multi_lucy_rx_kokkos.cpp pair_multi_lucy_rx.cpp

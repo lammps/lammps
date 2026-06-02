@@ -8,6 +8,7 @@
 /style_*.h
 /style_*.cpp
 /packages_*.h
+/package_registry.cpp
 /lmpinstalledpkgs.h
 /lmpgitversion.h
 

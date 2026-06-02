@@ -25,6 +25,7 @@ style_nstencil.h
 style_ntopo.h
 # auto-generated style source files
 style_pair.cpp
+package_registry.cpp
 # auto-generated packages files
 packages_angle.h
 packages_atom.h

@@ -23,6 +23,9 @@ namespace LAMMPS_NS {
 
 void register_pair_styles();
 
+// fills the global package-style -> package-name map (package_registry.h)
+void register_package_styles();
+
 /* ----------------------------------------------------------------------
    register all built-in styles exactly once per process.  The std::call_once
    guard makes this safe to call from every LAMMPS constructor (including
@@ -35,6 +38,9 @@ void register_builtin_styles()
   std::call_once(flag, []() {
     // per-category register_*_styles() calls are added here during migration
     register_pair_styles();
+
+    // style-keyword -> package-name map used for diagnostics
+    register_package_styles();
   });
 }
 

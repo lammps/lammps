@@ -321,7 +321,6 @@ warning:
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
 	@echo 'Gathering installed package information (may take a little while)'
 	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh packages
 	@$(MAKE) $(MFLAGS) warning
 	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h gitversion
 	@echo 'Compiling LAMMPS for machine $@'

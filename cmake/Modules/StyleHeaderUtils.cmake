@@ -144,27 +144,15 @@ endfunction(RegisterStylesExt)
 
 function(GenerateStyleHeaders output_path)
     message(STATUS "Generating style headers...")
-    GenerateStyleHeader(${output_path} ANGLE        angle        ) # force
-    GenerateStyleHeader(${output_path} ATOM_VEC     atom         ) # atom      atom_vec_hybrid
-    GenerateStyleHeader(${output_path} BODY         body         ) # atom_vec_body
-    GenerateStyleHeader(${output_path} BOND         bond         ) # force
-    GenerateStyleHeader(${output_path} COMMAND      command      ) # input
-    GenerateStyleHeader(${output_path} COMPUTE      compute      ) # modify
-    GenerateStyleHeader(${output_path} DIHEDRAL     dihedral     ) # force
-    GenerateStyleHeader(${output_path} DUMP         dump         ) # output    write_dump
-    GenerateStyleHeader(${output_path} FIX          fix          ) # modify
+    # only the array/mask-based categories that still expand the XXX_CLASS macro
+    # at compile time need a style_*.h include list.  The name-keyed categories
+    # are registered through the global registry from generated style_*.cpp and
+    # no longer use style_*.h (see GenerateStyleSources).
     GenerateStyleHeader(${output_path} GRAN_SUB_MOD gran_sub_mod ) # granular_model
-    GenerateStyleHeader(${output_path} IMPROPER     improper     ) # force
-    GenerateStyleHeader(${output_path} INTEGRATE    integrate    ) # update
-    GenerateStyleHeader(${output_path} KSPACE       kspace       ) # force
-    GenerateStyleHeader(${output_path} MINIMIZE     minimize     ) # update
     GenerateStyleHeader(${output_path} NBIN         nbin         ) # neighbor
     GenerateStyleHeader(${output_path} NPAIR        npair        ) # neighbor
     GenerateStyleHeader(${output_path} NSTENCIL     nstencil     ) # neighbor
     GenerateStyleHeader(${output_path} NTOPO        ntopo        ) # neighbor
-    GenerateStyleHeader(${output_path} PAIR         pair         ) # force
-    GenerateStyleHeader(${output_path} READER       reader       ) # read_dump
-    GenerateStyleHeader(${output_path} REGION       region       ) # domain
 endfunction(GenerateStyleHeaders)
 
 # Generate a style_<style>.cpp registration translation unit by parsing the
@@ -348,53 +336,6 @@ function(RegisterPackages search_path)
     FindPackagesHeaders(${search_path} READER_CLASS    reader_    PKGREADER    ) # reader    ) # read_dump
     FindPackagesHeaders(${search_path} REGION_CLASS    region_    PKGREGION    ) # region    ) # domain
 endfunction(RegisterPackages)
-
-function(CreatePackagesHeader path filename)
-  set(temp "")
-  if(ARGC GREATER 2)
-    list(REMOVE_AT ARGV 0 1)
-    foreach(FNAME ${ARGV})
-      set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${FNAME}")
-      get_filename_component(DNAME ${FNAME} DIRECTORY)
-      get_filename_component(DNAME ${DNAME} NAME)
-      get_filename_component(FNAME ${FNAME} NAME)
-      set(temp "${temp}#undef PACKAGE\n#define PACKAGE \"${DNAME}\"\n")
-      set(temp "${temp}#include \"${DNAME}/${FNAME}\"\n")
-    endforeach()
-  endif()
-  file(WRITE "${path}/${filename}.tmp" "${temp}" )
-  execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${path}/${filename}.tmp" "${path}/${filename}")
-  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${path}/${filename}")
-endfunction(CreatePackagesHeader)
-
-function(GeneratePackagesHeader path property style)
-  get_property(files GLOBAL PROPERTY ${property})
-  CreatePackagesHeader("${path}" "packages_${style}.h" ${files})
-endfunction(GeneratePackagesHeader)
-
-function(GeneratePackagesHeaders output_path)
-    message(STATUS "Generating package headers...")
-    GeneratePackagesHeader(${output_path} PKGANGLE      angle     ) # force
-    GeneratePackagesHeader(${output_path} PKGATOM_VEC   atom      ) # atom      atom_vec_hybrid
-    GeneratePackagesHeader(${output_path} PKGBODY       body      ) # atom_vec_body
-    GeneratePackagesHeader(${output_path} PKGBOND       bond      ) # force
-    GeneratePackagesHeader(${output_path} PKGCOMMAND    command   ) # input
-    GeneratePackagesHeader(${output_path} PKGCOMPUTE    compute   ) # modify
-    GeneratePackagesHeader(${output_path} PKGDIHEDRAL   dihedral  ) # force
-    GeneratePackagesHeader(${output_path} PKGDUMP       dump      ) # output    write_dump
-    GeneratePackagesHeader(${output_path} PKGFIX        fix       ) # modify
-    GeneratePackagesHeader(${output_path} PKGIMPROPER   improper  ) # force
-    GeneratePackagesHeader(${output_path} PKGINTEGRATE  integrate ) # update
-    GeneratePackagesHeader(${output_path} PKGKSPACE     kspace    ) # force
-    GeneratePackagesHeader(${output_path} PKGMINIMIZE   minimize  ) # update
-    GeneratePackagesHeader(${output_path} PKGNBIN       nbin      ) # neighbor
-    GeneratePackagesHeader(${output_path} PKGNPAIR      npair     ) # neighbor
-    GeneratePackagesHeader(${output_path} PKGNSTENCIL   nstencil  ) # neighbor
-    GeneratePackagesHeader(${output_path} PKGNTOPO      ntopo     ) # neighbor
-    GeneratePackagesHeader(${output_path} PKGPAIR       pair      ) # force
-    GeneratePackagesHeader(${output_path} PKGREADER     reader    ) # read_dump
-    GeneratePackagesHeader(${output_path} PKGREGION     region    ) # domain
-endfunction(GeneratePackagesHeaders)
 
 # append "package_styles().<member>[\"key\"] = \"<package>\";" entries for one
 # style category to out_var, parsed from all (enabled or not) package headers

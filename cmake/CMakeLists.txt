@@ -711,7 +711,6 @@ endif()
 set(LAMMPS_STYLE_HEADERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/styles)
 
 GenerateStyleHeaders(${LAMMPS_STYLE_HEADERS_DIR})
-GeneratePackagesHeaders(${LAMMPS_STYLE_HEADERS_DIR})
 GenerateStyleSources(${LAMMPS_STYLE_HEADERS_DIR})
 GeneratePackageRegistry(${LAMMPS_STYLE_HEADERS_DIR})
 

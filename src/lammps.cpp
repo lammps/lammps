@@ -33,6 +33,7 @@
 #include "neighbor.h"
 #include "output.h"
 #include "package_registry.h"
+#include "platform.h"
 #include "suffix.h"
 #include "timer.h"
 #include "universe.h"
@@ -64,7 +65,7 @@
 // (used by LAMMPS::help)
 
 template <typename Creator>
-static void print_styles(FILE *fp, const LAMMPS_NS::CreatorRegistry<Creator> &reg)
+static void print_styles(FILE *fp, const LAMMPS_NS::CreatorRegistry<Creator> &reg, int width)
 {
   std::vector<std::string> names;
   for (const auto &name : reg.keys()) {
@@ -76,7 +77,7 @@ static void print_styles(FILE *fp, const LAMMPS_NS::CreatorRegistry<Creator> &re
   std::sort(names.begin(), names.end());
   for (auto &name : names)
     if (reg.has_plugin(name)) name += "*";
-  fputs(LAMMPS_NS::utils::columnize(names).c_str(), fp);
+  LAMMPS_NS::utils::print(fp, LAMMPS_NS::utils::columnize(names, width));
 }
 
 using namespace LAMMPS_NS;
@@ -1103,6 +1104,10 @@ void _noopt LAMMPS::help()
 
   int use_pager = platform::is_console(fp);
 
+  // adapt to the terminal width when writing to a console, else use 80 columns
+  int width = LAMMPS_NS::platform::terminal_width(fp);
+  if ((width < 1) || !use_pager) width = 80;
+
   // cannot use this with OpenMPI since its console is non-functional
 
 #if defined(OPEN_MPI)
@@ -1158,64 +1163,64 @@ void _noopt LAMMPS::help()
           "-var varname value          : set index style variable (-v)\n\n",
           exename);
 
-  print_config(fp);
-  fprintf(fp,"List of individual style options included in this LAMMPS executable\n");
+  print_config(fp, width);
+  fprintf(fp,"Lists of individual styles included in this LAMMPS executable\n");
   fprintf(fp,"(a trailing * marks a style currently provided by a plugin)\n\n");
 
   fprintf(fp,"* Atom styles:\n");
-  print_styles(fp, Atom::avec_styles());
+  print_styles(fp, Atom::avec_styles(), width);
   fprintf(fp,"\n\n");
 
   fprintf(fp,"* Integrate styles:\n");
-  print_styles(fp, Update::integrate_styles());
+  print_styles(fp, Update::integrate_styles(), width);
   fprintf(fp,"\n\n");
 
   fprintf(fp,"* Minimize styles:\n");
-  print_styles(fp, Update::minimize_styles());
+  print_styles(fp, Update::minimize_styles(), width);
   fprintf(fp,"\n\n");
 
   fprintf(fp,"* Pair styles:\n");
-  print_styles(fp, Force::pair_styles());
+  print_styles(fp, Force::pair_styles(), width);
   fprintf(fp,"\n\n");
 
   fprintf(fp,"* Bond styles:\n");
-  print_styles(fp, Force::bond_styles());
+  print_styles(fp, Force::bond_styles(), width);
   fprintf(fp,"\n\n");
 
   fprintf(fp,"* Angle styles:\n");
-  print_styles(fp, Force::angle_styles());
+  print_styles(fp, Force::angle_styles(), width);
   fprintf(fp,"\n\n");
 
   fprintf(fp,"* Dihedral styles:\n");
-  print_styles(fp, Force::dihedral_styles());
+  print_styles(fp, Force::dihedral_styles(), width);
   fprintf(fp,"\n\n");
 
   fprintf(fp,"* Improper styles:\n");
-  print_styles(fp, Force::improper_styles());
+  print_styles(fp, Force::improper_styles(), width);
   fprintf(fp,"\n\n");
 
   fprintf(fp,"* KSpace styles:\n");
-  print_styles(fp, Force::kspace_styles());
+  print_styles(fp, Force::kspace_styles(), width);
   fprintf(fp,"\n\n");
 
   fprintf(fp,"* Fix styles\n");
-  print_styles(fp, Modify::fix_styles());
+  print_styles(fp, Modify::fix_styles(), width);
   fprintf(fp,"\n\n");
 
   fprintf(fp,"* Compute styles:\n");
-  print_styles(fp, Modify::compute_styles());
+  print_styles(fp, Modify::compute_styles(), width);
   fprintf(fp,"\n\n");
 
   fprintf(fp,"* Region styles:\n");
-  print_styles(fp, Domain::region_styles());
+  print_styles(fp, Domain::region_styles(), width);
   fprintf(fp,"\n\n");
 
   fprintf(fp,"* Dump styles:\n");
-  print_styles(fp, Output::dump_styles());
+  print_styles(fp, Output::dump_styles(), width);
   fprintf(fp,"\n\n");
 
   fprintf(fp,"* Command styles\n");
-  print_styles(fp, Input::command_styles());
+  print_styles(fp, Input::command_styles(), width);
   fprintf(fp,"\n\n");
 
   // close pipe to pager, if active
@@ -1223,7 +1228,7 @@ void _noopt LAMMPS::help()
   if (pager != nullptr) platform::pclose(fp);
 }
 
-void LAMMPS::print_config(FILE *fp)
+void LAMMPS::print_config(FILE *fp, int width)
 {
   const char *pkg;
   int ncword, ncline = 0;
@@ -1274,7 +1279,7 @@ void LAMMPS::print_config(FILE *fp)
   fputs("\nInstalled packages:\n\n",fp);
   for (int i = 0; nullptr != (pkg = installed_packages[i]); ++i) {
     ncword = strlen(pkg);
-    if (ncline + ncword > 78) {
+    if ((ncline + ncword) > (width - 1)) {
       ncline = 0;
       fputs("\n",fp);
     }

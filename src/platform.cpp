@@ -57,11 +57,13 @@
 
 #include <dirent.h>
 #include <dlfcn.h>
+#include <sys/ioctl.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
+#include <termios.h>
 #include <unistd.h>
 #endif
 
@@ -755,6 +757,26 @@ bool platform::is_console(FILE *fp)
   return (_isatty(_fileno(fp)) == 1);
 #else
   return (isatty(fileno(fp)) == 1);
+#endif
+}
+
+/* ----------------------------------------------------------------------
+   query the width (number of columns) of the terminal, if any
+------------------------------------------------------------------------- */
+
+int platform::terminal_width(FILE *fp)
+{
+  if (!is_console(fp)) return 0;
+#if defined(_WIN32)
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  HANDLE handle = (HANDLE) _get_osfhandle(_fileno(fp));
+  if ((handle != INVALID_HANDLE_VALUE) && GetConsoleScreenBufferInfo(handle, &csbi))
+    return csbi.srWindow.Right - csbi.srWindow.Left + 1;
+  return 0;
+#else
+  struct winsize ws;
+  if ((ioctl(fileno(fp), TIOCGWINSZ, &ws) == 0) && (ws.ws_col > 0)) return ws.ws_col;
+  return 0;
 #endif
 }
 

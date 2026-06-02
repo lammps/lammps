@@ -95,7 +95,7 @@ class LAMMPS {
   void post_create();
   void init();
   void destroy();
-  void print_config(FILE *);    // print compile time settings
+  void print_config(FILE *, int width = 80);    // print compile time settings
 
  private:
   void help();

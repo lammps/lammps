@@ -40,6 +40,7 @@
 #include "output.h"
 #include "pair.h"
 #include "pair_hybrid.h"
+#include "platform.h"
 #include "region.h"
 #include "update.h"
 #include "variable.h"
@@ -965,7 +966,11 @@ void print_columns(FILE *fp, const CreatorRegistry<Creator> &styles)
   for (auto &name : names)
     if (styles.has_plugin(name)) name += "*";
 
-  fputs(utils::columnize(names).c_str(), fp);
+  // adapt to the terminal width for interactive screen output, but use a fixed
+  // width for files/pipes so logfile output stays reproducible
+  int width = platform::terminal_width(fp);
+  if (width < 1) width = 80;
+  fputs(utils::columnize(names, width).c_str(), fp);
 }
 }
 

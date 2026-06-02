@@ -36,12 +36,15 @@ namespace {
   // map for counting references to dso handles
   std::map<void *, int> dso_refcounter;
 
-  // serializes mutations of pluginlist / dso_refcounter so that concurrent
-  // LAMMPS instances can load or unload plugins at the same time.  Only the
-  // top-level entry points (plugin_register, plugin_unload) take this lock; the
-  // helpers they call (plugin_find, plugin_erase, plugin_get_info) assume it is
-  // already held.  RAII (std::lock_guard) guarantees the lock is released even
-  // if an error handler throws out of the critical section.
+  // serializes all access to pluginlist / dso_refcounter so that concurrent
+  // LAMMPS instances can load, unload, or list plugins at the same time.  Every
+  // entry point that touches these containers (plugin_register, plugin_unload,
+  // plugin_clear, plugin_finalize, and the "plugin list" command) takes this
+  // lock; the helpers they call while holding it (plugin_find, plugin_erase,
+  // plugin_get_info, plugin_get_num_plugins, plugin_unload_locked) assume it is
+  // already held and must not re-acquire it.  RAII (std::lock_guard) guarantees
+  // the lock is released even if an error handler throws out of the critical
+  // section.
   std::mutex plugin_mutex;
 
   bool verbose = true;
@@ -78,6 +81,7 @@ void Plugin::command(int narg, char **arg)
 
   } else if (cmd == "list") {
     if (comm->me == 0) {
+      std::lock_guard<std::mutex> guard(plugin_mutex);
       int num = plugin_get_num_plugins();
       utils::logmesg(lmp, "Currently loaded plugins: {}\n", num);
       for (int i = 0; i < num; ++i) {
@@ -289,10 +293,11 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
      must also delete style instances if style is currently active
      -------------------------------------------------------------------- */
 
-void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
-{
 #if defined(LMP_PLUGIN)
-  std::lock_guard<std::mutex> guard(plugin_mutex);
+// unload a single plugin.  the caller must already hold plugin_mutex.
+
+static void plugin_unload_locked(const char *style, const char *name, LAMMPS *lmp)
+{
   int me = lmp->comm->me;
 
   // ignore unload request from unsupported style categories
@@ -442,6 +447,14 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 
   --dso_refcounter[handle];
   if (dso_refcounter[handle] == 0) { platform::dlclose(handle); }
+}
+#endif
+
+void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
+{
+#if defined(LMP_PLUGIN)
+  std::lock_guard<std::mutex> guard(plugin_mutex);
+  plugin_unload_locked(style, name, lmp);
 #endif
 }
 
@@ -451,13 +464,16 @@ void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
 
 void plugin_clear(LAMMPS *lmp)
 {
+#if defined(LMP_PLUGIN)
+  std::lock_guard<std::mutex> guard(plugin_mutex);
   bool oldverbose = verbose;
   verbose = true;
   while (pluginlist.size() > 0) {
     auto p = pluginlist.begin();
-    plugin_unload(p->style, p->name, lmp);
+    plugin_unload_locked(p->style, p->name, lmp);
   }
   verbose = oldverbose;
+#endif
 }
 
 /* --------------------------------------------------------------------
@@ -467,6 +483,7 @@ void plugin_clear(LAMMPS *lmp)
 void plugin_finalize()
 {
 #if defined(LMP_PLUGIN)
+  std::lock_guard<std::mutex> guard(plugin_mutex);
   while (pluginlist.size() > 0) {
     auto p = pluginlist.begin();
 

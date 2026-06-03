@@ -626,8 +626,6 @@
 /bond_gaussian.h
 /bond_gromos.cpp
 /bond_gromos.h
-/bond_gromos_kokkos.cpp
-/bond_gromos_kokkos.h
 /bond_harmonic.cpp
 /bond_harmonic.h
 /bond_harmonic_restrain.cpp
@@ -1070,10 +1068,6 @@
 /fix_poems.h
 /fix_pour.cpp
 /fix_pour.h
-/fix_press_berendsen_kokkos.cpp
-/fix_press_berendsen_kokkos.h
-/fix_press_langevin_kokkos.cpp
-/fix_press_langevin_kokkos.h
 /fix_qeq_comb.cpp
 /fix_qeq_comb.h
 /fix_qeq_ctip.cpp

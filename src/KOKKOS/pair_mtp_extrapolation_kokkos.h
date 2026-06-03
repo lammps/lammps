@@ -213,7 +213,7 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
 };
 
 // ========== Additional functors for grade reductions ==========
-template <class DeviceType> struct sComputeNbhGrades {
+template <class DeviceType> struct ComputeNbhGrades {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef KK_FLOAT value_type;
@@ -242,7 +242,7 @@ template <class DeviceType> struct sComputeNbhGrades {
   Kokkos::View<KK_FLOAT **, DeviceType> d_inverse_active_set;
   Kokkos::View<KK_FLOAT *, DeviceType> d_nbh_extrapolation_grades;
 
-  sComputeNbhGrades(
+  ComputeNbhGrades(
       int chunk_size_, int chunk_offset_, typename AT::t_int_1d_randomread d_ilist_,
       typename AT::t_int_1d_randomread type_, typename AT::t_int_1d d_map_, int species_count_,
       int radial_coeff_count_, int alpha_index_basic_count_, int radial_coeff_count_per_pair_,
@@ -270,7 +270,7 @@ template <class DeviceType> struct sComputeNbhGrades {
                   KK_FLOAT &nbh_max_grade) const;
 };
 
-template <class DeviceType> struct sComputeCfgGrade {
+template <class DeviceType> struct ComputeCfgGrade {
   typedef DeviceType device_type;
   typedef KK_FLOAT value_type;
 
@@ -278,8 +278,8 @@ template <class DeviceType> struct sComputeCfgGrade {
   Kokkos::View<KK_FLOAT *, DeviceType> d_energy_ders_wrt_coeffs;
   Kokkos::View<KK_FLOAT **, DeviceType> d_inverse_active_set;
 
-  sComputeCfgGrade(int coeff_count_, Kokkos::View<KK_FLOAT *, DeviceType> d_energy_ders_wrt_coeffs_,
-                   Kokkos::View<KK_FLOAT **, DeviceType> d_inverse_active_set_) :
+  ComputeCfgGrade(int coeff_count_, Kokkos::View<KK_FLOAT *, DeviceType> d_energy_ders_wrt_coeffs_,
+                  Kokkos::View<KK_FLOAT **, DeviceType> d_inverse_active_set_) :
       coeff_count(coeff_count_), d_energy_ders_wrt_coeffs(d_energy_ders_wrt_coeffs_),
       d_inverse_active_set(d_inverse_active_set_)
   {

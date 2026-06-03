@@ -1505,14 +1505,14 @@ void DumpVTK::write_pvtk(int fileformat)
   int one = 1;
   const char *byte_order = (*((char *) &one)) ? "LittleEndian" : "BigEndian";
 
-  utils::print(fp,"<?xml version=\"1.0\"?>\n");
-  utils::print(fp,"<VTKFile type=\"{}\" version=\"1.0\" byte_order=\"{}\">\n", gridtype, byte_order);
-  utils::print(fp,"  <{} GhostLevel=\"0\">\n", gridtype);
+  utils::print(fp, R"(<?xml version="1.0"?>)" "\n");
+  utils::print(fp, R"(<VTKFile type="{}" version="1.0" byte_order="{}">)" "\n", gridtype, byte_order);
+  utils::print(fp, R"(  <{} GhostLevel="0">)" "\n", gridtype);
 
   // point data array declarations, in the same order/grouping as the piece
   // files (mirrors reset_vtk_data_containers(): skip x,y,z, group vectors)
 
-  utils::print(fp,"    <PPointData>\n");
+  utils::print(fp, R"(    <PPointData>)" "\n");
   auto it = vtype.begin();
   ++it; ++it; ++it;    // skip the required x,y,z coordinate fields
   for (; it != vtype.end(); ++it) {
@@ -1520,31 +1520,31 @@ void DumpVTK::write_pvtk(int fileformat)
     if (it->second == Dump::INT) type = "Int32";
     else if (it->second == Dump::STRING) type = "String";
     if (vector_set.find(it->first) != vector_set.end()) {
-      utils::print(fp,"      <PDataArray type=\"{}\" Name=\"{}\" NumberOfComponents=\"3\"/>\n",
+      utils::print(fp, R"(      <PDataArray type="{}" Name="{}" NumberOfComponents="3"/>)" "\n",
                    type, name[it->first]);
       ++it; ++it;
     } else {
-      utils::print(fp,"      <PDataArray type=\"{}\" Name=\"{}\"/>\n", type, name[it->first]);
+      utils::print(fp, R"(      <PDataArray type="{}" Name="{}"/>)" "\n", type, name[it->first]);
     }
   }
-  utils::print(fp,"    </PPointData>\n");
+  utils::print(fp, R"(    </PPointData>)" "\n");
 
   // point coordinates: declare the same precision the piece files use
   // (vtkPoints defaults to single precision, so do not hardcode Float64)
 
   const char *ptype = (points->GetDataType() == VTK_DOUBLE) ? "Float64" : "Float32";
-  utils::print(fp,"    <PPoints>\n");
-  utils::print(fp,"      <PDataArray type=\"{}\" NumberOfComponents=\"3\"/>\n", ptype);
-  utils::print(fp,"    </PPoints>\n");
+  utils::print(fp, R"(    <PPoints>)" "\n");
+  utils::print(fp, R"(      <PDataArray type="{}" Name="Points" NumberOfComponents="3"/>)" "\n", ptype);
+  utils::print(fp, R"(    </PPoints>)" "\n");
 
   // one <Piece> entry per per-processor piece file
 
   int npieces = (multiproc > 1) ? multiproc : nprocs;
   for (int i = 0; i < npieces; ++i)
-    utils::print(fp,"    <Piece Source=\"{}\"/>\n", pvtk_piece_filename(i));
+    utils::print(fp, R"(    <Piece Source="{}"/>)" "\n", pvtk_piece_filename(i));
 
-  utils::print(fp,"  </{}>\n", gridtype);
-  utils::print(fp,"</VTKFile>\n");
+  utils::print(fp, R"(  </{}>)" "\n", gridtype);
+  utils::print(fp, R"(</VTKFile>)" "\n");
   fclose(fp);
 }
 

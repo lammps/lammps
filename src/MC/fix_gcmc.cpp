@@ -245,6 +245,7 @@ void FixGCMC::options(int narg, char **arg)
   max_rotation_angle = 10 * MY_PI / 180;
   region_volume = 0;
   max_region_attempts = 1000;
+  region_reject_warned = false;
   molecule_group = 0;
   molecule_group_bit = 0;
   molecule_group_inversebit = 0;
@@ -846,6 +847,20 @@ void FixGCMC::pre_exchange()
 }
 
 /* ----------------------------------------------------------------------
+   warn (once) that a region-restricted trial move could not be placed
+   inside the region within max_region_attempts tries and is being rejected
+------------------------------------------------------------------------- */
+
+void FixGCMC::warn_region_reject()
+{
+  if (region_reject_warned) return;
+  region_reject_warned = true;
+  error->warning(FLERR,"Fix gcmc could not place a region-restricted trial move "
+                 "inside the region after {} attempts; rejecting the move. Reduce "
+                 "the 'displace' distance or enlarge the region",max_region_attempts);
+}
+
+/* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
 void FixGCMC::attempt_atomic_translation()
@@ -875,6 +890,7 @@ void FixGCMC::attempt_atomic_translation()
     coord[0] = x[i][0] + displace*rx;
     coord[1] = x[i][1] + displace*ry;
     coord[2] = x[i][2] + displace*rz;
+    bool region_ok = true;
     if (region) {
       int region_attempt = 0;
       while (region->match(coord[0],coord[1],coord[2]) == 0) {
@@ -891,21 +907,27 @@ void FixGCMC::attempt_atomic_translation()
         ++region_attempt;
         if (region_attempt >= max_region_attempts) break;
       }
-      if (!region->match(coord[0],coord[1],coord[2]))
-        error->one(FLERR,"Fix gcmc translation put atom outside region");
+      region_ok = region->match(coord[0],coord[1],coord[2]);
     }
-    if (!domain->inside_nonperiodic(coord))
-      error->one(FLERR,"Fix gcmc translation put atom outside box");
 
-    double energy_after = energy(i,ngcmc_type,-1,coord);
+    // reject the trial move if it could not be placed inside the region
 
-    if (energy_after < MAXENERGYTEST &&
-        random_unequal->uniform() <
-        exp(beta*(energy_before - energy_after))) {
-      x[i][0] = coord[0];
-      x[i][1] = coord[1];
-      x[i][2] = coord[2];
-      success = 1;
+    if (!region_ok) {
+      warn_region_reject();
+    } else {
+      if (!domain->inside_nonperiodic(coord))
+        error->one(FLERR,"Fix gcmc translation put atom outside box");
+
+      double energy_after = energy(i,ngcmc_type,-1,coord);
+
+      if (energy_after < MAXENERGYTEST &&
+          random_unequal->uniform() <
+          exp(beta*(energy_before - energy_after))) {
+        x[i][0] = coord[0];
+        x[i][1] = coord[1];
+        x[i][2] = coord[2];
+        success = 1;
+      }
     }
   }
 
@@ -1140,8 +1162,15 @@ void FixGCMC::attempt_molecule_translation()
     com_displace[0] = displace*rx;
     com_displace[1] = displace*ry;
     com_displace[2] = displace*rz;
-    if (!region->match(coord[0],coord[1],coord[2]))
-      error->one(FLERR,"Fix gcmc translation put molecule COM outside region");
+
+    // reject the trial move if the COM could not be placed inside the region.
+    // the region test is identical on all ranks (synchronized RNG + xcm), so
+    // every rank returns together and no later collective is left unmatched.
+
+    if (!region->match(coord[0],coord[1],coord[2])) {
+      if (comm->me == 0) warn_region_reject();
+      return;
+    }
   }
 
   double energy_after = 0.0;
@@ -1538,6 +1567,7 @@ void FixGCMC::attempt_atomic_translation_full()
 
   tagint tmptag = -1;
 
+  bool region_ok = true;
   if (i >= 0) {
 
     double rsq = 1.1;
@@ -1569,19 +1599,34 @@ void FixGCMC::attempt_atomic_translation_full()
         ++region_attempt;
         if (region_attempt >= max_region_attempts) break;
       }
-      if (!region->match(coord[0],coord[1],coord[2]))
-        error->one(FLERR,"Fix gcmc translation put atom outside region");
+      region_ok = region->match(coord[0],coord[1],coord[2]);
     }
-    if (!domain->inside_nonperiodic(coord))
-      error->one(FLERR,"Fix gcmc translation put atom outside box");
-    xtmp[0] = x[i][0];
-    xtmp[1] = x[i][1];
-    xtmp[2] = x[i][2];
-    x[i][0] = coord[0];
-    x[i][1] = coord[1];
-    x[i][2] = coord[2];
+    if (region_ok) {
+      if (!domain->inside_nonperiodic(coord))
+        error->one(FLERR,"Fix gcmc translation put atom outside box");
+      xtmp[0] = x[i][0];
+      xtmp[1] = x[i][1];
+      xtmp[2] = x[i][2];
+      x[i][0] = coord[0];
+      x[i][1] = coord[1];
+      x[i][2] = coord[2];
 
-    tmptag = atom->tag[i];
+      tmptag = atom->tag[i];
+    }
+  }
+
+  // if a region-restricted move could not be placed, reject it. only the
+  // owning rank knows, so broadcast the decision to keep the collective
+  // energy_full() call below matched across all ranks.
+
+  if (region) {
+    int region_ok_local = region_ok ? 1 : 0;
+    int region_ok_all = 1;
+    MPI_Allreduce(&region_ok_local,&region_ok_all,1,MPI_INT,MPI_MIN,world);
+    if (!region_ok_all) {
+      if (comm->me == 0) warn_region_reject();
+      return;
+    }
   }
 
   double energy_after = energy_full();
@@ -1830,8 +1875,15 @@ void FixGCMC::attempt_molecule_translation_full()
       ++region_attempt;
       if (region_attempt >= max_region_attempts) break;
     }
-    if (!region->match(coord[0],coord[1],coord[2]))
-      error->one(FLERR,"Fix gcmc translation put molecule COM outside region");
+    // reject the trial move if the COM could not be placed inside the region.
+    // the region test is identical on all ranks (synchronized RNG + xcm), so
+    // every rank returns together and the collective energy_full() below stays
+    // matched across ranks.
+
+    if (!region->match(coord[0],coord[1],coord[2])) {
+      if (comm->me == 0) warn_region_reject();
+      return;
+    }
     com_displace[0] = displace*rx;
     com_displace[1] = displace*ry;
     com_displace[2] = displace*rz;

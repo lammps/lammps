@@ -78,6 +78,7 @@ class FixGCMC : public Fix {
 
   int gcmc_nmax;
   int max_region_attempts;
+  bool region_reject_warned;    // true after the region-placement reject warning was issued
   double gas_mass;
   double reservoir_temperature;
   double tfac_insert;
@@ -143,6 +144,7 @@ class FixGCMC : public Fix {
   double energy_full();
   double molecule_energy(tagint);
 
+  void warn_region_reject();
   int pick_random_gas_atom();
   tagint pick_random_gas_molecule();
   void toggle_intramolecular(int);

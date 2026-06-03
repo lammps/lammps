@@ -42,6 +42,7 @@
 #include "variable.h"
 
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 #include <sstream>
 #include <vector>
@@ -60,7 +61,6 @@
 #include <vtkPolyData.h>
 #include <vtkPolyDataWriter.h>
 #include <vtkXMLPolyDataWriter.h>
-#include <vtkXMLPPolyDataWriter.h>
 #include <vtkRectilinearGrid.h>
 #include <vtkRectilinearGridWriter.h>
 #include <vtkXMLRectilinearGridWriter.h>
@@ -68,7 +68,6 @@
 #include <vtkUnstructuredGrid.h>
 #include <vtkUnstructuredGridWriter.h>
 #include <vtkXMLUnstructuredGridWriter.h>
-#include <vtkXMLPUnstructuredGridWriter.h>
 
 using namespace LAMMPS_NS;
 
@@ -1393,20 +1392,9 @@ void DumpVTK::write_vtp(int n, double *mybuf)
     writer->Write();
 
     if (me == 0) {
-      if (multiproc) {
-        vtkSmartPointer<vtkXMLPPolyDataWriter> pwriter = vtkSmartPointer<vtkXMLPPolyDataWriter>::New();
-        pwriter->SetFileName(parallelfilecurrent);
-        pwriter->SetNumberOfPieces((multiproc > 1)?multiproc:nprocs);
-        if (binary) pwriter->SetDataModeToBinary();
-        else        pwriter->SetDataModeToAscii();
-
-#if VTK_MAJOR_VERSION < 6
-        pwriter->SetInput(polyData);
-#else
-        pwriter->SetInputData(polyData);
-#endif
-        pwriter->Write();
-      }
+      // write the parallel summary file ourselves (see write_pvtk()), since the
+      // VTK parallel writer derives wrong piece file names from multi-dot names
+      if (multiproc) write_pvtk(PVTP);
 
       if (domain->triclinic == 0) {
         domainfilecurrent[strlen(domainfilecurrent)-1] = 'r'; // adjust filename extension
@@ -1457,20 +1445,9 @@ void DumpVTK::write_vtu(int n, double *mybuf)
     writer->Write();
 
     if (me == 0) {
-      if (multiproc) {
-        vtkSmartPointer<vtkXMLPUnstructuredGridWriter> pwriter = vtkSmartPointer<vtkXMLPUnstructuredGridWriter>::New();
-        pwriter->SetFileName(parallelfilecurrent);
-        pwriter->SetNumberOfPieces((multiproc > 1)?multiproc:nprocs);
-        if (binary) pwriter->SetDataModeToBinary();
-        else        pwriter->SetDataModeToAscii();
-
-#if VTK_MAJOR_VERSION < 6
-        pwriter->SetInput(unstructuredGrid);
-#else
-        pwriter->SetInputData(unstructuredGrid);
-#endif
-        pwriter->Write();
-      }
+      // write the parallel summary file ourselves (see write_pvtk()), since the
+      // VTK parallel writer derives wrong piece file names from multi-dot names
+      if (multiproc) write_pvtk(PVTU);
 
       if (domain->triclinic == 0) {
         domainfilecurrent[strlen(domainfilecurrent)-1] = 'r'; // adjust filename extension
@@ -1482,6 +1459,93 @@ void DumpVTK::write_vtu(int n, double *mybuf)
   }
 
   reset_vtk_data_containers();
+}
+
+/* ----------------------------------------------------------------------
+   construct the name of the per-processor piece file for piece "id" as it
+   should be referenced from the parallel (.pvtp/.pvtu) summary file.
+   mirrors the "%" -> "_<id>" substitution used to build the actual piece
+   files (see constructor / setFileCurrent) and returns the name relative to
+   the summary file (leading directory removed), since both live in the same
+   directory.  filename is guaranteed to contain '%' when multiproc is set.
+------------------------------------------------------------------------- */
+
+std::string DumpVTK::pvtk_piece_filename(int id)
+{
+  char *ptr = strchr(filename,'%');
+  std::string fname = std::string(filename, ptr-filename) + "_" + std::to_string(id) + (ptr+1);
+  if (multifile) fname = utils::star_subst(fname, update->ntimestep, padflag);
+
+  // strip leading directory so the reference is relative to the summary file
+  auto pos = fname.find_last_of("/\\");
+  if (pos != std::string::npos) fname = fname.substr(pos+1);
+  return fname;
+}
+
+/* ----------------------------------------------------------------------
+   write the parallel summary file (.pvtp for PVTP, .pvtu for PVTU) by hand.
+   we cannot let the VTK vtkXMLP*Writer classes do this: they derive the
+   per-processor piece file names from the summary file name by stripping
+   everything after the *first* '.', which yields wrong <Piece> references
+   (and an extra bogus piece file) whenever the dump file name contains extra
+   '.' characters (e.g. "dump.run.*%.vtp").  LAMMPS already writes the actual
+   piece files itself with the correct names, so we emit a matching summary
+   file directly.  called on rank 0 only, with multiproc set.
+------------------------------------------------------------------------- */
+
+void DumpVTK::write_pvtk(int fileformat)
+{
+  FILE *fp = fopen(parallelfilecurrent,"w");
+  if (!fp)
+    error->one(FLERR,"Cannot open dump vtk parallel file {}: {}",
+               parallelfilecurrent, utils::getsyserror());
+
+  const char *gridtype = (fileformat == PVTP) ? "PPolyData" : "PUnstructuredGrid";
+
+  int one = 1;
+  const char *byte_order = (*((char *) &one)) ? "LittleEndian" : "BigEndian";
+
+  utils::print(fp,"<?xml version=\"1.0\"?>\n");
+  utils::print(fp,"<VTKFile type=\"{}\" version=\"1.0\" byte_order=\"{}\">\n", gridtype, byte_order);
+  utils::print(fp,"  <{} GhostLevel=\"0\">\n", gridtype);
+
+  // point data array declarations, in the same order/grouping as the piece
+  // files (mirrors reset_vtk_data_containers(): skip x,y,z, group vectors)
+
+  utils::print(fp,"    <PPointData>\n");
+  auto it = vtype.begin();
+  ++it; ++it; ++it;    // skip the required x,y,z coordinate fields
+  for (; it != vtype.end(); ++it) {
+    const char *type = "Float64";
+    if (it->second == Dump::INT) type = "Int32";
+    else if (it->second == Dump::STRING) type = "String";
+    if (vector_set.find(it->first) != vector_set.end()) {
+      utils::print(fp,"      <PDataArray type=\"{}\" Name=\"{}\" NumberOfComponents=\"3\"/>\n",
+                   type, name[it->first]);
+      ++it; ++it;
+    } else {
+      utils::print(fp,"      <PDataArray type=\"{}\" Name=\"{}\"/>\n", type, name[it->first]);
+    }
+  }
+  utils::print(fp,"    </PPointData>\n");
+
+  // point coordinates: declare the same precision the piece files use
+  // (vtkPoints defaults to single precision, so do not hardcode Float64)
+
+  const char *ptype = (points->GetDataType() == VTK_DOUBLE) ? "Float64" : "Float32";
+  utils::print(fp,"    <PPoints>\n");
+  utils::print(fp,"      <PDataArray type=\"{}\" NumberOfComponents=\"3\"/>\n", ptype);
+  utils::print(fp,"    </PPoints>\n");
+
+  // one <Piece> entry per per-processor piece file
+
+  int npieces = (multiproc > 1) ? multiproc : nprocs;
+  for (int i = 0; i < npieces; ++i)
+    utils::print(fp,"    <Piece Source=\"{}\"/>\n", pvtk_piece_filename(i));
+
+  utils::print(fp,"  </{}>\n", gridtype);
+  utils::print(fp,"</VTKFile>\n");
+  fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */

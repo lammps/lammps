@@ -2535,44 +2535,66 @@ void FixGCMC::update_gas_atoms_list()
 
     if (exchmode == EXCHMOL || movemode == MOVEMOL) {
 
+      // Build the list of local gas atoms whose molecule center-of-mass lies
+      // inside the region. Compute every molecule's center-of-mass in a single
+      // pass over the local atoms followed by one collective sum, rather than
+      // looping over all molecule IDs and calling Group::xcm() -- an O(natoms)
+      // scan plus a reduction -- once per molecule (issue #225). The previous
+      // code also sized the COM arrays to maxmol_all but indexed them by
+      // molecule ID up to maxmol_all (a one-past-the-end read); indexing by ID
+      // into a maxmol_all+1 buffer fixes that too.
+
       tagint maxmol = 0;
       for (int i = 0; i < nlocal; i++) maxmol = MAX(maxmol,molecule[i]);
       tagint maxmol_all;
       MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
-      auto *comx = new double[maxmol_all];
-      auto *comy = new double[maxmol_all];
-      auto *comz = new double[maxmol_all];
-      for (int imolecule = 0; imolecule < maxmol_all; imolecule++) {
-        for (int i = 0; i < nlocal; i++) {
-          if (molecule[i] == imolecule) {
-            mask[i] |= molecule_group_bit;
-          } else {
-            mask[i] &= molecule_group_inversebit;
-          }
-        }
-        double com[3];
-        com[0] = com[1] = com[2] = 0.0;
-        group->xcm(molecule_group,gas_mass,com);
 
-        // remap unwrapped com into periodic box
+      // mass-weighted unwrapped COM sums indexed by molecule ID
+      // (1 <= id <= maxmol_all); slot 0 is unused
 
-        domain->remap(com);
-        comx[imolecule] = com[0];
-        comy[imolecule] = com[1];
-        comz[imolecule] = com[2];
+      tagint nmol = maxmol_all + 1;
+      auto *com = new double[3*nmol];
+      for (tagint m = 0; m < 3*nmol; m++) com[m] = 0.0;
+
+      double *rmass = atom->rmass;
+      double *mass = atom->mass;
+      int *type = atom->type;
+      imageint *image = atom->image;
+      double unwrap[3];
+      for (int i = 0; i < nlocal; i++) {
+        tagint m = molecule[i];
+        if (m <= 0) continue;
+        double massone = rmass ? rmass[i] : mass[type[i]];
+        domain->unmap(x[i],image[i],unwrap);
+        com[3*m]   += massone*unwrap[0];
+        com[3*m+1] += massone*unwrap[1];
+        com[3*m+2] += massone*unwrap[2];
+      }
+      MPI_Allreduce(MPI_IN_PLACE,com,(int)(3*nmol),MPI_DOUBLE,MPI_SUM,world);
+
+      // normalize by the (constant) gas molecule mass and remap into the box
+
+      for (tagint m = 1; m <= maxmol_all; m++) {
+        double cm[3];
+        cm[0] = com[3*m]   / gas_mass;
+        cm[1] = com[3*m+1] / gas_mass;
+        cm[2] = com[3*m+2] / gas_mass;
+        domain->remap(cm);
+        com[3*m]   = cm[0];
+        com[3*m+1] = cm[1];
+        com[3*m+2] = cm[2];
       }
 
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit) {
-          if (region->match(comx[molecule[i]],comy[molecule[i]],comz[molecule[i]]) == 1) {
+          tagint m = molecule[i];
+          if (region->match(com[3*m],com[3*m+1],com[3*m+2]) == 1) {
             local_gas_list[ngas_local] = i;
             ngas_local++;
           }
         }
       }
-      delete[] comx;
-      delete[] comy;
-      delete[] comz;
+      delete[] com;
     } else {
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit) {

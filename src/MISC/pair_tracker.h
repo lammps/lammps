@@ -51,7 +51,7 @@ class PairTracker : public Pair {
   double *onerad_dynamic, *onerad_frozen;
   double *maxrad_dynamic, *maxrad_frozen;
   int freeze_group_bit;
-  int store_local_freq;
+  int store_local_freq, store_local_freq_restart;
 
   char *id_fix_store_local;
   class FixDummy *fix_dummy;

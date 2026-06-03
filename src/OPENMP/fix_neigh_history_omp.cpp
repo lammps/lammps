@@ -479,7 +479,7 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
             partner[j][m] = tag[i];
             jvalues = &valuepartner[j][dnum * m];
             if (pair->nondefault_history_transfer)
-              pair->transfer_history(onevalues, jvalues, type  [i], type[j]);
+              pair->transfer_history(onevalues, jvalues, type[i], type[j]);
             else
               for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
           }

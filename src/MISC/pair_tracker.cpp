@@ -50,6 +50,7 @@ PairTracker::PairTracker(LAMMPS *lmp) :
 
   nvalues = 0;
   nvalues_restart = -1;
+  store_local_freq_restart = -1;
   finitecutflag = 0;
   tmin = -1;
 
@@ -319,6 +320,15 @@ void PairTracker::settings(int narg, char **arg)
   memory->create(output_data, nvalues, "pair/tracker:output_data");
 
   if (nvalues_restart != -1 && nvalues != nvalues_restart) {
+    error->warn(FLERR, "Output values differs from restart file, {} vs {}, reinitializing internal fix",
+                nvalues_restart, nvalues);
+    modify->delete_fix(id_fix_store_local);
+    fix_store_local = nullptr;
+  }
+
+  if (store_local_freq_restart != -1 && store_local_freq != store_local_freq_restart) {
+    error->warn(FLERR, "Output frequency differs from restart file, {} vs {}, reinitializing internal fix",
+                store_local_freq_restart, store_local_freq);
     modify->delete_fix(id_fix_store_local);
     fix_store_local = nullptr;
   }
@@ -499,10 +509,10 @@ void PairTracker::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (comm->me == 0) utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr, error);
+      if (me == 0) utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr, error);
       MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
-        if (comm->me == 0) utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr, error);
+        if (me == 0) utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr, error);
         MPI_Bcast(&cut[i][j], 1, MPI_DOUBLE, 0, world);
       }
     }
@@ -515,7 +525,7 @@ void PairTracker::read_restart(FILE *fp)
 void PairTracker::write_restart_settings(FILE *fp)
 {
   fwrite(&mix_flag, sizeof(int), 1, fp);
-  fwrite(&tmin, sizeof(int), 1, fp);
+  fwrite(&tmin, sizeof(double), 1, fp);
   fwrite(&finitecutflag, sizeof(int), 1, fp);
   fwrite(&store_local_freq, sizeof(int), 1, fp);
 
@@ -550,15 +560,15 @@ void PairTracker::read_restart_settings(FILE *fp)
   int type_filter_flag;
   if (comm->me == 0) {
     utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
-    utils::sfread(FLERR, &tmin, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &tmin, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &finitecutflag, sizeof(int), 1, fp, nullptr, error);
-    utils::sfread(FLERR, &store_local_freq, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &store_local_freq_restart, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &type_filter_flag, sizeof(int), 1, fp, nullptr, error);
   }
   MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
   MPI_Bcast(&tmin, 1, MPI_INT, 0, world);
   MPI_Bcast(&finitecutflag, 1, MPI_INT, 0, world);
-  MPI_Bcast(&store_local_freq, 1, MPI_INT, 0, world);
+  MPI_Bcast(&store_local_freq_restart, 1, MPI_INT, 0, world);
   MPI_Bcast(&type_filter_flag, 1, MPI_INT, 0, world);
 
   if (type_filter_flag) {

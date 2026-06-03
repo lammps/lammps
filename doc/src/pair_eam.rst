@@ -506,10 +506,18 @@ All of these styles are part of the MANYBODY package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build
 package <Build_package>` page for more info.
 
+Two-band (s+d) and multi-band EAM potentials, such as the Fe-Cr models that
+add an extra "s-band" embedding term to the standard EAM energy, can be run
+with the existing *eam/fs* and :doc:`hybrid/overlay <pair_hybrid>` styles
+without modifying LAMMPS.  See the :doc:`Howto_eam_overlay <Howto_eam_overlay>`
+page for the construction and a helper script that builds the s-band file.
+
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`pair_style hybrid/overlay <pair_hybrid>`,
+:doc:`Howto_eam_overlay <Howto_eam_overlay>`
 
 Default
 """""""

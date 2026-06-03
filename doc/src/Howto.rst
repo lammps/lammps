@@ -74,6 +74,7 @@ Force fields howto
    Howto_tip4p
    Howto_tip5p
    Howto_spc
+   Howto_eam_overlay
 
 Packages howto
 ==============

@@ -58,7 +58,6 @@ template <class DeviceType> PairMTPKokkos<DeviceType>::~PairMTPKokkos()
 /* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
-
 template <class DeviceType> void PairMTPKokkos<DeviceType>::init_style()
 {
   if (host_flag) {
@@ -84,11 +83,9 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::init_style()
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
-
 template <class DeviceType> double PairMTPKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairMTP::init_one(i, j);
-  //Don't need to do anything with the cutoff because the MTP (and original MLIP package) only uses one cutoff for all species combos.
   return cutone;
 }
 
@@ -116,7 +113,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::coeff(int narg, char
   MemKK::realloc_kokkos(d_species_coeffs, "mtp/kk:species_coeffs", species_count);
   MemKK::realloc_kokkos(d_linear_coeffs, "mtp/kk:linear_coeffs", alpha_scalar_count);
 
-  // We need to init these as very small views to begin with because the user might specify a very large chunk_size which is much more than inum. We will resize these as needed in compute.
+  // We will grow these as needed in compute.
   MemKK::realloc_kokkos(d_valid_neighs, "mtp/kk:d_valid_neighs", 1, 1);
   MemKK::realloc_kokkos(d_num_valid_neighs, "mtp/kk:d_num_valid_neighs", 1);
   MemKK::realloc_kokkos(d_moment_jacobian, "mtp/kk:moment_jacobian", 1, 1, alpha_index_basic_count,
@@ -162,7 +159,6 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::coeff(int narg, char
 /* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
-
 template <class DeviceType> void PairMTPKokkos<DeviceType>::settings(int narg, char **arg)
 {
   if (narg != 2 || LAMMPS_NS::utils::lowercase(arg[0]) != "chunksize")
@@ -189,7 +185,6 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::prepare_waves()
     }
   }
   waves.push_back(alpha_index_times_count - last_max_edge);
-
   num_waves = waves.size();
 
   MemKK::realloc_kokkos(d_waves, "mtp/kk:d_waves", num_waves);
@@ -198,7 +193,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::prepare_waves()
   Kokkos::deep_copy(d_waves, h_waves);
 }
 
-// Finds the maximum number of neighbours in all neigbhourhoods. This enables use to set the size (2nd index) of the jacobian. (Copied from other potentials)
+// Finds the maximum number of neighbours in all neigbhourhoods. (Copied from other potentials)
 template <class DeviceType> struct FindMaxNumNeighs {
   typedef DeviceType device_type;
   NeighListKokkos<DeviceType> k_list;
@@ -279,7 +274,6 @@ template <class DeviceType> struct FindMaxValidNeighs {
 /* ----------------------------------------------------------------------
    This version is a straightforward implementation
    ---------------------------------------------------------------------- */
-
 template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
   // If we are running on host we just use the base implementation
@@ -336,11 +330,10 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
     // clang-format on
   }
 
-  //Precalc the max neighs.
+  // Findthe max neighs.
   max_neighs = 0;
   Kokkos::parallel_reduce("PairMTPKokkos::find_max_neighs", inum,
                           FindMaxNumNeighs<DeviceType>(k_list), Kokkos::Max<int>(max_neighs));
-  // std::cout << max_neighs << std::endl;
 
   if ((int) d_num_valid_neighs.extent(0) < inum) {
     Kokkos::realloc(Kokkos::WithoutInitializing, d_num_valid_neighs, inum);
@@ -349,7 +342,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
     Kokkos::realloc(Kokkos::WithoutInitializing, d_valid_neighs, max_neighs, inum);
   }
 
-  // Precalculate the number of valid MTP neighs and stream compact them
+  // Find the number of valid MTP neighs and stream compact them
   max_valid_neighs = 0;
   {
     const int team_size = 64;
@@ -362,24 +355,22 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
   }
 
   // Handling batching
-  chunk_size =    // chunk_size is the working chunk size and may change per compute pass
-      MIN(input_chunk_size,
-          inum);    // chunksize is the maximum atoms per pass as defined by the user
+  chunk_size = MIN(input_chunk_size,
+                   inum);    // chunksize is the maximum atoms per pass as defined by the user
   chunk_offset = 0;
 
-  // Team sizes. We specify 32 for 1 warp per thread block.
   int team_size_default = 1;
   int vector_length_default = 1;
   if (!host_flag) team_size_default = 64;
 
-  // Resize the arrays to the chunksize if needed. Do not initialize values, we do so in the loop.
+  // Resize the arrays to the chunksize if needed. Do not initialize.
   if ((int) d_moment_tensor_vals.extent(0) < chunk_size) {
     Kokkos::realloc(Kokkos::WithoutInitializing, d_moment_tensor_vals, chunk_size,
                     alpha_moment_count);
     Kokkos::realloc(Kokkos::WithoutInitializing, d_nbh_energy_ders_wrt_moments, chunk_size,
                     alpha_moment_count);
   }
-  // Resize the jacobian if max_valid_neighs is too large. Do not initalize; first access is write.
+  // Resize the jacobian if max_valid_neighs is too large.
   if ((int) d_moment_jacobian.extent(1) < chunk_size ||
       (int) d_moment_jacobian.extent(0) < max_valid_neighs) {
     Kokkos::realloc(Kokkos::WithoutInitializing, d_moment_jacobian, max_valid_neighs, chunk_size,
@@ -392,6 +383,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
   while (chunk_offset < inum) {    // batching to prevent OOM on device
     EV_FLOAT ev_tmp;
     if (chunk_size > inum - chunk_offset) chunk_size = inum - chunk_offset;
+
     // ========== Init working views as 0  ==========
     {
       typename Kokkos::MDRangePolicy<Kokkos::Rank<2>, DeviceType, TagPairMTPInitMomentValsDers>
@@ -418,10 +410,9 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
       Kokkos::parallel_for("ComputeAlphaBasic", policy_basic_alpha, *this);
     }
 
-    // ========== Calculate the non-elementary alphas  ==========
+    // ========== Calculate the composite moment values  ==========
     {
       int team_size = team_size_default;
-      // Best team size depends on the max number of blocks per SM. 64 is good for CC8, and CC > 9+.
       Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaTimes> policy_basic_alpha(chunk_size,
                                                                                      team_size);
       Kokkos::parallel_for("ComputeAlphaTimes", policy_basic_alpha, *this);
@@ -437,7 +428,6 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
     // ========== Calc the nbh ders wrt moments ==========
     {
       int team_size = team_size_default;
-      // Best team size depends on the max number of blocks per SM. 64 is good for CC8, and CC > 9+.
       Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeNbhDers> policy_basic_alpha(chunk_size,
                                                                                   team_size);
       Kokkos::parallel_for("ComputeNbhDers", policy_basic_alpha, *this);
@@ -503,7 +493,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
 
 // ========== Kernels ==========
 
-// Inits the working arrays: moment and ders, jacobian not needed.
+// Inits the working arrays: moment and ders
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(TagPairMTPInitMomentValsDers,
                                                                   const int &k, const int &ii) const
@@ -672,6 +662,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(TagPairMTPSetS
                                                                   const int &k, const int &ii) const
 { d_nbh_energy_ders_wrt_moments(ii, d_alpha_moment_mapping(k)) = d_linear_coeffs(k); }
 
+// Calculates the nbh ders (backwards pass)
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
     TagPairMTPComputeNbhDers,
@@ -707,7 +698,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
 template <class DeviceType>
 template <int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
-    const TagPairMTPComputeForce<NEIGHFLAG, EVFLAG> &,    // Tag parameter added here
+    const TagPairMTPComputeForce<NEIGHFLAG, EVFLAG> &,
     const typename Kokkos::TeamPolicy<DeviceType,
                                       TagPairMTPComputeForce<NEIGHFLAG, EVFLAG>>::member_type &team,
     EV_FLOAT &ev) const
@@ -728,7 +719,6 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
     KK_ACC_FLOAT temp_force[3] = {0, 0, 0};
     for (int k = 0; k < alpha_index_basic_count; k++) {
       for (int a = 0; a < 3; a++) {
-        //Calculate forces
         temp_force[a] += d_nbh_energy_ders_wrt_moments(ii, k) * d_moment_jacobian(jj, ii, k, a);
       }
     }
@@ -749,7 +739,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   });
 
   if (need_energies) {
-    const int itype = d_map(type[i]);    // zero indexing
+    const int itype = d_map(type[i]);
     KK_FLOAT nbh_energy = 0;
 
     // Reduction to find the dot product of the linear coeffs and the moment tensor vals

@@ -58,7 +58,6 @@ PairMTPExtrapolation::~PairMTPExtrapolation()
 /* ----------------------------------------------------------------------
    Straightfoward MTP implementation based on MLIP3
    ---------------------------------------------------------------------- */
-
 void PairMTPExtrapolation::compute(int eflag, int vflag)
 {
   // If we are not extrapolating per fix pair and not extrapolating continously, we can just call the base class compute
@@ -81,7 +80,7 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
   int **firstneigh =
       list->firstneigh;    //List  (head of array) of neighbours for a given central atom
 
-  // Resize the nbh extrapolation grades if needed. No need to initialize, first access is write
+  // Resize the nbh extrapolation grades if needed.
   if (!configuration_mode && nbh_count < inum) {
     memory->grow(nbh_extrapolation_grades, inum, "nbh_extrapolation_grades");
     nbh_count = inum;
@@ -94,14 +93,13 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
   // Loop over all provided neighbourhoods
   for (int ii = 0; ii < inum; ii++) {
     int valid_count = 0;
-    const int i = ilist[ii];    // Set central atom index
+    const int i = ilist[ii];
     const int itype = map[type[i]];
-    int jnum = numneigh[i];    // Set number of neighbours
+    int jnum = numneigh[i];
     double nbh_energy = 0;
-    const double xi[3] = {x[i][0], x[i][1],
-                          x[i][2]};    // Cache the position of the central atom for efficiency
+    const double xi[3] = {x[i][0], x[i][1], x[i][2]};
 
-    // Resize the jacobian and cutoff if needed. No need to initialize, first access is write
+    // Resize per neighbor arrays
     if (jac_size < jnum) {
       memory->grow(moment_jacobian, jnum, alpha_index_basic_count, 3, "moment_jacobian");
       memory->grow(valid_j, jnum, "valid_j");
@@ -121,10 +119,9 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
     if (!configuration_mode)
       std::fill(&energy_ders_wrt_coeffs[0], &energy_ders_wrt_coeffs[0] + coeff_count, 0.0);
 
-    // ------------ Begin Alpha Basic Calc ------------
-    // Loop over all neighbours
+    // ------------ Calculate Basic Moments ------------
     for (int jj = 0; jj < jnum; jj++) {
-      int j = firstneigh[i][jj];    //List of neighbours
+      int j = firstneigh[i][jj];
       j &= NEIGHMASK;
       const int jtype = map[type[j]];
       const double r[3] = {x[j][0] - xi[0], x[j][1] - xi[1], x[j][2] - xi[2]};
@@ -135,7 +132,7 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       valid_j[valid_count] = j;
 
       const double dist = std::sqrt(rsq);
-      radial_basis->calc_radial_basis_ders(dist);    // Calculate radial basis
+      radial_basis->calc_radial_basis_ders(dist);
 
       // Precompute the coord and distance power
       for (int k = 1; k < max_alpha_index_basic; k++) {
@@ -143,7 +140,7 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
         for (int a = 0; a < 3; a++) coord_powers[k][a] = coord_powers[k - 1][a] * r[a];
       }
 
-      // Compute the radial basis values
+      // Compute the radial basis values and derivatives
       int pair_offset = itype * species_count + jtype;
       for (int mu = 0; mu < radial_func_count; mu++) {
         double val = 0;
@@ -158,7 +155,7 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
         radial_ders[mu] = der;
       }
 
-      //Calculate the alpha basics
+      // Accumulate into the basic moment elements
       for (int k = 0; k < alpha_index_basic_count; k++) {
         double val = 0;
         double der = 0;
@@ -187,12 +184,11 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
         der = der * norm_fac - norm_rank * val / dist;
         moment_tensor_vals[k] += val * pow;
 
-        // Get the component's derivatives too
+        // Calculate the Jacobian from derivatives
         pow *= der / dist;
         moment_jacobian[valid_count][k][0] = pow * r[0];
         moment_jacobian[valid_count][k][1] = pow * r[1];
         moment_jacobian[valid_count][k][2] = pow * r[2];
-
         if (alpha_index_basic[k][1] != 0) {
           moment_jacobian[valid_count][k][0] += val * alpha_index_basic[k][1] *
               coord_powers[alpha_index_basic[k][1] - 1][0] * pow1 * pow2;
@@ -209,7 +205,7 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       valid_count++;
     }
 
-    // ------------ Contruct Other Alphas  ------------
+    // ------------ Contruct Composite Moment Values  ------------
     for (int k = 0; k < alpha_index_times_count; k++) {
       double val0 = moment_tensor_vals[alpha_index_times[k][0]];
       double val1 = moment_tensor_vals[alpha_index_times[k][1]];
@@ -217,8 +213,7 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       moment_tensor_vals[alpha_index_times[k][3]] += val2 * val0 * val1;
     }
 
-    // ------------ Convolve Basis Set From Alpha Map ------------
-    // Calculate the energies only if needed. We always need the basis member for extrapolation.
+    // ------------ If Energies Are Needed Compute Basis Set From Alpha Map ------------
     int linear_basis_offset = radial_coeff_count + species_count;
     if (eflag_either) {
       nbh_energy = species_coeffs[itype];    // Essentially the reference point energy per species
@@ -235,16 +230,14 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
         energy_ders_wrt_coeffs[linear_basis_offset + k] +=
             moment_tensor_vals[alpha_moment_mapping[k]];
 
-    // ------------ Also add the species coefficient ------------
     energy_ders_wrt_coeffs[radial_coeff_count + itype] += 1;
 
     // =========== Begin Backpropogation ===========
-
-    //------------ Step 1: NBH energy derivative is the corresponding linear combination------------
+    //------------ NBH energy derivative is the corresponding linear combination------------
     for (int k = 0; k < alpha_scalar_count; k++)
       nbh_energy_ders_wrt_moments[alpha_moment_mapping[k]] = linear_coeffs[k];
 
-    //------------ Step 2: Propogate chain rule through the alpha times to the alpha basics ------------
+    //------------ Propogate chain rule through the composite moment elements times to the basics ------------
     for (int k = alpha_index_times_count - 1; k >= 0; k--) {
       int a0 = alpha_index_times[k][0];
       int a1 = alpha_index_times[k][1];
@@ -259,15 +252,13 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       nbh_energy_ders_wrt_moments[a0] += val3 * multipiler * val1;
     }
 
-    //------------ Step 3: Multiply energy ders wrt moment by the moment jacobian to get forces ------------
+    //------------  Multiply energy ders wrt basic moments by the Jacobian to get forces ------------
     for (int jj = 0; jj < valid_count; jj++) {
       int j = valid_j[jj];
 
       double temp_force[3] = {0, 0, 0};
       for (int k = 0; k < alpha_index_basic_count; k++) {
-        // Backprop relative to positions for forces
         for (int a = 0; a < 3; a++) {
-          //Calculate forces
           temp_force[a] += nbh_energy_ders_wrt_moments[k] * moment_jacobian[jj][k][a];
         }
       }
@@ -280,9 +271,8 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       f[j][1] -= temp_force[1];
       f[j][2] -= temp_force[2];
 
-      //Calculate virial stress
+      // Accumulate virial stress only if requested
       if (vflag) {
-        // We only need to calculate rel pos again if stress are needed
         const double r[3] = {x[j][0] - xi[0], x[j][1] - xi[1], x[j][2] - xi[2]};
         virial[0] -= temp_force[0] * r[0];    //xx
         virial[1] -= temp_force[1] * r[1];    //yy
@@ -304,7 +294,7 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       }
     }
 
-    //------------ Step 3.5: Multiply energy ders wrt moment by the radial jacobian to get rad ders ------------
+    //------------ Multiply energy ders wrt moment by the radial jacobian to get rad ders ------------
     for (int k = 0; k < alpha_index_basic_count; k++)
       for (int jjtype = 0; jjtype < species_count; jjtype++) {
         int offset = (itype * species_count + jjtype) * radial_coeff_count_per_pair;
@@ -347,12 +337,10 @@ double PairMTPExtrapolation::calculate_extrapolation_grade()
 ------------------------------------------------------------------------- */
 void PairMTPExtrapolation::compile_grades()
 {
-  // MPI reduce operations based on selection mode
   if (configuration_mode) {    // Configuration mode
 
     // Sum contributions across all processes
     MPI_Allreduce(MPI_IN_PLACE, energy_ders_wrt_coeffs, coeff_count, MPI_DOUBLE, MPI_SUM, world);
-
     max_grade = calculate_extrapolation_grade();
 
     if (atom->natoms > 0)
@@ -407,7 +395,6 @@ void PairMTPExtrapolation::write_config()
     const int global_i = i + index_offset + 1;
 
     int n = 0;
-    // snprintf returns the EXACT number of characters it wants to write
     if (!configuration_mode) {
       n = snprintf(write_buffer + local_buffer_size, MAX_LINE, "%d\t%d\t%.6f\t%.6f\t%.6f\t%.5f\n",
                    global_i, itype, xi[0], xi[1], xi[2], nbh_extrapolation_grades[i]);
@@ -461,10 +448,10 @@ void PairMTPExtrapolation::write_config()
     MPI_Send(write_buffer, local_buffer_size, MPI_CHAR, 0, 0, world);
   }
 }
+
 /* ----------------------------------------------------------------------
    global settings
 ------------------------------------------------------------------------- */
-
 void PairMTPExtrapolation::settings(int narg, char **arg)
 {
   if ((narg == 2 && LAMMPS_NS::utils::lowercase(arg[0]) == "chunksize") ||
@@ -474,8 +461,8 @@ void PairMTPExtrapolation::settings(int narg, char **arg)
   } else if (narg != 0 && narg != 3)
     error->all(FLERR,
                "Pair mtp/extrapolation accepts no arguments."
-               "Or exactly 4 arguments: {output_file}. {selection_threshold} "
-               "{break_threshold}.");
+               "Or 4 arguments: {output_file}. {selection_threshold} "
+               "{break_threshold}. With 2 more for GPU chunksize {chunksize}.");
 
   if (narg == 3) {
     mlip3_style = true;
@@ -493,10 +480,7 @@ void PairMTPExtrapolation::settings(int narg, char **arg)
 void PairMTPExtrapolation::coeff(int narg, char **arg)
 {
   const int n = atom->ntypes;
-  if (narg != 3 + n)
-    error->all(FLERR,
-               "Incorrect args for pair coefficients. Pair_coeff mtp/extrapolation only accepts "
-               "the MTP potential file and the species mappping.");
+  if (narg != 3 + n) error->all(FLERR, "Incorrect args for pair coefficients.");
 
   // Read in MTP and allocate memory
   FILE *mtp_file = utils::open_potential(arg[2], lmp, nullptr);
@@ -524,7 +508,6 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
 {
   PairMTP::read_file(mtp_file);
 
-  // Some size calcs
   coeff_count = radial_coeff_count + species_count + alpha_scalar_count;
   int num_doubles = coeff_count * coeff_count;
 
@@ -535,7 +518,6 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
   memory->create(energy_ders_wrt_coeffs, coeff_count, "energy_ders_wrt_coeffs");
   memory->create(radial_jacobian, alpha_index_basic_count, species_count,
                  radial_coeff_count_per_pair, "radial_jacobian");
-  // We initialize the extrapolation grades during compute since its size depend on problem size.
 
   if (comm->me == 0) {
     const std::string new_separators = "=, ";

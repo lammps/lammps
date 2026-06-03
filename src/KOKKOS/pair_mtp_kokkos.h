@@ -127,6 +127,7 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
+  typename AT::t_int_1d d_map;
 
   // ---------- Device Arrays  ----------
   // Alphas indicies
@@ -134,7 +135,6 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   Kokkos::View<int **, DeviceType> d_alpha_index_times;      // For combining alphas
   Kokkos::View<int *, DeviceType> d_waves;                   // Dependency waves
   Kokkos::View<int *, DeviceType> d_alpha_moment_mapping;    // Maps alphas to the basis functions.
-  Kokkos::View<int *, DeviceType> d_map;                     // Element Map
 
   // The learned coefficients.
   Kokkos::View<KK_FLOAT *, DeviceType> d_radial_basis_coeffs;    // The radial components.

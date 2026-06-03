@@ -86,8 +86,6 @@ void PairMTP::compute(int eflag, int vflag)
     int valid_count = 0;
     const int i = ilist[ii];
     const int itype = map[type[i]];
-    if (itype < 0) continue;
-
     const int jnum = numneigh[i];
     double nbh_energy = 0;
     const double xi[3] = {x[i][0], x[i][1], x[i][2]};
@@ -108,13 +106,10 @@ void PairMTP::compute(int eflag, int vflag)
     for (int jj = 0; jj < jnum; jj++) {
       int j = firstneigh[i][jj];
       j &= NEIGHMASK;
-      const int jtype = map[type[j]];    // Convert to zero indexing
-      if (jtype < 0) continue;
-
+      const int jtype = map[type[j]];
       const double r[3] = {x[j][0] - xi[0], x[j][1] - xi[1], x[j][2] - xi[2]};
       const double rsq = r[0] * r[0] + r[1] * r[1] + r[2] * r[2];
 
-      // Check cutoff and store for backwards pass
       if (rsq > max_cutoff_sq) continue;
       valid_j[valid_count] = j;
 
@@ -282,11 +277,7 @@ void PairMTP::settings(int narg, char **arg)
 void PairMTP::coeff(int narg, char **arg)
 {
   const int n = atom->ntypes;
-  if (narg != 3 + n)
-    error->all(
-        FLERR,
-        "Incorrect args for pair coefficients. Pair_coeff mtp only accepts the MTP potential file "
-        "and the species mappping.");
+  if (narg != 3 + n) error->all(FLERR, "Incorrect args for pair coefficients.");
 
   // Read in MTP and allocate memory
   FILE *mtp_file = utils::open_potential(arg[2], lmp, nullptr);

@@ -113,7 +113,7 @@ template <class DeviceType> void PairMTPExtrapolationKokkos<DeviceType>::coeff(i
                         alpha_index_times_count, 4);
   MemKK::realloc_kokkos(d_alpha_moment_mapping, "mtp/extrapolation/kk:alpha_moment_mapping",
                         alpha_scalar_count);
-  MemKK::realloc_kokkos(d_map, "mtp/kk:mapping", atom->ntypes + 1);
+  MemKK::realloc_kokkos(d_map, "mtp/extrapolation/kk:mapping", atom->ntypes + 1);
 
   // Setup the learned coefficients
   int radial_coeff_count = species_count * species_count * radial_basis_size * radial_func_count;
@@ -609,7 +609,7 @@ void PairMTPExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_reduce(
             "sComputeNbhGrades", policy_calc_grades,
             sComputeNbhGrades<DeviceType>(
-                chunk_size, chunk_offset, d_ilist, type, species_count, radial_coeff_count,
+                chunk_size, chunk_offset, d_ilist, type, d_map, species_count, radial_coeff_count,
                 alpha_index_basic_count, radial_coeff_count_per_pair, alpha_scalar_count,
                 coeff_count, d_nbh_energy_ders_wrt_moments, d_radial_jacobian, d_moment_tensor_vals,
                 d_alpha_moment_mapping, d_inverse_active_set, d_nbh_extrapolation_grades),
@@ -1175,7 +1175,7 @@ It is probably  preferable to use different streams.
         [&](const int ii, KK_FLOAT &sum) {
           KK_FLOAT partial_sum = 0;
           const int i = d_ilist[ii + chunk_offset];
-          const int itype = type[i] - 1;    // switch to zero indexing
+          const int itype = d_map(type[i]);
 
           // We only take the deriatives based on the type of the central.
           // Since the radial array is flattened with the itype first, integer divide
@@ -1197,7 +1197,7 @@ It is probably  preferable to use different streams.
         Kokkos::TeamThreadRange(team, chunk_size),
         [&](const int ii, KK_FLOAT &sum) {
           const int i = d_ilist[ii + chunk_offset];
-          const int itype = type[i] - 1;    // switch to zero indexing
+          const int itype = d_map(type[i]);
           KK_FLOAT val = 0.0;
           if (itype == kk - radial_coeff_count) val = 1.0;
           sum += val;
@@ -1229,7 +1229,7 @@ KOKKOS_INLINE_FUNCTION void sComputeNbhGrades<DeviceType>::operator()(
   if (ii >= chunk_size) return;
 
   const int i = d_ilist(ii + chunk_offset);
-  const int itype = type(i) - 1;    // switch to zero indexing
+  const int itype = d_map(type[i]);
 
   // Shared memory to store the candidate vector
   shared_kk_float_1d s_candidate_vector(team.team_scratch(0), coeff_count);

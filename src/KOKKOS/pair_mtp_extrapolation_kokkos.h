@@ -151,6 +151,7 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
+  typename AT::t_int_1d d_map;
 
   // ---------- Device Arrays  ----------
   // Alphas indicies
@@ -158,7 +159,6 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   Kokkos::View<int **, DeviceType> d_alpha_index_times;      // For combining alphas
   Kokkos::View<int *, DeviceType> d_waves;                   // Dependency waves
   Kokkos::View<int *, DeviceType> d_alpha_moment_mapping;    // Maps alphas to the basis functions.
-  Kokkos::View<int *, DeviceType> d_map;                     // Element Map
 
   // The learned coefficients.
   Kokkos::View<KK_FLOAT *, DeviceType> d_radial_basis_coeffs;    // The radial components.
@@ -226,6 +226,8 @@ template <class DeviceType> struct sComputeNbhGrades {
   const int chunk_offset;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread type;
+  typename AT::t_int_1d d_map;
+
   const int species_count;
   const int radial_coeff_count;
   const int alpha_index_basic_count;
@@ -242,9 +244,9 @@ template <class DeviceType> struct sComputeNbhGrades {
 
   sComputeNbhGrades(
       int chunk_size_, int chunk_offset_, typename AT::t_int_1d_randomread d_ilist_,
-      typename AT::t_int_1d_randomread type_, int species_count_, int radial_coeff_count_,
-      int alpha_index_basic_count_, int radial_coeff_count_per_pair_, int alpha_scalar_count_,
-      int coeff_count_,
+      typename AT::t_int_1d_randomread type_, typename AT::t_int_1d d_map_, int species_count_,
+      int radial_coeff_count_, int alpha_index_basic_count_, int radial_coeff_count_per_pair_,
+      int alpha_scalar_count_, int coeff_count_,
       Kokkos::View<KK_FLOAT **, Kokkos::LayoutRight, DeviceType> d_nbh_energy_ders_wrt_moments_,
       Kokkos::View<KK_FLOAT ***, DeviceType> d_radial_jacobian_,
       Kokkos::View<KK_FLOAT **, Kokkos::LayoutRight, DeviceType> d_moment_tensor_vals_,
@@ -252,7 +254,7 @@ template <class DeviceType> struct sComputeNbhGrades {
       Kokkos::View<KK_FLOAT **, DeviceType> d_inverse_active_set_,
       Kokkos::View<KK_FLOAT *, DeviceType> d_nbh_extrapolation_grades_) :
       chunk_size(chunk_size_), chunk_offset(chunk_offset_), d_ilist(d_ilist_), type(type_),
-      species_count(species_count_), radial_coeff_count(radial_coeff_count_),
+      d_map(d_map_), species_count(species_count_), radial_coeff_count(radial_coeff_count_),
       alpha_index_basic_count(alpha_index_basic_count_),
       radial_coeff_count_per_pair(radial_coeff_count_per_pair_),
       alpha_scalar_count(alpha_scalar_count_), coeff_count(coeff_count_),

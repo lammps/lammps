@@ -6,10 +6,12 @@
 pair_style mtp command
 =======================
 
-Accelerator Variants: *mtp/kk*, *mtp/extrapolation/kk*
+Accelerator Variants: *mtp/kk*
 
 pair_style mtp/extrapolation command
 =====================================
+
+Accelerator Variants: *mtp/extrapolation/kk*
 
 Syntax
 """"""
@@ -40,14 +42,15 @@ Examples
 
    pair_style mtp/extrapolation
    pair_style mtp chunksize 2048
-   pair_coeff * * SiO.mtp 0 1
+   pair_coeff * * SiO.almtp 0 1
 
 Description
 """""""""""
 
-Pair style *mtp* computes interactions using the Moment Tensor Potentials (MTP), which is a general expansion of the atomic energy in scalar contractions of moment tensors. :ref:`(Shapeev16) <Shapeev20161>`.  The *pace*
-pair style provides an efficient implementation that is described in
-this paper :ref:`(Lysogorskiy21) <Lysogorskiy20211>`. In the MTP, the total energy is decomposed into a sum over atomic
+Pair style *mtp* computes interactions using the Moment Tensor Potentials (MTP), which is a general expansion of the atomic energy in scalar contractions of moment tensors. :ref:`(Shapeev16) <Shapeev2016>`.  The *mtp* pair style provides an efficient implementation that is described in
+this paper :ref:`(Meng26) <Meng2026>`. 
+
+In the MTP, the total energy is decomposed into a sum over atomic
 energies. The energy of atom *i* is expressed as a linear function of scalar contractions of moment tensors.
 
 Only a single pair_coeff command is used with the *mtp* style which
@@ -58,27 +61,22 @@ the number of LAMMPS atom types:
 * MTP potential file (.mtp or .almtp MLIP-2/MLIP-3 format)
 * N element types = mapping of MTP element types (0,1,...) to atom types
 
-Note that unlike for some other potentials, a single cutoff is used for all types pair which is not set in the pair_style or
+Note that unlike for some other potentials, a single cutoff is used for all type pair which is not set in the pair_style or
 pair_coeff command but rather, specified in the MTP file.
 
 The keyword *chunksize* is only applicable when using the pair style
 *mtp* with the KOKKOS package on GPUs and is ignored otherwise.  This
-keyword controls the number of atoms in each pass and is used to avoid running out of memory.
-For example if there are 8192 atoms in the simulation and the
-*chunksize* is set to 4096, the MTP calculation will be broken up into
-two passes (running on a single GPU).
+keyword controls the number of atoms in each pass and is used to avoid running out of memory. For example if there are 8192 atoms in the simulation and the *chunksize* is set to 4096, the MTP calculation will be broken up into two passes (running on a single GPU).
 
 Extrapolation grade
 """""""""""""""""""
 
 Calculation of extrapolation grade in MTP is implemented in `pair_style
-mtp/extrapolation`.  It adapts the MaxVol algorithm  and is described in
-:ref:`(Podryabinkin17) <Podryabinkin1723>`.  In order to compute
-extrapolation grade one needs to provide an MTP potential file in the MLIP-3 format with active learning information included (.almtp).
+mtp/extrapolation`.  It adapts the MaxVol algorithm and is described in
+:ref:`(Podryabinkin17) <Podryabinkin2017>`.  In order to compute
+extrapolation grade one needs to provide an MTP potential file in the MLIP-3 format :ref:`(Podryabinkin23) <Podryabinkin2023>` with active learning information included (.almtp).
 
-Calculation of extrapolation grades requires matrix-vector
-multiplication for each atom. and is slower than the usual `pair_style
-mtp`, therefore it is *not* computed by default.
+Calculation of extrapolation grades requires additional derivatives and a matrix-vector multiplication for each atom, and is slower than the usual `pair_style mtp`, therefore it is *not* computed by default.
 Extrapolation grade calculation is involved by `fix pair`, which
 requests to compute `gamma`, as shown in example below:
 
@@ -87,28 +85,28 @@ requests to compute `gamma`, as shown in example below:
     pair_style  mtp/extrapolation
     pair_coeff * * SiO.mtp 0 1
 
-    fix mtp_gamma all pair 10 pace/extrapolation gamma 1
+    fix mtp_gamma all pair 10 mtp/extrapolation gamma 1
 
     # compute max_mtp_gamma all reduce max f_mtp_gamma
     compute max_mtp_gamma all pair mtp/extrapolation
-    variable dump_skip equal "c_max_mtp_gamma < 5"
+    variable dump_skip equal "c_max_mtp_gamma < 2"
 
     dump mtp_dump all custom 20 extrapolative_structures.dump id type x y z f_mtp_gamma
-    dump_modify pace_dump skip v_dump_skip
+    dump_modify mtp_dump skip v_dump_skip
 
     variable max_mtp_gamma equal c_max_mtp_gamma
-    fix extreme_extrapolation all halt 10 v_max_mtp_gamma > 25
+    fix extreme_extrapolation all halt 10 v_max_mtp_gamma > 10
 
 Here extrapolation grade gamma is computed every 10 steps and is stored
 in `f_mtp_gamma` per-atom variable.  The largest value of extrapolation
-grade among all atoms in a structure is exposed to `c_mtp_pace_gamma`
+grade among all atoms in a structure is exposed to the `c_max_mtp_gamma`
 variable.  Only if this value exceeds extrapolation threshold 5, then
 the structure will be dumped into `extrapolative_structures.dump` file,
 but not more often than every 20 steps.
 
 On all other steps `pair_style mtp` will be used.
 
-The use of pair style *mtp/extrapolation* is not recommended with `pair_style hybrid/overlay` since the active learning cannot consider contributions from other pair styles.
+The use of pair style *mtp/extrapolation* is not recommended with `pair_style hybrid/overlay` since the extrapolation calculation cannot consider contributions from other pair styles.
 
 ----------
 
@@ -156,14 +154,23 @@ Related commands
 :doc:`fix pair  <fix_pair>`
 :doc:`compute pair  <compute_pair>`
 
-.. _Drautz20191:
+Default
+"""""""
 
-**(Drautz19)** Drautz, Phys Rev B, 99, 014104 (2019).
+chunksize = 4096,
 
-.. _Lysogorskiy20211:
+.. _Shapeev2016:
 
-**(Lysogorskiy21)** Lysogorskiy, van der Oord, Bochkarev, Menon, Rinaldi, Hammerschmidt, Mrovec, Thompson, Csanyi, Ortner, Drautz, npj Comp Mat, 7, 97 (2021).
+**(Shapeev16)** Shapeev, Multiscale Model Simul, 14, 1153--1173 (2016).
 
-.. _Lysogorskiy2023:
+.. _Meng2026:
 
-**(Lysogorskiy23)** Lysogorskiy, Bochkarev, Mrovec, Drautz, Phys Rev Mater, 7, 043801 (2023) / arXiv:2212.08716 (2022).
+**(Meng26)** Meng, Zongo, Torres, Maxwell, Grant, Beland, SoftwareX, 33, 102524 (2026).
+
+.. _Podryabinkin2017:
+
+**(Podryabinkin17)** Podryabinkin, Shapeev, Comput Mater Sci, 140, 171--180 (2017).
+
+.. _Podryabinkin2023:
+
+**(Podryabinkin23)** Podryabinkin, Garifullin, Shapeev, Novikov, J Chem Phys, 159, 8 (2023).

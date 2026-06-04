@@ -552,14 +552,15 @@ void Neighbor::init()
   } else {
     PairHybrid *ph = reinterpret_cast<PairHybrid *>(force->pair_match("^hybrid", 0));
     if (ph) {
-      int flag = 0;
-      for (int isub = 0; isub < ph->nstyles; ++isub) {
-        if (force->pair_match("amoeba", 0, isub)
-            || force->pair_match("hippo", 0, isub)
-            || force->pair_match("coul/wolf", 0, isub)
-            || force->pair_match("coul/dsf", 0, isub)
-            || force->pair_match("coul/exclude", 0)
-            || force->pair_match("thole", 0, isub))
+      int flag=0;
+      for (int isub=0; isub < ph->nstyles; ++isub) {
+        if (force->pair_match("amoeba",0,isub)
+            || force->pair_match("hippo",0,isub)
+            || force->pair_match("coul/wolf",0,isub)
+            || force->pair_match("coul/dsf",0,isub)
+            || force->pair_match("coul/exclude",0)
+            || force->pair_match("thole",0,isub)
+            || force->pair_match("^ox.*/excv",0,isub))
           ++flag;
       }
       if (flag)
@@ -570,7 +571,8 @@ void Neighbor::init()
           || force->pair_match("coul/wolf",0)
           || force->pair_match("coul/dsf",0)
           || force->pair_match("coul/exclude",0)
-          || force->pair_match("thole",0))
+          || force->pair_match("thole",0)
+          || force->pair_match("^ox.*/excv",0))
         special_flag[1] = special_flag[2] = special_flag[3] = 2;
     }
   }

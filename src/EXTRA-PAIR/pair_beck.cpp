@@ -39,6 +39,8 @@ PairBeck::PairBeck(LAMMPS *lmp) : Pair(lmp) {}
 
 PairBeck::~PairBeck()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

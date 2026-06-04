@@ -1,10 +1,11 @@
 .. index:: pair_style lj/pirani
 .. index:: pair_style lj/pirani/omp
+.. index:: pair_style lj/pirani/kk
 
 pair_style lj/pirani command
 ============================
 
-Accelerator Variants: *lj/pirani/omp*
+Accelerator Variants: *lj/pirani/omp*, *lj/pirani/kk*
 
 Syntax
 """"""

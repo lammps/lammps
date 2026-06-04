@@ -41,13 +41,15 @@ using namespace MathExtra;
 DihedralSpherical::DihedralSpherical(LAMMPS *lmp) : Dihedral(lmp)
 {
   writedata = 1;
+  nterms_max = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 DihedralSpherical::~DihedralSpherical()
 {
-  if (allocated && !copymode) {
+  if (copymode) return;
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(nterms);
 
@@ -646,6 +648,7 @@ void DihedralSpherical::coeff(int narg, char **arg)
   utils::bounds(FLERR, arg[0], 1, atom->ndihedraltypes, ilo, ihi, error);
 
   int nterms_one = utils::inumeric(FLERR, arg[1], false, lmp);
+  nterms_max = MAX(nterms_max, nterms_one);
 
   if (nterms_one < 1) error->all(FLERR, "Incorrect number of terms arg for dihedral coefficients");
 
@@ -692,7 +695,8 @@ void DihedralSpherical::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
+  if (count == 0)
+    error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -701,6 +705,9 @@ void DihedralSpherical::coeff(int narg, char **arg)
 
 void DihedralSpherical::write_restart(FILE *fp)
 {
+  // must store nterms_max in restart file in addition to the nterms array
+  // the KOKKOS version requires it to store the coefficients in a 2d view
+  fwrite(&nterms_max, sizeof(int), 1, fp);
   fwrite(&nterms[1], sizeof(int), atom->ndihedraltypes, fp);
   for (int i = 1; i <= atom->ndihedraltypes; i++) {
     fwrite(Ccoeff[i], sizeof(double), nterms[i], fp);
@@ -724,9 +731,12 @@ void DihedralSpherical::read_restart(FILE *fp)
 {
   allocate();
 
-  if (comm->me == 0)
+  if (comm->me == 0) {
+    utils::sfread(FLERR, &nterms_max, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &nterms[1], sizeof(int), atom->ndihedraltypes, fp, nullptr, error);
+  }
 
+  MPI_Bcast(&nterms_max, 1, MPI_INT, 0, world);
   MPI_Bcast(&nterms[1], atom->ndihedraltypes, MPI_INT, 0, world);
 
   // allocate

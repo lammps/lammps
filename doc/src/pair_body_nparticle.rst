@@ -4,7 +4,7 @@
 pair_style body/nparticle command
 =================================
 
-Accelerator Variant: *body/nparticle/omp*
+Accelerator Variants: *body/nparticle/omp*
 
 Syntax
 """"""

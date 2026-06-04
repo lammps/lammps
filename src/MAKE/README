@@ -1,6 +1,6 @@
 This directory and its sub-directories contain machine Makefiles for
 LAMMPS.  The use of machine Makefiles and their settings are discussed
-in Section 2 of the manual.
+in Section 3.3 of the manual.
 
 If you are new to LAMMPS, try the Makefile.mpi or Makefile.serial file
 in this directory first.  I.e. "make mpi" or "make serial".

@@ -30,7 +30,7 @@ class FixWallMorse : public FixWall {
   void precompute(int) override;
   void wall_particle(int, int, double) override;
 
- private:
+ protected:
   double coeff1[6], offset[6];
 };
 

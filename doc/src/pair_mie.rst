@@ -1,11 +1,12 @@
 .. index:: pair_style mie/cut
 .. index:: pair_style mie/cut/gpu
+.. index:: pair_style mie/cut/kk
 .. index:: pair_style mie/cut/omp
 
 pair_style mie/cut command
 ==========================
 
-Accelerator Variants: *mie/cut/gpu*, *mie/cut/omp*
+Accelerator Variants: *mie/cut/gpu*, *mie/cut/kk*, *mie/cut/omp*
 
 Syntax
 """"""

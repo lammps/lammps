@@ -1,24 +1,27 @@
 .. index:: pair_style lj/mdf
+.. index:: pair_style lj/mdf/kk
 .. index:: pair_style lj/mdf/omp
 .. index:: pair_style buck/mdf
+.. index:: pair_style buck/mdf/kk
 .. index:: pair_style buck/mdf/omp
 .. index:: pair_style lennard/mdf
+.. index:: pair_style lennard/mdf/kk
 .. index:: pair_style lennard/mdf/omp
 
 pair_style lj/mdf command
 =========================
 
-Accelerator Variant: *lj/mdf/omp*
+Accelerator Variants: *lj/mdf/kk*, *lj/mdf/omp*
 
 pair_style buck/mdf command
 ===========================
 
-Accelerator Variant: *buck/mdf/omp*
+Accelerator Variants: *buck/mdf/kk*, *buck/mdf/omp*
 
 pair_style lennard/mdf command
 ==============================
 
-Accelerator Variant: *lennard/mdf/omp*
+Accelerator Variants: *lennard/mdf/omp*, *lennard/mdf/kk*
 
 Syntax
 """"""

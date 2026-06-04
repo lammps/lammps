@@ -41,7 +41,7 @@ class BondFENEExpand : public Bond {
  protected:
   double *k, *r0, *epsilon, *sigma, *shift;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

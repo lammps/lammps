@@ -163,8 +163,8 @@ void AngleClass2xeOMP::eval(int nfrom, int nto, ThrData * const thr)
     dr2 = r2 - bb_r2[type];
     bb_ralpha1 = exp(-bb_alpha[type]*dr1);
     bb_ralpha2 = exp(-bb_alpha[type]*dr2);
-    tk1 = bb_d0[type]*bb_alpha[type]*bb_ralpha1*(1 - bb_ralpha2);
-    tk2 = bb_d0[type]*bb_alpha[type]*bb_ralpha2*(1 - bb_ralpha1);
+    tk1 = bb_d0[type]*bb_alpha[type]*bb_ralpha2*(1 - bb_ralpha1);
+    tk2 = bb_d0[type]*bb_alpha[type]*bb_ralpha1*(1 - bb_ralpha2);
 
     f1[0] -= delx1*tk2/r1;
     f1[1] -= dely1*tk2/r1;

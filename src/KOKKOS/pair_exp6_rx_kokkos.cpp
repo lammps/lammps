@@ -43,9 +43,6 @@
 using namespace LAMMPS_NS;
 using namespace MathSpecialKokkos;
 
-static constexpr int MAXLINE = 1024;
-static constexpr int DELTA = 4;
-
 #ifdef DBL_EPSILON
   #define MY_EPSILON (10.0*DBL_EPSILON)
 #else
@@ -54,9 +51,6 @@ static constexpr int DELTA = 4;
 
 #define oneFluidApproxParameter (-1)
 #define isOneFluidApprox(_site) ( (_site) == oneFluidApproxParameter )
-
-#define exp6PotentialType (1)
-#define isExp6PotentialType(_type) ( (_type) == exp6PotentialType )
 
 /* ---------------------------------------------------------------------- */
 
@@ -84,10 +78,6 @@ PairExp6rxKokkos<DeviceType>::~PairExp6rxKokkos()
 
   memoryKK->destroy_kokkos(k_cutsq,cutsq);
 
-  for (int i=0; i < nparams; ++i) {
-    delete[] params[i].name;
-    delete[] params[i].potential;
-  }
   memoryKK->destroy_kokkos(k_params,params);
 
   memoryKK->destroy_kokkos(k_mol2param,mol2param);
@@ -1687,112 +1677,16 @@ void PairExp6rxKokkos<DeviceType>::coeff(int narg, char **arg)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairExp6rxKokkos<DeviceType>::read_file(char *file)
-{
-  int params_per_line = 5;
-  char **words = new char*[params_per_line+1];
-
-  memoryKK->destroy_kokkos(k_params,params);
+void PairExp6rxKokkos<DeviceType>::initialize_exp6_params_array() {
+  memoryKK->destroy_kokkos(k_params, params);
   params = nullptr;
-  nparams = maxparam = 0;
+}
 
-  // open file on proc 0
-
-  SafeFilePtr fp;
-  if (comm->me == 0) {
-    fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open exp6/rx potential file %s",file);
-      error->one(FLERR,str);
-    }
-  }
-
-  // read each set of params from potential file
-  // one set of params can span multiple lines
-
-  int n,nwords,ispecies;
-  char line[MAXLINE] = {'\0'};
-  char *ptr;
-  int eof = 0;
-
-  while (true) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
-
-    // strip comment, skip line if blank
-
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
-
-    // concatenate additional lines until have params_per_line words
-
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
-      }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = utils::count_words(line);
-    }
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in exp6/rx potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
-
-    for (ispecies = 0; ispecies < nspecies; ispecies++)
-      if (strcmp(words[0],&atom->dvname[ispecies][0]) == 0) break;
-    if (ispecies == nspecies) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      k_params.modify_host();
-      maxparam += DELTA;
-      memoryKK->grow_kokkos(k_params,params,maxparam,
-                          "pair:params");
-    }
-
-    params[nparams].ispecies = ispecies;
-    params[nparams].name = utils::strdup(&atom->dvname[ispecies][0]);
-    params[nparams].potential = utils::strdup(words[1]);
-
-    if (strcmp(params[nparams].potential,"exp6") == 0) {
-      params[nparams].alpha = std::stod(words[2]);
-      params[nparams].epsilon = std::stod(words[3]);
-      params[nparams].rm = std::stod(words[4]);
-      if (params[nparams].epsilon <= 0.0 || params[nparams].rm <= 0.0 ||
-          params[nparams].alpha < 0.0)
-        error->all(FLERR,"Illegal exp6/rx parameters.  Rm and Epsilon must be greater than zero.  Alpha cannot be negative.");
-    } else {
-      error->all(FLERR,"Illegal exp6/rx parameters.  Interaction potential does not exist.");
-    }
-    nparams++;
-  }
-
-  delete [] words;
+template<class DeviceType>
+void PairExp6rxKokkos<DeviceType>::grow_exp6_params_array(int old_size,
+							  int new_size) {
+  k_params.modify_host();
+  memoryKK->grow_kokkos(k_params, params, new_size, "pair:params");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1869,7 +1763,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
 
     iparam = d_mol2param[ispecies];
 
-    if (iparam < 0 || d_params[iparam].potentialType != exp6PotentialType ) continue;
+    if (iparam < 0 || d_params[iparam].potentialType != PotentialType::exp6 ) continue;
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
       nMoleculesOFAold += dvector(ispecies+nspecies,id);
@@ -1885,7 +1779,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
 
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
     iparam = d_mol2param[ispecies];
-    if (iparam < 0 || d_params[iparam].potentialType != exp6PotentialType ) continue;
+    if (iparam < 0 || d_params[iparam].potentialType != PotentialType::exp6 ) continue;
 
     // If Site1 matches a pure species, then grab the parameters
     if (isite1 == d_params[iparam].ispecies) {
@@ -1932,7 +1826,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
 
       for (int jspecies = 0; jspecies < nspecies; jspecies++) {
         jparam = d_mol2param[jspecies];
-        if (jparam < 0 || d_params[jparam].potentialType != exp6PotentialType ) continue;
+        if (jparam < 0 || d_params[jparam].potentialType != PotentialType::exp6 ) continue;
         if (isite1 == d_params[jparam].ispecies || isite2 == d_params[jparam].ispecies) continue;
         rmj = d_params[jparam].rm;
         epsilonj = d_params[jparam].epsilon;
@@ -2179,7 +2073,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
 
     const int iparam = d_mol2param[ispecies];
 
-    if (iparam < 0 || d_params[iparam].potentialType != exp6PotentialType ) continue;
+    if (iparam < 0 || d_params[iparam].potentialType != PotentialType::exp6 ) continue;
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
 
@@ -2210,7 +2104,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
 
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
     const int iparam = d_mol2param[ispecies];
-    if (iparam < 0 || d_params[iparam].potentialType != exp6PotentialType ) continue;
+    if (iparam < 0 || d_params[iparam].potentialType != PotentialType::exp6 ) continue;
 
     // If Site1 matches a pure species, then grab the parameters
     if (isite1 == d_params[iparam].ispecies)
@@ -2279,7 +2173,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
 
       for (int jspecies = 0; jspecies < nspecies; jspecies++) {
         const int jparam = d_mol2param[jspecies];
-        if (jparam < 0 || d_params[jparam].potentialType != exp6PotentialType ) continue;
+        if (jparam < 0 || d_params[jparam].potentialType != PotentialType::exp6 ) continue;
         if (isite1 == d_params[jparam].ispecies || isite2 == d_params[jparam].ispecies) continue;
 
         const KK_FLOAT rmj = d_params[jparam].rm;

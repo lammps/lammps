@@ -970,7 +970,7 @@ ssfn_glyph_t *_ssfn_render(ssfn_t *ctx, uint32_t unicode)
     if (ctx->style & SSFN_STYLE_STHROUGH) {
       if (ctx->ret->w < ctx->ret->adv_x) ctx->ret->w = ctx->ret->adv_x;
       memset(&ctx->ret->data[(ctx->ret->baseline - (ctx->size >> 2)) * p], 0xFF,
-             (ctx->size / 64 + 2) * p);
+             ((size_t) ctx->size / 64 + 2) * p);
     }
     if (ctx->style & SSFN_STYLE_UNDERLINE) {
       if (ctx->ret->w < ctx->ret->adv_x) ctx->ret->w = ctx->ret->adv_x;

@@ -28,20 +28,21 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-
 static constexpr double SMALL = 0.00001;
 
 /* ---------------------------------------------------------------------- */
 
 KSpace::KSpace(LAMMPS *lmp) :
-    Pointers(lmp), eatom(nullptr), vatom(nullptr), gcons(nullptr), dgcons(nullptr)
+    Pointers(lmp), eatom(nullptr), vatom(nullptr), force_poly_coeff(nullptr),
+    energy_poly_coeff(nullptr), fourier_split_poly_coeff(nullptr),
+    fourier_spread_poly_coeff(nullptr), gcons(nullptr), dgcons(nullptr)
 {
   order_allocated = 0;
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
   triclinic_support = 1;
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
+  ewaldflag = pppmflag = espflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
   stagger_flag = 0;
@@ -67,6 +68,7 @@ KSpace::KSpace(LAMMPS *lmp) :
 
   conp_one_step = true;
   slabflag = wireflag = 0;
+  slab_auto = 0;
   differentiation_flag = 0;
   slab_volfactor = 1;
   wire_volfactor = 1;
@@ -88,7 +90,6 @@ KSpace::KSpace(LAMMPS *lmp) :
   mixflag = 0;
 
   splittol = 1.0e-6;
-  scale = 1.0;
 
   maxeatom = maxvatom = 0;
   centroidstressflag = CENTROID_NOTAVAIL;
@@ -502,16 +503,28 @@ void KSpace::modify_params(int narg, char **arg)
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify slab", error);
       if (strcmp(arg[iarg+1],"nozforce") == 0) {
         slabflag = 2;
+        slab_auto = 0;
       } else if (strcmp(arg[iarg+1],"ew2d") == 0) {
         slabflag = 3;
+        slab_auto = 0;
+      } else if (strcmp(arg[iarg+1],"auto") == 0) {
+        if (!(ewaldflag || pppmflag) || espflag || dispersionflag || dipoleflag || spinflag)
+          error->all(FLERR, iarg + 1,
+                     "kspace_modify slab auto is not supported by kspace style {}",
+                     force->kspace_style);
+        slabflag = 1;
+        slab_auto = 1;
+        slab_volfactor = 1.0;
       } else {
         slabflag = 1;
+        slab_auto = 0;
         slab_volfactor = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (slab_volfactor <= 1.0)
           error->all(FLERR, iarg + 1, "Bad kspace_modify slab parameter");
         if (slab_volfactor < 2.0 && comm->me == 0)
           error->warning(FLERR,"Kspace_modify slab param < 2.0 may cause unphysical behavior");
       }
+      status = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"wire") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify wire", error);
@@ -648,6 +661,12 @@ void KSpace::modify_params(int narg, char **arg)
       mesg += fmt::format("  Gewald manually set to:          {}\n", g_ewald);
     } else {
       mesg += "  Gewald is determined automatically\n";
+    }
+    if (slabflag == 1) {
+      if (slab_auto)
+        mesg += "  Slab volfactor is determined automatically\n";
+      else
+        mesg += fmt::format("  Slab volfactor manually set to:    {}\n", slab_volfactor);
     }
     if (dispersionflag) {
       if (gewaldflag_6) {

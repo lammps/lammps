@@ -47,7 +47,7 @@ class PairGauss : public Pair {
   double **a, **b;
   double **offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

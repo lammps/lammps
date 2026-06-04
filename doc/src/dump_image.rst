@@ -127,7 +127,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *lights* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -188,6 +188,10 @@ Syntax
          hex = 24-bit RGB color in hexadecimal
        *lights* args = ambient key fill back
          ambient key fill back = set light intensity value from 0.0 to 1.0
+       *loadcolors* arg = filename
+         filename = load color definitions, per-type colors, and lights from JSON format file
+       *savecolors* arg = filename
+         filename = save per-type colors and lights to JSON format file
        *ccolor* args = computeID color
          computeID = ID of the compute
          color = name of color for image objects provided by this compute when using "const" color style
@@ -353,8 +357,8 @@ atoms by the optional *adiam* keyword.
 
 If *type* is specified for the *color* setting, then the color of each
 atom is determined by its atom type.  By default the mapping of atom
-types to colors is: red, green, blue, yellow, cyan, magenta, silver,
-orange, chartreuse, gray, darkred, darkgreen, darkblue, darkcyan,
+types to colors is: red, forestgreen, blue, gold, cyan, magenta, silver,
+orange, lime, gray, darkred, darkgreen, darkblue, darkcyan,
 darkmagenta, and darkgray for the first 16 atom types and repeats itself
 after that.  This mapping can be changed by the "dump_modify acolor"
 command, as described below.
@@ -459,11 +463,11 @@ atom at that end of the bond.
 
 If *type* is specified for the *color* value, then the color of each
 bond is determined by its bond type.  By default the mapping of bond
-types to colors is: red, green, blue, yellow, cyan, magenta, silver,
-orange, chartreuse, gray, darkred, darkgreen, darkblue, darkcyan,
-darkmagenta, and darkgray for the first 16 bond types and repeats itself
-after that.  This mapping can be changed by the "dump_modify bcolor"
-command, as described below.
+types to colors is: red, forestgreen, blue, gold, cyan, magenta, silver,
+orange, lime, gray, darkred, darkgreen, darkblue, darkcyan, darkmagenta,
+and darkgray for the first 16 bond types and repeats itself after that.
+This mapping can be changed by the "dump_modify bcolor" command, as
+described below.
 
 The bond *width* value can be a numeric value or *atom* or *type* (or
 *none* as indicated above).
@@ -1241,6 +1245,55 @@ the scene from behind the camera to provide depth.
 
 ----------
 
+.. versionadded:: TBD
+
+The *loadcolors* and *savecolors* keywords can be used to read or write
+the current per-atom-type color assignments and their definitions from
+or to a `JSON format <https://www.json.org/>`_ file.  Also, the current
+*lights* settings are read and applied or stored.  These files can be
+read, modified interactively, and written by `LAMMPS-GUI
+<https://lammps-gui.lammps.org>`_.  This provides a convenient way to
+have custom color definitions and custom color to type assignments.
+When the system has more atom types than colors, colors are named
+"type#" with "#" being the number of the atom type so that the color
+names are unique.  Per-element colors currently cannot be saved or
+customized.
+
+Below is a simple example for a colors file for a system with two
+atom types using the default color and light settings:
+
+.. code-block:: json
+
+   {
+        "application": "LAMMPS",
+        "format": "colors",
+        "revision": 1,
+        "title": "per-type colors for dump image",
+        "schema": "https://download.lammps.org/json/color-schema.json",
+        "colors": [
+           {
+                "name": "red",
+                "red": 1.0,
+                "green": 0.0,
+                "blue": 0.0
+            },
+            {
+                "name": "forestgreen",
+                "red": 0.133,
+                "green": 0.545,
+                "blue": 0.133
+            }
+        ],
+        "lights": {
+            "ambient": 0.0,
+            "key": 0.9,
+            "fill": 0.45,
+            "back": 0.9
+        }
+   }
+
+----------
+
 Restrictions
 """"""""""""
 
@@ -1322,16 +1375,16 @@ The defaults for the dump image and dump movie keywords are as follows:
 
 The defaults for the dump_modify keywords specific to dump image and dump movie are as follows:
 
-* acolor = \* red/green/blue/yellow/cyan/magenta/silver/orange/chartreuse/gray/darkred/darkgreen/darkblue/darkcyan/darkmagenta/darkgray
+* acolor = \* red/forestgreen/blue/gold/cyan/magenta/silver/orange/lime/gray/darkred/darkgreen/darkblue/darkcyan/darkmagenta/darkgray
 * adiam = \* 1.0
 * amap = min max cf 0.0 2 min blue max red
 * atrans = 1.0
 * backcolor = black
 * backcolor2 = none
-* bcolor = \* red/green/blue/yellow/cyan/magenta/silver/orange/chartreuse/gray/darkred/darkgreen/darkblue/darkcyan/darkmagenta/darkgray
+* bcolor = \* red/forestgreen/blue/gold/cyan/magenta/silver/orange/lime/gray/darkred/darkgreen/darkblue/darkcyan/darkmagenta/darkgray
 * bdiam = \* 0.5
 * btrans = 1.0
-* boxcolor = yellow
+* boxcolor = gold
 * axestrans = 1.0
 * boxtrans = 1.0
 * subboxtrans = 1.0
@@ -1340,6 +1393,11 @@ The defaults for the dump_modify keywords specific to dump image and dump movie 
 * bitrate = 2000
 * framerate = 24
 * gmap = min max cf 0.0 2 min blue max red
+
+Default color sequence: |color_red|  |color_forestgreen|  |color_blue|
+|color_gold|  |color_cyan|  |color_magenta|  |color_silver|  |color_orange|
+|color_lime|  |color_gray|  |color_darkred|  |color_darkgreen|
+|color_darkblue|  |color_darkcyan|  |color_darkmagenta|  |color_darkgray|
 
 ----------
 
@@ -1363,63 +1421,291 @@ use with the dump image and dump_modify commands.
 These are the 140 colors that LAMMPS pre-defines for use with the dump
 image and dump_modify commands.  Additional colors can be defined with
 the dump_modify color command.  The 3 numbers listed for each name are
-the RGB (red/green/blue) values.  Divide each value by 255 to get the
-equivalent 0.0 to 1.0 value.
+the RGB (red/green/blue) values.
 
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| aliceblue = 240, 248, 255     | antiquewhite = 250, 235, 215         | aqua = 0, 255, 255              | aquamarine = 127, 255, 212     | azure = 240, 255, 255          |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| beige = 245, 245, 220         | bisque = 255, 228, 196               | black = 0, 0, 0                 | blanchedalmond = 255, 255, 205 | blue = 0, 0, 255               |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| blueviolet = 138, 43, 226     | brown = 165, 42, 42                  | burlywood = 222, 184, 135       | cadetblue = 95, 158, 160       | chartreuse = 127, 255, 0       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| chocolate = 210, 105, 30      | coral = 255, 127, 80                 | cornflowerblue = 100, 149, 237  | cornsilk = 255, 248, 220       | crimson = 220, 20, 60          |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| cyan = 0, 255, 255            | darkblue = 0, 0, 139                 | darkcyan = 0, 139, 139          | darkgoldenrod = 184, 134, 11   | darkgray = 169, 169, 169       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| darkgreen = 0, 100, 0         | darkkhaki = 189, 183, 107            | darkmagenta = 139, 0, 139       | darkolivegreen = 85, 107, 47   | darkorange = 139, 69, 0        |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| darkorchid = 153, 50, 204     | darkred = 139, 0, 0                  | darksalmon = 233, 150, 122      | darkseagreen = 143, 188, 143   | darkslateblue = 72, 61, 139    |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| darkslategray = 47, 79, 79    | darkturquoise = 0, 206, 209          | darkviolet = 148, 0, 211        | deeppink = 255, 20, 147        | deepskyblue = 0, 191, 255      |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| dimgray = 105, 105, 105       | dodgerblue = 30, 144, 255            | firebrick = 178, 34, 34         | floralwhite = 255, 250, 240    | forestgreen = 34, 139, 34      |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| fuchsia = 255, 0, 255         | gainsboro = 220, 220, 220            | ghostwhite = 248, 248, 255      | gold = 255, 215, 0             | goldenrod = 218, 165, 32       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| gray = 128, 128, 128          | green = 0, 255, 0                    | greenyellow = 173, 255, 47      | honeydew = 240, 255, 240       | hotpink = 255, 105, 180        |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| indianred = 205, 92, 92       | indigo = 75, 0, 130                  | ivory = 255, 240, 240           | khaki = 240, 230, 140          | lavender = 230, 230, 250       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| lavenderblush = 255, 240, 245 | lawngreen = 124, 252, 0              | lemonchiffon = 255, 250, 205    | lightblue = 173, 216, 230      | lightcoral = 240, 128, 128     |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| lightcyan = 224, 255, 255     | lightgoldenrodyellow = 250, 250, 210 | lightgreen = 144, 238, 144      | lightgrey = 211, 211, 211      | lightpink = 255, 182, 193      |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| lightsalmon = 255, 160, 122   | lightseagreen = 32, 178, 170         | lightskyblue = 135, 206, 250    | lightslategray = 119, 136, 153 | lightsteelblue = 176, 196, 222 |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| lightyellow = 255, 255, 224   | lime = 0, 255, 0                     | limegreen = 50, 205, 50         | linen = 250, 240, 230          | magenta = 255, 0, 255          |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| maroon = 128, 0, 0            | mediumaquamarine = 102, 205, 170     | mediumblue = 0, 0, 205          | mediumorchid = 186, 85, 211    | mediumpurple = 147, 112, 219   |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| mediumseagreen = 60, 179, 113 | mediumslateblue = 123, 104, 238      | mediumspringgreen = 0, 250, 154 | mediumturquoise = 72, 209, 204 | mediumvioletred = 199, 21, 133 |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| midnightblue = 25, 25, 112    | mintcream = 245, 255, 250            | mistyrose = 255, 228, 225       | moccasin = 255, 228, 181       | navajowhite = 255, 222, 173    |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| navy = 0, 0, 128              | oldlace = 253, 245, 230              | olive = 128, 128, 0             | olivedrab = 107, 142, 35       | orange = 255, 128, 0           |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| orangered = 255, 64, 0        | orchid = 218, 112, 214               | palegoldenrod = 238, 232, 170   | palegreen = 152, 251, 152      | paleturquoise = 175, 238, 238  |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| palevioletred = 219, 112, 147 | papayawhip = 255, 239, 213           | peachpuff = 255, 239, 213       | peru = 205, 133, 63            | pink = 255, 192, 203           |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| plum = 221, 160, 221          | powderblue = 176, 224, 230           | purple = 128, 0, 128            | red = 255, 0, 0                | rosybrown = 188, 143, 143      |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| royalblue = 65, 105, 225      | saddlebrown = 139, 69, 19            | salmon = 250, 128, 114          | sandybrown = 244, 164, 96      | seagreen = 46, 139, 87         |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| seashell = 255, 245, 238      | sienna = 160, 82, 45                 | silver = 192, 192, 192          | skyblue = 135, 206, 235        | slateblue = 106, 90, 205       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| slategray = 112, 128, 144     | snow = 255, 250, 250                 | springgreen = 0, 255, 127       | steelblue = 70, 130, 180       | tan = 210, 180, 140            |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| teal = 0, 128, 128            | thistle = 216, 191, 216              | tomato = 253, 99, 71            | turquoise = 64, 224, 208       | violet = 238, 130, 238         |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| wheat = 245, 222, 179         | white = 255, 255, 255                | whitesmoke = 245, 245, 245      | yellow = 255, 255, 0           | yellowgreen = 154, 205, 50     |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
+.. |color_aliceblue| image:: img/colors/aliceblue.png
+.. |color_antiquewhite| image:: img/colors/antiquewhite.png
+.. |color_aqua| image:: img/colors/aqua.png
+.. |color_aquamarine| image:: img/colors/aquamarine.png
+.. |color_azure| image:: img/colors/azure.png
+.. |color_beige| image:: img/colors/beige.png
+.. |color_bisque| image:: img/colors/bisque.png
+.. |color_black| image:: img/colors/black.png
+.. |color_blanchedalmond| image:: img/colors/blanchedalmond.png
+.. |color_blue| image:: img/colors/blue.png
+.. |color_blueviolet| image:: img/colors/blueviolet.png
+.. |color_brown| image:: img/colors/brown.png
+.. |color_burlywood| image:: img/colors/burlywood.png
+.. |color_cadetblue| image:: img/colors/cadetblue.png
+.. |color_chartreuse| image:: img/colors/chartreuse.png
+.. |color_chocolate| image:: img/colors/chocolate.png
+.. |color_coral| image:: img/colors/coral.png
+.. |color_cornflowerblue| image:: img/colors/cornflowerblue.png
+.. |color_cornsilk| image:: img/colors/cornsilk.png
+.. |color_crimson| image:: img/colors/crimson.png
+.. |color_cyan| image:: img/colors/cyan.png
+.. |color_darkblue| image:: img/colors/darkblue.png
+.. |color_darkcyan| image:: img/colors/darkcyan.png
+.. |color_darkgoldenrod| image:: img/colors/darkgoldenrod.png
+.. |color_darkgray| image:: img/colors/darkgray.png
+.. |color_darkgreen| image:: img/colors/darkgreen.png
+.. |color_darkkhaki| image:: img/colors/darkkhaki.png
+.. |color_darkmagenta| image:: img/colors/darkmagenta.png
+.. |color_darkolivegreen| image:: img/colors/darkolivegreen.png
+.. |color_darkorange| image:: img/colors/darkorange.png
+.. |color_darkorchid| image:: img/colors/darkorchid.png
+.. |color_darkred| image:: img/colors/darkred.png
+.. |color_darksalmon| image:: img/colors/darksalmon.png
+.. |color_darkseagreen| image:: img/colors/darkseagreen.png
+.. |color_darkslateblue| image:: img/colors/darkslateblue.png
+.. |color_darkslategray| image:: img/colors/darkslategray.png
+.. |color_darkturquoise| image:: img/colors/darkturquoise.png
+.. |color_darkviolet| image:: img/colors/darkviolet.png
+.. |color_deeppink| image:: img/colors/deeppink.png
+.. |color_deepskyblue| image:: img/colors/deepskyblue.png
+.. |color_dimgray| image:: img/colors/dimgray.png
+.. |color_dodgerblue| image:: img/colors/dodgerblue.png
+.. |color_firebrick| image:: img/colors/firebrick.png
+.. |color_floralwhite| image:: img/colors/floralwhite.png
+.. |color_forestgreen| image:: img/colors/forestgreen.png
+.. |color_fuchsia| image:: img/colors/fuchsia.png
+.. |color_gainsboro| image:: img/colors/gainsboro.png
+.. |color_ghostwhite| image:: img/colors/ghostwhite.png
+.. |color_gold| image:: img/colors/gold.png
+.. |color_goldenrod| image:: img/colors/goldenrod.png
+.. |color_gray| image:: img/colors/gray.png
+.. |color_green| image:: img/colors/green.png
+.. |color_greenyellow| image:: img/colors/greenyellow.png
+.. |color_honeydew| image:: img/colors/honeydew.png
+.. |color_hotpink| image:: img/colors/hotpink.png
+.. |color_indianred| image:: img/colors/indianred.png
+.. |color_indigo| image:: img/colors/indigo.png
+.. |color_ivory| image:: img/colors/ivory.png
+.. |color_khaki| image:: img/colors/khaki.png
+.. |color_lavender| image:: img/colors/lavender.png
+.. |color_lavenderblush| image:: img/colors/lavenderblush.png
+.. |color_lawngreen| image:: img/colors/lawngreen.png
+.. |color_lemonchiffon| image:: img/colors/lemonchiffon.png
+.. |color_lightblue| image:: img/colors/lightblue.png
+.. |color_lightcoral| image:: img/colors/lightcoral.png
+.. |color_lightcyan| image:: img/colors/lightcyan.png
+.. |color_lightgoldenrodyellow| image:: img/colors/lightgoldenrodyellow.png
+.. |color_lightgreen| image:: img/colors/lightgreen.png
+.. |color_lightgrey| image:: img/colors/lightgrey.png
+.. |color_lightpink| image:: img/colors/lightpink.png
+.. |color_lightsalmon| image:: img/colors/lightsalmon.png
+.. |color_lightseagreen| image:: img/colors/lightseagreen.png
+.. |color_lightskyblue| image:: img/colors/lightskyblue.png
+.. |color_lightslategray| image:: img/colors/lightslategray.png
+.. |color_lightsteelblue| image:: img/colors/lightsteelblue.png
+.. |color_lightyellow| image:: img/colors/lightyellow.png
+.. |color_lime| image:: img/colors/lime.png
+.. |color_limegreen| image:: img/colors/limegreen.png
+.. |color_linen| image:: img/colors/linen.png
+.. |color_magenta| image:: img/colors/magenta.png
+.. |color_maroon| image:: img/colors/maroon.png
+.. |color_mediumaquamarine| image:: img/colors/mediumaquamarine.png
+.. |color_mediumblue| image:: img/colors/mediumblue.png
+.. |color_mediumorchid| image:: img/colors/mediumorchid.png
+.. |color_mediumpurple| image:: img/colors/mediumpurple.png
+.. |color_mediumseagreen| image:: img/colors/mediumseagreen.png
+.. |color_mediumslateblue| image:: img/colors/mediumslateblue.png
+.. |color_mediumspringgreen| image:: img/colors/mediumspringgreen.png
+.. |color_mediumturquoise| image:: img/colors/mediumturquoise.png
+.. |color_mediumvioletred| image:: img/colors/mediumvioletred.png
+.. |color_midnightblue| image:: img/colors/midnightblue.png
+.. |color_mintcream| image:: img/colors/mintcream.png
+.. |color_mistyrose| image:: img/colors/mistyrose.png
+.. |color_moccasin| image:: img/colors/moccasin.png
+.. |color_navajowhite| image:: img/colors/navajowhite.png
+.. |color_navy| image:: img/colors/navy.png
+.. |color_oldlace| image:: img/colors/oldlace.png
+.. |color_olive| image:: img/colors/olive.png
+.. |color_olivedrab| image:: img/colors/olivedrab.png
+.. |color_orange| image:: img/colors/orange.png
+.. |color_orangered| image:: img/colors/orangered.png
+.. |color_orchid| image:: img/colors/orchid.png
+.. |color_palegoldenrod| image:: img/colors/palegoldenrod.png
+.. |color_palegreen| image:: img/colors/palegreen.png
+.. |color_paleturquoise| image:: img/colors/paleturquoise.png
+.. |color_palevioletred| image:: img/colors/palevioletred.png
+.. |color_papayawhip| image:: img/colors/papayawhip.png
+.. |color_peachpuff| image:: img/colors/peachpuff.png
+.. |color_peru| image:: img/colors/peru.png
+.. |color_pink| image:: img/colors/pink.png
+.. |color_plum| image:: img/colors/plum.png
+.. |color_powderblue| image:: img/colors/powderblue.png
+.. |color_purple| image:: img/colors/purple.png
+.. |color_red| image:: img/colors/red.png
+.. |color_rosybrown| image:: img/colors/rosybrown.png
+.. |color_royalblue| image:: img/colors/royalblue.png
+.. |color_saddlebrown| image:: img/colors/saddlebrown.png
+.. |color_salmon| image:: img/colors/salmon.png
+.. |color_sandybrown| image:: img/colors/sandybrown.png
+.. |color_seagreen| image:: img/colors/seagreen.png
+.. |color_seashell| image:: img/colors/seashell.png
+.. |color_sienna| image:: img/colors/sienna.png
+.. |color_silver| image:: img/colors/silver.png
+.. |color_skyblue| image:: img/colors/skyblue.png
+.. |color_slateblue| image:: img/colors/slateblue.png
+.. |color_slategray| image:: img/colors/slategray.png
+.. |color_snow| image:: img/colors/snow.png
+.. |color_springgreen| image:: img/colors/springgreen.png
+.. |color_steelblue| image:: img/colors/steelblue.png
+.. |color_tan| image:: img/colors/tan.png
+.. |color_teal| image:: img/colors/teal.png
+.. |color_thistle| image:: img/colors/thistle.png
+.. |color_tomato| image:: img/colors/tomato.png
+.. |color_turquoise| image:: img/colors/turquoise.png
+.. |color_violet| image:: img/colors/violet.png
+.. |color_wheat| image:: img/colors/wheat.png
+.. |color_white| image:: img/colors/white.png
+.. |color_whitesmoke| image:: img/colors/whitesmoke.png
+.. |color_yellow| image:: img/colors/yellow.png
+.. |color_yellowgreen| image:: img/colors/yellowgreen.png
+
+.. list-table:: Pre-defined colors
+   :widths: 33 33 33
+   :header-rows: 0
+
+   * - |color_aliceblue| aliceblue: 0.941, 0.973, 1.000
+     - |color_antiquewhite| antiquewhite: 0.980, 0.922, 0.843
+     - |color_aqua| aqua:  0.000, 1.000, 1.000
+   * - |color_aquamarine| aquamarine: 0.498, 1.000, 0.831
+     - |color_azure| azure: 0.941, 1.000, 1.000
+     - |color_beige| beige: 0.961, 0.961, 0.863
+   * - |color_bisque| bisque: 1.000, 0.894, 0.769
+     - |color_black| black: 0.000, 0.000, 0.000
+     - |color_blanchedalmond| blanchedalmond: 1.000, 1.000, 0.804
+   * - |color_blue| blue: 0.000, 0.000, 1.000
+     - |color_blueviolet| blueviolet: 0.541, 0.169, 0.886
+     - |color_brown| brown: 0.647, 0.165, 0.165
+   * - |color_burlywood| burlywood: 0.871, 0.722, 0.529
+     - |color_cadetblue| cadetblue: 0.373, 0.620, 0.627
+     - |color_chartreuse| chartreuse: 0.498, 1.000, 0.000
+   * - |color_chocolate| chocolate: 0.824, 0.412, 0.118
+     - |color_coral| coral: 1.000, 0.498, 0.314
+     - |color_cornflowerblue| cornflowerblue: 0.392, 0.584, 0.929
+   * - |color_cornsilk| cornsilk: 1.000, 0.973, 0.863
+     - |color_crimson| crimson: 0.863, 0.078, 0.235
+     - |color_cyan| cyan: 0.000, 1.000, 1.000
+   * - |color_darkblue| darkblue: 0.000, 0.000, 0.545
+     - |color_darkcyan| darkcyan: 0.000, 0.545, 0.545
+     - |color_darkgoldenrod| darkgoldenrod: 0.722, 0.525, 0.043
+   * - |color_darkgray| darkgray: 0.271, 0.271, 0.271
+     - |color_darkgreen| darkgreen: 0.000, 0.392, 0.000
+     - |color_darkkhaki| darkkhaki: 0.741, 0.718, 0.420
+   * - |color_darkmagenta| darkmagenta: 0.545, 0.000, 0.545
+     - |color_darkolivegreen| darkolivegreen: 0.333, 0.420, 0.184
+     - |color_darkorange| darkorange: 0.545, 0.271, 0.000
+   * - |color_darkorchid| darkorchid: 0.600, 0.196, 0.800
+     - |color_darkred| darkred: 0.545, 0.000, 0.000
+     - |color_darksalmon| darksalmon: 0.914, 0.588, 0.478
+   * - |color_darkseagreen| darkseagreen: 0.561, 0.737, 0.561
+     - |color_darkslateblue| darkslateblue: 0.282, 0.239, 0.545
+     - |color_darkslategray| darkslategray: 0.184, 0.310, 0.310
+   * - |color_darkturquoise| darkturquoise: 0.000, 0.808, 0.820
+     - |color_darkviolet| darkviolet: 0.580, 0.000, 0.827
+     - |color_deeppink| deeppink: 1.000, 0.078, 0.576
+   * - |color_deepskyblue| deepskyblue: 0.000, 0.749, 1.000
+     - |color_dimgray| dimgray: 0.412, 0.412, 0.412
+     - |color_dodgerblue| dodgerblue: 0.118, 0.565, 1.000
+   * - |color_firebrick| firebrick: 0.698, 0.133, 0.133
+     - |color_floralwhite| floralwhite: 1.000, 0.980, 0.941
+     - |color_forestgreen| forestgreen: 0.133, 0.545, 0.133
+   * - |color_fuchsia| fuchsia: 1.000, 0.000, 1.000
+     - |color_gainsboro| gainsboro: 0.863, 0.863, 0.863
+     - |color_ghostwhite| ghostwhite: 0.973, 0.973, 1.000
+   * - |color_gold| gold: 1.000, 0.843, 0.000
+     - |color_goldenrod| goldenrod: 0.855, 0.647, 0.125
+     - |color_gray| gray: 0.502, 0.502, 0.502
+   * - |color_green| green: 0.000, 1.000, 0.000
+     - |color_greenyellow| greenyellow: 0.678, 1.000, 0.184
+     - |color_honeydew| honeydew: 0.941, 1.000, 0.941
+   * - |color_hotpink| hotpink: 1.000, 0.412, 0.706
+     - |color_indianred| indianred: 0.804, 0.361, 0.361
+     - |color_indigo| indigo: 0.294, 0.000, 0.510
+   * - |color_ivory| ivory: 1.000, 0.941, 0.941
+     - |color_khaki| khaki: 0.941, 0.902, 0.549
+     - |color_lavender| lavender: 0.902, 0.902, 0.980
+   * - |color_lavenderblush| lavenderblush: 1.000, 0.941, 0.961
+     - |color_lawngreen| lawngreen: 0.486, 0.988, 0.000
+     - |color_lemonchiffon| lemonchiffon: 1.000, 0.980, 0.804
+   * - |color_lightblue| lightblue: 0.678, 0.847, 0.902
+     - |color_lightcoral| lightcoral: 0.941, 0.502, 0.502
+     - |color_lightcyan| lightcyan: 0.878, 1.000, 1.000
+   * - |color_lightgoldenrodyellow| lightgoldenrodyellow: 0.980, 0.980, 0.824
+     - |color_lightgreen| lightgreen: 0.565, 0.933, 0.565
+     - |color_lightgrey| lightgrey: 0.827, 0.827, 0.827
+   * - |color_lightpink| lightpink: 1.000, 0.714, 0.757
+     - |color_lightsalmon| lightsalmon: 1.000, 0.627, 0.478
+     - |color_lightseagreen| lightseagreen: 0.125, 0.698, 0.667
+   * - |color_lightskyblue| lightskyblue: 0.529, 0.808, 0.980
+     - |color_lightslategray| lightslategray: 0.467, 0.533, 0.600
+     - |color_lightsteelblue| lightsteelblue: 0.690, 0.769, 0.871
+   * - |color_lightyellow| lightyellow: 1.000, 1.000, 0.878
+     - |color_lime| lime: 0.000, 1.000, 0.000
+     - |color_limegreen| limegreen: 0.196, 0.804, 0.196
+   * - |color_linen| linen: 0.980, 0.941, 0.902
+     - |color_magenta| magenta: 1.000, 0.000, 1.000
+     - |color_maroon| maroon: 0.502, 0.000, 0.000
+   * - |color_mediumaquamarine| mediumaquamarine: 0.400, 0.804, 0.667
+     - |color_mediumblue| mediumblue: 0.000, 0.000, 0.804
+     - |color_mediumorchid| mediumorchid: 0.729, 0.333, 0.827
+   * - |color_mediumpurple| mediumpurple: 0.576, 0.439, 0.859
+     - |color_mediumseagreen| mediumseagreen: 0.235, 0.702, 0.443
+     - |color_mediumslateblue| mediumslateblue: 0.482, 0.408, 0.933
+   * - |color_mediumspringgreen| mediumspringgreen: 0.000, 0.980, 0.604
+     - |color_mediumturquoise| mediumturquoise: 0.282, 0.820, 0.800
+     - |color_mediumvioletred| mediumvioletred: 0.780, 0.082, 0.522
+   * - |color_midnightblue| midnightblue: 0.098, 0.098, 0.439
+     - |color_mintcream| mintcream: 0.961, 1.000, 0.980
+     - |color_mistyrose| mistyrose: 1.000, 0.894, 0.882
+   * - |color_moccasin| moccasin: 1.000, 0.894, 0.710
+     - |color_navajowhite| navajowhite: 1.000, 0.871, 0.678
+     - |color_navy| navy: 0.000, 0.000, 0.502
+   * - |color_oldlace| oldlace: 0.992, 0.961, 0.902
+     - |color_olive| olive: 0.502, 0.502, 0.000
+     - |color_olivedrab| olivedrab: 0.420, 0.557, 0.137
+   * - |color_orange| orange: 1.000, 0.502, 0.000
+     - |color_orangered| orangered: 1.000, 0.251, 0.000
+     - |color_orchid| orchid: 0.855, 0.439, 0.839
+   * - |color_palegoldenrod| palegoldenrod: 0.933, 0.910, 0.667
+     - |color_palegreen| palegreen: 0.596, 0.984, 0.596
+     - |color_paleturquoise| paleturquoise: 0.686, 0.933, 0.933
+   * - |color_palevioletred| palevioletred: 0.859, 0.439, 0.576
+     - |color_papayawhip| papayawhip: 1.000, 0.937, 0.835
+     - |color_peachpuff| peachpuff: 1.000, 0.937, 0.835
+   * - |color_peru| peru: 0.804, 0.522, 0.247
+     - |color_pink| pink: 1.000, 0.753, 0.796
+     - |color_plum| plum: 0.867, 0.627, 0.867
+   * - |color_powderblue| powderblue: 0.690, 0.878, 0.902
+     - |color_purple| purple: 0.502, 0.000, 0.502
+     - |color_red| red: 1.000, 0.000, 0.000
+   * - |color_rosybrown| rosybrown: 0.737, 0.561, 0.561
+     - |color_royalblue| royalblue: 0.255, 0.412, 0.882
+     - |color_saddlebrown| saddlebrown: 0.545, 0.271, 0.075
+   * - |color_salmon| salmon: 0.980, 0.502, 0.447
+     - |color_sandybrown| sandybrown: 0.957, 0.643, 0.376
+     - |color_seagreen| seagreen: 0.180, 0.545, 0.341
+   * - |color_seashell| seashell: 1.000, 0.961, 0.933
+     - |color_sienna| sienna: 0.627, 0.322, 0.176
+     - |color_silver| silver: 0.753, 0.753, 0.753
+   * - |color_skyblue| skyblue: 0.529, 0.808, 0.922
+     - |color_slateblue| slateblue: 0.416, 0.353, 0.804
+     - |color_slategray| slategray: 0.439, 0.502, 0.565
+   * - |color_snow| snow: 1.000, 0.980, 0.980
+     - |color_springgreen| springgreen: 0.000, 1.000, 0.498
+     - |color_steelblue| steelblue: 0.275, 0.510, 0.706
+   * - |color_tan| tan: 0.824, 0.706, 0.549
+     - |color_teal| teal: 0.000, 0.502, 0.502
+     - |color_thistle| thistle: 0.847, 0.749, 0.847
+   * - |color_tomato| tomato: 0.992, 0.388, 0.278
+     - |color_turquoise| turquoise: 0.251, 0.878, 0.816
+     - |color_violet| violet: 0.933, 0.510, 0.933
+   * - |color_wheat| wheat: 0.961, 0.871, 0.702
+     - |color_white| white: 1.000, 1.000, 1.000
+     - |color_whitesmoke| whitesmoke: 0.961, 0.961, 0.961
+   * - |color_yellow| yellow: 1.000, 1.000, 0.000
+     - |color_yellowgreen| yellowgreen: 0.604, 0.804, 0.196
+     -

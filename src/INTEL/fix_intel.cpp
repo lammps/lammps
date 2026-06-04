@@ -805,8 +805,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
                             const int out_offset, const int nall) {
   lmp_ft * _noalias const f = (lmp_ft *) lmp->atom->f[0] + out_offset;
   if (_torque_flag) {
-    if (f_in[1].w)
-    {
+    if (f_in[1].w) {
       if (f_in[1].w == 1)
         error->all(FLERR,"Bad matrix inversion in mldivide3");
       else

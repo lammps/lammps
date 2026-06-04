@@ -101,6 +101,14 @@ namespace LAMMPS_NS {
       void end_of_step_rmass_item(int) const;
 
 // NOLINTNEXTLINE
+template<int Tp_TSTYLEATOM>
+KOKKOS_INLINE_FUNCTION
+  void omega_thermostat_item(int) const;
+void omega_thermostat_kokkos();
+
+
+
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
       void angmom_thermostat_item(int i) const;
 
@@ -139,6 +147,11 @@ namespace LAMMPS_NS {
     typename tdual_kkfloat_1d_3n::t_host h_fsumall;
 
     KK_FLOAT boltz,dt,mvv2e,ftm2v,fran_prop_const;
+
+    // For omega thermostat
+    typename AT::t_kkacc_1d_3 d_torque;
+    typename AT::t_kkfloat_1d_3 d_omega;
+    typename AT::t_kkfloat_1d d_radius;
 
     void compute_target();
     // For angmom thermostat
@@ -274,6 +287,22 @@ namespace LAMMPS_NS {
       c.angmom_thermostat_item(i);
     }
   };
+
+
+  template <class DeviceType, int Tp_TSTYLEATOM>
+  struct FixLangevinKokkosOmegaFunctor {
+    typedef DeviceType device_type;
+    FixLangevinKokkos<DeviceType> c;
+
+    FixLangevinKokkosOmegaFunctor(FixLangevinKokkos<DeviceType>* c_ptr):
+      c(*c_ptr) {c.set_copymode(1);}
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()(const int i) const {
+      c.template omega_thermostat_item<Tp_TSTYLEATOM>(i);
+    }
+  };
+
 }
 
 #endif

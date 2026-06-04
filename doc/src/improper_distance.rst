@@ -1,10 +1,11 @@
 .. index:: improper_style distance
+.. index:: improper_style distance/kk
 .. index:: improper_style distance/omp
 
 improper_style distance command
 ===============================
 
-Accelerator Variant: *distance/omp*
+Accelerator Variants: *distance/kk*, *distance/omp*
 
 Syntax
 """"""

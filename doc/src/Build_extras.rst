@@ -57,6 +57,7 @@ This is the list of packages that may require additional steps.
    * :ref:`ML-PACE <ml-pace>`
    * :ref:`ML-POD <ml-pod>`
    * :ref:`ML-QUIP <ml-quip>`
+   * :ref:`ML-RUNNER <ml-runner>`
    * :ref:`MOLFILE <molfile>`
    * :ref:`NETCDF <netcdf>`
    * :ref:`OPENMP <openmp>`
@@ -883,12 +884,21 @@ use RAM on the host to supplement the memory used on the GPU (with some
 performance penalty) and thus enables running larger problems that would
 otherwise not fit into the RAM on the GPU.
 
+.. versionadded:: 10Sep2025
+
 The CMake option ``-D KOKKOS_PREC=value`` sets the floating point
 precision of the calculations, where ``value`` can be one of: ``double``
 (FP64, default) or ``mixed`` (FP64 for accumulation of forces, energy,
 and virial, FP32 otherwise) or ``single`` (FP32).  When using reduced
-precision (single or mixed), the simulation should be carefully checked
-to ensure it is stable and that energy is acceptably conserved.
+precision (single or mixed), the simulation and its results should be
+carefully checked to ensure it is stable and that, for example, energy
+is sufficiently well conserved.  Using a lower floating point precision
+works best when simulating homogeneous bulk systems because those have
+the best error cancellation.  Using ``mixed`` precision provides most of
+the performance advantages of using single precision while performing
+the steps most relevant for accuracy in double precision.
+
+.. versionadded:: 10Sep2025
 
 The CMake option ``-D KOKKOS_LAYOUT=value`` sets the array layout of
 Kokkos views (e.g. forces, velocities, etc.) on GPUs, where ``value``
@@ -1578,6 +1588,106 @@ details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
 
       The ML-HDNNP package no longer supports the traditional make
       build.  You need to build LAMMPS with CMake.
+
+----------
+
+
+.. _ml-runner:
+
+ML-RUNNER package
+-----------------
+
+The ML-RUNNER package provides an interface to the
+`RuNNer <https://www.theochem2.ruhr-uni-bochum.de/tc/software/runner.html.en>`_
+(Ruhr University Neural Network Energy Representation) library for
+high-dimensional neural network potentials (HDNNP).
+
+**Prerequisites**
+
+* **Fortran Compiler:** Since the RuNNer library is written in Fortran, a working Fortran compiler must be available on your system and detectable by CMake.
+* **BLAS/LAPACK:** RuNNer requires BLAS and LAPACK libraries for linear algebra operations.
+* **FFT Library:** RuNNer uses an FFT library for electrostatic calculations (3G/4G).
+  It can use either MKL or FFTW3 and the choice is imported from the KSPACE package configuration.
+  When using FFTW3 also FFTW3 threading (-DFFT_FFTW_THREADING=ON) needs to be enabled
+  which is usually auto-detected.  These restrictions are needed so that LAMMPS and RuNNer
+  use the same FFT library settings and link to the same library.  In both cases the
+  Fortran 03 wrapper file ``fftw3.f03`` must be in the Fortran compiler include path.
+
+**Building RuNNer**
+
+By default, the LAMMPS build process automatically downloads and compiles the
+RuNNer library as a static library. Alternatively, you can point LAMMPS to a
+pre-compiled version already present on your system.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      **Basic Options:**
+
+      .. code-block:: bash
+
+         -D PKG_ML-RUNNER=yes       # yes (default): Download and build RuNNer automatically.
+         -D DOWNLOAD_RUNNER=yes     # yes (default): clone the stable version of the official RuNNer repo.
+                                    # no: Use a pre-compiled RuNNer library.
+         -D RUNNER_SHARED_LIB=yes    # no: (default): Look for static library (.a).
+                                     # yes: Look for shared library (.so).
+
+      **Manual Library Configuration (if DOWNLOAD_RUNNER=no):**
+
+      .. code-block:: bash
+
+         -D RUNNER_LIB_DIR=path      # Directory containing the RuNNer library.
+                                     # (default: $HOME/.local/lib)
+         -D RUNNER_LIB_NAME=name     # Filename of the library (without extension).
+                                     # (default: libRuNNer_mpi)
+
+      **FFT Library Selection:**
+
+      The build system uses the FFT selection from the KSPACE package.
+      Only MKL and FFTW3 are currently supported
+
+      .. code-block:: bash
+
+         -D FFT=value                # FFTW3 or MKL
+         -D FFT_MKL_THREADS=yes      # required with MKL (default)
+         -D FFT_FFTW_THREADS=yes     # required with FFTW3 (default)
+
+   .. tab:: Traditional make
+
+      The ML-RUNNER package does not support the traditional make build system.
+      You must build LAMMPS with CMake.
+
+**Detailed Option Table**
+
+.. list-table::
+   :widths: 25 50 25
+   :header-rows: 1
+
+   * - Option
+     - Description
+     - Default
+   * - ``DOWNLOAD_RUNNER``
+     - Download and build RuNNer from source
+     - ``yes``
+   * - ``RUNNER_LIB_DIR``
+     - Path to a pre-installed RuNNer library
+     - ``$HOME/.local/lib``
+   * - ``RUNNER_LIB_NAME``
+     - Name of the RuNNer library file without extension
+     - ``libRuNNer_mpi``
+   * - ``RUNNER_SHARED_LIB``
+     - Link against a shared RuNNer library
+     - ``yes``
+   * - ``FFT``
+     - FFT library to use (FFTW3 or MKL)
+     - ``auto-detected``
+   * - ``FFT_MKL_THREADS``
+     - Use multi-threaded MKL FFT
+     - ``yes``
+   * - ``FFT_FFTW_THREADS``
+     - Use multi-threaded FFTW
+     - ``yes``
 
 ----------
 

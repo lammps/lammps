@@ -29,6 +29,11 @@ add_executable(test_lattice_region test_lattice_region.cpp)
 target_link_libraries(test_lattice_region PRIVATE lammps GTest::GMock)
 add_test(NAME LatticeRegion COMMAND test_lattice_region)
 
+add_executable(test_kspace_auto_slab test_kspace_auto_slab.cpp)
+target_compile_definitions(test_kspace_auto_slab PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_kspace_auto_slab PRIVATE lammps GTest::GMock)
+add_test(NAME KSpaceAutoSlab COMMAND test_kspace_auto_slab)
+
 add_executable(test_groups test_groups.cpp)
 target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
 add_test(NAME Groups COMMAND test_groups)

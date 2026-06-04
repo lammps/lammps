@@ -45,6 +45,8 @@ PairWFCut::PairWFCut(LAMMPS *lmp) : Pair(lmp)
 
 PairWFCut::~PairWFCut()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

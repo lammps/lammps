@@ -1,10 +1,11 @@
 .. index:: bond_style harmonic/restrain
+.. index:: bond_style harmonic/restrain/kk
 .. index:: bond_style harmonic/restrain/omp
 
 bond_style harmonic/restrain command
 ====================================
 
-Accelerator Variant: *harmonic/restrain/omp*
+Accelerator Variants: *harmonic/restrain/kk*, *harmonic/restrain/omp*
 
 Syntax
 """"""

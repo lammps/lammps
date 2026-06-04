@@ -13,7 +13,7 @@ VENV           = $(BUILDDIR)/docenv
 ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
-MATHJAXTAG     = 3.2.2
+MATHJAXTAG     = 4.1.2
 
 PYTHON         = $(word 3,$(shell type python3))
 DOXYGEN        = $(word 3,$(shell type doxygen))
@@ -304,6 +304,7 @@ $(VENV):
 
 $(MATHJAX):
 	@git clone -b $(MATHJAXTAG) -c advice.detachedHead=0 --depth 1 https://github.com/mathjax/MathJax.git $@
+	@ln -sf . es5
 
 $(ANCHORCHECK): $(VENV)
 	@( \

@@ -559,10 +559,8 @@ void Info::command(int narg, char **arg)
   if (flags & VARIABLES) {
     int nvar = input->variable->nvar;
     fputs("\nVariable information:\n",out);
-    for (int i=0; i < nvar; ++i) {
-      auto vinfo = get_variable_info(i);
+    for (int i=0; i < nvar; ++i)
       utils::print(out, get_variable_info(i));
-    }
   }
 
   if (flags & TIME) {
@@ -1422,8 +1420,13 @@ std::string Info::get_variable_info(int num) {
   char ***data = input->variable->data;
   std::string text;
   int ndata = 1;
-  text = fmt::format("Variable[{:3d}]: {:16}  style = {:16}  def =", num,
+  if (style[num] == Variable::UNASSIGNED) {
+    text = fmt::format("Variable[{:3d}]: (deleted),        style = {:16}  def =", num,
+                       Variable::varstyles[style[num]] + ',');
+  } else {
+    text = fmt::format("Variable[{:3d}]: {:16}  style = {:16}  def =", num,
                      std::string(names[num]) + ',', Variable::varstyles[style[num]] + ',');
+  }
   if (style[num] == Variable::INTERNAL) {
     text += fmt::format("{:.8}\n",input->variable->dvalue[num]);
     return text;

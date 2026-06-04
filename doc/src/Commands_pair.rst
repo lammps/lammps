@@ -219,6 +219,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`mm3/switch3/coulgauss/long (ko) <pair_lj_switch3_coulgauss_long>`
    * :doc:`momb (ko) <pair_momb>`
    * :doc:`morse (gkot) <pair_morse>`
+   * :doc:`morse/functor <pair_morse_functor>`
    * :doc:`morse/smooth/linear (ko) <pair_morse>`
    * :doc:`morse/soft <pair_fep_soft>`
    * :doc:`multi/lucy <pair_multi_lucy>`

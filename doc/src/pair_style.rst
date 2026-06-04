@@ -311,6 +311,7 @@ accelerated styles exist.
 * :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - Smoothed MM3 vdW potential with Gaussian electrostatics
 * :doc:`momb <pair_momb>` - Many-Body Metal-Organic (MOMB) force field
 * :doc:`morse <pair_morse>` - Morse potential
+* :doc:`morse/functor <pair_morse_functor>` - Morse potential (FUNCTOR framework)
 * :doc:`morse/smooth/linear <pair_morse>` - Linear smoothed Morse potential
 * :doc:`morse/soft <pair_morse>` - Morse potential with a soft core
 * :doc:`multi/lucy <pair_multi_lucy>` - DPD potential with density-dependent force

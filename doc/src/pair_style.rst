@@ -312,6 +312,8 @@ accelerated styles exist.
 * :doc:`morse <pair_morse>` - Morse potential
 * :doc:`morse/smooth/linear <pair_morse>` - Linear smoothed Morse potential
 * :doc:`morse/soft <pair_morse>` - Morse potential with a soft core
+* :doc:`mtp <pair_mtp>` - Moment Tensor Potential (MTP) machine-learning potential
+* :doc:`mtp/extrapolation <pair_mtp>` - Moment Tensor Potential (MTP) machine-learning potential with extrapolation grades
 * :doc:`multi/lucy <pair_multi_lucy>` - DPD potential with density-dependent force
 * :doc:`multi/lucy/rx <pair_multi_lucy_rx>` - reactive DPD potential with density-dependent force
 * :doc:`nb3b/harmonic <pair_nb3b>` - Non-bonded 3-body harmonic potential

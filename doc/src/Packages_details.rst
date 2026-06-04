@@ -82,6 +82,7 @@ gives those details.
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
    * :ref:`ML-RUNNER <PKG-ML-RUNNER>`
    * :ref:`ML-IAP <PKG-ML-IAP>`
+   * :ref:`ML-MTP <PKG-ML-MTP>`
    * :ref:`ML-PACE <PKG-ML-PACE>`
    * :ref:`ML-POD <PKG-ML-POD>`
    * :ref:`ML-QUIP <PKG-ML-QUIP>`
@@ -1900,6 +1901,37 @@ coupling with Python models, including PyTorch. In this case, the Python
 interpreter linked to LAMMPS will need the ``cython`` and ``numpy`` modules
 installed.  The provided examples build models with PyTorch, which would
 therefore also needs to be installed to run those examples.
+
+----------
+
+.. _PKG-ML-MTP:
+
+ML-MTP package
+-------------------
+
+**Contents:**
+
+A pair style for the Moment Tensor Potential (MTP).
+MTP is a methodology for deriving a highly accurate classical potential
+fit to a large archive of quantum mechanical (DFT) data. The ML-MTP
+package provides an efficient implementation for running simulations
+with MTP potentials. The original formalism was developed by Alexander Shapeev^1.
+
+**Authors:**
+This package was written by Zijian Meng^2,
+Ryan Grant^2, and Laurent Karim Beland^2.
+
+ ^1: Skolkovo Institute of Science and Technology, Moscow, Russian Federation
+ ^2: Queen's University at Kingston, Kingston, ON, Canada
+
+.. versionadded:: TBD
+
+
+**Supporting info:**
+
+* ``src/ML-MTP``: filenames -> commands
+* :doc:`pair_style mtp <pair_mtp>`
+* ``examples/PACKAGES/mtp``
 
 ----------
 

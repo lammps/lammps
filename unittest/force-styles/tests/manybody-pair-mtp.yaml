@@ -13,7 +13,7 @@ post_commands: ! ""
 input_file: in.manybody
 pair_style: mtp
 pair_coeff: ! |
-  * * /home/richa/Documents/Projects/lammps-mtp/potentials/SiO.mtp 0 0 0 0 0 1 1 1
+  * * SiO.mtp 0 0 0 0 0 1 1 1
 extract: ! ""
 natoms: 64
 init_vdwl: -38979.34892445116

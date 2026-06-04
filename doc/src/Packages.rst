@@ -343,6 +343,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style mliap <pair_mliap>`
      - mliap
      - no
+    * - :ref:`ML-MTP <PKG-ML-MTP>`
+     - Moment Tensor Potential
+     - :doc:`pair mtp <pair_mtp>`
+     - ``PACKAGES/mtp``
+     -no
    * - :ref:`ML-PACE <PKG-ML-PACE>`
      - Atomic Cluster Expansion potential
      - :doc:`pair pace <pair_pace>`

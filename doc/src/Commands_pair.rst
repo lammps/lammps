@@ -220,6 +220,8 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`morse (gkot) <pair_morse>`
    * :doc:`morse/smooth/linear (ko) <pair_morse>`
    * :doc:`morse/soft <pair_fep_soft>`
+   * :doc:`mtp (k) <pair_mtp>`
+   * :doc:`mtp/extrapolation (k) <pair_mtp>`
    * :doc:`multi/lucy <pair_multi_lucy>`
    * :doc:`multi/lucy/rx (k) <pair_multi_lucy_rx>`
    * :doc:`nb3b/harmonic (o) <pair_nb3b>`

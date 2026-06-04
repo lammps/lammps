@@ -157,6 +157,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/cut (gikot) <pair_lj>`
    * :doc:`lj/cut/coul/cut (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/cut/dielectric (o) <pair_dielectric>`
+   * :doc:`lj/cut/coul/cut/functor <pair_lj_cut_coul_cut_functor>`
    * :doc:`lj/cut/coul/cut/soft (go) <pair_fep_soft>`
    * :doc:`lj/cut/coul/debye (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/debye/dielectric (o) <pair_dielectric>`

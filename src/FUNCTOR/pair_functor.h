@@ -50,6 +50,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 
+#include <cmath>
 #include <cstddef>
 #include <cstdio>
 
@@ -147,10 +148,12 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
 
     [[maybe_unused]] const double *_noalias q = nullptr;
     [[maybe_unused]] const double *_noalias special_coul = nullptr;
+    [[maybe_unused]] double cut_coulsq = 0.0;
     if constexpr (COUL::needs_charge) {
       q = atom->q;
       special_coul = force->special_coul;
     }
+    if constexpr (COUL::has_coul) cut_coulsq = coul.cut_coulsq;
 
     const int inum = list->inum;
     const int *_noalias ilist = list->ilist;
@@ -184,23 +187,44 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
         const int jtype = type[j];
         const Param &p = pi[jtype];
 
-        // p.cutsq is the overall pair cutoff (== vdW cutoff for CoulNone).
+        // p.cutsq is the van der Waals (evaluator) cutoff.  For CoulNone it is
+        // the only cutoff; for a Coulomb policy the outer guard is the larger of
+        // the vdW and Coulomb cutoffs, and each term is gated separately.
         // NB: a separate sb==0 "special bond" fast path (as in OPT) was tried
-        // here and measured *slower* for this driver, because duplicating the
-        // inner-loop body outweighs the single saved multiply; do not re-add it
-        // without re-benchmarking.
+        // here and measured *slower* for this driver; do not re-add it without
+        // re-benchmarking.
 
-        if (rsq < p.cutsq) {
-          auto [fpair, evdwl] = EVAL::template pair<EFLAG>(rsq, p, special_lj[sb]);
-          double ecoul = 0.0;
+        double fpair = 0.0, evdwl = 0.0, ecoul = 0.0;
+        bool within;
 
-          if constexpr (COUL::has_coul) {
-            auto [fcoul, ec] =
-                coul.template eval_coul<EFLAG, CTABLE>(rsq, qi, q[j], special_coul[sb]);
-            fpair += fcoul;
-            ecoul = ec;
+        if constexpr (!COUL::has_coul) {
+          within = (rsq < p.cutsq);
+          if (within) {
+            const auto v = EVAL::template pair<EFLAG>(rsq, p, special_lj[sb]);
+            fpair = v.fpair;
+            evdwl = v.energy;
           }
+        } else {
+          const double outer = (p.cutsq > cut_coulsq) ? p.cutsq : cut_coulsq;
+          within = (rsq < outer);
+          if (within) {
+            fpair = 0.0;
+            evdwl = 0.0;
+            if (rsq < p.cutsq) {
+              const auto v = EVAL::template pair<EFLAG>(rsq, p, special_lj[sb]);
+              fpair = v.fpair;
+              evdwl = v.energy;
+            }
+            if (rsq < cut_coulsq) {
+              const auto c =
+                  coul.template eval_coul<EFLAG, CTABLE>(rsq, qi, q[j], special_coul[sb]);
+              fpair += c.fpair;
+              ecoul = c.energy;
+            }
+          }
+        }
 
+        if (within) {
           tmpfx += delx * fpair;
           tmpfy += dely * fpair;
           tmpfz += delz * fpair;
@@ -251,8 +275,13 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     if constexpr (!COUL::has_coul) {
       if (narg != 1) error->all(FLERR, "Illegal pair_style command");
       cut_global = utils::numeric(FLERR, arg[0], false, lmp);
+    } else {
+      // combined vdW + Coulomb: "cut_lj [cut_coul]"; cut_coul defaults to cut_lj
+      if (narg < 1 || narg > 2) error->all(FLERR, "Illegal pair_style command");
+      cut_global = utils::numeric(FLERR, arg[0], false, lmp);
+      const double cut_coul = (narg == 2) ? utils::numeric(FLERR, arg[1], false, lmp) : cut_global;
+      coul.cut_coulsq = cut_coul * cut_coul;
     }
-    // (COUL::has_coul global-cutoff parsing is added in stage 2/3)
 
     if (allocated) {
       for (int i = 1; i <= atom->ntypes; i++)
@@ -290,6 +319,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
       if (!atom->q_flag)
         error->all(FLERR, "Pair style {} requires atom attribute q", EVAL::name());
     }
+    if constexpr (COUL::has_coul) coul.init_style(lmp);
     neighbor->add_request(this);
   }
 
@@ -306,7 +336,14 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     params[(std::size_t) i * nparams + j] = p;
     params[(std::size_t) j * nparams + i] = p;
 
-    return coeffs[i][j].cut;
+    // the neighbor/communication cutoff for this pair is the larger of the vdW
+    // (evaluator) cutoff and the Coulomb cutoff
+    double cut = coeffs[i][j].cut;
+    if constexpr (COUL::has_coul) {
+      const double cut_coul = sqrt(coul.cut_coulsq);
+      if (cut_coul > cut) cut = cut_coul;
+    }
+    return cut;
   }
 
   // -----------------------------------------------------------------
@@ -321,7 +358,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     double ecoul = 0.0;
 
     if constexpr (COUL::has_coul) {
-      auto [fcoul, ec] = coul.single_coul(this, i, j, rsq, factor_coul);
+      auto [fcoul, ec] = coul.single_coul(lmp, i, j, rsq, factor_coul);
       fpair += fcoul;
       ecoul = ec;
     } else {
@@ -371,6 +408,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     fwrite(&offset_flag, sizeof(int), 1, fp);
     fwrite(&mix_flag, sizeof(int), 1, fp);
     fwrite(&tail_flag, sizeof(int), 1, fp);
+    if constexpr (COUL::has_coul) coul.write_restart(fp);
   }
 
   void read_restart_settings(FILE *fp) override
@@ -386,6 +424,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
     MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
     MPI_Bcast(&tail_flag, 1, MPI_INT, 0, world);
+    if constexpr (COUL::has_coul) coul.read_restart(fp, lmp);
   }
 };
 

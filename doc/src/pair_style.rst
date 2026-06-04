@@ -250,6 +250,7 @@ accelerated styles exist.
 * :doc:`lj/cut <pair_lj>` - cutoff Lennard-Jones potential without Coulomb
 * :doc:`lj/cut/coul/cut <pair_lj_cut_coul>` - LJ with cutoff Coulomb
 * :doc:`lj/cut/coul/cut/dielectric <pair_dielectric>` -
+* :doc:`lj/cut/coul/cut/functor <pair_lj_cut_coul_cut_functor>` - LJ with cutoff Coulomb (FUNCTOR framework)
 * :doc:`lj/cut/coul/cut/soft <pair_fep_soft>` - LJ with cutoff Coulomb with a soft core
 * :doc:`lj/cut/coul/debye <pair_lj_cut_coul>` - LJ with Debye screening added to Coulomb
 * :doc:`lj/cut/coul/debye/dielectric <pair_dielectric>` -

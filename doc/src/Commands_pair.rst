@@ -144,7 +144,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/charmm/coul/charmm (giko) <pair_charmm>`
    * :doc:`lj/charmm/coul/charmm/implicit (ko) <pair_charmm>`
    * :doc:`lj/charmm/coul/long (gikot) <pair_charmm>`
-   * :doc:`lj/charmm/coul/long/functor <pair_lj_charmm_coul_long_functor>`
+   * :doc:`lj/charmm/coul/long/functor (o) <pair_lj_charmm_coul_long_functor>`
    * :doc:`lj/charmm/coul/long/soft (o) <pair_fep_soft>`
    * :doc:`lj/charmm/coul/msm (o) <pair_charmm>`
    * :doc:`lj/charmmfsw/coul/charmmfsh <pair_charmm>`
@@ -183,7 +183,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/cut/thole/long (o) <pair_thole>`
    * :doc:`lj/cut/tip4p/cut (o) <pair_lj_cut_tip4p>`
    * :doc:`lj/cut/tip4p/long (got) <pair_lj_cut_tip4p>`
-   * :doc:`lj/cut/tip4p/long/functor <pair_lj_cut_tip4p_long_functor>`
+   * :doc:`lj/cut/tip4p/long/functor (o) <pair_lj_cut_tip4p_long_functor>`
    * :doc:`lj/cut/tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`lj/expand (gko) <pair_lj_expand>`
    * :doc:`lj/expand/coul/long (gk) <pair_lj_expand>`

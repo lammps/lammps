@@ -13,29 +13,29 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/charmm/coul/long/functor,PairLJCharmmCoulLongFunctor);
+PairStyle(lj/charmm/coul/long/functor/omp,PairLJCharmmCoulLongFunctorOMP);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_LJ_CHARMM_COUL_LONG_FUNCTOR_H
-#define LMP_PAIR_LJ_CHARMM_COUL_LONG_FUNCTOR_H
+#ifndef LMP_PAIR_LJ_CHARMM_COUL_LONG_FUNCTOR_OMP_H
+#define LMP_PAIR_LJ_CHARMM_COUL_LONG_FUNCTOR_OMP_H
 
 #include "evaluator_lj_charmm.h"
 #include "functor_coul_long.h"
-#include "pair_functor.h"
+#include "pair_functor_omp.h"
 #include "pair_lj_charmm_coul_long_functor_impl.h"
 
 namespace LAMMPS_NS {
 
-// The pairwise kernel comes from PairFunctor<EvaluatorLJCharmm, CoulLong>; the
-// CHARMM 1-4 (dihedral) glue is supplied by the shared
-// PairLJCharmmCoulLongFunctorImpl mixin (also reused by the /omp variant).
+// Threaded lj/charmm/coul/long/functor: the same CHARMM 1-4 glue mixin
+// (PairLJCharmmCoulLongFunctorImpl) layered over the threaded driver
+// PairFunctorOMP<EvaluatorLJCharmm, CoulLong> instead of the serial PairFunctor.
 
-class PairLJCharmmCoulLongFunctor :
+class PairLJCharmmCoulLongFunctorOMP :
     public PairLJCharmmCoulLongFunctorImpl<
-        PairFunctor<functor::EvaluatorLJCharmm, functor::CoulLong>> {
+        PairFunctorOMP<functor::EvaluatorLJCharmm, functor::CoulLong>> {
  public:
-  PairLJCharmmCoulLongFunctor(class LAMMPS *);
+  PairLJCharmmCoulLongFunctorOMP(class LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

@@ -1,7 +1,10 @@
 .. index:: pair_style lj/cut/tip4p/long/functor
+.. index:: pair_style lj/cut/tip4p/long/functor/omp
 
 pair_style lj/cut/tip4p/long/functor command
 ============================================
+
+Accelerator Variants: *lj/cut/tip4p/long/functor/omp*
 
 Syntax
 """"""
@@ -43,6 +46,12 @@ The arguments and ``pair_coeff`` coefficients are as in
 :doc:`pair_style lj/cut/tip4p/long <pair_lj_cut_tip4p>`.  It must be used with a
 :doc:`kspace_style <kspace_style>` that supports TIP4P (e.g. *pppm/tip4p*) and
 with bond and angle styles (for the M-site geometry).
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

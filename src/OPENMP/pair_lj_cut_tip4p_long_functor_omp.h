@@ -13,29 +13,21 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/charmm/coul/long/functor,PairLJCharmmCoulLongFunctor);
+PairStyle(lj/cut/tip4p/long/functor/omp,PairLJCutTIP4PLongFunctorOMP);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_LJ_CHARMM_COUL_LONG_FUNCTOR_H
-#define LMP_PAIR_LJ_CHARMM_COUL_LONG_FUNCTOR_H
+#ifndef LMP_PAIR_LJ_CUT_TIP4P_LONG_FUNCTOR_OMP_H
+#define LMP_PAIR_LJ_CUT_TIP4P_LONG_FUNCTOR_OMP_H
 
-#include "evaluator_lj_charmm.h"
-#include "functor_coul_long.h"
-#include "pair_functor.h"
-#include "pair_lj_charmm_coul_long_functor_impl.h"
+#include "evaluator_lj_cut.h"
+#include "pair_functor_tip4p_omp.h"
 
 namespace LAMMPS_NS {
 
-// The pairwise kernel comes from PairFunctor<EvaluatorLJCharmm, CoulLong>; the
-// CHARMM 1-4 (dihedral) glue is supplied by the shared
-// PairLJCharmmCoulLongFunctorImpl mixin (also reused by the /omp variant).
-
-class PairLJCharmmCoulLongFunctor :
-    public PairLJCharmmCoulLongFunctorImpl<
-        PairFunctor<functor::EvaluatorLJCharmm, functor::CoulLong>> {
+class PairLJCutTIP4PLongFunctorOMP : public PairFunctorTIP4POMP<functor::EvaluatorLJCut> {
  public:
-  PairLJCharmmCoulLongFunctor(class LAMMPS *);
+  PairLJCutTIP4PLongFunctorOMP(class LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

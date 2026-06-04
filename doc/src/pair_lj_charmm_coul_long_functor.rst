@@ -1,7 +1,10 @@
 .. index:: pair_style lj/charmm/coul/long/functor
+.. index:: pair_style lj/charmm/coul/long/functor/omp
 
 pair_style lj/charmm/coul/long/functor command
 ==============================================
+
+Accelerator Variants: *lj/charmm/coul/long/functor/omp*
 
 Syntax
 """"""
@@ -45,6 +48,12 @@ and optionally the 1-4 :math:`\epsilon_{14}`, :math:`\sigma_{14}`) are as in
 default mixing rule is arithmetic, the 1-4 LJ coefficients are made available to
 :doc:`dihedral_style charmm <dihedral_charmm>`, and a long-range
 :doc:`kspace_style <kspace_style>` is required.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

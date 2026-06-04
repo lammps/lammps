@@ -12,16 +12,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_charmm_coul_long_functor.h"
+#include "pair_lj_cut_tip4p_long_functor_omp.h"
 
 using namespace LAMMPS_NS;
 
-// The pairwise kernel comes from PairFunctor<EvaluatorLJCharmm, CoulLong> and the
-// CHARMM 1-4 glue from PairLJCharmmCoulLongFunctorImpl; this translation unit
-// anchors the vtable and instantiates the templated driver for the
-// lj/charmm/coul/long/functor style.
+// All behavior comes from the PairFunctorTIP4POMP<EvaluatorLJCut> threaded
+// driver; this translation unit anchors the vtable and instantiates the driver
+// for the lj/cut/tip4p/long/functor/omp style.
 
-PairLJCharmmCoulLongFunctor::PairLJCharmmCoulLongFunctor(LAMMPS *lmp) :
-    PairLJCharmmCoulLongFunctorImpl<PairFunctor<functor::EvaluatorLJCharmm, functor::CoulLong>>(lmp)
+PairLJCutTIP4PLongFunctorOMP::PairLJCutTIP4PLongFunctorOMP(LAMMPS *lmp) :
+    PairFunctorTIP4POMP<functor::EvaluatorLJCut>(lmp)
 {
 }

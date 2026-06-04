@@ -20,16 +20,16 @@ Syntax
 
    pair_style mtp ... keyword values ...
 
+.. code-block:: LAMMPS
+
+   pair_style mtp/extrapolation ... keyword values ...
+
 * one or more keyword/value pairs may be appended
 
   .. parsed-literal::
 
      keyword = *chunksize*
        *chunksize* value = number of atoms in each pass
-
-.. code-block:: LAMMPS
-
-   pair_style mtp/extrapolation
 
 Examples
 """"""""
@@ -100,13 +100,16 @@ requests to compute `gamma`, as shown in example below:
 Here extrapolation grade gamma is computed every 10 steps and is stored
 in `f_mtp_gamma` per-atom variable.  The largest value of extrapolation
 grade among all atoms in a structure is exposed to the `c_max_mtp_gamma`
-variable.  Only if this value exceeds extrapolation threshold 5, then
+variable.  Only if this value exceeds extrapolation threshold 2, then
 the structure will be dumped into `extrapolative_structures.dump` file,
-but not more often than every 20 steps.
+but not more often than every 20 steps. If this value exceeds 10, the simulation
+is terminated.
 
 On all other steps `pair_style mtp` will be used.
 
-The use of pair style *mtp/extrapolation* is not recommended with `pair_style hybrid/overlay` since the extrapolation calculation cannot consider contributions from other pair styles.
+The use of pair style *mtp/extrapolation* is not recommended with 
+`pair_style hybrid/overlay` since the extrapolation calculation cannot 
+consider contributions from other pair styles.
 
 ----------
 

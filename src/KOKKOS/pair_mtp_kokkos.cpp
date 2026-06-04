@@ -161,10 +161,20 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::coeff(int narg, char
 ------------------------------------------------------------------------- */
 template <class DeviceType> void PairMTPKokkos<DeviceType>::settings(int narg, char **arg)
 {
-  if (narg != 2 || LAMMPS_NS::utils::lowercase(arg[0]) != "chunksize")
-    error->all(FLERR, "Pair mtp/kk requires 2 arguments \"chunksize\" {chunksize}}.");
+  if (narg > 2) utils::missing_cmd_args(FLERR, "pair_style mtp/kk", error);
 
-  input_chunk_size = utils::inumeric(FLERR, arg[1], true, lmp);
+  input_chunk_size = 4096;    // default chunksize
+
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "chunksize") == 0) {
+      if (iarg + 1 >= narg) utils::missing_cmd_args(FLERR, "pair_style mtp/kk chunksize", error);
+      input_chunk_size = utils::inumeric(FLERR, arg[iarg + 1], true, lmp);
+      iarg += 2;
+    } else {
+      error->all(FLERR, "Unknown pair_style mtp/kk keyword: {}", arg[iarg]);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

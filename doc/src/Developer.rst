@@ -79,6 +79,7 @@ conference proceedings.
    Developer_comm_ops
    Developer_flow
    Developer_write
+   Developer_write_pair_functor
    Developer_notes
    Developer_updating
    Developer_plugins

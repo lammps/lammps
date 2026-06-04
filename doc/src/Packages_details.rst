@@ -58,6 +58,7 @@ gives those details.
    * :ref:`EXTRA-MOLECULE <PKG-EXTRA-MOLECULE>`
    * :ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>`
    * :ref:`FEP <PKG-FEP>`
+   * :ref:`FUNCTOR <PKG-FUNCTOR>`
    * :ref:`GPU <PKG-GPU>`
    * :ref:`GRAPHICS <PKG-GRAPHICS>`
    * :ref:`GRANULAR <PKG-GRANULAR>`
@@ -1034,6 +1035,29 @@ package in ``tools/fep``; see its ``README`` file.
 * ``examples/PACKAGES/fep``
 * tools/fep/README
 * tools/fep
+
+----------
+
+.. _PKG-FUNCTOR:
+
+FUNCTOR package
+---------------
+
+**Contents:**
+
+A template-based framework for implementing simple, pairwise-additive pair
+styles as small "evaluator" functors plugged into a shared, optimized
+neighbor-loop driver.  Reimplemented styles carry a ``/functor`` suffix (e.g.
+``pair_style lj/cut/functor``) and may be used alongside the original styles,
+which makes side-by-side benchmarking straightforward.  See
+:doc:`Developer_write_pair_functor` for the evaluator contract and how to add a
+new style.
+
+**Supporting info:**
+
+* ``src/FUNCTOR``: filenames -> commands
+* :doc:`Developer_write_pair_functor`
+* :doc:`pair_style <pair_style>`
 
 ----------
 

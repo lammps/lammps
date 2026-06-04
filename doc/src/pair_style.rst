@@ -264,6 +264,7 @@ accelerated styles exist.
 * :doc:`lj/cut/coul/wolf <pair_lj_cut_coul>` - LJ with Coulomb via Wolf potential
 * :doc:`lj/cut/dipole/cut <pair_dipole>` - point dipoles with cutoff
 * :doc:`lj/cut/dipole/long <pair_dipole>` - point dipoles with long-range Ewald
+* :doc:`lj/cut/functor <pair_lj_cut_functor>` - cutoff Lennard-Jones potential (FUNCTOR framework)
 * :doc:`lj/cut/soft <pair_fep_soft>` - LJ with a soft core
 * :doc:`lj/cut/sphere <pair_lj_cut_sphere>` - LJ where per-atom radius is used as LJ sigma
 * :doc:`lj/cut/thole/long <pair_thole>` - LJ with Coulomb with thole damping

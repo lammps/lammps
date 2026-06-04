@@ -195,6 +195,18 @@ path is removed from the compiled kernel when ``has_coul`` is false.
    * - ``CoulLong``
      - Ewald/PPPM real space (``coul/long``, ``.../coul/long``)
      - available
+   * - ``CoulLongCS``
+     - core-shell (Drude) Ewald/PPPM real space (``.../cs``)
+     - available
+
+``CoulLongCS`` (``functor_coul_long_cs.h``) shows how to derive a policy variant
+from an existing one with maximal reuse: it inherits ``CoulLong`` (and thus its
+``g_ewald``, interpolation tables, cutoff, restart, and ``single_coul``) and only
+replaces the real-space ``eval_coul`` kernel with the regularized core-shell
+form.  It also sets a non-zero ``rsq_epsilon`` (a ``constexpr`` member, ``0.0`` in
+every other policy) which the driver adds to ``rsq`` so an overlapping core/shell
+pair does not divide by zero; the ``if constexpr (COUL::rsq_epsilon != 0.0)``
+guard removes it from the kernel for all other policies.
 
 TIP4P variants use a dedicated base ``PairFunctorTIP4P<Evaluator>`` instead of a
 policy, because the virtual M-site changes the structure of the neighbor loop;

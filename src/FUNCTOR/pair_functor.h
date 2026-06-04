@@ -203,7 +203,11 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
         const double delx = xtmp - xx[j].x;
         const double dely = ytmp - xx[j].y;
         const double delz = ztmp - xx[j].z;
-        const double rsq = delx * delx + dely * dely + delz * delz;
+        double rsq = delx * delx + dely * dely + delz * delz;
+        // core-shell policies bump rsq by a tiny epsilon so an exactly
+        // overlapping core/shell pair (r == 0) does not divide by zero; the
+        // value is a compile-time 0.0 for every non-cs policy, so this folds away
+        if constexpr (COUL::rsq_epsilon != 0.0) rsq += COUL::rsq_epsilon;
         const int jtype = type[j];
         const Param &p = pi[jtype];
 

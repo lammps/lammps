@@ -168,7 +168,10 @@ class PairFunctorOMP : public PairFunctor<EVAL, COUL>, public ThrOMP {
         const double delx = xtmp - xx[j].x;
         const double dely = ytmp - xx[j].y;
         const double delz = ztmp - xx[j].z;
-        const double rsq = delx * delx + dely * dely + delz * delz;
+        double rsq = delx * delx + dely * dely + delz * delz;
+        // core-shell policies bump rsq by a tiny epsilon (compile-time 0.0 for
+        // every non-cs policy, so this folds away); see PairFunctor::eval
+        if constexpr (COUL::rsq_epsilon != 0.0) rsq += COUL::rsq_epsilon;
         const int jtype = type[j];
         const Param &p = pi[jtype];
 

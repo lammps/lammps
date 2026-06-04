@@ -26,6 +26,10 @@
 //   static constexpr bool has_coul;     // electrostatics contribute at all
 //   static constexpr bool has_table;    // uses bitmapped Ewald tables (CTABLE)
 //   static constexpr bool needs_charge; // driver must fetch atom->q
+//   static constexpr double rsq_epsilon;// tiny value added to rsq in the loop
+//                                        // (0.0 for all but the core-shell "/cs"
+//                                        // policies, which add 1e-20 to survive
+//                                        // r -> 0 for overlapping core/shell)
 // A has_coul policy additionally provides:
 //   void init_style(LAMMPS *);          // cache qqrd2e (and g_ewald for long)
 //   template <bool EFLAG, int CTABLE>
@@ -53,6 +57,7 @@ struct CoulNone {
   static constexpr bool has_table = false;
   static constexpr bool needs_charge = false;
   static constexpr bool needs_kspace = false;
+  static constexpr double rsq_epsilon = 0.0;
 };
 
 // Shared storage for Coulomb policies that carry a per-type-pair cutoff: the raw
@@ -62,6 +67,8 @@ struct CoulNone {
 // Pair::mix_distance).  Concrete policies add the kernel and init_style.
 
 struct CoulCutoffBase {
+  static constexpr double rsq_epsilon = 0.0;    // overridden by the "/cs" policies
+
   double *cut_coul = nullptr;      // per-pair raw cutoff,  flat [n*n]
   double *cut_coulsq = nullptr;    // per-pair squared cutoff, flat [n*n] (hot loop)
   int n = 0;                       // matrix stride (== driver's nparams)

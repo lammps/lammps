@@ -184,9 +184,11 @@ path is removed from the compiled kernel when ``has_coul`` is false.
      - Ewald/PPPM real space (``coul/long``, ``.../coul/long``)
      - available
 
-TIP4P variants will use a dedicated base ``PairFunctorTIP4P<Evaluator>`` instead
-of a policy, because the virtual M-site changes the structure of the neighbor
-loop.
+TIP4P variants use a dedicated base ``PairFunctorTIP4P<Evaluator>`` instead of a
+policy, because the virtual M-site changes the structure of the neighbor loop;
+it composes the evaluator (for the van der Waals term) with a ``CoulLong`` member
+(for the real-space Coulomb math and tables).  See
+``src/FUNCTOR/pair_lj_cut_tip4p_long_functor.h``.
 
 Avoiding a combinatorial explosion of styles
 ---------------------------------------------

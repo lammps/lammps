@@ -274,6 +274,7 @@ accelerated styles exist.
 * :doc:`lj/cut/thole/long <pair_thole>` - LJ with Coulomb with thole damping
 * :doc:`lj/cut/tip4p/cut <pair_lj_cut_tip4p>` - LJ with cutoff Coulomb for TIP4P water
 * :doc:`lj/cut/tip4p/long <pair_lj_cut_tip4p>` - LJ with long-range Coulomb for TIP4P water
+* :doc:`lj/cut/tip4p/long/functor <pair_lj_cut_tip4p_long_functor>` - LJ with long-range Coulomb for TIP4P water (FUNCTOR framework)
 * :doc:`lj/cut/tip4p/long/soft <pair_fep_soft>` - LJ with cutoff Coulomb for TIP4P water with a soft core
 * :doc:`lj/expand <pair_lj_expand>` - Lennard-Jones for variable size particles
 * :doc:`lj/expand/coul/long <pair_lj_expand>` - Lennard-Jones for variable size particles with long-range Coulomb

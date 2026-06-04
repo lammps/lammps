@@ -181,8 +181,8 @@ path is removed from the compiled kernel when ``has_coul`` is false.
      - cutoff Coulomb (``coul/cut``, ``.../coul/cut``)
      - available
    * - ``CoulLong``
-     - Ewald/PPPM real space (``.../coul/long``)
-     - planned
+     - Ewald/PPPM real space (``coul/long``, ``.../coul/long``)
+     - available
 
 TIP4P variants will use a dedicated base ``PairFunctorTIP4P<Evaluator>`` instead
 of a policy, because the virtual M-site changes the structure of the neighbor

@@ -165,6 +165,7 @@ accelerated styles exist.
 * :doc:`coul/long <pair_coul>` - long-range Coulomb potential
 * :doc:`coul/long/cs <pair_cs>` - long-range Coulomb potential and core/shell
 * :doc:`coul/long/dielectric <pair_dielectric>` -
+* :doc:`coul/long/functor <pair_coul_long_functor>` - long-range Coulomb potential (FUNCTOR framework)
 * :doc:`coul/long/soft <pair_fep_soft>` - long-range Coulomb potential with a soft core
 * :doc:`coul/msm <pair_coul>` - long-range MSM Coulomb
 * :doc:`coul/slater/cut <pair_coul>` - smeared out Coulomb
@@ -260,6 +261,7 @@ accelerated styles exist.
 * :doc:`lj/cut/coul/long <pair_lj_cut_coul>` - LJ with long-range Coulomb
 * :doc:`lj/cut/coul/long/cs <pair_cs>` - LJ with long-range Coulomb with core/shell adjustments
 * :doc:`lj/cut/coul/long/dielectric <pair_dielectric>` -
+* :doc:`lj/cut/coul/long/functor <pair_lj_cut_coul_long_functor>` - LJ with long-range Coulomb (FUNCTOR framework)
 * :doc:`lj/cut/coul/long/soft <pair_fep_soft>` - LJ with long-range Coulomb with a soft core
 * :doc:`lj/cut/coul/msm <pair_lj_cut_coul>` - LJ with long-range MSM Coulomb
 * :doc:`lj/cut/coul/msm/dielectric <pair_dielectric>` -

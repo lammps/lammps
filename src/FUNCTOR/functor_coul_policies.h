@@ -52,23 +52,16 @@ struct CoulNone {
   static constexpr bool has_coul = false;
   static constexpr bool has_table = false;
   static constexpr bool needs_charge = false;
+  static constexpr bool needs_kspace = false;
 };
 
-// cutoff Coulomb with a per-type-pair cutoff (bare coul/cut and ".../coul/cut"
-// combined styles):
-//   F_coul/r = factor_coul * qqrd2e * qi * qj / r^3 ,  E_coul = factor_coul * qqrd2e * qi * qj / r
-// (reimplements the Coulomb half of src/pair_coul_cut.cpp / pair_lj_cut_coul_cut.cpp).
-//
-// The policy owns the per-pair Coulomb cutoff arrays (cut_coul raw for mixing
-// and restart, cut_coulsq for the hot loop).  The driver allocates/fills/frees
-// them through the lifecycle hooks below; mixing of unset pairs is done by the
-// driver (it has Pair::mix_distance).
+// Shared storage for Coulomb policies that carry a per-type-pair cutoff: the raw
+// cutoff (for mixing + restart) and its square (hot loop), plus the global
+// cutoff and qqrd2e.  The driver allocates/fills/frees these through the
+// lifecycle hooks here; mixing of unset pairs is done by the driver (it has
+// Pair::mix_distance).  Concrete policies add the kernel and init_style.
 
-struct CoulCut {
-  static constexpr bool has_coul = true;
-  static constexpr bool has_table = false;
-  static constexpr bool needs_charge = true;
-
+struct CoulCutoffBase {
   double *cut_coul = nullptr;      // per-pair raw cutoff,  flat [n*n]
   double *cut_coulsq = nullptr;    // per-pair squared cutoff, flat [n*n] (hot loop)
   int n = 0;                       // matrix stride (== driver's nparams)
@@ -89,8 +82,6 @@ struct CoulCut {
     cut_coulsq = nullptr;
   }
 
-  void init_style(LAMMPS *lmp) { qqrd2e = lmp->force->qqrd2e; }
-
   // parse the optional per-pair Coulomb cutoff at arg[iarg] (else use the global)
   double parse_cut(int narg, char **arg, LAMMPS *lmp, int iarg) const
   {
@@ -106,6 +97,21 @@ struct CoulCut {
       utils::sfread(FLERR, &cut_coul_global, sizeof(double), 1, fp, nullptr, lmp->error);
     MPI_Bcast(&cut_coul_global, 1, MPI_DOUBLE, 0, lmp->world);
   }
+};
+
+// cutoff Coulomb with a per-type-pair cutoff (bare coul/cut and ".../coul/cut"
+// combined styles):
+//   F_coul/r = factor_coul * qqrd2e * qi * qj / r^3 ,  E_coul = factor_coul * qqrd2e * qi * qj / r
+// (reimplements the Coulomb half of src/pair_coul_cut.cpp / pair_lj_cut_coul_cut.cpp).
+
+struct CoulCut : CoulCutoffBase {
+  static constexpr bool has_coul = true;
+  static constexpr bool has_table = false;
+  static constexpr bool needs_charge = true;
+  static constexpr bool needs_kspace = false;
+  static constexpr bool per_pair_cutoff = true;    // accepts a per-pair pair_coeff cutoff
+
+  void init_style(Pair *, LAMMPS *lmp) { qqrd2e = lmp->force->qqrd2e; }
 
   template <bool EFLAG, int /*CTABLE*/>
   PairContribution eval_coul(double rsq, double qi, double qj, double factor_coul) const

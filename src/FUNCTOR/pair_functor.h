@@ -53,6 +53,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
+#include <cstring>
 
 namespace LAMMPS_NS {
 
@@ -75,6 +76,10 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     respa_enable = 0;
     writedata = 0;
     born_matrix_enable = 0;
+    if constexpr (COUL::needs_kspace) {
+      ewaldflag = 1;
+      pppmflag = 1;
+    }
   }
 
   ~PairFunctor() override
@@ -319,7 +324,8 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     [[maybe_unused]] double cut_coul_one = 0.0;
     if constexpr (COUL::has_coul) {
       const int iarg = 2 + nconsumed;
-      if (narg > iarg + 1)
+      const int maxarg = iarg + (COUL::per_pair_cutoff ? 1 : 0);
+      if (narg > maxarg)
         error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
       cut_coul_one = coul.parse_cut(narg, arg, lmp, iarg);
     } else {
@@ -346,7 +352,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
       if (!atom->q_flag)
         error->all(FLERR, "Pair style {} requires atom attribute q", force->pair_style);
     }
-    if constexpr (COUL::has_coul) coul.init_style(lmp);
+    if constexpr (COUL::has_coul) coul.init_style(this, lmp);
     neighbor->add_request(this);
   }
 
@@ -388,13 +394,18 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
                 double factor_lj, double &fforce) override
   {
     const Param &p = params[(std::size_t) itype * nparams + jtype];
-    auto [fpair, evdwl] = EVAL::template pair<true>(rsq, p, factor_lj);
-    double ecoul = 0.0;
+    double fpair = 0.0, evdwl = 0.0, ecoul = 0.0;
+
+    if (rsq < p.cutsq) {
+      const auto v = EVAL::template pair<true>(rsq, p, factor_lj);
+      fpair = v.fpair;
+      evdwl = v.energy;
+    }
 
     if constexpr (COUL::has_coul) {
-      auto [fcoul, ec] = coul.single_coul(lmp, i, j, rsq, factor_coul);
-      fpair += fcoul;
-      ecoul = ec;
+      const auto c = coul.single_coul(lmp, i, j, rsq, factor_coul);
+      fpair += c.fpair;
+      ecoul = c.energy;
     } else {
       (void) i;
       (void) j;
@@ -403,6 +414,19 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
 
     fforce = fpair;
     return evdwl + ecoul;
+  }
+
+  // expose the global Coulomb cutoff so a KSpace style can query it
+  void *extract(const char *str, int &dim) override
+  {
+    if constexpr (COUL::has_coul) {
+      if (strcmp(str, "cut_coul") == 0) {
+        dim = 0;
+        return (void *) &coul.cut_coul_global;
+      }
+    }
+    dim = 0;
+    return nullptr;
   }
 
   // -----------------------------------------------------------------

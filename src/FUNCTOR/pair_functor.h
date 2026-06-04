@@ -98,50 +98,51 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
   // compute: dispatch to the templated kernel (OPT-style branch table)
   // -----------------------------------------------------------------
 
+  // resolve the run-time CTABLE and SPECIAL flags into template arguments
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void dispatch(int ctable, int special)
+  {
+    if (ctable) {
+      if (special) eval<EVFLAG, EFLAG, NEWTON_PAIR, 1, 1>();
+      else eval<EVFLAG, EFLAG, NEWTON_PAIR, 1, 0>();
+    } else {
+      if (special) eval<EVFLAG, EFLAG, NEWTON_PAIR, 0, 1>();
+      else eval<EVFLAG, EFLAG, NEWTON_PAIR, 0, 0>();
+    }
+  }
+
   void compute(int eflag, int vflag) override
   {
     ev_init(eflag, vflag);
     const int newton = force->newton_pair;
+    const int ctable = (COUL::has_table && ncoultablebits != 0) ? 1 : 0;
 
-    if constexpr (COUL::has_table) {
-      const int ctable = (ncoultablebits != 0);
-      if (evflag) {
-        if (eflag) {
-          if (newton) {
-            if (ctable) eval<1, 1, 1, 1>(); else eval<1, 1, 1, 0>();
-          } else {
-            if (ctable) eval<1, 1, 0, 1>(); else eval<1, 1, 0, 0>();
-          }
-        } else {
-          if (newton) {
-            if (ctable) eval<1, 0, 1, 1>(); else eval<1, 0, 1, 0>();
-          } else {
-            if (ctable) eval<1, 0, 0, 1>(); else eval<1, 0, 0, 0>();
-          }
-        }
+    // SPECIAL == 0 lets the kernel drop the special-bond factor load and scaling
+    // entirely.  The neighbor list contains a 1-2/1-3/1-4 pair with an encoded
+    // scale factor only where special_flag == 2 (factor neither 0 nor 1); flag 0
+    // means the pair is excluded and flag 1 means it is treated as a normal pair
+    // (see Npair::find_special).
+    const int special = (neighbor->special_flag[1] == 2 || neighbor->special_flag[2] == 2 ||
+                         neighbor->special_flag[3] == 2)
+        ? 1
+        : 0;
+
+    if (evflag) {
+      if (eflag) {
+        if (newton) dispatch<1, 1, 1>(ctable, special);
+        else dispatch<1, 1, 0>(ctable, special);
       } else {
-        if (newton) {
-          if (ctable) eval<0, 0, 1, 1>(); else eval<0, 0, 1, 0>();
-        } else {
-          if (ctable) eval<0, 0, 0, 1>(); else eval<0, 0, 0, 0>();
-        }
+        if (newton) dispatch<1, 0, 1>(ctable, special);
+        else dispatch<1, 0, 0>(ctable, special);
       }
     } else {
-      if (evflag) {
-        if (eflag) {
-          if (newton) eval<1, 1, 1, 0>(); else eval<1, 1, 0, 0>();
-        } else {
-          if (newton) eval<1, 0, 1, 0>(); else eval<1, 0, 0, 0>();
-        }
-      } else {
-        if (newton) eval<0, 0, 1, 0>(); else eval<0, 0, 0, 0>();
-      }
+      if (newton) dispatch<0, 0, 1>(ctable, special);
+      else dispatch<0, 0, 0>(ctable, special);
     }
 
     if (vflag_fdotr) virial_fdotr_compute();
   }
 
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int CTABLE> void eval()
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int CTABLE, int SPECIAL> void eval()
   {
     double **x = atom->x;
     double **f = atom->f;
@@ -185,7 +186,17 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
 
       for (int jj = 0; jj < jnum; jj++) {
         int j = jlist[jj];
-        const int sb = sbmask(j);
+
+        // special-bond scale factors.  When SPECIAL == 0 the neighbor list holds
+        // no scaled pairs, so the factors are the compile-time constant 1.0 and
+        // the load + multiply fold away entirely.
+        double factor_lj = 1.0;
+        [[maybe_unused]] double factor_coul = 1.0;
+        if constexpr (SPECIAL) {
+          const int sb = sbmask(j);
+          factor_lj = special_lj[sb];
+          if constexpr (COUL::has_coul) factor_coul = special_coul[sb];
+        }
         j &= NEIGHMASK;
 
         const double delx = xtmp - xx[j].x;
@@ -198,9 +209,6 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
         // p.cutsq is the van der Waals (evaluator) cutoff.  For CoulNone it is
         // the only cutoff; for a Coulomb policy the outer guard is the larger of
         // the vdW and Coulomb cutoffs, and each term is gated separately.
-        // NB: a separate sb==0 "special bond" fast path (as in OPT) was tried
-        // here and measured *slower* for this driver; do not re-add it without
-        // re-benchmarking.
 
         double fpair = 0.0, evdwl = 0.0, ecoul = 0.0;
         bool within;
@@ -208,7 +216,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
         if constexpr (!COUL::has_coul) {
           within = (rsq < p.cutsq);
           if (within) {
-            const auto v = EVAL::template pair<EFLAG>(rsq, p, special_lj[sb]);
+            const auto v = EVAL::template pair<EFLAG>(rsq, p, factor_lj);
             fpair = v.fpair;
             evdwl = v.energy;
           }
@@ -218,13 +226,13 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
           within = (rsq < outer);
           if (within) {
             if (rsq < p.cutsq) {
-              const auto v = EVAL::template pair<EFLAG>(rsq, p, special_lj[sb]);
+              const auto v = EVAL::template pair<EFLAG>(rsq, p, factor_lj);
               fpair = v.fpair;
               evdwl = v.energy;
             }
             if (rsq < cut_coulsq) {
               const auto c =
-                  coul.template eval_coul<EFLAG, CTABLE>(rsq, qi, q[j], special_coul[sb]);
+                  coul.template eval_coul<EFLAG, CTABLE>(rsq, qi, q[j], factor_coul);
               fpair += c.fpair;
               ecoul = c.energy;
             }

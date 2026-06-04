@@ -332,6 +332,19 @@ HIP_USE_DEVICE_SORT=on`` requires installing the ``hipcub`` library
 The GPU library has some multi-thread support using OpenMP.  If LAMMPS
 is built with ``-D BUILD_OMP=on`` this will also be enabled.
 
+.. note::
+
+   Some Clang-based toolchains - in particular ``hipcc`` from ROCm - do not
+   ship the ``omp.h`` header in the compiler's own resource directory.  When
+   building with ``-D BUILD_OMP=on`` and such a compiler, host code that
+   includes ``<omp.h>`` would fail to compile even though the ``-fopenmp``
+   flag is accepted.  CMake detects this case and adds the ``omp.h`` from a
+   matching version of the system Clang installation as a fallback include
+   path (using ``-idirafter`` so it does not shadow other headers).  If no
+   matching ``omp.h`` can be found automatically, you may need to add the
+   directory containing it yourself, for example with
+   ``-D CMAKE_CXX_FLAGS=-idirafter/usr/lib/clang/<version>/include``.
+
 For a debug build, set ``GPU_DEBUG`` to be ``yes``.
 
 .. versionadded:: 3Aug2022

@@ -62,6 +62,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`coul/ctip <pair_coul>`
    * :doc:`coul/cut (gko) <pair_coul>`
    * :doc:`coul/cut/dielectric <pair_dielectric>`
+   * :doc:`coul/cut/functor <pair_coul_cut_functor>`
    * :doc:`coul/cut/global (ko) <pair_coul>`
    * :doc:`coul/cut/soft (o) <pair_fep_soft>`
    * :doc:`coul/cut/soft/gapsys <pair_fep_soft>`

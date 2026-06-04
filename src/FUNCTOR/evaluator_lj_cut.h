@@ -30,17 +30,26 @@ struct EvaluatorLJCut {
 
   static constexpr bool needs_charge = false;
   static constexpr bool has_mixing = true;
+  static constexpr bool has_vdw = true;
 
-  static constexpr const char *name() { return "lj/cut/functor"; }
-
-  static Coeff parse(int narg, char **arg, LAMMPS *lmp, double cut_global)
+  // parse "epsilon sigma [cut]" starting at arg[2]; report how many args were
+  // consumed (2 or 3) so the driver knows where any Coulomb-cutoff arg begins.
+  // The driver enforces the upper bound on narg (it depends on the Coulomb
+  // policy), so this does not reject trailing args.
+  static Coeff parse(int narg, char **arg, LAMMPS *lmp, double cut_global, int &nconsumed)
   {
-    if (narg < 4 || narg > 5)
+    if (narg < 4)
       lmp->error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
     Coeff c;
     c.epsilon = utils::numeric(FLERR, arg[2], false, lmp);
     c.sigma = utils::numeric(FLERR, arg[3], false, lmp);
-    c.cut = (narg == 5) ? utils::numeric(FLERR, arg[4], false, lmp) : cut_global;
+    if (narg >= 5) {
+      c.cut = utils::numeric(FLERR, arg[4], false, lmp);
+      nconsumed = 3;
+    } else {
+      c.cut = cut_global;
+      nconsumed = 2;
+    }
     return c;
   }
 

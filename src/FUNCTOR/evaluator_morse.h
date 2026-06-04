@@ -32,18 +32,23 @@ struct EvaluatorMorse {
 
   static constexpr bool needs_charge = false;
   static constexpr bool has_mixing = false;
+  static constexpr bool has_vdw = true;
 
-  static constexpr const char *name() { return "morse/functor"; }
-
-  static Coeff parse(int narg, char **arg, LAMMPS *lmp, double cut_global)
+  static Coeff parse(int narg, char **arg, LAMMPS *lmp, double cut_global, int &nconsumed)
   {
-    if (narg < 5 || narg > 6)
+    if (narg < 5)
       lmp->error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
     Coeff c;
     c.d0 = utils::numeric(FLERR, arg[2], false, lmp);
     c.alpha = utils::numeric(FLERR, arg[3], false, lmp);
     c.r0 = utils::numeric(FLERR, arg[4], false, lmp);
-    c.cut = (narg == 6) ? utils::numeric(FLERR, arg[5], false, lmp) : cut_global;
+    if (narg >= 6) {
+      c.cut = utils::numeric(FLERR, arg[5], false, lmp);
+      nconsumed = 4;
+    } else {
+      c.cut = cut_global;
+      nconsumed = 3;
+    }
     return c;
   }
 

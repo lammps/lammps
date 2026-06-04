@@ -46,9 +46,12 @@ This pair style is part of the FUNCTOR package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` page
 for more info.
 
-The Coulomb cutoff is global.  Unlike :doc:`pair_style lj/cut/coul/cut
-<pair_lj_cut_coul>`, a per-pair Coulomb cutoff (a sixth ``pair_coeff`` argument)
-is not yet supported; a per-pair Coulomb cutoff is a planned extension.
+A per-pair Coulomb cutoff is supported only through the six-argument
+``pair_coeff`` form (``I J epsilon sigma cut_lj cut_coul``).  Unlike
+:doc:`pair_style lj/cut/coul/cut <pair_lj_cut_coul>`, the five-argument form
+(``I J epsilon sigma cut_lj``) does *not* also set the Coulomb cutoff to
+``cut_lj``; the Coulomb cutoff then remains the global value from the
+``pair_style`` command.
 
 Related commands
 """"""""""""""""

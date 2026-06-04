@@ -41,6 +41,7 @@
 #include "force.h"
 
 #include <cmath>
+#include <cstddef>
 #include <cstdio>
 
 namespace LAMMPS_NS::functor {
@@ -53,29 +54,57 @@ struct CoulNone {
   static constexpr bool needs_charge = false;
 };
 
-// cutoff Coulomb with a single global cutoff (".../coul/cut" combined styles).
+// cutoff Coulomb with a per-type-pair cutoff (bare coul/cut and ".../coul/cut"
+// combined styles):
 //   F_coul/r = factor_coul * qqrd2e * qi * qj / r^3 ,  E_coul = factor_coul * qqrd2e * qi * qj / r
-// (reimplements the Coulomb half of src/pair_lj_cut_coul_cut.cpp).  A per-pair
-// Coulomb cutoff and the bare coul/cut style are a planned extension.
+// (reimplements the Coulomb half of src/pair_coul_cut.cpp / pair_lj_cut_coul_cut.cpp).
+//
+// The policy owns the per-pair Coulomb cutoff arrays (cut_coul raw for mixing
+// and restart, cut_coulsq for the hot loop).  The driver allocates/fills/frees
+// them through the lifecycle hooks below; mixing of unset pairs is done by the
+// driver (it has Pair::mix_distance).
 
 struct CoulCut {
   static constexpr bool has_coul = true;
   static constexpr bool has_table = false;
   static constexpr bool needs_charge = true;
 
-  double cut_coulsq = 0.0;    // global Coulomb cutoff squared
+  double *cut_coul = nullptr;      // per-pair raw cutoff,  flat [n*n]
+  double *cut_coulsq = nullptr;    // per-pair squared cutoff, flat [n*n] (hot loop)
+  int n = 0;                       // matrix stride (== driver's nparams)
+  double cut_coul_global = 0.0;
   double qqrd2e = 1.0;
+
+  void allocate(int n_)
+  {
+    n = n_;
+    cut_coul = new double[(std::size_t) n * n];
+    cut_coulsq = new double[(std::size_t) n * n];
+  }
+  void deallocate()
+  {
+    delete[] cut_coul;
+    delete[] cut_coulsq;
+    cut_coul = nullptr;
+    cut_coulsq = nullptr;
+  }
 
   void init_style(LAMMPS *lmp) { qqrd2e = lmp->force->qqrd2e; }
 
-  // persist the global Coulomb cutoff across restarts (qqrd2e is re-derived in
-  // init_style, so it need not be stored)
-  void write_restart(FILE *fp) const { fwrite(&cut_coulsq, sizeof(double), 1, fp); }
-  void read_restart(FILE *fp, LAMMPS *lmp)
+  // parse the optional per-pair Coulomb cutoff at arg[iarg] (else use the global)
+  double parse_cut(int narg, char **arg, LAMMPS *lmp, int iarg) const
+  {
+    return (narg > iarg) ? utils::numeric(FLERR, arg[iarg], false, lmp) : cut_coul_global;
+  }
+
+  // restart: only the global cutoff is a "setting"; per-pair raw cutoffs are
+  // written/read by the driver alongside the evaluator coefficients
+  void write_restart_settings(FILE *fp) const { fwrite(&cut_coul_global, sizeof(double), 1, fp); }
+  void read_restart_settings(FILE *fp, LAMMPS *lmp)
   {
     if (lmp->comm->me == 0)
-      utils::sfread(FLERR, &cut_coulsq, sizeof(double), 1, fp, nullptr, lmp->error);
-    MPI_Bcast(&cut_coulsq, 1, MPI_DOUBLE, 0, lmp->world);
+      utils::sfread(FLERR, &cut_coul_global, sizeof(double), 1, fp, nullptr, lmp->error);
+    MPI_Bcast(&cut_coul_global, 1, MPI_DOUBLE, 0, lmp->world);
   }
 
   template <bool EFLAG, int /*CTABLE*/>

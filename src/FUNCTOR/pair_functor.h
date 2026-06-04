@@ -85,6 +85,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
       memory->destroy(cutsq);
       memory->destroy(coeffs);
       delete[] params;
+      if constexpr (COUL::has_coul) coul.deallocate();
     }
   }
 
@@ -148,12 +149,12 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
 
     [[maybe_unused]] const double *_noalias q = nullptr;
     [[maybe_unused]] const double *_noalias special_coul = nullptr;
-    [[maybe_unused]] double cut_coulsq = 0.0;
+    [[maybe_unused]] const double *_noalias coul_cutsq = nullptr;
     if constexpr (COUL::needs_charge) {
       q = atom->q;
       special_coul = force->special_coul;
     }
-    if constexpr (COUL::has_coul) cut_coulsq = coul.cut_coulsq;
+    if constexpr (COUL::has_coul) coul_cutsq = coul.cut_coulsq;
 
     const int inum = list->inum;
     const int *_noalias ilist = list->ilist;
@@ -167,6 +168,8 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
       const double ztmp = xx[i].z;
       const int itype = type[i];
       const Param *_noalias pi = params + (std::size_t) itype * nparams;
+      [[maybe_unused]] const double *_noalias coul_cutsq_row = nullptr;
+      if constexpr (COUL::has_coul) coul_cutsq_row = coul_cutsq + (std::size_t) itype * nparams;
       [[maybe_unused]] double qi = 0.0;
       if constexpr (COUL::needs_charge) qi = q[i];
 
@@ -205,11 +208,10 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
             evdwl = v.energy;
           }
         } else {
+          const double cut_coulsq = coul_cutsq_row[jtype];
           const double outer = (p.cutsq > cut_coulsq) ? p.cutsq : cut_coulsq;
           within = (rsq < outer);
           if (within) {
-            fpair = 0.0;
-            evdwl = 0.0;
             if (rsq < p.cutsq) {
               const auto v = EVAL::template pair<EFLAG>(rsq, p, special_lj[sb]);
               fpair = v.fpair;
@@ -268,25 +270,36 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     // guarantees the 64-byte base alignment in all builds.
     nparams = n;
     params = new Param[(std::size_t) n * n];
+
+    if constexpr (COUL::has_coul) coul.allocate(n);
   }
 
   void settings(int narg, char **arg) override
   {
     if constexpr (!COUL::has_coul) {
+      // van der Waals only: a single global cutoff
       if (narg != 1) error->all(FLERR, "Illegal pair_style command");
       cut_global = utils::numeric(FLERR, arg[0], false, lmp);
-    } else {
+    } else if constexpr (EVAL::has_vdw) {
       // combined vdW + Coulomb: "cut_lj [cut_coul]"; cut_coul defaults to cut_lj
       if (narg < 1 || narg > 2) error->all(FLERR, "Illegal pair_style command");
       cut_global = utils::numeric(FLERR, arg[0], false, lmp);
-      const double cut_coul = (narg == 2) ? utils::numeric(FLERR, arg[1], false, lmp) : cut_global;
-      coul.cut_coulsq = cut_coul * cut_coul;
+      coul.cut_coul_global = (narg == 2) ? utils::numeric(FLERR, arg[1], false, lmp) : cut_global;
+    } else {
+      // pure Coulomb (no vdW term): the single argument is the Coulomb cutoff
+      if (narg != 1) error->all(FLERR, "Illegal pair_style command");
+      cut_global = 0.0;
+      coul.cut_coul_global = utils::numeric(FLERR, arg[0], false, lmp);
     }
 
     if (allocated) {
       for (int i = 1; i <= atom->ntypes; i++)
         for (int j = i; j <= atom->ntypes; j++)
-          if (setflag[i][j]) coeffs[i][j].cut = cut_global;
+          if (setflag[i][j]) {
+            coeffs[i][j].cut = cut_global;
+            if constexpr (COUL::has_coul)
+              coul.cut_coul[(std::size_t) i * nparams + j] = coul.cut_coul_global;
+          }
     }
   }
 
@@ -299,12 +312,26 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
     utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-    Coeff c = EVAL::parse(narg, arg, lmp, cut_global);
+    int nconsumed = 0;
+    Coeff c = EVAL::parse(narg, arg, lmp, cut_global, nconsumed);
+
+    // any remaining argument is the optional per-pair Coulomb cutoff
+    [[maybe_unused]] double cut_coul_one = 0.0;
+    if constexpr (COUL::has_coul) {
+      const int iarg = 2 + nconsumed;
+      if (narg > iarg + 1)
+        error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
+      cut_coul_one = coul.parse_cut(narg, arg, lmp, iarg);
+    } else {
+      if (narg > 2 + nconsumed)
+        error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
+    }
 
     int count = 0;
     for (int i = ilo; i <= ihi; i++) {
       for (int j = MAX(jlo, i); j <= jhi; j++) {
         coeffs[i][j] = c;
+        if constexpr (COUL::has_coul) coul.cut_coul[(std::size_t) i * nparams + j] = cut_coul_one;
         setflag[i][j] = 1;
         count++;
       }
@@ -317,7 +344,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
   {
     if constexpr (COUL::needs_charge) {
       if (!atom->q_flag)
-        error->all(FLERR, "Pair style {} requires atom attribute q", EVAL::name());
+        error->all(FLERR, "Pair style {} requires atom attribute q", force->pair_style);
     }
     if constexpr (COUL::has_coul) coul.init_style(lmp);
     neighbor->add_request(this);
@@ -325,23 +352,30 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
 
   double init_one(int i, int j) override
   {
+    const std::size_t ij = (std::size_t) i * nparams + j;
+    const std::size_t ji = (std::size_t) j * nparams + i;
+
     if (setflag[i][j] == 0) {
       if constexpr (EVAL::has_mixing)
         coeffs[i][j] = EVAL::mix(coeffs[i][i], coeffs[j][j], this);
       else
         error->all(FLERR, "All pair coeffs are not set");
+      if constexpr (COUL::has_coul)
+        coul.cut_coul[ij] = mix_distance(coul.cut_coul[(std::size_t) i * nparams + i],
+                                         coul.cut_coul[(std::size_t) j * nparams + j]);
     }
 
     const Param p = EVAL::derive(coeffs[i][j], offset_flag);
-    params[(std::size_t) i * nparams + j] = p;
-    params[(std::size_t) j * nparams + i] = p;
+    params[ij] = p;
+    params[ji] = p;
 
     // the neighbor/communication cutoff for this pair is the larger of the vdW
     // (evaluator) cutoff and the Coulomb cutoff
     double cut = coeffs[i][j].cut;
     if constexpr (COUL::has_coul) {
-      const double cut_coul = sqrt(coul.cut_coulsq);
-      if (cut_coul > cut) cut = cut_coul;
+      coul.cut_coulsq[ij] = coul.cut_coul[ij] * coul.cut_coul[ij];
+      coul.cut_coulsq[ji] = coul.cut_coulsq[ij];
+      if (coul.cut_coul[ij] > cut) cut = coul.cut_coul[ij];
     }
     return cut;
   }
@@ -381,7 +415,11 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     for (int i = 1; i <= atom->ntypes; i++)
       for (int j = i; j <= atom->ntypes; j++) {
         fwrite(&setflag[i][j], sizeof(int), 1, fp);
-        if (setflag[i][j]) fwrite(&coeffs[i][j], sizeof(Coeff), 1, fp);
+        if (setflag[i][j]) {
+          fwrite(&coeffs[i][j], sizeof(Coeff), 1, fp);
+          if constexpr (COUL::has_coul)
+            fwrite(&coul.cut_coul[(std::size_t) i * nparams + j], sizeof(double), 1, fp);
+        }
       }
   }
 
@@ -398,6 +436,11 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
         if (setflag[i][j]) {
           if (me == 0) utils::sfread(FLERR, &coeffs[i][j], sizeof(Coeff), 1, fp, nullptr, error);
           MPI_Bcast(&coeffs[i][j], sizeof(Coeff), MPI_BYTE, 0, world);
+          if constexpr (COUL::has_coul) {
+            const std::size_t ij = (std::size_t) i * nparams + j;
+            if (me == 0) utils::sfread(FLERR, &coul.cut_coul[ij], sizeof(double), 1, fp, nullptr, error);
+            MPI_Bcast(&coul.cut_coul[ij], 1, MPI_DOUBLE, 0, world);
+          }
         }
       }
   }
@@ -408,7 +451,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     fwrite(&offset_flag, sizeof(int), 1, fp);
     fwrite(&mix_flag, sizeof(int), 1, fp);
     fwrite(&tail_flag, sizeof(int), 1, fp);
-    if constexpr (COUL::has_coul) coul.write_restart(fp);
+    if constexpr (COUL::has_coul) coul.write_restart_settings(fp);
   }
 
   void read_restart_settings(FILE *fp) override
@@ -424,7 +467,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
     MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
     MPI_Bcast(&tail_flag, 1, MPI_INT, 0, world);
-    if constexpr (COUL::has_coul) coul.read_restart(fp, lmp);
+    if constexpr (COUL::has_coul) coul.read_restart_settings(fp, lmp);
   }
 };
 

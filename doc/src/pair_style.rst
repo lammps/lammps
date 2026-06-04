@@ -153,6 +153,7 @@ accelerated styles exist.
 * :doc:`coul/ctip <pair_coul>` - Charge Transfer Interatomic (Coulomb) Potential
 * :doc:`coul/cut <pair_coul>` - cutoff Coulomb potential
 * :doc:`coul/cut/dielectric <pair_dielectric>` -
+* :doc:`coul/cut/functor <pair_coul_cut_functor>` - cutoff Coulomb potential (FUNCTOR framework)
 * :doc:`coul/cut/global <pair_coul>` - cutoff Coulomb potential
 * :doc:`coul/cut/soft <pair_fep_soft>` - Coulomb potential with a soft core
 * :doc:`coul/cut/soft/gapsys <pair_fep_soft>` - Coulomb potential with a soft core with continuous force and first derivative of force

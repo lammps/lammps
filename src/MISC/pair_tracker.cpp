@@ -320,14 +320,14 @@ void PairTracker::settings(int narg, char **arg)
   memory->create(output_data, nvalues, "pair/tracker:output_data");
 
   if (nvalues_restart != -1 && nvalues != nvalues_restart) {
-    error->warn(FLERR, "Output values differs from restart file, {} vs {}, reinitializing internal fix",
+    error->warning(FLERR, "Output values differs from restart file, {} vs {}, reinitializing internal fix",
                 nvalues_restart, nvalues);
     modify->delete_fix(id_fix_store_local);
     fix_store_local = nullptr;
   }
 
   if (store_local_freq_restart != -1 && store_local_freq != store_local_freq_restart) {
-    error->warn(FLERR, "Output frequency differs from restart file, {} vs {}, reinitializing internal fix",
+    error->warning(FLERR, "Output frequency differs from restart file, {} vs {}, reinitializing internal fix",
                 store_local_freq_restart, store_local_freq);
     modify->delete_fix(id_fix_store_local);
     fix_store_local = nullptr;

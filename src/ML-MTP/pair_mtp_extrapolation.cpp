@@ -454,24 +454,27 @@ void PairMTPExtrapolation::write_config()
 ------------------------------------------------------------------------- */
 void PairMTPExtrapolation::settings(int narg, char **arg)
 {
-  if ((narg == 2 && LAMMPS_NS::utils::lowercase(arg[0]) == "chunksize") ||
-      (narg == 5 && LAMMPS_NS::utils::lowercase(arg[3]) == "chunksize")) {
-    if (comm->me == 0) utils::logmesg(lmp, "Ignoring chunksize settings!\n");
-    narg -= 2;    // Ignore the chunksize settings
-  } else if (narg != 0 && narg != 3)
-    error->all(FLERR,
-               "Pair mtp/extrapolation accepts no arguments."
-               "Or 4 arguments: {output_file}. {selection_threshold} "
-               "{break_threshold}. With 2 more for GPU chunksize {chunksize}.");
+  mlip3_style = false;
 
-  if (narg == 3) {
-    mlip3_style = true;
-    select_threshold = utils::numeric(FLERR, arg[1], true, lmp);
-    break_threshold = utils::numeric(FLERR, arg[2], true, lmp);
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "mlip3_style") == 0) {
+      if (iarg + 3 >= narg)
+        utils::missing_cmd_args(FLERR, "pair_style mtp/extrapolation mlip3_style", error);
+
+      mlip3_style = true;
+      if (comm->me == 0) {
+        preselected_file = std::fopen(arg[iarg + 1], "w");
+        if (!preselected_file)
+          error->one(FLERR, "Cannot open mtp/extrapolation output file: {}", arg[iarg + 1]);
+      }
+      select_threshold = utils::numeric(FLERR, arg[iarg + 2], true, lmp);
+      break_threshold = utils::numeric(FLERR, arg[iarg + 3], true, lmp);
+      iarg += 4;
+    } else {
+      error->all(FLERR, "Unknown pair_style mtp/extrapolation keyword: {}", arg[iarg]);
+    }
   }
-
-  if (mlip3_style)
-    if (comm->me == 0) preselected_file = std::fopen(arg[0], "w");
 }
 
 /* ----------------------------------------------------------------------

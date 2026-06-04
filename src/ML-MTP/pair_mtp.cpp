@@ -612,7 +612,7 @@ void PairMTP::prepare_map(int narg, char **arg)
   // Set up basic flags
   memory->create(setflag, np1, np1, "pair:setflag");
   memory->create(cutsq, np1, np1, "pair:cutsq");
-  memory->create(map, np1, "pair:map");
+  map = new int[np1];
   map_element2type(narg, arg);
 
   // Readjust Map

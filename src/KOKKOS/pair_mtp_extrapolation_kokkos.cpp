@@ -193,23 +193,33 @@ template <class DeviceType> void PairMTPExtrapolationKokkos<DeviceType>::coeff(i
 template <class DeviceType>
 void PairMTPExtrapolationKokkos<DeviceType>::settings(int narg, char **arg)
 {
-  if (narg != 2 && narg != 5)
-    error->all(FLERR,
-               "Pair mtp/extrapolation/kk requires 2 arguments : \"chunksize\" {chunksize} "
-               "Or 5 arguments: {output_file} {selection_threshold} "
-               "{break_threshold} \"chunksize\" {chunksize}.");
+  input_chunk_size = 4096;    // default chunksize
+  this->mlip3_style = false;
 
-  if (narg == 2) {
-    if (LAMMPS_NS::utils::lowercase(arg[0]) != "chunksize")
-      error->all(FLERR, "Chunksize not found, please specify \"chunksize\" {chunksize}.");
-    input_chunk_size = utils::inumeric(FLERR, arg[1], true, lmp);
-    PairMTPExtrapolation::settings(0, arg);
-  }
-  if (narg == 5) {
-    if (LAMMPS_NS::utils::lowercase(arg[3]) != "chunksize")
-      error->all(FLERR, "Chunksize not found, please specify \"chunksize\" {chunksize}.");
-    input_chunk_size = utils::inumeric(FLERR, arg[4], true, lmp);
-    PairMTPExtrapolation::settings(3, arg);
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "chunksize") == 0) {
+      if (iarg + 1 >= narg)
+        utils::missing_cmd_args(FLERR, "pair_style mtp/extrapolation/kk chunksize", error);
+
+      input_chunk_size = utils::inumeric(FLERR, arg[iarg + 1], true, lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "mlip3_style") == 0) {
+      if (iarg + 3 >= narg)
+        utils::missing_cmd_args(FLERR, "pair_style mtp/extrapolation/kk mlip3_style", error);
+
+      this->mlip3_style = true;
+      if (this->comm->me == 0) {
+        this->preselected_file = std::fopen(arg[iarg + 1], "w");
+        if (!this->preselected_file)
+          error->one(FLERR, "Cannot open mtp/extrapolation/kk output file: {}", arg[iarg + 1]);
+      }
+      this->select_threshold = utils::numeric(FLERR, arg[iarg + 2], true, this->lmp);
+      this->break_threshold = utils::numeric(FLERR, arg[iarg + 3], true, this->lmp);
+      iarg += 4;
+    } else {
+      error->all(FLERR, "Unknown pair_style mtp/extrapolation/kk keyword: {}", arg[iarg]);
+    }
   }
 }
 

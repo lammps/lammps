@@ -63,7 +63,7 @@ struct EvaluatorLJCut {
     return c;
   }
 
-  static Coeff mix(const Coeff &a, const Coeff &b, Pair *p)
+  static Coeff mix(const Coeff &a, const Coeff &b, Pair *p, LAMMPS * /*lmp*/)
   {
     Coeff c;
     c.epsilon = p->mix_energy(a.epsilon, b.epsilon, a.sigma, b.sigma);

@@ -156,6 +156,7 @@ accelerated styles exist.
 * :doc:`coul/cut/functor <pair_coul_cut_functor>` - cutoff Coulomb potential (FUNCTOR framework)
 * :doc:`coul/cut/global <pair_coul>` - cutoff Coulomb potential
 * :doc:`coul/cut/soft <pair_fep_soft>` - Coulomb potential with a soft core
+* :doc:`coul/cut/soft/functor <pair_coul_cut_soft_functor>` - soft-core cutoff Coulomb potential (FUNCTOR framework)
 * :doc:`coul/cut/soft/gapsys <pair_fep_soft>` - Coulomb potential with a soft core with continuous force and first derivative of force
 * :doc:`coul/debye <pair_coul>` - cutoff Coulomb potential with Debye screening
 * :doc:`coul/diel <pair_coul_diel>` - Coulomb potential with dielectric permittivity
@@ -168,6 +169,7 @@ accelerated styles exist.
 * :doc:`coul/long/dielectric <pair_dielectric>` -
 * :doc:`coul/long/functor <pair_coul_long_functor>` - long-range Coulomb potential (FUNCTOR framework)
 * :doc:`coul/long/soft <pair_fep_soft>` - long-range Coulomb potential with a soft core
+* :doc:`coul/long/soft/functor <pair_coul_long_soft_functor>` - soft-core long-range Coulomb potential (FUNCTOR framework)
 * :doc:`coul/msm <pair_coul>` - long-range MSM Coulomb
 * :doc:`coul/slater/cut <pair_coul>` - smeared out Coulomb
 * :doc:`coul/slater/long <pair_coul>` - long-range smeared out Coulomb
@@ -256,6 +258,7 @@ accelerated styles exist.
 * :doc:`lj/cut/coul/cut/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/cut/functor <pair_lj_cut_coul_cut_functor>` - LJ with cutoff Coulomb (FUNCTOR framework)
 * :doc:`lj/cut/coul/cut/soft <pair_fep_soft>` - LJ with cutoff Coulomb with a soft core
+* :doc:`lj/cut/coul/cut/soft/functor <pair_lj_cut_coul_cut_soft_functor>` - soft-core LJ with cutoff Coulomb (FUNCTOR framework)
 * :doc:`lj/cut/coul/debye <pair_lj_cut_coul>` - LJ with Debye screening added to Coulomb
 * :doc:`lj/cut/coul/debye/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/dsf <pair_lj_cut_coul>` - LJ with Coulomb via damped shifted forces
@@ -266,6 +269,7 @@ accelerated styles exist.
 * :doc:`lj/cut/coul/long/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/long/functor <pair_lj_cut_coul_long_functor>` - LJ with long-range Coulomb (FUNCTOR framework)
 * :doc:`lj/cut/coul/long/soft <pair_fep_soft>` - LJ with long-range Coulomb with a soft core
+* :doc:`lj/cut/coul/long/soft/functor <pair_lj_cut_coul_long_soft_functor>` - soft-core LJ with long-range Coulomb (FUNCTOR framework)
 * :doc:`lj/cut/coul/msm <pair_lj_cut_coul>` - LJ with long-range MSM Coulomb
 * :doc:`lj/cut/coul/msm/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/wolf <pair_lj_cut_coul>` - LJ with Coulomb via Wolf potential

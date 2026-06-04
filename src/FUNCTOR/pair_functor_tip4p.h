@@ -513,7 +513,7 @@ template <class EVAL> class PairFunctorTIP4P : public Pair {
   {
     if (setflag[i][j] == 0) {
       if constexpr (EVAL::has_mixing)
-        coeffs[i][j] = EVAL::mix(coeffs[i][i], coeffs[j][j], this);
+        coeffs[i][j] = EVAL::mix(coeffs[i][i], coeffs[j][j], this, lmp);
       else
         error->all(FLERR, "All pair coeffs are not set");
     }

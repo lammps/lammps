@@ -54,7 +54,7 @@ struct EvaluatorNone {
     return Coeff{0.0};
   }
 
-  static Coeff mix(const Coeff &, const Coeff &, Pair *) { return Coeff{0.0}; }
+  static Coeff mix(const Coeff &, const Coeff &, Pair *, LAMMPS *) { return Coeff{0.0}; }
 
   static Param derive(const Coeff &, int /*offset_flag*/, const Global &) { return Param{0.0}; }
 

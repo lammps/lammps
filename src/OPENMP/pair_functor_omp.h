@@ -196,7 +196,8 @@ class PairFunctorOMP : public PairFunctor<EVAL, COUL>, public ThrOMP {
               evdwl = v.energy;
             }
             if (rsq < cut_coulsq) {
-              const auto c = coul.template eval_coul<EFLAG, CTABLE>(rsq, qi, q[j], factor_coul);
+              const auto c =
+                  coul.template eval_coul<EFLAG, CTABLE>(rsq, qi, q[j], factor_coul, p);
               fpair += c.fpair;
               ecoul = c.energy;
             }

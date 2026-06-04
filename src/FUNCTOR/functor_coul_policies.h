@@ -120,8 +120,11 @@ struct CoulCut : CoulCutoffBase {
 
   void init_style(Pair *, LAMMPS *lmp) { qqrd2e = lmp->force->qqrd2e; }
 
-  template <bool EFLAG, int /*CTABLE*/>
-  PairContribution eval_coul(double rsq, double qi, double qj, double factor_coul) const
+  // the trailing per-pair Param is unused here; it carries soft-core (FEP)
+  // coefficients that only the "/soft" Coulomb policies read (see functor_coul_soft.h)
+  template <bool EFLAG, int /*CTABLE*/, class P>
+  PairContribution eval_coul(double rsq, double qi, double qj, double factor_coul,
+                             const P & /*p*/) const
   {
     const double r2inv = 1.0 / rsq;
     const double rinv = sqrt(r2inv);
@@ -135,7 +138,9 @@ struct CoulCut : CoulCutoffBase {
     return out;
   }
 
-  PairContribution single_coul(LAMMPS *lmp, int i, int j, double rsq, double factor_coul) const
+  template <class P>
+  PairContribution single_coul(LAMMPS *lmp, int i, int j, double rsq, double factor_coul,
+                               const P & /*p*/) const
   {
     const double r2inv = 1.0 / rsq;
     const double rinv = sqrt(r2inv);

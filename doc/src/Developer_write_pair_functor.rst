@@ -198,6 +198,12 @@ path is removed from the compiled kernel when ``has_coul`` is false.
    * - ``CoulLongCS``
      - core-shell (Drude) Ewald/PPPM real space (``.../cs``)
      - available
+   * - ``CoulCutSoft``
+     - soft-core (FEP) cutoff Coulomb (``.../coul/cut/soft``)
+     - available
+   * - ``CoulLongSoft``
+     - soft-core (FEP) Ewald/PPPM real space (``.../coul/long/soft``)
+     - available
 
 ``CoulLongCS`` (``functor_coul_long_cs.h``) shows how to derive a policy variant
 from an existing one with maximal reuse: it inherits ``CoulLong`` (and thus its
@@ -207,6 +213,17 @@ form.  It also sets a non-zero ``rsq_epsilon`` (a ``constexpr`` member, ``0.0`` 
 every other policy) which the driver adds to ``rsq`` so an overlapping core/shell
 pair does not divide by zero; the ``if constexpr (COUL::rsq_epsilon != 0.0)``
 guard removes it from the kernel for all other policies.
+
+The soft-core (FEP) policies ``CoulCutSoft`` and ``CoulLongSoft``
+(``functor_coul_soft.h``) illustrate the other policy hook: the per-type-pair
+coupling parameter :math:`\lambda` is shared with the van der Waals term, so it is
+owned by the *evaluator*, and the two derived quantities the soft Coulomb kernel
+needs are read from the evaluator's ``Param`` (``p.lam1`` and ``p.lam2``), which
+the driver passes to ``eval_coul``/``single_coul`` as a trailing ``const P &``.
+Every policy therefore accepts that parameter; the non-soft policies ignore it.
+Both soft evaluators (``EvaluatorLJCutSoft`` and the pure-Coulomb
+``EvaluatorNoneSoft``) expose ``lam1`` and ``lam2``, so the same soft Coulomb
+policy works with either.
 
 TIP4P variants use a dedicated base ``PairFunctorTIP4P<Evaluator>`` instead of a
 policy, because the virtual M-site changes the structure of the neighbor loop;

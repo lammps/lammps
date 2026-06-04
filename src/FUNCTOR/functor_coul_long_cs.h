@@ -53,8 +53,9 @@ struct CoulLongCS : CoulLong {
   // tiny offset added to rsq by the driver (the "EPSILON" of the /cs styles)
   static constexpr double rsq_epsilon = 1.0e-20;
 
-  template <bool EFLAG, int CTABLE>
-  PairContribution eval_coul(double rsq, double qi, double qj, double factor_coul) const
+  template <bool EFLAG, int CTABLE, class P>
+  PairContribution eval_coul(double rsq, double qi, double qj, double factor_coul,
+                             const P & /*p*/) const
   {
     using namespace CoreShellConst;
     const double qiqj = qi * qj;

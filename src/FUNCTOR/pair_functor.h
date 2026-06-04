@@ -237,7 +237,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
             }
             if (rsq < cut_coulsq) {
               const auto c =
-                  coul.template eval_coul<EFLAG, CTABLE>(rsq, qi, q[j], factor_coul);
+                  coul.template eval_coul<EFLAG, CTABLE>(rsq, qi, q[j], factor_coul, p);
               fpair += c.fpair;
               ecoul = c.energy;
             }
@@ -372,7 +372,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
 
     if (setflag[i][j] == 0) {
       if constexpr (EVAL::has_mixing)
-        coeffs[i][j] = EVAL::mix(coeffs[i][i], coeffs[j][j], this);
+        coeffs[i][j] = EVAL::mix(coeffs[i][i], coeffs[j][j], this, lmp);
       else
         error->all(FLERR, "All pair coeffs are not set");
       if constexpr (COUL::has_coul)
@@ -412,7 +412,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     }
 
     if constexpr (COUL::has_coul) {
-      const auto c = coul.single_coul(lmp, i, j, rsq, factor_coul);
+      const auto c = coul.single_coul(lmp, i, j, rsq, factor_coul, p);
       fpair += c.fpair;
       ecoul = c.energy;
     } else {

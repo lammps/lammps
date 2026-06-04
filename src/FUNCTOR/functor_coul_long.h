@@ -75,8 +75,10 @@ struct CoulLong : CoulCutoffBase {
     }
   }
 
-  template <bool EFLAG, int CTABLE>
-  PairContribution eval_coul(double rsq, double qi, double qj, double factor_coul) const
+  // the trailing per-pair Param is unused here (only the "/soft" policies read it)
+  template <bool EFLAG, int CTABLE, class P>
+  PairContribution eval_coul(double rsq, double qi, double qj, double factor_coul,
+                             const P & /*p*/) const
   {
     using namespace EwaldConst;
     const double r2inv = 1.0 / rsq;
@@ -122,7 +124,9 @@ struct CoulLong : CoulCutoffBase {
     return out;
   }
 
-  PairContribution single_coul(LAMMPS *lmp, int i, int j, double rsq, double factor_coul) const
+  template <class P>
+  PairContribution single_coul(LAMMPS *lmp, int i, int j, double rsq, double factor_coul,
+                               const P & /*p*/) const
   {
     using namespace EwaldConst;
     PairContribution out{0.0, 0.0};

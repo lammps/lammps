@@ -1,7 +1,10 @@
 .. index:: pair_style morse/functor
+.. index:: pair_style morse/functor/omp
 
 pair_style morse/functor command
 ================================
+
+Accelerator Variants: *morse/functor/omp*
 
 Syntax
 """"""
@@ -34,6 +37,10 @@ accepted arguments and ``pair_coeff`` coefficients (:math:`D_0`, :math:`\alpha`,
 :math:`r_0`, and an optional per-pair cutoff) are identical to
 :doc:`pair_style morse <pair_morse>`.  Like *morse*, this style has no mixing
 rule, so coefficients for all pairs of atom types must be specified explicitly.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

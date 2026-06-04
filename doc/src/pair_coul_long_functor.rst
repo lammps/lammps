@@ -1,7 +1,10 @@
 .. index:: pair_style coul/long/functor
+.. index:: pair_style coul/long/functor/omp
 
 pair_style coul/long/functor command
 ====================================
+
+Accelerator Variants: *coul/long/functor/omp*
 
 Syntax
 """"""
@@ -36,6 +39,12 @@ It must be used with a long-range solver such as :doc:`kspace_style ewald or
 pppm <kspace_style>`, and honors the :doc:`pair_modify table <pair_modify>`
 option.  As for :doc:`pair_style coul/long <pair_coul>`, ``pair_coeff`` takes no
 numeric coefficients.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

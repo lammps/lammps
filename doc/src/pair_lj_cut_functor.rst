@@ -1,7 +1,10 @@
 .. index:: pair_style lj/cut/functor
+.. index:: pair_style lj/cut/functor/omp
 
 pair_style lj/cut/functor command
 =================================
+
+Accelerator Variants: *lj/cut/functor/omp*
 
 Syntax
 """"""
@@ -38,6 +41,10 @@ rules, and :doc:`pair_modify <pair_modify>` options (``shift``, ``tail``,
 The *lj/cut/functor* style can be used by itself or, for type-pair combinations
 that have no dedicated fused style, together with other ``/functor`` styles
 through :doc:`pair_style hybrid/overlay <pair_hybrid>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

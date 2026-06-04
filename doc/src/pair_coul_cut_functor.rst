@@ -1,7 +1,10 @@
 .. index:: pair_style coul/cut/functor
+.. index:: pair_style coul/cut/functor/omp
 
 pair_style coul/cut/functor command
 ===================================
+
+Accelerator Variants: *coul/cut/functor/omp*
 
 Syntax
 """"""
@@ -36,6 +39,12 @@ a cutoff-Coulomb policy).
 As for :doc:`pair_style coul/cut <pair_coul>`, the only ``pair_coeff`` argument
 is an optional per-type-pair cutoff; the Coulomb cutoff of unset pairs is
 obtained by mixing.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

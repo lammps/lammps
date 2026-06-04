@@ -1,7 +1,10 @@
 .. index:: pair_style lj/cut/coul/long/functor
+.. index:: pair_style lj/cut/coul/long/functor/omp
 
 pair_style lj/cut/coul/long/functor command
 ===========================================
+
+Accelerator Variants: *lj/cut/coul/long/functor/omp*
 
 Syntax
 """"""
@@ -39,6 +42,12 @@ Like :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`, it must be used with
 a long-range solver such as :doc:`kspace_style ewald or pppm <kspace_style>`, and
 it honors the :doc:`pair_modify table <pair_modify>` option (direct ``erfc``
 evaluation or the bitmapped Coulomb interpolation tables).
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

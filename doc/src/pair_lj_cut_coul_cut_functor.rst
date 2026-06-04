@@ -1,7 +1,10 @@
 .. index:: pair_style lj/cut/coul/cut/functor
+.. index:: pair_style lj/cut/coul/cut/functor/omp
 
 pair_style lj/cut/coul/cut/functor command
 ==========================================
+
+Accelerator Variants: *lj/cut/coul/cut/functor/omp*
 
 Syntax
 """"""
@@ -38,6 +41,12 @@ cutoff-Coulomb policy).
 
 The ``pair_style`` arguments and the LJ ``pair_coeff`` coefficients are as in
 :doc:`pair_style lj/cut/coul/cut <pair_lj_cut_coul>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

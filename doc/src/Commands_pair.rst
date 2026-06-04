@@ -62,7 +62,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`coul/ctip <pair_coul>`
    * :doc:`coul/cut (gko) <pair_coul>`
    * :doc:`coul/cut/dielectric <pair_dielectric>`
-   * :doc:`coul/cut/functor <pair_coul_cut_functor>`
+   * :doc:`coul/cut/functor (o) <pair_coul_cut_functor>`
    * :doc:`coul/cut/global (ko) <pair_coul>`
    * :doc:`coul/cut/soft (o) <pair_fep_soft>`
    * :doc:`coul/cut/soft/gapsys <pair_fep_soft>`
@@ -74,7 +74,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`coul/long (gko) <pair_coul>`
    * :doc:`coul/long/cs (g) <pair_cs>`
    * :doc:`coul/long/dielectric <pair_dielectric>`
-   * :doc:`coul/long/functor <pair_coul_long_functor>`
+   * :doc:`coul/long/functor (o) <pair_coul_long_functor>`
    * :doc:`coul/long/soft (o) <pair_fep_soft>`
    * :doc:`coul/msm (o) <pair_coul>`
    * :doc:`coul/slater/cut <pair_coul_slater>`
@@ -160,7 +160,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/cut (gikot) <pair_lj>`
    * :doc:`lj/cut/coul/cut (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/cut/dielectric (o) <pair_dielectric>`
-   * :doc:`lj/cut/coul/cut/functor <pair_lj_cut_coul_cut_functor>`
+   * :doc:`lj/cut/coul/cut/functor (o) <pair_lj_cut_coul_cut_functor>`
    * :doc:`lj/cut/coul/cut/soft (go) <pair_fep_soft>`
    * :doc:`lj/cut/coul/debye (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/debye/dielectric (o) <pair_dielectric>`
@@ -169,7 +169,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/cut/coul/long (gikot) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long/cs <pair_cs>`
    * :doc:`lj/cut/coul/long/dielectric (o) <pair_dielectric>`
-   * :doc:`lj/cut/coul/long/functor <pair_lj_cut_coul_long_functor>`
+   * :doc:`lj/cut/coul/long/functor (o) <pair_lj_cut_coul_long_functor>`
    * :doc:`lj/cut/coul/long/soft (go) <pair_fep_soft>`
    * :doc:`lj/cut/coul/msm (go) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/msm/dielectric <pair_dielectric>`
@@ -177,7 +177,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/cut/dipole/cut (gko) <pair_dipole>`
    * :doc:`lj/cut/dipole/long (g) <pair_dipole>`
    * :doc:`lj/cut/dipole/sf (go) <pair_dipole>`
-   * :doc:`lj/cut/functor <pair_lj_cut_functor>`
+   * :doc:`lj/cut/functor (o) <pair_lj_cut_functor>`
    * :doc:`lj/cut/soft (o) <pair_fep_soft>`
    * :doc:`lj/cut/sphere (ko) <pair_lj_cut_sphere>`
    * :doc:`lj/cut/thole/long (o) <pair_thole>`
@@ -225,7 +225,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`mm3/switch3/coulgauss/long (ko) <pair_lj_switch3_coulgauss_long>`
    * :doc:`momb (ko) <pair_momb>`
    * :doc:`morse (gkot) <pair_morse>`
-   * :doc:`morse/functor <pair_morse_functor>`
+   * :doc:`morse/functor (o) <pair_morse_functor>`
    * :doc:`morse/smooth/linear (ko) <pair_morse>`
    * :doc:`morse/soft <pair_fep_soft>`
    * :doc:`multi/lucy <pair_multi_lucy>`

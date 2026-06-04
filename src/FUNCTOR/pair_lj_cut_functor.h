@@ -20,8 +20,8 @@ PairStyle(lj/cut/functor,PairLJCutFunctor);
 #ifndef LMP_PAIR_LJ_CUT_FUNCTOR_H
 #define LMP_PAIR_LJ_CUT_FUNCTOR_H
 
+#include "evaluator_lj_cut.h"
 #include "functor_coul_policies.h"
-#include "functor_evaluators.h"
 #include "pair_functor.h"
 
 namespace LAMMPS_NS {

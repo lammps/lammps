@@ -21,14 +21,12 @@
 // (stride 3 doubles), which improves vectorization and cache behavior.  This
 // is the same trick used in src/OPT/pair_lj_cut_opt.cpp.
 
-namespace LAMMPS_NS {
-namespace functor {
+namespace LAMMPS_NS::functor {
 
-  typedef struct {
-    double x, y, z;
-  } vec3_t;
+struct vec3_t {
+  double x, y, z;
+};
 
-}    // namespace functor
-}    // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS::functor
 
 #endif

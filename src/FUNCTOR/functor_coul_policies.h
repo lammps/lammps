@@ -27,20 +27,21 @@
 //   static constexpr bool has_table;    // uses bitmapped Ewald tables (CTABLE)
 //   static constexpr bool needs_charge; // driver must fetch atom->q
 // Stage 2/3 will add the cutoff- and long-range policies with their own
-// settings()/init_style()/eval_coul()/single_coul() members.
+// settings()/init_style() members and an
+//   template <bool EFLAG, int CTABLE>
+//   PairContribution eval_coul(double rsq, double qi, double qj, double factor_coul) const;
+// kernel (see functor_evaluator.h for PairContribution).
 
-namespace LAMMPS_NS {
-namespace functor {
+namespace LAMMPS_NS::functor {
 
-  // no electrostatics (pure van der Waals styles: lj/cut, morse, ...)
+// no electrostatics (pure van der Waals styles: lj/cut, morse, ...)
 
-  struct CoulNone {
-    static constexpr bool has_coul = false;
-    static constexpr bool has_table = false;
-    static constexpr bool needs_charge = false;
-  };
+struct CoulNone {
+  static constexpr bool has_coul = false;
+  static constexpr bool has_table = false;
+  static constexpr bool needs_charge = false;
+};
 
-}    // namespace functor
-}    // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS::functor
 
 #endif

@@ -50,6 +50,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 
+#include <cstddef>
 #include <cstdio>
 
 namespace LAMMPS_NS {
@@ -61,11 +62,13 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
 
   double cut_global;
   Coeff **coeffs;    // raw per-type-pair coefficients (for mixing + restart)
-  Param **params;    // derived per-type-pair parameters (hot loop, matrix of structs)
+  Param *params;     // derived parameters as a flat, 64-byte-aligned matrix of structs;
+  int nparams;       // entry (itype,jtype) is params[itype*nparams + jtype]
   COUL coul;         // Coulomb policy state (empty for CoulNone)
 
  public:
-  PairFunctor(LAMMPS *lmp) : Pair(lmp), cut_global(0.0), coeffs(nullptr), params(nullptr)
+  PairFunctor(LAMMPS *lmp) :
+      Pair(lmp), cut_global(0.0), coeffs(nullptr), params(nullptr), nparams(0)
   {
     single_enable = 1;
     respa_enable = 0;
@@ -80,7 +83,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
       memory->destroy(setflag);
       memory->destroy(cutsq);
       memory->destroy(coeffs);
-      memory->destroy(params);
+      delete[] params;
     }
   }
 
@@ -135,24 +138,24 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
   {
     double **x = atom->x;
     double **f = atom->f;
-    int *type = atom->type;
+    const int *_noalias type = atom->type;
     const int nlocal = atom->nlocal;
-    double *special_lj = force->special_lj;
+    const double *_noalias special_lj = force->special_lj;
 
     auto *_noalias xx = (functor::vec3_t *) x[0];
     auto *_noalias ff = (functor::vec3_t *) f[0];
 
-    [[maybe_unused]] double *q = nullptr;
-    [[maybe_unused]] double *special_coul = nullptr;
+    [[maybe_unused]] const double *_noalias q = nullptr;
+    [[maybe_unused]] const double *_noalias special_coul = nullptr;
     if constexpr (COUL::needs_charge) {
       q = atom->q;
       special_coul = force->special_coul;
     }
 
     const int inum = list->inum;
-    int *_noalias ilist = list->ilist;
-    int *_noalias numneigh = list->numneigh;
-    int **_noalias firstneigh = list->firstneigh;
+    const int *_noalias ilist = list->ilist;
+    const int *_noalias numneigh = list->numneigh;
+    const int *const *_noalias firstneigh = list->firstneigh;
 
     for (int ii = 0; ii < inum; ii++) {
       const int i = ilist[ii];
@@ -160,20 +163,18 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
       const double ytmp = xx[i].y;
       const double ztmp = xx[i].z;
       const int itype = type[i];
-      const Param *_noalias pi = params[itype];
+      const Param *_noalias pi = params + (std::size_t) itype * nparams;
       [[maybe_unused]] double qi = 0.0;
       if constexpr (COUL::needs_charge) qi = q[i];
 
-      int *_noalias jlist = firstneigh[i];
+      const int *_noalias jlist = firstneigh[i];
       const int jnum = numneigh[i];
 
       double tmpfx = 0.0, tmpfy = 0.0, tmpfz = 0.0;
 
       for (int jj = 0; jj < jnum; jj++) {
         int j = jlist[jj];
-        const double factor_lj = special_lj[sbmask(j)];
-        [[maybe_unused]] double factor_coul = 1.0;
-        if constexpr (COUL::has_coul) factor_coul = special_coul[sbmask(j)];
+        const int sb = sbmask(j);
         j &= NEIGHMASK;
 
         const double delx = xtmp - xx[j].x;
@@ -190,13 +191,14 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
         // without re-benchmarking.
 
         if (rsq < p.cutsq) {
-          double fpair = 0.0, evdwl = 0.0, ecoul = 0.0;
-          EVAL::pair(rsq, p, factor_lj, fpair, evdwl, EFLAG);
+          auto [fpair, evdwl] = EVAL::template pair<EFLAG>(rsq, p, special_lj[sb]);
+          double ecoul = 0.0;
 
           if constexpr (COUL::has_coul) {
-            double fcoul = 0.0;
-            coul.template eval_coul<CTABLE>(rsq, qi, q[j], factor_coul, fcoul, ecoul, EFLAG);
+            auto [fcoul, ec] =
+                coul.template eval_coul<EFLAG, CTABLE>(rsq, qi, q[j], special_coul[sb]);
             fpair += fcoul;
+            ecoul = ec;
           }
 
           tmpfx += delx * fpair;
@@ -234,7 +236,14 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
 
     memory->create(cutsq, n, n, "pair:cutsq");
     memory->create(coeffs, n, n, "pair:coeffs");
-    memory->create(params, n, n, "pair:params");
+
+    // the hot parameter matrix is a flat, contiguous block of cache-line-sized
+    // Param structs (alignas(64)) so that params[itype*nparams+jtype] reads
+    // exactly one cache line.  Param's over-alignment makes plain new[] use the
+    // aligned operator new[], which is portable (unlike posix_memalign) and
+    // guarantees the 64-byte base alignment in all builds.
+    nparams = n;
+    params = new Param[(std::size_t) n * n];
   }
 
   void settings(int narg, char **arg) override
@@ -293,8 +302,9 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
         error->all(FLERR, "All pair coeffs are not set");
     }
 
-    params[i][j] = EVAL::derive(coeffs[i][j], offset_flag);
-    params[j][i] = params[i][j];
+    const Param p = EVAL::derive(coeffs[i][j], offset_flag);
+    params[(std::size_t) i * nparams + j] = p;
+    params[(std::size_t) j * nparams + i] = p;
 
     return coeffs[i][j].cut;
   }
@@ -306,14 +316,14 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
   double single(int i, int j, int itype, int jtype, double rsq, double factor_coul,
                 double factor_lj, double &fforce) override
   {
-    const Param &p = params[itype][jtype];
-    double fpair = 0.0, evdwl = 0.0, ecoul = 0.0;
-    EVAL::pair(rsq, p, factor_lj, fpair, evdwl, 1);
+    const Param &p = params[(std::size_t) itype * nparams + jtype];
+    auto [fpair, evdwl] = EVAL::template pair<true>(rsq, p, factor_lj);
+    double ecoul = 0.0;
 
     if constexpr (COUL::has_coul) {
-      double fcoul = 0.0;
-      coul.single_coul(this, i, j, rsq, factor_coul, fcoul, ecoul);
+      auto [fcoul, ec] = coul.single_coul(this, i, j, rsq, factor_coul);
       fpair += fcoul;
+      ecoul = ec;
     } else {
       (void) i;
       (void) j;

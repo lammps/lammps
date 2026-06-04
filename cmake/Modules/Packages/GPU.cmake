@@ -74,7 +74,16 @@ if(GPU_API STREQUAL "CUDA")
   option(CUDA_BUILD_MULTIARCH "Enable building CUDA kernels for all supported GPU architectures" ON)
   mark_as_advanced(GPU_BUILD_MULTIARCH)
 
-  set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU CUDA SM primary architecture (e.g. sm_80)")
+  # GPU_ARCH is the canonical architecture setting for all GPU_API backends.
+  # CUDA_ARCH is still accepted for backward compatibility but is deprecated.
+  if(DEFINED CUDA_ARCH)
+    message(DEPRECATION "The CUDA_ARCH variable is deprecated. Please use GPU_ARCH instead.")
+    if(NOT DEFINED GPU_ARCH)
+      set(GPU_ARCH "${CUDA_ARCH}" CACHE STRING "LAMMPS GPU architecture" FORCE)
+    endif()
+    unset(CUDA_ARCH CACHE)
+  endif()
+  set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU architecture (e.g. sm_80 for CUDA)")
 
   # ensure that no *cubin.h files exist from a compile in the lib/gpu folder
   file(GLOB GPU_LIB_OLD_CUBIN_HEADERS CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/*_cubin.h)
@@ -288,13 +297,26 @@ elseif(GPU_API STREQUAL "HIP")
 
   set(ENV{HIP_PLATFORM} ${HIP_PLATFORM})
 
+  # GPU_ARCH is the canonical architecture setting for all GPU_API backends.
+  # HIP_ARCH is still accepted for backward compatibility but is deprecated.
+  if(DEFINED HIP_ARCH)
+    message(DEPRECATION "The HIP_ARCH variable is deprecated. Please use GPU_ARCH instead.")
+    if(NOT DEFINED GPU_ARCH)
+      set(GPU_ARCH "${HIP_ARCH}" CACHE STRING "LAMMPS GPU architecture" FORCE)
+    endif()
+    unset(HIP_ARCH CACHE)
+  endif()
+
   if(HIP_PLATFORM STREQUAL "amd")
-    set(HIP_ARCH "gfx906" CACHE STRING "HIP target architecture")
+    set(GPU_ARCH "gfx906" CACHE STRING "LAMMPS GPU architecture (e.g. gfx90a for HIP/AMD)")
+    set(HIP_ARCH "${GPU_ARCH}")
   elseif(HIP_PLATFORM STREQUAL "spirv")
-    set(HIP_ARCH "spirv" CACHE STRING "HIP target architecture")
+    set(GPU_ARCH "spirv" CACHE STRING "LAMMPS GPU architecture")
+    set(HIP_ARCH "${GPU_ARCH}")
   elseif(HIP_PLATFORM STREQUAL "nvcc")
     find_package(CUDA REQUIRED)
-    set(HIP_ARCH "sm_75" CACHE STRING "HIP primary CUDA architecture (e.g. sm_75)")
+    set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU architecture (e.g. sm_75 for HIP/NVCC)")
+    set(HIP_ARCH "${GPU_ARCH}")
 
     if(CUDA_VERSION VERSION_LESS 8.0)
       message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")

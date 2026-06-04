@@ -33,9 +33,19 @@ struct EvaluatorNone {
     double cutsq;    // always 0.0
   };
 
+  struct Global {};
+
   static constexpr bool needs_charge = false;
   static constexpr bool has_mixing = true;
   static constexpr bool has_vdw = false;
+
+  // no van der Waals cutoff on the pair_style line (the leading cutoff argument
+  // belongs to the Coulomb policy)
+  static int settings(int /*narg*/, char ** /*arg*/, LAMMPS * /*lmp*/, double &cut_global, Global &)
+  {
+    cut_global = 0.0;
+    return 0;
+  }
 
   static Coeff parse(int /*narg*/, char ** /*arg*/, LAMMPS * /*lmp*/, double /*cut_global*/,
                      int &nconsumed)
@@ -46,7 +56,7 @@ struct EvaluatorNone {
 
   static Coeff mix(const Coeff &, const Coeff &, Pair *) { return Coeff{0.0}; }
 
-  static Param derive(const Coeff &, int /*offset_flag*/) { return Param{0.0}; }
+  static Param derive(const Coeff &, int /*offset_flag*/, const Global &) { return Param{0.0}; }
 
   template <bool /*EFLAG*/>
   static PairContribution pair(double /*rsq*/, const Param &, double /*factor_lj*/)

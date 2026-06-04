@@ -27,10 +27,20 @@ struct EvaluatorLJCut {
   struct alignas(64) Param {
     double lj1, lj2, lj3, lj4, offset, cutsq;
   };
+  struct Global {};    // no style-global parameters
 
   static constexpr bool needs_charge = false;
   static constexpr bool has_mixing = true;
   static constexpr bool has_vdw = true;
+
+  // parse the leading van der Waals cutoff from the pair_style line; return the
+  // number of arguments consumed (the driver parses any Coulomb cutoff after it)
+  static int settings(int narg, char **arg, LAMMPS *lmp, double &cut_global, Global &)
+  {
+    if (narg < 1) lmp->error->all(FLERR, "Illegal pair_style command");
+    cut_global = utils::numeric(FLERR, arg[0], false, lmp);
+    return 1;
+  }
 
   // parse "epsilon sigma [cut]" starting at arg[2]; report how many args were
   // consumed (2 or 3) so the driver knows where any Coulomb-cutoff arg begins.
@@ -62,7 +72,7 @@ struct EvaluatorLJCut {
     return c;
   }
 
-  static Param derive(const Coeff &c, int offset_flag)
+  static Param derive(const Coeff &c, int offset_flag, const Global &)
   {
     Param p;
     p.lj1 = 48.0 * c.epsilon * pow(c.sigma, 12.0);

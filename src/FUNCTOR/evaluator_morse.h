@@ -30,9 +30,18 @@ struct EvaluatorMorse {
     double d0, alpha, r0, morse1, offset, cutsq;
   };
 
+  struct Global {};
+
   static constexpr bool needs_charge = false;
   static constexpr bool has_mixing = false;
   static constexpr bool has_vdw = true;
+
+  static int settings(int narg, char **arg, LAMMPS *lmp, double &cut_global, Global &)
+  {
+    if (narg < 1) lmp->error->all(FLERR, "Illegal pair_style command");
+    cut_global = utils::numeric(FLERR, arg[0], false, lmp);
+    return 1;
+  }
 
   static Coeff parse(int narg, char **arg, LAMMPS *lmp, double cut_global, int &nconsumed)
   {
@@ -52,7 +61,7 @@ struct EvaluatorMorse {
     return c;
   }
 
-  static Param derive(const Coeff &c, int offset_flag)
+  static Param derive(const Coeff &c, int offset_flag, const Global &)
   {
     Param p;
     p.d0 = c.d0;

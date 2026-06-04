@@ -68,6 +68,15 @@ define:
   potential; ``false`` for the placeholder zero evaluator used by pure-Coulomb
   styles.  It tells the driver whether the leading ``pair_style`` cutoff
   argument is a van der Waals cutoff or belongs to the Coulomb policy.
+* ``struct Global`` -- style-global parameters that are not per-type-pair (e.g.
+  the inner/outer switching cutoffs of CHARMM).  Empty (``struct Global {};``)
+  for most potentials.  The driver holds one instance, fills it in ``settings``,
+  passes it to ``derive``, and persists it across restarts.
+* ``static int settings(int narg, char **arg, LAMMPS *lmp, double &cut_global,
+  Global &g)`` -- parse the leading van der Waals cutoff argument(s) and any
+  global parameters from the ``pair_style`` line; set ``cut_global`` (the vdW
+  cutoff used as the per-pair default) and return the number of arguments
+  consumed.  The driver parses any trailing Coulomb cutoff itself.
 * ``static Coeff parse(int narg, char **arg, LAMMPS *lmp, double cut_global,
   int &nconsumed)`` -- parse one ``pair_coeff`` argument list into a ``Coeff``
   (``arg[0]``/``arg[1]`` are the type ranges; numeric coefficients start at
@@ -79,8 +88,9 @@ define:
   diagonal coefficients for an unset off-diagonal pair (only required when
   ``has_mixing`` is true).  ``Pair::mix_energy`` and ``Pair::mix_distance`` are
   public and may be called through ``p``.
-* ``static Param derive(const Coeff &c, int offset_flag)`` -- precompute the
-  ``Param`` (and energy offset) from a ``Coeff``; also set ``Param::cutsq``.
+* ``static Param derive(const Coeff &c, int offset_flag, const Global &g)`` --
+  precompute the ``Param`` (and energy offset) from a ``Coeff`` (and the global
+  parameters ``g``); also set ``Param::cutsq``.
 * ``template <bool EFLAG> static PairContribution pair(double rsq, const Param
   &p, double factor_lj)`` -- **the hot path**.  Return ``{fpair, energy}`` where
   ``fpair`` is the scalar force divided by *r* and ``energy`` is the pair energy
@@ -98,6 +108,7 @@ Example: the built-in LJ evaluator
    struct EvaluatorLJCut {
      struct Coeff { double epsilon, sigma, cut; };
      struct Param { double lj1, lj2, lj3, lj4, offset, cutsq; };
+     struct Global {};    // no style-global parameters
 
      static constexpr bool needs_charge = false;
      static constexpr bool has_mixing = true;
@@ -117,9 +128,10 @@ Example: the built-in LJ evaluator
        return out;
      }
 
+     static int settings(int narg, char **arg, LAMMPS *lmp, double &cut_global, Global &);
      static Coeff parse(int narg, char **arg, LAMMPS *lmp, double cut_global, int &nconsumed);
      static Coeff mix(const Coeff &i, const Coeff &j, Pair *p);
-     static Param derive(const Coeff &c, int offset_flag);
+     static Param derive(const Coeff &c, int offset_flag, const Global &);
    };
 
 Registering the style

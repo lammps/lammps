@@ -237,6 +237,7 @@ accelerated styles exist.
 * :doc:`lj/charmm/coul/charmm <pair_charmm>` - CHARMM potential with cutoff Coulomb
 * :doc:`lj/charmm/coul/charmm/implicit <pair_charmm>` - CHARMM for implicit solvent
 * :doc:`lj/charmm/coul/long <pair_charmm>` - CHARMM with long-range Coulomb
+* :doc:`lj/charmm/coul/long/functor <pair_lj_charmm_coul_long_functor>` - CHARMM with long-range Coulomb (FUNCTOR framework)
 * :doc:`lj/charmm/coul/long/soft <pair_fep_soft>` - CHARMM with long-range Coulomb and a soft core
 * :doc:`lj/charmm/coul/msm <pair_charmm>` - CHARMM with long-range MSM Coulomb
 * :doc:`lj/charmmfsw/coul/charmmfsh <pair_charmm>` - CHARMM with force switching and shifting

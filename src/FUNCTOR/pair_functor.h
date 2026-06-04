@@ -67,6 +67,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
   Param *params;     // derived parameters as a flat, 64-byte-aligned matrix of structs;
   int nparams;       // entry (itype,jtype) is params[itype*nparams + jtype]
   COUL coul;         // Coulomb policy state (empty for CoulNone)
+  typename EVAL::Global gvars;    // evaluator style-global parameters (empty for most)
 
  public:
   PairFunctor(LAMMPS *lmp) :
@@ -289,20 +290,16 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
 
   void settings(int narg, char **arg) override
   {
-    if constexpr (!COUL::has_coul) {
-      // van der Waals only: a single global cutoff
-      if (narg != 1) error->all(FLERR, "Illegal pair_style command");
-      cut_global = utils::numeric(FLERR, arg[0], false, lmp);
-    } else if constexpr (EVAL::has_vdw) {
-      // combined vdW + Coulomb: "cut_lj [cut_coul]"; cut_coul defaults to cut_lj
-      if (narg < 1 || narg > 2) error->all(FLERR, "Illegal pair_style command");
-      cut_global = utils::numeric(FLERR, arg[0], false, lmp);
-      coul.cut_coul_global = (narg == 2) ? utils::numeric(FLERR, arg[1], false, lmp) : cut_global;
+    // the evaluator parses its leading van der Waals cutoff argument(s) and any
+    // style-global parameters; nc = number of args it consumed
+    const int nc = EVAL::settings(narg, arg, lmp, cut_global, gvars);
+
+    if constexpr (COUL::has_coul) {
+      // an optional Coulomb cutoff follows the vdW cutoff args (defaults to it)
+      if (narg < nc || narg > nc + 1) error->all(FLERR, "Illegal pair_style command");
+      coul.cut_coul_global = (narg > nc) ? utils::numeric(FLERR, arg[nc], false, lmp) : cut_global;
     } else {
-      // pure Coulomb (no vdW term): the single argument is the Coulomb cutoff
-      if (narg != 1) error->all(FLERR, "Illegal pair_style command");
-      cut_global = 0.0;
-      coul.cut_coul_global = utils::numeric(FLERR, arg[0], false, lmp);
+      if (narg != nc) error->all(FLERR, "Illegal pair_style command");
     }
 
     if (allocated) {
@@ -379,7 +376,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
                                          coul.cut_coul[(std::size_t) j * nparams + j]);
     }
 
-    const Param p = EVAL::derive(coeffs[i][j], offset_flag);
+    const Param p = EVAL::derive(coeffs[i][j], offset_flag, gvars);
     params[ij] = p;
     params[ji] = p;
 
@@ -483,6 +480,7 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
     fwrite(&offset_flag, sizeof(int), 1, fp);
     fwrite(&mix_flag, sizeof(int), 1, fp);
     fwrite(&tail_flag, sizeof(int), 1, fp);
+    fwrite(&gvars, sizeof(typename EVAL::Global), 1, fp);    // evaluator style-global params
     if constexpr (COUL::has_coul) coul.write_restart_settings(fp);
   }
 
@@ -494,11 +492,13 @@ template <class EVAL, class COUL> class PairFunctor : public Pair {
       utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);
       utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
       utils::sfread(FLERR, &tail_flag, sizeof(int), 1, fp, nullptr, error);
+      utils::sfread(FLERR, &gvars, sizeof(typename EVAL::Global), 1, fp, nullptr, error);
     }
     MPI_Bcast(&cut_global, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
     MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
     MPI_Bcast(&tail_flag, 1, MPI_INT, 0, world);
+    MPI_Bcast(&gvars, sizeof(typename EVAL::Global), MPI_BYTE, 0, world);
     if constexpr (COUL::has_coul) coul.read_restart_settings(fp, lmp);
   }
 };

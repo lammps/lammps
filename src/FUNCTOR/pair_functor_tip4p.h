@@ -60,6 +60,7 @@ template <class EVAL> class PairFunctorTIP4P : public Pair {
   Param *params;            // derived per-type-pair vdW parameters (flat, aligned)
   int nparams;              // matrix stride
   functor::CoulLong coul;   // long-range Coulomb math + tables (global cutoff)
+  typename EVAL::Global gvars;    // evaluator style-global parameters (empty for LJ)
 
   int typeO, typeH, typeB, typeA;
   std::string typeO_str, typeH_str, typeB_str, typeA_str;
@@ -519,7 +520,7 @@ template <class EVAL> class PairFunctorTIP4P : public Pair {
 
     const std::size_t ij = (std::size_t) i * nparams + j;
     const std::size_t ji = (std::size_t) j * nparams + i;
-    params[ij] = EVAL::derive(coeffs[i][j], offset_flag);
+    params[ij] = EVAL::derive(coeffs[i][j], offset_flag, gvars);
     params[ji] = params[ij];
 
     // no LJ term for any interaction involving a water H atom

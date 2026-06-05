@@ -40,7 +40,6 @@ PairTableGPU::PairTableGPU(LAMMPS *lmp) : PairTable(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -61,7 +60,7 @@ void PairTableGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -82,25 +81,20 @@ void PairTableGPU::compute(int eflag, int vflag)
         table_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type,
                             sublo, subhi, atom->tag, atom->nspecial,
                             atom->special, eflag, vflag, eflag_atom,
-                            vflag_atom, host_start, &ilist, &numneigh,
-                            cpu_time, success, domain->prd, domain->periodicity);
+                            vflag_atom, &ilist, &numneigh,
+                            success, domain->prd, domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     table_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
-                      eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success);
+                      eflag, vflag, eflag_atom, vflag_atom, success);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
     neighbor->build_topology();
-  if (host_start < inum) {
-    cpu_time = platform::walltime();
-    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = platform::walltime() - cpu_time;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -213,97 +207,3 @@ double PairTableGPU::memory_usage()
   return bytes + table_gpu_bytes();
 }
 
-/* ---------------------------------------------------------------------- */
-
-void PairTableGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
-                               int *numneigh, int **firstneigh)
-{
-  int i, j, ii, jj, jnum, itype, jtype, itable;
-  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
-  double rsq, factor_lj, fraction, value, a, b;
-  int *jlist;
-  Table *tb;
-
-  union_int_float_t rsq_lookup;
-  int tlm1 = tablength - 1;
-
-  double **x = atom->x;
-  double **f = atom->f;
-  int *type = atom->type;
-  double *special_lj = force->special_lj;
-
-  // loop over neighbors of my atoms
-
-  for (ii = start; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      j &= NEIGHMASK;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx * delx + dely * dely + delz * delz;
-      jtype = type[j];
-
-      if (rsq < cutsq[itype][jtype]) {
-        tb = &tables[tabindex[itype][jtype]];
-        if (rsq < tb->innersq) error->one(FLERR, "Pair distance < table inner cutoff");
-
-        if (tabstyle == LOOKUP) {
-          itable = static_cast<int>((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1) error->one(FLERR, "Pair distance > table outer cutoff");
-          fpair = factor_lj * tb->f[itable];
-        } else if (tabstyle == LINEAR) {
-          itable = static_cast<int>((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1) error->one(FLERR, "Pair distance > table outer cutoff");
-          fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
-          value = tb->f[itable] + fraction * tb->df[itable];
-          fpair = factor_lj * value;
-        } else if (tabstyle == SPLINE) {
-          itable = static_cast<int>((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1) error->one(FLERR, "Pair distance > table outer cutoff");
-          b = (rsq - tb->rsq[itable]) * tb->invdelta;
-          a = 1.0 - b;
-          value = a * tb->f[itable] + b * tb->f[itable + 1] +
-              ((a * a * a - a) * tb->f2[itable] + (b * b * b - b) * tb->f2[itable + 1]) *
-                  tb->deltasq6;
-          fpair = factor_lj * value;
-        } else {
-          rsq_lookup.f = rsq;
-          itable = rsq_lookup.i & tb->nmask;
-          itable >>= tb->nshiftbits;
-          fraction = ((double) rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
-          value = tb->f[itable] + fraction * tb->df[itable];
-          fpair = factor_lj * value;
-        }
-
-        f[i][0] += delx * fpair;
-        f[i][1] += dely * fpair;
-        f[i][2] += delz * fpair;
-
-        if (eflag) {
-          if (tabstyle == LOOKUP)
-            evdwl = tb->e[itable];
-          else if (tabstyle == LINEAR || tabstyle == BITMAP)
-            evdwl = tb->e[itable] + fraction * tb->de[itable];
-          else
-            evdwl = a * tb->e[itable] + b * tb->e[itable + 1] +
-                ((a * a * a - a) * tb->e2[itable] + (b * b * b - b) * tb->e2[itable + 1]) *
-                    tb->deltasq6;
-          evdwl *= factor_lj;
-        }
-
-        if (evflag) ev_tally_full(i, evdwl, 0.0, fpair, delx, dely, delz);
-      }
-    }
-  }
-}

@@ -39,7 +39,6 @@ PairLJSPICAGPU::PairLJSPICAGPU(LAMMPS *lmp) : PairLJSPICA(lmp), gpu_mode(GPU_FOR
 {
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -60,7 +59,7 @@ void PairLJSPICAGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -80,7 +79,7 @@ void PairLJSPICAGPU::compute(int eflag, int vflag)
     firstneigh =
         spica_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
                             atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
-                            host_start, &ilist, &numneigh, cpu_time, success, domain->prd,
+                            &ilist, &numneigh, success, domain->prd,
                             domain->periodicity);
   } else {
     inum = list->inum;
@@ -88,23 +87,12 @@ void PairLJSPICAGPU::compute(int eflag, int vflag)
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     spica_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
-                      eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success);
+                      eflag, vflag, eflag_atom, vflag_atom, success);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
     neighbor->build_topology();
-  if (host_start < inum) {
-    cpu_time = platform::walltime();
-    if (evflag) {
-      if (eflag)
-        cpu_compute<1, 1>(host_start, inum, ilist, numneigh, firstneigh);
-      else
-        cpu_compute<1, 0>(host_start, inum, ilist, numneigh, firstneigh);
-    } else
-      cpu_compute<0, 0>(host_start, inum, ilist, numneigh, firstneigh);
-    cpu_time = platform::walltime() - cpu_time;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -151,88 +139,3 @@ double PairLJSPICAGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 template <int EVFLAG, int EFLAG>
-void PairLJSPICAGPU::cpu_compute(int start, int inum, int *ilist, int *numneigh, int **firstneigh)
-{
-  int i, j, ii, jj, jtype;
-  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
-  double rsq, r2inv, forcelj, factor_lj;
-
-  const double *const *const x = atom->x;
-  double *const *const f = atom->f;
-  const int *const type = atom->type;
-  const double *const special_lj = force->special_lj;
-  double fxtmp, fytmp, fztmp;
-  evdwl = 0.0;
-
-  // loop over neighbors of my atoms
-
-  for (ii = start; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    fxtmp = fytmp = fztmp = 0.0;
-
-    const int itype = type[i];
-    const int *const jlist = firstneigh[i];
-    const int jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      j &= NEIGHMASK;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx * delx + dely * dely + delz * delz;
-      jtype = type[j];
-
-      if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0 / rsq;
-        const int ljt = lj_type[itype][jtype];
-
-        if (ljt == LJ12_4) {
-          const double r4inv = r2inv * r2inv;
-          forcelj = r4inv * (lj1[itype][jtype] * r4inv * r4inv - lj2[itype][jtype]);
-
-          if (EFLAG)
-            evdwl = r4inv * (lj3[itype][jtype] * r4inv * r4inv - lj4[itype][jtype]) -
-                offset[itype][jtype];
-
-        } else if (ljt == LJ9_6) {
-          const double r3inv = r2inv * sqrt(r2inv);
-          const double r6inv = r3inv * r3inv;
-          forcelj = r6inv * (lj1[itype][jtype] * r3inv - lj2[itype][jtype]);
-          if (EFLAG)
-            evdwl = r6inv * (lj3[itype][jtype] * r3inv - lj4[itype][jtype]) - offset[itype][jtype];
-
-        } else if (ljt == LJ12_6) {
-          const double r6inv = r2inv * r2inv * r2inv;
-          forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
-          if (EFLAG)
-            evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
-
-        } else if (ljt == LJ12_5) {
-          const double r5inv = r2inv * r2inv * sqrt(r2inv);
-          const double r7inv = r5inv * r2inv;
-          forcelj = r5inv * (lj1[itype][jtype] * r7inv - lj2[itype][jtype]);
-          if (EFLAG)
-            evdwl = r5inv * (lj3[itype][jtype] * r7inv - lj4[itype][jtype]) - offset[itype][jtype];
-        } else
-          continue;
-
-        fpair = factor_lj * forcelj * r2inv;
-
-        fxtmp += delx * fpair;
-        fytmp += dely * fpair;
-        fztmp += delz * fpair;
-
-        if (EVFLAG) ev_tally_full(i, evdwl, 0.0, fpair, delx, dely, delz);
-      }
-    }
-    f[i][0] += fxtmp;
-    f[i][1] += fytmp;
-    f[i][2] += fztmp;
-  }
-}

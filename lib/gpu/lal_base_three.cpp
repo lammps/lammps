@@ -253,8 +253,7 @@ void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
                          const int nlist, double **host_x, int *host_type,
                          int *ilist, int *numj, int **firstneigh,
                          const bool eflag_in, const bool vflag_in,
-                         const bool eatom, const bool vatom, int &host_start,
-                         const double cpu_time, bool &success) {
+                         const bool eatom, const bool vatom, bool &success) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -271,7 +270,6 @@ void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
 
   set_kernel(eflag,vflag);
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     resize_atom(0,nall,success);
     zero_timers();
@@ -285,7 +283,6 @@ void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
   #ifdef THREE_CONCURRENT
   ans2->inum(inum);
   #endif
-  host_start=inum;
 
   if (ago==0) {
     reset_nbors(nall, inum, nlist, ilist, numj, firstneigh, success);
@@ -323,9 +320,8 @@ int ** BaseThreeT::compute(const int ago, const int inum_full, const int nall,
                            double *subhi, tagint *tag, int **nspecial,
                            tagint **special, const bool eflag_in,
                            const bool vflag_in, const bool eatom,
-                           const bool vatom, int &host_start,
-                           int **ilist, int **jnum,
-                           const double cpu_time, bool &success) {
+                           const bool vatom, int **ilist, int **jnum,
+                           bool &success) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -342,7 +338,6 @@ int ** BaseThreeT::compute(const int ago, const int inum_full, const int nall,
 
   set_kernel(eflag,vflag);
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     resize_atom(0,nall,success);
     zero_timers();
@@ -355,7 +350,6 @@ int ** BaseThreeT::compute(const int ago, const int inum_full, const int nall,
   #ifdef THREE_CONCURRENT
   ans2->inum(inum);
   #endif
-  host_start=inum;
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
@@ -387,7 +381,7 @@ int ** BaseThreeT::compute(const int ago, const int inum_full, const int nall,
   device->add_ans_object(ans2);
   #endif
 
-  return nbor->host_jlist.begin()-host_start;
+  return nbor->host_jlist.begin()-inum;
 }
 
 template <class numtyp, class acctyp>

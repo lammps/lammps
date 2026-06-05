@@ -41,7 +41,6 @@ PairSPHLJGPU::PairSPHLJGPU(LAMMPS *lmp) : PairSPHLJ(lmp), gpu_mode(GPU_FORCE)
   drhoE_pinned = nullptr;
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -62,7 +61,7 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -88,8 +87,8 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
     firstneigh = sph_lj_gpu_compute_n(
         neighbor->ago, inum, nall, atom->x, atom->type,
         sublo, subhi, atom->tag, atom->nspecial, atom->special, eflag, vflag,
-        eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
-        cpu_time, success, atom->vest);
+        eflag_atom, vflag_atom, &ilist, &numneigh,
+        success, atom->vest);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -97,7 +96,7 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
     firstneigh = list->firstneigh;
     sph_lj_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
                        ilist, numneigh, firstneigh, eflag, vflag,
-                       eflag_atom, vflag_atom, host_start, cpu_time, success,
+                       eflag_atom, vflag_atom, success,
                        atom->tag, atom->vest);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");

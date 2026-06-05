@@ -37,7 +37,6 @@ using namespace LAMMPS_GPU;
 
 PairSWGPU::PairSWGPU(LAMMPS *lmp) : PairSW(lmp), gpu_mode(GPU_FORCE)
 {
-  cpu_time = 0.0;
   reinitflag = 0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
@@ -63,7 +62,7 @@ void PairSWGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -83,7 +82,7 @@ void PairSWGPU::compute(int eflag, int vflag)
     firstneigh =
         sw_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
                          atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
-                         host_start, &ilist, &numneigh, cpu_time, success);
+                         &ilist, &numneigh, success);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -91,8 +90,7 @@ void PairSWGPU::compute(int eflag, int vflag)
     firstneigh = list->firstneigh;
 
     sw_gpu_compute(neighbor->ago, inum, nall, inum + list->gnum, atom->x, atom->type, ilist,
-                   numneigh, firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-                   success);
+                   numneigh, firstneigh, eflag, vflag, eflag_atom, vflag_atom, success);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)

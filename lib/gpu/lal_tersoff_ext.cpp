@@ -110,21 +110,19 @@ int ** tersoff_gpu_compute_n(const int ago, const int inum_full,
                         const int nall, double **host_x, int *host_type,
                         double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        int **ilist, int **jnum, const double cpu_time,
-                        bool &success) {
+                        const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success) {
   return TSMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
-                       vatom, host_start, ilist, jnum, cpu_time, success);
+                       vatom, ilist, jnum, success);
 }
 
 void tersoff_gpu_compute(const int ago, const int nlocal, const int nall,
                     const int nlist, double **host_x, int *host_type,
                     int *ilist, int *numj, int **firstneigh, const bool eflag,
                     const bool vflag, const bool eatom, const bool vatom,
-                    int &host_start, const double cpu_time, bool &success) {
+                    bool &success) {
   TSMF.compute(ago,nlocal,nall,nlist,host_x,host_type,ilist,numj,
-               firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success);
+               firstneigh,eflag,vflag,eatom,vatom,success);
 }
 
 double tersoff_gpu_bytes() {

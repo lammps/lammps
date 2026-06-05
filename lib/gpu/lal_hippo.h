@@ -63,8 +63,8 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
                           int *nspecial15, tagint **special15,
                           const bool eflag_in, const bool vflag_in,
                           const bool eatom, const bool vatom,
-                          int &host_start, int **ilist, int **jnum,
-                          const double cpu_time, bool &success,
+                          int **ilist, int **jnum,
+                          bool &success,
                           const double aewald, const double off2_repulse,
                           double *host_q, double *boxlo, double *prd,
                           double cut2, double c0, double c1, double c2,
@@ -82,8 +82,8 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
                 double *sublo, double *subhi, tagint *tag, int **nspecial, tagint **special,
                 int *nspecial15, tagint **special15,
                 const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **numj, const double cpu_time, bool &success,
+                const bool eatom, const bool vatom
+                int **ilist, int **numj, bool &success,
                 const double aewald, const double felec, const double off2_mpole, double *charge,
                 double *boxlo, double *prd, void **tep_ptr);
 

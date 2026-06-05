@@ -41,7 +41,6 @@ class PairEAMGPU : public PairEAM {
 
  protected:
   int gpu_mode;
-  double cpu_time;
   void *fp_pinned;
   bool fp_single;
 };

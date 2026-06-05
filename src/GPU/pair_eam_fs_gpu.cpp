@@ -43,7 +43,6 @@ PairEAMFSGPU::PairEAMFSGPU(LAMMPS *lmp) : PairEAM(lmp), gpu_mode(GPU_FORCE)
   one_coeff = 1;
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -73,7 +72,7 @@ void PairEAMFSGPU::compute(int eflag, int vflag)
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-  int inum, host_start, inum_dev;
+  int inum, inum_dev;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -92,8 +91,8 @@ void PairEAMFSGPU::compute(int eflag, int vflag)
     inum = atom->nlocal;
     firstneigh = eam_fs_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
                                       atom->tag, atom->nspecial, atom->special, eflag, vflag,
-                                      eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
-                                      cpu_time, success, inum_dev, &fp_pinned, domain->prd,
+                                      eflag_atom, vflag_atom, &ilist, &numneigh,
+                                      success, inum_dev, &fp_pinned, domain->prd,
                                       domain->periodicity);
   } else {    // gpu_mode == GPU_FORCE
     inum = list->inum;
@@ -101,8 +100,7 @@ void PairEAMFSGPU::compute(int eflag, int vflag)
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     eam_fs_gpu_compute(neighbor->ago, inum, nlocal, nall, atom->x, atom->type, ilist, numneigh,
-                       firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-                       success, &fp_pinned);
+                       firstneigh, eflag, vflag, eflag_atom, vflag_atom, success, &fp_pinned);
   }
 
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");

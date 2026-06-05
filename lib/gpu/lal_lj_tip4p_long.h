@@ -67,8 +67,8 @@ public:
   void compute(const int f_ago, const int inum_full, const int nall,
                double **host_x, int *host_type, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
-               const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success, double *charge,
+               const bool eatom, const bool vatom
+               bool &success, double *charge,
                const int nlocal, double *boxlo, double *prd);
 
   /// Reimplement BaseCharge pair loop with device neighboring
@@ -77,8 +77,8 @@ public:
                 tagint *tag,int *map_array, int map_size, int *sametag,
                 int max_same, int **nspecial, tagint **special,
                 const bool eflag, const bool vflag, const bool eatom,
-                const bool vatom, int &host_start, int **ilist, int **numj,
-                const double cpu_time, bool &success, double *charge,
+                const bool vatom, int **ilist, int **numj,
+                bool &success, double *charge,
                 double *boxlo, double *prd, int *periodicity);
 
 

@@ -39,7 +39,6 @@ PairEAMGPU::PairEAMGPU(LAMMPS *lmp) : PairEAM(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -71,7 +70,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-  int inum, host_start, inum_dev;
+  int inum, inum_dev;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -91,7 +90,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
     firstneigh =
         eam_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
                           atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
-                          host_start, &ilist, &numneigh, cpu_time, success, inum_dev, &fp_pinned,
+                          &ilist, &numneigh, success, inum_dev, &fp_pinned,
                           domain->prd, domain->periodicity);
   } else {    // gpu_mode == GPU_FORCE
     inum = list->inum;
@@ -99,7 +98,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     eam_gpu_compute(neighbor->ago, inum, nlocal, nall, atom->x, atom->type, ilist, numneigh,
-                    firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success,
+                    firstneigh, eflag, vflag, eflag_atom, vflag_atom, success,
                     &fp_pinned);
   }
 

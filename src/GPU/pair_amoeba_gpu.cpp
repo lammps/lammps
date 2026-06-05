@@ -61,7 +61,6 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   fieldp_pinned = nullptr;
   tq_pinned = nullptr;
@@ -173,7 +172,7 @@ void PairAmoebaGPU::multipole_real()
   int eflag=1, vflag=1;
   double **f = atom->f;
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh;
@@ -198,8 +197,7 @@ void PairAmoebaGPU::multipole_real()
                         atom->nspecial, atom->special,
                         atom->nspecial15, atom->special15,
                         eflag, vflag, eflag_atom, vflag_atom,
-                        host_start, &ilist, &numneigh, cpu_time,
-                        success, atom->q, domain->boxlo, domain->prd);
+                        &ilist, &numneigh, success, atom->q, domain->boxlo, domain->prd);
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
 
@@ -218,8 +216,7 @@ void PairAmoebaGPU::multipole_real()
                                     atom->nspecial, atom->special,
                                     atom->nspecial15, atom->special15,
                                     eflag, vflag, eflag_atom, vflag_atom,
-                                    host_start, &ilist, &numneigh, cpu_time,
-                                    success, aewald, felec, off2, atom->q,
+                                    &ilist, &numneigh, success, aewald, felec, off2, atom->q,
                                     domain->boxlo, domain->prd, &tq_pinned);
 
 

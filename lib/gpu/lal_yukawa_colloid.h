@@ -75,16 +75,16 @@ class YukawaColloid : public BaseAtomic<numtyp, acctyp> {
                const int nall, double **host_x, int *host_type,
                int *ilist, int *numj, int **firstneigh,
                const bool eflag, const bool vflag,
-               const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success, double *rad);
+               const bool eatom, const bool vatom
+               bool &success, double *rad);
 
   /// Pair loop with device neighboring
   int** compute(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, double *sublo,
                 double *subhi, tagint *tag, int **nspecial,
                 tagint **special, const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **jnum, const double cpu_time,
+                const bool eatom, const bool vatom
+                int **ilist, int **jnum
                 bool &success, double *rad, double *prd, int *periodicity);
 
   // --------------------------- TEXTURES -----------------------------

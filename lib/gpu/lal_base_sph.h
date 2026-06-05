@@ -128,8 +128,7 @@ class BaseSPH {
   void compute(const int f_ago, const int inum_full, const int nall,
                double **host_x, int *host_type, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
-               const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success, tagint *tag,
+               const bool eatom, const bool vatom, bool &success, tagint *tag,
                double **v);
 
   /// Pair loop with device neighboring
@@ -137,8 +136,7 @@ class BaseSPH {
                 double **host_x, int *host_type, double *sublo,
                 double *subhi, tagint *tag, int **nspecial,
                 tagint **special, const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **numj, const double cpu_time, bool &success,
+                const bool eatom, const bool vatom, int **ilist, int **numj, bool &success,
                 double **v);
 
   // -------------------------- DEVICE DATA -------------------------

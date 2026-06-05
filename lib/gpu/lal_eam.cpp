@@ -311,7 +311,6 @@ void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
                    int *ilist, int *numj, int **firstneigh,
                    const bool eflag_in, const bool vflag_in,
                    const bool /*eatom*/, const bool /*vatom*/,
-                   int &host_start, const double cpu_time,
                    bool &success, void **fp_ptr) {
   this->acc_timers();
   int eflag, vflag;
@@ -345,7 +344,6 @@ void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
   // ----------------------------------------------------------------
 
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
@@ -355,7 +353,6 @@ void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
   int ago=f_ago;
   int inum=inum_full; this->_timestep++;
   this->ans->inum(inum);
-  host_start=inum;
 
   // -----------------------------------------------------------------
 
@@ -387,8 +384,8 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
                     double *subhi, tagint *tag, int **nspecial,
                     tagint **special, const bool eflag_in,
                     const bool vflag_in, const bool /*eatom*/,
-                    const bool /*vatom*/, int &host_start, int **ilist, int **jnum,
-                    const double cpu_time, bool &success, int &inum,
+                    const bool /*vatom*/, int **ilist, int **jnum,
+                    bool &success, int &inum,
                     void **fp_ptr, double *prd, int *periodicity) {
   this->acc_timers();
   int eflag, vflag;
@@ -422,7 +419,6 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
   // -----------------------------------------------------------------
 
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
@@ -431,7 +427,6 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
 
   inum=inum_full; this->_timestep++;
   this->ans->inum(inum);
-  host_start=inum;
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
@@ -456,7 +451,7 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
   time_fp1.stop();
   time_fp1.sync_stop();
 
-  return this->nbor->host_jlist.begin()-host_start;
+  return this->nbor->host_jlist.begin()-inum;
 }
 
 // ---------------------------------------------------------------------------

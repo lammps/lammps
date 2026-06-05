@@ -84,16 +84,13 @@ int** amoeba_gpu_precompute(const int ago, const int inum_full, const int nall,
                             int **nspecial, tagint **special,
                             int *nspecial15, tagint **special15,
                             const bool eflag_in, const bool vflag_in,
-                            const bool eatom, const bool vatom, int &host_start,
-                            int **ilist, int **jnum, const double cpu_time,
-                            bool &success, double *host_q, double *boxlo, double *prd);
+                            const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success, double *host_q, double *boxlo, double *prd);
 void amoeba_gpu_compute_multipole_real(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double *sublo, double *subhi, tagint *tag,
               int **nspecial, tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-              int &host_start, int **ilist, int **jnum, const double cpu_time,
-              bool &success, const double aewald, const double felec, const double off2,
+              int **ilist, int **jnum, bool &success, const double aewald, const double felec, const double off2,
               double *host_q, double *boxlo, double *prd, void **tq_ptr);
 void amoeba_gpu_compute_udirect2b(int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp,
@@ -127,12 +124,11 @@ void beck_gpu_clear();
 int **beck_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *prd, int *periodicity);
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *prd, int *periodicity);
 void beck_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success);
+                      const bool vflag, const bool eatom, const bool vatom, bool &success);
 double beck_gpu_bytes();
 
 int bornclcs_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv, double **host_born1,
@@ -146,13 +142,12 @@ void bornclcs_gpu_clear();
 int **bornclcs_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                              int *host_type, double *sublo, double *subhi, tagint *tag,
                              int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                             const bool eatom, const bool vatom, int &host_start, int **ilist,
-                             int **jnum, const double cpu_time, bool &success, double *host_q,
+                             const bool eatom, const bool vatom, int **ilist,
+                             int **jnum, bool &success, double *host_q,
                              double *boxlo, double *prd, int* periodicity);
 void bornclcs_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                           int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                          const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                          const double cpu_time, bool &success, double *host_q, const int nlocal,
+                          const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                           double *boxlo, double *prd);
 double bornclcs_gpu_bytes();
 
@@ -167,13 +162,12 @@ void borncl_gpu_clear();
 int **borncl_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                            int *host_type, double *sublo, double *subhi, tagint *tag,
                            int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start, int **ilist,
-                           int **jnum, const double cpu_time, bool &success, double *host_q,
+                           const bool eatom, const bool vatom, int **ilist,
+                           int **jnum, bool &success, double *host_q,
                            double *boxlo, double *prd, int* periodicity);
 void borncl_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                         int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                        const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, double *host_q, const int nlocal,
+                        const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                         double *boxlo, double *prd);
 double borncl_gpu_bytes();
 
@@ -188,13 +182,12 @@ void borncwcs_gpu_clear();
 int **borncwcs_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                              int *host_type, double *sublo, double *subhi, tagint *tag,
                              int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                             const bool eatom, const bool vatom, int &host_start, int **ilist,
-                             int **jnum, const double cpu_time, bool &success, double *host_q,
+                             const bool eatom, const bool vatom, int **ilist,
+                             int **jnum, bool &success, double *host_q,
                              double *boxlo, double *prd, int* periodicity);
 void borncwcs_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                           int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                          const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                          const double cpu_time, bool &success, double *host_q, const int nlocal,
+                          const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                           double *boxlo, double *prd);
 double borncwcs_gpu_bytes();
 
@@ -209,13 +202,12 @@ void borncw_gpu_clear();
 int **borncw_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                            int *host_type, double *sublo, double *subhi, tagint *tag,
                            int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start, int **ilist,
-                           int **jnum, const double cpu_time, bool &success, double *host_q,
+                           const bool eatom, const bool vatom, int **ilist,
+                           int **jnum, bool &success, double *host_q,
                            double *boxlo, double *prd, int* periodicity);
 void borncw_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                         int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                        const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, double *host_q, const int nlocal,
+                        const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                         double *boxlo, double *prd);
 double borncw_gpu_bytes();
 
@@ -231,12 +223,11 @@ void born_gpu_clear();
 int **born_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *prd, int *periodicity);
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *prd, int *periodicity);
 void born_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success);
+                      const bool vflag, const bool eatom, const bool vatom, bool &success);
 double born_gpu_bytes();
 
 int buckc_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv, double **host_buck1,
@@ -249,13 +240,12 @@ void buckc_gpu_clear();
 int **buckc_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                           int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                          const bool vatom, int &host_start, int **ilist, int **jnum,
-                          const double cpu_time, bool &success, double *host_q, double *boxlo,
+                          const bool vatom, int **ilist, int **jnum,
+                          bool &success, double *host_q, double *boxlo,
                           double *prd, int* periodicity);
 void buckc_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                        int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success, double *host_q, const int nlocal,
+                       const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                        double *boxlo, double *prd);
 double buckc_gpu_bytes();
 
@@ -269,13 +259,12 @@ void buckcl_gpu_clear();
 int **buckcl_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                            int *host_type, double *sublo, double *subhi, tagint *tag,
                            int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start, int **ilist,
-                           int **jnum, const double cpu_time, bool &success, double *host_q,
+                           const bool eatom, const bool vatom, int **ilist,
+                           int **jnum, bool &success, double *host_q,
                            double *boxlo, double *prd, int *periodicity);
 void buckcl_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                         int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                        const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, double *host_q, const int nlocal,
+                        const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                         double *boxlo, double *prd);
 double buckcl_gpu_bytes();
 
@@ -289,12 +278,11 @@ void buck_gpu_clear();
 int **buck_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *prd, int *periodicity);
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *prd, int *periodicity);
 void buck_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success);
+                      const bool vflag, const bool eatom, const bool vatom, bool &success);
 double buck_gpu_bytes();
 
 int colloid_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
@@ -307,12 +295,11 @@ void colloid_gpu_clear();
 int **colloid_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                             int *host_type, double *sublo, double *subhi, tagint *tag,
                             int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                            const bool eatom, const bool vatom, int &host_start, int **ilist,
-                            int **jnum, const double cpu_time, bool &success, double *prd, int* periodicity);
+                            const bool eatom, const bool vatom, int **ilist,
+                            int **jnum, bool &success, double *prd, int* periodicity);
 void colloid_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                         const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                         const double cpu_time, bool &success);
+                         const bool vflag, const bool eatom, const bool vatom, bool &success);
 double colloid_gpu_bytes();
 
 int coul_gpu_init(const int ntypes, double **host_scale, double **cutsq, double *special_coul,
@@ -323,13 +310,12 @@ void coul_gpu_clear();
 int **coul_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *host_q, double *boxlo,
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *host_q, double *boxlo,
                          double *prd, int *periodicity);
 void coul_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_q, const int nlocal,
+                      const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                       double *boxlo, double *prd);
 double coul_gpu_bytes();
 
@@ -342,13 +328,12 @@ void cdebye_gpu_clear();
 int **cdebye_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                            int *host_type, double *sublo, double *subhi, tagint *tag,
                            int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start, int **ilist,
-                           int **jnum, const double cpu_time, bool &success, double *host_q,
+                           const bool eatom, const bool vatom, int **ilist,
+                           int **jnum, bool &success, double *host_q,
                            double *boxlo, double *prd, int *periodicity);
 void cdebye_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                        const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, double *host_q, const int nlocal,
+                        const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                         double *boxlo, double *prd);
 double cdebye_gpu_bytes();
 
@@ -360,13 +345,12 @@ void cdsf_gpu_clear();
 int **cdsf_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *host_q, double *boxlo,
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *host_q, double *boxlo,
                          double *prd, int *periodicity);
 void cdsf_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_q, const int nlocal,
+                      const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                       double *boxlo, double *prd);
 double cdsf_gpu_bytes();
 
@@ -379,13 +363,12 @@ void clcs_gpu_clear();
 int **clcs_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *host_q, double *boxlo,
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *host_q, double *boxlo,
                          double *prd, int* periodicity);
 void clcs_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_q, const int nlocal,
+                      const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                       double *boxlo, double *prd);
 double clcs_gpu_bytes();
 
@@ -398,13 +381,12 @@ void cl_gpu_clear();
 int **cl_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                        int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                        tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                       const bool vatom, int &host_start, int **ilist, int **jnum,
-                       const double cpu_time, bool &success, double *host_q, double *boxlo,
+                       const bool vatom, int **ilist, int **jnum,
+                       bool &success, double *host_q, double *boxlo,
                        double *prd, int *periodicity);
 void cl_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
                     int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                    const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                    bool &success, double *host_q, const int nlocal, double *boxlo, double *prd);
+                    const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal, double *boxlo, double *prd);
 double cl_gpu_bytes();
 
 int csl_gpu_init(const int ntypes, double **scale, const int nlocal, const int nall,
@@ -416,13 +398,12 @@ void csl_gpu_clear();
 int **csl_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                        int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                        tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                       const bool vatom, int &host_start, int **ilist, int **jnum,
-                       const double cpu_time, bool &success, double *host_q, double *boxlo,
+                       const bool vatom, int **ilist, int **jnum,
+                       bool &success, double *host_q, double *boxlo,
                        double *prd, int *periodicity);
 void csl_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
                     int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                    const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                    bool &success, double *host_q, const int nlocal, double *boxlo, double *prd);
+                    const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal, double *boxlo, double *prd);
 double csl_gpu_bytes();
 
 int dpd_coul_slater_long_gpu_init(const int ntypes, double **cutsq, double **host_a0,
@@ -438,16 +419,13 @@ int **dpd_coul_slater_long_gpu_compute_n(const int ago, const int inum_full, con
                                          double **host_x, int *host_type, double *sublo,
                                          double *subhi, tagint *tag, int **nspecial,
                                          tagint **special, const bool eflag, const bool vflag,
-                                         const bool eatom, const bool vatom, int &host_start,
-                                         int **ilist, int **jnum, const double cpu_time,
-                                         bool &success, double **host_v, const double dtinvsqrt,
+                                         const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success, double **host_v, const double dtinvsqrt,
                                          const int seed, const int timestep, double *boxlo,
                                          double *prd);
 void dpd_coul_slater_long_gpu_compute(const int ago, const int inum_full, const int nall,
                                       double **host_x, int *host_type, int *ilist, int *numj,
                                       int **firstneigh, const bool eflag, const bool vflag,
-                                      const bool eatom, const bool vatom, int &host_start,
-                                      const double cpu_time, bool &success, tagint *tag,
+                                      const bool eatom, const bool vatom, bool &success, tagint *tag,
                                       double **host_v, const double dtinvsqrt, const int seed,
                                       const int timestep, const int nlocal, double *boxlo,
                                       double *prd);
@@ -574,14 +552,13 @@ void dpd_gpu_clear();
 int **dpd_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double **host_v,
+                        const bool vatom, int **ilist, int **jnum,
+                        bool &success, double **host_v,
                         const double dtinvsqrt, const int seed, const int timestep, double *boxlo,
                         double *prd);
 void dpd_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                      int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                     const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time, bool &success, tagint *tag, double **host_v,
+                     const bool vflag, const bool eatom, const bool vatom, bool &success, tagint *tag, double **host_v,
                      const double dtinvsqrt, const int seed, const int timestep, const int nlocal,
                      double *boxlo, double *prd);
 double dpd_gpu_bytes();
@@ -706,14 +683,14 @@ void dpd_tstat_gpu_clear();
 int **dpd_tstat_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                               int *host_type, double *sublo, double *subhi, tagint *tag,
                               int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                              const bool eatom, const bool vatom, int &host_start, int **ilist,
-                              int **jnum, const double cpu_time, bool &success, double **host_v,
+                              const bool eatom, const bool vatom, int **ilist,
+                              int **jnum, bool &success, double **host_v,
                               const double dtinvsqrt, const int seed, const int timestep,
                               double *boxlo, double *prd);
 void dpd_tstat_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                            int *host_type, int *ilist, int *numj, int **firstneigh,
                            const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-                           int &host_start, const double cpu_time, bool &success, tagint *tag,
+                           bool &success, tagint *tag,
                            double **host_v, const double dtinvsqrt, const int seed,
                            const int timestep, const int nlocal, double *boxlo, double *prd);
 void dpd_tstat_gpu_update_coeff(int ntypes, double **host_a0, double **host_gamma,
@@ -843,13 +820,13 @@ void eam_alloy_gpu_clear();
 int **eam_alloy_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                               int *host_type, double *sublo, double *subhi, tagint *tag,
                               int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                              const bool eatom, const bool vatom, int &host_start, int **ilist,
-                              int **jnum, const double cpu_time, bool &success, int &inum,
+                              const bool eatom, const bool vatom, int **ilist,
+                              int **jnum, bool &success, int &inum,
                               void **fp_ptr, double *prd, int *periodicity);
 void eam_alloy_gpu_compute(const int ago, const int inum_full, const int nlocal, const int nall,
                            double **host_x, int *host_type, int *ilist, int *numj, int **firstneigh,
                            const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-                           int &host_start, const double cpu_time, bool &success, void **fp_ptr);
+                           bool &success, void **fp_ptr);
 void eam_alloy_gpu_compute_force(int *ilist, const bool eflag, const bool vflag, const bool eatom,
                                  const bool vatom);
 double eam_alloy_gpu_bytes();
@@ -865,13 +842,13 @@ void eam_fs_gpu_clear();
 int **eam_fs_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                            int *host_type, double *sublo, double *subhi, tagint *tag,
                            int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start, int **ilist,
-                           int **jnum, const double cpu_time, bool &success, int &inum,
+                           const bool eatom, const bool vatom, int **ilist,
+                           int **jnum, bool &success, int &inum,
                            void **fp_ptr, double *prd, int *periodicity);
 void eam_fs_gpu_compute(const int ago, const int inum_full, const int nlocal, const int nall,
                         double **host_x, int *host_type, int *ilist, int *numj, int **firstneigh,
                         const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-                        int &host_start, const double cpu_time, bool &success, void **fp_ptr);
+                        bool &success, void **fp_ptr);
 void eam_fs_gpu_compute_force(int *ilist, const bool eflag, const bool vflag, const bool eatom,
                               const bool vatom);
 double eam_fs_gpu_bytes();
@@ -887,13 +864,13 @@ void eam_gpu_clear();
 int **eam_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, int &inum, void **fp_ptr,
+                        const bool vatom, int **ilist, int **jnum,
+                        bool &success, int &inum, void **fp_ptr,
                         double *prd, int *periodicity);
 void eam_gpu_compute(const int ago, const int inum_full, const int nlocal, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj, int **firstneigh,
                      const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-                     int &host_start, const double cpu_time, bool &success, void **fp_ptr);
+                     bool &success, void **fp_ptr);
 void eam_gpu_compute_force(int *ilist, const bool eflag, const bool vflag, const bool eatom,
                            const bool vatom);
 double eam_gpu_bytes();
@@ -908,14 +885,13 @@ void edpd_gpu_clear();
 int **edpd_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double **host_v,
+                        const bool vatom, int **ilist, int **jnum,
+                        bool &success, double **host_v,
                         const double dtinvsqrt, const int seed, const int timestep, double *boxlo,
                         double *prd);
 void edpd_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                      int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                     const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time, bool &success, tagint *tag, double **host_v,
+                     const bool vflag, const bool eatom, const bool vatom, bool &success, tagint *tag, double **host_v,
                      const double dtinvsqrt, const int seed, const int timestep, const int nlocal,
                      double *boxlo, double *prd);
 void edpd_gpu_get_extra_data(double *host_T, double *host_cv);
@@ -931,12 +907,11 @@ void gauss_gpu_clear();
 int **gauss_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                           int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                          const bool vatom, int &host_start, int **ilist, int **jnum,
-                          const double cpu_time, bool &success, double *prd, int *periodicity);
+                          const bool vatom, int **ilist, int **jnum,
+                          bool &success, double *prd, int *periodicity);
 void gauss_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                        int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success);
+                       const bool vflag, const bool eatom, const bool vatom, bool &success);
 double gauss_gpu_bytes();
 
 int gb_gpu_init(const int ntypes, const double gamma, const double upsilon,
@@ -952,15 +927,12 @@ int **gb_gpu_compute_n(const int ago, const int inum, const int nall,
                        double **host_x, int *host_type, double *sublo,
                        double *subhi, tagint *tag, int **nspecial,
                        tagint **special, const bool eflag, const bool vflag,
-                       const bool eatom, const bool vatom, int &host_start,
-                       int **ilist, int **jnum, const double cpu_time,
-                       bool &success, const int *ellipsoid,
+                       const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success, const int *ellipsoid,
                        const void *bonus);
 int *gb_gpu_compute(const int ago, const int inum, const int nall,
                     double **host_x, int *host_type, int *ilist, int *numj,
                     int **firstneigh, const bool eflag, const bool vflag,
-                    const bool eatom, const bool vatom, int &host_start,
-                    const double cpu_time, bool &success, const int *ellipsoid,
+                    const bool eatom, const bool vatom, bool &success, const int *ellipsoid,
                     const void *bonus);
 double gb_gpu_bytes();
 enum { SPHERE_SPHERE, SPHERE_ELLIPSE, ELLIPSE_SPHERE, ELLIPSE_ELLIPSE };
@@ -989,18 +961,14 @@ int** hippo_gpu_precompute(const int ago, const int inum_full, const int nall,
                             int **nspecial, tagint **special,
                             int *nspecial15, tagint **special15,
                             const bool eflag_in, const bool vflag_in,
-                            const bool eatom, const bool vatom, int &host_start,
-                            int **ilist, int **jnum, const double cpu_time,
-                            bool &success, double *host_q, double *boxlo, double *prd);
+                            const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success, double *host_q, double *boxlo, double *prd);
 void hippo_gpu_compute_repulsion(const int ago, const int inum_full,
                            const int nall, double **host_x, int *host_type,
                            int *host_amtype, int *host_amgroup, double **host_rpole,
                            double *sublo, double *subhi, tagint *tag, int **nspecial,
                            tagint **special, int *nspecial15, tagint** special15,
                            const bool eflag, const bool vflag, const bool eatom,
-                           const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double aewald, const double off2,
+                           const bool vatom, int **ilist, int **jnum, bool &success, const double aewald, const double off2,
                            double *host_q, double *boxlo, double *prd,
                            double cut2, double c0, double c1, double c2,
                            double c3, double c4, double c5, void **tep_ptr);
@@ -1011,8 +979,7 @@ void hippo_gpu_compute_multipole_real(const int ago, const int inum, const int n
               double **host_rpole, double *host_pval, double *sublo, double *subhi, tagint *tag,
               int **nspecial, tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-              int &host_start, int **ilist, int **jnum, const double cpu_time,
-              bool &success, const double aewald, const double felec, const double off2,
+              int **ilist, int **jnum, bool &success, const double aewald, const double felec, const double off2,
               double *host_q, double *boxlo, double *prd, void **tq_ptr);
 void hippo_gpu_compute_udirect2b(int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp,
@@ -1044,12 +1011,11 @@ void lj96_gpu_clear();
 int **lj96_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *prd, int *periodicity);
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *prd, int *periodicity);
 void lj96_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success);
+                      const bool vflag, const bool eatom, const bool vatom, bool &success);
 double lj96_gpu_bytes();
 
 int crm_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1, double **host_lj2,
@@ -1063,13 +1029,12 @@ void crm_gpu_clear();
 int **crm_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double *host_q, double *boxlo,
+                        const bool vatom, int **ilist, int **jnum,
+                        bool &success, double *host_q, double *boxlo,
                         double *prd, int* periodicity);
 void crm_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                     bool &success, double *host_q, const int nlocal, double *boxlo, double *prd);
+                     const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal, double *boxlo, double *prd);
 double crm_gpu_bytes();
 
 int crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1, double **host_lj2,
@@ -1083,13 +1048,12 @@ void crml_gpu_clear();
 int **crml_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *host_q, double *boxlo,
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *host_q, double *boxlo,
                          double *prd, int* periodicity);
 void crml_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_q, const int nlocal,
+                      const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                       double *boxlo, double *prd);
 double crml_gpu_bytes();
 
@@ -1103,13 +1067,12 @@ void c2cl_gpu_clear();
 int **c2cl_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *host_q, double *boxlo,
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *host_q, double *boxlo,
                          double *prd, int *periodicity);
 void c2cl_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_q, const int nlocal,
+                      const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                       double *boxlo, double *prd);
 double c2cl_gpu_bytes();
 
@@ -1121,12 +1084,11 @@ void lj96_gpu_clear();
 int **lj96_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *prd, int *periodicity);
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *prd, int *periodicity);
 void lj96_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success);
+                      const bool vflag, const bool eatom, const bool vatom, bool &success);
 double lj96_gpu_bytes();
 
 int ljcb_gpu_init(const int ntypes, double **cutsq, double **cut_inner_sq, double **cut_inner,
@@ -1138,12 +1100,11 @@ void ljcb_gpu_clear();
 int **ljcb_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *prd, int *periodicity);
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *prd, int *periodicity);
 void ljcb_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success);
+                      const bool vflag, const bool eatom, const bool vatom, bool &success);
 double ljcb_gpu_bytes();
 
 int ljc_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
@@ -1155,13 +1116,12 @@ void ljc_gpu_clear();
 int **ljc_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double *host_q, double *boxlo,
+                        const bool vatom, int **ilist, int **jnum,
+                        bool &success, double *host_q, double *boxlo,
                         double *prd, int *periodicity);
 void ljc_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                     bool &success, double *host_q, const int nlocal, double *boxlo, double *prd);
+                     const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal, double *boxlo, double *prd);
 double ljc_gpu_bytes();
 
 int ljcs_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
@@ -1173,13 +1133,12 @@ void ljcs_gpu_clear();
 int **ljcs_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double *host_q, double *boxlo,
+                        const bool vatom, int **ilist, int **jnum,
+                        bool &success, double *host_q, double *boxlo,
                         double *prd, int* periodicity);
 void ljcs_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                     bool &success, double *host_q, const int nlocal, double *boxlo, double *prd);
+                     const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal, double *boxlo, double *prd);
 double ljcs_gpu_bytes();
 
 int ljcd_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
@@ -1192,13 +1151,12 @@ void ljcd_gpu_clear();
 int **ljcd_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *host_q, double *boxlo,
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *host_q, double *boxlo,
                          double *prd, int *periodicity);
 void ljcd_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_q, const int nlocal,
+                      const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                       double *boxlo, double *prd);
 double ljcd_gpu_bytes();
 
@@ -1212,13 +1170,12 @@ void ljd_gpu_clear();
 int **ljd_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double *host_q, double *boxlo,
+                        const bool vatom, int **ilist, int **jnum,
+                        bool &success, double *host_q, double *boxlo,
                         double *prd, int *periodicity);
 void ljd_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                     bool &success, double *host_q, const int nlocal, double *boxlo, double *prd);
+                     const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal, double *boxlo, double *prd);
 double ljd_gpu_bytes();
 
 int ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
@@ -1233,13 +1190,12 @@ void ljcl_gpu_clear();
 int **ljcl_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *host_q, double *boxlo,
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *host_q, double *boxlo,
                          double *prd, int* periodicity);
 void ljcl_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_q, const int nlocal,
+                      const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                       double *boxlo, double *prd);
 double ljcl_gpu_bytes();
 
@@ -1256,13 +1212,12 @@ void ljcls_gpu_clear();
 int **ljcls_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *host_q, double *boxlo,
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *host_q, double *boxlo,
                          double *prd, int *periodicity);
 void ljcls_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_q, const int nlocal,
+                      const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                       double *boxlo, double *prd);
 double ljcls_gpu_bytes();
 
@@ -1276,13 +1231,12 @@ void ljcm_gpu_clear();
 int **ljcm_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *host_q, double *boxlo,
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *host_q, double *boxlo,
                          double *prd, int *periodicity);
 void ljcm_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_q, const int nlocal,
+                      const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                       double *boxlo, double *prd);
 double ljcm_gpu_bytes();
 
@@ -1295,13 +1249,12 @@ void dpl_gpu_clear();
 int **dpl_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double *host_q, double **host_mu,
+                        const bool vatom, int **ilist, int **jnum,
+                        bool &success, double *host_q, double **host_mu,
                         double *boxlo, double *prd);
 void dpl_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                     bool &success, double *host_q, double **host_mu, const int nlocal,
+                     const bool eatom, const bool vatom, bool &success, double *host_q, double **host_mu, const int nlocal,
                      double *boxlo, double *prd);
 double dpl_gpu_bytes();
 
@@ -1315,13 +1268,12 @@ void dplj_gpu_clear();
 int **dplj_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *host_q, double **host_mu,
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *host_q, double **host_mu,
                          double *boxlo, double *prd);
 void dplj_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_q, double **host_mu,
+                      const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, double **host_mu,
                       const int nlocal, double *boxlo, double *prd);
 double dplj_gpu_bytes();
 
@@ -1335,12 +1287,11 @@ void ljl_gpu_clear();
 int **ljl_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double *prd, int *periodicity);
+                        const bool vatom, int **ilist, int **jnum,
+                        bool &success, double *prd, int *periodicity);
 void ljl_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                     bool &success);
+                     const bool eatom, const bool vatom, bool &success);
 double ljl_gpu_bytes();
 
 int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
@@ -1357,14 +1308,12 @@ int **ljtip4p_long_gpu_compute_n(const int ago, const int inum, const int nall, 
                                  int *map_array, int map_size, int *sametag, int max_same,
                                  int **nspecial, tagint **special, const bool eflag,
                                  const bool vflag, const bool eatom, const bool vatom,
-                                 int &host_start, int **ilist, int **jnum, const double cpu_time,
-                                 bool &success, double *host_q, double *boxlo, double *prd,
+                                 int **ilist, int **jnum, bool &success, double *host_q, double *boxlo, double *prd,
                                  int *periodicity);
 void ljtip4p_long_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                               int *host_type, int *ilist, int *numj, int **firstneigh,
                               const bool eflag, const bool vflag, const bool eatom,
-                              const bool vatom, int &host_start, const double cpu_time,
-                              bool &success, double *host_q, const int nlocal, double *boxlo,
+                              const bool vatom, bool &success, double *host_q, const int nlocal, double *boxlo,
                               double *prd);
 double ljtip4p_long_gpu_bytes();
 void ljtip4p_long_copy_molecule_data(int, tagint *, int *, int, int *, int, int);
@@ -1382,13 +1331,12 @@ void ljecl_gpu_clear();
 int **ljecl_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                           int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                          const bool vatom, int &host_start, int **ilist, int **jnum,
-                          const double cpu_time, bool &success, double *host_q, double *boxlo,
+                          const bool vatom, int **ilist, int **jnum,
+                          bool &success, double *host_q, double *boxlo,
                           double *prd, int *periodicity);
 void ljecl_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                        int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success, double *host_q, const int nlocal,
+                       const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                        double *boxlo, double *prd);
 double ljecl_gpu_bytes();
 
@@ -1402,12 +1350,11 @@ void lje_gpu_clear();
 int **lje_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double *prd, int *periodicity);
+                        const bool vatom, int **ilist, int **jnum,
+                        bool &success, double *prd, int *periodicity);
 void lje_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                     bool &success);
+                     const bool eatom, const bool vatom, bool &success);
 double lje_gpu_bytes();
 
 int ljgrm_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
@@ -1420,12 +1367,11 @@ void ljgrm_gpu_clear();
 int **ljgrm_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                           int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                          const bool vatom, int &host_start, int **ilist, int **jnum,
-                          const double cpu_time, bool &success, double *prd, int *periodicity);
+                          const bool vatom, int **ilist, int **jnum,
+                          bool &success, double *prd, int *periodicity);
 void ljgrm_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                        int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success);
+                       const bool vflag, const bool eatom, const bool vatom, bool &success);
 double ljgrm_gpu_bytes();
 
 int dplsf_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
@@ -1437,13 +1383,12 @@ void dplsf_gpu_clear();
 int **dplsf_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                           int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                          const bool vatom, int &host_start, int **ilist, int **jnum,
-                          const double cpu_time, bool &success, double *host_q, double **host_mu,
+                          const bool vatom, int **ilist, int **jnum,
+                          bool &success, double *host_q, double **host_mu,
                           double *boxlo, double *prd);
 void dplsf_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                        int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success, double *host_q, double **host_mu,
+                       const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, double **host_mu,
                        const int nlocal, double *boxlo, double *prd);
 double dplsf_gpu_bytes();
 
@@ -1461,12 +1406,11 @@ void ljsmt_gpu_clear();
 int **ljsmt_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                           int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                          const bool vatom, int &host_start, int **ilist, int **jnum,
-                          const double cpu_time, bool &success, double *prd, int *periodicity);
+                          const bool vatom, int **ilist, int **jnum,
+                          bool &success, double *prd, int *periodicity);
 void ljsmt_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                        int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success);
+                       const bool vflag, const bool eatom, const bool vatom, bool &success);
 double ljsmt_gpu_bytes();
 
 int spical_gpu_init(const int ntypes, double **cutsq, int **lj_type, double **host_lj1,
@@ -1479,13 +1423,12 @@ void spical_gpu_clear();
 int **spical_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                            int *host_type, double *sublo, double *subhi, tagint *tag,
                            int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start, int **ilist,
-                           int **jnum, const double cpu_time, bool &success, double *host_q,
+                           const bool eatom, const bool vatom, int **ilist,
+                           int **jnum, bool &success, double *host_q,
                            double *boxlo, double *prd, int *periodicity);
 void spical_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                        const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, double *host_q, const int nlocal,
+                        const bool vflag, const bool eatom, const bool vatom, bool &success, double *host_q, const int nlocal,
                         double *boxlo, double *prd);
 double spical_gpu_bytes();
 #include "lj_spica_common.h"
@@ -1499,12 +1442,11 @@ void spica_gpu_clear();
 int **spica_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                           int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                          const bool vatom, int &host_start, int **ilist, int **jnum,
-                          const double cpu_time, bool &success, double *prd, int *periodicity);
+                          const bool vatom, int **ilist, int **jnum,
+                          bool &success, double *prd, int *periodicity);
 void spica_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                        int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success);
+                       const bool vflag, const bool eatom, const bool vatom, bool &success);
 double spica_gpu_bytes();
 #include "lj_spica_common.h"
 using namespace LJSPICAParms;
@@ -1517,14 +1459,13 @@ void mdpd_gpu_clear();
 int **mdpd_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double **host_v,
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double **host_v,
                          const double dtinvsqrt, const int seed, const int timestep, double *boxlo,
                          double *prd);
 void mdpd_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, tagint *tag, double **host_v,
+                      const bool vflag, const bool eatom, const bool vatom, bool &success, tagint *tag, double **host_v,
                       const double dtinvsqrt, const int seed, const int timestep, const int nlocal,
                       double *boxlo, double *prd);
 void mdpd_gpu_get_extra_data(double *host_rho);
@@ -1539,12 +1480,11 @@ void mie_gpu_clear();
 int **mie_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double *prd, int *periodicity);
+                        const bool vatom, int **ilist, int **jnum,
+                        bool &success, double *prd, int *periodicity);
 void mie_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                     bool &success);
+                     const bool eatom, const bool vatom, bool &success);
 double mie_gpu_bytes();
 
 int mor_gpu_init(const int ntypes, double **cutsq, double **host_morse1, double **host_r0,
@@ -1555,12 +1495,11 @@ void mor_gpu_clear();
 int **mor_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double *prd, int *periodicity);
+                        const bool vatom, int **ilist, int **jnum,
+                        bool &success, double *prd, int *periodicity);
 void mor_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                     bool &success);
+                     const bool eatom, const bool vatom, bool &success);
 double mor_gpu_bytes();
 
 int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
@@ -1575,15 +1514,12 @@ int **re_gpu_compute_n(const int ago, const int inum, const int nall,
                        double **host_x, int *host_type, double *sublo,
                        double *subhi, tagint *tag, int **nspecial,
                        tagint **special, const bool eflag, const bool vflag,
-                       const bool eatom, const bool vatom, int &host_start,
-                       int **ilist, int **jnum, const double cpu_time,
-                       bool &success, const int *ellipsoid,
+                       const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success, const int *ellipsoid,
                        const void *bonus);
 int *re_gpu_compute(const int ago, const int inum, const int nall,
                     double **host_x, int *host_type, int *ilist, int *numj,
                     int **firstneigh, const bool eflag, const bool vflag,
-                    const bool eatom, const bool vatom, int &host_start,
-                    const double cpu_time, bool &success, const int *ellipsoid,
+                    const bool eatom, const bool vatom, bool &success, const int *ellipsoid,
                     const void *bonus);
 double re_gpu_bytes();
 enum { SPHERE_SPHERE, SPHERE_ELLIPSE, ELLIPSE_SPHERE, ELLIPSE_ELLIPSE };
@@ -1596,12 +1532,11 @@ void soft_gpu_clear();
 int **soft_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *prd, int *periodicity);
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *prd, int *periodicity);
 void soft_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success);
+                      const bool vflag, const bool eatom, const bool vatom, bool &success);
 double soft_gpu_bytes();
 using namespace MathConst;
 
@@ -1616,14 +1551,12 @@ int **sph_heatconduction_gpu_compute_n(const int ago, const int inum_full, const
                            double **host_x, int *host_type, double *sublo,
                            double *subhi, tagint *host_tag, int **nspecial,
                            tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time, bool &success,
+                           const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success,
                            double **host_v);
 void sph_heatconduction_gpu_compute(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, int *ilist, int *numj,
                         int **firstneigh, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, tagint *host_tag,
+                        const bool eatom, const bool vatom, bool &success, tagint *host_tag,
                         double **host_v);
 void sph_heatconduction_gpu_get_extra_data(double *host_rho, double *host_esph);
 void sph_heatconduction_gpu_update_dE(void **dE_ptr);
@@ -1640,14 +1573,12 @@ int **sph_lj_gpu_compute_n(const int ago, const int inum_full, const int nall,
                            double **host_x, int *host_type, double *sublo,
                            double *subhi, tagint *host_tag, int **nspecial,
                            tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time, bool &success,
+                           const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success,
                            double **host_v);
 void sph_lj_gpu_compute(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, int *ilist, int *numj,
                         int **firstneigh, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, tagint *host_tag,
+                        const bool eatom, const bool vatom, bool &success, tagint *host_tag,
                         double **host_v);
 void sph_lj_gpu_get_extra_data(double *host_rho, double *host_esph,
                                double *host_cv);
@@ -1665,14 +1596,12 @@ int **sph_taitwater_gpu_compute_n(const int ago, const int inum_full, const int 
                          double **host_x, int *host_type, double *sublo,
                          double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum, const double cpu_time, bool &success,
+                         const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success,
                          double **host_v);
 void sph_taitwater_gpu_compute(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, int *ilist, int *numj,
                         int **firstneigh, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, tagint *tag,
+                        const bool eatom, const bool vatom, bool &success, tagint *tag,
                         double **host_v);
 void sph_taitwater_gpu_get_extra_data(double *host_rho);
 void sph_taitwater_gpu_update_drhoE(void **drhoE_ptr);
@@ -1687,12 +1616,11 @@ void sw_gpu_clear();
 int **sw_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                        int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                        tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                       const bool vatom, int &host_start, int **ilist, int **jnum,
-                       const double cpu_time, bool &success);
+                       const bool vatom, int **ilist, int **jnum,
+                       bool &success);
 void sw_gpu_compute(const int ago, const int nloc, const int nall, const int ln, double **host_x,
                     int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                    const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                    const double cpu_time, bool &success);
+                    const bool vflag, const bool eatom, const bool vatom, bool &success);
 double sw_gpu_bytes();
 
 int table_gpu_init(const int ntypes, double **cutsq, double ***host_table_coeffs,
@@ -1703,12 +1631,11 @@ void table_gpu_clear();
 int **table_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                           int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                          const bool vatom, int &host_start, int **ilist, int **jnum,
-                          const double cpu_time, bool &success, double *prd, int *periodicity);
+                          const bool vatom, int **ilist, int **jnum,
+                          bool &success, double *prd, int *periodicity);
 void table_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                        int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success);
+                       const bool vflag, const bool eatom, const bool vatom, bool &success);
 double table_gpu_bytes();
 
 int tersoff_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
@@ -1725,12 +1652,12 @@ void tersoff_gpu_clear();
 int **tersoff_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                             int *host_type, double *sublo, double *subhi, tagint *tag,
                             int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                            const bool eatom, const bool vatom, int &host_start, int **ilist,
-                            int **jnum, const double cpu_time, bool &success);
+                            const bool eatom, const bool vatom, int **ilist,
+                            int **jnum, bool &success);
 void tersoff_gpu_compute(const int ago, const int nlocal, const int nall, const int nlist,
                          double **host_x, int *host_type, int *ilist, int *numj, int **firstneigh,
                          const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-                         int &host_start, const double cpu_time, bool &success);
+                         bool &success);
 double tersoff_gpu_bytes();
 
 int tersoff_mod_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
@@ -1748,13 +1675,11 @@ int **tersoff_mod_gpu_compute_n(const int ago, const int inum_full, const int na
                                 int *host_type, double *sublo, double *subhi, tagint *tag,
                                 int **nspecial, tagint **special, const bool eflag,
                                 const bool vflag, const bool eatom, const bool vatom,
-                                int &host_start, int **ilist, int **jnum, const double cpu_time,
-                                bool &success);
+                                int **ilist, int **jnum, bool &success);
 void tersoff_mod_gpu_compute(const int ago, const int nlocal, const int nall, const int nlist,
                              double **host_x, int *host_type, int *ilist, int *numj,
                              int **firstneigh, const bool eflag, const bool vflag, const bool eatom,
-                             const bool vatom, int &host_start, const double cpu_time,
-                             bool &success);
+                             const bool vatom, bool &success);
 double tersoff_mod_gpu_bytes();
 
 int tersoff_zbl_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
@@ -1775,13 +1700,11 @@ int **tersoff_zbl_gpu_compute_n(const int ago, const int inum_full, const int na
                                 int *host_type, double *sublo, double *subhi, tagint *tag,
                                 int **nspecial, tagint **special, const bool eflag,
                                 const bool vflag, const bool eatom, const bool vatom,
-                                int &host_start, int **ilist, int **jnum, const double cpu_time,
-                                bool &success);
+                                int **ilist, int **jnum, bool &success);
 void tersoff_zbl_gpu_compute(const int ago, const int nlocal, const int nall, const int nlist,
                              double **host_x, int *host_type, int *ilist, int *numj,
                              int **firstneigh, const bool eflag, const bool vflag, const bool eatom,
-                             const bool vatom, int &host_start, const double cpu_time,
-                             bool &success);
+                             const bool vatom, bool &success);
 double tersoff_zbl_gpu_bytes();
 
 int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1, double **host_uf2,
@@ -1794,12 +1717,11 @@ void ufml_gpu_clear();
 int **ufml_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *prd, int *periodicity);
+                         const bool vatom, int **ilist, int **jnum,
+                         bool &success, double *prd, int *periodicity);
 void ufml_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success);
+                      const bool vflag, const bool eatom, const bool vatom, bool &success);
 double ufml_gpu_bytes();
 
 int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
@@ -1815,12 +1737,12 @@ void vashishta_gpu_clear();
 int **vashishta_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                               int *host_type, double *sublo, double *subhi, tagint *tag,
                               int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                              const bool eatom, const bool vatom, int &host_start, int **ilist,
-                              int **jnum, const double cpu_time, bool &success);
+                              const bool eatom, const bool vatom, int **ilist,
+                              int **jnum, bool &success);
 void vashishta_gpu_compute(const int ago, const int nloc, const int nall, const int ln,
                            double **host_x, int *host_type, int *ilist, int *numj, int **firstneigh,
                            const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-                           int &host_start, const double cpu_time, bool &success);
+                           bool &success);
 double vashishta_gpu_bytes();
 
 int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a, double **host_offset,
@@ -1831,13 +1753,13 @@ void ykcolloid_gpu_clear();
 int **ykcolloid_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                               int *host_type, double *sublo, double *subhi, tagint *tag,
                               int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                              const bool eatom, const bool vatom, int &host_start, int **ilist,
-                              int **jnum, const double cpu_time, bool &success, double *host_rad, double *prd,
+                              const bool eatom, const bool vatom, int **ilist,
+                              int **jnum, bool &success, double *host_rad, double *prd,
                               int *periodicity);
 void ykcolloid_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                            int *host_type, int *ilist, int *numj, int **firstneigh,
                            const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-                           int &host_start, const double cpu_time, bool &success, double *host_rad);
+                           bool &success, double *host_rad);
 double ykcolloid_gpu_bytes();
 
 int yukawa_gpu_init(const int ntypes, double **cutsq, double kappa, double **host_a,
@@ -1848,12 +1770,11 @@ void yukawa_gpu_clear();
 int **yukawa_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                            int *host_type, double *sublo, double *subhi, tagint *tag,
                            int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start, int **ilist,
-                           int **jnum, const double cpu_time, bool &success, double *prd, int *periodicity);
+                           const bool eatom, const bool vatom, int **ilist,
+                           int **jnum, bool &success, double *prd, int *periodicity);
 void yukawa_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                         int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                        const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success);
+                        const bool vflag, const bool eatom, const bool vatom, bool &success);
 double yukawa_gpu_bytes();
 
 int zbl_gpu_init(const int ntypes, double **cutsq, double **host_sw1, double **host_sw2,
@@ -1866,12 +1787,11 @@ void zbl_gpu_clear();
 int **zbl_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double *prd, int *periodicity);
+                        const bool vatom, int **ilist, int **jnum,
+                        bool &success, double *prd, int *periodicity);
 void zbl_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                     bool &success);
+                     const bool eatom, const bool vatom, bool &success);
 double zbl_gpu_bytes();
 
 } // namespace LAMMPS_GPU

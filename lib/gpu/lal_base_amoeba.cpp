@@ -279,9 +279,7 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
                               int **nspecial, tagint **special,
                               int *nspecial15, tagint **special15,
                               const bool eflag_in, const bool vflag_in,
-                              const bool eatom, const bool vatom, int &host_start,
-                              int **&ilist, int **&jnum, const double cpu_time,
-                              bool &success, double *host_q, double * /*boxlo*/, double * /*prd*/) {
+                              const bool eatom, const bool vatom, int **&ilist, int **&jnum, bool &success, double *host_q, double * /*boxlo*/, double * /*prd*/) {
   acc_timers();
   if (eatom) _eflag=2;
   else if (eflag_in) _eflag=1;
@@ -310,7 +308,6 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
   }
 
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     resize_atom(0,nall,success);
     zero_timers();
@@ -320,7 +317,6 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
   int inum=inum_full;
   _timestep++;
   ans->inum(inum);
-  host_start=inum;
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
@@ -349,7 +345,7 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
   }
 
 
-  return nbor->host_jlist.begin()-host_start;
+  return nbor->host_jlist.begin()-inum;
 }
 
 // ---------------------------------------------------------------------------
@@ -368,8 +364,8 @@ void BaseAmoebaT::compute_multipole_real(const int /*ago*/, const int inum_full,
                                          int * /*nspecial15*/, tagint ** /*special15*/,
                                          const bool /*eflag_in*/, const bool /*vflag_in*/,
                                          const bool /*eatom*/, const bool /*vatom*/,
-                                         int & /*host_start*/, int ** /*ilist*/, int ** /*jnum*/,
-                                         const double /*cpu_time*/, bool & /*success*/,
+                                         int ** /*ilist*/, int ** /*jnum*/,
+                                         bool & /*success*/,
                                          const double aewald, const double felec,
                                          const double off2_mpole, double * /*host_q*/,
                                          double * /*boxlo*/, double * /*prd*/, void **tep_ptr) {

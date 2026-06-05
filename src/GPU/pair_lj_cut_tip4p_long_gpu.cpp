@@ -47,7 +47,6 @@ PairLJCutTIP4PLongGPU::PairLJCutTIP4PLongGPU(LAMMPS *lmp) :
 {
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -67,7 +66,7 @@ void PairLJCutTIP4PLongGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -87,8 +86,8 @@ void PairLJCutTIP4PLongGPU::compute(int eflag, int vflag)
     firstneigh = ljtip4p_long_gpu_compute_n(
         neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
         atom->get_map_array(), atom->get_map_size(), atom->sametag, atom->get_max_same(),
-        atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom, host_start, &ilist,
-        &numneigh, cpu_time, success, atom->q, domain->boxlo, domain->prd, domain->periodicity);
+        atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom, &ilist,
+        &numneigh, success, atom->q, domain->boxlo, domain->prd, domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -97,8 +96,7 @@ void PairLJCutTIP4PLongGPU::compute(int eflag, int vflag)
     ljtip4p_long_copy_molecule_data(nall, atom->tag, atom->get_map_array(), atom->get_map_size(),
                                     atom->sametag, atom->get_max_same(), neighbor->ago);
     ljtip4p_long_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh,
-                             firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-                             success, atom->q, atom->nlocal, domain->boxlo, domain->prd);
+                             firstneigh, eflag, vflag, eflag_atom, vflag_atom, success, atom->q, atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)

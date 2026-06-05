@@ -40,7 +40,6 @@ PairMDPDGPU::PairMDPDGPU(LAMMPS *lmp) : PairMDPD(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -61,7 +60,7 @@ void PairMDPDGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   double dtinvsqrt = 1.0 / sqrt(update->dt);
 
@@ -86,15 +85,15 @@ void PairMDPDGPU::compute(int eflag, int vflag)
     inum = atom->nlocal;
     firstneigh = mdpd_gpu_compute_n(
         neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag, atom->nspecial,
-        atom->special, eflag, vflag, eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
-        cpu_time, success, atom->v, dtinvsqrt, seed, update->ntimestep, domain->boxlo, domain->prd);
+        atom->special, eflag, vflag, eflag_atom, vflag_atom, &ilist, &numneigh,
+        success, atom->v, dtinvsqrt, seed, update->ntimestep, domain->boxlo, domain->prd);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     mdpd_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
-                    eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success, atom->tag,
+                    eflag, vflag, eflag_atom, vflag_atom, success, atom->tag,
                     atom->v, dtinvsqrt, seed, update->ntimestep, atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");

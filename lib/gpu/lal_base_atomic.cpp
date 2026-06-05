@@ -208,7 +208,6 @@ void BaseAtomicT::compute(const int f_ago, const int inum_full,
                           int *ilist, int *numj, int **firstneigh,
                           const bool eflag_in, const bool vflag_in,
                           const bool eatom, const bool vatom,
-                          int &host_start, const double cpu_time,
                           bool &success) {
   acc_timers();
   int eflag, vflag;
@@ -226,7 +225,6 @@ void BaseAtomicT::compute(const int f_ago, const int inum_full,
 
   set_kernel(eflag,vflag);
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     resize_atom(0,nall,success);
     zero_timers();
@@ -237,7 +235,6 @@ void BaseAtomicT::compute(const int f_ago, const int inum_full,
   int inum=inum_full;
   _timestep++;
   ans->inum(inum);
-  host_start=inum;
 
   if (ago==0) {
     reset_nbors(nall, inum, ilist, numj, firstneigh, success);
@@ -263,8 +260,8 @@ int **BaseAtomicT::compute(const int ago, const int inum_full,
                            int **nspecial, tagint **special,
                            const bool eflag_in, const bool vflag_in,
                            const bool eatom, const bool vatom,
-                           int &host_start, int **ilist, int **jnum,
-                           const double cpu_time, bool &success, double *prd,
+                           int **ilist, int **jnum,
+                           bool &success, double *prd,
                            int *periodicity) {
   acc_timers();
   int eflag, vflag;
@@ -282,7 +279,6 @@ int **BaseAtomicT::compute(const int ago, const int inum_full,
 
   set_kernel(eflag,vflag);
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     resize_atom(0,nall,success);
     zero_timers();
@@ -292,7 +288,6 @@ int **BaseAtomicT::compute(const int ago, const int inum_full,
   int inum=inum_full;
   _timestep++;
   ans->inum(inum);
-  host_start=inum;
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
@@ -313,7 +308,7 @@ int **BaseAtomicT::compute(const int ago, const int inum_full,
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   device->add_ans_object(ans);
 
-  return nbor->host_jlist.begin()-host_start;
+  return nbor->host_jlist.begin()-inum;
 }
 
 template <class numtyp, class acctyp>

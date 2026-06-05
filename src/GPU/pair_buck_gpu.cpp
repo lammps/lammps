@@ -38,7 +38,6 @@ using namespace LAMMPS_GPU;
 PairBuckGPU::PairBuckGPU(LAMMPS *lmp) : PairBuck(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -59,7 +58,7 @@ void PairBuckGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -80,25 +79,20 @@ void PairBuckGPU::compute(int eflag, int vflag)
         buck_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type,
                            sublo, subhi, atom->tag, atom->nspecial,
                            atom->special, eflag, vflag, eflag_atom,
-                           vflag_atom, host_start, &ilist, &numneigh,
-                           cpu_time, success, domain->prd, domain->periodicity);
+                           vflag_atom, &ilist, &numneigh,
+                           success, domain->prd, domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     buck_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
-                     eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success);
+                     eflag, vflag, eflag_atom, vflag_atom, success);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
     neighbor->build_topology();
-  if (host_start < inum) {
-    cpu_time = platform::walltime();
-    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = platform::walltime() - cpu_time;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -152,63 +146,3 @@ double PairBuckGPU::memory_usage()
   return bytes + buck_gpu_bytes();
 }
 
-/* ---------------------------------------------------------------------- */
-
-void PairBuckGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
-                              int *numneigh, int **firstneigh)
-{
-  int i, j, ii, jj, jnum, itype, jtype;
-  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
-  double rsq, r2inv, r6inv, forcebuck, factor_lj;
-  double r, rexp;
-  int *jlist;
-
-  double **x = atom->x;
-  double **f = atom->f;
-  int *type = atom->type;
-  double *special_lj = force->special_lj;
-
-  // loop over neighbors of my atoms
-
-  for (ii = start; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      j &= NEIGHMASK;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx * delx + dely * dely + delz * delz;
-      jtype = type[j];
-
-      if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0 / rsq;
-        r6inv = r2inv * r2inv * r2inv;
-        r = sqrt(rsq);
-        rexp = exp(-r * rhoinv[itype][jtype]);
-        forcebuck = buck1[itype][jtype] * r * rexp - buck2[itype][jtype] * r6inv;
-        fpair = factor_lj * forcebuck * r2inv;
-
-        f[i][0] += delx * fpair;
-        f[i][1] += dely * fpair;
-        f[i][2] += delz * fpair;
-
-        if (eflag) {
-          evdwl = a[itype][jtype] * rexp - c[itype][jtype] * r6inv - offset[itype][jtype];
-          evdwl *= factor_lj;
-        }
-
-        if (evflag) ev_tally_full(i, evdwl, 0.0, fpair, delx, dely, delz);
-      }
-    }
-  }
-}

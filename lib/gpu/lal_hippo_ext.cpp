@@ -125,16 +125,13 @@ int** hippo_gpu_precompute(const int ago, const int inum_full, const int nall,
                            int **nspecial, tagint **special,
                            int *nspecial15, tagint **special15,
                            const bool eflag_in, const bool vflag_in,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, double *host_q, double *boxlo, double *prd) {
+                           const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success, double *host_q, double *boxlo, double *prd) {
   return HIPPOMF.precompute(ago, inum_full, nall, host_x, host_type,
                             host_amtype, host_amgroup, host_rpole,
                             nullptr, nullptr, nullptr, sublo, subhi, tag,
                             nspecial, special, nspecial15, special15,
                             eflag_in, vflag_in, eatom, vatom,
-                            host_start, ilist, jnum, cpu_time,
-                            success, host_q, boxlo, prd);
+                            ilist, jnum, success, host_q, boxlo, prd);
 }
 
 void hippo_gpu_compute_repulsion(const int ago, const int inum_full,
@@ -143,17 +140,15 @@ void hippo_gpu_compute_repulsion(const int ago, const int inum_full,
                                  double *sublo, double *subhi, tagint *tag, int **nspecial,
                                  tagint **special, int *nspecial15, tagint** special15,
                                  const bool eflag, const bool vflag, const bool eatom,
-                                 const bool vatom, int &host_start,
-                                 int **ilist, int **jnum, const double cpu_time,
-                                 bool &success, const double aewald, const double off2,
+                                 const bool vatom, int **ilist, int **jnum, bool &success, const double aewald, const double off2,
                                  double *host_q, double *boxlo, double *prd,
                                  double cut2, double c0, double c1, double c2,
                                  double c3, double c4, double c5, void **tep_ptr) {
   HIPPOMF.compute_repulsion(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole, sublo, subhi,
                           tag, nspecial, special, nspecial15, special15,
-                          eflag, vflag, eatom, vatom, host_start, ilist, jnum,
-                          cpu_time, success, aewald, off2, host_q, boxlo, prd,
+                          eflag, vflag, eatom, vatom, ilist, jnum,
+                          success, aewald, off2, host_q, boxlo, prd,
                           cut2, c0, c1, c2, c3, c4, c5, tep_ptr);
 }
 
@@ -170,15 +165,13 @@ void hippo_gpu_compute_multipole_real(const int ago, const int inum_full,
                            double *host_pval, double *sublo, double *subhi, tagint *tag, int **nspecial,
                            tagint **special, int *nspecial15, tagint** special15,
                            const bool eflag, const bool vflag, const bool eatom,
-                           const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double aewald, const double felec, const double off2,
+                           const bool vatom, int **ilist, int **jnum, bool &success, const double aewald, const double felec, const double off2,
                            double *host_q, double *boxlo, double *prd, void **tep_ptr) {
   HIPPOMF.compute_multipole_real(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole, host_pval, sublo, subhi,
                           tag, nspecial, special, nspecial15, special15,
-                          eflag, vflag, eatom, vatom, host_start, ilist, jnum,
-                          cpu_time, success, aewald, felec, off2, host_q, boxlo, prd, tep_ptr);
+                          eflag, vflag, eatom, vatom, ilist, jnum,
+                          success, aewald, felec, off2, host_q, boxlo, prd, tep_ptr);
 }
 
 void hippo_gpu_compute_udirect2b(int *host_amtype, int *host_amgroup, double **host_rpole,

@@ -40,7 +40,6 @@ PairLJCutCoulCutSoftGPU::PairLJCutCoulCutSoftGPU(LAMMPS *lmp) :
 {
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -61,7 +60,7 @@ void PairLJCutCoulCutSoftGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -80,8 +79,7 @@ void PairLJCutCoulCutSoftGPU::compute(int eflag, int vflag)
     inum = atom->nlocal;
     firstneigh = ljcs_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
                                    atom->tag, atom->nspecial, atom->special, eflag, vflag,
-                                   eflag_atom, vflag_atom, host_start, &ilist, &numneigh, cpu_time,
-                                   success, atom->q, domain->boxlo, domain->prd,
+                                   eflag_atom, vflag_atom, &ilist, &numneigh, success, atom->q, domain->boxlo, domain->prd,
                                    domain->periodicity);
   } else {
     inum = list->inum;
@@ -89,18 +87,13 @@ void PairLJCutCoulCutSoftGPU::compute(int eflag, int vflag)
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     ljcs_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
-                    eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success, atom->q,
+                    eflag, vflag, eflag_atom, vflag_atom, success, atom->q,
                     atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
     neighbor->build_topology();
-  if (host_start < inum) {
-    cpu_time = platform::walltime();
-    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = platform::walltime() - cpu_time;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -147,87 +140,3 @@ double PairLJCutCoulCutSoftGPU::memory_usage()
   return bytes + ljcs_gpu_bytes();
 }
 
-/* ---------------------------------------------------------------------- */
-
-void PairLJCutCoulCutSoftGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
-                                       int *numneigh, int **firstneigh)
-{
-  int i, j, ii, jj, jnum, itype, jtype;
-  double qtmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
-  double forcecoul, forcelj, factor_coul, factor_lj;
-  double denc, denlj, r4sig6;
-  int *jlist;
-  double rsq;
-
-  evdwl = ecoul = 0.0;
-
-  double **x = atom->x;
-  double **f = atom->f;
-  double *q = atom->q;
-  int *type = atom->type;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
-  double qqrd2e = force->qqrd2e;
-
-  // loop over neighbors of my atoms
-
-  for (ii = start; ii < inum; ii++) {
-    i = ilist[ii];
-    qtmp = q[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
-      j &= NEIGHMASK;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx * delx + dely * dely + delz * delz;
-      jtype = type[j];
-
-      if (rsq < cutsq[itype][jtype]) {
-
-        if (rsq < cut_coulsq[itype][jtype]) {
-          denc = sqrt(lj4[itype][jtype] + rsq);
-          forcecoul = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
-        } else forcecoul = 0.0;
-
-        if (rsq < cut_ljsq[itype][jtype]) {
-          r4sig6 = rsq*rsq / lj2[itype][jtype];
-          denlj = lj3[itype][jtype] + rsq*r4sig6;
-          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-            (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
-        } else forcelj = 0.0;
-
-        fpair = factor_coul*forcecoul + factor_lj*forcelj;
-
-        f[i][0] += delx * fpair;
-        f[i][1] += dely * fpair;
-        f[i][2] += delz * fpair;
-
-        if (eflag) {
-          if (rsq < cut_coulsq[itype][jtype])
-            ecoul = factor_coul * qqrd2e * lj1[itype][jtype] * qtmp*q[j] / denc;
-          else
-            ecoul = 0.0;
-          if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
-              (1.0/(denlj*denlj) - 1.0/denlj) - offset[itype][jtype];
-            evdwl *= factor_lj;
-          } else
-            evdwl = 0.0;
-        }
-
-        if (evflag) ev_tally_full(i, evdwl, ecoul, fpair, delx, dely, delz);
-      }
-    }
-  }
-}

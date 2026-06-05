@@ -60,7 +60,6 @@ PairBornCoulLongCSGPU::PairBornCoulLongCSGPU(LAMMPS *lmp) :
 
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -81,7 +80,7 @@ void PairBornCoulLongCSGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -100,26 +99,20 @@ void PairBornCoulLongCSGPU::compute(int eflag, int vflag)
     inum = atom->nlocal;
     firstneigh = bornclcs_gpu_compute_n(
         neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag, atom->nspecial,
-        atom->special, eflag, vflag, eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
-        cpu_time, success, atom->q, domain->boxlo, domain->prd, domain->periodicity);
+        atom->special, eflag, vflag, eflag_atom, vflag_atom, &ilist, &numneigh,
+        success, atom->q, domain->boxlo, domain->prd, domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     bornclcs_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh,
-                         firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-                         success, atom->q, atom->nlocal, domain->boxlo, domain->prd);
+                         firstneigh, eflag, vflag, eflag_atom, vflag_atom, success, atom->q, atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
     neighbor->build_topology();
-  if (host_start < inum) {
-    cpu_time = platform::walltime();
-    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = platform::walltime() - cpu_time;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -175,138 +168,3 @@ double PairBornCoulLongCSGPU::memory_usage()
   return bytes + bornclcs_gpu_bytes();
 }
 
-/* ---------------------------------------------------------------------- */
-
-void PairBornCoulLongCSGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
-                                        int *numneigh, int **firstneigh)
-{
-  int i, j, ii, jj, jnum, itable, itype, jtype;
-  double qtmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
-  double fraction, table;
-  double r, rsq, rexp, r2inv, r6inv, forcecoul, forceborn, factor_coul, factor_lj;
-  double grij, expm2, prefactor, t, erfc, u;
-  int *jlist;
-
-  evdwl = ecoul = 0.0;
-
-  double **x = atom->x;
-  double **f = atom->f;
-  double *q = atom->q;
-  int *type = atom->type;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
-  double qqrd2e = force->qqrd2e;
-
-  // loop over neighbors of my atoms
-
-  for (ii = start; ii < inum; ii++) {
-    i = ilist[ii];
-    qtmp = q[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
-      j &= NEIGHMASK;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx * delx + dely * dely + delz * delz;
-      jtype = type[j];
-
-      if (rsq < cutsq[itype][jtype]) {
-
-        if (rsq < cut_coulsq) {
-          rsq +=
-              EPSILON;    // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
-          r2inv = 1.0 / rsq;
-          if (!ncoultablebits || rsq <= tabinnersq) {
-            r = sqrt(rsq);
-            prefactor = qqrd2e * qtmp * q[j];
-            if (factor_coul < 1.0) {
-              // When bonded parts are being calculated a minimal distance (EPS_EWALD)
-              // has to be added to the prefactor and erfc in order to make the
-              // used approximation functions for the Ewald correction valid
-              grij = g_ewald * (r + EPS_EWALD);
-              expm2 = exp(-grij * grij);
-              t = 1.0 / (1.0 + EWALD_P * grij);
-              u = 1.0 - t;
-              erfc =
-                  t * (1. + u * (B0 + u * (B1 + u * (B2 + u * (B3 + u * (B4 + u * B5)))))) * expm2;
-              prefactor /= (r + EPS_EWALD);
-              forcecoul = prefactor * (erfc + EWALD_F * grij * expm2 - (1.0 - factor_coul));
-              // Additionally r2inv needs to be accordingly modified since the later
-              // scaling of the overall force shall be consistent
-              r2inv = 1.0 / (rsq + EPS_EWALD_SQR);
-            } else {
-              grij = g_ewald * r;
-              expm2 = exp(-grij * grij);
-              t = 1.0 / (1.0 + EWALD_P * grij);
-              u = 1.0 - t;
-              erfc =
-                  t * (1. + u * (B0 + u * (B1 + u * (B2 + u * (B3 + u * (B4 + u * B5)))))) * expm2;
-              prefactor /= r;
-              forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
-            }
-          } else {
-            union_int_float_t rsq_lookup;
-            rsq_lookup.f = rsq;
-            itable = rsq_lookup.i & ncoulmask;
-            itable >>= ncoulshiftbits;
-            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
-            table = ftable[itable] + fraction * dftable[itable];
-            forcecoul = qtmp * q[j] * table;
-            if (factor_coul < 1.0) {
-              table = ctable[itable] + fraction * dctable[itable];
-              prefactor = qtmp * q[j] * table;
-              forcecoul -= (1.0 - factor_coul) * prefactor;
-            }
-          }
-
-          forcecoul *= r2inv;
-
-        } else
-          forcecoul = 0;
-
-        r2inv = 1.0 / rsq;
-        r = sqrt(rsq);
-        if (rsq < cut_ljsq[itype][jtype]) {
-          r6inv = r2inv * r2inv * r2inv;
-          rexp = exp((sigma[itype][jtype] - r) * rhoinv[itype][jtype]);
-          forceborn = born1[itype][jtype] * r * rexp - born2[itype][jtype] * r6inv +
-              born3[itype][jtype] * r2inv * r6inv;
-        } else
-          forceborn = 0.0;
-
-        fpair = forcecoul + factor_lj * forceborn * r2inv;
-
-        f[i][0] += delx * fpair;
-        f[i][1] += dely * fpair;
-        f[i][2] += delz * fpair;
-
-        if (eflag) {
-          if (rsq < cut_coulsq) {
-            ecoul = prefactor * erfc;
-            if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
-          } else
-            ecoul = 0.0;
-          if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = a[itype][jtype] * rexp - c[itype][jtype] * r6inv +
-                d[itype][jtype] * r6inv * r2inv - offset[itype][jtype];
-            evdwl *= factor_lj;
-          } else
-            evdwl = 0.0;
-        }
-
-        if (evflag) ev_tally_full(i, evdwl, ecoul, fpair, delx, dely, delz);
-      }
-    }
-  }
-}

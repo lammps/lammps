@@ -132,7 +132,7 @@ void YukawaColloidT::compute(const int f_ago, const int inum_full,
                const int nall, double **host_x, int *host_type, int *ilist,
                int *numj, int **firstneigh, const bool eflag_in,
                const bool vflag_in, const bool eatom, const bool vatom,
-               int &host_start, const double cpu_time, bool &success,
+               bool &success,
                double *rad) {
   this->acc_timers();
   int eflag, vflag;
@@ -163,7 +163,6 @@ void YukawaColloidT::compute(const int f_ago, const int inum_full,
   // ----------------------------------------------------------------
 
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
@@ -173,7 +172,6 @@ void YukawaColloidT::compute(const int f_ago, const int inum_full,
   int ago=f_ago;
   int inum=inum_full; this->_timestep++;
   this->ans->inum(inum);
-  host_start=inum;
 
   // -----------------------------------------------------------------
 
@@ -201,8 +199,7 @@ int** YukawaColloidT::compute(const int ago, const int inum_full,
                 const int nall, double **host_x, int *host_type, double *sublo,
                 double *subhi, tagint *tag, int **nspecial,
                 tagint **special, const bool eflag_in, const bool vflag_in,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **jnum, const double cpu_time, bool &success,
+                const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success,
                 double *rad, double *prd, int *periodicity) {
   this->acc_timers();
   int eflag, vflag;
@@ -233,7 +230,6 @@ int** YukawaColloidT::compute(const int ago, const int inum_full,
   // -----------------------------------------------------------------
 
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
@@ -242,7 +238,6 @@ int** YukawaColloidT::compute(const int ago, const int inum_full,
 
   int inum=inum_full; this->_timestep++;
   this->ans->inum(inum);
-  host_start=inum;
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
@@ -265,7 +260,7 @@ int** YukawaColloidT::compute(const int ago, const int inum_full,
   this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   this->device->add_ans_object(this->ans);
 
-  return this->nbor->host_jlist.begin()-host_start;
+  return this->nbor->host_jlist.begin()-inum;
 }
 
 // ---------------------------------------------------------------------------

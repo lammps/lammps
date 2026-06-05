@@ -40,7 +40,6 @@ PairDPDTstatGPU::PairDPDTstatGPU(LAMMPS *lmp) : PairDPDTstat(lmp), gpu_mode(GPU_
 {
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -75,7 +74,7 @@ void PairDPDTstatGPU::compute(int eflag, int vflag)
   }
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   double dtinvsqrt = 1.0 / sqrt(update->dt);
 
@@ -96,27 +95,21 @@ void PairDPDTstatGPU::compute(int eflag, int vflag)
     inum = atom->nlocal;
     firstneigh = dpd_tstat_gpu_compute_n(
         neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag, atom->nspecial,
-        atom->special, eflag, vflag, eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
-        cpu_time, success, atom->v, dtinvsqrt, seed, update->ntimestep, domain->boxlo, domain->prd);
+        atom->special, eflag, vflag, eflag_atom, vflag_atom, &ilist, &numneigh,
+        success, atom->v, dtinvsqrt, seed, update->ntimestep, domain->boxlo, domain->prd);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     dpd_tstat_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh,
-                          firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-                          success, atom->tag, atom->v, dtinvsqrt, seed, update->ntimestep,
+                          firstneigh, eflag, vflag, eflag_atom, vflag_atom, success, atom->tag, atom->v, dtinvsqrt, seed, update->ntimestep,
                           atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
     neighbor->build_topology();
-  if (host_start < inum) {
-    cpu_time = platform::walltime();
-    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = platform::walltime() - cpu_time;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -161,88 +154,3 @@ double PairDPDTstatGPU::memory_usage()
   return bytes + dpd_tstat_gpu_bytes();
 }
 
-/* ---------------------------------------------------------------------- */
-
-void PairDPDTstatGPU::cpu_compute(int start, int inum, int /* eflag */, int /* vflag */, int *ilist,
-                                  int *numneigh, int **firstneigh)
-{
-  int i, j, ii, jj, jnum, itype, jtype;
-  double xtmp, ytmp, ztmp, delx, dely, delz, fpair;
-  double vxtmp, vytmp, vztmp, delvx, delvy, delvz;
-  double rsq, r, rinv, dot, wd, randnum, factor_dpd, factor_sqrt;
-  int *jlist;
-  tagint itag, jtag;
-
-  double **x = atom->x;
-  double **v = atom->v;
-  double **f = atom->f;
-  int *type = atom->type;
-  tagint *tag = atom->tag;
-  double *special_lj = force->special_lj;
-  double dtinvsqrt = 1.0 / sqrt(update->dt);
-  int timestep = (int) update->ntimestep;
-
-  // loop over neighbors of my atoms
-
-  for (ii = start; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    vxtmp = v[i][0];
-    vytmp = v[i][1];
-    vztmp = v[i][2];
-    itype = type[i];
-    itag = tag[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_dpd = special_lj[sbmask(j)];
-      factor_sqrt = special_sqrt[sbmask(j)];
-      j &= NEIGHMASK;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx * delx + dely * dely + delz * delz;
-      jtype = type[j];
-      jtag = tag[j];
-
-      if (rsq < cutsq[itype][jtype]) {
-        r = sqrt(rsq);
-        if (r < EPSILON) continue;    // r can be 0.0 in DPD systems
-        rinv = 1.0 / r;
-        delvx = vxtmp - v[j][0];
-        delvy = vytmp - v[j][1];
-        delvz = vztmp - v[j][2];
-        dot = delx * delvx + dely * delvy + delz * delvz;
-        wd = 1.0 - r / cut[itype][jtype];
-
-        unsigned int tag1 = itag, tag2 = jtag;
-        if (tag1 > tag2) {
-          tag1 = jtag;
-          tag2 = itag;
-        }
-
-        randnum = 0.0;
-        saru(tag1, tag2, seed, timestep, randnum);
-
-        // conservative force = a0 * wd
-        // drag force = -gamma * wd^2 * (delx dot delv) / r
-        // random force = sigma * wd * rnd * dtinvsqrt;
-
-        fpair = -factor_dpd * gamma[itype][jtype] * wd * wd * dot * rinv;
-        fpair += factor_sqrt * sigma[itype][jtype] * wd * randnum * dtinvsqrt;
-        fpair *= rinv;
-
-        f[i][0] += delx * fpair;
-        f[i][1] += dely * fpair;
-        f[i][2] += delz * fpair;
-
-        if (evflag) ev_tally_full(i, 0.0, 0.0, fpair, delx, dely, delz);
-      }
-    }
-  }
-}

@@ -37,7 +37,6 @@ using namespace LAMMPS_GPU;
 
 PairTersoffZBLGPU::PairTersoffZBLGPU(LAMMPS *lmp) : PairTersoffZBL(lmp), gpu_mode(GPU_FORCE)
 {
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
@@ -62,7 +61,7 @@ void PairTersoffZBLGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -81,8 +80,8 @@ void PairTersoffZBLGPU::compute(int eflag, int vflag)
     inum = atom->nlocal;
     firstneigh = tersoff_zbl_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo,
                                            subhi, atom->tag, atom->nspecial, atom->special, eflag,
-                                           vflag, eflag_atom, vflag_atom, host_start, &ilist,
-                                           &numneigh, cpu_time, success);
+                                           vflag, eflag_atom, vflag_atom, &ilist,
+                                           &numneigh, success);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -91,7 +90,7 @@ void PairTersoffZBLGPU::compute(int eflag, int vflag)
 
     tersoff_zbl_gpu_compute(neighbor->ago, inum, nall, inum + list->gnum, atom->x, atom->type,
                             ilist, numneigh, firstneigh, eflag, vflag, eflag_atom, vflag_atom,
-                            host_start, cpu_time, success);
+                            success);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)

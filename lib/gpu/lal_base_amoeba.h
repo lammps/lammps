@@ -149,8 +149,7 @@ class BaseAmoeba {
                 tagint *tag, int **nspecial, tagint **special,
                 int *nspecial15, tagint **special15,
                 const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **&ilist, int **&numj, const double cpu_time, bool &success,
+                const bool eatom, const bool vatom, int **&ilist, int **&numj, bool &success,
                 double *charge, double *boxlo, double *prd);
 
   /// Compute multipole real-space with device neighboring
@@ -160,8 +159,7 @@ class BaseAmoeba {
                 double *sublo, double *subhi, tagint *tag,
                 int **nspecial, tagint **special, int *nspecial15, tagint **special15,
                 const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-                int &host_start, int **ilist, int **numj, const double cpu_time,
-                bool &success, const double aewald, const double felec,
+                int **ilist, int **numj, bool &success, const double aewald, const double felec,
                 const double off2_mpole, double *charge, double *boxlo,
                 double *prd, void **tep_ptr);
 

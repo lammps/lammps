@@ -366,7 +366,6 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
                              int *ilist, int *numj, int **firstneigh,
                              const bool eflag_in, const bool vflag_in,
                              const bool eatom, const bool vatom,
-                             int &host_start, const double cpu_time,
                              bool &success, const int *ellipsoid,
                              const EllipsoidBonus *bonus) {
   acc_timers();
@@ -378,7 +377,6 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
 
   set_kernel(eflag,vflag);
   if (inum_full==0) {
-    host_start=0;
     zero_timers();
     return nullptr;
   }
@@ -388,7 +386,6 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
   _timestep++;
   ans->inum(inum);
   _last_ellipse=std::min(inum,_max_last_ellipse);
-  host_start=inum;
 
   if (ago==0) {
     reset_nbors(nall, inum, inum_full, ilist, numj, host_type, firstneigh,
@@ -423,8 +420,8 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full,
                               int **nspecial, tagint **special,
                               const bool eflag_in, const bool vflag_in,
                               const bool eatom, const bool vatom,
-                              int &host_start, int **ilist, int **jnum,
-                              const double cpu_time, bool &success,
+                              int **ilist, int **jnum,
+                              bool &success,
                               const int *ellipsoid,
                               const EllipsoidBonus *bonus) {
   acc_timers();
@@ -436,7 +433,6 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full,
 
   set_kernel(eflag,vflag);
   if (inum_full==0) {
-    host_start=0;
     zero_timers();
     return nullptr;
   }
@@ -445,7 +441,6 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full,
   _timestep++;
   ans->inum(inum);
   _last_ellipse=std::min(inum,_max_last_ellipse);
-  host_start=inum;
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
@@ -468,7 +463,7 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full,
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,inum);
   device->add_ans_object(ans);
 
-  return nbor->host_jlist.begin()-host_start;
+  return nbor->host_jlist.begin()-inum;
 }
 
 template <class numtyp, class acctyp>

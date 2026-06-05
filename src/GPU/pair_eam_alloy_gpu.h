@@ -45,7 +45,6 @@ class PairEAMAlloyGPU : public PairEAM {
   void file2array() override;
 
   int gpu_mode;
-  double cpu_time;
   void *fp_pinned;
   bool fp_single;
 };

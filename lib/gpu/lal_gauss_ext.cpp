@@ -37,7 +37,6 @@ int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
                    const double cell_size, int &gpu_mode, FILE *screen) {
   GLMF.clear();
   gpu_mode=GLMF.device->gpu_mode();
-  double gpu_split=GLMF.device->particle_split();
   int first_gpu=GLMF.device->first_device();
   int last_gpu=GLMF.device->last_device();
   int world_me=GLMF.device->world_me();
@@ -59,7 +58,7 @@ int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
   if (world_me==0)
     init_ok=GLMF.init(ntypes, cutsq, host_a, host_b,
                        offset, special_lj, inum, nall, max_nbors,
-                       maxspecial, cell_size, gpu_split, screen);
+                       maxspecial, cell_size, screen);
 
   GLMF.device->world_barrier();
   if (message)
@@ -77,7 +76,7 @@ int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
     if (gpu_rank==i && world_me!=0)
       init_ok=GLMF.init(ntypes, cutsq, host_a, host_b,
                         offset, special_lj, inum, nall, max_nbors, maxspecial,
-                        cell_size, gpu_split, screen);
+                        cell_size, screen);
 
     GLMF.device->serialize_init();
     if (message)

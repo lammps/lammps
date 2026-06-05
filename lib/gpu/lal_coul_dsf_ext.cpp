@@ -38,7 +38,6 @@ int cdsf_gpu_init(const int ntypes, const int inum, const int nall,
                   const double alpha) {
   CDMF.clear();
   gpu_mode=CDMF.device->gpu_mode();
-  double gpu_split=CDMF.device->particle_split();
   int first_gpu=CDMF.device->first_device();
   int last_gpu=CDMF.device->last_device();
   int world_me=CDMF.device->world_me();
@@ -58,8 +57,7 @@ int cdsf_gpu_init(const int ntypes, const int inum, const int nall,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=CDMF.init(ntypes, inum, nall, max_nbors, maxspecial, cell_size,
-                      gpu_split, screen, host_cut_coulsq, host_special_coul,
+    init_ok=CDMF.init(ntypes, inum, nall, max_nbors, maxspecial, cell_size, screen, host_cut_coulsq, host_special_coul,
                       qqrd2e, e_shift, f_shift, alpha);
 
   CDMF.device->world_barrier();
@@ -76,8 +74,7 @@ int cdsf_gpu_init(const int ntypes, const int inum, const int nall,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=CDMF.init(ntypes, inum, nall, max_nbors, maxspecial, cell_size,
-                        gpu_split, screen, host_cut_coulsq, host_special_coul,
+      init_ok=CDMF.init(ntypes, inum, nall, max_nbors, maxspecial, cell_size, screen, host_cut_coulsq, host_special_coul,
                         qqrd2e, e_shift, f_shift, alpha);
 
     CDMF.device->serialize_init();

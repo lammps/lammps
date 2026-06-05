@@ -38,7 +38,6 @@ int mor_gpu_init(const int ntypes, double **cutsq,
                  FILE *screen) {
   MORMF.clear();
   gpu_mode=MORMF.device->gpu_mode();
-  double gpu_split=MORMF.device->particle_split();
   int first_gpu=MORMF.device->first_device();
   int last_gpu=MORMF.device->last_device();
   int world_me=MORMF.device->world_me();
@@ -60,7 +59,7 @@ int mor_gpu_init(const int ntypes, double **cutsq,
   if (world_me==0)
     init_ok=MORMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
                        host_lj4, offset, special_lj, inum, nall, max_nbors,
-                       maxspecial, cell_size, gpu_split, screen);
+                       maxspecial, cell_size, screen);
 
   MORMF.device->world_barrier();
   if (message)
@@ -78,7 +77,7 @@ int mor_gpu_init(const int ntypes, double **cutsq,
     if (gpu_rank==i && world_me!=0)
       init_ok=MORMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                          offset, special_lj, inum, nall, max_nbors, maxspecial,
-                         cell_size, gpu_split, screen);
+                         cell_size, screen);
 
     MORMF.device->serialize_init();
     if (message)

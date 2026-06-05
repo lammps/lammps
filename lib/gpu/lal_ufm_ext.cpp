@@ -39,7 +39,6 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
                  int &gpu_mode, FILE *screen) {
   UFMLMF.clear();
   gpu_mode=UFMLMF.device->gpu_mode();
-  double gpu_split=UFMLMF.device->particle_split();
   int first_gpu=UFMLMF.device->first_device();
   int last_gpu=UFMLMF.device->last_device();
   int world_me=UFMLMF.device->world_me();
@@ -61,7 +60,7 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
   if (world_me==0)
     init_ok=UFMLMF.init(ntypes, cutsq, host_uf1, host_uf2, host_uf3,
                         offset, special_lj, inum, nall, max_nbors,
-                        maxspecial, cell_size, gpu_split, screen);
+                        maxspecial, cell_size, screen);
 
   UFMLMF.device->world_barrier();
   if (message)
@@ -79,7 +78,7 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
     if (gpu_rank==i && world_me!=0)
       init_ok=UFMLMF.init(ntypes, cutsq, host_uf1, host_uf2, host_uf3,
                          offset, special_lj, inum, nall, max_nbors, maxspecial,
-                         cell_size, gpu_split, screen);
+                         cell_size, screen);
 
     UFMLMF.device->serialize_init();
     if (message)

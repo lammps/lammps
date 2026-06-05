@@ -37,7 +37,6 @@ int cdebye_gpu_init(const int ntypes, double **host_scale, double **cutsq,
                     const double qqrd2e, const double kappa) {
   CDEMF.clear();
   gpu_mode=CDEMF.device->gpu_mode();
-  double gpu_split=CDEMF.device->particle_split();
   int first_gpu=CDEMF.device->first_device();
   int last_gpu=CDEMF.device->last_device();
   int world_me=CDEMF.device->world_me();
@@ -58,7 +57,7 @@ int cdebye_gpu_init(const int ntypes, double **host_scale, double **cutsq,
   int init_ok=0;
   if (world_me==0)
     init_ok=CDEMF.init(ntypes, host_scale, cutsq, host_special_coul, inum, nall, max_nbors,
-                       maxspecial, cell_size, gpu_split, screen, qqrd2e, kappa);
+                       maxspecial, cell_size, screen, qqrd2e, kappa);
 
   CDEMF.device->world_barrier();
   if (message)
@@ -75,7 +74,7 @@ int cdebye_gpu_init(const int ntypes, double **host_scale, double **cutsq,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=CDEMF.init(ntypes, host_scale, cutsq, host_special_coul, inum, nall, max_nbors,
-                         maxspecial, cell_size, gpu_split, screen, qqrd2e, kappa);
+                         maxspecial, cell_size, screen, qqrd2e, kappa);
 
     CDEMF.device->serialize_init();
     if (message)

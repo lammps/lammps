@@ -29,7 +29,6 @@ public:
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     *
     * Returns:
     * -  0 if successful
@@ -44,7 +43,7 @@ public:
            const double alpha, const double qdist,
            const int nall, const int max_nbors,
            const int maxspecial, const double cell_size,
-           const double gpu_split, FILE *screen,
+           FILE *screen,
            double **host_cut_ljsq,
            const double host_cut_coulsq, const double host_cut_coulsqplus,
            double *host_special_coul, const double qqrd2e,

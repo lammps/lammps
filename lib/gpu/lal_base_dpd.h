@@ -18,7 +18,6 @@
 #define LAL_BASE_DPD_H
 
 #include "lal_device.h"
-#include "lal_balance.h"
 #include "mpi.h"
 
 #ifdef USE_OPENCL
@@ -40,7 +39,6 @@ class BaseDPD {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     * \param k_name name for the kernel for force calculation
     *
     * Returns:
@@ -51,7 +49,7 @@ class BaseDPD {
     * - -5 Double precision is not supported on card **/
   int init_atomic(const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const double cell_size,
-                  const double gpu_split, FILE *screen,
+                  FILE *screen,
                   const void *pair_program, const char *k_name,
                   const int onetype=0, const int extra_fields=0,
                   bool need_charges=false);
@@ -158,7 +156,6 @@ class BaseDPD {
   UCL_Timer time_pair;
 
   /// Host device load balancer
-  Balance<numtyp,acctyp> hd_balancer;
 
   /// LAMMPS pointer for screen output
   FILE *screen;

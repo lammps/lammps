@@ -40,7 +40,6 @@ int ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   const double g_ewald) {
   LJCLMF.clear();
   gpu_mode=LJCLMF.device->gpu_mode();
-  double gpu_split=LJCLMF.device->particle_split();
   int first_gpu=LJCLMF.device->first_device();
   int last_gpu=LJCLMF.device->last_device();
   int world_me=LJCLMF.device->world_me();
@@ -62,7 +61,7 @@ int ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   if (world_me==0)
     init_ok=LJCLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                         offset, special_lj, inum, nall, max_nbors, maxspecial,
-                        cell_size, gpu_split, screen, host_cut_ljsq,
+                        cell_size, screen, host_cut_ljsq,
                         host_cut_coulsq, host_special_coul, qqrd2e, g_ewald);
 
   LJCLMF.device->world_barrier();
@@ -81,7 +80,7 @@ int ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     if (gpu_rank==i && world_me!=0)
       init_ok=LJCLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                           offset, special_lj, inum, nall, max_nbors, maxspecial,
-                          cell_size, gpu_split, screen, host_cut_ljsq,
+                          cell_size, screen, host_cut_ljsq,
                           host_cut_coulsq, host_special_coul, qqrd2e, g_ewald);
 
     LJCLMF.device->serialize_init();

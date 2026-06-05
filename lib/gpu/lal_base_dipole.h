@@ -18,7 +18,6 @@
 #define LAL_BASE_DIPOLE_H
 
 #include "lal_device.h"
-#include "lal_balance.h"
 #include "mpi.h"
 
 #ifdef USE_OPENCL
@@ -40,7 +39,6 @@ class BaseDipole {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     * \param k_name name for the kernel for force calculation
     *
     * Returns:
@@ -51,7 +49,7 @@ class BaseDipole {
     * - -5 Double precision is not supported on card **/
   int init_atomic(const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const double cell_size,
-                  const double gpu_split, FILE *screen,
+                  FILE *screen,
                   const void *pair_program, const char *k_name);
 
   /// Estimate the overhead for GPU context changes and CPU driver
@@ -155,7 +153,6 @@ class BaseDipole {
   UCL_Timer time_pair;
 
   /// Host device load balancer
-  Balance<numtyp,acctyp> hd_balancer;
 
   /// LAMMPS pointer for screen output
   FILE *screen;
@@ -197,6 +194,7 @@ class BaseDipole {
   int _block_size, _threads_per_atom;
   double  _max_bytes, _max_an_bytes;
   double _gpu_overhead, _driver_overhead;
+  int _timestep;
   UCL_D_Vec<int> *_nbor_data;
 
   void compile_kernels(UCL_Device &dev, const void *pair_string, const char *k);

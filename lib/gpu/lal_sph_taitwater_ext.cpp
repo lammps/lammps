@@ -39,7 +39,6 @@ int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
                            const double cell_size, int &gpu_mode, FILE *screen) {
   SPHTaitwaterMF.clear();
   gpu_mode=SPHTaitwaterMF.device->gpu_mode();
-  double gpu_split=SPHTaitwaterMF.device->particle_split();
   int first_gpu=SPHTaitwaterMF.device->first_device();
   int last_gpu=SPHTaitwaterMF.device->last_device();
   int world_me=SPHTaitwaterMF.device->world_me();
@@ -62,7 +61,7 @@ int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
     init_ok=SPHTaitwaterMF.init(ntypes, cutsq, host_cut, host_viscosity, host_mass,
                                 host_rho0, host_soundspeed, host_B, dimension,
                                 special_lj, inum, nall, max_nbors,  maxspecial,
-                                cell_size, gpu_split, screen);
+                                cell_size, screen);
 
   SPHTaitwaterMF.device->world_barrier();
   if (message)
@@ -81,7 +80,7 @@ int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
       init_ok=SPHTaitwaterMF.init(ntypes, cutsq, host_cut, host_viscosity, host_mass,
                                   host_rho0, host_soundspeed, host_B, dimension,
                                   special_lj, inum, nall, max_nbors, maxspecial,
-                                  cell_size, gpu_split, screen);
+                                  cell_size, screen);
 
     SPHTaitwaterMF.device->serialize_init();
     if (message)

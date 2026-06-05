@@ -72,7 +72,7 @@ DeviceT::~Device() {
 template <class numtyp, class acctyp>
 int DeviceT::init_device(MPI_Comm /*world*/, MPI_Comm replica, const int ngpu,
                          const int first_gpu_id, const int gpu_mode,
-                         const double p_split, const int t_per_atom,
+                         const int t_per_atom,
                          const double user_cell_size, char *ocl_args,
                          const int ocl_platform, char *device_type_flags,
                          const int block_pair) {
@@ -88,7 +88,6 @@ int DeviceT::init_device(MPI_Comm /*world*/, MPI_Comm replica, const int ngpu,
   int ndevices=ngpu;
   _first_device=first_gpu_id;
   _gpu_mode=gpu_mode;
-  _particle_split=p_split;
   _user_cell_size=user_cell_size;
   _block_pair=block_pair;
 
@@ -288,7 +287,7 @@ int DeviceT::init_device(MPI_Comm /*world*/, MPI_Comm replica, const int ngpu,
   if (_procs_per_gpu>1)
     _time_device=false;
 
-  if (!_time_device && _particle_split > 0)
+  if (!_time_device)
     gpu->configure_profiling(false);
 
   // Set up a per device communicator
@@ -515,9 +514,6 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
   _data_out_estimate=1;
 
   // Initial number of local particles
-  int ef_nlocal=nlocal;
-  if (_particle_split<1.0 && _particle_split>0.0)
-    ef_nlocal=static_cast<int>(_particle_split*nlocal);
 
   int gpu_nbor=0;
   if (_gpu_mode==Device<numtyp,acctyp>::GPU_NEIGH)
@@ -565,7 +561,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
       return -3;
   }
 
-  if (!ans.init(ef_nlocal,charge,rot,*gpu))
+  if (!ans.init(nlocal,charge,rot,*gpu))
     return -3;
 
   _init_count++;
@@ -602,9 +598,6 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
                        const int max_nbors, const double cutoff,
                        const bool pre_cut, const int threads_per_atom,
                        const bool ilist_map) {
-  int ef_nlocal=nlocal;
-  if (_particle_split<1.0 && _particle_split>0.0)
-    ef_nlocal=static_cast<int>(_particle_split*nlocal);
 
   // NOTE: enforce the hybrid mode (binning on the CPU)
   // when not using sorting on the device
@@ -629,7 +622,7 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
     return -17;
   #endif
 
-  if (!nbor->init(&_neighbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
+  if (!nbor->init(&_neighbor_shared,nlocal,host_nlocal,max_nbors,maxspecial,
                   *gpu,gpu_nbor,gpu_host,pre_cut,_block_cell_2d,
                   _block_cell_id, _block_nbor_build, threads_per_atom,
                   _simd_size, _time_device, compile_string(), ilist_map))
@@ -860,7 +853,7 @@ void DeviceT::estimate_gpu_overhead(const int kernel_calls,
 
 template <class numtyp, class acctyp>
 void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
-                           Neighbor &nbor, const double avg_split,
+                           Neighbor &nbor,
                            const double max_bytes, const double gpu_overhead,
                            const double driver_overhead,
                            const int threads_per_atom, FILE *screen) {
@@ -921,7 +914,6 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
       fprintf(screen,"CPU Cast/Pack:   %.4f s.\n",times[4]/_replica_size);
       fprintf(screen,"CPU Driver_Time: %.4f s.\n",times[6]/_replica_size);
       fprintf(screen,"CPU Idle_Time:   %.4f s.\n",times[7]/_replica_size);
-      fprintf(screen,"Average split:   %.4f.\n",avg_split);
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
       fprintf(screen,"Prefetch mode:   ");
       if (_nbor_prefetch==2) fprintf(screen,"Intrinsics.\n");
@@ -1213,12 +1205,12 @@ std::string lmp_gpu_device_info()
 
 int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                     const int first_gpu_id, const int gpu_mode,
-                    const double particle_split, const int t_per_atom,
+                    const int t_per_atom,
                     const double user_cell_size, char *opencl_config,
                     const int ocl_platform, char *device_type_flags,
                     const int block_pair) {
   return global_device.init_device(world,replica,ngpu,first_gpu_id,gpu_mode,
-                                   particle_split,t_per_atom,user_cell_size,
+                                   t_per_atom,user_cell_size,
                                    opencl_config,ocl_platform,
                                    device_type_flags,block_pair);
 }

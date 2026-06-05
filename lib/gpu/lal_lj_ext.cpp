@@ -37,7 +37,6 @@ int ljl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                  const double cell_size, int &gpu_mode, FILE *screen) {
   LJLMF.clear();
   gpu_mode=LJLMF.device->gpu_mode();
-  double gpu_split=LJLMF.device->particle_split();
   int first_gpu=LJLMF.device->first_device();
   int last_gpu=LJLMF.device->last_device();
   int world_me=LJLMF.device->world_me();
@@ -59,7 +58,7 @@ int ljl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   if (world_me==0)
     init_ok=LJLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
                        host_lj4, offset, special_lj, inum, nall, max_nbors,
-                       maxspecial, cell_size, gpu_split, screen);
+                       maxspecial, cell_size, screen);
 
   LJLMF.device->world_barrier();
   if (message)
@@ -77,7 +76,7 @@ int ljl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     if (gpu_rank==i && world_me!=0)
       init_ok=LJLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                          offset, special_lj, inum, nall, max_nbors, maxspecial,
-                         cell_size, gpu_split, screen);
+                         cell_size, screen);
 
     LJLMF.device->serialize_init();
     if (message)

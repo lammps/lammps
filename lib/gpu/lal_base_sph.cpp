@@ -54,7 +54,7 @@ int BaseSPHT::bytes_per_atom_atomic(const int max_nbors) const {
 template <class numtyp, class acctyp>
 int BaseSPHT::init_atomic(const int nlocal, const int nall,
                           const int max_nbors, const int maxspecial,
-                          const double cell_size, const double gpu_split,
+                          const double cell_size,
                           FILE *_screen, const void *pair_program,
                           const char *k_name, const int onetype,
                           const int extra_fields) {
@@ -66,10 +66,6 @@ int BaseSPHT::init_atomic(const int nlocal, const int nall,
   else if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
 
-  int _gpu_host=0;
-  int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_split,gpu_nbor);
-  if (host_nlocal>0)
-    _gpu_host=1;
 
   _threads_per_atom=device->threads_per_atom();
 
@@ -95,17 +91,16 @@ int BaseSPHT::init_atomic(const int nlocal, const int nall,
   } else
     _nbor_data=&(nbor->dev_nbor);
 
-  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
+  success = device->init_nbor(nbor,nlocal,0,nall,maxspecial,0,
                   max_nbors,cell_size,false,_threads_per_atom);
   if (success!=0)
     return success;
 
-  // Initialize host-device load balancer
-  hd_balancer.init(device,gpu_nbor,gpu_split);
 
   // Initialize timers for the selected GPU
   time_pair.init(*ucl_device);
   time_pair.zero();
+  _timestep=0;
 
   pos_tex.bind_float(atom->x,4);
   vel_tex.bind_float(atom->v,4);
@@ -124,14 +119,12 @@ template <class numtyp, class acctyp>
 void BaseSPHT::clear_atomic() {
   // Output any timing information
   acc_timers();
-  double avg_split=hd_balancer.all_avg_split();
-  _gpu_overhead*=hd_balancer.timestep();
-  _driver_overhead*=hd_balancer.timestep();
-  device->output_times(time_pair,*ans,*nbor,avg_split,_max_bytes+_max_an_bytes,
+  _gpu_overhead*=_timestep;
+  _driver_overhead*=_timestep;
+  device->output_times(time_pair,*ans,*nbor,_max_bytes+_max_an_bytes,
                        _gpu_overhead,_driver_overhead,_threads_per_atom,screen);
 
   time_pair.clear();
-  hd_balancer.clear();
 
   nbor->clear();
   ans->clear();
@@ -219,8 +212,9 @@ void BaseSPHT::compute(const int f_ago, const int inum_full, const int nall,
     return;
   }
 
-  int ago=hd_balancer.ago_first(f_ago);
-  int inum=hd_balancer.balance(ago,inum_full,cpu_time);
+  int ago=f_ago;
+  int inum=inum_full;
+  _timestep++;
   ans->inum(inum);
   host_start=inum;
 
@@ -232,14 +226,12 @@ void BaseSPHT::compute(const int f_ago, const int inum_full, const int nall,
 
   atom->cast_x_data(host_x,host_type);
   atom->cast_v_data(host_v,tag);
-  hd_balancer.start_timer();
   atom->add_x_data(host_x,host_type);
   atom->add_v_data(host_v,tag);
 
   const int red_blocks=loop(eflag,vflag);
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,ilist,red_blocks);
   device->add_ans_object(ans);
-  hd_balancer.stop_timer();
 }
 
 // ---------------------------------------------------------------------------
@@ -276,8 +268,8 @@ int** BaseSPHT::compute(const int ago, const int inum_full, const int nall,
     return nullptr;
   }
 
-  hd_balancer.balance(cpu_time);
-  int inum=hd_balancer.get_gpu_count(ago,inum_full);
+  int inum=inum_full;
+  _timestep++;
   ans->inum(inum);
   host_start=inum;
 
@@ -288,11 +280,9 @@ int** BaseSPHT::compute(const int ago, const int inum_full, const int nall,
     if (!success)
       return nullptr;
     atom->cast_v_data(host_v,tag);
-    hd_balancer.start_timer();
   } else {
     atom->cast_x_data(host_x,host_type);
     atom->cast_v_data(host_v,tag);
-    hd_balancer.start_timer();
     atom->add_x_data(host_x,host_type);
   }
   atom->add_v_data(host_v,tag);
@@ -302,7 +292,6 @@ int** BaseSPHT::compute(const int ago, const int inum_full, const int nall,
   const int red_blocks=loop(eflag,vflag);
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   device->add_ans_object(ans);
-  hd_balancer.stop_timer();
 
   return nbor->host_jlist.begin()-host_start;
 }

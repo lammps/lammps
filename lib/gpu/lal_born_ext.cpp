@@ -39,7 +39,6 @@ int born_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                   const double cell_size, int &gpu_mode, FILE *screen) {
   BORNMF.clear();
   gpu_mode=BORNMF.device->gpu_mode();
-  double gpu_split=BORNMF.device->particle_split();
   int first_gpu=BORNMF.device->first_device();
   int last_gpu=BORNMF.device->last_device();
   int world_me=BORNMF.device->world_me();
@@ -62,7 +61,7 @@ int born_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
     init_ok=BORNMF.init(ntypes, cutsq, host_rhoinv, host_born1, host_born2,
                         host_born3, host_a, host_c, host_d, sigma,
                         offset, special_lj, inum, nall, max_nbors,
-                        maxspecial, cell_size, gpu_split, screen);
+                        maxspecial, cell_size, screen);
 
   BORNMF.device->world_barrier();
   if (message)
@@ -81,7 +80,7 @@ int born_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
       init_ok=BORNMF.init(ntypes, cutsq, host_rhoinv, host_born1, host_born2,
                           host_born3, host_a, host_c, host_d, sigma,
                           offset, special_lj, inum, nall, max_nbors,
-                          maxspecial, cell_size, gpu_split, screen);
+                          maxspecial, cell_size, screen);
 
     BORNMF.device->serialize_init();
     if (message)

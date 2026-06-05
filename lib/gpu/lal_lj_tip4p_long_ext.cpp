@@ -43,7 +43,6 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     const double g_ewald, int map_size,int max_same) {
   LJTIP4PLMF.clear();
   gpu_mode=LJTIP4PLMF.device->gpu_mode();
-  double gpu_split=LJTIP4PLMF.device->particle_split();
   int first_gpu=LJTIP4PLMF.device->first_device();
   int last_gpu=LJTIP4PLMF.device->last_device();
   int world_me=LJTIP4PLMF.device->world_me();
@@ -66,7 +65,7 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     init_ok=LJTIP4PLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
         host_lj4, offset, special_lj, inum,
         tH, tO, alpha, qdist, nall, max_nbors,
-        maxspecial, cell_size, gpu_split, screen,
+        maxspecial, cell_size, screen,
         host_cut_ljsq, host_cut_coulsq, host_cut_coulsqplus,
         host_special_coul, qqrd2e, g_ewald, map_size, max_same);
 
@@ -87,7 +86,7 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
       init_ok=LJTIP4PLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
           offset, special_lj, inum,
           tH, tO, alpha, qdist, nall, max_nbors, maxspecial,
-          cell_size, gpu_split, screen, host_cut_ljsq,
+          cell_size, screen, host_cut_ljsq,
           host_cut_coulsq, host_cut_coulsqplus,
           host_special_coul, qqrd2e,
           g_ewald, map_size, max_same);

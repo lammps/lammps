@@ -39,7 +39,6 @@ int ljcs_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                  double *host_special_coul, const double qqrd2e) {
   LJCSMF.clear();
   gpu_mode=LJCSMF.device->gpu_mode();
-  double gpu_split=LJCSMF.device->particle_split();
   int first_gpu=LJCSMF.device->first_device();
   int last_gpu=LJCSMF.device->last_device();
   int world_me=LJCSMF.device->world_me();
@@ -61,7 +60,7 @@ int ljcs_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   if (world_me==0)
     init_ok=LJCSMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
                        host_lj4, offset, epsilon, special_lj, inum, nall, max_nbors,
-                       maxspecial, cell_size, gpu_split, screen, host_cut_ljsq,
+                       maxspecial, cell_size, screen, host_cut_ljsq,
                        host_cut_coulsq, host_special_coul, qqrd2e);
 
   LJCSMF.device->world_barrier();
@@ -80,7 +79,7 @@ int ljcs_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     if (gpu_rank==i && world_me!=0)
       init_ok=LJCSMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                          offset, epsilon, special_lj, inum, nall, max_nbors, maxspecial,
-                         cell_size, gpu_split, screen, host_cut_ljsq,
+                         cell_size, screen, host_cut_ljsq,
                          host_cut_coulsq, host_special_coul, qqrd2e);
 
     LJCSMF.device->gpu_barrier();

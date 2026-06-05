@@ -38,7 +38,6 @@ int zbl_gpu_init(const int ntypes, double **cutsq, double **host_sw1,
                  const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen) {
   ZBLMF.clear();
   gpu_mode=ZBLMF.device->gpu_mode();
-  double gpu_split=ZBLMF.device->particle_split();
   int first_gpu=ZBLMF.device->first_device();
   int last_gpu=ZBLMF.device->last_device();
   int world_me=ZBLMF.device->world_me();
@@ -61,7 +60,7 @@ int zbl_gpu_init(const int ntypes, double **cutsq, double **host_sw1,
     init_ok=ZBLMF.init(ntypes, cutsq, host_sw1, host_sw2, host_sw3, host_sw4,
                        host_sw5, host_d1a, host_d2a, host_d3a, host_d4a, host_zze,
                        cut_globalsq, cut_innersq, cut_inner,
-                       inum, nall, max_nbors, maxspecial, cell_size, gpu_split, screen);
+                       inum, nall, max_nbors, maxspecial, cell_size, screen);
 
   ZBLMF.device->world_barrier();
   if (message)
@@ -80,7 +79,7 @@ int zbl_gpu_init(const int ntypes, double **cutsq, double **host_sw1,
       init_ok=ZBLMF.init(ntypes, cutsq, host_sw1, host_sw2, host_sw3, host_sw4,
                          host_sw5, host_d1a, host_d2a, host_d3a, host_d4a, host_zze,
                          cut_globalsq, cut_innersq, cut_inner,
-                         inum, nall, max_nbors, maxspecial, cell_size, gpu_split, screen);
+                         inum, nall, max_nbors, maxspecial, cell_size, screen);
 
     ZBLMF.device->serialize_init();
     if (message)

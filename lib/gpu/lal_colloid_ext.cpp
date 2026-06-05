@@ -40,7 +40,6 @@ int colloid_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                      const double cell_size, int &gpu_mode, FILE *screen) {
   COLLMF.clear();
   gpu_mode=COLLMF.device->gpu_mode();
-  double gpu_split=COLLMF.device->particle_split();
   int first_gpu=COLLMF.device->first_device();
   int last_gpu=COLLMF.device->last_device();
   int world_me=COLLMF.device->world_me();
@@ -64,7 +63,7 @@ int colloid_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                         host_lj4, offset, special_lj, host_a12, host_a1,
                         host_a2, host_d1, host_d2, host_sigma3,
                         host_sigma6, host_form, inum, nall, max_nbors,
-                        maxspecial, cell_size, gpu_split, screen);
+                        maxspecial, cell_size, screen);
 
   COLLMF.device->world_barrier();
   if (message)
@@ -84,7 +83,7 @@ int colloid_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                           offset, special_lj, host_a12, host_a1, host_a2,
                           host_d1, host_d2, host_sigma3, host_sigma6, host_form,
                           inum, nall, max_nbors, maxspecial,
-                          cell_size, gpu_split, screen);
+                          cell_size, screen);
 
     COLLMF.device->serialize_init();
     if (message)

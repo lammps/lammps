@@ -39,7 +39,6 @@ int mie_gpu_init(const int ntypes, double **cutsq, double **host_mie1,
                  const double cell_size, int &gpu_mode, FILE *screen) {
   MLMF.clear();
   gpu_mode=MLMF.device->gpu_mode();
-  double gpu_split=MLMF.device->particle_split();
   int first_gpu=MLMF.device->first_device();
   int last_gpu=MLMF.device->last_device();
   int world_me=MLMF.device->world_me();
@@ -62,7 +61,7 @@ int mie_gpu_init(const int ntypes, double **cutsq, double **host_mie1,
     init_ok=MLMF.init(ntypes, cutsq, host_mie1, host_mie2,
                       host_mie3, host_mie4, host_gamA, host_gamR,
                       offset, special_lj, inum, nall, max_nbors,
-                      maxspecial, cell_size, gpu_split, screen);
+                      maxspecial, cell_size, screen);
 
   MLMF.device->world_barrier();
   if (message)
@@ -81,7 +80,7 @@ int mie_gpu_init(const int ntypes, double **cutsq, double **host_mie1,
       init_ok=MLMF.init(ntypes, cutsq, host_mie1, host_mie2,
                         host_mie3, host_mie4, host_gamA, host_gamR,
                         offset, special_lj, inum, nall, max_nbors, maxspecial,
-                        cell_size, gpu_split, screen);
+                        cell_size, screen);
 
     MLMF.device->serialize_init();
     if (message)

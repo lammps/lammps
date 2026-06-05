@@ -37,7 +37,6 @@ int csl_gpu_init(const int ntypes, double **host_scale,
                 const double qqrd2e, const double g_ewald, const double lamda) {
   CSLMF.clear();
   gpu_mode=CSLMF.device->gpu_mode();
-  double gpu_split=CSLMF.device->particle_split();
   int first_gpu=CSLMF.device->first_device();
   int last_gpu=CSLMF.device->last_device();
   int world_me=CSLMF.device->world_me();
@@ -58,7 +57,7 @@ int csl_gpu_init(const int ntypes, double **host_scale,
   int init_ok=0;
   if (world_me==0)
     init_ok=CSLMF.init(ntypes, host_scale, inum, nall, max_nbors, maxspecial,
-                      cell_size, gpu_split, screen, host_cut_coulsq,
+                      cell_size, screen, host_cut_coulsq,
                       host_special_coul, qqrd2e, g_ewald, lamda);
 
   CSLMF.device->world_barrier();
@@ -76,7 +75,7 @@ int csl_gpu_init(const int ntypes, double **host_scale,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=CSLMF.init(ntypes, host_scale, inum, nall, max_nbors, maxspecial,
-                        cell_size, gpu_split, screen, host_cut_coulsq,
+                        cell_size, screen, host_cut_coulsq,
                         host_special_coul, qqrd2e, g_ewald, lamda);
 
     CSLMF.device->serialize_init();

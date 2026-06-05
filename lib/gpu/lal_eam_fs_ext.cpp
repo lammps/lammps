@@ -41,16 +41,12 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
                  int &gpu_mode, FILE *screen, int &fp_size) {
   EAMFSMF.clear();
   gpu_mode=EAMFSMF.device->gpu_mode();
-  double gpu_split=EAMFSMF.device->particle_split();
   int first_gpu=EAMFSMF.device->first_device();
   int last_gpu=EAMFSMF.device->last_device();
   int world_me=EAMFSMF.device->world_me();
   int gpu_rank=EAMFSMF.device->gpu_rank();
   int procs_per_gpu=EAMFSMF.device->procs_per_gpu();
 
-  // disable host/device split for now
-  if (gpu_split != 1.0)
-    return -8;
 
   fp_size=sizeof(PRECISION);
 
@@ -70,8 +66,7 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
     init_ok=EAMFSMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
                        host_type2frho, host_rhor_spline, host_z2r_spline,
                        host_frho_spline, host_cutsq, rdr, rdrho, rhomax, nrhor, nrho, nz2r,
-                       nfrho, nr, nlocal, nall, max_nbors, maxspecial, cell_size,
-                       gpu_split, screen);
+                       nfrho, nr, nlocal, nall, max_nbors, maxspecial, cell_size, screen);
 
   EAMFSMF.device->world_barrier();
   if (message)
@@ -91,7 +86,7 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
                          host_type2frho, host_rhor_spline, host_z2r_spline,
                          host_frho_spline, host_cutsq, rdr, rdrho, rhomax, nrhor, nrho,
                          nz2r, nfrho, nr, nlocal, nall, max_nbors, maxspecial,
-                         cell_size, gpu_split, screen);
+                         cell_size, screen);
 
     EAMFSMF.device->serialize_init();
     if (message)

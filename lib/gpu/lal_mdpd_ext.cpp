@@ -39,7 +39,6 @@ int mdpd_gpu_init(const int ntypes, double **cutsq,
                   const double cell_size, int &gpu_mode, FILE *screen) {
   MDPDMF.clear();
   gpu_mode=MDPDMF.device->gpu_mode();
-  double gpu_split=MDPDMF.device->particle_split();
   int first_gpu=MDPDMF.device->first_device();
   int last_gpu=MDPDMF.device->last_device();
   int world_me=MDPDMF.device->world_me();
@@ -61,7 +60,7 @@ int mdpd_gpu_init(const int ntypes, double **cutsq,
   if (world_me==0)
     init_ok=MDPDMF.init(ntypes, cutsq, host_A_att, host_B_rep, host_gamma, host_sigma,
                         host_cut, host_cut_r, special_lj, inum, nall, max_nbors,
-                        maxspecial, cell_size, gpu_split, screen);
+                        maxspecial, cell_size, screen);
 
   MDPDMF.device->world_barrier();
   if (message)
@@ -79,7 +78,7 @@ int mdpd_gpu_init(const int ntypes, double **cutsq,
     if (gpu_rank==i && world_me!=0)
       init_ok=MDPDMF.init(ntypes, cutsq, host_A_att, host_B_rep, host_gamma, host_sigma,
                           host_cut, host_cut_r, special_lj, inum, nall, max_nbors,
-                          maxspecial, cell_size, gpu_split, screen);
+                          maxspecial, cell_size, screen);
 
     MDPDMF.device->serialize_init();
     if (message)

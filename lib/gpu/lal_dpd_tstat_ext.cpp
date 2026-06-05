@@ -37,7 +37,6 @@ int dpd_tstat_gpu_init(const int ntypes, double **cutsq, double **host_a0,
                        const double cell_size, int &gpu_mode, FILE *screen) {
   DPDTMF.clear();
   gpu_mode=DPDTMF.device->gpu_mode();
-  double gpu_split=DPDTMF.device->particle_split();
   int first_gpu=DPDTMF.device->first_device();
   int last_gpu=DPDTMF.device->last_device();
   int world_me=DPDTMF.device->world_me();
@@ -59,7 +58,7 @@ int dpd_tstat_gpu_init(const int ntypes, double **cutsq, double **host_a0,
   if (world_me==0)
     init_ok=DPDTMF.init(ntypes, cutsq, host_a0, host_gamma, host_sigma,
                        host_cut, special_lj, true, inum, nall, 300,
-                       maxspecial, cell_size, gpu_split, screen);
+                       maxspecial, cell_size, screen);
 
   DPDTMF.device->world_barrier();
   if (message)
@@ -77,7 +76,7 @@ int dpd_tstat_gpu_init(const int ntypes, double **cutsq, double **host_a0,
     if (gpu_rank==i && world_me!=0)
       init_ok=DPDTMF.init(ntypes, cutsq, host_a0, host_gamma, host_sigma,
                          host_cut, special_lj, true, inum, nall, 300,
-                         maxspecial, cell_size, gpu_split, screen);
+                         maxspecial, cell_size, screen);
 
     DPDTMF.device->serialize_init();
     if (message)

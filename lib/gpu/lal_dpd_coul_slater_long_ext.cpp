@@ -40,7 +40,6 @@ int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double 
                                   const double g_ewald, const double lamda) {
   DPDCMF.clear();
   gpu_mode=DPDCMF.device->gpu_mode();
-  double gpu_split=DPDCMF.device->particle_split();
   int first_gpu=DPDCMF.device->first_device();
   int last_gpu=DPDCMF.device->last_device();
   int world_me=DPDCMF.device->world_me();
@@ -62,7 +61,7 @@ int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double 
   if (world_me==0)
     init_ok=DPDCMF.init(ntypes, host_cutsq, host_a0, host_gamma, host_sigma, host_cut_dpd,
                         host_cut_dpdsq, host_cut_slatersq, special_lj, false, inum, nall,
-                        max_nbors, maxspecial, cell_size, gpu_split, screen, host_special_coul,
+                        max_nbors, maxspecial, cell_size, screen, host_special_coul,
                         qqrd2e, g_ewald, lamda);
 
   DPDCMF.device->world_barrier();
@@ -81,7 +80,7 @@ int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double 
     if (gpu_rank==i && world_me!=0)
       init_ok=DPDCMF.init(ntypes, host_cutsq, host_a0, host_gamma, host_sigma, host_cut_dpd,
                           host_cut_dpdsq, host_cut_slatersq, special_lj, false, inum, nall,
-                          max_nbors, maxspecial, cell_size, gpu_split, screen, host_special_coul,
+                          max_nbors, maxspecial, cell_size, screen, host_special_coul,
                           qqrd2e, g_ewald, lamda);
 
     DPDCMF.device->serialize_init();

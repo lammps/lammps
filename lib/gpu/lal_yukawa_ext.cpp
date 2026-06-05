@@ -37,7 +37,6 @@ int yukawa_gpu_init(const int ntypes, double **cutsq, double kappa,
                  int &gpu_mode, FILE *screen) {
   YKMF.clear();
   gpu_mode=YKMF.device->gpu_mode();
-  double gpu_split=YKMF.device->particle_split();
   int first_gpu=YKMF.device->first_device();
   int last_gpu=YKMF.device->last_device();
   int world_me=YKMF.device->world_me();
@@ -58,8 +57,7 @@ int yukawa_gpu_init(const int ntypes, double **cutsq, double kappa,
   int init_ok=0;
   if (world_me==0)
     init_ok=YKMF.init(ntypes, cutsq, kappa, host_a, offset, special_lj,
-                      inum, nall, max_nbors, maxspecial, cell_size,
-                      gpu_split, screen);
+                      inum, nall, max_nbors, maxspecial, cell_size, screen);
 
   YKMF.device->world_barrier();
   if (message)
@@ -76,8 +74,7 @@ int yukawa_gpu_init(const int ntypes, double **cutsq, double kappa,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=YKMF.init(ntypes, cutsq, kappa, host_a, offset, special_lj,
-                      inum, nall, max_nbors, maxspecial, cell_size,
-                      gpu_split, screen);
+                      inum, nall, max_nbors, maxspecial, cell_size, screen);
 
     YKMF.device->serialize_init();
     if (message)

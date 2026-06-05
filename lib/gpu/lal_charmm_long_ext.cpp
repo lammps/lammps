@@ -42,7 +42,6 @@ int crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
                   double **sigma, const bool mix_arithmetic) {
   CRMLMF.clear();
   gpu_mode=CRMLMF.device->gpu_mode();
-  double gpu_split=CRMLMF.device->particle_split();
   int first_gpu=CRMLMF.device->first_device();
   int last_gpu=CRMLMF.device->last_device();
   int world_me=CRMLMF.device->world_me();
@@ -63,8 +62,7 @@ int crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
   int init_ok=0;
   if (world_me==0)
     CRMLMF.init(ntypes, cut_bothsq, host_lj1, host_lj2, host_lj3, host_lj4,
-                offset, special_lj, inum, nall, max_nbors, maxspecial, cell_size,
-                gpu_split, screen, host_cut_ljsq, host_cut_coulsq,
+                offset, special_lj, inum, nall, max_nbors, maxspecial, cell_size, screen, host_cut_ljsq, host_cut_coulsq,
                 host_special_coul, qqrd2e, g_ewald, cut_lj_innersq, denom_lj,
                 epsilon,sigma,mix_arithmetic);
 
@@ -84,7 +82,7 @@ int crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
     if (gpu_rank==i && world_me!=0)
       init_ok=CRMLMF.init(ntypes, cut_bothsq, host_lj1, host_lj2, host_lj3,
                           host_lj4, offset, special_lj, inum, nall, max_nbors,
-                          maxspecial, cell_size, gpu_split, screen,
+                          maxspecial, cell_size, screen,
                           host_cut_ljsq, host_cut_coulsq, host_special_coul,
                           qqrd2e, g_ewald,  cut_lj_innersq, denom_lj, epsilon,
                           sigma, mix_arithmetic);

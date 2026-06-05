@@ -37,7 +37,6 @@ int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
                     const double cell_size, int &gpu_mode, FILE *screen) {
   SPHLJMF.clear();
   gpu_mode=SPHLJMF.device->gpu_mode();
-  double gpu_split=SPHLJMF.device->particle_split();
   int first_gpu=SPHLJMF.device->first_device();
   int last_gpu=SPHLJMF.device->last_device();
   int world_me=SPHLJMF.device->world_me();
@@ -59,7 +58,7 @@ int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
   if (world_me==0)
     init_ok=SPHLJMF.init(ntypes, cutsq, host_cut, host_viscosity, host_mass,
                          dimension, special_lj, inum, nall, max_nbors,  maxspecial,
-                         cell_size, gpu_split, screen);
+                         cell_size, screen);
 
   SPHLJMF.device->world_barrier();
   if (message)
@@ -77,7 +76,7 @@ int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
     if (gpu_rank==i && world_me!=0)
       init_ok=SPHLJMF.init(ntypes, cutsq, host_cut, host_viscosity, host_mass,
                            dimension, special_lj, inum, nall, max_nbors, maxspecial,
-                           cell_size, gpu_split, screen);
+                           cell_size, screen);
 
     SPHLJMF.device->serialize_init();
     if (message)

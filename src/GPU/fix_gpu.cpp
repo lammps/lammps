@@ -240,7 +240,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   if (binsize == 0.0) binsize = -1.0;
   _binsize = binsize;
   int gpu_flag = lmp_init_device(universe->uworld, world, ngpu, first_gpu_id,
-                                 _gpu_mode, _particle_split, threads_per_atom,
+                                 _gpu_mode, threads_per_atom,
                                  binsize, opencl_args, ocl_platform,
                                  device_type_flags, block_pair);
   GPU_EXTRA::check_flag(gpu_flag,error,world);

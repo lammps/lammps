@@ -49,16 +49,12 @@ int tersoff_zbl_gpu_init(const int ntypes, const int inum, const int nall,
                      const double* ts_cutsq) {
   TSZMF.clear();
   gpu_mode=TSZMF.device->gpu_mode();
-  double gpu_split=TSZMF.device->particle_split();
   int first_gpu=TSZMF.device->first_device();
   int last_gpu=TSZMF.device->last_device();
   int world_me=TSZMF.device->world_me();
   int gpu_rank=TSZMF.device->gpu_rank();
   int procs_per_gpu=TSZMF.device->procs_per_gpu();
 
-  // disable host/device split for now
-  if (gpu_split != 1.0)
-    return -8;
 
   TSZMF.device->init_message(screen,"tersoff/zbl/gpu",first_gpu,last_gpu);
 
@@ -73,7 +69,7 @@ int tersoff_zbl_gpu_init(const int ntypes, const int inum, const int nall,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=TSZMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split, screen,
+    init_ok=TSZMF.init(ntypes, inum, nall, max_nbors, cell_size, screen,
                       host_map, nelements, host_elem2param, nparams,
                       ts_lam1, ts_lam2, ts_lam3, ts_powermint,
                       ts_biga, ts_bigb, ts_bigr, ts_bigd,
@@ -96,7 +92,7 @@ int tersoff_zbl_gpu_init(const int ntypes, const int inum, const int nall,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=TSZMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split, screen,
+      init_ok=TSZMF.init(ntypes, inum, nall, max_nbors, cell_size, screen,
                         host_map, nelements, host_elem2param, nparams,
                         ts_lam1, ts_lam2, ts_lam3, ts_powermint,
                         ts_biga, ts_bigb, ts_bigr, ts_bigd,

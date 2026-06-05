@@ -41,7 +41,6 @@ int buckcl_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                   const double g_ewald) {
   BUCKCLMF.clear();
   gpu_mode=BUCKCLMF.device->gpu_mode();
-  double gpu_split=BUCKCLMF.device->particle_split();
   int first_gpu=BUCKCLMF.device->first_device();
   int last_gpu=BUCKCLMF.device->last_device();
   int world_me=BUCKCLMF.device->world_me();
@@ -63,7 +62,7 @@ int buckcl_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
   if (world_me==0)
     init_ok=BUCKCLMF.init(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2,
                         host_a, host_c, offset, special_lj, inum, nall, max_nbors,
-                        maxspecial, cell_size, gpu_split, screen, host_cut_ljsq,
+                        maxspecial, cell_size, screen, host_cut_ljsq,
                         host_cut_coulsq, host_special_coul, qqrd2e, g_ewald);
 
   BUCKCLMF.device->world_barrier();
@@ -82,7 +81,7 @@ int buckcl_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
     if (gpu_rank==i && world_me!=0)
       init_ok=BUCKCLMF.init(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2,
                         host_a, host_c, offset, special_lj, inum, nall, max_nbors,
-                        maxspecial, cell_size, gpu_split, screen, host_cut_ljsq,
+                        maxspecial, cell_size, screen, host_cut_ljsq,
                         host_cut_coulsq, host_special_coul, qqrd2e, g_ewald);
 
     BUCKCLMF.device->serialize_init();

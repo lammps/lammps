@@ -48,7 +48,6 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                    const double polar_dscale, const double polar_uscale) {
   HIPPOMF.clear();
   gpu_mode=HIPPOMF.device->gpu_mode();
-  double gpu_split=HIPPOMF.device->particle_split();
   int first_gpu=HIPPOMF.device->first_device();
   int last_gpu=HIPPOMF.device->last_device();
   int world_me=HIPPOMF.device->world_me();
@@ -76,8 +75,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                          host_sizpr, host_dmppr, host_elepr,
                          host_csix, host_adisp, host_pcore, host_palpha,
                          nlocal, nall, max_nbors,
-                         maxspecial, maxspecial15, cell_size, gpu_split,
-                         screen, polar_dscale, polar_uscale);
+                         maxspecial, maxspecial15, cell_size, screen, polar_dscale, polar_uscale);
 
   HIPPOMF.device->world_barrier();
   if (message)
@@ -101,8 +99,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                            host_sizpr, host_dmppr, host_elepr,
                            host_csix, host_adisp, host_pcore, host_palpha,
                            nlocal, nall, max_nbors,
-                           maxspecial, maxspecial15, cell_size, gpu_split,
-                           screen, polar_dscale, polar_uscale);
+                           maxspecial, maxspecial15, cell_size, screen, polar_dscale, polar_uscale);
 
     HIPPOMF.device->gpu_barrier();
     if (message)

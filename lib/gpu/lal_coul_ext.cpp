@@ -37,7 +37,6 @@ int coul_gpu_init(const int ntypes, double **host_scale,
                   int &gpu_mode, FILE *screen, const double qqrd2e) {
   COULMF.clear();
   gpu_mode=COULMF.device->gpu_mode();
-  double gpu_split=COULMF.device->particle_split();
   int first_gpu=COULMF.device->first_device();
   int last_gpu=COULMF.device->last_device();
   int world_me=COULMF.device->world_me();
@@ -58,7 +57,7 @@ int coul_gpu_init(const int ntypes, double **host_scale,
   int init_ok=0;
   if (world_me==0)
     init_ok=COULMF.init(ntypes, host_scale, cutsq, special_coul, inum, nall, max_nbors,
-                       maxspecial, cell_size, gpu_split, screen, qqrd2e);
+                       maxspecial, cell_size, screen, qqrd2e);
 
   COULMF.device->world_barrier();
   if (message)
@@ -75,7 +74,7 @@ int coul_gpu_init(const int ntypes, double **host_scale,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=COULMF.init(ntypes, host_scale, cutsq, special_coul, inum, nall, max_nbors,
-                          maxspecial, cell_size, gpu_split, screen, qqrd2e);
+                          maxspecial, cell_size, screen, qqrd2e);
 
     COULMF.device->serialize_init();
     if (message)

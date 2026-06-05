@@ -38,7 +38,6 @@ int spica_gpu_init(const int ntypes, double **cutsq, int **cg_types,
                  FILE *screen) {
   CMMMF.clear();
   gpu_mode=CMMMF.device->gpu_mode();
-  double gpu_split=CMMMF.device->particle_split();
   int first_gpu=CMMMF.device->first_device();
   int last_gpu=CMMMF.device->last_device();
   int world_me=CMMMF.device->world_me();
@@ -60,7 +59,7 @@ int spica_gpu_init(const int ntypes, double **cutsq, int **cg_types,
   if (world_me==0)
     init_ok=CMMMF.init(ntypes,cutsq,cg_types,host_lj1,host_lj2,host_lj3,
                        host_lj4, offset, special_lj, inum, nall, max_nbors,
-                       maxspecial, cell_size, gpu_split, screen);
+                       maxspecial, cell_size, screen);
 
   CMMMF.device->world_barrier();
   if (message)
@@ -78,7 +77,7 @@ int spica_gpu_init(const int ntypes, double **cutsq, int **cg_types,
     if (gpu_rank==i && world_me!=0)
       init_ok=CMMMF.init(ntypes,cutsq,cg_types,host_lj1,host_lj2,host_lj3,
                          host_lj4, offset, special_lj, inum, nall, max_nbors,
-                         maxspecial, cell_size, gpu_split, screen);
+                         maxspecial, cell_size, screen);
 
     CMMMF.device->serialize_init();
     if (message)

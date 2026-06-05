@@ -39,7 +39,6 @@ int ljcb_gpu_init(const int ntypes, double **cutsq, double **cut_inner_sq,
                   int &gpu_mode, FILE *screen) {
   LJCubicLMF.clear();
   gpu_mode=LJCubicLMF.device->gpu_mode();
-  double gpu_split=LJCubicLMF.device->particle_split();
   int first_gpu=LJCubicLMF.device->first_device();
   int last_gpu=LJCubicLMF.device->last_device();
   int world_me=LJCubicLMF.device->world_me();
@@ -62,7 +61,7 @@ int ljcb_gpu_init(const int ntypes, double **cutsq, double **cut_inner_sq,
     init_ok=LJCubicLMF.init(ntypes, cutsq, cut_inner_sq, cut_inner, sigma,
                             epsilon, host_lj1, host_lj2, host_lj3, host_lj4,
                             special_lj, inum, nall, max_nbors, maxspecial,
-                            cell_size, gpu_split, screen);
+                            cell_size, screen);
 
   LJCubicLMF.device->world_barrier();
   if (message)
@@ -81,7 +80,7 @@ int ljcb_gpu_init(const int ntypes, double **cutsq, double **cut_inner_sq,
       init_ok=LJCubicLMF.init(ntypes, cutsq, cut_inner_sq, cut_inner, sigma,
                               epsilon, host_lj1, host_lj2, host_lj3, host_lj4,
                               special_lj, inum, nall, max_nbors, maxspecial,
-                              cell_size, gpu_split, screen);
+                              cell_size, screen);
 
     LJCubicLMF.device->serialize_init();
     if (message)

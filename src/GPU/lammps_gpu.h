@@ -49,7 +49,7 @@ bool lmp_gpu_requires_host_neighbor();
 std::string lmp_gpu_device_info();
 int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                     const int first_gpu_id, const int gpu_mode,
-                    const double particle_split, const int t_per_atom,
+                    const int t_per_atom,
                     const double user_cell_size, char *opencl_config,
                     const int ocl_platform, char *device_type_flags,
                     const int block_pair);

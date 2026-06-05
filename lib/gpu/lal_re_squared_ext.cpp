@@ -39,7 +39,6 @@ int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
                 const double cell_size, int &gpu_mode, FILE *screen) {
   REMF.clear();
   gpu_mode=REMF.device->gpu_mode();
-  double gpu_split=REMF.device->particle_split();
   int first_gpu=REMF.device->first_device();
   int last_gpu=REMF.device->last_device();
   int world_me=REMF.device->world_me();
@@ -61,8 +60,7 @@ int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
   if (world_me==0)
     init_ok=REMF.init(ntypes, shape, well, cutsq, sigma, epsilon,
                       form, host_lj1, host_lj2, host_lj3, host_lj4, offset,
-                      special_lj, inum, nall, max_nbors, maxspecial, cell_size,
-                      gpu_split, screen);
+                      special_lj, inum, nall, max_nbors, maxspecial, cell_size, screen);
 
   REMF.device->world_barrier();
   if (message)
@@ -81,7 +79,7 @@ int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
       init_ok=REMF.init(ntypes, shape, well, cutsq,  sigma, epsilon,
                         form, host_lj1, host_lj2, host_lj3,
                         host_lj4, offset, special_lj,  inum, nall,
-                        max_nbors, maxspecial, cell_size, gpu_split, screen);
+                        max_nbors, maxspecial, cell_size, screen);
 
     REMF.device->serialize_init();
     if (message)

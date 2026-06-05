@@ -41,7 +41,6 @@ int borncwcs_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                     const double alf, const double e_shift, const double f_shift) {
   BornCWCST.clear();
   gpu_mode=BornCWCST.device->gpu_mode();
-  double gpu_split=BornCWCST.device->particle_split();
   int first_gpu=BornCWCST.device->first_device();
   int last_gpu=BornCWCST.device->last_device();
   int world_me=BornCWCST.device->world_me();
@@ -64,7 +63,7 @@ int borncwcs_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
     init_ok=BornCWCST.init(ntypes, cutsq, host_rhoinv, host_born1, host_born2,
                           host_born3, host_a, host_c, host_d, sigma,
                           offset, special_lj, inum, nall, max_nbors,
-                          maxspecial, cell_size, gpu_split, screen, host_cut_ljsq,
+                          maxspecial, cell_size, screen, host_cut_ljsq,
                           host_cut_coulsq, host_special_coul, qqrd2e,
                           alf, e_shift, f_shift);
 
@@ -85,7 +84,7 @@ int borncwcs_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
       init_ok=BornCWCST.init(ntypes, cutsq, host_rhoinv, host_born1, host_born2,
                             host_born3, host_a, host_c, host_d, sigma,
                             offset, special_lj, inum, nall, max_nbors,
-                            maxspecial, cell_size, gpu_split, screen, host_cut_ljsq,
+                            maxspecial, cell_size, screen, host_cut_ljsq,
                             host_cut_coulsq, host_special_coul, qqrd2e,
                             alf, e_shift, f_shift);
 

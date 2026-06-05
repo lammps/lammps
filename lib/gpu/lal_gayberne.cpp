@@ -57,10 +57,10 @@ int GayBerneT::init(const int ntypes, const double gamma,
                          double **host_offset, const double *host_special_lj,
                          const int nlocal, const int nall, const int max_nbors,
                          const int maxspecial, const double cell_size,
-                         const double gpu_split, FILE *_screen) {
+                           FILE *_screen) {
   int success;
-  success=this->init_base(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                          _screen,ntypes,h_form,gayberne,gayberne_lj,
+  success=this->init_base(nlocal,nall,max_nbors,maxspecial,cell_size,
+                            _screen,ntypes,h_form,gayberne,gayberne_lj,
                           "k_gayberne");
   if (success!=0)
     return success;

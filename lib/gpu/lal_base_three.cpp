@@ -68,7 +68,7 @@ int BaseThreeT::bytes_per_atom_atomic(const int max_nbors) const {
 template <class numtyp, class acctyp>
 int BaseThreeT::init_three(const int nlocal, const int nall,
                            const int max_nbors, const int maxspecial,
-                           const double cell_size, const double gpu_split,
+                           const double cell_size,
                            FILE *_screen, const void *pair_program,
                            const char *two, const char *three_center,
                            const char *three_end, const char *short_nbor,
@@ -83,10 +83,6 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
     gpu_nbor=2;
   _gpu_nbor=gpu_nbor;
 
-  int _gpu_host=0;
-  int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_split,gpu_nbor);
-  if (host_nlocal>0)
-    _gpu_host=1;
 
   // Allow forcing threads per atom to 1 for tersoff due to subg sync issue
   if (tpa_override)
@@ -129,12 +125,11 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   if (success!=0)
     return success;
 
-  // Initialize host-device load balancer
-  hd_balancer.init(device,gpu_nbor,gpu_split);
 
   // Initialize timers for the selected GPU
   time_pair.init(*ucl_device);
   time_pair.zero();
+  _timestep=0;
 
   pos_tex.bind_float(atom->x,4);
 
@@ -159,14 +154,12 @@ template <class numtyp, class acctyp>
 void BaseThreeT::clear_atomic() {
   // Output any timing information
   acc_timers();
-  double avg_split=hd_balancer.all_avg_split();
-  _gpu_overhead*=hd_balancer.timestep();
-  _driver_overhead*=hd_balancer.timestep();
-  device->output_times(time_pair,*ans,*nbor,avg_split,_max_bytes+_max_an_bytes,
+  _gpu_overhead*=_timestep;
+  _driver_overhead*=_timestep;
+  device->output_times(time_pair,*ans,*nbor,_max_bytes+_max_an_bytes,
                        _gpu_overhead,_driver_overhead,_threads_per_atom,screen);
 
   time_pair.clear();
-  hd_balancer.clear();
 
   nbor->clear();
   ans->clear();
@@ -285,8 +278,9 @@ void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
     return;
   }
 
-  int ago=hd_balancer.ago_first(f_ago);
-  int inum=hd_balancer.balance(ago,inum_full,cpu_time);
+  int ago=f_ago;
+  int inum=inum_full;
+  _timestep++;
   ans->inum(inum);
   #ifdef THREE_CONCURRENT
   ans2->inum(inum);
@@ -300,7 +294,6 @@ void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
   }
 
   atom->cast_x_data(host_x,host_type);
-  hd_balancer.start_timer();
   atom->add_x_data(host_x,host_type);
 
   // _ainum to be used in loop() for short neighbor list build
@@ -319,7 +312,6 @@ void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
   ans2->copy_answers(eflag_in,vflag_in,eatom,vatom,ilist,red_blocks);
   device->add_ans_object(ans2);
   #endif
-  hd_balancer.stop_timer();
 }
 
 // ---------------------------------------------------------------------------
@@ -357,8 +349,8 @@ int ** BaseThreeT::compute(const int ago, const int inum_full, const int nall,
     return nullptr;
   }
 
-  hd_balancer.balance(cpu_time);
-  int inum=hd_balancer.get_gpu_count(ago,inum_full);
+  int inum=inum_full;
+  _timestep++;
   ans->inum(inum);
   #ifdef THREE_CONCURRENT
   ans2->inum(inum);
@@ -371,10 +363,8 @@ int ** BaseThreeT::compute(const int ago, const int inum_full, const int nall,
                     sublo, subhi, tag, nspecial, special, success);
     if (!success)
       return nullptr;
-    hd_balancer.start_timer();
   } else {
     atom->cast_x_data(host_x,host_type);
-    hd_balancer.start_timer();
     atom->add_x_data(host_x,host_type);
   }
   *ilist=nbor->host_ilist.begin();
@@ -396,7 +386,6 @@ int ** BaseThreeT::compute(const int ago, const int inum_full, const int nall,
   ans2->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   device->add_ans_object(ans2);
   #endif
-  hd_balancer.stop_timer();
 
   return nbor->host_jlist.begin()-host_start;
 }

@@ -37,7 +37,6 @@ int table_gpu_init(const int ntypes, double **cutsq, double ***table_coeffs,
                  int tabstyle, int ntables, int tablength) {
   TBMF.clear();
   gpu_mode=TBMF.device->gpu_mode();
-  double gpu_split=TBMF.device->particle_split();
   int first_gpu=TBMF.device->first_device();
   int last_gpu=TBMF.device->last_device();
   int world_me=TBMF.device->world_me();
@@ -58,8 +57,7 @@ int table_gpu_init(const int ntypes, double **cutsq, double ***table_coeffs,
   int init_ok=0;
   if (world_me==0)
     init_ok=TBMF.init(ntypes, cutsq, table_coeffs, table_data,
-                      special_lj, inum, nall, max_nbors, maxspecial, cell_size,
-                      gpu_split, screen, tabstyle, ntables, tablength);
+                      special_lj, inum, nall, max_nbors, maxspecial, cell_size, screen, tabstyle, ntables, tablength);
 
   TBMF.device->world_barrier();
   if (message)
@@ -76,8 +74,7 @@ int table_gpu_init(const int ntypes, double **cutsq, double ***table_coeffs,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=TBMF.init(ntypes, cutsq, table_coeffs, table_data,
-                      special_lj, inum, nall, max_nbors, maxspecial, cell_size,
-                      gpu_split, screen, tabstyle, ntables, tablength);
+                      special_lj, inum, nall, max_nbors, maxspecial, cell_size, screen, tabstyle, ntables, tablength);
 
     TBMF.device->serialize_init();
     if (message)

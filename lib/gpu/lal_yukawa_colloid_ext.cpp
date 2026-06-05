@@ -37,7 +37,6 @@ int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
                        const double kappa) {
   YKCOLLMF.clear();
   gpu_mode=YKCOLLMF.device->gpu_mode();
-  double gpu_split=YKCOLLMF.device->particle_split();
   int first_gpu=YKCOLLMF.device->first_device();
   int last_gpu=YKCOLLMF.device->last_device();
   int world_me=YKCOLLMF.device->world_me();
@@ -58,8 +57,7 @@ int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
   int init_ok=0;
   if (world_me==0)
     init_ok=YKCOLLMF.init(ntypes, cutsq, host_a, host_offset, special_lj,
-                          inum, nall, max_nbors, maxspecial, cell_size, gpu_split,
-                          screen, kappa);
+                          inum, nall, max_nbors, maxspecial, cell_size, screen, kappa);
 
   YKCOLLMF.device->world_barrier();
   if (message)
@@ -76,8 +74,7 @@ int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=YKCOLLMF.init(ntypes, cutsq, host_a, host_offset, special_lj,
-                            inum, nall, max_nbors, maxspecial, cell_size, gpu_split,
-                            screen, kappa);
+                            inum, nall, max_nbors, maxspecial, cell_size, screen, kappa);
 
     YKCOLLMF.device->serialize_init();
     if (message)

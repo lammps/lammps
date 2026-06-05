@@ -38,7 +38,6 @@ int buck_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                  const double cell_size, int &gpu_mode, FILE *screen) {
   BUCKMF.clear();
   gpu_mode=BUCKMF.device->gpu_mode();
-  double gpu_split=BUCKMF.device->particle_split();
   int first_gpu=BUCKMF.device->first_device();
   int last_gpu=BUCKMF.device->last_device();
   int world_me=BUCKMF.device->world_me();
@@ -60,7 +59,7 @@ int buck_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
   if (world_me==0)
     init_ok=BUCKMF.init(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2,
                        host_a, host_c, offset, special_lj, inum, nall, max_nbors,
-                       maxspecial, cell_size, gpu_split, screen);
+                       maxspecial, cell_size, screen);
 
   BUCKMF.device->world_barrier();
   if (message)
@@ -78,7 +77,7 @@ int buck_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
     if (gpu_rank==i && world_me!=0)
       init_ok=BUCKMF.init(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2,
                        host_a, host_c, offset, special_lj, inum, nall, max_nbors,
-                       maxspecial, cell_size, gpu_split, screen);
+                       maxspecial, cell_size, screen);
 
     BUCKMF.device->serialize_init();
     if (message)

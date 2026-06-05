@@ -42,16 +42,12 @@ int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const i
                 const double* big2b, const double* bigc) {
   VashishtaMF.clear();
   gpu_mode=VashishtaMF.device->gpu_mode();
-  double gpu_split=VashishtaMF.device->particle_split();
   int first_gpu=VashishtaMF.device->first_device();
   int last_gpu=VashishtaMF.device->last_device();
   int world_me=VashishtaMF.device->world_me();
   int gpu_rank=VashishtaMF.device->gpu_rank();
   int procs_per_gpu=VashishtaMF.device->procs_per_gpu();
 
-  // disable host/device split for now
-  if (gpu_split != 1.0)
-    return -8;
 
   VashishtaMF.device->init_message(screen,"vashishta/gpu",first_gpu,last_gpu);
 
@@ -66,7 +62,7 @@ int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const i
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=VashishtaMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split, screen,
+    init_ok=VashishtaMF.init(ntypes, inum, nall, max_nbors, cell_size, screen,
                       host_map, nelements, host_elem2param, nparams,
                       cutsq, r0, gamma, eta, lam1inv,
                       lam4inv, zizj, mbigd, dvrc, big6w, heta, bigh, bigw,
@@ -86,7 +82,7 @@ int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const i
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=VashishtaMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split, screen,
+      init_ok=VashishtaMF.init(ntypes, inum, nall, max_nbors, cell_size, screen,
                         host_map, nelements, host_elem2param, nparams,
                         cutsq, r0, gamma, eta, lam1inv,
                         lam4inv, zizj, mbigd, dvrc, big6w, heta, bigh, bigw,

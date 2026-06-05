@@ -39,16 +39,12 @@ int sw_gpu_init(const int ntypes, const int inum, const int nall,
                 double ***costheta, const int *map, int ***e2param) {
   SWMF.clear();
   gpu_mode=SWMF.device->gpu_mode();
-  double gpu_split=SWMF.device->particle_split();
   int first_gpu=SWMF.device->first_device();
   int last_gpu=SWMF.device->last_device();
   int world_me=SWMF.device->world_me();
   int gpu_rank=SWMF.device->gpu_rank();
   int procs_per_gpu=SWMF.device->procs_per_gpu();
 
-  // disable host/device split for now
-  if (gpu_split != 1.0)
-    return -8;
 
   SWMF.device->init_message(screen,"sw/gpu",first_gpu,last_gpu);
 
@@ -63,8 +59,7 @@ int sw_gpu_init(const int ntypes, const int inum, const int nall,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=SWMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split,
-                      screen, ncutsq, ncut, sigma, powerp, powerq,
+    init_ok=SWMF.init(ntypes, inum, nall, max_nbors, cell_size, screen, ncutsq, ncut, sigma, powerp, powerq,
                       sigma_gamma, c1, c2, c3, c4, c5, c6, lambda_epsilon,
                       costheta, map, e2param);
 
@@ -82,8 +77,7 @@ int sw_gpu_init(const int ntypes, const int inum, const int nall,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=SWMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split,
-                        screen, ncutsq, ncut, sigma, powerp, powerq,
+      init_ok=SWMF.init(ntypes, inum, nall, max_nbors, cell_size, screen, ncutsq, ncut, sigma, powerp, powerq,
                         sigma_gamma, c1, c2, c3, c4, c5, c6, lambda_epsilon,
                         costheta, map, e2param);
 

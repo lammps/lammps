@@ -37,7 +37,6 @@ int sph_heatconduction_gpu_init(const int ntypes, double **cutsq, double** host_
                     const double cell_size, int &gpu_mode, FILE *screen) {
   SPHHeatConductionMF.clear();
   gpu_mode=SPHHeatConductionMF.device->gpu_mode();
-  double gpu_split=SPHHeatConductionMF.device->particle_split();
   int first_gpu=SPHHeatConductionMF.device->first_device();
   int last_gpu=SPHHeatConductionMF.device->last_device();
   int world_me=SPHHeatConductionMF.device->world_me();
@@ -59,7 +58,7 @@ int sph_heatconduction_gpu_init(const int ntypes, double **cutsq, double** host_
   if (world_me==0)
     init_ok=SPHHeatConductionMF.init(ntypes, cutsq, host_cut, host_alpha, host_mass,
                          dimension, special_lj, inum, nall, max_nbors,  maxspecial,
-                         cell_size, gpu_split, screen);
+                         cell_size, screen);
 
   SPHHeatConductionMF.device->world_barrier();
   if (message)
@@ -77,7 +76,7 @@ int sph_heatconduction_gpu_init(const int ntypes, double **cutsq, double** host_
     if (gpu_rank==i && world_me!=0)
       init_ok=SPHHeatConductionMF.init(ntypes, cutsq, host_cut, host_alpha, host_mass,
                            dimension, special_lj, inum, nall, max_nbors, maxspecial,
-                           cell_size, gpu_split, screen);
+                           cell_size, screen);
 
     SPHHeatConductionMF.device->serialize_init();
     if (message)

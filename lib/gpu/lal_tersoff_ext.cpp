@@ -42,16 +42,12 @@ int tersoff_gpu_init(const int ntypes, const int inum, const int nall, const int
                      const double* ts_powern, const double* ts_cutsq) {
   TSMF.clear();
   gpu_mode=TSMF.device->gpu_mode();
-  double gpu_split=TSMF.device->particle_split();
   int first_gpu=TSMF.device->first_device();
   int last_gpu=TSMF.device->last_device();
   int world_me=TSMF.device->world_me();
   int gpu_rank=TSMF.device->gpu_rank();
   int procs_per_gpu=TSMF.device->procs_per_gpu();
 
-  // disable host/device split for now
-  if (gpu_split != 1.0)
-    return -8;
 
   TSMF.device->init_message(screen,"tersoff/gpu",first_gpu,last_gpu);
 
@@ -66,7 +62,7 @@ int tersoff_gpu_init(const int ntypes, const int inum, const int nall, const int
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=TSMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split, screen,
+    init_ok=TSMF.init(ntypes, inum, nall, max_nbors, cell_size, screen,
                       host_map, nelements, host_elem2param, nparams,
                       ts_lam1, ts_lam2, ts_lam3, ts_powermint,
                       ts_biga, ts_bigb, ts_bigr, ts_bigd,
@@ -87,7 +83,7 @@ int tersoff_gpu_init(const int ntypes, const int inum, const int nall, const int
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=TSMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split, screen,
+      init_ok=TSMF.init(ntypes, inum, nall, max_nbors, cell_size, screen,
                         host_map, nelements, host_elem2param, nparams,
                         ts_lam1, ts_lam2, ts_lam3, ts_powermint,
                         ts_biga, ts_bigb, ts_bigr, ts_bigd,

@@ -49,9 +49,9 @@ int YukawaColloidT::init(const int ntypes,
                    double **host_offset, double *host_special_lj, const int nlocal,
                    const int nall, const int max_nbors,
                    const int maxspecial, const double cell_size,
-                   const double gpu_split, FILE *_screen, const double kappa) {
+                           FILE *_screen, const double kappa) {
   int success;
-  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
                             _screen,yukawa_colloid,"k_yukawa_colloid");
   if (success!=0)
     return success;
@@ -170,8 +170,8 @@ void YukawaColloidT::compute(const int f_ago, const int inum_full,
     return;
   }
 
-  int ago=this->hd_balancer.ago_first(f_ago);
-  int inum=this->hd_balancer.balance(ago,inum_full,cpu_time);
+  int ago=f_ago;
+  int inum=inum_full; this->_timestep++;
   this->ans->inum(inum);
   host_start=inum;
 
@@ -185,14 +185,12 @@ void YukawaColloidT::compute(const int f_ago, const int inum_full,
 
   this->atom->cast_x_data(host_x,host_type);
   this->cast_rad_data(rad);
-  this->hd_balancer.start_timer();
   this->atom->add_x_data(host_x,host_type);
   this->add_rad_data();
 
   const int red_blocks=this->loop(eflag,vflag);
   this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,ilist,red_blocks);
   this->device->add_ans_object(this->ans);
-  this->hd_balancer.stop_timer();
 }
 
 // ---------------------------------------------------------------------------
@@ -242,9 +240,7 @@ int** YukawaColloidT::compute(const int ago, const int inum_full,
     return nullptr;
   }
 
-  // load balance, returning the atom count on the device (inum)
-  this->hd_balancer.balance(cpu_time);
-  int inum=this->hd_balancer.get_gpu_count(ago,inum_full);
+  int inum=inum_full; this->_timestep++;
   this->ans->inum(inum);
   host_start=inum;
 
@@ -256,11 +252,9 @@ int** YukawaColloidT::compute(const int ago, const int inum_full,
     if (!success)
       return nullptr;
     this->cast_rad_data(rad);
-    this->hd_balancer.start_timer();
   } else {
     this->atom->cast_x_data(host_x,host_type);
     this->cast_rad_data(rad);
-    this->hd_balancer.start_timer();
     this->atom->add_x_data(host_x,host_type);
   }
   this->add_rad_data();
@@ -270,7 +264,6 @@ int** YukawaColloidT::compute(const int ago, const int inum_full,
   const int red_blocks=this->loop(eflag,vflag);
   this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   this->device->add_ans_object(this->ans);
-  this->hd_balancer.stop_timer();
 
   return this->nbor->host_jlist.begin()-host_start;
 }

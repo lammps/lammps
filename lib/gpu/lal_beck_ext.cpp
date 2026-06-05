@@ -37,7 +37,6 @@ int beck_gpu_init(const int ntypes, double **cutsq, double **aa,
                   const double cell_size, int &gpu_mode, FILE *screen) {
   BLMF.clear();
   gpu_mode=BLMF.device->gpu_mode();
-  double gpu_split=BLMF.device->particle_split();
   int first_gpu=BLMF.device->first_device();
   int last_gpu=BLMF.device->last_device();
   int world_me=BLMF.device->world_me();
@@ -59,7 +58,7 @@ int beck_gpu_init(const int ntypes, double **cutsq, double **aa,
   if (world_me==0)
     init_ok=BLMF.init(ntypes, cutsq, aa, alpha, beta,
                       AA, BB, special_lj, inum, nall, max_nbors,
-                      maxspecial, cell_size, gpu_split, screen);
+                      maxspecial, cell_size, screen);
 
   BLMF.device->world_barrier();
   if (message)
@@ -77,7 +76,7 @@ int beck_gpu_init(const int ntypes, double **cutsq, double **aa,
     if (gpu_rank==i && world_me!=0)
       init_ok=BLMF.init(ntypes, cutsq, aa, alpha, beta, AA, BB,
                         special_lj, inum, nall, max_nbors, maxspecial,
-                        cell_size, gpu_split, screen);
+                        cell_size, screen);
 
     BLMF.device->serialize_init();
     if (message)

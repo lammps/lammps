@@ -30,7 +30,6 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     *
     * Returns:
     * -  0 if successful
@@ -44,7 +43,7 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
            double rdr, double rdrho, double rhomax, int nrhor, int nrho, int nz2r,
            int nfrho, int nr, const int nlocal, const int nall,
            const int max_nbors, const int maxspecial, const double cell_size,
-           const double gpu_split, FILE *_screen);
+           FILE *_screen);
 
   // Copy charges to device asynchronously
   inline void add_fp_data() {

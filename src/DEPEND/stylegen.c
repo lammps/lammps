@@ -11,14 +11,14 @@
  * * Redistributions in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * * Neither the name of the <organization> nor the
- *   names of its contributors may be used to endorse or promote products
- *   derived from this software without specific prior written permission.
+ * * Neither the mentioning of the LAMMPS developers nor the names of its
+ *   members may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
  *
  *   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  *   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  *   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- *   ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ *   ARE DISCLAIMED. IN NO EVENT SHALL THE LAMMPS DEVELOPERS BE LIABLE FOR ANY
  *   DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  *   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  *   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -27,11 +27,12 @@
  *   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* Replacement for the awk code formerly embedded in src/Make.sh.  This keeps
- * the make-based build free of an awk dependency (matching fastdep.c, which is
- * compiled with "cc" during the build).  It parses the "XxxStyle(key,Class)"
- * marker lines inside "#ifdef XXX_CLASS" blocks of the LAMMPS style headers and
- * emits the global style-registry registration translation units.
+/* Alternative to using awk in src/Make.sh.  This keeps the make-based portable
+ * (same as fastdep.c, which is also compiled with "cc" during the build).
+ *
+ * It parses the "XxxStyle(key,Class)" marker lines inside "#ifdef
+ * XXX_CLASS" blocks of the LAMMPS style headers and emits the global
+ * style-registry registration translation units.
  *
  * Two modes:
  *   stylegen source <macro> <base> <accessor> <regfunc> <onearg> "<includes>" \

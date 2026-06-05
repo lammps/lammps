@@ -291,12 +291,46 @@ N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
 molecular liquids", J. Chem. Phys. 143, 243148 (2015).
 
-**Authors:** Nicholas J. H. Dunn and Michael R. DeLyser (The
-Pennsylvania State University)
+The package also includes a pair_style that flexibly defines interactions
+as a function of the local density and/or gradient of the local density
+around a central particle.  Its per-atom local-density data can be written
+out with :doc:`fix pair <fix_pair>` in a form that is compatible with the
+Bottom-up Open-source Coarse-graining Software (BOCS), an external
+coarse-graining package that can be used to parameterize such potentials
+from atomistic simulation data (see link below).
+
+The package is compatible with molecular topologies, allows the user to
+specify the length-scale and weighting functions for multiple types of
+local densities, and distinguishes asymmetric local density potentials.
+(e.g. distinct potentials can govern 1.) solute density around solvent
+molecules and 2.) solvent density around solute molecules)
+
+The local density potentials implemented define "local density" flexibly
+with different choices of indicator weighting functions and asymmetry in
+interactions as generically described in: Michael R. DeLyser
+and W. G. Noid (2019). "Analysis of local density potentials" The
+Journal of Chemical Physics 151, : 224106 DOI: 10.1063/1.5128665
+
+The square gradient potential implementation is described in:
+Michael R. DeLyser and W. G. Noid (2021) "Coarse-grained models for
+local density gradients" The Journal of Chemical Physics, 156, 034106
+DOI: 10.1063/5.0075291
+
+
+**Authors:**
+- Nicholas J. H. Dunn and Michael R. DeLyser (The Pennsylvania State University) for :doc:`fix bocs <fix_bocs>`
+-  Michael R. DeLyser, Maria Lesniewski and Will Noid (The Pennsylvania State University) for :doc:`pair_style ldd <pair_ldd>`
 
 **Supporting info:**
 
-The BOCS package for LAMMPS is part of the BOCS software package:
+* ``src/BOCS``: filenames -> commands
+* ``src/BOCS/README``
+* ``examples/PACKAGES/bocs``
+*  :doc:`fix bocs <fix_bocs>`
+* :doc:`Howto_ldd <Howto_ldd>`
+* :doc:`pair_style ldd <pair_ldd>`
+
+The BOCS package in LAMMPS is part of the BOCS software package:
 `https://github.com/noid-group/BOCS <https://github.com/noid-group/BOCS>`_
 
 See the following reference for information about the entire package:

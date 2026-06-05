@@ -225,6 +225,7 @@ accelerated styles exist.
 * :doc:`lambda/input/csp/apip <pair_lambda_input_apip>` - CSP as input for the precision calculation of an :doc:`adaptive-precision interatomic potential (APIP) <Howto_apip>`
 * :doc:`lambda/zone/apip <pair_lambda_zone_apip>` - transition zone of an :doc:`adaptive-precision interatomic potential <Howto_apip>`
 * :doc:`lcbop <pair_lcbop>` - long-range bond-order potential (LCBOP)
+* :doc:`ldd <pair_ldd>` - Local density and gradient of density interactions (LDD)
 * :doc:`lebedeva/z <pair_lebedeva_z>` - Lebedeva interlayer potential for graphene with normals along z-axis
 * :doc:`lennard/mdf <pair_mdf>` - LJ potential in A/B form with a taper function
 * :doc:`lepton <pair_lepton>` - pair potential from evaluating a string

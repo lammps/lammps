@@ -34,9 +34,6 @@ using namespace LAMMPS_NS;
 using namespace LAMMPS_GPU;
 using namespace MathConst;
 
-static constexpr double EPSILON = 1.0e-20;
-
-
 /* ---------------------------------------------------------------------- */
 
 PairBornCoulWolfCSGPU::PairBornCoulWolfCSGPU(LAMMPS *lmp) :

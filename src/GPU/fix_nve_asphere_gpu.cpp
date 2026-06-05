@@ -228,7 +228,6 @@ void FixNVEAsphereGPU::initial_integrate(int /*vflag*/)
     const int ifrom3 = ifrom * 3;
     const int ito3 = ito * 3;
     #else
-    const int tid = 0;
     const int ifrom = 0;
     const int ifrom3 = 0;
     const int ito = nlocal;

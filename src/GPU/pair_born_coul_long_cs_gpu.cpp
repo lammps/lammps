@@ -36,20 +36,6 @@ using namespace LAMMPS_NS;
 using namespace LAMMPS_GPU;
 using namespace MathConst;
 
-static constexpr double EWALD_F =  1.12837917;
-static constexpr double EWALD_P =  9.95473818e-1;
-static constexpr double B0      = -0.1335096380159268;
-static constexpr double B1      = -2.57839507e-1;
-static constexpr double B2      = -1.37203639e-1;
-static constexpr double B3      = -8.88822059e-3;
-static constexpr double B4      = -5.80844129e-3;
-static constexpr double B5      =  1.14652755e-1;
-
-static constexpr double EPSILON = 1.0e-20;
-static constexpr double EPS_EWALD = 1.0e-6;
-static constexpr double EPS_EWALD_SQR = 1.0e-12;
-
-
 /* ---------------------------------------------------------------------- */
 
 PairBornCoulLongCSGPU::PairBornCoulLongCSGPU(LAMMPS *lmp) :

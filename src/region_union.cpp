@@ -48,13 +48,18 @@ RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), 
     nregion++;
   }
 
-  // this region is variable shape or dynamic if any of sub-regions are
+  // disallow dynamic (translating or rotating) sub-regions
+  // support for this will be added in the next stable LAMMPS release
+
+  for (int ilist = 0; ilist < nregion; ilist++)
+    if (reglist[ilist]->dynamic)
+      error->all(FLERR, "Region union does not support dynamic (move/rotate) sub-regions; "
+                 "this will be addressed in the next stable LAMMPS release");
+
+  // this region is variable shape if any of sub-regions are
 
   for (int ilist = 0; ilist < nregion; ilist++) {
     if (reglist[ilist]->varshape) varshape = 1;
-    if (reglist[ilist]->dynamic) dynamic = 1;
-    if (reglist[ilist]->moveflag) moveflag = 1;
-    if (reglist[ilist]->rotateflag) rotateflag = 1;
   }
 
   // extent of union of regions

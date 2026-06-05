@@ -1,0 +1,8 @@
+The ML-MTP package provides the mtp pair style,
+an efficient implementation of the Moment Tensor Potential (MTP)
+with Kokkos and extrapolatin grade support.
+
+MTP is a methodology for deriving a highly accurate classical
+potential fit to a large archive of quantum mechanical (DFT) data.
+This package was written by Zijian (Richard) Meng, Ryan Grant, and
+Laurent Karim Beland at Queen's University, Canada.

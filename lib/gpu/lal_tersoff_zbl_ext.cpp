@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_tersoff_zbl.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static TersoffZBL<PRECISION,ACC_PRECISION> TSZMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int tersoff_zbl_gpu_init(const int ntypes, const int inum, const int nall,
                      const int max_nbors, const double cell_size, int &gpu_mode,
                      FILE *screen, int* host_map, const int nelements,
@@ -143,4 +146,4 @@ double tersoff_zbl_gpu_bytes() {
   return TSZMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

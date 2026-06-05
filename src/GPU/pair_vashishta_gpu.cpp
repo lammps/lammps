@@ -27,31 +27,11 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "suffix.h"
+#include "lammps_gpu.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 
-// External functions from cuda library for atom decomposition
-
-int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
-                       const double cell_size, int &gpu_mode, FILE *screen, int *host_map,
-                       const int nelements, int ***host_elem3param, const int nparams,
-                       const double *cutsq, const double *r0, const double *gamma,
-                       const double *eta, const double *lam1inv, const double *lam4inv,
-                       const double *zizj, const double *mbigd, const double *dvrc,
-                       const double *big6w, const double *heta, const double *bigh,
-                       const double *bigw, const double *c0, const double *costheta,
-                       const double *bigb, const double *big2b, const double *bigc);
-void vashishta_gpu_clear();
-int **vashishta_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                              int *host_type, double *sublo, double *subhi, tagint *tag,
-                              int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                              const bool eatom, const bool vatom, int &host_start, int **ilist,
-                              int **jnum, const double cpu_time, bool &success);
-void vashishta_gpu_compute(const int ago, const int nloc, const int nall, const int ln,
-                           double **host_x, int *host_type, int *ilist, int *numj, int **firstneigh,
-                           const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-                           int &host_start, const double cpu_time, bool &success);
-double vashishta_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 

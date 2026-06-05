@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_sph_taitwater.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static SPHTaitwater<PRECISION,ACC_PRECISION> SPHTaitwaterMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
                            double **host_viscosity, double* host_mass,
                            double* host_rho0, double* host_soundspeed, double* host_B,
@@ -131,3 +134,5 @@ void sph_taitwater_gpu_update_drhoE(void **drhoE_ptr) {
 double sph_taitwater_gpu_bytes() {
   return SPHTaitwaterMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_tersoff_mod.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static TersoffMod<PRECISION,ACC_PRECISION> TSMMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int tersoff_mod_gpu_init(const int ntypes, const int inum, const int nall,
        const int max_nbors, const double cell_size, int &gpu_mode, FILE *screen,
        int* host_map, const int nelements, int*** host_elem2param, const int nparams,
@@ -132,4 +135,4 @@ double tersoff_mod_gpu_bytes() {
   return TSMMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

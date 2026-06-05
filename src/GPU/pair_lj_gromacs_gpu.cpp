@@ -27,28 +27,11 @@
 #include "suffix.h"
 
 #include <cmath>
+#include "lammps_gpu.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 
-// External functions from cuda library for atom decomposition
-
-int ljgrm_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
-                   double **host_lj3, double **host_lj4, double *special_lj, const int inum,
-                   const int nall, const int max_nbors, const int maxspecial,
-                   const double cell_size, int &gpu_mode, FILE *screen, double **host_ljsw1,
-                   double **host_ljsw2, double **host_ljsw3, double **host_ljsw4,
-                   double **host_ljsw5, double **cut_inner, double **cut_innersq);
-void ljgrm_gpu_clear();
-int **ljgrm_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
-                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                          const bool vatom, int &host_start, int **ilist, int **jnum,
-                          const double cpu_time, bool &success, double *prd, int *periodicity);
-void ljgrm_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
-                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success);
-double ljgrm_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 

@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_buck_coul_long.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static BuckCoulLong<PRECISION,ACC_PRECISION> BUCKCLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int buckcl_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                  double **host_buck1, double **host_buck2,
                  double **host_a, double **host_c,
@@ -127,4 +130,4 @@ double buckcl_gpu_bytes() {
   return BUCKCLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

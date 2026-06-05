@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_coul_debye.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static CoulDebye<PRECISION,ACC_PRECISION> CDEMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int cdebye_gpu_init(const int ntypes, double **host_scale, double **cutsq,
                     double *host_special_coul, const int inum,
                     const int nall, const int max_nbors, const int maxspecial,
@@ -140,4 +143,4 @@ double cdebye_gpu_bytes() {
   return CDEMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_vashishta.h"
+#include "lammps_gpu.h"
 using namespace LAMMPS_AL;
 
 static Vashishta<PRECISION,ACC_PRECISION> VashishtaMF;
@@ -25,6 +26,8 @@ static Vashishta<PRECISION,ACC_PRECISION> VashishtaMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
                 const double cell_size, int &gpu_mode, FILE *screen,
                 int* host_map, const int nelements, int*** host_elem2param, const int nparams,
@@ -131,4 +134,4 @@ double vashishta_gpu_bytes() {
   return VashishtaMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

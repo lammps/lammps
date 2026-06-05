@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_colloid.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Colloid<PRECISION,ACC_PRECISION> COLLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int colloid_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                      double **host_lj2, double **host_lj3, double **host_lj4,
                      double **offset, double *special_lj,
@@ -124,4 +127,4 @@ double colloid_gpu_bytes() {
   return COLLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

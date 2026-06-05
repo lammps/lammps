@@ -20,6 +20,7 @@
 #include <cmath>
 
 #include "lal_ufm.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -29,6 +30,8 @@ static UFM<PRECISION,ACC_PRECISION> UFMLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
                  double **host_uf2, double **host_uf3, double **offset,
                  double *special_lj, const int inum, const int nall,
@@ -139,4 +142,4 @@ double ufml_gpu_bytes() {
   return UFMLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

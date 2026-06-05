@@ -1068,9 +1068,8 @@ bool Info::has_package(const std::string &package_name) {
 }
 
 #if defined(LMP_GPU)
-extern bool lmp_gpu_config(const std::string &, const std::string &);
-extern bool lmp_has_compatible_gpu_device();
-extern std::string lmp_gpu_device_info();
+#include "lammps_gpu.h"
+using namespace LAMMPS_GPU;
 
 // we will only report compatible GPUs, i.e. when a GPU device is
 // available *and* supports the required floating point precision

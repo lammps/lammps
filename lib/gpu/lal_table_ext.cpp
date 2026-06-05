@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_table.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Table<PRECISION,ACC_PRECISION> TBMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int table_gpu_init(const int ntypes, double **cutsq, double ***table_coeffs,
                  double **table_data, double *special_lj, const int inum,
                  const int nall, const int max_nbors,  const int maxspecial,
@@ -117,4 +120,4 @@ double table_gpu_bytes() {
   return TBMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

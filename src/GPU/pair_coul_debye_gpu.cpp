@@ -27,29 +27,11 @@
 #include "suffix.h"
 
 #include <cmath>
+#include "lammps_gpu.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 
-// External functions from cuda library for atom decomposition
-
-int cdebye_gpu_init(const int ntypes, double **host_scale, double **cutsq, double *special_coul,
-                    const int nlocal, const int nall, const int max_nbors, const int maxspecial,
-                    const double cell_size, int &gpu_mode, FILE *screen, const double qqrd2e,
-                    const double kappa);
-void cdebye_gpu_reinit(const int ntypes, double **host_scale);
-void cdebye_gpu_clear();
-int **cdebye_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                           int *host_type, double *sublo, double *subhi, tagint *tag,
-                           int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start, int **ilist,
-                           int **jnum, const double cpu_time, bool &success, double *host_q,
-                           double *boxlo, double *prd, int *periodicity);
-void cdebye_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
-                        int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                        const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, double *host_q, const int nlocal,
-                        double *boxlo, double *prd);
-double cdebye_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 

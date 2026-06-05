@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_coul_slater_long.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static CoulSlaterLong<PRECISION,ACC_PRECISION> CSLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int csl_gpu_init(const int ntypes, double **host_scale,
                 const int inum, const int nall, const int max_nbors,
                 const int maxspecial, const double cell_size, int &gpu_mode,
@@ -142,4 +145,4 @@ double csl_gpu_bytes() {
   return CSLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

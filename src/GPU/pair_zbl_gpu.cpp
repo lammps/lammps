@@ -26,28 +26,11 @@
 #include "suffix.h"
 
 #include <cmath>
+#include "lammps_gpu.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 
-// External functions from cuda library for atom decomposition
-
-int zbl_gpu_init(const int ntypes, double **cutsq, double **host_sw1, double **host_sw2,
-                 double **host_sw3, double **host_sw4, double **host_sw5, double **host_d1a,
-                 double **host_d2a, double **host_d3a, double **host_d4a, double **host_zze,
-                 double cut_globalsq, double cut_innersq, double cut_inner, const int inum,
-                 const int nall, const int max_nbors, const int maxspecial, const double cell_size,
-                 int &gpu_mode, FILE *screen);
-void zbl_gpu_clear();
-int **zbl_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                        int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                        tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double *prd, int *periodicity);
-void zbl_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                     bool &success);
-double zbl_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 

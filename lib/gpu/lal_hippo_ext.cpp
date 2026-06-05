@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_hippo.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Hippo<PRECISION,ACC_PRECISION> HIPPOMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass,
                     const double *host_pdamp, const double *host_thole,
                     const double *host_dirdamp, const int *host_amtype2class,
@@ -229,3 +232,5 @@ void hippo_gpu_fphi_uind(double ****host_grid_brick, void **host_fdip_phi1,
 double hippo_gpu_bytes() {
   return HIPPOMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

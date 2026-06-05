@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_born_coul_wolf.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static BornCoulWolf<PRECISION,ACC_PRECISION> BORNCWMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int borncw_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                     double **host_born1, double **host_born2, double **host_born3,
                     double **host_a, double **host_c, double **host_d,
@@ -131,4 +134,4 @@ double borncw_gpu_bytes() {
   return BORNCWMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

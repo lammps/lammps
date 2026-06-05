@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_mdpd.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static MDPD<PRECISION,ACC_PRECISION> MDPDMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int mdpd_gpu_init(const int ntypes, double **cutsq,
                   double **host_A_att, double **host_B_rep,
                   double **host_gamma, double **host_sigma,
@@ -130,4 +133,4 @@ double mdpd_gpu_bytes() {
   return MDPDMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

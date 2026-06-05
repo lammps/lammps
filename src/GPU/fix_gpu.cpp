@@ -30,29 +30,18 @@
 
 #include <cstring>
 
+#include "lammps_gpu.h"
+
 #if (LAL_USE_OMP == 1)
 #include <omp.h>
 #endif
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace LAMMPS_GPU;
 
 // must match definition in lib/gpu/lal_device.h
 enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH, GPU_DEFAULT};
-
-// functions provided by the GPU library
-extern int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
-                           const int first_gpu_id, const int gpu_mode,
-                           const double particle_split, const int t_per_atom,
-                           const double cell_size, char *opencl_args,
-                           const int ocl_platform, char *device_type_flags,
-                           const int block_pair);
-extern void lmp_clear_device();
-extern double lmp_gpu_forces(double **f, double **tor, double *eatom, double **vatom,
-                             double *virial, double &ecoul, int &err_flag);
-extern double lmp_gpu_update_bin_size(const double subx, const double suby, const double subz,
-                                      const int nlocal, const double cut);
-extern bool lmp_gpu_requires_host_neighbor();
 
 static const char cite_gpu_package[] =
   "GPU package (short-range, long-range and three-body potentials): https://doi.org/10.1016/j.cpc.2010.12.021, https://doi.org/10.1016/j.cpc.2011.10.012, https://doi.org/10.1016/j.cpc.2013.08.002, https://doi.org/10.1016/j.commatsci.2014.10.068, https://doi.org/10.1016/j.cpc.2016.10.020, https://doi.org/10.3233/APC200086\n\n"

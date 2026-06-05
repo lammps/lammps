@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_mie.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Mie<PRECISION,ACC_PRECISION> MLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int mie_gpu_init(const int ntypes, double **cutsq, double **host_mie1,
                  double **host_mie2, double **host_mie3, double **host_mie4,
                  double **host_gamA, double **host_gamR,
@@ -121,4 +124,4 @@ double mie_gpu_bytes() {
   return MLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

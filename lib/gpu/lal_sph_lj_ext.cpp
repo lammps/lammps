@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_sph_lj.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static SPHLJ<PRECISION,ACC_PRECISION> SPHLJMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
                     double **host_viscosity, double* host_mass, const int dimension,
                     double *special_lj, const int inum, const int nall,
@@ -127,3 +130,5 @@ void sph_lj_gpu_update_drhoE(void **drhoE_ptr) {
 double sph_lj_gpu_bytes() {
   return SPHLJMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

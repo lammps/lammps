@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_gayberne.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static GayBerne<PRECISION,ACC_PRECISION> GBMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int gb_gpu_init(const int ntypes, const double gamma,
                 const double upsilon, const double mu, double **shape,
                 double **well, double **cutsq, double **sigma,
@@ -144,3 +147,4 @@ double gb_gpu_bytes() {
   return GBMF.host_memory_usage();
 }
 
+} // namespace LAMMPS_GPU

@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_amoeba.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Amoeba<PRECISION,ACC_PRECISION> AMOEBAMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclass,
                     const double *host_pdamp, const double *host_thole,
                     const double *host_dirdamp, const int *host_amtype2class,
@@ -211,3 +214,5 @@ void amoeba_compute_fft1d(void* in, void* out, const int numel, const int mode) 
 double amoeba_gpu_bytes() {
   return AMOEBAMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

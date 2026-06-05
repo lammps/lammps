@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_lj_smooth.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static LJSMOOTH<PRECISION,ACC_PRECISION> LJSMTMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int ljsmt_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                  double **host_lj2, double **host_lj3, double **host_lj4,
                  double **offset, double *special_lj, const int inum,
@@ -142,3 +145,5 @@ void ljsmt_gpu_compute(const int ago, const int inum_full, const int nall,
 double ljsmt_gpu_bytes() {
   return LJSMTMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

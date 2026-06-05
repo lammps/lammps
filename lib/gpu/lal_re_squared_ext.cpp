@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_re_squared.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static RESquared<PRECISION,ACC_PRECISION> REMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
                 double **sigma, double **epsilon,
                 int **form, double **host_lj1, double **host_lj2,
@@ -139,3 +142,5 @@ int * re_gpu_compute(const int ago, const int inum_full, const int nall,
 double re_gpu_bytes() {
   return REMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

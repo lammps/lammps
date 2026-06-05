@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_beck.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Beck<PRECISION,ACC_PRECISION> BLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int beck_gpu_init(const int ntypes, double **cutsq, double **aa,
                   double **alpha, double **beta, double **AA, double **BB,
                   double *special_lj, const int inum, const int nall,
@@ -117,4 +120,4 @@ double beck_gpu_bytes() {
   return BLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

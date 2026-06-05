@@ -29,34 +29,11 @@
 #include "suffix.h"
 
 #include <cmath>
+#include "lammps_gpu.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 
-// External functions from cuda library for atom decomposition
-
-int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
-                           double **host_viscosity, double* host_mass, double* host_rho0,
-                           double* host_soundspeed, double* host_B, const int dimension,
-                           double *special_lj, const int inum, const int nall,
-                           const int max_nbors,  const int maxspecial,
-                           const double cell_size, int &gpu_mode, FILE *screen);
-void sph_taitwater_gpu_clear();
-int **sph_taitwater_gpu_compute_n(const int ago, const int inum_full, const int nall,
-                         double **host_x, int *host_type, double *sublo,
-                         double *subhi, tagint *tag, int **nspecial,
-                         tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum, const double cpu_time, bool &success,
-                         double **host_v);
-void sph_taitwater_gpu_compute(const int ago, const int inum_full, const int nall,
-                        double **host_x, int *host_type, int *ilist, int *numj,
-                        int **firstneigh, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, tagint *tag,
-                        double **host_v);
-void sph_taitwater_gpu_get_extra_data(double *host_rho);
-void sph_taitwater_gpu_update_drhoE(void **drhoE_ptr);
-double sph_taitwater_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 

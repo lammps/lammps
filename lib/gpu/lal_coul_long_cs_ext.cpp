@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_coul_long_cs.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static CoulLongCS<PRECISION,ACC_PRECISION> CLCSMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int clcs_gpu_init(const int ntypes, double **host_scale,
                 const int inum, const int nall, const int max_nbors,
                 const int maxspecial, const double cell_size, int &gpu_mode,
@@ -142,4 +145,4 @@ double clcs_gpu_bytes() {
   return CLCSMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

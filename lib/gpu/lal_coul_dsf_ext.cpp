@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_coul_dsf.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static CoulDSF<PRECISION,ACC_PRECISION> CDMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int cdsf_gpu_init(const int ntypes, const int inum, const int nall,
                   const int max_nbors, const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen,
@@ -122,4 +125,4 @@ double cdsf_gpu_bytes() {
   return CDMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

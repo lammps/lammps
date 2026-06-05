@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_lj96.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static LJ96<PRECISION,ACC_PRECISION> LJ96MF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int lj96_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   double **host_lj2, double **host_lj3, double **host_lj4,
                   double **offset, double *special_lj, const int inum,
@@ -117,4 +120,4 @@ double lj96_gpu_bytes() {
   return LJ96MF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

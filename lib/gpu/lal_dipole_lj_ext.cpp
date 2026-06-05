@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_dipole_lj.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static DipoleLJ<PRECISION,ACC_PRECISION> DPLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int dpl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                  double **host_lj2, double **host_lj3, double **host_lj4,
                  double **offset, double *special_lj, const int inum,
@@ -125,4 +128,4 @@ double dpl_gpu_bytes() {
   return DPLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

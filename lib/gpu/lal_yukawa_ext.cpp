@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_yukawa.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Yukawa<PRECISION,ACC_PRECISION> YKMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int yukawa_gpu_init(const int ntypes, double **cutsq, double kappa,
                  double **host_a, double **offset, double *special_lj,
                  const int inum, const int nall, const int max_nbors,
@@ -117,4 +120,4 @@ double yukawa_gpu_bytes() {
   return YKMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

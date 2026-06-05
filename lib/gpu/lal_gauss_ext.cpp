@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_gauss.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Gauss<PRECISION,ACC_PRECISION> GLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
                    double **host_b, double **offset, double *special_lj,
                    const int inum, const int nall, const int max_nbors,
@@ -139,4 +142,4 @@ double gauss_gpu_bytes() {
   return GLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

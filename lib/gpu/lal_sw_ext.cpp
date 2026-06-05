@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_sw.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static SW<PRECISION,ACC_PRECISION> SWMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int sw_gpu_init(const int ntypes, const int inum, const int nall,
                 const int max_nbors, const double cell_size, int &gpu_mode,
                 FILE *screen, double **ncutsq, double **ncut, double **sigma,
@@ -124,3 +127,5 @@ void sw_gpu_compute(const int ago, const int nlocal, const int nall,
 double sw_gpu_bytes() {
   return SWMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

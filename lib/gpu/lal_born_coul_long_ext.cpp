@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_born_coul_long.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static BornCoulLong<PRECISION,ACC_PRECISION> BORNCLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int borncl_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                     double **host_born1, double **host_born2, double **host_born3,
                     double **host_a, double **host_c, double **host_d,
@@ -129,4 +132,4 @@ double borncl_gpu_bytes() {
   return BORNCLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

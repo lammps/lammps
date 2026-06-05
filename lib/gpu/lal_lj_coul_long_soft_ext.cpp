@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_lj_coul_long_soft.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static LJCoulLongSoft<PRECISION,ACC_PRECISION> LJCLSMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int ljcls_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   double **host_lj2, double **host_lj3, double **host_lj4,
                   double **offset, double **epsilon, double *special_lj, const int inum,
@@ -149,3 +152,4 @@ double ljcls_gpu_bytes() {
   return LJCLSMF.host_memory_usage();
 }
 
+} // namespace LAMMPS_GPU

@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_soft.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Soft<PRECISION,ACC_PRECISION> SLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int soft_gpu_init(const int ntypes, double **cutsq, double **host_prefactor,
                   double **host_cut, double *special_lj,
                   const int inum, const int nall, const int max_nbors,
@@ -139,4 +142,4 @@ double soft_gpu_bytes() {
   return SLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

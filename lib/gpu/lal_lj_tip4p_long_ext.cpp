@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_lj_tip4p_long.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static LJ_TIP4PLong<PRECISION,ACC_PRECISION> LJTIP4PLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     double **host_lj2, double **host_lj3, double **host_lj4,
     double **offset, double *special_lj, const int inum,
@@ -144,4 +147,4 @@ void ljtip4p_long_copy_molecule_data(int n, tagint* tag,
   LJTIP4PLMF.copy_relations_data(n, tag, map_array, map_size, sametag, max_same, ago);
 }
 
-
+} // namespace LAMMPS_GPU

@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_coul.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Coul<PRECISION,ACC_PRECISION> COULMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int coul_gpu_init(const int ntypes, double **host_scale,
                   double **cutsq, double *special_coul,
                   const int inum, const int nall, const int max_nbors,
@@ -140,4 +143,4 @@ double coul_gpu_bytes() {
   return COULMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

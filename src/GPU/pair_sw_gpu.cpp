@@ -27,27 +27,11 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "suffix.h"
+#include "lammps_gpu.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 
-// External functions from cuda library for atom decomposition
-
-int sw_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
-                const double cell_size, int &gpu_mode, FILE *screen, double **ncutsq, double **ncut,
-                double **sigma, double **powerp, double **powerq, double **sigma_gamma, double **c1,
-                double **c2, double **c3, double **c4, double **c5, double **c6,
-                double ***lambda_epsilon, double ***costheta, const int *map, int ***e2param);
-void sw_gpu_clear();
-int **sw_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                       int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                       tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                       const bool vatom, int &host_start, int **ilist, int **jnum,
-                       const double cpu_time, bool &success);
-void sw_gpu_compute(const int ago, const int nloc, const int nall, const int ln, double **host_x,
-                    int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                    const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                    const double cpu_time, bool &success);
-double sw_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 

@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_charmm_long.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static CHARMMLong<PRECISION,ACC_PRECISION> CRMLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int crml_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1,
                   double **host_lj2, double **host_lj3, double **host_lj4,
                   double **offset, double *special_lj, const int inum,
@@ -132,4 +135,4 @@ double crml_gpu_bytes() {
   return CRMLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

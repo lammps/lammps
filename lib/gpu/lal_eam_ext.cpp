@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_eam.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static EAM<PRECISION,ACC_PRECISION> EAMMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int eam_gpu_init(const int ntypes, double host_cutforcesq,
                  int **host_type2rhor, int **host_type2z2r, int *host_type2frho,
                  double ***host_rhor_spline, double ***host_z2r_spline,
@@ -140,4 +143,4 @@ double eam_gpu_bytes() {
   return EAMMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

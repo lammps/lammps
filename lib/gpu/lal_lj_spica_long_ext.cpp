@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_lj_spica_long.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static CGCMMLong<PRECISION,ACC_PRECISION> CMMLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int spical_gpu_init(const int ntypes, double **cutsq, int **cg_type,
                   double **host_lj1, double **host_lj2, double **host_lj3,
                   double **host_lj4, double **offset, double *special_lj,
@@ -126,4 +129,4 @@ double spical_gpu_bytes() {
   return CMMLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_morse.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Morse<PRECISION,ACC_PRECISION> MORMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int mor_gpu_init(const int ntypes, double **cutsq,
                  double **host_lj1, double **host_lj2, double **host_lj3,
                  double **host_lj4, double **offset, double *special_lj,
@@ -118,4 +121,4 @@ double mor_gpu_bytes() {
   return MORMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

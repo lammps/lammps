@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_lj_gromacs.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static LJGROMACS<PRECISION,ACC_PRECISION> LJGRMMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int ljgrm_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                    double **host_lj2, double **host_lj3, double **host_lj4,
                    double *special_lj, const int inum,
@@ -123,4 +126,4 @@ double ljgrm_gpu_bytes() {
   return LJGRMMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

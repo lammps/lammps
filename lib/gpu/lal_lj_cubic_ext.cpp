@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_lj_cubic.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static LJCubic<PRECISION,ACC_PRECISION> LJCubicLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int ljcb_gpu_init(const int ntypes, double **cutsq, double **cut_inner_sq,
                   double **cut_inner, double **sigma, double **epsilon,
                   double **host_lj1, double **host_lj2, double **host_lj3,
@@ -121,4 +124,4 @@ double ljcb_gpu_bytes() {
   return LJCubicLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

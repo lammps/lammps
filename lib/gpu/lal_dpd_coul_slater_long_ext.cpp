@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_dpd_coul_slater_long.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static DPDCoulSlaterLong<PRECISION,ACC_PRECISION> DPDCMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double **host_a0,
                                   double **host_gamma, double **host_sigma, double **host_cut_dpd,
                                   double **host_cut_dpdsq, double **host_cut_slatersq,
@@ -139,4 +142,4 @@ double dpd_coul_slater_long_gpu_bytes() {
   return DPDCMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

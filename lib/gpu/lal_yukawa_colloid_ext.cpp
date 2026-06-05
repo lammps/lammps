@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_yukawa_colloid.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static YukawaColloid<PRECISION,ACC_PRECISION> YKCOLLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
                        double **host_offset, double *special_lj, const int inum,
                        const int nall, const int max_nbors,  const int maxspecial,
@@ -120,4 +123,4 @@ double ykcolloid_gpu_bytes() {
   return YKCOLLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

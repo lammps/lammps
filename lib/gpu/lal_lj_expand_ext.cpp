@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_lj_expand.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static LJExpand<PRECISION,ACC_PRECISION> LJEMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int lje_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                  double **host_lj2, double **host_lj3, double **host_lj4,
                  double **offset, double **shift, double *special_lj,
@@ -141,4 +144,4 @@ double lje_gpu_bytes() {
   return LJEMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

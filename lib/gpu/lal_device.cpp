@@ -15,6 +15,7 @@
 
 #include "lal_device.h"
 #include "lal_precision.h"
+#include "lammps_gpu.h"
 #include <map>
 #include <cmath>
 #include <cstdlib>
@@ -1170,6 +1171,8 @@ Device<PRECISION,ACC_PRECISION> global_device;
 
 using namespace LAMMPS_AL;
 
+namespace LAMMPS_GPU {
+
 // check if a suitable GPU is present.
 // for mixed and double precision GPU library compilation
 // also the GPU needs to support double precision.
@@ -1271,3 +1274,5 @@ bool lmp_gpu_config(const std::string &category, const std::string &setting)
   }
   return false;
 }
+
+} // namespace LAMMPS_GPU

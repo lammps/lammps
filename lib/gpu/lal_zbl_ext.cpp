@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_zbl.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static ZBL<PRECISION,ACC_PRECISION> ZBLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int zbl_gpu_init(const int ntypes, double **cutsq, double **host_sw1,
                  double **host_sw2, double **host_sw3, double **host_sw4, double **host_sw5,
                  double **host_d1a, double **host_d2a, double **host_d3a, double **host_d4a,
@@ -120,4 +123,4 @@ double zbl_gpu_bytes() {
   return ZBLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

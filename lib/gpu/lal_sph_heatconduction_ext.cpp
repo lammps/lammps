@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_sph_heatconduction.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static SPHHeatConduction<PRECISION,ACC_PRECISION> SPHHeatConductionMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int sph_heatconduction_gpu_init(const int ntypes, double **cutsq, double** host_cut,
                     double **host_alpha, double* host_mass, const int dimension,
                     double *special_lj, const int inum, const int nall,
@@ -127,3 +130,5 @@ void sph_heatconduction_gpu_update_dE(void **dE_ptr) {
 double sph_heatconduction_gpu_bytes() {
   return SPHHeatConductionMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

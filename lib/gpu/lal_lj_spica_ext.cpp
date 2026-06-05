@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_lj_spica.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static CGCMM<PRECISION,ACC_PRECISION> CMMMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int spica_gpu_init(const int ntypes, double **cutsq, int **cg_types,
                  double **host_lj1, double **host_lj2, double **host_lj3,
                  double **host_lj4, double **offset, double *special_lj,
@@ -118,4 +121,4 @@ double spica_gpu_bytes() {
   return CMMMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

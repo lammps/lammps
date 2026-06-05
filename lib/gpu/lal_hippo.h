@@ -82,7 +82,7 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
                 double *sublo, double *subhi, tagint *tag, int **nspecial, tagint **special,
                 int *nspecial15, tagint **special15,
                 const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom
+                const bool eatom, const bool vatom,
                 int **ilist, int **numj, bool &success,
                 const double aewald, const double felec, const double off2_mpole, double *charge,
                 double *boxlo, double *prd, void **tep_ptr);

@@ -46,7 +46,7 @@ int CoulDSFT::bytes_per_atom(const int max_nbors) const {
 template <class numtyp, class acctyp>
 int CoulDSFT::init(const int ntypes, const int nlocal, const int nall,
                    const int max_nbors, const int maxspecial,
-                   const double cell_size FILE *_screen,
+                   const double cell_size, FILE *_screen,
                    const double host_cut_coulsq, double *host_special_coul,
                    const double qqrd2e, const double e_shift, const double f_shift,
                    const double alpha) {

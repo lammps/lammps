@@ -44,7 +44,7 @@ int VashishtaT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int VashishtaT::init(const int ntypes, const int nlocal, const int nall, const int max_nbors,
-           const double cell_size FILE *_screen,
+           const double cell_size, FILE *_screen,
            int* host_map, const int nelements, int*** host_elem2param, const int nparams,
            const double* cutsq, const double* r0,
            const double* gamma, const double* eta,

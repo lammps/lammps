@@ -120,8 +120,8 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   if (_threads_per_atom*_threads_per_atom>device->simd_size())
     return -10;
 
-  success = device->init_nbor(nbor,nall,host_nlocal,nall,maxspecial,
-                              _gpu_host,max_nbors,cell_size,true,1,true);
+  success = device->init_nbor(nbor,nall,0,nall,maxspecial,
+                              0,max_nbors,cell_size,true,1,true);
   if (success!=0)
     return success;
 

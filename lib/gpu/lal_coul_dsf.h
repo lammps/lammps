@@ -38,7 +38,7 @@ class CoulDSF : public BaseCharge<numtyp, acctyp> {
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, const int nlocal, const int nall,
            const int max_nbors, const int maxspecial,
-           const double cell_size FILE *screen,
+           const double cell_size, FILE *screen,
            const double host_cut_coulsq, double *host_special_coul,
            const double qqrd2e, const double e_shift, const double f_shift,
            const double alpha);

@@ -312,8 +312,6 @@ int PPPMT::spread(const int ago, const int nlocal, const int nall,
                 delyinv,delzinv);
   }
 
-  device->stop_host_timer();
-
   if (!success || nlocal==0)
     return 0;
 

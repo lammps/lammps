@@ -41,7 +41,7 @@ class LJCubic : public BaseAtomic<numtyp, acctyp> {
            double **host_lj1, double **host_lj2, double **host_lj3,
            double **host_lj4, double *host_special_lj, const int nlocal,
            const int nall, const int max_nbors, const int maxspecial,
-           const double cell_size FILE *screen);
+           const double cell_size, FILE *screen);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/

@@ -156,5 +156,4 @@ double PairLJSPICACoulLongGPU::memory_usage()
   return bytes + spical_gpu_bytes();
 }
 
-/* ---------------------------------------------------------------------- */
-template <int EVFLAG, int EFLAG>
+

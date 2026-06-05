@@ -40,7 +40,7 @@ class DPD : public BaseDPD<numtyp, acctyp> {
            double **host_gamma, double **host_sigma, double **host_cut,
            double *host_special_lj, bool tstat_only, const int nlocal,
            const int nall, const int max_nbors, const int maxspecial,
-           const double cell_size FILE *screen);
+           const double cell_size, FILE *screen);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/

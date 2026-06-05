@@ -67,7 +67,7 @@ public:
   void compute(const int f_ago, const int inum_full, const int nall,
                double **host_x, int *host_type, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
-               const bool eatom, const bool vatom
+               const bool eatom, const bool vatom,
                bool &success, double *charge,
                const int nlocal, double *boxlo, double *prd);
 

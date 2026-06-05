@@ -31,6 +31,14 @@
 #error Must include either lal_precision.h or lmptype.h before lammps_gpu.h
 #endif
 
+/* When included from the LAMMPS src side, tagint lives in LAMMPS_NS.
+   Bring it to global scope so the function declarations below can use it
+   unqualified.  From the lib/gpu side (lal_precision.h), tagint is already
+   at global scope, so this block is skipped. */
+#if defined(LMP_LMPTYPE_H) && !defined(LAL_PRECISION_H)
+using LAMMPS_NS::tagint;
+#endif
+
 namespace LAMMPS_GPU {
 
 

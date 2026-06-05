@@ -37,7 +37,7 @@ class TersoffZBL : public BaseThree<numtyp, acctyp> {
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, const int nlocal, const int nall, const int max_nbors,
-           const double cell_size FILE *screen,
+           const double cell_size, FILE *screen,
            int* host_map, const int nelements, int*** host_elem2param, const int nparams,
            const double* lam1, const double* lam2, const double* lam3,
            const double* powermint, const double* biga, const double* bigb,

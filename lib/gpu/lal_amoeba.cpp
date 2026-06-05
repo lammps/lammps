@@ -57,7 +57,7 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const int max_amclass,
                   const double *host_csix, const double *host_adisp,
                   const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const int maxspecial15,
-                  const double cell_size FILE *_screen,
+                  const double cell_size, FILE *_screen,
                   const double polar_dscale, const double polar_uscale) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,maxspecial15,

@@ -137,5 +137,4 @@ double PairLJSPICAGPU::memory_usage()
   return bytes + spica_gpu_bytes();
 }
 
-/* ---------------------------------------------------------------------- */
-template <int EVFLAG, int EFLAG>
+

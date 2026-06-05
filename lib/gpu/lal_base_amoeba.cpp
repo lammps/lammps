@@ -110,8 +110,8 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   }
 
   bool alloc_packed=false;
-  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,
-                              _gpu_host,max_nbors,cell_size,alloc_packed,
+  success = device->init_nbor(nbor,nlocal,0,nall,maxspecial,
+                              0,max_nbors,cell_size,alloc_packed,
                               _threads_per_atom);
   if (success!=0)
     return success;

@@ -197,7 +197,7 @@ GPU package
 
 To build with this package, you must choose options for precision and
 which GPU hardware to build for. The GPU package currently supports
-three different types of back ends: OpenCL, CUDA and HIP.
+three different types of backends: OpenCL, CUDA and HIP.
 
 CMake build
 ^^^^^^^^^^^
@@ -359,7 +359,7 @@ For a debug build, set ``GPU_DEBUG`` to be ``yes``.
 .. versionadded:: 3Aug2022
 
 Using the CHIP-SPV implementation of HIP is supported. It allows one to
-run HIP code on Intel GPUs via the OpenCL or Level Zero back ends. To use
+run HIP code on Intel GPUs via the OpenCL or Level Zero backends. To use
 CHIP-SPV, you must set ``-DHIP_USE_DEVICE_SORT=OFF`` in your CMake
 command-line as CHIP-SPV does not yet support hipCUB. As of Summer 2022,
 the use of HIP for Intel GPUs is experimental. You should only use this

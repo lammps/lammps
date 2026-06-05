@@ -60,7 +60,7 @@ LAMMPS can use them if they are available on your system.
 Alternatively, LAMMPS can use the `heFFTe
 <https://icl-utk-edu.github.io/heffte/>`_ library for the MPI
 communication algorithms, which comes with many optimizations for
-special cases, e.g. leveraging available 2D and 3D FFTs in the back end
+special cases, e.g. leveraging available 2D and 3D FFTs in the backend
 libraries and better pipelining for packing and communication.
 
 .. tabs::
@@ -83,7 +83,7 @@ libraries and better pipelining for packing and communication.
          the FFT library selected by the ``FFT_KOKKOS`` variable applies. Otherwise,
          the FFT library selected by the FFT variable applies.
          The same FFT settings apply to both. ``FFT_KOKKOS`` must be compatible with the
-         Kokkos back end - for example, when using the CUDA back end of Kokkos,
+         Kokkos backend - for example, when using the CUDA backend of Kokkos,
          you must use either ``CUFFT`` or ``KISS``.
 
       Usually these settings are all that is needed.  If FFTW3 is
@@ -103,14 +103,14 @@ libraries and better pipelining for packing and communication.
          -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
          -D MKL_LIBRARY=path         # path to MKL libraries
          -D FFT_HEFFTE_BACKEND=value # FFTW or MKL or empty/undefined for the stock
-                                     # heFFTe back end
+                                     # heFFTe backend
          -D Heffte_ROOT=path         # path to an existing heFFTe installation
          -D nvpl_fft_INCLUDE_DIR=path # path to NVPL FFT include files
          -D nvpl_fft_LIBRARY_DIR=path # path to NVPL FFT libraries
 
       .. note::
 
-         heFFTe comes with a builtin (= stock) back end for FFTs, i.e. a
+         heFFTe comes with a builtin (= stock) backend for FFTs, i.e. a
          default internal FFT implementation; however, this stock back
          end is intended for testing purposes only and is not optimized
          for production runs.
@@ -195,9 +195,9 @@ libraries and better pipelining for packing and communication.
       which will define the ``heffte_`` include variables needed to link to heFFTe from
       an external project using traditional make.
       The ``-DFFT_HEFFTE`` is required to switch to using heFFTe, while the optional ``-DFFT_HEFFTE_FFTW``
-      selects the desired heFFTe back end, e.g., ``-DFFT_HEFFTE_FFTW`` or ``-DFFT_HEFFTE_MKL``,
-      omitting the variable will default to the `stock` back end.
-      The heFFTe `stock` back end is intended to be used for testing and debugging,
+      selects the desired heFFTe backend, e.g., ``-DFFT_HEFFTE_FFTW`` or ``-DFFT_HEFFTE_MKL``,
+      omitting the variable will default to the `stock` backend.
+      The heFFTe `stock` backend is intended to be used for testing and debugging,
       but is not performance optimized for large scale production runs.
 
 The `KISS FFT library <https://github.com/mborgerding/kissfft>`_ is
@@ -235,10 +235,10 @@ Grace Armv9.0 architecture. You can download it from https://docs.nvidia.com/nvp
 
 The cuFFT and hipFFT FFT libraries are packaged with NVIDIA's CUDA and
 AMD's HIP installations, respectively. These FFT libraries require the
-Kokkos acceleration package to be enabled and the Kokkos back end to be
+Kokkos acceleration package to be enabled and the Kokkos backend to be
 GPU-resident (i.e., HIP or CUDA). Similarly, GPU offload of FFTs on
 Intel GPUs with oneMKL currently requires the Kokkos acceleration
-package to be enabled with the SYCL back end.
+package to be enabled with the SYCL backend.
 
 Performing 3d FFTs in parallel can be time-consuming due to data access
 and required communication.  This cost can be reduced by performing
@@ -272,7 +272,7 @@ ARRAY mode.
 When using ``-DFFT_HEFFTE`` CMake will first look for an existing
 install with hints provided by ``-DHeffte_ROOT``, as recommended by the
 CMake standard and note that the name is case sensitive. If CMake cannot
-find a heFFTe installation with the correct back end (e.g., FFTW or
+find a heFFTe installation with the correct backend (e.g., FFTW or
 MKL), it will attempt to download and build the library automatically.
 In this case, LAMMPS CMake will also accept all heFFTe specific
 variables listed in the `heFFTe documentation

@@ -239,6 +239,8 @@ Babadi
 Babaei
 Baconnier
 backcolor
+backend
+backends
 Baczewski
 badi
 Baer
@@ -2265,6 +2267,7 @@ makelist
 makepkg
 Makse
 Malavasi
+Malerba
 malloc
 Malolepsza
 Manby
@@ -2927,6 +2930,7 @@ Oleinik
 Olfason
 olivedrab
 Ollila
+Olsson
 Olvera
 omegaDD
 omegax
@@ -3030,6 +3034,7 @@ Parrinello
 Partay
 Particuology
 Pascuet
+Pasianot
 Pasquier
 pastewka
 Pastewka
@@ -3973,6 +3978,7 @@ templating
 Templeton
 Tencer
 Tequil
+Terentyev
 ters
 tersoff
 Tersoff
@@ -4069,6 +4075,7 @@ tokyo
 tol
 tomic
 toolchain
+toolchains
 topologies
 Toporov
 Torder
@@ -4376,6 +4383,7 @@ vzi
 vzz
 Waals
 Wadley
+Wallenius
 wallstyle
 walltime
 Waltham

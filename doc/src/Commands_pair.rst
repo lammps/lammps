@@ -133,6 +133,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lambda/input/csp/apip <pair_lambda_input_apip>`
    * :doc:`lambda/zone/apip <pair_lambda_zone_apip>`
    * :doc:`lcbop (o) <pair_lcbop>`
+   * :doc:`ldd <pair_ldd>`
    * :doc:`lebedeva/z <pair_lebedeva_z>`
    * :doc:`lennard/mdf (ko) <pair_mdf>`
    * :doc:`lepton (o) <pair_lepton>`

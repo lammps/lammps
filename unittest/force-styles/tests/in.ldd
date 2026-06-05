@@ -1,0 +1,39 @@
+variable  newton_pair     index  on
+variable  newton_bond     index  on
+variable  bond_factor     index  0.0
+variable  angle_factor    index  0.0
+variable  dihedral_factor index  0.0
+variable  units           index  real
+variable  input_dir       index  .
+variable  data_file       index ${input_dir}/data.fourmol
+variable  pair_style      index 'ldd'
+variable  bond_style      index zero
+variable  angle_style     index zero
+variable  dihedral_style  index zero
+variable  improper_style  index zero
+variable  t_target        index 100.0
+
+atom_style       full
+neigh_modify     delay 2 every 2 check no
+units            ${units}
+timestep         0.1
+newton           on #${newton_pair} ${newton_bond}
+
+bond_style       ${bond_style}
+angle_style      ${angle_style}
+dihedral_style   ${dihedral_style}
+improper_style   ${improper_style}
+
+region my_box block 0 9 0 9 0 9
+create_box 2 my_box
+
+mass * 59.0448
+
+
+create_atoms 1 single 1       0.1     0.75
+create_atoms 2 single 1       0.1     0.65
+create_atoms 1 single 1       0.1     0.1
+create_atoms 2 single 1       0.54    0.65
+create_atoms 2 single 1       8.9     0.65
+pair_style       ${pair_style}
+

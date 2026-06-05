@@ -18,29 +18,29 @@
 #ifndef LMP_MTP_RADIAL_BASIS_H
 #define LMP_MTP_RADIAL_BASIS_H
 
-#include "text_file_reader.h"
-
 #include "pointers.h"
 
 namespace LAMMPS_NS {
+
+class TextFileReader;
 
 class RadialMTPBasis : protected Pointers {
  public:
   RadialMTPBasis(TextFileReader &tfr, LAMMPS *lmp);
   RadialMTPBasis(int size, LAMMPS *lmp);
-  ~RadialMTPBasis();    // Needed to clear memory
+  virtual ~RadialMTPBasis();
 
   virtual void calc_radial_basis(double dist) = 0;
   virtual void calc_radial_basis_ders(double dist) = 0;
 
-  int size;                // The size of the radial basis functions
-  double min_cutoff;       //  Minimum radius value
-  double max_cutoff;       // Cutoff radius
-  double scaling = 1.0;    // All functions are multiplied by scaling
+  int size;             // The size of the radial basis functions
+  double min_cutoff;    //  Minimum radius value
+  double max_cutoff;    // Cutoff radius
+  double scaling;       // All radial functions are multiplied by scaling
 
   // Values and derivatives for radial basis functions
-  double *radial_basis_vals = nullptr;
-  double *radial_basis_ders = nullptr;
+  double *radial_basis_vals;
+  double *radial_basis_ders;
 
  protected:
  private:
@@ -50,12 +50,12 @@ class RadialMTPBasis : protected Pointers {
 
 class RBChebyshev : public RadialMTPBasis {
  public:
-  RBChebyshev(int size, LAMMPS *lmp) : RadialMTPBasis(size, lmp) {};
-  RBChebyshev(TextFileReader &tfr, LAMMPS *lmp) : RadialMTPBasis(tfr, lmp) {};
+  RBChebyshev(int size, LAMMPS *lmp) : RadialMTPBasis(size, lmp) {}
+  RBChebyshev(TextFileReader &tfr, LAMMPS *lmp) : RadialMTPBasis(tfr, lmp) {}
   void calc_radial_basis(double val) override;
   void calc_radial_basis_ders(double val) override;
 };
 
 }    // namespace LAMMPS_NS
 
-#endif
+#endif    // LMP_MTP_RADIAL_BASIS_H

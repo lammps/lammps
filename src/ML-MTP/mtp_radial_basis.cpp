@@ -20,14 +20,17 @@
 #include "error.h"
 #include "memory.h"
 #include "text_file_reader.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 
-RadialMTPBasis::RadialMTPBasis(TextFileReader &tfr, LAMMPS *lmp) : Pointers(lmp)
+RadialMTPBasis::RadialMTPBasis(TextFileReader &tfr, LAMMPS *lmp) :
+    Pointers(lmp), size(0), min_cutoff(0.0), max_cutoff(0.0), scaling(1.0),
+    radial_basis_vals(nullptr), radial_basis_ders(nullptr)
 { read_basis_properties(tfr); }
 
-RadialMTPBasis::RadialMTPBasis(int size, LAMMPS *lmp) : Pointers(lmp), size(size)
+RadialMTPBasis::RadialMTPBasis(int size, LAMMPS *lmp) :
+    Pointers(lmp), size(size), min_cutoff(0.0), max_cutoff(0.0), scaling(1.0),
+    radial_basis_vals(nullptr), radial_basis_ders(nullptr)
 {
   memory->create(radial_basis_vals, size, "pair:mtp_radial_vals");
   memory->create(radial_basis_ders, size, "pair:mtp_radial_ders");

@@ -26,10 +26,11 @@ PairStyle(mtp/kk/host,PairMTPKokkos<LMPHostType>);
 #ifndef LMP_PAIR_MTP_KOKKOS_H
 #define LMP_PAIR_MTP_KOKKOS_H
 
+#include "pair_mtp.h"
+
 #include "kokkos_type.h"
 #include "neigh_list_kokkos.h"
 #include "pair_kokkos.h"
-#include "pair_mtp.h"
 
 namespace LAMMPS_NS {
 

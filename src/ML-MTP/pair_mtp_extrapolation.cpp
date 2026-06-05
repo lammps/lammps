@@ -16,7 +16,6 @@
 //
 
 #include "pair_mtp_extrapolation.h"
-#include "mtp_radial_basis.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -24,8 +23,10 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "mtp_radial_basis.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "text_file_reader.h"
 
 #include <cmath>
 #include <fstream>
@@ -37,6 +38,25 @@ PairMTPExtrapolation::PairMTPExtrapolation(LAMMPS *lmp) : PairMTP(lmp)
   nextra = 1;                      // Number of extra coefficients (1 for extrapolation)
   pvector = new double[nextra];    // Pointer directly to the max extrapolation grade
   pvector[0] = 0.0;
+
+  active_set = nullptr;
+  inverse_active_set = nullptr;
+  radial_jacobian = nullptr;
+  radial_moment_ders = nullptr;
+  energy_ders_wrt_coeffs = nullptr;
+  nbh_extrapolation_grades = nullptr;
+  write_buffer = nullptr;
+  preselected_file = nullptr;
+
+  coeff_count = 0;
+  extrapolation_flag = 0;
+  mlip3_style = false;
+  configuration_mode = 0;
+  select_threshold = 0.0;
+  break_threshold = 0.0;
+  max_grade = 0.0;
+  nbh_count = 0;
+  write_buffer_size = 0;
 };
 
 /* ---------------------------------------------------------------------- */
@@ -49,9 +69,15 @@ PairMTPExtrapolation::~PairMTPExtrapolation()
     memory->destroy(active_set);
     memory->destroy(inverse_active_set);
     memory->destroy(radial_jacobian);
+    memory->destroy(radial_moment_ders);
     memory->destroy(energy_ders_wrt_coeffs);
     if (!configuration_mode) memory->destroy(nbh_extrapolation_grades);
     if (mlip3_style) memory->destroy(write_buffer);
+
+    if (comm->me == 0 && preselected_file) {
+      std::fclose(preselected_file);
+      preselected_file = nullptr;
+    }
   }
 }
 
@@ -538,51 +564,45 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
     ValueTokenizer line_tokens = ValueTokenizer(std::string(line), separators);
     std::string keyword = line_tokens.next_string();
     if (keyword != "#MVS_v1.1")
-      lmp->error->one(
+      error->one(
           FLERR,
           "Error in reading MTP file selection state. Please verify MVS version is #MVS_v1.1!");
     tfr.ignore_comments = true;    // Accept comments after reading the version which is a comment
 
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
-    if (keyword != "energy_weight")
-      lmp->error->one(FLERR, "Error in reading MTP file, energy_weight");
+    if (keyword != "energy_weight") error->one(FLERR, "Error in reading MTP file, energy_weight");
     const double energy_weight = line_tokens.next_double();
 
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
-    if (keyword != "force_weight")
-      lmp->error->one(FLERR, "Error in reading MTP file, force_weight");
+    if (keyword != "force_weight") error->one(FLERR, "Error in reading MTP file, force_weight");
 
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
-    if (keyword != "stress_weight")
-      lmp->error->one(FLERR, "Error in reading MTP file, stress_weight");
+    if (keyword != "stress_weight") error->one(FLERR, "Error in reading MTP file, stress_weight");
 
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
-    if (keyword != "site_en_weight")
-      lmp->error->one(FLERR, "Error in reading MTP file, site_en_weight");
+    if (keyword != "site_en_weight") error->one(FLERR, "Error in reading MTP file, site_en_weight");
     const double site_en_weight = line_tokens.next_double();
 
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
-    if (keyword != "weight_scaling")
-      lmp->error->one(FLERR, "Error in reading MTP file, weight_scaling");
+    if (keyword != "weight_scaling") error->one(FLERR, "Error in reading MTP file, weight_scaling");
 
     if (energy_weight + site_en_weight > 1)
-      lmp->error->one(FLERR,
-                      "Error, the MTP currently only supports configuration mode (energy_weight=1) "
-                      "or neighbourhood mode (site_en_weight=1). "
-                      "Please retrain the MTP with the correct modes!");
+      error->one(FLERR,
+                 "Error, the MTP currently only supports configuration mode (energy_weight=1) "
+                 "or neighbourhood mode (site_en_weight=1). "
+                 "Please retrain the MTP with the correct modes!");
 
     configuration_mode = (energy_weight == 1);
 
     fgetc(mtp_file);    // We need to skip foward 1 character. There is a # before the binary data.
-    utils::sfread(FLERR, &active_set[0][0], sizeof(double), num_doubles, mtp_file, nullptr,
-                  lmp->error);
+    utils::sfread(FLERR, &active_set[0][0], sizeof(double), num_doubles, mtp_file, nullptr, error);
     utils::sfread(FLERR, &inverse_active_set[0][0], sizeof(double), num_doubles, mtp_file, nullptr,
-                  lmp->error);
+                  error);
   }
 
   //Broadcast active set to others

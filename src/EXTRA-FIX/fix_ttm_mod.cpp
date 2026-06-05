@@ -420,6 +420,7 @@ void FixTTMMod::read_parameters(const std::string &filename)
 
     try {
       PotentialFileReader reader(lmp, filename, "ttm/mod parameter");
+      reader.ignore_comments(false);
 
       // C0 (metal)
 

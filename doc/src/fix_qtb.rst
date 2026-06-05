@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID qtb keyword value ...
+   fix fix-ID group-ID qtb keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * qtb = style name of this fix
 * zero or more keyword/value pairs may be appended
 * keyword = *temp* or *damp* or *seed* or *f_max* or *N_f*

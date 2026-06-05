@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID pafi compute-ID Temp Tdamp seed keyword values...
+   fix fix-ID group-ID pafi compute-ID Temp Tdamp seed keyword values...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * pafi = style name of this fix command
 * compute-ID = ID of a :doc:`compute property/atom <compute_property_atom>` that holds data used by this fix
 * Temp = desired temperature (temperature units)

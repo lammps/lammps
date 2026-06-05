@@ -20,7 +20,7 @@ Syntax
          N = # of extra degrees of freedom to subtract
        *dynamic/dof* value = *yes* or *no*
          yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
-       *temp* value = compute ID that calculates a temperature
+       *temp* value = compute-ID that calculates a temperature
 
 Examples
 """"""""

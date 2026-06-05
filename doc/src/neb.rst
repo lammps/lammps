@@ -292,7 +292,7 @@ information:
    ...
    IDN xN yN zN
 
-The fields are the atom ID, followed by the x,y,z coordinates.  The
+The fields are the atom-ID, followed by the x,y,z coordinates.  The
 lines can be listed in any order.  Additional trailing information on
 the line is OK, such as a comment.
 

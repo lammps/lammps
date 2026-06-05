@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID graphics/periodic Nevery keyword args ...
+   fix fix-ID group-ID graphics/periodic Nevery keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * graphics/periodic = style name of this fix command
 * Nevery = update graphics information every this many time steps
 * zero or more keywords or keyword/value pairs may be appended
@@ -41,7 +41,7 @@ This fix allows to add graphics of periodic images of atoms and bonds to
 :doc:`dump image <dump_image>` images using the *fix* keyword.  This can
 be useful to visualize periodic systems.
 
-The *group-ID* sets the group ID of the atoms selected to be displayed
+The *group-ID* sets the group-ID of the atoms selected to be displayed
 as periodic images.  For bonds to be displayed, *both* atoms of the bond
 have to be inside the group.
 

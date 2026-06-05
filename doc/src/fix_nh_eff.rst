@@ -16,9 +16,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style_name keyword value ...
+   fix fix-ID group-ID style_name keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style_name = *nvt/eff* or *npt/eff* or *nph/eff*
 
   .. parsed-literal::

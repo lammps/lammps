@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID msd keyword values ...
+   compute compute-ID group-ID msd keyword values ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * msd = style name of this compute command
 * zero or more keyword/value pairs may be appended
 * keyword = *com* or *average*

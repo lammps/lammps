@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID id-group gle Ns Tstart Tstop seed Amatrix [noneq Cmatrix] [every stride]
+   fix fix-ID id-group gle Ns Tstart Tstop seed Amatrix [noneq Cmatrix] [every stride]
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * gle = style name of this fix command
 * Ns = number of additional fictitious momenta
 * Tstart, Tstop = temperature ramp during the run

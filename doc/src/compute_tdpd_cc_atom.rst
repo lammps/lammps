@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID tdpd/cc/atom index
+   compute compute-ID group-ID tdpd/cc/atom index
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * tdpd/cc/atom = style name of this compute command
 * index = index of chemical species (1 to Nspecies)
 

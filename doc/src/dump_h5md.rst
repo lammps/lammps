@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   dump ID group-ID h5md N file.h5 args
+   dump dump-ID group-ID h5md N file.h5 args
 
-* ID = user-assigned name for the dump
+* dump-ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be imaged
 * *h5md* = style of dump command (other styles *atom* or *cfg* or *dcd* or *xtc* or *xyz* or *local* or *custom* are discussed on the :doc:`dump <dump>` doc page)
 * N = dump every this many timesteps
@@ -24,7 +24,7 @@ Syntax
      *velocity* options
      *force* options
      *species* options
-     *file_from* ID = do not open a new file, re-use the already opened file from dump ID
+     *file_from* ID = do not open a new file, re-use the already opened file from dump-ID
      *box* value = *yes* or *no*
      *create_group* value = *yes* or *no*
      *author* value = quoted string
@@ -61,7 +61,7 @@ will write only one file, on the root node.
 Several dumps may write to the same file, by using file_from and
 referring to a previously defined dump.  Several groups may also be
 stored within the same file by defining several dumps.  A dump that
-refers (via *file_from*) to an already open dump ID and that concerns
+refers (via *file_from*) to an already open dump-ID and that concerns
 another particle group must specify *create_group yes*.
 
 .. _h5md: https://www.nongnu.org/h5md/

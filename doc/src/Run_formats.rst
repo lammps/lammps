@@ -268,7 +268,7 @@ must be done in the input file *before* reading the data file.  To
 assist with detecting incompatible data files, a comment is appended to
 the "Atoms" title indicating the atom style used (or intended) when
 *writing* the data file.  For example, below is an "Atoms" section for
-:doc:`atom style charge <atom_style>`, which omits the molecule ID
+:doc:`atom style charge <atom_style>`, which omits the molecule-ID
 column.
 
 .. code-block:: bash
@@ -297,7 +297,7 @@ are always 'Atom-ID Atom-type X Y Z' followed by any *additional* data
 added by the hybrid styles, for example, 'Charge Molecule-ID' for the
 first hybrid style and 'Molecule-ID Charge' in the second hybrid style
 variant.  Finally, an alternative to a hybrid atom style is to use fix
-property/atom, e.g. to add molecule IDs to atom style charge.  In this
+property/atom, e.g. to add molecule-IDs to atom style charge.  In this
 case the "Atoms" section is formatted according to atom style charge and
 a new section, "Molecules" is added that contains lines with 'Atom-ID
 Molecule-ID', one for each atom in the system.  For adding charges to
@@ -469,7 +469,7 @@ and the other first-level keys identify this JSON schema.  The objects in
 "molecules" key is an array of :doc:`LAMMPS molecule JSON <molecule>`
 objects, and may contain other keys that contain metadata for each
 molecule.  The "format" keys within molecule JSON objects are only printed
-once per output file, for brevity.  The "atom-id" values are atom IDs from
+once per output file, for brevity.  The "atom-id" values are atom-IDs from
 the simulation, and the "type" values are atom types.  In the above
 example, the types were reported as strings corresponding to elements using
 :doc:`type labels <labelmap>`.

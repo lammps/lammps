@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID style args
+   compute compute-ID group-ID style args
 
-* ID = user-assigned name for the computation
+* compute-ID = user-assigned name for the computation
 * group-ID = ID of the group of atoms to perform the computation on
 * style = one of a list of possible style names (see below)
 * args = arguments used by a particular style
@@ -201,7 +201,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`born/matrix <compute_born_matrix>` - second derivative or potential with respect to strain
 * :doc:`centro/atom <compute_centro_atom>` - centro-symmetry parameter for each atom
 * :doc:`centroid/stress/atom <compute_stress_atom>` - centroid based stress tensor for each atom
-* :doc:`chunk/atom <compute_chunk_atom>` - assign chunk IDs to each atom
+* :doc:`chunk/atom <compute_chunk_atom>` - assign chunk-IDs to each atom
 * :doc:`chunk/spread/atom <compute_chunk_spread_atom>` - spreads chunk values to each atom in chunk
 * :doc:`cluster/atom <compute_cluster_atom>` - cluster ID for each atom
 * :doc:`cna/atom <compute_cna_atom>` - common neighbor analysis (CNA) for each atom

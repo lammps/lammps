@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID smd/hourglass/error
+   compute compute-ID group-ID smd/hourglass/error
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * smd/hourglass/error = style name of this compute command
 
 Examples

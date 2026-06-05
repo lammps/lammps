@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID nvt/asphere keyword value ...
+   fix fix-ID group-ID nvt/asphere keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * nvt/asphere = style name of this fix command
 * additional thermostat related keyword/value pairs from the :doc:`fix nvt <fix_nh>` command can be appended
 

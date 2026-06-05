@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID alchemy v_name
+   fix fix-ID group-ID alchemy v_name
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * alchemy = style name of this fix command
 * v_name = variable with name that determines the :math:`\lambda_R` value
 

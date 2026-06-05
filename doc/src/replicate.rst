@@ -50,8 +50,8 @@ changed by subsequent :doc:`balance <balance>` or :doc:`fix balance
 
 All properties of each atom are replicated (except per-atom fix data,
 see the Restrictions section below).  This includes their velocities,
-which may or may not be desirable.  New atom IDs are assigned to new
-atoms, as are new molecule IDs.  Bonds and other topology interactions
+which may or may not be desirable.  New atom-IDs are assigned to new
+atoms, as are new molecule-IDs.  Bonds and other topology interactions
 are created between pairs of new atoms as well as between old and new
 atoms.
 

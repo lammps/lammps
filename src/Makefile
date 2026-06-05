@@ -420,7 +420,7 @@ tar:
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
-check: check-whitespace check-permissions check-homepage check-errordocs check-fmtlib check-docs check-version
+check: check-whitespace check-permissions check-homepage check-errordocs check-fmtlib check-idnames check-docs check-version
 
 check-whitespace:
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..
@@ -439,6 +439,12 @@ check-homepage:
 
 fix-homepage:
 	$(PYTHON) ../tools/coding_standard/homepage.py .. -f
+
+check-idnames:
+	$(PYTHON) ../tools/coding_standard/idnames.py ..
+
+fix-idnames:
+	$(PYTHON) ../tools/coding_standard/idnames.py .. -f
 
 check-errordocs:
 	$(PYTHON) ../tools/coding_standard/errordocs.py ..

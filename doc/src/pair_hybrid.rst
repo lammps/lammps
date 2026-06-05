@@ -98,8 +98,8 @@ forces, energies and stresses.  Because of the added complexity, the
 
 The *hybrid/molecular* pair style accepts *only* two sub-styles: the
 first is assigned to intra-molecular interactions (i.e. both atoms
-have the same molecule ID), the second to inter-molecular interactions
-(i.e. interacting atoms have different molecule IDs).
+have the same molecule-ID), the second to inter-molecular interactions
+(i.e. interacting atoms have different molecule-IDs).
 
 .. admonition:: When **NOT** to use a hybrid pair style
    :class: warning

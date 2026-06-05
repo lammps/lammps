@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID heat N eflux
+   fix fix-ID group-ID heat N eflux
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * heat = style name of this fix command
 * N = add/subtract heat every this many timesteps
 * eflux = rate of heat addition or subtraction (energy/time units)

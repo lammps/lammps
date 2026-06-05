@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID rhok nx ny nz K a
+   fix fix-ID group-ID rhok nx ny nz K a
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * nx, ny, nz = k-vector of collective density field
 * K = spring constant of bias potential
 * a = anchor point of bias potential

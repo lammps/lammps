@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID bond/break Nevery bondtype Rmax keyword values ...
+   fix fix-ID group-ID bond/break Nevery bondtype Rmax keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * bond/break = style name of this fix command
 * Nevery = attempt bond breaking every this many steps
 * bondtype = type of bonds to break (integer or type label)
@@ -84,9 +84,9 @@ part of bonds, angles, etc.
 .. note::
 
    One data structure that is not updated when a bond breaks are
-   the molecule IDs stored by each atom.  Even though one molecule
+   the molecule-IDs stored by each atom.  Even though one molecule
    becomes two molecules due to the broken bond, all atoms in both new
-   molecules retain their original molecule IDs.
+   molecules retain their original molecule-IDs.
 
 Computationally, each time step this fix is invoked, it loops over all
 the bonds in the system and computes distances between pairs of bonded

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID pour N type seed keyword values ...
+   fix fix-ID group-ID pour N type seed keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * pour = style name of this fix command
 * N = # of particles to insert
 * type = atom type to assign to inserted particles (offset for molecule insertion)
@@ -192,9 +192,9 @@ the molecule can be specified in the file read by the
 each atom in the molecule has a default diameter of 1.0.
 
 The *id* option has two settings which are used to determine the atom
-or molecule IDs to assign to inserted particles/molecules.  In both
+or molecule-IDs to assign to inserted particles/molecules.  In both
 cases a check is done of the current system to find the maximum
-current atom and molecule ID of any existing particle.  Newly inserted
+current atom and molecule-ID of any existing particle.  Newly inserted
 particles and molecules are assigned IDs that increment those max
 values.  For the *max* setting, which is the default, this check is
 done at every insertion step, which allows for particles to leave the

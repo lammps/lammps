@@ -126,8 +126,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Arcsin of invalid value in variable formula*
    Argument of arcsin() must be between -1 and 1.
 
-*Atom IDs must be used for molecular systems*
-   Atom IDs are used to identify and find partner atoms in bonds.
+*Atom-IDs must be used for molecular systems*
+   Atom-IDs are used to identify and find partner atoms in bonds.
 
 *Atom count changed in fix neb*
    This is not allowed in a NEB calculation.
@@ -198,7 +198,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Bad TIP4P bond type for PPPMDisp/TIP4P*
    Specified bond type is not valid.
 
-*Bad fix ID in fix append/atoms command*
+*Bad fix-ID in fix append/atoms command*
    The value of the fix_id for keyword spatial must start with "f\_".
 
 *Bad grid of processors*
@@ -469,7 +469,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    for Dispersion interactions.
 
 *Cannot create an atom map unless atoms have IDs*
-   The simulation requires a mapping from global atom IDs to local atoms,
+   The simulation requires a mapping from global atom-IDs to local atoms,
    but the atoms that have been defined have no IDs.
 
 *Cannot create atoms with undefined lattice*
@@ -516,8 +516,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    This is a restriction due to the way atoms are organized in
    a list to enable the atom_modify first command.
 
-*Cannot find delete_bonds group ID*
-   Group ID used in the delete_bonds command does not exist.
+*Cannot find delete_bonds group-ID*
+   Group-ID used in the delete_bonds command does not exist.
 
 *Cannot have both pair_modify shift and tail set to yes*
    These 2 options are contradictory.
@@ -871,10 +871,10 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    That style is not supported by Kokkos.
 
 *Cannot use compute cluster/atom unless atoms have IDs*
-   Atom IDs are used to identify clusters.
+   Atom-IDs are used to identify clusters.
 
 *Cannot use create_bonds unless atoms have IDs*
-   This command requires a mapping from global atom IDs to local atoms,
+   This command requires a mapping from global atom-IDs to local atoms,
    but the atoms that have been defined have no IDs.
 
 *Cannot use cwiggle in variable formula between runs*
@@ -1057,8 +1057,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    Regions that extend to the box boundaries can only be used after the
    create_box command has been used.
 
-*Cannot use set atom with no atom IDs defined*
-   Atom IDs are not defined, so they cannot be used to identify an atom.
+*Cannot use set atom with no atom-IDs defined*
+   Atom-IDs are not defined, so they cannot be used to identify an atom.
 
 *Cannot use swiggle in variable formula between runs*
    This is a function of elapsed time.
@@ -1238,7 +1238,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    The keflag cannot be used unless a temperature compute is provided.
 
 *Compute pressure temperature ID does not compute temperature*
-   The compute ID assigned to a pressure computation must compute
+   The compute-ID assigned to a pressure computation must compute
    temperature.
 
 *Compute property/atom floating point vector does not exist*
@@ -1368,86 +1368,86 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    The provided Python code was run successfully, but it not
    define a callable function with the required name.
 
-*Could not find change_box group ID*
-   Group ID used in the change_box command does not exist.
+*Could not find change_box group-ID*
+   Group-ID used in the change_box command does not exist.
 
-*Could not find compute msd/chunk fix ID*
+*Could not find compute msd/chunk fix-ID*
    The compute creates an internal fix, which has been deleted.
 
 *Could not find compute pressure temperature ID*
-   The compute ID for calculating temperature does not exist.
+   The compute-ID for calculating temperature does not exist.
 
-*Could not find delete_atoms group ID*
-   Group ID used in the delete_atoms command does not exist.
+*Could not find delete_atoms group-ID*
+   Group-ID used in the delete_atoms command does not exist.
 
-*Could not find delete_atoms region ID*
-   Region ID used in the delete_atoms command does not exist.
+*Could not find delete_atoms region-ID*
+   Region-ID used in the delete_atoms command does not exist.
 
-*Could not find displace_atoms group ID*
-   Group ID used in the displace_atoms command does not exist.
+*Could not find displace_atoms group-ID*
+   Group-ID used in the displace_atoms command does not exist.
 
-*Could not find dump group ID*
-   A group ID used in the dump command does not exist.
+*Could not find dump group-ID*
+   A group-ID used in the dump command does not exist.
 
-*Could not find fix adapt storage fix ID*
+*Could not find fix adapt storage fix-ID*
    This should not happen unless you explicitly deleted
    a secondary fix that fix adapt created internally.
 
-*Could not find fix group ID*
-   A group ID used in the fix command does not exist.
+*Could not find fix group-ID*
+   A group-ID used in the fix command does not exist.
 
-*Could not find fix recenter group ID*
-   A group ID used in the fix recenter command does not exist.
+*Could not find fix recenter group-ID*
+   A group-ID used in the fix recenter command does not exist.
 
-*Could not find fix rigid group ID*
-   A group ID used in the fix rigid command does not exist.
+*Could not find fix rigid group-ID*
+   A group-ID used in the fix rigid command does not exist.
 
 *Could not find fix_modify ID*
-   A fix ID used in the fix_modify command does not exist.
+   A fix-ID used in the fix_modify command does not exist.
 
 *Could not find fix_modify pressure ID*
-   The compute ID for computing pressure does not exist.
+   The compute-ID for computing pressure does not exist.
 
 *Could not find fix_modify temperature ID*
-   The compute ID for computing temperature does not exist.
+   The compute-ID for computing temperature does not exist.
 
-*Could not find pair fix ID*
+*Could not find pair fix-ID*
    A fix is created internally by the pair style to store shear
    history information.  You cannot delete it.
 
-*Could not find set group ID*
-   Group ID specified in set command does not exist.
+*Could not find set group-ID*
+   Group-ID specified in set command does not exist.
 
-*Could not find thermo compute ID*
-   Compute ID specified in thermo_style command does not exist.
+*Could not find thermo compute-ID*
+   Compute-ID specified in thermo_style command does not exist.
 
-*Could not find thermo custom compute ID*
-   The compute ID needed by thermo style custom to compute a requested
+*Could not find thermo custom compute-ID*
+   The compute-ID needed by thermo style custom to compute a requested
    quantity does not exist.
 
-*Could not find thermo custom fix ID*
-   The fix ID needed by thermo style custom to compute a requested
+*Could not find thermo custom fix-ID*
+   The fix-ID needed by thermo style custom to compute a requested
    quantity does not exist.
 
-*Could not find thermo fix ID*
-   Fix ID specified in thermo_style command does not exist.
+*Could not find thermo fix-ID*
+   Fix-ID specified in thermo_style command does not exist.
 
 *Could not find thermo_modify pressure ID*
-   The compute ID needed by thermo style custom to compute pressure does
+   The compute-ID needed by thermo style custom to compute pressure does
    not exist.
 
 *Could not find thermo_modify temperature ID*
-   The compute ID needed by thermo style custom to compute temperature does
+   The compute-ID needed by thermo style custom to compute temperature does
    not exist.
 
 *Could not find undump ID*
-   A dump ID used in the undump command does not exist.
+   A dump-ID used in the undump command does not exist.
 
-*Could not find velocity group ID*
-   A group ID used in the velocity command does not exist.
+*Could not find velocity group-ID*
+   A group-ID used in the velocity command does not exist.
 
 *Could not find velocity temperature ID*
-   The compute ID needed by the velocity command to compute temperature
+   The compute-ID needed by the velocity command to compute temperature
    does not exist.
 
 *Could not find/initialize a specified accelerator device*
@@ -1493,8 +1493,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    The create_atoms command cannot be used before a read_data,
    read_restart, or create_box command.
 
-*Create_atoms molecule has atom IDs, but system does not*
-   The atom_style id command can be used to force atom IDs to be stored.
+*Create_atoms molecule has atom-IDs, but system does not*
+   The atom_style id command can be used to force atom-IDs to be stored.
 
 *Create_atoms molecule must have atom types*
    The defined molecule does not specify atom types.
@@ -1502,8 +1502,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Create_atoms molecule must have coordinates*
    The defined molecule does not specify coordinates.
 
-*Create_atoms region ID does not exist*
-   A region ID used in the create_atoms command does not exist.
+*Create_atoms region-ID does not exist*
+   A region-ID used in the create_atoms command does not exist.
 
 *Create_bonds command requires no kspace_style be defined*
    This is so that atom pairs that are already bonded to not appear
@@ -1677,7 +1677,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Dump dcd of non-matching # of atoms*
    Every snapshot written by dump dcd must contain the same # of atoms.
 
-*Dump dcd requires sorting by atom ID*
+*Dump dcd requires sorting by atom-ID*
    Use the dump_modify sort command to enable this.
 
 *Dump every variable returned a bad timestep*
@@ -1690,7 +1690,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    The fix must produce per-atom quantities on timesteps that dump local
    needs them.
 
-*Dump local cannot sort by atom ID*
+*Dump local cannot sort by atom-ID*
    This is because dump local does not really dump per-atom info.
 
 *Dump local count is not consistent across input fields*
@@ -1699,7 +1699,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Dump modify element names do not match atom types*
    Number of element names must equal number of atom types.
 
-*Dump xtc requires sorting by atom ID*
+*Dump xtc requires sorting by atom-ID*
    Use the dump_modify sort command to enable this.
 
 *Dump xyz/gz only writes compressed files*
@@ -1863,8 +1863,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    Only systems with bonds that can be changed can be used. Atom_style
    template does not qualify.
 
-*Fix bond/react: Invalid template atom ID in map file*
-   Atom IDs in molecule templates range from 1 to the number of atoms in the template.
+*Fix bond/react: Invalid template atom-ID in map file*
+   Atom-IDs in molecule templates range from 1 to the number of atoms in the template.
 
 *Fix bond/react: Rmax cutoff is longer than pairwise cutoff*
    This is not allowed because bond creation is done using the pairwise
@@ -1961,7 +1961,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    This option is not supported.
 
 *Fix evaporate molecule requires atom attribute molecule*
-   The atom style being used does not define a molecule ID.
+   The atom style being used does not define a molecule-ID.
 
 *Fix external callback function not set*
    This must be done by an external program in order to use this fix.
@@ -2024,10 +2024,10 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Fix gcmc put atom outside box*
    This should not normally happen.  Contact the developers.
 
-*Fix gcmc ran out of available atom IDs*
+*Fix gcmc ran out of available atom-IDs*
    See the setting for tagint in the src/lmptype.h file.
 
-*Fix gcmc ran out of available molecule IDs*
+*Fix gcmc ran out of available molecule-IDs*
    See the setting for tagint in the src/lmptype.h file.
 
 *Fix gcmc region cannot be dynamic*
@@ -2075,9 +2075,9 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    Self-explanatory. Efficient loop over all atoms for numerical
    difference requires an atom map.
 
-*Fix numdiff requires consecutive atom IDs*
+*Fix numdiff requires consecutive atom-IDs*
    Self-explanatory. Efficient loop over all atoms for numerical
-   difference requires consecutive atom IDs.
+   difference requires consecutive atom-IDs.
 
 *Fix numdiff/virial must use group all*
    Virial contributions computed by this fix are
@@ -2267,10 +2267,10 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    One of the particles has radius 0.0.
 
 *Fix_modify pressure ID does not compute pressure*
-   The compute ID assigned to the fix must compute pressure.
+   The compute-ID assigned to the fix must compute pressure.
 
 *Fix_modify temperature ID does not compute temperature*
-   The compute ID assigned to the fix must compute temperature.
+   The compute-ID assigned to the fix must compute temperature.
 
 *For triclinic deformation, specified target stress must be hydrostatic*
    Triclinic pressure control is allowed using the tri keyword, but
@@ -2298,8 +2298,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Grmask function in equal-style variable formula*
    Grmask is per-atom operation.
 
-*Group ID does not exist*
-   A group ID used in the group command does not exist.
+*Group-ID does not exist*
+   A group-ID used in the group command does not exist.
 
 *Group all cannot be made dynamic*
    This operation is not allowed.
@@ -2308,8 +2308,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    The group command cannot be used before a read_data, read_restart, or
    create_box command.
 
-*Group region ID does not exist*
-   A region ID used in the group command does not exist.
+*Group region-ID does not exist*
+   A region-ID used in the group command does not exist.
 
 *If read_dump purges it cannot replace or trim*
    These operations are not compatible.  See the read_dump doc
@@ -2590,8 +2590,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    The file does not appear to be a LAMMPS restart file since
    it does not contain the correct magic string at the beginning.
 
-*Invalid molecule ID in molecule file*
-   Molecule ID must be a non-zero positive integer.
+*Invalid molecule-ID in molecule file*
+   Molecule-ID must be a non-zero positive integer.
 
 *Invalid REAX atom type*
    There is a mis-match between LAMMPS atom types and the elements
@@ -2611,42 +2611,42 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    N must be >= 0 and <= 167, otherwise the factorial result is too
    large.
 
-*Invalid atom ID in %s section of data file*
+*Invalid atom-ID in %s section of data file*
    An atom in a section of the data file being read by fix property/atom
-   has an invalid atom ID that is <= 0 or > the maximum existing atom ID.
+   has an invalid atom-ID that is <= 0 or > the maximum existing atom-ID.
 
-*Invalid atom ID in Angles section of data file*
-   Atom IDs must be positive integers and within range of defined
+*Invalid atom-ID in Angles section of data file*
+   Atom-IDs must be positive integers and within range of defined
    atoms.
 
-*Invalid atom ID in Atoms section of data file*
-   Atom IDs must be positive integers.
+*Invalid atom-ID in Atoms section of data file*
+   Atom-IDs must be positive integers.
 
-*Invalid atom ID in Bodies section of data file*
-   Atom IDs must be positive integers and within range of defined
+*Invalid atom-ID in Bodies section of data file*
+   Atom-IDs must be positive integers and within range of defined
    atoms.
 
-*Invalid atom ID in Bonds section of data file*
-   Atom IDs must be positive integers and within range of defined
+*Invalid atom-ID in Bonds section of data file*
+   Atom-IDs must be positive integers and within range of defined
    atoms.
 
-*Invalid atom ID in Bonus section of data file*
-   Atom IDs must be positive integers and within range of defined
+*Invalid atom-ID in Bonus section of data file*
+   Atom-IDs must be positive integers and within range of defined
    atoms.
 
-*Invalid atom ID in Dihedrals section of data file*
-   Atom IDs must be positive integers and within range of defined
+*Invalid atom-ID in Dihedrals section of data file*
+   Atom-IDs must be positive integers and within range of defined
    atoms.
 
-*Invalid atom ID in Impropers section of data file*
-   Atom IDs must be positive integers and within range of defined
+*Invalid atom-ID in Impropers section of data file*
+   Atom-IDs must be positive integers and within range of defined
    atoms.
 
-*Invalid atom ID in Velocities section of data file*
-   Atom IDs must be positive integers and within range of defined
+*Invalid atom-ID in Velocities section of data file*
+   Atom-IDs must be positive integers and within range of defined
    atoms.
 
-*Invalid atom IDs in neb file*
+*Invalid atom-IDs in neb file*
    An ID in the file was not found in the system.
 
 *Invalid atom diameter in molecule file*
@@ -2748,7 +2748,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    One or more command-line arguments is invalid.  Check the syntax of
    the command you are using to launch LAMMPS.
 
-*Invalid compute ID in variable formula*
+*Invalid compute-ID in variable formula*
    The compute is not recognized.
 
 *Invalid create_atoms rotation vector for 2d model*
@@ -2879,7 +2879,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Invalid dump_modify threshold operator*
    Operator keyword used for threshold specification in not recognized.
 
-*Invalid fix ID in variable formula*
+*Invalid fix-ID in variable formula*
    The fix is not recognized.
 
 *Invalid fix box/relax command for a 2d simulation*
@@ -2940,8 +2940,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Invalid frequency in temper command*
    Nevery must be > 0.
 
-*Invalid group ID in neigh_modify command*
-   A group ID used in the neigh_modify command does not exist.
+*Invalid group-ID in neigh_modify command*
+   A group-ID used in the neigh_modify command does not exist.
 
 *Invalid group function in variable formula*
    Group function is not recognized.
@@ -3254,9 +3254,9 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    produces per-atom values is used in an equal-style variable
    formula.
 
-*Molecule IDs too large for compute chunk/atom*
+*Molecule-IDs too large for compute chunk/atom*
    The IDs must not be larger than can be stored in a 32-bit integer
-   since chunk IDs are 32-bit integers.
+   since chunk-IDs are 32-bit integers.
 
 *Molecule file shake flags not before shake atoms*
    The order of the two sections is important.
@@ -3479,7 +3479,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Neighbor page size must be >= 10x the one atom setting*
    This is required to prevent wasting too much memory.
 
-*New atom IDs exceed maximum allowed ID*
+*New atom-IDs exceed maximum allowed ID*
    See the setting for tagint in the src/lmptype.h file.
 
 *New bond exceeded bonds per atom in create\_bonds*
@@ -3552,15 +3552,15 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Number of core atoms != number of shell atoms*
    There must be a one-to-one pairing of core and shell atoms.
 
-*One or more Atom IDs is negative*
-   Atom IDs must be positive integers.
+*One or more Atom-IDs is negative*
+   Atom-IDs must be positive integers.
 
-*One or more atom IDs is too big*
-   The limit on atom IDs is set by the SMALLBIG, BIGBIG
+*One or more atom-IDs is too big*
+   The limit on atom-IDs is set by the SMALLBIG, BIGBIG
    setting in your LAMMPS build.  See the
    :doc:`Build settings <Build_settings>` page for more info.
 
-*One or more atom IDs is zero*
+*One or more atom-IDs is zero*
    Either all atoms IDs must be zero or none of them.
 
 *One or more atoms belong to multiple rigid bodies*
@@ -3748,35 +3748,35 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    Even for atomic systems, an atom map is required to find Peridynamic
    bonds.  Use the atom_modify command to define one.
 
-*Pair style AIREBO requires atom IDs*
+*Pair style AIREBO requires atom-IDs*
    This is a requirement to use the AIREBO potential.
 
 *Pair style AIREBO requires newton pair on*
    See the newton command.  This is a restriction to use the AIREBO
    potential.
 
-*Pair style BOP requires atom IDs*
+*Pair style BOP requires atom-IDs*
    This is a requirement to use the BOP potential.
 
 *Pair style BOP requires newton pair on*
    See the newton command.  This is a restriction to use the BOP
    potential.
 
-*Pair style COMB requires atom IDs*
+*Pair style COMB requires atom-IDs*
    This is a requirement to use the AIREBO potential.
 
 *Pair style COMB requires newton pair on*
    See the newton command.  This is a restriction to use the COMB
    potential.
 
-*Pair style COMB3 requires atom IDs*
+*Pair style COMB3 requires atom-IDs*
    This is a requirement to use the COMB3 potential.
 
 *Pair style COMB3 requires newton pair on*
    See the newton command.  This is a restriction to use the COMB3
    potential.
 
-*Pair style LCBOP requires atom IDs*
+*Pair style LCBOP requires atom-IDs*
    This is a requirement to use the LCBOP potential.
 
 *Pair style LCBOP requires newton pair on*
@@ -3791,21 +3791,21 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    See the newton command.  This is a restriction to use the SNAP
    potential.
 
-*Pair style Stillinger-Weber requires atom IDs*
+*Pair style Stillinger-Weber requires atom-IDs*
    This is a requirement to use the SW potential.
 
 *Pair style Stillinger-Weber requires newton pair on*
    See the newton command.  This is a restriction to use the SW
    potential.
 
-*Pair style Tersoff requires atom IDs*
+*Pair style Tersoff requires atom-IDs*
    This is a requirement to use the Tersoff potential.
 
 *Pair style Tersoff requires newton pair on*
    See the newton command.  This is a restriction to use the Tersoff
    potential.
 
-*Pair style Vashishta requires atom IDs*
+*Pair style Vashishta requires atom-IDs*
    This is a requirement to use the Vashishta potential.
 
 *Pair style Vashishta requires newton pair on*
@@ -3940,7 +3940,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Pair style lj/cut/coul/long/gpu requires atom attribute q*
    The atom style defined does not have this attribute.
 
-*Pair style lj/cut/tip4p/cut requires atom IDs*
+*Pair style lj/cut/tip4p/cut requires atom-IDs*
    This is a requirement to use this potential.
 
 *Pair style lj/cut/tip4p/cut requires atom attribute q*
@@ -3950,8 +3950,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    See the newton command.  This is a restriction to use this
    potential.
 
-*Pair style lj/cut/tip4p/long requires atom IDs*
-   There are no atom IDs defined in the system and the TIP4P potential
+*Pair style lj/cut/tip4p/long requires atom-IDs*
+   There are no atom-IDs defined in the system and the TIP4P potential
    requires them to find O,H atoms with a water molecule.
 
 *Pair style lj/cut/tip4p/long requires atom attribute q*
@@ -3967,8 +3967,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Pair style lj/long/dipole/long does not currently support respa*
    This feature is not yet supported.
 
-*Pair style lj/long/tip4p/long requires atom IDs*
-   There are no atom IDs defined in the system and the TIP4P potential
+*Pair style lj/long/tip4p/long requires atom-IDs*
+   There are no atom-IDs defined in the system and the TIP4P potential
    requires them to find O,H atoms with a water molecule.
 
 *Pair style lj/long/tip4p/long requires atom attribute q*
@@ -3981,7 +3981,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Pair style lj/spica/coul/long/gpu requires atom attribute q*
    The atom style defined does not have this attribute.
 
-*Pair style nb3b/harmonic requires atom IDs*
+*Pair style nb3b/harmonic requires atom-IDs*
    This is a requirement to use this potential.
 
 *Pair style nb3b/harmonic requires newton pair on*
@@ -3993,14 +3993,14 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Pair style nm/cut/coul/long requires atom attribute q*
    The atom style defined does not have this attribute.
 
-*Pair style polymorphic requires atom IDs*
+*Pair style polymorphic requires atom-IDs*
    This is a requirement to use the polymorphic potential.
 
 *Pair style polymorphic requires newton pair on*
    See the newton command.  This is a restriction to use the polymorphic
    potential.
 
-*Pair style reax requires atom IDs*
+*Pair style reax requires atom-IDs*
    This is a requirement to use the ReaxFF potential.
 
 *Pair style reax requires atom attribute q*
@@ -4012,25 +4012,25 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Pair style requires a KSpace style*
    No kspace style is defined.
 
-*Pair style sw/gpu requires atom IDs*
+*Pair style sw/gpu requires atom-IDs*
    This is a requirement to use this potential.
 
 *Pair style sw/gpu requires newton pair off*
    See the newton command.  This is a restriction to use this potential.
 
-*Pair style vashishta/gpu requires atom IDs*
+*Pair style vashishta/gpu requires atom-IDs*
    This is a requirement to use this potential.
 
 *Pair style vashishta/gpu requires newton pair off*
    See the newton command.  This is a restriction to use this potential.
 
-*Pair style tersoff/gpu requires atom IDs*
+*Pair style tersoff/gpu requires atom-IDs*
    This is a requirement to use the tersoff/gpu potential.
 
 *Pair style tersoff/gpu requires newton pair off*
    See the newton command.  This is a restriction to use this pair style.
 
-*Pair style tip4p/cut requires atom IDs*
+*Pair style tip4p/cut requires atom-IDs*
    This is a requirement to use this potential.
 
 *Pair style tip4p/cut requires atom attribute q*
@@ -4039,8 +4039,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Pair style tip4p/cut requires newton pair on*
    See the newton command.  This is a restriction to use this potential.
 
-*Pair style tip4p/long requires atom IDs*
-   There are no atom IDs defined in the system and the TIP4P potential
+*Pair style tip4p/long requires atom-IDs*
+   There are no atom-IDs defined in the system and the TIP4P potential
    requires them to find O,H atoms with a water molecule.
 
 *Pair style tip4p/long requires atom attribute q*
@@ -4103,15 +4103,15 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    The potential file does not have a needed entry.
 
 *Pressure ID for fix box/relax does not exist*
-   The compute ID needed to compute pressure for the fix does not
+   The compute-ID needed to compute pressure for the fix does not
    exist.
 
 *Pressure ID for fix press/berendsen does not exist*
-   The compute ID needed to compute pressure for the fix does not
+   The compute-ID needed to compute pressure for the fix does not
    exist.
 
 *Pressure ID for thermo does not exist*
-   The compute ID needed to compute pressure for thermodynamics does not
+   The compute-ID needed to compute pressure for thermodynamics does not
    exist.
 
 *Pressure control must be used with fix nphug*
@@ -4172,7 +4172,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    Certain constraints were not satisfied.
 
 *Read data add offset is too big*
-   It cannot be larger than the size of atom IDs, e.g. the maximum 32-bit
+   It cannot be larger than the size of atom-IDs, e.g. the maximum 32-bit
    integer.
 
 *Read_data shrink wrap did not assign all atoms correctly*
@@ -4204,14 +4204,14 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Region union or intersect cannot be dynamic*
    The sub-regions can be dynamic, but not the combined region.
 
-*Region union region ID does not exist*
-   One or more of the region IDs specified by the region union command
+*Region union region-ID does not exist*
+   One or more of the region-IDs specified by the region union command
    does not exist.
 
 *Replacing a fix, but new style != old style*
-   A fix ID can be used a second time, but only if the style matches the
+   A fix-ID can be used a second time, but only if the style matches the
    previous fix.  In this case it is assumed you want to reset a fix's
-   parameters.  This error may mean you are mistakenly re-using a fix ID
+   parameters.  This error may mean you are mistakenly re-using a fix-ID
    when you do not intend to.
 
 *Replicate command before simulation box is defined*
@@ -4223,7 +4223,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    to processors.  This is likely due to some atom coordinates being
    outside a non-periodic simulation box.
 
-*Replicated system atom IDs are too big*
+*Replicated system atom-IDs are too big*
    See the setting for tagint in the src/lmptype.h file.
 
 *Replicated system is too big*
@@ -4285,17 +4285,17 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    command are not all accessible to a processor.  This probably means an
    atom has moved too far.
 
-*Reuse of compute ID*
-   A compute ID cannot be used twice.
+*Reuse of compute-ID*
+   A compute-ID cannot be used twice.
 
-*Reuse of dump ID*
-   A dump ID cannot be used twice.
+*Reuse of dump-ID*
+   A dump-ID cannot be used twice.
 
 *Reuse of molecule template ID*
    The template IDs must be unique.
 
-*Reuse of region ID*
-   A region ID cannot be used twice.
+*Reuse of region-ID*
+   A region-ID cannot be used twice.
 
 *Rigid body atoms %d %d missing on proc %d at step %ld*
    This means that an atom cannot find the atom that owns the rigid body
@@ -4346,8 +4346,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Set command with no atoms existing*
    No atoms are yet defined so the set command cannot be used.
 
-*Set region ID does not exist*
-   Region ID specified in set command does not exist.
+*Set region-ID does not exist*
+   Region-ID specified in set command does not exist.
 
 *Shake angles have different bond types*
    All 3-atom angle-constrained SHAKE clusters specified by the fix shake
@@ -4485,8 +4485,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    This compute is created by the thermo command.  It must have been
    explicitly deleted by a uncompute command.
 
-*Tempering fix ID is not defined*
-   The fix ID specified by the temper command does not exist.
+*Tempering fix-ID is not defined*
+   The fix-ID specified by the temper command does not exist.
 
 *Tempering temperature fix is not valid*
    The fix specified by the temper command is not one that controls
@@ -4533,10 +4533,10 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    The returned timestep is less than or equal to the current timestep.
 
 *Thermo_modify pressure ID does not compute pressure*
-   The specified compute ID does not compute pressure.
+   The specified compute-ID does not compute pressure.
 
 *Thermo_modify temperature ID does not compute temperature*
-   The specified compute ID does not compute temperature.
+   The specified compute-ID does not compute temperature.
 
 *Thermo_style command before simulation box is defined*
    The thermo_style command cannot be used before a read_data,
@@ -4765,8 +4765,8 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Using pair lubricate/poly with inconsistent fix deform remap option*
    If fix deform is used, the remap v option is required.
 
-*Variable atom ID is too large*
-   Specified ID is larger than the maximum allowed atom ID.
+*Variable atom-ID is too large*
+   Specified ID is larger than the maximum allowed atom-ID.
 
 *Variable evaluation before simulation box is defined*
    Cannot evaluate a compute or fix or atom-based value in a variable
@@ -4896,7 +4896,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    The specified compute must compute a bias for temperature.
 
 *Velocity temperature ID does not compute temperature*
-   The compute ID given to the velocity command must compute
+   The compute-ID given to the velocity command must compute
    temperature.
 
 *Verlet/split can only currently be used with comm_style brick*

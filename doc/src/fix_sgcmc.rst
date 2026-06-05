@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID sgcmc every_nsteps swap_fraction temperature deltamu ...
+   fix fix-ID group-ID sgcmc every_nsteps swap_fraction temperature deltamu ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * sgcmc = style name of this fix command
 * every_nsteps = number of MD steps between MC cycles
 * swap_fraction = fraction of a full MC cycle carried out at each call (a value of 1.0 will perform as many trial moves as there are atoms)

@@ -15,9 +15,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style ex ey ez keyword value ...
+   fix fix-ID group-ID style ex ey ez keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *efield* or *efield/tip4p*
 * ex,ey,ez = E-field component values (electric field units)
 * any of ex,ey,ez can be a variable (see below)

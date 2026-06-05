@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID stress/cartesian args
+   compute compute-ID group-ID stress/cartesian args
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * args = argument specific to the compute style
 
 .. parsed-literal::

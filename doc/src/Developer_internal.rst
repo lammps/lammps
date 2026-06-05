@@ -44,8 +44,8 @@ Internal fix styles
 ^^^^^^^^^^^^^^^^^^^
 
 These provide an implementation of features that would otherwise have
-been replicated across multiple styles.  The used fix ID is generally
-derived from the compute or fix ID creating the fix with some string
+been replicated across multiple styles.  The used fix-ID is generally
+derived from the compute or fix-ID creating the fix with some string
 appended.  When needed, the fix can be looked up with
 ``Modify::get_fix_by_id()``, which returns a pointer to the fix
 instance.  The data managed by the fix can be accessed just as for other
@@ -78,9 +78,9 @@ Fix STORE/ATOM can be used as persistent storage of per-atom data.
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID STORE/ATOM N1 N2 gflag rflag
+   fix fix-ID group-ID STORE/ATOM N1 N2 gflag rflag
 
-* ID, group-ID are documented in :doc:`fix <fix>` command, group-ID is *ignored*
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command, group-ID is *ignored*
 * STORE/ATOM = style name of this fix command
 * N1 = 1, N2 = 0 : data is per-atom vector = single value per atom
 * N1 > 1, N2 = 0 : data is per-atom array = N1 values per atom
@@ -103,9 +103,9 @@ Fix STORE/GLOBAL can be used as persistent storage of global data with support f
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID STORE/GLOBAL N1 N2
+   fix fix-ID group-ID STORE/GLOBAL N1 N2
 
-* ID, group-ID are documented in :doc:`fix <fix>` command, group-ID is *ignored*
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command, group-ID is *ignored*
 * STORE/GLOBAL = style name of this fix command
 * N1 >=1 : number of global items to store
 * N2 = 1 : data is global vector of length N1
@@ -120,9 +120,9 @@ Fix STORE/LOCAL can be used as persistent storage for local data
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID STORE/LOCAL Nreset Nvalues
+   fix fix-ID group-ID STORE/LOCAL Nreset Nvalues
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * STORE/LOCAL = style name of this fix command
 * Nreset = frequency at which local data is available
 * Nvalues = number of values per local item, that is the number of columns

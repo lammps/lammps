@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID heat/flow style values ...
+   fix fix-ID group-ID heat/flow style values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * heat/flow = style name of this fix command
 * one style with corresponding value(s) needs to be listed
 

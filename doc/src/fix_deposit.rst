@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID deposit N type M seed keyword values ...
+   fix fix-ID group-ID deposit N type M seed keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * deposit = style name of this fix command
 * N = # of atoms or molecules to insert
 * type = atom type (1-Ntypes or type label) to assign to inserted atoms (offset for molecule insertion)
@@ -28,8 +28,8 @@ Syntax
          dim = *x* or *y* or *z*
          name = name of variable to set with x, y, or z atom position
        *id* value = *max* or *next*
-         max = atom ID for new atom(s) is max ID of all current atoms plus one
-         next = atom ID for new atom(s) increments by one for every deposition
+         max = atom-ID for new atom(s) is max ID of all current atoms plus one
+         next = atom-ID for new atom(s) increments by one for every deposition
        *global* values = lo hi
          lo,hi = put new atom/molecule a distance lo-hi above all other atoms (distance units)
        *local* values = lo hi delta
@@ -274,17 +274,17 @@ vector, and each inserted molecule is rotated around that vector with
 a random value from zero to 2*PI.  For a 2d simulation, rx = ry = 0.0
 is required, since rotations can only be performed around the z axis.
 
-The *id* keyword determines how atom IDs and molecule IDs are assigned
-to newly deposited particles.  Molecule IDs are only assigned if
+The *id* keyword determines how atom-IDs and molecule-IDs are assigned
+to newly deposited particles.  Molecule-IDs are only assigned if
 molecules are being inserted.  For the *max* setting, the atom and
-molecule IDs of all current atoms are checked.  Atoms in the new
+molecule-IDs of all current atoms are checked.  Atoms in the new
 particle are assigned IDs starting with the current maximum plus one.
 If a molecule is inserted it is assigned an ID = current maximum plus
 one.  This means that if particles leave the system, the new IDs may
 replace the lost ones.  For the *next* setting, the maximum ID of any
 atom and molecule is stored at the time the fix is defined.  Each time
 a new particle is added, this value is incremented to assign IDs to
-the new atom(s) or molecule.  Thus atom and molecule IDs for deposited
+the new atom(s) or molecule.  Thus atom and molecule-IDs for deposited
 particles will be consecutive even if particles leave the system over
 time.
 

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID event/displace threshold
+   compute compute-ID group-ID event/displace threshold
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * event/displace = style name of this compute command
 * threshold = minimum distance any particle must move to trigger an event (distance units)
 

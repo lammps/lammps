@@ -25,9 +25,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style args keyword value ...
+   fix fix-ID group-ID style args keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *electrode/conp* or *electrode/conq* or *electrode/thermo*
 * args = arguments used by a particular style
 

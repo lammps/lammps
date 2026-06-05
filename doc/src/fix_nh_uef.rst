@@ -12,9 +12,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style_name erate edot_x edot_y temp Tstart Tstop Tdamp keyword value ...
+   fix fix-ID group-ID style_name erate edot_x edot_y temp Tstart Tstop Tdamp keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style_name = *nvt/uef* or *npt/uef*
 * *Tstart*, *Tstop*, and *Tdamp* are documented in the :doc:`fix npt <fix_nh>` command
 * *edot_x* and *edot_y* are the strain rates in the x and y directions (1/(time units))

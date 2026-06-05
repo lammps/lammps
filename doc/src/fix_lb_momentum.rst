@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID lb/momentum nevery keyword values ...
+   fix fix-ID group-ID lb/momentum nevery keyword values ...
 
-* ID, group-ID are documented in the :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in the :doc:`fix <fix>` command
 * lb/momentum = style name of this fix command
 * nevery = adjust the momentum every this many timesteps
 * zero or more keyword/value pairs may be appended

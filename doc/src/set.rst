@@ -15,11 +15,11 @@ Syntax
 
 .. parsed-literal::
 
-       for style = *atom*, ID = a range of atom IDs
+       for style = *atom*, ID = a range of atom-IDs
        for style = *type*, ID = a range of numeric types or a single type label
-       for style = *mol*, ID = a range of molecule IDs
-       for style = *group*, ID = a group ID
-       for style = *region*, ID = a region ID
+       for style = *mol*, ID = a range of molecule-IDs
+       for style = *group*, ID = a group-ID
+       for style = *region*, ID = a region-ID
 
 * one or more keyword/value pairs may be appended
 
@@ -85,7 +85,7 @@ Syntax
          len can be an atom-style variable (see below)
        *mass* value = per-atom mass (mass units)
          value can be an atom-style variable (see below)
-       *mol* value = molecule ID
+       *mol* value = molecule-ID
          the moleclue ID can be an atom-style variable (see below)
        *omega* values = Wx Wy Wz
          Wx,Wy,Wz = components of angular velocity vector (radians/time units)
@@ -201,7 +201,7 @@ This can be useful for overriding the default values assigned by the
 :doc:`create_atoms <create_atoms>` command (e.g. charge = 0.0).  It
 can be useful for altering pairwise and molecular force interactions,
 since force-field coefficients are defined in terms of types.  It can
-be used to change the labeling of atoms by atom type or molecule ID
+be used to change the labeling of atoms by atom type or molecule-ID
 when they are output in :doc:`dump <dump>` files.  It can also be
 useful for debugging purposes; i.e. positioning an atom at a precise
 location to compute subsequent forces or energy.
@@ -224,13 +224,13 @@ the properties of, via the *style* and *ID* arguments.
 
    Support for type labels was added for selecting atoms by type
 
-The style *atom* selects all the atoms in a range of atom IDs.
+The style *atom* selects all the atoms in a range of atom-IDs.
 
 The style *type* selects all the atoms in a range of types or type
 labels.  The style *type* selects atoms in one of two ways.  A range
 of numeric atom types can be specified.  Or a single atom type label
 can be specified, e.g. "C".  The style *mol* selects all the atoms in
-a range of molecule IDs.
+a range of molecule-IDs.
 
 In each of the range cases, the range can be specified as a single
 numeric value, or with a wildcard asterisk to specify a range of
@@ -262,7 +262,7 @@ atom.  Note that the per-atom value from the variable will be ignored
 for atoms that are not selected via the *style* and *ID* settings
 explained above.  A simple way to use per-atom values from the
 variable to reset a property for all atoms is to use style *atom* with
-*ID* = "\*"; this selects all atom IDs.
+*ID* = "\*"; this selects all atom-IDs.
 
 Atom-style variables can specify formulas with various mathematical
 functions, and include :doc:`thermo_style <thermo_style>` command
@@ -279,7 +279,7 @@ from a file.
 
    Atom-style and atomfile-style variables return floating point
    per-atom values.  If the values are assigned to an integer
-   variable, such as the molecule ID, then the floating point value is
+   variable, such as the molecule-ID, then the floating point value is
    truncated to its integer portion, e.g. a value of 2.6 would
    become 2.
 
@@ -476,9 +476,9 @@ must have a per-atom mass attribute, as defined by the
 :doc:`atom_style <atom_style>` command.  See the "mass" command for
 how to set mass values on a per-type basis.
 
-Keyword *mol* sets the molecule ID for all selected atoms.  The
+Keyword *mol* sets the molecule-ID for all selected atoms.  The
 :doc:`atom style <atom_style>` being used must support the use of
-molecule IDs.
+molecule-IDs.
 
 Keyword *omega* sets the angular velocity of selected atoms.  The
 particles must be spheres as defined by the :doc:`atom_style sphere

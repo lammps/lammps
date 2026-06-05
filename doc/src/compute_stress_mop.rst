@@ -12,9 +12,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID style dir args keywords ...
+   compute compute-ID group-ID style dir args keywords ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * style = *stress/mop* or *stress/mop/profile*
 * dir = *x* or *y* or *z* is the direction normal to the plane
 * args = argument specific to the compute style

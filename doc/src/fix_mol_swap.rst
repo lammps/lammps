@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID mol/swap N X itype jtype seed T keyword value ...
+   fix fix-ID group-ID mol/swap N X itype jtype seed T keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * atom/swap = style name of this fix command
 * N = invoke this fix every N steps
 * X = number of swaps to attempt every N steps
@@ -60,13 +60,13 @@ two flavors of diblock co-polymers.
 
 Intra-molecular swaps of atom types are attempted every N timesteps.  On
 that timestep, X swaps are attempted.  For each attempt a single
-molecule ID is randomly selected.  The range of possible molecule IDs
+molecule-ID is randomly selected.  The range of possible molecule-IDs
 from loID to hiID is pre-computed before each run begins.  The
 loID/hiID is set for the molecule with the smallest/largest ID which
 has any itype or jtype atoms in it.  Note that if you define a system
-with many molecule IDs between loID and hiID which have no itype or
+with many molecule-IDs between loID and hiID which have no itype or
 jtype atoms, then the fix will be inefficient at performing swaps.
-Also note that if atoms with molecule ID = 0 exist, they are not
+Also note that if atoms with molecule-ID = 0 exist, they are not
 considered molecules by this fix; they are assumed to be solvent atoms
 or molecules.
 

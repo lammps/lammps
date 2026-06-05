@@ -121,6 +121,18 @@ describing packages must also be updated as well as a package specific
 description added.  Likewise, if necessary, some package specific
 build instructions should be included.
 
+For consistency and to avoid ambiguity, identifiers must be spelled
+using the dashed form throughout the manual, i.e. ``atom-ID``,
+``molecule-ID``, ``group-ID``, ``region-ID``, ``chunk-ID``,
+``grid-ID``, ``fix-ID``, ``compute-ID``, and ``dump-ID`` rather than
+the run-together form (such as ``atomID``) or spellings that separate
+the two words with a space.  In a command synopsis the leading
+placeholder is qualified by the command name, for example
+``fix fix-ID group-ID style args`` or ``compute compute-ID group-ID
+style args``.  This is verified by ``make check-idnames`` (run from
+the ``src`` directory) and most inconsistencies can be corrected
+automatically with ``make fix-idnames``.
+
 As appropriate, the text files with the documentation can include
 inline mathematical expressions or figures (see ``doc/JPG`` for
 examples).  Additional PDF files with further details may also be

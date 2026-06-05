@@ -62,14 +62,14 @@ Syntax
        *pbc* arg = *yes* or *no* = remap atoms via periodic boundary conditions
        *precision* arg = power-of-10 value from 10 to 1000000
        *region* arg = region-ID or "none"
-       *refresh* arg = c_ID = compute ID that supports a refresh operation
+       *refresh* arg = c_ID = compute-ID that supports a refresh operation
        *scale* arg = *yes* or *no*
        *sfactor* arg = coordinate scaling factor (> 0.0)
        *skip* arg = v_name
          v_name = variable with name which evaluates to non-zero (skip) or 0
        *sort* arg = *off* or *id* or N or -N
           off = no sorting of per-atom lines within a snapshot
-          id = sort per-atom lines by atom ID
+          id = sort per-atom lines by atom-ID
           N = sort per-atom lines in ascending order by the Nth column
           -N = sort per-atom lines in descending order by the Nth column
        *tfactor* arg = time scaling factor (> 0.0)
@@ -444,7 +444,7 @@ precision by "format 5 %20.15g").
 .. note::
 
    When using the *line* keyword for the *cfg* style, the first two
-   fields (atom ID and type) are not actually written into the CFG file,
+   fields (atom-ID and type) are not actually written into the CFG file,
    however you must include formats for them in the format string.
 
 The *format* keyword can be used multiple times.  The precedence is
@@ -456,7 +456,7 @@ settings, reverting all values to their default format.
 
 .. note::
 
-   Atom and molecule IDs are stored internally as 4-byte or 8-byte
+   Atom and molecule-IDs are stored internally as 4-byte or 8-byte
    signed integers, depending on how LAMMPS was compiled.  When
    specifying the *format int* option you can use a "%d"-style format
    identifier in the format string and LAMMPS will convert this to the
@@ -481,7 +481,7 @@ settings, reverting all values to their default format.
    dump        1 all local 100 tmp.bonds index c_1[1] c_1[2]
    dump_modify 1 format line "%d %0.0f %0.0f"
 
-will output the two atom IDs for atoms in each bond as integers.  If
+will output the two atom-IDs for atoms in each bond as integers.  If
 the dump_modify command were omitted, they would appear as
 floating-point values, assuming they were large integers (more than six
 digits).  The "index" keyword should use the "%d" format since it is
@@ -730,14 +730,14 @@ snapshot are sorted or not.  A sort value of *off* means they will
 typically be written in indeterminate order, either in serial or
 parallel.  This is the case even in serial if the :doc:`atom_modify sort
 <atom_modify>` option is turned on, which it is by default, to improve
-performance.  A sort value of *id* means sort the output by atom ID.  A
+performance.  A sort value of *id* means sort the output by atom-ID.  A
 sort value of :math:`N` or :math:`-N` means sort the output by the value
 in the :math:`N`\ th column of per-atom info in either ascending or
 descending order.
 
-The dump *local* style cannot be sorted by atom ID, since there are
+The dump *local* style cannot be sorted by atom-ID, since there are
 typically multiple lines of output per atom.  Some dump styles, such
-as *dcd* and *xtc*, require sorting by atom ID to format the output
+as *dcd* and *xtc*, require sorting by atom-ID to format the output
 file correctly.  If multiple processors are writing the dump file, via
 the "%" wildcard in the dump filename and the *nfile* or *fileper*
 keywords are set to non-default values (i.e., the number of dump file

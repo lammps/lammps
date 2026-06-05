@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID born/matrix keyword value ...
+   compute compute-ID group-ID born/matrix keyword value ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * born/matrix = style name of this compute command
 * zero or more keywords or keyword/value pairs may be appended
 

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID temp/partial xflag yflag zflag
+   compute compute-ID group-ID temp/partial xflag yflag zflag
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * temp/partial = style name of this compute command
 * xflag,yflag,zflag = 0/1 for whether to exclude/include this dimension
 

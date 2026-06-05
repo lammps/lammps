@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID improper/local value1 value2 ...
+   compute compute-ID group-ID improper/local value1 value2 ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * improper/local = style name of this compute command
 * one or more values may be appended
 * value = *chi*

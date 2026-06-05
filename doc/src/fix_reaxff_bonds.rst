@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID reaxff/bonds Nevery filename
+   fix fix-ID group-ID reaxff/bonds Nevery filename
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * reaxff/bonds = style name of this fix command
 * Nevery = output interval in timesteps
 * filename = name of output file

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID halt N attribute operator avalue keyword value ...
+   fix fix-ID group-ID halt N attribute operator avalue keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * halt = style name of this fix command
 * N = check halt condition every N steps
 * attribute = *bondmax* or *tlimit* or v_name

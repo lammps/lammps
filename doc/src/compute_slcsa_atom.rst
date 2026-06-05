@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID slcsa/atom twojmax nclasses db_mean_descriptor_file lda_file lr_decision_file lr_bias_file maha_file value
+   compute compute-ID group-ID slcsa/atom twojmax nclasses db_mean_descriptor_file lda_file lr_decision_file lr_bias_file maha_file value
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * slcsa/atom = style name of this compute command
 * twojmax = band limit for bispectrum components (non-negative integer)
 * nclasses = number of crystal structures used in the database for the classifier SL-CSA
@@ -19,7 +19,7 @@ Syntax
 * lr_decision_file = file name of file containing the scaling matrix for logistic regression classification
 * lr_bias_file = file name of file containing the bias vector for logistic regression classification
 * maha_file = file name of file containing for each crystal structure: the Mahalanobis distance threshold for sanity check purposes, the average reduced descriptor and the inverse of the corresponding covariance matrix
-* c_ID[1] = compute ID and output data column of previously defined *compute sna/atom* command
+* c_ID[1] = compute-ID and output data column of previously defined *compute sna/atom* command
 
 Examples
 """"""""

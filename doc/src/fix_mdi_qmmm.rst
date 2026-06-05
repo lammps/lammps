@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID mdi/qmmm mode keyword value(s) keyword value(s) ...
+   fix fix-ID group-ID mdi/qmmm mode keyword value(s) keyword value(s) ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * mdi/qmmm = style name of this fix command
 * mode = *direct* or *potential*
 * zero or more keyword/value pairs may be appended

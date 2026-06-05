@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID append/atoms face ... keyword value ...
+   fix fix-ID group-ID append/atoms face ... keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * append/atoms = style name of this fix command
 * face = *zhi*
 * zero or more keyword/value pairs may be appended

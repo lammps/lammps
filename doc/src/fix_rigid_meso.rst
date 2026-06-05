@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID rigid/meso bodystyle args keyword values ...
+   fix fix-ID group-ID rigid/meso bodystyle args keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * rigid/meso = style name of this fix command
 * bodystyle = *single* or *molecule* or *group*
 
@@ -23,7 +23,7 @@ Syntax
          v_varname  = an atom-style or atomfile-style variable
        *group* args = N groupID1 groupID2 ...
          N = # of groups
-         groupID1, groupID2, ... = list of N group IDs
+         groupID1, groupID2, ... = list of N group-IDs
 
 * zero or more keyword/value pairs may be appended
 * keyword = *reinit* or *force* or *torque* or *infile*
@@ -127,10 +127,10 @@ For bodystyle *single* the entire fix group of particles is treated as
 one rigid body.
 
 For bodystyle *molecule*, particles are grouped into rigid bodies by their
-respective molecule IDs: each set of particles in the fix group with the
-same molecule ID is treated as a different rigid body.  Note that particles
-with a molecule ID = 0 will be treated as a single rigid body. For a
-system with solvent (typically this is particles with molecule ID = 0)
+respective molecule-IDs: each set of particles in the fix group with the
+same molecule-ID is treated as a different rigid body.  Note that particles
+with a molecule-ID = 0 will be treated as a single rigid body. For a
+system with solvent (typically this is particles with molecule-ID = 0)
 surrounding rigid bodies, this may not be what you want.  Thus you
 should be careful to use a fix group that only includes particles you
 want to be part of rigid bodies.
@@ -244,7 +244,7 @@ follow.  The N successive lines contain the following information:
 The rigid body IDs are all positive integers.  For the *single*
 bodystyle, only an ID of 1 can be used.  For the *group* bodystyle,
 IDs from 1 to Ng can be used where Ng is the number of specified
-groups.  For the *molecule* bodystyle, use the molecule ID for the
+groups.  For the *molecule* bodystyle, use the molecule-ID for the
 atoms in a specific rigid body as the rigid body ID.
 
 The masstotal and center-of-mass coordinates (xcm,ycm,zcm) are
@@ -327,8 +327,8 @@ values before any changes are made by those keywords.
 
 The ordering of the rigid bodies (by row in the array) is as follows.
 For the *single* keyword there is just one rigid body.  For the
-*molecule* keyword, the bodies are ordered by ascending molecule ID.
-For the *group* keyword, the list of group IDs determines the ordering
+*molecule* keyword, the bodies are ordered by ascending molecule-ID.
+For the *group* keyword, the list of group-IDs determines the ordering
 of bodies.
 
 The array values calculated by this fix are "intensive", meaning they

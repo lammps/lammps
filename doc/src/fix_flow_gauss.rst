@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID flow/gauss xflag yflag zflag keyword
+   fix fix-ID group-ID flow/gauss xflag yflag zflag keyword
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * flow/gauss = style name of this fix command
 * xflag,yflag,zflag = 0 or 1
 

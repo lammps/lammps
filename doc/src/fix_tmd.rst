@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID tmd rho_final file1 N file2
+   fix fix-ID group-ID tmd rho_final file1 N file2
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * tmd = style name of this fix command
 * rho_final = desired value of rho at the end of the run (distance units)
 * file1 = filename to read target structure from
@@ -61,7 +61,7 @@ included, the first 3 lines **must not** appear.  The 3 lines contain the
 simulation box dimensions for the atom coordinates, in the same format
 as in a LAMMPS data file (see the :doc:`read_data <read_data>` command).
 
-The remaining lines each contain an atom ID and its target x,y,z
+The remaining lines each contain an atom-ID and its target x,y,z
 coordinates.  The atom lines (all or none of them) can optionally be
 followed by 3 integer values: nx,ny,nz.For periodic dimensions, they
 specify which image of the box the atom is considered to be in, i.e. a

@@ -8,14 +8,14 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID saed/vtk Nevery Nrepeat Nfreak c_ID attribute args ... keyword args ...
+   fix fix-ID group-ID saed/vtk Nevery Nrepeat Nfreak c_ID attribute args ... keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * saed/vtk = style name of this fix command
 * Nevery = use input values every this many timesteps
 * Nrepeat = # of times to use input values for calculating averages
 * Nfreq = calculate averages every this many timesteps
-* c_ID = saed compute ID
+* c_ID = saed compute-ID
 
   .. parsed-literal::
 

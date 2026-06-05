@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID spring/rg K RG0
+   fix fix-ID group-ID spring/rg K RG0
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * spring/rg = style name of this fix command
 * K = harmonic force constant (force/distance units)
 * RG0 = target radius of gyration to constrain to (distance units)

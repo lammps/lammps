@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID pe/atom keyword ...
+   compute compute-ID group-ID pe/atom keyword ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * pe/atom = style name of this compute command
 * zero or more keywords may be appended
 * keyword = *pair* or *bond* or *angle* or *dihedral* or *improper* or *kspace* or *fix*

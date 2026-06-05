@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID nve/dotc/langevin Tstart Tstop damp seed keyword value
+   fix fix-ID group-ID nve/dotc/langevin Tstart Tstop damp seed keyword value
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * nve/dotc/langevin = style name of this fix command
 * Tstart,Tstop = desired temperature at start/end of run (temperature units)
 * damp = damping parameter (time units)

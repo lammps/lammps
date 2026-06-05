@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID settorque/atom tx ty tz keyword value ...
+   fix fix-ID group-ID settorque/atom tx ty tz keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * settorque/atom = style name of this fix command
 * tx,ty,tz = torque component values
 * any of tx,ty,tz can be a variable (see below)

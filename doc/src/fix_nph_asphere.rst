@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID nph/asphere args keyword value ...
+   fix fix-ID group-ID nph/asphere args keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * nph/asphere = style name of this fix command
 * additional barostat related keyword/value pairs from the :doc:`fix nph <fix_nh>` command can be appended
 

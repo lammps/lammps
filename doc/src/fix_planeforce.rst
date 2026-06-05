@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID planeforce x y z
+   fix fix-ID group-ID planeforce x y z
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * planeforce = style name of this fix command
 * x y z = 3-vector that is normal to the plane
 

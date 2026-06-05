@@ -22,16 +22,16 @@ Syntax
        rmax = maximum distance between pair of atoms to bond together
      *single/bond* args = btype batom1 batom2
        btype = bond type of new bond
-       batom1,batom2 = atom IDs for two atoms in bond
+       batom1,batom2 = atom-IDs for two atoms in bond
      *single/angle* args = atype aatom1 aatom2 aatom3
        atype = angle type of new angle
-       aatom1,aatom2,aatom3 = atom IDs for three atoms in angle
+       aatom1,aatom2,aatom3 = atom-IDs for three atoms in angle
      *single/dihedral* args = dtype datom1 datom2 datom3 datom4
        dtype = dihedral type of new dihedral
-       datom1,datom2,datom3,datom4 = atom IDs for four atoms in dihedral
+       datom1,datom2,datom3,datom4 = atom-IDs for four atoms in dihedral
      *single/improper* args = itype iatom1 iatom2 iatom3 iatom4
        itype = improper type of new improper
-       iatom1,iatom2,iatom3,iatom4 = atom IDs for four atoms in improper
+       iatom1,iatom2,iatom3,iatom4 = atom-IDs for four atoms in improper
 
 * zero or more keyword/value pairs may be appended
 * keyword = *special*

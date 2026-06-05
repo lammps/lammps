@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID ave/moments Nevery Nrepeat Nfreq value1 value2 ... moment1 moment2 ... keyword args ...
+   fix fix-ID group-ID ave/moments Nevery Nrepeat Nfreq value1 value2 ... moment1 moment2 ... keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * ave/moments = style name of this fix command
 * Nevery = use input values every this many time steps
 * Nrepeat = # of times to use input values for calculating averages
@@ -131,7 +131,7 @@ timesteps that span a time window larger than Nfreq.
 
 ----------
 
-If a value begins with "c\_", a compute ID must follow which has been
+If a value begins with "c\_", a compute-ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the compute is used.  If a
 bracketed term is appended, the Ith element of the global vector
@@ -139,7 +139,7 @@ calculated by the compute is used.  See the discussion above for how I
 can be specified with a wildcard asterisk to effectively specify
 multiple values.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f\_", a fix-ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the fix is used.  If a
 bracketed term is appended, the Ith element of the global vector

@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID spring/self K dir
+   fix fix-ID group-ID spring/self K dir
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * spring/self = style name of this fix command
 * K = spring constant (force/distance units), can be a variable (see below)
 * dir = xyz, xy, xz, yz, x, y, or z (optional, default: xyz)

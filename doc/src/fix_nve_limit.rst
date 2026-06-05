@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID nve/limit xmax
+   fix fix-ID group-ID nve/limit xmax
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * nve = style name of this fix command
 * xmax = maximum distance an atom can move in one timestep (distance units)
 

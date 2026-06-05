@@ -56,9 +56,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   dump ID group-ID style N file attribute1 attribute2 ...
+   dump dump-ID group-ID style N file attribute1 attribute2 ...
 
-* ID = user-assigned name for the dump
+* dump-ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
 * style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/adios* or *dcd* or *extxyz* or *grid* or *grid/vtk* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *yaml*
 * N = dump on timesteps which are multiples of N
@@ -111,8 +111,8 @@ Syntax
 
   .. parsed-literal::
 
-           id = atom ID
-           mol = molecule ID
+           id = atom-ID
+           mol = molecule-ID
            proc = ID of processor that owns atom
            procp1 = ID+1 of processor that owns atom
            type = atom type
@@ -238,7 +238,7 @@ all the processors or multiple smaller files.
 
 .. warning::
 
-   Without either including atom IDs or using the :doc:`dump_modify sort
+   Without either including atom-IDs or using the :doc:`dump_modify sort
    <dump_modify>` option, it is impossible for visualization programs
    (e.g. OVITO or VMD) or analysis tools to assign data in different
    frames consistently to the same atom.  This can lead to incorrect
@@ -246,7 +246,7 @@ all the processors or multiple smaller files.
 
 For the *atom*, *custom*, *cfg*, *grid*, and *local* styles, sorting is
 off by default.  For the *dcd*, *extxyz*, *grid/vtk*, *xtc*, *xyz*, and
-*molfile* styles, sorting by atom ID or grid ID is on by default. See
+*molfile* styles, sorting by atom-ID or grid-ID is on by default. See
 the :doc:`dump_modify <dump_modify>` page for details.
 
 The *style* keyword determines what kind of data is written to the
@@ -347,7 +347,7 @@ you specify in the dump command for the *custom* style.  Each
 subsequent line will list the data for a single atom.
 
 For style *atom*, atom coordinates are written to the file, along with
-the atom ID and atom type.  By default, atom coords are written in a
+the atom-ID and atom type.  By default, atom coords are written in a
 scaled format (from 0 to 1).  That is, an :math:`x` value of 0.25 means the
 atom is at a location 1/4 of the distance from *xlo* to *xhi* of the box
 boundaries.  The format can be changed to unscaled coords via the
@@ -802,7 +802,7 @@ Per-atom attributes used as arguments to the *custom* and *cfg* styles:
 The *id*, *mol*, *proc*, *procp1*, *type*, *typelabel*, *element*, *mass*,
 *vx*, *vy*, *vz*, *fx*, *fy*, *fz*, *q* attributes are self-explanatory.
 
-*Id* is the atom ID.  *Mol* is the molecule ID, included in the data file
+*Id* is the atom-ID.  *Mol* is the molecule-ID, included in the data file
 for molecular systems.  *Proc* is the ID of the processor (0 to
 :math:`N_\text{procs}-1`) that currently owns the atom.  *Procp1* is the
 proc ID+1, which can be convenient in place of a *type* attribute (1 to

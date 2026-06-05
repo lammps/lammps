@@ -80,7 +80,7 @@ first group specified and the other atom is in the second group are
 considered.  The atom that is in the first group is the one that is
 deleted.
 
-Note that it is OK for the two group IDs to be the same (e.g., group
+Note that it is OK for the two group-IDs to be the same (e.g., group
 *all*\ ), or for some atoms to be members of both groups.  In these
 cases, either atom in the pair may be deleted.  Also note that if
 there are atoms which are members of both groups, the only guarantee
@@ -132,11 +132,11 @@ other options listed above.
 Here is the meaning of the optional keywords.
 
 If the *compress* keyword is set to *yes*, then after atoms are deleted,
-then atom IDs are re-assigned so that they run from 1 to the number of
+then atom-IDs are re-assigned so that they run from 1 to the number of
 atoms in the system.  This option is enabled by default for atomic
 systems.  Note that in this case, the re-assignment of IDs is not really
-a compression, where gaps in atom IDs are removed by decrementing atom
-IDs that are larger.  Instead the IDs for all atoms are erased, and new
+a compression, where gaps in atom-IDs are removed by decrementing
+atom-IDs that are larger.  Instead the IDs for all atoms are erased, and new
 IDs are assigned so that the atoms owned by individual processors have
 consecutive IDs, as the :doc:`create_atoms <create_atoms>` command
 explains.  This is efficient, but incompatible with molecular systems.
@@ -144,16 +144,16 @@ explains.  This is efficient, but incompatible with molecular systems.
 .. versionchanged:: 10Sep2025
 
 For molecular systems (see the :doc:`atom_style <atom_style>` command),
-the atom ID re-assignment now calls the :doc:`reset_atoms id
+the atom-ID re-assignment now calls the :doc:`reset_atoms id
 <reset_atoms>` command internally.  For backward compatibility, the
 default setting is *no* in this case.  This process does *not* preserve
-the order of atoms with respect to their atom IDs.  See the *condense*
+the order of atoms with respect to their atom-IDs.  See the *condense*
 keyword below.
 
 .. versionadded:: 10Sep2025
 
 If the *condense* keyword set to *yes*, then after atoms are deleted,
-the atom IDs are re-assigned in such a way that the order of atom-IDs is
+the atom-IDs are re-assigned in such a way that the order of atom-IDs is
 preserved.  This process is not efficient and cannot be used for very
 large systems and requires local storage that scales with the number of
 total atoms in the system.  Also, the *compress* and the *condense*
@@ -184,8 +184,8 @@ surface) may result in a inaccurate or invalid model for the remaining
 atoms.
 
 It the *mol* keyword is set to *yes*, then for every atom that is
-deleted, all other atoms in the same molecule (with the same molecule
-ID) will also be deleted.  This is not done for atoms with molecule ID
+deleted, all other atoms in the same molecule (with the same
+molecule-ID) will also be deleted.  This is not done for atoms with molecule-ID
 = 0, since such an ID is assumed to flag isolated atoms that are not
 part of molecules.
 

@@ -11,16 +11,16 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID temp/deform keyword value ...
+   compute compute-ID group-ID temp/deform keyword value ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * temp/deform = style name of this compute command
 * zero or more keyword/value pairs may be appended
 * keyword = *temp*
 
   .. parsed-literal::
 
-     *temp* value = compute ID that calculates a temperature
+     *temp* value = compute-ID that calculates a temperature
 
 Examples
 """"""""
@@ -69,7 +69,7 @@ The *temp* keyword allows an alternative internal temperature compute to be
 specified.  For example, this can be used to exclude some directions with
 :doc:`compute temp/partial <compute_temp_partial>`, or account for
 additional bias beyond that due to deformation by using
-:doc:`compute temp/profile <compute_temp_profile>`.  The group ID of
+:doc:`compute temp/profile <compute_temp_profile>`.  The group-ID of
 compute temp/deform and the internal temperature compute must match.
 The internal temperature compute can be changed with the
 :doc:`compute_modify <compute_modify>` command.

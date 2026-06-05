@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID tune/kspace N
+   fix fix-ID group-ID tune/kspace N
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * tune/kspace = style name of this fix command
 * N = invoke this fix every N steps
 

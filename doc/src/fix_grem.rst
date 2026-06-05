@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID grem lambda eta H0 thermostat-ID
+   fix fix-ID group-ID grem lambda eta H0 thermostat-ID
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * grem = style name of this fix command
 * lambda = intercept parameter of linear effective temperature function
 * eta = slope parameter of linear effective temperature function

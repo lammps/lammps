@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID indent K gstyle args keyword value ...
+   fix fix-ID group-ID indent K gstyle args keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * indent = style name of this fix command
 * K = force constant for indenter surface (force/distance\^2 units)
 * gstyle = *sphere* or *cylinder* or *cone* or *plane*

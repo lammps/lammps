@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group ti keyword args ...
+   compute compute-ID group-ID ti keyword args ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * ti = style name of this compute command
 * one or more attribute/arg pairs may be appended
 * keyword = pair style (lj/cut, gauss, born, etc.) or *tail* or *kspace*

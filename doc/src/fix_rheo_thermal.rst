@@ -8,9 +8,9 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID rheo/thermal attribute values ...
+   fix fix-ID group-ID rheo/thermal attribute values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * rheo/thermal = style name of this fix command
 * one or more attributes may be appended
 * attribute = *conductivity* or *specific/heat* or *latent/heat* or *Tfreeze* or *react*

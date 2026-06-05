@@ -130,7 +130,7 @@ be created by the tools/tinker/tinker2lmp.py conversion program
 described below.  It will create a section in the data file with the
 header "Tinker Types".  A :doc:`fix property/atom <fix_property_atom>`
 command for the data must be specified before the read_data command.
-In the example above the fix ID is *amtype*.
+In the example above the fix-ID is *amtype*.
 
 Similarly, if the system you are simulating defines AMOEBA/HIPPO
 pitorsion or bitorsion interactions, there will be entries in the data
@@ -274,8 +274,8 @@ argument.  The format of this file is an extended XYZ format defined
 and used by Tinker for its input.  Example \*.xyz files are in the
 examples/amoeba directory.  The file lists the atoms in the system.
 Each atom has the following information: Tinker species name (ignored
-by LAMMPS), xyz coordinates, Tinker numeric type, and a list of atom
-IDs the atom is bonded to.
+by LAMMPS), xyz coordinates, Tinker numeric type, and a list of
+atom-IDs the atom is bonded to.
 
 Here is more information about the extended XYZ format defined and
 used by Tinker, and links to programs that convert standard PDB files

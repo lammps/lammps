@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID spring keyword values
+   fix fix-ID group-ID spring keyword values
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * spring = style name of this fix command
 * keyword = *tether* or *couple*
 

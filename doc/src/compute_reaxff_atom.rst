@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID reaxff/atom attribute args ... keyword value ...
+   compute compute-ID group-ID reaxff/atom attribute args ... keyword value ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * reaxff/atom = name of this compute command
 * attribute = *pair*
 

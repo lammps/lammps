@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID temp/berendsen Tstart Tstop Tdamp
+   fix fix-ID group-ID temp/berendsen Tstart Tstop Tdamp
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * temp/berendsen = style name of this fix command
 * Tstart,Tstop = desired temperature at start/end of run
 

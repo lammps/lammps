@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID set Nfreq rnflag set-args
+   fix fix-ID group-ID set Nfreq rnflag set-args
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * set = style name of this fix command
 * Nfreq = reset per-atom properties every this many timesteps
 * rnflag = 1 to reneighbor on next timestep, 0 to not
@@ -99,14 +99,14 @@ be output every step for *twindow* timesteps.
    dump_modify     1 thresh v_dumpflag == 1
    #
    # run the simulation
-   # final dump with all atom IDs which crossed threshold on which timestep
+   # final dump with all atom-IDs which crossed threshold on which timestep
    #
    run             1000
    write_dump      all custom tmp.dump.final id i_dump modify thresh i_dump >= 0
 
 The tmp.dump.final file lists which atoms crossed the velocity
 threshold.  This command will print the *twindow* timesteps when a
-specific atom ID (104 in this case) was output in the tmp.dump file:
+specific atom-ID (104 in this case) was output in the tmp.dump file:
 
 .. code-block:: LAMMPS
 

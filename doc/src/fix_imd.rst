@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID imd trate port keyword values ...
+   fix fix-ID group-ID imd trate port keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * imd = style name of this fix command
 * port = port number on which the fix listens for an IMD client
 * keyword = *unwrap* or *fscale* or *trate* or *nowait*
@@ -188,7 +188,7 @@ page for more info.
 
 When used in combination with VMD, a topology or coordinate file has to
 be loaded, which matches (in number and ordering of atoms) the group the
-fix is applied to.  The fix internally sorts atom IDs by ascending
+fix is applied to.  The fix internally sorts atom-IDs by ascending
 integer value; in VMD (and thus the IMD protocol) those will be assigned
 0-based consecutive index numbers.
 

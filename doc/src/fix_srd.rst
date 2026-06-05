@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID srd N groupbig-ID Tsrd hgrid seed keyword value ...
+   fix fix-ID group-ID srd N groupbig-ID Tsrd hgrid seed keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * srd = style name of this fix command
 * N = reset SRD particle velocities every this many timesteps
 * groupbig-ID = ID of group of large particles that SRDs interact with

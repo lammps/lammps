@@ -8,7 +8,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group precession/spin style args
+   fix fix-ID group precession/spin style args
 
 * ID, group are documented in :doc:`fix <fix>` command
 * precession/spin = style name of this fix command

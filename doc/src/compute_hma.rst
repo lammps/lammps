@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID hma temp-ID keyword ...
+   compute compute-ID group-ID hma temp-ID keyword ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * hma = style name of this compute command
 * temp-ID = ID of fix that specifies the set temperature during canonical simulation
 * one or more keywords or keyword/argument pairs must be appended

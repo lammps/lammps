@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID align/self mode magnitude keyword values
+   fix fix-ID group-ID align/self mode magnitude keyword values
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * align/self = style name of this fix command
 * mode = *dipole* or *quat*
 * magnitude = magnitude of self-alignment torque

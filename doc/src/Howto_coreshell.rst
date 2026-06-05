@@ -195,7 +195,7 @@ special function of the :doc:`variable <variable>` command.  Or they can
 be time/averaged and output using the :doc:`fix ave/time <fix_ave_time>`
 command.  To use these commands, each core/shell pair must be defined
 as a "chunk".  If each core/shell pair is defined as its own molecule,
-the molecule ID can be used to define the chunks.  If cores are bonded
+the molecule-ID can be used to define the chunks.  If cores are bonded
 to each other to form larger molecules, the chunks can be identified
 by the :doc:`fix property/atom <fix_property_atom>` via assigning a
 core/shell ID to each atom using a special field in the data file read
@@ -229,7 +229,7 @@ The additional section in the data file would be formatted like this:
 
    CS-Info         # header of additional section
 
-   1   1           # column 1 = atom ID, column 2 = core/shell ID
+   1   1           # column 1 = atom-ID, column 2 = core/shell ID
    2   1
    3   2
    4   2

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID fep/ta temp plane scale_factor keyword value ...
+   compute compute-ID group-ID fep/ta temp plane scale_factor keyword value ...
 
-* ID, group-ID are documented in the :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in the :doc:`compute <compute>` command
 * fep/ta = name of this compute command
 * temp = external temperature (as specified for constant-temperature run)
 * plane = *xy* or *xz* or *yz*

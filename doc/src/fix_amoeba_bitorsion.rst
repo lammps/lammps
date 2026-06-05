@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID ameoba/bitorsion filename
+   fix fix-ID group-ID ameoba/bitorsion filename
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * amoeba/bitorsion = style name of this fix command
 * filename = force-field file with AMOEBA bitorsion coefficients
 
@@ -75,7 +75,7 @@ lines:
 The first column is an index from 1 to :math:`N` to enumerate the
 bitorsion 5-atom tuples; it is ignored by LAMMPS.  The second column
 is the *type* of the interaction; it is an index into the bitorsion
-force field file.  The remaining 5 columns are the atom IDs of the
+force field file.  The remaining 5 columns are the atom-IDs of the
 atoms (in order) for the 5-tuple :math:`IJKLM`, as described above.
 
 Note that the *bitorsions* and *BiTorsions* keywords for the header

@@ -39,36 +39,36 @@ in addition to what is specified by the :doc:`atom_style <atom_style>`
 command.  The *id* and *map* keywords must be specified before a
 simulation box is defined; other keywords can be specified any time.
 
-The *id* keyword determines whether non-zero atom IDs can be assigned
+The *id* keyword determines whether non-zero atom-IDs can be assigned
 to each atom.  If the value is *yes*, which is the default, IDs are
 assigned, whether you use the :doc:`create atoms <create_atoms>` or
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands to initialize atoms.  If the value is *no* the IDs for all
 atoms are assumed to be 0.
 
-If atom IDs are used, they must all be positive integers.  They should
+If atom-IDs are used, they must all be positive integers.  They should
 also be unique, though LAMMPS does not check for this.  Typically they
 should also be consecutively numbered (from 1 to Natoms), though this
 is not required.  Molecular :doc:`atom styles <atom_style>` are those
 that store bond topology information (styles bond, angle, molecular,
-full).  These styles require atom IDs since the IDs are used to encode
-the topology.  Some other LAMMPS commands also require the use of atom
-IDs.  E.g. some many-body pair styles use them to avoid double
+full).  These styles require atom-IDs since the IDs are used to encode
+the topology.  Some other LAMMPS commands also require the use of
+atom-IDs.  E.g. some many-body pair styles use them to avoid double
 computation of the I-J interaction between two atoms.
 
-The only reason not to use atom IDs is if you are running an atomic
+The only reason not to use atom-IDs is if you are running an atomic
 simulation so large that IDs cannot be uniquely assigned.  For a
 default LAMMPS build this limit is 2\^31 or about 2 billion atoms.
-However, even in this case, you can use 64-bit atom IDs, allowing 2\^63
+However, even in this case, you can use 64-bit atom-IDs, allowing 2\^63
 or about 9e18 atoms, if you build LAMMPS with the - DLAMMPS_BIGBIG
 switch.  This is described on the :doc:`Build_settings <Build_settings>`
-doc page.  If atom IDs are not used, they must be specified as 0 for
+doc page.  If atom-IDs are not used, they must be specified as 0 for
 all atoms, e.g. in a data or restart file.
 
 .. note::
 
    If a :doc:`triclinic simulation box <Howto_triclinic>` is used,
-   atom IDs are required, due to how neighbor lists are built.
+   atom-IDs are required, due to how neighbor lists are built.
 
 The *map* keyword determines how atoms with specific IDs are found
 when required.  For example, the bond (angle, etc) methods need to
@@ -86,18 +86,18 @@ generate an error if one does not exist.  The *map* keyword thus
 allows you to force the creation of a map.
 
 Specifying a value of *yes* will create either an array-style or
-hash-style map, depending on the size of the system.  If no atom ID is
+hash-style map, depending on the size of the system.  If no atom-ID is
 larger than 1 million, then an array-style map is used, otherwise a
 hash-style map is used.  Specifying a value of *array* or *hash*
 creates an array-style or hash-style map respectively, regardless of
 the size of the system.
 
 For an array-style map, each processor stores a lookup table of length
-N, where N is the largest atom ID in the system.  This is a fast,
+N, where N is the largest atom-ID in the system.  This is a fast,
 simple method for many simulations, but requires too much memory for
 large simulations.  For a hash-style map, a hash table is created on
-each processor, which finds an atom ID in constant time (independent
-of the global number of atom IDs).  It can be slightly slower than the
+each processor, which finds an atom-ID in constant time (independent
+of the global number of atom-IDs).  It can be slightly slower than the
 *array* map, but its memory cost is proportional to the number of
 atoms owned by a processor, i.e. N/P when N is the total number of
 atoms in the system and P is the number of processors.

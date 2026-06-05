@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID graphics/replica Nevery type keyword args ...
+   fix fix-ID group-ID graphics/replica Nevery type keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * graphics/replica = style name of this fix command
 * Nevery = update graphics information every this many time steps
 * keyword = *display* or *average*
@@ -36,7 +36,7 @@ This fix allows to add spheres to images rendered with :doc:`dump image
 <dump_image>` using the *fix* keyword to represent atoms from all
 replicas of a multi-replica simulation.
 
-The *group-ID* sets the group ID of the atoms selected to be
+The *group-ID* sets the group-ID of the atoms selected to be
 represented.  This may be a dynamic group.
 
 The *Nevery* keyword determines how often the replica graphics data is

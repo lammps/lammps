@@ -6,6 +6,7 @@ whitespace.py    detects TAB characters and trailing whitespace
 homepage.py      detects outdated LAMMPS homepage URLs (pointing to sandia.gov instead of lammps.org)
 errordocs.py     detects deprecated error docs in header files
 versiontags.py   detects .. versionadded:: and .. versionchanged:: with pending version date
+idnames.py       detects inconsistent ID nomenclature in the manual (e.g. "atom ID" instead of "atom-ID")
 
 Example usage: python3 versiontags.py <DIRECTORY>
 

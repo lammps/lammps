@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID temp/region region-ID
+   compute compute-ID group-ID temp/region region-ID
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * temp/region = style name of this compute command
 * region-ID = ID of region to use for choosing atoms
 

@@ -43,7 +43,7 @@ Syntax
          *style* = *group* or *neigh* or *time* or *var* or *store*
            *group* args = Ngroup group1 weight1 group2 weight2 ...
              Ngroup = number of groups with assigned weights
-             group1, group2, ... = group IDs
+             group1, group2, ... = group-IDs
              weight1, weight2, ...   = corresponding weight factors
            *neigh* factor = compute weight based on number of neighbors
              factor = scaling factor (> 0)
@@ -377,7 +377,7 @@ however, it is sufficient to use just one method.
 
 The *group* weight style assigns weight factors to specified
 :doc:`groups <group>` of particles.  The *group* style keyword is
-followed by the number of groups, then pairs of group IDs and the
+followed by the number of groups, then pairs of group-IDs and the
 corresponding weight factor.  If a particle belongs to none of the
 specified groups, its weight is not changed.  If it belongs to
 multiple groups, its weight is the product of the weight factors.

@@ -45,11 +45,11 @@ containing first all *owned* atoms (index < `Atom::nlocal`) and then all
 *ghost* atoms.  The order of atoms in these arrays can change due to
 atoms migrating between between subdomains, atoms being added or
 deleted, or atoms being sorted for better cache efficiency.  Atoms are
-globally uniquely identified by their *atom ID*. There may be multiple
-atoms with the same atom ID present, but only one of them may be an
+globally uniquely identified by their *atom-ID*. There may be multiple
+atoms with the same atom-ID present, but only one of them may be an
 *owned* atom.
 
-To find the local *index* of an atom, when the *atom ID* is known, the
+To find the local *index* of an atom, when the *atom-ID* is known, the
 `Atom::map()` function may be used. It will return the local atom index
 or -1. If the returned value is between 0 (inclusive) and `Atom::nlocal`
 (exclusive) it is an *owned* or "local" atom; for larger values the atom
@@ -60,8 +60,8 @@ If multiple atoms with the same tag exist in the same subdomain, they
 can be found via the `Atom::sametag` array. It points to the next atom
 index with the same tag or -1 if there are no more atoms with the same
 tag.  The list will be exhaustive when starting with an index of an
-*owned* atom, since the atom IDs are unique, so there can only be one
-such atom.  Example code to count atoms with same atom ID in a subdomain:
+*owned* atom, since the atom-IDs are unique, so there can only be one
+such atom.  Example code to count atoms with same atom-ID in a subdomain:
 
 .. code-block:: c++
 
@@ -71,7 +71,7 @@ such atom.  Example code to count atoms with same atom ID in a subdomain:
        i = sametag[i];
        ++count;
      }
-     printf("Atom ID: %ld is present %d times\n", atom->tag[i], count);
+     printf("Atom-ID: %ld is present %d times\n", atom->tag[i], count);
    }
 
 Atom class versus AtomVec classes

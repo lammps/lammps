@@ -9,9 +9,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID gcmc N X M type seed T mu displace keyword values ...
+   fix fix-ID group-ID gcmc N X M type seed T mu displace keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * gcmc = style name of this fix command
 * N = invoke this fix every N steps
 * X = average number of GCMC exchanges to attempt every N steps
@@ -191,7 +191,7 @@ types of atoms in the molecule.
 When not using the *mol* keyword, you should ensure you do not delete
 atoms that are bonded to other atoms, or LAMMPS will soon generate an
 error when it tries to find bonded neighbors.  LAMMPS will warn you if
-any of the atoms eligible for deletion have a non-zero molecule ID, but
+any of the atoms eligible for deletion have a non-zero molecule-ID, but
 does not check for this at the time of deletion.
 
 If you wish to insert molecules using the *mol* keyword that will be
@@ -470,10 +470,10 @@ reasons, and so the molecule count will never drop below 1, regardless
 of the specified chemical potential.
 
 Note that very lengthy simulations involving insertions/deletions of
-billions of gas molecules may run out of atom or molecule IDs and
+billions of gas molecules may run out of atom or molecule-IDs and
 trigger an error, so it is better to run multiple shorter-duration
 simulations.  The :doc:`reset_atoms <reset_atoms>` command can be used
-to "compress" the atom and molecule IDs between runs.  Likewise, very
+to "compress" the atom and molecule-IDs between runs.  Likewise, very
 large molecules have not been tested and may turn out to be problematic.
 
 Use of multiple *fix gcmc* commands in the same input script can be

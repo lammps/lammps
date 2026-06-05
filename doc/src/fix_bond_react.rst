@@ -8,13 +8,13 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID bond/react common_keyword values &
+   fix fix-ID group-ID bond/react common_keyword values &
      react react-ID react-group-ID Nevery Rmin Rmax template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values &
      react react-ID react-group-ID Nevery Rmin Rmax template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values &
      react react-ID react-group-ID Nevery Rmin Rmax template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values &
      ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command.
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command.
 * bond/react = style name of this fix command
 * the common keyword/values may be appended directly after 'bond/react'
 * common keywords apply to all reaction specifications
@@ -29,9 +29,9 @@ Syntax
          group_prefix = user-assigned prefix for the dynamic group of atoms not currently involved in a reaction
          xmax = value that is used by an internally-created :doc:`nve/limit <fix_nve_limit>` integrator
        *reset_mol_ids* values = *yes* or *no* or *molmap*
-         *yes* = update molecule IDs based on new global topology (default)
-         *no* = do not update molecule IDs
-         *molmap* = customize how molecule IDs are updated
+         *yes* = update molecule-IDs based on new global topology (default)
+         *no* = do not update molecule-IDs
+         *molmap* = customize how molecule-IDs are updated
        *rate_limit* values = react-ID_1 react-ID_2 ... react-ID_N Nlimit Nsteps
          react-IDs = one or more names of the reactions to include in rate limit
          Nlimit = maximum number of reactions allowed to occur within interval
@@ -201,23 +201,23 @@ due to the internal dynamic grouping performed by fix bond/react.
 
 If the *reset_mol_ids* keyword is set to *yes* (default), the
 :doc:`reset_atoms mol <reset_atoms>` command is invoked after a reaction
-occurs, to ensure that molecule IDs are consistent with the new bond
+occurs, to ensure that molecule-IDs are consistent with the new bond
 topology.  The group-ID used for :doc:`reset_atoms mol <reset_atoms>` is
-the group-ID for this fix.  Resetting molecule IDs is necessarily a
+the group-ID for this fix.  Resetting molecule-IDs is necessarily a
 global operation, so it can be slow for very large systems.  If the
-*reset_mol_ids* keyword is set to *no*, molecule IDs are not updated.
-If the *reset_mol_ids* keyword is set to *molmap*, molecule IDs are
-updated consistently with the molecule IDs listed in the *Molecules*
+*reset_mol_ids* keyword is set to *no*, molecule-IDs are not updated.
+If the *reset_mol_ids* keyword is set to *molmap*, molecule-IDs are
+updated consistently with the molecule-IDs listed in the *Molecules*
 section of the pre- and post-reaction templates.  If a post-reaction
-atom has the same molecule ID as one or more pre-reaction atoms in the
+atom has the same molecule-ID as one or more pre-reaction atoms in the
 templates, then the post-reaction simulation atom will be assigned the
-same simulation molecule ID that those corresponding pre-reaction
+same simulation molecule-ID that those corresponding pre-reaction
 simulation atoms had before the reaction.  The *molmap* option is only
 guaranteed to work correctly if all the pre-reaction atoms that have
-equivalent template molecule IDs also have equivalent molecule IDs in
+equivalent template molecule-IDs also have equivalent molecule-IDs in
 the simulation.  No check is performed to test for this consistency.
-For post-reaction atoms that have a template molecule ID that does not
-exist in pre-reaction template, they are assigned a new molecule ID that
+For post-reaction atoms that have a template molecule-ID that does not
+exist in pre-reaction template, they are assigned a new molecule-ID that
 does not currently exist in the simulation.
 
 The *rate_limit* keyword can enforce an upper limit on the overall rate of
@@ -249,7 +249,7 @@ can be specified.
 .. versionadded:: 10Dec2025
 
 The *file* keyword can be used to dump information about each reaction that
-occurs during the simulation. The atom IDs, types, and coordinates of all
+occurs during the simulation. The atom-IDs, types, and coordinates of all
 atoms in the reaction site are printed out on the timestep that the
 reaction is initiated. The output file follows the :ref:`JSON dump
 molecules format <json-dump-files>`, with one extra key added to each
@@ -354,7 +354,7 @@ user-specified probabilities.
 The pre-reacted molecule template is specified by a molecule command.
 This molecule template file contains a sample reaction site and its
 surrounding topology. As described below, the initiator atom pairs of
-the pre-reacted template are specified by atom ID in the map file. The
+the pre-reacted template are specified by atom-ID in the map file. The
 pre-reacted molecule template should contain as few atoms as possible
 while still completely describing the topology of all atoms affected
 by the reaction (which includes all atoms that change atom type or
@@ -418,7 +418,7 @@ The post-reacted molecule template contains a sample of the reaction
 site and its surrounding topology after the reaction has occurred. It
 must contain the same number of atoms as the pre-reacted template
 (unless there are created atoms). A one-to-one correspondence between
-the atom IDs in the pre- and post-reacted templates is specified in
+the atom-IDs in the pre- and post-reacted templates is specified in
 the map file as described below. Note that during a reaction, an atom,
 bond, etc. type may change to one that was previously not present in
 the simulation. These new types must also be defined during the setup
@@ -458,22 +458,22 @@ The optional keywords are *edgeIDs*\ , *wildcards*\ , *deleteIDs*\ ,
 
 The body of the map file contains two mandatory sections and six
 optional sections. The first mandatory section begins with the keyword
-"InitiatorIDs" and lists the two atom IDs of the initiator atom pair
+"InitiatorIDs" and lists the two atom-IDs of the initiator atom pair
 in the pre-reacted molecule template. The second mandatory section
 begins with the keyword "Equivalences" and lists a one-to-one
-correspondence between atom IDs of the pre- and post-reacted
-templates. The first column is an atom ID of the pre-reacted molecule
-template, and the second column is the corresponding atom ID of the
+correspondence between atom-IDs of the pre- and post-reacted
+templates. The first column is an atom-ID of the pre-reacted molecule
+template, and the second column is the corresponding atom-ID of the
 post-reacted molecule template. The first optional section begins with
-the keyword "EdgeIDs" and lists the atom IDs of edge atoms in the
+the keyword "EdgeIDs" and lists the atom-IDs of edge atoms in the
 pre-reacted molecule template.  The second optional section begins with
-the keyword "Wildcards" and lists the pre-reaction atom IDs of atoms that
+the keyword "Wildcards" and lists the pre-reaction atom-IDs of atoms that
 have wildcard atom types.  The third optional section begins with the
-keyword "DeleteIDs" and lists the atom IDs of pre-reaction template atoms
+keyword "DeleteIDs" and lists the atom-IDs of pre-reaction template atoms
 to delete. The fourth optional section begins with the keyword "CreateIDs"
-and lists the atom IDs of the post-reaction template atoms to create. The
-fifth optional section begins with the keyword "ChiralIDs" lists the atom
-IDs of chiral atoms whose handedness should be enforced. The sixth optional
+and lists the atom-IDs of the post-reaction template atoms to create. The
+fifth optional section begins with the keyword "ChiralIDs" lists the
+atom-IDs of chiral atoms whose handedness should be enforced. The sixth optional
 section begins with the keyword "Constraints" and lists additional criteria
 that must be satisfied in order for the reaction to occur. Currently, there
 are six types of constraints available, as discussed below: "distance",
@@ -540,7 +540,7 @@ within a distance :math:`R` of any created atom, including the effect of
 periodic boundary conditions if applicable. :math:`R` is defined by the
 *overlap* sub-keyword. Note that the default value for :math:`R` is 0.0, which
 will allow atoms to strongly overlap if you are inserting where other
-atoms are present. The molecule ID of a created atom is zero, unless the
+atoms are present. The molecule-ID of a created atom is zero, unless the
 *reset_mol_ids molmap* option is used. The velocity of each created atom is
 initialized in a random direction with a magnitude calculated from the
 instantaneous temperature of the reaction site.
@@ -569,7 +569,7 @@ has syntax as follows:
    distance *ID1* *ID2* *rmin* *rmax*
 
 where "distance" is the required keyword, *ID1* and *ID2* are
-pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
+pre-reaction atom-IDs (or molecule-fragment IDs, see below), and these
 two atoms must be separated by a distance between *rmin* and *rmax*
 for the reaction to occur.
 
@@ -580,7 +580,7 @@ The constraint of type "angle" has the following syntax:
    angle *ID1* *ID2* *ID3* *amin* *amax*
 
 where "angle" is the required keyword, *ID1*, *ID2* and *ID3* are
-pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
+pre-reaction atom-IDs (or molecule-fragment IDs, see below), and these
 three atoms must form an angle between *amin* and *amax* for the
 reaction to occur (where *ID2* is the central atom). Angles must be
 specified in degrees. This constraint can be used to enforce a certain
@@ -593,7 +593,7 @@ The constraint of type "dihedral" has the following syntax:
    dihedral *ID1* *ID2* *ID3* *ID4* *amin* *amax* *amin2* *amax2*
 
 where "dihedral" is the required keyword, and *ID1*, *ID2*, *ID3*
-and *ID4* are pre-reaction atom IDs (or molecule-fragment IDs, see
+and *ID4* are pre-reaction atom-IDs (or molecule-fragment IDs, see
 below). Dihedral angles are calculated in the interval :math:`(-180^\circ,180^\circ]`.
 Refer to the :doc:`dihedral style <dihedral_style>` documentation for
 further details on convention. If *amin* is less than *amax*, these
@@ -605,7 +605,7 @@ be specified in degrees. Optionally, a second range of permissible
 angles *amin2* to *amax2* can be specified.
 
 For the 'distance', 'angle', and 'dihedral' constraints (explained
-above), atom IDs can be replaced by pre-reaction molecule-fragment
+above), atom-IDs can be replaced by pre-reaction molecule-fragment
 IDs. The molecule-fragment ID must begin with a letter. The location
 of the ID is the geometric center of all atom positions in the
 fragment. The molecule fragment must have been defined in the
@@ -805,11 +805,11 @@ reaction by-products.
 
 The *molecule* keyword can be used to force the reaction to be
 intermolecular, intramolecular or either. When the value is set to
-*off*\ , molecule IDs are not considered when searching for reactions
+*off*\ , molecule-IDs are not considered when searching for reactions
 (default). When the value is set to *inter*\ , the initiator atoms must
-have different molecule IDs in order to be considered for the
+have different molecule-IDs in order to be considered for the
 reaction. When the value is set to *intra*\ , only initiator atoms with
-the same molecule ID are considered for the reaction.
+the same molecule-ID are considered for the reaction.
 
 A few other considerations:
 
@@ -930,7 +930,7 @@ There is one quantity in the global vector for each *react* argument:
 
 This fix supports automatically generated thermo column names when using
 :doc:`thermo_modify colname auto <thermo_modify>`.  The thermo column names
-are "f\_", followed by the fix ID, followed by a colon, followed by the
+are "f\_", followed by the fix-ID, followed by a colon, followed by the
 react-ID.  E.g., the first example in the Examples section above would
 print a thermo column name of "f\_rxns:diels_alder", compared to the default column
 output name of "f\_rxns[1]".

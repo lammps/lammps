@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID lambda_thermostat/apip keyword values ...
+   fix fix-ID group-ID lambda_thermostat/apip keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * lambda_thermostat/apip = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keyword = *seed* or *store_atomic_forces* or *N_rescaling*

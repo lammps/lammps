@@ -287,7 +287,7 @@ is required. There are two algorithms available for placing atoms:
 *bisect* is the default.  If the atom style allows it, the radius will
 be set to a value depending on the algorithm and the value of the
 *radscale* parameter (see below), and the atoms created from the mesh
-are assigned a new molecule ID.
+are assigned a new molecule-ID.
 
 In *bisect* mode a particle is created at the center of each triangle
 unless the average distance of the triangle vertices from its center is
@@ -571,9 +571,9 @@ factor is also squared.
 
 ----------
 
-Atom IDs are assigned to created atoms in the following way.  The
+Atom-IDs are assigned to created atoms in the following way.  The
 collection of created atoms are assigned consecutive IDs that start
-immediately following the largest atom ID existing before the
+immediately following the largest atom-ID existing before the
 create_atoms command was invoked.  This is done by the processor's
 communicating the number of atoms they each own, the first processor
 numbering its atoms from :math:`1` to :math:`N_1`, the second processor from
@@ -582,7 +582,7 @@ atoms owned by the first processor, :math:`N_2` is the number owned by the
 second processor, and so forth.  Thus, when the same simulation is performed on
 different numbers of processors, there is no guarantee a particular created
 atom will be assigned the same ID in both simulations.  If molecules are being
-created, molecule IDs are assigned to created molecules in a similar fashion.
+created, molecule-IDs are assigned to created molecules in a similar fashion.
 
 Aside from their ID, atom type, and :math:`xyz` position, other properties of
 created atoms are set to default values, depending on which quantities
@@ -638,7 +638,7 @@ the z-direction for a 2d model.
 For :doc:`molecule templates <molecule>` that are created from multiple
 files, i.e. contain multiple molecule *sets*, only the first set is
 used.  To create multiple molecules the files currently need to be
-merged and different molecule IDs assigned with a Molecules section.
+merged and different molecule-IDs assigned with a Molecules section.
 
 Related commands
 """"""""""""""""

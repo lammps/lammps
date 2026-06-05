@@ -49,7 +49,7 @@ simulation.
 The syntax for this command is mostly identical to that of the
 :doc:`dump <dump>` and :doc:`dump_modify <dump_modify>` commands as if
 they were concatenated together, with the following exceptions: There
-is no need for a dump ID or dump frequency and the keyword *modify* is
+is no need for a dump-ID or dump frequency and the keyword *modify* is
 added.  The latter is so that the full range of
 :doc:`dump_modify <dump_modify>` options can be specified for the single
 snapshot, just as they can be for multiple snapshots.  The *modify*

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID wall/gran/region fstyle fstyle_params wallstyle regionID keyword values ...
+   fix fix-ID group-ID wall/gran/region fstyle fstyle_params wallstyle region-ID keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/region = style name of this fix command
 * fstyle = style of force interactions between particles and wall
 
@@ -237,10 +237,10 @@ uninterrupted fashion.
    is the same as it was on the timestep the restart file was written.
    If this is not possible, you may need to ignore info in the restart
    file by defining a new fix wall/gran/region command in your restart
-   script, e.g. with a different fix ID.  Or if you want to keep the
+   script, e.g. with a different fix-ID.  Or if you want to keep the
    shear history info but discard the region motion information, you can
-   use the same fix ID for fix wall/gran/region, but assign it a region
-   with a different region ID.
+   use the same fix-ID for fix wall/gran/region, but assign it a region
+   with a different region-ID.
 
 If the :code:`contacts` option is used, this fix generates a per-atom array
 with at least 8 columns as output, containing the contact information for owned

@@ -20,9 +20,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style keyword value ...
+   fix fix-ID group-ID style keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *pimd/langevin* or *pimd/nvt* or *pimd/langevin/bosonic* or *pimd/nvt/bosonic* = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keywords for style *pimd/nvt*

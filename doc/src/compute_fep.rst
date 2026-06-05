@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID fep temp attribute args ... keyword value ...
+   compute compute-ID group-ID fep temp attribute args ... keyword value ...
 
-* ID, group-ID are documented in the :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in the :doc:`compute <compute>` command
 * fep = name of this compute command
 * temp = external temperature (as specified for constant-temperature run)
 * one or more attributes with args may be appended

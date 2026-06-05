@@ -12,9 +12,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID nph/sphere args keyword value ...
+   fix fix-ID group-ID nph/sphere args keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * nph/sphere = style name of this fix command
 * keyword = *disc*
 

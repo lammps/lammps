@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID controller Nevery alpha Kp Ki Kd pvar setpoint cvar
+   fix fix-ID group-ID controller Nevery alpha Kp Ki Kd pvar setpoint cvar
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * controller = style name of this fix command
 * Nevery = invoke controller every this many timesteps
 * alpha = coupling constant for PID equation (see units discussion below)
@@ -153,7 +153,7 @@ The process variable *pvar* can be specified as the output of a
 :doc:`variable <variable>`.  In each case, the compute, fix, or variable
 must produce a global quantity, not a per-atom or local quantity.
 
-If *pvar* begins with "c\_", a compute ID must follow which has been
+If *pvar* begins with "c\_", a compute-ID must follow which has been
 previously defined in the input script and which generates a global
 scalar or vector.  See the individual :doc:`compute <compute>` doc
 page for details.  If no bracketed integer is appended, the scalar
@@ -162,7 +162,7 @@ appended, the Ith value of the vector calculated by the compute is
 used.  Users can also write code for their own compute styles and
 :doc:`add them to LAMMPS <Modify>`.
 
-If *pvar* begins with "f\_", a fix ID must follow which has been
+If *pvar* begins with "f\_", a fix-ID must follow which has been
 previously defined in the input script and which generates a global
 scalar or vector.  See the individual :doc:`fix <fix>` page for
 details.  Note that some fixes only produce their values on certain

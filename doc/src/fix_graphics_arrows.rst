@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID graphics/arrows Nevery mode keyword args ...
+   fix fix-ID group-ID graphics/arrows Nevery mode keyword args ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * graphics/arrows = style name of this fix command
 * Nevery = update graphics information every this many time steps
 * mode = one of the following modes *dipole* or *force* or *velocity* or *variable* or *chunk*
@@ -64,7 +64,7 @@ This fix allows to add arrows to images rendered with :doc:`dump image
 with arrows for either all atoms in the fix group or for :doc:`chunks
 <Howto_chunk>`.
 
-The *group-ID* sets the group ID of the atoms selected to have the
+The *group-ID* sets the group-ID of the atoms selected to have the
 selected property represented.  This may be a dynamic group.
 
 The *Nevery* keyword determines how often the arrows graphics data is

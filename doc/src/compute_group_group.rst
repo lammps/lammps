@@ -8,11 +8,11 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID group/group group2-ID keyword value ...
+   compute compute-ID group-ID group/group group2-ID keyword value ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * group/group = style name of this compute command
-* group2-ID = group ID of second (or same) group
+* group2-ID = group-ID of second (or same) group
 * zero or more keyword/value pairs may be appended
 * keyword = *pair* or *kspace* or *boundary* or *molecule*
 
@@ -54,7 +54,7 @@ interactions with atoms in the specified group2.
    :doc:`pair_modify <pair_modify>` command.
 
 If the *molecule* keyword is set to *inter* or *intra* than an
-additional check is made based on the molecule IDs of the two atoms in
+additional check is made based on the molecule-IDs of the two atoms in
 each pair before including their pairwise interaction energy and
 force.  For the *inter* setting, the two atoms must be in different
 molecules.  For the *intra* setting, the two atoms must be in the same

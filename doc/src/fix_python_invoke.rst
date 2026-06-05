@@ -8,7 +8,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID python/invoke N callback function_name
+   fix fix-ID group-ID python/invoke N callback function_name
 
 * ID, group-ID are ignored by this fix
 * python/invoke = style name of this fix command

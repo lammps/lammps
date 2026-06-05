@@ -109,7 +109,7 @@ Pair coeff syntax
 """""""""""""""""
 
 MBX is many-body method, and only a single pair_coeff command is needed
-to specify the mapping of LAMMPS atom IDs to MBX monomers. The syntax is as follows:
+to specify the mapping of LAMMPS atom-IDs to MBX monomers. The syntax is as follows:
 
 .. code-block:: LAMMPS
 
@@ -117,7 +117,7 @@ to specify the mapping of LAMMPS atom IDs to MBX monomers. The syntax is as foll
 
 * num_mon_types = number of monomer types in the system
 * mon_name = name of the monomer type (e.g. h2o, ch4, etc)
-* atom mapping = list of LAMMPS atom IDs that correspond to the atoms in the monomer
+* atom mapping = list of LAMMPS atom-IDs that correspond to the atoms in the monomer
 * *json* arg = specifies the name of the MBX json configuration file, such as mbx.json
 * print/settings = optionally print MBX settings to logfile
 
@@ -127,12 +127,12 @@ monomer types in the system.
 
 For each monomer type, the *mon_name* argument specifies the name of
 the monomer, such as `h2o` for water or `ch4` for methane. The *atom
-mapping* argument specifies then the mapping of LAMMPS atom IDs to
+mapping* argument specifies then the mapping of LAMMPS atom-IDs to
 the atoms in the monomer, such as `1 2 2` for water (O=1, H=2).
 For hybrid simulations, the `dp1` (drude particle) monomer
 should be used to represent the non-MB-nrg molecules. `dp1` is a
 special monomer in MBX in that its *atom_mapping* can be a range of
-LAMMPS atom IDs, such as `1*11` to represent atom types 1 through 11.
+LAMMPS atom-IDs, such as `1*11` to represent atom types 1 through 11.
 For a complete list of available monomers in MBX, please see the
 `MBX documentation <https://mbxsimulations.com/tutorials/pefs-implemented-and-how-to-cite>`_.
 

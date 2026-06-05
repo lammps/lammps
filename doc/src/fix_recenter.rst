@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID recenter x y z keyword value ...
+   fix fix-ID group-ID recenter x y z keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * recenter = style name of this fix command
 * x,y,z = constrain center-of-mass to these coords (distance units),         any coord can also be NULL or INIT (see below)
 * zero or more keyword/value pairs may be appended

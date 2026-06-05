@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID reduce/chunk chunkID mode input1 input2 ...
+   compute compute-ID group-ID reduce/chunk chunkID mode input1 input2 ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * reduce/chunk = style name of this compute command
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * mode = *sum* or *min* or *max*
@@ -51,9 +51,9 @@ or atoms in a spatial bin.  See the :doc:`compute chunk/atom
 details of how chunks can be defined and examples of how they can be
 used to measure properties of a system.
 
-For each atom, this compute accesses its chunk ID from the specified
+For each atom, this compute accesses its chunk-ID from the specified
 *chunkID* compute.  The per-atom value from an input contributes to a
-per-chunk value corresponding the chunk ID.
+per-chunk value corresponding the chunk-ID.
 
 The reduction operation is specified by the *mode* setting and is
 performed over all the per-atom values from the atoms in each chunk.
@@ -62,7 +62,7 @@ The *sum* option adds the per-atom values to a per-chunk total.  The
 values for each chunk.
 
 Note that only atoms in the specified group contribute to the reduction
-operation.  If the *chunkID* compute returns a 0 for the chunk ID of an
+operation.  If the *chunkID* compute returns a 0 for the chunk-ID of an
 atom (i.e., the atom is not in a chunk defined by the :doc:`compute
 chunk/atom <compute_chunk_atom>` command), that atom will also not
 contribute to the reduction operation.  An input that is a compute or

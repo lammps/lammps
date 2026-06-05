@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID lineforce x y z
+   fix fix-ID group-ID lineforce x y z
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * lineforce = style name of this fix command
 * x y z = direction of line as a 3-vector
 

@@ -10,7 +10,7 @@ Syntax
 
    delete_bonds group-ID style arg keyword ...
 
-* group-ID = group ID
+* group-ID = group-ID
 * style = *multi* or *atom* or *bond* or *angle* or *dihedral* or *improper* or *stats*
 
   .. parsed-literal::

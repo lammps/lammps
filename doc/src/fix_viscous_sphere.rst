@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID viscous/sphere gamma keyword values ...
+   fix fix-ID group-ID viscous/sphere gamma keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * viscous/sphere = style name of this fix command
 * gamma = damping coefficient (torque/angular velocity units)
 * zero or more keyword/value pairs may be appended

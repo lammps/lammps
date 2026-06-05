@@ -14,9 +14,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   dump ID group-ID style N file color diameter keyword value ...
+   dump dump-ID group-ID style N file color diameter keyword value ...
 
-* ID = user-assigned name for the dump
+* dump-ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be imaged
 * style = *image* or *movie* = style of dump command (other styles such as *atom* or *cfg* or *dcd* or *xtc* or *xyz* or *local* or *custom* are discussed on the :doc:`dump <dump>` doc page)
 * N = dump every this many timesteps
@@ -58,12 +58,12 @@ Syntax
        *body* = color bflag1 bflag2
          color = *type* or *index* or *atom*
          bflag1,bflag2 = 2 numeric flags to affect how bodies are drawn
-       *compute* = computeID color cflag1 cflag2
-         computeID = ID of computes that generates objects to draw
+       *compute* = compute-ID color cflag1 cflag2
+         compute-ID = ID of computes that generates objects to draw
          color = *type* or *element* or *const*
          cflag1,cflag2 = 2 numeric flags to affect how compute objects are drawn
-       *fix* = fixID color fflag1 fflag2
-         fixID = ID of fix that generates objects to draw
+       *fix* = fix-ID color fflag1 fflag2
+         fix-ID = ID of fix that generates objects to draw
          color = *type* or *element* or *const*
          fflag1,fflag2 = 2 numeric flags to affect how fix objects are drawn
        *size* values = width height = size of images
@@ -192,17 +192,17 @@ Syntax
          filename = load color definitions, per-type colors, and lights from JSON format file
        *savecolors* arg = filename
          filename = save per-type colors and lights to JSON format file
-       *ccolor* args = computeID color
-         computeID = ID of the compute
+       *ccolor* args = compute-ID color
+         compute-ID = ID of the compute
          color = name of color for image objects provided by this compute when using "const" color style
-       *ctrans* args = computeID transparency
-         computeID = ID of the compute
+       *ctrans* args = compute-ID transparency
+         compute-ID = ID of the compute
          transparency = transparency for image objects provided by this compute
-       *fcolor* args = fixID color
-         fixID = ID of the fix
+       *fcolor* args = fix-ID color
+         fix-ID = ID of the fix
          color = name of color for image objects provided by this fix when using "const" color style
-       *ftrans* args = fixID transparency
-         fixID = ID of the fix
+       *ftrans* args = fix-ID transparency
+         fix-ID = ID of the fix
          transparency = transparency for image objects provided by this fix
        *bitrate* arg = rate
          rate = target bitrate for movie in kbps
@@ -643,9 +643,9 @@ that produces information about objects to be drawn. Similarly, the
 information about objects to be drawn.  The compute or fix keywords may
 be used multiple times to include visualizations of graphics objects
 from multiple computes and fixes.  The *compute* keyword is followed by
-the :doc:`compute ID <compute>` of the compute, the color style setting
+the :doc:`compute-ID <compute>` of the compute, the color style setting
 and two numerical values *cflag1* and *cflag2*.  The *fix* keyword is
-followed by the :doc:`fix ID <fix>` of the fix, the color style setting
+followed by the :doc:`fix-ID <fix>` of the fix, the color style setting
 and two numerical values *fflag1* and *fflag2*.
 
 The color style may be either *type*, *element*, or *const*.  The first
@@ -1010,7 +1010,7 @@ script.
                                zoom 3.5 adiam 1.4 size 1200 600 fsaa yes shiny 0.2
    dump_modify 2 pad 5 amap 0 10 sa 1 10 ${colors} backcolor darkgray boxcolor silver
 
-In this case, 10 colors are defined, and molecule IDs are mapped to one
+In this case, 10 colors are defined, and molecule-IDs are mapped to one
 of the colors, even if there are 1000s of molecules.
 
 Here is an example for coloring the atoms in the "melt" example by their
@@ -1186,14 +1186,14 @@ combination with *fsaa on*.
 .. versionadded:: 11Feb2026
 
 The *fcolor* keyword sets the color of any image objects created by a
-fix when using the color style "const".  The first argument is the fix ID
+fix when using the color style "const".  The first argument is the fix-ID
 used with the *dump image fix* command and the second argument is the
 color name.  The color name can be any of the 140 pre-defined colors
 (see below) or a color name defined by the *dump_modify color* option.
 
 The *ftrans* keyword sets the transparency of any image objects created
 by a fix when using the color style "const".  The first argument is the
-fix ID used with the *dump image fix* command and the second argument is
+fix-ID used with the *dump image fix* command and the second argument is
 the transparency value.  The transparency value must be between 0.0
 (invisible) and 1.0 (fully opaque).  The default setting is 1.0.
 

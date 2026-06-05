@@ -16,13 +16,13 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID mvv/dpd lambda
+   fix fix-ID group-ID mvv/dpd lambda
 
-   fix ID group-ID mvv/edpd lambda
+   fix fix-ID group-ID mvv/edpd lambda
 
-   fix ID group-ID mvv/tdpd lambda
+   fix fix-ID group-ID mvv/tdpd lambda
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * mvv/dpd, mvv/edpd, mvv/tdpd = style name of this fix command
 * lambda = (optional) relaxation parameter (unitless)
 

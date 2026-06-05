@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID langevin/spin T Tdamp seed
+   fix fix-ID group-ID langevin/spin T Tdamp seed
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * langevin/spin = style name of this fix command
 * T = desired temperature of the bath (temperature units, K in metal units)
 * Tdamp = transverse magnetic damping parameter (adim)

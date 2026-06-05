@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID propel/self mode magnitude keyword values
+   fix fix-ID group-ID propel/self mode magnitude keyword values
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * propel/self = style name of this fix command
 * mode = *dipole* or *velocity* or *quat*
 * magnitude = magnitude of self-propulsion force

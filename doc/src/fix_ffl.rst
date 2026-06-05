@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID id-group ffl tau Tstart Tstop seed [flip-type]
+   fix fix-ID id-group ffl tau Tstart Tstop seed [flip-type]
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * ffl = style name of this fix command
 * tau = thermostat parameter (positive real)
 * Tstart, Tstop = temperature ramp during the run

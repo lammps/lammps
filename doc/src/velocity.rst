@@ -41,7 +41,7 @@ Syntax
        *sum* value = *no* or *yes*
        *mom* value = *no* or *yes*
        *rot* value = *no* or *yes*
-       *temp* value = temperature compute ID
+       *temp* value = temperature compute-ID
        *bias* value = *no* or *yes*
        *loop* value = *all* or *local* or *geom*
        *rigid* value = fix-ID
@@ -192,7 +192,7 @@ owns.  This can be a slow loop for a large simulation.  If atoms were
 read from a data file, the velocity assigned to a particular atom will
 be the same, independent of how many MPI processes are being used.  This
 will not be the case if atoms were created using the :doc:`create_atoms
-<create_atoms>` command, since atom IDs will likely be assigned to atoms
+<create_atoms>` command, since atom-IDs will likely be assigned to atoms
 differently.
 
 If *loop = local*, then each processor loops over only its atoms to

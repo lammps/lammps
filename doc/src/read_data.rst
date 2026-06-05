@@ -17,10 +17,10 @@ Syntax
   .. parsed-literal::
 
        *add* arg = *append* or *IDoffset* or *IDoffset MOLoffset* or *merge*
-         append = add new atoms with atom IDs appended to current IDs
-         IDoffset = add new atoms with atom IDs having IDoffset added
-         MOLoffset = add new atoms with molecule IDs having MOLoffset added (only when molecule IDs are enabled)
-         merge = add new atoms with their atom IDs (and molecule IDs) unchanged
+         append = add new atoms with atom-IDs appended to current IDs
+         IDoffset = add new atoms with atom-IDs having IDoffset added
+         MOLoffset = add new atoms with molecule-IDs having MOLoffset added (only when molecule-IDs are enabled)
+         merge = add new atoms with their atom-IDs (and molecule-IDs) unchanged
        *offset* args = toff boff aoff doff ioff
          toff = offset to add to atom types
          boff = offset to add to bond types
@@ -39,8 +39,8 @@ Syntax
        *extra/dihedral/per/atom* arg = leave space for this many new dihedrals per atom
        *extra/improper/per/atom* arg = leave space for this many new impropers per atom
        *extra/special/per/atom* arg = leave space for extra 1-2,1-3,1-4 interactions per atom
-       *group* args = groupID
-         groupID = add atoms in data file to this group
+       *group* args = group-ID
+         group-ID = add atoms in data file to this group
        *nocoeff* = ignore force field parameters
        *fix* args = fix-ID header-string section-string
          fix-ID = ID of fix to process header lines and sections of data file
@@ -153,29 +153,29 @@ keyword must be used.
    box size grows.  This will separate the atoms in the bond, which
    can lead to "lost" bond atoms or bad dynamics.
 
-The three choices for the *add* argument affect how the atom IDs and
-molecule IDs of atoms in the data file are treated.
+The three choices for the *add* argument affect how the atom-IDs and
+molecule-IDs of atoms in the data file are treated.
 
 If *append* is specified, atoms in the data file are added to the
-current system, with their atom IDs reset so that an atom-ID = M in
-the data file becomes atom-ID = N+M, where N is the largest atom ID in
-the current system.  This rule is applied to all occurrences of atom
-IDs in the data file, e.g. in the Velocity or Bonds section. This is
-also done for molecule IDs, if the atom style does support molecule
-IDs or they are enabled via fix property/atom.
+current system, with their atom-IDs reset so that an atom-ID = M in
+the data file becomes atom-ID = N+M, where N is the largest atom-ID in
+the current system.  This rule is applied to all occurrences of
+atom-IDs in the data file, e.g. in the Velocity or Bonds section. This is
+also done for molecule-IDs, if the atom style does support
+molecule-IDs or they are enabled via fix property/atom.
 
 If *IDoffset* is specified, then *IDoffset* is a numeric value is
 given, e.g. 1000, so that an atom-ID = M in the data file becomes
-atom-ID = 1000+M. For systems with enabled molecule IDs, another
+atom-ID = 1000+M. For systems with enabled molecule-IDs, another
 numerical argument *MOLoffset* is required representing the equivalent
-offset for molecule IDs.
+offset for molecule-IDs.
 
 If *merge* is specified, the data file atoms are added to the current
 system without changing their IDs.  They are assumed to merge (without
 duplication) with the currently defined atoms.  It is up to you to
-ensure there are no multiply defined atom IDs, as LAMMPS only performs
+ensure there are no multiply defined atom-IDs, as LAMMPS only performs
 an incomplete check that this is the case by ensuring the resulting
-max atom-ID >= the number of atoms. For molecule IDs, there is no
+max atom-ID >= the number of atoms. For molecule-IDs, there is no
 check done at all.
 
 The *offset* and *shift* keywords can only be used if the *add*
@@ -296,8 +296,8 @@ reads from the data file.  Note that the *header-string* can be
 specified as NULL, in which case no header lines are passed to the
 fix.  This means the fix can infer the length of its Section from
 standard header settings, such as the number of atoms.  Also the
-*section-string* may be specified as NULL, and in that case the fix
-ID is used as section name.
+*section-string* may be specified as NULL, and in that case the
+fix-ID is used as section name.
 
 The formatting of individual lines in the data file (indentation,
 spacing between words and numbers) is not important except that header
@@ -945,7 +945,7 @@ will cause extra memory to be allocated on each processor, if an atom
 map array is used, but not if an atom map hash is used; see the
 :doc:`atom_modify <atom_modify>` command for details.  If an atom map is
 not used (e.g. an atomic system with no bonds), and you don't care if
-unique atom IDs appear in dump files, then the atom-IDs can all be set
+unique atom-IDs appear in dump files, then the atom-IDs can all be set
 to 0.
 
 The atom-type can be a numeric value or an alphanumeric label.  The
@@ -955,7 +955,7 @@ earlier in the data file.  See the :doc:`Howto type labels
 <Howto_type_labels>` doc page for the allowed syntax of type labels
 and a general discussion of how type labels can be used.
 
-The molecule ID is a second identifier attached to an atom.  Normally, it
+The molecule-ID is a second identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
 to.  It can be 0 if it is a non-bonded atom or if you don't care to
 keep track of molecule assignments.
@@ -1690,7 +1690,7 @@ where the keywords have these meanings:
 
 The velocity lines can appear in any order.  This section can only be
 used after an *Atoms* section.  This is because the *Atoms* section
-must have assigned a unique atom ID to each atom so that velocities
+must have assigned a unique atom-ID to each atom so that velocities
 can be assigned to them.
 
 Vx, vy, vz, and ervel are in :doc:`units <units>` of velocity.  Lx, ly,

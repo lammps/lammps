@@ -8,9 +8,9 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID rheo/viscosity type1 pstyle1 args1 ... typeN pstyleN argsN
+   fix fix-ID group-ID rheo/viscosity type1 pstyle1 args1 ... typeN pstyleN argsN
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * rheo/viscosity = style name of this fix command
 * one or more types and viscosity styles must be appended
 * types = lists of types (see below)

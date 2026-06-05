@@ -307,12 +307,12 @@ to properly detect existing contacts.
 .. code-block:: LAMMPS
 
    run 0
-   compute ID group-ID property/atom d_Velas
-   compute ID group-ID property/atom d_sigmaxx
-   compute ID group-ID property/atom d_sigmayy
-   compute ID group-ID property/atom d_sigmazz
-   compute ID group-ID property/atom d_Acon1
-   compute ID group-ID pair/local p13 cutoff radius
+   compute compute-ID group-ID property/atom d_Velas
+   compute compute-ID group-ID property/atom d_sigmaxx
+   compute compute-ID group-ID property/atom d_sigmayy
+   compute compute-ID group-ID property/atom d_sigmazz
+   compute compute-ID group-ID property/atom d_Acon1
+   compute compute-ID group-ID pair/local p13 cutoff radius
 
 .. note::
 

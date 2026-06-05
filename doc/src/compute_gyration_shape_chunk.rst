@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID gyration/shape/chunk compute-ID
+   compute compute-ID group-ID gyration/shape/chunk compute-ID
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * gyration/shape/chunk = style name of this compute command
 * compute-ID = ID of :doc:`compute gyration/chunk <compute_gyration_chunk>` command
 

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID property/local attribute1 attribute2 ... keyword args ...
+   compute compute-ID group-ID property/local attribute1 attribute2 ... keyword args ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * property/local = style name of this compute command
 * one or more attributes of the same type (neighbor, pair, bond, angle,
   dihedral, or improper) may be appended
@@ -146,7 +146,7 @@ from this command and output by the :doc:`dump local <dump>` command
 in a consistent way.
 
 The *natom1* and *natom2* or *patom1* and *patom2* attributes refer
-to the atom IDs of the two atoms in each pairwise interaction computed
+to the atom-IDs of the two atoms in each pairwise interaction computed
 by the :doc:`pair_style <pair_style>` command.  The *ntype1* and
 *ntype2* or *ptype1* and *ptype2* attributes refer to the atom types
 of the two atoms in each pairwise interaction.
@@ -162,7 +162,7 @@ of the two atoms in each pairwise interaction.
    weighting factors for 1--2, 1--3, and 1--4 pairwise interactions are set
    by the :doc:`special_bonds <special_bonds>` command.
 
-The *batom1* and *batom2* attributes refer to the atom IDs of the 2
+The *batom1* and *batom2* attributes refer to the atom-IDs of the 2
 atoms in each :doc:`bond <bond_style>`.  The *btype* attribute refers to
 the type of the bond, from 1 to Nbtypes = # of bond types.  The number
 of bond types is defined in the data file read by the

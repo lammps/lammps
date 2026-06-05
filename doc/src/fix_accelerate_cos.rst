@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID accelerate value
+   fix fix-ID group-ID accelerate value
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * accelerate/cos = style name of this fix command
 * value = amplitude of acceleration (in unit of velocity/time)
 
@@ -68,7 +68,7 @@ zero-shear viscosity.  As the shear stress decreases, the
 signal-to-noise ratio decreases rapidly, and the simulation time must be
 extended accordingly to get converged results.
 
-In order to get meaningful results, the group ID of this fix should be all.
+In order to get meaningful results, the group-ID of this fix should be all.
 
 ----------
 

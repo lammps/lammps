@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID bond/local value1 value2 ... keyword args ...
+   compute compute-ID group-ID bond/local value1 value2 ... keyword args ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * bond/local = style name of this compute command
 * one or more values may be appended
 * value = *dist* or *dx* or *dy* or *dz* or *engpot* or *force* or *fx* or *fy* or *fz* or *engvib* or *engrot* or *engtrans* or *omega* or *velvib* or *v_name* or *bN*
@@ -63,7 +63,7 @@ of some larger molecule.
 
 .. versionchanged:: 12Jun2025
 
-   The sign of *dx*, *dy*, *dz* is no longer determined by the atom IDs
+   The sign of *dx*, *dy*, *dz* is no longer determined by the atom-IDs
    of the bonded atoms but by their order in the bond list to be
    consistent with *fx*, *fy*, and *fz*.
 

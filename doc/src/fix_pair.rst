@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID pair N pstyle name flag ...
+   fix fix-ID group-ID pair N pstyle name flag ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * pair = style name of this fix command
 * N = invoke this fix once every N timesteps
 * pstyle = name of pair style to extract info from (e.g. eam)

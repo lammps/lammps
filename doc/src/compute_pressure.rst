@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID pressure temp-ID keyword ...
+   compute compute-ID group-ID pressure temp-ID keyword ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * pressure = style name of this compute command
 * temp-ID = ID of compute that calculates temperature, can be NULL if not needed
 * zero or more keywords may be appended

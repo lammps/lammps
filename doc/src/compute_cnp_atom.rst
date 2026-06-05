@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID cnp/atom cutoff
+   compute compute-ID group-ID cnp/atom cutoff
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * cnp/atom = style name of this compute command
 * cutoff = cutoff distance for nearest neighbors (distance units)
 

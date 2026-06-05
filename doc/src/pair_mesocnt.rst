@@ -73,15 +73,15 @@ The potential further implements two different neighbor list
 construction modes. Mode *id* uses atom and mol IDs to construct
 neighbor lists while *topology* modes uses only the bond topology of
 the system. While *id* mode requires bonded atoms to have consecutive
-LAMMPS atom IDs and atoms in different CNTs to have different LAMMPS
-molecule IDs, *topology* mode has no such requirement. Using *id* mode
+LAMMPS atom-IDs and atoms in different CNTs to have different LAMMPS
+molecule-IDs, *topology* mode has no such requirement. Using *id* mode
 is faster and is enabled by default.
 
 .. note::
 
   Neighbor *id* mode requires all CNTs in the system to have distinct
-  LAMMPS molecule IDs and bonded atoms to have consecutive LAMMPS atom
-  IDs. If this is not possible (e.g. in simulations of CNT rings),
+  LAMMPS molecule-IDs and bonded atoms to have consecutive LAMMPS
+  atom-IDs. If this is not possible (e.g. in simulations of CNT rings),
   *topology* mode needs to be enabled in the pair_style command.
 
 .. versionadded:: 15Sep2022

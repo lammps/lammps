@@ -837,7 +837,7 @@ that perform common LAMMPS post-processing tasks, such as:
 
 * extract thermodynamic info from a log file as columns of numbers
 * plot two columns of thermodynamic info from a log file using GnuPlot
-* sort the snapshots in a dump file by atom ID
+* sort the snapshots in a dump file by atom-ID
 * convert multiple :doc:`NEB <neb>` dump files into one dump file for viz
 * convert dump files into XYZ, CFG, or PDB format for viz by other packages
 

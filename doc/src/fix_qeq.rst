@@ -28,9 +28,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style Nevery cutoff tolerance maxiter qfile keyword ...
+   fix fix-ID group-ID style Nevery cutoff tolerance maxiter qfile keyword ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *qeq/point* or *qeq/shielded* or *qeq/slater* or *qeq/ctip* or *qeq/dynamic* or *qeq/fire*
 * Nevery = perform charge equilibration every this many steps
 * cutoff = global cutoff for charge-charge interactions (distance unit)

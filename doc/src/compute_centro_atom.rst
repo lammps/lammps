@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID centro/atom lattice keyword value ...
+   compute compute-ID group-ID centro/atom lattice keyword value ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * centro/atom = style name of this compute command
 * lattice = *fcc* or *bcc* or N = # of neighbors per atom to include
 * zero or more keyword/value pairs may be appended

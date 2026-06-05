@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID com/chunk chunkID keyword args ...
+   compute compute-ID group-ID com/chunk chunkID keyword args ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * com/chunk = style name of this compute command
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * zero or more keyword/value pairs may be appended
@@ -58,11 +58,11 @@ default).
 
 Note that only atoms in the specified group contribute to the
 calculation.  The :doc:`compute chunk/atom <compute_chunk_atom>` command
-defines its own group; atoms will have a chunk ID = 0 if they are not in
+defines its own group; atoms will have a chunk-ID = 0 if they are not in
 that group, signifying they are not assigned to a chunk, and will thus
 also not contribute to this calculation.  You can specify the "all"
 group for this command if you simply want to include atoms with non-zero
-chunk IDs.
+chunk-IDs.
 
 .. note::
 

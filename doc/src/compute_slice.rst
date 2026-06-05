@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID slice Nstart Nstop Nskip input1 input2 ...
+   compute compute-ID group-ID slice Nstart Nstop Nskip input1 input2 ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * slice = style name of this compute command
 * Nstart = starting index within input vector(s)
 * Nstop = stopping index within input vector(s)
@@ -55,7 +55,7 @@ vector.  Each listed input must be a global vector or column of a
 global array calculated by another :doc:`compute <compute>` or
 :doc:`fix <fix>`.
 
-If an input value begins with "c\_", a compute ID must follow which has
+If an input value begins with "c\_", a compute-ID must follow which has
 been previously defined in the input script and which generates a
 global vector or array.  See the individual :doc:`compute <compute>` doc
 page for details.  If no bracketed integer is appended, the vector
@@ -63,7 +63,7 @@ calculated by the compute is used.  If a bracketed integer is
 appended, the Ith column of the array calculated by the compute is
 used.  Users can also write code for their own compute styles and :doc:`add them to LAMMPS <Modify>`.
 
-If a value begins with "f\_", a fix ID must follow which has been
+If a value begins with "f\_", a fix-ID must follow which has been
 previously defined in the input script and which generates a global
 vector or array.  See the individual :doc:`fix <fix>` page for
 details.  Note that some fixes only produce their values on certain

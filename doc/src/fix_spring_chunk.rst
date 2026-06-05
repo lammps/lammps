@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID spring/chunk K chunkID comID
+   fix fix-ID group-ID spring/chunk K chunkID comID
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * spring/chunk = style name of this fix command
 * K = spring constant for each chunk (force/distance units)
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command

@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID wall/body/polyhedron k_n c_n c_t wallstyle args keyword values ...
+   fix fix-ID group-ID wall/body/polyhedron k_n c_n c_t wallstyle args keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/body/polyhedron = style name of this fix command
 * k_n = normal repulsion strength (force/distance units or pressure units - see discussion below)
 * c_n = normal damping coefficient (force/distance units or pressure units - see discussion below)

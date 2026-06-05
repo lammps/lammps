@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID graphics/lines Nevery Nrepeat Nfreq Nlength
+   fix fix-ID group-ID graphics/lines Nevery Nrepeat Nfreq Nlength
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * graphics/lines = style name of this fix command
 * Nevery = retrieve unwrapped position information every this many timesteps
 * Nrepeat = number of times to use the position information for calculating averages
@@ -46,7 +46,7 @@ box and stored internally using up to *Nlength* sets.  For any
 additional sets of positions, the then oldest set in the history storage
 will be overwritten and thus limiting the length of the trace.
 
-The *group-ID* sets the group ID of the atoms selected to have the selected
+The *group-ID* sets the group-ID of the atoms selected to have the selected
 property represented.  This may *not* be a dynamic group.
 
 The *Nfreq* value determines how often the graphics data is updated.

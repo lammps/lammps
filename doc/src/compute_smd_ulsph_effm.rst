@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID smd/ulsph/effm
+   compute compute-ID group-ID smd/ulsph/effm
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * smd/ulsph/effm = style name of this compute command
 
 Examples

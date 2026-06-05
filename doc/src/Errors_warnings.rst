@@ -189,7 +189,7 @@ Please also see the page with :doc:`Error messages <Errors_messages>`
    for point particles.  The near setting is smaller than the particle
    diameter which can lead to overlaps.
 
-*Fix evaporate may delete atom with non-zero molecule ID*
+*Fix evaporate may delete atom with non-zero molecule-ID*
    This is probably an error, since you should not delete only one atom
    of a molecule.
 
@@ -283,11 +283,11 @@ Please also see the page with :doc:`Error messages <Errors_messages>`
    for as many particles as it tried to insert.
 
 *Library error in lammps_gather_atoms*
-   This library function cannot be used if atom IDs are not defined
+   This library function cannot be used if atom-IDs are not defined
    or are not consecutively numbered.
 
 *Library error in lammps_scatter_atoms*
-   This library function cannot be used if atom IDs are not defined or
+   This library function cannot be used if atom-IDs are not defined or
    are not consecutively numbered, or if no atom map is defined.  See the
    atom_modify command for details about atom maps.
 

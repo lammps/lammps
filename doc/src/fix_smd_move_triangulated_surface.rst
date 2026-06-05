@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID smd/move_tri_surf keyword
+   fix fix-ID group-ID smd/move_tri_surf keyword
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * smd/move_tri_surf keyword = style name of this fix command
 * keyword = *\*LINEAR* or *\*WIGGLE* or *\*ROTATE*
 

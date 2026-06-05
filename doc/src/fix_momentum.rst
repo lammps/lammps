@@ -15,18 +15,18 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID momentum N keyword values ...
+   fix fix-ID group-ID momentum N keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * momentum = style name of this fix command
 * N = adjust the momentum every this many timesteps
   one or more keyword/value pairs may be appended
 
 .. parsed-literal::
 
-   fix ID group-ID momentum/chunk N chunkID keyword values ...
+   fix fix-ID group-ID momentum/chunk N chunkID keyword values ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * momentum/chunk = style name of this fix command
 * N = adjust the momentum per chunk every this many timesteps
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command

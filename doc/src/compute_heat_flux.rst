@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID heat/flux ke-ID pe-ID stress-ID
+   compute compute-ID group-ID heat/flux ke-ID pe-ID stress-ID
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * heat/flux = style name of this compute command
 * ke-ID = ID of a compute that calculates per-atom kinetic energy
 * pe-ID = ID of a compute that calculates per-atom potential energy

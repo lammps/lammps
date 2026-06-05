@@ -32,9 +32,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style_name keyword value ...
+   fix fix-ID group-ID style_name keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * style_name = *nvt* or *npt* or *nph*
 * one or more keyword/value pairs may be appended
 
@@ -669,7 +669,7 @@ by tchain for eta_dot, followed by ndof for omega, etc:
 
 This fix supports automatically generated thermo column names when using
 :doc:`thermo_modify colname auto <thermo_modify>`.  The thermo column
-names are "f\_", followed by the fix ID, followed by a colon, followed
+names are "f\_", followed by the fix-ID, followed by a colon, followed
 by a keyword listed above, followed by an index for that keyword.
 Indices range from 1 to the number of values for that keyword.  E.g.,
 the first example in the Examples section above would print a thermo

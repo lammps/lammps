@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   dump ID group-ID molfile N file format path
+   dump dump-ID group-ID molfile N file format path
 
-* ID = user-assigned name for the dump
+* dump-ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be imaged
 * molfile = style of dump command (other styles *atom* or *cfg* or *dcd* or *xtc* or *xyz* or *local* or *custom* are discussed on the :doc:`dump <dump>` doc page)
 * N = dump every this many timesteps

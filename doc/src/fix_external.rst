@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID external mode args
+   fix fix-ID group-ID external mode args
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * external = style name of this fix command
 * mode = *pf/callback* or *pf/array*
 
@@ -63,7 +63,7 @@ The arguments are as follows:
 * *ptr* = pointer provided by and simply passed back to external driver
 * *timestep* = current LAMMPS timestep
 * *nlocal* = # of atoms on this processor
-* *ids* = list of atom IDs on this processor
+* *ids* = list of atom-IDs on this processor
 * *x* = coordinates of atoms on this processor
 * *fexternal* = forces to add to atoms on this processor
 

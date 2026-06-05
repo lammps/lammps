@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID pace ace_potential_filename ... keyword values ...
+   compute compute-ID group-ID pace ace_potential_filename ... keyword values ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * pace = style name of this compute command
 * ace_potential_filename = file name (in the .yace or .ace format from :doc:`pace pair_style <pair_pace>`) including ACE hyper-parameters, bonds, and generalized coupling coefficients
 * keyword = *bikflag* or *dgradflag*
@@ -170,7 +170,7 @@ component on an atom, or virial stress component. The rows of the array
 appear in the following order:
 
 * 1 row: *pace* average descriptor values for all atoms of type *I*
-* 3\*\ *n* force rows: quantities, with derivatives w.r.t. x, y, and z coordinate of atom *i* appearing in consecutive rows. The atoms are sorted based on atom ID and run up to the total number of atoms, *n*.
+* 3\*\ *n* force rows: quantities, with derivatives w.r.t. x, y, and z coordinate of atom *i* appearing in consecutive rows. The atoms are sorted based on atom-ID and run up to the total number of atoms, *n*.
 * 6 rows: *virial* quantities summed for all atoms of type *I*
 
 For example, if :math:`\# \; B_{i, \boldsymbol{\nu}}` =30 and ntypes=1, the number of columns in the

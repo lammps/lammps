@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID temp/ramp vdim vlo vhi dim clo chi keyword value ...
+   compute compute-ID group-ID temp/ramp vdim vlo vhi dim clo chi keyword value ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * temp/ramp = style name of this compute command
 * vdim = *vx* or *vy* or *vz*
 * vlo,vhi = subtract velocities between vlo and vhi (velocity units)

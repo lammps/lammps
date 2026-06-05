@@ -8,16 +8,16 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID body/local input1 input2 ...
+   compute compute-ID group-ID body/local input1 input2 ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * body/local = style name of this compute command
 * one or more keywords may be appended
 * keyword = *id* or *type* or *integer*
 
   .. parsed-literal::
 
-       *id* = atom ID of the body particle
+       *id* = atom-ID of the body particle
        *type* = atom type of the body particle
        *integer* = 1,2,3,etc = index of fields defined by body style
 

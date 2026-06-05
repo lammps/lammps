@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID neb/spin Kspring
+   fix fix-ID group-ID neb/spin Kspring
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * neb/spin = style name of this fix command
 
 .. parsed-literal::

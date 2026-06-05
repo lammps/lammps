@@ -8,7 +8,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID dilatation/atom
+   compute compute-ID group-ID dilatation/atom
 
 * ID, group-ID are documented in compute command
 * dilatation/atom = style name of this compute command

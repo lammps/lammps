@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID msd/chunk chunkID
+   compute compute-ID group-ID msd/chunk chunkID
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * msd/chunk = style name of this compute command
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 
@@ -45,11 +45,11 @@ include all effects due to atoms passing through periodic boundaries.
 
 Note that only atoms in the specified group contribute to the
 calculation.  The :doc:`compute chunk/atom <compute_chunk_atom>` command
-defines its own group; atoms will have a chunk ID = 0 if they are not
+defines its own group; atoms will have a chunk-ID = 0 if they are not
 in that group, signifying they are not assigned to a chunk, and will
 thus also not contribute to this calculation.  You can specify the
 "all" group for this command if you simply want to include atoms with
-non-zero chunk IDs.
+non-zero chunk-IDs.
 
 The slope of the mean-squared displacement (MSD) versus time is
 proportional to the diffusion coefficient of the diffusing chunks.
@@ -74,7 +74,7 @@ compute command was first invoked.
    This compute stores the original position (of the
    center-of-mass) of each chunk.  When a displacement is calculated on a
    later timestep, it is assumed that the same atoms are assigned to the
-   same chunk ID.  However LAMMPS has no simple way to ensure this is the
+   same chunk-ID.  However LAMMPS has no simple way to ensure this is the
    case, though you can use the *ids once* option when specifying the
    :doc:`compute chunk/atom <compute_chunk_atom>` command.  Note that if
    this is not the case, the MSD calculation does not have a sensible

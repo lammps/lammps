@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID print N string keyword value ...
+   fix fix-ID group-ID print N string keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * print = style name of this fix command
 * N = print every N steps; N can be a variable (see below)
 * string = text string to print with optional variable names
@@ -106,7 +106,7 @@ keyword was used.  By default, the title line is as follows:
 
 .. parsed-literal::
 
-   # Fix print output for fix ID
+   # Fix print output for fix-ID
 
 where ID is replaced with the fix-ID.
 

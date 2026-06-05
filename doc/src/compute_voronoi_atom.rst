@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID voronoi/atom keyword arg ...
+   compute compute-ID group-ID voronoi/atom keyword arg ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * voronoi/atom = style name of this compute command
 * zero or more keyword/value pairs may be appended
 * keyword = *only_group* or *occupation* or *surface* or *radius* or *edge_histo* or *edge_threshold* or *face_threshold* or *neighbors*
@@ -68,7 +68,7 @@ evaluating the tessellation.
 
 If the *surface* keyword is specified a third quantity per atom is
 computed: the Voronoi cell surface of the given atom. *surface* takes
-a group ID as an argument. If a group other than *all* is specified,
+a group-ID as an argument. If a group other than *all* is specified,
 only the Voronoi cell facets facing a neighbor atom from the specified
 group are counted towards the surface area.
 
@@ -126,8 +126,8 @@ data can be used to identify interstitial atoms.
 
 If the *neighbors* value is set to yes, then this compute also creates
 a local array with 3 columns. There is one row for each face of each
-Voronoi cell. The 3 columns are the atom ID of the atom that owns the
-cell, the atom ID of the atom in the neighboring cell (or zero if the
+Voronoi cell. The 3 columns are the atom-ID of the atom that owns the
+cell, the atom-ID of the atom in the neighboring cell (or zero if the
 face is external), and the area of the face.  The array can be
 accessed by any command that uses local values from a compute as
 input.  See the :doc:`Howto output <Howto_output>` page for an

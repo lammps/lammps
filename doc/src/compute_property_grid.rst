@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID property/grid Nx Ny Nz input1 input2 ...
+   compute compute-ID group-ID property/grid Nx Ny Nz input1 input2 ...
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * property/grid = style name of this compute command
 * Nx, Ny, Nz = grid size in each dimension
 * input1,etc = one or more attributes
@@ -54,11 +54,11 @@ to output per-grid values from other computes of fixes, the grid size
 specified for this command must be consistent with the grid sizes
 used by the other commands.
 
-The *id* attribute is the grid ID for each grid cell.  For a global
-grid of size Nx by Ny by Nz (in 3d simulations) the grid IDs range
+The *id* attribute is the grid-ID for each grid cell.  For a global
+grid of size Nx by Ny by Nz (in 3d simulations) the grid-IDs range
 from 1 to Nx*Ny*Nz.  They are ordered with the X index of the 3d grid
 varying fastest, then Y, then Z slowest.  For 2d grids (in 2d
-simulations), the grid IDs range from 1 to Nx*Ny, with X varying
+simulations), the grid-IDs range from 1 to Nx*Ny, with X varying
 fastest and Y slowest.
 
 .. versionadded:: 21Nov2023

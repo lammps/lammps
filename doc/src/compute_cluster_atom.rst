@@ -16,11 +16,11 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID cluster/atom cutoff
-   compute ID group-ID fragment/atom keyword value ...
-   compute ID group-ID aggregate/atom cutoff
+   compute compute-ID group-ID cluster/atom cutoff
+   compute compute-ID group-ID fragment/atom keyword value ...
+   compute compute-ID group-ID aggregate/atom cutoff
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * *cluster/atom* or *fragment/atom* or *aggregate/atom* = style name of this compute command
 * cutoff = distance within which to label atoms as part of same cluster (distance units)
 * zero or more keyword/value pairs may be appended to *fragment/atom*
@@ -60,7 +60,7 @@ via the :doc:`data file <read_data>` or :doc:`create_bonds
 break bonds like :doc:`fix bond/react <fix_bond_react>`, :doc:`fix
 bond/create <fix_bond_create>`, :doc:`fix bond/swap <fix_bond_swap>`,
 or :doc:`fix bond/break <fix_bond_break>`.  The cluster ID or fragment
-ID of every atom in the cluster will be set to the smallest atom ID of
+ID of every atom in the cluster will be set to the smallest atom-ID of
 any atom in the cluster or fragment, respectively.
 
 For the *fragment/atom* style, the *single* keyword determines whether

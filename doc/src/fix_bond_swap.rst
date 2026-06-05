@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID bond/swap Nevery fraction cutoff seed
+   fix fix-ID group-ID bond/swap Nevery fraction cutoff seed
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * bond/swap = style name of this fix command
 * Nevery = attempt bond swapping every this many steps
 * fraction = fraction of group atoms to consider for swapping
@@ -108,7 +108,7 @@ be met:
 3. The distances between 4 pairs of atoms -- (A1,A2), (B1,B2), (A1,B2),
    (B1,A2) -- must all be less than the specified *cutoff*.
 
-4. The molecule IDs of A1 and B1 must be the same (see below).
+4. The molecule-IDs of A1 and B1 must be the same (see below).
 
 If an eligible B1 partner is found, the energy change due to swapping
 the two bonds is computed.  This includes changes in pairwise, bond, and
@@ -131,17 +131,17 @@ Boltzmann constant, and T is the current temperature of the system.
 
 ----------
 
-The criterion for matching molecule IDs is how the first use case
+The criterion for matching molecule-IDs is how the first use case
 described above can be simulated while conserving chain lengths.  This
-is done by setting up the molecule IDs for the polymer chains in a
+is done by setting up the molecule-IDs for the polymer chains in a
 specific way, typically in the data file, read by the :doc:`read_data
 <read_data>` command.
 
 Consider a system of 6-mer chains.  You have 2 choices.  If the
-molecule IDs for monomers on each chain are set to 1,2,3,4,5,6 then
+molecule-IDs for monomers on each chain are set to 1,2,3,4,5,6 then
 swaps will conserve chain length.  For a particular monomer there will
 be only one other monomer on another chain which is a potential swap
-partner.  If the molecule IDs for monomers on each chain are set to
+partner.  If the molecule-IDs for monomers on each chain are set to
 1,2,3,3,2,1 then swaps will conserve chain length but swaps will be
 able to occur at either end of a chain.  Thus for a particular monomer
 there will be 2 possible swap partners on another chain.  In this
@@ -150,10 +150,10 @@ ends of a chain swap with each other.
 
 .. note::
 
-   If your simulation uses molecule IDs in the usual way, where all
+   If your simulation uses molecule-IDs in the usual way, where all
    monomers on a single chain are assigned the same ID (different for
    each chain), then swaps will only occur within the same chain.  If you
-   assign the same molecule ID to all monomers in all chains then
+   assign the same molecule-ID to all monomers in all chains then
    inter-chain swaps will occur, but they will not conserve chain length.
    Neither of these scenarios is probably what you want for this fix.
 
@@ -165,7 +165,7 @@ ends of a chain swap with each other.
    running dynamics, but can affect calculation of some diagnostic
    quantities or the printing of unwrapped coordinates to a dump file.
 
-For the second use case described above, the molecule IDs for all
+For the second use case described above, the molecule-IDs for all
 sticker sites should be the same.
 
 ----------
@@ -233,7 +233,7 @@ This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-This fix requires using an atom style with molecule IDs.
+This fix requires using an atom style with molecule-IDs.
 
 The settings of the "special_bond" command must be 0,1,1 in order to
 use this fix, which is typical of bead-spring chains with FENE or

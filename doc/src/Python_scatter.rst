@@ -3,12 +3,12 @@ Scatter/gather operations
 
 .. code-block:: python
 
-   data = lmp.gather_atoms(name,dtype,count)  # return per-atom property of all atoms gathered into data, ordered by atom ID
+   data = lmp.gather_atoms(name,dtype,count)  # return per-atom property of all atoms gathered into data, ordered by atom-ID
                                               # name = "x", "q", "type", etc
    data = lmp.gather_atoms_concat(name,dtype,count)  # ditto, but concatenated atom values from each proc (unordered)
    data = lmp.gather_atoms_subset(name,dtype,count,ndata,ids)  # ditto, but for subset of Ndata atoms with IDs
 
-   lmp.scatter_atoms(name,dtype,count,data)   # scatter per-atom property to all atoms from data, ordered by atom ID
+   lmp.scatter_atoms(name,dtype,count,data)   # scatter per-atom property to all atoms from data, ordered by atom-ID
                                               # name = "x", "q", "type", etc
                                               # count = # of per-atom values, 1 or 3, etc
 
@@ -33,7 +33,7 @@ different from the data structure returned by
 :py:meth:`extract_atom("x") <lammps.lammps.extract_atom()>` in four ways.
 (1) :code:`gather_atoms()` returns a vector which you index as x[i];
 :code:`extract_atom()` returns an array which you index as x[i][j].
-(2) :code:`gather_atoms()` orders the atoms by atom ID while
+(2) :code:`gather_atoms()` orders the atoms by atom-ID while
 :code:`extract_atom()` does not.  (3) :code:`gather_atoms()` returns
 a list of all atoms in the simulation; :code:`extract_atoms()` returns just
 the atoms local to each processor.  (4) Finally, the :code:`gather_atoms()`

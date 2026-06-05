@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID ipi address port [unix] [reset]
+   fix fix-ID group-ID ipi address port [unix] [reset]
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * ipi = style name of this fix command
 * address = internet address (FQDN or IP), or UNIX socket name
 * port = port number (ignored for UNIX sockets)

@@ -11,9 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID qeq/comb Nevery precision keyword value ...
+   fix fix-ID group-ID qeq/comb Nevery precision keyword value ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * qeq/comb = style name of this fix command
 * Nevery = perform charge equilibration every this many steps
 * precision = convergence criterion for charge equilibration

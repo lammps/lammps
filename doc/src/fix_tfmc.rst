@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID tfmc Delta Temp seed keyword value
+   fix fix-ID group-ID tfmc Delta Temp seed keyword value
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * tfmc = style name of this fix command
 * Delta = maximal displacement length (distance units)
 * Temp = imposed temperature of the system

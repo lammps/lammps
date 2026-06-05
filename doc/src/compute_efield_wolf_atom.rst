@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID efield/wolf/atom alpha keyword val
+   compute compute-ID group-ID efield/wolf/atom alpha keyword val
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
+* compute-ID, group-ID are documented in :doc:`compute <compute>` command
 * efield/atom/wolf = style name of this compute command
 * alpha = damping parameter (inverse distance units)
 * zero or more keyword/value pairs may be appended

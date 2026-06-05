@@ -8,9 +8,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID smd/integrate_tlsph keyword values
+   fix fix-ID group-ID smd/integrate_tlsph keyword values
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* fix-ID, group-ID are documented in :doc:`fix <fix>` command
 * smd/integrate_tlsph = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keyword = *limit_velocity*

@@ -43,11 +43,11 @@ class PairMTP : public Pair {
   void read_file(FILE *);                    //Parsing file using LAMMPS utils
   void prepare_map(int narg, char **arg);    // Handles element mapping
 
-  std::string potential_name = "Untitled";    //An optional name which isn't currently used.
-  std::string potential_tag = "";    //An optional tag/description which isn't currently used.
+  std::string potential_name;    //An optional name which isn't currently used.
+  std::string potential_tag;     //An optional tag/description which isn't currently used.
 
-  int species_count;     // Number of species
-  double scaling = 1;    // All forces are multiplied by scaling
+  int species_count;    // Number of species
+  double scaling;       // All forces are multiplied by scaling
 
   // Radial basis
   //1 => "RBChebyshev"
@@ -73,15 +73,15 @@ class PairMTP : public Pair {
   int *alpha_moment_mapping;    // Selects the basis values from completed moments
 
   // Other working buffers
-  int jac_size = 0;         // Size of the jacobian (jnum dim)
-  double *dist_powers;      // Buffer used for powers of dist (eg. d^i)
-  double **coord_powers;    // Buffer used for powers of rel. pos. (eg. [dx^i, dy^i, dz^i])
-  double *radial_vals;      // Buffer used for radial basis function values for each mu
-  double *radial_ders;      // Buffer used for radial basis function derivatives for each mu
-  double ***moment_jacobian = nullptr;    // First created during compute using grow
-  double *moment_tensor_vals;             //Buffer to hold the moments
+  int jac_size;                  // Size of the jacobian (jnum dim)
+  double *dist_powers;           // Buffer used for powers of dist (eg. d^i)
+  double **coord_powers;         // Buffer used for powers of rel. pos. (eg. [dx^i, dy^i, dz^i])
+  double *radial_vals;           // Buffer used for radial basis function values for each mu
+  double *radial_ders;           // Buffer used for radial basis function derivatives for each mu
+  double ***moment_jacobian;     // First created during compute using grow
+  double *moment_tensor_vals;    //Buffer to hold the moments
   double *nbh_energy_ders_wrt_moments;    // Same as above except for ders
-  int *valid_j = nullptr;                 // First created during compute using grow
+  int *valid_j;                           // First created during compute using grow
 };
 
 }    // namespace LAMMPS_NS

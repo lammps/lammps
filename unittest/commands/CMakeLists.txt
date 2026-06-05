@@ -38,6 +38,10 @@ add_executable(test_groups test_groups.cpp)
 target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
 add_test(NAME Groups COMMAND test_groups)
 
+add_executable(test_fix_uvt test_fix_uvt.cpp)
+target_link_libraries(test_fix_uvt PRIVATE lammps GTest::GMock)
+add_test(NAME FixUVT COMMAND test_fix_uvt)
+
 add_executable(test_regions test_regions.cpp)
 target_link_libraries(test_regions PRIVATE lammps GTest::GMock)
 add_test(NAME Regions COMMAND test_regions)

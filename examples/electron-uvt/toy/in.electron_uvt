@@ -1,0 +1,61 @@
+# Quadratic toy model physics regression for classical uVT.
+#
+# The electronic generalized coordinate Ne is coupled to a synthetic
+# quadratic dE/dN model:
+#
+#   dE/dN = k * (Ne - N0)
+#
+# so the analytic equilibrium is:
+#
+#   Ne* = N0 + mu/k
+
+log             uvt_physics.log
+
+units           lj
+atom_style      atomic
+boundary        p p p
+
+lattice         fcc 0.8442
+region          box block 0 3 0 3 0 3
+create_box      1 box
+create_atoms    1 box
+
+mass            1 1.0
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
+
+neighbor        0.3 bin
+neigh_modify    every 1 delay 0 check yes
+
+velocity        all create 1.0 492845 mom yes rot no dist gaussian
+
+timestep        0.005
+
+# Quadratic toy model parameters
+variable        mu_target equal 2.0
+variable        k_quad    equal 5.0
+variable        N0_quad   equal 1.0
+variable        Ne_init   equal 1.8
+
+# Analytic equilibrium value for the toy model
+variable        Ne_target equal v_N0_quad + v_mu_target/v_k_quad
+print           "Quadratic toy model target Ne* = ${Ne_target}"
+print           "Temperature will fluctuate instantaneously; inspect the running mean."
+
+variable        dEdN      equal v_k_quad*(f_cp[13]-v_N0_quad)
+fix             dEdN_c all ave/time 1 1 1 v_dEdN
+
+fix             cp all uvt temp 1.0 1.0 0.5 mu ${mu_target} ${mu_target} 0.5 ne ${Ne_init} ne_velocity 0.0 dedn f_dEdN_c
+
+variable        Ne        equal f_cp[13]
+variable        NeDot     equal f_cp[14]
+variable        dEdNfix   equal f_cp[15]
+
+thermo          100
+thermo_style    custom step temp pe ke etotal v_Ne v_NeDot v_dEdN f_dEdN_c v_dEdNfix f_cp
+
+thermo_modify   flush yes
+
+run             500000
+
+write_restart   uvt.restart

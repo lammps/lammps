@@ -1,0 +1,27 @@
+# Restart regression for the quadratic classical uVT toy model.
+#
+# This script starts from the restart written by in.electron_uvt and checks
+# that Ne, Ne_dot, and dE/dN continue without a jump.
+
+clear
+log             uvt_stable_restart.log
+read_restart    uvt.restart
+
+variable        mu_target equal 2.0
+variable        k_quad    equal 5.0
+variable        N0_quad   equal 1.0
+variable        Ne_init   equal 1.8
+variable        dEdN      equal v_k_quad*(f_cp[13]-v_N0_quad)
+fix             dEdN_c all ave/time 1 1 1 v_dEdN
+
+fix             cp all uvt temp 1.0 1.0 0.5 mu ${mu_target} ${mu_target} 0.5 ne ${Ne_init} ne_velocity 0.0 dedn f_dEdN_c
+
+variable        Ne        equal f_cp[13]
+variable        NeDot     equal f_cp[14]
+variable        dEdNfix   equal f_cp[15]
+
+thermo          100
+thermo_style    custom step temp pe ke etotal v_Ne v_NeDot v_dEdN f_dEdN_c v_dEdNfix f_cp
+thermo_modify   flush yes
+
+run             5000

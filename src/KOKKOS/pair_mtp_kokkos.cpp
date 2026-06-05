@@ -43,6 +43,14 @@ template <class DeviceType> PairMTPKokkos<DeviceType>::PairMTPKokkos(LAMMPS(*lmp
   datamask_modify = EMPTY_MASK;
 
   host_flag = (execution_space == Host);
+
+  input_chunk_size = 4096;
+  chunk_size = 0;
+  chunk_offset = 0;
+  inum = 0;
+  max_neighs = 0;
+  max_valid_neighs = 0;
+  num_waves = 0;
 }
 
 /* ---------------------------------------------------------------------- */

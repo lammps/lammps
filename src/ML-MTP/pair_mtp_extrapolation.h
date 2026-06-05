@@ -47,8 +47,8 @@ class PairMTPExtrapolation : public PairMTP {
 
   int coeff_count;    // Sum of radial, species and linear coeff count
 
-  int extrapolation_flag;      // Whether to use extrapolation this iteration (MUST BE INT)
-  bool mlip3_style = false;    // Whether to write configs with MLIP-3 compatability
+  int extrapolation_flag;    // Whether to use extrapolation this iteration (MUST BE INT)
+  bool mlip3_style;          // Whether to write configs with MLIP-3 compatability
 
   int configuration_mode;     // Is configuration mode?
   double select_threshold;    // Grade threshold for selection
@@ -65,13 +65,13 @@ class PairMTPExtrapolation : public PairMTP {
   double *energy_ders_wrt_coeffs;    // Candidate information vector
 
   // Only needed for neigbhourhood mode
-  int nbh_count = 0;
-  double *nbh_extrapolation_grades = nullptr;    // Extrapolation grades of all neighbourhoods
+  int nbh_count;
+  double *nbh_extrapolation_grades;    // Extrapolation grades of all neighbourhoods
 
   // Data for compiling configs in a MLIP-3 compatible format
   FILE *preselected_file;    // Write to preselected file
-  bigint write_buffer_size = 0;
-  char *write_buffer = nullptr;
+  bigint write_buffer_size;
+  char *write_buffer;
 };
 
 }    // namespace LAMMPS_NS

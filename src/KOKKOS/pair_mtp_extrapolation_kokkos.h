@@ -26,10 +26,11 @@ PairStyle(mtp/extrapolation/kk/host,PairMTPExtrapolationKokkos<LMPHostType>);
 #ifndef LMP_PAIR_MTP_KOKKOS_EXTRAPOLATION_H
 #define LMP_PAIR_MTP_KOKKOS_EXTRAPOLATION_H
 
+#include "pair_mtp_extrapolation.h"
+
 #include "kokkos_type.h"
 #include "neigh_list_kokkos.h"
 #include "pair_kokkos.h"
-#include "pair_mtp_extrapolation.h"
 
 namespace LAMMPS_NS {
 

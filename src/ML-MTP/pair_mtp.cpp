@@ -17,16 +17,16 @@
 
 #include "pair_mtp.h"
 
-#include "mtp_radial_basis.h"
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "info.h"
 #include "memory.h"
+#include "mtp_radial_basis.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "text_file_reader.h"
 
 #include <cmath>
 
@@ -39,6 +39,27 @@ PairMTP::PairMTP(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
   no_virial_fdotr_compute = 0;
+
+  radial_basis = nullptr;
+  radial_basis_coeffs = nullptr;
+  linear_coeffs = nullptr;
+  species_coeffs = nullptr;
+  alpha_index_basic = nullptr;
+  alpha_index_times = nullptr;
+  alpha_moment_mapping = nullptr;
+  moment_jacobian = nullptr;
+  nbh_energy_ders_wrt_moments = nullptr;
+  valid_j = nullptr;
+  dist_powers = nullptr;
+  coord_powers = nullptr;
+  radial_vals = nullptr;
+  radial_ders = nullptr;
+  moment_tensor_vals = nullptr;
+
+  jac_size = 0;
+  scaling = 1.0;
+  potential_name = "Untitled";
+  potential_tag = "";
 }
 
 PairMTP::~PairMTP()
@@ -58,6 +79,11 @@ PairMTP::~PairMTP()
     memory->destroy(moment_jacobian);
     memory->destroy(nbh_energy_ders_wrt_moments);
     memory->destroy(valid_j);
+
+    memory->destroy(dist_powers);
+    memory->destroy(coord_powers);
+    memory->destroy(radial_vals);
+    memory->destroy(radial_ders);
 
     delete radial_basis;
     radial_basis = nullptr;
@@ -383,7 +409,8 @@ void PairMTP::read_file(FILE *mtp_file)
       radial_basis_type_index = 1;
     } else
       error->one(FLERR,
-                 "Error reading MTP file. The specified radial basis set type, {}, was not found..",
+                 "Error reading MTP file. The specified radial basis set type, {}, was not "
+                 "found/available.",
                  radial_basis_type);
 
     radial_basis->scaling = scaling;
@@ -393,7 +420,7 @@ void PairMTP::read_file(FILE *mtp_file)
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
     if (keyword != "radial_funcs_count")
-      lmp->error->one(FLERR, "Error in reading MTP file. Cannot read radial function count.");
+      error->one(FLERR, "Error in reading MTP file. Cannot read radial function count.");
     radial_func_count = line_tokens.next_int();
 
     // Check for magnetic basis which is currently unsupported.

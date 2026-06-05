@@ -120,7 +120,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   // options
 
   _gpu_mode = GPU_DEFAULT;
-  _particle_split = 1.0;
   int nthreads = 0;
   int newtonflag = force->newton_pair;
   int threads_per_atom = -1;
@@ -155,15 +154,9 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"split") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu split", error);
-      _particle_split = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (_particle_split == 0.0 || _particle_split > 1.0)
-        error->all(FLERR,iarg+1+ioffs,"Illegal package gpu split value {}", _particle_split);
-      if (_particle_split != 1.0) {
-        if (comm->me == 0)
-          error->warning(FLERR, "The 'split' keyword is deprecated. Host/device particle "
-                         "splitting is no longer supported. Forcing split = 1.0");
-        _particle_split = 1.0;
-      }
+      if (comm->me == 0)
+        error->warning(FLERR, "The 'split' keyword is deprecated. Host/device particle "
+                       "splitting is no longer supported. The value is ignored.");
       iarg += 2;
     } else if (strcmp(arg[iarg],"gpuID") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu gpuID", error);
@@ -228,11 +221,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   force->newton_pair = newtonflag;
   if (force->newton_pair || force->newton_bond) force->newton = 1;
   else force->newton = 0;
-
-  // require newton pair off if _particle_split < 1
-
-  if (force->newton_pair == 1 && _particle_split < 1)
-    error->all(FLERR,"Cannot use newton pair on for split less than 1 for now");
 
   // pass params to GPU library
   // change binsize default (0.0) to -1.0 used by GPU lib

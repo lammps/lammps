@@ -75,14 +75,6 @@ if(GPU_API STREQUAL "CUDA")
   mark_as_advanced(GPU_BUILD_MULTIARCH)
 
   # GPU_ARCH is the canonical architecture setting for all GPU_API backends.
-  # CUDA_ARCH is still accepted for backward compatibility but is deprecated.
-  if(DEFINED CUDA_ARCH)
-    message(DEPRECATION "The CUDA_ARCH variable is deprecated. Please use GPU_ARCH instead.")
-    if(NOT DEFINED GPU_ARCH)
-      set(GPU_ARCH "${CUDA_ARCH}" CACHE STRING "LAMMPS GPU architecture" FORCE)
-    endif()
-    unset(CUDA_ARCH CACHE)
-  endif()
   set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU architecture (e.g. sm_80 for CUDA)")
 
   # ensure that no *cubin.h files exist from a compile in the lib/gpu folder

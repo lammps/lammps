@@ -258,9 +258,9 @@ as described in the LAMMPS documentation).
 .. versionchanged:: TBD
 
 ``GPU_ARCH`` is the canonical architecture setting for all ``GPU_API``
-backends.  The backend-specific ``CUDA_ARCH`` (for ``GPU_API=cuda``) and
-``HIP_ARCH`` (for ``GPU_API=hip``) variables are still accepted for backward
-compatibility, but their use is deprecated and prints a warning.
+backends.  The backend-specific ``HIP_ARCH`` (for ``GPU_API=hip``)
+variable is still accepted for backward compatibility, but its use is
+deprecated and prints a warning.
 
 For ``GPU_API=cuda`` and ``GPU_API=hip`` with ``HIP_PLATFORM=nvcc``, the
 ``GPU_ARCH`` settings for different GPU hardware are as follows:

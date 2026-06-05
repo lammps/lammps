@@ -169,6 +169,12 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       _particle_split = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (_particle_split == 0.0 || _particle_split > 1.0)
         error->all(FLERR,iarg+1+ioffs,"Illegal package gpu split value {}", _particle_split);
+      if (_particle_split != 1.0) {
+        if (comm->me == 0)
+          error->warning(FLERR, "The 'split' keyword is deprecated. Host/device particle "
+                         "splitting is no longer supported. Forcing split = 1.0");
+        _particle_split = 1.0;
+      }
       iarg += 2;
     } else if (strcmp(arg[iarg],"gpuID") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu gpuID", error);

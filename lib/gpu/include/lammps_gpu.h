@@ -14,7 +14,7 @@
 /* Public C++ interface between LAMMPS src/GPU and lib/gpu.
    All entry points live in namespace LAMMPS_GPU so that the compiler
    validates each call-site declaration against the single definition in
-   the corresponding lib/gpu/*_ext.cpp or lal_device.cpp.
+   the corresponding lib/gpu/lal_*_ext.cpp or lal_device.cpp.
 
    Prerequisites: mpi.h (for MPI_Comm) and either lmptype.h (LAMMPS side)
    or lal_precision.h (lib/gpu side) must be included before this header
@@ -1566,6 +1566,36 @@ extern void zbl_gpu_compute(const int ago, const int inum, const int nall, doubl
                             const bool eflag, const bool vflag, const bool eatom, const bool vatom,
                             bool &success);
 extern double zbl_gpu_bytes();
+
+// pppm need two versions for single and double precision FFTs
+
+extern float *ppm_gpu_init_f(const int nlocal, const int nall, FILE *screen, const int order,
+                             const int nxlo_out, const int nylo_out, const int nzlo_out,
+                             const int nxhi_out, const int nyhi_out, const int nzhi_out,
+                             float **rho_coeff, float **_vd_brick, const double slab_volfactor,
+                             const int nx_pppm, const int ny_pppm, const int nz_pppm,
+                             const bool split, const bool respa, int &success);
+extern void pppm_gpu_clear_f(const double poisson_time);
+extern int pppm_gpu_spread_f(const int ago, const int nlocal, const int nall, double **host_x,
+                             int *host_type, bool &success, double *host_q, double *boxlo,
+                             const double delxinv, const double delyinv, const double delzinv);
+extern void pppm_gpu_interp_f(const float qqrd2e_scale);
+extern double pppm_gpu_bytes_f();
+extern void pppm_gpu_forces_f(double **f);
+
+extern double *pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen, const int order,
+                               const int nxlo_out, const int nylo_out, const int nzlo_out,
+                               const int nxhi_out, const int nyhi_out, const int nzhi_out,
+                               double **rho_coeff, double **_vd_brick, const double slab_volfactor,
+                               const int nx_pppm, const int ny_pppm, const int nz_pppm,
+                               const bool split, const bool respa, int &success);
+extern void pppm_gpu_clear_d(const double poisson_time);
+extern int pppm_gpu_spread_d(const int ago, const int nlocal, const int nall, double **host_x,
+                             int *host_type, bool &success, double *host_q, double *boxlo,
+                             const double delxinv, const double delyinv, const double delzinv);
+extern void pppm_gpu_interp_d(const double qqrd2e_scale);
+extern double pppm_gpu_bytes_d();
+extern void pppm_gpu_forces_d(double **f);
 
 }    // namespace LAMMPS_GPU
 

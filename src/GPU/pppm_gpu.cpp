@@ -35,38 +35,21 @@
 #include "update.h"
 
 #include <cstring>
+#include "lammps_gpu.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace LAMMPS_GPU;
 
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
-// external functions from cuda library for atom decomposition
+// wrapper for external functions from gpu library for atom decomposition
 
 #ifdef FFT_SINGLE
 #define PPPM_GPU_API(api)  pppm_gpu_ ## api ## _f
 #else
 #define PPPM_GPU_API(api)  pppm_gpu_ ## api ## _d
 #endif
-
-FFT_SCALAR* PPPM_GPU_API(init)(const int nlocal, const int nall, FILE *screen,
-                               const int order, const int nxlo_out,
-                               const int nylo_out, const int nzlo_out,
-                               const int nxhi_out, const int nyhi_out,
-                               const int nzhi_out, FFT_SCALAR **rho_coeff,
-                               FFT_SCALAR **_vd_brick,
-                               const double slab_volfactor,
-                               const int nx_pppm, const int ny_pppm,
-                               const int nz_pppm, const bool split,
-                               const bool respa, int &success);
-void PPPM_GPU_API(clear)(const double poisson_time);
-int PPPM_GPU_API(spread)(const int ago, const int nlocal, const int nall,
-                         double **host_x, int *host_type, bool &success,
-                         double *host_q, double *boxlo, const double delxinv,
-                         const double delyinv, const double delzinv);
-void PPPM_GPU_API(interp)(const FFT_SCALAR qqrd2e_scale);
-double PPPM_GPU_API(bytes)();
-void PPPM_GPU_API(forces)(double **f);
 
 /* ---------------------------------------------------------------------- */
 

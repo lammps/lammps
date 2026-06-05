@@ -1363,8 +1363,13 @@ void Variable::remove(int n)
   delete[] names[n];
   if (style[n] == LOOP || style[n] == ULOOP) delete[] data[n][0];
   else for (int i = 0; i < num[n]; i++) delete[] data[n][i];
+  if (style[n] == VECTOR) memory->destroy(vecs[n].values);
   delete[] data[n];
   delete reader[n];
+  vecs[n].n = vecs[n].nmax = 0;
+  vecs[n].dynamic = 1;
+  vecs[n].currentstep = -1;
+  vecs[n].values = nullptr;
 
   for (int i = n+1; i < nvar; i++) {
     names[i-1] = names[i];

@@ -31,6 +31,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 
+#include <cfloat>
 #include <cmath>
 
 using namespace LAMMPS_NS;
@@ -193,9 +194,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
   // loop over my particles and their partners
   // partner list contains all bond partners, so I-J appears twice
   // if bond already broken, skip this partner
-  // first = true if this is first neighbor of particle i
 
-  bool first;
   double omega_minus, omega_plus;
 
   for (i = 0; i < nlocal; i++) {
@@ -207,7 +206,7 @@ void PairPeriLPS::compute(int eflag, int vflag)
     ztmp0 = x0[i][2];
     itype = type[i];
     jnum = npartner[i];
-    first = true;
+    s0_new[i] = DBL_MAX;
 
     for (jj = 0; jj < jnum; jj++) {
       if (partner[i][jj] == 0) continue;
@@ -278,26 +277,23 @@ void PairPeriLPS::compute(int eflag, int vflag)
       if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,
                            0.5*fbond*vfrac[i],delx,dely,delz);
 
-      // find stretch in bond I-J and break if necessary
-      // use s0 from previous timestep
+      // find stretch in bond I-J and break if necessary.
+      // use the minimum stretch (s0) from the previous timestep to form the
+      // per-bond critical stretch crit = s00 - alpha*s0 (Parks 2008, eq. 9).
 
       stretch = dr / r0[i][jj];
-      if (stretch > MIN(s0[i],s0[j])) partner[i][jj] = 0;
+      if (stretch > s00[itype][jtype] - alpha[itype][jtype]*MAX(s0[i],s0[j]))
+        partner[i][jj] = 0;
 
-      // update s0 for next timestep
-
-      if (first)
-         s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
-      else
-         s0_new[i] = MAX(s0_new[i],s00[itype][jtype] -
-                         (alpha[itype][jtype] * stretch));
-
-      first = false;
+      // update minimum stretch s0 for next timestep
+      s0_new[i] = MIN(s0_new[i], stretch);
     }
   }
 
-  // store new s0
-  for (i = 0; i < nlocal; i++) s0[i] = s0_new[i];
+  // store new s0 (minimum bond stretch; used for bond-breaking criterion).
+  // an atom with no surviving bonds keeps the no-breaking sentinel (-DBL_MAX).
+  for (i = 0; i < nlocal; i++)
+    s0[i] = (s0_new[i] == DBL_MAX) ? -DBL_MAX : s0_new[i];
 
 }
 

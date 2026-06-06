@@ -103,4 +103,26 @@ TEST_F(FixUVTTest, RestartRestoresElectronState)
     EXPECT_NEAR(fix_value("cp", 15), energy_before, 1.0e-12);
 }
 
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS
+
+int main(int argc, char **argv)
+{
+    MPI_Init(&argc, &argv);
+    ::testing::InitGoogleMock(&argc, argv);
+
+    // handle arguments passed via environment variable
+    if (const char *var = getenv("TEST_ARGS")) {
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
+        for (auto arg : env) {
+            if (arg == "-v") {
+                verbose = true;
+            }
+        }
+    }
+
+    if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
+
+    int rv = RUN_ALL_TESTS();
+    MPI_Finalize();
+    return rv;
+}

@@ -529,10 +529,7 @@ void *FixUVT::extract(const char *str, int &dim)
 
 double FixUVT::memory_usage()
 {
-  double bytes = FixNH::memory_usage();
-  bytes += 3 * sizeof(double);
-  if (dedn_name) bytes += strlen(dedn_name) + 1;
-  return bytes;
+  return FixNH::memory_usage();
 }
 
 /* ---------------------------------------------------------------------- */

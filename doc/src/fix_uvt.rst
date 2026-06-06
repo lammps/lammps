@@ -47,3 +47,13 @@ Restrictions
 
 ``fix uvt`` requires temperature control and cannot be combined with
 pressure control.
+
+This fix is part of the EXTRA-FIX package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
+
+Related commands
+""""""""""""""""
+
+:doc:`fix nvt <fix_nh>`, :doc:`fix_modify <fix_modify>`,
+:doc:`run_style <run_style>`

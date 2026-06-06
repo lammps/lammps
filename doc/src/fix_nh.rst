@@ -111,10 +111,6 @@ pressure of the barostat can be specified as either a scalar pressure
 temperature and stress tensor of the particles will match the target
 values specified by Tstart/Tstop and Pstart/Pstop.
 
-For a classical constant-potential thermostat that augments the
-Nose-Hoover chain with an electron-number degree of freedom, see
-:doc:`fix uvt <fix_uvt>`.
-
 The equations of motion used are those of Shinoda et al in
 :ref:`(Shinoda) <nh-Shinoda>`, which combine the hydrostatic equations
 of Martyna, Tobias and Klein in :ref:`(Martyna) <nh-Martyna>` with the
@@ -725,8 +721,8 @@ or the atom count becomes very small.
 Related commands
 """"""""""""""""
 
-:doc:`fix nve <fix_nve>`, :doc:`fix_modify <fix_modify>`,
-:doc:`run_style <run_style>`
+:doc:`fix nve <fix_nve>`, :doc:`fix uvt <fix_uvt>`,
+:doc:`fix_modify <fix_modify>`, :doc:`run_style <run_style>`
 
 Default
 """""""

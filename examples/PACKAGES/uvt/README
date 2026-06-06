@@ -1,0 +1,15 @@
+This directory contains a minimal regression example for the
+``fix uvt`` style in the EXTRA-FIX package.
+
+Files:
+
+- ``in.electron_uvt`` runs a quadratic toy model with an analytic
+  constant-potential equilibrium.
+- ``in.electron_uvt_restart`` continues from the restart written by
+  ``in.electron_uvt`` and can be used to check restart continuity.
+
+Build LAMMPS with the EXTRA-FIX package enabled before running this
+example.
+
+Run ``in.electron_uvt`` first so that ``in.electron_uvt_restart`` can
+read the generated ``uvt.restart`` file.

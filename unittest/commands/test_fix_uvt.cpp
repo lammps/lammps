@@ -8,6 +8,7 @@
 ------------------------------------------------------------------------- */
 
 #include "lammps.h"
+#include "library.h"
 
 #include "platform.h"
 

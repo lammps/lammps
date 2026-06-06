@@ -57,6 +57,7 @@ class KokkosLMP : protected Pointers {
   int neigh_thread;
   int neigh_thread_set;
   int neigh_transpose;
+  int neigh_cluster;
   int newtonflag;
   int allow_overlap;
   double binsize;

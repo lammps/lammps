@@ -27,6 +27,7 @@ NeighListKokkos<DeviceType>::NeighListKokkos(class LAMMPS *lmp):NeighList(lmp)
   maxneighs = 16;
   kokkos = 1;
   maxatoms = 0;
+  max_jclusters = 0;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 };
 
@@ -50,6 +51,23 @@ void NeighListKokkos<DeviceType>::grow(int nmax)
     d_neighbors_transpose = typename AT::t_neighbors_2d_lr();
     d_neighbors_transpose = typename AT::t_neighbors_2d_lr(Kokkos::NoInit("neighlist:neighbors"),maxatoms,maxneighs);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void NeighListKokkos<DeviceType>::grow_clusters(int num_iclusters, int max_jc)
+{
+  max_jclusters = max_jc;
+  if ((int)d_cluster_numneigh.extent(0) < num_iclusters)
+    d_cluster_numneigh = typename AT::t_int_1d(
+        Kokkos::NoInit("neighlist:cluster_numneigh"), num_iclusters);
+  if ((int)d_cluster_jlist.extent(0) < num_iclusters ||
+      (int)d_cluster_jlist.extent(1) < max_jc)
+    d_cluster_jlist = typename AT::t_int_2d(
+        Kokkos::NoInit("neighlist:cluster_jlist"), num_iclusters, max_jc);
+  if ((int)d_cluster_scratch.extent(0) < 2)
+    d_cluster_scratch = typename AT::t_int_1d("neighlist:cluster_scratch", 2);
 }
 
 /* ---------------------------------------------------------------------- */

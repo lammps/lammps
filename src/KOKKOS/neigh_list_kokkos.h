@@ -80,6 +80,13 @@ public:
   typename AT::t_int_1d d_ilist;
   typename AT::t_int_1d d_numneigh;
 
+  // Cluster-pair neighbor list (enabled by 'package kokkos neigh/cluster yes')
+  int max_jclusters;
+  typename AT::t_int_1d d_cluster_numneigh;
+  typename AT::t_int_2d d_cluster_jlist;
+  typename AT::t_int_1d d_cluster_scratch;  // [0]=resize flag, [1]=new max j-clusters
+  void grow_clusters(int num_iclusters, int max_jc);
+
   NeighListKokkos(class LAMMPS *lmp);
 
 // NOLINTNEXTLINE

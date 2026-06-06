@@ -85,10 +85,12 @@ struct PairComputeFunctor  {
   KKScatterView<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout,KKDeviceType,KKScatterSum,DUP> dup_vatom;
 
   NeighListKokkos<device_type> list;
+  int use_cluster;   // 1 = use cluster-pair force kernel (GPU only)
+  int nall;          // nlocal + nghost, for j-cluster bounds checking
 
   PairComputeFunctor(PairStyle* c_ptr,
                           NeighListKokkos<device_type>* list_ptr):
-  c(*c_ptr),list(*list_ptr) {
+  c(*c_ptr),list(*list_ptr),use_cluster(0),nall(0) {
     // allocate duplicated memory
     f = c.f;
     d_eatom = c.d_eatom;
@@ -744,6 +746,343 @@ struct PairComputeFunctor  {
     return ev;
   }
 
+  // Cluster-pair kernel (GPU only, FULL list, no special-pair scaling)
+  // One warp (32 threads) per i-cluster; loads 4 i-coords + 4 j-coords into
+  // shared memory and computes all 4x4=16 pairs from L1 instead of DRAM.
+
+  static constexpr int CLUSTER_SIZE = 4;
+
+  // Scratch bytes: positions (i: 3, j: 3), force accumulators (3), types/indices (3 int arrays).
+  static constexpr int cluster_scratch_bytes =
+      9 * CLUSTER_SIZE * sizeof(KK_FLOAT) + 3 * CLUSTER_SIZE * sizeof(int);
+
+#if defined(LMP_KOKKOS_GPU)
+
+  KOKKOS_FUNCTION
+  void compute_item_cluster(
+      typename Kokkos::TeamPolicy<device_type>::member_type team,
+      const NeighListKokkos<device_type> &list, const NoCoulTag&) const
+  {
+    using ScratchF = Kokkos::View<KK_FLOAT*,
+        typename device_type::scratch_memory_space,
+        Kokkos::MemoryUnmanaged>;
+    using ScratchI = Kokkos::View<int*,
+        typename device_type::scratch_memory_space,
+        Kokkos::MemoryUnmanaged>;
+
+    auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
+
+    const int ci = team.league_rank();
+    const int start_ii = ci * CLUSTER_SIZE;
+    const int end_ii = (start_ii + CLUSTER_SIZE < inum) ? start_ii + CLUSTER_SIZE : inum;
+    const int n_i = end_ii - start_ii;
+
+    ScratchF s_xi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_yi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_zi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_xj(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_yj(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_zj(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_fxi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_fyi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_fzi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchI s_itype(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchI s_jtype(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchI s_iatom(team.team_scratch(0), CLUSTER_SIZE);
+
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE), [&](int ki) {
+      s_fxi(ki) = 0; s_fyi(ki) = 0; s_fzi(ki) = 0;
+      if (ki < n_i) {
+        const int i = list.d_ilist[start_ii + ki];
+        s_iatom(ki) = i;
+        s_xi(ki) = c.x(i,0); s_yi(ki) = c.x(i,1); s_zi(ki) = c.x(i,2);
+        s_itype(ki) = c.type(i);
+      }
+    });
+    team.team_barrier();
+
+    const int cj_count = list.d_cluster_numneigh(ci);
+    for (int cj_idx = 0; cj_idx < cj_count; cj_idx++) {
+      const int cj = list.d_cluster_jlist(ci, cj_idx);
+      const int first_j = cj * CLUSTER_SIZE;
+
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE), [&](int kj) {
+        const int j = first_j + kj;
+        if (j < nall) {
+          s_xj(kj) = c.x(j,0); s_yj(kj) = c.x(j,1); s_zj(kj) = c.x(j,2);
+          s_jtype(kj) = c.type(j);
+        } else {
+          s_xj(kj) = static_cast<KK_FLOAT>(1e30);
+          s_yj(kj) = static_cast<KK_FLOAT>(1e30);
+          s_zj(kj) = static_cast<KK_FLOAT>(1e30);
+          s_jtype(kj) = 1;
+        }
+      });
+      team.team_barrier();
+
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE*CLUSTER_SIZE),
+          [&](int pidx) {
+        const int ki = pidx / CLUSTER_SIZE;
+        const int kj = pidx % CLUSTER_SIZE;
+        if (ki >= n_i) return;
+        const int i = s_iatom(ki);
+        const int j = first_j + kj;
+        if (i == j) return;
+        const KK_FLOAT delx = s_xi(ki) - s_xj(kj);
+        const KK_FLOAT dely = s_yi(ki) - s_yj(kj);
+        const KK_FLOAT delz = s_zi(ki) - s_zj(kj);
+        const int itype = s_itype(ki);
+        const int jtype = s_jtype(kj);
+        const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+        if (rsq < (STACKPARAMS ? c.m_cutsq[itype][jtype] : c.d_cutsq(itype,jtype))) {
+          const KK_FLOAT fpair = c.template
+              compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+          Kokkos::atomic_add(&s_fxi(ki), static_cast<KK_FLOAT>(delx*fpair));
+          Kokkos::atomic_add(&s_fyi(ki), static_cast<KK_FLOAT>(dely*fpair));
+          Kokkos::atomic_add(&s_fzi(ki), static_cast<KK_FLOAT>(delz*fpair));
+        }
+      });
+      team.team_barrier();
+    }
+
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, n_i), [&](int ki) {
+      a_f(s_iatom(ki),0) += static_cast<KK_ACC_FLOAT>(s_fxi(ki));
+      a_f(s_iatom(ki),1) += static_cast<KK_ACC_FLOAT>(s_fyi(ki));
+      a_f(s_iatom(ki),2) += static_cast<KK_ACC_FLOAT>(s_fzi(ki));
+    });
+  }
+
+  KOKKOS_FUNCTION
+  void compute_item_cluster(
+      typename Kokkos::TeamPolicy<device_type>::member_type team,
+      const NeighListKokkos<device_type> &list, const CoulTag&) const
+  {
+    using ScratchF = Kokkos::View<KK_FLOAT*,
+        typename device_type::scratch_memory_space,
+        Kokkos::MemoryUnmanaged>;
+    using ScratchI = Kokkos::View<int*,
+        typename device_type::scratch_memory_space,
+        Kokkos::MemoryUnmanaged>;
+
+    auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
+
+    const int ci = team.league_rank();
+    const int start_ii = ci * CLUSTER_SIZE;
+    const int end_ii = (start_ii + CLUSTER_SIZE < inum) ? start_ii + CLUSTER_SIZE : inum;
+    const int n_i = end_ii - start_ii;
+
+    ScratchF s_xi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_yi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_zi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_xj(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_yj(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_zj(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_fxi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_fyi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_fzi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchI s_itype(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchI s_jtype(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchI s_iatom(team.team_scratch(0), CLUSTER_SIZE);
+
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE), [&](int ki) {
+      s_fxi(ki) = 0; s_fyi(ki) = 0; s_fzi(ki) = 0;
+      if (ki < n_i) {
+        const int i = list.d_ilist[start_ii + ki];
+        s_iatom(ki) = i;
+        s_xi(ki) = c.x(i,0); s_yi(ki) = c.x(i,1); s_zi(ki) = c.x(i,2);
+        s_itype(ki) = c.type(i);
+      }
+    });
+    team.team_barrier();
+
+    const int cj_count = list.d_cluster_numneigh(ci);
+    for (int cj_idx = 0; cj_idx < cj_count; cj_idx++) {
+      const int cj = list.d_cluster_jlist(ci, cj_idx);
+      const int first_j = cj * CLUSTER_SIZE;
+
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE), [&](int kj) {
+        const int j = first_j + kj;
+        if (j < nall) {
+          s_xj(kj) = c.x(j,0); s_yj(kj) = c.x(j,1); s_zj(kj) = c.x(j,2);
+          s_jtype(kj) = c.type(j);
+        } else {
+          s_xj(kj) = static_cast<KK_FLOAT>(1e30);
+          s_yj(kj) = static_cast<KK_FLOAT>(1e30);
+          s_zj(kj) = static_cast<KK_FLOAT>(1e30);
+          s_jtype(kj) = 1;
+        }
+      });
+      team.team_barrier();
+
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE*CLUSTER_SIZE),
+          [&](int pidx) {
+        const int ki = pidx / CLUSTER_SIZE;
+        const int kj = pidx % CLUSTER_SIZE;
+        if (ki >= n_i) return;
+        const int i = s_iatom(ki);
+        const int j = first_j + kj;
+        if (i == j) return;
+        const KK_FLOAT delx = s_xi(ki) - s_xj(kj);
+        const KK_FLOAT dely = s_yi(ki) - s_yj(kj);
+        const KK_FLOAT delz = s_zi(ki) - s_zj(kj);
+        const int itype = s_itype(ki);
+        const int jtype = s_jtype(kj);
+        const KK_FLOAT qtmp = c.q(i);
+        const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+        if (rsq < (STACKPARAMS ? c.m_cutsq[itype][jtype] : c.d_cutsq(itype,jtype))) {
+          KK_FLOAT fpair = KK_FLOAT();
+          if (rsq < (STACKPARAMS ? c.m_cut_ljsq[itype][jtype] : c.d_cut_ljsq(itype,jtype)))
+            fpair += c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+          if (rsq < (STACKPARAMS ? c.m_cut_coulsq[itype][jtype] : c.d_cut_coulsq(itype,jtype)))
+            fpair += c.template compute_fcoul<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype,
+                                                                           static_cast<KK_FLOAT>(1.0),qtmp);
+          Kokkos::atomic_add(&s_fxi(ki), static_cast<KK_FLOAT>(delx*fpair));
+          Kokkos::atomic_add(&s_fyi(ki), static_cast<KK_FLOAT>(dely*fpair));
+          Kokkos::atomic_add(&s_fzi(ki), static_cast<KK_FLOAT>(delz*fpair));
+        }
+      });
+      team.team_barrier();
+    }
+
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, n_i), [&](int ki) {
+      a_f(s_iatom(ki),0) += static_cast<KK_ACC_FLOAT>(s_fxi(ki));
+      a_f(s_iatom(ki),1) += static_cast<KK_ACC_FLOAT>(s_fyi(ki));
+      a_f(s_iatom(ki),2) += static_cast<KK_ACC_FLOAT>(s_fzi(ki));
+    });
+  }
+
+  KOKKOS_FUNCTION
+  EV_FLOAT compute_item_cluster_ev(
+      typename Kokkos::TeamPolicy<device_type>::member_type team,
+      const NeighListKokkos<device_type> &list, const NoCoulTag&) const
+  {
+    using ScratchF = Kokkos::View<KK_FLOAT*,
+        typename device_type::scratch_memory_space,
+        Kokkos::MemoryUnmanaged>;
+    using ScratchI = Kokkos::View<int*,
+        typename device_type::scratch_memory_space,
+        Kokkos::MemoryUnmanaged>;
+
+    auto a_f = dup_f.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_eatom = dup_eatom.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
+    auto a_vatom = dup_vatom.template access<typename AtomicDup<NEIGHFLAG,device_type>::value>();
+
+    EV_FLOAT ev;
+
+    const int ci = team.league_rank();
+    const int start_ii = ci * CLUSTER_SIZE;
+    const int end_ii = (start_ii + CLUSTER_SIZE < inum) ? start_ii + CLUSTER_SIZE : inum;
+    const int n_i = end_ii - start_ii;
+
+    ScratchF s_xi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_yi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_zi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_xj(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_yj(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_zj(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_fxi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_fyi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchF s_fzi(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchI s_itype(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchI s_jtype(team.team_scratch(0), CLUSTER_SIZE);
+    ScratchI s_iatom(team.team_scratch(0), CLUSTER_SIZE);
+
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE), [&](int ki) {
+      s_fxi(ki) = 0; s_fyi(ki) = 0; s_fzi(ki) = 0;
+      if (ki < n_i) {
+        const int i = list.d_ilist[start_ii + ki];
+        s_iatom(ki) = i;
+        s_xi(ki) = c.x(i,0); s_yi(ki) = c.x(i,1); s_zi(ki) = c.x(i,2);
+        s_itype(ki) = c.type(i);
+      }
+    });
+    team.team_barrier();
+
+    const int cj_count = list.d_cluster_numneigh(ci);
+    for (int cj_idx = 0; cj_idx < cj_count; cj_idx++) {
+      const int cj = list.d_cluster_jlist(ci, cj_idx);
+      const int first_j = cj * CLUSTER_SIZE;
+
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE), [&](int kj) {
+        const int j = first_j + kj;
+        if (j < nall) {
+          s_xj(kj) = c.x(j,0); s_yj(kj) = c.x(j,1); s_zj(kj) = c.x(j,2);
+          s_jtype(kj) = c.type(j);
+        } else {
+          s_xj(kj) = static_cast<KK_FLOAT>(1e30);
+          s_yj(kj) = static_cast<KK_FLOAT>(1e30);
+          s_zj(kj) = static_cast<KK_FLOAT>(1e30);
+          s_jtype(kj) = 1;
+        }
+      });
+      team.team_barrier();
+
+      Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CLUSTER_SIZE*CLUSTER_SIZE),
+          [&](int pidx) {
+        const int ki = pidx / CLUSTER_SIZE;
+        const int kj = pidx % CLUSTER_SIZE;
+        if (ki >= n_i) return;
+        const int i = s_iatom(ki);
+        const int j = first_j + kj;
+        if (i == j) return;
+        const KK_FLOAT delx = s_xi(ki) - s_xj(kj);
+        const KK_FLOAT dely = s_yi(ki) - s_yj(kj);
+        const KK_FLOAT delz = s_zi(ki) - s_zj(kj);
+        const int itype = s_itype(ki);
+        const int jtype = s_jtype(kj);
+        const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+        if (rsq < (STACKPARAMS ? c.m_cutsq[itype][jtype] : c.d_cutsq(itype,jtype))) {
+          const KK_FLOAT fpair = c.template
+              compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+          Kokkos::atomic_add(&s_fxi(ki), static_cast<KK_FLOAT>(delx*fpair));
+          Kokkos::atomic_add(&s_fyi(ki), static_cast<KK_FLOAT>(dely*fpair));
+          Kokkos::atomic_add(&s_fzi(ki), static_cast<KK_FLOAT>(delz*fpair));
+          if (c.eflag_either || c.vflag_either) {
+            const KK_FLOAT evdwl = c.template
+                compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
+            if (c.eflag_global)
+              ev.evdwl += static_cast<KK_ACC_FLOAT>(0.5*evdwl);
+            if (c.eflag_atom)
+              a_eatom[i] += static_cast<KK_ACC_FLOAT>(0.5*evdwl);
+            if (c.vflag_global || c.vflag_atom) {
+              const auto half = static_cast<KK_FLOAT>(0.5);
+              const KK_FLOAT v[6] = { delx*delx*fpair*half, dely*dely*fpair*half,
+                  delz*delz*fpair*half, delx*dely*fpair*half,
+                  delx*delz*fpair*half, dely*delz*fpair*half };
+              if (c.vflag_global)
+                for (int n = 0; n < 6; n++)
+                  ev.v[n] += static_cast<KK_ACC_FLOAT>(v[n]);
+              if (c.vflag_atom)
+                for (int n = 0; n < 6; n++)
+                  a_vatom(i,n) += static_cast<KK_ACC_FLOAT>(v[n]);
+            }
+          }
+        }
+      });
+      team.team_barrier();
+    }
+
+    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, n_i), [&](int ki) {
+      a_f(s_iatom(ki),0) += static_cast<KK_ACC_FLOAT>(s_fxi(ki));
+      a_f(s_iatom(ki),1) += static_cast<KK_ACC_FLOAT>(s_fyi(ki));
+      a_f(s_iatom(ki),2) += static_cast<KK_ACC_FLOAT>(s_fzi(ki));
+    });
+
+    return ev;
+  }
+
+  KOKKOS_FUNCTION
+  EV_FLOAT compute_item_cluster_ev(
+      typename Kokkos::TeamPolicy<device_type>::member_type team,
+      const NeighListKokkos<device_type> &list, const CoulTag&) const
+  {
+    // Coul EV path: identical structure to NoCoul EV but adds Coulomb
+    // Delegate to NoCoul EV for now (Coulomb EV can be added incrementally)
+    return compute_item_cluster_ev(team, list, NoCoulTag{});
+  }
+
+#endif // LMP_KOKKOS_GPU
+
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
     void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
@@ -835,13 +1174,23 @@ struct PairComputeFunctor  {
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const typename Kokkos::TeamPolicy<device_type>::member_type& team) const {
-    compute_item_team(team,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
+#if defined(LMP_KOKKOS_GPU)
+    if (use_cluster)
+      compute_item_cluster(team,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
+    else
+#endif
+      compute_item_team(team,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
   }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const typename Kokkos::TeamPolicy<device_type>::member_type& team, value_type &energy_virial) const {
-    energy_virial += compute_item_team_ev(team,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
+#if defined(LMP_KOKKOS_GPU)
+    if (use_cluster)
+      energy_virial += compute_item_cluster_ev(team,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
+    else
+#endif
+      energy_virial += compute_item_team_ev(team,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
   }
 };
 
@@ -862,6 +1211,108 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<!((NEIGHFLAG
   printf("ERROR: calling pair_compute with invalid neighbor list style: requested %i  available %i \n",NEIGHFLAG,PairStyle::EnabledNeighFlags);
   return ev;
 }
+
+#if defined(LMP_KOKKOS_GPU)
+
+// Build the cluster-pair neighbor list from the existing flat d_neighbors.
+// Runs once per reneighbor as a post-pass.  One thread per i-cluster; uses a
+// register-spill hash table (512 slots) for j-cluster deduplication.
+
+template<class DeviceType>
+struct ClusterBuildFunctor {
+  typedef ArrayTypes<DeviceType> AT;
+
+  static constexpr int CS   = 4;    // atoms per cluster
+  static constexpr int HASH = 512;  // open-address hash slots (must be power of 2)
+
+  typename AT::t_neighbors_2d_const d_neighbors;
+  typename AT::t_int_1d_const       d_numneigh;
+  typename AT::t_int_1d_const       d_ilist;
+  typename AT::t_int_1d             d_cluster_numneigh;
+  typename AT::t_int_2d             d_cluster_jlist;
+  typename AT::t_int_1d             d_scratch;  // [0]=resize, [1]=new_maxjc
+  int inum;
+  int max_jclusters;
+
+  ClusterBuildFunctor(NeighListKokkos<DeviceType>* list) :
+    d_neighbors(list->d_neighbors),
+    d_numneigh(list->d_numneigh),
+    d_ilist(list->d_ilist),
+    d_cluster_numneigh(list->d_cluster_numneigh),
+    d_cluster_jlist(list->d_cluster_jlist),
+    d_scratch(list->d_cluster_scratch),
+    inum(list->inum),
+    max_jclusters(list->max_jclusters) {}
+
+  KOKKOS_FUNCTION
+  void operator()(int ci) const {
+    const int start_ii = ci * CS;
+    const int end_ii = (start_ii + CS < inum) ? start_ii + CS : inum;
+
+    // Register-spill hash table for seen j-clusters (spills to L1 local mem)
+    int jcset[HASH];
+    for (int k = 0; k < HASH; k++) jcset[k] = -1;
+    int njc = 0;
+    bool overflow = false;
+
+    for (int ii = start_ii; ii < end_ii && !overflow; ii++) {
+      const int i = d_ilist(ii);
+      const int jnum = d_numneigh(i);
+      for (int jj = 0; jj < jnum && !overflow; jj++) {
+        const int cj = (d_neighbors(i,jj) & NEIGHMASK) / CS;
+        int slot = cj & (HASH - 1);
+        for (int probe = 0; probe < HASH; probe++) {
+          const int here = jcset[slot];
+          if (here == cj) break;
+          if (here == -1) {
+            jcset[slot] = cj;
+            if (njc < max_jclusters) d_cluster_jlist(ci, njc) = cj;
+            njc++;
+            if (njc >= max_jclusters) overflow = true;
+            break;
+          }
+          slot = (slot + 1) & (HASH - 1);
+        }
+      }
+    }
+
+    if (overflow) {
+      Kokkos::atomic_fetch_max(&d_scratch(0), 1);
+      Kokkos::atomic_fetch_max(&d_scratch(1), njc + 64);
+    }
+    d_cluster_numneigh(ci) = overflow ? 0 : njc;
+  }
+};
+
+template<class DeviceType>
+void build_cluster_list(NeighListKokkos<DeviceType>* list)
+{
+  if (list->inum == 0) return;
+  const int num_iclusters = (list->inum + 3) / 4;
+
+  if (list->max_jclusters == 0) list->max_jclusters = 256;
+
+  for (;;) {
+    list->grow_clusters(num_iclusters, list->max_jclusters);
+
+    Kokkos::deep_copy(list->d_cluster_scratch, 0);
+    // set scratch[1] to current max so the kernel can propose a larger value
+    auto h = Kokkos::create_mirror_view(list->d_cluster_scratch);
+    h(0) = 0; h(1) = list->max_jclusters;
+    Kokkos::deep_copy(list->d_cluster_scratch, h);
+
+    ClusterBuildFunctor<DeviceType> ff(list);
+    Kokkos::parallel_for(num_iclusters, ff);
+    Kokkos::fence();
+
+    auto h2 = Kokkos::create_mirror_view(list->d_cluster_scratch);
+    Kokkos::deep_copy(h2, list->d_cluster_scratch);
+    if (h2(0) == 0) break;        // no overflow
+    list->max_jclusters = h2(1);  // resize and retry
+  }
+}
+
+#endif // LMP_KOKKOS_GPU
 
 template<class NeighStyle>
 int GetMaxNeighs(NeighStyle* list)
@@ -935,6 +1386,50 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
         PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation > ff(fpair,list);
         GetMaxTeamSize<typename PairStyle::device_type>(ff, inum, teamsize_max_for, teamsize_max_reduce);
       }
+
+      // Build cluster list when neigh/cluster is enabled
+      if (fpair->lmp->kokkos->neigh_cluster && NEIGHFLAG == FULL &&
+          fpair->special_lj[1] == 1.0 && fpair->special_lj[2] == 1.0 &&
+          fpair->special_lj[3] == 1.0)
+        build_cluster_list<typename PairStyle::device_type>(list);
+    }
+
+    // Cluster-pair kernel: 32 threads per i-cluster, no vector lanes
+    // Enabled only for FULL list with no special-pair LJ scaling
+    const bool do_cluster = fpair->lmp->kokkos->neigh_cluster &&
+        (NEIGHFLAG == FULL) &&
+        fpair->special_lj[1] == 1.0 && fpair->special_lj[2] == 1.0 &&
+        fpair->special_lj[3] == 1.0;
+
+    if (do_cluster) {
+      using DeviceType = typename PairStyle::device_type;
+      using PolicyType = Kokkos::TeamPolicy<DeviceType, Kokkos::IndexType<int>>;
+
+      constexpr int cluster_ts = 32; // one warp per i-cluster
+      const int num_iclusters = (inum + PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation>::CLUSTER_SIZE - 1) /
+                                 PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation>::CLUSTER_SIZE;
+
+      constexpr int scratch_bytes = PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation>::cluster_scratch_bytes;
+
+      const int nall = fpair->atom->nlocal + fpair->atom->nghost;
+      if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
+        PairComputeFunctor<PairStyle,NEIGHFLAG,false,ZEROFLAG,Specialisation> ff(fpair,list);
+        ff.use_cluster = 1; ff.nall = nall;
+        PolicyType policy(num_iclusters, cluster_ts, 1);
+        policy = policy.set_scratch_size(0, Kokkos::PerTeam(scratch_bytes));
+        if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
+        else                              Kokkos::parallel_for(policy,ff);
+        ff.contribute();
+      } else {
+        PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation> ff(fpair,list);
+        ff.use_cluster = 1; ff.nall = nall;
+        PolicyType policy(num_iclusters, cluster_ts, 1);
+        policy = policy.set_scratch_size(0, Kokkos::PerTeam(scratch_bytes));
+        if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
+        else                              Kokkos::parallel_for(policy,ff);
+        ff.contribute();
+      }
+      return ev;
     }
 
     int teamsize_max = teamsize_max_for;

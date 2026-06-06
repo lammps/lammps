@@ -17,12 +17,6 @@
     The Pennsylvania State University
    ------------------------------------------------------ */
 
-#ifdef LDD_POTENTIAL_CLASS
-// clang-format off
-LddPotentialStyle(noforce,LddPotentialNoForce);
-// clang-format on
-#else
-
 #ifndef LDD_POTENTIAL_NOFORCE
 #define LDD_POTENTIAL_NOFORCE
 
@@ -44,5 +38,4 @@ class LddPotentialNoForce : public LddPotential {
 };
 }    // namespace LAMMPS_NS
 
-#endif
 #endif

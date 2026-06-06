@@ -440,7 +440,6 @@
 /ldd_indicator_smooth.h
 /ldd_indicator_sphere.cpp
 /ldd_indicator_sphere.h
-/ldd_indicator_styles.h
 /ldd_potential_constant.cpp
 /ldd_potential_constant.h
 /ldd_potential.cpp
@@ -461,7 +460,6 @@
 /ldd_potential_tablelin.h
 /ldd_potential_tablespline.cpp
 /ldd_potential_tablespline.h
-/ldd_potential_styles.h
 /pair_ldd.cpp
 /pair_ldd.h
 

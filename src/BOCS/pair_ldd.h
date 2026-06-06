@@ -26,15 +26,28 @@ PairStyle(ldd,PairLdd);
 #ifndef LMP_PAIR_LDD_H
 #define LMP_PAIR_LDD_H
 
-#include <map>
-
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-//Forward Declarations
 class LddIndicator;
 class LddPotential;
+
+typedef LddIndicator *(*IndicatorCreator)(LAMMPS *);
+struct LddIndicatorInfo {
+  const char *name;
+  IndicatorCreator creator;
+};
+extern const LddIndicatorInfo ldd_indicator_table[];
+extern const int num_ldd_indicator;
+
+typedef LddPotential *(*PotentialCreator)(LAMMPS *);
+struct LddPotentialInfo {
+  const char *name;
+  PotentialCreator creator;
+};
+extern const LddPotentialInfo ldd_potential_table[];
+extern const int num_ldd_potential;
 
 class PairLdd : public Pair {
  public:
@@ -49,16 +62,7 @@ class PairLdd : public Pair {
   void *extract_peratom(const char *, int &) override;
   void coeff_ldd(int si, int sj, int narg, char **arg);
 
-  // factory maps for the indicator and potential subclasses,
-  // built the same way as the style maps in force.cpp
-  typedef LddIndicator *(*IndicatorCreator)(LAMMPS *);
-  typedef std::map<std::string, IndicatorCreator> IndicatorCreatorMap;
-  IndicatorCreatorMap *indicator_map;
   class LddIndicator *new_indicator(const std::string &);
-
-  typedef LddPotential *(*PotentialCreator)(LAMMPS *);
-  typedef std::map<std::string, PotentialCreator> PotentialCreatorMap;
-  PotentialCreatorMap *potential_map;
   class LddPotential *new_potential(const std::string &);
 
   // Functions to calculate the local densities, the gradients,
@@ -100,11 +104,6 @@ class PairLdd : public Pair {
   void ErrorNumKeywordArgs(const char *, const char *);
   void read_file(char *filename);    // reads ldd potential file, executes coeff_ldd per entry
 
- private:
-  // Again, the same as done in force.h
-  void LDD_factory();
-  template <typename T> static LddIndicator *indicator_creator(LAMMPS *);
-  template <typename T> static LddPotential *potential_creator(LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

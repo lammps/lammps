@@ -34,8 +34,6 @@
 
 #include "ldd_indicator.h"
 #include "ldd_potential.h"
-#include "ldd_indicator_styles.h"
-#include "ldd_potential_styles.h"
 
 #include <cmath>
 #include <cstring>
@@ -110,34 +108,6 @@ PairLdd::PairLdd(LAMMPS *lmp) : Pair(lmp)
   total_energy = nullptr;
 
   map = new int[atom->ntypes + 1];
-
-  LDD_factory();
-}
-
-// analogous to void _noopt Force::create_factories()
-
-void PairLdd::LDD_factory()
-{
-
-  indicator_map = new IndicatorCreatorMap();
-
-#define LDD_INDICATOR_CLASS
-#define LddIndicatorStyle(key, Class) (*indicator_map)[#key] = &indicator_creator<Class>;
-
-#include "ldd_indicator_styles.h"
-
-#undef LddIndicatorStyle
-#undef LDD_INDICATOR_CLASS
-
-  potential_map = new PotentialCreatorMap();
-
-#define LDD_POTENTIAL_CLASS
-#define LddPotentialStyle(key, Class) (*potential_map)[#key] = &potential_creator<Class>;
-
-#include "ldd_potential_styles.h"
-
-#undef LddPotentialStyle
-#undef LDD_POTENTIAL_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -176,8 +146,6 @@ PairLdd::~PairLdd()
   memory->destroy(ld_grad_energy);
   memory->destroy(total_energy);
 
-  delete indicator_map;
-  delete potential_map;
 }
 
 /* ----------------------------------------------------------------------
@@ -453,35 +421,20 @@ void PairLdd::settings(int narg, char ** /*arg*/)
 
 /* ---------------------------------------------------------------------- */
 
-// Again, these are analogous to what is done in force.h
 LddIndicator *PairLdd::new_indicator(const std::string &wtype)
 {
-  if (indicator_map->find(wtype) != indicator_map->end()) {
-    IndicatorCreator indicator_creator = (*indicator_map)[wtype];
-    return indicator_creator(lmp);
-  }
+  for (int i = 0; i < num_ldd_indicator; ++i)
+    if (wtype == ldd_indicator_table[i].name) return ldd_indicator_table[i].creator(lmp);
   error->all(FLERR, utils::check_packages_for_style("LddIndicator", wtype, lmp));
   return nullptr;
 }
 
-template <typename T> LddIndicator *PairLdd::indicator_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
 LddPotential *PairLdd::new_potential(const std::string &ptype)
 {
-  if (potential_map->find(ptype) != potential_map->end()) {
-    PotentialCreator potential_creator = (*potential_map)[ptype];
-    return potential_creator(lmp);
-  }
+  for (int i = 0; i < num_ldd_potential; ++i)
+    if (ptype == ldd_potential_table[i].name) return ldd_potential_table[i].creator(lmp);
   error->all(FLERR, utils::check_packages_for_style("LddPotential", ptype, lmp));
   return nullptr;
-}
-
-template <typename T> LddPotential *PairLdd::potential_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
